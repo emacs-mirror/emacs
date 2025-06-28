@@ -946,11 +946,10 @@ since it could result in memory overflow and make Emacs crash."
 	  (put symbol 'custom-set (cadr prop)))
       ;; This is used by describe-variable.
       (if version (put symbol 'custom-version version))
-      ;; If this is NOT while dumping Emacs, set up the rest of the
-      ;; customization info.  This is the stuff that is not needed
-      ;; until someone does M-x customize etc.
-      (if (or dump-mode (and (featurep 'android) (not after-init-time)))
-	  ;; Don't re-add to custom-delayed-init-variables post-startup.
+      ;; `cus-start' can be loaded twice: it's preloaded by `loadup.el'
+      ;; (at which point we don't set up all the info) but can be *re*loaded
+      ;; later on demand by `custom' (and `info-xref') to get the full info.
+      (if (bound-and-true-p cus-start--preload)
 	  ;; Note this is the _only_ initialize property we handle.
 	  (if (eq (cadr (memq :initialize rest)) #'custom-initialize-delay)
 	      ;; These vars are defined early and should hence be initialized
@@ -958,6 +957,8 @@ since it could result in memory overflow and make Emacs crash."
               ;; them to the end of custom-delayed-init-variables.  Otherwise,
 	      ;; auto-save-file-name-transforms will appear in customize-rogue.
 	      (add-to-list 'custom-delayed-init-variables symbol 'append))
+	;; We're not preloading, so set up the rest of the customization info.
+        ;; This is the stuff that is not needed until M-x customize etc.
 	;; Add it to the right group(s).
 	(if (listp group)
 	    (dolist (g group)

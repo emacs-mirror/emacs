@@ -392,7 +392,8 @@
            (compiled-function-p (symbol-function 'macroexpand-all)))
   (setq internal-make-interpreted-closure-function
         #'cconv-make-interpreted-closure))
-(load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)
+(dlet ((cus-start--preload t)) ;; Tell `cus-start' we're preloading.
+  (load "cus-start")) ;Late to reduce customize-rogue (needs loaddefs.el anyway)
 (load "tooltip")
 (load "international/iso-transl") ; Binds Alt-[ and friends.
 
