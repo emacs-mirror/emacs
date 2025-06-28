@@ -4645,8 +4645,6 @@ If AUTOLOAD is non-nil and F is autoloaded, try to load it
 in the hope that it will set PROP.  If AUTOLOAD is `macro', do it only
 if it's an autoloaded macro."
   (declare (important-return-value t))
-  (unless (symbolp f)
-    (signal 'wrong-type-argument (list 'symbolp f)))
   (let ((val nil))
     (while (and (symbolp f)
                 (null (setq val (get f prop)))

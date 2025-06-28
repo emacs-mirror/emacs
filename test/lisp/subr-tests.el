@@ -1298,11 +1298,7 @@ final or penultimate step during initialization."))
         (should (eq (function-get 'subr-tests--some-fun 'prop) 'value))
         ;; With an alias.
         (should (eq (function-get 'subr-tests--some-alias 'prop) 'value))
-        (function-put 'subr-tests--some-alias 'prop 'value)
-        (should-error (function-get "non-symbol" 'prop)
-                      :type 'wrong-type-argument)
-        (should-error (function-put "non-symbol" 'prop 'val)
-                      :type 'wrong-type-argument))
+        (function-put 'subr-tests--some-alias 'prop 'value))
     (function-put 'subr-tests--some-fun 'prop nil)))
 
 (defun subr-tests--butlast-ref (list &optional n)
