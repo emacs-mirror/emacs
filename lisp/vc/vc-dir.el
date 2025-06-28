@@ -487,9 +487,11 @@ If BODY uses EVENT, it should be a variable,
 	   (vc-dir-fileinfo->name data)))))))
 
 (defun vc-dir-update (entries buffer &optional noinsert)
-  "Update BUFFER's ewoc from the list of ENTRIES.
-If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
-  ;; Add ENTRIES to the vc-dir buffer BUFFER.
+  "Update BUFFER's VC-Dir ewoc from ENTRIES.
+This has the effect of adding ENTRIES to the VC-Dir buffer BUFFER.
+If optional argument NOINSERT is non-nil, update ewoc nodes, but don't
+add elements of ENTRIES to the buffer that aren't already in the ewoc.
+Also update some VC file properties from ENTRIES."
   (with-current-buffer buffer
     ;; Insert the entries sorted by name into the ewoc.
     ;; We assume the ewoc is sorted too, which should be the
@@ -592,7 +594,11 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 			       (apply #'vc-dir-create-fileinfo entry))))))
       (when to-remove
 	(let ((inhibit-read-only t))
-	  (apply #'ewoc-delete vc-ewoc (nreverse to-remove)))))))
+	  (apply #'ewoc-delete vc-ewoc (nreverse to-remove)))))
+    ;; Update VC file properties.
+    (pcase-dolist (`(,file ,state ,_extra) entries)
+      (vc-file-setprop file 'vc-backend
+                       (if (eq state 'unregistered) 'none vc-dir-backend)))))
 
 (defun vc-dir-busy ()
   (and (buffer-live-p vc-dir-process-buffer)
