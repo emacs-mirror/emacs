@@ -356,7 +356,9 @@ otherwise, use a different charset."
 (print-tests--deftest error-message-string-circular ()
   (let ((err (list 'error)))
     (setcdr err err)
-    (should-error (error-message-string err) :type 'circular-list)))
+    (should-error (error-message-string err) :type 'circular-list)
+    ;; check that prin1-to-string-buffer is cleared (bug#78842)
+    (should (equal "37.0" (prin1-to-string 37.0)))))
 
 (print-tests--deftest print-hash-table-test ()
   (should

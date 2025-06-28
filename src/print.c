@@ -1023,6 +1023,14 @@ debug_format (const char *fmt, Lisp_Object arg)
 }
 
 
+/* Erase the Vprin1_to_string_buffer, potentially switching to it.  */
+static void
+erase_prin1_to_string_buffer (void)
+{
+  set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
+  Ferase_buffer ();
+}
+
 DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
        1, 1, 0,
        doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.
@@ -1030,9 +1038,6 @@ See Info anchor `(elisp)Definition of signal' for some details on how this
 error message is constructed.  */)
   (Lisp_Object obj)
 {
-  struct buffer *old = current_buffer;
-  Lisp_Object value;
-
   /* If OBJ is (error STRING), just return STRING.
      That is not only faster, it also avoids the need to allocate
      space here when the error is due to memory full.  */
@@ -1042,15 +1047,15 @@ error message is constructed.  */)
       && NILP (XCDR (XCDR (obj))))
     return XCAR (XCDR (obj));
 
+  /* print_error_message can throw after producing some output, in which
+     case we need to ensure the buffer is cleared again (bug#78842).  */
+  specpdl_ref count = SPECPDL_INDEX ();
+  record_unwind_current_buffer ();
+  record_unwind_protect_void (erase_prin1_to_string_buffer);
   print_error_message (obj, Vprin1_to_string_buffer, 0, Qnil);
 
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
-  value = Fbuffer_string ();
-
-  Ferase_buffer ();
-  set_buffer_internal (old);
-
-  return value;
+  return unbind_to (count, Fbuffer_string ());
 }
 
 /* Print an error message for the error DATA onto Lisp output stream
