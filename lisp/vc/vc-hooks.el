@@ -377,7 +377,10 @@ backend is tried first."
 
 (defun vc-backend (file-or-list)
   "Return the version control type of FILE-OR-LIST, nil if it's not registered.
-If the argument is a list, the files must all have the same back end."
+If the argument is a list, the files must all have the same back end.
+
+This function returns cached information.  To query the VCS regarding
+whether FILE-OR-LIST is registered or unregistered, use `vc-registered'."
   ;; `file' can be nil in several places (typically due to the use of
   ;; code like (vc-backend buffer-file-name)).
   (cond ((stringp file-or-list)
