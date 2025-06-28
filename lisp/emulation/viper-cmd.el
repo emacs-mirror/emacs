@@ -3867,7 +3867,6 @@ Null string will repeat previous search."
 	      (setq viper-use-register nil)
 	      (error viper-EmptyRegister reg))
 	  (user-error viper-ViperBell)))
-    (setq viper-use-register nil)
     (if (viper-end-with-a-newline-p text)
 	(progn
 	  (end-of-line)
@@ -3879,6 +3878,7 @@ Null string will repeat previous search."
     (set-marker (mark-marker) (point) (current-buffer))
     (viper-set-destructive-command
      (list 'viper-put-back val nil viper-use-register nil nil))
+    (setq viper-use-register nil)
     (setq sv-point (point))
     (viper-loop val (viper-yank text))
     (setq chars-inserted (abs (- (point) sv-point))
@@ -3917,10 +3917,10 @@ Null string will repeat previous search."
 	      (setq viper-use-register nil)
 	      (error viper-EmptyRegister reg))
 	  (user-error viper-ViperBell)))
-    (setq viper-use-register nil)
     (if (viper-end-with-a-newline-p text) (beginning-of-line))
     (viper-set-destructive-command
      (list 'viper-Put-back val nil viper-use-register nil nil))
+    (setq viper-use-register nil)
     (set-marker (mark-marker) (point) (current-buffer))
     (setq sv-point (point))
     (viper-loop val (viper-yank text))
