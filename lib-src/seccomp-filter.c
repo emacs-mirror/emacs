@@ -127,6 +127,15 @@ set_attribute (enum scmp_filter_attr attr, uint32_t value)
               #action, #syscall, arg_cnt, #__VA_ARGS__);             \
     }                                                                \
   while (false)
+#define RULE0(action, syscall)					     \
+  do								     \
+    {								     \
+      int status = seccomp_rule_add (ctx, action, syscall, 0);	     \
+      if (status < 0)						     \
+	fail (-status, "seccomp_rule_add (%s, %s, 0)",		     \
+	      #action, #syscall);				     \
+    }								     \
+  while (false)
 
 static void
 export_filter (const char *file,
@@ -178,8 +187,8 @@ main (int argc, char **argv)
   assert ((uintptr_t) NULL == 0);
 
   /* Allow a clean exit.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (exit));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (exit_group));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (exit));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (exit_group));
 
   /* Allow `mmap' and friends.  This is necessary for dynamic loading,
      reading the portable dump file, and thread creation.  We don't
@@ -206,58 +215,58 @@ main (int argc, char **argv)
                     ~(MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED
                       | MAP_DENYWRITE),
                     0));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (munmap));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (munmap));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (mprotect),
         /* Don't allow making pages executable.  */
         SCMP_A2_32 (SCMP_CMP_MASKED_EQ,
                     ~(PROT_NONE | PROT_READ | PROT_WRITE), 0));
 
   /* Allow restartable sequences.  The dynamic linker uses them.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (rseq));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (rseq));
 
   /* Futexes are used everywhere.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (futex),
         SCMP_A1_32 (SCMP_CMP_EQ, FUTEX_WAKE_PRIVATE));
 
   /* Allow basic dynamic memory management.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (brk));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (brk));
 
   /* Allow some status inquiries.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (uname));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (getuid));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (geteuid));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (getpid));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (gettid));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (getpgrp));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (uname));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (getuid));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (geteuid));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (getpid));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (gettid));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (getpgrp));
 
   /* Allow operations on open file descriptors.  File descriptors are
      capabilities, and operating on them shouldn't cause security
      issues.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (read));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (pread64));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (write));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (close));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (lseek));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (dup));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (dup2));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (fstat));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (read));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (pread64));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (write));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (close));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (lseek));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (dup));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (dup2));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (fstat));
 
   /* Allow read operations on the filesystem.  If necessary, these
      should be further restricted using mount namespaces.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (access));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (faccessat));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (access));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (faccessat));
 #ifdef __NR_faccessat2
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (faccessat2));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (faccessat2));
 #endif
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (stat));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (stat64));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (lstat));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (lstat64));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (fstatat64));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (newfstatat));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (readlink));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (readlinkat));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (getcwd));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (stat));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (stat64));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (lstat));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (lstat64));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (fstatat64));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (newfstatat));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (readlink));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (readlinkat));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (getcwd));
 
   /* Allow opening files, assuming they are only opened for
      reading.  */
@@ -292,17 +301,17 @@ main (int argc, char **argv)
         SCMP_A1_32 (SCMP_CMP_EQ, F_GETFL));
 
   /* Allow reading random numbers from the kernel.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (getrandom));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (getrandom));
 
   /* Changing the umask is uncritical.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (umask));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (umask));
 
   /* Allow creation of pipes.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (pipe));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (pipe2));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (pipe));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (pipe2));
 
   /* Allow reading (but not changing) resource limits.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (getrlimit));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (getrlimit));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (prlimit64),
 	SCMP_A0_32 (SCMP_CMP_EQ, 0) /* pid == 0 (current process) */,
         SCMP_A2_64 (SCMP_CMP_EQ, 0) /* new_limit == NULL */);
@@ -313,20 +322,20 @@ main (int argc, char **argv)
         SCMP_A2_64 (SCMP_CMP_NE, 0) /* new_limit != NULL */);
 
   /* Emacs installs signal handlers, which is harmless.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (sigaction));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (rt_sigaction));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (sigprocmask));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (rt_sigprocmask));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (sigaction));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (rt_sigaction));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (sigprocmask));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (rt_sigprocmask));
 
   /* Allow reading the current time.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (clock_gettime),
         SCMP_A0_32 (SCMP_CMP_EQ, CLOCK_REALTIME));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (time));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (gettimeofday));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (time));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (gettimeofday));
 
   /* Allow timer support.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (timer_create));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (timerfd_create));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (timer_create));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (timerfd_create));
 
   /* Allow thread creation.  See the NOTES section in the manual page
      for the `clone' function.  */
@@ -340,25 +349,25 @@ main (int argc, char **argv)
                       | CLONE_CHILD_CLEARTID),
                     0));
   /* glibc 2.34+ pthread_create uses clone3.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (clone3));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (sigaltstack));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (set_robust_list));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (clone3));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (sigaltstack));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (set_robust_list));
 
   /* Allow setting the process name for new threads.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (prctl),
         SCMP_A0_32 (SCMP_CMP_EQ, PR_SET_NAME));
 
   /* Allow some event handling functions used by glib.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (eventfd));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (eventfd2));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (wait4));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (poll));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (eventfd));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (eventfd2));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (wait4));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (poll));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (pidfd_open),
 	SCMP_A1_32 (SCMP_CMP_EQ, 0));
 
   /* Don't allow creating sockets (network access would be extremely
      dangerous), but also don't crash.  */
-  RULE (SCMP_ACT_ERRNO (EACCES), SCMP_SYS (socket));
+  RULE0 (SCMP_ACT_ERRNO (EACCES), SCMP_SYS (socket));
 
   EXPORT_FILTER (argv[1], seccomp_export_bpf);
   EXPORT_FILTER (argv[2], seccomp_export_pfc);
@@ -368,15 +377,15 @@ main (int argc, char **argv)
      calls.  Firstly, the wrapper binary will need to `execve' the
      Emacs binary.  Furthermore, the C library requires some system
      calls at startup time to set up thread-local storage.  */
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (execve));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (set_tid_address));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (execve));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (set_tid_address));
   RULE (SCMP_ACT_ERRNO (EINVAL), SCMP_SYS (prctl),
 	SCMP_A0_32 (SCMP_CMP_EQ, PR_CAPBSET_READ));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (arch_prctl),
         SCMP_A0_32 (SCMP_CMP_EQ, ARCH_SET_FS));
   RULE (SCMP_ACT_ERRNO (EINVAL), SCMP_SYS (arch_prctl),
         SCMP_A0_32 (SCMP_CMP_EQ, ARCH_CET_STATUS));
-  RULE (SCMP_ACT_ALLOW, SCMP_SYS (statfs));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (statfs));
 
   /* We want to allow starting the Emacs binary itself with the
      --seccomp flag, so we need to allow the `prctl' and `seccomp'
