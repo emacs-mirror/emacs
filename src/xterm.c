@@ -21456,45 +21456,49 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	}
 
 #if defined HAVE_GTK3 && defined USE_TOOLKIT_SCROLL_BARS
-	  struct scroll_bar *bar = x_window_to_scroll_bar (dpyinfo->display,
-							   configureEvent.xconfigure.window, 2);
+      struct scroll_bar *bar = x_window_to_scroll_bar (dpyinfo->display,
+						       configureEvent.xconfigure.window, 2);
 
-	  /* There is really no other way to make GTK scroll bars fit
-	     in the dimensions we want them to.  */
-	  if (bar)
+      /* There is really no other way to make GTK scroll bars fit
+	 in the dimensions we want them to.  */
+      if (bar)
+	{
+	  /* Skip all the pending configure events, not just the
+	     ones where window motion occurred.  */
+	  while (XPending (dpyinfo->display))
 	    {
-	      /* Skip all the pending configure events, not just the
-		 ones where window motion occurred.  */
-	      while (XPending (dpyinfo->display))
+	      XNextEvent (dpyinfo->display, &next_event);
+	      if (next_event.type != ConfigureNotify
+		  || next_event.xconfigure.window != event->xconfigure.window)
 		{
-		  XNextEvent (dpyinfo->display, &next_event);
-		  if (next_event.type != ConfigureNotify
-		      || next_event.xconfigure.window != event->xconfigure.window)
-		    {
-		      XPutBackEvent (dpyinfo->display, &next_event);
-		      break;
-		    }
-		  else
-		    configureEvent = next_event;
+		  XPutBackEvent (dpyinfo->display, &next_event);
+		  break;
 		}
+	      else
+		configureEvent = next_event;
+	    }
 
-	      if (configureEvent.xconfigure.width != max (bar->width, 1)
-		  || configureEvent.xconfigure.height != max (bar->height, 1))
-		{
-		  XResizeWindow (dpyinfo->display, bar->x_window,
-				 max (bar->width, 1), max (bar->height, 1));
-		  x_flush (WINDOW_XFRAME (XWINDOW (bar->window)));
-		}
+	  if (configureEvent.xconfigure.width != max (bar->width, 1)
+	      || configureEvent.xconfigure.height != max (bar->height, 1))
+	    {
+	      XResizeWindow (dpyinfo->display, bar->x_window,
+			     max (bar->width, 1), max (bar->height, 1));
+	      x_flush (WINDOW_XFRAME (XWINDOW (bar->window)));
+	    }
 
 #ifdef HAVE_XDBE
-	      if (f && FRAME_X_DOUBLE_BUFFERED_P (f))
-		x_drop_xrender_surfaces (f);
+	  if (f && FRAME_X_DOUBLE_BUFFERED_P (f))
+	    x_drop_xrender_surfaces (f);
 #endif
 
-	      goto OTHER;
-	    }
+	  goto OTHER;
+	}
 #endif
 
+      /* XXX: it is strictly only necessary to provide the edit window
+	 to many of the statements below which only modify or invalidate
+	 resources assigned there.  Most conditionals that alternate
+	 between `f' and `any' could ideally be removed.  */
       f = x_top_window_to_frame (dpyinfo, configureEvent.xconfigure.window);
 
       /* This means we can no longer be certain of the root window
@@ -21508,8 +21512,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
          for size changes: that's not sufficient.  We miss some
          surface invalidations and flicker.  */
 #ifdef HAVE_XDBE
-      if (f && FRAME_X_DOUBLE_BUFFERED_P (f))
-        x_drop_xrender_surfaces (f);
+      {
+#if defined USE_GTK || defined USE_X_TOOLKIT
+	/* Only modifications to the edit window (on which pictures are
+	   created) must be accompanied by invalidations.  (bug#77988) */
+	struct frame *f
+	  = x_window_to_frame (dpyinfo, configureEvent.xconfigure.window);
+#endif /* USE_GTK || USE_X_TOOLKIT */
+	if (f && FRAME_X_DOUBLE_BUFFERED_P (f))
+	  x_drop_xrender_surfaces (f);
+      }
 #endif
 #if defined USE_CAIRO && !defined USE_GTK
       if (f)
