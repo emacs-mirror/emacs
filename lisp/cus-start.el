@@ -949,6 +949,8 @@ since it could result in memory overflow and make Emacs crash."
       ;; `cus-start' can be loaded twice: it's preloaded by `loadup.el'
       ;; (at which point we don't set up all the info) but can be *re*loaded
       ;; later on demand by `custom' (and `info-xref') to get the full info.
+      ;; `cus-start--preload' is bound to t by loadup.el before it loads
+      ;; this file.
       (if (bound-and-true-p cus-start--preload)
 	  ;; Note this is the _only_ initialize property we handle.
 	  (if (eq (cadr (memq :initialize rest)) #'custom-initialize-delay)
