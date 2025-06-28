@@ -209,7 +209,9 @@ _GL_WARN_ON_USE (open, "open is not always POSIX compliant - "
 #   undef open
 #   define open _open
 #  endif
-_GL_CXXALIAS_MDA (open, int, (const char *filename, int flags, ...));
+/* Need to cast, because in MSVC the parameter list of _open as a C++ function
+   is (const char *, int, int = 0).  */
+_GL_CXXALIAS_MDA_CAST (open, int, (const char *filename, int flags, ...));
 # else
 _GL_CXXALIAS_SYS (open, int, (const char *filename, int flags, ...));
 # endif
@@ -313,7 +315,7 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 #endif
 
 #ifndef O_DIRECTORY
-# define O_DIRECTORY 0
+# define O_DIRECTORY 0x20000000 /* Try to not collide with system O_* flags.  */
 #endif
 
 #ifndef O_DSYNC

@@ -2271,7 +2271,7 @@ merge_state_with_log (reg_errcode_t *err, re_match_context_t *mctx,
 	 these destinations and the results of the transition table.  */
       pstate = mctx->state_log[cur_idx];
       log_nodes = pstate->entrance_nodes;
-      if (next_state != NULL)
+      if (next_state != NULL && next_state->entrance_nodes != NULL)
 	{
 	  table_nodes = next_state->entrance_nodes;
 	  *err = re_node_set_init_union (&next_nodes, table_nodes,

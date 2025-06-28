@@ -117,6 +117,31 @@ get_stat_birthtime_ns (_GL_UNUSED struct stat const *st)
 # endif
 }
 
+/* Constructs a 'struct timespec' with the given contents.
+   This macro / function is private to stat-time.h.  */
+#if !defined __cplusplus
+/* Use a C99 compound literal.
+   This is guaranteed to initialize also the padding bits, for example on
+   platforms where tv_sec is 64 bits and tv_nsec is 32 bits, thus avoiding
+   gcc -Wuse-of-uninitialized-value warnings.  */
+# define _gl_make_timespec(sec,nsec) \
+    (struct timespec) { .tv_sec = (sec), .tv_nsec = (nsec) }
+#else
+/* C++ does not have C99 compound literals.
+   A constructor invocation
+     timespec { (sec), (nsec) }
+   would make assumptions about the order of the fields of 'struct timespec',
+   which are not guaranteed by POSIX.  So, use an inline function.  */
+static inline struct timespec
+_gl_make_timespec (time_t sec, long nsec)
+{
+  struct timespec ts;
+  ts.tv_sec = sec;
+  ts.tv_nsec = nsec;
+  return ts;
+}
+#endif
+
 /* Return *ST's access time.  */
 _GL_STAT_TIME_INLINE struct timespec _GL_ATTRIBUTE_PURE
 get_stat_atime (struct stat const *st)
@@ -124,8 +149,7 @@ get_stat_atime (struct stat const *st)
 #ifdef STAT_TIMESPEC
   return STAT_TIMESPEC (st, st_atim);
 #else
-  return (struct timespec) { .tv_sec = st->st_atime,
-                             .tv_nsec = get_stat_atime_ns (st) };
+  return _gl_make_timespec (st->st_atime, get_stat_atime_ns (st));
 #endif
 }
 
@@ -136,8 +160,7 @@ get_stat_ctime (struct stat const *st)
 #ifdef STAT_TIMESPEC
   return STAT_TIMESPEC (st, st_ctim);
 #else
-  return (struct timespec) { .tv_sec = st->st_ctime,
-                             .tv_nsec = get_stat_ctime_ns (st) };
+  return _gl_make_timespec (st->st_ctime, get_stat_ctime_ns (st));
 #endif
 }
 
@@ -148,8 +171,7 @@ get_stat_mtime (struct stat const *st)
 #ifdef STAT_TIMESPEC
   return STAT_TIMESPEC (st, st_mtim);
 #else
-  return (struct timespec) { .tv_sec = st->st_mtime,
-                             .tv_nsec = get_stat_mtime_ns (st) };
+  return _gl_make_timespec (st->st_mtime, get_stat_mtime_ns (st));
 #endif
 }
 
@@ -164,8 +186,7 @@ get_stat_birthtime (_GL_UNUSED struct stat const *st)
      || defined HAVE_STRUCT_STAT_ST_BIRTHTIM_TV_NSEC)
   t = STAT_TIMESPEC (st, st_birthtim);
 #elif defined HAVE_STRUCT_STAT_ST_BIRTHTIMENSEC
-  t = (struct timespec) { .tv_sec = st->st_birthtime,
-                          .tv_nsec = st->st_birthtimensec };
+  t = _gl_make_timespec (st->st_birthtime, st->st_birthtimensec);
 #elif defined _WIN32 && ! defined __CYGWIN__
   /* Native Windows platforms (but not Cygwin) put the "file creation
      time" in st_ctime (!).  See
@@ -173,11 +194,11 @@ get_stat_birthtime (_GL_UNUSED struct stat const *st)
 # if _GL_WINDOWS_STAT_TIMESPEC
   t = st->st_ctim;
 # else
-  t = (struct timespec) { .tv_sec = st->st_ctime };
+  t = _gl_make_timespec (st->st_ctime, 0);
 # endif
 #else
   /* Birth time is not supported.  */
-  t = (struct timespec) { .tv_sec = -1, .tv_nsec = -1 };
+  t = _gl_make_timespec (-1, -1);
 #endif
 
 #if (defined HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC_TV_NSEC \
@@ -189,7 +210,7 @@ get_stat_birthtime (_GL_UNUSED struct stat const *st)
      sometimes returns junk in the birth time fields; work around this
      bug if it is detected.  */
   if (! (t.tv_sec && 0 <= t.tv_nsec && t.tv_nsec < 1000000000))
-    t = (struct timespec) { .tv_sec = -1, .tv_nsec = -1 };
+    t = _gl_make_timespec (-1, -1);
 #endif
 
   return t;

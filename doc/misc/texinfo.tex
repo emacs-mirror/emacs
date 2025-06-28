@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2025-03-22.08}
+\def\texinfoversion{2025-06-18.21}
 %
 % Copyright 1985, 1986, 1988, 1990-2025 Free Software Foundation, Inc.
 %
@@ -9419,6 +9419,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \expandafter\xdef\csname floatlist\iffloattype\endcsname{\the\toks0
       {\safexrefname}}%
   \fi
+  \ignorespaces % ignore ends of line in aux file
 }
 
 % If working on a large document in chapters, it is convenient to

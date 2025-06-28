@@ -95,6 +95,15 @@
 # include <stdio.h>
 #endif
 
+/* Native Windows platforms declare _chdir, _getcwd, _rmdir in
+   <io.h> and/or <direct.h>, not in <unistd.h>.
+   They also declare _access(), _chmod(), _close(), _dup(), _dup2(), _isatty(),
+   _lseek(), _read(), _unlink(), _write() in <io.h>.  */
+#if defined _WIN32 && !defined __CYGWIN__
+# include <io.h>
+# include <direct.h>
+#endif
+
 /* FreeBSD 14.0, NetBSD 10.0, OpenBSD 7.5, Solaris 11.4, and glibc 2.41
    do not define O_CLOEXEC in <unistd.h>.  */
 /* Cygwin 1.7.1 and Android 4.3 declare unlinkat in <fcntl.h>, not in
@@ -118,15 +127,6 @@
 # define __need_system_stdlib_h
 # include <stdlib.h>
 # undef __need_system_stdlib_h
-#endif
-
-/* Native Windows platforms declare _chdir, _getcwd, _rmdir in
-   <io.h> and/or <direct.h>, not in <unistd.h>.
-   They also declare _access(), _chmod(), _close(), _dup(), _dup2(), _isatty(),
-   _lseek(), _read(), _unlink(), _write() in <io.h>.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# include <io.h>
-# include <direct.h>
 #endif
 
 /* Native Windows platforms declare _execl*, _execv* in <process.h>.  */
