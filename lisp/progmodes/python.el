@@ -1967,10 +1967,13 @@ indentation levels from right to left."
 
 (defun python-indent-dedent-line-backspace (arg)
   "De-indent current line.
-Argument ARG is passed to `backward-delete-char-untabify' when
-point is not in between the indentation."
+Argument ARG is passed to `backward-delete-char-untabify' when point is
+not in between the indentation or when Transient Mark mode is enabled,
+the mark is active, and ARG is 1."
   (interactive "*p")
-  (unless (python-indent-dedent-line)
+  (when (or
+         (and (use-region-p) (= arg 1))
+         (not (python-indent-dedent-line)))
     (backward-delete-char-untabify arg)))
 
 (put 'python-indent-dedent-line-backspace 'delete-selection 'supersede)

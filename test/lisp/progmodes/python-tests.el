@@ -3780,6 +3780,24 @@ if x:
                 (pos-bol) (pos-eol))
                "abcdef")))))
 
+(ert-deftest python-indent-dedent-line-backspace-4 ()
+  "Delete the text in the region instead of de-indentation.  Bug#48695."
+  (dolist (test '((1 4) (2 0)))
+    (python-tests-with-temp-buffer
+        "
+if True:
+    x ()
+    if False:
+"
+      (let ((current-prefix-arg (list (car test))))
+        (python-tests-look-at "if False:")
+        (end-of-line)
+        (transient-mark-mode)
+        (set-mark (point))
+        (backward-word 2)
+        (call-interactively #'python-indent-dedent-line-backspace)
+        (should (= (current-indentation) (cadr test)))))))
+
 (ert-deftest python-bob-infloop-avoid ()
   "Test that strings at BOB don't confuse syntax analysis.  Bug#24905"
   (python-tests-with-temp-buffer

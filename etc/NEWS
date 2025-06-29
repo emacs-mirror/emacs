@@ -1822,6 +1822,13 @@ restart Emacs.
 ---
 *** Support of 'electric-layout-mode' added.
 
+---
+*** DEL now deletes the text in the active region when point is between indentation.
+The command 'python-indent-dedent-line-backspace' (by default bound to
+'DEL') now deletes the text in the region and deactivates the mark if
+Transient Mark mode is enabled, the mark is active, and prefix argument
+is 1.
+
 ** Tmm Menubar
 
 ---
