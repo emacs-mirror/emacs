@@ -1560,7 +1560,7 @@ If SHORTLOG is non-nil, use a short format based on `vc-git-root-log-format'.
 \(This requires at least Git version 1.5.6, for the --graph option.)
 If START-REVISION is non-nil, it is the newest revision to show.
 If LIMIT is a number, show no more than this many entries.
-If LIMIT is a non-empty string, use it as a base."
+If LIMIT is a non-empty string, use it as a base revision."
   (let ((coding-system-for-read
          (or coding-system-for-read vc-git-log-output-coding-system)))
     ;; `vc-do-command' creates the buffer, but we need it before running
