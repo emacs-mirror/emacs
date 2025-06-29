@@ -55,6 +55,10 @@ orig_open (const char *filename, int flags, mode_t mode)
 #include <sys/stat.h>
 #include <unistd.h>
 
+#ifndef HAVE_WORKING_O_DIRECTORY
+# define HAVE_WORKING_O_DIRECTORY false
+#endif
+
 #ifndef OPEN_TRAILING_SLASH_BUG
 # define OPEN_TRAILING_SLASH_BUG false
 #endif
