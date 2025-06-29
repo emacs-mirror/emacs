@@ -350,7 +350,8 @@
 ;;   Insert the revision log for FILES into BUFFER.
 ;;   If SHORTLOG is non-nil insert a short version of the log.
 ;;   If LIMIT is non-nil insert only insert LIMIT log entries.
-;;   When LIMIT is a string it means stop at that revision.
+;;   When LIMIT is a string it means stop right before that revision
+;;   (i.e., revision LIMIT itself should not be included in the log).
 ;;   If the backend does not support limiting the number of entries to
 ;;   show it should return `limit-unsupported'.
 ;;   If START-REVISION is given, then show the log starting from that
@@ -3310,8 +3311,8 @@ In some version control systems REMOTE-LOCATION can be a remote branch name."
                                          remote-location)
                         (user-error "No incoming revision -- local-only branch?"))))
       (vc-call-backend backend 'print-log (list rootdir) buffer t
-                       (vc-call-backend backend 'mergebase incoming)
-                       incoming))))
+                       incoming
+                       (vc-call-backend backend 'mergebase incoming)))))
 
 ;;;###autoload
 (defun vc-log-outgoing (&optional remote-location)
@@ -3332,8 +3333,8 @@ In some version control systems REMOTE-LOCATION can be a remote branch name."
                                          remote-location)
                         (user-error "No incoming revision -- local-only branch?"))))
       (vc-call-backend backend 'print-log (list rootdir) buffer t
-                       (vc-call-backend backend 'mergebase incoming)
-                       ""))))
+                       ""
+                       (vc-call-backend backend 'mergebase incoming)))))
 
 ;;;###autoload
 (defun vc-log-search (pattern)
@@ -3367,7 +3368,7 @@ The merge base is a common ancestor of revisions REV1 and REV2."
           (list backend (list (vc-call-backend backend 'root default-directory)))))))
   (vc--with-backend-in-rootdir "VC root-log"
     (setq rev1 (vc-call-backend backend 'mergebase rev1 rev2))
-    (vc-print-log-internal backend (list rootdir) rev1 t (or rev2 ""))))
+    (vc-print-log-internal backend (list rootdir) (or rev2 "") t rev1)))
 
 ;;;###autoload
 (defun vc-region-history (from to)
