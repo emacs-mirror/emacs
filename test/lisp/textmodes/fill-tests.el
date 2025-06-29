@@ -236,6 +236,7 @@ eius. Foo")))
 			(org-mode)
 			(fill-paragraph-semlf))))
 
+(declare-function markdown-mode "markdown-mode")
 (ert-deftest fill-test-fill-paragraph-semlf-markdown-mode ()
   "Test the `fill-paragraph-semlf' function with `markdown-mode'."
   (skip-unless (functionp 'markdown-mode))
