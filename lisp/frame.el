@@ -490,8 +490,12 @@ there (in decreasing order of priority)."
 	     parms
 	   ;; initial-frame-alist and default-frame-alist were already
 	   ;; applied in pc-win.el.
-	   (append initial-frame-alist window-system-frame-alist
-		   default-frame-alist parms nil)))
+	   (setq parms (append initial-frame-alist window-system-frame-alist
+			       default-frame-alist parms nil))
+	   ;; Don't enable tab-bar in daemon's initial frame.
+	   (when (and (daemonp) (not (frame-parameter nil 'client)))
+	     (setq parms (delq (assq 'tab-bar-lines parms) parms)))
+	   parms))
 	(if (null initial-window-system) ;; MS-DOS does this differently in pc-win.el
 	    (let ((newparms (frame-parameters))
 		  (frame (selected-frame)))

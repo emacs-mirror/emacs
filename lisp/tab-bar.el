@@ -286,7 +286,7 @@ a list of frames to update."
         (set-frame-parameter frame 'tab-bar-lines
                              (tab-bar--tab-bar-lines-for-frame frame)))))
   ;; Update `default-frame-alist'
-  (when (and (eq frames t) (not (daemonp)))
+  (when (eq frames t)
     (setq default-frame-alist
           (cons (cons 'tab-bar-lines
                       (if (and tab-bar-mode (eq tab-bar-show t)) 1 0))
