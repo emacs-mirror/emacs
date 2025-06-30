@@ -277,12 +277,8 @@ cyclically with the functions `expand-jump-to-previous-slot' and
 `expand-jump-to-next-slot'.
 
 If ARG is omitted, point is placed at the end of the expanded text."
-
-  (if (null abbrevs)
-      table
-    (expand-add-abbrev table (nth 0 (car abbrevs)) (nth 1 (car abbrevs))
-		       (nth 2 (car abbrevs)))
-    (expand-add-abbrevs table (cdr abbrevs))))
+  (mapc (lambda (x) (apply #'expand-add-abbrev table x)) abbrevs)
+  table)
 
 (defvar expand-list nil "Temporary variable used by the Expand package.")
 
@@ -295,8 +291,9 @@ If ARG is omitted, point is placed at the end of the expanded text."
 (defvar-local expand-point nil
   "End of the expanded region.")
 
-(defun expand-add-abbrev (table abbrev expansion arg)
+(defun expand-add-abbrev (table abbrev expansion arg &rest rest)
   "Add one abbreviation and provide the hook to move to the specified positions."
+  (when rest (message "Ignoring extra args for abbrev \"%s\": %S" abbrev rest))
   (let* ((string-exp (if (and (symbolp expansion) (fboundp expansion))
 			 nil
 		       expansion))
@@ -317,7 +314,7 @@ If ARG is omitted, point is placed at the end of the expanded text."
 	      (if (and (symbolp expansion) (fboundp expansion))
 		  expansion
                 nil))
-      'expand-abbrev-hook)))
+      #'expand-abbrev-hook)))
 
 (put 'expand-abbrev-hook 'no-self-insert t)
 ;;;###autoload
@@ -335,19 +332,14 @@ See `expand-add-abbrevs'.  Value is non-nil if expansion was done."
 		     ?w)
 		 (expand-do-expansion))
 	    (progn
+	      (if (listp expand-list)
+		  (setq expand-index 0
+			expand-pos (expand-list-to-markers expand-list)
+			expand-list nil))
 	      ;; expand-point tells us if we have inserted the text
 	      ;; ourself or if it is the hook which has done the job.
 	      (if expand-point
-		  (progn
-		    (if (vectorp expand-list)
-			(expand-build-marks expand-point))
-		    (indent-region p expand-point nil))
-		;; an outside function can set expand-list to a list of
-		;; markers in reverse order.
-		(if (listp expand-list)
-		    (setq expand-index 0
-			  expand-pos (expand-list-to-markers expand-list)
-			  expand-list nil)))
+		  (indent-region p expand-point nil))
 	      (run-hooks 'expand-expand-hook)
 	      t)
 	  nil))
@@ -359,12 +351,16 @@ See `expand-add-abbrevs'.  Value is non-nil if expansion was done."
 	 (text (aref vect 0))
 	 (position (aref vect 1))
 	 (jump-args (aref vect 2))
-	 (hook (aref vect 3)))
+	 (hook (aref vect 3))
+         (startpos (point)))
     (cond (text
 	   (insert text)
 	   (setq expand-point (point))))
     (if jump-args
-        (funcall #'expand-build-list (car jump-args) (cdr jump-args)))
+        (setq expand-list (nreverse
+                           (mapcar (lambda (offset)
+                                     (+ startpos -1 offset))
+                                   (cdr jump-args)))))
     (if position
 	(backward-char position))
     (if hook
@@ -373,11 +369,8 @@ See `expand-add-abbrevs'.  Value is non-nil if expansion was done."
 
 (defun expand-abbrev-from-expand (word)
   "Test if an abbrev has a hook."
-  (or
-   (and (intern-soft word local-abbrev-table)
-	(symbol-function (intern-soft word local-abbrev-table)))
-   (and (intern-soft word global-abbrev-table)
-	(symbol-function (intern-soft word global-abbrev-table)))))
+  (let ((a (abbrev-symbol word)))
+    (when a (symbol-function a))))
 
 (defun expand-previous-word ()
   "Return the previous word."
@@ -414,28 +407,6 @@ This is used only in conjunction with `expand-add-abbrevs'."
 
 ;;;###autoload (define-key abbrev-map "p" 'expand-jump-to-previous-slot)
 ;;;###autoload (define-key abbrev-map "n" 'expand-jump-to-next-slot)
-
-(defun expand-build-list (len l)
-  "Build a vector of offset positions from the list of positions."
-  (expand-clear-markers)
-  (setq expand-list (vconcat l))
-  (let ((i 0)
-	(lenlist (length expand-list)))
-    (while (< i lenlist)
-      (aset expand-list i (- len (1- (aref expand-list i))))
-      (setq i (1+ i)))))
-
-(defun expand-build-marks (p)
-  "Transform the offsets vector into a marker vector."
-  (if expand-list
-      (progn
-	(setq expand-index 0)
-	(setq expand-pos (make-vector (length expand-list) nil))
-	(let ((i (1- (length expand-list))))
-	  (while (>= i 0)
-	    (aset expand-pos i (copy-marker (- p (aref expand-list i))))
-	    (setq i (1- i))))
-	(setq expand-list nil))))
 
 (defun expand-clear-markers ()
   "Make the markers point nowhere."
