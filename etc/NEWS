@@ -1402,6 +1402,15 @@ HTML 'doctype' declaration to have context-type "text/html".
 When there is no EWW buffer, 'eww-switch-to-buffer' falls back to
 calling 'eww'.
 
+** Url Queue
+
+---
+*** 'url-queue-retrieve' now makes use of some url request variables
+The variables 'url-request-data', 'url-request-method', and
+'url-request-extra-headers' can now be bound around a call to
+'url-queue-retrieve'. Binding them has the same effect as for
+'url-retrieve'.
+
 ** CC mode
 
 +++

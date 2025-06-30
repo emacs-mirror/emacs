@@ -53,7 +53,8 @@
 (cl-defstruct url-queue
   url callback cbargs silentp
   buffer start-time pre-triggered
-  inhibit-cookiesp context-buffer)
+  inhibit-cookiesp context-buffer
+  request-data request-method request-extra-headers)
 
 ;;;###autoload
 (defun url-queue-retrieve (url callback &optional cbargs silent inhibit-cookies)
@@ -63,13 +64,17 @@ but with limits on the degree of parallelism.  The variable
 `url-queue-parallel-processes' sets the number of concurrent processes.
 The variable `url-queue-timeout' sets a timeout."
   (setq url-queue
-	(append url-queue
-		(list (make-url-queue :url url
-				      :callback callback
-				      :cbargs cbargs
-				      :silentp silent
-				      :inhibit-cookiesp inhibit-cookies
-                                      :context-buffer (current-buffer)))))
+        (append url-queue
+                (list (make-url-queue
+                       :url url
+                       :callback callback
+                       :cbargs cbargs
+                       :silentp silent
+                       :inhibit-cookiesp inhibit-cookies
+                       :context-buffer (current-buffer)
+                       :request-data url-request-data
+                       :request-method url-request-method
+                       :request-extra-headers url-request-extra-headers))))
   (url-queue-setup-runners))
 
 ;; To ensure asynch behavior, we start the required number of queue
@@ -155,13 +160,16 @@ The variable `url-queue-timeout' sets a timeout."
 
 (defun url-queue-start-retrieve (job)
   (setf (url-queue-buffer job)
-	(ignore-errors
+        (ignore-errors
           (with-current-buffer (if (buffer-live-p
                                     (url-queue-context-buffer job))
                                    (url-queue-context-buffer job)
                                  (current-buffer))
-	    (let ((url-request-noninteractive t)
-                  (url-allow-non-local-files t))
+            (let ((url-request-noninteractive t)
+                  (url-allow-non-local-files t)
+                  (url-request-data (url-queue-request-data job))
+                  (url-request-method (url-queue-request-method job))
+                  (url-request-extra-headers (url-queue-request-extra-headers job)))
               (url-retrieve (url-queue-url job)
                             #'url-queue-callback-function (list job)
                             (url-queue-silentp job)
