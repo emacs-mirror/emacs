@@ -181,9 +181,9 @@ If this contains a %s, that will be replaced by the matching rule."
      " . (("
      (let ((all-variables
             (apropos-internal ".*"
-                              (lambda (symbol)
-			        (and (boundp symbol)
-				     (get symbol 'variable-documentation))))))
+                              ,(lambda (symbol)
+			         (and (boundp symbol)
+				      (get symbol 'variable-documentation))))))
        (completing-read "Variable to set: " all-variables))
      " . "
      (completing-read "Value to set it to: " nil)
@@ -206,11 +206,11 @@ If this contains a %s, that will be replaced by the matching rule."
 ;; Keywords: "
  '(require 'finder)
  ;;'(setq v1 (apply 'vector (mapcar 'car finder-known-keywords)))
- '(setq v1 (mapcar (lambda (x) (list (symbol-name (car x))))
+ '(setq v1 (mapcar ,(lambda (x) (list (symbol-name (car x))))
 		   finder-known-keywords)
 	v2 (mapconcat (lambda (x) (format "%12s:  %s" (car x) (cdr x)))
-	   finder-known-keywords
-	   "\n"))
+	              finder-known-keywords
+	              "\n"))
  ((let ((minibuffer-help-form v2))
     (completing-read "Keyword, C-h: " v1 nil t))
     str ", ")
