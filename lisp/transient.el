@@ -31,6 +31,7 @@
 ;; used to implement similar menus in other packages.
 
 ;;; Code:
+;;;; Frontmatter
 
 (defconst transient-version "v0.9.1-7-gd7d2c1c2-builtin")
 
@@ -4946,7 +4947,7 @@ This is used when a tooltip is needed.")
         (let ((message-log-max nil))
           (message "%s" doc))))))
 
-;;; Menu Navigation
+;;;; Menu Navigation
 
 (defun transient-scroll-up (&optional arg)
   "Scroll text of transient's menu window upward ARG lines.
@@ -5013,7 +5014,7 @@ See `forward-button' for information about N."
           beg (next-single-property-change
                beg 'face nil (line-end-position))))))
 
-;;; Compatibility
+;;;; Compatibility
 ;;;; Menu Isearch
 
 (defvar-keymap transient--isearch-mode-map
@@ -5244,7 +5245,7 @@ as stand-in for elements of exhausted lists."
     (propertize (prin1-to-string value t) 'face
                 (if value 'transient-value 'transient-inactive-value))))
 
-;;; _
+;;;; _
 (provide 'transient)
 ;; Local Variables:
 ;; indent-tabs-mode: nil
