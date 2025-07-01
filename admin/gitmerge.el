@@ -324,8 +324,12 @@ Returns non-nil if conflicts remain."
                   ;; match-3's first.
                   (let ((match3 (buffer-substring start3 end3))
                         (match1 (buffer-substring start1 end1)))
-                    (replace-region-contents start3 end3 match1 0)
-                    (replace-region-contents start1 end1 match3 0)))))
+                    (delete-region start3 end3)
+                    (goto-char start3)
+                    (insert match1)
+                    (delete-region start1 end1)
+                    (goto-char start1)
+                    (insert match3)))))
             ;; (pop-to-buffer (current-buffer)) (debug 'before-resolve)
             ))
           ;; Try to resolve the conflicts.
