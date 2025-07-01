@@ -792,24 +792,24 @@ when the action is chosen.")
 (defvar custom-reset-extended-menu
   (let ((map (make-sparse-keymap)))
     (define-key-after map [Custom-reset-current]
-      '(menu-item "Undo Edits in Customization Buffer" Custom-reset-current
-                  :enable (seq-some (lambda (option)
-                                      (eq (widget-get option :custom-state)
-                                          'modified))
+      `(menu-item "Undo Edits in Customization Buffer" Custom-reset-current
+                  :enable (seq-some ,(lambda (option)
+                                       (eq (widget-get option :custom-state)
+                                           'modified))
                                     custom-options)))
     (define-key-after map [Custom-reset-saved]
-      '(menu-item "Revert This Session's Customizations" Custom-reset-saved
-                  :enable (seq-some (lambda (option)
-                                      (memq (widget-get option :custom-state)
-                                          '(modified set changed rogue)))
+      `(menu-item "Revert This Session's Customizations" Custom-reset-saved
+                  :enable (seq-some ,(lambda (option)
+                                       (memq (widget-get option :custom-state)
+                                             '(modified set changed rogue)))
                                     custom-options)))
     (when (or custom-file user-init-file)
       (define-key-after map [Custom-reset-standard]
-        '(menu-item "Erase Customizations" Custom-reset-standard
+        `(menu-item "Erase Customizations" Custom-reset-standard
                     :enable (seq-some
-                             (lambda (option)
-                               (memq (widget-get option :custom-state)
-                                     '(modified set changed rogue saved)))
+                             ,(lambda (option)
+                                (memq (widget-get option :custom-state)
+                                      '(modified set changed rogue saved)))
                              custom-options))))
     map)
   "A menu for the \"Revert...\" button.
@@ -6095,6 +6095,7 @@ Moves point into the widget that holds the value."
   "Arrange to execute BODY in a \"*Customize Dirlocals*\" buffer."
   ;; We don't use `custom-buffer-create' because the settings here
   ;; don't go into the `custom-file'.
+  (declare (indent 0) (debug t))
   `(progn
      (switch-to-buffer "*Customize Dirlocals*")
 
