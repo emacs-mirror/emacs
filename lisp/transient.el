@@ -5250,4 +5250,4 @@ as stand-in for elements of exhausted lists."
 ;; indent-tabs-mode: nil
 ;; checkdoc-symbol-words: ("command-line" "edit-mode" "help-mode")
 ;; End:
-;;;; transient.el ends here
+;;; transient.el ends here
