@@ -408,6 +408,7 @@ specific file to query."
   "Print commit log associated with FILES into specified BUFFER.
 If SHORTLOG is non-nil, use a short format based on `vc-hg-root-log-format'.
 If LIMIT is a positive integer, show no more than that many entries.
+If LIMIT is a non-empty string, use it as a base revision.
 
 If START-REVISION is nil, print the commit log starting from the working
 directory parent (revset \".\").  If START-REVISION is a string, print
@@ -417,17 +418,46 @@ the log starting from that revision."
   (vc-setup-buffer buffer)
   ;; If the buffer exists from a previous invocation it might be
   ;; read-only.
-  (let ((inhibit-read-only t))
-    (with-current-buffer
-	buffer
+  (let ((inhibit-read-only t)
+        ;; Normalize START-REVISION parameter.
+        (start (if (member start-revision '(nil ""))
+                   "."
+                 start-revision)))
+    (with-current-buffer buffer
       (apply #'vc-hg-command buffer 'async files "log"
-             (format "-r%s:0" (or start-revision "."))
+             ;; With Mercurial logs there are are, broadly speaking, two
+             ;; kinds of ranges of revisions for the log to show:
+             ;;   - ranges by revision number:   -rN:M
+             ;;   - ranges according to the DAG: -rN::M or -rN..M
+             ;; Note that N & M can be revision numbers or changeset IDs
+             ;; (hashes).  In either case a revision number range
+             ;; includes those commits with revision numbers between the
+             ;; revision numbers of the commits identified by N and M.
+             ;; See <https://repo.mercurial-scm.org/hg/help/revsets>.
+             ;;
+             ;; DAG ranges might seem like Git's double-dot notation for
+             ;; ranges, but there is (at least) the following
+             ;; difference: with -rN::M, commits from other branches
+             ;; aren't included in the log.
+             ;;
+             ;; VC has always used ranges by revision numbers, such that
+             ;; commits from all branches are included in the log.
+             ;; `vc-log-outgoing' is a special case: there we really
+             ;; need to exclude the incoming revision and its ancestors
+             ;; because those are certainly not outgoing.
+             (cond ((not (stringp limit))
+                    (format "-r%s:0" start))
+                   ((eq vc-log-view-type 'log-outgoing)
+                    (format "-rreverse(%s::%s & !%s)" limit start limit))
+                   (t
+                    (format "-r%s:%s & !%s" start limit limit)))
 	     (nconc
-	      (when limit (list "-l" (format "%s" limit)))
-              (when (eq vc-log-view-type 'with-diff)
-                (list "-p"))
+              (and (numberp limit)
+                   (list "-l" (format "%s" limit)))
+              (and (eq vc-log-view-type 'with-diff)
+                   (list "-p"))
 	      (if shortlog
-                  `(,@(if vc-hg-log-graph '("--graph"))
+                  `(,@(and vc-hg-log-graph '("--graph"))
                     "--template"
                     ,(car vc-hg-root-log-format))
                 `("--template" ,vc-hg-log-format))
@@ -441,39 +471,40 @@ the log starting from that revision."
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
-  (setq-local log-view-file-re regexp-unmatchable)
-  (setq-local log-view-per-file-logs nil)
-  (setq-local log-view-message-re
-              (if (eq vc-log-view-type 'short)
-                  (cadr vc-hg-root-log-format)
-                "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)"))
-  (setq-local tab-width 2)
-  ;; Allow expanding short log entries
-  (when (eq vc-log-view-type 'short)
-    (setq truncate-lines t)
-    (setq-local log-view-expanded-log-entry-function
-                'vc-hg-expanded-log-entry))
-  (setq-local log-view-font-lock-keywords
-       (if (eq vc-log-view-type 'short)
-	   (list (cons (nth 1 vc-hg-root-log-format)
-		       (nth 2 vc-hg-root-log-format)))
-	 (append
-	  log-view-font-lock-keywords
-	  '(
-	    ;; Handle the case:
-	    ;; user: FirstName LastName <foo@bar>
-	    ("^user:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
-	     (1 'change-log-name)
-	     (2 'change-log-email))
-	    ;; Handle the cases:
-	    ;; user: foo@bar
-	    ;; and
-	    ;; user: foo
-	    ("^user:[ \t]+\\([A-Za-z0-9_.+-]+\\(?:@[A-Za-z0-9_.-]+\\)?\\)"
-	     (1 'change-log-email))
-	    ("^date: \\(.+\\)" (1 'change-log-date))
-	    ("^tag: +\\([^ ]+\\)$" (1 'highlight))
-	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
+  (let ((shortp (memq vc-log-view-type '(short log-incoming log-outgoing))))
+   (setq-local log-view-file-re regexp-unmatchable)
+   (setq-local log-view-per-file-logs nil)
+   (setq-local log-view-message-re
+               (if shortp
+                   (cadr vc-hg-root-log-format)
+                 "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)"))
+   (setq-local tab-width 2)
+   ;; Allow expanding short log entries.
+   (when shortp
+     (setq truncate-lines t)
+     (setq-local log-view-expanded-log-entry-function
+                 'vc-hg-expanded-log-entry))
+   (setq-local log-view-font-lock-keywords
+               (if shortp
+                   (list (cons (nth 1 vc-hg-root-log-format)
+                               (nth 2 vc-hg-root-log-format)))
+                 (append
+                  log-view-font-lock-keywords
+                  '(
+                    ;; Handle the case:
+                    ;; user: FirstName LastName <foo@bar>
+                    ("^user:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+                     (1 'change-log-name)
+                     (2 'change-log-email))
+                    ;; Handle the cases:
+                    ;; user: foo@bar
+                    ;; and
+                    ;; user: foo
+                    ("^user:[ \t]+\\([A-Za-z0-9_.+-]+\\(?:@[A-Za-z0-9_.-]+\\)?\\)"
+                     (1 'change-log-email))
+                    ("^date: \\(.+\\)" (1 'change-log-date))
+                    ("^tag: +\\([^ ]+\\)$" (1 'highlight))
+                    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))))
 
 (autoload 'vc-switches "vc")
 
@@ -1463,13 +1494,6 @@ This runs the command \"hg summary\"."
          (nreverse result))
        "\n"))))
 
-;; FIXME: Resolve issue with `vc-hg-mergebase' and then delete this.
-(defun vc-hg-log-incoming (buffer remote-location)
-  (vc-setup-buffer buffer)
-  (vc-hg-command buffer 1 nil "incoming" "-n"
-                 (and (not (string-empty-p remote-location))
-		      remote-location)))
-
 (defun vc-hg-incoming-revision (remote-location)
   ;; Use 'hg identify' like this, and not 'hg incoming', because this
   ;; will give a sensible answer regardless of whether the incoming
@@ -1480,13 +1504,6 @@ This runs the command \"hg summary\"."
                        "default"
                      remote-location)
                    "--template={node}")))
-
-;; FIXME: Resolve issue with `vc-hg-mergebase' and then delete this.
-(defun vc-hg-log-outgoing (buffer remote-location)
-  (vc-setup-buffer buffer)
-  (vc-hg-command buffer 1 nil "outgoing" "-n"
-                 (and (not (string-empty-p remote-location))
-		      remote-location)))
 
 (defun vc-hg-mergebase (rev1 &optional rev2)
   (cl-flet
