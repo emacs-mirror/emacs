@@ -1186,14 +1186,15 @@ This function is called from `load' via `load-path-filter-function'."
                     (make-hash-table :test #'equal))))))
       (if (null ht)
           path
-        (seq-filter
-         (lambda (dir)
-           (when (file-directory-p dir)
-             (try-completion
-              file
-              (with-memoization (gethash dir ht)
-                (directory-files dir nil rx t)))))
-         path)))))
+        (let ((completion-regexp-list nil))
+          (seq-filter
+           (lambda (dir)
+             (when (file-directory-p dir)
+               (try-completion
+                file
+                (with-memoization (gethash dir ht)
+                  (directory-files dir nil rx t)))))
+           path))))))
 
 (defun command-line ()
   "A subroutine of `normal-top-level'.
