@@ -624,7 +624,10 @@ The new command 'fill-paragraph-semlf' fills a paragraph of text using
 "semantic linefeeds", whereby a newline is inserted after every
 sentence.  The new command 'fill-region-as-paragraph-semlf' fills a
 region of text using semantic linefeeds as if the region were a single
-paragraph.
+paragraph.  You can set the variable 'fill-region-as-paragraph-function'
+to the value 'fill-region-as-paragraph-semlf' to enable functions like
+'fill-paragraph' and 'fill-region' to fill text using "semantic
+linefeeds".
 
 +++
 ** 'C-u C-x .' clears the fill prefix.
@@ -2305,6 +2308,15 @@ can be used to specify a key for the sort order, which is updated upon
 each refresh.  The sort direction can be controlled by using a cons cell
 of a format string and a boolean.  Alternatively, a sorting function can
 be provided directly.
+
+** Fill
+
++++
+*** New variable 'fill-region-as-paragraph-function'.
+The new variable 'fill-region-as-paragraph-function' provides a way to
+override how functions like 'fill-paragraph' and 'fill-region' fill
+text.  Major modes can bind this variable to a function that fits their
+needs.  It defaults to 'fill-region-as-paragraph-default'.
 
 ---
 ** 'report-emacs-bug' now checks whether the bug report is about Org.
