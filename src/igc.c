@@ -1781,6 +1781,20 @@ scan_kboard (mps_ss_t ss, void *start, void *end, void *closure)
   return MPS_RES_OK;
 }
 
+static mps_res_t
+scan_hash_table_user_test (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  struct hash_table_user_test *ut = start;
+  MPS_SCAN_BEGIN (ss)
+  {
+    IGC_FIX12_OBJ (ss, &ut->test.user_hash_function);
+    IGC_FIX12_OBJ (ss, &ut->test.user_cmp_function);
+    IGC_FIX12_OBJ (ss, &ut->test.name);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 /***********************************************************************
 			 Default pad, fwd, ...
  ***********************************************************************/
@@ -3573,6 +3587,15 @@ igc_alloc_kboard (void)
   struct kboard *kb = xzalloc (sizeof *kb);
   root_create_exact (global_igc, kb, kb + 1, scan_kboard, "kboard");
   return kb;
+}
+
+struct hash_table_user_test *
+igc_alloc_hash_table_user_test (void)
+{
+  struct hash_table_user_test *ut = xzalloc (sizeof *ut);
+  root_create_exact (global_igc, ut, ut + 1, scan_hash_table_user_test,
+		     "hash-table-user-test");
+  return ut;
 }
 
 static void

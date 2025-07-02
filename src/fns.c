@@ -6166,17 +6166,6 @@ Hash codes are not guaranteed to be preserved across Emacs sessions.  */)
   return reduce_emacs_uint_to_fixnum (hash);
 }
 
-
-/* This is a cache of hash_table_test structures so that they can be
-   shared between hash tables using the same test.
-   FIXME: This way of storing and looking up hash_table_test structs
-   isn't wonderful.  Find a better solution.  */
-struct hash_table_user_test
-{
-  struct hash_table_test test;
-  struct hash_table_user_test *next;
-};
-
 static struct hash_table_user_test *hash_table_user_tests = NULL;
 
 #ifndef HAVE_MPS
@@ -6212,7 +6201,7 @@ get_hash_table_user_test (Lisp_Object test)
   if (!ut)
     {
 #ifdef HAVE_MPS
-      ut = igc_xzalloc_ambig (sizeof *ut);
+      ut = igc_alloc_hash_table_user_test ();
 #else
       ut = xmalloc (sizeof *ut);
 #endif

@@ -2629,6 +2629,16 @@ struct hash_table_test
   Lisp_Object name;
 };
 
+/* This is a cache of hash_table_test structures so that they can be
+   shared between hash tables using the same test.
+   FIXME: This way of storing and looking up hash_table_test structs
+   isn't wonderful.  Find a better solution.  */
+struct hash_table_user_test
+{
+  struct hash_table_test test;
+  struct hash_table_user_test *next;
+};
+
 typedef enum hash_table_weakness_t {
   Weak_None,		 /* No weak references.  */
   Weak_Key,		 /* Reference to key is weak.  */

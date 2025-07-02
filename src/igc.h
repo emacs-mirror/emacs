@@ -118,6 +118,7 @@ void igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
 
 void *igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size);
 struct kboard *igc_alloc_kboard (void);
+struct hash_table_user_test *igc_alloc_hash_table_user_test (void);
 
 struct Lisp_Vector *igc_alloc_pseudovector (size_t nwords_mem,
 					    size_t nwords_lisp,
