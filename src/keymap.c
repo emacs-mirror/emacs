@@ -1573,7 +1573,7 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 
 	    if (i >= cmm_size)
 	      {
-		ptrdiff_t newsize, allocsize;
+		ptrdiff_t newsize;
 		Lisp_Object *newmodes, *newmaps;
 
 		/* Check for size calculation overflow.  Other code
@@ -1584,13 +1584,16 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		  break;
 
 		newsize = cmm_size == 0 ? 30 : cmm_size * 2;
-		allocsize = newsize * sizeof *newmodes;
+#ifndef HAVE_MPS
+		ptrdiff_t allocsize = newsize * sizeof *newmodes;
+#endif
 
 		/* Use malloc here.  See the comment above this function.
 		   Avoid realloc here; it causes spurious traps on GNU/Linux [KFS] */
 		block_input ();
 #ifdef HAVE_MPS
-		newmodes = igc_xzalloc_ambig (allocsize);
+		newmodes = igc_xalloc_lisp_objs_exact (newsize,
+						       "current-minor-modes");
 #else
 		newmodes = malloc (allocsize);
 #endif
@@ -1610,7 +1613,8 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		  }
 
 #ifdef HAVE_MPS
-		newmaps = igc_xzalloc_ambig (allocsize);
+		newmaps = igc_xalloc_lisp_objs_exact (newsize,
+						      "current-minor-maps");
 #else
 		newmaps = malloc (allocsize);
 #endif
