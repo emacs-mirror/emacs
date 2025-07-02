@@ -517,10 +517,11 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
   "The current unique name of this buffer in `uniquify-get-unique-names'.")
 
 (defun uniquify-get-unique-names (buffers)
-  "Return an alist with a unique name for each buffer in BUFFERS.
+  "Return a list with unique names for buffers in BUFFERS.
 
 The names are unique only among BUFFERS, and may conflict with other
-buffers not in that list.
+buffers not in that list.  Each string has a text property
+`uniquify-orig-buffer' that stores the corresponding buffer.
 
 This does not rename the buffers or change any state; the unique name is
 only present in the returned alist."
@@ -547,8 +548,15 @@ only present in the returned alist."
          (gethash name buffer-names)))))
   (mapcar (lambda (buf)
             (with-current-buffer buf
-              (prog1 (cons uniquify--stateless-curname buf)
-                (kill-local-variable 'uniquify--stateless-curname))))
+              (let ((name
+                     (if (eq uniquify--stateless-curname
+                             (buffer-name buf))
+                         (copy-sequence uniquify--stateless-curname)
+                       uniquify--stateless-curname)))
+                (when name
+                  (put-text-property 0 1 'uniquify-orig-buffer buf name))
+                (kill-local-variable 'uniquify--stateless-curname)
+                name)))
           buffers))
 
 ;;; Hooks from the rest of Emacs

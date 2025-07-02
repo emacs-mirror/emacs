@@ -1598,7 +1598,13 @@ Return non-nil if PROJECT is not a remote project."
                    uniquify-buffer-name-style)
               ;; Forgo the use of `buffer-read-function' (often nil) in
               ;; favor of uniquifying the buffers better.
-              (let* ((unique-names (uniquify-get-unique-names buffers))
+              (let* ((unique-names
+                      (mapcar
+                       (lambda (name)
+                         (cons name
+                               (get-text-property 0 'uniquify-orig-buffer
+                                                  (or name ""))))
+                       (uniquify-get-unique-names buffers)))
                      (other-name (when (funcall predicate (cons other-name other-buffer))
                                    (car (rassoc other-buffer unique-names))))
                      (result (completing-read
