@@ -39,6 +39,7 @@ body.")
           "<head>"
           "<title>Welcome to my home page</title>"
           "<link rel=\"home\" href=\"somewhere.invalid\">"
+          "<base href=\"/foo/\">"
           "</head><body>"
           "<a>This is an uninteresting sentence.</a>"
           "<div>" eww-test--lots-of-words "</div>"
@@ -251,9 +252,13 @@ This sets `eww-before-browse-history-function' to
       (eww "example.invalid")
       ;; Make sure EWW uses "readable" mode.
       (should (plist-get eww-data :readable))
-      ;; Make sure the page include the <title> and <link> nodes.
+      ;; Make sure the page include the <title>, <link>, and <base> nodes.
       (should (equal (plist-get eww-data :title) "Welcome to my home page"))
-      (should (equal (plist-get eww-data :home) "somewhere.invalid")))))
+      (should (equal (plist-get eww-data :home) "somewhere.invalid"))
+      (let* ((html (dom-child-by-tag (plist-get eww-data :dom) 'html))
+             (base-tags (dom-by-tag html 'base)))
+        (should (length= base-tags 1))
+        (should (equal (dom-attr (car base-tags) 'href) "/foo/"))))))
 
 (provide 'eww-tests)
 ;; eww-tests.el ends here
