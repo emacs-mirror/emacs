@@ -1182,7 +1182,7 @@ non-nil, don't actually compute a score; just call the callback."
        ((stringp node)
         (setq score (length (split-string node))
               noscore t))
-       ((memq (dom-tag node) '(script head comment))
+       ((memq (dom-tag node) '(head comment script style template))
         (setq score -2
               noscore t))
        ((eq (dom-tag node) 'meta)
