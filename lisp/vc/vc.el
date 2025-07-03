@@ -376,6 +376,8 @@
 ;;   Return revision at the head of the branch at REMOTE-LOCATION.
 ;;   If there is no such branch there, return nil.  (Should signal an
 ;;   error, not return nil, in the case that fetching data fails.)
+;;   For a distributed VCS, should also fetch that revision into local
+;;   storage for operating on by subsequent calls into the backend.
 ;;
 ;; - log-search (buffer pattern)
 ;;

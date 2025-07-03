@@ -1495,33 +1495,26 @@ This runs the command \"hg summary\"."
        "\n"))))
 
 (defun vc-hg-incoming-revision (remote-location)
-  ;; Use 'hg identify' like this, and not 'hg incoming', because this
-  ;; will give a sensible answer regardless of whether the incoming
-  ;; revision has been pulled yet.
-  (with-output-to-string
-    (vc-hg-command standard-output 0 nil "identify" "--id"
-                   (if (string-empty-p remote-location)
-                       "default"
-                     remote-location)
-                   "--template={node}")))
+  (let* ((remote-location (if (string-empty-p remote-location)
+                              "default"
+                            remote-location))
+         ;; Use 'hg identify' like this, and not 'hg incoming', because
+         ;; this will give a sensible answer regardless of whether the
+         ;; incoming revision has been pulled yet.
+         (rev (with-output-to-string
+                (vc-hg-command standard-output 0 nil "identify" "--id"
+                               remote-location "--template={node}"))))
+    (condition-case _ (vc-hg-command nil 0 nil "log" "-r" rev)
+      ;; We don't have the revision locally.  Pull it.
+      (error (vc-hg-command nil 0 nil "pull" remote-location)))
+    rev))
 
 (defun vc-hg-mergebase (rev1 &optional rev2)
-  (cl-flet
-      ((go ()
-         (with-output-to-string
-           (vc-hg-command standard-output 0 nil "log"
-                          (format "--rev=last(ancestors(%s) and ancestors(%s))"
-                                  rev1 (or rev2 "."))
-                          "--limit=1" "--template={node}"))))
-    ;; If the first attempt fails it may be because REV1 or REV2 has not
-    ;; yet been pulled, such as the case where REV1 is the incoming
-    ;; revision.  Unconditionally pull and try again because we can't
-    ;; distinguish a failure due to REV1 or REV2 having not yet been
-    ;; pulled from one where REV1 or REV2 don't exist at all.
-    (condition-case _ (go)
-      (error (vc-hg-command nil 0 nil "pull")
-             (condition-case _ (go)
-               (error (error "No common ancestor for merge base")))))))
+  (with-output-to-string
+    (vc-hg-command standard-output 0 nil "log"
+                   (format "--rev=last(ancestors(%s) and ancestors(%s))"
+                           rev1 (or rev2 "."))
+                   "--limit=1" "--template={node}")))
 
 (defvar vc-hg-error-regexp-alist
   '(("^M \\(.+\\)" 1 nil nil 0))
