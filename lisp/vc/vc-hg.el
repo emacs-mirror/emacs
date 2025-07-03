@@ -1641,8 +1641,10 @@ This runs the command \"hg merge\"."
 
 (defun vc-hg-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-hg.el.
-This function differs from `vc-do-command' in that it invokes
-`vc-hg-program', and passes `vc-hg-global-switches' to it before FLAGS."
+This function differs from `vc-do-command' in that
+- BUFFER may be nil
+- it invokes `vc-hg-program' and passes `vc-hg-global-switches' to it
+  before FLAGS."
   (vc-hg--command-1 #'vc-do-command
                     (list (or buffer "*vc*")
                           okstatus vc-hg-program file-or-list)
