@@ -9667,12 +9667,15 @@ to deactivate this overriding action."
     (fset postfun
           (lambda ()
             (unless (or
-		     ;; Remove the hook immediately
-		     ;; after exiting the minibuffer.
-		     (> (minibuffer-depth) minibuffer-depth)
-		     ;; But don't remove immediately after
-		     ;; adding the hook by the same command below.
-		     (eq this-command command))
+                     ;; Remove the hook immediately
+                     ;; after exiting the minibuffer.
+                     (> (minibuffer-depth) minibuffer-depth)
+                     ;; But don't remove immediately after
+                     ;; adding the hook by the same command below.
+                     (eq this-command command)
+                     ;; Don't exit on mouse down event
+                     ;; in anticipation of mouse release event.
+                     (memq 'down (event-modifiers last-input-event)))
               (funcall exitfun))))
     ;; Call post-function after the next command finishes (bug#49057).
     (add-hook 'post-command-hook postfun)
