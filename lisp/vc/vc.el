@@ -3294,24 +3294,27 @@ The command prompts for the branch whose change log to show."
                            (list rootdir) branch t
                            (when (> vc-log-show-limit 0) vc-log-show-limit))))
 
+(defun vc--maybe-read-remote-location ()
+  (and current-prefix-arg
+       (list (read-string "Remote location/branch (empty for default): "))))
+
+(defun vc--incoming-revision (backend remote-location)
+  (or (vc-call-backend backend 'incoming-revision remote-location)
+      (user-error "No incoming revision -- local-only branch?")))
+
 ;;;###autoload
 (defun vc-log-incoming (&optional remote-location)
   "Show log of changes that will be received with pull from REMOTE-LOCATION.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
 In some version control systems REMOTE-LOCATION can be a remote branch name."
-  (interactive
-   (when current-prefix-arg
-     (list (read-string "Remote location/branch (empty for default): "))))
+  (interactive (vc--maybe-read-remote-location))
   (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend (or remote-location "")
                                    "*vc-incoming*" 'log-incoming)))
 
 (defun vc-default-log-incoming (_backend buffer remote-location)
   (vc--with-backend-in-rootdir ""
-    (let ((incoming (or (vc-call-backend backend
-                                         'incoming-revision
-                                         remote-location)
-                        (user-error "No incoming revision -- local-only branch?"))))
+    (let ((incoming (vc--incoming-revision backend remote-location)))
       (vc-call-backend backend 'print-log (list rootdir) buffer t
                        incoming
                        (vc-call-backend backend 'mergebase incoming)))))
@@ -3321,19 +3324,14 @@ In some version control systems REMOTE-LOCATION can be a remote branch name."
   "Show log of changes that will be sent with a push operation to REMOTE-LOCATION.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
 In some version control systems REMOTE-LOCATION can be a remote branch name."
-  (interactive
-   (when current-prefix-arg
-     (list (read-string "Remote location/branch (empty for default): "))))
+  (interactive (vc--maybe-read-remote-location))
   (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend (or remote-location "")
                                    "*vc-outgoing*" 'log-outgoing)))
 
 (defun vc-default-log-outgoing (_backend buffer remote-location)
   (vc--with-backend-in-rootdir ""
-    (let ((incoming (or (vc-call-backend backend
-                                         'incoming-revision
-                                         remote-location)
-                        (user-error "No incoming revision -- local-only branch?"))))
+    (let ((incoming (vc--incoming-revision backend remote-location)))
       (vc-call-backend backend 'print-log (list rootdir) buffer t
                        ""
                        (vc-call-backend backend 'mergebase incoming)))))
