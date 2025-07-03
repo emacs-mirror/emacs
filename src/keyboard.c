@@ -12394,7 +12394,15 @@ handle_interrupt (bool in_signal_handler)
      thread, see deliver_process_signal.  So we must make sure the
      main thread holds the global lock.  */
   if (in_signal_handler)
-    maybe_reacquire_global_lock ();
+    {
+      /* But if the signal handler was called when a non-main thread was
+         in GC, just return, since switching threads by force-taking the
+         global lock will confuse the heck out of GC, and will most
+         likely segfault.  */
+      if (!main_thread_p (current_thread) && gc_in_progress)
+	return;
+      maybe_reacquire_global_lock ();
+    }
 #endif
   if (waiting_for_input && !echoing)
     quit_throw_to_read_char (in_signal_handler);
