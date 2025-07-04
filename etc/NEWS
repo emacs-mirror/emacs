@@ -608,6 +608,14 @@ Homebrew.
 *** 'write-region-inhibit-fsync' now defaults to t in interactive mode.
 This is the default in batch mode since Emacs 24.
 
+*** Warnings are now by default displayed in a new window at frame's bottom.
+Previously, when the selected frame had horizontally-split windows,
+warnings were displayed in some window on the frame that was hard to
+predict in advance.  The default behavior was changed to always display
+the window showing the warnings at the bottom of the selected frame.
+Customize the new user option 'warning-display-at-bottom' to the nil
+value to get back the previous behavior.
+
 *** The default value of 'read-process-output-max' was increased to 65536.
 
 *** 'url-gateway-broken-resolution' is now obsolete.
