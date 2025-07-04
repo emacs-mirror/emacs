@@ -142,7 +142,7 @@ Works like `css--fontify-region'."
 
 (defvar-local php-ts-mode-alternative-php-program-name nil
   "An alternative to the usual `php' program name.
-In non-nil, `php-ts-mode--executable' try to find this executable.")
+If non-nil, `php-ts-mode--executable' looks for this instead of \"php\".")
 
 (defcustom php-ts-mode-php-config nil
   "The location of php.ini file.
@@ -314,7 +314,7 @@ Calls REPORT-FN directly."
   "Return the absolute filename of the php executable.
 If the `default-directory' is remote, search on a remote host, otherwise
 it searches locally.  If `php-ts-mode-alternative-php-program-name' is
-non-zero, it searches for this program instead of the usual `php'.
+non-nil, it searches for this program instead of the usual `php'.
 If the search fails, it returns `php-ts-mode-php-default-executable'."
   (or (executable-find
       (or php-ts-mode-alternative-php-program-name "php") t)
