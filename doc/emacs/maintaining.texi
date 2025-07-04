@@ -1047,21 +1047,24 @@ Display the change history for another branch
 Display log entries for the changes that a ``pull'' operation will
 retrieve (@code{vc-log-incoming}).
 
-If you customize @code{vc-use-incoming-outgoing-prefixes} to non-nil,
-this command moves to @kbd{C-x v I L}.
+@vindex vc-use-incoming-outgoing-prefixes
+If you customize @code{vc-use-incoming-outgoing-prefixes} to
+non-@code{nil}, @kbd{C-x v I} becomes a prefix key, and
+@code{vc-log-incoming} becomes bound to @kbd{C-x v I L}.
 
 @item M-x vc-root-diff-incoming
 Display a diff of the changes that a pull operation will retrieve.
 
-If you customize @code{vc-use-incoming-outgoing-prefixes} to non-nil,
-this command becomes available on @kbd{C-x v I D}.
+If you customize @code{vc-use-incoming-outgoing-prefixes} to
+non-@code{nil}, this command becomes available on @kbd{C-x v I D}.
 
 @item C-x v O
 Display log entries for the changes that will be sent by the next
 ``push'' operation (@code{vc-log-outgoing}).
 
-If you customize @code{vc-use-incoming-outgoing-prefixes} to non-nil,
-this command moves to @kbd{C-x v O L}.
+If you customize @code{vc-use-incoming-outgoing-prefixes} to
+non-@code{nil}, @kbd{C-x v O} becomes a prefix key, and
+@code{vc-log-outgoing} becomes bound to @kbd{C-x v O L}.
 
 @item M-x vc-root-diff-outgoing
 Display a diff of the changes that will be sent by the next push
@@ -1069,8 +1072,8 @@ operation.  This command is useful as a way to preview your push and
 ensure that all and only the changes you intended to include were
 committed and will be pushed.
 
-If you customize @code{vc-use-incoming-outgoing-prefixes} to non-nil,
-this command becomes available on @kbd{C-x v O D}.
+If you customize @code{vc-use-incoming-outgoing-prefixes} to
+non-@code{nil}, this command is bound to @kbd{C-x v O D}.
 
 @item C-x v h
 Display the history of changes made in the region of file visited by
