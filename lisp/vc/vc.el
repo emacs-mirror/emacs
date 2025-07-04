@@ -3294,9 +3294,13 @@ The command prompts for the branch whose change log to show."
                            (list rootdir) branch t
                            (when (> vc-log-show-limit 0) vc-log-show-limit))))
 
+(defvar vc-remote-location-history nil
+  "History for remote locations for VC incoming and outgoing commands.")
+
 (defun vc--maybe-read-remote-location ()
   (and current-prefix-arg
-       (list (read-string "Remote location/branch (empty for default): "))))
+       (list (read-string "Remote location/branch (empty for default): "
+                          'vc-remote-location-history))))
 
 (defun vc--incoming-revision (backend remote-location)
   (or (vc-call-backend backend 'incoming-revision remote-location)
