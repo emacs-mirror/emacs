@@ -862,8 +862,9 @@ This replaces the region with the preprocessed HTML."
       (plist-put eww-data :source source)))
   (unless document
     (let ((dom (eww--parse-html-region (point) (point-max) charset)))
-      (when (eww-default-readable-p url)
-        (setq dom (eww-readable-dom dom))
+      (when-let* (((eww-default-readable-p url))
+                  (readable-dom (eww-readable-dom dom)))
+        (setq dom readable-dom)
         (with-current-buffer buffer
           (plist-put eww-data :readable t)))
       (setq document (eww-document-base url dom))))
@@ -1162,15 +1163,17 @@ adds a new entry to `eww-history'."
                 (eww--parse-html-region (point-min) (point-max))))
          (base (plist-get eww-data :url)))
     (when make-readable
-      (setq dom (eww-readable-dom dom)))
-    (when eww-readable-adds-to-history
-      (eww-save-history)
-      (eww--before-browse)
-      (dolist (elem '(:source :url :peer))
-        (plist-put eww-data elem (plist-get old-data elem))))
-    (eww-display-document (eww-document-base base dom))
-    (plist-put eww-data :readable make-readable)
-    (eww--after-page-change)))
+      (unless (setq dom (eww-readable-dom dom))
+        (message "Unable to find readable content")))
+    (when dom
+      (when eww-readable-adds-to-history
+        (eww-save-history)
+        (eww--before-browse)
+        (dolist (elem '(:source :url :peer))
+          (plist-put eww-data elem (plist-get old-data elem))))
+      (eww-display-document (eww-document-base base dom))
+      (plist-put eww-data :readable make-readable)
+      (eww--after-page-change))))
 
 (defun eww--walk-readability (node callback &optional noscore)
   "Walk through all children of NODE to score readability.
@@ -1205,7 +1208,8 @@ non-nil, don't actually compute a score; just call the callback."
     score))
 
 (defun eww-readable-dom (dom)
-  "Return a readable version of DOM."
+  "Return a readable version of DOM.
+If EWW can't create a readable version, return nil instead."
   (let ((head-nodes nil)
         (best-node nil)
         (best-score most-negative-fixnum))
@@ -1237,11 +1241,10 @@ non-nil, don't actually compute a score; just call the callback."
                               ,@(when (length> inner-text 0)
                                   (list inner-text)))))
              (push new-node head-nodes))))))
-    (if (and best-node (not (eq best-node dom)))
-        `(html nil
-               (head nil ,@head-nodes)
-               (body nil ,best-node))
-      dom)))
+    (when (and best-node (not (eq best-node dom)))
+      `(html nil
+             (head nil ,@head-nodes)
+             (body nil ,best-node)))))
 
 (defun eww-score-readability (node)
   (declare (obsolete 'eww--walk-readability "31.1"))
@@ -1409,7 +1412,11 @@ within text input fields."
 
 ;; Autoload cookie needed by desktop.el.
 ;;;###autoload
-(define-derived-mode eww-mode special-mode "eww"
+(define-derived-mode eww-mode special-mode
+  `("eww"
+    (:eval (when (plist-get eww-data :readable)
+             '(:propertize ":readable"
+               help-echo "Displaying readable content"))))
   "Mode for browsing the web."
   :interactive nil
   (setq-local eww-data (list :title ""))

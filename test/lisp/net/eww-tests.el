@@ -260,5 +260,18 @@ This sets `eww-before-browse-history-function' to
         (should (length= base-tags 1))
         (should (equal (dom-attr (car base-tags) 'href) "/foo/"))))))
 
+(ert-deftest eww-test/readable/default-readable/non-readable-page ()
+  "Test that EWW handles readable-by-default correctly for non-readable pages."
+  (skip-unless (libxml-available-p))
+  (eww-test--with-mock-retrieve
+    (let* ((eww-test--response-function
+            (lambda (_url)
+              (concat "Content-Type: text/html\n\n"
+                      "<html><body><h1>Hello</h1></body></html>")))
+           (eww-readable-urls '("://example\\.invalid/")))
+      (eww "example.invalid")
+      ;; Make sure EWW doesn't use "readable" mode here.
+      (should-not (plist-get eww-data :readable)))))
+
 (provide 'eww-tests)
 ;; eww-tests.el ends here
