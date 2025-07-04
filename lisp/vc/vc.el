@@ -3590,7 +3590,7 @@ For entries in FILES that are directories, revert all files inside them."
         (mapc #'vc-revert-file files)
       (with-vc-properties files
                           (vc-call-backend backend 'revert-files files)
-                          `((vc-state . up-to-date)))
+                          '((vc-state . up-to-date)))
       (dolist (file files)
         (vc-file-setprop file 'vc-checkout-time
                          (file-attribute-modification-time
