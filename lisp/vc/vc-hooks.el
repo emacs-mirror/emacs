@@ -954,6 +954,30 @@ In the latter case, VC mode is deactivated for this buffer."
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key ctl-x-map "v" 'vc-prefix-map)
 
+(defvar-keymap vc-incoming-prefix-map
+  "L" #'vc-log-incoming
+  "D" #'vc-root-diff-incoming)
+(defvar-keymap vc-outgoing-prefix-map
+  "L" #'vc-log-outgoing
+  "D" #'vc-root-diff-outgoing)
+
+(defcustom vc-use-incoming-outgoing-prefixes nil
+  "Whether \\`C-x v I' and \\`C-x v O' are prefix commands.
+Historically Emacs bound \\`C-x v I' and \\`C-x v O' directly to
+commands.  That is still the default.  If this option is customized to
+non-nil, these key sequences becomes prefix commands.  `vc-log-incoming'
+moves to \\`C-x v I L', `vc-log-outgoing' moves to \\`C-x v O L', and
+other commands receive global bindings where they had none before."
+  :type 'boolean
+  :version "31.1"
+  :set (lambda (symbol value)
+         (if value
+             (progn (keymap-set vc-prefix-map "I" vc-incoming-prefix-map)
+                    (keymap-set vc-prefix-map "O" vc-outgoing-prefix-map))
+           (keymap-set vc-prefix-map "I" #'vc-log-incoming)
+           (keymap-set vc-prefix-map "O" #'vc-log-outgoing))
+         (set-default symbol value)))
+
 (defvar vc-menu-map
   (let ((map (make-sparse-keymap "Version Control")))
     ;;(define-key map [show-files]

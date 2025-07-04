@@ -2452,6 +2452,69 @@ The merge base is a common ancestor between REV1 and REV2 revisions."
        vc-allow-async-diff (list backend (list rootdir)) rev1 rev2
        (called-interactively-p 'interactive)))))
 
+;;;###autoload
+(defun vc-root-diff-incoming (&optional remote-location)
+  "Report diff of all changes that would be pulled from REMOTE-LOCATION.
+When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
+In some version control systems REMOTE-LOCATION can be a remote branch name.
+
+See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
+global binding."
+  (interactive (vc--maybe-read-remote-location))
+  (vc--with-backend-in-rootdir "VC root-diff"
+    (let ((default-directory rootdir)
+          (incoming (vc--incoming-revision backend
+                                           (or remote-location ""))))
+      (vc-diff-internal vc-allow-async-diff (list backend (list rootdir))
+                        (vc-call-backend backend 'mergebase incoming)
+                        incoming
+                        (called-interactively-p 'interactive)))))
+
+;;;###autoload
+(defun vc-root-diff-outgoing (&optional remote-location)
+  "Report diff of all changes that would be pushed to REMOTE-LOCATION.
+When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
+In some version control systems REMOTE-LOCATION can be a remote branch name.
+
+See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
+global binding."
+  ;; For this command we want to ignore uncommitted changes because
+  ;; those are not outgoing, and the point is to make a comparison
+  ;; between locally committed changes and remote committed changes.
+  ;; (Hence why we don't call `vc-buffer-sync-fileset'.)
+  (interactive (vc--maybe-read-remote-location))
+  (vc--with-backend-in-rootdir "VC root-diff"
+    (let ((default-directory rootdir)
+          (incoming (vc--incoming-revision backend
+                                           (or remote-location ""))))
+      (vc-diff-internal vc-allow-async-diff (list backend (list rootdir))
+                        (vc-call-backend backend 'mergebase incoming)
+                        ;; FIXME: In order to exclude uncommitted
+                        ;; changes we need to pass the most recent
+                        ;; revision as REV2.  Calling `working-revision'
+                        ;; like this works for all the backends we have
+                        ;; in core that implement `mergebase' and so can
+                        ;; be used with this command (Git and Hg).
+                        ;; However, it is not clearly permitted by the
+                        ;; current semantics of `working-revision' to
+                        ;; call it on a directory.
+                        ;;
+                        ;; A possible alternative would be something
+                        ;; like this which effectively falls back to
+                        ;; including uncommitted changes in the case of
+                        ;; an older VCS or where the backend rejects our
+                        ;; attempt to call `working-revision' on a
+                        ;; directory:
+                        ;; (and (eq (vc-call-backend backend
+                        ;;                           'revision-granularity)
+                        ;;          'repository)
+                        ;;      (ignore-errors
+                        ;;        (vc-call-backend backend 'working-revision
+                        ;;                         rootdir)))
+                        (vc-call-backend backend 'working-revision
+                                         rootdir)
+                        (called-interactively-p 'interactive)))))
+
 (declare-function ediff-load-version-control "ediff" (&optional silent))
 (declare-function ediff-vc-internal "ediff-vers"
                   (rev1 rev2 &optional startup-hooks))
