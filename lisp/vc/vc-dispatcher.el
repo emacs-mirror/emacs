@@ -106,9 +106,6 @@
 
 ;;; Code:
 
-;; TODO:
-;; - log buffers need font-locking.
-
 (eval-when-compile
   (require 'cl-lib)
   (require 'cl-print))
