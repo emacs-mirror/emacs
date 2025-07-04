@@ -144,24 +144,27 @@ coding system names is determined from `latex-inputenc-coding-alist'."
 				       (file-name-directory (nth 1 arg-list))
 				     default-directory))
 		latexenc-main-file)
-            ;; Is there a TeX-master or tex-main-file in the local variables
-            ;; section?
+            ;; Is there a TeX-master or tex-main-file in the local
+            ;; variables section or is it globally set to a constant
+            ;; string?
             (unless latexenc-dont-use-TeX-master-flag
               (goto-char (point-max))
 	      (search-backward "\n\^L" (max (- (point-max) 3000) (point-min))
                                'move)
-	      (search-forward "Local Variables:" nil t)
-              (when (re-search-forward
-                     "^%+ *\\(TeX-master\\|tex-main-file\\): *\"\\(.+\\)\""
-                     nil t)
-                (let ((file (match-string 2)))
-                  (dolist (ext `("" ,(if (boundp 'TeX-default-extension)
-                                         (concat "." TeX-default-extension)
-                                       "")
-                                 ".tex" ".ltx" ".dtx" ".drv"))
-                    (if (and (null latexenc-main-file) ;Stop at first.
-                             (file-exists-p (concat file ext)))
-                        (setq latexenc-main-file (concat file ext)))))))
+	      (re-search-forward "^%+ *Local Variables:" nil t)
+              (let ((file (if (re-search-forward
+                               "^%+ *\\(TeX-master\\|tex-main-file\\): *\"\\(.+\\)\""
+                               nil t)
+                              (match-string 2)
+                            (or (bound-and-true-p TeX-master)
+                                (bound-and-true-p tex-main-file)))))
+                (dolist (ext `("" ,(if (boundp 'TeX-default-extension)
+                                       (concat "." TeX-default-extension)
+                                     "")
+                               ".tex" ".ltx" ".dtx" ".drv"))
+                  (if (and (null latexenc-main-file) ;Stop at first.
+                           (file-exists-p (concat file ext)))
+                      (setq latexenc-main-file (concat file ext))))))
             ;; try tex-modes tex-guess-main-file
             (when (and (not latexenc-dont-use-tex-guess-main-file-flag)
                        (not latexenc-main-file))
