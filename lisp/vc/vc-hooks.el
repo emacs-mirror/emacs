@@ -270,7 +270,7 @@ and else calls
 
     (apply #\\='vc-default-FUN BACKEND ARGS)
 
-It is usually called via the `vc-call' macro."
+See also the `vc-call' macro."
   (let ((f (assoc function-name (get backend 'vc-functions))))
     (if f (setq f (cdr f))
       (setq f (vc-find-backend-function backend function-name))
