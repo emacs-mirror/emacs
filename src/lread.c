@@ -396,6 +396,9 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
       goto read_multibyte;
     }
 
+  if (multibyte)
+    *multibyte = 1;
+
   tem = call0 (readcharfun);
 
   if (!FIXNUMP (tem))
