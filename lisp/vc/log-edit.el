@@ -861,8 +861,9 @@ comment history, see `log-edit-comment-ring', and hides `log-edit-files-buf'."
   ;; Re NOT-ESSENTIAL non-nil: this function can get called from
   ;; `log-edit-hook' and we don't want to abort the whole Log Edit setup
   ;; because the user says no to saving a buffer.  The buffers will
-  ;; still actually get saved before committing, by `vc-finish-logentry'.
-  ;; Possibly `log-edit-maybe-show-diff' should catch the error instead.
+  ;; still actually get saved before committing, by the
+  ;; `vc-log-operation' anonymous function.  Possibly
+  ;; `log-edit-maybe-show-diff' should catch the error instead.
   (vc-diff nil 'not-essential (list log-edit-vc-backend vc-log-fileset)))
 
 (defun log-edit-show-diff ()
