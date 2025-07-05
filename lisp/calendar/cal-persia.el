@@ -178,7 +178,7 @@ Reads a year, month, and day."
          (day (calendar-read-sexp
                "Persian calendar day (1-%d)"
                (lambda (x) (and (< 0 x) (<= x last)))
-               nil
+               1
                last)))
     (list (list month day year))))
 

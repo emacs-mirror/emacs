@@ -105,11 +105,12 @@ taken to be 1)."
          (week (calendar-read-sexp
                 "ISO calendar week (1-%d)"
                 (lambda (x) (and (> x 0) (<= x no-weeks)))
-                nil
+                1
                 no-weeks))
          (day (if dayflag (calendar-read-sexp
                            "ISO day (1-7)"
-                           (lambda (x) (and (<= 1 x) (<= x 7))))
+                           (lambda (x) (and (<= 1 x) (<= x 7)))
+                           1)
                 1)))
     (list (list week day year))))
 

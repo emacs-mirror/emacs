@@ -158,7 +158,7 @@ Reads a year, month, and day."
          (day (calendar-read-sexp
                "%s calendar day (1-%d)"
                (lambda (x) (and (< 0 x) (<= x last)))
-               nil
+               1
                calendar-coptic-name last)))
     (list (list month day year))))
 

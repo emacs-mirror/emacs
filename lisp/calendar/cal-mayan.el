@@ -137,7 +137,8 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
   (let* ((completion-ignore-case t)
          (haab-day (calendar-read-sexp
                     "Haab kin (0-19)"
-                    (lambda (x) (and (>= x 0) (< x 20)))))
+                    (lambda (x) (and (>= x 0) (< x 20)))
+                    0))
          (haab-month-list (append calendar-mayan-haab-month-name-array
                                   (and (< haab-day 5) '("Uayeb"))))
          (haab-month (cdr
@@ -153,7 +154,8 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
   (let* ((completion-ignore-case t)
          (tzolkin-count (calendar-read-sexp
                          "Tzolkin kin (1-13)"
-                         (lambda (x) (and (> x 0) (< x 14)))))
+                         (lambda (x) (and (> x 0) (< x 14)))
+                         1))
          (tzolkin-name-list (append calendar-mayan-tzolkin-names-array nil))
          (tzolkin-name (cdr
                         (assoc-string

@@ -170,7 +170,8 @@ Reads a year, month and day."
                       (calendar-make-alist calendar-bahai-month-name-array
                                            1))))
          (day (calendar-read-sexp "Bahá’í calendar day (1-19)"
-                                  (lambda (x) (and (< 0 x) (<= x 19))))))
+                                  (lambda (x) (and (< 0 x) (<= x 19)))
+                                  1)))
     (list (list month day year))))
 
 ;;;###cal-autoload
