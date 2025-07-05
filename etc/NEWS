@@ -2299,6 +2299,13 @@ each refresh.  The sort direction can be controlled by using a cons cell
 of a format string and a boolean.  Alternatively, a sorting function can
 be provided directly.
 
+---
+** 'report-emacs-bug' now checks whether the bug report is about Org.
+The command 'report-emacs-bug' looks in the report text for symbols that
+indicate problems in Org, and if found, will ask whether the bug report
+is actually about Org (in which case users should use the Org-specific
+command for reporting bugs).
+
 
 
 * New Modes and Packages in Emacs 31.1
