@@ -355,8 +355,10 @@ retains the existing behavior of inserting parentheses.
 
 +++
 *** New minor mode 'mode-line-invisible-mode'.
-This command toggles the mode-line visibility of the current buffer:
-hides it if it is shown, and shows it if it's hidden.
+This minor mode makes the mode-line of the current buffer invisible.
+The command 'mode-line-invisible-mode' toggles the visibility of the
+current-buffer's mode-line.  The default is to show the mode line of
+every buffer.
 
 ** Tab Bars and Tab Lines
 
