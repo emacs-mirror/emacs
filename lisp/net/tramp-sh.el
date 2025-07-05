@@ -3885,9 +3885,9 @@ Fall back to normal file name handler if no Tramp handler exists."
         (throw 'doesnt-work nil))
 
       ;; Determine monitor name.
-      (unless (tramp-connection-property-p proc "gio-file-monitor")
+      (unless (tramp-connection-property-p proc "file-monitor")
         (tramp-set-connection-property
-         proc "gio-file-monitor"
+         proc "file-monitor"
          (cond
           ;; We have seen this on cygwin gio and on emba.  Let's make
           ;; some assumptions.

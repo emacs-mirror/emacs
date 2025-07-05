@@ -5743,6 +5743,16 @@ of."
     (tramp-message proc 5 "Sentinel called: `%S' `%s'" proc event)
     (file-notify-rm-watch proc)))
 
+(defun tramp-directory-watched (directory)
+  "Check, whether a directory is watched."
+  (let (result)
+    (dolist (p (process-list) result)
+      (setq result
+	    (or result
+		(and-let* ((dir (process-get p 'tramp-watch-name))
+			   ((string-equal
+			     dir (tramp-file-local-name directory))))))))))
+
 ;;; Functions for establishing connection:
 
 ;; The following functions are actions to be taken when seeing certain
@@ -6120,7 +6130,7 @@ If the user quits via `C-g', it is propagated up to `tramp-file-name-handler'."
 	(if (with-local-quit
 	      (setq result (accept-process-output proc 0 nil t)) t)
 	    (tramp-message
-	     proc 10 "%s %s %s\n%s"
+	     proc 10 "%S %S %s\n%s"
 	     proc (process-status proc) result (buffer-string))
 	  ;; Propagate quit.
 	  (keyboard-quit)))
@@ -6197,7 +6207,7 @@ nil."
     ;; timeout of sudo.  The process buffer does not exist any longer then.
     (ignore-errors
       (tramp-message
-       proc 6 "\n%s" (tramp-get-buffer-string (process-buffer proc))))
+       proc 6 "%S\n%s" proc (tramp-get-buffer-string (process-buffer proc))))
     (unless found
       (if timeout
 	  (tramp-error

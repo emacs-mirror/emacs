@@ -1526,6 +1526,9 @@ can be used in parallel.  Example: on both remote hosts "host1" and
 
 This feature is experimental.
 
+---
+*** Implementation of filesystem notifications for connection method "smb".
+
 ** Diff
 
 ---

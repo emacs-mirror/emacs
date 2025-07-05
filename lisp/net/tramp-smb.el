@@ -127,10 +127,10 @@ this variable \"client min protocol=NT1\"."
 	"ERRnomem"
 	"ERRnosuchshare"
 	;; See /usr/include/samba-4.0/core/ntstatus.h.
-	;; Windows 4.0 (Windows NT), Windows 5.0 (Windows 2000),
-	;; Windows 5.1 (Windows XP), Windows 5.2 (Windows Server 2003),
-	;; Windows 6.0 (Windows Vista), Windows 6.1 (Windows 7),
-	;; Windows 6.3 (Windows Server 2012, Windows 10).
+	;; <https://learn.microsoft.com/en-us/windows/win32/sysinfo/operating-system-version>
+	;; Tested with Windows NT, Windows 2000, Windows XP, Windows
+	;; Server 2003, Windows Vista, Windows 7, Windows Server 2012,
+	;; Windows 10, Windows 11.
 	"NT_STATUS_ACCESS_DENIED"
 	"NT_STATUS_ACCOUNT_LOCKED_OUT"
 	"NT_STATUS_BAD_NETWORK_NAME"
@@ -261,7 +261,7 @@ See `tramp-actions-before-shell' for more info.")
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     ;; `file-name-sans-versions' performed by default handler.
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
-    (file-notify-add-watch . tramp-handle-file-notify-add-watch)
+    (file-notify-add-watch . tramp-smb-handle-file-notify-add-watch)
     (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
     (file-notify-valid-p . tramp-handle-file-notify-valid-p)
     (file-ownership-preserved-p . ignore)
@@ -686,8 +686,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (tramp-error v 'file-error "%s `%s'" (match-string 0) directory)))
 
       ;; "rmdir" does not report an error.  So we check ourselves.
-      (when (file-exists-p directory)
-	(tramp-error v 'file-error "`%s' not removed" directory)))))
+      ;; Deletion of a watched directory could be pending.
+      (when (and (not (tramp-directory-watched directory))
+		 (file-exists-p directory))
+        (tramp-error v 'file-error "`%s' not removed" directory)))))
 
 (defun tramp-smb-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
@@ -963,6 +965,108 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(delete-file tmpfile)
 	(tramp-error
 	 v 'file-error "Cannot make local copy of file `%s'" filename)))))
+
+;; The "notify" command has been added to smbclient 4.3.0.
+(defun tramp-smb-handle-file-notify-add-watch (file-name flags _callback)
+  "Like `file-notify-add-watch' for Tramp files."
+  (setq file-name (expand-file-name file-name))
+  (with-parsed-tramp-file-name file-name nil
+    (let ((default-directory (file-name-directory file-name))
+          (command (format "notify %s" (tramp-smb-shell-quote-localname v)))
+	  (events
+	   (cond
+	    ((memq 'change flags)
+	     '(added removed modified renamed-from renamed-to))
+	    ((memq 'attribute-change flags) '(modified))))
+	  p)
+      ;; Start process.
+      (with-tramp-saved-connection-properties
+	  v '(" process-name" " process-buffer")
+	;; Set the new process properties.
+	(tramp-set-connection-property
+         v " process-name" (tramp-get-unique-process-name "smb-notify"))
+        (tramp-set-connection-property
+         v " process-buffer" (generate-new-buffer " *smb-notify*"))
+	(tramp-flush-connection-property v " process-exit-status")
+	(tramp-smb-send-command v command 'nooutput)
+        (setq p (tramp-get-connection-process v))
+        ;; Return the process object as watch-descriptor.
+        (if (not (processp p))
+	    (tramp-error
+	     v 'file-notify-error
+	     "`%s' failed to start on remote host" command)
+	  ;; Needed for process filter.
+	  (process-put p 'tramp-events events)
+	  (process-put p 'tramp-watch-name localname)
+	  (set-process-filter p #'tramp-smb-notify-process-filter)
+	  (set-process-sentinel p #'tramp-file-notify-process-sentinel)
+	  (tramp-post-process-creation p v)
+	  ;; There might be an error if the monitor is not supported.
+	  ;; Give the filter a chance to read the output.
+	  (while (tramp-accept-process-output p))
+	  (unless (process-live-p p)
+	    (tramp-error
+	     p 'file-notify-error "Monitoring not supported for `%s'" file-name))
+	  ;; Set "file-monitor" property.  The existence of the "ADMIN$"
+	  ;; share is an indication for a remote MS Windows host.
+	  (tramp-set-connection-property
+	   p "file-monitor"
+	   (if (member
+		"ADMIN$" (directory-files (tramp-make-tramp-file-name v "/")))
+	       'SMBWindows 'SMBSamba))
+	  p)))))
+
+;; FileChangeNotify subsystem was added to Smaba 4.3.0.
+;; <https://www.samba.org/samba/history/samba-4.3.0.html>
+(defun tramp-smb-notify-process-filter (proc string)
+  "Read output from \"notify\" and add corresponding `file-notify' events."
+  (let ((events (process-get proc 'tramp-events)))
+    (tramp-message proc 6 "%S\n%s" proc string)
+    (dolist (line (split-string string (rx (+ (any "\r\n"))) 'omit))
+      (catch 'next
+	;; Watched directory is removed.
+	(when (string-match-p "NT_STATUS_DELETE_PENDING" line)
+	  (setq line (concat "0002 " (process-get proc 'tramp-watch-name))))
+	;; Stopped.
+	(when (string-match-p tramp-smb-prompt line)
+          (throw 'next 'next))
+
+	;; Check, whether there is a problem.
+	(unless (string-match
+		 (rx bol (group (+ digit))
+		     (+ blank) (group (+ (not (any "\r\n")))))
+		 line)
+          (tramp-error proc 'file-notify-error line))
+
+	;; See libsmbclient.h.
+	;; #define SMBC_NOTIFY_ACTION_ADDED		1
+	;; #define SMBC_NOTIFY_ACTION_REMOVED		2
+	;; #define SMBC_NOTIFY_ACTION_MODIFIED		3
+	;; #define SMBC_NOTIFY_ACTION_OLD_NAME		4
+	;; #define SMBC_NOTIFY_ACTION_NEW_NAME		5
+	;; #define SMBC_NOTIFY_ACTION_ADDED_STREAM	6
+	;; #define SMBC_NOTIFY_ACTION_REMOVED_STREAM	7
+	;; #define SMBC_NOTIFY_ACTION_MODIFIED_STREAM	8
+	(let ((object
+	       (list
+		proc
+		(pcase (string-to-number (match-string 1 line))
+                  (1 '(added))
+                  (2 '(removed))
+                  (3 '(modified))
+                  (4 '(renamed-from))
+                  (5 '(renamed-to))
+		  ;; Ignore stream events.
+                  (_ (throw 'next 'next)))
+		(string-replace "\\" "/" (match-string 2 line)))))
+          ;; Add an Emacs event now.
+          ;; `insert-special-event' exists since Emacs 31.
+	  (when (member (caadr object) events)
+            (tramp-compat-funcall
+		(if (fboundp 'insert-special-event)
+                    'insert-special-event
+		  (lookup-key special-event-map [file-notify]))
+	      `(file-notify ,object file-notify-callback))))))))
 
 ;; This function should return "foo/" for directories and "bar" for
 ;; files.
@@ -1823,13 +1927,14 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 
 ;; Connection functions.
 
-(defun tramp-smb-send-command (vec command)
+(defun tramp-smb-send-command (vec command &optional nooutput)
   "Send the COMMAND to connection VEC.
-Returns nil if there has been an error message from smbclient."
+Returns nil if there has been an error message from smbclient.  The
+function waits for output unless NOOUTPUT is set."
   (tramp-smb-maybe-open-connection vec)
   (tramp-message vec 6 "%s" command)
   (tramp-send-string vec command)
-  (tramp-smb-wait-for-output vec))
+  (unless nooutput (tramp-smb-wait-for-output vec)))
 
 (defun tramp-smb-maybe-open-connection (vec &optional argument)
   "Maybe open a connection to HOST, log in as USER, using `tramp-smb-program'.
@@ -2003,7 +2108,7 @@ Removes smb prompt.  Returns nil if an error message has appeared."
       (while (not (search-forward-regexp tramp-smb-prompt nil t))
 	(while (tramp-accept-process-output p))
 	(goto-char (point-min)))
-      (tramp-message vec 6 "\n%s" (buffer-string))
+      (tramp-message vec 6 "%S\n%s" p (buffer-string))
 
       ;; Remove prompt.
       (goto-char (point-min))
@@ -2083,5 +2188,7 @@ Removes smb prompt.  Returns nil if an error message has appeared."
 ;; * Keep a separate connection process per share.
 ;;
 ;; * Keep a permanent connection process for `process-file'.
+
+;; * Implement "scopy" (since Samba 4.3.0).
 
 ;;; tramp-smb.el ends here
