@@ -681,7 +681,7 @@ an error."
       nil
     ;; Trim off object IDX junk added in for the object index.
     (setq slot-idx (- slot-idx (eval-when-compile eieio--object-num-slots)))
-    (let* ((sd (aref (eieio--class-slots class)
+    (let* ((sd (aref (cl--class-slots class) ;??
                      slot-idx))
            (st (cl--slot-descriptor-type sd)))
       (cond
