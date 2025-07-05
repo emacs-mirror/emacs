@@ -392,4 +392,10 @@ literals (Bug#20852)."
          (val (read (lambda () (pop s)))))
     (should (equal (symbol-name val) "A∪ÿ"))))
 
+(ert-deftest lread-unibyte-string-source ()
+  (let* ((src "\"a\xff\"")
+         (val (read src)))
+    (should (equal val "a\xff"))        ; not "aÿ"
+    (should-not (multibyte-string-p val))))
+
 ;;; lread-tests.el ends here
