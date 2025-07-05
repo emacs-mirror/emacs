@@ -106,15 +106,6 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
       :help "Go to the start of the current function definition"]
      ["Up List" up-list
       :help "Go one level up and forward"])
-    ("Linting"
-     ["Lint Defun" elint-defun
-      :help "Lint the function at point"]
-     ["Lint Buffer" elint-current-buffer
-      :help "Lint the current buffer"]
-     ["Lint File..." elint-file
-      :help "Lint a file"]
-     ["Lint Directory..." elint-directory
-      :help "Lint a directory"])
     ("Profiling"
      ;; Maybe this should be in a separate submenu from the ELP stuff?
      ["Start Native Profiler..." profiler-start

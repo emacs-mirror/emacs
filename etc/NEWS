@@ -2318,6 +2318,10 @@ indicate problems in Org, and if found, will ask whether the bug report
 is actually about Org (in which case users should use the Org-specific
 command for reporting bugs).
 
+---
+** The elint package is now obsolete.
+Use the byte-compiler instead; it provides more and more useful warnings.
+
 
 
 * New Modes and Packages in Emacs 31.1

@@ -5,6 +5,7 @@
 ;; Author: Peter Liljenberg <petli@lysator.liu.se>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: May 1997
+;; Obsolete-since: 31.1
 ;; Keywords: lisp
 
 ;; This file is part of GNU Emacs.
@@ -23,6 +24,8 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; *Note: This package is obsolete.  Use the byte-compiler instead.*
 
 ;; This is a linter for Emacs Lisp.  Currently, it mainly catches
 ;; misspellings and undefined variables, although it can also catch
@@ -243,7 +246,11 @@ This environment can be passed to `macroexpand'."
 ;;;###autoload
 (defun elint-file (file)
   "Lint the file FILE."
+  (declare (obsolete nil "31.1"))
   (interactive "fElint file: ")
+  (elint--file file))
+
+(defun elint--file (file)
   (setq file (expand-file-name file))
   (or elint-builtin-variables
       (elint-initialize))
@@ -277,6 +284,7 @@ This environment can be passed to `macroexpand'."
 (defun elint-directory (directory)
   "Lint all the .el files in DIRECTORY.
 A complicated directory may require a lot of memory."
+  (declare (obsolete nil "31.1"))
   (interactive "DElint directory: ")
   (let ((elint-running t))
     (dolist (file (directory-files directory t))
@@ -286,13 +294,14 @@ A complicated directory may require a lot of memory."
 		 (not (auto-save-file-name-p file)))
 	(if (string-match elint-directory-skip-re file)
 	    (message "Skipping file %s" file)
-	  (elint-file file)))))
+	  (elint--file file)))))
   (elint-set-mode-line))
 
 ;;;###autoload
 (defun elint-current-buffer ()
   "Lint the current buffer.
 If necessary, this first calls `elint-initialize'."
+  (declare (obsolete nil "31.1"))
   (interactive)
   (or elint-builtin-variables
       (elint-initialize))
@@ -312,6 +321,7 @@ If necessary, this first calls `elint-initialize'."
 (defun elint-defun ()
   "Lint the function at point.
 If necessary, this first calls `elint-initialize'."
+  (declare (obsolete nil "31.1"))
   (interactive)
   (or elint-builtin-variables
       (elint-initialize))
