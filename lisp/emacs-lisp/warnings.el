@@ -122,9 +122,22 @@ See also `warning-suppress-log-types'."
   :version "22.1")
 
 (defcustom warning-display-at-bottom t
-  "Display the warning buffer at the bottom of the screen.
-The output window will be scrolled to the bottom of the buffer
-to show the last warning message."
+  "Whether to display the warning buffer at the bottom of the screen.
+If this is non-nil (the default), Emacs will attempt to display the
+window showing the warning buffer at the bottom of the selected
+frame, whether by reusing the bottom-most window or by creating a
+new window at the bottom of the frame.  The resulting window will be
+scrolled to the bottom of the buffer to show the last warning message.
+
+If the value of this variable is nil, Emacs will display the warning
+buffer in some window, as determined by `display-buffer' and its
+customizations.  In particular, the category designated by the
+symbol `warning' can be used in `display-buffer-alist' to customize
+the display of this buffer.
+
+This option affects display of all the buffers shown by `dispay-warning',
+including warnings from byte-compiler and native-compiler,
+from `check-declare', etc."
   :type 'boolean
   :version "30.1")
 

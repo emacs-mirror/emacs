@@ -145,6 +145,8 @@ Possible values are:
   1 - emitted code is to be generated in a safe manner, even if functions
       are mis-declared.
 
+Note that \"safe\" does not mean \"correct\": if functions are declared
+incorrectly, the emitted code might also be incorrect.
 This currently affects only code produced by native-compilation."
   :type 'integer
   :safe #'integerp

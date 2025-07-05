@@ -485,6 +485,7 @@ static Lisp_Object Vtreesit_str_space;
 static Lisp_Object Vtreesit_str_equal;
 static Lisp_Object Vtreesit_str_match;
 static Lisp_Object Vtreesit_str_pred;
+static Lisp_Object Vtreesit_str_empty;
 
 /* This is the limit on recursion levels for some tree-sitter
    functions.  Remember to update docstrings when changing this value.
@@ -2853,8 +2854,11 @@ If NODE is nil, return nil.  */)
   treesit_initialize ();
 
   TSNode treesit_node = XTS_NODE (node)->node;
+  /* ts_node_type could return NULL, see source code (tree-sitter can't
+     find the string name of a node type by its id in its node name
+     obarray).  */
   const char *type = ts_node_type (treesit_node);
-  return build_string (type);
+  return type == NULL ? Vtreesit_str_empty : build_string (type);
 }
 
 DEFUN ("treesit-node-start",
@@ -4444,6 +4448,10 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
   if (STRINGP (pred))
     {
       const char *type = ts_node_type (node);
+      /* ts_node_type returning NULL means something unexpected happend
+         in tree-sitter, in this case the only reasonable thing is to
+         not match anything.  */
+      if (type == NULL) return false;
       return fast_c_string_match (pred, type, strlen (type)) >= 0;
     }
   else if (FUNCTIONP (pred)
@@ -4496,6 +4504,10 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
 	{
 	  /* A bit of code duplication here, but should be fine.  */
 	  const char *type = ts_node_type (node);
+	  /* ts_node_type returning NULL means something unexpected
+             happend in tree-sitter, in this case the only reasonable
+             thing is to not match anything  */
+	  if (type == NULL) return false;
 	  if (!(fast_c_string_match (car, type, strlen (type)) >= 0))
 	    return false;
 
@@ -5300,6 +5312,8 @@ buffer.  */);
   Vtreesit_str_match = build_string ("match");
   staticpro (&Vtreesit_str_pred);
   Vtreesit_str_pred = build_string ("pred");
+  staticpro (&Vtreesit_str_empty);
+  Vtreesit_str_empty = build_string ("");
 
   defsubr (&Streesit_language_available_p);
   defsubr (&Streesit_library_abi_version);

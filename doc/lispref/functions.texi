@@ -1146,15 +1146,16 @@ the @code{call-interactively} function.  @xref{Interactive Call}.
 @cindex mapping functions
 
   A @dfn{mapping function} applies a given function (@emph{not} a
-special form or macro) to each element of a list or other collection.
+special form or macro) to each element of a sequence, such as a list or
+a vector or a string (@pxref{Sequences Arrays Vectors}).
 Emacs Lisp has several such functions; this section describes
 @code{mapcar}, @code{mapc}, @code{mapconcat}, and @code{mapcan}, which
-map over a list.  @xref{Definition of mapatoms}, for the function
+map over sequences.  @xref{Definition of mapatoms}, for the function
 @code{mapatoms} which maps over the symbols in an obarray.
 @xref{Definition of maphash}, for the function @code{maphash} which
 maps over key/value associations in a hash table.
 
-  These mapping functions do not allow char-tables because a char-table
+  These mapping functions do not work on char-tables because a char-table
 is a sparse array whose nominal range of indices is very large.  To map
 over a char-table in a way that deals properly with its sparse nature,
 use the function @code{map-char-table} (@pxref{Char-Tables}).

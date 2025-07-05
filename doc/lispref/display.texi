@@ -933,6 +933,18 @@ won't appear at all.
   These variables are used by users to control what happens
 when a Lisp program reports a warning.
 
+@defopt warning-display-at-bottom
+This user option controls the window in which the warnings buffer is
+shown.  By default, the value is @code{t}, and Emacs displays the
+warnings buffer in a window at the bottom of the selected frame,
+creating a new window there if needed.  If customized to @code{nil}, the
+warnings buffer will be shown using the default rules of
+@code{display-buffer} (@pxref{Choosing Window}); in that case the
+@code{warning} category can be used in @code{display-buffer-alist} to
+customize how @code{display-buffer} will display these buffers
+(@pxref{Buffer Display Action Alists}).
+@end defopt
+
 @defopt warning-minimum-level
 This user option specifies the minimum severity level that should be
 shown immediately to the user, by popping the warnings buffer in some
