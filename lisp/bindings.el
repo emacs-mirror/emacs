@@ -56,37 +56,6 @@ corresponding to the mode line clicked."
     (widen)
     (force-mode-line-update)))
 
-;; Variable used by `mode-line-invisible-mode' for
-;; store mode-line value in current buffer.
-(defvar-local mode-line-invisible--buf-state)
-
-(define-minor-mode mode-line-invisible-mode
-  "Toggle the mode-line visibility of the current buffer.
-Hide the mode line if it is shown, and show it if it's hidden."
-  :global nil
-  (if mode-line-invisible-mode
-      (progn
-        (add-hook 'after-change-major-mode-hook #'mode-line-invisible-mode nil t)
-        (setq mode-line-invisible--buf-state
-              (buffer-local-set-state mode-line-format nil)))
-
-    (remove-hook 'after-change-major-mode-hook #'mode-line-invisible-mode t)
-
-    (when mode-line-invisible--buf-state
-      (setq mode-line-invisible--buf-state
-            (buffer-local-restore-state mode-line-invisible--buf-state)))
-
-    ;; Display a mode line if buffer does not have one by default
-    (unless mode-line-format
-      (setq-local mode-line-format (default-value 'mode-line-format)))
-
-    ;; Update mode line
-    (when (called-interactively-p 'any)
-      (force-mode-line-update))))
-
-(put 'mode-line-invisible--buf-state 'permanent-local t)
-(put 'mode-line-invisible-mode 'permanent-local-hook t)
-
 (defvar mode-line-input-method-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-2]
