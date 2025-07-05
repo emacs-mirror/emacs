@@ -63,7 +63,7 @@ init file.
 
 +++
 ** 'site-start.el' is now loaded before the user's early init file.
-Previously the order was early-init.el, site-start.el and then the
+Previously, the order was early-init.el, site-start.el and then the
 user's regular init file, but now site-start.el comes first.  This
 allows site administrators to customize things that can normally only be
 done from early-init.el, such as adding to 'package-directory-list'.
@@ -393,12 +393,12 @@ docstring for arguments passed to a help-text function.
 ---
 *** New command 'tab-line-move-tab-forward' ('C-x M-<right>').
 Together with the new command 'tab-line-move-tab-backward'
-('C-x M-<left>') it can be used to move the current tab
+('C-x M-<left>'), it can be used to move the current tab
 on the tab line to a different position.
 
 ---
 *** New command 'tab-line-close-other-tabs'.
-It's bound to the tab's context menu item "Close other tabs".
+It is bound to the tab's context menu item "Close other tabs".
 
 ** Project
 
@@ -571,27 +571,29 @@ instead of raising an error.  Note that if you have disabled Transient
 Mark mode you might prefer to use 'unix-word-rubout', as this feature
 relies on there being an active region.
 
+** Electric Pair mode
+
 ---
-** New user option 'delete-pair-push-mark'.
+*** New user option 'delete-pair-push-mark'.
 This option, if non-nil, makes 'delete-pair' push a mark at the end of
 the region enclosed by the deleted delimiters.  This makes it easy to
 act on that region.  For example, we can highlight it using 'C-x C-x'.
 
 +++
-** Electric Pair mode can now pair multiple delimiters at once.
+*** Electric Pair mode can now pair multiple delimiters at once.
 You can now insert or wrap text with multiple sets of parentheses and
 other matching delimiters at once with Electric Pair mode, by providing
 a prefix argument when inserting one of the delimiters.
 
 ---
-** Electric pair mode now supports multi-character paired delimiters.
-'electric-pair-pairs' and 'electric-pair-text-pairs' now allows using
+*** Electric Pair mode now supports multi-character paired delimiters.
+'electric-pair-pairs' and 'electric-pair-text-pairs' now allow using
 strings for multi-character paired delimiters.
 
-To use this add a list to both electric pair variables: ("/*" . "*/").
+To use this, add a list to both electric pair user options: '("/*" . "*/")'.
 
 You can also specify to insert an extra space after the first string
-pair: ("/*" " */" t).
+pair: '("/*" " */" t)'.
 
 +++
 ** You can now use 'M-~' during 'C-x s' ('save-some-buffers').
@@ -631,9 +633,10 @@ you could already use 'C-u C-x C-n' to clear the goal column.
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
 ** Register
+
 *** The "*Register Preview*" buffer shows only suitable registers.
 That was already the case for the "fancy" UI but is now also true in
-the default UI you get, i.e. when 'register-use-preview' is 'traditional'.
+the default UI you get, i.e., when 'register-use-preview' is 'traditional'.
 
 ** Tree-sitter
 
@@ -644,7 +647,7 @@ available when such modes are turned on.
 
 *** 'treesit-language-source-alist' supports keywords.
 The language and URL are mandatory, but remaining data can use keywords:
-'(json "https://github.com/tree-sitter/tree-sitter-json" :commit "4d770d3")
+'(json "https://github.com/tree-sitter/tree-sitter-json" :commit "4d770d3")'.
 
 *** The file treesit-x.el defines a number of simple tree-sitter modes.
 Using the new macro 'define-treesit-generic-mode', generic modes are
@@ -758,19 +761,19 @@ Users can customize this variable to add simple custom indentation rules
 for tree-sitter major modes.
 
 +++
-*** New variable 'treesit-languages-require-line-column-tracking'
+*** New variable 'treesit-languages-require-line-column-tracking'.
 Now Emacs can optionally track line and column numbers for buffer edits
 and send that information to tree-sitter parsers.  Parsers of languages
 in this list will receive line and column information.  This is only
 needed for very few languages.  So far only Haskell is known to need it.
 
 +++
-*** New function 'treesit-tracking-line-column-p'
+*** New function 'treesit-tracking-line-column-p'.
 New function to check if a buffer is tracking line and column for buffer
 edits.
 
 +++
-*** New function 'treesit-parser-tracking-line-column-p'
+*** New function 'treesit-parser-tracking-line-column-p'.
 New function to check if a parser is receiving line and column
 information.
 
@@ -960,7 +963,7 @@ When used inside a refined chunk, it jumps to the matching position in
 the "other" side of the refinement: if you're in the new text, it jumps
 to the corresponding position in the old text and vice versa.
 
-*** New variable 'smerge-refine-shadow-cursor'.
+*** New user option 'smerge-refine-shadow-cursor'.
 When 'smerge-refine' shows the conflict diffs at word granularity, a
 "shadow cursor" is now displayed in the "lower" version when point
 is in the "upper" version, and vice versa.  The "shadow cursor" is
@@ -968,7 +971,8 @@ just the character corresponding to the position where
 'smerge-refine-exchange-point' would jump, shown in a new distinct
 face 'smerge-refine-shadow-cursor', by default a box face.
 
-** Cursor-Sensor mode
+** Cursor Sensor mode
+
 +++
 *** New direction 'moved' used when the cursor moved within the active area.
 
@@ -1010,7 +1014,7 @@ Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).
 ** CL-Lib
 
 +++
-*** Derived types (i.e. 'cl-deftype')  can now be used as method specializers,
+*** Derived types (i.e. 'cl-deftype')  can now be used as method specializers.
 As part of this new support, the new function 'cl-types-of' returns
 the list of types to which a value belongs.
 
@@ -1086,8 +1090,8 @@ The new option, if set to nil, suppresses this message.
 ---
 *** New user option 'recentf-suppress-open-file-help'.
 By default, invoking 'recentf-open-files' displays a message saying what
-action clicking or typing RET on the item at point executes, and tabbing
-between items in the *Open Recent* buffer likewise displays such
+action clicking or typing 'RET' on the item at point executes, and tabbing
+between items in the "*Open Recent*" buffer likewise displays such
 messages.  To suppress these messages, customize the user option
 'recentf-suppress-open-file-help' to non-nil.  The default value of this
 option is nil.
@@ -1357,7 +1361,7 @@ HTML 'doctype' declaration to have context-type "text/html".
 
 +++
 *** 'eww-switch-to-buffer' falls back to 'eww'.
-When there is no EWW buffers, 'eww-switch-to-buffer' falls back to
+When there is no EWW buffer, 'eww-switch-to-buffer' falls back to
 calling 'eww'.
 
 ** CC mode
@@ -1371,7 +1375,7 @@ alist element is indented as though it were the 'cdr'.
 +++
 *** Enums now have their own syntactic symbols.
 The new symbols 'enum-open', 'enum-close', 'enum-intro' and
-'enum-entry' are used in the analysis of enum constructs.  Previously
+'enum-entry' are used in the analysis of enum constructs.  Previously,
 they were given 'brace-list-open', etc.  These are fully described in
 the "(ccmode) Enum Symbols" node of the CC mode manual.
 
@@ -1879,22 +1883,22 @@ file removal.
 
 ---
 *** New user option 'vc-dir-hide-up-to-date-on-revert'.
-If you customize this variable to non-nil, the 'g' command to refresh
+If you customize this option to non-nil, the 'g' command to refresh
 the VC Directory buffer also has the effect of the 'x' command.
 That is, typing 'g' refreshes the buffer and also hides items in the
 'up-to-date' and 'ignored' states.
 
 ---
 *** New user option 'vc-dir-save-some-buffers-on-revert'.
-If you customize this variable to non-nil, Emacs will offer to save
+If you customize this option to non-nil, Emacs will offer to save
 relevant buffers before generating the contents of a VC Directory buffer
 (like the third-party package Magit does with its status buffer).
 
 +++
 *** New commands 'vc-root-diff-incoming' and 'vc-root-diff-outgoing'.
-These report diffs of all the changes that would be pulled and would be
-pushed, respectively.  They are the diff analogues of the existing
-commands 'vc-log-incoming' and 'vc-log-outgoing'.
+These commands report diffs of all the changes that would be pulled and
+would be pushed, respectively.  They are the diff analogues of the
+existing commands 'vc-log-incoming' and 'vc-log-outgoing'.
 
 In particular, 'vc-root-diff-outgoing' is useful as a way to preview
 your push and ensure that all and only the changes you intended to
@@ -1905,6 +1909,7 @@ include were committed and will be pushed.
 If this is customized to non-nil, 'C-x v I' and 'C-x v O' become prefix
 commands, such that the new incoming and outgoing commands have global
 bindings:
+
 - 'C-x v I L' is bound to 'vc-log-incoming'
 - 'C-x v I D' is bound to 'vc-root-diff-incoming'
 - 'C-x v O L' is bound to 'vc-log-outgoing'
@@ -1917,9 +1922,9 @@ Currently only supported by the Git and Mercurial backends.
 ---
 *** New 'log-edit-hook' option to display diff of changes to commit.
 You can customize 'log-edit-hook' to include its new
-'log-edit-maybe-show-diff' option to enable displaying a diff of the
+'log-edit-maybe-show-diff' function to enable displaying a diff of the
 changes to be committed in a window.  This is like the 'C-c C-d' command
-in Log Edit mode buffers, except that it does not select the *vc-diff*
+in Log Edit mode buffers, except that it does not select the "*vc-diff*"
 buffer's window, and so works well when added to 'log-edit-hook'.
 
 ---
@@ -1999,10 +2004,10 @@ installed, total number of packages from all the package archives, total
 number of packages to upgrade and total number of new packages
 available.
 
-** RCIRC
+** Rcirc
 
 +++
-*** Authentication via NickServ can access password from 'auth-source'
+*** Authentication via NickServ can access password from 'auth-source'.
 For details, consult 'rcirc-authinfo'.
 
 ** Xref
@@ -2182,7 +2187,7 @@ It is intended to be used in 'ring-bell-function'.
 
 ---
 *** New function 'flash-echo-area-bell-function'.
-This function flashes current echo area briefly.
+This function flashes the current echo area briefly.
 It is intended to be used in 'ring-bell-function'.
 
 ---
@@ -2257,8 +2262,8 @@ DISABLE-URI non-nil.
 
 ** GUD
 
----
-*** pdb, perldb, and guiler suggest debugging the current file via 'M-n'.
++++
+*** 'pdb', 'perldb', and 'guiler' suggest debugging the current file via 'M-n'.
 When starting these debuggers (e.g., 'M-x pdb') while visiting a file,
 pressing 'M-n' in the command prompt suggests a command line including
 the file name, using the minibuffer's "future history".
@@ -2283,13 +2288,12 @@ The month and year navigation key bindings 'M-}', 'M-{', 'C-x ]' and
 ** Calc
 
 *** New user option 'calc-string-maximum-character'.
-
 Previously, the 'calc-display-strings', 'string', and 'bstring'
 functions only considered integer vectors whose elements are all in the
 Latin-1 range 0-255.  This hard-coded maximum is replaced by
 'calc-string-maximum-character', and setting it to a higher value allows
 the display of matching vectors as Unicode strings.  The default value
-is '0xFF' or '255' to preserve the existing behavior.
+is 0xFF or 255 to preserve the existing behavior.
 
 ** Time
 
@@ -2323,7 +2327,6 @@ command for reporting bugs).
 Use the byte-compiler instead; it provides more and more useful warnings.
 
 
-
 * New Modes and Packages in Emacs 31.1
 
 ** New minor mode 'delete-trailing-whitespace-mode'.
