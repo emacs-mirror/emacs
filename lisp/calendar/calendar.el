@@ -1161,17 +1161,20 @@ MON defaults to `displayed-month'.  YR defaults to `displayed-year'."
 First creates or erases BUFFER as needed.  Leaves BUFFER read-only,
 with disabled undo.  Leaves point at `point-min', displays BUFFER."
   (declare (indent 1) (debug t))
-  `(progn
-     (set-buffer (get-buffer-create ,buffer))
-     (or (derived-mode-p 'special-mode) (special-mode))
-     (setq buffer-read-only nil
-           buffer-undo-list t)
-     (erase-buffer)
-     (display-buffer ,buffer)
-     ,@body
-     (goto-char (point-min))
-     (set-buffer-modified-p nil)
-     (setq buffer-read-only t)))
+  (let ((window (gensym)))
+    `(progn
+       (set-buffer (get-buffer-create ,buffer))
+       (or (derived-mode-p 'special-mode) (special-mode))
+       (setq buffer-read-only nil
+             buffer-undo-list t)
+       (erase-buffer)
+       (let ((,window (display-buffer ,buffer)))
+         (when ,window
+	   (with-selected-window ,window
+	     ,@body
+	     (goto-char (point-min)))))
+       (set-buffer-modified-p nil)
+       (setq buffer-read-only t))))
 
 ;; The following are in-line for speed; they can be called thousands of times
 ;; when looking up holidays or processing the diary.  Here, for example, are
