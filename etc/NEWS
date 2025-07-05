@@ -504,12 +504,13 @@ This user option controls the automatic deletion of projects from
 'project-list-file' that cannot be accessed when prompting for a
 project.
 
-The value can be a predicate which takes one argument and should return
-non-nil if the project should be removed.  If set to nil, all the
-inaccessible projects will not be removed automatically.
+The value must be an alist where each element must be in the form:
 
-By default this is set to 'project-prune-zombies-default' function
-which removes all non-remote projects.
+ (WHEN . PREDICATE)
+
+where WHEN specifies where the deletion will be performed, and PREDICATE
+a function which takes one argument, and must return non-nil if the
+project should be removed.
 
 ---
 *** New command 'project-save-some-buffers' bound to 'C-x p C-x s'.

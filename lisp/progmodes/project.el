@@ -1650,16 +1650,28 @@ general form of conditions."
   :group 'project
   :package-version '(project . "0.8.2"))
 
-(defcustom project-prune-zombie-projects #'project-prune-zombies-default
-  "Remove automatically from project list all the projects that were removed.
-The value can be a predicate function which takes one argument, and
-should return non-nil if the project should be removed.
-If set to nil, all the inaccessible projects will not be removed automatically."
-  :type '(choice (const :tag "Default (remove non-remote projects)"
-                        project-prune-zombies-default)
-                 (const :tag "Remove any project" identity)
-                 (function :tag "Custom function")
-                 (const :tag "Disable auto-deletion" nil))
+(defcustom project-prune-zombie-projects
+  '((prompt . project-prune-zombies-default))
+  "Remove automatically from project list the projects that were removed.
+Each element of this alist must be in the form:
+ (WHEN . PREDICATE)
+
+where WHEN specifies where the deletion will be performed,
+the value can be:
+
+ `list-first-read' - delete on the first reading of the list.
+ `list-write' - delete after saving project list to `project-list-file'.
+ `prompt' - delete before every prompting.
+ `interactively' - delete only when `project-forget-zombie-projects'
+                   is called interactively.
+
+PREDICATE must be a function which takes one argument, and should return
+non-nil if the project must be removed."
+  :type 'alist
+  :options '((list-first-read function)
+             (list-write      function)
+             (prompt          function)
+             (interactively   function))
   :version "31.1"
   :group 'project)
 
@@ -2029,10 +2041,10 @@ With some possible metadata (to be decided).")
   "Initialize `project--list' if it isn't already initialized."
   (when (eq project--list 'unset)
     (project--read-project-list)
-    (if-let* (project-prune-zombie-projects
+    (if-let* ((pred (alist-get 'list-first-read project-prune-zombie-projects))
               ((consp project--list))
               (inhibit-message t))
-        (project-forget-zombie-projects))))
+        (project--delete-zombie-projects pred))))
 
 (defun project--write-project-list ()
   "Save `project--list' in `project-list-file'."
@@ -2041,6 +2053,10 @@ With some possible metadata (to be decided).")
       (insert ";;; -*- lisp-data -*-\n")
       (let ((print-length nil)
             (print-level nil))
+        (if-let* ((pred (alist-get 'list-write project-prune-zombie-projects))
+                  ((consp project--list))
+                  (inhibit-message t))
+            (project--delete-zombie-projects pred))
         (pp (mapcar (lambda (elem)
                       (let ((name (car elem)))
                         (list (if (file-remote-p name) name
@@ -2124,9 +2140,9 @@ function; see `project-prompter' for more details.
 Unless REQUIRE-KNOWN is non-nil, it's also possible to enter an
 arbitrary directory not in the list of known projects."
   (project--ensure-read-project-list)
-  (if-let* (project-prune-zombie-projects
+  (if-let* ((pred (alist-get 'prompt project-prune-zombie-projects))
             (inhibit-message t))
-      (project-forget-zombie-projects))
+      (project--delete-zombie-projects pred))
   (let* ((dir-choice "... (choose a dir)")
          (choices
           ;; XXX: Just using this for the category (for the substring
@@ -2165,9 +2181,9 @@ If PREDICATE is non-nil, filter possible project choices using this
 function; see `project-prompter' for more details.
 Unless REQUIRE-KNOWN is non-nil, it's also possible to enter an
 arbitrary directory not in the list of known projects."
-  (if-let* (project-prune-zombie-projects
+  (if-let* ((pred (alist-get 'prompt project-prune-zombie-projects))
             (inhibit-message t))
-      (project-forget-zombie-projects))
+      (project--delete-zombie-projects pred))
   (let* ((dir-choice "... (choose a dir)")
          project--name-history
          (choices
@@ -2295,15 +2311,20 @@ Return the number of detected projects."
                          count) count))
     count))
 
-(defun project-forget-zombie-projects ()
-  "Forget all known projects that don't exist any more."
-  (interactive)
+(defun project--delete-zombie-projects (predicate)
+  "Helper function used by `project-forget-zombie-projects'.
+PREDICATE can be a function with 1 argument which determines which
+projects should be deleted."
   (dolist (proj (project-known-project-roots))
-    (when (and (if project-prune-zombie-projects
-                   (funcall project-prune-zombie-projects proj)
-                 t)
+    (when (and (funcall (or predicate #'identity) proj)
                (not (file-exists-p proj)))
       (project-forget-project proj))))
+
+(defun project-forget-zombie-projects (&optional interactive)
+  "Forget all known projects that don't exist any more."
+  (interactive (list t))
+  (let ((pred (when interactive (alist-get 'interactively project-prune-zombie-projects))))
+    (project--delete-zombie-projects pred)))
 
 (defun project-forget-projects-under (dir &optional recursive)
   "Forget all known projects below a directory DIR.
