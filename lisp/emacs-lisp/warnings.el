@@ -133,7 +133,11 @@ If the value of this variable is nil, Emacs will display the warning
 buffer in some window, as determined by `display-buffer' and its
 customizations.  In particular, the category designated by the
 symbol `warning' can be used in `display-buffer-alist' to customize
-the display of this buffer."
+the display of this buffer.
+
+This option affects display of all the buffers shown by `dispay-warning',
+including warnings from byte-compiler and native-compiler,
+from `check-declare', etc."
   :type 'boolean
   :version "30.1")
 
