@@ -2027,7 +2027,7 @@ After updating a displayed Proced buffer run the normal hook
     (setq mode-name
           (concat "Proced"
                   (if proced-filter
-                      (concat ": " (format "%s" proced-filter))
+                      (format ": %S" proced-filter)
                     "")
                   (if proced-sort
                       (let* ((key (if (consp proced-sort) (car proced-sort)
