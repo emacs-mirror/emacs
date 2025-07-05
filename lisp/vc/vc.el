@@ -1957,6 +1957,11 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
       ;; RCS 5.7 gripes about whitespace-only comments too.
       (unless (and comment (string-match "[^\t\n ]" comment))
         (setq comment "*** empty log message ***"))
+      (unless patch-string
+        ;; Must not pass non-nil NOT-ESSENTIAL because we will shortly
+        ;; call (in `vc-finish-logentry') `vc-resynch-buffer' with its
+        ;; NOQUERY parameter non-nil.
+        (vc-buffer-sync-fileset (list backend files)))
       (when register (vc-register (list backend register)))
       (cl-labels ((do-it ()
                     ;; We used to change buffers to get local value of
