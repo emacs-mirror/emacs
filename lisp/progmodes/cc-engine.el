@@ -2594,7 +2594,7 @@ comment at the start of cc-engine.el for more info."
 	;; can be cached.
 	(setq next-rung-pos (point))
 	(c-skip-ws-chars-backward " \t\f\v ")
-	
+
 	(if (or
 	     ;; Cache if we started either from a marked rung or from a
 	     ;; completely uncached position.
