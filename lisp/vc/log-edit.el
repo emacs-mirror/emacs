@@ -533,7 +533,9 @@ keys and associated values are:
     files that are concerned by the current operation (using relative names);
  `log-edit-diff-function' -- function taking no arguments that
     displays a diff of the files concerned by the current operation.
- `vc-log-fileset' -- the VC fileset to be committed (if any).
+ `vc-log-fileset' -- list of files to be committed, if any
+                     (not a true VC fileset structure as returned by
+                     `vc-deduce-fileset', but only the second element).
 
 If BUFFER is non-nil, `log-edit' will switch to that buffer, use it
 to edit the log message and go back to the current buffer when
