@@ -630,4 +630,29 @@
      (should (string= (format "%S" (format "%S %S" [1] (symbol-function '+)))
                       str))))
 
+(ert-deftest editfns-tests--bug76124 ()
+  (with-temp-buffer
+    (insert "Emacs forever!foo\n")
+    (insert "toto\n")
+    (goto-char (point-min))
+    ;; Remove the trailing "foo", so as to move the gap between the
+    ;; two lines.
+    (delete-region (- (pos-eol) 3) (pos-eol))
+    (add-hook 'before-change-functions
+              (lambda (beg end)
+                ;; Eglot uses `encode-coding-region' which can also move
+                ;; the gap, but let's do it more forcefully here.
+                (save-excursion
+                  (goto-char beg)
+                  (end-of-line)
+                  (unless (> (point) end)
+                    (with-silent-modifications
+                      (insert "foo")
+                      (delete-char -3)))))
+              nil t)
+    (goto-char (point-min))
+    (transpose-regions (pos-bol) (pos-eol)
+                       (pos-bol 2) (pos-eol 2))
+    (should (equal (buffer-string) "toto\nEmacs forever!\n"))))
+
 ;;; editfns-tests.el ends here
