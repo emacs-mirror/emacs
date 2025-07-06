@@ -400,7 +400,7 @@ automatically."
 
 (defvar log-edit-headers-alist '(("Summary" . log-edit-summary)
                                  ("Fixes") ("Author"))
-  "AList of known headers and the face to use to highlight them.")
+  "Alist of known headers and the face to use to highlight them.")
 
 (defconst log-edit-header-contents-regexp
   "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?"
@@ -578,6 +578,7 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
   (cl-pushnew 'display-line-numbers-disable font-lock-extra-managed-props)
   (setq-local jit-lock-contextually t)  ;For the "first line is summary".
   (setq-local fill-paragraph-function #'log-edit-fill-entry)
+  (setq-local normal-auto-fill-function #'log-edit-do-auto-fill)
   (make-local-variable 'log-edit-comment-ring-index)
   (add-hook 'kill-buffer-hook 'log-edit-remember-comment nil t)
   (hack-dir-local-variables-non-file-buffer)
@@ -744,6 +745,12 @@ according to `fill-column'."
               (setq beg (point))))
           nil)
         t))))
+
+(defun log-edit-do-auto-fill ()
+  "Like `do-auto-fill', but don't fill in Log Edit headers."
+  (unless (> (save-excursion (rfc822-goto-eoh) (point))
+             (point))
+    (do-auto-fill)))
 
 (defun log-edit-hide-buf (&optional buf where)
   (when (setq buf (get-buffer (or buf log-edit-files-buf)))
