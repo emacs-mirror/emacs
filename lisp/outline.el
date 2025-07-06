@@ -1983,46 +1983,52 @@ With a prefix argument, show headings up to that LEVEL."
             (if outline--use-rtl 'outline-close-rtl 'outline-close))))))
 
 (defun outline--insert-button (type)
-  (with-silent-modifications
-    (save-excursion
-      (forward-line 0)
-      (let ((icon (nth (if (eq type 'close) 1 0) outline--button-icons))
-            (o (seq-find (lambda (o) (overlay-get o 'outline-button))
-                         (overlays-at (point)))))
-        (unless o
-          (when (eq outline-minor-mode-use-buttons 'insert)
-            (let ((inhibit-read-only t))
-              (insert (apply #'propertize "  " (text-properties-at (point))))
-              (forward-line 0)))
-          (setq o (make-overlay (point) (1+ (point))))
-          (overlay-put o 'outline-button t)
-          (overlay-put o 'evaporate t))
-        (pcase outline-minor-mode-use-buttons
-          ('insert
-           (overlay-put o 'display (or (plist-get icon 'image)
-                                       (plist-get icon 'string)))
-           (overlay-put o 'face (plist-get icon 'face))
-           (overlay-put o 'follow-link 'mouse-face)
-           (overlay-put o 'mouse-face 'highlight)
-           (overlay-put o 'keymap outline-inserted-button-map))
-          ('in-margins
-           (overlay-put o 'before-string icon)
-           (overlay-put o 'keymap outline-overlay-button-map))
-          (_
-           (overlay-put o 'before-string icon)
-           (overlay-put o 'keymap outline-overlay-button-map)))))))
+  (save-excursion
+    (forward-line 0)
+    (let ((icon (nth (if (eq type 'close) 1 0) outline--button-icons))
+          (o (seq-find (lambda (o) (overlay-get o 'outline-button))
+                       (overlays-at (point)))))
+      (unless o
+        (when (eq outline-minor-mode-use-buttons 'insert)
+          (let ((inhibit-read-only t))
+            (insert (apply #'propertize "  " (text-properties-at (point))))
+            (forward-line 0)))
+        (setq o (make-overlay (point) (1+ (point))))
+        (overlay-put o 'outline-button t)
+        (overlay-put o 'evaporate t))
+      (pcase outline-minor-mode-use-buttons
+        ('insert
+         (overlay-put o 'display (or (plist-get icon 'image)
+                                     (plist-get icon 'string)))
+         (overlay-put o 'face (plist-get icon 'face))
+         (overlay-put o 'follow-link 'mouse-face)
+         (overlay-put o 'mouse-face 'highlight)
+         (overlay-put o 'keymap outline-inserted-button-map))
+        ('in-margins
+         (overlay-put o 'before-string icon)
+         (overlay-put o 'keymap outline-overlay-button-map))
+        (_
+         (overlay-put o 'before-string icon)
+         (overlay-put o 'keymap outline-overlay-button-map))))))
 
 (defun outline--fix-up-all-buttons (from to)
   (when outline-minor-mode-use-buttons
-    (outline-map-region
-     (lambda ()
-       (let ((close-p (save-excursion
-                        (outline-end-of-heading)
-                        (seq-some (lambda (o) (eq (overlay-get o 'invisible)
-                                                  'outline))
-                                  (overlays-at (point))))))
-         (outline--insert-button (if close-p 'close 'open))))
-     from to)))
+    ;; If `outline-minor-mode-use-buttons' is `insert',
+    ;; `outline--insert-button' can modify the buffer's text.  We shouldn't
+    ;; use `with-silent-modifications' around changes to the buffer's text,
+    ;; but we still don't want to mark the buffer as modified whenever
+    ;; we expand/collapse an element.
+    (let ((modified (buffer-modified-p)))
+      (outline-map-region
+       (lambda ()
+         (let ((close-p (save-excursion
+                          (outline-end-of-heading)
+                          (seq-some (lambda (o)
+                                      (eq (overlay-get o 'invisible) 'outline))
+                                    (overlays-at (point))))))
+           (outline--insert-button (if close-p 'close 'open))))
+       from to)
+      (restore-buffer-modified-p modified))))
 
 (defvar outline-after-change-functions nil
   "Hook run before updating buttons in a region in outline-mode.
