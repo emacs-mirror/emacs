@@ -864,18 +864,13 @@ the buffer contents as a comment."
   ;; save the parameters held in buffer-local variables
   (let ((logbuf (current-buffer))
 	(log-operation vc-log-operation)
-        ;; FIXME: When coming from VC-Dir, we should check that the
-        ;; set of selected files is still equal to vc-log-fileset,
-        ;; to avoid surprises.
 	(log-fileset vc-log-fileset)
 	(log-entry (buffer-string))
 	(after-hook vc-log-after-operation-hook))
-    (pop-to-buffer vc-parent-buffer)
     ;; OK, do it to it
-    (save-excursion
-      (funcall log-operation
-	       log-fileset
-	       log-entry))
+    (with-current-buffer vc-parent-buffer
+      (funcall log-operation log-fileset log-entry))
+    (pop-to-buffer vc-parent-buffer)
     (setq vc-log-operation nil)
 
     ;; Quit windows on logbuf.
@@ -895,6 +890,16 @@ the buffer contents as a comment."
       (derived-mode-p 'dired-mode)
       (derived-mode-p 'diff-mode)
       (derived-mode-p 'log-view-mode)))
+
+(declare-function vc-dir-marked-files "vc-dir")
+(declare-function dired-get-marked-files "dired")
+
+(defun vc-dispatcher--explicit-marks-p ()
+  "Are any files in the directory browser explicitly marked?"
+  (or (and (derived-mode-p 'vc-dir-mode)
+           (vc-dir-marked-files))
+      (and (derived-mode-p 'dired-mode)
+           (length> (dired-get-marked-files nil nil nil t) 1))))
 
 ;; These are unused.
 ;; (defun vc-dispatcher-in-fileset-p (fileset)

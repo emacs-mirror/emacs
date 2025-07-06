@@ -572,6 +572,23 @@ then applies the changes to the respective files and commits the changes
 after popping up the @file{*vc-log*} buffer to allow you to type a
 suitable commit log message.
 
+Once you type @kbd{C-x v v}, the fileset or patches cannot be changed
+without first cancelling the commit by typing @kbd{C-c C-k} in the
+@file{*vc-log*} buffer.  For example, if you change which files are
+marked in the @file{*vc-dir*} buffer after Emacs has already popped up
+the @file{*vc-log*} buffer, the old fileset will remain in effect for
+this commit.  (This is in contrast to changes made to the
+@emph{contents} of files in the fileset: all such changes will be
+included in the commit even if they are made after Emacs has popped up
+the @file{*vc-dir*} buffer.)
+
+When you cancel a commit, Emacs saves your log message.  This means that
+if you need to adjust the fileset or patches, it is easy to restart the
+commit operation again: type @w{@kbd{C-c C-k C-x v v M-p}}.  Here
+@kbd{C-c C-k} cancels the commit, @kbd{C-x v v} initiates another with
+the new fileset or patches, and finally @kbd{M-p} recalls your previous
+log message.
+
 With modern decentralized version control systems (Git, Mercurial,
 etc.), the changes are committed locally and not automatically
 propagated to the upstream repository (which is usually on a remote

@@ -1953,6 +1953,48 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
     (lambda ()
       (vc-call-backend backend 'log-edit-mode))
     (lambda (files comment)
+      ;; Check the user isn't likely to be surprised by what is included
+      ;; in the checkin.  Once a log operation is started, the fileset
+      ;; or patch string is locked in.  In particular, it's probably too
+      ;; late to offer to change it now -- checks in hooks and/or the
+      ;; backend's Log Edit derived mode have all already okayed the
+      ;; checkin.  Restarting with the new fileset or patch is easy.
+      (let* ((start-again
+              (substitute-command-keys "\\[vc-next-action] to check in again"))
+             (instructions
+              (substitute-command-keys
+               (string-join
+                (list "type \\<log-edit-mode-map>\\[log-edit-kill-buffer] to cancel"
+                      start-again
+                      "\\[log-edit-previous-comment] to recall your message")
+                ", "))))
+        (cond (patch-string
+               (unless (or (not (derived-mode-p 'diff-mode))
+                           (equal patch-string (buffer-string))
+                           (yes-or-no-p
+                            (format-message "Patch in buffer \"%s\" \
+has changed; continue with old patch?" (current-buffer))))
+                 (user-error "%s %s"
+                             "To check in the new patch" instructions)))
+              ((vc-dispatcher-browsing)
+               (unless (or (and (length= files 1)
+                                ;; If no files in the dispatcher were
+                                ;; marked and it was just that point
+                                ;; moved to a different line, we don't
+                                ;; want to bother the user.  This isn't
+                                ;; foolproof because we don't know
+                                ;; whether FILES was selected by means
+                                ;; of marking a single file or the
+                                ;; implicit selection of the file at
+                                ;; point in the absence of any marks.
+                                (not (vc-dispatcher--explicit-marks-p)))
+                           (equal files (cadr (vc-deduce-fileset)))
+                           (yes-or-no-p
+                            (format-message "Selected file(s) in buffer \"%s\" \
+have changed; continue with old fileset?" (current-buffer))))
+                 (user-error "%s %s"
+                             "To use the new fileset" instructions)))))
+
       ;; "This log message intentionally left almost blank".
       ;; RCS 5.7 gripes about whitespace-only comments too.
       (unless (and comment (string-match "[^\t\n ]" comment))
