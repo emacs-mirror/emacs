@@ -559,8 +559,7 @@ See the command `outline-mode' for more information on this mode."
   (if outline-minor-mode
       (progn
         (when outline-minor-mode-use-buttons
-          (add-hook 'after-change-functions
-                    #'outline--fix-buttons-after-change nil t)
+          (jit-lock-register #'outline--fix-buttons)
           (when (eq (current-bidi-paragraph-direction) 'right-to-left)
             (setq-local outline--use-rtl t))
           (setq-local outline--button-icons (outline--create-button-icons))
@@ -596,7 +595,6 @@ See the command `outline-mode' for more information on this mode."
               (outline-minor-mode-highlight-buffer)
               (add-hook 'revert-buffer-restore-functions
                         #'outline-revert-buffer-rehighlight nil t))))
-        (outline--fix-up-all-buttons)
 	;; Turn off this mode if we change major modes.
 	(add-hook 'change-major-mode-hook
 		  (lambda () (outline-minor-mode -1))
@@ -607,8 +605,7 @@ See the command `outline-mode' for more information on this mode."
 	;; Cause use of ellipses for invisible text.
 	(add-to-invisibility-spec '(outline . t))
 	(outline-apply-default-state))
-    (remove-hook 'after-change-functions
-                 #'outline--fix-buttons-after-change t)
+    (jit-lock-unregister #'outline--fix-buttons)
     (remove-hook 'revert-buffer-restore-functions
                  #'outline-revert-buffer-restore-visibility t)
     (remove-hook 'revert-buffer-restore-functions
@@ -1040,7 +1037,9 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
       (overlay-put o 'isearch-open-invisible
 		   (or outline-isearch-open-invisible-function
 		       #'outline-isearch-open-invisible))))
-  (outline--fix-up-all-buttons from to)
+  ;; Jit-lock won't be triggered because we only touched overlays, so we have
+  ;; to update "by hand".
+  (outline--fix-buttons from to)
   (run-hooks 'outline-view-change-hook))
 
 (defun outline-reveal-toggle-invisible (o hidep)
@@ -2013,12 +2012,8 @@ With a prefix argument, show headings up to that LEVEL."
            (overlay-put o 'before-string icon)
            (overlay-put o 'keymap outline-overlay-button-map)))))))
 
-(defun outline--fix-up-all-buttons (&optional from to)
+(defun outline--fix-up-all-buttons (from to)
   (when outline-minor-mode-use-buttons
-    (when from
-      (save-excursion
-        (goto-char from)
-        (setq from (pos-bol))))
     (outline-map-region
      (lambda ()
        (let ((close-p (save-excursion
@@ -2027,22 +2022,27 @@ With a prefix argument, show headings up to that LEVEL."
                                                   'outline))
                                   (overlays-at (point))))))
          (outline--insert-button (if close-p 'close 'open))))
-     (or from (point-min)) (or to (point-max)))))
+     from to)))
 
 (defvar outline-after-change-functions nil
   "Hook run before updating buttons in a region in outline-mode.
 Called with three arguments (BEG END DUMMY).  Don't use DUMMY.")
 
-(defun outline--fix-buttons-after-change (beg end len)
-  (run-hook-with-args 'outline-after-change-functions beg end len)
+(defun outline--fix-buttons (&optional beg end)
+  (run-hook-with-args 'outline-after-change-functions beg end 0)
   ;; Handle whole lines
-  (save-excursion (goto-char beg) (setq beg (pos-bol)))
-  (save-excursion (goto-char end) (setq end (pos-eol)))
-  (when (eq outline-minor-mode-use-buttons 'insert)
-    ;; `outline--remove-buttons' may change the buffer's text.
-    (setq end (copy-marker end t)))
-  (outline--remove-buttons beg end)
-  (save-match-data (outline--fix-up-all-buttons beg end)))
+  (save-excursion
+    (setq beg (if (null beg) (point-min) (goto-char beg) (pos-bol)))
+    ;; Include a final newline in the region, otherwise
+    ;; `outline-search-text-property' may consider a heading to be outside
+    ;; of the bounds.
+    (setq end (if (null end) (point-max) (goto-char end) (pos-bol 2)))
+    (when (eq outline-minor-mode-use-buttons 'insert)
+      ;; `outline--remove-buttons' may change the buffer's text.
+      (setq end (copy-marker end t)))
+    (outline--remove-buttons beg end)
+    (save-match-data (outline--fix-up-all-buttons beg end))
+    `(jit-lock-bounds ,beg . ,end)))
 
 (defun outline--remove-buttons (beg end)
   (if (not (eq outline-minor-mode-use-buttons 'insert))
