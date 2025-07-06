@@ -1017,12 +1017,16 @@ point."
               #'xref--add-log-current-defun)
   (setq-local revert-buffer-function #'xref--revert-buffer)
   (setq-local outline-minor-mode-cycle t)
-  (setq-local outline-minor-mode-use-buttons 'insert)
+  (setq-local outline-minor-mode-use-buttons
+              (or (bound-and-true-p outline-minor-mode-use-buttons) t))
   (setq-local outline-search-function
               (lambda (&optional bound move backward looking-at)
                 (outline-search-text-property
                  'xref-group nil bound move backward looking-at)))
+  (setq-local outline-regexp "•")
+  (setq-local outline-button-cover-text t)
   (setq-local outline-level (lambda () 1))
+  (outline-minor-mode 1)
   (add-hook 'revert-buffer-restore-functions
             #'xref-revert-buffer-restore-point nil t))
 
@@ -1163,7 +1167,7 @@ GROUP is a string for decoration purposes and XREF is an
            with prev-line = nil
            do
            (xref--insert-propertized '(face xref-file-header xref-group t)
-                                     group "\n")
+                                    "•" group "\n")
            (dolist (xref xrefs)
              (cl-incf xref-num-matches-found)
              (pcase-let (((cl-struct xref-item summary location) xref))
