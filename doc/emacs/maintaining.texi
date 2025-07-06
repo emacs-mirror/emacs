@@ -558,13 +558,19 @@ cannot find a system to register under, it prompts for a repository
 type, creates a new repository, and registers the VC fileset with it.
 You can also specify the system explicitly, see @ref{Advanced C-x v
 v}.  Note that registering the files doesn't commit them; you must
-invoke @w{@kbd{C-x v v}} again to commit, see below.
+invoke @w{@kbd{C-x v v}} again to commit; see the next point.
 
 @item
 If every file in the VC fileset has been either newly-added or
 modified, commit the changed files.  To do this, Emacs pops up a
 @file{*vc-log*} buffer; type the desired log entry for the changes,
 followed by @kbd{C-c C-c} to commit.  @xref{Log Buffer}.
+
+If @kbd{C-x v v} is invoked from a buffer under Diff mode, the command
+treats the buffer as holding a set of patches for one or more files.  It
+then applies the changes to the respective files and commits the changes
+after popping up the @file{*vc-log*} buffer to allow you to type a
+suitable commit log message.
 
 With modern decentralized version control systems (Git, Mercurial,
 etc.), the changes are committed locally and not automatically
@@ -594,12 +600,6 @@ verify that the current revision is unchanged before committing your
 changes.  In addition, locking is possible with RCS even in this mode:
 @kbd{C-x v v} with an unmodified file locks the file, just as it does
 with RCS in its normal locking mode (@pxref{VC With A Locking VCS}).
-
-  If @kbd{C-x v v} is invoked from a buffer under Diff Mode, the
-command assumes the buffer holds a set of patches for one or more
-files.  It then applies the changes to the respective files and
-commits the changes after popping up the @file{*vc-log*} buffer to
-allow you to type a suitable commit log message.
 
 @node VC With A Locking VCS
 @subsubsection Basic Version Control with Locking
