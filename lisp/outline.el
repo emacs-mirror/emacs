@@ -326,8 +326,8 @@ These buttons can be used to hide and show the body under the heading.
 When the value is `insert', additional placeholders for buttons are
 inserted to the buffer, so buttons are not only clickable,
 but also typing `RET' on them can hide and show the body.
-Using the value `insert' is not recommended in editable
-buffers because it modifies them.
+The value `insert' is for internal use only in some non-editable
+buffers, because it modifies them.
 When the value is `in-margins', then clickable buttons are
 displayed in the margins before the headings.
 When the value is t, clickable buttons are displayed
@@ -341,8 +341,11 @@ don't modify the buffer."
   :safe #'symbolp
   :version "29.1")
 
+(defvar-local outline-button-cover-text nil
+  "If non-nil, buttons can&should cover/hide the first char of the header.")
+
 (defvar-local outline--button-icons nil
-  "A list of pre-computed button icons.")
+  "A memoization table for button icons.")
 
 (defvar-local outline--use-rtl nil
   "Non-nil when direction of clickable buttons is right-to-left.")
@@ -556,13 +559,13 @@ See the command `outline-mode' for more information on this mode."
             :parent outline-minor-mode-cycle-map
             "<menu-bar>" outline-minor-mode-menu-bar-map
             (key-description outline-minor-mode-prefix) outline-mode-prefix-map)
+  (kill-local-variable 'outline--button-icons)
   (if outline-minor-mode
       (progn
         (when outline-minor-mode-use-buttons
           (jit-lock-register #'outline--fix-buttons)
           (when (eq (current-bidi-paragraph-direction) 'right-to-left)
             (setq-local outline--use-rtl t))
-          (setq-local outline--button-icons (outline--create-button-icons))
           (when (and (eq outline-minor-mode-use-buttons 'in-margins)
                      (> 1 (if outline--use-rtl right-margin-width
                             left-margin-width)))
@@ -1946,47 +1949,53 @@ With a prefix argument, show headings up to that LEVEL."
   :parent (make-composed-keymap outline-button-icon-map
                                 outline-overlay-button-map))
 
-(defun outline--create-button-icons ()
-  (pcase outline-minor-mode-use-buttons
-    ('in-margins
-     (mapcar
-      (lambda (icon-name)
-        (let* ((icon (icon-elements icon-name))
-               (face   (plist-get icon 'face))
-               (string (plist-get icon 'string))
-               (image  (plist-get icon 'image))
-               (display `((margin ,(if outline--use-rtl
-                                       'right-margin 'left-margin))
-                          ,(or image (if face (propertize
-                                               string 'face face)
-                                       string))))
-               (space (propertize " " 'display display)))
-          (if (and image face) (propertize space 'face face) space)))
-      (list 'outline-open-in-margins
-            (if outline--use-rtl
-                'outline-close-rtl-in-margins
-              'outline-close-in-margins))))
-    ('insert
-     (mapcar
-      (lambda (icon-name)
-        (icon-elements icon-name))
-      (list 'outline-open
-            (if outline--use-rtl 'outline-close-rtl 'outline-close))))
-    (_
-     (mapcar
-      (lambda (icon-name)
-        (propertize (icon-string icon-name)
-                    'mouse-face 'default
-                    'follow-link 'mouse-face
-                    'keymap outline-button-icon-map))
-      (list 'outline-open
-            (if outline--use-rtl 'outline-close-rtl 'outline-close))))))
+(defun outline--button-icons (type location)
+  (unless outline--button-icons
+    (setq outline--button-icons (make-hash-table)))
+  (let ((buttons
+         (with-memoization (gethash location outline--button-icons)
+           (pcase-exhaustive location
+             ('in-margins
+              (mapcar
+               (lambda (icon-name)
+                 (let* ((icon (icon-elements icon-name))
+                        (face   (plist-get icon 'face))
+                        (string (plist-get icon 'string))
+                        (image  (plist-get icon 'image))
+                        (display `((margin ,(if outline--use-rtl
+                                                'right-margin 'left-margin))
+                                   ,(or image (if face (propertize
+                                                        string 'face face)
+                                                string))))
+                        (space (propertize " " 'display display)))
+                   (if (and image face) (propertize space 'face face) space)))
+               (list 'outline-open-in-margins
+                     (if outline--use-rtl
+                         'outline-close-rtl-in-margins
+                       'outline-close-in-margins))))
+             ('display
+              (mapcar
+               (lambda (icon-name)
+                 (icon-elements icon-name))
+               (list 'outline-open
+                     (if outline--use-rtl 'outline-close-rtl 'outline-close))))
+             ('before-string
+              (mapcar
+               (lambda (icon-name)
+                 (propertize (icon-string icon-name)
+                             'mouse-face 'default
+                             'follow-link 'mouse-face
+                             'keymap outline-button-icon-map))
+               (list 'outline-open
+                     (if outline--use-rtl 'outline-close-rtl 'outline-close))))))))
+    (nth (if (eq type 'close) 1 0) buttons)))
 
 (defun outline--insert-button (type)
   (save-excursion
     (forward-line 0)
-    (let ((icon (nth (if (eq type 'close) 1 0) outline--button-icons))
-          (o (seq-find (lambda (o) (overlay-get o 'outline-button))
+    ;; `icon' is either plist or a string, depending on
+    ;; the `outline-minor-mode-use-buttons' settings
+    (let ((o (seq-find (lambda (o) (overlay-get o 'outline-button))
                        (overlays-at (point)))))
       (unless o
         (when (eq outline-minor-mode-use-buttons 'insert)
@@ -1997,18 +2006,23 @@ With a prefix argument, show headings up to that LEVEL."
         (overlay-put o 'outline-button t)
         (overlay-put o 'evaporate t))
       (pcase outline-minor-mode-use-buttons
-        ('insert
-         (overlay-put o 'display (or (plist-get icon 'image)
-                                     (plist-get icon 'string)))
-         (overlay-put o 'face (plist-get icon 'face))
-         (overlay-put o 'follow-link 'mouse-face)
-         (overlay-put o 'mouse-face 'highlight)
-         (overlay-put o 'keymap outline-inserted-button-map))
         ('in-margins
-         (overlay-put o 'before-string icon)
+         (when outline-button-cover-text
+           (overlay-put o 'invisible t))
+         (overlay-put o 'before-string
+                      (outline--button-icons type 'in-margins))
          (overlay-put o 'keymap outline-overlay-button-map))
+        ((or 'insert (guard outline-button-cover-text))
+         (let ((icon (outline--button-icons type 'display)))
+           (overlay-put o 'display (or (plist-get icon 'image)
+                                       (plist-get icon 'string)))
+           (overlay-put o 'face (plist-get icon 'face))
+           (overlay-put o 'follow-link 'mouse-face)
+           (overlay-put o 'mouse-face 'highlight)
+           (overlay-put o 'keymap outline-inserted-button-map)))
         (_
-         (overlay-put o 'before-string icon)
+         (overlay-put o 'before-string
+                      (outline--button-icons type 'before-string))
          (overlay-put o 'keymap outline-overlay-button-map))))))
 
 (defun outline--fix-up-all-buttons (from to)
