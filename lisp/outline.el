@@ -624,7 +624,7 @@ See the command `outline-mode' for more information on this mode."
       (font-lock-flush)
       (remove-overlays nil nil 'outline-highlight t))
     (when outline-minor-mode-use-buttons
-      (remove-overlays nil nil 'outline-button t)
+      (outline--remove-buttons (point-min) (point-max))
       (when (and (eq outline-minor-mode-use-buttons 'in-margins)
                  (< 0 (if outline--use-rtl right-margin-width
                         left-margin-width)))
@@ -2030,15 +2030,30 @@ With a prefix argument, show headings up to that LEVEL."
      (or from (point-min)) (or to (point-max)))))
 
 (defvar outline-after-change-functions nil
-  "List of functions to call after each text change in outline-mode.")
+  "Hook run before updating buttons in a region in outline-mode.
+Called with three arguments (BEG END DUMMY).  Don't use DUMMY.")
 
 (defun outline--fix-buttons-after-change (beg end len)
   (run-hook-with-args 'outline-after-change-functions beg end len)
   ;; Handle whole lines
   (save-excursion (goto-char beg) (setq beg (pos-bol)))
   (save-excursion (goto-char end) (setq end (pos-eol)))
-  (remove-overlays beg end 'outline-button t)
+  (when (eq outline-minor-mode-use-buttons 'insert)
+    ;; `outline--remove-buttons' may change the buffer's text.
+    (setq end (copy-marker end t)))
+  (outline--remove-buttons beg end)
   (save-match-data (outline--fix-up-all-buttons beg end)))
+
+(defun outline--remove-buttons (beg end)
+  (if (not (eq outline-minor-mode-use-buttons 'insert))
+      (remove-overlays beg end 'outline-button t)
+    (save-excursion
+      (dolist (ol (overlays-in beg end))
+        (when (overlay-get ol 'outline-button)
+          (goto-char (overlay-start ol))
+          (let ((inhibit-read-only t))
+            (when (looking-at "  ") (delete-char 2)))
+          (delete-overlay ol))))))
 
 
 (defvar-keymap outline-navigation-repeat-map
