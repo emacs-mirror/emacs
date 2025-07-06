@@ -202,10 +202,10 @@ specific positions on the heading, like only at the line's beginning or
 line's end.  This allows these keys to be bound to their usual commands,
 as determined by the major mode, elsewhere on the heading lines.
 This option is only in effect when `outline-minor-mode-cycle' is non-nil."
-  :type '(choice (const :tag "Everywhere" nil)
+  :type `(choice (const :tag "Everywhere" nil)
                  (const :tag "At line beginning" bolp)
                  (const :tag "Not at line beginning"
-                        (lambda () (not (bolp))))
+                        ,(lambda () (not (bolp))))
                  (const :tag "At line end" eolp)
                  (function :tag "Custom filter function"))
   :version "28.1")
