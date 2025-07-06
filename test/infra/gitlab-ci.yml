@@ -189,7 +189,7 @@ default:
 .filenotify-gio-template:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
-    # - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
         - "**.in"
         - lisp/autorevert.el
