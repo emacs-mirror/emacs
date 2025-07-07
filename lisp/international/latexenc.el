@@ -156,7 +156,8 @@ coding system names is determined from `latex-inputenc-coding-alist'."
                                "^%+ *\\(TeX-master\\|tex-main-file\\): *\"\\(.+\\)\""
                                nil t)
                               (match-string 2)
-                            (or (bound-and-true-p TeX-master)
+                            (or (and (bound-and-true-p TeX-master)
+                                     (stringp TeX-master))
                                 (bound-and-true-p tex-main-file)))))
                 (dolist (ext `("" ,(if (boundp 'TeX-default-extension)
                                        (concat "." TeX-default-extension)
