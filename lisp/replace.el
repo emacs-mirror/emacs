@@ -2461,7 +2461,7 @@ To be added to `context-menu-functions'."
 multi-buffer replacements) with no more questions,
 \\`N' (in multi-buffer replacements) to skip to the next buffer without
 replacing remaining matches in the current buffer.
-Any other character exits interactive replacement loop and is then
+Any other character exits the interactive replacement loop, and is then
 re-executed as a normal key sequence."
   "Help message while in `query-replace'.")
 
