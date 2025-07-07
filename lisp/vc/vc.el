@@ -1081,24 +1081,25 @@ If any of FILES is actually a directory, then do the same for all
 buffers for files in that directory.
 SETTINGS is an association list of property/value pairs.  After
 executing FORM, set those properties from SETTINGS that have not yet
-been updated to their corresponding values."
+been updated to their corresponding values.
+Return the result of evaluating FORM."
   (declare (debug t))
   `(let ((vc-touched-properties (list t))
 	 (flist nil))
-     (dolist (file ,files)
-       (if (file-directory-p file)
-	   (dolist (buffer (buffer-list))
-	     (let ((fname (buffer-file-name buffer)))
-	       (when (and fname (string-prefix-p file fname))
-		 (push fname flist))))
-	 (push file flist)))
-     ,form
-     (dolist (file flist)
-       (dolist (setting ,settings)
-         (let ((property (car setting)))
-           (unless (memq property vc-touched-properties)
-             (put (intern file vc-file-prop-obarray)
-                  property (cdr setting))))))))
+     (prog2 (dolist (file ,files)
+              (if (file-directory-p file)
+	          (dolist (buffer (buffer-list))
+	            (let ((fname (buffer-file-name buffer)))
+	              (when (and fname (string-prefix-p file fname))
+		        (push fname flist))))
+	        (push file flist)))
+         ,form
+       (dolist (file flist)
+         (dolist (setting ,settings)
+           (let ((property (car setting)))
+             (unless (memq property vc-touched-properties)
+               (put (intern file vc-file-prop-obarray)
+                    property (cdr setting)))))))))
 
 ;;; Code for deducing what fileset and backend to assume
 
@@ -2005,34 +2006,28 @@ have changed; continue with old fileset?" (current-buffer))))
         ;; NOQUERY parameter non-nil.
         (vc-buffer-sync-fileset (list backend files)))
       (when register (vc-register (list backend register)))
-      (cl-labels ((do-it ()
-                    ;; We used to change buffers to get local value of
-                    ;; `vc-checkin-switches', but the (singular) local
-                    ;; buffer is not well defined for filesets.
-                    (if patch-string
-                        (vc-call-backend backend 'checkin-patch
-                                         patch-string comment)
-                      (vc-call-backend backend 'checkin
-                                       files comment rev))
-                    (mapc #'vc-delete-automatic-version-backups files)))
+      (cl-flet ((do-it ()
+                  ;; We used to change buffers to get local value of
+                  ;; `vc-checkin-switches', but the (singular) local
+                  ;; buffer is not well defined for filesets.
+                  (prog1 (if patch-string
+                             (vc-call-backend backend 'checkin-patch
+                                              patch-string comment)
+                           (vc-call-backend backend 'checkin
+                                            files comment rev))
+                    (mapc #'vc-delete-automatic-version-backups files))))
         (if do-async
             ;; Rely on `vc-set-async-update' to update properties.
             (do-it)
-          (message "Checking in %s..." (vc-delistify files))
-          (with-vc-properties files (do-it)
-                              `((vc-state . up-to-date)
-                                (vc-checkout-time
-                                 . ,(file-attribute-modification-time
-			             (file-attributes file)))
-                                (vc-working-revision . nil)))
-          (message "Checking in %s...done" (vc-delistify files)))))
-
-    ;; FIXME: In the async case we need the hook to be added to the
-    ;; buffer with the checkin process, using `vc-run-delayed'.  Ideally
-    ;; the identity of that buffer would be exposed to this code,
-    ;; somehow, so we could always handle running the hook up here.
-    (and (not do-async) 'vc-checkin-hook)
-
+          (prog2 (message "Checking in %s..." (vc-delistify files))
+              (with-vc-properties files (do-it)
+                                  `((vc-state . up-to-date)
+                                    (vc-checkout-time
+                                     . ,(file-attribute-modification-time
+			                 (file-attributes file)))
+                                    (vc-working-revision . nil)))
+            (message "Checking in %s...done" (vc-delistify files))))))
+    'vc-checkin-hook
     backend
     patch-string)))
 

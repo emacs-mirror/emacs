@@ -1229,11 +1229,9 @@ REV is ignored."
            "Finishing checking in files...")
           (with-current-buffer buffer
             (vc-run-delayed
-              (vc-compilation-mode 'hg)
-              (when (buffer-live-p parent)
-                (with-current-buffer parent
-                  (run-hooks 'vc-checkin-hook)))))
-          (vc-set-async-update buffer))
+              (vc-compilation-mode 'hg)))
+          (vc-set-async-update buffer)
+          (list 'async (get-buffer-process buffer)))
       (apply #'vc-hg-command nil 0 files args))))
 
 (defun vc-hg-checkin-patch (patch-string comment)
