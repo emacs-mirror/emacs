@@ -578,9 +578,9 @@ without first cancelling the commit by typing @kbd{C-c C-k} in the
 marked in the @file{*vc-dir*} buffer after Emacs has already popped up
 the @file{*vc-log*} buffer, the old fileset will remain in effect for
 this commit.  (This is in contrast to changes made to the
-@emph{contents} of files in the fileset: all such changes will be
-included in the commit even if they are made after Emacs has popped up
-the @file{*vc-dir*} buffer.)
+@emph{contents} of files in the fileset when not committing patches: all
+such changes will be included in the commit even if they are made after
+Emacs has popped up the @file{*vc-log*} buffer.)
 
 When you cancel a commit, Emacs saves your log message.  This means that
 if you need to adjust the fileset or patches, it is easy to restart the
