@@ -2249,6 +2249,12 @@ useful when you want the face attributes to be absolute and not
 'unspecified'.
 
 ---
+*** New user option 'ffap-prefer-remote-file'.
+If non-nil, ffap always finds remote files in buffers with remote
+'default-directory'.  If nil, ffap finds local files first for absolute
+filenames in above buffers.  The default is nil.
+
+---
 ** Flymake
 
 *** Windows without fringes now automatically use margin indicators.
