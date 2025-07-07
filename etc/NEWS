@@ -1344,6 +1344,13 @@ replies.
 'rmail-re-abbrevs'.  'rmail-re-abbrevs' is still honored if it was
 already set.
 
++++
+*** New user option 'rmail-mime-save-action'.
+This option specifies an action to take after saving a MIME attachment.
+Predefined values include visiting the file in Emacs, jumping to the
+file in Dired, or opening the file with an external program.  You can
+also provide a custom function.
+
 ** Message
 
 +++
