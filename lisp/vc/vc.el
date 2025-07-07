@@ -1084,22 +1084,23 @@ executing FORM, set those properties from SETTINGS that have not yet
 been updated to their corresponding values.
 Return the result of evaluating FORM."
   (declare (debug t))
-  `(let ((vc-touched-properties (list t))
-	 (flist nil))
-     (prog2 (dolist (file ,files)
-              (if (file-directory-p file)
-	          (dolist (buffer (buffer-list))
-	            (let ((fname (buffer-file-name buffer)))
-	              (when (and fname (string-prefix-p file fname))
-		        (push fname flist))))
-	        (push file flist)))
-         ,form
-       (dolist (file flist)
-         (dolist (setting ,settings)
-           (let ((property (car setting)))
-             (unless (memq property vc-touched-properties)
-               (put (intern file vc-file-prop-obarray)
-                    property (cdr setting)))))))))
+  (cl-with-gensyms (vc-touched-properties flist)
+    `(let ((,vc-touched-properties (list t))
+	   (,flist nil))
+       (prog2 (dolist (file ,files)
+                (if (file-directory-p file)
+	            (dolist (buffer (buffer-list))
+	              (let ((fname (buffer-file-name buffer)))
+	                (when (and fname (string-prefix-p file fname))
+		          (push fname ,flist))))
+	          (push file ,flist)))
+           ,form
+         (dolist (file ,flist)
+           (dolist (setting ,settings)
+             (let ((property (car setting)))
+               (unless (memq property ,vc-touched-properties)
+                 (put (intern file vc-file-prop-obarray)
+                      property (cdr setting))))))))))
 
 ;;; Code for deducing what fileset and backend to assume
 
