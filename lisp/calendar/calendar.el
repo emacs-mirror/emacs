@@ -456,6 +456,12 @@ LEFT is the leftmost column associated with month segment N,
 FIRST and LAST are the first and last columns with day digits in,
 and LAST is the rightmost column.")
 
+(defvar calendar-mark-holidays nil
+  "Variable version of the user option `calendar-mark-holidays-flag'.")
+
+(defvar calendar-mark-diary-entries nil
+  "Variable version of the user option `calendar-mark-diary-entries-flag'.")
+
 (defun calendar-month-edges (segment)
   "Compute the month edge columns for month SEGMENT.
 Returns a list (LEFT FIRST LAST RIGHT), where LEFT is the
@@ -1436,11 +1442,11 @@ Optional integers MON and YR are used instead of today's date."
 	;; For a full height window or a window that is horizontally
 	;; combined don't fit height to that of its buffer.
 	(set-window-vscroll nil 0)))
-    (and calendar-mark-holidays-flag
+    (and calendar-mark-holidays
          ;; (calendar-date-is-valid-p today) ; useful for BC dates
          (calendar-mark-holidays))
     (unwind-protect
-        (if calendar-mark-diary-entries-flag (diary-mark-entries))
+        (if calendar-mark-diary-entries (diary-mark-entries))
       (run-hooks (if today-visible
                      'calendar-today-visible-hook
                    'calendar-today-invisible-hook)))))
@@ -1833,6 +1839,9 @@ For a complete description, see the info node `Calendar/Diary'.
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month) ; month in middle of window
   (make-local-variable 'displayed-year)  ; year in middle of window
+  ;; Init with user options.
+  (setq calendar-mark-holidays calendar-mark-holidays-flag
+        calendar-mark-diary-entries calendar-mark-diary-entries-flag)
   ;; Most functions only work if displayed-month and displayed-year are set,
   ;; so let's make sure they're always set.  Most likely, this will be reset
   ;; soon in calendar-generate, but better safe than sorry.
@@ -2431,8 +2440,8 @@ interpreted as BC; -1 being 1 BC, and so on."
 (defun calendar-unmark ()
   "Delete all diary/holiday marks/highlighting from the calendar."
   (interactive)
-  (setq calendar-mark-holidays-flag nil
-        calendar-mark-diary-entries-flag nil)
+  (setq calendar-mark-holidays nil
+        calendar-mark-diary-entries nil)
   (with-current-buffer calendar-buffer
     (mapc #'delete-overlay (overlays-in (point-min) (point-max)))))
 
