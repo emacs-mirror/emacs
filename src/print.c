@@ -1118,6 +1118,19 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
 
   tail = Fcdr_safe (data);
 
+  /* For a user-error displayed in the echo area, use message3 rather
+     than Fprinc in order to preserve fontification.
+     In particular, there might be hints to the user about key sequences
+     they could type to do what they seemed to want.  */
+  if (EQ (errname, Quser_error) && EQ (stream, Qt)
+      /* These should always be true for a user-error, but check, lest
+	 we throw any information away.  */
+      && !NILP (XCAR (tail)) && NILP (XCDR (tail)))
+    {
+      message3 (XCAR (tail));
+      return;
+    }
+
   /* For file-error, make error message by concatenating
      all the data items.  They are all strings.  */
   if (!NILP (file_error) && CONSP (tail))
