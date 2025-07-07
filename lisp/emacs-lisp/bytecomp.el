@@ -5186,8 +5186,10 @@ binding slots have been popped."
                   name macro arglist body rest)
            (when macro
              (if (null fun)
-                 (message "Macro %s unrecognized, won't work in file" name)
-               (message "Macro %s partly recognized, trying our luck" name)
+                 (byte-compile-warn-x
+                  name "Macro %s unrecognized, won't work in file" name)
+               (byte-compile-warn-x
+                name "Macro %s partly recognized, trying our luck" name)
                (push (cons name (eval fun lexical-binding))
                      byte-compile-macro-environment)))
            (byte-compile-keep-pending form))))
