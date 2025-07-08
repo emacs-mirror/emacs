@@ -511,6 +511,17 @@ or strings.  If set to 'on-mismatch', mismatched parens inside comments
 and strings will not be highlighted.  If set to nil (the default),
 highlight the parens wherever they are.
 
+** Change in SVG foreground color handling.
+SVG images no longer have the 'fill' attribute set to the value of
+':foreground' or the current text foreground color.  The 'currentcolor'
+CSS attribute continues to be set as before.
+
+This change should result in more consistent display of SVG images.
+
+To use the :foreground or current text color ensure the 'fill' attribute
+in the SVG is set to 'currentcolor', or set the image spec's ':css'
+value to 'svg {fill: currentcolor;}'.
+
 
 * Editing Changes in Emacs 31.1
 
