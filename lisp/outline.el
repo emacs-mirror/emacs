@@ -559,7 +559,7 @@ See the command `outline-mode' for more information on this mode."
             :parent outline-minor-mode-cycle-map
             "<menu-bar>" outline-minor-mode-menu-bar-map
             (key-description outline-minor-mode-prefix) outline-mode-prefix-map)
-  (kill-local-variable outline--button-icons)
+  (kill-local-variable 'outline--button-icons)
   (if outline-minor-mode
       (progn
         (when outline-minor-mode-use-buttons
@@ -2022,7 +2022,7 @@ With a prefix argument, show headings up to that LEVEL."
            (overlay-put o 'keymap outline-inserted-button-map)))
         (_
          (overlay-put o 'before-string
-                      (outline--button-icons type ''before-string))
+                      (outline--button-icons type 'before-string))
          (overlay-put o 'keymap outline-overlay-button-map))))))
 
 (defun outline--fix-up-all-buttons (from to)
