@@ -398,6 +398,9 @@ Needed to replace immediate byte-compiled lambdas with the compiled reference.")
              :documentation "Standard data relocated in use by functions.")
   (d-ephemeral (make-comp-data-container) :type comp-data-container
                :documentation "Relocated data not necessary after load.")
+  (non-materializable-objs-h (make-hash-table :test #'equal) :type hash-table
+               :documentation "Objects produced by the propagation engine which can't be materialized.
+Typically floating points (which are not cons-hashed).")
   (with-late-load nil :type boolean
                   :documentation "When non-nil support late load."))
 
@@ -2730,7 +2733,8 @@ Fold the call in case."
        (<=
         (comp-cstr-<= lval (car operands) (cadr operands)))
        (=
-        (comp-cstr-= lval (car operands) (cadr operands)))))
+        (comp-cstr-= lval (car operands) (cadr operands)
+                     (comp-ctxt-non-materializable-objs-h comp-ctxt)))))
     (`(setimm ,lval ,v)
      (setf (comp-cstr-imm lval) v))
     (`(phi ,lval . ,rest)

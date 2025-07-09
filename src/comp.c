@@ -1972,27 +1972,32 @@ emit_mvar_rval (Lisp_Object mvar)
   if (!NILP (const_vld))
     {
       Lisp_Object value = CALLNI (comp-cstr-imm, mvar);
-      if (comp.debug > 1)
+      if (NILP (Fgethash (value,
+			  CALLNI (comp-ctxt-non-materializable-objs-h, Vcomp_ctxt),
+			  Qnil)))
 	{
-	  Lisp_Object func =
-	    Fgethash (value,
-		      CALLNI (comp-ctxt-byte-func-to-func-h, Vcomp_ctxt),
-		      Qnil);
+	  if (comp.debug > 1)
+	    {
+	      Lisp_Object func =
+		Fgethash (value,
+			  CALLNI (comp-ctxt-byte-func-to-func-h, Vcomp_ctxt),
+			  Qnil);
 
-	  emit_comment (
-	    SSDATA (
-	      Fprin1_to_string (
-		NILP (func) ? value : CALLNI (comp-func-c-name, func),
-		Qnil, Qnil)));
+	      emit_comment (
+	        SSDATA (
+		  Fprin1_to_string (
+		    NILP (func) ? value : CALLNI (comp-func-c-name, func),
+		    Qnil, Qnil)));
+	    }
+	  if (FIXNUMP (value))
+	    {
+	      /* We can still emit directly objects that are self-contained in a
+		 word (read fixnums).  */
+	      return emit_rvalue_from_lisp_obj (value);
+	    }
+	  /* Other const objects are fetched from the reloc array.  */
+	  return emit_lisp_obj_rval (value);
 	}
-      if (FIXNUMP (value))
-	{
-	  /* We can still emit directly objects that are self-contained in a
-	     word (read fixnums).  */
-          return emit_rvalue_from_lisp_obj (value);
-	}
-      /* Other const objects are fetched from the reloc array.  */
-      return emit_lisp_obj_rval (value);
     }
 
   return gcc_jit_lvalue_as_rvalue (emit_mvar_lval (mvar));

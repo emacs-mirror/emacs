@@ -364,8 +364,8 @@ frame_redisplay_p (struct frame *f)
 {
   if (is_tty_frame (f))
     {
-      struct frame *p = FRAME_PARENT_FRAME (f);
-      struct frame *q = NULL;
+      struct frame *p = f;
+      struct frame *q = f;
 
       while (p)
 	{
@@ -387,7 +387,7 @@ frame_redisplay_p (struct frame *f)
 	 frame of its terminal.  Any other tty frame can be redisplayed
 	 iff it is the top frame of its terminal itself which must be
 	 always visible.  */
-      return (q ? q == r : f == r);
+      return q == r;
     }
   else
 #ifndef HAVE_X_WINDOWS

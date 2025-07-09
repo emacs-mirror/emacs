@@ -986,8 +986,10 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
     (and (comp-cstr-cl-tag-p cstr)
          (intern (match-string 1 (symbol-name (car (valset cstr))))))))
 
-(defun comp-cstr-= (dst op1 op2)
-  "Constraint OP1 being = OP2 setting the result into DST."
+(defun comp-cstr-= (dst op1 op2 nm-objs-h)
+  "Constraint OP1 being = OP2 setting the result into DST.
+NM-OBJS-H is an hash with all the immediates generated at compile time
+which should not be rendered into compiled code."
   (with-comp-cstr-accessors
     (cl-flet ((relax-cstr (cstr)
                 (setf cstr (copy-sequence cstr))
@@ -1015,8 +1017,11 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                  else
                    do (cl-pushnew 'float (typeset cstr))
                       (cl-return cstr)
-                 finally (setf (valset cstr)
-                               (append vals-to-add (valset cstr))))
+                 finally
+                   (mapc (lambda (x) (puthash x t nm-objs-h))
+                         vals-to-add)
+                   (setf (valset cstr)
+                         (append vals-to-add (valset cstr))))
                 (when (memql 0.0 (valset cstr))
                   (cl-pushnew -0.0 (valset cstr)))
                 (when (memql -0.0 (valset cstr))

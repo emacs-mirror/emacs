@@ -582,6 +582,12 @@
 (defun comp-test-76573-1-f ()
   (record 'undeclared-type))
 
+(defun comp-test-78606-1-f (x)
+  (and (= x 1)
+       (if (eql x 1)
+           1
+         x)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
