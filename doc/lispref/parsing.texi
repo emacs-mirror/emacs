@@ -577,10 +577,10 @@ A lisp program can also choose to force a parser to reparse and get the
 changed regions immediately with @code{treesit-parser-changed-regions}.
 
 @defun treesit-parser-changed-regions parser
-This function force @var{parser} to reparse, and return the affected
+This function forces @var{parser} to reparse, and returns the affected
 regions: a list of @w{@code{(@var{start} . @var{end})}}.  If the parser
-has nothing new to reparse, or the affected regions are empty,
-@code{nil} is returned.
+has nothing new to reparse, or the affected regions are empty, this
+function returns @code{nil}.
 @end defun
 
 
