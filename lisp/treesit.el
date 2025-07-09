@@ -5439,6 +5439,19 @@ Tree-sitter grammar for `%s' is missing; install it?"
   (treesit-parser-language
    :no-eval (treesit-parser-language parser)
    :eg-result c)
+  (treesit-parser-tag
+   :no-eval (treesit-parser-tag parser)
+   :eg-result 'embeded)
+  (treesit-parser-changed-regions
+   :no-eval (treesit-parser-changed-regions parser)
+   :eg-result '((1 . 10) (24 . 58)))
+
+  (treesit-parser-embed-level
+   :no-eval (treesit-parser-embed-level parser)
+   :eg-result 1)
+  (treesit-parser-set-embed-level
+   :no-eval (treesit-parser-set-embed-level parser 1))
+
   (treesit-parser-add-notifier)
   (treesit-parser-remove-notifier)
   (treesit-parser-notifiers

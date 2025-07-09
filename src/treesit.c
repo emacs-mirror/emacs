@@ -1803,9 +1803,9 @@ treesit_check_buffer_size (struct buffer *buffer)
 static Lisp_Object treesit_make_ranges (const TSRange *, uint32_t,
 					Lisp_Object, struct buffer *);
 
-static void
-treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
-				     Lisp_Object parser)
+static Lisp_Object
+treesit_get_affected_ranges (TSTree *old_tree, TSTree *new_tree,
+			     Lisp_Object parser)
 {
   /* If the old_tree is NULL, meaning this is the first parse, the
      changed range is the whole buffer.  */
@@ -1825,24 +1825,31 @@ treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
       lisp_ranges = Fcons (Fcons (Fpoint_min (), Fpoint_max ()), Qnil);
       set_buffer_internal (oldbuf);
     }
+  return lisp_ranges;
+}
 
+static void
+treesit_call_after_change_functions (Lisp_Object parser, Lisp_Object ranges)
+{
   specpdl_ref count = SPECPDL_INDEX ();
 
   /* let's trust the after change functions and not clone a new ranges
      for each of them.  */
   Lisp_Object functions = XTS_PARSER (parser)->after_change_functions;
   FOR_EACH_TAIL (functions)
-    safe_calln (XCAR (functions), lisp_ranges, parser);
+    safe_calln (XCAR (functions), ranges, parser);
 
   unbind_to (count, Qnil);
 }
 
-/* Parse the buffer.  We don't parse until we have to.  When we have
-   to, we call this function to parse and update the tree.  */
-static void
+/* Parse the buffer.  We don't parse until we have to.  When we have to,
+   we call this function to parse and update the tree.  Return the
+   affected ranges (a list of (BEG . END)).  If reparse didn't happen
+   or the affected ranges is empty, return nil.  */
+static Lisp_Object
 treesit_ensure_parsed (Lisp_Object parser)
 {
-  if (XTS_PARSER (parser)->within_reparse) return;
+  if (XTS_PARSER (parser)->within_reparse) return Qnil;
   XTS_PARSER (parser)->within_reparse = true;
 
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
@@ -1856,7 +1863,7 @@ treesit_ensure_parsed (Lisp_Object parser)
   if (!XTS_PARSER (parser)->need_reparse)
     {
       XTS_PARSER (parser)->within_reparse = false;
-      return;
+      return Qnil;
     }
 
   TSParser *treesit_parser = XTS_PARSER (parser)->parser;
@@ -1882,10 +1889,12 @@ treesit_ensure_parsed (Lisp_Object parser)
   XTS_PARSER (parser)->need_reparse = false;
   XTS_PARSER (parser)->timestamp++;
 
-  treesit_call_after_change_functions (tree, new_tree, parser);
+  Lisp_Object ranges = treesit_get_affected_ranges (tree, new_tree, parser);
+  treesit_call_after_change_functions (parser, ranges);
   ts_tree_delete (tree);
 
   XTS_PARSER (parser)->within_reparse = false;
+  return ranges;
 }
 
 /* This is the read function provided to tree-sitter to read from a
@@ -2789,6 +2798,22 @@ optimized; for heavy workload, use a temporary buffer instead.  */)
   return Ftreesit_parser_root_node (parser);
 }
 
+/* Use "regions" rather than "ranges" to distinguish from parser
+   ranges.  */
+DEFUN ("treesit-parser-changed-regions",
+       Ftreesit_parser_changed_regions,
+       Streesit_parser_changed_regions,
+       1, 1, 0,
+       doc: /* Force PARSER to re-parse and return the affected regions.
+
+Return ranges as a list of (BEG . END).  If there's no need to re-parse
+or no affected ranges, return nil.  */)
+  (Lisp_Object parser)
+{
+  treesit_check_parser (parser);
+  treesit_initialize ();
+  return treesit_ensure_parsed (parser);
+}
 
 /*** Node API  */
 
@@ -5339,6 +5364,7 @@ buffer.  */);
   defsubr (&Streesit_parser_tag);
   defsubr (&Streesit_parser_embed_level);
   defsubr (&Streesit_parser_set_embed_level);
+  defsubr (&Streesit_parser_changed_regions);
 
   defsubr (&Streesit_parser_root_node);
   defsubr (&Streesit_parse_string);
