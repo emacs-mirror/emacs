@@ -3396,7 +3396,7 @@ igc_xalloc_raw_exact (size_t n)
 }
 
 void *
-igc_xzalloc_ambig (size_t size)
+igc_xzalloc_ambig_with_label (size_t size, const char *label)
 {
   /* Can't make a root that has zero length.  Want one to be able to
      detect calling igc_free on something not having a root.  */
@@ -3406,8 +3406,14 @@ igc_xzalloc_ambig (size_t size)
     size++;
   void *p = xzalloc (size);
   void *end = (char *) p + size;
-  root_create_ambig (global_igc, p, end, "xzalloc-ambig");
+  root_create_ambig (global_igc, p, end, label ? label : "igc-xzalloc-ambig");
   return p;
+}
+
+void *
+igc_xzalloc_ambig (size_t size)
+{
+  return igc_xzalloc_ambig_with_label (size, NULL);
 }
 
 void *
@@ -4648,7 +4654,7 @@ igc_alloc_blv (void)
 void *
 igc_alloc_handler (void)
 {
-  struct handler *h = igc_xzalloc_ambig (sizeof *h);
+  struct handler *h = igc_xzalloc_ambig_with_label (sizeof *h, "handler");
   return h;
 }
 
