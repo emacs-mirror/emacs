@@ -1931,6 +1931,13 @@ in Log Edit mode buffers, except that it does not select the "*vc-diff*"
 buffer's window, and so works well when added to 'log-edit-hook'.
 
 ---
+*** 'vc-annotate' now abbreviates the Git revision in more cases.
+In Emacs 30, 'vc-annotate' gained the ability to abbreviate the Git
+revision in the buffer name.  Now, it also abbreviates the Git revision
+when visiting other revisions, such as with
+'vc-annotate-revision-previous-to-line'.
+
+---
 *** New buffer-local variable 'vc-buffer-overriding-fileset'.
 Primarily intended for buffers not visiting files, this specifies the
 VC backend and VCS-managed file name or file names to which the buffer's
