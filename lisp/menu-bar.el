@@ -2244,9 +2244,16 @@ to invoke a similar command with `M-x', use `kill-current-buffer'."
   ;; This colossus of a conditional is necessary to account for the wide
   ;; variety of this command's callers.
   (if (let ((lce last-command-event))
-        (eq (if (atom lce)              ; Selected menu item.
-                lce
-              (car lce))                ; Clicked tool bar icon.
+        (eq (cond
+             ((atom lce)                ; Selected menu item.
+              lce)
+             ((mouse-event-p lce)       ; Clicked window tool bar icon.
+              ;; Code from window-tool-bar--call-button.
+              (let* ((posn (event-start lce))
+                     (str (posn-string posn)))
+                (get-text-property (cdr str) 'tool-bar-key (car str))))
+             (t
+              (car lce)))               ; Clicked tool bar icon.
             'kill-buffer))
       (if (let* ((window (or (posn-window (event--posn-at-point))
                              last-event-frame
