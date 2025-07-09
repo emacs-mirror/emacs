@@ -4550,14 +4550,19 @@ by calling `format-decode', which see.  */)
 	  beg_offset += same_at_start - BEGV_BYTE;
 	  end_offset -= ZV_BYTE - same_at_end;
 
-          /* This binding is to avoid ask-user-about-supersession-threat
-	     being called in insert_from_buffer or del_range_bytes (via
-	     prepare_to_modify_buffer).
-             AFAICT we could avoid ask-user-about-supersession-threat by setting
-             current_buffer->modtime earlier, but we could still end up calling
-             ask-user-about-supersession-threat if the file is modified while
-             we read it, so we bind buffer-file-name instead.  */
-          specbind (Qbuffer_file_name, Qnil);
+          if (!NILP (visit) && BEG == BEGV && Z == ZV)
+            /* This binding is to avoid ask-user-about-supersession-threat
+	       being called in insert_from_buffer or del_range_bytes (via
+	       prepare_to_modify_buffer).
+	       Such a prompt makes no sense if we're VISITing the file,
+	       since the insertion makes the buffer *more* like the file
+	       rather than the reverse.
+               AFAICT we could avoid ask-user-about-supersession-threat by
+               setting current_buffer->modtime earlier, but we could still
+               end up calling ask-user-about-supersession-threat if the file
+               is modified while we read it, so we bind buffer-file-name
+               instead.  */
+            specbind (Qbuffer_file_name, Qnil);
 	  del_range_byte (same_at_start, same_at_end);
 	  /* Insert from the file at the proper position.  */
 	  temp = BYTE_TO_CHAR (same_at_start);
@@ -4666,8 +4671,9 @@ by calling `format-decode', which see.  */)
 	  /* Truncate the buffer to the size of the file.  */
 	  if (same_at_start != same_at_end)
 	    {
-              /* See previous specbind for the reason behind this.  */
-              specbind (Qbuffer_file_name, Qnil);
+              if (!NILP (visit) && BEG == BEGV && Z == ZV)
+		/* See previous specbind for the reason behind this.  */
+		specbind (Qbuffer_file_name, Qnil);
 	      del_range_byte (same_at_start, same_at_end);
 	    }
 	  inserted = 0;
@@ -4716,8 +4722,9 @@ by calling `format-decode', which see.  */)
 	 we are taking from the decoded string.  */
       inserted -= (ZV_BYTE - same_at_end) + (same_at_start - BEGV_BYTE);
 
-      /* See previous specbind for the reason behind this.  */
-      specbind (Qbuffer_file_name, Qnil);
+      if (!NILP (visit) && BEG == BEGV && Z == ZV)
+        /* See previous specbind for the reason behind this.  */
+        specbind (Qbuffer_file_name, Qnil);
       if (same_at_end != same_at_start)
 	{
 	  del_range_byte (same_at_start, same_at_end);

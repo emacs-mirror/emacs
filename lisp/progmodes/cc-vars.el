@@ -1765,8 +1765,7 @@ this implicitly by reinitializing C/C++/Objc Mode on any buffer)."
   (setq c-noise-macro-with-parens-name-re
 	(cond ((null c-noise-macro-with-parens-names) regexp-unmatchable)
 	      ((consp c-noise-macro-with-parens-names)
-	       (concat (regexp-opt c-noise-macro-with-parens-names t)
-		       "\\([^[:alnum:]_$]\\|$\\)"))
+	       (regexp-opt c-noise-macro-with-parens-names 'symbols))
 	      ((stringp c-noise-macro-with-parens-names)
 	       (copy-sequence c-noise-macro-with-parens-names))
 	      (t (error "c-make-noise-macro-regexps: \
@@ -1774,8 +1773,7 @@ c-noise-macro-with-parens-names is invalid: %s" c-noise-macro-with-parens-names)
   (setq c-noise-macro-name-re
 	(cond ((null c-noise-macro-names) regexp-unmatchable)
 	      ((consp c-noise-macro-names)
-	       (concat (regexp-opt c-noise-macro-names t)
-		       "\\([^[:alnum:]_$]\\|$\\)"))
+	       (regexp-opt c-noise-macro-names 'symbols))
 	      ((stringp c-noise-macro-names)
 	       (copy-sequence c-noise-macro-names))
 	      (t (error "c-make-noise-macro-regexps: \
@@ -1819,11 +1817,7 @@ variables.")
 	  ((stringp c-macro-names-with-semicolon)
 	   (copy-sequence c-macro-names-with-semicolon))
 	  ((consp c-macro-names-with-semicolon)
-	   (concat
-	    "\\<"
-	    (regexp-opt c-macro-names-with-semicolon)
-	    "\\>"))   ; N.B. the PAREN param of regexp-opt isn't supported by
-		      ; all XEmacsen.
+	   (regexp-opt c-macro-names-with-semicolon 'symbols))
 	  ((null c-macro-names-with-semicolon)
 	   nil)
 	  (t (error "c-make-macro-with-semi-re: Invalid \

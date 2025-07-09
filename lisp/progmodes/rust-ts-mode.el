@@ -24,11 +24,11 @@
 
 ;;; Tree-sitter language versions
 ;;
-;; rust-ts-mode is known to work with the following languages and version:
-;; - tree-sitter-rust: v0.23.2-1-g1f63b33
+;; rust-ts-mode has been tested with the following grammars and version:
+;; - tree-sitter-rust: v0.24.0
 ;;
 ;; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
@@ -44,8 +44,10 @@
 (add-to-list
  'treesit-language-source-alist
  `(rust "https://github.com/tree-sitter/tree-sitter-rust"
-        ,(when (treesit-available-p)
-           (if (< (treesit-library-abi-version) 15) "v0.23.2" "v0.24.0")))
+        :commit ,(if (and (treesit-available-p)
+                          (< (treesit-library-abi-version) 15))
+                     "1f63b33efee17e833e0ea29266dd3d713e27e321"
+                   "18b0515fca567f5a10aee9978c6d2640e878671a"))
  t)
 
 (defcustom rust-ts-mode-indent-offset 4

@@ -681,7 +681,7 @@ an error."
       nil
     ;; Trim off object IDX junk added in for the object index.
     (setq slot-idx (- slot-idx (eval-when-compile eieio--object-num-slots)))
-    (let* ((sd (aref (eieio--class-slots class)
+    (let* ((sd (aref (cl--class-slots class) ;??
                      slot-idx))
            (st (cl--slot-descriptor-type sd)))
       (cond
@@ -740,7 +740,8 @@ Argument FN is the function calling this verifier."
       (if (not c)
 	  ;; It might be missing because it is a :class allocated slot.
 	  ;; Let's check that info out.
-	  (if (setq c (eieio--class-slot-name-index class slot))
+	  (if (and (eieio--class-p class)
+                   (setq c (eieio--class-slot-name-index class slot)))
 	      ;; Oref that slot.
 	      (aref (eieio--class-class-allocation-values class) c)
 	    ;; The slot-missing method is a cool way of allowing an object author
@@ -783,8 +784,9 @@ Fills in CLASS's SLOT with its default value."
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
 	;; Let's check that info out.
-	(if (setq c
-		  (eieio--class-slot-name-index cl slot))
+	(if (and (eieio--class-p cl)
+                 (setq c
+		       (eieio--class-slot-name-index cl slot)))
 	    ;; Oref that slot.
 	    (aref (eieio--class-class-allocation-values cl)
 		  c)
@@ -808,8 +810,9 @@ Fills in OBJ's SLOT with VALUE."
       (if (not c)
 	  ;; It might be missing because it is a :class allocated slot.
 	  ;; Let's check that info out.
-	  (if (setq c
-		    (eieio--class-slot-name-index class slot))
+	  (if (and (eieio--class-p class)
+                   (setq c
+		         (eieio--class-slot-name-index class slot)))
 	      ;; Oset that slot.
 	      (progn
 	        (eieio--validate-class-slot-value class c value slot)
@@ -849,7 +852,8 @@ Fills in the default value in CLASS' in SLOT with VALUE."
     (if (not c)
         ;; It might be missing because it is a :class allocated slot.
         ;; Let's check that info out.
-        (if (setq c (eieio--class-slot-name-index class slot))
+        (if (and (eieio--class-p class)
+                 (setq c (eieio--class-slot-name-index class slot)))
             (progn
               ;; Oref that slot.
               (eieio--validate-class-slot-value class c value slot)

@@ -1,5 +1,5 @@
 # stddef_h.m4
-# serial 21
+# serial 23
 dnl Copyright (C) 2009-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -64,20 +64,26 @@ AC_DEFUN_ONCE([gl_STDDEF_H],
     GL_GENERATE_STDDEF_H=true
   fi
 
-  AC_CACHE_CHECK([for unreachable],
-    [gl_cv_func_unreachable],
+  AC_CACHE_CHECK([for unreachable in C],
+    [gl_cv_c_func_unreachable],
     [AC_LINK_IFELSE(
        [AC_LANG_PROGRAM(
           [[#include <stddef.h>
           ]],
           [[unreachable ();
           ]])],
-       [gl_cv_func_unreachable=yes],
-       [gl_cv_func_unreachable=no])
+       [gl_cv_c_func_unreachable=yes],
+       [gl_cv_c_func_unreachable=no])
     ])
-  if test $gl_cv_func_unreachable = no; then
+  if test $gl_cv_c_func_unreachable = no; then
     GL_GENERATE_STDDEF_H=true
+    HAVE_C_UNREACHABLE=0
+  else
+    HAVE_C_UNREACHABLE=1
   fi
+  AC_SUBST([HAVE_C_UNREACHABLE])
+  dnl Provide gl_unreachable() unconditionally.
+  GL_GENERATE_STDDEF_H=true
 
   dnl https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114869
   AC_CACHE_CHECK([whether nullptr_t needs <stddef.h>],

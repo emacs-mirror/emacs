@@ -132,7 +132,7 @@ option value:
           (restricted-sexp
            :tag "Variable with regexp value (default: `dired-re-exe')"
            :match-alternatives
-           ((lambda (obj) (and (symbolp obj) (boundp obj))))
+           (,(lambda (obj) (and (symbolp obj) (boundp obj))))
            :value dired-re-exe))
   :group 'dired-x)
 

@@ -2143,103 +2143,48 @@ Notably, null elements in LIST are ignored."
   (mapconcat 'identity (delete nil (append list nil)) separator))
 
 (defun c-make-keywords-re (adorn list &optional mode)
-  "Make a regexp that matches all the strings the list.
+  "Make a regexp that matches any string in LIST.
 Duplicates and nil elements in the list are removed.  The
 resulting regexp may contain zero or more submatch expressions.
 
-If ADORN is t there will be at least one submatch and the first
-surrounds the matched alternative, and the regexp will also not match
-a prefix of any identifier.  Adorned regexps cannot be appended.  The
-language variable `c-nonsymbol-key' is used to make the adornment.
+In the typical case when all members of LIST are valid symbols, the
+resulting regexp is bracketed in \\_<\\( .... \\)\\_>.
 
-A value `appendable' for ADORN is like above, but all alternatives in
-the list that end with a word constituent char will have \\> appended
-instead, so that the regexp remains appendable.  Note that this
-variant doesn't always guarantee that an identifier prefix isn't
-matched since the symbol constituent `_' is normally considered a
-nonword token by \\>.
+Otherwise, if ADORN is t there will be at least one submatch and the
+first surrounds the matched alternative, and the regexp will also not
+match a prefix of any identifier.  Adorned regexps can now (2025-06) be
+appended to.  In versions prior to 2025-06, there was also the value
+`appendable' for ADORN.  Since normal adorned regexps can now be
+appended to anyway, this is no longer needed, but older code using it
+will still work.
 
-The optional MODE specifies the language to get `c-nonsymbol-key' from
-when it's needed.  The default is the current language taken from
-`c-buffer-is-cc-mode'."
-
-  (setq list (delete nil (delete-dups list)))
-  (if list
-      (let (re)
-
-	(if (eq adorn 'appendable)
-	    ;; This is kludgy but it works: Search for a string that
-	    ;; doesn't occur in any word in LIST.  Append it to all
-	    ;; the alternatives where we want to add \>.  Run through
-	    ;; `regexp-opt' and then replace it with \>.
-	    (let ((unique "") (list1 (copy-tree list)) pos)
-	      (while (let (found)
-		       (setq unique (concat unique "@")
-			     pos list)
-		       (while (and pos
-				   (if (string-match unique (car pos))
-				       (progn (setq found t)
-					      nil)
-				     t))
-			 (setq pos (cdr pos)))
-		       found))
-	      (setq pos list1)
-	      (while pos
-		(if (string-match "\\w\\'" (car pos))
-		    (setcar pos (concat (car pos) unique)))
-		(setq pos (cdr pos)))
-	      (setq re (regexp-opt list1))
-	      (setq pos 0)
-	      (while (string-match unique re pos)
-		(setq pos (+ (match-beginning 0) 2)
-		      re (replace-match "\\>" t t re))))
-
-	  (setq re (regexp-opt list)))
-
-	;; Emacs 20 and XEmacs (all versions so far) has a buggy
-	;; regexp-opt that doesn't always cope with strings containing
-	;; newlines.  This kludge doesn't handle shy parens correctly
-	;; so we can't advice regexp-opt directly with it.
-	(let (fail-list)
-	  (while list
-	    (and (string-match "\n" (car list)) ; To speed it up a little.
-		 (not (string-match (concat "\\`\\(" re "\\)\\'")
-				    (car list)))
-		 (setq fail-list (cons (car list) fail-list)))
-	    (setq list (cdr list)))
-	  (when fail-list
-	    (setq re (concat re
-			     "\\|"
-			     (mapconcat
-			      (if (eq adorn 'appendable)
-				  (lambda (str)
-				    (if (string-match "\\w\\'" str)
-					(concat (regexp-quote str)
-						"\\>")
-				      (regexp-quote str)))
-				'regexp-quote)
-			      (sort fail-list
-				    (lambda (a b)
-				      (> (length a) (length b))))
-			      "\\|")))))
-
-	;; Add our own grouping parenthesis around re instead of
-	;; passing adorn to `regexp-opt', since in XEmacs it makes the
-	;; top level grouping "shy".
-	(cond ((eq adorn 'appendable)
-	       (concat "\\(" re "\\)"))
-	      (adorn
-	       (concat "\\(" re "\\)"
-		       "\\("
-		       (c-get-lang-constant 'c-nonsymbol-key nil mode)
-		       "\\|$\\)"))
-	      (t
-	       re)))
-
-    ;; Produce a regexp that doesn't match anything.
-    (if adorn
-	(concat "\\(" regexp-unmatchable "\\)")
-      regexp-unmatchable)))
+The optional MODE specifies the language whose syntax table will be used
+to characterize the input strings.  The default is the current language
+taken from `c-buffer-is-cc-mode'."
+  (c-with-syntax-table
+      ;; If we're being called at run time, we use the mode's run time syntax
+      ;; table.  Otherwise, generate one as needed for the current MODE.
+      (let ((cur-syn-tab-sym
+	     (intern (concat (symbol-name (or mode c-buffer-is-cc-mode))
+			     "-syntax-table"))))
+	(if (and (boundp cur-syn-tab-sym)
+		 (syntax-table-p (symbol-value cur-syn-tab-sym)))
+	    (symbol-value cur-syn-tab-sym)
+	  (funcall (c-get-lang-constant 'c-make-mode-syntax-table nil mode))))
+    (let ((liszt (remq nil list)))
+      (cond
+       ((null liszt)
+	(if adorn
+	    "\\(\\`a\\`\\)"
+	  "\\`a\\`"))
+       ((catch 'symbols
+	  (dolist (elt liszt)
+	    (unless (string-match "\\`\\(\\sw\\|\\s_\\)*\\'" elt)
+	      (throw 'symbols nil)))
+	  t)
+	(regexp-opt liszt 'symbols))
+       (adorn (regexp-opt liszt t))
+       (t (regexp-opt liszt))))))
 
 (put 'c-make-keywords-re 'lisp-indent-function 1)
 
@@ -2362,12 +2307,26 @@ non-nil, a caret is prepended to invert the set."
 	  ;; Find out if "\\s|" (generic string delimiters) work.
 	  (c-safe
 	    (modify-syntax-entry ?x "|")
-	    (if (string-match "\\s|" "x")
-		(setq list (cons 'gen-string-delim list))))
+	     (if (string-match "\\s|" "x")
+		 (setq list (cons 'gen-string-delim list))))
 
-	  ;; See if POSIX char classes work.
-	  (when (and (string-match "[[:alpha:]]" "a")
-		     ;; All versions of Emacs 21 so far haven't fixed
+	   ;; Check that "\\_<" and "\\_>" work in regular expressions.
+	   (modify-syntax-entry ?_ "_")
+	   (modify-syntax-entry ?* ".")
+	   (modify-syntax-entry ?a "w")
+	   (let ((s "*aaa_aaa*"))
+	     (unless
+		 (and
+		  (c-safe (string-match "\\_<.*\\_>"  s))
+		  (equal (match-string 0 s) "aaa_aaa"))
+	       (error (concat
+		       "CC Mode is incompatible with this version of Emacs - "
+		       "support for \"\\_<\" and \"\\_>\" in regular expressions "
+		       "is required."))))
+
+	 ;; See if POSIX char classes work.
+	   (when (and (string-match "[[:alpha:]]" "a")
+		      ;; All versions of Emacs 21 so far haven't fixed
 		     ;; char classes in `skip-chars-forward' and
 		     ;; `skip-chars-backward'.
 		     (progn

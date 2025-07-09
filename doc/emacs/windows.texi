@@ -588,6 +588,16 @@ can be controlled by customizing the options
 (@pxref{Temporary Displays,,Temporary Displays, elisp, The Emacs Lisp
 Reference Manual}), and cannot exceed the size of the containing frame.
 
+@cindex warning buffer, display
+@vindex warning-display-at-bottom
+  Buffers showing warnings (such as byte-compilation warnings,
+@pxref{Compilation Functions,, Byte Compilation Functions, elisp, The
+Emacs Lisp Reference Manual}) are also by default shown in a window at
+the bottom of the selected frame.  You can control this using the
+variable @code{warning-display-at-bottom}: if set to @code{nil}, Emacs
+will use the normal logic of @code{display-buffer} (@pxref{Window
+Choice}) instead, and you can customize that via
+@code{display-buffer-alist}.
 
 @node Window Convenience
 @section Convenience Features for Window Handling

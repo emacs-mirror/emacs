@@ -2020,7 +2020,7 @@ Because `pre-redisplay-functions' could be called multiple times
 during a single command loop, we use this variable to debounce
 calls to `treesit--pre-redisplay'.")
 
-(defun treesit--font-lock-mark-ranges-to-fontify (ranges _parser)
+(defun treesit--font-lock-mark-ranges-to-fontify (ranges)
   "A notifier that marks ranges that needs refontification.
 
 For RANGES and PARSER see `treesit-parser-add-notifier'.
@@ -2073,18 +2073,18 @@ parser."
               (signal 'treesit-no-parser nil))))
     (car (treesit-parser-list))))
 
-(defun treesit--pre-redisplay (&rest _)
-  "Force a reparse on the primary parser and mark regions to be fontified.
+(declare-function treesit-parser-changed-regions "treesit.c")
 
-The actual work is carried out by
-`treesit--font-lock-mark-ranges-to-fontify', which see."
+(defun treesit--pre-redisplay (&rest _)
+  "Force a reparse on primary parser and mark regions to be fontified."
   (unless (eq treesit--pre-redisplay-tick (buffer-chars-modified-tick))
     (when treesit-primary-parser
-      ;; Force a reparse on the primary parser, if everything is setup
-      ;; correctly, the parser should call
-      ;; `treesit--font-lock-mark-ranges-to-fontify' (which should be a
-      ;; notifier function of the primary parser).
-      (treesit-parser-root-node treesit-primary-parser))
+      ;; Force a reparse on the primary parser and update embedded
+      ;; parser ranges in the changed ranges.
+      (let ((affected-ranges (treesit-parser-changed-regions
+                              treesit-primary-parser)))
+        (when affected-ranges
+          (treesit--font-lock-mark-ranges-to-fontify affected-ranges))))
 
     (setq treesit--pre-redisplay-tick (buffer-chars-modified-tick))))
 
@@ -4072,6 +4072,7 @@ this variable takes priority.")
   "Search for the next outline heading in the syntax tree.
 For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 `outline-search-function'."
+  (treesit--pre-redisplay)
   (if looking-at
       (when (treesit-outline--at-point) (pos-bol))
 
@@ -4157,11 +4158,6 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
           (setq level (1+ level)))))
 
     level))
-
-(defun treesit--after-change (beg end _len)
-  "Force updating the ranges in BEG...END.
-Expected to be called after each text change."
-  (treesit-update-ranges beg end))
 
 ;;; Hideshow mode
 
@@ -4374,9 +4370,6 @@ before calling this function."
                     . treesit-font-lock-fontify-region)))
     (treesit-font-lock-recompute-features)
     (add-hook 'pre-redisplay-functions #'treesit--pre-redisplay 0 t)
-    (when treesit-primary-parser
-      (treesit-parser-add-notifier
-       treesit-primary-parser #'treesit--font-lock-mark-ranges-to-fontify))
     (treesit-validate-font-lock-rules treesit-font-lock-settings))
   ;; Syntax
   (add-hook 'syntax-propertize-extend-region-functions
@@ -4462,8 +4455,7 @@ before calling this function."
       (setq treesit-outline-predicate
             #'treesit-outline-predicate--from-imenu))
     (setq-local outline-search-function #'treesit-outline-search
-                outline-level #'treesit-outline-level)
-    (add-hook 'outline-after-change-functions #'treesit--after-change nil t))
+                outline-level #'treesit-outline-level))
 
   ;; Remove existing local parsers.
   (dolist (ov (overlays-in (point-min) (point-max)))
@@ -4998,7 +4990,7 @@ window."
 
 The value should be an alist where each element has the form
 
-    (LANG . (URL REVISION SOURCE-DIR CC C++ COMMIT [KEYWORD VALUE]...))
+    (LANG . (URL REVISION SOURCE-DIR CC C++ COMMIT))
 
 Only LANG and URL are mandatory.  LANG is the language symbol.
 URL is the URL of the grammar's Git repository or a directory
@@ -5015,8 +5007,17 @@ the grammar's parser.c file resides, defaulting to \"src\".
 CC and C++ are C and C++ compilers, defaulting to \"cc\" and
 \"c++\", respectively.
 
+Another way to specify optional data is to use keywords:
+
+    (LANG . (URL [KEYWORD VALUE]...))
+
 The currently supported keywords:
 
+`:revision' is the same as REVISION above.
+`:source-dir' is the same as SOURCE-DIR above.
+`:cc' is the same as CC above.
+`:c++' is the same as C++ above.
+`:commit' is the same as COMMIT above.
 `:copy-queries' when non-nil specifies whether to copy the files
 in the \"queries\" directory from the source directory to the
 installation directory.")
@@ -5153,6 +5154,18 @@ nil."
       (string-trim (buffer-string)))
      (t nil))))
 
+(defun treesit--language-git-version-tags (repo-dir)
+  "Return a list of Git version tags in REPO-DIR, sorted latest first.
+
+Return the output of \"git tag --list --sort=-version:refname \\='v*\\='\".
+If anything goes wrong, return nil."
+  (with-temp-buffer
+    (cond
+     ((eq 0 (call-process "git" nil t nil "-C" repo-dir "tag"
+                          "--list" "--sort=-version:refname" "v*"))
+      (split-string (buffer-string)))
+     (t nil))))
+
 (defun treesit--language-git-timestamp (repo-dir)
   "Return the commit date in REPO-DIR in UNIX epoch.
 
@@ -5203,7 +5216,7 @@ clone if `treesit--install-language-grammar-blobless' is t."
     (apply #'treesit--call-process-signal args)))
 
 (defun treesit--install-language-grammar-1
-    (out-dir lang url &optional revision source-dir cc c++ commit &rest args)
+    (out-dir lang url &rest args)
   "Compile and install a tree-sitter language grammar library.
 
 OUT-DIR is the directory to put the compiled library file.  If it
@@ -5211,8 +5224,7 @@ is nil, the \"tree-sitter\" directory under user's Emacs
 configuration directory is used (and automatically created if it
 does not exist).
 
-For LANG, URL, REVISION, SOURCE-DIR, GRAMMAR-DIR, CC, C++, COMMIT, see
-`treesit-language-source-alist'.
+For ARGS, see `treesit-language-source-alist'.
 
 Return the git revision of the installed grammar.  The revision is
 generated by \"git describe\".  It only works when
@@ -5225,20 +5237,38 @@ If anything goes wrong, this function signals an `treesit-error'."
          (workdir (if url-is-dir
                       maybe-repo-dir
                     (expand-file-name "repo")))
-         copy-queries version)
+         version
+         revision source-dir cc c++ commit copy-queries)
 
     ;; Process the keyword args.
     (while (keywordp (car args))
       (pcase (pop args)
-        (:copy-queries (setq copy-queries (pop args)))
-        (_ (pop args))))
+        (:revision     (setq revision     (pop args)))
+        (:source-dir   (setq source-dir   (pop args)))
+        (:cc           (setq cc           (pop args)))
+        (:c++          (setq c++          (pop args)))
+        (:commit       (setq commit       (pop args)))
+        (:copy-queries (setq copy-queries (pop args)))))
+
+    ;; Old positional convention for backward-compatibility.
+    (unless revision   (setq revision   (nth 0 args)))
+    (unless source-dir (setq source-dir (nth 1 args)))
+    (unless cc         (setq cc         (nth 2 args)))
+    (unless c++        (setq c++        (nth 3 args)))
+    (unless commit     (setq commit     (nth 4 args)))
 
     (unwind-protect
         (with-temp-buffer
           (if url-is-dir
               (when revision
                 (treesit--git-checkout-branch workdir revision))
-            (treesit--git-clone-repo url revision workdir))
+            (if commit
+                ;; Force blobless full clone to be able later
+                ;; to checkout a commit (bug#78542).
+                (let ((treesit--install-language-grammar-full-clone t)
+                      (treesit--install-language-grammar-blobless t))
+                  (treesit--git-clone-repo url revision workdir))
+              (treesit--git-clone-repo url revision workdir)))
           (when commit
             (treesit--git-checkout-branch workdir commit))
           (setq version (treesit--language-git-revision workdir))
@@ -5401,6 +5431,19 @@ Tree-sitter grammar for `%s' is missing; install it?"
   (treesit-parser-language
    :no-eval (treesit-parser-language parser)
    :eg-result c)
+  (treesit-parser-tag
+   :no-eval (treesit-parser-tag parser)
+   :eg-result 'embeded)
+  (treesit-parser-changed-regions
+   :no-eval (treesit-parser-changed-regions parser)
+   :eg-result '((1 . 10) (24 . 58)))
+
+  (treesit-parser-embed-level
+   :no-eval (treesit-parser-embed-level parser)
+   :eg-result 1)
+  (treesit-parser-set-embed-level
+   :no-eval (treesit-parser-set-embed-level parser 1))
+
   (treesit-parser-add-notifier)
   (treesit-parser-remove-notifier)
   (treesit-parser-notifiers

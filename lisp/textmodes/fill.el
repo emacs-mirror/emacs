@@ -78,21 +78,24 @@ placed at the beginning or end of a line by filling.
 See the documentation of `kinsoku' for more information."
   :type 'boolean)
 
-(defun set-fill-prefix ()
+(defun set-fill-prefix (&optional arg)
   "Set the fill prefix to the current line up to point.
 Filling expects lines to start with the fill prefix and
-reinserts the fill prefix in each resulting line."
-  (interactive)
-  (let ((left-margin-pos (save-excursion (move-to-left-margin) (point))))
-    (if (> (point) left-margin-pos)
-	(progn
-	  (setq fill-prefix (buffer-substring left-margin-pos (point)))
-	  (if (equal fill-prefix "")
+reinserts the fill prefix in each resulting line.
+With a prefix argument, cancel the fill prefix."
+  (interactive "P")
+  (if arg
+      (setq fill-prefix nil)
+    (let ((left-margin-pos (save-excursion (move-to-left-margin) (point))))
+      (if (> (point) left-margin-pos)
+	  (progn
+	    (setq fill-prefix (buffer-substring left-margin-pos (point)))
+	    (when (equal fill-prefix "")
 	      (setq fill-prefix nil)))
-      (setq fill-prefix nil)))
+        (setq fill-prefix nil))))
   (if fill-prefix
       (message "fill-prefix: \"%s\"" fill-prefix)
-    (message "fill-prefix canceled")))
+    (message "fill-prefix cancelled")))
 
 (defcustom adaptive-fill-mode t
   "Non-nil means determine a paragraph's fill prefix from its text."
@@ -644,8 +647,8 @@ The break position will be always after LINEBEG and generally before point."
     (indent-line-to (current-left-margin))
     (put-text-property beg (point) 'face 'default)))
 
-(defun fill-region-as-paragraph (from to &optional justify
-				      nosqueeze squeeze-after)
+(defun fill-region-as-paragraph-default (from to &optional justify
+				              nosqueeze squeeze-after)
   "Fill the region as if it were a single paragraph.
 This command removes any paragraph breaks in the region and
 extra newlines at the end, and indents and fills lines between the
@@ -796,6 +799,39 @@ space does not end a sentence, so don't break a line there."
       (set-marker to nil)
       ;; Return the fill-prefix we used
       fill-prefix)))
+
+(defvar fill-region-as-paragraph-function #'fill-region-as-paragraph-default
+  "Function to fill the region as if it were a single paragraph.
+It should accept the arguments defined by `fill-region-as-paragraph' and
+return the `fill-prefix' used for filling.")
+
+(defun fill-region-as-paragraph (from to &optional justify
+				      nosqueeze squeeze-after)
+  "Fill the region as if it were a single paragraph.
+The behavior of this command is controlled by the variable
+`fill-region-as-paragraph-function', with the default implementation
+being `fill-region-as-paragraph-default'.
+
+The arguments FROM and TO define the boundaries of the region.
+
+The optional third argument JUSTIFY, when called interactively with a
+prefix arg, is assigned the value `full'.
+When called from Lisp, JUSTIFY can specify any type of justification;
+see `default-justification' for the possible values.
+Optional fourth arg NOSQUEEZE non-nil means not to make spaces between
+words canonical before filling.
+Fifth arg SQUEEZE-AFTER, if non-nil, should be a buffer position; it
+means canonicalize spaces only starting from that position.
+See `canonically-space-region' for the meaning of canonicalization of
+spaces.
+
+It returns the `fill-prefix' used for filling."
+  (interactive (progn
+		 (barf-if-buffer-read-only)
+		 (list (region-beginning) (region-end)
+		       (if current-prefix-arg 'full))))
+  (funcall fill-region-as-paragraph-function
+           from to justify nosqueeze squeeze-after))
 
 (defsubst skip-line-prefix (prefix)
   "If point is inside the string PREFIX at the beginning of line, move past it."
@@ -1058,7 +1094,10 @@ if variable `use-hard-newlines' is on).
 Return the `fill-prefix' used for filling the last paragraph.
 
 If `sentence-end-double-space' is non-nil, then period followed by one
-space does not end a sentence, so don't break a line there."
+space does not end a sentence, so don't break a line there.
+
+The variable `fill-region-as-paragraph-function' can be used to override
+how paragraphs are filled."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (region-beginning) (region-end)
@@ -1602,77 +1641,63 @@ spaces.  The variable `fill-column' controls the width for filling.
 
 Return the `fill-prefix' used for filling.
 
-For more details about semantic linefeeds, see `fill-paragraph-semlf'."
-  (interactive (progn
-		 (barf-if-buffer-read-only)
-		 (list (region-beginning)
-                       (region-end)
-		       (if current-prefix-arg 'full))))
-  (unless (memq justify '(t nil none full center left right))
-    (setq justify 'full))
-
-  (let ((from (min from to))
-        (to (max from to))
-        pfx)
-    (goto-char from)
-    (with-restriction (line-beginning-position) to
-      (let ((fill-column (point-max)))
-        (setq pfx (or (save-excursion
-                        (fill-region-as-paragraph (point)
-                                                  (point-max)
-                                                  nil
-                                                  nosqueeze
-                                                  squeeze-after))
-                      "")))
-      (while (not (eobp))
-        (let ((fill-prefix pfx))
-	  (fill-region-as-paragraph (point)
-				    (progn (forward-sentence) (point))
-				    justify
-                                    nosqueeze
-                                    squeeze-after))
-        (when (and (> (point) (line-beginning-position))
-		   (< (point) (line-end-position)))
-	  (delete-horizontal-space)
-	  (insert "\n")
-	  (insert pfx))))
-    (unless (eobp) (forward-char 1))
-    pfx))
-
-(defun fill-paragraph-semlf (&optional justify)
-  "Fill paragraph at or after point using semantic linefeeds.
-Refill text putting a newline character after each sentence, calling
-`forward-sentence' to find the ends of sentences.  If
-`sentence-end-double-space' is non-nil, period followed by one space is
-not the end of a sentence.
-
-If JUSTIFY is non-nil (interactively, with prefix argument), justify as
-well.  The variable `fill-column' controls the width for filling.
-
-Return the `fill-prefix' used for filling.
-
-You can use this function as the value of `fill-paragraph-function', so
-`fill-paragraph' and other filling commands will use it.
+This function can be assigned to `fill-region-as-paragraph-function' to
+override how functions like `fill-paragraph' and `fill-region' fill
+text.
 
 For more details about semantic linefeeds, see `https://sembr.org/' and
 `https://rhodesmill.org/brandon/2012/one-sentence-per-line/'."
   (interactive (progn
 		 (barf-if-buffer-read-only)
-		 (list (if current-prefix-arg 'full))))
-  (unless (memq justify '(t nil none full center left right))
-    (setq justify 'full))
+		 (list (region-beginning)
+                       (region-end)
+		       (if current-prefix-arg 'full))))
 
-  (save-excursion
-    (let ((to (progn
-		(fill-forward-paragraph 1)
-		(backward-word)
-		(end-of-line)
-		(point)))
-	  (from (progn
-		  (fill-forward-paragraph -1)
-		  (forward-word)
-		  (beginning-of-line)
-		  (point))))
-      (fill-region-as-paragraph-semlf from to justify))))
+  (let ((from (min from to))
+        (to (copy-marker (max from to) t))
+        pfx)
+    (goto-char from)
+    (let ((fill-column (point-max)))
+      (setq pfx (or (save-excursion
+                      (fill-region-as-paragraph-default (point)
+                                                        to
+                                                        nil
+                                                        nosqueeze
+                                                        squeeze-after))
+                    "")))
+    (while (< (point) to)
+      (let ((fill-prefix pfx))
+	(fill-region-as-paragraph-default (point)
+				          (min to
+                                               (save-excursion
+                                                 (forward-sentence)
+                                                 (point)))
+				          justify
+                                          t))
+      (when (and (> (point) (line-beginning-position))
+		 (< (point) (line-end-position))
+                 (< (point) to))
+	(delete-horizontal-space)
+	(insert "\n")
+	(insert pfx)))
+    pfx))
+
+(defun fill-paragraph-semlf (&optional justify region)
+  "Fill paragraph at or after point using semantic linefeeds.
+Refill text putting a newline character after each sentence.
+
+If JUSTIFY is non-nil (interactively, with prefix argument), justify as
+well.  The REGION argument is non-nil if called interactively; in that
+case, if Transient Mark mode is enabled and the mark is active, fill the
+active region.
+
+See `fill-paragraph' and `fill-region-as-paragraph-semlf' for more
+details."
+  (interactive (progn
+		 (barf-if-buffer-read-only)
+		 (list (if current-prefix-arg 'full) t)))
+
+  (let ((fill-region-as-paragraph-function #'fill-region-as-paragraph-semlf))
+    (fill-paragraph justify region)))
 
 ;;; fill.el ends here

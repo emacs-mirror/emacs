@@ -1144,8 +1144,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
 (defalias 'vc-git-async-checkins #'always)
 
 (defun vc-git-checkin (files comment &optional _rev)
-  (let* ((parent (current-buffer))
-         (file1 (or (car files) default-directory))
+  (let* ((file1 (or (car files) default-directory))
          (root (vc-git-root file1))
          (default-directory (expand-file-name root))
          (only (or (cdr files)
@@ -1273,11 +1272,9 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                  (with-current-buffer buffer
                    (vc-run-delayed
                      (vc-compilation-mode 'git)
-                     (funcall post)
-                     (when (buffer-live-p parent)
-                       (with-current-buffer parent
-                         (run-hooks 'vc-checkin-hook)))))
-                 (vc-set-async-update buffer))
+                     (funcall post)))
+                 (vc-set-async-update buffer)
+                 (list 'async (get-buffer-process buffer)))
         (apply #'vc-git-command nil 0 files args)
         (funcall post)))))
 
@@ -1560,7 +1557,7 @@ If SHORTLOG is non-nil, use a short format based on `vc-git-root-log-format'.
 \(This requires at least Git version 1.5.6, for the --graph option.)
 If START-REVISION is non-nil, it is the newest revision to show.
 If LIMIT is a number, show no more than this many entries.
-If LIMIT is a revision string, use it as an end-revision."
+If LIMIT is a non-empty string, use it as a base revision."
   (let ((coding-system-for-read
          (or coding-system-for-read vc-git-log-output-coding-system)))
     ;; `vc-do-command' creates the buffer, but we need it before running
@@ -1568,7 +1565,19 @@ If LIMIT is a revision string, use it as an end-revision."
     (vc-setup-buffer buffer)
     ;; If the buffer exists from a previous invocation it might be
     ;; read-only.
-    (let ((inhibit-read-only t))
+    (let ((inhibit-read-only t)
+          ;; In some parts of Git's revision and revision range
+          ;; notation, an empty string is equivalent to "HEAD", but not
+          ;; everywhere.  For simplicity we'll always be explicit.
+          (start-revision (if (member start-revision '(nil ""))
+                              "HEAD"
+                            start-revision))
+          ;; An empty string LIMIT doesn't make sense given the
+          ;; specification of this VC backend function, and is tricky to
+          ;; deal with in combination with Git's double-dot notation for
+          ;; specifying revision ranges.  So discard it right away.
+          (limit (and (not (equal limit ""))
+                      limit)))
       (with-current-buffer buffer
 	(apply #'vc-git-command buffer
 	       'async files
@@ -1591,14 +1600,11 @@ If LIMIT is a revision string, use it as an end-revision."
                  (if shortlog vc-git-shortlog-switches vc-git-log-switches))
                 (when (numberp limit)
                   (list "-n" (format "%s" limit)))
-		(when start-revision
-                  (if (and limit (not (numberp limit)))
-                      (list (concat start-revision ".." (if (equal limit "")
-                                                            "HEAD"
-                                                          limit)))
-                    (list start-revision)))
                 (when (eq vc-log-view-type 'with-diff)
                   (list "-p"))
+                (list (concat (and (stringp limit)
+                                   (concat limit ".."))
+                              start-revision))
 		'("--")))))))
 
 (defun vc-git-incoming-revision (remote-location)
@@ -1928,13 +1934,18 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 
 ;;; MISCELLANEOUS
 
+(defsubst vc-git--maybe-abbrev ()
+  (if vc-use-short-revision "--abbrev-commit" "--no-abbrev-commit"))
+
 (defun vc-git-previous-revision (file rev)
   "Git-specific version of `vc-previous-revision'."
   (if file
       (let* ((fname (file-relative-name file))
              (prev-rev (with-temp-buffer
                          (and
-                          (vc-git--out-ok "rev-list" "-2" rev "--" fname)
+                          (vc-git--out-ok "rev-list"
+                                          (vc-git--maybe-abbrev)
+                                          "-2" rev "--" fname)
                           (goto-char (point-max))
                           (bolp)
                           (zerop (forward-line -1))
@@ -1965,7 +1976,9 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
          (current-rev
           (with-temp-buffer
             (and
-             (vc-git--out-ok "rev-list" "-1" rev "--" file)
+             (vc-git--out-ok "rev-list"
+                             (vc-git--maybe-abbrev)
+                             "-1" rev "--" file)
              (goto-char (point-max))
              (bolp)
              (zerop (forward-line -1))
@@ -1977,7 +1990,9 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
           (and current-rev
                (with-temp-buffer
                  (and
-                  (vc-git--out-ok "rev-list" "HEAD" "--" file)
+                  (vc-git--out-ok "rev-list"
+                                  (vc-git--maybe-abbrev)
+                                  "HEAD" "--" file)
                   (goto-char (point-min))
                   (search-forward current-rev nil t)
                   (zerop (forward-line -1))

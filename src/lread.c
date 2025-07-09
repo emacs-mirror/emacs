@@ -383,6 +383,8 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
       else
 	{
 	  c = SREF (readcharfun, read_from_string_index_byte);
+	  if (!ASCII_CHAR_P (c))
+	    c = BYTE8_TO_CHAR (c);
 	  read_from_string_index++;
 	  read_from_string_index_byte++;
 	}
@@ -396,6 +398,9 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
       emacs_mule_encoding = 1;
       goto read_multibyte;
     }
+
+  if (multibyte)
+    *multibyte = 1;
 
   tem = call0 (readcharfun);
 
@@ -3636,9 +3641,9 @@ read_bool_vector (Lisp_Object readcharfun)
   Lisp_Object str = read_string_literal (readcharfun);
   if (STRING_MULTIBYTE (str)
       || !(size_in_chars == SCHARS (str)
-	   /* We used to print 1 char too many when the number of bits
+	   /* Emacs 19 printed 1 char too many when the number of bits
 	      was a multiple of 8.  Accept such input in case it came
-	      from an old version.  */
+	      from that old version.  */
 	   || length == (SCHARS (str) - 1) * BOOL_VECTOR_BITS_PER_CHAR))
     invalid_syntax ("#&...", readcharfun);
 
@@ -3905,28 +3910,53 @@ read_stack_reset (intmax_t sp)
   rdstack.sp = sp;
 }
 
-#define READ_AND_BUFFER(c)			\
-  c = READCHAR;					\
-  if (c < 0)					\
-    INVALID_SYNTAX_WITH_BUFFER ();		\
-  if (multibyte)				\
-    p += CHAR_STRING (c, (unsigned char *) p);	\
-  else						\
-    *p++ = c;					\
-  if (end - p < MAX_MULTIBYTE_LENGTH + 1)	\
-    {						\
-       offset = p - read_buffer;		\
-       read_buffer = grow_read_buffer (read_buffer, offset, \
-				       &heapbuf, &read_buffer_size, count); \
-       p = read_buffer + offset;					\
-       end = read_buffer + read_buffer_size;				\
-    }
+typedef struct {
+  char *start;		/* start of buffer, dynamic if equal to heapbuf */
+  char *end;		/* just past end of buffer */
+  char *cur;		/* where to put next char read */
+  char *heapbuf;	/* start of heap allocation if any, or NULL */
+  specpdl_ref count;	/* specpdl at start */
+} readbuf_t;
 
-#define INVALID_SYNTAX_WITH_BUFFER()		\
-  {						\
-    *p = 0;					\
-    invalid_syntax (read_buffer, readcharfun);	\
-  }
+static NO_INLINE void
+readbuf_grow (readbuf_t *rb)
+{
+  ptrdiff_t offset = rb->cur - rb->start;
+  ptrdiff_t size = rb->end - rb->start;
+  rb->start = grow_read_buffer (rb->start, offset, &rb->heapbuf, &size,
+				rb->count);
+  rb->cur = rb->start + offset;
+  rb->end = rb->start + size;
+}
+
+static inline void
+add_char_to_buffer (readbuf_t *rb, int c, bool multibyte)
+{
+  if (multibyte)
+    rb->cur += CHAR_STRING (c, (unsigned char *) rb->cur);
+  else
+    *rb->cur++ = c;
+  if (rb->end - rb->cur < MAX_MULTIBYTE_LENGTH + 1)
+    readbuf_grow (rb);
+}
+
+static AVOID
+invalid_syntax_with_buffer (readbuf_t *rb, Lisp_Object readcharfun)
+{
+  *rb->cur = '\0';
+  invalid_syntax (rb->start, readcharfun);
+}
+
+static inline int
+read_and_buffer (readbuf_t *rb, Lisp_Object readcharfun)
+{
+  bool multibyte;
+  int c = READCHAR_REPORT_MULTIBYTE (&multibyte);
+  if (c < 0)
+    invalid_syntax_with_buffer (rb, readcharfun);
+  add_char_to_buffer (rb, c, multibyte);
+  return c;
+}
 
 /* Read a Lisp object.
    If LOCATE_SYMS is true, symbols are read with position.  */
@@ -3934,16 +3964,15 @@ static Lisp_Object
 read0 (Lisp_Object readcharfun, bool locate_syms)
 {
   char stackbuf[64];
-  char *read_buffer = stackbuf;
-  ptrdiff_t read_buffer_size = sizeof stackbuf;
-  ptrdiff_t offset;
-  char *heapbuf = NULL;
 
   specpdl_ref base_pdl = SPECPDL_INDEX ();
   ptrdiff_t base_sp = rdstack.sp;
   record_unwind_protect_intmax (read_stack_reset, base_sp);
 
-  specpdl_ref count = SPECPDL_INDEX ();
+  readbuf_t rb = { .start = stackbuf,
+		   .end = stackbuf + sizeof stackbuf,
+		   .heapbuf = NULL,
+		   .count = SPECPDL_INDEX () };
 
   bool uninterned_symbol;
   bool skip_shorthand;
@@ -4038,13 +4067,9 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
     case '#':
       {
-	char *p = read_buffer;
-	char *end = read_buffer + read_buffer_size;
-
-	*p++ = '#';
-	int ch;
-	READ_AND_BUFFER (ch);
-
+	rb.cur = rb.start;
+	*rb.cur++ = '#';
+	int ch = read_and_buffer (&rb, readcharfun);
 	switch (ch)
 	  {
 	  case '\'':
@@ -4062,11 +4087,11 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 	  case 's':
 	    /* #s(...) -- a record or hash-table */
-	    READ_AND_BUFFER (ch);
+	    ch = read_and_buffer (&rb, readcharfun);
 	    if (ch != '(')
 	      {
 		UNREAD (ch);
-		INVALID_SYNTAX_WITH_BUFFER ();
+		invalid_syntax_with_buffer (&rb, readcharfun);
 	      }
 	    read_stack_push ((struct read_stack_entry) {
 		.type = RE_record,
@@ -4079,10 +4104,10 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	  case '^':
 	    /* #^[...]  -- char-table
 	       #^^[...] -- sub-char-table */
-	    READ_AND_BUFFER (ch);
+	    ch = read_and_buffer (&rb, readcharfun);
 	    if (ch == '^')
 	      {
-		ch = READCHAR;
+		ch = read_and_buffer (&rb, readcharfun);
 		if (ch == '[')
 		  {
 		    read_stack_push ((struct read_stack_entry) {
@@ -4096,7 +4121,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		else
 		  {
 		    UNREAD (ch);
-		    INVALID_SYNTAX_WITH_BUFFER ();
+		    invalid_syntax_with_buffer (&rb, readcharfun);
 		  }
 	      }
 	    else if (ch == '[')
@@ -4112,7 +4137,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	    else
 	      {
 		UNREAD (ch);
-		INVALID_SYNTAX_WITH_BUFFER ();
+		invalid_syntax_with_buffer (&rb, readcharfun);
 	      }
 
 	  case '(':
@@ -4222,12 +4247,12 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		int c;
 		for (;;)
 		  {
-		    READ_AND_BUFFER (c);
+		    c = read_and_buffer (&rb, readcharfun);
 		    if (c < '0' || c > '9')
 		      break;
 		    if (ckd_mul (&n, n, 10)
 			|| ckd_add (&n, n, c - '0'))
-		      INVALID_SYNTAX_WITH_BUFFER ();
+		      invalid_syntax_with_buffer (&rb, readcharfun);
 		  }
 		if (c == 'r' || c == 'R')
 		  {
@@ -4268,18 +4293,18 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 			  = XHASH_TABLE (read_objects_map);
 			ptrdiff_t i = hash_find (h, make_fixnum (n));
 			if (i < 0)
-			  INVALID_SYNTAX_WITH_BUFFER ();
+			  invalid_syntax_with_buffer (&rb, readcharfun);
 			obj = HASH_VALUE (h, i);
 			break;
 		      }
 		    else
-		      INVALID_SYNTAX_WITH_BUFFER ();
+		      invalid_syntax_with_buffer (&rb, readcharfun);
 		  }
 		else
-		  INVALID_SYNTAX_WITH_BUFFER ();
+		  invalid_syntax_with_buffer (&rb, readcharfun);
 	      }
 	    else
-	      INVALID_SYNTAX_WITH_BUFFER ();
+	      invalid_syntax_with_buffer (&rb, readcharfun);
 	  }
 	break;
       }
@@ -4364,23 +4389,13 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
       /* symbol or number */
     read_symbol:
       {
-	char *p = read_buffer;
-	char *end = read_buffer + read_buffer_size;
+	rb.cur = rb.start;
 	bool quoted = false;
 	EMACS_INT start_position = readchar_offset - 1;
+	ptrdiff_t nchars = 0;
 
 	do
 	  {
-	    if (end - p < MAX_MULTIBYTE_LENGTH + 1)
-	      {
-		ptrdiff_t offset = p - read_buffer;
-		read_buffer = grow_read_buffer (read_buffer, offset,
-						&heapbuf, &read_buffer_size,
-						count);
-		p = read_buffer + offset;
-		end = read_buffer + read_buffer_size;
-	      }
-
 	    if (c == '\\')
 	      {
 		c = READCHAR;
@@ -4389,10 +4404,8 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		quoted = true;
 	      }
 
-	    if (multibyte)
-	      p += CHAR_STRING (c, (unsigned char *) p);
-	    else
-	      *p++ = c;
+	    add_char_to_buffer (&rb, c, multibyte);
+	    nchars++;
 	    c = READCHAR;
 	  }
 	while (c > 32
@@ -4402,17 +4415,17 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 			|| c == '(' || c == ')'  || c == '[' || c == ']'
 			|| c == '`' || c == ',')));
 
-	*p = 0;
-	ptrdiff_t nbytes = p - read_buffer;
+	*rb.cur = '\0';
+	ptrdiff_t nbytes = rb.cur - rb.start;
 	UNREAD (c);
 
 	/* Only attempt to parse the token as a number if it starts as one.  */
-	char c0 = read_buffer[0];
+	char c0 = rb.start[0];
 	if (((c0 >= '0' && c0 <= '9') || c0 == '.' || c0 == '-' || c0 == '+')
 	    && !quoted && !uninterned_symbol && !skip_shorthand)
 	  {
 	    ptrdiff_t len;
-	    Lisp_Object result = string_to_number (read_buffer, 10, &len);
+	    Lisp_Object result = string_to_number (rb.start, 10, &len);
 	    if (!NILP (result) && len == nbytes)
 	      {
 		obj = result;
@@ -4421,15 +4434,11 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	  }
 
 	/* symbol, possibly uninterned */
-	ptrdiff_t nchars
-	  = (multibyte
-	     ? multibyte_chars_in_text ((unsigned char *)read_buffer, nbytes)
-	     : nbytes);
 	Lisp_Object result;
 	if (uninterned_symbol)
 	  {
 	    Lisp_Object name
-	      = make_specified_string (read_buffer, nchars, nbytes, multibyte);
+	      = make_specified_string (rb.start, nchars, nbytes, multibyte);
 	    result = Fmake_symbol (name);
 	  }
 	else
@@ -4450,10 +4459,10 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		   symbols that are comprised entirely of characters
 		   that have the 'symbol constituent' syntax from
 		   transforming according to shorthands.  */
-		|| symbol_char_span (read_buffer) >= nbytes)
-	      found = oblookup (obarray, read_buffer, nchars, nbytes);
+		|| symbol_char_span (rb.start) >= nbytes)
+	      found = oblookup (obarray, rb.start, nchars, nbytes);
 	    else
-	      found = oblookup_considering_shorthand (obarray, read_buffer,
+	      found = oblookup_considering_shorthand (obarray, rb.start,
 						      nchars, nbytes, &longhand,
 						      &longhand_chars,
 						      &longhand_bytes);
@@ -4471,7 +4480,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	      }
 	    else
 	      {
-		Lisp_Object name = make_specified_string (read_buffer, nchars,
+		Lisp_Object name = make_specified_string (rb.start, nchars,
 							  nbytes, multibyte);
 		result = intern_driver (name, obarray, found);
 	      }

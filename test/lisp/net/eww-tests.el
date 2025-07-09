@@ -29,6 +29,22 @@
 The default just returns an empty list of headers and the URL as the
 body.")
 
+(defvar eww-test--lots-of-words
+  (string-join (make-list 20 "All work and no play makes Jack a dull boy.")
+               " ")
+  "A long enough run of words to satisfy EWW's readable mode cutoff.")
+
+(defvar eww-test--wordy-page
+  (concat "<html>"
+          "<head>"
+          "<title>Welcome to my home page</title>"
+          "<link rel=\"home\" href=\"somewhere.invalid\">"
+          "<base href=\"/foo/\">"
+          "</head><body>"
+          "<a>This is an uninteresting sentence.</a>"
+          "<div>" eww-test--lots-of-words "</div>"
+          "</body></html>"))
+
 (defmacro eww-test--with-mock-retrieve (&rest body)
   "Evaluate BODY with a mock implementation of `eww-retrieve'.
 This avoids network requests during our tests.  Additionally, prepare a
@@ -201,19 +217,10 @@ This sets `eww-before-browse-history-function' to
   (eww-test--with-mock-retrieve
     (let* ((shr-width most-positive-fixnum)
            (shr-use-fonts nil)
-           (words (string-join
-                   (make-list
-                    20 "All work and no play makes Jack a dull boy.")
-                   " "))
            (eww-test--response-function
             (lambda (_url)
               (concat "Content-Type: text/html\n\n"
-                      "<html><body>"
-                      "<a>This is an uninteresting sentence.</a>"
-                      "<div>"
-                      words
-                      "</div>"
-                      "</body></html>"))))
+                      eww-test--wordy-page))))
       (eww "example.invalid")
       ;; Make sure EWW renders the whole document.
       (should-not (plist-get eww-data :readable))
@@ -224,7 +231,7 @@ This sets `eww-before-browse-history-function' to
       ;; Now, EWW should render just the "readable" parts.
       (should (plist-get eww-data :readable))
       (should (string-match-p
-               (concat "\\`" (regexp-quote words) "\n*\\'")
+               (concat "\\`" (regexp-quote eww-test--lots-of-words) "\n*\\'")
                (buffer-substring-no-properties (point-min) (point-max))))
       (eww-readable 'toggle)
       ;; Finally, EWW should render the whole document again.
@@ -240,11 +247,31 @@ This sets `eww-before-browse-history-function' to
     (let* ((eww-test--response-function
             (lambda (_url)
               (concat "Content-Type: text/html\n\n"
-                      "<html><body>Hello there</body></html>")))
+                      eww-test--wordy-page)))
            (eww-readable-urls '("://example\\.invalid/")))
       (eww "example.invalid")
       ;; Make sure EWW uses "readable" mode.
-      (should (plist-get eww-data :readable)))))
+      (should (plist-get eww-data :readable))
+      ;; Make sure the page include the <title>, <link>, and <base> nodes.
+      (should (equal (plist-get eww-data :title) "Welcome to my home page"))
+      (should (equal (plist-get eww-data :home) "somewhere.invalid"))
+      (let* ((html (dom-child-by-tag (plist-get eww-data :dom) 'html))
+             (base-tags (dom-by-tag html 'base)))
+        (should (length= base-tags 1))
+        (should (equal (dom-attr (car base-tags) 'href) "/foo/"))))))
+
+(ert-deftest eww-test/readable/default-readable/non-readable-page ()
+  "Test that EWW handles readable-by-default correctly for non-readable pages."
+  (skip-unless (libxml-available-p))
+  (eww-test--with-mock-retrieve
+    (let* ((eww-test--response-function
+            (lambda (_url)
+              (concat "Content-Type: text/html\n\n"
+                      "<html><body><h1>Hello</h1></body></html>")))
+           (eww-readable-urls '("://example\\.invalid/")))
+      (eww "example.invalid")
+      ;; Make sure EWW doesn't use "readable" mode here.
+      (should-not (plist-get eww-data :readable)))))
 
 (provide 'eww-tests)
 ;; eww-tests.el ends here

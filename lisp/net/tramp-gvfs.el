@@ -1516,6 +1516,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
       (if (not (processp p))
 	  (tramp-error
 	   v 'file-notify-error "Monitoring not supported for `%s'" file-name)
+	;; Needed for process filter.
 	(process-put p 'tramp-events events)
 	(process-put p 'tramp-watch-name localname)
 	(set-process-filter p #'tramp-gvfs-monitor-process-filter)
@@ -1527,9 +1528,9 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	(unless (process-live-p p)
 	  (tramp-error
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))
-	;; Set "gio-file-monitor" property.  We believe, that "gio
+	;; Set "file-monitor" property.  We believe, that "gio
 	;; monitor" uses polling when applied for mounted files.
-	(tramp-set-connection-property p "gio-file-monitor" 'GPollFileMonitor)
+	(tramp-set-connection-property p "file-monitor" 'GPollFileMonitor)
 	p))))
 
 (defun tramp-gvfs-monitor-process-filter (proc string)

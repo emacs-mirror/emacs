@@ -16,24 +16,26 @@
           font-weight: bold;
       }
       table {
+          display: inline-block;
           margin: auto;
+      }
+      table caption {
+          font-weight: bold;
       }
       table td {
           padding: 0.5rem 1rem;
           width: 10rem;
           word-break: break-all;
       }
-      .head {
+      .latest {
           background: lightgreen;
       }
     </style>
   </head>
   <body>
     <h1>Emacs tree-sitter grammar compatibility</h1>
-    <p>This is an auto-generated report of the last compatible version for each grammar in each Emacs version.  A <span class="head">green background</span> on the version indicates that the Emacs version is compatible with the latest commit in the upstream grammar repo.</p>
+    <p>This is an auto-generated report of the last compatible version for each grammar in each Emacs version.  A <span class="head">green background</span> on the version indicates that the Emacs version is compatible with the latest commit/tag in the upstream grammar repo.</p>
     <p>This report is generated on ___REPLACE_TIME___.</p>
-    <table>
 ___REPLACE_TABLE___
-    </table>
   </body>
 </html>

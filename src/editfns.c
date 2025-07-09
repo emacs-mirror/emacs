@@ -4590,6 +4590,9 @@ ring.  */)
 			     BUF_TS_LINECOL_POINT (current_buffer));
 #endif
 
+  /* Run the before-change-functions *before* we move the gap.  */
+  modify_text (start1, end2);
+
   /* Make sure the gap won't interfere, by moving it out of the text
      we will operate on.  */
   if (start1 < gap && gap < end2)
@@ -4634,7 +4637,6 @@ ring.  */)
      enough to use as the temporary storage?  That would avoid an
      allocation... interesting.  Later, don't fool with it now.  */
 
-  modify_text (start1, end2);
   tmp_interval1 = copy_intervals (cur_intv, start1, len1);
   tmp_interval2 = copy_intervals (cur_intv, start2, len2);
   USE_SAFE_ALLOCA;

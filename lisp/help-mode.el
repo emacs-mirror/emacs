@@ -89,9 +89,9 @@
 
   (when (mouse-posn-property (event-start click) 'mouse-face)
     (define-key menu [help-mode-push-button]
-      '(menu-item "Follow Link" (lambda (event)
-                                  (interactive "e")
-                                  (push-button event))
+      `(menu-item "Follow Link" ,(lambda (event)
+                                   (interactive "e")
+                                   (push-button event))
                   :help "Follow the link at click")))
 
   menu)

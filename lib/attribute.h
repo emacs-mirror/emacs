@@ -50,8 +50,9 @@
              - In a function declaration/definition with a storage-class
                specifier: between the storage-class specifier and the return
                type.
-        - Or after the parameter list,
-          ∙ but after ATTRIBUTE_NOTHROW if present.
+        - Or, in a function declaration:
+          after the parameter list,
+            ∙ but after ATTRIBUTE_NOTHROW if present.
 
    In other declarations, such as variable declarations:
 

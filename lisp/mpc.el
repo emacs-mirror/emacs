@@ -2925,20 +2925,20 @@ playing song is displayed."
         (let ((inhibit-read-only t))
           (erase-buffer)
           (make-vtable
-           :columns '(( :name "Tag"
+           :columns `(( :name "Tag"
                         :align right
                         :min-width 3
                         :displayer
-                        (lambda (tag &rest _)
-                          (propertize tag 'face 'mpc-table-key)))
+                        ,(lambda (tag &rest _)
+                           (propertize tag 'face 'mpc-table-key)))
                       ( :name "Value"
                         :align left
                         :min-width 5
                         :displayer
-                        (lambda (value &rest _)
-                          (if (and value (not (string-blank-p value)))
-                              (propertize value 'face 'mpc-table-value)
-                            (propertize "empty" 'face 'mpc-table-empty)))))
+                        ,(lambda (value &rest _)
+                           (if (and value (not (string-blank-p value)))
+                               (propertize value 'face 'mpc-table-value)
+                             (propertize "empty" 'face 'mpc-table-empty)))))
            :objects (mapcar
                      (lambda (tag)
                        (pcase tag

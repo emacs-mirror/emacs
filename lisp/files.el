@@ -8288,10 +8288,14 @@ Valid wildcards are `*', `?', `[abc]' and `[a-z]'."
     ;; "//DIRED-OPTIONS//" line, but no "//DIRED//" line.
     ;; We take care of that case later.
     (forward-line -2)
-    (when (looking-at "//SUBDIRED//")
+    ;; We reset case-fold-search here and elsewhere, because
+    ;; case-insensitive search for strings with uppercase 'I' will fail
+    ;; in language environments (such as Turkish) where 'I' downcases to
+    ;; 'ı', not to 'i'.
+    (when (let ((case-fold-search nil)) (looking-at "//SUBDIRED//"))
       (delete-region (point) (progn (forward-line 1) (point)))
       (forward-line -1))
-    (if (looking-at "//DIRED//")
+    (if (let ((case-fold-search nil)) (looking-at "//DIRED//"))
 	(let ((end (line-end-position))
 	      (linebeg (point))
 	      error-lines)
@@ -8328,7 +8332,7 @@ Valid wildcards are `*', `?', `[abc]' and `[a-z]'."
       ;; "//DIRED-OPTIONS//"-line, but no "//DIRED//"-line
       ;; and we went one line too far back (see above).
       (forward-line 1))
-    (if (looking-at "//DIRED-OPTIONS//")
+    (if (let ((case-fold-search nil)) (looking-at "//DIRED-OPTIONS//"))
 	(delete-region (point) (progn (forward-line 1) (point))))))
 
 ;; insert-directory
@@ -8470,11 +8474,12 @@ normally equivalent short `-D' option is just passed on to
 		  (string-match "--dired\\>" switches)
 		(member "--dired" switches))
 	  (save-excursion
-	    (forward-line -2)
-	    (when (looking-at "//SUBDIRED//")
-	      (forward-line -1))
-	    (if (looking-at "//DIRED//")
-		(setq result 0))))
+            (let ((case-fold-search nil))
+	      (forward-line -2)
+	      (when (looking-at "//SUBDIRED//")
+	        (forward-line -1))
+	      (if (looking-at "//DIRED//")
+		  (setq result 0)))))
 
 	(when (and (not (eq 0 result))
 		   (eq insert-directory-ls-version 'unknown))

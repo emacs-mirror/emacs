@@ -109,7 +109,9 @@
    (version<= "3" (car (split-string bbdb-version)))))
 
 (defun eudc--plist-member (plist prop &optional predicate)
-  "Like `plist-member', but signal on invalid PLIST."
+  "Like `plist-member', but signal on invalid PLIST.
+Return t if PROP has a value specified in PLIST.  The comparison with
+PROP is done using PREDICATE, which defaults to `eq'."
   (or (plistp plist)
       (signal 'wrong-type-argument `(plistp ,plist)))
   (plist-member plist prop predicate))
@@ -883,7 +885,8 @@ non-nil, collect results from all servers."
 
 ;;;###autoload
 (defun eudc-format-inline-expansion-result (res query-attrs)
-  "Format a query result according to `eudc-inline-expansion-format'."
+  "Format a query result RES according to `eudc-inline-expansion-format'.
+QUERY-ATTRS is a list of attributes to include in the expansion."
   (cond
    ;; format string
    ((consp eudc-inline-expansion-format)

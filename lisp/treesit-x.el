@@ -110,7 +110,7 @@ of `define-treesit-generic-mode'.
         (_ (pop body))))
 
     (when (stringp source)
-      (setq source (list 'quote (list source nil nil nil nil nil :copy-queries t))))
+      (setq source (list 'quote (list source :copy-queries t))))
     (when (stringp auto-mode)
       (setq auto-mode (list 'quote (ensure-list auto-mode))))
 
@@ -203,7 +203,9 @@ of `define-treesit-generic-mode'.
 (define-treesit-generic-mode gitattributes-generic-ts-mode
   "Tree-sitter generic mode for .gitattributes files."
   :lang 'gitattributes
-  :source "https://github.com/tree-sitter-grammars/tree-sitter-gitattributes"
+  :source '("https://github.com/tree-sitter-grammars/tree-sitter-gitattributes"
+            :commit "5425944fd61bf2b3bad2c17c2dc9f53172b0f01d"
+            :copy-queries t)
   :auto-mode "gitattributes\\'"
   :name "Git-Attributes"
   (setq-local comment-start "# ")
@@ -212,7 +214,9 @@ of `define-treesit-generic-mode'.
 (define-treesit-generic-mode liquid-generic-ts-mode
   "Tree-sitter generic mode for Liquid templates."
   :lang 'liquid
-  :source "https://github.com/hankthetank27/tree-sitter-liquid"
+  :source '("https://github.com/hankthetank27/tree-sitter-liquid"
+            :commit "d6ebde3974742cd1b61b55d1d94aab1dacb41056"
+            :copy-queries t)
   :auto-mode "\\.liquid\\'"
   :name "Liquid"
   :parent 'mhtml-ts-mode

@@ -44,7 +44,7 @@
 ;;
 ;;    https://www.gnu.org/software/auctex/reftex.html
 ;;
-;; RefTeX was written by Carsten Dominik <dominik@science.uva.nl> with
+;; RefTeX was written by Carsten Dominik <carsten.dominik@gmail.com> with
 ;; contributions from Stephen Eglen.  It is currently maintained by
 ;; the AUCTeX project.
 

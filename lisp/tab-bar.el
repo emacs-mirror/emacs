@@ -280,7 +280,9 @@ a list of frames to update."
     (dolist (frame frame-lst)
       (unless (or (frame-parameter frame 'tab-bar-lines-keep-state)
                   (and (eq auto-resize-tab-bars 'grow-only)
-                       (> (frame-parameter frame 'tab-bar-lines) 1)))
+                       (> (frame-parameter frame 'tab-bar-lines) 1))
+                  ;; Don't enable tab-bar in daemon's initial frame.
+                  (and (daemonp) (not (frame-parameter frame 'client))))
         (set-frame-parameter frame 'tab-bar-lines
                              (tab-bar--tab-bar-lines-for-frame frame)))))
   ;; Update `default-frame-alist'
@@ -600,7 +602,11 @@ on each new frame when the global `tab-bar-mode' is disabled,
 or if you want to disable the tab bar individually on each
 new frame when the global `tab-bar-mode' is enabled, by using
 
-  (add-hook \\='after-make-frame-functions #\\='toggle-frame-tab-bar)"
+  (add-hook \\='after-make-frame-functions #\\='toggle-frame-tab-bar)
+
+Or when starting Emacs in daemon mode:
+
+  (add-hook \\='server-after-make-frame-hook #\\='toggle-frame-tab-bar)"
   (interactive)
   (set-frame-parameter frame 'tab-bar-lines
                        (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1))
@@ -1188,14 +1194,29 @@ when the tab is current.  Return the result as a keymap."
     `((add-tab menu-item ,tab-bar-new-button tab-bar-new-tab
                :help "New tab"))))
 
-(defun tab-bar-format-align-right ()
-  "Align the rest of tab bar items to the right."
-  (let* ((rest (cdr (memq 'tab-bar-format-align-right tab-bar-format)))
-         (rest (tab-bar-format-list rest))
+(defvar tab-bar--align-right-hash nil
+  "Memoization table for `tab-bar-format-align-right'.")
+
+(defun tab-bar-format-align-right (&optional rest)
+  "Align the rest of tab bar items to the right.
+The argument `rest' is used for special handling of this item
+by `tab-bar-format-list' that collects the rest of formatted items.
+This prevents calling other non-idempotent items like
+`tab-bar-format-global' twice."
+  (unless tab-bar--align-right-hash
+    (define-hash-table-test 'tab-bar--align-right-hash-test
+                            #'equal-including-properties
+                            #'sxhash-equal-including-properties)
+    (setq tab-bar--align-right-hash
+          (make-hash-table :test 'tab-bar--align-right-hash-test)))
+  (let* ((rest (or rest (tab-bar-format-list
+                         (cdr (memq 'tab-bar-format-align-right
+                                    tab-bar-format)))))
          (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
          (hpos (progn
                  (add-face-text-property 0 (length rest) 'tab-bar t rest)
-                 (string-pixel-width rest)))
+                 (with-memoization (gethash rest tab-bar--align-right-hash)
+                   (string-pixel-width rest))))
          (str (propertize " " 'display
                           ;; The `right' spec doesn't work on TTY frames
                           ;; when windows are split horizontally (bug#59620)
@@ -1217,19 +1238,33 @@ on the tab bar instead."
           global-mode-string))
 
 (defun tab-bar-format-list (format-list)
-  (let ((i 0))
-    (apply #'append
-           (mapcar
-            (lambda (format)
-              (setq i (1+ i))
-              (cond
-               ((functionp format)
-                (let ((ret (funcall format)))
-                  (when (stringp ret)
-                    (setq ret `((,(intern (format "str-%i" i))
-                                 menu-item ,ret ignore))))
-                  ret))))
-            format-list))))
+  "Return a list of items formatted from `format-list'.
+The item `tab-bar-format-align-right' has special formatting."
+  (let* ((i 0) align-right-p rest
+         (res (apply #'append
+                     (mapcar
+                      (lambda (format)
+                        (setq i (1+ i))
+                        (cond
+                         ((eq format 'tab-bar-format-align-right)
+                          (setq align-right-p t)
+                          (list format))
+                         ((functionp format)
+                          (let ((ret (funcall format)))
+                            (when (stringp ret)
+                              (setq ret `((,(intern (format "str-%i" i))
+                                           menu-item ,ret ignore))))
+                            (when align-right-p
+                              (setq rest (append rest ret)))
+                            ret))))
+                      format-list))))
+    (when align-right-p
+      (setq res (mapcan (lambda (format)
+                          (if (eq format 'tab-bar-format-align-right)
+                              (tab-bar-format-align-right rest)
+                            (list format)))
+                        res)))
+    res))
 
 (defun tab-bar-make-keymap-1 ()
   "Generate an actual keymap from `tab-bar-map', without caching."
@@ -3008,6 +3043,9 @@ files will be visited."
   "Display the buffer of the next command in a new tab.
 The next buffer is the buffer displayed by the next command invoked
 immediately after this command (ignoring reading from the minibuffer).
+In case of multiple consecutive mouse events such as <down-mouse-1>,
+a mouse release event <mouse-1>, <double-mouse-1>, <triple-mouse-1>
+all bound commands are handled until one of them displays a buffer.
 Creates a new tab before displaying the buffer, or switches to the tab
 that already contains that buffer.
 When `switch-to-buffer-obey-display-actions' is non-nil,

@@ -1047,7 +1047,9 @@ Subclasses to override slot attributes."))
                 (slot-value x 'c)))
     (setf (slot-value x 'a) 1)
     (should (eq (eieio-test--struct-a x) 1))
-    (should-error (setf (slot-value x 'c) 3) :type 'eieio-read-only)))
+    (should-error (setf (slot-value x 'c) 3) :type 'eieio-read-only)
+    (with-no-warnings
+      (should-error (eieio-oref x 'd)) :type 'invalid-slot-name)))
 
 (defclass foo-bug-66938 (eieio-instance-inheritor)
   ((x :initarg :x

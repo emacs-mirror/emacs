@@ -85,6 +85,13 @@ smack_new_label_from_path (MAYBE_UNUSED const char *path,
 {
   return -1;
 }
+static ssize_t
+smack_new_label_from_file (MAYBE_UNUSED int fd,
+                           MAYBE_UNUSED const char *xattr,
+                           MAYBE_UNUSED char **label)
+{
+  return -1;
+}
 # endif
 static bool
 is_smack_enabled (void)
@@ -115,14 +122,16 @@ aclinfo_may_indicate_xattr (struct aclinfo const *ai)
 
 static bool
 has_xattr (char const *xattr, struct aclinfo const *ai,
-           MAYBE_UNUSED char const *restrict name, MAYBE_UNUSED int flags)
+           int fd, char const *restrict name, int flags)
 {
   if (ai && aclinfo_has_xattr (ai, xattr))
     return true;
   else if (!ai || aclinfo_may_indicate_xattr (ai))
     {
-      int ret = ((flags & ACL_SYMLINK_FOLLOW ? getxattr : lgetxattr)
-                (name, xattr, NULL, 0));
+      int ret = (fd < 0
+                 ? ((flags & ACL_SYMLINK_FOLLOW ? getxattr : lgetxattr)
+                    (name, xattr, NULL, 0))
+                 : fgetxattr (fd, xattr, NULL, 0));
       if (0 <= ret || (errno == ERANGE || errno == E2BIG))
         return true;
     }
@@ -145,11 +154,12 @@ aclinfo_has_xattr (struct aclinfo const *ai, char const *xattr)
   return false;
 }
 
-/* Get attributes of the file NAME into AI, if USE_ACL.
+/* Get attributes of the file FD aka NAME into AI, if USE_ACL.
+   Ignore FD if it is negative.
    If FLAGS & ACL_GET_SCONTEXT, also get security context.
    If FLAGS & ACL_SYMLINK_FOLLOW, follow symbolic links.  */
 static void
-get_aclinfo (char const *name, struct aclinfo *ai, int flags)
+get_aclinfo (int fd, char const *name, struct aclinfo *ai, int flags)
 {
   int scontext_err = ENOTSUP;
   ai->buf = ai->u.__gl_acl_ch;
@@ -163,7 +173,9 @@ get_aclinfo (char const *name, struct aclinfo *ai, int flags)
         = (flags & ACL_SYMLINK_FOLLOW ? listxattr : llistxattr);
       while (true)
         {
-          ai->size = lsxattr (name, ai->buf, acl_alloc);
+          ai->size = (fd < 0
+                      ? lsxattr (name, ai->buf, acl_alloc)
+                      : flistxattr (fd, ai->buf, acl_alloc));
           if (0 < ai->size)
             break;
           ai->u.err = ai->size < 0 ? errno : 0;
@@ -171,7 +183,9 @@ get_aclinfo (char const *name, struct aclinfo *ai, int flags)
             break;
 
           /* The buffer was too small.  Find how large it should have been.  */
-          ssize_t size = lsxattr (name, NULL, 0);
+          ssize_t size = (fd < 0
+                          ? lsxattr (name, NULL, 0)
+                          : flistxattr (fd, NULL, 0));
           if (size <= 0)
             {
               ai->size = size;
@@ -214,9 +228,13 @@ get_aclinfo (char const *name, struct aclinfo *ai, int flags)
         {
           if (ai->size < 0 || aclinfo_has_xattr (ai, XATTR_NAME_SMACK))
             {
-              ssize_t r = smack_new_label_from_path (name, "security.SMACK64",
-                                                     flags & ACL_SYMLINK_FOLLOW,
-                                                     &ai->scontext);
+              static char const SMACK64[] = "security.SMACK64";
+              ssize_t r =
+                (fd < 0
+                 ? smack_new_label_from_path (name, SMACK64,
+                                              flags & ACL_SYMLINK_FOLLOW,
+                                              &ai->scontext)
+                 : smack_new_label_from_file (fd, SMACK64, &ai->scontext));
               scontext_err = r < 0 ? errno : 0;
             }
         }
@@ -226,8 +244,10 @@ get_aclinfo (char const *name, struct aclinfo *ai, int flags)
           if (ai->size < 0 || aclinfo_has_xattr (ai, XATTR_NAME_SELINUX))
             {
               ssize_t r =
-                ((flags & ACL_SYMLINK_FOLLOW ? getfilecon : lgetfilecon)
-                 (name, &ai->scontext));
+                (fd < 0
+                 ? ((flags & ACL_SYMLINK_FOLLOW ? getfilecon : lgetfilecon)
+                    (name, &ai->scontext))
+                 : fgetfilecon (fd, &ai->scontext));
               scontext_err = r < 0 ? errno : 0;
 #  ifndef SE_SELINUX_INLINE
               /* Gnulib's selinux-h module is not in use, so getfilecon and
@@ -362,11 +382,14 @@ acl_nfs4_nontrivial (uint32_t *xattr, ssize_t nbytes)
 }
 #endif
 
-#if (!USE_LINUX_XATTR && USE_ACL && HAVE_ACL_GET_FD \
-     && !HAVE_ACL_EXTENDED_FILE && !HAVE_ACL_TYPE_EXTENDED \
-     && !HAVE_ACL_GET_LINK_NP)
-# include <fcntl.h>
-# ifdef O_PATH
+#if (!USE_LINUX_XATTR && USE_ACL && HAVE_ACL_GET_FILE \
+     && !HAVE_ACL_EXTENDED_FILE && !HAVE_ACL_TYPE_EXTENDED)
+/* FreeBSD, NetBSD >= 10, IRIX, Tru64, Cygwin >= 2.5 */
+
+# if HAVE_ACL_GET_FD && !HAVE_ACL_GET_LINK_NP /* IRIX, Tru64, Cygwin >= 2.5 */
+#  include <fcntl.h>
+#  ifdef O_PATH
+#   define acl_get_fd_np(fd, type) acl_get_fd (fd)
 
 /* Like acl_get_file, but do not follow symbolic links.  */
 static acl_t
@@ -381,8 +404,24 @@ acl_get_link_np (char const *name, acl_type_t type)
   errno = err;
   return r;
 }
-#  define HAVE_ACL_GET_LINK_NP 1
+#   define HAVE_ACL_GET_LINK_NP 1
+#  endif
 # endif
+
+static acl_t
+acl_get_fdfile (int fd, char const *name, acl_type_t type, int flags)
+{
+  acl_t (*get) (char const *, acl_type_t) = acl_get_file;
+# if HAVE_ACL_GET_LINK_NP /* FreeBSD, NetBSD >= 10, Cygwin >= 2.5 */
+  if (0 <= fd)
+    return acl_get_fd_np (fd, type);
+  if (! (flags & ACL_SYMLINK_FOLLOW))
+    get = acl_get_link_np;
+# else
+  /* Ignore FD and FLAGS, unfortunately.  */
+# endif
+  return get (name, type);
+}
 #endif
 
 /* Return 1 if NAME has a nontrivial access control list,
@@ -398,14 +437,35 @@ acl_get_link_np (char const *name, acl_type_t type)
    If the d_type value is not known, use DT_UNKNOWN though this may be less
    efficient.  */
 int
-file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
+file_has_aclinfo (char const *restrict name,
                   struct aclinfo *restrict ai, int flags)
+{
+  return fdfile_has_aclinfo (-1, name, ai, flags);
+}
+
+/* Return 1 if FD aka NAME has a nontrivial access control list,
+   0 if ACLs are not supported, or if NAME has no or only a base ACL,
+   and -1 (setting errno) on error.  Note callers can determine
+   if ACLs are not supported as errno is set in that case also.
+   Ignore FD if it is negative.
+   Set *AI to ACL info regardless of return value.
+   FLAGS should be a <dirent.h> d_type value, optionally ORed with
+     - _GL_DT_NOTDIR if it is known that NAME is not a directory,
+     - ACL_GET_SCONTEXT to retrieve security context and return 1 if present,
+     - ACL_SYMLINK_FOLLOW to follow the link if NAME is a symbolic link;
+       otherwise do not follow them if possible.
+   If the d_type value is not known, use DT_UNKNOWN though this may be less
+   efficient.  */
+int
+fdfile_has_aclinfo (MAYBE_UNUSED int fd,
+                    MAYBE_UNUSED char const *restrict name,
+                    struct aclinfo *restrict ai, int flags)
 {
   MAYBE_UNUSED unsigned char d_type = flags & UCHAR_MAX;
 
 #if USE_LINUX_XATTR
   int initial_errno = errno;
-  get_aclinfo (name, ai, flags);
+  get_aclinfo (fd, name, ai, flags);
 
   if (!aclinfo_may_indicate_xattr (ai) && ai->size <= 0)
     {
@@ -418,11 +478,11 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
      In earlier Fedora the two types of ACLs were mutually exclusive.
      Attempt to work correctly on both kinds of systems.  */
 
-  if (!has_xattr (XATTR_NAME_NFSV4_ACL, ai, name, flags))
+  if (!has_xattr (XATTR_NAME_NFSV4_ACL, ai, fd, name, flags))
     return
-      (has_xattr (XATTR_NAME_POSIX_ACL_ACCESS, ai, name, flags)
+      (has_xattr (XATTR_NAME_POSIX_ACL_ACCESS, ai, fd, name, flags)
        || ((d_type == DT_DIR || d_type == DT_UNKNOWN)
-           && has_xattr (XATTR_NAME_POSIX_ACL_DEFAULT, ai, name, flags)));
+           && has_xattr (XATTR_NAME_POSIX_ACL_DEFAULT, ai, fd, name, flags)));
 
   /* A buffer large enough to hold any trivial NFSv4 ACL.
      The max length of a trivial NFSv4 ACL is 6 words for owner,
@@ -432,8 +492,10 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
      everyone is another word to hold "EVERYONE@".  */
   uint32_t buf[2 * (6 + 6 + 7)];
 
-  int ret = ((flags & ACL_SYMLINK_FOLLOW ? getxattr : lgetxattr)
-             (name, XATTR_NAME_NFSV4_ACL, buf, sizeof buf));
+  int ret = (fd < 0
+             ? ((flags & ACL_SYMLINK_FOLLOW ? getxattr : lgetxattr)
+                (name, XATTR_NAME_NFSV4_ACL, buf, sizeof buf))
+             : fgetxattr (fd, XATTR_NAME_NFSV4_ACL, buf, sizeof buf));
   if (ret < 0)
     switch (errno)
       {
@@ -467,20 +529,23 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
       /* On Linux, acl_extended_file is an optimized function: It only
          makes two calls to getxattr(), one for ACL_TYPE_ACCESS, one for
          ACL_TYPE_DEFAULT.  */
-    ret = ((flags & ACL_SYMLINK_FOLLOW
-            ? acl_extended_file
-            : acl_extended_file_nofollow)
-           (name));
+    ret = (fd < 0
+           ? ((flags & ACL_SYMLINK_FOLLOW
+               ? acl_extended_file
+               : acl_extended_file_nofollow)
+              (name))
+           : acl_extended_fd (fd));
 #   elif HAVE_ACL_TYPE_EXTENDED /* Mac OS X */
     /* On Mac OS X, acl_get_file (name, ACL_TYPE_ACCESS)
        and acl_get_file (name, ACL_TYPE_DEFAULT)
        always return NULL / EINVAL.  There is no point in making
        these two useless calls.  The real ACL is retrieved through
-       acl_get_file (name, ACL_TYPE_EXTENDED).  */
-    acl_t acl = ((flags & ACL_SYMLINK_FOLLOW
-                  ? acl_get_file
-                  : acl_get_link_np)
-                 (name, ACL_TYPE_EXTENDED));
+       ACL_TYPE_EXTENDED.  */
+    acl_t acl =
+      (fd < 0
+       ? ((flags & ACL_SYMLINK_FOLLOW ? acl_get_file : acl_get_link_np)
+          (name, ACL_TYPE_EXTENDED))
+       : acl_get_fd_np (fd, ACL_TYPE_EXTENDED));
     if (acl)
       {
         ret = acl_extended_nontrivial (acl);
@@ -489,13 +554,8 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
     else
       ret = -1;
 #   else /* FreeBSD, NetBSD >= 10, IRIX, Tru64, Cygwin >= 2.5 */
-    acl_t (*acl_get_file_or_link) (char const *, acl_type_t) = acl_get_file;
-#    if HAVE_ACL_GET_LINK_NP /* FreeBSD, NetBSD >= 10, Cygwin >= 2.5 */
-    if (! (flags & ACL_SYMLINK_FOLLOW))
-      acl_get_file_or_link = acl_get_link_np;
-#    endif
 
-    acl_t acl = acl_get_file_or_link (name, ACL_TYPE_ACCESS);
+    acl_t acl = acl_get_fdfile (fd, name, ACL_TYPE_ACCESS, flags);
     if (acl)
       {
         ret = acl_access_nontrivial (acl);
@@ -517,7 +577,7 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
             && (d_type == DT_DIR
                 || (d_type == DT_UNKNOWN && !(flags & _GL_DT_NOTDIR))))
           {
-            acl = acl_get_file_or_link (name, ACL_TYPE_DEFAULT);
+            acl = acl_get_fdfile (fd, name, ACL_TYPE_DEFAULT, flags);
             if (acl)
               {
 #     ifdef __CYGWIN__ /* Cygwin >= 2.5 */
@@ -562,7 +622,10 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
 
       /* Solaris 10 (newer version), which has additional API declared in
          <sys/acl.h> (acl_t) and implemented in libsec (acl_set, acl_trivial,
-         acl_fromtext, ...).  */
+         acl_fromtext, ...).
+
+         Ignore FD, unfortunately.  That is better than mishandling
+         ZFS-style ACLs, as the general case code does.  */
       return acl_trivial (name);
 
 #    else /* Solaris, Cygwin, general case */
@@ -586,7 +649,9 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
 
         for (;;)
           {
-            count = acl (name, GETACL, alloc, entries);
+            count = (fd < 0
+                     ? acl (name, GETACL, alloc, entries)
+                     : facl (fd, GETACL, alloc, entries));
             if (count < 0 && errno == ENOSPC)
               {
                 /* Increase the size of the buffer.  */
@@ -657,7 +722,9 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
 
         for (;;)
           {
-            count = acl (name, ACE_GETACL, alloc, entries);
+            count = (fd < 0
+                     ? acl (name, ACE_GETACL, alloc, entries)
+                     : facl (fd, ACE_GETACL, alloc, entries));
             if (count < 0 && errno == ENOSPC)
               {
                 /* Increase the size of the buffer.  */
@@ -722,7 +789,9 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
         struct acl_entry entries[NACLENTRIES];
         int count;
 
-        count = getacl (name, NACLENTRIES, entries);
+        count = (fd < 0
+                 ? getacl (name, NACLENTRIES, entries)
+                 : fgetacl (fd, NACLENTRIES, entries));
 
         if (count < 0)
           {
@@ -751,7 +820,8 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
             {
               struct stat statbuf;
 
-              if (stat (name, &statbuf) == -1 && errno != EOVERFLOW)
+              if ((fd < 0 ? stat (name, &statbuf) : fstat (fd, &statbuf)) < 0
+                  && errno != EOVERFLOW)
                 return -1;
 
               return acl_nontrivial (count, entries);
@@ -765,6 +835,7 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
         struct acl entries[NACLVENTRIES];
         int count;
 
+        /* Ignore FD, unfortunately.  */
         count = acl ((char *) name, ACL_GET, NACLVENTRIES, entries);
 
         if (count < 0)
@@ -809,7 +880,9 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
           /* The docs say that type being 0 is equivalent to ACL_ANY, but it
              is not true, in AIX 5.3.  */
           type.u64 = ACL_ANY;
-          if (aclx_get (name, 0, &type, aclbuf, &aclsize, &mode) >= 0)
+          if (0 <= (fd < 0
+                    ? aclx_get (name, 0, &type, aclbuf, &aclsize, &mode)
+                    : aclx_fget (fd, 0, &type, aclbuf, &aclsize, &mode)))
             break;
           if (errno == ENOSYS)
             return 0;
@@ -855,7 +928,10 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
 
       union { struct acl a; char room[4096]; } u;
 
-      if (statacl ((char *) name, STX_NORMAL, &u.a, sizeof (u)) < 0)
+      if ((fd < 0
+           ? statacl ((char *) name, STX_NORMAL, &u.a, sizeof u)
+           : fstatacl (fd, STX_NORMAL, &u.a, sizeof u))
+          < 0)
         return -1;
 
       return acl_nontrivial (&u.a);
@@ -866,6 +942,7 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
         struct acl entries[NACLENTRIES];
         int count;
 
+        /* Ignore FD, unfortunately.  */
         count = acl ((char *) name, ACL_GET, NACLENTRIES, entries);
 
         if (count < 0)

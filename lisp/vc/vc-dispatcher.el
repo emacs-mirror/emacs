@@ -106,9 +106,6 @@
 
 ;;; Code:
 
-;; TODO:
-;; - log buffers need font-locking.
-
 (eval-when-compile
   (require 'cl-lib)
   (require 'cl-print))
@@ -279,7 +276,10 @@ Only run CODE if the SUCCESS process has a zero exit code."
         (if (functionp code) (funcall code) (eval code t))))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
-      (vc-set-mode-line-busy-indicator)
+      (let ((buf (process-buffer proc)))
+        (when (buffer-live-p buf)
+          (with-current-buffer buf
+            (vc-set-mode-line-busy-indicator))))
       (letrec ((fun (lambda (p _msg)
                       (remove-function (process-sentinel p) fun)
                       (vc--process-sentinel p code success))))
@@ -861,39 +861,43 @@ the buffer contents as a comment."
   ;; Check and record the comment, if any.
   (unless nocomment
     (run-hooks 'vc-logentry-check-hook))
-  ;; Must pass NOT-ESSENTIAL nil because we later call
-  ;; `vc-resynch-buffer' with NOQUERY non-nil.
-  (vc-buffer-sync-fileset (list log-edit-vc-backend vc-log-fileset))
   (unless vc-log-operation
     (error "No log operation is pending"))
 
   ;; save the parameters held in buffer-local variables
   (let ((logbuf (current-buffer))
-	(log-operation vc-log-operation)
-        ;; FIXME: When coming from VC-Dir, we should check that the
-        ;; set of selected files is still equal to vc-log-fileset,
-        ;; to avoid surprises.
-	(log-fileset vc-log-fileset)
-	(log-entry (buffer-string))
-	(after-hook vc-log-after-operation-hook))
-    (pop-to-buffer vc-parent-buffer)
+        (log-operation vc-log-operation)
+        (log-fileset vc-log-fileset)
+        (log-entry (buffer-string))
+        (after-hook vc-log-after-operation-hook)
+        (parent vc-parent-buffer))
     ;; OK, do it to it
-    (save-excursion
-      (funcall log-operation
-	       log-fileset
-	       log-entry))
-    (setq vc-log-operation nil)
+    (let ((log-operation-ret
+           (with-current-buffer parent
+             (funcall log-operation log-fileset log-entry))))
+      (pop-to-buffer parent)
+      (setq vc-log-operation nil)
 
-    ;; Quit windows on logbuf.
-    (cond ((not logbuf))
-          (vc-delete-logbuf-window
-           (quit-windows-on logbuf t (selected-frame)))
-          (t
-           (quit-windows-on logbuf nil 0)))
+      ;; Quit windows on logbuf.
+      (cond ((not logbuf))
+            (vc-delete-logbuf-window
+             (quit-windows-on logbuf t (selected-frame)))
+            (t
+             (quit-windows-on logbuf nil 0)))
 
-    ;; Now make sure we see the expanded headers
-    (mapc (lambda (file) (vc-resynch-buffer file t t)) log-fileset)
-    (run-hooks after-hook 'vc-finish-logentry-hook)))
+      ;; Now make sure we see the expanded headers.
+      ;; If the `vc-log-operation' started an async operation then we
+      ;; need to delay running the hooks.  It tells us whether it did
+      ;; that with a special return value.
+      (cl-flet ((resynch-and-hooks ()
+                  (when (buffer-live-p parent)
+                    (with-current-buffer parent
+                      (mapc (lambda (file) (vc-resynch-buffer file t t))
+                            log-fileset)
+                      (run-hooks after-hook 'vc-finish-logentry-hook)))))
+        (if (eq (car-safe log-operation-ret) 'async)
+            (vc-exec-after #'resynch-and-hooks nil (cadr log-operation-ret))
+          (resynch-and-hooks))))))
 
 (defun vc-dispatcher-browsing ()
   "Are we in a directory browser buffer?"
@@ -901,6 +905,16 @@ the buffer contents as a comment."
       (derived-mode-p 'dired-mode)
       (derived-mode-p 'diff-mode)
       (derived-mode-p 'log-view-mode)))
+
+(declare-function vc-dir-marked-files "vc-dir")
+(declare-function dired-get-marked-files "dired")
+
+(defun vc-dispatcher--explicit-marks-p ()
+  "Are any files in the directory browser explicitly marked?"
+  (or (and (derived-mode-p 'vc-dir-mode)
+           (vc-dir-marked-files))
+      (and (derived-mode-p 'dired-mode)
+           (length> (dired-get-marked-files nil nil nil t) 1))))
 
 ;; These are unused.
 ;; (defun vc-dispatcher-in-fileset-p (fileset)

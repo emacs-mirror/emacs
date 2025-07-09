@@ -24,11 +24,11 @@
 
 ;;; Tree-sitter language versions
 ;;
-;; java-ts-mode is known to work with the following languages and version:
+;; java-ts-mode has been tested with the following grammars and version:
 ;; - tree-sitter-java: v0.23.5
 ;;
 ;; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
@@ -45,11 +45,13 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(java "https://github.com/tree-sitter/tree-sitter-java" "v0.23.5")
+ '(java "https://github.com/tree-sitter/tree-sitter-java"
+        :commit "94703d5a6bed02b98e438d7cad1136c01a60ba2c")
  t)
 (add-to-list
  'treesit-language-source-alist
- '(doxygen "https://github.com/tree-sitter-grammars/tree-sitter-doxygen" "v1.1.0")
+ '(doxygen "https://github.com/tree-sitter-grammars/tree-sitter-doxygen"
+           :commit "1e28054cb5be80d5febac082706225e42eff14e6")
  t)
 
 (defcustom java-ts-mode-indent-offset 4

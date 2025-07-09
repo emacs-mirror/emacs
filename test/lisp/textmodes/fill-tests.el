@@ -122,6 +122,17 @@ eius. Foo")))
   ;; w
 ")))
 
+(ert-deftest fill-test-fill-region ()
+  "Test the `fill-region' function."
+  (ert-test-erts-file (ert-resource-file "fill-region.erts")
+                      (lambda ()
+			(fill-region
+                         (point)
+                         (progn
+                           (goto-char (point-max))
+                           (forward-line -1)
+                           (beginning-of-line)
+                           (point))))))
 
 (ert-deftest fill-test-fill-region-as-paragraph-semlf ()
   "Test the `fill-region-as-paragraph-semlf' function."
@@ -136,47 +147,54 @@ eius. Foo")))
                            (beginning-of-line)
                            (point))))))
 
-(ert-deftest fill-test-fill-paragraph-semlf ()
-  "Test the `fill-paragraph-semlf' function."
+(ert-deftest fill-test-semlf-fill-region ()
+  "Test `fill-region' with `fill-region-as-paragraph-semlf'."
+  (ert-test-erts-file (ert-resource-file "semlf-fill-region.erts")
+                      (lambda ()
+			(setq-local fill-region-as-paragraph-function
+                                    #'fill-region-as-paragraph-semlf)
+			(fill-region
+                         (point)
+                         (progn
+                           (goto-char (point-max))
+                           (forward-line -1)
+                           (beginning-of-line)
+                           (point))))))
+
+(ert-deftest fill-test-semlf ()
+  "Test semantic-linefeed filling."
   (ert-test-erts-file (ert-resource-file "semlf.erts")
                       (lambda ()
 			(fill-paragraph-semlf))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-fill-paragraph-function ()
-  "Test `fill-paragraph-semlf' as `fill-paragraph-function'."
-  (ert-test-erts-file (ert-resource-file "semlf-fill-paragraph-function.erts")
-                      (lambda ()
-			(setq-local fill-paragraph-function #'fill-paragraph-semlf)
-			(fill-paragraph))))
-
-(ert-deftest fill-test-fill-paragraph-semlf-justify ()
-  "Test the JUSTIFY parameter of the `fill-paragraph-semlf' function."
+(ert-deftest fill-test-semlf-justify ()
+  "Test semantic-linefeed filling with text justification."
   (ert-test-erts-file (ert-resource-file "semlf-justify.erts")
                       (lambda ()
 			(fill-paragraph-semlf 'justify))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-sentence-end-double-space ()
-  "Test the `fill-paragraph-semlf' function with `sentence-end-double-space'."
+(ert-deftest fill-test-semlf-sentence-end-double-space ()
+  "Test semantic-linefeed filling with `sentence-end-double-space'."
   (ert-test-erts-file (ert-resource-file "semlf-sentence-end-double-space.erts")
                       (lambda ()
 			(setq-local sentence-end-double-space nil)
 			(fill-paragraph-semlf))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-fill-column ()
-  "Test the `fill-paragraph-semlf' function with `fill-column'."
+(ert-deftest fill-test-semlf-fill-column ()
+  "Test semantic-linefeed filling with `fill-column'."
   (ert-test-erts-file (ert-resource-file "semlf-fill-column.erts")
                       (lambda ()
 			(setq-local fill-column 35)
 			(fill-paragraph-semlf))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-punctuation-marks ()
-  "Test the `fill-paragraph-semlf' function with different punctuation marks."
+(ert-deftest fill-test-semlf-punctuation-marks ()
+  "Test semantic-linefeed filling with different punctuation marks."
   (ert-test-erts-file (ert-resource-file "semlf-punctuation-marks.erts")
                       (lambda ()
 			(fill-paragraph-semlf))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-twice ()
-  "Test to run the `fill-paragraph-semlf' function twice."
+(ert-deftest fill-test-semlf-twice ()
+  "Test filling the same text twice using semantic linefeeds."
   (ert-test-erts-file (ert-resource-file "semlf-twice.erts")
                       (lambda ()
 			(goto-char (point-min))
@@ -184,49 +202,50 @@ eius. Foo")))
 			(goto-char (point-min))
 			(fill-paragraph-semlf))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-fill-prefix ()
-  "Test the `fill-paragraph-semlf' function with different fill prefixes."
+(ert-deftest fill-test-semlf-fill-prefix ()
+  "Test semantic-linefeed filling with different fill prefixes."
   (ert-test-erts-file (ert-resource-file "semlf-fill-prefix.erts")
                       (lambda ()
 			(fill-paragraph-semlf))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-indented-block ()
-  "Test the `fill-paragraph-semlf' function with an indented block."
+(ert-deftest fill-test-semlf-indented-block ()
+  "Test semantic-linefeed filling with an indented block."
   (ert-test-erts-file (ert-resource-file "semlf-indented-block.erts")
                       (lambda ()
 			(fill-paragraph-semlf))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-revert ()
-  "Test that the `fill-paragraph-semlf' function can be reverted."
+(ert-deftest fill-test-semlf-revert ()
+  "Test that semantic-linefeed filling can be reverted."
   (ert-test-erts-file (ert-resource-file "semlf-revert.erts")
                       (lambda ()
                         (fill-paragraph)
-			(fill-paragraph-semlf)
+                        (fill-paragraph-semlf)
                         (fill-paragraph))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-emacs-lisp-mode ()
-  "Test the `fill-paragraph-semlf' function with `emacs-lisp-mode'."
+(ert-deftest fill-test-semlf-emacs-lisp-mode ()
+  "Test semantic-linefeed filling with `emacs-lisp-mode'."
   (ert-test-erts-file (ert-resource-file "semlf-emacs-lisp-mode.erts")
                       (lambda ()
 			(emacs-lisp-mode)
 			(fill-paragraph-semlf))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-c-mode ()
-  "Test the `fill-paragraph-semlf' function with `c-mode'."
+(ert-deftest fill-test-semlf-c-mode ()
+  "Test semantic-linefeed filling with `c-mode'."
   (ert-test-erts-file (ert-resource-file "semlf-c-mode.erts")
                       (lambda ()
 			(c-mode)
 			(fill-paragraph-semlf))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-org-mode ()
-  "Test the `fill-paragraph-semlf' function with `org-mode'."
+(ert-deftest fill-test-semlf-org-mode ()
+  "Test semantic-linefeed filling with `org-mode'."
   (ert-test-erts-file (ert-resource-file "semlf-org-mode.erts")
                       (lambda ()
 			(org-mode)
 			(fill-paragraph-semlf))))
 
-(ert-deftest fill-test-fill-paragraph-semlf-markdown-mode ()
-  "Test the `fill-paragraph-semlf' function with `markdown-mode'."
+(declare-function markdown-mode "markdown-mode")
+(ert-deftest fill-test-semlf-markdown-mode ()
+  "Test semantic-linefeed filling with `markdown-mode'."
   (skip-unless (functionp 'markdown-mode))
   (ert-test-erts-file (ert-resource-file "semlf-markdown-mode.erts")
                       (lambda ()

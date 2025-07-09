@@ -1,5 +1,5 @@
 # acl.m4
-# serial 35
+# serial 37
 dnl Copyright (C) 2002, 2004-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -12,7 +12,6 @@ dnl This file is offered as-is, without any warranty.
 
 AC_DEFUN([gl_FUNC_ACL_ARG],
 [
-  gl_need_lib_has_acl=
   AC_ARG_ENABLE([acl],
     AS_HELP_STRING([[--disable-acl]], [do not support ACLs]),
     , [enable_acl=auto])
@@ -22,6 +21,7 @@ AC_DEFUN([gl_FUNC_ACL_ARG],
     [], [with_libsmack=maybe])
 ])
 
+# Prerequisites of module acl-permissions.
 AC_DEFUN_ONCE([gl_FUNC_ACL],
 [
   AC_REQUIRE([gl_FUNC_ACL_ARG])
@@ -145,9 +145,6 @@ int type = ACL_TYPE_EXTENDED;]])],
       AC_MSG_WARN([AC_PACKAGE_NAME will be built without ACL support.])
     fi
   fi
-  if test -n "$gl_need_lib_has_acl"; then
-    FILE_HAS_ACL_LIB=$LIB_ACL
-  fi
   AC_SUBST([LIB_ACL])
   AC_DEFINE_UNQUOTED([USE_ACL], [$use_acl],
     [Define to nonzero if you want access control list support.])
@@ -187,6 +184,7 @@ AC_DEFUN([gl_ACL_GET_FILE],
 AC_DEFUN([gl_FILE_HAS_ACL],
 [
   AC_REQUIRE([gl_FUNC_ACL_ARG])
+  AC_REQUIRE([gl_FUNC_ACL])
   # On GNU/Linux, testing if a file has an acl can be done with the
   # listxattr and getxattr syscalls, which don't require linking
   # against additional libraries.  Assume this works if linux/attr.h
@@ -224,10 +222,7 @@ AC_DEFUN([gl_FILE_HAS_ACL],
   AS_CASE([$enable_acl,$gl_file_has_acl_uses_selinux,$gl_file_has_acl_uses_smack],
     [no,* | *,yes,* | *,yes], [],
     [*],
-      [dnl Set gl_need_lib_has_acl to a nonempty value, so that any
-       dnl later gl_FUNC_ACL call will set FILE_HAS_ACL_LIB=$LIB_ACL.
-       gl_need_lib_has_acl=1
-       FILE_HAS_ACL_LIB=$LIB_ACL])
+      [FILE_HAS_ACL_LIB=$LIB_ACL])
   AC_SUBST([FILE_HAS_ACL_LIB])
 ])
 
@@ -235,10 +230,11 @@ AC_DEFUN([gl_FILE_HAS_ACL],
 AC_DEFUN([gl_QCOPY_ACL],
 [
   AC_REQUIRE([gl_FUNC_ACL])
+  AC_REQUIRE([gl_FILE_HAS_ACL])
   AC_CHECK_HEADERS_ONCE([linux/xattr.h])
   gl_FUNC_XATTR
   if test "$use_xattr" = yes; then
-    QCOPY_ACL_LIB="$LIB_XATTR"
+    QCOPY_ACL_LIB="$LIB_XATTR $FILE_HAS_ACL_LIB"
   else
     QCOPY_ACL_LIB="$LIB_ACL"
   fi

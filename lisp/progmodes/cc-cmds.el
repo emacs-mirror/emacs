@@ -2105,7 +2105,7 @@ with a brace block."
 
 	;; Pick out the defun name, according to the type of defun.
 	(cond
-	 ((looking-at "DEFUN\\s-*(")	;"DEFUN\\_>") think of XEmacs!
+	 ((looking-at "DEFUN\\_>")
 	  ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
 	  ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK
 	  (down-list 1)

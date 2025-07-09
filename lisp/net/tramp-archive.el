@@ -176,8 +176,8 @@ It must be supported by libarchive(3).")
 It must be supported by libarchive(3).")
 
 ;; The definition of `tramp-archive-file-name-regexp' contains calls
-;; to `regexp-opt', which cannot be autoloaded while loading
-;; loaddefs.el.  So we use a macro, which is evaluated only when needed.
+;; to `rx', which cannot be autoloaded while loading loaddefs.el.  So
+;; we use a macro, which is evaluated only when needed.
 ;;;###autoload
 (progn (defmacro tramp-archive-autoload-file-name-regexp ()
   "Regular expression matching archive file names."

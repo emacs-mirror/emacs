@@ -24,11 +24,14 @@
 
 ;;; Tree-sitter language versions
 ;;
-;; typescript-ts-mode is known to work with the following languages and version:
+;; typescript-ts-mode has been tested with the following grammars and version:
 ;; - tree-sitter-typescript: v0.23.2-2-g8e13e1d
 ;;
+;; tsx-ts-mode has been tested with the following grammars and version:
+;; - tree-sitter-tsx: v0.23.2-2-g8e13e1d
+;;
 ;; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
@@ -45,14 +48,16 @@
 (add-to-list
  'treesit-language-source-alist
  '(typescript
-   "https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2"
-   "typescript/src")
+   "https://github.com/tree-sitter/tree-sitter-typescript"
+   :commit "8e13e1db35b941fc57f2bd2dd4628180448c17d5"
+   :source-dir "typescript/src")
  t)
 (add-to-list
  'treesit-language-source-alist
  '(tsx
-   "https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2"
-   "tsx/src")
+   "https://github.com/tree-sitter/tree-sitter-typescript"
+   :commit "8e13e1db35b941fc57f2bd2dd4628180448c17d5"
+   :source-dir "tsx/src")
  t)
 
 (defcustom typescript-ts-mode-indent-offset 2

@@ -59,18 +59,61 @@
 #  endif
 # endif
 
-/* Disabled NLS.
-   The casts to 'const char *' serve the purpose of producing warnings
-   for invalid uses of the value returned from these functions.
-   On pre-ANSI systems without 'const', the config.h file is supposed to
-   contain "#define const".  */
-# undef gettext
-# define gettext(Msgid) ((const char *) (Msgid))
-# undef dgettext
-# define dgettext(Domainname, Msgid) ((void) (Domainname), gettext (Msgid))
-# undef dcgettext
-# define dcgettext(Domainname, Msgid, Category) \
-    ((void) (Category), dgettext (Domainname, Msgid))
+/* Disabled NLS.  */
+# if defined __GNUC__ && !defined __clang__ && !defined __cplusplus
+/* Use inline functions, to avoid warnings
+     warning: format not a string literal and no format arguments
+   that don't occur with enabled NLS.  */
+/* The return type 'const char *' serves the purpose of producing warnings
+   for invalid uses of the value returned from these functions.  */
+#  if __GNUC__ >= 9
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wbuiltin-declaration-mismatch"
+#  endif
+__attribute__ ((__always_inline__, __gnu_inline__)) extern inline
+#  if !defined(__sun)
+const
+#  endif
+char *
+gettext (const char *msgid)
+{
+  return msgid;
+}
+__attribute__ ((__always_inline__, __gnu_inline__)) extern inline
+#  if !defined(__sun)
+const
+#  endif
+char *
+dgettext (const char *domain, const char *msgid)
+{
+  (void) domain;
+  return msgid;
+}
+__attribute__ ((__always_inline__, __gnu_inline__)) extern inline
+#  if !defined(__sun)
+const
+#  endif
+char *
+dcgettext (const char *domain, const char *msgid, int category)
+{
+  (void) domain;
+  (void) category;
+  return msgid;
+}
+#  if __GNUC__ >= 9
+#   pragma GCC diagnostic pop
+#  endif
+# else
+/* The casts to 'const char *' serve the purpose of producing warnings
+   for invalid uses of the value returned from these functions.  */
+#  undef gettext
+#  define gettext(Msgid) ((const char *) (Msgid))
+#  undef dgettext
+#  define dgettext(Domainname, Msgid) ((void) (Domainname), gettext (Msgid))
+#  undef dcgettext
+#  define dcgettext(Domainname, Msgid, Category) \
+     ((void) (Category), dgettext (Domainname, Msgid))
+# endif
 # undef ngettext
 # define ngettext(Msgid1, Msgid2, N) \
     ((N) == 1 \

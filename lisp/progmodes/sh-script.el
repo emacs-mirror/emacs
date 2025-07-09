@@ -3267,7 +3267,8 @@ member of `flymake-diagnostic-functions'."
 
 (add-to-list
  'treesit-language-source-alist
- '(bash "https://github.com/tree-sitter/tree-sitter-bash" "v0.23.3")
+ '(bash "https://github.com/tree-sitter/tree-sitter-bash"
+        :commit "487734f87fd87118028a65a4599352fa99c9cde8")
  t)
 
 (defvar sh-mode--treesit-operators

@@ -558,13 +558,36 @@ cannot find a system to register under, it prompts for a repository
 type, creates a new repository, and registers the VC fileset with it.
 You can also specify the system explicitly, see @ref{Advanced C-x v
 v}.  Note that registering the files doesn't commit them; you must
-invoke @w{@kbd{C-x v v}} again to commit, see below.
+invoke @w{@kbd{C-x v v}} again to commit; see the next point.
 
 @item
 If every file in the VC fileset has been either newly-added or
 modified, commit the changed files.  To do this, Emacs pops up a
 @file{*vc-log*} buffer; type the desired log entry for the changes,
 followed by @kbd{C-c C-c} to commit.  @xref{Log Buffer}.
+
+If @kbd{C-x v v} is invoked from a buffer under Diff mode, the command
+treats the buffer as holding a set of patches for one or more files.  It
+then applies the changes to the respective files and commits the changes
+after popping up the @file{*vc-log*} buffer to allow you to type a
+suitable commit log message.
+
+Once you type @kbd{C-x v v}, the fileset or patches cannot be changed
+without first cancelling the commit by typing @kbd{C-c C-k} in the
+@file{*vc-log*} buffer.  For example, if you change which files are
+marked in the @file{*vc-dir*} buffer after Emacs has already popped up
+the @file{*vc-log*} buffer, the old fileset will remain in effect for
+this commit.  (This is in contrast to changes made to the
+@emph{contents} of files in the fileset when not committing patches: all
+such changes will be included in the commit even if they are made after
+Emacs has popped up the @file{*vc-log*} buffer.)
+
+When you cancel a commit, Emacs saves your log message.  This means that
+if you need to adjust the fileset or patches, it is easy to restart the
+commit operation again: type @w{@kbd{C-c C-k C-x v v M-p}}.  Here
+@kbd{C-c C-k} cancels the commit, @kbd{C-x v v} initiates another with
+the new fileset or patches, and finally @kbd{M-p} recalls your previous
+log message.
 
 With modern decentralized version control systems (Git, Mercurial,
 etc.), the changes are committed locally and not automatically
@@ -594,12 +617,6 @@ verify that the current revision is unchanged before committing your
 changes.  In addition, locking is possible with RCS even in this mode:
 @kbd{C-x v v} with an unmodified file locks the file, just as it does
 with RCS in its normal locking mode (@pxref{VC With A Locking VCS}).
-
-  If @kbd{C-x v v} is invoked from a buffer under Diff Mode, the
-command assumes the buffer holds a set of patches for one or more
-files.  It then applies the changes to the respective files and
-commits the changes after popping up the @file{*vc-log*} buffer to
-allow you to type a suitable commit log message.
 
 @node VC With A Locking VCS
 @subsubsection Basic Version Control with Locking
@@ -1044,12 +1061,36 @@ Display the change history for another branch
 (@code{vc-print-branch-log}).
 
 @item C-x v I
-Display the changes that a ``pull'' operation will retrieve
-(@code{vc-log-incoming}).
+Display log entries for the changes that a ``pull'' operation will
+retrieve (@code{vc-log-incoming}).
+
+@vindex vc-use-incoming-outgoing-prefixes
+If you customize @code{vc-use-incoming-outgoing-prefixes} to
+non-@code{nil}, @kbd{C-x v I} becomes a prefix key, and
+@code{vc-log-incoming} becomes bound to @kbd{C-x v I L}.
+
+@item M-x vc-root-diff-incoming
+Display a diff of the changes that a pull operation will retrieve.
+
+If you customize @code{vc-use-incoming-outgoing-prefixes} to
+non-@code{nil}, this command becomes available on @kbd{C-x v I D}.
 
 @item C-x v O
-Display the changes that will be sent by the next ``push'' operation
-(@code{vc-log-outgoing}).
+Display log entries for the changes that will be sent by the next
+``push'' operation (@code{vc-log-outgoing}).
+
+If you customize @code{vc-use-incoming-outgoing-prefixes} to
+non-@code{nil}, @kbd{C-x v O} becomes a prefix key, and
+@code{vc-log-outgoing} becomes bound to @kbd{C-x v O L}.
+
+@item M-x vc-root-diff-outgoing
+Display a diff of the changes that will be sent by the next push
+operation.  This command is useful as a way to preview your push and
+ensure that all and only the changes you intended to include were
+committed and will be pushed.
+
+If you customize @code{vc-use-incoming-outgoing-prefixes} to
+non-@code{nil}, this command is bound to @kbd{C-x v O D}.
 
 @item C-x v h
 Display the history of changes made in the region of file visited by

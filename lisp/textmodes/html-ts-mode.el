@@ -24,11 +24,11 @@
 
 ;;; Tree-sitter language versions
 ;;
-;; html-ts-mode is known to work with the following languages and version:
+;; html-ts-mode has been tested with the following grammars and version:
 ;; - tree-sitter-html: v0.23.2-1-gd9219ad
 ;;
 ;; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
@@ -45,7 +45,8 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
+ '(html "https://github.com/tree-sitter/tree-sitter-html"
+        :commit "d9219ada6e1a2c8f0ab0304a8bd9ca4285ae0468")
  t)
 
 (defcustom html-ts-mode-indent-offset 2

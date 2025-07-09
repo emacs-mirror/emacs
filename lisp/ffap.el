@@ -807,7 +807,9 @@ to extract substrings.")
 (declare-function project-root "project" (project))
 (defun ffap-in-project (name)
   (when-let* ((project (project-current)))
-    (file-name-concat (project-root project) name)))
+    (ffap-file-exists-string
+     (file-name-concat (project-root project) name)
+     'nomodify)))
 
 (defun ffap-home (name) (ffap-locate-file name t '("~")))
 

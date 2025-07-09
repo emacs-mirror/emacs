@@ -294,6 +294,7 @@ s/@PACKAGE@/emacs/
 /^NEXT_AS_FIRST_DIRECTIVE_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_LIMITS_H *=/s/@[^@\n]*@/<limits.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H *=/s/@[^@\n]*@/<signal.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_STDCKDINT_H *=/s/@[^@\n]*@/<stdckdint.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDDEF_H *=/s/@[^@\n]*@/<stddef.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
@@ -315,6 +316,7 @@ s/@PACKAGE@/emacs/
 /^NEXT_LIMITS_H *=/s/@[^@\n]*@/<limits.h>/
 /^NEXT_MATH_H *=/s/@[^@\n]*@//
 /^NEXT_SIGNAL_H *=/s/@[^@\n]*@/<signal.h>/
+/^NEXT_STDCKDINT_H *=/s/@[^@\n]*@/<stdckdint.h>/
 /^NEXT_STDDEF_H *=/s/@[^@\n]*@/<stddef.h>/
 /^NEXT_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
 /^NEXT_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/

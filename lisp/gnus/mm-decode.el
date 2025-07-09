@@ -232,6 +232,10 @@ before the external MIME handler is invoked."
      mm-inline-image
      ,(lambda (handle)
        (mm-valid-and-fit-image-p 'pbm handle)))
+    ("image/svg\\+xml"
+     mm-inline-image
+     ,(lambda (handle)
+        (mm-valid-and-fit-image-p 'svg handle)))
     ("text/plain" mm-inline-text identity)
     ("text/enriched" mm-inline-text identity)
     ("text/richtext" mm-inline-text identity)

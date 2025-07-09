@@ -140,15 +140,14 @@ RUN src/emacs -Q --batch \
     --eval '(setq treesit-extra-load-path (list "/root/.emacs.d/tree-sitter"))' \
     -l admin/tree-sitter/treesit-admin.el \
     --eval '(dolist (lang (mapcar (quote car) \
-                                  (treesit-admin--populated-treesit-language-source-alist))) \
+        (treesit-admin--populated-treesit-language-source-alist))) \
         (treesit-install-language-grammar lang "/root/.emacs.d/tree-sitter"))' \
     --eval '(message "\ntreesit-language-source-alist")' \
     --eval '(message "=============================")' \
     --eval '(message "%s" (pp-to-string treesit-language-source-alist))' \
     --eval '(message "ABI versions\n============")' \
-    --eval \
-        '(dolist (lang (sort (mapcar (quote car) treesit-language-source-alist))) \
-         (message "%s ABI version %d" lang (treesit-language-abi-version lang)))' \
+    --eval '(dolist (lang (sort (mapcar (quote car) treesit-language-source-alist))) \
+        (message "%s ABI version %d" lang (treesit-language-abi-version lang)))' \
     --eval '(message "\ntreesit-admin-check-manual-coverage")' \
     --eval '(message "===================================")' \
     -f treesit-admin-check-manual-coverage \

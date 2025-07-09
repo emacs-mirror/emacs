@@ -1025,6 +1025,14 @@ debug_format (const char *fmt, Lisp_Object arg)
 }
 
 
+/* Erase the Vprin1_to_string_buffer, potentially switching to it.  */
+static void
+erase_prin1_to_string_buffer (void)
+{
+  set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
+  Ferase_buffer ();
+}
+
 DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
        1, 1, 0,
        doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.
@@ -1032,9 +1040,6 @@ See Info anchor `(elisp)Definition of signal' for some details on how this
 error message is constructed.  */)
   (Lisp_Object obj)
 {
-  struct buffer *old = current_buffer;
-  Lisp_Object value;
-
   /* If OBJ is (error STRING), just return STRING.
      That is not only faster, it also avoids the need to allocate
      space here when the error is due to memory full.  */
@@ -1044,15 +1049,15 @@ error message is constructed.  */)
       && NILP (XCDR (XCDR (obj))))
     return XCAR (XCDR (obj));
 
+  /* print_error_message can throw after producing some output, in which
+     case we need to ensure the buffer is cleared again (bug#78842).  */
+  specpdl_ref count = SPECPDL_INDEX ();
+  record_unwind_current_buffer ();
+  record_unwind_protect_void (erase_prin1_to_string_buffer);
   print_error_message (obj, Vprin1_to_string_buffer, 0, Qnil);
 
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
-  value = Fbuffer_string ();
-
-  Ferase_buffer ();
-  set_buffer_internal (old);
-
-  return value;
+  return unbind_to (count, Fbuffer_string ());
 }
 
 /* Print an error message for the error DATA onto Lisp output stream
@@ -1114,6 +1119,19 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
   /* Print an error message including the data items.  */
 
   tail = Fcdr_safe (data);
+
+  /* For a user-error displayed in the echo area, use message3 rather
+     than Fprinc in order to preserve fontification.
+     In particular, there might be hints to the user about key sequences
+     they could type to do what they seemed to want.  */
+  if (EQ (errname, Quser_error) && EQ (stream, Qt)
+      /* These should always be true for a user-error, but check, lest
+	 we throw any information away.  */
+      && !NILP (XCAR (tail)) && NILP (XCDR (tail)))
+    {
+      message3 (XCAR (tail));
+      return;
+    }
 
   /* For file-error, make error message by concatenating
      all the data items.  They are all strings.  */
@@ -2635,7 +2653,7 @@ print_object (Lisp_Object obj, bool escapeflag, struct print_context *pc)
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
-	    int c = fetch_string_char_advance (name, &i, &i_byte);
+	    int c = fetch_string_char_as_multibyte_advance (name, &i, &i_byte);
 	    maybe_quit ();
 
 	    if (escapeflag)

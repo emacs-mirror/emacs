@@ -330,6 +330,15 @@ t means show messages that were printed by default on Emacs <= 31.1."
   :group 'recentf
   :type 'boolean
   :version "31.1")
+
+(defcustom recentf-suppress-open-file-help nil
+  "If non-nil, suppress help messages in recentf open file dialogs.
+By default, opening the dialog interactively and tabbing between items
+shows help messages.  (In any case, a tooltip displays the help text
+when the mouse pointer hovers over an item)."
+  :group 'recentf
+  :type 'boolean
+  :version "31.1")
 
 ;;; Utilities
 ;;
@@ -1101,14 +1110,37 @@ IGNORE arguments."
 Go to the beginning of buffer if not found."
   (goto-char (point-min))
   (condition-case nil
-      (let (done)
-        (widget-move 1)
+      (let ((no-echo (or recentf-suppress-open-file-help
+                         ;; Show help messages by default only when
+                         ;; invoking these interactively (bug#78666).
+                         (not (memq this-command '(recentf-open-files
+                                                   recentf-open-more-files
+                                                   recentf-forward
+                                                   recentf-backward)))))
+            done)
+        (widget-move 1 no-echo)
         (while (not done)
           (if (eq widget-type (widget-type (widget-at (point))))
               (setq done t)
-            (widget-move 1))))
+            (widget-move 1 no-echo))))
     (error
      (goto-char (point-min)))))
+
+(defun recentf-forward (arg)
+  "Move the cursor to the next widget in the current dialog.
+With prefix argument ARG, move to the ARGth next widget.  If
+`recentf-suppress-open-file-help' is non-nil, suppress help messages in
+the echo area in the open recentf dialog."
+  (interactive "p")
+  (widget-forward arg recentf-suppress-open-file-help))
+
+(defun recentf-backward (arg)
+  "Move the cursor to the previous widget in the current dialog.
+With prefix argument ARG, move to the ARGth previous widget.  If
+`recentf-suppress-open-file-help' is non-nil, suppress help messages in
+the echo area in the open recentf dialog."
+  (interactive "p")
+  (widget-backward arg recentf-suppress-open-file-help))
 
 (defvar-keymap recentf-dialog-mode-map
   :doc "Keymap used in recentf dialogs."
@@ -1141,6 +1173,8 @@ Go to the beginning of buffer if not found."
     (recentf-dialog-mode)
     ,@forms
     (widget-setup)
+    (keymap-local-set "<remap> <widget-forward>" #'recentf-forward)
+    (keymap-local-set "<remap> <widget-backward>" #'recentf-backward)
     (switch-to-buffer (current-buffer))))
 
 ;;; Edit list dialog

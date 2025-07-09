@@ -381,43 +381,41 @@
 
 ;;; DNF
 
-(defvar pcmpl-rpm-dnf-cache-file "/var/cache/dnf/packages.db"
-  "Location of the DNF cache.")
-
 (defun pcmpl-rpm--dnf-packages (status)
-  (when (and (file-exists-p pcmpl-rpm-dnf-cache-file)
-             (executable-find "sqlite3"))
-    (with-temp-message
-        "Getting list of packages..."
-      (process-lines "sqlite3" "-batch" "-init" "/dev/null"
-                     pcmpl-rpm-dnf-cache-file
-                     (pcase-exhaustive status
-                       ('available "select pkg from available")
-                       ('installed "select pkg from installed")
-                       ('not-installed "\
-select pkg from available where pkg not in (select pkg from installed)"))))))
+  "Return packages matching STATUS.
+STATUS should be one of --available or --installed."
+  (with-temp-message
+      "Getting list of packages..."
+    (process-lines "dnf" "--cacheonly" "repoquery" "--queryformat=%{name}\\n"
+                   status)))
 
 ;;;###autoload
 (defun pcomplete/dnf ()
   "Completion for the `dnf' command."
-  (let ((subcmds (pcomplete-from-help "dnf help"
-                                      :margin "^\\(\\)[a-z-]+  "
-                                      :argument "[a-z-]+")))
+  (let ((subcmds (pcomplete-from-help "dnf --help"
+                                      :margin (rx bol (group (* " "))
+                                                  (one-or-more (any "a-z" "-")) "  ")
+                                      :argument (rx (not "-") (1+ (any "a-z" "-"))))))
     (while (not (member (pcomplete-arg 1) subcmds))
       (pcomplete-here (completion-table-merge
                        subcmds
-                       (pcomplete-from-help "dnf help"))))
+                       (pcomplete-from-help "dnf --help"))))
     (let ((subcmd (pcomplete-arg 1)))
       (while (pcase subcmd
                ((guard (pcomplete-match "\\`-" 0))
-                (pcomplete-here
-                 (pcomplete-from-help `("dnf" "help" ,subcmd))))
-               ((or "downgrade" "reinstall" "remove")
-                (pcomplete-here (pcmpl-rpm--dnf-packages 'installed)))
-               ((or "install" "mark" "reinstall" "upgrade")
-                (pcomplete-here (pcmpl-rpm--dnf-packages 'not-installed)))
-               ((or "builddep" "changelog" "info" "list" "repoquery" "updateinfo")
-                (pcomplete-here (pcmpl-rpm--dnf-packages 'available))))))))
+                (if-let* (((pcomplete-match (rx bos "--what" (* (not "=")) "="
+                                                (group (* any)) eos)
+                                            0))
+                          (stub (pcomplete-match-string 1 0)))
+                    (pcomplete-here (pcmpl-rpm--dnf-packages "--available") stub)
+                  (pcomplete-here
+                   (pcomplete-from-help `("dnf" ,subcmd "--help")))))
+               ((or "downgrade" "dg" "upgrade" "up" "update" "reinstall" "rei"
+                    "remove" "rm")
+                (pcomplete-here (pcmpl-rpm--dnf-packages "--installed")))
+               ((or "builddep" "changelog" "info" "if" "install" "in" "list" "ls"
+                    "mark" "repoquery" "rq" "advisory" "updateinfo")
+                (pcomplete-here (pcmpl-rpm--dnf-packages "--available"))))))))
 
 (provide 'pcmpl-rpm)
 

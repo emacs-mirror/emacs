@@ -3363,7 +3363,7 @@ Prepare every function for final compilation and drive the C back-end."
 			 nil ".el"))
              (default-directory invocation-directory))
 	(with-temp-file temp-file
-          (insert ";; -*-coding: utf-8-emacs-unix; -*-\n")
+          (insert ";; -*- coding: utf-8-emacs-unix; lexical-binding: t -*-\n")
           (mapc (lambda (e)
                   (insert (prin1-to-string e)))
                 expr))

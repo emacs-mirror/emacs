@@ -23,11 +23,11 @@
 
 ;;; Tree-sitter language versions
 ;;
-;; css-ts-mode is known to work with the following languages and version:
+;; css-ts-mode has been tested with the following grammars and version:
 ;; - tree-sitter-css: v0.23.1-1-g6a442a3
 ;;
 ;; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
@@ -1343,7 +1343,8 @@ for determining whether point is within a selector."
 
 (add-to-list
  'treesit-language-source-alist
- '(css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1")
+ '(css "https://github.com/tree-sitter/tree-sitter-css"
+       :commit "6a442a3cf461b0ce275339e5afa178693484c927")
  t)
 
 (defvar css-ts-mode-map (copy-keymap css-mode-map)

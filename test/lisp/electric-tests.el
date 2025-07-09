@@ -549,6 +549,33 @@ baz\"\""
                 (electric-pair-mode 1)
                 (electric-indent-mode 1)
                 (electric-layout-mode 1)))
+
+;;; String pairs
+;;; TODO: add more tests
+;;;
+
+;; NOTE: Currently string pairs do not support insert pairs in region
+;;       or delete them with electric-pair-delete-pair
+
+(ert-deftest electric-pair-strings-pairs ()
+  (save-electric-modes
+    (with-temp-buffer
+      (setq-local electric-pair-pairs `((,(regexp-quote "/*") . "*/")))
+      (electric-pair-local-mode)
+      (insert "/")
+      (let ((last-command-event ?\*))
+        (ert-simulate-command '(self-insert-command 1)))
+      (should (equal "/**/" (buffer-string))))))
+
+(ert-deftest electric-pair-strings-pairs-with-space ()
+  (save-electric-modes
+    (with-temp-buffer
+      (setq-local electric-pair-pairs `((,(regexp-quote "/*") " */" t)))
+      (electric-pair-local-mode)
+      (insert "/")
+      (let ((last-command-event ?\*))
+        (ert-simulate-command '(self-insert-command 1)))
+      (should (equal "/*  */" (buffer-string))))))
 
 
 ;;; Backspacing

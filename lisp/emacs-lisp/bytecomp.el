@@ -145,6 +145,8 @@ Possible values are:
   1 - emitted code is to be generated in a safe manner, even if functions
       are mis-declared.
 
+Note that \"safe\" does not mean \"correct\": if functions are declared
+incorrectly, the emitted code might also be incorrect.
 This currently affects only code produced by native-compilation."
   :type 'integer
   :safe #'integerp
@@ -5167,7 +5169,8 @@ binding slots have been popped."
        (pcase-let*
            ;; `macro' is non-nil if it defines a macro.
            ;; `fun' is the function part of `arg' (defaults to `arg').
-           (((or (and (or `(cons 'macro ,fun) `'(macro . ,fun)) (let macro t))
+           (((or (and (or `(cons 'macro ,fun) `'(macro . ,(app (list 'quote) fun)))
+                      (let macro t))
                  (and (let fun arg) (let macro nil)))
              arg)
             ;; `lam' is the lambda expression in `fun' (or nil if not
@@ -5184,8 +5187,10 @@ binding slots have been popped."
                   name macro arglist body rest)
            (when macro
              (if (null fun)
-                 (message "Macro %s unrecognized, won't work in file" name)
-               (message "Macro %s partly recognized, trying our luck" name)
+                 (byte-compile-warn-x
+                  name "Macro %s unrecognized, won't work in file" name)
+               (byte-compile-warn-x
+                name "Macro %s partly recognized, trying our luck" name)
                (push (cons name (eval fun lexical-binding))
                      byte-compile-macro-environment)))
            (byte-compile-keep-pending form))))

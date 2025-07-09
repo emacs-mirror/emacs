@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; URL: https://github.com/magit/transient
 ;; Keywords: extensions
-;; Version: 0.9.1
+;; Version: 0.9.3
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -31,8 +31,9 @@
 ;; used to implement similar menus in other packages.
 
 ;;; Code:
+;;;; Frontmatter
 
-(defconst transient-version "v0.9.1-7-gd7d2c1c2-builtin")
+(defconst transient-version "v0.9.3-8-g6fd0239e-builtin")
 
 (require 'cl-lib)
 (require 'eieio)
@@ -2460,16 +2461,16 @@ value.  Otherwise return CHILDREN as is.")
                           (alist-get cmd levels)
                           (plist-get args :level)
                           (and proto (oref proto level))
-                          transient--default-child-level)))
+                          transient--default-child-level))
+               (args (plist-put (copy-sequence args) :level level)))
     (when (transient--use-level-p level)
       (let ((obj (if (child-of-class-p class 'transient-information)
-                     (apply class :parent parent :level level args)
+                     (apply class :parent parent args)
                    (unless (and cmd (symbolp cmd))
                      (error "BUG: Non-symbolic suffix command: %s" cmd))
                    (if proto
-                       (apply #'clone proto :parent parent :level level args)
-                     (apply class :command cmd :parent parent :level level
-                            args)))))
+                       (apply #'clone proto :parent parent args)
+                     (apply class :command cmd :parent parent args)))))
         (cond ((not cmd))
               ((commandp cmd))
               ((or (cl-typep obj 'transient-switch)
@@ -2596,7 +2597,7 @@ value.  Otherwise return CHILDREN as is.")
   (add-hook 'pre-command-hook  #'transient--pre-command 99)
   (add-hook 'post-command-hook #'transient--post-command)
   (advice-add 'recursive-edit :around #'transient--recursive-edit)
-  (set-default-toplevel-value 'inhibit-quit t)
+  (transient--quit-kludge 'enable)
   (when transient--exitp
     ;; This prefix command was invoked as the suffix of another.
     ;; Prevent `transient--post-command' from removing the hooks
@@ -2707,10 +2708,8 @@ value.  Otherwise return CHILDREN as is.")
 
 (defun transient--resume-override (&optional _ignore)
   (transient--debug 'resume-override)
-  (cond ((and transient--showp (not (window-live-p transient--window)))
-         (transient--show))
-        ((window-live-p transient--window)
-         (transient--fit-window-to-buffer transient--window)))
+  (when (window-live-p transient--window)
+    (transient--fit-window-to-buffer transient--window))
   (transient--push-keymap 'transient--transient-map)
   (transient--push-keymap 'transient--redisplay-map)
   (add-hook 'pre-command-hook  #'transient--pre-command)
@@ -2890,8 +2889,7 @@ value.  Otherwise return CHILDREN as is.")
       (setq transient--current-suffix nil))
     (cond (resume (transient--stack-pop))
           ((not replace)
-           (setq quit-flag nil)
-           (set-default-toplevel-value 'inhibit-quit nil)
+           (transient--quit-kludge 'disable)
            (run-hooks 'transient-post-exit-hook)))))
 
 (defun transient--stack-push ()
@@ -2974,12 +2972,34 @@ When no transient is active (i.e., when `transient--prefix' is
 nil) then only reset `inhibit-quit'.  Optional ID is a keyword
 identifying the exit."
   (transient--debug 'emergency-exit id)
-  (set-default-toplevel-value 'inhibit-quit nil)
+  (transient--quit-kludge 'disable)
   (when transient--prefix
     (setq transient--stack nil)
     (setq transient--exitp t)
     (transient--pre-exit)
     (transient--post-exit this-command)))
+
+(defun transient--quit-kludge (action)
+  (static-if (boundp 'redisplay-can-quit) ;Emacs 31
+      action
+    (pcase-exhaustive action
+      ('enable
+       (add-function
+        :around command-error-function
+        (let (unreadp)
+          (lambda (orig data context fn)
+            (cond ((not (eq (car data) 'quit))
+                   (funcall orig data context fn)
+                   (setq unreadp nil))
+                  (unreadp
+                   (remove-function command-error-function "inhibit-quit")
+                   (funcall orig data context fn))
+                  (t
+                   (push ?\C-g unread-command-events)
+                   (setq unreadp t)))))
+        '((name . "inhibit-quit"))))
+      ('disable
+       (remove-function command-error-function "inhibit-quit")))))
 
 ;;;; Pre-Commands
 
@@ -4946,7 +4966,7 @@ This is used when a tooltip is needed.")
         (let ((message-log-max nil))
           (message "%s" doc))))))
 
-;;; Menu Navigation
+;;;; Menu Navigation
 
 (defun transient-scroll-up (&optional arg)
   "Scroll text of transient's menu window upward ARG lines.
@@ -4997,7 +5017,9 @@ See `forward-button' for information about N."
     (when (re-search-forward (concat "^" (regexp-quote command)) nil t)
       (goto-char (match-beginning 0))))
    (command
-    (cl-flet ((found () (eq (button-get (button-at (point)) 'command) command)))
+    (cl-flet ((found ()
+                (and-let* ((button (button-at (point))))
+                  (eq (button-get button 'command) command))))
       (while (and (ignore-errors (forward-button 1))
                   (not (found))))
       (unless (found)
@@ -5013,7 +5035,7 @@ See `forward-button' for information about N."
           beg (next-single-property-change
                beg 'face nil (line-end-position))))))
 
-;;; Compatibility
+;;;; Compatibility
 ;;;; Menu Isearch
 
 (defvar-keymap transient--isearch-mode-map
@@ -5244,10 +5266,10 @@ as stand-in for elements of exhausted lists."
     (propertize (prin1-to-string value t) 'face
                 (if value 'transient-value 'transient-inactive-value))))
 
-;;; _
+;;;; _
 (provide 'transient)
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; checkdoc-symbol-words: ("command-line" "edit-mode" "help-mode")
 ;; End:
-;;;; transient.el ends here
+;;; transient.el ends here

@@ -600,12 +600,15 @@ can also call @kbd{M-x fill-region} to specifically fill the text in
 the region.
 
 @findex fill-region-as-paragraph
+@vindex fill-region-as-paragraph-function
   @kbd{M-q} and @code{fill-region} use the usual Emacs criteria for
 finding paragraph boundaries (@pxref{Paragraphs}).  For more control,
-you can use @kbd{M-x fill-region-as-paragraph}, which refills
-everything between point and mark as a single paragraph.  This command
-deletes any blank lines within the region, so separate blocks of text
-end up combined into one block.
+you can use @kbd{M-x fill-region-as-paragraph}, which refills everything
+between point and mark as a single paragraph.  The behavior of this
+command is controlled by the variable
+@code{fill-region-as-paragraph-function}.  By default, it deletes any
+blank lines within the region, so separate blocks of text end up
+combined into one block.
 
 @cindex justification
   A numeric argument to @kbd{M-q} tells it to @dfn{justify} the text
@@ -699,8 +702,9 @@ a new paragraph.
   To specify a fill prefix for the current buffer, move to a line that
 starts with the desired prefix, put point at the end of the prefix,
 and type @w{@kbd{C-x .}}@: (@code{set-fill-prefix}).  (That's a period
-after the @kbd{C-x}.)  To turn off the fill prefix, specify an empty
-prefix: type @w{@kbd{C-x .}}@: with point at the beginning of a line.
+after the @kbd{C-x}.)  To turn off the fill prefix, either type
+@w{@kbd{C-u C-x .}}@: or specify an empty prefix: type @w{@kbd{C-x .}}@:
+with point at the beginning of a line.
 
   When a fill prefix is in effect, the fill commands remove the fill
 prefix from each line of the paragraph before filling, and insert it

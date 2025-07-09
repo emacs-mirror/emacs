@@ -79,6 +79,8 @@ struct aclinfo
 bool acl_errno_valid (int) _GL_ATTRIBUTE_CONST;
 int file_has_acl (char const *, struct stat const *);
 int file_has_aclinfo (char const *restrict, struct aclinfo *restrict, int);
+int fdfile_has_aclinfo (int, char const *restrict,
+                        struct aclinfo *restrict, int);
 
 #if HAVE_LINUX_XATTR_H && HAVE_LISTXATTR
 bool aclinfo_has_xattr (struct aclinfo const *, char const *)

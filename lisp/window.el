@@ -4076,6 +4076,9 @@ always effectively nil."
   "Display the buffer of the next command in a new window.
 The next buffer is the buffer displayed by the next command invoked
 immediately after this command (ignoring reading from the minibuffer).
+In case of multiple consecutive mouse events such as <down-mouse-1>,
+a mouse release event <mouse-1>, <double-mouse-1>, <triple-mouse-1>
+all bound commands are handled until one of them displays a buffer.
 Creates a new window before displaying the buffer.
 When `switch-to-buffer-obey-display-actions' is non-nil,
 `switch-to-buffer' commands are also supported."
@@ -4096,6 +4099,9 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
   "Display the buffer of the next command in the same window.
 The next buffer is the buffer displayed by the next command invoked
 immediately after this command (ignoring reading from the minibuffer).
+In case of multiple consecutive mouse events such as <down-mouse-1>,
+a mouse release event <mouse-1>, <double-mouse-1>, <triple-mouse-1>
+all bound commands are handled until one of them displays a buffer.
 Even when the default rule should display the buffer in a new window,
 force its display in the already selected window.
 When `switch-to-buffer-obey-display-actions' is non-nil,
@@ -5898,6 +5904,16 @@ changed by this function."
 	  (set-window-new-normal
 	   window (- (if new-parent 1.0 (window-normal-size window horizontal))
 		     new-normal)))
+
+	(unless horizontal
+	  (let ((quit-restore (window-parameter window 'quit-restore)))
+	    (when quit-restore
+	      (let ((quad (nth 1 quit-restore)))
+		(when (and (listp quad) (integerp (nth 3 quad)))
+		  ;; When WINDOW has a 'quit-restore' parameter that
+		  ;; specifies a previous height to restore, remove that
+		  ;; - it does more harm than good now (Bug#78835).
+		  (setf (nth 3 quad) nil))))))
 
 	(let ((new (split-window-internal
 		    window new-pixel-size side new-normal refer)))
@@ -9657,12 +9673,15 @@ to deactivate this overriding action."
     (fset postfun
           (lambda ()
             (unless (or
-		     ;; Remove the hook immediately
-		     ;; after exiting the minibuffer.
-		     (> (minibuffer-depth) minibuffer-depth)
-		     ;; But don't remove immediately after
-		     ;; adding the hook by the same command below.
-		     (eq this-command command))
+                     ;; Remove the hook immediately
+                     ;; after exiting the minibuffer.
+                     (> (minibuffer-depth) minibuffer-depth)
+                     ;; But don't remove immediately after
+                     ;; adding the hook by the same command below.
+                     (eq this-command command)
+                     ;; Don't exit on mouse events in anticipation
+                     ;; of more related events like double click.
+                     (mouse-event-p last-input-event))
               (funcall exitfun))))
     ;; Call post-function after the next command finishes (bug#49057).
     (add-hook 'post-command-hook postfun)

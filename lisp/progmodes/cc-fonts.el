@@ -683,7 +683,7 @@ stuff.  Used on level 1 and higher."
 	      (eval . (list ,(c-make-syntactic-matcher
 			      (concat noncontinued-line-end
 				      (c-lang-const c-opt-cpp-prefix)
-				      "if\\(n\\)def\\>"))
+				      "if\\(n\\)def\\_>"))
 			    ,(+ ncle-depth 1)
 			    c-negation-char-face-name
 			    'append))
@@ -817,18 +817,18 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	    (if (c-major-mode-is 'pike-mode)
 		;; No symbol is a keyword after "->" in Pike.
 		`((eval . (list ,(concat "\\(\\=.?\\|[^>]\\|[^-]>\\)"
-					 "\\<\\(" re "\\)\\>")
+					 "\\_<\\(" re "\\)\\_>")
 				2 c-constant-face-name)))
-	      `((eval . (list ,(concat "\\<\\(" re "\\)\\>")
+	      `((eval . (list ,(concat "\\_<\\(" re "\\)\\_>")
 			      1 c-constant-face-name))))))
 
       ;; Fontify all keywords except the primitive types.
       ,(if (c-major-mode-is 'pike-mode)
 	   ;; No symbol is a keyword after "->" in Pike.
 	   `(,(concat "\\(\\=.?\\|[^>]\\|[^-]>\\)"
-		      "\\<" (c-lang-const c-regular-keywords-regexp))
+		      "\\_<" (c-lang-const c-regular-keywords-regexp))
 	     2 font-lock-keyword-face)
-	 `(,(concat "\\<" (c-lang-const c-regular-keywords-regexp))
+	 `(,(concat "\\_<" (c-lang-const c-regular-keywords-regexp))
 	   1 font-lock-keyword-face))
 
       ;; Fontify leading identifiers in fully qualified names like
@@ -879,7 +879,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		 ;; places).
 		 `(lambda (limit)
 		    (while (re-search-forward
-			    ,(concat "\\(\\<" ; 1
+			    ,(concat "\\(\\_<"
 				     "\\(" (c-lang-const c-symbol-key) "\\)" ; 2
 				     (c-lang-const c-simple-ws) "*"
 				     (c-lang-const c-opt-identifier-concat-key)
@@ -902,22 +902,14 @@ casts and declarations are fontified.  Used on level 2 and higher."
       ,@(when (c-major-mode-is 'c++-mode)
 	  '(c-font-lock-c++-modules))
 
-      ;; The next regexp is highlighted with narrowing.  This is so that the
-      ;; final "context" bit of the regexp, "\\(?:[^=]\\|$\\)", which cannot
-      ;; match anything non-empty at LIMIT, will match "$" instead.
       ,@(when (c-lang-const c-equals-nontype-decl-kwds)
-	  `((,(byte-compile
-	       `(lambda (limit)
-		  (save-restriction
-		    (narrow-to-region (point-min) limit)
-		    ,(c-make-font-lock-search-form
-		      (concat (c-lang-const c-equals-nontype-decl-key) ;no \\(
-			      (c-lang-const c-simple-ws) "+\\("
-			      (c-lang-const c-symbol-key) "\\)"
-			      (c-lang-const c-simple-ws) "*"
-			      "=\\(?:[^=]\\|$\\)")
-		      `((,(+ 1 (c-lang-const c-simple-ws-depth))
-			 'font-lock-type-face t)))))))))
+	  `((,(concat (c-lang-const c-equals-nontype-decl-key)
+		      (c-lang-const c-simple-ws) "+\\("
+		      (c-lang-const c-symbol-key) "\\)")
+	     (,(+ 1 (regexp-opt-depth
+		     (c-lang-const c-equals-nontype-decl-key))
+		  (c-lang-const c-simple-ws-depth))
+	      font-lock-type-face t))))
 
       ;; Fontify the special declarations in Objective-C.
       ,@(when (c-major-mode-is 'objc-mode)
@@ -936,11 +928,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
 
 	    ;; The @interface/@implementation/@protocol directives.
 	    ,(c-make-font-lock-search-function
-	      (concat "\\<"
-		      (regexp-opt
-		       '("@interface" "@implementation" "@protocol")
-		       t)
-		      "\\>")
+	      (regexp-opt
+	       '("@interface" "@implementation" "@protocol")
+	       'symbols)
 	      '((c-fontify-types-and-refs
 		    (;; The font-lock package in Emacs is known to clobber
 		     ;; `parse-sexp-lookup-properties' (when it exists).
@@ -1634,8 +1624,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		 ;; We skip over it to prevent recognition of "more slots: <symbol>"
 		 ;; as a bitfield declaration.
 		 (when (and (c-major-mode-is 'c++-mode)
-			    (looking-at
-			     (concat "\\(more\\)\\([^" c-symbol-chars "]\\|$\\)")))
+			    (looking-at "\\_<\\(more\\)\\_>"))
 		   (goto-char (match-end 1))
 		   (c-forward-syntactic-ws))
 
@@ -2170,9 +2159,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; Fontification".
   (while (and (< (point) limit)
-	      (re-search-forward
-	       "\\<\\(module\\|export\\|import\\)\\>\\(?:[^_$]\\|$\\)"
-	       limit t))
+	      (re-search-forward "\\_<\\(module\\|export\\|import\\)\\_>"
+				 limit t))
     (goto-char (match-end 1))
     (let (name-bounds pos beg end
 		      module-names)	; A list of conses of start and end
@@ -2185,8 +2173,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	     ((save-excursion
 		(when (equal (match-string-no-properties 1) "export")
 		  (c-forward-syntactic-ws limit)
-		  (re-search-forward "\\=\\(module\\)\\>\\(?:[^_$]\\|$\\)"
-				     limit t))
+		  (re-search-forward "\\=\\_<\\(module\\)\\_>" limit t))
 		(and (equal (match-string-no-properties 1) "module")
 		     (< (point) limit)
 		     (progn (c-forward-syntactic-ws limit)
@@ -2205,8 +2192,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	     ((save-excursion
 		(when (equal (match-string-no-properties 1) "export")
 		  (c-forward-syntactic-ws limit)
-		  (re-search-forward "\\=\\(import\\)\\>\\(?:[^_$]\\|$\\)"
-				     limit t))
+		  (re-search-forward "\\=\\_<\\(import\\)\\_>" limit t))
 		(and (equal (match-string-no-properties 1) "import")
 		     (< (point) limit)
 		     (progn (c-forward-syntactic-ws limit)
@@ -2327,7 +2313,7 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 				(regexp-opt-depth prefix-re)
 				(c-lang-const c-simple-ws-depth))))
 	    `((,(c-make-font-lock-search-function
-		 (concat "\\<\\(" prefix-re "\\)" ; 1
+		 (concat "\\_<\\(" prefix-re "\\)" ; 1
 			 (c-lang-const c-simple-ws) "+"
 			 (concat "\\("	; 2 + prefix-re + c-simple-ws
 				 (c-lang-const c-symbol-key)
@@ -2343,9 +2329,7 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
       ;; Fontify special declarations that lack a type.
       ,@(when (c-lang-const c-typeless-decl-kwds)
 	  `((,(c-make-font-lock-search-function
-	       (concat "\\<\\("
-		       (regexp-opt (c-lang-const c-typeless-decl-kwds))
-		       "\\)\\>")
+	       (regexp-opt (c-lang-const c-typeless-decl-kwds) 'symbols)
 	       '((c-font-lock-declarators limit t nil nil)
 		 (save-match-data
 		   (goto-char (match-end 1))
@@ -2428,15 +2412,15 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 	 (if (c-major-mode-is 'pike-mode)
 	     ;; No symbol is a keyword after "->" in Pike.
 	     `(,(concat "\\(\\=.?\\|[^>]\\|[^-]>\\)"
-			"\\<\\(" re "\\)\\>")
+			"\\_<\\(" re "\\)\\_>")
 	       2 font-lock-type-face)
-	   `(,(concat "\\<\\(" re "\\)\\>")
+	   `(,(concat "\\_<\\(" re "\\)\\_>")
 	     1 'font-lock-type-face)))
       ;; Fontify the type in C++ "new" expressions.
       ,@(when (c-major-mode-is 'c++-mode)
 	  ;; This pattern is a probably a "(MATCHER . ANCHORED-HIGHLIGHTER)"
 	  ;; (see Elisp page "Search-based Fontification").
-	  '(("\\<new\\>"
+	  `(("\\_<new\\_>"
 	     (c-font-lock-c++-new))))
 
       ;; Maybe fontify identifiers containing a dollar sign with
@@ -2528,7 +2512,7 @@ higher."
 			(c-make-keywords-re nil
 			  (c-lang-const c-before-label-kwds))))
 		  `(list
-		    ,(concat "\\<\\(" c-before-label-re "\\)\\>"
+		    ,(concat "\\_<\\(" c-before-label-re "\\)\\_>"
 			     "\\s *"
 			     "\\("	; identifier-offset
 			     (c-lang-const c-symbol-key)
@@ -2541,29 +2525,29 @@ higher."
 		    (c-lang-const c-ref-list-kwds)
 		    (c-lang-const c-colon-type-list-kwds))
 	    `((,(c-make-font-lock-BO-decl-search-function
-		 (concat "\\<\\("
+		 (concat "\\_<\\("
 			 (c-make-keywords-re nil
 			   (append (c-lang-const c-type-list-kwds)
 				   (c-lang-const c-ref-list-kwds)
 				   (c-lang-const c-colon-type-list-kwds)))
-			 "\\)\\>")
+			 "\\)\\_>")
 		 '((c-fontify-types-and-refs ((c-promote-possible-types t))
 		     (c-forward-keyword-clause 1)
 		     (if (> (point) limit) (goto-char limit))))))))
 
 	,@(when (c-lang-const c-paren-type-kwds)
 	    `((,(c-make-font-lock-search-function
-		 (concat "\\<\\("
+		 (concat "\\_<\\("
 			 (c-make-keywords-re nil
 			   (c-lang-const c-paren-type-kwds))
-			 "\\)\\>")
+			 "\\)\\_>")
 		 '((c-fontify-types-and-refs ((c-promote-possible-types t))
 		     (c-forward-keyword-clause 1)
 		     (if (> (point) limit) (goto-char limit))))))))
 
 	,@(when (c-major-mode-is 'java-mode)
-	    '((eval . (list "\\<\\(@[a-zA-Z0-9]+\\)\\>" 1 c-annotation-face))))
-      ))
+	    '((eval . (list "\\_<\\(@[a-zA-Z0-9]+\\)\\_>" 1 c-annotation-face))))
+	))
 
 (c-lang-defconst c-matchers-1
   t (c-lang-const c-cpp-matchers))

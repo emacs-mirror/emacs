@@ -26,6 +26,7 @@
 #if USE_XATTR
 
 # include <attr/libattr.h>
+# include <dirent.h>
 # include <string.h>
 
 # if HAVE_LINUX_XATTR_H
@@ -61,6 +62,7 @@ is_attr_permissions (const char *name, struct error_context *ctx)
    a valid file descriptor, use file descriptor operations, else use
    filename based operations on SRC_NAME. Likewise for DEST_DESC and
    DST_NAME.
+   MODE should be the source file's st_mode.
    If access control lists are not available, fchmod the target file to
    MODE.  Also sets the non-permission bits of the destination file
    (S_ISUID, S_ISGID, S_ISVTX) to those from MODE if any are set.
@@ -86,10 +88,29 @@ qcopy_acl (const char *src_name, int source_desc, const char *dst_name,
      Functions attr_copy_* return 0 in case we copied something OR nothing
      to copy */
   if (ret == 0)
-    ret = source_desc <= 0 || dest_desc <= 0
-      ? attr_copy_file (src_name, dst_name, is_attr_permissions, NULL)
-      : attr_copy_fd (src_name, source_desc, dst_name, dest_desc,
-                      is_attr_permissions, NULL);
+    {
+      ret = source_desc <= 0 || dest_desc <= 0
+        ? attr_copy_file (src_name, dst_name, is_attr_permissions, NULL)
+        : attr_copy_fd (src_name, source_desc, dst_name, dest_desc,
+                        is_attr_permissions, NULL);
+
+      /* Copying can fail with EOPNOTSUPP even when the source
+         permissions are trivial (Bug#78328).  Don't report an error
+         in this case, as the chmod_or_fchmod suffices.  */
+      if (ret < 0 && errno == EOPNOTSUPP)
+        {
+          /* fdfile_has_aclinfo cares only about DT_DIR, _GL_DT_NOTDIR,
+             and DT_LNK (but DT_LNK is not possible here),
+             so use _GL_DT_NOTDIR | DT_UNKNOWN for other file types.  */
+          int flags = S_ISDIR (mode) ? DT_DIR : _GL_DT_NOTDIR | DT_UNKNOWN;
+
+          struct aclinfo ai;
+          if (!fdfile_has_aclinfo (source_desc, src_name, &ai, flags))
+            ret = 0;
+          aclinfo_free (&ai);
+          errno = EOPNOTSUPP;
+        }
+    }
 #else
   /* no XATTR, so we proceed the old dusty way */
   struct permission_context ctx;

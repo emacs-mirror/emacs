@@ -257,7 +257,7 @@ calling this.  Ordinarily a single waiting thread is woken by
 @code{condition-notify}; but if @var{all} is not @code{nil}, then all
 threads waiting on @var{cond} are notified.
 
-@code{condition-notify} releases the associated mutex while waiting.
+@code{condition-notify} releases the associated mutex.
 This allows other threads to acquire the mutex in order to wait on the
 condition.
 @c why bother?

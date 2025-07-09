@@ -387,4 +387,15 @@ literals (Bug#20852)."
     (goto-char (point-min))
     (should-error (read (current-buffer)) :type 'end-of-file)))
 
+(ert-deftest lread-function-source ()
+  (let* ((s '(#x41 #x222a #xff -1))
+         (val (read (lambda () (pop s)))))
+    (should (equal (symbol-name val) "A∪ÿ"))))
+
+(ert-deftest lread-unibyte-string-source ()
+  (let* ((src "\"a\xff\"")
+         (val (read src)))
+    (should (equal val "a\xff"))        ; not "aÿ"
+    (should-not (multibyte-string-p val))))
+
 ;;; lread-tests.el ends here

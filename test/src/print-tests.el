@@ -356,7 +356,9 @@ otherwise, use a different charset."
 (print-tests--deftest error-message-string-circular ()
   (let ((err (list 'error)))
     (setcdr err err)
-    (should-error (error-message-string err) :type 'circular-list)))
+    (should-error (error-message-string err) :type 'circular-list)
+    ;; check that prin1-to-string-buffer is cleared (bug#78842)
+    (should (equal "37.0" (prin1-to-string 37.0)))))
 
 (print-tests--deftest print-hash-table-test ()
   (should
@@ -557,6 +559,13 @@ otherwise, use a different charset."
              (garbage-collect)
              (ignore (make-string 100 ?b))))
     (should (equal outstr "xxx"))))
+
+(ert-deftest print-unibyte-symbols ()
+  ;; Non-ASCII in unibyte symbols should print as raw bytes.
+  (should (equal (prin1-to-string (make-symbol "a\xff"))
+                 (string-to-multibyte "a\xff")))
+  (should (equal (prin1-to-string (make-symbol "th\303\251"))
+                 (string-to-multibyte "th\303\251"))))
 
 (provide 'print-tests)
 ;;; print-tests.el ends here

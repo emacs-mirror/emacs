@@ -913,24 +913,29 @@ for the last released version of the package."
     (find-file directory)))
 
 ;;;###autoload
-(defun package-vc-install-from-checkout (dir &optional name)
+(defun package-vc-install-from-checkout (dir &optional name interactive)
   "Install the package NAME from its source directory DIR.
-NAME defaults to the base name of DIR.
-Interactively, prompt the user for DIR, which should be a directory
-under version control, typically one created by `package-vc-checkout'.
-If invoked interactively with a prefix argument, prompt the user
-for the NAME of the package to set up."
-  (interactive (let* ((dir (read-directory-name "Directory: "))
-                      (base (file-name-base (directory-file-name dir))))
+NAME defaults to the base name of DIR.  Interactively, prompt the user
+for DIR, which should be a directory under version control, typically
+one created by `package-vc-checkout'.  If invoked interactively with a
+prefix argument, prompt the user for the NAME of the package to set up.
+If the optional argument INTERACTIVE is non-nil (as happens
+interactively), DIR must be an absolute file name."
+  (interactive (let ((dir (expand-file-name (read-directory-name "Directory: "))))
                  (list dir (and current-prefix-arg
-                                (read-string
-                                 (format-prompt "Package name" base)
-                                 nil nil base)))))
+                                (let ((base (file-name-base
+                                             (directory-file-name
+                                              dir))))
+                                  (read-string
+                                   (format-prompt "Package name" base)
+                                   nil nil base)))
+                       :interactive)))
   (package-vc--archives-initialize)
-  (let* ((name (or name (file-name-base (directory-file-name dir))))
-         (pkg-dir (expand-file-name name package-user-dir))
+  (let* ((dir (if interactive dir (expand-file-name dir))) ;avoid double expansion
+         (name (or name (file-name-base (directory-file-name dir))))
+         (pkg-dir (file-name-concat package-user-dir name))
          (package-vc-selected-packages
-          (cons (list name :lisp-dir (expand-file-name dir))
+          (cons (list name :lisp-dir dir)
                 package-vc-selected-packages)))
     (when (file-exists-p pkg-dir)
       (if (yes-or-no-p (format "Overwrite previous checkout for package `%s'?" name))

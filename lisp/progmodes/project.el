@@ -321,12 +321,16 @@ end it with `/'.  DIR must be either `project-root' or one of
      grep-find-ignored-files)))
 
 (defun project--file-completion-table (all-files)
+  (project--completion-table-with-category all-files 'project-file))
+
+;; Switch to `completion-table-with-metadata' when we can.
+(defun project--completion-table-with-category (table category)
   (lambda (string pred action)
     (cond
      ((eq action 'metadata)
-      '(metadata . ((category . project-file))))
+      `(metadata . ((category . ,category))))
      (t
-      (complete-with-action action all-files string pred)))))
+      (complete-with-action action table string pred)))))
 
 (cl-defmethod project-root ((project (head transient)))
   (cdr project))
@@ -1562,6 +1566,24 @@ general form of conditions."
   :group 'project
   :package-version '(project . "0.8.2"))
 
+(defcustom project-prune-zombie-projects #'project-prune-zombies-default
+  "Remove automatically from project list all the projects that were removed.
+The value can be a predicate function which takes one argument, and
+should return non-nil if the project should be removed.
+If set to nil, all the inaccessible projects will not be removed automatically."
+  :type '(choice (const :tag "Default (remove non-remote projects)"
+                        project-prune-zombies-default)
+                 (const :tag "Remove any project" identity)
+                 (function :tag "Custom function")
+                 (const :tag "Disable auto-deletion" nil))
+  :version "31.1"
+  :group 'project)
+
+(defun project-prune-zombies-default (project)
+  "Default function used in `project-prune-zombie-projects'.
+Return non-nil if PROJECT is not a remote project."
+  (not (file-remote-p project)))
+
 (defun project--read-project-buffer ()
   (let* ((pr (project-current t))
          (current-buffer (current-buffer))
@@ -1580,12 +1602,20 @@ general form of conditions."
                    uniquify-buffer-name-style)
               ;; Forgo the use of `buffer-read-function' (often nil) in
               ;; favor of uniquifying the buffers better.
-              (let* ((unique-names (uniquify-get-unique-names buffers))
+              (let* ((unique-names
+                      (mapcar
+                       (lambda (name)
+                         (cons name
+                               (get-text-property 0 'uniquify-orig-buffer
+                                                  (or name ""))))
+                       (uniquify-get-unique-names buffers)))
                      (other-name (when (funcall predicate (cons other-name other-buffer))
                                    (car (rassoc other-buffer unique-names))))
                      (result (completing-read
                               "Switch to buffer: "
-                              unique-names
+                              (project--completion-table-with-category
+                               unique-names
+                               'buffer)
                               predicate
                               nil nil nil
                               other-name)))
@@ -1914,7 +1944,11 @@ With some possible metadata (to be decided).")
 (defun project--ensure-read-project-list ()
   "Initialize `project--list' if it isn't already initialized."
   (when (eq project--list 'unset)
-    (project--read-project-list)))
+    (project--read-project-list)
+    (if-let* (project-prune-zombie-projects
+              ((consp project--list))
+              (inhibit-message t))
+        (project-forget-zombie-projects))))
 
 (defun project--write-project-list ()
   "Save `project--list' in `project-list-file'."
@@ -1995,6 +2029,9 @@ see `project-list-file'.
 It's also possible to enter an arbitrary directory not in the list.
 When PROMPT is non-nil, use it as the prompt string."
   (project--ensure-read-project-list)
+  (if-let* (project-prune-zombie-projects
+            (inhibit-message t))
+      (project-forget-zombie-projects))
   (let* ((dir-choice "... (choose a dir)")
          (choices
           ;; XXX: Just using this for the category (for the substring
@@ -2024,6 +2061,9 @@ The project is chosen among projects known from the project list,
 see `project-list-file'.
 It's also possible to enter an arbitrary directory not in the list.
 When PROMPT is non-nil, use it as the prompt string."
+  (if-let* (project-prune-zombie-projects
+            (inhibit-message t))
+      (project-forget-zombie-projects))
   (let* ((dir-choice "... (choose a dir)")
          project--name-history
          (choices
@@ -2153,7 +2193,10 @@ Return the number of detected projects."
   "Forget all known projects that don't exist any more."
   (interactive)
   (dolist (proj (project-known-project-roots))
-    (unless (file-exists-p proj)
+    (when (and (if project-prune-zombie-projects
+                   (funcall project-prune-zombie-projects proj)
+                 t)
+               (not (file-exists-p proj)))
       (project-forget-project proj))))
 
 (defun project-forget-projects-under (dir &optional recursive)

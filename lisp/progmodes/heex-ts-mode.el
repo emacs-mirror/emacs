@@ -23,11 +23,12 @@
 
 ;;; Tree-sitter language versions
 ;;
-;; heex-ts-mode is known to work with the following languages and version:
+;; heex-ts-mode has been tested with the following grammars and version:
 ;; - tree-sitter-heex: v0.7.0
+;; - tree-sitter-elixir: v0.3.3
 ;;
 ;; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
@@ -46,11 +47,13 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(heex "https://github.com/phoenixframework/tree-sitter-heex" "v0.7.0")
+ '(heex "https://github.com/phoenixframework/tree-sitter-heex"
+        :commit "f6b83f305a755cd49cf5f6a66b2b789be93dc7b9")
  t)
 (add-to-list
  'treesit-language-source-alist
- '(elixir "https://github.com/elixir-lang/tree-sitter-elixir" "v0.3.3")
+ '(elixir "https://github.com/elixir-lang/tree-sitter-elixir"
+          :commit "02a6f7fd4be28dd94ee4dd2ca19cb777053ea74e")
  t)
 
 (defgroup heex-ts nil

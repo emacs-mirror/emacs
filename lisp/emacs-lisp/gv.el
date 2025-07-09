@@ -367,6 +367,8 @@ See also `incf'."
 
 (gv-define-simple-setter aref aset)
 (gv-define-simple-setter char-table-range set-char-table-range)
+(gv-define-simple-setter char-table-extra-slot set-char-table-extra-slot)
+(gv-define-simple-setter char-table-parent set-char-table-parent)
 (gv-define-simple-setter car setcar)
 (gv-define-simple-setter cdr setcdr)
 ;; FIXME: add compiler-macros for `cXXr' instead!
@@ -400,10 +402,12 @@ See also `incf'."
 ;;; Elisp-specific generalized variables.
 
 (gv-define-simple-setter default-value set-default)
+(gv-define-simple-setter default-toplevel-value set-default-toplevel-value t)
 (gv-define-simple-setter frame-parameter set-frame-parameter 'fix)
-(gv-define-simple-setter terminal-parameter set-terminal-parameter)
+(gv-define-simple-setter terminal-parameter set-terminal-parameter t)
 (gv-define-simple-setter keymap-parent set-keymap-parent)
 (gv-define-simple-setter match-data set-match-data 'fix)
+(gv-define-simple-setter marker-insertion-type set-marker-insertion-type)
 (gv-define-simple-setter overlay-get overlay-put)
 (gv-define-setter overlay-start (store ov)
   (macroexp-let2 nil store store
@@ -415,6 +419,9 @@ See also `incf'."
 (gv-define-simple-setter process-filter set-process-filter)
 (gv-define-simple-setter process-sentinel set-process-sentinel)
 (gv-define-simple-setter process-get process-put 'fix)
+(gv-define-simple-setter process-plist set-process-plist)
+(gv-define-simple-setter process-query-on-exit-flag set-process-query-on-exit-flag)
+(gv-define-simple-setter process-thread set-process-thread)
 (gv-define-simple-setter window-parameter set-window-parameter)
 (gv-define-setter window-buffer (v &optional w)
   (macroexp-let2 nil v v
@@ -427,6 +434,12 @@ See also `incf'."
 (gv-define-setter window-hscroll (v &optional w) `(set-window-hscroll ,w ,v))
 (gv-define-setter window-point (v &optional w) `(set-window-point ,w ,v))
 (gv-define-setter window-start (v &optional w) `(set-window-start ,w ,v))
+(gv-define-setter window-prev-buffers (v &optional w) `(set-window-prev-buffers ,w ,v))
+(gv-define-setter window-next-buffers (v &optional w) `(set-window-next-buffers ,w ,v))
+(gv-define-setter window-new-normal (v &optional w) `(set-window-new-normal ,w ,v))
+(gv-define-simple-setter font-get font-put)
+(gv-define-simple-setter charset-plist set-charset-plist)
+(gv-define-simple-setter get-charset-property put-charset-property t)
 
 (gv-define-setter buffer-local-value (val var buf)
   (macroexp-let2 nil v val

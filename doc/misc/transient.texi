@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.9.1
+@subtitle for version 0.9.3
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.9.1.
+This manual is for Transient version 0.9.3.
 
 @insertcopying
 @end ifnottex
@@ -3031,6 +3031,14 @@ the transient menu, you will be able to yank it in another buffer.
 (keymap-set transient-predicate-map
             "<mouse-set-region>"
             #'transient--do-stay)
+@end lisp
+
+Copying the region while not seeing the region is a bit fiddly, so a
+dedicated command, @code{transient-copy-menu-text}, was added.  You have to
+add a binding for this command in @code{transient-map}.
+
+@lisp
+(keymap-set transient-map "C-c C-w" #'transient-copy-menu-text)
 @end lisp
 
 @anchor{How can I autoload prefix and suffix commands?}

@@ -3220,46 +3220,47 @@ Without an argument, it saves customized diff argument, if available
 
 ;; idea suggested by Hannu Koivisto <azure@iki.fi>
 (defun ediff-clone-buffer-for-region-comparison (buff region-name)
-  (let ((cloned-buff (ediff-make-cloned-buffer buff region-name))
-	(pop-up-windows t)
-	wind
-	other-wind
-	msg-buf)
-    (ediff-with-current-buffer cloned-buff
-      (setq ediff-temp-indirect-buffer t))
-    (pop-to-buffer cloned-buff)
-    (setq wind (ediff-get-visible-buffer-window cloned-buff))
-    (when (window-live-p wind)
-      (select-window wind)
-      (delete-other-windows))
-    (or (mark) (push-mark))
-    (setq mark-active 'ediff-util)
-    (setq-local transient-mark-mode t)
-    (split-window-vertically)
-    (ediff-select-lowest-window)
-    (setq other-wind (selected-window))
-    (with-temp-buffer
-      (erase-buffer)
-      (insert
-       (format "\n   *******  Mark a region in buffer %s (or confirm the existing one)  *******\n"
-	       (buffer-name cloned-buff)))
-      (insert
-       (ediff-with-current-buffer buff
-	 (format "\n\t      When done, type %s       Use %s to abort\n    "
-		 (ediff-format-bindings-of 'exit-recursive-edit)
-		 (ediff-format-bindings-of 'abort-recursive-edit))))
-      (goto-char (point-min))
-      (setq msg-buf (current-buffer))
-      (set-window-buffer other-wind msg-buf)
-      (shrink-window-if-larger-than-buffer)
-      (if (window-live-p wind)
-	  (select-window wind))
-      (condition-case nil
-	  (recursive-edit)
-	(quit
-	 (ediff-kill-buffer-carefully cloned-buff)))
-      )
-    cloned-buff))
+  (save-window-excursion
+    (let ((cloned-buff (ediff-make-cloned-buffer buff region-name))
+	  (pop-up-windows t)
+	  wind
+	  other-wind
+	  msg-buf)
+      (ediff-with-current-buffer cloned-buff
+                                 (setq ediff-temp-indirect-buffer t))
+      (pop-to-buffer cloned-buff)
+      (setq wind (ediff-get-visible-buffer-window cloned-buff))
+      (when (window-live-p wind)
+        (select-window wind)
+        (delete-other-windows))
+      (or (mark) (push-mark))
+      (setq mark-active 'ediff-util)
+      (setq-local transient-mark-mode t)
+      (split-window-vertically)
+      (ediff-select-lowest-window)
+      (setq other-wind (selected-window))
+      (with-temp-buffer
+        (erase-buffer)
+        (insert
+         (format "\n   *******  Mark a region in buffer %s (or confirm the existing one)  *******\n"
+	         (buffer-name cloned-buff)))
+        (insert
+         (ediff-with-current-buffer buff
+	                            (format "\n\t      When done, type %s       Use %s to abort\n    "
+		                            (ediff-format-bindings-of 'exit-recursive-edit)
+		                            (ediff-format-bindings-of 'abort-recursive-edit))))
+        (goto-char (point-min))
+        (setq msg-buf (current-buffer))
+        (set-window-buffer other-wind msg-buf)
+        (shrink-window-if-larger-than-buffer)
+        (if (window-live-p wind)
+	    (select-window wind))
+        (condition-case nil
+	    (recursive-edit)
+	  (quit
+	   (ediff-kill-buffer-carefully cloned-buff)))
+        )
+      cloned-buff)))
 
 
 (defun ediff-clone-buffer-for-window-comparison (buff wind region-name)

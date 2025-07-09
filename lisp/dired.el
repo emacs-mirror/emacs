@@ -2496,11 +2496,11 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 
 (easy-menu-define dired-mode-immediate-menu dired-mode-map
   "Immediate menu for Dired mode."
-  '("Immediate"
+  `("Immediate"
     ["Edit File Names" wdired-change-to-wdired-mode
      :help "Put a Dired buffer in a mode in which filenames are editable"
      :keys "C-x C-q"
-     :filter (lambda (x) (if (eq major-mode 'dired-mode) x))]
+     :filter ,(lambda (x) (if (eq major-mode 'dired-mode) x))]
     ["Create Empty file..." dired-create-empty-file
      :help "Create an empty file"]
     ["Create Directory..." dired-create-directory

@@ -1400,6 +1400,14 @@ This returns an error if any Emacs frames are X frames."
     ("etc/images/cancel" . "gtk-cancel")
     ("etc/images/info" . ("dialog-information" "gtk-info"))
     ("etc/images/bookmark_add" . "n:bookmark_add")
+    ;; Used in package-menu
+    ("images/package-menu/execute" . "gtk-apply")
+    ("images/package-menu/info" . ("dialog-information" "gtk-info"))
+    ("images/package-menu/install" . ("archive-insert" "list-add"))
+    ("images/package-menu/delete" . ("archive-remove" "edit-delete" "gtk-remove"))
+    ("images/package-menu/unmark" . ("gnumeric-object-checkbox" "box"))
+    ("images/package-menu/url" . "globe")
+    ("images/package-menu/upgrade" . ("archive-extract" "go-bottom"))
     ;; Used in Gnus and/or MH-E:
     ("etc/images/attach" . ("mail-attachment" "gtk-attach"))
     ("etc/images/connect" . "gtk-connect")

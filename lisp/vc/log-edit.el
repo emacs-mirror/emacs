@@ -400,7 +400,7 @@ automatically."
 
 (defvar log-edit-headers-alist '(("Summary" . log-edit-summary)
                                  ("Fixes") ("Author"))
-  "AList of known headers and the face to use to highlight them.")
+  "Alist of known headers and the face to use to highlight them.")
 
 (defconst log-edit-header-contents-regexp
   "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?"
@@ -533,7 +533,9 @@ keys and associated values are:
     files that are concerned by the current operation (using relative names);
  `log-edit-diff-function' -- function taking no arguments that
     displays a diff of the files concerned by the current operation.
- `vc-log-fileset' -- the VC fileset to be committed (if any).
+ `vc-log-fileset' -- list of files to be committed, if any
+                     (not a true VC fileset structure as returned by
+                     `vc-deduce-fileset', but only the second element).
 
 If BUFFER is non-nil, `log-edit' will switch to that buffer, use it
 to edit the log message and go back to the current buffer when
@@ -576,6 +578,7 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
   (cl-pushnew 'display-line-numbers-disable font-lock-extra-managed-props)
   (setq-local jit-lock-contextually t)  ;For the "first line is summary".
   (setq-local fill-paragraph-function #'log-edit-fill-entry)
+  (setq-local normal-auto-fill-function #'log-edit-do-auto-fill)
   (make-local-variable 'log-edit-comment-ring-index)
   (add-hook 'kill-buffer-hook 'log-edit-remember-comment nil t)
   (hack-dir-local-variables-non-file-buffer)
@@ -743,6 +746,12 @@ according to `fill-column'."
           nil)
         t))))
 
+(defun log-edit-do-auto-fill ()
+  "Like `do-auto-fill', but don't fill in Log Edit headers."
+  (unless (> (save-excursion (rfc822-goto-eoh) (point))
+             (point))
+    (do-auto-fill)))
+
 (defun log-edit-hide-buf (&optional buf where)
   (when (setq buf (get-buffer (or buf log-edit-files-buf)))
     ;; FIXME: Should use something like `quit-windows-on' here, but
@@ -861,8 +870,9 @@ comment history, see `log-edit-comment-ring', and hides `log-edit-files-buf'."
   ;; Re NOT-ESSENTIAL non-nil: this function can get called from
   ;; `log-edit-hook' and we don't want to abort the whole Log Edit setup
   ;; because the user says no to saving a buffer.  The buffers will
-  ;; still actually get saved before committing, by `vc-finish-logentry'.
-  ;; Possibly `log-edit-maybe-show-diff' should catch the error instead.
+  ;; still actually get saved before committing, by the
+  ;; `vc-log-operation' anonymous function.  Possibly
+  ;; `log-edit-maybe-show-diff' should catch the error instead.
   (vc-diff nil 'not-essential (list log-edit-vc-backend vc-log-fileset)))
 
 (defun log-edit-show-diff ()

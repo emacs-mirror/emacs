@@ -24,8 +24,8 @@
 
 ;;; Tree-sitter language versions
 ;;
-;; php-ts-mode is known to work with the following languages and version:
-;; - tree-sitter-phpdoc: fe3202e468bc17332bec8969f2b50ff1f1da3a46
+;; php-ts-mode has been tested with the following grammars and version:
+;; - tree-sitter-phpdoc: v0.1.5
 ;; - tree-sitter-css: v0.23.1-1-g6a442a3
 ;; - tree-sitter-jsdoc: v0.23.2
 ;; - tree-sitter-javascript: v0.23.1-2-g108b2d4
@@ -33,7 +33,7 @@
 ;; - tree-sitter-php: v0.23.11
 ;;
 ;; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
@@ -82,8 +82,11 @@
 
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
-  '((php "https://github.com/tree-sitter/tree-sitter-php" "v0.23.11" "php/src")
-    (phpdoc "https://github.com/claytonrcarter/tree-sitter-phpdoc"))
+  '((php "https://github.com/tree-sitter/tree-sitter-php"
+         :commit "43aad2b9a98aa8e603ea0cf5bb630728a5591ad8"
+         :source-dir "php/src")
+    (phpdoc "https://github.com/claytonrcarter/tree-sitter-phpdoc"
+            :commit "fe3202e468bc17332bec8969f2b50ff1f1da3a46"))
   "Treesitter language parsers required by `php-ts-mode'.
 You can customize `treesit-language-source-alist' if you want
 to stick to a specific commit and/or use different parsers.")
@@ -139,7 +142,7 @@ Works like `css--fontify-region'."
 
 (defvar-local php-ts-mode-alternative-php-program-name nil
   "An alternative to the usual `php' program name.
-In non-nil, `php-ts-mode--executable' try to find this executable.")
+If non-nil, `php-ts-mode--executable' looks for this instead of \"php\".")
 
 (defcustom php-ts-mode-php-config nil
   "The location of php.ini file.
@@ -311,7 +314,7 @@ Calls REPORT-FN directly."
   "Return the absolute filename of the php executable.
 If the `default-directory' is remote, search on a remote host, otherwise
 it searches locally.  If `php-ts-mode-alternative-php-program-name' is
-non-zero, it searches for this program instead of the usual `php'.
+non-nil, it searches for this program instead of the usual `php'.
 If the search fails, it returns `php-ts-mode-php-default-executable'."
   (or (executable-find
       (or php-ts-mode-alternative-php-program-name "php") t)

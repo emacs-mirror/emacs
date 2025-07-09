@@ -271,12 +271,14 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(python "https://github.com/tree-sitter/tree-sitter-python" "v0.23.6")
+ '(python "https://github.com/tree-sitter/tree-sitter-python"
+          :commit "bffb65a8cfe4e46290331dfef0dbf0ef3679de11")
  t)
 
 ;; Avoid compiler warnings
 (defvar compilation-error-regexp-alist)
 (defvar outline-heading-end-regexp)
+(defvar treesit-thing-settings)
 
 (autoload 'comint-mode "comint")
 (autoload 'help-function-arglist "help-fns")
@@ -1236,6 +1238,7 @@ fontified."
      (parameters (identifier) @font-lock-variable-name-face)
      (parameters (typed_parameter (identifier) @font-lock-variable-name-face))
      (parameters (default_parameter name: (identifier) @font-lock-variable-name-face))
+     (parameters (typed_default_parameter name: (identifier) @font-lock-variable-name-face))
      (lambda_parameters (identifier) @font-lock-variable-name-face)
      (for_in_clause
       left: (identifier) @font-lock-variable-name-face)
@@ -1266,7 +1269,11 @@ fontified."
 
    :feature 'function
    :language 'python
-   '((call function: (identifier) @font-lock-function-call-face)
+   '(((call function: (identifier) @font-lock-type-face)
+      (:match "\\`[A-Z][A-Za-z0-9]+\\'" @font-lock-type-face))
+     (call function: (identifier) @font-lock-function-call-face)
+     (call arguments: (argument_list (keyword_argument
+                                      name: (identifier) @font-lock-property-name-face)))
      (call function: (attribute
                       attribute: (identifier) @font-lock-function-call-face)))
 
@@ -6116,13 +6123,34 @@ tree-sitter."
 (defvar python--thing-settings
   `((python
      (defun ,(rx (or "function" "class") "_definition"))
-     (sexp ,(rx (or "expression"
-                    "string"
-                    "call"
-                    "operator"
-                    "identifier"
-                    "integer"
-                    "float")))
+     (sexp (not (or (and named
+                         ,(rx bos (or "module"
+                                      "block"
+                                      "comment")
+                              eos))
+                    (and anonymous
+                         ,(rx bos (or "(" ")" "[" "]" "{" "}" ",")
+                              eos)))))
+     (list ,(rx bos (or "parameters"
+                        "type_parameter"
+                        "parenthesized_list_splat"
+                        "argument_list"
+                        "_list_pattern"
+                        "_tuple_pattern"
+                        "dict_pattern"
+                        "tuple_pattern"
+                        "list_pattern"
+                        "list"
+                        "set"
+                        "tuple"
+                        "dictionary"
+                        "list_comprehension"
+                        "dictionary_comprehension"
+                        "set_comprehension"
+                        "generator_expression"
+                        "parenthesized_expression"
+                        "interpolation")
+                eos))
      (sentence ,(rx (or "statement"
                         "clause")))
      (text ,(rx (or "string" "comment")))))
@@ -7348,8 +7376,11 @@ implementations: `python-mode' and `python-ts-mode'."
     (setq-local treesit-defun-name-function
                 #'python--treesit-defun-name)
 
-    (setq treesit-thing-settings python--thing-settings)
+    (setq-local treesit-thing-settings python--thing-settings)
     (treesit-major-mode-setup)
+    ;; Enable the `sexp' navigation by default
+    (setq-local forward-sexp-function #'treesit-forward-sexp
+                treesit-sexp-thing 'sexp)
 
     (setq-local syntax-propertize-function #'python--treesit-syntax-propertize)
 
