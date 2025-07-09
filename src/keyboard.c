@@ -4281,22 +4281,29 @@ kbd_buffer_get_event (KBOARD **kbp,
         break;
       default:
 	{
-	  /* If this event is on a different frame, return a
-	     switch-frame this time, and leave the event in the queue
-	     for next time.  */
 	  Lisp_Object frame;
 	  Lisp_Object focus;
 
+	  /* It's not safe to assume that the following will always
+	     produce a valid, live frame (Bug#78966).  */
 	  frame = event->ie.frame_or_window;
 	  if (CONSP (frame))
 	    frame = XCAR (frame);
 	  else if (WINDOWP (frame))
 	    frame = WINDOW_FRAME (XWINDOW (frame));
 
-	  focus = FRAME_FOCUS_FRAME (XFRAME (frame));
-	  if (! NILP (focus))
-	    frame = focus;
+	  /* If the input focus of this frame is on another frame,
+	     continue with that frame.  */
+	  if (FRAMEP (frame))
+	    {
+	      focus = FRAME_FOCUS_FRAME (XFRAME (frame));
+	      if (! NILP (focus))
+		frame = focus;
+	    }
 
+	  /* If this event is on a different frame, return a
+	     switch-frame this time, and leave the event in the queue
+	     for next time.  */
 	  if (!EQ (frame, internal_last_event_frame)
 	      && !EQ (frame, selected_frame))
 	    obj = make_lispy_switch_frame (frame);
@@ -8245,13 +8252,21 @@ tty_read_avail_input (struct terminal *terminal,
          value of selected_frame is not reliable here, redisplay tends
          to temporarily change it.  However, if the selected frame is a
          child frame, don't do that since it will cause switch frame
-         events to switch to the root frame instead.  */
-      if (FRAME_PARENT_FRAME (XFRAME (selected_frame))
-	  && (root_frame (XFRAME (selected_frame))
-	      == XFRAME (tty->top_frame)))
+         events to switch to the root frame instead.  If the tty's top
+         frame has not been set up yet, always use the selected frame
+         (Bug#78966).  */
+      if (!FRAMEP (tty->top_frame)
+	  || (FRAME_PARENT_FRAME (XFRAME (selected_frame))
+	      && (root_frame (XFRAME (selected_frame))
+		  == XFRAME (tty->top_frame))))
 	buf.frame_or_window = selected_frame;
       else
 	buf.frame_or_window = tty->top_frame;
+
+      /* If neither the selected frame nor the top frame were set,
+	 something must have gone really wrong.  */
+      eassert (FRAMEP (buf.frame_or_window));
+
       buf.arg = Qnil;
 
       kbd_buffer_store_event (&buf);

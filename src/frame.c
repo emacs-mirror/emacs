@@ -1449,6 +1449,15 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
   FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
 #endif /* not MSDOS */
 
+  struct tty_display_info *tty = terminal->display_info.tty;
+
+  if (NILP (tty->top_frame))
+    /* If this frame's terminal's top frame has not been set up yet,
+       make the new frame its top frame so the top frame has been set up
+       before the first do_switch_frame on this terminal happens.  See
+       Bug#78966.  */
+    tty->top_frame = frame;
+
 #ifdef HAVE_WINDOW_SYSTEM
   f->vertical_scroll_bar_type = vertical_scroll_bar_none;
   f->horizontal_scroll_bars = false;
