@@ -1194,10 +1194,15 @@ when the tab is current.  Return the result as a keymap."
     `((add-tab menu-item ,tab-bar-new-button tab-bar-new-tab
                :help "New tab"))))
 
-(defun tab-bar-format-align-right ()
-  "Align the rest of tab bar items to the right."
-  (let* ((rest (cdr (memq 'tab-bar-format-align-right tab-bar-format)))
-         (rest (tab-bar-format-list rest))
+(defun tab-bar-format-align-right (&optional rest)
+  "Align the rest of tab bar items to the right.
+The argument `rest' is used for special handling of this item
+by `tab-bar-format-list' that collects the rest of formatted items.
+This prevents calling other non-idempotent items like
+`tab-bar-format-global' twice."
+  (let* ((rest (or rest (tab-bar-format-list
+                         (cdr (memq 'tab-bar-format-align-right
+                                    tab-bar-format)))))
          (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
          (hpos (progn
                  (add-face-text-property 0 (length rest) 'tab-bar t rest)
@@ -1223,19 +1228,33 @@ on the tab bar instead."
           global-mode-string))
 
 (defun tab-bar-format-list (format-list)
-  (let ((i 0))
-    (apply #'append
-           (mapcar
-            (lambda (format)
-              (setq i (1+ i))
-              (cond
-               ((functionp format)
-                (let ((ret (funcall format)))
-                  (when (stringp ret)
-                    (setq ret `((,(intern (format "str-%i" i))
-                                 menu-item ,ret ignore))))
-                  ret))))
-            format-list))))
+  "Return a list of items formatted from `format-list'.
+The item `tab-bar-format-align-right' has special formatting."
+  (let* ((i 0) align-right-p rest
+         (res (apply #'append
+                     (mapcar
+                      (lambda (format)
+                        (setq i (1+ i))
+                        (cond
+                         ((eq format 'tab-bar-format-align-right)
+                          (setq align-right-p t)
+                          (list format))
+                         ((functionp format)
+                          (let ((ret (funcall format)))
+                            (when (stringp ret)
+                              (setq ret `((,(intern (format "str-%i" i))
+                                           menu-item ,ret ignore))))
+                            (when align-right-p
+                              (setq rest (append rest ret)))
+                            ret))))
+                      format-list))))
+    (when align-right-p
+      (setq res (mapcan (lambda (format)
+                          (if (eq format 'tab-bar-format-align-right)
+                              (tab-bar-format-align-right rest)
+                            (list format)))
+                        res)))
+    res))
 
 (defun tab-bar-make-keymap-1 ()
   "Generate an actual keymap from `tab-bar-map', without caching."
