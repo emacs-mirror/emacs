@@ -2073,6 +2073,8 @@ parser."
               (signal 'treesit-no-parser nil))))
     (car (treesit-parser-list))))
 
+(declare-function treesit-parser-changed-regions "treesit.c")
+
 (defun treesit--pre-redisplay (&rest _)
   "Force a reparse on primary parser and mark regions to be fontified."
   (unless (eq treesit--pre-redisplay-tick (buffer-chars-modified-tick))
