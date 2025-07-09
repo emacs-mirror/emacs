@@ -2787,22 +2787,14 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end,
     read_objects_completed
       = make_hash_table (&hashtest_eq, DEFAULT_HASH_SIZE, Weak_None);
 
-  if (STRINGP (stream)
-      || ((CONSP (stream) && STRINGP (XCAR (stream)))))
+  if (STRINGP (stream))
     {
       ptrdiff_t startval, endval;
-      Lisp_Object string;
-
-      if (STRINGP (stream))
-	string = stream;
-      else
-	string = XCAR (stream);
-
-      validate_subarray (string, start, end, SCHARS (string),
+      validate_subarray (stream, start, end, SCHARS (stream),
 			 &startval, &endval);
 
       read_from_string_index = startval;
-      read_from_string_index_byte = string_char_to_byte (string, startval);
+      read_from_string_index_byte = string_char_to_byte (stream, startval);
       read_from_string_limit = endval;
     }
 
