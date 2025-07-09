@@ -3043,6 +3043,9 @@ files will be visited."
   "Display the buffer of the next command in a new tab.
 The next buffer is the buffer displayed by the next command invoked
 immediately after this command (ignoring reading from the minibuffer).
+In case of multiple consecutive mouse events such as <down-mouse-1>,
+a mouse release event <mouse-1>, <double-mouse-1>, <triple-mouse-1>
+all bound commands are handled until one of them displays a buffer.
 Creates a new tab before displaying the buffer, or switches to the tab
 that already contains that buffer.
 When `switch-to-buffer-obey-display-actions' is non-nil,

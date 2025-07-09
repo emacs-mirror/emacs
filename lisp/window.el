@@ -4076,6 +4076,9 @@ always effectively nil."
   "Display the buffer of the next command in a new window.
 The next buffer is the buffer displayed by the next command invoked
 immediately after this command (ignoring reading from the minibuffer).
+In case of multiple consecutive mouse events such as <down-mouse-1>,
+a mouse release event <mouse-1>, <double-mouse-1>, <triple-mouse-1>
+all bound commands are handled until one of them displays a buffer.
 Creates a new window before displaying the buffer.
 When `switch-to-buffer-obey-display-actions' is non-nil,
 `switch-to-buffer' commands are also supported."
@@ -4096,6 +4099,9 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
   "Display the buffer of the next command in the same window.
 The next buffer is the buffer displayed by the next command invoked
 immediately after this command (ignoring reading from the minibuffer).
+In case of multiple consecutive mouse events such as <down-mouse-1>,
+a mouse release event <mouse-1>, <double-mouse-1>, <triple-mouse-1>
+all bound commands are handled until one of them displays a buffer.
 Even when the default rule should display the buffer in a new window,
 force its display in the already selected window.
 When `switch-to-buffer-obey-display-actions' is non-nil,
@@ -9673,9 +9679,9 @@ to deactivate this overriding action."
                      ;; But don't remove immediately after
                      ;; adding the hook by the same command below.
                      (eq this-command command)
-                     ;; Don't exit on mouse down event
-                     ;; in anticipation of mouse release event.
-                     (memq 'down (event-modifiers last-input-event)))
+                     ;; Don't exit on mouse events in anticipation
+                     ;; of more related events like double click.
+                     (mouse-event-p last-input-event))
               (funcall exitfun))))
     ;; Call post-function after the next command finishes (bug#49057).
     (add-hook 'post-command-hook postfun)

@@ -1262,6 +1262,9 @@ that variable should be nil."
   "Display the buffer of the next command in a new frame.
 The next buffer is the buffer displayed by the next command invoked
 immediately after this command (ignoring reading from the minibuffer).
+In case of multiple consecutive mouse events such as <down-mouse-1>,
+a mouse release event <mouse-1>, <double-mouse-1>, <triple-mouse-1>
+all bound commands are handled until one of them displays a buffer.
 Creates a new frame before displaying the buffer.
 When `switch-to-buffer-obey-display-actions' is non-nil,
 `switch-to-buffer' commands are also supported."

@@ -586,6 +586,9 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
   "Display the next buffer in the window at direction DIR.
 The next buffer is the buffer displayed by the next command invoked
 immediately after this command (ignoring reading from the minibuffer).
+In case of multiple consecutive mouse events such as <down-mouse-1>,
+a mouse release event <mouse-1>, <double-mouse-1>, <triple-mouse-1>
+all bound commands are handled until one of them displays a buffer.
 Create a new window if there is no window in that direction.
 
 By default, select the new window with a displayed buffer.
