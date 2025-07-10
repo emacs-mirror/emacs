@@ -1765,10 +1765,10 @@ the root directory.  */)
 #if 0
 /* PLEASE DO NOT DELETE THIS COMMENTED-OUT VERSION!
    This is the old version of expand-file-name, before it was thoroughly
-   rewritten for Emacs 10.31.  We leave this version here commented-out,
-   because the code is very complex and likely to have subtle bugs.  If
-   bugs _are_ found, it might be of interest to look at the old code and
-   see what did it do in the relevant situation.
+   rewritten.  We leave this version here commented-out,  because the
+   code is very complex and likely to have subtle bugs.  If bugs _are_
+   found, it might be of interest to look at the old code and see what
+   did it do in the relevant situation.
 
    Don't remove this code: it's true that it will be accessible
    from the repository, but a few years from deletion, people will
