@@ -310,13 +310,14 @@ init_source (source_t *src, Lisp_Object readcharfun)
       src->unget = source_string_unget;
       src->multibyte = STRING_MULTIBYTE (readcharfun);
     }
-  else if (EQ (readcharfun, Qget_file_char)
-	   || EQ (readcharfun, Qget_emacs_mule_file_char))
+  else if (BASE_EQ (readcharfun, Qget_file_char)
+	   || BASE_EQ (readcharfun, Qget_emacs_mule_file_char))
     {
       src->get = source_file_get;
       src->unget = source_file_unget;
       src->multibyte = true;
-      src->emacs_mule_encoding = EQ (readcharfun, Qget_emacs_mule_file_char);
+      src->emacs_mule_encoding = BASE_EQ (readcharfun,
+					  Qget_emacs_mule_file_char);
       eassert (infile != NULL);
     }
   else
@@ -6169,11 +6170,17 @@ will use instead of `load-path' to look for the file to load.  */);
   DEFSYM (Qcurrent_load_list, "current-load-list");
   DEFSYM (Qstandard_input, "standard-input");
   DEFSYM (Qread_char, "read-char");
+
   DEFSYM (Qget_file_char, "get-file-char");
 
   /* Used instead of Qget_file_char while loading *.elc files compiled
      by Emacs 21 or older.  */
   DEFSYM (Qget_emacs_mule_file_char, "get-emacs-mule-file-char");
+
+  /* These are only used as internal READCHARFUN in the C code and
+     cannot be used from Lisp.  */
+  Funintern (Qget_file_char, Qnil);
+  Funintern (Qget_emacs_mule_file_char, Qnil);
 
   DEFSYM (Qload_force_doc_strings, "load-force-doc-strings");
 
