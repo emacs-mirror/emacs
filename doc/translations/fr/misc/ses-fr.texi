@@ -849,13 +849,36 @@ La largeur de colonne est 7 et la fonction d’impression par défaut est
 @samp{"%.7g"}.  Chacune de ces choses peut être personnalisée.  Allez
 voir dans le groupe « ses ».
 
-Après avoir saisi une valeur de cellule, normalement
-@code{forward-char} est appelé, ce qui déplace le point vers la
-cellule suivante à droite, ou à la première cellule à gauche de la
-ligne suivante si la cellule courante est la plus à droite de la
-feuille.  Vous pouvez personnaliser @code{ses-after-entry-functions}
-pour que le déplacement soit vers la gauche ou le haut ou le bas.
-Pour un mouvement diagonal, selectionnez deux fonctions de la liste.
+Après avoir saisi une valeur de cellule, normalement @code{forward-char}
+est appelé, ce qui déplace le point vers la cellule suivante à droite,
+ou à la première cellule à gauche de la ligne suivante si la cellule
+courante est la plus à droite de la feuille.  Vous pouvez personnaliser
+@code{ses-after-entry-functions} pour que le déplacement soit vers la
+gauche ou le haut ou le bas.  Pour un mouvement diagonal, selectionnez
+deux fonctions de la liste.  @code{ses--row} et @code{ses--col} sont
+dynamiquement réglées aux coordonnées de la cellule coutante, de sorte
+qu'en ayant votre propre fonction de mouvement dans ce crochet vous
+pouvez rendre le mouvement du curseur dépendant des coordonnées de la
+cellule. Par exemple définissez :
+
+@example
+(defun mon-crochet-post-saisie-ses (arg)
+   (cond
+    ((= 0 ses--col)
+     (forward-char arg))
+    ((= 1 ses--col)
+     (backward-char arg)
+     (next-line arg))
+    (t
+     (next-line arg))))
+@end example
+
+@noindent
+et personnalisez @code{ses-after-entry-functions} pour ne contenir que
+@code{mon-crochet-post-saisie-ses}, de sorte que le curseur va après la
+saisie à la cellule sur la droite si vous êtes dans la 1re colonne, sur
+celle diagonalement à gauche et en dessous si vous êtes sur la deuxième
+colonne, et sur celle en dessous sinon.
 
 @vindex ses-jump-cell-name-function
 @code{ses-jump-cell-name-function} est une variable personnalisable

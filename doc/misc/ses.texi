@@ -762,10 +762,32 @@ can be customized.  Look in group ``ses''.
 After entering a cell value, normally, @code{forward-char} is called,
 which moves point right to the next cell@c TODO propagate extra
                                         @c explanation from the French
-                                        @c version.
-.  You can customize @code{ses-after-entry-functions} to move left or
-up or down.  For diagonal movement, select two functions from the
-list.
+                                        @c version.  .  You can
+customize hook @code{ses-after-entry-functions} to move left or up or
+down.  For diagonal movement, select two functions from the
+list. @code{ses--row} and @code{ses--col} are dynamically bound to
+current cell coordinates, so by having your own movement function in
+this hook you may make cursor movement depending on the cell
+coordinates. For instance define:
+
+@example
+(defun my-ses-after-entry-hook (arg)
+   (cond
+    ((= 0 ses--col)
+     (forward-char arg))
+    ((= 1 ses--col)
+     (backward-char arg)
+     (next-line arg))
+    (t
+     (next-line arg))))
+@end example
+
+@noindent
+and customize @code{ses-after-entry-functions} to contain only
+@code{my-ses-after-entry-hook}, will have the cursor after entry go to
+the cell on the right if you are on the 1st column, on the cell
+diagonally left and below if you are on the second column, and to the
+cell below otherwise.
 
 @vindex ses-jump-cell-name-function
 @code{ses-jump-cell-name-function} is a customizable variable by
