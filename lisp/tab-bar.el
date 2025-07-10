@@ -1194,8 +1194,8 @@ when the tab is current.  Return the result as a keymap."
     `((add-tab menu-item ,tab-bar-new-button tab-bar-new-tab
                :help "New tab"))))
 
-(defvar tab-bar--align-right-hash nil
-  "Memoization table for `tab-bar-format-align-right'.")
+(defvar tab-bar--align-right-cache nil
+  "Optimization for `tab-bar-format-align-right'.")
 
 (defun tab-bar-format-align-right (&optional rest)
   "Align the rest of tab bar items to the right.
@@ -1203,20 +1203,19 @@ The argument `rest' is used for special handling of this item
 by `tab-bar-format-list' that collects the rest of formatted items.
 This prevents calling other non-idempotent items like
 `tab-bar-format-global' twice."
-  (unless tab-bar--align-right-hash
-    (define-hash-table-test 'tab-bar--align-right-hash-test
-                            #'equal-including-properties
-                            #'sxhash-equal-including-properties)
-    (setq tab-bar--align-right-hash
-          (make-hash-table :test 'tab-bar--align-right-hash-test)))
   (let* ((rest (or rest (tab-bar-format-list
                          (cdr (memq 'tab-bar-format-align-right
                                     tab-bar-format)))))
          (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
          (hpos (progn
                  (add-face-text-property 0 (length rest) 'tab-bar t rest)
-                 (with-memoization (gethash rest tab-bar--align-right-hash)
-                   (string-pixel-width rest))))
+                 (or (and tab-bar--align-right-cache
+                          (equal-including-properties
+                           (car tab-bar--align-right-cache) rest)
+                          (cdr tab-bar--align-right-cache))
+                     (let ((width (string-pixel-width rest)))
+                       (setq tab-bar--align-right-cache (cons rest width))
+                       width))))
          (str (propertize " " 'display
                           ;; The `right' spec doesn't work on TTY frames
                           ;; when windows are split horizontally (bug#59620)
