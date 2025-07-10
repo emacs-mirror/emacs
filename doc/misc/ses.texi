@@ -569,6 +569,10 @@ If you replace command @code{ses-define-local-printer} by function
 the definition will occur only if a local printer with the same name
 in not already defined.
 
+Variables @code{ses--row} and @code{ses--col} are dynamically set to the
+coordinates of the current cell, so that you may have the output depend
+not only of the cell's content, but as well of its position.
+
 
 @node Writing a lambda printer function
 @subsection Writing a lambda printer function
@@ -1290,8 +1294,8 @@ recorded as a dependency of this cell, so this cell will not be
 updated automatically when @samp{B3} is changed, this is why using
 @code{ses-rename-cell} is most of the time preferable.
 
-The variables @code{row} and @code{col} are dynamically bound while a
-cell formula is being evaluated.  You can use
+The variables @code{ses--row} and @code{ses--col} are dynamically bound
+while a cell formula is being evaluated.  You can use
 @lisp
 (ses-cell-value row 0)
 @end lisp
