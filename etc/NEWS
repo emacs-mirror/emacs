@@ -412,6 +412,12 @@ on the tab line to a different position.
 *** New command 'tab-line-close-other-tabs'.
 It is bound to the tab's context menu item "Close other tabs".
 
+---
+*** New user option 'tab-line-exclude-buffers'.
+This user option controls where 'tab-line-mode' should not be enabled in
+a buffer.  The value must be a condition which is passed to
+'buffer-match-p'.
+
 ** Project
 
 ---
