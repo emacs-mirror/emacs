@@ -25,12 +25,12 @@
 ;;; Tree-sitter language versions
 ;;
 ;; php-ts-mode has been tested with the following grammars and version:
-;; - tree-sitter-phpdoc: v0.1.5
+;; - tree-sitter-phpdoc: v0.1.6
 ;; - tree-sitter-css: v0.23.1-1-g6a442a3
 ;; - tree-sitter-jsdoc: v0.23.2
 ;; - tree-sitter-javascript: v0.23.1-2-g108b2d4
 ;; - tree-sitter-html: v0.23.2-1-gd9219ad
-;; - tree-sitter-php: v0.23.11
+;; - tree-sitter-php: v0.23.12
 ;;
 ;; We try our best to make builtin modes work with latest grammar
 ;; versions, so a more recent grammar has a good chance to work too.
@@ -42,7 +42,7 @@
 ;; for editing PHP files with embedded HTML, JavaScript, CSS and phpdoc.
 ;; Tree Sitter is used to parse each of these languages.
 ;;
-;; Please note that this package requires `html-ts-mode', which
+;; Please note that this package requires `mhtml-ts-mode', which
 ;; registers itself as the major mode for editing HTML.
 ;;
 ;; This package is compatible and has been tested with the following
@@ -69,9 +69,7 @@
 
 (require 'treesit)
 (require 'c-ts-common) ;; For comment indent and filling.
-(require 'html-ts-mode) ;; for embed html
-(require 'css-mode) ;; for embed css into html
-(require 'js) ;; for embed javascript into html
+(require 'mhtml-ts-mode) ;; For embed html, css and js.
 (require 'comint)
 (treesit-declare-unavailable-functions)
 
@@ -83,10 +81,10 @@
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
   '((php "https://github.com/tree-sitter/tree-sitter-php"
-         :commit "43aad2b9a98aa8e603ea0cf5bb630728a5591ad8"
-         :source-dir "php/src")
+	 :commit "f7cf7348737d8cff1b13407a0bfedce02ee7b046"
+	 :source-dir "php/src")
     (phpdoc "https://github.com/claytonrcarter/tree-sitter-phpdoc"
-            :commit "fe3202e468bc17332bec8969f2b50ff1f1da3a46"))
+	    :commit "03bb10330704b0b371b044e937d5cc7cd40b4999"))
   "Treesitter language parsers required by `php-ts-mode'.
 You can customize `treesit-language-source-alist' if you want
 to stick to a specific commit and/or use different parsers.")
@@ -97,9 +95,10 @@ to stick to a specific commit and/or use different parsers.")
 (defun php-ts-mode-install-parsers ()
   "Install all the required treesitter parsers.
 `treesit-language-source-alist' defines which parsers to install.
-It's pre-filled by loading \"html-ts-mode\", \"css-mode\", \"js\"."
+It's pre-filled by loading \"mhtml-ts-mode\"."
   (interactive)
-  (dolist (lang '(php phpdoc html css javascript jsdoc))
+  (mhtml-ts-mode-install-parsers)
+  (dolist (lang '(php phpdoc))
     (treesit-install-language-grammar lang)))
 
 ;;; Custom variables
@@ -118,25 +117,63 @@ It's pre-filled by loading \"html-ts-mode\", \"css-mode\", \"js\"."
 
 (defcustom php-ts-mode-js-css-indent-offset 2
   "JavaScript and CSS indent spaces related to the <script> and <style> HTML tags.
-By default should have same value as `html-ts-mode-indent-offset'."
+It is advisable to have this have the same value as
+`mhtml-ts-mode-js-css-indent-offset'."
   :tag "PHP javascript or css indent offset"
   :version "30.1"
   :type 'integer
   :safe 'integerp)
 
-(defcustom php-ts-mode-css-fontify-colors t
-  "Whether CSS colors should be fontified using the color as the background.
-If non-nil, text representing a CSS color will be fontified
-such that its background is the color itself.
-Works like `css--fontify-region'."
-  :tag "PHP colors the CSS properties values."
-  :version "30.1"
-  :type 'boolean
-  :safe 'booleanp)
+(defcustom php-ts-mode-html-indent-offset 2
+  "The number of spaces to indent PHP code relative to HTML tags.
+It is advisable to have this have the same value as
+`mhtml-ts-mode-js-css-indent-offset'."
+  :tag "PHP indent offset relative to HTML"
+  :version "31.1"
+  :type 'integer
+  :safe 'integerp)
 
-(defcustom php-ts-mode-php-default-executable (or (executable-find "php") "/usr/bin/php")
-  "The default PHP executable."
-  :tag "PHP Executable"
+(defcustom php-ts-mode-html-relative-indent t
+  "How PHP code is indented relative to the HTML tags.
+
+When t, the default, indentation looks like:
+
+  <html>
+    ...
+    <div>
+       <?php
+       ?>
+    </div>
+
+When nil, indentation of the tag body starts just below the
+tag, like:
+
+  <html>
+    ...
+    <div>
+    <?php
+    ?>
+    </div>
+
+When `ignore', the tag body starts in the first column, like:
+
+  <html>
+    ...
+    <div>
+  <?php
+  ?>
+    </div>"
+  :type '(choice
+          (const :tag "Indent starts just below the HTML tag" nil)
+          (const :tag "Indent relative to the HTML tag" t)
+          (const :tag "Always in the first column" ignore))
+  :safe 'symbolp
+  :tag "PHP indent relative to HTML"
+  :version "31.1")
+
+(defcustom php-ts-mode-php-default-executable (or (executable-find "php") "php")
+  "The default file name of the PHP executable."
+  :tag "PHP executable"
   :version "30.1"
   :type 'file)
 
@@ -148,7 +185,7 @@ If non-nil, `php-ts-mode--executable' looks for this instead of \"php\".")
   "The location of php.ini file.
 If nil the default one is used to run the embedded webserver or
 inferior PHP process."
-  :tag "PHP Init file"
+  :tag "PHP init file"
   :version "30.1"
   :type '(choice (const :tag "Default init file" nil) file))
 
@@ -198,6 +235,29 @@ Useful for testing code against multiple simultaneous requests."
   :type '(choice (const :tag "None" nil) file)
   :safe 'string-or-null-p)
 
+(defcustom php-ts-mode-find-sibling-rules
+  (list (list (rx "src/" (group (+ not-newline) "/") (group (+ (not "/"))) ".php") "tests/\\1\\2Test.php")
+	(list (rx "tests/" (group (+ not-newline) "/") (group (+ (not "/"))) "Test.php") "src/\\1\\2.php"))
+  "Rules for finding sibling files.  See `find-sibling-rules' for the
+  form of the value.
+As a default, the rules try to find the corresponding test of the
+current source file and vice versa.  Source files are assumed to be in
+src/, and tests of in tests/.  Many frameworks have a folder
+arrangement similar to this."
+  :type '(alist :key-type (regexp :tag "Match")
+		:value-type (repeat (string :tag "Expansion")))
+  :tag "PHP find sibling rules"
+  :version "31.1")
+
+(defcustom php-ts-mode-phpdoc-highlight-errors nil
+  "Highlight tags unknown to the phpdoc parser.
+If nil try to highlight even incorrect nodes as if they were correct,
+otherwise show phpdoc error using a `font-lock-warning-face'."
+  :tag "PHPDOC face for unknown tags or errors."
+  :version "31.1"
+  :type 'boolean
+  :safe 'booleanp)
+
 (defvar php-ts-mode--inferior-prompt "php >"
   "Prompt used by PHP inferior process.")
 
@@ -210,9 +270,9 @@ SYM should be `php-ts-mode-indent-style', and VAL should be a style
 symbol."
   (set-default sym val)
   (dolist (buffer (buffer-list))
-      (with-current-buffer buffer
-        (when (derived-mode-p 'php-ts-mode)
-          (php-ts-mode-set-style val)))))
+    (with-current-buffer buffer
+      (when (derived-mode-p 'php-ts-mode)
+	(php-ts-mode-set-style val)))))
 
 ;; taken from c-ts-mode
 (defun php-ts-indent-style-safep (style)
@@ -235,12 +295,12 @@ follows the form of `treesit-simple-indent-rules'."
   :tag "PHP indent style"
   :version "30.1"
   :type '(choice (const :tag "PSR-2/PSR-12" psr2)
-                 (const :tag "PEAR" pear)
-                 (const :tag "Drupal" drupal)
-                 (const :tag "WordPress" wordpress)
-                 (const :tag "Symfony" symfony)
-                 (const :tag "Zend" zend)
-                 (function :tag "A function for user customized style" ignore))
+		 (const :tag "PEAR" pear)
+		 (const :tag "Drupal" drupal)
+		 (const :tag "WordPress" wordpress)
+		 (const :tag "Symfony" symfony)
+		 (const :tag "Zend" zend)
+		 (function :tag "A function for user customized style" ignore))
   :set #'php-ts-mode--indent-style-setter
   :safe #'php-ts-indent-style-safep)
 
@@ -258,52 +318,52 @@ Calls REPORT-FN directly."
   (when (process-live-p php-ts-mode--flymake-process)
     (kill-process php-ts-mode--flymake-process))
   (let ((source (current-buffer))
-        (diagnostics-pattern (eval-when-compile
-                               (rx bol (? "PHP ") ;; every diagnostic line start with PHP
-                                   (group (or "Fatal" "Parse")) ;; 1: type
-                                   " error:" (+ (syntax whitespace))
-                                   (group (+? nonl)) ;; 2: msg
-                                   " in " (group (+? nonl)) ;; 3: file
-                                   " on line " (group (+ num)) ;; 4: line
-                                   eol))))
+	(diagnostics-pattern (eval-when-compile
+			       (rx bol (? "PHP ") ;; every diagnostic line start with PHP
+				   (group (or "Fatal" "Parse")) ;; 1: type
+				   " error:" (+ (syntax whitespace))
+				   (group (+? nonl)) ;; 2: msg
+				   " in " (group (+? nonl)) ;; 3: file
+				   " on line " (group (+ num)) ;; 4: line
+				   eol))))
     (save-restriction
       (widen)
       (setq php-ts-mode--flymake-process
-            (make-process
-             :name "php-ts-mode-flymake"
-             :noquery t
-             :connection-type 'pipe
-             :buffer (generate-new-buffer " *php-ts-mode-flymake*")
-             :command `(,(php-ts-mode--executable)
-                        "-l" "-d" "display_errors=0")
-             :sentinel
-             (lambda (proc _event)
-               (when (eq 'exit (process-status proc))
-                 (unwind-protect
-                     (if (with-current-buffer source
-                           (eq proc php-ts-mode--flymake-process))
-                         (with-current-buffer (process-buffer proc)
-                           (goto-char (point-min))
-                           (let (diags)
-                             (while (search-forward-regexp
-                                     diagnostics-pattern
-                                     nil t)
-                               (let* ((beg
-                                       (car (flymake-diag-region
-                                             source
-                                             (string-to-number (match-string 4)))))
-                                      (end
-                                       (cdr (flymake-diag-region
-                                             source
-                                             (string-to-number (match-string 4)))))
-                                      (msg (match-string 2))
-                                      (type :error))
-                                 (push (flymake-make-diagnostic
-                                        source beg end type msg)
-                                       diags)))
-                             (funcall report-fn diags)))
-                       (flymake-log :warning "Canceling obsolete check %s" proc))
-                   (kill-buffer (process-buffer proc)))))))
+	    (make-process
+	     :name "php-ts-mode-flymake"
+	     :noquery t
+	     :connection-type 'pipe
+	     :buffer (generate-new-buffer " *php-ts-mode-flymake*")
+	     :command `(,(php-ts-mode--executable)
+			"-l" "-d" "display_errors=0")
+	     :sentinel
+	     (lambda (proc _event)
+	       (when (eq 'exit (process-status proc))
+		 (unwind-protect
+		     (if (with-current-buffer source
+			   (eq proc php-ts-mode--flymake-process))
+			 (with-current-buffer (process-buffer proc)
+			   (goto-char (point-min))
+			   (let (diags)
+			     (while (search-forward-regexp
+				     diagnostics-pattern
+				     nil t)
+			       (let* ((beg
+				       (car (flymake-diag-region
+					     source
+					     (string-to-number (match-string 4)))))
+				      (end
+				       (cdr (flymake-diag-region
+					     source
+					     (string-to-number (match-string 4)))))
+				      (msg (match-string 2))
+				      (type :error))
+				 (push (flymake-make-diagnostic
+					source beg end type msg)
+				       diags)))
+			     (funcall report-fn diags)))
+		       (flymake-log :warning "Canceling obsolete check %s" proc))
+		   (kill-buffer (process-buffer proc)))))))
       (process-send-region php-ts-mode--flymake-process (point-min) (point-max))
       (process-send-eof php-ts-mode--flymake-process))))
 
@@ -317,23 +377,55 @@ it searches locally.  If `php-ts-mode-alternative-php-program-name' is
 non-nil, it searches for this program instead of the usual `php'.
 If the search fails, it returns `php-ts-mode-php-default-executable'."
   (or (executable-find
-      (or php-ts-mode-alternative-php-program-name "php") t)
-    php-ts-mode-php-default-executable))
+       (or php-ts-mode-alternative-php-program-name "php") t)
+      php-ts-mode-php-default-executable))
+
+(defun php-ts-mode-show-ini ()
+  "Pop a buffer showing the PHP configuration file names."
+  (interactive)
+  (let ((buffer (get-buffer-create "*PHP ini*"))
+	(button-action (lambda (_) (find-file-at-point)))
+	(remote (file-remote-p default-directory)))
+    (with-current-buffer buffer
+      (view-mode -1)
+      (erase-buffer)
+      (shell-command (concat (php-ts-mode--executable) " --ini") buffer)
+      ;; Remove useless ',' at end of some rows.
+      (while (re-search-forward "," nil t)
+	(replace-match "" nil nil))
+      (goto-char (point-min))
+      (while (re-search-forward
+	      "[a-zA-Z]?[:]?[/\\].+"
+	      nil t)
+	(let ((start (match-beginning 0))
+	      (end (match-end 0)))
+	  ;; If PHP is on a remote machine, the path must be preceded
+	  ;; by the remote identifier.
+	  (when remote
+	    (goto-char start)
+	    (insert remote)
+	    (setq end (+ end (length remote)))
+	    (goto-char end))
+	  (make-button start end 'action button-action)))
+      (goto-char (point-min))
+      (view-mode +1))
+    (when buffer
+      (pop-to-buffer buffer))))
 
 (defun php-ts-mode--get-indent-style ()
   "Helper function to set indentation style.
 MODE can be `psr2', `pear', `drupal', `wordpress', `symfony', `zend'."
   (let ((style
-         (if (functionp php-ts-mode-indent-style)
-             (funcall php-ts-mode-indent-style)
-           (cl-case php-ts-mode-indent-style
-             (psr2 (alist-get 'psr2 (php-ts-mode--indent-styles)))
-             (pear (alist-get 'pear (php-ts-mode--indent-styles)))
-             (drupal (alist-get 'drupal (php-ts-mode--indent-styles)))
-             (wordpress (alist-get 'wordpress (php-ts-mode--indent-styles)))
-             (symfony (alist-get 'symfony (php-ts-mode--indent-styles)))
-             (zend (alist-get 'zend (php-ts-mode--indent-styles)))
-             (t (alist-get 'psr2 (php-ts-mode--indent-styles)))))))
+	 (if (functionp php-ts-mode-indent-style)
+	     (funcall php-ts-mode-indent-style)
+	   (cl-case php-ts-mode-indent-style
+	     (psr2 (alist-get 'psr2 (php-ts-mode--indent-styles)))
+	     (pear (alist-get 'pear (php-ts-mode--indent-styles)))
+	     (drupal (alist-get 'drupal (php-ts-mode--indent-styles)))
+	     (wordpress (alist-get 'wordpress (php-ts-mode--indent-styles)))
+	     (symfony (alist-get 'symfony (php-ts-mode--indent-styles)))
+	     (zend (alist-get 'zend (php-ts-mode--indent-styles)))
+	     (t (alist-get 'psr2 (php-ts-mode--indent-styles)))))))
     `((php ,@style))))
 
 (defun php-ts-mode--prompt-for-style ()
@@ -357,23 +449,23 @@ in this Emacs session."
   "Set the offset, tab, etc. according to STYLE."
   (cl-case style
     (psr2 (setq php-ts-mode-indent-offset 4
-                tab-width 4
-                indent-tabs-mode nil))
+		tab-width 4
+		indent-tabs-mode nil))
     (pear (setq php-ts-mode-indent-offset 4
-                tab-width 4
-                indent-tabs-mode nil))
+		tab-width 4
+		indent-tabs-mode nil))
     (drupal (setq php-ts-mode-indent-offset 2
-                  tab-width 2
-                  indent-tabs-mode nil))
+		  tab-width 2
+		  indent-tabs-mode nil))
     (wordpress (setq php-ts-mode-indent-offset 4
-                     tab-width 4
-                     indent-tabs-mode t))
+		     tab-width 4
+		     indent-tabs-mode t))
     (symfony (setq php-ts-mode-indent-offset 4
-                   tab-width 4
-                   indent-tabs-mode nil))
+		   tab-width 4
+		   indent-tabs-mode nil))
     (zend (setq php-ts-mode-indent-offset 4
-                tab-width 4
-                indent-tabs-mode nil))))
+		tab-width 4
+		indent-tabs-mode nil))))
 
 (defun php-ts-mode-set-style (style)
   "Set the PHP indent style of the current buffer to STYLE.
@@ -386,13 +478,13 @@ To set the default indent style globally, use
    ((equal php-ts-mode-indent-style style)
     (message "The style is already %s" style));; nothing to do
    (t (progn
-        (setq-local php-ts-mode-indent-style style)
-        (php-ts-mode--set-indent-property style)
-        (let ((rules (assq-delete-all 'php treesit-simple-indent-rules))
-              (new-style (car (treesit--indent-rules-optimize
-                               (php-ts-mode--get-indent-style)))))
-          (setq treesit-simple-indent-rules (cons new-style rules))
-          (message "Switch to %s style" style))))))
+	(setq-local php-ts-mode-indent-style style)
+	(php-ts-mode--set-indent-property style)
+	(let ((rules (assq-delete-all 'php treesit-simple-indent-rules))
+	      (new-style (car (treesit--indent-rules-optimize
+			       (php-ts-mode--get-indent-style)))))
+	  (setq treesit-simple-indent-rules (cons new-style rules))
+	  (message "Switch to %s style" style))))))
 
 (defun php-ts-mode--get-parser-ranges ()
   "Return the ranges covered by the parsers.
@@ -401,9 +493,9 @@ To set the default indent style globally, use
 current buffer, the ranges covered by each parser.
 Useful for debugging."
   (let ((ranges)
-        (parsers (treesit-parser-list nil nil t)))
+	(parsers (treesit-parser-list nil nil t)))
     (if (not parsers)
-        (message "At least one parser must be initialized"))
+	(message "At least one parser must be initialized"))
     (cl-loop
      for parser in parsers
      do (push (list parser (treesit-parser-included-ranges parser)) ranges)
@@ -442,27 +534,6 @@ Useful for debugging."
 
 ;;; Indent
 
-(defconst php-ts-mode--possibly-braceless-keyword-re
-  (regexp-opt '("if" "for" "foreach" "while" "do") 'symbols)
-  "Regexp matching keywords optionally followed by an opening brace.")
-
-(defun php-ts-mode--open-statement-group-heuristic (node _parent bol &rest _)
-  "Heuristic matcher for statement-group without closing bracket.
-
-Return `php-ts-mode-indent-offset' plus 1 when BOL is after
-`php-ts-mode--possibly-braceless-keyword-re', otherwise return 0.  It's
-useful for matching incomplete compound_statement or colon_block.
-PARENT is NODE's parent, BOL is the beginning of non-whitespace
-characters of the current line."
-  (and (null node)
-       (save-excursion
-	   (forward-line -1)
-	   (if (re-search-forward
-		php-ts-mode--possibly-braceless-keyword-re
-		bol t)
-	       (+ 1 php-ts-mode-indent-offset)
-	     0))))
-
 ;; taken from c-ts-mode
 (defun php-ts-mode--else-heuristic (node parent bol &rest _)
   "Heuristic matcher for when \"else\" is followed by a closing bracket.
@@ -471,10 +542,10 @@ PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters of the current line."
   (and (null node)
        (save-excursion
-         (forward-line -1)
-         (looking-at (rx (* whitespace) "else" (* whitespace) eol)))
+	 (forward-line -1)
+	 (looking-at (rx (* whitespace) "else" (* whitespace) eol)))
        (let ((next-node (treesit-node-first-child-for-pos parent bol)))
-         (equal (treesit-node-type next-node) "}"))))
+	 (equal (treesit-node-type next-node) "}"))))
 
 ;; taken from c-ts-mode
 (defun php-ts-mode--first-sibling (node parent &rest _)
@@ -485,26 +556,11 @@ such that it's on its own line.  NODE is the node to match and
 PARENT is its parent."
   (let ((prev-sibling (treesit-node-prev-sibling node t)))
     (or (null prev-sibling)
-        (save-excursion
-          (goto-char (treesit-node-start prev-sibling))
-          (<= (line-beginning-position)
-              (treesit-node-start parent)
-              (line-end-position))))))
-
-(defun php-ts-mode--js-css-tag-bol (_node parent &rest _)
-  "Find the first non-space characters of html tags <script> or <style>.
-
-Return `line-beginning-position' when `treesit-node-at' is HTML or PHP.
-Otherwise go to the PARENT and search backward for <script> or <style> tags.
-Should be used only for Javascript or CSS indenting rules.
-NODE, ignored, is the node to match and PARENT is its parent."
-  (let ((lang (treesit-language-at (point))))
-    (if (or (eq lang 'javascript)
-	    (eq lang 'css))
 	(save-excursion
-	  (goto-char (treesit-node-start parent))
-	  (re-search-backward "<script.*>\\|<style.*>" nil t))
-      (line-beginning-position))))
+	  (goto-char (treesit-node-start prev-sibling))
+	  (<= (line-beginning-position)
+	      (treesit-node-start parent)
+	      (line-end-position))))))
 
 (defun php-ts-mode--parent-eol (_node parent &rest _)
   "Find the last non-space characters of the PARENT of the current NODE.
@@ -514,50 +570,33 @@ NODE is the node to match and PARENT is its parent."
     (goto-char (treesit-node-start parent))
     (line-end-position)))
 
-(defun php-ts-mode--parent-html-bol (node parent bol &rest _)
-  "Find the first non-space characters of the HTML tags before NODE.
-
-When NODE is nil call `php-ts-mode--open-statement-group-heuristic'.
-PARENT is NODE's parent, BOL is the beginning of non-whitespace
-characters of the current line."
-  (if (null node)
-      ;; If NODE is nil it could be an open statement-group.
-      (php-ts-mode--open-statement-group-heuristic node parent bol)
-    (save-excursion
-      (let ((html-node (treesit-search-forward node "text" t)))
-	(if html-node
-            (let ((end-html (treesit-node-end html-node)))
-              (goto-char end-html)
-              (backward-word)
-              (back-to-indentation)
-              (point))
-          (treesit-node-start parent))))))
-
 (defun php-ts-mode--parent-html-heuristic (node parent bol &rest _)
   "Return position based on html indentation.
 
-Returns 0 if the NODE is after the </html>, otherwise returns the
-indentation point of the last word before the NODE, plus the indentation
-offset.  If there is no HTML tag, it returns the beginning of the
-parent.  When NODE is nil call `php-ts-mode--open-statement-group-heuristic'.
-It can be used when you want to indent PHP code relative to the HTML.
-PARENT is NODE's parent, BOL is the beginning of non-whitespace
-characters of the current line."
-  (if (null node)
-      ;; If NODE is nil it could be an open statement-group.
-      (php-ts-mode--open-statement-group-heuristic node parent bol)
-    (let ((html-node (treesit-search-forward node "text" t)))
-      (if html-node
-          (let ((end-html (treesit-node-end html-node)))
-            (save-excursion
-	      (goto-char end-html)
-	      (backward-word)
-	      (back-to-indentation)
-	      (if (search-forward "</html>" end-html t 1)
-                  0
-		(+ (point) php-ts-mode-indent-offset))))
-	;; Maybe it's better to use bol?
-	(treesit-node-start parent)))))
+Return 0 if the NODE is after the </html>.  If
+`php-ts-mode-html-relative-indent' is not nil return the indentation
+point of the last word before the NODE, plus the indentation offset,
+otherwise return only the indentation point.  If there is no HTML tag,
+it returns the beginning of the parent.  When NODE is nil it behaves
+like \"prev-siblings\" of `treesit-simple-indent-presets'.  It can be
+used when you want to indent PHP code relative to the HTML.  PARENT is
+NODE's parent, BOL is the beginning of non-whitespace characters of
+the current line."
+  (save-excursion
+    (cond
+     ((eq php-ts-mode-html-relative-indent 'ignore) (line-beginning-position))
+     ((search-backward "</html>" (treesit-node-start parent) t 1) (line-beginning-position))
+     ((null node) (apply (alist-get 'prev-sibling treesit-simple-indent-presets) node parent bol nil))
+     (t (when-let* ((html-node (treesit-search-forward node "text" t))
+		    (end-html (treesit-node-end html-node)))
+	  (goto-char end-html)
+	  ;; go to the start of the last tag
+	  ;; of the "text" node
+	  (backward-word)
+	  (back-to-indentation)
+	  (if php-ts-mode-html-relative-indent
+	      (+ (point) php-ts-mode-html-indent-offset)
+	    (point)))))))
 
 (defun php-ts-mode--array-element-heuristic (_node parent _bol &rest _)
   "Return of the position of the first element of the array.
@@ -565,21 +604,20 @@ characters of the current line."
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters of the current line."
   (let ((parent-start
-         (treesit-node-start parent))
-        (parent-first-child-start
-         (treesit-node-start (treesit-node-child parent 2))))
+	 (treesit-node-start parent))
+	(parent-first-child-start
+	 (treesit-node-start (treesit-node-child parent 2))))
     (if (equal
-         (line-number-at-pos parent-start)
-         (line-number-at-pos parent-first-child-start))
-        ;; if array_creation_expression and the first
-        ;; array_element_initializer are on the same same line
-        parent-first-child-start
+	 (line-number-at-pos parent-start)
+	 (line-number-at-pos parent-first-child-start))
+	;; if array_creation_expression and the first
+	;; array_element_initializer are on the same same line
+	parent-first-child-start
       ;; else return parent-bol plus the offset
       (save-excursion
-        (goto-char (treesit-node-start parent))
-        (back-to-indentation)
-        (+ (point) php-ts-mode-indent-offset)))))
-
+	(goto-char (treesit-node-start parent))
+	(back-to-indentation)
+	(+ (point) php-ts-mode-indent-offset)))))
 
 (defun php-ts-mode--anchor-first-sibling (_node parent _bol &rest _)
   "Return the start of the first child of a sibling of PARENT.
@@ -590,14 +628,14 @@ sibling.  Otherwise return the start of the first sibling.
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters of the current line."
   (let ((first-sibling-start
-         (treesit-node-start (treesit-node-child parent 0)))
-        (first-sibling-child-start
-         (treesit-node-start (treesit-node-child parent 1))))
+	 (treesit-node-start (treesit-node-child parent 0)))
+	(first-sibling-child-start
+	 (treesit-node-start (treesit-node-child parent 1))))
     (if (equal
-         (line-number-at-pos first-sibling-start)
-         (line-number-at-pos first-sibling-child-start))
-        ;; if are on the same line return the child start
-        first-sibling-child-start
+	 (line-number-at-pos first-sibling-start)
+	 (line-number-at-pos first-sibling-child-start))
+	;; if are on the same line return the child start
+	first-sibling-child-start
       first-sibling-start)))
 
 ;; adapted from c-ts-mode--anchor-prev-sibling
@@ -610,150 +648,158 @@ doesn't have a child.
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters of the current line."
   (when-let* ((prev-sibling
-              (or (treesit-node-prev-sibling node t)
-                  (treesit-node-prev-sibling
-                   (treesit-node-first-child-for-pos parent bol) t)
-                  (treesit-node-child parent -1 t)))
-             (continue t))
+	       (or (treesit-node-prev-sibling node t)
+		   (treesit-node-prev-sibling
+		    (treesit-node-first-child-for-pos parent bol) t)
+		   (treesit-node-child parent -1 t)))
+	      (continue t))
     (save-excursion
       (while (and prev-sibling continue)
-        (goto-char (treesit-node-start prev-sibling))
-        (if (looking-back (rx bol (* whitespace))
-                          (line-beginning-position))
-            (setq continue nil)
-          (setq prev-sibling
-                (treesit-node-prev-sibling prev-sibling)))))
+	(goto-char (treesit-node-start prev-sibling))
+	(if (looking-back (rx bol (* whitespace))
+			  (line-beginning-position))
+	    (setq continue nil)
+	  (setq prev-sibling
+		(treesit-node-prev-sibling prev-sibling)))))
     (treesit-node-start prev-sibling)))
 
 (defun php-ts-mode--indent-styles ()
   "Indent rules supported by `php-ts-mode'."
   (let ((common
-         `((php-ts-mode--else-heuristic prev-line php-ts-mode-indent-offset)
+	 `(;; Handle indentation relatives to HTML.
+	   ;; ((parent-is "program") php-ts-mode--parent-html-heuristic 0)
+	   ;; ((parent-is "text_interpolation") php-ts-mode--parent-html-heuristic 0)
+	   ((or (parent-is "program")
+		(parent-is "text_interpolation"))
+	    php-ts-mode--parent-html-heuristic 0)
 
-           ((query "(ERROR (ERROR)) @indent") column-0 0)
+	   (php-ts-mode--else-heuristic prev-line php-ts-mode-indent-offset)
 
-           ((node-is ")") parent-bol 0)
-           ((node-is "]") parent-bol 0)
-           ((node-is "else_clause") parent-bol 0)
-           ((node-is "case_statement") parent-bol php-ts-mode-indent-offset)
-           ((node-is "default_statement") parent-bol php-ts-mode-indent-offset)
-           ((parent-is "default_statement") parent-bol php-ts-mode-indent-offset)
-           ((and
-             (parent-is "expression_statement")
-             (node-is ";"))
-            parent-bol 0)
-           ((parent-is "expression_statement") parent-bol php-ts-mode-indent-offset)
-           ;; `c-ts-common-looking-at-star' has to come before
-           ;; `c-ts-common-comment-2nd-line-matcher'.
-           ((and (parent-is "comment") c-ts-common-looking-at-star)
-            c-ts-common-comment-start-after-first-star -1)
-           (c-ts-common-comment-2nd-line-matcher
-            c-ts-common-comment-2nd-line-anchor
-            1)
-           ((parent-is "comment") prev-adaptive-prefix 0)
+	   ((query "(ERROR (ERROR)) @indent") parent-bol 0)
 
-           ((parent-is "method_declaration") parent-bol 0)
-           ((node-is "class_interface_clause") parent-bol php-ts-mode-indent-offset)
-           ((query "(class_interface_clause (name) @indent)") php-ts-mode--parent-eol 1)
-           ((query "(class_interface_clause (qualified_name) @indent)")
-            parent-bol php-ts-mode-indent-offset)
-           ((parent-is "class_declaration") parent-bol 0)
+	   ((node-is ")") parent-bol 0)
+	   ((node-is "]") parent-bol 0)
+	   ((node-is "else_clause") parent-bol 0)
+	   ((node-is "case_statement") parent-bol php-ts-mode-indent-offset)
+	   ((node-is "default_statement") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "default_statement") parent-bol php-ts-mode-indent-offset)
+	   ((and
+	     (parent-is "expression_statement")
+	     (node-is ";"))
+	    parent-bol 0)
+	   ((parent-is "expression_statement") parent-bol php-ts-mode-indent-offset)
+	   ;; `c-ts-common-looking-at-star' has to come before
+	   ;; `c-ts-common-comment-2nd-line-matcher'.
+	   ((and (parent-is "comment") c-ts-common-looking-at-star)
+	    c-ts-common-comment-start-after-first-star -1)
+	   (c-ts-common-comment-2nd-line-matcher
+	    c-ts-common-comment-2nd-line-anchor
+	    1)
+	   ((parent-is "comment") prev-adaptive-prefix 0)
+
+	   ((parent-is "method_declaration") parent-bol 0)
+	   ((node-is "class_interface_clause") parent-bol php-ts-mode-indent-offset)
+	   ((query "(class_interface_clause (name) @indent)") php-ts-mode--parent-eol 1)
+	   ((query "(class_interface_clause (qualified_name) @indent)")
+	    parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "class_declaration") parent-bol 0)
 	   ((parent-is "namespace_use_declaration") parent-bol php-ts-mode-indent-offset)
-           ((parent-is "namespace_use_group") parent-bol php-ts-mode-indent-offset)
-           ((parent-is "function_definition") parent-bol 0)
-           ((parent-is "member_call_expression") first-sibling php-ts-mode-indent-offset)
-           ((parent-is "conditional_expression") parent-bol php-ts-mode-indent-offset)
-           ((parent-is "assignment_expression") parent-bol php-ts-mode-indent-offset)
-           ((parent-is "array_creation_expression") parent-bol php-ts-mode-indent-offset)
-           ((parent-is "parenthesized_expression") first-sibling 1)
-           ((parent-is "binary_expression") parent 0)
-           ((or (parent-is "arguments")
-                (parent-is "formal_parameters"))
-            parent-bol php-ts-mode-indent-offset)
+	   ((node-is "namespace_use_clause") parent-bol php-ts-mode-indent-offset)
+	   ((or (parent-is "use_declaration")
+		(parent-is "use_list"))
+	    parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "function_definition") parent-bol 0)
+	   ((parent-is "member_call_expression") first-sibling php-ts-mode-indent-offset)
+	   ((parent-is "conditional_expression") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "assignment_expression") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "array_creation_expression") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "attribute_group") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "parenthesized_expression") first-sibling 1)
+	   ((parent-is "binary_expression") parent 0)
+	   ((or (parent-is "arguments")
+		(parent-is "formal_parameters"))
+	    parent-bol php-ts-mode-indent-offset)
 
-           ((query "(for_statement (assignment_expression left: (_)) @indent)")
-            parent-bol php-ts-mode-indent-offset)
-           ((query "(for_statement (binary_expression left: (_)) @indent)")
-            parent-bol php-ts-mode-indent-offset)
-           ((query "(for_statement (update_expression (_)) @indent)")
-            parent-bol php-ts-mode-indent-offset)
-           ((query "(function_call_expression arguments: (_) @indent)")
-            parent php-ts-mode-indent-offset)
-           ((query "(member_call_expression arguments: (_) @indent)")
-            parent php-ts-mode-indent-offset)
-           ((query "(scoped_call_expression name: (_) @indent)")
-            parent php-ts-mode-indent-offset)
-           ((parent-is "scoped_property_access_expression")
-            parent php-ts-mode-indent-offset)
+	   ((query "(for_statement (assignment_expression left: (_)) @indent)")
+	    parent-bol php-ts-mode-indent-offset)
+	   ((query "(for_statement (binary_expression left: (_)) @indent)")
+	    parent-bol php-ts-mode-indent-offset)
+	   ((query "(for_statement (update_expression (_)) @indent)")
+	    parent-bol php-ts-mode-indent-offset)
+	   ((query "(function_call_expression arguments: (_) @indent)")
+	    parent php-ts-mode-indent-offset)
+	   ((query "(member_call_expression arguments: (_) @indent)")
+	    parent php-ts-mode-indent-offset)
+	   ((query "(scoped_call_expression name: (_) @indent)")
+	    parent php-ts-mode-indent-offset)
+	   ((parent-is "scoped_property_access_expression")
+	    parent php-ts-mode-indent-offset)
 
-           ;; Closing bracket. Must stay here, the rule order matter.
-           ((node-is "}") standalone-parent 0)
-           ;; handle multiple single line comment that start at the and of a line
-           ((match "comment" "declaration_list") php-ts-mode--anchor-prev-sibling 0)
-           ((parent-is "declaration_list") column-0 php-ts-mode-indent-offset)
+	   ;; Closing bracket. Must stay here, the rule order matter.
+	   ((node-is "}") standalone-parent 0)
+	   ;; handle multiple single line comment that start at the and of a line
+	   ((match "comment" "declaration_list") php-ts-mode--anchor-prev-sibling 0)
+	   ((parent-is "declaration_list") column-0 php-ts-mode-indent-offset)
 
-           ((parent-is "initializer_list") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "initializer_list") parent-bol php-ts-mode-indent-offset)
 
-           ;; Statement in {} blocks.
-           ((or (and (or (parent-is "compound_statement")
+	   ;; Statement in {} blocks.
+	   ((or (and (or (parent-is "compound_statement")
 			 (parent-is "colon_block"))
-                     ;; If the previous sibling(s) are not on their
-                     ;; own line, indent as if this node is the first
-                     ;; sibling
-                     php-ts-mode--first-sibling)
-                (or (match null "compound_statement")
+		     ;; If the previous sibling(s) are not on their
+		     ;; own line, indent as if this node is the first
+		     ;; sibling
+		     php-ts-mode--first-sibling)
+		(or (match null "compound_statement")
 		    (match null "colon_block")))
-            standalone-parent php-ts-mode-indent-offset)
-           ((or (parent-is "compound_statement")
+	    standalone-parent php-ts-mode-indent-offset)
+	   ((or (parent-is "compound_statement")
 		(parent-is "colon_block"))
 	    parent-bol php-ts-mode-indent-offset)
-           ;; Opening bracket.
-           ((or (node-is "compound_statement")
-                (node-is "colon_block"))
-                standalone-parent php-ts-mode-indent-offset)
+	   ;; Opening bracket.
+	   ((or (node-is "compound_statement")
+		(node-is "colon_block"))
+	    standalone-parent php-ts-mode-indent-offset)
 
-           ((parent-is "match_block") parent-bol php-ts-mode-indent-offset)
-           ((parent-is "switch_block") parent-bol 0)
+	   ((parent-is "match_block") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "switch_block") parent-bol 0)
 
-           ;; These rules are for cases where the body is bracketless.
-           ((match "while" "do_statement") parent-bol 0)
-           ;; rule for PHP alternative syntax
-           ((or (node-is "else_if_clause")
-                (node-is "endif")
-                (node-is "endfor")
-                (node-is "endforeach")
-                (node-is "endwhile"))
-            parent-bol 0)
-           ((or (parent-is "if_statement")
-                (parent-is "else_clause")
-                (parent-is "for_statement")
-                (parent-is "foreach_statement")
-                (parent-is "while_statement")
-                (parent-is "do_statement")
-                (parent-is "switch_statement")
-                (parent-is "case_statement")
-                (parent-is "empty_statement"))
-            parent-bol php-ts-mode-indent-offset)
+	   ;; These rules are for cases where the body is bracketless.
+	   ((match "while" "do_statement") parent-bol 0)
+	   ;; rule for PHP alternative syntax
+	   ((or (node-is "else_if_clause")
+		(node-is "endif")
+		(node-is "endfor")
+		(node-is "endforeach")
+		(node-is "endwhile"))
+	    parent-bol 0)
+	   ((or (parent-is "if_statement")
+		(parent-is "else_clause")
+		(parent-is "for_statement")
+		(parent-is "foreach_statement")
+		(parent-is "while_statement")
+		(parent-is "do_statement")
+		(parent-is "switch_statement")
+		(parent-is "case_statement")
+		(parent-is "empty_statement"))
+	    parent-bol php-ts-mode-indent-offset)
+
+	   ;; Do not touch the indentation inside a multiline the strings.
+	   ((parent-is "string_content") no-indent 0)
 
 	   ;; Workaround: handle "for" open statement group. Currently
-           ;; the grammar handles it differently than other control structures.
-	   (no-node php-ts-mode--open-statement-group-heuristic 0))))
+	   ;; the grammar handles it differently than other control structures.
+	   (no-node prev-sibling 0))))
     `((psr2
-       ((parent-is "program") php-ts-mode--open-statement-group-heuristic 0)
-       ((parent-is "text_interpolation") column-0 0)
        ((parent-is "function_call_expression") parent-bol php-ts-mode-indent-offset)
        ,@common)
       (pear
-       ((parent-is "program") php-ts-mode--parent-html-heuristic 0)
-       ((parent-is "text_interpolation") php-ts-mode--parent-html-heuristic 0)
        ((or (node-is "case_statement")
-            (node-is "default_statement"))
-        parent-bol 0)
+	    (node-is "default_statement"))
+	parent-bol 0)
        ((parent-is "binary_expression") parent-bol php-ts-mode-indent-offset)
        ,@common)
       (drupal
-       ((parent-is "program") php-ts-mode--parent-html-heuristic 0)
-       ((parent-is "text_interpolation") php-ts-mode--parent-html-bol 0)
        ((parent-is "if_statement") parent-bol 0)
        ((parent-is "binary_expression") parent-bol php-ts-mode-indent-offset)
        ((parent-is "function_call_expression") parent-bol php-ts-mode-indent-offset)
@@ -762,8 +808,6 @@ characters of the current line."
        ((parent-is "function_call_expression") parent-bol php-ts-mode-indent-offset)
        ,@common)
       (wordpress
-       ((parent-is "program") php-ts-mode--parent-html-bol 0)
-       ((parent-is "text_interpolation") php-ts-mode--parent-html-bol 0)
        ,@common)
       (zend
        ((parent-is "class_interface_clause") php-ts-mode--anchor-first-sibling 0)
@@ -838,6 +882,14 @@ characters of the current line."
     "__toString" "__invoke" "__set_state" "__clone" "__debugInfo")
   "PHP predefined magic methods.")
 
+(defconst php-ts-mode--prettify-symbols-alist
+  '(("<=" . ?≤)
+    (">=" . ?≥)
+    ("->"  . ?→)
+    ("=>"  . ?⇒)
+    ("::" . ?∷))
+  "Value for `prettify-symbols-alist' in `php-ts-mode'.")
+
 (defun php-ts-mode--test-namespace-name-as-prefix-p ()
   "Return t if namespace_name_as_prefix is a named node, nil otherwise."
   (treesit-query-valid-p 'php "(namespace_name_as_prefix)"))
@@ -850,13 +902,17 @@ characters of the current line."
   "Return t if namespace_use_group_clause is a named node, nil otherwise."
   (treesit-query-valid-p 'php "(namespace_use_group_clause)"))
 
-(defun php-ts-mode--test-visibility-modifier-operation-clause-p ()
+(defun php-ts-mode--test-visibility-modifier-operation-p ()
   "Return t if (visibility_modifier (operation)) is defined, nil otherwise."
   (treesit-query-valid-p 'php "(visibility_modifier (operation))"))
 
-(defun php-ts-mode--test-property-hook-clause-p ()
+(defun php-ts-mode--test-property-hook-p ()
   "Return t if property_hook is a named node, nil otherwise."
   (treesit-query-valid-p 'php "(property_hook)"))
+
+(defun php-ts-mode--test-relative-name-p ()
+  "Return t if relative_name is a named node, nil otherwise."
+  (treesit-query-valid-p 'php "(relative_name)"))
 
 (defun php-ts-mode--font-lock-settings ()
   "Tree-sitter font-lock settings."
@@ -866,7 +922,7 @@ characters of the current line."
    :feature 'keyword
    :override t
    `([,@php-ts-mode--keywords] @font-lock-keyword-face
-     ,@(when (php-ts-mode--test-visibility-modifier-operation-clause-p)
+     ,@(when (php-ts-mode--test-visibility-modifier-operation-p)
 	 '((visibility_modifier (operation) @font-lock-builtin-face)))
      (var_modifier) @font-lock-builtin-face)
 
@@ -882,8 +938,8 @@ characters of the current line."
      ;; predefined constant or built in constant (part of PHP core)
      ((name) @font-lock-builtin-face
       (:match ,(rx-to-string
-                `(: bos (or ,@php-ts-mode--predefined-constant) eos))
-              @font-lock-builtin-face))
+		`(: bos (or ,@php-ts-mode--predefined-constant) eos))
+	      @font-lock-builtin-face))
      ;; user defined constant
      ((name) @font-lock-constant-face
       (:match "\\`_*[A-Z][0-9A-Z_]+\\'" @font-lock-constant-face))
@@ -917,7 +973,8 @@ characters of the current line."
      (member_access_expression
       name: (_) @font-lock-variable-name-face)
      (scoped_property_access_expression
-      scope: (name) @font-lock-constant-face))
+      scope: (name) @font-lock-constant-face)
+     (error_suppression_expression (name) @font-lock-property-name-face))
 
    :language 'php
    :feature 'string
@@ -966,28 +1023,28 @@ characters of the current line."
       name: (_) @font-lock-type-face)
      (function_definition
       name: (_) @font-lock-function-name-face)
-     ,@(when (php-ts-mode--test-property-hook-clause-p)
+     ,@(when (php-ts-mode--test-property-hook-p)
 	 '((property_hook (name) @font-lock-function-name-face)))
      (method_declaration
       name: (_) @font-lock-function-name-face)
      (method_declaration
       name: (name) @font-lock-builtin-face
       (:match ,(rx-to-string
-                `(: bos (or ,@php-ts-mode--class-magic-methods) eos))
-              @font-lock-builtin-face))
+		`(: bos (or ,@php-ts-mode--class-magic-methods) eos))
+	      @font-lock-builtin-face))
      ("=>") @font-lock-keyword-face
      (object_creation_expression
       (name) @font-lock-type-face)
      ,@(when (php-ts-mode--test-namespace-name-as-prefix-p)
-           '((namespace_name_as_prefix "\\" @font-lock-delimiter-face)
-             (namespace_name_as_prefix
-              (namespace_name (name)) @font-lock-type-face)))
+	 '((namespace_name_as_prefix "\\" @font-lock-delimiter-face)
+	   (namespace_name_as_prefix
+	    (namespace_name (name)) @font-lock-type-face)))
      ,@(if (php-ts-mode--test-namespace-aliasing-clause-p)
-           '((namespace_aliasing_clause (name) @font-lock-type-face))
-         '((namespace_use_clause alias: (name) @font-lock-type-face)))
+	   '((namespace_aliasing_clause (name) @font-lock-type-face))
+	 '((namespace_use_clause alias: (name) @font-lock-type-face)))
      ,@(when (not (php-ts-mode--test-namespace-use-group-clause-p))
-         '((namespace_use_group
-            (namespace_use_clause (name) @font-lock-type-face))))
+	 '((namespace_use_group
+	    (namespace_use_clause (name) @font-lock-type-face))))
      (namespace_use_clause (name) @font-lock-type-face)
      (namespace_name "\\" @font-lock-delimiter-face)
      (namespace_name (name) @font-lock-type-face)
@@ -1035,7 +1092,9 @@ characters of the current line."
      (use_as_clause (name) @font-lock-property-use-face)
      ,@(when (not (php-ts-mode--test-namespace-name-as-prefix-p))
 	 '((qualified_name prefix: "\\" @font-lock-delimiter-face)))
-     (qualified_name (name) @font-lock-constant-face))
+     (qualified_name (name) @font-lock-constant-face)
+     ,@(when (php-ts-mode--test-relative-name-p)
+	 '((relative_name (name) @font-lock-constant-face))))
 
    :language 'php
    :feature 'property
@@ -1061,35 +1120,17 @@ characters of the current line."
 ;;; Font-lock helpers
 
 (defconst php-ts-mode--custom-html-font-lock-settings
-  (treesit-font-lock-rules
-   :language 'html
-   :override t
-   :feature 'comment
-   `((comment) @font-lock-comment-face
-     ;; handle shebang path and others type of comment
-     (document (text) @font-lock-comment-face))
-
-   :language 'html
-   :override t
-   :feature 'keyword
-   `("doctype" @font-lock-keyword-face)
-
-   :language 'html
-   :override t
-   :feature 'definition
-   `((tag_name) @font-lock-function-name-face)
-
-   :language 'html
-   :override 'append
-   :feature 'string
-   `((quoted_attribute_value) @font-lock-string-face)
-
-   :language 'html
-   :override t
-   :feature 'property
-   `((attribute_name) @font-lock-variable-name-face))
+  (treesit-replace-font-lock-feature-settings
+   (treesit-font-lock-rules
+    :language 'html
+    :override t
+    :feature 'comment
+    '((comment) @font-lock-comment-face
+      ;; handle shebang path and others type of comment
+      (document (text) @font-lock-comment-face)))
+   mhtml-ts-mode--treesit-font-lock-settings)
   "Tree-sitter Font-lock settings for HTML when embedded in PHP.
-Like `html-ts-mode--font-lock-settings' but adapted for `php-ts-mode'.")
+Like `mhtml-ts-mode--font-lock-settings' but adapted for `php-ts-mode'.")
 
 (defvar php-ts-mode--phpdoc-font-lock-settings
   (treesit-font-lock-rules
@@ -1102,8 +1143,9 @@ Like `html-ts-mode--font-lock-settings' but adapted for `php-ts-mode'.")
    :feature 'type
    :override t
    '((union_type
-      [(array_type) (primitive_type) (named_type) (optional_type)] @font-lock-type-face)
-     ([(array_type) (primitive_type) (named_type) (optional_type)] @font-lock-type-face)
+      [(primitive_type) (named_type) (optional_type)] @font-lock-type-face)
+     (array_type ["array" "list"] @font-lock-keyword-face)
+     ([(primitive_type) (named_type) (optional_type)] @font-lock-type-face)
      (fqsen (name) @font-lock-function-name-face))
 
    :language 'phpdoc
@@ -1118,27 +1160,13 @@ Like `html-ts-mode--font-lock-settings' but adapted for `php-ts-mode'.")
    :language 'phpdoc
    :feature 'variable
    :override t
-   '((variable_name (name) @font-lock-variable-name-face)))
-  "Tree-sitter font-lock settings for phpdoc.")
+   '((variable_name (name) @font-lock-variable-name-face))
 
-(defun php-ts-mode--colorize-css-value (node override start end &rest _)
-  "Colorize CSS property value like `css--fontify-region'.
-For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
-  (if (and php-ts-mode-css-fontify-colors
-           (string-equal "plain_value" (treesit-node-type node)))
-      (let ((color (css--compute-color start (treesit-node-text node t))))
-        (when color
-	  (with-silent-modifications
-	    (add-text-properties
-	     (treesit-node-start node) (treesit-node-end node)
-	     (list 'face (list :background color
-			       :foreground (readable-foreground-color
-                                            color)
-			       :box '(:line-width -1)))))))
-    (treesit-fontify-with-override
-     (treesit-node-start node) (treesit-node-end node)
-     'font-lock-variable-name-face
-     override start end)))
+   :language 'phpdoc
+   :feature 'phpdoc-error
+   :override t
+   '((ERROR) @php-ts-mode--phpdoc-fontify-error))
+  "Tree-sitter font-lock settings for phpdoc.")
 
 (defun php-ts-mode--fontify-error (node override start end &rest _)
   "Fontify the error nodes.
@@ -1147,6 +1175,13 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
    (treesit-node-start node) (treesit-node-end node)
    'font-lock-warning-face
    override start end))
+
+(defun php-ts-mode--phpdoc-fontify-error (node override start end &rest _)
+  "Fontify the phpdoc error nodes.
+Most of the error are only tag non handled by the phpdoc parser.
+For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
+  (when php-ts-mode-phpdoc-highlight-errors
+    (php-ts-mode--fontify-error node override start end)))
 
 
 ;;; Imenu
@@ -1157,92 +1192,106 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
    node
    (lambda (n)
      (member (treesit-node-type n)
-             '("class_declaration"
-               "enum_declaration"
-               "function_definition"
-               "interface_declaration"
-               "method_declaration"
-               "namespace_definition"
-               "trait_declaration")))))
+	     '("class_declaration"
+	       "enum_declaration"
+	       "function_definition"
+	       "interface_declaration"
+	       "method_declaration"
+	       "namespace_definition"
+	       "trait_declaration")))))
 
 (defun php-ts-mode--defun-name-separator (node)
   "Return a separator to connect object name, based on NODE type."
   (let ((node-type (treesit-node-type node)))
     (cond ((member node-type '("function_definition" "method_declaration"))
-           "()::")
-          ((member node-type '("class_declaration" "enum_declaration" "trait_declaration"))
-           "::")
-          (t "\\"))))
+	   "()::")
+	  ((member node-type '("class_declaration" "enum_declaration" "trait_declaration"))
+	   "::")
+	  (t "\\"))))
 
 (defun php-ts-mode--defun-object-name (node node-text)
   "Compose the full name of a NODE that is a PHP variable, method, class etc.
 If the NODE has a parent, it recursively concat the parent names with NODE-TEXT,
 otherwise it returns NODE-TEXT."
   (let* ((parent-node (php-ts-mode--parent-object node))
-         (parent-node-text
-          (treesit-node-text
-           (treesit-node-child-by-field-name parent-node "name") t))
-         (parent-node-separator (php-ts-mode--defun-name-separator parent-node)))
+	 (parent-node-text
+	  (treesit-node-text
+	   (treesit-node-child-by-field-name parent-node "name") t))
+	 (parent-node-separator (php-ts-mode--defun-name-separator parent-node)))
     (if parent-node
-        (progn
-          (setq parent-node-text
-                (php-ts-mode--defun-object-name
-                 parent-node
-                 parent-node-text))
-          (concat parent-node-text parent-node-separator node-text))
+	(progn
+	  (setq parent-node-text
+		(php-ts-mode--defun-object-name
+		 parent-node
+		 parent-node-text))
+	  (concat parent-node-text parent-node-separator node-text))
       node-text)))
 
 (defun php-ts-mode--defun-name (node)
   "Return the defun name of NODE.
 Return nil if the NODE has no field “name” or if NODE is not a defun node."
-  (let ((child (treesit-node-child-by-field-name node "name")))
-    (cl-case (intern (treesit-node-type node))
-      (class_declaration (treesit-node-text child t))
-      (trait_declaration (treesit-node-text child t))
-      (interface_declaration (treesit-node-text child t))
-      (namespace_definition (treesit-node-text child t))
-      (enum_declaration (treesit-node-text child t))
-      (function_definition (treesit-node-text child t))
-      (method_declaration
-       (php-ts-mode--defun-object-name node (treesit-node-text child t)))
-      (variable_name
-       (php-ts-mode--defun-object-name node (treesit-node-text node t)))
-      (const_element
-       (php-ts-mode--defun-object-name
-        node
-        (treesit-node-text (treesit-node-child node 0) t))))))
+  (let ((lang (treesit-node-language node))
+	(child (treesit-node-child-by-field-name node "name")))
+    (if (eq lang 'php)
+	(cl-case (intern (treesit-node-type node))
+	  (class_declaration (treesit-node-text child t))
+	  (trait_declaration (treesit-node-text child t))
+	  (interface_declaration (treesit-node-text child t))
+	  (namespace_definition (treesit-node-text child t))
+	  (enum_declaration (treesit-node-text child t))
+	  (function_definition (treesit-node-text child t))
+	  (method_declaration
+	   (php-ts-mode--defun-object-name node (treesit-node-text child t)))
+	  (variable_name
+	   (php-ts-mode--defun-object-name node (treesit-node-text node t)))
+	  (const_element
+	   (php-ts-mode--defun-object-name
+	    node
+	    (treesit-node-text (treesit-node-child node 0) t))))
+      (mhtml-ts-mode--defun-name node))))
 
 
 ;;; Defun navigation
+
+(defvar php-ts-mode--treesit-defun-type-regexp
+  (rx bos (or "class_declaration"
+	      "enum_declaration"
+	      "function_definition"
+	      "interface_declaration"
+	      "method_declaration"
+	      "namespace_definition"
+	      "trait_declaration")
+      eos)
+  "Settings for `treesit-defun-type-regexp'.")
 
 (defun php-ts-mode--indent-defun ()
   "Indent the current top-level declaration syntactically.
 `treesit-defun-type-regexp' defines what constructs to indent."
   (interactive "*")
   (when-let* ((orig-point (point-marker))
-             (node (treesit-defun-at-point)))
+	      (node (treesit-defun-at-point)))
     (indent-region (treesit-node-start node)
-                   (treesit-node-end node))
+		   (treesit-node-end node))
     (goto-char orig-point)))
 
 (defun php-ts-mode--defun-valid-p (node)
   "Return non-nil if NODE is a valid defun node.
 Ie, NODE is not nested."
   (not (and (member (treesit-node-type node)
-                    '("variable_name"
-                      "const_element"
-                      "enum_declaration"
-                      "union_declaration"
-                      "declaration"))
-            ;; If NODE's type is one of the above, make sure it is
-            ;; top-level.
-            (treesit-node-top-level
-             node (rx (or "variable_name"
-                          "const_element"
-                          "function_definition"
-                          "enum_declaration"
-                          "union_declaration"
-                          "declaration"))))))
+		    '("variable_name"
+		      "const_element"
+		      "enum_declaration"
+		      "union_declaration"
+		      "declaration"))
+	    ;; If NODE's type is one of the above, make sure it is
+	    ;; top-level.
+	    (treesit-node-top-level
+	     node (rx (or "variable_name"
+			  "const_element"
+			  "function_definition"
+			  "enum_declaration"
+			  "union_declaration"
+			  "declaration"))))))
 
 
 ;;; Filling
@@ -1253,39 +1302,63 @@ Like `c-ts-common-comment-indent-new-line', but handle the
 less common PHP-style # comment.  SOFT works the same as in
 `comment-indent-new-line'."
   (if (save-excursion
-        ;; Line start with # or ## or ###...
-        (beginning-of-line)
-        (re-search-forward
-         (rx "#" (group (* (any "#")) (* " ")))
-         (line-end-position)
-         t nil))
+	;; Line start with # or ## or ###...
+	(beginning-of-line)
+	(re-search-forward
+	 (rx "#" (group (* (any "#")) (* " ")))
+	 (line-end-position)
+	 t nil))
       (let ((offset (- (match-beginning 0) (line-beginning-position)))
-            (comment-prefix (match-string 0))
+	    (comment-prefix (match-string 0))
 	    (insert-line-break
-             (lambda ()
+	     (lambda ()
 	       (delete-horizontal-space)
 	       (if soft
 		   (insert-and-inherit ?\n)
 		 (newline  1)))))
 	(funcall insert-line-break)
-        (delete-region (line-beginning-position) (point))
-        (insert
-         (make-string offset ?\s)
-         comment-prefix))
+	(delete-region (line-beginning-position) (point))
+	(insert
+	 (make-string offset ?\s)
+	 comment-prefix))
     ;; other style of comments
     (c-ts-common-comment-indent-new-line soft)))
 
-(defun php-ts-mode-comment-setup ()
-  "Set up local variables for PHP comment.
-Depends on `c-ts-common-comment-setup'."
-  (c-ts-common-comment-setup)
-  (setq-local c-ts-common--comment-regexp "comment"
-              comment-line-break-function #'php-ts-mode--comment-indent-new-line
-              comment-style 'extra-line
-              comment-start-skip (rx (or (seq "#" (not (any "[")))
-                                         (seq "/" (+ "/"))
-                                         (seq "/" (+ "*")))
-                                     (* (syntax whitespace)))))
+(defvar-local php-ts-mode--comment-current-plist
+  '(:php nil :comment-start "// " :comment-end "")
+  "Store the current state of PHP comment configuration.
+`mhtml-ts-mode' changes the comment configuration when switching
+between HTML, Css and Javascript, so we have to do the same when
+switching back to PHP.
+The prop :php must be t if we are in a PHP or PHPDOC range.")
+
+(defun php-ts-mode--comment-setup (&optional force)
+  "Set up local variables for comments.
+If FORCE is t setup comment for PHP.  Depends on
+`mhtml-ts-mode--comment-setup' and
+`mhtml-ts-mode--comment-current-lang'."
+  (let ((lang (treesit-language-at (point))))
+    (if (and (or (eq lang 'php) (eq lang 'phpdoc) force)
+	     (eq (plist-get php-ts-mode--comment-current-plist :php) nil))
+	;; do setup only if the previous language isn't PHP
+	(progn
+	  (plist-put php-ts-mode--comment-current-plist :php t)
+	  (c-ts-common-comment-setup)
+	  (setq-local c-ts-common--comment-regexp "comment"
+		      comment-line-break-function #'php-ts-mode--comment-indent-new-line
+		      comment-style 'extra-line
+		      comment-start (plist-get php-ts-mode--comment-current-plist :comment-start)
+		      comment-end (plist-get php-ts-mode--comment-current-plist :comment-end)
+		      comment-start-skip (rx (or (seq "#" (not (any "[")))
+						 (seq "/" (+ "/"))
+						 (seq "/" (+ "*")))
+					     (* (syntax whitespace)))
+		      ;; reset the state of mhtml-ts-mode--comment-setup
+		      mhtml-ts-mode--comment-current-lang nil))
+      ;; otherwise set comment style for other languages.
+      (plist-put php-ts-mode--comment-current-plist :php nil)
+      (setq-local comment-style 'indent) ; this is the default for mhtml-ts-mode.
+      (mhtml-ts-mode--comment-setup))))
 
 
 ;;; Modes
@@ -1293,15 +1366,20 @@ Depends on `c-ts-common-comment-setup'."
 (defun php-ts-mode-set-comment-style ()
   "Set a different comment style."
   (interactive)
-  (setq-local comment-start
-              (completing-read
-               "Choose comment style: "
-               '("/**" "//" "/*" "#") nil t nil nil "// "))
-  (cond
-   ((equal comment-start "/*") (setq-local comment-end "*/"))
-   ((equal comment-start "//") (setq-local comment-end ""))
-   ((equal comment-start "#") (setq-local comment-end ""))
-   ((equal comment-start "/**") (setq-local comment-end "*/"))))
+  (let ((lang (treesit-language-at (point))))
+    (when (or (eq lang 'php) (eq lang 'phpdoc))
+      (setq-local comment-start
+		  (completing-read
+		   "Choose comment style: "
+		   '("/**" "// " "/*" "# ") nil t nil nil "// "))
+      (cond
+       ((equal comment-start "/*") (setq-local comment-end "*/"))
+       ((equal comment-start "// ") (setq-local comment-end ""))
+       ((equal comment-start "# ") (setq-local comment-end ""))
+       ((equal comment-start "/**") (setq-local comment-end "*/")))
+      ;; store the value in order to recover when switch to php from other languages.
+      (plist-put php-ts-mode--comment-current-plist :comment-start comment-start)
+      (plist-put php-ts-mode--comment-current-plist :comment-end comment-end))))
 
 (defvar-keymap php-ts-mode-map
   :doc "Keymap for `php-ts-mode' buffers."
@@ -1321,7 +1399,7 @@ Depends on `c-ts-common-comment-setup'."
      :enable mark-active
      :help "Comment out the region between the mark and point"]
     ["Uncomment Region" (comment-region (region-beginning)
-                                        (region-end) '(4))
+					(region-end) '(4))
      :enable mark-active
      :help "Uncomment the region between the mark and point"]
     ["Indent Top-level Expression" php-ts-mode--indent-defun
@@ -1336,7 +1414,7 @@ Depends on `c-ts-common-comment-setup'."
      ["Set Indentation Style..." php-ts-mode-set-style
       :help "Set PHP indentation style for current buffer"]
      ["Show Current Style Name"(message "Indentation Style: %s"
-                                        php-ts-mode-indent-style)
+					php-ts-mode-indent-style)
       :help "Show the name of the PHP indentation style for current buffer"]
      ["Set Comment Style" php-ts-mode-set-comment-style
       :help "Choose PHP comment style between block and line comments"])
@@ -1377,114 +1455,98 @@ Depends on `c-ts-common-comment-setup'."
      function)))
 
 ;;;###autoload
-(define-derived-mode php-ts-mode prog-mode "PHP"
+(define-derived-mode php-ts-mode prog-mode
+  '("PHP"
+    (:eval (let ((lang (treesit-language-at (point))))
+	     (cond ((eq lang 'html) "+HTML")
+		   ((eq lang 'javascript) "+HTML+JS")
+		   ((eq lang 'css) "+HTML+CSS")))))
   "Major mode for editing PHP, powered by tree-sitter."
   :syntax-table php-ts-mode--syntax-table
 
+  ;; TODO: wouldn't better to delegate the check and the
+  ;; init of the mhtml parser to mhtml-ts-mode?
   (if (not (and
-            (treesit-ensure-installed 'php)
-            (treesit-ensure-installed 'phpdoc)
-            (treesit-ensure-installed 'html)
-            (treesit-ensure-installed 'javascript)
-            (treesit-ensure-installed 'jsdoc)
-            (treesit-ensure-installed 'css)))
+	    (treesit-ensure-installed 'php)
+	    (treesit-ensure-installed 'phpdoc)
+	    (treesit-ensure-installed 'html)
+	    (treesit-ensure-installed 'javascript)
+	    (treesit-ensure-installed 'jsdoc)
+	    (treesit-ensure-installed 'css)))
       (error "Tree-sitter for PHP isn't
     available.  You can install the parsers with M-x
     `php-ts-mode-install-parsers'")
 
     ;; phpdoc is a local parser, don't create a parser for it
+    ;; create the parser needed by mhtml-ts-mode
     (treesit-parser-create 'html)
     (treesit-parser-create 'css)
     (treesit-parser-create 'javascript)
 
     ;; define the injected parser ranges
     (setq-local treesit-range-settings
-                (treesit-range-rules
-                 :embed 'phpdoc
-                 :host 'php
-                 :local t
-                 '(((comment) @cap
-                    (:match "/\\*\\*" @cap)))
+		(append
+		 (treesit-range-rules
+		  :embed 'phpdoc
+		  :host 'php
+		  :local t
+		  '(((comment) @cap
+		     (:match "/\\*\\*" @cap)))
 
-                 :embed 'html
-                 :host 'php
-                 '((program (text) @cap)
-                   (text_interpolation (text) @cap))
-
-                 :embed 'javascript
-                 :host 'html
-                 :offset '(1 . -1)
-                 '((script_element
-                    (start_tag (tag_name))
-                    (raw_text) @cap))
-
-                 :embed 'jsdoc
-                 :host 'javascript
-                 :local t
-                 `(((comment) @cap
-                    (:match ,js--treesit-jsdoc-beginning-regexp @cap)))
-
-                 :embed 'css
-                 :host 'html
-                 :offset '(1 . -1)
-                 '((style_element
-                    (start_tag (tag_name))
-                    (raw_text) @cap))))
+		  :embed 'html
+		  :host 'php
+		  '((program (text) @cap)
+		    (text_interpolation (text) @cap)))
+		 ;; inject the range rules from mhtml-ts-mode
+		 mhtml-ts-mode--range-settings))
 
     ;; Navigation.
-    (setq-local treesit-defun-type-regexp
-                (regexp-opt '("class_declaration"
-                              "enum_declaration"
-                              "function_definition"
-                              "interface_declaration"
-                              "method_declaration"
-                              "namespace_definition"
-                              "trait_declaration")))
-
     (setq-local treesit-defun-name-function #'php-ts-mode--defun-name)
 
     (setq-local treesit-thing-settings
-                `((php
-                   (defun ,treesit-defun-type-regexp)
-                   (sexp (not (or (and named
-                                       ,(rx bos (or "program"
-                                                    "comment")
-                                            eos))
-                                  (and anonymous
-                                       ,(rx bos (or "{" "}" "[" "]"
-                                                    "(" ")" ",")
-                                            eos)))))
-                   (list
-                    ,(rx bos (or "namespace_use_group"
-                                 "enum_declaration_list"
-                                 "declaration_list"
-                                 "property_hook_list"
-                                 "use_list"
-                                 "anonymous_function_use_clause"
-                                 "formal_parameters"
-                                 "match_block"
-                                 "switch_block"
-                                 "compound_statement"
-                                 "parenthesized_expression"
-                                 "_array_destructing"
-                                 "arguments"
-                                 "_complex_string_part")
-                         eos))
-                   (sentence  ,(regexp-opt
-                                '("break_statement"
-                                  "case_statement"
-                                  "continue_statement"
-                                  "declaration"
-                                  "default_statement"
-                                  "do_statement"
-                                  "expression_statement"
-                                  "for_statement"
-                                  "if_statement"
-                                  "return_statement"
-                                  "switch_statement"
-                                  "while_statement"
-                                  "statement")))
-                   (text ,(regexp-opt '("comment" "text"))))))
+		(append
+		 `((php
+		    (defun ,php-ts-mode--treesit-defun-type-regexp)
+		    (sexp (not (or (and named
+					,(rx bos (or "program"
+						     "comment")
+					     eos))
+				   (and anonymous
+					,(rx bos (or "{" "}" "[" "]"
+						     "(" ")" ",")
+					     eos)))))
+		    (list
+		     ,(rx bos (or "namespace_use_group"
+				  "enum_declaration_list"
+				  "declaration_list"
+				  "property_hook_list"
+				  "use_list"
+				  "anonymous_function_use_clause"
+				  "formal_parameters"
+				  "match_block"
+				  "switch_block"
+				  "compound_statement"
+				  "parenthesized_expression"
+				  "_array_destructing"
+				  "arguments"
+				  "_complex_string_part")
+			  eos))
+		    (sentence  ,(regexp-opt
+				 '("break_statement"
+				   "case_statement"
+				   "continue_statement"
+				   "declaration"
+				   "default_statement"
+				   "do_statement"
+				   "expression_statement"
+				   "for_statement"
+				   "if_statement"
+				   "return_statement"
+				   "switch_statement"
+				   "while_statement"
+				   "statement")))
+		    (text ,(regexp-opt '("comment" "text")))))
+		 mhtml-ts-mode--treesit-thing-settings))
 
     ;; Indent.
     (when (eq php-ts-mode-indent-style 'wordpress)
@@ -1493,74 +1555,90 @@ Depends on `c-ts-common-comment-setup'."
     (setq-local c-ts-common-indent-offset 'php-ts-mode-indent-offset)
     (setq-local treesit-simple-indent-rules (php-ts-mode--get-indent-style))
     (setq-local treesit-simple-indent-rules
-                (append treesit-simple-indent-rules
-                        php-ts-mode--phpdoc-indent-rules
-                        html-ts-mode--indent-rules
-                        ;; Extended rules for js and css, to
-                        ;; indent appropriately when injected
-                        ;; into html
-                        `((javascript ((parent-is "program")
-                                       php-ts-mode--js-css-tag-bol
-                                       php-ts-mode-js-css-indent-offset)
-                                      ,@(cdr (car js--treesit-indent-rules))))
-                        `((css ((parent-is "stylesheet")
-                                php-ts-mode--js-css-tag-bol
-                                php-ts-mode-js-css-indent-offset)
-                               ,@(cdr (car css--treesit-indent-rules))))))
+		(append treesit-simple-indent-rules
+			php-ts-mode--phpdoc-indent-rules
+			`((html ,@(alist-get 'html
+					     (mhtml-ts-mode--treesit-indent-rules))))
+			;; Replace rules for js and css, to
+			;; indent appropriately when injected
+			;; into html.
+			(treesit-simple-indent-modify-rules
+			 'javascript
+			 `((javascript ((parent-is "program")
+					mhtml-ts-mode--js-css-tag-bol
+					php-ts-mode-js-css-indent-offset)))
+			 `((javascript
+			    ,@(alist-get 'javascript
+					 (mhtml-ts-mode--treesit-indent-rules)))))
+
+			(treesit-simple-indent-modify-rules
+			 'css
+			 `((css ((parent-is "stylesheet")
+				 mhtml-ts-mode--js-css-tag-bol
+				 php-ts-mode-js-css-indent-offset)))
+			 `((css
+			    ,@(alist-get 'css
+					 (mhtml-ts-mode--treesit-indent-rules)))))
+			))
 
     ;; Comment
-    (php-ts-mode-comment-setup)
+    (php-ts-mode--comment-setup t) ; Init the comment setup for PHP
+    ;; Allow the comment machinery to automatically switch between the
+    ;; various comment styles supported by `php-ts-mode'.
+    (setq-local comment-setup-function #'php-ts-mode--comment-setup)
 
     ;; PHP vars are case-sensitive
     (setq-local case-fold-search t)
 
     ;; Electric
     (setq-local electric-indent-chars
-                (append "{}():;," electric-indent-chars))
+		(append "{}():;," electric-indent-chars))
+
+    (setq-local electric-layout-rules
+	        '((?\; . after) (?\{ . after) (?\} . before)))
 
     ;; Imenu/Which-function
-    (setq-local treesit-simple-imenu-settings
-                '(("Class" "\\`class_declaration\\'" nil nil)
-                  ("Enum" "\\`enum_declaration\\'" nil nil)
-                  ("Function" "\\`function_definition\\'" nil nil)
-                  ("Interface" "\\`interface_declaration\\'" nil nil)
-                  ("Method" "\\`method_declaration\\'" nil nil)
-                  ("Namespace" "\\`namespace_definition\\'" nil nil)
-                  ("Trait" "\\`trait_declaration\\'" nil nil)
-                  ("Variable" "\\`variable_name\\'" nil nil)
-                  ("Constant" "\\`const_element\\'" nil nil)))
+    (setq-local treesit-aggregated-simple-imenu-settings
+		(append
+		 '((php ("Class" "\\`class_declaration\\'" nil nil)
+			("Enum" "\\`enum_declaration\\'" nil nil)
+			("Function" "\\`function_definition\\'" nil nil)
+			("Interface" "\\`interface_declaration\\'" nil nil)
+			("Method" "\\`method_declaration\\'" nil nil)
+			("Namespace" "\\`namespace_definition\\'" nil nil)
+			("Trait" "\\`trait_declaration\\'" nil nil)
+			("Variable" "\\`variable_name\\'" nil nil)
+			("Constant" "\\`const_element\\'" nil nil)))
+		 mhtml-ts-mode--treesit-aggregated-simple-imenu-settings))
 
     ;; Outline
-    (setq-local treesit-outline-predicate
-                (rx bos (or "class_declaration"
-                            "function_definition"
-                            "interface_declaration"
-                            "method_declaration"
-                            "namespace_definition"
-                            "trait_declaration")
-                    eos))
+    (setq-local treesit-aggregated-outline-predicate
+		(append
+		 `((php . ,(rx bos (or "class_declaration"
+				       "function_definition"
+				       "interface_declaration"
+				       "method_declaration"
+				       "namespace_definition"
+				       "trait_declaration")
+			       eos))
+		   (phpdoc . ,(rx bos "document" eos)))
+		 mhtml-ts-mode--treesit-aggregated-outline-predicate))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
-                (append (php-ts-mode--font-lock-settings)
-                        php-ts-mode--custom-html-font-lock-settings
-                        js--treesit-font-lock-settings
-                        (append
-                         ;; Rule for coloring CSS property values.
-                         ;; Placed before `css--treesit-settings'
-                         ;; to win against the same rule contained therein.
-                         (treesit-font-lock-rules
-                          :language 'css
-                          :override t
-                          :feature 'variable
-                          '((plain_value) @php-ts-mode--colorize-css-value))
-                         css--treesit-settings)
-                        php-ts-mode--phpdoc-font-lock-settings))
+		(append
+		 (php-ts-mode--font-lock-settings)
+		 php-ts-mode--custom-html-font-lock-settings
+		 php-ts-mode--phpdoc-font-lock-settings))
 
     (setq-local treesit-font-lock-feature-list php-ts-mode--feature-list)
+    (setq-local prettify-symbols-alist php-ts-mode--prettify-symbols-alist)
 
     ;; Align.
     (setq-local align-indent-before-aligning t)
+
+    ;; Find files
+    (setq-local find-sibling-rules php-ts-mode-find-sibling-rules)
 
     ;; should be the last one
     (setq-local treesit-primary-parser (treesit-parser-create 'php))
@@ -1570,11 +1648,11 @@ Depends on `c-ts-common-comment-setup'."
 
 ;;;###autoload
 (defun php-ts-mode-run-php-webserver (&optional port
-                                                hostname
-                                                document-root
-                                                router-script
-                                                num-of-workers
-                                                config)
+						hostname
+						document-root
+						router-script
+						num-of-workers
+						config)
   "Run PHP built-in web server.
 
 PORT: Port number of built-in web server, default `php-ts-mode-ws-port'.
@@ -1595,46 +1673,46 @@ Interactively, when invoked with prefix argument, always prompt for
 PORT, HOSTNAME, DOCUMENT-ROOT, ROUTER-SCRIPT, NUM-OF-WORKERS and
 CONFIG."
   (interactive (when current-prefix-arg
-                 (php-ts-mode--webserver-read-args)))
+		 (php-ts-mode--webserver-read-args)))
   (let* ((port (or
-                port
-                php-ts-mode-ws-port
-                (php-ts-mode--webserver-read-args 'port)))
-         (hostname (or
-                    hostname
-                    php-ts-mode-ws-hostname
-                    (php-ts-mode--webserver-read-args 'hostname)))
-         (document-root (or
-                         document-root
-                         php-ts-mode-ws-document-root
-                         (php-ts-mode--webserver-read-args 'document-root)))
-         (config (or config
-                     (when php-ts-mode-php-config
-                       (expand-file-name php-ts-mode-php-config))))
-         (host (format "%s:%d" hostname port))
-         (name (format "PHP web server on: %s" host))
-         (buf-name (format "*%s*" name))
-         (args (delq
-                nil
-                (list "-S" host
-                      "-t" document-root
-                      (when config
+		port
+		php-ts-mode-ws-port
+		(php-ts-mode--webserver-read-args 'port)))
+	 (hostname (or
+		    hostname
+		    php-ts-mode-ws-hostname
+		    (php-ts-mode--webserver-read-args 'hostname)))
+	 (document-root (or
+			 document-root
+			 php-ts-mode-ws-document-root
+			 (php-ts-mode--webserver-read-args 'document-root)))
+	 (config (or config
+		     (when php-ts-mode-php-config
+		       (expand-file-name php-ts-mode-php-config))))
+	 (host (format "%s:%d" hostname port))
+	 (name (format "PHP web server on: %s" host))
+	 (buf-name (format "*%s*" name))
+	 (args (delq
+		nil
+		(list "-S" host
+		      "-t" document-root
+		      (when config
 			(format "-c %s" config))
-                      router-script)))
-         (process-environment
-          (nconc (cond
-                  (num-of-workers
-                   (list
-                    (format "PHP_CLI_SERVER_WORKERS=%d" num-of-workers)))
-                  (php-ts-mode-ws-workers
-                   (list
-                    (format "PHP_CLI_SERVER_WORKERS=%d" php-ts-mode-ws-workers))))
-                 process-environment)))
+		      router-script)))
+	 (process-environment
+	  (nconc (cond
+		  (num-of-workers
+		   (list
+		    (format "PHP_CLI_SERVER_WORKERS=%d" num-of-workers)))
+		  (php-ts-mode-ws-workers
+		   (list
+		    (format "PHP_CLI_SERVER_WORKERS=%d" php-ts-mode-ws-workers))))
+		 process-environment)))
     (if (get-buffer buf-name)
-        (message "Switch to already running web server into buffer %s" buf-name)
+	(message "Switch to already running web server into buffer %s" buf-name)
       (message "Run PHP built-in web server with args %s into buffer %s"
-               (string-join args " ")
-               buf-name)
+	       (string-join args " ")
+	       buf-name)
       (apply #'make-comint name (php-ts-mode--executable) nil args))
     (funcall
      (if (called-interactively-p 'interactive) #'display-buffer #'get-buffer)
@@ -1647,45 +1725,45 @@ CONFIG."
 The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\",
 \"router-script\", \"num-workers\" or \"config\", otherwise it requires all of them."
   (let ((ask-port (lambda ()
-                    (read-number "Port: " (or
-                                           php-ts-mode-ws-port
-                                           3000))))
-        (ask-hostname (lambda ()
-                        (read-string "Hostname: "
-                                     (or
-                                      php-ts-mode-ws-hostname
-                                      "localhost"))))
-        (ask-document-root (lambda ()
-                             (expand-file-name
-                              (read-directory-name "Document root: "
-                                                   (file-name-directory
-                                                    (or (buffer-file-name)
-                                                        default-directory))))))
-        (ask-router-script (lambda ()
-                             (expand-file-name
-                              (read-file-name "Router script: "
-                                              (file-name-directory
-                                               (or (buffer-file-name)
-                                                   default-directory))))))
-        (ask-num-workers (lambda ()
-                           (let ((num-workers
-                                  (read-number
-                                   "Number of workers (less then 2 means no workers): "
-                                   (or php-ts-mode-ws-workers 0))))
-                             ;; num-workers must be >= 2 or nil
-                             ;; otherwise PHP's built-in web server will not start.
-                             (if (> num-workers 1)
-                                 num-workers
-                               nil))))
-        (ask-config (lambda()
-                      (let ((file-name (expand-file-name
-                                        (read-file-name "Alternative php.ini: "
-                                                        (file-name-directory
-                                                         (or (buffer-file-name)
-                                                             default-directory))))))
-                        (if (string= "" (file-name-directory file-name))
-                            nil
-                          file-name)))))
+		    (read-number "Port: " (or
+					   php-ts-mode-ws-port
+					   3000))))
+	(ask-hostname (lambda ()
+			(read-string "Hostname: "
+				     (or
+				      php-ts-mode-ws-hostname
+				      "localhost"))))
+	(ask-document-root (lambda ()
+			     (expand-file-name
+			      (read-directory-name "Document root: "
+						   (file-name-directory
+						    (or (buffer-file-name)
+							default-directory))))))
+	(ask-router-script (lambda ()
+			     (expand-file-name
+			      (read-file-name "Router script: "
+					      (file-name-directory
+					       (or (buffer-file-name)
+						   default-directory))))))
+	(ask-num-workers (lambda ()
+			   (let ((num-workers
+				  (read-number
+				   "Number of workers (less then 2 means no workers): "
+				   (or php-ts-mode-ws-workers 0))))
+			     ;; num-workers must be >= 2 or nil
+			     ;; otherwise PHP's built-in web server will not start.
+			     (if (> num-workers 1)
+				 num-workers
+			       nil))))
+	(ask-config (lambda()
+		      (let ((file-name (expand-file-name
+					(read-file-name "Alternative php.ini: "
+							(file-name-directory
+							 (or (buffer-file-name)
+							     default-directory))))))
+			(if (string= "" (file-name-directory file-name))
+			    nil
+			  file-name)))))
     (cl-case type
       (port (funcall ask-port))
       (hostname (funcall ask-hostname))
@@ -1694,21 +1772,21 @@ The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\",
       (num-of-workers (funcall ask-num-workers))
       (config (funcall ask-config))
       (t (list
-          (funcall ask-port)
-          (funcall ask-hostname)
-          (funcall ask-document-root)
-          (funcall ask-router-script)
-          (funcall ask-num-workers)
-          (funcall ask-config))))))
+	  (funcall ask-port)
+	  (funcall ask-hostname)
+	  (funcall ask-document-root)
+	  (funcall ask-router-script)
+	  (funcall ask-num-workers)
+	  (funcall ask-config))))))
 
 (define-derived-mode inferior-php-ts-mode comint-mode "Inferior PHP"
   "Major mode for PHP inferior process."
   (setq-local scroll-conservatively 1
-              comint-input-ring-file-name php-ts-mode-inferior-history
-              comint-input-ignoredups t
-              comint-prompt-read-only t
-              comint-use-prompt-regexp t
-              comint-prompt-regexp (concat "^" php-ts-mode--inferior-prompt " "))
+	      comint-input-ring-file-name php-ts-mode-inferior-history
+	      comint-input-ignoredups t
+	      comint-prompt-read-only t
+	      comint-use-prompt-regexp t
+	      comint-prompt-regexp (concat "^" php-ts-mode--inferior-prompt " "))
   (comint-read-input-ring t))
 
 
@@ -1726,24 +1804,24 @@ and `php-ts-mode-php-config' respectively, control which PHP interpreter is run.
 Prompt for CMD if `php-ts-mode-php-executable' is nil.
 Optional CONFIG, if supplied, is the php.ini file to use."
   (interactive (when current-prefix-arg
-                 (list
-                  (read-string "Run PHP: " (php-ts-mode--executable))
-                  (expand-file-name
-                   (read-file-name "With config: " php-ts-mode-php-config)))))
+		 (list
+		  (read-string "Run PHP: " (php-ts-mode--executable))
+		  (expand-file-name
+		   (read-file-name "With config: " php-ts-mode-php-config)))))
   (let* ((php-prog (php-ts-mode--executable))
-         (buffer (get-buffer-create php-ts-mode-inferior-php-buffer))
-         (cmd (or
-               cmd
-               php-prog
-               (read-string "Run PHP: " php-prog)))
-         (config (or
-                  config
-                  (and php-ts-mode-php-config
-                       (expand-file-name php-ts-mode-php-config)))))
+	 (buffer (get-buffer-create php-ts-mode-inferior-php-buffer))
+	 (cmd (or
+	       cmd
+	       php-prog
+	       (read-string "Run PHP: " php-prog)))
+	 (config (or
+		  config
+		  (and php-ts-mode-php-config
+		       (expand-file-name php-ts-mode-php-config)))))
     (unless (comint-check-proc buffer)
       (with-current-buffer buffer
-        (inferior-php-ts-mode-startup cmd config)
-        (inferior-php-ts-mode)))
+	(inferior-php-ts-mode-startup cmd config)
+	(inferior-php-ts-mode)))
     (when buffer
       (pop-to-buffer buffer))))
 
@@ -1752,39 +1830,39 @@ Optional CONFIG, if supplied, is the php.ini file to use."
 CMD is the command to run.  Optional CONFIG, if supplied, is the php.ini
 file to use."
   (setq-local php-ts-mode--inferior-php-process
-              (apply #'make-comint-in-buffer
-                     (string-replace "*" "" php-ts-mode-inferior-php-buffer)
-                     php-ts-mode-inferior-php-buffer
-                     cmd
-                     nil
-                     (delq
-                      nil
-                      (list
-                       (when config
-                         (format "-c %s" config))
-                       "-a"))))
+	      (apply #'make-comint-in-buffer
+		     (string-replace "*" "" php-ts-mode-inferior-php-buffer)
+		     php-ts-mode-inferior-php-buffer
+		     cmd
+		     nil
+		     (delq
+		      nil
+		      (list
+		       (when config
+			 (format "-c %s" config))
+		       "-a"))))
   (add-hook 'comint-preoutput-filter-functions
-            (lambda (string)
-              (let ((prompt (concat php-ts-mode--inferior-prompt " ")))
-                (if (member
-                     string
-                     (list prompt "php { " "php ( " "/* > " "Interactive shell\n\n"))
-                    string
-                  (let (;; Filter out prompts characters that accumulate when sending
-                        ;; regions to the inferior process.
-                        (clean-string
-                         (replace-regexp-in-string
-                          (rx-to-string `(or
-                                          (+ "php >" (opt space))
-                                          (+ "php {" (opt space))
-                                          (+ "php (" (opt space))
-                                          (+ "/*" (1+ space) (1+ ">") (opt space))))
-                          "" string)))
-                    ;; Re-add the prompt for the next line, if isn't empty.
-                    (if (string= clean-string "")
-                        ""
-                      (concat (string-chop-newline clean-string) "\n" prompt))))))
-            nil t)
+	    (lambda (string)
+	      (let ((prompt (concat php-ts-mode--inferior-prompt " ")))
+		(if (member
+		     string
+		     (list prompt "php { " "php ( " "/* > " "Interactive shell\n\n"))
+		    string
+		  (let (;; Filter out prompts characters that accumulate when sending
+			;; regions to the inferior process.
+			(clean-string
+			 (replace-regexp-in-string
+			  (rx-to-string `(or
+					  (+ "php >" (opt space))
+					  (+ "php {" (opt space))
+					  (+ "php (" (opt space))
+					  (+ "/*" (1+ space) (1+ ">") (opt space))))
+			  "" string)))
+		    ;; Re-add the prompt for the next line, if isn't empty.
+		    (if (string= clean-string "")
+			""
+		      (concat (string-chop-newline clean-string) "\n" prompt))))))
+	    nil t)
   (when php-ts-mode-inferior-history
     (set-process-sentinel
      (get-buffer-process  php-ts-mode-inferior-php-buffer)
@@ -1796,7 +1874,7 @@ file to use."
   ;; Depending on how the process is killed the buffer may not be
   ;; around anymore; e.g. `kill-buffer'.
   (when-let* ((buffer (process-buffer process))
-              ((buffer-live-p (process-buffer process))))
+	      ((buffer-live-p (process-buffer process))))
     (with-current-buffer buffer (comint-write-input-ring))))
 
 (defun php-ts-mode-send-region (beg end)
@@ -1804,12 +1882,12 @@ file to use."
   (interactive "r")
   (if (buffer-live-p php-ts-mode--inferior-php-process)
       (progn
-        (php-ts-mode-show-process-buffer)
-        (comint-send-string php-ts-mode--inferior-php-process "\n")
-        (comint-send-string
-         php-ts-mode--inferior-php-process
-         (buffer-substring-no-properties beg end))
-        (comint-send-string php-ts-mode--inferior-php-process "\n"))
+	(php-ts-mode-show-process-buffer)
+	(comint-send-string php-ts-mode--inferior-php-process "\n")
+	(comint-send-string
+	 php-ts-mode--inferior-php-process
+	 (buffer-substring-no-properties beg end))
+	(comint-send-string php-ts-mode--inferior-php-process "\n"))
     (message "Invoke run-php first!")))
 
 (defun php-ts-mode-send-buffer ()

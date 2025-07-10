@@ -333,7 +333,8 @@ NODE and PARENT are ignored."
                 "function_declaration"
                 "lexical_declaration"
                 "element"
-                "rule_set"))
+                "rule_set"
+		"keyframe_block"))
   "Settings for `treesit-defun-type-regexp'.")
 
 ;; In order to support `prettify-symbols-mode', just `append' the prettify
@@ -348,13 +349,11 @@ NODE and PARENT are ignored."
 (defun mhtml-ts-mode--defun-name (node)
   "Return the defun name of NODE.
 Return nil if there is no name or if NODE is not a defun node."
-  (let ((html-name (html-ts-mode--defun-name node))
-        (js-name (js--treesit-defun-name node))
-        (css-name (css--treesit-defun-name node)))
+  (let ((lang (treesit-node-language node)))
     (cond
-     (html-name html-name)
-     (js-name js-name)
-     (css-name css-name))))
+     ((eq lang 'html) (html-ts-mode--defun-name node))
+     ((eq lang 'javascript) (js--treesit-defun-name node))
+     ((eq lang 'css) (css--treesit-defun-name node)))))
 
 (defvar-local mhtml-ts-mode--comment-current-lang nil)
 
@@ -432,6 +431,41 @@ Calls REPORT-FN directly.  Requires tidy."
         (process-send-region mhtml-ts-mode--flymake-process (point-min) (point-max))
         (process-send-eof mhtml-ts-mode--flymake-process)))))
 
+(defvar mhtml-ts-mode--range-settings
+  (append
+   (treesit-range-rules
+    :embed 'javascript
+    :host 'html
+    '((script_element
+       (start_tag (tag_name))
+       (raw_text) @cap))
+
+    ;; Another rule could be added that when it matches an
+    ;; attribute_value that has as its parent an
+    ;; attribute_name "style" it captures it and then
+    ;; passes it to the css parser.
+    :embed 'css
+    :host 'html
+    '((style_element
+       (start_tag (tag_name))
+       (raw_text) @cap)))
+
+   ;; jsdoc is not mandatory for js-ts-mode, so we respect this by
+   ;; adding jsdoc range rules only when jsdoc is available.
+   (when (treesit-ensure-installed 'jsdoc)
+     (treesit-range-rules
+      :embed 'jsdoc
+      :host 'javascript
+      :local t
+      `(((comment) @cap
+         (:match ,js--treesit-jsdoc-beginning-regexp @cap)))))))
+
+(defvar mhtml-ts-mode--treesit-aggregated-outline-predicate
+  `((html . ,#'html-ts-mode--outline-predicate)
+    (javascript . ,js-ts-mode--outline-predicate)
+    (css . ,css-ts-mode--outline-predicate))
+  "Settings for `treesit-aggregated-outline-predicate'.")
+
 ;;;###autoload
 (define-derived-mode mhtml-ts-mode html-ts-mode
   '("HTML+" (:eval (let ((lang (treesit-language-at (point))))
@@ -475,35 +509,11 @@ Powered by tree-sitter."
     ;; Multi-language modes must set the  primary parser.
     (setq-local treesit-primary-parser (treesit-parser-create 'html))
 
-    (setq-local treesit-range-settings
-                (treesit-range-rules
-                 :embed 'javascript
-                 :host 'html
-                 '((script_element
-                    (start_tag (tag_name))
-                    (raw_text) @cap))
-
-                 ;; Another rule could be added that when it matches an
-                 ;; attribute_value that has as its parent an
-                 ;; attribute_name "style" it captures it and then
-                 ;; passes it to the css parser.
-                 :embed 'css
-                 :host 'html
-                 '((style_element
-                    (start_tag (tag_name))
-                    (raw_text) @cap))))
+    (setq-local treesit-range-settings mhtml-ts-mode--range-settings)
 
     ;; jsdoc is not mandatory for js-ts-mode, so we respect this by
     ;; adding jsdoc range rules only when jsdoc is available.
     (when (treesit-ensure-installed 'jsdoc)
-      (setq-local treesit-range-settings
-                  (append treesit-range-settings
-                          (treesit-range-rules
-                           :embed 'jsdoc
-                           :host 'javascript
-                           :local t
-                           `(((comment) @cap
-                              (:match ,js--treesit-jsdoc-beginning-regexp @cap))))))
       (setq-local c-ts-common--comment-regexp
                   js--treesit-jsdoc-comment-regexp))
 
@@ -563,9 +573,7 @@ Powered by tree-sitter."
                 mhtml-ts-mode--treesit-aggregated-simple-imenu-settings)
 
     (setq-local treesit-aggregated-outline-predicate
-                `((html . ,#'html-ts-mode--outline-predicate)
-                  (javascript . ,js-ts-mode--outline-predicate)
-                  (css . ,css-ts-mode--outline-predicate)))
+		mhtml-ts-mode--treesit-aggregated-outline-predicate)
 
     (treesit-major-mode-setup)
 
