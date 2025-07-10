@@ -751,9 +751,10 @@ that encompasses the region between START and END."
                    (signal 'treesit-error (list "Value of :embed option cannot be omitted")))
                  (when (null host)
                    (signal 'treesit-error (list "Value of :host option cannot be omitted")))
-                 (push (list (treesit-query-compile host query)
+                 (when (treesit-available-p)
+                  (push (list (treesit-query-compile host query)
                              embed local offset range-fn)
-                       result))
+                       result)))
                (setq host nil embed nil offset nil local nil range-fn nil))))
     (nreverse result)))
 
@@ -5387,15 +5388,16 @@ might display a warning and/or fail to turn on the mode."
   "Ensure that the grammar library for the language LANG is installed.
 The option `treesit-auto-install-grammar' defines whether to install
 the grammar library if it's unavailable."
-  (or (treesit-ready-p lang t)
-      (when (or (eq treesit-auto-install-grammar 'always)
-                (and (eq treesit-auto-install-grammar 'ask)
-                     (y-or-n-p (format "\
+  (when (treesit-available-p)
+    (or (treesit-ready-p lang t)
+        (when (or (eq treesit-auto-install-grammar 'always)
+                  (and (eq treesit-auto-install-grammar 'ask)
+                       (y-or-n-p (format "\
 Tree-sitter grammar for `%s' is missing; install it?"
-                                       lang))))
-        (treesit-install-language-grammar lang)
-        ;; Check that the grammar was installed successfully
-        (treesit-ready-p lang))))
+                                         lang))))
+          (treesit-install-language-grammar lang)
+          ;; Check that the grammar was installed successfully
+          (treesit-ready-p lang)))))
 
 ;;; Shortdocs
 
