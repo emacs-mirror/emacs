@@ -1005,7 +1005,9 @@ the old and FORCE is nil."
 	(setq formula (ses-safe-formula (cadr formula)))
 	(ses-set-cell row col 'formula formula))
       (condition-case sig
-	  (setq newval (eval formula t))
+	  (setq newval (let ((ses--row row)
+                             (ses--col col))
+                         (eval formula t)))
 	(error
 	 ;; Variable `sig' can't be nil.
 	 (nconc sig (list (ses-cell-symbol cell)))
@@ -2584,8 +2586,10 @@ Return nil if cell formula was unsafe and user declined confirmation."
                                  curval)))))))
   (when (ses-edit-cell row col newval)
     (ses-command-hook) ; Update cell widths before movement.
-    (dolist (x ses-after-entry-functions)
-      (funcall x 1))))
+    (let ((ses--row row)
+          (ses--col col))
+      (dolist (x ses-after-entry-functions)
+        (funcall x 1)))))
 
 (defun ses-read-symbol (row col symb)
   "Self-insert for a symbol as a cell formula.
@@ -2604,8 +2608,10 @@ spreadsheet is available for completions."
 	     (list 'quote (intern newval))))))
   (when (ses-edit-cell row col symb)
     (ses-command-hook) ; Update cell widths before movement.
-    (dolist (x ses-after-entry-functions)
-      (funcall x 1))))
+    (let ((ses--row row)
+          (ses--col col))
+      (dolist (x ses-after-entry-functions)
+        (funcall x 1)))))
 
 (defun ses-clear-cell-forward (count)
   "Delete formula and printer for current cell and then move to next cell.
