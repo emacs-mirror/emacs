@@ -101,7 +101,9 @@
 (defcustom ses-after-entry-functions '(forward-char)
   "Things to do after entering a value into a cell.
 An abnormal hook that usually runs a cursor-movement function.
-Each function is called with ARG=1."
+Each function is called with ARG=1.
+Variables `ses--row' and `ses--col' are dynamically bound to cell
+coordinates during hook call."
   :type 'hook
   :options '(forward-char backward-char next-line previous-line))
 
@@ -2596,9 +2598,9 @@ Return nil if cell formula was unsafe and user declined confirmation."
                                  curval)))))))
   (when (ses-edit-cell row col newval)
     (ses-command-hook) ; Update cell widths before movement.
-    (cl-progv '(row col) (list row col) ; cl-progv to have dynamic binding
-      (dolist (x ses-after-entry-functions)
-        (funcall x 1)))))
+    (let ((ses--row row)
+          (ses--col col))
+      (run-hook-with-args 'ses-after-entry-functions 1))))
 
 (defun ses-read-symbol (row col symb)
   "Self-insert for a symbol as a cell formula.
@@ -2617,9 +2619,9 @@ spreadsheet is available for completions."
 	     (list 'quote (intern newval))))))
   (when (ses-edit-cell row col symb)
     (ses-command-hook) ; Update cell widths before movement.
-    (cl-progv '(row col) (list row col) ; cl-progv to have dynamic binding
-      (dolist (x ses-after-entry-functions)
-        (funcall x 1)))))
+    (let ((ses--row row)
+          (ses--col col))
+      (run-hook-with-args 'ses-after-entry-functions 1))))
 
 (defun ses-clear-cell-forward (count)
   "Delete formula and printer for current cell and then move to next cell.
