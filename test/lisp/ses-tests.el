@@ -550,7 +550,6 @@ cell has to be rewritten to data area."
 (ert-deftest ses-range-reading-directions ()
   "Test ses-range with reading directions"
   (let ((ses-initial-size '(5 . 3))
-        (ses-initial-default-printer "%S")
         (ses-after-entry-functions nil))
     (with-temp-buffer
       (ses-mode)
@@ -572,7 +571,6 @@ cell has to be rewritten to data area."
                    ))
         (apply 'ses-cell-set-formula c)
         (apply 'ses-calculate-cell (list (car c) (cadr c) nil)))
-      (ses-recalculate-all)
       (should (string= A3 "B1A1"))
       (should (string= B3 "A1B1"))
 
