@@ -971,11 +971,16 @@ other commands receive global bindings where they had none before."
   :type 'boolean
   :version "31.1"
   :set (lambda (symbol value)
-         (if value
-             (progn (keymap-set vc-prefix-map "I" vc-incoming-prefix-map)
-                    (keymap-set vc-prefix-map "O" vc-outgoing-prefix-map))
-           (keymap-set vc-prefix-map "I" #'vc-log-incoming)
-           (keymap-set vc-prefix-map "O" #'vc-log-outgoing))
+         (let ((maps (list vc-prefix-map)))
+           (when (boundp 'vc-dir-mode-map)
+             (push vc-dir-mode-map maps))
+           (if value
+               (dolist (map maps)
+                 (keymap-set map "I" vc-incoming-prefix-map)
+                 (keymap-set map "O" vc-outgoing-prefix-map))
+             (dolist (map maps)
+               (keymap-set map "I" #'vc-log-incoming)
+               (keymap-set map "O" #'vc-log-outgoing))))
          (set-default symbol value)))
 
 (defvar vc-menu-map

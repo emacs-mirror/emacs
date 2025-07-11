@@ -424,6 +424,10 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     map)
   "Keymap for directory buffer.")
 
+(when vc-use-incoming-outgoing-prefixes
+  (keymap-set vc-dir-mode-map "I" vc-incoming-prefix-map)
+  (keymap-set vc-dir-mode-map "O" vc-outgoing-prefix-map))
+
 (defmacro vc-dir-at-event (event &rest body)
   "Evaluate BODY with point located at `event-start' of EVENT.
 If BODY uses EVENT, it should be a variable,
