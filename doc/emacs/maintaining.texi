@@ -1085,9 +1085,7 @@ non-@code{nil}, @kbd{C-x v O} becomes a prefix key, and
 
 @item M-x vc-root-diff-outgoing
 Display a diff of the changes that will be sent by the next push
-operation.  This command is useful as a way to preview your push and
-ensure that all and only the changes you intended to include were
-committed and will be pushed.
+operation.
 
 If you customize @code{vc-use-incoming-outgoing-prefixes} to
 non-@code{nil}, this command is bound to @kbd{C-x v O D}.
@@ -1163,16 +1161,27 @@ prompts for the branch whose history to display.
 @findex vc-log-outgoing
   On a decentralized version control system, the @kbd{C-x v I}
 (@code{vc-log-incoming}) command displays a log buffer showing the
-changes that will be applied, the next time you run the version
-control system's pull command to get new revisions from another
-remote location (@pxref{Pulling / Pushing}).  This other remote location is the default
+changes that will be applied the next time you run the version control
+system's pull command to get new revisions from another remote location
+(@pxref{Pulling / Pushing}).  This other remote location is the default
 one from which changes are pulled, as defined by the version control
 system; with a prefix argument, @code{vc-log-incoming} prompts for a
-specific remote location.  Similarly, @kbd{C-x v O}
-(@code{vc-log-outgoing}) shows the changes that will be sent to
-another remote location, the next time you run the push command; with a
-prefix argument, it prompts for a specific destination that
-in case of some version control system can be a branch name.
+particular remote location.  Similarly, @kbd{C-x v O}
+(@code{vc-log-outgoing}) shows the changes that will be sent to another
+remote location, the next time you run the push command; with a prefix
+argument, it prompts for a particular destination that in case of some
+version control system can be a branch name.
+
+@findex vc-root-diff-incoming
+@findex vc-root-diff-outgoing
+  The closely related commands @code{vc-root-diff-incoming} and
+@code{vc-root-diff-outgoing} are the diff analogues of
+@code{vc-log-incoming} and @code{vc-log-outgoing}.  These display a diff
+buffer reporting the changes that would be pulled or pushed.  You can
+use a prefix argument here too to specify a particular remote location.
+@code{vc-root-diff-outgoing} is useful as a way to preview your push and
+quickly check that all and only the changes you intended to include were
+committed and will be pushed.
 
 @cindex VC log buffer, commands in
 @cindex vc-log buffer
