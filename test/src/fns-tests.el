@@ -52,7 +52,8 @@
   (should (= (length '(1 2 3)) 3))
   (should (= (length '[1 2 3]) 3))
   (should (= (length "foo") 3))
-  (should-error (length t)))
+  (should-error (length t))
+  (should (= (length (make-char-table 'fns-tests)) (1+ (max-char)))))
 
 (ert-deftest fns-tests-safe-length ()
   (should (= (safe-length '(1 2 3)) 3)))

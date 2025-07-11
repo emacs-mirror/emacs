@@ -147,7 +147,7 @@ efficient.  */)
   else if (VECTORP (sequence))
     val = ASIZE (sequence);
   else if (CHAR_TABLE_P (sequence))
-    val = MAX_CHAR;
+    val = MAX_CHAR + 1;
   else if (BOOL_VECTOR_P (sequence))
     val = bool_vector_size (sequence);
   else if (CLOSUREP (sequence) || RECORDP (sequence))
