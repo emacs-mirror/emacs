@@ -1867,7 +1867,9 @@ AS_IF([test $gl_gcc_warnings = no],
   gl_WARN_ADD([-Wno-format-nonliteral])
   gl_WARN_ADD([-Wno-bidi-chars])
   AS_IF([test $gl_gcc_warnings = yes],
-    [gl_WARN_ADD([-Wno-analyzer-fd-leak])]) # GCC bug 109839
+    [gl_WARN_ADD([-Wno-analyzer-fd-leak]) # GCC bugs 109580, 109839
+     gl_WARN_ADD([-Wno-analyzer-use-of-uninitialized-value]) # GCC bug 121030
+    ])
 
   # clang is unduly picky about some things.
   if test "$emacs_cv_clang" = yes; then
