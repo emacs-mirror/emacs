@@ -469,15 +469,15 @@ frame is created on the current display terminal.
 buffer to select:
 
 @table @kbd
-@item C-x 5 2
 @kindex C-x 5 2
 @findex make-frame-command
+@item C-x 5 2
 Create a new frame using the default frame parameters
 (@code{make-frame-command}).
 
-@item C-x 5 c
 @kindex C-x 5 c
 @findex clone-frame
+@item C-x 5 c
 Create a new frame using the window configuration and frame parameters
 of the current frame (@code{clone-frame}).
 
@@ -503,18 +503,20 @@ Find the definition of an identifier in another frame.  This runs
 @code{xref-find-definitions-other-frame}, the multiple-frame variant
 of @kbd{M-.}.  @xref{Xref}.
 
-@item C-x 5 r @var{filename} @key{RET}
 @kindex C-x 5 r
 @findex find-file-read-only-other-frame
+@item C-x 5 r @var{filename} @key{RET}
 Visit file @var{filename} read-only, and select its buffer in another
 frame.  This runs @code{find-file-read-only-other-frame}.
 @xref{Visiting}.
 
+@kindex C-x 5 5
+@findex other-frame-prefix
 @item C-x 5 5
-A more general prefix command that affects the buffer displayed by the
-next command invoked immediately after this prefix command
-(@code{other-frame-prefix}).  It requests the buffer of the next
-command to be displayed in another frame.
+A more general prefix command that affects the buffer displayed by a
+subsequent command invoked after this prefix command
+(@code{other-frame-prefix}).  It requests the buffer to be displayed by
+a subsequent command to be shown in another frame.
 @end table
 
   You can control the appearance and behavior of the newly-created

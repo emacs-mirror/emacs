@@ -233,8 +233,8 @@ Select buffer @var{bufname} in another window
 (@code{switch-to-buffer-other-window}).  @xref{Select Buffer}.
 
 @findex display-buffer @r{(command)}
-@item C-x 4 C-o @var{bufname} @key{RET}
 @kindex C-x 4 C-o
+@item C-x 4 C-o @var{bufname} @key{RET}
 Display buffer @var{bufname} in some window, without trying to select
 it (@code{display-buffer}).  @xref{Displaying Buffers}, for details
 about how the window is chosen.
@@ -263,10 +263,13 @@ Find the definition of an identifier, similar to @kbd{M-.}
 Visit file @var{filename} read-only, and select its buffer in another
 window (@code{find-file-read-only-other-window}).  @xref{Visiting}.
 
+@kindex C-x 4 4
+@findex other-window-prefix
 @item C-x 4 4
-A more general prefix command affects the buffer displayed by the next
-command invoked immediately after this prefix command.  It requests
-the buffer of the next command to be displayed in another window.
+A more general prefix command affects the buffer displayed by a
+subsequent command invoked after this prefix command
+(@code{other-window-prefix}).  It requests the buffer displayed by a
+subsequent command to be shown in another window.
 
 @item C-x 4 1
 This general prefix command requests the buffer of the next command
