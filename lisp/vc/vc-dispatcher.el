@@ -485,6 +485,16 @@ case, and the process object in the asynchronous case."
 
 (defvar vc--inhibit-async-window nil)
 
+(defun vc--display-async-command-buffer (buffer)
+  (unless vc--inhibit-async-window
+    (when-let* ((window (display-buffer buffer))
+                (start (with-current-buffer buffer
+                         (save-excursion
+                           (goto-char (point-max))
+                           (and (re-search-backward "\n" nil t)
+                                (match-end 0))))))
+      (set-window-start window start))))
+
 (defun vc-do-async-command (buffer root command &rest args)
   "Run COMMAND asynchronously with ARGS, displaying the result.
 Send the output to BUFFER, which should be a buffer or the name
@@ -494,7 +504,7 @@ The process object is returned.
 Display the buffer in some window, but don't select it."
   (let ((dir default-directory)
 	(inhibit-read-only t)
-        new-window-start proc)
+        proc)
     (setq buffer (get-buffer-create buffer))
     (if (get-buffer-process buffer)
 	(error "Another VC action on %s is running" root))
@@ -510,7 +520,6 @@ Display the buffer in some window, but don't select it."
                   (goto-char (point-max))
                   (unless (eq (point) (point-min))
 	            (insert "\n"))
-                  (setq new-window-start (point))
                   (insert "Running '" cmd)
                   (dolist (flag flags)
                     (let ((lines (string-lines flag)))
@@ -529,9 +538,7 @@ Display the buffer in some window, but don't select it."
                   (insert "'...\n")
                   args))))
 	(setq proc (apply #'vc-do-command t 'async command nil args))))
-    (unless vc--inhibit-async-window
-      (when-let* ((window (display-buffer buffer)))
-        (set-window-start window new-window-start)))
+    (vc--display-async-command-buffer buffer)
     proc))
 
 (defvar compilation-error-regexp-alist)
@@ -874,7 +881,9 @@ the buffer contents as a comment."
     ;; OK, do it to it
     (let ((log-operation-ret
            (with-current-buffer parent
-             (funcall log-operation log-fileset log-entry))))
+             (let ((vc--inhibit-async-window t))
+               (funcall log-operation log-fileset log-entry)))))
+
       (pop-to-buffer parent)
       (setq vc-log-operation nil)
 
@@ -884,6 +893,10 @@ the buffer contents as a comment."
              (quit-windows-on logbuf t (selected-frame)))
             (t
              (quit-windows-on logbuf nil 0)))
+
+      (when (eq (car-safe log-operation-ret) 'async)
+        (vc--display-async-command-buffer (process-buffer
+                                           (cadr log-operation-ret))))
 
       ;; Now make sure we see the expanded headers.
       ;; If the `vc-log-operation' started an async operation then we
