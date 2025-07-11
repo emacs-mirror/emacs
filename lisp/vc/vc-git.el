@@ -1336,7 +1336,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
 	    (if (string= fn "")
 		(file-relative-name file (vc-git-root default-directory))
 	      (substring fn 0 -1)))))
-    (vc-git-command buffer 0 nil "cat-file" "--filters" "blob"
+    (vc-git-command buffer 0 nil "cat-file" "--filters"
                     (concat (or rev "HEAD") ":" fullname))))
 
 (defun vc-git-find-ignore-file (file)
