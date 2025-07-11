@@ -4058,7 +4058,6 @@ by calling `format-decode', which see.  */)
   (Lisp_Object filename, Lisp_Object visit, Lisp_Object beg, Lisp_Object end,
    Lisp_Object replace)
 {
-  struct stat st;
   struct timespec mtime;
   emacs_fd fd;
   ptrdiff_t inserted = 0;
@@ -4067,7 +4066,7 @@ by calling `format-decode', which see.  */)
   Lisp_Object handler, val, insval, orig_filename, old_undo;
   Lisp_Object p;
   ptrdiff_t total = 0;
-  bool regular = true;
+  bool regular;
   int save_errno = 0;
   char read_buf[READ_BUF_SIZE];
   struct coding_system coding;
@@ -4138,6 +4137,9 @@ by calling `format-decode', which see.  */)
   orig_filename = filename;
   filename = ENCODE_FILE (filename);
 
+  /* A hint about the file size, or -1 if there is no hint.  */
+  off_t file_size_hint;
+
   fd = emacs_fd_open (SSDATA (filename), O_RDONLY, 0);
   if (!emacs_fd_valid_p (fd))
     {
@@ -4145,7 +4147,7 @@ by calling `format-decode', which see.  */)
       if (NILP (visit))
 	report_file_error ("Opening input file", orig_filename);
       mtime = time_error_value (save_errno);
-      st.st_size = -1;
+      file_size_hint = -1;
       if (!NILP (Vcoding_system_for_read))
 	{
 	  /* Don't let invalid values into buffer-file-coding-system.  */
@@ -4167,21 +4169,27 @@ by calling `format-decode', which see.  */)
 			     XCAR (XCAR (window_markers)));
     }
 
-  if (emacs_fd_fstat (fd, &st) != 0)
-    report_file_error ("Input file status", orig_filename);
-  mtime = get_stat_mtime (&st);
+  {
+    struct stat st;
+    if (emacs_fd_fstat (fd, &st) < 0)
+      report_file_error ("Input file status", orig_filename);
+    regular = S_ISREG (st.st_mode) != 0;
+    bool memory_object = S_TYPEISSHM (&st) || S_TYPEISTMO (&st);
+    file_size_hint = regular | memory_object ? st.st_size : -1;
+    mtime = (memory_object
+	     ? make_timespec (0, UNKNOWN_MODTIME_NSECS)
+	     : get_stat_mtime (&st));
+  }
 
   /* The REPLACE code will need to be changed in order to work on
      named pipes, and it's probably just not worth it.  So we should
      at least signal an error.  */
 
-  if (!(S_ISREG (st.st_mode) || S_ISDIR (st.st_mode)))
+  if (!regular)
     {
-      regular = false;
-
-      if (!NILP (replace))
+      if (!NILP (visit) || !NILP (replace))
 	{
-	  if (!EQ (replace, Qif_regular))
+	  if (!NILP (visit) || !EQ (replace, Qif_regular))
 	    xsignal2 (Qfile_error,
 		      build_string ("not a regular file"), orig_filename);
 	  else
@@ -4191,12 +4199,13 @@ by calling `format-decode', which see.  */)
 	    replace = Qunbound;
 	}
 
-      /* Forbid specifying BEG together with a special file, as per
+      /* Forbid specifying BEG unless the file is regular, as per
 	 the doc string.  */
 
       if (!NILP (beg))
 	xsignal2 (Qfile_error,
-		  build_string ("cannot use a start position in a non-seekable file/device"),
+		  build_string ("can use a start position"
+				" only in a regular file"),
 		  orig_filename);
 
       /* Now ascertain if this file is seekable, by detecting if
@@ -4211,7 +4220,7 @@ by calling `format-decode', which see.  */)
 	end_offset = TYPE_MAXIMUM (off_t);
       else
 	{
-	  end_offset = st.st_size;
+	  end_offset = file_size_hint;
 
 	  /* A negative size can happen on a platform that allows file
 	     sizes greater than the maximum off_t value.  */
@@ -4233,7 +4242,7 @@ by calling `format-decode', which see.  */)
     {
       /* The likely offset where we will stop reading.  We could read
 	 more (or less), if the file grows (or shrinks) as we read it.  */
-      off_t likely_end = min (end_offset, st.st_size);
+      off_t likely_end = min (end_offset, file_size_hint);
 
       if (beg_offset < likely_end)
 	{
@@ -4517,8 +4526,8 @@ by calling `format-decode', which see.  */)
 
 	  /* Don't try to reuse the same piece of text twice.  */
 	  overlap = (same_at_start - BEGV_BYTE
-		     - (same_at_end
-			+ (! NILP (end) ? end_offset : st.st_size) - ZV_BYTE));
+		     - (same_at_end - ZV_BYTE
+			+ (!NILP (end) ? end_offset : file_size_hint)));
 	  if (overlap > 0)
 	    same_at_end += overlap;
 	  same_at_end_charpos = BYTE_TO_CHAR (same_at_end);
@@ -4737,17 +4746,16 @@ by calling `format-decode', which see.  */)
       goto handled;
     }
 
-  /* Don't believe st.st_size if it is zero.  */
-  if ((regular && st.st_size > 0) || (!regular && seekable) || !NILP (end))
+  /* From here on, treat a file with zero or unknown size as not seekable.
+     This causes us to read until we actually hit EOF.  */
+  if (file_size_hint <= 0)
+    seekable = false;
+
+  if (seekable || !NILP (end))
     total = end_offset - beg_offset;
   else
-    /* For a special file that is not seekable, all we can do is guess.  */
+    /* For a file that is not seekable, all we can do is guess.  */
     total = READ_BUF_SIZE;
-
-  /* From here on, treat a file with zero size as not seekable.  This
-     causes us to read until we actually hit EOF.  */
-  if (regular && st.st_size == 0)
-    seekable = false;
 
   if (NILP (visit) && total > 0)
     {
@@ -5013,7 +5021,7 @@ by calling `format-decode', which see.  */)
       if (NILP (handler))
 	{
 	  current_buffer->modtime = mtime;
-	  current_buffer->modtime_size = st.st_size;
+	  current_buffer->modtime_size = file_size_hint;
 	  bset_filename (current_buffer, orig_filename);
 	}
 
@@ -5026,14 +5034,6 @@ by calling `format-decode', which see.  */)
 	    Funlock_file (BVAR (current_buffer, file_truename));
 	  Funlock_file (filename);
 	}
-
-#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
-      /* Under Android, modtime and st.st_size can be valid even if FD
-	 is not a regular file.  */
-      if (!regular)
-	xsignal2 (Qfile_error,
-		  build_string ("not a regular file"), orig_filename);
-#endif /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
     }
 
   if (set_coding_system)
