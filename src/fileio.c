@@ -4100,11 +4100,11 @@ by calling `format-decode', which see.  */)
 
   val = Qnil;
   p = Qnil;
-  orig_filename = Qnil;
   old_undo = Qnil;
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
+  orig_filename = filename;
 
   /* The value Qnil means that the coding system is not yet
      decided.  */
@@ -4134,7 +4134,6 @@ by calling `format-decode', which see.  */)
   off_t beg_offset = !NILP (beg) ? file_offset (beg) : 0;
   off_t end_offset = !NILP (end) ? file_offset (end) : -1;
 
-  orig_filename = filename;
   filename = ENCODE_FILE (filename);
 
   /* A hint about the file size, or -1 if there is no hint.  */
