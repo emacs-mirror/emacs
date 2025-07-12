@@ -4488,13 +4488,39 @@ by calling `format-decode', which see.  */)
       /* Count how many chars at the end of the file
 	 match the text at the end of the buffer.  But, if we have
 	 already found that decoding is necessary, don't waste time.  */
+
+      off_t endpos;
+      if (!giveup_match_end)
+	{
+	  endpos = end_offset;
+	  if (endpos == TYPE_MAXIMUM (off_t))
+	    {
+	      endpos = emacs_fd_lseek (fd, 0, SEEK_END);
+	      giveup_match_end = endpos < 0;
+	      if (giveup_match_end)
+		seekable = false;
+	      else
+		{
+		  /* Check that read reports EOF soon, to catch platforms
+		     where SEEK_END can report wildly small offsets.  */
+		  ptrdiff_t n = emacs_fd_read (fd, read_buf, sizeof read_buf);
+		  if (n < 0)
+		    report_file_error ("Read error", orig_filename);
+		  endpos += n;
+		  giveup_match_end = 0 < n;
+		  if (!giveup_match_end)
+		    file_size_hint = endpos;
+		}
+	    }
+	}
+
       while (!giveup_match_end)
 	{
 	  int total_read, nread, bufpos, trial;
 	  off_t curpos;
 
 	  /* At what file position are we now scanning?  */
-	  curpos = end_offset - (ZV_BYTE - same_at_end);
+	  curpos = endpos - (ZV_BYTE - same_at_end);
 	  /* If the entire file matches the buffer tail, stop the scan.  */
 	  if (curpos == 0)
 	    break;
@@ -4511,7 +4537,10 @@ by calling `format-decode', which see.  */)
 	      if (nread < 0)
 		report_file_error ("Read error", orig_filename);
 	      else if (nread == 0)
-		break;
+		{
+		  file_size_hint = curpos - trial + total_read;
+		  break;
+		}
 	      total_read += nread;
 	    }
 
@@ -4567,15 +4596,14 @@ by calling `format-decode', which see.  */)
 	  /* Don't try to reuse the same piece of text twice.  */
 	  overlap = (same_at_start - BEGV_BYTE
 		     - (same_at_end - ZV_BYTE
-			+ (end_offset < TYPE_MAXIMUM (off_t)
-			   ? end_offset : file_size_hint)));
+			+ endpos));
 	  if (overlap > 0)
 	    same_at_end += overlap;
 	  same_at_end_charpos = BYTE_TO_CHAR (same_at_end);
 
 	  /* Arrange to read only the nonmatching middle part of the file.  */
 	  beg_offset += same_at_start - BEGV_BYTE;
-	  end_offset -= ZV_BYTE - same_at_end;
+	  end_offset = endpos - (ZV_BYTE - same_at_end);
 
           if (!NILP (visit) && BEG == BEGV && Z == ZV)
             /* This binding is to avoid ask-user-about-supersession-threat
