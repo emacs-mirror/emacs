@@ -4873,10 +4873,7 @@ by calling `format-decode', which see.  */)
 		break;
 	      }
 
-	    if (!integer_to_intmax (nbytes, &number)
-		&& number > PTRDIFF_MAX)
-	      buffer_overflow ();
-
+	    integer_to_intmax (nbytes, &number);
 	    this = number;
 	  }
 	else
