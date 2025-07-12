@@ -1098,6 +1098,7 @@ Return the result of `process-file' - zero for success."
 
 (autoload 'Man-support-local-filenames "man")
 (autoload 'vc-responsible-backend "vc")
+(autoload 'vc-backend-for-registration "vc")
 
 (defvar dired-guess-shell-alist-default
   (list
@@ -4022,8 +4023,9 @@ In this case, the VERBOSE argument is ignored."
 ;;;###autoload
 (defun dired-vc-deduce-fileset
     (&optional state-model-only-files not-state-changing)
-  (let ((backend (vc-responsible-backend default-directory))
-        (files (dired-get-marked-files nil nil nil nil t)))
+  (let* ((files (dired-get-marked-files nil nil nil nil t))
+         (backend (or (vc-responsible-backend default-directory)
+                      (vc-backend-for-registration (car files)))))
     (when (and (not not-state-changing)
                (cl-some #'file-directory-p files))
       (user-error "\

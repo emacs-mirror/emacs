@@ -1104,6 +1104,7 @@ Return the result of evaluating FORM."
 
 ;;; Code for deducing what fileset and backend to assume
 
+;;;###autoload
 (defun vc-backend-for-registration (file)
   "Return a backend that can be used for registering FILE.
 
