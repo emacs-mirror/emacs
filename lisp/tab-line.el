@@ -251,6 +251,36 @@ If nil, don't show it at all."
               'help-echo "Click to close tab")
   "Button for closing the clicked tab.")
 
+(defcustom tab-line-close-modified-button-show t
+  "If non-nil, the close button appearance will change when its buffer is modified."
+  :type 'boolean
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update t))
+  :group 'tab-line
+  :version "31.1")
+
+(define-icon tab-line-close-modified nil
+  `((image "symbols/dot_medium_16.svg" "tabs/close-modified.xpm"
+           :face shadow
+           :height (1 . em)
+           :margin (2 . 0)
+           :ascent center)
+    (symbol ,(concat " " [#x2022])) ; bullet
+    (text " *"))
+  "Icon for closing the clicked tab when tab is modified."
+  :version "31.1"
+  :help-echo "Click to close tab")
+
+(defvar tab-line-close-modified-button
+  (propertize (icon-string 'tab-line-close-modified)
+              'rear-nonsticky nil
+              'keymap tab-line-tab-close-map
+              'mouse-face 'tab-line-close-highlight
+              'help-echo "Click to close tab")
+  "Button for closing the clicked tab when tab is modified.")
+
 (define-icon tab-line-left nil
   `((image "symbols/chevron_left_16.svg" "tabs/left-arrow.xpm"
            :face shadow
@@ -386,6 +416,12 @@ Used only for `tab-line-tabs-mode-buffers' and `tab-line-tabs-buffer-groups'.")
                  (seq-filter (lambda (b) (with-current-buffer b
                                            (derived-mode-p mode)))
                              (funcall tab-line-tabs-buffer-list-function)))))
+
+(defun tab-line-tab-modified-p (tab buffer-p)
+  "Return t if TAB is modified."
+  (let ((buffer (if buffer-p tab (cdr (assq 'buffer tab)))))
+    (when (and buffer (buffer-file-name buffer) (buffer-modified-p buffer))
+      t)))
 
 (defcustom tab-line-tabs-buffer-group-function
   #'tab-line-tabs-buffer-group-by-mode
@@ -619,7 +655,10 @@ using `tab-line-cache-key-function'."
                                          (not (eq tab-line-close-button-show
                                                   (if selected-p 'non-selected
                                                     'selected)))
-                                         tab-line-close-button)
+                                         (if (and tab-line-close-modified-button-show
+                                                  (tab-line-tab-modified-p tab buffer-p))
+                                             tab-line-close-modified-button
+                                           tab-line-close-button))
                                     "")))
                      (setq close (copy-sequence close))
                      ;; Don't overwrite the icon face
@@ -687,9 +726,8 @@ When TAB is a non-file-visiting buffer, make FACE inherit from
 When TAB is a modified, file-backed buffer, make FACE inherit
 from `tab-line-tab-modified'.  For use in
 `tab-line-tab-face-functions'."
-  (let ((buffer (if buffer-p tab (cdr (assq 'buffer tab)))))
-    (when (and buffer (buffer-file-name buffer) (buffer-modified-p buffer))
-      (setf face `(:inherit (tab-line-tab-modified ,face)))))
+  (when (tab-line-tab-modified-p tab buffer-p)
+    (setf face `(:inherit (tab-line-tab-modified ,face))))
   face)
 
 (defun tab-line-tab-face-group (tab _tabs face _buffer-p _selected-p)

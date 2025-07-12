@@ -427,6 +427,11 @@ This user option controls where 'tab-line-mode' should not be enabled in
 a buffer.  The value must be a condition which is passed to
 'buffer-match-p'.
 
+---
+*** New user option 'tab-line-close-modified-button-show'.
+With this user option, if non-nil (the default), the tab close button
+will change its appearance whether the tab buffer has been modified.
+
 ** Project
 
 ---
