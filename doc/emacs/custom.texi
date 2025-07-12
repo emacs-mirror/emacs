@@ -2487,8 +2487,12 @@ as a function from Lisp programs.
 @c When updating this, also update ``Setting up a customization file''
 @c in efaq.texi.
   When Emacs is started, it normally tries to load a Lisp program from
-an @dfn{initialization file}, or @dfn{init file} for short.  This
-file, if it exists, specifies how to initialize Emacs for you.
+an @dfn{initialization file}, or @dfn{init file} for short.  This file,
+if it exists, specifies how to initialize Emacs for you and how to
+customize its various optional features.  The customizations you make by
+using @w{@kbd{M-x customize}} (@pxref{Easy Customization}) are also by
+default saved in the init file (@pxref{Saving Customizations}).
+
 Traditionally, file @file{~/.emacs} is used as the init file, although
 Emacs also looks at @file{~/.emacs.el}, @file{~/.emacs.d/init.el},
 @file{~/.config/emacs/init.el}, or other locations.  @xref{Find Init}.
