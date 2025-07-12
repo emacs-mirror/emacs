@@ -4437,11 +4437,27 @@ by calling `format-decode', which see.  */)
 	 match the text at the beginning of the buffer.  */
       while (true)
 	{
-	  int nread = emacs_fd_read (fd, read_buf, sizeof read_buf);
+	  off_t bytes_to_read = sizeof read_buf;
+	  off_t curpos = beg_offset + (same_at_start - BEGV_BYTE);
+	  bytes_to_read = min (bytes_to_read, end_offset - curpos);
+	  ptrdiff_t nread = (bytes_to_read <= 0
+			     ? 0
+			     : emacs_fd_read (fd, read_buf, bytes_to_read));
 	  if (nread < 0)
 	    report_file_error ("Read error", orig_filename);
 	  else if (nread == 0)
-	    break;
+	    {
+	      file_size_hint = curpos;
+
+	      /* Data inserted from the file match the buffer's leading bytes,
+		 so there's no need to replace anything.  */
+	      emacs_fd_close (fd);
+	      clear_unwind_protect (fd_index);
+
+	      /* Truncate the buffer to the size of the file.  */
+	      del_range_1 (same_at_start, same_at_end, 0, 0);
+	      goto handled;
+	    }
 
 	  if (CODING_REQUIRE_DETECTION (&coding))
 	    {
@@ -4467,17 +4483,6 @@ by calling `format-decode', which see.  */)
 	     Otherwise loop around and scan the next bufferful.  */
 	  if (bufpos != nread)
 	    break;
-	}
-      /* If the file matches the buffer completely,
-	 there's no need to replace anything.  */
-      if (same_at_start - BEGV_BYTE == end_offset - beg_offset)
-	{
-	  emacs_fd_close (fd);
-	  clear_unwind_protect (fd_index);
-
-	  /* Truncate the buffer to the size of the file.  */
-	  del_range_1 (same_at_start, same_at_end, 0, 0);
-	  goto handled;
 	}
 
       /* Count how many chars at the end of the file
