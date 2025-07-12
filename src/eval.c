@@ -159,7 +159,11 @@ set_backtrace_debug_on_exit (union specbinding *pdl, bool doe)
 
 bool
 backtrace_p (union specbinding *pdl)
-{ return specpdl ? pdl >= specpdl : false; }
+{
+  if (current_thread && specpdl && pdl)
+    return pdl >= specpdl;
+  return false;
+}
 
 static bool
 backtrace_thread_p (struct thread_state *tstate, union specbinding *pdl)
