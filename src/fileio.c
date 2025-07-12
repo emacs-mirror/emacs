@@ -4090,7 +4090,6 @@ by calling `format-decode', which see.  */)
   /* SAME_AT_END_CHARPOS counts characters, because
      restore_window_points needs the old character count.  */
   ptrdiff_t same_at_end_charpos = ZV;
-  bool seekable = true;
 
   /* A hint about the file size, or -1 if there is no hint.  */
   off_t file_size_hint = -1;
@@ -4189,6 +4188,15 @@ by calling `format-decode', which see.  */)
 	     : get_stat_mtime (&st));
   }
 
+  /* The initial offset can be nonzero, e.g., /dev/stdin.
+     Regular files can be non-seekable, e.g., /proc/cpuinfo with SEEK_END.  */
+  off_t initial_offset = emacs_fd_lseek (fd, 0, SEEK_CUR);
+  bool seekable = 0 <= initial_offset;
+  if (seekable && NILP (beg))
+    beg_offset = initial_offset;
+  if (end_offset <= beg_offset)
+    goto handled;
+
   /* The REPLACE code will need to be changed in order to work on
      named pipes, and it's probably just not worth it.  So we should
      at least signal an error.  */
@@ -4215,11 +4223,6 @@ by calling `format-decode', which see.  */)
 		  build_string ("can use a start position"
 				" only in a regular file"),
 		  orig_filename);
-
-      /* Now ascertain if this file is seekable, by detecting if
-	 seeking leads to -1 being returned.  */
-      seekable
-	= emacs_fd_lseek (fd, 0, SEEK_CUR) != (off_t) -1;
     }
 
   if (end_offset == TYPE_MAXIMUM (off_t))
@@ -4276,8 +4279,13 @@ by calling `format-decode', which see.  */)
       else
 	{
 	  /* Don't try looking inside a file for a coding system
-	     specification if it is not a regular file.  */
-	  if (regular && !NILP (Vset_auto_coding_function))
+	     specification if it is not a regular, seekable file.  */
+	  bool look_inside = (regular && seekable
+			      && !NILP (Vset_auto_coding_function));
+	  if (look_inside && 0 < initial_offset
+	      && emacs_fd_lseek (fd, 0, SEEK_SET) < 0)
+	    look_inside = seekable = false;
+	  if (look_inside)
 	    {
 	      /* Find a coding system specified in the heading two
 		 lines or in the tailing several lines of the file.
@@ -4361,7 +4369,7 @@ by calling `format-decode', which see.  */)
 		  specpdl_ptr--;
 
 		  /* Rewind the file for the actual read done later.  */
-		  if (emacs_fd_lseek (fd, 0, SEEK_SET) < 0)
+		  if (emacs_fd_lseek (fd, initial_offset, SEEK_SET) < 0)
 		    report_file_error ("Setting file position", orig_filename);
 		}
 	    }
@@ -4419,7 +4427,7 @@ by calling `format-decode', which see.  */)
 	 give up on handling REPLACE in the optimized way.  */
       bool giveup_match_end = false;
 
-      if (beg_offset != 0)
+      if (beg_offset != initial_offset)
 	{
 	  if (emacs_fd_lseek (fd, beg_offset, SEEK_SET) < 0)
 	    report_file_error ("Setting file position", orig_filename);
