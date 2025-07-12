@@ -4289,12 +4289,38 @@ by calling `format-decode', which see.  */)
 		{
 		  off_t tailoff = emacs_fd_lseek (fd, - 3 * 1024, SEEK_END);
 		  if (tailoff < 0)
-		    seekable = false;
-		  else if (1024 < tailoff)
 		    {
-		      ptrdiff_t ntail = emacs_fd_read (fd, read_buf + 1024,
-						       3 * 1024);
-		      nread = ntail < 0 ? ntail : 1024 + ntail;
+		      seekable = false;
+		      tailoff = nread;
+		    }
+
+		  /* When appending the last 3 KiB, read until EOF
+		     without trusting tailoff, as the file may be in
+		     /proc or be mutating.  */
+		  nread = 1024;
+		  for (;;)
+		    {
+		      ptrdiff_t r = emacs_fd_read (fd, read_buf + nread,
+						   sizeof read_buf - nread);
+		      if (r <= 0)
+			{
+			  if (r < 0)
+			    nread = r;
+			  else
+			    file_size_hint = tailoff;
+			  break;
+			}
+		      tailoff += r;
+		      nread += r;
+		      bool eof = nread < sizeof read_buf;
+		      if (4 * 1024 < nread)
+			{
+			  memmove (read_buf + 1024,
+				   read_buf + nread - 3 * 1024, 3 * 1024);
+			  nread = 4 * 1024;
+			}
+		      if (eof)
+			break;
 		    }
 		}
 
