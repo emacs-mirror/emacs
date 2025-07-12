@@ -4135,7 +4135,7 @@ by calling `format-decode', which see.  */)
     }
 
   off_t beg_offset = !NILP (beg) ? file_offset (beg) : 0;
-  off_t end_offset = !NILP (end) ? file_offset (end) : -1;
+  off_t end_offset = !NILP (end) ? file_offset (end) : TYPE_MAXIMUM (off_t);
 
   filename = ENCODE_FILE (filename);
 
@@ -4222,11 +4222,9 @@ by calling `format-decode', which see.  */)
 	= emacs_fd_lseek (fd, 0, SEEK_CUR) != (off_t) -1;
     }
 
-  if (end_offset < 0)
+  if (end_offset == TYPE_MAXIMUM (off_t))
     {
-      if (!regular)
-	end_offset = TYPE_MAXIMUM (off_t);
-      else
+      if (regular)
 	{
 	  end_offset = file_size_hint;
 
@@ -4556,7 +4554,8 @@ by calling `format-decode', which see.  */)
 	  /* Don't try to reuse the same piece of text twice.  */
 	  overlap = (same_at_start - BEGV_BYTE
 		     - (same_at_end - ZV_BYTE
-			+ (!NILP (end) ? end_offset : file_size_hint)));
+			+ (end_offset < TYPE_MAXIMUM (off_t)
+			   ? end_offset : file_size_hint)));
 	  if (overlap > 0)
 	    same_at_end += overlap;
 	  same_at_end_charpos = BYTE_TO_CHAR (same_at_end);
@@ -4780,10 +4779,10 @@ by calling `format-decode', which see.  */)
   if (file_size_hint <= 0)
     seekable = false;
 
-  if (seekable || !NILP (end))
+  if (seekable || end_offset < TYPE_MAXIMUM (off_t))
     total = end_offset - beg_offset;
   else
-    /* For a file that is not seekable, all we can do is guess.  */
+    /* All we can do is guess.  */
     total = READ_BUF_SIZE;
 
   if (NILP (visit) && total > 0)
@@ -4826,7 +4825,7 @@ by calling `format-decode', which see.  */)
   {
     ptrdiff_t gap_size = GAP_SIZE;
 
-    while (NILP (end) || inserted < total)
+    while (end_offset == TYPE_MAXIMUM (off_t) || inserted < total)
       {
 	ptrdiff_t this;
 
@@ -4839,10 +4838,10 @@ by calling `format-decode', which see.  */)
 
 	/* 'try' is reserved in some compilers (Microsoft C).  */
 	ptrdiff_t trytry = min (gap_size, READ_BUF_SIZE);
-	if (seekable || !NILP (end))
+	if (seekable || end_offset < TYPE_MAXIMUM (off_t))
 	  trytry = min (trytry, total - inserted);
 
-	if (!seekable && NILP (end))
+	if (!seekable && end_offset == TYPE_MAXIMUM (off_t))
 	  {
 	    Lisp_Object nbytes;
 	    intmax_t number;
