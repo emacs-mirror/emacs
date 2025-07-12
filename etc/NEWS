@@ -1665,6 +1665,15 @@ the 'grep' results editable.  The edits will be reflected in the buffer
 visiting the originating file.  Typing 'C-c C-c' will leave the Grep
 Edit mode.
 
+** Imenu
+
+---
+*** New user option 'imenu-allow-duplicate-menu-items'.
+This specifies whether Imenu can include duplicate menu items.
+Duplicate items are now allowed by default (option value 't'), which
+restores the behavior before Emacs 29.  Customize this to nil to get the
+behavior of Emacs 29 and Emacs 30.
+
 ** Time Stamp
 
 ---
