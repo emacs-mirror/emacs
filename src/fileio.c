@@ -4065,7 +4065,7 @@ by calling `format-decode', which see.  */)
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object handler, val, insval, orig_filename, old_undo;
   Lisp_Object p;
-  ptrdiff_t total = 0;
+  off_t total = 0;
   bool regular;
   int save_errno = 0;
   char read_buf[READ_BUF_SIZE];
@@ -4818,10 +4818,16 @@ by calling `format-decode', which see.  */)
   move_gap_both (PT, PT_BYTE);
 
   /* Ensure the gap is at least one byte larger than needed for the
-     estimated file size, so that in the usual case we read to EOF
+     estimated insertion, so that in the usual case we read
      without reallocating.  */
-  if (GAP_SIZE <= total)
-    make_gap (total - GAP_SIZE + 1);
+  off_t inserted_estimate = min (end_offset, file_size_hint) - beg_offset;
+  if (GAP_SIZE <= inserted_estimate)
+    {
+      ptrdiff_t growth;
+      if (ckd_sub (&growth, inserted_estimate, GAP_SIZE - 1))
+	buffer_overflow ();
+      make_gap (growth);
+    }
 
   if (beg_offset != 0 || (!NILP (replace)
 			  && !BASE_EQ (replace, Qunbound)))
