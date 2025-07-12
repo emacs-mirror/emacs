@@ -1648,6 +1648,9 @@ Preparing Lisp code for distribution
 * Simple Packages::         How to package a single .el file.
 * Multi-file Packages::     How to package multiple files.
 * Package Archives::        Maintaining package archives.
+* Archive Web Server::      Interfacing to an archive web server.
+* Forwards-Compatibility::  Supporting older versions of Emacs.
+* Package Information::     Information about built-in packages.
 
 Tips and Conventions
 
