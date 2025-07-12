@@ -4092,6 +4092,9 @@ by calling `format-decode', which see.  */)
   ptrdiff_t same_at_end_charpos = ZV;
   bool seekable = true;
 
+  /* A hint about the file size, or -1 if there is no hint.  */
+  off_t file_size_hint = -1;
+
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
 
@@ -4136,9 +4139,6 @@ by calling `format-decode', which see.  */)
 
   filename = ENCODE_FILE (filename);
 
-  /* A hint about the file size, or -1 if there is no hint.  */
-  off_t file_size_hint;
-
   fd = emacs_fd_open (SSDATA (filename), O_RDONLY, 0);
   if (!emacs_fd_valid_p (fd))
     {
@@ -4146,7 +4146,6 @@ by calling `format-decode', which see.  */)
       if (NILP (visit))
 	report_file_error ("Opening input file", orig_filename);
       mtime = time_error_value (save_errno);
-      file_size_hint = -1;
       if (!NILP (Vcoding_system_for_read))
 	{
 	  /* Don't let invalid values into buffer-file-coding-system.  */
@@ -4174,7 +4173,17 @@ by calling `format-decode', which see.  */)
       report_file_error ("Input file status", orig_filename);
     regular = S_ISREG (st.st_mode) != 0;
     bool memory_object = S_TYPEISSHM (&st) || S_TYPEISTMO (&st);
-    file_size_hint = regular | memory_object ? st.st_size : -1;
+
+    if (regular | memory_object)
+      {
+	file_size_hint = st.st_size;
+
+	/* A negative size can happen on a platform that allows file
+	   sizes greater than the maximum off_t value.  */
+	if (file_size_hint < 0)
+	  buffer_overflow ();
+      }
+
     mtime = (memory_object
 	     ? make_timespec (0, UNKNOWN_MODTIME_NSECS)
 	     : get_stat_mtime (&st));
@@ -4220,11 +4229,6 @@ by calling `format-decode', which see.  */)
       else
 	{
 	  end_offset = file_size_hint;
-
-	  /* A negative size can happen on a platform that allows file
-	     sizes greater than the maximum off_t value.  */
-	  if (end_offset < 0)
-	    buffer_overflow ();
 
 	  /* The file size returned from fstat may be zero, but data
 	     may be readable nonetheless, for example when this is a
