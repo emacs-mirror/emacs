@@ -4668,6 +4668,7 @@ by calling `format-decode', which see.  */)
 
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
+      file_size_hint = beg_offset;
 
       while (true)
 	{
@@ -4679,6 +4680,7 @@ by calling `format-decode', which see.  */)
 	  if (this <= 0)
 	    break;
 
+	  file_size_hint += this;
 	  BUF_TEMP_SET_PT (XBUFFER (conversion_buffer),
 			   BUF_Z (XBUFFER (conversion_buffer)));
 	  decode_coding_c_string (&coding, (unsigned char *) read_buf,
@@ -4933,6 +4935,8 @@ by calling `format-decode', which see.  */)
 	inserted += this;
       }
   }
+
+  file_size_hint = beg_offset + inserted;
 
   /* Now we have either read all the file data into the gap,
      or stop reading on I/O error or quit.  If nothing was
