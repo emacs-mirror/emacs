@@ -4225,20 +4225,6 @@ by calling `format-decode', which see.  */)
 		  orig_filename);
     }
 
-  if (end_offset == TYPE_MAXIMUM (off_t))
-    {
-      if (regular)
-	{
-	  end_offset = file_size_hint;
-
-	  /* The file size returned from fstat may be zero, but data
-	     may be readable nonetheless, for example when this is a
-	     file in the /proc filesystem.  */
-	  if (end_offset == 0)
-	    end_offset = READ_BUF_SIZE;
-	}
-    }
-
   /* Check now whether the buffer will become too large,
      in the likely case where the file's length is not changing.
      This saves a lot of needless work before a buffer overflow.  */
@@ -4817,16 +4803,7 @@ by calling `format-decode', which see.  */)
       goto handled;
     }
 
-  /* From here on, treat a file with zero or unknown size as not seekable.
-     This causes us to read until we actually hit EOF.  */
-  if (file_size_hint <= 0)
-    seekable = false;
-
-  if (seekable || end_offset < TYPE_MAXIMUM (off_t))
-    total = end_offset - beg_offset;
-  else
-    /* All we can do is guess.  */
-    total = READ_BUF_SIZE;
+  total = end_offset - beg_offset;
 
   if (NILP (visit) && total > 0)
     {
@@ -4874,7 +4851,7 @@ by calling `format-decode', which see.  */)
   {
     ptrdiff_t gap_size = GAP_SIZE;
 
-    while (end_offset == TYPE_MAXIMUM (off_t) || inserted < total)
+    while (inserted < total)
       {
 	ptrdiff_t this;
 
@@ -4886,9 +4863,8 @@ by calling `format-decode', which see.  */)
 	  }
 
 	/* 'try' is reserved in some compilers (Microsoft C).  */
-	ptrdiff_t trytry = min (gap_size, READ_BUF_SIZE);
-	if (seekable || end_offset < TYPE_MAXIMUM (off_t))
-	  trytry = min (trytry, total - inserted);
+	ptrdiff_t trytry = min (gap_size,
+				min (total - inserted, READ_BUF_SIZE));
 
 	if (!seekable && end_offset == TYPE_MAXIMUM (off_t))
 	  {
