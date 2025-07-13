@@ -4616,11 +4616,11 @@ by calling `format-decode', which see.  */)
 
       while (true)
 	{
-	  /* Read at most READ_BUF_SIZE bytes at a time, to allow
+	  /* Read one buffer a time, to allow
 	     quitting while reading a huge file.  */
 
 	  this = emacs_fd_read (fd, read_buf + unprocessed,
-				READ_BUF_SIZE - unprocessed);
+				sizeof read_buf - unprocessed);
 	  if (this <= 0)
 	    break;
 
