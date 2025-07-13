@@ -4024,7 +4024,7 @@ In this case, the VERBOSE argument is ignored."
 (defun dired-vc-deduce-fileset
     (&optional state-model-only-files not-state-changing)
   (let* ((files (dired-get-marked-files nil nil nil nil t))
-         (backend (or (vc-responsible-backend default-directory)
+         (backend (or (vc-responsible-backend default-directory t)
                       (vc-backend-for-registration (car files)))))
     (when (and (not not-state-changing)
                (cl-some #'file-directory-p files))
