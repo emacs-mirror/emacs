@@ -640,7 +640,7 @@ For details, see `tramp-rename-files'."
   :link '(tramp-info-link :tag "Tramp manual" tramp-file-name-with-method))
 
 (defun tramp-get-file-name-with-method ()
-  "Return connection-local value of ‘tramp-file-name-with-method’."
+  "Return connection-local value of `tramp-file-name-with-method'."
   (tramp-compat-connection-local-value tramp-file-name-with-method))
 
 (defmacro with-tramp-file-name-with-method (&rest body)
