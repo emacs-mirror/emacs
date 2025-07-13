@@ -4523,11 +4523,16 @@ by calling `format-decode', which see.  */)
 		report_file_error ("Read error", orig_filename);
 	      else if (nread == 0)
 		{
+		  /* The file unexpectedly shrank.  */
 		  file_size_hint = curpos - trial + total_read;
+		  giveup_match_end = true;
 		  break;
 		}
 	      total_read += nread;
 	    }
+
+	  if (giveup_match_end)
+	    break;
 
 	  /* Scan this bufferful from the end, comparing with
 	     the Emacs buffer.  */
