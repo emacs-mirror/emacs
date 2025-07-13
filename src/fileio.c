@@ -860,7 +860,7 @@ usage: (file-name-concat DIRECTORY &rest COMPONENTS)  */)
   ptrdiff_t i;
 
   /* First go through the list to check the types and see whether
-     they're all of the same multibytedness. */
+     they're all of the same multibyteness. */
   for (i = 0; i < nargs; i++)
     {
       Lisp_Object arg = args[i];
