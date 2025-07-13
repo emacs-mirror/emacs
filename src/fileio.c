@@ -3924,7 +3924,7 @@ read_non_regular (Lisp_Object state)
 		     ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
 		      + data->s.inserted),
 		     data->s.trytry);
-  return make_int (nbytes);
+  return make_int (nbytes < 0 ? -errno : nbytes);
 }
 
 
@@ -4094,8 +4094,8 @@ by calling `format-decode', which see.  */)
   bool replace_handled = false;
   bool set_coding_system = false;
   Lisp_Object coding_system;
-  /* Negative if read error, 0 if OK so far, positive if quit.  */
-  ptrdiff_t read_quit = 0;
+  /* errno if read error, 0 if OK so far, negative if quit.  */
+  int read_quit = 0;
   /* If the undo log only contains the insertion, there's no point
      keeping it.  It's typically when we first fill a file-buffer.  */
   bool empty_undo_list_p
@@ -4843,7 +4843,7 @@ by calling `format-decode', which see.  */)
 
 	    if (NILP (nbytes))
 	      {
-		read_quit = 1;
+		read_quit = -1;
 		break;
 	      }
 
@@ -4857,14 +4857,18 @@ by calling `format-decode', which see.  */)
 	  /* Allow quitting out of the actual I/O.  We don't make text
 	     part of the buffer until all the reading is done, so a
 	     C-g here doesn't do any harm.  */
-	  this = emacs_fd_read (fd,
-				((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
-				 + inserted),
-				trytry);
+	  {
+	    this = emacs_fd_read (fd,
+				  ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
+				   + inserted),
+				  trytry);
+	    if (this < 0)
+	      this = -errno;
+	  }
 
 	if (this <= 0)
 	  {
-	    read_quit = this;
+	    read_quit = -this;
 	    break;
 	  }
 
@@ -4889,8 +4893,8 @@ by calling `format-decode', which see.  */)
   emacs_fd_close (fd);
   clear_unwind_protect (fd_index);
 
-  if (read_quit < 0)
-    report_file_error ("Read error", orig_filename);
+  if (0 < read_quit)
+    report_file_errno ("Read error", orig_filename, read_quit);
 
  notfound:
 
