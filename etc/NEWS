@@ -1463,7 +1463,7 @@ you exit the Emacs session or kill the IELM buffer.
 *** Dedicated buffer for plain text contents.
 When switching to the plain text contents with 'doc-view-open-text',
 DocView now creates a dedicated buffer to display it.  'C-c C-c' gets you
-back to real DocView buffer if it still exists.
+back to the real DocView buffer if it still exists.
 
 +++
 *** New commands to save and restore pages in buffer-local registers.
@@ -1554,7 +1554,7 @@ This feature is experimental.
 This command copies to the 'kill-ring' a region of text modified
 according to diffs in the current buffer, but without applying the diffs
 to the original text.  If the selected range extends a hunk, the
-command attempts to look up and copy the text in-between the hunks.
+command attempts to look up and copy the text in between the hunks.
 
 +++
 *** New command 'diff-revert-and-kill-hunk' bound to 'C-c M-r'.
@@ -1892,12 +1892,12 @@ files in the fileset are in a compatible state for a checkin.
 +++
 *** 'C-x v v' handles missing and removed files more consistently.
 Missing files are those which have been removed from the filesystem but
-are still tracked by version control.  Removed files are those scheduled
-to be removed from version control in the next commit.  Previously,
-different backends were inconsistent about applying these statuses to
-files, and 'C-x v v' behaved subtly differently for the two statuses.
-The combination of these differences between backends and in 'C-x v v'
-behavior was confusing.  Now,
+which are still tracked by version control.  Removed files are those
+scheduled to be removed from version control in the next commit.
+Previously, different backends were inconsistent about applying these
+statuses to files, and 'C-x v v' behaved subtly differently for the two
+statuses.  The combination of these differences between backends and in
+'C-x v v' behavior was confusing.  Now,
 
 - in VC-Dir, you can use 'C-x v v' on missing files to mark them as
   removed
