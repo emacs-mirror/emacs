@@ -1719,34 +1719,27 @@ first backend that could register the file is used."
     ;; possibility to register directories rather than files only, since
     ;; many VCS allow that as well.
     (dolist (fname files)
-      (let ((bname (get-file-buffer fname)))
-	(unless fname
-	  (setq fname buffer-file-name))
-	(when (vc-call-backend backend 'registered fname)
-	  (error "This file is already registered: %s" fname))
-	;; Watch out for new buffers of size 0: the corresponding file
-	;; does not exist yet, even though buffer-modified-p is nil.
-	(when bname
-	  (with-current-buffer bname
-	    (when (and (not (buffer-modified-p))
-		       (zerop (buffer-size))
-		       (not (file-exists-p buffer-file-name)))
-	      (set-buffer-modified-p t))
-	    (vc-buffer-sync)))))
+      (when (vc-call-backend backend 'registered fname)
+	(error "This file is already registered: %s" fname))
+      ;; Watch out for new buffers of size 0: the corresponding file
+      ;; does not exist yet, even though buffer-modified-p is nil.
+      (when-let* ((bname (get-file-buffer fname)))
+	(with-current-buffer bname
+	  (when (and (not (buffer-modified-p))
+		     (zerop (buffer-size))
+		     (not (file-exists-p buffer-file-name)))
+	    (set-buffer-modified-p t))
+	  (vc-buffer-sync))))
     (message "Registering %s... " files)
     (mapc #'vc-file-clearprops files)
     (vc-call-backend backend 'register files comment)
-    (mapc
-     (lambda (file)
-       (vc-file-setprop file 'vc-backend backend)
-       ;; FIXME: This is wrong: it should set `backup-inhibited' in all
-       ;; the buffers visiting files affected by this `vc-register', not
-       ;; in the current-buffer.
-       ;; (unless vc-make-backup-files
-       ;;   (setq-local backup-inhibited t))
-
-       (vc-resynch-buffer file t t))
-     files)
+    (dolist (fname files)
+      (vc-file-setprop fname 'vc-backend backend)
+      (when-let* ((bname (get-file-buffer fname)))
+        (with-current-buffer bname
+          (unless vc-make-backup-files
+            (setq-local backup-inhibited t))))
+      (vc-resynch-buffer fname t t))
     (message "Registering %s... done" files)))
 
 (defun vc-register-with (backend)
