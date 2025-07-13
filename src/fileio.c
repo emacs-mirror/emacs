@@ -4501,7 +4501,7 @@ by calling `format-decode', which see.  */)
 
       while (!giveup_match_end)
 	{
-	  int total_read, nread, bufpos, trial;
+	  ptrdiff_t total_read, nread, bufpos, trial;
 	  off_t curpos;
 
 	  /* At what file position are we now scanning?  */
