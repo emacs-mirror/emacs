@@ -3949,7 +3949,7 @@ This is performed with @option{sudo} permissions.
 The method used in @code{tramp-revert-buffer-with-sudo} and
 @code{tramp-dired-find-file-with-sudo}.  It defaults to @option{sudo},
 other valid methods are @option{su}, @option{doas}, @option{run0}, and
-@option{ksu}.
+@option{ksu}.  The value can be set connection-local.
 
 If a command is called with a prefix argument @kbd{C-u}, the option's
 value is read interactively.

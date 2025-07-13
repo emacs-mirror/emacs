@@ -355,9 +355,9 @@ retains the existing behavior of inserting parentheses.
 
 +++
 *** New minor mode 'mode-line-invisible-mode'.
-This minor mode makes the mode-line of the current buffer invisible.
+This minor mode makes the mode line of the current buffer invisible.
 The command 'mode-line-invisible-mode' toggles the visibility of the
-current-buffer's mode-line.  The default is to show the mode line of
+current-buffer's mode line.  The default is to show the mode line of
 every buffer.
 
 ** Tab Bars and Tab Lines
@@ -525,7 +525,7 @@ CSS attribute continues to be set as before.
 
 This change should result in more consistent display of SVG images.
 
-To use the :foreground or current text color ensure the 'fill' attribute
+To use the ':foreground' or current text color ensure the 'fill' attribute
 in the SVG is set to 'currentcolor', or set the image spec's ':css'
 value to 'svg {fill: currentcolor;}'.
 
@@ -1522,7 +1522,10 @@ recent Dired line with superuser, or root, permissions.
 +++
 *** 'C-x x @' is now bound to 'tramp-revert-buffer-with-sudo'.
 You can use 'C-u C-x x @' to select a Tramp method other than the
-default, 'sudo'.
+default, "sudo".
+
++++
+*** 'tramp-file-name-with-method' can now be set as connection-local variable.
 
 +++
 *** Connection method "kubernetes" supports now optional namespace.
@@ -1847,7 +1850,7 @@ the directory into which the repository was cloned.
 Reverting a directory means reverting changes to all files inside it.
 
 +++
-*** New minor mode 'vc-auto-revert-mode'.
+*** New global minor mode 'vc-auto-revert-mode'.
 This is like 'global-auto-revert-mode' but limited to VCS-tracked files.
 As compared with VC's existing, default support for reverting files
 after VCS operations, the new mode is a more reliable way to ensure that
@@ -2269,7 +2272,7 @@ useful when you want the face attributes to be absolute and not
 *** New user option 'ffap-prefer-remote-file'.
 If non-nil, FFAP always finds remote files in buffers with remote
 'default-directory'.  If nil, FFAP finds local files first for absolute
-filenames in above buffers.  The default is nil.
+file names in above buffers.  The default is nil.
 
 ---
 ** Flymake

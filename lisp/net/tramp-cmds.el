@@ -639,6 +639,10 @@ For details, see `tramp-rename-files'."
 		 (const "ksu"))
   :link '(tramp-info-link :tag "Tramp manual" tramp-file-name-with-method))
 
+(defun tramp-get-file-name-with-method ()
+  "Return connection-local value of ‘tramp-file-name-with-method’."
+  (tramp-compat-connection-local-value tramp-file-name-with-method))
+
 (defmacro with-tramp-file-name-with-method (&rest body)
   "Ask user for `tramp-file-name-with-method' if needed.
 Run BODY."
@@ -647,42 +651,43 @@ Run BODY."
           (if current-prefix-arg
 	      (completing-read
 	       "Tramp method: "
-               (mapcar #'cadr (cdr (get 'tramp-file-name-with-method 'custom-type)))
-               nil t tramp-file-name-with-method)
-            tramp-file-name-with-method)))
+               (mapcar
+		#'cadr (cdr (get 'tramp-file-name-with-method 'custom-type)))
+               nil t (tramp-get-file-name-with-method))
+            (tramp-get-file-name-with-method))))
      ,@body))
 
 (defun tramp-file-name-with-sudo (filename)
   "Convert FILENAME into a multi-hop file name with \"sudo\".
 An alternative method could be chosen with `tramp-file-name-with-method'."
   (setq filename (expand-file-name filename))
-  (if (tramp-tramp-file-p filename)
-      (with-parsed-tramp-file-name filename nil
-	(cond
-	 ;; Remote file with proper method.
-	 ((string-equal method tramp-file-name-with-method)
-	  filename)
-	 ;; Remote file on the local host.
-	 ((and
-	   (stringp tramp-local-host-regexp) (stringp host)
-	   (string-match-p tramp-local-host-regexp host))
-	  (tramp-make-tramp-file-name
-	   (make-tramp-file-name
-	    :method tramp-file-name-with-method :localname localname)))
-	 ;; Remote file with multi-hop capable method.
-	 ((tramp-multi-hop-p v)
-	  (tramp-make-tramp-file-name
-	   (make-tramp-file-name
-	    :method (tramp-find-method tramp-file-name-with-method nil host)
-	    :user (tramp-find-user tramp-file-name-with-method nil host)
-	    :host (tramp-find-host tramp-file-name-with-method nil host)
-	    :localname localname :hop (tramp-make-tramp-hop-name v))))
-	 ;; Other remote file.
-	 (t (tramp-user-error v "Multi-hop with `%s' not applicable" method))))
-    ;; Local file.
-    (tramp-make-tramp-file-name
-     (make-tramp-file-name
-      :method tramp-file-name-with-method :localname filename))))
+  (let ((default-method (tramp-get-file-name-with-method)))
+    (if (tramp-tramp-file-p filename)
+	(with-parsed-tramp-file-name filename nil
+	  (cond
+	   ;; Remote file with proper method.
+	   ((string-equal method default-method)
+	    filename)
+	   ;; Remote file on the local host.
+	   ((and
+	     (stringp tramp-local-host-regexp) (stringp host)
+	     (string-match-p tramp-local-host-regexp host))
+	    (tramp-make-tramp-file-name
+	     (make-tramp-file-name
+	      :method default-method :localname localname)))
+	   ;; Remote file with multi-hop capable method.
+	   ((tramp-multi-hop-p v)
+	    (tramp-make-tramp-file-name
+	     (make-tramp-file-name
+	      :method (tramp-find-method default-method nil host)
+	      :user (tramp-find-user default-method nil host)
+	      :host (tramp-find-host default-method nil host)
+	      :localname localname :hop (tramp-make-tramp-hop-name v))))
+	   ;; Other remote file.
+	   (t (tramp-user-error v "Multi-hop with `%s' not applicable" method))))
+      ;; Local file.
+      (tramp-make-tramp-file-name
+       (make-tramp-file-name :method default-method :localname filename)))))
 
 ;; FIXME: We would like to rename this for Emacs 31.1 to a name that
 ;; does not encode the default method.  It is intended as a generic
@@ -736,7 +741,7 @@ They are completed by `M-x TAB' only in Dired buffers."
   "Visit the file or directory named on this line as the superuser.
 
 By default this is done using the \"sudo\" Tramp method.
-YOu can customize `tramp-file-name-with-method' to change this.
+You can customize `tramp-file-name-with-method' to change this.
 
 Interactively, with a prefix argument, prompt for a different method."
   ;; (declare (completion tramp-dired-buffer-command-completion-p))
