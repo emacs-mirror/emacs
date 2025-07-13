@@ -4440,7 +4440,7 @@ by calling `format-decode', which see.  */)
 	      clear_unwind_protect (fd_index);
 
 	      /* Truncate the buffer to the size of the file.  */
-	      del_range_1 (same_at_start, same_at_end, 0, 0);
+	      del_range_byte (same_at_start, same_at_end);
 	      goto handled;
 	    }
 
