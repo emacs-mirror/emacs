@@ -323,7 +323,7 @@ emacs, the Emacs Manual}).
 @end ifnottex
 
 @node VC Auto-Reverting
-@subsubsection Auto-Reverting Buffers Visiting Tracked Files
+@subsubsection Auto-Reverting Buffers That Visit Tracked Files
 
   When Emacs executes VCS operations that it knows may change the
 contents of tracked files, it reverts buffers visiting those files
@@ -338,16 +338,16 @@ revert buffers when you execute additional VCS operations outside of
 Emacs, such as at a shell prompt, or by means of scripts.  If you
 regularly do this, and you don't use a VCS with keyword expansion (all
 modern VCS, absent special configuration), you may wish to enable
-@code{vc-auto-revert-mode} instead, by customizing that variable to
-non-@code{nil}.
+@code{vc-auto-revert-mode} instead, by customizing that variable to a
+non-@code{nil} value.
 
   This mode is just like @code{global-auto-revert-mode} (@pxref{Auto
 Revert}) except limited to files visiting VCS-tracked files.  It ensures
 that Emacs will always revert buffers when VCS operations change their
 contents, regardless of whether Emacs initiated those operations.
 
-  @xref{VC Mode Line} regarding Auto Revert mode in buffers visiting
-tracked files (which is what @code{vc-auto-revert-mode} enables).
+  @xref{VC Mode Line}, for details regarding Auto Revert mode in buffers
+visiting tracked files (which is what @code{vc-auto-revert-mode} enables).
 
 @node Customizing VC
 @subsection Customizing VC
