@@ -3906,7 +3906,8 @@ union read_non_regular
   struct
   {
     emacs_fd fd;
-    ptrdiff_t inserted, trytry;
+    char *buf;
+    ptrdiff_t bufsize;
   } s;
   GCALIGNED_UNION_MEMBER
 };
@@ -3916,11 +3917,7 @@ static Lisp_Object
 read_non_regular (Lisp_Object state)
 {
   union read_non_regular *data = XFIXNUMPTR (state);
-  intmax_t nbytes
-    = emacs_fd_read (data->s.fd,
-		     ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
-		      + data->s.inserted),
-		     data->s.trytry);
+  intmax_t nbytes = emacs_fd_read (data->s.fd, data->s.buf, data->s.bufsize);
   return make_int (nbytes < 0 ? -errno : nbytes);
 }
 
@@ -4854,18 +4851,18 @@ by calling `format-decode', which see.  */)
 
     while (inserted < total)
       {
-	ptrdiff_t this;
-
-	if (gap_size == 0)
+	char *buf;
+	ptrdiff_t bufsize, this;
+	if (gap_size < total - inserted && gap_size < sizeof read_buf)
 	  {
-	    /* The size estimate was wrong.  Make the gap 50% larger.  */
-	    make_gap (GAP_SIZE >> 1);
-	    gap_size = GAP_SIZE - inserted;
+	    buf = read_buf;
+	    bufsize = sizeof read_buf;
 	  }
-
-	/* 'try' is reserved in some compilers (Microsoft C).  */
-	ptrdiff_t trytry = min (gap_size,
-				min (total - inserted, READ_BUF_SIZE));
+	else
+	  {
+	    buf = (char *) BEG_ADDR + PT_BYTE - BEG_BYTE + inserted;
+	    bufsize = min (min (gap_size, total - inserted), READ_BUF_SIZE);
+	  }
 
 	if (!seekable && end_offset == TYPE_MAXIMUM (off_t))
 	  {
@@ -4875,7 +4872,7 @@ by calling `format-decode', which see.  */)
 	    /* Read from the file, capturing `quit'.  When an
 	       error occurs, end the loop, and arrange for a quit
 	       to be signaled after decoding the text we read.  */
-	    union read_non_regular data = {{fd, inserted, trytry}};
+	    union read_non_regular data = {{fd, buf, bufsize}};
 	    nbytes = internal_condition_case_1
 	      (read_non_regular, make_pointer_integer (&data),
 	       Qerror, read_non_regular_quit);
@@ -4894,11 +4891,7 @@ by calling `format-decode', which see.  */)
 	     part of the buffer until all the reading is done, so a
 	     C-g here doesn't do any harm.  */
 	  {
-	    this = emacs_fd_read (fd,
-				  ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
-				   + inserted),
-				  trytry);
-	    if (this < 0)
+	    this = emacs_fd_read (fd, buf, bufsize);					    if (this < 0)
 	      this = -errno;
 	  }
 
@@ -4908,6 +4901,20 @@ by calling `format-decode', which see.  */)
 	    break;
 	  }
 
+	if (buf == read_buf)
+	  {
+	    if (gap_size < this)
+	      {
+		/* Size estimate was low.  Make the gap at least 50% larger,
+		   and big enough so that the next loop iteration will
+		   use the gap directly instead of copying via read_buf.  */
+		make_gap (max (GAP_SIZE >> 1,
+			       this - gap_size + sizeof read_buf));
+		gap_size = GAP_SIZE - inserted;
+	      }
+	    memcpy (BEG_ADDR + PT_BYTE - BEG_BYTE + inserted,
+		    read_buf, this);
+	  }
 	gap_size -= this;
 	inserted += this;
       }
