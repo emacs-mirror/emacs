@@ -206,6 +206,20 @@ VC commands are globally reachable under the prefix \\[vc-prefix-map]:
 \\{vc-prefix-map}"
   nil)
 
+(defvar auto-revert-mode)
+(define-globalized-minor-mode vc-auto-revert-mode auto-revert-mode
+  vc-turn-on-auto-revert-mode-for-tracked-files
+  :group 'vc
+  :version "31.1")
+
+(defun vc-turn-on-auto-revert-mode-for-tracked-files ()
+  "Turn on Auto Revert mode in buffers visiting VCS-tracked files."
+  ;; This should turn on Auto Revert mode whenever `vc-mode' is non-nil.
+  ;; We can't just check that variable directly because `vc-mode-line'
+  ;; may not have been called yet.
+  (when (vc-backend buffer-file-name)
+    (auto-revert-mode 1)))
+
 (defmacro vc-error-occurred (&rest body)
   `(condition-case nil (progn ,@body nil) (error t)))
 

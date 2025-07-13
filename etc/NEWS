@@ -1846,6 +1846,14 @@ the directory into which the repository was cloned.
 *** 'C-x v u' ('vc-revert') now works on directories listed in VC Directory.
 Reverting a directory means reverting changes to all files inside it.
 
++++
+*** New minor mode 'vc-auto-revert-mode'.
+This is like 'global-auto-revert-mode' but limited to VCS-tracked files.
+As compared with VC's existing, default support for reverting files
+after VCS operations, the new mode is a more reliable way to ensure that
+Emacs reverts buffers visiting tracked files when VCS operations change
+the contents of those files.
+
 *** New command 'log-edit-done-strip-cvs-lines'.
 This command strips all lines beginning with "CVS:" from the buffer.
 It is intended to be added to the 'log-edit-done-hook' so that

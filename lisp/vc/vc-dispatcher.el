@@ -656,9 +656,10 @@ CONTEXT is that which `vc-buffer-context' returns."
            (when new-mark (set-mark new-mark))))))
 
 (defun vc-revert-buffer-internal (&optional arg no-confirm)
-  "Revert buffer, keeping point and mark where user expects them.
-Try to be clever in the face of changes due to expanded version-control
-key words.  This is important for typeahead to work as expected.
+  "Revert buffer keeping point and the mark where the user expects them.
+Try to be clever in the face of changes due to expanded VCS
+keywords (cf., e.g., info node `(cvs)Keyword substitution').
+This is important for typeahead to work as expected.
 ARG and NO-CONFIRM are passed on to `revert-buffer'."
   (interactive "P")
   (widen)
@@ -678,6 +679,9 @@ ARG and NO-CONFIRM are passed on to `revert-buffer'."
 
 (defvar view-old-buffer-read-only)
 
+(defvar auto-revert-mode)
+(declare-function auto-revert-buffers "autorevert")
+
 (defun vc-resynch-window (file &optional keep noquery reset-vc-info)
   "If FILE is in the current buffer, either revert or unvisit it.
 The choice between revert (to see expanded keywords) and unvisit
@@ -686,31 +690,37 @@ reverting.  NOQUERY should be t *only* if it is known the only
 difference between the buffer and the file is due to
 modifications by the dispatcher client code, rather than user
 editing!"
-  (and (string= buffer-file-name
-                (if (file-name-absolute-p file)
-                    file
-                  (expand-file-name file (vc-root-dir))))
-       (if keep
-	   (when (file-exists-p file)
-	     (when reset-vc-info
-	       (vc-file-clearprops file))
-	     (vc-revert-buffer-internal t noquery)
+  (and (equal buffer-file-name
+              (if (file-name-absolute-p file)
+                  file
+                (expand-file-name file (vc-root-dir))))
+       (cond ((not keep)
+              (kill-buffer))
+             ((file-exists-p file)
+              (when reset-vc-info
+	        (vc-file-clearprops file))
+              ;; If `auto-revert-mode' is on (probably due to either
+              ;; `global-auto-revert-mode' or `vc-auto-revert-mode')
+              ;; then defer to that.  Otherwise we do our own
+              ;; VC-specific reverting.
+              (if (and auto-revert-mode noquery)
+                  (auto-revert-buffers)
+	        (vc-revert-buffer-internal t noquery))
 
-	     ;; VC operations might toggle the read-only state.  In
-	     ;; that case we need to adjust the `view-mode' status
-	     ;; when `view-read-only' is non-nil.
-             (and view-read-only
-                  (if (file-writable-p file)
-                      (and view-mode
-                           (let ((view-old-buffer-read-only nil))
-                             (view-mode-exit t)))
-                    (and (not view-mode)
-                         (not (eq (get major-mode 'mode-class) 'special))
-                         (view-mode-enter))))
+	      ;; VC operations might toggle the read-only state.  In
+	      ;; that case we need to adjust the `view-mode' status
+	      ;; when `view-read-only' is non-nil.
+              (and view-read-only
+                   (if (file-writable-p file)
+                       (and view-mode
+                            (let ((view-old-buffer-read-only nil))
+                              (view-mode-exit t)))
+                     (and (not view-mode)
+                          (not (eq (get major-mode 'mode-class) 'special))
+                          (view-mode-enter))))
 
-             ;; FIXME: Why use a hook?  Why pass it buffer-file-name?
-	     (run-hook-with-args 'vc-mode-line-hook buffer-file-name))
-	 (kill-buffer (current-buffer)))))
+              ;; FIXME: Why use a hook?  Why pass it buffer-file-name?
+	      (run-hook-with-args 'vc-mode-line-hook buffer-file-name)))))
 
 (declare-function vc-dir-resynch-file "vc-dir" (&optional fname))
 

@@ -1671,13 +1671,14 @@ from which to check out the file(s)."
 	  (find-file-other-window file))
 	(if (save-window-excursion
 	      (vc-diff-internal nil
-				(cons (car vc-fileset) (cons (cadr vc-fileset) (list file)))
+				(cons (car vc-fileset)
+                                      (cons (cadr vc-fileset) (list file)))
 				(vc-working-revision file) nil)
 	      (goto-char (point-min))
 	      (let ((inhibit-read-only t))
 		(insert
 		 (format "Changes to %s since last lock:\n\n" file)))
-	      (not (beep))
+	      (beep)
 	      (yes-or-no-p (concat "File has unlocked changes.  "
 				   "Claim lock retaining changes? ")))
 	    (progn (vc-call-backend backend 'steal-lock file)
@@ -1738,7 +1739,9 @@ first backend that could register the file is used."
       (when-let* ((bname (get-file-buffer fname)))
         (with-current-buffer bname
           (unless vc-make-backup-files
-            (setq-local backup-inhibited t))))
+            (setq-local backup-inhibited t))
+          (when vc-auto-revert-mode
+            (auto-revert-mode 1))))
       (vc-resynch-buffer fname t t))
     (message "Registering %s... done" files)))
 

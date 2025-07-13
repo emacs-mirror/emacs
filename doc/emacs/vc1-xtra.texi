@@ -16,7 +16,8 @@
 * Revision Tags::       Symbolic names for revisions.
 * Version Headers::     Inserting version control headers into working files.
 * Editing VC Commands:: Editing the VC shell commands that Emacs will run.
-* Preparing Patches::   Preparing and Composing patches from within VC
+* Preparing Patches::   Preparing and composing patches from within VC.
+* VC Auto-Reverting::   Updating buffer contents after VCS operations.
 @end menu
 
 @node Change Logs and VC
@@ -320,6 +321,33 @@ emacs, the Emacs Manual}).
 @ifnottex
 (@pxref{Directory Variables}).
 @end ifnottex
+
+@node VC Auto-Reverting
+@subsubsection Auto-Reverting Buffers Visiting Tracked Files
+
+  When Emacs executes VCS operations that it knows may change the
+contents of tracked files, it reverts buffers visiting those files
+(@pxref{Reverting}).  It does this in a VCS-aware fashion that retains
+the positions of point and the mark even when the VCS operation causes
+VCS keywords to be expanded (for example, CVS keywords: @pxref{Keyword
+substitution,,,cvs,CVS--Concurrent Versions System}).
+
+@findex vc-auto-revert-mode
+  An important limitation of this feature is that Emacs won't know to
+revert buffers when you execute additional VCS operations outside of
+Emacs, such as at a shell prompt, or by means of scripts.  If you
+regularly do this, and you don't use a VCS with keyword expansion (all
+modern VCS, absent special configuration), you may wish to enable
+@code{vc-auto-revert-mode} instead, by customizing that variable to
+non-@code{nil}.
+
+  This mode is just like @code{global-auto-revert-mode} (@pxref{Auto
+Revert}) except limited to files visiting VCS-tracked files.  It ensures
+that Emacs will always revert buffers when VCS operations change their
+contents, regardless of whether Emacs initiated those operations.
+
+  @xref{VC Mode Line} regarding Auto Revert mode in buffers visiting
+tracked files (which is what @code{vc-auto-revert-mode} enables).
 
 @node Customizing VC
 @subsection Customizing VC

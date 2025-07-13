@@ -529,7 +529,11 @@ on if the hook has explicitly disabled it.
          ,@(when predicate `((defvar ,MODE-predicate))))
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
-         ,(concat (format "Toggle %s in all buffers.\n" pretty-name)
+         ,(concat (format "Toggle %s in many buffers.\n" pretty-name)
+                  (internal--format-docstring-line
+                   "Specifically, %s is enabled in all buffers where `%s' would do it."
+                   pretty-name turn-on)
+                  "\n\n"
                   (internal--format-docstring-line
                    (concat "With prefix ARG, enable %s if ARG is positive; "
                            "otherwise, disable it.")
@@ -538,10 +542,6 @@ on if the hook has explicitly disabled it.
                   "If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.\n\n"
-                  (internal--format-docstring-line
-                   "%s is enabled in all buffers where `%s' would do it."
-                   pretty-name turn-on)
-                  "\n\n"
                   (internal--format-docstring-line
                    "See `%s' for more information on %s."
                    mode pretty-name)
