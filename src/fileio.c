@@ -2220,6 +2220,21 @@ barf_or_query_if_file_exists (Lisp_Object absname, bool known_to_exist,
     }
 }
 
+/* Read a full buffer of bytes from FD into BUF, which is of size BUFSIZE.
+   FD should be a regular file, as special files might need quit processing.
+   On success, return the read count, which is less than BUFSIZE at EOF.
+   Return -1 on failure, setting errno and possibly setting BUF.  */
+static ptrdiff_t
+emacs_full_read (int fd, void *buf, ptrdiff_t bufsize)
+{
+  char *b = buf;
+  ptrdiff_t nread = 0, r;
+  while (0 < (r = emacs_fd_read (fd, b + nread, bufsize - nread))
+	 && (nread += r) < bufsize)
+    continue;
+  return r < 0 ? r : nread;
+}
+
 #ifndef WINDOWSNT
 /* Copy data to DEST from SOURCE if possible.  Return true if OK.  */
 static bool
@@ -2419,13 +2434,15 @@ permissions.  */)
       char buf[MAX_ALLOCA];
 
       for (ptrdiff_t copied;
-	   (copied = emacs_fd_read (ifd, buf, sizeof buf));
+	   (copied = emacs_full_read (ifd, buf, sizeof buf));
 	   newsize += copied)
 	{
 	  if (copied < 0)
 	    report_file_error ("Read error", file);
 	  if (emacs_write_quit (ofd, buf, copied) != copied)
 	    report_file_error ("Write error", newname);
+	  if (copied < sizeof buf)
+	    break;
 	}
     }
 
@@ -4279,8 +4296,11 @@ by calling `format-decode', which see.  */)
 		 and tailing respectively are sufficient for this
 		 purpose.  Because the file may be in /proc,
 		 do not use st_size or report any SEEK_END failure.  */
-	      ptrdiff_t nread = emacs_fd_read (fd, read_buf, 4 * 1024);
-	      if (nread == 4 * 1024)
+	      static_assert (4 * 1024 < sizeof read_buf);
+	      ptrdiff_t nread = emacs_full_read (fd, read_buf, 4 * 1024);
+	      if (nread < 4 * 1024)
+		file_size_hint = nread;
+	      else
 		{
 		  off_t tailoff = emacs_fd_lseek (fd, - 3 * 1024, SEEK_END);
 		  if (tailoff < 0)
@@ -4289,33 +4309,26 @@ by calling `format-decode', which see.  */)
 		      tailoff = nread;
 		    }
 
-		  /* When appending the last 3 KiB, read until EOF
-		     without trusting tailoff, as the file may be in
-		     /proc or be mutating.  */
-		  nread = 1024;
-		  for (;;)
+		  /* When appending the last 3 KiB, read extra bytes
+		     without trusting tailoff, as the file may be growing.  */
+		  nread = emacs_full_read (fd, read_buf + 1024,
+					   sizeof read_buf - 1024);
+		  if (nread == sizeof read_buf - 1024)
 		    {
-		      ptrdiff_t r = emacs_fd_read (fd, read_buf + nread,
-						   sizeof read_buf - nread);
-		      if (r <= 0)
-			{
-			  if (r < 0)
-			    nread = r;
-			  else
-			    file_size_hint = tailoff;
-			  break;
-			}
-		      tailoff += r;
-		      nread += r;
-		      bool eof = nread < sizeof read_buf;
+		      /* Give up reading the last 3 KiB; the file is
+			 growing too rapidly.  */
+		      nread = 1024;
+		    }
+		  else if (0 <= nread)
+		    {
+		      file_size_hint = tailoff + nread;
+		      nread += 1024;
 		      if (4 * 1024 < nread)
 			{
 			  memmove (read_buf + 1024,
 				   read_buf + nread - 3 * 1024, 3 * 1024);
 			  nread = 4 * 1024;
 			}
-		      if (eof)
-			break;
 		    }
 		}
 
@@ -4427,12 +4440,41 @@ by calling `format-decode', which see.  */)
 	  bytes_to_read = min (bytes_to_read, end_offset - curpos);
 	  ptrdiff_t nread = (bytes_to_read <= 0
 			     ? 0
-			     : emacs_fd_read (fd, read_buf, bytes_to_read));
+			     : emacs_full_read (fd, read_buf, bytes_to_read));
 	  if (nread < 0)
 	    report_file_error ("Read error", orig_filename);
-	  else if (nread == 0)
+
+	  if (0 < nread)
 	    {
-	      file_size_hint = curpos;
+	      if (CODING_REQUIRE_DETECTION (&coding))
+		{
+		  coding_system
+		    = detect_coding_system ((unsigned char *) read_buf,
+					    nread, nread, 1, 0,
+					    coding_system);
+		  setup_coding_system (coding_system, &coding);
+		}
+
+	      if (CODING_REQUIRE_DECODING (&coding))
+		/* We found that the file should be decoded somehow.
+		   Let's give up here.  */
+		{
+		  giveup_match_end = true;
+		  break;
+		}
+
+	      ptrdiff_t bufpos = 0;
+	      while (bufpos < nread && same_at_start < same_at_end
+		     && FETCH_BYTE (same_at_start) == read_buf[bufpos])
+		same_at_start++, bufpos++;
+	      /* If we found a discrepancy, stop the scan.  */
+	      if (bufpos != nread)
+		break;
+	    }
+
+	  if (nread < bytes_to_read)
+	    {
+	      file_size_hint = curpos + nread;
 
 	      /* Data inserted from the file match the buffer's leading bytes,
 		 so there's no need to replace anything.  */
@@ -4443,31 +4485,6 @@ by calling `format-decode', which see.  */)
 	      del_range_byte (same_at_start, same_at_end);
 	      goto handled;
 	    }
-
-	  if (CODING_REQUIRE_DETECTION (&coding))
-	    {
-	      coding_system = detect_coding_system ((unsigned char *) read_buf,
-						    nread, nread, 1, 0,
-						    coding_system);
-	      setup_coding_system (coding_system, &coding);
-	    }
-
-	  if (CODING_REQUIRE_DECODING (&coding))
-	    /* We found that the file should be decoded somehow.
-               Let's give up here.  */
-	    {
-	      giveup_match_end = true;
-	      break;
-	    }
-
-	  int bufpos = 0;
-	  while (bufpos < nread && same_at_start < same_at_end
-		 && FETCH_BYTE (same_at_start) == read_buf[bufpos])
-	    same_at_start++, bufpos++;
-	  /* If we found a discrepancy, stop the scan.
-	     Otherwise loop around and scan the next bufferful.  */
-	  if (bufpos != nread)
-	    break;
 	}
 
       /* Count how many chars at the end of the file
@@ -4488,11 +4505,11 @@ by calling `format-decode', which see.  */)
 		{
 		  /* Check that read reports EOF soon, to catch platforms
 		     where SEEK_END can report wildly small offsets.  */
-		  ptrdiff_t n = emacs_fd_read (fd, read_buf, sizeof read_buf);
+		  ptrdiff_t n = emacs_full_read (fd, read_buf, sizeof read_buf);
 		  if (n < 0)
 		    report_file_error ("Read error", orig_filename);
 		  endpos += n;
-		  giveup_match_end = 0 < n;
+		  giveup_match_end = n == sizeof read_buf;
 		  if (!giveup_match_end)
 		    file_size_hint = endpos;
 		}
@@ -4501,7 +4518,7 @@ by calling `format-decode', which see.  */)
 
       while (!giveup_match_end)
 	{
-	  ptrdiff_t total_read, nread, bufpos, trial;
+	  ptrdiff_t nread, bufpos, trial;
 	  off_t curpos;
 
 	  /* At what file position are we now scanning?  */
@@ -4511,32 +4528,24 @@ by calling `format-decode', which see.  */)
 	    break;
 	  /* How much can we scan in the next step?  */
 	  trial = min (curpos, sizeof read_buf);
-	  if (emacs_fd_lseek (fd, curpos - trial, SEEK_SET) < 0)
+	  curpos = emacs_fd_lseek (fd, curpos - trial, SEEK_SET);
+	  if (curpos < 0)
 	    report_file_error ("Setting file position", orig_filename);
 
-	  total_read = nread = 0;
-	  while (total_read < trial)
+	  nread = emacs_full_read (fd, read_buf, trial);
+	  if (nread < trial)
 	    {
-	      nread = emacs_fd_read (fd, read_buf + total_read,
-				     trial - total_read);
 	      if (nread < 0)
 		report_file_error ("Read error", orig_filename);
-	      else if (nread == 0)
-		{
-		  /* The file unexpectedly shrank.  */
-		  file_size_hint = curpos - trial + total_read;
-		  giveup_match_end = true;
-		  break;
-		}
-	      total_read += nread;
+	      /* The file unexpectedly shrank.  */
+	      file_size_hint = curpos + nread;
+	      giveup_match_end = true;
+	      break;
 	    }
-
-	  if (giveup_match_end)
-	    break;
 
 	  /* Scan this bufferful from the end, comparing with
 	     the Emacs buffer.  */
-	  bufpos = total_read;
+	  bufpos = nread;
 
 	  /* Compare with same_at_start to avoid counting some buffer text
 	     as matching both at the file's beginning and at the end.  */
@@ -4557,9 +4566,6 @@ by calling `format-decode', which see.  */)
 		giveup_match_end = true;
 	      break;
 	    }
-
-	  if (nread == 0)
-	    break;
 	}
 
       if (! giveup_match_end)
@@ -4658,9 +4664,11 @@ by calling `format-decode', which see.  */)
 	  /* Read one buffer a time, to allow
 	     quitting while reading a huge file.  */
 
-	  this = emacs_fd_read (fd, read_buf + unprocessed,
-				sizeof read_buf - unprocessed);
-	  if (this <= 0)
+	  ptrdiff_t trial = sizeof read_buf - unprocessed;
+	  this = emacs_full_read (fd, read_buf + unprocessed, trial);
+	  if (this < 0)
+	    report_file_error ("Read error", orig_filename);
+	  if (this == 0)
 	    break;
 
 	  file_size_hint += this;
@@ -4671,10 +4679,10 @@ by calling `format-decode', which see.  */)
 	  unprocessed = coding.carryover_bytes;
 	  if (coding.carryover_bytes > 0)
 	    memcpy (read_buf, coding.carryover, unprocessed);
+	  if (this < trial)
+	    break;
 	}
 
-      if (this < 0)
-	report_file_error ("Read error", orig_filename);
       emacs_fd_close (fd);
       clear_unwind_protect (fd_index);
 
