@@ -3836,8 +3836,6 @@ For existing files, this compares their last-modified times.  */)
 	  ? Qt : Qnil);
 }
 
-enum { READ_BUF_SIZE = MAX_ALLOCA };
-
 /* This function is called after Lisp functions to decide a coding
    system are called, or when they cause an error.  Before they are
    called, the current buffer is set unibyte and it contains only a
@@ -4028,6 +4026,10 @@ maybe_move_gap (struct buffer *b)
     }
 }
 
+/* A good blocksize to minimize system call overhead across most systems.
+   Taken from coreutils/src/ioblksize.h as of July 2025.  */
+enum { IO_BUFSIZE = 256 * 1024 };
+
 /* FIXME: insert-file-contents should be split with the top-level moved to
    Elisp and only the core kept in C.  */
 
@@ -4082,7 +4084,7 @@ by calling `format-decode', which see.  */)
   off_t total = 0;
   bool regular;
   int save_errno = 0;
-  char read_buf[READ_BUF_SIZE];
+  char read_buf[MAX_ALLOCA];
   struct coding_system coding;
   bool replace_handled = false;
   bool set_coding_system = false;
@@ -4861,7 +4863,7 @@ by calling `format-decode', which see.  */)
 	else
 	  {
 	    buf = (char *) BEG_ADDR + PT_BYTE - BEG_BYTE + inserted;
-	    bufsize = min (min (gap_size, total - inserted), READ_BUF_SIZE);
+	    bufsize = min (min (gap_size, total - inserted), IO_BUFSIZE);
 	  }
 
 	if (!seekable && end_offset == TYPE_MAXIMUM (off_t))
