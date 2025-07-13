@@ -4407,7 +4407,6 @@ by calling `format-decode', which see.  */)
       && (NILP (coding_system)
 	  || ! CODING_REQUIRE_DECODING (&coding)))
     {
-      ptrdiff_t overlap;
       /* There is still a possibility we will find the need to do code
 	 conversion.  If that happens, set this variable to
 	 give up on handling REPLACE in the optimized way.  */
@@ -4462,7 +4461,7 @@ by calling `format-decode', which see.  */)
 	    }
 
 	  int bufpos = 0;
-	  while (bufpos < nread && same_at_start < ZV_BYTE
+	  while (bufpos < nread && same_at_start < same_at_end
 		 && FETCH_BYTE (same_at_start) == read_buf[bufpos])
 	    same_at_start++, bufpos++;
 	  /* If we found a discrepancy, stop the scan.
@@ -4579,12 +4578,6 @@ by calling `format-decode', which see.  */)
 		   && ! CHAR_HEAD_P (FETCH_BYTE (same_at_end)))
 	      same_at_end++;
 
-	  /* Don't try to reuse the same piece of text twice.  */
-	  overlap = (same_at_start - BEGV_BYTE
-		     - (same_at_end - ZV_BYTE
-			+ endpos));
-	  if (overlap > 0)
-	    same_at_end += overlap;
 	  same_at_end_charpos = BYTE_TO_CHAR (same_at_end);
 
 	  /* Arrange to read only the nonmatching middle part of the file.  */
@@ -4634,7 +4627,6 @@ by calling `format-decode', which see.  */)
     {
       ptrdiff_t same_at_start_charpos;
       ptrdiff_t inserted_chars;
-      ptrdiff_t overlap;
       ptrdiff_t bufpos;
       unsigned char *decoded;
       ptrdiff_t temp;
@@ -4749,10 +4741,6 @@ by calling `format-decode', which see.  */)
 	       && ! CHAR_HEAD_P (FETCH_BYTE (same_at_end)))
 	  same_at_end++;
 
-      /* Don't try to reuse the same piece of text twice.  */
-      overlap = same_at_start - BEGV_BYTE - (same_at_end + inserted - ZV_BYTE);
-      if (overlap > 0)
-	same_at_end += overlap;
       same_at_end_charpos = BYTE_TO_CHAR (same_at_end);
 
       /* If display currently starts at beginning of line,
