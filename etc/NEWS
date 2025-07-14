@@ -398,6 +398,11 @@ normally shown in the echo area or via tooltips.  See the variable's
 docstring for arguments passed to a help-text function.
 
 ---
+*** New variable 'tab-bar-truncate'.
+When non-nil, it truncates the tab bar, and therefore prevents
+wrapping and resizing the tab bar to more than one line.
+
+---
 *** New command 'tab-line-move-tab-forward' ('C-x M-<right>').
 Together with the new command 'tab-line-move-tab-backward'
 ('C-x M-<left>'), it can be used to move the current tab

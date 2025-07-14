@@ -14739,10 +14739,18 @@ tab_bar_height (struct frame *f, int *n_rows, bool pixelwise)
   it.paragraph_embedding = L2R;
 
   clear_glyph_row (temp_row);
-  while (!ITERATOR_AT_END_P (&it))
+  if (tab_bar_truncate)
     {
       it.glyph_row = temp_row;
       display_tab_bar_line (&it, -1);
+    }
+  else
+    {
+      while (!ITERATOR_AT_END_P (&it))
+	{
+	  it.glyph_row = temp_row;
+	  display_tab_bar_line (&it, -1);
+	}
     }
   clear_glyph_row (temp_row);
 
@@ -38208,6 +38216,10 @@ window, nil if it's okay to leave the cursor partially-visible.  */);
   make_window_start_visible = false;
   DEFSYM (Qmake_window_start_visible, "make-window-start-visible");
   Fmake_variable_buffer_local (Qmake_window_start_visible);
+
+  DEFVAR_BOOL ("tab-bar-truncate", tab_bar_truncate,
+    doc: /* Non-nil means truncate tab-bar and show only one line.  */);
+  tab_bar_truncate = false;
 
   DEFSYM (Qclose_tab, "close-tab");
   DEFVAR_LISP ("tab-bar-border", Vtab_bar_border,
