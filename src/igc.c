@@ -4091,33 +4091,45 @@ buffer_step (struct igc_buffer_it *it)
   return false;
 }
 
+static bool inhibit_on_idle = false;
+
+static void
+allow_on_idle (void)
+{
+  inhibit_on_idle = false;
+}
+
 void
 igc_on_idle (void)
 {
+  if (igc_state != IGC_STATE_USABLE)
+    return;
+
+  /* Note that truncate_undo_list and maybe others my call Lisp, which
+     means that we might be called recursively.  Ignore such recursive
+     calls.  */
+  if (inhibit_on_idle)
+    return;
+  specpdl_ref count = SPECPDL_INDEX ();
+  record_unwind_protect_void (allow_on_idle);
+  inhibit_on_idle = true;
+
   shrink_regexp_cache ();
 
   struct igc_buffer_it buffer_it = make_buffer_it ();
   IGC_WITH_CLOCK (clock, 0.1)
   {
     bool work_done = false;
-    switch (igc_state)
-      {
-      case IGC_STATE_INITIAL:
-      case IGC_STATE_USABLE_PARKED:
-      case IGC_STATE_DEAD:
-	return;
-
-      case IGC_STATE_USABLE:
-	work_done |= process_one_message (global_igc);
-	work_done |= buffer_step (&buffer_it);
-	work_done |= arena_step ();
-	break;
-      }
+    work_done |= process_one_message (global_igc);
+    work_done |= buffer_step (&buffer_it);
+    work_done |= arena_step ();
 
     /* Don't always exhaust the max time we want to spend here.  */
     if (!work_done)
       break;
   }
+
+  unbind_to (count, Qnil);
 }
 
 static mps_ap_t
