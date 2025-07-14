@@ -3299,7 +3299,7 @@ There might be text before point."
     ("\\int" . ?∫)
     ("\\intercal" . ?⊺)
     ("\\jmath" . ?ȷ)
-    ("\\langle" . 10216)          ; Literal ?⟨ breaks indentation.
+    ("\\langle" . ?\⟨)
     ("\\lbrace" . ?{)
     ("\\lbrack" . ?\[)
     ("\\lceil" . ?⌈)
@@ -3432,7 +3432,7 @@ There might be text before point."
     ("\\qed" . ?∎)
     ("\\qquad" . ?⧢)
     ("\\quad" . ?␣)
-    ("\\rangle" . 10217)            ; Literal ?⟩ breaks indentation.
+    ("\\rangle" . ?\⟩)
     ("\\rbrace" . ?})
     ("\\rbrack" . ?\])
     ("\\rceil" . ?⌉)
@@ -3753,8 +3753,8 @@ There might be text before point."
     ("\\textreferencemark" . ?※)
     ("\\textinterrobang" . ?‽)
     ("\\textfractionsolidus" . ?⁄)
-    ("\\textlquill" . 8261) ; Literal ?⁅ breaks indentation
-    ("\\textrquill" . 8262) ; Literal ?⁆ breaks indentation
+    ("\\textlquill" . ?\⁅)
+    ("\\textrquill" . ?\⁆)
     ("\\textdiscount" . ?⁒)
     ("\\textcolonmonetary" . ?₡)
     ("\\textlira" . ?₤)
@@ -3779,8 +3779,8 @@ There might be text before point."
     ("\\textdownarrow" . ?↓)
     ("\\textminus" . ?−)
     ("\\textsurd" . ?√)
-    ("\\textlangle" . 9001) ; Literal ?〈 breaks indentation
-    ("\\textrangle" . 9002) ; Literal ?〉 breaks indentation
+    ("\\textlangle" . ?\〈)
+    ("\\textrangle" . ?\〉)
     ("\\textblank" . ?␢)
     ("\\textvisiblespace" . ?␣)
     ("\\textopenbullet" . ?◦)
@@ -3790,8 +3790,8 @@ There might be text before point."
     ("\\textmusicalnote" . ?♪)
     ("\\textmarried" . ?⚭)
     ("\\textdivorced" . ?⚮)
-    ("\\textlbrackdbl" . 10214) ; Literal ?⟦ breaks indentation
-    ("\\textrbrackdbl" . 10215) ; Literal ?⟧ breaks indentation
+    ("\\textlbrackdbl" . ?\⟦)
+    ("\\textrbrackdbl" . ?\⟧)
     ("\\textinterrobangdown" . ?⸘)
 
     ;; TeX quotes
