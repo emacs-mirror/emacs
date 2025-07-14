@@ -111,14 +111,19 @@
   (skip-unless (featurep 'threads))
   (should-error (thread-join (current-thread))))
 
+(defun threads-thread-sleeps ()
+  "Put current thread to sleep."
+  (sleep-for 5))
+
 (ert-deftest threads-join-error ()
   "Test of error signaling from `thread-join'."
-  :tags '(:unstable)
   (skip-unless (featurep 'threads))
-  (let ((thread (make-thread #'threads-call-error)))
-    (while (thread-live-p thread)
-      (thread-yield))
-    (should-error (thread-join thread))))
+  (let ((thread (make-thread #'threads-thread-sleeps))
+        err)
+    (thread-signal thread 'error "Error signal for thread")
+    (thread-yield)
+    (setq err (should-error (thread-join thread)))
+    (should (equal err '(error . "Error signal for thread")))))
 
 (defvar threads-test-binding nil)
 
