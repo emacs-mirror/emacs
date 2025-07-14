@@ -285,8 +285,14 @@
 
 (defun cl--class-allparents (class)
   (cons (cl--class-name class)
-        (merge-ordered-lists (mapcar #'cl--class-allparents
-                                     (cl--class-parents class)))))
+        (let* ((parents (cl--class-parents class))
+               (aps (mapcar #'cl--class-allparents parents)))
+          (if (null (cdr aps)) ;; Single-inheritance fast-path.
+              (car aps)
+            (merge-ordered-lists
+             ;; Add the list of immediate parents, to control which
+             ;; linearization is chosen.  doi:10.1145/236337.236343
+             (nconc aps (list (mapcar #'cl--class-name parents))))))))
 
 (cl-defstruct (built-in-class
                (:include cl--class)
