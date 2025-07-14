@@ -4893,7 +4893,8 @@ by calling `format-decode', which see.  */)
 	     part of the buffer until all the reading is done, so a
 	     C-g here doesn't do any harm.  */
 	  {
-	    this = emacs_fd_read (fd, buf, bufsize);					    if (this < 0)
+	    this = emacs_fd_read (fd, buf, bufsize);
+	    if (this < 0)
 	      this = -errno;
 	  }
 
