@@ -2225,7 +2225,7 @@ barf_or_query_if_file_exists (Lisp_Object absname, bool known_to_exist,
    On success, return the read count, which is less than BUFSIZE at EOF.
    Return -1 on failure, setting errno and possibly setting BUF.  */
 static ptrdiff_t
-emacs_full_read (int fd, void *buf, ptrdiff_t bufsize)
+emacs_full_read (emacs_fd fd, void *buf, ptrdiff_t bufsize)
 {
   char *b = buf;
   ptrdiff_t nread = 0, r;
@@ -2406,7 +2406,7 @@ permissions.  */)
   if (emacs_fd_to_int (ifd) == -1
       || !clone_file (ofd, emacs_fd_to_int (ifd)))
     {
-      off_t newsize = 0;
+      MAYBE_UNUSED off_t newsize = 0;
 
 #ifndef MSDOS
       if (emacs_fd_to_int (ifd) != -1)
