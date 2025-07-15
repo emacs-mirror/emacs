@@ -223,6 +223,7 @@ expression, in which case we want to handle forms differently."
                    define-overloadable-function
                    transient-define-prefix transient-define-suffix
                    transient-define-infix transient-define-argument
+                   transient-define-group
                    ;; Obsolete; keep until the alias is removed.
                    easy-mmode-define-global-mode
                    easy-mmode-define-minor-mode
@@ -234,7 +235,8 @@ expression, in which case we want to handle forms differently."
                           'defun* 'defmacro* 'cl-defun 'cl-defmacro
                           'define-overloadable-function
                           'transient-define-prefix 'transient-define-suffix
-                          'transient-define-infix 'transient-define-argument)
+                          'transient-define-infix 'transient-define-argument
+                          'transient-define-group)
                       (nth 2 form))
                      ('define-skeleton '(&optional str arg))
                      ((or 'define-generic-mode 'define-derived-mode
@@ -258,6 +260,7 @@ expression, in which case we want to handle forms differently."
                                    transient-define-suffix
                                    transient-define-infix
                                    transient-define-argument
+                                   transient-define-group
                                    ;; Obsolete; keep until the alias is removed.
                                    easy-mmode-define-global-mode
                                    easy-mmode-define-minor-mode
