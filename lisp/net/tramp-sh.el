@@ -3864,8 +3864,6 @@ Fall back to normal file name handler if no Tramp handler exists."
 (defun tramp-sh-gio-monitor-process-filter (proc string)
   "Read output from \"gio monitor\" and add corresponding `file-notify' events."
   (let ((events (process-get proc 'tramp-events))
-	(remote-prefix
-	 (file-remote-p (tramp-get-default-directory (process-buffer proc))))
 	(rest-string (process-get proc 'tramp-rest-string))
 	pos)
     (when rest-string
@@ -3927,10 +3925,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	         proc
 	         (list
 		  (intern-soft (match-string 2 string)))
-	         ;; File names are returned as absolute paths.  We
-	         ;; must add the remote prefix.
-	         (concat remote-prefix file)
-	         (when file1 (concat remote-prefix file1)))))
+                 file file1)))
 	  (setq string (replace-match "" nil nil string))
           ;; Add an Emacs event now.
 	  ;; `insert-special-event' exists since Emacs 31.

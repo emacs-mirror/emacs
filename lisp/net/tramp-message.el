@@ -454,7 +454,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 BODY is executed like wrapped by `with-demoted-errors'.  FORMAT
 is a format-string containing a %-sequence meaning to substitute
 the resulting error message."
-  (declare (indent 2) (debug (symbolp form body)))
+  (declare (indent 2) (debug (symbolp form &rest body)))
   (let ((err (make-symbol "err")))
     `(condition-case-unless-debug ,err
          (progn ,@body)

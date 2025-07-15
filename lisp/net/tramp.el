@@ -2102,7 +2102,7 @@ of `current-buffer'."
   "Execute BODY and return the result.
 In case of an error, raise a `file-missing' error if FILENAME
 does not exist, otherwise propagate the error."
-  (declare (indent 2) (debug (symbolp form body)))
+  (declare (indent 2) (debug (tramp-file-name-p form &rest body)))
   (let ((err (make-symbol "err")))
     `(condition-case ,err
 	 (let (signal-hook-function) ,@body)
@@ -2141,7 +2141,7 @@ Remaining args are Lisp expressions to be evaluated (inside an implicit
 
 If VAR is nil, then we bind `v' to the structure and `method', `user',
 `domain', `host', `port', `localname', `hop' to the components."
-  (declare (indent 2) (debug (form symbolp body)))
+  (declare (indent 2) (debug (form symbolp &rest body)))
   (let ((bindings
          (mapcar
 	  (lambda (elem)
@@ -3601,7 +3601,7 @@ BODY is the backend specific code."
 (defmacro tramp-skeleton-file-truename (filename &rest body)
   "Skeleton for `tramp-*-handle-file-truename'.
 BODY is the backend specific code."
-  (declare (indent 1) (debug (form body)))
+  (declare (indent 1) (debug (form &rest body)))
   ;; Preserve trailing "/".
   `(funcall
     (if (directory-name-p ,filename) #'file-name-as-directory #'identity)

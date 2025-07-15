@@ -33,11 +33,11 @@
 ;; remote host, set this environment variable to "/dev/null" or
 ;; whatever is appropriate on your system.
 
-;; For the remote file-notify library, Tramp checks for the existence
-;; of a respective command.  The first command found is used.  In
-;; order to use a dedicated one, the environment variable
+;; For the remote file-notify library, Tramp checks for the existence of
+;; a respective command.  The first command found is used.  In order to
+;; use a dedicated one, the environment variable
 ;; $REMOTE_FILE_NOTIFY_LIBRARY shall be set, possible values are
-;; "inotifywait", "gio-monitor", "gvfs-monitor-dir", and "smb-notify".
+;; "inotifywait", "gio", and "smb-notify".
 
 ;; Local file-notify libraries are auto-detected during Emacs
 ;; configuration.  This can be changed with a respective configuration
@@ -58,7 +58,7 @@
 
 ;; Filter suppressed remote file-notify libraries.
 (when (stringp (getenv "REMOTE_FILE_NOTIFY_LIBRARY"))
-  (dolist (lib '("inotifywait" "gio-monitor" "gvfs-monitor-dir" "smb-notify"))
+  (dolist (lib '("inotifywait" "gio" "smb-notify"))
     (unless (string-equal (getenv "REMOTE_FILE_NOTIFY_LIBRARY") lib)
       (add-to-list 'tramp-connection-properties `(nil ,lib nil)))))
 
@@ -238,9 +238,9 @@ remote host, or nil."
 
 (defun file-notify--test-monitor ()
   "The used monitor for the test, as a symbol.
-This returns only for (local) gfilenotify or (remote) gio library;
-otherwise it is nil.  `file-notify--test-desc' must be a valid
-watch descriptor."
+This returns only for (local) gfilenotify, (remote) gio or (remote)
+smb-notify libraries; otherwise it is nil.  `file-notify--test-desc'
+must be a valid watch descriptor."
   ;; We cache the result, because after `file-notify-rm-watch',
   ;; `gfile-monitor-name' does not return a proper result anymore.
   ;; But we still need this information.  So far, we know the monitors
@@ -277,7 +277,7 @@ watch descriptor."
 (defmacro file-notify--deftest-remote (test docstring &optional unstable)
   "Define ert `TEST-remote' for remote files.
 If UNSTABLE is non-nil, the test is tagged as `:unstable'."
-  (declare (indent 1))
+  (declare (indent 1) (debug (symbolp stringp &optional form)))
   `(ert-deftest ,(intern (concat (symbol-name test) "-remote")) ()
      ,docstring
      :tags (if ,unstable '(:expensive-test :unstable) '(:expensive-test))
@@ -285,9 +285,6 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    (ert-test (ert-get-test ',test))
             vc-handled-backends)
        (skip-unless (file-notify--test-remote-enabled))
-       ;; These tests do not work for remote gio/GInotifyFileMonitor.
-       ;; Needs further investigation.
-       (skip-when (string-equal (file-notify--test-library) "gio"))
        (tramp-cleanup-connection
 	(tramp-dissect-file-name temporary-file-directory) t 'keep-password)
        (file-notify--test-cleanup)
@@ -623,7 +620,7 @@ just an indicator for comparison.
 
 Don't wait longer than timeout seconds for the actions to be
 delivered."
-  (declare (indent 1) (debug (form body)))
+  (declare (indent 1) (debug (form &rest body)))
   `(let* ((actions (if (consp (car ,actions)) ,actions (list ,actions)))
           (max-length
            (apply
@@ -1615,7 +1612,8 @@ the file watch."
   "Check that file notification does not use too many resources."
   :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
-  ;; This test is intended for kqueue only.
+  ;; This test is intended for kqueue only.  We cannot check for
+  ;; GKqueueFileMonitor, because `file-notify--test-desc' is not set yet.
   (skip-unless (string-equal (file-notify--test-library) "kqueue"))
 
   (should

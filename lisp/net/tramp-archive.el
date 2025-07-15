@@ -557,7 +557,7 @@ A variable `foo-archive' (or `archive') will be bound to the
 archive name part of FILENAME, assuming `foo' (or nil) is the
 value of VAR.  OTOH, the variable `foo-hop' (or `hop') won't be
 offered."
-  (declare (debug (form symbolp body))
+  (declare (debug (form symbolp &rest body))
            (indent 2))
   (let ((bindings
          (mapcar
