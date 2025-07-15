@@ -251,12 +251,13 @@ command @kbd{M-x vc-insert-headers}.  This command works only on
 Subversion, CVS, RCS, and SCCS@.  The variable
 @code{vc-@var{backend}-header} contains the list of keywords to insert
 into the version header; for instance, CVS uses @code{vc-cvs-header},
-whose default value is @code{'("\$Id\$")}.  (The extra backslashes
-prevent the string constant from being interpreted as a header, if the
-Emacs Lisp file defining it is maintained with version control.)  The
-@code{vc-insert-headers} command inserts each keyword in the list on a
-new line at point, surrounded by tabs, and inside comment delimiters
-if necessary.
+whose default value is @code{'("\$Id\$")} (@pxref{Keyword
+substitution,,,cvs,CVS--Concurrent Versions System}).  (The extra
+backslashes prevent the string constant from being interpreted as a
+header, if the Emacs Lisp file defining it is maintained with version
+control.)  The @code{vc-insert-headers} command inserts each keyword in
+the list on a new line at point, surrounded by tabs, and inside comment
+delimiters if necessary.
 
 @vindex vc-static-header-alist
   The variable @code{vc-static-header-alist} specifies further strings
@@ -329,8 +330,7 @@ emacs, the Emacs Manual}).
 contents of tracked files, it reverts buffers visiting those files
 (@pxref{Reverting}).  It does this in a VCS-aware fashion that retains
 the positions of point and the mark even when the VCS operation causes
-VCS keywords to be expanded (for example, CVS keywords: @pxref{Keyword
-substitution,,,cvs,CVS--Concurrent Versions System}).
+VCS keywords to be expanded (@pxref{Version Headers}).
 
 @findex vc-auto-revert-mode
   An important limitation of this feature is that Emacs won't know to
