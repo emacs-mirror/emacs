@@ -84,7 +84,7 @@ MS-Windows systems if `w32-scroll-lock-modifier' is non-nil."
 
 (defun scroll-lock-next-line-always-scroll (&optional arg)
   "Scroll up ARG lines keeping point fixed."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (scroll-lock-update-goal-column)
   (condition-case nil
@@ -94,7 +94,7 @@ MS-Windows systems if `w32-scroll-lock-modifier' is non-nil."
 
 (defun scroll-lock-next-line (&optional arg)
   "Scroll up ARG lines keeping point fixed."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (scroll-lock-update-goal-column)
   (if (pos-visible-in-window-p (point-max))
@@ -104,7 +104,7 @@ MS-Windows systems if `w32-scroll-lock-modifier' is non-nil."
 
 (defun scroll-lock-previous-line (&optional arg)
   "Scroll up ARG lines keeping point fixed."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (scroll-lock-update-goal-column)
   (condition-case nil
@@ -114,7 +114,7 @@ MS-Windows systems if `w32-scroll-lock-modifier' is non-nil."
 
 (defun scroll-lock-forward-paragraph (&optional arg)
   "Scroll down ARG paragraphs keeping point fixed."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (scroll-lock-update-goal-column)
   (scroll-up (count-screen-lines (point) (save-excursion
@@ -124,7 +124,7 @@ MS-Windows systems if `w32-scroll-lock-modifier' is non-nil."
 
 (defun scroll-lock-backward-paragraph (&optional arg)
   "Scroll up ARG paragraphs keeping point fixed."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (scroll-lock-update-goal-column)
   (let ((goal (save-excursion (backward-paragraph arg) (point))))
