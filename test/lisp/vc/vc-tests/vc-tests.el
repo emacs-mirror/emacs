@@ -640,6 +640,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 
               ;; Check version diff.
               (vc-version-diff files nil nil)
+              (if (eq backend 'Bzr)
+                  (sleep-for 1))
               (should (bufferp (get-buffer "*vc-diff*")))
 
               (with-current-buffer "*vc-diff*"
