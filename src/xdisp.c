@@ -3054,7 +3054,7 @@ hscrolling_current_line_p (struct window *w)
 			Lisp form evaluation
  ***********************************************************************/
 
-/* The redisplay is not re-entrant.  But we can run ELisp code during
+/* The redisplay is not re-entrant.  But we can run Elisp code during
    redisplay, which in turn can trigger redisplay.
    We try to make this inner redisplay work correctly, but it messes up
    the state of the outer redisplay, so when we return to this outer
