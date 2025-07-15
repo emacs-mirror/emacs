@@ -71,7 +71,7 @@ changed.
 @cindex VC
   The Emacs version control interface is called @dfn{VC}@.  VC
 commands work with several different version control systems;
-currently, it supports Bazaar, CVS, Git, Mercurial, Monotone, RCS,
+currently, it supports Bazaar, CVS, Git, Mercurial, RCS,
 SRC, SCCS/CSSC, and Subversion.  Of these, the GNU project distributes
 CVS, RCS, and Bazaar.
 
@@ -132,11 +132,11 @@ the fileset.)
   VC allows you to use a version control system from within Emacs,
 integrating the version control operations smoothly with editing.  It
 provides a uniform interface for common operations in many version
-control operations.
+control systems.
 
   Some uncommon or intricate version control operations, such as
 altering repository settings, are not supported in VC@.  You should
-perform such tasks outside VC, e.g., via the command line.
+perform such tasks outside VC, e.g., at the command line.
 
   This section provides a general overview of version control, and
 describes the version control systems that VC supports.  You can skip
@@ -180,9 +180,9 @@ important form of communication among developers.
 @node Version Control Systems
 @subsubsection Supported Version Control Systems
 
-@cindex back end (version control)
+@cindex backend (version control)
   VC currently works with many different version control systems,
-which it refers to as @dfn{back ends}:
+which it refers to as @dfn{backends}:
 
 @itemize @bullet
 
@@ -263,7 +263,7 @@ supports almost all SRC operations.
 @cindex repository
 @cindex registered file
    When a file is under version control, we say that it is
-@dfn{registered} in the version control system.  The system has a
+@dfn{registered} with the version control system.  The system has a
 @dfn{repository} which stores both the file's present state and its
 change history---enough to reconstruct the current version or any
 earlier version.  The repository also contains other information, such
@@ -409,8 +409,8 @@ modification log for the entire system, which makes change log files
 somewhat redundant.  One advantage that they retain is that it is
 sometimes useful to be able to view the transaction history of a
 single directory separately from those of other directories.  Another
-advantage is that commit logs can't be fixed in many version control
-systems.
+advantage is that mistakes in commit logs can't be fixed in many version
+control systems.
 
   A project maintained with version control can use just the version
 control log, or it can use both kinds of logs.  It can handle some
