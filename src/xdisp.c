@@ -3059,7 +3059,7 @@ hscrolling_current_line_p (struct window *w)
    We try to make this inner redisplay work correctly, but it messes up
    the state of the outer redisplay, so when we return to this outer
    redisplay, we need to abort it.
-   To dect this case, we keep a counter that identifies every call to the
+   To dectect this case, we keep a counter that identifies every call to
    redisplay, so we can detect when a nested redisplay happened by the
    fact that the counter has changed.  */
 
