@@ -4463,7 +4463,8 @@ by calling `format-decode', which see.  */)
 		}
 
 	      ptrdiff_t bufpos = 0;
-	      while (bufpos < nread && same_at_start < same_at_end
+	      ptrdiff_t bufposlim = min (nread, same_at_end - same_at_start);
+	      while (bufpos < bufposlim
 		     && FETCH_BYTE (same_at_start) == read_buf[bufpos])
 		same_at_start++, bufpos++;
 	      /* If we found a discrepancy, stop the scan.  */
@@ -4485,10 +4486,10 @@ by calling `format-decode', which see.  */)
 	      goto handled;
 	    }
 	}
+      off_t same_at_start_pos = beg_offset + (same_at_start - BEGV_BYTE);
 
-      /* Count how many chars at the end of the file
-	 match the text at the end of the buffer.  But, if we have
-	 already found that decoding is necessary, don't waste time.  */
+      /* Find the end position, which is end_offset if given,
+	 the file's end otherwise.  */
 
       off_t endpos;
       if (!giveup_match_end)
@@ -4508,12 +4509,28 @@ by calling `format-decode', which see.  */)
 		  if (n < 0)
 		    report_file_error ("Read error", orig_filename);
 		  endpos += n;
+
+		  /* Give up if the file grew more than even the test read.  */
 		  giveup_match_end = n == sizeof read_buf;
+
 		  if (!giveup_match_end)
-		    file_size_hint = endpos;
+		    {
+		      file_size_hint = endpos;
+
+		      /* Shrink the file's head if the file shrank to
+			 be smaller than its head.  */
+		      if (endpos < same_at_start_pos)
+			{
+			  same_at_start_pos = endpos;
+			  same_at_start = endpos - beg_offset + BEGV_BYTE;
+			}
+		    }
 		}
 	    }
 	}
+
+      /* Count how many bytes in the file's end match the buffer's end.
+	 However, don't waste time if decoding is necessary.  */
 
       while (!giveup_match_end)
 	{
@@ -4522,11 +4539,20 @@ by calling `format-decode', which see.  */)
 
 	  /* At what file position are we now scanning?  */
 	  curpos = endpos - (ZV_BYTE - same_at_end);
-	  /* If the entire file matches the buffer tail, stop the scan.  */
-	  if (curpos == 0)
+
+	  /* How much can we scan in the next step?  Compare with poslim
+	     to prevent overlap of the matching head with the matching tail.
+	     The 'same_at_start_pos' limit prevents overlap in the buffer's
+	     head and tail, and the 'endpos - (same_at_end - same_at_start)'
+	     limit prevents overlap in the inserted file's head and tail.  */
+	  off_t poslim = max (same_at_start_pos,
+			      endpos - (same_at_end - same_at_start));
+	  /* Do not scan more than sizeof read_buf at a time, and stop
+	     the scan if it can go no more.  */
+	  trial = min (curpos - poslim, sizeof read_buf);
+	  if (trial == 0)
 	    break;
-	  /* How much can we scan in the next step?  */
-	  trial = min (curpos, sizeof read_buf);
+
 	  curpos = emacs_fd_lseek (fd, curpos - trial, SEEK_SET);
 	  if (curpos < 0)
 	    report_file_error ("Setting file position", orig_filename);
@@ -4546,9 +4572,7 @@ by calling `format-decode', which see.  */)
 	     the Emacs buffer.  */
 	  bufpos = nread;
 
-	  /* Compare with same_at_start to avoid counting some buffer text
-	     as matching both at the file's beginning and at the end.  */
-	  while (bufpos > 0 && same_at_end > same_at_start
+	  while (bufpos > 0
 		 && FETCH_BYTE (same_at_end - 1) == read_buf[bufpos - 1])
 	    same_at_end--, bufpos--;
 
@@ -4706,7 +4730,8 @@ by calling `format-decode', which see.  */)
 	 text.  */
 
       bufpos = 0;
-      while (bufpos < inserted && same_at_start < same_at_end
+      ptrdiff_t bufposlim = min (inserted, same_at_end - same_at_start);
+      while (bufpos < bufposlim
 	     && FETCH_BYTE (same_at_start) == decoded[bufpos])
 	same_at_start++, bufpos++;
 
@@ -4736,13 +4761,16 @@ by calling `format-decode', which see.  */)
 	       && ! CHAR_HEAD_P (FETCH_BYTE (same_at_start)))
 	  same_at_start--;
 
-      /* Scan this bufferful from the end, comparing with
-	 the Emacs buffer.  */
+      /* Scan this bufferful from the end, comparing with the Emacs
+	 buffer.  Compare with bufposlim to prevent overlap of the
+	 matching head with the matching tail.  The 'same_at_start -
+	 BEGV_BYTE' limit prevents overlap in the buffer's head and
+	 tail, and the 'inserted - (same_at_end - same_at_start)' limit
+	 prevents overlap in the inserted file's head and tail.  */
+      bufposlim = max (same_at_start - BEGV_BYTE,
+		       inserted - (same_at_end - same_at_start));
       bufpos = inserted;
-
-      /* Compare with same_at_start to avoid counting some buffer text
-	 as matching both at the file's beginning and at the end.  */
-      while (bufpos > 0 && same_at_end > same_at_start
+      while (bufposlim < bufpos
 	     && FETCH_BYTE (same_at_end - 1) == decoded[bufpos - 1])
 	same_at_end--, bufpos--;
 
