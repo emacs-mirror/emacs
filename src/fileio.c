@@ -4899,8 +4899,9 @@ by calling `format-decode', which see.  */)
 	else
 	  {
 	    buf = (char *) BEG_ADDR + PT_BYTE - BEG_BYTE + inserted;
-	    bufsize = min (min (gap_size, total - inserted), IO_BUFSIZE);
+	    bufsize = min (gap_size, IO_BUFSIZE);
 	  }
+	bufsize = min (bufsize, total - inserted);
 
 	if (!seekable && end_offset == TYPE_MAXIMUM (off_t))
 	  {
