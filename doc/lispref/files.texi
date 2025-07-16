@@ -536,7 +536,8 @@ Name}).
 This function inserts the contents of file @var{filename} into the
 current buffer after point.  It returns a list of the absolute file name
 and the length of the data inserted.  An error is signaled if
-@var{filename} is not the name of a file that can be read.
+@var{filename} does not name a file that can be read, or names a
+directory.
 
 This function checks the file contents against the defined file
 formats, and converts the file contents if appropriate and also calls

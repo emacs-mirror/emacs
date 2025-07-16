@@ -4038,9 +4038,9 @@ DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
        doc: /* Insert contents of file FILENAME after point.
 Returns list of absolute file name and number of characters inserted.
 If second argument VISIT is non-nil, the buffer's visited filename and
-last save file modtime are set, and it is marked unmodified.  If
-visiting and the file does not exist, visiting is completed before the
-error is signaled.
+last save file modtime are set, and it is marked unmodified.  Signal an
+error if FILENAME cannot be read or is a directory.  If visiting and the
+file does not exist, visiting is completed before the error is signaled.
 
 The optional third and fourth arguments BEG and END specify what portion
 of the file to insert.  These arguments count bytes in the file, not
@@ -4186,6 +4186,18 @@ by calling `format-decode', which see.  */)
     struct stat st;
     if (emacs_fd_fstat (fd, &st) < 0)
       report_file_error ("Input file status", orig_filename);
+
+    /* For backwards compatibility to traditional Unix,
+       POSIX allows the 'read' syscall to succeed on directories.
+       However, we want to fail, to be consistent across platforms
+       and to let callers rely on this function failing on directories.
+       There is no need to check on platforms where it is known that the
+       'read' syscall always fails on a directory.  */
+#if ! (defined GNU_LINUX || defined __ANDROID__)
+    if (S_ISDIR (st.st_mode))
+      report_file_errno ("Read error", orig_filename, EISDIR);
+#endif
+
     regular = S_ISREG (st.st_mode) != 0;
     bool memory_object = S_TYPEISSHM (&st) || S_TYPEISTMO (&st);
 
