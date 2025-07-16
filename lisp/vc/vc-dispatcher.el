@@ -658,7 +658,7 @@ CONTEXT is that which `vc-buffer-context' returns."
 (defun vc-revert-buffer-internal (&optional arg no-confirm)
   "Revert buffer keeping point and the mark where the user expects them.
 Try to be clever in the face of changes due to expanded VCS
-keywords (cf., e.g., info node `(cvs)Keyword substitution').
+keywords (cf., e.g., Info node `(cvs)Keyword substitution').
 This is important for typeahead to work as expected.
 ARG and NO-CONFIRM are passed on to `revert-buffer'."
   (interactive "P")
