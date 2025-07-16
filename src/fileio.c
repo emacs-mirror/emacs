@@ -4255,22 +4255,18 @@ by calling `format-decode', which see.  */)
 
   /* Check now whether the buffer will become too large,
      in the likely case where the file's length is not changing.
-     This saves a lot of needless work before a buffer overflow.  */
-  if (regular)
+     This saves a lot of needless work before a buffer overflow.
+     If LIKELY_END is nonnegative, it is likely where we will stop reading.
+     We could read more (or less), if the file grows (or shrinks).  */
+  off_t likely_end = min (end_offset, file_size_hint);
+  if (beg_offset < likely_end)
     {
-      /* The likely offset where we will stop reading.  We could read
-	 more (or less), if the file grows (or shrinks) as we read it.  */
-      off_t likely_end = min (end_offset, file_size_hint);
-
-      if (beg_offset < likely_end)
-	{
-	  ptrdiff_t buf_bytes
-	    = Z_BYTE - (!NILP (replace) ? ZV_BYTE - BEGV_BYTE  : 0);
-	  ptrdiff_t buf_growth_max = BUF_BYTES_MAX - buf_bytes;
-	  off_t likely_growth = likely_end - beg_offset;
-	  if (buf_growth_max < likely_growth)
-	    buffer_overflow ();
-	}
+      ptrdiff_t buf_bytes
+	= Z_BYTE - (!NILP (replace) ? ZV_BYTE - BEGV_BYTE  : 0);
+      ptrdiff_t buf_growth_max = BUF_BYTES_MAX - buf_bytes;
+      off_t likely_growth = likely_end - beg_offset;
+      if (buf_growth_max < likely_growth)
+	buffer_overflow ();
     }
 
   /* Prevent redisplay optimizations.  */
