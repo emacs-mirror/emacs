@@ -1212,14 +1212,15 @@ the function needs to examine, starting with FILE."
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; `name' in /home or in /.
   (setq file (abbreviate-file-name (expand-file-name file)))
+  (when (and (not (directory-name-p file))
+	     (file-directory-p file))
+    (setq file (file-name-as-directory file)))
   (let ((root nil)
         try)
     (while (not (or root
                     (null file)
                     (string-match locate-dominating-stop-dir-regexp file)))
-      (setq file (if (file-directory-p file)
-                     file
-                   (file-name-directory file))
+      (setq file (file-name-directory file)
             try (if (stringp name)
                     (file-exists-p (expand-file-name name file))
                   (funcall name file)))
