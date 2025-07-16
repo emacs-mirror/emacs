@@ -4786,10 +4786,7 @@ those in the first."
                      (list file-2 file-1)))
         (when (and f
                    (file-readable-p f)
-                   ;; FIXME: Aren't file-regular-p and
-                   ;; file-directory-p mutually exclusive?
-                   (file-regular-p f)
-                   (not (file-directory-p f)))
+                   (file-regular-p f))
           (push f out)))
       out)))
 
