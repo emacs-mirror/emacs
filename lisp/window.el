@@ -6803,7 +6803,7 @@ was killed since STATE was made, it will consult the variable
 			   (if pixelwise 'min-pixel-height 'min-height)
 			   head)))
 	 (min-width (cdr (assq
-			  (if pixelwise 'min-pixel-width 'min-weight)
+			  (if pixelwise 'min-pixel-width 'min-width)
 			  head)))
 	 ;; Bind the following two variables.  `window--state-put-1' has
 	 ;; to fully control them (see Bug#50867 and Bug#64405).
