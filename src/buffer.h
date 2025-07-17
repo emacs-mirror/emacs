@@ -649,11 +649,12 @@ struct buffer
      in no case complain about any mismatch on next save attempt.  */
   struct timespec modtime;
 
-  /* Size of the file when modtime was set.  This is used to detect the
-     case where the file grew while we were reading it, so the modtime
-     is still the same (since it's rounded up to seconds) but we're actually
-     not up-to-date.  -1 means the size is unknown.  Only meaningful if
-     modtime is actually set.  */
+  /* Size of the file when modtime was set.  This is used to detect when
+     the file size changed while we were reading the file, but the
+     modtime is still the same (since it's truncated to clock resolution)
+     so we're actually not up-to-date.  Meaningful only if it is
+     nonnegative and the modtime is actually set.  Useful only on
+     platforms with coarse clock resolution.  */
   off_t modtime_size;
 
   /* The value of text->modiff at the last auto-save.  */

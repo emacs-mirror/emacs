@@ -4107,8 +4107,9 @@ by calling `format-decode', which see.  */)
      restore_window_points needs the old character count.  */
   ptrdiff_t same_at_end_charpos = ZV;
 
-  /* A hint about the file size, or -1 if there is no hint.  */
-  off_t file_size_hint = -1;
+  /* The size reported by fstat, or -1 if the file was not found or its
+     size is meaningless.  */
+  off_t st_size = -1;
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -4201,11 +4202,12 @@ by calling `format-decode', which see.  */)
 
     if (regular | memory_object)
       {
-	file_size_hint = st.st_size;
+	st_size = st.st_size;
 
-	/* A negative size can happen on a platform that allows file
-	   sizes greater than the maximum off_t value.  */
-	if (file_size_hint < 0)
+	/* On some ancient platforms, a regular file with a negative size means
+	   the actual file size is greater than the maximum off_t value.
+	   Fail now rather than doing a lot of work and exhausting memory.  */
+	if (st_size < 0)
 	  buffer_overflow ();
       }
 
@@ -4256,7 +4258,7 @@ by calling `format-decode', which see.  */)
      This saves a lot of needless work before a buffer overflow.
      If LIKELY_END is nonnegative, it is likely where we will stop reading.
      We could read more (or less), if the file grows (or shrinks).  */
-  off_t likely_end = min (end_offset, file_size_hint);
+  off_t likely_end = min (end_offset, st_size);
   if (beg_offset < likely_end)
     {
       ptrdiff_t buf_bytes
@@ -4303,9 +4305,7 @@ by calling `format-decode', which see.  */)
 		 do not use st_size or report any SEEK_END failure.  */
 	      static_assert (4 * 1024 < sizeof read_buf);
 	      ptrdiff_t nread = emacs_full_read (fd, read_buf, 4 * 1024);
-	      if (nread < 4 * 1024)
-		file_size_hint = nread;
-	      else
+	      if (4 * 1024 <= nread)
 		{
 		  off_t tailoff = emacs_fd_lseek (fd, - 3 * 1024, SEEK_END);
 		  if (tailoff < 0)
@@ -4326,7 +4326,6 @@ by calling `format-decode', which see.  */)
 		    }
 		  else if (0 <= nread)
 		    {
-		      file_size_hint = tailoff + nread;
 		      nread += 1024;
 		      if (4 * 1024 < nread)
 			{
@@ -4480,8 +4479,6 @@ by calling `format-decode', which see.  */)
 
 	  if (nread < bytes_to_read)
 	    {
-	      file_size_hint = curpos + nread;
-
 	      /* Data inserted from the file match the buffer's leading bytes,
 		 so there's no need to replace anything.  */
 	      emacs_fd_close (fd);
@@ -4521,8 +4518,6 @@ by calling `format-decode', which see.  */)
 
 		  if (!giveup_match_end)
 		    {
-		      file_size_hint = endpos;
-
 		      /* Shrink the file's head if the file shrank to
 			 be smaller than its head.  */
 		      if (endpos < same_at_start_pos)
@@ -4569,7 +4564,6 @@ by calling `format-decode', which see.  */)
 	      if (nread < 0)
 		report_file_error ("Read error", orig_filename);
 	      /* The file unexpectedly shrank.  */
-	      file_size_hint = curpos + nread;
 	      giveup_match_end = true;
 	      break;
 	    }
@@ -4686,7 +4680,6 @@ by calling `format-decode', which see.  */)
 
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
-      file_size_hint = beg_offset;
 
       while (true)
 	{
@@ -4700,7 +4693,6 @@ by calling `format-decode', which see.  */)
 	  if (this == 0)
 	    break;
 
-	  file_size_hint += this;
 	  BUF_TEMP_SET_PT (XBUFFER (conversion_buffer),
 			   BUF_Z (XBUFFER (conversion_buffer)));
 	  decode_coding_c_string (&coding, (unsigned char *) read_buf,
@@ -4861,7 +4853,7 @@ by calling `format-decode', which see.  */)
   /* Ensure the gap is at least one byte larger than needed for the
      estimated insertion, so that in the usual case we read
      without reallocating.  */
-  off_t inserted_estimate = min (end_offset, file_size_hint) - beg_offset;
+  off_t inserted_estimate = likely_end - beg_offset;
   if (GAP_SIZE <= inserted_estimate)
     {
       ptrdiff_t growth;
@@ -4957,8 +4949,6 @@ by calling `format-decode', which see.  */)
 	inserted += this;
       }
   }
-
-  file_size_hint = beg_offset + inserted;
 
   /* Now we have either read all the file data into the gap,
      or stop reading on I/O error or quit.  If nothing was
@@ -5119,7 +5109,7 @@ by calling `format-decode', which see.  */)
       if (NILP (handler))
 	{
 	  current_buffer->modtime = mtime;
-	  current_buffer->modtime_size = file_size_hint;
+	  current_buffer->modtime_size = st_size;
 	  bset_filename (current_buffer, orig_filename);
 	}
 
