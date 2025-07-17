@@ -201,6 +201,7 @@ Also check that an encoding error can appear in a symlink."
     (let* ((dir-name (directory-file-name dir))
            (err (should-error (insert-file-contents dir-name)))
            (desc-string
+            ;; On MS-Windows we fail trying to 'open' a directory.
             (if (eq system-type 'windows-nt)
                 "Opening input file"
               "Read error")))
