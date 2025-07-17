@@ -1996,18 +1996,26 @@ With a prefix argument, show headings up to that LEVEL."
     ;; `icon' is either plist or a string, depending on
     ;; the `outline-minor-mode-use-buttons' settings
     (let ((o (seq-find (lambda (o) (overlay-get o 'outline-button))
-                       (overlays-at (point)))))
+                       (overlays-at (point))))
+          ;; When `outline-button-cover-text' but the button is in the margin,
+          ;; the keymap ends up placed on an invisible chunk of text, so we
+          ;; want the cmd-loop to place the cursor *before* the invisible text
+          ;; rather than after, otherwise the keymap is ignored.
+          (cursor-in-front (and (eq outline-minor-mode-use-buttons 'in-margins)
+                                outline-button-cover-text)))
       (unless o
         (when (eq outline-minor-mode-use-buttons 'insert)
           (let ((inhibit-read-only t))
             (insert (apply #'propertize "  " (text-properties-at (point))))
             (forward-line 0)))
-        (setq o (make-overlay (point) (1+ (point))))
+        (setq o (make-overlay (point) (1+ (point)) nil t cursor-in-front))
         (overlay-put o 'outline-button t)
         (overlay-put o 'evaporate t))
       (pcase outline-minor-mode-use-buttons
         ('in-margins
          (when outline-button-cover-text
+           ;; FIXME: Use the `display' property instead of
+           ;; `invisible+before-string'?
            (overlay-put o 'invisible t))
          (overlay-put o 'before-string
                       (outline--button-icons type 'in-margins))
