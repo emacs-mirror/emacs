@@ -4187,16 +4187,14 @@ by calling `format-decode', which see.  */)
     if (emacs_fd_fstat (fd, &st) < 0)
       report_file_error ("Input file status", orig_filename);
 
-    /* For backwards compatibility to traditional Unix,
-       POSIX allows the 'read' syscall to succeed on directories.
-       However, we want to fail, to be consistent across platforms
-       and to let callers rely on this function failing on directories.
-       There is no need to check on platforms where it is known that the
-       'read' syscall always fails on a directory.  */
-#if ! (defined GNU_LINUX || defined __ANDROID__)
+    /* Normally there is no need for an S_ISDIR test here,
+       as the first 'read' syscall will fail with EISDIR.
+       However, for backwards compatibility to traditional Unix,
+       POSIX allows 'read' to succeed on directories.
+       So do an explicit S_ISDIR test now, so that callers can rely on
+       this function rejecting directories on all platforms.  */
     if (S_ISDIR (st.st_mode))
       report_file_errno ("Read error", orig_filename, EISDIR);
-#endif
 
     regular = S_ISREG (st.st_mode) != 0;
     bool memory_object = S_TYPEISSHM (&st) || S_TYPEISTMO (&st);
