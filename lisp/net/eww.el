@@ -1164,7 +1164,7 @@ adds a new entry to `eww-history'."
          (base (plist-get eww-data :url)))
     (when make-readable
       (unless (setq dom (eww-readable-dom dom))
-        (message "Unable to find readable content")))
+        (message "Unable to extract readable text from this page")))
     (when dom
       (when eww-readable-adds-to-history
         (eww-save-history)
@@ -1416,7 +1416,7 @@ within text input fields."
   `("eww"
     (:eval (when (plist-get eww-data :readable)
              '(:propertize ":readable"
-               help-echo "Displaying readable content"))))
+               help-echo "Showing only human-readable text of page"))))
   "Mode for browsing the web."
   :interactive nil
   (setq-local eww-data (list :title ""))
