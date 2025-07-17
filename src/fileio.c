@@ -4217,7 +4217,9 @@ by calling `format-decode', which see.  */)
   }
 
   /* The initial offset can be nonzero, e.g., /dev/stdin.
-     Regular files can be non-seekable, e.g., /proc/cpuinfo with SEEK_END.  */
+     If SEEK_CUR works, later code assumes SEEK_SET also works,
+     but tests SEEK_END rather than relying on it
+     as SEEK_END can fail on Linux /proc files.  */
   off_t initial_offset = emacs_fd_lseek (fd, 0, SEEK_CUR);
   bool seekable = 0 <= initial_offset;
   if (seekable && NILP (beg))
@@ -4309,10 +4311,7 @@ by calling `format-decode', which see.  */)
 		{
 		  off_t tailoff = emacs_fd_lseek (fd, - 3 * 1024, SEEK_END);
 		  if (tailoff < 0)
-		    {
-		      seekable = false;
-		      tailoff = nread;
-		    }
+		    tailoff = nread;
 
 		  /* When appending the last 3 KiB, read extra bytes
 		     without trusting tailoff, as the file may be growing.  */
@@ -4502,9 +4501,7 @@ by calling `format-decode', which see.  */)
 	    {
 	      endpos = emacs_fd_lseek (fd, 0, SEEK_END);
 	      giveup_match_end = endpos < 0;
-	      if (giveup_match_end)
-		seekable = false;
-	      else
+	      if (!giveup_match_end)
 		{
 		  /* Check that read reports EOF soon, to catch platforms
 		     where SEEK_END can report wildly small offsets.  */
