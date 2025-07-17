@@ -904,8 +904,9 @@ signal a `cyclic-function-indirection' error.  */)
 
   if (!NILP (Vnative_comp_enable_subr_trampolines)
       && SUBRP (function)
-      && !NATIVE_COMP_FUNCTIONP (function))
-    calln (Qcomp_subr_trampoline_install, symbol);
+      && !NATIVE_COMP_FUNCTIONP (function)
+      && !EQ (definition, Fsymbol_function (symbol)))
+     calln (Qcomp_subr_trampoline_install, symbol);
 #endif
 
   set_symbol_function (symbol, definition);

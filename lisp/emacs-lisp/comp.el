@@ -3561,7 +3561,7 @@ the deferred compilation mechanism."
                    for pass in comp-passes
                    unless (memq pass comp-disabled-passes)
                    do
-                   (comp-log (format "\n(%s) Running pass %s:\n"
+                   (comp-log (format "\n(%S) Running pass %s:\n"
                                      function-or-file pass)
                              2)
                    (setf data (funcall pass data))
@@ -3570,7 +3570,7 @@ the deferred compilation mechanism."
                             do (funcall f data))
                    finally
                    (when comp-log-time-report
-                     (comp-log (format "Done compiling %s" data) 0)
+                     (comp-log (format "Done compiling %S" data) 0)
                      (cl-loop for (pass . time) in (reverse report)
                               do (comp-log (format "Pass %s took: %fs."
                                                    pass time)
@@ -3582,7 +3582,7 @@ the deferred compilation mechanism."
                    (if (and comp-async-compilation
                             (not (eq (car err) 'native-compiler-error)))
                        (progn
-                         (message "%s: Error %s"
+                         (message "%S: Error %s"
                                   function-or-file
                                   (error-message-string err))
                          (kill-emacs -1))
