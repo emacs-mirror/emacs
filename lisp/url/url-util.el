@@ -409,6 +409,13 @@ should return it unchanged."
 	      (url-hexify-string frag url-query-allowed-chars)))
     (url-recreate-url obj)))
 
+(defconst url--query-key-value-preserved-chars
+  (let ((vec (copy-sequence url-query-key-value-allowed-chars)))
+    (aset vec ?% nil)
+    vec)
+  "Byte mask used for %-encoding keys and values in the query segment of a URI.
+`url-query-key-value-allowed-chars' minus '%'.")
+
 ;;;###autoload
 (defun url-build-query-string (query &optional semicolons keep-empty)
   "Build a query-string.
@@ -436,7 +443,7 @@ instead of just \"key\" as in the example above."
      (let ((escaped
             (mapcar (lambda (sym)
                       (url-hexify-string (format "%s" sym)
-                                         url-query-key-value-allowed-chars))
+                                         url--query-key-value-preserved-chars))
                     key-vals)))
        (mapconcat (lambda (val)
                     (let ((vprint (format "%s" val))

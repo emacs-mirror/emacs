@@ -33,10 +33,10 @@
             ((key1 "val1") (key2 val2) (key3 val1 val2) ("key4") (key5 "")) t)
            ("key1=val1;key2=val2;key3=val1;key3=val2;key4=;key5="
             ((key1 val1) (key2 val2) ("key3" val1 val2) (key4) (key5 "")) t t)
-           ("key1=val/slash;key2=val%3Bsemi;key3=val%26amp;key4=val%3Deq"
-            ((key1 "val/slash") (key2 "val;semi") (key3 "val&amp") (key4 "val=eq")) t)
-           ("key%3Deq=val1;key%3Bsemi=val2;key%26amp=val3"
-            (("key=eq" val1) ("key;semi" val2) ("key&amp" val3)) t)))
+           ("key1=val/slash;key2=val%3Bsemi;key3=val%26amp;key4=val%3Deq;key5=val%25perc"
+            ((key1 "val/slash") (key2 "val;semi") (key3 "val&amp") (key4 "val=eq") (key5 "val%perc")) t)
+           ("key%3Deq=val1;key%3Bsemi=val2;key%26amp=val3;key%25perc=val4"
+            (("key=eq" val1) ("key;semi" val2) ("key&amp" val3) ("key%perc" val4)) t)))
         test)
     (while tests
       (setq test (car tests)
