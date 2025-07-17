@@ -76,6 +76,9 @@
   (should (= erc-autojoin-delay 30))
   (should-not erc--autojoin-timer)
 
+  (when (eq system-type 'usg-unix-v)
+    (ert-skip "Runs forever on Solaris 10 (bug#79017)"))
+
   (let (calls
         common
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook
