@@ -2214,30 +2214,33 @@ esac
 
 C_SWITCH_MACHINE=
 
-AC_CACHE_CHECK([for flag to work around GCC bug 117423],
-  [emacs_cv_gcc_bug_117423_CFLAGS],
-  [emacs_cv_gcc_bug_117423_CFLAGS='none needed'
+AC_CACHE_CHECK([for flag to work around GCC bug 119085],
+  [emacs_cv_gcc_bug_119085_CFLAGS],
+  [emacs_cv_gcc_bug_119085_CFLAGS='none needed'
    AS_IF([test "$GCC" = yes],
      [old_CFLAGS=$CFLAGS
       # If no flags are needed (e.g., not GCC 4+), don't use any.
       # Otherwise, use -fno-tree-sra.
-      for emacs_cv_gcc_bug_117423_CFLAGS in \
+      for emacs_cv_gcc_bug_119085_CFLAGS in \
 	  'none needed' -fno-tree-sra
       do
-	AS_CASE([$emacs_cv_gcc_bug_117423_CFLAGS],
+	AS_CASE([$emacs_cv_gcc_bug_119085_CFLAGS],
 	  ['none needed'], [],
 	  [-fno-tree-sra], [break],
-	  [CFLAGS="$old_CFLAGS $emacs_cv_gcc_bug_117423_CFLAGS"])
+	  [CFLAGS="$old_CFLAGS $emacs_cv_gcc_bug_119085_CFLAGS"])
 	AC_COMPILE_IFELSE(
 	  [AC_LANG_DEFINES_PROVIDED
-	   [/* Work around GCC bug 117423 with unions containing holes:
-	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=117423
+	   [/* Work around GCC bug 119085 with unions containing holes:
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119085
-	       GCC bug 117423 is present even in GCC 15.1,
+	       GCC bug 119085 is present even in GCC 15.1,
 	       the current version as of this writing; for now,
 	       assume it is present in all GCC versions starting with GCC 4.
 
-	       Working wround GCC bug 117423 also works around GCC bug 58416
+	       Working around GCC bug 119095 also works around GCC bug 117423
+	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=117423
+	       which as of 2025-07-17 has a fix that has not been released.
+
+	       Working wround GCC bug 119085 also works around GCC bug 58416
 	       with double in unions on x86, where the generated insns
 	       copy non-floating-point data via fldl/fstpl instruction pairs.
 	       This can misbehave if the data's bit pattern looks like a NaN.
@@ -2247,17 +2250,17 @@ AC_CACHE_CHECK([for flag to work around GCC bug 117423],
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93271
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114659
 	       Although GCC bug 58416 is fixed in GCC 15.1,
-	       GCC bug 117423 is still present there.  */
+	       GCC bug 119085 is still present there.  */
 	    #if 4 <= __GNUC__ && !defined __clang__
-	    # error "GCC bug 117423 possibly present"
+	    # error "GCC bug 119085 possibly present"
 	    #endif
 	  ]],
 	  [break])
       done
       CFLAGS=$old_CFLAGS])])
-AS_CASE([$emacs_cv_gcc_bug_117423_CFLAGS],
+AS_CASE([$emacs_cv_gcc_bug_119085_CFLAGS],
   [-*],
-    [C_SWITCH_MACHINE="$C_SWITCH_MACHINE $emacs_cv_gcc_bug_117423_CFLAGS"])
+    [C_SWITCH_MACHINE="$C_SWITCH_MACHINE $emacs_cv_gcc_bug_119085_CFLAGS"])
 
 AC_SUBST([C_SWITCH_MACHINE])
 
