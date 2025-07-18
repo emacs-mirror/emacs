@@ -4026,6 +4026,14 @@ maybe_move_gap (struct buffer *b)
     }
 }
 
+/* In FD, position to POS.  If this fails, report an error with FILENAME.  */
+static void
+xlseek (emacs_fd fd, off_t pos, Lisp_Object filename)
+{
+  if (emacs_fd_lseek (fd, pos, SEEK_SET) < 0)
+    report_file_error ("Setting file position", filename);
+}
+
 /* A good blocksize to minimize system call overhead across most systems.
    Taken from coreutils/src/ioblksize.h as of July 2025.  */
 enum { IO_BUFSIZE = 256 * 1024 };
@@ -4366,8 +4374,7 @@ by calling `format-decode', which see.  */)
 		  specpdl_ptr--;
 
 		  /* Rewind the file for the actual read done later.  */
-		  if (emacs_fd_lseek (fd, initial_offset, SEEK_SET) < 0)
-		    report_file_error ("Setting file position", orig_filename);
+		  xlseek (fd, initial_offset, orig_filename);
 		}
 	    }
 
@@ -4424,10 +4431,7 @@ by calling `format-decode', which see.  */)
       bool giveup_match_end = false;
 
       if (beg_offset != initial_offset)
-	{
-	  if (emacs_fd_lseek (fd, beg_offset, SEEK_SET) < 0)
-	    report_file_error ("Setting file position", orig_filename);
-	}
+	xlseek (fd, beg_offset, orig_filename);
 
       /* Count how many chars at the start of the file
 	 match the text at the beginning of the buffer.  */
@@ -4546,9 +4550,8 @@ by calling `format-decode', which see.  */)
 	  if (trial == 0)
 	    break;
 
-	  curpos = emacs_fd_lseek (fd, curpos - trial, SEEK_SET);
-	  if (curpos < 0)
-	    report_file_error ("Setting file position", orig_filename);
+	  curpos -= trial;
+	  xlseek (fd, curpos, orig_filename);
 
 	  nread = emacs_full_read (fd, read_buf, trial);
 	  if (nread < trial)
@@ -4667,8 +4670,7 @@ by calling `format-decode', which see.  */)
       /* First read the whole file, performing code conversion into
 	 CONVERSION_BUFFER.  */
 
-      if (emacs_fd_lseek (fd, beg_offset, SEEK_SET) < 0)
-	report_file_error ("Setting file position", orig_filename);
+      xlseek (fd, beg_offset, orig_filename);
 
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
@@ -4856,10 +4858,7 @@ by calling `format-decode', which see.  */)
 
   if (beg_offset != 0 || (!NILP (replace)
 			  && !BASE_EQ (replace, Qunbound)))
-    {
-      if (emacs_fd_lseek (fd, beg_offset, SEEK_SET) < 0)
-	report_file_error ("Setting file position", orig_filename);
-    }
+    xlseek (fd, beg_offset, orig_filename);
 
   /* Total bytes inserted.  */
   inserted = 0;
@@ -5616,7 +5615,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	  int lseek_errno = errno;
 	  if (file_locked)
 	    Funlock_file (lockname);
-	  report_file_errno ("Lseek error", filename, lseek_errno);
+	  report_file_errno ("Setting file position", filename, lseek_errno);
 	}
     }
 
