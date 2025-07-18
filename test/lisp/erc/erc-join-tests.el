@@ -23,342 +23,298 @@
 (require 'erc-join)
 (require 'erc-networks)
 
-(ert-deftest erc-autojoin-channels--connect ()
+(eval-and-compile
+  (let ((load-path (cons (ert-resource-directory) load-path)))
+    (require 'erc-tests-common)))
+
+;; This merely asserts that `erc-autojoin-channels' sends JOINs right
+;; away when the logical connection is established, so long as
+;; `erc-autojoin-timing' is the default of `connect'.
+(defun erc-join-tests--autojoin-channels-connect (test)
+  (should (eq erc-autojoin-timing 'connect))
+
+  (erc-tests-common-make-server-buf)
+
+  (cl-letf* ((calls nil)
+             (check (lambda () (prog1 calls (setq calls nil))))
+             ((symbol-function 'erc-server-send)
+              (lambda (line) (push line calls))))
+
+    (erc-autojoin-channels erc-server-announced-name "tester")
+    (funcall test check)
+    (should-not erc--autojoin-timer))
+
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
+
+(ert-deftest erc-autojoin-channels/server ()
+  (let ((erc-autojoin-channels-alist '(("\\.foonet\\.org\\'" "#chan"))))
+    (erc-join-tests--autojoin-channels-connect
+     (lambda (check)
+       (should (equal erc-session-server "irc.foonet.org"))
+       (should (equal (funcall check) '("JOIN #chan")))))))
+
+(ert-deftest erc-autojoin-channels/network ()
+  (let ((erc-autojoin-channels-alist '((foonet "#chan"))))
+    (erc-join-tests--autojoin-channels-connect
+     (lambda (check)
+       (should (eq erc-network 'foonet))
+       (should (equal (funcall check) '("JOIN #chan")))))))
+
+(ert-deftest erc-autojoin-channels/nomatch ()
+  (let ((erc-autojoin-channels-alist '(("fake\\.foonet\\.org\\'" "#chan")
+                                       (barnet "#chan"))))
+    (erc-join-tests--autojoin-channels-connect
+     (lambda (check)
+       (should (eq erc-network 'foonet))
+       (should (equal erc-server-announced-name "west.foonet.org"))
+       (should-not (funcall check))))))
+
+;; This doesn't cover the entirety of `erc-autojoin-timing' being
+;; `ident'.  It only simulates `erc-autojoin-channels-delayed' running
+;; `erc-autojoin-delay' seconds after MOTD's end.  A JOIN can also be
+;; triggered before or after that if `erc-nickserv-identified-hook' runs
+;; on a NOTICE login confirmation.
+(defun erc-join-tests--autojoin-channels-ident (test)
+
   (should (eq erc-autojoin-timing 'connect))
   (should (= erc-autojoin-delay 30))
-  (should-not erc--autojoin-timer)
 
-  (let (calls
-        common
-        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+  (erc-tests-common-make-server-buf)
 
-    (cl-letf (((symbol-function 'erc-server-send)
-               (lambda (line) (push line calls))))
+  ;; May run forever on Solaris 10 (see bug#79017).
+  (with-timeout (5 (ert-fail "Timeout exceeded"))
 
-      (setq common
-            (lambda ()
-              (ert-with-test-buffer (:name "foonet")
-                (erc-mode)
-                (setq erc-server-process
-                      (start-process "true" (current-buffer) "true")
-                      erc-network 'FooNet
-                      erc-session-server "irc.gnu.chat"
-                      erc-server-current-nick "tester"
-                      erc-networks--id (erc-networks--id-create nil)
-                      erc-server-announced-name "foo.gnu.chat")
-                (set-process-query-on-exit-flag erc-server-process nil)
-                (erc-autojoin-channels erc-server-announced-name
-                                       "tester")
-                (should-not erc--autojoin-timer))))
+    (cl-letf* ((erc-autojoin-timing 'ident)
+               (erc-autojoin-delay 0.001)
+               (timer-list (copy-sequence timer-list))
+               (calls nil)
+               (check (lambda () (prog1 calls (setq calls nil))))
+               ((symbol-function 'erc-server-send)
+                (lambda (line) (push line calls)))
+               ((symbol-function 'erc-autojoin-after-ident)
+                (lambda (&rest _r) (should-not "run"))))
 
-      (ert-info ("Join immediately on connect; server")
-        (let ((erc-autojoin-channels-alist '(("\\.gnu\\.chat\\'" "#chan"))))
-          (funcall common))
-        (should (equal (pop calls) "JOIN #chan")))
+      (should-not erc--autojoin-timer)
 
-      (ert-info ("Join immediately on connect; network")
-        (let ((erc-autojoin-channels-alist '((FooNet "#chan"))))
-          (funcall common))
-        (should (equal (pop calls) "JOIN #chan")))
+      (erc-autojoin-channels erc-server-announced-name "tester")
+      (should erc--autojoin-timer)
+      (sleep-for 0.01)
+      (funcall test check)
 
-      (ert-info ("Do nothing; server")
-        (let ((erc-autojoin-channels-alist '(("bar\\.gnu\\.chat" "#chan"))))
-          (funcall common))
-        (should-not calls))
+      (should-not calls)
+      (should-not erc--autojoin-timer)))
 
-      (ert-info ("Do nothing; network")
-        (let ((erc-autojoin-channels-alist '((BarNet "#chan"))))
-          (funcall common))
-        (should-not calls)))))
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
 
-(ert-deftest erc-autojoin-channels--delay ()
+(ert-deftest erc-autojoin-channels-delayed/server ()
+  (let ((erc-autojoin-channels-alist '(("\\.foonet\\.org\\'" "#chan"))))
+    (erc-join-tests--autojoin-channels-ident
+     (lambda (check)
+       (should (equal erc-session-server "irc.foonet.org"))
+       (should (equal (funcall check) '("JOIN #chan")))))))
+
+(ert-deftest erc-autojoin-channels-delayed/network ()
+  (let ((erc-autojoin-channels-alist '((foonet "#chan"))))
+    (erc-join-tests--autojoin-channels-ident
+     (lambda (check)
+       (should (eq erc-network 'foonet))
+       (should (equal (funcall check) '("JOIN #chan")))))))
+
+(ert-deftest erc-autojoin-channels-delayed/nomatch ()
+  ;; Actual announced name is west.foonet.org.
+  (let ((erc-autojoin-channels-alist '(("east\\.foonet\\.org" "#chan")
+                                       (barnet "#chan"))))
+    (erc-join-tests--autojoin-channels-ident
+     (lambda (check)
+       (should (equal erc-server-announced-name "west.foonet.org"))
+       (should-not (funcall check))))))
+
+;; This asserts that a JOIN is sent on match by the
+;; `erc-nickserv-identified-hook' member managed by this module if
+;; `erc-autojoin-timing' is set to `ident'.
+(defun erc-join-tests--autojoin-after-ident (test)
   (should (eq erc-autojoin-timing 'connect))
   (should (= erc-autojoin-delay 30))
-  (should-not erc--autojoin-timer)
 
-  (when (eq system-type 'usg-unix-v)
-    (ert-skip "Runs forever on Solaris 10 (bug#79017)"))
+  (erc-tests-common-make-server-buf)
 
-  (let (calls
-        common
-        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook
-        (erc-autojoin-timing 'ident)
-        (erc-autojoin-delay 0.05))
+  (cl-letf* ((erc-autojoin-timing 'ident)
+             (calls nil)
+             (check (lambda () (prog1 calls (setq calls nil))))
+             ((symbol-function 'erc-server-send)
+              (lambda (line) (push line calls))))
 
-    (cl-letf (((symbol-function 'erc-server-send)
-               (lambda (line) (push line calls)))
-              ((symbol-function 'erc-autojoin-after-ident)
-               (lambda (&rest _r) (error "I ran but shouldn't have"))))
+    (erc-autojoin-after-ident 'foonet "tester")
+    (funcall test check)
+    (should-not calls)
+    (should-not erc--autojoin-timer))
 
-      (setq common
-            (lambda ()
-              (ert-with-test-buffer (:name "foonet")
-                (erc-mode)
-                (setq erc-server-process
-                      (start-process "true" (current-buffer) "true")
-                      erc-network 'FooNet
-                      erc-session-server "irc.gnu.chat"
-                      erc-server-current-nick "tester"
-                      erc-networks--id (erc-networks--id-create nil)
-                      erc-server-announced-name "foo.gnu.chat")
-                (set-process-query-on-exit-flag erc-server-process nil)
-                (should-not erc--autojoin-timer)
-                (erc-autojoin-channels erc-server-announced-name "tester")
-                (should erc--autojoin-timer)
-                (should-not calls)
-                (sleep-for 0.1))))
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
 
-      (ert-info ("Deferred on connect; server")
-        (let ((erc-autojoin-channels-alist '(("\\.gnu\\.chat\\'" "#chan"))))
-          (funcall common))
-        (should (equal (pop calls) "JOIN #chan")))
+(ert-deftest erc-autojoin-after-ident/server ()
+  (let ((erc-autojoin-channels-alist '(("\\.foonet\\.org\\'" "#chan"))))
+    (erc-join-tests--autojoin-after-ident
+     (lambda (check)
+       (should (equal erc-session-server "irc.foonet.org"))
+       (should (equal (funcall check) '("JOIN #chan")))))))
 
-      (ert-info ("Deferred on connect; network")
-        (let ((erc-autojoin-channels-alist '((FooNet "#chan"))))
-          (funcall common))
-        (should (equal (pop calls) "JOIN #chan")))
+(ert-deftest erc-autojoin-after-ident/network ()
+  (let ((erc-autojoin-channels-alist '((foonet "#chan"))))
+    (erc-join-tests--autojoin-after-ident
+     (lambda (check)
+       (should (eq erc-network 'foonet))
+       (should (equal (funcall check) '("JOIN #chan")))))))
 
-      (ert-info ("Do nothing; server")
-        (let ((erc-autojoin-channels-alist '(("bar\\.gnu\\.chat" "#chan"))))
-          (funcall common))
-        (should-not calls)))))
+(defun erc-join-tests--autojoin-add (setup &optional fwd)
 
-(ert-deftest erc-autojoin-channels--ident ()
-  (should (eq erc-autojoin-timing 'connect))
-  (should (= erc-autojoin-delay 30))
-  (should-not erc--autojoin-timer)
+  (erc-tests-common-make-server-buf)
 
-  (let (calls
-        common
-        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook
-        (erc-autojoin-timing 'ident))
+  (let ((erc-server-JOIN-functions #'erc-autojoin-add)
+        (erc-autojoin-channels-alist nil))
 
-    (cl-letf (((symbol-function 'erc-server-send)
-               (lambda (line) (push line calls))))
+    (puthash 'CHANTYPES '("&#") erc--isupport-params) ; for &local
+    (funcall setup)
 
-      (setq common
-            (lambda ()
-              (ert-with-test-buffer (:name "foonet")
-                (erc-mode)
-                (setq erc-server-process
-                      (start-process "true" (current-buffer) "true")
-                      erc-network 'FooNet
-                      erc-server-current-nick "tester"
-                      erc-networks--id (erc-networks--id-create nil)
-                      erc-server-announced-name "foo.gnu.chat")
-                (set-process-query-on-exit-flag erc-server-process nil)
-                (erc-autojoin-after-ident 'FooNet "tester")
-                (should-not erc--autojoin-timer))))
+    (ert-info ("Add #chan")
+      (erc-tests-common-simulate-line
+       (concat ":tester!~i@c.u JOIN #chan" (and fwd " * :Tes Ter")))
+      (should (equal erc-autojoin-channels-alist
+                     '((foonet "#chan")))))
 
-      (ert-info ("Join on NickServ hook; server")
-        (let ((erc-autojoin-channels-alist '(("\\.gnu\\.chat\\'" "#chan"))))
-          (funcall common))
-        (should (equal (pop calls) "JOIN #chan")))
+    (ert-info ("Prepends joined chans")
+      (erc-tests-common-simulate-line ;with account username
+       (concat ":tester!~i@c.u JOIN #spam" (and fwd " tester :Tes Ter")))
+      (should (equal erc-autojoin-channels-alist
+                     '((foonet "#spam" "#chan")))))
 
-      (ert-info ("Join on NickServ hook; network")
-        (let ((erc-autojoin-channels-alist '((FooNet "#chan"))))
-          (funcall common))
-        (should (equal (pop calls) "JOIN #chan"))))))
+    (ert-info ("Duplicates skipped")
+      (erc-tests-common-simulate-line
+       (concat ":tester!~i@c.u JOIN #chan" (and fwd " * :Tes Ter")))
+      (should (equal erc-autojoin-channels-alist
+                     '((foonet "#spam" "#chan")))))
 
-(defun erc-join-tests--autojoin-add--common (setup &optional fwd)
-  (let (calls
-        erc-autojoin-channels-alist
-        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+    (ert-info ("Announced server used for local channel key")
+      (erc-tests-common-simulate-line
+       (concat ":tester!~i@c.u JOIN &local" (and fwd " * :Tes Ter")))
+      (should (equal erc-autojoin-channels-alist
+                     '(("west\\.foonet\\.org" "&local")
+                       (foonet "#spam" "#chan"))))))
 
-    (cl-letf (((symbol-function 'erc-handle-parsed-server-response)
-               (lambda (_p m) (push m calls))))
-
-      (ert-with-test-buffer (:name "foonet")
-        (erc-mode)
-        (setq erc-server-process
-              (start-process "true" (current-buffer) "true")
-              erc-server-current-nick "tester"
-              erc--isupport-params (make-hash-table)
-              erc-server-announced-name "foo.gnu.chat")
-        (puthash 'CHANTYPES '("&#") erc--isupport-params)
-        (funcall setup)
-        (set-process-query-on-exit-flag erc-server-process nil)
-        (should-not calls)
-
-        (ert-info ("Add #chan")
-          (erc-parse-server-response erc-server-process
-                                     (concat ":tester!~i@c.u JOIN #chan"
-                                             (and fwd " * :Tes Ter")))
-          (should calls)
-          (erc-autojoin-add erc-server-process (pop calls))
-          (should (equal erc-autojoin-channels-alist '((FooNet "#chan")))))
-
-        (ert-info ("More recently joined chans are prepended")
-          (erc-parse-server-response
-           erc-server-process ; with account username
-           (concat ":tester!~i@c.u JOIN #spam" (and fwd " tester :Tes Ter")))
-          (should calls)
-          (erc-autojoin-add erc-server-process (pop calls))
-          (should (equal erc-autojoin-channels-alist
-                         '((FooNet "#spam" "#chan")))))
-
-        (ert-info ("Duplicates skipped")
-          (erc-parse-server-response erc-server-process
-                                     (concat ":tester!~i@c.u JOIN #chan"
-                                             (and fwd " * :Tes Ter")))
-          (should calls)
-          (erc-autojoin-add erc-server-process (pop calls))
-          (should (equal erc-autojoin-channels-alist
-                         '((FooNet "#spam" "#chan")))))
-
-        (ert-info ("Server used for local channel")
-          (erc-parse-server-response erc-server-process
-                                     (concat ":tester!~i@c.u JOIN &local"
-                                             (and fwd " * :Tes Ter")))
-          (should calls)
-          (erc-autojoin-add erc-server-process (pop calls))
-          (should (equal erc-autojoin-channels-alist
-                         '(("foo\\.gnu\\.chat" "&local")
-                           (FooNet "#spam" "#chan")))))))))
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
 
 (ert-deftest erc-autojoin-add--network ()
-  (erc-join-tests--autojoin-add--common
-   (lambda () (setq erc-network 'FooNet
-                    erc-networks--id (erc-networks--id-create nil)))))
+  (erc-join-tests--autojoin-add #'ignore))
 
 (ert-deftest erc-autojoin-add--network-extended-syntax ()
-  (erc-join-tests--autojoin-add--common
-   (lambda () (setq erc-network 'FooNet
-                    erc-networks--id (erc-networks--id-create nil)))
-   'forward-compatible))
+  (erc-join-tests--autojoin-add #'ignore 'forward-compatible))
 
 (ert-deftest erc-autojoin-add--network-id ()
-  (erc-join-tests--autojoin-add--common
-   (lambda () (setq erc-network 'invalid
-                    erc-networks--id (erc-networks--id-create 'FooNet)))))
+  (erc-join-tests--autojoin-add
+   (lambda ()
+     (setq erc-network 'invalid
+           erc-networks--id (erc-networks--id-create 'foonet)))))
 
+;; This shows the fallback behavior for adding alist entries keyed by a
+;; domain name (as an unquoted regexp).  It runs if the network is not
+;; known and the user did not provide an :id keyword to the entry-point
+;; command.
 (ert-deftest erc-autojoin-add--server ()
-  (let (calls
-        erc-autojoin-channels-alist
-        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
 
-    (cl-letf (((symbol-function 'erc-handle-parsed-server-response)
-               (lambda (_p m) (push m calls))))
+  (erc-tests-common-make-server-buf)
 
-      (ert-info ("Network unavailable, announced name used")
-        (setq erc-autojoin-channels-alist nil)
-        (ert-with-test-buffer (:name "foonet")
-          (erc-mode)
-          (setq erc-server-process
-                (start-process "true" (current-buffer) "true")
-                erc-server-current-nick "tester"
-                erc-server-announced-name "foo.gnu.chat"
-                erc-networks--id (make-erc-networks--id)) ; assume too early
-          (set-process-query-on-exit-flag erc-server-process nil)
-          (should-not calls)
-          (erc-parse-server-response erc-server-process
-                                     ":tester!~u@q6ddatxcq6txy.irc JOIN #chan")
-          (should calls)
-          (erc-autojoin-add erc-server-process (pop calls))
-          (should (equal erc-autojoin-channels-alist
-                         '(("gnu.chat" "#chan")))))))))
+  (let ((erc-server-JOIN-functions #'erc-autojoin-add)
+        (erc-autojoin-channels-alist nil))
 
-(defun erc-join-tests--autojoin-remove--common (setup)
-  (let (calls
-        erc-autojoin-channels-alist
-        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+    (setq erc-network nil
+          ;; Override the ID so that it's automatically derived instead
+          ;; of a "given" one provided by the user.
+          erc-networks--id (erc-networks--id-create nil))
 
-    (cl-letf (((symbol-function 'erc-handle-parsed-server-response)
-               (lambda (_p m) (push m calls))))
+    (erc-tests-common-simulate-line
+     ":tester!~u@q6ddatxcq6txy.irc JOIN #chan")
 
-      (setq erc-autojoin-channels-alist ; mutated, so can't quote whole thing
-            (list '(FooNet "#spam" "##chan")
-                  '(BarNet "#bar" "##bar")
-                  '("foo\\.gnu\\.chat" "&local")))
+    (should (equal erc-autojoin-channels-alist
+                   '(("foonet.org" "#chan")))))
 
-      (ert-with-test-buffer (:name "foonet")
-        (erc-mode)
-        (setq erc-server-process
-              (start-process "true" (current-buffer) "true")
-              erc-server-current-nick "tester"
-              erc--isupport-params (make-hash-table)
-              erc-server-announced-name "foo.gnu.chat")
-        (puthash 'CHANTYPES '("&#") erc--isupport-params)
-        (funcall setup)
-        (set-process-query-on-exit-flag erc-server-process nil)
-        (should-not calls)
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
 
-        (ert-info ("Remove #chan")
-          (erc-parse-server-response erc-server-process
-                                     ":tester!~i@c.u PART ##chan")
-          (should calls)
-          (erc-autojoin-remove erc-server-process (pop calls))
-          (should (equal erc-autojoin-channels-alist
-                         '((FooNet "#spam")
-                           (BarNet "#bar" "##bar")
-                           ("foo\\.gnu\\.chat" "&local")))))
+(defun erc-join-tests--autojoin-remove (setup)
 
-        (ert-info ("Wrong network, nothing done")
-          (erc-parse-server-response erc-server-process
-                                     ":tester!~i@c.u PART #bar")
-          (should calls)
-          (erc-autojoin-remove erc-server-process (pop calls))
-          (should (equal erc-autojoin-channels-alist
-                         '((FooNet "#spam")
-                           (BarNet "#bar" "##bar")
-                           ("foo\\.gnu\\.chat" "&local")))))
+  (erc-tests-common-make-server-buf)
 
-        (ert-info ("Local channel keyed by server found")
-          (erc-parse-server-response erc-server-process
-                                     ":tester!~i@c.u PART &local")
-          (should calls)
-          (erc-autojoin-remove erc-server-process (pop calls))
-          (should (equal erc-autojoin-channels-alist
-                         '((FooNet "#spam") (BarNet "#bar" "##bar")))))))))
+  (let ((erc-server-PART-functions #'erc-autojoin-remove)
+        (erc-autojoin-channels-alist
+         (list (list 'foonet "#spam" "##chan")
+               (list 'barnet "#bar")
+               (list "west\\.foonet\\.org" "&local"))))
+
+    (puthash 'CHANTYPES '("&#") erc--isupport-params)
+    (funcall setup)
+
+    (ert-info ("Remove #chan")
+      (erc-tests-common-simulate-line ":tester!~i@c.u PART ##chan")
+      (should (equal erc-autojoin-channels-alist
+                     '((foonet "#spam")
+                       (barnet "#bar")
+                       ("west\\.foonet\\.org" "&local")))))
+
+    (ert-info ("Wrong network, nothing done")
+      (erc-tests-common-simulate-line ":tester!~i@c.u PART #bar")
+      (should (equal erc-autojoin-channels-alist
+                     '((foonet "#spam")
+                       (barnet "#bar")
+                       ("west\\.foonet\\.org" "&local")))))
+
+    (ert-info ("Local channel keyed by server found")
+      (erc-tests-common-simulate-line ":tester!~i@c.u PART &local")
+      (should (equal erc-autojoin-channels-alist
+                     '((foonet "#spam") (barnet "#bar"))))))
+
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
 
 (ert-deftest erc-autojoin-remove--network ()
-  (erc-join-tests--autojoin-remove--common
-   (lambda () (setq erc-network 'FooNet
-                    erc-networks--id (erc-networks--id-create nil)))))
+  (erc-join-tests--autojoin-remove #'ignore))
 
+;; This asserts that a given ID has precedence over the network.
 (ert-deftest erc-autojoin-remove--network-id ()
-  (erc-join-tests--autojoin-remove--common
-   (lambda () (setq erc-network 'fake-a-roo
-                    erc-networks--id (erc-networks--id-create 'FooNet)))))
+  (erc-join-tests--autojoin-remove
+   (lambda ()
+     (setq erc-network 'fake
+           erc-networks--id (erc-networks--id-create "foonet")))))
 
+;; This asserts that domain names are tried if the network is unknown
+;; and an explicit ID was not provided on entry-point invocation.
 (ert-deftest erc-autojoin-remove--server ()
-  (let (calls
-        erc-autojoin-channels-alist
-        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
 
-    (cl-letf (((symbol-function 'erc-handle-parsed-server-response)
-               (lambda (_p m) (push m calls))))
+  (erc-tests-common-make-server-buf)
 
-      (setq erc-autojoin-channels-alist (list '("gnu.chat" "#spam" "##chan")
-                                              '("fsf.chat" "#bar" "##bar")))
+  (let ((erc-server-PART-functions #'erc-autojoin-remove)
+        (erc-autojoin-channels-alist
+         (list (list "foonet.org" "#spam" "##chan")
+               (list "fsf.chat" "#bar" "##bar"))))
 
-      (ert-with-test-buffer (:name "foonet")
-        (erc-mode)
-        (setq erc-server-process
-              (start-process "true" (current-buffer) "true")
-              erc-server-current-nick "tester"
-              erc-server-announced-name "foo.gnu.chat"
-              ;; Assume special case without known network
-              erc-networks--id (make-erc-networks--id))
-        (set-process-query-on-exit-flag erc-server-process nil)
-        (should-not calls)
+    (setq erc-network nil
+          erc-networks--id (erc-networks--id-create nil))
 
-        (ert-info ("Announced name matched, #chan removed")
-          (erc-parse-server-response erc-server-process
-                                     ":tester!~i@c.u PART ##chan")
-          (should calls)
-          (erc-autojoin-remove erc-server-process (pop calls))
-          (should (equal erc-autojoin-channels-alist
-                         '(("gnu.chat" "#spam")
-                           ("fsf.chat" "#bar" "##bar")))))
+    (ert-info ("Announced name matched, #chan removed")
+      (erc-tests-common-simulate-line ":tester!~i@c.u PART ##chan")
+      (should (equal erc-autojoin-channels-alist
+                     '(("foonet.org" "#spam")
+                       ("fsf.chat" "#bar" "##bar")))))
 
-        (ert-info ("Wrong announced name, nothing done")
-          (erc-parse-server-response erc-server-process
-                                     ":tester!~i@c.u PART #bar")
-          (should calls)
-          (erc-autojoin-remove erc-server-process (pop calls))
-          (should (equal erc-autojoin-channels-alist
-                         '(("gnu.chat" "#spam")
-                           ("fsf.chat" "#bar" "##bar")))))))))
+    (ert-info ("Wrong announced name, nothing done")
+      (erc-tests-common-simulate-line ":tester!~i@c.u PART #bar")
+      (should (equal erc-autojoin-channels-alist
+                     '(("foonet.org" "#spam")
+                       ("fsf.chat" "#bar" "##bar"))))))
+
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
 
 ;;; erc-join-tests.el ends here

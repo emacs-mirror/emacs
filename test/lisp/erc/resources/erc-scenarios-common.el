@@ -239,7 +239,7 @@ Dialog resource directories are located by expanding the variable
                                     process-environment))
          (name (ert-test-name (ert-running-test)))
          (temp-file (make-temp-file "erc-term-test-"))
-         (cmd `(let ((stats 1))
+         (cmd `(let (stats)
                  (setq enable-dir-local-variables nil)
                  (unwind-protect
                      (setq stats (ert-run-tests-batch ',name))
@@ -248,7 +248,8 @@ Dialog resource directories are located by expanding the variable
                                   (buffer-string))))
                        (with-temp-file ,temp-file
                          (insert buf)))
-                     (kill-emacs (ert-stats-completed-unexpected stats))))))
+                     (kill-emacs
+                      (if stats (ert-stats-completed-unexpected stats) 1))))))
          ;; The `ert-test' object in Emacs 29 has a `file-name' field.
          (file-name (symbol-file name 'ert--test))
          (default-directory (expand-file-name (file-name-directory file-name)))

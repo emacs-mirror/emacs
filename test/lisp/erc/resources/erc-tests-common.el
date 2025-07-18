@@ -64,12 +64,14 @@ Assume caller intends to use `erc-display-message'."
   (should (= (point) erc-input-marker)))
 
 (defun erc-tests-common-init-server-proc (&rest args)
-  "Create a process with `start-process' from ARGS.
+  "Create a non-network process from ARGS with `make-process'.
 Assign the result to `erc-server-process' in the current buffer."
   (setq erc-server-process
-        (apply #'start-process (car args) (current-buffer) args))
-  (set-process-query-on-exit-flag erc-server-process nil)
-  erc-server-process)
+        (make-process :name (car args)
+                      :buffer (current-buffer)
+                      :command args
+                      :connection-type 'pipe
+                      :noquery t)))
 
 ;; After dropping support for Emacs 27, callers can use
 ;; `get-buffer-create' with INHIBIT-BUFFER-HOOKS.
@@ -130,7 +132,10 @@ Use NAME for the network and the session server as well."
           erc--isupport-params (make-hash-table)
           erc-session-port 6667
           erc-network (intern name)
-          erc-networks--id (erc-networks--id-create name))
+          erc-server-current-nick "tester"
+          ;; Derive ID from nick and network.  To create a "given"
+          ;; variant, override manually with a non-nil argument.
+          erc-networks--id (erc-networks--id-create nil))
     (current-buffer)))
 
 (defun erc-tests-common-string-to-propertized-parts (string)
