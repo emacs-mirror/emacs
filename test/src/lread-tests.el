@@ -154,7 +154,10 @@
 literals (Bug#20852)."
   (ert-with-temp-file file-name
     (write-region "?) ?( ?; ?\" ?[ ?]" nil file-name)
-    (should (equal (load file-name nil :nomessage :nosuffix) t))
+    (should (equal
+             (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+               (load file-name nil :nomessage :nosuffix))
+             t))
     (should (equal (lread-tests--last-message)
                    (format-message
                     (concat "Loading `%s': "
@@ -200,7 +203,8 @@ literals (Bug#20852)."
     (should-not
      ;; This used to crash in lisp_file_lexically_bound_p before the
      ;; bug was fixed.
-     (eval-buffer))))
+     (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+       (eval-buffer)))))
 
 (ert-deftest lread-invalid-bytecodes ()
   (should-error
