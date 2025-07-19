@@ -5426,6 +5426,16 @@ connections, apply the following code.
 @end group
 @end lisp
 
+@vindex auto-revert-remote-files
+@item
+Disable auto reverting of remote files.  Set
+@code{auto-revert-remote-files} to @code{nil}.  This is the default.
+
+@vindex enable-remote-dir-locals
+@item
+Disable directory-local variables for remote files.  Set
+@code{enable-remote-dir-locals} to @code{nil}.  This is the default.
+
 @vindex dired-check-symlinks
 @item
 Disable check for symbolic link validity in @code{dired} buffers.
