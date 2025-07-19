@@ -4026,12 +4026,14 @@ maybe_move_gap (struct buffer *b)
     }
 }
 
-/* In FD, position to POS.  If this fails, report an error with FILENAME.  */
-static void
+/* In FD, position to POS.  Return POS if successful, otherwise signal
+   an error with FILENAME.  */
+static off_t
 xlseek (emacs_fd fd, off_t pos, Lisp_Object filename)
 {
   if (emacs_fd_lseek (fd, pos, SEEK_SET) < 0)
     report_file_error ("Setting file position", filename);
+  return pos;
 }
 
 /* A good blocksize to minimize system call overhead across most systems.
@@ -4224,16 +4226,21 @@ by calling `format-decode', which see.  */)
 	     : get_stat_mtime (&st));
   }
 
-  /* The initial offset can be nonzero, e.g., /dev/stdin.
-     If SEEK_CUR works, later code assumes SEEK_SET also works,
-     but tests SEEK_END rather than relying on it
-     as SEEK_END can fail on Linux /proc files.  */
-  off_t initial_offset = emacs_fd_lseek (fd, 0, SEEK_CUR);
-  bool seekable = 0 <= initial_offset;
-  if (seekable && NILP (beg))
-    beg_offset = initial_offset;
-  if (end_offset <= beg_offset)
-    goto handled;
+  /* The initial input position, or -1 if the file is not seekable.  */
+  off_t begpos = emacs_fd_lseek (fd, beg_offset,
+				 !NILP (beg) ? SEEK_SET : SEEK_CUR);
+
+  /* Whether the file is seekable via SEEK_CUR and SEEK_SET.
+     SEEK_END is trickier as it is not reliable on /proc files,
+     so it is tested separately below.  */
+  bool seekable = 0 <= begpos;
+
+  /* The current input position if the file is seekable,
+     otherwise the number of bytes read.  */
+  off_t curpos = seekable ? begpos : 0;
+
+  if (!seekable && beg_offset != 0)
+    report_file_error ("Setting file position", orig_filename);
 
   /* The REPLACE code will need to be changed in order to work on
      named pipes, and it's probably just not worth it.  So we should
@@ -4262,6 +4269,9 @@ by calling `format-decode', which see.  */)
 				" only in a regular file"),
 		  orig_filename);
     }
+
+  if (end_offset <= beg_offset)
+    goto handled;
 
   /* Check now whether the buffer will become too large,
      in the likely case where the file's length is not changing.
@@ -4310,31 +4320,25 @@ by calling `format-decode', which see.  */)
 		 do not use st_size or report any SEEK_END failure.  */
 	      static_assert (4 * 1024 < sizeof read_buf);
 	      ptrdiff_t nread = emacs_full_read (fd, read_buf, 4 * 1024);
-	      if (4 * 1024 <= nread)
+	      if (nread < 4 * 1024)
+		curpos = nread;
+	      else
 		{
-		  off_t tailoff = emacs_fd_lseek (fd, - 3 * 1024, SEEK_END);
-		  if (tailoff < 0)
-		    tailoff = nread;
+		  curpos = emacs_fd_lseek (fd, - 3 * 1024, SEEK_END);
+		  if (curpos < 0)
+		    curpos = nread;
 
 		  /* When appending the last 3 KiB, read extra bytes
-		     without trusting tailoff, as the file may be growing.  */
+		     without trusting SEEK_END, as the file may be growing.
+		     Although this may yield more than 4 KiB of data total,
+		     and the trailing data may not be from file end if
+		     the file is growing, it is good enough.  */
 		  nread = emacs_full_read (fd, read_buf + 1024,
 					   sizeof read_buf - 1024);
-		  if (nread == sizeof read_buf - 1024)
+		  if (0 <= nread)
 		    {
-		      /* Give up reading the last 3 KiB; the file is
-			 growing too rapidly.  */
-		      nread = 1024;
-		    }
-		  else if (0 <= nread)
-		    {
+		      curpos += nread;
 		      nread += 1024;
-		      if (4 * 1024 < nread)
-			{
-			  memmove (read_buf + 1024,
-				   read_buf + nread - 3 * 1024, 3 * 1024);
-			  nread = 4 * 1024;
-			}
 		    }
 		}
 
@@ -4372,9 +4376,6 @@ by calling `format-decode', which see.  */)
 		  /* Discard the unwind protect for recovering the
                      current buffer.  */
 		  specpdl_ptr--;
-
-		  /* Rewind the file for the actual read done later.  */
-		  xlseek (fd, initial_offset, orig_filename);
 		}
 	    }
 
@@ -4430,15 +4431,14 @@ by calling `format-decode', which see.  */)
 	 give up on handling REPLACE in the optimized way.  */
       bool giveup_match_end = false;
 
-      if (beg_offset != initial_offset)
-	xlseek (fd, beg_offset, orig_filename);
+      if (beg_offset != curpos)
+	curpos = xlseek (fd, beg_offset, orig_filename);
 
       /* Count how many chars at the start of the file
 	 match the text at the beginning of the buffer.  */
       while (true)
 	{
 	  off_t bytes_to_read = sizeof read_buf;
-	  off_t curpos = beg_offset + (same_at_start - BEGV_BYTE);
 	  bytes_to_read = min (bytes_to_read, end_offset - curpos);
 	  ptrdiff_t nread = (bytes_to_read <= 0
 			     ? 0
@@ -4448,6 +4448,8 @@ by calling `format-decode', which see.  */)
 
 	  if (0 < nread)
 	    {
+	      curpos += nread;
+
 	      if (CODING_REQUIRE_DETECTION (&coding))
 		{
 		  coding_system
@@ -4507,7 +4509,7 @@ by calling `format-decode', which see.  */)
 		  ptrdiff_t n = emacs_full_read (fd, read_buf, sizeof read_buf);
 		  if (n < 0)
 		    report_file_error ("Read error", orig_filename);
-		  endpos += n;
+		  curpos = endpos += n;
 
 		  /* Give up if the file grew more than even the test read.  */
 		  giveup_match_end = n == sizeof read_buf;
@@ -4532,10 +4534,6 @@ by calling `format-decode', which see.  */)
       while (!giveup_match_end)
 	{
 	  ptrdiff_t nread, bufpos, trial;
-	  off_t curpos;
-
-	  /* At what file position are we now scanning?  */
-	  curpos = endpos - (ZV_BYTE - same_at_end);
 
 	  /* How much can we scan in the next step?  Compare with poslim
 	     to prevent overlap of the matching head with the matching tail.
@@ -4550,10 +4548,10 @@ by calling `format-decode', which see.  */)
 	  if (trial == 0)
 	    break;
 
-	  curpos -= trial;
-	  xlseek (fd, curpos, orig_filename);
+	  curpos = xlseek (fd, curpos - trial, orig_filename);
 
 	  nread = emacs_full_read (fd, read_buf, trial);
+	  curpos += nread;
 	  if (nread < trial)
 	    {
 	      if (nread < 0)
@@ -4670,7 +4668,8 @@ by calling `format-decode', which see.  */)
       /* First read the whole file, performing code conversion into
 	 CONVERSION_BUFFER.  */
 
-      xlseek (fd, beg_offset, orig_filename);
+      if (beg_offset != curpos)
+	curpos = xlseek (fd, beg_offset, orig_filename);
 
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
@@ -4686,6 +4685,7 @@ by calling `format-decode', which see.  */)
 	    report_file_error ("Read error", orig_filename);
 	  if (this == 0)
 	    break;
+	  curpos += this;
 
 	  BUF_TEMP_SET_PT (XBUFFER (conversion_buffer),
 			   BUF_Z (XBUFFER (conversion_buffer)));
@@ -4856,9 +4856,10 @@ by calling `format-decode', which see.  */)
       make_gap (growth);
     }
 
-  if (beg_offset != 0 || (!NILP (replace)
-			  && !BASE_EQ (replace, Qunbound)))
+  if (beg_offset != curpos)
     xlseek (fd, beg_offset, orig_filename);
+  /* curpos effectively goes out of scope now, as it is no longer needed,
+     so not bother to update curpos from now on.  */
 
   /* Total bytes inserted.  */
   inserted = 0;
