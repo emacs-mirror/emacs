@@ -4916,10 +4916,6 @@ string_to_number (char const *string, int base, ptrdiff_t *plen)
 
 static Lisp_Object initial_obarray;
 
-/* `oblookup' stores the bucket number here, for the sake of Funintern.  */
-
-static size_t oblookup_last_bucket_number;
-
 static Lisp_Object make_obarray (unsigned bits);
 
 /* Slow path obarray check: return the obarray to use or signal an error.  */
@@ -5130,83 +5126,6 @@ it defaults to the value of `obarray'.  */)
     }
 }
 
-DEFUN ("unintern", Funintern, Sunintern, 2, 2, 0,
-       doc: /* Delete the symbol named NAME, if any, from OBARRAY.
-The value is t if a symbol was found and deleted, nil otherwise.
-NAME may be a string or a symbol.  If it is a symbol, that symbol
-is deleted, if it belongs to OBARRAY--no other symbol is deleted.
-OBARRAY, if nil, defaults to the value of the variable `obarray'.  */)
-  (Lisp_Object name, Lisp_Object obarray)
-{
-  register Lisp_Object tem;
-  Lisp_Object string;
-
-  if (NILP (obarray)) obarray = Vobarray;
-  obarray = check_obarray (obarray);
-
-  if (SYMBOLP (name))
-    {
-      if (!BARE_SYMBOL_P (name))
-	name = XSYMBOL_WITH_POS (name)->sym;
-      string = SYMBOL_NAME (name);
-    }
-  else
-    {
-      CHECK_STRING (name);
-      string = name;
-    }
-
-  char *longhand = NULL;
-  ptrdiff_t longhand_chars = 0;
-  ptrdiff_t longhand_bytes = 0;
-  tem = oblookup_considering_shorthand (obarray, SSDATA (string),
-					SCHARS (string), SBYTES (string),
-					&longhand, &longhand_chars,
-					&longhand_bytes);
-  if (longhand)
-    xfree(longhand);
-
-  if (FIXNUMP (tem))
-    return Qnil;
-  /* If arg was a symbol, don't delete anything but that symbol itself.  */
-  if (BARE_SYMBOL_P (name) && !BASE_EQ (name, tem))
-    return Qnil;
-
-  /* There are plenty of other symbols which will screw up the Emacs
-     session if we unintern them, as well as even more ways to use
-     `setq' or `fset' or whatnot to make the Emacs session
-     unusable.  Let's not go down this silly road.  --Stef  */
-  /* if (NILP (tem) || EQ (tem, Qt))
-       error ("Attempt to unintern t or nil"); */
-
-  struct Lisp_Symbol *sym = XBARE_SYMBOL (tem);
-  sym->u.s.interned = SYMBOL_UNINTERNED;
-
-  ptrdiff_t idx = oblookup_last_bucket_number;
-  Lisp_Object *loc = &XOBARRAY (obarray)->buckets[idx];
-
-  eassert (BARE_SYMBOL_P (*loc));
-  struct Lisp_Symbol *prev = XBARE_SYMBOL (*loc);
-  if (sym == prev)
-    *loc = sym->u.s.next ? make_lisp_symbol (sym->u.s.next) : make_fixnum (0);
-  else
-    while (1)
-      {
-	struct Lisp_Symbol *next = prev->u.s.next;
-	if (next == sym)
-	  {
-	    prev->u.s.next = next->u.s.next;
-	    break;
-	  }
-	prev = next;
-      }
-
-  XOBARRAY (obarray)->count--;
-
-  return Qt;
-}
-
-
 /* Bucket index of the string STR of length SIZE_BYTE bytes in obarray OA.  */
 static ptrdiff_t
 obarray_index (struct Lisp_Obarray *oa, const char *str, ptrdiff_t size_byte)
@@ -5215,12 +5134,78 @@ obarray_index (struct Lisp_Obarray *oa, const char *str, ptrdiff_t size_byte)
   return knuth_hash (reduce_emacs_uint_to_hash_hash (hash), oa->size_bits);
 }
 
+DEFUN ("unintern", Funintern, Sunintern, 2, 2, 0,
+       doc: /* Delete the symbol named NAME, if any, from OBARRAY.
+The value is t if a symbol was found and deleted, nil otherwise.
+NAME may be a string or a symbol.  If it is a symbol, that symbol
+is deleted, if it belongs to OBARRAY--no other symbol is deleted.
+OBARRAY, if nil, defaults to the value of the variable `obarray'.  */)
+  (Lisp_Object name, Lisp_Object obarray)
+{
+  if (NILP (obarray)) obarray = Vobarray;
+  obarray = check_obarray (obarray);
+
+  Lisp_Object sym;
+  if (SYMBOLP (name))
+    sym = BARE_SYMBOL_P (name) ? name : XSYMBOL_WITH_POS (name)->sym;
+  else
+    {
+      CHECK_STRING (name);
+      char *longhand = NULL;
+      ptrdiff_t longhand_chars = 0;
+      ptrdiff_t longhand_bytes = 0;
+      sym = oblookup_considering_shorthand (obarray, SSDATA (name),
+					    SCHARS (name), SBYTES (name),
+					    &longhand, &longhand_chars,
+					    &longhand_bytes);
+      xfree(longhand);
+      if (FIXNUMP (sym))
+	return Qnil;
+    }
+
+  /* There are plenty of symbols which will screw up the Emacs
+     session if we unintern them, as well as even more ways to use
+     `setq' or `fset' or whatnot to make the Emacs session
+     unusable.  We don't try to prevent such mistakes here.  */
+
+  struct Lisp_Obarray *o = XOBARRAY (obarray);
+  Lisp_Object symname = SYMBOL_NAME (sym);
+  ptrdiff_t idx = obarray_index (o, SSDATA (symname), SBYTES (symname));
+  Lisp_Object *loc = &o->buckets[idx];
+  if (BASE_EQ (*loc, make_fixnum (0)))
+    return Qnil;
+
+  struct Lisp_Symbol *s = XBARE_SYMBOL (sym);
+  struct Lisp_Symbol *prev = XBARE_SYMBOL (*loc);
+  if (prev == s)
+    *loc = s->u.s.next ? make_lisp_symbol (s->u.s.next) : make_fixnum (0);
+  else
+    {
+      do
+	{
+	  struct Lisp_Symbol *next = prev->u.s.next;
+	  if (next == s)
+	    {
+	      prev->u.s.next = next->u.s.next;
+	      goto removed;
+	    }
+	  prev = next;
+	}
+      while (prev);
+      return Qnil;
+    }
+
+ removed:
+  s->u.s.interned = SYMBOL_UNINTERNED;
+  o->count--;
+  return Qt;
+}
+
+
 /* Return the symbol in OBARRAY whose name matches the string
    of SIZE characters (SIZE_BYTE bytes) at PTR.
    If there is no such symbol, return the integer bucket number of
-   where the symbol would be if it were present.
-
-   Also store the bucket number in oblookup_last_bucket_number.  */
+   where the symbol would be if it were present.  */
 
 Lisp_Object
 oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff_t size_byte)
@@ -5229,7 +5214,6 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
   ptrdiff_t idx = obarray_index (o, ptr, size_byte);
   Lisp_Object bucket = o->buckets[idx];
 
-  oblookup_last_bucket_number = idx;
   if (!BASE_EQ (bucket, make_fixnum (0)))
     {
       Lisp_Object sym = bucket;
