@@ -1870,8 +1870,8 @@ see `dired-use-ls-dired' for more details.")
 
 (defun dired-mouse-drag (event)
   "Begin a drag-and-drop operation for the file at EVENT.
-If there are marked files and that file is marked, drag every
-other marked file as well.  Otherwise, unmark all files."
+If there are marked files and the file at EVENT is marked, drag all the
+other marked files as well.  Otherwise, unmark all files."
   (interactive "e" dired-mode)
   (when mark-active
     (deactivate-mark))
@@ -1907,19 +1907,24 @@ other marked file as well.  Otherwise, unmark all files."
               ;; We can get an error if there's by some chance no file
               ;; name at point.
               (condition-case error
-                  (let ((filename (with-selected-window (posn-window
-                                                         (event-end event))
-                                    (let ((marked-files (dired-map-over-marks (dired-get-filename
-                                                                               nil 'no-error-if-not-filep)
-                                                                              'marked))
-                                          (file-name (dired-get-filename nil 'no-error-if-not-filep)))
-                                      (if (and marked-files
-                                               (member file-name marked-files))
-                                          marked-files
-                                        (when marked-files
-                                          (dired-map-over-marks (dired-unmark nil)
-                                                                'marked))
-                                        file-name)))))
+                  (let ((filename
+                         (with-selected-window (posn-window
+                                                (event-end event))
+                           (let ((marked-files
+                                  (dired-map-over-marks (dired-get-filename
+                                                         nil
+                                                         'no-error-if-not-filep)
+                                                        'marked))
+                                 (file-name
+                                  (dired-get-filename nil
+                                                      'no-error-if-not-filep)))
+                             (if (and marked-files
+                                      (member file-name marked-files))
+                                 marked-files
+                               (when marked-files
+                                 (dired-map-over-marks (dired-unmark nil)
+                                                       'marked))
+                               file-name)))))
                     (when filename
                       (if (and (consp filename)
                                (cdr filename))
@@ -3984,7 +3989,10 @@ non-empty directories is allowed."
 (defun dired-do-delete (&optional arg)
   "Delete all marked (or next ARG) files.
 `dired-recursive-deletes' controls whether deletion of
-non-empty directories is allowed."
+non-empty directories is allowed.
+
+When called from Lisp, if ARG is the symbol `marked', delete
+only the marked files, or none if no files are marked."
   ;; This is more consistent with the file marking feature than
   ;; dired-do-flagged-delete.
   (interactive "P" dired-mode)
