@@ -40,7 +40,7 @@
 (declare-function dired-get-filename "dired")
 (declare-function dired-get-marked-files "dired")
 (declare-function dired-move-to-filename "dired")
-(defvar shell-command-guess-open) ;; dired-aux
+(declare-function shell-command-do-open "dired-aux")
 
 (defgroup send-to nil
   "Send files or text to external applications or services."
@@ -159,6 +159,7 @@ explicitly overridden."
 (defun send-to--ns-supported-p ()
   "Return non-nil for macOS platform supporting send capability."
   (and (featurep 'ns)
+       (display-graphic-p)
        (fboundp 'ns-send-items)))
 
 (defun send-to--ns-send-items (items)
@@ -168,23 +169,17 @@ explicitly overridden."
 
 (defun send-to--open-externally-supported-p ()
   "Return non-nil for platforms supporting open externally capability."
-  (unless (boundp 'shell-command-guess-open)
+  (unless (fboundp 'shell-command-do-open)
     (require 'dired-aux))
-  shell-command-guess-open)
+  (fboundp 'shell-command-do-open))
 
 (defun send-to--open-externally (items)
   "Open ITEMS externally (using a non-Emacs application)."
-  (unless (boundp 'shell-command-guess-open)
+  (unless (fboundp 'shell-command-do-open)
     (require 'dired-aux))
   (when (y-or-n-p (format "Open externally: %s ?"
                           (send-to--format-items items)))
-    (dolist (item items)
-      (with-temp-buffer
-        (unless (zerop (call-process
-                        shell-command-guess-open nil (current-buffer) t
-                        (send-to--convert-item-to-filename
-                         item)))
-          (error "%s" (string-trim (buffer-string))))))))
+    (shell-command-do-open items)))
 
 (defun send-to--convert-item-to-filename (item)
   "Convert ITEM to a filename.
