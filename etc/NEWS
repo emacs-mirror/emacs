@@ -2507,6 +2507,9 @@ instead, which gives the time offset as +/-hh or +/-hh:mm.  A designator
 formats, like "2025-06-04 13:21:00 EDT", without the ISO 8601 "T"
 separator, are also supported.
 
+---
+** The obsolete variable 'load-convert-to-unibyte' has been removed.
+
 
 * Lisp Changes in Emacs 31.1
 

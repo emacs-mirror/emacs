@@ -238,7 +238,7 @@ static struct saved_string saved_strings[2];
 static Lisp_Object Vloads_in_progress;
 
 static void readevalloop (Lisp_Object, struct infile *, Lisp_Object, bool,
-                          Lisp_Object, Lisp_Object,
+                          Lisp_Object,
                           Lisp_Object, Lisp_Object);
 
 static void build_load_history (Lisp_Object, bool);
@@ -1784,14 +1784,14 @@ Return t if the file exists and loads successfully.  */)
 
       if (! version || version >= 22)
         readevalloop (Qget_file_char, &input, hist_file_name,
-                      0, Qnil, Qnil, Qnil, Qnil);
+                      0, Qnil, Qnil, Qnil);
       else
         {
           /* We can't handle a file which was compiled with
              byte-compile-dynamic by older version of Emacs.  */
           specbind (Qload_force_doc_strings, Qt);
           readevalloop (Qget_emacs_mule_file_char, &input, hist_file_name,
-                        0, Qnil, Qnil, Qnil, Qnil);
+                        0, Qnil, Qnil, Qnil);
         }
     }
   unbind_to (count, Qnil);
@@ -2376,12 +2376,6 @@ build_load_history (Lisp_Object filename, bool entire)
     }
 }
 
-static void
-readevalloop_1 (int old)
-{
-  load_convert_to_unibyte = old;
-}
-
 /* Signal an `end-of-file' error, if possible with file name
    information.  */
 
@@ -2415,9 +2409,7 @@ readevalloop_eager_expand_eval (Lisp_Object val, Lisp_Object macroexpand)
   return val;
 }
 
-/* UNIBYTE specifies how to set load_convert_to_unibyte
-   for this invocation.
-   READFUN, if non-nil, is used instead of `read'.
+/* READFUN, if non-nil, is used instead of `read'.
 
    START, END specify region to read in current buffer (from eval-region).
    If the input is not from a buffer, they must be nil.  */
@@ -2427,7 +2419,7 @@ readevalloop (Lisp_Object readcharfun,
 	      struct infile *infile0,
 	      Lisp_Object sourcename,
 	      bool printflag,
-	      Lisp_Object unibyte, Lisp_Object readfun,
+	      Lisp_Object readfun,
 	      Lisp_Object start, Lisp_Object end)
 {
   int c;
@@ -2470,8 +2462,6 @@ readevalloop (Lisp_Object readcharfun,
     emacs_abort ();
 
   specbind (Qstandard_input, readcharfun);
-  record_unwind_protect_int (readevalloop_1, load_convert_to_unibyte);
-  load_convert_to_unibyte = !NILP (unibyte);
 
   /* If lexical binding is active (either because it was specified in
      the file's header, or via a buffer-local variable), create an empty
@@ -2630,8 +2620,7 @@ PRINTFLAG controls printing of output by any output functions in the
   a value of nil means discard it; anything else is the stream to print to.
   See Info node `(elisp)Output Streams' for details on streams.
 FILENAME specifies the file name to use for `load-history'.
-UNIBYTE, if non-nil, specifies `load-convert-to-unibyte' for this
- invocation.
+UNIBYTE is obsolete and ignored.
 DO-ALLOW-PRINT, if non-nil, specifies that output functions in the
  evaluated code should work normally even if PRINTFLAG is nil, in
  which case the output is displayed in the echo area.
@@ -2677,7 +2666,7 @@ This function preserves the position of point.  */)
     specbind (Qlexical_binding, get_lexical_binding (buf, buf));
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   readevalloop (buf, 0, filename,
-		!NILP (printflag), unibyte, Qnil, Qnil, Qnil);
+		!NILP (printflag), Qnil, Qnil, Qnil);
   return unbind_to (count, Qnil);
 }
 
@@ -2711,7 +2700,7 @@ This function does not move point.  */)
 
   /* `readevalloop' calls functions which check the type of start and end.  */
   readevalloop (cbuf, 0, BVAR (XBUFFER (cbuf), filename),
-		!NILP (printflag), Qnil, read_function,
+		!NILP (printflag), read_function,
 		start, end);
 
   return unbind_to (count, Qnil);
@@ -6061,12 +6050,6 @@ and NOERROR and NOMESSAGE are the corresponding arguments passed to
 	       doc: /* Non-nil means `load' should force-load all dynamic doc strings.
 This is useful when the file being loaded is a temporary copy.  */);
   load_force_doc_strings = 0;
-
-  DEFVAR_BOOL ("load-convert-to-unibyte", load_convert_to_unibyte,
-	       doc: /* Non-nil means `read' converts strings to unibyte whenever possible.
-This is normally bound by `load' and `eval-buffer' to control `read',
-and is not meant for users to change.  */);
-  load_convert_to_unibyte = 0;
 
   DEFVAR_LISP ("source-directory", Vsource_directory,
 	       doc: /* Directory in which Emacs sources were found when Emacs was built.
