@@ -1260,9 +1260,9 @@ REV is ignored."
 (defun vc-hg--extract-headers (comment)
   (log-edit-extract-headers `(("Author" . "--user")
                               ("Date" . "--date")
-                              ("Amend" . (lambda (value)
-                                           (when (equal value "yes")
-                                             (list "--amend")))))
+                              ("Amend" . ,(lambda (value)
+                                            (when (equal value "yes")
+                                              (list "--amend")))))
                             comment))
 
 (defun vc-hg-find-revision (file rev buffer)

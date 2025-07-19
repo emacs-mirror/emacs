@@ -222,7 +222,7 @@
   "C-o"            #'cvs-mode-display-file)
 
 (easy-menu-define cvs-menu cvs-mode-map "Menu used in `cvs-mode'."
-  '("CVS"
+  `("CVS"
     ["Open file"		cvs-mode-find-file	t]
     ["Open in other window"	cvs-mode-find-file-other-window	t]
     ["Display in other window"  cvs-mode-display-file   t]
@@ -257,8 +257,9 @@
     ["Unmark all"		cvs-mode-unmark-all-files t]
     ["Hide handled"		cvs-mode-remove-handled	t]
     "----"
-    ["PCL-CVS Manual"		(lambda () (interactive)
-				  (info "(pcl-cvs)Top")) t]
+    ["PCL-CVS Manual"		,(lambda () (interactive)
+				   (info "(pcl-cvs)Top"))
+     t]
     "----"
     ["Quit"			cvs-mode-quit		t]))
 
@@ -273,9 +274,9 @@
 
 (defvar-keymap cvs-minor-mode-map
   (key-description cvs-minor-mode-prefix) 'cvs-mode-map
-  "e" '(menu-item nil cvs-mode-edit-log
-	          :filter (lambda (x)
-                            (and (derived-mode-p 'log-view-mode) x))))
+  "e" `(menu-item nil cvs-mode-edit-log
+	          :filter ,(lambda (x)
+                             (and (derived-mode-p 'log-view-mode) x))))
 
 (require 'pcvs-defs)
 
