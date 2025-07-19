@@ -1261,7 +1261,7 @@ see).
 You can include multiple conditions, for example:
 
   To exclude multiple modes and buffer names:
-  \='(or \"\\*eshell\\*\"
+  \\='(or \"\\*eshell\\*\"
          (derived-mode completion-list-mode
                        eshell-mode
                        term-mode
