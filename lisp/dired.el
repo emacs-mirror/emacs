@@ -931,18 +931,17 @@ Return value is the number of files marked, or nil if none were marked."
 (defmacro dired-map-over-marks (body arg &optional show-progress
 				     distinguish-one-marked)
   "Eval BODY with point on each marked line.  Return a list of BODY's results.
-If no marked file could be found, execute BODY on the current
-line.  ARG, if non-nil, specifies the files to use instead of the
+If no marked file could be found and ARG is nil, execute BODY on the current
+line.  If ARG is non-nil, it specifies the files to use instead of the
 marked files.
 
-If ARG is an integer, use the next ARG (or previous -ARG, if
-ARG<0) files.  In that case, point is dragged along.  This is so
-that commands on the next ARG (instead of the marked) files can
-be chained easily.
-For any other non-nil value of ARG, use the current file.
-
-If ARG is `marked', don't return the current file if nothing else
-is marked.
+  If ARG is an integer, use the next ARG (or previous -ARG, if ARG<0)
+  files.  In that case, point is dragged along.  This is so that
+  commands on the next ARG (instead of the marked) files can be
+  chained easily.
+  If ARG is the symbol `marked', use only marked files; if none are
+  marked, don't eval BODY and return nil.
+  For any other non-nil value of ARG, use the current file.
 
 If optional third arg SHOW-PROGRESS evaluates to non-nil,
 redisplay the Dired buffer after each file is processed.
@@ -951,14 +950,16 @@ No guarantee is made about the position on the marked line.
 BODY must ensure this itself if it depends on this.
 
 Search starts at the beginning of the buffer, thus the car of the
-list corresponds to the line nearest to the buffer's bottom.
+returnede list corresponds to the line nearest to the buffer's bottom.
 This is also true for (positive and negative) integer values of
 ARG.
 
 BODY should not be too long as it is expanded four times.
 
 If DISTINGUISH-ONE-MARKED is non-nil, then if we find just one
-marked file, return (t FILENAME) instead of (FILENAME)."
+marked file, return (t BODY-RESULT) instead of (BODY-RESULT),
+where BODY-RESULT is the result of evaluating BODY with point
+on the single marked file's line."
   ;;
   ;;Warning: BODY must not add new lines before point - this may cause an
   ;;endless loop.
@@ -1009,18 +1010,21 @@ marked file, return (t FILENAME) instead of (FILENAME)."
 
 (defun dired-get-marked-files (&optional localp arg filter distinguish-one-marked error)
   "Return the marked files' names as list of strings.
-The list is in the same order as the buffer, that is, the car is the
-  first marked file.
+The list is in the same order as the Dired buffer text, that is, the car
+  is the first marked file.
 Values returned are normally absolute file names.
-Optional arg LOCALP as in `dired-get-filename'.
+Optional arg LOCALP is as in `dired-get-filename'.
 Optional second argument ARG, if non-nil, specifies files near
- point instead of marked files.  It usually comes from the prefix
- argument.
-  If ARG is an integer, use the next ARG files.
+ point to return instead of marked files.  It usually comes from the
+ prefix argument of the caller.
+  If ARG is an integer, return the next ARG files (previous if ARG is
+   negative).
+  If ARG is the symbol `marked', return only marked files; return nil
+   if none are marked
   If ARG is any other non-nil value, return the current file name.
   If no files are marked, and ARG is nil, also return the current file name.
 Optional third argument FILTER, if non-nil, is a function to select
-  some of the files--those for which (funcall FILTER FILENAME) is non-nil.
+ some of the files--those for which (funcall FILTER FILENAME) is non-nil.
 
 If DISTINGUISH-ONE-MARKED is non-nil, then if we find just one marked file,
 return (t FILENAME) instead of (FILENAME).
