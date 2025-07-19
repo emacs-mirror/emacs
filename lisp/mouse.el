@@ -30,6 +30,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'rect))
+(eval-when-compile (require 'send-to))
 
 ;; Indent track-mouse like progn.
 (put 'track-mouse 'lisp-indent-function 0)
@@ -393,7 +394,8 @@ not it is actually displayed."
                                     context-menu-region
                                     context-menu-middle-separator
                                     context-menu-local
-                                    context-menu-minor)
+                                    context-menu-minor
+                                    context-menu-send-to)
   "List of functions that produce the contents of the context menu.
 Each function receives the menu and the mouse click event as its arguments
 and should return the same menu with changes such as added new menu items."
@@ -534,6 +536,19 @@ Some context functions add menu items below the separator."
                       (define-key-after menu (vector key)
                         (copy-sequence binding))))
                   (cdr mode))))
+  menu)
+
+(defun context-menu-send-to (menu _click)
+  "Add a \"Send to...\" context MENU entry on supported platforms."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (when (send-to-supported-p)
+    (define-key-after menu [separator-send] menu-bar-separator)
+    (define-key-after menu [send]
+      '(menu-item "Send to..." (lambda ()
+                                 (interactive)
+                                 (send-to))
+                  :help
+                  "Send item (region, buffer file, or Dired files) to applications or service")))
   menu)
 
 (defun context-menu-buffers (menu _click)

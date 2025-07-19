@@ -229,6 +229,13 @@ that your popup interface uses for a more integrated experience.
 ('completion-preview-sort-function' was already present in Emacs 30.1,
 but as a plain Lisp variable, not a user option.)
 
+** Mouse
+
+---
+*** context-menu-mode now includes a "Send to..." menu item.
+The menu item enables sending current file(s) or region text to external
+(non-Emacs) applications or services.  See send-to.el for customisations.
+
 ** Windows
 
 +++

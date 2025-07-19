@@ -3670,6 +3670,57 @@ DEFUN ("ns-show-character-palette",
   return Qnil;
 }
 
+#ifdef NS_IMPL_COCOA
+
+DEFUN ("ns-send-items",
+       Fns_send_items,
+       Sns_send_items, 1, 1, 0,
+       doc: /* Send a list of items to macOS applications or services. */)
+       (Lisp_Object items)
+{
+  CHECK_LIST (items);
+
+  NSMutableArray *sent = [NSMutableArray array];
+  for (Lisp_Object tail = items; CONSP (tail); tail = XCDR (tail))
+  {
+    Lisp_Object elt = XCAR (tail);
+    if (!(STRINGP (elt)))
+    {
+      signal_error ("Element not a string", elt);
+    }
+    BOOL isDir;
+    if ([[NSFileManager defaultManager] fileExistsAtPath:@(SSDATA(elt)) isDirectory:&isDir]) {
+      [sent addObject:[NSURL fileURLWithPath:@(SSDATA(elt))]];
+      continue;
+    }
+    [sent addObject:@(SSDATA(elt))];
+  }
+
+  struct frame *frame = SELECTED_FRAME ();
+  struct window *window = XWINDOW (selected_window);
+
+  int text_area_x, text_area_y, text_area_width, text_area_height;
+  window_box (window, TEXT_AREA, &text_area_x, &text_area_y,
+              &text_area_width, &text_area_height);
+
+  int x = text_area_x + window->phys_cursor.x;
+  int y = text_area_y + window->phys_cursor.y;
+
+  NSPoint point = NSMakePoint(x + FRAME_COLUMN_WIDTH (frame) / 2,
+			      y + FRAME_LINE_HEIGHT (frame) + 10);
+
+  EmacsView *view = FRAME_NS_VIEW (frame);
+  NSSharingServicePicker *picker = [[NSSharingServicePicker alloc] initWithItems:sent];
+  [picker showRelativeToRect:NSMakeRect(point.x - 1, point.y - 1, 2, 2)
+		      ofView:view
+	       preferredEdge:NSRectEdgeMaxY];
+
+  return Qnil;
+}
+
+
+#endif /* NS_IMPL_COCOA */
+
 /* ==========================================================================
 
     Class implementations
@@ -3902,6 +3953,9 @@ The default value is t.  */);
   defsubr (&Sns_set_mouse_absolute_pixel_position);
   defsubr (&Sns_mouse_absolute_pixel_position);
   defsubr (&Sns_show_character_palette);
+#ifdef NS_IMPL_COCOA
+  defsubr (&Sns_send_items);
+#endif
   defsubr (&Sx_display_mm_width);
   defsubr (&Sx_display_mm_height);
   defsubr (&Sx_display_screens);
