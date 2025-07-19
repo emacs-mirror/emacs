@@ -683,7 +683,7 @@ more..."
    `(lsp-ui-doc-background ((,class (:background "#2d2058"))))
    `(lsp-ui-sideline-code-action ((,class (:foreground "#ffffff" :background "#2526c0"))))
    `(lui-button-face ((,class ,link)))
-   `(lui-highlight-face ((,class (:box '(:line-width 1 :color "#38ffff") :foreground "#38ffff" :background "#06017f")))) ; my nickname
+   `(lui-highlight-face ((,class (:box (:line-width 1 :color "#38ffff") :foreground "#38ffff" :background "#06017f")))) ; my nickname
    `(lui-time-stamp-face ((,class (:foreground "#64df19"))))
    `(magit-blame-header ((,class (:inherit magit-diff-file-header))))
    `(magit-blame-heading ((,class (:overline "#5d5862" :foreground "#06ffff" :background "#3c3741"))))

@@ -62,8 +62,9 @@ Dired and you might want to turn it off."
 If no file is marked, toggle display of thumbnail on the current file's line.
 ARG, if non-nil (interactively, the prefix argument), specifies the files
 whose thumbnail display to toggle instead of the marked files: if ARG is an
-integer, use the next ARG (or previous -ARG, if ARG<0) files; any other
-value of ARG means toggle thumbnail display of the current line's file."
+integer, use the next ARG (or previous -ARG, if ARG<0) files; if ARG is
+the symbol `marked', use only the marked files, if any; any other value of
+ARG means toggle thumbnail display of the current line's file."
   (interactive "P" dired-mode)
   (setq image-dired--generate-thumbs-start  (current-time))
   (dired-map-over-marks

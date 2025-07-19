@@ -951,7 +951,10 @@ The following %-sequences are provided:
 %h Remaining time (to charge or discharge) in hours
 %t Remaining time (to charge or discharge) in the form `h:min'"
   (let* ((os-name (car (split-string
-                        ;; FIXME: Can't we use something like `system-type'?
+                        ;; We cannot use `system-type' because some BSD
+                        ;; systems fall under the 'berkley-unix umbrella
+                        ;; and we're trying to make the distinction
+                        ;; among them here.
                         (battery--call-process-to-string "uname"))))
          (apm-flag (pcase os-name
                      ("OpenBSD" "mP")
