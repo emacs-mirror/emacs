@@ -106,6 +106,30 @@ temporary EWW buffer for our tests."
       (should (eq (get-text-property (point) 'face)
                   'eww-form-textarea)))))
 
+(ert-deftest eww-test/tag/textarea/reload ()
+  "Ensure that reloading a document with a <textarea> works correctly."
+  (skip-unless (libxml-available-p))
+  (eww-test--with-mock-retrieve
+    (let ((shr-fill-text nil)
+          (eww-test--response-function
+           (lambda (_url)
+             (concat "Content-Type: text/html\n\n"
+                     "<html><body>"
+                     "<textarea>text</textarea>"
+                     "<div>this is the end</div>"
+                     "</body></html>"))))
+      (eww "example.invalid")
+      ;; Make sure that text after the <textarea> is regular text.
+      (goto-char (point-max))
+      (forward-line -1)
+      (should (eq (get-text-property (point) 'face) 'shr-text))
+      ;; Now reload, and make sure the above is still true.
+      (eww-reload)
+      (accept-process-output)           ; Let track-changes run.
+      (goto-char (point-max))
+      (forward-line -1)
+      (should (eq (get-text-property (point) 'face) 'shr-text)))))
+
 (ert-deftest eww-test/history/new-page ()
   "Test that when visiting a new page, the previous one goes into the history."
   (eww-test--with-mock-retrieve

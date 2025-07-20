@@ -364,6 +364,7 @@ by default."
 If zero, EWW is at the newest page, which isn't yet present in
 `eww-history'.")
 (defvar eww-prompt-history nil)
+(defvar-local eww--change-tracker-id nil)
 
 (defvar eww-local-regex "localhost"
   "When this regex is found in the URL, it's not a keyword but an address.")
@@ -831,6 +832,11 @@ This replaces the region with the preprocessed HTML."
                 (link . eww-tag-link)
                 (meta . eww-tag-meta)
                 (a . eww-tag-a)))))
+        ;; Unregister any existing change tracker while we render the
+        ;; document.
+        (when eww--change-tracker-id
+          (track-changes-unregister eww--change-tracker-id)
+          (setq eww--change-tracker-id nil))
 	(erase-buffer)
         (with-delayed-message (2 "Rendering HTML...")
 	  (shr-insert-document document))
@@ -850,10 +856,11 @@ This replaces the region with the preprocessed HTML."
 	  (while (and (not (eobp))
 		      (get-text-property (point) 'eww-form))
 	    (forward-line 1)))))
-      ;; We used to enable this in `eww-mode', but it cause tracking
-      ;; of changes while we insert the document, whereas we only care about
-      ;; changes performed afterwards.
-      (track-changes-register #'eww--track-changes :nobefore t)
+      ;; We used to enable this in `eww-mode', but it cause tracking of
+      ;; changes while we insert the document, whereas we only care
+      ;; about changes performed afterwards.
+      (setq eww--change-tracker-id (track-changes-register
+                                    #'eww--track-changes :nobefore t))
       (eww-size-text-inputs))))
 
 (defun eww-display-html (charset url &optional document point buffer)
