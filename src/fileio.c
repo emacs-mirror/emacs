@@ -4048,10 +4048,6 @@ xlseek (emacs_fd fd, off_t pos, Lisp_Object filename)
   return pos;
 }
 
-/* A good blocksize to minimize system call overhead across most systems.
-   Taken from coreutils/src/ioblksize.h as of July 2025.  */
-enum { IO_BUFSIZE = 256 * 1024 };
-
 /* FIXME: insert-file-contents should be split with the top-level moved to
    Elisp and only the core kept in C.  */
 
@@ -4096,6 +4092,14 @@ by calling `format-decode', which see.  */)
   (Lisp_Object filename, Lisp_Object visit, Lisp_Object beg, Lisp_Object end,
    Lisp_Object replace)
 {
+  /* A good read blocksize for insert-file-contents.
+     It is for reading a big chunk of a file into memory,
+     as opposed to coreutils IO_BUFSIZE which is for 'cat'-like stream reads.
+     If too small, insert-file-contents has more syscall overhead.
+     If too large, insert-file-contents might take too long respond to a quit.
+     1 MiB should be reasonable even for older, slower devices circa 2025.  */
+  enum { INSERT_READ_SIZE_MAX = min (1024 * 1024, MAX_RW_COUNT) };
+
   struct timespec mtime;
   emacs_fd fd;
   ptrdiff_t inserted = 0;
@@ -4106,7 +4110,7 @@ by calling `format-decode', which see.  */)
   off_t total = 0;
   bool regular;
   int save_errno = 0;
-  char read_buf[MAX_ALLOCA];
+  char read_buf[min (+MAX_ALLOCA, +INSERT_READ_SIZE_MAX)];
   struct coding_system coding;
   bool replace_handled = false;
   bool set_coding_system = false;
@@ -4886,7 +4890,7 @@ by calling `format-decode', which see.  */)
 	else
 	  {
 	    buf = (char *) BEG_ADDR + PT_BYTE - BEG_BYTE + inserted;
-	    bufsize = min (gap_size, IO_BUFSIZE);
+	    bufsize = min (gap_size, INSERT_READ_SIZE_MAX);
 	  }
 	bufsize = min (bufsize, total - inserted);
 
