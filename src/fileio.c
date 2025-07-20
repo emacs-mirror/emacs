@@ -4454,42 +4454,10 @@ by calling `format-decode', which see.  */)
 	  bytes_to_read = min (bytes_to_read, end_offset - curpos);
 	  ptrdiff_t nread = (bytes_to_read <= 0
 			     ? 0
-			     : emacs_full_read (fd, read_buf, bytes_to_read));
+			     : emacs_fd_read (fd, read_buf, bytes_to_read));
 	  if (nread < 0)
 	    report_file_error ("Read error", orig_filename);
-
-	  if (0 < nread)
-	    {
-	      curpos += nread;
-
-	      if (CODING_REQUIRE_DETECTION (&coding))
-		{
-		  coding_system
-		    = detect_coding_system ((unsigned char *) read_buf,
-					    nread, nread, 1, 0,
-					    coding_system);
-		  setup_coding_system (coding_system, &coding);
-		}
-
-	      if (CODING_REQUIRE_DECODING (&coding))
-		/* We found that the file should be decoded somehow.
-		   Let's give up here.  */
-		{
-		  giveup_match_end = true;
-		  break;
-		}
-
-	      ptrdiff_t bufpos = 0;
-	      ptrdiff_t bufposlim = min (nread, same_at_end - same_at_start);
-	      while (bufpos < bufposlim
-		     && FETCH_BYTE (same_at_start) == read_buf[bufpos])
-		same_at_start++, bufpos++;
-	      /* If we found a discrepancy, stop the scan.  */
-	      if (bufpos != nread)
-		break;
-	    }
-
-	  if (nread < bytes_to_read)
+	  else if (nread == 0)
 	    {
 	      /* Data inserted from the file match the buffer's leading bytes,
 		 so there's no need to replace anything.  */
@@ -4500,6 +4468,33 @@ by calling `format-decode', which see.  */)
 	      del_range_byte (same_at_start, same_at_end);
 	      goto handled;
 	    }
+
+	  curpos += nread;
+
+	  if (CODING_REQUIRE_DETECTION (&coding))
+	    {
+	      coding_system = detect_coding_system ((unsigned char *) read_buf,
+						    nread, nread, 1, 0,
+						    coding_system);
+	      setup_coding_system (coding_system, &coding);
+	    }
+
+	  if (CODING_REQUIRE_DECODING (&coding))
+	    /* We found that the file should be decoded somehow.
+               Let's give up here.  */
+	    {
+	      giveup_match_end = true;
+	      break;
+	    }
+
+	  ptrdiff_t bufpos = 0;
+	  ptrdiff_t bufposlim = min (nread, same_at_end - same_at_start);
+	  while (bufpos < bufposlim
+		 && FETCH_BYTE (same_at_start) == read_buf[bufpos])
+	    same_at_start++, bufpos++;
+	  /* If we found a discrepancy, stop the scan.  */
+	  if (bufpos != nread)
+	    break;
 	}
       off_t same_at_start_pos = beg_offset + (same_at_start - BEGV_BYTE);
 
@@ -4692,7 +4687,7 @@ by calling `format-decode', which see.  */)
 	     quitting while reading a huge file.  */
 
 	  ptrdiff_t trial = sizeof read_buf - unprocessed;
-	  this = emacs_full_read (fd, read_buf + unprocessed, trial);
+	  this = emacs_fd_read (fd, read_buf + unprocessed, trial);
 	  if (this < 0)
 	    report_file_error ("Read error", orig_filename);
 	  if (this == 0)
@@ -4706,8 +4701,6 @@ by calling `format-decode', which see.  */)
 	  unprocessed = coding.carryover_bytes;
 	  if (coding.carryover_bytes > 0)
 	    memcpy (read_buf, coding.carryover, unprocessed);
-	  if (this < trial)
-	    break;
 	}
 
       emacs_fd_close (fd);
