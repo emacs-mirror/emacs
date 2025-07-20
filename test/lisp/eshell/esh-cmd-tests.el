@@ -60,6 +60,11 @@ Test that trailing arguments outside the S-expression are
 ignored.  e.g. \"(+ 1 2) 3\" => 3"
   (eshell-command-result-equal "(+ 1 2) 3" 3))
 
+(ert-deftest esh-cmd-test/literal-lambda ()
+  "Test that a lambda isn't immediately invoked."
+  (eshell-command-result-equal "(lambda (i) (+ i 1))"
+                               (eval '(lambda (i) (+ i 1)))))
+
 (ert-deftest esh-cmd-test/subcommand ()
   "Test invocation with a simple subcommand."
   (eshell-command-result-equal "{+ 1 2}" 3))
