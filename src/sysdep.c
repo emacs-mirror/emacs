@@ -2714,17 +2714,6 @@ emacs_fchmodat (int fd, const char *path, mode_t mode, int flags)
 #endif /* !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY) */
 }
 
-/* Maximum number of bytes to read or write in a single system call.
-   This works around a serious bug in Linux kernels before 2.6.16; see
-   <https://bugzilla.redhat.com/show_bug.cgi?format=multiple&id=612839>.
-   It's likely to work around similar bugs in other operating systems, so do it
-   on all platforms.  Round INT_MAX down to a page size, with the conservative
-   assumption that page sizes are at most 2**18 bytes (any kernel with a
-   page size larger than that shouldn't have the bug).  */
-#ifndef MAX_RW_COUNT
-#define MAX_RW_COUNT (INT_MAX >> 18 << 18)
-#endif
-
 /* Verify that MAX_RW_COUNT fits in the relevant standard types.  */
 #ifndef SSIZE_MAX
 # define SSIZE_MAX TYPE_MAXIMUM (ssize_t)

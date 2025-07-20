@@ -1120,16 +1120,7 @@ read_full (int fd, void *buffer, ptrdiff_t size)
   eassert (0 <= fd);
   eassert (buffer != NULL);
   eassert (0 <= size);
-  enum
-  {
-  /* See MAX_RW_COUNT in sysdep.c.  */
-#ifdef MAX_RW_COUNT
-    max_size = MAX_RW_COUNT
-#else
-    max_size = INT_MAX >> 18 << 18
-#endif
-  };
-  if (PTRDIFF_MAX < size || max_size < size)
+  if (max (PTRDIFF_MAX, MAX_RW_COUNT) < size)
     {
       errno = EFBIG;
       return -1;
