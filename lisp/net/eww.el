@@ -1033,7 +1033,7 @@ This replaces the region with the preprocessed HTML."
   (plist-put eww-data :title
 	     (replace-regexp-in-string
 	      "^ \\| $" ""
-	      (replace-regexp-in-string "[ \t\r\n]+" " " (dom-text dom))))
+	      (replace-regexp-in-string "[ \t\r\n]+" " " (dom-inner-text dom))))
   (eww--after-page-change))
 
 (defun eww-display-raw (buffer &optional encode)
@@ -1204,7 +1204,7 @@ non-nil, don't actually compute a score; just call the callback."
         (setq score 2
               noscore t))
        ((eq (dom-tag node) 'a)
-        (setq score (- (length (split-string (dom-text node))))
+        (setq score (- (length (split-string (dom-inner-text node))))
               noscore t))
        (t
         (setq score -1))))
@@ -1229,7 +1229,7 @@ If EWW can't create a readable version, return nil instead."
          (when (and score (> score best-score)
                     ;; We set a lower bound to how long we accept that
                     ;; the readable portion of the page is going to be.
-                    (> (length (split-string (dom-texts node))) 100))
+                    (> (length (split-string (dom-inner-text node))) 100))
            (setq best-score score
                  best-node node))
          ;; Keep track of any <title> and <link> tags we find to include
@@ -1244,7 +1244,7 @@ If EWW can't create a readable version, return nil instead."
            ;; directly in our list in addition to as a child of some
            ;; other node in the list.  This is ok for <title> and <link>
            ;; tags, but might need changed if supporting other tags.
-           (let* ((inner-text (dom-texts node ""))
+           (let* ((inner-text (dom-inner-text node))
                   (new-node `(,(dom-tag node)
                               ,(dom-attributes node)
                               ,@(when (length> inner-text 0)
@@ -1276,7 +1276,7 @@ If EWW can't create a readable version, return nil instead."
 		   most-negative-fixnum))
         ;; We set a lower bound to how long we accept that the
         ;; readable portion of the page is going to be.
-        (when (> (length (split-string (dom-texts highest))) 100)
+        (when (> (length (split-string (dom-inner-text highest))) 100)
 	  (setq result highest))))
     result))
 
@@ -1901,7 +1901,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
                'display (make-string (length value) ?*)))))))))
 
 (defun eww-tag-textarea (dom)
-  (let ((value (or (dom-text dom) ""))
+  (let ((value (or (dom-inner-text dom) ""))
 	(lines (string-to-number (or (dom-attr dom 'rows) "10")))
 	(width (string-to-number (or (dom-attr dom 'cols) "10")))
 	start end form)
@@ -1977,7 +1977,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
     (dolist (elem (dom-by-tag dom 'option))
       (when (dom-attr elem 'selected)
 	(nconc menu (list :value (dom-attr elem 'value))))
-      (let ((display (dom-text elem)))
+      (let ((display (dom-inner-text elem)))
 	(setq max (max max (length display)))
 	(push (list 'item
 		    :value (dom-attr elem 'value)

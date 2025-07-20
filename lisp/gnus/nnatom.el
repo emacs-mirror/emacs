@@ -110,7 +110,8 @@
 
 (defun nnatom--dom-line (node)
   "Return NODE's text as a single, whitespace-trimmed line."
-  (string-trim (replace-regexp-in-string "[\r\n]+" " " (dom-text node) t)))
+  (string-trim (replace-regexp-in-string
+                "[\r\n]+" " " (dom-inner-text node) t)))
 
 (defun nnatom--read-title (group)
   "Return the title of GROUP, or nil."
@@ -245,7 +246,7 @@ return the subject.  Otherwise, return nil."
                      (dom-print (dom-child-by-tag part 'div) nil t)
                      (buffer-substring-no-properties
                       (point-min) (point-max)))
-                 (dom-text part)))
+                 (dom-inner-text part)))
          (type (if (member type atypes) (concat "text/" type) type))
          (type (or (cdr (assoc type mtypes)) type)))
     (unless (string-blank-p part)

@@ -5722,14 +5722,10 @@ Return all the non-string children of the node.
 @item dom-attributes @var{node}
 Return the key/value pair list of attributes of the node.
 
-@item dom-text @var{node}
-Return all the textual elements of the node as a concatenated string.
-
-@item dom-texts @var{node}
+@item dom-inner-text @var{node}
 Return all the textual elements of the node, as well as the textual
 elements of all the children of the node, recursively, as a
-concatenated string.  This function also takes an optional separator
-to be inserted between the textual elements.
+concatenated string.
 
 @item dom-parent @var{dom} @var{node}
 Return the parent of @var{node} in @var{dom}.

@@ -2636,6 +2636,12 @@ This function takes two RGB lists and optional ALPHA and returns an RGB
 list whose elements are blended in linear space proportional to ALPHA.
 
 +++
+** New function 'dom-inner-text'.
+This function gets all the text within a DOM node recursively, returning
+it as a concatenated string.  It replaces the now-obsolete functions
+'dom-text' and 'dom-texts'.
+
++++
 ** The 'defcustom' ':local' keyword can now be 'permanent-only'.
 This means that the variable's 'permanent-local' property is set to t,
 without marking it as automatically buffer-local.
