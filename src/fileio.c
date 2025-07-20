@@ -4501,7 +4501,6 @@ by calling `format-decode', which see.  */)
 	  if (bufpos != nread)
 	    break;
 	}
-      off_t same_at_start_pos = beg_offset + (same_at_start - BEGV_BYTE);
 
       /* Find the end position, which is end_offset if given,
 	 the file's end otherwise.  */
@@ -4530,11 +4529,8 @@ by calling `format-decode', which see.  */)
 		    {
 		      /* Shrink the file's head if the file shrank to
 			 be smaller than its head.  */
-		      if (endpos < same_at_start_pos)
-			{
-			  same_at_start_pos = endpos;
-			  same_at_start = endpos - beg_offset + BEGV_BYTE;
-			}
+		      if (endpos - beg_offset < same_at_start - BEGV_BYTE)
+			same_at_start = endpos - beg_offset + BEGV_BYTE;
 		    }
 		}
 	    }
@@ -4550,10 +4546,11 @@ by calling `format-decode', which see.  */)
 	  /* How much can we scan in the next step?  Compare with poslim
 	     to prevent overlap of the matching head with the matching tail.
 	     The 'same_at_start_pos' limit prevents overlap in the buffer's
-	     head and tail, and the 'endpos - (same_at_end - same_at_start)'
-	     limit prevents overlap in the inserted file's head and tail.  */
-	  off_t poslim = max (same_at_start_pos,
-			      endpos - (same_at_end - same_at_start));
+	     head and tail, and the 'file_overlap_pos' limit prevents
+	     overlap in the inserted file's head and tail.  */
+	  off_t same_at_start_pos = beg_offset + (same_at_start - BEGV_BYTE);
+	  off_t file_overlap_pos = endpos - (same_at_end - same_at_start);
+	  off_t poslim = max (same_at_start_pos, file_overlap_pos);
 	  /* Do not scan more than sizeof read_buf at a time, and stop
 	     the scan if it can go no more.  */
 	  trial = min (curpos - poslim, sizeof read_buf);
