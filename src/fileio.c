@@ -4897,7 +4897,7 @@ by calling `format-decode', which see.  */)
 	  }
 	bufsize = min (bufsize, total - inserted);
 
-	if (!seekable && end_offset == TYPE_MAXIMUM (off_t))
+	if (!regular)
 	  {
 	    Lisp_Object nbytes;
 	    intmax_t number;
