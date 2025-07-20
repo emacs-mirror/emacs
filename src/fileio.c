@@ -4901,7 +4901,8 @@ by calling `format-decode', which see.  */)
 
 	    /* Read from the file, capturing `quit'.  When an
 	       error occurs, end the loop, and arrange for a quit
-	       to be signaled after decoding the text we read.  */
+	       to be signaled after decoding the text we read.
+	       This way, we do not lose any data read.  */
 	    union read_non_regular data
 	      = {{fd, buf == read_buf ? buf : NULL, inserted, bufsize}};
 	    nbytes = internal_condition_case_1
@@ -4920,7 +4921,8 @@ by calling `format-decode', which see.  */)
 	else
 	  /* Allow quitting out of the actual I/O.  We don't make text
 	     part of the buffer until all the reading is done, so a
-	     C-g here doesn't do any harm.  */
+	     C-g here doesn't do any harm: though the data read are discarded,
+	     the original data is still in the input file.  */
 	  {
 	    this = emacs_fd_read (fd, buf, bufsize);
 	    if (this < 0)
