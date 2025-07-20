@@ -4038,14 +4038,15 @@ maybe_move_gap (struct buffer *b)
     }
 }
 
-/* In FD, position to POS.  Return POS if successful, otherwise signal
-   an error with FILENAME.  */
+/* In FD, position to POS relative to WHENCE.  Return the resulting
+   position if successful, otherwise signal an error with FILENAME.  */
 static off_t
-xlseek (emacs_fd fd, off_t pos, Lisp_Object filename)
+xlseek (emacs_fd fd, off_t pos, int whence, Lisp_Object filename)
 {
-  if (emacs_fd_lseek (fd, pos, SEEK_SET) < 0)
+  off_t newpos = emacs_fd_lseek (fd, pos, whence);
+  if (newpos < 0)
     report_file_error ("Setting file position", filename);
-  return pos;
+  return newpos;
 }
 
 /* FIXME: insert-file-contents should be split with the top-level moved to
@@ -4448,7 +4449,7 @@ by calling `format-decode', which see.  */)
       bool giveup_match_end = false;
 
       if (beg_offset != curpos)
-	curpos = xlseek (fd, beg_offset, orig_filename);
+	curpos = xlseek (fd, beg_offset, SEEK_SET, orig_filename);
 
       /* Count how many chars at the start of the file
 	 match the text at the beginning of the buffer.  */
@@ -4559,7 +4560,7 @@ by calling `format-decode', which see.  */)
 	  if (trial == 0)
 	    break;
 
-	  curpos = xlseek (fd, curpos - trial, orig_filename);
+	  curpos = xlseek (fd, -trial, SEEK_CUR, orig_filename);
 
 	  nread = emacs_full_read (fd, read_buf, trial);
 	  curpos += nread;
@@ -4680,7 +4681,7 @@ by calling `format-decode', which see.  */)
 	 CONVERSION_BUFFER.  */
 
       if (beg_offset != curpos)
-	curpos = xlseek (fd, beg_offset, orig_filename);
+	curpos = xlseek (fd, beg_offset, SEEK_SET, orig_filename);
 
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
@@ -4866,7 +4867,7 @@ by calling `format-decode', which see.  */)
     }
 
   if (beg_offset != curpos)
-    xlseek (fd, beg_offset, orig_filename);
+    xlseek (fd, beg_offset, SEEK_SET, orig_filename);
   /* curpos effectively goes out of scope now, as it is no longer needed,
      so not bother to update curpos from now on.  */
 
