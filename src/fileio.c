@@ -3903,8 +3903,15 @@ union read_non_regular
 {
   struct
   {
+    /* File descriptor to read from.  */
     emacs_fd fd;
+
+    /* If BUF is non-null, read into BUF; otherwise, read into
+       gap + INSERTED (done this way because the gap can relocate).  */
     char *buf;
+    ptrdiff_t inserted;
+
+    /* Number of bytes to try to read.  */
     ptrdiff_t bufsize;
   } s;
   GCALIGNED_UNION_MEMBER
@@ -3915,7 +3922,12 @@ static Lisp_Object
 read_non_regular (Lisp_Object state)
 {
   union read_non_regular *data = XFIXNUMPTR (state);
-  intmax_t nbytes = emacs_fd_read (data->s.fd, data->s.buf, data->s.bufsize);
+  intmax_t nbytes
+    = emacs_fd_read (data->s.fd,
+		     (data->s.buf ? data->s.buf
+		      : ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
+			 + data->s.inserted)),
+		     data->s.bufsize);
   return make_int (nbytes < 0 ? -errno : nbytes);
 }
 
@@ -4893,7 +4905,8 @@ by calling `format-decode', which see.  */)
 	    /* Read from the file, capturing `quit'.  When an
 	       error occurs, end the loop, and arrange for a quit
 	       to be signaled after decoding the text we read.  */
-	    union read_non_regular data = {{fd, buf, bufsize}};
+	    union read_non_regular data
+	      = {{fd, buf == read_buf ? buf : NULL, inserted, bufsize}};
 	    nbytes = internal_condition_case_1
 	      (read_non_regular, make_pointer_integer (&data),
 	       Qerror, read_non_regular_quit);
