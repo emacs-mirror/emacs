@@ -1584,7 +1584,8 @@ a string naming a Lisp function."
       (eshell-set-exit-info 0))
     (setq eshell-last-arguments args)
     (let* ((eshell-ensure-newline-p t)
-           (command-form-p (functionp object))
+           (command-form-p (and (functionp object)
+                                (symbolp object)))
            result)
       (if command-form-p
           (let ((numeric (not (get object 'eshell-no-numeric-conversions)))
