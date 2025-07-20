@@ -273,5 +273,22 @@ This sets `eww-before-browse-history-function' to
       ;; Make sure EWW doesn't use "readable" mode here.
       (should-not (plist-get eww-data :readable)))))
 
+(ert-deftest eww-test/readable/reload-resets-readable ()
+  "Test that reloading a page resets the \"readable\" state."
+  (skip-unless (libxml-available-p))
+  (eww-test--with-mock-retrieve
+    (let* ((shr-width most-positive-fixnum)
+           (shr-use-fonts nil)
+           (eww-test--response-function
+            (lambda (_url)
+              (concat "Content-Type: text/html\n\n"
+                      eww-test--wordy-page))))
+      (eww "example.invalid")
+      (eww-readable 'toggle)
+      (should (plist-get eww-data :readable))
+      ;; Reload the page, and check if the result uses readable view.
+      (eww-reload)
+      (should-not (plist-get eww-data :readable)))))
+
 (provide 'eww-tests)
 ;; eww-tests.el ends here

@@ -861,12 +861,14 @@ This replaces the region with the preprocessed HTML."
     (with-current-buffer buffer
       (plist-put eww-data :source source)))
   (unless document
-    (let ((dom (eww--parse-html-region (point) (point-max) charset)))
+    (let ((dom (eww--parse-html-region (point) (point-max) charset))
+          readable)
       (when-let* (((eww-default-readable-p url))
                   (readable-dom (eww-readable-dom dom)))
-        (setq dom readable-dom)
-        (with-current-buffer buffer
-          (plist-put eww-data :readable t)))
+        (setq dom readable-dom
+              readable t))
+      (with-current-buffer buffer
+        (plist-put eww-data :readable readable))
       (setq document (eww-document-base url dom))))
   (eww-display-document document point buffer))
 
