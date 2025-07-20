@@ -83,6 +83,29 @@ temporary EWW buffer for our tests."
                        (`(base ((href . ,url)) ,_) url))
                      "http://example.invalid/")))))
 
+(ert-deftest eww-test/tag/textarea/starts-on-new-line ()
+  "Test that inserting a newline before a <textarea> works correctly."
+  (skip-unless (libxml-available-p))
+  (eww-test--with-mock-retrieve
+    (let ((shr-fill-text nil)
+          (eww-test--response-function
+           (lambda (_url)
+             (concat "Content-Type: text/html\n\n"
+                     "<html><body>"
+                     "field: <textarea>text</textarea>"
+                     "</body></html>"))))
+      (eww "example.invalid")
+      ;; Make sure the text before the <textarea> doesn't have any of
+      ;; the <textarea> properties.
+      (goto-char (point-min))
+      (should-not (get-text-property (point) 'eww-form))
+      (should (eq (get-text-property (point) 'face) 'shr-text))
+      ;; Make sure the <textarea> has the correct properties.
+      (forward-line 1)
+      (should (get-text-property (point) 'eww-form))
+      (should (eq (get-text-property (point) 'face)
+                  'eww-form-textarea)))))
+
 (ert-deftest eww-test/history/new-page ()
   "Test that when visiting a new page, the previous one goes into the history."
   (eww-test--with-mock-retrieve
