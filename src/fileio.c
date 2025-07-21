@@ -4529,8 +4529,9 @@ by calling `format-decode', which see.  */)
 		    {
 		      /* Shrink the file's head if the file shrank to
 			 be smaller than its head.  */
-		      if (endpos - beg_offset < same_at_start - BEGV_BYTE)
-			same_at_start = endpos - beg_offset + BEGV_BYTE;
+		      off_t offset_from_beg = endpos - beg_offset;
+		      if (offset_from_beg < same_at_start - BEGV_BYTE)
+			same_at_start = max (0, offset_from_beg) + BEGV_BYTE;
 		    }
 		}
 	    }
