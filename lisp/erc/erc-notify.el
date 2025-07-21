@@ -300,7 +300,9 @@ Once ERC implements the `monitor' extension, this module will serve as
 an optional fallback for keeping query-participant rolls up to date on
 servers that lack support or are stingy with their allotments.  Until
 such time, this module should be considered experimental and only really
-useful for bots and other non-interactive Lisp programs.
+useful for bots and other non-interactive Lisp programs.  Please note
+that reporting is unreliable for short periods while a query participant
+is parting, joining, quitting, or logging in.
 
 This is a local ERC module, so selectively polling only a subset of
 query targets is possible but cumbersome.  To do so, ensure
@@ -316,6 +318,8 @@ at least the server buffer."
              (erc-with-server-buffer
                (unless erc-querypoll-mode
                  (erc-querypoll-mode +1)))
+             (add-function :override (local 'erc--query-table-synced-predicate)
+                           #'erc--querypoll-active-p)
              (erc--querypoll-subscribe (current-buffer)))
          (erc-querypoll-mode -1))
      (cl-assert (not erc--decouple-query-and-channel-membership-p))
@@ -331,6 +335,8 @@ at least the server buffer."
                    (index (ring-member ring (current-buffer)))
                    ((not (erc--querypoll-target-in-chan-p (current-buffer)))))
          (ring-remove ring index)
+         (remove-function (local 'erc--query-table-synced-predicate)
+                          #'erc--querypoll-active-p)
          (unless (erc-current-nick-p (erc-target))
            (erc-remove-current-channel-member (erc-target))))
      (erc-with-all-buffers-of-server erc-server-process #'erc-query-buffer-p
@@ -339,7 +345,9 @@ at least the server buffer."
    (kill-local-variable 'erc--querypoll-timer))
   localp)
 
-(cl-defmethod erc--queries-current-p (&context (erc-querypoll-mode (eql t))) t)
+(defun erc--querypoll-active-p ()
+  "Return non-nil if `erc-querypoll-mode' is active in the current buffer."
+  erc-querypoll-mode)
 
 (defvar erc-querypoll-period-params '(10 10 1)
   "Parameters affecting the delay with respect to the number of buffers.
