@@ -671,12 +671,13 @@ will use an up-to-date value of `auto-revert-interval'."
 	       file
                (if buffer-file-name '(change attribute-change) '(change))
                'auto-revert-notify-handler))))
-      (when auto-revert-notify-watch-descriptor
-        (setq auto-revert-notify-modified-p t
-              auto-revert--buffer-by-watch-descriptor
-              (cons (cons auto-revert-notify-watch-descriptor (current-buffer))
-                    auto-revert--buffer-by-watch-descriptor))
-        (add-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch nil t))))
+    (if (null auto-revert-notify-watch-descriptor)
+        (setq-local auto-revert-use-notify nil)
+      (setq auto-revert-notify-modified-p t
+            auto-revert--buffer-by-watch-descriptor
+            (cons (cons auto-revert-notify-watch-descriptor (current-buffer))
+                  auto-revert--buffer-by-watch-descriptor))
+      (add-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch nil t))))
 
 ;; If we have file notifications, we want to update the auto-revert buffers
 ;; immediately when a notification occurs. Since file updates can happen very
