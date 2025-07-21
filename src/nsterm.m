@@ -7413,7 +7413,24 @@ ns_in_echo_area (void)
 {
   if (NS_KEYLOG)
     NSLog (@"selectedRange request");
-  return NSMakeRange (NSNotFound, 0);
+
+  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (emacsframe));
+  struct buffer *buf = XBUFFER (w->contents);
+  ptrdiff_t point = BUF_PT (buf);
+
+  if (NILP (BVAR (buf, mark_active)))
+    {
+      NSUInteger selection_location = point - BUF_BEGV (buf);
+      return NSMakeRange (selection_location, 0);
+    }
+
+  ptrdiff_t mark = marker_position (BVAR (buf, mark));
+  ptrdiff_t region_start = min (point, mark);
+  ptrdiff_t region_end = max (point, mark);
+  NSUInteger selection_location = region_start - BUF_BEGV (buf);
+  NSUInteger selection_length = region_end - region_start;
+
+  return NSMakeRange (selection_location, selection_length);
 }
 
 #if defined (NS_IMPL_COCOA) || GNUSTEP_GUI_MAJOR_VERSION > 0 || \

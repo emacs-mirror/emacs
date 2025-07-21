@@ -2832,6 +2832,12 @@ allowing Emacs users access to speech recognition utilities.
 Note: Accepting this permission allows the use of system APIs, which may
 send user data to Apple's speech recognition servers.
 
+---
+** Re-introduced dictation, lost in Emacs v30 (macOS).
+We lost macOS dictation in v30 when migrating to NSTextInputClient.
+Implemented 'selectedRange' in 'nsterm.m' to enable in new subsystem.
+You may notice a slight change in dictation UI provided by macOS.
+
 +++
 ** On Mac OS X, stipples now render with color.
 

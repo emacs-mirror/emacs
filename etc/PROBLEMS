@@ -3566,6 +3566,18 @@ file; for example:
       "/usr/local/opt/libgccjit/lib/gcc/11"
       "/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin20/11.2.0") ":"))
 
+** Text dictation doesn't work on macOS
+
+The indication is that the macOS keyboard shortcut for dictation is ignored.
+
+One reason for this is that the Emacs permissions for using the
+microphone were rejected in the past.  To reset the permissions, run
+this command:
+
+  tccutil reset Microphone org.gnu.Emacs
+
+Another reason may be an unsupported macOS version. For example: macOS 12.
+
 * Runtime problems specific to PGTK build
 
 ** Whether a display server is available cannot be automatically detected.
