@@ -265,7 +265,9 @@ deleted implicitly by functions like 'kill-buffer', 'bury-buffer' and
 +++
 *** New user option 'quit-window-kill-buffer'.
 This option specifies whether 'quit-window' should preferably kill or
-bury the buffer shown by the window to quit.
+bury the buffer shown by the window to quit.  The default is nil.
+Customize it to t to always kill the buffer; customize to a list of
+major mode to kill if the buffer's major mode is one of those.
 
 +++
 *** New user option 'kill-buffer-quit-windows'.
