@@ -1093,9 +1093,8 @@ Query all files in DIR if files is nil."
   "Read the content of FILE and return it as a string."
   (condition-case nil
       (with-temp-buffer
-	(insert-file-contents file)
-	(goto-char (point-min))
-	(buffer-substring (point) (point-max)))
+        (insert-file-contents file)
+        (buffer-string))
     (file-error nil)))
 
 (defun vc-cvs-dir-extra-headers (_dir)
