@@ -2678,6 +2678,18 @@ terminals, for example, like this:
 This disables 'auto-composition-mode' on frames that display on
 terminals of this type.
 
+** Screen readers get confused about character position
+
+The Emacs display code sometimes emits TAB characters purely for motion
+on the terminal, even when those characters do not exist in the buffer.
+This can confuse screen reader software under certain terminal emulators
+(rxvt and vte have been cited).  Switching to destructive tabs by running
+
+    stty -tabs
+
+in the terminal before starting Emacs may mitigate this.  See also the
+discussion in Bug#78474 <https://debbugs.gnu.org/78474>.
+
 * Runtime problems specific to individual Unix variants
 
 ** GNU/Linux
