@@ -190,6 +190,9 @@
   (when rxvt-set-window-title
     (xterm--init-frame-title))
 
+  ;; Do not use TAB+BS optimization.
+  (setq tty-cursor-movement-use-TAB-BS nil)
+
   (run-hooks 'terminal-init-rxvt-hook))
 
 ;; rxvt puts the default colors into an environment variable

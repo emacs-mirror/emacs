@@ -2674,6 +2674,14 @@ That is, if the PATH environment variable is unset or empty, 'exec-path'
 now acts as if PATH is the system default, which is "/bin:/usr/bin"
 on GNU/Linux systems.
 
+---
+** New variable 'tty-cursor-movement-use-TAB-BS'.
+The display optimization where the combination TAB characters +
+BACKSPACE is used to move to a position on a TTY frame is now disabled
+by default and controlled by this variable; it can be set to non-nil
+to keep the old behavior.  This change is to accomodate screen
+readers.
+
 
 * Lisp Changes in Emacs 31.1
 
