@@ -232,7 +232,7 @@ but as a plain Lisp variable, not a user option.)
 ** Mouse
 
 ---
-*** context-menu-mode now includes a "Send to..." menu item.
+*** 'context-menu-mode now' includes a "Send to..." menu item.
 The menu item enables sending current file(s) or region text to external
 (non-Emacs) applications or services.  See send-to.el for customisations.
 
@@ -267,7 +267,7 @@ deleted implicitly by functions like 'kill-buffer', 'bury-buffer' and
 This option specifies whether 'quit-window' should preferably kill or
 bury the buffer shown by the window to quit.  The default is nil.
 Customize it to t to always kill the buffer; customize to a list of
-major mode to kill if the buffer's major mode is one of those.
+major modes to kill if the buffer's major mode is one of those.
 
 +++
 *** New user option 'kill-buffer-quit-windows'.
@@ -1693,7 +1693,7 @@ Edit mode.
 ---
 *** New user option 'imenu-allow-duplicate-menu-items'.
 This specifies whether Imenu can include duplicate menu items.
-Duplicate items are now allowed by default (option value 't'), which
+Duplicate items are now allowed by default (option value t), which
 restores the behavior before Emacs 29.  Customize this to nil to get the
 behavior of Emacs 29 and Emacs 30.
 
@@ -2748,6 +2748,12 @@ sleep state.
 'buffer-local-toplevel-value' and 'set-buffer-local-toplevel-value' get
 and set the top-level buffer-local value of a variable.  A top-level
 value is the one that variable has outside of any let-bindings.
+
+** New function 'exec-suffixes'.
+This function by default returns the value of the corresponding user
+option, but can optionally return the equivalent of 'exec-suffixes' from
+a remote host.  It must be used in conjunction with the function
+'exec-path'.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems

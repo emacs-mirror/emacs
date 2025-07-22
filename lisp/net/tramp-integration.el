@@ -359,7 +359,8 @@ It's value must be a Tramp user option, indexed in the Tramp manual via
 
 (defconst tramp-connection-local-default-system-variables
   '((path-separator . ":")
-    (null-device . "/dev/null"))
+    (null-device . "/dev/null")
+    (exec-suffixes . ("")))
   "Default connection-local system variables for remote connections.")
 
 (connection-local-set-profile-variables

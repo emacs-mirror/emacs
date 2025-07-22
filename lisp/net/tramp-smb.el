@@ -2046,7 +2046,12 @@ If ARGUMENT is non-nil, use it as argument for
 			       tramp-compat-temporary-file-directory)
 			      (process-environment
 			       (cons (concat "TERM=" tramp-terminal-type)
-				     process-environment)))
+				     process-environment))
+                              ;; There might be some unfortune values of
+                              ;; `tramp-smb-connection-local-default-system-variables'.
+                              (path-separator (default-value 'path-separator))
+                              (null-device (default-value 'null-device))
+                              (exec-suffixes (default-value 'exec-suffixes)))
 			  (apply #'start-process
 				 (tramp-get-connection-name vec)
 				 (tramp-get-connection-buffer vec)
@@ -2171,6 +2176,27 @@ Removes smb prompt.  Returns nil if an error message has appeared."
 (defun tramp-smb-shell-quote-localname (vec)
   "Call `tramp-smb-shell-quote-argument' on localname of VEC."
   (tramp-smb-shell-quote-argument (tramp-smb-get-localname vec)))
+
+;;; Default connection-local variables for Tramp.
+
+(defconst tramp-smb-connection-local-default-system-variables
+  '((path-separator . ";")
+    (null-device . "NUL")
+    ;; This the default value of %PATHEXT% in MS Windows 11, plus ".py"
+    ;; for Python.  Once we have remote processes, we might set this
+    ;; host-specific using that remote environment variable.
+    (exec-suffixes
+     . (".com" ".exe" ".bat" ".cmd" ".vbs" ".vbe"
+        ".js" ".jse" ".wsf" ".wsh" ".msc" ".py")))
+  "Default connection-local system variables for remote smb connections.")
+
+(connection-local-set-profile-variables
+ 'tramp-smb-connection-local-default-system-profile
+ tramp-smb-connection-local-default-system-variables)
+
+(connection-local-set-profiles
+ `(:application tramp :protocol ,tramp-smb-method)
+ 'tramp-smb-connection-local-default-system-profile)
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
