@@ -1829,7 +1829,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                (if async 'async 1)
                files
                command
-               "--exit-code" "--textconv"
+               "--exit-code"
                (append (vc-switches 'git 'diff)
                        (list "-p" (or rev1 "HEAD") rev2 "--")))
       (vc-git-command (or buffer "*vc-diff*") 1 files
