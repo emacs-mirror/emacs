@@ -8574,12 +8574,13 @@ ns_in_echo_area (void)
       NSWindowCollectionBehavior b = [win collectionBehavior];
       if (ns_use_native_fullscreen)
         {
-          if (FRAME_PARENT_FRAME (emacsframe))
+	  if (FRAME_PARENT_FRAME (emacsframe)
+	      || FRAME_TOOLTIP_P (emacsframe))
             {
               b &= ~NSWindowCollectionBehaviorFullScreenPrimary;
               b |= NSWindowCollectionBehaviorFullScreenAuxiliary;
             }
-          else
+	  else
             {
               b |= NSWindowCollectionBehaviorFullScreenPrimary;
               b &= ~NSWindowCollectionBehaviorFullScreenAuxiliary;
