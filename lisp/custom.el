@@ -400,7 +400,7 @@ for more information."
          ;; expression is checked by the byte-compiler, and that
          ;; lexical-binding is obeyed, so quote the expression with
          ;; `lambda' rather than with `quote'.
-         ``(funcall #',(lambda () "" ,standard))
+         ``(funcall #',(lambda () ,standard))
        `',standard)
     ,doc
     ,@args))
