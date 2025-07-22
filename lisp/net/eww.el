@@ -2420,23 +2420,23 @@ If CHARSET is nil then use UTF-8."
   "Prompt for an EWW buffer to display in the selected window.
 If no such buffer exist, fallback to calling `eww'."
   (interactive nil eww-mode)
-  (let ((list (cl-loop for buf in (nreverse (buffer-list))
-                       if (and (eww--buffer-p buf)
-                               (not (eq buf (current-buffer))))
-                       collect (buffer-name buf))))
+  (let ((list (seq-filter
+               (lambda (buf)
+                 (and (eww--buffer-p buf) (not (eq buf (current-buffer)))))
+               (buffer-list))))
     (if list
         (pop-to-buffer-same-window
          (if (length= list 1)
              (car list)
            (completing-read "Switch to EWW buffer: "
                             (completion-table-with-metadata
-                             list
+                             (mapcar #'buffer-name list)
                              `((category . buffer)
                                (annotation-function
                                 . ,(lambda (buf)
                                      (with-current-buffer buf
                                        (format " %s" (eww-current-url)))))))
-                            nil t)))
+                            nil t nil nil (car-safe list))))
       (call-interactively #'eww))))
 
 (defun eww-toggle-fonts ()
