@@ -1314,6 +1314,11 @@ if defined_WINDOWSNT
   end
 end
 
+# Break at default trap function to give control to GDB.
+# Call from Emacs with M-x debugger-trap
+break Fdebugger_trap
+
+
 # Put the Python code at the end of .gdbinit so that if GDB does not
 # support Python, GDB will do all the above initializations before
 # reporting an error.

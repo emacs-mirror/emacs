@@ -3091,6 +3091,21 @@ FUNCTIONP (Lisp_Object object)
     return false;
 }
 
+DEFUN ("debugger-trap", Fdebugger_trap, Sdebugger_trap, 0, 0, "",
+       doc: /* Trap execution flow and hand over control to GDB.
+The Emacs source file src/.gdbinit uses this via the GDB command
+"break Fdebugger_trap".
+
+This function has no effect.  It is reserved for debugging, and is not
+called by Emacs otherwise.
+
+For Lisp debugging see debug, as well as edebug, in the manual:
+"(elisp) Debugging".  */)
+  (void)
+{
+  return Qnil;
+}
+
 Lisp_Object
 funcall_general (Lisp_Object fun, ptrdiff_t numargs, Lisp_Object *args)
 {
@@ -4617,4 +4632,5 @@ alist of active lexical bindings.  */);
   defsubr (&Sspecial_variable_p);
   DEFSYM (Qfunctionp, "functionp");
   defsubr (&Sfunctionp);
+  defsubr (&Sdebugger_trap);
 }
