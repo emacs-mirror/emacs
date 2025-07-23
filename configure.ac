@@ -2219,8 +2219,7 @@ AC_CACHE_CHECK([for flag to work around GCC bug 119085],
   [emacs_cv_gcc_bug_119085_CFLAGS='none needed'
    AS_IF([test "$GCC" = yes],
      [old_CFLAGS=$CFLAGS
-      # If no flags are needed (e.g., not GCC 4+), don't use any.
-      # Otherwise, use -fno-tree-sra.
+      # Use -fno-tree-sra if GCC 4 through 15.
       for emacs_cv_gcc_bug_119085_CFLAGS in \
 	  'none needed' -fno-tree-sra
       do
@@ -2232,13 +2231,13 @@ AC_CACHE_CHECK([for flag to work around GCC bug 119085],
 	  [AC_LANG_DEFINES_PROVIDED
 	   [/* Work around GCC bug 119085 with unions containing holes:
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119085
-	       GCC bug 119085 is present even in GCC 15.1,
-	       the current version as of this writing; for now,
-	       assume it is present in all GCC versions starting with GCC 4.
+	       Although GCC bug 119085 is present in GCC 15.1,
+	       as of 2025-07-23 a patch is in the works for GCC 16;
+	       for now, assume the bug exists in GCC versions 4 through 15.
 
 	       Working around GCC bug 119095 also works around GCC bug 117423
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=117423
-	       which as of 2025-07-17 has a fix that has not been released.
+	       which as of 2025-07-23 is planned to be fixed in GCC 15.2.
 
 	       Working wround GCC bug 119085 also works around GCC bug 58416
 	       with double in unions on x86, where the generated insns
@@ -2249,9 +2248,8 @@ AC_CACHE_CHECK([for flag to work around GCC bug 119085],
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71460
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93271
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114659
-	       Although GCC bug 58416 is fixed in GCC 15.1,
-	       GCC bug 119085 is still present there.  */
-	    #if 4 <= __GNUC__ && !defined __clang__
+	       GCC bug 58416 is fixed in GCC 15.1.  */
+	    #if 4 <= __GNUC__ && __GNUC__ <= 15 && !defined __clang__
 	    # error "GCC bug 119085 possibly present"
 	    #endif
 	  ]],
