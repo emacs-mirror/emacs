@@ -552,13 +552,11 @@ arguments to pass to the OPERATION."
 
 			  ;; Use an asynchronous processes.  By this,
 			  ;; password can be handled.
-			  (let* ((default-directory tmpdir)
-				 (p (apply
-				     #'start-process
-				     (tramp-get-connection-name v)
-				     (tramp-get-connection-buffer v)
-				     tramp-smb-program args)))
-			    (tramp-post-process-creation p v)
+			  (let ((p (apply
+				    #'tramp-start-process v
+				    (tramp-get-connection-name v)
+				    (tramp-get-connection-buffer v)
+				    tramp-smb-program args)))
 			    (tramp-process-actions
 			     p v nil tramp-smb-actions-with-tar)
 
@@ -813,11 +811,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		;; Use an asynchronous process.  By this, password
 		;; can be handled.
 		(let ((p (apply
-			  #'start-process
+			  #'tramp-start-process v
 			  (tramp-get-connection-name v)
 			  (tramp-get-connection-buffer v)
 			  tramp-smb-acl-program args)))
-		  (tramp-post-process-creation p v)
 		  (tramp-process-actions p v nil tramp-smb-actions-get-acl)
 		  (when (> (point-max) (point-min))
 		    (substring-no-properties (buffer-string))))))))))))
@@ -1000,7 +997,6 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (process-put p 'tramp-watch-name localname)
 	  (set-process-filter p #'tramp-smb-notify-process-filter)
 	  (set-process-sentinel p #'tramp-file-notify-process-sentinel)
-	  (tramp-post-process-creation p v)
 	  ;; There might be an error if the monitor is not supported.
 	  ;; Give the filter a chance to read the output.
 	  (while (tramp-accept-process-output p))
@@ -1505,11 +1501,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	      ;; Use an asynchronous process.  By this, password
 	      ;; can be handled.
 	      (let ((p (apply
-			#'start-process
+			#'tramp-start-process v
 			(tramp-get-connection-name v)
 			(tramp-get-connection-buffer v)
 			tramp-smb-acl-program args)))
-		(tramp-post-process-creation p v)
 		(tramp-process-actions p v nil tramp-smb-actions-set-acl)
 		;; This is meant for traces, and returning from
 		;; the function.  No error is propagated outside,
@@ -2042,23 +2037,12 @@ If ARGUMENT is non-nil, use it as argument for
 
 	      (let* (coding-system-for-read
 		     (process-connection-type tramp-process-connection-type)
-		     (p (let ((default-directory
-			       tramp-compat-temporary-file-directory)
-			      (process-environment
-			       (cons (concat "TERM=" tramp-terminal-type)
-				     process-environment))
-                              ;; There might be some unfortune values of
-                              ;; `tramp-smb-connection-local-default-system-variables'.
-                              (path-separator (default-value 'path-separator))
-                              (null-device (default-value 'null-device))
-                              (exec-suffixes (default-value 'exec-suffixes)))
-			  (apply #'start-process
-				 (tramp-get-connection-name vec)
-				 (tramp-get-connection-buffer vec)
-				 (if argument
-				     tramp-smb-winexe-program tramp-smb-program)
-				 args))))
-		(tramp-post-process-creation p vec)
+		     (p (apply #'tramp-start-process vec
+			       (tramp-get-connection-name vec)
+			       (tramp-get-connection-buffer vec)
+			       (if argument
+				   tramp-smb-winexe-program tramp-smb-program)
+			       args)))
 
 		;; Set connection-local variables.
 		(tramp-set-connection-local-variables vec)

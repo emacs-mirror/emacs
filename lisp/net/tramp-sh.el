@@ -2618,14 +2618,11 @@ The method used must be an out-of-band method."
 		 ;; can be handled.  We don't set a timeout, because
 		 ;; the copying of large files can last longer than 60
 		 ;; secs.
-		 p (let ((default-directory
-			  tramp-compat-temporary-file-directory))
-		     (apply
-		      #'start-process
-		      (tramp-get-connection-name v)
-		      (tramp-get-connection-buffer v)
-		      copy-program copy-args)))
-		(tramp-post-process-creation p v)
+		 p (apply
+		    #'tramp-start-process v
+		    (tramp-get-connection-name v)
+		    (tramp-get-connection-buffer v)
+		    copy-program copy-args))
 
 		;; We must adapt `tramp-local-end-of-line' for sending
 		;; the password.  Also, we indicate that perhaps
@@ -3915,7 +3912,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	       bol (+ (not ":")) ":" blank
 	       (group (+ (not ":"))) ":" blank
 	       (group (regexp (regexp-opt tramp-gio-events)))
-	       (? blank (group (+ (not ":")))) eol)
+	       (? blank (group (+ (not (any "\r\n:"))))) eol)
 	      string)
 
         (let* ((file (match-string 1 string))
@@ -5242,21 +5239,18 @@ connection if a previous connection has died for some reason."
 		     (extra-args (tramp-get-sh-extra-args tramp-encoding-shell))
 		     ;; This must be done in order to avoid our file
 		     ;; name handler.
-		     (p (let ((default-directory
-			       tramp-compat-temporary-file-directory))
-			  (apply
-			   #'start-process
-			   (tramp-get-connection-name vec)
-			   (tramp-get-connection-buffer vec)
-			   (append
-			    `(,tramp-encoding-shell)
-			    (and extra-args (split-string extra-args))
-			    (and tramp-encoding-command-interactive
-				 `(,tramp-encoding-command-interactive)))))))
+		     (p (apply
+			 #'tramp-start-process vec
+			 (tramp-get-connection-name vec)
+			 (tramp-get-connection-buffer vec)
+			 (append
+			  `(,tramp-encoding-shell)
+			  (and extra-args (split-string extra-args))
+			  (and tramp-encoding-command-interactive
+			       `(,tramp-encoding-command-interactive))))))
 
 		;; Set sentinel.  Initialize variables.
 		(set-process-sentinel p #'tramp-process-sentinel)
-		(tramp-post-process-creation p vec)
 		(setq tramp-current-connection (cons vec (current-time)))
 
 		;; Set connection-local variables.
