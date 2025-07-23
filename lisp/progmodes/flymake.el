@@ -1406,6 +1406,26 @@ Interactively, with a prefix arg, FORCE is t."
                            (cl-reduce
                             #'max (mapcar #'cadr flymake--recent-changes))))))
                (setq flymake--recent-changes nil)
+               ;; Delete all overlays that didn't come from one of the
+               ;; current diagnostic functions.
+               ;; Sometimes diagnostic functions are removed from
+               ;; `flymake-diagnostic-functions' (e.g. by eglot).  This
+               ;; leaves overlays in the buffer which otherwise won't be
+               ;; cleaned up until `flymake-mode' is restarted.
+               ;; See bug#78862
+               (maphash (lambda (backend state)
+                          (unless (memq backend flymake-diagnostic-functions)
+                            ;; Delete all overlays
+                            (dolist (diag (flymake--state-diags state))
+                              (let ((ov (flymake--diag-overlay diag)))
+                                (flymake--delete-overlay ov)))
+                            ;; Set the list of diagnostics to nil to
+                            ;; avoid trying to delete them again.
+                            ;; We keep the state object itself around in
+                            ;; case there's still diagnostics in flight,
+                            ;; so we don't break things.
+                            (setf (flymake--state-diags state) nil)))
+                        flymake--state)
                (run-hook-wrapped
                 'flymake-diagnostic-functions
                 (lambda (backend)
