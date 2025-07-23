@@ -185,7 +185,7 @@ char const * nstrace_fullscreen_type_name (int);
 #define NSTRACE_MSG_NO_DASHES(...)                                          \
   do                                                                        \
     {                                                                       \
-      if (nstrace_enabled)                                                  \
+      if (nstrace_enabled_global)                                                  \
         {                                                                   \
           fprintf (stderr, "%-10s:%5d: [%5d]%.*s",                          \
                    __FILE__, __LINE__, nstrace_num++,                       \

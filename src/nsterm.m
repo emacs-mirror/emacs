@@ -9123,7 +9123,7 @@ ns_in_echo_area (void)
   Lisp_Object type_sym;
   struct input_event ie;
 
-  NSTRACE (@"[EmacsView performDragOperation:]");
+  NSTRACE ("[EmacsView performDragOperation:]");
 
   source = [sender draggingSource];
 
