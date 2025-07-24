@@ -767,15 +767,11 @@ find_emacs_executable (char const *argv0, ptrdiff_t *candidate_size)
   eassert (argv0);
   if (strchr (argv0, DIRECTORY_SEP))
     {
-      char *real_name = realpath (argv0, NULL);
-
-      if (real_name)
-	{
-	  *candidate_size = strlen (real_name) + 1;
-	  return real_name;
-	}
-
-      char *val = xstrdup (argv0);
+      char *val = (readlink (argv0, linkbuf, sizeof linkbuf) < 0
+		   ? NULL
+		   : realpath (argv0, NULL));
+      if (!val)
+	val = xstrdup (argv0);
       *candidate_size = strlen (val) + 1;
       return val;
     }
