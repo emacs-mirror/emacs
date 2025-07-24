@@ -258,7 +258,9 @@ DEFAULT-BODY, if present, is used as the body of a default method.
                                cl--generic-edebug-make-name in:method]
                               lambda-doc
                               def-body)]]
-             def-body)))
+             def-body))
+           ;; Expand to defun and related forms on autoload definition
+           (autoload-macro expand))
   (let* ((doc (if (stringp (car-safe options-and-methods))
                   (pop options-and-methods)))
          (declarations nil)

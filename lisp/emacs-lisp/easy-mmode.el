@@ -222,10 +222,12 @@ INIT-VALUE LIGHTER KEYMAP.
            (indent defun)
            (debug (&define name string-or-null-p
 			   [&optional [&not keywordp] sexp
-			    &optional [&not keywordp] sexp
-			    &optional [&not keywordp] sexp]
+			              &optional [&not keywordp] sexp
+			              &optional [&not keywordp] sexp]
 			   [&rest [keywordp sexp]]
-			   def-body)))
+			   def-body))
+           ;; expand to the command definition on autoload gen
+           (autoload-macro expand))
 
   (let* ((last-message (make-symbol "last-message"))
          (mode-name (symbol-name mode))
@@ -488,7 +490,9 @@ after running the major mode's hook.  However, MODE is not turned
 on if the hook has explicitly disabled it.
 
 \(fn GLOBAL-MODE MODE TURN-ON [KEY VALUE]... BODY...)"
-  (declare (doc-string 2) (indent defun))
+  (declare (doc-string 2) (indent defun)
+           ;; expand to the minor-mode definition on autoload gen
+           (autoload-macro expand))
   (let* ((global-mode-name (symbol-name global-mode))
 	 (mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode))

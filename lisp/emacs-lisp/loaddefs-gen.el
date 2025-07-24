@@ -143,12 +143,37 @@ scanning for autoloads and will be in the `load-path'."
              3)
         form))
 
+;; The following macros are known to define functions, and are treated
+;; specially when encountered during autoload generation, translating
+;; calls to them directly into appropriate (autoload function ...)
+;; forms.
+;;
+;; An alternative to appearing on this list is for a macro to declare
+;; (autoload-macro expand), so calls to it get expanded into more basic
+;; forms during generation.  Macros may be removed from this list once
+;; they request such expansion and produce suitable output (e.g. by
+;; employing :autoload-end to omit unneeded forms).
+(defconst loaddefs--defining-macros
+  '( define-skeleton define-derived-mode define-compilation-mode
+     define-generic-mode define-globalized-minor-mode define-minor-mode
+     cl-defun defun* cl-defmacro defmacro* define-overloadable-function
+     transient-define-prefix transient-define-suffix transient-define-infix
+     transient-define-argument transient-define-group
+     ;; Obsolete; keep until the alias is removed.
+     easy-mmode-define-global-mode
+     easy-mmode-define-minor-mode
+     define-global-minor-mode))
+
+(defvar loaddefs--load-error-files nil)
 (defun loaddefs-generate--make-autoload (form file &optional expansion)
   "Turn FORM into an autoload or defvar for source file FILE.
 Returns nil if FORM is not a special autoload form (i.e. a function definition
 or macro definition or a defcustom).
 If EXPANSION is non-nil, we're processing the macro expansion of an
-expression, in which case we want to handle forms differently."
+expression, in which case we want to handle forms differently.
+
+Note that macros can request expansion by including `(autoload-macro
+expand)' among their `declare' forms."
   (let ((car (car-safe form)) expand)
     (cond
      ((and expansion (eq car 'defalias))
@@ -192,42 +217,40 @@ expression, in which case we want to handle forms differently."
           (setq form (copy-sequence form))
           (setcdr (memq :autoload-end form) nil))
         (let ((exps (delq nil (mapcar (lambda (form)
-                                        (loaddefs-generate--make-autoload
-                                         form file expansion))
+                                        (unless (eq form :autoload-end)
+                                          (loaddefs-generate--make-autoload
+                                           form file expansion)))
                                       (cdr form)))))
           (when exps (cons 'progn exps)))))
 
-     ;; For complex cases, try again on the macro-expansion.
-     ((and (memq car '( define-globalized-minor-mode defun defmacro
-                        define-minor-mode define-inline
-                        cl-defun cl-defmacro cl-defgeneric
-                        cl-defstruct pcase-defmacro iter-defun cl-iter-defun
-                        ;; Obsolete; keep until the alias is removed.
-                        easy-mmode-define-global-mode
-                        easy-mmode-define-minor-mode
-                        define-global-minor-mode))
-           (macrop car)
-	   (setq expand (let ((load-true-file-name file)
-                              (load-file-name file))
-                          (macroexpand form)))
-	   (memq (car expand) '(progn prog1 defalias)))
+     ;; For macros which request it, try again on their expansion.
+     ((progn
+        ;; If the car is an unknown symbol, we load the file first to
+        ;; give packages a chance to define their macros.
+        (unless (or (not (symbolp car)) (fboundp car)
+                    ;; Special cases handled below
+                    (memq car loaddefs--defining-macros)
+                    (memq car '(defclass defcustom deftheme defgroup nil))
+                    (assoc file load-history)
+                    (member file loaddefs--load-error-files))
+          (let ((load-path (cons (file-name-directory file) load-path)))
+            (message "loaddefs-gen: loading file %s (for %s)" file car)
+            (condition-case e (load file)
+              (error
+               (push file loaddefs--load-error-files) ; do not attempt again
+               (warn "loaddefs-gen: load error\n\t%s" e)))))
+        (and (macrop car)
+	     (eq 'expand (function-get car 'autoload-macro))
+	     (setq expand (let ((load-true-file-name file)
+				(load-file-name file))
+			    (macroexpand form)))
+	     (not (eq car (car expand)))))
       ;; Recurse on the expansion.
       (loaddefs-generate--make-autoload expand file 'expansion))
 
-     ;; For special function-like operators, use the `autoload' function.
-     ((memq car '( define-skeleton define-derived-mode
-                   define-compilation-mode define-generic-mode
-                   define-globalized-minor-mode
-                   define-minor-mode
-		   cl-defun defun* cl-defmacro defmacro*
-                   define-overloadable-function
-                   transient-define-prefix transient-define-suffix
-                   transient-define-infix transient-define-argument
-                   transient-define-group
-                   ;; Obsolete; keep until the alias is removed.
-                   easy-mmode-define-global-mode
-                   easy-mmode-define-minor-mode
-                   define-global-minor-mode))
+     ;; For known special macros which define functions, use `autoload'
+     ;; directly.
+     ((memq car loaddefs--defining-macros)
       (let* ((macrop (memq car '(defmacro cl-defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (args (pcase car
