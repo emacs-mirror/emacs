@@ -4347,9 +4347,11 @@ by calling `format-decode', which see.  */)
 		    curpos = beg_offset + nread;
 		  else
 		    {
-		      off_t curmax = end_offset - 3 * 1024;
-		      if (curmax < curpos)
-			curpos = xlseek (fd, curmax, SEEK_SET, orig_filename);
+		      off_t tailbeg = (curpos <= beg_offset + nread
+				       ? beg_offset + nread
+				       : min (curpos, end_offset - 3 * 1024));
+		      if (tailbeg != curpos)
+			curpos = xlseek (fd, tailbeg, SEEK_SET, orig_filename);
 		    }
 
 		  /* When appending the last 3 KiB, read extra bytes
@@ -4544,7 +4546,13 @@ by calling `format-decode', which see.  */)
 		     be smaller than its head.  */
 		  off_t offset_from_beg = endpos - beg_offset;
 		  if (offset_from_beg < same_at_start - BEGV_BYTE)
-		    same_at_start = max (0, offset_from_beg) + BEGV_BYTE;
+		    {
+		      /* Give up if the file shrank to less than BEG.  */
+		      giveup_match_end = offset_from_beg < 0;
+
+		      if (!giveup_match_end)
+			same_at_start = offset_from_beg + BEGV_BYTE;
+		    }
 		}
 	    }
 	}
