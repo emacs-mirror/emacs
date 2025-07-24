@@ -4525,27 +4525,26 @@ by calling `format-decode', which see.  */)
 	  if (endpos == TYPE_MAXIMUM (off_t))
 	    {
 	      endpos = emacs_fd_lseek (fd, 0, SEEK_END);
-	      giveup_match_end = endpos < 0;
+	      if (endpos < 0)
+		endpos = curpos;
+
+	      /* Check that read reports EOF soon, to catch platforms
+		 where SEEK_END fails or reports too-small offsets.  */
+	      ptrdiff_t n = emacs_full_read (fd, read_buf, sizeof read_buf);
+	      if (n < 0)
+		report_file_error ("Read error", orig_filename);
+	      curpos = endpos += n;
+
+	      /* Give up if the file extends past the test read.  */
+	      giveup_match_end = n == sizeof read_buf;
+
 	      if (!giveup_match_end)
 		{
-		  /* Check that read reports EOF soon, to catch platforms
-		     where SEEK_END can report wildly small offsets.  */
-		  ptrdiff_t n = emacs_full_read (fd, read_buf, sizeof read_buf);
-		  if (n < 0)
-		    report_file_error ("Read error", orig_filename);
-		  curpos = endpos += n;
-
-		  /* Give up if the file grew more than even the test read.  */
-		  giveup_match_end = n == sizeof read_buf;
-
-		  if (!giveup_match_end)
-		    {
-		      /* Shrink the file's head if the file shrank to
-			 be smaller than its head.  */
-		      off_t offset_from_beg = endpos - beg_offset;
-		      if (offset_from_beg < same_at_start - BEGV_BYTE)
-			same_at_start = max (0, offset_from_beg) + BEGV_BYTE;
-		    }
+		  /* Shrink the file's head if the file shrank to
+		     be smaller than its head.  */
+		  off_t offset_from_beg = endpos - beg_offset;
+		  if (offset_from_beg < same_at_start - BEGV_BYTE)
+		    same_at_start = max (0, offset_from_beg) + BEGV_BYTE;
 		}
 	    }
 	}
