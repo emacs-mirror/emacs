@@ -2178,9 +2178,10 @@ Removes smb prompt.  Returns nil if an error message has appeared."
  'tramp-smb-connection-local-default-system-profile
  tramp-smb-connection-local-default-system-variables)
 
-(connection-local-set-profiles
- `(:application tramp :protocol ,tramp-smb-method)
- 'tramp-smb-connection-local-default-system-profile)
+;; It must be disabled, see Bug#78886.
+;; (connection-local-set-profiles
+;;  `(:application tramp :protocol ,tramp-smb-method)
+;;  'tramp-smb-connection-local-default-system-profile)
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
