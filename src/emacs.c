@@ -760,6 +760,7 @@ find_emacs_executable (char const *argv0, ptrdiff_t *candidate_size)
   return prog_fname ? xstrdup (prog_fname) : NULL;
 #else  /* !WINDOWSNT */
   char *candidate = NULL;
+  char linkbuf[1];
 
   /* If the executable name contains a slash, we have some kind of
      path already, so just resolve symlinks and return the result.  */
@@ -820,7 +821,7 @@ find_emacs_executable (char const *argv0, ptrdiff_t *candidate_size)
 	  /* People put on PATH a symlink to the real Emacs
 	     executable, with all the auxiliary files where the real
 	     executable lives.  Support that.  */
-	  if (lstat (candidate, &st) == 0 && S_ISLNK (st.st_mode))
+	  if (0 <= readlink (candidate, linkbuf, sizeof linkbuf))
 	    {
 	      char *real_name = realpath (candidate, NULL);
 
