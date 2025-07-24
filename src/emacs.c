@@ -826,6 +826,7 @@ find_emacs_executable (char const *argv0, ptrdiff_t *candidate_size)
 
 	      if (real_name)
 		{
+		  xfree (candidate);
 		  *candidate_size = strlen (real_name) + 1;
 		  return real_name;
 		}
