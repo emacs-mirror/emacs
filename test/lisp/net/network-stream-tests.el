@@ -275,394 +275,189 @@
             (throw 'server (cons proc port))))
         (delete-process proc)))))
 
-(ert-deftest connect-to-tls-ipv4-wait ()
-  (skip-unless (executable-find "gnutls-serv"))
-  (skip-unless (gnutls-available-p))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (make-network-process
-                      :name "bar"
-                      :buffer (generate-new-buffer "*foo*")
-                      :host "localhost"
-                      :service port))
-          (should proc)
-          (gnutls-negotiate :process proc
-                            :type 'gnutls-x509pki
-                            :hostname "localhost"))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
+(defmacro with-tls-params (func &optional proc-parms proc-negotiate &rest server-parms)
+  "Call TLS FUNC with extra parameters PROC-PARMS.
+Call PROC-NEGOTIATE once the connection is up.  SERVER-PARMS are the
+additional parameters to use to start the listening TLS server."
+  (let (parms)
+    (cond ((eq func 'make-network-process)
+           (setq parms
+                 '(:name "bar"
+                   :buffer (generate-new-buffer "*foo*")
+                   :service port)))
+          ((eq func 'open-network-stream)
+           (setq parms
+                 '("bar"
+                   (generate-new-buffer "*foo*")
+                   "localhost"
+                   port)))
+          ((eq func 'open-gnutls-stream)
+           (setq parms
+                 '("bar"
+                   (generate-new-buffer "*foo*")
+                   "localhost"
+                   port))
+           ;; open-gnutls-stream has a different calling convention from
+           ;; the other two, and we have to cater for the old api where
+           ;; nowait is not specified with a plist.
+           (when proc-parms
+             (setq proc-parms (list proc-parms)))))
+    `(let* ((s (make-tls-server ',server-parms))
+            (server (car s))
+            (port (cdr s))
+            proc status)
+       (unwind-protect
+           (progn
+             (setq proc (apply #',func ,@parms (list ,@proc-parms)))
+             (should proc)
+             ,proc-negotiate
+             (skip-when (eq (process-status proc) 'connect)))
+         (if (process-live-p server) (delete-process server)))
+       (setq status (gnutls-peer-status proc))
+       (should (consp status))
+       (delete-process proc)
     ;; This sleep-for is needed for the native MS-Windows build.  If
     ;; it is removed, the next test mysteriously fails because the
     ;; initial part of the echo is not received.
-    (sleep-for 0.1)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+       (sleep-for 0.1)
+       (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
+         (should (stringp issuer))
+         (setq issuer (split-string issuer ","))
+         (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC"))))))
+
+(ert-deftest connect-to-tls-ipv4-wait ()
+  (skip-unless (executable-find "gnutls-serv"))
+  (skip-unless (gnutls-available-p))
+  (with-tls-params
+   make-network-process
+   (:host "localhost")
+   (gnutls-negotiate :process proc
+                     :type 'gnutls-x509pki
+                     :hostname "localhost")))
 
 (ert-deftest connect-to-tls-ipv4-nowait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         (times 0)
-         (network-security-level 'low)
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (make-network-process
-                      :name "bar"
-                      :buffer (generate-new-buffer "*foo*")
-                      :nowait t
-                      :family 'ipv4
-                      :tls-parameters
-                      (cons 'gnutls-x509pki
-                            (gnutls-boot-parameters
-                             :hostname "localhost"))
-                      :host "localhost"
-                      :service port))
-          (while (and (eq (process-status proc) 'connect)
-                      (< (setq times (1+ times)) 10))
-            (sit-for 0.1))
-          (skip-when (eq (process-status proc) 'connect)))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+  (let ((times 0)
+        (network-security-level 'low))
+    (with-tls-params
+     make-network-process
+     (:nowait t
+      :family 'ipv4
+      :tls-parameters
+      (cons 'gnutls-x509pki
+            (gnutls-boot-parameters
+             :hostname "localhost"))
+      :host "localhost")
+     (while (and (eq (process-status proc) 'connect)
+                 (< (setq times (1+ times)) 10))
+       (sit-for 0.1)))))
 
 (ert-deftest connect-to-tls-ipv6-nowait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
   (skip-when (eq system-type 'windows-nt))
   (skip-unless (featurep 'make-network-process '(:family ipv6)))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         (times 0)
-         (network-security-level 'low)
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (make-network-process
-                      :name "bar"
-                      :buffer (generate-new-buffer "*foo*")
-                      :family 'ipv6
-                      :nowait t
-                      :tls-parameters
-                      (cons 'gnutls-x509pki
-                            (gnutls-boot-parameters
-                             :hostname "localhost"))
-                      :host "::1"
-                      :service port))
-          (should proc)
-          (while (and (eq (process-status proc) 'connect)
-                      (< (setq times (1+ times)) 10))
-            (sit-for 0.1))
-          (skip-when (eq (process-status proc) 'connect)))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+  (let ((times 0)
+        (network-security-level 'low))
+    (with-tls-params
+     make-network-process
+     (:family 'ipv6
+      :nowait t
+      :tls-parameters
+      (cons 'gnutls-x509pki
+            (gnutls-boot-parameters
+             :hostname "localhost"))
+      :host "::1")
+     (while (and (eq (process-status proc) 'connect)
+                 (< (setq times (1+ times)) 10))
+       (sit-for 0.1)))))
 
 (ert-deftest open-network-stream-tls-wait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         (network-security-level 'low)
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (open-network-stream
-                      "bar"
-                      (generate-new-buffer "*foo*")
-                      "localhost"
-                      port
-                      :type 'tls
-                      :nowait nil))
-          (should proc)
-          (skip-when (eq (process-status proc) 'connect)))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
-    ;; This sleep-for is needed for the native MS-Windows build.  If
-    ;; it is removed, the next test mysteriously fails because the
-    ;; initial part of the echo is not received.
-    (sleep-for 0.1)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+  (let ((network-security-level 'low))
+    (with-tls-params
+     open-network-stream
+     (:type 'tls
+      :nowait nil))))
 
 (ert-deftest open-network-stream-tls-nowait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         (times 0)
-         (network-security-level 'low)
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (open-network-stream
-                      "bar"
-                      (generate-new-buffer "*foo*")
-                      "localhost"
-                      port
-                      :type 'tls
-                      :nowait t))
-          (should proc)
-          (while (and (eq (process-status proc) 'connect)
-                      (< (setq times (1+ times)) 10))
-            (sit-for 0.1))
-          (skip-when (eq (process-status proc) 'connect)))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
-    ;; This sleep-for is needed for the native MS-Windows build.  If
-    ;; it is removed, the next test mysteriously fails because the
-    ;; initial part of the echo is not received.
-    (sleep-for 0.1)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+  (let ((network-security-level 'low)
+        (times 0))
+    (with-tls-params
+     open-network-stream
+     (:type 'tls
+      :nowait t)
+     (progn (while (and (eq (process-status proc) 'connect)
+                 (< (setq times (1+ times)) 10))
+              (sit-for 0.1))
+            (skip-when (eq (process-status proc) 'connect))))))
 
 (ert-deftest open-network-stream-tls ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         (network-security-level 'low)
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (open-network-stream
-                      "bar"
-                      (generate-new-buffer "*foo*")
-                      "localhost"
-                      port
-                      :type 'tls))
-          (should proc)
-          (skip-when (eq (process-status proc) 'connect)))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
-    ;; This sleep-for is needed for the native MS-Windows build.  If
-    ;; it is removed, the next test mysteriously fails because the
-    ;; initial part of the echo is not received.
-    (sleep-for 0.1)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+  (let ((network-security-level 'low))
+    (with-tls-params
+     open-network-stream
+     (:type 'tls))))
 
 (ert-deftest open-network-stream-tls-nocert ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         (network-security-level 'low)
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (open-network-stream
-                      "bar"
-                      (generate-new-buffer "*foo*")
-                      "localhost"
-                      port
-                      :type 'tls
-                      :client-certificate nil))
-          (should proc)
-          (skip-when (eq (process-status proc) 'connect)))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
-    ;; This sleep-for is needed for the native MS-Windows build.  If
-    ;; it is removed, the next test mysteriously fails because the
-    ;; initial part of the echo is not received.
-    (sleep-for 0.1)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+  (let ((network-security-level 'low))
+    (with-tls-params
+     open-network-stream
+     (:type 'tls
+      :client-certificate nil))))
 
 (ert-deftest open-gnutls-stream-new-api-default ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (open-gnutls-stream
-                      "bar"
-                      (generate-new-buffer "*foo*")
-                      "localhost"
-                      port))
-          (should proc)
-          (skip-when (eq (process-status proc) 'connect)))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
-    ;; This sleep-for is needed for the native MS-Windows build.  If
-    ;; it is removed, the next test mysteriously fails because the
-    ;; initial part of the echo is not received.
-    (sleep-for 0.1)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+  (with-tls-params
+   open-gnutls-stream))
 
 (ert-deftest open-gnutls-stream-new-api-wait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (open-gnutls-stream
-                      "bar"
-                      (generate-new-buffer "*foo*")
-                      "localhost"
-                      port
-                      (list :nowait nil)))
-          (should proc)
-          (skip-when (eq (process-status proc) 'connect)))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
-    ;; This sleep-for is needed for the native MS-Windows build.  If
-    ;; it is removed, the next test mysteriously fails because the
-    ;; initial part of the echo is not received.
-    (sleep-for 0.1)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+  (with-tls-params
+   open-gnutls-stream
+   (list :nowait nil)))
 
 (ert-deftest open-gnutls-stream-old-api-wait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         (nowait nil) ; Workaround Bug#47080
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (open-gnutls-stream
-                      "bar"
-                      (generate-new-buffer "*foo*")
-                      "localhost"
-                      port
-                      nowait))
-          (should proc)
-          (skip-when (eq (process-status proc) 'connect)))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
-    ;; This sleep-for is needed for the native MS-Windows build.  If
-    ;; it is removed, the next test mysteriously fails because the
-    ;; initial part of the echo is not received.
-    (sleep-for 0.1)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+  (let ((nowait nil)) ; Workaround Bug#47080
+    (with-tls-params
+     open-gnutls-stream
+     nowait)))
 
 (ert-deftest open-gnutls-stream-new-api-nowait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         (times 0)
-         (network-security-level 'low)
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (open-gnutls-stream
-                      "bar"
-                      (generate-new-buffer "*foo*")
-                      "localhost"
-                      port
-                      (list :nowait t)))
-          (should proc)
-          (while (and (eq (process-status proc) 'connect)
-                      (< (setq times (1+ times)) 10))
-            (sit-for 0.1))
-          (skip-when (eq (process-status proc) 'connect)))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+  (let ((times 0)
+        (network-security-level 'low))
+    (with-tls-params
+     open-gnutls-stream
+     (list :nowait t)
+     (while (and (eq (process-status proc) 'connect)
+                 (< (setq times (1+ times)) 10))
+       (sit-for 0.1)))))
 
 (ert-deftest open-gnutls-stream-old-api-nowait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (let* ((s (make-tls-server))
-         (server (car s))
-         (port (cdr s))
-         (times 0)
-         (network-security-level 'low)
-         (nowait t)
-         proc status)
-    (unwind-protect
-        (progn
-          (setq proc (open-gnutls-stream
-                      "bar"
-                      (generate-new-buffer "*foo*")
-                      "localhost"
-                      port
-                      nowait))
-          (should proc)
-          (setq times 0)
-          (while (and (eq (process-status proc) 'connect)
-                      (< (setq times (1+ times)) 10))
-            (sit-for 0.1))
-          (skip-when (eq (process-status proc) 'connect)))
-      (if (process-live-p server) (delete-process server)))
-    (setq status (gnutls-peer-status proc))
-    (should (consp status))
-    (delete-process proc)
-    (let ((issuer (plist-get (plist-get status :certificate) :issuer)))
-      (should (stringp issuer))
-      (setq issuer (split-string issuer ","))
-      (should (equal (nth 3 issuer) "O=Emacs Test Servicess LLC")))))
+  (let ((times 0)
+        (network-security-level 'low)
+        (nowait t))
+    (with-tls-params
+     open-gnutls-stream
+     nowait
+     (while (and (eq (process-status proc) 'connect)
+                 (< (setq times (1+ times)) 10))
+       (sit-for 0.1)))))
 
 (ert-deftest open-gnutls-stream-new-api-errors ()
   (skip-unless (gnutls-available-p))
