@@ -737,6 +737,44 @@ argmatch (char **argv, int argc, const char *sstr, const char *lstr,
     }
 }
 
+/* Return the default PATH if it can be determined, NULL otherwise.  */
+
+static char const *
+default_PATH (void)
+{
+  static char const *path;
+
+  /* A static buffer big enough so that confstr is called just once
+     in GNU/Linux, where the default PATH is "/bin:/usr/bin".
+     If staticbuf[0], path is already initialized.  */
+  static char staticbuf[16];
+
+  if (!staticbuf[0])
+    {
+#ifdef _CS_PATH
+      char *buf = staticbuf;
+      size_t bufsize = sizeof staticbuf, s;
+
+      /* If necessary call confstr a second time with a bigger buffer.  */
+      while (bufsize < (s = confstr (_CS_PATH, buf, bufsize)))
+	{
+	  buf = xmalloc (s);
+	  bufsize = s;
+	}
+
+      if (s == 0)
+	{
+	  staticbuf[0] = 1;
+	  buf = NULL;
+	}
+
+      path = buf;
+#endif
+    }
+
+  return path;
+}
+
 #if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
 
 /* Find a name (absolute or relative) of the Emacs executable whose
@@ -778,10 +816,11 @@ find_emacs_executable (char const *argv0, ptrdiff_t *candidate_size)
   ptrdiff_t argv0_length = strlen (argv0);
 
   const char *path = getenv ("PATH");
+  if (! (path && *path))
+    path = default_PATH ();
   if (!path)
     {
-      /* Default PATH is implementation-defined, so we don't know how
-         to conduct the search.  */
+      /* We don't know how to conduct the search.  */
       return NULL;
     }
 
@@ -3217,15 +3256,19 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
      to initialize variables when Emacs starts up, and isn't called
      after that.  */
   if (evarname != 0)
-    path = getenv (evarname);
+    {
+      path = getenv (evarname);
+      if (! (path && *path) && strcmp (evarname, "PATH") == 0)
+	path = default_PATH ();
+    }
   else
     path = 0;
   if (!path)
     {
-#ifdef NS_SELF_CONTAINED
-      path = ns_relocate (defalt);
-#else
       path = defalt;
+#ifdef NS_SELF_CONTAINED
+      if (path)
+	path = ns_relocate (path);
 #endif
 #ifdef WINDOWSNT
       defaulted = 1;
@@ -3277,7 +3320,7 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
     }
 #endif
   lpath = Qnil;
-  while (1)
+  for (; path; path = *p ? p + 1 : NULL)
     {
       p = strchr (path, SEPCHAR);
       if (!p)
@@ -3320,10 +3363,6 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
         } /* !NILP (element) */
 
       lpath = Fcons (element, lpath);
-      if (*p)
-	path = p + 1;
-      else
-	break;
     }
 
   return Fnreverse (lpath);

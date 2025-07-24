@@ -753,8 +753,8 @@ available.
 (either in the @var{cmd} argument to one of the above commands, or in
 other contexts), Emacs searches for the program in the directories
 specified by the variable @code{exec-path}.  The value of this
-variable must be a list of directories; the default value is
-initialized from the environment variable @env{PATH} when Emacs is
+variable must be a list of directories; the default value
+depends on the environment variable @env{PATH} when Emacs is
 started (@pxref{General Variables}).
 
   @kbd{M-x eshell} invokes a shell implemented entirely in Emacs.  It

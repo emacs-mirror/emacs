@@ -1960,7 +1960,7 @@ init_callproc_1 (void)
   Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC, 0);
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
   /* FIXME?  For ns, path_exec should go at the front?  */
-  Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
+  Vexec_path = nconc2 (decode_env_path ("PATH", NULL, 0), Vexec_path);
 }
 
 /* This is run after init_cmdargs, when Vinstallation_directory is valid.  */
@@ -1985,7 +1985,7 @@ init_callproc (void)
 	{
 	  /* Running uninstalled, so default to tem rather than PATH_EXEC.  */
 	  Vexec_path = decode_env_path ("EMACSPATH", SSDATA (tem), 0);
-	  Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
+	  Vexec_path = nconc2 (decode_env_path ("PATH", NULL, 0), Vexec_path);
 	}
 
       Vexec_directory = Ffile_name_as_directory (tem);
