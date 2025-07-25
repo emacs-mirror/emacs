@@ -111,21 +111,21 @@ entry.
 @cindex renaming version-controlled files
 
 @table @kbd
-@item M-x vc-delete-file
+@item C-x v x
 Prompt for a file name, delete the file from the working tree, and
 schedule the deletion for committing.
 
-@item M-x vc-rename-file
+@item C-x v R
 Prompt for two file names, @var{old} and @var{new}, rename them in the
 working tree, and schedule the renaming for committing.  The @var{old}
 file defaults to the current buffer's file name if it is under VC.
 @end table
 
 @findex vc-delete-file
-  If you wish to delete a version-controlled file, use the command
-@kbd{M-x vc-delete-file}.  This prompts for the file name, and deletes
-it via the version control system.  The file is removed from the
-working tree, and in the VC Directory buffer
+  If you wish to delete a version-controlled file, type @kbd{C-x v x}
+(@code{vc-delete-file}).  This prompts for the file name, and deletes it
+via the version control system.  The file is removed from the working
+tree, and in the VC Directory buffer
 @iftex
 (@pxref{VC Directory Mode,,, emacs, the Emacs Manual}),
 @end iftex
@@ -136,12 +136,12 @@ it is displayed with the @samp{removed} status.  When you commit it,
 the deletion takes effect in the repository.
 
 @findex vc-rename-file
-  To rename a version-controlled file, type @kbd{M-x vc-rename-file}.
-This prompts for two arguments: the name of the file you wish to
-rename, and the new name; then it performs the renaming via the
-version control system.  The renaming takes effect immediately in the
-working tree, and takes effect in the repository when you commit the
-renamed file.
+  To rename a version-controlled file, type @kbd{C-x v R}
+(@code{vc-rename-file}).  This prompts for two arguments: the name of
+the file you wish to rename, and the new name; then it performs the
+renaming via the version control system.  The renaming takes effect
+immediately in the working tree, and takes effect in the repository when
+you commit the renamed file.
 
   On modern version control systems that have built-in support for
 renaming, the renamed file retains the full change history of the
@@ -205,7 +205,7 @@ those tags will be visible even when you bypass VC.
 
   In file-based version control systems, when you rename a registered
 file you need to rename its master along with it; the command
-@code{vc-rename-file} will do this automatically
+@kbd{C-x v R} (@code{vc-rename-file}) will do this automatically
 @iftex
 (@pxref{VC Delete/Rename,,,emacs, the Emacs Manual}).
 @end iftex
@@ -213,12 +213,12 @@ file you need to rename its master along with it; the command
 (@pxref{VC Delete/Rename}).
 @end ifnottex
 If you are using SCCS, you must also update the records of the tag, to
-mention the file by its new name (@code{vc-rename-file} does this,
+mention the file by its new name (@kbd{C-x v R} does this,
 too).  An old tag that refers to a master file that no longer exists
 under the recorded name is invalid; VC can no longer retrieve it.  It
 would be beyond the scope of this manual to explain enough about RCS
 and SCCS to explain how to update the tags by hand.  Using
-@code{vc-rename-file} makes the tag remain valid for retrieval, but it
+@kbd{C-x v R} makes the tag remain valid for retrieval, but it
 does not solve all problems.  For example, some of the files in your
 program probably refer to others by name.  At the very least, the
 makefile probably mentions the file that you renamed.  If you retrieve

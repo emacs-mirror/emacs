@@ -1988,6 +1988,9 @@ changes to be committed in a window.  This is like the 'C-c C-d' command
 in Log Edit mode buffers, except that it does not select the "*vc-diff*"
 buffer's window, and so works well when added to 'log-edit-hook'.
 
++++
+*** 'vc-rename-file' is now bound to 'C-x v R'.
+
 ---
 *** 'vc-annotate' now abbreviates the Git revision in more cases.
 In Emacs 30, 'vc-annotate' gained the ability to abbreviate the Git
