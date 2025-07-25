@@ -2512,6 +2512,12 @@ separator, are also supported.
 ---
 ** The obsolete variable 'load-convert-to-unibyte' has been removed.
 
++++
+** The 'exec-path' variable now uses same default PATH as other programs.
+That is, if the PATH environment variable is unset or empty, 'exec-path'
+now acts as if PATH is the system default, which is "/bin:/usr/bin"
+on GNU/Linux systems.
+
 
 * Lisp Changes in Emacs 31.1
 
@@ -2754,12 +2760,6 @@ This function by default returns the value of the corresponding user
 option, but can optionally return the equivalent of 'exec-suffixes' from
 a remote host.  It must be used in conjunction with the function
 'exec-path'.
-
-+++
-** The 'exec-path' variable now uses same default PATH as other programs.
-That is, if the PATH environment variable is unset or empty, 'exec-path'
-now acts as if PATH is the system default, which is "/bin:/usr/bin"
-on GNU/Linux systems.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
