@@ -5811,20 +5811,32 @@ enum
    an expression that should not have side effects.
    STR's value is not necessarily copied.  The resulting Lisp string
    should not be modified or given text properties or made visible to
-   user code.  */
+   user code, and its lifetime is that of the enclosing C block.  */
 
 #define AUTO_STRING(name, str) \
   AUTO_STRING_WITH_LEN (name, str, strlen (str))
 
 /* Declare NAME as an auto Lisp string if possible, a GC-based one if not.
    Take its unibyte value from the null-terminated string STR with length LEN.
-   STR may have side effects and may contain null bytes.
+   STR and LEN may have side effects and STR may contain null bytes.
    STR's value is not necessarily copied.  The resulting Lisp string
    should not be modified or given text properties or made visible to
-   user code.  */
+   user code, and its lifetime is that of the enclosing C block.  */
 
 #define AUTO_STRING_WITH_LEN(name, str, len)				\
   Lisp_Object name =							\
+    AUTO_STR_WITH_LEN (str, len)
+
+/* Yield an auto Lisp string if possible, a GC-based one if not.
+   This is like AUTO_STRING, except without a name.  */
+
+#define AUTO_STR(str) \
+  AUTO_STR_WITH_LEN (str, strlen (str))
+
+/* Yield an auto Lisp string if possible, a GC-based one if not.
+   This is like AUTO_STRING_WITH_LEN, except without a name.  */
+
+#define AUTO_STR_WITH_LEN(str, len)					\
     (USE_STACK_STRING							\
      ? (make_lisp_ptr							\
 	((&(struct Lisp_String) {{{len, -1, 0, (unsigned char *) (str)}}}), \
