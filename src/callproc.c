@@ -2009,19 +2009,17 @@ init_callproc (void)
      source directory.  */
   if (data_dir == 0)
     {
-      Lisp_Object tem, srcdir;
       Lisp_Object lispdir = Fcar (decode_env_path (0, PATH_DUMPLOADSEARCH, 0));
-
-      srcdir = Fexpand_file_name (build_string ("../src/"), lispdir);
-
-      tem = Fexpand_file_name (build_string ("NEWS"), Vdata_directory);
-      if (!NILP (Fequal (srcdir, Vinvocation_directory))
-	  || NILP (Ffile_exists_p (tem)) || !NILP (Vinstallation_directory))
+      if (!NILP (Vinstallation_directory)
+	  || !NILP (Fequal (Fexpand_file_name (AUTO_STR ("../src/"), lispdir),
+			    Vinvocation_directory))
+	  || NILP (Ffile_exists_p (Fexpand_file_name (AUTO_STR ("NEWS"),
+						      Vdata_directory))))
 	{
 	  Lisp_Object newdir;
-	  newdir = Fexpand_file_name (build_string ("../etc/"), lispdir);
-	  tem = Fexpand_file_name (build_string ("NEWS"), newdir);
-	  if (!NILP (Ffile_exists_p (tem)))
+	  newdir = Fexpand_file_name (AUTO_STR ("../etc/"), lispdir);
+	  if (!NILP (Ffile_exists_p (Fexpand_file_name (AUTO_STR ("NEWS"),
+							newdir))))
 	    Vdata_directory = newdir;
 	}
     }
