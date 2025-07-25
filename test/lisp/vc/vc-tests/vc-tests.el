@@ -631,7 +631,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                     ;; Checkin file.
                     (vc-checkin files backend)
                     (insert "Testing vc-version-diff")
-                    (log-edit-done))))
+                    (let (vc-async-checkin)
+                      (log-edit-done)))))
 
               ;; Modify file content.
               (when (memq backend '(RCS CVS SCCS))
