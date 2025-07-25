@@ -3108,6 +3108,8 @@ read_char_escape (source_t *source, int next_char)
       chr = c;
       break;
     }
+  if (chr < 0)
+    end_of_file_error ();
   eassert (chr >= 0 && chr < (1 << CHARACTERBITS));
 
   /* Apply Control modifiers, using the rules:
