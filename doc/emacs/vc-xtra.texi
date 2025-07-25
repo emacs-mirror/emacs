@@ -13,8 +13,6 @@ described in the main Emacs manual (@pxref{Version Control,,,emacs,
 the Emacs Manual}).  This chapter describes more advanced VC usage.
 
 @menu
-* Remote Repositories::     Efficient access to remote VCS servers.
-* Revision Tags::           Symbolic names for revisions.
 * Miscellaneous VC::        Various other commands and features of VC.
 * Customizing VC::          Variables that change VC's behavior.
 @end menu
