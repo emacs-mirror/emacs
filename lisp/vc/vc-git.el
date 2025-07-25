@@ -1913,12 +1913,15 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (declare-function vc-read-revision "vc"
                   (prompt &optional files backend default initial-input))
 
+(defun vc-git--read-start-point (&optional dir)
+  (let ((branch (car (vc-git-branches))))
+    (vc-read-revision (format-prompt "Start point" branch)
+                      (list (or dir (vc-git-root default-directory)))
+                      'Git branch)))
+
 (defun vc-git-create-tag (dir name branchp)
   (let ((default-directory dir)
-        (start-point (when branchp (vc-read-revision
-                                    (format-prompt "Start point"
-                                                   (car (vc-git-branches)))
-                                    (list dir) 'Git (car (vc-git-branches))))))
+        (start-point (and branchp (vc-git--read-start-point dir))))
     (and (or (zerop (vc-git-command nil t nil "update-index" "--refresh"))
              (y-or-n-p "Modified files exist.  Proceed? ")
              (user-error (format "Can't create %s with modified files"
@@ -2340,7 +2343,7 @@ In other modes, call `vc-deduce-fileset' to determine files to stash."
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
 (defun vc-git-stash-list ()
-  (when-let* ((out (vc-git--run-command-string nil "stash" "list")))
+  (and-let* ((out (vc-git--run-command-string nil "stash" "list")))
     (split-string
      (replace-regexp-in-string
       "^stash@" "             " out)
@@ -2388,6 +2391,63 @@ In other modes, call `vc-deduce-fileset' to determine files to stash."
 (defun vc-git-stash-menu (e)
   (interactive "e")
   (vc-dir-at-event e (popup-menu vc-git-stash-menu-map e)))
+
+(defun vc-git--worktrees ()
+  "Return an alist of alists regarding this repository's worktrees."
+  (with-temp-buffer
+    (vc-git-command nil 0 nil "worktree" "prune")
+    (vc-git-command t 0 nil "worktree" "list" "--porcelain" "-z")
+    (let (worktrees current-root current-rest)
+      (goto-char (point-min))
+      (while
+          (re-search-forward "\\=\\(\\([a-zA-Z]+\\)\\(?: \\([^\0]+\\)\\)?\\)?\0"
+                             nil t)
+        (if (match-string 1)
+            (let ((k (intern (match-string 2)))
+                  (v (or (match-string 3) t)))
+              (cond ((and (not current-root) (eq k 'worktree))
+                     (setq current-root (file-name-as-directory v)))
+                    ((not (eq k 'worktree))
+                     (push (cons k v) current-rest))
+                    (t
+                     (error "'git worktree' output parse error"))))
+          (push (cons current-root current-rest) worktrees)
+          (setq current-root nil current-rest nil)))
+      (or worktrees
+          (error "'git worktree' output parse error")))))
+
+(defun vc-git-known-other-working-trees ()
+  (cl-loop with root = (expand-file-name (vc-git-root default-directory))
+           for (worktree) in (vc-git--worktrees)
+           unless (equal worktree root)
+           collect (abbreviate-file-name worktree)))
+
+(defun vc-git-add-working-tree (directory)
+  (letrec ((dir (expand-file-name directory))
+           (vc-filter-command-function #'list) ; see `vc-read-revision'
+           (revs (vc-git-revision-table nil))
+           (table (lazy-completion-table table (lambda () revs)))
+           (branch (completing-read (format-prompt "New or existing branch"
+                                                   "latest revision, detached")
+                                    table nil nil nil 'vc-revision-history))
+           (args (cond ((string-empty-p branch)
+                        (list "--detach" dir))
+                       ((member branch revs)
+                        (list dir branch))
+                       (t
+                        (list "-b" branch dir (vc-git--read-start-point))))))
+    (apply #'vc-git-command nil 0 nil "worktree" "add" args)))
+
+(defun vc-git-delete-working-tree (directory)
+  (vc-git-command nil 0 nil "worktree" "remove" "-f"
+                  (expand-file-name directory)))
+
+(defun vc-git-move-working-tree (from to)
+  ;; 'git worktree move' can't move the main worktree, but moving and
+  ;; then repairing like this can.
+  (rename-file from (directory-file-name to) 1)
+  (let ((default-directory to))
+    (vc-git-command nil 0 nil "worktree" "repair")))
 
 
 ;;; Internal commands

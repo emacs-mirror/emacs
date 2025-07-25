@@ -1843,6 +1843,22 @@ appearance of the list can be customized with the new faces
 
 ** VC
 
++++
+*** New commands to handle repositories with multiple working trees.
+Some VCS support more than one working tree with the same backing
+revisions store, such as with Git's 'worktree' subcommand and
+Mercurial's 'share' extension.  Emacs now has some commands to manage
+other working trees:
+
+- 'C-x v w c': Add a new working tree.
+- 'C-x v w w': Visit this file in another working tree.
+- 'C-x v w x': Delete a working tree you no longer need.
+- 'C-x v w R': Relocate a working tree to another file name.
+
+In addition, Lisp programs that extend VC can invoke the new backend
+functions to obtain a list of other working trees, and to add, remove
+and relocate them.
+
 ---
 *** Using 'e' from Log View mode to modify change comments now works for Git.
 

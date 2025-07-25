@@ -207,6 +207,17 @@
 ;;   The default implementation deals well with all states that
 ;;   `vc-state' can return.
 ;;
+;; - known-other-working-trees ()
+;;
+;;   Return a list of all other working trees known to use the same
+;;   backing repository as this working tree.  The members of the list
+;;   are the abbreviated (with `abbreviate-file-name') absolute file
+;;   names of the root directories of the other working trees.
+;;   For some VCS, the known working trees will not be all the other
+;;   working trees, because other working trees can share the same
+;;   backing repository in a way that's transparent to the original
+;;   working tree (Mercurial is like this).
+;;
 ;; STATE-CHANGING FUNCTIONS
 ;;
 ;; * create-repo ()
@@ -342,6 +353,31 @@
 ;; - find-admin-dir (file)
 ;;
 ;;   Return the administrative directory of FILE.
+;;
+;; - add-working-tree (directory)
+;;
+;;   Create a new working tree at DIRECTORY that uses the same backing
+;;   repository as this working tree.
+;;   What gets checked out in DIRECTORY is left to the backend because
+;;   while some VCS can check out the same branch in multiple working
+;;   trees (e.g. Mercurial), others allow each branch to be checked out
+;;   in only one working tree (e.g. Git).
+;;   If a new branch should be created then the backend should handle
+;;   prompting for this, including prompting for a branch or tag from
+;;   which to start/fork the new branch, like `vc-create-branch'.
+;;
+;; - delete-working-tree (directory)
+;;
+;;   Remove the working tree, assumed to be one that uses the same
+;;   backing repository as this working tree, at DIRECTORY.
+;;   This removal should be unconditional with respect to the state of
+;;   the working tree: the caller is responsible for checking for
+;;   uncommitted work in DIRECTORY.
+;;
+;; - move-working-tree (from to)
+;;
+;;   Relocate the working tree, assumed to be one that uses the same
+;;   backing repository as this working tree, at FROM to TO.
 
 ;; HISTORY FUNCTIONS
 ;;
@@ -4178,24 +4214,24 @@ to provide the `find-revision' operation instead."
   t)
 
 (defun vc-default-retrieve-tag (backend dir name update)
-  (if (string= name "")
-      (progn
-        (vc-file-tree-walk
-         dir
-         (lambda (f) (and
-		 (vc-up-to-date-p f)
-		 (vc-error-occurred
-		  (vc-call-backend backend 'checkout f nil "")
-		  (when update (vc-resynch-buffer f t t)))))))
+  (if (string-empty-p name)
+      (vc-file-tree-walk dir
+                         (lambda (f)
+                           (and (vc-up-to-date-p f)
+	                        (vc-error-occurred
+	                         (vc-call-backend backend 'checkout f nil "")
+	                         (when update
+                                   (vc-resynch-buffer f t t))))))
     (let ((result (vc-tag-precondition dir)))
       (if (stringp result)
           (error "File %s is locked" result)
         (setq update (and (eq result 'visited) update))
-        (vc-file-tree-walk
-         dir
-         (lambda (f) (vc-error-occurred
-		 (vc-call-backend backend 'checkout f nil name)
-		 (when update (vc-resynch-buffer f t t)))))))))
+        (vc-file-tree-walk dir
+                           (lambda (f)
+                             (vc-error-occurred
+	                      (vc-call-backend backend 'checkout f nil name)
+	                      (when update
+                                (vc-resynch-buffer f t t)))))))))
 
 (defun vc-default-revert (backend file contents-done)
   (unless contents-done
@@ -4300,6 +4336,136 @@ It returns the last revision that changed LINE number in FILE."
     (forward-line (1- line))
     (let ((rev (vc-call annotate-extract-revision-at-line file)))
       (if (consp rev) (car rev) rev))))
+
+(defun vc-dir-status-files (directory &optional files backend)
+  "Synchronously run `dir-status-files' VC backend function for DIRECTORY.
+FILES is passed to the VC backend function.
+BACKEND is defaulted by calling `vc-responsible-backend' on DIRECTORY."
+  ;; The `dir-status-files' API was designed for asynchronous use to
+  ;; populate *vc-dir* buffers; see `vc-dir-refresh'.
+  ;; This function provides Lisp programs with synchronous access to the
+  ;; same information without touching the user's *vc-dir* buffers and
+  ;; without having to add a new VC backend function.
+  ;; It is considerably faster than using `vc-file-tree-walk'
+  ;; (like `vc-tag-precondition' does).
+  ;; This function is in this file despite its `vc-dir-' prefix to avoid
+  ;; having to load `vc-dir' just to get access to this simple wrapper.
+  (let ((morep t) results)
+    (with-temp-buffer
+      (setq default-directory directory)
+      (vc-call-backend (or backend (vc-responsible-backend directory))
+                       'dir-status-files directory files
+                       (lambda (entries &optional more-to-come)
+                         (let (entry)
+                           (while (setq entry (pop entries))
+                             ;; We shouldn't actually get any
+                             ;; `up-to-date' or `ignored' entries back,
+                             ;; but just in case, pass through a filter.
+                             (unless (memq (cadr entry)
+                                           '(up-to-date ignored))
+                               (push entry results))))
+                         (setq morep more-to-come)))
+      (while morep (accept-process-output)))
+    (nreverse results)))
+
+;;;###autoload
+(defun vc-add-working-tree (backend directory)
+  "Create working tree DIRECTORY with same backing repository as this tree.
+See Info node `(emacs)Other Working Trees' regarding VCS repositories
+with multiple working trees."
+  (interactive
+   (list
+    (vc-responsible-backend default-directory)
+    (read-directory-name "Location for new working tree: "
+                         (file-name-parent-directory
+                          (or (vc-root-dir)
+                              (error "File is not under version control"))))))
+  (vc-call-backend backend 'add-working-tree directory)
+
+  ;; `vc-switch-working-tree' relies on project.el registration so try
+  ;; to ensure that both the old and new working trees are registered.
+  ;; `project-current' should not return nil in either case, but don't
+  ;; signal an error if it does.
+  (when-let* ((p (project-current)))
+    (project-remember-project p))
+  (when-let* ((p (project-current nil directory)))
+    (project-remember-project p))
+
+  (vc-dir directory backend))
+
+(defvar project-current-directory-override)
+
+;;;###autoload
+(defun vc-switch-working-tree (directory)
+  "Switch to this file's analogue in working tree DIRECTORY.
+This command switches to the file which has the same path
+relative to DIRECTORY that this buffer's file has relative
+to the root of this working tree.
+DIRECTORY names another working tree with the same backing repository as
+this tree; see Info node `(emacs)Other Working Trees' for general
+information regarding VCS repositories with multiple working trees."
+  ;; FIXME: Switch between directory analogues, too, in Dired buffers.
+  (interactive
+   (list
+    ;; FIXME: This should respect `project-prompter'.  See bug#79024.
+    (completing-read "Other working tree to visit: "
+                     (vc-call-backend (vc-responsible-backend default-directory)
+                                      'known-other-working-trees)
+                     nil t)))
+  (let ((project-current-directory-override directory))
+    (project-find-matching-file)))
+
+;;;###autoload
+(defun vc-delete-working-tree (backend directory)
+  "Delete working tree DIRECTORY with same backing repository as this tree.
+See Info node `(emacs)Other Working Trees' regarding VCS repositories
+with multiple working trees."
+  (interactive
+   (let ((backend (vc-responsible-backend default-directory)))
+     (list backend
+           ;; FIXME: This should respect `project-prompter'.  See bug#79024.
+           (completing-read "Delete working tree: "
+                            (vc-call-backend backend 'known-other-working-trees)
+                            nil t))))
+  ;; We could consider not prompting here, thus always failing when
+  ;; there is uncommitted work, and requiring the user to review and
+  ;; revert the uncommitted changes before invoking this command again.
+  ;; But other working trees are often created as throwaways to quickly
+  ;; test some changes, so it is more useful to offer to recursively
+  ;; delete them on the user's behalf.
+  (when (and (vc-dir-status-files directory nil backend)
+             (not (yes-or-no-p (format "\
+%s contains uncommitted work.  Continue to recursively delete it?" directory))))
+    (user-error "Aborted due to uncommitted work in %s" directory))
+
+  (project-forget-project directory)
+  (vc-call-backend backend 'delete-working-tree directory))
+
+(autoload 'dired-rename-subdir "dired-aux")
+;;;###autoload
+(defun vc-move-working-tree (backend from to)
+  "Relocate a working tree from FROM to TO.
+See Info node `(emacs)Other Working Trees' regarding VCS repositories
+with multiple working trees."
+  (interactive
+   (let ((backend (vc-responsible-backend default-directory)))
+     (list backend
+           ;; FIXME: This should respect `project-prompter'.  See bug#79024.
+           (completing-read "Relocate working tree: "
+                            (vc-call-backend backend 'known-other-working-trees)
+                            nil t)
+           (read-directory-name "New location for working tree: "
+                                (file-name-parent-directory (vc-root-dir))))))
+  (let ((inhibit-message t))
+    (project-forget-project from))
+  (vc-call-backend backend 'move-working-tree from to)
+
+  ;; Update visited file names for buffers visiting files under FROM.
+  ;; FIXME: Also update VC-Dir buffers.
+  (dired-rename-subdir (expand-file-name from) (expand-file-name to))
+
+  (when-let* ((p (project-current nil to)))
+    (project-remember-project p)))
 
 
 

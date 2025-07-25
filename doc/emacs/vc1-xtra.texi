@@ -14,6 +14,7 @@
 * Change Logs and VC::  Generating a change log file from log entries.
 * VC Delete/Rename::    Deleting and renaming version-controlled files.
 * Revision Tags::       Symbolic names for revisions.
+* Other Working Trees:: Multiple sets of workfiles.
 * Version Headers::     Inserting version control headers into working files.
 * Editing VC Commands:: Editing the VC shell commands that Emacs will run.
 * Preparing Patches::   Preparing and composing patches from within VC.
@@ -225,6 +226,70 @@ makefile probably mentions the file that you renamed.  If you retrieve
 an old tag, the renamed file is retrieved under its new name, which is
 not the name that the makefile expects.  So the program won't really
 work as retrieved.
+
+@node Other Working Trees
+@subsubsection Multiple Working Trees for One Repository
+
+@cindex other working trees
+@cindex multiple working trees
+Some VCS support more than one working tree with the same backing
+repository or revisions store.  This means that you can have different
+revisions or branches (@pxref{Branches}) checked out simultaneously, in
+different working trees, but with all revision history, branches, tags
+and other metadata shared.  The following commands let you switch
+between and modify different working trees.
+
+@table @kbd
+@item C-x v w c
+Add a new working tree.
+
+@item C-x v w w
+Visit this file in another working tree.
+
+@item C-x v w x
+Delete a working tree you no longer need.
+
+@item C-x v w R
+Relocate a working tree to another file name.
+@end table
+
+@kindex C-x v w c
+@findex vc-add-working-tree
+You can start using multiple working trees by using the command
+@w{@kbd{C-x v w c}} (@code{vc-add-working-tree}) to create a new working
+tree.  This prompts you to specify a destination directory, which
+identifies the working tree, and which will hold the new set of
+workfiles.
+
+Different VCS have different rules about what may and must be checked
+out in other working trees, so there may be additional prompts depending
+on the VCS in use.  For example, Git requires that each branch be
+checked out in only one working tree at a time, so when using Git, Emacs
+will also prompt you for the name of the branch to be checked out in the
+new working tree.
+
+@kindex C-x v w w
+@findex vc-switch-working-tree
+Once your repository has other working trees, you can use the command
+@kbd{C-x v w w} (@code{vc-switch-working-tree}) to switch between them.
+It tries to find the analogue of the current buffer's file
+under another working tree.  Typically the sets of workfiles
+under different working trees differ more in file contents than in which
+files do and do not exist.  In other words, the file the
+current buffer visits probably exists in other working trees too, and
+this command lets you switch to those versions of the file.
+
+@kindex C-x v w x
+@kindex C-x v w R
+@findex vc-delete-working-tree
+@findex vc-move-working-tree
+The commands @kbd{C-x v w x} (@code{vc-delete-working-tree}) and
+@kbd{C-x v w R} (@code{vc-move-working-tree}) are for performing
+maintenance tasks on other working trees, letting you delete, move and
+rename them.  Deleting other working trees is particular useful because
+a common use for multiple working trees is to create throwaway copies of
+the repository to quickly test changes, without interfering with any
+work-in-progress you may have in your primary working trees.
 
 @node Version Headers
 @subsubsection Inserting Version Control Headers

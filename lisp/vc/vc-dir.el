@@ -1415,7 +1415,7 @@ Throw an error if another update process is in progress."
           (vc-call-backend
            backend 'dir-status-files def-dir nil
            (lambda (entries &optional more-to-come)
-             ;; ENTRIES is a list of (FILE VC_STATE EXTRA) items.
+             ;; ENTRIES is a list of (FILE VC-STATE EXTRA) items.
              ;; If MORE-TO-COME is true, then more updates will come from
              ;; the asynchronous process.
              (with-current-buffer buffer
@@ -1520,7 +1520,7 @@ not under version control, prompt for a directory."
   (interactive)
   (let ((root-dir (vc-root-dir)))
     (if root-dir (vc-dir root-dir)
-      (call-interactively 'vc-dir))))
+      (call-interactively #'vc-dir))))
 
 ;;;###autoload
 (defun vc-dir (dir &optional backend)
