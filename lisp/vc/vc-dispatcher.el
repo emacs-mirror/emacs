@@ -421,7 +421,7 @@ case, and the process object in the asynchronous case."
 		            (substring command 0 -1)
 		          command)
 		        " " (vc-delistify flags)
-		        " " (vc-delistify files)))
+		        (and files (concat " " (vc-delistify files)))))
                (squeezed (remq nil flags))
 	       (inhibit-read-only t)
 	       (status 0))
