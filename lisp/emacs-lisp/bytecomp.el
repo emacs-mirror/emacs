@@ -1104,7 +1104,7 @@ CONST2 may be evaluated multiple times."
                  hash-table)
         (dolist (elt alist)
           (puthash (car elt) (cdr elt) hash-table))))
-    (let ((bytecode (apply 'unibyte-string (nreverse bytes))))
+    (let ((bytecode (apply #'unibyte-string (nreverse bytes))))
       (when byte-native-compiling
         ;; Spill LAP for the native compiler here.
         (puthash bytecode (make-byte-to-native-lambda :lap lap)
@@ -2858,13 +2858,8 @@ not to take responsibility for the actual compilation of the code."
     (if (not (listp body))
         ;; The precise definition requires evaluation to find out, so it
         ;; will only be known at runtime.
-        ;; For a macro, that means we can't use that macro in the same file.
-        (progn
-          (unless macro
-            (push (cons bare-name (if (listp arglist) `(declared ,arglist) t))
-                  byte-compile-function-environment))
-          ;; Tell the caller that we didn't compile it yet.
-          nil)
+        ;; Tell the caller that we didn't compile it yet.
+        nil
 
       (let ((code (byte-compile-lambda `(lambda ,arglist . ,body))))
         (if this-one
@@ -5168,7 +5163,8 @@ binding slots have been popped."
        (pcase-let*
            ;; `macro' is non-nil if it defines a macro.
            ;; `fun' is the function part of `arg' (defaults to `arg').
-           (((or (and (or `(cons 'macro ,fun) `'(macro . ,(app (list 'quote) fun)))
+           (((or (and (or `(cons 'macro ,fun)
+                          `'(macro . ,(app macroexp-quote fun)))
                       (let macro t))
                  (and (let fun arg) (let macro nil)))
              arg)
@@ -5184,14 +5180,13 @@ binding slots have been popped."
              lam))
          (unless (byte-compile-file-form-defmumble
                   name macro arglist body rest)
-           (when macro
-             (if (null fun)
-                 (byte-compile-warn-x
-                  name "Macro %s unrecognized, won't work in file" name)
-               (byte-compile-warn-x
-                name "Macro %s partly recognized, trying our luck" name)
-               (push (cons name (eval fun lexical-binding))
-                     byte-compile-macro-environment)))
+           (if (not macro)
+               (push (cons name (if (listp arglist) `(declared ,arglist) t))
+                     byte-compile-function-environment)
+             (byte-compile-warn-x
+              name "Definition of macro %s not fully recognized" name)
+             (push (cons name (eval fun lexical-binding))
+                   byte-compile-macro-environment))
            (byte-compile-keep-pending form))))
 
       ;; We used to just do: (byte-compile-normal-call form)
