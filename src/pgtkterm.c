@@ -3361,32 +3361,39 @@ pgtk_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
   if (y1 - y0 > x1 - x0 && x1 - x0 > 2)
     /* Vertical.  */
     {
-      pgtk_set_cr_source_with_color (f, color_first, false);
+      pgtk_set_cr_source_with_color (f, color_first,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0, y0, 1, y1 - y0);
       cairo_fill (cr);
-      pgtk_set_cr_source_with_color (f, color, false);
+      pgtk_set_cr_source_with_color (f, color,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0 + 1, y0, x1 - x0 - 2, y1 - y0);
       cairo_fill (cr);
-      pgtk_set_cr_source_with_color (f, color_last, false);
+      pgtk_set_cr_source_with_color (f, color_last,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x1 - 1, y0, 1, y1 - y0);
       cairo_fill (cr);
     }
   else if (x1 - x0 > y1 - y0 && y1 - y0 > 3)
     /* Horizontal.  */
     {
-      pgtk_set_cr_source_with_color (f, color_first, false);
+      pgtk_set_cr_source_with_color (f, color_first,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0, y0, x1 - x0, 1);
       cairo_fill (cr);
-      pgtk_set_cr_source_with_color (f, color, false);
+      pgtk_set_cr_source_with_color (f, color,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0, y0 + 1, x1 - x0, y1 - y0 - 2);
       cairo_fill (cr);
-      pgtk_set_cr_source_with_color (f, color_last, false);
+      pgtk_set_cr_source_with_color (f, color_last,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0, y1 - 1, x1 - x0, 1);
       cairo_fill (cr);
     }
   else
     {
-      pgtk_set_cr_source_with_color (f, color, false);
+      pgtk_set_cr_source_with_color (f, color,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0, y0, x1 - x0, y1 - y0);
       cairo_fill (cr);
     }

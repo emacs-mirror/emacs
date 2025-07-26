@@ -7493,13 +7493,16 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
     {
       XSetForeground (display, f->output_data.x->normal_gc, color_first);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0, y0, 1, y1 - y0, false);
+			x0, y0, 1, y1 - y0,
+                        f->borders_respect_alpha_background);
       XSetForeground (display, f->output_data.x->normal_gc, color);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0 + 1, y0, x1 - x0 - 2, y1 - y0, false);
+			x0 + 1, y0, x1 - x0 - 2, y1 - y0,
+                        f->borders_respect_alpha_background);
       XSetForeground (display, f->output_data.x->normal_gc, color_last);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x1 - 1, y0, 1, y1 - y0, false);
+			x1 - 1, y0, 1, y1 - y0,
+                        f->borders_respect_alpha_background);
     }
   else if ((x1 - x0 > y1 - y0) && (y1 - y0 >= 3))
     /* A horizontal divider, at least three pixels high: Draw first and
@@ -7507,13 +7510,16 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
     {
       XSetForeground (display, f->output_data.x->normal_gc, color_first);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0, y0, x1 - x0, 1, false);
+			x0, y0, x1 - x0, 1,
+                        f->borders_respect_alpha_background);
       XSetForeground (display, f->output_data.x->normal_gc, color);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0, y0 + 1, x1 - x0, y1 - y0 - 2, false);
+			x0, y0 + 1, x1 - x0, y1 - y0 - 2,
+                        f->borders_respect_alpha_background);
       XSetForeground (display, f->output_data.x->normal_gc, color_last);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0, y1 - 1, x1 - x0, 1, false);
+			x0, y1 - 1, x1 - x0, 1,
+                        f->borders_respect_alpha_background);
     }
   else
     {
@@ -7521,7 +7527,8 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
        differently.  */
       XSetForeground (display, f->output_data.x->normal_gc, color);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0, y0, x1 - x0, y1 - y0, false);
+			x0, y0, x1 - x0, y1 - y0,
+                        f->borders_respect_alpha_background);
     }
 }
 
@@ -7722,11 +7729,15 @@ x_clear_under_internal_border (struct frame *f)
 	  GC gc = f->output_data.x->normal_gc;
 
 	  XSetForeground (display, gc, color);
-	  x_fill_rectangle (f, gc, 0, margin, width, border, false);
-	  x_fill_rectangle (f, gc, 0, 0, border, height, false);
-	  x_fill_rectangle (f, gc, width - border, 0, border, height, false);
+	  x_fill_rectangle (f, gc, 0, margin, width, border,
+                            f->borders_respect_alpha_background);
+	  x_fill_rectangle (f, gc, 0, 0, border, height,
+                            f->borders_respect_alpha_background);
+	  x_fill_rectangle (f, gc, width - border, 0, border, height,
+                            f->borders_respect_alpha_background);
 	  x_fill_rectangle (f, gc, 0, height - bottom_margin - border,
-			    width, border, false);
+			    width, border,
+                            f->borders_respect_alpha_background);
 	  XSetForeground (display, gc, FRAME_FOREGROUND_PIXEL (f));
 	}
       else

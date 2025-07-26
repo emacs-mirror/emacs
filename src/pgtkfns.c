@@ -985,6 +985,7 @@ frame_parm_handler pgtk_frame_parm_handlers[] =
     pgtk_set_override_redirect,
     gui_set_no_special_glyphs,
     pgtk_set_alpha_background,
+    gui_set_borders_respect_alpha_background,
     NULL,
   };
 
@@ -1571,6 +1572,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame, 1, 1, 0,
 			 "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
+                         "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   if (!NILP (parent_frame))
     {
@@ -2730,6 +2734,9 @@ pgtk_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, str
                          "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
+                         "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))

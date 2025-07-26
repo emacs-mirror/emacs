@@ -4617,6 +4617,8 @@ static const struct frame_parm_table frame_parms[] =
   {"override-redirect",		SYMBOL_INDEX (Qoverride_redirect)},
   {"no-special-glyphs",		SYMBOL_INDEX (Qno_special_glyphs)},
   {"alpha-background",		SYMBOL_INDEX (Qalpha_background)},
+  {"borders-respect-alpha-background",
+				SYMBOL_INDEX (Qborders_respect_alpha_background)},
   {"use-frame-synchronization",	SYMBOL_INDEX (Quse_frame_synchronization)},
 #ifdef HAVE_X_WINDOWS
   {"shaded",			SYMBOL_INDEX (Qshaded)},
@@ -5818,6 +5820,13 @@ gui_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   SET_FRAME_GARBAGED (f);
 }
 
+void
+gui_set_borders_respect_alpha_background (struct frame *f, Lisp_Object arg,
+					  Lisp_Object oldval)
+{
+  f->borders_respect_alpha_background = !NILP (arg);
+}
+
 /**
  * gui_set_no_special_glyphs:
  *
@@ -7009,6 +7018,7 @@ syms_of_frame (void)
 
   DEFSYM (Qalpha, "alpha");
   DEFSYM (Qalpha_background, "alpha-background");
+  DEFSYM (Qborders_respect_alpha_background, "borders-respect-alpha-background");
   DEFSYM (Qauto_lower, "auto-lower");
   DEFSYM (Qauto_raise, "auto-raise");
   DEFSYM (Qborder_color, "border-color");
