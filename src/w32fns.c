@@ -6487,8 +6487,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                          NULL, NULL, RES_TYPE_BOOLEAN);
   gui_default_parameter (f, parameters, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
-  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
-                         "bordersRespectAlphaBackground",
+  gui_default_parameter (f, parameters, Qborders_respect_alpha_background,
+			 Qnil, "bordersRespectAlphaBackground",
                          "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   /* Process alpha here (Bug#16619).  On XP this fails with child
@@ -6633,8 +6633,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   gui_default_parameter (f, parameters, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
-  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
-                         "bordersRespectAlphaBackground",
+  gui_default_parameter (f, parameters, Qborders_respect_alpha_background,
+			 Qnil, "bordersRespectAlphaBackground",
                          "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   /* Make the window appear on the frame and enable display, unless
