@@ -777,6 +777,26 @@ default_PATH (void)
 
 #if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
 
+# ifndef WINDOWSNT
+/* If NAME is a symlink return a non-symlink name of the file it points to,
+   allocated as if by malloc.  Otherwise, or if there is an error
+   resolving the name, set errno and return a null pointer.  */
+static char *
+follow_if_symlink (char const *name)
+{
+  /* For speed, resolve symlinks only if the name is itself a symlink,
+     and test this via readlink instead of via lstat+S_ISLNK
+     as lstat can fail with EOVERFLOW when given a symlink.
+     Use realpath to resolve symlinks; although this is overkill as
+     realpath also canonicalizes the resulting parent directory,
+     there's no easy way here to avoid the overkill.  */
+  char linkbuf[1];
+  return (readlink (name, linkbuf, sizeof linkbuf) < 0
+	  ? NULL
+	  : realpath (name, NULL));
+}
+# endif
+
 /* Find a name (absolute or relative) of the Emacs executable whose
    name (as passed into this program) is ARGV0.  Called early in
    initialization by portable dumper loading code, so avoid Lisp and
@@ -798,16 +818,13 @@ find_emacs_executable (char const *argv0, ptrdiff_t *candidate_size)
   return prog_fname ? xstrdup (prog_fname) : NULL;
 #else  /* !WINDOWSNT */
   char *candidate = NULL;
-  char linkbuf[1];
 
   /* If the executable name contains a slash, we have some kind of
      path already, so just resolve symlinks and return the result.  */
   eassert (argv0);
   if (strchr (argv0, DIRECTORY_SEP))
     {
-      char *val = (readlink (argv0, linkbuf, sizeof linkbuf) < 0
-		   ? NULL
-		   : realpath (argv0, NULL));
+      char *val = follow_if_symlink (argv0);
       if (!val)
 	val = xstrdup (argv0);
       *candidate_size = strlen (val) + 1;
@@ -856,16 +873,12 @@ find_emacs_executable (char const *argv0, ptrdiff_t *candidate_size)
 	  /* People put on PATH a symlink to the real Emacs
 	     executable, with all the auxiliary files where the real
 	     executable lives.  Support that.  */
-	  if (0 <= readlink (candidate, linkbuf, sizeof linkbuf))
+	  char *val = follow_if_symlink (candidate);
+	  if (val)
 	    {
-	      char *real_name = realpath (candidate, NULL);
-
-	      if (real_name)
-		{
-		  xfree (candidate);
-		  *candidate_size = strlen (real_name) + 1;
-		  return real_name;
-		}
+	      xfree (candidate);
+	      *candidate_size = strlen (val) + 1;
+	      return val;
 	    }
 	  return candidate;
 	}
