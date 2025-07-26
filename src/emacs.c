@@ -769,6 +769,9 @@ default_PATH (void)
 	}
 
       path = buf;
+
+#elif defined DOS_NT
+      path = strcpy (staticbuf, ".");
 #endif
     }
 
