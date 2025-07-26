@@ -238,7 +238,8 @@ revisions or branches (@pxref{Branches}) checked out simultaneously, in
 different working trees, but with all revision history, branches, tags
 and other metadata shared.
 
-Ordinary VC commands like @kbd{C-x v v} and @kbd{C-x v d} don't work any
+Ordinary VC commands like @kbd{C-x v v} (@pxref{Basic VC Editing}) and
+@kbd{C-x v d} (@pxref{VC Directory Mode}) don't work any
 differently when there exist other working trees, except that the
 commits, branches and other VC artifacts they create will be visible
 from all working trees.
