@@ -2904,16 +2904,16 @@ ns_define_fringe_bitmap (int which, unsigned short *bits, int h, int w)
   if (!fringe_bmp)
     fringe_bmp = [[NSMutableDictionary alloc] initWithCapacity:25];
 
-  uint8_t *points = alloca((h + 1) * (w + 1) * 4);
+  uint8_t *points = alloca ((h + 1) * (w + 1) * 4);
   uint8_t *cur = points;
 
   /* Find all the outgoing edges in a clockwise path.  That is, we only
      want to list the edges leaving a point, not the ones entering a
      point, so we don't double count them.  */
-  for (int y = 0 ; y < h + 1 ; y++)
-    for (int x = 0 ; x < w + 1 ; x++)
+  for (int y = 0; y < h + 1; y++)
+    for (int x = 0; x < w + 1; x++)
       {
-        int nw=0, ne=0, se=0, sw=0;
+        int nw = 0, ne = 0, se = 0, sw = 0;
         if (x != 0 && y != 0)
           nw = bits[y-1] & (1 << (w - x));
 
@@ -2926,10 +2926,10 @@ ns_define_fringe_bitmap (int which, unsigned short *bits, int h, int w)
         if (x < w && y != 0)
           ne = bits[y-1] & (1 << (w - x - 1));
 
-        cur[0] = !nw && ne; /* north */
-        cur[1] = !ne && se; /* east */
-        cur[2] = !se && sw; /* south */
-        cur[3] = !sw && nw; /* west */
+        cur[0] = !nw && ne; /* North.  */
+        cur[1] = !ne && se; /* East.  */
+        cur[2] = !se && sw; /* South.  */
+        cur[3] = !sw && nw; /* West.  */
         cur += 4;
       }
 
@@ -2944,35 +2944,35 @@ ns_define_fringe_bitmap (int which, unsigned short *bits, int h, int w)
 
       if (points[v+3])
         {
-          /* west */
+          /* West.  */
           points[v+3] = 0;
           v = v - 4;
           this = 'w';
         }
       else if (points[v+1])
         {
-          /* east */
+          /* East.  */
           points[v+1] = 0;
           v = v + 4;
           this = 'e';
         }
       else if (points[v+2])
         {
-          /* south */
+          /* South.  */
           points[v+2] = 0;
           v = ((y+1)*(w+1) + x) * 4;
           this = 's';
         }
       else if (points[v])
         {
-          /* north */
+          /* North.  */
           points[v] = 0;
           v = ((y-1)*(w+1) + x) * 4;
           this = 'n';
         }
       else
         {
-          /* no edge */
+          /* No edge.  */
           v = v + 4;
 
           if (last)
@@ -2994,7 +2994,7 @@ ns_define_fringe_bitmap (int which, unsigned short *bits, int h, int w)
           if (!last)
             [p moveToPoint:NSMakePoint (x, y)];
           else if (last && last != this)
-              [p lineToPoint:NSMakePoint (x, y)];
+	    [p lineToPoint:NSMakePoint (x, y)];
           last = this;
         }
     }
