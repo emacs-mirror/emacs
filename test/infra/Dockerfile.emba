@@ -29,7 +29,7 @@ FROM debian:bookworm as emacs-base
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
       libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libxml2-dev libdbus-1-dev libacl1-dev acl git man-db texinfo gdb \
+      libxml2-dev libdbus-1-dev libacl1-dev acl git man-db texinfo gdb python3 \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-base as emacs-inotify

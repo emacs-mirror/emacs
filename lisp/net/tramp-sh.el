@@ -3619,8 +3619,9 @@ will be used."
 
 (defun tramp-bundle-read-file-names (vec files)
   "Read file attributes of FILES and with one command fill the cache.
-FILES must be the local names only.  The cache attributes to be
-filled are described in `tramp-bundle-read-file-names'."
+FILES must be the local names only.  The cache attributes to be filled
+are \"file-exists-p\", \"file-readable-p\", \"file-directory-p\" and
+\"file-executable-p\"."
   (when files
     (tramp-maybe-send-script
      vec tramp-bundle-read-file-names "tramp_bundle_read_file_names")
@@ -3875,7 +3876,10 @@ Fall back to normal file name handler if no Tramp handler exists."
     (catch 'doesnt-work
       ;; https://bugs.launchpad.net/bugs/1742946
       (when (string-match-p
-	     (rx (| "Monitoring not supported" "No locations given")) string)
+	     (rx (| "Monitoring not supported"
+                    "No locations given"
+                    "Unable to find default local file monitor type"))
+             string)
         (delete-process proc)
         (throw 'doesnt-work nil))
 
