@@ -3055,12 +3055,12 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   ns_focus (f, &bmpRect, 1);
 
   /* Clear screen unless overlay.  */
-  if (!p->overlay_p && !NSIsEmptyRect (clearRect))
+  if (!p->overlay_p && !NSIsEmptyRect (bmpRect))
     {
-      NSTRACE_RECT ("clearRect", clearRect);
+      NSTRACE_RECT ("clearRect", bmpRect);
 
       [[NSColor colorWithUnsignedLong:face->background] set];
-      NSRectFill (clearRect);
+      NSRectFill (bmpRect);
     }
 
   NSBezierPath *bmp = [fringe_bmp objectForKey:[NSNumber numberWithInt:p->which]];
