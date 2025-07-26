@@ -1432,6 +1432,8 @@ Used by `bibtex-complete-crossref-cleanup' and `bibtex-copy-summary-as-kill'."
   :type '(choice (const :tag "Default" bibtex-summary)
                  (function :tag "Personalized function")))
 
+(defvar bibtex-generate-url-list)
+(defvar bibtex-font-lock-url-regexp)
 (defun bibtex-generate-url-list-init (&optional local)
   "Initialize `bibtex-font-lock-url-regexp' from `bibtex-generate-url-list'.
 Return value of `bibtex-font-lock-url-regexp'.
@@ -1445,10 +1447,9 @@ Use LOCAL non-nil when setting `bibtex-generate-url-list' buffer-locally."
                                             bibtex-generate-url-list)))
                                  'paren)
                      "[ \t\n]*=[ \t\n]*")))
-    (if (boundp 'bibtex-font-lock-url-regexp)
-        (if local
-            (setq bibtex-font-lock-url-regexp val)
-          (setq-default bibtex-font-lock-url-regexp val)))
+    (if local
+        (setq-local bibtex-font-lock-url-regexp val)
+      (setq-default bibtex-font-lock-url-regexp val))
     val))
 
 (defcustom bibtex-generate-url-list
