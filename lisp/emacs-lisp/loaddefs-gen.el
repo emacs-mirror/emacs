@@ -557,7 +557,7 @@ If COMPILE, don't include a \"don't compile\" cookie."
        file 'loaddefs-generate
        :title (concat "automatically extracted " (or type "autoloads"))
        :commentary (and (string-match "/lisp/loaddefs\\.el\\'" file)
-                        "This file will be copied to ldefs-boot.el and checked in periodically."))
+                        "This file will be copied to ldefs-boot.el and checked in periodically.  Note: When checking in ldefs-boot.el, don't include changes to any other files in the commit."))
       (when lp
         (insert "(add-to-list 'load-path (directory-file-name
                          (or (file-name-directory #$) (car load-path))))\n\n"))

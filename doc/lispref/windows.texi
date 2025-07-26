@@ -2490,7 +2490,9 @@ argument.
 
 The optional argument @var{all-frames} has the same meaning as in
 @code{next-window}, like a @code{nil} @var{minibuf} argument to
-@code{next-window}.
+@code{next-window}.  When called interactively, @var{all-frames} is
+always @code{nil}, so only windows on the selected frame can be
+selected.
 
 If the @code{other-window} parameter of the selected window is a
 function, and @code{ignore-window-parameters} is @code{nil}, that

@@ -21168,6 +21168,29 @@ You may also consider doing something similar with @code{expunge}.
 If you say stuff like @code{[^abcd]*}, you may get unexpected results.
 That will match newlines, which might lead to, well, The Unknown.  Say
 @code{[^abcd\n]*} instead.
+
+@item Continuation lines when scoring on other headers
+When scoring on other headers using the @code{Head} or @code{All} match
+keys and regexp matching, your regular expression must take into account
+header continuation lines.  For example, this naive attempt to match
+messages including a particular address in the @code{To} field:
+
+@lisp
+("head" "^To: .*\\bspwhitton@@spwhitton\\.name\\b" r)
+@end lisp
+
+will fail to match a message with a @code{To} header like this:
+
+@example
+To: A long description of the Emacs devel list <emacs-devel@@gnu.org>,
+ spwhitton@@spwhitton.name, 12345@@debbugs.gnu.org
+@end example
+
+You can handle this issue with a regexp of this form:
+
+@lisp
+("head" "^To: .*\\(?:\n[\s\t].*\\)*\\bspwhitton@@spwhitton\\.name\\b" r)
+@end lisp
 @end table
 
 
