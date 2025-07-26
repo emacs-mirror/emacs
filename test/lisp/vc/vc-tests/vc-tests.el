@@ -662,7 +662,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 
 (defun vc-test--other-working-trees (backend)
   "Test other working trees actions."
-  (ert-with-temp-directory tempdir
+  (ert-with-temp-directory _tempdir
     (let ((vc-handled-backends `(,backend))
           (default-directory
            (file-name-as-directory
