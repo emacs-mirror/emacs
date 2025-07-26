@@ -4358,11 +4358,14 @@ BACKEND is defaulted by calling `vc-responsible-backend' on DIRECTORY."
                        (lambda (entries &optional more-to-come)
                          (let (entry)
                            (while (setq entry (pop entries))
-                             ;; We shouldn't actually get any
-                             ;; `up-to-date' or `ignored' entries back,
-                             ;; but just in case, pass through a filter.
-                             (unless (memq (cadr entry)
-                                           '(up-to-date ignored))
+                             (unless (and (not files)
+                                          ;; In this case we shouldn't
+                                          ;; actually get any
+                                          ;; `up-to-date' or `ignored'
+                                          ;; entries back, but just in
+                                          ;; case, filter them.
+                                          (memq (cadr entry)
+                                                '(up-to-date ignored)))
                                (push entry results))))
                          (setq morep more-to-come)))
       (while morep (accept-process-output)))
