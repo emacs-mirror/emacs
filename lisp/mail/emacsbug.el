@@ -427,13 +427,16 @@ copy text to your preferred mail program.\n"
 (defun report-emacs-bug-check-org ()
   "Warn the user if the bug report mentions org-mode."
   (unless report-emacs-bug-no-confirmation
-    (goto-char (point-max))
-    (skip-chars-backward " \t\n")
-    (let* ((text (buffer-substring-no-properties (point-min) (point)))
-           (l (length report-emacs-bug-orig-text))
-           (text (substring text 0 l))
-           (org-regex "\\b[Oo]rg\\(-mode\\)?\\b"))
-      (when (string-match-p org-regex text)
+    (let* ((org-regex "\\(^\\|\\s-\\)[Oo]rg\\(-mode\\)?\\(\\s-\\|$\\)")
+           (count (lambda (r s)
+                    (let ((c 0) (start 0))
+                      (while (string-match r s start)
+                        (setq c (1+ c))
+                        (setq start (match-end 0)))
+                      c)))
+           (m (funcall count org-regex (buffer-string)))
+           (m-orig (funcall count org-regex report-emacs-bug-orig-text)))
+      (when (> m m-orig)
         (when (yes-or-no-p "Is this bug about org-mode?")
           (error (substitute-command-keys "\
 Not sending, use \\[org-submit-bug-report] to report an Org-mode bug.")))))))
