@@ -236,8 +236,19 @@ Some VCS support more than one working tree with the same backing
 repository or revisions store.  This means that you can have different
 revisions or branches (@pxref{Branches}) checked out simultaneously, in
 different working trees, but with all revision history, branches, tags
-and other metadata shared.  The following commands let you switch
-between and modify different working trees.
+and other metadata shared.
+
+Ordinary VC commands like @kbd{C-x v v} and @kbd{C-x v d} don't work any
+differently when there exist other working trees, except that the
+commits, branches and other VC artifacts they create will be visible
+from all working trees.
+
+The following special commands let you switch between and modify
+different working trees.  It is an error to use them other than from
+within a VC working tree; that is, from a buffer visiting a
+VCS-controlled file, or otherwise from a buffer whose
+@code{default-directory} (@pxref{File Names}) is within a VC working
+tree.
 
 @table @kbd
 @item C-x v w c

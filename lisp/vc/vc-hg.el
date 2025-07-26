@@ -1682,6 +1682,7 @@ Intended for use via the `vc-hg--async-command' wrapper."
       (buffer-substring-no-properties (point-min) (1- (point-max))))))
 
 (defun vc-hg-known-other-working-trees ()
+  "Implementation of `known-other-working-trees' backend function for Hg."
   ;; Mercurial doesn't maintain records of shared repositories.
   ;; The first repository knows nothing about shares created from it,
   ;; and each share only has a reference back to the first repository.
@@ -1713,6 +1714,7 @@ Intended for use via the `vc-hg--async-command' wrapper."
     shares))
 
 (defun vc-hg-add-working-tree (directory)
+  "Implementation of `add-working-tree' backend function for Mercurial."
   (vc-hg-command nil 0 nil "share"
                  (vc-hg-root default-directory)
                  (expand-file-name directory)))
@@ -1721,12 +1723,14 @@ Intended for use via the `vc-hg--async-command' wrapper."
   (file-exists-p (expand-file-name ".hg/sharedpath" directory)))
 
 (defun vc-hg-delete-working-tree (directory)
+  "Implementation of `delete-working-tree' backend function for Mercurial."
   (if (vc-hg--shared-p directory)
       (delete-directory directory t t)
     (user-error "\
 Cannot delete first working tree because this would break other working trees")))
 
 (defun vc-hg-move-working-tree (from to)
+  "Implementation of `move-working-tree' backend function for Mercurial."
   (if (vc-hg--shared-p from)
       (rename-file from (directory-file-name to) 1)
     (user-error "\

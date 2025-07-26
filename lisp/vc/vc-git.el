@@ -2393,7 +2393,12 @@ In other modes, call `vc-deduce-fileset' to determine files to stash."
   (vc-dir-at-event e (popup-menu vc-git-stash-menu-map e)))
 
 (defun vc-git--worktrees ()
-  "Return an alist of alists regarding this repository's worktrees."
+  "Return an alist of alists regarding this repository's worktrees.
+The keys into the outer alist are the worktree root directories; so,
+there is one inner alist for each worktree.  The keys and values of each
+inner alist are the worktree attributes returned by `git worktree list';
+see the \"LIST OUTPUT FORMAT\" section of the git-worktree(1) manual
+page for the meanings of these attributes."
   (with-temp-buffer
     (vc-git-command nil 0 nil "worktree" "prune")
     (vc-git-command t 0 nil "worktree" "list" "--porcelain" "-z")
@@ -2417,12 +2422,14 @@ In other modes, call `vc-deduce-fileset' to determine files to stash."
           (error "'git worktree' output parse error")))))
 
 (defun vc-git-known-other-working-trees ()
+  "Implementation of `known-other-working-trees' backend function for Git."
   (cl-loop with root = (expand-file-name (vc-git-root default-directory))
            for (worktree) in (vc-git--worktrees)
            unless (equal worktree root)
            collect (abbreviate-file-name worktree)))
 
 (defun vc-git-add-working-tree (directory)
+  "Implementation of `add-working-tree' backend function for Git."
   (letrec ((dir (expand-file-name directory))
            (vc-filter-command-function #'list) ; see `vc-read-revision'
            (revs (vc-git-revision-table nil))
@@ -2439,10 +2446,12 @@ In other modes, call `vc-deduce-fileset' to determine files to stash."
     (apply #'vc-git-command nil 0 nil "worktree" "add" args)))
 
 (defun vc-git-delete-working-tree (directory)
+  "Implementation of `delete-working-tree' backend function for Git."
   (vc-git-command nil 0 nil "worktree" "remove" "-f"
                   (expand-file-name directory)))
 
 (defun vc-git-move-working-tree (from to)
+  "Implementation of `move-working-tree' backend function for Git."
   ;; 'git worktree move' can't move the main worktree, but moving and
   ;; then repairing like this can.
   (rename-file from (directory-file-name to) 1)

@@ -155,6 +155,7 @@
 ;;   files, including up-to-date or ignored files.
 ;;
 ;;   EXTRA can be used for backend specific information about FILE.
+;;
 ;;   If a command needs to be run to compute this list, it should be
 ;;   run asynchronously using (current-buffer) as the buffer for the
 ;;   command.
@@ -4338,16 +4339,26 @@ It returns the last revision that changed LINE number in FILE."
       (if (consp rev) (car rev) rev))))
 
 (defun vc-dir-status-files (directory &optional files backend)
-  "Synchronously run `dir-status-files' VC backend function for DIRECTORY.
-FILES is passed to the VC backend function.
-BACKEND is defaulted by calling `vc-responsible-backend' on DIRECTORY."
+  "Return VC status information about files in DIRECTORY.
+Return a list of the form (FILE VC-STATE EXTRA) for each file.
+VC-STATE is the current VC state of the file, and EXTRA is optional,
+backend-specific information.
+Normally files in the `up-to-date' and `ignored' states are not
+included.  If the optional argument FILES is non-nil, report on only
+those files, and don't exclude them for being in one of those states.
+BACKEND is the VC backend; if nil or omitted, it defaults to the result
+of calling `vc-responsible-backend' with DIRECTORY as its first and only
+argument.
+
+This function provides Lisp programs with synchronous access to the same
+information that Emacs requests from VC backends to populate VC-Dir
+buffers.  It is usually considerably faster than walking the tree
+yourself with a function like `vc-file-tree-walk'."
   ;; The `dir-status-files' API was designed for asynchronous use to
   ;; populate *vc-dir* buffers; see `vc-dir-refresh'.
-  ;; This function provides Lisp programs with synchronous access to the
-  ;; same information without touching the user's *vc-dir* buffers and
+  ;; This function provides Lisp programs with access to the same
+  ;; information without touching the user's *vc-dir* buffers and
   ;; without having to add a new VC backend function.
-  ;; It is considerably faster than using `vc-file-tree-walk'
-  ;; (like `vc-tag-precondition' does).
   ;; This function is in this file despite its `vc-dir-' prefix to avoid
   ;; having to load `vc-dir' just to get access to this simple wrapper.
   (let ((morep t) results)
@@ -4374,8 +4385,9 @@ BACKEND is defaulted by calling `vc-responsible-backend' on DIRECTORY."
 ;;;###autoload
 (defun vc-add-working-tree (backend directory)
   "Create working tree DIRECTORY with same backing repository as this tree.
-See Info node `(emacs)Other Working Trees' regarding VCS repositories
-with multiple working trees."
+Must be called from within an existing VC working tree.
+When called interactively, prompts for DIRECTORY.
+When called from Lisp, BACKEND is the VC backend."
   (interactive
    (list
     (vc-responsible-backend default-directory)
@@ -4401,12 +4413,11 @@ with multiple working trees."
 ;;;###autoload
 (defun vc-switch-working-tree (directory)
   "Switch to this file's analogue in working tree DIRECTORY.
-This command switches to the file which has the same path
-relative to DIRECTORY that this buffer's file has relative
-to the root of this working tree.
-DIRECTORY names another working tree with the same backing repository as
-this tree; see Info node `(emacs)Other Working Trees' for general
-information regarding VCS repositories with multiple working trees."
+Must be called from within an existing VC working tree.
+When called interactively, prompts for DIRECTORY.
+This command switches to the file which has the same file
+name relative to DIRECTORY that this buffer's file has relative
+to the root of this working tree."
   ;; FIXME: Switch between directory analogues, too, in Dired buffers.
   (interactive
    (list
@@ -4421,8 +4432,9 @@ information regarding VCS repositories with multiple working trees."
 ;;;###autoload
 (defun vc-delete-working-tree (backend directory)
   "Delete working tree DIRECTORY with same backing repository as this tree.
-See Info node `(emacs)Other Working Trees' regarding VCS repositories
-with multiple working trees."
+Must be called from within an existing VC working tree.
+When called interactively, prompts for DIRECTORY.
+BACKEND is the VC backend."
   (interactive
    (let ((backend (vc-responsible-backend default-directory)))
      (list backend
@@ -4447,9 +4459,11 @@ with multiple working trees."
 (autoload 'dired-rename-subdir "dired-aux")
 ;;;###autoload
 (defun vc-move-working-tree (backend from to)
-  "Relocate a working tree from FROM to TO.
-See Info node `(emacs)Other Working Trees' regarding VCS repositories
-with multiple working trees."
+  "Relocate a working tree from FROM to TO, two directory file names.
+Must be called from within an existing VC working tree.
+When called interactively, prompts the directory file names of each of
+the other working trees FROM and TO.
+BACKEND is the VC backend."
   (interactive
    (let ((backend (vc-responsible-backend default-directory)))
      (list backend
