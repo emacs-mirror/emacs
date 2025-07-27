@@ -2070,6 +2070,10 @@ Will not rewrite likely-public history; see option `vc-allow-rewriting-published
 
 (defun vc-git-modify-change-comment (files rev comment)
   (vc-git--assert-allowed-rewrite rev)
+  (when (zerop (vc-git--call nil "rev-parse" (format "%s^2" rev)))
+    ;; This amend! approach doesn't work for merge commits.
+    ;; Error out now instead of leaving an amend! commit hanging.
+    (error "Cannot modify merge commit comments"))
   (let* ((args (delete "--amend"
                        (vc-git--log-edit-extract-headers comment)))
          (message (format "amend! %s\n\n%s" rev (pop args)))
