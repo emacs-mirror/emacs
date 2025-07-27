@@ -116,6 +116,8 @@
 (require 'ert-x)
 (require 'vc)
 (require 'log-edit)
+(require 'project)
+(require 'cl-lib)
 
 (declare-function w32-application-type "w32proc.c")
 
@@ -688,7 +690,9 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                             (expand-file-name "second" default-directory)))
                    (third (file-name-as-directory
                            (expand-file-name "third" default-directory)))
-                   (tmp-name (expand-file-name "foo" first)))
+                   (tmp-name (expand-file-name "foo" first))
+                   (project-list-file
+                    (expand-file-name "projects.eld" default-directory)))
 
               ;; Set up the first working tree.
               (make-directory first t)
@@ -909,9 +913,13 @@ This checks also `vc-backend' and `vc-responsible-backend'."
           (skip-unless (memq ',backend '(Git Hg)))
           (skip-when
            (and (eq ',backend 'Hg)
-                (equal (car (process-lines-ignore-status "hg" "share"))
-                       "hg: unknown command 'share'")))
-          (vc-test--other-working-trees ',backend))))))
+                (cl-search "failed to import extension"
+                           (car
+                            (process-lines-ignore-status
+                             "hg" "--config=extensions.share=" "share")))))
+          (let ((vc-hg-global-switches (cons "--config=extensions.share="
+                                             vc-hg-global-switches)))
+            (vc-test--other-working-trees ',backend)))))))
 
 (provide 'vc-tests)
 ;;; vc-tests.el ends here
