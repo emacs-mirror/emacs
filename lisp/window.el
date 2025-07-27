@@ -5354,7 +5354,7 @@ Do not select an inactive minibuffer window."
 		 (not (eq frame (window-frame window))))
       (setq frame (window-frame window))
       (set-frame-selected-window frame window)
-      (select-frame-set-input-focus frame))))
+      (select-frame frame))))
 
 (defun quit-restore-window (&optional window bury-or-kill)
   "Quit WINDOW and deal with its buffer.
