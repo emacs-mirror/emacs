@@ -207,13 +207,15 @@ unfolded.  Otherwise old as well as new items will be folded."
 
 (defcustom newsticker-hide-old-feed-header
   nil
-  "Whether to automatically hide the header of feeds whose items are all
-old or obsolete in the *newsticker* buffer.  This is only visually
-interesting if the content of those feeds are also hidden (see
+  "Whether to automatically hide the header of old feeds.
+This hides the headers of feeds whose items are all old or obsolete
+in the *newsticker* buffer.  This is only visually interesting if
+the content of those feeds are also hidden (see
 `newsticker-hide-old-items-in-newsticker-buffer' and
 `newsticker-show-descriptions-of-new-items')."
   :type 'boolean
   :set #'newsticker--set-customvar-buffer
+  :version "31.1"
   :group 'newsticker-plainview)
 
 (defcustom newsticker-show-all-news-elements
