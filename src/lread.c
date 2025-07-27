@@ -2557,30 +2557,6 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end,
   return retval;
 }
 
-/* Grow a read buffer BUF that contains OFFSET useful bytes of data,
-   by at least MAX_MULTIBYTE_LENGTH bytes.  Update *BUF_ADDR and
-   *BUF_SIZE accordingly; 0 <= OFFSET <= *BUF_SIZE.  If *BUF_ADDR is
-   initially null, BUF is on the stack: copy its data to the new heap
-   buffer.  Otherwise, BUF must equal *BUF_ADDR and can simply be
-   reallocated.  Either way, remember the heap allocation (which is at
-   pdl slot COUNT) so that it can be freed when unwinding the stack.*/
-
-static char *
-grow_read_buffer (char *buf, ptrdiff_t offset,
-		  char **buf_addr, ptrdiff_t *buf_size, specpdl_ref count)
-{
-  char *p = xpalloc (*buf_addr, buf_size, MAX_MULTIBYTE_LENGTH, -1, 1);
-  if (!*buf_addr)
-    {
-      memcpy (p, buf, offset);
-      record_unwind_protect_ptr (xfree, p);
-    }
-  else
-    set_unwind_protect_ptr (count, xfree, p);
-  *buf_addr = p;
-  return p;
-}
-
 /* Return the scalar value that has the Unicode character name NAME.
    Raise 'invalid-read-syntax' if there is no such character.  */
 static int
@@ -2901,6 +2877,49 @@ invalid_radix_integer (EMACS_INT radix, source_t *source)
   invalid_syntax (buf, source);
 }
 
+/* A character buffer that starts on the C stack and switches to heap
+   allocation if more space is needed.  */
+typedef struct {
+  char *start;	      /* start of buffer, on the C stack or heap */
+  char *end;	      /* just past end of buffer */
+  char *cur;	      /* where to put next char read */
+  char *heap;         /* heap allocation or NULL */
+  specpdl_ref count;  /* index for cleanup when a heap allocation is used */
+} readbuf_t;
+
+/* Make more room in the buffer, using heap allocation.  */
+static NO_INLINE void
+readbuf_grow (readbuf_t *rb)
+{
+  ptrdiff_t used = rb->cur - rb->start;
+  ptrdiff_t size = rb->end - rb->start;
+  char *p = xpalloc (rb->heap, &size, MAX_MULTIBYTE_LENGTH, -1, 1);
+  if (rb->heap == NULL)
+    {
+      /* Old buffer is on the stack; copy it to the heap.  */
+      memcpy (p, rb->start, used);
+      rb->count = SPECPDL_INDEX ();
+      record_unwind_protect_ptr (xfree, p);
+    }
+  else
+    set_unwind_protect_ptr (rb->count, xfree, p);  /* update cleanup entry */
+  rb->start = rb->heap = p;
+  rb->cur = rb->start + used;
+  rb->end = rb->start + size;
+}
+
+static inline void
+add_char_to_buffer (readbuf_t *rb, int c, bool multibyte)
+{
+  /* Make room for a multibyte char and a terminating NUL.  */
+  if (rb->end - rb->cur < MAX_MULTIBYTE_LENGTH + 1)
+    readbuf_grow (rb);
+  if (multibyte)
+    rb->cur += CHAR_STRING (c, (unsigned char *) rb->cur);
+  else
+    *rb->cur++ = c;
+}
+
 /* Read an integer in radix RADIX using READCHARFUN to read
    characters.  RADIX must be in the interval [2..36].
    Value is the integer read.
@@ -2909,24 +2928,25 @@ invalid_radix_integer (EMACS_INT radix, source_t *source)
 static Lisp_Object
 read_integer (source_t *source, int radix)
 {
-  char stackbuf[20];
-  char *read_buffer = stackbuf;
-  ptrdiff_t read_buffer_size = sizeof stackbuf;
-  char *p = read_buffer;
-  char *heapbuf = NULL;
-  int valid = -1; /* 1 if valid, 0 if not, -1 if incomplete.  */
   specpdl_ref count = SPECPDL_INDEX ();
+  char stackbuf[20];
+  readbuf_t rb = { .start = stackbuf,
+		   .end = stackbuf + sizeof stackbuf,
+		   .cur = stackbuf,
+		   .heap = NULL };
+
+  int valid = -1; /* 1 if valid, 0 if not, -1 if incomplete.  */
 
   int c = readchar (source);
   if (c == '-' || c == '+')
     {
-      *p++ = c;
+      *rb.cur++ = c;
       c = readchar (source);
     }
 
   if (c == '0')
     {
-      *p++ = c;
+      *rb.cur++ = c;
       valid = 1;
 
       /* Ignore redundant leading zeros, so the buffer doesn't
@@ -2942,16 +2962,7 @@ read_integer (source_t *source, int radix)
 	valid = 0;
       if (valid < 0)
 	valid = 1;
-      /* Allow 1 extra byte for the \0.  */
-      if (p + 1 == read_buffer + read_buffer_size)
-	{
-	  ptrdiff_t offset = p - read_buffer;
-	  read_buffer = grow_read_buffer (read_buffer, offset,
-					  &heapbuf, &read_buffer_size,
-					  count);
-	  p = read_buffer + offset;
-	}
-      *p++ = c;
+      add_char_to_buffer (&rb, c, false);
       c = readchar (source);
     }
 
@@ -2960,8 +2971,8 @@ read_integer (source_t *source, int radix)
   if (valid != 1)
     invalid_radix_integer (radix, source);
 
-  *p = '\0';
-  return unbind_to (count, string_to_number (read_buffer, radix, NULL));
+  *rb.cur++ = '\0';
+  return unbind_to (count, string_to_number (rb.start, radix, NULL));
 }
 
 
@@ -3014,13 +3025,13 @@ read_char_literal (source_t *source)
 static Lisp_Object
 read_string_literal (source_t *source)
 {
-  char stackbuf[1024];
-  char *read_buffer = stackbuf;
-  ptrdiff_t read_buffer_size = sizeof stackbuf;
   specpdl_ref count = SPECPDL_INDEX ();
-  char *heapbuf = NULL;
-  char *p = read_buffer;
-  char *end = read_buffer + read_buffer_size;
+  char stackbuf[1024];
+  readbuf_t rb = { .start = stackbuf,
+		   .end = stackbuf + sizeof stackbuf,
+		   .cur = stackbuf,
+		   .heap = NULL };
+
   /* True if we saw an escape sequence specifying
      a multibyte character.  */
   bool force_multibyte = false;
@@ -3032,16 +3043,6 @@ read_string_literal (source_t *source)
   int ch;
   while ((ch = readchar (source)) >= 0 && ch != '\"')
     {
-      if (end - p < MAX_MULTIBYTE_LENGTH)
-	{
-	  ptrdiff_t offset = p - read_buffer;
-	  read_buffer = grow_read_buffer (read_buffer, offset,
-					  &heapbuf, &read_buffer_size,
-					  count);
-	  p = read_buffer + offset;
-	  end = read_buffer + read_buffer_size;
-	}
-
       if (ch == '\\')
 	{
 	  /* First apply string-specific escape rules:  */
@@ -3103,11 +3104,11 @@ read_string_literal (source_t *source)
 	  /* Any modifiers remaining are invalid.  */
 	  if (modifiers)
 	    invalid_syntax ("Invalid modifier in string", source);
-	  p += CHAR_STRING (ch, (unsigned char *) p);
+	  add_char_to_buffer (&rb, ch, true);
 	}
       else
 	{
-	  p += CHAR_STRING (ch, (unsigned char *) p);
+	  add_char_to_buffer (&rb, ch, true);
 	  if (CHAR_BYTE8_P (ch))
 	    force_singlebyte = true;
 	  else if (! ASCII_CHAR_P (ch))
@@ -3123,14 +3124,14 @@ read_string_literal (source_t *source)
     {
       /* READ_BUFFER contains raw 8-bit bytes and no multibyte
 	 forms.  Convert it to unibyte.  */
-      nchars = str_as_unibyte ((unsigned char *) read_buffer,
-			       p - read_buffer);
-      p = read_buffer + nchars;
+      nchars = str_as_unibyte ((unsigned char *)rb.start, rb.cur - rb.start);
+      rb.cur = rb.start + nchars;
     }
 
-  Lisp_Object obj = make_specified_string (read_buffer, nchars, p - read_buffer,
+  ptrdiff_t nbytes = rb.cur - rb.start;
+  Lisp_Object obj = make_specified_string (rb.start, nchars, nbytes,
 					   (force_multibyte
-					    || (p - read_buffer != nchars)));
+					    || nbytes != nchars));
   return unbind_to (count, obj);
 }
 
@@ -3693,36 +3694,6 @@ read_stack_reset (intmax_t sp)
   rdstack.sp = sp;
 }
 
-typedef struct {
-  char *start;		/* start of buffer, dynamic if equal to heapbuf */
-  char *end;		/* just past end of buffer */
-  char *cur;		/* where to put next char read */
-  char *heapbuf;	/* start of heap allocation if any, or NULL */
-  specpdl_ref count;	/* specpdl at start */
-} readbuf_t;
-
-static NO_INLINE void
-readbuf_grow (readbuf_t *rb)
-{
-  ptrdiff_t offset = rb->cur - rb->start;
-  ptrdiff_t size = rb->end - rb->start;
-  rb->start = grow_read_buffer (rb->start, offset, &rb->heapbuf, &size,
-				rb->count);
-  rb->cur = rb->start + offset;
-  rb->end = rb->start + size;
-}
-
-static inline void
-add_char_to_buffer (readbuf_t *rb, int c, bool multibyte)
-{
-  if (multibyte)
-    rb->cur += CHAR_STRING (c, (unsigned char *) rb->cur);
-  else
-    *rb->cur++ = c;
-  if (rb->end - rb->cur < MAX_MULTIBYTE_LENGTH + 1)
-    readbuf_grow (rb);
-}
-
 static AVOID
 invalid_syntax_with_buffer (readbuf_t *rb, source_t *source)
 {
@@ -3753,8 +3724,7 @@ read0 (source_t *source, bool locate_syms)
 
   readbuf_t rb = { .start = stackbuf,
 		   .end = stackbuf + sizeof stackbuf,
-		   .heapbuf = NULL,
-		   .count = SPECPDL_INDEX () };
+		   .heap = NULL };
 
   bool uninterned_symbol;
   bool skip_shorthand;
