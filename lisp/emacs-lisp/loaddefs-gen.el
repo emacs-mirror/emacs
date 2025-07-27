@@ -291,8 +291,8 @@ expand)' among their `declare' forms."
                       t)
                  (and (eq (car-safe (car body)) 'interactive)
                       ;; List of modes or just t.
-                      (or (if (nthcdr 1 (car body))
-                              (list 'quote (nthcdr 1 (car body)))
+                      (or (if (nthcdr 2 (car body))
+                              (list 'quote (nthcdr 2 (car body)))
                             t))))
             ,(if macrop ''macro nil)))))
 
