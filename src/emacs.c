@@ -771,6 +771,9 @@ default_PATH (void)
       path = buf;
 
 #elif defined DOS_NT
+      /* This is not exactly what Windows does when there's no PATH (see
+         documentation of CreateProcessW), but it's a good-enough
+         approximation.  */
       path = strcpy (staticbuf, ".");
 #endif
     }
