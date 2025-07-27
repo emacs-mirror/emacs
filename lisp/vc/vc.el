@@ -4412,7 +4412,7 @@ When called from Lisp, BACKEND is the VC backend."
 
 ;;;###autoload
 (defun vc-switch-working-tree (directory)
-  "Switch to this file's analogue in working tree DIRECTORY.
+  "Switch to the version of this file in working tree under DIRECTORY.
 Must be called from within an existing VC working tree.
 When called interactively, prompts for DIRECTORY.
 This command switches to the file which has the same file
