@@ -238,6 +238,27 @@ revisions or branches (@pxref{Branches}) checked out simultaneously, in
 different working trees, but with all revision history, branches, tags
 and other metadata shared.
 
+@indentedblock
+Suppose your project has a trunk where you're developing the new version
+3 of your software, and a stable release branch from which you make
+point releases of version 2.  Someone sends you a patch fixing a bug
+that's present in version 2.  Your main working tree has version 3
+checked out, and you're in the middle of a big refactor that you don't
+want to disturb.  So you type @kbd{C-x v w c} (see below) and create a
+new working tree, following the prompts to check out the version 2
+branch there.
+
+You apply the patch to that working tree, build and test it.  Satisfied,
+you use @kbd{C-x v P} (@pxref{Pulling / Pushing}) in the other working
+tree.  In the course of testing the patch, you've realised that the bug
+exists in version 3 of the software, too.  So you switch back to your
+first working tree, and use @kbd{C-x v m} (@pxref{Merging}) to merge the
+branch you have checked out in the other working tree.  Now your version
+of the trunk has all of version 2's fixes merged into it, but you
+haven't pushed it yet because you're still refactoring.  You'll use
+@kbd{C-x v P} later.
+@end indentedblock
+
 Ordinary VC commands like @kbd{C-x v v} (@pxref{Basic VC Editing}) and
 @kbd{C-x v d} (@pxref{VC Directory Mode}) don't work any
 differently when there exist other working trees, except that the
