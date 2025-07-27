@@ -707,14 +707,18 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                   (log-edit-done))
 
                 ;; Set up the second working tree.
+                ;; Stub out `vc-dir' so that it doesn't start a
+                ;; background update process which won't like it when we
+                ;; start moving directories around.
                 ;; For the backends which do additional prompting (as
                 ;; specified in the API for this backend function) we
                 ;; need to stub that out.
-                (cl-ecase backend
-                  (Git (cl-letf (((symbol-function 'completing-read)
-                                  (lambda (&rest _ignore) "")))
-                         (vc-add-working-tree backend second)))
-                  (Hg (vc-add-working-tree backend second))))
+                (cl-letf (((symbol-function 'vc-dir) #'ignore))
+                  (cl-ecase backend
+                    (Git (cl-letf (((symbol-function 'completing-read)
+                                    (lambda (&rest _ignore) "")))
+                           (vc-add-working-tree backend second)))
+                    (Hg (vc-add-working-tree backend second)))))
 
               ;; Test `known-other-working-trees'.
               (with-current-buffer (find-file-noselect tmp-name)
