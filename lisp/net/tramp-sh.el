@@ -5215,7 +5215,6 @@ connection if a previous connection has died for some reason."
 	      ;; Start new process.
 	      (when (and p (processp p))
 		(delete-process p))
-	      (setenv "TERM" tramp-terminal-type)
 	      (setenv "LC_ALL" (tramp-get-local-locale vec))
 	      (if (stringp tramp-histfile-override)
 		  (setenv "HISTFILE" tramp-histfile-override)
@@ -5224,8 +5223,6 @@ connection if a previous connection has died for some reason."
 		      (setenv "HISTFILE")
 		      (setenv "HISTFILESIZE" "0")
 		      (setenv "HISTSIZE" "0"))))
-	      (setenv "PROMPT_COMMAND")
-	      (setenv "PS1" tramp-initial-end-of-output)
 	      (unless (stringp tramp-encoding-shell)
                 (tramp-error vec 'file-error "`tramp-encoding-shell' not set"))
 	      (let* ((current-host tramp-system-name)

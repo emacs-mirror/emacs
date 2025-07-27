@@ -6880,9 +6880,11 @@ might have improper values."
 	  (mapcar #'car tramp-connection-local-default-system-variables))))
     `(let* ((default-directory tramp-compat-temporary-file-directory)
 	    (temporary-file-directory tramp-compat-temporary-file-directory)
-	    (process-environment
-	     (cons "TERM=dumb" (default-toplevel-value 'process-environment)))
             ,@bindings)
+       (setenv "TERM" tramp-terminal-type)
+       (setenv "PROMPT_COMMAND")
+       (setenv "PS1" tramp-initial-end-of-output)
+       (setenv "INSIDE_EMACS" (tramp-inside-emacs))
        ,@body)))
 
 (defun tramp-start-process (vec name buffer program &rest args)

@@ -82,8 +82,12 @@
 
 (defun tramp-inside-emacs ()
   "Version string provided by INSIDE_EMACS environment variable."
-  (concat (or (getenv "INSIDE_EMACS") emacs-version)
-	  ",tramp:" tramp-version))
+  (let ((version-string (concat ",tramp:" tramp-version)))
+    (concat
+     ;; Remove duplicate entries.
+     (string-replace
+      version-string "" (or (getenv "INSIDE_EMACS") emacs-version))
+     version-string)))
 
 ;; Tramp versions integrated into Emacs.  If a user option declares a
 ;; `:package-version' which doesn't belong to an integrated Tramp
