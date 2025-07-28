@@ -82,8 +82,9 @@ as its single argument, or one of the following special values:
   upgrading to a TLS connection via STARTTLS if possible.
 - `nntp-open-plain-stream' specifies an unencrypted network
   connection (no STARTTLS upgrade is attempted).
-- `nntp-open-ssl-stream' or `nntp-open-tls-stream' specify a TLS
-  network connection.
+- `nntp-open-tls-stream' specifies a TLS network connection (the
+  equivalent value `nntp-open-ssl-stream' is accepted for backwards
+  compatibility).
 
 Apart from the above special values, valid functions are as
 follows; please refer to their respective doc string for more
@@ -100,7 +101,7 @@ For indirect connections:
   "Non-nil means the nntp server never echoes commands.
 It is reported that some nntps server doesn't echo commands.  So, you
 may want to set this to non-nil in the method for such a server setting
-`nntp-open-connection-function' to `nntp-open-ssl-stream' for example.
+`nntp-open-connection-function' to `nntp-open-tls-stream' for example.
 Note that the `nntp-open-connection-functions-never-echo-commands'
 variable overrides the nil value of this variable.")
 

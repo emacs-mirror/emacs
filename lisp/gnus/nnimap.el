@@ -51,7 +51,7 @@
 
 (defvoo nnimap-server-port nil
   "The IMAP port used.
-If `nnimap-stream' is `ssl', this will default to `imaps'.  If not,
+If `nnimap-stream' is `tls', this will default to `imaps'.  If not,
 it will default to `imap'.")
 
 (defvoo nnimap-use-namespaces nil
@@ -63,10 +63,10 @@ names of your nnimap groups.")
 
 (defvoo nnimap-stream 'undecided
   "How nnimap talks to the IMAP server.
-The value should be either `undecided', `ssl' or `tls',
+The value should be either `undecided', `tls' or `ssl' (deprecated),
 `network', `starttls', `plain', or `shell'.
 
-If the value is `undecided', nnimap tries `ssl' first, then falls
+If the value is `undecided', nnimap tries `tls' first, then falls
 back on `network'.")
 
 (defvoo nnimap-shell-program (if (boundp 'imap-shell-program)
