@@ -496,6 +496,13 @@ This is like 'C-x s', but only for this project's buffers.
 
 *** 'project-remember-project' can now be called interactively.
 
+---
+*** 'project-shell' and 'project-eshell' support numeric prefix buffer naming.
+They now accept numeric prefix arguments to select or create numbered
+shell sessions.  For example, 'C-2 C-x p s' switches to or creates a
+buffer named "*name-of-project-shell<2>*".  By comparison, a plain
+universal argument as in 'C-u C-x p s' always creates a new session.
+
 ** Registers
 
 *** New functions 'buffer-to-register' and 'file-to-register'.

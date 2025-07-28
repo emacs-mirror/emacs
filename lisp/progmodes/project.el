@@ -1429,18 +1429,26 @@ The current buffer's `default-directory' is available as part of
 If a buffer already exists for running a shell in the project's root,
 switch to it.  Otherwise, create a new shell buffer.
 With \\[universal-argument] prefix arg, create a new inferior shell buffer even
-if one already exists."
+if one already exists.
+With numeric prefix arg, switch to the session with that number, or
+create it if it doesn't already exist."
   (interactive)
   (require 'comint)
   (let* ((default-directory (project-root (project-current t)))
-         (default-project-shell-name (project-prefixed-buffer-name "shell"))
-         (shell-buffer (get-buffer default-project-shell-name)))
+         (base-name (project-prefixed-buffer-name "shell"))
+         (shell-buffer-name
+          (cond ((numberp current-prefix-arg)
+                 (format "%s<%d>" base-name current-prefix-arg))
+                (current-prefix-arg
+                 (generate-new-buffer-name base-name))
+                (t base-name)))
+         (shell-buffer (get-buffer shell-buffer-name)))
     (if (and shell-buffer (not current-prefix-arg))
         (if (comint-check-proc shell-buffer)
             (pop-to-buffer shell-buffer (append display-buffer--same-window-action
                                                 '((category . comint))))
           (shell shell-buffer))
-      (shell (generate-new-buffer-name default-project-shell-name)))))
+      (shell shell-buffer-name))))
 
 ;;;###autoload
 (defun project-eshell ()
@@ -1448,16 +1456,14 @@ if one already exists."
 If a buffer already exists for running Eshell in the project's root,
 switch to it.  Otherwise, create a new Eshell buffer.
 With \\[universal-argument] prefix arg, create a new Eshell buffer even
-if one already exists."
+if one already exists.
+With numeric prefix arg, switch to the session with that number, or
+create it if it doesn't already exist."
   (interactive)
   (defvar eshell-buffer-name)
   (let* ((default-directory (project-root (project-current t)))
-         (eshell-buffer-name (project-prefixed-buffer-name "eshell"))
-         (eshell-buffer (get-buffer eshell-buffer-name)))
-    (if (and eshell-buffer (not current-prefix-arg))
-        (pop-to-buffer eshell-buffer (append display-buffer--same-window-action
-                                             '((category . comint))))
-      (eshell t))))
+         (eshell-buffer-name (project-prefixed-buffer-name "eshell")))
+    (eshell current-prefix-arg)))
 
 ;;;###autoload
 (defun project-async-shell-command ()
