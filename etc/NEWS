@@ -2460,6 +2460,13 @@ The new commands 'newsticker-hide-old-feed-header' and
 respectively, hide and show the headers of feeds whose items are all old
 or obsolete.
 
+** CPerl mode
+
+*** Syntax of Perl up to version 5.42 is supported.
+
+CPerl mode creates imenu entries for :writer-generated accessors and
+recognizes the new functions "all" and "any".
+
 
 * New Modes and Packages in Emacs 31.1
 
