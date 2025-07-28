@@ -260,10 +260,18 @@ haven't pushed it yet because you're still refactoring.  You'll use
 @end indentedblock
 
 Ordinary VC commands like @kbd{C-x v v} (@pxref{Basic VC Editing}) and
-@kbd{C-x v d} (@pxref{VC Directory Mode}) don't work any
-differently when there exist other working trees, except that the
-commits, branches and other VC artifacts they create will be visible
-from all working trees.
+@kbd{C-x v d} (@pxref{VC Directory Mode}) don't work any differently
+when there exist other working trees, except that the commits, branches
+and other VC artifacts they create will be visible from all working
+trees.  Another way to put this is that any action taken in any working
+tree which creates new artefacts in the VCS backing store will be
+visible from other working trees, but actions which only affect
+workfiles won't be.  So if you apply a patch to some workfiles in one
+working tree, that only affects that working tree.  But if you commit
+the changes made by applying the patch, then that creates a new revision
+in the backing store, and so this action affects other working trees in
+the sense that their view of the repository's history will now have an
+additional commit in it.
 
 The following special commands let you switch between and modify
 different working trees.  It is an error to use them other than from
