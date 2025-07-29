@@ -20,12 +20,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "lisp.h"
-#include "blockinput.h"
 #include "sysstdio.h"
-#include "character.h"
 #include "buffer.h"
-#include "keyboard.h"
-#include "syntax.h"
 #include "window.h"
 
 /* Define BYTE_CODE_SAFE true to enable some minor sanity checking,
