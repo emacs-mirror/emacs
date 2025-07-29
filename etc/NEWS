@@ -2464,8 +2464,9 @@ or obsolete.
 
 *** Syntax of Perl up to version 5.42 is supported.
 
-CPerl mode creates imenu entries for :writer-generated accessors and
+CPerl mode creates imenu entries for ":writer" generated accessors and
 recognizes the new functions "all" and "any".
+See https://perldoc.perl.org/5.42.0/perldelta for details.
 
 
 * New Modes and Packages in Emacs 31.1
