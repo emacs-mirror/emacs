@@ -248,7 +248,10 @@ INIT-VALUE LIGHTER KEYMAP.
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
          (interactive t)
-         (warnwrap (if (or (null body) (keywordp (car body))) #'identity
+         (new-style
+          (or (null body)
+              (keywordp (car body))))
+         (warnwrap (if new-style #'identity
                      (lambda (exp)
                        (macroexp-warn-and-return
                         (format-message
@@ -257,7 +260,7 @@ INIT-VALUE LIGHTER KEYMAP.
 	 keyw keymap-sym tmp)
 
     ;; Allow BODY to start with the old INIT-VALUE LIGHTER KEYMAP triplet.
-    (unless (keywordp (car body))
+    (unless new-style
       (setq init-value (pop body))
       (unless (keywordp (car body))
         (setq lighter (pop body))
@@ -493,7 +496,6 @@ on if the hook has explicitly disabled it.
 	 (group nil)
 	 (extra-keywords nil)
          (MODE-variable mode)
-	 (MODE-buffers (intern (concat global-mode-name "-buffers")))
 	 (MODE-enable-in-buffer
 	  (intern (concat global-mode-name "-enable-in-buffer")))
 	 (minor-MODE-hook (intern (concat mode-name "-hook")))
@@ -531,7 +533,7 @@ on if the hook has explicitly disabled it.
        (define-minor-mode ,global-mode
          ,(concat (format "Toggle %s in many buffers.\n" pretty-name)
                   (internal--format-docstring-line
-                   "Specifically, %s is enabled in all buffers where `%s' would do it."
+                   "Specifically, %s is enabled in all buffers where `%S' would do it."
                    pretty-name turn-on)
                   "\n\n"
                   (internal--format-docstring-line
@@ -613,13 +615,8 @@ list."
        ;; mode hook which has just been run.
        (add-hook ',minor-MODE-hook #',MODE-set-explicitly)
 
-       ;; List of buffers left to process.
-       (defvar ,MODE-buffers nil)
-
        ;; The function that calls TURN-ON in the current buffer.
        (defun ,MODE-enable-in-buffer ()
-         ;; Remove ourselves from the list of pending buffers.
-         (setq ,MODE-buffers (delq (current-buffer) ,MODE-buffers))
          (unless ,MODE-set-explicitly
            (unless (eq ,MODE-major-mode major-mode)
              (if ,MODE-variable
