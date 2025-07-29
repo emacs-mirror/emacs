@@ -18864,7 +18864,7 @@ operators sprinkled in between.
 
 Perhaps some examples are in order.
 
-Here's a simple predicate.  (It's the default predicate, in fact, used
+Here's a simple predicate.  (The default predicate is @code{false}, used
 for all groups that don't belong to any other category.)
 
 @lisp
