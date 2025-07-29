@@ -2446,7 +2446,7 @@ Use the byte-compiler instead; it provides more and more useful warnings.
 ** Newsticker
 
 ---
-*** New user option 'newsticker-hide-old-feed-header-in-newsticker-buffer'.
+*** New user option 'newsticker-hide-old-feed-header'.
 It controls whether to automatically hide the header of feeds whose
 items are all old or obsolete in the plainview *newsticker* buffer.
 This is only visually interesting if the content of those feeds are also
