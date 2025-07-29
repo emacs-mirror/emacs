@@ -75,5 +75,11 @@
 ;;       (recursive-edit)
 ;;       (should (equal msgs '("C-u 55-" "C-u 5-" "C-u-"))))))
 
+(ert-deftest keyboard-inhibit-interaction ()
+  (let ((inhibit-interaction t))
+    (should-error (read-char "foo: "))
+    (should-error (read-event "foo: "))
+    (should-error (read-char-exclusive "foo: "))))
+
 (provide 'keyboard-tests)
 ;;; keyboard-tests.el ends here
