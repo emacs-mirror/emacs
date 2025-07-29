@@ -3248,6 +3248,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
     ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
     ("\\.[1-9]\\'" . nroff-mode)
     ;; Image file types probably supported by `image-convert'.
+    ("\\.avif\\'" . image-mode)
     ("\\.art\\'" . image-mode)
     ("\\.avs\\'" . image-mode)
     ("\\.bmp\\'" . image-mode)
@@ -3287,7 +3288,6 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
     ("\\.six\\'" . image-mode)
     ("\\.tga\\'" . image-mode)
     ("\\.wbmp\\'" . image-mode)
-    ("\\.webp\\'" . image-mode)
     ("\\.wmf\\'" . image-mode)
     ("\\.wpg\\'" . image-mode)
     ("\\.xcf\\'" . image-mode)
