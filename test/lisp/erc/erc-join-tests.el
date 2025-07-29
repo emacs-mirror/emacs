@@ -86,8 +86,7 @@
   (with-timeout (5 (ert-fail "Timeout exceeded"))
 
     (cl-letf* ((erc-autojoin-timing 'ident)
-               (erc-autojoin-delay 0.001)
-               (timer-list (copy-sequence timer-list))
+               (erc-autojoin-delay 0.0625)
                (calls nil)
                (check (lambda () (prog1 calls (setq calls nil))))
                ((symbol-function 'erc-server-send)
@@ -99,7 +98,7 @@
 
       (erc-autojoin-channels erc-server-announced-name "tester")
       (should erc--autojoin-timer)
-      (sleep-for 0.01)
+      (sleep-for 0.25)
       (funcall test check)
 
       (should-not calls)
