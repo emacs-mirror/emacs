@@ -3902,7 +3902,11 @@ This tests also `access-file', `file-readable-p',
 	    (when test-file-ownership-preserved-p
 	      (should (file-ownership-preserved-p tmp-name1 'group)))
 	    (setq attr (file-attributes tmp-name1))
-	    (should (eq (file-attribute-type attr) t)))
+	    (should (eq (file-attribute-type attr) t))
+	    ;; A trailing slash shouldn't harm.
+	    (should
+	     (equal (file-attributes tmp-name1)
+		    (file-attributes (file-name-as-directory tmp-name1)))))
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))
@@ -4138,7 +4142,12 @@ They might differ only in time attributes or directory size."
 	    ;; Check the COUNT arg.
 	    (setq attr (directory-files-and-attributes
 			tmp-name2 nil (rx bos "b") nil nil 1))
-	    (should (equal (mapcar #'car attr) '("bar"))))
+	    (should (equal (mapcar #'car attr) '("bar")))
+
+	    ;; A trailing slash shouldn't harm.
+	    (should
+	     (equal (file-attributes tmp-name2)
+		    (file-attributes (file-name-as-directory tmp-name2)))))
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))

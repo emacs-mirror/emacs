@@ -822,6 +822,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
   ;; The result is cached in `tramp-convert-file-attributes'.
+  (setq filename (directory-file-name (expand-file-name filename)))
   (with-parsed-tramp-file-name filename nil
     (tramp-convert-file-attributes v localname id-format
       (ignore-errors
