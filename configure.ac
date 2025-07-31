@@ -2214,32 +2214,27 @@ esac
 
 C_SWITCH_MACHINE=
 
-AC_CACHE_CHECK([for flag to work around GCC bug 119085],
-  [emacs_cv_gcc_bug_119085_CFLAGS],
-  [emacs_cv_gcc_bug_119085_CFLAGS='none needed'
+AC_CACHE_CHECK([for flag to work around GCC union bugs],
+  [emacs_cv_gcc_union_bugs_CFLAGS],
+  [emacs_cv_gcc_union_bugs_CFLAGS='none needed'
    AS_IF([test "$GCC" = yes],
      [old_CFLAGS=$CFLAGS
-      # Use -fno-tree-sra if GCC 4 through 15.
-      for emacs_cv_gcc_bug_119085_CFLAGS in \
+      # Use -fno-tree-sra if GCC 4 through 15.1.
+      for emacs_cv_gcc_union_bugs_CFLAGS in \
 	  'none needed' -fno-tree-sra
       do
-	AS_CASE([$emacs_cv_gcc_bug_119085_CFLAGS],
+	AS_CASE([$emacs_cv_gcc_union_bugs_CFLAGS],
 	  ['none needed'], [],
 	  [-fno-tree-sra], [break],
-	  [CFLAGS="$old_CFLAGS $emacs_cv_gcc_bug_119085_CFLAGS"])
+	  [CFLAGS="$old_CFLAGS $emacs_cv_gcc_union_bugs_CFLAGS"])
 	AC_COMPILE_IFELSE(
 	  [AC_LANG_DEFINES_PROVIDED
-	   [/* Work around GCC bug 119085 with unions containing holes:
-	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119085
-	       Although GCC bug 119085 is present in GCC 15.1,
-	       as of 2025-07-23 a patch is in the works for GCC 16;
-	       for now, assume the bug exists in GCC versions 4 through 15.
-
-	       Working around GCC bug 119095 also works around GCC bug 117423
+	   [/* Work around GCC bugs 117423 and 119085 re holes in unions:
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=117423
-	       which as of 2025-07-23 is planned to be fixed in GCC 15.2.
+	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119085
+	       These are fixed in GCC 15.2.
 
-	       Working wround GCC bug 119085 also works around GCC bug 58416
+	       Working wround them also works around GCC bug 58416
 	       with double in unions on x86, where the generated insns
 	       copy non-floating-point data via fldl/fstpl instruction pairs.
 	       This can misbehave if the data's bit pattern looks like a NaN.
@@ -2249,16 +2244,18 @@ AC_CACHE_CHECK([for flag to work around GCC bug 119085],
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93271
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114659
 	       GCC bug 58416 is fixed in GCC 15.1.  */
-	    #if 4 <= __GNUC__ && __GNUC__ <= 15 && !defined __clang__
-	    # error "GCC bug 119085 possibly present"
+	    #if 4 <= __GNUC__ && ! (15 < __GNUC__ + (1 < __GNUC_MINOR__))
+	     #ifndef __clang__
+	      #error "GCC union bugs possibly present"
+	     #endif
 	    #endif
 	  ]],
 	  [break])
       done
       CFLAGS=$old_CFLAGS])])
-AS_CASE([$emacs_cv_gcc_bug_119085_CFLAGS],
+AS_CASE([$emacs_cv_gcc_union_bugs_CFLAGS],
   [-*],
-    [C_SWITCH_MACHINE="$C_SWITCH_MACHINE $emacs_cv_gcc_bug_119085_CFLAGS"])
+    [C_SWITCH_MACHINE="$C_SWITCH_MACHINE $emacs_cv_gcc_union_bugs_CFLAGS"])
 
 AC_SUBST([C_SWITCH_MACHINE])
 
