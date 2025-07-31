@@ -205,6 +205,19 @@ unfolded.  Otherwise old as well as new items will be folded."
   :set #'newsticker--set-customvar-buffer
   :group 'newsticker-plainview)
 
+(defcustom newsticker-hide-old-feed-header
+  nil
+  "Whether to automatically hide the header of old feeds.
+This hides the headers of feeds whose items are all old or obsolete
+in the *newsticker* buffer.  This is only visually interesting if
+the content of those feeds are also hidden (see
+`newsticker-hide-old-items-in-newsticker-buffer' and
+`newsticker-show-descriptions-of-new-items')."
+  :type 'boolean
+  :set #'newsticker--set-customvar-buffer
+  :version "31.1"
+  :group 'newsticker-plainview)
+
 (defcustom newsticker-show-all-news-elements
   nil
   "Show all news elements."
@@ -391,6 +404,8 @@ images."
     (define-key map "ha" #'newsticker-hide-all-desc)
     (define-key map "sf" #'newsticker-show-feed-desc)
     (define-key map "hf" #'newsticker-hide-feed-desc)
+    (define-key map "sh" #'newsticker-show-old-feed-header)
+    (define-key map "hh" #'newsticker-hide-old-feed-header)
     (define-key map "so" #'newsticker-show-old-item-desc)
     (define-key map "ho" #'newsticker-hide-old-item-desc)
     (define-key map "sn" #'newsticker-show-new-item-desc)
@@ -532,12 +547,13 @@ Unless FORCE is t this is done only if necessary, i.e. when the
        ;; (set-visited-file-name "*newsticker*")
 
        (set-buffer-modified-p nil)
-        (newsticker-hide-all-desc)
-        (if newsticker-hide-old-items-in-newsticker-buffer
-            (newsticker-hide-old-items))
-        (if newsticker-show-descriptions-of-new-items
-            (newsticker-show-new-item-desc))
-       )
+       (newsticker-hide-all-desc)
+       (if newsticker-hide-old-items-in-newsticker-buffer
+           (newsticker-hide-old-items))
+       (if newsticker-hide-old-feed-header
+           (newsticker-hide-old-feed-header))
+       (if newsticker-show-descriptions-of-new-items
+           (newsticker-show-new-item-desc)))
      (message ""))
    (newsticker--buffer-set-uptodate t)
    (run-hooks 'newsticker-buffer-change-hook)))
@@ -953,6 +969,18 @@ not get changed."
   (newsticker--buffer-hideshow 'item-old t)
   (newsticker--buffer-redraw))
 
+(defun newsticker-hide-old-feed-header ()
+  "Hide the header of feeds whose items are all old or obsolete."
+  (interactive)
+  (newsticker--buffer-hideshow 'feed-old nil)
+  (newsticker--buffer-redraw))
+
+(defun newsticker-show-old-feed-header ()
+  "Show the header of feeds whose items are all old or obsolete."
+  (interactive)
+  (newsticker--buffer-hideshow 'feed-old t)
+  (newsticker--buffer-redraw))
+
 (defun newsticker-hide-entry ()
   "Hide description of entry at point."
   (interactive)
@@ -1161,6 +1189,11 @@ The mode-line is changed accordingly."
   (run-hooks 'newsticker-buffer-change-hook)
   (sit-for 0))
 
+(defun newsticker--old-feed-p (feed-name-symbol)
+  "Check if `feed-name-symbol' has no new or immortal items."
+  (= 0 (+ (newsticker--stat-num-items feed-name-symbol 'new)
+          (newsticker--stat-num-items feed-name-symbol 'immortal))))
+
 (defun newsticker--buffer-insert-all-items ()
   "Insert all cached newsticker items into the current buffer.
 Keeps order of feeds as given in `newsticker-url-list' and
@@ -1271,12 +1304,10 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                       (setq format (substring format 2)))
                      ((string= "%l" prefix)
                       ;; logo
-                      (let ((disabled (cond ((eq (newsticker--age item) 'feed)
+                      (let ((disabled (cond ((eq age 'feed)
                                              (= (newsticker--stat-num-items
                                                  feed-name-symbol 'new) 0))
-                                            (t
-                                             (not (eq (newsticker--age item)
-                                                      'new))))))
+                                            (t (not (eq age 'new))))))
                         (let ((img (newsticker--image-read feed-name-symbol
                                                            disabled)))
                           (when img
@@ -1284,19 +1315,17 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                       (setq format (substring format 2)))
                      ((string= "%L" prefix)
                       ;; logo or title
-                      (let ((disabled (cond ((eq (newsticker--age item) 'feed)
+                      (let ((disabled (cond ((eq age 'feed)
                                              (= (newsticker--stat-num-items
                                                  feed-name-symbol 'new) 0))
-                                            (t
-                                             (not (eq (newsticker--age item)
-                                                      'new))))))
+                                            (t (not (eq age 'new))))))
                         (let ((img (newsticker--image-read feed-name-symbol
                                                            disabled)))
                           (if img
                               (newsticker--insert-image img (format "[logo: %s]" (car item)))
                             (when (car item)
                               (setq pos-text-start (point-marker))
-			      (if (eq (newsticker--age item) 'feed)
+			      (if (eq age 'feed)
 				  (insert (newsticker--title item))
 				;; FIXME: This is not the "real" title!
 				(insert (format "%s"
@@ -1307,7 +1336,7 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                      ((string= "%s" prefix)
                       ;; statistics
                       (setq pos-stat-start (point-marker))
-                      (if (eq (newsticker--age item) 'feed)
+                      (if (eq age 'feed)
                           (insert (newsticker--buffer-statistics
                                    feed-name-symbol)))
                       (setq pos-stat-end (point-marker))
@@ -1412,11 +1441,15 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                                   (list 'nt-title (newsticker--title item)
                                         'nt-desc (newsticker--desc item))))
 
-           (add-text-properties pos (point)
-                                (list 'nt-type type
-                                      'nt-face type
-                                      'nt-age  age
-                                      'nt-guid (newsticker--guid item)))
+           (let ((age (if (and (eq age 'feed)
+                               (newsticker--old-feed-p feed-name-symbol))
+                          'old
+                        age)))
+             (add-text-properties pos (point)
+                                  (list 'nt-type type
+                                        'nt-face type
+                                        'nt-age age
+                                        'nt-guid (newsticker--guid item))))
            (when (and pos-date-start pos-date-end)
              (put-text-property pos-date-start pos-date-end 'nt-face 'date))
            (when (and pos-stat-start pos-stat-end)
@@ -1520,8 +1553,11 @@ property to (<nt-type>-<nt-age> <nt-type> <nt-age>)."
                   (<= pos2 end)
                   (> pos2 pos1))
         ;; must shift one char to the left in order to handle invisible
-        ;; newlines, motion in invisible text areas and all that correctly
-        (put-text-property (1- pos1) (1- pos2)
+        ;; newlines, motion in invisible text areas and all that
+        ;; correctly. And even two chars in the case of a `feed' to
+        ;; account for the empty line above it.
+        (put-text-property (if (eq nt-type 'feed) (- pos1 2) (1- pos1))
+                           (1- pos2)
                            'invisible
                            (list (intern
                                   (concat
@@ -1533,7 +1569,15 @@ property to (<nt-type>-<nt-age> <nt-type> <nt-age>)."
                                  nt-age))
         (setq nt-type (get-text-property pos2 'nt-type))
         (setq nt-age (get-text-property pos2 'nt-age))
-        (setq pos1 pos2)))))
+        (setq pos1 pos2))
+
+      ;; Deals with the two potential empty lines at the beginning of
+      ;; the buffer after hiding the first old feed(s).
+      (goto-char start)
+      (when (and (newsticker--old-feed-p (get-text-property (point) 'feed))
+                 (newsticker--buffer-goto '(feed) 'feed))
+        (put-text-property
+         (- (point) 2) (point) 'invisible '(feed-old feed old))))))
 
 (defun newsticker--set-face-properties (pos1 pos2 nt-face age)
   "Set the face for the text between the positions POS1 and POS2.

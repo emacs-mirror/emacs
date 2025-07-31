@@ -1229,6 +1229,27 @@ summarizes the part's index, size, and content type.  Depending on the
 content type, it may also contain one or more buttons; these perform
 actions such as saving the part into a file.
 
+@vindex rmail-mime-save-action
+  When you save a MIME attachment to a file, Rmail can perform follow-up
+actions according to the value of @code{rmail-mime-save-action}.  By
+default, this value is @code{nil}, which means Rmail does nothing.
+Other predefined values are:
+
+@table @code
+@item visit-file
+Visit the saved file in Emacs.
+
+@item visit-directory
+Visit the file's directory in Dired and move point to the file.
+
+@item open-external
+Open the file with an external program appropriate for its type.
+@end table
+
+You can also set @code{rmail-mime-save-action} to a custom function.
+This function will be called with the absolute filename of the saved
+attachment as its only argument.
+
 @table @kbd
 @findex rmail-mime-toggle-hidden
 @item @key{RET}

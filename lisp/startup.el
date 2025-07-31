@@ -1655,6 +1655,9 @@ please check its value")
   ;; Process the remaining args.
   (command-line-1 (cdr command-line-args))
 
+  ;; If -batch, terminate after processing the command options.
+  (if noninteractive (kill-emacs t))
+
   ;; Check if `user-emacs-directory' is accessible and warn if it
   ;; isn't, unless `user-emacs-directory-warning' was customized to
   ;; disable that warning.
@@ -1687,9 +1690,6 @@ Consider using a subdirectory instead, e.g.: %s"
                                     dir (expand-file-name
                                          "lisp" user-emacs-directory))
                             :warning))))
-
-  ;; If -batch, terminate after processing the command options.
-  (if noninteractive (kill-emacs t))
 
   ;; In daemon mode, start the server to allow clients to connect.
   ;; This is done after loading the user's init file and after

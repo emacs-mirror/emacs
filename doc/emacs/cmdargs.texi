@@ -695,6 +695,7 @@ The name of the organization to which you belong.  Used for setting the
 A colon-separated list of directories containing executable files.
 This is used to initialize the variable @code{exec-path}
 (@pxref{Shell}).
+If unset or empty, an implementation-dependent default is used.
 @item PWD
 @vindex PWD@r{, environment variable}
 If set, this should be the default directory when Emacs was started.

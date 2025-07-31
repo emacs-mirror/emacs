@@ -2021,7 +2021,7 @@ different file systems, the file @var{old} is copied and deleted.
 
 @ifnottex
   If a file is under version control (@pxref{Version Control}), you
-should rename it using @w{@kbd{M-x vc-rename-file}} instead of
+should rename it using @w{@kbd{C-x v R}} instead of
 @w{@kbd{M-x rename-file}}.  @xref{VC Delete/Rename}.
 @end ifnottex
 

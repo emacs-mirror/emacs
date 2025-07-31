@@ -637,14 +637,16 @@ Also includes valid cases with whitespace in strange places."
                          "field $name :param :reader;"
                          "field $field :param :reader(name);"
                          "field $field :reader(name) :param;"
-                         "field $field :reader(name) = 'value';")))
+                         "field $field :reader(name) = 'value';"
+                         "field $field :writer = 'value';"
+                         "field $field :writer(write_f)")))
     (dolist (code code-examples)
       (with-temp-buffer
         (insert code)
         (goto-char (point-min))
         (search-forward-regexp (rx (eval cperl--sub-name-generated-rx)))
-        (should (string= (match-string 1) "reader"))
-        (should (string= (match-string 2) "name"))))))
+        (should (string= (match-string 1) "field"))
+        (should (string-match ":\\(reader\\|writer\\)" (match-string 2)))))))
 
 ;;; Test unicode identifier in various places
 
@@ -973,8 +975,11 @@ created by CPerl mode, so skip it for Perl mode."
                         "Erdős::Number::erdős_number"
                         "Class::Class::init"
                         "Class::Inner::init_again"
-                        "With::Readers::auto_reader"
-                        "With::Readers::named")))
+                        "With::Accessors->auto_reader"
+                        "With::Accessors->named"
+                        "With::Accessors->set_auto_writer"
+                        "With::Accessors->read_all"
+                        "With::Accessors->set_auto_all")))
         (dolist (sub expected)
           (should (assoc-string sub index))))
       (should-not (assoc-string "_false" index)))))

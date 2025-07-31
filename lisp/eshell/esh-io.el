@@ -568,7 +568,7 @@ ends in a newline."
   (eshell-output-object object handle)
   (when (and eshell-ensure-newline-p
              (not (and (stringp object)
-                       (string-suffix-p object "\n"))))
+                       (string-suffix-p "\n" object))))
     (eshell-maybe-output-newline handle)))
 
 (defsubst eshell-print-maybe-n (object)

@@ -137,7 +137,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Weak_Hash_Table_Weak_Part_DA91AF2025
 #  error "struct Lisp_Weak_Hash_Table_Weak_Part changed"
 # endif
-# ifndef HASH_buffer_8A05DEE6AE
+# ifndef HASH_buffer_text_07D802E2D4
 #  error "struct buffer changed"
 # endif
 # ifndef HASH_glyph_pool_FE89FC9050
@@ -146,7 +146,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_glyph_matrix_559A8DDA89
 #  error "struct glyph_matrix changed"
 # endif
-# ifndef HASH_frame_BE1A77FEF4
+# ifndef HASH_frame_B282EBF860
 #  error "struct frame changed"
 # endif
 # ifndef HASH_window_AAD29CF361

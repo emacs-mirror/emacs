@@ -1,3 +1,4 @@
 <svg width="16" height="16" viewBox="0 0 16 16"  xmlns="http://www.w3.org/2000/svg">
+<style>svg {fill: currentColor;}</style>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M8 5.5C8 5.5 9.5 3.5 11 3.5C12.5 3.5 14 4.5 14 6.5C14 10.1005 8 13.5 8 13.5C8 13.5 2 10.1005 2 6.5C2 4.5 3.34315 3.5 5 3.5C6.5 3.5 8 5.5 8 5.5ZM12 8C11 10 8 11.5 8 11.5V7.5C9 6.5 10 5.5 11 5.5C11.4898 5.5 11.738 5.65071 12 6C12.3515 6.46863 12.2982 7.40369 12 8Z" />
 </svg>

@@ -2102,7 +2102,7 @@ of `current-buffer'."
   "Execute BODY and return the result.
 In case of an error, raise a `file-missing' error if FILENAME
 does not exist, otherwise propagate the error."
-  (declare (indent 2) (debug (symbolp form body)))
+  (declare (indent 2) (debug (tramp-file-name-p form &rest body)))
   (let ((err (make-symbol "err")))
     `(condition-case ,err
 	 (let (signal-hook-function) ,@body)
@@ -2141,7 +2141,7 @@ Remaining args are Lisp expressions to be evaluated (inside an implicit
 
 If VAR is nil, then we bind `v' to the structure and `method', `user',
 `domain', `host', `port', `localname', `hop' to the components."
-  (declare (indent 2) (debug (form symbolp body)))
+  (declare (indent 2) (debug (form symbolp &rest body)))
   (let ((bindings
          (mapcar
 	  (lambda (elem)
@@ -3601,7 +3601,7 @@ BODY is the backend specific code."
 (defmacro tramp-skeleton-file-truename (filename &rest body)
   "Skeleton for `tramp-*-handle-file-truename'.
 BODY is the backend specific code."
-  (declare (indent 1) (debug (form body)))
+  (declare (indent 1) (debug (form &rest body)))
   ;; Preserve trailing "/".
   `(funcall
     (if (directory-name-p ,filename) #'file-name-as-directory #'identity)
@@ -6867,16 +6867,43 @@ ALIST is of the form ((FROM . TO) ...)."
 
 ;;; Compatibility functions section:
 
+(defmacro with-tramp-local-environment (&rest body)
+  "Set environment for local processes and run BODY.
+Beside some global variables, it let-binds also the connection-local
+variables defined in `tramp-connection-local-default-system-variables'.
+If the current buffer is a remote one, these connection-local variables
+might have improper values."
+  (declare (debug t))
+  (let ((bindings
+         (mapcar
+	  (lambda (elem) `(,elem (default-value ',elem)))
+	  (mapcar #'car tramp-connection-local-default-system-variables))))
+    `(let* ((default-directory tramp-compat-temporary-file-directory)
+	    (temporary-file-directory tramp-compat-temporary-file-directory)
+            ,@bindings)
+       (setenv "TERM" tramp-terminal-type)
+       (setenv "PROMPT_COMMAND")
+       (setenv "PS1" tramp-initial-end-of-output)
+       (setenv "INSIDE_EMACS" (tramp-inside-emacs))
+       ,@body)))
+
+(defun tramp-start-process (vec name buffer program &rest args)
+  "Call `start-process' on the local host.
+Run post process creation actions.  Traces are written with verbosity of 6."
+  (let ((vec (or vec (car tramp-current-connection)))
+	(p (with-tramp-local-environment
+	    (apply #'start-process name buffer program args))))
+    ;; Initialize variables.
+    (tramp-post-process-creation p vec)
+    p))
+
 (defun tramp-call-process
   (vec program &optional infile destination display &rest args)
   "Call `call-process' on the local host.
 It always returns a return code.  The Lisp error raised when
 PROGRAM is nil is trapped also, returning 1.  Furthermore, traces
 are written with verbosity of 6."
-  (let ((default-directory tramp-compat-temporary-file-directory)
-	(temporary-file-directory tramp-compat-temporary-file-directory)
-	(process-environment (default-toplevel-value 'process-environment))
-	(destination (if (eq destination t) (current-buffer) destination))
+  (let ((destination (if (eq destination t) (current-buffer) destination))
 	(vec (or vec (car tramp-current-connection)))
 	output error result)
     (tramp-message
@@ -6885,8 +6912,9 @@ are written with verbosity of 6."
     (condition-case err
 	(with-temp-buffer
 	  (setq result
-		(apply
-		 #'call-process program infile (or destination t) display args)
+		(with-tramp-local-environment
+		 (apply
+		  #'call-process program infile (or destination t) display args))
 		output (tramp-get-buffer-string destination))
 	  ;; `result' could also be an error string.
 	  (when (stringp result)
@@ -6906,10 +6934,7 @@ are written with verbosity of 6."
 It always returns a return code.  The Lisp error raised when
 PROGRAM is nil is trapped also, returning 1.  Furthermore, traces
 are written with verbosity of 6."
-  (let ((default-directory tramp-compat-temporary-file-directory)
-	(temporary-file-directory tramp-compat-temporary-file-directory)
-	(process-environment (default-toplevel-value 'process-environment))
-	(buffer (if (eq buffer t) (current-buffer) buffer))
+  (let ((buffer (if (eq buffer t) (current-buffer) buffer))
 	(vec (or vec (car tramp-current-connection)))
 	result)
     (tramp-message
@@ -6918,9 +6943,10 @@ are written with verbosity of 6."
     (condition-case err
 	(progn
 	  (setq result
-		(apply
-		 #'call-process-region
-		 start end program delete buffer display args))
+		(with-tramp-local-environment
+		 (apply
+		  #'call-process-region
+		  start end program delete buffer display args)))
 	  ;; `result' could also be an error string.
 	  (when (stringp result)
 	    (signal 'file-error (list result)))
@@ -6933,21 +6959,19 @@ are written with verbosity of 6."
        (tramp-message vec 6 "%d\n%s" result (error-message-string err))))
     result))
 
-(defun tramp-process-lines
-  (vec program &rest args)
+(defun tramp-process-lines (vec program &rest args)
   "Call `process-lines' on the local host.
 If an error occurs, it returns nil.  Traces are written with
 verbosity of 6."
-  (let ((default-directory tramp-compat-temporary-file-directory)
-	(process-environment (default-toplevel-value 'process-environment))
-	(vec (or vec (car tramp-current-connection)))
+  (let ((vec (or vec (car tramp-current-connection)))
 	result)
     (if args
 	(tramp-message vec 6 "%s %s" program (string-join args " "))
       (tramp-message vec 6 "%s" program))
     (setq result
 	  (condition-case err
-	      (apply #'process-lines program args)
+	      (with-tramp-local-environment
+	       (apply #'process-lines program args))
 	    (error
 	     (tramp-error vec (car err) (cdr err)))))
     (tramp-message vec 6 "\n%s" (string-join result "\n"))

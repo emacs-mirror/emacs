@@ -1110,6 +1110,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                          "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
+                         "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   if (!NILP (parent_frame))
     {
@@ -2097,6 +2100,9 @@ android_create_tip_frame (struct android_display_info *dpyinfo,
                          "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
+                         "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))
@@ -3182,6 +3188,7 @@ frame_parm_handler android_frame_parm_handlers[] =
   NULL,
   gui_set_no_special_glyphs,
   NULL,
+  gui_set_borders_respect_alpha_background,
   NULL,
 };
 

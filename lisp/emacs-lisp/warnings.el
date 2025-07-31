@@ -135,7 +135,7 @@ customizations.  In particular, the category designated by the
 symbol `warning' can be used in `display-buffer-alist' to customize
 the display of this buffer.
 
-This option affects display of all the buffers shown by `dispay-warning',
+This option affects display of all the buffers shown by `display-warning',
 including warnings from byte-compiler and native-compiler,
 from `check-declare', etc."
   :type 'boolean

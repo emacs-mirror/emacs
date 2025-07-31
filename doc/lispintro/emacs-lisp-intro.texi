@@ -17502,7 +17502,7 @@ If you load many extensions, as I do, then instead of specifying the
 exact location of the extension file, as shown above, you can specify
 that directory as part of Emacs's @code{load-path}.  Then, when Emacs
 loads a file, it will search that directory as well as its default
-list of directories.  (The default list is specified in @file{paths.h}
+list of directories.  (The default list is specified in @file{epaths.h}
 when Emacs is built.)
 
 @need 1250

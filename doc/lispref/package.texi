@@ -29,6 +29,7 @@ these archives).
 * Package Archives::        Maintaining package archives.
 * Archive Web Server::      Interfacing to an archive web server.
 * Forwards-Compatibility::  Supporting older versions of Emacs.
+* Package Information::     Information about built-in packages.
 @end menu
 
 @node Packaging Basics
@@ -424,3 +425,30 @@ For further details on how to make use of the package, see
 the manual installed, you can also read the
 @url{https://elpa.gnu.org/packages/doc/compat.html#Usage, Online
 Compat manual}.
+
+@node Package Information
+@section Get built-in packages and versions
+@cindex package information
+@cindex version of a built-in package
+@cindex list of built-in packages
+
+Emacs ships built-in packages which may also be packaged externally on
+ELPA.  Knowing whether a built-in package has a higher version than on
+ELPA or other packaging systems may be useful for external packaging
+tools.  Lisp programs which would like to query such information can use
+the following functions.
+
+@defun package-versioned-builtin-packages
+This function returns the list of packages that are built into Emacs
+and have a version.  The returned list contains one symbol for each
+built-in package that has a version, which are likely also packaged
+externally on ELPA.
+@end defun
+
+@defun package-builtin-package-version package
+This function returns the version of a built-in @var{package}.
+@var{package} should be a symbol.  The returned value is a list of
+integers representing the version of PACKAGE in the format returned by
+the function @code{version-to-list}, or @code{nil} if @var{package} is
+built-in but has no version, or is not a built-in package.
+@end defun

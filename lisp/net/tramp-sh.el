@@ -2618,14 +2618,11 @@ The method used must be an out-of-band method."
 		 ;; can be handled.  We don't set a timeout, because
 		 ;; the copying of large files can last longer than 60
 		 ;; secs.
-		 p (let ((default-directory
-			  tramp-compat-temporary-file-directory))
-		     (apply
-		      #'start-process
-		      (tramp-get-connection-name v)
-		      (tramp-get-connection-buffer v)
-		      copy-program copy-args)))
-		(tramp-post-process-creation p v)
+		 p (apply
+		    #'tramp-start-process v
+		    (tramp-get-connection-name v)
+		    (tramp-get-connection-buffer v)
+		    copy-program copy-args))
 
 		;; We must adapt `tramp-local-end-of-line' for sending
 		;; the password.  Also, we indicate that perhaps
@@ -3622,8 +3619,9 @@ will be used."
 
 (defun tramp-bundle-read-file-names (vec files)
   "Read file attributes of FILES and with one command fill the cache.
-FILES must be the local names only.  The cache attributes to be
-filled are described in `tramp-bundle-read-file-names'."
+FILES must be the local names only.  The cache attributes to be filled
+are \"file-exists-p\", \"file-readable-p\", \"file-directory-p\" and
+\"file-executable-p\"."
   (when files
     (tramp-maybe-send-script
      vec tramp-bundle-read-file-names "tramp_bundle_read_file_names")
@@ -3864,8 +3862,6 @@ Fall back to normal file name handler if no Tramp handler exists."
 (defun tramp-sh-gio-monitor-process-filter (proc string)
   "Read output from \"gio monitor\" and add corresponding `file-notify' events."
   (let ((events (process-get proc 'tramp-events))
-	(remote-prefix
-	 (file-remote-p (tramp-get-default-directory (process-buffer proc))))
 	(rest-string (process-get proc 'tramp-rest-string))
 	pos)
     (when rest-string
@@ -3880,7 +3876,10 @@ Fall back to normal file name handler if no Tramp handler exists."
     (catch 'doesnt-work
       ;; https://bugs.launchpad.net/bugs/1742946
       (when (string-match-p
-	     (rx (| "Monitoring not supported" "No locations given")) string)
+	     (rx (| "Monitoring not supported"
+                    "No locations given"
+                    "Unable to find default local file monitor type"))
+             string)
         (delete-process proc)
         (throw 'doesnt-work nil))
 
@@ -3917,7 +3916,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	       bol (+ (not ":")) ":" blank
 	       (group (+ (not ":"))) ":" blank
 	       (group (regexp (regexp-opt tramp-gio-events)))
-	       (? blank (group (+ (not ":")))) eol)
+	       (? blank (group (+ (not (any "\r\n:"))))) eol)
 	      string)
 
         (let* ((file (match-string 1 string))
@@ -3927,10 +3926,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	         proc
 	         (list
 		  (intern-soft (match-string 2 string)))
-	         ;; File names are returned as absolute paths.  We
-	         ;; must add the remote prefix.
-	         (concat remote-prefix file)
-	         (when file1 (concat remote-prefix file1)))))
+                 file file1)))
 	  (setq string (replace-match "" nil nil string))
           ;; Add an Emacs event now.
 	  ;; `insert-special-event' exists since Emacs 31.
@@ -5219,7 +5215,6 @@ connection if a previous connection has died for some reason."
 	      ;; Start new process.
 	      (when (and p (processp p))
 		(delete-process p))
-	      (setenv "TERM" tramp-terminal-type)
 	      (setenv "LC_ALL" (tramp-get-local-locale vec))
 	      (if (stringp tramp-histfile-override)
 		  (setenv "HISTFILE" tramp-histfile-override)
@@ -5228,8 +5223,6 @@ connection if a previous connection has died for some reason."
 		      (setenv "HISTFILE")
 		      (setenv "HISTFILESIZE" "0")
 		      (setenv "HISTSIZE" "0"))))
-	      (setenv "PROMPT_COMMAND")
-	      (setenv "PS1" tramp-initial-end-of-output)
 	      (unless (stringp tramp-encoding-shell)
                 (tramp-error vec 'file-error "`tramp-encoding-shell' not set"))
 	      (let* ((current-host tramp-system-name)
@@ -5247,21 +5240,18 @@ connection if a previous connection has died for some reason."
 		     (extra-args (tramp-get-sh-extra-args tramp-encoding-shell))
 		     ;; This must be done in order to avoid our file
 		     ;; name handler.
-		     (p (let ((default-directory
-			       tramp-compat-temporary-file-directory))
-			  (apply
-			   #'start-process
-			   (tramp-get-connection-name vec)
-			   (tramp-get-connection-buffer vec)
-			   (append
-			    `(,tramp-encoding-shell)
-			    (and extra-args (split-string extra-args))
-			    (and tramp-encoding-command-interactive
-				 `(,tramp-encoding-command-interactive)))))))
+		     (p (apply
+			 #'tramp-start-process vec
+			 (tramp-get-connection-name vec)
+			 (tramp-get-connection-buffer vec)
+			 (append
+			  `(,tramp-encoding-shell)
+			  (and extra-args (split-string extra-args))
+			  (and tramp-encoding-command-interactive
+			       `(,tramp-encoding-command-interactive))))))
 
 		;; Set sentinel.  Initialize variables.
 		(set-process-sentinel p #'tramp-process-sentinel)
-		(tramp-post-process-creation p vec)
 		(setq tramp-current-connection (cons vec (current-time)))
 
 		;; Set connection-local variables.

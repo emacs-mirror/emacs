@@ -14,9 +14,11 @@
 * Change Logs and VC::  Generating a change log file from log entries.
 * VC Delete/Rename::    Deleting and renaming version-controlled files.
 * Revision Tags::       Symbolic names for revisions.
+* Other Working Trees:: Multiple sets of workfiles.
 * Version Headers::     Inserting version control headers into working files.
 * Editing VC Commands:: Editing the VC shell commands that Emacs will run.
-* Preparing Patches::   Preparing and Composing patches from within VC
+* Preparing Patches::   Preparing and composing patches from within VC.
+* VC Auto-Reverting::   Updating buffer contents after VCS operations.
 @end menu
 
 @node Change Logs and VC
@@ -110,21 +112,21 @@ entry.
 @cindex renaming version-controlled files
 
 @table @kbd
-@item M-x vc-delete-file
+@item C-x v x
 Prompt for a file name, delete the file from the working tree, and
 schedule the deletion for committing.
 
-@item M-x vc-rename-file
+@item C-x v R
 Prompt for two file names, @var{old} and @var{new}, rename them in the
 working tree, and schedule the renaming for committing.  The @var{old}
 file defaults to the current buffer's file name if it is under VC.
 @end table
 
 @findex vc-delete-file
-  If you wish to delete a version-controlled file, use the command
-@kbd{M-x vc-delete-file}.  This prompts for the file name, and deletes
-it via the version control system.  The file is removed from the
-working tree, and in the VC Directory buffer
+  If you wish to delete a version-controlled file, type @kbd{C-x v x}
+(@code{vc-delete-file}).  This prompts for the file name, and deletes it
+via the version control system.  The file is removed from the working
+tree, and in the VC Directory buffer
 @iftex
 (@pxref{VC Directory Mode,,, emacs, the Emacs Manual}),
 @end iftex
@@ -135,12 +137,12 @@ it is displayed with the @samp{removed} status.  When you commit it,
 the deletion takes effect in the repository.
 
 @findex vc-rename-file
-  To rename a version-controlled file, type @kbd{M-x vc-rename-file}.
-This prompts for two arguments: the name of the file you wish to
-rename, and the new name; then it performs the renaming via the
-version control system.  The renaming takes effect immediately in the
-working tree, and takes effect in the repository when you commit the
-renamed file.
+  To rename a version-controlled file, type @kbd{C-x v R}
+(@code{vc-rename-file}).  This prompts for two arguments: the name of
+the file you wish to rename, and the new name; then it performs the
+renaming via the version control system.  The renaming takes effect
+immediately in the working tree, and takes effect in the repository when
+you commit the renamed file.
 
   On modern version control systems that have built-in support for
 renaming, the renamed file retains the full change history of the
@@ -204,7 +206,7 @@ those tags will be visible even when you bypass VC.
 
   In file-based version control systems, when you rename a registered
 file you need to rename its master along with it; the command
-@code{vc-rename-file} will do this automatically
+@kbd{C-x v R} (@code{vc-rename-file}) will do this automatically
 @iftex
 (@pxref{VC Delete/Rename,,,emacs, the Emacs Manual}).
 @end iftex
@@ -212,18 +214,123 @@ file you need to rename its master along with it; the command
 (@pxref{VC Delete/Rename}).
 @end ifnottex
 If you are using SCCS, you must also update the records of the tag, to
-mention the file by its new name (@code{vc-rename-file} does this,
+mention the file by its new name (@kbd{C-x v R} does this,
 too).  An old tag that refers to a master file that no longer exists
 under the recorded name is invalid; VC can no longer retrieve it.  It
 would be beyond the scope of this manual to explain enough about RCS
 and SCCS to explain how to update the tags by hand.  Using
-@code{vc-rename-file} makes the tag remain valid for retrieval, but it
+@kbd{C-x v R} makes the tag remain valid for retrieval, but it
 does not solve all problems.  For example, some of the files in your
 program probably refer to others by name.  At the very least, the
 makefile probably mentions the file that you renamed.  If you retrieve
 an old tag, the renamed file is retrieved under its new name, which is
 not the name that the makefile expects.  So the program won't really
 work as retrieved.
+
+@node Other Working Trees
+@subsubsection Multiple Working Trees for One Repository
+
+@cindex other working trees
+@cindex multiple working trees
+Some VCS support more than one working tree with the same backing
+repository or revisions store.  This means that you can have different
+revisions or branches (@pxref{Branches}) checked out simultaneously, in
+different working trees, but with all revision history, branches, tags
+and other metadata shared.
+
+@indentedblock
+Suppose your project has a trunk where you're developing the new version
+3 of your software, and a stable release branch from which you make
+point releases of version 2.  Someone sends you a patch fixing a bug
+that's present in version 2.  Your main working tree has version 3
+checked out, and you're in the middle of a big refactor that you don't
+want to disturb.  So you type @kbd{C-x v w c} (see below) and create a
+new working tree, following the prompts to check out the version 2
+branch there.
+
+You apply the patch to that working tree, build and test it.  Satisfied,
+you use @kbd{C-x v P} (@pxref{Pulling / Pushing}) in the other working
+tree.  In the course of testing the patch, you've realised that the bug
+exists in version 3 of the software, too.  So you switch back to your
+first working tree, and use @kbd{C-x v m} (@pxref{Merging}) to merge the
+branch you have checked out in the other working tree.  Now your version
+of the trunk has all of version 2's fixes merged into it, but you
+haven't pushed it yet because you're still refactoring.  You'll use
+@kbd{C-x v P} later.
+@end indentedblock
+
+Ordinary VC commands like @kbd{C-x v v} (@pxref{Basic VC Editing}) and
+@kbd{C-x v d} (@pxref{VC Directory Mode}) don't work any differently
+when there exist other working trees, except that the commits, branches
+and other VC artifacts they create will be visible from all working
+trees.  Another way to put this is that any action taken in any working
+tree which creates new artefacts in the VCS backing store will be
+visible from other working trees, but actions which only affect
+workfiles won't be.  So if you apply a patch to some workfiles in one
+working tree, that only affects that working tree.  But if you commit
+the changes made by applying the patch, then that creates a new revision
+in the backing store, and so this action affects other working trees in
+the sense that their view of the repository's history will now have an
+additional commit in it.
+
+The following special commands let you switch between and modify
+different working trees.  It is an error to use them other than from
+within a VC working tree; that is, from a buffer visiting a
+VCS-controlled file, or otherwise from a buffer whose
+@code{default-directory} (@pxref{File Names}) is within a VC working
+tree.
+
+@table @kbd
+@item C-x v w c
+Add a new working tree.
+
+@item C-x v w w
+Visit this file in another working tree.
+
+@item C-x v w x
+Delete a working tree you no longer need.
+
+@item C-x v w R
+Relocate a working tree to another file name.
+@end table
+
+@kindex C-x v w c
+@findex vc-add-working-tree
+You can start using multiple working trees by using the command
+@w{@kbd{C-x v w c}} (@code{vc-add-working-tree}) to create a new working
+tree.  This prompts you to specify a destination directory, which
+identifies the working tree, and which will hold the new set of
+workfiles.
+
+Different VCS have different rules about what may and must be checked
+out in other working trees, so there may be additional prompts depending
+on the VCS in use.  For example, Git requires that each branch be
+checked out in only one working tree at a time, so when using Git, Emacs
+will also prompt you for the name of the branch to be checked out in the
+new working tree.
+
+@kindex C-x v w w
+@findex vc-switch-working-tree
+Once your repository has other working trees, you can use the command
+@kbd{C-x v w w} (@code{vc-switch-working-tree}) to switch between them.
+It tries to find the analogue of the current buffer's file
+under another working tree.  Typically the sets of workfiles
+under different working trees differ more in file contents than in which
+files do and do not exist.  In other words, the file the
+current buffer visits probably exists in other working trees too, and
+this command lets you switch to those versions of the file.
+
+@kindex C-x v w x
+@kindex C-x v w R
+@findex vc-delete-working-tree
+@findex vc-move-working-tree
+The commands @kbd{C-x v w x} (@code{vc-delete-working-tree}) and
+@kbd{C-x v w R} (@code{vc-move-working-tree}) are for performing
+maintenance tasks on other working trees, letting you delete, move and
+rename them.  Deleting other working trees is particular useful because
+a common use for multiple working trees is to create throwaway copies of
+the repository to quickly test changes, without interfering with any
+work-in-progress you may have in your primary working trees.
 
 @node Version Headers
 @subsubsection Inserting Version Control Headers
@@ -250,12 +357,13 @@ command @kbd{M-x vc-insert-headers}.  This command works only on
 Subversion, CVS, RCS, and SCCS@.  The variable
 @code{vc-@var{backend}-header} contains the list of keywords to insert
 into the version header; for instance, CVS uses @code{vc-cvs-header},
-whose default value is @code{'("\$Id\$")}.  (The extra backslashes
-prevent the string constant from being interpreted as a header, if the
-Emacs Lisp file defining it is maintained with version control.)  The
-@code{vc-insert-headers} command inserts each keyword in the list on a
-new line at point, surrounded by tabs, and inside comment delimiters
-if necessary.
+whose default value is @code{'("\$Id\$")} (@pxref{Keyword
+substitution,,,cvs,CVS--Concurrent Versions System}).  (The extra
+backslashes prevent the string constant from being interpreted as a
+header, if the Emacs Lisp file defining it is maintained with version
+control.)  The @code{vc-insert-headers} command inserts each keyword in
+the list on a new line at point, surrounded by tabs, and inside comment
+delimiters if necessary.
 
 @vindex vc-static-header-alist
   The variable @code{vc-static-header-alist} specifies further strings
@@ -320,6 +428,32 @@ emacs, the Emacs Manual}).
 @ifnottex
 (@pxref{Directory Variables}).
 @end ifnottex
+
+@node VC Auto-Reverting
+@subsubsection Auto-Reverting Buffers That Visit Tracked Files
+
+  When Emacs executes VCS operations that it knows may change the
+contents of tracked files, it reverts buffers visiting those files
+(@pxref{Reverting}).  It does this in a VCS-aware fashion that retains
+the positions of point and the mark even when the VCS operation causes
+VCS keywords to be expanded (@pxref{Version Headers}).
+
+@findex vc-auto-revert-mode
+  An important limitation of this feature is that Emacs won't know to
+revert buffers when you execute additional VCS operations outside of
+Emacs, such as at a shell prompt, or by means of scripts.  If you
+regularly do this, and you don't use a VCS with keyword expansion (all
+modern VCS, absent special configuration), you may wish to enable
+@code{vc-auto-revert-mode} instead, by customizing that variable to a
+non-@code{nil} value.
+
+  This mode is just like @code{global-auto-revert-mode} (@pxref{Auto
+Revert}) except limited to files visiting VCS-tracked files.  It ensures
+that Emacs will always revert buffers when VCS operations change their
+contents, regardless of whether Emacs initiated those operations.
+
+  @xref{VC Mode Line}, for details regarding Auto Revert mode in buffers
+visiting tracked files (which is what @code{vc-auto-revert-mode} enables).
 
 @node Customizing VC
 @subsection Customizing VC

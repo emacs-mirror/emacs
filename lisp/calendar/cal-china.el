@@ -630,7 +630,7 @@ Echo Chinese date unless NOECHO is non-nil."
           (day (calendar-read-sexp
                 "Chinese calendar day (1-%d)"
                 (lambda (x) (and (<= 1 x) (<= x last)))
-                nil
+                1
                 last)))
      (list (list cycle year month day))))
   (calendar-goto-date (calendar-gregorian-from-absolute

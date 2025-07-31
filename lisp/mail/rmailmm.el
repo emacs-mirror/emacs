@@ -242,6 +242,27 @@ TRUNCATED is non-nil if the text of this entity was truncated."))
 
 ;;; Buttons
 
+(defcustom rmail-mime-save-action nil
+  "Action to perform after saving a MIME attachment in Rmail.
+The value can be one of the following:
+
+- nil: Do nothing (default).
+- `visit-file': Visit the saved file in Emacs.
+- `visit-directory': Visit the file's directory in Dired.
+- `open-external': Open the file with an external program.
+- A function: Call the function with the absolute filename as argument.
+
+Email attachments can be dangerous.  When this variable is set to one of
+the predefined actions, the user will be prompted to confirm the action
+before it is performed.  If you set this variable to a function, it will
+be called without confirmation.  Please exercise caution."
+  :type '(choice (const :tag "Do nothing" nil)
+                 (const :tag "Visit file in Emacs" visit-file)
+                 (const :tag "Visit directory in Dired" visit-directory)
+                 (const :tag "Open with external program" open-external)
+                 (function :tag "Custom function"))
+  :version "31.1")
+
 (defun rmail-mime-save (button)
   "Save the attachment using info in the BUTTON."
   (let* ((rmail-mime-mbox-buffer rmail-view-buffer)
@@ -282,7 +303,22 @@ TRUNCATED is non-nil if the text of this entity was truncated."))
 		 (ignore-errors (base64-decode-region (point-min) (point-max))))
 		((string= transfer-encoding "quoted-printable")
 		 (quoted-printable-decode-region (point-min) (point-max))))))
-      (write-region nil nil filename nil nil nil t))))
+      (write-region nil nil filename nil nil nil t))
+    (pcase rmail-mime-save-action
+      ('nil nil)
+      ('visit-file
+       (when (yes-or-no-p (format "Visit attachment `%s' in Emacs? "
+                                  (file-name-nondirectory filename)))
+         (find-file filename)))
+      ('visit-directory
+       (when (yes-or-no-p (format "Visit attachment `%s' in Dired? "
+                                  (file-name-nondirectory filename)))
+         (dired-jump nil filename)))
+      ('open-external
+       (when (yes-or-no-p (format "Open attachment `%s' with external program? "
+                                  (file-name-nondirectory filename)))
+         (shell-command-do-open (list filename))))
+      ((pred functionp) (funcall rmail-mime-save-action filename)))))
 
 (define-button-type 'rmail-mime-save 'action 'rmail-mime-save)
 

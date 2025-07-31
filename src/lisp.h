@@ -5684,6 +5684,17 @@ maybe_disable_address_randomization (int argc, char **argv)
   return argc;
 }
 #endif
+/* Maximum number of bytes to read or write in a single system call.
+   This works around a serious bug in Linux kernels before 2.6.16; see
+   <https://bugzilla.redhat.com/show_bug.cgi?format=multiple&id=612839>
+   and see Linux kernel commit e28cc71572da38a5a12c1cfe4d7032017adccf69.
+   It's likely to work around similar bugs in other operating systems, so do it
+   on all platforms.  Round INT_MAX down to a page size, with the conservative
+   assumption that page sizes are at most 2**18 bytes (any kernel with a
+   page size larger than that shouldn't have the bug).  */
+#ifndef MAX_RW_COUNT
+# define MAX_RW_COUNT (INT_MAX >> 18 << 18)
+#endif
 extern int emacs_exec_file (char const *, char *const *, char *const *);
 extern void init_standard_fds (void);
 extern char *emacs_get_current_dir_name (void);
@@ -6236,20 +6247,32 @@ enum
    an expression that should not have side effects.
    STR's value is not necessarily copied.  The resulting Lisp string
    should not be modified or given text properties or made visible to
-   user code.  */
+   user code, and its lifetime is that of the enclosing C block.  */
 
 #define AUTO_STRING(name, str) \
   AUTO_STRING_WITH_LEN (name, str, strlen (str))
 
 /* Declare NAME as an auto Lisp string if possible, a GC-based one if not.
    Take its unibyte value from the null-terminated string STR with length LEN.
-   STR may have side effects and may contain null bytes.
+   STR and LEN may have side effects and STR may contain null bytes.
    STR's value is not necessarily copied.  The resulting Lisp string
    should not be modified or given text properties or made visible to
-   user code.  */
+   user code, and its lifetime is that of the enclosing C block.  */
 
 #define AUTO_STRING_WITH_LEN(name, str, len)				\
   Lisp_Object name =							\
+    AUTO_STR_WITH_LEN (str, len)
+
+/* Yield an auto Lisp string if possible, a GC-based one if not.
+   This is like AUTO_STRING, except without a name.  */
+
+#define AUTO_STR(str) \
+  AUTO_STR_WITH_LEN (str, strlen (str))
+
+/* Yield an auto Lisp string if possible, a GC-based one if not.
+   This is like AUTO_STRING_WITH_LEN, except without a name.  */
+
+#define AUTO_STR_WITH_LEN(str, len)					\
     (USE_STACK_STRING							\
      ? (make_lisp_ptr							\
 	((&(struct Lisp_String) { GC_HEADER_INIT {			\

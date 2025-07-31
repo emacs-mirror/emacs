@@ -20,14 +20,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "lisp.h"
-#include "blockinput.h"
-#include "igc.h"
 #include "sysstdio.h"
-#include "character.h"
 #include "buffer.h"
-#include "keyboard.h"
-#include "syntax.h"
 #include "window.h"
+#include "igc.h"
 
 /* Define BYTE_CODE_SAFE true to enable some minor sanity checking,
    useful for debugging the byte compiler.  It defaults to false.  */

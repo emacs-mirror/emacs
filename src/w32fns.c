@@ -6487,6 +6487,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                          NULL, NULL, RES_TYPE_BOOLEAN);
   gui_default_parameter (f, parameters, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parameters, Qborders_respect_alpha_background,
+			 Qnil, "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   /* Process alpha here (Bug#16619).  On XP this fails with child
      frames.  For `no-focus-on-map' frames delay processing of alpha
@@ -6630,6 +6633,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   gui_default_parameter (f, parameters, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parameters, Qborders_respect_alpha_background,
+			 Qnil, "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   /* Make the window appear on the frame and enable display, unless
      the caller says not to.  However, with explicit parent, Emacs
@@ -7563,6 +7569,9 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
                          "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
+                         "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qinhibit_double_buffering, Qnil,
                          "inhibitDoubleBuffering", "InhibitDoubleBuffering",
                          RES_TYPE_BOOLEAN);
@@ -11022,6 +11031,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   0, /* x_set_override_redirect */
   gui_set_no_special_glyphs,
   gui_set_alpha_background,
+  gui_set_borders_respect_alpha_background,
   0, /* x_set_use_frame_synchronization */
 };
 

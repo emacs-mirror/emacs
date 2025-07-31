@@ -398,6 +398,9 @@ Needed to replace immediate byte-compiled lambdas with the compiled reference.")
              :documentation "Standard data relocated in use by functions.")
   (d-ephemeral (make-comp-data-container) :type comp-data-container
                :documentation "Relocated data not necessary after load.")
+  (non-materializable-objs-h (make-hash-table :test #'equal) :type hash-table
+               :documentation "Objects produced by the propagation engine which can't be materialized.
+Typically floating points (which are not cons-hashed).")
   (with-late-load nil :type boolean
                   :documentation "When non-nil support late load."))
 
@@ -2730,7 +2733,8 @@ Fold the call in case."
        (<=
         (comp-cstr-<= lval (car operands) (cadr operands)))
        (=
-        (comp-cstr-= lval (car operands) (cadr operands)))))
+        (comp-cstr-= lval (car operands) (cadr operands)
+                     (comp-ctxt-non-materializable-objs-h comp-ctxt)))))
     (`(setimm ,lval ,v)
      (setf (comp-cstr-imm lval) v))
     (`(phi ,lval . ,rest)
@@ -3557,7 +3561,7 @@ the deferred compilation mechanism."
                    for pass in comp-passes
                    unless (memq pass comp-disabled-passes)
                    do
-                   (comp-log (format "\n(%s) Running pass %s:\n"
+                   (comp-log (format "\n(%S) Running pass %s:\n"
                                      function-or-file pass)
                              2)
                    (setf data (funcall pass data))
@@ -3566,7 +3570,7 @@ the deferred compilation mechanism."
                             do (funcall f data))
                    finally
                    (when comp-log-time-report
-                     (comp-log (format "Done compiling %s" data) 0)
+                     (comp-log (format "Done compiling %S" data) 0)
                      (cl-loop for (pass . time) in (reverse report)
                               do (comp-log (format "Pass %s took: %fs."
                                                    pass time)
@@ -3578,7 +3582,7 @@ the deferred compilation mechanism."
                    (if (and comp-async-compilation
                             (not (eq (car err) 'native-compiler-error)))
                        (progn
-                         (message "%s: Error %s"
+                         (message "%S: Error %s"
                                   function-or-file
                                   (error-message-string err))
                          (kill-emacs -1))

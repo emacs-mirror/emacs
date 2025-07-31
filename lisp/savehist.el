@@ -256,7 +256,7 @@ Be careful to do it while preserving the current history data."
   ;; We don't know the relative age of the various entries in OLD and
   ;; NEW; it's possible that most entries in NEW are much older than
   ;; those in OLD or vice versa, or anything in-between.  Maybe we should
-  ;; export the `lib/diffseq.h' to ELisp and use it here, but in the mean
+  ;; export the `lib/diffseq.h' to Elisp and use it here, but in the mean
   ;; time we interleave the two lists, which should usually be tolerable.
   (let ((res ()))
     (while (and old new)

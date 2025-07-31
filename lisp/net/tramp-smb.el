@@ -552,13 +552,11 @@ arguments to pass to the OPERATION."
 
 			  ;; Use an asynchronous processes.  By this,
 			  ;; password can be handled.
-			  (let* ((default-directory tmpdir)
-				 (p (apply
-				     #'start-process
-				     (tramp-get-connection-name v)
-				     (tramp-get-connection-buffer v)
-				     tramp-smb-program args)))
-			    (tramp-post-process-creation p v)
+			  (let ((p (apply
+				    #'tramp-start-process v
+				    (tramp-get-connection-name v)
+				    (tramp-get-connection-buffer v)
+				    tramp-smb-program args)))
 			    (tramp-process-actions
 			     p v nil tramp-smb-actions-with-tar)
 
@@ -813,11 +811,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		;; Use an asynchronous process.  By this, password
 		;; can be handled.
 		(let ((p (apply
-			  #'start-process
+			  #'tramp-start-process v
 			  (tramp-get-connection-name v)
 			  (tramp-get-connection-buffer v)
 			  tramp-smb-acl-program args)))
-		  (tramp-post-process-creation p v)
 		  (tramp-process-actions p v nil tramp-smb-actions-get-acl)
 		  (when (> (point-max) (point-min))
 		    (substring-no-properties (buffer-string))))))))))))
@@ -825,6 +822,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
   ;; The result is cached in `tramp-convert-file-attributes'.
+  (setq filename (directory-file-name (expand-file-name filename)))
   (with-parsed-tramp-file-name filename nil
     (tramp-convert-file-attributes v localname id-format
       (ignore-errors
@@ -1000,7 +998,6 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (process-put p 'tramp-watch-name localname)
 	  (set-process-filter p #'tramp-smb-notify-process-filter)
 	  (set-process-sentinel p #'tramp-file-notify-process-sentinel)
-	  (tramp-post-process-creation p v)
 	  ;; There might be an error if the monitor is not supported.
 	  ;; Give the filter a chance to read the output.
 	  (while (tramp-accept-process-output p))
@@ -1505,11 +1502,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	      ;; Use an asynchronous process.  By this, password
 	      ;; can be handled.
 	      (let ((p (apply
-			#'start-process
+			#'tramp-start-process v
 			(tramp-get-connection-name v)
 			(tramp-get-connection-buffer v)
 			tramp-smb-acl-program args)))
-		(tramp-post-process-creation p v)
 		(tramp-process-actions p v nil tramp-smb-actions-set-acl)
 		;; This is meant for traces, and returning from
 		;; the function.  No error is propagated outside,
@@ -2042,18 +2038,12 @@ If ARGUMENT is non-nil, use it as argument for
 
 	      (let* (coding-system-for-read
 		     (process-connection-type tramp-process-connection-type)
-		     (p (let ((default-directory
-			       tramp-compat-temporary-file-directory)
-			      (process-environment
-			       (cons (concat "TERM=" tramp-terminal-type)
-				     process-environment)))
-			  (apply #'start-process
-				 (tramp-get-connection-name vec)
-				 (tramp-get-connection-buffer vec)
-				 (if argument
-				     tramp-smb-winexe-program tramp-smb-program)
-				 args))))
-		(tramp-post-process-creation p vec)
+		     (p (apply #'tramp-start-process vec
+			       (tramp-get-connection-name vec)
+			       (tramp-get-connection-buffer vec)
+			       (if argument
+				   tramp-smb-winexe-program tramp-smb-program)
+			       args)))
 
 		;; Set connection-local variables.
 		(tramp-set-connection-local-variables vec)
@@ -2171,6 +2161,29 @@ Removes smb prompt.  Returns nil if an error message has appeared."
 (defun tramp-smb-shell-quote-localname (vec)
   "Call `tramp-smb-shell-quote-argument' on localname of VEC."
   (tramp-smb-shell-quote-argument (tramp-smb-get-localname vec)))
+
+;;; Default connection-local variables for Tramp.
+
+(defconst tramp-smb-connection-local-default-system-variables
+  '((path-separator . ";")
+    (null-device . "NUL")
+    ;; This the default value of %PATHEXT% in MS Windows 11, plus ".py"
+    ;; for Python.  Once we have remote processes, we might set this
+    ;; host-specific using that remote environment variable.
+    ;; The suffix "" is added for the benefit of local processes,
+    ;; started in a remote buffer.  (Bug#78886)
+    (exec-suffixes
+     . (".com" ".exe" ".bat" ".cmd" ".vbs" ".vbe"
+        ".js" ".jse" ".wsf" ".wsh" ".msc" ".py" "")))
+  "Default connection-local system variables for remote smb connections.")
+
+(connection-local-set-profile-variables
+ 'tramp-smb-connection-local-default-system-profile
+ tramp-smb-connection-local-default-system-variables)
+
+(connection-local-set-profiles
+ `(:application tramp :protocol ,tramp-smb-method)
+ 'tramp-smb-connection-local-default-system-profile)
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

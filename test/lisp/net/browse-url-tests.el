@@ -102,7 +102,7 @@
 (ert-deftest browse-url-tests-delete-temp-file ()
   (ert-with-temp-file browse-url-temp-file-name
     (browse-url-delete-temp-file)
-    (should-not (file-exists-p browse-url-temp-file-name)))
+    (should-not browse-url-temp-file-name))
   (ert-with-temp-file file
     (with-suppressed-warnings ((callargs browse-url-delete-temp-file))
       (browse-url-delete-temp-file file))

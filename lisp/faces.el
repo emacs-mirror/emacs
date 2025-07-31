@@ -95,9 +95,10 @@ a font height that isn't optimal."
          (internal-set-font-selection-order value)))
 
 
-;; In the absence of Fontconfig support, Monospace and Sans Serif are
-;; unavailable, and we fall back on the courier and helv families,
-;; which are generally available.
+;; We use Fontconfig if we have it.  This list is an alternative
+;; mechanism to fall back to in the absence of Fontconfig.
+;; In that situation, Monospace and Sans Serif are unavailable, and we
+;; turn to the courier and helv families, which are generally available.
 (defcustom face-font-family-alternatives
   '(("Monospace" "Cascadia Code" "Lucida Console" "courier" "fixed")
 
@@ -2461,6 +2462,10 @@ If you set `term-file-prefix' to nil, this function does nothing."
   "Basic underlined face."
   :group 'basic-faces)
 
+;; Ideally, in Emacs's default look, we'd like the default and
+;; fixed-pitch faces to use two different monospace typefaces so that
+;; they're visually distinct.  At present, that's achieved on MS-Windows
+;; and macOS, but not on platforms that use Fontconfig.  See bug#79083.
 (defface fixed-pitch
   '((t :family "Monospace"))
   "The basic fixed-pitch face."

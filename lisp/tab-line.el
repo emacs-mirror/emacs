@@ -1245,10 +1245,37 @@ button, so you could have one more buffer shown on the tab line."
   '(completion-list-mode)
   "List of major modes for which the tab-line display is not enabled.
 Buffers under any of these major modes will not show the tab line in
-their windows, even if `global-tab-line-mode' is enabled."
+their windows, even if `global-tab-line-mode' is enabled.
+
+See also `tab-line-exclude-buffers', for exclude buffers."
   :type '(repeat symbol)
   :group 'tab-line
   :version "27.1")
+
+(defcustom tab-line-exclude-buffers nil
+  "Whether tab-line should not be enabled in a buffer.
+
+The value must be a condition which is passed to `buffer-match-p' (which
+see).
+
+You can include multiple conditions, for example:
+
+  To exclude multiple modes and buffer names:
+  \\='(or \"\\*eshell\\*\"
+         (derived-mode completion-list-mode
+                       eshell-mode
+                       term-mode
+                       ...)
+         ...)
+
+If the condition yields a non-nil value, tab line will not be enabled in
+those buffers.
+
+See also `tab-line-exclude-modes', for only exclude major modes."
+  :type '(buffer-predicate :tag "Predicate for `buffer-match-p'")
+  :safe #'booleanp
+  :group 'tab-line
+  :version "31.1")
 
 ;;;###autoload
 (defvar-local tab-line-exclude nil)
@@ -1263,6 +1290,7 @@ of `tab-line-exclude', are exempt from `tab-line-mode'."
   (unless (or (minibufferp)
               (string-match-p "\\` " (buffer-name))
               (memq major-mode tab-line-exclude-modes)
+              (buffer-match-p tab-line-exclude-buffers (buffer-name))
               (get major-mode 'tab-line-exclude)
               (buffer-local-value 'tab-line-exclude (current-buffer)))
     (tab-line-mode 1)))

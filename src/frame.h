@@ -531,6 +531,10 @@ struct frame
      selected window in the frame, assuming there is still an active
      minibuffer in that mini-window.  */
   bool_bf select_mini_window_flag : 1;
+
+  /* Set to true when borders' transparencies should match the
+     background opacity.  */
+  bool_bf borders_respect_alpha_background : 1;
   /* Bitfield area ends here.  */
 
   /* This frame's change stamp, set the last time window change
@@ -1849,6 +1853,8 @@ extern long gui_figure_window_size (struct frame *, Lisp_Object, bool, bool);
 
 extern void gui_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
 extern void gui_set_alpha_background (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_borders_respect_alpha_background (struct frame *, Lisp_Object,
+                                                      Lisp_Object);
 extern void gui_set_no_special_glyphs (struct frame *, Lisp_Object, Lisp_Object);
 
 extern void validate_x_resource_name (void);

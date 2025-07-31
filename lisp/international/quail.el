@@ -835,6 +835,8 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
                                       (format "\t%c\t" upper))
                     (string upper))))
 	(insert (bidi-string-mark-left-to-right lower)
+                ;; This invisible space is here to prevent the display
+                ;; engine from composing these two characters on display.
 		(propertize " " 'invisible t)
 		(bidi-string-mark-left-to-right upper))
 	(if (< (string-width upper) 2)

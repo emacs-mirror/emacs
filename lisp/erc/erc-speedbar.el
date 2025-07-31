@@ -146,7 +146,7 @@ This will add a speedbar major display mode."
       (setq serverp (erc--server-buffer-p))
       (setq chanp (erc-channel-p (erc-default-target)))
       (setq queryp (erc-query-buffer-p)
-            queries-current-p (erc--queries-current-p)))
+            queries-current-p (funcall erc--query-table-synced-predicate)))
     (defvar erc-nickbar-mode)
     (cond ((and erc-nickbar-mode (null (get-buffer-window speedbar-buffer)))
            (run-at-time 0 nil #'erc-nickbar-mode -1))
@@ -207,7 +207,8 @@ This will add a speedbar major display mode."
 
 (defun erc-speedbar-insert-target (buffer depth)
   (if (with-current-buffer buffer
-        (or (erc--target-channel-p erc--target) (erc--queries-current-p)))
+        (or (erc--target-channel-p erc--target)
+            (funcall erc--query-table-synced-predicate)))
       (progn
         (speedbar-make-tag-line
          'bracket ?+ 'erc-speedbar-expand-channel buffer

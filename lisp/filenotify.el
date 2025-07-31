@@ -78,8 +78,8 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'.
 If it is registered in `file-notify-descriptors', a `stopped' event is sent."
   (when-let* ((watch (gethash descriptor file-notify-descriptors)))
     (unwind-protect
-        ;; Send `stopped' event.
-        (file-notify-handle-event
+        ;; Insert `stopped' event.
+        (insert-special-event
          (make-file-notify
           :-event `(,descriptor stopped
                     ,(file-notify--watch-absolute-filename watch))

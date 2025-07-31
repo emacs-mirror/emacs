@@ -1882,7 +1882,9 @@ AS_IF([test $gl_gcc_warnings = no],
   gl_WARN_ADD([-Wno-format-nonliteral])
   gl_WARN_ADD([-Wno-bidi-chars])
   AS_IF([test $gl_gcc_warnings = yes],
-    [gl_WARN_ADD([-Wno-analyzer-fd-leak])]) # GCC bug 109839
+    [gl_WARN_ADD([-Wno-analyzer-fd-leak]) # GCC bugs 109580, 109839
+     gl_WARN_ADD([-Wno-analyzer-use-of-uninitialized-value]) # GCC bug 121030
+    ])
 
   # clang is unduly picky about some things.
   if test "$emacs_cv_clang" = yes; then
@@ -2227,30 +2229,27 @@ esac
 
 C_SWITCH_MACHINE=
 
-AC_CACHE_CHECK([for flag to work around GCC bug 117423],
-  [emacs_cv_gcc_bug_117423_CFLAGS],
-  [emacs_cv_gcc_bug_117423_CFLAGS='none needed'
+AC_CACHE_CHECK([for flag to work around GCC union bugs],
+  [emacs_cv_gcc_union_bugs_CFLAGS],
+  [emacs_cv_gcc_union_bugs_CFLAGS='none needed'
    AS_IF([test "$GCC" = yes],
      [old_CFLAGS=$CFLAGS
-      # If no flags are needed (e.g., not GCC 4+), don't use any.
-      # Otherwise, use -fno-tree-sra.
-      for emacs_cv_gcc_bug_117423_CFLAGS in \
+      # Use -fno-tree-sra if GCC 4 through 15.1.
+      for emacs_cv_gcc_union_bugs_CFLAGS in \
 	  'none needed' -fno-tree-sra
       do
-	AS_CASE([$emacs_cv_gcc_bug_117423_CFLAGS],
+	AS_CASE([$emacs_cv_gcc_union_bugs_CFLAGS],
 	  ['none needed'], [],
 	  [-fno-tree-sra], [break],
-	  [CFLAGS="$old_CFLAGS $emacs_cv_gcc_bug_117423_CFLAGS"])
+	  [CFLAGS="$old_CFLAGS $emacs_cv_gcc_union_bugs_CFLAGS"])
 	AC_COMPILE_IFELSE(
 	  [AC_LANG_DEFINES_PROVIDED
-	   [/* Work around GCC bug 117423 with unions containing holes:
+	   [/* Work around GCC bugs 117423 and 119085 re holes in unions:
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=117423
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119085
-	       GCC bug 117423 is present even in GCC 15.1,
-	       the current version as of this writing; for now,
-	       assume it is present in all GCC versions starting with GCC 4.
+	       These are fixed in GCC 15.2.
 
-	       Working wround GCC bug 117423 also works around GCC bug 58416
+	       Working wround them also works around GCC bug 58416
 	       with double in unions on x86, where the generated insns
 	       copy non-floating-point data via fldl/fstpl instruction pairs.
 	       This can misbehave if the data's bit pattern looks like a NaN.
@@ -2259,18 +2258,19 @@ AC_CACHE_CHECK([for flag to work around GCC bug 117423],
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71460
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93271
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114659
-	       Although GCC bug 58416 is fixed in GCC 15.1,
-	       GCC bug 117423 is still present there.  */
-	    #if 4 <= __GNUC__ && !defined __clang__
-	    # error "GCC bug 117423 possibly present"
+	       GCC bug 58416 is fixed in GCC 15.1.  */
+	    #if 4 <= __GNUC__ && ! (15 < __GNUC__ + (1 < __GNUC_MINOR__))
+	     #ifndef __clang__
+	      #error "GCC union bugs possibly present"
+	     #endif
 	    #endif
 	  ]],
 	  [break])
       done
       CFLAGS=$old_CFLAGS])])
-AS_CASE([$emacs_cv_gcc_bug_117423_CFLAGS],
+AS_CASE([$emacs_cv_gcc_union_bugs_CFLAGS],
   [-*],
-    [C_SWITCH_MACHINE="$C_SWITCH_MACHINE $emacs_cv_gcc_bug_117423_CFLAGS"])
+    [C_SWITCH_MACHINE="$C_SWITCH_MACHINE $emacs_cv_gcc_union_bugs_CFLAGS"])
 
 AC_SUBST([C_SWITCH_MACHINE])
 

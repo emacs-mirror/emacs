@@ -114,10 +114,12 @@ FTOASTR (char *buf, size_t bufsize, int flags, int width, FLOAT x)
   /* The following method is simple but slow.
      For ideas about speeding things up, please see:
 
-     Andrysco M, Jhala R, Lerner S. Printing floating-point numbers:
-     a faster, always correct method. ACM SIGPLAN notices - POPL '16.
-     2016;51(1):555-67 <https://doi.org/10.1145/2914770.2837654>; draft at
-     <https://cseweb.ucsd.edu/~lerner/papers/fp-printing-popl16.pdf>.  */
+     Jeon J. Dragonbox: a new floating-point binary-to-decimal
+     conversion algorithm. 2024. <https://github.com/jk-jeon/dragonbox/>.
+     Used in {fmt} <https://github.com/fmtlib/fmt>.
+
+     Adams U. Ryū: fast float-to-string conversion.
+     PLDI 2018. 270–282. <https://doi.org/10.1145/3192366.3192369>.  */
 
   PROMOTED_FLOAT promoted_x = x;
   char format[sizeof "%-+ 0*.*Lg"];

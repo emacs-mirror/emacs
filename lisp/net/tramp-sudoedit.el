@@ -769,14 +769,15 @@ in case of error, t otherwise."
     (erase-buffer)
     (let* ((delete-exited-processes t)
 	   (process-connection-type tramp-process-connection-type)
-	   (p (apply #'start-process
-		     (tramp-get-connection-name vec) (current-buffer)
-		     (append
-		      (tramp-expand-args
-		       vec 'tramp-sudo-login nil
-		       ?h (or (tramp-file-name-host vec) "")
-		       ?u (or (tramp-file-name-user vec) ""))
-		      (flatten-tree args))))
+	   (p (apply
+	       #'tramp-start-process vec
+	       (tramp-get-connection-name vec) (current-buffer)
+	       (append
+		(tramp-expand-args
+		 vec 'tramp-sudo-login nil
+		 ?h (or (tramp-file-name-host vec) "")
+		 ?u (or (tramp-file-name-user vec) ""))
+		(flatten-tree args))))
 	   ;; We suppress the messages `Waiting for prompts from remote shell'.
 	   (tramp-verbose (if (= tramp-verbose 3) 2 tramp-verbose))
 	   ;; The password shall be cached also in case of "emacs -Q".
@@ -786,7 +787,6 @@ in case of error, t otherwise."
 	   auth-source-save-behavior)
       ;; Avoid process status message in output buffer.
       (set-process-sentinel p #'ignore)
-      (tramp-post-process-creation p vec)
       (tramp-set-connection-property p "pw-vector" tramp-sudoedit-null-hop)
       (tramp-process-actions p vec nil tramp-sudoedit-sudo-actions)
       (tramp-message vec 6 "%s\n%s" (process-exit-status p) (buffer-string))

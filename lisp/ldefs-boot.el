@@ -5234,8 +5234,6 @@ evaluate the variable `compilation-shell-minor-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
-\\{compilation-shell-minor-mode-map}
-
 (fn &optional ARG)" t)
 (autoload 'compilation-minor-mode "compile" "\
 Toggle Compilation minor mode.
@@ -5257,8 +5255,6 @@ evaluate the variable `compilation-minor-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
-
-\\{compilation-minor-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'compilation-next-error-function "compile" "\
@@ -5372,16 +5368,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-completion-preview-mode'.")
 (custom-autoload 'global-completion-preview-mode "completion-preview" nil)
 (autoload 'global-completion-preview-mode "completion-preview" "\
-Toggle Completion-Preview mode in all buffers.
+Toggle Completion-Preview mode in many buffers.
+Specifically, Completion-Preview mode is enabled in all buffers where
+`completion-preview-mode' would do it.
+
 With prefix ARG, enable Global Completion-Preview mode if ARG is
 positive; otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Completion-Preview mode is enabled in all buffers where
-`completion-preview-mode' would do it.
 
 See `completion-preview-mode' for more information on
 Completion-Preview mode.
@@ -6539,16 +6535,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-cwarn-mode'.")
 (custom-autoload 'global-cwarn-mode "cwarn" nil)
 (autoload 'global-cwarn-mode "cwarn" "\
-Toggle Cwarn mode in all buffers.
+Toggle Cwarn mode in many buffers.
+Specifically, Cwarn mode is enabled in all buffers where
+`turn-on-cwarn-mode-if-enabled' would do it.
+
 With prefix ARG, enable Global Cwarn mode if ARG is positive;
 otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Cwarn mode is enabled in all buffers where
-`turn-on-cwarn-mode-if-enabled' would do it.
 
 See `cwarn-mode' for more information on Cwarn mode.
 
@@ -7653,18 +7649,18 @@ Also see the `diff-entire-buffers' variable.
 
 (autoload 'diff-mode "diff-mode" "\
 Major mode for viewing/editing context diffs.
-Supports unified and context diffs as well as (to a lesser extent)
-normal diffs.
-
-When the buffer is read-only, the ESC prefix is not necessary.
-If you edit the buffer manually, `diff-mode' will try to update the hunk
-headers for you on-the-fly.
+Supports unified and context diffs as well as, to a lesser extent, diffs
+in the old \"normal\" format.  (Unified diffs have become the standard,
+most commonly encountered format.)  If you edit the buffer manually,
+`diff-mode' will try to update the hunk headers for you on-the-fly.
 
 You can also switch between context diff and unified diff with \\[diff-context->unified],
 or vice versa with \\[diff-unified->context] and you can also reverse the direction of
 a diff with \\[diff-reverse-direction].
 
 \\{diff-mode-map}
+In read-only buffers the following bindings are also available:
+\\{diff-read-only-map}
 
 (fn)" t)
 (autoload 'diff-minor-mode "diff-mode" "\
@@ -8114,16 +8110,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-display-fill-column-indicator-mode'.")
 (custom-autoload 'global-display-fill-column-indicator-mode "display-fill-column-indicator" nil)
 (autoload 'global-display-fill-column-indicator-mode "display-fill-column-indicator" "\
-Toggle Display-Fill-Column-Indicator mode in all buffers.
+Toggle Display-Fill-Column-Indicator mode in many buffers.
+Specifically, Display-Fill-Column-Indicator mode is enabled in all
+buffers where `display-fill-column-indicator--turn-on' would do it.
+
 With prefix ARG, enable Global Display-Fill-Column-Indicator mode if
 ARG is positive; otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Display-Fill-Column-Indicator mode is enabled in all buffers where
-`display-fill-column-indicator--turn-on' would do it.
 
 See `display-fill-column-indicator-mode' for more information on
 Display-Fill-Column-Indicator mode.
@@ -8185,16 +8181,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-display-line-numbers-mode'.")
 (custom-autoload 'global-display-line-numbers-mode "display-line-numbers" nil)
 (autoload 'global-display-line-numbers-mode "display-line-numbers" "\
-Toggle Display-Line-Numbers mode in all buffers.
+Toggle Display-Line-Numbers mode in many buffers.
+Specifically, Display-Line-Numbers mode is enabled in all buffers
+where `display-line-numbers--turn-on' would do it.
+
 With prefix ARG, enable Global Display-Line-Numbers mode if ARG is
 positive; otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Display-Line-Numbers mode is enabled in all buffers where
-`display-line-numbers--turn-on' would do it.
 
 See `display-line-numbers-mode' for more information on
 Display-Line-Numbers mode.
@@ -8550,8 +8546,8 @@ switch on the minor mode in all major modes), nil (meaning don't
 switch on in any major mode), a list of modes (meaning switch on only
 in those modes and their descendants), or a list (not MODES...),
 meaning switch on in any major mode except MODES.  The value can also
-mix all of these forms, see the info node `Defining Minor Modes' for
-details.  The :predicate key causes the macro to create a user option
+mix all of these forms, see the Info node `(elisp)Defining Minor Modes'
+for details.  The :predicate key causes the macro to create a user option
 named the same as MODE, but ending with \"-modes\" instead of \"-mode\".
 That user option can then be used to customize in which modes this
 globalized minor mode will be switched on.
@@ -8929,7 +8925,7 @@ A second call of this function without changing point inserts the next match.
 A call with prefix PREFIX reads the symbol to insert from the minibuffer with
 completion.
 
-(fn PREFIX)" t)
+(fn PREFIX)" '("P"))
 (autoload 'ebrowse-tags-loop-continue "ebrowse" "\
 Repeat last operation on files in tree.
 FIRST-TIME non-nil means this is not a repetition, but the first time.
@@ -9851,7 +9847,7 @@ Describe CTR if it is a class constructor.
 
 ;;; Generated autoloads from emacs-lisp/eldoc.el
 
-(push '(eldoc 1 15 0) package--builtin-versions)
+(push '(eldoc 1 16 0) package--builtin-versions)
 
 
 ;;; Generated autoloads from elec-pair.el
@@ -9949,32 +9945,6 @@ mode hooks.
 (fn &optional ARG)" t)
 (make-obsolete 'elide-head 'elide-head-mode "29.1")
 (register-definition-prefixes "elide-head" '("elide-head-"))
-
-
-;;; Generated autoloads from emacs-lisp/elint.el
-
-(autoload 'elint-file "elint" "\
-Lint the file FILE.
-
-(fn FILE)" t)
-(autoload 'elint-directory "elint" "\
-Lint all the .el files in DIRECTORY.
-A complicated directory may require a lot of memory.
-
-(fn DIRECTORY)" t)
-(autoload 'elint-current-buffer "elint" "\
-Lint the current buffer.
-If necessary, this first calls `elint-initialize'." t)
-(autoload 'elint-defun "elint" "\
-Lint the function at point.
-If necessary, this first calls `elint-initialize'." t)
-(autoload 'elint-initialize "elint" "\
-Initialize elint.
-If elint is already initialized, this does nothing, unless
-optional prefix argument REINIT is non-nil.
-
-(fn &optional REINIT)" t)
-(register-definition-prefixes "elint" '("elint-"))
 
 
 ;;; Generated autoloads from progmodes/elixir-ts-mode.el
@@ -10721,7 +10691,7 @@ ERC assigns SERVER and FULL-NAME the associated keyword values
 and defers to `erc-compute-port', `erc-compute-user', and
 `erc-compute-nick' for those respective parameters.
 
-(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME ID)" t)
+(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME ID)" '((let ((erc--display-context `((erc-interactive-display . erc) ,@erc--display-context))) (erc-select-read-args))))
 (defalias 'erc-select #'erc)
 (autoload 'erc-tls "erc" "\
 Connect to an IRC server over a TLS-encrypted connection.
@@ -10744,7 +10714,7 @@ See the alternative entry-point command `erc' as well as Info
 node `(erc) Connecting' for a fuller description of the various
 parameters, like ID.
 
-(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME CLIENT-CERTIFICATE ID)" t)
+(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME CLIENT-CERTIFICATE ID)" '((let ((erc-default-port erc-default-port-tls) (erc--display-context `((erc-interactive-display . erc-tls) ,@erc--display-context))) (erc-select-read-args))))
 (autoload 'erc-handle-irc-url "erc" "\
 Use ERC to IRC on HOST:PORT in CHANNEL.
 If ERC is already connected to HOST:PORT, simply /join CHANNEL.
@@ -10976,9 +10946,7 @@ it has to be wrapped in `(eval (quote ...))'.
 If NAME is already defined as a test and Emacs is running
 in batch mode, an error is signaled.
 
-(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil t)
-(function-put 'ert-deftest 'doc-string-elt 3)
-(function-put 'ert-deftest 'lisp-indent-function 2)
+(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil 'macro)
 (autoload 'ert-run-tests-batch "ert" "\
 Run the tests specified by SELECTOR, printing results to the terminal.
 
@@ -12830,6 +12798,8 @@ value is the default binding of the variable.
 The connection-local value of `path-separator'.")
 (autoload 'null-device "files-x" "\
 The connection-local value of `null-device'.")
+(autoload 'exec-suffixes "files-x" "\
+The connection-local value of `exec-suffixes'.")
 (register-definition-prefixes "files-x" '("connection-local-" "dir-locals-to-string" "modify-" "read-"))
 
 
@@ -13398,8 +13368,6 @@ evaluate the variable `flymake-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
-
-\\{flymake-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'flymake-mode-on "flymake" "\
@@ -15232,16 +15200,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-goto-address-mode'.")
 (custom-autoload 'global-goto-address-mode "goto-addr" nil)
 (autoload 'global-goto-address-mode "goto-addr" "\
-Toggle Goto-Address mode in all buffers.
+Toggle Goto-Address mode in many buffers.
+Specifically, Goto-Address mode is enabled in all buffers where
+`goto-addr-mode--turn-on' would do it.
+
 With prefix ARG, enable Global Goto-Address mode if ARG is positive;
 otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Goto-Address mode is enabled in all buffers where
-`goto-addr-mode--turn-on' would do it.
 
 See `goto-address-mode' for more information on Goto-Address mode.
 
@@ -16433,16 +16401,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-hi-lock-mode'.")
 (custom-autoload 'global-hi-lock-mode "hi-lock" nil)
 (autoload 'global-hi-lock-mode "hi-lock" "\
-Toggle Hi-Lock mode in all buffers.
+Toggle Hi-Lock mode in many buffers.
+Specifically, Hi-Lock mode is enabled in all buffers where
+`turn-on-hi-lock-if-enabled' would do it.
+
 With prefix ARG, enable Global Hi-Lock mode if ARG is positive;
 otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Hi-Lock mode is enabled in all buffers where
-`turn-on-hi-lock-if-enabled' would do it.
 
 See `hi-lock-mode' for more information on Hi-Lock mode.
 
@@ -16812,16 +16780,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-highlight-changes-mode'.")
 (custom-autoload 'global-highlight-changes-mode "hilit-chg" nil)
 (autoload 'global-highlight-changes-mode "hilit-chg" "\
-Toggle Highlight-Changes mode in all buffers.
+Toggle Highlight-Changes mode in many buffers.
+Specifically, Highlight-Changes mode is enabled in all buffers where
+`highlight-changes-mode-turn-on' would do it.
+
 With prefix ARG, enable Global Highlight-Changes mode if ARG is
 positive; otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Highlight-Changes mode is enabled in all buffers where
-`highlight-changes-mode-turn-on' would do it.
 
 See `highlight-changes-mode' for more information on Highlight-Changes
 mode.
@@ -17102,8 +17070,7 @@ inlined into the compiled format versions.  This means that if you
 change its definition, you should explicitly call
 `ibuffer-recompile-formats'.
 
-(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil t)
-(function-put 'define-ibuffer-column 'lisp-indent-function 'defun)
+(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil 'macro)
 (autoload 'define-ibuffer-sorter "ibuf-macs" "\
 Define a method of sorting named NAME.
 DOCUMENTATION is the documentation of the function, which will be called
@@ -17114,9 +17081,7 @@ For sorting, the forms in BODY will be evaluated with `a' bound to one
 buffer object, and `b' bound to another.  BODY should return a non-nil
 value if and only if `a' is \"less than\" `b'.
 
-(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil t)
-(function-put 'define-ibuffer-sorter 'lisp-indent-function 1)
-(function-put 'define-ibuffer-sorter 'doc-string-elt 2)
+(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil 'macro)
 (autoload 'define-ibuffer-op "ibuf-macs" "\
 Generate a function which operates on a buffer.
 OP becomes the name of the function; if it doesn't begin with
@@ -17159,9 +17124,7 @@ BODY define the operation; they are forms to evaluate per each
 marked buffer.  BODY is evaluated with `buf' bound to the
 buffer object.
 
-(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil t)
-(function-put 'define-ibuffer-op 'lisp-indent-function 2)
-(function-put 'define-ibuffer-op 'doc-string-elt 3)
+(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil 'macro)
 (autoload 'define-ibuffer-filter "ibuf-macs" "\
 Define a filter named NAME.
 DOCUMENTATION is the documentation of the function.
@@ -17176,9 +17139,7 @@ not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter.
 
-(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil t)
-(function-put 'define-ibuffer-filter 'lisp-indent-function 2)
-(function-put 'define-ibuffer-filter 'doc-string-elt 2)
+(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil 'macro)
 (register-definition-prefixes "ibuf-macs" '("ibuffer-"))
 
 
@@ -18088,8 +18049,9 @@ Toggle thumbnails in front of marked file names in the Dired buffer.
 If no file is marked, toggle display of thumbnail on the current file's line.
 ARG, if non-nil (interactively, the prefix argument), specifies the files
 whose thumbnail display to toggle instead of the marked files: if ARG is an
-integer, use the next ARG (or previous -ARG, if ARG<0) files; any other
-value of ARG means toggle thumbnail display of the current line's file.
+integer, use the next ARG (or previous -ARG, if ARG<0) files; if ARG is
+the symbol `marked', use only the marked files, if any; any other value of
+ARG means toggle thumbnail display of the current line's file.
 
 (fn &optional ARG)" '(dired-mode))
 (autoload 'image-dired-jump-thumbnail-buffer "image-dired-dired" "\
@@ -20017,7 +19979,9 @@ keys and associated values are:
     files that are concerned by the current operation (using relative names);
  `log-edit-diff-function' -- function taking no arguments that
     displays a diff of the files concerned by the current operation.
- `vc-log-fileset' -- the VC fileset to be committed (if any).
+ `vc-log-fileset' -- list of files to be committed, if any
+                     (not a true VC fileset structure as returned by
+                     `vc-deduce-fileset', but only the second element).
 
 If BUFFER is non-nil, `log-edit' will switch to that buffer, use it
 to edit the log message and go back to the current buffer when
@@ -27204,8 +27168,6 @@ evaluate the variable `rectangle-mark-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
-\\{rectangle-mark-mode-map}
-
 (fn &optional ARG)" t)
 (register-definition-prefixes "rect" '("apply-on-rectangle" "clear-rectangle-line" "delete-" "extract-rectangle-" "killed-rectangle" "ope" "rectangle-" "spaces-string" "string-rectangle-"))
 
@@ -29002,6 +28964,22 @@ disabled.
 ;;; Generated autoloads from cedet/semantic/senator.el
 
 (register-definition-prefixes "semantic/senator" '("semantic-up-reference" "senator-"))
+
+
+;;; Generated autoloads from send-to.el
+
+(autoload 'send-to-supported-p "send-to" "\
+Return non-nil for platforms where `send-to' is supported.")
+(autoload 'send-to "send-to" "\
+Send file(s) or region text to (non-Emacs) applications or services.
+
+Sending is handled by the first supported handler from `send-to-handlers'.
+
+ITEMS list is also populated by the resolved handler, but can be
+explicitly overridden.
+
+(fn &optional ITEMS)" t)
+(register-definition-prefixes "send-to" '("send-to-"))
 
 
 ;;; Generated autoloads from mail/sendmail.el
@@ -31509,16 +31487,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-subword-mode'.")
 (custom-autoload 'global-subword-mode "subword" nil)
 (autoload 'global-subword-mode "subword" "\
-Toggle Subword mode in all buffers.
+Toggle Subword mode in many buffers.
+Specifically, Subword mode is enabled in all buffers where `(lambda
+nil (subword-mode 1))' would do it.
+
 With prefix ARG, enable Global Subword mode if ARG is positive;
 otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Subword mode is enabled in all buffers where `(lambda nil
-(subword-mode 1))' would do it.
 
 See `subword-mode' for more information on Subword mode.
 
@@ -31558,16 +31536,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-superword-mode'.")
 (custom-autoload 'global-superword-mode "subword" nil)
 (autoload 'global-superword-mode "subword" "\
-Toggle Superword mode in all buffers.
+Toggle Superword mode in many buffers.
+Specifically, Superword mode is enabled in all buffers where `(lambda
+nil (superword-mode 1))' would do it.
+
 With prefix ARG, enable Global Superword mode if ARG is positive;
 otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Superword mode is enabled in all buffers where `(lambda nil
-(superword-mode 1))' would do it.
 
 See `superword-mode' for more information on Superword mode.
 
@@ -31693,16 +31671,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-tab-line-mode'.")
 (custom-autoload 'global-tab-line-mode "tab-line" nil)
 (autoload 'global-tab-line-mode "tab-line" "\
-Toggle Tab-Line mode in all buffers.
+Toggle Tab-Line mode in many buffers.
+Specifically, Tab-Line mode is enabled in all buffers where
+`tab-line-mode--turn-on' would do it.
+
 With prefix ARG, enable Global Tab-Line mode if ARG is positive;
 otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Tab-Line mode is enabled in all buffers where `tab-line-mode--turn-on'
-would do it.
 
 See `tab-line-mode' for more information on Tab-Line mode.
 
@@ -33980,7 +33958,7 @@ If the buffer runs `dired', the buffer is reverted." t)
 Visit the file or directory named on this line as the superuser.
 
 By default this is done using the \"sudo\" Tramp method.
-YOu can customize `tramp-file-name-with-method' to change this.
+You can customize `tramp-file-name-with-method' to change this.
 
 Interactively, with a prefix argument, prompt for a different method." t)
 (register-definition-prefixes "tramp-cmds" '("tramp-" "with-tramp-file-name-with-method"))
@@ -34058,7 +34036,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from net/trampver.el
 
-(push '(tramp 2 8 0) package--builtin-versions)
+(push '(tramp 2 8 1 -1) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
@@ -35627,6 +35605,7 @@ The merge base is a common ancestor between REV1 and REV2 revisions.
 (fn FILES REV1 REV2)" t)
 (autoload 'vc-root-diff-incoming "vc" "\
 Report diff of all changes that would be pulled from REMOTE-LOCATION.
+When unspecified REMOTE-LOCATION is the place \\[vc-update] would pull from.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
 In some version control systems REMOTE-LOCATION can be a remote branch name.
 
@@ -35636,6 +35615,7 @@ global binding.
 (fn &optional REMOTE-LOCATION)" t)
 (autoload 'vc-root-diff-outgoing "vc" "\
 Report diff of all changes that would be pushed to REMOTE-LOCATION.
+When unspecified REMOTE-LOCATION is the place \\[vc-push] would push to.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
 In some version control systems REMOTE-LOCATION can be a remote branch name.
 
@@ -35752,12 +35732,12 @@ locked files at or below DIR (but if NAME is empty, locked files are
 allowed and simply skipped).
 If BRANCHP is non-nil (interactively, the prefix argument), switch to the
 branch and check out and update the files to their version on that branch.
+In this case NAME may not be empty.
 This function runs the hook `vc-retrieve-tag-hook' when finished.
 
 (fn DIR NAME &optional BRANCHP)" t)
 (autoload 'vc-switch-branch "vc" "\
 Switch to the branch NAME in the directory DIR.
-If NAME is empty, it refers to the latest revision of the current branch.
 Interactively, prompt for DIR only for VCS that works at file level;
 otherwise use the root directory of the current buffer's VC tree.
 Interactively, prompt for the NAME of the branch.
@@ -35801,12 +35781,14 @@ The command prompts for the branch whose change log to show.
 (fn BRANCH)" t)
 (autoload 'vc-log-incoming "vc" "\
 Show log of changes that will be received with pull from REMOTE-LOCATION.
+When unspecified REMOTE-LOCATION is the place \\[vc-update] would pull from.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
 In some version control systems REMOTE-LOCATION can be a remote branch name.
 
 (fn &optional REMOTE-LOCATION)" t)
 (autoload 'vc-log-outgoing "vc" "\
 Show log of changes that will be sent with a push operation to REMOTE-LOCATION.
+When unspecified REMOTE-LOCATION is the place \\[vc-push] would push to.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
 In some version control systems REMOTE-LOCATION can be a remote branch name.
 
@@ -35953,6 +35935,34 @@ When invoked interactively in a Log View buffer with
 marked revisions, use those.
 
 (fn ADDRESSEE SUBJECT REVISIONS)" t)
+(autoload 'vc-add-working-tree "vc" "\
+Create working tree DIRECTORY with same backing repository as this tree.
+See Info node `(emacs)Other Working Trees' regarding VCS repositories
+with multiple working trees.
+
+(fn BACKEND DIRECTORY)" t)
+(autoload 'vc-switch-working-tree "vc" "\
+Switch to this file or directory's analogue in working tree DIRECTORY.
+This command switches to the file or directory which has the same path
+relative to DIRECTORY that this buffer's file or directory has relative
+to the root of this working tree.
+DIRECTORY names another working tree with the same backing repository as
+this tree; see Info node `(emacs)Other Working Trees' for general
+information regarding VCS repositories with multiple working trees.
+
+(fn DIRECTORY)" t)
+(autoload 'vc-delete-working-tree "vc" "\
+Delete working tree DIRECTORY with same backing repository as this tree.
+See Info node `(emacs)Other Working Trees' regarding VCS repositories
+with multiple working trees.
+
+(fn BACKEND DIRECTORY)" t)
+(autoload 'vc-move-working-tree "vc" "\
+Relocate a working tree from FROM to TO.
+See Info node `(emacs)Other Working Trees' regarding VCS repositories
+with multiple working trees.
+
+(fn BACKEND FROM TO)" t)
 (register-definition-prefixes "vc" '("log-view-vc-prev-" "vc-" "with-vc-properties"))
 
 
@@ -37300,16 +37310,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-visual-wrap-prefix-mode'.")
 (custom-autoload 'global-visual-wrap-prefix-mode "visual-wrap" nil)
 (autoload 'global-visual-wrap-prefix-mode "visual-wrap" "\
-Toggle Visual-Wrap-Prefix mode in all buffers.
+Toggle Visual-Wrap-Prefix mode in many buffers.
+Specifically, Visual-Wrap-Prefix mode is enabled in all buffers where
+`visual-wrap-prefix-mode' would do it.
+
 With prefix ARG, enable Global Visual-Wrap-Prefix mode if ARG is
 positive; otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Visual-Wrap-Prefix mode is enabled in all buffers where
-`visual-wrap-prefix-mode' would do it.
 
 See `visual-wrap-prefix-mode' for more information on
 Visual-Wrap-Prefix mode.
@@ -37757,16 +37767,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-whitespace-mode'.")
 (custom-autoload 'global-whitespace-mode "whitespace" nil)
 (autoload 'global-whitespace-mode "whitespace" "\
-Toggle Whitespace mode in all buffers.
+Toggle Whitespace mode in many buffers.
+Specifically, Whitespace mode is enabled in all buffers where
+`whitespace-turn-on-if-enabled' would do it.
+
 With prefix ARG, enable Global Whitespace mode if ARG is positive;
 otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Whitespace mode is enabled in all buffers where
-`whitespace-turn-on-if-enabled' would do it.
 
 See `whitespace-mode' for more information on Whitespace mode.
 
@@ -38414,16 +38424,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-window-tool-bar-mode'.")
 (custom-autoload 'global-window-tool-bar-mode "window-tool-bar" nil)
 (autoload 'global-window-tool-bar-mode "window-tool-bar" "\
-Toggle Window-Tool-Bar mode in all buffers.
+Toggle Window-Tool-Bar mode in many buffers.
+Specifically, Window-Tool-Bar mode is enabled in all buffers where
+`window-tool-bar--turn-on' would do it.
+
 With prefix ARG, enable Global Window-Tool-Bar mode if ARG is
 positive; otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Window-Tool-Bar mode is enabled in all buffers where
-`window-tool-bar--turn-on' would do it.
 
 See `window-tool-bar-mode' for more information on Window-Tool-Bar
 mode.
@@ -38643,16 +38653,16 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-word-wrap-whitespace-mode'.")
 (custom-autoload 'global-word-wrap-whitespace-mode "word-wrap-mode" nil)
 (autoload 'global-word-wrap-whitespace-mode "word-wrap-mode" "\
-Toggle Word-Wrap-Whitespace mode in all buffers.
+Toggle Word-Wrap-Whitespace mode in many buffers.
+Specifically, Word-Wrap-Whitespace mode is enabled in all buffers
+where `word-wrap-whitespace-mode' would do it.
+
 With prefix ARG, enable Global Word-Wrap-Whitespace mode if ARG is
 positive; otherwise, disable it.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
-
-Word-Wrap-Whitespace mode is enabled in all buffers where
-`word-wrap-whitespace-mode' would do it.
 
 See `word-wrap-whitespace-mode' for more information on
 Word-Wrap-Whitespace mode.
@@ -38990,9 +39000,9 @@ run a specific program.  The program must be a member of
 (provide 'loaddefs)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; version-control: never
 ;; no-update-autoloads: t
-;; no-byte-compile: t
 ;; no-native-compile: t
 ;; coding: utf-8-emacs-unix
 ;; End:

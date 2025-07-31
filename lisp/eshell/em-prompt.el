@@ -123,13 +123,16 @@ arriving, or after."
   "Append to a text property from START to END.
 PROP is the text property to append to, and VALUE is the list of
 property values to append.  OBJECT is the object to propertize, as with
-`put-text-property' (which see)."
-  (let (next)
+`put-text-property' (which see).
+
+If PROP's value is not a list at any position between START and END,
+this function leaves its value at those positions unchanged."
+  (let (next old-value)
     (while (< start end)
-      (setq next (next-single-property-change start prop object end))
-      (put-text-property start next prop
-                         (append (get-text-property start prop object) value)
-                         object)
+      (setq next (next-single-property-change start prop object end)
+            old-value (get-text-property start prop object))
+      (when (listp old-value)
+        (put-text-property start next prop (append old-value value) object))
       (setq start next))))
 
 (defun eshell-emit-prompt ()

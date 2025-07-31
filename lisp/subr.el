@@ -2860,38 +2860,54 @@ By default we choose the head of the first list."
   ;; [C3](https://en.wikipedia.org/wiki/C3_linearization)
   (let ((result '()))
     (setq lists (remq nil lists)) ;Don't mutate the original `lists' argument.
-    (while (cdr (setq lists (delq nil lists)))
-      ;; Try to find the next element of the result. This
-      ;; is achieved by considering the first element of each
-      ;; (non-empty) input list and accepting a candidate if it is
-      ;; consistent with the rests of the input lists.
-      (let* ((next nil)
-	     (tail lists))
-	(while tail
-	  (let ((candidate (caar tail))
-	        (other-lists lists))
-	    ;; Ensure CANDIDATE is not in any position but the first
-	    ;; in any of the element lists of LISTS.
-	    (while other-lists
-	      (if (not (memql candidate (cdr (car other-lists))))
-	          (setq other-lists (cdr other-lists))
-	        (setq candidate nil)
-	        (setq other-lists nil)))
-	    (if (not candidate)
-	        (setq tail (cdr tail))
-	      (setq next candidate)
-	      (setq tail nil))))
+    (while (cdr lists)
+      ;; Try to find the next element of the result.  This is achieved
+      ;; by considering the first element of each input list and accepting
+      ;; a candidate if it is consistent with the rest of the input lists.
+      (let* ((find-next
+	      (lambda (lists)
+	        (let ((next nil)
+	              (tail lists))
+	          (while tail
+	            (let ((candidate (caar tail))
+	                  (other-lists lists))
+	              ;; Ensure CANDIDATE is not in any position but the first
+	              ;; in any of the element lists of LISTS.
+	              (while other-lists
+	                (if (not (memql candidate (cdr (car other-lists))))
+	                    (setq other-lists (cdr other-lists))
+	                  (setq candidate nil)
+	                  (setq other-lists nil)))
+	              (if (not candidate)
+	                  (setq tail (cdr tail))
+	                (setq next candidate)
+	                (setq tail nil))))
+	          next)))
+	     (next (funcall find-next lists)))
 	(unless next ;; The graph is inconsistent.
-	  (setq next (funcall (or error-function #'caar) lists))
-	  (unless (assoc next lists #'eql)
-	    (error "Invalid candidate returned by error-function: %S" next)))
+	  (let ((tail lists))
+            ;; Try and reduce the "remaining-list" such that its `caar`
+            ;; participates in the inconsistency (is part of an actual cycle).
+	    (while (and (cdr tail) (null (funcall find-next (cdr tail))))
+	      (setq tail (cdr tail)))
+	    (setq next (funcall (or error-function
+	                            (lambda (remaining-lists)
+                                      (message "Inconsistent hierarchy: %S"
+                                               remaining-lists)
+                                      (caar remaining-lists)))
+	                        tail))
+	    (unless (assoc next lists #'eql)
+	      (error "Invalid candidate returned by error-function: %S" next))
+	    ;; Break the cycle, while keeping other dependencies.
+            (dolist (list lists) (setcdr list (remq next (cdr list))))))
 	;; The graph is consistent so far, add NEXT to result and
 	;; merge input lists, dropping NEXT from their heads where
 	;; applicable.
 	(push next result)
 	(setq lists
-	      (mapcar (lambda (l) (if (eql (car l) next) (cdr l) l))
-		      lists))))
+	      (delq nil
+		    (mapcar (lambda (l) (if (eql (car l) next) (cdr l) l))
+		            lists)))))
     (if (null result) (car lists) ;; Common case.
       (append (nreverse result) (car lists)))))
 

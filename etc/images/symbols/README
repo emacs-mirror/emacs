@@ -41,3 +41,12 @@ E.g., arrow_right_circle_fill_16.
 Every time you modify the SVG icons, please use the ImageMagick
 `convert' utility to convert them to PBM icons, for the sake of
 Emacsen that cannot display SVG images.
+
+
+
+The behaviour described above for setting the foreground color to match
+the text has changed.  It must now be set to `currentcolor', so the
+above sed commands are now:
+
+sed -i 's/fill="none"/fill="currentcolor"/g' <file>
+sed -i 's/fill="black"/fille="currentcolor"/g' <file>

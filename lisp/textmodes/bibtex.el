@@ -1432,6 +1432,26 @@ Used by `bibtex-complete-crossref-cleanup' and `bibtex-copy-summary-as-kill'."
   :type '(choice (const :tag "Default" bibtex-summary)
                  (function :tag "Personalized function")))
 
+(defvar bibtex-generate-url-list)
+(defvar bibtex-font-lock-url-regexp)
+(defun bibtex-generate-url-list-init (&optional local)
+  "Initialize `bibtex-font-lock-url-regexp' from `bibtex-generate-url-list'.
+Return value of `bibtex-font-lock-url-regexp'.
+Call this function when setting `bibtex-generate-url-list' in elisp code.
+Use LOCAL non-nil when setting `bibtex-generate-url-list' buffer-locally."
+  ;; Assume that field names begin at the beginning of a line.
+  (let ((val (concat "^[ \t]*"
+                     (regexp-opt (delete-dups
+                                  (mapcar #'caar
+                                          (with-no-warnings
+                                            bibtex-generate-url-list)))
+                                 'paren)
+                     "[ \t\n]*=[ \t\n]*")))
+    (if local
+        (setq-local bibtex-font-lock-url-regexp val)
+      (setq-default bibtex-font-lock-url-regexp val))
+    val))
+
 (defcustom bibtex-generate-url-list
   '((("url" . ".*:.*"))
     (("doi" . "10\\.[0-9]+/.+")
@@ -1463,7 +1483,9 @@ and with the `match-data' properly set.
 Case is always ignored.  Always remove the field delimiters.
 If `bibtex-expand-strings' is non-nil, BibTeX strings are expanded
 for generating the URL.
-Set this variable before loading BibTeX mode.
+
+Either set this variable via `customize' or call after setting it
+`bibtex-generate-url-list-init'.
 
 The following is a complex example, see URL `https://link.aps.org/'.
 
@@ -1495,7 +1517,10 @@ The following is a complex example, see URL `https://link.aps.org/'.
                                (choice (string :tag "Replacement")
 				       (integer :tag "Sub-match")
                                        (function :tag "Filter")))))))
-  :risky t)
+  :risky t
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (bibtex-generate-url-list-init)))
 
 (defcustom bibtex-cite-matcher-alist
   '(("\\\\cite[ \t\n]*{\\([^}]+\\)}" . 1))
@@ -1838,11 +1863,7 @@ Initialized by `bibtex-set-dialect'.")
               bibtex-cite-matcher-alist))
   "Default expressions to highlight in BibTeX mode.")
 
-(defvar bibtex-font-lock-url-regexp
-  ;; Assume that field names begin at the beginning of a line.
-  (concat "^[ \t]*"
-          (regexp-opt (delete-dups (mapcar #'caar bibtex-generate-url-list)) t)
-          "[ \t\n]*=[ \t\n]*")
+(defvar bibtex-font-lock-url-regexp (bibtex-generate-url-list-init)
   "Regexp for `bibtex-font-lock-url' derived from `bibtex-generate-url-list'.")
 
 (defvar bibtex-string-empty-key nil

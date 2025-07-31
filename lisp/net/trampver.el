@@ -7,7 +7,7 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.8.0
+;; Version: 2.8.1-pre
 ;; Package-Requires: ((emacs "28.1"))
 ;; Package-Type: multi
 ;; URL: https://www.gnu.org/software/tramp/
@@ -40,7 +40,7 @@
 ;; ./configure" to change them.
 
 ;;;###tramp-autoload
-(defconst tramp-version "2.8.0"
+(defconst tramp-version "2.8.1-pre"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -76,14 +76,18 @@
 ;; Check for Emacs version.
 (let ((x   (if (not (string-version-lessp emacs-version "28.1"))
       "ok"
-    (format "Tramp 2.8.0 is not fit for %s"
+    (format "Tramp 2.8.1-pre is not fit for %s"
             (replace-regexp-in-string "\n" "" (emacs-version))))))
   (unless (string-equal "ok" x) (error "%s" x)))
 
 (defun tramp-inside-emacs ()
   "Version string provided by INSIDE_EMACS environment variable."
-  (concat (or (getenv "INSIDE_EMACS") emacs-version)
-	  ",tramp:" tramp-version))
+  (let ((version-string (concat ",tramp:" tramp-version)))
+    (concat
+     ;; Remove duplicate entries.
+     (string-replace
+      version-string "" (or (getenv "INSIDE_EMACS") emacs-version))
+     version-string)))
 
 ;; Tramp versions integrated into Emacs.  If a user option declares a
 ;; `:package-version' which doesn't belong to an integrated Tramp

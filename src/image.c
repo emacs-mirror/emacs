@@ -12096,26 +12096,6 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
                            FRAME_DISPLAY_INFO (f)->resy);
-
-#if LIBRSVG_CHECK_VERSION (2, 48, 0)
-  Lisp_Object lcss = image_spec_value (img->spec, QCcss, NULL);
-  if (!STRINGP (lcss))
-    {
-      /* Generate the CSS for the SVG image.
-
-         We use this to set the font (font-family in CSS lingo) and
-         the font size.  We can extend this to handle any CSS values
-         SVG supports, however it's only available in librsvg 2.48 and
-         above so some things we could set here are handled in the
-         wrapper below.  */
-      lcss = make_formatted_string ("svg{font-family:\"%s\";font-size:%dpx}",
-				    img->face_font_family,
-				    img->face_font_size);
-      rsvg_handle_set_stylesheet (rsvg_handle, (guint8 *) SDATA (lcss),
-				  SBYTES (lcss), NULL);
-    }
-#endif
-
 #else
   /* Make a handle to a new rsvg object.  */
   rsvg_handle = rsvg_handle_new ();
@@ -12283,9 +12263,9 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     static char const wrapper[] =
       "<svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" "
       "xmlns:xi=\"http://www.w3.org/2001/XInclude\" "
-      "style=\"color: #%06X; fill: currentColor;\" "
       "width=\"%d\" height=\"%d\" preserveAspectRatio=\"none\" "
       "viewBox=\"0 0 %f %f\">"
+      "<style>%s</style>"
       "<rect width=\"100%%\" height=\"100%%\" fill=\"#%06X\"/>"
       "<xi:include href=\"data:image/svg+xml;base64,%s\"></xi:include>"
       "</svg>";
@@ -12314,10 +12294,33 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 #endif
 
     unsigned int color = foreground & 0xFFFFFF, fill = background & 0xFFFFFF;
+
+    Lisp_Object user_css = image_spec_value (img->spec, QCcss, NULL);
+    if (!STRINGP (user_css))
+      user_css = make_string("", 0);
+
+    /* Generate the CSS for the SVG image.
+
+       We use this to set the "current color", font (font-family in CSS
+       lingo) and the font size.  We can extend this to handle any CSS
+       values SVG supports.  We append the user CSS, which should allow
+       the user to over-ride anything we set in our defaults.  This gets
+       inserted in the SVG's style element.  */
+    Lisp_Object css = make_formatted_string ("svg{"
+					     "  font-family: \"%s\";"
+					     "  font-size: %dpx;"
+					     "  color: #%06X;"
+					     "}"
+					     "%s",
+					     img->face_font_family,
+					     img->face_font_size,
+					     color, SDATA(user_css));
+
     wrapped_contents
-      = make_formatted_string (wrapper, color, width, height,
+      = make_formatted_string (wrapper, width, height,
 			       viewbox_width, viewbox_height,
-			       fill, SSDATA (encoded_contents));
+			       SDATA(css), fill,
+			       SSDATA (encoded_contents));
   }
 
   /* Now we parse the wrapped version.  */
@@ -12339,13 +12342,6 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
                            FRAME_DISPLAY_INFO (f)->resy);
-
-#if LIBRSVG_CHECK_VERSION (2, 48, 0)
-  /* Set the CSS for the wrapped SVG.  See the comment above the
-     previous use of 'css'.  */
-  rsvg_handle_set_stylesheet (rsvg_handle, (guint8 *) SDATA (lcss),
-			      SBYTES (lcss), NULL);
-#endif
 #else
   /* Make a handle to a new rsvg object.  */
   rsvg_handle = rsvg_handle_new ();

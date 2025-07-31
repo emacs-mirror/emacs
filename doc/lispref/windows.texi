@@ -2490,7 +2490,9 @@ argument.
 
 The optional argument @var{all-frames} has the same meaning as in
 @code{next-window}, like a @code{nil} @var{minibuf} argument to
-@code{next-window}.
+@code{next-window}.  When called interactively, @var{all-frames} is
+always @code{nil}, so only windows on the selected frame can be
+selected.
 
 If the @code{other-window} parameter of the selected window is a
 function, and @code{ignore-window-parameters} is @code{nil}, that
@@ -5014,10 +5016,11 @@ To enable @code{quit-window} to do the right thing,
 window's @code{quit-restore} parameter (@pxref{Window Parameters}).
 
 @deffn Command quit-window &optional kill window
-This command quits @var{window} and buries its buffer.  The argument
-@var{window} must be a live window and defaults to the selected one.
-With prefix argument @var{kill} non-@code{nil}, it kills the buffer
-instead of burying it.
+This command quits @var{window} and buries its buffer.  (It could also
+kill the buffer, subject to @code{quit-window-kill-buffer}, see below.)
+The argument @var{window} must be a live window and defaults to the
+selected one.  With prefix argument @var{kill} non-@code{nil}, it kills
+the buffer instead of burying it.
 
 @vindex quit-window-hook
 The function @code{quit-window} first runs @code{quit-window-hook}.
@@ -5025,18 +5028,21 @@ Then it calls the function @code{quit-restore-window}, described below,
 which does the hard work.
 @end deffn
 
-The following option tells @code{quit-window} whether it should
-preferably kill or bury @var{window}'s buffer.
+The following option tells @code{quit-window} whether it should kill or
+bury @var{window}'s buffer when the @var{kill} argument is @code{nil}.
 
 @defopt quit-window-kill-buffer
-If this is @code{nil} and @var{kill} is @code{nil}, @code{quit-window}
-will bury @var{window}'s buffer.  If this is @code{t},
-@code{quit-window} will try to kill @var{window}'s buffer.  Otherwise,
-this should be a list of major modes.  @code{quit-window} will kill the
-buffer of @var{window} regardless of the value of @var{kill} if that
-buffer's major mode is either a member of this list or is derived from a
-member of this list.  In any other case, @code{quit-window} will kill
-the buffer only if @var{kill} is non-@code{nil} and bury it otherwise.
+This variable controls whether @code{quit-window} kills the buffer of
+its @var{window} argument.  If the value is @code{nil} (the default)
+@code{quit-window} will kill @var{window}'s buffer only if the
+@var{kill} argument is non-@code{nil}.  If this is @code{t},
+@code{quit-window} will try to kill @var{window}'s buffer regardless of
+the value of the @var{kill} argument.  Otherwise, this should be a list
+of major modes; @code{quit-window} will kill the buffer of @var{window}
+regardless of the value of @var{kill} if that buffer's major mode is
+either a member of this list or is derived from a member of this list.
+In any other case, @code{quit-window} will kill the buffer only if
+@var{kill} is non-@code{nil} and bury it otherwise.
 @end defopt
 
 You can get more control by calling @code{quit-restore-window} instead

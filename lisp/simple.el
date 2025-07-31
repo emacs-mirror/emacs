@@ -4715,7 +4715,11 @@ impose the use of a shell (with its need to quote arguments)."
 	;; Output goes in a separate buffer.
 	(if (string-match "[ \t]*&[ \t]*\\'" command)
 	    ;; Command ending with ampersand means asynchronous.
-            (let* ((buffer (get-buffer-create
+            (let* ((_ (or (null output-buffer)
+                          (bufferp output-buffer)
+                          (stringp output-buffer)
+                          (error "Asynchronous shell commands cannot output to current buffer")))
+                   (buffer (get-buffer-create
                             (or output-buffer shell-command-buffer-name-async)))
                    (bname (buffer-name buffer))
                    (proc (get-buffer-process buffer))
@@ -9381,6 +9385,37 @@ presented."
 (define-minor-mode size-indication-mode
   "Toggle buffer size display in the mode line (Size Indication mode)."
   :global t :group 'mode-line)
+
+(defvar-local mode-line-invisible--buf-state)
+
+(define-minor-mode mode-line-invisible-mode
+  "Toggle the mode-line visibility of the current buffer.
+Hide the mode line if it is shown, and show it if it's hidden."
+  :global nil
+  :group 'mode-line
+  (if mode-line-invisible-mode
+      (progn
+        (add-hook 'after-change-major-mode-hook #'mode-line-invisible-mode nil t)
+        (setq mode-line-invisible--buf-state
+              (buffer-local-set-state mode-line-format nil)))
+
+    (remove-hook 'after-change-major-mode-hook #'mode-line-invisible-mode t)
+
+    ;; Restore buffer mode line if buffer had one by default
+    (when mode-line-invisible--buf-state
+      (setq mode-line-invisible--buf-state
+            (buffer-local-restore-state mode-line-invisible--buf-state)))
+
+    ;; Otherwise display one
+    (unless mode-line-format
+      (setq-local mode-line-format (default-value 'mode-line-format)))
+
+    ;; Update mode line
+    (when (called-interactively-p 'any)
+      (force-mode-line-update))))
+
+(put 'mode-line-invisible--buf-state 'permanent-local t)
+(put 'mode-line-invisible-mode 'permanent-local-hook t)
 
 (defcustom remote-file-name-inhibit-auto-save nil
   "When nil, `auto-save-mode' will auto-save remote files.

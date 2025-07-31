@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2025-06-18.21}
+\def\texinfoversion{2025-07-15.21}
 %
 % Copyright 1985, 1986, 1988, 1990-2025 Free Software Foundation, Inc.
 %
@@ -483,8 +483,8 @@
 %   \envdef\foo{...}
 %   \def\Efoo{...}
 %
-% It's the responsibility of \envdef to insert \begingroup before the
-% actual body; @end closes the group after calling \Efoo.  \envdef also
+% \envdef inserts \begingroup before the actual body; @end calls
+% \Efoo then closes the group with \endgroup.  \envdef also
 % defines \thisenv, so the current environment is known; @end checks
 % whether the environment name matches.  The \checkenv macro can also be
 % used to check whether the current environment is the one expected.
@@ -3888,7 +3888,8 @@ $$%
 }
 
 \def\finishtitlepage{%
-  \vskip4pt \hrule height 2pt width \hsize
+  \ifseenauthor \vskip4pt \else \vskip 0pt plus 1filll \fi
+  \hrule height 2pt width \hsize
   \vskip\titlepagebottomglue
   \finishedtitlepagetrue
 }
@@ -3911,32 +3912,104 @@ $$%
 \let\subtitlerm=\rmfont
 \def\subtitlefont{\subtitlerm \normalbaselineskip = 13pt \normalbaselines}
 
+\let\savedtitle\empty
+\let\savedsubtitlegroup\empty
+\let\savedauthorgroup\empty
+
 \parseargdef\title{%
-  \checkenv\titlepage
-  \vbox{\titlefonts \raggedtitlesettings #1\par}%
-  % print a rule at the page bottom also.
-  \finishedtitlepagefalse
-  \vskip4pt \hrule height 4pt width \hsize \vskip4pt
+  \expandafter\ifx\thisenv\documentinfo
+    \gdef\savedtitle{#1}%
+  \else
+    \checkenv\titlepage
+    \vbox{\titlefonts \raggedtitlesettings #1\par}%
+    % print a rule at the page bottom also.
+    \finishedtitlepagefalse
+    \vskip4pt \hrule height 4pt width \hsize \vskip4pt
+  \fi
 }
 
 \parseargdef\subtitle{%
-  \checkenv\titlepage
-  {\subtitlefont \rightline{#1}}%
+  \expandafter\ifx\thisenv\documentinfo
+    \ifx\savedsubtitlegroup\empty
+      \gdef\savedsubtitlegroup{\savedsubtitle{#1}}%
+    \else
+      \expandafter\gdef\expandafter\savedsubtitlegroup\expandafter{%
+        \savedsubtitlegroup\savedsubtitle{#1}}%
+    \fi
+  \else
+    \checkenv\titlepage
+    {\subtitlefont \rightline{#1}}%
+  \fi
 }
 
 % @author should come last, but may come many times.
 % It can also be used inside @quotation.
 %
 \parseargdef\author{%
-  \def\temp{\quotation}%
-  \ifx\thisenv\temp
-    \def\quotationauthor{#1}% printed in \Equotation.
+  \expandafter\ifx\thisenv\documentinfo
+    \ifx\savedauthorgroup\empty
+      \gdef\savedauthorgroup{\savedauthor{#1}}%
+    \else
+      \expandafter\gdef\expandafter\savedauthorgroup\expandafter{%
+        \savedauthorgroup\savedauthor{#1}}%
+    \fi
   \else
-    \checkenv\titlepage
-    \ifseenauthor\else \vskip 0pt plus 1filll \seenauthortrue \fi
-    {\secfonts\rm \leftline{#1}}%
+    \def\temp{\quotation}%
+    \ifx\thisenv\temp
+      \def\quotationauthor{#1}% printed in \Equotation.
+    \else
+      \checkenv\titlepage
+      \ifseenauthor\else \vskip 0pt plus 1filll \seenauthortrue \fi
+      {\secfonts\rm \leftline{#1}}%
+    \fi
   \fi
 }
+
+% @maketitle
+{\obeylines
+\gdef\maketitle{%
+\titlepage
+\ifx\savedtitle\empty\else
+  \title \savedtitle
+  \ifx\savedsubtitlegroup\empty\else
+    \savedsubtitlegroup
+\fi\fi
+\ifx\savedauthorgroup\empty\else
+  \savedauthorgroup
+\fi
+% start verso page if either copying or publication text is given
+\ifx\copyingtext\relax
+  \ifx\publicationtext\relax\else
+    \page \vskip 0pt plus 1filll
+  \fi
+\else
+  \page \vskip 0pt plus 1filll
+\fi
+\ifx\publicationtext\relax\else
+  \insertpublication
+  \sp 1
+\fi
+\ifx\copyingtext\relax\else
+  \insertcopying
+\fi
+\end titlepage
+}
+
+% \savedauthor{#1}, called with braces.  output an @author line.
+\gdef\savedauthor#1{%
+\author#1
+}
+
+% \savedsubtitle{#1}, called with braces.  output a @subtitle line.
+\gdef\savedsubtitle#1{%
+\subtitle#1
+}
+} % \obeylines
+
+% @documentinfo block
+\envdef\documentinfo{%
+}
+\def\Edocumentinfo{}%
 
 
 % Set up page headings and footings.
@@ -6973,7 +7046,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 % \raggedbottom in plain.tex hardcodes \topskip so override it
 \catcode`\@=11
-\def\raggedbottom{\advance\topskip by 0pt plus60pt \r@ggedbottomtrue}
+\def\raggedbottom{\advance\topskip by 0pt plus30pt \r@ggedbottomtrue}
 \catcode`\@=\other
 
 % redefined for the two-volume lispref.  We always output on
@@ -6986,6 +7059,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \def\contents{%
   \startcontents{\putwordTOC}{\contentsmkdest}%
     \ifxetex\xetexpreauxfile\fi
+    \penalty2 % mark beginning of contents
     \openin 1 \tocreadfilename\space
     \ifeof 1 \else
       \findsecnowidths
@@ -7078,25 +7152,34 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 %   #3 - level of section (e.g "chap", "sec")
 %   #4 - page number
 
-% Parts, in the main contents.  Replace the part number, which doesn't
-% exist, with an empty box.  Let's hope all the numbers have the same width.
-% Also ignore the page number, which is conventionally not printed.
-\def\numeralbox{\setbox0=\hbox{8}\hbox to \wd0{\hfil}}
+% Parts, in the main contents.  Ignore the page number, which is
+% conventionally not printed.
 \def\partentry#1#2#3#4{%
+  \ifnum\lastpenalty = 2
+    % use less space if at very first entry of contents
+    \vskip 1\baselineskip plus .33\baselineskip minus .25\baselineskip
+  \else
+    \vskip 2\baselineskip plus .66\baselineskip minus .5\baselineskip
+  \fi
   % Add stretch and a bonus for breaking the page before the part heading.
   % This reduces the chance of the page being broken immediately after the
   % part heading, before a following chapter heading.
-  \vskip 0pt plus 5\baselineskip
+  \vskip 0pt plus 3\baselineskip
   \penalty-300
-  \vskip 0pt plus -5\baselineskip
-  \dochapentry{#1}{\numeralbox}{#3}{}%
+  \vskip 0pt plus -3\baselineskip
+  \begingroup
+    \secfonts \rm
+    \entryinternal{#1}{}%
+  \endgroup
+  \afterpartentrytrue
 }
+\newif\ifafterpartentry
 %
 % Parts, in the short toc.
 \def\shortpartentry#1#2#3#4{%
   \penalty-300
   \vskip.5\baselineskip plus.15\baselineskip minus.1\baselineskip
-  \shortchapentry{{\bf #1}}{\numeralbox}{}{}%
+  \tocentry{{\bf #1}}{}{}{}%
 }
 
 % Chapters, in the main contents.
@@ -7164,7 +7247,13 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % If the toc has to be broken over pages, we want it to be at chapters
 % if at all possible; hence the \penalty.
 \def\dochapentry#1#2#3#4{%
-   \penalty-300 \vskip1\baselineskip plus.33\baselineskip minus.25\baselineskip
+   \ifafterpartentry
+     \afterpartentryfalse
+     \penalty5000
+   \else
+     \penalty-300
+   \fi
+   \vskip1\baselineskip plus.33\baselineskip minus.25\baselineskip
    \begingroup
      % Move the page numbers slightly to the right
      \advance\entryrightmargin by -0.05em
@@ -7793,6 +7882,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 {\catcode`\ =\other
 \gdef\docopying#1@end copying{\endgroup\def\copyingtext{#1}}
 }
+\let\copyingtext\relax
 
 \def\insertcopying{%
   \begingroup
@@ -7801,6 +7891,18 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \endgroup
 }
 
+\def\publication{\checkenv{}\begingroup\macrobodyctxt\dopublication}
+{\catcode`\ =\other
+\gdef\dopublication#1@end publication{\endgroup\def\publicationtext{#1}}
+}
+\let\publicationtext\relax
+
+\def\insertpublication{%
+  \begingroup
+    \parindent = 0pt  % paragraph indentation looks wrong on title page
+    \scanexp\publicationtext
+  \endgroup
+}
 
 \message{defuns,}
 % @defun etc.
@@ -10058,8 +10160,18 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \gdef\documentlanguagetrywithoutunderscore#1_#2\finish{%
   \openin 1 txi-#1.tex
   \ifeof 1
-    \errhelp = \nolanghelp
-    \errmessage{Cannot read language file txi-#1.tex}%
+    \def\lang{#1}%
+    \def\enword{en}%
+    \ifx\lang\enword
+      % for English only, keep on going rather than issuing a fatal error
+      % message, as txi-en.tex likely doesn't contain any changes from the
+      % defaults.  note that this is a problem if we already loaded another
+      % language file and want to switch back to English.
+      \message{Cannot read language file txi-#1.tex}%
+    \else
+      \errhelp = \nolanghelp
+      \errmessage{Cannot read language file txi-#1.tex}%
+    \fi
   \else
     \globaldefs = 1  % everything in the txi-LL files needs to persist
     \input txi-#1.tex

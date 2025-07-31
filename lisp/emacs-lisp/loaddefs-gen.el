@@ -223,6 +223,7 @@ expression, in which case we want to handle forms differently."
                    define-overloadable-function
                    transient-define-prefix transient-define-suffix
                    transient-define-infix transient-define-argument
+                   transient-define-group
                    ;; Obsolete; keep until the alias is removed.
                    easy-mmode-define-global-mode
                    easy-mmode-define-minor-mode
@@ -234,7 +235,8 @@ expression, in which case we want to handle forms differently."
                           'defun* 'defmacro* 'cl-defun 'cl-defmacro
                           'define-overloadable-function
                           'transient-define-prefix 'transient-define-suffix
-                          'transient-define-infix 'transient-define-argument)
+                          'transient-define-infix 'transient-define-argument
+                          'transient-define-group)
                       (nth 2 form))
                      ('define-skeleton '(&optional str arg))
                      ((or 'define-generic-mode 'define-derived-mode
@@ -258,6 +260,7 @@ expression, in which case we want to handle forms differently."
                                    transient-define-suffix
                                    transient-define-infix
                                    transient-define-argument
+                                   transient-define-group
                                    ;; Obsolete; keep until the alias is removed.
                                    easy-mmode-define-global-mode
                                    easy-mmode-define-minor-mode
@@ -554,7 +557,7 @@ If COMPILE, don't include a \"don't compile\" cookie."
        file 'loaddefs-generate
        :title (concat "automatically extracted " (or type "autoloads"))
        :commentary (and (string-match "/lisp/loaddefs\\.el\\'" file)
-                        "This file will be copied to ldefs-boot.el and checked in periodically."))
+                        "This file will be copied to ldefs-boot.el and checked in periodically.  Note: When checking in ldefs-boot.el, don't include changes to any other files in the commit."))
       (when lp
         (insert "(add-to-list 'load-path (directory-file-name
                          (or (file-name-directory #$) (car load-path))))\n\n"))

@@ -27,7 +27,8 @@
    This rare bug can be worked around by compiling with 'clang -D_Noreturn=',
    though the workaround may generate many false-alarm warnings.  */
 #ifndef _Noreturn
-# if 201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0)
+# if ((!defined __cplusplus || defined __clang__) \
+      && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0)))
    /* _Noreturn works as-is.  */
 # elif (2 < __GNUC__ + (8 <= __GNUC_MINOR__) || defined __clang__ \
         || 0x5110 <= __SUNPRO_C)

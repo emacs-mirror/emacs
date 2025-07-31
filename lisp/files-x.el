@@ -1003,6 +1003,11 @@ value is the default binding of the variable."
   "The connection-local value of `null-device'."
   (connection-local-value null-device))
 
+;;;###autoload
+(defun exec-suffixes ()
+  "The connection-local value of `exec-suffixes'."
+  (connection-local-value exec-suffixes))
+
 
 (provide 'files-x)
 

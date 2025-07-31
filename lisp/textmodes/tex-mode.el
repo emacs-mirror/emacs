@@ -3299,7 +3299,7 @@ There might be text before point."
     ("\\int" . ?∫)
     ("\\intercal" . ?⊺)
     ("\\jmath" . ?ȷ)
-    ("\\langle" . 10216)          ; Literal ?⟨ breaks indentation.
+    ("\\langle" . ?\⟨)
     ("\\lbrace" . ?{)
     ("\\lbrack" . ?\[)
     ("\\lceil" . ?⌈)
@@ -3369,7 +3369,6 @@ There might be text before point."
     ("\\neg" . ?¬)
     ("\\neq" . ?≠)
     ("\\nequiv" . ?≢)
-    ("\\newline" . ? )
     ("\\nexists" . ?∄)
     ("\\ngeq" . ?≱)
     ("\\ngeqq" . ?≱)
@@ -3432,7 +3431,7 @@ There might be text before point."
     ("\\qed" . ?∎)
     ("\\qquad" . ?⧢)
     ("\\quad" . ?␣)
-    ("\\rangle" . 10217)            ; Literal ?⟩ breaks indentation.
+    ("\\rangle" . ?\⟩)
     ("\\rbrace" . ?})
     ("\\rbrack" . ?\])
     ("\\rceil" . ?⌉)
@@ -3753,8 +3752,8 @@ There might be text before point."
     ("\\textreferencemark" . ?※)
     ("\\textinterrobang" . ?‽)
     ("\\textfractionsolidus" . ?⁄)
-    ("\\textlquill" . 8261) ; Literal ?⁅ breaks indentation
-    ("\\textrquill" . 8262) ; Literal ?⁆ breaks indentation
+    ("\\textlquill" . ?\⁅)
+    ("\\textrquill" . ?\⁆)
     ("\\textdiscount" . ?⁒)
     ("\\textcolonmonetary" . ?₡)
     ("\\textlira" . ?₤)
@@ -3779,8 +3778,8 @@ There might be text before point."
     ("\\textdownarrow" . ?↓)
     ("\\textminus" . ?−)
     ("\\textsurd" . ?√)
-    ("\\textlangle" . 9001) ; Literal ?〈 breaks indentation
-    ("\\textrangle" . 9002) ; Literal ?〉 breaks indentation
+    ("\\textlangle" . ?\〈)
+    ("\\textrangle" . ?\〉)
     ("\\textblank" . ?␢)
     ("\\textvisiblespace" . ?␣)
     ("\\textopenbullet" . ?◦)
@@ -3790,8 +3789,8 @@ There might be text before point."
     ("\\textmusicalnote" . ?♪)
     ("\\textmarried" . ?⚭)
     ("\\textdivorced" . ?⚮)
-    ("\\textlbrackdbl" . 10214) ; Literal ?⟦ breaks indentation
-    ("\\textrbrackdbl" . 10215) ; Literal ?⟧ breaks indentation
+    ("\\textlbrackdbl" . ?\⟦)
+    ("\\textrbrackdbl" . ?\⟧)
     ("\\textinterrobangdown" . ?⸘)
 
     ;; TeX quotes
@@ -3840,32 +3839,38 @@ There might be text before point."
     ("\\S" . ?§)
     ("\\Finv" . ?Ⅎ)
     ("\\Game" . ?⅁)
-    ("\\ " . 9141) ; Literal ?⎵ breaks indentation
+    ("\\ " . ?␣) ; Use ?␣ (OPEN BOX) and not ?⎵ (BOTTOM SQUARE BRACKET)
     ("\\lvert" . ?|)
     ("\\rvert" . ?|)
     ("\\lVert" . ?‖)
     ("\\rVert" . ?‖))
   "A `prettify-symbols-alist' usable for (La)TeX modes.")
 
-(defun tex--prettify-symbols-compose-p (_start end _match)
-  (or
-   ;; If the matched symbol doesn't end in a word character, then we
-   ;; simply allow composition.  The symbol is probably something like
-   ;; \|, \(, etc.
-   (not (eq ?w (char-syntax (char-before end))))
-   ;; Else we look at what follows the match in order to decide.
-   (let* ((after-char (char-after end))
-          (after-syntax (char-syntax after-char)))
-     (not (or
-           ;; Don't compose \alpha@foo.
-           (eq after-char ?@)
-           ;; The \alpha in \alpha2 or \alpha-\beta may be composed but
-           ;; of course \alphax may not.
-           (and (eq after-syntax ?w)
-                (not (memq after-char
-                           '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?+ ?- ?' ?\"))))
-           ;; Don't compose inside verbatim blocks.
-           (eq 2 (nth 7 (syntax-ppss))))))))
+(defun tex--prettify-symbols-compose-p (start end _match)
+  (if (save-excursion
+        (goto-char start)
+        ;; Skip composition when the control backslash at START is
+        ;; itself escaped, as in constructs like \"\\\\S\".
+        (not (zerop (mod (skip-chars-backward "\\\\") 2))))
+      nil
+    (or
+     ;; If the matched symbol doesn't end in a word character, then we
+     ;; simply allow composition.  The symbol is probably something like
+     ;; \|, \(, etc.
+     (not (eq ?w (char-syntax (char-before end))))
+     ;; Else we look at what follows the match in order to decide.
+     (let* ((after-char (char-after end))
+            (after-syntax (char-syntax after-char)))
+       (not (or
+             ;; Don't compose \alpha@foo.
+             (eq after-char ?@)
+             ;; The \alpha in \alpha2 or \alpha-\beta may be composed but
+             ;; of course \alphax may not.
+             (and (eq after-syntax ?w)
+                  (not (memq after-char
+                             '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?+ ?- ?' ?\"))))
+             ;; Don't compose inside verbatim blocks.
+             (eq 2 (nth 7 (syntax-ppss)))))))))
 
 
 ;;; Flymake support

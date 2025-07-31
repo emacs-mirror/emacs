@@ -1098,6 +1098,7 @@ Return the result of `process-file' - zero for success."
 
 (autoload 'Man-support-local-filenames "man")
 (autoload 'vc-responsible-backend "vc")
+(autoload 'vc-backend-for-registration "vc")
 
 (defvar dired-guess-shell-alist-default
   (list
@@ -1930,7 +1931,10 @@ If invoked on a directory, compress all of the files in
 the directory and all of its subdirectories, recursively,
 into a .tar.gz archive.
 If invoked on a .tar.gz or a .tgz or a .zip or a .7z archive,
-uncompress and unpack all the files in the archive."
+uncompress and unpack all the files in the archive.
+
+When called from Lisp, if ARG is the symbol `marked', compress
+only the marked files, or none if no files are marked."
   (interactive "P" dired-mode)
   (dired-map-over-marks-check #'dired-compress arg 'compress t))
 
@@ -1959,7 +1963,10 @@ uncompress and unpack all the files in the archive."
 
 ;;;###autoload
 (defun dired-do-byte-compile (&optional arg)
-  "Byte compile marked (or next ARG) Emacs Lisp files."
+  "Byte compile marked (or next ARG) Emacs Lisp files.
+
+When called from Lisp, if ARG is the symbol `marked', byte-compile
+only the marked files, or none if no files are marked."
   (interactive "P" dired-mode)
   (dired-map-over-marks-check #'dired-byte-compile arg 'byte-compile t))
 
@@ -1976,7 +1983,10 @@ uncompress and unpack all the files in the archive."
 
 ;;;###autoload
 (defun dired-do-load (&optional arg)
-  "Load the marked (or next ARG) Emacs Lisp files."
+  "Load the marked (or next ARG) Emacs Lisp files.
+
+When called from Lisp, if ARG is the symbol `marked', load
+only the marked files, or none if no files are marked."
   (interactive "P" dired-mode)
   (dired-map-over-marks-check #'dired-load arg 'load t))
 
@@ -1992,7 +2002,10 @@ or delete subdirectories can bypass this machinery.  Hence, you sometimes
 may have to reset some subdirectory switches after a `dired-undo'.
 You can reset all subdirectory switches to the default using
 \\<dired-mode-map>\\[dired-reset-subdir-switches].
-See Info node `(emacs)Subdir switches' for more details."
+See Info node `(emacs)Subdir switches' for more details.
+
+When called from Lisp, if ARG is the symbol `marked', redisplay
+only the marked files, or none if no files are marked."
   ;; Moves point if the next ARG files are redisplayed.
   (interactive "P\np" dired-mode)
   (if (and test-for-subdir (dired-get-subdir))
@@ -4022,8 +4035,9 @@ In this case, the VERBOSE argument is ignored."
 ;;;###autoload
 (defun dired-vc-deduce-fileset
     (&optional state-model-only-files not-state-changing)
-  (let ((backend (vc-responsible-backend default-directory))
-        (files (dired-get-marked-files nil nil nil nil t)))
+  (let* ((files (dired-get-marked-files nil nil nil nil t))
+         (backend (or (vc-responsible-backend default-directory t)
+                      (vc-backend-for-registration (car files)))))
     (when (and (not not-state-changing)
                (cl-some #'file-directory-p files))
       (user-error "\

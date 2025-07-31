@@ -2910,15 +2910,100 @@ ns_define_fringe_bitmap (int which, unsigned short *bits, int h, int w)
   if (!fringe_bmp)
     fringe_bmp = [[NSMutableDictionary alloc] initWithCapacity:25];
 
-  [p moveToPoint:NSMakePoint (0, 0)];
+  uint8_t *points = alloca ((h + 1) * (w + 1) * 4);
+  uint8_t *cur = points;
 
-  for (int y = 0 ; y < h ; y++)
-    for (int x = 0 ; x < w ; x++)
+  /* Find all the outgoing edges in a clockwise path.  That is, we only
+     want to list the edges leaving a point, not the ones entering a
+     point, so we don't double count them.  */
+  for (int y = 0; y < h + 1; y++)
+    for (int x = 0; x < w + 1; x++)
       {
-        bool bit = bits[y] & (1 << (w - x - 1));
-        if (bit)
-          [p appendBezierPathWithRect:NSMakeRect (x, y, 1, 1)];
+        int nw = 0, ne = 0, se = 0, sw = 0;
+        if (x != 0 && y != 0)
+          nw = bits[y-1] & (1 << (w - x));
+
+        if (x != 0 && y < h)
+          sw = bits[y] & (1 << (w - x));
+
+        if (x < w && y < h)
+          se = bits[y] & (1 << (w - x - 1));
+
+        if (x < w && y != 0)
+          ne = bits[y-1] & (1 << (w - x - 1));
+
+        cur[0] = !nw && ne; /* North.  */
+        cur[1] = !ne && se; /* East.  */
+        cur[2] = !se && sw; /* South.  */
+        cur[3] = !sw && nw; /* West.  */
+        cur += 4;
       }
+
+  /* Find all the points with edges and trace them out.  */
+  int v = 0;
+  char last = 0;
+  while (v < (h + 1) * (w + 1) * 4)
+    {
+      char this = 0;
+      int x = (v/4) % (w+1);
+      int y = (v/4) / (w+1);
+
+      if (points[v+3])
+        {
+          /* West.  */
+          points[v+3] = 0;
+          v = v - 4;
+          this = 'w';
+        }
+      else if (points[v+1])
+        {
+          /* East.  */
+          points[v+1] = 0;
+          v = v + 4;
+          this = 'e';
+        }
+      else if (points[v+2])
+        {
+          /* South.  */
+          points[v+2] = 0;
+          v = ((y+1)*(w+1) + x) * 4;
+          this = 's';
+        }
+      else if (points[v])
+        {
+          /* North.  */
+          points[v] = 0;
+          v = ((y-1)*(w+1) + x) * 4;
+          this = 'n';
+        }
+      else
+        {
+          /* No edge.  */
+          v = v + 4;
+
+          if (last)
+            {
+              /* If we reach here we were tracing a shape but have run
+                 out of edges, so we must be back to the start (or
+                 something's gone wrong).  */
+              [p closePath];
+              last = 0;
+            }
+        }
+
+      if (this)
+        {
+          /* If we've found an edge we now need to either move to that
+             point (if it's the start of a shape) or draw a line from
+             the last corner to this point, but only if it's a
+             corner.  */
+          if (!last)
+            [p moveToPoint:NSMakePoint (x, y)];
+          else if (last && last != this)
+	    [p lineToPoint:NSMakePoint (x, y)];
+          last = this;
+        }
+    }
 
   [fringe_bmp setObject:p forKey:[NSNumber numberWithInt:which]];
 }
@@ -2956,35 +3041,32 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct face *face = p->face;
-  NSRect clearRect = NSZeroRect;
+  NSRect bmpRect = NSZeroRect;
   NSRect rowRect = ns_row_rect (w, row, ANY_AREA);
 
   NSTRACE_WHEN (NSTRACE_GROUP_FRINGE, "ns_draw_fringe_bitmap");
   NSTRACE_MSG ("which:%d cursor:%d overlay:%d width:%d height:%d period:%d",
                p->which, p->cursor_p, p->overlay_p, p->wd, p->h, p->dh);
 
+  /* Work out the rectangle we will need to clear.  */
+  bmpRect = NSMakeRect (p->x, p->y, p->wd, p->h);
+
+  if (p->bx >= 0)
+    bmpRect = NSUnionRect (bmpRect, NSMakeRect (p->bx, p->by, p->nx, p->ny));
+
+  /* Handle partially visible rows.  */
+  bmpRect = NSIntersectionRect (bmpRect, rowRect);
+
+  /* Clip to the bitmap's area.  */
+  ns_focus (f, &bmpRect, 1);
+
   /* Clear screen unless overlay.  */
-  if (!p->overlay_p)
+  if (!p->overlay_p && !NSIsEmptyRect (bmpRect))
     {
-      /* Work out the rectangle we will need to clear.  */
-      clearRect = NSMakeRect (p->x, p->y, p->wd, p->h);
+      NSTRACE_RECT ("clearRect", bmpRect);
 
-      if (p->bx >= 0)
-        clearRect = NSUnionRect (clearRect, NSMakeRect (p->bx, p->by, p->nx, p->ny));
-
-      /* Handle partially visible rows.  */
-      clearRect = NSIntersectionRect (clearRect, rowRect);
-
-      /* The visible portion of imageRect will always be contained
-	 within clearRect.  */
-      ns_focus (f, &clearRect, 1);
-      if (!NSIsEmptyRect (clearRect))
-        {
-          NSTRACE_RECT ("clearRect", clearRect);
-
-          [[NSColor colorWithUnsignedLong:face->background] set];
-          NSRectFill (clearRect);
-        }
+      [[NSColor colorWithUnsignedLong:face->background] set];
+      NSRectFill (bmpRect);
     }
 
   NSBezierPath *bmp = [fringe_bmp objectForKey:[NSNumber numberWithInt:p->which]];
@@ -7426,7 +7508,24 @@ ns_in_echo_area (void)
 {
   if (NS_KEYLOG)
     NSLog (@"selectedRange request");
-  return NSMakeRange (NSNotFound, 0);
+
+  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (*emacsframe));
+  struct buffer *buf = XBUFFER (w->contents);
+  ptrdiff_t point = BUF_PT (buf);
+
+  if (NILP (BVAR (buf, mark_active)))
+    {
+      NSUInteger selection_location = point - BUF_BEGV (buf);
+      return NSMakeRange (selection_location, 0);
+    }
+
+  ptrdiff_t mark = marker_position (BVAR (buf, mark));
+  ptrdiff_t region_start = min (point, mark);
+  ptrdiff_t region_end = max (point, mark);
+  NSUInteger selection_location = region_start - BUF_BEGV (buf);
+  NSUInteger selection_length = region_end - region_start;
+
+  return NSMakeRange (selection_location, selection_length);
 }
 
 #if defined (NS_IMPL_COCOA) || GNUSTEP_GUI_MAJOR_VERSION > 0 || \
@@ -8596,12 +8695,13 @@ ns_in_echo_area (void)
       NSWindowCollectionBehavior b = [win collectionBehavior];
       if (ns_use_native_fullscreen)
         {
-          if (FRAME_PARENT_FRAME (*emacsframe))
+	  if (FRAME_PARENT_FRAME (*emacsframe)
+	      || FRAME_TOOLTIP_P (*emacsframe))
             {
               b &= ~NSWindowCollectionBehaviorFullScreenPrimary;
               b |= NSWindowCollectionBehaviorFullScreenAuxiliary;
             }
-          else
+	  else
             {
               b |= NSWindowCollectionBehaviorFullScreenPrimary;
               b &= ~NSWindowCollectionBehaviorFullScreenAuxiliary;
@@ -9144,7 +9244,7 @@ ns_in_echo_area (void)
   Lisp_Object type_sym;
   struct input_event ie;
 
-  NSTRACE (@"[EmacsView performDragOperation:]");
+  NSTRACE ("[EmacsView performDragOperation:]");
 
   source = [sender draggingSource];
 

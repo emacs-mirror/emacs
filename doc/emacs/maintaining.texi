@@ -71,7 +71,7 @@ changed.
 @cindex VC
   The Emacs version control interface is called @dfn{VC}@.  VC
 commands work with several different version control systems;
-currently, it supports Bazaar, CVS, Git, Mercurial, Monotone, RCS,
+currently, it supports Bazaar, CVS, Git, Mercurial, RCS,
 SRC, SCCS/CSSC, and Subversion.  Of these, the GNU project distributes
 CVS, RCS, and Bazaar.
 
@@ -132,11 +132,11 @@ the fileset.)
   VC allows you to use a version control system from within Emacs,
 integrating the version control operations smoothly with editing.  It
 provides a uniform interface for common operations in many version
-control operations.
+control systems.
 
   Some uncommon or intricate version control operations, such as
 altering repository settings, are not supported in VC@.  You should
-perform such tasks outside VC, e.g., via the command line.
+perform such tasks outside VC, e.g., at the command line.
 
   This section provides a general overview of version control, and
 describes the version control systems that VC supports.  You can skip
@@ -180,9 +180,9 @@ important form of communication among developers.
 @node Version Control Systems
 @subsubsection Supported Version Control Systems
 
-@cindex back end (version control)
+@cindex backend (version control)
   VC currently works with many different version control systems,
-which it refers to as @dfn{back ends}:
+which it refers to as @dfn{backends}:
 
 @itemize @bullet
 
@@ -263,7 +263,7 @@ supports almost all SRC operations.
 @cindex repository
 @cindex registered file
    When a file is under version control, we say that it is
-@dfn{registered} in the version control system.  The system has a
+@dfn{registered} with the version control system.  The system has a
 @dfn{repository} which stores both the file's present state and its
 change history---enough to reconstruct the current version or any
 earlier version.  The repository also contains other information, such
@@ -409,8 +409,8 @@ modification log for the entire system, which makes change log files
 somewhat redundant.  One advantage that they retain is that it is
 sometimes useful to be able to view the transaction history of a
 single directory separately from those of other directories.  Another
-advantage is that commit logs can't be fixed in many version control
-systems.
+advantage is that mistakes in commit logs can't be fixed in many version
+control systems.
 
   A project maintained with version control can use just the version
 control log, or it can use both kinds of logs.  It can handle some
@@ -1085,9 +1085,7 @@ non-@code{nil}, @kbd{C-x v O} becomes a prefix key, and
 
 @item M-x vc-root-diff-outgoing
 Display a diff of the changes that will be sent by the next push
-operation.  This command is useful as a way to preview your push and
-ensure that all and only the changes you intended to include were
-committed and will be pushed.
+operation.
 
 If you customize @code{vc-use-incoming-outgoing-prefixes} to
 non-@code{nil}, this command is bound to @kbd{C-x v O D}.
@@ -1163,16 +1161,27 @@ prompts for the branch whose history to display.
 @findex vc-log-outgoing
   On a decentralized version control system, the @kbd{C-x v I}
 (@code{vc-log-incoming}) command displays a log buffer showing the
-changes that will be applied, the next time you run the version
-control system's pull command to get new revisions from another
-remote location (@pxref{Pulling / Pushing}).  This other remote location is the default
+changes that will be applied the next time you run the version control
+system's pull command to get new revisions from another remote location
+(@pxref{Pulling / Pushing}).  This other remote location is the default
 one from which changes are pulled, as defined by the version control
 system; with a prefix argument, @code{vc-log-incoming} prompts for a
-specific remote location.  Similarly, @kbd{C-x v O}
-(@code{vc-log-outgoing}) shows the changes that will be sent to
-another remote location, the next time you run the push command; with a
-prefix argument, it prompts for a specific destination that
-in case of some version control system can be a branch name.
+particular remote location.  Similarly, @kbd{C-x v O}
+(@code{vc-log-outgoing}) shows the changes that will be sent to another
+remote location, the next time you run the push command; with a prefix
+argument, it prompts for a particular destination that in case of some
+version control system can be a branch name.
+
+@findex vc-root-diff-incoming
+@findex vc-root-diff-outgoing
+  The closely related commands @code{vc-root-diff-incoming} and
+@code{vc-root-diff-outgoing} are the diff analogues of
+@code{vc-log-incoming} and @code{vc-log-outgoing}.  These display a diff
+buffer reporting the changes that would be pulled or pushed.  You can
+use a prefix argument here too to specify a particular remote location.
+@code{vc-root-diff-outgoing} is useful as a way to preview your push and
+quickly check that all and only the changes you intended to include were
+committed and will be pushed.
 
 @cindex VC log buffer, commands in
 @cindex vc-log buffer

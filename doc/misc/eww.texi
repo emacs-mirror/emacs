@@ -142,9 +142,10 @@ a new tab is created on the frame tab bar.
 
 @findex eww-readable
 @kindex R
-  The @kbd{R} command (@code{eww-readable}) will attempt to determine
-which part of the document contains the ``readable'' text, and will
-only display this part.  This usually gets rid of menus and the like.
+  The @kbd{R} command (@code{eww-readable}) attempts to determine
+which part of the current page contains the ``readable'' text, and will
+only display this part.  This removes clutter like navigation menus to
+help you focus on the important text.
 
   When called interactively, this command toggles the display of the
 readable parts.  With a positive prefix argument, this command always
@@ -152,15 +153,15 @@ displays the readable parts, and with a zero or negative prefix, it
 always displays the full page.
 
 @vindex eww-readable-urls
-  If you want EWW to render a certain page in ``readable'' mode by
+  If you want EWW to render certain pages using the ``readable'' view by
 default, you can add a regular expression matching its URL to
 @code{eww-readable-urls}.  Each entry can either be a regular expression
 in string form or a cons cell of the form
 @w{@code{(@var{regexp} . @var{readability})}}.  If @var{readability} is
-non-@code{nil}, this behaves the same as the string form; otherwise,
-URLs matching @var{regexp} will never be displayed in readable mode by
-default.  For example, you can use this to make all pages default to
-readable mode, except for a few outliers:
+non-@code{nil}, this behaves the same as the string form; if @code{nil},
+EWW will always render the full page by default for matching URLs.  For
+example, you can use this to make all pages default to readable mode,
+except for a few outliers:
 
 @example
 (setq eww-readable-urls '(("https://example\\.com/" . nil)

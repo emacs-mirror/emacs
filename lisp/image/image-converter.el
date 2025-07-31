@@ -65,7 +65,8 @@ not, the conversion will fail."
 (defvar image-converter--converters
   '((graphicsmagick :command ("gm" "convert") :probe ("-list" "format"))
     (ffmpeg :command "ffmpeg" :probe "-decoders")
-    (imagemagick :command "convert" :probe ("-list" "format")))
+    ;; "-layers merge" flattens visible layers in e.g. Gimp XCF files.
+    (imagemagick :command ("convert" "-layers" "merge") :probe ("-list" "format")))
   "List of supported image converters to try and required command-line switches.")
 
 (defvar image-converter--extra-converters (make-hash-table :test #'equal))

@@ -59,6 +59,15 @@ extern "C" {
      date and time:          %c
      time zone:              %z %Z
      nanosecond              %N
+   In locales with non-Gregorian calendars, the following conversions don't
+   apply in the expected way:
+     date:
+       century               %C
+       year                  %y
+       week-based year       %G %g
+       week in year          %U %W %V
+       day in year           %j
+       year, month, day      %D
 
    Store the result, as a string with a trailing NUL character, at the
    beginning of the array __S[0..__MAXSIZE-1] and return the length of

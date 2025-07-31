@@ -380,9 +380,10 @@ extern int emacs_setenv_TZ (char const *);
 # define UNINIT /* empty */
 #endif
 
-/* Emacs does not need glibc strftime behavior for AM and PM
-   indicators.  */
+/* Emacs needs neither glibc strftime behavior for AM and PM indicators,
+   nor Gnulib strftime support for non-Gregorian calendars.  */
 #define REQUIRE_GNUISH_STRFTIME_AM_PM false
+#define SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME false
 
 #ifdef MSDOS
 /* These are required by file-has-acl.c but defined in dirent.h and

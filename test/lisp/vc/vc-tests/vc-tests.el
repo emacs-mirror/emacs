@@ -44,6 +44,7 @@
 ;; - latest-on-branch-p (file)
 ;; * checkout-model (files)                                     DONE
 ;; - mode-line-string (file)
+;; - other-working-trees ()                                     DONE
 
 ;; STATE-CHANGING FUNCTIONS
 ;;
@@ -65,6 +66,9 @@
 ;; - modify-change-comment (files rev comment)
 ;; - mark-resolved (files)
 ;; - find-admin-dir (file)
+;; - add-working-tree (directory)                               DONE
+;; - delete-working-tree (directory)                            DONE
+;; - move-working-tree (from to)                                DONE
 
 ;; HISTORY FUNCTIONS
 ;;
@@ -112,6 +116,8 @@
 (require 'ert-x)
 (require 'vc)
 (require 'log-edit)
+(require 'project)
+(require 'cl-lib)
 
 (declare-function w32-application-type "w32proc.c")
 
@@ -631,7 +637,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                     ;; Checkin file.
                     (vc-checkin files backend)
                     (insert "Testing vc-version-diff")
-                    (log-edit-done))))
+                    (let (vc-async-checkin)
+                      (log-edit-done)))))
 
               ;; Modify file content.
               (when (memq backend '(RCS CVS SCCS))
@@ -640,6 +647,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 
               ;; Check version diff.
               (vc-version-diff files nil nil)
+              (if (eq backend 'Bzr)
+                  (sleep-for 1))
               (should (bufferp (get-buffer "*vc-diff*")))
 
               (with-current-buffer "*vc-diff*"
@@ -648,6 +657,109 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                                                                  (point-max))))
                     (should (string-search "-originaltext" rawtext))
                     (should (string-search "+updatedtext" rawtext)))))))
+
+        ;; Save exit.
+        (ignore-errors
+          (run-hooks 'vc-test--cleanup-hook))))))
+
+(defun vc-test--other-working-trees (backend)
+  "Test other working trees actions."
+  (ert-with-temp-directory _tempdir
+    (let ((vc-handled-backends `(,backend))
+          (default-directory
+           (file-name-as-directory
+            (expand-file-name
+             (make-temp-name "vc-test") temporary-file-directory)))
+          (process-environment process-environment)
+          vc-test--cleanup-hook)
+      (unwind-protect
+          (progn
+            ;; Cleanup.
+            (add-hook
+             'vc-test--cleanup-hook
+             (let ((dir default-directory))
+               (lambda ()
+                 (delete-directory dir 'recursive)
+                 (dolist (name '("first" "second" "first"))
+                   (project-forget-project
+                    (expand-file-name name default-directory))))))
+
+            (let* ((first (file-name-as-directory
+                           (expand-file-name "first" default-directory)))
+                   (second (file-name-as-directory
+                            (expand-file-name "second" default-directory)))
+                   (third (file-name-as-directory
+                           (expand-file-name "third" default-directory)))
+                   (tmp-name (expand-file-name "foo" first))
+                   (project-list-file
+                    (expand-file-name "projects.eld" default-directory)))
+
+              ;; Set up the first working tree.
+              (make-directory first t)
+              (let ((default-directory first))
+                (vc-test--create-repo-function backend)
+                (write-region "foo" nil tmp-name nil 'nomessage)
+                (vc-register `(,backend (,(file-name-nondirectory tmp-name)))))
+              (with-current-buffer (find-file-noselect tmp-name)
+                (vc-checkin (list (file-name-nondirectory tmp-name)) backend)
+                (insert "Testing other working trees")
+                (let (vc-async-checkin)
+                  (log-edit-done))
+
+                ;; Set up the second working tree.
+                ;; Stub out `vc-dir' so that it doesn't start a
+                ;; background update process which won't like it when we
+                ;; start moving directories around.
+                ;; For the backends which do additional prompting (as
+                ;; specified in the API for this backend function) we
+                ;; need to stub that out.
+                (cl-letf (((symbol-function 'vc-dir) #'ignore))
+                  (cl-ecase backend
+                    (Git (cl-letf (((symbol-function 'completing-read)
+                                    (lambda (&rest _ignore) "")))
+                           (vc-add-working-tree backend second)))
+                    (Hg (vc-add-working-tree backend second)))))
+
+              ;; Test `known-other-working-trees'.
+              (with-current-buffer (find-file-noselect tmp-name)
+                (should
+                 (equal (list second)
+                        (vc-call-backend backend 'known-other-working-trees)))
+                (let ((default-directory second))
+                  (should
+                   (equal (list first)
+                          (vc-call-backend backend 'known-other-working-trees))))
+
+                ;; Test `move-working-tree'.
+                (vc-move-working-tree backend second third)
+                (should
+                 (equal (list third)
+                        (vc-call-backend backend 'known-other-working-trees)))
+                (should-not (file-directory-p second))
+                (should (file-directory-p third))
+                ;; Moving the first working tree is only supported
+                ;; for some backends.
+                (cl-ecase backend
+                  (Git
+                   (let ((default-directory third))
+                     (vc-move-working-tree backend first second))
+                   (let ((default-directory third))
+                     (should
+                      (equal (list second)
+                             (vc-call-backend backend
+                                              'known-other-working-trees))))
+                   (should-not (file-directory-p first))
+                   (should (file-directory-p second))
+                   (vc-move-working-tree backend second first))
+                  (Hg
+                   (let ((default-directory third))
+                     (should-error (vc-move-working-tree backend
+                                                         first second)))))
+
+                ;; Test `delete-working-tree'.
+                (let ((default-directory first))
+                  (vc-delete-working-tree backend third)
+                  (should-not (file-directory-p third))))))
 
         ;; Save exit.
         (ignore-errors
@@ -791,7 +903,27 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                           (eq system-type 'windows-nt)
                           noninteractive))
           (vc-test--version-diff ',backend))
-        ))))
+
+        (ert-deftest
+            ,(intern (format "vc-test-%s07-other-working-trees" backend-string)) ()
+          ,(format "Check other working trees functions for the %s backend."
+                   backend-string)
+          (skip-unless
+	   (ert-test-passed-p
+	    (ert-test-most-recent-result
+	     (ert-get-test
+	      ',(intern
+	         (format "vc-test-%s01-register" backend-string))))))
+          (skip-unless (memq ',backend '(Git Hg)))
+          (skip-when
+           (and (eq ',backend 'Hg)
+                (cl-search "failed to import extension"
+                           (car
+                            (process-lines-ignore-status
+                             "hg" "--config=extensions.share=" "share")))))
+          (let ((vc-hg-global-switches (cons "--config=extensions.share="
+                                             vc-hg-global-switches)))
+            (vc-test--other-working-trees ',backend)))))))
 
 (provide 'vc-tests)
 ;;; vc-tests.el ends here

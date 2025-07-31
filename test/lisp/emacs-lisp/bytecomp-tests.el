@@ -1285,6 +1285,11 @@ byte-compiled.  Run with dynamic binding."
  "warn-make-process-missing-keyword-value.el"
  "missing value for keyword argument :command")
 
+;;;; NEW STOUGH, 2025-07-13
+(bytecomp--define-warning-file-test "macro-warning-position.el" ":18:8:")
+
+(bytecomp--define-warning-file-test "macro-warning-position-2.el" ":18:8:")
+;;;; END OF NEW STOUGH
 
 ;;;; Macro expansion.
 

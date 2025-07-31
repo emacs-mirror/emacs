@@ -119,7 +119,7 @@ Driven by the variable `calendar-date-display-form'."
                 (lambda (x)
                   (and (< (if (and (= year 1) (= month 1)) 2 0) x)
                        (<= x last)))
-                nil
+                (if (and (= year 1) (= month 1)) 3 1)
                 (if (and (= year 1) (= month 1)) 3 1) last)))
      (list (list month day year))))
   (calendar-goto-date (calendar-gregorian-from-absolute
@@ -175,7 +175,8 @@ Defaults to today's date if DATE is not given."
 Echo astronomical (Julian) day number unless NOECHO is non-nil."
   (interactive (list (calendar-read-sexp
                       "Astronomical (Julian) day number (>1721425)"
-                      (lambda (x) (> x 1721425)))))
+                      (lambda (x) (> x 1721425))
+                      1721426)))
   (calendar-goto-date
    (calendar-gregorian-from-absolute
     (floor

@@ -179,6 +179,14 @@ The default \"-b\" means to ignore whitespace-only changes,
 ;;;; keymap, menu, ...
 ;;;;
 
+;; The additional bindings in read-only `diff-mode' buffers are not
+;; activated by turning on `diff-minor-mode' in those buffers.  Instead,
+;; a special entry in `minor-mode-map-alist' is used to achieve that.
+;; I.e., `diff-mode-read-only' is a pseudo-minor mode for read-only
+;; `diff-mode' buffers, while `diff-minor-mode' is a bona fide minor
+;; mode for non-`diff-mode' buffers.  (It's not clear there are
+;; practical uses for `diff-minor-mode': bug#34080).
+
 (defvar-keymap diff-mode-shared-map
   :doc "Additional bindings for read-only `diff-mode' buffers.
 These bindings are also available with an ESC prefix
@@ -1598,12 +1606,14 @@ else cover the whole buffer."
 (defvar-local diff-mode-read-only nil
   "Non-nil when read-only diff buffer uses short keys.")
 
+(defvar-keymap diff-read-only-map
+  :doc "Additional bindings for read-only `diff-mode' buffers."
+  :keymap (make-composed-keymap diff-mode-shared-map special-mode-map))
+
 ;; It should be lower than `outline-minor-mode' and `view-mode'.
 (or (assq 'diff-mode-read-only minor-mode-map-alist)
     (nconc minor-mode-map-alist
-           (list (cons 'diff-mode-read-only
-                       (make-composed-keymap diff-mode-shared-map
-                                             special-mode-map)))))
+           (list (cons 'diff-mode-read-only diff-read-only-map))))
 
 (defvar whitespace-style)
 (defvar whitespace-trailing-regexp)
@@ -1615,18 +1625,18 @@ else cover the whole buffer."
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
   "Major mode for viewing/editing context diffs.
-Supports unified and context diffs as well as (to a lesser extent)
-normal diffs.
-
-When the buffer is read-only, the ESC prefix is not necessary.
-If you edit the buffer manually, `diff-mode' will try to update the hunk
-headers for you on-the-fly.
+Supports unified and context diffs as well as, to a lesser extent, diffs
+in the old \"normal\" format.  (Unified diffs have become the standard,
+most commonly encountered format.)  If you edit the buffer manually,
+`diff-mode' will try to update the hunk headers for you on-the-fly.
 
 You can also switch between context diff and unified diff with \\[diff-context->unified],
 or vice versa with \\[diff-unified->context] and you can also reverse the direction of
 a diff with \\[diff-reverse-direction].
 
-\\{diff-mode-map}"
+\\{diff-mode-map}
+In read-only buffers the following bindings are also available:
+\\{diff-read-only-map}"
 
   (setq-local font-lock-defaults diff-font-lock-defaults)
   (add-hook 'font-lock-mode-hook #'diff--font-lock-cleanup nil 'local)

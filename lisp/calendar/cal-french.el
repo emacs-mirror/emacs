@@ -364,8 +364,10 @@ Echo French Revolutionary date unless NOECHO is non-nil."
           (day (if (> month 13)
                    (- month 13)
                  (calendar-read-sexp
-                  (format "Jour (1-%d): " last-day)
-                  (lambda (x) (<= 1 x last-day)))))
+                  "Jour (1-%d): "
+                  (lambda (x) (<= 1 x last-day))
+                  1
+                  last-day)))
           ;; All days in Vendémiaire and numbered 1 to 365 e.g., "Pomme"
           ;; gives 31 Vendémiaire automatically normalized to 1 Brumaire
           ;; "Céleri" gives 32 Vnd normalized to 2 Bru, "Raiponce" gives

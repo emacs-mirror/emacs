@@ -1228,7 +1228,19 @@ and Events}).
 
 If the parameter @code{:authorizable} is given and the following
 @var{auth} is non-@code{nil}, the invoked method may interactively
-prompt the user for authorization.  The default is @code{nil}.
+prompt the user for authorization.  The default is @code{nil}.  For
+example, the following will restart the Bluez systemd service, prompting
+the user for authorization via polkit (assuming a polkit agent is
+running):
+
+@lisp
+(dbus-call-method
+ :system
+ "org.freedesktop.systemd1" "/org/freedesktop/systemd1"
+ "org.freedesktop.systemd1.Manager" "RestartUnit"
+ :authorizable t
+ "bluetooth.service" "replace")
+@end lisp
 
 The remaining arguments @var{args} are passed to @var{method} as
 arguments.  They are converted into D-Bus types as described in

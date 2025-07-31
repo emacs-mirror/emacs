@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.15.0
+;; Version: 1.16.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -492,7 +492,11 @@ documentation.  For commonly recognized properties, see
 `eldoc-documentation-functions'.
 
 INTERACTIVE says if the request to display doc strings came
-directly from the user or from ElDoc's automatic mechanisms'.")
+directly from the user or from ElDoc's automatic mechanisms'.
+
+The display functions always run in the source buffer which initiated
+the documentation request.  If the source buffer is killed, the display
+functions just won't run.")
 
 (defvar eldoc--doc-buffer nil "Buffer displaying latest ElDoc-produced docs.")
 
@@ -896,7 +900,8 @@ the docstrings eventually produced, using
          (want 0)
          ;; The doc strings and corresponding options registered so
          ;; far.
-         (docs-registered '()))
+         (docs-registered '())
+         (orig-buffer (current-buffer)))
     (cl-labels
         ((register-doc
           (pos string plist origin)
@@ -904,13 +909,15 @@ the docstrings eventually produced, using
             (push (cons pos (cons string `(:origin ,origin ,@plist)))
                   docs-registered)))
          (display-doc
-          ()
-          (run-hook-with-args
-           'eldoc-display-functions (mapcar #'cdr
-                                            (setq docs-registered
-                                                  (sort docs-registered
-                                                        (lambda (a b) (< (car a) (car b))))))
-           interactive))
+           ()
+           (when (buffer-live-p orig-buffer)
+             (with-current-buffer orig-buffer
+               (run-hook-with-args
+                'eldoc-display-functions (mapcar #'cdr
+                                                 (setq docs-registered
+                                                       (sort docs-registered
+                                                             (lambda (a b) (< (car a) (car b))))))
+                interactive))))
          (make-callback
           (method origin)
           (let ((pos (prog1 howmany (cl-incf howmany))))

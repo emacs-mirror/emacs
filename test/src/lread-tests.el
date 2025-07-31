@@ -154,7 +154,10 @@
 literals (Bug#20852)."
   (ert-with-temp-file file-name
     (write-region "?) ?( ?; ?\" ?[ ?]" nil file-name)
-    (should (equal (load file-name nil :nomessage :nosuffix) t))
+    (should (equal
+             (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+               (load file-name nil :nomessage :nosuffix))
+             t))
     (should (equal (lread-tests--last-message)
                    (format-message
                     (concat "Loading `%s': "
@@ -200,7 +203,8 @@ literals (Bug#20852)."
     (should-not
      ;; This used to crash in lisp_file_lexically_bound_p before the
      ;; bug was fixed.
-     (eval-buffer))))
+     (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+       (eval-buffer)))))
 
 (ert-deftest lread-invalid-bytecodes ()
   (should-error
@@ -217,12 +221,6 @@ literals (Bug#20852)."
 
 (ert-deftest lread-circular-hash ()
   (should-error (read "#s(hash-table data #0=(#0# . #0#))")))
-
-(ert-deftest test-inhibit-interaction ()
-  (let ((inhibit-interaction t))
-    (should-error (read-char "foo: "))
-    (should-error (read-event "foo: "))
-    (should-error (read-char-exclusive "foo: "))))
 
 (ert-deftest lread-float ()
   (should (equal (read "13") 13))
@@ -354,6 +352,37 @@ literals (Bug#20852)."
   (should-error (read-from-string "?\\\n x"))
   (should (equal (read-from-string "\"a\\\nb\"") '("ab" . 6))))
 
+(ert-deftest lread-char-escape-eof ()
+  ;; Check that unfinished char escapes signal an error.
+  (should-error (read "?\\"))
+
+  (should-error (read "?\\^"))
+  (should-error (read "?\\C"))
+  (should-error (read "?\\M"))
+  (should-error (read "?\\S"))
+  (should-error (read "?\\H"))
+  (should-error (read "?\\A"))
+
+  (should-error (read "?\\C-"))
+  (should-error (read "?\\M-"))
+  (should-error (read "?\\S-"))
+  (should-error (read "?\\H-"))
+  (should-error (read "?\\A-"))
+  (should-error (read "?\\s-"))
+
+  (should-error (read "?\\C-\\"))
+  (should-error (read "?\\C-\\M"))
+  (should-error (read "?\\C-\\M-"))
+
+  (should-error (read "?\\x"))
+  (should-error (read "?\\u"))
+  (should-error (read "?\\u234"))
+  (should-error (read "?\\U"))
+  (should-error (read "?\\U0010010"))
+  (should-error (read "?\\N"))
+  (should-error (read "?\\N{"))
+  (should-error (read "?\\N{SPACE")))
+
 (ert-deftest lread-force-load-doc-strings ()
   ;; Verify that lazy doc strings are loaded lazily by default,
   ;; but eagerly with `force-load-doc-strings' set.
@@ -397,5 +426,82 @@ literals (Bug#20852)."
          (val (read src)))
     (should (equal val "a\xff"))        ; not "aÿ"
     (should-not (multibyte-string-p val))))
+
+(ert-deftest lread-unintern ()
+  (cl-flet ((oa-syms (oa) (let ((syms nil))
+                            (mapatoms (lambda (s) (push s syms)) oa)
+                            (sort syms))))
+    (let* ((oa (obarray-make))
+           (s1 (intern "abc" oa))
+           (s2 (intern "def" oa)))
+      (should-not (eq s1 'abc))
+      (should (eq (unintern "xyz" oa) nil))
+      (should (eq (unintern 'abc oa) nil))
+      (should (eq (unintern 'xyz oa) nil))
+      (should (equal (oa-syms oa) (list s1 s2)))
+      (should (eq (intern-soft "abc" oa) s1))
+      (should (eq (intern-soft "def" oa) s2))
+
+      (should (eq (unintern "abc" oa) t))
+      (should-not (intern-soft "abc" oa))
+      (should (eq (intern-soft "def" oa) s2))
+      (should (equal (oa-syms oa) (list s2)))
+
+      (should (eq (unintern s2 oa) t))
+      (should-not (intern-soft "def" oa))
+      (should (eq (oa-syms oa) nil)))
+
+    ;; with shorthand
+    (let* ((oa (obarray-make))
+           (read-symbol-shorthands '(("a·" . "ZZ•")))
+           (s1 (intern "a·abc" oa))
+           (s2 (intern "a·def" oa))
+           (s3 (intern "a·ghi" oa)))
+      (should (equal (oa-syms oa) (list s1 s2 s3)))
+      (should (equal (symbol-name s1) "ZZ•abc"))
+      (should (eq (intern-soft "ZZ•abc" oa) s1))
+      (should (eq (intern-soft "a·abc" oa) s1))
+      (should (eq (intern-soft "ZZ•def" oa) s2))
+      (should (eq (intern-soft "a·def" oa) s2))
+      (should (eq (intern-soft "ZZ•ghi" oa) s3))
+      (should (eq (intern-soft "a·ghi" oa) s3))
+
+      ;; unintern using long name
+      (should (eq (unintern "ZZ•abc" oa) t))
+      (should-not (intern-soft "ZZ•abc" oa))
+      (should-not (intern-soft "a·abc" oa))
+      (should (equal (oa-syms oa) (list s2 s3)))
+      (should (eq (intern-soft "ZZ•def" oa) s2))
+      (should (eq (intern-soft "a·def" oa) s2))
+      (should (eq (intern-soft "ZZ•ghi" oa) s3))
+      (should (eq (intern-soft "a·ghi" oa) s3))
+
+      ;; unintern using short name
+      (should (eq (unintern "a·def" oa) t))
+      (should-not (intern-soft "ZZ•def" oa))
+      (should-not (intern-soft "a·def" oa))
+      (should (equal (oa-syms oa) (list s3)))
+      (should (eq (intern-soft "ZZ•ghi" oa) s3))
+      (should (eq (intern-soft "a·ghi" oa) s3))
+
+      ;; unintern using symbol
+      (should (eq (unintern s3 oa) t))
+      (should-not (intern-soft "ZZ•ghi" oa))
+      (should-not (intern-soft "a·ghi" oa))
+      (should (eq (oa-syms oa) nil)))
+
+    ;; edge case: a symbol whose true name is another's shorthand
+    (let* ((oa (obarray-make))
+           (s1 (intern "a·abc" oa))
+           (read-symbol-shorthands '(("a·" . "ZZ•")))
+           (s2 (intern "a·abc" oa)))
+      (should (equal (oa-syms oa) (list s2 s1)))
+      (should (equal (symbol-name s1) "a·abc"))
+      (should (equal (symbol-name s2) "ZZ•abc"))
+
+      ;; unintern by symbol
+      (should (eq (unintern s1 oa) t))
+      (should (equal (oa-syms oa) (list s2))))
+    ))
 
 ;;; lread-tests.el ends here

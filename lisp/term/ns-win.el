@@ -214,6 +214,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (defvaralias 'mac-right-option-modifier 'ns-right-option-modifier)
 (defvaralias 'mac-function-modifier 'ns-function-modifier)
 (declare-function ns-do-applescript "nsfns.m" (script))
+(declare-function ns-send-items "nsfns.m" (items))
 (defalias 'do-applescript 'ns-do-applescript)
 
 ;;;; Services

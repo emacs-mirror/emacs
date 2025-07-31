@@ -275,6 +275,7 @@ stream.")
 			      digest-md5
 			      cram-md5
 			      ;;sasl
+                              plain
 			      login
 			      anonymous)
   "Priority of authenticators to consider when authenticating to server.")
@@ -284,6 +285,7 @@ stream.")
     (kerberos4  imap-kerberos4-auth-p imap-kerberos4-auth)
     (sasl	imap-sasl-auth-p      imap-sasl-auth)
     (cram-md5   imap-cram-md5-p       imap-cram-md5-auth)
+    (plain      imap-plain-p          imap-plain-auth)
     (login      imap-login-p          imap-login-auth)
     (anonymous  imap-anonymous-p      imap-anonymous-auth)
     (digest-md5 imap-digest-md5-p     imap-digest-md5-auth))
@@ -852,6 +854,23 @@ t if it successfully authenticates, nil otherwise."
 						"\" \""
 						(imap-quote-specials passwd)
 						"\""))))))
+
+(defun imap-plain-p (buffer)
+  (imap-capability 'AUTH=PLAIN buffer))
+
+(defun imap-plain-auth (buffer)
+  "Login to server using the AUTH=PLAIN command."
+  (message "imap: PLAIN authentication...")
+  (imap-interactive-login
+   buffer
+   (lambda (user passwd)
+     (imap-ok-p
+      (imap-send-command-wait
+       (concat "AUTHENTICATE PLAIN "
+               (base64-encode-string
+                (format "\000%s\000%s"
+                        (imap-quote-specials user)
+                        (imap-quote-specials passwd)))))))))
 
 (defun imap-anonymous-p (_buffer)
   t)

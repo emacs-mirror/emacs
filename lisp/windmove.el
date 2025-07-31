@@ -422,10 +422,10 @@ repeated commands."
 
     (cond ((null other-window)
            (user-error "No window %s from selected window" dir))
+          ((eq other-window 'no-select))
           ((and (window-minibuffer-p other-window)
                 (not (minibuffer-window-active-p other-window)))
            (user-error "Minibuffer is inactive"))
-          ((eq other-window 'no-select))
           (t
            (select-window other-window)))))
 

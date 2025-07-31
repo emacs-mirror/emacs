@@ -510,7 +510,12 @@ There can be multiple entries for the same NAME if it has several aliases.")
   (while
       (progn
         ;; First, optimize all sub-forms of this one.
-        (setq form (byte-optimize-form-code-walker form for-effect))
+        ;; `byte-optimize-form-code-walker' fails to preserve any
+        ;; position on `form' in enough separate places that we invoke
+        ;; `macroexp-preserve-posification' here for source code economy.
+        (setq form
+              (macroexp-preserve-posification
+                  form (byte-optimize-form-code-walker form for-effect)))
 
         ;; If a form-specific optimizer is available, run it and start over
         ;; until a fixpoint has been reached.
@@ -519,7 +524,8 @@ There can be multiple entries for the same NAME if it has several aliases.")
              (let ((opt (byte-opt--fget (car form) 'byte-optimizer)))
                (and opt
                     (let ((old form)
-                          (new (funcall opt form)))
+                          (new (macroexp-preserve-posification
+                                   form (funcall opt form))))
 	              (byte-compile-log "  %s\t==>\t%s" old new)
                       (setq form new)
                       (not (eq new old))))))))

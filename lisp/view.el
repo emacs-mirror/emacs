@@ -511,7 +511,10 @@ with the current buffer as argument and is called after disabling
 current buffer."
   (when view-mode
     (let ((buffer (window-buffer)))
-      (unless view-no-disable-on-exit
+      (unless (or view-no-disable-on-exit
+                  ;; When `view-read-only' is non-nil, we don't want to
+                  ;; leave a buffer read-only but not in `view-mode'.
+                  (and view-read-only view-old-buffer-read-only))
 	(view-mode -1))
 
       (unless exit-only
@@ -528,7 +531,9 @@ current buffer."
 (defun View-exit ()
   "Exit View mode but stay in current buffer."
   (interactive)
-  (view-mode-exit t))
+  (let ((view-read-only nil)
+        (view-no-disable-on-exit nil))
+   (view-mode-exit t)))
 
 ;;;###autoload
 (defun View-exit-and-edit ()

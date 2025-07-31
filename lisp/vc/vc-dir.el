@@ -424,6 +424,10 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     map)
   "Keymap for directory buffer.")
 
+(when vc-use-incoming-outgoing-prefixes
+  (keymap-set vc-dir-mode-map "I" vc-incoming-prefix-map)
+  (keymap-set vc-dir-mode-map "O" vc-outgoing-prefix-map))
+
 (defmacro vc-dir-at-event (event &rest body)
   "Evaluate BODY with point located at `event-start' of EVENT.
 If BODY uses EVENT, it should be a variable,
@@ -1411,7 +1415,7 @@ Throw an error if another update process is in progress."
           (vc-call-backend
            backend 'dir-status-files def-dir nil
            (lambda (entries &optional more-to-come)
-             ;; ENTRIES is a list of (FILE VC_STATE EXTRA) items.
+             ;; ENTRIES is a list of (FILE VC-STATE EXTRA) items.
              ;; If MORE-TO-COME is true, then more updates will come from
              ;; the asynchronous process.
              (with-current-buffer buffer
@@ -1516,7 +1520,7 @@ not under version control, prompt for a directory."
   (interactive)
   (let ((root-dir (vc-root-dir)))
     (if root-dir (vc-dir root-dir)
-      (call-interactively 'vc-dir))))
+      (call-interactively #'vc-dir))))
 
 ;;;###autoload
 (defun vc-dir (dir &optional backend)

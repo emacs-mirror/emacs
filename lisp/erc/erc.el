@@ -559,8 +559,14 @@ user from `erc-server-users'.  Note that enabling this compatibility
 flag degrades the user experience and isn't guaranteed to correctly
 restore the described historical behavior.")
 
-(cl-defmethod erc--queries-current-p ()
-  "Return non-nil if ERC actively updates query manifests."
+(defvar erc--query-table-synced-predicate #'erc--query-participant-present-p
+  "Predicate for whether a query buffer's member table dynamically updates.
+By default, ERC flies half blind by managing membership based on shared
+channels.  This rules out false positives but accepts the chance of
+participants being on the server but absent from local tables.")
+
+(defun erc--query-participant-present-p ()
+  "Return non-nil if the query participant is present in the member table."
   (and (not erc--decouple-query-and-channel-membership-p)
        (erc-query-buffer-p) (erc-get-channel-member (erc-target))))
 

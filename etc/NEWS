@@ -229,6 +229,13 @@ that your popup interface uses for a more integrated experience.
 ('completion-preview-sort-function' was already present in Emacs 30.1,
 but as a plain Lisp variable, not a user option.)
 
+** Mouse
+
+---
+*** 'context-menu-mode now' includes a "Send to..." menu item.
+The menu item enables sending current file(s) or region text to external
+(non-Emacs) applications or services.  See send-to.el for customisations.
+
 ** Windows
 
 +++
@@ -258,7 +265,9 @@ deleted implicitly by functions like 'kill-buffer', 'bury-buffer' and
 +++
 *** New user option 'quit-window-kill-buffer'.
 This option specifies whether 'quit-window' should preferably kill or
-bury the buffer shown by the window to quit.
+bury the buffer shown by the window to quit.  The default is nil.
+Customize it to t to always kill the buffer; customize to a list of
+major modes to kill if the buffer's major mode is one of those.
 
 +++
 *** New user option 'kill-buffer-quit-windows'.
@@ -353,6 +362,13 @@ This option allows changing or removing the delimiters shown around
 the major mode and list of minor modes in the mode line.  The default
 retains the existing behavior of inserting parentheses.
 
++++
+*** New minor mode 'mode-line-invisible-mode'.
+This minor mode makes the mode line of the current buffer invisible.
+The command 'mode-line-invisible-mode' toggles the visibility of the
+current-buffer's mode line.  The default is to show the mode line of
+every buffer.
+
 ** Tab Bars and Tab Lines
 
 ---
@@ -391,6 +407,11 @@ normally shown in the echo area or via tooltips.  See the variable's
 docstring for arguments passed to a help-text function.
 
 ---
+*** New variable 'tab-bar-truncate'.
+When non-nil, it truncates the tab bar, and therefore prevents
+wrapping and resizing the tab bar to more than one line.
+
+---
 *** New command 'tab-line-move-tab-forward' ('C-x M-<right>').
 Together with the new command 'tab-line-move-tab-backward'
 ('C-x M-<left>'), it can be used to move the current tab
@@ -399,6 +420,12 @@ on the tab line to a different position.
 ---
 *** New command 'tab-line-close-other-tabs'.
 It is bound to the tab's context menu item "Close other tabs".
+
+---
+*** New user option 'tab-line-exclude-buffers'.
+This user option controls where 'tab-line-mode' should not be enabled in
+a buffer.  The value must be a condition which is passed to
+'buffer-match-p'.
 
 ** Project
 
@@ -510,6 +537,17 @@ the parens that are inside comments and strings.  If set to 'all',
 or strings.  If set to 'on-mismatch', mismatched parens inside comments
 and strings will not be highlighted.  If set to nil (the default),
 highlight the parens wherever they are.
+
+** Change in SVG foreground color handling.
+SVG images no longer have the 'fill' attribute set to the value of
+':foreground' or the current text foreground color.  The 'currentcolor'
+CSS attribute continues to be set as before.
+
+This change should result in more consistent display of SVG images.
+
+To use the ':foreground' or current text color ensure the 'fill' attribute
+in the SVG is set to 'currentcolor', or set the image spec's ':css'
+value to 'svg {fill: currentcolor;}'.
 
 
 * Editing Changes in Emacs 31.1
@@ -1298,6 +1336,14 @@ This contains the list of regular expressions used to match "Re:" and
 international variants of it when modifying the Subject field in
 replies.
 
+** Imap
+
+---
+*** 'imap-authenticate' can now use PLAIN authentication.
+"AUTH=PLAIN" support is auto-enabled if the IMAP server supports it.  Pass
+a specific authentication type to 'imap-authenticate' or remove 'plain'
+from 'imap-authenticators' if you do not wish to use "AUTH=PLAIN".
+
 ** Rmail
 
 +++
@@ -1305,6 +1351,13 @@ replies.
 'mail-re-regexps' is a new user option that is easier to customize than
 'rmail-re-abbrevs'.  'rmail-re-abbrevs' is still honored if it was
 already set.
+
++++
+*** New user option 'rmail-mime-save-action'.
+This option specifies an action to take after saving a MIME attachment.
+Predefined values include visiting the file in Emacs, jumping to the
+file in Dired, or opening the file with an external program.  You can
+also provide a custom function.
 
 ** Message
 
@@ -1363,6 +1416,15 @@ HTML 'doctype' declaration to have context-type "text/html".
 *** 'eww-switch-to-buffer' falls back to 'eww'.
 When there is no EWW buffer, 'eww-switch-to-buffer' falls back to
 calling 'eww'.
+
+** Url Queue
+
+---
+*** 'url-queue-retrieve' now makes use of some url request variables.
+The variables 'url-request-data', 'url-request-method', and
+'url-request-extra-headers' can now be bound around a call to
+'url-queue-retrieve'.  Binding them has the same effect as for
+'url-retrieve'.
 
 ** CC mode
 
@@ -1445,7 +1507,7 @@ you exit the Emacs session or kill the IELM buffer.
 *** Dedicated buffer for plain text contents.
 When switching to the plain text contents with 'doc-view-open-text',
 DocView now creates a dedicated buffer to display it.  'C-c C-c' gets you
-back to real DocView buffer if it still exists.
+back to the real DocView buffer if it still exists.
 
 +++
 *** New commands to save and restore pages in buffer-local registers.
@@ -1504,7 +1566,10 @@ recent Dired line with superuser, or root, permissions.
 +++
 *** 'C-x x @' is now bound to 'tramp-revert-buffer-with-sudo'.
 You can use 'C-u C-x x @' to select a Tramp method other than the
-default, 'sudo'.
+default, "sudo".
+
++++
+*** 'tramp-file-name-with-method' can now be set as connection-local variable.
 
 +++
 *** Connection method "kubernetes" supports now optional namespace.
@@ -1536,7 +1601,7 @@ This feature is experimental.
 This command copies to the 'kill-ring' a region of text modified
 according to diffs in the current buffer, but without applying the diffs
 to the original text.  If the selected range extends a hunk, the
-command attempts to look up and copy the text in-between the hunks.
+command attempts to look up and copy the text in between the hunks.
 
 +++
 *** New command 'diff-revert-and-kill-hunk' bound to 'C-c M-r'.
@@ -1646,6 +1711,15 @@ Like Occur Edit mode, typing 'e' in the "*grep*" buffer will now make
 the 'grep' results editable.  The edits will be reflected in the buffer
 visiting the originating file.  Typing 'C-c C-c' will leave the Grep
 Edit mode.
+
+** Imenu
+
+---
+*** New user option 'imenu-allow-duplicate-menu-items'.
+This specifies whether Imenu can include duplicate menu items.
+Duplicate items are now allowed by default (option value t), which
+restores the behavior before Emacs 29.  Customize this to nil to get the
+behavior of Emacs 29 and Emacs 30.
 
 ** Time Stamp
 
@@ -1793,6 +1867,22 @@ appearance of the list can be customized with the new faces
 
 ** VC
 
++++
+*** New commands to handle repositories with multiple working trees.
+Some VCS support more than one working tree with the same backing
+revisions store, such as with Git's 'worktree' subcommand and
+Mercurial's 'share' extension.  Emacs now has some commands to manage
+other working trees:
+
+- 'C-x v w c': Add a new working tree.
+- 'C-x v w w': Visit this file in another working tree.
+- 'C-x v w x': Delete a working tree you no longer need.
+- 'C-x v w R': Relocate a working tree to another file name.
+
+In addition, Lisp programs that extend VC can invoke the new backend
+functions to obtain a list of other working trees, and to add, remove
+and relocate them.
+
 ---
 *** Using 'e' from Log View mode to modify change comments now works for Git.
 
@@ -1818,6 +1908,14 @@ the directory into which the repository was cloned.
 ---
 *** 'C-x v u' ('vc-revert') now works on directories listed in VC Directory.
 Reverting a directory means reverting changes to all files inside it.
+
++++
+*** New global minor mode 'vc-auto-revert-mode'.
+This is like 'global-auto-revert-mode' but limited to VCS-tracked files.
+As compared with VC's existing, default support for reverting files
+after VCS operations, the new mode is a more reliable way to ensure that
+Emacs reverts buffers visiting tracked files when VCS operations change
+the contents of those files.
 
 *** New command 'log-edit-done-strip-cvs-lines'.
 This command strips all lines beginning with "CVS:" from the buffer.
@@ -1865,12 +1963,12 @@ files in the fileset are in a compatible state for a checkin.
 +++
 *** 'C-x v v' handles missing and removed files more consistently.
 Missing files are those which have been removed from the filesystem but
-are still tracked by version control.  Removed files are those scheduled
-to be removed from version control in the next commit.  Previously,
-different backends were inconsistent about applying these statuses to
-files, and 'C-x v v' behaved subtly differently for the two statuses.
-The combination of these differences between backends and in 'C-x v v'
-behavior was confusing.  Now,
+which are still tracked by version control.  Removed files are those
+scheduled to be removed from version control in the next commit.
+Previously, different backends were inconsistent about applying these
+statuses to files, and 'C-x v v' behaved subtly differently for the two
+statuses.  The combination of these differences between backends and in
+'C-x v v' behavior was confusing.  Now,
 
 - in VC-Dir, you can use 'C-x v v' on missing files to mark them as
   removed
@@ -1925,10 +2023,13 @@ Currently only supported by the Git and Mercurial backends.
 ---
 *** New 'log-edit-hook' option to display diff of changes to commit.
 You can customize 'log-edit-hook' to include its new
-'log-edit-maybe-show-diff' function to enable displaying a diff of the
+'log-edit-maybe-show-diff' option to enable displaying a diff of the
 changes to be committed in a window.  This is like the 'C-c C-d' command
 in Log Edit mode buffers, except that it does not select the "*vc-diff*"
 buffer's window, and so works well when added to 'log-edit-hook'.
+
++++
+*** 'vc-rename-file' is now bound to 'C-x v R'.
 
 ---
 *** 'vc-annotate' now abbreviates the Git revision in more cases.
@@ -2013,6 +2114,14 @@ Package menu now displays in the mode line the total number of packages
 installed, total number of packages from all the package archives, total
 number of packages to upgrade and total number of new packages
 available.
+
++++
+*** New functions to query builtin package information.
+'package-versioned-builtin-packages' returns a list of symbols of
+built-in packages; 'package-builtin-package-version' returns the
+version-list of a given package symbol.  These functions provide public
+interfaces for external tools to query information about built-in
+packages.
 
 ** Rcirc
 
@@ -2223,6 +2332,12 @@ useful when you want the face attributes to be absolute and not
 'unspecified'.
 
 ---
+*** New user option 'ffap-prefer-remote-file'.
+If non-nil, FFAP always finds remote files in buffers with remote
+'default-directory'.  If nil, FFAP finds local files first for absolute
+file names in above buffers.  The default is nil.
+
+---
 ** Flymake
 
 *** Windows without fringes now automatically use margin indicators.
@@ -2336,6 +2451,31 @@ command for reporting bugs).
 ** The elint package is now obsolete.
 Use the byte-compiler instead; it provides more and more useful warnings.
 
+** Newsticker
+
+---
+*** New user option 'newsticker-hide-old-feed-header'.
+It controls whether to automatically hide the header of feeds whose
+items are all old or obsolete in the plainview *newsticker* buffer.
+This is only visually interesting if the content of those feeds are also
+hidden (see 'newsticker-hide-old-items-in-newsticker-buffer' and
+'newsticker-show-descriptions-of-new-items')."
+
+---
+*** New commands to hide and show headers of old newsticker feeds.
+The new commands 'newsticker-hide-old-feed-header' and
+'newsticker-show-old-feed-header', bound to 'h h' and 's h' keys,
+respectively, hide and show the headers of feeds whose items are all old
+or obsolete.
+
+** CPerl mode
+
+*** Syntax of Perl up to version 5.42 is supported.
+
+CPerl mode creates imenu entries for ":writer" generated accessors and
+recognizes the new functions "all" and "any".
+See https://perldoc.perl.org/5.42.0/perldelta for details.
+
 
 * New Modes and Packages in Emacs 31.1
 
@@ -2437,6 +2577,15 @@ instead, which gives the time offset as +/-hh or +/-hh:mm.  A designator
 formats, like "2025-06-04 13:21:00 EDT", without the ISO 8601 "T"
 separator, are also supported.
 
+---
+** The obsolete variable 'load-convert-to-unibyte' has been removed.
+
++++
+** The 'exec-path' variable now uses same default PATH as other programs.
+That is, if the PATH environment variable is unset or empty, 'exec-path'
+now acts as if PATH is the system default, which is "/bin:/usr/bin"
+on GNU/Linux systems.
+
 
 * Lisp Changes in Emacs 31.1
 
@@ -2534,6 +2683,12 @@ sub-directories, recursively, which were not already natively compiled.
 ** New function 'color-blend'.
 This function takes two RGB lists and optional ALPHA and returns an RGB
 list whose elements are blended in linear space proportional to ALPHA.
+
++++
+** New function 'dom-inner-text'.
+This function gets all the text within a DOM node recursively, returning
+it as a concatenated string.  It replaces the now-obsolete functions
+'dom-text' and 'dom-texts'.
 
 +++
 ** The 'defcustom' ':local' keyword can now be 'permanent-only'.
@@ -2674,6 +2829,12 @@ sleep state.
 and set the top-level buffer-local value of a variable.  A top-level
 value is the one that variable has outside of any let-bindings.
 
+** New function 'exec-suffixes'.
+This function by default returns the value of the corresponding user
+option, but can optionally return the equivalent of 'exec-suffixes' from
+a remote host.  It must be used in conjunction with the function
+'exec-path'.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
@@ -2710,6 +2871,12 @@ allowing Emacs users access to speech recognition utilities.
 
 Note: Accepting this permission allows the use of system APIs, which may
 send user data to Apple's speech recognition servers.
+
+---
+** Re-introduced dictation, lost in Emacs v30 (macOS).
+We lost macOS dictation in v30 when migrating to NSTextInputClient.
+Implemented 'selectedRange' in 'nsterm.m' to enable in new subsystem.
+You may notice a slight change in dictation UI provided by macOS.
 
 +++
 ** On Mac OS X, stipples now render with color.

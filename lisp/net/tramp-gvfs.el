@@ -1510,7 +1510,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	      '(created changed changes-done-hint moved deleted unmounted))
 	     ((memq 'attribute-change flags) '(attribute-changed unmounted))))
 	   (p (apply
-	       #'start-process
+	       #'tramp-start-process v
 	       "gvfs-monitor" (generate-new-buffer " *gvfs-monitor*")
 	       `("gio" "monitor" ,(tramp-gvfs-url-file-name file-name)))))
       (if (not (processp p))
@@ -1521,7 +1521,6 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	(process-put p 'tramp-watch-name localname)
 	(set-process-filter p #'tramp-gvfs-monitor-process-filter)
 	(set-process-sentinel p #'tramp-file-notify-process-sentinel)
-	(tramp-post-process-creation p v)
 	;; There might be an error if the monitor is not supported.
 	;; Give the filter a chance to read the output.
 	(while (tramp-accept-process-output p))

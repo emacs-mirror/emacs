@@ -131,19 +131,18 @@ multibyte mode and waits for the shell prompt to appear."
                      ;; The executable loader cannot execute setuid
                      ;; binaries, such as su.
                      (android-use-exec-loader nil)
-		     (p (start-process (tramp-get-connection-name vec)
-			               (tramp-get-connection-buffer vec)
-                                       ;; Disregard
-                                       ;; `tramp-encoding-shell', as
-                                       ;; there's no guarantee that it's
-                                       ;; possible to execute it with
-                                       ;; `android-use-exec-loader' off.
-			               tramp-androidsu-local-shell-name "-i"))
+		     (p (tramp-start-process
+			 vec (tramp-get-connection-name vec)
+			 (tramp-get-connection-buffer vec)
+			 ;; Disregard `tramp-encoding-shell', as
+			 ;; there's no guarantee that it's possible to
+			 ;; execute it with `android-use-exec-loader'
+			 ;; off.
+			 tramp-androidsu-local-shell-name "-i"))
 		     (user (tramp-file-name-user vec))
                      su-binary path command)
-                ;; Set sentinel.  Initialize variables.
+                ;; Set sentinel.
 	        (set-process-sentinel p #'tramp-process-sentinel)
-	        (tramp-post-process-creation p vec)
                 ;; Replace `login-args' place holders.  `PATH' must be
                 ;; set to `tramp-androidsu-remote-path', as some `su'
                 ;; implementations propagate their callers' environments

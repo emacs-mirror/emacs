@@ -6502,7 +6502,7 @@ properties:
 @table @code
 @item :foreground @var{foreground}
 @var{foreground}, if non-@code{nil}, should be a string specifying a
-color, which is used as the image's foreground color.  If the value is
+color, which is used as the CSS `currentcolor' value.  If the value is
 @code{nil}, it defaults to the current face's foreground color.
 
 @item :background @var{background}

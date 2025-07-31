@@ -364,6 +364,7 @@ by default."
 If zero, EWW is at the newest page, which isn't yet present in
 `eww-history'.")
 (defvar eww-prompt-history nil)
+(defvar-local eww--change-tracker-id nil)
 
 (defvar eww-local-regex "localhost"
   "When this regex is found in the URL, it's not a keyword but an address.")
@@ -831,6 +832,11 @@ This replaces the region with the preprocessed HTML."
                 (link . eww-tag-link)
                 (meta . eww-tag-meta)
                 (a . eww-tag-a)))))
+        ;; Unregister any existing change tracker while we render the
+        ;; document.
+        (when eww--change-tracker-id
+          (track-changes-unregister eww--change-tracker-id)
+          (setq eww--change-tracker-id nil))
 	(erase-buffer)
         (with-delayed-message (2 "Rendering HTML...")
 	  (shr-insert-document document))
@@ -850,10 +856,11 @@ This replaces the region with the preprocessed HTML."
 	  (while (and (not (eobp))
 		      (get-text-property (point) 'eww-form))
 	    (forward-line 1)))))
-      ;; We used to enable this in `eww-mode', but it cause tracking
-      ;; of changes while we insert the document, whereas we only care about
-      ;; changes performed afterwards.
-      (track-changes-register #'eww--track-changes :nobefore t)
+      ;; We used to enable this in `eww-mode', but it cause tracking of
+      ;; changes while we insert the document, whereas we only care
+      ;; about changes performed afterwards.
+      (setq eww--change-tracker-id (track-changes-register
+                                    #'eww--track-changes :nobefore t))
       (eww-size-text-inputs))))
 
 (defun eww-display-html (charset url &optional document point buffer)
@@ -861,12 +868,14 @@ This replaces the region with the preprocessed HTML."
     (with-current-buffer buffer
       (plist-put eww-data :source source)))
   (unless document
-    (let ((dom (eww--parse-html-region (point) (point-max) charset)))
+    (let ((dom (eww--parse-html-region (point) (point-max) charset))
+          readable)
       (when-let* (((eww-default-readable-p url))
                   (readable-dom (eww-readable-dom dom)))
-        (setq dom readable-dom)
-        (with-current-buffer buffer
-          (plist-put eww-data :readable t)))
+        (setq dom readable-dom
+              readable t))
+      (with-current-buffer buffer
+        (plist-put eww-data :readable readable))
       (setq document (eww-document-base url dom))))
   (eww-display-document document point buffer))
 
@@ -1024,7 +1033,7 @@ This replaces the region with the preprocessed HTML."
   (plist-put eww-data :title
 	     (replace-regexp-in-string
 	      "^ \\| $" ""
-	      (replace-regexp-in-string "[ \t\r\n]+" " " (dom-text dom))))
+	      (replace-regexp-in-string "[ \t\r\n]+" " " (dom-inner-text dom))))
   (eww--after-page-change))
 
 (defun eww-display-raw (buffer &optional encode)
@@ -1164,7 +1173,7 @@ adds a new entry to `eww-history'."
          (base (plist-get eww-data :url)))
     (when make-readable
       (unless (setq dom (eww-readable-dom dom))
-        (message "Unable to find readable content")))
+        (message "Unable to extract readable text from this page")))
     (when dom
       (when eww-readable-adds-to-history
         (eww-save-history)
@@ -1175,6 +1184,30 @@ adds a new entry to `eww-history'."
       (plist-put eww-data :readable make-readable)
       (eww--after-page-change))))
 
+(defun eww--string-count-words (string)
+  "Return the number of words in STRING."
+  (let ((start 0)
+        (count 0))
+    (while (string-match split-string-default-separators string start)
+      (when (< start (match-beginning 0))
+        (incf count))
+      (setq start (match-end 0)))
+    (when (length> string (1+ start))
+      (incf count))
+    count))
+
+(defun eww--dom-count-words (node)
+  "Return the number of words in all the textual data under NODE."
+  (cond
+   ((stringp node)
+    (eww--string-count-words node))
+   ((memq (dom-tag node) '(script comment))
+    0)
+   (t
+    (let ((total 0))
+      (dolist (elem (dom-children node) total)
+        (incf total (eww--dom-count-words elem)))))))
+
 (defun eww--walk-readability (node callback &optional noscore)
   "Walk through all children of NODE to score readability.
 After scoring, call CALLBACK with the node and score.  If NOSCORE is
@@ -1183,7 +1216,7 @@ non-nil, don't actually compute a score; just call the callback."
     (unless noscore
       (cond
        ((stringp node)
-        (setq score (length (split-string node))
+        (setq score (eww--string-count-words node)
               noscore t))
        ((memq (dom-tag node) '(head comment script style template))
         (setq score -2
@@ -1195,7 +1228,7 @@ non-nil, don't actually compute a score; just call the callback."
         (setq score 2
               noscore t))
        ((eq (dom-tag node) 'a)
-        (setq score (- (length (split-string (dom-text node))))
+        (setq score (- (eww--dom-count-words node))
               noscore t))
        (t
         (setq score -1))))
@@ -1220,7 +1253,7 @@ If EWW can't create a readable version, return nil instead."
          (when (and score (> score best-score)
                     ;; We set a lower bound to how long we accept that
                     ;; the readable portion of the page is going to be.
-                    (> (length (split-string (dom-texts node))) 100))
+                    (> (eww--dom-count-words node) 100))
            (setq best-score score
                  best-node node))
          ;; Keep track of any <title> and <link> tags we find to include
@@ -1235,7 +1268,7 @@ If EWW can't create a readable version, return nil instead."
            ;; directly in our list in addition to as a child of some
            ;; other node in the list.  This is ok for <title> and <link>
            ;; tags, but might need changed if supporting other tags.
-           (let* ((inner-text (dom-texts node ""))
+           (let* ((inner-text (dom-inner-text node))
                   (new-node `(,(dom-tag node)
                               ,(dom-attributes node)
                               ,@(when (length> inner-text 0)
@@ -1267,7 +1300,7 @@ If EWW can't create a readable version, return nil instead."
 		   most-negative-fixnum))
         ;; We set a lower bound to how long we accept that the
         ;; readable portion of the page is going to be.
-        (when (> (length (split-string (dom-texts highest))) 100)
+        (when (> (length (split-string (dom-inner-text highest))) 100)
 	  (setq result highest))))
     result))
 
@@ -1416,7 +1449,7 @@ within text input fields."
   `("eww"
     (:eval (when (plist-get eww-data :readable)
              '(:propertize ":readable"
-               help-echo "Displaying readable content"))))
+               help-echo "Showing only human-readable text of page"))))
   "Mode for browsing the web."
   :interactive nil
   (setq-local eww-data (list :title ""))
@@ -1892,12 +1925,12 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
                'display (make-string (length value) ?*)))))))))
 
 (defun eww-tag-textarea (dom)
-  (let ((start (point))
-        (value (or (dom-text dom) ""))
+  (let ((value (or (dom-inner-text dom) ""))
 	(lines (string-to-number (or (dom-attr dom 'rows) "10")))
 	(width (string-to-number (or (dom-attr dom 'cols) "10")))
-	end form)
+	start end form)
     (shr-ensure-newline)
+    (setq start (point))
     (insert value)
     (shr-ensure-newline)
     (when (< (count-lines start (point)) lines)
@@ -1968,7 +2001,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
     (dolist (elem (dom-by-tag dom 'option))
       (when (dom-attr elem 'selected)
 	(nconc menu (list :value (dom-attr elem 'value))))
-      (let ((display (dom-text elem)))
+      (let ((display (dom-inner-text elem)))
 	(setq max (max max (length display)))
 	(push (list 'item
 		    :value (dom-attr elem 'value)

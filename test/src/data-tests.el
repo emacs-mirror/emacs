@@ -421,6 +421,7 @@ comparing the subr with a much slower Lisp implementation."
       (should (eq c-e-l 'bar))
       (should (eq (default-toplevel-value 'c-e-l) 'baz))))
   (let ((c-e-u 'foo))
+    (ignore c-e-u)   ; hush unused-variable warning
     (should (condition-case _
                 (default-toplevel-value 'c-e-u)
               (void-variable t))))

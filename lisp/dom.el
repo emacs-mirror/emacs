@@ -25,7 +25,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(eval-when-compile (require 'subr-x))
+(require 'subr-x)
 
 (defsubst dom-tag (node)
   "Return the NODE tag."
@@ -75,10 +75,12 @@ A typical attribute is `href'."
 
 (defun dom-text (node)
   "Return all the text bits in the current node concatenated."
+  (declare (obsolete 'dom-inner-text "31.1"))
   (mapconcat #'identity (cl-remove-if-not #'stringp (dom-children node)) " "))
 
 (defun dom-texts (node &optional separator)
   "Return all textual data under NODE concatenated with SEPARATOR in-between."
+  (declare (obsolete 'dom-inner-text "31.1"))
   (if (eq (dom-tag node) 'script)
       ""
     (mapconcat
@@ -92,6 +94,25 @@ A typical attribute is `href'."
          (dom-texts elem separator))))
      (dom-children node)
      (or separator " "))))
+
+(defun dom-inner-text--1 (node)
+  (dolist (child (dom-children node))
+    (cond
+     ((stringp child) (insert child))
+     ((memq (dom-tag child) '(script comment)))
+     (t (dom-inner-text--1 child)))))
+
+(defun dom-inner-text (node)
+  "Return all textual data under NODE as a single string."
+  (let ((children (dom-children node)))
+    (if (and (length= children 1)
+             (stringp (car children)))
+        ;; Copy the string content when returning to be consistent with
+        ;; the other branch of this `if' expression.
+        (copy-sequence (car children))
+    (with-work-buffer
+      (dom-inner-text--1 node)
+      (buffer-string)))))
 
 (defun dom-child-by-tag (dom tag)
   "Return the first child of DOM that is of type TAG."

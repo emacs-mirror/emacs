@@ -469,7 +469,8 @@ This is a destructive function; it reuses the storage of SEQ whenever possible.
   (declare (important-return-value t))
   (cl--parsing-keywords ( :test :test-not :key :if :if-not :count
                           (:start 0) :end :from-end) ()
-    (let* ((seq (if (stringp seq) (string-to-vector seq) seq))
+    (let* ((stringp (stringp seq))
+           (seq (if (stringp seq) (string-to-vector seq) seq))
            (len (length seq)))
       (or (eq old new) (<= (or cl-count (setq cl-count len)) 0)
           (if (and (listp seq) (or (not cl-from-end) (> cl-count (/ len 2))))
@@ -495,7 +496,7 @@ This is a destructive function; it reuses the storage of SEQ whenever possible.
                       (aset seq cl-start new)
                       (setq cl-count (1- cl-count))))
                 (setq cl-start (1+ cl-start))))))
-      (if (stringp seq) (concat seq) seq))))
+      (if stringp (concat seq) seq))))
 
 ;;;###autoload
 (defun cl-nsubstitute-if (new pred list &rest cl-keys)

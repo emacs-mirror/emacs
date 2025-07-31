@@ -25,6 +25,7 @@
 
 (require 'cl-lib)
 (require 'ert)
+(require 'tramp)
 (require 'ert-x)
 (require 'ffap)
 
@@ -288,6 +289,27 @@ End of search list.
                0)))
     (should (member (expand-file-name "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/15.0.0/include")
                     (ffap--c-path)))))
+
+(ert-deftest ffap-test-remote ()
+  (skip-unless
+   (ignore-errors
+     (and
+      (file-remote-p ert-remote-temporary-file-directory)
+      (file-directory-p ert-remote-temporary-file-directory)
+      (file-writable-p ert-remote-temporary-file-directory))))
+  (let* ((ffap-prefer-remote-file t)
+         (default-directory
+          (expand-file-name ert-remote-temporary-file-directory))
+         (temporary-file-directory default-directory)
+         (test-file (make-temp-file "ffap-test")))
+    (with-temp-buffer
+      (insert (file-local-name test-file))
+      (should (equal (ffap-file-at-point) test-file))
+      (erase-buffer)
+      (insert (concat "/usr/bin:" (file-local-name test-file)))
+      (should (equal (ffap-file-at-point) test-file))
+      (delete-file test-file)
+      (should (equal (ffap-file-at-point) default-directory)))))
 
 (provide 'ffap-tests)
 

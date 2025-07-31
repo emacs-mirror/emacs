@@ -49,6 +49,7 @@
 #  --avoid=iswxdigit \
 #  --avoid=langinfo-h \
 #  --avoid=libgmp-mpq \
+#  --avoid=localcharset \
 #  --avoid=locale-h \
 #  --avoid=localename-unsafe-limited \
 #  --avoid=lock \
@@ -144,7 +145,7 @@
 #  mktime \
 #  nanosleep \
 #  nproc \
-#  nstrftime \
+#  nstrftime-limited \
 #  pathmax \
 #  pipe2 \
 #  pselect \
@@ -2836,17 +2837,17 @@ EXTRA_DIST += nproc.h
 endif
 ## end   gnulib module nproc
 
-## begin gnulib module nstrftime
-ifeq (,$(OMIT_GNULIB_MODULE_nstrftime))
+## begin gnulib module nstrftime-limited
+ifeq (,$(OMIT_GNULIB_MODULE_nstrftime-limited))
 
 libgnu_a_SOURCES += nstrftime.c
 
-EXTRA_DIST += strftime.c strftime.h
+EXTRA_DIST += calendar-ethiopian.h calendar-persian.h calendar-thai.h calendars.h strftime.c strftime.h
 
 EXTRA_libgnu_a_SOURCES += strftime.c
 
 endif
-## end   gnulib module nstrftime
+## end   gnulib module nstrftime-limited
 
 ## begin gnulib module open
 ifeq (,$(OMIT_GNULIB_MODULE_open))

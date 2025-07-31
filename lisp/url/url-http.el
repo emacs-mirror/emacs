@@ -56,6 +56,7 @@
 (defvar url-http-transfer-encoding)
 (defvar url-show-status)
 (defvar url-http-referer)
+(defvar url-http-extensions-header)
 
 (require 'url-gw)
 (require 'url-parse)
@@ -374,9 +375,9 @@ Use `url-http-referer' as the Referer-header (subject to `url-privacy-level')."
                                 "close" "keep-alive")
              "\r\n"
              ;; HTTP extensions we support
-             (if url-extensions-header
+             (if url-http-extensions-header
                  (format
-                  "Extension: %s\r\n" url-extensions-header))
+                  "Extension: %s\r\n" url-http-extensions-header))
              ;; Who we want to talk to
              (if (/= (url-port url-http-target-url)
                      (url-scheme-get-property
@@ -1020,8 +1021,9 @@ should be shown to the user."
 ;; )
 
 ;; These unfortunately cannot be macros... please ignore them!
-(defun url-http-idle-sentinel (proc _why)
+(defun url-http-idle-sentinel (proc why)
   "Remove (now defunct) process PROC from the list of open connections."
+  (url-http-debug "url-http-idle-sentinel for process %S: %s" proc (string-trim why))
   (maphash (lambda (key val)
 		(if (memq proc val)
 		    (puthash key (delq proc val) url-http-open-connections)))
@@ -1340,9 +1342,19 @@ overriding the value of `url-gateway-method'.
 
 The return value of this function is the retrieval buffer."
   (cl-check-type url url "Need a pre-parsed URL.")
+  ;; The request is handled by asynchronous processes, which are outside
+  ;; the dynamic scope of the caller of url-http (sometimes, sometimes
+  ;; not).  The caller may still desire to bind variables controlling
+  ;; aspects of the request for the duration of this one http request.
+  ;; The async processes operate on a buffer created in this function,
+  ;; so the way to accomplish this goal is to set buffer local copies of
+  ;; the relevant variables to the dynamic values in scope as we create
+  ;; the buffer.  When new variables are added that influence behaviour
+  ;; of requests, they should be added to the handling in this function
+  ;; to make them work reliably without changing their global values.
   (let* (;; (host (url-host (or url-using-proxy url)))
 	 ;; (port (url-port (or url-using-proxy url)))
-	 (nsm-noninteractive (not (url-interactive-p)))
+	 (noninteractive-p (not (url-interactive-p)))
          ;; The following binding is needed in url-open-stream, which
          ;; is called from url-http-find-free-connection.
          (url-current-object url)
@@ -1350,10 +1362,17 @@ The return value of this function is the retrieval buffer."
                                                     (url-port url)
                                                     gateway-method))
          (mime-accept-string url-mime-accept-string)
+         (mime-encoding-string url-mime-encoding-string)
+         (mime-charset-string url-mime-charset-string)
+         (mime-language-string url-mime-language-string)
 	 (buffer (or retry-buffer
 		     (generate-new-buffer
                       (format " *http %s:%d*" (url-host url) (url-port url)))))
-         (referer (url-http--encode-string (url-http--get-referer url))))
+         (referer (url-http--encode-string (url-http--get-referer url)))
+         (httpver url-http-version)
+         (httpkeepalive url-http-attempt-keepalives)
+         (user-agent url-user-agent)
+         (privacy-level url-privacy-level))
     (if (not connection)
 	;; Failed to open the connection for some reason
 	(progn
@@ -1389,8 +1408,17 @@ The return value of this function is the retrieval buffer."
 		       url-http-no-retry
 		       url-http-connection-opened
                        url-mime-accept-string
+                       url-mime-encoding-string
+                       url-mime-charset-string
+                       url-mime-language-string
 		       url-http-proxy
-                       url-http-referer))
+                       url-http-referer
+                       url-http-version
+                       url-http-attempt-keepalives
+                       url-http-extensions-header
+                       url-user-agent
+                       url-privacy-level
+                       nsm-noninteractive))
 	  (set (make-local-variable var) nil))
 
 	(setq url-http-method (or url-request-method "GET")
@@ -1409,8 +1437,17 @@ The return value of this function is the retrieval buffer."
 	      url-http-no-retry retry-buffer
 	      url-http-connection-opened nil
               url-mime-accept-string mime-accept-string
+              url-mime-encoding-string mime-encoding-string
+              url-mime-charset-string mime-charset-string
+              url-mime-language-string mime-language-string
 	      url-http-proxy url-using-proxy
-              url-http-referer referer)
+              url-http-referer referer
+              url-http-version httpver
+              url-http-attempt-keepalives httpkeepalive
+              url-http-extensions-header url-extensions-header
+              url-user-agent user-agent
+              url-privacy-level privacy-level
+              nsm-noninteractive noninteractive-p)
 
 	(set-process-buffer connection buffer)
 	(set-process-filter connection #'url-http-generic-filter)

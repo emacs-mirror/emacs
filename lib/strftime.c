@@ -53,7 +53,7 @@
 /* Whether to require GNU behavior for AM and PM indicators, even on
    other platforms.  This matters only in non-C locales.
    The default is to require it; you can override this via
-   AC_DEFINE([REQUIRE_GNUISH_STRFTIME_AM_PM], 1) and if you do that
+   AC_DEFINE([REQUIRE_GNUISH_STRFTIME_AM_PM], [false]) and if you do that
    you may be able to omit Gnulib's localename module and its dependencies.  */
 #ifndef REQUIRE_GNUISH_STRFTIME_AM_PM
 # define REQUIRE_GNUISH_STRFTIME_AM_PM true
@@ -61,6 +61,25 @@
 #if HAVE_ONLY_C_LOCALE || USE_C_LOCALE
 # undef REQUIRE_GNUISH_STRFTIME_AM_PM
 # define REQUIRE_GNUISH_STRFTIME_AM_PM false
+#endif
+
+/* Whether to include support for non-Gregorian calendars (outside of the scope
+   of ISO C, POSIX, and glibc).  This matters only in non-C locales.
+   The default is to include it, except on platforms where retrieving the locale
+   name drags in too many dependencies
+   (LOCALENAME_ENHANCE_LOCALE_FUNCS || !SETLOCALE_NULL_ONE_MTSAFE).
+   You can override this via
+   AC_DEFINE([SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME], [false])
+   and if you do that you may be able to omit Gnulib's localename module and its
+   dependencies.  */
+#ifndef SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+# define SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME true
+#endif
+#if defined _LIBC || (HAVE_ONLY_C_LOCALE || USE_C_LOCALE) \
+    || ((defined __OpenBSD__ || defined _AIX || defined __ANDROID__) \
+        && !GNULIB_NSTRFTIME)
+# undef SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+# define SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME false
 #endif
 
 #if HAVE_ONLY_C_LOCALE || USE_C_LOCALE
@@ -78,14 +97,8 @@
    C library on the various platforms (UTF-8, GB2312, GBK, CP936,
    GB18030, EUC-TW, BIG5, BIG5-HKSCS, CP950, EUC-JP, EUC-KR, CP949,
    SHIFT_JIS, CP932, JOHAB) are safe for formats, because the byte '%'
-   cannot occur in a multibyte character except in the first byte.
-
-   The DEC-HANYU encoding used on OSF/1 is not safe for formats, but
-   this encoding has never been seen in real-life use, so we ignore
-   it.  */
-#if !(defined __osf__ && 0)
-# define MULTIBYTE_IS_FORMAT_SAFE 1
-#endif
+   cannot occur in a multibyte character except in the first byte.  */
+#define MULTIBYTE_IS_FORMAT_SAFE 1
 #define DO_MULTIBYTE (! MULTIBYTE_IS_FORMAT_SAFE)
 
 #if DO_MULTIBYTE
@@ -162,6 +175,16 @@ enum pad_style
    except every 100th isn't, and every 400th is).  */
 # define __isleap(year) \
   ((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
+#endif
+
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+/* Support for non-Gregorian calendars.  */
+# include "localcharset.h"
+# include "localename.h"
+# include "calendars.h"
+# define CAL_ARGS(x,y) x, y,
+#else
+# define CAL_ARGS(x,y) /* empty */
 #endif
 
 
@@ -873,6 +896,8 @@ static CHAR_T const c_month_names[][sizeof "September"] =
 
 static size_t __strftime_internal (STREAM_OR_CHAR_T *, STRFTIME_ARG (size_t)
                                    const CHAR_T *, const struct tm *,
+                                   CAL_ARGS (const struct calendar *,
+                                             struct calendar_date *)
                                    bool, enum pad_style, int, bool *
                                    extra_args_spec LOCALE_PARAM);
 
@@ -1087,9 +1112,36 @@ my_strftime (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
              const CHAR_T *format,
              const struct tm *tp extra_args_spec LOCALE_PARAM)
 {
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+  /* Recognize whether to use a non-Gregorian calendar.  */
+  const struct calendar *cal = NULL;
+  struct calendar_date caldate;
+  if (strcmp (locale_charset (), "UTF-8") == 0)
+    {
+      const char *loc = gl_locale_name_unsafe (LC_TIME, "LC_TIME");
+      if (strlen (loc) >= 5 && !(loc[5] >= 'A' && loc[5] <= 'Z'))
+        {
+          if (memcmp (loc, "th_TH", 5) == 0)
+            cal = &thai_calendar;
+          else if (memcmp (loc, "fa_IR", 5) == 0)
+            cal = &persian_calendar;
+          else if (memcmp (loc, "am_ET", 5) == 0)
+            cal = &ethiopian_calendar;
+          if (cal != NULL)
+            {
+              if (cal->from_gregorian (&caldate,
+                                       tp->tm_year + 1900,
+                                       tp->tm_mon,
+                                       tp->tm_mday) < 0)
+                cal = NULL;
+            }
+        }
+    }
+#endif
   bool tzset_called = false;
-  return __strftime_internal (s, STRFTIME_ARG (maxsize) format, tp, false,
-                              ZERO_PAD, -1,
+  return __strftime_internal (s, STRFTIME_ARG (maxsize) format, tp,
+                              CAL_ARGS (cal, &caldate)
+                              false, ZERO_PAD, -1,
                               &tzset_called extra_args LOCALE_ARG);
 }
 libc_hidden_def (my_strftime)
@@ -1101,7 +1153,10 @@ libc_hidden_def (my_strftime)
 static size_t
 __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                      const CHAR_T *format,
-                     const struct tm *tp, bool upcase,
+                     const struct tm *tp,
+                     CAL_ARGS (const struct calendar *cal,
+                               struct calendar_date *caldate)
+                     bool upcase,
                      enum pad_style yr_spec, int width, bool *tzset_called
                      extra_args_spec LOCALE_PARAM)
 {
@@ -1113,7 +1168,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #endif
 
   int saved_errno = errno;
-  int hour12 = tp->tm_hour;
+
 #ifdef _NL_CURRENT
   /* We cannot make the following values variables since we must delay
      the evaluation of these values until really needed since some
@@ -1173,6 +1228,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
   const char *format_end = NULL;
 #endif
 
+  int hour12 = tp->tm_hour;
   if (hour12 > 12)
     hour12 -= 12;
   else
@@ -1189,6 +1245,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
       bool negative_number;     /* The number is negative.  */
       bool always_output_a_sign; /* +/- should always be output.  */
       int tz_colon_mask;        /* Bitmask of where ':' should appear.  */
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+      unsigned int digits_base = '0'; /* '0' or some UCS-2 value.  */
+#endif
       const CHAR_T *subfmt;
       CHAR_T *bufp;
       CHAR_T buf[1
@@ -1436,6 +1495,14 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             }
           if (modifier == L_('E'))
             goto bad_format;
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            {
+              cpy (STRLEN (caldate->month_names[caldate->month].abbrev),
+                   caldate->month_names[caldate->month].abbrev);
+              break;
+            }
+#endif
 #ifdef _NL_CURRENT
           if (modifier == L_('O'))
             cpy (aam_len, a_altmonth);
@@ -1460,6 +1527,14 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               to_uppcase = true;
               to_lowcase = false;
             }
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            {
+              cpy (STRLEN (caldate->month_names[caldate->month].full),
+                   caldate->month_names[caldate->month].full);
+              break;
+            }
+#endif
 #ifdef _NL_CURRENT
           if (modifier == L_('O'))
             cpy (STRLEN (f_altmonth), f_altmonth);
@@ -1511,13 +1586,17 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
         subformat_width:
           {
             size_t len = __strftime_internal (NULL, STRFTIME_ARG ((size_t) -1)
-                                              subfmt, tp, to_uppcase,
-                                              pad, subwidth, tzset_called
+                                              subfmt, tp,
+                                              CAL_ARGS (cal, caldate)
+                                              to_uppcase, pad, subwidth,
+                                              tzset_called
                                               extra_args LOCALE_ARG);
             add (len, __strftime_internal (p,
                                            STRFTIME_ARG (maxsize - i)
-                                           subfmt, tp, to_uppcase,
-                                           pad, subwidth, tzset_called
+                                           subfmt, tp,
+                                           CAL_ARGS (cal, caldate)
+                                           to_uppcase, pad, subwidth,
+                                           tzset_called
                                            extra_args LOCALE_ARG));
           }
           break;
@@ -1639,6 +1718,13 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
         case L_('x'):
           if (modifier == L_('O'))
             goto bad_format;
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            {
+              subfmt = cal->d_fmt;
+              goto subformat;
+            }
+#endif
 #ifdef _NL_CURRENT
           if (! (modifier == L_('E')
                  && (*(subfmt =
@@ -1652,6 +1738,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #else
           goto underlying_strftime;
 #endif
+
         case L_('D'):
           if (modifier != 0)
             goto bad_format;
@@ -1662,12 +1749,20 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           if (modifier == L_('E'))
             goto bad_format;
 
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            DO_NUMBER (2, caldate->day);
+#endif
           DO_NUMBER (2, tp->tm_mday);
 
         case L_('e'):
           if (modifier == L_('E'))
             goto bad_format;
 
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            DO_NUMBER_SPACEPAD (2, caldate->day);
+#endif
           DO_NUMBER_SPACEPAD (2, tp->tm_mday);
 
           /* All numeric formats set DIGITS and NUMBER_VALUE (or U_NUMBER_VALUE)
@@ -1709,7 +1804,10 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
              negating it.  */
           if (modifier == L_('O') && !negative_number)
             {
-#ifdef _NL_CURRENT
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+              if (cal != NULL)
+                digits_base = cal->alt_digits_base;
+#elif defined _NL_CURRENT
               /* Get the locale specific alternate representation of
                  the number.  If none exist NULL is returned.  */
               const CHAR_T *cp = nl_get_alt_digit (u_number_value
@@ -1724,9 +1822,6 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                       break;
                     }
                 }
-#elif HAVE_ONLY_C_LOCALE || (USE_C_LOCALE && !HAVE_STRFTIME_L)
-#else
-              goto underlying_strftime;
 #endif
             }
 
@@ -1740,7 +1835,13 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               if (tz_colon_mask & 1)
                 *--bufp = ':';
               tz_colon_mask >>= 1;
-              *--bufp = u_number_value % 10 + L_('0');
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+              *--bufp = u_number_value % 10 + (digits_base & 0xFF);
+              if (digits_base >= 0x100)
+                *--bufp = digits_base >> 8;
+#else
+              *--bufp = u_number_value % 10 + '0';
+#endif
               u_number_value /= 10;
             }
           while (u_number_value != 0 || tz_colon_mask != 0);
@@ -1755,8 +1856,13 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             CHAR_T sign_char = (negative_number ? L_('-')
                                 : always_output_a_sign ? L_('+')
                                 : 0);
-            int numlen = buf + sizeof buf / sizeof buf[0] - bufp;
-            int shortage = width - !!sign_char - numlen;
+            int number_bytes = buf + sizeof buf / sizeof buf[0] - bufp;
+            int number_digits = number_bytes;
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+            if (digits_base >= 0x100)
+              number_digits = number_bytes / 2;
+#endif
+            int shortage = width - !!sign_char - number_digits;
             int padding = pad == NO_PAD || shortage <= 0 ? 0 : shortage;
 
             if (sign_char)
@@ -1772,7 +1878,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                 width--;
               }
 
-            cpy (numlen, bufp);
+            cpy (number_bytes, bufp);
           }
           break;
 
@@ -1833,6 +1939,10 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           if (modifier == L_('E'))
             goto bad_format;
 
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            DO_SIGNED_NUMBER (2, false, caldate->month + 1U);
+#endif
           DO_SIGNED_NUMBER (2, tp->tm_mon < -1, tp->tm_mon + 1U);
 
 #ifndef _LIBC
@@ -2070,9 +2180,11 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               goto underlying_strftime;
 #endif
             }
-          if (modifier == L_('O'))
-            goto bad_format;
 
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            DO_YEARISH (4, false, caldate->year);
+#endif
           DO_YEARISH (4, tp->tm_year < -TM_YEAR_BASE,
                       tp->tm_year + (unsigned int) TM_YEAR_BASE);
 

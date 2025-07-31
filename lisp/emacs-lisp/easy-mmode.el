@@ -248,7 +248,10 @@ INIT-VALUE LIGHTER KEYMAP.
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
          (interactive t)
-         (warnwrap (if (or (null body) (keywordp (car body))) #'identity
+         (new-style
+          (or (null body)
+              (keywordp (car body))))
+         (warnwrap (if new-style #'identity
                      (lambda (exp)
                        (macroexp-warn-and-return
                         (format-message
@@ -257,7 +260,7 @@ INIT-VALUE LIGHTER KEYMAP.
 	 keyw keymap-sym tmp)
 
     ;; Allow BODY to start with the old INIT-VALUE LIGHTER KEYMAP triplet.
-    (unless (keywordp (car body))
+    (unless new-style
       (setq init-value (pop body))
       (unless (keywordp (car body))
         (setq lighter (pop body))
@@ -456,8 +459,8 @@ switch on the minor mode in all major modes), nil (meaning don't
 switch on in any major mode), a list of modes (meaning switch on only
 in those modes and their descendants), or a list (not MODES...),
 meaning switch on in any major mode except MODES.  The value can also
-mix all of these forms, see the info node `Defining Minor Modes' for
-details.  The :predicate key causes the macro to create a user option
+mix all of these forms, see the Info node `(elisp)Defining Minor Modes'
+for details.  The :predicate key causes the macro to create a user option
 named the same as MODE, but ending with \"-modes\" instead of \"-mode\".
 That user option can then be used to customize in which modes this
 globalized minor mode will be switched on.
@@ -493,7 +496,6 @@ on if the hook has explicitly disabled it.
 	 (group nil)
 	 (extra-keywords nil)
          (MODE-variable mode)
-	 (MODE-buffers (intern (concat global-mode-name "-buffers")))
 	 (MODE-enable-in-buffer
 	  (intern (concat global-mode-name "-enable-in-buffer")))
 	 (minor-MODE-hook (intern (concat mode-name "-hook")))
@@ -529,7 +531,11 @@ on if the hook has explicitly disabled it.
          ,@(when predicate `((defvar ,MODE-predicate))))
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
-         ,(concat (format "Toggle %s in all buffers.\n" pretty-name)
+         ,(concat (format "Toggle %s in many buffers.\n" pretty-name)
+                  (internal--format-docstring-line
+                   "Specifically, %s is enabled in all buffers where `%S' would do it."
+                   pretty-name turn-on)
+                  "\n\n"
                   (internal--format-docstring-line
                    (concat "With prefix ARG, enable %s if ARG is positive; "
                            "otherwise, disable it.")
@@ -538,10 +544,6 @@ on if the hook has explicitly disabled it.
                   "If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.\n\n"
-                  (internal--format-docstring-line
-                   "%s is enabled in all buffers where `%s' would do it."
-                   pretty-name turn-on)
-                  "\n\n"
                   (internal--format-docstring-line
                    "See `%s' for more information on %s."
                    mode pretty-name)
@@ -613,13 +615,8 @@ list."
        ;; mode hook which has just been run.
        (add-hook ',minor-MODE-hook #',MODE-set-explicitly)
 
-       ;; List of buffers left to process.
-       (defvar ,MODE-buffers nil)
-
        ;; The function that calls TURN-ON in the current buffer.
        (defun ,MODE-enable-in-buffer ()
-         ;; Remove ourselves from the list of pending buffers.
-         (setq ,MODE-buffers (delq (current-buffer) ,MODE-buffers))
          (unless ,MODE-set-explicitly
            (unless (eq ,MODE-major-mode major-mode)
              (if ,MODE-variable

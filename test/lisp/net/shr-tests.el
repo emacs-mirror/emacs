@@ -145,8 +145,8 @@ settings, then once more for each (OPTION . VALUE) pair.")
     (dolist (alt '(nil "" "nothing to see here"))
       (with-temp-buffer
         (ert-info ((format "image with alt=%S" alt))
-          (let ((attrs (if alt (format " alt=\"%s\"" alt) "")))
-            (insert (format "<img src=\"%s\" %s" image-url attrs)))
+          (let ((attrs (if alt (format " alt=\"%s\">" alt) ">")))
+            (insert (format "<img src=\"%s\"%s" image-url attrs)))
           (cl-letf* (;; Pretend we're a graphical display.
                      ((symbol-function 'display-graphic-p) #'always)
                      ((symbol-function 'url-queue-retrieve)

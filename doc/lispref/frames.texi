@@ -2581,6 +2581,13 @@ frame parameter, this only controls the transparency of the background
 while keeping foreground elements such as text fully opaque.  It
 should be an integer between 0 and 100, where 0 means
 completely transparent and 100 means completely opaque (default).
+
+@vindex borders-respect-alpha-background@r{, a frame parameter}
+@item borders-respect-alpha-background
+@cindex opacity, frame
+@cindex transparency, frame
+When non-@code{nil}, internal borders and window dividers are
+transparent according to @code{alpha-background}.
 @end table
 
 The following frame parameters are semi-obsolete in that they are

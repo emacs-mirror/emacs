@@ -1986,7 +1986,7 @@ init_callproc_1 (void)
   Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC, 0);
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
   /* FIXME?  For ns, path_exec should go at the front?  */
-  Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
+  Vexec_path = nconc2 (decode_env_path ("PATH", NULL, 0), Vexec_path);
 }
 
 /* This is run after init_cmdargs, when Vinstallation_directory is valid.  */
@@ -2011,7 +2011,7 @@ init_callproc (void)
 	{
 	  /* Running uninstalled, so default to tem rather than PATH_EXEC.  */
 	  Vexec_path = decode_env_path ("EMACSPATH", SSDATA (tem), 0);
-	  Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
+	  Vexec_path = nconc2 (decode_env_path ("PATH", NULL, 0), Vexec_path);
 	}
 
       Vexec_directory = Ffile_name_as_directory (tem);
@@ -2035,19 +2035,17 @@ init_callproc (void)
      source directory.  */
   if (data_dir == 0)
     {
-      Lisp_Object tem, srcdir;
       Lisp_Object lispdir = Fcar (decode_env_path (0, PATH_DUMPLOADSEARCH, 0));
-
-      srcdir = Fexpand_file_name (build_string ("../src/"), lispdir);
-
-      tem = Fexpand_file_name (build_string ("NEWS"), Vdata_directory);
-      if (!NILP (Fequal (srcdir, Vinvocation_directory))
-	  || NILP (Ffile_exists_p (tem)) || !NILP (Vinstallation_directory))
+      if (!NILP (Vinstallation_directory)
+	  || !NILP (Fequal (Fexpand_file_name (AUTO_STR ("../src/"), lispdir),
+			    Vinvocation_directory))
+	  || NILP (Ffile_exists_p (Fexpand_file_name (AUTO_STR ("NEWS"),
+						      Vdata_directory))))
 	{
 	  Lisp_Object newdir;
-	  newdir = Fexpand_file_name (build_string ("../etc/"), lispdir);
-	  tem = Fexpand_file_name (build_string ("NEWS"), newdir);
-	  if (!NILP (Ffile_exists_p (tem)))
+	  newdir = Fexpand_file_name (AUTO_STR ("../etc/"), lispdir);
+	  if (!NILP (Ffile_exists_p (Fexpand_file_name (AUTO_STR ("NEWS"),
+							newdir))))
 	    Vdata_directory = newdir;
 	}
     }

@@ -195,6 +195,22 @@ Also check that an encoding error can appear in a symlink."
     (insert-file-contents "/dev/urandom" nil nil 10)
     (should (= (buffer-size) 10))))
 
+(ert-deftest fileio-tests--read-directory ()
+  "Make sure insertring a directory fails with a platform-independent error."
+  (ert-with-temp-directory dir
+    (let* ((dir-name (directory-file-name dir))
+           (err (should-error (insert-file-contents dir-name)))
+           (desc-string
+            ;; On MS-Windows we fail trying to 'open' a directory.
+            (if (eq system-type 'windows-nt)
+                "Opening input file"
+              "Read error")))
+      (should (equal err
+                     (list 'file-error
+                           desc-string
+                           "Is a directory"
+                           dir-name))))))
+
 (defun fileio-tests--identity-expand-handler (_ file &rest _)
   file)
 (put 'fileio-tests--identity-expand-handler 'operations '(expand-file-name))

@@ -260,7 +260,7 @@ Reads a year, month, and day."
          (day (calendar-read-sexp
                "Hebrew calendar day (%d-%d)"
                (lambda (x) (and (<= first x) (<= x last)))
-               nil
+               first
                first last)))
     (list (list month day year))))
 
@@ -698,7 +698,7 @@ from the cursor position."
                     (day (calendar-read-sexp
                           "Day of death (1-%d)"
                           (lambda (x) (and (< 0 x) (<= x last)))
-                          nil
+                          1
                           last)))
                (list month day year))))
           (death-year (calendar-extract-year death-date))
@@ -710,7 +710,7 @@ from the cursor position."
           (end-year (calendar-read-sexp
                      "Ending year of Yahrzeit table (>=%d)"
                      (lambda (x) (>= x start-year))
-                     nil
+                     (+ 10 start-year)
                      start-year)))
      (list death-date start-year end-year)))
   (message "Computing Yahrzeits...")
