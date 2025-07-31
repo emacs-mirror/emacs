@@ -15357,7 +15357,7 @@ symbols in @code{imap-stream-alist}.  Right now, this means
 Which authenticator to use for authenticating to the server, this is
 one of the symbols in @code{imap-authenticator-alist}.  Right now,
 this means @samp{gssapi}, @samp{kerberos4}, @samp{digest-md5},
-@samp{cram-md5}, @samp{anonymous} or the default @samp{login}.
+@samp{cram-md5}, @samp{plain}, @samp{anonymous} or the default @samp{login}.
 
 @item :program
 When using the @samp{shell} :stream, the contents of this variable is
@@ -27096,14 +27096,15 @@ Gnus supports both encoding and decoding.
 @item S/MIME---RFC 2633
 RFC 2633 describes the @acronym{S/MIME} format.
 
-@item IMAP---RFC 1730/2060, RFC 2195, RFC 2086, RFC 2359, RFC 2595, RFC 1731
+@item IMAP---RFC 1730/2060, RFC 2195/4616, RFC 2086, RFC 2359, RFC 2595, RFC 1731
 RFC 1730 is @acronym{IMAP} version 4, updated somewhat by RFC 2060
 (@acronym{IMAP} 4 revision 1).  RFC 2195 describes CRAM-MD5
 authentication for @acronym{IMAP}.  RFC 2086 describes access control
 lists (ACLs) for @acronym{IMAP}.  RFC 2359 describes a @acronym{IMAP}
 protocol enhancement.  RFC 2595 describes the proper @acronym{TLS}
 integration (STARTTLS) with @acronym{IMAP}.  RFC 1731 describes the
-GSSAPI/Kerberos4 mechanisms for @acronym{IMAP}.
+GSSAPI/Kerberos4 mechanisms for @acronym{IMAP}.  RFC 4616 describes
+AUTH=PLAIN authentication for @acronym{IMAP}.
 
 @end table
 

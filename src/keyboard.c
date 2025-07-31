@@ -10495,6 +10495,271 @@ void init_raw_keybuf_count (void)
 }
 
 
+/* Get a character from the tty.  */
+
+/* Read input events until we get one that's acceptable for our purposes.
+
+   If NO_SWITCH_FRAME, switch-frame events are stashed
+   until we get a character we like, and then stuffed into
+   unread_switch_frame.
+
+   If ASCII_REQUIRED, check function key events to see
+   if the unmodified version of the symbol has a Qascii_character
+   property, and use that character, if present.
+
+   If ERROR_NONASCII, signal an error if the input we
+   get isn't an ASCII character with modifiers.  If it's false but
+   ASCII_REQUIRED is true, just re-read until we get an ASCII
+   character.
+
+   If INPUT_METHOD, invoke the current input method
+   if the character warrants that.
+
+   If SECONDS is a number, wait that many seconds for input, and
+   return Qnil if no input arrives within that time.
+
+   If text conversion is enabled and ASCII_REQUIRED, temporarily
+   disable any input method which wants to perform edits, unless
+   `disable-inhibit-text-conversion'.  */
+
+static Lisp_Object
+read_filtered_event (bool no_switch_frame, bool ascii_required,
+		     bool error_nonascii, bool input_method, Lisp_Object seconds)
+{
+  Lisp_Object val, delayed_switch_frame;
+  struct timespec end_time;
+#ifdef HAVE_TEXT_CONVERSION
+  specpdl_ref count;
+#endif
+
+#ifdef HAVE_WINDOW_SYSTEM
+  if (display_hourglass_p)
+    cancel_hourglass ();
+#endif
+
+#ifdef HAVE_TEXT_CONVERSION
+  count = SPECPDL_INDEX ();
+
+  /* Don't use text conversion when trying to just read a
+     character.  */
+
+  if (ascii_required && !disable_inhibit_text_conversion)
+    {
+      disable_text_conversion ();
+      record_unwind_protect_void (resume_text_conversion);
+    }
+#endif
+
+  delayed_switch_frame = Qnil;
+
+  /* Compute timeout.  */
+  if (NUMBERP (seconds))
+    {
+      double duration = XFLOATINT (seconds);
+      struct timespec wait_time = dtotimespec (duration);
+      end_time = timespec_add (current_timespec (), wait_time);
+    }
+
+  /* Read until we get an acceptable event.  */
+ retry:
+  do
+    val = read_char (0, Qnil, (input_method ? Qnil : Qt), 0,
+		     NUMBERP (seconds) ? &end_time : NULL);
+  while (FIXNUMP (val) && XFIXNUM (val) == -2); /* wrong_kboard_jmpbuf */
+
+  if (BUFFERP (val))
+    goto retry;
+
+  /* `switch-frame' events are put off until after the next ASCII
+     character.  This is better than signaling an error just because
+     the last characters were typed to a separate minibuffer frame,
+     for example.  Eventually, some code which can deal with
+     switch-frame events will read it and process it.  */
+  if (no_switch_frame
+      && EVENT_HAS_PARAMETERS (val)
+      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (val)), Qswitch_frame))
+    {
+      delayed_switch_frame = val;
+      goto retry;
+    }
+
+  if (ascii_required && !(NUMBERP (seconds) && NILP (val)))
+    {
+      /* Convert certain symbols to their ASCII equivalents.  */
+      if (SYMBOLP (val))
+	{
+	  Lisp_Object tem, tem1;
+	  tem = Fget (val, Qevent_symbol_element_mask);
+	  if (!NILP (tem))
+	    {
+	      tem1 = Fget (Fcar (tem), Qascii_character);
+	      /* Merge this symbol's modifier bits
+		 with the ASCII equivalent of its basic code.  */
+	      if (FIXNUMP (tem1) && FIXNUMP (Fcar (Fcdr (tem))))
+		XSETFASTINT (val, XFIXNUM (tem1) | XFIXNUM (Fcar (Fcdr (tem))));
+	    }
+	}
+
+      /* If we don't have a character now, deal with it appropriately.  */
+      if (!FIXNUMP (val))
+	{
+	  if (error_nonascii)
+	    {
+	      Vunread_command_events = list1 (val);
+	      error ("Non-character input-event");
+	    }
+	  else
+	    goto retry;
+	}
+    }
+
+  if (! NILP (delayed_switch_frame))
+    unread_switch_frame = delayed_switch_frame;
+
+#if 0
+
+#ifdef HAVE_WINDOW_SYSTEM
+  if (display_hourglass_p)
+    start_hourglass ();
+#endif
+
+#endif
+
+#ifdef HAVE_TEXT_CONVERSION
+  return unbind_to (count, val);
+#else
+  return val;
+#endif
+}
+
+DEFUN ("read-char", Fread_char, Sread_char, 0, 3, 0,
+       doc: /* Read a character event from the command input (keyboard or macro).
+Return the character as a number.
+If the event has modifiers, they are resolved and reflected in the
+returned character code if possible (e.g. C-SPC yields 0 and C-a yields 97).
+If some of the modifiers cannot be reflected in the character code, the
+returned value will include those modifiers, and will not be a valid
+character code: it will fail the `characterp' test.  Use `event-basic-type'
+to recover the character code with the modifiers removed.
+
+If the user generates an event which is not a character (i.e. a mouse
+click or function key event), `read-char' signals an error.  As an
+exception, switch-frame events are put off until non-character events
+can be read.
+If you want to read non-character events, or ignore them, call
+`read-event' or `read-char-exclusive' instead.
+
+If the optional argument PROMPT is non-nil, display that as a prompt.
+If PROMPT is nil or the string \"\", the key sequence/events that led
+to the current command is used as the prompt.
+
+If the optional argument INHERIT-INPUT-METHOD is non-nil and some
+input method is turned on in the current buffer, that input method
+is used for reading a character.
+
+If the optional argument SECONDS is non-nil, it should be a number
+specifying the maximum number of seconds to wait for input.  If no
+input arrives in that time, return nil.  SECONDS may be a
+floating-point value.
+
+If `inhibit-interaction' is non-nil, this function will signal an
+`inhibited-interaction' error.  */)
+  (Lisp_Object prompt, Lisp_Object inherit_input_method, Lisp_Object seconds)
+{
+  Lisp_Object val;
+
+  barf_if_interaction_inhibited ();
+
+  if (! NILP (prompt))
+    {
+      cancel_echoing ();
+      message_with_string ("%s", prompt, 0);
+    }
+  val = read_filtered_event (1, 1, 1, ! NILP (inherit_input_method), seconds);
+
+  return (!FIXNUMP (val) ? Qnil
+	  : make_fixnum (char_resolve_modifier_mask (XFIXNUM (val))));
+}
+
+DEFUN ("read-event", Fread_event, Sread_event, 0, 3, 0,
+       doc: /* Read and return an event object from the input stream.
+
+If you want to read non-character events, consider calling `read-key'
+instead.  `read-key' will decode events via `input-decode-map' that
+`read-event' will not.  On a terminal this includes function keys such
+as <F7> and <RIGHT>, or mouse events generated by `xterm-mouse-mode'.
+
+If the optional argument PROMPT is non-nil, display that as a prompt.
+If PROMPT is nil or the string \"\", the key sequence/events that led
+to the current command is used as the prompt.
+
+If the optional argument INHERIT-INPUT-METHOD is non-nil and some
+input method is turned on in the current buffer, that input method
+is used for reading a character.
+
+If the optional argument SECONDS is non-nil, it should be a number
+specifying the maximum number of seconds to wait for input.  If no
+input arrives in that time, return nil.  SECONDS may be a
+floating-point value.
+
+If `inhibit-interaction' is non-nil, this function will signal an
+`inhibited-interaction' error.  */)
+  (Lisp_Object prompt, Lisp_Object inherit_input_method, Lisp_Object seconds)
+{
+  barf_if_interaction_inhibited ();
+
+  if (! NILP (prompt))
+    {
+      cancel_echoing ();
+      message_with_string ("%s", prompt, 0);
+    }
+  return read_filtered_event (0, 0, 0, ! NILP (inherit_input_method), seconds);
+}
+
+DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 3, 0,
+       doc: /* Read a character event from the command input (keyboard or macro).
+Return the character as a number.  Non-character events are ignored.
+If the event has modifiers, they are resolved and reflected in the
+returned character code if possible (e.g. C-SPC yields 0 and C-a yields 97).
+If some of the modifiers cannot be reflected in the character code, the
+returned value will include those modifiers, and will not be a valid
+character code: it will fail the `characterp' test.  Use `event-basic-type'
+to recover the character code with the modifiers removed.
+
+If the optional argument PROMPT is non-nil, display that as a prompt.
+If PROMPT is nil or the string \"\", the key sequence/events that led
+to the current command is used as the prompt.
+
+If the optional argument INHERIT-INPUT-METHOD is non-nil and some
+input method is turned on in the current buffer, that input method
+is used for reading a character.
+
+If the optional argument SECONDS is non-nil, it should be a number
+specifying the maximum number of seconds to wait for input.  If no
+input arrives in that time, return nil.  SECONDS may be a
+floating-point value.
+
+If `inhibit-interaction' is non-nil, this function will signal an
+`inhibited-interaction' error.  */)
+  (Lisp_Object prompt, Lisp_Object inherit_input_method, Lisp_Object seconds)
+{
+  Lisp_Object val;
+
+  barf_if_interaction_inhibited ();
+
+  if (! NILP (prompt))
+    {
+      cancel_echoing ();
+      message_with_string ("%s", prompt, 0);
+    }
+
+  val = read_filtered_event (1, 1, 0, ! NILP (inherit_input_method), seconds);
+
+  return (!FIXNUMP (val) ? Qnil
+	  : make_fixnum (char_resolve_modifier_mask (XFIXNUM (val))));
+}
+
+
 
 #ifdef HAVE_TEXT_CONVERSION
 
@@ -13376,6 +13641,10 @@ syms_of_keyboard (void)
   defsubr (&Sposn_at_point);
   defsubr (&Sposn_at_x_y);
 
+  defsubr (&Sread_char);
+  defsubr (&Sread_char_exclusive);
+  defsubr (&Sread_event);
+
   DEFVAR_LISP ("last-command-event", last_command_event,
 		     doc: /* Last input event of a key sequence that called a command.
 See Info node `(elisp)Command Loop Info'.*/);
@@ -14117,6 +14386,7 @@ function is called to remap that sequence.  */);
   DEFSYM (Qsuspend_resume_hook, "suspend-resume-hook");
   DEFSYM (Qcommand_error_default_function, "command-error-default-function");
   DEFSYM (Qsigusr2, "sigusr2");
+  DEFSYM (Qascii_character, "ascii-character");
 }
 
 static void

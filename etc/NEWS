@@ -1336,6 +1336,14 @@ This contains the list of regular expressions used to match "Re:" and
 international variants of it when modifying the Subject field in
 replies.
 
+** Imap
+
+---
+*** 'imap-authenticate' can now use PLAIN authentication.
+"AUTH=PLAIN" support is auto-enabled if the IMAP server supports it.  Pass
+a specific authentication type to 'imap-authenticate' or remove 'plain'
+from 'imap-authenticators' if you do not wish to use "AUTH=PLAIN".
+
 ** Rmail
 
 +++
@@ -2446,7 +2454,7 @@ Use the byte-compiler instead; it provides more and more useful warnings.
 ** Newsticker
 
 ---
-*** New user option 'newsticker-hide-old-feed-header-in-newsticker-buffer'.
+*** New user option 'newsticker-hide-old-feed-header'.
 It controls whether to automatically hide the header of feeds whose
 items are all old or obsolete in the plainview *newsticker* buffer.
 This is only visually interesting if the content of those feeds are also

@@ -222,12 +222,6 @@ literals (Bug#20852)."
 (ert-deftest lread-circular-hash ()
   (should-error (read "#s(hash-table data #0=(#0# . #0#))")))
 
-(ert-deftest test-inhibit-interaction ()
-  (let ((inhibit-interaction t))
-    (should-error (read-char "foo: "))
-    (should-error (read-event "foo: "))
-    (should-error (read-char-exclusive "foo: "))))
-
 (ert-deftest lread-float ()
   (should (equal (read "13") 13))
   (should (equal (read "+13") 13))
