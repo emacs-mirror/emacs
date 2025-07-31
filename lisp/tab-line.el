@@ -762,8 +762,9 @@ it clears the tab-line cache of all tab lines and forces their redisplay."
    ;; for setting face 'tab-line-tab-current'
    (mode-line-window-selected-p)
    ;; for `tab-line-tab-face-modified'
-   (and (memq 'tab-line-tab-face-modified
-              tab-line-tab-face-functions)
+   (and (or tab-line-close-modified-button-show
+            (memq 'tab-line-tab-face-modified
+                  tab-line-tab-face-functions))
         (buffer-file-name)
         (buffer-modified-p))))
 
