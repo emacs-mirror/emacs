@@ -430,7 +430,7 @@ a buffer.  The value must be a condition which is passed to
 ---
 *** New user option 'tab-line-close-modified-button-show'.
 With this user option, if non-nil (the default), the tab close button
-will change its appearance whether the tab buffer has been modified.
+will change its appearance if the tab buffer has been modified.
 
 ** Project
 
