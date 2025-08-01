@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; URL: https://github.com/magit/transient
 ;; Keywords: extensions
-;; Version: 0.9.3
+;; Version: 0.9.4
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -33,7 +33,7 @@
 ;;; Code:
 ;;;; Frontmatter
 
-(defconst transient-version "v0.9.3-8-g6fd0239e-builtin")
+(defconst transient-version "v0.9.4-8-g6bc543d5-builtin")
 
 (require 'cl-lib)
 (require 'eieio)
@@ -1519,7 +1519,8 @@ Intended for use in a group's `:setup-children' function."
                                            :command)))
                         (equal (transient--suffix-predicate suf)
                                (transient--suffix-predicate conflict)))))
-        (transient-remove-suffix prefix key))
+        (transient-remove-suffix prefix key)
+        (pcase-setq `(,elt ,group) (transient--locate-child prefix loc)))
       (let ((mem (memq elt (aref group 2))))
         (pcase-exhaustive action
           ('insert  (setcdr mem (cons elt (cdr mem)))
