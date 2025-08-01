@@ -259,6 +259,7 @@ with empty strings removed."
                    (list minibuffer-visible-completions-map
                          map))
                 map))
+         (buffer (current-buffer))
          input)
     (minibuffer-with-setup-hook
         (lambda ()
@@ -282,6 +283,8 @@ with empty strings removed."
           ;; see completing_read in src/minibuf.c
           (setq-local minibuffer-completion-confirm
                       (unless (eq require-match t) require-match))
+          (setq-local minibuffer--require-match require-match)
+          (setq-local minibuffer--original-buffer buffer)
           (setq-local crm-completion-table table))
       (setq input (read-from-minibuffer
                    (format-spec
