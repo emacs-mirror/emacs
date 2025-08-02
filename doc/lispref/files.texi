@@ -149,9 +149,10 @@ The function returns an existing buffer if there is one; otherwise it
 creates a new buffer and reads the file into it.  When
 @code{find-file-noselect} uses an existing buffer, it first verifies
 that the file has not changed since it was last visited or saved in
-that buffer.  If the file has changed, this function asks the user
-whether to reread the changed file.  If the user says @samp{yes}, any
-edits previously made in the buffer are lost.
+that buffer (unless @var{nowarn} is non-@code{nil}, see below).  If the
+file has changed, this function asks the user whether to reread the
+changed file.  If the user says @samp{yes}, any edits previously made in
+the buffer are lost.
 
 Reading the file involves decoding the file's contents (@pxref{Coding
 Systems}), including end-of-line conversion, and format conversion
@@ -163,7 +164,8 @@ This function displays warning or advisory messages in various peculiar
 cases, unless the optional argument @var{nowarn} is non-@code{nil}.  For
 example, if it needs to create a buffer, and there is no file named
 @var{filename}, it displays the message @samp{(New file)} in the echo
-area, and leaves the buffer empty.
+area, and leaves the buffer empty.  The verification of the file's last
+change is also bypassed if @var{nowarn} is non-@code{nil}.
 
 The @code{find-file-noselect} function normally calls
 @code{after-find-file} after reading the file (@pxref{Subroutines of
