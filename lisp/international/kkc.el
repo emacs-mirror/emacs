@@ -64,9 +64,12 @@ This string is shown at mode line when users are in KKC mode.")
 	   (not (eq kkc-init-file-flag t)))
       (let ((coding-system-for-write 'iso-2022-7bit)
 	    (print-length nil))
-	(write-region (format "(setq kkc-lookup-cache '%S)\n" kkc-lookup-cache)
-		      nil
-		      kkc-init-file-name))))
+	(write-region
+         (format
+          ";; -*- lexical-binding: t; -*-\n\n(setq kkc-lookup-cache '%S)\n"
+          kkc-lookup-cache)
+	 nil
+	 kkc-init-file-name))))
 
 ;; Sequence of characters to be used for indexes for shown list.  The
 ;; Nth character is for the Nth conversion in the list currently shown.
@@ -178,7 +181,8 @@ area while indicating the current selection by `<N>'."
     (add-hook 'kill-emacs-hook 'kkc-save-init-file)
     (if (file-readable-p kkc-init-file-name)
 	(condition-case nil
-	    (load-file kkc-init-file-name)
+            (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+	      (load-file kkc-init-file-name))
 	  (kkc-error "Invalid data in %s" kkc-init-file-name))))
   (or (and (nested-alist-p kkc-lookup-cache)
 	   (eq (car kkc-lookup-cache) kkc-lookup-cache-tag))
