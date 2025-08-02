@@ -419,10 +419,10 @@ be determined."
 
  ;;;###autoload
 (defun image-supported-file-p (file)
-  "Say whether Emacs has native support for displaying TYPE.
-The value is a symbol specifying the image type, or nil if type
-cannot be determined (or if Emacs doesn't have built-in support
-for the image type)."
+  "Return non-nil if Emacs can display the specified image FILE.
+The returned value is a symbol specifying the image type of FILE,
+or nil if Emacs cannot display that image type or if the type
+cannot be determined."
   (let ((case-fold-search t)
         type)
     (catch 'found

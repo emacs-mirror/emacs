@@ -6311,7 +6311,11 @@ specific parts of the text.
   The functions you use in these hooks should save and restore the match
 data if they do anything that uses regular expressions; otherwise, they
 will interfere in bizarre ways with the editing operations that call
-them.
+them.  In addition, the functions in these hooks should avoid changing
+buffer text, faces, properties, overlays, and other aspects of the
+buffer-specific state except those that the hook functions themselves
+create and manage, because other parts of Emacs might become confused by
+such changes behind their back.
 
 @defvar before-change-functions
 This variable holds a list of functions to call when Emacs is about to
