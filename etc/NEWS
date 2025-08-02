@@ -436,6 +436,11 @@ a buffer.  The value must be a condition which is passed to
 With this user option, if non-nil (the default), the tab close button
 will change its appearance if the tab buffer has been modified.
 
+---
+*** New user option 'tab-line-tabs-window-buffers-filter-function'.
+This user option controls which buffers should appear in the tab line.
+By default, this is set to not filter the buffers.
+
 ** Project
 
 ---

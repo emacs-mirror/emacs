@@ -569,6 +569,30 @@ generate the group name."
                          sorted-buffers)))
       (cons group-tab tabs))))
 
+(defcustom tab-line-tabs-window-buffers-filter-function
+  #'identity
+  "Filter which buffers should be displayed in the tab line."
+  :type '(choice function
+                 (const :tag "No filter the buffers" identity)
+                 (const :tag "Show non-excluded buffers only" tab-line-tabs-non-excluded))
+  :group 'tab-line
+  :version "31.1")
+
+(defvar tab-line-exclude-buffers)
+(defvar tab-line-exclude-modes)
+
+(defun tab-line-tabs-non-excluded (buffers)
+  "Filter BUFFERS and return non-excluded buffers list.
+Intended to be used in `tab-line-tabs-window-buffers-filter-function'."
+  (seq-remove
+   (lambda (b)
+     (or (memq (buffer-local-value 'major-mode b)
+               tab-line-exclude-modes)
+         (buffer-match-p tab-line-exclude-buffers b)
+         (get (buffer-local-value 'major-mode b) 'tab-line-exclude)
+         (buffer-local-value 'tab-line-exclude b)))
+   buffers))
+
 (defun tab-line-tabs-window-buffers ()
   "Return a list of tabs that should be displayed in the tab line.
 By default returns a list of window buffers, i.e. buffers previously
@@ -585,9 +609,11 @@ variable `tab-line-tabs-function'."
          (prev-buffers (seq-filter #'buffer-live-p prev-buffers))
          ;; Remove next-buffers from prev-buffers
          (prev-buffers (seq-difference prev-buffers next-buffers)))
-    (append (reverse prev-buffers)
-            (list buffer)
-            next-buffers)))
+    (funcall
+     tab-line-tabs-window-buffers-filter-function
+     (append (reverse prev-buffers)
+             (list buffer)
+             next-buffers))))
 
 (defun tab-line-tabs-fixed-window-buffers ()
   "Like `tab-line-tabs-window-buffers' but keep stable sorting order.
