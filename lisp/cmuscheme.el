@@ -416,7 +416,7 @@ in the next one.")
   (setq scheme-prev-l/c-dir/file (cons (file-name-directory    file-name)
 				       (file-name-nondirectory file-name)))
   (comint-send-string (scheme-proc) (concat "(load \""
-					    file-name
+					    (file-local-name file-name)
 					    "\")\n")))
 
 (defun scheme-compile-file (file-name)
@@ -430,7 +430,7 @@ in the next one.")
   (setq scheme-prev-l/c-dir/file (cons (file-name-directory    file-name)
 				       (file-name-nondirectory file-name)))
   (comint-send-string (scheme-proc) (concat "(compile-file \""
-					    file-name
+					    (file-local-name file-name)
 					    "\")\n")))
 
 
