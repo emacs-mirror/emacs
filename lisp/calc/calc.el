@@ -1468,7 +1468,8 @@ commands given here will actually operate on the *Calculator* stack."
       (calc-mode))
   (setq max-lisp-eval-depth (max max-lisp-eval-depth 1000))
   (when calc-always-load-extensions
-    (require 'calc-ext))
+    (require 'calc-ext)
+    (calc-load-everything))
   (when calc-language
     (require 'calc-ext)
     (calc-set-language calc-language calc-language-option t)))
@@ -3521,11 +3522,6 @@ See Info node `(calc)Defining Functions'."
 
 (defcalcmodevar math-half-2-word-size 2147483648
   "One-half of two to the power of `calc-word-size'.")
-
-(when calc-always-load-extensions
-  (require 'calc-ext)
-  (calc-load-everything))
-
 
 (run-hooks 'calc-load-hook)
 
