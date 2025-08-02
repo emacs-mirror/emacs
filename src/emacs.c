@@ -1176,7 +1176,7 @@ read_full (int fd, void *buffer, ptrdiff_t size)
   eassert (0 <= fd);
   eassert (buffer != NULL);
   eassert (0 <= size);
-  if (max (PTRDIFF_MAX, MAX_RW_COUNT) < size)
+  if (max (PTRDIFF_MAX, SYS_BUFSIZE_MAX) < size)
     {
       errno = EFBIG;
       return -1;

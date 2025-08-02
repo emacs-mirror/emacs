@@ -4099,7 +4099,7 @@ by calling `format-decode', which see.  */)
      If too small, insert-file-contents has more syscall overhead.
      If too large, insert-file-contents might take too long respond to a quit.
      1 MiB should be reasonable even for older, slower devices circa 2025.  */
-  enum { INSERT_READ_SIZE_MAX = min (1024 * 1024, MAX_RW_COUNT) };
+  enum { INSERT_READ_SIZE_MAX = min (1024 * 1024, SYS_BUFSIZE_MAX) };
 
   struct timespec mtime;
   emacs_fd fd;
