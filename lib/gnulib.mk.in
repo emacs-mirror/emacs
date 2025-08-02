@@ -1799,6 +1799,8 @@ ifneq (,$(GL_COND_OBJ_COPY_FILE_RANGE_CONDITION))
 libgnu_a_SOURCES += copy-file-range.c
 endif
 
+EXTRA_DIST += sys-limits.h
+
 endif
 ## end   gnulib module copy-file-range
 
