@@ -35714,6 +35714,14 @@ The default value of @code{calc-string-maximum-character} is @code{0xFF}
 or 255.
 @end defvar
 
+@defvar calc-inhibit-startup-message
+The variable @code{calc-inhibit-startup-message} controls display of a
+welcome message when starting Calc.  If it is @code{nil} (the default),
+Calc will print a brief message listing key bindings to get help or to
+quit.  If it is non-@code{nil}, Calc will start without printing
+anything.
+@end defvar
+
 @node Reporting Bugs
 @appendix Reporting Bugs
 

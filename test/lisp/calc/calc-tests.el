@@ -26,6 +26,7 @@
 
 (require 'cl-lib)
 (require 'ert)
+(require 'ert-x)
 (require 'calc)
 (require 'calc-ext)
 (require 'calc-units)
@@ -945,6 +946,20 @@ an error in the comparison."
                     :type 'wrong-type-argument)
       (should-error (math-vector-is-string cplx-vec)
                     :type 'wrong-type-argument))))
+
+(ert-deftest calc-inhibit-startup-message ()
+  "Test user option `calc-inhibit-startup-message'."
+  (let ((welcome-message "Welcome to the GNU Emacs Calculator!"))
+    (ert-with-message-capture messages
+      (let ((calc-inhibit-startup-message t))
+        (calc))
+      (should-not (string-match-p welcome-message messages))
+      (calc-quit))
+    (ert-with-message-capture messages
+      (let ((calc-inhibit-startup-message nil))
+        (calc))
+      (should (string-match-p welcome-message messages))
+      (calc-quit))))
 
 (provide 'calc-tests)
 ;;; calc-tests.el ends here

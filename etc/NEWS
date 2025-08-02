@@ -2605,6 +2605,11 @@ Latin-1 range 0-255.  This hard-coded maximum is replaced by
 the display of matching vectors as Unicode strings.  The default value
 is 0xFF or 255 to preserve the existing behavior.
 
++++
+*** New user option 'calc-inhibit-startup-message'.
+If it is non-nil, inhibit Calc from printing its startup message.  The
+default value is nil to preserve the existing behavior.
+
 ** Time
 
 *** New user option 'world-clock-sort-order'.
