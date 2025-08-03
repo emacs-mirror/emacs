@@ -897,7 +897,7 @@ when parsing the archive."
   "Toggle alternative display.
 To avoid very long lines archive mode does not show all information.
 This function changes the set of information shown for each files."
-  (interactive)
+  (interactive nil archive-mode)
   (setq archive-alternate-display (not archive-alternate-display))
   (setq-local archive-hidden-columns
               (if archive-alternate-display
@@ -913,7 +913,8 @@ This function changes the set of information shown for each files."
    (list (intern
           (completing-read "Toggle visibility of: "
                            '(Mode Ids Ratio Date&Time)
-                           nil t))))
+                           nil t)))
+   archive-mode)
   (setq-local archive-hidden-columns
               (if (memq column archive-hidden-columns)
                   (remove column archive-hidden-columns)
@@ -1133,7 +1134,8 @@ NEW-NAME."
            (or (archive-get-marked ?*) (list (archive-get-descr))))))
      (list names
            (read-file-name (format "Copy %s to: " (string-join names ", "))
-                           nil default-directory))))
+                           nil default-directory)))
+   archive-mode)
   (unless (consp files)
     (setq files (list files)))
   (when (and (> (length files) 1)
@@ -1171,7 +1173,7 @@ NEW-NAME."
 
 (defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
-  (interactive (list nil last-input-event))
+  (interactive (list nil last-input-event) archive-mode)
   (if event (posn-set-point (event-end event)))
   (let* ((view-p (eq other-window-p 'view))
 	 (descr (archive-get-descr))
@@ -1348,17 +1350,17 @@ NEW-NAME."
 
 (defun archive-extract-other-window ()
   "In archive mode, find this member in another window."
-  (interactive)
+  (interactive nil archive-mode)
   (archive-extract t))
 
 (defun archive-display-other-window ()
   "In archive mode, display this member in another window."
-  (interactive)
+  (interactive nil archive-mode)
   (archive-extract 'display))
 
 (defun archive-view ()
   "In archive mode, view the member on this line."
-  (interactive)
+  (interactive nil archive-mode)
   (archive-extract 'view))
 
 (defun archive-add-new-member (arcbuf name)
@@ -1469,7 +1471,7 @@ NEW-NAME."
 (defun archive-flag-deleted (p &optional type)
   "In archive mode, mark this member to be deleted from the archive.
 With a prefix argument, mark that many files."
-  (interactive "p")
+  (interactive "p" archive-mode)
   (or type (setq type ?D))
   (beginning-of-line)
   (let ((sign (if (>= p 0) +1 -1))
@@ -1488,18 +1490,18 @@ With a prefix argument, mark that many files."
 (defun archive-unflag (p)
   "In archive mode, un-mark this member if it is marked to be deleted.
 With a prefix argument, un-mark that many files forward."
-  (interactive "p")
+  (interactive "p" archive-mode)
   (archive-flag-deleted p ?\s))
 
 (defun archive-unflag-backwards (p)
   "In archive mode, un-mark this member if it is marked to be deleted.
 With a prefix argument, un-mark that many members backward."
-  (interactive "p")
+  (interactive "p" archive-mode)
   (archive-flag-deleted (- p) ?\s))
 
 (defun archive-unmark-all-files ()
   "Remove all marks."
-  (interactive)
+  (interactive nil archive-mode)
   (let ((modified (buffer-modified-p))
 	(inhibit-read-only t))
     (save-excursion
@@ -1514,7 +1516,7 @@ With a prefix argument, un-mark that many members backward."
   "In archive mode, mark this member for group operations.
 With a prefix argument, mark that many members.
 Use \\[archive-unmark-all-files] to remove all marks."
-  (interactive "p")
+  (interactive "p" archive-mode)
   (archive-flag-deleted p ?*))
 
 (defun archive-get-marked (mark &optional default)
@@ -1532,20 +1534,20 @@ Use \\[archive-unmark-all-files] to remove all marks."
 ;;; Section: Operate
 
 (defun archive-next-line (p)
-  (interactive "p")
+  (interactive "p" archive-mode)
   (forward-line p)
   (or (eobp)
       (forward-char archive-file-name-indent)))
 
 (defun archive-previous-line (p)
-  (interactive "p")
+  (interactive "p" archive-mode)
   (archive-next-line (- p)))
 
 (defun archive-chmod-entry (new-mode)
   "Change the protection bits associated with all marked or this member.
 The new protection bits can either be specified as an octal number or
 as a relative change like \"g+rw\" as for chmod(2)."
-  (interactive "sNew mode (octal or symbolic): ")
+  (interactive "sNew mode (octal or symbolic): " archive-mode)
   (if archive-read-only (error "Archive is read-only"))
   (let ((func (archive-name "chmod-entry")))
     (if (fboundp func)
@@ -1556,7 +1558,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 
 (defun archive-chown-entry (new-uid)
   "Change the owner of all marked or this member."
-  (interactive "nNew uid: ")
+  (interactive "nNew uid: " archive-mode)
   (if archive-read-only (error "Archive is read-only"))
   (let ((func (archive-name "chown-entry")))
     (if (fboundp func)
@@ -1567,7 +1569,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 
 (defun archive-chgrp-entry (new-gid)
   "Change the group of all marked or this member."
-  (interactive "nNew gid: ")
+  (interactive "nNew gid: " archive-mode)
   (if archive-read-only (error "Archive is read-only"))
   (let ((func (archive-name "chgrp-entry")))
     (if (fboundp func)
@@ -1607,7 +1609,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 
 (defun archive-expunge ()
   "Do the flagged deletions."
-  (interactive)
+  (interactive nil archive-mode)
   (archive--expunge-maybe-force nil))
 
 (defun archive-*-expunge (archive files command)
@@ -1616,7 +1618,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 
 (defun archive-rename-entry (newname)
   "Change the name associated with this entry in the archive file."
-  (interactive "sNew name: ")
+  (interactive "sNew name: " archive-mode)
   (if archive-read-only (error "Archive is read-only"))
   (if (string= newname "")
       (error "Archive members may not be given empty names"))
@@ -1644,7 +1646,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 (defun archive-undo ()
   "Undo in an archive buffer.
 This doesn't recover lost files, it just undoes changes in the buffer itself."
-  (interactive)
+  (interactive nil archive-mode)
   (let ((inhibit-read-only t))
     (undo)))
 
