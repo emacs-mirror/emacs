@@ -3519,7 +3519,8 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
 		       item_size) == 0);
       memcpy ((char *)new_pa + item_size * i, (void *)area, item_size);
     }
-  eassert (memcmp (old_pa, new_pa, old_nitems * item_size) == 0);
+  if (old_pa != NULL)
+    eassert (memcmp (old_pa, new_pa, old_nitems * item_size) == 0);
   eassert ((item_size) % sizeof (mps_word_t) == 0);
   *pa_cell = new_pa;
   *nitems = new_nitems;
