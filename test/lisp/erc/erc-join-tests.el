@@ -82,27 +82,29 @@
 
   (erc-tests-common-make-server-buf)
 
-  ;; May run forever on Solaris 10 (see bug#79017).
-  (with-timeout (5 (ert-fail "Timeout exceeded"))
+  (cl-letf* ((erc-autojoin-timing 'ident)
+             (erc-autojoin-delay 0.0625)
+             (calls nil)
+             (check (lambda () (prog1 calls (setq calls nil))))
+             ((symbol-function 'erc-server-send)
+              (lambda (line) (push line calls)))
+             ((symbol-function 'erc-autojoin-after-ident)
+              (lambda (&rest _r) (should-not "run"))))
 
-    (cl-letf* ((erc-autojoin-timing 'ident)
-               (erc-autojoin-delay 0.0625)
-               (calls nil)
-               (check (lambda () (prog1 calls (setq calls nil))))
-               ((symbol-function 'erc-server-send)
-                (lambda (line) (push line calls)))
-               ((symbol-function 'erc-autojoin-after-ident)
-                (lambda (&rest _r) (should-not "run"))))
+    (should-not erc--autojoin-timer)
 
-      (should-not erc--autojoin-timer)
+    (erc-autojoin-channels erc-server-announced-name "tester")
+    (should erc--autojoin-timer)
 
-      (erc-autojoin-channels erc-server-announced-name "tester")
-      (should erc--autojoin-timer)
-      (sleep-for 0.25)
-      (funcall test check)
+    ;; May run forever on Solaris 10 (bug#79017).
+    (with-timeout (5 (ert-fail "Timeout exceeded"))
+      (while erc--autojoin-timer
+        (sleep-for 0.125)))
 
-      (should-not calls)
-      (should-not erc--autojoin-timer)))
+    (funcall test check)
+
+    (should-not calls)
+    (should-not erc--autojoin-timer))
 
   (when noninteractive
     (erc-tests-common-kill-buffers)))
