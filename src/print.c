@@ -682,7 +682,7 @@ print_create_variable_mapping (void)
 	   intern ("print-escape-multibyte"), Qnil),
     list3 (intern ("charset-text-property"),
 	   intern ("print-charset-text-property"), Qnil),
-    list3 (intern ("unreadeable-function"),
+    list3 (intern ("unreadable-function"),
 	   intern ("print-unreadable-function"), Qnil),
     list3 (intern ("gensym"), intern ("print-gensym"), Qnil),
     list3 (intern ("continuous-numbering"),
@@ -691,6 +691,7 @@ print_create_variable_mapping (void)
     list3 (intern ("float-format"), intern ("float-output-format"), Qnil),
     list3 (intern ("integers-as-characters"),
 	   intern ("print-integers-as-characters"), Qnil),
+    list3 (intern ("symbols-bare"), intern ("print-symbols-bare"), Qnil),
   };
 
   Vprint_variable_mapping = CALLMANY (Flist, total);
