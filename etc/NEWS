@@ -908,6 +908,13 @@ build tags for the test commands.
 The 'go-ts-mode-test-flags' user option is available to set a list of
 additional flags to pass to the go test command line.
 
+** Lua-ts mode
+
+---
+*** New user option 'lua-ts-auto-close-block-comments'.
+When non-nil, inserting a block comment "--[[" will close it by
+inserting its respective "]]".  By default, this is disabled.
+
 ** Java-ts mode
 
 +++
@@ -958,6 +965,14 @@ full-width characters, which are customarily used instead of ASCII
 characters in CJK texts.  For example, 'A' is converted to 'Ａ', '1' is
 converted to '１', etc.  Companion commands 'halfwidth-region' and
 'halfwidth-word' perform the opposite conversion.
+
+** Texinfo Mode
+
+---
+*** texinfo-mode now can auto-close the ``'' pairs.
+Now inserting `` in 'texinfo-mode' will close it by inserting its
+respective ''.
+
 
 ** ASM mode
 

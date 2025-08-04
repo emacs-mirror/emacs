@@ -74,6 +74,11 @@
   :safe 'natnump
   :version "30.1")
 
+(defcustom lua-ts-auto-close-block-comments nil
+  "If non-nil, inserting a block comment \"--[[\" will insert its respective \"]]\"."
+  :type 'boolean
+  :version "31.1")
+
 (defcustom lua-ts-luacheck-program "luacheck"
   "Location of the Luacheck program."
   :type 'file
@@ -674,6 +679,14 @@ Calls REPORT-FN directly."
     (setq-local comment-start "--")
     (setq-local comment-start-skip "--\\s-*")
     (setq-local comment-end "")
+
+    ;; Pairs.
+    (when (and lua-ts-auto-close-block-comments
+               (boundp 'electric-pair-pairs))
+      (setq-local electric-pair-pairs
+                  (cons
+                   '("--\\[\\[" . "\n]")
+                   electric-pair-pairs)))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings lua-ts--font-lock-settings)

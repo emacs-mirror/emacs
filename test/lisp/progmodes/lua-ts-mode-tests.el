@@ -25,6 +25,7 @@
 (require 'hideshow)
 (require 'treesit)
 (require 'which-func)
+(require 'elec-pair)
 
 (ert-deftest lua-ts-test-indentation ()
   (skip-unless (treesit-ready-p 'lua t))
@@ -60,6 +61,38 @@
     (hs-show-all)
     (should (= 0 (length (overlays-in (point-min) (point-max)))))
     (hs-minor-mode -1)))
+
+;; from: electric-tests.el
+(defun call-with-saved-electric-modes (fn)
+  (let ((saved-electric (if electric-pair-mode 1 -1))
+        (saved-layout (if electric-layout-mode 1 -1))
+        (saved-indent (if electric-indent-mode 1 -1))
+        (blink-paren-function nil))
+    (electric-pair-mode -1)
+    (electric-layout-mode -1)
+    (electric-indent-mode -1)
+    (unwind-protect
+        (funcall fn)
+      (electric-pair-mode saved-electric)
+      (electric-indent-mode saved-indent)
+      (electric-layout-mode saved-layout))))
+
+;; from: electric-tests.el
+(defmacro save-electric-modes (&rest body)
+  (declare (indent defun) (debug t))
+  `(call-with-saved-electric-modes (lambda () ,@body)))
+
+(ert-deftest lua-ts-test-auto-close-block-comments ()
+  (save-electric-modes
+   (with-temp-buffer
+     (dlet ((lua-ts-auto-close-block-comments t))
+       (electric-pair-mode 1)
+       (lua-ts-mode)
+       (insert "--")
+       (let ((last-command-event ?\[))
+         (ert-simulate-command '(self-insert-command 1))
+         (ert-simulate-command '(self-insert-command 1)))
+       (should (equal "--[[\n]]" (buffer-string)))))))
 
 (provide 'lua-ts-mode-tests)
 
