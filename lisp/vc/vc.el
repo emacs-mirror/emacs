@@ -4415,10 +4415,10 @@ When called from Lisp, BACKEND is the VC backend."
 BACKEND is the VC backend.
 PROMPT is the prompt string for `project-prompter'."
   (let ((trees (vc-call-backend backend 'known-other-working-trees)))
+    (require 'project)
     (dolist (tree trees)
       (when-let* ((p (project-current nil tree)))
         (project-remember-project p)))
-    (require 'project)
     (funcall project-prompter prompt
              (lambda (k &optional _v)
                (member (or (car-safe k) k) trees))
