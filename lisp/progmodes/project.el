@@ -199,9 +199,24 @@ When it is non-nil, `project-current' will always skip prompting too.")
 
 (defcustom project-prompter #'project-prompt-project-dir
   "Function to call to prompt for a project.
-The function is either called with no arguments or with one argument,
-which is the prompt string to use.  It should return a project root
-directory."
+The function is called either with no arguments or with up to three
+optional arguments: (&optional PROMPT PREDICATE REQUIRE-KNOWN).
+
+PROMPT is the prompt string to use.
+
+PREDICATE, if non-nil, is a function suitable as the PREDICATE argument
+to `try-completion' or `all-completions', which see.  PREDICATE allows
+the caller to limit the projects from which the user is able to select.
+It should return nil when passed a project root directory corresponding
+to a project the user should not be allowed to select.
+The `project-prompter' should filter project completion candidates
+presented to the user using this predicate.
+
+If REQUIRE-KNOWN is non-nil, the value of `project-prompter' should only
+allow the user to select from known projects.  Otherwise, the function
+may allow the user to input arbitrary directories.  If PREDICATE and
+REQUIRE-KNOWN are both non-nil, the value of `project-prompter' should
+not return any project root directory for which PREDICATE returns nil."
   :type '(choice (const :tag "Prompt for a project directory"
                         project-prompt-project-dir)
                  (const :tag "Prompt for a project name"
@@ -2022,12 +2037,15 @@ the project list."
 
 (defvar project--dir-history)
 
-(defun project-prompt-project-dir (&optional prompt)
+(defun project-prompt-project-dir (&optional prompt predicate require-known)
   "Prompt the user for a directory that is one of the known project roots.
 The project is chosen among projects known from the project list,
 see `project-list-file'.
-It's also possible to enter an arbitrary directory not in the list.
-When PROMPT is non-nil, use it as the prompt string."
+If PROMPT is non-nil, use it as the prompt string.
+If PREDICATE is non-nil, filter possible project choices using this
+function; see `project-prompter' for more details.
+Unless REQUIRE-KNOWN is non-nil, it's also possible to enter an
+arbitrary directory not in the list of known projects."
   (project--ensure-read-project-list)
   (if-let* (project-prune-zombie-projects
             (inhibit-message t))
@@ -2037,7 +2055,8 @@ When PROMPT is non-nil, use it as the prompt string."
           ;; XXX: Just using this for the category (for the substring
           ;; completion style).
           (project--file-completion-table
-           (append project--list `(,dir-choice))))
+           (if require-known project--list
+             (append project--list `(,dir-choice)))))
          (project--dir-history (project-known-project-roots))
          (pr-dir ""))
     (while (equal pr-dir "")
@@ -2048,19 +2067,27 @@ When PROMPT is non-nil, use it as the prompt string."
                                    ;; TODO: Use `format-prompt' (Emacs 28.1+)
                                    (format "%s: " (substitute-command-keys prompt))
                                  "Select project: ")
-                               choices nil t nil 'project--dir-history))))
+                               choices
+                               (and predicate
+                                    (lambda (choice)
+                                      (or (equal choice dir-choice)
+                                          (funcall predicate choice))))
+                               t nil 'project--dir-history))))
     (if (equal pr-dir dir-choice)
         (read-directory-name "Select directory: " default-directory nil t)
       pr-dir)))
 
 (defvar project--name-history)
 
-(defun project-prompt-project-name (&optional prompt)
+(defun project-prompt-project-name (&optional prompt predicate require-known)
   "Prompt the user for a project, by name, that is one of the known project roots.
 The project is chosen among projects known from the project list,
 see `project-list-file'.
-It's also possible to enter an arbitrary directory not in the list.
-When PROMPT is non-nil, use it as the prompt string."
+If PROMPT is non-nil, use it as the prompt string.
+If PREDICATE is non-nil, filter possible project choices using this
+function; see `project-prompter' for more details.
+Unless REQUIRE-KNOWN is non-nil, it's also possible to enter an
+arbitrary directory not in the list of known projects."
   (if-let* (project-prune-zombie-projects
             (inhibit-message t))
       (project-forget-zombie-projects))
@@ -2073,7 +2100,8 @@ When PROMPT is non-nil, use it as the prompt string."
             (dolist (dir (reverse (project-known-project-roots)))
               ;; We filter out directories that no longer map to a project,
               ;; since they don't have a clean project-name.
-              (when-let* ((proj (project--find-in-directory dir))
+              (when-let* (((or (not predicate) (funcall predicate dir)))
+                          (proj (project--find-in-directory dir))
                           (name (project-name proj)))
                 (push name project--name-history)
                 (push (cons name proj) ret)))
@@ -2081,7 +2109,8 @@ When PROMPT is non-nil, use it as the prompt string."
          ;; XXX: Just using this for the category (for the substring
          ;; completion style).
          (table (project--file-completion-table
-                 (reverse (cons dir-choice choices))))
+                 (reverse (if require-known choices
+                            (cons dir-choice choices)))))
          (pr-name ""))
     (while (equal pr-name "")
       ;; If the user simply pressed RET, do this again until they don't.

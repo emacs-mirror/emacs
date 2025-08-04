@@ -452,10 +452,19 @@ It is equivalent to running 'project-any-command' with
 The prompt now displays the chosen project on which to invoke a command.
 
 ---
-*** The MAYBE-PROMPT argument of 'project-current' can be a string.
-When such value is used, the 'project-prompter' is called with it as the
-first argument.  This is a way for the callers to indicate, for example,
-the reason or the context why the project is asked for.
+*** 'project-prompter' values may be called with up to three arguments.
+These allow callers of the value of 'project-prompter' to specify a
+prompt string; prompt the user to choose between a subset of all the
+known projects; and disallow returning arbitrary directories.
+See the docstring of 'project-prompter' for a full specification of
+these new optional arguments.
+
+---
+*** 'project-current' has a new optional argument, MAYBE-PROMPT.
+If 'project-current' is called with this argument non-nil, then it is
+passed to the 'project-prompter' to use as a prompt string.
+Callers can use this to indicate the reason for which or context in
+which Emacs should ask the user to select a project.
 
 ---
 *** New command 'project-find-matching-file'.
