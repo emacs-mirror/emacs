@@ -2405,25 +2405,32 @@ see the \"LIST OUTPUT FORMAT\" section of the git-worktree(1) manual
 page for the meanings of these attributes."
   (with-temp-buffer
     (vc-git-command nil 0 nil "worktree" "prune")
-    (vc-git-command t 0 nil "worktree" "list" "--porcelain" "-z")
-    (let (worktrees current-root current-rest)
-      (goto-char (point-min))
-      (while
-          (re-search-forward "\\=\\(\\([a-zA-Z]+\\)\\(?: \\([^\0]+\\)\\)?\\)?\0"
-                             nil t)
-        (if (match-string 1)
-            (let ((k (intern (match-string 2)))
-                  (v (or (match-string 3) t)))
-              (cond ((and (not current-root) (eq k 'worktree))
-                     (setq current-root (file-name-as-directory v)))
-                    ((not (eq k 'worktree))
-                     (push (cons k v) current-rest))
-                    (t
-                     (error "'git worktree' output parse error"))))
-          (push (cons current-root current-rest) worktrees)
-          (setq current-root nil current-rest nil)))
-      (or worktrees
-          (error "'git worktree' output parse error")))))
+    (let ((have-worktree-list-porcelain-z
+           ;; The -z option to 'worktree list --porcelain' appeared in 2.36
+           (version<= "2.36" (vc-git--program-version))))
+      (vc-git-command t 0 nil "worktree" "list" "--porcelain"
+                      (and have-worktree-list-porcelain-z "-z"))
+      (let (worktrees current-root current-rest)
+        (goto-char (point-min))
+        (while
+            (re-search-forward
+             (if have-worktree-list-porcelain-z
+                 "\\=\\(\\([a-zA-Z]+\\)\\(?: \\([^\0]+\\)\\)?\\)?\0"
+               "\\=\\(\\([a-zA-Z]+\\)\\(?: \\([^\n]+\\)\\)?\\)?\n")
+             nil t)
+          (if (match-string 1)
+              (let ((k (intern (match-string 2)))
+                    (v (or (match-string 3) t)))
+                (cond ((and (not current-root) (eq k 'worktree))
+                       (setq current-root (file-name-as-directory v)))
+                      ((not (eq k 'worktree))
+                       (push (cons k v) current-rest))
+                      (t
+                       (error "'git worktree' output parse error"))))
+            (push (cons current-root current-rest) worktrees)
+            (setq current-root nil current-rest nil)))
+        (or worktrees
+            (error "'git worktree' output parse error"))))))
 
 (defun vc-git-known-other-working-trees ()
   "Implementation of `known-other-working-trees' backend function for Git."
