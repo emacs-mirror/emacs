@@ -2434,7 +2434,8 @@ page for the meanings of these attributes."
 
 (defun vc-git-known-other-working-trees ()
   "Implementation of `known-other-working-trees' backend function for Git."
-  (cl-loop with root = (expand-file-name (vc-git-root default-directory))
+  (cl-loop with root = (file-truename
+                        (expand-file-name (vc-git-root default-directory)))
            for (worktree) in (vc-git--worktrees)
            unless (equal worktree root)
            collect (abbreviate-file-name worktree)))

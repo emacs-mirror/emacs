@@ -684,12 +684,15 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                    (project-forget-project
                     (expand-file-name name default-directory))))))
 
-            (let* ((first (file-name-as-directory
-                           (expand-file-name "first" default-directory)))
-                   (second (file-name-as-directory
-                            (expand-file-name "second" default-directory)))
-                   (third (file-name-as-directory
-                           (expand-file-name "third" default-directory)))
+            (let* ((first (file-truename
+                           (file-name-as-directory
+                            (expand-file-name "first" default-directory))))
+                   (second (file-truename
+                            (file-name-as-directory
+                             (expand-file-name "second" default-directory))))
+                   (third (file-truename
+                           (file-name-as-directory
+                            (expand-file-name "third" default-directory))))
                    (tmp-name (expand-file-name "foo" first))
                    (project-list-file
                     (expand-file-name "projects.eld" default-directory)))
