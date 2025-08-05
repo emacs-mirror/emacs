@@ -50,13 +50,14 @@ is yanked."
                   (delete-and-extract-region beg end)
                 (buffer-substring beg end))))
     (with-temp-buffer
-      ;; Indent/deindent the same as the major mode in the original
-      ;; buffer.
-      (setq indent-tabs-mode i-t-m)
-      (insert text)
-      (indent-rigidly (point-min) (point-max)
-                      (- indentation))
-      (buffer-string))))
+      (let ((inhibit-read-only t))
+        ;; Indent/deindent the same as the major mode in the original
+        ;; buffer.
+        (setq indent-tabs-mode i-t-m)
+        (insert text)
+        (indent-rigidly (point-min) (point-max)
+                        (- indentation))
+        (buffer-string)))))
 
 ;;;###autoload
 (define-minor-mode kill-ring-deindent-mode
