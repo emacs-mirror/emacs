@@ -1612,6 +1612,15 @@ This feature is experimental.
 ---
 *** Implementation of filesystem notifications for connection method "smb".
 
++++
+*** New functions to extend the set of operations with a remote implementation.
+The new functions 'tramp-add-external-operation' and
+'tramp-remove-external-operation' allow to add an implementation for
+other operations but the defined set of magic file name operations.
+This can be used by external ELPA packages for performance optimizations
+in special cases.  For more information, see "(tramp) New operations" in
+the Tramp manual.
+
 ** Diff
 
 ---
@@ -1836,11 +1845,11 @@ restart Emacs.
 *** Support of 'electric-layout-mode' added.
 
 ---
-*** DEL now deletes the text in the active region when point is between indentation.
-The command 'python-indent-dedent-line-backspace' (by default bound to
-'DEL') now deletes the text in the region and deactivates the mark if
-Transient Mark mode is enabled, the mark is active, and prefix argument
-is 1.
+*** 'DEL' now deletes the text in the active region.
+When point is between indentation, the command
+'python-indent-dedent-line-backspace' (by default bound to 'DEL') now
+deletes the text in the region and deactivates the mark if Transient
+Mark mode is enabled, the mark is active, and prefix argument is 1.
 
 ** Tmm Menubar
 
@@ -2481,10 +2490,10 @@ Use the byte-compiler instead; it provides more and more useful warnings.
 ---
 *** New user option 'newsticker-hide-old-feed-header'.
 It controls whether to automatically hide the header of feeds whose
-items are all old or obsolete in the plainview *newsticker* buffer.
+items are all old or obsolete in the plainview "*newsticker*" buffer.
 This is only visually interesting if the content of those feeds are also
 hidden (see 'newsticker-hide-old-items-in-newsticker-buffer' and
-'newsticker-show-descriptions-of-new-items')."
+'newsticker-show-descriptions-of-new-items').
 
 ---
 *** New commands to hide and show headers of old newsticker feeds.
@@ -2496,7 +2505,6 @@ or obsolete.
 ** CPerl mode
 
 *** Syntax of Perl up to version 5.42 is supported.
-
 CPerl mode creates imenu entries for ":writer" generated accessors and
 recognizes the new functions "all" and "any".
 See https://perldoc.perl.org/5.42.0/perldelta for details.

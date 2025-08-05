@@ -8474,8 +8474,92 @@ process sentinels.  They shall not disturb each other."
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name))))))
 
+(defun tramp--test-operation (&optional _file)
+  "Test operation."
+  "Test operation")
+
+(defun tramp--handler-for-test-operation (&optional _file)
+  "Test operation handler."
+  "Test operation handler")
+
+(ert-deftest tramp-test49-external-backend-function ()
+  "Check that Tramp handles external functions for a given backend."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (not (tramp--test-ange-ftp-p)))
+
+  (let* ((file-name-handler
+	  (tramp-find-foreign-file-name-handler tramp-test-vec))
+	 (backend
+	  (intern
+	   (string-remove-suffix
+	    "-file-name-handler" (symbol-name file-name-handler)))))
+
+    ;; There is no backend specific code.
+    (should-not
+     (string-equal (tramp--test-operation ert-remote-temporary-file-directory)
+		   (tramp--handler-for-test-operation
+		    ert-remote-temporary-file-directory)))
+    (should-not
+     (string-equal (tramp--test-operation temporary-file-directory)
+		   (tramp--handler-for-test-operation
+		    temporary-file-directory)))
+    (let ((default-directory ert-remote-temporary-file-directory))
+      (should-not
+       (string-equal (tramp--test-operation)
+		     (tramp--handler-for-test-operation))))
+    (let ((default-directory temporary-file-directory))
+      (should-not
+       (string-equal (tramp--test-operation)
+		     (tramp--handler-for-test-operation))))
+
+    (should-error
+     (tramp-add-external-operation
+      #'tramp--test-operation
+      #'tramp--handler-for-test-operation 'foo)
+     :type 'file-missing)
+    (tramp-add-external-operation
+     #'tramp--test-operation
+     #'tramp--handler-for-test-operation backend)
+    ;; The backend specific function is called.
+    (should
+     (string-equal (tramp--test-operation ert-remote-temporary-file-directory)
+		   (tramp--handler-for-test-operation
+		    ert-remote-temporary-file-directory)))
+    (should-not
+     (string-equal (tramp--test-operation temporary-file-directory)
+		   (tramp--handler-for-test-operation
+		    temporary-file-directory)))
+    (let ((default-directory ert-remote-temporary-file-directory))
+      (should
+       (string-equal (tramp--test-operation)
+		     (tramp--handler-for-test-operation))))
+    (let ((default-directory temporary-file-directory))
+      (should-not
+       (string-equal (tramp--test-operation)
+		     (tramp--handler-for-test-operation))))
+
+    (tramp-remove-external-operation
+     #'tramp--test-operation backend)
+    ;; There is no backend specific code.
+    (should-not
+     (string-equal (tramp--test-operation ert-remote-temporary-file-directory)
+		   (tramp--handler-for-test-operation
+		    ert-remote-temporary-file-directory)))
+    (should-not
+     (string-equal (tramp--test-operation temporary-file-directory)
+		   (tramp--handler-for-test-operation
+		    temporary-file-directory)))
+    (let ((default-directory ert-remote-temporary-file-directory))
+      (should-not
+       (string-equal (tramp--test-operation)
+		     (tramp--handler-for-test-operation))))
+    (let ((default-directory temporary-file-directory))
+      (should-not
+       (string-equal (tramp--test-operation)
+		     (tramp--handler-for-test-operation))))))
+
 ;; This test is inspired by Bug#29163.
-(ert-deftest tramp-test49-auto-load ()
+(ert-deftest tramp-test50-auto-load ()
   "Check that Tramp autoloads properly."
   ;; If we use another syntax but `default', Tramp is already loaded
   ;; due to the `tramp-change-syntax' call.
@@ -8500,7 +8584,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test49-delay-load ()
+(ert-deftest tramp-test50-delay-load ()
   "Check that Tramp is loaded lazily, only when needed."
   ;; Tramp is neither loaded at Emacs startup, nor when completing a
   ;; non-Tramp file name like "/foo".  Completing a Tramp-alike file
@@ -8530,7 +8614,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument (format code tm)))))))))
 
-(ert-deftest tramp-test49-recursive-load ()
+(ert-deftest tramp-test50-recursive-load ()
   "Check that Tramp does not fail due to recursive load."
   (skip-unless (tramp--test-enabled))
 
@@ -8554,7 +8638,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument code))))))))
 
-(ert-deftest tramp-test49-remote-load-path ()
+(ert-deftest tramp-test50-remote-load-path ()
   "Check that Tramp autoloads its packages with remote `load-path'."
   ;; `tramp-cleanup-all-connections' is autoloaded from tramp-cmds.el.
   ;; It shall still work, when a remote file name is in the
@@ -8579,7 +8663,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test50-without-remote-files ()
+(ert-deftest tramp-test51-without-remote-files ()
   "Check that Tramp can be suppressed."
   (skip-unless (tramp--test-enabled))
 
@@ -8594,7 +8678,7 @@ process sentinels.  They shall not disturb each other."
   (setq tramp-mode t)
   (should (file-remote-p ert-remote-temporary-file-directory)))
 
-(ert-deftest tramp-test51-unload ()
+(ert-deftest tramp-test52-unload ()
   "Check that Tramp and its subpackages unload completely.
 Since it unloads Tramp, it shall be the last test to run."
   :tags '(:expensive-test)

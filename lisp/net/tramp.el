@@ -2380,6 +2380,9 @@ arguments to pass to the OPERATION."
 	 signal-hook-function)
     (apply operation args)))
 
+(defvar tramp-file-name-for-operation-external nil
+  "List of operations added by external packages.")
+
 ;; We handle here all file primitives.  Most of them have the file
 ;; name as first parameter; nevertheless we check for them explicitly
 ;; in order to be signaled if a new primitive appears.  This
@@ -2387,6 +2390,10 @@ arguments to pass to the OPERATION."
 ;; syntactical means whether a foreign method must be called.  It would
 ;; ease the life if `file-name-handler-alist' would support a decision
 ;; function as well but regexp only.
+;; Operations added by external packages are kept in
+;; `tramp-file-name-for-operation-external'.  They expect the file
+;; name to be checked as first argument or, if there isn't any
+;; argument, `default-directory'.
 (defun tramp-file-name-for-operation (operation &rest args)
   "Return file name related to OPERATION file primitive.
 ARGS are the arguments OPERATION has been called with.
@@ -2396,40 +2403,40 @@ first argument of `expand-file-name' is absolute and not remote.
 Must be handled by the callers."
   (cond
    ;; FILE resp DIRECTORY.
-   ((member operation
-	    '(access-file byte-compiler-base-file-name delete-directory
-	      delete-file diff-latest-backup-file directory-file-name
-	      directory-files directory-files-and-attributes dired-compress-file
-	      dired-uncache file-acl file-accessible-directory-p file-attributes
-	      file-directory-p file-executable-p file-exists-p file-local-copy
-	      file-locked-p file-modes file-name-as-directory
-	      file-name-case-insensitive-p file-name-directory
-	      file-name-nondirectory file-name-sans-versions
-	      file-notify-add-watch file-ownership-preserved-p file-readable-p
-	      file-regular-p file-remote-p file-selinux-context file-symlink-p
-	      file-system-info file-truename file-writable-p
-	      find-backup-file-name get-file-buffer
-	      insert-directory insert-file-contents load lock-file make-directory
-	      make-lock-file-name set-file-acl set-file-modes
-	      set-file-selinux-context set-file-times substitute-in-file-name
-	      unhandled-file-name-directory unlock-file vc-registered
-	      ;; Emacs 28- only.
-	      make-directory-internal
-	      ;; Emacs 29+ only.
-	      abbreviate-file-name
-	      ;; Tramp internal magic file name function.
-	      tramp-set-file-uid-gid))
+   ((memq operation
+	  '(access-file byte-compiler-base-file-name delete-directory
+	    delete-file diff-latest-backup-file directory-file-name
+	    directory-files directory-files-and-attributes dired-compress-file
+	    dired-uncache file-acl file-accessible-directory-p file-attributes
+	    file-directory-p file-executable-p file-exists-p file-local-copy
+	    file-locked-p file-modes file-name-as-directory
+	    file-name-case-insensitive-p file-name-directory
+	    file-name-nondirectory file-name-sans-versions
+	    file-notify-add-watch file-ownership-preserved-p file-readable-p
+	    file-regular-p file-remote-p file-selinux-context file-symlink-p
+	    file-system-info file-truename file-writable-p
+	    find-backup-file-name get-file-buffer
+	    insert-directory insert-file-contents load lock-file make-directory
+	    make-lock-file-name set-file-acl set-file-modes
+	    set-file-selinux-context set-file-times substitute-in-file-name
+	    unhandled-file-name-directory unlock-file vc-registered
+	    ;; Emacs 28- only.
+	    make-directory-internal
+	    ;; Emacs 29+ only.
+	    abbreviate-file-name
+	    ;; Tramp internal magic file name function.
+	    tramp-set-file-uid-gid))
     (if (file-name-absolute-p (nth 0 args))
 	(nth 0 args)
       default-directory))
    ;; STRING FILE.
    ((eq operation 'make-symbolic-link) (nth 1 args))
    ;; FILE DIRECTORY resp FILE1 FILE2.
-   ((member operation
-	    '(add-name-to-file copy-directory copy-file
-	      file-equal-p file-in-directory-p
-	      file-name-all-completions file-name-completion
-	      file-newer-than-file-p rename-file))
+   ((memq operation
+	  '(add-name-to-file copy-directory copy-file
+	    file-equal-p file-in-directory-p
+	    file-name-all-completions file-name-completion
+	    file-newer-than-file-p rename-file))
     (cond
      ((tramp-tramp-file-p (nth 0 args)) (nth 0 args))
      ((file-name-absolute-p (nth 1 args)) (nth 1 args))
@@ -2446,31 +2453,39 @@ Must be handled by the callers."
 	(nth 2 args)
       default-directory))
    ;; BUFFER.
-   ((member operation
-	    '(make-auto-save-file-name
-	      set-visited-file-modtime verify-visited-file-modtime))
+   ((memq operation
+	  '(make-auto-save-file-name
+	    set-visited-file-modtime verify-visited-file-modtime))
     (buffer-file-name
      (if (bufferp (nth 0 args)) (nth 0 args) (current-buffer))))
    ;; COMMAND.
-   ((member operation
-	    '(exec-path make-nearby-temp-file make-process process-file
-	      shell-command start-file-process temporary-file-directory
-	      ;; Emacs 29+ only.
-              list-system-processes memory-info process-attributes
-              ;; Emacs 30+ only.
-	      file-group-gid file-user-uid))
+   ((memq operation
+	  '(exec-path make-nearby-temp-file make-process process-file
+	    shell-command start-file-process temporary-file-directory
+	    ;; Emacs 29+ only.
+            list-system-processes memory-info process-attributes
+            ;; Emacs 30+ only.
+	    file-group-gid file-user-uid))
     default-directory)
    ;; PROC.
-   ((member operation '(file-notify-rm-watch file-notify-valid-p))
+   ((memq operation '(file-notify-rm-watch file-notify-valid-p))
     (when (processp (nth 0 args))
       (tramp-get-default-directory (process-buffer (nth 0 args)))))
    ;; VEC.
-   ((member operation
-	    '(tramp-get-home-directory tramp-get-remote-gid
-	      tramp-get-remote-groups tramp-get-remote-uid))
+   ((memq operation
+	  '(tramp-get-home-directory tramp-get-remote-gid
+	    tramp-get-remote-groups tramp-get-remote-uid))
     (tramp-make-tramp-file-name (nth 0 args)))
+   ;; FILE resp DIRECTORY.
+   ((and (memq operation tramp-file-name-for-operation-external)
+	 (or (stringp (nth 0 args)) (null (nth 0 args))))
+    (if (and (stringp (nth 0 args)) (file-name-absolute-p (nth 0 args)))
+	(nth 0 args)
+      default-directory))
    ;; Unknown file primitive.
-   (t (error "Unknown file I/O primitive: %s" operation))))
+   (t (unless (member 'remote-file-error debug-ignored-errors)
+	(tramp-error
+	 nil 'remote-file-error "Unknown file I/O primitive: %s" operation)))))
 
 (defun tramp-find-foreign-file-name-handler (vec &optional _operation)
   "Return foreign file name handler if exists."
@@ -2493,6 +2508,63 @@ Must be handled by the callers."
 	  (setq handler nil
 		res (cdr elt))))
       res)))
+
+(defun tramp-add-external-operation (operation function backend)
+  "Add FUNTION to Tramp BACKEND as handler for OPERATION.
+OPERATION must not be one of the magic operations listed in Info
+node `(elisp) Magic File Names'.  FUNCTION must have the same argument
+list as OPERATION.  BACKEND, a symbol, must be one of the Tramp backend
+packages like `tramp-sh' (except `tramp-ftp')."
+  (require backend)
+  (when-let* ((fnha
+	       (intern-soft
+		(concat (symbol-name backend) "-file-name-handler-alist")))
+	      ((boundp fnha)))
+    ;; Make BACKEND aware of the new operation.
+    (add-to-list fnha (cons operation function))
+    (unless (memq operation tramp-file-name-for-operation-external)
+      ;; Make Tramp aware of the new operation.
+      (add-to-list 'tramp-file-name-for-operation-external operation)
+      (put #'tramp-file-name-handler
+	   'operations
+           (cons operation (get 'tramp-file-name-handler 'operations)))
+      ;; Add an advice for OPERATION, in order to invoke the handler FUNCTION.
+      (advice-add
+       operation :around
+       `(lambda (orig-fun &rest args)
+	  (if-let* ((handler
+		     (find-file-name-handler
+		      (or (car args) default-directory) #',operation)))
+	      (apply handler #',operation args)
+	    (apply orig-fun args)))
+       `((name . ,(concat "tramp-advice-" (symbol-name operation))))))))
+
+(defun tramp-remove-external-operation (operation backend)
+  "Remove OPERATION from Tramp BACKEND as handler for OPERATION.
+OPERATION must not be one of the magic operations listed in Info
+node `(elisp) Magic File Names'. BACKEND, a symbol, must be one of the
+Tramp backend packages like `tramp-sh'."
+  ;; Remove OPERATION from BACKEND.
+  (when-let* ((fnha
+	       (intern-soft
+		(concat (symbol-name backend) "-file-name-handler-alist")))
+	      ((boundp fnha)))
+    (setf (alist-get operation (symbol-value fnha) nil 'remove) nil))
+  ;; Check, whether OPERATION is still used in any backend.
+  (unless (seq-some
+	   (lambda (item)
+	     (when-let*
+		 ((fnha (intern-soft (concat (symbol-name (cdr item)) "-alist")))
+		  ((boundp fnha)))
+	       (alist-get operation (symbol-value fnha))))
+	   tramp-foreign-file-name-handler-alist)
+    ;; Make Tramp unaware of OPERATION.
+    (setq tramp-file-name-for-operation-external
+	  (delq operation tramp-file-name-for-operation-external))
+    (put #'tramp-file-name-handler
+	 'operations (delq operation (get 'tramp-file-name-handler 'operations)))
+    ;; Remove the advice for OPERATION.
+    (advice-remove operation (concat "tramp-advice-" (symbol-name operation)))))
 
 ;; Main function.
 ;;;###autoload

@@ -169,6 +169,7 @@ How file names, directories and localnames are mangled and managed
 * Localname deconstruction::    Breaking a localname into its components.
 * External packages::           Integration with external Lisp packages.
 * Extension packages::          Adding new methods to @value{tramp}.
+* New operations::              Handling further operations in @value{tramp}.
 
 @end detailmenu
 @end menu
@@ -5472,6 +5473,13 @@ Suppress reading the remote history file in @code{shell}.  Set
 Disable excessive traces.  Set @code{tramp-verbose} to 3 or lower,
 default being 3.  Increase trace levels temporarily when hunting for
 bugs.
+
+@item
+Use a package with @value{tramp} specific implementation of high-level
+operations.  For example, the GNU ELPA package @file{tramp-hlo}
+implements specialized versions of @code{dir-locals--all-files},
+@code{locate-dominating-file} and @code{dir-locals-find-file} for
+@value{tramp}'s @code{tramp-sh} backend (@pxref{New operations}).
 @end itemize
 
 
@@ -6457,6 +6465,7 @@ programs.
 * Localname deconstruction::    Splitting a localname into its component parts.
 * External packages::           Integrating with external Lisp packages.
 * Extension packages::          Adding new methods to @value{tramp}.
+* New operations::              Handling further operations in @value{tramp}.
 @end menu
 
 
@@ -6719,6 +6728,101 @@ must autoload the implementation of function
 The trick is to wrap the function definition of
 @code{tramp-enable-foo-method} with @code{progn} for the
 @code{;;;###autoload} cookie.
+
+
+@node New operations
+@section Handling further operations in @value{tramp}
+
+By default, @value{tramp} handles the basic operations listed in
+@ref{Magic File Names, , Magic File Name Operations, elisp}.
+Sometimes, it is desired to support more complex operations directly,
+mainly for performance reasons.
+
+An external package package could add an own implementation of an
+operation to @value{tramp}, which avoids the performance overhead
+caused by using the basic operations which are aware of remote files.
+For example, it could implement this by using an own shell script
+which collects the information on the remote host for this very
+special purpose with one round-trip per-call.
+
+@defun tramp-add-external-operation operation function backend
+This adds an implementation of @var{operation} to @value{tramp}'s
+backend @var{backend}.  @var{function} is the new implementation.
+
+Both @var{operation} and @var{function} shall be function symbols.
+They must have the same argument list.  The first argument is used to
+determine, whether @value{tramp} is invoked (check for remote file
+name syntax).  It must be a string or nil, in the latter case
+@code{default-directory} is used for the check.
+
+@var{backend}, also a symbol, is the feature name of a @value{tramp}
+backend (except @code{tramp-ftp}).  The new implementation will be
+applied only for this backend.  Example:
+
+@lisp
+@group
+(defun test-operation (file)
+  (message "Original implementation for %s" file))
+@end group
+
+@group
+(defun handle-test-operation (file)
+  (message "Handler implementation for %s" file))
+@end group
+
+@group
+(tramp-add-external-operation
+ #'test-operation #'handle-test-operation 'tramp-sh)
+@end group
+@end lisp
+
+Then we have the different use cases:
+
+@lisp
+@group
+;; Local file name.
+(test-operation "/a/b")
+@result{} "Original implementation for /a/b"
+@end group
+
+@group
+;; Remote file name, handled by `tramp-sh'.
+(test-operation "/ssh::/a/b")
+@result{} "Handler implementation for /ssh::/a/b"
+@end group
+
+@group
+;; Remote file name, handled by `tramp-gvfs'.
+(test-operation "/sftp::/a/b")
+@result{} "Original implementation for /sftp::/a/b"
+@end group
+@end lisp
+
+@var{function} is implemented like an ordinary @value{tramp} backend
+handler, see the examples in @code{tramp-<backend>-handle-*} and
+@code{tramp-handle-*}.  It can expect, that the first argument (or
+@code{default-directory}, if that is @code{nil}) has remote file name
+syntax.  It shall use @value{tramp} internal macros and functions like
+@code{with-parsed-tramp-file-name} and the different cache functions.
+
+If the same @var{function} shall be used for different @value{tramp}
+backends, @code{tramp-add-external-operation} must be called for every
+backend, respectively.
+@end defun
+
+@defun tramp-remove-external-operation operation backend
+The handler for @var{operation}, added by
+@code{tramp-add-external-operation}, is removed from @var{backend}.
+If there are handlers of @var{operation} for other @var{backend}s,
+they are kept.  Example:
+
+@lisp
+@group
+(tramp-remove-external-operation
+ #'test-operation 'tramp-sh)
+@end group
+@end lisp
+@end defun
 
 
 @node Traces and Profiles
