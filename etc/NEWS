@@ -695,6 +695,13 @@ you could already use 'C-u C-x C-n' to clear the goal column.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Autoinsert
+
++++
+*** New condition for 'auto-insert-alist'.
+'auto-insert-alist' now also allows to have a predicate taking no argument
+as conditions.  This allows to trigger 'auto-insert' with finer grained control.
+
 ** Register
 
 *** The "*Register Preview*" buffer shows only suitable registers.

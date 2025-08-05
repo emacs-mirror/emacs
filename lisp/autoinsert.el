@@ -323,8 +323,10 @@ The document was typeset with
 "))
   "A list specifying text to insert by default into a new file.
 Elements look like (CONDITION . ACTION) or ((CONDITION . DESCRIPTION) . ACTION).
-CONDITION may be a regexp that must match the new file's name, or it may be
-a symbol that must match the major mode for this element to apply.
+CONDITION may be a regexp that must match the new file's name or a symbol that
+must match the major mode for this element to apply.
+CONDITION can also be custom predicate function of no arguments; Emacs will
+insert the text if the predicate function returns non-nil.
 Only the first matching element is effective.
 Optional DESCRIPTION is a string for filling `auto-insert-prompt'.
 ACTION may be a skeleton to insert (see `skeleton-insert'), an absolute
@@ -368,12 +370,25 @@ Matches the visited file name against the elements of `auto-insert-alist'."
                 (pcase-lambda (`(,cond . ,action))
                   (if (atom cond)
                       (setq desc cond)
-                    (setq desc (cdr cond)
-                          cond (car cond)))
-                  (when (if (symbolp cond)
-                            (derived-mode-p cond)
+                    ;; if `cond' is a lambda, don't split it but set `desc' to a custom string
+                    (if (and (not (symbolp cond)) (functionp cond))
+                        (setq desc "`lambda condition'")
+                      (setq desc (cdr cond)
+                            cond (car cond))))
+                  (when (cond
+                         ;; `cond' should be a major-mode variable
+                         ((and (symbolp cond) (not (functionp cond)))
+                          (derived-mode-p cond))
+
+                         ;; `cond' should be a predicate that takes no argument
+                         ;; It can either be a named function or a lambda
+                         ((functionp cond)
+                          (funcall cond))
+
+                         ;; cond should be a regexp
+                         (t
                           (and buffer-file-name
-                               (string-match cond buffer-file-name)))
+                               (string-match cond buffer-file-name))))
                     action))
                 auto-insert-alist)))
          (goto-char 1)
