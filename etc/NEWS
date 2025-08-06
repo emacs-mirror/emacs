@@ -3010,6 +3010,11 @@ a remote host.  It must be used in conjunction with the function
 +++
 ** 'read-directory-name' now accepts an optional PREDICATE argument.
 
+---
+** JSON parse error line and column are now obsolete.
+The column number is no longer available; the line number will be
+removed in next Emacs release.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 

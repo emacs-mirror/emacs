@@ -424,5 +424,34 @@ See also `with-temp-buffer'."
     (puthash 1 2 table)
     (should-error (json-serialize table) :type 'wrong-type-argument)))
 
+(defun json-tests--parse-string-error-pos (s)
+  (condition-case e
+      (json-parse-string s)
+    (json-error (nth 3 e))
+    (:success 'no-error)))
+
+(defun json-tests--parse-buffer-error-pos ()
+  (condition-case e
+      (json-parse-buffer)
+    (json-error (nth 3 e))
+    (:success 'no-error)))
+
+(ert-deftest json-parse-error-position ()
+  (let* ((s "[\"*Ωßœ☃*\",,8]")
+         (su (encode-coding-string s 'utf-8-emacs)))
+    (should (equal (json-tests--parse-string-error-pos s) 11))
+    (should (equal (json-tests--parse-string-error-pos su) 16))
+
+    (with-temp-buffer
+      (let ((junk "some leading junk"))
+        (insert junk)
+        (insert s)
+        (goto-char (1+ (length junk)))
+        (should (equal (json-tests--parse-buffer-error-pos) 11))
+
+        (set-buffer-multibyte nil)
+        (goto-char (1+ (length junk)))
+        (should (equal (json-tests--parse-buffer-error-pos) 16))))))
+
 (provide 'json-tests)
 ;;; json-tests.el ends here
