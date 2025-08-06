@@ -4344,8 +4344,9 @@ Return a list of the form (FILE VC-STATE EXTRA) for each file.
 VC-STATE is the current VC state of the file, and EXTRA is optional,
 backend-specific information.
 Normally files in the `up-to-date' and `ignored' states are not
-included.  If the optional argument FILES is non-nil, report on only
-those files, and don't exclude them for being in one of those states.
+included.
+If the optional argument FILES is non-nil, report on only items in
+FILES, and don't exclude any for being `up-to-date' or `ignored'.
 BACKEND is the VC backend; if nil or omitted, it defaults to the result
 of calling `vc-responsible-backend' with DIRECTORY as its first and only
 argument.

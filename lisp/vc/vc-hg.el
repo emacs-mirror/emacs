@@ -429,26 +429,23 @@ the log starting from that revision."
              ;; kinds of ranges of revisions for the log to show:
              ;;   - ranges by revision number:   -rN:M
              ;;   - ranges according to the DAG: -rN::M or -rN..M
-             ;; Note that N & M can be revision numbers or changeset IDs
-             ;; (hashes).  In either case a revision number range
+             ;; Note that N and M can be revision numbers or changeset
+             ;; IDs (hashes).  In either case a revision number range
              ;; includes those commits with revision numbers between the
              ;; revision numbers of the commits identified by N and M.
              ;; See <https://repo.mercurial-scm.org/hg/help/revsets>.
              ;;
-             ;; DAG ranges might seem like Git's double-dot notation for
-             ;; ranges, but there is (at least) the following
-             ;; difference: with -rN::M, commits from other branches
-             ;; aren't included in the log.
+             ;; DAG ranges are not the same as Git's double-dot ranges.
+             ;; Git's 'x..y' is more like Mercurial's 'only(y, x)' than
+             ;; it is like Mercurial's x::y.  In addition, with -rN::M,
+             ;; commits from other branches aren't included in the log.
              ;;
              ;; VC has always used ranges by revision numbers, such that
              ;; commits from all branches are included in the log.
-             ;; `vc-log-outgoing' is a special case: there we really
-             ;; need to exclude the incoming revision and its ancestors
-             ;; because those are certainly not outgoing.
              (cond ((not (stringp limit))
                     (format "-r%s:0" start))
                    ((eq vc-log-view-type 'log-outgoing)
-                    (format "-rreverse(%s::%s & !%s)" limit start limit))
+                    (format "-rreverse(only(%s, %s))" start limit))
                    (t
                     (format "-r%s:%s & !%s" start limit limit)))
 	     (nconc
