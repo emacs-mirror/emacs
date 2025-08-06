@@ -4552,7 +4552,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (or (tramp--test-adb-p) (tramp--test-gvfs-p)
-       (tramp--test-sh-p) (tramp--test-sudoedit-p)))
+       (tramp--test-sh-p) (tramp--test-smb-p)
+       (tramp--test-sudoedit-p)))
 
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
@@ -4565,9 +4566,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (should (consp (file-attribute-modification-time
 			    (file-attributes tmp-name1))))
 	    ;; Skip the test, if the remote handler is not able to set
-	    ;; the correct time.
-	    ;; Some remote machines cannot resolve seconds.  So we use a minute.
-	    (skip-unless (set-file-times tmp-name1 (seconds-to-time 60)))
+	    ;; the correct time.  Some remote machines cannot resolve
+	    ;; seconds.  tramp-adb.el needs at least a day.
+	    (skip-unless
+	     (set-file-times tmp-name1 (seconds-to-time (* 24 60 60))))
 	    ;; Dumb remote shells without perl(1) or stat(1) are not
 	    ;; able to return the date correctly.  They say "don't know".
 	    (unless (time-equal-p
@@ -4577,7 +4579,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (should
 	       (time-equal-p
                 (file-attribute-modification-time (file-attributes tmp-name1))
-		(seconds-to-time 60)))
+		(seconds-to-time (* 24 60 60))))
 	      ;; Setting the time for not existing files shall fail.
 	      (should-error
 	       (set-file-times tmp-name2)

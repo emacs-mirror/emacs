@@ -295,7 +295,7 @@ See `tramp-actions-before-shell' for more info.")
     (set-file-acl . tramp-smb-handle-set-file-acl)
     (set-file-modes . tramp-smb-handle-set-file-modes)
     (set-file-selinux-context . ignore)
-    (set-file-times . ignore)
+    (set-file-times . tramp-smb-handle-set-file-times)
     (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
     (shell-command . tramp-handle-shell-command)
     (start-file-process . tramp-smb-handle-start-file-process)
@@ -1533,6 +1533,15 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		 (format "chmod %s %o" (tramp-smb-shell-quote-localname v) mode))
 	  (tramp-error
 	   v 'file-error "Error while changing file's mode %s" filename))))))
+
+(defun tramp-smb-handle-set-file-times (filename &optional time _flag)
+  "Like `set-file-times' for Tramp files."
+  (tramp-skeleton-set-file-modes-times-uid-gid filename
+    (tramp-smb-send-command
+     v (format
+        "utimes %s -1 -1 %s -1"
+        (tramp-smb-shell-quote-localname v)
+        (format-time-string "%Y:%m:%d-%H:%M:%S" (tramp-defined-time time))))))
 
 ;; We use BUFFER also as connection buffer during setup.  Because of
 ;; this, its original contents must be saved, and restored once
