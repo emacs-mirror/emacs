@@ -48,7 +48,9 @@
 (eval-when-compile (require 'rx))
 (eval-when-compile (require 'map))
 (eval-when-compile (require 'cl-lib))
-(require 'package)
+(require 'package-core)
+(require 'package-install)
+(require 'package-elpa)
 (require 'lisp-mnt)
 (require 'vc)
 (require 'seq)
@@ -485,12 +487,12 @@ documentation and marking the package as installed."
           (with-temp-buffer
             (insert-file-contents file)
             (when-let* ((require-lines (lm-header-multiline "package-requires")))
-              (thread-last
-                (mapconcat #'identity require-lines " ")
-                package-read-from-string
-                lm--prepare-package-dependencies
-                (nconc deps)
-                (setq deps))))))
+              (setq deps
+                    (nconc deps
+                           (lm--prepare-package-dependencies
+                            (package-read-from-string
+                             (mapconcat (function identity)
+                                        require-lines " ")))))))))
       (dolist (dep deps)
         (cl-callf version-to-list (cadr dep)))
       (setf (package-desc-reqs pkg-desc) deps)
@@ -546,7 +548,14 @@ documentation and marking the package as installed."
         ;; FIXME: Compilation should be done as a separate, optional, step.
         ;; E.g. for multi-package installs, we should first install all packages
         ;; and then compile them.
-        (package--compile new-desc)
+        (package--compile
+         (if lisp-dir
+             ;; In case we are installing a package from a local
+             ;; checkout, we want to compile the checkout, not the
+             ;; redirection!
+             (package-desc-create :dir lisp-dir)
+          new-desc))
+
         (when package-native-compile
           (package--native-compile-async new-desc))
         ;; After compilation, load again any files loaded by
@@ -933,7 +942,7 @@ interactively), DIR must be an absolute file name."
   (package-vc--archives-initialize)
   (let* ((dir (if interactive dir (expand-file-name dir))) ;avoid double expansion
          (name (or name (file-name-base (directory-file-name dir))))
-         (pkg-dir (file-name-concat package-user-dir name))
+         (pkg-dir (expand-file-name name package-user-dir))
          (package-vc-selected-packages
           (cons (list name :lisp-dir dir)
                 package-vc-selected-packages)))
