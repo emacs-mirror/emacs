@@ -4435,13 +4435,12 @@ When called interactively, prompts for DIRECTORY.
 This command switches to the file which has the same file
 name relative to DIRECTORY that this buffer's file has relative
 to the root of this working tree."
-  ;; FIXME: Switch between directory analogues, too, in Dired buffers.
   (interactive
    (list
     (vc--prompt-other-working-tree (vc-responsible-backend default-directory)
                                    "Other working tree to visit")))
   (let ((project-current-directory-override directory))
-    (project-find-matching-file)))
+    (project-find-matching-buffer)))
 
 ;;;###autoload
 (defun vc-delete-working-tree (backend directory)
