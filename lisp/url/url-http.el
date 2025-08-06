@@ -1372,7 +1372,8 @@ The return value of this function is the retrieval buffer."
          (httpver url-http-version)
          (httpkeepalive url-http-attempt-keepalives)
          (user-agent url-user-agent)
-         (privacy-level url-privacy-level))
+         (privacy-level url-privacy-level)
+         (max-redirections url-max-redirections))
     (if (not connection)
 	;; Failed to open the connection for some reason
 	(progn
@@ -1418,6 +1419,7 @@ The return value of this function is the retrieval buffer."
                        url-http-extensions-header
                        url-user-agent
                        url-privacy-level
+                       url-max-redirections
                        nsm-noninteractive))
 	  (set (make-local-variable var) nil))
 
@@ -1447,6 +1449,7 @@ The return value of this function is the retrieval buffer."
               url-http-extensions-header url-extensions-header
               url-user-agent user-agent
               url-privacy-level privacy-level
+              url-max-redirections max-redirections
               nsm-noninteractive noninteractive-p)
 
 	(set-process-buffer connection buffer)
