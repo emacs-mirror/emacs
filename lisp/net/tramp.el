@@ -2972,7 +2972,7 @@ not in completion mode."
 BODY is the backend specific code."
   (declare (indent 2) (debug t))
   `(ignore-error file-missing
-     (delete-dups (delq nil
+     (delete-dups (delq nil (delete ""
        (let* ((case-fold-search read-file-name-completion-ignore-case)
 	      (result (progn ,@body)))
 	 ;; Some storage systems do not return "." and "..".
@@ -2989,7 +2989,7 @@ BODY is the backend specific code."
 		    (dolist (elt completion-regexp-list x)
 		      (unless (string-match-p elt x) (throw 'match nil))))))
 	      result)
-	   result))))))
+	   result)))))))
 
 (defvar tramp--last-hop-directory nil
   "Tracks the directory from which to run login programs.")
