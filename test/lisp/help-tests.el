@@ -481,6 +481,9 @@ C-b		undefined\n"
                   (propertize "foo \\[save-buffer]" 'face 'bold))
                  (propertize "foo C-x C-s" 'face 'bold))))
 
+(ert-deftest help-tests--use-docstring-arglist-79128 ()
+  (should (eq (length (help-function-arglist 'seq-empty-p t)) 1)))
+
 (provide 'help-tests)
 
 ;;; help-tests.el ends here

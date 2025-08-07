@@ -2285,53 +2285,54 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
   "Return a formal argument list for the function DEF.
 If PRESERVE-NAMES is non-nil, return a formal arglist that uses
 the same names as used in the original source code, when possible."
-  ;; Handle symbols aliased to other symbols.
-  (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
-  ;; Advice wrappers have "catch all" args, so fetch the actual underlying
-  ;; function to find the real arguments.
-  (setq def (advice--cd*r def))
-  ;; If definition is a macro, find the function inside it.
-  (if (eq (car-safe def) 'macro) (setq def (cdr def)))
-  (cond
-   ((and (closurep def) (listp (aref def 0))) (aref def 0))
-   ((eq (car-safe def) 'lambda) (nth 1 def))
-   ((and (featurep 'native-compile)
-         (subrp def)
-         (listp (subr-native-lambda-list def)))
-    (subr-native-lambda-list def))
-   ((or (and (byte-code-function-p def) (integerp (aref def 0)))
-        (subrp def) (module-function-p def))
-    (or (when preserve-names
-          (let* ((doc (condition-case nil (documentation def 'raw) (error nil)))
-                 (docargs (if doc (car (help-split-fundoc doc nil))))
-                 (arglist (if docargs
-                              (cdar (read-from-string (downcase docargs)))))
-                 (valid t))
-            ;; Check validity.
-            (dolist (arg arglist)
-              (unless (and (symbolp arg)
-                           (let ((name (symbol-name arg)))
-                             (if (and (> (length name) 0) (eq (aref name 0) ?&))
-                                 (memq arg '(&rest &optional))
-                               (not (string-search "." name)))))
-                (setq valid nil)))
-            (when valid arglist)))
-        (let* ((arity (func-arity def))
-               (max (cdr arity))
-               (min (car arity))
-               (arglist ()))
-          (dotimes (i min)
-            (push (intern (concat "arg" (number-to-string (1+ i)))) arglist))
-          (when (and (integerp max) (> max min))
-            (push '&optional arglist)
-            (dotimes (i (- max min))
-              (push (intern (concat "arg" (number-to-string (+ 1 i min))))
-                    arglist)))
-          (unless (integerp max) (push '&rest arglist) (push 'rest arglist))
-          (nreverse arglist))))
-   ((and (autoloadp def) (not (eq (nth 4 def) 'keymap)))
-    "[Arg list not available until function definition is loaded.]")
-   (t t)))
+  (let ((orig-def def)
+        ;; Advice wrappers have "catch all" args, so fetch the actual underlying
+        ;; function to find the real arguments.
+        (def (advice--cd*r
+              (indirect-function def)))) ;; Follow aliases to other symbols.
+    ;; If definition is a macro, find the function inside it.
+    (if (eq (car-safe def) 'macro) (setq def (cdr def)))
+    (cond
+     ((and (closurep def) (listp (aref def 0))) (aref def 0))
+     ((eq (car-safe def) 'lambda) (nth 1 def))
+     ((and (featurep 'native-compile)
+           (subrp def)
+           (listp (subr-native-lambda-list def)))
+      (subr-native-lambda-list def))
+     ((or (and (byte-code-function-p def) (integerp (aref def 0)))
+          (subrp def) (module-function-p def))
+      (or (when preserve-names
+            (let* ((doc (ignore-errors (documentation orig-def 'raw)))
+                   (docargs (if doc (car (help-split-fundoc doc nil))))
+                   (arglist (if docargs
+                                (cdar (read-from-string (downcase docargs)))))
+                   (valid t))
+              ;; Check validity.
+              (dolist (arg arglist)
+                (unless (and (symbolp arg)
+                             (let ((name (symbol-name arg)))
+                               (if (and (> (length name) 0)
+                                        (eq (aref name 0) ?&))
+                                   (memq arg '(&rest &optional))
+                                 (not (string-search "." name)))))
+                  (setq valid nil)))
+              (when valid arglist)))
+          (let* ((arity (func-arity def))
+                 (max (cdr arity))
+                 (min (car arity))
+                 (arglist ()))
+            (dotimes (i min)
+              (push (intern (concat "arg" (number-to-string (1+ i)))) arglist))
+            (when (and (integerp max) (> max min))
+              (push '&optional arglist)
+              (dotimes (i (- max min))
+                (push (intern (concat "arg" (number-to-string (+ 1 i min))))
+                      arglist)))
+            (unless (integerp max) (push '&rest arglist) (push 'rest arglist))
+            (nreverse arglist))))
+     ((and (autoloadp def) (not (eq (nth 4 def) 'keymap)))
+      "[Arg list not available until function definition is loaded.]")
+     (t t))))
 
 (defun help--make-usage (function arglist)
   (cons (if (symbolp function) function 'anonymous)
