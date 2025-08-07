@@ -699,8 +699,9 @@ you could already use 'C-u C-x C-n' to clear the goal column.
 
 +++
 *** New condition for 'auto-insert-alist'.
-'auto-insert-alist' now also allows to have a predicate taking no argument
-as conditions.  This allows to trigger 'auto-insert' with finer grained control.
+'auto-insert-alist' now also allows to have a predicate taking no
+argument as the condition.  This allows to trigger 'auto-insert' with
+finer grained control.
 
 ** Register
 
