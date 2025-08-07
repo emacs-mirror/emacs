@@ -2452,12 +2452,10 @@ The month and year navigation key bindings 'M-}', 'M-{', 'C-x ]' and
 'C-x [' now have the alternative keys '}', '{', ']' and '['.
 
 ---
-*** Avoid modifying user options.
-The user options `calendar-mark-holidays-flag' and
-`calendar-mark-diary-entries-flag' are not modified anymore when
-changing the marking state in the calendar buffer.  We now use variables
-that are reset to the user option values whenever we generate a new
-calendar.
+*** Avoid modifying Calendar's user options.
+The user options 'calendar-mark-holidays-flag' and
+'calendar-mark-diary-entries-flag' are not modified anymore when
+changing the marking state in the calendar buffer.
 
 ** Calc
 
