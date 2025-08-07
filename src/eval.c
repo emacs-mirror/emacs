@@ -3092,14 +3092,14 @@ FUNCTIONP (Lisp_Object object)
 }
 
 DEFUN ("debugger-trap", Fdebugger_trap, Sdebugger_trap, 0, 0, "",
-       doc: /* Trap execution flow and hand over control to GDB.
-The Emacs source file src/.gdbinit uses this via the GDB command
-"break Fdebugger_trap".
+       doc: /* Stop Emacs and hand over control to GDB.
+The Emacs source file src/.gdbinit sets a breakpoint in this function.
 
-This function has no effect.  It is reserved for debugging, and is not
-called by Emacs otherwise.
+This function does nothing.  It is not called by Emacs otherwise, and
+exists so that calling it or invoking it interactively will cause
+GDB to kick in.
 
-For Lisp debugging see debug, as well as edebug, in the manual:
+For Lisp debugging see `debug', as well as `edebug', in the manual:
 "(elisp) Debugging".  */)
   (void)
 {
