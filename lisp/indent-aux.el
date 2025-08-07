@@ -50,6 +50,8 @@ is yanked."
                   (delete-and-extract-region beg end)
                 (buffer-substring beg end))))
     (with-temp-buffer
+      ;; We bind inhibit-read-only non-nil in case the copied text has
+      ;; read-only properties.
       (let ((inhibit-read-only t))
         ;; Indent/deindent the same as the major mode in the original
         ;; buffer.
