@@ -329,6 +329,10 @@ seconds, in addition to using notification for those files."
 
 ;; Internal variables:
 
+;;;###autoload
+(defvar auto-revert-buffer-in-progress-p nil "\
+Non-nil if a `auto-revert-buffer' operation is in progress, nil otherwise.")
+
 (defvar auto-revert-buffer-list ()
   "List of buffers in Auto-Revert Mode.
 
@@ -933,25 +937,25 @@ buffers not reverted last time due to user interruption."
 
 This is performed as specified by Auto-Revert and Global
 Auto-Revert Modes."
-  (if (not (buffer-live-p buf))
-      (auto-revert-remove-current-buffer buf)
-    (with-current-buffer buf
-      ;; Test if someone has turned off Auto-Revert Mode
-      ;; in a non-standard way, for example by changing
-      ;; major mode.
-      (when (and (not auto-revert-mode)
-                 (not auto-revert-tail-mode))
-        (auto-revert-remove-current-buffer))
-      (when (auto-revert-active-p)
-        ;; Enable file notification.
-        ;; Don't bother creating a notifier for non-file buffers
-        ;; unless it explicitly indicates that this works.
-        (when (and auto-revert-use-notify
-                   (not auto-revert-notify-watch-descriptor)
-                   (or buffer-file-name
-                       buffer-auto-revert-by-notification))
-          (auto-revert-notify-add-watch))
-        (auto-revert-handler)))))
+  (let ((auto-revert-buffer-in-progress-p t))
+    (if (not (buffer-live-p buf))
+        (auto-revert-remove-current-buffer buf)
+      (with-current-buffer buf
+        ;; Test if someone has turned off Auto-Revert Mode in a
+        ;; non-standard way, for example by changing major mode.
+        (when (and (not auto-revert-mode)
+                   (not auto-revert-tail-mode))
+          (auto-revert-remove-current-buffer))
+        (when (auto-revert-active-p)
+          ;; Enable file notification.
+          ;; Don't bother creating a notifier for non-file buffers
+          ;; unless it explicitly indicates that this works.
+          (when (and auto-revert-use-notify
+                     (not auto-revert-notify-watch-descriptor)
+                     (or buffer-file-name
+                         buffer-auto-revert-by-notification))
+            (auto-revert-notify-add-watch))
+          (auto-revert-handler))))))
 
 (defun auto-revert-buffers ()
   "Revert buffers as specified by Auto-Revert and Global Auto-Revert Mode.

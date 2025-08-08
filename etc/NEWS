@@ -2209,6 +2209,12 @@ This macro adds the current buffer to 'inhibit-auto-revert-buffers',
 runs its body, and removes the current buffer from
 'inhibit-auto-revert-buffers' afterwards.
 
++++
+*** New variable 'auto-revert-buffer-in-progress-p'.
+'auto-revert-buffer' binds this variable to a non-nil value while it is
+working.  This can be used by major mode 'revert-buffer-function'
+implementations to suppress messages in Auto Revert modes, for example.
+
 ** Strokes
 
 --
