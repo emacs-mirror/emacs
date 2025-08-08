@@ -467,10 +467,15 @@ Callers can use this to indicate the reason for which or context in
 which Emacs should ask the user to select a project.
 
 ---
-*** New command 'project-find-matching-file'.
+*** New command 'project-find-matching-buffer'.
 It can be used when switching between projects with similar file trees
 (such as Git worktrees of the same repository).  It supports being
 invoked standalone or from the 'project-switch-commands' dispatch menu.
+
+---
+*** New variable 'project-find-matching-buffer-function'.
+Major modes can set this to major mode-specific functions to control how
+'project-find-matching-buffer' finds matching buffers.
 
 +++
 *** New user option 'project-list-exclude'.
@@ -2195,6 +2200,12 @@ auto-reverting of this buffer is suppressed.
 This macro adds the current buffer to 'inhibit-auto-revert-buffers',
 runs its body, and removes the current buffer from
 'inhibit-auto-revert-buffers' afterwards.
+
++++
+*** New variable 'auto-revert-buffer-in-progress-p'.
+'auto-revert-buffer' binds this variable to a non-nil value while it is
+working.  This can be used by major mode 'revert-buffer-function'
+implementations to suppress messages in Auto Revert modes, for example.
 
 ** Strokes
 
