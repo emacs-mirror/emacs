@@ -275,10 +275,9 @@ empty file is visited.  This is accomplished by putting
   What gets inserted, if anything, is determined by the variable
 @code{auto-insert-alist}.  The @sc{car} of each element of this list
 is either a mode name, making the element applicable when a buffer is
-in that mode, a string, which is a regexp matched against a
+in that mode, or a string, which is a regexp matched against a
 buffer's file name (the latter enables you to distinguish between
-different kinds of files that have the same mode in Emacs) or a custom
-predicate that takes no argument.  The
+different kinds of files that have the same mode in Emacs).  The
 @sc{car} of an element may also be a cons cell, consisting of mode
 name or regexp, as above, and an additional descriptive string.
 
