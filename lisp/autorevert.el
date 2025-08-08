@@ -838,16 +838,15 @@ This is an internal function used by Auto-Revert Mode."
                                t)))))
          eob eoblist)
     (when (timerp auto-revert--lockout-timer)
-      (cancel-timer auto-revert--lockout-timer))
-    (setq auto-revert-notify-modified-p nil
-          auto-revert--last-time
-          (if revert (current-time) auto-revert--last-time)
-          auto-revert--lockout-timer nil)
+      (cancel-timer auto-revert--lockout-timer)
+      (setq auto-revert--lockout-timer nil))
 
     (when revert
       (when (and auto-revert-verbose
                  (not (eq revert 'fast)))
         (message "Reverting buffer `%s'" (buffer-name)))
+      (setq auto-revert-notify-modified-p nil
+            auto-revert--last-time (current-time))
       ;; If point (or a window point) is at the end of the buffer, we
       ;; want to keep it at the end after reverting.  This allows one
       ;; to tail a file.
