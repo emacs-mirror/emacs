@@ -4404,9 +4404,9 @@ When called from Lisp, BACKEND is the VC backend."
   ;; `project-current' should not return nil in either case, but don't
   ;; signal an error if it does.
   (when-let* ((p (project-current)))
-    (project-remember-project p))
+    (project-remember-project p nil t))
   (when-let* ((p (project-current nil directory)))
-    (project-remember-project p))
+    (project-remember-project p nil t))
 
   (vc-dir directory backend))
 
@@ -4420,7 +4420,7 @@ PROMPT is the prompt string for `project-prompter'."
     (require 'project)
     (dolist (tree trees)
       (when-let* ((p (project-current nil tree)))
-        (project-remember-project p)))
+        (project-remember-project p nil t)))
     (funcall project-prompter prompt
              (lambda (k &optional _v)
                (member (or (car-safe k) k) trees))
@@ -4511,7 +4511,7 @@ BACKEND is the VC backend."
             (rename-buffer name))))))
 
   (when-let* ((p (project-current nil to)))
-    (project-remember-project p)))
+    (project-remember-project p nil t)))
 
 
 

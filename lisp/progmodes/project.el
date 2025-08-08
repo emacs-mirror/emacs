@@ -2049,26 +2049,34 @@ With some possible metadata (to be decided).")
             (current-buffer)))
       (write-region nil nil filename nil 'silent))))
 
-(defun project--remember-dir (root &optional no-write)
+(defun project--remember-dir (root &optional no-write stable)
   "Add project root ROOT to the front of the project list.
 Save the result in `project-list-file' if the list of projects
-has changed, and NO-WRITE is nil."
+has changed, unless NO-WRITE is non-nil.
+If STABLE is non-nil, don't move ROOT to the front of the project list
+if it's already present further down the project list."
   (project--ensure-read-project-list)
   (let ((dir (abbreviate-file-name root)))
-    (unless (equal (caar project--list) dir)
-      (dolist (ent project--list)
-        (when (equal dir (car ent))
-          (setq project--list (delq ent project--list))))
+    (unless (if stable (assoc dir project--list)
+              (equal (caar project--list) dir))
+      (unless stable
+        (dolist (ent project--list)
+          (when (equal dir (car ent))
+            (setq project--list (delq ent project--list)))))
       (push (list dir) project--list)
       (unless no-write
         (project--write-project-list)))))
 
 ;;;###autoload
-(defun project-remember-project (pr &optional no-write)
+(defun project-remember-project (pr &optional no-write stable)
   "Add project PR to the front of the project list.
 If project PR satisfies `project-list-exclude', then nothing is done.
 Save the result in `project-list-file' if the list of projects
-has changed, and NO-WRITE is nil."
+has changed.
+When called from Lisp, optional argument NO-WRITE non-nil means to
+suppress saving `project-list-file'.
+Optional argument STABLE means don't move PR to the front of the project
+list if it's already present further down the project list."
   (interactive (list (project-current t)))
   (let ((root (project-root pr))
         (interact (called-interactively-p 'any)))
@@ -2079,9 +2087,9 @@ has changed, and NO-WRITE is nil."
                   project-list-exclude)
         (when interact
           (message "Current project is blacklisted!"))
+      (project--remember-dir root no-write stable)
       (when interact
-        (message "Current project remembered"))
-      (project--remember-dir root no-write))))
+        (message "Current project remembered")))))
 
 (defun project--remove-from-project-list (project-root report-message)
   "Remove directory PROJECT-ROOT of a missing project from the project list.
