@@ -4472,8 +4472,8 @@ BACKEND is the VC backend."
 (defun vc-move-working-tree (backend from to)
   "Relocate a working tree from FROM to TO, two directory file names.
 Must be called from within an existing VC working tree.
-When called interactively, prompts the directory file names of each of
-the other working trees FROM and TO.
+When called interactively, prompts for the directory file names of each
+of the other working trees FROM and TO.
 BACKEND is the VC backend."
   (interactive
    (let ((backend (vc-responsible-backend default-directory)))
@@ -4486,8 +4486,29 @@ BACKEND is the VC backend."
   (vc-call-backend backend 'move-working-tree from to)
 
   ;; Update visited file names for buffers visiting files under FROM.
-  ;; FIXME: Also update VC-Dir buffers.
-  (dired-rename-subdir (expand-file-name from) (expand-file-name to))
+  (let ((from (expand-file-name from)))
+    (dired-rename-subdir from (expand-file-name to))
+    (dolist (buf vc-dir-buffers)
+      (with-current-buffer buf
+        (when (string-prefix-p from default-directory)
+          (setq default-directory
+                (expand-file-name (file-relative-name default-directory from)
+                                  to))
+          ;; Obtain an appropriately uniquify'd name for a *vc-dir*
+          ;; buffer in the new working tree.  In particular if this
+          ;; *vc-dir* buffer already has a uniquify'd name appropriate
+          ;; for the old working tree, we must replace that.
+          ;; See also `vc-dir-prepare-status-buffer'.
+          ;; FIXME: There should be a way to get this information
+          ;; without creating and killing a buffer.
+          (let (name)
+            (unwind-protect
+                (setq name (buffer-name
+                            (create-file-buffer
+                             (expand-file-name "*vc-dir*"
+                                               default-directory))))
+              (kill-buffer name))
+            (rename-buffer name))))))
 
   (when-let* ((p (project-current nil to)))
     (project-remember-project p)))

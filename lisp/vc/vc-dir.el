@@ -194,7 +194,7 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
                       (cl-return buffer))))))))
     (or buf
         ;; Create a new buffer named BNAME.
-	;; We pass a filename to create-file-buffer because it is what
+	;; We pass a filename to `create-file-buffer' because it is what
 	;; the function expects, and also what uniquify needs (if active)
         (with-current-buffer (create-file-buffer (expand-file-name bname dir))
           (setq default-directory dir)
