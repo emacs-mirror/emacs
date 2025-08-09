@@ -4406,7 +4406,7 @@ When called from Lisp, BACKEND is the VC backend."
   (when-let* ((p (project-current)))
     (project-remember-project p nil t))
   (when-let* ((p (project-current nil directory)))
-    (project-remember-project p nil t))
+    (project-remember-project p))
 
   (vc-dir directory backend))
 
@@ -4511,7 +4511,7 @@ BACKEND is the VC backend."
             (rename-buffer name))))))
 
   (when-let* ((p (project-current nil to)))
-    (project-remember-project p nil t)))
+    (project-remember-project p)))
 
 
 
