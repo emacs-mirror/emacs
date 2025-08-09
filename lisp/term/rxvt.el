@@ -190,7 +190,7 @@
   (when rxvt-set-window-title
     (xterm--init-frame-title))
 
-  ;; Do not use TAB+BS optimization.
+  ;; Do not use TAB+BS optimization, as that might produce buggy display.
   (setq tty-cursor-movement-use-TAB-BS nil)
 
   (run-hooks 'terminal-init-rxvt-hook))
