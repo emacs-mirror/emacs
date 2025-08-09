@@ -971,7 +971,7 @@ converted to '１', etc.  Companion commands 'halfwidth-region' and
 ---
 *** texinfo-mode now can auto-close the ``'' pairs.
 Now inserting `` in 'texinfo-mode' will close it by inserting its
-respective ''.
+respective '', if 'electric-pair-mode' is enabled.
 
 
 ** ASM mode
