@@ -684,6 +684,8 @@ print_create_variable_mapping (void)
 	   intern ("print-charset-text-property"), Qnil),
     list3 (intern ("unreadable-function"),
 	   intern ("print-unreadable-function"), Qnil),
+    list3 (intern ("unreadeable-function"),
+	   intern ("print-unreadable-function"), Qnil),
     list3 (intern ("gensym"), intern ("print-gensym"), Qnil),
     list3 (intern ("continuous-numbering"),
 	   intern ("print-continuous-numbering"), Qnil),
