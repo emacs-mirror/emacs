@@ -932,46 +932,12 @@ option controls how much is indented for method chaining.
 ** PHP-ts mode
 
 ---
-*** 'php-ts-mode' now depends on 'mhtml-ts-mode'.
-The direct dependency on js-ts-mode, css-ts-mode and html-ts-mode has
-now been replaced by ‘mhtml-ts-mode’.  Navigation, Outline and Imenu
-work for all languages and code maintenance is easier.
-
----
 *** 'php-ts-mode-run-php-webserver' can now accept a custom "php.ini" file.
 You can use the new optional argument CONFIG when calling
 'php-ts-mode-run-php-webserver' to pass an alternative "php.ini" file to
 the built-in Web server.  Interactively, when invoked with a prefix
 argument, 'php-ts-mode-run-php-webserver' prompts for the config file as
 well as for other connection parameters.
-
----
-*** The option 'php-ts-mode-css-fontify-colors' has been removed.
-'mhtml-ts-mode-css-fontify-colors' replaces this option.
-
----
-*** New user option 'php-ts-mode-html-relative-indent'.
-In buffers containing both PHP and HTML, this option allows you to
-define how the PHP code should be indented relative to the position of
-the HTML tags.
-
----
-*** New user option 'php-ts-mode-html-indent-offset'.
-Offset of PHP code block relative to HTML tags.
-
----
-*** New user option 'php-ts-mode-find-sibling-rules'.
-Rules for finding siblings of a PHP file.
-
----
-*** New user option 'php-ts-mode-phpdoc-highlight-errors'.
-When non nil, it highlights unknown PHPDOC tags using
-'font-lock-warning-face' so that the user can identify them more easily.
-
----
-*** New command 'php-ts-mode-show-ini'.
-Show the location of the PHP ini files, if the buffer is associated to a remote
-PHP file show the remote PHP ini files.
 
 ** Rust-ts mode
 
