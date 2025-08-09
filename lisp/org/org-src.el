@@ -665,7 +665,8 @@ Leave point in edit buffer."
   "Fontify code block between START and END using LANG's syntax.
 This function is called by Emacs's automatic fontification, as long
 as `org-src-fontify-natively' is non-nil."
-  (let ((modified (buffer-modified-p)) native-tab-width)
+  (let ((modified (buffer-modified-p))
+        (native-tab-width tab-width))
     (remove-text-properties start end '(face nil))
     (let ((lang-mode (org-src-get-lang-mode lang)))
       (when (fboundp lang-mode)
