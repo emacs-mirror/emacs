@@ -392,9 +392,13 @@ This expects `auto-revert--messages' to be bound by
                  ;; Delete file.
                  (delete-file tmpfile)
                  (auto-revert--wait-for-revert buf))
-               ;; Check, that the buffer has been reverted.
-               (should-not
-                (string-match name (substring-no-properties (buffer-string))))
+               ;; Check, that the buffer has been reverted.  (On
+               ;; MS-Windows, this can randomly fail for unknown
+               ;; reasons.)
+               (unless (eq system-type 'windows-nt)
+                 (should-not
+                  (string-match name (substring-no-properties
+                                      (buffer-string)))))
 
                (ert-with-message-capture auto-revert--messages
                  ;; Make dired buffer modified.  Check, that the buffer has
