@@ -2682,6 +2682,13 @@ by default and controlled by this variable; it can be set to non-nil
 to keep the old behavior.  This change is to accomodate screen
 readers.
 
++++
+** A thread's current buffer can now be killed.
+We introduce a new attribute for threads called buffer-disposition.
+See the new argument in 'make-thread'.  The default value allows the
+thread's current buffer to be killed by another thread.  This does not
+apply to the main thread's buffer.
+
 
 * Lisp Changes in Emacs 31.1
 
