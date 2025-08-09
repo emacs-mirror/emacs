@@ -219,7 +219,8 @@ It is checked for buffer-local `auto-revert-notify-watch-descriptor'."
            ,@body)
        (customize-set-variable 'auto-revert-interval auto-revert-interval-orig)
        (setq auto-revert--lockout-interval auto-revert--lockout-interval-orig)
-       (file-notify-rm-all-watches))))
+       (ignore-errors (file-notify-rm-all-watches))
+       (sleep-for 1))))
 
 (defun auto-revert-test--write-region (string file &optional append)
   "Write STRING to FILE."

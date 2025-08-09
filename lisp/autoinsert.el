@@ -323,11 +323,11 @@ The document was typeset with
 "))
   "A list specifying text to insert by default into a new file.
 Elements look like (CONDITION . ACTION) or ((CONDITION . DESCRIPTION) . ACTION).
-CONDITION may be a regexp that must match the new file's name, or it may be
-a symbol that must match the major mode for this element to apply.
-CONDITION can also be a custom predicate of no arguments declared with
-'(predicate FUNCTION)'.  Emacs will insert the text if the predicate
-function returns non-nil.
+CONDITION may be a regexp that must match the new file's name, or it
+may be a symbol that must match the major mode for this element to apply.
+CONDITION can also be a custom predicate of no arguments declared
+with (predicate FUNCTION).  Emacs will insert the text if the
+predicate function returns non-nil.
 Only the first matching element is effective.
 Optional DESCRIPTION is a string for filling `auto-insert-prompt'.
 ACTION may be a skeleton to insert (see `skeleton-insert'), an absolute
