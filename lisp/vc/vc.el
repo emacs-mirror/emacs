@@ -1752,7 +1752,7 @@ itself responsible for the file (usually because other files in that
 directory are already registered under that backend) will be used to
 register the file.  If no backend declares itself responsible, the
 first backend that could register the file is used."
-  (interactive "P")
+  (interactive)
   (let* ((fileset-arg (or vc-fileset (vc-deduce-fileset nil t)))
          (backend (car fileset-arg))
 	 (files (nth 1 fileset-arg)))
