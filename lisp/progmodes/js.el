@@ -4142,6 +4142,7 @@ See `treesit-thing-settings' for more information.")
   :syntax-table js-mode-syntax-table
   (js--mode-setup) ;Reuse most of `js-mode', but not as parent (bug#67463).
   (setq-local js-enabled-frameworks nil)
+  (setq-local editorconfig-indent-size-vars '(js-indent-level))
   ;; Speed up `syntax-ppss': JSON files can be big but can't hold
   ;; regexp matchers nor #! thingies (and `js-enabled-frameworks' is nil).
   (setq-local syntax-propertize-function #'ignore))
