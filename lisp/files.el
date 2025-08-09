@@ -7107,10 +7107,10 @@ hook functions.
 The function `revert-buffer--default' runs this.
 A customized `revert-buffer-function' need not run this hook.")
 
-(defvar revert-buffer-in-progress nil
-  "Non-nil if a `revert-buffer' operation is in progress, nil otherwise.")
 (define-obsolete-variable-alias
   'revert-buffer-in-progress-p 'revert-buffer-in-progress "31.1")
+(defvar revert-buffer-in-progress nil
+  "Non-nil if a `revert-buffer' operation is in progress, nil otherwise.")
 (defvar revert-buffer-internal-hook)
 
 ;; `revert-buffer-function' was defined long ago to be a function of only
