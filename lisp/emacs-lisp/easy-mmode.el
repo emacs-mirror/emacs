@@ -499,8 +499,9 @@ on if the hook has explicitly disabled it.
 	 (MODE-enable-in-buffer
 	  (intern (concat global-mode-name "-enable-in-buffer")))
 	 (minor-MODE-hook (intern (concat mode-name "-hook")))
-	 (MODE-set-explicitly (intern (concat mode-name "-set-explicitly")))
-	 (MODE-major-mode (intern (concat (symbol-name mode) "-major-mode")))
+	 (MODE-set-explicitly (intern (concat mode-name "--set-explicitly")))
+	 (MODE-major-mode (intern (concat (symbol-name global-mode)
+                                          "--major-mode")))
          (MODE-predicate (intern (concat (replace-regexp-in-string
                                           "-mode\\'" "" global-mode-name)
                                          "-modes")))
