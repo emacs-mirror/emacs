@@ -2286,7 +2286,7 @@ Return t if the buffer had changes, nil otherwise."
 	   (if files (vc-coding-system-for-diff (car files)) 'undecided)
            'unix))
          (orig-diff-buffer-clone
-          (if revert-buffer-in-progress-p
+          (if revert-buffer-in-progress
               (clone-buffer
                (generate-new-buffer-name " *vc-diff-clone*") nil))))
     ;; On MS-Windows and MS-DOS, Diff is likely to produce DOS-style

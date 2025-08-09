@@ -2488,7 +2488,7 @@ The difference to `vc-do-command' is that this function always invokes
                 '("GIT_LITERAL_PATHSPECS=1"))
             ;; Avoid repository locking during background operations
             ;; (bug#21559).
-            ,@(when revert-buffer-in-progress-p
+            ,@(when revert-buffer-in-progress
                 '("GIT_OPTIONAL_LOCKS=0")))
           process-environment)))
     (apply #'vc-do-command (or buffer "*vc*") okstatus vc-git-program
@@ -2527,7 +2527,7 @@ The difference to `vc-do-command' is that this function always invokes
                 '("GIT_LITERAL_PATHSPECS=1"))
 	    ;; Avoid repository locking during background operations
 	    ;; (bug#21559).
-	    ,@(when revert-buffer-in-progress-p
+	    ,@(when revert-buffer-in-progress
 		'("GIT_OPTIONAL_LOCKS=0")))
 	  process-environment)))
     (apply #'process-file vc-git-program nil buffer nil "--no-pager" command args)))

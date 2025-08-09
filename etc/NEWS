@@ -966,7 +966,7 @@ characters in CJK texts.  For example, 'A' is converted to 'Ａ', '1' is
 converted to '１', etc.  Companion commands 'halfwidth-region' and
 'halfwidth-word' perform the opposite conversion.
 
-** Texinfo Mode
+** Texinfo mode
 
 ---
 *** texinfo-mode now can auto-close the ``'' pairs.
@@ -2212,6 +2212,16 @@ destination window is chosen using 'display-buffer-alist'.  Example:
                                    display-buffer-use-some-window)
                                   (some-window . mru))))
 
+** Revert
+
++++
+*** Variable 'revert-buffer-in-progress' has been renamed.
+The old name, 'revert-buffer-in-progress-p', is kept as obsolete
+variable alias.
+
+Symbol names with a trailing '-p' are reserved for predicates.  Calling
+a variable like this was a mistake.
+
 ** Autorevert
 
 +++
@@ -2226,7 +2236,7 @@ runs its body, and removes the current buffer from
 'inhibit-auto-revert-buffers' afterwards.
 
 +++
-*** New variable 'auto-revert-buffer-in-progress-p'.
+*** New variable 'auto-revert-buffer-in-progress'.
 'auto-revert-buffer' binds this variable to a non-nil value while it is
 working.  This can be used by major mode 'revert-buffer-function'
 implementations to suppress messages in Auto Revert modes, for example.

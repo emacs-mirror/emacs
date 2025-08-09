@@ -330,7 +330,7 @@ seconds, in addition to using notification for those files."
 ;; Internal variables:
 
 ;;;###autoload
-(defvar auto-revert-buffer-in-progress-p nil "\
+(defvar auto-revert-buffer-in-progress nil "\
 Non-nil if a `auto-revert-buffer' operation is in progress, nil otherwise.")
 
 (defvar auto-revert-buffer-list ()
@@ -875,7 +875,7 @@ This is an internal function used by Auto-Revert Mode."
     ;; `preserve-modes' avoids changing the (minor) modes.  But we do
     ;; want to reset the mode for VC, so we do it manually.
     (when (and (not auto-revert-tail-mode) (or revert auto-revert-check-vc-info))
-      (let ((revert-buffer-in-progress-p t))
+      (let ((revert-buffer-in-progress t))
         (vc-refresh-state)))))
 
 (defun auto-revert-tail-handler (size)
@@ -936,7 +936,7 @@ buffers not reverted last time due to user interruption."
 
 This is performed as specified by Auto-Revert and Global
 Auto-Revert Modes."
-  (let ((auto-revert-buffer-in-progress-p t))
+  (let ((auto-revert-buffer-in-progress t))
     (if (not (buffer-live-p buf))
         (auto-revert-remove-current-buffer buf)
       (with-current-buffer buf

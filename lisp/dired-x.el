@@ -477,7 +477,7 @@ status message."
             (old-modified-p (buffer-modified-p))
             (count (or init-count 0))
             (dired-omit-verbose
-             (and dired-omit-verbose (not auto-revert-buffer-in-progress-p))))
+             (and dired-omit-verbose (not auto-revert-buffer-in-progress))))
         (unless (string= omit-re "")
           (let ((dired-marker-char dired-omit-marker-char))
             (when dired-omit-verbose (message "Omitting..."))

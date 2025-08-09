@@ -3669,6 +3669,8 @@ are \"file-exists-p\", \"file-readable-p\", \"file-directory-p\" and
 (defun tramp-sh-handle-vc-registered (file)
   "Like `vc-registered' for Tramp files."
   (when vc-handled-backends
+    ;; Starting with Emacs 31, use `revert-buffer-in-progress'.
+    (with-suppressed-warnings ((obsolete revert-buffer-in-progress-p))
     (let ((inhibit-message (or revert-buffer-in-progress-p inhibit-message))
 	  (temp-message (unless revert-buffer-in-progress-p "")))
       (with-temp-message temp-message
@@ -3728,7 +3730,7 @@ are \"file-exists-p\", \"file-readable-p\", \"file-directory-p\" and
 	      ;; Run.
 	      (tramp-with-demoted-errors
 	          v "Error in 2nd pass of `vc-registered': %s"
-		(tramp-run-real-handler #'vc-registered (list file))))))))))
+		(tramp-run-real-handler #'vc-registered (list file)))))))))))
 
 ;;;###tramp-autoload
 (defun tramp-sh-file-name-handler (operation &rest args)
