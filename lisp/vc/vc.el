@@ -4489,26 +4489,29 @@ BACKEND is the VC backend."
   (let ((from (expand-file-name from)))
     (dired-rename-subdir from (expand-file-name to))
     (dolist (buf vc-dir-buffers)
-      (with-current-buffer buf
-        (when (string-prefix-p from default-directory)
-          (setq default-directory
-                (expand-file-name (file-relative-name default-directory from)
-                                  to))
-          ;; Obtain an appropriately uniquify'd name for a *vc-dir*
-          ;; buffer in the new working tree.  In particular if this
-          ;; *vc-dir* buffer already has a uniquify'd name appropriate
-          ;; for the old working tree, we must replace that.
-          ;; See also `vc-dir-prepare-status-buffer'.
-          ;; FIXME: There should be a way to get this information
-          ;; without creating and killing a buffer.
-          (let (name)
-            (unwind-protect
-                (setq name (buffer-name
-                            (create-file-buffer
-                             (expand-file-name "*vc-dir*"
-                                               default-directory))))
-              (kill-buffer name))
-            (rename-buffer name))))))
+      (when (buffer-live-p buf)
+        (with-current-buffer buf
+          (when (string-prefix-p from default-directory)
+            (setq default-directory
+                  (expand-file-name (file-relative-name default-directory from)
+                                    to))
+            ;; If the *vc-dir* buffer has a uniquify'd name then we need
+            ;; to obtain an new uniquify'd name for this buffer under
+            ;; the new working tree, replacing the one for the old
+            ;; working tree.  See also `vc-dir-prepare-status-buffer'.
+            (when-let* ((base-name (uniquify-buffer-base-name))
+                        (item (cl-find (current-buffer) uniquify-managed
+                                       :key #'uniquify-item-buffer)))
+              (let (name)
+                ;; FIXME: There should be a way to get this information
+                ;; without creating and killing a buffer.
+                (unwind-protect
+                    (setq name (buffer-name
+                                (create-file-buffer
+                                 (expand-file-name base-name
+                                                   default-directory))))
+                  (kill-buffer name))
+                (uniquify-rename-buffer item name))))))))
 
   (when-let* ((p (project-current nil to)))
     (project-remember-project p)))
