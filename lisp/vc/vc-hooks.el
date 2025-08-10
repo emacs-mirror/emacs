@@ -968,6 +968,7 @@ In the latter case, VC mode is deactivated for this buffer."
   "!"   #'vc-edit-next-command
   "w c" #'vc-add-working-tree
   "w w" #'vc-switch-working-tree
+  "w s" #'vc-working-tree-switch-project
   "w x" #'vc-delete-working-tree
   "w R" #'vc-move-working-tree)
 (fset 'vc-prefix-map vc-prefix-map)

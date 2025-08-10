@@ -1946,6 +1946,7 @@ other working trees:
 
 - 'C-x v w c': Add a new working tree.
 - 'C-x v w w': Visit this file in another working tree.
+- 'C-x v w s': Like 'C-x p p' but limited to other working trees.
 - 'C-x v w x': Delete a working tree you no longer need.
 - 'C-x v w R': Relocate a working tree to another file name.
 

@@ -4444,6 +4444,20 @@ to the root of this working tree."
     (project-find-matching-buffer)))
 
 ;;;###autoload
+(defun vc-working-tree-switch-project (dir)
+  "Like \\[project-switch-project] but limited to projects with the same backing repository.
+Must be called from within an existing VC working tree.
+Prompts for the directory file name of the other working tree."
+  ;; There is no point in calling this from Lisp as opposed to calling
+  ;; `project-switch-project' directly because it is a trivial wrapper.
+  (declare (interactive-only project-switch-project))
+  (interactive
+   (list
+    (vc--prompt-other-working-tree (vc-responsible-backend default-directory)
+                                   "Other working tree to switch to")))
+  (project-switch-project dir))
+
+;;;###autoload
 (defun vc-delete-working-tree (backend directory)
   "Delete working tree DIRECTORY with same backing repository as this tree.
 Must be called from within an existing VC working tree.
