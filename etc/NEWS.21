@@ -1822,7 +1822,7 @@ separate Texinfo file.
 
 *** The PCL-CVS package available by either running M-x cvs-examine or
 by visiting a CVS administrative directory (with a prefix argument)
-provides an alternative interface to VC-dired for CVS.  It comes with
+provides an alternative interface to VC-Dir for CVS.  It comes with
 'log-view-mode' to view RCS and SCCS logs and 'log-edit-mode' used to
 enter check-in log messages.
 

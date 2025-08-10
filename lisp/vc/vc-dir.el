@@ -55,47 +55,47 @@ See `run-hooks'."
   :group 'vc)
 
 (defface vc-dir-header '((t :inherit font-lock-type-face))
-  "Face for headers in VC-dir buffers."
+  "Face for headers in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-header-value '((t :inherit font-lock-variable-name-face))
-  "Face for header values in VC-dir buffers."
+  "Face for header values in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-directory '((t :inherit font-lock-comment-delimiter-face))
-  "Face for directories in VC-dir buffers."
+  "Face for directories in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-file '((t :inherit font-lock-function-name-face))
-  "Face for files in VC-dir buffers."
+  "Face for files in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-mark-indicator '((t :inherit font-lock-type-face))
-  "Face for mark indicators in VC-dir buffers."
+  "Face for mark indicators in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-status-warning '((t :inherit font-lock-warning-face))
-  "Face for warning status in VC-dir buffers."
+  "Face for warning status in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-status-edited '((t :inherit font-lock-variable-name-face))
-  "Face for edited status in VC-dir buffers."
+  "Face for edited status in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-status-up-to-date '((t :inherit font-lock-builtin-face))
-  "Face for up-to-date status in VC-dir buffers."
+  "Face for up-to-date status in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-status-ignored '((t :inherit shadow))
-  "Face for ignored or empty values in VC-dir buffers."
+  "Face for ignored or empty values in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
@@ -1328,7 +1328,7 @@ specific headers."
    "\n"))
 
 (defun vc-dir-refresh-files (files)
-  "Refresh some FILES in the *VC-dir* buffer."
+  "Refresh some FILES in the *VC-Dir* buffer."
   (let ((def-dir default-directory)
 	(backend vc-dir-backend))
     (vc-set-mode-line-busy-indicator)
@@ -1377,7 +1377,7 @@ specific headers."
     (vc-dir-hide-state)))
 
 (defun vc-dir-refresh ()
-  "Refresh the contents of the *VC-dir* buffer.
+  "Refresh the contents of the *VC-Dir* buffer.
 Throw an error if another update process is in progress."
   (interactive)
   (if (vc-dir-busy)
@@ -1432,7 +1432,7 @@ Throw an error if another update process is in progress."
                      (run-hooks 'vc-dir-refresh-hook))))))))))))
 
 (defun vc-dir-show-fileentry (file)
-  "Insert an entry for a specific file into the current *VC-dir* listing.
+  "Insert an entry for a specific file into the current *VC-Dir* listing.
 This is typically used if the file is up-to-date (or has been added
 outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
