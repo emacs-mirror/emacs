@@ -1703,7 +1703,7 @@ type returned by `vc-dir-bookmark-make-record'."
   "Visit VC-Dir buffer for matching directory in another project.
 CURRENT-PROJECT is the project instance for the current project.
 MIRROR-PROJECT is the project instance for the project to visit.
-The matching directory has the same name relative to the project root.
+A matching directory has the same name relative to the project root.
 If a matching directory does not exist in the other project, try going
 up the directory tree until encountering a directory that exists.
 

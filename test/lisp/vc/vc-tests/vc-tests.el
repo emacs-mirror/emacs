@@ -662,6 +662,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
         (ignore-errors
           (run-hooks 'vc-test--cleanup-hook))))))
 
+(declare-function vc-git--program-version "vc-git")
+
 (defun vc-test--other-working-trees (backend)
   "Test other working trees actions."
   (ert-with-temp-directory _tempdir
@@ -734,35 +736,38 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                           (vc-call-backend backend 'known-other-working-trees))))
 
                 ;; Test `move-working-tree'.
-                (vc-move-working-tree backend second third)
-                (should
-                 (equal (list third)
-                        (vc-call-backend backend 'known-other-working-trees)))
-                (should-not (file-directory-p second))
-                (should (file-directory-p third))
-                ;; Moving the first working tree is only supported
-                ;; for some backends.
-                (cl-ecase backend
-                  (Git
-                   (let ((default-directory third))
-                     (vc-move-working-tree backend first second))
-                   (let ((default-directory third))
-                     (should
-                      (equal (list second)
-                             (vc-call-backend backend
-                                              'known-other-working-trees))))
-                   (should-not (file-directory-p first))
-                   (should (file-directory-p second))
-                   (vc-move-working-tree backend second first))
-                  (Hg
-                   (let ((default-directory third))
-                     (should-error (vc-move-working-tree backend
-                                                         first second)))))
+                (unless (and (eq backend 'Git)
+                             (version< (vc-git--program-version) "2.17"))
+                  (vc-move-working-tree backend second third)
+                  (should
+                   (equal (list third)
+                          (vc-call-backend backend 'known-other-working-trees)))
+                  (should-not (file-directory-p second))
+                  (should (file-directory-p third))
+                  ;; Moving the first working tree is only supported
+                  ;; for some backends.
+                  (cl-ecase backend
+                    (Git
+                     (let ((default-directory third))
+                       (vc-move-working-tree backend first second))
+                     (let ((default-directory third))
+                       (should
+                        (equal (list second)
+                               (vc-call-backend backend
+                                                'known-other-working-trees))))
+                     (should-not (file-directory-p first))
+                     (should (file-directory-p second))
+                     (vc-move-working-tree backend second first))
+                    (Hg
+                     (let ((default-directory third))
+                       (should-error (vc-move-working-tree backend
+                                                           first second)))))
+                  (vc-move-working-tree backend third second))
 
                 ;; Test `delete-working-tree'.
                 (let ((default-directory first))
-                  (vc-delete-working-tree backend third)
-                  (should-not (file-directory-p third))))))
+                  (vc-delete-working-tree backend second)
+                  (should-not (file-directory-p second))))))
 
         ;; Save exit.
         (ignore-errors
