@@ -103,8 +103,15 @@
 
   (put 'tramp--startup-hook 'tramp-suppress-trace t)
 
+  ;; TODO: once (autoload-macro expand) is available in all supported
+  ;; Emacs versions, this can be eliminated:
+  ;;  backward compatibility for autoload-macro declare form
+  (unless (assq 'autoload-macro macro-declarations-alist)
+    (push '(autoload-macro ignore) macro-declarations-alist))
+
   (defmacro tramp--with-startup (&rest body)
     "Schedule BODY to be executed at the end of tramp.el."
+    (declare (autoload-macro expand))
     `(add-hook 'tramp--startup-hook (lambda () ,@body)))
 
   (eval-and-compile
