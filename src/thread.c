@@ -1200,8 +1200,8 @@ void
 thread_all_before_buffer_killed (Lisp_Object current)
 {
   struct thread_state *iter;
-  struct buffer * other = NULL;
-  struct buffer * b = XBUFFER (current);
+  struct buffer *other = NULL;
+  struct buffer *b = XBUFFER (current);
   struct thread_state *caller_thread = current_thread;
 
   for (iter = all_threads; iter; iter = iter->next_thread)
