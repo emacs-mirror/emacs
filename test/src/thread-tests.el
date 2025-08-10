@@ -30,7 +30,7 @@
 (declare-function current-thread "thread.c" ())
 (declare-function make-condition-variable "thread.c" (mutex &optional name))
 (declare-function make-mutex "thread.c" (&optional name))
-(declare-function make-thread "thread.c" (function &optional name))
+(declare-function make-thread "thread.c" (function &optional name buffer-disposition))
 (declare-function mutex-lock "thread.c" (mutex))
 (declare-function mutex-unlock "thread.c" (mutex))
 (declare-function thread--blocker "thread.c" (thread))
@@ -40,6 +40,8 @@
 (declare-function thread-name "thread.c" (thread))
 (declare-function thread-signal "thread.c" (thread error-symbol data))
 (declare-function thread-yield "thread.c" ())
+(declare-function thread-set-buffer-disposition "thread.c" (thread value))
+(declare-function thread-buffer-disposition "thread.c" (thread))
 (defvar main-thread)
 
 (ert-deftest threads-is-one ()
