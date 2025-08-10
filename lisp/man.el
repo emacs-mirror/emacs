@@ -1123,7 +1123,14 @@ for the current invocation."
                                              (and (not (equal default-entry ""))
                                                   default-entry))
                               #'Man-completion-table
-                              nil nil nil 'Man-topic-history default-entry)))
+                              nil nil nil 'Man-topic-history
+                              `(,default-entry
+                                ,@(when (use-region-p)
+                                    (list (string-replace
+                                           " " "-"
+                                           (buffer-substring-no-properties
+                                            (region-beginning)
+                                            (region-end)))))))))
                    (if Man-cache-completion-results-flag
                        (read)
                      (let ((Man-completion-cache)) (read))))))
