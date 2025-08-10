@@ -1295,6 +1295,7 @@ the *vc-dir* buffer.
   (setq-local vc-dir-backend use-vc-backend)
   (setq-local desktop-save-buffer 'vc-dir-desktop-buffer-misc-data)
   (setq-local bookmark-make-record-function #'vc-dir-bookmark-make-record)
+  (setq-local project-find-matching-buffer-function #'vc-dir-find-matching-buffer)
   (setq buffer-read-only t)
   (when (boundp 'tool-bar-map)
     (setq-local tool-bar-map vc-dir-tool-bar-map))
@@ -1694,6 +1695,35 @@ type returned by `vc-dir-bookmark-make-record'."
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bmk)))))
 
 (put 'vc-dir-bookmark-jump 'bookmark-handler-type "VC")
+
+
+(declare-function project-root "project")
+
+(defun vc-dir-find-matching-buffer (current-project mirror-project)
+  "Visit VC-Dir buffer for matching directory in another project.
+CURRENT-PROJECT is the project instance for the current project.
+MIRROR-PROJECT is the project instance for the project to visit.
+The matching directory has the same name relative to the project root.
+If a matching directory does not exist in the other project, try going
+up the directory tree until encountering a directory that exists.
+
+This function is intended to be used as the value of
+`project-find-matching-buffer-function' in VC-Dir buffers."
+  (let* ((mirror-root (project-root mirror-project))
+         (relative-name (file-relative-name default-directory
+                                            (project-root current-project)))
+         (mirror-name (expand-file-name relative-name mirror-root))
+         (orig-mirror-name mirror-name))
+    (while (not (file-directory-p mirror-name))
+      (setq mirror-name (directory-file-name
+                         (file-name-parent-directory mirror-name)))
+      (unless (file-in-directory-p mirror-name mirror-root)
+        (user-error "`%s' not found in `%s'" relative-name mirror-root)))
+    (vc-dir mirror-name)
+    (unless (equal mirror-name orig-mirror-name)
+      (message "`%s' not found; visiting VC-Dir for `%s' instead"
+               (abbreviate-file-name orig-mirror-name)
+               (abbreviate-file-name (file-name-as-directory mirror-name))))))
 
 
 (provide 'vc-dir)
