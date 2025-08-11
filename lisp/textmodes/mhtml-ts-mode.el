@@ -452,7 +452,7 @@ Calls REPORT-FN directly.  Requires tidy."
 
    ;; jsdoc is not mandatory for js-ts-mode, so we respect this by
    ;; adding jsdoc range rules only when jsdoc is available.
-   (when (treesit-ensure-installed 'jsdoc)
+   (when (treesit-language-available-p 'jsdoc t)
      (treesit-range-rules
       :embed 'jsdoc
       :host 'javascript
