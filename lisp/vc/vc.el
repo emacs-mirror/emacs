@@ -1604,7 +1604,7 @@ from which to check out the file(s)."
 	    ;; If committing a mix of removed and edited files, the
 	    ;; fileset has state = 'edited.  Rather than checking the
 	    ;; state of each individual file in the fileset, it seems
-	    ;; simplest to just check if the file exists.	 Bug#9781.
+	    ;; simplest to just check if the file exists.  Bug#9781.
 	    (when (and (file-exists-p file) (not (file-writable-p file)))
 	      ;; Make the file-buffer read-write.
 	      (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue? " file))

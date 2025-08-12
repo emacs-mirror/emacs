@@ -1216,7 +1216,7 @@ It is based on `log-edit-mode', and has Hg-specific extensions.")
 (defun vc-hg-checkin (files comment &optional _rev)
   "Hg-specific version of `vc-BACKEND-checkin'.
 REV is ignored."
-  (let ((args (nconc (list "commit" "-m")
+  (let ((args (nconc (list "commit" "-A" "-m")
                      (vc-hg--extract-headers comment))))
     (if vc-async-checkin
         (let ((buffer (vc-hg--async-buffer)))
