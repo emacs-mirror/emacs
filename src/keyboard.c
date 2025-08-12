@@ -7220,12 +7220,11 @@ make_lispy_event (struct input_event *event)
 
 #ifdef USE_FILE_NOTIFY
     case FILE_NOTIFY_EVENT:
-#ifdef HAVE_W32NOTIFY
       /* Make an event (file-notify (DESCRIPTOR ACTION FILE) CALLBACK).  */
-      return list3 (Qfile_notify, event->arg, event->frame_or_window);
-#else
-      return Fcons (Qfile_notify, event->arg);
-#endif
+      if (!NILP (event->frame_or_window))  /* HAVE_W32NOTIFY */
+	return list3 (Qfile_notify, event->arg, event->frame_or_window);
+      else
+	return Fcons (Qfile_notify, event->arg);
 #endif /* USE_FILE_NOTIFY */
 
     case SLEEP_EVENT:
