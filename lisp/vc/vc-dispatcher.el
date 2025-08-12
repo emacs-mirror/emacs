@@ -469,6 +469,9 @@ case, and the process object in the asynchronous case."
                   (pop-to-buffer (current-buffer))
                   (goto-char (point-min))
                   (shrink-window-if-larger-than-buffer))
+                (when noninteractive
+                  (with-current-buffer buffer
+                    (message (string-trim (buffer-string)))))
 	        (error "Failed (%s): %s"
 		       (if (integerp status)
                            (format "status %d" status)
