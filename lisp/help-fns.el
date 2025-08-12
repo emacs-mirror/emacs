@@ -2253,13 +2253,14 @@ is enabled in the Help buffer."
                      (describe-function major))))
           (insert " mode")
           (when-let* ((file-name (find-lisp-object-file-name major nil)))
-	    (insert (format " defined in %s:\n\n"
+	    (insert (format " defined in %s"
                             (buttonize
                              (help-fns-short-filename file-name)
                              (lambda (_)
                                (help-function-def--button-function
                                 major file-name))))))
-          (insert (help-split-fundoc (documentation major) nil 'doc)
+          (insert ":\n\n"
+                  (help-split-fundoc (documentation major) nil 'doc)
                   (with-current-buffer buffer
                     (help-fns--list-local-commands)))
           (ensure-empty-lines 1)
