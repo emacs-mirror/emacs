@@ -2496,7 +2496,7 @@ buffers whose files exist on disk.  Otherwise it syncs all of them."
         dirs buffers)
     (dolist (name (cadr fileset))
       (if (file-directory-p name)
-          (push name dirs)
+          (push (file-name-as-directory name) dirs)
         (when-let* ((buf (find-buffer-visiting name)))
           (push buf buffers))))
     (when dirs
@@ -2507,8 +2507,12 @@ buffers whose files exist on disk.  Otherwise it syncs all of them."
                           (and-let*
                               ((file (buffer-local-value 'buffer-file-name buf))
                                ((or missing-in-dirs (file-exists-p file)))
-                               ((cl-some (lambda (dir)
-                                           (file-in-directory-p file dir))
+                               ((cl-some (if not-essential
+                                             (lambda (dir)
+                                               ;; For speed (bug#79137).
+                                               (string-prefix-p dir file))
+                                           (lambda (dir)
+                                             (file-in-directory-p file dir)))
                                          dirs)))))))))
     (dolist (buf buffers)
       (with-current-buffer buf
