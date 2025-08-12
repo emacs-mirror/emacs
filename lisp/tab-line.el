@@ -573,8 +573,8 @@ generate the group name."
   #'identity
   "Filter which buffers should be displayed in the tab line."
   :type '(choice function
-                 (const :tag "No filter the buffers" identity)
-                 (const :tag "Show non-excluded buffers only" tab-line-tabs-non-excluded))
+                 (const :tag "Show all buffers" identity)
+                 (const :tag "Omit excluded buffers" tab-line-tabs-non-excluded))
   :group 'tab-line
   :version "31.1")
 
@@ -582,7 +582,7 @@ generate the group name."
 (defvar tab-line-exclude-modes)
 
 (defun tab-line-tabs-non-excluded (buffers)
-  "Filter BUFFERS and return non-excluded buffers list.
+  "Filter BUFFERS to remove excluded buffers from the list.
 Intended to be used in `tab-line-tabs-window-buffers-filter-function'."
   (seq-remove
    (lambda (b)
