@@ -94,6 +94,15 @@ This increases `tramp-verbose' to 6 if necessary."
   :type 'boolean
   :link '(info-link :tag "Tramp manual" "(tramp) Traces and Profiles"))
 
+(defcustom tramp-debug-buffer-limit (* 3 1024 1024 1024) ;3GB
+  "The upper limit of a Tramp debug buffer.
+If the size of a debug buffer exceeds this limit, a warning is raised.
+Set it to 0 if there is no limit."
+  :group 'tramp
+  :version "31.1"
+  :type 'natnum
+  :link '(info-link :tag "Tramp manual" "(tramp) Traces and Profiles"))
+
 (defconst tramp-debug-outline-regexp
   (rx ;; Timestamp.
       (+ digit) ":" (+ digit) ":" (+ digit) "." (+ digit) blank
@@ -281,7 +290,14 @@ ARGUMENTS to actually emit the message (if applicable)."
 	  (when tramp-debug-to-file
 	    (ignore-errors
 	      (write-region
-	       point (point-max) (tramp-get-debug-file-name vec) 'append))))))))
+	       point (point-max) (tramp-get-debug-file-name vec) 'append))))
+	(when (and (natnump tramp-debug-buffer-limit)
+		   (not (zerop tramp-debug-buffer-limit))
+		   (> (point-max) tramp-debug-buffer-limit))
+	  (setq-local tramp-debug-buffer-limit nil)
+	  (lwarn
+	   'tramp :warning
+	   "Tramp debug buffer %S exceeds the limit" (current-buffer)))))))
 
 ;;;###tramp-autoload
 (defun tramp-message (vec-or-proc level fmt-string &rest arguments)

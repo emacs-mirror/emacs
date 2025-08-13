@@ -6830,6 +6830,7 @@ they are kept.  Example:
 @vindex tramp-verbose
 @vindex tramp-debug-to-file
 @vindex tramp-debug-command-messages
+@vindex tramp-debug-buffer-limit
 
 @value{tramp} messages are raised with verbosity levels ranging from 0
 to 10.  @value{tramp} does not display all messages; only those with a
@@ -6918,6 +6919,12 @@ strings), and the entry and exit messages for the function
 @code{tramp-file-name-handler}.  This is intended for @value{tramp}
 maintainers, analyzing the remote commands for performance analysis.
 
+The debug buffer can be very large, if @code{tramp-verbose} is high,
+and @value{tramp} runs for a long time.  If the buffer size exceeds
+@code{tramp-debug-buffer-limit} (3GB by default), a warning will be
+raised.  This user option can be adapted to your needs; a value of 0
+means that there is no limit (no warning).
+
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
@@ -6945,7 +6952,7 @@ maintainers, analyzing the remote commands for performance analysis.
 
 @bye
 
-@c TODO
+@c TODO:
 @c
 @c * Say something about the .login and .profile files of the remote
 @c   shells.
@@ -6954,3 +6961,5 @@ maintainers, analyzing the remote commands for performance analysis.
 @c   host and then send commands to it.
 @c
 @c * Consistent small or capitalized words especially in menus.
+@c
+@c * Starting with Emacs 29, use 'setopt' in the examples.
