@@ -83,6 +83,7 @@
   `(call-with-saved-electric-modes (lambda () ,@body)))
 
 (ert-deftest lua-ts-test-auto-close-block-comments ()
+  (skip-unless (treesit-ready-p 'lua t))
   (save-electric-modes
    (with-temp-buffer
      (dlet ((lua-ts-auto-close-block-comments t))
