@@ -369,7 +369,7 @@ possibly_non_vc_files="
 ) || exit
 
 if [ $with_info = yes ]; then
-  info_files="info/dir $(echo info/*.info)" || exit
+  info_files="info/dir $(echo info/*.info info/*.txt info/*.jpg)" || exit
 else
   info_files=
 fi
