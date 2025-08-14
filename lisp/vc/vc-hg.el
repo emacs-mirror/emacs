@@ -1216,20 +1216,51 @@ It is based on `log-edit-mode', and has Hg-specific extensions.")
 (defun vc-hg-checkin (files comment &optional _rev)
   "Hg-specific version of `vc-BACKEND-checkin'.
 REV is ignored."
-  (let ((args (nconc (list "commit" "-A" "-m")
-                     (vc-hg--extract-headers comment))))
-    (if vc-async-checkin
-        (let ((buffer (vc-hg--async-buffer)))
-          (vc-wait-for-process-before-save
-           (apply #'vc-hg--async-command buffer (nconc args files))
-           "Finishing checking in files...")
-          (with-current-buffer buffer
-            (vc-run-delayed
-              (vc-compilation-mode 'hg)))
-          (vc-set-async-update buffer)
-          (list 'async (get-buffer-process buffer)))
-      (apply #'vc-hg-command nil 0 files args))))
+  (let* ((args (vc-hg--extract-headers comment))
+         (file1 (or (car files) default-directory))
+         (msg-file
+          ;; On MS-Windows, pass the commit log message through a file,
+          ;; to work around the limitation that command-line arguments
+          ;; must be in the system codepage, and therefore might not
+          ;; support non-ASCII characters in the log message.
+          ;; Also handle remote files.
+          (and (eq system-type 'windows-nt)
+               (let ((default-directory (or (file-name-directory file1)
+                                            default-directory)))
+                 (make-nearby-temp-file "hg-msg")))))
+    (when msg-file
+      (let ((coding-system-for-write 'utf-8))
+        (write-region (car args) nil msg-file)))
+    (let ((coding-system-for-write
+           ;; On MS-Windows, we must encode command-line arguments in
+           ;; the system codepage.
+           (if (eq system-type 'windows-nt)
+               locale-coding-system
+             coding-system-for-write))
+          (args (if msg-file
+                    (cl-list* "commit" "-A" "-l" (file-local-name msg-file)
+                              (cdr args))
+                  (cl-list* "commit" "-A" "-m" args)))
+          (post (lambda ()
+                  (when (and msg-file (file-exists-p msg-file))
+                    (delete-file msg-file)))))
+      (if vc-async-checkin
+          (let ((buffer (vc-hg--async-buffer)))
+            (vc-wait-for-process-before-save
+             (apply #'vc-hg--async-command buffer (nconc args files))
+             "Finishing checking in files...")
+            (with-current-buffer buffer
+              (vc-run-delayed
+                (vc-compilation-mode 'hg)
+                (funcall post)))
+            (vc-set-async-update buffer)
+            (list 'async (get-buffer-process buffer)))
+        (apply #'vc-hg-command nil 0 files args)
+        (funcall post)))))
 
+;; FIXME: Needs MS-Windows encoding issues handling.
+;; Possibly we want fix this by merging this function into the preceeding one.
+;; Figure out resolution of #79235 first.
 (defun vc-hg-checkin-patch (patch-string comment)
   (let ((patch-file (make-nearby-temp-file "hg-patch")))
     (write-region patch-string nil patch-file)
