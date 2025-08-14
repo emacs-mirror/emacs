@@ -1562,6 +1562,15 @@ pair of a group title string and a list of group candidate strings."
   (if completion-show-inline-help
       (minibuffer-message msg)))
 
+(defun completion--in-boundaries-p (string collection pred suffix pos)
+  "Return non-nil if POS is in the current completion boundaries.
+
+Calls `completion-boundaries' with STRING, COLLECTION, PRED, SUFFIX."
+  (let* ((boundaries (completion-boundaries string collection pred suffix))
+         (start (car boundaries))
+         (end (+ (length string) (cdr boundaries))))
+    (>= start pos end)))
+
 (defun completion--do-completion (beg end &optional
                                       try-completion-function expect-exact)
   "Do the completion and return a summary of what happened.
@@ -1583,13 +1592,14 @@ TRY-COMPLETION-FUNCTION is a function to use in place of `try-completion'.
 EXPECT-EXACT, if non-nil, means that there is no need to tell the user
 when the buffer's text is already an exact match."
   (let* ((string (buffer-substring beg end))
+         (pos (- (point) beg))
          (md (completion--field-metadata beg))
          (comp (funcall (or try-completion-function
                             #'completion-try-completion)
                         string
                         minibuffer-completion-table
                         minibuffer-completion-predicate
-                        (- (point) beg)
+                        pos
                         md)))
     (cond
      ((null comp)
@@ -1611,7 +1621,16 @@ when the buffer's text is already an exact match."
       (let* ((comp-pos (cdr comp))
              (completion (car comp))
              (completed (not (string-equal-ignore-case completion string)))
-             (unchanged (string-equal completion string)))
+             (unchanged (string-equal completion string))
+             (only-changed-boundaries
+              (and (not completed)
+                   (/= comp-pos pos)
+                   (not (completion--in-boundaries-p
+                         (substring string 0 pos)
+                         minibuffer-completion-table
+                         minibuffer-completion-predicate
+                         (substring string pos)
+                         comp-pos)))))
         (if unchanged
 	    (goto-char end)
           ;; Insert in minibuffer the chars we got.
@@ -1640,15 +1659,8 @@ when the buffer's text is already an exact match."
                   ;; try-completion and all-completions, for things
                   ;; like completion-ignored-extensions.
                   (when (and threshold
-                             ;; Check that the completion didn't make
-                             ;; us jump to a different boundary.
-                             (or (not completed)
-                                 (< (car (completion-boundaries
-                                          (substring completion 0 comp-pos)
-                                          minibuffer-completion-table
-                                          minibuffer-completion-predicate
-                                         ""))
-                                   comp-pos)))
+                             (not completed)
+                             (not only-changed-boundaries))
                    (completion-all-sorted-completions beg end))))
             (completion--flush-all-sorted-completions)
             (cond
@@ -1662,7 +1674,7 @@ when the buffer's text is already an exact match."
               (setq completed t exact t)
               (completion--cache-all-sorted-completions beg end comps)
               (minibuffer-force-complete beg end))
-             (completed
+             ((or completed only-changed-boundaries)
               (cond
                ((pcase completion-auto-help
                   ('visible (minibuffer--completions-visible))
@@ -1686,8 +1698,8 @@ when the buffer's text is already an exact match."
              ;; means we've already given a "Complete, but not unique" message
              ;; and the user's hit TAB again, so now we give him help.
              (t
-              (if (and (eq this-command last-command) completion-auto-help)
-                  (minibuffer-completion-help beg end))
+              (when (and (eq this-command last-command) completion-auto-help)
+                (minibuffer-completion-help beg end))
               (completion--done completion 'exact
                                 (unless (or expect-exact
                                             (and completion-auto-select
