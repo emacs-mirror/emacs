@@ -466,6 +466,16 @@ static struct fd_callback_data
   struct thread_state *waiting_thread;
 } fd_callback_info[FD_SETSIZE];
 
+static void
+clear_fd_callback_data(struct fd_callback_data* elem)
+{
+  elem->func = NULL;
+  elem->data = NULL;
+  elem->flags = 0;
+  elem->thread = NULL;
+  elem->waiting_thread = NULL;
+}
+
 
 /* Add a file descriptor FD to be monitored for when read is possible.
    When read is possible, call FUNC with argument DATA.  */
@@ -507,13 +517,6 @@ void
 delete_read_fd (int fd)
 {
   delete_keyboard_wait_descriptor (fd);
-
-  eassert (0 <= fd && fd < FD_SETSIZE);
-  if (fd_callback_info[fd].flags == 0)
-    {
-      fd_callback_info[fd].func = 0;
-      fd_callback_info[fd].data = 0;
-    }
 }
 
 /* Add a file descriptor FD to be monitored for when write is possible.
@@ -574,8 +577,7 @@ delete_write_fd (int fd)
   fd_callback_info[fd].flags &= ~(FOR_WRITE | NON_BLOCKING_CONNECT_FD);
   if (fd_callback_info[fd].flags == 0)
     {
-      fd_callback_info[fd].func = 0;
-      fd_callback_info[fd].data = 0;
+      clear_fd_callback_data(&fd_callback_info[fd]);
 
       if (fd == max_desc)
 	recompute_max_desc ();
@@ -4839,8 +4841,6 @@ deactivate_process (Lisp_Object proc)
       delete_read_fd (inchannel);
       if ((fd_callback_info[inchannel].flags & NON_BLOCKING_CONNECT_FD) != 0)
 	delete_write_fd (inchannel);
-      if (inchannel == max_desc)
-	recompute_max_desc ();
     }
 }
 
@@ -8312,7 +8312,7 @@ delete_keyboard_wait_descriptor (int desc)
 #ifdef subprocesses
   eassert (desc >= 0 && desc < FD_SETSIZE);
 
-  fd_callback_info[desc].flags &= ~(FOR_READ | KEYBOARD_FD | PROCESS_FD);
+  clear_fd_callback_data(&fd_callback_info[desc]);
 
   if (desc == max_desc)
     recompute_max_desc ();
