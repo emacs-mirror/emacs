@@ -2081,10 +2081,6 @@ Will not rewrite likely-public history; see option `vc-allow-rewriting-published
           ;; On MS-Windows, pass the message through a file, to work
           ;; around how command line arguments must be in the system
           ;; codepage, and therefore might not support non-ASCII.
-          ;;
-          ;; As our other arguments are static, we need not be concerned
-          ;; about the encoding of command line arguments in general.
-          ;; See `vc-git-checkin' for the more complex case.
           (and (eq system-type 'windows-nt)
                (let ((default-directory
                       (or (file-name-directory (or (car files)
@@ -2122,12 +2118,18 @@ Rebase may --autosquash your other squash!/fixup!/amend!; proceed?")))
               (write-region message nil msg-file)))
           ;; Regardless of the state of the index and working tree, this
           ;; will always create an empty commit, thanks to --only.
-          (apply #'vc-git-command nil 0 nil
-                 "commit" "--only" "--allow-empty"
-                 (nconc (if msg-file
-                            (list "-F" (file-local-name msg-file))
-                          (list "-m" message))
-                        args)))
+          (let ((coding-system-for-write
+                 ;; On MS-Windows, we must encode command-line arguments in
+                 ;; the system codepage.
+                 (if (eq system-type 'windows-nt)
+                     locale-coding-system
+                   coding-system-for-write)))
+            (apply #'vc-git-command nil 0 nil
+                   "commit" "--only" "--allow-empty"
+                   (nconc (if msg-file
+                              (list "-F" (file-local-name msg-file))
+                            (list "-m" message))
+                          args))))
       (when (and msg-file (file-exists-p msg-file))
         (delete-file msg-file))))
   (with-environment-variables (("GIT_SEQUENCE_EDITOR" "true"))
