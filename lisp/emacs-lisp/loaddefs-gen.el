@@ -244,7 +244,25 @@ expand)' among their `declare' forms."
 	     (setq expand (let ((load-true-file-name file)
 				(load-file-name file))
 			    (macroexpand form)))
-	     (not (eq car (car expand)))))
+	     (or (and
+                  ;; Previously, macros defined in this list would not
+                  ;; see their expansions processed in place of
+                  ;; themselves if such an expansion did not yield a
+                  ;; `progn', `prog1' or `defalias' form.  Not
+                  ;; reproducing these conditions results in the
+                  ;; omission of minor mode variables and suchlike in
+                  ;; loaddefs.el when only the defuns in the
+                  ;; macroexpansions are autoloaded.
+                  (not (memq car '( define-globalized-minor-mode defun defmacro
+                                    define-minor-mode define-inline
+                                    cl-defun cl-defmacro cl-defgeneric
+                                    cl-defstruct pcase-defmacro iter-defun cl-iter-defun
+                                    ;; Obsolete; keep until the alias is removed.
+                                    easy-mmode-define-global-mode
+                                    easy-mmode-define-minor-mode
+                                    define-global-minor-mode)))
+                  (not (eq car (car expand))))
+                 (memq (car expand) '(progn prog1 defalias)))))
       ;; Recurse on the expansion.
       (loaddefs-generate--make-autoload expand file 'expansion))
 
