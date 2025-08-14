@@ -6,7 +6,8 @@
 ;;; Commentary:
 
 ;; This file will be copied to ldefs-boot.el and checked in
-;; periodically.
+;; periodically.  Note: When checking in ldefs-boot.el, don't include
+;; changes to any other files in the commit.
 
 ;;; Code:
 
@@ -7556,8 +7557,9 @@ Also see the `diff-entire-buffers' variable.
 
 (autoload 'diff-mode "diff-mode" "\
 Major mode for viewing/editing context diffs.
-Supports unified and context diffs as well as (to a lesser extent)
-normal diffs.
+Supports unified and context diffs as well as, to a lesser extent, diffs
+in the old \"normal\" format.  (Unified diffs have become the standard,
+most commonly encountered format.)
 
 When the buffer is read-only, the ESC prefix is not necessary.
 If you edit the buffer manually, `diff-mode' will try to update the hunk
@@ -8439,8 +8441,8 @@ switch on the minor mode in all major modes), nil (meaning don't
 switch on in any major mode), a list of modes (meaning switch on only
 in those modes and their descendants), or a list (not MODES...),
 meaning switch on in any major mode except MODES.  The value can also
-mix all of these forms, see the info node `Defining Minor Modes' for
-details.  The :predicate key causes the macro to create a user option
+mix all of these forms, see the Info node `(elisp)Defining Minor Modes'
+for details.  The :predicate key causes the macro to create a user option
 named the same as MODE, but ending with \"-modes\" instead of \"-mode\".
 That user option can then be used to customize in which modes this
 globalized minor mode will be switched on.
@@ -12903,7 +12905,7 @@ is non-nil, signal an error instead.
 
 (fn FUNCTION &optional LISP-ONLY)")
 (autoload 'find-function "find-func" "\
-Find the definition of the FUNCTION near point.
+Find the definition of the Emacs Lisp FUNCTION near point.
 
 Finds the source file containing the definition of the function
 near point (selected by `function-called-at-point') in a buffer and
@@ -12911,6 +12913,9 @@ places point before the definition.
 Set mark before moving, if the buffer already existed.
 
 See also `find-function-recenter-line' and `find-function-after-hook'.
+
+Use \\[xref-find-definitions] to find definitions of functions and variables
+that are not part of Emacs.
 
 (fn FUNCTION)" t)
 (autoload 'find-function-other-window "find-func" "\
@@ -18022,8 +18027,9 @@ Toggle thumbnails in front of marked file names in the Dired buffer.
 If no file is marked, toggle display of thumbnail on the current file's line.
 ARG, if non-nil (interactively, the prefix argument), specifies the files
 whose thumbnail display to toggle instead of the marked files: if ARG is an
-integer, use the next ARG (or previous -ARG, if ARG<0) files; any other
-value of ARG means toggle thumbnail display of the current line's file.
+integer, use the next ARG (or previous -ARG, if ARG<0) files; if ARG is
+the symbol `marked', use only the marked files, if any; any other value of
+ARG means toggle thumbnail display of the current line's file.
 
 (fn &optional ARG)" '(dired-mode))
 (autoload 'image-dired-jump-thumbnail-buffer "image-dired-dired" "\
@@ -33816,7 +33822,7 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;; Generated autoloads from net/trampver.el
 
-(push (purecopy '(tramp 2 7 3 -1)) package--builtin-versions)
+(push (purecopy '(tramp 2 7 3 30 2)) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
