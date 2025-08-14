@@ -1231,8 +1231,7 @@ REV is ignored."
       (apply #'vc-hg-command nil 0 files args))))
 
 (defun vc-hg-checkin-patch (patch-string comment)
-  (let ((parent (current-buffer))
-        (patch-file (make-temp-file "hg-patch")))
+  (let ((patch-file (make-nearby-temp-file "hg-patch")))
     (write-region patch-string nil patch-file)
     (unwind-protect
         (let ((args (list "update"
@@ -1243,14 +1242,14 @@ REV is ignored."
                         (vc-hg--extract-headers comment)))
           (if vc-async-checkin
               (let ((buffer (vc-hg--async-buffer)))
-                (apply #'vc-hg--async-command buffer args)
+                (vc-wait-for-process-before-save
+                 (apply #'vc-hg--async-command buffer args)
+                 "Finishing checking in patch....")
                 (with-current-buffer buffer
                   (vc-run-delayed
-                    (vc-compilation-mode 'hg)
-                    (when (buffer-live-p parent)
-                       (with-current-buffer parent
-                         (run-hooks 'vc-checkin-hook)))))
-                (vc-set-async-update buffer))
+                    (vc-compilation-mode 'hg)))
+                (vc-set-async-update buffer)
+                (list 'async (get-buffer-process buffer)))
             (apply #'vc-hg-command nil 0 nil args)))
       (delete-file patch-file))))
 
