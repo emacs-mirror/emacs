@@ -722,6 +722,12 @@ the default UI you get, i.e., when 'register-use-preview' is 'traditional'.
 
 ** Tree-sitter
 
+*** New user option 'treesit-enabled-modes'.
+You can customize it either to t to enable all available ts-modes,
+or to select a list of ts-modes to enable.  Depending on customization,
+it modifies the variable 'major-mode-remap-alist' from the corresponding
+variable 'treesit-major-mode-remap-alist' prepared by ts-mode packages.
+
 *** New user option 'treesit-auto-install-grammar'.
 It controls the automatic installation of tree-sitter grammar libraries
 needed for tree-sitter based modes, if these grammar libraries are not

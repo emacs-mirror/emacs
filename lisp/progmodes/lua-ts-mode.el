@@ -769,9 +769,22 @@ Calls REPORT-FN directly."
 
 (derived-mode-add-parents 'lua-ts-mode '(lua-mode))
 
-(when (treesit-ready-p 'lua)
-  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode))
-  (add-to-list 'interpreter-mode-alist '("\\<lua\\(?:jit\\)?" . lua-ts-mode)))
+;;;###autoload
+(defun lua-ts-mode-maybe ()
+  "Enable `lua-ts-mode' when its grammar is available."
+  (if (or (treesit-language-available-p 'lua)
+          (eq treesit-enabled-modes t)
+          (memq 'lua-ts-mode treesit-enabled-modes))
+      (lua-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (treesit-available-p)
+  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode-maybe))
+  (add-to-list 'interpreter-mode-alist '("\\<lua\\(?:jit\\)?" . lua-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(lua-mode . lua-ts-mode)))
 
 (provide 'lua-ts-mode)
 

@@ -125,7 +125,8 @@ in a Emacs not built with tree-sitter library."
 
      (declare-function treesit-available-p "treesit.c")
 
-     (defvar treesit-thing-settings)))
+     (defvar treesit-thing-settings)
+     (defvar treesit-major-mode-remap-alist)))
 
 (treesit-declare-unavailable-functions)
 
@@ -5398,6 +5399,31 @@ Tree-sitter grammar for `%s' is missing; install it?"
           (treesit-install-language-grammar lang)
           ;; Check that the grammar was installed successfully
           (treesit-ready-p lang)))))
+
+;;; Treesit enabled modes
+
+;;;###autoload
+(defcustom treesit-enabled-modes nil
+  "Specify what treesit modes to enable by default.
+The value can be either a list of ts-modes to enable,
+or t to enable all ts-modes."
+  :type `(choice
+          (const :tag "Disable all automatic associations" nil)
+          (const :tag "Enable all available ts-modes" t)
+          (set :tag "List of enabled ts-modes"
+               ,@(when (treesit-available-p)
+                   (sort (mapcar (lambda (m) `(function-item ,m))
+                                 (seq-uniq (mapcar #'cdr treesit-major-mode-remap-alist)))))))
+  :initialize #'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (when (treesit-available-p)
+           (dolist (m treesit-major-mode-remap-alist)
+             (setq major-mode-remap-alist
+                   (if (or (eq val t) (memq (cdr m) val))
+                       (cons m major-mode-remap-alist)
+                     (delete m major-mode-remap-alist))))))
+  :version "31.1")
 
 ;;; Shortdocs
 

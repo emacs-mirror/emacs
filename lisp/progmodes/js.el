@@ -4105,12 +4105,14 @@ See `treesit-thing-settings' for more information.")
     ;; Outline minor mode
     (setq-local treesit-outline-predicate js-ts-mode--outline-predicate)
 
-    (treesit-major-mode-setup)
-
-    (add-to-list 'auto-mode-alist
-                 '("\\(\\.js[mx]?\\|\\.har\\)\\'" . js-ts-mode))))
+    (treesit-major-mode-setup)))
 
 (derived-mode-add-parents 'js-ts-mode '(js-mode))
+
+;;;###autoload
+(when (treesit-available-p)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(javascript-mode . js-ts-mode)))
 
 (defvar js-ts--s-p-query
   (when (treesit-available-p)

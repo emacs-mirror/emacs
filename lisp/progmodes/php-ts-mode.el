@@ -1922,16 +1922,29 @@ file to use."
   (with-current-buffer php-ts-mode-inferior-php-buffer
     (kill-buffer-and-window)))
 
-(when (treesit-ready-p 'php)
+;;;###autoload
+(defun php-ts-mode-maybe ()
+  "Enable `php-ts-mode' when its grammar is available."
+  (if (or (treesit-language-available-p 'php)
+          (eq treesit-enabled-modes t)
+          (memq 'php-ts-mode treesit-enabled-modes))
+      (php-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (treesit-available-p)
   (add-to-list
-   'auto-mode-alist '("\\.\\(?:php[s345]?\\|phtml\\)\\'" . php-ts-mode))
+   'auto-mode-alist '("\\.\\(?:php[s345]?\\|phtml\\)\\'" . php-ts-mode-maybe))
   (add-to-list
-   'auto-mode-alist '("\\.\\(?:php\\|inc\\|stub\\)\\'" . php-ts-mode))
+   'auto-mode-alist '("\\.\\(?:php\\|inc\\|stub\\)\\'" . php-ts-mode-maybe))
   (add-to-list
-   'auto-mode-alist '("/\\.php_cs\\(?:\\.dist\\)?\\'" . php-ts-mode))
+   'auto-mode-alist '("/\\.php_cs\\(?:\\.dist\\)?\\'" . php-ts-mode-maybe))
   (add-to-list
    'interpreter-mode-alist
-   (cons "php\\(?:-?[34578]\\(?:\\.[0-9]+\\)*\\)?" 'php-ts-mode)))
+   (cons "php\\(?:-?[34578]\\(?:\\.[0-9]+\\)*\\)?" 'php-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(php-mode . php-ts-mode)))
 
 (provide 'php-ts-mode)
 ;;; php-ts-mode.el ends here

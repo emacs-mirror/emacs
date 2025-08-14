@@ -5299,6 +5299,16 @@ language is in this list, Emacs enables line-column tracking for the
 buffer.  */);
   Vtreesit_languages_require_line_column_tracking = Qnil;
 
+  DEFVAR_LISP ("treesit-major-mode-remap-alist",
+	       Vtreesit_major_mode_remap_alist,
+	       doc:
+	       /* Alist mapping file-specified modes to ts-modes.
+
+The value should be an alist of (MODE . TS-MODE).
+This alist is used to modify the value of `major-mode-remap-alist'
+depending on customization of `treesit-enabled-modes'.  */);
+  Vtreesit_major_mode_remap_alist = Qnil;
+
   staticpro (&Vtreesit_str_libtree_sitter);
   Vtreesit_str_libtree_sitter = build_string ("libtree-sitter-");
   staticpro (&Vtreesit_str_tree_sitter);
