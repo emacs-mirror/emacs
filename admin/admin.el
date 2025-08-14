@@ -128,8 +128,13 @@ Root must be the root of an Emacs source tree."
                                 (submatch (1+ (in "0-9."))))))
   (set-version-in-file root "java/AndroidManifest.xml.in"
                        (apply #'format "%02d%02d%02d000"
-                              (mapcar #'string-to-number
-                                      (split-string version "\\.")))
+                              (let ((ver-list
+                                     (mapcar #'string-to-number
+                                             (split-string version "\\."))))
+                                ;; Official releases are XX.YY, not XX.YY.ZZ
+                                (if (= 2 (length ver-list))
+                                    (setq ver-list (append ver-list '(0))))
+                                ver-list))
                        admin-android-version-code-regexp)
   (set-version-in-file root "nt/README.W32" version
 		       (rx (and "version" (1+ space)
