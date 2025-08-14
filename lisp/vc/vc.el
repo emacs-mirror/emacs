@@ -2506,14 +2506,15 @@ buffers whose files exist on disk.  Otherwise it syncs all of them."
                         (lambda (buf)
                           (and-let*
                               ((file (buffer-local-value 'buffer-file-name buf))
-                               ((or missing-in-dirs (file-exists-p file)))
                                ((cl-some (if not-essential
                                              (lambda (dir)
                                                ;; For speed (bug#79137).
                                                (string-prefix-p dir file))
                                            (lambda (dir)
                                              (file-in-directory-p file dir)))
-                                         dirs)))))))))
+                                         dirs))
+                               ((or missing-in-dirs
+                                    (file-exists-p file))))))))))
     (dolist (buf buffers)
       (with-current-buffer buf
         (vc-buffer-sync not-essential)))))
