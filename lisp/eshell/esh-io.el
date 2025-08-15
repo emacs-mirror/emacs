@@ -741,18 +741,14 @@ Returns what was actually sent, or nil if nothing was sent.")
   "Output OBJECT to the process TARGET."
   (unless (stringp object)
     (setq object (eshell-stringify object)))
-  (condition-case err
+  (condition-case _
       (process-send-string target object)
     (error
-     ;; If `process-send-string' raises an error and the process has
-     ;; finished, treat it as a broken pipe.  Otherwise, just re-raise
-     ;; the signal.  NOTE: When running Emacs in batch mode
-     ;; (e.g. during regression tests), Emacs can abort due to SIGPIPE
-     ;; here.  Maybe `process-send-string' should handle SIGPIPE even
-     ;; in batch mode (bug#66186).
-     (if (process-live-p target)
-         (signal err)
-       (signal 'eshell-pipe-broken (list target)))))
+     ;; NOTE: When running Emacs in batch mode (e.g. during regression
+     ;; tests), Emacs can abort due to SIGPIPE here.  Maybe
+     ;; `process-send-string' should handle SIGPIPE even in batch mode
+     ;; (bug#66186).
+     (signal 'eshell-pipe-broken (list target))))
   object)
 
 (cl-defmethod eshell-output-object-to-target (object

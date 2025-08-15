@@ -6572,6 +6572,19 @@ before any other event (mouse or keypress) is handled.  */)
 }
 
 
+static FILE *
+file_for_stream (Lisp_Object stream)
+{
+  if (EQ (stream, Qstdin))
+    return stdin;
+  else if (EQ (stream, Qstdout))
+    return stdout;
+  else if (EQ (stream, Qstderr))
+    return stderr;
+  else
+    xsignal2 (Qerror, build_string ("unsupported stream"), stream);
+}
+
 DEFUN ("set-binary-mode", Fset_binary_mode, Sset_binary_mode, 2, 2, 0,
        doc: /* Switch STREAM to binary I/O mode or text I/O mode.
 STREAM can be one of the symbols `stdin', `stdout', or `stderr'.
@@ -6593,18 +6606,9 @@ On Posix systems, this function always returns non-nil, and has no
 effect except for flushing STREAM's data.  */)
   (Lisp_Object stream, Lisp_Object mode)
 {
-  FILE *fp = NULL;
-  int binmode;
-
   CHECK_SYMBOL (stream);
-  if (EQ (stream, Qstdin))
-    fp = stdin;
-  else if (EQ (stream, Qstdout))
-    fp = stdout;
-  else if (EQ (stream, Qstderr))
-    fp = stderr;
-  else
-    xsignal2 (Qerror, build_string ("unsupported stream"), stream);
+  FILE *fp = file_for_stream (stream);
+  int binmode;
 
   binmode = NILP (mode) ? O_TEXT : O_BINARY;
   if (fp != stdin)
@@ -6612,6 +6616,22 @@ effect except for flushing STREAM's data.  */)
 
   return (set_binary_mode (fileno (fp), binmode) == O_BINARY) ? Qt : Qnil;
 }
+
+DEFUN ("file--close-stream", Ffile__close_stream,
+       Sfile__close_stream, 1, 1, 0,
+       doc: /* Close the standard STREAM of the Emacs process.
+STREAM can be one of the symbols `stdin', `stdout', or `stderr'.
+
+This function is primarily intended for testing process machinery within
+Emacs.  */)
+  (Lisp_Object stream)
+{
+  CHECK_SYMBOL (stream);
+  FILE *fp = file_for_stream (stream);
+  fclose (fp);
+  return Qnil;
+}
+
 
 #ifndef DOS_NT
 
@@ -7047,6 +7067,7 @@ This includes interactive calls to `delete-file' and
   defsubr (&Snext_read_file_uses_dialog_p);
 
   defsubr (&Sset_binary_mode);
+  defsubr (&Sfile__close_stream);
 
 #ifndef DOS_NT
   defsubr (&Sfile_system_info);
