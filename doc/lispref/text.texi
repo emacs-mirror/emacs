@@ -4716,9 +4716,9 @@ value visits file @var{filename} and goes to buffer position
 @var{position}.  Restoring this type of position asks the user for
 confirmation first.
 
-@item @code{(buffer @var{buffer-name})}
-This represents a buffer; jumping to this value switches to buffer
-@var{buffer-name}.
+@item @code{(buffer @var{buffer})}
+This represents a buffer; jumping to this value switches to that
+@var{buffer}.
 @end table
 
   The functions in this section return unpredictable values unless
