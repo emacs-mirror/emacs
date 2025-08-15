@@ -316,10 +316,8 @@ reported.
 The indicator type which Flymake should use to indicate lines with
 errors or warnings.
 Depending on your preference, this can either use @code{fringes} or
-@code{margins} for indicating errors.
-If set to @code{fringes} (the default), it will automatically fall back
-to using margins in windows or frames without fringes, such as text
-terminals.
+@code{margins} for indicating errors.  On text terminals, only
+@code{margins} is available.
 
 @item flymake-error-bitmap
 A bitmap used in the fringe to mark lines for which an error has

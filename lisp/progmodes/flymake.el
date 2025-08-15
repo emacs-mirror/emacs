@@ -195,8 +195,6 @@ margins).
 Difference between fringes and margin is that fringes support displaying
 bitmaps on graphical displays and margins display text in a blank area
 from current buffer that works in both graphical and text displays.
-Thus, even when `fringes' is selected, margins will still be used on
-text displays and also when fringes are disabled.
 
 See Info node `Fringes' and Info node `(elisp)Display Margins'."
   :version "31.1"
@@ -1495,13 +1493,6 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
     (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
     (add-hook 'eldoc-documentation-functions 'flymake-eldoc-function t t)
-
-    (when (and (eq flymake-indicator-type 'fringes)
-               (not (cl-case flymake-fringe-indicator-position
-                      (left-fringe (< 0 (nth 0 (window-fringes))))
-                      (right-fringe (< 0 (nth 1 (window-fringes)))))))
-      ;; There are no fringes in the buffer, fallback to margins.
-      (setq-local flymake-indicator-type 'margins))
 
     ;; AutoResize margins.
     (flymake--resize-margins)
