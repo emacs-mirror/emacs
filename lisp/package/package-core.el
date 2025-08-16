@@ -1057,5 +1057,35 @@ the `Version:' header."
           (require 'lisp-mnt)
           (lm-package-version mainfile)))))))
 
+;;;###autoload
+(defun package-installed-p (package &optional min-version)
+  "Return non-nil if PACKAGE, of MIN-VERSION or newer, is installed.
+If PACKAGE is a symbol, it is the package name and MIN-VERSION
+should be a version list.
+
+If PACKAGE is a `package-desc' object, MIN-VERSION is ignored."
+  (cond
+   ((package-desc-p package)
+    (let ((dir (package-desc-dir package)))
+        (and (stringp dir)
+             (file-exists-p dir))))
+   ((and (not package--initialized)
+         (null min-version)
+         package-activated-list)
+    ;; We used the quickstart: make it possible to use package-installed-p
+    ;; even before package is fully initialized.
+    (or
+     (memq package package-activated-list)
+     ;; Also check built-in packages.
+     (package-built-in-p package min-version)))
+   (t
+    (or
+     (let ((pkg-descs (cdr (assq package (package--alist)))))
+       (and pkg-descs
+            (version-list-<= min-version
+                             (package-desc-version (car pkg-descs)))))
+     ;; Also check built-in packages.
+     (package-built-in-p package min-version)))))
+
 (provide 'package-core)
 ;;; package-core.el ends here
