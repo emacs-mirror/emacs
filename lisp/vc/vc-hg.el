@@ -1638,6 +1638,18 @@ This function differs from `vc-do-command' in that
 - BUFFER may be nil
 - it invokes `vc-hg-program' and passes `vc-hg-global-switches' to it
   before FLAGS."
+  ;; Commands which pass command line arguments which might
+  ;; contain non-ASCII have to bind `coding-system-for-write' to
+  ;; `locale-coding-system' when (eq system-type 'windows-nt)
+  ;; because MS-Windows has the limitation that command line
+  ;; arguments must be in the system codepage.  We do that only
+  ;; within the commands which must do it, instead of implementing
+  ;; it here, even though that means code repetition.  This is
+  ;; because such a let-binding would have the disadvantage of
+  ;; overriding any `coding-system-for-write' explicitly selected
+  ;; by the user (e.g. with C-x RET c), or by enclosing function
+  ;; calls.  So we want to do it only for commands which really
+  ;; require it.
   (vc-hg--command-1 #'vc-do-command
                     (list (or buffer "*vc*")
                           okstatus vc-hg-program file-or-list)

@@ -2492,6 +2492,17 @@ The difference to `vc-do-command' is that this function always invokes
 `vc-git-program'."
   (let ((coding-system-for-read
          (or coding-system-for-read vc-git-log-output-coding-system))
+        ;; Commands which pass command line arguments which might
+        ;; contain non-ASCII have to bind `coding-system-for-write' to
+        ;; `locale-coding-system' when (eq system-type 'windows-nt)
+        ;; because MS-Windows has the limitation that command line
+        ;; arguments must be in the system codepage.  We do that only
+        ;; within the commands which must do it, instead of implementing
+        ;; it here, even though that means code repetition.  This is
+        ;; because this let-binding has the disadvantage of overriding
+        ;; any `coding-system-for-write' explicitly selected by the user
+        ;; (e.g. with C-x RET c), or by enclosing function calls.  So we
+        ;; want to do it only for commands which really require it.
 	(coding-system-for-write
          (or coding-system-for-write vc-git-commits-coding-system))
         (process-environment
