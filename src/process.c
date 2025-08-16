@@ -1446,6 +1446,18 @@ See `set-process-sentinel' for more info on sentinels.  */)
   return XPROCESS (process)->sentinel;
 }
 
+static void
+set_proc_thread (struct Lisp_Process *proc, struct thread_state *thrd)
+{
+  eassert (THREADP (proc->thread) && XTHREAD (proc->thread) == thrd);
+  eassert (proc->infd < FD_SETSIZE);
+  if (proc->infd >= 0)
+    fd_callback_info[proc->infd].thread = thrd;
+  eassert (proc->outfd < FD_SETSIZE);
+  if (proc->outfd >= 0)
+    fd_callback_info[proc->outfd].thread = thrd;
+}
+
 DEFUN ("set-process-thread", Fset_process_thread, Sset_process_thread,
        2, 2, 0,
        doc: /* Set the locking thread of PROCESS to be THREAD.
@@ -1466,12 +1478,7 @@ If THREAD is nil, the process is unlocked.  */)
 
   proc = XPROCESS (process);
   pset_thread (proc, thread);
-  eassert (proc->infd < FD_SETSIZE);
-  if (proc->infd >= 0)
-    fd_callback_info[proc->infd].thread = tstate;
-  eassert (proc->outfd < FD_SETSIZE);
-  if (proc->outfd >= 0)
-    fd_callback_info[proc->outfd].thread = tstate;
+  set_proc_thread (proc, tstate);
 
   return thread;
 }
@@ -2260,6 +2267,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   if (!EQ (p->command, Qt)
       && !EQ (p->filter, Qt))
     add_process_read_fd (inchannel);
+
+  set_proc_thread (p, current_thread);
 
   specpdl_ref count = SPECPDL_INDEX ();
 
