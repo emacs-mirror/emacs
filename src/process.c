@@ -1449,7 +1449,8 @@ See `set-process-sentinel' for more info on sentinels.  */)
 static void
 set_proc_thread (struct Lisp_Process *proc, struct thread_state *thrd)
 {
-  eassert (THREADP (proc->thread) && XTHREAD (proc->thread) == thrd);
+  eassert ((NILP (proc->thread) && !thrd)
+	   || (THREADP (proc->thread) && XTHREAD (proc->thread) == thrd));
   eassert (proc->infd < FD_SETSIZE);
   if (proc->infd >= 0)
     fd_callback_info[proc->infd].thread = thrd;
