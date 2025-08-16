@@ -5128,6 +5128,7 @@ Goes through the list `tramp-inline-compress-commands'."
 
    (t "-3")))
 
+;;;###tramp-autoload
 (defun tramp-timeout-session (vec)
   "Close the connection VEC after a session timeout.
 If there is just some editing, retry it after 5 seconds."
@@ -5147,6 +5148,7 @@ If there is just some editing, retry it after 5 seconds."
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
   ;; During completion, don't reopen a new connection.
+  ;; Same for slide-in timer or process-{filter,sentinel}.
   (unless (tramp-connectable-p vec)
     (throw 'non-essential 'non-essential))
 
