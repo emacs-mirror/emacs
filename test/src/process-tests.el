@@ -927,6 +927,9 @@ have written output."
 
 (ert-deftest process-tests/multiple-threads-waiting ()
   :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
+  ;; This test assumes too much of Posix functionality, and thus is
+  ;; unreliable on MS-Windows.
+  (skip-when (eq system-type 'windows-nt))
   (skip-unless (fboundp 'make-thread))
   (with-timeout (60 (ert-fail "Test timed out"))
     (process-tests--with-processes processes
