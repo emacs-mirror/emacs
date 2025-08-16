@@ -1069,7 +1069,7 @@ metadata."
 
 If `t', always update as you type.
 
-If `auto', only update if the completion property 'eager-update' is
+If `auto', only update if the completion property `eager-update' is
 non-nil, whether set by the completion table or by
 `completion-category-overrides' or by `completion-category-defaults'.
 
