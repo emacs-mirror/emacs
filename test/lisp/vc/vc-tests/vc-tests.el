@@ -584,20 +584,26 @@ This checks also `vc-backend' and `vc-responsible-backend'."
         (ignore-errors
           (run-hooks 'vc-test--cleanup-hook))))))
 
+(defvar vc-hg-global-switches)
+
 (defmacro vc-test--with-author-identity (backend &rest body)
   (declare (indent 1) (debug t))
-  `(let ((process-environment process-environment))
+  `(let ((process-environment process-environment)
+         (vc-hg-global-switches vc-hg-global-switches))
      ;; git tries various approaches to guess a user name and email,
      ;; which can fail depending on how the system is configured.
      ;; Eg if the user account has no GECOS, git commit can fail with
      ;; status 128 "fatal: empty ident name".
      (when (memq ,backend '(Bzr Git))
-       (setq process-environment (cons "EMAIL=john@doe.ee"
-                                       process-environment)))
+       (push "EMAIL=john@doe.ee" process-environment))
      (when (eq ,backend 'Git)
        (setq process-environment (append '("GIT_AUTHOR_NAME=A"
                                            "GIT_COMMITTER_NAME=C")
                                          process-environment)))
+
+     ;; Mercurial fails to autodetect an identity on MS-Windows.
+     (when (eq ,backend 'Hg)
+       (push "--config=ui.username=john@doe.ee" vc-hg-global-switches))
      ,@body))
 
 (declare-function log-edit-done "vc/log-edit")
