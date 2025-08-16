@@ -882,11 +882,18 @@ finalize_one_thread (struct thread_state *state)
   free_bc_thread (&state->bc);
 }
 
-DEFUN ("make-thread", Fmake_thread, Smake_thread, 1, 2, 0,
+DEFUN ("make-thread", Fmake_thread, Smake_thread, 1, 3, 0,
        doc: /* Start a new thread and run FUNCTION in it.
 When the function exits, the thread dies.
-If NAME is given, it must be a string; it names the new thread.  */)
-  (Lisp_Object function, Lisp_Object name)
+If NAME is given, it must be a string; it names the new thread.
+
+BUFFER-DISPOSITION determines how attached the thread is to its current
+buffer.  If the value is t, that buffer can't be killed.  Any other
+value, including nil (the default), means that if its buffer is killed,
+the thread is switched to another buffer and receives an error signal
+`thread-buffer-killed'.  But if the value is symbol `silently', no error
+will be signaled.  */)
+  (Lisp_Object function, Lisp_Object name, Lisp_Object buffer_disposition)
 {
   /* Can't start a thread in temacs.  */
   if (!initialized)
@@ -934,6 +941,8 @@ If NAME is given, it must be a string; it names the new thread.  */)
 #endif
     }
 
+  new_thread->buffer_disposition = buffer_disposition;
+
   /* FIXME: race here where new thread might not be filled in?  */
   Lisp_Object result;
   XSETTHREAD (result, new_thread);
@@ -972,6 +981,15 @@ thread_signal_callback (void *arg)
   post_acquire_global_lock (self);
 }
 
+static void
+thread_set_error (struct thread_state *tstate, Lisp_Object error_symbol, Lisp_Object data)
+{
+  /* What to do if thread is already signaled?  */
+  /* What if error_symbol is Qnil?  */
+  tstate->error_symbol = error_symbol;
+  tstate->error_data = data;
+}
+
 DEFUN ("thread-signal", Fthread_signal, Sthread_signal, 3, 3, 0,
        doc: /* Signal an error in a thread.
 This acts like `signal', but arranges for the signal to be raised
@@ -1006,10 +1024,7 @@ If THREAD is the main thread, just the error message is shown.  */)
   else
 #endif
     {
-      /* What to do if thread is already signaled?  */
-      /* What if error_symbol is Qnil?  */
-      tstate->error_symbol = error_symbol;
-      tstate->error_data = data;
+      thread_set_error (tstate, error_symbol, data);
 
       if (tstate->wait_condvar)
 	flush_stack_call_func (thread_signal_callback, tstate);
@@ -1028,6 +1043,41 @@ DEFUN ("thread-live-p", Fthread_live_p, Sthread_live_p, 1, 1, 0,
   tstate = XTHREAD (thread);
 
   return thread_live_p (tstate) ? Qt : Qnil;
+}
+
+DEFUN ("thread-buffer-disposition", Fthread_buffer_disposition, Sthread_buffer_disposition,
+       1, 1, 0,
+       doc: /* Return the value of THREAD's buffer disposition.
+See `make-thread' for the description of possible values.  */)
+  (Lisp_Object thread)
+{
+  struct thread_state *tstate;
+
+  CHECK_THREAD (thread);
+  tstate = XTHREAD (thread);
+
+  return tstate->buffer_disposition;
+}
+
+DEFUN ("thread-set-buffer-disposition", Fthread_set_buffer_disposition, Sthread_set_buffer_disposition,
+       2, 2, 0,
+       doc: /* Set THREAD's buffer disposition.
+See `make-thread' for the description of possible values.
+
+Buffer disposition of the main thread cannot be modified.  */)
+  (Lisp_Object thread, Lisp_Object value)
+{
+  struct thread_state *tstate;
+
+  CHECK_THREAD (thread);
+  tstate = XTHREAD (thread);
+
+  if (main_thread_p (tstate))
+    CHECK_TYPE (NILP (value), Qnull, value);
+
+  tstate->buffer_disposition = value;
+
+  return value;
 }
 
 DEFUN ("thread--blocker", Fthread_blocker, Sthread_blocker, 1, 1, 0,
@@ -1139,11 +1189,41 @@ thread_check_current_buffer (struct buffer *buffer)
       if (iter == current_thread)
 	continue;
 
-      if (iter->m_current_buffer == buffer)
+      if (iter->m_current_buffer == buffer && EQ (iter->buffer_disposition, Qt))
 	return true;
     }
 
   return false;
+}
+
+void
+thread_all_before_buffer_killed (Lisp_Object current)
+{
+  struct thread_state *iter;
+  struct buffer *other = NULL;
+  struct buffer *b = XBUFFER (current);
+  struct thread_state *caller_thread = current_thread;
+
+  for (iter = all_threads; iter; iter = iter->next_thread)
+    {
+      if (iter == caller_thread)
+	continue;
+
+      if (iter->m_current_buffer == b)
+	{
+	  Lisp_Object thread;
+
+	  XSETTHREAD (thread, iter);
+
+	  if (other == NULL)
+	    other = XBUFFER (Fother_buffer (current, Qnil, Qnil));
+
+	  if (!EQ (iter->buffer_disposition, Qsilently))
+	    thread_set_error (iter, Qthread_buffer_killed, Qnil);
+
+	  iter->m_current_buffer = other;
+	}
+    }
 }
 
 
@@ -1174,6 +1254,7 @@ init_threads (void)
 #endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
 
   main_thread.s.thread_id = sys_thread_self ();
+  main_thread.s.buffer_disposition = Qnil;
   init_bc_thread (&main_thread.s.bc);
 }
 
@@ -1203,6 +1284,8 @@ syms_of_threads (void)
       defsubr (&Scondition_mutex);
       defsubr (&Scondition_name);
       defsubr (&Sthread_last_error);
+      defsubr (&Sthread_buffer_disposition);
+      defsubr (&Sthread_set_buffer_disposition);
 
       staticpro (&last_thread_error);
       last_thread_error = Qnil;
@@ -1213,6 +1296,13 @@ syms_of_threads (void)
   DEFSYM (Qthreadp, "threadp");
   DEFSYM (Qmutexp, "mutexp");
   DEFSYM (Qcondition_variable_p, "condition-variable-p");
+
+  DEFSYM (Qthread_buffer_killed, "thread-buffer-killed");
+  Fput (Qthread_buffer_killed, Qerror_conditions,
+	list (Qthread_buffer_killed, Qerror));
+  Fput (Qthread_buffer_killed, Qerror_message,
+	build_string ("Thread's current buffer killed"));
+  DEFSYM (Qsilently, "silently");
 
   DEFVAR_LISP ("main-thread", Vmain_thread,
     doc: /* The main thread of Emacs.  */);

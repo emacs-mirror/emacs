@@ -2748,10 +2748,6 @@ Currently there are `ruby-mode' and `ruby-ts-mode'."
 (dolist (name (list "ruby" "rbx" "jruby" "j?ruby\\(?:[0-9.]+\\)"))
   (add-to-list 'interpreter-mode-alist (cons name 'ruby-mode)))
 
-;; See ruby-ts-mode.el for why we do this.
-(setq major-mode-remap-defaults
-      (assq-delete-all 'ruby-mode major-mode-remap-defaults))
-
 (provide 'ruby-mode)
 
 ;;; ruby-mode.el ends here

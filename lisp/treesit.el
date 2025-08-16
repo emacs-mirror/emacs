@@ -125,7 +125,8 @@ in a Emacs not built with tree-sitter library."
 
      (declare-function treesit-available-p "treesit.c")
 
-     (defvar treesit-thing-settings)))
+     (defvar treesit-thing-settings)
+     (defvar treesit-major-mode-remap-alist)))
 
 (treesit-declare-unavailable-functions)
 
@@ -751,9 +752,10 @@ that encompasses the region between START and END."
                    (signal 'treesit-error (list "Value of :embed option cannot be omitted")))
                  (when (null host)
                    (signal 'treesit-error (list "Value of :host option cannot be omitted")))
-                 (push (list (treesit-query-compile host query)
+                 (when (treesit-available-p)
+                  (push (list (treesit-query-compile host query)
                              embed local offset range-fn)
-                       result))
+                       result)))
                (setq host nil embed nil offset nil local nil range-fn nil))))
     (nreverse result)))
 
@@ -5387,15 +5389,41 @@ might display a warning and/or fail to turn on the mode."
   "Ensure that the grammar library for the language LANG is installed.
 The option `treesit-auto-install-grammar' defines whether to install
 the grammar library if it's unavailable."
-  (or (treesit-ready-p lang t)
-      (when (or (eq treesit-auto-install-grammar 'always)
-                (and (eq treesit-auto-install-grammar 'ask)
-                     (y-or-n-p (format "\
+  (when (treesit-available-p)
+    (or (treesit-ready-p lang t)
+        (when (or (eq treesit-auto-install-grammar 'always)
+                  (and (eq treesit-auto-install-grammar 'ask)
+                       (y-or-n-p (format "\
 Tree-sitter grammar for `%s' is missing; install it?"
-                                       lang))))
-        (treesit-install-language-grammar lang)
-        ;; Check that the grammar was installed successfully
-        (treesit-ready-p lang))))
+                                         lang))))
+          (treesit-install-language-grammar lang)
+          ;; Check that the grammar was installed successfully
+          (treesit-ready-p lang)))))
+
+;;; Treesit enabled modes
+
+;;;###autoload
+(defcustom treesit-enabled-modes nil
+  "Specify what treesit modes to enable by default.
+The value can be either a list of ts-modes to enable,
+or t to enable all ts-modes."
+  :type `(choice
+          (const :tag "Disable all automatic associations" nil)
+          (const :tag "Enable all available ts-modes" t)
+          (set :tag "List of enabled ts-modes"
+               ,@(when (treesit-available-p)
+                   (sort (mapcar (lambda (m) `(function-item ,m))
+                                 (seq-uniq (mapcar #'cdr treesit-major-mode-remap-alist)))))))
+  :initialize #'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (when (treesit-available-p)
+           (dolist (m treesit-major-mode-remap-alist)
+             (setq major-mode-remap-alist
+                   (if (or (eq val t) (memq (cdr m) val))
+                       (cons m major-mode-remap-alist)
+                     (delete m major-mode-remap-alist))))))
+  :version "31.1")
 
 ;;; Shortdocs
 

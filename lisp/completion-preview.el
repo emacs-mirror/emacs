@@ -521,7 +521,9 @@ candidates or if there are multiple matching completions and
       (run-hook-wrapped
        'completion-at-point-functions
        #'completion-preview--capf-wrapper)
-    (when-let* ((suffix (car suffixes)))
+    (when-let* ((suffix (car suffixes))
+                (inhibit-quit t))
+      ;; Critical section, do not quit upon receiving input here.
       (set-text-properties 0 (length suffix)
                            (list 'face (if (cdr suffixes)
                                            'completion-preview

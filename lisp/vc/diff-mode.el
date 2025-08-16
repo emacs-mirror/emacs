@@ -1600,7 +1600,7 @@ else cover the whole buffer."
   (remove-overlays nil nil 'diff-mode 'syntax)
   (when font-lock-mode
     (make-local-variable 'font-lock-extra-managed-props)
-    ;; Added when diff--font-lock-prettify is non-nil!
+    ;; Added when diff-font-lock-prettify is non-nil!
     (cl-pushnew 'display font-lock-extra-managed-props)))
 
 (defvar-local diff-mode-read-only nil
@@ -2949,7 +2949,10 @@ fixed, visit it in a buffer."
 
 (defun diff--font-lock-prettify (limit)
   (when diff-font-lock-prettify
-    (when (> (frame-parameter nil 'left-fringe) 0)
+    ;; FIXME: `window-fringes` uselessly allocates 4 cons cells,
+    ;; but the previous use of `frame-paramter' ended up internally
+    ;; calling `frame-parameters' making it even worse!
+    (when (> (car (window-fringes)) 0)
       (save-excursion
         ;; FIXME: Include the first space for context-style hunks!
         (while (re-search-forward "^[-+! ]" limit t)
@@ -2965,7 +2968,7 @@ fixed, visit it in a buffer."
                 (?! . (left-fringe diff-fringe-rep diff-indicator-changed))
                 (?\s . (left-fringe diff-fringe-nul fringe)))))))))
     ;; Mimics the output of Magit's diff.
-    ;; FIXME: This has only been tested with Git's diff output.
+    ;; FIXME: This has been tested only with Git's diff output.
     ;; FIXME: Add support for Git's "rename from/to"?
     (while (re-search-forward "^diff " limit t)
       ;; We split the regexp match into a search plus a looking-at because

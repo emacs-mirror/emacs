@@ -211,15 +211,19 @@ the debugger, but before running it, is the most efficient way of
 making sure control will be returned to the debugger when you need
 that.
 
-'Fsignal' is a very useful place to put a breakpoint in.  All Lisp
-errors go through there.  If you are only interested in errors that
-would fire the Lisp debugger, breaking at 'maybe_call_debugger' is
-useful.
+The function 'debugger-trap' is a do-nothing interactive command that
+exists to give control to the debugger.  It is convenient to set a
+breakpoint there to give control to the debugger when the function is
+called.  You can invoke it interactively with "M-x debugger-trap RET".
+The src/.gdbinit file in the Emacs source distribution sets a breakpoint
+in this function, so if you arrange for .gdbinit to be loaded, or load
+it manually in a debugging session, the breakpoint is set for you
+automatically.
 
-Another technique for getting control to the debugger is to put a
-breakpoint in some rarely used function.  One such convenient function
-is Fredraw_display, which you can invoke at will interactively with
-"M-x redraw-display RET".
+'Fsignal' is another very useful place to put a breakpoint in.  All Lisp
+errors go through there.  If you are only interested in errors that
+would fire the Lisp debugger, breaking at 'maybe_call_debugger' is a
+useful alternative.
 
 It is also useful to have a guaranteed way to return to the debugger
 at any arbitrary time.  When using X, this is easy: type C-z at the

@@ -5167,6 +5167,15 @@ This should be set if the function in `mouse-position-function' does not
 trigger redisplay.  */);
   tty_menu_calls_mouse_position_function = 0;
 
+  DEFVAR_BOOL ("tty-cursor-movement-use-TAB-BS", tty_cursor_movement_use_TAB_BS,
+    doc: /* Whether TTY frames may use the combination TAB + BACKSPACE for moving around.
+On TTY frames, as a display optimization, Emacs may move to a position
+by "overshooting" with TAB characters and one BACKSPACE character, when
+this is more efficient.  This combination can interfere with the
+functioning of some software, such as screen readers.  Set this to
+non-nil to enable this optimization.  */);
+  tty_cursor_movement_use_TAB_BS = 0;
+
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
   defsubr (&Stty_no_underline);

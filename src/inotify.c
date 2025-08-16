@@ -339,6 +339,7 @@ inotify_callback (int fd, void *_)
   struct input_event event;
   EVENT_INIT (event);
   event.kind = FILE_NOTIFY_EVENT;
+  event.frame_or_window = Qnil;
 
   for (ssize_t i = 0; i < n; )
     {

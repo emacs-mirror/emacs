@@ -356,7 +356,7 @@ This function is called, by name, directly by the C code."
 (defun run-at-time (time repeat function &rest args)
   "Perform an action at time TIME.
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
-REPEAT may be an integer or floating point number.
+REPEAT may be a non-negative integer or floating point number.
 TIME should be one of:
 
 - a string giving today's time like \"11:23pm\"
@@ -386,10 +386,10 @@ This function returns a timer object which you can use in
 `cancel-timer'."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
 
-  (when (and repeat
-             (numberp repeat)
-             (< repeat 0))
-    (error "Invalid repetition interval"))
+  (unless (or (null repeat)
+              (and (numberp repeat)
+                   (>= repeat 0)))
+    (error "Invalid repetition interval: %s" repeat))
 
   (let ((timer (timer-create)))
     ;; Special case: nil means "now" and is useful when repeating.
@@ -433,6 +433,7 @@ This function returns a timer object which you can use in
   "Perform an action after a delay of SECS seconds.
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
 SECS and REPEAT may be integers or floating point numbers.
+REPEAT, if non-nil, must be a non-negative number.
 The action is to call FUNCTION with arguments ARGS.
 
 This function returns a timer object which you can use in `cancel-timer'."

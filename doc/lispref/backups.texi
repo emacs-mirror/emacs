@@ -719,7 +719,7 @@ preserved, but this is up to the specific @code{revert-buffer-function}
 implementation.
 @end deffn
 
-@defvar revert-buffer-in-progress-p
+@defvar revert-buffer-in-progress
 @code{revert-buffer} binds this variable to a non-@code{nil} value
 while it is working.
 @end defvar
@@ -851,6 +851,13 @@ unmodified should always keep the buffer marked unmodified.
 It is important to assure that point does not continuously jump around
 as a consequence of auto-reverting.  Of course, moving point might be
 inevitable if the buffer radically changes.
+
+@defvar auto-revert-buffer-in-progress
+@code{auto-revert-buffer} binds this variable to a non-@code{nil} value
+while it is working.  This can be used by major mode
+@code{revert-buffer-function} implementations to suppress messages in
+Auto Revert modes, for example.
+@end defvar
 
 @defvar inhibit-auto-revert-buffers
 When the current buffer is member of this variable (a list of buffers),

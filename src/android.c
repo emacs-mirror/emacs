@@ -1142,10 +1142,10 @@ android_url_encode (const char *restrict string, size_t length,
 
   while (string < end)
     {
-      /* XXX: Android documentation claims that URIs is encoded
+      /* XXX: Android documentation claims that a URI is to be encoded
 	 according to the ``Unicode'' scheme, but what this means in
-	 reality is that the URI is encoded in UTF-8, and then
-	 each of its bytes are encoded.  */
+	 reality is that the URI is encoded in UTF-8, and then each of
+	 the resulting bytes is separately URI-encoded.  */
       /* Find the length of the multibyte character at STRING.  */
       len = /* multibyte_length (string, end, true, true) */ 1;
 

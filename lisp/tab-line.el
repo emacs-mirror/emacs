@@ -42,7 +42,9 @@
   "Functions called to modify tab faces.
 Each function is called with five arguments: the tab, a list of
 all tabs, the face returned by the previously called modifier,
-whether the tab is a buffer, and whether the tab is selected."
+whether the tab is a buffer (when nil, the buffer is extracted from
+the association list using the key `buffer'), and whether the tab
+is selected."
   :type '(repeat
           (choice (function-item tab-line-tab-face-special)
                   (function-item tab-line-tab-face-modified)
@@ -418,7 +420,9 @@ Used only for `tab-line-tabs-mode-buffers' and `tab-line-tabs-buffer-groups'.")
                              (funcall tab-line-tabs-buffer-list-function)))))
 
 (defun tab-line-tab-modified-p (tab buffer-p)
-  "Return t if TAB is modified."
+  "Return t if TAB's buffer is modified.
+BUFFER-P specifies whether the tab is a buffer; if nil, the buffer
+is extracted from the association list TAB using the key `buffer'."
   (let ((buffer (if buffer-p tab (cdr (assq 'buffer tab)))))
     (when (and buffer (buffer-file-name buffer) (buffer-modified-p buffer))
       t)))
@@ -565,6 +569,30 @@ generate the group name."
                          sorted-buffers)))
       (cons group-tab tabs))))
 
+(defcustom tab-line-tabs-window-buffers-filter-function
+  #'identity
+  "Filter which buffers should be displayed in the tab line."
+  :type '(choice function
+                 (const :tag "Show all buffers" identity)
+                 (const :tag "Omit excluded buffers" tab-line-tabs-non-excluded))
+  :group 'tab-line
+  :version "31.1")
+
+(defvar tab-line-exclude-buffers)
+(defvar tab-line-exclude-modes)
+
+(defun tab-line-tabs-non-excluded (buffers)
+  "Filter BUFFERS to remove excluded buffers from the list.
+Intended to be used in `tab-line-tabs-window-buffers-filter-function'."
+  (seq-remove
+   (lambda (b)
+     (or (memq (buffer-local-value 'major-mode b)
+               tab-line-exclude-modes)
+         (buffer-match-p tab-line-exclude-buffers b)
+         (get (buffer-local-value 'major-mode b) 'tab-line-exclude)
+         (buffer-local-value 'tab-line-exclude b)))
+   buffers))
+
 (defun tab-line-tabs-window-buffers ()
   "Return a list of tabs that should be displayed in the tab line.
 By default returns a list of window buffers, i.e. buffers previously
@@ -581,9 +609,11 @@ variable `tab-line-tabs-function'."
          (prev-buffers (seq-filter #'buffer-live-p prev-buffers))
          ;; Remove next-buffers from prev-buffers
          (prev-buffers (seq-difference prev-buffers next-buffers)))
-    (append (reverse prev-buffers)
-            (list buffer)
-            next-buffers)))
+    (funcall
+     tab-line-tabs-window-buffers-filter-function
+     (append (reverse prev-buffers)
+             (list buffer)
+             next-buffers))))
 
 (defun tab-line-tabs-fixed-window-buffers ()
   "Like `tab-line-tabs-window-buffers' but keep stable sorting order.
@@ -713,9 +743,11 @@ inherit from `tab-line-tab-inactive-alternate'.  For use in
 
 (defun tab-line-tab-face-special (tab _tabs face buffer-p _selected-p)
   "Return FACE for TAB according to whether its buffer is special.
-When TAB is a non-file-visiting buffer, make FACE inherit from
-`tab-line-tab-special'.  For use in
-`tab-line-tab-face-functions'."
+TAB is either a buffer (if BUFFER-P is non-nil), or an association
+list with the buffer given by the key `buffer'.
+When TAB specifies a non-file-visiting buffer, make FACE inherit
+from `tab-line-tab-special'.
+For use in `tab-line-tab-face-functions'."
   (let ((buffer (if buffer-p tab (cdr (assq 'buffer tab)))))
     (when (and buffer (not (buffer-file-name buffer)))
       (setf face `(:inherit (tab-line-tab-special ,face)))))
@@ -723,15 +755,19 @@ When TAB is a non-file-visiting buffer, make FACE inherit from
 
 (defun tab-line-tab-face-modified (tab _tabs face buffer-p _selected-p)
   "Return FACE for TAB according to whether its buffer is modified.
-When TAB is a modified, file-backed buffer, make FACE inherit
-from `tab-line-tab-modified'.  For use in
-`tab-line-tab-face-functions'."
+TAB is either a buffer (if BUFFER-P is non-nil), or an association
+list with the buffer given by the key `buffer'.
+When TAB's buffer is a modified, file-backed buffer, make FACE inherit
+from `tab-line-tab-modified'.
+For use in `tab-line-tab-face-functions'."
   (when (tab-line-tab-modified-p tab buffer-p)
     (setf face `(:inherit (tab-line-tab-modified ,face))))
   face)
 
 (defun tab-line-tab-face-group (tab _tabs face _buffer-p _selected-p)
   "Return FACE for TAB according to whether it's a group tab.
+TAB is either a buffer (if BUFFER-P is non-nil), or an association
+list with the buffer given by the key `buffer'.
 For use in `tab-line-tab-face-functions'."
   (when (alist-get 'group-tab tab)
     (setf face `(:inherit (tab-line-tab-group ,face))))

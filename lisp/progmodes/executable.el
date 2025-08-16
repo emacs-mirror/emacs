@@ -180,7 +180,7 @@ command to find the next error.  The buffer is also in `comint-mode' and
 `compilation-shell-minor-mode', so that you can answer any prompts."
   (interactive (list (read-string "Run script: "
 				  (or executable-command
-				      buffer-file-name))))
+				      (file-local-name buffer-file-name)))))
   (require 'compile)
   (save-some-buffers (not compilation-ask-about-save))
   (setq-local executable-command command)

@@ -675,7 +675,8 @@ encapsulates the state of a computation that produces a sequence
 of values.  Callers can retrieve each value using `iter-next'."
   (declare (indent defun)
            (debug (&define name lambda-list lambda-doc &rest sexp))
-           (doc-string 3))
+           (doc-string 3)
+           (autoload-macro expand)) ; expand to the defun on autoload gen
   (cl-assert lexical-binding)
   (let* ((parsed-body (macroexp-parse-body body))
          (declarations (car parsed-body))

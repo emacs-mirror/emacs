@@ -505,6 +505,15 @@ value of `texinfo-mode-hook'."
   (setq-local syntax-propertize-function texinfo-syntax-propertize-function)
   (setq-local add-log-current-defun-function #'texinfo-current-defun-name)
 
+  ;; Pairs settings
+  (when (boundp 'electric-pair-pairs)
+    (setq-local electric-pair-pairs
+                (cons
+                 ;; `` '' pairs
+                 '("\\(?:^\\|[[:space:]]\\)``"
+                   . "''")
+                 electric-pair-pairs)))
+
   ;; Outline settings.
   (setq-local outline-heading-alist
 	      ;; We should merge `outline-heading-alist' and

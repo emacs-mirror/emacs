@@ -2050,6 +2050,13 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	return Qnil;
     }
 
+  /* Check all threads again, in case a hook changed something.  */
+  if (thread_check_current_buffer (b))
+    return Qnil;
+
+  /* Clean up references to the buffer in threads.  */
+  thread_all_before_buffer_killed (buffer);
+
   /* If the buffer now current is shown in the minibuffer and our buffer
      is the sole other buffer give up.  */
   XSETBUFFER (tem, current_buffer);

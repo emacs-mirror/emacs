@@ -55,7 +55,7 @@ closure are shared by any threads invoking the closure.
 directly, but the current thread can be exited implicitly, and other
 threads can be signaled.
 
-@defun make-thread function &optional name
+@defun make-thread function &optional name buffer-disposition
 Create a new thread of execution which invokes @var{function}.  When
 @var{function} returns, the thread exits.
 
@@ -66,8 +66,22 @@ The new thread's current buffer is inherited from the current thread.
 used for debugging and informational purposes only; it has no meaning
 to Emacs.  If @var{name} is provided, it must be a string.
 
+@var{buffer-disposition} indicates what happens if the thread's current
+buffer is about to be killed.  If the value is @code{t}, killing the
+buffer is not allowed.  Any other value, including @code{nil} (which is
+the default), means that the buffer is killed and the thread is assigned
+another current buffer, and it's signaled the error
+@code{thread-buffer-killed}.  But if the value is the symbol
+@code{silently}, the error is not signaled.
+
 This function returns the new thread.
 @end defun
+
+@findex thread-buffer-disposition
+@findex thread-set-buffer-disposition
+After a thread had been created, you can inspect or change its
+buffer-disposition using functions @code{thread-buffer-disposition} and
+@code{thread-set-buffer-disposition}.
 
 @defun threadp object
 This function returns @code{t} if @var{object} represents an Emacs

@@ -143,7 +143,10 @@
 
 (ert-deftest em-script-test/batch-file/shebang ()
   "Test running an Eshell script file as a batch script via a shebang."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (or (memq system-type '(windows-nt ms-dos))
+                 ;; OpenBSD's env does not support -S
+                 (and (eq system-type 'berkeley-unix)
+                      (string-match-p "openbsd" system-configuration))))
   (ert-with-temp-file temp-file
     :text (format
            "#!/usr/bin/env -S %s --batch -f eshell-batch-file\necho hi"

@@ -1856,7 +1856,14 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
   /* Treat tool bars like menu bars.  */
   if (FRAME_MINIBUF_ONLY_P (f))
-    return;
+    {
+#ifdef USE_GTK
+      /* Make sure implied resizing of minibuffer-only frames can be
+	 inhibited too.  */
+      f->tool_bar_resized = true;
+#endif
+      return;
+    }
 
   /* Use VALUE only if an int >= 0.  */
   if (RANGED_FIXNUMP (0, value, INT_MAX))
@@ -1888,6 +1895,9 @@ x_change_tool_bar_height (struct frame *f, int height)
       if (FRAME_EXTERNAL_TOOL_BAR (f))
         free_frame_tool_bar (f);
       FRAME_EXTERNAL_TOOL_BAR (f) = false;
+      /* Make sure implied resizing of frames without initial tool bar
+	 can be inhibited too.  */
+      f->tool_bar_resized = true;
     }
 #else /* !USE_GTK */
   int unit = FRAME_LINE_HEIGHT (f);

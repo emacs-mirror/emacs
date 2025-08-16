@@ -1054,7 +1054,7 @@ This overrides @code{print-escape-nonascii}.
 This overrides @code{print-escape-multibyte}.
 @item charset-text-property
 This overrides @code{print-charset-text-property}.
-@item unreadeable-function
+@item unreadable-function
 This overrides @code{print-unreadable-function}.
 @item gensym
 This overrides @code{print-gensym}.
@@ -1066,6 +1066,8 @@ This overrides @code{print-number-table}.
 This overrides @code{float-output-format}.
 @item integers-as-characters
 This overrides @code{print-integers-as-characters}.
+@item symbols-bare
+This overrides @code{print-symbols-bare}.
 @end table
 
 In the future, more overrides may be offered that do not map directly

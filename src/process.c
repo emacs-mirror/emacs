@@ -466,6 +466,16 @@ static struct fd_callback_data
   struct thread_state *waiting_thread;
 } fd_callback_info[FD_SETSIZE];
 
+static void
+clear_fd_callback_data(struct fd_callback_data* elem)
+{
+  elem->func = NULL;
+  elem->data = NULL;
+  elem->flags = 0;
+  elem->thread = NULL;
+  elem->waiting_thread = NULL;
+}
+
 
 /* Add a file descriptor FD to be monitored for when read is possible.
    When read is possible, call FUNC with argument DATA.  */
@@ -507,13 +517,6 @@ void
 delete_read_fd (int fd)
 {
   delete_keyboard_wait_descriptor (fd);
-
-  eassert (0 <= fd && fd < FD_SETSIZE);
-  if (fd_callback_info[fd].flags == 0)
-    {
-      fd_callback_info[fd].func = 0;
-      fd_callback_info[fd].data = 0;
-    }
 }
 
 /* Add a file descriptor FD to be monitored for when write is possible.
@@ -574,8 +577,7 @@ delete_write_fd (int fd)
   fd_callback_info[fd].flags &= ~(FOR_WRITE | NON_BLOCKING_CONNECT_FD);
   if (fd_callback_info[fd].flags == 0)
     {
-      fd_callback_info[fd].func = 0;
-      fd_callback_info[fd].data = 0;
+      clear_fd_callback_data(&fd_callback_info[fd]);
 
       if (fd == max_desc)
 	recompute_max_desc ();
@@ -1444,6 +1446,19 @@ See `set-process-sentinel' for more info on sentinels.  */)
   return XPROCESS (process)->sentinel;
 }
 
+static void
+set_proc_thread (struct Lisp_Process *proc, struct thread_state *thrd)
+{
+  eassert ((NILP (proc->thread) && !thrd)
+	   || (THREADP (proc->thread) && XTHREAD (proc->thread) == thrd));
+  eassert (proc->infd < FD_SETSIZE);
+  if (proc->infd >= 0)
+    fd_callback_info[proc->infd].thread = thrd;
+  eassert (proc->outfd < FD_SETSIZE);
+  if (proc->outfd >= 0)
+    fd_callback_info[proc->outfd].thread = thrd;
+}
+
 DEFUN ("set-process-thread", Fset_process_thread, Sset_process_thread,
        2, 2, 0,
        doc: /* Set the locking thread of PROCESS to be THREAD.
@@ -1464,12 +1479,7 @@ If THREAD is nil, the process is unlocked.  */)
 
   proc = XPROCESS (process);
   pset_thread (proc, thread);
-  eassert (proc->infd < FD_SETSIZE);
-  if (proc->infd >= 0)
-    fd_callback_info[proc->infd].thread = tstate;
-  eassert (proc->outfd < FD_SETSIZE);
-  if (proc->outfd >= 0)
-    fd_callback_info[proc->outfd].thread = tstate;
+  set_proc_thread (proc, tstate);
 
   return thread;
 }
@@ -2258,6 +2268,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   if (!EQ (p->command, Qt)
       && !EQ (p->filter, Qt))
     add_process_read_fd (inchannel);
+
+  set_proc_thread (p, current_thread);
 
   specpdl_ref count = SPECPDL_INDEX ();
 
@@ -4839,8 +4851,6 @@ deactivate_process (Lisp_Object proc)
       delete_read_fd (inchannel);
       if ((fd_callback_info[inchannel].flags & NON_BLOCKING_CONNECT_FD) != 0)
 	delete_write_fd (inchannel);
-      if (inchannel == max_desc)
-	recompute_max_desc ();
     }
 }
 
@@ -8312,7 +8322,7 @@ delete_keyboard_wait_descriptor (int desc)
 #ifdef subprocesses
   eassert (desc >= 0 && desc < FD_SETSIZE);
 
-  fd_callback_info[desc].flags &= ~(FOR_READ | KEYBOARD_FD | PROCESS_FD);
+  clear_fd_callback_data(&fd_callback_info[desc]);
 
   if (desc == max_desc)
     recompute_max_desc ();

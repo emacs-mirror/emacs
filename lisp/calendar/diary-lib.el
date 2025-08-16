@@ -1395,8 +1395,8 @@ marks.  This is intended to deal with deleted diary entries."
   ;; ii) called via calendar-redraw (since calendar has already been
   ;; erased).
   ;; Use of REDRAW handles both of these cases.
-  (when (and redraw calendar-mark-diary-entries-flag)
-    (setq calendar-mark-diary-entries-flag nil)
+  (when (and redraw calendar-mark-diary-entries)
+    (setq calendar-mark-diary-entries nil)
     (calendar-redraw))
   (let ((diary-marking-entries-flag t)
         (diary-buffer (find-buffer-visiting diary-file))
@@ -1417,7 +1417,7 @@ marks.  This is intended to deal with deleted diary entries."
               ;; If including, caller has already verified it is readable.
               (insert-file-contents diary-file)
             (if (eq major-mode (default-value 'major-mode)) (diary-mode)))
-          (setq calendar-mark-diary-entries-flag t)
+          (setq calendar-mark-diary-entries t)
           (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
           (with-syntax-table diary-syntax-table
             (save-excursion
@@ -2243,7 +2243,7 @@ Prefix argument ARG makes the entry nonmarking."
 
 (defun diary-redraw-calendar ()
   "If `calendar-buffer' is live and diary entries are marked, redraw it."
-  (and calendar-mark-diary-entries-flag
+  (and calendar-mark-diary-entries
        (save-excursion
          (calendar-redraw)))
   ;; Return value suitable for `write-contents-functions'.

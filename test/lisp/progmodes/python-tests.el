@@ -4602,6 +4602,32 @@ and `python-shell-interpreter-args' in the new shell buffer."
                             "^\\(o\\.t \\|\\)")))
        (ignore-errors (delete-file startup-file))))))
 
+(ert-deftest python-shell--convert-file-name-to-send-1 ()
+  "Test parameters consist of a list of the following three elements.
+1. The variable `default-directory' of the process.
+2. FILE-NAME argument.
+3. The expected return value."
+  (python-tests-with-temp-buffer-with-shell
+   ""
+   (let* ((path "/tmp/tmp.py")
+          (local-path (concat python-shell-local-prefix path))
+          (remote1-path (concat "/ssh:remote1:" path))
+          (remote2-path (concat "/ssh:remote2:" path))
+          (process (python-shell-get-process)))
+     (dolist
+         (test (list (list "/tmp" nil nil)
+                     (list "/tmp" path path)
+                     (list "/tmp" local-path path)
+                     (list "/ssh:remote1:/tmp" path local-path)
+                     (list "/ssh:remote1:/tmp" local-path local-path)
+                     (list "/ssh:remote1:/tmp" remote1-path path)
+                     (list "/ssh:remote1:/tmp" remote2-path remote2-path)))
+       (with-current-buffer (process-buffer process)
+         (setq default-directory (nth 0 test)))
+       (should (string= (python-shell--convert-file-name-to-send
+                         process (nth 1 test))
+                        (nth 2 test)))))))
+
 (ert-deftest python-shell-buffer-substring-1 ()
   "Selecting a substring of the whole buffer must match its contents."
   (python-tests-with-temp-buffer

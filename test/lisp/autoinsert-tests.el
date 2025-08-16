@@ -76,6 +76,40 @@
       (auto-insert)
       (should (equal (buffer-string) "2nd")))))
 
+(ert-deftest autoinsert-tests-auto-insert-lambda ()
+  (let ((auto-insert-alist
+         '(((predicate (lambda () t)) . (lambda () (insert "foo")))))
+        (auto-insert-query nil))
+    (with-temp-buffer
+      (auto-insert)
+      (should (equal (buffer-string) "foo")))))
+
+(ert-deftest autoinsert-tests-auto-insert-predicate ()
+  (defun predicate () t)
+  (let ((auto-insert-alist
+         '(((predicate predicate) . (lambda () (insert "foo")))))
+        (auto-insert-query nil))
+    (with-temp-buffer
+      (auto-insert)
+      (should (equal (buffer-string) "foo")))))
+
+(ert-deftest autoinsert-tests-auto-insert-lambda-nil ()
+  (let ((auto-insert-alist
+         '(((predicate (lambda () nil)) . (lambda () (insert "foo")))))
+        (auto-insert-query nil))
+    (with-temp-buffer
+      (auto-insert)
+      (should (equal (buffer-string) "")))))
+
+(ert-deftest autoinsert-tests-auto-insert-predicate-nil ()
+  (defun predicate () nil)
+  (let ((auto-insert-alist
+         '(((predicate predicate) . (lambda () (insert "foo")))))
+        (auto-insert-query nil))
+    (with-temp-buffer
+      (auto-insert)
+      (should (equal (buffer-string) "")))))
+
 (ert-deftest autoinsert-tests-define-auto-insert-before ()
   (let ((auto-insert-alist
          (list (cons 'text-mode (lambda () (insert "foo")))))

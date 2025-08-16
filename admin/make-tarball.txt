@@ -388,15 +388,25 @@ add the new NEWS file as news/NEWS.xx.y
 Copy new etc/MACHINES to MACHINES and CONTRIBUTE to CONTRIBUTE
 
 For every new release, a banner is displayed on top of the emacs.html
-page.  Uncomment and the release banner in emacs.html.  Keep it on the
-page for about a month, then comment it again.  The new release banner
-looks like this:
+page.  Uncomment the release banner in emacs.html.  Keep it on the page
+for about a month, then comment it again.  The new release banner looks
+like this:
 
     <div class="release-banner">
 	<div class="container">
 	    <h2><em>Emacs 28.1 is out</em>, download it <a href="download.html">here</a>!</h2>
 	</div>
     </div>
+
+Add the information about the new release in the "Releases" section of
+emacs.html, which begins like this:
+
+    <div class="releases">
+	<div class="container">
+	  <!-- NOTE: There is no need to keep more than the two most recent -->
+	  <!-- major versions here. -->
+
+	    <h2 id="Releases">
 
 Also, make sure the copyright years at the bottom of emacs.html are
 up-to-date.

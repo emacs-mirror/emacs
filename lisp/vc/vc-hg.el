@@ -429,26 +429,23 @@ the log starting from that revision."
              ;; kinds of ranges of revisions for the log to show:
              ;;   - ranges by revision number:   -rN:M
              ;;   - ranges according to the DAG: -rN::M or -rN..M
-             ;; Note that N & M can be revision numbers or changeset IDs
-             ;; (hashes).  In either case a revision number range
+             ;; Note that N and M can be revision numbers or changeset
+             ;; IDs (hashes).  In either case a revision number range
              ;; includes those commits with revision numbers between the
              ;; revision numbers of the commits identified by N and M.
              ;; See <https://repo.mercurial-scm.org/hg/help/revsets>.
              ;;
-             ;; DAG ranges might seem like Git's double-dot notation for
-             ;; ranges, but there is (at least) the following
-             ;; difference: with -rN::M, commits from other branches
-             ;; aren't included in the log.
+             ;; DAG ranges are not the same as Git's double-dot ranges.
+             ;; Git's 'x..y' is more like Mercurial's 'only(y, x)' than
+             ;; it is like Mercurial's x::y.  In addition, with -rN::M,
+             ;; commits from other branches aren't included in the log.
              ;;
              ;; VC has always used ranges by revision numbers, such that
              ;; commits from all branches are included in the log.
-             ;; `vc-log-outgoing' is a special case: there we really
-             ;; need to exclude the incoming revision and its ancestors
-             ;; because those are certainly not outgoing.
              (cond ((not (stringp limit))
                     (format "-r%s:0" start))
                    ((eq vc-log-view-type 'log-outgoing)
-                    (format "-rreverse(%s::%s & !%s)" limit start limit))
+                    (format "-rreverse(only(%s, %s))" start limit))
                    (t
                     (format "-r%s:%s & !%s" start limit limit)))
 	     (nconc
@@ -1219,23 +1216,53 @@ It is based on `log-edit-mode', and has Hg-specific extensions.")
 (defun vc-hg-checkin (files comment &optional _rev)
   "Hg-specific version of `vc-BACKEND-checkin'.
 REV is ignored."
-  (let ((args (nconc (list "commit" "-m")
-                     (vc-hg--extract-headers comment))))
-    (if vc-async-checkin
-        (let ((buffer (vc-hg--async-buffer)))
-          (vc-wait-for-process-before-save
-           (apply #'vc-hg--async-command buffer (nconc args files))
-           "Finishing checking in files...")
-          (with-current-buffer buffer
-            (vc-run-delayed
-              (vc-compilation-mode 'hg)))
-          (vc-set-async-update buffer)
-          (list 'async (get-buffer-process buffer)))
-      (apply #'vc-hg-command nil 0 files args))))
+  (let* ((args (vc-hg--extract-headers comment))
+         (file1 (or (car files) default-directory))
+         (msg-file
+          ;; On MS-Windows, pass the commit log message through a file,
+          ;; to work around the limitation that command-line arguments
+          ;; must be in the system codepage, and therefore might not
+          ;; support non-ASCII characters in the log message.
+          ;; Also handle remote files.
+          (and (eq system-type 'windows-nt)
+               (let ((default-directory (or (file-name-directory file1)
+                                            default-directory)))
+                 (make-nearby-temp-file "hg-msg")))))
+    (when msg-file
+      (let ((coding-system-for-write 'utf-8))
+        (write-region (car args) nil msg-file)))
+    (let ((coding-system-for-write
+           ;; On MS-Windows, we must encode command-line arguments in
+           ;; the system codepage.
+           (if (eq system-type 'windows-nt)
+               locale-coding-system
+             coding-system-for-write))
+          (args (if msg-file
+                    (cl-list* "commit" "-A" "-l" (file-local-name msg-file)
+                              (cdr args))
+                  (cl-list* "commit" "-A" "-m" args)))
+          (post (lambda ()
+                  (when (and msg-file (file-exists-p msg-file))
+                    (delete-file msg-file)))))
+      (if vc-async-checkin
+          (let ((buffer (vc-hg--async-buffer)))
+            (vc-wait-for-process-before-save
+             (apply #'vc-hg--async-command buffer (nconc args files))
+             "Finishing checking in files...")
+            (with-current-buffer buffer
+              (vc-run-delayed
+                (vc-compilation-mode 'hg)
+                (funcall post)))
+            (vc-set-async-update buffer)
+            (list 'async (get-buffer-process buffer)))
+        (apply #'vc-hg-command nil 0 files args)
+        (funcall post)))))
 
+;; FIXME: Needs MS-Windows encoding issues handling.
+;; Possibly we want fix this by merging this function into the preceeding one.
+;; Figure out resolution of #79235 first.
 (defun vc-hg-checkin-patch (patch-string comment)
-  (let ((parent (current-buffer))
-        (patch-file (make-temp-file "hg-patch")))
+  (let ((patch-file (make-nearby-temp-file "hg-patch")))
     (write-region patch-string nil patch-file)
     (unwind-protect
         (let ((args (list "update"
@@ -1246,14 +1273,14 @@ REV is ignored."
                         (vc-hg--extract-headers comment)))
           (if vc-async-checkin
               (let ((buffer (vc-hg--async-buffer)))
-                (apply #'vc-hg--async-command buffer args)
+                (vc-wait-for-process-before-save
+                 (apply #'vc-hg--async-command buffer args)
+                 "Finishing checking in patch....")
                 (with-current-buffer buffer
                   (vc-run-delayed
-                    (vc-compilation-mode 'hg)
-                    (when (buffer-live-p parent)
-                       (with-current-buffer parent
-                         (run-hooks 'vc-checkin-hook)))))
-                (vc-set-async-update buffer))
+                    (vc-compilation-mode 'hg)))
+                (vc-set-async-update buffer)
+                (list 'async (get-buffer-process buffer)))
             (apply #'vc-hg-command nil 0 nil args)))
       (delete-file patch-file))))
 
@@ -1642,6 +1669,18 @@ This function differs from `vc-do-command' in that
 - BUFFER may be nil
 - it invokes `vc-hg-program' and passes `vc-hg-global-switches' to it
   before FLAGS."
+  ;; Commands which pass command line arguments which might
+  ;; contain non-ASCII have to bind `coding-system-for-write' to
+  ;; `locale-coding-system' when (eq system-type 'windows-nt)
+  ;; because MS-Windows has the limitation that command line
+  ;; arguments must be in the system codepage.  We do that only
+  ;; within the commands which must do it, instead of implementing
+  ;; it here, even though that means code repetition.  This is
+  ;; because such a let-binding would have the disadvantage of
+  ;; overriding any `coding-system-for-write' explicitly selected
+  ;; by the user (e.g. with C-x RET c), or by enclosing function
+  ;; calls.  So we want to do it only for commands which really
+  ;; require it.
   (vc-hg--command-1 #'vc-do-command
                     (list (or buffer "*vc*")
                           okstatus vc-hg-program file-or-list)

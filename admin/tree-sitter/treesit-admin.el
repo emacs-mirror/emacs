@@ -83,6 +83,7 @@
     go-ts-mode
     heex-ts-mode
     html-ts-mode
+    mhtml-ts-mode
     java-ts-mode
     js-ts-mode
     json-ts-mode
@@ -107,6 +108,7 @@
     go-ts-mode
     heex-ts-mode
     html-ts-mode
+    mhtml-ts-mode
     java-ts-mode
     js
     json-ts-mode

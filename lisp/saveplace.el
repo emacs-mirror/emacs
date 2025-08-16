@@ -444,7 +444,7 @@ It runs the hook `save-place-after-find-file-hook'."
                           save-place-alist))))
     (if cell
 	(progn
-	  (or revert-buffer-in-progress-p
+	  (or revert-buffer-in-progress
 	      (and (integerp (cdr cell))
 		   (goto-char (cdr cell))))
           ;; and make sure it will be saved again for later
@@ -467,7 +467,7 @@ This is run via `dired-initial-position-hook', which see."
 	      (cell (assoc (if save-place-abbreviate-file-names
                                (abbreviate-file-name item) item)
 		           save-place-alist)))
-    (or revert-buffer-in-progress-p
+    (or revert-buffer-in-progress
         (cond
 	 ((integerp (cdr cell))
 	  (goto-char (cdr cell)))

@@ -544,7 +544,9 @@ to this macro.
 By convention, DOC should use \"EXPVAL\" to stand
 for the result of evaluating EXP (first arg to `pcase').
 \n(fn NAME ARGS [DOC] &rest BODY...)"
-  (declare (indent 2) (debug defun) (doc-string 3))
+  (declare (indent 2) (debug defun) (doc-string 3)
+           ;; Expand to defun and related forms on autoload gen
+           (autoload-macro expand))
   ;; Add the function via `fsym', so that an autoload cookie placed
   ;; on a pcase-defmacro will cause the macro to be loaded on demand.
   (let ((fsym (intern (format "%s--pcase-macroexpander" name)))

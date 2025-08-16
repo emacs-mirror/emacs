@@ -1751,7 +1751,9 @@ You can update the global isearch variables by setting new values to
 	  ;; This is so that the user can do anything without failure,
 	  ;; like switch buffers and start another isearch, and return.
 	  (condition-case nil
-	      (isearch-done t t)
+	      (progn
+		(isearch-done t t)
+		(isearch-clean-overlays))
 	    (exit nil))			; was recursive editing
 
 	  ;; Save old point and isearch-other-end before reading from minibuffer
@@ -1824,6 +1826,7 @@ You can update the global isearch variables by setting new values to
 	    (progn
 	      ;; (sit-for 1) ;; needed if isearch-done does: (message "")
 	      (isearch-done)
+	      (isearch-clean-overlays)
 	      ;; The search done message is confusing when the string
 	      ;; is empty, so erase it.
 	      (if (equal isearch-string "")
@@ -3790,19 +3793,20 @@ Optional third argument, if t, means if fail just return nil (no error).
 ;; point returns to the original location which surely is not contain
 ;; in any of these overlays, se we are safe in this case too.
 (defun isearch-open-necessary-overlays (ov)
-  (let ((inside-overlay (and  (> (point) (overlay-start ov))
-			      (<= (point) (overlay-end ov))))
-	;; If this exists it means that the overlay was opened using
-	;; this function, not by us tweaking the overlay properties.
-	(fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
-    (when (or inside-overlay (not fct-temp))
-      ;; restore the values for the `invisible' properties.
-      (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
-      (overlay-put ov 'isearch-invisible nil))
-    (if inside-overlay
-	(funcall (overlay-get ov 'isearch-open-invisible)  ov)
-      (if fct-temp
-	  (funcall fct-temp ov t)))))
+  (when (overlay-buffer ov)
+    (let ((inside-overlay (and  (> (point) (overlay-start ov))
+                                (<= (point) (overlay-end ov))))
+          ;; If this exists it means that the overlay was opened using
+          ;; this function, not by us tweaking the overlay properties.
+          (fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
+      (when (or inside-overlay (not fct-temp))
+        ;; restore the values for the `invisible' properties.
+        (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
+        (overlay-put ov 'isearch-invisible nil))
+      (if inside-overlay
+          (funcall (overlay-get ov 'isearch-open-invisible)  ov)
+        (if fct-temp
+            (funcall fct-temp ov t))))))
 
 ;; This is called when exiting isearch. It closes the temporary
 ;; opened overlays, except the ones that contain the latest match.
@@ -3827,16 +3831,17 @@ Optional third argument, if t, means if fail just return nil (no error).
   (let ((overlays isearch-opened-overlays))
     (setq isearch-opened-overlays nil)
     (dolist (ov overlays)
-      (if (isearch-intersects-p beg end (overlay-start ov) (overlay-end ov))
-	  (push ov isearch-opened-overlays)
-	(let ((fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
-	  (if fct-temp
-	      ;; If this exists it means that the overlay was opened
-	      ;; using this function, not by us tweaking the overlay
-	      ;; properties.
-	      (funcall fct-temp ov t)
-	    (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
-	    (overlay-put ov 'isearch-invisible nil)))))))
+      (when (overlay-buffer ov)
+        (if (isearch-intersects-p beg end (overlay-start ov) (overlay-end ov))
+            (push ov isearch-opened-overlays)
+          (let ((fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
+            (if fct-temp
+                ;; If this exists it means that the overlay was opened
+                ;; using this function, not by us tweaking the overlay
+                ;; properties.
+                (funcall fct-temp ov t)
+              (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
+              (overlay-put ov 'isearch-invisible nil))))))))
 
 
 (defun isearch-range-invisible (beg end)
