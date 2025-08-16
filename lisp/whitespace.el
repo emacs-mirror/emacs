@@ -329,7 +329,7 @@ The value is a list containing one or more of the following symbols:
                         This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
-   page-delimiters       visualize page delimiters characters (^L)
+   page-delimiters       visualize page-break delimiter characters (^L)
                          as horizontal lines.
                          This has effect only if `face' (see above)
                          is present in `whitespace-style'.
@@ -467,7 +467,8 @@ See also `whitespace-display-mappings' for documentation."
               (const :tag "(Face) SPACEs before TAB" space-before-tab)
               (const :tag "(Mark) SPACEs and HARD SPACEs" space-mark)
               (const :tag "(Mark) TABs" tab-mark)
-              (const :tag "(Mark) NEWLINEs" newline-mark)))
+              (const :tag "(Mark) NEWLINEs" newline-mark))
+  :version "31.1")
 
 (defvar whitespace-space 'whitespace-space
   "Symbol face used to visualize SPACE.
@@ -638,7 +639,8 @@ See `whitespace-space-after-tab-regexp'.")
     (((supports :strike-through t))
      :height 0.1 :strike-through t :extend t :inherit shadow)
     (t :height 0.1 :extend t :inherit shadow :inverse-video t))
-  "Face used to visualize page delimiter characters.")
+  "Face used to visualize page delimiter characters."
+  :version "31.1")
 
 (defcustom whitespace-hspace-regexp
   "\\(\u00A0+\\)"
@@ -1006,7 +1008,7 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
 
 ;;;###autoload
 (define-minor-mode whitespace-page-delimiters-mode
-  "Display page delimiters characters as horizontal lines."
+  "Display page-break delimiter characters as horizontal lines."
   :lighter " pd"
   :group 'whitespace
   (let ((whitespace-style '(face page-delimiters)))
