@@ -1738,7 +1738,10 @@ Intended for use via the `vc-hg--async-command' wrapper."
     (if (file-exists-p our-sp)
         (with-temp-buffer
           (insert-file-contents-literally our-sp)
-          (setq our-store (string-trim (buffer-string)))
+          ;; On MS-Windows, ".hg/sharedpath" gives file names with
+          ;; backslashes; expand-file-name normalizes that to forward
+          ;; slashes, needed for 'equal' comparison below.
+          (setq our-store (expand-file-name (string-trim (buffer-string))))
           (push (abbreviate-file-name (file-name-directory our-store))
                 shares))
       (setq our-store (expand-file-name ".hg" our-root)))
@@ -1748,7 +1751,9 @@ Intended for use via the `vc-hg--async-command' wrapper."
                   ((file-exists-p sp)))
         (with-temp-buffer
           (insert-file-contents-literally sp)
-          (when (equal our-store (buffer-string))
+          (when (equal our-store
+                       ;; See above why we use expand-file-name
+                       (expand-file-name (string-trim (buffer-string))))
             (push root shares)))))
     shares))
 
