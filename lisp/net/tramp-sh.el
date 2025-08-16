@@ -1633,7 +1633,10 @@ of."
 	       "-t %s"
 	       (format-time-string "%Y%m%d%H%M.%S" (tramp-defined-time time) t))
 	    "")
-	  (if (eq flag 'nofollow) "-h" "")
+	  (if (and (eq flag 'nofollow)
+		   (tramp-get-connection-property v "touch-h"))
+	      "-h"
+	    "")
 	  (tramp-shell-quote-argument localname))))))
 
 (defun tramp-sh-handle-get-home-directory (vec &optional user)
@@ -5889,12 +5892,12 @@ Nonexistent directories are removed from spec."
   "Determine remote `touch' command."
   (with-tramp-connection-property vec "touch"
     (tramp-message vec 5 "Finding a suitable `touch' command")
-    (let ((result (tramp-find-executable
-		   vec "touch" (tramp-get-remote-path vec)))
-	  (tmpfile (tramp-make-tramp-temp-name vec)))
-      ;; Busyboxes do support the "-t" option only when they have been
-      ;; built with the DESKTOP config option.  Let's check it.
-      (when result
+    (when-let* ((result (tramp-find-executable
+			 vec "touch" (tramp-get-remote-path vec)))
+		(tmpfile (tramp-make-tramp-temp-name vec)))
+      (prog1 result
+	;; Busyboxes do support the "-t" option only when they have
+	;; been built with the DESKTOP config option.  Let's check it.
 	(tramp-set-connection-property
 	 vec "touch-t"
 	 (tramp-send-command-and-check
@@ -5904,8 +5907,13 @@ Nonexistent directories are removed from spec."
 	   result
 	   (format-time-string "%Y%m%d%H%M.%S")
 	   (tramp-file-local-name tmpfile))))
-	(delete-file tmpfile))
-      result)))
+	;; The touch command included in busybox (version 1.30.1-6) on
+	;; OpenWrt does not have the option "-h".
+	(tramp-set-connection-property
+	 vec "touch-h"
+	 (tramp-send-command-and-check
+	  vec (format "%s -h %s" result (tramp-file-local-name tmpfile))))
+	(delete-file tmpfile)))))
 
 (defun tramp-get-remote-df (vec)
   "Determine remote `df' command."
