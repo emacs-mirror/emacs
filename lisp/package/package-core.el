@@ -1024,5 +1024,38 @@ form (PKG-NAME PKG-DESC).  If not specified, it will default to
           (apply #'nconc
                  (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist))))
 
+(declare-function lm-package-version "lisp-mnt" (&optional file))
+
+;;;###autoload
+(defun package-get-version ()
+  "Return the version number of the package in which this is used.
+Assumes it is used from an Elisp file placed inside the top-level directory
+of an installed ELPA package.
+The return value is a string (or nil in case we can't find it).
+It works in more cases if the call is in the file which contains
+the `Version:' header."
+  ;; In a sense, this is a lie, but it does just what we want: precomputes
+  ;; the version at compile time and hardcodes it into the .elc file!
+  (declare (pure t))
+  ;; Hack alert!
+  (let ((file (or (macroexp-file-name) buffer-file-name)))
+    (cond
+     ((null file) nil)
+     ;; Packages are normally installed into directories named "<pkg>-<vers>",
+     ;; so get the version number from there.
+     ((string-match "/[^/]+-\\([0-9]\\(?:[0-9.]\\|pre\\|beta\\|alpha\\|snapshot\\)+\\)/[^/]+\\'" file)
+      (match-string 1 file))
+     ;; For packages run straight from the an elpa.git clone, there's no
+     ;; "-<vers>" in the directory name, so we have to fetch the version
+     ;; the hard way.
+     (t
+      (let* ((pkgdir (file-name-directory file))
+             (pkgname (file-name-nondirectory (directory-file-name pkgdir)))
+             (mainfile (expand-file-name (concat pkgname ".el") pkgdir)))
+        (unless (file-readable-p mainfile) (setq mainfile file))
+        (when (file-readable-p mainfile)
+          (require 'lisp-mnt)
+          (lm-package-version mainfile)))))))
+
 (provide 'package-core)
 ;;; package-core.el ends here
