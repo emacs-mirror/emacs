@@ -1601,7 +1601,10 @@ of."
 	       "-t %s"
 	       (format-time-string "%Y%m%d%H%M.%S" (tramp-defined-time time) t))
 	    "")
-	  (if (eq flag 'nofollow) "-h" "")
+	  (if (and (eq flag 'nofollow)
+		   (tramp-get-connection-property v "touch-h"))
+	      "-h"
+	    "")
 	  (tramp-shell-quote-argument localname))))))
 
 (defun tramp-sh-handle-get-home-directory (vec &optional user)
@@ -5891,6 +5894,14 @@ Nonexistent directories are removed from spec."
 	   "%s -t %s %s"
 	   result
 	   (format-time-string "%Y%m%d%H%M.%S")
+	   (tramp-file-local-name tmpfile))))
+	(tramp-set-connection-property
+	 vec "touch-h"
+	 (tramp-send-command-and-check
+	  vec
+	  (format
+	   "%s -h %s"
+	   result
 	   (tramp-file-local-name tmpfile))))
 	(delete-file tmpfile))
       result)))
