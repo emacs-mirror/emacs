@@ -230,9 +230,11 @@ SPECIALIZERS-FUNCTION takes as first argument a tag value TAG
 (defmacro cl-defgeneric (name args &rest options-and-methods)
   "Create a generic function NAME.
 DOC-STRING is the base documentation for this class.  A generic
-function has no body, as its purpose is to decide which method body
-is appropriate to use.  Specific methods are defined with `cl-defmethod'.
-With this implementation the ARGS are currently ignored.
+function usually has no body, as its purpose is to decide which
+method body is appropriate to use; ARGS are currently ignored if
+there's no body.  If BODY is present, it provides the default
+implementation.
+Specific implementation methods are defined with `cl-defmethod'.
 OPTIONS-AND-METHODS currently understands:
 - (:documentation DOCSTRING)
 - (declare DECLARATIONS)
