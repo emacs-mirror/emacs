@@ -1026,7 +1026,7 @@ Return nil if FILENAME doesn't exist."
   (with-temp-buffer
     (let* ((proc-buf (current-buffer))
 	   ;; Start a new emacs process to wait idly until interrupted.
-	   (cmd "emacs -batch --eval=\"(sit-for 50000)\"")
+	   (cmd "emacs -Q -batch --eval=\"(sit-for 50000)\"")
 	   (proc (start-file-process-shell-command
                   "test/process-sentinel-signal-event" proc-buf cmd))
 	   (events '()))
@@ -1040,12 +1040,12 @@ Return nil if FILENAME doesn't exist."
       (should (equal 'run (process-status proc)))
       ;; Interrupt the sub-process and wait for it to die.
       (interrupt-process proc)
-      (sleep-for 2)
+      (sleep-for 3)
       ;; Should have received SIGINT...
-      (should (equal 'signal (process-status proc)))
-      (should (equal 2 (process-exit-status proc)))
-      ;; ...and the change description should be "interrupt".
-      (should (equal '("interrupt\n") events)))))
+      (should (equal '(signal 2 ("interrupt\n"))
+                     (list (process-status proc)
+                           (process-exit-status proc)
+                           events))))))
 
 (ert-deftest process-num-processors ()
   "Sanity checks for num-processors."
