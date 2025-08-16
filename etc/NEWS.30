@@ -16,31 +16,8 @@ You can narrow news to a specific version by calling 'view-emacs-news'
 with a prefix argument or by typing 'C-u C-h C-n'.
 
 
-* Installation Changes in Emacs 30.2
-
-
-* Startup Changes in Emacs 30.2
-
-
 * Changes in Emacs 30.2
-
-
-* Editing Changes in Emacs 30.2
-
-
-* Changes in Specialized Modes and Packages in Emacs 30.2
-
-
-* New Modes and Packages in Emacs 30.2
-
-
-* Incompatible Lisp Changes in Emacs 30.2
-
-
-* Lisp Changes in Emacs 30.2
-
-
-* Changes in Emacs 30.2 on Non-Free Operating Systems
+Emacs 30.2 is a bug-fix release with no new features.
 
 
 * Installation Changes in Emacs 30.1

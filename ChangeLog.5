@@ -1,3 +1,306 @@
+2025-08-14  Eli Zaretskii  <eliz@maintain0p.gnu.org>
+
+	* Version 30.2 released.
+
+2025-08-14  Eli Zaretskii  <eliz@maintain0p.gnu.org>
+
+	* README:
+	* configure.ac:
+	* exec/configure.ac:
+	* java/AndroidManifest.xml.in (Version-code):
+	* nt/README.W32:
+	* msdos/sed2v2.inp: Bump Emacs version to 30.2.
+
+	* ChangeLog.5:
+	* etc/AUTHORS:
+	* etc/HISTORY: Update for Emacs 30.2.
+
+	* admin/admin.el (set-version): Fix handling of official releases.
+
+2025-08-07  Vinícius Moraes  <vinicius.moraes@eternodevir.com>  (tiny change)
+
+	Handle remote file names in cmuscheme.el
+
+	* lisp/cmuscheme.el (scheme-load-file, scheme-compile-file): Use
+	'file-local-name' to handle file names on remote systems.
+	(Bug#79163)
+
+2025-08-06  Sean Whitton  <spwhitton@spwhitton.name>
+
+	* lisp/vc/vc.el (vc-register): Fix interactive spec (bug#79183).
+
+2025-07-31  James Thomas  <jimjoe@gmx.net>
+
+	* doc/misc/gnus.texi (Category Syntax): Update gnus-agent-predicate.
+
+	This updates the Gnus manual due to recent code change (bug#79123).
+
+2025-07-28  Robert Pluim  <rpluim@gmail.com>
+
+	Prefer "tls" to "ssl" in documentation
+
+	* doc/misc/gnus.texi (NNTP): Refer to 'nntp-open-tls-stream'.
+	(Direct Functions, Customizing the IMAP Connection): Add
+	commentary about desirability of STARTTLS.  Correct
+	documentation about use of GnuTLS.  Use 'tls in example.
+	* lisp/gnus/nnimap.el (nnimap-server-port): Mention 'tls in
+	preference to 'ssl.
+	* lisp/gnus/nntp.el (nntp-open-connection-function)
+	(nntp-never-echoes-commands): Document 'nntp-open-tls-stream' as
+	preferred to 'nntp-open-ssl-stream'.
+
+2025-07-26  Sean Whitton  <spwhitton@spwhitton.name>
+
+	loaddefs-generate--rubric: Note about committing ldefs-boot.el
+
+	* lisp/emacs-lisp/loaddefs-gen.el (loaddefs-generate--rubric):
+	Note that ldefs-boot.el should be committed on its own.
+
+2025-07-21  Jim Porter  <jporterbugs@gmail.com>
+
+	Fix Eshell call to 'string-suffix-p' when checking for trailing newline
+
+	* lisp/eshell/esh-io.el (eshell--output-maybe-n): Fix call.
+
+	* test/lisp/eshell/esh-io-tests.el
+	(esh-io-test/output-newline/add-newline)
+	(esh-io-test/output-newline/no-newline)
+	(esh-io-test/output-newline/no-extra-newline): New tests (bug#79063).
+
+2025-07-21  Robert Pluim  <rpluim@gmail.com>
+
+	* etc/PROBLEMS: Describe how to work around screen reader TAB issue
+
+2025-07-21  Sean Whitton  <spwhitton@spwhitton.name>
+
+	(gnus)Scoring Tips: New tip regarding header continuation lines
+
+	* doc/misc/gnus.texi (Scoring Tips): New "Continuation lines
+	when scoring on other headers" tip.
+
+2025-07-16  Ken Mankoff  <mankoff@gmail.com>
+
+	Fix :box attribute of faces in Leuven themes.
+
+	* etc/themes/leuven-dark-theme.el:
+	* etc/themes/leuven-theme.el: Fix 'lui-highlight-face' face.
+	(Bug#79029)
+
+2025-07-09  Andrea Corallo  <acorallo@gnu.org>
+
+	Nativecomp don't error with undeclared types (bug#6573) (don't merge)
+
+	Backporting f38e969e472 from trunk to emacs-30
+
+	* test/src/comp-resources/comp-test-funcs.el (comp-test-76573-1-f): New
+	function.
+	* lisp/emacs-lisp/comp-cstr.el (comp-supertypes): Don't error if 'type'
+	is unknown.
+
+2025-07-06  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'kill-ring-deindent-mode'
+
+	* lisp/indent-aux.el
+	(kill-ring-deindent-buffer-substring-function): Fix deindenting
+	for modes which set 'indent-tab-mode' to nil.  (Bug#77981)
+
+	(cherry picked from commit 1c7fe501fedb41aaf5b22d82dab5a365f86e4c85)
+
+2025-07-04  Yuan Fu  <casouri@gmail.com>
+
+	Handle ts_node_type return NULL (bug#78938)
+
+	* src/treesit.c (treesit_traverse_match_predicate): Handle the
+	case when ts_node_type returns NULL.
+	(Ftreesit_node_type): Add some comment.
+
+2025-07-04  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of 'warning-display-at-bottom'
+
+	* lisp/emacs-lisp/warnings.el (warning-display-at-bottom):
+	* doc/lispref/display.texi (Warning Options):
+	* doc/emacs/windows.texi (Temporary Displays):
+	* etc/NEWS: Improve documentation of 'warning-display-at-bottom'.
+	See https://lists.gnu.org/archive/html/emacs-devel/2025-07/msg00024.html
+	for more details.
+
+2025-07-04  Yuan Fu  <casouri@gmail.com>
+
+	Handle the case when ts_node_type returns NULL (bug#78938)
+
+	* src/treesit.c (Ftreesit_node_type): Handle NULL.
+
+2025-06-29  Jim Porter  <jporterbugs@gmail.com>
+
+	Populate the ':title' in EWW when defaulting to readable mode
+
+	Do not merge to master.
+
+	* lisp/net/eww.el (eww-display-document): Always render the full
+	document first to populate ':title' (bug#77299).
+
+2025-06-28  Liam Hupfer  <liam@hpfr.net>
+
+	bug#78901: [PATCH] js-ts-mode: Fix auto-mode-alist regexp
+
+	Align the js-ts-mode entry with the javascript-mode entries in the
+	default auto-mode-alist value in lisp/files.el. Otherwise, js-ts-mode is
+	not associated with .js files.
+
+	* lisp/progmodes/js.el (js-ts-mode): Fix auto-mode-alist regexp.
+
+	Fixes: 2023-01-20 6b2f85caa6ca "Make tree-sitter based modes optional"
+
+2025-06-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'insert-directory' in Turkish language-environment
+
+	* lisp/files.el (insert-directory-clean, insert-directory): Use
+	case-sensitive search for "//DIRED//" and similar strings.
+	(Bug#78894)
+
+2025-06-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix job control in remote shell
+
+	* lisp/net/tramp-sh.el (tramp-methods) <rsync>:
+	Adapt `tramp-direct-async' argument.  (Bug#71050, Bug#71259)
+
+2025-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Workaround for "M-x man" on macOS 15 and later
+
+	* lisp/man.el (Man-init-defvars): Workaround for macOS Sed.  Do
+	not merge to master.  (Bug#77944)
+
+2025-06-11  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Insert missing step to make use of directory tracking OSC codes
+
+	* doc/emacs/misc.texi (Interactive Shell): Say to add
+	comint-osc-process-output to comint-output-filter-function.
+
+2025-06-11  Robert Pluim  <rpluim@gmail.com>
+
+	* lisp/keymap.el (keymap-set): Refer to 'key-description'.  (Bug#78714)
+
+2025-06-11  Yuan Fu  <casouri@gmail.com>
+
+	Support new tree-sitter grammar filename format (bug#78754)
+
+	Previously Emacs only looks for filenames like
+	libtree-sitter-json.so.0.0.  Now Emacs also look for filenames
+	like libtree-sitter-json.so.15.0.
+
+	* src/treesit.c:
+	(treesit_load_language_push_for_each_suffix): Add versioned
+	candidate to candidate list too.
+
+2025-06-10  Pip Cet  <pipcet@protonmail.com>
+
+	Fix crash when evaluating "(signal nil 5)" (bug#78738)
+
+	The docstring already warns against calling signal with a nil
+	error symbol, which is for internal use only, but we can avoid crashing
+	in this case.
+
+	* src/eval.c (Fsignal): Produce a "peculiar error" for more arguments
+	involving non-lists.
+
+2025-06-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Adapt emba integration (don't merge)
+
+	* test/infra/Dockerfile.emba (emacs-inotify): Don't install clangd.
+
+	* test/infra/gitlab-ci.yml (.job-template): Make actions in
+	after_script more robust.
+
+2025-06-03  Xiyue Deng  <manphiz@gmail.com>
+
+	Make xoauth2 auth fail when a smtp server replies 334 (Bug#78366)
+
+	* lisp/mail/smtpmail.el (smtpmail-try-auth-method): Throw error 535
+	when receiving a "334 server challenge" reply.
+
+	(cherry picked from commit 53371c959462a677a29ee869b3b6627facf3ed79)
+
+2025-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	Revert "; * lisp/subr.el (setq-local): Doc fix (bug#78644)."
+
+	This reverts commit cb9556d669c037c4e2f1a9c80adacad55948c706.
+	Some of its parts were not supposed to be installed.
+
+2025-05-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	Fix bug in 'todo-jump-to-category' (bug#78608)
+
+	* lisp/calendar/todo-mode.el (todo-jump-to-category): Eliminate
+	comparison of the number of Todo categories before and after
+	specifying the category to jump to and replace it by a check of
+	whether there are any items in the category, since an existing
+	category should always have at least one item (perhaps done or
+	archived).
+
+2025-05-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix gitlab-ci.yml (don't merge to master)
+
+	* test/infra/gitlab-ci.yml (.job-template): Fix config.log name.
+	(test-filenotify-gio, test-eglot): Fix formatting.
+
+2025-05-25  Konstantin Kharlamov  <Hi-Angel@yandex.ru>
+
+	typescript-ts-mode: Improve function body indentation (bug#78121)
+
+	Older code was calculating body indentation depending on function
+	parameters alignment.  This is incorrect, because if parameters are
+	misaligned, so will the function body.  Instead, use offset of the
+	previous standalone parent.
+
+	* lisp/progmodes/typescript-ts-mode.el:
+	(typescript-ts-mode--indent-rules): Stop depending on function
+	parameters indentation for calculating body content and the closing
+	`}'.
+	* test/lisp/progmodes/typescript-ts-mode-resources/indent.erts:
+	(Function body with params misindented (bug#78121)): Add new test.
+
+2025-05-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix documentation of use-package's ':hook' keyword
+
+	* doc/misc/use-package.texi (Hooks): Document how to add several
+	functions to the same hook (bug#77609).
+
+2025-05-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* test/infra/gitlab-ci.yml (.job-template): Make it more robust.
+
+2025-05-20  Stephen Berman  <stephen.berman@gmx.net>
+
+	Fix todo-mode item insertion bug (bug#78506)
+
+	* lisp/calendar/todo-mode.el (todo-insert-item--next-param): Unset
+	transient keymap on completing default or copy item insertion
+	command, to ensure that the next Todo mode key is recognized.
+
+2025-05-19  Jostein Kjønigsen  <jostein@kjonigsen.net>
+
+	Add support for Pyrefly LSP for Python
+
+	* lisp/progmodes/eglot.el (eglot-server-programs): Add config
+	for Pyrefly.  (Bug#78492)
+
+2025-05-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	Adapt Tramp version in customize-package-emacs-version-alist
+
+	* lisp/net/trampver.el (customize-package-emacs-version-alist):
+	Add Tramp version integrated in Emacs 30.1.
+
 2025-05-17  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix saving abbrevs by 'abbrev-edit-save-buffer'
@@ -1157,7 +1460,7 @@
 
 This file records repository revisions from
 commit 1cda0967b4d3c815fc610794ad6a8fc2b913a3c5 (exclusive) to
-commit 299d3a440121ff6692a85615ff97e6ad4dde91db (inclusive).
+commit 49d64bfb1a4ca5fc8b3a4d215fb6cabbb9780f9b (inclusive).
 See ChangeLog.4 for earlier changes.
 
 ;; Local Variables:
