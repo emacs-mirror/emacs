@@ -1064,6 +1064,24 @@ metadata."
                  (const :tag "If requested by the completion command" auto))
   :version "31.1")
 
+(defcustom completion-eager-update 'auto
+  "Whether the *Completions* buffer should update as you type.
+
+If `t', always update as you type.
+
+If `auto', only update if the completion property `eager-update' is
+non-nil, whether set by the completion table or by
+`completion-category-overrides' or by `completion-category-defaults'.
+
+If nil, never update as you type.
+
+This only affects the *Completions* buffer if it is already
+displayed."
+  :type '(choice (const :tag "Don't update as you type" nil)
+                 (const :tag "Auto-update based on the category" auto)
+                 (const :tag "Always update as you type" t))
+  :version "31.1")
+
 (defcustom completion-auto-help t
   "Non-nil means automatically provide help for invalid completion input.
 If the value is t, the *Completions* buffer is displayed whenever completion
@@ -2634,12 +2652,43 @@ The candidate will still be chosen by `choose-completion' unless
     (goto-char (or (next-single-property-change (point) 'completion--string)
                    (point-max)))))
 
+(defun completion--eager-update-p (start)
+  "Return non-nil if *Completions* should be automatically updated.
+
+If `completion-eager-update' is the symbol `auto', checks completion
+metadata for the string from START to point."
+  (if (eq completion-eager-update 'auto)
+      (completion-metadata-get (completion--field-metadata start) 'eager-update)
+    completion-eager-update))
+
+(defun completions--background-update ()
+  "Try to update *Completions* without blocking input.
+
+This function uses `while-no-input' and sets `non-essential' to t
+so that the update is less likely to interfere with user typing."
+  (while-no-input
+    (let ((non-essential t))
+      (redisplay)
+      (cond
+       (completion-in-region-mode (completion-help-at-point t))
+       ((completion--eager-update-p (minibuffer-prompt-end))
+        (minibuffer-completion-help))))))
+
+(defun completions--post-command-update ()
+  "Update displayed *Completions* buffer after command, once."
+  (remove-hook 'post-command-hook #'completions--post-command-update)
+  (when (and completion-eager-update (get-buffer-window "*Completions*" 0))
+    (completions--background-update)))
+
 (defun completions--after-change (_start _end _old-len)
   "Update displayed *Completions* buffer after change in buffer contents."
-  (when completion-auto-deselect
+  (when (or completion-auto-deselect completion-eager-update)
     (when-let* ((window (get-buffer-window "*Completions*" 0)))
-      (with-selected-window window
-        (completions--deselect)))))
+      (when completion-auto-deselect
+        (with-selected-window window
+          (completions--deselect)))
+      (when completion-eager-update
+        (add-hook 'post-command-hook #'completions--post-command-update)))))
 
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
@@ -2730,7 +2779,7 @@ The candidate will still be chosen by `choose-completion' unless
             (body-function
              . ,#'(lambda (window)
                     (with-current-buffer mainbuf
-                      (when completion-auto-deselect
+                      (when (or completion-auto-deselect completion-eager-update)
                         (add-hook 'after-change-functions #'completions--after-change nil t))
                       ;; Remove the base-size tail because `sort' requires a properly
                       ;; nil-terminated list.
@@ -3119,7 +3168,7 @@ The completion method is determined by `completion-at-point-functions'."
                   (car res)))
        (cdr res)))))
 
-(defun completion-help-at-point ()
+(defun completion-help-at-point (&optional only-if-eager)
   "Display the completions on the text around point.
 The completion method is determined by `completion-at-point-functions'."
   (interactive)
@@ -3146,7 +3195,8 @@ The completion method is determined by `completion-at-point-functions'."
                `(,start ,(copy-marker end t) ,collection
                         ,(plist-get plist :predicate)))
          (completion-in-region-mode 1)
-         (minibuffer-completion-help start end)))
+         (when (or (not only-if-eager) (completion--eager-update-p start))
+           (minibuffer-completion-help start end))))
       (`(,hookfun . ,_)
        ;; The hook function already performed completion :-(
        ;; Not much we can do at this point.

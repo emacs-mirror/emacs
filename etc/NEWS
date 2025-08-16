@@ -162,15 +162,26 @@ behavior, customize 'find-function-mode-lower-precedence' to non-nil.
 ** Minibuffer and Completions
 
 +++
-*** New user option 'completion-eager-display'.
-This option configures whether completion commands should display the
-"*Completions*" buffer immediately.  When the option is set to t, all
-completion commands show "*Completions*" immediately, respectively nil
-disables the eager display for all commands.  The default setting auto
-enables eager completion only if requested by the command.
-For more fine-grained control you can also toggle this feature by
-category using the symbol 'eager-display' in the user option
-'completion-category-overrides'.
+*** Support for immediate display of the "*Completions*" buffer.
+Whenever a minibuffer with completion is opened, the "*Completions*"
+buffer will now be displayed immediately if the completion property
+'eager-display', set by the completion table, is non-nil.  This property
+can be overridden for different completion categories by customizing
+'completion-category-overrides'.  Alternatively, the new user option
+'completion-eager-display' can be set to t to force eager display of
+"*Completions*" for all minibuffers, or nil to suppress this for all
+minibuffers.
+
++++
+*** Support for updating "*Completions*" as you type.
+If the "*Completions*" buffer is displayed, it will now be updated as
+you type if the completion property 'eager-update', set by the
+completion table, is non-nil.  This property can be overridden for
+different completion categories by customizing
+'completion-category-overrides'.  Alternatively, the new user option
+'completion-eager-update can be set to t to make "*Completions*" always
+be updated as you type, or nil to suppress this always.  Note that for
+large or inefficient completion tables this can slow down typing.
 
 +++
 *** New user option 'completion-pcm-leading-wildcard'.
