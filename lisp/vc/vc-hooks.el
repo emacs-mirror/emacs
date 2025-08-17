@@ -976,9 +976,11 @@ In the latter case, VC mode is deactivated for this buffer."
 
 (defvar-keymap vc-incoming-prefix-map
   "L" #'vc-log-incoming
+  "=" #'vc-fileset-diff-incoming
   "D" #'vc-root-diff-incoming)
 (defvar-keymap vc-outgoing-prefix-map
   "L" #'vc-log-outgoing
+  "=" #'vc-fileset-diff-outgoing
   "D" #'vc-root-diff-outgoing)
 
 (defcustom vc-use-incoming-outgoing-prefixes nil

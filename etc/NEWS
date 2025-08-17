@@ -2131,14 +2131,18 @@ relevant buffers before generating the contents of a VC Directory buffer
 (like the third-party package Magit does with its status buffer).
 
 +++
-*** New commands 'vc-root-diff-incoming' and 'vc-root-diff-outgoing'.
-These commands report diffs of all the changes that would be pulled and
-would be pushed, respectively.  They are the diff analogues of the
-existing commands 'vc-log-incoming' and 'vc-log-outgoing'.
+*** New commands to report incoming and outgoing diffs.
+'vc-root-diff-incoming' and 'vc-root-diff-outgoing' report diffs of all
+the changes that would be pulled and would be pushed, respectively.
+They are the diff analogues of the existing commands 'vc-log-incoming'
+and 'vc-log-outgoing'.
 
 In particular, 'vc-root-diff-outgoing' is useful as a way to preview
 your push and ensure that all and only the changes you intended to
 include were committed and will be pushed.
+
+'vc-fileset-diff-incoming' and 'vc-fileset-diff-outgoing' are similar
+but limited to the current VC fileset.
 
 +++
 *** New user option 'vc-use-incoming-outgoing-prefixes'.
