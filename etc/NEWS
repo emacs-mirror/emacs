@@ -2174,6 +2174,14 @@ include were committed and will be pushed.
 current VC fileset.
 
 +++
+*** New commands to report diffs of outstanding changes.
+'C-x v B =' ('vc-diff-outgoing-base') and 'C-x v B D'
+('vc-root-diff-outgoing-base') report diffs of changes since the merge
+base with the remote branch, including uncommitted changes.
+They are useful to view all outstanding (unmerged, unpushed) changes on
+the current branch.
+
++++
 *** New user option 'vc-use-incoming-outgoing-prefixes'.
 If this is customized to non-nil, 'C-x v I' and 'C-x v O' become prefix
 commands, such that the new incoming and outgoing commands have global
