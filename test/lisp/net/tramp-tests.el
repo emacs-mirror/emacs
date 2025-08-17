@@ -8471,7 +8471,37 @@ process sentinels.  They shall not disturb each other."
 		    (cl-letf (((symbol-function #'ask-user-about-lock) #'always))
 		      (save-buffer)))
 		  (should-not
-		   (string-match-p "File is missing:" captured-messages))))))
+		   (string-match-p "File is missing:" captured-messages)))))
+
+	    ;; A modified buffer suppresses session timeout.
+	    (with-temp-buffer
+	      (set-visited-file-name tmp-name)
+	      (insert "foo")
+	      (should (buffer-modified-p))
+	      (tramp-timeout-session tramp-test-vec)
+	      (should
+	       (process-live-p (tramp-get-connection-process tramp-test-vec)))
+	      ;; Steal the file lock.
+	      (cl-letf (((symbol-function #'ask-user-about-lock) #'always))
+		(save-buffer))
+	      (tramp-timeout-session tramp-test-vec)
+	      (should-not
+	       (process-live-p (tramp-get-connection-process tramp-test-vec))))
+
+	    ;; An auto-reverted buffer suppresses session timeout.
+	    (with-temp-buffer
+	      (set-visited-file-name tmp-name)
+	      (auto-revert-mode 1)
+	      ;; Steal the file lock.
+	      (cl-letf (((symbol-function #'ask-user-about-lock) #'always))
+		(save-buffer))
+	      (tramp-timeout-session tramp-test-vec)
+	      (should
+	       (process-live-p (tramp-get-connection-process tramp-test-vec)))
+	      (auto-revert-mode -1)
+	      (tramp-timeout-session tramp-test-vec)
+	      (should-not
+	       (process-live-p (tramp-get-connection-process tramp-test-vec)))))
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name))))))

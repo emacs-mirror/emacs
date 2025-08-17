@@ -5154,17 +5154,41 @@ Goes through the list `tramp-inline-compress-commands'."
 ;;;###tramp-autoload
 (defun tramp-timeout-session (vec)
   "Close the connection VEC after a session timeout.
-If there is just some editing, retry it after 5 seconds."
-  (if (and (tramp-get-connection-property
-	    (tramp-get-connection-process vec) "locked")
-	   (tramp-file-name-equal-p vec (car tramp-current-connection)))
-      (progn
-	(tramp-message
-	 vec 5 "Cannot timeout session, trying it again in %s seconds." 5)
-	(run-at-time 5 nil #'tramp-timeout-session vec))
+If there is just some editing, retry it after 5 seconds.
+If there is a modified buffer, retry it after 60 seconds."
+  (cond
+   ;; Tramp is locked.  Try it, again.
+   ((and (tramp-get-connection-property
+	  (tramp-get-connection-process vec) "locked")
+	 (tramp-file-name-equal-p vec (car tramp-current-connection)))
     (tramp-message
-     vec 3 "Timeout session %s" (tramp-make-tramp-file-name vec 'noloc))
-    (tramp-cleanup-connection vec 'keep-debug nil 'keep-processes)))
+     vec 5 "Cannot timeout session, trying it again in %s seconds." 5)
+    (run-at-time 5 nil #'tramp-timeout-session vec))
+   ;; There's a modified buffer.  Try it, again.
+   ((seq-some
+     (lambda (buf)
+       (and-let* (((or (buffer-modified-p buf)
+		       (with-current-buffer buf
+			 ;; We don't know whether autorevert.el has
+			 ;; been loaded alreaddy.
+			 (tramp-compat-funcall 'auto-revert-active-p))))
+		  (bfn (buffer-file-name buf))
+		  (v (tramp-ensure-dissected-file-name bfn))
+		  ((tramp-file-name-equal-p vec v)))))
+     (tramp-list-remote-buffers))
+    (tramp-message
+     vec 5
+     (concat
+      "Cannot timeout session (modified buffer), "
+      "trying it again in %s seconds.")
+     (tramp-get-method-parameter vec 'tramp-session-timeout))
+    (run-at-time
+     (tramp-get-method-parameter vec 'tramp-session-timeout) nil
+     #'tramp-timeout-session vec))
+   ;; Do it.
+   (t (tramp-message
+       vec 3 "Timeout session %s" (tramp-make-tramp-file-name vec 'noloc))
+      (tramp-cleanup-connection vec 'keep-debug nil 'keep-processes))))
 
 (defun tramp-maybe-open-connection (vec)
   "Maybe open a connection VEC.

@@ -2376,9 +2376,11 @@ value is @t{"-l"}, but some shells, like @command{ksh}, prefer
 All @file{tramp-sh.el} based methods accept the property
 @t{"session-timeout"}.  This is the time (in seconds) after a
 connection is disabled for security reasons, and must be
-reestablished.  A value of @code{nil} disables this feature.  Most of
-the methods do not set this property except the @option{sudo},
-@option{doas} and @option{run0} methods, which use predefined values.
+reestablished@footnote{If there is a modified buffer, or a buffer
+under @code{auto-revert}, this is suppressed.}.  A value of @code{nil}
+disables this feature.  Most of the methods do not set this property
+except the @option{sudo}, @option{doas} and @option{run0} methods,
+which use predefined values.
 
 @item @t{"~"}@*
 @t{"~user"}
@@ -6834,7 +6836,8 @@ they are kept.  Example:
 
 @value{tramp} messages are raised with verbosity levels ranging from 0
 to 10.  @value{tramp} does not display all messages; only those with a
-verbosity level less than or equal to @code{tramp-verbose}.
+verbosity level less than or equal to 3, when @code{tramp-verbose}
+permits.
 
 @noindent
 The verbosity levels are
