@@ -2546,7 +2546,7 @@ In some version control systems REMOTE-LOCATION can be a remote branch name.
 
 See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
 global binding."
-  (interactive (vc--maybe-read-remote-location))
+  (interactive (list (vc--maybe-read-remote-location)))
   (vc--with-backend-in-rootdir "VC root-diff"
     (let ((default-directory rootdir)
           (incoming (vc--incoming-revision backend
@@ -2570,7 +2570,7 @@ global binding."
   ;; for those VCS is to make a comparison between locally committed
   ;; changes and remote committed changes.
   ;; (Hence why we don't call `vc-buffer-sync-fileset'.)
-  (interactive (vc--maybe-read-remote-location))
+  (interactive (list (vc--maybe-read-remote-location)))
   (vc--with-backend-in-rootdir "VC root-diff"
     (let ((default-directory rootdir)
           (incoming (vc--incoming-revision backend
@@ -3449,8 +3449,8 @@ The command prompts for the branch whose change log to show."
 
 (defun vc--maybe-read-remote-location ()
   (and current-prefix-arg
-       (list (read-string "Remote location/branch (empty for default): "
-                          'vc-remote-location-history))))
+       (read-string "Remote location/branch (empty for default): "
+                    'vc-remote-location-history)))
 
 (defun vc--incoming-revision (backend remote-location)
   (or (vc-call-backend backend 'incoming-revision remote-location)
@@ -3462,7 +3462,7 @@ The command prompts for the branch whose change log to show."
 When unspecified REMOTE-LOCATION is the place \\[vc-update] would pull from.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
 In some version control systems REMOTE-LOCATION can be a remote branch name."
-  (interactive (vc--maybe-read-remote-location))
+  (interactive (list (vc--maybe-read-remote-location)))
   (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend (or remote-location "")
                                    "*vc-incoming*" 'log-incoming)))
@@ -3480,7 +3480,7 @@ In some version control systems REMOTE-LOCATION can be a remote branch name."
 When unspecified REMOTE-LOCATION is the place \\[vc-push] would push to.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
 In some version control systems REMOTE-LOCATION can be a remote branch name."
-  (interactive (vc--maybe-read-remote-location))
+  (interactive (list (vc--maybe-read-remote-location)))
   (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend (or remote-location "")
                                    "*vc-outgoing*" 'log-outgoing)))
