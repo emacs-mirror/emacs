@@ -1948,6 +1948,8 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
     }
 
   conditions = Fget (real_error_symbol, Qerror_conditions);
+  if (NILP (conditions))
+    signal_error ("Invalid error symbol", error_symbol);
 
   /* Remember from where signal was called.  Skip over the frame for
      `signal' itself.  If a frame for `error' follows, skip that,
