@@ -2456,9 +2456,8 @@ state of each file in the fileset."
   (when (and (not rev1) rev2)
     (error "Not a valid revision range"))
   (vc--with-backend-in-rootdir "VC root-diff"
-    (let ((default-directory rootdir))
-      (vc-diff-internal vc-allow-async-diff (list backend (list rootdir)) rev1 rev2
-                        (called-interactively-p 'interactive)))))
+    (vc-diff-internal vc-allow-async-diff (list backend (list rootdir)) rev1 rev2
+                      (called-interactively-p 'interactive))))
 
 ;;;###autoload
 (defun vc-diff (&optional historic not-essential fileset)
@@ -2531,8 +2530,7 @@ The merge base is a common ancestor between REV1 and REV2 revisions."
   (when (and (not rev1) rev2)
     (error "Not a valid revision range"))
   (vc--with-backend-in-rootdir "VC root-diff"
-    (let ((default-directory rootdir)
-          (rev1 (vc-call-backend backend 'mergebase rev1 rev2)))
+    (let ((rev1 (vc-call-backend backend 'mergebase rev1 rev2)))
       (vc-diff-internal
        vc-allow-async-diff (list backend (list rootdir)) rev1 rev2
        (called-interactively-p 'interactive)))))
@@ -2548,8 +2546,7 @@ See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
 global binding."
   (interactive (list (vc--maybe-read-remote-location)))
   (vc--with-backend-in-rootdir "VC root-diff"
-    (let ((default-directory rootdir)
-          (incoming (vc--incoming-revision backend
+    (let ((incoming (vc--incoming-revision backend
                                            (or remote-location ""))))
       (vc-diff-internal vc-allow-async-diff (list backend (list rootdir))
                         (vc-call-backend backend 'mergebase incoming)
@@ -2572,8 +2569,7 @@ global binding."
   ;; (Hence why we don't call `vc-buffer-sync-fileset'.)
   (interactive (list (vc--maybe-read-remote-location)))
   (vc--with-backend-in-rootdir "VC root-diff"
-    (let ((default-directory rootdir)
-          (incoming (vc--incoming-revision backend
+    (let ((incoming (vc--incoming-revision backend
                                            (or remote-location ""))))
       (vc-diff-internal vc-allow-async-diff (list backend (list rootdir))
                         (vc-call-backend backend 'mergebase incoming)
@@ -2674,8 +2670,7 @@ saving the buffer."
       ;; relative to it.  Bind default-directory to the root directory
       ;; here, this way the *vc-diff* buffer is setup correctly, so
       ;; relative file names work.
-      (let ((default-directory rootdir)
-            (fileset `(,backend (,rootdir))))
+      (let ((fileset `(,backend (,rootdir))))
         (vc-buffer-sync-fileset fileset not-essential)
         (vc-diff-internal vc-allow-async-diff fileset nil nil
                           (called-interactively-p 'interactive))))))
