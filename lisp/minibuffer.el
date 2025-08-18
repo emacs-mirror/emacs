@@ -4117,7 +4117,7 @@ style."
   "Split STRING into a pattern.
 A pattern is a list where each element is either a string
 or a symbol, see `completion-pcm--merge-completions'."
-  (if (and point (< point (length string)))
+  (if (and point (<= point (length string)))
       (let ((prefix (substring string 0 point))
             (suffix (substring string point)))
         (append (completion-pcm--string->pattern prefix)
@@ -4178,12 +4178,6 @@ or a symbol, see `completion-pcm--merge-completions'."
       (pcase p
         (`(,(or 'any 'any-delim) ,(or 'any 'point) . ,_)
          (setq p (cdr p)))
-        ;; This is not just a performance improvement: it turns a
-        ;; terminating `point' into an implicit `any', which affects
-        ;; the final position of point (because `point' gets turned
-        ;; into a non-greedy ".*?" regexp whereas we need it to be
-        ;; greedy when it's at the end, see bug#38458).
-        (`(point) (setq p nil)) ;Implicit terminating `any'.
         (_ (push (pop p) n))))
     (nreverse n)))
 
@@ -4634,10 +4628,19 @@ the same set of elements."
               ;; different capitalizations in different parts.
               ;; In practice, it doesn't seem to make any difference.
               (setq ccs (nreverse ccs))
+              ;; FIXED is a prefix of all of COMPS.  Try to grow that prefix.
               (let* ((prefix (try-completion fixed comps))
                      (unique (or (and (eq prefix t) (setq prefix fixed))
                                  (and (stringp prefix)
-                                      (eq t (try-completion prefix comps))))))
+                                      ;; If PREFIX is equal to all of COMPS,
+                                      ;; then PREFIX is a unique completion.
+                                      (seq-every-p
+                                       ;; PREFIX is still a prefix of all of
+                                       ;; COMPS, so if COMP is the same length,
+                                       ;; they're equal.
+                                       (lambda (comp)
+                                         (= (length prefix) (length comp)))
+                                       comps)))))
                 ;; If there's only one completion, `elem' is not useful
                 ;; any more: it can only match the empty string.
                 ;; FIXME: in some cases, it may be necessary to turn an
