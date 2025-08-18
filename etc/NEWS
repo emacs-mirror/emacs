@@ -966,9 +966,37 @@ at point to explore.
 
 ** Hideshow
 
++++
 *** New user option 'hs-display-lines-hidden'.
-If this option is non-nil, Hideshow displays the number of hidden
-lines next to the ellipsis.
+If this option is non-nil, Hideshow displays the number of hidden lines
+next to the ellipsis.  By default this is disabled.
+
++++
+*** New user option 'hs-show-indicators'.
+This user option determines if hideshow should display indicators to
+toggle the block hiding.  If non-nil, the indicators are enabled in all
+blocks.
+
+By default this is disabled.
+
+*** New user option 'hs-indicator-maximum-buffer-size'.
+This user option limits the display of hideshow indicators to buffers
+that are not too large.  By default, buffers larger than 2MB have the
+indicators disabled; the value of nil will activate the indicators
+regardless of the buffer size.
+
++++
+*** New user option 'hs-indicator-type'.
+This user option determine which indicator type should be used for the
+block indicators.
+
+The possible values can be: 'fringe', display the indicators in the
+fringe (the default); 'margin', display the indicators in the margin;
+nil, display the indicators at end-of-line.
+
+The new icons 'hs-indicator-show' and 'hs-indicator-hide', can be used
+for customize the indicators appearance, only if 'hs-indicator-type' is
+set to 'margin' or nil.
 
 ** C-ts mode
 
