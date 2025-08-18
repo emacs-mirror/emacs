@@ -1675,6 +1675,7 @@ the code is C or C++, and based on that chooses whether to enable
 
 ;;;###autoload
 (when (treesit-available-p)
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(c-mode . c-ts-mode))
   (add-to-list 'treesit-major-mode-remap-alist

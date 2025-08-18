@@ -405,7 +405,10 @@ the same features enabled in MODE."
 
 ;;;###autoload
 (defun markdown-ts-mode-maybe ()
-  "Enable `markdown-ts-mode' when its grammar is available."
+  "Enable `markdown-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'markdown)
           (eq treesit-enabled-modes t)
           (memq 'markdown-ts-mode treesit-enabled-modes))
@@ -416,6 +419,7 @@ the same features enabled in MODE."
 (when (treesit-available-p)
   (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(markdown-mode . markdown-ts-mode)))
 

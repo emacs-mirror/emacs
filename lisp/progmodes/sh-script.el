@@ -1650,6 +1650,7 @@ not written in Bash or sh."
 
 ;;;###autoload
 (when (treesit-available-p)
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(sh-mode . bash-ts-mode)))
 

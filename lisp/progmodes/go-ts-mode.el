@@ -361,7 +361,10 @@
 
 ;;;###autoload
 (defun go-ts-mode-maybe ()
-  "Enable `go-ts-mode' when its grammar is available."
+  "Enable `go-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'go)
           (eq treesit-enabled-modes t)
           (memq 'go-ts-mode treesit-enabled-modes))
@@ -372,6 +375,7 @@
 (when (treesit-available-p)
   (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(go-mode . go-ts-mode)))
 
@@ -635,7 +639,10 @@ what the parent of the node would be if it were a node."
 
 ;;;###autoload
 (defun go-mod-ts-mode-maybe ()
-  "Enable `go-mod-ts-mode' when its grammar is available."
+  "Enable `go-mod-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'gomod)
           (eq treesit-enabled-modes t)
           (memq 'go-mod-ts-mode treesit-enabled-modes))
@@ -646,6 +653,7 @@ what the parent of the node would be if it were a node."
 (when (treesit-available-p)
   (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(go-mod-mode . go-mod-ts-mode)))
 
@@ -736,7 +744,10 @@ what the parent of the node would be if it were a node."
 
 ;;;###autoload
 (defun go-work-ts-mode-maybe ()
-  "Enable `go-work-ts-mode' when its grammar is available."
+  "Enable `go-work-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'gowork)
           (eq treesit-enabled-modes t)
           (memq 'go-work-ts-mode treesit-enabled-modes))
@@ -747,6 +758,7 @@ what the parent of the node would be if it were a node."
 (when (treesit-available-p)
   (add-to-list 'auto-mode-alist '("/go\\.work\\'" . go-work-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(go-work-mode . go-work-ts-mode)))
 

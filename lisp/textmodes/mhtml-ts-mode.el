@@ -589,6 +589,7 @@ Powered by tree-sitter."
 
 ;;;###autoload
 (when (treesit-available-p)
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(mhtml-mode . mhtml-ts-mode)))
 

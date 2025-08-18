@@ -1917,6 +1917,7 @@ can also be used to fill comments.
 
 ;;;###autoload
 (when (treesit-available-p)
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(css-mode . css-ts-mode)))
 

@@ -204,7 +204,10 @@ Return nil if there is no name or if NODE is not a stage node."
 
 ;;;###autoload
 (defun dockerfile-ts-mode-maybe ()
-  "Enable `dockerfile-ts-mode' when its grammar is available."
+  "Enable `dockerfile-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'dockerfile)
           (eq treesit-enabled-modes t)
           (memq 'dockerfile-ts-mode treesit-enabled-modes))
@@ -218,6 +221,7 @@ Return nil if there is no name or if NODE is not a stage node."
                '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
                  . dockerfile-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(dockerfile-mode . dockerfile-ts-mode)))
 

@@ -656,7 +656,10 @@ See `prettify-symbols-compose-predicate'."
 
 ;;;###autoload
 (defun rust-ts-mode-maybe ()
-  "Enable `rust-ts-mode' when its grammar is available."
+  "Enable `rust-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'rust)
           (eq treesit-enabled-modes t)
           (memq 'rust-ts-mode treesit-enabled-modes))
@@ -667,6 +670,7 @@ See `prettify-symbols-compose-predicate'."
 (when (treesit-available-p)
   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(rust-mode . rust-ts-mode)))
 

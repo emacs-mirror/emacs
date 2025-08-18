@@ -229,7 +229,10 @@ Return nil if there is no name or if NODE is not a defun node."
 
 ;;;###autoload
 (defun yaml-ts-mode-maybe ()
-  "Enable `yaml-ts-mode' when its grammar is available."
+  "Enable `yaml-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'yaml)
           (eq treesit-enabled-modes t)
           (memq 'yaml-ts-mode treesit-enabled-modes))
@@ -240,6 +243,7 @@ Return nil if there is no name or if NODE is not a defun node."
 (when (treesit-available-p)
   (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(yaml-mode . yaml-ts-mode)))
 

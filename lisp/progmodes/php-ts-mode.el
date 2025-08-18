@@ -1924,7 +1924,10 @@ file to use."
 
 ;;;###autoload
 (defun php-ts-mode-maybe ()
-  "Enable `php-ts-mode' when its grammar is available."
+  "Enable `php-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'php)
           (eq treesit-enabled-modes t)
           (memq 'php-ts-mode treesit-enabled-modes))
@@ -1943,6 +1946,7 @@ file to use."
    'interpreter-mode-alist
    (cons "php\\(?:-?[34578]\\(?:\\.[0-9]+\\)*\\)?" 'php-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(php-mode . php-ts-mode)))
 
