@@ -350,7 +350,8 @@ The default implementation delegates to `map-apply'."
 
 (cl-defgeneric map-filter (pred map)
   "Return an alist of key/val pairs for which (PRED key val) is non-nil in MAP.
-The default implementation delegates to `map-apply'."
+The default implementation delegates to `map-apply'.
+This does not modify MAP."
   (delq nil (map-apply (lambda (key val)
                          (and (funcall pred key val)
                               (cons key val)))
@@ -358,7 +359,8 @@ The default implementation delegates to `map-apply'."
 
 (cl-defgeneric map-remove (pred map)
   "Return an alist of the key/val pairs for which (PRED key val) is nil in MAP.
-The default implementation delegates to `map-filter'."
+The default implementation delegates to `map-filter'.
+This does not modify MAP."
   (map-filter (lambda (key val) (not (funcall pred key val)))
               map))
 
@@ -457,7 +459,8 @@ MAP may be of a type other than TYPE."
 
 (defun map-merge (type &rest maps)
   "Merge into a map of TYPE all the key/value pairs in MAPS.
-See `map-into' for all supported values of TYPE."
+See `map-into' for all supported values of TYPE.
+This does not modify any of the MAPS."
   (apply #'map--merge
          (lambda (result key value)
            (setf (map-elt result key) value)
@@ -469,7 +472,8 @@ See `map-into' for all supported values of TYPE."
 When two maps contain the same key, call FUNCTION on the two
 values and use the value FUNCTION returns.
 Each of MAPS can be an alist, plist, hash-table, or array.
-See `map-into' for all supported values of TYPE."
+See `map-into' for all supported values of TYPE.
+This does not modify any of the MAPS."
   (let ((not-found (list nil)))
     (apply #'map--merge
            (lambda (result key value)
