@@ -366,7 +366,8 @@ See https://doc.rust-lang.org/reference/tokens.html#suffixes.")
              tail-p
              (string-match-p
               "\\`\\(?:use_list\\|call_expression\\|use_as_clause\\|use_declaration\\)\\'"
-              (treesit-node-type (treesit-node-parent (treesit-node-parent node)))))
+              (or (treesit-node-type (treesit-node-parent (treesit-node-parent node)))
+                  "no_parent")))
             nil)
            (t 'font-lock-constant-face))))
     (when face
@@ -387,9 +388,9 @@ See https://doc.rust-lang.org/reference/tokens.html#suffixes.")
                        ,(treesit-query-compile 'rust '((identifier) @id
                                                        (shorthand_field_identifier) @id)))))
         (pcase-dolist (`(_name . ,id) captures)
-          (unless (string-match-p "\\`scoped_\\(?:type_\\)?identifier\\'"
-                                  (treesit-node-type
-                                   (treesit-node-parent id)))
+          (unless (string-match-p
+                   "\\`scoped_\\(?:type_\\)?identifier\\'"
+                   (or (treesit-node-type (treesit-node-parent id)) "no_parent"))
             (treesit-fontify-with-override
              (treesit-node-start id) (treesit-node-end id)
              'font-lock-variable-name-face override start end)))))))
