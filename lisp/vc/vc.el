@@ -3474,7 +3474,7 @@ The command prompts for the branch whose change log to show."
 
 (defun vc--maybe-read-remote-location ()
   (and current-prefix-arg
-       (read-string "Remote location/branch (empty for default): "
+       (read-string "Remote location/branch (empty for default): " nil
                     'vc-remote-location-history)))
 
 (defun vc--incoming-revision (backend remote-location)
