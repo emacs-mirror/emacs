@@ -2242,7 +2242,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
         (when (and eglot-autoshutdown
                    (null (eglot--managed-buffers server))
                    ;; Don't shutdown if up again soon.
-                   (not revert-buffer-in-progress-p))
+                   (not revert-buffer-in-progress))
           (eglot-shutdown server)))))))
 
 (defun eglot--managed-mode-off ()

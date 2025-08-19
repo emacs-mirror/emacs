@@ -687,6 +687,9 @@ Before doing that, check if there are any old backups and get rid of them."
            (vc-make-version-backup file)))))
 
 (declare-function vc-dir-resynch-file "vc-dir" (&optional fname))
+(declare-function vc-fileset-diff-outgoing "vc" (&optional remote-location fileset))
+(declare-function vc-fileset-diff-incoming "vc" (&optional remote-location fileset))
+(declare-function vc-working-tree-switch-project "vc" (dir))
 
 (defvar vc-dir-buffers nil "List of `vc-dir' buffers.")
 
