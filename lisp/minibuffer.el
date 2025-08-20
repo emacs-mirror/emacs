@@ -1616,7 +1616,7 @@ when the buffer's text is already an exact match."
              (completed
               (cond
                ((pcase completion-auto-help
-                  ('visible (get-buffer-window "*Completions*" 0))
+                  ('visible (minibuffer--completions-visible))
                   ('always t))
                 (minibuffer-completion-help beg end))
                (t (minibuffer-hide-completions)
@@ -2677,13 +2677,13 @@ so that the update is less likely to interfere with user typing."
 (defun completions--post-command-update ()
   "Update displayed *Completions* buffer after command, once."
   (remove-hook 'post-command-hook #'completions--post-command-update)
-  (when (and completion-eager-update (get-buffer-window "*Completions*" 0))
+  (when (and completion-eager-update (minibuffer--completions-visible))
     (completions--background-update)))
 
 (defun completions--after-change (_start _end _old-len)
   "Update displayed *Completions* buffer after change in buffer contents."
   (when (or completion-auto-deselect completion-eager-update)
-    (when-let* ((window (get-buffer-window "*Completions*" 0)))
+    (when-let* ((window (minibuffer--completions-visible)))
       (when completion-auto-deselect
         (with-selected-window window
           (completions--deselect)))
@@ -2885,7 +2885,7 @@ so that the update is less likely to interfere with user typing."
   ;; FIXME: We could/should use minibuffer-scroll-window here, but it
   ;; can also point to the minibuffer-parent-window, so it's a bit tricky.
   (interactive)
-  (when-let* ((win (get-buffer-window "*Completions*" 0)))
+  (when-let* ((win (minibuffer--completions-visible)))
     (with-selected-window win
       ;; Move point off any completions, so we don't move point there
       ;; again the next time `minibuffer-completion-help' is called.
@@ -3332,18 +3332,26 @@ and `RET' accepts the input typed into the minibuffer."
 (defvar minibuffer-visible-completions--always-bind nil
   "If non-nil, force the `minibuffer-visible-completions' bindings on.")
 
+(defun minibuffer--completions-visible ()
+  "Return the window where the current *Completions* buffer is visible, if any."
+  (when-let* ((window (get-buffer-window "*Completions*" 0)))
+    (when (eq (buffer-local-value 'completion-reference-buffer
+                                  (window-buffer window))
+              ;; If there's no active minibuffer, we call
+              ;; `window-buffer' on nil, assuming that completion is
+              ;; happening in the selected window.
+              (window-buffer (active-minibuffer-window)))
+      window)))
+
 (defun minibuffer-visible-completions--filter (cmd)
   "Return CMD if `minibuffer-visible-completions' bindings should be active."
   (if minibuffer-visible-completions--always-bind
       cmd
-    (when-let* ((window (get-buffer-window "*Completions*" 0)))
-      (when (and (eq (buffer-local-value 'completion-reference-buffer
-                                         (window-buffer window))
-                     (window-buffer (active-minibuffer-window)))
-                 (if (eq cmd #'minibuffer-choose-completion-or-exit)
-                     (with-current-buffer (window-buffer window)
-                       (get-text-property (point) 'completion--string))
-                   t))
+    (when-let* ((window (minibuffer--completions-visible)))
+      (when (if (eq cmd #'minibuffer-choose-completion-or-exit)
+                (with-current-buffer (window-buffer window)
+                  (get-text-property (point) 'completion--string))
+              t)
         cmd))))
 
 (defun minibuffer-visible-completions--bind (binding)
@@ -5107,10 +5115,10 @@ the minibuffer was activated, and execute the forms."
 When used in a minibuffer window, select the window with completions,
 and execute the forms."
   (declare (indent 0) (debug t))
-  `(let ((window (or (get-buffer-window "*Completions*" 0)
+  `(let ((window (or (minibuffer--completions-visible)
                      ;; Make sure we have a completions window.
                      (progn (minibuffer-completion-help)
-                            (get-buffer-window "*Completions*" 0)))))
+                            (minibuffer--completions-visible)))))
      (when window
        (with-selected-window window
          (completion--lazy-insert-strings)
@@ -5205,7 +5213,7 @@ inputs for the prompting command, instead of the default completion table."
             (user-error "No history available"))))
     ;; FIXME: Can we make it work for CRM?
     (let ((completion-in-region-mode-predicate
-           (lambda () (get-buffer-window "*Completions*" 0))))
+           (lambda () (minibuffer--completions-visible))))
       (completion-in-region
        (minibuffer--completion-prompt-end) (point-max)
        (completion-table-with-metadata
@@ -5223,7 +5231,7 @@ provided by the prompting command, instead of the completion table."
           minibuffer-default (funcall minibuffer-default-add-function)))
   (let ((completions (ensure-list minibuffer-default))
         (completion-in-region-mode-predicate
-         (lambda () (get-buffer-window "*Completions*" 0))))
+         (lambda () (minibuffer--completions-visible))))
     (completion-in-region
      (minibuffer--completion-prompt-end) (point-max)
      (completion-table-with-metadata

@@ -10598,10 +10598,10 @@ to move point between completions.\n\n")))))))
 (defun switch-to-completions ()
   "Select the completion list window."
   (interactive)
-  (when-let* ((window (or (get-buffer-window "*Completions*" 0)
+  (when-let* ((window (or (minibuffer--completions-visible)
 		          ;; Make sure we have a completions window.
                           (progn (minibuffer-completion-help)
-                                 (get-buffer-window "*Completions*" 0)))))
+                                 (minibuffer--completions-visible)))))
     (select-window window)
     (completion--lazy-insert-strings)
     (when (bobp)
