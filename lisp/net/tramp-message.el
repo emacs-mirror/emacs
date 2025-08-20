@@ -94,7 +94,7 @@ This increases `tramp-verbose' to 6 if necessary."
   :type 'boolean
   :link '(info-link :tag "Tramp manual" "(tramp) Traces and Profiles"))
 
-(defcustom tramp-debug-buffer-limit (* 3 1024 1024 1024) ;3GB
+(defcustom tramp-debug-buffer-limit (* 100 1024 1024) ;100MB
   "The upper limit of a Tramp debug buffer.
 If the size of a debug buffer exceeds this limit, a warning is raised.
 Set it to 0 if there is no limit."
