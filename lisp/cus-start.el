@@ -77,10 +77,10 @@
                (const box) integer)
          (const :tag "Hollow cursor" hollow)
          (const :tag "Vertical bar" bar)
-         (cons  :tag "Vertical bar with specified height"
+         (cons  :tag "Vertical bar with specified width"
                 (const bar) integer)
          (const :tag "Horizontal bar" hbar)
-         (cons  :tag "Horizontal bar with specified width"
+         (cons  :tag "Horizontal bar with specified height"
                 (const hbar) integer)
          (const :tag "None "nil))))
   (pcase-dolist
