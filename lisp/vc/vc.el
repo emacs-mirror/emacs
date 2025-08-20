@@ -2546,10 +2546,10 @@ See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
 global binding."
   (interactive (list (vc--maybe-read-remote-location)))
   (vc--with-backend-in-rootdir "VC root-diff"
-    (vc-fileset-diff-incoming remote-location `(,backend (,rootdir)))))
+    (vc-diff-incoming remote-location `(,backend (,rootdir)))))
 
 ;;;###autoload
-(defun vc-fileset-diff-incoming (&optional remote-location fileset)
+(defun vc-diff-incoming (&optional remote-location fileset)
   "Report changes to VC fileset that would be pulled from REMOTE-LOCATION.
 When unspecified REMOTE-LOCATION is the place \\[vc-update] would pull from.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
@@ -2579,10 +2579,10 @@ See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
 global binding."
   (interactive (list (vc--maybe-read-remote-location)))
   (vc--with-backend-in-rootdir "VC root-diff"
-    (vc-fileset-diff-outgoing remote-location `(,backend (,rootdir)))))
+    (vc-diff-outgoing remote-location `(,backend (,rootdir)))))
 
 ;;;###autoload
-(defun vc-fileset-diff-outgoing (&optional remote-location fileset)
+(defun vc-diff-outgoing (&optional remote-location fileset)
   "Report changes to VC fileset that would be pushed to REMOTE-LOCATION.
 When unspecified REMOTE-LOCATION is the place \\[vc-push] would push to.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.

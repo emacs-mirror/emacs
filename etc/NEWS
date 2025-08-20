@@ -2141,8 +2141,8 @@ In particular, 'vc-root-diff-outgoing' is useful as a way to preview
 your push and ensure that all and only the changes you intended to
 include were committed and will be pushed.
 
-'vc-fileset-diff-incoming' and 'vc-fileset-diff-outgoing' are similar
-but limited to the current VC fileset.
+'vc-diff-incoming' and 'vc-diff-outgoing' are similar but limited to the
+current VC fileset.
 
 +++
 *** New user option 'vc-use-incoming-outgoing-prefixes'.

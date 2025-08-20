@@ -1075,7 +1075,7 @@ Display a diff of all changes that a pull operation will retrieve.
 If you customize @code{vc-use-incoming-outgoing-prefixes} to
 non-@code{nil}, this command becomes available on @kbd{C-x v I D}.
 
-@item M-x vc-fileset-diff-incoming
+@item M-x vc-diff-incoming
 Display a diff of changes that a pull operation will retrieve, but
 limited to the current fileset.
 
@@ -1097,7 +1097,7 @@ operation.
 If you customize @code{vc-use-incoming-outgoing-prefixes} to
 non-@code{nil}, this command is bound to @kbd{C-x v O D}.
 
-@item M-x vc-fileset-diff-outgoing
+@item M-x vc-diff-outgoing
 Display a diff of changes that will be sent by the next push operation,
 but limited to the current fileset.
 
@@ -1197,14 +1197,13 @@ use a prefix argument here too to specify a particular remote location.
 quickly check that all and only the changes you intended to include were
 committed and will be pushed.
 
-@findex vc-fileset-diff-incoming
-@findex vc-fileset-diff-outgoing
-  The commands @code{vc-fileset-diff-incoming} and
-@code{vc-fileset-diff-outgoing} are very similar.  They also display
-changes that would be pulled or pushed.  The difference is that the
-diffs reported are limited to the current fileset.  Don't forget that
-actual pull and push operations always affect the whole working tree,
-not just the current fileset.
+@findex vc-diff-incoming
+@findex vc-diff-outgoing
+  The commands @code{vc-diff-incoming} and @code{vc-diff-outgoing} are
+very similar.  They also display changes that would be pulled or pushed.
+The difference is that the diffs reported are limited to the current
+fileset.  Don't forget that actual pull and push operations always
+affect the whole working tree, not just the current fileset.
 
 @cindex VC log buffer, commands in
 @cindex vc-log buffer

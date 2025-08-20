@@ -687,8 +687,8 @@ Before doing that, check if there are any old backups and get rid of them."
            (vc-make-version-backup file)))))
 
 (declare-function vc-dir-resynch-file "vc-dir" (&optional fname))
-(declare-function vc-fileset-diff-outgoing "vc" (&optional remote-location fileset))
-(declare-function vc-fileset-diff-incoming "vc" (&optional remote-location fileset))
+(declare-function vc-diff-outgoing "vc" (&optional remote-location fileset))
+(declare-function vc-diff-incoming "vc" (&optional remote-location fileset))
 (declare-function vc-working-tree-switch-project "vc" (dir))
 
 (defvar vc-dir-buffers nil "List of `vc-dir' buffers.")
@@ -979,11 +979,11 @@ In the latter case, VC mode is deactivated for this buffer."
 
 (defvar-keymap vc-incoming-prefix-map
   "L" #'vc-log-incoming
-  "=" #'vc-fileset-diff-incoming
+  "=" #'vc-diff-incoming
   "D" #'vc-root-diff-incoming)
 (defvar-keymap vc-outgoing-prefix-map
   "L" #'vc-log-outgoing
-  "=" #'vc-fileset-diff-outgoing
+  "=" #'vc-diff-outgoing
   "D" #'vc-root-diff-outgoing)
 
 (defcustom vc-use-incoming-outgoing-prefixes nil
