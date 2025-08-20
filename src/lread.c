@@ -522,6 +522,12 @@ from_file_p (source_t *source)
   return source->get == source_file_get;
 }
 
+static bool
+from_buffer_p (source_t *source)
+{
+  return source->get == source_buffer_get;
+}
+
 static void
 skip_dyn_bytes (source_t *source, ptrdiff_t n)
 {
@@ -630,7 +636,7 @@ unreadbyte_from_file (unsigned char c)
 static AVOID
 invalid_syntax_lisp (Lisp_Object s, source_t *source)
 {
-  if (source->get == source_buffer_get)
+  if (from_buffer_p (source))
     {
       Lisp_Object buffer = source->object;
       /* Get the line/column in the buffer.  */
@@ -2120,7 +2126,7 @@ end_of_file_error (source_t *source)
     /* Only Fload calls read on a file, and Fload always binds
        load-true-file-name around the call.  */
     xsignal1 (Qend_of_file, Vload_true_file_name);
-  else if (source->get == source_buffer_get)
+  else if (from_buffer_p (source))
     xsignal1 (Qend_of_file, source->object);
   else
     xsignal0 (Qend_of_file);
