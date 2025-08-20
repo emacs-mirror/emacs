@@ -2232,9 +2232,9 @@ AC_CACHE_CHECK([for flag to work around GCC union bugs],
 	   [/* Work around GCC bugs 117423 and 119085 re holes in unions:
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=117423
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119085
-	       These are fixed in GCC 15.2.
+	       These are fixed in GCC 14.4 and 15.2.
 
-	       Working wround them also works around GCC bug 58416
+	       Working around them also works around GCC bug 58416
 	       with double in unions on x86, where the generated insns
 	       copy non-floating-point data via fldl/fstpl instruction pairs.
 	       This can misbehave if the data's bit pattern looks like a NaN.
