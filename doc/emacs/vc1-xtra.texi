@@ -14,6 +14,7 @@
 * Change Logs and VC::  Generating a change log file from log entries.
 * VC Delete/Rename::    Deleting and renaming version-controlled files.
 * Revision Tags::       Symbolic names for revisions.
+* Merge Bases::         The most recent revision existing on both branches.
 * Other Working Trees:: Multiple sets of workfiles.
 * Version Headers::     Inserting version control headers into working files.
 * Editing VC Commands:: Editing the VC shell commands that Emacs will run.
@@ -226,6 +227,76 @@ makefile probably mentions the file that you renamed.  If you retrieve
 an old tag, the renamed file is retrieved under its new name, which is
 not the name that the makefile expects.  So the program won't really
 work as retrieved.
+
+@node Merge Bases
+@subsubsection Merge Bases
+@cindex merge bases
+
+@table @kbd
+@item C-x v M D
+Report diffs of changes on a branch since it diverged from another
+(@code{vc-diff-mergebase}).
+
+@item C-x v M L
+Display log messages for revisions on a branch since it diverged from
+another (@code{vc-log-mergebase}).
+@end table
+
+@c This definition is possibly dVCS-specific -- can revisions exist on
+@c more than one branch for older VCS?  This needs thinking through if
+@c any of our centalized VCS gain support for these commands.
+The @dfn{merge base} of two branches is the most recent revision that
+exists on both branches.  If neither of the branches were ever merged
+into the other (@pxref{Merging}), then the merge base is the revision
+that the older of the two branches was at when the newer branch was
+created from it (@pxref{Creating Branches}).  If one of the branches was
+ever merged into the other, then the merge base is the most recent merge
+point.
+
+With this understood, we can generalize the concept of a merge base from
+branches to any two revisions.  The merge base of two revisions is the
+most recent revision that can be found in the revision history of both
+of the two revisions.@footnote{In fact the concept generalizes to any
+number of revisions, but Emacs's commands for merge bases work with only
+two, so we limit ourselves to that.}
+
+The commands described in this section are currently implemented only
+for decentralized version control systems (@pxref{VCS Repositories}).
+
+@kindex C-x v M D
+@findex vc-diff-mergebase
+@kindex C-x v M L
+@findex vc-log-mergebase
+Merge bases are useful to make certain comparisons between branches, and
+Emacs provides two commands for doing so.  Each of @kbd{C-x v M D}
+(@code{vc-diff-mergebase}) and @kbd{C-x v M L} (@code{vc-log-mergebase})
+prompts for two branches, finds their merge base, and then compares that
+merge base with the second of the two branches.  The commands report
+diffs and display change history, respectively.
+
+The typical use case for these commands is when one of the branches was
+originally created from the other and you or a collaborator have made
+merges of one of the branches into the other at least once.  Then you
+can use these commands to see what changes on one branch have not yet
+been merged into the other.
+
+Call the branch which has the changes you are interested in the ``source
+branch'' and the branch into which these changes have not yet been
+merged the ``target branch''.  Specify the target branch when prompted
+for the ``older revision'' and the source branch when prompted for the
+``newer revision''.@footnote{The concept of merge bases generalizes from
+branches to any two revisions.  The merge base of two revisions is the
+most recent revision that can be found in the revision history of both
+of the two revisions.  @kbd{C-x v M D} and @kbd{C-x v M L} accept any
+two revisions, not just branches.  Comparing two branches is the same as
+comparing the revisions at the ends of the branches.
+
+(In fact the concept generalizes to any number of revisions, but Emacs's
+commands for merge bases work with only two, so we limit ourselves to
+that.)}  Then @kbd{C-x v M D} shows you a preview of what would change
+on the target branch if you were to merge the source branch into it, and
+@kbd{C-x v M L} shows you a log of the changes on the source branch not
+yet merged into the target branch.
 
 @node Other Working Trees
 @subsubsection Multiple Working Trees for One Repository

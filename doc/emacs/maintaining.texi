@@ -1815,7 +1815,7 @@ and so on, depending on the number of existing branches at that point.
 @kindex C-x v b c
 @findex vc-create-branch
   This procedure will not work for distributed version control systems
-like git or Mercurial.  For those systems you should use the command
+like Git or Mercurial.  For those systems you should use the command
 @code{vc-create-branch} (@w{@kbd{C-x v b c @var{branch-name} @key{RET}}})
 instead.
 
