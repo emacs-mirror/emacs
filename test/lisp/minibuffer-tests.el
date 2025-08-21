@@ -433,6 +433,17 @@
            15)))
 
 
+(defmacro with-minibuffer-setup (completing-read &rest body)
+  (declare (indent 1) (debug (collection body)))
+  `(catch 'result
+     (minibuffer-with-setup-hook
+         (lambda ()
+           (let ((redisplay-skip-initial-frame nil)
+                 (executing-kbd-macro nil)) ; Don't skip redisplay
+             (throw 'result (progn . ,body))))
+       (let ((executing-kbd-macro t)) ; Force the real minibuffer
+         ,completing-read))))
+
 (defmacro completing-read-with-minibuffer-setup (collection &rest body)
   (declare (indent 1) (debug (collection body)))
   `(catch 'result
@@ -569,6 +580,7 @@
 
 (ert-deftest completions-header-format-test ()
   (let ((completion-show-help nil)
+        (minibuffer-completion-auto-choose t)
         (completions-header-format nil))
     (completing-read-with-minibuffer-setup
         '("aa" "ab" "ac")
@@ -718,11 +730,50 @@
       (should (equal (minibuffer-contents) "ccc")))))
 
 (ert-deftest minibuffer-next-completion ()
-  (let ((default-directory (ert-resource-directory)))
+  (let ((default-directory (ert-resource-directory))
+        (minibuffer-completion-auto-choose t))
     (completing-read-with-minibuffer-setup #'read-file-name-internal
       (insert "d/")
       (execute-kbd-macro (kbd "M-<down> M-<down> M-<down>"))
       (should (equal "data/minibuffer-test-cttq$$tion" (minibuffer-contents))))))
+
+(ert-deftest minibuffer-completion-RET-prefix ()
+  ;; REQUIRE-MATCH=nil
+  (with-minibuffer-setup
+      (completing-read ":" '("aaa" "bbb" "ccc") nil nil)
+    (execute-kbd-macro (kbd "M-<down> M-<down> C-u RET"))
+    (should (equal "bbb" (minibuffer-contents))))
+  ;; REQUIRE-MATCH=t
+  (with-minibuffer-setup
+   (completing-read ":" '("aaa" "bbb" "ccc") nil t)
+   (execute-kbd-macro (kbd "M-<down> M-<down> C-u RET"))
+   (should (equal "bbb" (minibuffer-contents)))))
+
+(defun test/completion-at-point ()
+  (list (point-min) (point) '("test:a" "test:b")))
+
+(ert-deftest completion-in-region-next-completion ()
+  (with-current-buffer (get-buffer-create "*test*")
+    ;; Put this buffer in the selected window so
+    ;; `minibuffer--completions-visible' works.
+    (pop-to-buffer (current-buffer))
+    (setq-local completion-at-point-functions (list #'test/completion-at-point))
+    (insert "test:")
+    (completion-help-at-point)
+    (should (minibuffer--completions-visible))
+    ;; C-u RET and RET have basically the same behavior for
+    ;; completion-in-region-mode, since they both dismiss *Completions*
+    ;; while leaving completion-in-region-mode still active.
+    (execute-kbd-macro (kbd "M-<down>"))
+    (should (equal (completion--selected-candidate) "test:a"))
+    (execute-kbd-macro (kbd "C-u RET"))
+    (should (equal (buffer-string) "test:a"))
+    (delete-char -1)
+    (completion-help-at-point)
+    (execute-kbd-macro (kbd "M-<down> M-<down>"))
+    (should (equal (completion--selected-candidate) "test:b"))
+    (execute-kbd-macro (kbd "RET"))
+    (should (equal (buffer-string) "test:b"))))
 
 (provide 'minibuffer-tests)
 ;;; minibuffer-tests.el ends here

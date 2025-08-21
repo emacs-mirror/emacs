@@ -183,6 +183,14 @@ different completion categories by customizing
 be updated as you type, or nil to suppress this always.  Note that for
 large or inefficient completion tables this can slow down typing.
 
+---
+*** RET chooses the completion selected with M-<up>/M-<down>
+If a completion candidate is selected with M-<up> or M-<down>, hitting
+RET will exit completion with that as the result.  This works both in
+minibuffer completion and in-buffer completion.  This supersedes
+'minibuffer-completion-auto-choose', which previously provided similar
+behavior; that variable is now nil by default.
+
 +++
 *** New user option 'completion-pcm-leading-wildcard'.
 This option configures how the partial-completion style does completion.

@@ -1983,11 +1983,16 @@ DONT-CYCLE tells the function not to setup cycling."
 (defvar minibuffer--original-buffer nil
   "Buffer that was current when `completing-read' was called.")
 
-(defun minibuffer-complete-and-exit ()
+(defun minibuffer-complete-and-exit (&optional no-exit)
   "Exit if the minibuffer contains a valid completion.
 Otherwise, try to complete the minibuffer contents.  If
 completion leads to a valid completion, a repetition of this
 command will exit.
+
+If a completion candidate is selected in the *Completions* buffer, it
+will be inserted in the minibuffer first.  If NO-EXIT is non-nil, don't
+actually exit the minibuffer, just insert the selected completion if
+any.
 
 If `minibuffer-completion-confirm' is `confirm', do not try to
  complete; instead, ask for confirmation and accept any input if
@@ -1997,9 +2002,12 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
  preceding minibuffer command was a member of
  `minibuffer-confirm-exit-commands', and accept the input
  otherwise."
-  (interactive)
-  (completion-complete-and-exit (minibuffer--completion-prompt-end) (point-max)
-                                #'exit-minibuffer))
+  (interactive "P")
+  (when (completion--selected-candidate)
+    (minibuffer-choose-completion t t))
+  (unless no-exit
+    (completion-complete-and-exit (minibuffer--completion-prompt-end) (point-max)
+                                  #'exit-minibuffer)))
 
 (defun completion-complete-and-exit (beg end exit-function)
   (completion--complete-and-exit
@@ -3010,6 +3018,11 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
   ;; completion-at-point called directly.
   "M-?" #'completion-help-at-point
   "TAB" #'completion-at-point
+  ;; If a completion is selected, RET will choose it.
+  "RET" `(menu-item "" minibuffer-choose-completion :filter
+                    ,(lambda (cmd)
+                       (when (completion--selected-candidate)
+                         cmd)))
   "M-<up>"   #'minibuffer-previous-completion
   "M-<down>" #'minibuffer-next-completion
   "M-RET"    #'minibuffer-choose-completion)
@@ -3216,6 +3229,17 @@ The completion method is determined by `completion-at-point-functions'."
   (define-key map "\n" 'exit-minibuffer)
   (define-key map "\r" 'exit-minibuffer))
 
+(defun minibuffer-completion-exit (&optional no-exit)
+  "Call `exit-minibuffer', inserting the selected completion first if any.
+
+If NO-EXIT is non-nil, don't `exit-minibuffer', just insert the selected
+completion."
+  (interactive "P")
+  (when (completion--selected-candidate)
+    (minibuffer-choose-completion t t))
+  (unless no-exit
+    (exit-minibuffer)))
+
 (defvar-keymap minibuffer-local-completion-map
   :doc "Local keymap for minibuffer input with completion."
   :parent minibuffer-local-map
@@ -3225,6 +3249,7 @@ The completion method is determined by `completion-at-point-functions'."
   ;; another binding for it.
   ;; "M-TAB"  #'minibuffer-force-complete
   "SPC"       #'minibuffer-complete-word
+  "RET"       #'minibuffer-completion-exit
   "?"         #'minibuffer-completion-help
   "<prior>"   #'switch-to-completions
   "M-v"       #'switch-to-completions
@@ -3344,16 +3369,18 @@ and `RET' accepts the input typed into the minibuffer."
               (window-buffer (active-minibuffer-window)))
       window)))
 
+(defun completion--selected-candidate ()
+  "Return the selected completion candidate if any."
+  (when-let* ((window (minibuffer--completions-visible)))
+    (with-current-buffer (window-buffer window)
+      (get-text-property (point) 'completion--string))))
+
 (defun minibuffer-visible-completions--filter (cmd)
   "Return CMD if `minibuffer-visible-completions' bindings should be active."
   (if minibuffer-visible-completions--always-bind
       cmd
     (when-let* ((window (minibuffer--completions-visible)))
-      (when (if (eq cmd #'minibuffer-choose-completion-or-exit)
-                (with-current-buffer (window-buffer window)
-                  (get-text-property (point) 'completion--string))
-              t)
-        cmd))))
+      cmd)))
 
 (defun minibuffer-visible-completions--bind (binding)
   "Use BINDING when completions are visible.
@@ -3369,7 +3396,6 @@ displaying the *Completions* buffer exists."
   "<right>" (minibuffer-visible-completions--bind #'minibuffer-next-completion)
   "<up>"    (minibuffer-visible-completions--bind #'minibuffer-previous-line-completion)
   "<down>"  (minibuffer-visible-completions--bind #'minibuffer-next-line-completion)
-  "RET"     (minibuffer-visible-completions--bind #'minibuffer-choose-completion-or-exit)
   "C-g"     (minibuffer-visible-completions--bind #'minibuffer-hide-completions))
 
 ;;; Completion tables.
@@ -5125,13 +5151,13 @@ and execute the forms."
          (completion--lazy-insert-strings)
          ,@body))))
 
-(defcustom minibuffer-completion-auto-choose t
+(defcustom minibuffer-completion-auto-choose nil
   "Non-nil means to automatically insert completions to the minibuffer.
 When non-nil, then `minibuffer-next-completion' and
 `minibuffer-previous-completion' will insert the completion
 selected by these commands to the minibuffer."
   :type 'boolean
-  :version "29.1")
+  :version "31.1")
 
 (defun minibuffer-next-completion (&optional n vertical)
   "Move to the next item in its completions window from the minibuffer.
