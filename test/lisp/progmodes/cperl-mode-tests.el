@@ -173,7 +173,7 @@ attributes, prototypes and signatures."
         (should (equal (get-text-property (match-beginning 0) 'face)
                        'font-lock-function-name-face))
         (let ((start-of-sub (match-beginning 0))
-              (end-of-sub (save-excursion (search-forward "}") (point))))
+              (end-of-sub (save-excursion (search-forward "}\n") (point))))
 
           ;; Prototypes are shown as strings
           (when (search-forward-regexp " ([$%@*]*) " end-of-sub t)

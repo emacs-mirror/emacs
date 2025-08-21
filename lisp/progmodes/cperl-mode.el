@@ -6374,9 +6374,7 @@ functions (which they are not).  Inherits from `default'.")
                                    (sequence (eval cperl--signature-rx)
                                              (eval cperl--ws*-rx))
                                    ;; ... or the start of a "sloppy" signature
-                                   (sequence (eval cperl--sloppy-signature-rx)
-                                             ;; arbitrarily continue "a few lines"
-                                             (repeat 0 200 (not (in "{"))))
+                                   (sequence (eval cperl--sloppy-signature-rx))
                                    ;; make sure we have a reasonably
                                    ;; short match for an incomplete sub
                                    (not (in ";{("))
@@ -6392,7 +6390,13 @@ functions (which they are not).  Inherits from `default'.")
                                    (group (eval cperl--basic-variable-rx))))
                     (progn
                       (goto-char (match-beginning 2)) ; pre-match: Back to sig
-                      (match-end 2))
+                      ;; While typing, forward-sexp might fail with a scan error.
+                      ;; If so, stop looking for declarations at (match-end 2)
+                      (condition-case nil
+                          (save-excursion
+                            (forward-sexp)
+                            (point))
+                        (error (match-end 2))))
                     nil
                     (1 font-lock-variable-name-face)))
             ;; -------- flow control
