@@ -2766,7 +2766,7 @@ PARSE-DATA is used to save status between calls in a loop."
 START is a good place to start parsing, or equal to
 PARSE-START if preset.
 STATE is what is returned by `parse-partial-sexp'.
-DEPTH is true is we are immediately after end of block
+DEPTH is true if we are immediately after end of block
 which contains START.
 PRESTART is the position basing on which START was found.
 START-STATE should be a good guess for the start of a function."
@@ -2775,7 +2775,7 @@ START-STATE should be a good guess for the start of a function."
       (if (and parse-start
 	       (<= parse-start start-point))
 	  (goto-char parse-start)
-	(beginning-of-defun)
+	(beginning-of-defun-raw)
         (when (cperl-declaration-header-p (point))
           (goto-char (cperl-beginning-of-property (point) 'syntax-type))
           (beginning-of-line))
