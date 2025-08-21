@@ -2521,6 +2521,18 @@ If non-nil, FFAP always finds remote files in buffers with remote
 'default-directory'.  If nil, FFAP finds local files first for absolute
 file names in above buffers.  The default is nil.
 
+** Debugging
+
++++
+*** New command 'edebug-bounce-to-previous-value' (bound to 'P')
+This command temporarily displays the outside current buffer with the
+outside point corresponding to the previous value, where the previous
+value is what Edebug has evaluated before its last stop point or what
+the user has evaluated in the context outside of Edebug.
+
+This replaces the binding of command 'edebug-view-outside' to 'P', which
+is still available on 'v'.
+
 ---
 ** Flymake
 

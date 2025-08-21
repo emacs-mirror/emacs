@@ -126,6 +126,16 @@
   !start!(with-current-buffer (get-buffer-create "*edebug-test-code-buffer*")
     !body!(format "current-buffer: %s" (current-buffer))))
 
+(defun edebug-test-code-bounce-point ()
+  !start!(with-current-buffer (get-buffer-create "*edebug-test-code-buffer*")
+    (erase-buffer)
+    (insert "123\n567\n9ab\n")
+    (narrow-to-region 5 9)
+    (goto-char 6)!goto-char!
+    (push-mark 1)!push-mark!
+    (set-mark nil)!clear-mark!
+    (+ 1)!1! (+ 6)!6! (+ 10)!10!))
+
 (defun edebug-test-code-use-destructuring-bind ()
   (let ((two 2) (three 3))
     (cl-destructuring-bind (x . y) (cons two three) (+ x!x! y!y!))))
