@@ -3661,6 +3661,8 @@ behavior: @file{@trampfn{method,user@@host,path/to/file}}.
 
 For specifying port numbers, affix @file{#<port>} to the host
 name.  For example: @file{@trampfn{ssh,daniel@@melancholia#42,.emacs}}.
+If the host is an IPv6 address, the port is appended like this:
+@file{@trampfn{ssh,@value{ipv6prefix}::1@value{ipv6postfix}#42,.emacs}}.
 
 All method, user name, host name, port number and local name parts are
 optional, @xref{Default Method}, @xref{Default User}, @xref{Default Host}.
@@ -6924,7 +6926,7 @@ maintainers, analyzing the remote commands for performance analysis.
 
 The debug buffer can be very large, if @code{tramp-verbose} is high,
 and @value{tramp} runs for a long time.  If the buffer size exceeds
-@code{tramp-debug-buffer-limit} (3GB by default), a warning will be
+@code{tramp-debug-buffer-limit} (100MB by default), a warning will be
 raised.  This user option can be adapted to your needs; a value of 0
 means that there is no limit (no warning).
 
