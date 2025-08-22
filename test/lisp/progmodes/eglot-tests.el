@@ -710,6 +710,7 @@ directory hierarchy."
   ;; This originally appeared in github#1339
   (skip-unless (executable-find "rust-analyzer"))
   (skip-unless (executable-find "cargo"))
+  (skip-when (getenv "EMACS_EMBA_CI"))
   (eglot--with-fixture
       '(("cmpl-project" .
          (("main.rs" .
