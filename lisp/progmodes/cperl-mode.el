@@ -5065,7 +5065,7 @@ recursive calls in starting lines of here-documents."
 				(cperl-postpone-fontification
 				 (- (point) 2) (- (point) 1) 'face
 				 (if (memq qtag
-					   (append "ghijkmoqvFHIJKMORTVY" nil))
+				           (append "gijkmoqFIJKMOTY" nil))
                                      'font-lock-warning-face
 				   my-cperl-REx-0length-face))
 				(if (and (eq (char-after b) qtag)
