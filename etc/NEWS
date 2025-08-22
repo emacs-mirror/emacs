@@ -525,6 +525,12 @@ shell sessions.  For example, 'C-2 C-x p s' switches to or creates a
 buffer named "*name-of-project-shell<2>*".  By comparison, a plain
 universal argument as in 'C-u C-x p s' always creates a new session.
 
+---
+*** 'project-switch-buffer' re-uniquifies buffer names while prompting.
+When 'uniquify-buffer-name-style' is non-nil, 'project-switch-buffer'
+changes the buffer names to only make them unique within the given
+project, during completion. That makes some items shorter.
+
 ** Registers
 
 *** New functions 'buffer-to-register' and 'file-to-register'.
