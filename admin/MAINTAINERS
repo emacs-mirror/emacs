@@ -96,6 +96,10 @@ Dmitry Gutov
 	test/indent/ruby.rb
 	lisp/progmodes/xref.el
 	lisp/progmodes/project.el
+	lisp/thread.el
+	src/thread.c
+
+	Thread-related code in src/process.c
 
 Ulf Jasper
 	Newsticker
@@ -381,6 +385,10 @@ Harald Jörg
 
 Spencer Baugh
 	lisp/progmodes/flymake.el
+	lisp/thread.el
+	src/thread.c
+
+	Thread-related code in src/process.c
 
 Yuan Fu
        lisp/progmodes/c-ts-mode.el
