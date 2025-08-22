@@ -2726,6 +2726,7 @@ PARSE-DATA is used to save status between calls in a loop."
 	   (if (listp indent) (setq indent (car indent)))
 	   (cond ((and (looking-at (rx (sequence (eval cperl--label-rx)
                                                  (not (in ":")))))
+                       (null (get-text-property (point) 'syntax-type))
                        (not (looking-at (rx (eval cperl--false-label-rx)))))
 		  (and (> indent 0)
 		       (setq indent (max cperl-min-label-indent
