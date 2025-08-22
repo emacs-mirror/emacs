@@ -1489,8 +1489,8 @@ Each clause normally has the form @w{@code{(@var{condition}
 @findex bind*
 @code{(bind* @var{bindings}@dots{})} means to bind @var{bindings} (like
 the bindings list in @code{let*}, @pxref{Local Variables}) for the body
-of the clause.  As a condition, it counts as true if the first binding's
-value is non-@code{nil}.
+of the clause, and all subsequent clauses.  As a condition, it counts as
+true if the first binding's value is non-@code{nil}.
 
 @findex match*
 @findex pcase*
