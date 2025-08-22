@@ -327,12 +327,14 @@ Michael Albinus
         lisp/autorevert.el
 	lisp/eshell/em-tramp.el
         lisp/files.el (file-name-non-special)
+        lisp/files-x.el (connection-local variables)
 	lisp/net/ange-ftp.el
 	lisp/notifications.el
 	lisp/shadowfile.el
 	test/infra/*
         test/lisp/autorevert-tests.el
         test/lisp/files-tests.el (file-name-non-special)
+        test/lisp/files-x-tests.el (connection-local variables)
 	test/lisp/shadowfile-tests.el
 	test/src/inotify-test.el
 
