@@ -589,6 +589,7 @@ reads the sentence before point, and prints the Doctor's answer."
 (doctor-put-meaning pc 'mach)
 (doctor-put-meaning gnu 'mach)
 (doctor-put-meaning linux 'mach)
+(doctor-put-meaning llm 'mach)
 (doctor-put-meaning bitching 'foul)
 (doctor-put-meaning shit 'foul)
 (doctor-put-meaning bastard 'foul)
