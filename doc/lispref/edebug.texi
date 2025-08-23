@@ -256,38 +256,47 @@ commands; all except for @kbd{S} resume execution of the program, at
 least for a certain distance.
 
 @table @kbd
+@findex edebug-stop
 @item S
 Stop: don't execute any more of the program, but wait for more
 Edebug commands (@code{edebug-stop}).
 @c FIXME Does not work. https://debbugs.gnu.org/9764
 
+@findex edebug-step-mode
 @item @key{SPC}
 Step: stop at the next stop point encountered (@code{edebug-step-mode}).
 
+@findex edebug-next-mode
 @item n
 Next: stop at the next stop point encountered after an expression
 (@code{edebug-next-mode}).  Also see @code{edebug-forward-sexp} in
 @ref{Jumping}.
 
+@findex edebug-trace-mode
 @item t
 Trace: pause (normally one second) at each Edebug stop point
 (@code{edebug-trace-mode}).
 
+@findex edebug-Trace-fast-mode
 @item T
 Rapid trace: update the display at each stop point, but don't actually
 pause (@code{edebug-Trace-fast-mode}).
 
+@findex edebug-go-mode
 @item g
 Go: run until the next breakpoint (@code{edebug-go-mode}).  @xref{Breakpoints}.
 
+@findex edebug-continue-mode
 @item c
 Continue: pause one second at each breakpoint, and then continue
 (@code{edebug-continue-mode}).
 
+@findex edebug-Continue-fast-mode
 @item C
 Rapid continue: move point to each breakpoint, but don't pause
 (@code{edebug-Continue-fast-mode}).
 
+@findex edebug-Go-nonstop-mode
 @item G
 Go non-stop: ignore breakpoints (@code{edebug-Go-nonstop-mode}).  You
 can still stop the program by typing @kbd{S}, or any editing command.
@@ -345,25 +354,30 @@ in trace mode or continue mode.  The default is 1 second.
 
   The commands described in this section execute until they reach a
 specified location.  All except @kbd{i} make a temporary breakpoint to
-establish the place to stop, then switch to go mode.  Any other
-breakpoint reached before the intended stop point will also stop
-execution.  @xref{Breakpoints}, for the details on breakpoints.
+establish the place to stop, then switch to go mode (@pxref{Edebug
+Execution Modes}).  Any other breakpoint reached before the intended
+stop point will also stop execution.  @xref{Breakpoints}, for the
+details on breakpoints.
 
   These commands may fail to work as expected in case of nonlocal exit,
 as that can bypass the temporary breakpoint where you expected the
 program to stop.
 
 @table @kbd
+@findex edebug-goto-here
 @item h
 Proceed to the stop point near where point is (@code{edebug-goto-here}).
 
+@findex edebug-forward-sexp
 @item f
 Run the program for one expression
 (@code{edebug-forward-sexp}).
 
+@findex edebug-step-out
 @item o
 Run the program until the end of the containing sexp (@code{edebug-step-out}).
 
+@findex edebug-step-in
 @item i
 Step into the function or macro called by the form after point
 (@code{edebug-step-in}).
@@ -397,7 +411,7 @@ containing sexp is a function definition itself, @kbd{o} continues until
 just before the last sexp in the definition.  If that is where you are
 now, it returns from the function and then stops.  In other words, this
 command does not exit the currently executing function unless you are
-positioned after the last sexp.
+positioned after the last sexp of that function.
 
 Normally, the @kbd{h}, @kbd{f}, and @kbd{o} commands display ``Break''
 and pause for @code{edebug-sit-for-seconds} before showing the result
@@ -421,14 +435,17 @@ arrange to deinstrument it.
   Some miscellaneous Edebug commands are described here.
 
 @table @kbd
+@findex edebug-help
 @item ?
 Display the help message for Edebug (@code{edebug-help}).
 
+@findex abort-recursive-edit @r{(Edebug)}
 @item a
 @itemx C-]
 Abort one level back to the previous command level
-(@code{abort-recursive-edit}).
+(@code{abort-recursive-edit}).  @xref{Recursive Editing}.
 
+@findex top-level @r{(Edebug)}
 @item q
 Return to the top level editor command loop (@code{top-level}).  This
 exits all recursive editing levels, including all levels of Edebug
@@ -436,14 +453,17 @@ activity.  However, instrumented code protected with
 @code{unwind-protect} or @code{condition-case} forms may resume
 debugging.
 
+@findex edebug-top-level-nonstop
 @item Q
 Like @kbd{q}, but don't stop even for protected code
 (@code{edebug-top-level-nonstop}).
 
+@findex edebug-previous-result
 @item r
 Redisplay the most recently known expression result in the echo area
 (@code{edebug-previous-result}).
 
+@findex edebug-pop-to-backtrace
 @item d
 Display a backtrace, excluding Edebug's own functions for clarity
 (@code{edebug-pop-to-backtrace}).
@@ -473,9 +493,10 @@ display a backtrace of all the pending evaluations with @kbd{d}.
 @node Breaks
 @subsection Breaks
 
-Edebug's step mode stops execution when the next stop point is reached.
-There are three other ways to stop Edebug execution once it has started:
-breakpoints, the global break condition, and source breakpoints.
+Edebug's step mode (@pxref{Edebug Execution Modes}) stops execution when
+the next stop point is reached.  There are three other ways to stop
+Edebug execution once it has started: breakpoints, the global break
+condition, and source breakpoints.
 
 @menu
 * Breakpoints::                 Breakpoints at stop points.
@@ -495,6 +516,9 @@ the first one at or after point in the source code buffer.  Here are the
 Edebug commands for breakpoints:
 
 @table @kbd
+@findex edebug-set-breakpoint
+@vindex edebug-enabled-breakpoint @r{(face)}
+@vindex edebug-disabled-breakpoint @r{(face)}
 @item b
 Set a breakpoint at the stop point at or after point
 (@code{edebug-set-breakpoint}).  If you use a prefix argument, the
@@ -502,26 +526,34 @@ breakpoint is temporary---it turns off the first time it stops the
 program.  An overlay with the @code{edebug-enabled-breakpoint} or
 @code{edebug-disabled-breakpoint} faces is put at the breakpoint.
 
+@findex edebug-unset-breakpoint
 @item u
 Unset the breakpoint (if any) at the stop point at or after
 point (@code{edebug-unset-breakpoint}).
 
+@findex edebug-unset-breakpoints
 @item U
 Unset any breakpoints in the current form
 (@code{edebug-unset-breakpoints}).
 
+@findex edebug-toggle-disable-breakpoint
 @item D
 Toggle whether to disable the breakpoint near point
 (@code{edebug-toggle-disable-breakpoint}).  This command is mostly
 useful if the breakpoint is conditional and it would take some work to
 recreate the condition.
 
+@findex edebug-set-conditional-breakpoint
 @item x @var{condition} @key{RET}
 Set a conditional breakpoint which stops the program only if
 evaluating @var{condition} produces a non-@code{nil} value
 (@code{edebug-set-conditional-breakpoint}).  With a prefix argument,
 the breakpoint is temporary.
 
+@item X @var{condition} @key{RET}
+Set @code{edebug-global-break-condition} to @var{condition}.
+
+@findex edebug-next-breakpoint
 @item B
 Move point to the next breakpoint in the current definition
 (@code{edebug-next-breakpoint}).
@@ -542,6 +574,8 @@ conditional breakpoint, use @kbd{x}, and specify the condition
 expression in the minibuffer.  Setting a conditional breakpoint at a
 stop point that has a previously established conditional breakpoint puts
 the previous condition expression in the minibuffer so you can edit it.
+(You can also use @kbd{X} to set the global break condition, to be
+evaluated at every stop point, @pxref{Global Break Condition}.)
 
 You can make a conditional or unconditional breakpoint
 @dfn{temporary} by using a prefix argument with the command to set the
@@ -566,8 +600,9 @@ point in the buffer.
 condition is satisfied, no matter where that may occur.  Edebug
 evaluates the global break condition at every stop point; if it
 evaluates to a non-@code{nil} value, then execution stops or pauses
-depending on the execution mode, as if a breakpoint had been hit.  If
-evaluating the condition gets an error, execution does not stop.
+depending on the execution mode (@pxref{Edebug Execution Modes}), as if
+a breakpoint had been hit.  If evaluating the condition gets an error,
+execution does not stop.
 
 @findex edebug-set-global-break-condition
   The condition expression is stored in
@@ -603,7 +638,8 @@ argument reaches zero:
 
   When the @code{fac} definition is instrumented and the function is
 called, the call to @code{edebug} acts as a breakpoint.  Depending on
-the execution mode, Edebug stops or pauses there.
+the execution mode (@pxref{Edebug Execution Modes}), Edebug stops or
+pauses there.
 
   If no instrumented code is being executed when @code{edebug} is called,
 that function calls @code{debug}.
@@ -640,17 +676,20 @@ configuration is the collection of windows and contents that were in
 effect outside of Edebug.
 
 @table @kbd
+@findex edebug-view-outside
 @item P
 @itemx v
 Switch to viewing the outside window configuration
 (@code{edebug-view-outside}).  Type @kbd{C-x X w} to return to Edebug.
 
+@findex edebug-bounce-point
 @item p
 Temporarily display the outside current buffer with point at its
 outside position (@code{edebug-bounce-point}), pausing for one second
 before returning to Edebug.  With a prefix argument @var{n}, pause for
 @var{n} seconds instead.
 
+@findex edebug-where
 @item w
 Move point back to the current stop point in the source code buffer
 (@code{edebug-where}).
@@ -659,6 +698,7 @@ If you use this command in a different window displaying the same
 buffer, that window will be used instead to display the current
 definition in the future.
 
+@findex edebug-toggle-save-windows
 @item W
 @c Its function is not simply to forget the saved configuration -- dan
 Toggle whether Edebug saves and restores the outside window
@@ -697,6 +737,7 @@ explicitly saves and restores.  @xref{The Outside Context}, for details
 on this process.
 
 @table @kbd
+@findex edebug-eval-expression
 @item e @var{exp} @key{RET}
 Evaluate expression @var{exp} in the context outside of Edebug
 (@code{edebug-eval-expression}).  That is, Edebug tries to minimize
@@ -707,30 +748,47 @@ pretty-print the result there.
 By default, this command
 suppresses the debugger during evaluation, so that an error in the
 evaluated expression won't add a new error on top of the existing one.
-Set the @code{debug-allow-recursive-debug} user option to a
-non-@code{nil} value to override this.
+Set the @code{debug-allow-recursive-debug} user option (@pxref{Error
+Debugging}) to a non-@code{nil} value to override this.
 
+@findex eval-expression @r{(Edebug)}
 @item M-: @var{exp} @key{RET}
 Evaluate expression @var{exp} in the context of Edebug itself
 (@code{eval-expression}).
 
+@findex edebug-eval-last-sexp
 @item C-x C-e
 Evaluate the expression before point, in the context outside of Edebug
-(@code{edebug-eval-last-sexp}).  With the prefix argument of zero
-(@kbd{C-u 0 C-x C-e}), don't shorten long items (like strings and
-lists).  Any other prefix will result in the value being
-pretty-printed in a separate buffer.
+(@code{edebug-eval-last-sexp}) and show the value in the minibuffer.
+With the prefix argument of zero (@kbd{C-u 0 C-x C-e}), don't shorten
+long items (like strings and lists) when showing the value, due to
+@code{edebug-print-length} and @code{edebug-print-level}
+(@pxref{Printing in Edebug}).  Any other prefix will result in the value
+being pretty-printed in a separate buffer instead of the minibuffer.
 @end table
+
+@xref{Eval List}, for additional Edebug features related to evaluating
+lists of expressions interactively.
+
+@cindex lexical binding (Edebug)
+@findex cl-macrolet @r{(Edebug)}
+@findex cl-symbol-macrolet @r{(Edebug)}
+  Edebug supports evaluation of expressions containing references to
+lexically bound symbols created by the following constructs in
+@file{cl-lib.el}: @code{cl-macrolet} and @code{cl-symbol-macrolet}.
+@c FIXME?  What about lexical-binding = t?
 
 @node Eval List
 @subsection Evaluation List Buffer
 
+@cindex evaluation list buffer
   You can use the @dfn{evaluation list buffer}, called @file{*edebug*}, to
 evaluate expressions interactively.  You can also set up the
 @dfn{evaluation list} of expressions to be evaluated automatically each
 time Edebug updates the display.
 
 @table @kbd
+@findex edebug-visit-eval-list
 @item E
 Switch to the evaluation list buffer @file{*edebug*}
 (@code{edebug-visit-eval-list}).
@@ -741,20 +799,25 @@ Interaction mode (@pxref{Lisp Interaction,,, emacs, The GNU Emacs
 Manual}) as well as these special commands:
 
 @table @kbd
+@findex edebug-eval-print-last-sexp
 @item C-j
 Evaluate the expression before point, in the outside context, and
 insert the value in the buffer (@code{edebug-eval-print-last-sexp}).
 With prefix argument of zero (@kbd{C-u 0 C-j}), don't shorten long
-items (like strings and lists).
+items (like strings and lists) due to @code{edebug-print-length} and
+@code{edebug-print-level} (@pxref{Printing in Edebug}).
 
+@findex edebug-eval-last-sexp
 @item C-x C-e
 Evaluate the expression before point, in the context outside of Edebug
 (@code{edebug-eval-last-sexp}).
 
+@findex edebug-update-eval-list
 @item C-c C-u
 Build a new evaluation list from the contents of the buffer
 (@code{edebug-update-eval-list}).
 
+@findex edebug-delete-eval-item
 @item C-c C-d
 Delete the evaluation list group that point is in
 (@code{edebug-delete-eval-item}).
@@ -797,24 +860,36 @@ not interrupt your debugging.
 several expressions have been added to it:
 
 @smallexample
+@group
 (current-buffer)
 #<buffer *scratch*>
 ;---------------------------------------------------------------
+@end group
+@group
 (selected-window)
 #<window 16 on *scratch*>
 ;---------------------------------------------------------------
+@end group
+@group
 (point)
 196
 ;---------------------------------------------------------------
+@end group
+@group
 bad-var
 "Symbol's value as variable is void: bad-var"
 ;---------------------------------------------------------------
+@end group
+@group
 (recursion-depth)
 0
 ;---------------------------------------------------------------
+@end group
+@group
 this-command
 eval-last-sexp
 ;---------------------------------------------------------------
+@end group
 @end smallexample
 
 To delete a group, move point into it and type @kbd{C-c C-d}, or simply
@@ -825,8 +900,9 @@ the expression at a suitable place, insert a new comment line, then type
 contents don't matter.
 
 After selecting @file{*edebug*}, you can return to the source code
-buffer with @kbd{C-c C-w}.  The @file{*edebug*} buffer is killed when
-you continue execution, and recreated next time it is needed.
+buffer with @kbd{C-c C-w} (@pxref{Edebug Views}).  The @file{*edebug*}
+buffer is killed when you continue execution, and recreated next time it
+is needed.
 
 @node Printing in Edebug
 @subsection Printing in Edebug
@@ -860,8 +936,10 @@ to a non-@code{nil} value.
   Here is an example of code that creates a circular structure:
 
 @example
+@group
 (setq a (list 'x 'y))
 (setcar a a)
+@end group
 @end example
 
 @noindent
@@ -883,11 +961,14 @@ printing results.  The default value is @code{t}.
 @node Trace Buffer
 @subsection Trace Buffer
 @cindex trace buffer
+@cindex Edebug trace buffer
+@cindex tracing in Edebug
 
   Edebug can record an execution trace, storing it in a buffer named
 @file{*edebug-trace*}.  This is a log of function calls and returns,
 showing the function names and their arguments and values.  To enable
-trace recording, set @code{edebug-trace} to a non-@code{nil} value.
+trace recording, set @code{edebug-trace} to a non-@code{nil} value
+(@pxref{Edebug Options}).
 
   Making a trace buffer is not the same thing as using trace execution
 mode (@pxref{Edebug Execution Modes}).
@@ -918,7 +999,7 @@ value of the last form in @var{body}.
 
 @defun edebug-trace format-string &rest format-args
 This function inserts text in the trace buffer.  It computes the text
-with @code{(apply 'format @var{format-string} @var{format-args})}.
+with @w{@code{(apply 'format @var{format-string} @var{format-args})}}.
 It also appends a newline to separate entries.
 @end defun
 
@@ -945,10 +1026,10 @@ correctly; Edebug will tell you when you have tried enough different
 conditions that each form has returned two different values.
 
   Coverage testing makes execution slower, so it is only done if
-@code{edebug-test-coverage} is non-@code{nil}.  Frequency counting is
-performed for all executions of an instrumented function, even if the
-execution mode is Go-nonstop, and regardless of whether coverage testing
-is enabled.
+@code{edebug-test-coverage} is non-@code{nil} (@pxref{Edebug Options}).
+Frequency counting is performed for all executions of an instrumented
+function, even if the execution mode is Go-nonstop, and regardless of
+whether coverage testing is enabled.
 
 @kindex C-x X =
 @findex edebug-temp-display-freq-count
@@ -981,6 +1062,7 @@ breakpoint, and setting @code{edebug-test-coverage} to @code{t}, when
 the breakpoint is reached, the frequency data looks like this:
 
 @example
+@group
 (defun fac (n)
   (if (= n 0) (edebug))
 ;#6           1      = =5
@@ -989,7 +1071,8 @@ the breakpoint is reached, the frequency data looks like this:
       (* n (fac (1- n)))
 ;#    5               0
     1))
-;#   0
+a;#   0
+@end group
 @end example
 
 The comment lines show that @code{fac} was called 6 times.  The
@@ -1030,15 +1113,19 @@ using Edebug.  You can also enlarge the value of
 @code{edebug-max-depth} if Edebug reaches the limit of recursion depth
 instrumenting code that contains very large quoted lists.
 
+@vindex executing-kbd-macro @r{(Edebug)}
 @item
 The state of keyboard macro execution is saved and restored.  While
 Edebug is active, @code{executing-kbd-macro} is bound to @code{nil}
-unless @code{edebug-continue-kbd-macro} is non-@code{nil}.
+unless @code{edebug-continue-kbd-macro} is non-@code{nil} (@pxref{Edebug
+Options}).
 @end itemize
 
 
 @node Edebug Display Update
 @subsubsection Edebug Display Update
+@cindex Edebug and display updates
+@cindex display updates, and Edebug
 
 @c This paragraph is not filled, because LaLiberte's conversion script
 @c needs an xref to be on just one line.
@@ -1059,13 +1146,13 @@ following data (though some of them are deliberately not restored if an
 error or quit signal occurs).
 
 @itemize @bullet
-@item
 @cindex current buffer point and mark (Edebug)
+@item
 Which buffer is current, and the positions of point and the mark in the
 current buffer, are saved and restored.
 
-@item
 @cindex window configuration (Edebug)
+@item
 The outside window configuration is saved and restored if
 @code{edebug-save-windows} is non-@code{nil} (@pxref{Edebug Options}).
 If the value of @code{edebug-save-windows} is a list, only the listed
@@ -1079,7 +1166,7 @@ The window start and horizontal scrolling of the source code buffer are
 not restored, however, so that the display remains coherent within Edebug.
 
 @cindex buffer point changed by Edebug
-@cindex edebug overwrites buffer point position
+@cindex Edebug overwrites buffer point position
 Saving and restoring the outside window configuration can sometimes
 change the positions of point in the buffers on which the Lisp program
 you are debugging operates, especially if your program moves point.
@@ -1091,11 +1178,14 @@ set @code{edebug-save-windows} to @code{nil}
 The value of point in each displayed buffer is saved and restored if
 @code{edebug-save-displayed-buffer-points} is non-@code{nil}.
 
+@vindex overlay-arrow-position @r{(Edebug)}
+@vindex overlay-arrow-string @r{(Edebug)}
 @item
 The variables @code{overlay-arrow-position} and
 @code{overlay-arrow-string} are saved and restored, so you can safely
 invoke Edebug from the recursive edit elsewhere in the same buffer.
 
+@vindex cursor-in-echo-area @r{(Edebug)}
 @item
 @code{cursor-in-echo-area} is locally bound to @code{nil} so that
 the cursor shows up in the window.
@@ -1103,6 +1193,8 @@ the cursor shows up in the window.
 
 @node Edebug Recursive Edit
 @subsubsection Edebug Recursive Edit
+@cindex Edebug and recursive edit
+@cindex recursive edit, and Edebug
 
 When Edebug is entered and actually reads commands from the user, it
 saves (and later restores) these additional data:
@@ -1149,6 +1241,8 @@ Edebug is active, @code{defining-kbd-macro} is bound to
 
 @node Edebug and Macros
 @subsection Edebug and Macros
+@cindex Edebug and macros
+@cindex macros, debugging with Edebug
 
 To make Edebug properly instrument expressions that call macros, some
 extra care is needed.  This subsection explains the details.
@@ -1172,23 +1266,26 @@ time later.)
 
   Therefore, you must define an Edebug specification for each macro
 that Edebug will encounter, to explain the format of calls to that
-macro.  To do this, add a @code{debug} declaration to the macro
-definition.  Here is a simple example that shows the specification for
-the @code{for} example macro (@pxref{Argument Evaluation}).
+macro.  To do this, add a @code{debug} declaration (@pxref{Declare
+Form}) to the macro definition.  Here is a simple example that shows the
+specification for the @code{for} example macro (@pxref{Argument
+Evaluation}).
 
 @smallexample
+@group
 (defmacro for (var from init to final do &rest body)
   "Execute a simple \"for\" loop.
 For example, (for i from 1 to 10 do (print i))."
   (declare (debug (symbolp "from" form "to" form "do" &rest form)))
   ...)
+@end group
 @end smallexample
 
   The Edebug specification says which parts of a call to the macro are
 forms to be evaluated.  For simple macros, the specification
 often looks very similar to the formal argument list of the macro
 definition, but specifications are much more general than macro
-arguments.  @xref{Defining Macros}, for more explanation of
+arguments.  @xref{Declare Form}, for more details about
 the @code{declare} form.
 
 @c See, e.g., https://debbugs.gnu.org/10577
@@ -1252,6 +1349,7 @@ are instrumented.
 @subsubsection Specification List
 
 @cindex Edebug specification list
+@cindex specification list, Edebug
 A @dfn{specification list} is required for an Edebug specification if
 some arguments of a macro call are evaluated while others are not.  Some
 elements in a specification list match one or more arguments, but others
@@ -1358,8 +1456,8 @@ This is successful when there are no more arguments to match at the
 current argument list level; otherwise it fails.  See sublist
 specifications and the backquote example.
 
+@cindex preventing backtracking, in Edebug specification list
 @item gate
-@cindex preventing backtracking
 No argument is matched but backtracking through the gate is disabled
 while matching the remainder of the specifications at this level.  This
 is primarily used to generate more specific syntax error messages.
@@ -1385,8 +1483,8 @@ sexps whose first element is a symbol and then lets
 with that head symbol according to @code{pcase--match-pat-args} and
 pass them to the @var{pf} it received as argument.
 
-@item @var{other-symbol}
 @cindex indirect specifications
+@item @var{other-symbol}
 Any other symbol in a specification list may be a predicate or an
 indirect specification.
 
@@ -1408,8 +1506,8 @@ specification fails and the argument is not instrumented.
 Some suitable predicates include @code{symbolp}, @code{integerp},
 @code{stringp}, @code{vectorp}, and @code{atom}.
 
-@item [@var{elements}@dots{}]
 @cindex [@dots{}] (Edebug)
+@item [@var{elements}@dots{}]
 A vector of elements groups the elements into a single @dfn{group
 specification}.  Its meaning has nothing to do with vectors.
 
@@ -1470,8 +1568,8 @@ The argument, a symbol, is the name of an argument of the defining form.
 However, lambda-list keywords (symbols starting with @samp{&})
 are not allowed.
 
-@item lambda-list
 @cindex lambda-list (Edebug)
+@item lambda-list
 This matches a lambda list---the argument list of a lambda expression.
 
 @item def-body
@@ -1791,6 +1889,7 @@ a breakpoint.  Set to @code{nil} to prevent the pause, non-@code{nil}
 to allow it.
 @end defopt
 
+@cindex Edebug, changing behavior with instrumented code
 @defopt edebug-behavior-alist
 By default, this alist contains one entry with the key @code{edebug}
 and a list of three functions, which are the default implementations
@@ -1798,6 +1897,7 @@ of the functions inserted in instrumented code: @code{edebug-enter},
 @code{edebug-before} and @code{edebug-after}.  To change Edebug's
 behavior globally, modify the default entry.
 
+@vindex edebug-behavior, symbol property
 Edebug's behavior may also be changed on a per-definition basis by
 adding an entry to this alist, with a key of your choice and three
 functions.  Then set the @code{edebug-behavior} symbol property of an
