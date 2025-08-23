@@ -709,6 +709,15 @@ to the value 'fill-region-as-paragraph-semlf' to enable functions like
 'fill-paragraph' and 'fill-region' to fill text using "semantic
 linefeeds".
 
+---
+** Temporary files are named differently when 'file-precious-flag' is set.
+When the user option 'file-precious-flag' is set to a non-nil value,
+Emacs now names the temporary file it creates while saving buffers using
+the original file name with ".tmp" appended to it.  Thus, if saving the
+buffer fails for some reason, and the temporary file is not renamed back
+to the original file's name, you can easily identify which file's saving
+failed.
+
 +++
 ** 'C-u C-x .' clears the fill prefix.
 You can now use 'C-u C-x .' to clear the fill prefix, similarly to how

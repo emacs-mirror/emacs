@@ -6245,7 +6245,13 @@ Before and after saving the buffer, this function runs
 		  ;; for saving the buffer.
 		  (setq tempname
 			(make-temp-file
-			 (expand-file-name "tmp" dir)))
+                         ;; The MSDOS 8+3 restricted namespace cannot be
+                         ;; relied upon to produce a different file name
+                         ;; if we append ".tmp".
+	                 (if (and (eq system-type 'ms-dos)
+		                  (not (msdos-long-file-names)))
+                             (expand-file-name "tmp" dir)
+                           (concat buffer-file-name ".tmp"))))
 		  ;; Pass in nil&nil rather than point-min&max
 		  ;; cause we're saving the whole buffer.
 		  ;; write-region-annotate-functions may use it.
