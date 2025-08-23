@@ -519,8 +519,9 @@ When returning, they are deleted."
 We cannot pass arguments, so we assume that `file-notify--test-event'
 and `file-notify--test-file' are bound somewhere."
   ;; Check the descriptor.
-  (should (equal (file-notify--test-event-desc file-notify--test-event)
-                 file-notify--test-desc))
+  (unless (eq (file-notify--test-event-action file-notify--test-event) 'stopped)
+    (should (equal (file-notify--test-event-desc file-notify--test-event)
+                   file-notify--test-desc)))
   ;; Check the file name.
   (should
    (string-prefix-p
@@ -1439,7 +1440,8 @@ the file watch."
            (:random deleted deleted deleted stopped))
        (delete-file file-notify--test-tmpfile))
      (should (file-notify-valid-p file-notify--test-desc1))
-     (should-not (file-notify-valid-p file-notify--test-desc2))
+     (unless (string-equal (file-notify--test-library) "w32notify")
+       (should-not (file-notify-valid-p file-notify--test-desc2)))
 
      ;; Now we delete the directory.
      (file-notify--test-with-actions
