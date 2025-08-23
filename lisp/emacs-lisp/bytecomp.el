@@ -3591,6 +3591,7 @@ This assumes the function has the `important-return-value' property."
          (cl-nset-exclusive-or 1 2)
          (cl-nreconc 1)
          (cl-sort 1) (cl-stable-sort 1) (cl-merge 2 3)
+         (cl-fill 1) (cl-replace 1)
          )))
   (dolist (entry mutating-fns)
     (put (car entry) 'mutates-arguments (cdr entry))))
