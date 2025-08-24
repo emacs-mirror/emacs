@@ -5419,9 +5419,9 @@ or t to enable all ts-modes."
          (set-default sym val)
          (when (treesit-available-p)
            (dolist (m treesit-major-mode-remap-alist)
-             (setq major-mode-remap-alist
-                   (if (or (eq val t) (memq (cdr m) val))
-                       (cons m major-mode-remap-alist)
+             (if (or (eq val t) (memq (cdr m) val))
+                 (add-to-list 'major-mode-remap-alist m)
+               (setq major-mode-remap-alist
                      (delete m major-mode-remap-alist))))))
   :version "31.1")
 
