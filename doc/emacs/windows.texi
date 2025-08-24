@@ -158,6 +158,8 @@ this option is @code{nil}.
 @table @kbd
 @item C-x o
 Select another window (@code{other-window}).
+@item C-x O
+Select another window, backwards (@code{other-window-backward}).
 @item C-M-v
 Scroll the next window upward (@code{scroll-other-window}).
 @item C-M-S-v
@@ -183,7 +185,8 @@ cycle in the opposite order.  When the minibuffer is active, the
 minibuffer window is the last window in the cycle; you can switch from
 the minibuffer window to one of the other windows, and later switch
 back and finish supplying the minibuffer argument that is requested.
-@xref{Minibuffer Edit}.
+@xref{Minibuffer Edit}. @kbd{C-x O} is similar, but defaults to the
+opposite order.
 
 @findex next-window-any-frame
 The @code{other-window} command will normally only switch to the next

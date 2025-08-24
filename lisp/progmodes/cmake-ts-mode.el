@@ -255,9 +255,26 @@ Return nil if there is no name or if NODE is not a defun node."
 
 (derived-mode-add-parents 'cmake-ts-mode '(cmake-mode))
 
-(if (treesit-ready-p 'cmake)
-    (add-to-list 'auto-mode-alist
-                 '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode)))
+;;;###autoload
+(defun cmake-ts-mode-maybe ()
+  "Enable `cmake-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'cmake)
+          (eq treesit-enabled-modes t)
+          (memq 'cmake-ts-mode treesit-enabled-modes))
+      (cmake-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (treesit-available-p)
+  (add-to-list 'auto-mode-alist
+               '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(cmake-mode . cmake-ts-mode)))
 
 (provide 'cmake-ts-mode)
 

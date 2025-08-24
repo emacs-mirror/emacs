@@ -187,9 +187,9 @@ calccost (struct tty_display_info *tty,
                     c,
                     totalcost;
     int     ntabs,
-            n2tabs,
-            tabx,
-            tab2x,
+	    n2tabs,
+	    tabx,
+	    tab2x,
             tabcost;
     register const char *p;
 
@@ -229,36 +229,43 @@ x:
 	goto olddelta;		/* forget it! */
 
     /*
-     * ntabs is # tabs towards but not past dstx; n2tabs is one more
-     * (ie past dstx), but this is only valid if that is not past the
-     * right edge of the screen.  We can check that at the same time
-     * as we figure out where we would be if we use the tabs (which
-     * we will put into tabx (for ntabs) and tab2x (for n2tabs)).
+     * ntabs is # tabs towards but not past dstx.  tabx is where we
+     * would be if we put those ntabs tabulations.
      */
 
     ntabs = (deltax + srcx % tty->Wcm->cm_tabwidth) / tty->Wcm->cm_tabwidth;
-    n2tabs = ntabs + 1;
     tabx = (srcx / tty->Wcm->cm_tabwidth + ntabs) * tty->Wcm->cm_tabwidth;
-    tab2x = tabx + tty->Wcm->cm_tabwidth;
 
-    if (tab2x >= tty->Wcm->cm_cols)	/* too far (past edge) */
+    if (tty_cursor_movement_use_TAB_BS) {
+      /*
+       * n2tabs is one more tab than ntabs (i.e. past dstx), but this is
+       * only valid if that is not past the right edge of the screen.
+       * tab2x is where we would be if we put those n2tabs tabulations.
+       */
+      n2tabs = ntabs + 1;
+      tab2x = tabx + tty->Wcm->cm_tabwidth;
+      if (tab2x >= tty->Wcm->cm_cols)	/* too far (past edge) */
 	n2tabs = 0;
 
+      /*
+       * Set c to the cost for using n2tabs
+       */
+                /* cost for n2tabs          +    cost for left motion */
+      c = n2tabs ? n2tabs * tty->Wcm->cc_tab + (tab2x - dstx) * tty->Wcm->cc_left
+	: BIG;
+    }
+
     /*
-     * Now set tabcost to the cost for using ntabs, and c to the cost
-     * for using n2tabs, then pick the minimum.
+     * Set tabcost to the cost for using ntabs.
      */
 
 		   /* cost for ntabs           +    cost for right motion */
     tabcost = ntabs ? ntabs * tty->Wcm->cc_tab + (dstx - tabx) * tty->Wcm->cc_right
 		    : BIG;
 
-		   /* cost for n2tabs          +    cost for left motion */
-    c = n2tabs  ?    n2tabs * tty->Wcm->cc_tab + (tab2x - dstx) * tty->Wcm->cc_left
-		: BIG;
-
-    if (c < tabcost)		/* then cheaper to overshoot & back up */
-	ntabs = n2tabs, tabcost = c, tabx = tab2x;
+    /* Is it allowed and cheaper to overshoot & back up? */
+    if (tty_cursor_movement_use_TAB_BS && (c < tabcost))
+      ntabs = n2tabs, tabcost = c, tabx = tab2x;
 
     if (tabcost >= BIG)		/* caint use tabs */
 	goto newdelta;

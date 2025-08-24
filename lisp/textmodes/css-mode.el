@@ -1911,11 +1911,15 @@ can also be used to fill comments.
     (setq-local treesit-outline-predicate css-ts-mode--outline-predicate)
     (setq-local treesit-thing-settings css--treesit-thing-settings)
 
-    (treesit-major-mode-setup)
-
-    (add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))))
+    (treesit-major-mode-setup)))
 
 (derived-mode-add-parents 'css-ts-mode '(css-mode))
+
+;;;###autoload
+(when (treesit-available-p)
+  (defvar treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(css-mode . css-ts-mode)))
 
 ;;;###autoload
 (define-derived-mode css-mode css-base-mode "CSS"

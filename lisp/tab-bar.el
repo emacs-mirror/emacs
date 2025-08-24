@@ -1194,9 +1194,6 @@ when the tab is current.  Return the result as a keymap."
     `((add-tab menu-item ,tab-bar-new-button tab-bar-new-tab
                :help "New tab"))))
 
-(defvar tab-bar--align-right-cache nil
-  "Optimization for `tab-bar-format-align-right'.")
-
 (defun tab-bar-format-align-right (&optional rest)
   "Align the rest of tab bar items to the right.
 The argument `rest' is used for special handling of this item
@@ -1209,13 +1206,7 @@ This prevents calling other non-idempotent items like
          (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
          (hpos (progn
                  (add-face-text-property 0 (length rest) 'tab-bar t rest)
-                 (or (and tab-bar--align-right-cache
-                          (equal-including-properties
-                           (car tab-bar--align-right-cache) rest)
-                          (cdr tab-bar--align-right-cache))
-                     (let ((width (string-pixel-width rest)))
-                       (setq tab-bar--align-right-cache (cons rest width))
-                       width))))
+                 (string-pixel-width rest)))
          (str (propertize " " 'display
                           ;; The `right' spec doesn't work on TTY frames
                           ;; when windows are split horizontally (bug#59620)

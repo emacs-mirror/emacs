@@ -29,7 +29,7 @@
 
 ;;; Code:
 
-(require 'tramp-loaddefs)
+(require 'tramp-loaddefs nil t)  ; guard against load during autoload gen
 (require 'ansi-color)
 (require 'auth-source)
 (require 'format-spec)

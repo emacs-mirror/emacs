@@ -523,6 +523,12 @@ from_file_p (source_t *source)
   return source->get == source_file_get;
 }
 
+static bool
+from_buffer_p (source_t *source)
+{
+  return source->get == source_buffer_get;
+}
+
 static void
 skip_dyn_bytes (source_t *source, ptrdiff_t n)
 {
@@ -631,7 +637,7 @@ unreadbyte_from_file (unsigned char c)
 static AVOID
 invalid_syntax_lisp (Lisp_Object s, source_t *source)
 {
-  if (source->get == source_buffer_get)
+  if (from_buffer_p (source))
     {
       Lisp_Object buffer = source->object;
       /* Get the line/column in the buffer.  */
@@ -2115,12 +2121,16 @@ build_load_history (Lisp_Object filename, bool entire)
    information.  */
 
 static AVOID
-end_of_file_error (void)
+end_of_file_error (source_t *source)
 {
-  if (STRINGP (Vload_true_file_name))
+  if (from_file_p (source))
+    /* Only Fload calls read on a file, and Fload always binds
+       load-true-file-name around the call.  */
     xsignal1 (Qend_of_file, Vload_true_file_name);
-
-  xsignal0 (Qend_of_file);
+  else if (from_buffer_p (source))
+    xsignal1 (Qend_of_file, source->object);
+  else
+    xsignal0 (Qend_of_file);
 }
 
 static Lisp_Object
@@ -2605,7 +2615,7 @@ read_char_escape (source_t *source, int next_char)
   switch (c)
     {
     case -1:
-      end_of_file_error ();
+      end_of_file_error (source);
 
     case 'a': chr = '\a'; break;
     case 'b': chr = '\b'; break;
@@ -2778,7 +2788,7 @@ read_char_escape (source_t *source, int next_char)
           {
             int c = readchar (source);
             if (c < 0)
-              end_of_file_error ();
+              end_of_file_error (source);
             if (c == '}')
               break;
             if (c >= 0x80)
@@ -2820,7 +2830,7 @@ read_char_escape (source_t *source, int next_char)
       break;
     }
   if (chr < 0)
-    end_of_file_error ();
+    end_of_file_error (source);
   eassert (chr >= 0 && chr < (1 << CHARACTERBITS));
 
   /* Apply Control modifiers, using the rules:
@@ -2983,7 +2993,7 @@ read_char_literal (source_t *source)
 {
   int ch = readchar (source);
   if (ch < 0)
-    end_of_file_error ();
+    end_of_file_error (source);
 
   /* Accept `single space' syntax like (list ? x) where the
      whitespace character is SPC or TAB.
@@ -3119,7 +3129,7 @@ read_string_literal (source_t *source)
     }
 
   if (ch < 0)
-    end_of_file_error ();
+    end_of_file_error (source);
 
   if (!force_multibyte && force_singlebyte)
     {
@@ -3554,7 +3564,7 @@ skip_space_and_comments (source_t *source)
 	  c = readchar (source);
 	while (c >= 0 && c != '\n');
       if (c < 0)
-	end_of_file_error ();
+	end_of_file_error (source);
     }
   while (c <= 32 || c == NO_BREAK_SPACE);
   unreadchar (source, c);
@@ -3692,7 +3702,7 @@ read0 (source_t *source, bool locate_syms)
   Lisp_Object obj;
   int c = readchar (source);
   if (c < 0)
-    end_of_file_error ();
+    end_of_file_error (source);
 
   switch (c)
     {
@@ -4109,7 +4119,7 @@ read0 (source_t *source, bool locate_syms)
 	      {
 		c = readchar (source);
 		if (c < 0)
-		  end_of_file_error ();
+		  end_of_file_error (source);
 		quoted = true;
 	      }
 

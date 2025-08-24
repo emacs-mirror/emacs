@@ -1441,8 +1441,8 @@ x
 The @var{array} should be mutable.  @xref{Mutability}.
 
 If @var{array} is a string and @var{object} is not a character, a
-@code{wrong-type-argument} error results.  The function converts a
-unibyte string to multibyte if necessary to insert a character.
+@code{wrong-type-argument} error results.  For more information about
+string mutation, @pxref{Modifying Strings}.
 @end defun
 
 @defun fillarray array object

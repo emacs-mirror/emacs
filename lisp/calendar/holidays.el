@@ -585,7 +585,7 @@ use instead of point."
   (with-current-buffer
       (if event (calendar-event-buffer event)
         (current-buffer))
-    (setq calendar-mark-holidays-flag t)
+    (setq calendar-mark-holidays t)
     (message "Marking holidays...")
     (dolist (holiday (calendar-holiday-list))
       (calendar-mark-visible-date (car holiday) calendar-holiday-marker))

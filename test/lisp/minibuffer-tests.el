@@ -100,10 +100,10 @@
                      ;; Test that $$ in input is properly unquoted.
                      ("data/m-cttq$$t" "data/minibuffer-test-cttq$$tion")
                      ;; Test that env-vars are preserved.
-                     ("lisp/c${CTTQ1}et/se-u" "lisp/c${CTTQ1}et/semantic-utest")
-                     ("lisp/ced${CTTQ2}se-u" "lisp/ced${CTTQ2}semantic-utest")
+                     ("lisp/c${CTTQ1}et/se-u-c" "lisp/c${CTTQ1}et/semantic-utest-c.test")
+                     ("lisp/ced${CTTQ2}se-u-c" "lisp/ced${CTTQ2}semantic-utest-c.test")
                      ;; Test that env-vars don't prevent partial-completion.
-                     ("lis/c${CTTQ1}/se-u" "lisp/c${CTTQ1}et/semantic-utest")
+                     ("lis/c${CTTQ1}/se-u-c" "lisp/c${CTTQ1}et/semantic-utest-c.test")
                      ))
       (should (equal (completion-try-completion input
                                                 #'completion--file-name-table
@@ -118,11 +118,11 @@
                        ;; When an env var is in the completion bounds, try-completion
                        ;; won't change letter case.
                        ("lisp/c${CTTQ1}E" "lisp/c${CTTQ1}Et/")
-                       ("lisp/ced${CTTQ2}SE-U" "lisp/ced${CTTQ2}SEmantic-utest")
+                       ("lisp/ced${CTTQ2}SE-U-c" "lisp/ced${CTTQ2}SEmantic-utest-c.test")
                        ;; If the env var is before the completion bounds, try-completion
                        ;; *will* change letter case.
-                       ("lisp/c${CTTQ1}et/SE-U" "lisp/c${CTTQ1}et/semantic-utest")
-                       ("lis/c${CTTQ1}/SE-U" "lisp/c${CTTQ1}et/semantic-utest")
+                       ("lisp/c${CTTQ1}et/SE-U-c" "lisp/c${CTTQ1}et/semantic-utest-c.test")
+                       ("lis/c${CTTQ1}/SE-U-c" "lisp/c${CTTQ1}et/semantic-utest-c.test")
                        ))
         (should (equal (car (completion-try-completion input
                                                        #'completion--file-name-table
@@ -224,7 +224,11 @@
                    (completion-pcm--merge-try '("tes" point "ing")
                                               '("Testing" "testing")
                                               "" ""))
-           '("testing" . 4))))
+                 '("testing" . 7)))
+  (should (equal
+           (let ((completion-ignore-case t))
+             (completion-pcm-try-completion "tes" '("Testing" "testing") nil 3))
+           '("testing" . 7))))
 
 (ert-deftest completion-pcm-test-1 ()
   ;; Point is at end, this does not match anything
@@ -317,6 +321,16 @@
            (completion-pcm--merge-try
             '(prefix any "bar" any) '("xbarxfoo" "ybaryfoo") "" "")
            '("bar" . 3))))
+
+(ert-deftest completion-pcm-test-8 ()
+  ;; try-completion inserts the common prefix and suffix at point.
+  (should (equal (completion-pcm-try-completion
+                  "r" '("fooxbar" "fooybar") nil 0)
+                 '("foobar" . 3)))
+  ;; Even if point is at the end of the minibuffer.
+  (should (equal (completion-pcm-try-completion
+                  "" '("fooxbar" "fooybar") nil 0)
+                 '("foobar" . 3))))
 
 (ert-deftest completion-substring-test-1 ()
   ;; One third of a match!
@@ -440,21 +454,21 @@
             '("a" "ab" "ac")
           (execute-kbd-macro (kbd "a TAB TAB"))
           (should (equal (car messages) "Complete, but not unique"))
-          (should-not (get-buffer-window "*Completions*" 0))
+          (should-not (minibuffer--completions-visible))
           (execute-kbd-macro (kbd "b TAB"))
           (should (equal (car messages) "Sole completion"))))
       (let ((completion-auto-help t))
         (completing-read-with-minibuffer-setup
             '("a" "ab" "ac")
           (execute-kbd-macro (kbd "a TAB TAB"))
-          (should (get-buffer-window "*Completions*" 0))
+          (should (minibuffer--completions-visible))
           (execute-kbd-macro (kbd "b TAB"))
           (should (equal (car messages) "Sole completion"))))
       (let ((completion-auto-help 'visible))
         (completing-read-with-minibuffer-setup
          '("a" "ab" "ac" "achoo")
          (execute-kbd-macro (kbd "a TAB TAB"))
-         (should (get-buffer-window "*Completions*" 0))
+         (should (minibuffer--completions-visible))
          (execute-kbd-macro (kbd "ch TAB"))
          (should (equal (car messages) "Sole completion")))))))
 
@@ -463,19 +477,19 @@
     (completing-read-with-minibuffer-setup
         '("aa" "ab" "ac")
       (execute-kbd-macro (kbd "a TAB"))
-      (should (and (get-buffer-window "*Completions*" 0)
+      (should (and (minibuffer--completions-visible)
                    (eq (current-buffer) (get-buffer "*Completions*"))))
       (execute-kbd-macro (kbd "TAB TAB TAB"))
-      (should (and (get-buffer-window "*Completions*" 0)
+      (should (and (minibuffer--completions-visible)
                    (eq (current-buffer) (get-buffer " *Minibuf-1*"))))
       (execute-kbd-macro (kbd "S-TAB"))
-      (should (and (get-buffer-window "*Completions*" 0)
+      (should (and (minibuffer--completions-visible)
                    (eq (current-buffer) (get-buffer "*Completions*"))))))
   (let ((completion-auto-select 'second-tab))
     (completing-read-with-minibuffer-setup
         '("aa" "ab" "ac")
       (execute-kbd-macro (kbd "a TAB"))
-      (should (and (get-buffer-window "*Completions*" 0)
+      (should (and (minibuffer--completions-visible)
                    (not (eq (current-buffer) (get-buffer "*Completions*")))))
       (execute-kbd-macro (kbd "TAB TAB"))
       (should (eq (current-buffer) (get-buffer "*Completions*"))))))

@@ -39,6 +39,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <attribute.h>
 #include <byteswap.h>
 #include <intprops.h>
+#include <sys-limits.h>
 #include <verify.h>
 
 INLINE_HEADER_BEGIN
@@ -4592,7 +4593,6 @@ extern Lisp_Object nconc2 (Lisp_Object, Lisp_Object);
 extern Lisp_Object assq_no_quit (Lisp_Object, Lisp_Object);
 extern Lisp_Object assq_no_signal (Lisp_Object, Lisp_Object);
 extern Lisp_Object assoc_no_quit (Lisp_Object, Lisp_Object);
-extern void clear_string_char_byte_cache (void);
 extern ptrdiff_t string_char_to_byte (Lisp_Object, ptrdiff_t);
 extern ptrdiff_t string_byte_to_char (Lisp_Object, ptrdiff_t);
 extern Lisp_Object string_to_multibyte (Lisp_Object);
@@ -4750,7 +4750,6 @@ extern ptrdiff_t pure_bytes_used_lisp;
 struct Lisp_Vector *allocate_vectorlike (ptrdiff_t len, bool clearit);
 extern void run_finalizer_function (Lisp_Object function);
 extern intptr_t garbage_collection_inhibited;
-unsigned char *resize_string_data (Lisp_Object, ptrdiff_t, int, int);
 extern void malloc_warning (const char *);
 extern AVOID memory_full (size_t);
 extern AVOID buffer_memory_full (ptrdiff_t);
@@ -5683,17 +5682,6 @@ maybe_disable_address_randomization (int argc, char **argv)
 {
   return argc;
 }
-#endif
-/* Maximum number of bytes to read or write in a single system call.
-   This works around a serious bug in Linux kernels before 2.6.16; see
-   <https://bugzilla.redhat.com/show_bug.cgi?format=multiple&id=612839>
-   and see Linux kernel commit e28cc71572da38a5a12c1cfe4d7032017adccf69.
-   It's likely to work around similar bugs in other operating systems, so do it
-   on all platforms.  Round INT_MAX down to a page size, with the conservative
-   assumption that page sizes are at most 2**18 bytes (any kernel with a
-   page size larger than that shouldn't have the bug).  */
-#ifndef MAX_RW_COUNT
-# define MAX_RW_COUNT (INT_MAX >> 18 << 18)
 #endif
 extern int emacs_exec_file (char const *, char *const *, char *const *);
 extern void init_standard_fds (void);

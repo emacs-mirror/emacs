@@ -86,6 +86,9 @@ struct thread_state
   Lisp_Object error_symbol;
   Lisp_Object error_data;
 
+  /* Decides whether the thread's current buffer can be killed.  */
+  Lisp_Object buffer_disposition;
+
   /* If we are waiting for some event, this holds the object we are
      waiting on.  */
   Lisp_Object event_object;
@@ -359,6 +362,8 @@ union aligned_thread_state
 static_assert (GCALIGNED (union aligned_thread_state));
 
 extern union aligned_thread_state main_thread;
+
+void thread_all_before_buffer_killed (Lisp_Object buffer);
 
 INLINE_HEADER_END
 

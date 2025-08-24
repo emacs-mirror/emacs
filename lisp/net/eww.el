@@ -1356,7 +1356,6 @@ This consults the entries in `eww-readable-urls' (which see)."
   "<mouse-9>" #'eww-forward-url
 
   :menu '("Eww"
-          ["Exit" quit-window t]
           ["Close browser" quit-window t]
           ["Reload" eww-reload t]
           ["Follow URL in new buffer" eww-open-in-new-buffer]

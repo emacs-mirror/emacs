@@ -329,6 +329,10 @@ seconds, in addition to using notification for those files."
 
 ;; Internal variables:
 
+;;;###autoload
+(defvar auto-revert-buffer-in-progress nil "\
+Non-nil if a `auto-revert-buffer' operation is in progress, nil otherwise.")
+
 (defvar auto-revert-buffer-list ()
   "List of buffers in Auto-Revert Mode.
 
@@ -834,16 +838,15 @@ This is an internal function used by Auto-Revert Mode."
                                t)))))
          eob eoblist)
     (when (timerp auto-revert--lockout-timer)
-      (cancel-timer auto-revert--lockout-timer))
-    (setq auto-revert-notify-modified-p nil
-          auto-revert--last-time
-          (if revert (current-time) auto-revert--last-time)
-          auto-revert--lockout-timer nil)
+      (cancel-timer auto-revert--lockout-timer)
+      (setq auto-revert--lockout-timer nil))
 
     (when revert
       (when (and auto-revert-verbose
                  (not (eq revert 'fast)))
         (message "Reverting buffer `%s'" (buffer-name)))
+      (setq auto-revert-notify-modified-p nil
+            auto-revert--last-time (current-time))
       ;; If point (or a window point) is at the end of the buffer, we
       ;; want to keep it at the end after reverting.  This allows one
       ;; to tail a file.
@@ -872,7 +875,7 @@ This is an internal function used by Auto-Revert Mode."
     ;; `preserve-modes' avoids changing the (minor) modes.  But we do
     ;; want to reset the mode for VC, so we do it manually.
     (when (and (not auto-revert-tail-mode) (or revert auto-revert-check-vc-info))
-      (let ((revert-buffer-in-progress-p t))
+      (let ((revert-buffer-in-progress t))
         (vc-refresh-state)))))
 
 (defun auto-revert-tail-handler (size)
@@ -933,25 +936,25 @@ buffers not reverted last time due to user interruption."
 
 This is performed as specified by Auto-Revert and Global
 Auto-Revert Modes."
-  (if (not (buffer-live-p buf))
-      (auto-revert-remove-current-buffer buf)
-    (with-current-buffer buf
-      ;; Test if someone has turned off Auto-Revert Mode
-      ;; in a non-standard way, for example by changing
-      ;; major mode.
-      (when (and (not auto-revert-mode)
-                 (not auto-revert-tail-mode))
-        (auto-revert-remove-current-buffer))
-      (when (auto-revert-active-p)
-        ;; Enable file notification.
-        ;; Don't bother creating a notifier for non-file buffers
-        ;; unless it explicitly indicates that this works.
-        (when (and auto-revert-use-notify
-                   (not auto-revert-notify-watch-descriptor)
-                   (or buffer-file-name
-                       buffer-auto-revert-by-notification))
-          (auto-revert-notify-add-watch))
-        (auto-revert-handler)))))
+  (let ((auto-revert-buffer-in-progress t))
+    (if (not (buffer-live-p buf))
+        (auto-revert-remove-current-buffer buf)
+      (with-current-buffer buf
+        ;; Test if someone has turned off Auto-Revert Mode in a
+        ;; non-standard way, for example by changing major mode.
+        (when (and (not auto-revert-mode)
+                   (not auto-revert-tail-mode))
+          (auto-revert-remove-current-buffer))
+        (when (auto-revert-active-p)
+          ;; Enable file notification.
+          ;; Don't bother creating a notifier for non-file buffers
+          ;; unless it explicitly indicates that this works.
+          (when (and auto-revert-use-notify
+                     (not auto-revert-notify-watch-descriptor)
+                     (or buffer-file-name
+                         buffer-auto-revert-by-notification))
+            (auto-revert-notify-add-watch))
+          (auto-revert-handler))))))
 
 (defun auto-revert-buffers ()
   "Revert buffers as specified by Auto-Revert and Global Auto-Revert Mode.

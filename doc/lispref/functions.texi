@@ -2742,6 +2742,14 @@ Indent calls to this function or macro according to @var{indent-spec}.
 This is typically used for macros, though it works for functions too.
 @xref{Indenting Macros}.
 
+@cindex @code{autoload-macro} (@code{declare} spec)
+@item (autoload-macro @var{value})
+This is used when defining a macro.  If @var{value} is @samp{expand},
+any calls to the macro which follow an autoload comment will first be
+expanded during generation of the autoloads.  This declaration is used
+as an alternative to hard-coding lists of macros to expand in
+@code{loaddefs-generate--make-autoload}.  @xref{Autoload}.
+
 @item (interactive-only @var{value})
 Set the function's @code{interactive-only} property to @var{value}.
 @xref{The interactive-only property}.

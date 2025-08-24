@@ -1219,11 +1219,15 @@ Key bindings:
                           "local_function_statement")
                   eos))
 
-  (treesit-major-mode-setup)
-
-  (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-ts-mode)))
+  (treesit-major-mode-setup))
 
 (derived-mode-add-parents 'csharp-ts-mode '(csharp-mode))
+
+;;;###autoload
+(when (treesit-available-p)
+  (defvar treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(csharp-mode . csharp-ts-mode)))
 
 (provide 'csharp-mode)
 

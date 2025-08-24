@@ -65,11 +65,9 @@
 ;;
 ;;   will turn on the c++-ts-mode for C++ source files.
 ;;
-;; - If you have both C and C++ grammars installed, add
-;;
-;;     (load "c-ts-mode")
-;;
-;;   to your init file.
+;; - If you have both C and C++ grammars installed, customize
+;;   'treesit-enabled-modes' and select 'c-ts-mode',
+;;   'c++-mode', 'c-or-c++-mode'.
 ;;
 ;; You can also turn on these modes manually in a buffer.  Doing so
 ;; will set up Emacs to use the C/C++ modes defined here for other
@@ -1675,21 +1673,15 @@ the code is C or C++, and based on that chooses whether to enable
            'c-ts-mode)))
     (funcall (major-mode-remap mode))))
 
-(when (treesit-ready-p 'cpp)
-  (setq major-mode-remap-defaults
-        (assq-delete-all 'c++-mode major-mode-remap-defaults))
-  (add-to-list 'major-mode-remap-defaults '(c++-mode . c++-ts-mode)))
-
-(when (treesit-ready-p 'c)
-  (setq major-mode-remap-defaults
-        (assq-delete-all 'c-mode major-mode-remap-defaults))
-  (add-to-list 'major-mode-remap-defaults '(c-mode . c-ts-mode)))
-
-(when (and (treesit-ready-p 'cpp)
-           (treesit-ready-p 'c))
-  (setq major-mode-remap-defaults
-        (assq-delete-all 'c-or-c++-mode major-mode-remap-defaults))
-  (add-to-list 'major-mode-remap-defaults '(c-or-c++-mode . c-or-c++-ts-mode)))
+;;;###autoload
+(when (treesit-available-p)
+  (defvar treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(c-mode . c-ts-mode))
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(c++-mode . c++-ts-mode))
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(c-or-c++-mode . c-or-c++-ts-mode)))
 
 (provide 'c-ts-mode)
 (provide 'c++-ts-mode)

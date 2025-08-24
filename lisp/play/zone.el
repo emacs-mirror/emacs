@@ -433,8 +433,9 @@ run a specific program.  The program must be a member of
 
 (defsubst zone-replace-char (count del-count char-as-string new-value)
   (delete-char (or del-count (- count)))
-  (aset char-as-string 0 new-value)
-  (dotimes (_ count) (insert char-as-string)))
+  (let ((s (apply #'propertize (string new-value)
+                  (text-properties-at 0 char-as-string))))
+    (dotimes (_ count) (insert s))))
 
 (defsubst zone-park/sit-for (pos seconds)
   (let ((p (point)))

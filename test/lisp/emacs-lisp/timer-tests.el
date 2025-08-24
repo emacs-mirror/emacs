@@ -65,4 +65,24 @@
   (let ((nt (timer-next-integral-multiple-of-time '(32770 . 65539) 0.5)))
     (should (time-equal-p 1 nt))))
 
+(ert-deftest timer-test-repeat-arg ()
+  "Test bug#79227."
+  (should (run-at-time nil nil 'ignore))
+  (should (run-at-time nil 0 'ignore))
+  (should (run-at-time nil 1.5 'ignore))
+  ;; Test REPEAT that is neither nil nor a non-negative number.
+  (let ((err (should-error (run-at-time nil t 'ignore))))
+    (should (equal err '(error . ("Invalid repetition interval: t"))))
+    ;; Test REPEAT that is a negative number.
+    (setq err (should-error (run-at-time nil -1.5 'ignore)))
+    (should (equal err '(error . ("Invalid repetition interval: -1.5")))))
+  ;; Same tests for run-with-timer.
+  (should (run-with-timer 0 nil 'ignore))
+  (should (run-with-timer 0 0 'ignore))
+  (should (run-with-timer 0 1.5 'ignore))
+  (let ((err (should-error (run-with-timer 0 t 'ignore))))
+    (should (equal err '(error . ("Invalid repetition interval: t"))))
+    (setq err (should-error (run-with-timer 0 -1.5 'ignore)))
+    (should (equal err '(error . ("Invalid repetition interval: -1.5"))))))
+
 ;;; timer-tests.el ends here

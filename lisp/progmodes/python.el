@@ -1967,10 +1967,13 @@ indentation levels from right to left."
 
 (defun python-indent-dedent-line-backspace (arg)
   "De-indent current line.
-Argument ARG is passed to `backward-delete-char-untabify' when
-point is not in between the indentation."
+Argument ARG is passed to `backward-delete-char-untabify' when point is
+not in between the indentation or when Transient Mark mode is enabled,
+the mark is active, and ARG is 1."
   (interactive "*p")
-  (unless (python-indent-dedent-line)
+  (when (or
+         (and (use-region-p) (= arg 1))
+         (not (python-indent-dedent-line)))
     (backward-delete-char-untabify arg)))
 
 (put 'python-indent-dedent-line-backspace 'delete-selection 'supersede)
@@ -3695,6 +3698,10 @@ def __PYTHON_EL_eval_file(filename, tempname, delete):
   "Code used to evaluate files in inferior Python processes.
 The coding cookie regexp is specified in PEP 263.")
 
+(defconst python-shell-local-prefix "/local:"
+  "A prefix used to indicate that a file is local.
+It is used when sending file names to remote Python processes.")
+
 (defun python-shell-comint-watch-for-first-prompt-output-filter (output)
   "Run `python-shell-first-prompt-hook' when first prompt is found in OUTPUT."
   (when (not python-shell--first-prompt-received)
@@ -4013,6 +4020,27 @@ there for compatibility with CEDET.")
         (signal 'wrong-type-argument (list 'stringp text)))))
   "Encode TEXT as a valid Python string.")
 
+(defun python-shell--convert-file-name-to-send (process file-name)
+  "Convert the FILE-NAME for sending to the inferior Python PROCESS.
+If PROCESS is local and FILE-NAME is prefixed with
+`python-shell-local-prefix', remove the prefix.  If PROCESS is remote
+and the FILE-NAME is not prefixed, prepend `python-shell-local-prefix'.
+If PROCESS is remote and the file is on the same remote host, remove the
+remote prefix.  Otherwise, return the file name as is."
+  (when file-name
+    (let ((process-prefix
+           (file-remote-p
+            (with-current-buffer (process-buffer process) default-directory)))
+          (local-prefix (string-prefix-p python-shell-local-prefix file-name)))
+      (cond
+       ((and (not process-prefix) local-prefix)
+        (string-remove-prefix python-shell-local-prefix file-name))
+       ((and process-prefix (not (or local-prefix (file-remote-p file-name))))
+        (concat python-shell-local-prefix (file-local-name file-name)))
+       ((and process-prefix (string= (file-remote-p file-name) process-prefix))
+        (file-local-name file-name))
+       (t file-name)))))
+
 (defun python-shell-send-string (string &optional process msg)
   "Send STRING to inferior Python PROCESS.
 When optional argument MSG is non-nil, forces display of a
@@ -4020,11 +4048,13 @@ user-friendly message if there's no process running; defaults to
 t when called interactively."
   (interactive
    (list (read-string "Python command: ") nil t))
-  (let ((process (or process (python-shell-get-process-or-error msg)))
-        (code (format "__PYTHON_EL_eval(%s, %s)\n"
-                      (python-shell--encode-string string)
-                      (python-shell--encode-string (or (buffer-file-name)
-                                                       "<string>")))))
+  (let* ((process (or process (python-shell-get-process-or-error msg)))
+         (code (format "__PYTHON_EL_eval(%s, %s)\n"
+                       (python-shell--encode-string string)
+                       (python-shell--encode-string
+                        (or (python-shell--convert-file-name-to-send
+                             process (buffer-file-name))
+                            "<string>")))))
     (unless python-shell-output-filter-in-progress
       (with-current-buffer (process-buffer process)
         (save-excursion
@@ -4355,7 +4385,8 @@ t when called interactively."
             temp-file-name (with-temp-buffer
                              (insert-file-contents file-name)
                              (python-shell--save-temp-file (current-buffer))))))
-  (let* ((file-name (file-local-name (expand-file-name file-name)))
+  (let* ((file-name (python-shell--convert-file-name-to-send
+                     process (expand-file-name file-name)))
          (temp-file-name (when temp-file-name
                            (file-local-name (expand-file-name
                                              temp-file-name)))))
@@ -5079,8 +5110,12 @@ Never set this variable directly, use
   "Set the buffer for FILE-NAME as the tracked buffer.
 Internally it uses the `python-pdbtrack-tracked-buffer' variable.
 Returns the tracked buffer."
-  (let* ((file-name-prospect (concat (file-remote-p default-directory)
-                              file-name))
+  (let* ((file-name-prospect
+          (if (string-prefix-p python-shell-local-prefix file-name)
+              (string-remove-prefix python-shell-local-prefix file-name)
+            (if (file-remote-p file-name)
+                file-name
+              (concat (file-remote-p default-directory) file-name))))
          (file-buffer (get-file-buffer file-name-prospect)))
     (unless file-buffer
       (cond

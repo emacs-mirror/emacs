@@ -1420,6 +1420,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/strtol.c
   lib/strtoll.c
   lib/symlink.c
+  lib/sys-limits.h
   lib/sys_random.in.h
   lib/sys_select.in.h
   lib/sys_stat.in.h

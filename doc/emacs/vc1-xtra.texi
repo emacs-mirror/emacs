@@ -285,7 +285,11 @@ tree.
 Add a new working tree.
 
 @item C-x v w w
-Visit this file in another working tree.
+Visit this file or directory in another working tree.
+
+@item C-x v w s
+Invoke @kbd{C-x p p} (@code{project-switch-project}) but limited to
+other working trees.
 
 @item C-x v w x
 Delete a working tree you no longer need.
@@ -313,12 +317,24 @@ new working tree.
 @findex vc-switch-working-tree
 Once your repository has other working trees, you can use the command
 @kbd{C-x v w w} (@code{vc-switch-working-tree}) to switch between them.
-It tries to find the analogue of the current buffer's file
-under another working tree.  Typically the sets of workfiles
-under different working trees differ more in file contents than in which
-files do and do not exist.  In other words, the file the
-current buffer visits probably exists in other working trees too, and
-this command lets you switch to those versions of the file.
+It tries to find the analogue of the current buffer's file or directory
+under another working tree.  Typically the sets of workfiles under
+different working trees differ more in file contents than in which files
+do and do not exist.  In other words, the file or directory the current
+buffer visits probably exists in other working trees too, and this
+command lets you switch to those versions of the file.
+
+@kindex C-x v w s
+@findex vc-working-tree-switch-project
+An alternative way to switch between working trees is @kbd{C-x v w s}
+(@code{vc-working-tree-switch-project}).  This prompts you to select a
+working tree, and then displays a menu of commands to operate on it.
+This is in fact just @kbd{C-x p p} (@code{project-switch-project})
+(@pxref{Switching Projects}) but with the selection of projects limited
+to other working trees.  The main difference between @kbd{C-x v w w} and
+@kbd{C-x v w s} is that the former looks for an analogue of the current
+buffer in the other working tree while the latter considers the other
+working tree as a whole, independent project.
 
 @kindex C-x v w x
 @kindex C-x v w R

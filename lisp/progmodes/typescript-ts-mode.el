@@ -722,8 +722,25 @@ This mode is intended to be inherited by concrete major modes."
 
 (derived-mode-add-parents 'typescript-ts-mode '(typescript-mode))
 
-(if (treesit-ready-p 'typescript)
-    (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode)))
+;;;###autoload
+(defun typescript-ts-mode-maybe ()
+  "Enable `typescript-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'typescript)
+          (eq treesit-enabled-modes t)
+          (memq 'typescript-ts-mode treesit-enabled-modes))
+      (typescript-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (treesit-available-p)
+  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(typescript-mode . typescript-ts-mode)))
 
 ;;;###autoload
 (define-derived-mode tsx-ts-mode typescript-ts-base-mode "TypeScript[TSX]"
@@ -842,8 +859,25 @@ at least 3 (which is the default value)."
                               ((equal (match-string 0) ">") ")>")
                               (t ".")))))))))))
 
-(if (treesit-ready-p 'tsx)
-    (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)))
+;;;###autoload
+(defun tsx-ts-mode-maybe ()
+  "Enable `tsx-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'tsx)
+          (eq treesit-enabled-modes t)
+          (memq 'tsx-ts-mode treesit-enabled-modes))
+      (tsx-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (treesit-available-p)
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(tsx-mode . tsx-ts-mode)))
 
 (provide 'typescript-ts-mode)
 

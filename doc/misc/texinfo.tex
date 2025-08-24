@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2025-07-15.21}
+\def\texinfoversion{2025-07-31.19}
 %
 % Copyright 1985, 1986, 1988, 1990-2025 Free Software Foundation, Inc.
 %
@@ -9634,7 +9634,10 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Auto-number footnotes.  Otherwise like plain.
 \gdef\footnote{%
   \global\advance\footnoteno by \@ne
-  \edef\thisfootno{$^{\the\footnoteno}$}%
+  %
+  % Output for the footnote marker.  If we are immediately after another
+  % footnote, output a comma and small space first.
+  \edef\thisfootno{$^{\ifnum\lastpenalty=3 ,\mskip 1mu \fi\the\footnoteno}$}%
   %
   % In case the footnote comes at the end of a sentence, preserve the
   % extra spacing after we do the footnote number.
@@ -9643,19 +9646,25 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   %
   % Remove inadvertent blank space before typesetting the footnote number.
   \unskip
-  \thisfootno\@sf
+  %
+  % \scriptspace is 0.5pt by default and gives excessive space before the
+  % comma if we have multiple footnote markers in a row.
+  \bgroup\scriptspace=0pt
+    \thisfootno\@sf
+  \egroup
   \dofootnote
 }%
 
-% Don't bother with the trickery in plain.tex to not require the
-% footnote text as a parameter.  Our footnotes don't need to be so general.
-%
-% Oh yes, they do; otherwise, @ifset (and anything else that uses
-% \parseargline) fails inside footnotes because the tokens are fixed when
-% the footnote is read.  --karl, 16nov96.
+% marker for immediately after a footnote marker
+\gdef\footnoteendmarker{\penalty3 }
+
+% Do not require the footnote text as a parameter; otherwise, @ifset
+% (and anything else that uses \parseargline) fails inside footnotes
+% because the tokens are fixed when the footnote is read.
 %
 \gdef\dofootnote{%
   \insert\footins\bgroup
+  \aftergroup\footnoteendmarker
   %
   % Nested footnotes are not supported in TeX, that would take a lot
   % more work.  (\startsavinginserts does not suffice.)
@@ -9686,14 +9695,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   % Hang the footnote text off the number.  Use \everypar in case the
   % footnote extends for more than one paragraph.
   \everypar = {\hang}%
-  \textindent{\thisfootno}%
+  \textindent{$^{\the\footnoteno}$}%
   %
   % Don't crash into the line above the footnote text.  Since this
   % expands into a box, it must come within the paragraph, lest it
   % provide a place where TeX can split the footnote.
   \footstrut
   %
-  % Invoke rest of plain TeX footnote routine.
+  % Eat opening brace and invoke rest of plain TeX footnote routine.
   \futurelet\next\fo@t
 }
 }%end \catcode `\@=11

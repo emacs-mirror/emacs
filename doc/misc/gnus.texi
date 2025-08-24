@@ -14088,7 +14088,7 @@ indirect ones (three pre-made).
 Non-@code{nil} means the nntp server never echoes commands.  It is
 reported that some nntps server doesn't echo commands.  So, you may want
 to set this to non-@code{nil} in the method for such a server setting
-@code{nntp-open-connection-function} to @code{nntp-open-ssl-stream} for
+@code{nntp-open-connection-function} to @code{nntp-open-tls-stream} for
 example.  The default value is @code{nil}.  Note that the
 @code{nntp-open-connection-functions-never-echo-commands} variable
 overrides the @code{nil} value of this variable.
@@ -14144,18 +14144,26 @@ functions is also affected by commonly understood variables
 @findex nntp-open-network-stream
 @item nntp-open-network-stream
 This is the default, and simply connects to some port or other on the
-remote system.  If both Emacs and the server supports it, the
-connection will be upgraded to an encrypted @acronym{STARTTLS}
-connection automatically.
+remote system.  If both Emacs and the server supports it, the connection
+will be upgraded to an encrypted @acronym{STARTTLS} connection
+automatically.  If you want to avoid the possibility of a malicious
+intermediary blocking the use of @acronym{STARTTLS}, use
+@code{nntp-open-tls-stream} instead.
 
-@item network-only
-The same as the above, but don't do automatic @acronym{STARTTLS} upgrades.
+@item nntp-open-plain-stream
+@itemx network-only
+The same as the above, but don't do automatic @acronym{STARTTLS}
+upgrades.  Only use this if you want anyone to be able to read your
+traffic.
 
 @findex nntp-open-tls-stream
 @item nntp-open-tls-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use
-this you must have @uref{https://www.gnu.org/software/gnutls/, GnuTLS}
-installed.  You then define a server as follows:
+this, your Emacs must have been compiled with GnuTLS support
+@uref{https://www.gnu.org/software/gnutls/, GnuTLS}.  You can check this
+using the @code{gnutls-available-p} command.
+
+You then define a server as follows:
 
 @lisp
 ;; @r{"nntps" is port 563 and is predefined in our @file{/etc/services}}
@@ -14167,26 +14175,10 @@ installed.  You then define a server as follows:
       (nntp-address "snews.bar.com"))
 @end lisp
 
-@c FIXME openssl s_client should be deprecated in favor of gnutls.
 @findex nntp-open-ssl-stream
 @item nntp-open-ssl-stream
-Opens a connection to a server over a @dfn{secure} channel.  To use
-this you must have @uref{https://www.openssl.org/, OpenSSL}
-@ignore
-@c Defunct URL, ancient package, so don't mention it.
-or @uref{ftp://ftp.psy.uq.oz.au/pub/Crypto/SSL, SSLeay}
-@end ignore
-installed.  You then define a server as follows:
-
-@lisp
-;; @r{"snews" is port 563 and is predefined in our @file{/etc/services}}
-;; @r{however, @samp{openssl s_client -port} doesn't like named ports.}
-;;
-(nntp "snews.bar.com"
-      (nntp-open-connection-function nntp-open-ssl-stream)
-      (nntp-port-number 563)
-      (nntp-address "snews.bar.com"))
-@end lisp
+This is the old name for @code{nntp-open-tls-stream}, and is
+completely equivalent.
 
 @findex nntp-open-netcat-stream
 @item nntp-open-netcat-stream
@@ -14528,7 +14520,7 @@ Here's an example method that's more complex:
         (nnimap-inbox "INBOX")
         (nnimap-split-methods default)
         (nnimap-expunge t)
-        (nnimap-stream ssl))
+        (nnimap-stream tls))
 @end example
 
 @table @code
@@ -14554,11 +14546,12 @@ How @code{nnimap} should connect to the server.  Possible values are:
 
 @table @code
 @item undecided
-This is the default, and this first tries the @code{ssl} setting, and
+This is the default, and this first tries the @code{tls} setting, and
 then tries the @code{network} setting.
 
-@item ssl
-This uses standard @acronym{TLS}/@acronym{SSL} connections.
+@item tls
+This uses standard @acronym{TLS}/@acronym{SSL} connections.  @code{ssl}
+is an equivalent but deprecated way to specify this.
 
 @item network
 Non-encrypted and unsafe straight socket connection, but will upgrade
@@ -18870,7 +18863,7 @@ operators sprinkled in between.
 
 Perhaps some examples are in order.
 
-Here's a simple predicate.  (It's the default predicate, in fact, used
+Here's a simple predicate.  (The default predicate is @code{false}, used
 for all groups that don't belong to any other category.)
 
 @lisp

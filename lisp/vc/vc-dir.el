@@ -55,47 +55,47 @@ See `run-hooks'."
   :group 'vc)
 
 (defface vc-dir-header '((t :inherit font-lock-type-face))
-  "Face for headers in VC-dir buffers."
+  "Face for headers in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-header-value '((t :inherit font-lock-variable-name-face))
-  "Face for header values in VC-dir buffers."
+  "Face for header values in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-directory '((t :inherit font-lock-comment-delimiter-face))
-  "Face for directories in VC-dir buffers."
+  "Face for directories in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-file '((t :inherit font-lock-function-name-face))
-  "Face for files in VC-dir buffers."
+  "Face for files in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-mark-indicator '((t :inherit font-lock-type-face))
-  "Face for mark indicators in VC-dir buffers."
+  "Face for mark indicators in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-status-warning '((t :inherit font-lock-warning-face))
-  "Face for warning status in VC-dir buffers."
+  "Face for warning status in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-status-edited '((t :inherit font-lock-variable-name-face))
-  "Face for edited status in VC-dir buffers."
+  "Face for edited status in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-status-up-to-date '((t :inherit font-lock-builtin-face))
-  "Face for up-to-date status in VC-dir buffers."
+  "Face for up-to-date status in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
 (defface vc-dir-status-ignored '((t :inherit shadow))
-  "Face for ignored or empty values in VC-dir buffers."
+  "Face for ignored or empty values in VC-Dir buffers."
   :group 'vc
   :version "28.1")
 
@@ -194,7 +194,7 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
                       (cl-return buffer))))))))
     (or buf
         ;; Create a new buffer named BNAME.
-	;; We pass a filename to create-file-buffer because it is what
+	;; We pass a filename to `create-file-buffer' because it is what
 	;; the function expects, and also what uniquify needs (if active)
         (with-current-buffer (create-file-buffer (expand-file-name bname dir))
           (setq default-directory dir)
@@ -1295,6 +1295,7 @@ the *vc-dir* buffer.
   (setq-local vc-dir-backend use-vc-backend)
   (setq-local desktop-save-buffer 'vc-dir-desktop-buffer-misc-data)
   (setq-local bookmark-make-record-function #'vc-dir-bookmark-make-record)
+  (setq-local project-find-matching-buffer-function #'vc-dir-find-matching-buffer)
   (setq buffer-read-only t)
   (when (boundp 'tool-bar-map)
     (setq-local tool-bar-map vc-dir-tool-bar-map))
@@ -1327,7 +1328,7 @@ specific headers."
    "\n"))
 
 (defun vc-dir-refresh-files (files)
-  "Refresh some FILES in the *VC-dir* buffer."
+  "Refresh some FILES in the *VC-Dir* buffer."
   (let ((def-dir default-directory)
 	(backend vc-dir-backend))
     (vc-set-mode-line-busy-indicator)
@@ -1376,7 +1377,7 @@ specific headers."
     (vc-dir-hide-state)))
 
 (defun vc-dir-refresh ()
-  "Refresh the contents of the *VC-dir* buffer.
+  "Refresh the contents of the *VC-Dir* buffer.
 Throw an error if another update process is in progress."
   (interactive)
   (if (vc-dir-busy)
@@ -1431,7 +1432,7 @@ Throw an error if another update process is in progress."
                      (run-hooks 'vc-dir-refresh-hook))))))))))))
 
 (defun vc-dir-show-fileentry (file)
-  "Insert an entry for a specific file into the current *VC-dir* listing.
+  "Insert an entry for a specific file into the current *VC-Dir* listing.
 This is typically used if the file is up-to-date (or has been added
 outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
@@ -1694,6 +1695,35 @@ type returned by `vc-dir-bookmark-make-record'."
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bmk)))))
 
 (put 'vc-dir-bookmark-jump 'bookmark-handler-type "VC")
+
+
+(declare-function project-root "project")
+
+(defun vc-dir-find-matching-buffer (current-project mirror-project)
+  "Visit VC-Dir buffer for matching directory in another project.
+CURRENT-PROJECT is the project instance for the current project.
+MIRROR-PROJECT is the project instance for the project to visit.
+A matching directory has the same name relative to the project root.
+If a matching directory does not exist in the other project, try going
+up the directory tree until encountering a directory that exists.
+
+This function is intended to be used as the value of
+`project-find-matching-buffer-function' in VC-Dir buffers."
+  (let* ((mirror-root (project-root mirror-project))
+         (relative-name (file-relative-name default-directory
+                                            (project-root current-project)))
+         (mirror-name (expand-file-name relative-name mirror-root))
+         (orig-mirror-name mirror-name))
+    (while (not (file-directory-p mirror-name))
+      (setq mirror-name (directory-file-name
+                         (file-name-parent-directory mirror-name)))
+      (unless (file-in-directory-p mirror-name mirror-root)
+        (user-error "`%s' not found in `%s'" relative-name mirror-root)))
+    (vc-dir mirror-name)
+    (unless (equal mirror-name orig-mirror-name)
+      (message "`%s' not found; visiting VC-Dir for `%s' instead"
+               (abbreviate-file-name orig-mirror-name)
+               (abbreviate-file-name (file-name-as-directory mirror-name))))))
 
 
 (provide 'vc-dir)

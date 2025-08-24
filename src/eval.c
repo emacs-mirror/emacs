@@ -1979,6 +1979,8 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
     }
 
   conditions = Fget (real_error_symbol, Qerror_conditions);
+  if (NILP (conditions))
+    signal_error ("Invalid error symbol", error_symbol);
 
   /* Remember from where signal was called.  Skip over the frame for
      `signal' itself.  If a frame for `error' follows, skip that,
@@ -3133,6 +3135,21 @@ FUNCTIONP (Lisp_Object object)
     }
   else
     return false;
+}
+
+DEFUN ("debugger-trap", Fdebugger_trap, Sdebugger_trap, 0, 0, "",
+       doc: /* Stop Emacs and hand over control to GDB.
+The Emacs source file src/.gdbinit sets a breakpoint in this function.
+
+This function does nothing.  It is not called by Emacs otherwise, and
+exists so that calling it or invoking it interactively will cause
+GDB to kick in.
+
+For Lisp debugging see `debug', as well as `edebug', in the manual:
+"(elisp) Debugging".  */)
+  (void)
+{
+  return Qnil;
 }
 
 Lisp_Object
@@ -4689,4 +4706,5 @@ alist of active lexical bindings.  */);
   defsubr (&Sspecial_variable_p);
   DEFSYM (Qfunctionp, "functionp");
   defsubr (&Sfunctionp);
+  defsubr (&Sdebugger_trap);
 }

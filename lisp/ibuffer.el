@@ -2136,7 +2136,8 @@ the value of point at the beginning of the line for that buffer."
        `(ibuffer-title t font-lock-face ,ibuffer-title-face)))
     ;; Now, insert the summary columns.
     (goto-char (point-max))
-    (if (get-text-property (1- (point-max)) 'ibuffer-summary)
+    (if (and (> (point-max) (point-min))
+             (get-text-property (1- (point-max)) 'ibuffer-summary))
 	(delete-region (previous-single-property-change
 			(point-max) 'ibuffer-summary)
 		       (point-max)))

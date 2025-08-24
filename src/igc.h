@@ -147,9 +147,6 @@ Lisp_Object igc_make_multibyte_string (size_t nchars, size_t nbytes,
 Lisp_Object igc_make_unibyte_string (size_t nchars, size_t nbytes, bool clear);
 Lisp_Object igc_make_float (double val);
 int igc_valid_lisp_object_p (Lisp_Object obj);
-unsigned char *igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
-				 ptrdiff_t old_char_len,
-				 ptrdiff_t new_char_len);
 size_t igc_hash (Lisp_Object key);
 specpdl_ref igc_park_arena (void);
 void igc_postmortem (void);

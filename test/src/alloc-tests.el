@@ -52,11 +52,4 @@
     (dotimes (i 4)
       (should (eql (aref x i) (aref y i))))))
 
-;; Bug#39207
-(ert-deftest aset-nbytes-change ()
-  (let ((s (make-string 1 ?a)))
-    (dolist (c (list 10003 ?b 128 ?c ?d (max-char) ?e))
-      (aset s 0 c)
-      (should (equal s (make-string 1 c))))))
-
 ;;; alloc-tests.el ends here

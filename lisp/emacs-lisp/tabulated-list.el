@@ -142,13 +142,14 @@ arguments and must return a list of the above form.")
 (defvar-local tabulated-list-groups nil
   "Groups displayed in the current Tabulated List buffer.
 This should be either a function, or a list.
-If a list, each element has the form (GROUP-NAME ENTRIES),
+If a list, each element has the form (GROUP-NAME ENTRY1 ENTRY2 ...),
 where:
 
  - GROUP-NAME is a group name as a string, which is displayed
    at the top line of each group.
 
- - ENTRIES is a list described in `tabulated-list-entries'.
+ - ENTRY1, ENTRY2 and so on each have the same format as an element
+   of `tabulated-list-entries'.
 
 If `tabulated-list-groups' is a function, it is called with no
 arguments and must return a list of the above form.")

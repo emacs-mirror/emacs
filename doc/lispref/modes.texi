@@ -1289,10 +1289,11 @@ the Tabulated List buffer.  Its value should be either a list or a
 function.
 
 If the value is a list, each list element corresponds to one group, and
-should have the form @w{@code{(@var{group-name} @var{entries})}}, where
+should have the form
+@w{@code{(@var{group-name} @var{entry1} @var{entry2} @dots{})}}, where
 @var{group-name} is a string inserted before all group entries, and
-@var{entries} have the same format as @code{tabulated-list-entries}
-(see above).
+@var{entry1}, @var{entry2} and so on each have the same format as an
+element of @code{tabulated-list-entries} (see above).
 
 Otherwise, the value should be a function which returns a list of the
 above form when called with no arguments.

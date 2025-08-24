@@ -273,13 +273,15 @@ empty file is visited.  This is accomplished by putting
 
 @vindex auto-insert-alist
   What gets inserted, if anything, is determined by the variable
-@code{auto-insert-alist}.  The @sc{car} of each element of this list
-is either a mode name, making the element applicable when a buffer is
-in that mode, or a string, which is a regexp matched against a
-buffer's file name (the latter enables you to distinguish between
-different kinds of files that have the same mode in Emacs).  The
-@sc{car} of an element may also be a cons cell, consisting of mode
-name or regexp, as above, and an additional descriptive string.
+@code{auto-insert-alist}.  The @sc{car} of each element of this list is
+either a mode name, making the element applicable when a buffer is in
+that mode, or a string, which is a regexp matched against a buffer's
+file name (the latter enables you to distinguish between different kinds
+of files that have the same mode in Emacs).  It can also be a predicate
+declared through a plist of the form @code{(predicate @var{function})}.
+@var{function} should be a predicate function of no arguments.  The
+@sc{car} of an element may also be a cons cell, consisting of mode name
+or regexp, as above, and an additional descriptive string.
 
   When a matching element is found, the @sc{cdr} says what to do.  It may
 be a string, which is a file name, whose contents are to be inserted, if

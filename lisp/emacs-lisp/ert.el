@@ -813,7 +813,7 @@ This mainly sets up debugger-related bindings."
           (letrec ((debugfun (lambda (err)
                                (ert--run-test-debugger test-execution-info
                                                        err debugfun))))
-            (handler-bind (((error quit) debugfun))
+            (handler-bind ((t debugfun))
               (funcall (ert-test-body (ert--test-execution-info-test
                                        test-execution-info))))))))
     (ert-pass))

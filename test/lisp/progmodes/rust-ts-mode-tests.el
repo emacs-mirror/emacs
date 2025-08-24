@@ -39,6 +39,13 @@
     (ert-font-lock-test-file (ert-resource-file "font-lock-number.rs")
                              'rust-ts-mode)))
 
+(ert-deftest rust-ts-test-no-parent ()
+  (skip-unless (treesit-ready-p 'rust))
+  (let ((treesit-font-lock-level 4)
+        (rust-ts-mode-fontify-number-suffix-as-type t))
+    (ert-font-lock-test-file (ert-resource-file "font-lock-no-parent.rs")
+                             'rust-ts-mode)))
+
 (provide 'rust-ts-mode-tests)
 
 ;;; rust-ts-mode-tests.el ends here

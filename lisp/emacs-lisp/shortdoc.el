@@ -1131,6 +1131,9 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (seq-map-indexed (lambda (a i) (cons i a)) '(a b c)))
   (seq-mapcat
    :eval (seq-mapcat #'upcase '("a" "b" "c") 'string))
+  (seq-doseq
+   :no-eval (seq-doseq (a '("foo" "bar")) (insert a))
+   :eg-result ("foo" "bar"))
   (seq-do
    :no-eval (seq-do (lambda (a) (insert a)) '("foo" "bar"))
    :eg-result ("foo" "bar"))

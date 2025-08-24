@@ -164,7 +164,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_User_Ptr_7DC5544B44
 #  error "struct Lisp_User_Ptr changed"
 # endif
-# ifndef HASH_thread_state_6E2079C09F
+# ifndef HASH_thread_state_FFE7EECB29
 #  error "struct thread_state changed"
 # endif
 # ifndef HASH_Lisp_Mutex_744F44A86D
@@ -725,15 +725,6 @@ obj_size (const struct igc_header *h)
   mps_word_t nbytes = to_bytes (igc_header_nwords (h));
   igc_assert (header_type (h) == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
   return nbytes;
-}
-
-/* Value is the size in bytes of the client area of the object described
-   by header H.  */
-
-static mps_word_t
-obj_client_size (const struct igc_header *h)
-{
-  return obj_size (h) - sizeof *h;
 }
 
 /* Set the fields of header H to the given values.  Use this instead of
@@ -4355,50 +4346,6 @@ igc_alloc_bytes (size_t nbytes)
   struct Lisp_String_Data *data =
     alloc (sizeof (*data) + nbytes, IGC_OBJ_STRING_DATA);
   return data->data;
-}
-
-/* Reallocate multibyte STRING data when a single character is
-   replaced.  The character is at byte offset BYTE_POS in the string.
-   The character being replaced is CHAR_LEN bytes long, and the
-   character that will replace it is NEW_CLEN bytes long.  Return the
-   address where the caller should store the new character.  */
-
-unsigned char *
-igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
-		  ptrdiff_t old_char_len, ptrdiff_t new_char_len)
-{
-  struct Lisp_String *s = XSTRING (string);
-
-  // Replacing characters of the same length.
-  if (old_char_len == new_char_len)
-    return s->u.s.data + at_byte_pos;
-
-  ptrdiff_t old_nbytes = SBYTES (string);
-  ptrdiff_t nbytes_needed = old_nbytes + (new_char_len - old_char_len);
-  struct igc_header *old_header =
-    (struct igc_header *)(s->u.s.data - sizeof (struct igc_header));
-
-  /* The capacity is the number of bytes the client has available,
-     including the terminating NUL byte.  Sizes computed from Lisp
-     strings don't include the NUL.  That's the 1 in the if.  */
-  ptrdiff_t capacity = obj_client_size (old_header);
-  if (capacity < nbytes_needed + 1)
-    {
-      unsigned char *new_data = alloc_string_data (nbytes_needed, false);
-      memcpy (new_data, SDATA (string), old_nbytes + 1);
-      s->u.s.data = new_data;
-    }
-
-  /* Set up string as if the character had been inserted.  */
-  s->u.s.size_byte = nbytes_needed;
-  unsigned char *insertion_addr = s->u.s.data + at_byte_pos;
-  /* Need to move the rest of the string after the insertion point
-     (old_nbytes - at_bytespos), but not the old char itself (-
-     old_char_len), but do include the NUL at the end (+ 1).  */
-  ptrdiff_t nbytes_to_move = old_nbytes - at_byte_pos - old_char_len + 1;
-  memmove (insertion_addr + new_char_len, insertion_addr + old_char_len,
-	   nbytes_to_move);
-  return insertion_addr;
 }
 
 Lisp_Object

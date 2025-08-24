@@ -186,8 +186,8 @@ Return nil if there is no name or if NODE is not a defun node."
 
 (derived-mode-add-parents 'html-ts-mode '(html-mode))
 
-(if (treesit-ready-p 'html t)
-    (add-to-list 'auto-mode-alist '("\\.html\\'" . html-ts-mode)))
+;; No `auto-mode-alist' associations are defined here
+;; to give preference to `mhtml-ts-mode'.
 
 (provide 'html-ts-mode)
 

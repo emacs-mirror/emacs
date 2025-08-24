@@ -5,6 +5,7 @@
 ;; Version: 0.1
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
+;; Package-Requires: ((emacs "26.1"))
 ;; Keywords:
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -117,10 +118,11 @@ EXPANDED-PATTERN."
               completion-category-defaults)))
   (let ((cache (make-hash-table :test #'equal)))
     (cl-flet ((lookup-internal (string point)
-                (let ((key (cons string point)))
-                  (if (hash-table-contains-p key cache)
-                      (gethash key cache)
-                    (puthash key (funcall lookup string point) cache)))))
+                (let* ((key (cons string point))
+                       (probe (gethash key cache 'external--notfound)))
+                  (if (eq probe 'external--notfound)
+                      (puthash key (funcall lookup string point) cache)
+                    probe))))
       (lambda (string pred action)
         (pcase action
           (`metadata

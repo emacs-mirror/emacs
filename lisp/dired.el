@@ -4057,7 +4057,10 @@ non-empty directories is allowed."
 	  (message "(No deletions requested)")))))
 
 (defun dired-post-do-command ()
-  "Disable `dired-click-to-select-mode' after an operation."
+  "Disable `dired-click-to-select-mode' if enabled..
+This is called after Dired finishes an operation on marked files, and it
+disables `dired-click-to-select-mode' that is automatically enabled
+by the \"hold\" touch-screen gestures."
   (when dired-click-to-select-mode
     (dired-click-to-select-mode -1)))
 
@@ -5381,12 +5384,14 @@ When this minor mode is enabled, using `mouse-2' on a file name
 within a Dired buffer will toggle its mark instead of going to it
 within another window.
 
-Disabling this minor mode will unmark all files within the Dired
-buffer.
-
-`dired-click-to-select-mode' is automatically disabled after any
-Dired operation (command whose name starts with `dired-do')
-completes."
+This minor mode is intended to be used when performing file management
+using a touch-screen device.  The mode is automatically enabled when a
+\"hold\" gesture over a file name is received, and is therefore
+automatically disabled after any Dired operation on the marked
+files (any command whose name starts with \"dired-do-\" and which
+performs some operation on the marked files) completes.  When the mode
+is automatically disabled, it unmarks all the marked files in the Dired
+buffer."
   :group 'dired
   :lighter " Click-To-Select"
   (unless (derived-mode-p '(dired-mode wdired-mode))

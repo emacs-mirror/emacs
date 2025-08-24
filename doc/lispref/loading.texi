@@ -665,10 +665,12 @@ Building Emacs loads @file{loaddefs.el} and thus calls @code{autoload}.
 
   The same magic comment can copy any kind of form into
 @file{loaddefs.el}.  The form following the magic comment is copied
-verbatim, @emph{except} if it is one of the forms which the autoload
-facility handles specially (e.g., by conversion into an
-@code{autoload} call).  The forms which are not copied verbatim are
-the following:
+verbatim, unless it is a form which the autoload facility handles
+specially, by conversion directly into an @code{autoload} call, or by
+recursively expanding the macro.  Any macro can request expansion of
+autoloads which call it during generation; @xref{autoload-macro expand}.
+
+The following forms are handled specially:
 
 @table @asis
 @item Definitions for function or function-like objects:
@@ -684,8 +686,12 @@ and @code{define-overloadable-function} (see the commentary in
 
 @item Other definition types:
 @code{defcustom}, @code{defgroup}, @code{deftheme}, @code{defclass}
-(@pxref{Top,EIEIO,,eieio,EIEIO}), and @code{define-skeleton}
-(@pxref{Top,Autotyping,,autotype,Autotyping}).
+(@pxref{Top,EIEIO,,eieio,EIEIO}), @code{define-skeleton}
+(@pxref{Top,Autotyping,,autotype,Autotyping}),
+@code{transient-define-prefix}, @code{transient-define-suffix},
+@code{transient-define-infix}, @code{transient-define-argument}, and
+@code{transient-define-group} (@pxref{TOP,Transient,,transient,Transient
+User and Developer Manual}).
 @end table
 
   You can also use a magic comment to execute a form at build time
@@ -727,11 +733,50 @@ keep the line length down.  @samp{(fn)} in the usage part of the
 documentation string is replaced with the function's name when the
 various help functions (@pxref{Help Functions}) display it.
 
+@anchor{autoload-macro expand}
   If you write a function definition with an unusual macro that is not
-one of the known and recognized function definition methods, use of an
-ordinary magic autoload comment would copy the whole definition into
-@code{loaddefs.el}.  That is not desirable.  You can put the desired
-@code{autoload} call into @code{loaddefs.el} instead by writing this:
+one of the known and recognized function definition methods, using an
+ordinary magic autoload comment with a call to the macro would require
+autoloading the macro definition itself to work.  Doing so copies the
+whole macro definition into the autoload file.  If that is not desired,
+you can use the special declare form @code{(autoload-macro expand)} in
+your macro definition (@pxref{Declare Form}), instead of autoloading it.
+This indicates to the autoload system that calls to your macro following
+@samp{;;;###autoload} should be expanded, similar to how the special
+functions listed above are handled.  For example, a macro which wraps
+@code{define-minor-mode} can request expansion, so that proper
+@code{autoload} calls for the function it defines are generated.
+
+@cindex @code{:autoload-end}
+The keyword symbol @code{:autoload-end} can be used in the expansion of
+a macro to prevent including unwanted forms in the autoload output.  Its
+presence causes any further elements within the form where it appears to
+be silently skipped.  For example, if during autoload generation, a
+macro's expansion includes:
+
+@example
+(progn
+  (put my-mode 'visible-prop t)
+  :autoload-end
+  (put my-mode 'hidden-prop nil))
+@end example
+
+@noindent
+the final form (@w{@code{(put my-mode 'hidden-prop nil)}}) will not be
+copied into the autoload file.
+
+Note that, if a symbol in the @code{car} of an autoloaded form is found
+to be undefined during autoload generation, the file in which the
+associated @samp{;;;###autoload} appears will itself be loaded, to give
+the macro a chance to be defined.  Packages which use special loading
+mechanisms, including loading their own @file{@var{package}-loaddefs.el}
+file, should therefore gracefully handle load errors, since these files
+may not yet exist during autoload generation.  This can be done, e.g.,
+by setting the @var{no-error} argument of @code{require} non-@code{nil}
+(@pxref{Named Features})).
+
+Alternatively, instead of expansion, you can put the desired
+@code{autoload} call into @file{loaddefs.el} by writing this:
 
 @example
 ;;;###autoload (autoload 'foo "myfile")

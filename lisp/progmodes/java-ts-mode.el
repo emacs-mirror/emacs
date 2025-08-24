@@ -524,8 +524,11 @@ Return nil if there is no name or if NODE is not a defun node."
 
 (derived-mode-add-parents 'java-ts-mode '(java-mode))
 
-(if (treesit-ready-p 'java)
-    (add-to-list 'auto-mode-alist '("\\.java\\'" . java-ts-mode)))
+;;;###autoload
+(when (treesit-available-p)
+  (defvar treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(java-mode . java-ts-mode)))
 
 (provide 'java-ts-mode)
 

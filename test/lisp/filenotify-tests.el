@@ -181,6 +181,7 @@ Return nil when any other file notification watch is still active."
 
 (setq auth-source-cache-expiry nil
       auth-source-save-behavior nil
+      ert-temp-file-suffix ""
       file-notify-debug nil
       password-cache-expiry nil
       remote-file-name-inhibit-cache nil
@@ -193,8 +194,8 @@ Return nil when any other file notification watch is still active."
 
 (defun file-notify--test-add-watch (file flags callback)
   "Like `file-notify-add-watch', but also passing FILE to CALLBACK."
-  (file-notify-add-watch file flags
-                         (lambda (event) (funcall callback event file))))
+  (file-notify-add-watch
+   file flags (lambda (event) (funcall callback event file))))
 
 ;; We do not want to try and fail `file-notify-add-watch'.
 (defun file-notify--test-local-enabled ()
@@ -301,12 +302,10 @@ When returning, they are deleted."
   `(ert-with-temp-directory file-notify--test-tmpdir
      :prefix
      (expand-file-name "file-notify-test-parent" file-notify--test-rootdir)
-     :suffix ""
      (let ((ert-temp-file-prefix
-            (expand-file-name "file-notify-test" file-notify--test-tmpdir))
-           (ert-temp-file-suffix ""))
+            (expand-file-name "file-notify-test" file-notify--test-tmpdir)))
        (ert-with-temp-file file-notify--test-tmpfile
-         :prefix ert-temp-file-prefix :suffix ert-temp-file-suffix
+         :prefix ert-temp-file-prefix
          (unwind-protect
              (progn ,@body)
            (file-notify--test-cleanup))))))
@@ -428,7 +427,7 @@ When returning, they are deleted."
 
   (with-file-notify-test
    (ert-with-temp-file file-notify--test-tmpfile1
-     :prefix ert-temp-file-prefix :suffix ert-temp-file-suffix
+     :prefix ert-temp-file-prefix
      ;; Check, that no error is returned removing a watch descriptor twice.
      (write-region "any text" nil file-notify--test-tmpfile nil 'no-message)
      (write-region "any text" nil file-notify--test-tmpfile1 nil 'no-message)
@@ -489,7 +488,7 @@ When returning, they are deleted."
 
   (with-file-notify-test
    (ert-with-temp-file file-notify--test-tmpfile1
-     :prefix ert-temp-file-prefix :suffix ert-temp-file-suffix
+     :prefix ert-temp-file-prefix
      ;; Check `file-notify-rm-all-watches'.
      (write-region "any text" nil file-notify--test-tmpfile nil 'no-message)
      (write-region "any text" nil file-notify--test-tmpfile1 nil 'no-message)
@@ -520,8 +519,9 @@ When returning, they are deleted."
 We cannot pass arguments, so we assume that `file-notify--test-event'
 and `file-notify--test-file' are bound somewhere."
   ;; Check the descriptor.
-  (should (equal (file-notify--test-event-desc file-notify--test-event)
-                 file-notify--test-desc))
+  (unless (eq (file-notify--test-event-action file-notify--test-event) 'stopped)
+    (should (equal (file-notify--test-event-desc file-notify--test-event)
+                   file-notify--test-desc)))
   ;; Check the file name.
   (should
    (string-prefix-p
@@ -748,7 +748,7 @@ delivered."
 
   (with-file-notify-test
    (ert-with-temp-file file-notify--test-tmpfile1
-     :prefix ert-temp-file-prefix :suffix ert-temp-file-suffix
+     :prefix ert-temp-file-prefix
      ;; Check copy of files inside a directory.
      (delete-file file-notify--test-tmpfile)
      (delete-file file-notify--test-tmpfile1)
@@ -766,10 +766,15 @@ delivered."
 	   '(created changed created changed
 	     changed changed changed
 	     deleted deleted))
+          ;; SMBWindows does not distinguish between `changed' and
+	  ;; `attribute-changed'.
+	  ((eq (file-notify--test-monitor) 'SMBWindows)
+	   '(created changed created changed changed changed
+             deleted deleted deleted stopped))
           ;; SMBSamba reports three `changed' events.
 	  ((eq (file-notify--test-monitor) 'SMBSamba)
            '(created changed changed changed created changed changed changed
-             deleted deleted deleted stopped))
+             changed changed deleted deleted deleted stopped))
 	  ;; There are three `deleted' events, for two files and for the
 	  ;; directory.  Except for GFam{File,Directory}Monitor,
 	  ;; GPollFileMonitor and kqueue.
@@ -800,7 +805,7 @@ delivered."
 
   (with-file-notify-test
    (ert-with-temp-file file-notify--test-tmpfile1
-     :prefix ert-temp-file-prefix :suffix ert-temp-file-suffix
+     :prefix ert-temp-file-prefix
      ;; Check rename of files inside a directory.
      (delete-file file-notify--test-tmpfile)
      (delete-file file-notify--test-tmpfile1)
@@ -866,11 +871,11 @@ delivered."
         ;; SMBWindows does not distinguish between `changed' and
 	;; `attribute-changed'.
 	((eq (file-notify--test-monitor) 'SMBWindows)
-	 '(changed changed))
+	 '(changed changed changed))
         ;; SMBSamba does not distinguish between `changed' and
 	;; `attribute-changed'.
 	((eq (file-notify--test-monitor) 'SMBSamba)
-         '(changed changed changed changed))
+         '(changed changed changed changed changed))
 	;; GFam{File,Directory}Monitor, GKqueueFileMonitor and
 	;; GPollFileMonitor do not report the `attribute-changed' event.
 	((memq (file-notify--test-monitor)
@@ -1208,12 +1213,12 @@ delivered."
 	  ((eq (file-notify--test-monitor) 'SMBWindows)
 	   (let (r)
 	     (dotimes (_i n r)
-	       (setq r (append '(changed deleted) r)))))
+	       (setq r (append '(changed changed changed deleted) r)))))
           ;; SMBSamba fires both `changed' and `deleted' events.
 	  ((eq (file-notify--test-monitor) 'SMBSamba)
 	   (let (r)
 	     (dotimes (_i n r)
-	       (setq r (append '(changed changed deleted) r)))))
+	       (setq r (append '(changed changed changed changed deleted) r)))))
           ;; GFam{File,Directory}Monitor and GPollFileMonitor fire
 	  ;; `changed' and `deleted' events, sometimes in random order.
 	  ((memq (file-notify--test-monitor)
@@ -1435,7 +1440,8 @@ the file watch."
            (:random deleted deleted deleted stopped))
        (delete-file file-notify--test-tmpfile))
      (should (file-notify-valid-p file-notify--test-desc1))
-     (should-not (file-notify-valid-p file-notify--test-desc2))
+     (unless (string-equal (file-notify--test-library) "w32notify")
+       (should-not (file-notify-valid-p file-notify--test-desc2)))
 
      ;; Now we delete the directory.
      (file-notify--test-with-actions
@@ -1524,7 +1530,7 @@ the file watch."
 
   (with-file-notify-test
    (ert-with-temp-file file-notify--test-tmpfile1
-     :prefix ert-temp-file-prefix :suffix ert-temp-file-suffix
+     :prefix ert-temp-file-prefix
      (delete-file file-notify--test-tmpfile)
      ;; Symlink a file.
      (write-region "any text" nil file-notify--test-tmpfile1 nil 'no-message)
@@ -1598,7 +1604,7 @@ the file watch."
 
   (with-file-notify-test
    (ert-with-temp-directory file-notify--test-tmpfile1
-     :prefix (concat ert-temp-file-prefix "-parent") :suffix ert-temp-file-suffix
+     :prefix (concat ert-temp-file-prefix "-parent")
      (delete-file file-notify--test-tmpfile)
      ;; Symlink a directory.
      (let ((tmpfile (expand-file-name "foo" file-notify--test-tmpfile))
@@ -1705,5 +1711,5 @@ the file watch."
 ;; * cygwin does not send all expected `changed' and `deleted' events.
 ;;   Probably due to timing issues.
 
-(provide 'file-notify-tests)
+(provide 'filenotify-tests)
 ;;; filenotify-tests.el ends here

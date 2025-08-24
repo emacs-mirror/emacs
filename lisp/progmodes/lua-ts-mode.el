@@ -74,6 +74,11 @@
   :safe 'natnump
   :version "30.1")
 
+(defcustom lua-ts-auto-close-block-comments nil
+  "If non-nil, inserting a block comment \"--[[\" will insert its respective \"]]\"."
+  :type 'boolean
+  :version "31.1")
+
 (defcustom lua-ts-luacheck-program "luacheck"
   "Location of the Luacheck program."
   :type 'file
@@ -675,6 +680,14 @@ Calls REPORT-FN directly."
     (setq-local comment-start-skip "--\\s-*")
     (setq-local comment-end "")
 
+    ;; Pairs.
+    (when (and lua-ts-auto-close-block-comments
+               (boundp 'electric-pair-pairs))
+      (setq-local electric-pair-pairs
+                  (cons
+                   '("--\\[\\[" . "\n]")
+                   electric-pair-pairs)))
+
     ;; Font-lock.
     (setq-local treesit-font-lock-settings lua-ts--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
@@ -756,9 +769,26 @@ Calls REPORT-FN directly."
 
 (derived-mode-add-parents 'lua-ts-mode '(lua-mode))
 
-(when (treesit-ready-p 'lua)
-  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode))
-  (add-to-list 'interpreter-mode-alist '("\\<lua\\(?:jit\\)?" . lua-ts-mode)))
+;;;###autoload
+(defun lua-ts-mode-maybe ()
+  "Enable `lua-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'lua)
+          (eq treesit-enabled-modes t)
+          (memq 'lua-ts-mode treesit-enabled-modes))
+      (lua-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (treesit-available-p)
+  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode-maybe))
+  (add-to-list 'interpreter-mode-alist '("\\<lua\\(?:jit\\)?" . lua-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(lua-mode . lua-ts-mode)))
 
 (provide 'lua-ts-mode)
 

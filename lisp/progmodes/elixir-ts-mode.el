@@ -806,12 +806,28 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
 (derived-mode-add-parents 'elixir-ts-mode '(elixir-mode))
 
-(if (treesit-ready-p 'elixir)
-    (progn
-      (add-to-list 'auto-mode-alist '("\\.elixir\\'" . elixir-ts-mode))
-      (add-to-list 'auto-mode-alist '("\\.ex\\'" . elixir-ts-mode))
-      (add-to-list 'auto-mode-alist '("\\.exs\\'" . elixir-ts-mode))
-      (add-to-list 'auto-mode-alist '("mix\\.lock" . elixir-ts-mode))))
+;;;###autoload
+(defun elixir-ts-mode-maybe ()
+  "Enable `elixir-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'elixir)
+          (eq treesit-enabled-modes t)
+          (memq 'elixir-ts-mode treesit-enabled-modes))
+      (elixir-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (treesit-available-p)
+  (add-to-list 'auto-mode-alist '("\\.elixir\\'" . elixir-ts-mode-maybe))
+  (add-to-list 'auto-mode-alist '("\\.ex\\'" . elixir-ts-mode-maybe))
+  (add-to-list 'auto-mode-alist '("\\.exs\\'" . elixir-ts-mode-maybe))
+  (add-to-list 'auto-mode-alist '("mix\\.lock" . elixir-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(elixir-mode . elixir-ts-mode)))
 
 (provide 'elixir-ts-mode)
 

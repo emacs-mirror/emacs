@@ -135,7 +135,8 @@ After VARS is handled, BODY is evaluated in the new environment."
 This is like `defmacro', but has several advantages.
 See Info node `(elisp)Defining Functions' for more details."
   ;; FIXME: How can this work with CL arglists?
-  (declare (indent defun) (debug defun) (doc-string 3))
+  (declare (indent defun) (debug defun) (doc-string 3)
+           (autoload-macro expand))     ; expand to the defun on autoload gen
   (let ((doc (if (stringp (car-safe body)) (list (pop body))))
         (declares (if (eq (car-safe (car-safe body)) 'declare) (pop body)))
         (cm-name (intern (format "%s--inliner" name)))

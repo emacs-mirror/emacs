@@ -1648,6 +1648,12 @@ not written in Bash or sh."
 
 (derived-mode-add-parents 'bash-ts-mode '(sh-mode))
 
+;;;###autoload
+(when (treesit-available-p)
+  (defvar treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(sh-mode . bash-ts-mode)))
+
 (advice-add 'bash-ts-mode :around #'sh--redirect-bash-ts-mode
             ;; Give it lower precedence than normal advice, so other
             ;; advices take precedence over it.

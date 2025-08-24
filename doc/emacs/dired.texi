@@ -702,14 +702,14 @@ the directory.
 @kindex touchscreen-hold @r{(Dired)}
 @findex dired-click-to-select-mode
 @findex dired-enable-click-to-select-mode
-Enter a ``click to select'' mode, where using the mouse button
-@kbd{mouse-2} on a file name will cause its mark to be toggled.  This
-mode is useful when performing file management using a touch screen
-device.
+Enter a ``click to select'' mode (@code{dired-click-to-select-mode}),
+where using the mouse button @kbd{mouse-2} on a file name will cause its
+mark to be toggled.  This mode is useful when performing file management
+using a touch screen device.
 
-It is enabled when a ``hold'' gesture (@pxref{Touchscreens}) is
-detected over a file name, and is automatically disabled once a Dired
-command operates on the marked files.
+It is enabled when a ``hold'' gesture (@pxref{Touchscreens}) is detected
+over a file name, and is automatically disabled once a Dired command
+that operates on the marked files finishes.
 @end table
 
 @node Operating on Files

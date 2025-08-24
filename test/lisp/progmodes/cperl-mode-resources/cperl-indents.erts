@@ -98,3 +98,50 @@ Name: cperl-keyword-without-space
 my %h = map{$_=>1}
   @ARGV;
 =-=-=
+
+Name: cperl-subroutine-signatures
+
+=-=
+# -*- mode: cperl -*-
+# John Ciolfi reported as Bug#79269
+use strict;
+use warnings;
+use experimental 'signatures';
+
+foo(1);
+
+sub foo (
+	 $in1,
+	 $optionsHPtr = {},
+	 $otherOption1 = 1,	# Bug: wrong face for this option
+	) {
+
+  my $a = 1;			# Bug: should be indented by 2 spaces
+
+  # Bug: following are not indented due to use of signatures
+  my $b = 2;
+  return $a + $b + $in1;
+}
+=-=-=
+
+Name: cperl-false-label-in-regex
+
+=-=
+# -*- mode: cperl -*-
+# John Ciolfi reported as Bug#79271
+my $str =~ s/^
+             (Field1: [^\n]+) \s*
+             Field2: \s* (\S+) \s*
+            //xsm;
+=-=-=
+
+Name: cperl-false-label-in-qw
+
+=-=
+# Related to cperl-false-label-in-regex / Bug#79271
+my @chunks = qw(
+		 sub
+		 LABEL:
+		 more words
+	      );
+=-=-=

@@ -1454,9 +1454,16 @@ final or penultimate step during initialization."))
           (dolist (inplace '(nil t))
             (dolist (from '(?a ?é ?Ω #x80 #x3fff80))
               (dolist (to '(?o ?á ?ƒ ?☃ #x1313f #xff #x3fffc9))
-                ;; Can't put a non-byte value in a non-ASCII unibyte string.
-                (unless (and (not mb) (> to #xff)
-                             (not (string-match-p (rx bos (* ascii) eos) str)))
+                (unless (or
+                         ;; Can't put non-byte in a non-ASCII unibyte string.
+                         (and (not mb) (> to #xff)
+                              (not (string-match-p
+                                    (rx bos (* ascii) eos) str)))
+                         ;; Skip illegal mutation.
+                         (and inplace (not (if mb
+                                               (and (<= 0 from 127)
+                                                    (<= 0 to 127))
+                                             (<= 0 to 255)))))
                   (let* ((in (copy-sequence str))
                          (ref (if (and (not mb) (> from #xff))
                                   in    ; nothing to replace

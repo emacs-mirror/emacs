@@ -2532,7 +2532,9 @@ be visible in the echo area."
 If a buffer exists visiting FILENAME, return that one, but
 verify that the file has not changed since visited or saved.
 The buffer is not selected, just returned to the caller.
-Optional second arg NOWARN non-nil means suppress any warning messages.
+Optional second arg NOWARN non-nil means suppress any warning messages,
+and also don't verify that the file has not been changed since
+last visited or saved.
 Optional third arg RAWFILE non-nil means the file is read literally.
 Optional fourth arg WILDCARDS non-nil means do wildcard processing
 and visit all the matching files.  When wildcards are actually
@@ -2885,7 +2887,7 @@ error in reading the file.  WARN non-nil means warn if there
 exists an auto-save file more recent than the visited file.
 NOAUTO means don't mess with auto-save mode.
 Fourth arg AFTER-FIND-FILE-FROM-REVERT-BUFFER is ignored
-\(see `revert-buffer-in-progress-p' for similar functionality).
+\(see `revert-buffer-in-progress' for similar functionality).
 Fifth arg NOMODES non-nil means don't alter the file's modes.
 Finishes by calling the functions in `find-file-hook'
 unless NOMODES is non-nil."
@@ -6243,7 +6245,13 @@ Before and after saving the buffer, this function runs
 		  ;; for saving the buffer.
 		  (setq tempname
 			(make-temp-file
-			 (expand-file-name "tmp" dir)))
+                         ;; The MSDOS 8+3 restricted namespace cannot be
+                         ;; relied upon to produce a different file name
+                         ;; if we append ".tmp".
+	                 (if (and (eq system-type 'ms-dos)
+		                  (not (msdos-long-file-names)))
+                             (expand-file-name "tmp" dir)
+                           (concat buffer-file-name ".tmp"))))
 		  ;; Pass in nil&nil rather than point-min&max
 		  ;; cause we're saving the whole buffer.
 		  ;; write-region-annotate-functions may use it.
@@ -7105,9 +7113,10 @@ hook functions.
 The function `revert-buffer--default' runs this.
 A customized `revert-buffer-function' need not run this hook.")
 
-(defvar revert-buffer-in-progress-p nil
+(define-obsolete-variable-alias
+  'revert-buffer-in-progress-p 'revert-buffer-in-progress "31.1")
+(defvar revert-buffer-in-progress nil
   "Non-nil if a `revert-buffer' operation is in progress, nil otherwise.")
-
 (defvar revert-buffer-internal-hook)
 
 ;; `revert-buffer-function' was defined long ago to be a function of only
@@ -7166,7 +7175,7 @@ revert buffers without querying for confirmation.)
 Optional third argument PRESERVE-MODES non-nil means don't alter
 the files modes.  Normally we reinitialize them using `normal-mode'.
 
-This function binds `revert-buffer-in-progress-p' non-nil while it operates.
+This function binds `revert-buffer-in-progress' non-nil while it operates.
 
 This function calls the function that `revert-buffer-function' specifies
 to do the work, with arguments IGNORE-AUTO and NOCONFIRM.
@@ -7187,7 +7196,7 @@ preserve markers and overlays, at the price of being slower."
   ;; reversal of the argument sense.  So I'm just changing the user
   ;; interface, but leaving the programmatic interface the same.
   (interactive (list (not current-prefix-arg)))
-  (let ((revert-buffer-in-progress-p t)
+  (let ((revert-buffer-in-progress t)
         (revert-buffer-preserve-modes preserve-modes)
         restore-functions)
     (run-hook-wrapped 'revert-buffer-restore-functions

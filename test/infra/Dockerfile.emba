@@ -24,7 +24,7 @@
 # Maintainer: Michael Albinus <michael.albinus@gmx.de>
 # URL: https://emba.gnu.org/emacs/emacs
 
-FROM debian:bookworm as emacs-base
+FROM debian:bookworm AS emacs-base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
@@ -32,7 +32,7 @@ RUN apt-get update && \
       libxml2-dev libdbus-1-dev libacl1-dev acl git man-db texinfo gdb python3 \
     && rm -rf /var/lib/apt/lists/*
 
-FROM emacs-base as emacs-inotify
+FROM emacs-base AS emacs-inotify
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
@@ -46,7 +46,7 @@ RUN ./configure
 # 'make -j4 bootstrap' does not work reliably.
 RUN make -j `nproc` bootstrap
 
-FROM emacs-base as emacs-filenotify-gio
+FROM emacs-base AS emacs-filenotify-gio
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
@@ -59,7 +59,7 @@ RUN ./autogen.sh autoconf
 RUN ./configure --with-file-notification=gfile
 RUN make -j `nproc` bootstrap
 
-FROM debian:trixie as emacs-eglot
+FROM debian:trixie AS emacs-eglot
 
 # This mimics emacs-base.
 RUN apt-get update && \
@@ -109,7 +109,7 @@ RUN make -j `nproc` bootstrap
 #     --eval '(package-install (quote company))' \
 #     --eval '(package-install (quote yasnippet))'
 
-FROM emacs-base as emacs-tree-sitter
+FROM emacs-base AS emacs-tree-sitter
 
 # Install tree-sitter library.
 RUN apt-get update && \
@@ -157,7 +157,7 @@ RUN src/emacs -Q --batch \
         (list (expand-file-name "src/emacs")) treesit-admin--builtin-modes \
         (expand-file-name "compatibility-report.html"))'
 
-FROM emacs-base as emacs-gnustep
+FROM emacs-base AS emacs-gnustep
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
@@ -170,7 +170,7 @@ RUN ./autogen.sh autoconf
 RUN ./configure --with-ns
 RUN make -j `nproc` bootstrap
 
-FROM emacs-base as emacs-native-comp
+FROM emacs-base AS emacs-native-comp
 
 # The libgccjit version must correspond to the gcc version.
 RUN apt-get update && \
@@ -178,7 +178,7 @@ RUN apt-get update && \
       libgccjit-12-dev zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
-FROM emacs-native-comp as emacs-native-comp-speed0
+FROM emacs-native-comp AS emacs-native-comp-speed0
 
 COPY . /checkout
 WORKDIR /checkout
@@ -187,7 +187,7 @@ RUN ./configure --with-native-compilation
 RUN make -j `nproc` bootstrap \
       NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"'
 
-FROM emacs-native-comp as emacs-native-comp-speed1
+FROM emacs-native-comp AS emacs-native-comp-speed1
 
 COPY . /checkout
 WORKDIR /checkout
@@ -196,7 +196,7 @@ RUN ./configure --with-native-compilation
 RUN make -j `nproc` bootstrap \
       BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
 
-FROM emacs-native-comp as emacs-native-comp-speed2
+FROM emacs-native-comp AS emacs-native-comp-speed2
 
 COPY . /checkout
 WORKDIR /checkout

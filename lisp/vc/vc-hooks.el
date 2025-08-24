@@ -968,6 +968,7 @@ In the latter case, VC mode is deactivated for this buffer."
   "!"   #'vc-edit-next-command
   "w c" #'vc-add-working-tree
   "w w" #'vc-switch-working-tree
+  "w s" #'vc-working-tree-switch-project
   "w x" #'vc-delete-working-tree
   "w R" #'vc-move-working-tree)
 (fset 'vc-prefix-map vc-prefix-map)
@@ -975,9 +976,11 @@ In the latter case, VC mode is deactivated for this buffer."
 
 (defvar-keymap vc-incoming-prefix-map
   "L" #'vc-log-incoming
+  "=" #'vc-diff-incoming
   "D" #'vc-root-diff-incoming)
 (defvar-keymap vc-outgoing-prefix-map
   "L" #'vc-log-outgoing
+  "=" #'vc-diff-outgoing
   "D" #'vc-root-diff-outgoing)
 
 (defcustom vc-use-incoming-outgoing-prefixes nil

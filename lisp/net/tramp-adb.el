@@ -573,9 +573,9 @@ Emacs dired can't find files."
 		  "touch -t %s %s %s")
 	  (format-time-string "%Y-%m-%dT%H:%M:%S.%NZ" time t)
 	  nofollow quoted-name (tramp-get-remote-null-device v)
-	  (format-time-string "%Y-%m-%dT%H:%M:%S" time t)
+	  (format-time-string "%Y-%m-%dT%H:%M:%S" time)
 	  nofollow quoted-name (tramp-get-remote-null-device v)
-	  (format-time-string "%Y%m%d%H%M.%S" time t)
+	  (format-time-string "%Y%m%d%H%M.%S" time)
 	  nofollow quoted-name)))))
 
 (defun tramp-adb-handle-copy-file

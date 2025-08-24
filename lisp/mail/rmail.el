@@ -4515,6 +4515,11 @@ TEXT and INDENT are not used."
 ;; to "prying eyes."  Obviously, this encoding isn't "real security,"
 ;; nor is it meant to be.
 
+(defvar rmail--remote-password-host nil
+  "Last recorded value of the HOST argument to `rmail-get-remote-password'.")
+(defvar rmail--remote-password-user nil
+  "Last recorded value of the USER argument to `rmail-get-remote-password'.")
+
 ;;;###autoload
 (defun rmail-set-remote-password (password)
   "Set PASSWORD to be used for retrieving mail from a POP or IMAP server."
@@ -4535,7 +4540,12 @@ machine mymachine login myloginname password mypassword
 
 If auth-source search yields no result, prompt the user for the
 password."
-  (when (not rmail-encoded-remote-password)
+  (when (or (not rmail-encoded-remote-password)
+            (not (equal user rmail--remote-password-user))
+            (not (equal host rmail--remote-password-host)))
+    ;; Record the values we will be using from now on.
+    (setq rmail--remote-password-host host
+          rmail--remote-password-user user)
     (if (not rmail-remote-password)
         (setq rmail-remote-password
               (let ((found (nth 0 (auth-source-search

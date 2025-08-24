@@ -173,7 +173,7 @@ attributes, prototypes and signatures."
         (should (equal (get-text-property (match-beginning 0) 'face)
                        'font-lock-function-name-face))
         (let ((start-of-sub (match-beginning 0))
-              (end-of-sub (save-excursion (search-forward "}") (point))))
+              (end-of-sub (save-excursion (search-forward "}\n") (point))))
 
           ;; Prototypes are shown as strings
           (when (search-forward-regexp " ([$%@*]*) " end-of-sub t)
@@ -1605,6 +1605,9 @@ It must not be mistaken for \"$)\"."
      (forward-line 1))))
 
 (ert-deftest test-indentation ()
+  ;; The erts file explicitly invokes cperl-mode, so skip in perl-mode.
+  ;; Indentation defaults are different, so it won't pass in perl-mode
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (ert-test-erts-file (ert-resource-file "cperl-indents.erts")))
 
 ;;; cperl-mode-tests.el ends here

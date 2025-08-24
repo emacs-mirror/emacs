@@ -366,7 +366,8 @@ See https://doc.rust-lang.org/reference/tokens.html#suffixes.")
              tail-p
              (string-match-p
               "\\`\\(?:use_list\\|call_expression\\|use_as_clause\\|use_declaration\\)\\'"
-              (treesit-node-type (treesit-node-parent (treesit-node-parent node)))))
+              (or (treesit-node-type (treesit-node-parent (treesit-node-parent node)))
+                  "no_parent")))
             nil)
            (t 'font-lock-constant-face))))
     (when face
@@ -387,9 +388,9 @@ See https://doc.rust-lang.org/reference/tokens.html#suffixes.")
                        ,(treesit-query-compile 'rust '((identifier) @id
                                                        (shorthand_field_identifier) @id)))))
         (pcase-dolist (`(_name . ,id) captures)
-          (unless (string-match-p "\\`scoped_\\(?:type_\\)?identifier\\'"
-                                  (treesit-node-type
-                                   (treesit-node-parent id)))
+          (unless (string-match-p
+                   "\\`scoped_\\(?:type_\\)?identifier\\'"
+                   (or (treesit-node-type (treesit-node-parent id)) "no_parent"))
             (treesit-fontify-with-override
              (treesit-node-start id) (treesit-node-end id)
              'font-lock-variable-name-face override start end)))))))
@@ -654,8 +655,25 @@ See `prettify-symbols-compose-predicate'."
 
 (derived-mode-add-parents 'rust-ts-mode '(rust-mode))
 
-(if (treesit-ready-p 'rust)
-    (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode)))
+;;;###autoload
+(defun rust-ts-mode-maybe ()
+  "Enable `rust-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'rust)
+          (eq treesit-enabled-modes t)
+          (memq 'rust-ts-mode treesit-enabled-modes))
+      (rust-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (treesit-available-p)
+  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (defvar treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(rust-mode . rust-ts-mode)))
 
 (provide 'rust-ts-mode)
 

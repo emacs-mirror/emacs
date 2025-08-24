@@ -445,16 +445,17 @@ object type; space allocated to the contents of buffers does not count.
 
 The initial threshold value is @code{GC_DEFAULT_THRESHOLD}, defined in
 @file{alloc.c}.  Since it's defined in @code{word_size} units, the
-value is 400,000 for the default 32-bit configuration and 800,000 for
-the 64-bit one.  If you specify a larger value, garbage collection
-will happen less often.  This reduces the amount of time spent garbage
-collecting (so Lisp programs will run faster between cycles of garbage
-collection that happen more rarely), but increases total memory use.
-You may want to do this when running a program that creates lots of
-Lisp data, especially if you need it to run faster.  However, we
-recommend against increasing the threshold for prolonged periods of
-time, and advise that you never set it higher than needed for the
-program to run in reasonable time.  Using thresholds higher than
+value is 400,000 for the default 32-bit configuration, and 800,000 for
+the 64-bit one and for 32-bit builds configured with the
+@option{--with-wide-int} option.  If you specify a larger value, garbage
+collection will happen less often.  This reduces the amount of time
+spent garbage collecting (so Lisp programs will run faster between
+cycles of garbage collection that happen more rarely), but increases
+total memory use.  You may want to do this when running a program that
+creates lots of Lisp data, especially if you need it to run faster.
+However, we recommend against increasing the threshold for prolonged
+periods of time, and advise that you never set it higher than needed for
+the program to run in reasonable time.  Using thresholds higher than
 necessary could potentially cause higher system-wide memory pressure,
 and also make each garbage-collection cycle take much more time, and
 should therefore be avoided.
@@ -474,6 +475,10 @@ garbage collection occurs only when both criteria are satisfied.
 As the heap size increases, the time to perform a garbage collection
 increases.  Thus, it can be desirable to do them less frequently in
 proportion.
+
+The initial percentage value is 0.1 in interactive sessions and while
+dumping Emacs (@pxref{Building Emacs}), and 1.0 in non-interactive
+(a.k.a.@: ``batch'') sessions.
 
 As with @code{gc-cons-threshold}, do not enlarge this more than
 necessary, and never for prolonged periods of time.

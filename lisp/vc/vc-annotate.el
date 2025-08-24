@@ -667,6 +667,11 @@ describes a revision number, so warp to that revision."
                                    (or file
                                        (caadr vc-buffer-overriding-fileset))
                                    newrev))
+            (setq file (vc-annotate--file-name-change
+                        (or file
+                            (caadr vc-buffer-overriding-fileset))
+                        newrev
+                        vc-annotate-backend))
             (setq revspec (1- revspec))))
 	(unless newrev
 	  (message "Cannot increment %d revisions from revision %s"
@@ -675,6 +680,12 @@ describes a revision number, so warp to that revision."
 	(setq newrev vc-buffer-revision)
         (let ((vc-use-short-revision vc-annotate-use-short-revision))
 	  (while (and (< revspec 0) newrev)
+            (setq file (vc-annotate--file-name-change
+                        (or file
+                            (caadr vc-buffer-overriding-fileset))
+                        newrev
+                        vc-annotate-backend
+                        'backward))
             (setq newrev
                   (vc-call-backend vc-annotate-backend 'previous-revision
                                    (or file
@@ -803,6 +814,21 @@ The annotations are relative to the current time, unless overridden by OFFSET."
      ((not (equal rev (vc-working-revision buffer-file-name)))
       (message "Annotations were for revision %s; line numbers may be incorrect"
 	       rev)))))
+
+(defun vc-annotate--file-name-change (file rev backend &optional backward)
+  "Return the name of FILE at revision REV using BACKEND.
+If the file name has changed in the given revision, return the new name;
+otherwise, return FILE unchanged.
+If BACKWARD, return the name for FILE before REV."
+  (if (vc-find-backend-function backend 'file-name-changes)
+      (or
+       (if backward
+           (car (rassoc file
+                        (vc-call-backend backend 'file-name-changes rev)))
+         (cdr (assoc file
+                     (vc-call-backend backend 'file-name-changes rev))))
+       file)
+    file))
 
 (provide 'vc-annotate)
 

@@ -30,7 +30,7 @@
 (declare-function current-thread "thread.c" ())
 (declare-function make-condition-variable "thread.c" (mutex &optional name))
 (declare-function make-mutex "thread.c" (&optional name))
-(declare-function make-thread "thread.c" (function &optional name))
+(declare-function make-thread "thread.c" (function &optional name buffer-disposition))
 (declare-function mutex-lock "thread.c" (mutex))
 (declare-function mutex-unlock "thread.c" (mutex))
 (declare-function thread--blocker "thread.c" (thread))
@@ -40,6 +40,8 @@
 (declare-function thread-name "thread.c" (thread))
 (declare-function thread-signal "thread.c" (thread error-symbol data))
 (declare-function thread-yield "thread.c" ())
+(declare-function thread-set-buffer-disposition "thread.c" (thread value))
+(declare-function thread-buffer-disposition "thread.c" (thread))
 (defvar main-thread)
 
 (ert-deftest threads-is-one ()
@@ -397,6 +399,70 @@
   (skip-unless (fboundp 'make-thread))
   (let ((th (make-thread 'ignore)))
     (should-not (equal th main-thread))))
+
+(ert-deftest thread-buffer-disposition-t ()
+  "Test not being able to kill a bg thread's buffer."
+  (skip-unless (featurep 'threads))
+  (let ((buf (get-buffer-create " *thread-buffer-killable-nil*"))
+        thread)
+    (with-current-buffer buf
+      (setq thread
+            (make-thread
+             (lambda ()
+               (sleep-for 0.1))
+             nil
+             t)))
+    (kill-buffer buf)
+    (should (buffer-live-p buf))
+    ;; No error:
+    (thread-join thread)))
+
+(ert-deftest thread-buffer-disposition-nil ()
+  "Test killing a bg thread's buffer."
+  (skip-unless (featurep 'threads))
+  (let ((buf (get-buffer-create " *thread-buffer-killable-t*"))
+        thread)
+    (with-current-buffer buf
+      (setq thread
+            (make-thread
+             (lambda ()
+               (sleep-for 0.1)))))
+    (kill-buffer buf)
+    (should-not (buffer-live-p buf))
+    (should-error
+     (thread-join thread)
+     :type 'thread-buffer-killed)))
+
+(ert-deftest thread-buffer-disposition-silently ()
+  "Test killing a bg thread's buffer silently."
+  (skip-unless (featurep 'threads))
+  (let ((buf (get-buffer-create " *thread-buffer-killable-t*"))
+        thread)
+    (with-current-buffer buf
+      (setq thread
+            (make-thread
+             (lambda ()
+               (sleep-for 0.1))
+             nil
+             'silently)))
+    (kill-buffer buf)
+    (should-not (buffer-live-p buf))
+    (thread-join thread)))
+
+(ert-deftest thread-set-buffer-disposition ()
+  "Test being able to modify a thread's buffer disposition."
+  (skip-unless (featurep 'threads))
+  (let ((thread (make-thread #'ignore)))
+    (should (eq (thread-buffer-disposition thread) nil))
+    (thread-set-buffer-disposition thread t)
+    (should (eq (thread-buffer-disposition thread) t))))
+
+(ert-deftest thread-set-buffer-disposition-main-thread ()
+  "Test not being able to modify main thread's buffer disposition."
+  (skip-unless (featurep 'threads))
+  (should (null (thread-buffer-disposition main-thread)))
+  (should-error (thread-set-buffer-disposition main-thread t)
+                :type 'wrong-type-argument))
 
 (defvar threads-test--var 'global)
 

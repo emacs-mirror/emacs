@@ -6,7 +6,8 @@
 ;;; Commentary:
 
 ;; This file will be copied to ldefs-boot.el and checked in
-;; periodically.
+;; periodically.  Note: When checking in ldefs-boot.el, don't include
+;; changes to any other files in the commit.
 
 ;;; Code:
 
@@ -1563,6 +1564,8 @@ disabled.
 
 ;;; Generated autoloads from autorevert.el
 
+(defvar auto-revert-buffer-in-progress nil "\
+Non-nil if a `auto-revert-buffer' operation is in progress, nil otherwise.")
 (autoload 'auto-revert-mode "autorevert" "\
 Toggle reverting buffer when the file changes (Auto-Revert Mode).
 
@@ -2982,6 +2985,7 @@ This function attempts to use file contents to determine whether
 the code is C or C++, and based on that chooses whether to enable
 `c-ts-mode' or `c++-ts-mode'." t)
 (make-obsolete 'c-or-c++-ts-mode 'c-or-c++-mode "30.1")
+(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(c-mode . c-ts-mode)) (add-to-list 'treesit-major-mode-remap-alist '(c++-mode . c++-ts-mode)) (add-to-list 'treesit-major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode)))
 (register-definition-prefixes "c-ts-mode" '("c-ts-"))
 
 
@@ -4699,6 +4703,11 @@ For use inside Lisp programs, see also `c-macro-expansion'.
 Major mode for editing CMake files, powered by tree-sitter.
 
 (fn)" t)
+(autoload 'cmake-ts-mode-maybe "cmake-ts-mode" "\
+Enable `cmake-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(cmake-mode . cmake-ts-mode)))
 (register-definition-prefixes "cmake-ts-mode" '("cmake-ts-mode-"))
 
 
@@ -5923,6 +5932,7 @@ Key bindings:
 Major mode for editing C# code.
 
 (fn)" t)
+(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(csharp-mode . csharp-ts-mode)))
 (register-definition-prefixes "csharp-mode" '("codedoc-font-lock-" "csharp-"))
 
 
@@ -5952,6 +5962,7 @@ can also be used to fill comments.
 \\{css-mode-map}
 
 (fn)" t)
+(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(css-mode . css-ts-mode)))
 (autoload 'css-mode "css-mode" "\
 Major mode to edit Cascading Style Sheets (CSS).
 \\<css-mode-map>
@@ -8385,6 +8396,11 @@ disabled.
 Major mode for editing Dockerfiles, powered by tree-sitter.
 
 (fn)" t)
+(autoload 'dockerfile-ts-mode-maybe "dockerfile-ts-mode" "\
+Enable `dockerfile-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'" . dockerfile-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(dockerfile-mode . dockerfile-ts-mode)))
 (register-definition-prefixes "dockerfile-ts-mode" '("dockerfile-ts-mode--"))
 
 
@@ -8534,6 +8550,7 @@ INIT-VALUE LIGHTER KEYMAP.
 (fn MODE DOC [KEYWORD VAL ... &rest BODY])" nil t)
 (function-put 'define-minor-mode 'doc-string-elt 2)
 (function-put 'define-minor-mode 'lisp-indent-function 'defun)
+(function-put 'define-minor-mode 'autoload-macro 'expand)
 (autoload 'define-globalized-minor-mode "easy-mmode" "\
 Make a global mode GLOBAL-MODE corresponding to buffer-local minor MODE.
 TURN-ON is a function that will be called with no args in every buffer
@@ -8577,6 +8594,7 @@ on if the hook has explicitly disabled it.
 (fn GLOBAL-MODE MODE TURN-ON [KEY VALUE]... BODY...)" nil t)
 (function-put 'define-globalized-minor-mode 'doc-string-elt 2)
 (function-put 'define-globalized-minor-mode 'lisp-indent-function 'defun)
+(function-put 'define-globalized-minor-mode 'autoload-macro 'expand)
 (autoload 'easy-mmode-define-keymap "easy-mmode" "\
 Return a keymap built from bindings BS.
 BS must be a list of (KEY . BINDING) where
@@ -8925,7 +8943,7 @@ A second call of this function without changing point inserts the next match.
 A call with prefix PREFIX reads the symbol to insert from the minibuffer with
 completion.
 
-(fn PREFIX)" '("P"))
+(fn PREFIX)" t)
 (autoload 'ebrowse-tags-loop-continue "ebrowse" "\
 Repeat last operation on files in tree.
 FIRST-TIME non-nil means this is not a repetition, but the first time.
@@ -9953,6 +9971,11 @@ mode hooks.
 Major mode for editing Elixir, powered by tree-sitter.
 
 (fn)" t)
+(autoload 'elixir-ts-mode-maybe "elixir-ts-mode" "\
+Enable `elixir-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.elixir\\'" . elixir-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("\\.ex\\'" . elixir-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("\\.exs\\'" . elixir-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("mix\\.lock" . elixir-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(elixir-mode . elixir-ts-mode)))
 (register-definition-prefixes "elixir-ts-mode" '("elixir-ts-"))
 
 
@@ -10691,7 +10714,7 @@ ERC assigns SERVER and FULL-NAME the associated keyword values
 and defers to `erc-compute-port', `erc-compute-user', and
 `erc-compute-nick' for those respective parameters.
 
-(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME ID)" '((let ((erc--display-context `((erc-interactive-display . erc) ,@erc--display-context))) (erc-select-read-args))))
+(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME ID)" t)
 (defalias 'erc-select #'erc)
 (autoload 'erc-tls "erc" "\
 Connect to an IRC server over a TLS-encrypted connection.
@@ -10714,7 +10737,7 @@ See the alternative entry-point command `erc' as well as Info
 node `(erc) Connecting' for a fuller description of the various
 parameters, like ID.
 
-(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME CLIENT-CERTIFICATE ID)" '((let ((erc-default-port erc-default-port-tls) (erc--display-context `((erc-interactive-display . erc-tls) ,@erc--display-context))) (erc-select-read-args))))
+(fn &key SERVER PORT NICK USER PASSWORD FULL-NAME CLIENT-CERTIFICATE ID)" t)
 (autoload 'erc-handle-irc-url "erc" "\
 Use ERC to IRC on HOST:PORT in CHANNEL.
 If ERC is already connected to HOST:PORT, simply /join CHANNEL.
@@ -15112,15 +15135,29 @@ Major mode for editing Go, powered by tree-sitter.
 \\{go-ts-mode-map}
 
 (fn)" t)
+(autoload 'go-ts-mode-maybe "go-ts-mode" "\
+Enable `go-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(go-mode . go-ts-mode)))
 (autoload 'go-mod-ts-mode "go-ts-mode" "\
 Major mode for editing go.mod files, powered by tree-sitter.
 
 (fn)" t)
+(autoload 'go-mod-ts-mode-maybe "go-ts-mode" "\
+Enable `go-mod-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(go-mod-mode . go-mod-ts-mode)))
 (autoload 'go-work-ts-mode "go-ts-mode" "\
 Major mode for editing go.work files, powered by tree-sitter.
 
 (fn)" t)
-(add-to-list 'auto-mode-alist '("/go\\.work\\'" . go-work-ts-mode))
+(autoload 'go-work-ts-mode-maybe "go-ts-mode" "\
+Enable `go-work-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("/go\\.work\\'" . go-work-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(go-work-mode . go-work-ts-mode)))
 (register-definition-prefixes "go-ts-mode" '("go-"))
 
 
@@ -15793,6 +15830,11 @@ Like `hanoi-unix', but with a 64-bit clock." t)
 Major mode for editing HEEx, powered by tree-sitter.
 
 (fn)" t)
+(autoload 'heex-ts-mode-maybe "heex-ts-mode" "\
+Enable `heex-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(heex-mode . heex-ts-mode)))
 (register-definition-prefixes "heex-ts-mode" '("heex-ts-"))
 
 
@@ -18851,6 +18893,7 @@ See Info node `(elisp)Defining Functions' for more details.
 (fn NAME ARGS &rest BODY)" nil t)
 (function-put 'define-inline 'lisp-indent-function 'defun)
 (function-put 'define-inline 'doc-string-elt 3)
+(function-put 'define-inline 'autoload-macro 'expand)
 (register-definition-prefixes "inline" '("inline-"))
 
 
@@ -19295,6 +19338,7 @@ Return the string read from the minibuffer.
 Major mode for editing Java, powered by tree-sitter.
 
 (fn)" t)
+(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(java-mode . java-ts-mode)))
 (register-definition-prefixes "java-ts-mode" '("java-ts-mode-"))
 
 
@@ -19341,6 +19385,7 @@ Major mode for editing JavaScript.
 \\<js-ts-mode-map>
 
 (fn)" t)
+(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(javascript-mode . js-ts-mode)))
 (autoload 'js-json-mode "js" "\
 
 
@@ -19376,6 +19421,7 @@ one of the aforementioned options instead of using this mode.
 Major mode for editing JSON, powered by tree-sitter.
 
 (fn)" t)
+(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(js-json-mode . json-ts-mode)))
 (register-definition-prefixes "json-ts-mode" '("json-ts-"))
 
 
@@ -19874,7 +19920,7 @@ The first element on the command line should be the (main)
 loaddefs.el output file, and the rest are the directories to
 use.")
  (load "theme-loaddefs.el" t)
-(register-definition-prefixes "loaddefs-gen" '("autoload-" "generated-autoload-" "loaddefs-generate--" "no-update-autoloads"))
+(register-definition-prefixes "loaddefs-gen" '("autoload-" "generated-autoload-" "loaddefs-" "no-update-autoloads"))
 
 
 ;;; Generated autoloads from loadhist.el
@@ -20105,6 +20151,11 @@ Major mode for editing Lua files, powered by tree-sitter.
 \\{lua-ts-mode-map}
 
 (fn)" t)
+(autoload 'lua-ts-mode-maybe "lua-ts-mode" "\
+Enable `lua-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode-maybe)) (add-to-list 'interpreter-mode-alist '("\\<lua\\(?:jit\\)?" . lua-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(lua-mode . lua-ts-mode)))
 (register-definition-prefixes "lua-ts-mode" '("lua-ts-"))
 
 
@@ -20693,6 +20744,11 @@ Populate MENU with commands that open a man page at point.
 Major mode for editing Markdown using tree-sitter grammar.
 
 (fn)" t)
+(autoload 'markdown-ts-mode-maybe "markdown-ts-mode" "\
+Enable `markdown-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(markdown-mode . markdown-ts-mode)))
 (register-definition-prefixes "markdown-ts-mode" '("markdown-ts-"))
 
 
@@ -21198,6 +21254,7 @@ Major mode for editing HTML with embedded JavaScript and CSS.
 Powered by tree-sitter.
 
 (fn)" t)
+(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(mhtml-mode . mhtml-ts-mode)))
 (register-definition-prefixes "mhtml-ts-mode" '("mhtml-ts-mode-"))
 
 
@@ -24614,6 +24671,7 @@ for the result of evaluating EXP (first arg to `pcase').
 (fn NAME ARGS [DOC] &rest BODY...)" nil t)
 (function-put 'pcase-defmacro 'lisp-indent-function 2)
 (function-put 'pcase-defmacro 'doc-string-elt 3)
+(function-put 'pcase-defmacro 'autoload-macro 'expand)
 (register-definition-prefixes "pcase" '("pcase-"))
 
 
@@ -25142,6 +25200,11 @@ Prompt for CMD if `php-ts-mode-php-executable' is nil.
 Optional CONFIG, if supplied, is the php.ini file to use.
 
 (fn &optional CMD CONFIG)" t)
+(autoload 'php-ts-mode-maybe "php-ts-mode" "\
+Enable `php-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.\\(?:php[s345]?\\|phtml\\)\\'" . php-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("\\.\\(?:php\\|inc\\|stub\\)\\'" . php-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("/\\.php_cs\\(?:\\.dist\\)?\\'" . php-ts-mode-maybe)) (add-to-list 'interpreter-mode-alist (cons "php\\(?:-?[34578]\\(?:\\.[0-9]+\\)*\\)?" 'php-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(php-mode . php-ts-mode)))
 (register-definition-prefixes "php-ts-mode" '("inferior-php-ts-mode" "php-ts-"))
 
 
@@ -26091,13 +26154,19 @@ interactively, include all files under the project root, except
 for VCS directories listed in `vc-directory-exclusion-list'.
 
 (fn &optional INCLUDE-ALL)" t)
-(autoload 'project-find-matching-file "project" "\
-Visit the file that matches the current one, in another project.
-It will skip to the same line number as well.
-A matching file has the same file name relative to the project root.
+(autoload 'project-find-matching-buffer "project" "\
+Switch to a matching buffer in another project.
+For most file-visiting buffers, the matching buffer is one visiting a
+file in the other project which has the same file name relative to the
+project root.  See `project-find-matching-file' for details.
+Non-file-visiting major modes may configure a different notion of
+matching buffer; see `project-find-matching-buffer-function'.
+
 When called during switching to another project, this command will
-detect it and use the override.  Otherwise, it prompts for the project
-to use from the known list." t)
+detect that, and use the override.  Otherwise, it prompts for the
+project to use from the list of known projects.
+When calling from Lisp, bind `project-current-directory-override' to a
+directory under the target project to preempt this prompting." t)
 (autoload 'project-find-dir "project" "\
 Start Dired in a directory inside the current project.
 
@@ -26114,13 +26183,17 @@ Start an inferior shell in the current project's root directory.
 If a buffer already exists for running a shell in the project's root,
 switch to it.  Otherwise, create a new shell buffer.
 With \\[universal-argument] prefix arg, create a new inferior shell buffer even
-if one already exists." t)
+if one already exists.
+With numeric prefix arg, switch to the session with that number, or
+create it if it doesn't already exist." t)
 (autoload 'project-eshell "project" "\
 Start Eshell in the current project's root directory.
 If a buffer already exists for running Eshell in the project's root,
 switch to it.  Otherwise, create a new Eshell buffer.
 With \\[universal-argument] prefix arg, create a new Eshell buffer even
-if one already exists." t)
+if one already exists.
+With numeric prefix arg, switch to the session with that number, or
+create it if it doesn't already exist." t)
 (autoload 'project-async-shell-command "project" "\
 Run `async-shell-command' in the current project's root directory." t)
 (function-put 'project-async-shell-command 'interactive-only 'async-shell-command)
@@ -26217,9 +26290,13 @@ Like `save-some-buffers', but only for this project's buffers.
 Add project PR to the front of the project list.
 If project PR satisfies `project-list-exclude', then nothing is done.
 Save the result in `project-list-file' if the list of projects
-has changed, and NO-WRITE is nil.
+has changed.
+When called from Lisp, optional argument NO-WRITE non-nil means to
+suppress saving `project-list-file'.
+Optional argument STABLE means don't move PR to the front of the project
+list if it's already present further down the project list.
 
-(fn PR &optional NO-WRITE)" t)
+(fn PR &optional NO-WRITE STABLE)" t)
 (autoload 'project-forget-project "project" "\
 Remove directory PROJECT-ROOT from the project list.
 PROJECT-ROOT is the root directory of a known project listed in
@@ -28356,6 +28433,7 @@ Major mode for editing Ruby code.
 Major mode for editing Ruby, powered by tree-sitter.
 
 (fn)" t)
+(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(ruby-mode . ruby-ts-mode)))
 (register-definition-prefixes "ruby-ts-mode" '("ruby-ts-"))
 
 
@@ -28391,6 +28469,11 @@ disabled.
 Major mode for editing Rust, powered by tree-sitter.
 
 (fn)" t)
+(autoload 'rust-ts-mode-maybe "rust-ts-mode" "\
+Enable `rust-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(rust-mode . rust-ts-mode)))
 (register-definition-prefixes "rust-ts-mode" '("rust-ts-"))
 
 
@@ -29491,6 +29574,7 @@ This mode automatically falls back to `sh-mode' if the buffer is
 not written in Bash or sh.
 
 (fn)" t)
+(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(sh-mode . bash-ts-mode)))
 (register-definition-prefixes "sh-script" '("sh-"))
 
 
@@ -33624,6 +33708,7 @@ Mode for displaying and reprioritizing top priority Todo.
 Major mode for editing TOML, powered by tree-sitter.
 
 (fn)" t)
+(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(conf-toml-mode . toml-ts-mode)))
 (register-definition-prefixes "toml-ts-mode" '("toml-ts-mode-"))
 
 
@@ -34042,7 +34127,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from transient.el
 
-(push '(transient 0 9 3) package--builtin-versions)
+(push '(transient 0 9 4) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient" "\
 Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -34136,6 +34221,11 @@ nil, the grammar is installed to the standard location, the
 \"tree-sitter\" directory under `user-emacs-directory'.
 
 (fn LANG &optional OUT-DIR)" t)
+(defvar treesit-enabled-modes nil "\
+Specify what treesit modes to enable by default.
+The value can be either a list of ts-modes to enable,
+or t to enable all ts-modes.")
+(custom-autoload 'treesit-enabled-modes "treesit" nil)
 (register-definition-prefixes "treesit" '("treesit-"))
 
 
@@ -34443,6 +34533,11 @@ This mode is intended to be inherited by concrete major modes.
 Major mode for editing TypeScript.
 
 (fn)" t)
+(autoload 'typescript-ts-mode-maybe "typescript-ts-mode" "\
+Enable `typescript-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(typescript-mode . typescript-ts-mode)))
 (autoload 'tsx-ts-mode "typescript-ts-mode" "\
 Major mode for editing TSX and JSX documents.
 
@@ -34455,6 +34550,11 @@ The JSX-specific faces are used when `treesit-font-lock-level' is
 at least 3 (which is the default value).
 
 (fn)" t)
+(autoload 'tsx-ts-mode-maybe "typescript-ts-mode" "\
+Enable `tsx-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(tsx-mode . tsx-ts-mode)))
 (register-definition-prefixes "typescript-ts-mode" '("tsx-ts-" "typescript-ts-"))
 
 
@@ -35613,6 +35713,17 @@ See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
 global binding.
 
 (fn &optional REMOTE-LOCATION)" t)
+(autoload 'vc-diff-incoming "vc" "\
+Report changes to VC fileset that would be pulled from REMOTE-LOCATION.
+When unspecified REMOTE-LOCATION is the place \\[vc-update] would pull from.
+When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
+In some version control systems REMOTE-LOCATION can be a remote branch name.
+When called from Lisp optional argument FILESET overrides the VC fileset.
+
+See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
+global binding.
+
+(fn &optional REMOTE-LOCATION FILESET)" t)
 (autoload 'vc-root-diff-outgoing "vc" "\
 Report diff of all changes that would be pushed to REMOTE-LOCATION.
 When unspecified REMOTE-LOCATION is the place \\[vc-push] would push to.
@@ -35623,6 +35734,17 @@ See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
 global binding.
 
 (fn &optional REMOTE-LOCATION)" t)
+(autoload 'vc-diff-outgoing "vc" "\
+Report changes to VC fileset that would be pushed to REMOTE-LOCATION.
+When unspecified REMOTE-LOCATION is the place \\[vc-push] would push to.
+When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
+In some version control systems REMOTE-LOCATION can be a remote branch name.
+When called from Lisp optional argument FILESET overrides the VC fileset.
+
+See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
+global binding.
+
+(fn &optional REMOTE-LOCATION FILESET)" t)
 (autoload 'vc-version-ediff "vc" "\
 Show differences between REV1 and REV2 of FILES using ediff.
 This compares two revisions of the files in FILES.  Currently,
@@ -35937,30 +36059,40 @@ marked revisions, use those.
 (fn ADDRESSEE SUBJECT REVISIONS)" t)
 (autoload 'vc-add-working-tree "vc" "\
 Create working tree DIRECTORY with same backing repository as this tree.
-See Info node `(emacs)Other Working Trees' regarding VCS repositories
-with multiple working trees.
+Must be called from within an existing VC working tree.
+When called interactively, prompts for DIRECTORY.
+When called from Lisp, BACKEND is the VC backend.
 
 (fn BACKEND DIRECTORY)" t)
 (autoload 'vc-switch-working-tree "vc" "\
-Switch to this file or directory's analogue in working tree DIRECTORY.
-This command switches to the file or directory which has the same path
-relative to DIRECTORY that this buffer's file or directory has relative
+Switch to the version of this file in working tree under DIRECTORY.
+Must be called from within an existing VC working tree.
+When called interactively, prompts for DIRECTORY.
+This command switches to the file which has the same file
+name relative to DIRECTORY that this buffer's file has relative
 to the root of this working tree.
-DIRECTORY names another working tree with the same backing repository as
-this tree; see Info node `(emacs)Other Working Trees' for general
-information regarding VCS repositories with multiple working trees.
 
 (fn DIRECTORY)" t)
+(autoload 'vc-working-tree-switch-project "vc" "\
+Like \\[project-switch-project] but limited to projects with the same backing repository.
+Must be called from within an existing VC working tree.
+Prompts for the directory file name of the other working tree.
+
+(fn DIR)" t)
+(function-put 'vc-working-tree-switch-project 'interactive-only 'project-switch-project)
 (autoload 'vc-delete-working-tree "vc" "\
 Delete working tree DIRECTORY with same backing repository as this tree.
-See Info node `(emacs)Other Working Trees' regarding VCS repositories
-with multiple working trees.
+Must be called from within an existing VC working tree.
+When called interactively, prompts for DIRECTORY.
+BACKEND is the VC backend.
 
 (fn BACKEND DIRECTORY)" t)
 (autoload 'vc-move-working-tree "vc" "\
-Relocate a working tree from FROM to TO.
-See Info node `(emacs)Other Working Trees' regarding VCS repositories
-with multiple working trees.
+Relocate a working tree from FROM to TO, two directory file names.
+Must be called from within an existing VC working tree.
+When called interactively, prompts for the directory file names of each
+of the other working trees FROM and TO.
+BACKEND is the VC backend.
 
 (fn BACKEND FROM TO)" t)
 (register-definition-prefixes "vc" '("log-view-vc-prev-" "vc-" "with-vc-properties"))
@@ -37757,6 +37889,25 @@ The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
 (fn &optional ARG)" t)
+(autoload 'whitespace-page-delimiters-mode "whitespace" "\
+Display page-break delimiter characters as horizontal lines.
+
+This is a minor mode.  If called interactively, toggle the
+`Whitespace-Page-Delimiters mode' mode.  If the prefix argument is
+positive, enable the mode, and if it is zero or negative, disable the
+mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the mode
+if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate the variable `whitespace-page-delimiters-mode'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+(fn &optional ARG)" t)
 (put 'global-whitespace-mode 'globalized-minor-mode t)
 (defvar global-whitespace-mode nil "\
 Non-nil if Global Whitespace mode is enabled.
@@ -37832,6 +37983,7 @@ Interactively, it reads one of the following chars:
    t	toggle TAB visualization
    s	toggle SPACE and HARD SPACE visualization
    r	toggle trailing blanks visualization
+   p	toggle page delimiters visualization
    l	toggle \"long lines\" visualization
    L	toggle \"long lines\" tail visualization
    n	toggle NEWLINE visualization
@@ -37862,6 +38014,7 @@ The valid symbols are:
    tabs			toggle TAB visualization
    spaces		toggle SPACE and HARD SPACE visualization
    trailing		toggle trailing blanks visualization
+   page-delimiters	toggle page delimiters visualization
    lines		toggle \"long lines\" visualization
    lines-tail		toggle \"long lines\" tail visualization
    newline		toggle NEWLINE visualization
@@ -37903,6 +38056,7 @@ Interactively, it accepts one of the following chars:
    t	toggle TAB visualization
    s	toggle SPACE and HARD SPACE visualization
    r	toggle trailing blanks visualization
+   p	toggle page delimiters visualization
    l	toggle \"long lines\" visualization
    L	toggle \"long lines\" tail visualization
    C-l	toggle \"long lines\" one character visualization
@@ -37934,6 +38088,7 @@ The valid symbols are:
    tabs			toggle TAB visualization
    spaces		toggle SPACE and HARD SPACE visualization
    trailing		toggle trailing blanks visualization
+   page-delimiters	toggle page delimiters visualization
    lines		toggle \"long lines\" visualization
    lines-tail		toggle \"long lines\" tail visualization
    lines-char		toggle \"long lines\" one character visualization
@@ -38936,6 +39091,11 @@ a new xwidget-webkit session, otherwise use an existing session.
 Major mode for editing YAML, powered by tree-sitter.
 
 (fn)" t)
+(autoload 'yaml-ts-mode-maybe "yaml-ts-mode" "\
+Enable `yaml-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name.")
+(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(yaml-mode . yaml-ts-mode)))
 (register-definition-prefixes "yaml-ts-mode" '("yaml-ts-mode--"))
 
 

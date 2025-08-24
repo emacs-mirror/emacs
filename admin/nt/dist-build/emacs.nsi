@@ -70,6 +70,9 @@ Section
   # create uninstaller
   WriteUninstaller "$UninstallerPath"
 
+  # request to set x64 registry keys
+  SetRegView 64
+
   # add registry key to enable uninstall from control panel
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "GNU Emacs ${VERSION_BRANCH}"
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayIcon" "$\"$UninstallerPath$\""
