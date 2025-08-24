@@ -529,7 +529,7 @@ universal argument as in 'C-u C-x p s' always creates a new session.
 *** 'project-switch-buffer' re-uniquifies buffer names while prompting.
 When 'uniquify-buffer-name-style' is non-nil, 'project-switch-buffer'
 changes the buffer names to only make them unique within the given
-project, during completion. That makes some items shorter.
+project, during completion.  That makes some items shorter.
 
 *** 'project-switch-buffer' uses 'project-buffer' as completion category.
 The category defaults are the same as for 'buffer' but any user
