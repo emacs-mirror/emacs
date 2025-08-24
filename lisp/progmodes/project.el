@@ -1684,7 +1684,7 @@ Return non-nil if PROJECT is not a remote project."
   (lambda (string pred action)
     (cond
      ((eq action 'metadata)
-      '(metadata . ((category . buffer)
+      '(metadata . ((category . project-buffer)
                     (cycle-sort-function . identity))))
      ((and (eq action t)
            (equal string ""))           ;Pcm completion or empty prefix.

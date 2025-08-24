@@ -1215,6 +1215,7 @@ styles for specific categories, such as files, buffers, etc."
     ;; A new style that combines substring and pcm might be better,
     ;; e.g. one that does not anchor to bos.
     (project-file (styles . (substring)))
+    (project-buffer (styles . (basic substring)))
     (xref-location (styles . (substring)))
     (info-menu (styles . (basic substring)))
     (symbol-help (styles . (basic shorthand substring))))
