@@ -1680,11 +1680,26 @@ non-nil if the project must be removed."
 Return non-nil if PROJECT is not a remote project."
   (not (file-remote-p project)))
 
+(defun project--buffers-completion-table (buffers)
+  (lambda (string pred action)
+    (cond
+     ((eq action 'metadata)
+      '(metadata . ((category . buffer)
+                    (cycle-sort-function . identity))))
+     ((and (eq action t)
+           (equal string ""))           ;Pcm completion or empty prefix.
+      (let* ((all (complete-with-action action buffers string pred))
+             (non-internal (cl-remove-if (lambda (b) (= (aref b 0) ?\s)) all)))
+        (if (null non-internal)
+            all
+          non-internal)))
+     (t
+      (complete-with-action action buffers string pred)))))
+
 (defun project--read-project-buffer ()
   (let* ((pr (project-current t))
          (current-buffer (current-buffer))
          (other-buffer (other-buffer current-buffer))
-         (other-name (buffer-name other-buffer))
          (buffers (project-buffers pr))
          (predicate
           (lambda (buffer)
@@ -1693,35 +1708,35 @@ Return non-nil if PROJECT is not a remote project."
                  (not
                   (project--buffer-check
                    buffer project-ignore-buffer-conditions)))))
-         (buffer
+         (completion-ignore-case read-buffer-completion-ignore-case)
+         (buffers-alist
           (if (and (fboundp 'uniquify-get-unique-names)
                    uniquify-buffer-name-style)
-              ;; Forgo the use of `buffer-read-function' (often nil) in
-              ;; favor of uniquifying the buffers better.
-              (let* ((unique-names
-                      (mapcar
-                       (lambda (name)
-                         (cons name
-                               (get-text-property 0 'uniquify-orig-buffer
-                                                  (or name ""))))
-                       (uniquify-get-unique-names buffers)))
-                     (other-name (when (funcall predicate (cons other-name other-buffer))
-                                   (car (rassoc other-buffer unique-names))))
-                     (result (completing-read
-                              "Switch to buffer: "
-                              (project--completion-table-with-category
-                               unique-names
-                               'buffer)
-                              predicate
-                              nil nil nil
-                              other-name)))
-                (assoc-default result unique-names #'equal result))
-            (read-buffer
-             "Switch to buffer: "
-             (when (funcall predicate (cons other-name other-buffer))
-               other-name)
-             nil
-             predicate))))
+              (mapcar
+               (lambda (name)
+                 (cons name
+                       (get-text-property 0 'uniquify-orig-buffer
+                                          (or name ""))))
+               (uniquify-get-unique-names buffers))
+            (mapcar
+             (lambda (buf) (cons (buffer-name buf) buf))
+             buffers)))
+         (other-name
+          (when (funcall predicate (cons nil other-buffer))
+            (car (rassoc other-buffer buffers-alist))))
+         (prompt
+          (if (fboundp 'format-prompt)
+              (format-prompt "Switch to buffer" other-name)
+            "Switch to buffer: "))
+         ;; Forgo the use of `buffer-read-function' (often nil) in
+         ;; favor of showing shorter buffer names with uniquify.
+         (result
+          (completing-read
+           prompt
+           (project--buffers-completion-table buffers-alist)
+           predicate nil nil nil
+           other-name))
+         (buffer (assoc-default result buffers-alist #'equal result)))
     ;; XXX: This check hardcodes the default buffer-belonging relation
     ;; which `project-buffers' is allowed to override.  Straighten
     ;; this up sometime later.  Or not.  Since we can add a method
