@@ -1189,12 +1189,6 @@ static Lisp_Object string_char_byte_cache_string;
 static ptrdiff_t string_char_byte_cache_charpos;
 static ptrdiff_t string_char_byte_cache_bytepos;
 
-void
-clear_string_char_byte_cache (void)
-{
-  string_char_byte_cache_string = Qnil;
-}
-
 /* Return the byte index corresponding to CHAR_INDEX in STRING.  */
 
 ptrdiff_t

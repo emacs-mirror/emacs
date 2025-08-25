@@ -9372,8 +9372,13 @@ If BUFFER is nil, update the mode line in all ERC buffers."
   (report-emacs-bug
    (format "ERC %s: %s" erc-version subject))
   (save-excursion
-    (goto-char (point-min))
-    (insert "X-Debbugs-CC: emacs-erc@gnu.org\n")))
+    (if (and (>= emacs-major-version 30)
+             (search-backward "X-Debbugs-CC: " nil t)
+             (goto-char (pos-eol))
+             (eq (char-before) ?\s))
+        (insert "emacs-erc@gnu.org")
+      (goto-char (point-min))
+      (insert "X-Debbugs-CC: emacs-erc@gnu.org\n"))))
 
 (defconst erc--news-url
   "https://git.savannah.gnu.org/cgit/emacs.git/plain/etc/ERC-NEWS")

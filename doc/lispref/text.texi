@@ -4641,6 +4641,8 @@ with @var{tochar} in @var{string}.  By default, substitution occurs in
 a copy of @var{string}, but if the optional argument @var{inplace} is
 non-@code{nil}, the function modifies the @var{string} itself.  In any
 case, the function returns the resulting string.
+
+For restrictions when altering an existing string, @pxref{Modifying Strings}.
 @end defun
 
 @deffn Command translate-region start end table

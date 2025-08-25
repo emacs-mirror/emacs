@@ -529,7 +529,7 @@ universal argument as in 'C-u C-x p s' always creates a new session.
 *** 'project-switch-buffer' re-uniquifies buffer names while prompting.
 When 'uniquify-buffer-name-style' is non-nil, 'project-switch-buffer'
 changes the buffer names to only make them unique within the given
-project, during completion. That makes some items shorter.
+project, during completion.  That makes some items shorter.
 
 *** 'project-switch-buffer' uses 'project-buffer' as completion category.
 The category defaults are the same as for 'buffer' but any user
@@ -2682,6 +2682,21 @@ The 'lua-mode' package from Non-GNU ELPA is now included in Emacs.
 
 
 * Incompatible Lisp Changes in Emacs 31.1
+
++++
+** String mutation has been restricted further.
+'aset' on unibyte strings now requires the new character to be a single
+byte (0-255).  On multibyte strings the new character and the character
+being replaced must both be ASCII (0-127).
+
+These rules ensure that mutation will never transform a unibyte string
+to multibyte, and that the size of a string in bytes (as reported by
+'string-bytes') never changes.  They also allow strings to be
+represented more efficiently in the future.
+
+Other functions that use 'aset' to modify string data, such as
+'subst-char-in-string' with a non-nil INPLACE argument, will signal an
+error if called with arguments that would violate these rules.
 
 ** Nested backquotes are not supported any more in Pcase patterns.
 

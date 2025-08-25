@@ -2042,8 +2042,8 @@ Matches zero or more copies of the glob pattern @var{x}.  For example,
 
 @item @var{x}##
 Matches one or more copies of the glob pattern @var{x}.  Thus,
-@samp{fo#.el} matches @file{fo.el}, @file{foo.el}, @file{fooo.el},
-etc.
+@samp{fo##.el} matches @file{fo.el}, @file{foo.el}, @file{fooo.el},
+etc, but not @file{f.el}.
 
 @item @var{x}~@var{y}
 Matches anything that matches the pattern @var{x} but not @var{y}.  For
