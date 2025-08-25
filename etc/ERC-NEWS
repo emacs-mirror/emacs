@@ -36,6 +36,10 @@ The command 'erc-fill-wrap-cycle-visual-movement' was mistakenly given
 the key binding "C-c a" in an inadvertent holdover from development.  It
 has been removed.
 
+** The 'fill-wrap' module no longer depends on 'scrolltobottom'.
+This change also affects the option 'erc-fill-function' when it's set to
+'erc-fill-wrap'.
+
 ** Updated defaults for the 'track' module's face-list options.
 The default values of options 'erc-track-faces-priority-list' and
 'erc-track-faces-normal-list' have both gained a face for buttonized

@@ -417,10 +417,7 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
   "<remap> <erc-bol>" #'erc-fill--wrap-beginning-of-line)
 
 (defvar erc-button-mode)
-(defvar erc-scrolltobottom-mode)
 (defvar erc-legacy-invisible-bounds-p)
-
-(defvar erc-fill--wrap-scrolltobottom-exempt-p nil)
 
 (defun erc-fill--wrap-ensure-dependencies ()
   (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
@@ -434,10 +431,6 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
     (unless erc-fill-mode
       (push 'fill missing-deps)
       (erc-fill-mode +1))
-    (unless (or erc-scrolltobottom-mode erc-fill--wrap-scrolltobottom-exempt-p
-                (memq 'scrolltobottom erc-modules))
-      (push 'scrolltobottom missing-deps)
-      (erc-scrolltobottom-mode +1))
     (when erc-fill-wrap-merge
       (require 'erc-button)
       (unless erc-button-mode
@@ -515,11 +508,10 @@ This normally poses at most a minor inconvenience.  Users of the
 logged messages and instead prepends them to every line.
 
 A so-called \"local\" module, `fill-wrap' depends on the global
-modules `fill', `stamp', `button', and `scrolltobottom'.  It
-activates them as needed when initializing and leaves them
-enabled when shutting down.  To opt out of `scrolltobottom'
-specifically, disable its minor mode, `erc-scrolltobottom-mode',
-via `erc-fill-wrap-mode-hook'."
+modules `fill', `stamp', `button'.  It therefore activates them
+as needed when initializing and leaves them enabled when shutting
+down.  Users may also find the `scrolltobottom' module a
+necessary addition for this fill style."
   ((erc-fill--wrap-ensure-dependencies)
    (when erc-fill-wrap-merge-indicator
      (erc-fill--wrap-massage-legacy-indicator-type))
