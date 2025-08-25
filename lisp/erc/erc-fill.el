@@ -618,14 +618,20 @@ message has been marked `erc--ephemeral'."
 Ignore any `invisible' props that may be present when figuring.
 Expect the target region to be free of `line-prefix' and
 `wrap-prefix' properties, and expect `display-line-numbers-mode'
-to be disabled."
+to be disabled.  On Emacs 28 and below, return END minus BEG."
+  ;; Rely on `buffer-text-pixel-size' here even for buffers displayed in
+  ;; another window because temporarily selecting such windows via
+  ;; `with-selected-window' seems to interfere with the implementation
+  ;; of `erc-scrolltobottom-all' in ERC 5.6, which needs improvement.
   (if (fboundp 'buffer-text-pixel-size)
       ;; `buffer-text-pixel-size' can move point!
       (save-excursion
         (save-restriction
           (narrow-to-region beg end)
           (let* ((buffer-invisibility-spec)
-                 (rv (car (buffer-text-pixel-size))))
+                 (rv (car (if (eq (selected-window) (get-buffer-window))
+                              (window-text-pixel-size)
+                            (buffer-text-pixel-size)))))
             (if erc-fill-wrap-use-pixels
                 (if (zerop rv) 0 (list rv))
               (/ rv (frame-char-width))))))
