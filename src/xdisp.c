@@ -7261,8 +7261,6 @@ push_it (struct it *it, struct text_pos *position)
   p->from_disp_prop_p = it->from_disp_prop_p;
   ++it->sp;
 
-  it->string_from_prefix_prop_p = false;
-
   /* Save the state of the bidi iterator as well. */
   if (it->bidi_p)
     bidi_push_it (&it->bidi_it);
