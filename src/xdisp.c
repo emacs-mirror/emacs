@@ -24736,18 +24736,8 @@ cursor_row_p (struct glyph_row *row)
 static bool
 push_prefix_prop (struct it *it, Lisp_Object prop, int from_buffer)
 {
-  struct text_pos pos;
-
-  if (STRINGP (it->string))
-    {
-      if (from_buffer)	/* a string, but prefix property from buffer */
-	pos = it->current.string_pos;
-      else		/* a string and prefix property from string */
-	pos.charpos = pos.bytepos = 0; /* we have yet to iterate that string */
-    }
-  else			/* a buffer and prefix property from buffer */
-    pos = it->current.pos;
-
+  struct text_pos pos =
+    STRINGP (it->string) ? it->current.string_pos : it->current.pos;
   bool phoney_display_string =
     from_buffer && STRINGP (it->string) && it->string_from_display_prop_p;
 
@@ -24844,14 +24834,11 @@ push_prefix_prop (struct it *it, Lisp_Object prop, int from_buffer)
 static Lisp_Object
 get_it_property (struct it *it, Lisp_Object prop)
 {
-  Lisp_Object position, object;
+  Lisp_Object position, object = it->object;
 
-  if (STRINGP (it->string))
-    {
-      position = make_fixnum (IT_STRING_CHARPOS (*it));
-      object = it->string;
-    }
-  else if (BUFFERP (it->object))
+  if (STRINGP (object))
+    position = make_fixnum (IT_STRING_CHARPOS (*it));
+  else if (BUFFERP (object))
     {
       position = make_fixnum (IT_CHARPOS (*it));
       object = it->window;
@@ -24871,11 +24858,11 @@ get_line_prefix_it_property (struct it *it, Lisp_Object prop,
 {
   Lisp_Object prefix = get_it_property (it, prop);
 
-  *from_buffer = false;
+  *from_buffer = BUFFERP (it->object);
 
   /* If we are looking at a display or overlay string, check also the
      underlying buffer text.  */
-  if (NILP (prefix) && it->sp > 0 && STRINGP (it->string))
+  if (NILP (prefix) && it->sp > 0 && STRINGP (it->object))
     {
       *from_buffer = true;
       return Fget_char_property (make_fixnum (IT_CHARPOS (*it)), prop,
