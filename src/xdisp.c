@@ -9156,6 +9156,10 @@ next_element_from_display_vector (struct it *it)
 
       it->c = GLYPH_CODE_CHAR (gc);
       it->len = CHAR_BYTES (it->c);
+      /* The character code in the display vector could be non-ASCII, in
+         which case we must make the iterator multibyte, so that a
+         suitable font for the character is looked up.  */
+      it->multibyte_p = !ASCII_CHAR_P (it->c);
 
       /* The entry may contain a face id to use.  Such a face id is
 	 the id of a Lisp face, not a realized face.  A face id of
