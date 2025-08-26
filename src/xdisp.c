@@ -9158,8 +9158,14 @@ next_element_from_display_vector (struct it *it)
       it->len = CHAR_BYTES (it->c);
       /* The character code in the display vector could be non-ASCII, in
          which case we must make the iterator multibyte, so that a
-         suitable font for the character is looked up.  */
-      it->multibyte_p = !ASCII_CHAR_P (it->c);
+         suitable font for the character is looked up.  But don't do
+         that if the original character came from a unibyte buffer.  */
+      if (!ASCII_CHAR_P (it->c)
+	  && !it->multibyte_p
+	  && !(((it->sp == 0 && BUFFERP (it->object))
+		|| (it->sp > 1 && !NILP (it->stack[0].string)))
+	       && NILP (BVAR (current_buffer, enable_multibyte_characters))))
+	it->multibyte_p = 1;
 
       /* The entry may contain a face id to use.  Such a face id is
 	 the id of a Lisp face, not a realized face.  A face id of
