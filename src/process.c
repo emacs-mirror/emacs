@@ -467,7 +467,7 @@ static struct fd_callback_data
 } fd_callback_info[FD_SETSIZE];
 
 static void
-clear_fd_callback_data(struct fd_callback_data* elem)
+clear_fd_callback_data (struct fd_callback_data* elem)
 {
   elem->func = NULL;
   elem->data = NULL;
@@ -577,7 +577,7 @@ delete_write_fd (int fd)
   fd_callback_info[fd].flags &= ~(FOR_WRITE | NON_BLOCKING_CONNECT_FD);
   if (fd_callback_info[fd].flags == 0)
     {
-      clear_fd_callback_data(&fd_callback_info[fd]);
+      clear_fd_callback_data (&fd_callback_info[fd]);
 
       if (fd == max_desc)
 	recompute_max_desc ();
@@ -8322,7 +8322,7 @@ delete_keyboard_wait_descriptor (int desc)
 #ifdef subprocesses
   eassert (desc >= 0 && desc < FD_SETSIZE);
 
-  clear_fd_callback_data(&fd_callback_info[desc]);
+  clear_fd_callback_data (&fd_callback_info[desc]);
 
   if (desc == max_desc)
     recompute_max_desc ();
