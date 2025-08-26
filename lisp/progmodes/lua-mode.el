@@ -150,10 +150,10 @@
   :prefix "lua-"
   :group 'languages)
 
-(defcustom lua-indent-level 3
+(defcustom lua-indent-level 4
   "Amount by which Lua subexpressions are indented."
-  :type 'integer
-  :safe #'integerp
+  :type 'natnum
+  :safe #'natnump
   :version "31.1")
 
 (defcustom lua-comment-start "-- "
@@ -183,7 +183,7 @@ Should be a list of strings."
   :version "31.1")
 
 (defcustom lua-always-show t
-  "Non-nil means display lua-process-buffer after sending a command."
+  "Non-nil means display `lua-process-buffer' after sending a command."
   :type 'boolean
   :group 'lua)
 
@@ -203,7 +203,6 @@ Should be a list of strings."
   "URL pointing to the Lua reference manual."
   :type 'string
   :group 'lua)
-
 
 (defvar lua-process nil
   "The active Lua process.")
@@ -390,11 +389,11 @@ traceback location."
                       (concat (module-name-re x) (module-members-re x)))
                     modules
                     "\\|")
-         "\\)"))))
-  "A regexp that matches Lua builtin functions & variables.
+         "\\)")))
+    "A regexp that matches Lua builtin functions & variables.
 
-This is a compilation of 5.1, 5.2 and 5.3 builtins taken from the
-index of respective Lua reference manuals.")
+This is a compilation of 5.1-5.4 builtins taken from the index of
+respective Lua reference manuals."))
 
 (defvar lua-font-lock-keywords
   `(;; Highlight the hash-bang line "#!/foo/bar/lua" as comment
@@ -917,7 +916,7 @@ type.")
                      (any ")]}"))))))
 
 (defun lua-get-block-token-info (token)
-  "Return the block token info entry for TOKEN from lua-block-token-alist."
+  "Return the block token info entry for TOKEN from `lua-block-token-alist'."
   (assoc token lua-block-token-alist))
 
 (defun lua-get-token-match-re (token-info direction)
@@ -993,9 +992,10 @@ DIRECTION has to be either \\='forward or \\='backward."
                                (eq match-type 'middle-or-open)
                                (eq found-type 'middle-or-open)
                                (eq match-type found-type))
-                           (goto-char found-pos)
-                           (lua-find-matching-token-word
-                            found-token search-direction))
+                           (progn
+                             (goto-char found-pos)
+                             (lua-find-matching-token-word
+                              found-token search-direction)))
                 (when maybe-found-pos
                   (goto-char maybe-found-pos)
                   (throw 'found maybe-found-pos)))
@@ -1202,7 +1202,7 @@ end-of-statement.")
            (match-beginning 2))))))
 
 (defun lua--backward-up-list-noerror ()
-  "Safe version of lua-backward-up-list that does not signal an error."
+  "Safe version of `lua-backward-up-list' that does not signal an error."
   (condition-case nil
       (lua-backward-up-list)
     (scan-error nil)))
@@ -1249,40 +1249,39 @@ end-of-statement.")
                             lua-funcheader)))))
 
 (defun lua-is-continuing-statement-p-1 ()
-  "Return non-nil if current lined continues a statement.
+  "Return non-nil if current line continues a statement.
 
 More specifically, return the point in the line that is continued.
 The criteria for a continuing statement are:
 
-* the last token of the previous line is a continuing op,
-  OR the first token of the current line is a continuing op
+* The last token of the previous line is a continuing op,
+  OR the first token of the current line is a continuing op.
 
-* the expression is not enclosed by a parentheses/braces/brackets"
+* The expression is not enclosed by a parentheses/braces/brackets."
   (let (prev-line continuation-pos parent-block-opener)
     (save-excursion (setq prev-line (lua-forward-line-skip-blanks 'back)))
     (and prev-line
          (not (lua--continuation-breaking-line-p))
          (save-excursion
-           (or
-            ;; Binary operator or keyword that implies continuation.
-            (and (setq continuation-pos
-                       (or (lua-first-token-continues-p)
-                           (save-excursion
-                             (and (goto-char prev-line)
-                                  ;; Check last token of previous nonblank line
-                                  (lua-last-token-continues-p)))))
-                 (not
-                  ;; Operators/keywords does not create continuation
-                  ;; inside some blocks:
-                  (and (setq parent-block-opener
-                             (car-safe (lua--backward-up-list-noerror)))
-                       (or
-                        ;; Inside parens/brackets
-                        (member parent-block-opener '("(" "["))
-                        ;; Inside braces if it is a comma
-                        (and (eq (char-after continuation-pos) ?,)
-                             (equal parent-block-opener "{")))))
-                 continuation-pos))))))
+           ;; Binary operator or keyword that implies continuation.
+           (and (setq continuation-pos
+                      (or (lua-first-token-continues-p)
+                          (save-excursion
+                            (goto-char prev-line)
+                            ;; Check last token of previous nonblank line
+                            (lua-last-token-continues-p))))
+                (not
+                 ;; Operators/keywords does not create continuation
+                 ;; inside some blocks:
+                 (and (setq parent-block-opener
+                            (car-safe (lua--backward-up-list-noerror)))
+                      (or
+                       ;; Inside parens/brackets
+                       (member parent-block-opener '("(" "["))
+                       ;; Inside braces if it is a comma
+                       (and (eq (char-after continuation-pos) ?,)
+                            (equal parent-block-opener "{")))))
+                continuation-pos)))))
 
 (defun lua-is-continuing-statement-p (&optional parse-start)
   "Return non-nil if PARSE-START should be indented as continuation line.
@@ -1328,7 +1327,7 @@ This true is when the line:
 (defun lua-make-indentation-info-pair (found-token found-pos)
   "Create a pair from FOUND-TOKEN and FOUND-POS for indentation calculation.
 
-This is a helper function to lua-calculate-indentation-info.
+This is a helper function to `lua-calculate-indentation-info'.
 Don't use standalone."
   (cond
    ;; Functions are a bit tricky to indent right.  They can appear in a
@@ -1525,7 +1524,7 @@ The argument PARSE-END is a buffer position that bounds the calculation."
     indentation-info))
 
 (defun lua-accumulate-indentation-info (reversed-indentation-info)
-  "Accumulate indent information from lua-calculate-indentation-info.
+  "Accumulate indent information from `lua-calculate-indentation-info'.
 Returns either the relative indentation shift, or the absolute column to
 indent to.
 
@@ -1553,8 +1552,8 @@ The argument REVERSED-INDENTATION-INFO is an indentation INFO-LIST."
 
 (defun lua-calculate-indentation-block-modifier (&optional parse-end)
   "Return amount by which this line modifies the indentation.
-Beginnings of blocks add lua-indent-level once each, and endings of
-blocks subtract lua-indent-level once each.  This function is used to
+Beginnings of blocks add `lua-indent-level' once each, and endings of
+blocks subtract `lua-indent-level' once each.  This function is used to
 determine how the indentation of the following line relates to this one.
 
 The argument PARSE-END is a buffer position that bounds the calculation."
@@ -1814,19 +1813,17 @@ This function just searches for a `end' at the beginning of a line."
 
 (defun lua-make-lua-string (str)
   "Convert STR to Lua literal."
-  (save-match-data
-    (with-temp-buffer
-      (insert str)
-      (goto-char (point-min))
-      (while (re-search-forward "[\"'\\\t\\\n]" nil t)
-        (cond
-         ((string= (match-string 0) "\n")
-          (replace-match "\\\\n"))
-         ((string= (match-string 0) "\t")
-          (replace-match "\\\\t"))
-         (t
-          (replace-match "\\\\\\&" t))))
-      (concat "'" (buffer-string) "'"))))
+  (concat "'"
+          (replace-regexp-in-string
+           (rx (or ?\" ?' ?\t ?\n ?\\))
+           (lambda (s)
+             (cdr (assq (aref s 0) '((?\" . "\\\"")
+                                     (?\\ . "\\\\")
+                                     (?\n . "\\n")
+                                     (?\t . "\\t")
+                                     (?'  . "\\'")))))
+           str t t)
+          "'"))
 
 ;;;###autoload
 (defalias 'run-lua #'lua-start-process)
@@ -2031,7 +2028,8 @@ left out."
   (interactive "P")
   (let ((num_arg (prefix-numeric-value arg)))
     (setq lua-electric-flag (cond ((or (null arg)
-                                       (zerop num_arg)) (not lua-electric-flag))
+                                       (zerop num_arg))
+                                   (not lua-electric-flag))
                                   ((< num_arg 0) nil)
                                   ((> num_arg 0) t))))
   (message "%S" lua-electric-flag))
