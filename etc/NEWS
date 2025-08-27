@@ -972,6 +972,12 @@ are highlighted like other comments.  When non-nil, Doxygen comment
 blocks are syntax-highlighted if the Doxygen grammar library is
 available.
 
+** Csharp-ts-mode
+
+*** Renamed feature in 'treesit-font-lock-feature-list'
+The feature 'property' has been renamed to 'attribute', since this is
+what it is called in the general C# community.
+
 ** Go-ts mode
 
 +++
