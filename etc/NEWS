@@ -1478,9 +1478,10 @@ replies.
 
 ---
 *** 'imap-authenticate' can now use PLAIN authentication.
-"AUTH=PLAIN" support is auto-enabled if the IMAP server supports it.  Pass
-a specific authentication type to 'imap-authenticate' or remove 'plain'
-from 'imap-authenticators' if you do not wish to use "AUTH=PLAIN".
+"AUTH=PLAIN" support is auto-enabled if the IMAP server supports it.  If
+you do not wish to use "AUTH=PLAIN", pass a specific authentication type
+to 'imap-open' for 'imap-authenticate' to use, or remove 'plain' from
+'imap-authenticators'.
 
 ** Rmail
 
