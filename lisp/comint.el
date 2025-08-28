@@ -1090,8 +1090,9 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
                  (when (and (not (string-match history-ignore history))
 			    (or (null ignoredups)
 				(ring-empty-p ring)
-				(not (string-equal (ring-ref ring 0)
-						   history))))
+				(not (string-equal
+                                      (ring-ref ring (1- (ring-length ring)))
+				      history))))
 		   (when (= count ring-size)
 		     (ring-extend ring (min (- ring-max-size ring-size)
 					    ring-size))
