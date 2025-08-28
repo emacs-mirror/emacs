@@ -4507,7 +4507,7 @@ The keymap which is active in the labels selection process
 
 @defopt reftex-bibfile-ignore-regexps
 List of regular expressions to exclude files in
-@code{\\bibliography@{..@}}.  File names matched by any of these regexps
+@code{\bibliography@{..@}}.  File names matched by any of these regexps
 will not be parsed.  Intended for files which contain only
 @code{@@string} macro definitions and the like, which are ignored by
 @RefTeX{} anyway.
@@ -4605,7 +4605,7 @@ return the string to insert into the buffer.
 @defopt reftex-cite-prompt-optional-args
 Non-@code{nil} means, prompt for empty optional arguments in cite macros.
 When an entry in @code{reftex-cite-format} is given with square brackets to
-indicate optional arguments (for example @samp{\\cite[][]@{%l@}}), RefTeX can
+indicate optional arguments (for example @samp{\cite[][]@{%l@}}), RefTeX can
 prompt for values.  Possible values are:
 @example
 nil     @r{Never prompt for optional arguments}
@@ -4658,7 +4658,7 @@ The keymap which is active in the citation-key selection process
 @end deffn
 
 @defopt reftex-cite-key-separator
-String used to separate several keys in a single @samp{\\cite} macro.
+String used to separate several keys in a single @samp{\cite} macro.
 Per default this is @samp{","} but if you often have to deal with a lot
 of entries and need to break the macro across several lines you might
 want to change it to @samp{", "}.
