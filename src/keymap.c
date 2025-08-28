@@ -1735,11 +1735,20 @@ means to return the active maps for that window's buffer.  */)
 		}
 	    }
 
-	  /* If on a mode line string with a local keymap,
-	     or for a click on a string, i.e. overlay string or a
-	     string displayed via the `display' property,
-	     consider `local-map' and `keymap' properties of
-	     that string.  */
+	  Lisp_Object pos_area = POSN_POSN (position);
+	  if (EQ (pos_area, Qmode_line) || EQ (pos_area, Qheader_line))
+	    {
+	      /* For clicks on mode line or header line, ignore the maps
+		 we found at POSITION, because properties at point are
+		 not relevant in that case.  */
+	      local_map = Qnil;
+	      keymap = Qnil;
+	    }
+
+	  /* If on a mode line string with a local keymap, or for a
+	     click on a string, i.e. overlay string or a string
+	     displayed via the `display' property, consider only the
+	     `local-map' and `keymap' properties of that string.  */
 
 	  if (CONSP (string) && STRINGP (XCAR (string)))
 	    {
@@ -1749,23 +1758,8 @@ means to return the active maps for that window's buffer.  */)
 		  && XFIXNUM (pos) >= 0
 		  && XFIXNUM (pos) < SCHARS (string))
 		{
-		  Lisp_Object map = Fget_text_property (pos, Qlocal_map,
-							string);
-		  Lisp_Object pos_area = POSN_POSN (position);
-		  /* For clicks on mode line or header line, override
-		     the maps we found at POSITION unconditionally, even
-		     if the corresponding properties of the mode- or
-		     header-line string are nil, because propertries at
-		     point are not relevant in that case.  */
-		  if (!NILP (map)
-		      || EQ (pos_area, Qmode_line)
-		      || EQ (pos_area, Qheader_line))
-		    local_map = map;
-		  map = Fget_text_property (pos, Qkeymap, string);
-		  if (!NILP (map)
-		      || EQ (pos_area, Qmode_line)
-		      || EQ (pos_area, Qheader_line))
-		    keymap = map;
+		  local_map = Fget_text_property (pos, Qlocal_map, string);
+		  keymap = Fget_text_property (pos, Qkeymap, string);
 		}
 	    }
 
