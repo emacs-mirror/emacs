@@ -2854,6 +2854,12 @@ function 'load-path-filter-cache-directory-files', calling 'load' will
 cache the directories it scans and their files, and the following
 lookups should be faster.
 
++++
+** 'let-alist' supports indexing into lists.
+The macro 'let-alist' now interprets symbols containing numbers as list
+indices.  For example, '.key.0' looks up 'key' in the alist and then
+returns its first element.
+
 ** Lexical binding
 
 ---

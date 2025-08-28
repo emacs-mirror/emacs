@@ -1934,6 +1934,19 @@ Nested association lists is supported:
 Nesting @code{let-alist} inside each other is allowed, but the code in
 the inner @code{let-alist} can't access the variables bound by the
 outer @code{let-alist}.
+
+Indexing into lists is also supported:
+
+@lisp
+(setq colors '((rose . red) (lily . (yellow pink))))
+(let-alist colors .lily.1)
+     @result{} pink
+@end lisp
+
+Note that forms like @samp{.0} or @samp{.3} are interpreted as numbers
+rather than as symbols, so they won't be bound to the corresponding
+values in ALIST.
+
 @end defmac
 
 @node Property Lists
