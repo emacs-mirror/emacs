@@ -1469,6 +1469,14 @@ be scaled for display on the current frame."
 
 (push '(tabs . frameset-filter-tabs) frameset-filter-alist)
 
+;; Session filter used within same session by `frameset-to-register'
+;; should make a deep copy of tabs to prevent modification
+;; of saved data.
+(defun frameset-session-filter-tabs (current _filtered _parameters _saving)
+  (copy-tree current))
+
+(push '(tabs . frameset-session-filter-tabs) frameset-session-filter-alist)
+
 (defun tab-bar--tab (&optional frame)
   "Make a new tab data structure that can be added to tabs on the FRAME."
   (let* ((tab (tab-bar--current-tab-find nil frame))
