@@ -7424,11 +7424,18 @@ implementations: `python-mode' and `python-ts-mode'."
     (when python-indent-guess-indent-offset
       (python-indent-guess-indent-offset))
 
-    (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-ts-mode))
-    (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode))))
+    (unless (boundp 'treesit-major-mode-remap-alist) ; Emacs 31.1
+      (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-ts-mode))
+      (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode)))))
 
 (when (fboundp 'derived-mode-add-parents) ; Emacs 30.1
   (derived-mode-add-parents 'python-ts-mode '(python-mode)))
+
+;;;###autoload
+(when (and (fboundp 'treesit-available-p) (treesit-available-p)
+           (boundp 'treesit-major-mode-remap-alist)) ; Emacs 31.1
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(python-mode . python-ts-mode)))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code.
