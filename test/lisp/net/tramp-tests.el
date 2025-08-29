@@ -68,6 +68,7 @@
 (require 'vc-git)
 (require 'vc-hg)
 
+(declare-function edebug-mode "edebug")
 (declare-function project-mode-line-format "project")
 (declare-function tramp-check-remote-uname "tramp-sh")
 (declare-function tramp-find-executable "tramp-sh")
@@ -215,7 +216,10 @@ is greater than 10.
 	   (kill-buffer buf))))))
 
 (defsubst tramp--test-message (fmt-string &rest arguments)
-  "Emit a message into ERT *Messages*."
+  "Emit a message into \"ERT *Messages*\" and the trace buffer."
+  (declare (tramp-suppress-trace t))
+  (when (get-buffer trace-buffer)
+    (trace-values (apply #'format fmt-string arguments)))
   (tramp--test-instrument-test-case 0
     (apply #'tramp-message tramp-test-vec 0 fmt-string arguments)))
 
@@ -4857,6 +4861,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	(host (file-remote-p ert-remote-temporary-file-directory 'host))
         (orig-syntax tramp-syntax)
         (minibuffer-completing-file-name t))
+    ;; `file-remote-p' returns as host the string "host#port", which
+    ;; isn't useful.
     (when (and (stringp host)
 	       (string-match
 		(rx (regexp tramp-prefix-port-regexp) (regexp tramp-port-regexp))
@@ -4868,7 +4874,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		            (tramp-syntax-values) `(,orig-syntax)))
           (tramp-change-syntax syntax)
 	  ;; This has cleaned up all connection data, which are used
-	  ;; for completion.  We must refill the cache.
+	  ;; for completion.  We must refill the cache in order to get
+	  ;; at least one completion candidate.
 	  (tramp-set-connection-property tramp-test-vec "completion-use-cache" t)
 
           (let (;; This is needed for the `separate' syntax.
@@ -4883,6 +4890,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
             ;; Complete method name.
 	    (unless (or (tramp-string-empty-or-nil-p method)
                         (string-empty-p tramp-method-regexp))
+	      ;; `read-directory-name' uses `file-directory-p'.
+	      ;; `file-directory-p' works since Emacs 31.
+	      ;; (Bug#79236)
+	      (when (tramp--test-emacs31-p)
+		(should
+		 (file-name-completion
+		  (concat prefix-format (substring method 0 1))
+		  "/" #'file-directory-p)))
 	      (should
 	       (member
 		(concat prefix-format method tramp-postfix-method-format)
@@ -4892,6 +4907,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (unless (or (tramp-string-empty-or-nil-p method)
                         (string-empty-p tramp-method-regexp)
                         (tramp-string-empty-or-nil-p host))
+	      ;; `read-directory-name' uses `file-directory-p'.
+	      ;; `file-directory-p' works since Emacs 31.
+	      ;; (Bug#79236)
+	      (when (tramp--test-emacs31-p)
+		(should
+		 (file-name-completion
+		  (concat prefix-format method tramp-postfix-method-format)
+		  "/" #'file-directory-p)))
 	      (should
 	       (member
 		(concat
@@ -4983,6 +5006,17 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 ;; and Bug#60505.
 (ert-deftest tramp-test26-interactive-file-name-completion ()
   "Check interactive completion with different `completion-styles'."
+  (skip-unless (tramp--test-enabled))
+
+  ;; (when (get-buffer trace-buffer) (kill-buffer trace-buffer))
+  ;; (dolist (elt (append
+  ;; 		(mapcar
+  ;; 		 #'intern (all-completions "tramp-" obarray #'functionp))
+  ;; 		tramp-trace-functions))
+  ;;   (unless (get elt 'tramp-suppress-trace)
+  ;;     (trace-function-background elt)))
+  ;; (trace-function-background #'completion-file-name-table)
+  ;; (trace-function-background #'read-file-name)
 
   ;; Method, user and host name in completion mode.
   (let ((method (file-remote-p ert-remote-temporary-file-directory 'method))
@@ -4991,39 +5025,54 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	(hop (file-remote-p ert-remote-temporary-file-directory 'hop))
         (orig-syntax tramp-syntax)
         (non-essential t)
-	(inhibit-message t))
+	(inhibit-message (not (ignore-errors (edebug-mode)))))
+    ;; `file-remote-p' returns as host the string "host#port", which
+    ;; isn't useful.
     (when (and (stringp host)
 	       (string-match
 		(rx (regexp tramp-prefix-port-regexp) (regexp tramp-port-regexp))
 		host))
       (setq host (replace-match "" nil nil host)))
 
-    ;; (trace-function #'tramp-completion-file-name-handler)
-    ;; (trace-function #'completion-file-name-table)
     (unwind-protect
         (dolist (syntax (if (tramp--test-expensive-test-p)
 		            (tramp-syntax-values) `(,orig-syntax)))
           (tramp-change-syntax syntax)
 	  ;; This has cleaned up all connection data, which are used
-	  ;; for completion.  We must refill the cache.
+	  ;; for completion.  We must refill the cache in order to get
+	  ;; at least one completion candidate.
 	  (tramp-set-connection-property tramp-test-vec "completion-use-cache" t)
 
           (dolist
               (style
                (if (tramp--test-expensive-test-p)
-                   ;; It doesn't work for `initials' and `shorthand'
-                   ;; completion styles.  Should it?
+                   ;; FIXME: It doesn't work for `initials' and
+                   ;; `shorthand' completion styles.  Should it?
 		   ;; `orderless' passes the tests, but it is an ELPA package.
-                   '(emacs21 emacs22 basic partial-completion substring flex)
+		   ;; What about `company' backends, `consult', `cider', `helm'?
+                   `(emacs21 emacs22 basic partial-completion substring
+		     ;; FIXME: `flex' is not compatible with IPv6 hosts.
+		     ,@(unless (string-match-p tramp-ipv6-regexp host) '(flex)))
 		 '(basic)))
 
 	    (when (assoc style completion-styles-alist)
 	      (let* (;; Force the real minibuffer in batch mode.
                      (executing-kbd-macro noninteractive)
+		     ;; FIXME: Is this TRT for test?
+		     (minibuffer-completing-file-name t)
+		     (confirm-nonexistent-file-or-buffer nil)
                      (completion-styles `(,style))
                      completion-category-defaults
                      completion-category-overrides
-                     ;; This is needed for the `simplified' syntax,
+		     ;; FIXME: Is this TRT for test?
+		     (completion-pcm--delim-wild-regex
+		      ;; "::1" is a complete word.  ":" isn't a
+		      ;; delimiter, therefore.
+		      (rx-to-string
+		       `(any
+			 ,(string-replace
+			   ":" "" completion-pcm-word-delimiters))))
+	             ;; This is needed for the `simplified' syntax.
                      (tramp-default-method method)
                      (method-string
 		      (unless (string-empty-p tramp-method-regexp)
@@ -5101,60 +5150,78 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	                     user-string host-string)
 			   ,host-string)))))
 
-                  (ignore-errors (kill-buffer "*Completions*"))
-                  ;; (and (bufferp trace-buffer) (kill-buffer trace-buffer))
-                  (discard-input)
-                  (setq test (car test-and-result)
-                        unread-command-events
-                        (mapcar #'identity (concat test "\t\t\n"))
-                        completions nil
-                        result (read-file-name "Prompt: "))
+		  (dolist
+		      (predicate
+		       (if (and (tramp--test-expensive-test-p)
+				(tramp--test-emacs31-p))
+			   ;; `nil' will be expanded to `file-exists-p'.
+			   ;; `read-directory-name' uses `file-directory-p'.
+			   ;; `file-directory-p' works since Emacs 31.
+			   ;; (Bug#79236)
+			   '(file-exists-p file-directory-p) '(nil)))
 
-                  (if (or (not (get-buffer "*Completions*"))
-			  (string-match-p
-			   (if (string-empty-p tramp-method-regexp)
+                    (ignore-errors (kill-buffer "*Completions*"))
+		    ;; (when (get-buffer trace-buffer)
+		    ;;   (kill-buffer trace-buffer))
+                    (discard-input)
+                    (setq test (car test-and-result)
+                          unread-command-events
+			  (append test '(tab tab return return))
+                          completions nil
+                          result
+			  (read-file-name
+			   "Prompt: " nil nil 'confirm nil predicate))
+
+                    (if (or (not (get-buffer "*Completions*"))
+			    (string-match-p
+			     (if (string-empty-p tramp-method-regexp)
+				 (rx
+				  (| (regexp tramp-postfix-user-regexp)
+				     (regexp tramp-postfix-host-regexp))
+				  eos)
 			       (rx
-				(| (regexp tramp-postfix-user-regexp)
+				(| (regexp tramp-postfix-method-regexp)
+				   (regexp tramp-postfix-user-regexp)
 				   (regexp tramp-postfix-host-regexp))
-				eos)
-			     (rx
-			      (| (regexp tramp-postfix-method-regexp)
-				 (regexp tramp-postfix-user-regexp)
-				 (regexp tramp-postfix-host-regexp))
-			      eos))
-			   result))
-		      (progn
-                        ;; (tramp--test-message
-                        ;;  "syntax: %s style: %s test: %s result: %s"
-                        ;;  syntax style test result)
-			(should (string-prefix-p (cadr test-and-result) result)))
+				eos))
+			     result))
+			(progn
+                          ;; (tramp--test-message
+			  ;;  (concat
+                          ;;   "syntax: %s style: %s predicate: %s "
+			  ;;   "test: %s result: %s")
+                          ;;  syntax style predicate test result)
+			  (should
+			   (string-prefix-p (cadr test-and-result) result)))
 
-                    (with-current-buffer "*Completions*"
-		      ;; We must remove leading `default-directory'.
-		      (goto-char (point-min))
-		      (let ((inhibit-read-only t))
-			(while (search-forward-regexp "//" nil 'noerror)
-			  (delete-region (line-beginning-position) (point))))
-		      (goto-char (point-min))
-		      (search-forward-regexp
-		       (rx bol (0+ nonl)
-			   (any "Pp") "ossible completions"
-			   (0+ nonl) eol))
-		      (forward-line 1)
-		      (setq completions
-                            (split-string
-                             (buffer-substring-no-properties (point) (point-max))
-                             (rx (any "\r\n\t ")) 'omit)))
+                      (with-current-buffer "*Completions*"
+			;; We must remove leading `default-directory'.
+			(goto-char (point-min))
+			(let ((inhibit-read-only t))
+			  (while (search-forward-regexp "//" nil 'noerror)
+			    (delete-region (line-beginning-position) (point))))
+			(goto-char (point-min))
+			(search-forward-regexp
+			 (rx bol (0+ nonl)
+			     (any "Pp") "ossible completions"
+			     (0+ nonl) eol))
+			(forward-line 1)
+			(setq completions
+                              (split-string
+                               (buffer-substring-no-properties
+				(point) (point-max))
+                               (rx (any "\r\n\t ")) 'omit)))
 
-                    ;; (tramp--test-message
-                    ;;  "syntax: %s style: %s test: %s result: %s completions: %S"
-                    ;;  syntax style test result completions)
-                    (should (member (caddr test-and-result) completions))))))))
+                      ;; (tramp--test-message
+		      ;;  (concat
+                      ;;   "syntax: %s style: %s predicate: %s test: %s "
+		      ;;   "result: %s completions: %S")
+                      ;;  syntax style predicate test result completions)
+                      (should
+		       (member (caddr test-and-result) completions)))))))))
 
       ;; Cleanup.
-      ;; (tramp--test-message "%s" (tramp-get-buffer-string trace-buffer))
-      ;; (untrace-function #'tramp-completion-file-name-handler)
-      ;; (untrace-function #'completion-file-name-table)
+      ;; (untrace-all)
       (tramp-change-syntax orig-syntax)
       (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password))))
 
@@ -8815,6 +8882,12 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Use `skip-when' starting with Emacs 30.1.
 ;; * Revisit expensive tests, once problems in `tramp-error' are solved.
 ;; * Fix `tramp-test06-directory-file-name' for "ftp".
+;; * In `tramp-test26-file-name-completion', check also user, domain,
+;;   port and hop.
+;; * In `tramp-test26-interactive-file-name-completion', check `flex',
+;;   `initials' and `shorthand' completion styles.  Should
+;;   `minibuffer-completing-file-name' and `completion-pcm--delim-wild-regex'
+;;   be bound?  Check also domain, port and hop.
 ;; * Check, why a process filter t doesn't work in
 ;;   `tramp-test29-start-file-process' and
 ;;   `tramp-test30-make-process'.

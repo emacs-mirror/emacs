@@ -3522,9 +3522,15 @@ same as `substitute-in-file-name'."
               (unless (memq pred '(nil file-exists-p))
                 (let ((comp ())
                       (pred
-                       (if (eq pred 'file-directory-p)
+                       (if (and (eq pred 'file-directory-p)
+                                (not (string-match-p
+                                      (or (bound-and-true-p
+                                           tramp-completion-file-name-regexp)
+                                          (rx unmatchable))
+                                      string)))
                            ;; Brute-force speed up for directory checking:
                            ;; Discard strings which don't end in a slash.
+                           ;; Unless it is a Tramp construct like "/ssh:".
                            (lambda (s)
                              (let ((len (length s)))
                                (and (> len 0) (eq (aref s (1- len)) ?/))))

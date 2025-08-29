@@ -2557,7 +2557,7 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
 	    (shell-command-to-string (format "avahi-browse -trkp %s" service))
 	    (rx (+ (any "\r\n"))) 'omit (rx bol "+;" (* nonl) eol)))))
     (delete-dups
-     (mapcar
+     (tramp-compat-seq-keep
       (lambda (x)
 	(ignore-errors
 	  (let* ((list (split-string x ";"))
