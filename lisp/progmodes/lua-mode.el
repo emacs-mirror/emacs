@@ -210,37 +210,21 @@ Should be a list of strings."
 (defvar lua-process-buffer nil
   "Buffer used for communication with the Lua process.")
 
-(defun lua--customize-set-prefix-key (prefix-key-sym prefix-key-val)
-  "Set PREFIX-KEY-SYM to PREFIX-KEY-VAL."
-  (unless (eq prefix-key-sym 'lua-prefix-key)
-    (error "Prefix doesn't match lua-prefix-key"))
-  (set prefix-key-sym (when (and prefix-key-val (> (length prefix-key-val) 0))
-                        ;; read-kbd-macro returns a string or a vector
-                        ;; in both cases (elt x 0) is ok
-                        (elt (read-kbd-macro prefix-key-val) 0)))
-  (when (fboundp 'lua-prefix-key-update-bindings)
-    (lua-prefix-key-update-bindings)))
-
 (defcustom lua-prefix-key "\C-c"
   "Prefix for all `lua-mode' commands."
-  :type 'string
-  :set 'lua--customize-set-prefix-key
+  :type 'key-sequence
+  :initialize #'custom-initialize-default
+  :set #'lua--customize-set-prefix-key
   :get (lambda (sym)
-         (if-let* ((val (eval sym))) (single-key-description val) ""))
+         (let ((prefix-key (symbol-value sym)))
+           (if (eq 'ignore prefix-key) "" prefix-key)))
   :version "31.1")
 
-(defvar lua-prefix-mode-map
-  (eval-when-compile
-    (let ((result-map (make-sparse-keymap)))
-      (mapc (lambda (key_defn)
-              (define-key
-               result-map (read-kbd-macro (car key_defn)) (cdr key_defn)))
-            '(("C-l" . lua-send-buffer)
-              ("C-f" . lua-search-documentation)))
-      result-map))
-  "Keymap that is used to define keys accessible by `lua-prefix-key'.
-
-If the latter is nil, the keymap translates into `lua-mode-map' verbatim.")
+(defvar-keymap lua-prefix-mode-map
+  :doc "Keymap that is used to define keys accessible by `lua-prefix-key'.
+If the latter is nil, the keymap translates into `lua-mode-map' verbatim."
+  "C-l" #'lua-send-buffer
+  "C-f" #'lua-search-documentation)
 
 (defvar lua--electric-indent-chars
   (mapcar #'string-to-char '("}" "]" ")")))
@@ -261,10 +245,26 @@ If the latter is nil, the keymap translates into `lua-mode-map' verbatim.")
     ;;   defined look it up in prefix-map
     ;; * if prefix is set, bind the prefix-map to that key
     (if lua-prefix-key
-        (define-key result-map (vector lua-prefix-key) lua-prefix-mode-map)
+        (define-key result-map lua-prefix-key lua-prefix-mode-map)
       (set-keymap-parent result-map lua-prefix-mode-map))
     result-map)
   "Keymap used in `lua-mode' buffers.")
+
+(defun lua--customize-set-prefix-key (prefix-key-sym prefix-key-val)
+  "Set PREFIX-KEY-SYM to PREFIX-KEY-VAL."
+  (unless (eq prefix-key-sym 'lua-prefix-key)
+    (error "Prefix doesn't match lua-prefix-key"))
+  (define-key lua-mode-map lua-prefix-key nil)
+  ;; `lua-set-prefix-key' uses an empty string to remove the prefix.
+  (when (and (equal 'string (type-of prefix-key-val))
+             (string-blank-p prefix-key-val))
+    (setq prefix-key-val (vector #'ignore)))
+  (if (eq 'ignore (elt prefix-key-val 0))
+      (set-keymap-parent lua-mode-map lua-prefix-mode-map)
+    (define-key lua-mode-map prefix-key-val lua-prefix-mode-map))
+  (set-default prefix-key-sym prefix-key-val)
+  (when (fboundp 'lua-prefix-key-update-bindings)
+    (lua-prefix-key-update-bindings)))
 
 (defvar-local lua-electric-flag t
   "Non-nil means electric actions are enabled.")
@@ -612,18 +612,17 @@ The arguments JUSTIFY and REGION control `fill-paragraph' (which see)."
     ;; Otherwise, look for it among children
     (when-let* ((old-cons (rassoc lua-prefix-mode-map lua-mode-map)))
       (delq old-cons lua-mode-map)))
-  (if (null lua-prefix-key)
+  (if (eq 'ignore (elt lua-prefix-key 0))
       (set-keymap-parent lua-mode-map lua-prefix-mode-map)
-    (define-key lua-mode-map (vector lua-prefix-key) lua-prefix-mode-map)))
+    (define-key lua-mode-map lua-prefix-key lua-prefix-mode-map)))
 
 (defun lua-set-prefix-key (new-key-str)
   "Change `lua-prefix-key' to NEW-KEY-STR and update keymaps.
 
 This function replaces previous prefix-key binding with a new one."
   (interactive "sNew prefix key (empty string means no key): ")
-  (lua--customize-set-prefix-key 'lua-prefix-key new-key-str)
-  (message "Prefix key set to %S"  (single-key-description lua-prefix-key))
-  (lua-prefix-key-update-bindings))
+  (lua--customize-set-prefix-key 'lua-prefix-key (kbd new-key-str))
+  (message "Prefix key set to %S" lua-prefix-key))
 
 (defun lua-string-p (&optional pos)
   "Return non-nil if point or POS is in a string."
