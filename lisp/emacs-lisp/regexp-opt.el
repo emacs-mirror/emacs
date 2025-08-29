@@ -140,7 +140,7 @@ usually more efficient than that of a simplified version:
 	   (open (cond ((stringp paren) paren) (paren "\\(")))
 	   (re (if strings
                    (regexp-opt-group
-                    (delete-dups (sort (copy-sequence strings) 'string-lessp))
+                    (delete-dups (sort strings))
                     (or open t) (not open))
                  ;; No strings: return an unmatchable regexp.
                  (concat (or open "\\(?:") regexp-unmatchable "\\)"))))
@@ -250,7 +250,7 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
 		       (prefixes
 			;; Sorting is necessary in cases such as ("ad" "d").
 			(sort (mapcar (lambda (s) (substring s 0 n)) strings)
-			      'string-lessp)))
+                              :in-place t)))
 		  (concat open-group
 			  (regexp-opt-group prefixes t t)
 			  (regexp-quote (nreverse xiffus))

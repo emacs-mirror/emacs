@@ -581,7 +581,7 @@ a list of named character classes in the order they occur in BODY."
     (cons (rx--condense-intervals
            (sort (append conses
                          (mapcan #'rx--string-to-intervals strings))
-                 #'car-less-than-car))
+                 :key #'car :in-place t))
           (nreverse classes))))
 
 (defun rx--generate-alt (negated intervals classes)
