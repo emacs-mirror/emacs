@@ -3345,7 +3345,7 @@ for all methods.  Resulting data are derived from default settings."
   (let ((user (tramp-find-user method nil nil))
 	(host (tramp-find-host method nil nil)))
     (when (or user host)
-      `(,user ,host))))
+      `((,user ,host)))))
 
 ;;;###tramp-autoload
 (defcustom tramp-completion-multi-hop-methods nil
@@ -4340,11 +4340,13 @@ Let-bind it when necessary.")
 (defun tramp-handle-file-directory-p (filename)
   "Like `file-directory-p' for Tramp files."
   (or
-   ;; `file-directory-p' is used as predicate for file name completion.
-   ;; Sometimes, when a connection is not established yet, it is
-   ;; desirable to return t immediately for "/method:foo:".  It can be
-   ;; expected that this is always a directory.
+   ;; `file-directory-p' is used as predicate for file name
+   ;; completion.  Sometimes, when a connection is not established
+   ;; yet, it is desirable to return t immediately for "/method:foo:"
+   ;; or "/method:foo:/".  It can be expected that this is always a
+   ;; directory.
    (tramp-string-empty-or-nil-p (tramp-file-local-name filename))
+   (string-equal (tramp-file-local-name filename) "/")
    ;; `file-truename' could raise an error, for example due to a
    ;; cyclic symlink.
    (ignore-errors
