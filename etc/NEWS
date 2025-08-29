@@ -2586,6 +2586,13 @@ The tabulated listings produced by 'flymake-show-buffer-diagnostics' and
 'flymake-show-project-diagnostics' now automatically adjust their column
 widths based on content, optimizing display space and readability.
 
+*** New user option 'elisp-flymake-byte-compile-executable'.
+This allows customizing the Emacs executable used for Flymake byte
+compilation in emacs-lisp-mode.  This option should be set when editing
+Lisp code which will run with a different Emacs version than the running
+Emacs, such as code from an older or newer version of Emacs.  This will
+provide more accurate warnings from byte compilation.
+
 ** SQLite
 
 +++

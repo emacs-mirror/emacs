@@ -2281,6 +2281,37 @@ directory of the buffer being compiled, and nothing else.")
 
 (defvar bytecomp--inhibit-lexical-cookie-warning)
 
+(defcustom elisp-flymake-byte-compile-executable nil
+  "The Emacs executable to use for Flymake byte compilation.
+
+If non-nil, this should be an absolute or relative file name of an Emacs
+executable.  If it's a relative file name, it should be relative to the
+root directory of the project containing the file being compiled, as
+determined by `project-current'.
+
+If nil, or the file named by this does not exist, the running Emacs is
+used via variable `invocation-directory'."
+  :type 'file
+  :group 'lisp
+  :version "31.1")
+
+(declare-function project-root "project" (project))
+(defun elisp-flymake-byte-compile--executable ()
+  "Return absolute file name of the Emacs executable for flymake byte-compilation."
+  (let ((filename
+         (cond
+          ((file-name-absolute-p elisp-flymake-byte-compile-executable)
+           elisp-flymake-byte-compile-executable)
+          ((stringp elisp-flymake-byte-compile-executable)
+           (when-let* ((pr (project-current)))
+             (file-name-concat (project-root pr)
+                               elisp-flymake-byte-compile-executable))))))
+    (if (file-executable-p filename)
+        filename
+      (when elisp-flymake-byte-compile-executable
+        (message "No such elisp-flymake-byte-compile-executable %s" filename))
+      (expand-file-name invocation-name invocation-directory))))
+
 ;;;###autoload
 (defun elisp-flymake-byte-compile (report-fn &rest _args)
   "A Flymake backend for elisp byte compilation.
@@ -2316,7 +2347,7 @@ current buffer state and calls REPORT-FN when done."
        (make-process
         :name "elisp-flymake-byte-compile"
         :buffer output-buffer
-        :command `(,(expand-file-name invocation-name invocation-directory)
+        :command `(,(elisp-flymake-byte-compile--executable)
                    "-Q"
                    "--batch"
                    ;; "--eval" "(setq load-prefer-newer t)" ; for testing
