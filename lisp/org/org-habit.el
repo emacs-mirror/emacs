@@ -333,7 +333,8 @@ current time."
 	 (start (time-to-days starting))
 	 (now (time-to-days current))
 	 (end (time-to-days ending))
-	 (graph (make-string (1+ (- end start)) ?\s))
+	 (graph (make-vector (1+ (- end start)) ?\s))
+         (props nil)
 	 (index 0)
 	 last-done-date)
     (while (and done-dates (< (car done-dates) start))
@@ -411,17 +412,20 @@ current time."
 		   (not (eq face 'org-habit-overdue-face))
 		   (not markedp))
 	  (setq face (cdr faces)))
-	(put-text-property index (1+ index) 'face face graph)
-	(put-text-property index (1+ index)
-			   'help-echo
-			   (concat (format-time-string
-				    (org-time-stamp-format)
-				    (time-add starting (days-to-time (- start (time-to-days starting)))))
-				   (if donep " DONE" ""))
-			   graph))
+        (push (list index (1+ index) 'face face) props)
+	(push (list index (1+ index)
+		    'help-echo
+		    (concat (format-time-string
+			     (org-time-stamp-format)
+			     (time-add starting (days-to-time (- start (time-to-days starting)))))
+			    (if donep " DONE" "")))
+              props))
       (setq start (1+ start)
 	    index (1+ index)))
-    graph))
+    (let ((graph-str (concat graph)))
+      (dolist (p props)
+        (put-text-property (nth 0 p) (nth 1 p) (nth 2 p) (nth 3 p) graph-str))
+      graph-str)))
 
 (defun org-habit-insert-consistency-graphs (&optional line)
   "Insert consistency graph for any habitual tasks."
