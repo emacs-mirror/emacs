@@ -247,19 +247,12 @@ another (@code{vc-log-mergebase}).
 @c more than one branch for older VCS?  This needs thinking through if
 @c any of our centalized VCS gain support for these commands.
 The @dfn{merge base} of two branches is the most recent revision that
-exists on both branches.  If neither of the branches were ever merged
+exists on both branches.  If neither of the branches was ever merged
 into the other (@pxref{Merging}), then the merge base is the revision
 that the older of the two branches was at when the newer branch was
 created from it (@pxref{Creating Branches}).  If one of the branches was
 ever merged into the other, then the merge base is the most recent merge
 point.
-
-With this understood, we can generalize the concept of a merge base from
-branches to any two revisions.  The merge base of two revisions is the
-most recent revision that can be found in the revision history of both
-of the two revisions.@footnote{In fact the concept generalizes to any
-number of revisions, but Emacs's commands for merge bases work with only
-two, so we limit ourselves to that.}
 
 The commands described in this section are currently implemented only
 for decentralized version control systems (@pxref{VCS Repositories}).
