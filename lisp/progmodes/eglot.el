@@ -3718,7 +3718,7 @@ for which LSP on-type-formatting should be requested."
                        (let ((case-fold-search nil))
                          (and (search-forward parlabel (line-end-position) t)
                               (list (match-beginning 0) (match-end 0))))
-                     (mapcar #'1+ (append parlabel nil)))))
+                     (list (aref parlabel 0) (aref parlabel 1)))))
                (if (and beg end)
                    (add-face-text-property
                     beg end

@@ -952,6 +952,8 @@ In the latter case, VC mode is deactivated for this buffer."
   "O"   #'vc-log-outgoing
   "M L" #'vc-log-mergebase
   "M D" #'vc-diff-mergebase
+  "B =" #'vc-diff-outgoing-base
+  "B D" #'vc-root-diff-outgoing-base
   "m"   #'vc-merge
   "r"   #'vc-retrieve-tag
   "s"   #'vc-create-tag
