@@ -624,6 +624,7 @@ With argument, display info only for the selected version."
 		(t (format "NEWS.%d" vn))))
 	 res)
     (find-file (expand-file-name file data-directory))
+    (widen)  ; In case we already are visiting that NEWS file
     (emacs-news-view-mode)
     (goto-char (point-min))
     (when (stringp version)
