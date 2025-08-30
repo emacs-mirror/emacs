@@ -380,12 +380,14 @@ As soon as possible after a release, the Emacs web pages at
 <https://www.gnu.org/software/emacs/> should be updated.
 (See admin/notes/www for general information.)
 
-The pages to update are:
+The pages and files to update are:
 
-emacs.html (for a new major release, a more thorough update is needed)
-history.html
-add the new NEWS file as news/NEWS.xx.y
-Copy new etc/MACHINES to MACHINES and CONTRIBUTE to CONTRIBUTE
+ . emacs.html (see below; for a new major release, a more thorough
+   update is needed)
+ . history.html (add a line for the new release)
+ . add the new NEWS file as news/NEWS.xx.y
+ . copy new etc/MACHINES to MACHINES and CONTRIBUTE to CONTRIBUTE
+ . possibly/rarely also download.html (see below)
 
 For every new release, a banner is displayed on top of the emacs.html
 page.  Uncomment the release banner in emacs.html.  Keep it on the page
