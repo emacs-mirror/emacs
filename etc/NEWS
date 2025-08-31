@@ -435,6 +435,12 @@ When non-nil, it truncates the tab bar, and therefore prevents
 wrapping and resizing the tab bar to more than one line.
 
 ---
+*** New user option 'tab-line-define-keys'.
+When t, the default, it redefines window buffer switching keys
+such as 'C-x <left>' and 'C-x <right>' to tab-line specific variants
+for switching tabs.
+
+---
 *** New command 'tab-line-move-tab-forward' ('C-x M-<right>').
 Together with the new command 'tab-line-move-tab-backward'
 ('C-x M-<left>'), it can be used to move the current tab
