@@ -507,6 +507,14 @@ predictable behavior, we recommend that you always customize
 this variable overrides any remapping that Emacs might decide to perform
 internally.
 
+@vindex treesit-enabled-modes
+  For extra convenience of enabling major modes based on the tree-sitter,
+the user option @code{treesit-enabled-modes} supports the value @code{t}
+that enables all available tree-sitter based modes, or a list of mode
+names to enable like @code{c-ts-mode}.  After customizing this option,
+it adds the corresponding mappings to @code{major-mode-remap-alist} such
+as remapping from @code{c-mode} to @code{c-ts-mode}.
+
 @findex normal-mode
   If you have changed the major mode of a buffer, you can return to
 the major mode Emacs would have chosen automatically, by typing

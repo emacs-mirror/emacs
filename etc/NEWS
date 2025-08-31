@@ -769,6 +769,7 @@ the default UI you get, i.e., when 'register-use-preview' is 'traditional'.
 
 ** Tree-sitter
 
++++
 *** New user option 'treesit-enabled-modes'.
 You can customize it either to t to enable all available ts-modes,
 or to select a list of ts-modes to enable.  Depending on customization,
