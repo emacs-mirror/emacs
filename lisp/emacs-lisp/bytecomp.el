@@ -5881,11 +5881,11 @@ and corresponding effects."
 ;;; Core compiler macros.
 
 (put 'featurep 'compiler-macro
-     (lambda (form feature &rest _ignore)
+     (lambda (form feature &rest rest)
        ;; Emacs-21's byte-code doesn't run under XEmacs or SXEmacs anyway, so
        ;; we can safely optimize away this test.
-       (if (member feature '('xemacs 'sxemacs 'emacs))
-           (eval form)
+       (if (and (member feature '('xemacs 'sxemacs 'emacs)) (not rest))
+           (featurep feature)
          form)))
 
 ;; Report comma operator used outside of backquote.
