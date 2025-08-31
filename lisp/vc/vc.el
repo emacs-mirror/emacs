@@ -3664,7 +3664,8 @@ to the working revision (except for keyword expansion)."
     ;; If any of the files is visited by the current buffer, make sure
     ;; buffer is saved.  If the user says `no', abort since we cannot
     ;; show the changes and ask for confirmation to discard them.
-    (when (or (not files) (memq (buffer-file-name) files))
+    (when-let* ((n (buffer-file-name))
+                ((or (not files) (member n files))))
       (vc-buffer-sync nil))
     (save-some-buffers nil (lambda ()
                              (and-let* ((n (buffer-file-name)))
