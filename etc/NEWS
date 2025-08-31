@@ -614,6 +614,14 @@ To use the ':foreground' or current text color ensure the 'fill' attribute
 in the SVG is set to 'currentcolor', or set the image spec's ':css'
 value to 'svg {fill: currentcolor;}'.
 
+---
+** Errors signaled by 'emacsclient' connections can now enter the debugger.
+If 'debug-on-error' is non-nil, errors signaled by Lisp programs
+executed due to 'emacsclient' connections will now enter the Lisp
+debugger and show the backtrace.  If 'debug-on-error' is nil, these
+errors will be sent to 'emacsclient', as before, and will be displayed
+on the terminal from which 'emacsclient' was invoked.
+
 
 * Editing Changes in Emacs 31.1
 
