@@ -5404,13 +5404,19 @@ Tree-sitter grammar for `%s' is missing; install it?"
 
 ;;;###autoload
 (defcustom treesit-enabled-modes nil
-  "Specify what treesit modes to enable by default.
+  "Specify which tree-sitter based major modes to enable by default.
 The value can be either a list of ts-modes to enable,
-or t to enable all ts-modes."
+or t to enable all ts-modes.  The value nil (the default)
+means not to enable any tree-sitter based modes.
+
+Enabling a tree-stter based mode means that visiting files in the
+corresponding programming language will automatically turn on that
+mode, instead of any non-tree-sitter based modes for the same
+language."
   :type `(choice
-          (const :tag "Disable all automatic associations" nil)
-          (const :tag "Enable all available ts-modes" t)
-          (set :tag "List of enabled ts-modes"
+          (const :tag "Disable all tree-sitter modes" nil)
+          (const :tag "Enable all available tree-sitter modes" t)
+          (set :tag "Enable specific tree-sitter modes"
                ,@(when (treesit-available-p)
                    (sort (mapcar (lambda (m) `(function-item ,m))
                                  (seq-uniq (mapcar #'cdr treesit-major-mode-remap-alist)))))))
