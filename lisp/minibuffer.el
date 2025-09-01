@@ -3523,14 +3523,12 @@ same as `substitute-in-file-name'."
                 (let ((comp ())
                       (pred
                        (if (and (eq pred 'file-directory-p)
-                                (not (string-match-p
-                                      (or (bound-and-true-p
-                                           tramp-completion-file-name-regexp)
-                                          (rx unmatchable))
-                                      string)))
+                                ;; File-name-handlers don't necessarily follow
+                                ;; that convention (bug#79236).
+                                (not (find-file-name-handler
+                                      realdir 'file-name-all-completions)))
                            ;; Brute-force speed up for directory checking:
                            ;; Discard strings which don't end in a slash.
-                           ;; Unless it is a Tramp construct like "/ssh:".
                            (lambda (s)
                              (let ((len (length s)))
                                (and (> len 0) (eq (aref s (1- len)) ?/))))
