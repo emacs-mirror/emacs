@@ -70,7 +70,7 @@
 ;; - get-change-comment (files rev)                OK
 ;; HISTORY FUNCTIONS
 ;; * print-log (files buffer &optional shortlog start-revision limit)   OK
-;; * incoming-revision (remote-location &optional refresh)   OK
+;; * incoming-revision (upstream-location &optional refresh)   OK
 ;; - log-search (buffer pattern)                   OK
 ;; - log-view-mode ()                              OK
 ;; - show-log-entry (revision)                     OK
@@ -1605,16 +1605,16 @@ If LIMIT is a non-empty string, use it as a base revision."
                               start-revision))
 		'("--")))))))
 
-(defun vc-git-incoming-revision (remote-location &optional refresh)
-  (let ((rev (if (string-empty-p remote-location)
+(defun vc-git-incoming-revision (upstream-location &optional refresh)
+  (let ((rev (if (string-empty-p upstream-location)
 		 "@{upstream}"
-	       remote-location)))
+	       upstream-location)))
     (when (or refresh (null (vc-git--rev-parse rev)))
       (vc-git-command nil 0 nil "fetch"
-                      (and (not (string-empty-p remote-location))
+                      (and (not (string-empty-p upstream-location))
                            ;; Extract remote from "remote/branch".
                            (replace-regexp-in-string "/.*" ""
-                                                     remote-location))))
+                                                     upstream-location))))
     (ignore-errors            ; in order to return nil if no such branch
       (with-output-to-string
         (vc-git-command standard-output 0 nil
