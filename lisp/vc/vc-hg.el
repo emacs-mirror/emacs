@@ -1531,7 +1531,7 @@ This runs the command \"hg summary\"."
          (nreverse result))
        "\n"))))
 
-(defun vc-hg-incoming-revision (remote-location)
+(defun vc-hg-incoming-revision (remote-location &optional _refresh)
   (let* ((remote-location (if (string-empty-p remote-location)
                               "default"
                             remote-location))

@@ -408,13 +408,16 @@
 ;;   received when performing a pull operation from REMOTE-LOCATION.
 ;;   Deprecated: implement incoming-revision and mergebase instead.
 ;;
-;; * incoming-revision (remote-location)
+;; * incoming-revision (remote-location &optional refresh)
 ;;
 ;;   Return revision at the head of the branch at REMOTE-LOCATION.
 ;;   If there is no such branch there, return nil.  (Should signal an
 ;;   error, not return nil, in the case that fetching data fails.)
 ;;   For a distributed VCS, should also fetch that revision into local
 ;;   storage for operating on by subsequent calls into the backend.
+;;   The backend may rely on cached information from a previous fetch
+;;   from REMOTE-LOCATION unless REFRESH is non-nil, which means that
+;;   the most up-to-date information possible is required.
 ;;
 ;; - log-search (buffer pattern)
 ;;
@@ -2562,7 +2565,8 @@ global binding."
   (let* ((fileset (or fileset (vc-deduce-fileset t)))
          (backend (car fileset))
          (incoming (vc--incoming-revision backend
-                                          (or remote-location ""))))
+                                          (or remote-location "")
+                                          'refresh)))
     (vc-diff-internal vc-allow-async-diff fileset
                       (vc-call-backend backend 'mergebase incoming)
                       incoming
@@ -3548,8 +3552,8 @@ The command prompts for the branch whose change log to show."
        (read-string "Remote location/branch (empty for default): " nil
                     'vc-remote-location-history)))
 
-(defun vc--incoming-revision (backend remote-location)
-  (or (vc-call-backend backend 'incoming-revision remote-location)
+(defun vc--incoming-revision (backend remote-location &optional refresh)
+  (or (vc-call-backend backend 'incoming-revision remote-location refresh)
       (user-error "No incoming revision -- local-only branch?")))
 
 ;;;###autoload
@@ -3565,7 +3569,7 @@ In some version control systems REMOTE-LOCATION can be a remote branch name."
 
 (defun vc-default-log-incoming (_backend buffer remote-location)
   (vc--with-backend-in-rootdir ""
-    (let ((incoming (vc--incoming-revision backend remote-location)))
+    (let ((incoming (vc--incoming-revision backend remote-location 'refresh)))
       (vc-call-backend backend 'print-log (list rootdir) buffer t
                        incoming
                        (vc-call-backend backend 'mergebase incoming)))))

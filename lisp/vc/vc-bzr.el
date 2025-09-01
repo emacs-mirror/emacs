@@ -822,7 +822,7 @@ If LIMIT is non-nil, show no more than this many entries."
 	 (list "--theirs-only" (and (not (string-empty-p remote-location))
                                     remote-location))))
 
-(defun vc-bzr-incoming-revision (remote-location)
+(defun vc-bzr-incoming-revision (remote-location &optional _refresh)
   (with-temp-buffer
     (vc-bzr-command "missing" t 1 nil
                     "--log-format=long" "--show-ids"
