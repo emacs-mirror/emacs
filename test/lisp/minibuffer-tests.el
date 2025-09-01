@@ -332,6 +332,21 @@
                   "" '("fooxbar" "fooybar") nil 0)
                  '("foobar" . 3))))
 
+(ert-deftest completion-pcm-test-anydelim ()
+  ;; After each delimiter is a special wildcard which matches any
+  ;; sequence of delimiters.
+  (should (equal (completion-pcm-try-completion
+                  "-x" '("-_.x" "-__x") nil 2)
+                 '("-_x" . 3))))
+
+(ert-deftest completion-pcm-bug4219 ()
+  ;; With `completion-ignore-case', try-completion should change the
+  ;; case of existing text when the completions have different casing.
+  (should (equal
+           (let ((completion-ignore-case t))
+             (completion-pcm-try-completion "a" '("ABC" "ABD") nil 1))
+           '("AB" . 2))))
+
 (ert-deftest completion-substring-test-1 ()
   ;; One third of a match!
   (should (equal
