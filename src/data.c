@@ -3554,7 +3554,7 @@ discarding bits.  */)
   else if (FIXNUMP (value))
     {
       EMACS_INT v = XFIXNUM (value);
-      if (stdc_leading_zeros (v < 0 ? ~v : v) - c
+      if (stdc_leading_zeros ((EMACS_UINT)(v < 0 ? ~v : v)) - c
 	  >= EMACS_INT_WIDTH - FIXNUM_BITS + 1)
 	return make_fixnum (v << c);
     }
