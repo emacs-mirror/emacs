@@ -516,7 +516,7 @@ following subsections.  You can use @kbd{C-x v v} either in a
 file-visiting buffer, in a Dired buffer, or in a VC Directory buffer;
 in the latter two cases the command operates on the fileset consisting
 of the marked files.  You can also use @kbd{C-x v v}, in a buffer with
-patches under Diff Mode (@pxref{Diff Mode}), in which case the command
+patches under Diff mode (@pxref{Diff Mode}), in which case the command
 operates on the files whose diffs are shown in the buffer.
 
   Note that VC filesets are distinct from the named filesets used

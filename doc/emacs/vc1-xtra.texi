@@ -473,6 +473,16 @@ do and do not exist.  In other words, the file or directory the current
 buffer visits probably exists in other working trees too, and this
 command lets you switch to those versions of the file.
 
+@kbd{C-x v w w} also works in Diff mode (@pxref{Diff Mode}).  Instead of
+switching to a different buffer, the command changes the default
+directory of the Diff mode buffer to the corresponding directory under
+another working tree.  This is useful with Diff mode buffers generated
+by VC commands, such as @kbd{C-x v =} and @kbd{C-x v D} (@pxref{Old
+Revisions}).  You can use @kbd{C-x v w w} and then standard Diff mode
+commands like @w{@kbd{C-c C-a}} (@code{diff-apply-hunk}) and @kbd{C-c
+RET C-a} (@code{diff-apply-buffer}) to apply hunks from one working tree
+to another.
+
 @kindex C-x v w s
 @findex vc-working-tree-switch-project
 An alternative way to switch between working trees is @kbd{C-x v w s}
