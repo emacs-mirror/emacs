@@ -5885,7 +5885,7 @@ and corresponding effects."
        ;; Emacs-21's byte-code doesn't run under XEmacs or SXEmacs anyway, so
        ;; we can safely optimize away this test.
        (if (and (member feature '('xemacs 'sxemacs 'emacs)) (not rest))
-           (featurep feature)
+           (featurep (cadr feature))
          form)))
 
 ;; Report comma operator used outside of backquote.
