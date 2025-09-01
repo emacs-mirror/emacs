@@ -175,9 +175,58 @@ consulted.  Note that the keys of the
 plain symbols."
   (if-let* (((not (eq prop 'category)))
             (cat (completion--metadata-get-1 metadata 'category))
-            (over (completion--category-override cat prop)))
+            (over (completion-category-get cat prop)))
       (cdr over)
     (completion--metadata-get-1 metadata prop)))
+
+(defun completion-category-get (cat prop)
+  "Get property PROP of completion category CAT.
+
+This function consults `completion-category-overrides' and
+`completion-category-defaults' to determine the value for PROP in CAT.
+If no value is found in these variables, then this function goes over
+the parent categories of CAT (specified in the definition of CAT with
+`define-completion-category', which see), and chooses the first value
+any of them specify (directly or via inheriance), if any.
+
+If this fucntion finds a value VAL for PROP, it returns a cons cell with
+VAL at the `cdr'.  Otherwise, this function returns nil."
+  (seq-some (lambda (c) (completion--category-override c prop))
+            (completion--all-reachable-categories cat)))
+
+(defvar completion--all-reachable-categories-cache (make-hash-table))
+
+(defun completion--all-reachable-categories (cat)
+  (with-memoization (gethash cat completion--all-reachable-categories-cache)
+    (cons cat
+          (let* ((parents (get cat 'completion-category-parents))
+                 (aps (mapcar #'completion--all-reachable-categories parents)))
+            (if (cdr aps)
+                (merge-ordered-lists (nconc aps (list parents)))
+              (car aps))))))
+
+(defun define-completion-category (name &optional parents doc &rest defaults)
+  "Define NAME as a completion category, inheriting from PARENTS.
+DOC is a documentation string describing the category, and DEFAULTS is a
+plist (KEYWORD1 VALUE1 KEYWORD2 VALUE2 ...) specifying properties to
+associate with the category in `completion-category-defaults'.  For
+example, you can define a category `foo' that inherits from the `file'
+category but specifies a bespoke `group-function', as follows:
+
+  (define-completion-category \\='foo \\='(file)
+    \"Completion category for foo.\"
+    :group-function #\\='group-by-baz)"
+  (declare (indent defun) (doc-string 3))
+  (let (alist)
+    (while defaults
+      (push
+       (cons (intern (substring (symbol-name (pop defaults)) 1))
+             (pop defaults))
+       alist))
+    (setf (alist-get name completion-category-defaults) alist))
+  (put name 'completion-category-documentation doc)
+  (put name 'completion-category-parents (ensure-list parents))
+  name)
 
 (defun complete-with-action (action collection string predicate)
   "Perform completion according to ACTION.
@@ -1215,7 +1264,6 @@ styles for specific categories, such as files, buffers, etc."
     ;; A new style that combines substring and pcm might be better,
     ;; e.g. one that does not anchor to bos.
     (project-file (styles . (substring)))
-    (project-buffer (styles . (basic substring)))
     (xref-location (styles . (substring)))
     (info-menu (styles . (basic substring)))
     (symbol-help (styles . (basic shorthand substring))))
@@ -1235,7 +1283,7 @@ an association list that can specify properties such as:
 Categories are symbols such as `buffer' and `file', used when
 completing buffer and file names, respectively.
 
-Also see `completion-category-overrides'.")
+Also see `completion-category-overrides' and `completion-category-get'.")
 
 (defcustom completion-category-overrides nil
   "List of category-specific user overrides for completion metadata.
@@ -1312,7 +1360,7 @@ overrides the default specified in `completion-category-defaults'."
 
 (defun completion--styles (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))
-         (over (completion--category-override cat 'styles)))
+         (over (completion-category-get cat 'styles)))
     (if over
         (delete-dups (append (cdr over) (copy-sequence completion-styles)))
        completion-styles)))
@@ -1499,7 +1547,7 @@ pair of a group title string and a list of group candidate strings."
 
 (defun completion--cycle-threshold (metadata)
   (let* ((cat (completion-metadata-get metadata 'category))
-         (over (completion--category-override cat 'cycle)))
+         (over (completion-category-get cat 'cycle)))
     (if over (cdr over) completion-cycle-threshold)))
 
 (defvar-local completion-all-sorted-completions nil)

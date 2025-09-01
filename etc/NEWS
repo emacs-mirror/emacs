@@ -172,6 +172,11 @@ can be overridden for different completion categories by customizing
 "*Completions*" for all minibuffers, or nil to suppress this for all
 minibuffers.
 
+---
+*** Support for completion category inheritance.
+You can now define completion categories that inherit properties from
+existing categories, using the new function 'define-completion-category'.
+
 +++
 *** Support for updating "*Completions*" as you type.
 If the "*Completions*" buffer is displayed, it will now be updated as
