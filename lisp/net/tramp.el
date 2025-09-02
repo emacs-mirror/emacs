@@ -3261,7 +3261,7 @@ remote host and localname (filename on remote host)."
 (defun tramp-get-completion-methods (partial-method &optional multi-hop)
   "Return all method completions for PARTIAL-METHOD.
 If MULTI-HOP is non-nil, return only multi-hop capable methods."
-  (mapcar
+  (tramp-compat-seq-keep
    (lambda (method)
      (and method (string-prefix-p (or partial-method "") method)
 	  (or (not multi-hop)
