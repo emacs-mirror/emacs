@@ -2285,12 +2285,13 @@ directory of the buffer being compiled, and nothing else.")
   "The Emacs executable to use for Flymake byte compilation.
 
 If non-nil, this should be an absolute or relative file name of an Emacs
-executable.  If it's a relative file name, it should be relative to the
-root directory of the project containing the file being compiled, as
-determined by `project-current'.
+executable to use for byte compilation by Flymake.  If it's a relative
+file name, it should be relative to the root directory of the project
+containing the file being compiled, as determined by `project-current'.
 
-If nil, or the file named by this does not exist, the running Emacs is
-used via variable `invocation-directory'."
+If nil, or if the file named by this does not exist, Flymake will
+use the same executable as the running Emacs, as specified by the
+variables `invocation-name' and `invocation-directory'."
   :type 'file
   :group 'lisp
   :version "31.1")
