@@ -2727,13 +2727,12 @@ files.  If tree-sitter is properly set-up by the user, it can be
 enabled for files named "go.work".
 
 ** New package 'lua-mode'.
-The 'lua-mode' package from Non-GNU ELPA is now included in Emacs.
+The 'lua-mode' package from NonGNU ELPA is now included in Emacs.
 
 ** New library 'timeout'.
-This library that provides higher order functions to throttle or
-debounce Elisp functions.  This is useful for corraling over-eager code
-that is slow and blocks Emacs or does not provide customization options
-to limit how often it runs.
+This library provides functions to throttle or debounce Emacs Lisp
+functions.  This is useful for corralling overeager code that is slow
+and blocks Emacs, or does not provide ways to limit how often it runs.
 
 
 * Incompatible Lisp Changes in Emacs 31.1
