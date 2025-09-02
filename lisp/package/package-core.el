@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(eval-and-compile (require 'cl-lib))
+(eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'epg))      ;For setf accessors.
 (eval-when-compile (require 'inline))   ;For `define-inline'
 
@@ -529,9 +529,11 @@ sexps)."
            (effective-path (or (bound-and-true-p find-library-source-path)
                                load-path))
            (files (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))
-           (history (mapcar #'file-truename
-                            (cl-remove-if-not #'stringp
-                                              (mapcar #'car load-history)))))
+           (history '()))
+      (dolist (file load-history)
+        (when (stringp (car file))
+          (push (file-truename (car file))
+                history)))
       (dolist (file files)
         (when-let* ((library (package--library-stem
                               (file-relative-name file dir)))
