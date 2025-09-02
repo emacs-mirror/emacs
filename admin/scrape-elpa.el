@@ -75,7 +75,10 @@ Please review the results before updating the autosuggest database!"
                        (prin1 (append (list pkg variable regexp)
                                       (and (not (eq pkg mode)) (list mode))))))))
               (end-of-file nil))))))
-    (insert "\n)\n")))
+    (insert "\n)\n")
+    (save-mark-and-excursion
+      (mark-sexp -1)
+      (sort-lines nil (region-beginning) (region-end)))))
 
 (provide 'scrape-elpa)
 ;;; scrape-elpa.el ends here
