@@ -2310,7 +2310,8 @@ variables `invocation-name' and `invocation-directory'."
     (if (file-executable-p filename)
         filename
       (when elisp-flymake-byte-compile-executable
-        (message "No such elisp-flymake-byte-compile-executable %s" filename))
+        (message "No such `elisp-flymake-byte-compile-executable': %s"
+                 filename))
       (expand-file-name invocation-name invocation-directory))))
 
 ;;;###autoload
