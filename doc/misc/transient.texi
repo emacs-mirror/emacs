@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.9.4
+@subtitle for version 0.10.0
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.9.4.
+This manual is for Transient version 0.10.0.
 
 @insertcopying
 @end ifnottex
@@ -1692,15 +1692,28 @@ If the current command was invoked from the transient prefix command
 @var{PREFIX}, then it returns the active infix arguments.  If the current
 command was not invoked from @var{PREFIX}, then it returns the set, saved
 or default value for @var{PREFIX}.
+
+PREFIX may also be a list of prefixes.  If no prefix is active, the
+fallback value of the first of these prefixes is used.
+
+The generic function @code{transient-prefix-value} is used to determine the
+returned value.
+
+This function is intended to be used by suffix commands, whether they
+are invoked from a menu or not.  It is not intended to be used when
+setting up a menu and its suffixes, in which case @code{transient-get-value}
+should be used.
 @end defun
 
 @defun transient-get-value
-This function returns the value of the current prefix.
+This function returns the value of the erant prefix.
 
-This is mostly intended for internal use, but may also be of use
-in @code{transient-set-value} and @code{transient-save-value} methods.  Unlike
-@code{transient-args}, this does not include the values of suffixes whose
-@code{unsavable} slot is non-@code{nil}.
+This function is intended to be used when setting up a menu and its
+suffixes.  It is not intended to be used when a suffix command is
+invoked, whether from a menu or not, in which case @code{transient-args}
+should be used.  In other words, use this, e.g., in a suffixes @code{:if*}
+or @code{:inapt-if*} predicate and @code{:description} function, but never in its
+@code{interactive} form or function body.
 @end defun
 
 @defun transient-arg-value arg args
@@ -2406,6 +2419,21 @@ function, that is called to get the value.  If the slot is unbound,
 
 @defun transient-prefix-value obj
 This generic function returns the value of the prefix object @var{OBJ}.
+
+OBJ is a prototype object and is only used to select the appropriate
+method of this generic function.  This function does not return the
+value of that object.  Instead it extracts the name of the respective
+command from the object and uses that to collect the current values
+from the suffixes of the prefix from which the current command was
+invoked.  If the current command was not invoked from the identified
+prefix, then this method returns the set, save or default value, as
+described for @code{transient-args}.
+
+This function is only intended to be used by @code{transient-args}.  It is
+not defined as an internal function because third-party packages may
+define their own methods.  That does not mean that it would be a good
+idea to call it for any other purpose.
+
 The respective generic function for infix and suffix objects is
 named @code{transient-infix-value}.
 @end defun
@@ -2611,6 +2639,45 @@ primary @code{transient-init-value} method is called instead.
 @code{history-key} If multiple prefix commands should share a single value,
 then this slot has to be set to the same value for all of them.  You
 probably don't want that.
+
+@item
+@code{remember-value} When a suffix command is invoked, which can consume
+the prefix's value (which depends on the suffix slot @code{transient} and
+the prefix slots @code{transient-suffix} and @code{transient-non-suffix}), then
+the value is automatically pushed to the prefix's value history.
+
+This slot allows additionally setting or even saving the value, so
+that it becomes the initial value when the menu is invoked again.
+
+Beside @code{nil}, the value can be one of these symbols:
+
+@itemize
+@item
+@code{export} Set the value when it is exported.  That is the time when
+the value would ordinarily just be pushed to the history stack.
+
+@item
+@code{exit} Set the value when the menu is exited, except when that is
+done using a command whose sole purpose is to quit the menu.
+
+@item
+@code{quit} Set the value when the menu is quit, using a command whose
+sole purpose is to do so.
+@end itemize
+
+The value can also be a list of one or more of these symbols and
+optionally also the symbol @code{save}.
+
+@itemize
+@item
+@code{save} Instead of merely setting the value, save it, so that it will
+be used in future Emacs sessions.  At least one other symbol has
+to be used together with this.
+@end itemize
+
+The value can also be a (quoted) variable, whose value is a list of
+symbols as described above.  Ideally an option should be used, since
+not all users will find the automatic saving of the value desirable.
 
 @item
 @code{incompatible} A list of lists.  Each sub-list specifies a set of
