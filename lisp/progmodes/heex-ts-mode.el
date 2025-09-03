@@ -235,7 +235,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (setq-local treesit-font-lock-feature-list
                 heex-ts--font-lock-feature-list)
 
-    (when (treesit-ready-p 'elixir)
+    (when (treesit-ensure-installed 'elixir)
       (require 'elixir-ts-mode)
       (treesit-parser-create 'elixir)
 
