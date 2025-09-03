@@ -162,120 +162,128 @@
   (ignore-errors
     (or (treesit-query-string "" '((method_elem) @cap) 'go) t)))
 
-(defvar go-ts-mode--font-lock-settings
-  (treesit-font-lock-rules
-   :language 'go
-   :feature 'bracket
-   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
-
-   :language 'go
-   :feature 'comment
-   '((comment) @font-lock-comment-face)
-
-   :language 'go
-   :feature 'builtin
-   `((call_expression
-      function: ((identifier) @font-lock-builtin-face
-                 (:match ,(rx-to-string
-                           `(seq bol
-                                 (or ,@go-ts-mode--builtin-functions)
-                                 eol))
-                         @font-lock-builtin-face))))
-
-   :language 'go
-   :feature 'constant
-   `([(false) (nil) (true)] @font-lock-constant-face
-     ,@(when (go-ts-mode--iota-query-supported-p)
-         '((iota) @font-lock-constant-face))
-     (const_declaration
-      (const_spec name: (identifier) @font-lock-constant-face
-                  ("," name: (identifier) @font-lock-constant-face)*)))
-
-   :language 'go
-   :feature 'delimiter
-   '((["," "." ";" ":"]) @font-lock-delimiter-face)
-
-   :language 'go
-   :feature 'operator
-   `([,@go-ts-mode--operators] @font-lock-operator-face)
-
-   :language 'go
-   :feature 'definition
-   `((function_declaration
-      name: (identifier) @font-lock-function-name-face)
-     (method_declaration
-      name: (field_identifier) @font-lock-function-name-face)
-     (,(if (go-ts-mode--method-elem-supported-p)
-           'method_elem
-         'method_spec)
-      name: (field_identifier) @font-lock-function-name-face)
-     (field_declaration
-      name: (field_identifier) @font-lock-property-name-face)
-     (parameter_declaration
-      name: (identifier) @font-lock-variable-name-face)
-     (variadic_parameter_declaration
-      name: (identifier) @font-lock-variable-name-face)
-     (short_var_declaration
-      left: (expression_list
-             (identifier) @font-lock-variable-name-face
-             ("," (identifier) @font-lock-variable-name-face)*))
-     (var_spec name: (identifier) @font-lock-variable-name-face
-               ("," name: (identifier) @font-lock-variable-name-face)*)
-     (range_clause
-      left: (expression_list
-             (identifier) @font-lock-variable-name-face)))
-
-   :language 'go
-   :feature 'function
-   '((call_expression
-      function: (identifier) @font-lock-function-call-face)
-     (call_expression
-      function: (selector_expression
-                 field: (field_identifier) @font-lock-function-call-face)))
-
-   :language 'go
-   :feature 'keyword
-   `([,@go-ts-mode--keywords] @font-lock-keyword-face)
-
-   :language 'go
-   :feature 'label
-   '((label_name) @font-lock-constant-face)
-
-   :language 'go
-   :feature 'number
-   '([(float_literal)
-      (imaginary_literal)
-      (int_literal)] @font-lock-number-face)
-
-   :language 'go
-   :feature 'string
-   '([(interpreted_string_literal)
-      (raw_string_literal)
-      (rune_literal)] @font-lock-string-face)
-
-   :language 'go
-   :feature 'type
-   '([(package_identifier) (type_identifier)] @font-lock-type-face)
-
-   :language 'go
-   :feature 'property
-   '((selector_expression field: (field_identifier) @font-lock-property-use-face)
-     (keyed_element (_ (identifier) @font-lock-property-use-face)))
-
-   :language 'go
-   :feature 'variable
-   '((identifier) @font-lock-variable-use-face)
-
-   :language 'go
-   :feature 'escape-sequence
-   :override t
-   '((escape_sequence) @font-lock-escape-face)
-
-   :language 'go
-   :feature 'error
-   :override t
-   '((ERROR) @font-lock-warning-face))
+(defvar go-ts-mode--font-lock-settings nil
   "Tree-sitter font-lock settings for `go-ts-mode'.")
+
+(defun go-ts-mode--font-lock-settings ()
+  "Return tree-sitter font-lock settings for `go-ts-mode'.
+
+Tree-sitter font-lock rules are evaluated the first time this function
+is called.  Subsequent calls return the first evaluated value."
+  (or go-ts-mode--font-lock-settings
+      (setq go-ts-mode--font-lock-settings
+            (treesit-font-lock-rules
+             :language 'go
+             :feature 'bracket
+             '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+
+             :language 'go
+             :feature 'comment
+             '((comment) @font-lock-comment-face)
+
+             :language 'go
+             :feature 'builtin
+             `((call_expression
+                function: ((identifier) @font-lock-builtin-face
+                           (:match ,(rx-to-string
+                                     `(seq bol
+                                           (or ,@go-ts-mode--builtin-functions)
+                                           eol))
+                                   @font-lock-builtin-face))))
+
+             :language 'go
+             :feature 'constant
+             `([(false) (nil) (true)] @font-lock-constant-face
+               ,@(when (go-ts-mode--iota-query-supported-p)
+                   '((iota) @font-lock-constant-face))
+               (const_declaration
+                (const_spec name: (identifier) @font-lock-constant-face
+                            ("," name: (identifier) @font-lock-constant-face)*)))
+
+             :language 'go
+             :feature 'delimiter
+             '((["," "." ";" ":"]) @font-lock-delimiter-face)
+
+             :language 'go
+             :feature 'operator
+             `([,@go-ts-mode--operators] @font-lock-operator-face)
+
+             :language 'go
+             :feature 'definition
+             `((function_declaration
+                name: (identifier) @font-lock-function-name-face)
+               (method_declaration
+                name: (field_identifier) @font-lock-function-name-face)
+               (,(if (go-ts-mode--method-elem-supported-p)
+                     'method_elem
+                   'method_spec)
+                name: (field_identifier) @font-lock-function-name-face)
+               (field_declaration
+                name: (field_identifier) @font-lock-property-name-face)
+               (parameter_declaration
+                name: (identifier) @font-lock-variable-name-face)
+               (variadic_parameter_declaration
+                name: (identifier) @font-lock-variable-name-face)
+               (short_var_declaration
+                left: (expression_list
+                       (identifier) @font-lock-variable-name-face
+                       ("," (identifier) @font-lock-variable-name-face)*))
+               (var_spec name: (identifier) @font-lock-variable-name-face
+                         ("," name: (identifier) @font-lock-variable-name-face)*)
+               (range_clause
+                left: (expression_list
+                       (identifier) @font-lock-variable-name-face)))
+
+             :language 'go
+             :feature 'function
+             '((call_expression
+                function: (identifier) @font-lock-function-call-face)
+               (call_expression
+                function: (selector_expression
+                           field: (field_identifier) @font-lock-function-call-face)))
+
+             :language 'go
+             :feature 'keyword
+             `([,@go-ts-mode--keywords] @font-lock-keyword-face)
+
+             :language 'go
+             :feature 'label
+             '((label_name) @font-lock-constant-face)
+
+             :language 'go
+             :feature 'number
+             '([(float_literal)
+                (imaginary_literal)
+                (int_literal)] @font-lock-number-face)
+
+             :language 'go
+             :feature 'string
+             '([(interpreted_string_literal)
+                (raw_string_literal)
+                (rune_literal)] @font-lock-string-face)
+
+             :language 'go
+             :feature 'type
+             '([(package_identifier) (type_identifier)] @font-lock-type-face)
+
+             :language 'go
+             :feature 'property
+             '((selector_expression field: (field_identifier) @font-lock-property-use-face)
+               (keyed_element (_ (identifier) @font-lock-property-use-face)))
+
+             :language 'go
+             :feature 'variable
+             '((identifier) @font-lock-variable-use-face)
+
+             :language 'go
+             :feature 'escape-sequence
+             :override t
+             '((escape_sequence) @font-lock-escape-face)
+
+             :language 'go
+             :feature 'error
+             :override t
+             '((ERROR) @font-lock-warning-face)))))
 
 (defvar-keymap go-ts-mode-map
   :doc "Keymap used in Go mode, powered by tree-sitter"
@@ -348,7 +356,7 @@
                 (append "{}()" electric-indent-chars))
 
     ;; Font-lock.
-    (setq-local treesit-font-lock-settings go-ts-mode--font-lock-settings)
+    (setq-local treesit-font-lock-settings (go-ts-mode--font-lock-settings))
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)
                   ( keyword string type)
