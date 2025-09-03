@@ -1322,7 +1322,10 @@ used to set the value of `isearch-regexp-function'."
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
   (force-mode-line-update)
 
-  (setq isearch--saved-local-map overriding-terminal-local-map)
+  ;; Prevent successive calls overriding original map
+  ;; in `isearch-done'.  (Bug#79368)
+  (unless (eq overriding-terminal-local-map isearch-mode-map)
+    (setq isearch--saved-local-map overriding-terminal-local-map))
   (setq overriding-terminal-local-map isearch-mode-map)
   (run-hooks 'isearch-mode-hook)
   ;; Remember the initial map possibly modified
@@ -1765,12 +1768,18 @@ You can update the global isearch variables by setting new values to
 
             (setq isearch-suspended nil)
 
-	    ;; Always resume isearching by restarting it.
-	    (isearch-mode isearch-forward
-			  isearch-regexp
-			  isearch-op-fun
-			  nil
-			  isearch-regexp-function)
+	    ;; When aborting recursive minibuffers with a command attempted
+	    ;; to use minibuffer while in minibuffer, this unwind form
+	    ;; might be called consecutively more than once.  So check if
+	    ;; `isearch-mode' was already enabled in a previous call
+	    ;; in the same unwind form (bug#79368).
+	    (unless isearch-mode
+	      ;; Always resume isearching by restarting it.
+	      (isearch-mode isearch-forward
+			    isearch-regexp
+			    isearch-op-fun
+			    nil
+			    isearch-regexp-function))
 
 	    ;; Copy new local values to isearch globals
 	    (setq isearch-string isearch-new-string
