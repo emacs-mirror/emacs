@@ -1820,12 +1820,6 @@ or from one of the possible completions.  */)
 
   if (NILP (bestmatch))
     return Qnil;		/* No completions found.  */
-  /* If we are ignoring case, and there is no exact match,
-     and no additional text was supplied,
-     don't change the case of what the user typed.  */
-  if (completion_ignore_case && bestmatchsize == SCHARS (string)
-      && SCHARS (bestmatch) > bestmatchsize)
-    return string;
 
   /* Return t if the supplied string is an exact match (counting case);
      it does not require any change to be made.  */
