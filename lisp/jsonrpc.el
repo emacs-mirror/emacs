@@ -548,7 +548,9 @@ connection object, called when the process dies.")
     (set-process-buffer proc (get-buffer-create (format " *%s output*" name)))
     (set-process-filter proc #'jsonrpc--process-filter)
     (set-process-sentinel proc #'jsonrpc--process-sentinel)
+    (set-process-coding-system proc 'binary 'binary)
     (with-current-buffer (process-buffer proc)
+      (set-buffer-multibyte nil)
       (buffer-disable-undo)
       (set-marker (process-mark proc) (point-min))
       (let ((inhibit-read-only t))
@@ -578,16 +580,11 @@ connection object, called when the process dies.")
                      (id 'request)
                      (method 'notification)))
          (converted (jsonrpc-convert-to-endpoint connection args kind))
-         (json (jsonrpc--json-encode converted))
-         (headers
-          `(("Content-Length" . ,(format "%d" (string-bytes json)))
-            ;; ("Content-Type" . "application/vscode-jsonrpc; charset=utf-8")
-            )))
+         (json (jsonrpc--json-encode converted)))
     (process-send-string
      (jsonrpc--process connection)
-     (cl-loop for (header . value) in headers
-              concat (concat header ": " value "\r\n") into header-section
-              finally return (format "%s\r\n%s" header-section json)))
+     (concat "Content-Length: " (number-to-string (string-bytes json)) "\r\n"
+              "\r\n" json))
     (jsonrpc--event
      connection
      'client
@@ -641,11 +638,19 @@ and delete the network process."
                            :false-object :json-false))
     (require 'json)
     (defvar json-object-type)
-    (declare-function json-read "json" ())
+    (declare-function json-read-from-string "json" (string))
     (lambda ()
       (let ((json-object-type 'plist))
-        (json-read))))
-  "Read JSON object in buffer, move point to end of buffer.")
+        ;; `json-read' can't be used because the old json API requires
+        ;; decoded input.
+        (prog1
+            (json-read-from-string
+             (decode-coding-string
+              (buffer-substring-no-properties (point) (point-max))
+              'utf-8-unix t))
+          (goto-char (point-max))))))
+  "Read JSON object in (binary unibyte) buffer from point.
+Move point to end of buffer.")
 
 (defalias 'jsonrpc--json-encode
   (if (fboundp 'json-serialize)
@@ -745,8 +750,11 @@ and delete the network process."
                   ;;
                   (setq expected-bytes
                         (and (search-forward-regexp
-                              "\\(?:.*: .*\r\n\\)*Content-Length: \
-*\\([[:digit:]]+\\)\r\n\\(?:.*: .*\r\n\\)*\r\n"
+                              (rx bol "Content-Length: " (group (+ digit))
+                                  "\r\n"
+                                  (* (* (not (in ":\n"))) ": "
+                                     (* (not (in "\r\n"))) "\r\n")
+                                  "\r\n")
                               (+ (point) 100)
                               t)
                              (string-to-number (match-string 1))))
