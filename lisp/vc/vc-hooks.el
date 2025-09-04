@@ -970,7 +970,9 @@ In the latter case, VC mode is deactivated for this buffer."
   "w w" #'vc-switch-working-tree
   "w s" #'vc-working-tree-switch-project
   "w x" #'vc-delete-working-tree
-  "w R" #'vc-move-working-tree)
+  "w R" #'vc-move-working-tree
+  "w a" #'vc-apply-to-other-working-tree
+  "w A" #'vc-apply-root-to-other-working-tree)
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key ctl-x-map "v" 'vc-prefix-map)
 

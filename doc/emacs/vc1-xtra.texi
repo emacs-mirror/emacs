@@ -397,15 +397,15 @@ want to disturb.  So you type @kbd{C-x v w c} (see below) and create a
 new working tree, following the prompts to check out the version 2
 branch there.
 
-You apply the patch to that working tree, build and test it.  Satisfied,
-you use @kbd{C-x v P} (@pxref{Pulling / Pushing}) in the other working
-tree.  In the course of testing the patch, you've realised that the bug
-exists in version 3 of the software, too.  So you switch back to your
-first working tree, and use @kbd{C-x v m} (@pxref{Merging}) to merge the
-branch you have checked out in the other working tree.  Now your version
-of the trunk has all of version 2's fixes merged into it, but you
-haven't pushed it yet because you're still refactoring.  You'll use
-@kbd{C-x v P} later.
+You apply the patch to that working tree using @w{@kbd{C-x v w a}} (see
+below), build and test it.  Satisfied, you use @w{@kbd{C-x v P}}
+(@pxref{Pulling / Pushing}) in the other working tree.  In the course of
+testing the patch, you've realised that the bug exists in version 3 of
+the software, too.  So you switch back to your first working tree, and
+use @kbd{C-x v m} (@pxref{Merging}) to merge the branch you have checked
+out in the other working tree.  Now your version of the trunk has all of
+version 2's fixes merged into it, but you haven't pushed it yet because
+you're still refactoring.  You'll use @kbd{C-x v P} later.
 @end indentedblock
 
 Ordinary VC commands like @kbd{C-x v v} (@pxref{Basic VC Editing}) and
@@ -439,6 +439,12 @@ Visit this file or directory in another working tree.
 @item C-x v w s
 Invoke @kbd{C-x p p} (@code{project-switch-project}) but limited to
 other working trees.
+
+@item C-x v w a
+Copy or move fileset changes to another working tree.
+
+@item C-x v w A
+Copy or move all changes to another working tree.
 
 @item C-x v w x
 Delete a working tree you no longer need.
@@ -499,6 +505,34 @@ to other working trees.  The main difference between @kbd{C-x v w w} and
 @kbd{C-x v w s} is that the former looks for an analogue of the current
 buffer in the other working tree while the latter considers the other
 working tree as a whole, independent project.
+
+@kindex C-x v w a
+@findex vc-apply-to-other-working-tree
+The command @kbd{C-x v w a} (@code{vc-apply-to-other-working-tree})
+prompts you to select a working tree, then copies changes from the
+current working tree to that other working tree.  With a prefix
+argument, it moves changes instead of just copying them.  Usually the
+command operates on local (uncommitted) changes to the current VC
+fileset.  When invoked in a Diff mode (@pxref{Diff Mode}) buffer, it
+operates on the changes specified by the contents of that buffer.  The
+command stops and does nothing if any of the changes don't apply.
+
+@kbd{C-x v w a} is useful to copy changes to a temporary working tree in
+order to test them.  It is also useful to copy fixes back to your main
+working tree for checking in.  For example, you might hack away at a bug
+in a temporary working tree, and fix it.  You'd then want to copy or
+move the fix back to your main working tree to check it in and push it.
+
+@kindex C-x v w A
+@findex vc-apply-root-to-other-working-tree
+The command @kbd{C-x v w A} works similarly, except that it always
+copies or moves all local changes to the whole working tree, not just
+changes to the current VC fileset or changes represented by the contents
+of a Diff mode buffer.  With two prefix arguments, this command shows a
+preview of changes to be copied, leaving you to apply them using
+standard Diff mode commands like @kbd{C-c C-a} and @w{@kbd{C-c <RET> a}}
+(@pxref{Diff Mode}).  (@w{@kbd{C-u C-u C-x v w A}} is roughly equivalent
+to typing @w{@kbd{C-x v D}} followed by @w{@kbd{C-x v w w}}.)
 
 @kindex C-x v w x
 @kindex C-x v w R

@@ -4661,6 +4661,157 @@ BACKEND is the VC backend."
   (when-let* ((p (project-current nil to)))
     (project-remember-project p)))
 
+(declare-function diff-apply-buffer "diff-mode")
+
+;;;###autoload
+(defun vc-apply-to-other-working-tree (directory &optional move)
+  "Apply VC fileset's local changes to working tree under DIRECTORY.
+Must be called from within an existing VC working tree.
+When called interactively, prompts for DIRECTORY.
+With a prefix argument (when called from Lisp, with optional argument
+MOVE non-nil), don't just copy the changes, but move them, from the
+current working tree to DIRECTORY.
+
+When called from a `diff-mode' buffer, move or copy the changes
+specified by the contents of that buffer, only.
+
+If any changes to be moved or copied can't be applied to DIRECTORY, it
+is an error, and no changes are applied.
+If any changes to be moved can't be reverse-applied to this working
+tree, it is an error, and no changes are moved."
+  ;; The double prefix arg that `vc-apply-root-to-other-working-tree'
+  ;; has is omitted here, for now, because it is probably less useful.
+  (interactive
+   (list
+    (vc--prompt-other-working-tree
+     (vc-responsible-backend default-directory)
+     (format "%s changes to working tree"
+             (if current-prefix-arg "Move" "Apply")))
+    current-prefix-arg))
+  (let* ((relative-dir (file-relative-name default-directory
+                                           (vc-root-dir)))
+         (mirror-dir (expand-file-name relative-dir directory)))
+    (unless (file-directory-p mirror-dir)
+      (user-error "`%s' not found in `%s'" relative-dir directory))
+    (vc--apply-to-other-working-tree directory mirror-dir
+                                     (vc-deduce-fileset)
+                                     (and (derived-mode-p 'diff-mode)
+                                          (buffer-string))
+                                     move)))
+
+;;;###autoload
+(defun vc-apply-root-to-other-working-tree (directory &optional move preview)
+  "Apply all local changes to this working tree to the one under DIRECTORY.
+Must be called from within an existing VC working tree.
+When called interactively, prompts for DIRECTORY.
+With a prefix argument (when called from Lisp, with optional argument
+MOVE non-nil), don't just copy the changes, but move them, from the
+current working tree to DIRECTORY.
+
+With a double prefix argument (\\[universal-argument] \\[universal-argument]; \
+when called from Lisp, with
+optional argument PREVIEW non-nil), don't actually apply changes to
+DIRECTORY, but instead show all those changes in a `diff-mode' buffer
+with `default-directory' set to DIRECTORY.
+You can then selectively apply changes with `diff-mode' commands like
+`diff-apply-hunk' and `diff-apply-buffer'.
+
+If any changes to be moved or copied can't be applied to DIRECTORY, it
+is an error, and (except with \\[universal-argument] \\[universal-argument]) \
+no changes are applied.
+If any changes to be moved can't be reverse-applied to this working
+tree, it is an error, and no changes are moved."
+  (interactive
+   (list
+    (vc--prompt-other-working-tree
+     (vc-responsible-backend default-directory)
+     (format "%s changes to working tree"
+             (if (equal current-prefix-arg '(4)) "Move" "Apply")))
+    (equal current-prefix-arg '(4))
+    (equal current-prefix-arg '(16))))
+  (cond ((and move preview)
+         (error "Invalid arguments to vc-apply-root-to-other-working-tree"))
+        (preview
+         ;; In this mode, no need to abort if some hunks aren't
+         ;; applicable.
+         (vc-root-diff nil t)
+         (setq default-directory directory)
+         (message
+          (substitute-command-keys
+           "Use \\[diff-hunk-kill] to kill hunks not to be copied \
+then \\[diff-apply-buffer] to copy changes,
+or use \\[diff-apply-hunk] to copy individual hunks.  \
+Type \\[describe-mode] for more commands")))
+        (t
+         (let ((default-directory (vc-root-dir)))
+           (vc--apply-to-other-working-tree directory directory
+                                            `(,(vc-deduce-backend)
+                                              (,default-directory))
+                                            nil move)))))
+
+(defcustom vc-no-confirm-moving-changes nil
+  "Whether VC commands prompt before moving changes between working trees.
+
+Normally the commands \\[vc-apply-to-other-working-tree] \
+and \\[vc-apply-root-to-other-working-tree] prompt for confirmation
+when asked to move changes between working trees (i.e., when invoked
+with a prefix argument).  This is because it can be surprising to have
+work disappear from your current working tree.  You can customize this
+option to non-nil to skip the prompting."
+  :type '(choice (const :tag "Prompt before moving changes" nil)
+                 (const :tag "Move changes without prompting" t))
+  :group 'vc
+  :version "31.1")
+
+(defun vc--apply-to-other-working-tree
+    (directory mirror-dir fileset patch-string move)
+  "Workhorse routine for copying/moving changes to other working trees.
+DIRECTORY is the root of the target working tree
+(used only for messages).
+MIRROR-DIR is the target directory for application.
+FILESET is the VC fileset from which to copy changes.
+PATCH-STRING non-nil overrides calling `vc-diff-internal' on FILESET to
+determine the changes to copy or move.
+MOVE non-nil means to move instead of copy."
+  (unless (or (not move)
+              vc-no-confirm-moving-changes
+              (yes-or-no-p
+               (format "Really %s uncommitted work out of this working tree?"
+                       (propertize "move" 'face 'bold))))
+    (user-error "Aborted"))
+  (vc-buffer-sync-fileset fileset nil)
+  (with-temp-buffer
+    (if (not patch-string)
+        (let ((display-buffer-overriding-action '(display-buffer-no-window
+                                                  (allow-no-window . t))))
+          (vc-diff-internal nil fileset nil nil nil (current-buffer)))
+      (diff-mode)
+      (insert patch-string))
+    (let ((default-directory mirror-dir))
+      (vc-buffer-sync-fileset (diff-vc-deduce-fileset) nil))
+    (when-let* (move
+                (failed (diff-apply-buffer nil nil 'reverse 'test)))
+      ;; If PATCH-STRING is non-nil and this fails, the user called us
+      ;; from a `diff-mode' buffer that doesn't reverse-apply; that's
+      ;; a `user-error'.
+      ;; If PATCH-STRING is nil and this fails, `vc-diff-internal'
+      ;; generated a nonsense diff -- not the user's fault.
+      (funcall (if patch-string #'user-error #'error)
+               (ngettext "%d hunk does not reverse-apply to this working tree"
+                         "%d hunks do not reverse-apply to this working tree"
+                         failed)
+               failed))
+    (let ((default-directory mirror-dir))
+      (when-let* ((failed (diff-apply-buffer)))
+        (user-error (ngettext "%d hunk does not apply to `%s'"
+                              "%d hunks do not apply to `%s'"
+                              failed)
+                    failed directory)))
+    (when move
+      (diff-apply-buffer nil nil 'reverse))
+    (message "Changes %s to `%s'"
+             (if move "moved" "applied") directory)))
+
 
 
 ;; These things should probably be generally available
