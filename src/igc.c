@@ -4041,6 +4041,10 @@ buffer_it_next (struct igc_buffer_it *it)
 static bool
 arena_step (void)
 {
+  /* mps_arena_step does not guarantee to return swiftly.  And it seems
+     that it sometimes does an opportunistic full collection alleging
+     the client predicted lots of idle time.  But it doesn't tell how
+     it comes to that conclusion. This is caused by bug#79346 in MPS. */
   if (!FIXNUMP (Vigc_step_interval)
       || XFIXNUM (Vigc_step_interval) != 0)
     {
