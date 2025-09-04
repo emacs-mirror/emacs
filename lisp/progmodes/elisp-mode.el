@@ -2301,20 +2301,23 @@ variables `invocation-name' and `invocation-directory'."
 (declare-function project-root "project" (project))
 (defun elisp-flymake-byte-compile--executable ()
   "Return absolute file name of the Emacs executable for flymake byte-compilation."
-  (let ((filename
-         (cond
-          ((file-name-absolute-p elisp-flymake-byte-compile-executable)
-           elisp-flymake-byte-compile-executable)
-          ((stringp elisp-flymake-byte-compile-executable)
-           (when-let* ((pr (project-current)))
-             (file-name-concat (project-root pr)
-                               elisp-flymake-byte-compile-executable))))))
-    (if (file-executable-p filename)
-        filename
-      (when elisp-flymake-byte-compile-executable
-        (message "No such `elisp-flymake-byte-compile-executable': %s"
-                 filename))
-      (expand-file-name invocation-name invocation-directory))))
+  (cond
+   ((null elisp-flymake-byte-compile-executable)
+    (expand-file-name invocation-name invocation-directory))
+   ((not (stringp elisp-flymake-byte-compile-executable))
+    (error "Invalid `elisp-flymake-byte-compile-executable': %s"
+           elisp-flymake-byte-compile-executable))
+   ((file-name-absolute-p elisp-flymake-byte-compile-executable)
+    elisp-flymake-byte-compile-executable)
+   (t ; relative file name
+    (let ((filename (file-name-concat (project-root (project-current))
+                                      elisp-flymake-byte-compile-executable)))
+      (if (file-executable-p filename)
+          filename
+        ;; The user might not have built Emacs yet, so just fall back.
+        (message "`elisp-flymake-byte-compile-executable' (%s) doesn't exist"
+                 elisp-flymake-byte-compile-executable)
+        (expand-file-name invocation-name invocation-directory))))))
 
 ;;;###autoload
 (defun elisp-flymake-byte-compile (report-fn &rest _args)
