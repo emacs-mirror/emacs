@@ -473,6 +473,10 @@ do and do not exist.  In other words, the file or directory the current
 buffer visits probably exists in other working trees too, and this
 command lets you switch to those versions of the file.
 
+@c FIXME: It would be better to use @kbd{=} from a *vc-change-log*
+@c buffer as the example here, because 'C-x v =' and 'C-x v D' are more
+@c likely to be uncommitted changes on which you'd use 'C-x v w a'.
+@c That requires a new node for bindings available in *vc-change-log*s.
 @kbd{C-x v w w} also works in Diff mode (@pxref{Diff Mode}).  Instead of
 switching to a different buffer, the command changes the default
 directory of the Diff mode buffer to the corresponding directory under
