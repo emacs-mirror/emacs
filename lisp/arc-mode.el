@@ -1067,8 +1067,19 @@ using `make-temp-file', and the generated name is returned."
         (setq coding
               (coding-system-change-text-conversion coding 'raw-text)))
       (unless (memq coding '(nil no-conversion))
+        ;; If CODING specifies a certain EOL conversion, reset that, to
+        ;; force 'decode-coding-region' below determine EOL conversion
+        ;; from the file's data...
+        (if (numberp (coding-system-eol-type coding))
+            (setq coding (coding-system-change-eol-conversion coding nil)))
         (decode-coding-region (point-min) (point-max) coding)
-	(setq last-coding-system-used coding))
+        ;; ...then augment CODING with the actual EOL conversion
+        ;; determined from the file's data.
+        (let ((eol-type (coding-system-eol-type last-coding-system-used)))
+          (if (numberp eol-type)
+	      (setq last-coding-system-used
+                    (coding-system-change-eol-conversion coding eol-type))
+            (setq last-coding-system-used coding))))
       (set-buffer-modified-p nil)
       (kill-local-variable 'buffer-file-coding-system)
       (after-insert-file-set-coding (- (point-max) (point-min))))))

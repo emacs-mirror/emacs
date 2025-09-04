@@ -14,6 +14,8 @@
 * Change Logs and VC::  Generating a change log file from log entries.
 * VC Delete/Rename::    Deleting and renaming version-controlled files.
 * Revision Tags::       Symbolic names for revisions.
+* Merge Bases::         The most recent revision existing on both branches.
+* Outgoing Base Diffs:: Diffs including all outstanding changes on a branch.
 * Other Working Trees:: Multiple sets of workfiles.
 * Version Headers::     Inserting version control headers into working files.
 * Editing VC Commands:: Editing the VC shell commands that Emacs will run.
@@ -227,6 +229,153 @@ an old tag, the renamed file is retrieved under its new name, which is
 not the name that the makefile expects.  So the program won't really
 work as retrieved.
 
+@node Merge Bases
+@subsubsection Merge Bases
+@cindex merge bases
+
+@table @kbd
+@item C-x v M D
+Report diffs of changes on a branch since it diverged from another
+(@code{vc-diff-mergebase}).
+
+@item C-x v M L
+Display log messages for revisions on a branch since it diverged from
+another (@code{vc-log-mergebase}).
+@end table
+
+@c This definition is possibly dVCS-specific -- can revisions exist on
+@c more than one branch for older VCS?  This needs thinking through if
+@c any of our centalized VCS gain support for these commands.
+The @dfn{merge base} of two branches is the most recent revision that
+exists on both branches.  If neither of the branches was ever merged
+into the other (@pxref{Merging}), then the merge base is the revision
+that the older of the two branches was at when the newer branch was
+created from it (@pxref{Creating Branches}).  If one of the branches was
+ever merged into the other, then the merge base is the most recent merge
+point.
+
+The commands described in this section are currently implemented only
+for decentralized version control systems (@pxref{VCS Repositories}).
+
+@kindex C-x v M D
+@findex vc-diff-mergebase
+@kindex C-x v M L
+@findex vc-log-mergebase
+Merge bases are useful to make certain comparisons between branches, and
+Emacs provides two commands for doing so.  Each of @kbd{C-x v M D}
+(@code{vc-diff-mergebase}) and @kbd{C-x v M L} (@code{vc-log-mergebase})
+prompts for two branches, finds their merge base, and then compares that
+merge base with the second of the two branches.  The commands report
+diffs and display change history, respectively.
+
+The typical use case for these commands is when one of the branches was
+originally created from the other and you or a collaborator have made
+merges of one of the branches into the other at least once.  Then you
+can use these commands to see what changes on one branch have not yet
+been merged into the other.
+
+Call the branch which has the changes you are interested in the ``source
+branch'' and the branch into which these changes have not yet been
+merged the ``target branch''.  Specify the target branch when prompted
+for the ``older revision'' and the source branch when prompted for the
+``newer revision''.@footnote{The concept of merge bases generalizes from
+branches to any two revisions.  The merge base of two revisions is the
+most recent revision that can be found in the revision history of both
+of the two revisions.  @kbd{C-x v M D} and @kbd{C-x v M L} accept any
+two revisions, not just branches.  Comparing two branches is the same as
+comparing the revisions at the ends of the branches.
+
+(In fact the concept generalizes to any number of revisions, but Emacs's
+commands for merge bases work with only two, so we limit ourselves to
+that.)}  Then @kbd{C-x v M D} shows you a preview of what would change
+on the target branch if you were to merge the source branch into it, and
+@kbd{C-x v M L} shows you a log of the changes on the source branch not
+yet merged into the target branch.
+
+@node Outgoing Base Diffs
+@subsubsection Commands for diffs including all outstanding changes
+@cindex outstanding changes
+
+@table @kbd
+@item C-x v B =
+Display diffs of changes to the VC fileset since the merge base of this
+branch and its upstream counterpart (@code{vc-diff-outgoing-base}).
+
+@item C-x v B D
+Display all changes since the merge base of this branch and its upstream
+counterpart (@code{vc-root-diff-outgoing-base}).
+@end table
+
+For decentralized version control systems (@pxref{VCS Repositories}),
+these commands provide specialized versions of @kbd{C-x v M D} (see
+@pxref{Merge Bases}) which also take into account the state of upstream
+repositories.  These commands are useful both when working on a single
+branch and when developing features on a separate branch
+(@pxref{Branches}).  These two cases involve using the commands
+differently, and so we will describe them separately.
+
+First, consider working on a single branch.  @dfn{Outstanding changes}
+are those which you haven't yet pushed upstream.  This includes both
+unpushed commits and uncommitted changes in your working tree.  In many
+cases the reason these changes are not pushed yet is that they are not
+finished: the changes committed so far don't make sense in isolation.
+
+@kindex C-x v B =
+@findex vc-diff-outgoing-base
+@kindex C-x v B D
+@findex vc-root-diff-outgoing-base
+Type @kbd{C-x v B D} (@code{vc-root-diff-outgoing-base}) to display a
+summary of all these changes, committed and uncommitted.  This summary
+is in the form of a diff of what committing and pushing (@pxref{Pulling
+/ Pushing}) all these changes would do to the upstream repository.  You
+can use @kbd{C-x v B =} (@code{vc-diff-outgoing-base}) instead to limit
+the display of changes to the current VC fileset.  (The difference
+between @w{@kbd{C-x v B D}} and @w{@kbd{C-x v B =}} is like the
+difference between @kbd{C-x v D} and @kbd{C-x v =} (@pxref{Old
+Revisions}).)@footnote{Another point of comparison is that these
+commands are like @w{@kbd{C-x v O =}} (@code{vc-fileset-diff-outgoing})
+and @kbd{C-x v O D} (@code{vc-root-diff-outgoing}) except that they
+include uncommitted changes in the reported diffs.  Like those other
+commands, you can use a prefix argument to specify a particular upstream
+location.}
+
+Second, consider developing a feature on a separate branch.  Call this
+the @dfn{feature branch},@footnote{Many version control workflows
+involve developing new features on isolated branches.  However, the term
+``feature branch'' is usually reserved for a particular kind of isolated
+branch, one that other branches are repeatedly merged into.
+
+That doesn't matter to this explanation, so we use ``feature branch'' to
+refer to the separate branch used for developing the feature even though
+whether it is really a feature branch depends on other aspects of the
+branching workflow in use.} and call the branch from which the feature
+branch was originally created the @dfn{trunk} or @dfn{development
+trunk}.
+
+In this case, outstanding changes is a more specific notion than just
+unpushed and uncommitted changes on the feature branch.  You're not
+finished sharing changes with your collaborators until they have been
+merged into the trunk, and pushed.  Therefore, in this example,
+outstanding changes are those which haven't yet been integrated into the
+upstream repository's development trunk.  That means committed changes
+on the feature branch that haven't yet been merged into the trunk, plus
+uncommitted changes.
+
+@cindex outgoing base, version control
+The @dfn{outgoing base} is the upstream location for which the changes
+are destined once they are no longer outstanding.  In this case, that's
+the upstream version of the trunk, to which you and your collaborators
+push finished work.
+
+To display a summary of outgoing changes in this multi-branch example,
+supply a prefix argument, by typing @w{@kbd{C-u C-x v B =}} or
+@w{@kbd{C-u C-x v B D}}.  When prompted, enter the outgoing base.
+Exactly what you must supply here depends on the name of your
+development trunk and the version control system in use.  For example,
+with Git, usually you will enter @kbd{origin/master}.  We hope to
+improve these commands such that no prefix argument is required in the
+multi-branch case, too.
+
 @node Other Working Trees
 @subsubsection Multiple Working Trees for One Repository
 
@@ -323,6 +472,16 @@ different working trees differ more in file contents than in which files
 do and do not exist.  In other words, the file or directory the current
 buffer visits probably exists in other working trees too, and this
 command lets you switch to those versions of the file.
+
+@kbd{C-x v w w} also works in Diff mode (@pxref{Diff Mode}).  Instead of
+switching to a different buffer, the command changes the default
+directory of the Diff mode buffer to the corresponding directory under
+another working tree.  This is useful with Diff mode buffers generated
+by VC commands, such as @kbd{C-x v =} and @kbd{C-x v D} (@pxref{Old
+Revisions}).  You can use @kbd{C-x v w w} and then standard Diff mode
+commands like @w{@kbd{C-c C-a}} (@code{diff-apply-hunk}) and @kbd{C-c
+RET C-a} (@code{diff-apply-buffer}) to apply hunks from one working tree
+to another.
 
 @kindex C-x v w s
 @findex vc-working-tree-switch-project

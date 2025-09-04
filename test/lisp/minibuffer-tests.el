@@ -332,6 +332,21 @@
                   "" '("fooxbar" "fooybar") nil 0)
                  '("foobar" . 3))))
 
+(ert-deftest completion-pcm-test-anydelim ()
+  ;; After each delimiter is a special wildcard which matches any
+  ;; sequence of delimiters.
+  (should (equal (completion-pcm-try-completion
+                  "-x" '("-_.x" "-__x") nil 2)
+                 '("-_x" . 3))))
+
+(ert-deftest completion-pcm-bug4219 ()
+  ;; With `completion-ignore-case', try-completion should change the
+  ;; case of existing text when the completions have different casing.
+  (should (equal
+           (let ((completion-ignore-case t))
+             (completion-pcm-try-completion "a" '("ABC" "ABD") nil 1))
+           '("AB" . 2))))
+
 (ert-deftest completion-substring-test-1 ()
   ;; One third of a match!
   (should (equal
@@ -433,6 +448,17 @@
            15)))
 
 
+(defmacro with-minibuffer-setup (completing-read &rest body)
+  (declare (indent 1) (debug (collection body)))
+  `(catch 'result
+     (minibuffer-with-setup-hook
+         (lambda ()
+           (let ((redisplay-skip-initial-frame nil)
+                 (executing-kbd-macro nil)) ; Don't skip redisplay
+             (throw 'result (progn . ,body))))
+       (let ((executing-kbd-macro t)) ; Force the real minibuffer
+         ,completing-read))))
+
 (defmacro completing-read-with-minibuffer-setup (collection &rest body)
   (declare (indent 1) (debug (collection body)))
   `(catch 'result
@@ -569,6 +595,7 @@
 
 (ert-deftest completions-header-format-test ()
   (let ((completion-show-help nil)
+        (minibuffer-completion-auto-choose t)
         (completions-header-format nil))
     (completing-read-with-minibuffer-setup
         '("aa" "ab" "ac")
@@ -718,11 +745,91 @@
       (should (equal (minibuffer-contents) "ccc")))))
 
 (ert-deftest minibuffer-next-completion ()
-  (let ((default-directory (ert-resource-directory)))
+  (let ((default-directory (ert-resource-directory))
+        (minibuffer-completion-auto-choose t))
     (completing-read-with-minibuffer-setup #'read-file-name-internal
       (insert "d/")
       (execute-kbd-macro (kbd "M-<down> M-<down> M-<down>"))
       (should (equal "data/minibuffer-test-cttq$$tion" (minibuffer-contents))))))
+
+(ert-deftest minibuffer-completion-RET-prefix ()
+  ;; REQUIRE-MATCH=nil
+  (with-minibuffer-setup
+      (completing-read ":" '("aaa" "bbb" "ccc") nil nil)
+    (execute-kbd-macro (kbd "M-<down> M-<down> C-u RET"))
+    (should (equal "bbb" (minibuffer-contents))))
+  ;; REQUIRE-MATCH=t
+  (with-minibuffer-setup
+   (completing-read ":" '("aaa" "bbb" "ccc") nil t)
+   (execute-kbd-macro (kbd "M-<down> M-<down> C-u RET"))
+   (should (equal "bbb" (minibuffer-contents)))))
+
+(defun test/completion-at-point ()
+  (list (point-min) (point) '("test:a" "test:b")))
+
+(ert-deftest completion-in-region-next-completion ()
+  (with-current-buffer (get-buffer-create "*test*")
+    ;; Put this buffer in the selected window so
+    ;; `minibuffer--completions-visible' works.
+    (pop-to-buffer (current-buffer))
+    (setq-local completion-at-point-functions (list #'test/completion-at-point))
+    (insert "test:")
+    (completion-help-at-point)
+    (should (minibuffer--completions-visible))
+    ;; C-u RET and RET have basically the same behavior for
+    ;; completion-in-region-mode, since they both dismiss *Completions*
+    ;; while leaving completion-in-region-mode still active.
+    (execute-kbd-macro (kbd "M-<down>"))
+    (should (equal (completion--selected-candidate) "test:a"))
+    (execute-kbd-macro (kbd "C-u RET"))
+    (should (equal (buffer-string) "test:a"))
+    (delete-char -1)
+    (completion-help-at-point)
+    (execute-kbd-macro (kbd "M-<down> M-<down>"))
+    (should (equal (completion--selected-candidate) "test:b"))
+    (execute-kbd-macro (kbd "RET"))
+    (should (equal (buffer-string) "test:b"))))
+
+(ert-deftest completion-category-inheritance ()
+  (let ((completion-category-defaults
+         '((cat (display-sort-function . foo))
+           (dog (display-sort-function . bar)
+                (group-function        . baz)
+                (annotation-function   . qux)
+                (styles                basic))
+           (fel (annotation-function   . spam))
+           (testtesttest (styles substring))))
+        (origt (get 'testtesttest 'completion-category-parents))
+        (origc (get 'cat 'completion-category-parents)))
+    (unwind-protect
+        (progn
+          (put 'testtesttest 'completion-category-parents '(cat dog))
+          (put 'cat 'completion-category-parents '(fel))
+          ;; Value from first parent.
+          (should (eq
+                   (completion-metadata-get '((category . testtesttest))
+                                            'display-sort-function)
+                   'foo))
+          ;; Value from parent of first parent, not from second parent.
+          (should (eq
+                   (completion-metadata-get '((category . testtesttest))
+                                            'annotation-function)
+                   'spam))
+          ;; Value from second parent.
+          (should (eq
+                   (completion-metadata-get '((category . testtesttest))
+                                            'group-function)
+                   'baz))
+          ;; Property specified directly, takes precedence.
+          (should (equal
+                   (completion-metadata-get '((category . testtesttest))
+                                            'styles)
+                   '(substring)))
+          ;; Not specified and not inherited.
+          (should-not (completion-metadata-get '((category . testtesttest))
+                                               'affixation-function)))
+      (put 'cat 'completion-category-parents origc)
+      (put 'testtesttest 'completion-category-parents origt))))
 
 (provide 'minibuffer-tests)
 ;;; minibuffer-tests.el ends here

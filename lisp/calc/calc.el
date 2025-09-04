@@ -1468,10 +1468,16 @@ commands given here will actually operate on the *Calculator* stack."
       (calc-mode))
   (setq max-lisp-eval-depth (max max-lisp-eval-depth 1000))
   (when calc-always-load-extensions
-    (require 'calc-ext))
+    (require 'calc-ext)
+    (calc-load-everything))
   (when calc-language
     (require 'calc-ext)
     (calc-set-language calc-language calc-language-option t)))
+
+(defcustom calc-inhibit-startup-message nil
+  "If non-nil, inhibit the Calc startup message."
+  :version "31.1"
+  :type 'boolean)
 
 (defcustom calc-make-windows-dedicated nil
   "If non-nil, windows displaying Calc buffers will be marked dedicated.
@@ -1524,9 +1530,10 @@ See `window-dedicated-p' for what that means."
         (with-current-buffer (calc-trail-buffer)
           (and calc-display-trail
                (calc-trail-display 1 t)))
-        (message (substitute-command-keys
-                  (concat "Welcome to the GNU Emacs Calculator!  \\<calc-mode-map>"
-                          "Press \\[calc-help] or \\[calc-help-prefix] for help, \\[calc-quit] to quit")))
+        (unless calc-inhibit-startup-message
+          (message (substitute-command-keys
+                    (concat "Welcome to the GNU Emacs Calculator!  \\<calc-mode-map>"
+                            "Press \\[calc-help] or \\[calc-help-prefix] for help, \\[calc-quit] to quit"))))
         (run-hooks 'calc-start-hook)
         (and (windowp full-display)
              (window-point full-display)
@@ -1534,10 +1541,11 @@ See `window-dedicated-p' for what that means."
         (and calc-make-windows-dedicated
              (set-window-dedicated-p nil t))
         (calc-check-defines)
-        (when (and calc-said-hello interactive)
-          (sit-for 2)
-          (message ""))
-        (setq calc-said-hello t)))))
+        (unless calc-inhibit-startup-message
+          (when (and calc-said-hello interactive)
+            (sit-for 2)
+            (message ""))
+          (setq calc-said-hello t))))))
 
 ;;;###autoload
 (defun full-calc (&optional interactive)
@@ -3514,11 +3522,6 @@ See Info node `(calc)Defining Functions'."
 
 (defcalcmodevar math-half-2-word-size 2147483648
   "One-half of two to the power of `calc-word-size'.")
-
-(when calc-always-load-extensions
-  (require 'calc-ext)
-  (calc-load-everything))
-
 
 (run-hooks 'calc-load-hook)
 

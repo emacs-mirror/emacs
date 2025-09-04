@@ -555,9 +555,13 @@ if different users access the same file, using different lock file settings;
 if accessing files on a shared file system from different hosts,
 using a transform that puts the lock files on a local file system."
   :group 'files
-  :type '(repeat (list (regexp :tag "Regexp")
+  :type `(repeat (list (regexp :tag "Regexp")
                        (string :tag "Replacement")
-		       (boolean :tag "Uniquify")))
+                       (choice
+		        (const :tag "Uniquify" t)
+                        ,@(mapcar (lambda (algo)
+                                    (list 'const algo))
+                                  (secure-hash-algorithms)))))
   :version "28.1")
 
 (defcustom remote-file-name-inhibit-locks nil

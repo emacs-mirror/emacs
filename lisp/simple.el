@@ -10570,28 +10570,24 @@ Called from `temp-buffer-show-hook'."
       ;; Maybe insert help string.
       (when completion-show-help
 	(goto-char (point-min))
-        (if minibuffer-visible-completions
-            (let ((helps
-                   (with-current-buffer (window-buffer (active-minibuffer-window))
-                     (let ((minibuffer-visible-completions--always-bind t))
-                       (list
-                        (substitute-command-keys
-	                 (if (display-mouse-p)
-	                     "Click or type \\[minibuffer-choose-completion-or-exit] on a completion to select it.\n"
-                           "Type \\[minibuffer-choose-completion-or-exit] on a completion to select it.\n"))
+        (let ((helps
+               (with-current-buffer (window-buffer (active-minibuffer-window))
+                 (let ((minibuffer-visible-completions--always-bind t))
+                   (list
+                    (substitute-command-keys
+	             (if (display-mouse-p)
+	                 "Click or type \\[minibuffer-choose-completion] on a completion to select it.\n"
+                       "Type \\[minibuffer-choose-completion] on a completion to select it.\n"))
+                    (if minibuffer-visible-completions
                         (substitute-command-keys
 		         "Type \\[minibuffer-next-completion], \\[minibuffer-previous-completion], \
 \\[minibuffer-next-line-completion], \\[minibuffer-previous-line-completion] \
-to move point between completions.\n\n"))))))
-              (dolist (help helps)
-                (insert help)))
-          (insert (substitute-command-keys
-	           (if (display-mouse-p)
-	               "Click or type \\[minibuffer-choose-completion] on a completion to select it.\n"
-                     "Type \\[minibuffer-choose-completion] on a completion to select it.\n")))
-          (insert (substitute-command-keys
-		   "Type \\[minibuffer-next-completion] or \\[minibuffer-previous-completion] \
+to move point between completions.\n\n")
+                      (substitute-command-keys
+		       "Type \\[minibuffer-next-completion] or \\[minibuffer-previous-completion] \
 to move point between completions.\n\n")))))))
+          (dolist (help helps)
+            (insert help)))))))
 
 (add-hook 'completion-setup-hook #'completion-setup-function)
 

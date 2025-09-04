@@ -677,8 +677,7 @@ effect outside of Edebug.
 
 @table @kbd
 @findex edebug-view-outside
-@item P
-@itemx v
+@item v
 Switch to viewing the outside window configuration
 (@code{edebug-view-outside}).  Type @kbd{C-x X w} to return to Edebug.
 
@@ -686,6 +685,14 @@ Switch to viewing the outside window configuration
 @item p
 Temporarily display the outside current buffer with point at its
 outside position (@code{edebug-bounce-point}), pausing for one second
+before returning to Edebug.  With a prefix argument @var{n}, pause for
+@var{n} seconds instead.
+
+@findex edebug-bounce-to-previous-value
+@item P
+Temporarily display the outside current buffer with the outside point
+corresponding to the previously-evaluated value
+(@code{edebug-bounce-to-previous-value}), pausing for one second
 before returning to Edebug.  With a prefix argument @var{n}, pause for
 @var{n} seconds instead.
 
@@ -712,6 +719,23 @@ source code buffer, you must use @kbd{C-x X W} from the global keymap.
   You can view the outside window configuration with @kbd{v} or just
 bounce to the point in the current buffer with @kbd{p}, even if
 it is not normally displayed.
+
+  You can also bounce to buffer positions other than the current point.
+Suppose you are debugging the form
+
+@example
+(make-overlay beg end)
+@end example
+
+@noindent
+and you would like to know where @code{beg} and @code{end} are located
+in the outside buffer.  Then you could either evaluate these, for
+example, with @kbd{C-x C-e}, or step over them with @kbd{n}, and
+immediately after that press @kbd{P}, to bounce to the position you have
+previously evaluated.  The previous value for the purpose of the @kbd{P}
+command is what Edebug has evaluated before its last stop point or what
+you have evaluated in the context outside of Edebug, for example, with
+@kbd{C-x C-e}.
 
   After moving point, you may wish to jump back to the stop point.
 You can do that with @kbd{w} from a source code buffer.  You can jump

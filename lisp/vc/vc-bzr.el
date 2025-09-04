@@ -817,27 +817,27 @@ If LIMIT is non-nil, show no more than this many entries."
       (buffer-substring (match-end 0) (point-max)))))
 
 ;; FIXME: Implement `vc-bzr-mergebase' and then delete this.
-(defun vc-bzr-log-incoming (buffer remote-location)
+(defun vc-bzr-log-incoming (buffer upstream-location)
   (apply #'vc-bzr-command "missing" buffer 'async nil
-	 (list "--theirs-only" (and (not (string-empty-p remote-location))
-                                    remote-location))))
+	 (list "--theirs-only" (and (not (string-empty-p upstream-location))
+                                    upstream-location))))
 
-(defun vc-bzr-incoming-revision (remote-location)
+(defun vc-bzr-incoming-revision (upstream-location &optional _refresh)
   (with-temp-buffer
     (vc-bzr-command "missing" t 1 nil
                     "--log-format=long" "--show-ids"
                     "--theirs-only" "-r-1.."
-                    (and (not (string-empty-p remote-location))
-		         remote-location))
+                    (and (not (string-empty-p upstream-location))
+		         upstream-location))
     (goto-char (point-min))
     (and (re-search-forward "^revision-id: " nil t)
          (buffer-substring (point) (pos-eol)))))
 
 ;; FIXME: Implement `vc-bzr-mergebase' and then delete this.
-(defun vc-bzr-log-outgoing (buffer remote-location)
+(defun vc-bzr-log-outgoing (buffer upstream-location)
   (apply #'vc-bzr-command "missing" buffer 'async nil
-	 (list "--mine-only" (and (not (string-empty-p remote-location))
-                                  remote-location))))
+	 (list "--mine-only" (and (not (string-empty-p upstream-location))
+                                  upstream-location))))
 
 (defun vc-bzr-show-log-entry (revision)
   "Find entry for patch name REVISION in bzr change log buffer."

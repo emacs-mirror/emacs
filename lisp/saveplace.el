@@ -406,8 +406,8 @@ may have changed) back to `save-place-alist'."
 	  (file-error (message "Saving places: can't write %s" file)))))))
 
 (defun save-places-to-alist ()
-  ;; go through buffer-list, saving places to alist if save-place-mode
-  ;; is non-nil, deleting them from alist if it is nil.
+  "Save all buffer filenames and positions to `save-place-alist'.
+See `save-place-to-alist'."
   (let ((buf-list (buffer-list)))
     (while buf-list
       ;; put this into a save-excursion in case someone is counting on

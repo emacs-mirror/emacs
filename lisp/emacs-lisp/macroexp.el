@@ -212,8 +212,8 @@ It should normally be a symbol with position and it defaults to FORM."
      (if asof (concat " (as of " asof ")") "")
      (cond ((stringp instead) (concat "; " (substitute-command-keys instead)))
            ((and instead key)
-            (format-message "; use `%s' (%s) instead." instead key))
-           (instead (format-message "; use `%s' instead." instead))
+            (format-message "; use `%S' (%s) instead." instead key))
+           (instead (format-message "; use `%S' instead." instead))
            (t ".")))))
 
 (defun macroexpand-1 (form &optional environment)

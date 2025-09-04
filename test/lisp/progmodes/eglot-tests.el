@@ -1469,6 +1469,10 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
   (should (string-suffix-p "c%3A/Users/Foo/bar.lisp"
                            (eglot-path-to-uri "c:/Users/Foo/bar.lisp"))))
 
+(ert-deftest eglot-test-path-to-uri-escape ()
+  (should (equal "file:///path/with%20%25%20funny%20%3F%20characters"
+                 (eglot-path-to-uri "/path/with % funny ? characters"))))
+
 (ert-deftest eglot-test-same-server-multi-mode ()
   "Check single LSP instance manages multiple modes in same project."
   (skip-unless (executable-find "clangd"))

@@ -433,7 +433,7 @@ will select it.)"
     (substitute-key-definition 'describe-syntax 'electric-describe-syntax map)
     map))
 
-;;;###(autoload 'ehelp-command "ehelp" "Prefix command for ehelp." t 'keymap)
+;;;###autoload (autoload 'ehelp-command "ehelp" "Prefix command for ehelp." t 'keymap)
 (defalias 'ehelp-command ehelp-map)
 (put 'ehelp-command 'documentation "Prefix command for ehelp.")
 

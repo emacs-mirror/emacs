@@ -1,0 +1,1061 @@
+Code:
+  (lambda ()
+    (lua-mode)
+    (setq-local indent-tabs-mode nil)
+    (setq-local lua-indent-level 2)
+    (indent-region (point-min) (point-max)))
+
+Name: Function Indent 1
+
+=-=
+function f1(n)
+print(n)
+return n + 1
+end
+=-=
+function f1(n)
+  print(n)
+  return n + 1
+end
+=-=-=
+
+Name: Function Indent 2
+
+=-=
+local function f2(n)
+print(n)
+return n * 2
+end
+=-=
+local function f2(n)
+  print(n)
+  return n * 2
+end
+=-=-=
+
+Name: Function Indent 3
+
+=-=
+local f3 = function(n)
+print(n)
+return n / 3
+end
+=-=
+local f3 = function(n)
+  print(n)
+  return n / 3
+end
+=-=-=
+
+Name: Function Indent 4
+
+=-=
+function f4(...)
+local f = function (...)
+if ok
+then print(1)
+else print(0)
+end
+end
+return f
+end
+=-=
+function f4(...)
+  local f = function (...)
+    if ok
+    then print(1)
+    else print(0)
+    end
+  end
+  return f
+end
+=-=-=
+
+Name: Function Indent 5
+
+=-=
+function f5(...)
+local f = function (...)
+if ok
+then
+print(1)
+else
+print(0)
+end
+end
+return f
+end
+=-=
+function f5(...)
+  local f = function (...)
+    if ok
+    then
+      print(1)
+    else
+      print(0)
+    end
+  end
+  return f
+end
+=-=-=
+
+Name: Function Indent 6
+
+=-=
+function f6(...)
+local f = function (...)
+if ok then
+print(1)
+else
+print(0)
+end
+end
+return f
+end
+=-=
+function f6(...)
+  local f = function (...)
+    if ok then
+      print(1)
+    else
+      print(0)
+    end
+  end
+  return f
+end
+=-=-=
+
+Name: Function Indent 7
+
+=-=
+f7(function()
+print'ok'
+end)
+=-=
+f7(function()
+    print'ok'
+end)
+=-=-=
+
+Name: Function Indent 8
+
+=-=
+;(function ()
+ return true
+ end)()
+=-=
+;(function ()
+    return true
+ end)()
+=-=-=
+
+Name: Conditional Indent 1
+
+=-=
+if true then
+print(true)
+return 1
+elseif false then
+print(false)
+return -1
+else
+print(nil)
+return 0
+end
+=-=
+if true then
+  print(true)
+  return 1
+elseif false then
+  print(false)
+  return -1
+else
+  print(nil)
+  return 0
+end
+=-=-=
+
+Name: Conditional Indent 2
+
+=-=
+if true
+ then
+ print(true)
+ return 1
+ elseif false
+ then
+ print(false)
+ return -1
+ else
+ print(nil)
+ return 0
+end
+=-=
+if true
+then
+  print(true)
+  return 1
+elseif false
+then
+  print(false)
+  return -1
+else
+  print(nil)
+  return 0
+end
+=-=-=
+
+Name: Conditional Indent 3
+
+=-=
+if true
+ then return 1
+ elseif false
+ then return -1
+ else return 0
+end
+=-=
+if true
+then return 1
+elseif false
+then return -1
+else return 0
+end
+=-=-=
+
+Name: Loop Indent 1
+
+=-=
+for k,v in pairs({}) do
+ print(k)
+ print(v)
+end
+=-=
+for k,v in pairs({}) do
+  print(k)
+  print(v)
+end
+=-=-=
+
+Name: Loop Indent 2
+
+=-=
+for i=1,10
+ do print(i)
+end
+=-=
+for i=1,10
+do print(i)
+end
+=-=-=
+
+Name: Loop Indent 3
+
+=-=
+while n < 10 do
+ n = n + 1
+ print(n)
+end
+=-=
+while n < 10 do
+  n = n + 1
+  print(n)
+end
+=-=-=
+
+Name: Loop Indent 4
+
+=-=
+while n < 10
+ do
+ n = n + 1
+ print(n)
+end
+=-=
+while n < 10
+do
+  n = n + 1
+  print(n)
+end
+=-=-=
+
+Name: Loop Indent 5
+
+=-=
+for i=0,9 do
+repeat n = n+1
+ until n > 99
+end
+=-=
+for i=0,9 do
+  repeat n = n+1
+  until n > 99
+end
+=-=-=
+
+Name: Loop Indent 6
+
+=-=
+repeat
+z = z * 2
+print(z)
+until z > 12
+=-=
+repeat
+  z = z * 2
+  print(z)
+until z > 12
+=-=-=
+
+Name: Loop Indent 7
+
+=-=
+for i,x in ipairs(t) do
+while i < 9
+do
+local n = t[x]
+repeat n = n + 1
+until n > #t
+while n < 99
+do
+print(n)
+end
+end
+print(t[i])
+end
+=-=
+for i,x in ipairs(t) do
+  while i < 9
+  do
+    local n = t[x]
+    repeat n = n + 1
+    until n > #t
+    while n < 99
+    do
+      print(n)
+    end
+  end
+  print(t[i])
+end
+=-=-=
+
+Name: Loop Indent 8
+
+=-=
+do
+local a = b
+print(a + 1)
+end
+=-=
+do
+  local a = b
+  print(a + 1)
+end
+=-=-=
+
+Name: Bracket Indent 1
+
+=-=
+fn(
+  )
+=-=
+fn(
+)
+=-=-=
+
+Name: Bracket Indent 2
+
+=-=
+tb={
+   }
+=-=
+tb={
+}
+=-=-=
+
+Name: Multi-line String Indent 1
+
+=-=
+local s = [[
+      Multi-line
+    string content
+    ]]
+=-=-=
+
+Name: Multi-line String Indent 2
+
+=-=
+function f()
+  local str = [[
+  multi-line
+	string
+    ]]
+return true
+end
+=-=
+function f()
+  local str = [[
+  multi-line
+	string
+    ]]
+    return true
+end
+=-=-=
+
+Name: Multi-line Comment Indent 1
+
+=-=
+--[[
+  Multi-line
+  comment content
+]]
+=-=-=
+
+Name: Multi-line Comment Indent 2
+
+=-=
+function f()
+  --[[
+    multi-line
+    comment
+  ]]
+  return true
+end
+=-=-=
+
+Name: Multi-line Comment Indent 3
+
+=-=
+  --[[
+    Long comment.
+  ]]
+=-=-=
+
+Name: Comment Indent 1
+
+=-=
+local fn1 = function (a, b)
+-- comment
+return a + b
+end
+=-=
+local fn1 = function (a, b)
+  -- comment
+  return a + b
+end
+=-=-=
+
+Name: Comment Indent 2
+
+=-=
+local tb1 = {
+  first = 1,
+-- comment
+  second = 2,
+}
+=-=
+local tb1 = {
+  first = 1,
+  -- comment
+  second = 2,
+}
+=-=-=
+
+Name: Comment Indent 3
+
+=-=
+local tb9 = { one = 1,
+-- comment
+   two = 2 }
+=-=
+local tb9 = { one = 1,
+              -- comment
+              two = 2 }
+=-=-=
+
+Name: Argument Indent 1
+
+=-=
+h(
+"string",
+1000
+)
+=-=
+h(
+  "string",
+  1000
+)
+=-=-=
+
+Name: Argument Indent 2
+
+=-=
+local p = h(
+"string",
+	 1000
+)
+=-=
+local p = h(
+  "string",
+  1000
+)
+=-=-=
+
+Name: Argument Indent 3
+
+=-=
+fn(1,
+2,
+     3)
+=-=
+fn(1,
+   2,
+   3)
+=-=-=
+
+Name: Argument Indent 4
+
+=-=
+fn( 1, 2,
+3, 4 )
+=-=
+fn( 1, 2,
+    3, 4 )
+=-=-=
+
+Name: Argument Indent 5
+
+=-=
+f({
+x = 1,
+y = 2,
+z = 3,
+})
+=-=
+f({
+    x = 1,
+    y = 2,
+    z = 3,
+})
+=-=-=
+
+Name: Argument Indent 6
+
+=-=
+f({ x = 1,
+y = 2,
+z = 3, })
+=-=
+f({ x = 1,
+    y = 2,
+    z = 3, })
+=-=-=
+
+Name: Argument Indent 7
+
+=-=
+Test({
+a=1
+})
+=-=
+Test({
+    a=1
+})
+=-=-=
+
+Name: Argument Indent 8
+
+=-=
+Test({
+a = 1,
+b = 2,
+},
+nil)
+=-=
+Test({
+    a = 1,
+    b = 2,
+     },
+  nil)
+=-=-=
+
+Name: Argument Indent 9
+
+=-=
+Test(nil, {
+            a = 1,
+            b = 2,
+          })
+=-=
+Test(nil, {
+       a = 1,
+       b = 2,
+})
+=-=-=
+
+Name: Argument Indent 10
+
+=-=
+fn( -- comment
+    1,
+    2)
+=-=
+fn( -- comment
+  1,
+  2)
+=-=-=
+
+Name: Parameter Indent 1
+
+=-=
+function f1(
+a,
+b
+)
+print(a,b)
+end
+=-=
+function f1(
+    a,
+    b
+           )
+  print(a,b)
+end
+=-=-=
+
+Name: Parameter Indent 2
+
+=-=
+local function f2(a,
+                b)
+print(a,b)
+end
+=-=
+local function f2(a,
+                  b)
+  print(a,b)
+end
+=-=-=
+
+Name: Parameter Indent 3
+
+=-=
+local f3 = function( a, b,
+                c, d )
+print(a,b,c,d)
+end
+=-=
+local f3 = function( a, b,
+                     c, d )
+  print(a,b,c,d)
+end
+=-=-=
+
+Name: Parameter Indent 4
+
+=-=
+local f4 = function(-- comment
+a, b, c)
+=-=
+local f4 = function(-- comment
+    a, b, c)
+=-=-=
+
+Name: Table Indent 1
+
+=-=
+local Other = {
+    First={up={Step=true,Jump=true},
+        down={Step=true,Jump=true},
+        left={Step=true,Jump=true},
+        right={Step=true,Jump=true}},
+    Second={up={Step=true,Jump=true},
+        down={Step=true,Jump=true},
+        left={Step=true,Jump=true},
+        right={Step=true,Jump=true}},
+    Third={up={Goto=true},
+        down={Goto=true},
+        left={Goto=true},
+        right={Goto=true}}
+}
+=-=
+local Other = {
+  First={up={Step=true,Jump=true},
+         down={Step=true,Jump=true},
+         left={Step=true,Jump=true},
+         right={Step=true,Jump=true}},
+  Second={up={Step=true,Jump=true},
+          down={Step=true,Jump=true},
+          left={Step=true,Jump=true},
+          right={Step=true,Jump=true}},
+  Third={up={Goto=true},
+         down={Goto=true},
+         left={Goto=true},
+         right={Goto=true}}
+}
+=-=-=
+
+Name: Table Indent 2
+
+=-=
+local Other = {
+a = 1,
+ b = 2,
+  c = 3,
+}
+=-=
+local Other = {
+  a = 1,
+  b = 2,
+  c = 3,
+}
+=-=-=
+
+Name: Table Indent 3
+
+=-=
+local a = { -- hello world!
+            b = 10
+}
+=-=
+local a = { -- hello world!
+  b = 10
+}
+=-=-=
+
+Name: Continuation Indent 1
+
+=-=
+local very_long_variable_name =
+"ok"..
+      "ok"
+=-=
+local very_long_variable_name =
+  "ok"..
+  "ok"
+=-=-=
+
+Name: Continuation Indent 2
+
+=-=
+local n = a +
+b *
+c /
+1
+=-=
+local n = a +
+  b *
+  c /
+  1
+=-=-=
+
+Name: Continuation Indent 3
+
+=-=
+local x = "A"..
+"B"
+.."C"
+=-=
+local x = "A"..
+  "B"
+  .."C"
+=-=-=
+
+Name: Continuation Indent 4
+
+=-=
+if a
+     and b
+           and c then
+             if x
+                   and y then
+    local x = 1 +
+2 *
+         3
+     end
+elseif a
+     or b
+    or c then
+end
+=-=
+if a
+  and b
+  and c then
+  if x
+    and y then
+    local x = 1 +
+      2 *
+      3
+  end
+elseif a
+  or b
+  or c then
+end
+=-=-=
+
+Code:
+  (lambda ()
+    (lua-mode)
+    (setq-local lua-indent-level 4)
+    (setq-local indent-tabs-mode nil)
+    (indent-region (point-min) (point-max)))
+
+Name: End Indent 1
+
+=-=
+function f(x)
+    for y=1,x.y do
+        for x=1,x.z do
+            if x.y and x.z then
+                if y <= x then
+                    y = y + 1
+   end end end end
+    return {x,y} or {math.random(),math.random()}
+ end
+=-=
+function f(x)
+    for y=1,x.y do
+        for x=1,x.z do
+            if x.y and x.z then
+                if y <= x then
+                    y = y + 1
+    end end end end
+    return {x,y} or {math.random(),math.random()}
+end
+=-=-=
+
+Name: End Indent 2
+
+=-=
+for y=1,x.y do
+    for x=1,x.z do
+        if x.y and x.z then
+            if y <= x then
+                y = y + 1
+           end
+ end end end
+=-=
+for y=1,x.y do
+    for x=1,x.z do
+        if x.y and x.z then
+            if y <= x then
+                y = y + 1
+            end
+end end end
+=-=-=
+
+Name: Nested Function Indent 1
+
+=-=
+function a(...)
+return (function (x)
+return x
+end)(foo(...))
+end
+=-=
+function a(...)
+    return (function (x)
+            return x
+    end)(foo(...))
+end
+=-=-=
+
+Name: Nested Function Indent 2
+
+=-=
+function b(n)
+local x = 1
+return function (i)
+return function (...)
+return (function (n, ...)
+return function (f, ...)
+return (function (...)
+if ... and x < 9 then
+x = x + 1
+return ...
+end end)(n(f, ...))
+end, ...
+end)(i(...))
+end end end
+=-=
+function b(n)
+    local x = 1
+    return function (i)
+        return function (...)
+            return (function (n, ...)
+                    return function (f, ...)
+                        return (function (...)
+                                if ... and x < 9 then
+                                    x = x + 1
+                                    return ...
+                        end end)(n(f, ...))
+                    end, ...
+            end)(i(...))
+end end end
+=-=-=
+
+Name: Nested Function Indent 3
+
+=-=
+function c(f)
+local f1 = function (...)
+if nil ~= ... then
+return f(...)
+end
+end
+return function (i)
+return function (...)
+local fn = function (n, ...)
+local x = function (f, ...)
+return f1(n(f, ...))
+end
+return x
+end
+return fn(i(...))
+end
+end
+end
+=-=
+function c(f)
+    local f1 = function (...)
+        if nil ~= ... then
+            return f(...)
+        end
+    end
+    return function (i)
+        return function (...)
+            local fn = function (n, ...)
+                local x = function (f, ...)
+                    return f1(n(f, ...))
+                end
+                return x
+            end
+            return fn(i(...))
+        end
+    end
+end
+=-=-=
+
+Name: Nested Function Indent 4
+
+=-=
+function d(f)
+local f1 = function (c, f, ...)
+if ... then
+if f(...) then
+return ...
+else
+return c(f, ...)
+end end end
+return function (i)
+return function (...)
+return (function (n, ...)
+local function j (f, ...)
+return f1(j, f, n(f, ...))
+end
+return j, ...
+end)(i(...))
+end end end
+=-=
+function d(f)
+    local f1 = function (c, f, ...)
+        if ... then
+            if f(...) then
+                return ...
+            else
+                return c(f, ...)
+    end end end
+    return function (i)
+        return function (...)
+            return (function (n, ...)
+                    local function j (f, ...)
+                        return f1(j, f, n(f, ...))
+                    end
+                    return j, ...
+            end)(i(...))
+end end end
+=-=-=
+
+Name: Nested Function Indent 5
+
+=-=
+function e (n, t)
+return function (i)
+return function (...)
+return (
+function (n, ...)
+local x, y, z = 0, {}
+return (function (f, ...)
+return (function (i, ...) return i(i, ...) end)(
+function (i, ...)
+return f(function (x, ...)
+return i(i, ...)(x, ...)
+end, ...)
+end)
+end)(function (j)
+return function(f, ...)
+return (function (c, f, ...)
+if ... then
+if n+1 == x then
+local y1, x1 = y, x
+y, x = {}, 0
+return (function (...)
+z = ...
+return ...
+end)(t(y1-1, x1-1, ...))
+else
+x = x - 1
+return c(f,
+(function (...)
+z = ...
+return ...
+end)(t(y, x, ...)))
+end
+elseif x ~= 0 then
+x = 0
+return z, y
+end end)(j, f, n(f, ...))
+end end), ...
+end)(i(...))
+end end end
+=-=
+function e (n, t)
+    return function (i)
+        return function (...)
+            return (
+                function (n, ...)
+                    local x, y, z = 0, {}
+                    return (function (f, ...)
+                            return (function (i, ...) return i(i, ...) end)(
+                                function (i, ...)
+                                    return f(function (x, ...)
+                                            return i(i, ...)(x, ...)
+                                    end, ...)
+                                                                           end)
+                    end)(function (j)
+                            return function(f, ...)
+                                return (function (c, f, ...)
+                                        if ... then
+                                            if n+1 == x then
+                                                local y1, x1 = y, x
+                                                y, x = {}, 0
+                                                return (function (...)
+                                                        z = ...
+                                                        return ...
+                                                end)(t(y1-1, x1-1, ...))
+                                            else
+                                                x = x - 1
+                                                return c(f,
+                                                         (function (...)
+                                                                 z = ...
+                                                                 return ...
+                                                         end)(t(y, x, ...)))
+                                            end
+                                        elseif x ~= 0 then
+                                            x = 0
+                                            return z, y
+                                end end)(j, f, n(f, ...))
+                        end end), ...
+            end)(i(...))
+end end end
+=-=-=

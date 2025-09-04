@@ -393,7 +393,12 @@ applicable."
                                (ignore-errors
                                  (vc-call-backend backend 'repository-url
                                                   file-or-dir remote)))
-                             '("upstream" nil))))
+                             ;; Try likely names for the remote which
+                             ;; probably hosts the bug tracker.  The nil
+                             ;; value refers to the default remote name
+                             ;; of the concrete VCS which is "origin"
+                             ;; for Git or "default" for mercurial.
+                             '("upstream" "origin" nil))))
     (seq-some (lambda (config)
                 (apply #'bug-reference-maybe-setup-from-vc url config))
               (append bug-reference-setup-from-vc-alist

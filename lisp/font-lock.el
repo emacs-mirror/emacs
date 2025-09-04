@@ -207,7 +207,6 @@
 ;;; Code:
 
 (require 'syntax)
-(eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))
 
 ;; Define core `font-lock' group.

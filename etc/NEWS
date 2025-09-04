@@ -172,6 +172,11 @@ can be overridden for different completion categories by customizing
 "*Completions*" for all minibuffers, or nil to suppress this for all
 minibuffers.
 
+---
+*** Support for completion category inheritance.
+You can now define completion categories that inherit properties from
+existing categories, using the new function 'define-completion-category'.
+
 +++
 *** Support for updating "*Completions*" as you type.
 If the "*Completions*" buffer is displayed, it will now be updated as
@@ -182,6 +187,14 @@ different completion categories by customizing
 'completion-eager-update can be set to t to make "*Completions*" always
 be updated as you type, or nil to suppress this always.  Note that for
 large or inefficient completion tables this can slow down typing.
+
+---
+*** RET chooses the completion selected with M-<up>/M-<down>
+If a completion candidate is selected with M-<up> or M-<down>, hitting
+RET will exit completion with that as the result.  This works both in
+minibuffer completion and in-buffer completion.  This supersedes
+'minibuffer-completion-auto-choose', which previously provided similar
+behavior; that variable is now nil by default.
 
 +++
 *** New user option 'completion-pcm-leading-wildcard'.
@@ -427,6 +440,12 @@ When non-nil, it truncates the tab bar, and therefore prevents
 wrapping and resizing the tab bar to more than one line.
 
 ---
+*** New user option 'tab-line-define-keys'.
+When t, the default, it redefines window buffer switching keys
+such as 'C-x <left>' and 'C-x <right>' to tab-line specific variants
+for switching tabs.
+
+---
 *** New command 'tab-line-move-tab-forward' ('C-x M-<right>').
 Together with the new command 'tab-line-move-tab-backward'
 ('C-x M-<left>'), it can be used to move the current tab
@@ -606,6 +625,14 @@ To use the ':foreground' or current text color ensure the 'fill' attribute
 in the SVG is set to 'currentcolor', or set the image spec's ':css'
 value to 'svg {fill: currentcolor;}'.
 
+---
+** Errors signaled by 'emacsclient' connections can now enter the debugger.
+If 'debug-on-error' is non-nil, errors signaled by Lisp programs
+executed due to 'emacsclient' connections will now enter the Lisp
+debugger and show the backtrace.  If 'debug-on-error' is nil, these
+errors will be sent to 'emacsclient', as before, and will be displayed
+on the terminal from which 'emacsclient' was invoked.
+
 
 * Editing Changes in Emacs 31.1
 
@@ -753,6 +780,7 @@ the default UI you get, i.e., when 'register-use-preview' is 'traditional'.
 
 ** Tree-sitter
 
++++
 *** New user option 'treesit-enabled-modes'.
 You can customize it either to t to enable all available ts-modes,
 or to select a list of ts-modes to enable.  Depending on customization,
@@ -1478,9 +1506,10 @@ replies.
 
 ---
 *** 'imap-authenticate' can now use PLAIN authentication.
-"AUTH=PLAIN" support is auto-enabled if the IMAP server supports it.  Pass
-a specific authentication type to 'imap-authenticate' or remove 'plain'
-from 'imap-authenticators' if you do not wish to use "AUTH=PLAIN".
+"AUTH=PLAIN" support is auto-enabled if the IMAP server supports it.  If
+you do not wish to use "AUTH=PLAIN", pass a specific authentication type
+to 'imap-open' for 'imap-authenticate' to use, or remove 'plain' from
+'imap-authenticators'.
 
 ** Rmail
 
@@ -2165,6 +2194,14 @@ include were committed and will be pushed.
 current VC fileset.
 
 +++
+*** New commands to report diffs of outstanding changes.
+'C-x v B =' ('vc-diff-outgoing-base') and 'C-x v B D'
+('vc-root-diff-outgoing-base') report diffs of changes since the merge
+base with the remote branch, including uncommitted changes.
+They are useful to view all outstanding (unmerged, unpushed) changes on
+the current branch.
+
++++
 *** New user option 'vc-use-incoming-outgoing-prefixes'.
 If this is customized to non-nil, 'C-x v I' and 'C-x v O' become prefix
 commands, such that the new incoming and outgoing commands have global
@@ -2512,6 +2549,18 @@ If non-nil, FFAP always finds remote files in buffers with remote
 'default-directory'.  If nil, FFAP finds local files first for absolute
 file names in above buffers.  The default is nil.
 
+** Debugging
+
++++
+*** New command 'edebug-bounce-to-previous-value' (bound to 'P')
+This command temporarily displays the outside current buffer with the
+outside point corresponding to the previous value, where the previous
+value is what Edebug has evaluated before its last stop point or what
+the user has evaluated in the context outside of Edebug.
+
+This replaces the binding of command 'edebug-view-outside' to 'P', which
+is still available on 'v'.
+
 ---
 ** Flymake
 
@@ -2541,6 +2590,13 @@ code, message or one-liner message) appear in each output destination.
 The tabulated listings produced by 'flymake-show-buffer-diagnostics' and
 'flymake-show-project-diagnostics' now automatically adjust their column
 widths based on content, optimizing display space and readability.
+
+*** New user option 'elisp-flymake-byte-compile-executable'.
+This allows customizing the Emacs executable used for Flymake byte
+compilation in emacs-lisp-mode.  This option should be set when editing
+Lisp code which will run with a different Emacs version than the running
+Emacs, such as code from an older or newer version of Emacs.  This will
+provide more accurate warnings from byte compilation.
 
 ** SQLite
 
@@ -2595,6 +2651,11 @@ Latin-1 range 0-255.  This hard-coded maximum is replaced by
 'calc-string-maximum-character', and setting it to a higher value allows
 the display of matching vectors as Unicode strings.  The default value
 is 0xFF or 255 to preserve the existing behavior.
+
++++
+*** New user option 'calc-inhibit-startup-message'.
+If it is non-nil, inhibit Calc from printing its startup message.  The
+default value is nil to preserve the existing behavior.
 
 ** Time
 
@@ -2676,6 +2737,14 @@ embedded JavaScript and CSS.
 A major mode based on the tree-sitter library for editing "go.work"
 files.  If tree-sitter is properly set-up by the user, it can be
 enabled for files named "go.work".
+
+** New package 'lua-mode'.
+The 'lua-mode' package from NonGNU ELPA is now included in Emacs.
+
+** New library 'timeout'.
+This library provides functions to throttle or debounce Emacs Lisp
+functions.  This is useful for corralling overeager code that is slow
+and blocks Emacs, or does not provide ways to limit how often it runs.
 
 
 * Incompatible Lisp Changes in Emacs 31.1
@@ -2816,6 +2885,12 @@ If the new variable 'load-path-filter-function' is set to the new
 function 'load-path-filter-cache-directory-files', calling 'load' will
 cache the directories it scans and their files, and the following
 lookups should be faster.
+
++++
+** 'let-alist' supports indexing into lists.
+The macro 'let-alist' now interprets symbols containing numbers as list
+indices.  For example, '.key.0' looks up 'key' in the alist and then
+returns its first element.
 
 ** Lexical binding
 

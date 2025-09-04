@@ -3568,10 +3568,10 @@ discarding bits.  */)
   CHECK_INTEGER (value);
   CHECK_INTEGER (count);
 
+  if (BASE_EQ (value, make_fixnum (0)))
+    return value;
   if (! FIXNUMP (count))
     {
-      if (BASE_EQ (value, make_fixnum (0)))
-	return value;
       if (mpz_sgn (*xbignum_val (count)) < 0)
 	{
 	  EMACS_INT v = (FIXNUMP (value) ? XFIXNUM (value)
@@ -3581,30 +3581,38 @@ discarding bits.  */)
       overflow_error ();
     }
 
-  if (XFIXNUM (count) <= 0)
+  EMACS_INT c = XFIXNUM (count);
+  if (c <= 0)
     {
-      if (XFIXNUM (count) == 0)
+      if (c == 0)
 	return value;
 
       if ((EMACS_INT) -1 >> 1 == -1 && FIXNUMP (value))
 	{
-	  EMACS_INT shift = -XFIXNUM (count);
+	  EMACS_INT shift = -c;
 	  EMACS_INT result
 	    = (shift < EMACS_INT_WIDTH ? XFIXNUM (value) >> shift
 	       : XFIXNUM (value) < 0 ? -1 : 0);
 	  return make_fixnum (result);
 	}
     }
+  else if (FIXNUMP (value))
+    {
+      EMACS_INT v = XFIXNUM (value);
+      if (stdc_leading_zeros ((EMACS_UINT)(v < 0 ? ~v : v)) - c
+	  >= EMACS_INT_WIDTH - FIXNUM_BITS + 1)
+	return make_fixnum (v << c);
+    }
 
   mpz_t const *zval = bignum_integer (&mpz[0], value);
-  if (XFIXNUM (count) < 0)
+  if (c < 0)
     {
-      if (TYPE_MAXIMUM (mp_bitcnt_t) < - XFIXNUM (count))
+      if (TYPE_MAXIMUM (mp_bitcnt_t) < -c)
 	return make_fixnum (mpz_sgn (*zval) < 0 ? -1 : 0);
-      mpz_fdiv_q_2exp (mpz[0], *zval, - XFIXNUM (count));
+      mpz_fdiv_q_2exp (mpz[0], *zval, -c);
     }
   else
-    emacs_mpz_mul_2exp (mpz[0], *zval, XFIXNUM (count));
+    emacs_mpz_mul_2exp (mpz[0], *zval, c);
   return make_integer_mpz ();
 }
 

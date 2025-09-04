@@ -1232,7 +1232,7 @@ The following commands are accepted by the client:
     (when prev
       (setq string (concat prev string))
       (process-put proc 'previous-string nil)))
-  (condition-case err
+  (condition-case-unless-debug err
       (progn
 	(server-add-client proc)
 	;; Send our pid

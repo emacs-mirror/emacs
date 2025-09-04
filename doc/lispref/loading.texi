@@ -690,7 +690,7 @@ and @code{define-overloadable-function} (see the commentary in
 (@pxref{Top,Autotyping,,autotype,Autotyping}),
 @code{transient-define-prefix}, @code{transient-define-suffix},
 @code{transient-define-infix}, @code{transient-define-argument}, and
-@code{transient-define-group} (@pxref{TOP,Transient,,transient,Transient
+@code{transient-define-group} (@pxref{Top,Transient,,transient,Transient
 User and Developer Manual}).
 @end table
 

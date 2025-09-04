@@ -913,6 +913,7 @@ The doc string contains a list of the system sounds you can use.
 * Multilingual fonts::
 * Font menu::
 * Line ends::
+* UTF-8 encoding::
 @end menu
 
 @node Font names
@@ -1190,6 +1191,69 @@ them.  The list can be manipulated with the functions
 recent versions of Emacs, this is seldom useful for existing files,
 but can still be used to influence the choice of line ends for newly
 created files.
+
+@node UTF-8 encoding
+@section Can I use UTF-8 as default encoding on MS-Windows?
+@cindex UTF-8 as default encoding on Windows
+@cindex codepage 65001 support in Emacs
+
+Recent versions of MS-Windows (Windows 10 since build 1803, and Windows
+11 or later versions) allow to use UTF-8 (a.k.a.@: ``codepage 65001'')
+as the default system codepage.  As of this writing, this is still an
+experimental feature, even in Windows 11, and is disabled by default.
+On Windows 11 you can enable it as follows:
+
+@enumerate
+@item
+Open Settings.
+
+@item
+Select ``Time & Language'', then ``Language & region''.
+
+@item
+Click on ``Administrative language settings''.
+
+@item
+On the dialog that pops up click ``Change system locale...''
+
+@item
+In the ``Region Settings'' dialog that pops up, check the check-box
+labeled ``Beta: Use Unicode UTF-8 for worldwide language support'', then
+confirm by clicking ``OK'' to both dialogs.
+@end enumerate
+
+@cindex UCRT runtime library
+@cindex MSVCRT runtime library
+Emacs supports this feature starting from version 30.2, but only when
+running on the versions of Windows that provide this feature, and only
+if the Emacs executable was linked against the @samp{UCRT} library as
+the Windows C runtime, not against the older @samp{MSVCRT}.  This is
+because the C functions that deal with non-ASCII characters, as
+implemented by @samp{MSVCRT}, don't support UTF-8 as the multibyte
+encoding of non-ASCII characters.  (Which runtime to link against is
+determined by the person who built your Emacs binary.  Note that using
+Emacs linked against @samp{UCRT} needs all of the libraries loaded by
+Emacs dynamically, such as GnuTLS, image libraries like @samp{rsvg},
+Tree-sitter, and all the others, to be also linked against @samp{UCRT},
+otherwise subtle problems could happen when dealing with non-ASCII
+characters and strings.)
+
+If you have an Emacs linked against @samp{UCRT}, and you turned on the
+UTF-8 support in Windows as described above, you can customize Emacs to
+use UTF-8 as your default encoding, e.g., by adding
+
+@lisp
+ (prefer-coding-system 'utf-8)
+@end lisp
+
+@noindent
+to your init file, or by using the @samp{UTF-8} language environment
+(@pxref{Language Environments,,, emacs, The GNU Emacs Manual}) in your
+Emacs sessions.
+
+Please be aware that, since this feature of Windows is still in beta,
+there could be some subtle issues with it.  So we do not yet recommend
+to turn this on, unless you feel adventurous.
 
 @c ------------------------------------------------------------
 @node Printing

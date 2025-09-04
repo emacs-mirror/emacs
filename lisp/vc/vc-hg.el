@@ -1531,19 +1531,19 @@ This runs the command \"hg summary\"."
          (nreverse result))
        "\n"))))
 
-(defun vc-hg-incoming-revision (remote-location)
-  (let* ((remote-location (if (string-empty-p remote-location)
+(defun vc-hg-incoming-revision (upstream-location &optional _refresh)
+  (let* ((upstream-location (if (string-empty-p upstream-location)
                               "default"
-                            remote-location))
+                            upstream-location))
          ;; Use 'hg identify' like this, and not 'hg incoming', because
          ;; this will give a sensible answer regardless of whether the
          ;; incoming revision has been pulled yet.
          (rev (with-output-to-string
                 (vc-hg-command standard-output 0 nil "identify" "--id"
-                               remote-location "--template={node}"))))
+                               upstream-location "--template={node}"))))
     (condition-case _ (vc-hg-command nil 0 nil "log" "-r" rev)
       ;; We don't have the revision locally.  Pull it.
-      (error (vc-hg-command nil 0 nil "pull" remote-location)))
+      (error (vc-hg-command nil 0 nil "pull" upstream-location)))
     rev))
 
 (defun vc-hg-mergebase (rev1 &optional rev2)

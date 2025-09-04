@@ -868,6 +868,8 @@ Miscellaneous Commands and Features of VC
 * Change Logs and VC::    Generating a change log file from log entries.
 * VC Delete/Rename::      Deleting and renaming version-controlled files.
 * Revision Tags::         Symbolic names for revisions.
+* Merge Bases::           The most recent revision existing on both branches.
+* Outgoing Base Diffs::   Diffs including all outstanding changes on a branch.
 * Other Working Trees::   Multiple sets of workfiles.
 * Version Headers::       Inserting version control headers into working files.
 * Editing VC Commands::   Editing the VC shell commands that Emacs will run.

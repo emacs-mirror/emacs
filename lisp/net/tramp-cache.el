@@ -647,17 +647,18 @@ your laptop to different networks frequently."
   "Return a list of (user host) tuples allowed to access for METHOD.
 This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from connection history."
-  (mapcar
-   (lambda (key)
-     (let ((tramp-verbose 0))
-       (and (tramp-file-name-p key)
-	    (string-equal method (tramp-file-name-method key))
-	    (not (tramp-file-name-localname key))
-	    (tramp-get-method-parameter
-	     key 'tramp-completion-use-cache tramp-completion-use-cache)
-	    (list (tramp-file-name-user key)
-		  (tramp-file-name-host key)))))
-   (hash-table-keys tramp-cache-data)))
+  (delete-dups
+   (tramp-compat-seq-keep
+    (lambda (key)
+      (let ((tramp-verbose 0))
+	(and (tramp-file-name-p key)
+	     (string-equal method (tramp-file-name-method key))
+	     (not (tramp-file-name-localname key))
+	     (tramp-get-method-parameter
+	      key 'tramp-completion-use-cache tramp-completion-use-cache)
+	     (list (tramp-file-name-user key)
+		   (tramp-file-name-host key)))))
+    (hash-table-keys tramp-cache-data))))
 
 ;; When "emacs -Q" has been called, both variables are nil.  We do not
 ;; load the persistency file then, in order to have a clean test environment.

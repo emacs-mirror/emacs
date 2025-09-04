@@ -417,10 +417,7 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
   "<remap> <erc-bol>" #'erc-fill--wrap-beginning-of-line)
 
 (defvar erc-button-mode)
-(defvar erc-scrolltobottom-mode)
 (defvar erc-legacy-invisible-bounds-p)
-
-(defvar erc-fill--wrap-scrolltobottom-exempt-p nil)
 
 (defun erc-fill--wrap-ensure-dependencies ()
   (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
@@ -434,10 +431,6 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
     (unless erc-fill-mode
       (push 'fill missing-deps)
       (erc-fill-mode +1))
-    (unless (or erc-scrolltobottom-mode erc-fill--wrap-scrolltobottom-exempt-p
-                (memq 'scrolltobottom erc-modules))
-      (push 'scrolltobottom missing-deps)
-      (erc-scrolltobottom-mode +1))
     (when erc-fill-wrap-merge
       (require 'erc-button)
       (unless erc-button-mode
@@ -515,11 +508,10 @@ This normally poses at most a minor inconvenience.  Users of the
 logged messages and instead prepends them to every line.
 
 A so-called \"local\" module, `fill-wrap' depends on the global
-modules `fill', `stamp', `button', and `scrolltobottom'.  It
-activates them as needed when initializing and leaves them
-enabled when shutting down.  To opt out of `scrolltobottom'
-specifically, disable its minor mode, `erc-scrolltobottom-mode',
-via `erc-fill-wrap-mode-hook'."
+modules `fill', `stamp', `button'.  It therefore activates them
+as needed when initializing and leaves them enabled when shutting
+down.  Users may also find the `scrolltobottom' module a
+necessary addition for this fill style."
   ((erc-fill--wrap-ensure-dependencies)
    (when erc-fill-wrap-merge-indicator
      (erc-fill--wrap-massage-legacy-indicator-type))
@@ -618,14 +610,20 @@ message has been marked `erc--ephemeral'."
 Ignore any `invisible' props that may be present when figuring.
 Expect the target region to be free of `line-prefix' and
 `wrap-prefix' properties, and expect `display-line-numbers-mode'
-to be disabled."
+to be disabled.  On Emacs 28 and below, return END minus BEG."
+  ;; Rely on `buffer-text-pixel-size' here even for buffers displayed in
+  ;; another window because temporarily selecting such windows via
+  ;; `with-selected-window' seems to interfere with the implementation
+  ;; of `erc-scrolltobottom-all' in ERC 5.6, which needs improvement.
   (if (fboundp 'buffer-text-pixel-size)
       ;; `buffer-text-pixel-size' can move point!
       (save-excursion
         (save-restriction
           (narrow-to-region beg end)
           (let* ((buffer-invisibility-spec)
-                 (rv (car (buffer-text-pixel-size))))
+                 (rv (car (if (eq (selected-window) (get-buffer-window))
+                              (window-text-pixel-size)
+                            (buffer-text-pixel-size)))))
             (if erc-fill-wrap-use-pixels
                 (if (zerop rv) 0 (list rv))
               (/ rv (frame-char-width))))))

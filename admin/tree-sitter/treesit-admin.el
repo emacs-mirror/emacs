@@ -316,7 +316,7 @@ Return non-nil if all queries are valid, nil otherwise."
              ;; TODO: A more generic way to find all queries.
              (let ((c-ts-mode-enable-doxygen t)
                    (c-ts-mode-enable-doxygen t)
-                   (java-ts-mode-enabel-doxygen t))
+                   (java-ts-mode-enable-doxygen t))
                (funcall mode))
              (font-lock-mode -1)
              treesit-font-lock-settings)))

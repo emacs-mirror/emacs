@@ -5478,12 +5478,12 @@ Disable excessive traces.  Set @code{tramp-verbose} to 3 or lower,
 default being 3.  Increase trace levels temporarily when hunting for
 bugs.
 
-@item
-Use a package with @value{tramp} specific implementation of high-level
-operations.  For example, the GNU ELPA package @file{tramp-hlo}
-implements specialized versions of @code{dir-locals--all-files},
-@code{locate-dominating-file} and @code{dir-locals-find-file} for
-@value{tramp}'s @code{tramp-sh} backend (@pxref{New operations}).
+@c @item
+@c Use a package with @value{tramp} specific implementation of high-level
+@c operations.  For example, the GNU ELPA package @file{tramp-hlo}
+@c implements specialized versions of @code{dir-locals--all-files},
+@c @code{locate-dominating-file} and @code{dir-locals-find-file} for
+@c @value{tramp}'s @code{tramp-sh} backend (@pxref{New operations}).
 @end itemize
 
 

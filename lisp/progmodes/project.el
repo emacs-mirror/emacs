@@ -1696,6 +1696,9 @@ Return non-nil if PROJECT is not a remote project."
      (t
       (complete-with-action action buffers string pred)))))
 
+(define-completion-category 'project-buffer '(buffer)
+  "Completion category for buffers in a given project.")
+
 (defun project--read-project-buffer ()
   (let* ((pr (project-current t))
          (current-buffer (current-buffer))

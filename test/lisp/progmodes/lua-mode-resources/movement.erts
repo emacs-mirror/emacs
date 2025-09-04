@@ -1,0 +1,637 @@
+Code:
+  (lambda ()
+    (lua-mode)
+    (beginning-of-defun 1))
+
+Point-Char: |
+
+Name: beginning-of-defun moves to start of function declaration
+
+=-=
+local function Test()
+  if true then
+    print(1)
+  else
+    print(0)
+  end|
+end
+=-=
+|local function Test()
+  if true then
+    print(1)
+  else
+    print(0)
+  end
+end
+=-=-=
+
+Code:
+  (lambda ()
+    (lua-mode)
+    (end-of-defun 1))
+
+Point-Char: |
+
+Name: end-of-defun moves to end of function declaration
+
+=-=
+local function Test()
+  if true then
+    pr|int(1)
+  else
+    print(0)
+  end
+end
+
+local t = Test()
+=-=
+local function Test()
+  if true then
+    print(1)
+  else
+    print(0)
+  end
+end
+|
+local t = Test()
+=-=-=
+
+Name: end-of-defun moves to end of function definition
+
+=-=
+local t = {
+  f = function()
+    re|turn true
+  end,
+}
+=-=
+local t = {
+  f = function()
+    return true
+|  end,
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (lua-mode)
+    (forward-sentence 1))
+
+Point-Char: |
+
+Name: forward-sentence moves over if statements
+
+=-=
+function f()
+  |if true then
+    print(1)
+  elseif false then
+    print(0)
+  else
+    print(2)
+  end
+end
+=-=
+function f()
+  if true then
+    print(1)
+  elseif false then
+    print(0)
+  else
+    print(2)
+  end
+end|
+=-=-=
+
+Name: forward-sentence moves over variable declaration
+
+=-=
+|local n = 1
+
+print(n)
+=-=
+local n = 1|
+
+print(n)
+=-=-=
+
+Name: forward-sentence moves over for statements
+
+=-=
+|for k, v in pairs({}) do
+  print(k, v)
+end
+
+print(1)
+=-=
+for k, v in pairs({}) do
+  print(k, v)
+end|
+
+print(1)
+=-=-=
+
+Name: forward-sentence moves over do statements
+
+=-=
+|do
+  local x = 1
+  local y = 2
+
+  print(x, y)
+end
+
+print(1)
+=-=
+do
+  local x = 1
+  local y = 2|
+
+  print(x, y)
+end
+
+print(1)
+=-=-=
+
+Name: forward-sentence moves over while statements
+
+=-=
+local i = 0
+|while i < 9 do
+      print(i)
+      i = i + 1
+end
+
+print(1)
+=-=
+local i = 0
+while i < 9 do
+      print(i)
+      i = i + 1
+end|
+
+print(1)
+=-=-=
+
+Name: forward-sentence moves over repeat statements
+
+=-=
+local i = 0
+|repeat
+  print(i)
+  i = i + 1
+until i > 9
+
+print(1)
+=-=
+local i = 0
+repeat
+  print(i)
+  i = i + 1
+until i > 9|
+
+print(1)
+=-=-=
+
+Name: forward-sentence moves over function calls
+
+=-=
+|print(1)
+=-=
+print(1)|
+=-=-=
+
+Name: forward-sentence moves over return statements
+
+=-=
+function f()
+    |return math.random()
+end
+=-=
+function f()
+    return math.random()
+end|
+=-=-=
+
+Code:
+  (lambda ()
+    (lua-mode)
+    (forward-sentence 1))
+
+Name: forward-sentence moves over table fields
+
+=-=
+local t = {
+  |a = 1,
+  b = 2,
+}
+=-=
+local t = {
+  a = 1,
+  b = 2,
+}|
+=-=-=
+
+Code:
+  (lambda ()
+    (lua-mode)
+    (backward-sentence 1))
+
+Point-Char: |
+
+Name: backward-sentence moves over if statements
+
+=-=
+function f()
+  if true then
+    print(1)
+  elseif false then
+    print(0)
+  else
+    print(2)
+  end|
+end
+=-=
+|function f()
+  if true then
+    print(1)
+  elseif false then
+    print(0)
+  else
+    print(2)
+  end
+end
+=-=-=
+
+Name: backward-sentence moves over variable declaration
+
+=-=
+local n = 1|
+
+print(n)
+=-=
+|local n = 1
+
+print(n)
+=-=-=
+
+Name: backward-sentence moves over for statements
+
+=-=
+for k, v in pairs({}) do
+  print(k, v)
+end|
+
+print(1)
+=-=
+|for k, v in pairs({}) do
+  print(k, v)
+end
+
+print(1)
+=-=-=
+
+Name: backward-sentence moves over do statements
+
+=-=
+do
+  local x = 1
+  local y = 2
+
+  print(x, y)
+end|
+
+print(1)
+=-=
+do
+  local x = 1
+  local y = 2
+
+  |print(x, y)
+end
+
+print(1)
+=-=-=
+
+Name: backward-sentence moves over while statements
+
+=-=
+local i = 0
+while i < 9 do
+      print(i)
+      i = i + 1
+end|
+
+print(1)
+=-=
+|local i = 0
+while i < 9 do
+      print(i)
+      i = i + 1
+end
+
+print(1)
+=-=-=
+
+Name: backward-sentence moves over repeat statements
+
+=-=
+local i = 0
+repeat
+  print(i)
+  i = i + 1
+until i > 9|
+
+print(1)
+=-=
+|local i = 0
+repeat
+  print(i)
+  i = i + 1
+until i > 9
+
+print(1)
+=-=-=
+
+Name: backward-sentence moves over function calls
+
+=-=
+print(1)|
+=-=
+|print(1)
+=-=-=
+
+Name: backward-sentence moves over return statements
+
+=-=
+function f()
+    return math.random()|
+end
+=-=
+|function f()
+    return math.random()
+end
+=-=-=
+
+Code:
+  (lambda ()
+    (lua-mode)
+    (backward-sentence 2))
+
+Point-Char: |
+
+Name: backward-sentence moves over table fields
+
+=-=
+local t = {
+  a = 1,
+  b = 2|,
+}
+=-=
+|local t = {
+  a = 1,
+  b = 2,
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (lua-mode)
+    (forward-sexp 1))
+
+Point-Char: |
+
+Name: forward-sexp moves over arguments
+
+=-=
+print|(1, 2, 3)
+=-=
+print(1, 2, 3)|
+=-=-=
+
+Name: forward-sexp moves over parameters
+
+=-=
+function f|(a, b) end
+=-=
+function f(a, b)| end
+=-=-=
+
+Name: forward-sexp moves over strings
+
+=-=
+print(|"1, 2, 3")
+=-=
+print("1, 2, 3"|)
+=-=-=
+
+Name: forward-sexp moves over tables
+
+=-=
+local t = |{ 1,
+  2,
+  3 }
+=-=
+local t = { 1,
+  2,
+  3 }|
+=-=-=
+
+Name: forward-sexp moves over parenthesized expressions
+
+=-=
+|(function (x) return x + 1 end)(41)
+=-=
+(function (x) return x + 1 end)|(41)
+=-=-=
+
+Name: forward-sexp moves over function declarations
+
+=-=
+|function foo (x)
+    if false then
+        print "foo"
+    elseif true then
+        print "bar"
+    end
+end
+=-=
+function| foo (x)
+    if false then
+        print "foo"
+    elseif true then
+        print "bar"
+    end
+end
+=-=-=
+
+Name: forward-sexp moves over do statements
+
+=-=
+|do
+  print(a + 1)
+end
+=-=
+do|
+  print(a + 1)
+end
+=-=-=
+
+Name: forward-sexp moves over for statements
+
+=-=
+|for k,v in pairs({}) do
+  print(k, v)
+end
+=-=
+for| k,v in pairs({}) do
+  print(k, v)
+end
+=-=-=
+
+Name: forward-sexp moves over repeat statements
+
+=-=
+|repeat
+  n = n + 1
+until n > 10
+=-=
+repeat|
+  n = n + 1
+until n > 10
+=-=-=
+
+Name: forward-sexp moves over while statements
+
+=-=
+|while n < 99
+do
+  n = n+1
+end
+=-=
+while| n < 99
+do
+  n = n+1
+end
+=-=-=
+
+Code:
+  (lambda ()
+    (lua-mode)
+    (backward-sexp 1))
+
+Point-Char: |
+
+Name: backward-sexp moves over arguments
+
+=-=
+print(1, 2, 3)|
+=-=
+print|(1, 2, 3)
+=-=-=
+
+Name: backward-sexp moves over parameters
+
+=-=
+function f(a, b)| end
+=-=
+function f|(a, b) end
+=-=-=
+
+Name: backward-sexp moves over strings
+
+=-=
+print("1, 2, 3"|)
+=-=
+print(|"1, 2, 3")
+=-=-=
+
+Name: backward-sexp moves over tables
+
+=-=
+local t = { 1,
+  2,
+  3 }|
+=-=
+local t = |{ 1,
+  2,
+  3 }
+=-=-=
+
+Name: backward-sexp moves over parenthesized expressions
+
+=-=
+(function (x) return x + 1 end)|(41)
+=-=
+|(function (x) return x + 1 end)(41)
+=-=-=
+
+Name: backward-sexp moves over function declarations
+
+=-=
+function foo (x)
+    if false then
+        print "foo"
+    elseif true then
+        print "bar"
+    end
+end|
+=-=
+function foo (x)
+    if false then
+        print "foo"
+    elseif true then
+        print "bar"
+    end
+|end
+=-=-=
+
+Name: backward-sexp moves over do statements
+
+=-=
+do
+  print(a + 1)
+end|
+=-=
+do
+  print(a + 1)
+|end
+=-=-=
+
+Name: backward-sexp moves over for statements
+
+=-=
+for k,v in pairs({}) do
+  print(k, v)
+end|
+=-=
+for k,v in pairs({}) do
+  print(k, v)
+|end
+=-=-=
+
+Name: backward-sexp moves over repeat statements
+
+=-=
+repeat
+  n = n + 1
+until n > 10|
+=-=
+repeat
+  n = n + 1
+until n > |10
+=-=-=
+
+Name: backward-sexp moves over while statements
+
+=-=
+while n < 99
+do
+  n = n+1
+end|
+=-=
+while n < 99
+do
+  n = n+1
+|end
+=-=-=
