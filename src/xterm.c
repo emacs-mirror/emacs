@@ -13945,12 +13945,12 @@ xi_disable_devices (struct x_display_info *dpyinfo,
 
 	      goto out;
 	    }
-
-	  devices[ndevices++] = dpyinfo->devices[i];
-
-	out:
-	  continue;
 	}
+
+      devices[ndevices++] = dpyinfo->devices[i];
+
+    out:
+      continue;
     }
 
   /* Free the old devices array and replace it with ndevices.  */
