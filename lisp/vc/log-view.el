@@ -125,7 +125,8 @@
 
 (defvar-keymap log-view-mode-map
   "RET" #'log-view-toggle-entry-display
-  "m" #'log-view-toggle-mark-entry
+  "m" #'log-view-mark-entry
+  "u" #'log-view-unmark-entry
   "e" #'log-view-modify-change-comment
   "d" #'log-view-diff
   "=" #'log-view-diff
@@ -335,30 +336,47 @@ if POS is omitted or nil, it defaults to point."
 
 (defun log-view-toggle-mark-entry ()
   "Toggle the marked state for the log entry at point.
-Individual log entries can be marked and unmarked.  The marked
-entries are denoted by changing their background color.
-`log-view-get-marked' returns the list of tags for the marked
-log entries."
+See `log-view-mark-entry'."
   (interactive)
   (save-excursion
-    (let* ((entry (log-view-current-entry nil t))
-	   (beg (car entry))
-	   found)
-      (when entry
-	;; Look to see if the current entry is marked.
-	(setq found (get-char-property beg 'log-view-self))
-	(if found
-	    (delete-overlay found)
-	  ;; Create an overlay covering this entry and change its color.
-	  (let* ((end (if (get-text-property beg 'log-view-entry-expanded)
-			  (next-single-property-change beg 'log-view-comment)
-			(log-view-end-of-defun)
-			(point)))
-		 (ov (make-overlay beg end)))
-	    (overlay-put ov 'face 'log-view-file)
-	    ;; This is used to check if the overlay is present.
-	    (overlay-put ov 'log-view-self ov)
-	    (overlay-put ov 'log-view-marked (nth 1 entry))))))))
+    (when-let* ((entry (log-view-current-entry)))
+      (if (get-char-property (car entry) 'log-view-self)
+          (log-view-unmark-entry)
+        (log-view-mark-entry)))))
+
+(defun log-view-mark-entry ()
+  "Mark the log entry at point.
+When entries are marked, some commands that usually operate on the entry
+at point will instead operate on all marked entries.
+Use \\[log-view-unmark-entry] to unmark an entry.
+
+Lisp programs can use `log-view-get-marked' to obtain a list of all
+marked revisions."
+  (interactive)
+  (when-let* ((entry (log-view-current-entry))
+	      (beg (car entry)))
+    (save-excursion
+      (goto-char beg)
+      (unless (get-char-property beg 'log-view-self)
+        (let* ((end (if (get-text-property beg 'log-view-entry-expanded)
+			(next-single-property-change beg 'log-view-comment)
+		      (log-view-end-of-defun)
+		      (point)))
+	       (ov (make-overlay beg end)))
+	  (overlay-put ov 'face 'log-view-file)
+	  ;; This is used to check if the overlay is present.
+	  (overlay-put ov 'log-view-self ov)
+	  (overlay-put ov 'log-view-marked (nth 1 entry)))))
+    (forward-line 1)))
+
+(defun log-view-unmark-entry ()
+  "Unmark the log entry at point.
+See `log-view-mark-entry'."
+  (interactive)
+  (when-let* ((entry (log-view-current-entry)))
+    (when-let* ((found (get-char-property (car entry) 'log-view-self)))
+      (delete-overlay found))
+    (forward-line 1)))
 
 ;;;###autoload
 (defun log-view-get-marked ()

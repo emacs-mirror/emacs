@@ -2255,6 +2255,16 @@ Backend authors should implement the 'incoming-revision' and 'mergebase'
 backend functions instead.  These are jointly sufficient to support the
 'C-x v I' and 'C-x v O' commands.
 
+---
+*** Marking revisions in Log View now works more like other modes.
+Previously, 'm' toggled whether the current revision was marked, and
+didn't advance point.  Now 'm' only adds marks, 'u' removes marks, and
+both advance point, like how marking works in Dired and VC-Dir.
+You can get back the old behavior with something like this:
+
+    (with-eval-after-load 'log-view
+      (keymap-set log-view-mode-map "m" #'log-view-toggle-mark-entry))
+
 ** Diff mode
 
 +++
