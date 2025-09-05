@@ -1567,7 +1567,8 @@ This runs the command \"hg summary\"."
 If PROMPT is non-nil, prompt for the Hg command to run.
 POST-PROCESSING is a list of commands to execute after the command.
 If OBSOLETE is non-nil, behave like the old versions of the Hg push/pull
-commands, which only operated on marked files."
+commands: when called interactively in a Log View buffer with marked
+revisions, fetch only those revisions."
   (let (marked-list)
     ;; The `vc-hg-pull' and `vc-hg-push' commands existed before the
     ;; `pull'/`push' VC actions were implemented.
