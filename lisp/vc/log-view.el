@@ -367,7 +367,7 @@ marked revisions."
 	  ;; This is used to check if the overlay is present.
 	  (overlay-put ov 'log-view-self ov)
 	  (overlay-put ov 'log-view-marked (nth 1 entry)))))
-    (forward-line 1)))
+    (log-view-msg-next 1)))
 
 (defun log-view-unmark-entry ()
   "Unmark the log entry at point.
@@ -376,7 +376,7 @@ See `log-view-mark-entry'."
   (when-let* ((entry (log-view-current-entry)))
     (when-let* ((found (get-char-property (car entry) 'log-view-self)))
       (delete-overlay found))
-    (forward-line 1)))
+    (log-view-msg-next 1)))
 
 ;;;###autoload
 (defun log-view-get-marked ()
