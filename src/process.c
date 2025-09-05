@@ -5078,6 +5078,10 @@ server_accept_connection (Lisp_Object server, int channel)
   fcntl (s, F_SETFL, O_NONBLOCK);
 
   p = XPROCESS (proc);
+  /* make_process calls pset_thread, but if the server process is not
+     locked to any thread, we need to undo what make_process did.  */
+  if (NILP (ps->thread))
+    pset_thread (p, Qnil);
 
   /* Build new contact information for this setup.  */
   contact = Fcopy_sequence (ps->childp);
@@ -5117,6 +5121,17 @@ server_accept_connection (Lisp_Object server, int channel)
     add_process_read_fd (s);
   if (s > max_desc)
     max_desc = s;
+  /* If the server process is locked to this thread, lock the client
+     process to the same thread, otherwise clear the thread of its I/O
+     descriptors.  */
+  eassert (!fd_callback_info[p->infd].thread);
+  if (NILP (ps->thread))
+    set_proc_thread (p, NULL);
+  else
+    {
+      eassert (XTHREAD (ps->thread) == current_thread);
+      set_proc_thread (p, XTHREAD (ps->thread));
+    }
 
   /* Setup coding system for new process based on server process.
      This seems to be the proper thing to do, as the coding system
