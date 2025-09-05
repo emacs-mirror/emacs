@@ -960,7 +960,6 @@ In the latter case, VC mode is deactivated for this buffer."
   "u"   #'vc-revert
   "v"   #'vc-next-action
   "+"   #'vc-update
-  ;; I'd prefer some kind of symmetry with vc-update:
   "P"   #'vc-push
   "="   #'vc-diff
   "D"   #'vc-root-diff
