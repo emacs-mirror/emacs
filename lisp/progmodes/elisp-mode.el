@@ -2292,7 +2292,9 @@ containing the file being compiled, as determined by `project-current'.
 If nil, or if the file named by this does not exist, Flymake will
 use the same executable as the running Emacs, as specified by the
 variables `invocation-name' and `invocation-directory'."
-  :type 'file
+  :type '(choice
+          (const :tag "Current session's executable" nil)
+          (file :tag "Specific Emacs executable"))
   :group 'lisp
   :version "31.1")
 
