@@ -689,7 +689,7 @@ With prefix argument ARG, move that many lines."
 	    (setq processed-line (line-number-at-pos))
 	    (condition-case nil
                 ;; Avoid any prompting.
-                (let ((vc-dir-allow-mass-mark-changes nil))
+                (let (vc-dir-allow-mass-mark-changes)
 		  (funcall mark-unmark-function))
 	      ;; `vc-dir-mark-file' signals an error if we try marking
 	      ;; a directory containing marked files in its tree, or a
