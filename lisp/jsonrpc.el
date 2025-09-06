@@ -995,6 +995,20 @@ TIMEOUT is nil)."
                                              fn oops)
                            (remove-hook 'jsonrpc-event-hook fn)))))))
 
+(defun jsonrpc--limit-buffer-size (max-size)
+  "Limit the current buffer to MAX-SIZE by eating lines at the beginning.
+Do nothing if MAX-SIZE is nil."
+  (when max-size
+    (while (> (buffer-size) max-size)
+      (delete-region
+       (point-min)
+       (save-excursion
+         ;; Remove 1/4, so that the cost is O(1) amortised, since each
+         ;; call to `delete-region' will move the buffer contents twice.
+         (goto-char (+ (point-min) (/ (buffer-size) 4)))
+         (forward-line)
+         (point))))))
+
 (defvar jsonrpc-event-hook (list #'jsonrpc--log-event)
   "Hook run when JSON-RPC events are emitted.
 This hooks runs in the events buffer of every  `jsonrpc-connection'
@@ -1071,15 +1085,7 @@ of the API instead.")
           (when error
             (setq msg (propertize msg 'face 'error)))
           (insert-before-markers msg)
-          ;; Trim the buffer if it's too large
-          (when max
-            (save-excursion
-              (goto-char (point-min))
-              (while (> (buffer-size) max)
-                (delete-region (point) (progn (forward-line 1)
-                                              (forward-sexp 1)
-                                              (forward-line 2)
-                                              (point)))))))))))
+          (jsonrpc--limit-buffer-size max))))))
 
 (defun jsonrpc--forwarding-buffer (name prefix conn)
   "Helper for `jsonrpc-process-connection' helpers.
@@ -1093,19 +1099,23 @@ PREFIX to CONN's events buffer."
       (add-hook
        'after-change-functions
        (lambda (beg _end _pre-change-len)
-         (cl-loop initially (goto-char beg)
-                  do (forward-line)
-                  when (bolp)
-                  for line = (buffer-substring
-                              (line-beginning-position 0)
-                              (line-end-position 0))
-                  do (with-current-buffer (jsonrpc-events-buffer conn)
-                       (goto-char (point-max))
-                       (let ((inhibit-read-only t))
-                         (insert
-                          (propertize (format "%s %s\n" prefix line)
-                                      'face 'shadow))))
-                  until (eobp)))
+         (let* ((props (slot-value conn '-events-buffer-config))
+                (max (plist-get props :size)))
+           (unless (eql max 0)
+             (cl-loop initially (goto-char beg)
+                      do (forward-line)
+                      when (bolp)
+                      for line = (buffer-substring
+                                  (line-beginning-position 0)
+                                  (line-end-position 0))
+                      do (with-current-buffer (jsonrpc-events-buffer conn)
+                           (goto-char (point-max))
+                           (let ((inhibit-read-only t))
+                             (insert
+                              (propertize (format "%s %s\n" prefix line)
+                                          'face 'shadow))
+                             (jsonrpc--limit-buffer-size max)))
+                      until (eobp)))))
        nil t))
     (current-buffer)))
 
