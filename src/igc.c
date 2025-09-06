@@ -5429,6 +5429,34 @@ KEY is the key associated with DEPENDENCY in a hash table.  */)
   return Qt;
 }
 
+DEFUN ("igc--arena-step", Figc__arena_step, Sigc__arena_step, 2, 2, 0,
+       doc: /* Do some GC work.
+
+INTERVAL is the time, in seconds, that MPS is permitted to take.
+
+MULTIPLIER is the number of further similar calls that the client
+program expects to make during this idle period.
+
+Return t if there was work to do, nil otherwise. */)
+  (Lisp_Object interval, Lisp_Object multiplier)
+{
+  /* mps_arena_step does not guarantee to return swiftly.  And it seems
+     that it sometimes does an opportunistic full collection alleging
+     the client predicted lots of idle time.  But it doesn't tell how
+     it comes to that conclusion. This is caused by bug#79346 in MPS. */
+
+  /* 1.0 is the lowest possible value for the multiplier argument to
+     mps_arena_step (bug#76505).  */
+
+  double secs = extract_float (interval);
+  if (secs < 0.0)
+    xsignal1 (Qrange_error, interval);
+  CHECK_FIXNAT (multiplier);
+  EMACS_INT n = XFIXNAT (multiplier);
+  bool work_to_do = mps_arena_step (global_igc->arena, secs, n);
+  return work_to_do ? Qt : Qnil;
+}
+
 /***********************************************************************
 				  Init
  ***********************************************************************/
@@ -5452,6 +5480,7 @@ syms_of_igc (void)
   defsubr (&Sigc__set_commit_limit);
   defsubr (&Sigc__add_extra_dependency);
   defsubr (&Sigc__remove_extra_dependency);
+  defsubr (&Sigc__arena_step);
   DEFSYM (Qambig, "ambig");
   DEFSYM (Qexact, "exact");
   Fprovide (intern_c_string ("mps"), Qnil);

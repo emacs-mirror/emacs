@@ -388,6 +388,39 @@ Used in calls to `format-time-string'.")
          (setq igc--collect-timer
                (run-at-time nil secs #'igc--collect-stats-sqlite)))))
 
+
+;;; Opportunistic GC
+
+(defvar igc--idle-timer nil
+  "Idle timer to trigger oppurtunistic GC.")
+
+(defvar igc--idle-delay 2.0
+  "Time, in seconds, to wait for `igc--idle-timer'.")
+
+(defvar igc--step-interval 0.01
+  "Time, in seconds, MPS is allowed to use for one step.")
+
+(defun igc-start-idle-timer ()
+  "Start a timer to do GC work while Emacs is idle."
+  (when igc--idle-timer
+    (cancel-timer igc--idle-timer))
+  (setq igc--idle-timer
+        (run-with-idle-timer igc--idle-delay t #'igc--on-idle)))
+
+(defun igc--predict-idle-time ()
+  (* igc--idle-delay 0.66))
+
+(defun igc--on-idle ()
+  (let* ((available-time (igc--predict-idle-time))
+         (interval igc--step-interval)
+         (multiplier (floor (/ available-time interval))))
+    (named-let step ((n multiplier))
+      (let* ((work-to-do (igc--arena-step interval n)))
+        (when (and work-to-do
+                   (> n 0)
+                   (not (accept-process-output nil 0)))
+          (step (1- n)))))))
+
 (provide 'igc)
 
 ;;; igc.el ends here.
