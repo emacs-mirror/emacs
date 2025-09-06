@@ -244,7 +244,7 @@ automatically)."
   ;; `eglot.el' is installed via GNU ELPA in an older Emacs.
   `(((rust-ts-mode rust-mode) . ("rust-analyzer"))
     ((cmake-mode cmake-ts-mode)
-     . ,(eglot-alternatives '((("neocmakelsp" "--stdio") "cmake-language-server"))))
+     . ,(eglot-alternatives '(("neocmakelsp" "--stdio") "cmake-language-server")))
     (vimrc-mode . ("vim-language-server" "--stdio"))
     ((python-mode python-ts-mode)
      . ,(eglot-alternatives
