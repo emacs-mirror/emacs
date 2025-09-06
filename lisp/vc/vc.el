@@ -1280,20 +1280,6 @@ If the value is t, the backend is deduced in all modes."
                  (const :tag "All" t))
   :version "30.1")
 
-(defun vc-deduce-backend ()
-  (cond ((derived-mode-p 'vc-dir-mode)   vc-dir-backend)
-	((derived-mode-p 'log-view-mode) log-view-vc-backend)
-	((derived-mode-p 'log-edit-mode) log-edit-vc-backend)
-	((derived-mode-p 'diff-mode)     diff-vc-backend)
-	((or (eq vc-deduce-backend-nonvc-modes t)
-	     (derived-mode-p vc-deduce-backend-nonvc-modes))
-	 (ignore-errors (vc-responsible-backend default-directory)))
-	(vc-mode (vc-backend buffer-file-name))))
-
-(declare-function vc-dir-current-file "vc-dir" ())
-(declare-function vc-dir-deduce-fileset "vc-dir" (&optional state-model-only-files))
-(declare-function dired-vc-deduce-fileset "dired-aux" (&optional state-model-only-files not-state-changing))
-
 (defvar-local vc-buffer-overriding-fileset nil
   "Specialized, static value for `vc-deduce-fileset' for this buffer.
 If non-nil, this should be a list of length 2 or 5.
@@ -1306,6 +1292,21 @@ STATE-MODEL-ONLY-FILES argument to `vc-deduce-fileset' is nil.")
 Lisp code which sets this should also set `vc-buffer-overriding-fileset'
 such that the buffer's local variables also specify a VC backend,
 rendering the value of this variable unambiguous.")
+
+(defun vc-deduce-backend ()
+  (cond ((car vc-buffer-overriding-fileset))
+        ((derived-mode-p 'vc-dir-mode)   vc-dir-backend)
+        ((derived-mode-p 'log-view-mode) log-view-vc-backend)
+        ((derived-mode-p 'log-edit-mode) log-edit-vc-backend)
+        ((derived-mode-p 'diff-mode)     diff-vc-backend)
+        ((or (eq vc-deduce-backend-nonvc-modes t)
+             (derived-mode-p vc-deduce-backend-nonvc-modes))
+         (ignore-errors (vc-responsible-backend default-directory)))
+        (vc-mode (vc-backend buffer-file-name))))
+
+(declare-function vc-dir-current-file "vc-dir" ())
+(declare-function vc-dir-deduce-fileset "vc-dir" (&optional state-model-only-files))
+(declare-function dired-vc-deduce-fileset "dired-aux" (&optional state-model-only-files not-state-changing))
 
 (defun vc-deduce-fileset (&optional not-state-changing
 				    allow-unregistered
