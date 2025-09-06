@@ -3761,7 +3761,7 @@ may want to re-add custom functions to it using the
 You can also add additional setup code to be run at
 initialization of the interpreter via `python-shell-setup-codes'
 variable.
-
+\\<inferior-python-mode-map>
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
   (when python-shell--parent-buffer
     (python-util-clone-local-variables python-shell--parent-buffer))
