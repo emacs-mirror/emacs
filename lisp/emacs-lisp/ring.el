@@ -240,7 +240,7 @@ If the RING is full, behavior depends on GROW-P:
   (ring-insert+extend ring item grow-p))
 
 (defun ring-convert-sequence-to-ring (seq)
-  "Convert sequence SEQ to a ring.  Return the ring.
+  "Convert sequence SEQ to a ring, and return the ring.
 If SEQ is already a ring, return it."
   (if (ring-p seq)
       seq
