@@ -4831,7 +4831,11 @@ deactivate_process (Lisp_Object proc)
   /* Beware SIGCHLD hereabouts.  */
 
   for (i = 0; i < PROCESS_OPEN_FDS; i++)
-    close_process_fd (&p->open_fd[i]);
+    {
+      fd_callback_info[p->open_fd[i]].thread = NULL;
+      fd_callback_info[p->open_fd[i]].waiting_thread = NULL;
+      close_process_fd (&p->open_fd[i]);
+    }
 
   inchannel = p->infd;
   eassert (inchannel < FD_SETSIZE);
