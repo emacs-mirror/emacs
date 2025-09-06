@@ -1,4 +1,4 @@
-;;; vc-hooks.el --- resident support for version-control  -*- lexical-binding:t -*-
+;;; vc-hooks.el --- Preloaded support for version control  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1992-1996, 1998-2025 Free Software Foundation, Inc.
 
@@ -23,10 +23,9 @@
 
 ;;; Commentary:
 
-;; This is the always-loaded portion of VC.  It takes care of
-;; VC-related activities that are done when you visit a file, so that
-;; vc.el itself is loaded only when you use a VC command.  See the
-;; commentary of vc.el.
+;; This is the preloaded portion of VC.  It takes care of VC-related
+;; activities that are done when you visit a file, so that vc.el itself
+;; is loaded only when you use a VC command.  See commentary of vc.el.
 
 ;;; Code:
 
