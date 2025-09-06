@@ -4832,8 +4832,11 @@ deactivate_process (Lisp_Object proc)
 
   for (i = 0; i < PROCESS_OPEN_FDS; i++)
     {
-      fd_callback_info[p->open_fd[i]].thread = NULL;
-      fd_callback_info[p->open_fd[i]].waiting_thread = NULL;
+      if (p->open_fd[i] >= 0)
+	{
+	  fd_callback_info[p->open_fd[i]].thread = NULL;
+	  fd_callback_info[p->open_fd[i]].waiting_thread = NULL;
+	}
       close_process_fd (&p->open_fd[i]);
     }
 
