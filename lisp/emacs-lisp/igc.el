@@ -400,6 +400,7 @@ Used in calls to `format-time-string'.")
 (defvar igc--step-interval 0.01
   "Time, in seconds, MPS is allowed to use for one step.")
 
+;;;###autoload
 (defun igc-start-idle-timer ()
   "Start a timer to do GC work while Emacs is idle."
   (when igc--idle-timer
