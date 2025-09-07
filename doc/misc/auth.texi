@@ -163,7 +163,7 @@ problems, your first step is always to see what's being checked.  The
 second step, of course, is to write a blog entry about it and wait for
 the answer in the comments.
 
-You can customize the variable @code{auth-sources}.  The following may
+You can customize the user option @code{auth-sources}.  The following may
 be needed if you are using an older version of Emacs or if the
 auth-source library is not loaded for some other reason.
 
@@ -172,29 +172,29 @@ auth-source library is not loaded for some other reason.
 (customize-variable 'auth-sources) ;; optional, do it once
 @end lisp
 
-@defvar auth-sources
+@defopt auth-sources
 
-The @code{auth-sources} variable tells the auth-source library where
+The @code{auth-sources} user option tells the auth-source library where
 your netrc files, Secret Service API collection items, or your
 password store live for a particular host and protocol.  While you can
 get fancy, the default and simplest configuration is:
 
 @lisp
 ;;; old default: required :host and :port, not needed anymore
-(setq auth-sources '((:source "~/.authinfo.gpg" :host t :port t)))
+(setopt auth-sources '((:source "~/.authinfo.gpg" :host t :port t)))
 ;;; mostly equivalent (see below about fallbacks) but shorter:
-(setq auth-sources '((:source "~/.authinfo.gpg")))
-;;; even shorter and the @emph{default}:
-(setq auth-sources '("~/.authinfo.gpg" "~/.authinfo" "~/.netrc"))
+(setopt auth-sources '((:source "~/.authinfo.gpg")))
+;;; even shorter:
+(setopt auth-sources '("~/.authinfo.gpg"))
 ;;; use the Secrets API @var{Login} collection
 ;;; (@pxref{Secret Service API})
-(setq auth-sources '("secrets:Login"))
+(setopt auth-sources '("secrets:Login"))
 ;;; use pass (@file{~/.password-store})
 ;;; (@pxref{The Unix password store})
 (auth-source-pass-enable)
 ;;; JSON data in format [@{ "machine": "SERVER",
 ;;; "login": "USER", "password": "PASSWORD" @}...]
-(setq auth-sources '("~/.authinfo.json.gpg"))
+(setopt auth-sources '("~/.authinfo.json.gpg"))
 @end lisp
 
 By adding multiple entries to @code{auth-sources} with a particular
@@ -206,12 +206,12 @@ have unusual setups and the remaining 10% are @emph{really} unusual).
 Here's a mixed example using two sources:
 
 @lisp
-(setq auth-sources '((:source (:secrets default)
-                      :host "myserver" :user "joe")
-                     "~/.authinfo.gpg"))
+(setopt auth-sources '((:source (:secrets default)
+                        :host "myserver" :user "joe")
+                       "~/.authinfo.gpg"))
 @end lisp
 
-@end defvar
+@end defopt
 
 If you don't customize @code{auth-sources}, you'll have to live with
 the defaults: the unencrypted netrc file @file{~/.authinfo} will be
@@ -265,6 +265,7 @@ Note that the port denotes the Tramp connection method.  When you
 don't use a port entry, you match any Tramp method, as explained
 earlier.  Since Tramp has about 88 connection methods, this may be
 necessary if you have an unusual (see earlier comment on those) setup.
+@xref{Password handling, Password handling,, tramp, Tramp}.
 
 The netrc format is directly translated into JSON, if you are into
 that sort of thing.  Just point to a JSON file with entries like this:
@@ -285,9 +286,9 @@ names:
 
 @example
 (setq gnus-secondary-select-methods '((nnimap "gmail"
-                                         (nnimap-address "imap.gmail.com"))
+                                       (nnimap-address "imap.gmail.com"))
                                       (nnimap "gmail2"
-                                         (nnimap-address "imap.gmail.com"))))
+                                       (nnimap-address "imap.gmail.com"))))
 @end example
 
 Your netrc entries will then be:
@@ -460,10 +461,10 @@ example that sets @code{auth-sources} to search three collections and
 then fall back to @file{~/.authinfo.gpg}.
 
 @example
-(setq auth-sources '(default
-                     "secrets:session"
-                     "secrets:Login"
-                     "~/.authinfo.gpg"))
+(setopt auth-sources '(default
+                       "secrets:session"
+                       "secrets:Login"
+                       "~/.authinfo.gpg"))
 @end example
 
 Attribute values in the auth-source spec, which are not strings (like
@@ -477,7 +478,7 @@ functions.
 manager} (or just @samp{pass}) stores your passwords in
 @code{gpg}-protected files following the Unix philosophy.  The store
 location (any directory) must be specified in the
-@code{auth-source-pass-filename} variable which defaults to
+@code{auth-source-pass-filename} user option which defaults to
 @file{~/.password-store}.
 
 Emacs integration of @samp{pass} follows the approach suggested by the
@@ -503,7 +504,7 @@ host with an at-sign (@code{@@}).
 @item gnu.org:22.gpg
 The port (aka. service) to match can only be expressed after the host
 and separated with a colon (@code{:}).  The separator can be changed
-through the @code{auth-source-pass-port-separator} variable.
+through the @code{auth-source-pass-port-separator} user option.
 
 @item gnu.org:22/rms.gpg
 
@@ -544,17 +545,17 @@ library wrapping @samp{pass};
 @uref{https://github.com/jabranham/helm-pass,,helm-pass}: helm interface for pass.
 @end itemize
 
-@defvar auth-source-pass-filename
-Set this variable to a string locating the password store on the disk.
+@defopt auth-source-pass-filename
+Set this user option to a string locating the password store on the disk.
 Defaults to @file{~/.password-store}.
-@end defvar
+@end defopt
 
-@defvar auth-source-pass-port-separator
-Set this variable to a string that should separate an host name from a
+@defopt auth-source-pass-port-separator
+Set this user option to a string that should separate an host name from a
 port in an entry.  Defaults to @samp{:}.
-@end defvar
+@end defopt
 
-@defvar auth-source-pass-extra-query-keywords
+@defopt auth-source-pass-extra-query-keywords
 This expands the selection of available keywords to include
 @code{:max} and @code{:require} and tells more of them to accept a
 list of query parameters as an argument.  When searching, it also
@@ -569,18 +570,18 @@ matching against subdomain labels, keep this option set to @code{nil}
 of searches relative to other auth-source backends or encounter code
 expecting to query multiple backends uniformly, try flipping it to
 @code{t}.
-@end defvar
+@end defopt
 
 @node Help for developers
 @chapter Help for developers
 
 The auth-source library lets you control logging output easily.
 
-@defvar auth-source-debug
-Set this variable to @code{'trivia} to see lots of output in
+@defopt auth-source-debug
+Set this user option to @code{'trivia} to see lots of output in
 @file{*Messages*}, or set it to a function that behaves like
 @code{message} to do your own logging.
-@end defvar
+@end defopt
 
 The auth-source library only has a few functions for external use.
 
@@ -671,7 +672,7 @@ record.
 @node GnuPG and EasyPG Assistant Configuration
 @appendix GnuPG and EasyPG Assistant Configuration
 
-If the @code{auth-sources} variable contains @file{~/.authinfo.gpg}
+If the @code{auth-sources} user option contains @file{~/.authinfo.gpg}
 before @file{~/.authinfo}, the auth-source library will try to
 read the GnuPG encrypted @file{.gpg} file first, before
 the unencrypted file.
