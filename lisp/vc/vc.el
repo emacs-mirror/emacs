@@ -1648,7 +1648,18 @@ from which to check out the file(s)."
           ;; In the case there actually are any unregistered files then
           ;; `vc-deduce-backend', via `vc-only-files-state-and-model',
           ;; has already prompted the user to approve registering them.
-	  (let ((register (cl-remove-if #'vc-backend fileset-only-files)))
+          ;;
+          ;; FIXME: We should be able to use `vc-backend' instead of
+          ;; `vc-registered' here given that `vc-deduce-backend' just
+          ;; determined a state for all of the files.  However, there
+          ;; are case(s) where the cached information is out-of-date.
+          ;; For example, if we used C-x v v on a directory in *vc-dir*
+          ;; and thereby newly registered files within that directory,
+          ;; only that directory's name will have been passed to
+          ;; `vc-register', and so `vc-backend' will still consider them
+          ;; unregistered, even though `vc-dir-deduce-fileset' will
+          ;; return `added' for their states.
+	  (let ((register (cl-remove-if #'vc-registered fileset-only-files)))
             (if (not verbose)
 	        (vc-checkin ready-for-commit backend nil nil nil nil register)
 	      (let* ((revision (read-string "New revision or backend: "))
