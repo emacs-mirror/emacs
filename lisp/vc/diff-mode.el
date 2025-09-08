@@ -1618,6 +1618,8 @@ else cover the whole buffer."
 (defvar whitespace-style)
 (defvar whitespace-trailing-regexp)
 
+(declare-function project-change-to-matching-directory "project")
+
 ;; Prevent applying `view-read-only' to diff-mode buffers (bug#75993).
 ;; We don't derive from `special-mode' because that would inhibit the
 ;; `self-insert-command' binding of normal keys.
@@ -1642,7 +1644,8 @@ In read-only buffers the following bindings are also available:
   (add-hook 'font-lock-mode-hook #'diff--font-lock-cleanup nil 'local)
   (setq-local imenu-generic-expression
               diff-imenu-generic-expression)
-  (setq-local project-find-matching-buffer-function #'diff-find-matching-buffer)
+  (setq-local project-find-matching-buffer-function
+              #'project-change-to-matching-directory)
   ;; These are not perfect.  They would be better done separately for
   ;; context diffs and unidiffs.
   ;; (setq-local paragraph-start
@@ -3358,28 +3361,6 @@ hunk text is not found in the source file."
     ;;      (setq i end))))
     )
   str)
-
-(declare-function project-root "project")
-
-(defun diff-find-matching-buffer (current-project mirror-project)
-  "Change default directory to matching one under another project.
-CURRENT-PROJECT is the project instance for the current project.
-MIRROR-PROJECT is the project instance for the project to visit.
-A matching directory has the same name relative to the project root.
-If a matching directory does not exist in the other project, it is an
-error (this avoids invalidating the relative file names in Diff mode
-file headers).
-
-This function is intended to be used as the value of
-`project-find-matching-buffer-function' in Diff mode buffers."
-  (let* ((mirror-root (project-root mirror-project))
-         (relative-name (file-relative-name default-directory
-                                            (project-root current-project)))
-         (mirror-name (expand-file-name relative-name mirror-root)))
-    (if (file-directory-p mirror-name)
-        (message "Default directory changed to `%s'"
-                 (setq default-directory mirror-name))
-      (user-error "`%s' not found in `%s'" relative-name mirror-root))))
 
 ;;; Support for converting a diff to diff3 markers via `wiggle'.
 

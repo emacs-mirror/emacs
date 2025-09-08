@@ -250,6 +250,8 @@ The match group number 1 should match the revision number itself.")
 ;;;; Actual code
 ;;;;
 
+(declare-function project-change-to-matching-directory "project")
+
 ;;;###autoload
 (define-derived-mode log-view-mode special-mode "Log-View"
   "Major mode for browsing CVS log output."
@@ -258,6 +260,8 @@ The match group number 1 should match the revision number itself.")
   (setq-local beginning-of-defun-function #'log-view-beginning-of-defun)
   (setq-local end-of-defun-function #'log-view-end-of-defun)
   (setq-local cvs-minor-wrap-function #'log-view-minor-wrap)
+  (setq-local project-find-matching-buffer-function
+              #'project-change-to-matching-directory)
   (hack-dir-local-variables-non-file-buffer))
 
 ;;;;
