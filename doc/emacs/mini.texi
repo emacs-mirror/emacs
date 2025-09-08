@@ -888,7 +888,7 @@ the regular expression makes the search case-sensitive (@pxref{Lax
 Search}).
 
   You can also search through the minibuffer history using incremental
-search (@kbd{C-s} and @code{C-r}).  @xref{Isearch Minibuffer}.
+search (@kbd{C-s} and @kbd{C-r}).  @xref{Isearch Minibuffer}.
 
   Emacs keeps separate history lists for several different kinds of
 arguments.  For example, there is a list for file names, used by all
