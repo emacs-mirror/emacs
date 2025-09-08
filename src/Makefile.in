@@ -345,8 +345,9 @@ FONT_OBJ=@FONT_OBJ@
 CM_OBJ=@CM_OBJ@
 
 LIBGPM = @LIBGPM@
-LIBMPS = @LIBMPS@
+MPSOBJ = @MPSOBJ@
 IGCOBJ = @IGCOBJ@
+MPS_CONFIG= @MPS_CONFIG@
 
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 LIBSELINUX_CFLAGS = @LIBSELINUX_CFLAGS@
@@ -499,7 +500,8 @@ VMLIMIT_OBJ=@VMLIMIT_OBJ@
 RALLOC_OBJ=@RALLOC_OBJ@
 
 ## List of object files that make-docfile should not be told about.
-otherobj= $(TERMCAP_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+otherobj= $(TERMCAP_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) $(WIDGET_OBJ) \
+  $(LIBOBJS) $(MPSOBJ)
 
 ## All object files linked into temacs.  $(VMLIMIT_OBJ) should be first.
 ALLOBJS = $(VMLIMIT_OBJ) $(obj) $(otherobj)
@@ -698,6 +700,10 @@ LIBEGNU_ARCHIVE = $(lib)/libgnu.a
 
 $(LIBEGNU_ARCHIVE): $(config_h)
 	$(MAKE) -C $(dir $@) all
+
+mps.o: $(config_h)
+	$(AM_V_CC)cd $(top_srcdir)/mps/code && \
+	$(CC) $(CFLAGS) $(MPS_CONFIG) -c mps.c -o $(abspath $@)
 
 ifeq ($(HAVE_PDUMPER),yes)
 MAKE_PDUMPER_FINGERPRINT = $(libsrc)/make-fingerprint$(EXEEXT)
