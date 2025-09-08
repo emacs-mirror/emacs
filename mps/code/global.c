@@ -789,8 +789,9 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
       trace = ArenaTrace(arena, (TraceId)0);
     } else {
       /* No traces are running: consider collecting the world. */
-      if (PolicyShouldCollectWorld(arena, (double)(availableEnd - now), now,
-                                   clocks_per_sec))
+      if (PolicyShouldCollectWorld(arena,
+				   (double)(availableEnd - now)/clocks_per_sec,
+				   now, clocks_per_sec))
       {
         Res res;
         res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
