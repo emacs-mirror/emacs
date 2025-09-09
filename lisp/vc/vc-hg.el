@@ -556,7 +556,7 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
 (defun vc-hg-diff (files &optional oldvers newvers buffer async)
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
-         (working (and firstfile (vc-working-revision firstfile))))
+         (working (and firstfile (vc-working-revision firstfile 'Hg))))
     (when (and (not newvers) (equal oldvers working))
       (setq oldvers nil))
     (when (and newvers (not oldvers))
