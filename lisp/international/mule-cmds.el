@@ -3125,6 +3125,7 @@ on encoding."
 	       (#xE0000 . #xE01FF)))
             (gc-cons-threshold (max gc-cons-threshold 10000000))
 	    (names (make-hash-table :size 42943 :test #'equal)))
+	(require 'charprop) ;; Usually preloaded, but not during bootstrap.
         (dolist (range ranges)
           (let ((c (car range))
 	        (end (cdr range)))
