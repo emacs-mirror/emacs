@@ -1718,9 +1718,11 @@ Return non-nil if PROJECT is not a remote project."
      (t
       (complete-with-action action buffers string pred)))))
 
-(when (fboundp 'define-completion-category) ; Introduced in Emacs 31.
-  (define-completion-category 'project-buffer '(buffer)
-    "Completion category for buffers in a given project."))
+(if (fboundp 'define-completion-category) ; Introduced in Emacs 31.
+    (define-completion-category 'project-buffer '(buffer)
+      "Completion category for buffers in a given project.")
+  (add-to-list 'completion-category-defaults
+               '(project-buffer (styles . (basic substring)))))
 
 (defun project--read-project-buffer ()
   (let* ((pr (project-current t))
