@@ -557,9 +557,9 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
          (working (and firstfile (vc-working-revision firstfile))))
-    (when (and (equal oldvers working) (not newvers))
+    (when (and (not newvers) (equal oldvers working))
       (setq oldvers nil))
-    (when (and (not oldvers) newvers)
+    (when (and newvers (not oldvers))
       (setq oldvers working))
     (apply #'vc-hg-command
 	   (or buffer "*vc-diff*")
