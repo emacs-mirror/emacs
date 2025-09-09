@@ -557,7 +557,7 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
          (working (and firstfile (vc-working-revision firstfile 'Hg))))
-    (when (and (not newvers) (equal oldvers working))
+    (when (and (not newvers) (member oldvers (list working ".")))
       (setq oldvers nil))
     (when (and newvers (not oldvers))
       (setq oldvers working))
@@ -1137,13 +1137,22 @@ hg binary."
 ;;; Miscellaneous
 
 (defun vc-hg-previous-revision (_file rev)
-  ;; We can't simply decrement by 1, because that revision might be
-  ;; e.g. on a different branch (bug#22032).
-  (with-temp-buffer
-    (and (eq 0
-             (vc-hg-command t nil nil "id" "-n" "-r" (concat rev "^")))
-         ;; Trim the trailing newline.
-         (buffer-substring (point-min) (1- (point-max))))))
+  ;; Prefer to return values with tildes not carets because that's more
+  ;; compatible with MS-Windows (see `vc-git-previous-revision').
+  ;;
+  ;; See <https://repo.mercurial-scm.org/hg/help/revsets> for reference.
+  (cond ((string-match "\\`\\.\\(\\^*\\)\\'" rev)
+         (format ".~%d" (1+ (length (match-string 1 rev)))))
+        ((string-match "\\`\\.~\\([0-9]+\\)\\'" rev)
+         (format ".~%d" (1+ (string-to-number (match-string 1 rev)))))
+        (t
+         ;; We can't simply decrement by 1, because that revision might
+         ;; be e.g. on a different branch (bug#22032).
+         (with-temp-buffer
+           (and (zerop (vc-hg-command t nil nil "id" "-n"
+                                      "-r" (concat rev "~1")))
+                ;; Trim the trailing newline.
+                (buffer-substring (point-min) (1- (point-max))))))))
 
 (defun vc-hg-next-revision (_file rev)
   (let ((newrev (1+ (string-to-number rev)))
@@ -1212,6 +1221,8 @@ It is based on `log-edit-mode', and has Hg-specific extensions.")
 (autoload 'vc-wait-for-process-before-save "vc-dispatcher")
 
 (defalias 'vc-hg-async-checkins #'always)
+
+(defalias 'vc-hg-working-revision-symbol (cl-constantly "."))
 
 (defun vc-hg--checkin (comment &optional files patch-string)
   "Workhorse routine for `vc-hg-checkin' and `vc-hg-checkin-patch'.

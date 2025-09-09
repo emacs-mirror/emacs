@@ -815,7 +815,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             (cl-flet
                 ((get-patch-string ()
                    "Get patch corresponding to most recent commit to FILE."
-                   (let* ((rev (vc-call-backend backend 'working-revision file))
+                   (let* ((rev (vc-symbolic-working-revision file backend))
                           (patch (vc-call-backend backend 'prepare-patch rev)))
                      (with-current-buffer (plist-get patch :buffer)
                        (buffer-substring-no-properties (point-min)

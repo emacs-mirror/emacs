@@ -545,14 +545,42 @@ status of this file.  Otherwise, the value returned is one of:
 
 (defun vc-working-revision (file &optional backend)
   "Return the repository version from which FILE was checked out.
-If FILE is not registered, this function always returns nil."
+If FILE is not registered, this function always returns nil.
+
+This function does not return nil without first confirming with the
+underlying VCS that FILE is unregistered; this is in contrast to
+`vc-symbolic-working-revision'."
   (or (vc-file-getprop file 'vc-working-revision)
       (let ((default-directory (file-name-directory file)))
-        (setq backend (or backend (vc-backend file)))
-        (when backend
-          (vc-file-setprop file 'vc-working-revision
-                           (vc-call-backend
-                            backend 'working-revision file))))))
+        (and (setq backend (or backend (vc-backend file)))
+             (vc-file-setprop file 'vc-working-revision
+                              (vc-call-backend backend 'working-revision
+                                               file))))))
+
+(defun vc-symbolic-working-revision (file &optional backend)
+  "Return BACKEND's symbolic name for FILE's working revision.
+If FILE is not registered according to cached information, return nil.
+If BACKEND does not have a symbolic name for the working revision or
+Emacs doesn't know what it is, call `vc-working-revision' instead.
+
+Prefer this function to `vc-working-revision' whenever a symbolic name
+will do, for it avoids a call out to the underlying VCS."
+  ;; Returning nil if the file is unregistered (which is why we call
+  ;; `vc-backend' even if BACKEND is non-nil here) makes us closer to a
+  ;; drop-in replacement for `vc-working-revision'.  Don't actually
+  ;; query the VCS because the point of this function is to avoid such
+  ;; queries.  Code that purely wants to map BACKEND to a symbolic name
+  ;; can call the backend API function directly.
+  ;; (If we don't check whether FILE is registered, then whether this
+  ;; function is sensitive to FILE being registered depends on whether
+  ;; BACKEND implements `working-revision-symbol' (because we would be
+  ;; sensitive to whether FILE is registered if and only if we defer to
+  ;; `vc-working-revision'), which would be a strange interdependence.)
+  (and-let* ((cached-backend (vc-backend file)))
+    (let* ((backend (or backend cached-backend))
+           (fn (vc-find-backend-function backend
+                                         'working-revision-symbol)))
+      (if fn (funcall fn) (vc-working-revision file backend)))))
 
 (defvar vc-use-short-revision nil
   "If non-nil, VC backend functions should return short revisions if possible.
@@ -825,12 +853,13 @@ Format:
 This function assumes that the file is registered."
   (pcase-let* ((backend-name (symbol-name backend))
                (state (vc-state file backend))
-               (rev (vc-working-revision file backend))
+               (rev (vc-symbolic-working-revision file backend))
                (`(,state-echo ,face ,indicator)
                 (vc-mode-line-state state))
-               (state-string (concat (unless (eq vc-display-status 'no-backend)
-                                       backend-name)
-                                     indicator rev)))
+               (state-string
+                (concat (and (not (eq vc-display-status 'no-backend))
+                             backend-name)
+                        indicator rev)))
     (propertize state-string 'face face 'help-echo
                 (concat state-echo " under the " backend-name
                         " version control system"))))

@@ -124,6 +124,16 @@
 ;;
 ;;   Takes no arguments.  Backends that return non-nil can (and do)
 ;;   perform async checkins when `vc-async-checkin' is non-nil.
+;;
+;; - working-revision-symbol
+;;
+;;   Symbolic name for the/a working revision, a constant string.  If
+;;   defined, backend API functions that take revision numbers, revision
+;;   hashes or branch names can also take this string in place of those.
+;;   Emacs passes this name without first having to look up the working
+;;   revision, which is a small performance improvement.
+;;   In addition, using a name instead of a number or hash makes it
+;;   easier to edit backend commands with `vc-edit-next-command'.
 
 ;; STATE-QUERYING FUNCTIONS
 ;;
@@ -597,8 +607,14 @@
 ;;
 ;; - previous-revision (file rev)
 ;;
-;;   Return the revision number that precedes REV for FILE, or nil if no such
-;;   revision exists.
+;;   Return the revision number/hash that precedes REV for FILE, or nil
+;;   if no such revision exists.  If the working-revision-symbol
+;;   function is defined for this backend and that symbol, or a symbolic
+;;   name involving that symbol, is passed to this function as REV, this
+;;   function may return a symbolic name.
+;;
+;;   Possible future extension: make REV an optional argument, and if
+;;   nil, default it to FILE's working revision.
 ;;
 ;; - file-name-changes (rev)
 ;;
@@ -1313,7 +1329,8 @@ STATE-MODEL-ONLY-FILES argument to `vc-deduce-fileset' is nil.")
   "VCS revision to which this buffer's contents corresponds.
 Lisp code which sets this should also set `vc-buffer-overriding-fileset'
 such that the buffer's local variables also specify a VC backend,
-rendering the value of this variable unambiguous.")
+rendering the value of this variable unambiguous.
+Should never be a symbolic name but always a revision number/hash.")
 
 (defun vc-deduce-backend ()
   (cond ((car vc-buffer-overriding-fileset))
@@ -2584,7 +2601,7 @@ INITIAL-INPUT are passed on to `vc-read-revision' directly."
      (t
       (push (ignore-errors         ;If `previous-revision' doesn't work.
               (vc-call-backend backend 'previous-revision first
-                               (vc-working-revision first backend)))
+                               (vc-symbolic-working-revision first backend)))
             rev1-default)
       (when (member (car rev1-default) '("" nil)) (setq rev1-default nil))))
     ;; construct argument list
@@ -2806,10 +2823,8 @@ global binding."
                       ;;                           'revision-granularity)
                       ;;          'repository)
                       ;;      (ignore-errors
-                      ;;        (vc-call-backend backend 'working-revision
-                      ;;                         (caadr fileset)))
-                      (vc-call-backend backend 'working-revision
-                                       (caadr fileset))
+                      ;;        (vc-symbolic-working-revision (caadr fileset)))
+                      (vc-symbolic-working-revision (caadr fileset))
                       (called-interactively-p 'interactive))))
 
 ;; For the following two commands, the default meaning for
@@ -2980,8 +2995,8 @@ If `F.~REV~' already exists, use it instead of checking it out again."
   (set-buffer (or (buffer-base-buffer) (current-buffer)))
   (vc-ensure-vc-buffer)
   (let* ((file buffer-file-name)
-	 (revision (if (string-equal rev "")
-		       (vc-working-revision file)
+	 (revision (if (string-empty-p rev)
+		       (vc-symbolic-working-revision file)
 		     rev)))
     (switch-to-buffer-other-window (vc-find-revision file revision))))
 
@@ -4522,7 +4537,7 @@ to provide the `find-revision' operation instead."
 
 (defun vc-default-revert (backend file contents-done)
   (unless contents-done
-    (let ((rev (vc-working-revision file))
+    (let ((rev (vc-symbolic-working-revision file))
           (file-buffer (or (get-file-buffer file) (current-buffer))))
       (message "Checking out %s..." file)
       (let ((failed t)
