@@ -189,10 +189,10 @@ be updated as you type, or nil to suppress this always.  Note that for
 large or inefficient completion tables this can slow down typing.
 
 ---
-*** RET chooses the completion selected with M-<up>/M-<down>
-If a completion candidate is selected with M-<up> or M-<down>, hitting
-RET will exit completion with that as the result.  This works both in
-minibuffer completion and in-buffer completion.  This supersedes
+*** 'RET' chooses the completion selected with 'M-<up>/M-<down>'.
+If a completion candidate is selected with 'M-<up>' or 'M-<down>',
+hitting 'RET' will exit completion with that as the result.  This works
+both in minibuffer completion and in-buffer completion.  This supersedes
 'minibuffer-completion-auto-choose', which previously provided similar
 behavior; that variable is now nil by default.
 
@@ -525,10 +525,10 @@ project.
 
 The value must be an alist where each element must be in the form:
 
- (WHEN . PREDICATE)
+    (WHEN . PREDICATE)
 
 where WHEN specifies where the deletion will be performed, and PREDICATE
-a function which takes one argument, and must return non-nil if the
+is a function which takes one argument, and must return non-nil if the
 project should be removed.
 
 ---
@@ -763,6 +763,17 @@ you could already use 'C-u C-x C-n' to clear the goal column.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Auth Source
+
++++
+*** Non-existing or empty files are ignored in 'auth-sources'.
+File-based data stores are ignored in ‘auth-sources’, if the
+underlying data file does not exist, or is empty.  This is relevant, if
+a new secret is stored in such a file; the first usable entry of
+‘auth-sources’ is selected as target.  If you want also empty or not
+existing files to be selected, set the user option
+‘auth-source-ignore-empty-file’ to nil.
+
 ** Autoinsert
 
 +++
@@ -782,10 +793,12 @@ the default UI you get, i.e., when 'register-use-preview' is 'traditional'.
 
 +++
 *** New user option 'treesit-enabled-modes'.
-You can customize it either to t to enable all available ts-modes,
-or to select a list of ts-modes to enable.  Depending on customization,
-it modifies the variable 'major-mode-remap-alist' from the corresponding
-variable 'treesit-major-mode-remap-alist' prepared by ts-mode packages.
+You can customize it either to t to enable all available tree-sitter
+based modes, or to select a list of tree-sitter based modes to enable.
+Depending on customization, it modifies the variable
+'major-mode-remap-alist' from the corresponding variable
+'treesit-major-mode-remap-alist' prepared by tree-sitter based mode
+packages.
 
 *** New user option 'treesit-auto-install-grammar'.
 It controls the automatic installation of tree-sitter grammar libraries
@@ -1003,9 +1016,9 @@ option controls how much is indented for method chaining.
 
 ---
 *** 'php-ts-mode' now depends on 'mhtml-ts-mode'.
-The direct dependency on js-ts-mode, css-ts-mode and html-ts-mode has
-now been replaced by ‘mhtml-ts-mode’.  Navigation, Outline and Imenu
-work for all languages and code maintenance is easier.
+The direct dependency on 'js-ts-mode', 'css-ts-mode' and 'html-ts-mode'
+has now been replaced by ‘mhtml-ts-mode’.  Navigation, Outline and Imenu
+work for all languages, and code maintenance is easier.
 
 ---
 *** 'php-ts-mode-run-php-webserver' can now accept a custom "php.ini" file.
@@ -1016,7 +1029,7 @@ argument, 'php-ts-mode-run-php-webserver' prompts for the config file as
 well as for other connection parameters.
 
 ---
-*** The option 'php-ts-mode-css-fontify-colors' has been removed.
+*** The user option 'php-ts-mode-css-fontify-colors' has been removed.
 'mhtml-ts-mode-css-fontify-colors' replaces this option.
 
 ---
@@ -1040,8 +1053,8 @@ When non nil, it highlights unknown PHPDOC tags using
 
 ---
 *** New command 'php-ts-mode-show-ini'.
-Show the location of the PHP ini files, if the buffer is associated to a remote
-PHP file show the remote PHP ini files.
+Show the location of the PHP ini files.  If the current buffer is
+associated to a remote PHP file, show the remote PHP ini files.
 
 ** Rust-ts mode
 
@@ -1262,10 +1275,10 @@ If 'whitespace-style' includes 'missing-newline-at-eof' (which is the
 default), the 'whitespace-cleanup' function will now add the newline.
 
 ---
-*** 'whitespace-mode' now can prettify page delimiter characters (^L).
+*** 'whitespace-mode' now can prettify page delimiter characters ('^L').
 If 'page-delimiters' is set in 'whitespace-style', or the new minor mode
 'whitespace-page-delimiters-mode' is on, the page delimiter characters
-(^L) are displayed as a pretty horizontal line that spans the entire
+('^L') are displayed as a pretty horizontal line that spans the entire
 width of the window.  The new 'whitespace-page-delimiter' face can be
 used to customize the appearence.
 
@@ -2154,7 +2167,7 @@ statuses to files, and 'C-x v v' behaved subtly differently for the two
 statuses.  The combination of these differences between backends and in
 'C-x v v' behavior was confusing.  Now,
 
-- in VC-Dir, you can use 'C-x v v' on missing files to mark them as
+- in VC Directory, you can use 'C-x v v' on missing files to mark them as
   removed
 - when committing, you can include missing files in a set of files with
   different statuses, just like you've always been able to include
@@ -2259,7 +2272,7 @@ backend functions instead.  These are jointly sufficient to support the
 *** Marking revisions in Log View now works more like other modes.
 Previously, 'm' toggled whether the current revision was marked, and
 didn't advance point.  Now 'm' only adds marks, 'u' removes marks, and
-both advance point, like how marking works in Dired and VC-Dir.
+both advance point, like how marking works in Dired and VC Directory.
 You can get back the old behavior with something like this:
 
     (with-eval-after-load 'log-view
@@ -2332,7 +2345,7 @@ packages.
 ** Rcirc
 
 +++
-*** Authentication via NickServ can access password from 'auth-source'.
+*** Authentication via NickServ can access passwords with auth-source.el.
 For details, consult 'rcirc-authinfo'.
 
 ** Xref
@@ -2559,10 +2572,10 @@ If non-nil, FFAP always finds remote files in buffers with remote
 'default-directory'.  If nil, FFAP finds local files first for absolute
 file names in above buffers.  The default is nil.
 
-** Debugging
+** Edebug
 
 +++
-*** New command 'edebug-bounce-to-previous-value' (bound to 'P')
+*** New command 'edebug-bounce-to-previous-value' (bound to 'P').
 This command temporarily displays the outside current buffer with the
 outside point corresponding to the previous value, where the previous
 value is what Edebug has evaluated before its last stop point or what
@@ -2603,7 +2616,7 @@ widths based on content, optimizing display space and readability.
 
 *** New user option 'elisp-flymake-byte-compile-executable'.
 This allows customizing the Emacs executable used for Flymake byte
-compilation in emacs-lisp-mode.  This option should be set when editing
+compilation in 'emacs-lisp-mode'.  This option should be set when editing
 Lisp code which will run with a different Emacs version than the running
 Emacs, such as code from an older or newer version of Emacs.  This will
 provide more accurate warnings from byte compilation.
@@ -2854,15 +2867,15 @@ on GNU/Linux systems.
 
 ---
 ** New variable 'tty-cursor-movement-use-TAB-BS'.
-The display optimization where the combination TAB characters +
-BACKSPACE is used to move to a position on a TTY frame is now disabled
+The display optimization where the combination 'TAB' characters +
+'BACKSPACE' is used to move to a position on a TTY frame is now disabled
 by default and controlled by this variable; it can be set to non-nil
 to keep the old behavior.  This change is to accomodate screen
 readers.
 
 +++
 ** A thread's current buffer can now be killed.
-We introduce a new attribute for threads called buffer-disposition.
+We introduce a new attribute for threads called 'buffer-disposition'.
 See the new argument in 'make-thread'.  The default value allows the
 thread's current buffer to be killed by another thread.  This does not
 apply to the main thread's buffer.

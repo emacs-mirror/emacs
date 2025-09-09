@@ -370,6 +370,16 @@ soon as a function returns non-nil.")
                                    :type 'ignore)))
     (auth-source-backend-parse-parameters entry backend)))
 
+(defcustom auth-source-ignore-empty-file t
+  "If set non-nil, file-based backends with no data are ignored.
+A backend is ignored, when the underlying file does not exist, or it is
+empty.  Consequently, no newly created entry is saved in an empty
+backend when this user option is non-nil.
+
+Supported backend types are `netrc', `plstore' and `json'."
+  :version "31.1"
+  :type 'boolean)
+
 (defun auth-source-backends-parser-file (entry)
   ;; take just a file name use it as a netrc/plist file
   ;; matching any user, host, and protocol
@@ -384,26 +394,41 @@ soon as a function returns non-nil.")
          (extension (or (and (stringp source-without-gpg)
                              (file-name-extension source-without-gpg))
                         "")))
-    (when (stringp source)
-      (cond
-       ((equal extension "plist")
-        (auth-source-backend
-         :source source
-         :type 'plstore
-         :search-function #'auth-source-plstore-search
-         :create-function #'auth-source-plstore-create
-         :data (plstore-open source)))
-       ((member-ignore-case extension '("json"))
-        (auth-source-backend
-         :source source
-         :type 'json
-         :search-function #'auth-source-json-search))
-       (t
-        (auth-source-backend
-         :source source
-         :type 'netrc
-         :search-function #'auth-source-netrc-search
-         :create-function #'auth-source-netrc-create))))))
+    (if (and (stringp source)
+             (or (not auth-source-ignore-empty-file)
+                 (and-let*
+                     (;; File exists.
+                      (attr (file-attributes source))
+                      ;; File isn't empty.
+                      ((not (zerop (file-attribute-size attr))))))))
+        (cond
+         ((equal extension "plist")
+          (auth-source-backend
+           :source source
+           :type 'plstore
+           :search-function #'auth-source-plstore-search
+           :create-function #'auth-source-plstore-create
+           :data (plstore-open source)))
+         ((member-ignore-case extension '("json"))
+          (auth-source-backend
+           :source source
+           :type 'json
+           :search-function #'auth-source-json-search))
+         (t
+          (auth-source-backend
+           :source source
+           :type 'netrc
+           :search-function #'auth-source-netrc-search
+           :create-function #'auth-source-netrc-create)))
+
+      (when auth-source-debug
+        (auth-source-do-warn
+         (concat "auth-source-backend-parse: "
+                 "not existing or empty file, ignoring spec: %S")
+         entry))
+      (auth-source-backend
+       :source ""
+       :type 'ignore))))
 
 ;; Note this function should be last in the parser functions, so we add it first
 (add-hook 'auth-source-backend-parser-functions #'auth-source-backends-parser-file)
