@@ -262,6 +262,8 @@ define subdir_template
     $(patsubst %,check-%,$(subst /,-,$(wildcard $(1)/*-tests)))
 	@${MAKE} check LOGFILES="$(patsubst %.el,%.log, \
 		$(patsubst $(srcdir)/%,%,$(wildcard ${srcdir}/$(1)/*.el)))"
+  .PHONY: $(1)
+  $(1): check-$(subst /,-,$(1))
 endef
 
 $(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
