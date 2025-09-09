@@ -2170,7 +2170,7 @@ the need.
 The package @file{auth-source.el}, originally developed for No Gnus,
 reads passwords from different sources, @xref{Help for users, ,
 auth-source, auth}.  The default authentication file is
-@file{~/.authinfo.gpg}, but this can be changed via the user option
+@file{~/.authinfo}, but this can be changed via the user option
 @code{auth-sources}.
 
 @noindent
