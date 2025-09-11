@@ -66,7 +66,7 @@
     ;; Test the case where we load a file which byte-compiles another.
     (defvar macroexp--m1-tests-comp-filename)
     (makunbound 'macroexp--m1-tests-comp-filename)
-    (load (expand-file-name "m2.el" rsrc-dir))
+    (load (expand-file-name "m2.el" rsrc-dir) nil t)
     (should (equal "m1.el"
                    (file-name-nondirectory macroexp--m1-tests-comp-filename)))))
 

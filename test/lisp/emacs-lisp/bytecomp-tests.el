@@ -885,8 +885,9 @@ byte-compiled.  Run with dynamic binding."
              (s-comp (byte-compile s-int))
              (v-int (lambda (x) (1+ x)))
              (v-comp (byte-compile v-int))
-             (bc (lambda (f) (bytecomp-tests--with-warnings (byte-compile f))))
-             (comp (lambda (f) (funcall (funcall bc `(lambda () (,f 3)))))))
+             (comp (lambda (f)
+                     (funcall (bytecomp-tests--with-warnings
+                               (byte-compile `(lambda () (,f 3))))))))
         (should (equal (funcall comp s-int) 4))
         (should (equal (funcall comp s-comp) 4))
         (should (equal (funcall comp v-int) 4))
@@ -1466,7 +1467,7 @@ literals (Bug#20852)."
       (print form (current-buffer)))
     (write-region (point-min) (point-max) source nil 'silent)
     (byte-compile-file source)
-    (load source)
+    (load source nil t)
     (should (equal bytecomp-tests--foobar (cons 1 2)))))
 
 (ert-deftest bytecomp-tests--test-no-warnings-with-advice ()
@@ -1988,7 +1989,7 @@ compiled correctly."
   (let ((file (ert-resource-file "bc-test-alpha.el"))
         (load-path (cons (ert-resource-directory) load-path)))
     (byte-compile-file file)
-    (load-file (concat file "c"))
+    (load (concat file "c") nil t t)
     (should (equal (bc-test-alpha-f 'a) '(nil a)))))
 
 (ert-deftest bytecomp-tests-byte-compile--wide-docstring-p/func-arg-list ()
