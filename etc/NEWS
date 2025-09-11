@@ -71,6 +71,8 @@ done from early-init.el, such as adding to 'package-directory-list'.
 
 * Changes in Emacs 31.1
 
+** Emacs now supports Unicode Standard version 17.0.
+
 ** 'prettify-symbols-mode' attempts to ignore undisplayable characters.
 Previously, such characters would be rendered as, e.g., white boxes.
 

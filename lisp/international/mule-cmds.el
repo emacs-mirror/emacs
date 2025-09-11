@@ -3109,8 +3109,8 @@ on encoding."
                ;; (#x17000 . #x187FF) Tangut Ideographs
                ;; (#x18800 . #x18AFF) Tangut Components
                ;; (#x18B00 . #x18CFF) Khitan Small Script
-               ;; (#x18D00 . #x18D0F) Tangut Ideograph Supplement
-	       ;; (#x18D10 . #x1AFEF) unused
+               ;; (#x18D00 . #x18D1E) Tangut Ideograph Supplement
+	       ;; (#x18D80 . #x18DFF) Tangut Components
 	       (#x1AFF0 . #x1B122)
                ;; (#x1B123 . #x1B131) unused
                (#x1B132 . #x1B132)
