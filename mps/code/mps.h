@@ -328,7 +328,7 @@ extern mps_rank_t mps_rank_weak(void);
 
 #define MPS_RM_CONST      (((mps_rm_t)1<<0))
 #define MPS_RM_PROT       (((mps_rm_t)1<<1))
-#define MPS_RM_PROT_INNER (((mps_rm_t)1<<1))
+#define MPS_RM_PROT_INNER (((mps_rm_t)1<<2))
 
 
 /* Allocation Point */
