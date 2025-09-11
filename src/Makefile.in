@@ -845,7 +845,8 @@ ${ETAGS}: FORCE
 
 # Remove macuvs.h since it'd cause `src/emacs`
 # to be built before we can get TAGS.
-ctagsfiles1 = $(filter-out ${srcdir}/macuvs.h, $(wildcard ${srcdir}/*.[hc]))
+ctagsfiles1 = $(filter-out ${srcdir}/macuvs.h, \
+		$(wildcard ${srcdir}/*.[hc]) $(wildcard ../mps/code/*.[hc]))
 ctagsfiles2 = $(wildcard ${srcdir}/*.m)
 ctagsfiles3 = $(wildcard ${srcdir}/*.cc)
 
@@ -857,7 +858,7 @@ ctagsfiles3 = $(wildcard ${srcdir}/*.cc)
 ## rather than the file contents.
 TAGS: ${ETAGS} $(ctagsfiles1) $(ctagsfiles2)
 	$(AM_V_GEN)${ETAGS} --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
-	  --include=$(lib)/TAGS --include=../mps/code/TAGS \
+	  --include=$(lib)/TAGS \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"[^"]+",[ 	]\([A-Za-z0-9_]+\)/\1/' \
 	  $(ctagsfiles1) \
@@ -871,10 +872,7 @@ TAGS: ${ETAGS} $(ctagsfiles1) $(ctagsfiles2)
 ../lisp/TAGS $(lwlibdir)/TAGS $(lib)/TAGS: FORCE
 	$(MAKE) -C $(dir $@) $(notdir $@) ETAGS="$(ETAGS)"
 
-../mps/code/TAGS: ${ETAGS} $(wildcard ../mps/code/*.[ch])
-	$(AM_V_GEN) ${ETAGS} $(filter-out $<, $^) -o $@
-
-tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS $(lib)/TAGS ../mps/code/TAGS
+tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS $(lib)/TAGS
 .PHONY: tags
 
 
