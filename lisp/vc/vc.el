@@ -2652,9 +2652,9 @@ global binding."
                       ;;          'repository)
                       ;;      (ignore-errors
                       ;;        (vc-call-backend backend 'working-revision
-                      ;;                         (car fileset)))
+                      ;;                         (caadr fileset)))
                       (vc-call-backend backend 'working-revision
-                                       (car fileset))
+                                       (caadr fileset))
                       (called-interactively-p 'interactive))))
 
 ;; For the following two commands, the default meaning for
@@ -4257,19 +4257,22 @@ marked revisions, use those."
                               'prepare-patch rev))
                            revisions)))
       (if vc-prepare-patches-separately
-          (dolist (patch (reverse patches)
-                         (message "Prepared %d patch%s..." (length patches)
-                                  (if (length> patches 1) "es" "")))
-            (compose-mail addressee
-                          (plist-get patch :subject)
-                          nil nil nil nil
-                          `((kill-buffer ,(plist-get patch :buffer))))
-            (rfc822-goto-eoh) (forward-line)
-            (save-excursion             ;don't jump to the end
-              (insert-buffer-substring
-               (plist-get patch :buffer)
-               (plist-get patch :body-start)
-               (plist-get patch :body-end))))
+          (cl-loop with l = (length patches)
+                   for patch in (reverse patches) do
+                   (compose-mail addressee
+                                 (plist-get patch :subject)
+                                 nil nil nil nil
+                                 `((kill-buffer ,(plist-get patch :buffer))))
+                   (rfc822-goto-eoh) (forward-line)
+                   (save-excursion      ;don't jump to the end
+                     (insert-buffer-substring
+                      (plist-get patch :buffer)
+                      (plist-get patch :body-start)
+                      (plist-get patch :body-end)))
+                   finally (message (ngettext "Prepared %d patch..."
+                                              "Prepared %d patches..."
+                                              l)
+                                    l))
         (compose-mail addressee subject nil nil nil nil
                       (mapcar
                        (lambda (p)

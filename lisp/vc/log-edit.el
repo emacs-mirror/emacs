@@ -32,7 +32,7 @@
 (require 'add-log)			; for all the ChangeLog goodies
 (require 'pcvs-util)
 (require 'ring)
-(require 'message)
+(require 'cl-lib)
 
 ;;;;
 ;;;; Global Variables
@@ -65,8 +65,7 @@
   "M-p"     #'log-edit-previous-comment
   "M-r"     #'log-edit-comment-search-backward
   "M-s"     #'log-edit-comment-search-forward
-  "C-c ?"   #'log-edit-mode-help
-  "<remap> <move-beginning-of-line>" #'log-edit-beginning-of-line)
+  "C-c ?"   #'log-edit-mode-help)
 
 (easy-menu-define log-edit-menu log-edit-mode-map
   "Menu used for `log-edit-mode'."
@@ -898,7 +897,7 @@ visible when the *vc-log* buffer pops up."
     (save-selected-window
       (let ((display-buffer-overriding-action '(nil
                                                 . ((inhibit-same-window . t)))))
-       (funcall log-edit-diff-function)))))
+        (funcall log-edit-diff-function)))))
 
 (defun log-edit-show-files ()
   "Show the list of files to be committed."
@@ -917,15 +916,6 @@ visible when the *vc-log* buffer pops up."
 	(shrink-window-if-larger-than-buffer)
         (set-window-dedicated-p (selected-window) t)
 	(selected-window)))))
-
-(defun log-edit-beginning-of-line (&optional n)
-  "Move point to beginning of header value or to beginning of line.
-
-It works the same as `message-beginning-of-line', but it uses a
-different header separator appropriate for `log-edit-mode'."
-  (interactive "p")
-  (let ((mail-header-separator ""))
-    (message-beginning-of-line n)))
 
 (defun log-edit-empty-buffer-p ()
   "Return non-nil if the buffer is \"empty\"."
