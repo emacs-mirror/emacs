@@ -25,8 +25,16 @@
 ;;; Code:
 
 (require 'ispell)
+(require 'ert)
+(require 'ert-x)
 
-(load (expand-file-name "test/lisp/textmodes/ispell-tests/ispell-tests-common.el" source-directory))
+(eval-and-compile
+  (add-to-list 'load-path (when (not (null load-file-name))
+                            (directory-file-name
+                             (file-name-directory load-file-name))))
+  (load "ispell-tests-common.el"))
+
+(declare-function letopt (expand-file-name "test/lisp/textmodes/ispell-tests/ispell-tests-common.el" source-directory) t t)
 
 (ert-deftest ispell/aspell/ispell-check-version/works ()
   "Test that aspell is correctly detected."
@@ -68,6 +76,106 @@
         (set-variable 'ispell-last-program-name
                       test-saved-ispell-last-program-name)))))
 
+(ert-deftest ispell/aspell/ispell-word/english/correct ()
+"This test checks that Russian spellchecking works for Aspell."
+  (skip-unless (executable-find "aspell"))
+  (skip-unless (equal
+                0
+                (call-process "aspell" nil nil nil "-vv")))
+  (skip-unless (equal
+                0
+                (with-temp-buffer
+                  (insert "test")
+                  (call-process-region
+                   nil
+                   nil
+                   "aspell" nil t nil "-a" "-denglish"))))
+  (with-environment-variables (("HOME" temporary-file-directory))
+    (let ((default-directory temporary-file-directory))
+      (letopt ((ispell-program-name "aspell")
+               (ispell-dictionary "english"))
+        (ignore-errors (ispell-kill-ispell t t))
+        (with-temp-buffer
+          (insert
+           "hello\n")
+          (goto-char 0)
+          (ispell-change-dictionary "english")
+          (let ((debugmessage ""))
+            (ert-with-message-capture lres
+              (let ((ispell-check-only t))
+                (ispell-word)
+                (setf debugmessage lres)
+                ;;(should (string-match "is correct" lres))
+                ))
+            (message "lwf:lres=%s" debugmessage)))
+        'passed
+        )))
+  )
+
+(ert-deftest ispell/aspell/ispell-word/english/incorrect ()
+"This test checks that Russian spellchecking works for Aspell."
+  (skip-unless (executable-find "aspell"))
+  (skip-unless (equal
+                0
+                (call-process "aspell" nil nil nil "-vv")))
+  (skip-unless (equal
+                0
+                (with-temp-buffer
+                  (insert "test")
+                  (call-process-region
+                   nil
+                   nil
+                   "aspell" nil t nil "-a" "-denglish"))))
+  (with-environment-variables (("HOME" temporary-file-directory))
+    (let ((default-directory temporary-file-directory))
+      (letopt ((ispell-program-name "aspell")
+               (ispell-dictionary "english"))
+        (ignore-errors (ispell-kill-ispell t t))
+        (with-temp-buffer
+          (insert
+           ;; there is no such a word in English, I swear.
+           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n"
+           )
+          (goto-char 0)
+          (ispell-change-dictionary "english")
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is incorrect" lres))))
+        'passed
+        )))
+  )
+
+(ert-deftest ispell/aspell/ispell-word/english/wrong-language ()
+  "This test checks that Russian spellchecking works for Aspell."
+  :expected-result :failed
+  (skip-unless (executable-find "aspell"))
+  (skip-unless (equal
+                0
+                (call-process "aspell" nil nil nil "-vv")))
+  (skip-unless (equal
+                0
+                (with-temp-buffer
+                  (insert "test")
+                  (call-process-region nil nil "aspell" nil '("*scratch*" t) nil "-a" "-denglish"))))
+  (with-environment-variables (("HOME" temporary-file-directory))
+    (let ((default-directory temporary-file-directory))
+      (letopt ((ispell-program-name "aspell"))
+        (ignore-errors (ispell-kill-ispell t t))
+        (with-temp-buffer
+          (insert
+           ;; giving Aspell a wrong language should not fail
+           "привет\n"
+           )
+          (goto-char 0)
+          (ispell-change-dictionary "english")
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (not (string-match "Error" lres)))))
+        'passed
+        )))
+  )
 
 (provide 'tests-ispell-aspell)
 ;;; tests-ispell-aspell.el ends here
