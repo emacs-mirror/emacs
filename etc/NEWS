@@ -767,12 +767,11 @@ you could already use 'C-u C-x C-n' to clear the goal column.
 
 +++
 *** Non-existing or empty files are ignored in 'auth-sources'.
-File-based data stores are ignored in ‘auth-sources’, if the
-underlying data file does not exist, or is empty.  This is relevant, if
-a new secret is stored in such a file; the first usable entry of
-‘auth-sources’ is selected as target.  If you want also empty or not
-existing files to be selected, set the user option
-‘auth-source-ignore-empty-file’ to nil.
+File-based data stores are ignored in ‘auth-sources’, if the underlying
+data file does not exist.  This is relevant, if a new secret is stored
+in such a file; the first usable entry of ‘auth-sources’ is selected as
+target.  If you want also not existing files to be selected, set the
+user option ‘auth-source-ignore-non-existing-file’ to nil.
 
 ** Autoinsert
 

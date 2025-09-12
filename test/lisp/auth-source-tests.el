@@ -37,7 +37,7 @@
                                            (type . ignore))))
 
 (defun auth-source-validate-backend (source validation-alist)
-  (let* (auth-source-ignore-empty-file
+  (let* (auth-source-ignore-non-existing-file
          (backend (auth-source-backend-parse source)))
     (should (auth-source-backend-p backend))
     (dolist (pair validation-alist)
@@ -375,13 +375,13 @@
           "%s@%s" (plist-get auth-info :user) (plist-get auth-info :host)))))))
 
 (ert-deftest auth-source-test-netrc-create-secret ()
-  (ert-with-temp-file empty-file :suffix "auth-source-test"
   (ert-with-temp-file netrc-file
     :suffix "auth-source-test"
     :text "machine a1 port a2 user a3 password a4"
-    (let* ((auth-sources (list empty-file netrc-file))
+    (let* ((non-existing-file (make-temp-name temporary-file-directory))
+           (auth-sources (list non-existing-file netrc-file))
            (auth-source-save-behavior t)
-           (auth-source-ignore-empty-file t)
+           (auth-source-ignore-non-existing-file t)
            host auth-info auth-passwd)
       (dolist (passwd '("foo" "" nil))
         ;; Redefine `read-*' in order to avoid interactive input.
@@ -419,7 +419,7 @@
                (string-equal (plist-get auth-info :user) (user-login-name)))
               (should (string-equal (plist-get auth-info :host) host))
               (should (string-equal auth-passwd passwd))
-              (should (search-forward host nil 'noerror))))))))))
+              (should (search-forward host nil 'noerror)))))))))
 
 (ert-deftest auth-source-delete ()
   (ert-with-temp-file netrc-file
