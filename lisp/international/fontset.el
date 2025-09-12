@@ -920,7 +920,11 @@
                     emoji
                     chess-symbol
                     garay
-                    sunuwar))
+                    sunuwar
+                    sidetic
+                    tolong-siki
+                    beria-erfe
+                    tai-yo))
     (set-fontset-font "fontset-default"
 		      script (font-spec :registry "iso10646-1" :script script)
 		      nil 'append))
