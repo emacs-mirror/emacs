@@ -3052,8 +3052,7 @@ will be used."
 	     ;; `process-environment'.
 	     env uenv
 	     (env (dolist (elt (cons prompt process-environment) env)
-		    (or (member
-			 elt (default-toplevel-value 'process-environment))
+		    (or (tramp-local-environment-variable-p elt)
 			(if (string-search "=" elt)
 			    (setq env (append env `(,elt)))
 			  (setq uenv (cons elt uenv))))))
@@ -3288,7 +3287,7 @@ will be used."
 			       (cons program args) " "))
       ;; We use as environment the difference to toplevel `process-environment'.
       (dolist (elt process-environment)
-        (or (member elt (default-toplevel-value 'process-environment))
+        (or (tramp-local-environment-variable-p elt)
             (if (string-search "=" elt)
                 (setq env (append env `(,elt)))
               (setq uenv (cons elt uenv)))))

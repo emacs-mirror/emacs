@@ -311,9 +311,7 @@ FUNCTION."
 		  (when
 		      (and
 		       (string-search "=" elt)
-		       (not
-			(member
-			 elt (default-toplevel-value 'process-environment))))
+		       (not (tramp-local-environment-variable-p elt)))
 		    (setq env (cons elt env)))))
 	   ;; Add remote path if exists.
 	   (env (let ((remote-path (string-join (tramp-get-remote-path v) ":")))
