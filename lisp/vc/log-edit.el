@@ -32,6 +32,7 @@
 (require 'add-log)			; for all the ChangeLog goodies
 (require 'pcvs-util)
 (require 'ring)
+(require 'cl-lib)
 
 ;;;;
 ;;;; Global Variables
