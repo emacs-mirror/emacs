@@ -1083,21 +1083,21 @@ If toggling on, also insert its message into the buffer."
   "C-c C-e" #'vc-git-log-edit-toggle-amend)
 
 (defun vc-git--log-edit-summary-check (limit)
-  (and (re-search-forward "^Summary: " limit t)
-       (when-let* ((regex
-                    (cond ((and (natnump vc-git-log-edit-summary-max-len)
-                                (natnump vc-git-log-edit-summary-target-len))
-                           (format ".\\{,%d\\}\\(.\\{,%d\\}\\)\\(.*\\)"
-                                   vc-git-log-edit-summary-target-len
-                                   (- vc-git-log-edit-summary-max-len
-                                      vc-git-log-edit-summary-target-len)))
-                          ((natnump vc-git-log-edit-summary-max-len)
-                           (format ".\\{,%d\\}\\(?2:.*\\)"
-                                   vc-git-log-edit-summary-max-len))
-                          ((natnump vc-git-log-edit-summary-target-len)
-                           (format ".\\{,%d\\}\\(.*\\)"
-                                   vc-git-log-edit-summary-target-len)))))
-         (re-search-forward regex limit t))))
+  (and-let* (((re-search-forward "^Summary: " limit t))
+             (regex
+              (cond ((and (natnump vc-git-log-edit-summary-max-len)
+                          (natnump vc-git-log-edit-summary-target-len))
+                     (format ".\\{,%d\\}\\(.\\{,%d\\}\\)\\(.*\\)"
+                             vc-git-log-edit-summary-target-len
+                             (- vc-git-log-edit-summary-max-len
+                                vc-git-log-edit-summary-target-len)))
+                    ((natnump vc-git-log-edit-summary-max-len)
+                     (format ".\\{,%d\\}\\(?2:.*\\)"
+                             vc-git-log-edit-summary-max-len))
+                    ((natnump vc-git-log-edit-summary-target-len)
+                     (format ".\\{,%d\\}\\(.*\\)"
+                             vc-git-log-edit-summary-target-len)))))
+    (re-search-forward regex limit t)))
 
 (define-derived-mode vc-git-log-edit-mode log-edit-mode "Log-Edit/git"
   "Major mode for editing Git log messages.
