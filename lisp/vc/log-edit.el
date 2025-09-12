@@ -898,7 +898,7 @@ visible when the *vc-log* buffer pops up."
     (save-selected-window
       (let ((display-buffer-overriding-action '(nil
                                                 . ((inhibit-same-window . t)))))
-       (funcall log-edit-diff-function)))))
+        (funcall log-edit-diff-function)))))
 
 (defun log-edit-show-files ()
   "Show the list of files to be committed."

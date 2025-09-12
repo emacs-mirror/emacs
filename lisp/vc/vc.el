@@ -2652,9 +2652,9 @@ global binding."
                       ;;          'repository)
                       ;;      (ignore-errors
                       ;;        (vc-call-backend backend 'working-revision
-                      ;;                         (car fileset)))
+                      ;;                         (caadr fileset)))
                       (vc-call-backend backend 'working-revision
-                                       (car fileset))
+                                       (caadr fileset))
                       (called-interactively-p 'interactive))))
 
 ;; For the following two commands, the default meaning for
