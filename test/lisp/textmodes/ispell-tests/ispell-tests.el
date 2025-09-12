@@ -32,7 +32,7 @@
                              (file-name-directory load-file-name))))
   (load "ispell-tests-common"))
 
-(declare-function letopt "ispell-tests-common")
+(declare-function letopt "ispell-tests-common" t t)
 (declare-function ispell-tests--some-backend "ispell-tests-common" t t)
 (declare-function ispell-tests--some-backend-available-p "ispell-tests-common" t t)
 

@@ -34,7 +34,7 @@
                              (file-name-directory load-file-name))))
   (load "ispell-tests-common"))
 
-(declare-function letopt (expand-file-name "ispell-tests-common" source-directory) t t)
+(declare-function letopt "ispell-tests-common" t t)
 
 (ert-deftest ispell/aspell/ispell-check-version/works ()
   "Test that aspell is correctly detected."
