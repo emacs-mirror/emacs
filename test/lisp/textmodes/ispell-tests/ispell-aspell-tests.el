@@ -32,9 +32,9 @@
   (add-to-list 'load-path (when (not (null load-file-name))
                             (directory-file-name
                              (file-name-directory load-file-name))))
-  (load "ispell-tests-common.el"))
+  (load "ispell-tests-common"))
 
-(declare-function letopt (expand-file-name "test/lisp/textmodes/ispell-tests/ispell-tests-common.el" source-directory) t t)
+(declare-function letopt (expand-file-name "ispell-tests-common" source-directory) t t)
 
 (ert-deftest ispell/aspell/ispell-check-version/works ()
   "Test that aspell is correctly detected."

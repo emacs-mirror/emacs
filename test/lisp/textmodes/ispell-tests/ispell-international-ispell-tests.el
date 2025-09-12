@@ -29,7 +29,7 @@
   (add-to-list 'load-path (and load-file-name
                                 (directory-file-name
                                  (file-name-directory load-file-name))))
-  (load "ispell-tests-common.el"))
+  (load "ispell-tests-common"))
 
 (ert-deftest ispell/international-ispell/ispell-word/russian/check-only ()
 "This test checks that Russian spellchecking works for.
