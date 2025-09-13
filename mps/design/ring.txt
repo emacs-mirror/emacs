@@ -1,0 +1,282 @@
+.. mode: -*- rst -*-
+
+Ring data structure
+===================
+
+:Tag: design.mps.ring
+:Author: Richard Brooksby
+:Date: 1996-09-26
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms:   pair: ring structure; design
+
+
+Introduction
+------------
+
+_`.source`: rings are derived from the earlier use of double-ended
+queues (deques). RB found that most of the deque features were unused
+(see item 6 of `mail.richard.1996-03-25.16-02`_) and so the simple
+doubly-linked list structure of rings suffices.
+
+.. _mail.richard.1996-03-25.16-02: https://info.ravenbrook.com/project/mps/mail/1996/03/25/16-02/0.txt
+
+
+Description
+-----------
+
+``typedef RingStruct *Ring``
+
+_`.def.ring`: Rings are circular doubly-linked lists of ring "nodes".
+The nodes are fields of structures which are the "elements" of the
+ring.
+
+Ring node structures (``RingStruct``) are inlined in the structures on
+the ring, like this::
+
+    typedef struct FooStruct *Foo;     /* the element type */
+    typedef struct FooStruct {         /* the element structure */
+      int baz, bim;
+      RingStruct ring;                 /* the ring node */
+      float bip, bop;
+    } FooStruct;
+
+This arrangement means that they do not need to be managed separately.
+This is especially useful in avoiding re-entrancy and bootstrapping
+problems in the memory manager. Rings also provide flexible insertion
+and deletion because the entire ring can be found from any node.
+
+In the MPS, rings are used to connect a "parent" structure (such as a
+``Arena``) to a number of "child" structures (such as ``Pool``), as
+shown in `.fig.ring`_.
+
+_`.fig.ring`: A ring of ``Child`` objects owned by a ``Parent``
+object.
+
+[missing figure]
+
+_`.fig.empty`: An empty ring of ``Child`` objects owned by a ``Parent``
+object.
+
+[missing figure]
+
+_`.def.singleton`: A "singleton" ring is a ring containing one node,
+whose previous and next nodes are itself (see `.fig.single`_).
+
+_`.fig.single`: A singleton ``Child`` object not on any ring.
+
+[missing figure]
+
+_`.fig.elt`: How ``RING_ELT()`` gets a parent pointer from a node pointer.
+
+[missing figure]
+
+
+Interface
+---------
+
+Init / Finish
+.............
+
+``void RingInit(Ring ring)``
+
+_`.init`: Rings are initialized with the ``RingInit()`` function. They
+are initialized to be a singleton ring (`.def.singleton`_).
+
+``void RingFinish(Ring ring)``
+
+_`.finish`: Rings are finished with the ``RingFinish()`` function. A
+ring must be a singleton ring before it can be finished (it is an
+error to attempt to finish a non-singleton ring).
+
+
+Checking
+........
+
+``Bool RingCheck(Ring ring)``
+
+_`.check`: ``RingCheck()`` is the check function for rings. See
+design.mps.check_).
+
+.. _design.mps.check: check
+
+``Bool RingCheckSingle(Ring ring)``
+
+_`.check.single`: ``RingCheckSingle()`` is a check function that
+additionally checks that ``ring`` is a singleton (see
+`.def.singleton`_).
+
+``Bool RingIsSingle(Ring ring)``
+
+_`.is.single`: Return ``TRUE`` if ``ring`` is a singleton (see
+`.def.singleton`_).
+
+``Count RingLength(Ring ring)``
+
+_`.length`: Return the number of elements in the ring, not counting
+``ring`` itself. This therefore returns 0 for singleton rings, and for
+parent-children rings it returns the number of children.
+
+
+Iteration
+.........
+
+``RING_FOR(node, ring, next)``
+
+_`.for`: A macro is used for iterating over the elements in a ring.
+This macro is called ``RING_FOR()``. ``RING_FOR()`` takes three arguments.
+The first is an iteration variable: ``node``. The second is the
+"parent" element in the ring: ``ring``. The third is a variable used
+by the iterator for working state (it holds a pointer to the next
+node): ``next``. All arguments must be of type ``Ring``. The ``node``
+and ``next`` variables must be declared and in scope already. All
+elements except for the "parent" element are iterated over. The macro
+expands to a ``for`` statement. During execution of the loop, the
+``node`` variable (the first argument to the macro) will be the value
+of successive elements in the Ring (at the beginning of the statement
+in the body of the loop).
+
+_`.for.error`: It is an error (possibly unchecked) for the ``node``
+and ``next`` variables to be modified except implicitly by using this
+iterator.
+
+_`.for.safe`: It is safe to delete the current node during the
+iteration.
+
+_`.for.ex`: An example::
+
+    Ring node, nextNode;
+    RING_FOR(node, &parent->childRing, nextNode) {
+      Child child = RING_ELT(Child, ParentRing, node);
+      foo(child);
+    }
+
+_`.for.ex.elt`: Notice the idiomatic use of ``RING_ELT()`` which is
+almost universal when using ``RING_FOR()``.
+
+
+Element access
+..............
+
+``Ring RingNext(Ring ring)``
+
+_`.next`: ``RingNext()`` returns the next node in the ring.
+
+``Ring RingPrev(Ring ring)``
+
+_`.prev`: ``RingPrev()`` returns the previous node in the ring.
+
+``RING_ELT(type, field, node)``
+
+_`.elt`: ``RING_ELT()`` is a macro that converts a pointer to a ring
+structure into a pointer to the enclosing parent structure.
+``RING_ELT()`` has three arguments which are, in order: ``type``, the
+type of a pointer to the enclosing structure, ``field``, the name of
+the ring structure field within it, ``ring``, the ring node. The
+result is a pointer to the enclosing structure.
+
+.. note:: ``RING_ELT()`` does not work for arrays of rings.
+
+
+Append / Remove
+...............
+
+``void RingAppend(ring, new)``
+
+_`.append`: ``RingAppend()`` appends a singleton ring to a ring (such
+that the newly added element will be last in the iteration sequence).
+
+``void RingInsert(Ring ring, Ring new)``
+
+_`.insert`: ``RingInsert()`` adds a singleton ring to a ring (such that
+the newly added element will be first in the iteration sequence).
+
+``void RingRemove(Ring old)``
+
+_`.remove`: ``RingRemove()`` removes an element from a ring. The newly
+removed element becomes a singleton ring. It is an error for the
+element to already be a singleton.
+
+_`.improve.join`: It would be possible to add a ``RingJoin()`` operation
+that joined two rings. This is not done as it is not required.
+
+
+Naming
+------
+
+_`.naming`: By convention, when one structure ``Parent`` contains one
+ring of ``Child`` structures, the field in ``Parent`` is usually known
+as ``childRing``, and the field in ``Child`` is known as
+``parentRing``. If the ``Parent`` structure contains more than one
+ring of ``Child`` structures, then they should have names like
+``allocatedChildRing`` and ``freeChildRing``.
+
+_`.naming.rule.break`: Note the slight abuse of naming convention, in
+that the ring members have names ending in ``Ring`` rather than
+``RingStruct``.
+
+
+Deques
+------
+
+This section documents where rings differ significantly from deques.
+
+_`.head`: Deques used a distinguished head structure for the head of
+the ring. Rings still have a separate head structure, but it is not
+distinguished by type.
+
+
+Defects
+-------
+
+This section documents known defects with the current design.
+
+_`.app_for.misuse`: It is easy to pass ``RingAppend()`` and
+``RING_FOR()`` the arguments in the wrong order as all the arguments
+have the same type.
+
+_`.check.improve`: There is no method for performing a full integrity
+check. This could be added.
+
+
+Document History
+----------------
+
+- 1996-09-26 RB_ Created.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-22 GDR_ Converted to reStructuredText.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 1995–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

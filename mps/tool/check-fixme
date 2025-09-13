@@ -1,0 +1,84 @@
+#!/bin/sh
+# tool/check-fixme -- look for FIXME task labels in the MPS source tree
+# Richard Brooksby, Ravenbrook Limited, 2023-01-15
+#
+# Copyright (c) 2023 Ravenbrook Limited. See end of file for license.
+#
+# Developers can mark code in the MPS source tree with label like
+# "FIXME" and "TODO" in order to leave notes for later work.  These
+# labels are recognized by tools like Xcode.
+#
+# This script finds FIXMEs in code so that we can:
+# 1. fix 'em
+# 2. cause them to fail CI
+# 3. prevent them leaking into master and versions
+# 4. thereby making them useful for communication with self or other devs
+#
+# TODO: A much older convention in the MPS (predates the adoption of
+# "FIXME") is to mark such things with "@@@@".  We should find and fix
+# those too, eventually.  See GitHub issue #162
+# <https://github.com/Ravenbrook/mps/issues/162>.
+
+# To avoid false positives that waste time, exclude some things that:
+# - we have no control over
+# - come from outside the MPS project
+# - build results that are copies of other things
+# - things that legit talk about FIXMEs (like this script)
+# - local editor backups
+find . \
+     -path './tool/check-fixme' -prune -o \
+     -path './.github/workflows/fixme-check.yml' -prune -o \
+     -path './.git' -prune -o \
+     -path './manual/tool' -prune -o \
+     -path './manual/html' -prune -o \
+     -path './configure' -prune -o \
+     -path './autom4te.cache' -prune -o \
+     -path './tool/autoconf' -prune -o \
+     -name 'config.status' -prune -o \
+     -name '*~' -prune -o \
+     -type f -print0 |
+xargs -0 sh -c '! grep -F -I -n -H -e FIXME "$@"'
+# The inverted grep above ensures xargs exits with zero iff no FIXMEs
+# are found.  Note this is very different from ``grep -v`` which would
+# find *lines* that didn't match FIXME.
+
+# A. REFERENCES
+#
+# [None]
+#
+#
+# B. DOCUMENT HISTORY
+#
+# 2023-01-15 RB Created.
+#
+#
+# C. COPYRIGHT AND LICENSE
+#
+# Copyright (C) 2023 Ravenbrook Limited <https://www.ravenbrook.com/>.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# $Id$

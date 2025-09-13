@@ -1,0 +1,19 @@
+
+TEST_HEADER
+ id = $Id$
+ summary = check release notes
+ language = english
+END_HEADER
+
+Release notes for each release should be in Darwin (in the release
+document). They should describe all changes relevant to the users
+since the last release shipped to users.
+
+In particular, they should:
+
+ - describe any new functionality introduced
+ - explain any changes to the interface, whether to function names,
+   arguments, header files needed or whatever.
+ - warn of any serious negative changes in performance
+
+rit 1998-03-13

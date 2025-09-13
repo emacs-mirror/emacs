@@ -1,0 +1,194 @@
+.. mode: -*- rst -*-
+
+Free list allocator
+===================
+
+:Tag: design.mps.freelist
+:Author: Gareth Rees
+:Date: 2013-05-18
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: free list allocator; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the free list allocator.
+
+_`.readership`: Any MPS developer.
+
+
+Overview
+--------
+
+_`.overview`: The free list allocator is an "emergency" allocator. It
+is intended for use as a fallback allocation strategy in low memory
+situations, when memory is not available for the control structures
+needed by other allocators. In these situations the free list allocator
+ensures that memory is not lost, but with several disadvantages:
+
+#. operations on the free list take time proportional to the number of
+   free blocks;
+#. the data structures are stored in client memory and so are
+   vulnerable to corruption;
+#. the data structures have poor locality (and thus potentially poor
+   cache performance).
+
+When memory becomes available again to allocate control structures,
+the free lists can be "flushed" back into the more efficient data
+structures.
+
+
+Requirements
+------------
+
+In addition to the generic land requirements (see design.mps.land_),
+free lists must satisfy:
+
+.. _design.mps.land: land
+
+_`.req.zero-overhead`: Must have zero space overhead for the storage
+of any set of free blocks, so that it can be used to manage memory
+when no memory can be allocated for control structures.
+
+
+Interface
+---------
+
+_`.land`: Free lists are an implementation of the *land* abstract data
+type, so the interface consists of the generic functions for lands.
+See design.mps.land_.
+
+
+Types
+.....
+
+``typedef struct FreelistStruct *Freelist``
+
+_`.type.freelist`: The type of free lists. A ``FreelistStruct`` is
+typically embedded in another structure.
+
+
+Classes
+.......
+
+_`.class`: ``CLASS(Freelist)`` is the free list class, a subclass of
+``CLASS(Land)`` suitable for passing to ``LandInit()``.
+
+
+Keyword arguments
+.................
+
+When initializing a free list, ``LandInit()`` takes no keyword
+arguments. Pass ``mps_args_none``.
+
+
+Implementation
+--------------
+
+_`.impl.list`: The isolated contiguous free address ranges are kept on
+an address-ordered singly linked free list. (As in traditional
+``malloc()`` implementations.)
+
+_`.impl.block`: If the free address range is large enough to contain
+an inline block descriptor consisting of two pointers, then the two
+pointers stored are to the next free range in address order (or
+``freelistEND`` if there are no more ranges), and to the limit of the
+current free address range, in that order.
+
+_`.impl.grain`: Otherwise, the free address range must be large enough
+to contain a single pointer. The pointer stored is to the next free
+range in address order, or ``freelistEND`` if there are no more
+ranges.
+
+_`.impl.tag`: Grains and blocks are distinguished by a one-bit tag in
+the low bit of the first word (the one containing the pointer to the
+next range). Grains have this bit set; blocks have this bit reset.
+
+_`.impl.invariant`: The ranges stored in the free list are *isolated*:
+no two ranges are adjacent or overlapping.
+
+_`.impl.merge`: When a free address range is added to the free list,
+it is merged with adjacent ranges so as to maintain
+`.impl.invariant`_.
+
+_`.impl.rule.break`: The use of ``freelistEND`` to mark the end of the
+list violates the rule that exceptional values should not be used to
+distinguish exceptional situations. This infraction allows the
+implementation to meet `.req.zero-overhead`_. (There are other ways to
+do this, such as using another tag to indicate the last block in the
+list, but these would be more complicated.)
+
+
+Testing
+-------
+
+_`.test`: The following testing will be performed on this module:
+
+_`.test.land`: A generic test for land implementations. See
+design.mps.land.test_.
+
+.. _design.mps.land.test: land#.test
+
+_`.test.pool`: Two pools (MVT_ and MVFF_) use free lists as a fallback
+when low on memory. These are subject to testing in development, QA,
+and are heavily exercised by customers.
+
+.. _MVT: poolmvt
+.. _MVFF: poolmvff
+
+
+
+Opportunities for improvement
+-----------------------------
+
+_`.improve.length`: When iterating over the list, we could check that
+the number of elements visited in the course of the iteration does not
+exceed the recorded size of the list.
+
+_`.improve.maxsize`: We could maintain the maximum size of any range
+on the list, and use that to make an early exit from
+``freelistFindLargest()``. It's not clear that this would actually be
+an improvement.
+
+
+
+Document History
+----------------
+
+- 2013-05-18 GDR_ Initial draft based on CBS "emergency block" design.
+
+- 2014-04-01 GDR_ Moved generic material to design.mps.land_.
+
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

@@ -1,0 +1,981 @@
+.. mode: -*- rst -*-
+
+Splay trees
+===========
+
+:Tag: design.mps.splay
+:Author: Gavin Matthews
+:Date: 1998-05-01
+:Status: complete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:   pair: splay trees; design
+
+
+Introduction
+------------
+
+_`.intro`: This document explains the design of impl.c.splay, an
+implementation of Splay Trees, including its interface and
+implementation.
+
+_`.readership`: This document is intended for any MM developer.
+
+_`.source`: The primary sources for this design are [ST85]_ and
+[Sleator96]_. As CBS is a client, design.mps.cbs_. As PoolMVFF is an
+indirect client, design.mps.poolmvff_. Also, as PoolMVT is an indirect
+client, design.mps.poolmvt_.
+
+.. _design.mps.cbs: cbs
+.. _design.mps.poolmvt: poolmvt
+.. _design.mps.poolmvff: poolmvff
+
+_`.background`: The following background documents influence the design:
+guide.impl.c.adt(0).
+
+
+Overview
+--------
+
+_`.overview`: Splay trees are a form of binary tree where each access
+brings the accessed element (or the nearest element) to the root of
+the tree. The restructuring of the tree caused by the access gives
+excellent amortised performance, as the splay tree adapts its shape to
+usage patterns. Unused nodes have essentially no time overhead.
+
+
+Definitions
+-----------
+
+_`.def.splay-tree`: A *splay tree* is a self-adjusting binary tree as
+described in [ST85]_ and [Sleator96]_.
+
+_`.def.node`: A *node* is used in the typical data structure sense to
+mean an element of a tree (see also `.type.tree`_).
+
+_`.def.key`: A *key* is a value associated with each node; the keys
+are totally ordered by a client provided comparator.
+
+_`.def.comparator`: A *comparator* is a function that compares keys to
+determine their ordering (see also `.type.tree.compare.function`_).
+
+_`.def.successor`: Node *N*\ :subscript:`2` is the *successor* of node
+*N*\ :subscript:`1` if *N*\ :subscript:`1` and *N*\ :subscript:`2` are
+both in the same tree, and the key of *N*\ :subscript:`2` immediately
+follows the key of *N*\ :subscript:`1` in the ordering of all keys for
+the tree.
+
+_`.def.left-child`: Each node *N* contains a *left child*, which is a
+(possibly empty) sub-tree of nodes. The key of *N* is ordered after
+the keys of all nodes in this sub-tree.
+
+_`.def.right-child`: Each node *N* contains a *right child*, which is
+a (possibly empty) sub-tree of nodes. The key of *N* is ordered before
+the keys of all nodes in this sub-tree.
+
+_`.def.neighbour`: The *left neighbour* of a key *K* is the node *N*
+with the largest key that compares less than *K* in the total order.
+The *right neighbour* of a key *K* is the node *N* with the smaller
+key that compares greater than *K* in the total order. A node is a
+*neighbour* of a key if it is either the left or right neighbour of
+the key.
+
+_`.def.first`: A node is the *first* node in a set of nodes if its key
+compares less than the keys of all other nodes in the set.
+
+_`.def.last`: A node is the *last* node in a set of nodes if its key
+compares greater than the keys of all other nodes in the set.
+
+_`.def.client-property`: A *client property* is a value that the
+client may associate with each node in addition to the key (a block
+size, for example). This splay tree implementation provides support
+for efficiently finding the first or last nodes with suitably large
+client property values. See also `.prop`_ below.
+
+
+Requirements
+------------
+
+_`.req`: These requirements are drawn from those implied by
+design.mps.poolmvt_, design.mps.poolmvff_, design.mps.cbs_, and
+general inferred MPS requirements.
+
+_`.req.order`: Must maintain a set of abstract keys which is totally
+ordered for a comparator.
+
+_`.req.fast`: Common operations must have low amortized cost.
+
+_`.req.add`: Must be able to add new nodes. This is a common
+operation.
+
+_`.req.remove`: Must be able to remove nodes. This is a common
+operation.
+
+_`.req.locate`: Must be able to locate a node, given a key. This is
+a common operation.
+
+_`.req.neighbours`: Must be able to locate the neighbouring nodes of a
+key (see `.def.neighbour`_). This is a common operation.
+
+_`.req.iterate`: Must be able to iterate over all nodes in key order
+with reasonable efficiency.
+
+_`.req.protocol`: Must support detection of protocol violations.
+
+_`.req.debug`: Must support debugging of clients.
+
+_`.req.stack`: Must do all non-debugging operations with stack usage
+bounded by a constant size.
+
+_`.req.adapt`: Must adapt to regularities in usage pattern, for better
+performance.
+
+_`.req.property`: Must permit a client to associate a client property
+(such as a size) with each node in the tree.
+
+_`.req.property.change`: Must permit a client to dynamically reassign
+client properties to nodes in the tree. This is a common operation.
+
+_`.req.property.find`: Must support rapid finding of the first and
+last nodes which have a suitably large value for their client
+property. This is a common operation.
+
+_`.req.root`: Must be able to find the root of a splay tree (if one
+exists).
+
+
+Generic binary tree interface
+-----------------------------
+
+Types
+.....
+
+``typedef struct TreeStruct *Tree``
+
+_`.type.tree`: ``Tree`` is the type of a node in a binary tree.
+``Tree`` contains no fields to store the key associated with the node,
+or the client property. Again, it is intended that the ``TreeStruct``
+can be embedded in another structure, and that this is how the
+association will be made (see `.usage.client-node`_ for an example).
+No convenience functions are provided for allocation or deallocation.
+
+``typedef void *TreeKey``
+
+_`.type.treekey`: ``TreeKey`` is the type of a key associated with a
+node in a binary tree. It is an alias for ``void *`` but expresses the
+intention.
+
+``typedef TreeKey (*TreeKeyFunction)(Tree tree)``
+
+_`.type.tree.key.function`: A function of type ``TreeKey`` returns the
+key associated with a node in a binary tree. (Since there is no space
+in a ``TreeStruct`` to store a key, it is expected that the
+``TreeStruct`` is embedded in another structure from which the key can
+be extracted.)
+
+``typedef Compare (*TreeCompareFunction)(Tree tree, TreeKey key)``
+
+_`.type.tree.compare.function`: A function of type ``TreeCompareFunction`` is
+required to compare ``key`` with the key the client associates with
+that splay tree node ``tree``, and return the appropriate Compare
+value (see `.usage.compare`_ for an example). The function compares a
+key with a node, rather than a pair of keys or nodes as might seem
+more obvious. This is because the details of the mapping between nodes
+and keys is left to the client (see `.type.tree`_), and the splaying
+operations compare keys with nodes (see `.impl.splay`_).
+
+``typedef Res (*TreeDescribeFunction)(Tree tree, mps_lib_FILE *stream)``
+
+_`.type.tree.describe.function`: A function of type
+``TreeDescribeFunction`` is required to write (via ``WriteF()``) a
+client-oriented representation of the splay node. The output should be
+non-empty, short, and without newline characters. This is provided for
+debugging only.
+
+
+Functions
+.........
+
+``Bool TreeCheck(Tree tree)``
+
+_`.function.tree.check`: This is a check function for the
+``Tree`` type (see guide.impl.c.adt.method.check and
+design.mps.check_).
+
+.. _design.mps.check: check
+
+
+Splay tree interface
+--------------------
+
+Types
+.....
+
+``typedef struct SplayTreeStruct *SplayTree``
+
+_`.type.splay.tree`: ``SplayTree`` is the type of the main object at
+the root of the splay tree. It is intended that the
+``SplayTreeStruct`` can be embedded in another structure (see
+`.usage.client-tree`_ for an example). No convenience functions are
+provided for allocation or deallocation.
+
+``typedef Bool (*SplayTestNodeFunction)(SplayTree splay, Tree tree, void *closure)``
+
+_`.type.splay.test.node.function`: A function of type
+``SplayTestNodeFunction`` required to determine whether the node itself
+meets some client determined property (see `.prop`_ and
+`.usage.test.node`_ for an example). The ``closure``
+parameter describes the environment for the function (see
+`.function.splay.find.first`_ and `.function.splay.find.last`_).
+
+``typedef Bool (*SplayTestTreeFunction)(SplayTree splay, Tree tree, void *closure)``
+
+_`.type.splay.test.tree.function`: A function of type
+``SplayTestTreeFunction`` is required to determine whether any of the
+nodes in the sub-tree rooted at the given node meet some client
+determined property (see `.prop`_ and `.usage.test.tree`_ for an
+example). In particular, it must be a precise (not conservative)
+indication of whether there are any nodes in the sub-tree for which
+the ``testNode`` function (see `.type.splay.test.node.function`_) would
+return ``TRUE``. The ``closure`` parameter describes the
+environment for the function (see `.function.splay.find.first`_ and
+`.function.splay.find.last`_).
+
+``typedef void (*SplayUpdateNodeFunction)(SplayTree splay, Tree tree)``
+
+_`.type.splay.update.node.function`: A function of type
+``SplayUpdateNodeFunction`` is required to update any client data
+structures associated with a node to maintain some client determined
+property (see `.prop`_) given that the children of the node have
+changed. (See `.usage.callback`_ for an example)
+
+
+Functions
+.........
+
+_`.function.no-thread`: The interface functions are not designed to be
+either thread-safe or re-entrant. Clients of the interface are
+responsible for synchronization, and for ensuring that client-provided
+functions invoked by the splay module (`.type.tree.compare.function`_,
+`.type.tree.key.function`_, `.type.splay.test.node.function`_,
+`.type.splay.test.tree.function`_, `.type.splay.update.node.function`_) do
+not call functions of the splay module.
+
+``Bool SplayTreeCheck(SplayTree splay)``
+
+_`.function.splay.tree.check`: This is a check function for the
+``SplayTree`` type (see guide.impl.c.adt.method.check and
+design.mps.check_).
+
+``void SplayTreeInit(SplayTree splay, TreeCompareFunction compare, TreeKeyFunction nodeKey, SplayUpdateNodeFunction updateNode)``
+
+_`.function.splay.tree.init`: This function initialises a
+``SplayTree`` (see guide.impl.c.adt.method.init). The ``nodeKey``
+function extracts a key from a tree node, and the ``compare`` function
+defines a total ordering on keys of nodes (see `.req.order`_). The
+effect of supplying a compare function that does not implement a total
+ordering is undefined. The ``updateNode`` function is used to keep
+client properties up to date when the tree structure changes; the
+value ``SplayTrivUpdate`` may be used for this function if there is no
+need to maintain client properties. (See `.usage.initialization`_ for
+an example use).
+
+``void SplayTreeFinish(SplayTree splay)``
+
+_`.function.splay.tree.finish`: This function clears the fields of a
+``SplayTree`` (see guide.impl.c.adt.method.finish). Note that it does
+not attempt to finish or deallocate any associated ``Tree``
+objects; clients wishing to destroy a non-empty ``SplayTree`` must
+first explicitly descend the tree and call ``TreeFinish()`` on
+each node from the bottom up.
+
+``Bool SplayTreeInsert(SplayTree splay, Tree tree, void *key)``
+
+_`.function.splay.tree.insert`: This function is used to insert into a
+splay tree a new node which is associated with the supplied key (see
+`.req.add`_). It first splays the tree at the key. If an attempt is
+made to insert a node that compares ``CompareEQUAL`` to an existing
+node in the tree, then ``FALSE`` will be returned and the node will
+not be inserted. (See `.usage.insert`_ for an example use).
+
+``Bool SplayTreeDelete(SplayTree splay, Tree tree, void *key)``
+
+_`.function.splay.tree.delete`: This function is used to delete from a
+splay tree a node which is associated with the supplied key (see
+`.req.remove`_). If the tree does not contain the given node, or the
+given node does not compare ``CompareEQUAL`` with the given key, then
+``FALSE`` will be returned, and the node will not be deleted. The
+function first splays the tree at the given key. (See `.usage.delete`_
+for an example use).
+
+``Bool SplayTreeFind(Tree *nodeReturn, SplayTree splay, TreeKey key)``
+
+_`.function.splay.tree.find`: Search the splay tree for a node that
+compares ``CompareEQUAL`` to the given key (see `.req.locate`_), and
+splay the tree at the key. Return ``FALSE`` if there is no such node
+in the tree, otherwise set ``*nodeReturn`` to the node and return
+``TRUE``.
+
+``Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn, SplayTree splay, TreeKey key)``
+
+_`.function.splay.tree.neighbours`: Search a splay tree for the two
+nodes that are the neighbours of the given key (see
+`.req.neighbours`_). Splay the tree at the key. If any node in the
+tree compares ``CompareEQUAL`` with the given key, return ``FALSE``.
+Otherwise return ``TRUE``, set ``*leftReturn`` to the left neighbour
+of the key (or ``TreeEMPTY`` if the key has no left neighbour), and
+set ``*rightReturn`` to the right neighbour of the key (or
+``TreeEMPTY`` if the key has no right neighbour). See `.usage.insert`_
+for an example of use.
+
+``Tree SplayTreeFirst(SplayTree splay)``
+
+_`.function.splay.tree.first`: If the tree has no nodes, return
+``TreeEMPTY``. Otherwise, splay the tree at the first node, and return
+that node (see `.req.iterate`_).
+
+``Tree SplayTreeNext(SplayTree splay, TreeKey key)``
+
+_`.function.splay.tree.next`: If the tree contains a right neighbour
+for ``key``, splay the tree at that node and return it. Otherwise
+return ``TreeEMPTY``. See `.req.iterate`_.
+
+``Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth, TreeDescribeFunction nodeDescribe)``
+
+_`.function.splay.tree.describe`: This function prints (using
+``WriteF()``) to the stream a textual representation of the given
+splay tree, using ``nodeDescribe`` to print client-oriented
+representations of the nodes (see `.req.debug`_). Provided for
+debugging only.
+
+``Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay, SplayTestNodeFunction testNode, SplayTestTreeFunction testTree, void *closure)``
+
+_`.function.splay.find.first`: Find the first node in the tree that
+satisfies some client property, as determined by the ``testNode`` and
+``testTree`` functions (see `.req.property.find`_). ``closure``
+is an arbitrary value, and is passed to the ``testNode``
+and ``testTree`` functions. If there is no satisfactory node, return ``FALSE``;
+otherwise set ``*nodeReturn`` to the node and return ``TRUE``. See
+`.usage.delete`_ for an example.
+
+``Bool SplayFindLast(Tree *nodeReturn, SplayTree splay, SplayTestNodeFunction testNode, SplayTestTreeFunction testTree, void *closure)``
+
+_`.function.splay.find.last`: As ``SplayFindFirst()``, but find the
+last node in the tree that satisfies the client property.
+
+``void SplayNodeRefresh(SplayTree splay, Tree tree, TreeKey key)``
+
+_`.function.splay.node.refresh`: Call the ``updateNode`` function on the
+given node, and on any other nodes that may require updating. The
+client key for the node must also be supplied; the function splays the
+tree at this key. (See `.usage.insert`_ for an example use). This
+function must be called whenever the client property (see `.prop`_) at
+a node changes (see `.req.property.change`_).
+
+``void SplayNodeUpdate(SplayTree splay, Tree node)``
+
+_`.function.splay.node.update`: Call the ``updateNode`` function on the
+given node, but leave other nodes unchanged. This may be called when a
+new node is created, to get the client property off the ground.
+
+
+Client-determined properties
+----------------------------
+
+_`.prop`: To support `.req.property.find`_, this splay tree
+implementation provides additional features to permit clients to cache
+maximum (or minimum) values of client properties for all the nodes in
+a subtree. The splay tree implementation uses the cached values as
+part of ``SplayFindFirst()`` and ``SplayFindLast()`` via the
+``testNode`` and ``testTree`` functions. The client is free to choose
+how to represent the client property, and how to compute and store the
+cached value.
+
+_`.prop.update`: The cached values depend upon the topology of the
+tree, which may vary as a result of operations on the tree. The client
+is given the opportunity to compute new cache values whenever
+necessary, via the ``updateNode`` function (see
+`.function.splay.tree.init`_). This happens whenever the tree is
+restructured. The client may use the ``SplayNodeRefresh()`` function to
+indicate that the client attributes at a node have changed (see
+`.req.property.change`_). A call to ``SplayNodeRefresh()`` splays the
+tree at the specified node, which may provoke calls to the
+``updateNode`` function as a result of the tree restructuring. The
+``updateNode`` function will also be called whenever a new splay node is
+inserted into the tree.
+
+_`.prop.example`: For example, if implementing an address-ordered tree
+of free blocks using a splay tree, a client might choose to use the
+base address of each block as the key for each node, and the size of
+each block as the client property. The client can then maintain as a
+cached value in each node the size of the largest block in the subtree
+rooted at that node. This will permit a fast search for the first or
+last block of at least a given size. See `.usage.callback`_ for an
+example ``updateNode`` function for such a client.
+
+_`.prop.ops`: The splay operations must cause client properties for
+nodes to be updated in the following circumstances (see `.impl`_ for
+details):
+
+_`.prop.ops.rotate`: rotate left, rotate right -- We need to update
+the value at the original root, and the new root, in that order.
+
+_`.prop.ops.link`: link left, link right -- We know that the line of
+right descent from the root of the left tree and the line of left
+descent from the root of the right tree will both need to be updated.
+This is performed at the assembly stage. (We could update these chains
+every time we do a link left or link right instead, but this would be
+less efficient)
+
+_`.prop.ops.assemble`: assemble -- This operation also invalidates the
+lines of right and left descent of the left and right trees
+respectively which need to be updated (see below). It also invalidates
+the root which must be updated last.
+
+_`.prop.ops.assemble.reverse`: To correct the chains of the left and
+right trees without requiring stack or high complexity, we use a
+judicious amount of pointer reversal.
+
+_`.prop.ops.assemble.traverse`: During the assembly, after the root's
+children have been transplanted, we correct the chains of the left and
+right trees. For the left tree, we traverse the right child line,
+reversing pointers, until we reach the node that was the last node
+prior to the transplantation of the root's children. Then we update
+from that node back to the left tree's root, restoring pointers.
+Updating the right tree is the same, mutatis mutandis.
+
+
+Usage
+-----
+
+_`.usage`: Here's a simple example of a client which uses a splay tree
+to implement an address ordered tree of free blocks. The significant
+client usages of the splay tree interface might look as follows:-
+
+_`.usage.client-tree`: Tree structure to embed a ``SplayTree`` (see
+`.type.splay.tree`_)::
+
+    typedef struct FreeTreeStruct {
+      SplayTreeStruct splayTree;  /* Embedded splay tree */
+      /* no obvious client fields for this simple example */
+    } FreeTreeStruct;
+
+_`.usage.client-node`: Node structure to embed a ``Tree`` (see `.type.tree`_)::
+
+    typedef struct FreeBlockStruct {
+      TreeStruct treeStruct; /* embedded splay node */
+      Addr base;             /* base address of block is also the key */
+      Size size;             /* size of block is also the client property */
+      Size maxSize;          /* cached value for maximum size in subtree */
+    } FreeBlockStruct;
+
+_`.usage.callback`: ``updateNode`` callback function (see
+`.type.splay.update.node.function`_)::
+
+    void FreeBlockUpdateNode(SplayTree splay, Tree tree)
+    {
+      /* Compute the maximum size of any block in this subtree. */
+      /* The value to cache is the maximum of the size of this block, */
+      /* the cached value for the left subtree (if any) and the cached */
+      /* value of the right subtree (if any) */
+
+      FreeBlock freeNode = FreeBlockOfTree(tree);
+
+      Size maxSize = freeNode.size;
+
+      if (TreeHasLeft(tree)) {
+        FreeBlock leftNode = FreeBlockOfTree(TreeLeft(tree));
+        if(leftNode.maxSize > maxSize)
+          maxSize = leftNode->maxSize;
+      }
+
+      if (TreeHasRight(tree)) {
+        FreeBlock rightNode = FreeBlockOfTree(TreeRight(tree));
+        if(rightNode.maxSize > maxSize)
+          maxSize = rightNode->maxSize;
+      }
+
+      freeNode->maxSize = maxSize;
+    }
+
+_`.usage.compare`: Comparison function (see `.type.tree.compare.function`_)::
+
+    Compare FreeBlockCompare(Tree tree, TreeKey key) {
+      Addr base1, base2, limit2;
+      FreeBlock freeNode = FreeBlockOfTree(tree);
+
+      base1 = (Addr)key;
+      base2 = freeNode->base;
+      limit2 = AddrAdd(base2, freeNode->size);
+
+      if (base1 < base2)
+        return CompareLESS;
+      else if (base1 >= limit2)
+        return CompareGREATER;
+      else
+        return CompareEQUAL;
+    }
+
+_`.usage.test.tree`: Test tree function (see
+`.type.splay.test.tree.function`_)::
+
+    Bool FreeBlockTestTree(SplayTree splay, Tree tree,
+                           void *closure) {
+      /* Closure environment has wanted size as value of *closure. */
+      /* Look at the cached value for the node to see if any */
+      /* blocks in the subtree are big enough. */
+
+      Size size = *(Size *)closure;
+      FreeBlock freeNode = FreeBlockOfTree(tree);
+      return freeNode->maxSize >= size;
+    }
+
+_`.usage.test.node`: Test node function (see
+`.type.splay.test.node.function`_)::
+
+    Bool FreeBlockTestNode(SplayTree splay, Tree tree,
+                           void *closure) {
+      /* Closure environment has wanted size as value of *closure. */
+      /* Look at the size of the node to see if is big enough. */
+
+      Size size = *(Size *)closure;
+      FreeBlock freeNode = FreeBlockOfTree(tree);
+      return freeNode->size >= size;
+    }
+
+_`.usage.initialization`: Client's initialization function (see
+`.function.splay.tree.init`_)::
+
+    void FreeTreeInit(FreeTree freeTree) {
+      /* Initialize the embedded splay tree. */
+      SplayTreeInit(&freeTree->splayTree, FreeBlockCompare, FreeBlockUpdateNode);
+    }
+
+_`.usage.insert`: Client function to add a new free block into the
+tree, merging it with an existing block if possible::
+
+    void FreeTreeInsert(FreeTree freeTree, Addr base, Addr limit) {
+      SplayTree splayTree = &freeTree->splayTree;
+      Tree leftNeighbour, rightNeighbour;
+      TreeKey key = base;  /* use the base of the block as the key */
+      Res res;
+
+      /* Look for any neighbouring blocks. (.function.splay.tree.neighbours) */
+      res = SplayTreeNeighbours(&leftNeighbour, &rightNeighbour,
+                                splayTree, key);
+      AVER(res == ResOK);  /* this client doesn't duplicate free blocks */
+
+      /* Look to see if the neighbours are contiguous. */
+
+      if (leftNeighbour != TreeEMPTY &&
+          FreeBlockLimitOfSplayNode(leftNeighbour) == base) {
+        /* Inserted block is contiguous with left neighbour, so merge it. */
+        /* The client housekeeping is left as an exercise to the reader. */
+        /* This changes the size of a block, which is the client */
+        /* property of the splay node. See `.function.splay.node.refresh`_ */
+        SplayNodeRefresh(splayTree, leftNeighbour, key);
+
+      } else if (rightNeighbour != TreeEMPTY &&
+                 FreeBlockBaseOfSplayNode(rightNeighbour) == limit) {
+        /* Inserted block is contiguous with right neighbour, so merge it. */
+        /* The client housekeeping is left as an exercise to the reader. */
+        /* This changes the size of a block, which is the client */
+        /* property of the splay node. See `.function.splay.node.refresh`_ */
+        SplayNodeRefresh(splayTree, rightNeighbour, key);
+
+      } else {
+        /* Not contiguous - so insert a new node */
+        FreeBlock newBlock = (FreeBlock)allocate(sizeof(FreeBlockStruct));
+        Tree newTree = &newBlock->treeStruct;
+
+        newBlock->base = base;
+        newBlock->size = AddrOffset(base, limit);
+        TreeInit(newTree);  /* `.function.tree.init`_ */
+        SplayNodeUpdate(splayTree, newTree); /* `.function.splay.node.update`_ */
+        /* `.function.splay.tree.insert`_ */
+        res = SplayTreeInsert(splayTree, newTree, key);
+        AVER(res == ResOK);  /* this client doesn't duplicate free blocks */
+      }
+    }
+
+_`.usage.delete`: Client function to allocate the first block of a
+given size in address order. For simplicity, this allocates the entire
+block::
+
+    Bool FreeTreeAllocate(Addr *baseReturn, Size *sizeReturn,
+                          FreeTree freeTree, Size size) {
+      SplayTree splayTree = &freeTree->splayTree;
+      Tree splayNode;
+      Bool found;
+
+      /* look for the first node of at least the given size. */
+      /* closure parameter is not used. See `.function.splay.find.first.`_  */
+      found = SplayFindFirst(&splayNode, splayTree,
+                             FreeBlockTestNode, FreeBlockTestTree,
+                             NULL, size);
+
+      if (found) {
+        FreeBlock freeNode = FreeBlockOfTree(splayNode);
+        Void *key = (void *)freeNode->base;  /* use base of block as the key */
+        Res res;
+
+        /* allocate the block */
+        *baseReturn = freeNode->base;
+        *sizeReturn = freeNode->size;
+
+        /* `.function.splay.tree.delete`_ */
+        res = SplayTreeDelete(splayTree, splayNode, key);
+        AVER(res == ResOK);  /* Must be possible to delete node */
+
+        /* Delete the block */
+        deallocate(freeNode, (sizeof(FreeBlockStruct));
+
+        return TRUE;
+
+      } else {
+        /* No suitable block */
+        return FALSE;
+      }
+    }
+
+
+Implementation
+--------------
+
+_`.impl`: For more details of how splay trees work, see [ST85]_.
+For more details of how to implement operations on splay trees, see
+[Sleator96]_. Here we describe the operations involved.
+
+
+Top-down splaying
+.................
+
+_`.impl.top-down`: The method chosen to implement the splaying
+operation is called "top-down splay". This is described as "procedure
+top-down splay" in [ST85]_, but the implementation here additionally
+permits attempts to access items which are not known to be in the
+tree. Top-down splaying is particularly efficient for the common case
+where the location of the node in a tree is not known at the start of
+an operation. Tree restructuring happens as the tree is descended,
+whilst looking for the node.
+
+_`.impl.splay`: The key to the operation of the splay tree is the
+internal function ``SplaySplay()``. It searches the tree for a node
+with a given key. In the process, it brings the found node, or an
+arbitrary neighbour if not found, to the root of the tree. This
+"bring-to-root" operation is performed top-down during the search, and
+it is not the simplest possible bring-to-root operation, but the
+resulting tree is well-balanced, and will give good amortised cost for
+future calls to ``SplaySplay()``. See [ST85]_.
+
+_`.impl.splay.how`: To perform this top-down splay, the tree is broken
+into three parts, a left tree, a middle tree and a right tree. We
+store the left tree and right tree in the right and left children
+respectively of a "sides" node to eliminate some boundary conditions.
+The initial condition is that the middle tree is the entire splay
+tree, and the left and right trees are empty. We also keep pointers to
+the last node in the left tree, and the first node in the right tree.
+Note that, at all times, the three trees are each validly ordered, and
+they form a partition with the ordering left, middle, right. The splay
+is then performed by comparing the middle tree with the following six
+cases, and performing the indicated operations, until none apply.
+
+_`.impl.splay.cases`: Note that figure 3 of [ST85]_ describes only 3
+cases: *zig*, *zig-zig* and *zig-zag*. The additional cases described
+here are the symmetric variants which are respectively called *zag*,
+*zag-zag* and *zag-zig*. In the descriptions of these cases, ``root``
+is the root of the middle tree; ``node->left`` is the left child of
+``node``; ``node->right`` is the right child of ``node``. The
+comparison operators (``<``, ``>``, ``==``) are defined to compare a
+key and a node in the obvious way by comparing the supplied key with
+the node's associated key.
+
+_`.impl.splay.zig`: The "zig" case is where ``key < root``, and
+either:
+
+- ``key == root->left``;
+- ``key < root->left && root->left->left == NULL``; or
+- ``key > root->left && root->left->right == NULL``.
+
+The operation for the zig case is: link right (see
+`.impl.link.right`_).
+
+_`.impl.splay.zag`: The "zag" case is where ``key > root``, and
+either:
+
+- ``key == root->right``;
+- ``key < root->right && root->right->left == NULL``; or
+- ``key > root->right && root->right->right == NULL``.
+
+The operation for the zag case is: link left (see `.impl.link.left`_).
+
+_`.impl.splay.zig.zig`: The "zig-zig" case is where
+
+- ``key < root && key < root->left && root->left->left != NULL``.
+
+The operation for the zig-zig case is: rotate right (see
+`.impl.rotate.right`_) followed by link right (see
+`.impl.link.right`_).
+
+_`.impl.splay.zig.zag`: The "zig-zag" case is where
+
+- ``key < root && key > root->left && root->left->right != NULL``.
+
+The operation for the zig-zag case is: link right (see
+`.impl.link.right`_) followed by link left (see `.impl.link.left`_).
+
+_`.impl.splay.zag.zig`: The "zag-zig" case is where
+
+- ``key > root && key < root->right && root->right->left != NULL``.
+
+The operation for the zag-zig case is: link left (see
+`.impl.link.left`_) followed by link right (see `.impl.link.right`_).
+
+_`.impl.splay.zag.zag`: The "zag-zag" case is where
+
+- ``key > root && key > root->right && root->right->right != NULL``.
+
+The operation for the zag-zag case is: rotate left (see
+`.impl.rotate.left`_) followed by link left (see `.impl.link.left`_).
+
+_`.impl.splay.terminal.null`: A special terminal case is when
+
+- ``root == NULL``.
+
+This can only happen at the beginning, and cannot arise from the
+operations above. In this case, the splay operation must return
+``NULL``, and "not found".
+
+_`.impl.splay.terminal.found`: One typical terminal case is when
+
+- ``key == root``.
+
+This case is tested for at the beginning, in which case "found" is
+returned immediately. If this case happens as a result of other
+operations, the splay operation is complete, the three trees are
+assembled (see `.impl.assemble`_), and "found" is returned.
+
+_`.impl.splay.terminal.not-found`: The other typical terminal cases are:
+
+- ``key < root && root->left == NULL``; and
+- ``key > root && root->right == NULL``.
+
+In these cases, the splay operation is complete, the three trees are
+assembled (see `.impl.assemble`_), and "not found" is returned.
+
+_`.impl.rotate.left`: The "rotate left" operation (see [ST85]_
+figure 1) rearranges the middle tree as follows (where any of sub-trees
+A, B and C may be empty):
+
+.. figure:: splay-rotate-left.svg
+    :align: center
+    :alt: Diagram: the rotate left operation.
+
+_`.impl.rotate.right`: The "rotate right" operation (see [ST85]_
+figure 1) rearranges the middle tree as follows (where any of sub-trees
+A, B and C may be empty):
+
+.. figure:: splay-rotate-right.svg
+    :align: center
+    :alt: Diagram: the rotate right operation.
+
+_`.impl.link.left`: The "link left" operation (see [ST85]_ figure
+11a for symmetric variant) rearranges the left and middle trees as
+follows (where any of sub-trees A, B, L and R may be empty):
+
+.. figure:: splay-link-left.svg
+    :align: center
+    :alt: Diagram: the link left operation.
+
+The last node of the left tree is now x.
+
+_`.impl.link.right`: The "link right" operation (see [ST85]_ figure
+11a) rearranges the middle and right trees as follows (where any of
+sub-trees A, B, L and R may be empty):
+
+.. figure:: splay-link-right.svg
+    :align: center
+    :alt: Diagram: the link left operation.
+
+The first node of the right tree is now x.
+
+_`.impl.assemble`: The "assemble" operation (see [ST85]_ figure 12)
+merges the left and right trees with the middle tree as follows (where
+any of sub-trees A, B, L and R may be empty):
+
+.. figure:: splay-assemble.svg
+    :align: center
+    :alt: Diagram: the assemble operation.
+
+
+Top-level operations
+....................
+
+_`.impl.insert`: ``SplayTreeInsert()``: (See [Sleator96]_, chapter
+4, function insert). If the tree has no nodes, [how does it smell?]
+add the inserted node and we're done; otherwise splay the tree around
+the supplied key. If the splay successfully found a matching node,
+return failure. Otherwise, add the inserted node as a new root, with
+the old (newly splayed, but non-matching) root as its left or right
+child as appropriate, and the opposite child of the old root as the
+other child of the new root.
+
+_`.impl.delete`: ``SplayTreeDelete()``: (See [Sleator96]_, chapter
+4, function delete). Splay the tree around the supplied key. Check
+that the newly splayed root is the same node as given by the caller,
+and that it matches the key; return failure if not. If the given node
+(now at the root) has fewer than two children, replace it (as root),
+with the non-null child or null. Otherwise, set the root of the tree
+to be the left child (arbitrarily) of the node to be deleted, and
+splay around the same key. The new root will be the last node in the
+sub-tree and will have a null right child; this is set to be the right
+child of the node to be deleted.
+
+_`.impl.find`: ``SplayTreeFind()``: Splay the node around the
+supplied key. If the splay found a matching node, return it; otherwise
+return failure.
+
+_`.impl.neighbours`: ``SplayTreeNeighbours()``: Splay the tree around
+the supplied key. If the splay found a matching node, return failure.
+Otherwise, determine whether the (non-matching) found node is the left
+or right neighbour of the key (by comparison with the key). Set the
+tree root to be the right or left child of that first neighbour
+respectively, and again splay the tree around the supplied key. The
+new root will be the second neighbour, and will have a null left or
+right child respectively. Set this null child to be the first
+neighbour. Return the two neighbours.
+
+_`.impl.neighbours.note`: Note that it would be possible to implement
+``SplayTreeNeighbours()`` with only one splay, and then a normal
+binary tree search for the left or right neighbour of the root. This
+would be a cheaper operation, but would give poorer amortised cost if
+the call to ``SplayTreeNeighbours()`` typically precedes a call to
+``SplayTreeInsert()`` (which is expected to be a common usage
+pattern - see `.usage.insert`_). It's also possible to implement
+``SplayTreeNeighbours()`` by simply keeping track of both neighbours
+during a single splay. This has about the same cost as a single splay,
+and hence about the same amortised cost if the call to
+``SplayTreeNeighbours()`` typically precedes a call to
+``SplayTreeInsert()``.
+
+_`.impl.next`: ``SplayTreeNext()``: Splay the tree around the supplied
+``oldKey``. During iteration the "old node" found is probably already
+at the root, in which case this will be a null operation with little
+cost. If this old node has no right child, return ``NULL``. Otherwise,
+split the tree into a right tree (which contains just the right child
+of the old node) and a left tree (which contains the old node, its
+left child and no right child). The next node is the first node in the
+right tree. Find this by splaying the right tree around ``oldKey``
+(which is known to compare ``CompareLESS`` than any keys in the right
+tree). Rejoin the full tree, using the right tree as the root and
+setting the left child of root to be the left tree. Return the root of
+this tree.
+
+
+Testing
+-------
+
+_`.test`: There is no plan to test splay trees directly. It is
+believed that the testing described in design.mps.cbs.test_ will be
+sufficient to test this implementation.
+
+.. _design.mps.cbs.test: cbs#.test
+
+
+Error Handling
+--------------
+
+_`.error`: This module detects and reports most common classes of
+protocol error. The cases it doesn't handle will result in undefined
+behaviour and probably cause an ``AVER`` to fire. These are:
+
+_`.error.bad-pointer`: Passing an invalid pointer in place of a
+``SplayTree`` or ``Tree``.
+
+_`.error.bad-compare`: Initialising a ``SplayTree`` with a compare
+function that is not a valid compare function, or which doesn't
+implement a total ordering on splay nodes.
+
+_`.error.bad-describe`: Passing an invalid describe function to
+``SplayTreeDescribe()``.
+
+_`.error.out-of-stack`: Stack exhaustion under ``SplayTreeDescribe()``.
+
+
+Future
+------
+
+_`.future.parent`: The iterator could be made more efficient (in an
+amortized sense) if it didn't splay at each node. To implement this
+(whilst meeting `.req.stack`_) we really need parent pointers from the
+nodes. We could use the (first-child, right-sibling/parent) trick
+described in [ST85]_ to implement this, at a slight cost to all
+other tree operations, and an increase in code complexity. [ST85]_
+doesn't describe how to distinguish the first-child between left-child
+and right-child, and the right-sibling/parent between right-sibling
+and parent. One could either use the comparator to make these
+distinctions, or steal some bits from the pointers.
+
+
+References
+----------
+
+.. [ST85] "Self-Adjusting Binary Search Trees"; Daniel Dominic Sleator,
+   Robert Endre Tarjan; AT&T Bell Laboratories, Murray Hill, NJ; 1985-07;
+   Journal of the ACM, Vol. 32, Num. 3, pp. 652-686, July 1985;
+   <https://www.cs.cmu.edu/~sleator/papers/self-adjusting.pdf>.
+
+.. [Sleator96] "Splay Trees"; Daniel Dominic Sleator; CMU, 22/02/96;
+   CMU 15-211; <https://langevin.usc.edu/BST/Sleator-SplayTrees.ps>.
+
+
+Document History
+----------------
+
+- 1998-05-01 Gavin Matthews. Initial draft.
+
+- 1998-09-09 Gavin Matthews. Added client properties.
+
+- 1999-03-10 David Jones. Polished for review (chiefly adding a
+  definitions section).
+
+- 1999-03-31 Tony Mann. Edited after review.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2014-02-22 RB_ Fixing abuses of Res and ResFAIL.
+
+- 2014-03-11 RB_ Updating in response to code review. Removing
+  .future.tree and .future.reverse, both now implemented.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

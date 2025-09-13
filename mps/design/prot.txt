@@ -1,0 +1,235 @@
+.. mode: -*- rst -*-
+
+Memory protection
+=================
+
+:Tag: design.mps.prot
+:Author: David Jones
+:Date: 1997-04-02
+:Status: complete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms: pair: memory protection; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the memory protection module.
+
+_`.readership`: Any MPS developer; anyone porting the MPS to a new
+platform.
+
+_`.overview`: The memory protection module ensures that the mutator
+sees a consistent view of memory during incremental collection, by
+applying protection to areas of memory, ensuring that attempts to read
+or write from those areas cause protection faults, and implementing
+the means for the MPS to handle these faults.
+
+
+Requirements
+------------
+
+_`.req.consistent`: Must ensure that the mutator sees a consistent
+view of memory during incremental collection: in particular, the
+mutator must never see objects in oldspace. (Otherwise there's no way
+for the MPS to interface with uncooperative code.)
+
+_`.req.prot.read`: Should allow collections to proceed incrementally,
+by read-protecting pages that are not consistent from the mutator's
+point of view. (This is the only way for the MPS to meet real-time
+requirements on pause times.)
+
+_`.req.prot.write`: Should allow the MPS to maintain remembered sets
+for segments that it has scanned, by write-protecting pages in these
+segments. (This improves performance by allowing the MPS to avoid
+scanning these segments again.)
+
+_`.req.fault.handle`: If the module implements protection, it must
+also provide a mechanism for handling protection faults. (Otherwise
+the MPS cannot take the correct action: that is, fixing references in
+a read-protected segment, and discarding the remembered set from a
+write-protected segment. See ``TraceSegAccess()``.)
+
+_`.req.prot.exec`: The protection module should allow mutators to
+write machine code into memory managed by the MPS and then execute
+that code, for example, to implement just-in-time translation, or
+other forms of dynamic compilation. Compare
+design.mps.vm.req.prot.exec_.
+
+.. _design.mps.vm.req.prot.exec: vm#.req.prot.exec
+
+
+Design
+------
+
+_`.sol.sync`: If memory protection is not available, the only way to
+meet `.req.consistent`_ is to ensure that no protection is required,
+by running the collector until it has no more incremental work to do.
+(This makes it impossible to meet real-time requirements on pause
+times, but may be the best that can be done.)
+
+_`.sol.fault.handle`: The protection module handles protection faults
+by decoding the context of the fault (see
+design.mps.prmc.req.fault.addr_ and design.mps.prmc.req.fault.access_)
+and calling ``ArenaAccess()``.
+
+.. _design.mps.prmc.req.fault.addr: prmc#.req.fault.addr
+.. _design.mps.prmc.req.fault.access: prmc#.req.fault.access
+
+_`.sol.prot.exec`: The protection module makes memory executable
+whenever it is readable by the mutator, if this is supported by the
+platform.
+
+
+Interface
+---------
+
+``void ProtSetup(void)``
+
+_`.if.setup`: Called exactly once (per process) as part of the
+initialization of the first arena that is created. It must arrange for
+the setup and initialization of any data structures or services that
+are necessary in order to implement the memory protection module.
+
+``Size ProtGranularity(void)``
+
+_`.if.granularity`: Return the granularity of protection. The ``base``
+and ``limit`` arguments to ``ProtSet()`` must be multiples of the
+protection granularity.
+
+``void ProtSet(Addr base, Addr limit, AccessSet mode)``
+
+_`.if.set`: Set the protection of the range of memory between ``base``
+(inclusive) and ``limit`` (exclusive) to *forbid* the specified modes.
+The addresses ``base`` and ``limit`` are multiples of the protection
+granularity. The ``mode`` parameter contains the ``AccessWRITE`` bit
+if write accesses to the range are to be forbidden, and contains the
+``AccessREAD`` bit if read accesses to the range are to be forbidden.
+
+_`.if.set.read`: If the request is to forbid read accesses (that is,
+``AccessREAD`` is set) then the implementation may also forbid write
+accesses, but read accesses must not be forbidden unless
+``AccessREAD`` is set.
+
+_`.if.set.noop`: ``ProtSet()`` is permitted to be a no-op if
+``ProtSync()`` is implemented.
+
+``void ProtSync(Arena arena)``
+
+_`.if.sync`: Ensure that the actual protection (as determined by the
+operating system) of every segment in the arena matches the segment's
+protection mode (``seg->pm``).
+
+_`.if.sync.noop`: ``ProtSync()`` is permitted to be a no-op if
+``ProtSet()`` is implemented.
+
+
+Implementations
+---------------
+
+_`.impl.an`: Generic implementation in ``protan.c``.
+
+_`.impl.an.set`: ``ProtSet()`` does nothing.
+
+_`.impl.an.sync`: ``ProtSync()`` has no way of changing the protection
+of a segment, so it simulates faults on all segments that are supposed
+to be protected, by calling ``TraceSegAccess()``, until it determines
+that no segments require protection any more. This forces the trace to
+proceed until it is completed, preventing incremental collection.
+
+_`.impl.an.sync.issue`: This relies on the pool actually removing the
+protection, otherwise there is an infinite loop here. This is
+therefore not compatible with implementations of the protection
+mutator context module that support single-stepping of accesses (see design.mps.prmc.req.fault.step_).
+
+.. _design.mps.prmc.req.fault.step: prmc#.req.fault.step
+
+_`.impl.ix`: POSIX implementation. See design.mps.protix_.
+
+.. _design.mps.protix: protix
+
+_`.impl.w3`: Windows implementation.
+
+_`.impl.xc`: macOS implementation.
+
+_`.impl.xc.prot.exec`: The approach in `.sol.prot.exec`_ of always
+making memory executable causes a difficulty on macOS on Apple
+Silicon. On this platform, programs may enable `Hardened Runtime`_.
+This feature rejects attempts to map or protect memory so that it is
+simultaneously writable and executable. Moreover, the feature is
+enabled by default (as of macOS 13 Ventura), so that if you install
+Xcode and then use it to compile the following program, the executable
+fails when run with "mmap: Permission denied". ::
+
+    #include <stdio.h>
+    #include <sys/mman.h>
+
+    int main(void)
+    {
+      void *p = mmap(0, 1, PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+      if (p == MAP_FAILED) perror("mmap");
+      return 0;
+    }
+
+.. _Hardened Runtime: https://developer.apple.com/documentation/security/hardened_runtime
+
+_`.impl.xc.prot.exec.detect`: The protection module detects Hardened
+Runtime if the operating system is macOS, the CPU architecture is
+ARM64, a call to ``mprotect()`` fails, the call requested writable and
+executable access, and the error code is ``EACCES``.
+
+_`.impl.xc.prot.exec.retry`: To avoid requiring developers who don't
+need to allocate executable memory to figure out how to disable
+Hardened Runtime, or enable the appropriate entitlement, the
+protection module handles the ``EACCES`` error from ``mprotect()`` in
+the Hardened Runtime case by retrying without the request for the
+memory to be executable, and setting a global variable to prevent the
+writable and executable combination being attempted again.
+
+
+Document History
+----------------
+
+- 1997-04-02 David Jones. Incomplete document.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-23 GDR_ Converted to reStructuredText.
+
+- 2014-10-23 GDR_ Move mutator context interface to design.mps.prmc_.
+  Bring design up to date.
+
+  .. _design.mps.prmc: prmc
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

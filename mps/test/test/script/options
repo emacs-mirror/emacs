@@ -1,0 +1,99 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+
+# global options for qa commands
+#
+# this file also has the job of detecting what platform
+# we're on
+#
+
+1;
+
+# first to see where we are:
+
+sub platform_detect {
+ if (($ENV{"OS"} || "") eq "Windows_NT") {
+  $platform_os = "w3";
+  # See https://msdn.microsoft.com/en-us/library/aa384274.aspx
+  if ($ENV{"PROCESSOR_ARCHITECTURE"} eq "x86") {
+   $platform_ar = "i3";
+  } elsif ($ENV{"PROCESSOR_ARCHITECTURE"} eq "AMD64") {
+   $platform_ar = "i6";
+  } else {
+   $platform_ar = "xx";
+  }
+  $platform_ct = "mv";
+ } else {
+  local $os = `uname -s`;
+  chomp($os);
+  if ($os eq "Darwin") {
+   $platform_os = "xc";
+   $platform_ct = "ll";
+  } elsif ($os eq "FreeBSD") {
+   $platform_os = "fr";
+   $platform_ct = "gc";
+  } elsif ($os eq "Linux") {
+   $platform_os = "li";
+   $platform_ct = "gc";
+  } else {
+   $platform_os = "xx";
+   $platform_ct = "xx";
+  }
+  local $processor = `uname -m`;
+  chomp($processor);
+  if ($processor eq "i386") {
+   $platform_ar = "i3";
+  } elsif ($processor eq "x86_64") {
+   $platform_ar = "i6";
+  } else {
+   $platform_ar = "xx";
+  }
+ }
+ $qa_defaults{"PLATFORM"} = $platform_os . $platform_ar . $platform_ct;
+}
+
+%qa_options = (
+ "v", "VARIETY",
+ "i", "MPS_INCLUDE_DIR",
+ "l", "MPS_LINK_OBJ",
+ "p", "PLATFORM",
+ "data", "DATA_DIR",
+ "a", "PARAMETERS",
+ "s", "STDIN",
+ "g", "LOG_DIR",
+ "m", "MAIL_TO",
+ "subj", "MAIL_SUBJECT"
+);
+
+%qa_flags = (
+ "danger", "DANGEROUS",
+ "debug", "DEBUG_INFO",
+ "mail", "MAIL_RESULTS"
+);
+
+#
+# the default for PLATFORM will be set by &platform_detect,
+# which is called from &harness_init. So the "..." below will
+# never have any effect.
+#
+
+%qa_defaults = (
+ "MPS_INCLUDE_DIR", $test_dir . "/../../code",
+ "PLATFORM", "[error -- you shouldn't see this]",
+ "VARIETY", "cool",
+ "DEBUG_INFO", "off",
+ "DANGEROUS", "off",
+ "DATA_DIR", "$test_dir/../data",
+ "LOG_DIR", "$test_dir/log",
+ "PARAMETERS", "",
+ "MAIL_RESULTS", "off",
+ "MAIL_TO", "mm-qa-test-log",
+ "MAIL_SUBJECT", "MMQA-log"
+);
+
+%qa_unlogged_opts =
+ (DATA_DIR, 1, LOG_DIR, 1, MAIL_RESULTS, 1, MAIL_TO, 1, MAIL_SUBJECT, 1);
+%qa_cumulative_opts =
+ (PARAMETERS, 1);
+

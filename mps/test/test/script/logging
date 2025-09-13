@@ -1,0 +1,305 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# provides subroutines to help in creating test logs and
+# reports
+#
+
+1;
+
+$: = " \n-\\/";
+
+@LOG_FILES = (STDOUT);
+
+#
+# &describe_settings
+# like the first part of verbose_test_report
+# used when running a test set, for the summary file
+#
+
+sub describe_settings {
+ local ($LOGFILE, $oldhandle) = @_;
+ if ($LOGFILE) {
+  $oldhandle = select($LOGFILE);
+ }
+ %eh = ();
+ print "\n--- ".$log_test_opts."\n";
+ &vdispopts;
+ print "\n--- ".$log_test_ident."\n";
+ &vdispvals(*identify, *eh);
+ if ($LOGFILE) {
+  select($oldhandle);
+ }
+}
+
+#
+# &verbose_test_report
+# a complete test report, with everything except the transcript,
+# in a machine-readable form suitable for later processing. This
+# is intended to be mailed to an archive.
+#
+
+sub verbose_test_report {
+ local ($LOGFILE, $oldhandle) = @_;
+ if ($LOGFILE) {
+  $oldhandle = select($LOGFILE);
+ }
+ %eh = ();
+ print "\n--- ".$log_test_head."\n";
+ &vdispvals(*test_header, *eh);
+ print "\n--- ".$log_test_spec."\n";
+ &vdispvals(*spec_output, *spec_rel);
+ print "\n--- ".$log_test_opts."\n";
+ &vdispopts;
+ print "\n--- ".$log_test_ident."\n";
+ &vdispvals(*identify, *eh);
+ print "\n--- ".$log_test_mps."\n";
+ &vdispvals(*mpslibvers, *eh);
+ print "\n--- ".$log_test_params."\n";
+ &vdispvals(*parmdefs, *eh);
+ print "\n--- ".$log_test_res."\n";
+ &vdispvals(*real_output, *eh);
+ print "\n--- ".$log_test_conc."\n";
+ %conclusions=("verdict", $testconclusion);
+ &vdispvals(*conclusions, *eh);
+ if ($LOGFILE) {
+  select($oldhandle);
+ }
+}
+
+sub vdispvals {
+ local (*vals, *rels, $key, $rel, $val) = @_;
+
+ foreach $key (sort keys %vals) {
+  $val = $vals{$key};
+  $rel = ($rels{$key} || "=");
+  $val =~ s/\n/\n\\ /g;
+  print "$key $rel $val\n";
+ }
+}
+
+sub vdispopts {
+ local ($key, $rel, $val);
+
+ foreach $key (sort values %qa_options) {
+  if (&getoption($key)) {
+   $val = &getoption($key);
+   $rel = "=";
+   print "$key $rel $val\n";
+  }
+ }
+}
+
+#
+# &describe_test(report_type)
+#
+# prints out report on a test. report_type is one of:
+#   full:    everything
+#   summary: single line, pass/fail
+#   results: test, spec output, results, conclusion
+#   verbose: as produced by verbose_test_report above
+#
+
+sub describe_test {
+ local ($report, $LOGFILE, $oldhandle) = @_;
+
+ if ($report eq "verbose") {
+  &verbose_test_report($LOGFILE);
+  return;
+ }
+
+ if ($LOGFILE) {
+  $oldhandle = select($LOGFILE);
+ }
+ if ($report eq "summary") {
+  $~ = "LOGSUMM";
+  $testconcchar = ($testconclusion eq "PASS") ? " " : "X";
+  write;
+ } else {
+  $~ = "LOGHEAD";
+  write;
+  %keyvalues = %test_header;
+  %keyrelations = ();
+  &dispvals;
+  %keyvalues = %spec_output;
+  %keyrelations = %spec_rel;
+  print $log_test_spec;
+  &dispvals;
+  &dispopts;
+  if (%parmdefs) {
+   %keyvalues = %parmdefs;
+   %keyrelations = ();
+   print $log_test_params;
+   &dispvals;
+  }
+  %keyvalues = %real_output;
+  %keyrelations = ();
+   print $log_test_res;
+  &dispvals;
+  print $log_test_conc;
+  $~ = "LOGCONC";
+  write;
+  if ($report eq "full") {
+   &displog;
+  }
+ }
+ if ($LOGFILE) {
+  select($oldhandle);
+ }
+}
+
+sub dispvals {
+ local ($key, $rel, $val, $line);
+
+ foreach $key (sort keys %keyvalues) {
+  $val = $keyvalues{$key};
+  $rel = ($keyrelations{$key} || "=");
+  if (length($val) <= 50 && $val !~ /\n/ ) {
+   $~ = "LOGVALS";
+   write;
+  } else {
+   $~ = "LOGVALSLONG1";
+   write;
+   $~ = "LOGVALSLONG2";
+   foreach $line (split /\n/, $val) {
+    write;
+   }
+  }
+ }
+}
+
+sub dispopts {
+ local ($key, $rel, $val);
+
+ $~ = "LOGVALS";
+
+ print $log_test_opts;
+ foreach $key (sort values %qa_options) {
+  if (&getoption($key) && !exists $qa_unlogged_opts{$key}) {
+   $val = &getoption($key);
+   $rel = "=";
+   write;
+  }
+ }
+}
+
+sub displog {
+ open(TESTLOG, $testlogfile);
+ print $log_test_tran;
+ while (defined($line = <TESTLOG>)) {
+  print $line;
+ }
+ print $log_test_end;
+}
+
+sub logcomment {
+ local ($text, $FILE) = @_;
+
+ foreach $FILE (@LOG_FILES) {
+  print $FILE "$text\n";
+ }
+}
+
+sub logtimeline {
+ local ($secs, $slen, $slenl, $text, $barn, $barl, $barr) = @_;
+
+$barn = "***********************************************************>";
+
+$barr = "         |10s      |30s      |1min     |2min     |5min     |10min                    ";
+$barl = "*********|10s******|30s******|1min*****|2min*****|5min*****|10min                    ";
+
+ if ($secs < 10) {
+  $slen = $secs
+ } elsif ($secs < 30) {
+  $slen = ($secs + 10) / 2
+ } elsif ($secs < 60) {
+  $slen = ($secs + 30) / 3
+ } elsif ($secs < 120) {
+  $slen = ($secs + 120) / 6
+ } elsif ($secs < 300) {
+  $slen = ($secs + 600) / 18
+ } elsif ($secs < 600) {
+  $slen = ($secs + 1200) / 30
+ } else {
+  $slen = 60;
+ }
+
+ if (substr($barl, $slen-1, 1) eq "*") {
+  $slenl = $slen;
+ } elsif (substr($barl, $slen-1, 1) eq "|") {
+  $slenl = $slen - 1;
+ } else {
+  $slenl = $slen - ($slen % 10);
+ }
+
+ $secs = 9-($slen % 10);
+
+ &debug("time line: $slenl, $slen, $secs");
+
+ $text = substr($barl, 0, $slenl);
+ $text = substr($barn, $slenl-1, $slen-$slenl);
+ $text = substr($barr, $slen+$secs, 80-$slen-$secs); 
+
+ $text = substr($barl, 0, $slenl) . substr($barn, $slenl, $slen-$slenl) . (" " x $secs) . substr($barr, $slen+$secs, 80-$slen-$secs);
+ $text =~ s/[^>\*]*$//;
+ return $text;
+}
+
+#
+# what the output looks like:
+#
+
+$log_test_head   = "TEST HEADER\n";
+$log_test_spec   = "SPECIFIED RESULTS\n";
+$log_test_opts   = "MMQA OPTIONS\n";
+$log_test_mps    = "MPS LIBRARY VERSION\n";
+$log_test_ident  = "SETUP USED\n";
+$log_test_params = "PARAMETER SETTINGS\n";
+$log_test_res    = "RESULTS\n";
+$log_test_conc   = "CONCLUSION\n";
+$log_test_tran   = "TRANSCRIPT\n";
+$log_test_end    = "END OF TRANSCRIPT\n\n";
+
+format LOGHEAD =
+-----------------------------------------------------------------------------
+@<<<ED TEST @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$testconclusion, $testfile
+@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$testtimeline
+.
+
+format LOGVALS =
+  @<<<<<<<<<<<<<<<<< @< ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$key, $rel, $val
+~~                      ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$val
+.
+
+format LOGVALSLONG1 =
+  @<<<<<<<<<<<<<<<<< @<
+$key, $rel
+.
+
+format LOGVALSLONG2 =
+~   ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$line
+~~    ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$line
+.
+
+format LOGCONC =
+  @<<<<<<<<<<<<<<<<<    @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$testconclusion, $testconcreason
+
+.
+
+format LOGSUMM = 
+@ @<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$testconcchar, $testconclusion, $testid
+.
+
+format TESTTAB =
+@<<<<<<<<<<<<<<<
+$key
+.
+

@@ -1,0 +1,9 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# run tests interactively (allows for user input, immediate results,
+# &c, but doesn't give results in standard format)
+
+print "The try command has been removed. Please use the run command instead.\n";
+
+

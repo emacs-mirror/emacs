@@ -1,0 +1,27 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# require all the qa harness pl files
+#
+# should have no side effects, except for compiling some functions,
+# and setting some base values of variables
+
+require "version";
+require "useful";
+require "display";
+require "logging";
+require "compile";
+require "headread";
+require "runtest";
+require "clib";
+
+require "dirs";
+require "platform";
+
+require "optproc";
+require "options";
+
+require "init";
+
+1;
+
