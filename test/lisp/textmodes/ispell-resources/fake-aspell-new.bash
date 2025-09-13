@@ -22,10 +22,18 @@ show_vv()
     printf  '%s\n' "@(#) International Ispell Version 3.1.20 (but really Aspell 0.60.0)"
 }
 
+in_dict()
+{
+    local x=$1
+    for y in ${sessiondict[@]}; do
+        if [ $y = $x ]; then return 0; fi
+    done
+    return 1
+}
+
 imitate_pipe()
 {
     local a
-    declare -A sessiondict
     show_vv
     while read a ; do
 	#printf 'pipe="%s"\n' "$a" >> /tmp/lwf_mock-aspell.log
@@ -34,13 +42,13 @@ imitate_pipe()
 	elif [[ "$a" == '+' || "$a" == '~nroff' || "$a" == '~tex' || "$a" == '!' || "$a" == '-' || "$a" == '%' ]] ; then
 	    printf ''
 	elif [[ "${a:0:1}" == '@' ]] ; then
-	    sessiondict["${a:1}"]="true"
+	    sessiondict+=("${a:1}")
 	    printf ''
 	else
 	    for b in $a ; do
 		if [[ "$b" == '^' ]] ; then
 		    printf ''
-		elif [[ ${sessiondict[$b]} == 'true' || ${sessiondict[${b#^}]} == 'true' ]] ; then
+		elif in_dict "$b" || in_dict "${b#^}" ; then
 		    printf '*\n'
 		elif [[ "$b" == '^tarampampamtararam' || "$b" == 'tarampampamtararam' ]] ; then
 		    printf '# tarampampamtararam 0\n' # wrong word
