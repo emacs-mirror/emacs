@@ -8851,7 +8851,7 @@ Since it unloads Tramp, it shall be the last test to run."
 	  (string-match-p (rx bol "with" (| "tramp" "parsed")) (symbol-name x))
 	  ;; `tramp-register-archive-file-name-handler' is autoloaded
 	  ;; in Emacs < 29.1.
-	  (not (eq #'tramp-register-archive-file-name-handler x))
+	  (not (eq 'tramp-register-archive-file-name-handler x))
 	  ;; `tramp-compat-rx' is autoloaded in Emacs 29.1.
 	  (not (eq 'tramp-compat-rx x))
 	  (not (string-match-p
