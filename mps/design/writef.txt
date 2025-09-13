@@ -1,0 +1,205 @@
+.. mode: -*- rst -*-
+
+The WriteF function
+===================
+
+:Tag: design.mps.writef
+:Author: Richard Brooksby
+:Date: 1996-10-18
+:Status: complete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:    pair: WriteF function; design
+
+
+Introduction
+------------
+
+_`.intro`: This document describes the ``WriteF()`` function, which
+allows formatted output in a manner similar to ``printf()`` from the
+Standard C library, but allows the Memory Pool Manager (MPM) to
+operate in a freestanding environment (see design.mps.exec-env_).
+
+.. _design.mps.exec-env: exec-env
+
+_`.background`: The documents design.mps.exec-env_ and design.mps.lib_
+describe the design of the library interface and the reason that it
+exists.
+
+.. _design.mps.lib: lib
+
+
+Design
+------
+
+_`.no-printf`: There is no dependency on ``printf()``. The MPM only
+depends on ``mps_io_fputc()`` and ``mps_io_fputs()``, via the library
+interface (design.mps.lib_), part of the *plinth*. This makes it much
+easier to deploy the MPS in a freestanding environment. This is
+achieved by implementing our own output routines.
+
+_`.writef`: Our output requirements are few, so the code is short. The
+only output function which should be used in the rest of the MPM is
+``WriteF()``.
+
+``Res WriteF(mps_lib_FILE *stream, Count depth, ...)``
+
+If ``depth`` is greater than zero, then the first output character,
+and each output character after a newline in a format string, is
+preceded by ``depth`` spaces.
+
+``WriteF()`` expects a format string followed by zero or more items to
+insert into the output, followed by another format string, more items,
+and so on, and finally a ``NULL`` format string. For example::
+
+    res = WriteF(stream, depth,
+                 "Hello: $A\n", (WriteFA)address,
+                 "Spong: $U ($S)\n", (WriteFU)number, (WriteFS)string,
+                 NULL);
+    if (res != ResOK)
+      return res;
+
+This makes ``Describe()`` methods much easier to write. For example, ``BufferDescribe()`` contains the following code::
+
+    res = WriteF(stream, depth,
+                 "Buffer $P ($U) {\n",
+                 (WriteFP)buffer, (WriteFU)buffer->serial,
+                 "  class $P (\"$S\")\n",
+                 (WriteFP)buffer->class, (WriteFS)buffer->class->name,
+                 "  Arena $P\n",       (WriteFP)buffer->arena,
+                 "  Pool $P\n",        (WriteFP)buffer->pool,
+                 "  ", buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
+                 "  mode $C$C$C$C (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
+                 (WriteFC)((buffer->mode & BufferModeTRANSITION) ? 't' : '_'),
+                 (WriteFC)((buffer->mode & BufferModeLOGGED)     ? 'l' : '_'),
+                 (WriteFC)((buffer->mode & BufferModeFLIPPED)    ? 'f' : '_'),
+                 (WriteFC)((buffer->mode & BufferModeATTACHED)   ? 'a' : '_'),
+                 "  fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
+                 "  emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
+                 "  alignment $W\n",   (WriteFW)buffer->alignment,
+                 "  base $A\n",        (WriteFA)buffer->base,
+                 "  initAtFlip $A\n",  (WriteFA)buffer->initAtFlip,
+                 "  init $A\n",        (WriteFA)buffer->ap_s.init,
+                 "  alloc $A\n",       (WriteFA)buffer->ap_s.alloc,
+                 "  limit $A\n",       (WriteFA)buffer->ap_s.limit,
+                 "  poolLimit $A\n",   (WriteFA)buffer->poolLimit,
+                 "  alignment $W\n",   (WriteFW)buffer->alignment,
+                 "  rampCount $U\n",   (WriteFU)buffer->rampCount,
+                 NULL);
+    if (res != ResOK)
+      return res;
+
+_`.types`: For each format ``$X`` that ``WriteF()`` supports, there is
+a type ``WriteFX`` defined in mpmtypes.h, which is the promoted
+version of that type. These types are provided both to ensure
+promotion and to avoid any confusion about what type should be used in
+a cast. It is easy to check the casts against the formats to ensure
+that they correspond.
+
+_`.types.cast`: Every argument to ``WriteF()`` must be cast, because
+in variable-length argument lists the "default argument promotion"
+rules apply and this could cause an argument to be read incorrectly on
+some platforms: for example on a 64-bit platform the ``$W`` format,
+which expects a 64-bit argument, is incompatible with a 32-bit
+``unsigned`` argument, which will not be promoted to 64 bits by the
+default argument promotion rules. (Note that most of these casts are
+unnecessary, but requiring them all makes it easy to check that the
+necessary ones are all there.)
+
+_`.types.future`: It is possibly that this type set or similar may be
+used in future in some generalisation of varargs in the MPS.
+
+_`.formats`: The formats supported are as follows.
+
+======= =========== ================== =======================================
+Code    Name        Type               Example rendering
+======= =========== ================== =======================================
+``$A``  address     ``Addr``           ``000000019EF60010``
+``$P``  pointer     ``void *``         ``000000019EF60100``
+``$F``  function    ``void (*)(void)`` ``0001D69E01000000`` (see `.function`_)
+``$S``  string      ``char *``         ``hello``
+``$C``  character   ``char``           ``x``
+``$W``  word        ``ULongest``       ``0000000000109AE0``
+``$U``  decimal     ``ULongest``       ``42``
+``$B``  binary      ``ULongest``       ``00000000000000001011011110010001``
+``$$``  dollar      --                 ``$``
+======= =========== ================== =======================================
+
+Note that ``WriteFC`` is an ``int``, because that is the default
+promotion of a ``char`` (see `.types`_).
+
+_`.snazzy`: We should resist the temptation to make ``WriteF()`` an
+incredible snazzy output engine. We only need it for ``Describe()``
+methods. At the moment it's a simple bit of code -- let's keep it that
+way.
+
+_`.function`: The ``F`` code is used for function pointers. The C
+standard [C1999c]_ defines conversion between pointer-to-function
+types (§6.3.2.3.8), but it does not define conversion between pointers
+to functions and pointers to data. To work around this, the bytes of
+their representation are written sequentially, and may have a
+different endianness to other pointer types. This output could be
+smarter, or even look up function names, but see `.snazzy`_. The
+particular type ``void (*)(void)`` is chosen because in GCC
+(version 8) this suppresses the warning that we would otherwise get
+from ``-Wcast-function-type``. See job004156_ and `GCC Warning
+Options`_.
+
+.. _job004156: https://www.ravenbrook.com/project/mps/issue/job004156/
+.. _GCC Warning Options: https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+
+
+
+References
+----------
+
+.. [C1999c]
+   International Standard ISO/IEC 9899:1999;
+   "Programming languages — C";
+   <http://www.open-std.org/jtc1/sc22/WG14/www/docs/n1256.pdf>
+
+
+Document History
+----------------
+
+- 1996-10-18 RB_ Incomplete design.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-22 GDR_ Converted to reStructuredText.
+
+- 2014-04-17 GDR_ ``WriteF()`` now takes a ``depth`` parameter.
+
+- 2019-03-14 GDR_ Change type of ``WriteFF`` to avoid compiler warning.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

@@ -1,0 +1,405 @@
+.. mode: -*- rst -*-
+
+C Style -- formatting
+=====================
+
+:Tag: guide.impl.c.format
+:Author: Richard Brooksby
+:Date: 1995-08-07
+:Status: complete guide
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: C language; formatting guide
+   pair: C language formatting; guide
+
+
+Introduction
+------------
+
+_`.scope`: This document describes the Ravenbrook conventions for the
+general format of C source code in the MPS.
+
+_`.readership`: This document is intended for anyone working on or with the
+C source code.
+
+
+General formatting conventions
+------------------------------
+
+Line width
+..........
+
+_`.width`: Lines should be no wider than 72 characters. _`.width.why`: Many
+people use 80 column terminal windows so that multiple windows can be
+placed side by side. Restricting lines to 72 characters allows line
+numbering to be used (in vi for example) and also allows diffs to be
+displayed without overflowing the terminal.
+
+White space
+...........
+
+_`.space.notab`: No tab characters should appear in the source files.
+Ordinary spaces should be used to indent and format the sources.
+
+_`.space.notab.why`: Tab characters are displayed differently on different
+platforms, and sometimes translated back and forth, destroying layout
+information.
+
+_`.space.punct`: There should always be whitespace after commas and
+semicolons and similar punctuation.
+
+_`.space.op`: Put white space around operators in expressions, except when
+removing it would make the expression clearer by binding certain
+sub-expressions more tightly. For example::
+
+    foo = x + y*z;
+
+_`.space.control`: One space between a control-flow keyword
+(``switch``, ``while``, ``for``, ``if``) and the following opening
+parenthesis.
+
+_`.space.control.why`: This distinguishes control statements lexically
+from function calls, making it easier to distinguish them visually and
+when searching with tools like ``grep``.
+
+_`.space.function.not`: No space between a function name and the opening
+parenthesis beginning its argument list.
+
+Sections and paragraphs
+.......................
+
+_`.section`: Source files can be thought of as breaking down into
+"sections" and "paragraphs". A section might be the leader comment of a
+file, the imports, or a set of declarations which are related.
+
+_`.section.space`: Precede sections by two blank lines (except the first
+one in the file, which should be the leader comment in any case).
+
+_`.section.comment`: Each section should start with a banner comment (see
+`.comment.banner`_) describing what the section contains.
+
+_`.para`: Within sections, code often breaks down into natural units called
+"paragraphs". A paragraph might be a set of strongly related
+declarations (Init and Finish, for example), or a few lines of code
+which it makes sense to consider together (the assignment of fields into
+a structure, for example).
+
+_`.para.space`: Precede paragraphs by a single blank line.
+
+Statements
+..........
+
+_`.statement.one`: Generally only have at most one statement per line. In
+particular the following are deprecated::
+
+    if (thing) return;
+
+    a=0; b=0;
+
+    case 0: f = inRampMode ? AMCGen0RampmodeFrequency : AMCGen0Frequency;
+
+_`.statement.one.why`: Debuggers can often only place breakpoints on lines,
+not expressions or statements within a line. The ``if (thing) return;`` is
+a particularly important case, if thing is a reasonably rare return
+condition then you might want to breakpoint it in a debugger session.
+Annoying because ``if (thing) return;`` is quite compact and pleasing
+otherwise.
+
+Indentation
+...........
+
+_`.indent`: Indent the body of a block by two spaces. For formatting
+purposes, the "body of a block" means:
+
+- statements between braces,
+- a single statement following a lone ``if``;
+- statements in a switch body; see .switch.
+
+(_`.indent.logical`: The aim is to group what we think of as logical
+blocks, even though they may not exactly match how "block" is used in
+the definition of C syntax).
+
+Some examples::
+
+    if (res != ResOK) {
+      SegFinish(&span->segStruct);
+      PoolFreeP(MV->spanPool, span, sizeof(SpanStruct));
+      return res;
+    }
+
+    if (res != ResOK)
+      goto error;
+
+    if (j == block->base) {
+      if (j+step == block->limit) {
+        if (block->thing)
+          putc('@', stream);
+      }
+    } else if (j+step == block->limit) {
+      putc(']', stream);
+      pop_bracket();
+    } else {
+      putc('.', stream);
+    }
+
+    switch (c) {
+    case 'A':
+      c = 'A';
+      p += 1;
+      break;
+    }
+
+_`.indent.goto-label`: Place each goto-label on a line of its own,
+outdented to the same level as the surrounding block. Then indent the
+non-label part of the statement normally. ::
+
+    result foo(void)
+    {
+      statement();
+      if (error)
+        goto foo;
+      statement();
+      return OK;
+
+    foo:
+      unwind();
+      return ERROR;
+    }
+
+_`.indent.case-label`: Outdent case- and default-labels in a switch
+statement in the same way as `.indent.goto-label`_.  See `.switch`_.
+
+_`.indent.cont`: If an expression or statement won't fit on a single line,
+indent the continuation lines by two spaces, apart from the following
+exception:
+
+_`.indent.cont.parens`: if you break a statement inside a parameter list or
+other parenthesized expression, indent so that the continuation lines up
+just after the open parenthesis. For example::
+
+    res = ChunkInit(chunk, arena, alignedBase,
+                    AddrAlignDown(limit, ArenaGrainSize(arena)),
+                    AddrOffset(base, limit), boot);
+
+_`.indent.cont.expr`: Note that when breaking an expression it is clearer
+to place the operator at the start of the continuation line::
+
+    CHECKL(AddrAdd((Addr)chunk->allocTable, BTSize(chunk->pages))
+           <= PageIndexBase(chunk, chunk->allocBase));
+
+This is particularly useful in long conditional expressions that use &&
+and ||. For example::
+
+    if (BufferRankSet(buffer) != RankSetEMPTY
+        && (buffer->mode & BufferModeFLIPPED) == 0
+        && !BufferIsReset(buffer))
+
+_`.indent.hint`: Usually, it is possible to determine the correct
+indentation for a line by looking to see if the previous line ends with
+a semicolon. If it does, indent to the same amount, otherwise indent by
+two more spaces. The main exceptions are lines starting with a close
+brace, goto-labels, and line-breaks between parentheses.
+
+Positioning of braces
+.....................
+
+_`.brace.otb`: Use the "One True Brace" (or OTB) style. This places the
+open brace after the control word or expression, separated by a space,
+and when there is an else, places that after the close brace. For
+example::
+
+    if (buffer->mode & BufferModeFLIPPED) {
+      return buffer->initAtFlip;
+    } else {
+      return buffer->ap_s.init;
+    }
+
+The same applies to ``struct``, ``enum``, and ``union``.
+
+_`.brace.otb.function.not`: OTB is never used for function definitions.
+
+_`.brace.always`: Braces are always required after ``if``, ``else``, ``switch``,
+``while``, ``do``, and ``for``.
+
+_`.brace.always.except`: Except that a lone ``if`` with no ``else`` is allowed
+to drop its braces when its body is a single simple statement. Typically
+this will be a ``goto`` or an assignment. For example::
+
+    if (res != ResOK)
+      goto failStart;
+
+Note in particular that an ``if`` with an ``else`` must have braces on both
+paths.
+
+Switch statements
+.................
+
+_`.switch`: format switch statements like this::
+
+    switch (SplaySplay(splay, oldKey, splay->compare)) {
+    default:
+      NOTREACHED;
+      /* fall through */
+    case CompareLESS:
+      return SplayTreeRoot(splay);
+
+    case CompareGREATER:
+    case CompareEQUAL:
+      return SplayTreeSuccessor(splay);
+    }
+
+The component rules that result in this style are:
+
+_`.switch.break`: The last line of every case-clause body must be an
+unconditional jump statement (usually ``break``, but may be ``goto``,
+``continue``, or ``return``), or if a fall-through is intended, the
+comment ``/* fall through */``. (Note: if the unconditional jump
+should never be taken, because of previous conditional jumps, use
+``NOTREACHED`` on the line before it.) This rule is to prevent
+accidental fall-throughs, even if someone makes a editing mistake that
+causes a conditional jump to be missed. This rule is automatically
+checked by GCC and Clang with the ``-Wimplicit-fallthrough`` option.
+
+_`.switch.default`: It is usually a good idea to have a
+default-clause, even if all it contains is ``NOTREACHED`` and
+``break`` or ``/* fall through */``. Remember that ``NOTREACHED``
+doesn't stop the process in all build varieties.
+
+
+Comments
+........
+
+_`.comment`: There are three types of comments: banners, paragraph
+comments, and column comments.
+
+_`.comment.banner`: Banner comments come at the start of sections. A banner
+comment consists of a heading usually composed of a symbol, an em-dash
+(--) and a short explanation, followed by English text which is
+formatted using conventional text documentation guidelines (see
+guide.text). The open and close comment tokens (``/*`` and ``*/``) are
+placed at the top and bottom of a column of asterisks. The text is
+separated from the asterisks by one space. Place a blank line between
+the banner comment and the section it comments. For example::
+
+    /* BlockStruct --  Block descriptor
+     *
+     * The pool maintains a descriptor structure for each
+     * contiguous allocated block of memory it manages.
+     * The descriptor is on a simple linked-list of such
+     * descriptors, which is in ascending order of address.
+     */
+
+    typedef struct BlockStruct {
+
+_`.comment.para`: Paragraph comments come at the start of paragraphs
+in the code. A paragraph comment consists of formatted English text.
+For example::
+
+      /* If the freed area is in the base sentinel then insert
+         the new descriptor after it, otherwise insert before. */
+      if (isBase) {
+
+_`.comment.para.precede`: Paragraph comments, even one-liners, precede the
+code to which they apply.
+
+_`.comment.column`: Column comments appear in a column to the right of
+the code. They should be used sparingly, since they clutter the code and
+make it hard to edit. Use them on variable declarations and structure,
+union, or enum declarations. They should start at least at column 32
+(counting from 0, that is, on a tab-stop), and should be terse
+descriptive text. Abandon English sentence structure if this makes the
+comment clearer. Don't write more than one line. Here's an example::
+
+    typedef struct MVFFStruct {     /* MVFF pool outer structure */
+      PoolStruct poolStruct;        /* generic structure */
+      LocusPrefStruct locusPrefStruct; /* the preferences for allocation */
+      Size extendBy;                /* size to extend pool by */
+      Size avgSize;                 /* client estimate of allocation size */
+      double spare;                 /* spare space fraction, see MVFFReduce */
+      MFSStruct cbsBlockPoolStruct; /* stores blocks for CBSs */
+      CBSStruct totalCBSStruct;     /* all memory allocated from the arena */
+      CBSStruct freeCBSStruct;      /* free memory (primary) */
+      FreelistStruct flStruct;      /* free memory (secondary, for emergencies) */
+      FailoverStruct foStruct;      /* free memory (fail-over mechanism) */
+      Bool firstFit;                /* as opposed to last fit */
+      Bool slotHigh;                /* prefers high part of large block */
+      Sig sig;                      /* <design/sig/> */
+    } MVFFStruct;
+
+
+Macros
+......
+
+_`.macro.careful`: Macros in C are a real horror bag, be extra careful.
+There's lots that could go here, but proper coverage probably deserves a
+separate document. Which isn't written yet.
+
+_`.macro.general`: Do try and follow the other formatting conventions for
+code in macro definitions.
+
+_`.macro.backslash`: Backslashes used for continuation lines in macro
+definitions should be put on the right somewhere where they will be less
+in the way. Example::
+
+    #define RAMP_RELATION(X)                       \
+      X(RampOUTSIDE,        "outside ramp")        \
+      X(RampBEGIN,          "begin ramp")          \
+      X(RampRAMPING,        "ramping")             \
+      X(RampFINISH,         "finish ramp")         \
+      X(RampCOLLECTING,     "collecting ramp")
+
+
+Document History
+----------------
+
+- 2007-06-04  DRJ_  Adopted from Harlequin MMinfo version and edited.
+
+- 2007-06-04  DRJ_  Changed .width from 80 to 72. Banned space between
+  ``if`` and ``(``. Required braces on almost everything. Clarified that
+  paragraph comments precede the code.
+
+- 2007-06-13  RHSK_  Removed .brace.block, because MPS source always
+  uses .brace.otb. Remove .indent.elseif because it is obvious (ahem) and
+  showing an example is sufficient. New rules for .switch.*: current MPS
+  practice is a mess, so lay down a neat new law.
+
+- 2007-06-27  RHSK_  Added `.space.function.not`_.
+
+- 2007-07-17  DRJ_  Added .macro.\*
+
+- 2012-09-26  RB_  Converted to Markdown and reversed inconsistent
+  switch "law".
+
+.. _DRJ: https://www.ravenbrook.com/consultants/drj
+.. _RHSK: https://www.ravenbrook.com/consultants/rhsk
+.. _RB: https://www.ravenbrook.com/consultants/rb
+
+
+Copyright and License
+---------------------
+
+Copyright © 2002–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

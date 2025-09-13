@@ -1,0 +1,16 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# debug a test
+
+&requiredoptions(
+ "MPS_INCLUDE_DIR",
+ "MPS_LINK_OBJ",
+ "VARIETY",
+ "PLATFORM",
+ "LOG_DIR"
+);
+
+foreach $testfile (@ARGV) {
+ &debugtest($testfile);
+}

@@ -1,0 +1,31 @@
+# example/scheme/Makefile -- Makefile for the MPS Scheme example
+#
+# $Id$
+
+CFLAGS = @CFLAGS@ @CPPFLAGS@ @LDFLAGS@ -std=c99
+
+MPS = ../../code
+
+TARGETS = scheme-malloc scheme scheme-advanced
+
+TESTS = r5rs mps
+
+all: $(TARGETS)
+
+$(TARGETS): %: %.c Makefile
+	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c
+
+
+scheme-boehm: %: %.c Makefile
+	$(CC) $(CFLAGS) -o $@ $< -lgc
+
+clean:
+	rm -f $(TARGETS) scheme-boehm
+
+test: $(TARGETS)
+	@for TARGET in $(TARGETS); do \
+	   for TEST in $(TESTS); do \
+	     echo "$$TARGET $$TEST:"; \
+	     ./$$TARGET test-$$TEST.scm || exit; \
+	   done \
+	done

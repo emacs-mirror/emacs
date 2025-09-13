@@ -1,0 +1,34 @@
+
+TEST_HEADER
+ id = $Id$
+ summary = MM works with Dylan debugger
+ language = english
+END_HEADER
+
+1. Get a recent, stable release of Dylan. If you're not sure what release would
+be appropriate, ask Tony.
+
+2. Create a version of hqn-dylan.dll that uses the memory manager to be tested.
+Do this by compiling the dylan library, then copying the mmdw.lib you want to
+the dylan\lib directory, then from the dylan\build\dylan directory run
+"build microsoft force dll".
+
+3. Run the following tests, making sure the new hqn-dylan is used for the
+debugger and the debuggee.
+
+console-debug dylan-compile
+profile at 50
+c
+--> compile-library -force-compile dylan
+STOP
+profile results   [check that MM functions appear correctly in the profile]
+break AMCFix
+c
+(breakpoint hit)
+bt 20             [check that MM functions appear correctly on the stack]
+quit
+
+The test is passed if MM functions are correctly understood by the debugger
+and there are no other problems.
+
+rit 1998-03-13

@@ -1,0 +1,53 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# convert to new-style test header format
+#
+foreach $file (@ARGV) {
+ unless (open(IN, $file)) {die $file." not found";}
+ open(OUT, ">new/$file");
+ print $file." --> new/".$file."\n";
+ 
+ print OUT "/* TEST_HEADER\n";
+
+ $_ = <IN>;
+ s+/\*\s*test + summary = +;
+ print OUT $_;
+
+ $_ = <IN>;
+ s/\s*language\s*c/ language = c/;
+ print OUT $_;
+
+ $_ = <IN>;
+ if (m/\s*link /) {
+  s/\s*link / link = /;
+  print OUT $_;
+  $_ = <IN>;
+ }
+
+ if (m+\*/+) {
+  print OUT "END_HEADER\n";
+  print OUT "*/\n";
+ } else {
+  print OUT "OUTPUT_SPEC\n";
+  print OUT $_;
+  $_ = <IN>;
+  while (!m+\*/+) {
+   s/\s*/ /;
+   print OUT $_;
+   $_ = <IN>;
+  }
+  print OUT "END_HEADER\n";
+  print OUT "*/\n";
+
+ }
+
+ while (<IN>) {
+  print OUT $_;
+ }
+
+ close(OUT);
+ close(IN);
+
+}
+

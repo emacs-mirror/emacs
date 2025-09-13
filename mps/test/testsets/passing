@@ -1,0 +1,177 @@
+% This testset contains all the "function" test cases that pass in
+% both the cool and hot varieties, together with comments explaining
+% why the other test cases fail.
+
+function/0.c
+function/1.c
+% function/2.c -- interactive test, can't run unattended
+% function/3.c -- interactive test, can't run unattended
+% function/4.c -- interactive test, can't run unattended
+function/5.c
+function/6.c
+function/7.c
+function/8.c
+function/9.c
+function/10.c
+function/11.c
+function/12.c
+function/12p.c
+function/13.c
+function/14.c
+function/15.c
+function/16.c
+function/17.c
+function/18.c
+function/19.c
+function/20.c
+function/21.c
+function/22.c
+% function/23.c -- infinite loop; also job003789
+function/24.c
+function/25.c
+function/26.c
+function/27.c
+function/28.c
+function/29.c
+function/30.c
+function/31.c
+function/32.c
+function/33.c
+function/34.c
+function/35.c
+function/36.c
+function/37.c
+function/38.c
+function/39.c
+function/40.c
+function/41.c
+function/42.c
+function/43.c
+function/44.c
+function/45.c
+function/46.c
+function/47.c
+function/48.c
+function/49.c
+function/50.c
+function/51.c
+function/52.c
+function/53.c
+function/55.c
+function/56.c
+function/57.c
+% 58-59 -- no such test
+function/60.c
+function/61.c
+function/62.c
+function/63.c
+function/64.c
+function/65.c
+function/66.c
+function/67.c
+% function/68.c -- infinite loop
+function/69.c
+% function/70.c -- interactive test, no point in running unattended
+function/71.c
+% function/72.c -- fails in hot variety (assertion is on the critical path)
+function/73.c
+function/74.c
+function/75.c
+function/76.c
+function/77.c
+function/78.c
+function/79.c
+function/80.c
+function/81.c
+% 82 -- no such test
+function/83.c
+% 84-95 -- no such test
+function/96.c
+function/97.c
+function/98.c
+function/99.c
+function/100.c
+function/101.c
+function/103.c
+function/104.c
+function/105.c
+function/106.c
+function/107.c
+function/108.c
+function/109.c
+function/110.c
+function/111.c
+function/112.c
+function/113.c
+function/114.c
+% 115 -- no such test
+function/116.c
+function/117.c
+function/118.c
+function/119.c
+function/120.c
+function/121.c
+function/122.c
+function/123.c
+function/124.c
+function/125.c
+function/126.c
+function/127.c
+function/128.c
+function/129.c
+% function/130.c -- job003789
+% function/131.c -- job003789
+% 132-133 -- no such test
+function/134.c
+function/135.c
+function/136.c
+function/137.c
+function/138.c
+function/139.c
+function/140.c
+% 141-143 -- no such test
+function/144.c
+% 145-146 -- no such test
+function/147.c
+function/148.c
+% 149 -- no such test
+function/150.c
+function/151.c
+function/152.c
+function/153.c
+% 154-157 -- no such test
+function/158.c
+function/159.c
+function/160.c
+function/161.c
+function/162.c
+function/163.c
+function/164.c
+function/165.c
+% 166 -- no such test
+function/167.c
+% 168-169 -- no such test
+function/170.c
+function/171.c
+function/200.c
+% 201-202 -- no such test
+function/203.c
+function/204.c
+function/205.c
+function/206.c
+function/207.c
+% 208-213 -- no such test
+function/214.c
+function/215.c
+function/223.c
+function/224.c
+% 225 -- no such test
+function/226.c
+function/227.c
+function/228.c
+function/229.c
+function/231.c
+function/232.c
+function/233.c
+function/234.c
+function/235.c

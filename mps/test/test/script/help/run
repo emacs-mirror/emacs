@@ -1,0 +1,15 @@
+run tests, reporting results and verdict
+% $Id$
+
+Usage: qa run [<options>] <testfile> [<testfile> ...]
+
+'run' runs tests individually. The test libraries should previously
+have been compiled with 'clib'; if the harness believes the test
+libraries may not be up-to-date, it will give an error and ask
+you to run 'clib' first. (You can force the harness to run a test
+with potentially out-of-date libraries by specifying the "-danger"
+option to 'run'. This is not recommended.)
+
+'run' shows the test's output as it runs, then when it finishes,
+displays test information, results, and the verdict: PASS or FAIL.
+

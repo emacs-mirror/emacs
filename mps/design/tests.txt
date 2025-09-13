@@ -1,0 +1,478 @@
+.. mode: -*- rst -*-
+
+Tests
+=====
+
+:Tag: design.mps.tests
+:Author: Richard Kistruck
+:Date: 2008-12-04
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms: pair: tests; design
+
+
+Introduction
+------------
+
+_`.intro`: This document contains a guide to the Memory Pool System
+tests.
+
+_`.readership`: This document is intended for any MPS developer.
+
+
+Running tests
+-------------
+
+_`.run`: Run these commands::
+
+    cd code
+    make -f <makefile> VARIETY=<variety> <target>  # Unix
+    nmake /f <makefile> VARIETY=<variety> <target> # Windows
+
+where ``<makefile>`` is the appropriate makefile for the platform (see
+`manual/build.txt`_), ``<variety>`` is the variety (see
+design.mps.config.var.codes_) and ``<target>`` is the collection of tests
+(see `.target`_ below). For example::
+
+    make -f lii6ll VARIETY=cool testrun
+
+If ``<variety>`` is omitted, tests are run in both the cool and hot
+varieties.
+
+.. _design.mps.config.var.codes: config#.var.codes
+.. _manual/build.txt: https://www.ravenbrook.com/project/mps/master/manual/build.txt
+
+
+Test targets
+------------
+
+_`.target`: The makefiles provide the following targets for common
+sets of tests:
+
+_`.target.testall`: The ``testall`` target runs all test cases (even
+if known to fail).
+
+_`.target.testrun`: The ``testrun`` target runs the "smoke tests".
+This subset of tests are quick checks that the MPS is working. They
+run quickly enough for it to be practical to run them every time the
+MPS is built.
+
+_`.target.testci`: The ``testci`` target runs the continuous
+integration tests, the subset of tests that are expected to pass in
+full-featured build configurations.
+
+_`.target.testansi`: The ``testansi`` target runs the subset of the
+tests that are expected to pass in the generic ("ANSI") build
+configuration (see design.mps.config.opt.ansi_).
+
+_`.target.testpollnone`: The ``testpollnone`` target runs the subset
+of the tests that are expected to pass in the generic ("ANSI") build
+configuration (see design.mps.config.opt.ansi_) with the option
+``CONFIG_POLL_NONE`` (see design.mps.config.opt.poll_).
+
+.. _design.mps.config.opt.ansi: config#.opt.ansi
+.. _design.mps.config.opt.poll: config#.opt.poll
+
+_`.target.testratio`: The ``testratio`` target compares the
+performance of the HOT and RASH varieties. See `.ratio`_.
+
+_`.target.testscheme`: The ``testscheme`` target builds the example
+Scheme interpreter (example/scheme) and runs its test suite.
+
+_`.target.testmmqa`: The ``testmmqa`` target runs the tests in the
+MMQA test suite. See `.mmqa`_.
+
+
+Test features
+-------------
+
+_`.randomize`: Each time a test case is run, it randomly chooses some
+of its parameters (for example, the sizes of objects, or how many
+links to create in a graph of references). This allows a fast test
+to cover many cases over time.
+
+_`.randomize.seed`: The random numbers are chosen pseudo-randomly
+based on a seed initialized from environmental data (the time and the
+processor cycle count). The seed is reported at test startup, for
+example::
+
+    code$ xci6ll/cool/apss
+    xci6ll/cool/apss: randomize(): choosing initial state (v3): 2116709187.
+    ...
+    xci6ll/cool/apss: Conclusion: Failed to find any defects.
+
+Here, the number 2116709187 is the random seed.
+
+_`.randomize.specific-seed` Each test can be run with a specified seed
+by passing the seed on the command line, for example::
+
+    code$ xci6ll/cool/apss 2116709187
+    xci6ll/cool/apss: randomize(): resetting initial state (v3) to: 2116709187.
+    ...
+    xci6ll/cool/apss: Conclusion: Failed to find any defects.
+
+_`.randomize.repeatable`: This ensures that the single-threaded tests
+are repeatable. (Multi-threaded tests are not repeatable even if the
+same seed is used; see job003719_.)
+
+.. _job003719: https://www.ravenbrook.com/project/mps/issue/job003719/
+
+
+Test list
+---------
+
+See `manual/code-index`_ for the full list of automated test cases.
+
+.. _manual/code-index: https://www.ravenbrook.com/project/mps/master/manual/html/code-index.html
+
+_`.test.finalcv`: Registers objects for finalization, makes them
+unreachable, deregisters them, etc. Churns to provoke minor (nursery)
+collection.
+
+_`.test.finaltest`: Creates a large binary tree, and registers every
+node. Drops the top reference, requests collection, and counts the
+finalization messages.
+
+_`.test.zcoll`: Collection scheduling, and collection feedback.
+
+_`.test.zmess`: Message lifecycle and finalization messages.
+
+
+Test database
+-------------
+
+_`.db`: The automated tests are described in the test database
+(tool/testcases.txt).
+
+_`.db.format`: This is a self-documenting plain-text database which
+gives for each test case its name and an optional set of features. For
+example the feature ``=P`` means that the test case requires polling
+to succeed, and therefore is expected to fail in build configurations
+without polling (see design.mps.config.opt.poll_).
+
+_`.db.format.simple`: The format must be very simple because the test
+runner on Windows is written as a batch file (.bat), in order to avoid
+having to depend on any tools that are did not come as standard with
+Windows XP, and batch files are inflexible. (But note that we no
+longer support Windows XP, so it would now be possible to rewrite the
+test runner in PowerShell if we thought that made sense.)
+
+_`.db.testrun`: The test runner (tool/testrun.sh on Unix or
+tool/testrun.bat on Windows) parses the test database to work out
+which tests to run according to the target. For example the
+``testpollnone`` target must skip all test cases with the ``P``
+feature.
+
+
+Test runner
+-----------
+
+_`.runner.req.automated`: The test runner must execute without user
+interaction, so that it can be used for continuous integration.
+
+_`.runner.req.output.pass`: Test cases are expected to pass nearly all the
+time, and in these cases we almost never want to see the output, so
+the test runner must suppress the output for passing tests.
+
+_`.runner.req.output.fail`: However, if a test case fails then the
+test runner must preserve the output from the failing test, including
+the random seed (see `.randomize.seed`_), so that this can be analyzed
+and the test repeated. Moreover, it must print the output from the
+failing test, so that if the test is being run on a `continuous
+integration`_ system (see `.ci`_), then the output of the failing
+tests is included in the failure report. (See job003489_.)
+
+.. _job003489: https://www.ravenbrook.com/project/mps/issue/job003489/
+
+
+Performance test
+----------------
+
+_`.ratio`: The ``testratio`` target checks that the hot variety
+is not too much slower than the rash variety. A failure of this test
+usually is expected to indicate that there are assertions on the
+critical path using ``AVER`` instead of ``AVER_CRITICAL`` (and so on).
+This works by running gcbench for the AMC pool class and djbench for
+the MVFF pool class, in the hot variety and the rash variety,
+computing the ratio of CPU time taken in the two varieties, and
+testing that this falls under an acceptable limit.
+
+_`.ratio.cpu-time`: Note that we use the CPU time (reported by
+``/usr/bin/time``) and not the elapsed time (as reported by the
+benchmark) because we want to be able to run this test on continuous
+integration machines that might be heavily loaded.
+
+_`.ratio.platform`: This target is currently supported only on Unix
+platforms using GNU Makefiles.
+
+
+Adding a new test
+-----------------
+
+To add a new test to the MPS, carry out the following steps. (The
+procedure uses the name "newtest" throughout but you should of
+course replace this with the name of your test case.)
+
+_`.new.source`: Create a C source file in the code directory,
+typically named "newtest.c". In additional to the usual copyright
+boilerplate, it should contain a call to ``testlib_init()`` (this
+ensures reproducibility of pseudo-random numbers), and a ``printf()``
+reporting the absence of defects (this output is recognized by the
+test runner)::
+
+    #include <stdio.h>
+    #include "testlib.h"
+
+    int main(int argc, char *argv[])
+    {
+      testlib_init(argc, argv);
+      /* test happens here */
+      printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
+      return 0;
+    }
+
+_`.new.unix`: If the test case builds on the Unix platforms (FreeBSD,
+Linux and macOS), edit code/comm.gmk adding the test case to the
+``TEST_TARGETS`` macro, and adding a rule describing how to build it,
+typically::
+
+    $(PFM)/$(VARIETY)/newtest: $(PFM)/$(VARIETY)/newtest.o \
+            $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+_`.new.windows`: If the test case builds on Windows, edit
+code/commpre.nmk adding the test case to the ``TEST_TARGETS`` macro,
+and edit code/commpost.nmk adding a rule describing how to build it,
+typically::
+
+    $(PFM)\$(VARIETY)\newtest.exe: $(PFM)\$(VARIETY)\newtest.obj \
+            $(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+_`.new.macos`: If the test case builds on macOS, open
+code/mps.xcodeproj/project.pbxproj for edit and open this project in
+Xcode. If the project navigator is not visible at the left, select
+View → Navigators → Show Project Navigator (⌘1). Right click on the
+Tests folder and choose Add Files to "mps"…. Select code/newtest.c
+and then click Add. Move the new file into alphabetical order in the
+Tests folder. Click on "mps" at the top of the project navigator to
+reveal the targets. Select a test target that is similar to the one
+you have just created. Right click on that target and select Duplicate
+(⌘D). Select the new target and change its name to "newtest". Select
+the "Build Phases" tab and check that "Dependencies" contains the mps
+library, and that "Compile Sources" contains newtest.c and
+testlib.c. Close the project.
+
+_`.new.database`: Edit tool/testcases.txt and add the new test case to
+the database. Use the appropriate flags to indicate the properties of
+the test case. These flags are used by the test runner to select the
+appropriate sets of test cases. For example tests marked ``=P`` are
+expected to fail in build configurations without polling (see
+design.mps.config.opt.poll_).
+
+_`.new.manual`: Edit manual/source/code-index.rst and add the new test
+case to the "Automated test cases" section.
+
+
+Continuous integration
+----------------------
+
+[This section might need to become a document in its own right.  CI
+has grown in importance and complexity.  RB 2023-01-15]
+
+_`.ci`: Ravenbrook uses both `GitHub CI`_ and `Travis CI`_ for
+continuous integration of the MPS via GitHub.
+
+.. _Travis CI: https://travis-ci.com/
+
+.. _GitHub CI: https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration
+
+[This section needs: definition of CI goals and requirements, what we
+need CI to do and why, how the testci target meets those
+requirements.  'taint really a design without this.  Mention how CI
+supports the pull request merge procedure (except that exists on a
+separate branch at the moment).  RB 2023-01-15]
+
+[Need to discuss compilers and toolchains.  RB 2023-01-15]
+
+_`.ci.run.posix`: On Posix systems where we have autoconf, the CI
+services run commands equivalent to::
+
+  ./configure
+  make install
+  make test
+
+which exercises the testci target, as defined by `Makefile.in
+<../Makefile.in>`_ in the root of the MPS tree.
+
+_`.ci.run.windows`: On Windows the CI services run commands that do at
+least::
+
+  make /f w3i6mv.nmk all testci
+
+as defined by the `.ci.github.config`_.
+
+_`.ci.run.other.targets`: On some platforms we arrange to run the testansi,
+testpollnone, testratio, and testscheme targets.  [Need to explain
+why, where, etc.  RB 2023-01-15]
+
+_`.ci.run.other.checks`: We could also run various non-build checks
+using CI to check:
+
+- document formatting
+- shell script syntax
+
+[In the branch of writing, these do not yet exist.  They are the
+subject of `GitHub pull request #113
+<https://github.com/Ravenbrook/mps/pull/112>`_ of
+branch/2023-01-13/rst-check.  When merged, they can be linked.  RB
+2023-01-15]
+
+_`.ci.when:`: CI is triggered on the `mps GitHub repo`_ by:
+
+- commits (pushes)
+- new pull requests
+- manually, using tools (see `.ci.tools`_)
+
+.. _mps GitHub repo: https://github.com/ravenbrook/mps
+
+_`.ci.results`: CI results are visible via the GitHub web interface:
+
+- in pull requests, under "Checks",
+
+- on the `branches page <https://github.com/Ravenbrook/mps/branches>`_
+  as green ticks or red crosses that link to details.
+
+as well as in logs specific to the type of CI.
+
+_`.ci.results.travis`: Results from Travis CI can be found at the
+`Travis CI build history for the MPS GitHub repo
+<https://app.travis-ci.com/github/Ravenbrook/mps/builds>`_.
+
+_`.ci.results.github`: Results from GitHub CI can be found at `build
+and test actions on the Actions tab at the Ravenbrook GitHub repo
+<https://github.com/Ravenbrook/mps/actions/workflows/build-and-test.yml>`_.
+
+_`.ci.github`: [Insert overview of GitHub CI here.  RB 2023-01-15]
+
+_`.ci.github.platforms`: GitHub provides runners_ for Linux, Windows,
+and macOS, but only on x86_64.  See `.ci.travis.platforms`_ for ARM64
+and FreeBSD.
+
+.. _runners: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
+
+_`.ci.github.config`: GitHub CI is configured using the
+`build-and-test.yml <../.github/workflows/build-and-test.yml>`_ file
+in the .github/workflows directory of the MPS tree.
+
+_`.ci.travis`: [Insert overview of Travis CI here.  RB 2023-01-15]
+
+_`.ci.travis.platforms`: Where possible, we use `GitHub CI`_ for
+platforms, because `Travis CI is slow and expensive`_.  However
+`GitHub CI`_ does not provide ARM64 or FreeBSD, so we use `Travis CI`_
+for those.
+
+.. _Travis CI is slow and expensive: https://github.com/Ravenbrook/mps/issues/109
+
+_`.ci.travis.config`: Travis is configured using the `.travis.yml
+<../.travis.yml>`_ file at top level of the MPS tree.
+
+_`.ci.tools`: The MPS tree contains some simple tools for managing CI
+without the need to install whole packages such as the GitHub CLI or
+Travis CI's Ruby gem.
+
+_`.ci.tools.kick`: `tool/github-ci-kick <../tool/github-ci-kick>`_ and
+`tool/travis-ci-kick <../tool/travis-ci-kick>`_ both trigger CI builds
+without the need to push a change or make a pull request in the `mps
+GitHub repo`_.  In particular, they are useful for applying CI to work
+that was pushed while CI was disabled, for whatever reason.
+
+
+MMQA tests
+----------
+
+_`.mmqa`: The Memory Management Quality Assurance test suite is
+another suite of test cases.
+
+_`.mmqa.why`: The existence of two test suites originates in the
+departmental structure at Harlequin Ltd where the MPS was originally
+developed. Tests written by members of the Memory Management Group
+went into the code directory along with the MPS itself, while tests
+written by members of the Quality Assurance Group went into the test
+directory. (Conway's Law states that "organizations which design
+systems … are constrained to produce designs which are copies of the
+communication structures of these organizations" [Conway_1968]_.)
+
+_`.mmqa.run`: See test/README for how to run the MMQA tests.
+
+
+Other tests
+-----------
+
+_`.coverage`: The program tool/testcoverage compiles the MPS with
+coverage enabled, runs the smoke tests (`.target.testrun`_) and
+outputs a coverage report.
+
+_`.opendylan`: The program tool/testopendylan pulls Open Dylan from
+GitHub and builds it against the MPS.
+
+
+References
+----------
+
+.. [Conway_1968]
+   "How do Committees Invent?";
+   Melvin E. Conway; *Datamation* 14:5, pp. 28–31; April 1968;
+   <http://www.melconway.com/Home/Committees_Paper.html>
+
+
+Document History
+----------------
+
+- 2008-12-04 Richard Kistruck. Create. Describe finalization tests.
+
+- 2010-03-03 Richard Kistruck. Correction: it's fin1658a.c and
+  job001658, not 1638.
+
+- 2010-03-03 Richard Kistruck. Add zmess.c, zcoll.c. zmess.c subsumes
+  and replaces fin1658a.c.
+
+- 2013-05-23 GDR_ Converted to reStructuredText.
+
+- 2018-06-15 GDR_ Procedure for adding a new smoke test.
+
+- 2023-01-15 RB_ Bringing CI section up to date with Travis
+  configuration.  Removing obsolete Jenkins info.  Adding GitHub CI.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+.. end
