@@ -72,6 +72,16 @@ while IFS= read -r new_name; do
   esac
 done
 
+# Try to keep commits to MPS apart from commits to Emacs
+stats=$(git diff --numstat "$head")
+nmpsfiles=$(printf "%s" "$stats"|grep --count '	mps/')
+nnonmpsfiles=$(printf "%s" "$stats"|grep --count --invert-match '	mps/')
+
+if test "$nmpsfiles" != 0 -a "$nnonmpsfiles" != 0 ; then
+    printf "Either all or no file should be in mps/\n%s\n" "$stats"
+    exit 1
+fi
+
 # The '--check' option of git diff-index makes Git complain if changes
 # introduce whitespace errors.  This can be a pain when editing test
 # files that deliberately contain lines with trailing whitespace.
