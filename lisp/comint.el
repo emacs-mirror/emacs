@@ -425,7 +425,9 @@ This variable is buffer-local."
    ;; Default openssh format: "user@host's password:".
    "\\|^[^@ \t\n]+@[^@ \t\n]+'s password: *\\'"
    ;; openssh-8.6p1 format: "(user@host) Password:".
-   "\\|^([^)@ \t\n]+@[^)@ \t\n]+) Password: *\\'")
+   "\\|^([^)@ \t\n]+@[^)@ \t\n]+) Password: *\\'"
+   ;; "(user@host) Password for user@host:"
+   "\\|^([^)@ \t\n]+@[^)@ \t\n]+) Password for [^)@ \t\n]+@[^)@ \t\n]+: *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :version "31.1"
