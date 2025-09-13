@@ -241,7 +241,9 @@ If the RING is full, behavior depends on GROW-P:
 
 (defun ring-convert-sequence-to-ring (seq)
   "Convert sequence SEQ to a ring, and return the ring.
-If SEQ is already a ring, return it."
+If SEQ is already a ring, return it.
+Members of SEQ that are `equal' to the first member are not inserted,
+which will cause the resulting ring to have nil elements."
   (if (ring-p seq)
       seq
     (let* ((size (length seq))
