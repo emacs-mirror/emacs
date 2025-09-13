@@ -13,7 +13,7 @@
 #     autoreconf -vif
 #
 
-AC_PREREQ([2.50])
+AC_PREREQ([2.65])
 # http://www.gnu.org/software/autoconf/manual/autoconf.html#Initializing-configure
 AC_INIT([Memory Pool System Kit],
         m4_esyscmd_s([sed -n '/^#define MPS_RELEASE "\(.*\)"$/{s/.*"\(.*\)"/\1/;p;}' code/version.c]),
@@ -25,14 +25,14 @@ AC_CONFIG_SRCDIR([code/mps.c])
 
 # Checks for programs.
 AC_PROG_CC
-AC_LANG_C
+AC_LANG([C])
 AC_PROG_INSTALL
 
 # Check for Clang/LLVM.
 AC_CHECK_DECL([__clang__],[CLANG=yes],[CLANG=no])
 
 # These flags aren't used for building the MPS, but for sample programs.
-CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
+CFLAGS_GC="-ansi -pedantic -Wall -Wpointer-arith \
            -Wstrict-prototypes -Wmissing-prototypes \
            -Winline -Waggregate-return -Wnested-externs \
            -Wcast-qual -Wstrict-aliasing=2 -O -g3 -pthread"

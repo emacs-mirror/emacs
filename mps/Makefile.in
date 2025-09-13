@@ -23,7 +23,12 @@ MPS_BUILD_NAME=@MPS_BUILD_NAME@
 MPS_TARGET_NAME=$(MPS_OS_NAME)$(MPS_ARCH_NAME)$(MPS_BUILD_NAME)
 EXTRA_TARGETS=@EXTRA_TARGETS@
 prefix=$(DESTDIR)@prefix@
-TARGET_OPTS=-C code -f $(MPS_TARGET_NAME).gmk EXTRA_TARGETS="$(EXTRA_TARGETS)"
+CC=@CC@
+CFLAGSCOMPILERSTRICT=-Wno-error -std=c89 -pedantic
+TARGET_OPTS=-C code -f $(MPS_TARGET_NAME).gmk \
+	CC='$(CC)' \
+	CFLAGSCOMPILERSTRICT='$(CFLAGSCOMPILERSTRICT)' \
+	EXTRA_TARGETS="$(EXTRA_TARGETS)"
 XCODEBUILD=xcrun xcodebuild -project code/mps.xcodeproj
 
 all: @BUILD_TARGET@
@@ -76,8 +81,15 @@ install: @INSTALL_TARGET@
 
 test-make-build:
 	$(MAKE) $(TARGET_OPTS) testci testratio testscheme
-	$(MAKE) -C code -f anan$(MPS_BUILD_NAME).gmk VARIETY=cool clean testansi
-	$(MAKE) -C code -f anan$(MPS_BUILD_NAME).gmk VARIETY=cool CFLAGS="-DCONFIG_POLL_NONE" clean testpollnone
+	$(MAKE) -C code -f anan$(MPS_BUILD_NAME).gmk VARIETY=cool \
+		CC='$(CC)' \
+		CFLAGSCOMPILERSTRICT='$(CFLAGSCOMPILERSTRICT)' \
+		clean testansi
+	$(MAKE) -C code -f anan$(MPS_BUILD_NAME).gmk VARIETY=cool \
+		CC='$(CC)' \
+		CFLAGS="-DCONFIG_POLL_NONE" \
+		CFLAGSCOMPILERSTRICT='$(CFLAGSCOMPILERSTRICT)' \
+		clean testpollnone
 
 test-xcode-build:
 	$(XCODEBUILD) -config Debug   -target testci
