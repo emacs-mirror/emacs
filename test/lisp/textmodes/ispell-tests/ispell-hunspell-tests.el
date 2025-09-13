@@ -29,10 +29,10 @@
 (require 'ert-x)
 
 (eval-and-compile
-  (add-to-list 'load-path (when (not (null load-file-name))
-                            (directory-file-name
-                             (file-name-directory load-file-name))))
-  (load "ispell-tests-common"))
+  (let ((load-path (cons (file-name-directory
+                          (or (macroexp-file-name) load-file-name))
+                         load-path)))
+    (require 'ispell-tests-common)))
 
 (ert-deftest ispell/hunspell/ispell-word/english/check-only ()
 "This test checks that Russian spellchecking works for Hunspell."

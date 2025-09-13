@@ -29,12 +29,10 @@
 (require 'ert-x)
 
 (eval-and-compile
-  (add-to-list 'load-path (when (not (null load-file-name))
-                            (directory-file-name
-                             (file-name-directory load-file-name))))
-  (load "ispell-tests-common"))
-
-(declare-function letopt "ispell-tests-common" t t)
+  (let ((load-path (cons (file-name-directory
+                          (or (macroexp-file-name) load-file-name))
+                         load-path)))
+    (require 'ispell-tests-common)))
 
 (ert-deftest ispell/aspell/ispell-check-version/works ()
   "Test that aspell is correctly detected."

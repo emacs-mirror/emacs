@@ -25,11 +25,14 @@
 ;;; Code:
 
 (require 'ispell)
+(require 'ert)
+(require 'ert-x)
+
 (eval-and-compile
-  (add-to-list 'load-path (and load-file-name
-                                (directory-file-name
-                                 (file-name-directory load-file-name))))
-  (load "ispell-tests-common"))
+  (let ((load-path (cons (file-name-directory
+                          (or (macroexp-file-name) load-file-name))
+                         load-path)))
+    (require 'ispell-tests-common)))
 
 (ert-deftest ispell/international-ispell/ispell-word/russian/check-only ()
 "This test checks that Russian spellchecking works for.

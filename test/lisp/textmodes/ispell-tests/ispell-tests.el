@@ -24,24 +24,18 @@
 
 ;;; Code:
 
-
+(require 'ert)
+(require 'ert-x)
 (require 'ispell)
+
 (eval-and-compile
-  (add-to-list 'load-path (when (not (null load-file-name))
-                            (directory-file-name
-                             (file-name-directory load-file-name))))
-  (load "ispell-tests-common"))
-
-(declare-function letopt "ispell-tests-common" t t)
-(declare-function ispell-tests--some-backend "ispell-tests-common" t t)
-(declare-function ispell-tests--some-backend-available-p "ispell-tests-common" t t)
-
+  (let ((load-path (cons (file-name-directory
+                          (or (macroexp-file-name) load-file-name))
+                         load-path)))
+    (require 'ispell-tests-common)))
 
 (defconst ispell-tests-emacs-binary-path
   (concat invocation-directory invocation-name))
-
-(require 'ert)
-(require 'ert-x)
 
 (defun warnings-buffer-exists-p ()
   "Check if a buffer named \"*Warnings*\" exists."
