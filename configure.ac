@@ -5571,6 +5571,8 @@ if test "${with_mps}" != "no"; then
   # Force -fno-omit-frame-pointer to avoid register scanning bug:
   # https://github.com/Ravenbrook/mps/pull/38
   MPS_CFLAGS="-fno-omit-frame-pointer"
+
+  AC_CONFIG_SUBDIRS([mps])
 fi
 
 # FIXME: update for in-tree MPS
