@@ -3625,7 +3625,13 @@ argument INHIBIT-KEYBOARD-QUIT is ignored.  However, if
 function is used instead (see `read-char-choice-with-read-key'),
 and INHIBIT-KEYBOARD-QUIT is passed to it."
   (if (not read-char-choice-use-read-key)
-      (read-char-from-minibuffer prompt chars)
+      ;; We are about to enter recursive-edit, which sets
+      ;; 'last-command'.  If the callers of this function have some
+      ;; logic based on 'last-command's value (example: 'kill-region'),
+      ;; that could interfere with their logic.  So we let-bind
+      ;; 'last-command' here to prevent that.
+      (let ((last-command last-command))
+        (read-char-from-minibuffer prompt chars))
     (read-char-choice-with-read-key prompt chars inhibit-keyboard-quit)))
 
 (defun read-char-choice-with-read-key (prompt chars &optional inhibit-keyboard-quit)
