@@ -17,6 +17,10 @@ config.status
 .dirstamp
 bin
 lib
+tool/autoconf/build-aux/config.guess
+tool/autoconf/build-aux/config.sub
+tool/autoconf/build-aux/install-sh
+configure
 # Misc
 TAGS
 *.dSYM
@@ -30,3 +34,6 @@ test/test/obj
 *~
 .#.*
 core
+
+# Keep empty tool/autoconf/build-aux directory around
+!tool/autoconf/build-aux/.gitkeep
