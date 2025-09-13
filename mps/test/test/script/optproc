@@ -1,0 +1,211 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# subroutines for processing options to qa commands
+# Each command can specify which options it requires,
+# and what, if anything, they default to.
+# In no default is specified, global defaults will be
+# used, and if no global default is given, we'll get
+# an error message.
+
+1;
+
+sub process_options {
+ &parseoptions;
+ &applydefaults;
+}
+
+sub requiredoptions {
+ local ($pur, $missing, $report, $qa_opt) = ("", 0, "");
+ local (@missopt);
+
+ foreach (@_) {
+  unless (&getoption($_)) {
+   $missing = $missing + 1;
+   push(@missopt, $_);
+  }
+ }
+ if ($missing > 0) {
+  if ($missing > 1) {
+   $pur = "s";
+  }
+  print "Error: $qa_command requires the following option".
+   $pur.":\n";
+  &explainoptions(@missopt);
+  die "\n";
+ }
+}
+
+#
+# Only cumulative options can appear twice.
+#
+
+sub parseoptions {
+ local ($tem);
+
+ @qa_args = ();
+
+ while (defined ($_ = shift(@ARGV))) {
+  if (/^\-+(.*)$/i) { # allow >1 minus sign before options!
+   if ($qa_options{$1}) {
+    $qa_opt_val = shift(@ARGV);
+    &setonceoption($qa_options{$1}, $qa_opt_val);
+   } else {
+    $flag = $1;
+    if ($1 =~ /^no/) { # prefix "no" negates any flag
+     $flag =~ s/^no//;
+     $qa_opt_val = "off";
+    } else {
+     $qa_opt_val = "on";
+    }
+    unless ($qa_flags{$flag}) {
+     die "Unrecognized option or flag: $flag.\n";
+    }
+    &setonceoption($qa_flags{$flag}, $qa_opt_val);
+   }
+  } else {
+   push(@qa_args, $_);
+  }
+ }
+ @ARGV = @qa_args;
+}
+
+sub getoption {
+ local ($opt) = @_;
+ return eval "\$".$opt;
+}
+
+sub setoption {
+ local ($opt, $val) = @_;
+ if (defined $val) {
+  eval "\$".$opt." = \$val";
+ }
+}
+
+sub setonceoption {
+ local ($opt, $val) = @_;
+ if (defined &getoption($opt) && !exists $qa_cumulative_opts{$opt}) {
+  die "Non-cumulative option $opt specified twice on command line.\n"
+ }
+ if (defined &getoption($opt)) {
+  $val = &getoption($opt)." ".$val;
+ }
+ &setoption($opt, $val);
+}
+
+# 
+# precedence for parameters is:
+# 1. parameter supplied on command line
+# 2. parameter supplied in MMQA_PARAMETERS
+# 3. parameter supplied as MMQA_PARAM_<param>
+#
+
+sub getparameter {
+ local ($par) = @_;
+ &debug("*>*>*>$PARAMETERS<*<*<*");
+ if ($PARAMETERS =~ /(^|.*?\s)$par\s*=\s*(\S+)(\s|$)/) {
+  return $2;
+ } else {
+ return $ENV{"MMQA_PARAM_".$par};
+ }
+}
+
+sub flagcode {
+ local ($opt, $code) = @_;
+ foreach $code (keys %qa_flags) {
+  if ($qa_flags{$code} eq $opt) {
+   return $code
+  }
+ }
+ return 0;
+}
+
+sub optioncode {
+ local ($opt, $code) = @_;
+ foreach $code (keys %qa_options) {
+  if ($qa_options{$code} eq $opt) {
+   return $code
+  }
+ }
+ return 0;
+}
+
+#
+# for cumulative options, command line comes first
+#
+
+sub applydefaults {
+ local ($opt, $val, %arr);
+
+ %arr = (%qa_options, %qa_flags);
+
+ foreach (keys %arr) {
+  $opt = $arr{$_};
+  $val = &getoption($opt);
+  $var = $ENV{"MMQA_".$opt};
+  $def = $qa_defaults{$opt};
+
+  if (defined $val) {
+   if (exists $qa_cumulative_opts{$opt} && defined $var) {
+    $val .= " ".$var;
+   }
+  } else {
+   if (defined $var) {
+    $val = $var;
+   } else {
+    $val = $def;
+   }
+  }
+  if (! defined $val) {
+   $val = "";
+  }
+  &setoption($opt, $val);
+ }
+}
+
+sub explainoptions {
+ local (@keys) = @_;
+ local ($optname, $optcode, $optcur);
+
+ $~ = "OPTLIST";
+
+ $optname = "OPTION";
+ $optcode = "CODE";
+ $optcur  = "CURRENT";
+ write;
+ print "\n";
+
+ foreach $key (sort @keys) {
+  $optname = "$key";
+  if (&optioncode($key)) {
+   $optcode = "-".&optioncode($key)." <val>";
+  } elsif (&flagcode($key)) {
+   $optcode = "-[no]".&flagcode($key);
+  } else {
+   $optcode = "";
+  }
+  $optcur = (&getoption($key) || "");
+ write;
+ }
+}
+
+sub displayalloptions {
+ print"------------------------------------------------------------------------
+ MMQA harness version $HARNESS_VERSION
+
+";
+ &explainoptions(values %qa_options, values %qa_flags);
+ print"
+ (Add MMQA_ to start of option to give environment variable)
+";
+ print"------------------------------------------------------------------------
+";
+}
+
+format OPTLIST =
+ @<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<< ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$optname, $optcode, $optcur
+~~                                      ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$optcur
+.
+

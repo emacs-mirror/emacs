@@ -1,0 +1,127 @@
+.. mode: -*- rst -*-
+
+Bootstrapping
+=============
+
+:Tag: design.mps.bootstrap
+:Author: Gareth Rees
+:Date: 2015-09-01
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: bootstrap; design
+
+
+Introduction
+------------
+
+_`.intro`: This explains how the MPS gets started.
+
+_`.readership`: Any MPS developer.
+
+_`.overview`: The job of the MPS is to allocate memory to a program.
+Before it can allocate memory, the MPS needs to create data structures
+to represent its internal state. But before it can create those data
+structures, it needs to allocate memory to store them in. This
+bootstrapping problem affects the MPS at several points, which are
+listed here, together with their solutions.
+
+
+Bootstrapping problems
+----------------------
+
+Virtual memory descriptor
+.........................
+
+_`.vm`: Before address space can be mapped into main memory, the
+virtual memory descriptor must be initialized. But before the virtual
+memory descriptor can be initialized, some address space must be
+mapped into main memory in order to store it. See
+`design.vm.req.bootstrap`_.
+
+_`.vm.sol`: The virtual memory descriptor is allocated initially on
+the stack, and then copied into its place in the chunk after the
+memory for it has been mapped. See `design.vm.sol.bootstrap`_.
+
+.. _design.vm.req.bootstrap: vm#req.bootstrap
+.. _design.vm.sol.bootstrap: vm#sol.bootstrap
+
+
+Arena descriptor
+................
+
+_`.arena`: Before chunks of address space can be reserved and mapped,
+the virtual memory arena descriptor must be initialized (so that the
+chunks can be added to the arena's chunk tree). But before a virtual
+memory arena descriptor can be initialized, address space must be
+reserved and mapped in order to store it.
+
+_`.arena.sol`: A small amount of address space is reserved and mapped
+directly via ``VMInit()`` and ``VMMap()`` (not via the chunk system)
+in order to provide enough memory for the arena descriptor.
+
+
+Arena's free land
+.................
+
+_`.land`: Before the arena can allocate memory, a range of addresses
+must be inserted into the arena's free land (so that the free land can
+hand out memory from this range). But before addresses can be inserted
+into the arena's free land, the free land's block pool must have
+memory from the arena to store the nodes in the tree representing
+those addresses.
+
+_`.land.sol`: The arena has two "back door" mechanisms and uses them
+in combination.
+
+_`.land.sol.alloc`: First, there is a mechanism for allocating a
+page of memory directly from a chunk, bypassing the free land.
+
+_`.land.sol.pool`: Second, the free land's block pool has an option to
+prevent it extending itself by allocating memory from the arena.
+Instead, it fails allocations with ``ResLIMIT``.  The free land's
+block pool also has a mechanism, ``MFSExtend`` to extend it with a
+block of memory.  When the free land fails with ``ResLIMIT`` the arena
+uses `.land.sol.alloc`_ to provide it with memory.
+
+
+
+Document History
+----------------
+
+- 2015-09-01 GDR_ Initial draft.
+
+- 2016-02-25 RB_ Improving description of arena free land bootstrap
+  and cross-referencing from source code.
+
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2015–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

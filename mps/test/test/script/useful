@@ -1,0 +1,54 @@
+#!/usr/bin/perl -w
+# $Id$
+# Various subroutines that the MMQA harness finds useful.
+#
+
+1;
+
+sub debug {
+ local ($text) = @_;
+ if ($DEBUG_INFO eq "on") {
+  print $text."\n";
+ }
+}
+
+sub mysystem {
+ local ($command) = @_;
+ $command = &convdirseps($command);
+ &debug("SYSTEM >>$command<<");
+ system($command);
+}
+
+sub convdirseps {
+ local ($a) = @_;
+ $a =~ s/(\S)\//$1$dirsep/g;
+ return $a;
+}
+
+sub mailfile {
+ local ($file, $subj) = @_;
+
+ if ($MAIL_RESULTS eq "on") {
+  &$platmailfile($file, $MAIL_TO, $subj);
+ }
+}
+
+#
+# comparison of harness version numbers
+#
+
+sub vleq {
+ local ($a, $b, @a, @b) = @_;
+ @a = split /\./, $a;
+ @b = split /\./, $b;
+ while (defined $a[0] && defined $b[0]) {
+  if ($a[0] == $b[0]) {
+   shift @a; shift @b;
+  } else {
+   return ($a[0] < $b[0]);
+  }
+ }
+ if (! defined $a[0]) { $a[0] = -1 }
+ if (! defined $b[0]) { $b[0] = -1 }
+ return ($a[0] <= $b[0]);
+}

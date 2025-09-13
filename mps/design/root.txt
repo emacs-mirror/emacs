@@ -1,0 +1,123 @@
+.. mode: -*- rst -*-
+
+Root manager
+============
+
+:Tag: design.mps.root
+:Author: Richard Brooksby
+:Date: 1995-08-25
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:    pair: root manager; design
+
+
+Basics
+------
+
+_`.root.def`: The root node of the object graph is the node which
+defines whether objects are accessible, and the place from which the
+mutator acts to change the graph. In the MPS, a root is an object
+which describes part of the root node. The root node is the total of
+all the roots attached to the space.
+
+.. note::
+
+    Note that this combines two definitions of root: the accessibility
+    is what defines a root for tracing (see analysis.tracer.root.* and
+    the mutator action for barriers (see analysis.async-gc.root).
+    Pekka P. Pirinen, 1998-03-20.
+
+_`.root.repr`: Functionally, roots are defined by their scanning
+functions. Roots *could* be represented as function closures: that is,
+a pointer to a C function and some auxiliary fields. The most general
+variant of roots is just that. However, for reasons of efficiency,
+some special variants are separated out.
+
+
+Details
+-------
+
+Creation
+........
+
+_`.create`: A root becomes "active" as soon as it is created.
+
+_`.create.col`: The root inherits its colour from the mutator, since
+it can only contain references copied there by the mutator from
+somewhere else. If the mutator is grey for a trace when a root is
+created then that root will be used to determine accessibility for
+that trace. More specifically, the root will be scanned when that
+trace flips.
+
+Destruction
+...........
+
+_`.destroy`: It's OK to destroy a root at any time, except perhaps
+concurrently with scanning it, but that's prevented by the arena lock.
+If a root is destroyed the references in it become invalid and
+unusable.
+
+Invariants
+..........
+
+_`.inv.white`: Roots are never white for any trace, because they
+cannot be condemned.
+
+_`.inv.rank`: Roots always have a single rank. A root without ranks
+would be a root without references, which would be pointless. The
+tracer doesn't support multiple ranks in a single colour.
+
+Scanning
+........
+
+_`.method`: Root scanning methods are provided by the client so that
+the MPS can locate and scan the root set. See protocol.mps.root for
+details.
+
+.. note::
+
+    There are some more notes about root methods in
+    meeting.qa.1996-10-16.
+
+
+Document History
+----------------
+
+- 1995-08-25 RB_ Incomplete design.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-22 GDR_ Converted to reStructuredText.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

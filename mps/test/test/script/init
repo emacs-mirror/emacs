@@ -1,0 +1,18 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# harness_init is called from qa after loading everything in,
+# but before calling the command
+#
+
+1;
+
+sub harness_init {
+ &platform_detect;
+ &process_options;
+ &set_dirs;
+ &platform_settings;
+ &identify;
+ &platform_settings;
+}
+

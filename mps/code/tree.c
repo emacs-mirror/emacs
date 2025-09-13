@@ -1,0 +1,597 @@
+/* tree.c: BINARY TREE IMPLEMENTATION
+ *
+ * $Id$
+ * Copyright (C) 2014-2020 Ravenbrook Limited.  See end of file for license.
+ *
+ * Simple binary trees with utilities, for use as building blocks.
+ * Keep it simple, like Rings (see ring.h).
+ *
+ * The performance requirements on tree implementation will depend on
+ * how each individual function is applied in the MPS.
+ *
+ * .note.stack: It's important that the MPS have a bounded stack size,
+ * and this is a problem for tree algorithms. Basically, we have to
+ * avoid recursion. <design/sp#.sol.depth.no-recursion>.
+ */
+
+#include "tree.h"
+#include "mpm.h"
+
+SRCID(tree, "$Id$");
+
+
+Bool TreeCheck(Tree tree)
+{
+  if (tree != TreeEMPTY) {
+    CHECKL(tree != NULL);
+    CHECKL(tree->left == TreeEMPTY || tree->left != NULL);
+    CHECKL(tree->right == TreeEMPTY || tree->right != NULL);
+  }
+  return TRUE;
+}
+
+Bool TreeCheckLeaf(Tree tree)
+{
+  CHECKL(TreeCheck(tree));
+  CHECKL(tree != TreeEMPTY);
+  CHECKL(tree->left == TreeEMPTY);
+  CHECKL(tree->right == TreeEMPTY);
+  return TRUE;
+}
+
+
+/* TreeDebugCount -- count and check order of tree
+ *
+ * This function may be called from a debugger or temporarily inserted
+ * during development to check a tree's integrity.  It may not be called
+ * from the production MPS because it uses indefinite stack depth.
+ * See .note.stack.
+ */
+
+static Count TreeDebugCountBetween(Tree node,
+                                   TreeCompareFunction compare,
+                                   TreeKeyFunction key,
+                                   TreeKey min, TreeKey max)
+{
+  if (node == TreeEMPTY)
+    return 0;
+  AVERT(Tree, node);
+  AVER(min == NULL || compare(node, min) != CompareGREATER);
+  AVER(max == NULL || compare(node, max) != CompareLESS);
+  return TreeDebugCountBetween(TreeLeft(node), compare, key, min, key(node)) +
+         1 +
+         TreeDebugCountBetween(TreeRight(node), compare, key, key(node), max);
+}
+
+Count TreeDebugCount(Tree tree, TreeCompareFunction compare,
+                     TreeKeyFunction key)
+{
+  AVERT(Tree, tree);
+  return TreeDebugCountBetween(tree, compare, key, NULL, NULL);
+}
+
+
+/* TreeFind -- search for a node matching the key
+ *
+ * If a matching node is found, sets *treeReturn to that node and returns
+ * CompareEQUAL.  Otherwise returns values useful for inserting a node with
+ * the key.  If the tree is empty, returns CompareEQUAL and sets *treeReturn
+ * to NULL.  Otherwise, sets *treeReturn to a potential parent for the new
+ * node and returns CompareLESS if the new node should be its left child,
+ * or CompareGREATER for its right.
+ */
+
+Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key,
+                 TreeCompareFunction compare)
+{
+  Tree node, parent;
+  Compare cmp = CompareEQUAL;
+
+  AVERT_CRITICAL(Tree, root);
+  AVER_CRITICAL(treeReturn != NULL);
+  AVER_CRITICAL(FUNCHECK(compare));
+  /* key is arbitrary */
+
+  parent = NULL;
+  node = root;
+  while (node != TreeEMPTY) {
+    parent = node;
+    cmp = compare(node, key);
+    switch (cmp) {
+    case CompareLESS:
+      node = node->left;
+      break;
+    case CompareEQUAL:
+      *treeReturn = node;
+      return cmp;
+    case CompareGREATER:
+      node = node->right;
+      break;
+    default:
+      NOTREACHED;
+      *treeReturn = NULL;
+      return cmp;
+    }
+  }
+
+  *treeReturn = parent;
+  return cmp;
+}
+
+
+/* TreeFindNext -- search for node containing key, or next node
+ *
+ * If there is a node that is greater than key, set *treeReturn to that
+ * node and return TRUE.
+ *
+ * Otherwise, key is greater than all nodes in the tree, so leave
+ * *treeReturn unchanged and return FALSE.
+ */
+
+Bool TreeFindNext(Tree *treeReturn, Tree root, TreeKey key,
+                  TreeCompareFunction compare)
+{
+  Tree node, best = NULL;
+  Bool result = FALSE;
+
+  AVERT(Tree, root);
+  AVER(treeReturn != NULL);
+  AVER(FUNCHECK(compare));
+  /* key is arbitrary */
+
+  node = root;
+  while (node != TreeEMPTY) {
+    Compare cmp = compare(node, key);
+    switch (cmp) {
+    case CompareLESS:
+      best = node;
+      result = TRUE;
+      node = node->left;
+      break;
+    case CompareEQUAL:
+    case CompareGREATER:
+      node = node->right;
+      break;
+    default:
+      NOTREACHED;
+      return FALSE;
+    }
+  }
+
+  *treeReturn = best;
+  return result;
+}
+
+
+/* TreeInsert -- insert a node into a tree
+ *
+ * If the key doesn't exist in the tree, inserts a node as a leaf of the
+ * tree, returning the resulting tree in *treeReturn, and returns TRUE.
+ * Otherwise, *treeReturn points to the existing matching node, the tree
+ * is not modified, and returns FALSE.
+ */
+
+Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
+                TreeKey key, TreeCompareFunction compare)
+{
+  Tree parent;
+  Compare cmp;
+
+  AVER(treeReturn != NULL);
+  AVERT(Tree, root);
+  AVER(TreeCheckLeaf(node));
+  AVER(FUNCHECK(compare));
+  /* key is arbitrary */
+
+  cmp = TreeFind(&parent, root, key, compare);
+  switch (cmp) {
+  case CompareLESS:
+    parent->left = node;
+    break;
+  case CompareEQUAL:
+    if (parent != NULL) {
+      *treeReturn = parent;
+      return FALSE;
+    }
+    AVER(root == TreeEMPTY);
+    root = node;
+    break;
+  case CompareGREATER:
+    parent->right = node;
+    break;
+  default:
+    NOTREACHED;
+    *treeReturn = NULL;
+    return FALSE;
+  }
+
+  *treeReturn = root;
+  return TRUE;
+}
+
+
+#if 0 /* This code is currently not in use in the MPS */
+
+/* TreeTraverseMorris -- traverse tree inorder in constant space
+ *
+ * The tree may not be accessed or modified during the traversal, and
+ * the traversal must complete in order to repair the tree.
+ *
+ * The visitor should return FALSE to terminate the traversal early,
+ * in which case FALSE is returned.
+ *
+ * TreeTraverse is generally superior if comparisons are cheap, but
+ * TreeTraverseMorris does not require any comparison function.
+ *
+ * <https://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading>
+ *
+ * Joseph M. Morris (1979). "Traversing Binary Trees Simply and Cheaply".
+ * Information Processing Letters 9:5 pp. 197-200.
+ */
+
+Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
+                        void *closure)
+{
+  Tree node;
+  Bool visiting = TRUE;
+
+  AVERT(Tree, tree);
+  AVER(FUNCHECK(visit));
+  /* closure arbitrary */
+
+  node = tree;
+  while (node != TreeEMPTY) {
+    if (node->left == TreeEMPTY) {
+      if (visiting)
+        visiting = visit(node, closure);
+      node = node->right;
+    } else {
+      Tree pre = node->left;
+      for (;;) {
+        if (pre->right == TreeEMPTY) {
+          pre->right = node;
+          node = node->left;
+          break;
+        }
+        if (pre->right == node) {
+          pre->right = TreeEMPTY;
+          if (visiting)
+            visiting = visit(node, closure);
+          else if (node == tree)
+            return FALSE;
+          node = node->right;
+          break;
+        }
+        pre = pre->right;
+      }
+    }
+  }
+
+  return visiting;
+}
+
+#endif /* not currently in use */
+
+
+/* TreeTraverse -- traverse tree in-order using pointer reversal
+ *
+ * The tree may not be accessed or modified during the traversal, and
+ * the traversal must complete in order to repair the tree.
+ *
+ * The visitor should return FALSE to terminate the traversal early,
+ * in which case FALSE is returned.
+ *
+ * TreeTraverseMorris is an alternative when no cheap comparison is available.
+ */
+
+static Tree stepDownLeft(Tree node, Tree *parentIO)
+{
+  Tree parent = *parentIO;
+  Tree child = TreeLeft(node);
+  TreeSetLeft(node, parent);
+  *parentIO = node;
+  return child;
+}
+
+static Tree stepDownRight(Tree node, Tree *parentIO)
+{
+  Tree parent = *parentIO;
+  Tree child = TreeRight(node);
+  TreeSetRight(node, parent);
+  *parentIO = node;
+  return child;
+}
+
+static Tree stepUpRight(Tree node, Tree *parentIO)
+{
+  Tree parent = *parentIO;
+  Tree grandparent = TreeLeft(parent);
+  TreeSetLeft(parent, node);
+  *parentIO = grandparent;
+  return parent;
+}
+
+static Tree stepUpLeft(Tree node, Tree *parentIO)
+{
+  Tree parent = *parentIO;
+  Tree grandparent = TreeRight(parent);
+  TreeSetRight(parent, node);
+  *parentIO = grandparent;
+  return parent;
+}
+
+Bool TreeTraverse(Tree tree,
+                  TreeCompareFunction compare,
+                  TreeKeyFunction key,
+                  TreeVisitor visit, void *closure)
+{
+  Tree parent, node;
+
+  AVERT(Tree, tree);
+  AVER(FUNCHECK(visit));
+  /* closure arbitrary */
+
+  parent = TreeEMPTY;
+  node = tree;
+
+  if (node == TreeEMPTY)
+    return TRUE;
+
+down:
+  if (TreeHasLeft(node)) {
+    node = stepDownLeft(node, &parent);
+    AVER(compare(parent, key(node)) == CompareLESS);
+    goto down;
+  }
+  if (!visit(node, closure))
+    goto abort;
+  if (TreeHasRight(node)) {
+    node = stepDownRight(node, &parent);
+    AVER(compare(parent, key(node)) != CompareLESS);
+    goto down;
+  }
+
+up:
+  if (parent == TreeEMPTY)
+    return TRUE;
+  if (compare(parent, key(node)) != CompareLESS) {
+    node = stepUpLeft(node, &parent);
+    goto up;
+  }
+  node = stepUpRight(node, &parent);
+  if (!visit(node, closure))
+    goto abort;
+  if (!TreeHasRight(node))
+    goto up;
+  node = stepDownRight(node, &parent);
+  goto down;
+
+abort:
+  if (parent == TreeEMPTY)
+    return FALSE;
+  if (compare(parent, key(node)) != CompareLESS)
+    node = stepUpLeft(node, &parent);
+  else
+    node = stepUpRight(node, &parent);
+  goto abort;
+}
+
+
+/* TreeRotateLeft -- Rotate right child edge of node
+ *
+ * Rotates node, right child of node, and left child of right
+ * child of node, leftwards in the order stated.  Preserves tree
+ * ordering.
+ */
+
+void TreeRotateLeft(Tree *treeIO)
+{
+  Tree tree, right;
+
+  AVER(treeIO != NULL);
+  tree = *treeIO;
+  AVERT(Tree, tree);
+  right = TreeRight(tree);
+  AVERT(Tree, right);
+
+  TreeSetRight(tree, TreeLeft(right));
+  TreeSetLeft(right, tree);
+
+  *treeIO = right;
+}
+
+
+/* TreeRotateRight -- Rotate left child edge of node
+ *
+ * Rotates node, left child of node, and right child of left
+ * child of node, leftwards in the order stated.  Preserves tree
+ * ordering.
+ */
+
+void TreeRotateRight(Tree *treeIO)
+{
+  Tree tree, left;
+
+  AVER(treeIO != NULL);
+  tree = *treeIO;
+  AVERT(Tree, tree);
+  left = TreeLeft(tree);
+  AVERT(Tree, left);
+
+  TreeSetLeft(*treeIO, TreeRight(left));
+  TreeSetRight(left, *treeIO);
+
+  *treeIO = left;
+}
+
+
+/* TreeReverseLeftSpine -- reverse the pointers on the left spine
+ *
+ * Descends the left spine of a tree, updating each node's left child
+ * to point to its parent instead.  The root's left child is set to
+ * TreeEMPTY.  Returns the leftmost child, or TreeEMPTY if the tree
+ * was empty.
+ */
+
+Tree TreeReverseLeftSpine(Tree tree)
+{
+  Tree node, parent;
+
+  AVERT(Tree, tree);
+
+  parent = TreeEMPTY;
+  node = tree;
+  while (node != TreeEMPTY) {
+    Tree child = TreeLeft(node);
+    TreeSetLeft(node, parent);
+    parent = node;
+    node = child;
+  }
+
+  return parent;
+}
+
+
+/* TreeReverseRightSpine -- reverse the pointers on the right spine
+ *
+ * Descends the right spine of a tree, updating each node's right child
+ * to point to its parent instead.  The root's right child is set to
+ * TreeEMPTY.  Returns the rightmost child or TreeEMPTY if the tree
+ * was empty.
+ */
+
+Tree TreeReverseRightSpine(Tree tree)
+{
+  Tree node, parent;
+
+  AVERT(Tree, tree);
+
+  parent = TreeEMPTY;
+  node = tree;
+  while (node != TreeEMPTY) {
+    Tree child = TreeRight(node);
+    TreeSetRight(node, parent);
+    parent = node;
+    node = child;
+  }
+
+  return parent;
+}
+
+
+/* TreeToVine -- unbalance a tree into a single right spine */
+
+Count TreeToVine(Tree *link)
+{
+  Count count = 0;
+
+  AVER(link != NULL);
+  AVERT(Tree, *link);
+
+  while (*link != TreeEMPTY) {
+    while (TreeHasLeft(*link))
+      TreeRotateRight(link);
+    link = &((*link)->right);
+    ++count;
+  }
+
+  return count;
+}
+
+
+/* TreeBalance -- rebalance a tree
+ *
+ * Linear time, constant space rebalance.
+ *
+ * Quentin F. Stout and Bette L. Warren,
+ * "Tree Rebalancing in Optimal Time and Space",
+ * Communications of the ACM, Vol. 29, No. 9 (September 1986), p. 902-908
+ */
+
+void TreeBalance(Tree *treeIO)
+{
+  Count depth;
+
+  AVER(treeIO != NULL);
+  AVERT(Tree, *treeIO);
+
+  depth = TreeToVine(treeIO);
+
+  if (depth > 2) {
+    Count n = depth - 1;
+    do {
+      Count m = n / 2, i;
+      Tree *link = treeIO;
+      for (i = 0; i < m; ++i) {
+        TreeRotateLeft(link);
+        link = &((*link)->right);
+      }
+      n = n - m - 1;
+    } while (n > 1);
+  }
+}
+
+
+/* TreeTraverseAndDelete -- traverse a tree while deleting nodes
+ *
+ * The visitor function must return TRUE to delete the current node,
+ * or FALSE to keep it.
+ *
+ * <design/arena#.chunk.delete.tricky>.
+ */
+void TreeTraverseAndDelete(Tree *treeIO, TreeVisitor visitor,
+                           void *closure)
+{
+  Tree *treeref = treeIO;
+
+  AVER(treeIO != NULL);
+  AVERT(Tree, *treeIO);
+  AVER(FUNCHECK(visitor));
+  /* closure arbitrary */
+
+  TreeToVine(treeIO);
+
+  while (*treeref != TreeEMPTY) {
+    Tree tree = *treeref;         /* Current node. */
+    Tree *nextref = &tree->right; /* Location of pointer to next node. */
+    Tree next = *nextref;         /* Next node. */
+    if ((*visitor)(tree, closure)) {
+      /* Delete current node. */
+      *treeref = next;
+    } else {
+      /* Keep current node. */
+      treeref = nextref;
+    }
+  }
+  TreeBalance(treeIO);
+}
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2014-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

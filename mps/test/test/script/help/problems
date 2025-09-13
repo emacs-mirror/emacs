@@ -1,0 +1,14 @@
+known problems and how to report others you may find
+% $Id$
+
+Known problems with this test system:
+
+- it can't tell whether the libraries are up to date: you
+  have to keep track of this yourself and use clib if they're not.
+
+- compiling tests on NT produces nasty warnings from the
+  compiler.
+
+If you have a complaint, comment or feature request,
+please email it to <rit>.
+

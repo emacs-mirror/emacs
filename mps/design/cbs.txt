@@ -1,0 +1,328 @@
+.. mode: -*- rst -*-
+
+Coalescing block structures
+===========================
+
+:Tag: design.mps.cbs
+:Author: Gavin Matthews
+:Date: 1998-05-01
+:Status: complete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: coalescing block structures; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design for impl.c.cbs, which implements a data
+structure for the management of non-intersecting memory ranges, with
+eager coalescence.
+
+_`.readership`: This document is intended for any MM developer.
+
+_`.source`: design.mps.poolmvt_, design.mps.poolmvff_.
+
+.. _design.mps.poolmvt: poolmvt
+.. _design.mps.poolmvff: poolmvff
+
+_`.overview`: The "coalescing block structure" is a set of addresses
+(or a subset of address space), with provision for efficient
+management of contiguous ranges, including insertion and deletion,
+high level communication with the client about the size of contiguous
+ranges, and detection of protocol violations.
+
+
+Requirements
+------------
+
+In addition to the generic land requirements (see
+design.mps.land_), the CBS must satisfy:
+
+.. _design.mps.land: land
+
+_`.req.fast`: Common operations must have a low amortized cost.
+
+_`.req.small`: Must have a small space overhead for the storage of
+typical subsets of address space and not have abysmal overhead for the
+storage of any subset of address space.
+
+
+Interface
+---------
+
+_`.land`: CBS is an implementation of the *land* abstract data type,
+so the interface consists of the generic functions for lands. See
+design.mps.land_.
+
+
+External types
+..............
+
+``typedef struct CBSStruct *CBS``
+
+_`.type.cbs`: The type of coalescing block structures. A ``CBSStruct``
+is typically embedded in another structure.
+
+
+External classes
+................
+
+_`.class.cbs`: ``CLASS(CBS)`` is the CBS class, a subclass of
+``CLASS(Land)`` suitable for passing to ``LandInit()``.
+
+_`.class.fast`: ``CLASS(CBSFast)`` is subclass of ``CLASS(CBS)`` that
+maintains, for each subtree, the size of the largest block in that
+subtree. This enables the ``LandFindFirst()``, ``LandFindLast()``, and
+``LandFindLargest()`` generic functions.
+
+_`.class.zoned`: ``CLASS(CBSZoned)`` is a subclass of
+``CLASS(CBSFast)`` that maintains, for each subtree, the union of the
+zone sets of all ranges in that subtree. This enables the
+``LandFindInZones()`` generic function.
+
+
+Keyword arguments
+.................
+
+When initializing a CBS, ``LandInit()`` takes the following optional
+keyword arguments:
+
+* ``CBSBlockPool`` (type ``Pool``) is the pool from which the CBS
+  block descriptors will be allocated. If omitted, a new MFS pool is
+  created for this purpose.
+
+* ``MPS_KEY_CBS_EXTEND_BY`` (type ``Size``; default 4096) is passed as
+  the ``MPS_KEY_EXTEND_BY`` keyword argument to ``PoolCreate()`` if a
+  block descriptor pool is created. It specifies the size of segment
+  that the block descriptor pool will request from the arena.
+
+* ``MFSExtendSelf`` (type ``Bool``; default ``TRUE``) is passed to
+  ``PoolCreate()`` if a block descriptor pool is created. If ``TRUE``,
+  the block descriptor pool automatically extends itself when out of
+  space; if ``FALSE``, the pool returns ``ResLIMIT`` in this case.
+  (This feature is used by the arena to bootstrap its own CBS of free
+  memory. See design.mps.bootstrap.land.sol.pool_.)
+
+  .. _design.mps.bootstrap.land.sol.pool: bootstrap#.land.sol.pool
+
+
+Limitations
+...........
+
+_`.limit.find`: ``CBSLandClass`` does not support the
+``LandFindFirst()``, ``LandFindLast()``, and ``LandFindLargest()``
+generic functions (the subclasses do support these operations).
+
+_`.limit.zones`: ``CBSLandClass`` and ``CBSFastLandClass`` do not
+support the ``LandFindInZones()`` generic function (the subclass
+``CBSZonedLandClass`` does support this operation).
+
+_`.limit.iterate`: CBS does not provide an implementation for the
+``LandIterateAndDelete()`` generic function. This is because
+``TreeTraverse()`` does not permit modification, for speed and to
+avoid perturbing the splay tree balance.
+
+_`.limit.flush`: CBS cannot be used as the source in a call to
+``LandFlush()``. (Because of `.limit.iterate`_.)
+
+
+Implementation
+--------------
+
+Splay tree
+..........
+
+_`.impl.splay`: The CBS is implemented using a splay tree (see
+design.mps.splay_). Each splay tree node is embedded in a block
+structure with a semi-open address range (design.mps.range_). The
+splay tree is ordered by the range base address.
+
+.. _design.mps.splay: splay
+.. _design.mps.range: range
+
+_`.impl.splay.fast-find`: In the ``CBSFastLandClass`` class,
+``cbsFindFirst()`` and ``cbsFindLast()`` use the update/refresh
+facility of splay trees to store, in each block, an accurate summary
+of the maximum block size in the tree rooted at the corresponding
+splay node. This allows rapid location of the first or last suitable
+block, and very rapid failure if there is no suitable block.  For
+example, this is used in the implementation of allocation in the MVFF
+pool class (design.mps.poolmvff_).
+
+.. _design.mps.poolmvff: poolmvff
+
+_`.impl.find-largest`: ``cbsFindLargest()`` simply finds out the size
+of the largest block in the CBS from the root of the tree, using
+``SplayRoot()``, and does ``SplayFindFirst()`` for a block of that
+size. This takes time proportional to the logarithm of the size of the
+free list, so it's about the best you can do without maintaining a
+separate priority queue, just to do ``cbsFindLargest()``.  For
+example, this is used in the implementation of allocation buffers in
+the MVFF pool class (design.mps.poolmvff_).
+
+_`.impl.splay.zones`: In the ``CBSZonedLandClass`` class,
+``cbsFindInZones()`` uses the update/refresh facility of splay trees
+to store, in each block, the union of the zones of the ranges in the
+tree rooted at the corresponding splay node. This allows rapid
+location of a block in a set of zones.  For example, this is used to
+allocate segments in particular zones in the arena to optimised
+garbage collection (see design.mps.critical-path_).
+
+.. _design.mps.critical-path: critical-path
+
+
+Low memory behaviour
+....................
+
+_`.impl.low-mem`: When the CBS tries to allocate a new ``CBSBlock``
+structure for a new isolated range as a result of either
+``LandInsert()`` or ``LandDelete()``, and there is insufficient memory
+to allocate the block structure, then the range is not added to the
+CBS or deleted from it, and the call to ``LandInsert()`` or
+``LandDelete()`` returns ``ResMEMORY``.
+
+
+The CBS block
+.............
+
+_`.impl.cbs.block`: The block contains a non-empty range and a splay
+tree node.
+
+_`.impl.cbs.block.special`: The range may be empty if the block is
+halfway through being deleted.
+
+_`.impl.cbs.block.special.just`: This conflates values and status, but
+is justified because block size is very important.
+
+
+Testing
+-------
+
+_`.test`: The following testing will be performed on this module:
+
+_`.test.land`: A generic test for land implementations. See
+design.mps.land.test_.
+
+.. _design.mps.land.test: land#.test
+
+_`.test.pool`: The arena and two pools (MVT_ and MVFF_) are
+implemented on top of a CBS. These are subject to testing in
+development, QA, and are heavily exercised by customers.
+
+.. _MVT: poolmvt
+.. _MVFF: poolmvff
+
+
+Notes for future development
+----------------------------
+
+_`.future.not-splay`: The implementation of CBSs is based on splay
+trees. It could be revised to use other data structures that meet the
+requirements (especially `.req.fast`_).
+
+_`.future.hybrid`: It would be possible to attenuate the problem of
+`.risk.overhead`_ (below) by using a single word bit set to represent
+the membership in a (possibly aligned) word-width of grains. This
+might be used for block sizes less than a word-width of grains,
+converting them when they reach all free in the bit set. Note that
+this would make coalescence slightly less eager, by up to
+``(word-width - 1)``.
+
+_`.future.iterate.and.delete`: It would be possible to provide an
+implementation for the ``LandIterateAndDelete()`` generic function
+using ``TreeTraverseAndDelete()``, which calls ``TreeToVine()`` first,
+iterates over the vine (where deletion is straightforward), and then
+rebalances the tree. Note that this is little better than using
+``SplayFirst()`` and ``SplayNext()``.
+
+_`.future.lazy-coalesce`: It's long been observed that small blocks
+are often freed and then reallocated, so that coalescing them is a
+waste of time.  It might be worth considering how a splay tree could
+implement a lazy coalescing scheme, where blocks are coalesced with
+their adjacent neighbours during the search only if they aren't big
+enough.  This would break `.impl.find-largest`_ and so might be best
+done as a different kind of land.  On the other hand, since the MPS
+does not use client memory to store the tree, eager coalescing avoids
+allocation.
+
+
+Risks
+-----
+
+_`.risk.overhead`: Clients should note that the current implementation
+of CBSs has a space overhead proportional to the number of isolated
+contiguous ranges. [Four words per range.] If the CBS contains every
+other grain in an area, then the overhead will be large compared to
+the size of that area. [Four words per two grains.] The CBS structure
+is thus suitable only for managing large enough ranges.
+
+
+Document History
+----------------
+
+- 1998-05-01 Gavin Matthews. This document was derived from the
+  outline in design.mps.poolmv2_.
+
+.. _design.mps.poolmv2: poolmv2
+
+- 1998-07-22 Gavin Matthews. Updated in response to approval comments
+  in change.epcore.anchovy.160040. There is too much fragmentation in
+  trapping memory.
+
+- Gavin Matthews. Updated (as part of change.epcore.brisling.160158:
+  MVFF cannot be instantiated with 4-byte alignment) to document new
+  alignment restrictions.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-04-14 GDR_ Converted to reStructuredText.
+
+- 2013-05-19 GDR_ Removed the "emergency" free list allocator, the
+  design notes on an unimplemented "future hybrid" scheme, the
+  callbacks, block interface, and minimum size interface. Updated the
+  arguments for ``CBSIterateMethod``, ``CBSInit()``, ``CBSInsert()``,
+  and ``CBSDelete()``.
+
+- 2013-05-23 RB_ Removed references to "contingency methods" that were
+  talking about the deleted "emergency" free list allocator.
+  Documented ``fastFind`` argument to ``CBSInit()``.
+
+- 2014-04-01 GDR_ Moved generic material to design.mps.land_.
+  Documented new keyword arguments.
+
+- 2016-03-27 RB_ Adding cross references to usage. Updating future
+  with reference to ``TreeTraverseAndDelete()``. Adding future idea
+  about lazy coalescing.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 1998–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

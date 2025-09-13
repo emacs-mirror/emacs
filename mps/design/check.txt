@@ -1,0 +1,176 @@
+.. mode: -*- rst -*-
+
+Checking
+========
+
+:Tag: design.mps.check
+:Author: Gavin Matthews
+:Date: 1996-08-05
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: checking; design
+
+
+Introduction
+------------
+
+_`.intro`: This documents the design of structure checking within the
+MPS.
+
+_`.readership`: MPS developers.
+
+
+Implementation
+--------------
+
+_`.level`: There are three levels of checking:
+
+#. _`.level.sig`: The lowest level checks only that the structure has
+   a valid ``Signature`` (see design.mps.sig_).
+
+   .. _design.mps.sig: sig
+
+#. _`.level.shallow`: Shallow checking checks all local fields
+   (including signature) and also checks the signatures of any parent
+   or child structures.
+
+#. _`.level.deep`: Deep checking checks all local fields
+   (including signatures), the signatures of any parent structures,
+   and does full recursive checking on any child structures.
+
+_`.level.control`: Control over the levels of checking is via the
+definition of at most one of the macros ``TARGET_CHECK_SHALLOW``
+(which if defined gives `.level.shallow`_), ``TARGET_CHECK_DEEP``
+(which if defined gives `.level.deep`_). If neither macro is defined
+then `.level.sig`_ is used. These macros are not intended to be
+manipulated directly by developers, they should use the interface in
+impl.h.target.
+
+_`.order`: Because deep checking (`.level.deep`_) uses unchecked
+recursion, it is important that child relationships are acyclic
+(`.macro.down`_).
+
+_`.fun`: Every abstract data type which is a structure pointer should
+have a function ``<type>Check`` which takes a pointer of type
+``<type>`` and returns a ``Bool``. It should check all fields in
+order, using one of the macros in `.macro`_, or document why not.
+
+_`.fun.omit`: The only fields which should be omitted from a check
+function are those for which there is no meaningful check (for
+example, an unlimited unsigned integer with no relation to other
+fields).
+
+_`.fun.return`: Although the function returns a ``Bool``, if the assert
+handler returns (or there is no assert handler), then this is taken to
+mean "ignore and continue", and the check function hence returns
+``TRUE``.
+
+_`.macro`: Checking is implemented by invoking four macros in
+impl.h.assert:
+
+``CHECKS(type, val)``
+
+_`.macro.sig`: ``CHECKS(type, val)`` checks the signature only, and
+should be called precisely on ``type`` and the received object
+pointer.
+
+``CHECKL(cond)``
+
+_`.macro.local`: ``CHECKL(cond)`` checks a local field (depending on
+level; see `.level`_), and should be called on each local field that
+is not an abstract data type structure pointer itself (apart from
+the signature), with an appropriate normally-true test condition.
+
+``CHECKU(type, val)``
+
+_`.macro.up`: ``CHECKU(type, val)`` checks a parent abstract data
+type structure pointer, performing at most signature checks
+(depending on level; see `.level`_). It should be called with the
+parent type and pointer.
+
+``CHECKD(type, val)``
+
+_`.macro.down`: ``CHECKD(type, val)`` checks a child abstract data
+type structure pointer, possibly invoking ``<type>Check`` (depending
+on level; see `.level`_). It should be called with the child type
+and pointer.
+
+_`.full-type`: Use ``CHECKS()``, ``CHECKD()`` or ``CHECKU()`` on all
+types that satisfy these three requirements:
+
+_`.full-type.pointer`: The type is a pointer type.
+
+_`.full-type.check`: The type provides a function ``Bool TypeCheck(Type
+type)`` where ``Type`` is substituted for the name of the type (for
+example, ``PoolCheck()``).
+
+_`.full-type.sig`: The expression ``obj->sig`` is a valid value of
+type ``Sig`` whenever ``obj`` is a valid value of type ``Type``.
+
+_`.partial-type`: Where the type satisfies `.full-type.pointer`_ and
+`.full-type.check`_ but not `.full-type.sig`_ because the type lacks a
+signature in order to save space (this applies to small structures
+that are embedded many times in other structures, for example
+``Ring``), use ``CHECKD_NOSIG()``.
+
+_`.hidden-type`: Where the type satisfies `.full-type.pointer`_ and
+`.full-type.check`_ but not `.full-type.sig`_ because the structure
+has a signature but the structure definition is not visible at point
+of checking (for example ``Root``), use ``CHECKD_NOSIG()`` and
+reference this tag. The structure could be considered for addition to
+``mpmst.h``.
+
+
+Common assertions
+-----------------
+
+_`.common`: Some assertions are commonly triggered by mistakes in the
+client program. These are listed in the section "Common assertions and
+their causes" in the MPS Reference, together with an explanation of
+their likely cause, and advice for fixing the problem. To assist with
+keeping the MPS Reference up to date, these assertions are marked with
+a cross-reference to this tag. When you update the assertion, you must
+also update the MPS Reference.
+
+
+Document History
+----------------
+
+- 1996-08-05 Gavin Matthews Incomplete design.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-03-12 GDR_ Converted to reStructuredText.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
