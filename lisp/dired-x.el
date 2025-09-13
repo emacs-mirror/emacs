@@ -188,16 +188,14 @@ When nil, don't show messages."
   :group 'dired-x)
 
 (defcustom dired-find-subdir nil           ; t is pretty near to DWIM...
-  "If non-nil, Dired always finds a directory in a buffer of its own.
-If nil, Dired finds the directory as a subdirectory in some other buffer
-if it is present as one.
+  "If nil, Dired always finds a directory in a buffer of its own.
+If non-nil, Dired finds the directory as a subdirectory in some
+other buffer if it is present as one.
 
-If there are several Dired buffers for a directory, the most recently
-used is chosen.
-
-Dired avoids switching to the current buffer, so that if you have
-a normal and a wildcard buffer for the same directory, \\[dired] will
-toggle between those two."
+If the value is non-nil, and there are several Dired buffers for a
+directory, the most recently used is chosen.  Dired avoids switching
+to the current buffer, so that if you have a normal and a wildcard
+buffer for the same directory, \\[dired] will toggle between those two."
   :type 'boolean
   :group 'dired-x)
 
