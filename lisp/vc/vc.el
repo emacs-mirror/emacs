@@ -3515,7 +3515,7 @@ number of revisions to show; the default is `vc-log-show-limit'.
 When called interactively with a prefix argument, prompt for LIMIT, but
 if the prefix argument is a number, use it as LIMIT.
 A special case is when the prefix argument is 1: in this case
-the command prompts for the ID of a revision, and shows that revision
+the command prompts for the id of a REVISION, and shows that revision
 with its diffs (if the underlying VCS backend supports that)."
   (interactive
    (cond
