@@ -184,7 +184,7 @@ Must be called with `ucs-normalize-tests--norm-buf' as current buffer."
   (should-not (ucs-normalize-tests--rule1-failing-for-partX 0)))
 
 (defconst ucs-normalize-tests--failing-lines-part1
-  (list 2432))
+  (list ))
 
 ;; Keep a record of failures, for consulting afterwards (the ert
 ;; backtrace only shows a truncated version of these lists).
