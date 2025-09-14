@@ -463,7 +463,10 @@ LABEL is a string to display as the label of that TIMEZONE's time.
 
 This option has effect only on systems that support Posix-style
 zoneinfo files specified as CONTINENT/CITY.  In particular,
-MS-Windows doesn't support that; use `legacy-style-world-list' instead."
+MS-Windows doesn't support that; use `legacy-style-world-list' instead.
+Also, AREA/LOCATION must specify a zoneinfo file installed on your
+system, otherwise what timezone will be used depends on the underlying
+OS and library."
   :type '(repeat (list string string))
   :version "23.1")
 
