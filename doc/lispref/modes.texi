@@ -291,6 +291,9 @@ derivative of another mode, as it automatically enforces many coding
 conventions for you.  @xref{Basic Major Modes}, for common modes to
 derive from.
 
+  Writing major modes based on the tree-sitter library has some special
+aspects and conventions; see @ref{Tree-sitter Major Modes}.
+
   The standard GNU Emacs Lisp directory tree contains the code for
 several major modes, in files such as @file{text-mode.el},
 @file{texinfo.el}, @file{lisp-mode.el}, and @file{rmail.el}.  You can
@@ -460,7 +463,8 @@ decides to use it.
 The mode may have its own syntax table or may share one with other
 related modes.  If it has its own syntax table, it should store this in
 a variable named @code{@var{modename}-mode-syntax-table}.  @xref{Syntax
-Tables}.
+Tables}.  (Major modes based on the tree-sitter library use the parsers
+provided by tree-sitter for this, @pxref{Parser-based Font Lock}.)
 
 @item
 If the mode handles a language that has a syntax for comments, it should
@@ -479,7 +483,8 @@ for the @var{system-flag} argument to @code{define-abbrev}.
 @item
 The mode should specify how to do highlighting for Font Lock mode, by
 setting up a buffer-local value for the variable
-@code{font-lock-defaults} (@pxref{Font Lock Mode}).
+@code{font-lock-defaults} (@pxref{Font Lock Mode}).  For a major mode
+based on tree-sitter, see @ref{Parser-based Font Lock}.
 
 @item
 Each face that the mode defines should, if possible, inherit from an
@@ -4289,6 +4294,7 @@ reasonably fast.
 @node Parser-based Font Lock
 @subsection Parser-based Font Lock
 @cindex parser-based font-lock
+@cindex font-lock, using tree-sitter
 
 @c This node is written when the only parser Emacs has is tree-sitter;
 @c if in the future more parser are supported, this should be
@@ -5216,6 +5222,7 @@ to the file's local variables of the form:
 @node Parser-based Indentation
 @subsection Parser-based Indentation
 @cindex parser-based indentation
+@cindex indentation, using tree-sitter
 
 @c This node is written when the only parser Emacs has is tree-sitter;
 @c if in the future more parsers are supported, this should be
