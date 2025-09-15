@@ -178,7 +178,9 @@ only in the CONDITION of a `cond*' clause."
 (defun cond*-non-exit-clause-substance (clause)
   "For a non-exit cond* clause CLAUSE, return its substance.
 This removes a final keyword if that's what makes CLAUSE non-exit."
-  (cond ((null (cdr-safe clause))   ;; clause has only one element.
+  (cond ((or (null (cdr-safe clause))   ;; either clause has only one element
+             (and (consp (car clause))  ;; or it starts with `bind*'
+                  (eq (caar clause) 'bind*)))
          clause)
         ;; Starts with t or a keyword.
         ;; Include t as the first element of the substance
