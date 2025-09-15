@@ -1468,7 +1468,9 @@ See `auth-source-search' for details on SPEC."
         (when (and (stringp data)
                    (< 0 (length data)))
           (when (eq r 'secret)
-            (setq save-function t))
+            (setq save-function
+                  (not (and (string-match-p "\"" data)
+                            (string-match-p "'" data)))))
           ;; this function is not strictly necessary but I think it
           ;; makes the code clearer -tzz
           (let ((printer (lambda ()
@@ -1484,9 +1486,12 @@ See `auth-source-search' for details on SPEC."
                                      (secret "password")
                                      (port   "port") ; redundant but clearer
                                      (t (symbol-name r)))
-                                   (if (string-match "[\"# ]" data)
-                                       (format "%S" data)
-                                     data)))))
+                                   (cond
+                                    ((string-match-p "\"" data)
+                                     (format "'%s'" data))
+                                    ((string-match-p "['# ]" data)
+                                     (format "%S" data))
+                                    (t data))))))
             (setq add (concat add (funcall printer)))))))
 
     (when save-function

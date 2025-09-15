@@ -119,6 +119,16 @@
                                   (create-function
                                    . auth-source-netrc-create))))
 
+(ert-deftest auth-source-backend-parse-json ()
+  (auth-source-validate-backend '(:source "foo.json")
+                                '((source . "foo.json")
+                                  (type . json)
+                                  (search-function . auth-source-json-search)
+                                  (create-function
+                                   ;; To be implemented:
+                                   ;; . auth-source-json-create))))
+                                   . ignore))))
+
 (ert-deftest auth-source-backend-parse-secrets ()
   (provide 'secrets) ; simulates the presence of the `secrets' package
   (let ((secrets-enabled t))
@@ -383,7 +393,8 @@
            (auth-source-save-behavior t)
            (auth-source-ignore-non-existing-file t)
            host auth-info auth-passwd)
-      (dolist (passwd '("foo" "" nil))
+      (dolist (passwd `("foo" "bar baz" "bar'baz" "bar\"baz"
+                        "foo'bar\"baz" "" nil))
         ;; Redefine `read-*' in order to avoid interactive input.
         (cl-letf (((symbol-function 'read-passwd) (lambda (_) passwd))
                   ((symbol-function 'read-string)
@@ -409,7 +420,9 @@
                 auth-passwd (auth-info-password auth-info))
           (with-temp-buffer
             (insert-file-contents netrc-file)
-            (if (zerop (length passwd))
+            (if (or (zerop (length passwd))
+                    (and (string-match-p "\"" passwd)
+                         (string-match-p "'" passwd)))
                 (progn
                   (should-not (plist-get auth-info :user))
                   (should-not (plist-get auth-info :host))

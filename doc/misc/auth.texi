@@ -132,8 +132,8 @@ use them automatically, either pass @code{:client-certificate t} to
 @code{open-network-stream}, or customize
 @code{network-stream-use-client-certificates} to @code{t}.
 
-You can use spaces inside a password or other token by surrounding the
-token with either single or double quotes.
+You can use spaces or number signs (@t{"#"}) inside a password or other
+token by surrounding the token with either single or double quotes.
 
 You can use apostrophes inside a password or other token by
 surrounding it with double quotes, e.g., @t{"he'llo"}.  Similarly you
