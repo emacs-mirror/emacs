@@ -3825,7 +3825,7 @@ enum handlertype {
   CONDITION_CASE,               /* Entry for 'condition-case'.
                                    'tag_or_ch' holds the list of conditions.
                                    'val' holds the retval during longjmp.  */
-  CATCHER_ALL,                  /* Wildcard which catches all 'throw's.
+  CATCHER_ALL,                  /* Wildcard that catches all throws and signals.
                                    'tag_or_ch' is unused.
                                    'val' holds the retval during longjmp.  */
   HANDLER_BIND,                 /* Entry for 'handler-bind'.
