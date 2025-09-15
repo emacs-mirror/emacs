@@ -363,13 +363,18 @@ testscheme: phony
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).
 
-$(LIB_TARGETS) $(TEST_TARGETS) $(EVENT_TARGETS) $(TEST_SUITES) testmmqa: phony
 ifdef VARIETY
-	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
+$(LIB_TARGETS) $(TEST_TARGETS) $(EVENT_TARGETS) $(TEST_SUITES) testmmqa: \
+	%: $(PFM)/$(VARIETY)/% ;
 else
+$(LIB_TARGETS) $(TEST_TARGETS) $(EVENT_TARGETS) $(TEST_SUITES) testmmqa:
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
+.NOTPARALLEL:
 endif
 
+# Targets for toplevel make
+clean-testansi: clean .WAIT testansi
+clean-testpollnone: clean .WAIT testpollnone
 
 # "clean" removes the directory containing the build results for the
 # platform.
@@ -611,14 +616,12 @@ endif
 
 define run-cc-strict
 $(ECHO) "$(PFM): $@"
-mkdir -p $(PFM)
 mkdir -p $(PFM)/$(VARIETY)
 $(CC) $(CFLAGSSTRICT) -c -o $@ $<
 endef
 
 define run-cc-lax
 $(ECHO) "$(PFM): $@ - compiling with lax flags."
-mkdir -p $(PFM)
 mkdir -p $(PFM)/$(VARIETY)
 $(CC) $(CFLAGSLAX) -c -o $@ $<
 endef
