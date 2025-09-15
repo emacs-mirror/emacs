@@ -34,7 +34,8 @@ XCODEBUILD=xcrun xcodebuild -project code/mps.xcodeproj
 all: @BUILD_TARGET@
 
 build-via-make:
-	$(MAKE) $(TARGET_OPTS)
+	$(MAKE) $(TARGET_OPTS) VARIETY=cool
+	$(MAKE) $(TARGET_OPTS) VARIETY=hot
 
 clean-make-build:
 	$(MAKE) $(TARGET_OPTS) clean
@@ -84,12 +85,12 @@ test-make-build:
 	$(MAKE) -C code -f anan$(MPS_BUILD_NAME).gmk VARIETY=cool \
 		CC='$(CC)' \
 		CFLAGSCOMPILERSTRICT='$(CFLAGSCOMPILERSTRICT)' \
-		clean testansi
+		clean-testansi
 	$(MAKE) -C code -f anan$(MPS_BUILD_NAME).gmk VARIETY=cool \
 		CC='$(CC)' \
 		CFLAGS="-DCONFIG_POLL_NONE" \
 		CFLAGSCOMPILERSTRICT='$(CFLAGSCOMPILERSTRICT)' \
-		clean testpollnone
+		clean-testpollnone
 
 test-xcode-build:
 	$(XCODEBUILD) -config Debug   -target testci
