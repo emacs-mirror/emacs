@@ -687,7 +687,7 @@ Some context functions add menu items below the separator."
 
 (defvar context-menu-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-3] nil)
+    (define-key map [mouse-3] #'ignore)
     (define-key map [down-mouse-3] context-menu-entry)
     (define-key map [menu] #'context-menu-open)
     (if (featurep 'w32)
@@ -1520,8 +1520,6 @@ point determined by `mouse-select-region-move-to-beginning'."
        (eq mouse-last-region-end (region-end))
        (eq mouse-last-region-tick (buffer-modified-tick))))
 
-(defvar mouse--drag-start-event nil)
-
 (defun mouse-set-region (click)
   "Set the region to the text dragged over, and copy to kill ring.
 This should be bound to a mouse drag event.
@@ -2063,27 +2061,6 @@ If MODE is 2 then do the same for lines."
     (select-window (posn-window posn))
     (if (numberp (posn-point posn))
 	(push-mark (posn-point posn) t t))))
-
-(defun mouse-undouble-last-event (events)
-  (let* ((index (1- (length events)))
-	 (last (nthcdr index events))
-	 (event (car last))
-	 (basic (event-basic-type event))
-	 (old-modifiers (event-modifiers event))
-	 (modifiers (delq 'double (delq 'triple (copy-sequence old-modifiers))))
-	 (new
-	  (if (consp event)
-	      ;; Use reverse, not nreverse, since event-modifiers
-	      ;; does not copy the list it returns.
-	      (cons (event-convert-list (reverse (cons basic modifiers)))
-		    (cdr event))
-	    event)))
-    (setcar last new)
-    (if (and (not (equal modifiers old-modifiers))
-	     (key-binding (apply #'vector events)))
-	t
-      (setcar last event)
-      nil)))
 
 ;; Momentarily show where the mark is, if highlighting doesn't show it.
 
