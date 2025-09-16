@@ -4701,7 +4701,7 @@ tree, it is an error, and no changes are moved."
 
 ;;;###autoload
 (defun vc-apply-root-to-other-working-tree (directory &optional move preview)
-  "Apply all local changes to this working tree to the one under DIRECTORY.
+  "Apply all local changes in this working tree to the tree under DIRECTORY.
 Must be called from within an existing VC working tree.
 When called interactively, prompts for DIRECTORY.
 With a prefix argument (when called from Lisp, with optional argument

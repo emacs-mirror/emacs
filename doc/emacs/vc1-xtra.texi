@@ -400,7 +400,7 @@ branch there.
 You apply the patch to that working tree using @w{@kbd{C-x v w a}} (see
 below), build and test it.  Satisfied, you use @w{@kbd{C-x v P}}
 (@pxref{Pulling / Pushing}) in the other working tree.  In the course of
-testing the patch, you've realised that the bug exists in version 3 of
+testing the patch, you've realized that the bug exists in version 3 of
 the software, too.  So you switch back to your first working tree, and
 use @kbd{C-x v m} (@pxref{Merging}) to merge the branch you have checked
 out in the other working tree.  Now your version of the trunk has all of
@@ -509,13 +509,14 @@ working tree as a whole, independent project.
 @kindex C-x v w a
 @findex vc-apply-to-other-working-tree
 The command @kbd{C-x v w a} (@code{vc-apply-to-other-working-tree})
-prompts you to select a working tree, then copies changes from the
+prompts you to select another working tree, then copies changes from the
 current working tree to that other working tree.  With a prefix
 argument, it moves changes instead of just copying them.  Usually the
 command operates on local (uncommitted) changes to the current VC
-fileset.  When invoked in a Diff mode (@pxref{Diff Mode}) buffer, it
+fileset.  When invoked in a buffer under Diff mode (@pxref{Diff Mode}), it
 operates on the changes specified by the contents of that buffer.  The
-command stops and does nothing if any of the changes don't apply.
+command stops and does nothing if any of the changes don't apply to the
+target working tree.
 
 @kbd{C-x v w a} is useful to copy changes to a temporary working tree in
 order to test them.  It is also useful to copy fixes back to your main

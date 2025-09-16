@@ -2077,6 +2077,10 @@ other working trees:
 - 'C-x v w x': Delete a working tree you no longer need.
 - 'C-x v w R': Relocate a working tree to another file name.
 
+The new user option 'vc-no-confirm-moving-changes' controls whether
+'C-x v w a' and 'C-x v w A' ask for confirmation when moving changes
+between working trees.  The default is to ask for confirmation.
+
 In addition, Lisp programs that extend VC can invoke the new backend
 functions to obtain a list of other working trees, and to add, remove
 and relocate them.
