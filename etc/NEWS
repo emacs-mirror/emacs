@@ -2533,6 +2533,12 @@ switched on.  The default is t, which means enable it in all major
 modes.
 
 ---
+*** New value 'all' for the user option 'global-hl-line-sticky-flag'.
+It updates the line highlighting in all windows and buffers,
+unlike the value t that updates only windows that display
+the current buffer.
+
+---
 *** New user option 'display-fill-column-indicator-warning'.
 Customize it to a non-nil value to have the fill-column indicators
 change their face if the current line exceeds the 'fill-column'.  The
