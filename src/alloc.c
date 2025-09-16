@@ -120,6 +120,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #if defined ENABLE_CHECKING && !defined GC_CHECK_MARKED_OBJECTS
 # define GC_CHECK_MARKED_OBJECTS 1
 #endif
+#ifndef GC_CHECK_MARKED_OBJECTS
+# define GC_CHECK_MARKED_OBJECTS 0
+#endif
 
 /* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
    memory.  Can do this only if using gmalloc.c and if not checking
@@ -6389,6 +6392,75 @@ mark_stack_push_values (Lisp_Object *values, ptrdiff_t n)
 						      .u.values = values};
 }
 
+/* When GC_CHECK_MARKED_OBJECTS is set, perform some sanity checks on
+   the objects marked here.  Abort if we encounter an object we know is
+   bogus.  This increases GC time by ~80%.  */
+
+/* Check that the object pointed to by PO is alive, using predicate
+   function LIVEP.  */
+static inline void
+check_live (bool (*livep) (struct mem_node *m, void *p), enum mem_type mtype,
+	    void *po, struct mem_node *m)
+{
+  if (GC_CHECK_MARKED_OBJECTS)
+    {
+      if (pdumper_object_p (po))
+	return;
+      if (!(m->type == mtype && livep (m, po)))
+	emacs_abort ();
+    }
+}
+
+/* Check that the object pointed to by PO is known to be a Lisp
+   structure allocated from the heap, and that it is alive.  */
+static inline void
+check_allocated_and_live (bool (*livep) (struct mem_node *m, void *p),
+			  enum mem_type mtype,
+			  void *po)
+{
+  if (GC_CHECK_MARKED_OBJECTS)
+    {
+      if (pdumper_object_p (po))
+	{
+	  if (!pdumper_object_p_precise (po))
+	    emacs_abort ();
+	  return;
+	}
+      struct mem_node *m = mem_find (po);
+      if (m == MEM_NIL)
+	emacs_abort ();
+      check_live (livep, mtype, po, m);
+    }
+}
+
+/* Like check_allocated_and_live but for symbols.  */
+static inline void
+check_allocated_and_live_symbol (void *po, struct Lisp_Symbol *sym)
+{
+  if (GC_CHECK_MARKED_OBJECTS)
+    if (!c_symbol_p (sym))
+      check_allocated_and_live (live_symbol_p, MEM_TYPE_SYMBOL, po);
+}
+
+/* Like check_allocated_and_live but for vectorlike.  */
+static inline void
+check_allocated_and_live_vectorlike (void *po, Lisp_Object obj)
+{
+  if (GC_CHECK_MARKED_OBJECTS)
+    {
+      if (!pdumper_object_p (po) && !SUBRP (obj) && !main_thread_p (po))
+	{
+	  struct mem_node *m = mem_find (po);
+	  if (m == MEM_NIL)
+	    emacs_abort ();
+	  if (m->type == MEM_TYPE_VECTORLIKE)
+	    check_live (live_large_vector_p, MEM_TYPE_VECTORLIKE, po, m);
+	  else
+	    check_live (live_small_vector_p, MEM_TYPE_VECTOR_BLOCK, po, m);
+	}
+    }
+}
+
 /* Traverse and mark objects on the mark stack above BASE_SP.
 
    Traversal is depth-first using the mark stack for most common
@@ -6397,9 +6469,6 @@ mark_stack_push_values (Lisp_Object *values, ptrdiff_t n)
 static void
 process_mark_stack (ptrdiff_t base_sp)
 {
-#if GC_CHECK_MARKED_OBJECTS
-  struct mem_node *m = NULL;
-#endif
 #if GC_CDR_COUNT
   ptrdiff_t cdr_count = 0;
 #endif
@@ -6410,65 +6479,11 @@ process_mark_stack (ptrdiff_t base_sp)
     {
       Lisp_Object obj = mark_stack_pop ();
     mark_obj: ;
+      void *po = XPNTR (obj);
 #if GC_REMEMBER_LAST_MARKED
       last_marked[last_marked_index++] = obj;
       last_marked_index &= LAST_MARKED_SIZE - 1;
 #endif
-
-      /* Perform some sanity checks on the objects marked here.  Abort if
-	 we encounter an object we know is bogus.  This increases GC time
-	 by ~80%.  */
-#if GC_CHECK_MARKED_OBJECTS
-      void *po = XPNTR (obj);
-
-      /* Check that the object pointed to by PO is known to be a Lisp
-	 structure allocated from the heap.  */
-#define CHECK_ALLOCATED()			\
-      do {					\
-	if (pdumper_object_p (po))		\
-	  {					\
-	    if (!pdumper_object_p_precise (po))	\
-	      emacs_abort ();			\
-	    break;				\
-	  }					\
-	m = mem_find (po);			\
-	if (m == MEM_NIL)			\
-	  emacs_abort ();			\
-      } while (0)
-
-      /* Check that the object pointed to by PO is live, using predicate
-	 function LIVEP.  */
-#define CHECK_LIVE(LIVEP, MEM_TYPE)			\
-      do {						\
-	if (pdumper_object_p (po))			\
-	  break;					\
-	if (! (m->type == MEM_TYPE && LIVEP (m, po)))	\
-	  emacs_abort ();				\
-      } while (0)
-
-      /* Check both of the above conditions, for non-symbols.  */
-#define CHECK_ALLOCATED_AND_LIVE(LIVEP, MEM_TYPE)	\
-      do {						\
-	CHECK_ALLOCATED ();				\
-	CHECK_LIVE (LIVEP, MEM_TYPE);			\
-      } while (false)
-
-      /* Check both of the above conditions, for symbols.  */
-#define CHECK_ALLOCATED_AND_LIVE_SYMBOL()			\
-      do {							\
-	if (!c_symbol_p (ptr))					\
-	  {							\
-	    CHECK_ALLOCATED ();					\
-	    CHECK_LIVE (live_symbol_p, MEM_TYPE_SYMBOL);	\
-	  }							\
-      } while (false)
-
-#else /* not GC_CHECK_MARKED_OBJECTS */
-
-#define CHECK_ALLOCATED_AND_LIVE(LIVEP, MEM_TYPE)	((void) 0)
-#define CHECK_ALLOCATED_AND_LIVE_SYMBOL()		((void) 0)
-
-#endif /* not GC_CHECK_MARKED_OBJECTS */
 
       switch (XTYPE (obj))
 	{
@@ -6477,7 +6492,7 @@ process_mark_stack (ptrdiff_t base_sp)
 	    register struct Lisp_String *ptr = XSTRING (obj);
 	    if (string_marked_p (ptr))
 	      break;
-	    CHECK_ALLOCATED_AND_LIVE (live_string_p, MEM_TYPE_STRING);
+	    check_allocated_and_live (live_string_p, MEM_TYPE_STRING, po);
 	    set_string_marked (ptr);
 	    mark_interval_tree (ptr->u.s.intervals);
 #ifdef GC_CHECK_STRING_BYTES
@@ -6498,18 +6513,7 @@ process_mark_stack (ptrdiff_t base_sp)
 	    enum pvec_type pvectype
 	      = PSEUDOVECTOR_TYPE (ptr);
 
-#ifdef GC_CHECK_MARKED_OBJECTS
-	    if (!pdumper_object_p (po) && !SUBRP (obj) && !main_thread_p (po))
-	      {
-		m = mem_find (po);
-		if (m == MEM_NIL)
-		  emacs_abort ();
-		if (m->type == MEM_TYPE_VECTORLIKE)
-		  CHECK_LIVE (live_large_vector_p, MEM_TYPE_VECTORLIKE);
-		else
-		  CHECK_LIVE (live_small_vector_p, MEM_TYPE_VECTOR_BLOCK);
-	      }
-#endif
+	    check_allocated_and_live_vectorlike (po, obj);
 
 	    switch (pvectype)
 	      {
@@ -6612,7 +6616,7 @@ process_mark_stack (ptrdiff_t base_sp)
 	  nextsym:
 	    if (symbol_marked_p (ptr))
 	      break;
-	    CHECK_ALLOCATED_AND_LIVE_SYMBOL ();
+	    check_allocated_and_live_symbol (po, ptr);
 	    set_symbol_marked (ptr);
 	    /* Attempt to catch bogus objects.  */
 	    eassert (valid_lisp_object_p (ptr->u.s.function));
@@ -6657,9 +6661,8 @@ process_mark_stack (ptrdiff_t base_sp)
 	    mark_interval_tree (string_intervals (ptr->u.s.name));
 	    /* Inner loop to mark next symbol in this bucket, if any.  */
 	    ptr = ptr->u.s.next;
-#if GC_CHECK_MARKED_OBJECTS
-	    po = ptr;
-#endif
+	    if (GC_CHECK_MARKED_OBJECTS)
+	      po = ptr;
 	    if (ptr)
 	      goto nextsym;
 	  }
@@ -6670,7 +6673,7 @@ process_mark_stack (ptrdiff_t base_sp)
 	    struct Lisp_Cons *ptr = XCONS (obj);
 	    if (cons_marked_p (ptr))
 	      break;
-	    CHECK_ALLOCATED_AND_LIVE (live_cons_p, MEM_TYPE_CONS);
+	    check_allocated_and_live (live_cons_p, MEM_TYPE_CONS, po);
 	    set_cons_marked (ptr);
 	    /* Avoid growing the stack if the cdr is nil.
 	       In any case, make sure the car is expanded first.  */
@@ -6693,7 +6696,7 @@ process_mark_stack (ptrdiff_t base_sp)
 	    struct Lisp_Float *f = XFLOAT (obj);
 	    if (!f)
 	      break;		/* for HASH_UNUSED_ENTRY_KEY */
-	    CHECK_ALLOCATED_AND_LIVE (live_float_p, MEM_TYPE_FLOAT);
+	    check_allocated_and_live (live_float_p, MEM_TYPE_FLOAT, po);
 	    /* Do not mark floats stored in a dump image: these floats are
 	       "cold" and do not have mark bits.  */
 	    if (pdumper_object_p (f))
@@ -6711,10 +6714,6 @@ process_mark_stack (ptrdiff_t base_sp)
 	  emacs_abort ();
 	}
     }
-
-#undef CHECK_LIVE
-#undef CHECK_ALLOCATED
-#undef CHECK_ALLOCATED_AND_LIVE
 }
 
 void
