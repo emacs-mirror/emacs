@@ -607,7 +607,7 @@ ls is an alias, defined as "*ls $@@*"
 @group
 ~ $ alias compile 'apply #''compile $*'
 ~ $ which compile
-ls is an alias, defined as "apply #'compile $*"
+compile is an alias, defined as "apply #'compile $*"
 @end group
 @end example
 
