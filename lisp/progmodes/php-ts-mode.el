@@ -80,7 +80,7 @@
 
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
-  '((php "https://github.com/tree-sitter/tree-sitter-php"
+  `((php "https://github.com/tree-sitter/tree-sitter-php"
 	 :commit ,(if (and (treesit-available-p)
                            (< (treesit-library-abi-version) 15))
                       "f7cf7348737d8cff1b13407a0bfedce02ee7b046"
