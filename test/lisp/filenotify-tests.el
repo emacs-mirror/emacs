@@ -882,7 +882,7 @@ delivered."
                '(GFamFileMonitor GFamDirectoryMonitor
                  GKqueueFileMonitor GPollFileMonitor))
          '())
-	;; For GInotifyFileMonitor,`write-region' raises also an
+	;; For GInotifyFileMonitor, `write-region' raises also an
 	;; `attribute-changed' event on gio.
 	((and (string-equal (file-notify--test-library) "gio")
               (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
@@ -1168,6 +1168,11 @@ delivered."
   :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
 
+  (let ((file-notify-debug ;; Temporarily.
+         (or file-notify-debug
+             (and (getenv "EMACS_EMBA_CI")
+                  (string-equal (file-notify--test-library) "gio")
+                  (eq (file-notify--test-monitor) 'GInotifyFileMonitor)))))
   (with-file-notify-test
    (should
     (setq file-notify--test-desc
@@ -1239,7 +1244,7 @@ delivered."
      (file-notify--rm-descriptor file-notify--test-desc)
 
      ;; The environment shall be cleaned up.
-     (file-notify--test-cleanup-p))))
+     (file-notify--test-cleanup-p)))))
 
 (file-notify--deftest-remote file-notify-test07-many-events
   "Check that events are not dropped for remote directories.")
