@@ -255,8 +255,12 @@ but as a plain Lisp variable, not a user option.)
 
 ** Mouse
 
+*** New mode 'mouse-shift-adjust-mode' extends selection with 'S-<mouse-1>'.
+When enabled, you can use the left mouse button with the <Shift> modifier
+to extend the boundaries of the active region by dragging the mouse pointer.
+
 ---
-*** 'context-menu-mode now' includes a "Send to..." menu item.
+*** 'context-menu-mode' now includes a "Send to..." menu item.
 The menu item enables sending current file(s) or region text to external
 (non-Emacs) applications or services.  See send-to.el for customisations.
 
