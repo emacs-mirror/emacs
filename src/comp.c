@@ -468,7 +468,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION "11"
+#define ABI_VERSION "12"
 
 /* Length of the hashes used for eln file naming.  */
 #define HASH_LENGTH 8
@@ -630,6 +630,7 @@ typedef struct {
   gcc_jit_function *add1;
   gcc_jit_function *sub1;
   gcc_jit_function *negate;
+  gcc_jit_function *eq;
   gcc_jit_function *car;
   gcc_jit_function *cdr;
   gcc_jit_function *setcar;
@@ -693,6 +694,7 @@ static void *helper_link_table[] =
     helper_unbind_n,
     helper_save_restriction,
     helper_GET_SYMBOL_WITH_POSITION,
+    slow_eq,
     helper_sanitizer_assert,
     record_unwind_current_buffer,
     set_internal,
@@ -1481,17 +1483,6 @@ emit_CONSP (gcc_jit_rvalue *obj)
 }
 
 static gcc_jit_rvalue *
-emit_BARE_SYMBOL_P (gcc_jit_rvalue *obj)
-{
-  emit_comment ("BARE_SYMBOL_P");
-
-  return gcc_jit_context_new_cast (comp.ctxt,
-				   NULL,
-				   emit_TAGGEDP (obj, Lisp_Symbol),
-				   comp.bool_type);
-}
-
-static gcc_jit_rvalue *
 emit_SYMBOL_WITH_POS_P (gcc_jit_rvalue *obj)
 {
   emit_comment ("SYMBOL_WITH_POS_P");
@@ -1511,52 +1502,46 @@ emit_SYMBOL_WITH_POS_P (gcc_jit_rvalue *obj)
 }
 
 static gcc_jit_rvalue *
-emit_SYMBOL_WITH_POS_SYM (gcc_jit_rvalue *obj)
+emit_slow_eq (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
 {
-  emit_comment ("SYMBOL_WITH_POS_SYM");
+  gcc_jit_rvalue *args[] =
+    { emit_coerce (comp.lisp_obj_type, x),
+      emit_coerce (comp.lisp_obj_type, y) };
 
-  gcc_jit_rvalue *arg [] = { obj };
-  return gcc_jit_context_new_call (comp.ctxt,
-				   NULL,
-				   comp.symbol_with_pos_sym,
-				   1,
-				   arg);
+  return emit_call (intern_c_string ("slow_eq"),
+                    comp.bool_type,
+                    ARRAYELTS (args),
+                    args,
+                    false);
 }
 
 static gcc_jit_rvalue *
 emit_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
 {
-  return
-    emit_OR (
-      gcc_jit_context_new_comparison (
-        comp.ctxt, NULL,
-        GCC_JIT_COMPARISON_EQ,
-        emit_XLI (x), emit_XLI (y)),
-      emit_AND (
-	gcc_jit_lvalue_as_rvalue (
-	  gcc_jit_rvalue_dereference (comp.f_symbols_with_pos_enabled_ref,
-				      NULL)),
-        emit_OR (
-          emit_AND (
-            emit_SYMBOL_WITH_POS_P (x),
-            emit_OR (
-              emit_AND (
-                emit_SYMBOL_WITH_POS_P (y),
-                emit_BASE_EQ (
-                  emit_XLI (emit_SYMBOL_WITH_POS_SYM (x)),
-                  emit_XLI (emit_SYMBOL_WITH_POS_SYM (y)))),
-              emit_AND (
-                emit_BARE_SYMBOL_P (y),
-                emit_BASE_EQ (
-                  emit_XLI (emit_SYMBOL_WITH_POS_SYM (x)),
-                  emit_XLI (y))))),
-          emit_AND (
-            emit_BARE_SYMBOL_P (x),
-            emit_AND (
-              emit_SYMBOL_WITH_POS_P (y),
-              emit_BASE_EQ (
-                emit_XLI (x),
-                emit_XLI (emit_SYMBOL_WITH_POS_SYM (y))))))));
+  gcc_jit_rvalue *base_eq = emit_BASE_EQ (x, y);
+  gcc_jit_rvalue *symbols_with_pos_enabled_rval = gcc_jit_lvalue_as_rvalue (
+    gcc_jit_rvalue_dereference (comp.f_symbols_with_pos_enabled_ref,
+                                NULL));
+
+  gcc_jit_rvalue *expect_args[] =
+    { emit_coerce (comp.long_type, symbols_with_pos_enabled_rval),
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                           comp.long_type,
+                                           0) };
+
+  gcc_jit_rvalue *unlikely_symbols_with_pos_enabled = emit_coerce (
+    comp.bool_type,
+    gcc_jit_context_new_call (
+      comp.ctxt,
+      NULL,
+      gcc_jit_context_get_builtin_function (comp.ctxt,
+                                            "__builtin_expect"),
+      2,
+      expect_args));
+
+  return emit_OR (
+    base_eq,
+    emit_AND (unlikely_symbols_with_pos_enabled, emit_slow_eq (x, y)));
 }
 
 static gcc_jit_rvalue *
@@ -2599,6 +2584,21 @@ emit_consp (Lisp_Object insn)
 }
 
 static gcc_jit_rvalue *
+emit_eq (Lisp_Object insn)
+{
+  gcc_jit_rvalue *x = emit_mvar_rval (SECOND (insn));
+  gcc_jit_rvalue *y = emit_mvar_rval (THIRD (insn));
+  gcc_jit_rvalue *res = emit_EQ (x, y);
+  res = emit_coerce (comp.bool_type, res);
+  return gcc_jit_context_new_call (comp.ctxt,
+                                   NULL,
+                                   comp.bool_to_lisp_obj,
+                                   1,
+                                   &res);
+}
+
+
+static gcc_jit_rvalue *
 emit_car (Lisp_Object insn)
 {
   return emit_call_with_type_hint (comp.car, insn, Qcons);
@@ -2929,6 +2929,10 @@ declare_runtime_imported_funcs (void)
   args[0] = comp.lisp_obj_type;
   ADD_IMPORTED (helper_GET_SYMBOL_WITH_POSITION, comp.lisp_symbol_with_position_ptr_type,
 		1, args);
+
+  args[0] = comp.lisp_obj_type;
+  args[1] = comp.lisp_obj_type;
+  ADD_IMPORTED (slow_eq, comp.bool_type, 2, args);
 
   args[0] = comp.lisp_obj_type;
   args[1] = comp.lisp_obj_type;
@@ -4515,6 +4519,7 @@ Return t on success.  */)
       register_emitter (Qadd1, emit_add1);
       register_emitter (Qsub1, emit_sub1);
       register_emitter (Qconsp, emit_consp);
+      register_emitter (Qeq, emit_eq);
       register_emitter (Qcar, emit_car);
       register_emitter (Qcdr, emit_cdr);
       register_emitter (Qsetcar, emit_setcar);
