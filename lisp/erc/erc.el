@@ -3028,8 +3028,17 @@ message instead, to make debugging easier."
 
 (defun erc--lwarn (type level format-string &rest args)
   "Issue a warning of TYPE and LEVEL with FORMAT-STRING and ARGS."
-  (let ((message (substitute-command-keys
-                  (apply #'format-message format-string args))))
+  (let ((message (with-temp-buffer
+                   (insert (substitute-command-keys
+                            (apply #'format-message format-string args)))
+                   (delete-indentation (point-min) (point-max))
+                   (buffer-string)))
+        (inhibit-message (or inhibit-message
+                             (and erc--warnings-buffer-name t)))
+        (display-buffer-overriding-action
+         (if erc--warnings-buffer-name
+             '(display-buffer-no-window (allow-no-window . t))
+           display-buffer-overriding-action)))
     (display-warning type message level erc--warnings-buffer-name)))
 
 ;;; Debugging the protocol

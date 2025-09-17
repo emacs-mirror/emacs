@@ -46,12 +46,67 @@
     (require 'erc-d-i)))
 
 (defmacro erc-tests-common-equal-with-props (a b)
-  "Compare strings A and B for equality including text props.
+  "Compare sequences A and B for equality including text props.
 Use `ert-equal-including-properties' on older Emacsen."
-  (list (if (< emacs-major-version 29)
-            'ert-equal-including-properties
-          'equal-including-properties)
-        a b))
+  (if (>= emacs-major-version 29)
+      `(equal-including-properties ,a ,b)
+    (list #'named-let 'doit `((a ,a)
+                              (b ,b))
+          '(cond ((and (stringp a) (stringp b))
+                  (ert-equal-including-properties a b))
+                 ((and (sequencep a) (sequencep b) (= (length a) (length b)))
+                  (seq-every-p (pcase-lambda (`(,a . ,b)) (doit a b))
+                               (cl-mapcar #'cons a b)))
+                 (t (equal a b))))))
+
+(defmacro erc-tests-common-with-global-modules (module &rest body)
+  "Run BODY with entry state for global MODULE(s) restored on exit."
+  (declare (indent 1))
+  (if (consp module)
+      ;; Flattening this would make stack traces less noisy but would
+      ;; also neglect modules that require one another.  However, as
+      ;; yet, there are no global modules that do this.
+      (setq body `(erc-tests-common-with-global-modules
+                      ,(erc--solo (cdr module))
+                    ,@body)
+            module (car module))
+    (setq body (macroexp-progn body)
+          module (erc--normalize-module-symbol module)))
+  (let ((mode-symbol (intern (concat "erc-" (symbol-name module) "-mode")))
+        (value-var (make-symbol "value")))
+    `(let ((,value-var (bound-and-true-p ,mode-symbol)))
+       (unwind-protect
+           (let ((erc-modules erc-modules))
+             ,body)
+         (unless (eq ,value-var (bound-and-true-p ,mode-symbol))
+           (let ((erc--inside-mode-toggle-p t))
+             (funcall #',mode-symbol (if ,value-var +1 -1))))))))
+
+(defvar erc-tests-common-frozen-options
+  '(erc-modules
+    erc-mode-map
+    erc-mode-hook
+    erc-insert-pre-hook
+    erc-insert-modify-hook
+    erc-insert-post-hook
+    erc-insert-done-hook
+    erc-pre-send-functions
+    erc-send-modify-hook
+    erc-send-post-hook
+    erc-send-completed-hook)
+  "Common insert-hook options and related variables.")
+
+(defmacro erc-tests-common-with-frozen-options (&rest body)
+  "Save and compare snapshot of insert-hook options around BODY."
+  (let ((values-var (make-symbol "values")))
+    `(let ((,values-var ()))
+       (dolist (sym erc-tests-common-frozen-options)
+         (push (cons sym (sxhash-equal (symbol-value sym))) ,values-var))
+       (prog1 (progn ,@body)
+         (dolist (item ,values-var)
+           (let ((value (symbol-value (car item))))
+             (ert-info ((format "Option %S" (list :s (car item) :v value)))
+               (should (equal (sxhash-equal value) (cdr item))))))))))
 
 ;; Caller should probably shadow `erc-insert-modify-hook' or populate
 ;; user tables for erc-button.
@@ -94,6 +149,13 @@ Assign the result to `erc-server-process' in the current buffer."
           (when (buffer-live-p buf)
             (kill-buffer buf)))))))
 
+;; Note that this fixture is relatively low level.  It's not needed
+;; merely to call `erc-send-current-line' without emitting anything to
+;; the fake server process because the send queue won't run before the
+;; test exits.  If that's ever not the case, such as when waiting with
+;; `sit-for' or similar after `erc-server-send' has run, you can
+;; suppress `erc-server-send-queue' by binding `erc-server-flood-margin'
+;; to a large negative number.
 (defun erc-tests-common-with-process-input-spy (test-fn)
   "Mock `erc-process-input-line' and call TEST-FN.
 Shadow `erc--input-review-functions' and `erc-pre-send-functions'
@@ -126,7 +188,7 @@ recently passed to the mocked `erc-process-input-line'.  Make
   "Return a server buffer named NAME, creating it if necessary.
 Use NAME for the network and the session server as well."
   (with-current-buffer (if name
-                           (get-buffer-create name)
+                           (setq name (buffer-name (get-buffer-create name)))
                          (and (string-search "temp" (buffer-name))
                               (setq name "foonet")
                               (buffer-name)))
@@ -247,13 +309,9 @@ For simplicity, assume string evaluates to itself."
 ;; `erc-tests-common-assert-get-inserted-msg/basic', to work.
 (defun erc-tests-common-assert-get-inserted-msg-readonly-with
     (assert-fn test-fn)
-  (defvar erc-readonly-mode)
-  (defvar erc-readonly-mode-hook)
-  (let ((erc-readonly-mode nil)
-        (erc-readonly-mode-hook nil)
-        (erc-send-post-hook erc-send-post-hook)
-        (erc-insert-post-hook erc-insert-post-hook))
-    (erc-readonly-mode +1)
+  (erc-tests-common-with-global-modules readonly
+    (let ((erc--inside-mode-toggle-p t))
+      (erc-readonly-mode +1))
     (funcall assert-fn test-fn)))
 
 (defun erc-tests--common-display-message (orig &rest args)
