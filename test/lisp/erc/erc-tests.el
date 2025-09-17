@@ -3602,8 +3602,7 @@
         (should-not calls))
 
       (ert-info ("Known network, existing chan with key")
-        (save-excursion
-          (with-current-buffer "foonet" (erc--open-target "#chan")))
+        (with-current-buffer "foonet" (erc--open-target "#chan"))
         (erc-handle-irc-url "irc.foonet.org" nil "#chan?sec" nil nil "irc")
         (should (equal '("#chan" "sec") (pop calls)))
         (should-not calls))
@@ -3685,12 +3684,45 @@
       (should (= 0 (erc-channel-user-status u))))))
 
 (defconst erc-tests--modules
-  '( autoaway autojoin bufbar button capab-identify
-     command-indicator completion dcc fill identd
-     imenu irccontrols keep-place list log match menu move-to-prompt netsplit
-     networks nickbar nicks noncommands notifications notify page readonly
-     replace ring sasl scrolltobottom services smiley sound
-     spelling stamp track truncate unmorse xdcc))
+  '(autoaway
+    autojoin
+    bufbar
+    button
+    capab-identify
+    command-indicator
+    completion
+    dcc
+    fill
+    identd
+    imenu
+    irccontrols
+    keep-place
+    list log
+    match
+    menu
+    move-to-prompt
+    netsplit
+    networks
+    nickbar
+    nicks
+    noncommands
+    notifications
+    notify
+    page
+    readonly
+    replace
+    ring
+    sasl
+    scrolltobottom
+    services
+    smiley
+    sound
+    spelling
+    stamp
+    track
+    truncate
+    unmorse
+    xdcc))
 
 ;; Ensure that `:initialize' doesn't change the ordering of the
 ;; members because otherwise the widget's state is "edited".

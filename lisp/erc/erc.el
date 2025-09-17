@@ -3749,7 +3749,8 @@ the inserted version of STRING."
          (new (and before (erc--solo (cl-intersection b a)))))
     (when new
       (erc--remove-from-prop-value-list (1- (point)) (point) 'invisible a))
-    (prog1 (insert-before-markers string)
+    (progn
+      (insert-before-markers string)
       (when new
         (erc--merge-prop (1- (point)) (point) 'invisible new)))))
 

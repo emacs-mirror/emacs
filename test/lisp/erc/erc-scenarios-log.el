@@ -28,8 +28,7 @@
 
 (require 'erc-log)
 (require 'erc-truncate)
-
-(defvar erc-timestamp-format-left)
+(require 'erc-stamp)
 
 (ert-deftest erc-scenarios-log--kill-hook ()
   :tags '(:expensive-test)
@@ -326,9 +325,6 @@
      (lambda (expect)
        (funcall expect 1 "loathed enemy")
        (funcall expect -0.001 "please your lordship")))))
-
-(defvar erc-insert-timestamp-function)
-(declare-function erc-insert-timestamp-left "erc-stamp" (string))
 
 (ert-deftest erc-scenarios-log--save-buffer-in-logs/truncate-on-save ()
   :tags '(:expensive-test)

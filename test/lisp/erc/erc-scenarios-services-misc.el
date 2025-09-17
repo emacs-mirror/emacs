@@ -24,8 +24,7 @@
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-scenarios-common)))
 
-(eval-when-compile (require 'erc-join)
-                   (require 'erc-services))
+(require 'erc-services)
 
 (ert-deftest erc-scenarios-services-password ()
   :tags '(:expensive-test)

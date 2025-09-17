@@ -26,6 +26,8 @@
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-scenarios-common)))
 
+(require 'erc-join)
+
 ;; This module uses the list `erc-join--requested-channels' to detect
 ;; whether a JOIN response was likely triggered by an outgoing JOIN
 ;; emitted on behalf of `erc-autojoin-channels-alist'.  When a related

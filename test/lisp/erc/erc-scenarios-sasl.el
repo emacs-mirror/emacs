@@ -149,8 +149,6 @@
        (erc-modules (cons 'sasl erc-modules))
        (erc-sasl-password "wrong")
        (erc-sasl-mechanism 'plain)
-       (erc--warnings-buffer-name  "*ERC test warnings*")
-       (warnings-buffer (get-buffer-create erc--warnings-buffer-name))
        (inhibit-message noninteractive)
        (expect (erc-d-t-make-expecter)))
 
@@ -164,7 +162,7 @@
       (funcall expect 20 "Connection failed!")
       (should-not (erc-server-process-alive)))
 
-    (with-current-buffer warnings-buffer
+    (with-current-buffer "*ERC test warnings*"
       (funcall expect 10 "please review SASL settings")))
 
   (when noninteractive

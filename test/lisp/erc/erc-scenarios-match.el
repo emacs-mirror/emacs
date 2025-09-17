@@ -24,10 +24,7 @@
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-scenarios-common)))
 
-(eval-when-compile
-  (require 'erc-join)
-  (require 'erc-match))
-
+(require 'erc-match)
 (require 'erc-stamp)
 (require 'erc-fill)
 
