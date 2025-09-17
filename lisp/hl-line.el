@@ -88,9 +88,9 @@ when `global-hl-line-sticky-flag' is non-nil.")
 	 (dolist (buffer (buffer-list))
 	   (with-current-buffer buffer
 	     (when (overlayp hl-line-overlay)
-	       (overlay-put hl-line-overlay 'face hl-line-face))))
-	 (when (overlayp global-hl-line-overlay)
-	   (overlay-put global-hl-line-overlay 'face hl-line-face))))
+	       (overlay-put hl-line-overlay 'face hl-line-face))
+	     (when (overlayp global-hl-line-overlay)
+	       (overlay-put global-hl-line-overlay 'face hl-line-face))))))
 
 (defcustom hl-line-sticky-flag t
   "Non-nil means the HL-Line mode highlight appears in all windows.
@@ -310,10 +310,12 @@ on `post-command-hook'."
   "Maybe deactivate the Global-Hl-Line overlay on the current line.
 Specifically, when `global-hl-line-sticky-flag' is nil deactivate
 all such overlays in all buffers except the current one."
+  (setq global-hl-line-overlays
+        (seq-remove (lambda (ov) (not (overlay-buffer ov)))
+                    global-hl-line-overlays))
   (mapc (lambda (ov)
 	  (let ((ovb (overlay-buffer ov)))
             (when (and (not global-hl-line-sticky-flag)
-                       (bufferp ovb)
                        (not (eq ovb (current-buffer)))
                        (not (minibufferp)))
 	      (with-current-buffer ovb
