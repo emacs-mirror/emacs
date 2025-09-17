@@ -1328,7 +1328,7 @@ EQ (Lisp_Object x, Lisp_Object y)
 {
   if (BASE_EQ (x, y))
     return true;
-  else if (!symbols_with_pos_enabled)
+  else if (!__builtin_expect (symbols_with_pos_enabled, false))
     return false;
   else
     return slow_eq (x, y);
