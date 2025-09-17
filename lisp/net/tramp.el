@@ -7422,6 +7422,10 @@ If VEC is `tramp-null-hop', return local null device."
 
 (run-hooks 'tramp--startup-hook)
 (setq tramp--startup-hook nil)
+;; Native compilation uses `expand-file-name'.  This can result loading
+;; "*.eln" files in an infloop, when `default-directory' is remote.
+;; Prevent this.
+(require 'tramp-cache)
 
 ;;; TODO:
 ;;
