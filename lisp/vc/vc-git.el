@@ -1109,12 +1109,6 @@ It is based on `log-edit-mode', and has Git-specific extensions."
 	      (1 'vc-git-log-edit-summary-target-warning prepend t)
               (2 'vc-git-log-edit-summary-max-warning prepend t))))))
 
-(defvar vc-git-patch-string nil)
-
-(defun vc-git-checkin-patch (patch-string comment)
-  (let ((vc-git-patch-string patch-string))
-    (vc-git-checkin nil comment)))
-
 (autoload 'vc-switches "vc")
 
 (defun vc-git--log-edit-extract-headers (comment)
@@ -1143,7 +1137,12 @@ It is based on `log-edit-mode', and has Git-specific extensions."
 
 (defalias 'vc-git-async-checkins #'always)
 
-(defun vc-git-checkin (files comment &optional _rev)
+(defun vc-git--checkin (comment &optional files patch-string)
+  "Workhorse routine for `vc-git-checkin' and `vc-git-checkin-patch'.
+COMMENT is the commit message.
+For a regular checkin, FILES is the list of files to check in.
+To check in a patch, PATCH-STRING is the patch text.
+It is an error to supply both or neither."
   (let* ((file1 (or (car files) default-directory))
          (root (vc-git-root file1))
          (default-directory (expand-file-name root))
@@ -1167,7 +1166,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                                            default-directory)))
                 (make-nearby-temp-file "git-msg"))))
          to-stash)
-    (when vc-git-patch-string
+    (when patch-string
       (unless (zerop (vc-git-command nil t nil "diff" "--cached" "--quiet"))
         ;; Check that what's already staged is compatible with what
         ;; we want to commit (bug#60126).
@@ -1200,23 +1199,23 @@ It is based on `log-edit-mode', and has Git-specific extensions."
               (when (and (looking-at "^diff --git a/\\(.+\\) b/\\(.+\\)")
                          (string= (match-string 1) (match-string 2)))
                 (setq file-name (match-string 1)))
-              (forward-line 1) ; skip current "diff --git" line
+              (forward-line 1)          ; skip current "diff --git" line
               (setq file-header (buffer-substring pos (point)))
               (search-forward "diff --git" nil 'move)
               (move-beginning-of-line 1)
               (setq file-diff (buffer-substring pos (point)))
-              (cond ((and (setq file-beg (string-search
-                                          file-diff vc-git-patch-string))
+              (cond ((and (setq file-beg
+                                (string-search file-diff patch-string))
                           ;; Check that file diff ends with an empty string
                           ;; or the beginning of the next file diff.
                           (string-match-p "\\`\\'\\|\\`diff --git"
-                                          (substring
-                                           vc-git-patch-string
-                                           (+ file-beg (length file-diff)))))
-                     (setq vc-git-patch-string
-                           (string-replace file-diff "" vc-git-patch-string)))
+                                          (substring patch-string
+                                                     (+ file-beg
+                                                        (length file-diff)))))
+                     (setq patch-string
+                           (string-replace file-diff "" patch-string)))
                     ((string-match (format "^%s" (regexp-quote file-header))
-                                   vc-git-patch-string)
+                                   patch-string)
                      (if (and file-name
                               (yes-or-no-p
                                (format "Unstage already-staged changes to %s?"
@@ -1225,7 +1224,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                        (user-error "Index not empty")))
                     (t (push file-name to-stash)))
               (setq pos (point))))))
-      (unless (string-empty-p vc-git-patch-string)
+      (unless (string-empty-p patch-string)
         (let (;; Temporarily countermand the let-binding at the
               ;; beginning of this function.
               (coding-system-for-write
@@ -1236,9 +1235,9 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                 (or pcsw vc-git-commits-coding-system) 'unix)))
           (vc-git--with-apply-temp-to-staging patch
             (with-temp-file patch
-              (insert vc-git-patch-string)))))
+              (insert patch-string)))))
       (when to-stash (vc-git--stash-staged-changes to-stash)))
-    (let ((files (and only (not vc-git-patch-string) files))
+    (let ((files (and only (not patch-string) files))
           (args (vc-git--log-edit-extract-headers comment))
           (buffer (format "*vc-git : %s*" (expand-file-name root)))
           (post
@@ -1262,7 +1261,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                         ;; When operating on the whole tree, better pass
                         ;; "-a" than ".", since "."  fails when we're
                         ;; committing a merge.
-                        (and (not vc-git-patch-string)
+                        (and (not patch-string)
                              (if only (list "--only" "--") '("-a")))))
       (if vc-async-checkin
           (progn (vc-wait-for-process-before-save
@@ -1277,6 +1276,15 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                  (list 'async (get-buffer-process buffer)))
         (apply #'vc-git-command nil 0 files args)
         (funcall post)))))
+
+(defun vc-git-checkin-patch (patch-string comment)
+  "Git-specific version of `vc-BACKEND-checkin-patch'."
+  (vc-git--checkin comment nil patch-string))
+
+(defun vc-git-checkin (files comment &optional _rev)
+  "Git-specific version of `vc-BACKEND-checkin'.
+REV is ignored."
+  (vc-git--checkin comment files nil))
 
 (defun vc-git--stash-staged-changes (files)
   "Stash only the staged changes to FILES."
