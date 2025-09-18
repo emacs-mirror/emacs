@@ -4926,27 +4926,35 @@ really know what you are doing!  */)
    512 MB and a mortality of 0.2. */
 
 static bool
-read_gens (mps_gen_param_s **gens, int *ngens)
+read_gens (size_t *ngens, mps_gen_param_s parms[*ngens])
 {
   const char *env = getenv ("EMACS_IGC_GENS");
   if (env == NULL)
     return false;
   const char *end = env + strlen (env);
-  static struct mps_gen_param_s parms[10];
+  const size_t len = *ngens;
   *ngens = 0;
-  *gens = parms;
-  for (int i = 0; i < ARRAYELTS (parms) && env < end; ++i)
+  for (size_t i = 0; i < len && env < end; ++i)
     {
       int nchars;
       if (sscanf (env, "%zu %lf%n", &parms[i].mps_capacity,
-                 &parms[i].mps_mortality, &nchars) == 2)
-       {
-         env += nchars;
-         ++*ngens;
-       }
+		  &parms[i].mps_mortality, &nchars)
+	  == 2)
+	{
+	  env += nchars;
+	  *ngens = i + 1;
+	}
+      else
+	goto parse_error;
     }
 
-  return true;
+  if (*ngens > 0 && env == end)
+    return true;
+
+ parse_error:
+  fprintf (stderr, "Couldn't parse EMACS_IGC_GENS: %s\n",
+	   getenv ("EMACS_IGC_GENS"));
+  emacs_abort ();
 }
 
 /* Read GC maximum pause time from environment variable
@@ -5002,22 +5010,24 @@ make_arena (struct igc *gc)
   MPS_ARGS_END (args);
   IGC_CHECK_RES (res);
 
-  mps_gen_param_s *gens;
-  int ngens;
-  if (!read_gens (&gens, &ngens))
+  size_t ngens = 10;
+  mps_gen_param_s gens[ngens];
+  if (!read_gens (&ngens, gens))
     {
-      static mps_gen_param_s default_gens[] = { { 128000, 0.8 }, { 5 * 128000, 0.4 } };
-      gens = default_gens;
+      static const mps_gen_param_s default_gens[]
+	= { { 128000, 0.8 }, { 5 * 128000, 0.4 } };
+      memcpy (gens, default_gens, sizeof (default_gens));
       ngens = ARRAYELTS (default_gens);
     }
 
   if (getenv ("EMACS_IGC_VERBOSE"))
     {
       for (int i = 0; i < ngens; ++i)
-       fprintf (stderr, "gen %d: %zu %lf\n", i, gens[i].mps_capacity,
-                gens[i].mps_mortality);
+	fprintf (stderr, "gen %d: %zu %lf\n", i, gens[i].mps_capacity,
+		 gens[i].mps_mortality);
       fprintf (stderr, "pause time %lf\n", mps_arena_pause_time (gc->arena));
-      fprintf (stderr, "commit limit %zu\n", mps_arena_commit_limit (gc->arena));
+      fprintf (stderr, "commit limit %zu\n",
+	       mps_arena_commit_limit (gc->arena));
     }
 
   res = mps_chain_create (&gc->chain, gc->arena, ngens, gens);
