@@ -526,7 +526,6 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
     for (ptrdiff_t i = nargs - rest; i < nonrest; i++)
       PUSH (Qnil);
 
-  unsigned char volatile saved_quitcounter;
 #if GCC_LINT && __GNUC__ && !__clang__
   Lisp_Object *volatile saved_vectorp;
   unsigned char const *volatile saved_bytestr_data;
@@ -960,7 +959,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 
 	    if (sys_setjmp (c->jmp))
 	      {
-		quitcounter = saved_quitcounter;
+		quitcounter = 1;   /* no need to restore old value */
 		struct handler *c = handlerlist;
 		handlerlist = c->next;
 		top = c->bytecode_top;
@@ -990,7 +989,6 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		goto op_branch;
 	      }
 
-	    saved_quitcounter = quitcounter;
 #if GCC_LINT && __GNUC__ && !__clang__
 	    saved_vectorp = vectorp;
 	    saved_bytestr_data = bytestr_data;
