@@ -959,7 +959,9 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 
 	    if (sys_setjmp (c->jmp))
 	      {
-		quitcounter = 1;   /* no need to restore old value */
+		/* No need to restore old quitcounter; just check at the next
+		   backward branch.  */
+		quitcounter = (unsigned char)-1;
 		struct handler *c = handlerlist;
 		handlerlist = c->next;
 		top = c->bytecode_top;
