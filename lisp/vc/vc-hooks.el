@@ -31,6 +31,12 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(declare-function vc-diff-outgoing-base "vc" (&optional upstream-location fileset))
+(declare-function vc-root-diff-outgoing-base "vc" (&optional upstream-location))
+(declare-function vc-apply-to-other-working-tree "vc" (directory &optional move))
+(declare-function vc-apply-root-to-other-working-tree "vc"
+                  (directory &optional move preview))
+
 ;; Faces
 
 (defgroup vc-faces nil
