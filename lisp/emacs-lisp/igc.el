@@ -394,8 +394,11 @@ Used in calls to `format-time-string'.")
 (defvar igc--idle-timer nil
   "Idle timer to trigger oppurtunistic GC.")
 
-(defvar igc--idle-delay 2.0
+(defvar igc--idle-delay 1.0
   "Time, in seconds, to wait for `igc--idle-timer'.")
+
+(defvar igc--idle-repetitions 6
+  "How many times to wait.")
 
 (defvar igc--step-interval 0.01
   "Time, in seconds, MPS is allowed to use for one step.")
@@ -403,24 +406,52 @@ Used in calls to `format-time-string'.")
 ;;;###autoload
 (defun igc-start-idle-timer ()
   "Start a timer to do GC work while Emacs is idle."
+  (cl-assert (< igc--step-interval igc--idle-delay))
   (when igc--idle-timer
     (cancel-timer igc--idle-timer))
   (setq igc--idle-timer
-        (run-with-idle-timer igc--idle-delay t #'igc--on-idle)))
+        (run-with-idle-timer igc--idle-delay t
+                             #'igc--on-idle (vector nil) 0)))
+
+(defun igc--current-idle-time ()
+  (let ((idle-time (current-idle-time)))
+    (if idle-time (float-time idle-time) 0)))
 
 (defun igc--predict-idle-time ()
-  (* igc--idle-delay 0.66))
+  (* (igc--current-idle-time) 0.80))
 
-(defun igc--on-idle ()
+;; The igc-idle-timer works a bit like the blink-cursor-timer.  It can
+;; call 'gc--on-idle' multiple times per idle cycle either until some GC
+;; work is done or until `igc--idle-repetitions' is reached.  We do this
+;; because our idle time prediction primarily depends on the
+;; `current-idle-time', i.e. our predicted idle time gets larger the
+;; larger `current-idle-time' gets.
+;;
+;; We try to recover from too optimistic predictions quicky, by calling
+;; `igc--arena-step' with a relatively short `igc--step-interval' and
+;; use `accept-process-output' to check if some output arrived, before
+;; calling 'igc--arena-step' again.
+
+(defun igc--on-idle (state repetition)
+  (let ((timer2 (aref state 0)))
+    (when timer2
+      (cancel-timer timer2)))
   (let* ((available-time (igc--predict-idle-time))
          (interval igc--step-interval)
          (multiplier (floor (/ available-time interval))))
     (named-let step ((n multiplier))
       (let* ((work-to-do (igc--arena-step interval n)))
-        (when (and work-to-do
-                   (> n 0)
-                   (not (accept-process-output nil 0)))
-          (step (1- n)))))))
+        (cond ((and work-to-do
+                    (> n 0)
+                    (not (accept-process-output nil 0)))
+               (step (1- n)))
+              ((and (not work-to-do)
+                    (= n multiplier)
+                    (< repetition igc--idle-repetitions))
+               (aset state 0 (run-with-idle-timer
+                              (+ (igc--current-idle-time)
+                                 (* igc--idle-delay (ash 1 repetition)))
+                              nil #'igc--on-idle state (1+ repetition)))))))))
 
 (provide 'igc)
 
