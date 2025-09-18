@@ -261,7 +261,7 @@ NODE and PARENT are ignored."
 
 (defvar mhtml-ts-mode--treesit-font-lock-settings
   (append html-ts-mode--font-lock-settings
-          js--treesit-font-lock-settings
+          (js--treesit-font-lock-settings)
           ;; Let's replace a css rule with a new one that adds color to
           ;; the css value.
           (treesit-replace-font-lock-feature-settings
@@ -308,7 +308,7 @@ NODE and PARENT are ignored."
             `((javascript ((parent-is "program")
                            mhtml-ts-mode--js-css-tag-bol
                            mhtml-ts-mode--js-css-indent-offset)))
-            js--treesit-indent-rules
+            (js--treesit-indent-rules)
             :replace)
            (treesit-simple-indent-modify-rules
             'css
