@@ -961,7 +961,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	      {
 		/* No need to restore old quitcounter; just check at the next
 		   backward branch.  */
-		quitcounter = (unsigned char) -1;
+		quitcounter = (unsigned char)-1;
 		struct handler *c = handlerlist;
 		handlerlist = c->next;
 		top = c->bytecode_top;
