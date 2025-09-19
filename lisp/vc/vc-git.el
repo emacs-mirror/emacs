@@ -1143,6 +1143,8 @@ COMMENT is the commit message.
 For a regular checkin, FILES is the list of files to check in.
 To check in a patch, PATCH-STRING is the patch text.
 It is an error to supply both or neither."
+  (unless (xor files patch-string)
+    (error "Invalid call to `vc-hg--checkin'"))
   (let* ((file1 (or (car files) default-directory))
          (root (vc-git-root file1))
          (default-directory (expand-file-name root))
