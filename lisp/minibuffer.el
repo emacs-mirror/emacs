@@ -5425,6 +5425,7 @@ The latter is implemented in `touch-screen.el'."
 (add-hook 'minibuffer-setup-hook #'minibuffer-setup-on-screen-keyboard)
 (add-hook 'minibuffer-exit-hook #'minibuffer-exit-on-screen-keyboard)
 
+
 (defvar minibuffer-regexp-mode)
 
 (defun minibuffer--regexp-propertize ()
@@ -5595,6 +5596,50 @@ interactions is customizable via `minibuffer-regexp-prompts'."
     (remove-hook 'minibuffer-setup-hook #'minibuffer--regexp-setup)
     (remove-hook 'minibuffer-exit-hook #'minibuffer--regexp-exit)))
 
+
+(defface minibuffer-nonselected
+  '((t (:background "yellow" :foreground "dark red" :weight bold)))
+  "Face for non-selected minibuffer prompts.
+It's displayed on the minibuffer window when the minibuffer
+remains active, but the minibuffer window is no longer selected."
+  :version "31.1")
+
+(defvar-local minibuffer-nonselected-overlay nil)
+
+(defun minibuffer-nonselected-check (window)
+  "Check if the active minibuffer's window is no longer selected.
+Use overlay to highlight the minibuffer window when another window
+is selected.  But don't warn in case when the *Completions* window
+becomes selected."
+  (if (eq window (selected-window))
+      (when (overlayp minibuffer-nonselected-overlay)
+        (delete-overlay minibuffer-nonselected-overlay))
+    (unless (eq major-mode 'completion-list-mode)
+      (with-current-buffer (window-buffer window)
+        (let ((ov (make-overlay (point-min) (point-max))))
+          (overlay-put ov 'face 'minibuffer-nonselected)
+          (overlay-put ov 'window window)
+          (overlay-put ov 'evaporate t)
+          (setq minibuffer-nonselected-overlay ov))))))
+
+(defun minibuffer-nonselected-setup ()
+  (add-hook 'window-selection-change-functions
+            'minibuffer-nonselected-check nil t))
+
+(define-minor-mode minibuffer-nonselected-mode
+  "Minor mode to warn about non-selected active minibuffer.
+Use the face `minibuffer-nonselected' to highlight the minibuffer
+window when the minibuffer remains active, but the minibuffer window
+is no longer selected."
+  :global t
+  :initialize 'custom-initialize-delay
+  :init-value t
+  :version "31.1"
+  (if minibuffer-nonselected-mode
+      (add-hook 'minibuffer-setup-hook #'minibuffer-nonselected-setup)
+    (remove-hook 'minibuffer-setup-hook #'minibuffer-nonselected-setup)))
+
+
 (provide 'minibuffer)
 
 ;;; minibuffer.el ends here

@@ -253,6 +253,13 @@ that your popup interface uses for a more integrated experience.
 ('completion-preview-sort-function' was already present in Emacs 30.1,
 but as a plain Lisp variable, not a user option.)
 
+---
+*** New mode 'minibuffer-nonselected-mode'.
+This mode enabled by default directs the attention to the active
+minibuffer window using the 'minibuffer-nonselected' face in case
+when the minibuffer window is no longer selected, but the minibuffer
+is still waiting for input.
+
 ** Mouse
 
 *** New mode 'mouse-shift-adjust-mode' extends selection with 'S-<mouse-1>'.
