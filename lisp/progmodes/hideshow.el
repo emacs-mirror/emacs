@@ -39,6 +39,8 @@
 ;;   `hs-toggle-hiding'                   C-c @ C-c
 ;;   `hs-toggle-hiding'                   S-<mouse-2>
 ;;   `hs-hide-initial-comment-block'
+;;   `hs-cycle'                           C-c @ TAB
+;;   `hs-toggle-all'                      C-c @ <backtab>
 ;;
 ;; All these commands are defined in `hs-prefix-map',
 ;; `hs-minor-mode-map' and `hs-indicators-map'.
@@ -504,16 +506,18 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
   :doc "Keymap for hideshow commands."
   :prefix t
   ;; These bindings roughly imitate those used by Outline mode.
-  "C-h"   #'hs-hide-block
-  "C-s"   #'hs-show-block
-  "C-M-h" #'hs-hide-all
-  "C-M-s" #'hs-show-all
-  "C-l"   #'hs-hide-level
-  "C-c"   #'hs-toggle-hiding
-  "C-a"   #'hs-show-all
-  "C-t"   #'hs-hide-all
-  "C-d"   #'hs-hide-block
-  "C-e"   #'hs-toggle-hiding)
+  "C-h"       #'hs-hide-block
+  "C-d"       #'hs-hide-block
+  "C-s"       #'hs-show-block
+  "C-M-h"     #'hs-hide-all
+  "C-t"       #'hs-hide-all
+  "C-M-s"     #'hs-show-all
+  "C-a"       #'hs-show-all
+  "C-l"       #'hs-hide-level
+  "C-c"       #'hs-toggle-hiding
+  "C-e"       #'hs-toggle-hiding
+  "TAB"       #'hs-cycle
+  "<backtab>" #'hs-toggle-all)
 
 (defvar-keymap hs-minor-mode-map
   :doc "Keymap for hideshow minor mode."
@@ -588,6 +592,8 @@ to the variable `mode-line-format'.  For example,
           (append \\='(\"-\" hs-headline) mode-line-format)))
 
 Note that `mode-line-format' is buffer-local.")
+
+(defvar-local hs--toggle-all-state)
 
 ;;---------------------------------------------------------------------------
 ;; API variables
@@ -1057,6 +1063,34 @@ first block found.  Otherwise, if no block is found, it returns nil."
                     t))))
     exit))
 
+(defun hs-get-near-block (&optional include-comment)
+  "Reposition point to a near block around point.
+It search for a valid block before and after point and return t if one
+is found.
+
+If INCLUDE-COMMENT is non-nil, it also searches for a comment block,
+returning `comment' if one is found."
+  (let ((c-reg (when include-comment (funcall hs-inside-comment-predicate)))
+        pos)
+    (cond
+     ((and c-reg (car c-reg) (hs-hideable-region-p
+                              (car c-reg) (cadr c-reg)))
+      (goto-char (car c-reg))
+      'comment)
+
+     ((and (eq hs-hide-block-behavior 'after-bol)
+           (save-excursion
+             (goto-char (line-beginning-position))
+             (setq pos (hs-get-first-block))))
+      (goto-char pos)
+      t)
+
+     ((and (or (funcall hs-looking-at-block-start-predicate)
+               (and (goto-char (line-beginning-position))
+                    (funcall hs-find-block-beginning-function)))
+           (hs-hideable-region-p))
+      t))))
+
 (defun hs-inside-comment-p ()
   (declare (obsolete "Call `hs-inside-comment-predicate' instead." "31.1"))
   (funcall hs-inside-comment-predicate))
@@ -1184,26 +1218,35 @@ region (point MAXP)."
   (and (< (point) maxp)
        (re-search-forward regexp maxp t)))
 
-(defun hs-hide-level-recursive (arg minp maxp)
-  "Recursively hide blocks ARG levels below point in region (MINP MAXP)."
+(defun hs-hide-level-recursive (arg &optional beg end)
+  "Recursively hide blocks between BEG and END that are ARG levels below point.
+If BEG and END are not specified, it will search for a near block and
+use its position instead.
+
+If point is inside a block, it will use the current block positions
+instead of BEG and END."
+  ;; If we are near of a block, set BEG and END according to that
+  ;; block positions.
   (when (funcall hs-find-block-beginning-function)
-    (setq minp (1+ (point)))
-    (funcall hs-forward-sexp-function 1)
-    (setq maxp (1- (point))))
-  (unless hs-allow-nesting
-    (hs-discard-overlays minp maxp))
-  (goto-char minp)
-  (while (funcall hs-find-next-block-function hs-block-start-regexp maxp nil)
-    (when (save-match-data
-	    (not (nth 8 (syntax-ppss)))) ; not inside comments or strings
-      (if (> arg 1)
-	  (hs-hide-level-recursive (1- arg) minp maxp)
-        ;; `hs-hide-block-at-point' already moves the cursor, but if it
-        ;; fails, return to the previous position where we were.
-	(unless (and (goto-char (match-beginning hs-block-start-mdata-select))
-	             (hs-hide-block-at-point t))
-            (goto-char (match-end hs-block-start-mdata-select))))))
-  (goto-char maxp))
+    (let ((block (hs-block-positions)))
+      (setq beg (point) end (cadr block))))
+
+  ;; Show all blocks in that region
+  (unless hs-allow-nesting (hs-discard-overlays beg end))
+
+  ;; Skip initial block
+  (goto-char (1+ beg))
+
+  (while (funcall hs-find-next-block-function hs-block-start-regexp end nil)
+    (if (> arg 1)
+	(hs-hide-level-recursive (1- arg))
+      ;; `hs-hide-block-at-point' already moves the cursor, but if it
+      ;; fails, return to the previous position where we were.
+      (unless (and (goto-char (match-beginning hs-block-start-mdata-select))
+	           (hs-hide-block-at-point t))
+        (goto-char (match-end hs-block-start-mdata-select)))))
+
+  (goto-char end))
 
 (defmacro hs-life-goes-on (&rest body)
   "Evaluate BODY forms if variable `hs-minor-mode' is non-nil.
@@ -1331,17 +1374,7 @@ Upon completion, point is repositioned and the normal hook
 
       (c-reg (hs-hide-block-at-point end c-reg))
 
-      ((save-excursion
-         (and-let* ((_ (eq hs-hide-block-behavior 'after-bol))
-                    (_ (goto-char (line-beginning-position)))
-                    (pos (hs-get-first-block))
-                    (_ (goto-char pos))
-                    (_ (hs-hide-block-at-point end))))))
-
-      ((or (funcall hs-looking-at-block-start-predicate)
-           (and (goto-char (line-beginning-position))
-                (funcall hs-find-block-beginning-function)))
-       (hs-hide-block-at-point end)))
+      ((hs-get-near-block) (hs-hide-block-at-point)))
 
      (run-hooks 'hs-hide-hook))))
 
@@ -1441,6 +1474,56 @@ This can be useful if you have huge RCS logs in those comments."
          ;; see if we have enough comment lines to hide
          (when (hs-hideable-region-p beg end)
            (hs-hide-comment-region beg end)))))))
+
+(defun hs-cycle (&optional level)
+  "Cycle the visibility state of the current block.
+This cycles the visibility of the current block between hide the parent
+block, hide the nested blocks only, and show the parent and nested
+blocks.
+
+If LEVEL is specified (interactively, the prefix numeric argument), hide
+only blocks which are that many levels below the level of point."
+  (interactive "p")
+  (hs-life-goes-on
+   (when-let* ((ret (hs-get-near-block :include-comments)))
+     (cond ((eq ret 'comment)
+            (hs-toggle-hiding)
+            (message "Toggle visibility"))
+           ((> level 1)
+            (hs-hide-level-recursive level)
+            (message "Hide %d level" level))
+           (t
+            (let* (hs-allow-nesting
+                   (block (hs-block-positions))
+                   (ov (seq-find
+                        (lambda (o)
+                          (and (eq (overlay-get o 'invisible) 'hs)))
+                        (overlays-in (car block) (cadr block)))))
+              (cond
+               ;; Hide all if there are no hidden blocks
+               ((not ov)
+                (hs-hide-block)
+                (message "Hide block and nested blocks"))
+               ;; Hide the children blocks if the parent block is hidden
+               ((and (= (overlay-start ov) (car block))
+                     (= (overlay-end ov) (cadr block)))
+                (hs-hide-level-recursive 1)
+                (message "Hide first nested blocks"))
+               ;; Otherwise show all in the parent block, we cannot use
+               ;; `hs-show-block' here because we already know the
+               ;; positions.
+               (ov (hs-discard-overlays (car block) (cadr block))
+                   (message "Show block and nested blocks")
+                   (run-hooks 'hs-show-hook)))))))))
+
+(defun hs-toggle-all ()
+  "Hide or show all the blocks in the current buffer."
+  (interactive)
+  (if hs--toggle-all-state
+      (let (hs-allow-nesting)
+        (hs-discard-overlays (point-min) (point-max)))
+    (hs-hide-all))
+  (setq-local hs--toggle-all-state (not hs--toggle-all-state)))
 
 ;;;###autoload
 (define-minor-mode hs-minor-mode

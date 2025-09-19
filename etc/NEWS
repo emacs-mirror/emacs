@@ -1093,6 +1093,16 @@ convention (regexp arg second) and Emacs convention (regexp arg first).
 ** Hideshow
 
 +++
+*** New command 'hs-cycle'.
+This command cycles the visibility state of the current block between
+hide the parent block, hide the nested blocks only and show all the
+blocks.
+
++++
+*** New command 'hs-toggle-all'.
+This command hide or show all the blocks in the current buffer.
+
++++
 *** New user option 'hs-display-lines-hidden'.
 If this option is non-nil, Hideshow displays the number of hidden lines
 next to the ellipsis.  By default this is disabled.

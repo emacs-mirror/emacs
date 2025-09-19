@@ -1699,6 +1699,7 @@ count as blocks.
 @findex hs-show-region
 @findex hs-hide-level
 @findex hs-toggle-hiding
+@findex hs-cycle
 @kindex C-c @@ C-h
 @kindex C-c @@ C-s
 @kindex C-c @@ C-c
@@ -1706,6 +1707,8 @@ count as blocks.
 @kindex C-c @@ C-M-s
 @kindex C-c @@ C-r
 @kindex C-c @@ C-l
+@kindex C-c @@ TAB
+@kindex C-c @@ <backtab>
 @kindex S-mouse-2
 @table @kbd
 @item C-c @@ C-h
@@ -1726,6 +1729,10 @@ Show all blocks in the buffer (@code{hs-show-all}).
 @item C-u @var{n} C-c @@ C-l
 Hide all blocks @var{n} levels below this block
 (@code{hs-hide-level}).
+@item C-c @@ TAB
+Cycle the visibility state of the current block (@code{hs-cycle}).
+@item C-c @@ <backtab>
+Either hide or show all the blocks in the current buffer. (@code{hs-toggle-all}).
 @end table
 
 @vindex hs-hide-comments-when-hiding-all
