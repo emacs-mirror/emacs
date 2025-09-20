@@ -3949,38 +3949,11 @@ Currently there are `js-mode' and `js-ts-mode'."
   "Nodes that designate sentences in JavaScript.
 See `treesit-thing-settings' for more information.")
 
-(defvar js--treesit-sexp-nodes
-  '("expression"
-    "parenthesized_expression"
-    "formal_parameters"
-    "pattern"
-    "array"
-    "function"
-    "string"
-    "template_string"
-    "template_substitution"
-    "escape"
-    "template"
-    "regex"
-    "number"
-    "identifier"
-    "property_identifier"
-    "this"
-    "super"
-    "true"
-    "false"
-    "null"
-    "undefined"
-    "arguments"
-    "pair"
-    "jsx"
-    "statement_block"
-    "object"
-    "object_pattern"
-    "named_imports"
-    "class_body")
+(defvar js--treesit-sexp-nodes nil
   "Nodes that designate sexps in JavaScript.
 See `treesit-thing-settings' for more information.")
+(make-obsolete 'js--treesit-sexp-nodes
+               "`js--treesit-sexp-nodes' will be removed soon, use `js--treesit-thing-settings' instead." "31.1")
 
 (defvar js--treesit-list-nodes
   '("export_clause"
@@ -4011,7 +3984,13 @@ See `treesit-thing-settings' for more information.")
 
 (defvar js--treesit-thing-settings
   `((javascript
-     (sexp ,(js--regexp-opt-symbol js--treesit-sexp-nodes))
+     (sexp ,(if js--treesit-sexp-nodes
+                (js--regexp-opt-symbol js--treesit-sexp-nodes)
+              `(not (or (and named
+                             ,(rx bos (or "program" "comment") eos))
+                        (and anonymous
+                             ,(rx (or "{" "}" "[" "]"
+                                      "(" ")" ",")))))))
      (list ,(js--regexp-opt-symbol js--treesit-list-nodes))
      (sentence ,(js--regexp-opt-symbol js--treesit-sentence-nodes))
      (text ,(js--regexp-opt-symbol '("comment"
