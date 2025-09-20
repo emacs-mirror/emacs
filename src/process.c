@@ -4865,7 +4865,7 @@ deactivate_process (Lisp_Object proc)
 DEFUN ("accept-process-output", Faccept_process_output, Saccept_process_output,
        0, 4, 0,
        doc: /* Allow any pending output from subprocesses to be read by Emacs.
-It is given to their filter functions.
+The subprocess output is given to the respective process filter functions.
 Optional argument PROCESS means to return only after output is
 received from PROCESS or PROCESS closes the connection.
 
@@ -4880,7 +4880,13 @@ from PROCESS only, suspending reading output from other processes.
 If JUST-THIS-ONE is an integer, don't run any timers either.
 Return non-nil if we received any output from PROCESS (or, if PROCESS
 is nil, from any process) before the timeout expired or the
-corresponding connection was closed.  */)
+corresponding connection was closed.
+
+Note that it is not guaranteed that this function will return as
+soon as some output is received.  In particular, if PROCESS is nil,
+the function should not be expected to return before the timeout
+expires.  The main purpose of this function is to allow process output
+to be read by Emacs, not to return as soon as any output is read.  */)
   (Lisp_Object process, Lisp_Object seconds, Lisp_Object millisec,
    Lisp_Object just_this_one)
 {
