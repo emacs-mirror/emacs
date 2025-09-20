@@ -1755,7 +1755,7 @@ the indicators.
 
 @item hs-indicator-type
 This variable controls where to show the indicators, if they are
-enabled.  You can show them on the fringe (@pxref{Windows Fringes}) or
+enabled.  You can show them on the fringe (@pxref{Fringes}) or
 in the window's margin.  The default is to use the fringe if it's
 available, otherwise to use the margin.
 
