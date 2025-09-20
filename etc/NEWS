@@ -565,14 +565,6 @@ project, during completion.  That makes some items shorter.
 The category defaults are the same as for 'buffer' but any user
 customizations would need to be re-added.
 
-** Registers
-
-*** New functions 'buffer-to-register' and 'file-to-register'.
-These allow users to interactively store file and buffers in registers.
-Killed buffers stored in a register using 'buffer-to-register' are
-automatically converted to a file-query value if the buffer was visiting
-a file.
-
 ** IDLWAVE has been moved to GNU ELPA.
 The version bundled with Emacs is out-of-date, and is now marked as
 obsolete.  Use 'M-x list-packages' to install the 'idlwave' package from
@@ -795,13 +787,20 @@ with finer grained control.
 
 ** Register
 
++++
+*** New functions 'buffer-to-register' and 'file-to-register'.
+These allow users to interactively store file and buffers in registers.
+Killed buffers stored in a register using 'buffer-to-register' are
+automatically converted to a file-query value if the buffer was visiting
+a file.
+
+---
 *** The "*Register Preview*" buffer shows only suitable registers.
 That was already the case for the "fancy" UI but is now also true in
 the default UI you get, i.e., when 'register-use-preview' is 'traditional'.
 
 ---
 *** The "*Register Preview*" buffer shows sorted items.
-This is helpful a user find a non-occupied register.
 
 ** Tree-sitter
 
