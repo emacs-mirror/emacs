@@ -974,8 +974,7 @@ next to the ellipsis.  By default this is disabled.
 +++
 *** New user option 'hs-show-indicators'.
 This user option determines if hideshow should display indicators to
-toggle the block hiding.  If non-nil, the indicators are enabled in all
-blocks.
+show and toggle the block hiding.  If non-nil, the indicators are enabled.
 
 By default this is disabled.
 

@@ -1749,11 +1749,11 @@ ellipsis.
 @item hs-show-indicators
 This variable controls whether Hideshow mode should display indicators
 of hidden and shown blocks.  The indicators also allow toggling the
-hide/show state of each block. If the value is non-@code{nil}, enables
-the indicators in all blocks.  The default is @code{nil}, which disables
+hide/show state of each block.  If the value is non-@code{nil}, it enables
+the indicators.  The default is @code{nil}, which disables
 the indicators.
 
-@item hs-indicactor-type
+@item hs-indicator-type
 This variable controls where to show the indicators, if they are
 enabled.  You can show them on the fringe (@pxref{Windows Fringes}) or
 in the window's margin.  The default is to use the fringe if it's
