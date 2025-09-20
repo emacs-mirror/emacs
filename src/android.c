@@ -3709,10 +3709,11 @@ android_set_dashes (struct android_gc *gc, int dash_offset,
 					   gcontext,
 					   emacs_gc_dashes,
 					   array);
-      ANDROID_DELETE_LOCAL_REF (array);
+      gc->n_segments = n;
     }
 
-  gc->n_segments = n;
+  if (array)
+    ANDROID_DELETE_LOCAL_REF (array);
 
  set_offset:
   /* And the offset.  */
