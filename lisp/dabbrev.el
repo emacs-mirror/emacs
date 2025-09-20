@@ -400,6 +400,8 @@ then it searches *all* buffers."
 
 (defun dabbrev-capf ()
   "Dabbrev completion function for `completion-at-point-functions'."
+  (or (stringp dabbrev--abbrev-char-regexp)
+      (dabbrev--reset-global-variables))
   (let* ((abbrev (dabbrev--abbrev-at-point))
          (beg (progn (search-backward abbrev) (point)))
          (end (progn (search-forward abbrev) (point)))
