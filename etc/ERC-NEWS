@@ -12,6 +12,20 @@ extensible IRC (Internet Relay Chat) client distributed with
 GNU Emacs since Emacs version 22.1.
 
 
+* Changes in ERC 5.7
+
+** Changes in the library API.
+
+*** Local modules activate in preferred order instead of in reverse.
+In recent versions, ERC has enabled local modules in the reverse order
+of that produced by the "set" function used by 'setopt' and the Custom
+UI for the option 'erc-modules'.  Specifically, Built-in locals were
+activated in reverse lexicographic order after third-party ones, which
+were simply reversed as given.  Now, just like with global modules, ERC
+preserves the preferred order when activating local modules for new
+sessions.
+
+
 * Changes in ERC 5.6.2
 
 ** Option 'erc-log-insert-log-on-open' can be a function.

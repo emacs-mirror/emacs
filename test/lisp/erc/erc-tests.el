@@ -3990,7 +3990,7 @@ keyword :result."
 
        ;; Returns local modules.
        (should (equal (mapcar #'symbol-name (erc--update-modules erc-modules))
-                      '("erc-lo2-mode" "erc-lo1-mode")))
+                      '("erc-lo1-mode" "erc-lo2-mode")))
 
        ;; Requiring `erc-lo2' defines `erc-lo2-mode'.
        (should (equal (mapcar #'prin1-to-string (funcall get-calls))

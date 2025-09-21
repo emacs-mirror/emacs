@@ -2467,7 +2467,7 @@ invocations by third-party packages.")
 
 (defun erc--update-modules (modules)
   (let (local-modes)
-    (dolist (module modules local-modes)
+    (dolist (module modules (nreverse local-modes))
       (if-let* ((mode (erc--find-mode module)))
           (if (custom-variable-p mode)
               (funcall mode 1)
