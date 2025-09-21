@@ -2874,7 +2874,7 @@ for details of the querying process."
   "Ask the user whether to save or write out the incomplete merge.
 If answer is yes, call COMMAND interactively.  During the call, the flags
 around the current difference are removed."
-  (if (yes-or-no-p "Do you really write to write out this unfinished merge? ")
+  (if (yes-or-no-p "Do you really want to write out this unfinished merge? ")
       ;; He really wants to do it -- unselect the difference for the duration
       (progn
 	(if (and (>= emerge-current-difference 0)
