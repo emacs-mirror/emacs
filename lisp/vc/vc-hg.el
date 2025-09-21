@@ -1215,13 +1215,13 @@ It is based on `log-edit-mode', and has Hg-specific extensions.")
 
 (defun vc-hg--checkin (comment &optional files patch-string)
   "Workhorse routine for `vc-hg-checkin' and `vc-hg-checkin-patch'.
-COMMENT is the commit message.
+COMMENT is the commit message; nil if it should come from PATCH-STRING.
 For a regular checkin, FILES is the list of files to check in.
 To check in a patch, PATCH-STRING is the patch text.
 It is an error to supply both or neither."
   (unless (xor files patch-string)
     (error "Invalid call to `vc-hg--checkin'"))
-  (let* ((args (vc-hg--extract-headers comment))
+  (let* ((args (and comment (vc-hg--extract-headers comment)))
          (temps-dir (or (file-name-directory (or (car files)
                                                  default-directory))
                         default-directory))
@@ -1231,7 +1231,7 @@ It is an error to supply both or neither."
           ;; must be in the system codepage, and therefore might not
           ;; support non-ASCII characters in the log message.
           ;; Also handle remote files.
-          (and (eq system-type 'windows-nt)
+          (and args (eq system-type 'windows-nt)
                (let ((default-directory temps-dir))
                  (make-nearby-temp-file "hg-msg"))))
          (patch-file (and patch-string
@@ -1252,9 +1252,9 @@ It is an error to supply both or neither."
            (nconc (if patch-file
                       (list "import" "--bypass" patch-file)
                     (list "commit" "-A"))
-                  (if msg-file
-                      (cl-list* "-l" (file-local-name msg-file) (cdr args))
-                    (cl-list* "-m" args))))
+                  (cond (msg-file (cl-list* "-l" (file-local-name msg-file)
+                                            (cdr args)))
+                        (args (cons "-m" args)))))
           (post (lambda ()
                   (when (and msg-file (file-exists-p msg-file))
                     (delete-file msg-file))

@@ -783,6 +783,120 @@ This checks also `vc-backend' and `vc-responsible-backend'."
           (ignore-errors
             (run-hooks 'vc-test--cleanup-hook)))))))
 
+(declare-function vc-hg-command "vc-hg")
+(declare-function vc-git--out-str "vc-git")
+
+(defun vc-test--checkin-patch (backend)
+  "Test preparing and checking in patches."
+  (ert-with-temp-directory _tempdir
+    (let ((vc-handled-backends `(,backend))
+          (default-directory
+           (file-name-as-directory
+            (expand-file-name
+             (make-temp-name "vc-test") temporary-file-directory)))
+          (file "foo")
+          (author "VC user <vc@example.org>")
+          (date "Fri, 19 Sep 2025 15:00:00 +0100")
+          (desc1 "Make a modification")
+          (desc2 "Make a modification redux")
+          vc-test--cleanup-hook buf)
+      (vc-test--with-author-identity backend
+        (unwind-protect
+            (cl-flet
+                ((get-patch-string ()
+                   "Get patch corresponding to most recent commit to FILE."
+                   (let* ((rev (vc-call-backend backend 'working-revision file))
+                          (patch (vc-call-backend backend 'prepare-patch rev)))
+                     (with-current-buffer (plist-get patch :buffer)
+                       (buffer-substring-no-properties (point-min)
+                                                       (point-max)))))
+                 (revert (msg)
+                   "Make a commit reverting the most recent change to FILE."
+                   (with-current-buffer buf
+                     (undo-boundary)
+                     (revert-buffer-quick)
+                     (undo-boundary)
+                     (undo)
+                     (basic-save-buffer)
+                     (vc-checkin (list file) backend)
+                     (insert msg)
+                     (let (vc-async-checkin)
+                       (log-edit-done))))
+                 (check (author date desc)
+                   "Assert that most recent commit has AUTHOR, DATE and DESC."
+                   (should
+                    (equal
+                     (string-trim-right
+                      (cl-case backend
+                        (Git
+                         (vc-git--out-str "log" "-n1"
+                                          "--pretty=%an <%ae>%n%aD%n%B"))
+                        (Hg
+                         (with-output-to-string
+                           (vc-hg-command standard-output 0 nil "log" "--limit=1"
+                                          "--template"
+                                          "{user}\n{date|rfc822date}\n{desc}")))))
+                     (format "%s\n%s\n%s" author date desc)))))
+              ;; (1) Cleanup.
+              (add-hook 'vc-test--cleanup-hook
+                        (let ((dir default-directory))
+                          (lambda ()
+                            (delete-directory dir 'recursive))))
+
+              ;; (2) Basic setup.
+              (make-directory default-directory)
+              (vc-test--create-repo-function backend)
+              (write-region "foo\n" nil file nil 'nomessage)
+              (vc-register `(,backend (,file)))
+              (setq buf (find-file-noselect file))
+              (with-current-buffer buf
+                (vc-checkin (list file) backend)
+                (insert "Initial commit")
+                (let (vc-async-checkin)
+                  (log-edit-done)))
+
+              ;; (3) Prepare a commit with a known Author & Date.
+              (with-current-buffer buf
+                (insert "bar\n")
+                (basic-save-buffer)
+                (vc-root-diff nil)
+                (vc-next-action nil)
+                (insert desc1)
+                (goto-char (point-min))
+                (insert (format "Author: %s\n" author))
+                (insert (format "Date: %s\n" date))
+                (let (vc-async-checkin)
+                  (log-edit-done)))
+
+              ;; (4) Revert it, then test applying it with
+              ;; checkin-patch, passing nil as COMMENT.  Should take the
+              ;; author, date and comment from PATCH-STRING.
+              (let ((patch-string (get-patch-string)))
+                (revert "Revert modification, first time")
+                (vc-call-backend backend 'checkin-patch patch-string nil))
+              (check author date desc1)
+
+              ;; (5) Revert it again and try applying it with
+              ;; checkin-patch again, but passing non-nil COMMENT.
+              ;; Should take the author, date but not the comment from
+              ;; PATCH-STRING.
+              (let ((patch-string (get-patch-string)))
+                ;; FIXME: We shouldn't need to branch here.  Git should
+                ;; update the working tree after making the commit.
+                (cl-case backend
+                  (Git (with-current-buffer buf
+                         (vc-checkin (list file) backend)
+                         (insert "Revert modification, second time")
+                         (let (vc-async-checkin)
+                           (log-edit-done))))
+                  (t (revert "Revert modification, second time")))
+                (vc-call-backend backend 'checkin-patch patch-string desc2))
+              (check author date desc2))
+
+          ;; Save exit.
+          (ignore-errors
+            (run-hooks 'vc-test--cleanup-hook)))))))
+
 ;; Create the test cases.
 
 (defun vc-test--rcs-enabled ()
@@ -944,7 +1058,20 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                 (version< (vc-git--program-version) "2.17")))
           (let ((vc-hg-global-switches (cons "--config=extensions.share="
                                              vc-hg-global-switches)))
-            (vc-test--other-working-trees ',backend)))))))
+            (vc-test--other-working-trees ',backend)))
+
+        (ert-deftest
+            ,(intern (format "vc-test-%s08-checkin-patch" backend-string)) ()
+          ,(format "Check preparing and checking in patches with the %s backend."
+                   backend-string)
+          (skip-unless
+	   (ert-test-passed-p
+	    (ert-test-most-recent-result
+	     (ert-get-test
+	      ',(intern
+	         (format "vc-test-%s01-register" backend-string))))))
+          (skip-unless (memq ',backend '(Git Hg)))
+          (vc-test--checkin-patch ',backend))))))
 
 (provide 'vc-tests)
 ;;; vc-tests.el ends here

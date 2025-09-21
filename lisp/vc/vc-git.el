@@ -978,7 +978,7 @@ or an empty string if none."
   "Return the existing branches, as a list of strings.
 The car of the list is the current branch."
   (with-temp-buffer
-    (vc-git--call t "branch")
+    (vc-git--call nil t "branch")
     (goto-char (point-min))
     (let (current-branch branches)
       (while (not (eobp))
@@ -1139,7 +1139,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
 
 (defun vc-git--checkin (comment &optional files patch-string)
   "Workhorse routine for `vc-git-checkin' and `vc-git-checkin-patch'.
-COMMENT is the commit message.
+COMMENT is the commit message; must be non-nil.
 For a regular checkin, FILES is the list of files to check in.
 To check in a patch, PATCH-STRING is the patch text.
 It is an error to supply both or neither."
@@ -1279,9 +1279,84 @@ It is an error to supply both or neither."
         (apply #'vc-git-command nil 0 files args)
         (funcall post)))))
 
+(defun vc-git--mailinfo (patch-string)
+  "Pipe PATCH-STRING to git-mailinfo(1) and return an alist of its output.
+
+The alist always contains an entry with key `message'.
+This contains the commit log message.
+In the case that there is also an alist entry with key \"Subject\", the
+first line of the commit message is missing from the `message' entry.
+To recover the full commit message, concatenate the \"Subject\" and
+`message' entries, interpolating two newline characters.
+
+The alist also always contains an entry with key `patch'.
+This contains the patch extracted from PATCH-STRING.
+If there is text in PATCH-STRING occurring before the actual hunks but
+after the commit message, separated from the latter with a line
+consisting of three hyphens, then that extra text is included in this
+alist entry.  (This space between the line of three hyphens and the
+hunks is conventionally used for a diffstat, and/or additional
+explanatory text submitted with the patch but not to be included in the
+commit log message.)
+
+The remaining entries in the alist correspond to the information
+returned by git-mailinfo(1) on standard output.  These specify the
+authorship and date information for the commit, and sometimes the first
+line of the commit message in an entry with key \"Subject\"."
+  (let ((input-file (make-nearby-temp-file "git-mailinfo-input"))
+        (msg-file (make-nearby-temp-file "git-mailinfo-msg"))
+        (patch-file (make-nearby-temp-file "git-mailinfo-patch"))
+        (coding-system-for-read (or coding-system-for-read
+                                    vc-git-log-output-coding-system))
+        res)
+    (unwind-protect
+        (with-temp-buffer
+          (let ((coding-system-for-write
+                 ;; Git expects Unix line endings here even on Windows.
+                 (coding-system-change-eol-conversion
+                  (or coding-system-for-write vc-git-commits-coding-system)
+                  'unix)))
+            (with-temp-file input-file
+              (insert patch-string)))
+          (let ((coding-system-for-write
+                 ;; On MS-Windows, we must encode command-line arguments
+                 ;; in the system codepage.
+                 (if (eq system-type 'windows-nt)
+                     locale-coding-system
+                   coding-system-for-write)))
+            (vc-git--call input-file t "mailinfo" msg-file patch-file))
+          (goto-char (point-min))
+          ;; git-mailinfo joins up any header continuation lines for us.
+          (while (re-search-forward "^\\([^\t\n\s:]+\\):\\(.*\\)$" nil t)
+            (push (cons (match-string 1) (string-trim (match-string 2)))
+                  res))
+          (erase-buffer)
+          (insert-file-contents-literally patch-file)
+          (push (cons 'patch (buffer-string)) res)
+          (erase-buffer)
+          (insert-file-contents-literally msg-file)
+          (push (cons 'message (string-trim (buffer-string))) res))
+      (dolist (file (list input-file msg-file patch-file))
+        (when (file-exists-p file)
+          (delete-file file))))
+    res))
+
 (defun vc-git-checkin-patch (patch-string comment)
   "Git-specific version of `vc-BACKEND-checkin-patch'."
-  (vc-git--checkin comment nil patch-string))
+  (let ((mailinfo (vc-git--mailinfo patch-string)))
+    (unless comment
+      (setq comment (if-let* ((subject (assoc "Subject" mailinfo)))
+                        (format "Summary: %s\n\n%s"
+                                (cdr subject)
+                                (cdr (assq 'message mailinfo)))
+                      (cdr (assq 'message mailinfo)))))
+    (when-let* ((date (assoc "Date" mailinfo)))
+      (setq comment (format "Date: %s\n%s" (cdr date) comment)))
+    (when-let* ((author (assoc "Author" mailinfo))
+                (email (assoc "Email" mailinfo)))
+      (setq comment (format "Author: %s <%s>\n%s"
+                            (cdr author) (cdr email) comment)))
+    (vc-git--checkin comment nil (cdr (assq 'patch mailinfo)))))
 
 (defun vc-git-checkin (files comment &optional _rev)
   "Git-specific version of `vc-BACKEND-checkin'.
@@ -2081,7 +2156,7 @@ Will not rewrite likely-public history; see option `vc-allow-rewriting-published
 
 (defun vc-git-modify-change-comment (files rev comment)
   (vc-git--assert-allowed-rewrite rev)
-  (when (zerop (vc-git--call nil "rev-parse" (format "%s^2" rev)))
+  (when (zerop (vc-git--call nil nil "rev-parse" (format "%s^2" rev)))
     ;; This amend! approach doesn't work for merge commits.
     ;; Error out now instead of leaving an amend! commit hanging.
     (error "Cannot modify merge commit comments"))
@@ -2286,7 +2361,7 @@ In other modes, call `vc-deduce-fileset' to determine files to stash."
   (interactive "sStash name: ")
   (let ((root (vc-git-root default-directory)))
     (when root
-      (apply #'vc-git--call nil "stash" "push" "-m" name
+      (apply #'vc-git--call nil nil "stash" "push" "-m" name
              (vc-git--deduce-files-for-stash))
       (vc-resynch-buffer root t t))))
 
@@ -2353,7 +2428,7 @@ In `vc-dir-mode', if there are files marked, stash the changes to those.
 If no files are marked, stash all uncommitted changes to tracked files.
 In other modes, call `vc-deduce-fileset' to determine files to stash."
   (interactive)
-  (apply #'vc-git--call nil "stash" "push" "-m"
+  (apply #'vc-git--call nil nil "stash" "push" "-m"
 	 (format-time-string "Snapshot on %Y-%m-%d at %H:%M")
          (vc-git--deduce-files-for-stash))
   (vc-git-command "*vc-git-stash*" 0 nil "stash" "apply" "-q" "stash@{0}")
@@ -2543,9 +2618,9 @@ The difference to `vc-do-command' is that this function always invokes
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."
   (let (process-file-side-effects)
-    (not (eq 0 (vc-git--call nil "rev-parse" "--verify" "HEAD")))))
+    (not (zerop (vc-git--call nil nil "rev-parse" "--verify" "HEAD")))))
 
-(defun vc-git--call (buffer command &rest args)
+(defun vc-git--call (infile buffer command &rest args)
   ;; We don't need to care the arguments.  If there is a file name, it
   ;; is always a relative one.  This works also for remote
   ;; directories.  We enable `inhibit-null-byte-detection', otherwise
@@ -2565,12 +2640,13 @@ The difference to `vc-do-command' is that this function always invokes
 	    ,@(when revert-buffer-in-progress
 		'("GIT_OPTIONAL_LOCKS=0")))
 	  process-environment)))
-    (apply #'process-file vc-git-program nil buffer nil "--no-pager" command args)))
+    (apply #'process-file vc-git-program infile buffer nil
+           "--no-pager" command args)))
 
 (defun vc-git--out-ok (command &rest args)
   "Run `git COMMAND ARGS...' and insert standard output in current buffer.
 Return whether the process exited with status zero."
-  (zerop (apply #'vc-git--call '(t nil) command args)))
+  (zerop (apply #'vc-git--call nil '(t nil) command args)))
 
 (defun vc-git--out-str (command &rest args)
   "Run `git COMMAND ARGS...' and return standard output as a string.
