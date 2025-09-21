@@ -162,16 +162,16 @@
   (ignore-errors
     (or (treesit-query-string "" '((method_elem) @cap) 'go) t)))
 
-(defvar go-ts-mode--font-lock-settings nil
-  "Tree-sitter font-lock settings for `go-ts-mode'.")
+(defvar go-ts-mode--font-lock-settings-cached nil
+  "Cached tree-sitter font-lock settings for `go-ts-mode'.")
 
 (defun go-ts-mode--font-lock-settings ()
   "Return tree-sitter font-lock settings for `go-ts-mode'.
 
-Tree-sitter font-lock rules are evaluated the first time this function
-is called.  Subsequent calls return the first evaluated value."
-  (or go-ts-mode--font-lock-settings
-      (setq go-ts-mode--font-lock-settings
+Tree-sitter font-lock settings are evaluated the first time this
+function is called.  Subsequent calls return the first evaluated value."
+  (or go-ts-mode--font-lock-settings-cached
+      (setq go-ts-mode--font-lock-settings-cached
             (treesit-font-lock-rules
              :language 'go
              :feature 'bracket

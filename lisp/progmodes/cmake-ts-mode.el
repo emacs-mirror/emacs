@@ -61,16 +61,16 @@
     table)
   "Syntax table for `cmake-ts-mode'.")
 
-(defvar cmake-ts-mode--indent-rules nil
-  "Tree-sitter indent rules for `cmake-ts-mode'.")
+(defvar cmake-ts-mode--indent-rules-cached nil
+  "Cached tree-sitter indent rules for `cmake-ts-mode'.")
 
 (defun cmake-ts-mode--indent-rules ()
   "Return tree-sitter indent rules for `cmake-ts-mode'.
 
-Tree-sitter indent rules are evaluated the first time this function
-is called.  Subsequent calls return the first evaluated value."
-  (or cmake-ts-mode--indent-rules
-      (setq cmake-ts-mode--indent-rules
+Tree-sitter indent rules are evaluated the first time this function is
+called.  Subsequent calls return the first evaluated value."
+  (or cmake-ts-mode--indent-rules-cached
+      (setq cmake-ts-mode--indent-rules-cached
             `((cmake
                ((node-is ")") parent-bol 0)
                ((node-is "else_command") parent-bol 0)
@@ -148,16 +148,16 @@ Check if a node type is available, then return the right font lock rules."
                           eol))
                   @font-lock-constant-face))))))))
 
-(defvar cmake-ts-mode--font-lock-settings nil
-  "Tree-sitter font-lock settings for `cmake-ts-mode'.")
+(defvar cmake-ts-mode--font-lock-settings-cached nil
+  "Cached tree-sitter font-lock settings for `cmake-ts-mode'.")
 
 (defun cmake-ts-mode--font-lock-settings ()
   "Return tree-sitter font-lock settings for `cmake-ts-mode'.
 
-Tree-sitter font-lock rules are evaluated the first time this function
-is called.  Subsequent calls return the first evaluated value."
-  (or cmake-ts-mode--font-lock-settings
-      (setq cmake-ts-mode--font-lock-settings
+Tree-sitter font-lock settings are evaluated the first time this
+function is called.  Subsequent calls return the first evaluated value."
+  (or cmake-ts-mode--font-lock-settings-cached
+      (setq cmake-ts-mode--font-lock-settings-cached
             (treesit-font-lock-rules
              :language 'cmake
              :feature 'bracket

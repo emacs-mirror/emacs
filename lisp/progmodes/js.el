@@ -3513,16 +3513,16 @@ characters of the current line."
               node parent bol args)
        js-indent-level)))
 
-(defvar js--treesit-indent-rules nil
-  "Tree-sitter indent rules for `js-ts-mode'.")
+(defvar js--treesit-indent-rules-cached nil
+  "Cached tree-sitter indent rules for `js-ts-mode'.")
 
 (defun js--treesit-indent-rules ()
   "Return tree-sitter indent rules for `js-ts-mode'.
 
-Tree-sitter indent rules are evaluated the first time this function
-is called.  Subsequent calls return the first evaluated value."
-  (or js--treesit-indent-rules
-      (setq js--treesit-indent-rules
+Tree-sitter indent rules are evaluated the first time this function is
+called.  Subsequent calls return the first evaluated value."
+  (or js--treesit-indent-rules-cached
+      (setq js--treesit-indent-rules-cached
             `((javascript
                ((parent-is "program") parent-bol 0)
                ((node-is "}") standalone-parent 0)
@@ -3595,16 +3595,16 @@ is called.  Subsequent calls return the first evaluated value."
     "&&" "||" "!")
   "JavaScript operators for tree-sitter font-locking.")
 
-(defvar js--treesit-font-lock-settings nil
-  "Tree-sitter font-lock settings for `js-ts-mode'.")
+(defvar js--treesit-font-lock-settings-cached nil
+  "Cached tree-sitter font-lock settings for `js-ts-mode'.")
 
 (defun js--treesit-font-lock-settings ()
   "Return tree-sitter font-lock settings for `js-ts-mode'.
 
-Tree-sitter font-lock rules are evaluated the first time this function
-is called.  Subsequent calls return the first evaluated value."
-  (or js--treesit-font-lock-settings
-      (setq js--treesit-font-lock-settings
+Tree-sitter font-lock settings are evaluated the first time this
+function is called.  Subsequent calls return the first evaluated value."
+  (or js--treesit-font-lock-settings-cached
+      (setq js--treesit-font-lock-settings-cached
             (treesit-font-lock-rules
 
              :language 'javascript
