@@ -1244,6 +1244,11 @@ Display the changeset diff between the revision at point and the next
 earlier revision (@code{log-view-diff-changeset}).  This shows the
 changes to all files made in that revision.
 
+@item w
+Copy the revision of the marked log entries into the kill ring, as if
+you had killed them with @kbd{M-w}.  Multiple entries will be separated
+by a space.
+
 @item @key{RET}
 In a compact-style log buffer (e.g., the one created by @kbd{C-x v L}),
 toggle between showing and hiding the full log entry for the revision at

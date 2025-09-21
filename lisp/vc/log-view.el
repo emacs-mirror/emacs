@@ -136,6 +136,7 @@
   "f" #'log-view-find-revision
   "n" #'log-view-msg-next
   "p" #'log-view-msg-prev
+  "w" #'log-view-copy-revision-as-kill
   "TAB" #'log-view-msg-next
   "<backtab>" #'log-view-msg-prev)
 
@@ -748,6 +749,18 @@ considered file(s)."
                  (list (log-view-current-file))
                log-view-vc-fileset)))
      fr to)))
+
+(defun log-view-copy-revision-as-kill ()
+  "Copy the revision under point, as a string, to the `kill-ring'."
+  (interactive)
+  (let ((revisions (log-view-get-marked)))
+    (if (length> revisions 1)
+        (let ((found (string-join revisions " ")))
+          (kill-new found)
+          (message "%s" found))
+      (when-let* ((rev (or (car revisions) (cadr (log-view-current-entry)))))
+        (kill-new rev)
+        (message "%s" rev)))))
 
 (provide 'log-view)
 
