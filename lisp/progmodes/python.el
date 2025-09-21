@@ -1092,36 +1092,43 @@ NODE is the string node.  Do not fontify the initial f for
 f-strings.  OVERRIDE is the override flag described in
 `treesit-font-lock-rules'.  START and END mark the region to be
 fontified."
-  (let* ((maybe-expression (treesit-node-parent node))
-         (grandparent (treesit-node-parent
-                       (treesit-node-parent
-                        maybe-expression)))
-         (maybe-defun grandparent)
-         (face (if (and (or (member (treesit-node-type maybe-defun)
-                                    '("function_definition"
-                                      "class_definition"))
-                            ;; If the grandparent is null, meaning the
-                            ;; string is top-level, and the string has
-                            ;; no node or only comment preceding it,
-                            ;; it's a BOF docstring.
-                            (and (null grandparent)
-                                 (cl-loop
-                                  for prev = (treesit-node-prev-sibling
-                                              maybe-expression)
-                                  then (treesit-node-prev-sibling prev)
-                                  while prev
-                                  if (not (equal (treesit-node-type prev)
-                                                 "comment"))
-                                  return nil
-                                  finally return t)))
-                        ;; This check filters out this case:
-                        ;; def function():
-                        ;;     return "some string"
-                        (equal (treesit-node-type maybe-expression)
-                               "expression_statement"))
-                   'font-lock-doc-face
-                 'font-lock-string-face))
+  ;; Criteria for docstring: go up the parse tree until top-level or a
+  ;; node under function/class, at each level, the node is the first
+  ;; child (excluding comments).  This condition also rules out negative
+  ;; cases like
+  ;;
+  ;;     def function():
+  ;;         return "some string"
+  ;;
+  ;; And it recognizes for BOF docstrings, and allows comments before
+  ;; the docstring.
+  ;;
+  ;; Older grammar has function_definition -> block -> expression_statement -> string
+  ;; Newer grammar has function_definition -> block -> string
+  ;; This algorithm works for both.
+  (let* ((cursor node)
+         (face (catch 'break
+                 (while t
+                   (let ((parent (treesit-node-parent cursor))
+                         (cursor-idx (treesit-node-index cursor)))
+                     (when (null parent)
+                       (throw 'break 'font-lock-doc-face))
 
+                     (when (and (member (treesit-node-type parent)
+                                        '("function_definition"
+                                          "class_definition"))
+                                (equal (treesit-node-field-name-for-child
+                                        parent cursor-idx)
+                                       "body"))
+                       (throw 'break 'font-lock-doc-face))
+
+                     (let ((idx 0))
+                       (while (< idx cursor-idx)
+                         (unless (equal (treesit-node-type
+                                         (treesit-node-child parent idx))
+                                        "comment")
+                           (throw 'break 'font-lock-string-face))))
+                     (setq cursor parent)))))
          (ignore-interpolation
           (not (seq-some
                 (lambda (feats) (memq 'string-interpolation feats))
