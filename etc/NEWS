@@ -1262,6 +1262,11 @@ are browsed from a PGTK frame.  For other frames, we fall back to the
 default URL launch function.  This change allows us to properly raise
 browser windows under Wayland using the xdg_activation_v1 protocol.
 
+*** 'RET' can visit URLs in read-only buffers.
+In some keymaps such as 'ansi-osc-hyperlink-map', 'browse-url-button-map',
+'goto-address-highlight-keymap', 'bug-reference-map' it's possible now
+to visit URLs by typing just 'RET' instead of 'C-c RET' in read-only buffers.
+
 *** Removed support for some obsolete web browsers.
 Conkeror (obsolete since Emacs 28.1), gnome-moz-remote (obsolete since
 Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).

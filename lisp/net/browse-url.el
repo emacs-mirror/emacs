@@ -1759,9 +1759,24 @@ from `browse-url-elinks-wrapper'."
 
 ;;; Adding buttons to a buffer to call `browse-url' when you hit them.
 
+;;;###autoload
+(defun browse-url-keymap-filter (cmd)
+  "Return CMD if `browse-url' button bindings should be active.
+By default they are active only in read-only buffers."
+  (when buffer-read-only
+    cmd))
+
+;;;###autoload
+(defun browse-url-keymap-bind (binding)
+  "Use BINDING according to `browse-url-keymap-filter'."
+  `(menu-item
+    "" ,binding
+    :filter ,#'browse-url-keymap-filter))
+
 (defvar-keymap browse-url-button-map
   :doc "The keymap used for `browse-url' buttons."
-  "RET"       #'browse-url-button-open
+  "RET"       (browse-url-keymap-bind #'browse-url-button-open)
+  "C-c RET"   #'browse-url-button-open
   "<mouse-2>" #'browse-url-button-open
   "w"         #'browse-url-button-copy)
 
