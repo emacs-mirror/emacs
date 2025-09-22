@@ -5141,7 +5141,7 @@ suspicious.  @var{object} should be a string.
 
 @item email-address-header
 Check whether a full RFC2822 email address header (e.g.,
-@samp{=?utf-8?Q?=C3=81?= <foo@@example.com>}) looks suspicious.
+@samp{=?utf-8?Q?=E2=84=AB?= <foo@@example.com>}) looks suspicious.
 @var{object} should be a string.
 @end table
 
