@@ -798,7 +798,7 @@ They are considered active only in read-only buffers."
   "Use BINDING according to `read-only-keymap-filter'."
   `(menu-item
     "" ,binding
-    :filter ,#'browse-url-keymap-filter))
+    :filter ,#'read-only-keymap-filter))
 
 (provide 'keymap)
 
