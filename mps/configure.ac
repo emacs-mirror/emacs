@@ -193,6 +193,20 @@ AC_SUBST(LDFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_CONFIG_FILES(Makefile example/scheme/Makefile)
 
+AC_CONFIG_COMMANDS(
+  [gmk],
+  [case $srcdir in
+     .) # in-place build
+        ;;
+     *) echo "copying .gmk files"
+        (cd $srcdir &&
+         cp --parents code/*.gmk \
+	    tool/testcases.txt tool/testrun.sh \
+	    example/scheme/*.scm \
+	    $ac_pwd)
+	 ;;
+   esac])
+
 AC_OUTPUT
 
 echo 1>&2 "CONFIGURE/MAKE IS NOT THE BEST WAY TO BUILD THE MPS

@@ -4,7 +4,9 @@
 
 CFLAGS = @CFLAGS@ @CPPFLAGS@ @LDFLAGS@ -std=c99
 
-MPS = ../../code
+MPS = @srcdir@/../../code
+
+VPATH = @srcdir@
 
 TARGETS = scheme-malloc scheme scheme-advanced
 
@@ -14,7 +16,6 @@ all: $(TARGETS)
 
 $(TARGETS): %: %.c Makefile
 	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c
-
 
 scheme-boehm: %: %.c Makefile
 	$(CC) $(CFLAGS) -o $@ $< -lgc
