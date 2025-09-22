@@ -34,12 +34,23 @@
                          load-path)))
     (require 'ispell-tests-common)))
 
+(defun ispell-tests-hunspell--hunspell-working ()
+  "Check that Hunspell can be called from Emacs."
+  (if (not (equal
+            0
+            (call-process "hunspell" nil nil nil "-a")))
+      (progn
+        (message "Hunspell installation is broken and does not support a default dictionary!")
+        nil)
+    t))
+
 (ert-deftest ispell/hunspell/ispell-word/english/check-only ()
-"This test checks that Russian spellchecking works for Hunspell."
+  "This test checks that English spellchecking works for Hunspell."
   (skip-unless (executable-find "hunspell"))
   (skip-unless (equal
                 0
                 (call-process "hunspell" nil nil nil "-vv")))
+  (skip-unless (ispell-tests-hunspell--hunspell-working))
   (skip-unless (equal
                 0
                 (with-temp-buffer
@@ -47,57 +58,37 @@
                   (call-process-region nil nil "hunspell" nil '("*scratch*" t) nil "-d en_US"))))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name "hunspell"))
+      (ispell-tests--letopt ((ispell-program-name "hunspell"))
         (ignore-errors (ispell-kill-ispell t t))
         (with-temp-buffer
           (insert
-           "hello\n")
-          (goto-char 0)
+           ispell-tests--constants/english/correct-one "\n")
+          (goto-char 1)
           (ispell-change-dictionary "en_US")
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is correct" nil t)
-                         current-point)))
-            ))
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is correct" lres))))
         (with-temp-buffer
           (insert
-           ;; there is no such a word in English, I swear.
-           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n"
+           ispell-tests--constants/english/wrong "\n"
            )
-          (goto-char 0)
+          (goto-char 1)
           (ispell-change-dictionary "en_US")
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is incorrect" nil t)
-                         current-point)))
-            ))
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is incorrect" lres))))
         (with-temp-buffer
           (insert
-           ;; giving Hunspell a wrong language should not fail
-           "привет\n"
+           ispell-tests--constants/russian/correct "\n"
            )
-          (goto-char 0)
+          (goto-char 1)
           (ispell-change-dictionary "en_US")
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is incorrect" nil t)
-                         current-point)))
-            ))
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is incorrect" lres))))
         )))
   )
 
@@ -108,155 +99,121 @@ With UTF-8."
   (skip-unless (equal
                 0
                 (call-process "hunspell" nil nil nil "-vv")))
+  (skip-unless (ispell-tests-hunspell--hunspell-working))
   (skip-unless (equal
                 0
-                (let ((retval (with-temp-buffer
-                               (insert "привет")
-                               (call-process-region nil nil "hunspell" nil '("*scratch*" t) nil "-d" "ru_RU"))))
-                  (message "lwf:hunspell-test-call=%s" retval)
-                  retval )))
+                (let ((retval
+                       (with-temp-buffer
+                         (insert ispell-tests--constants/russian/correct)
+                         (call-process-region nil nil "hunspell" nil '("*scratch*" t) nil "-d" "ru_RU"))))
+                  retval)))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name "hunspell"))
+      (ispell-tests--letopt ((ispell-program-name "hunspell"))
         (ignore-errors (ispell-kill-ispell t t))
         (with-temp-buffer
           (insert
-           "привет\n")
-          (goto-char 0)
+           ispell-tests--constants/russian/correct "\n")
+          (goto-char 1)
           (ispell-change-dictionary "ru_RU")
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is correct" nil t)
-                         current-point)))
-            ))
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is correct" lres))))
         (with-temp-buffer
           (insert
-           ;; there is no such a word in Russian, I swear.
-           "ыфаывфафыввпфывафывафывафывавы\n"
+           ispell-tests--constants/russian/wrong "\n"
            )
-          (goto-char 0)
+          (goto-char 1)
           (ispell-change-dictionary "ru_RU")
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is incorrect" nil t)
-                         current-point)))
-            ))
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is incorrect" lres))))
         )))
   )
 
 (ert-deftest ispell/hunspell/ispell-word/language-switch/check-only ()
-  "This test checks that Russian spellchecking works Hunspell."
+  "This test checks that language switching works for Hunspell."
   (skip-unless (executable-find "hunspell"))
   (skip-unless (equal
                 0
                 (call-process "hunspell" nil nil nil "-vv")))
+  (skip-unless (ispell-tests-hunspell--hunspell-working))
   (skip-unless (equal
                 0
                 (with-temp-buffer
-                  (insert "привет")
+                  (insert ispell-tests--constants/russian/correct "\n")
                   (call-process-region nil nil "hunspell" nil '("*scratch*" t) nil "-d" "ru_RU"))))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name "hunspell"))
+      (ispell-tests--letopt
+          ((ispell-program-name "hunspell"))
         (ignore-errors (ispell-kill-ispell t t))
         (with-temp-buffer
           (insert
-           "привет\n")
-          (goto-char 0)
+           ispell-tests--constants/russian/correct "\n")
+          (goto-char 1)
           (ispell-change-dictionary "ru_RU")
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is correct" nil t)
-                         current-point)))
-            )
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is correct" lres)))
           (goto-char (buffer-end 1))
           (insert
-           ;; there is no such a word in Russian, I swear.
-           "\nыфаывфафыввпфывафывафывафывавы\n"
+           "\n" ispell-tests--constants/russian/wrong "\n"
            )
           (forward-line -1)
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is incorrect" nil t)
-                         current-point)))
-            )
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is incorrect" lres)))
           (goto-char (buffer-end 1))
           (ispell-change-dictionary "en_US")
           (insert
-            "\nhello\n"
+           "\n" ispell-tests--constants/english/correct-one "\n"
            )
           (forward-line -1)
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is correct" nil t)
-                         current-point)))
-            )
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is correct" lres)))
           ))))
-)
+  )
 
 (ert-deftest ispell/hunspell/ispell-word/russian/check-only/wrong-language ()
-  "If we give Russian-checking Hunspell an english word, it should.
-Still process it gracefully.  It will not say correct/incorrect, but.
-It should at least not crash or something."
+  "If we give Russian-checking Hunspell an english word, it should still process it gracefully.
+It will not say correct/incorrect, but it should at least not crash or something."
   (skip-unless (executable-find "hunspell"))
   (skip-unless (equal
                 0
                 (call-process "hunspell" nil nil nil "-vv")))
+  (skip-unless (ispell-tests-hunspell--hunspell-working))
   (skip-unless (equal
                 0
                 (with-temp-buffer
-                  (insert "привет")
+                  (insert ispell-tests--constants/russian/correct)
                   (call-process-region nil nil "hunspell" nil '("*scratch*" t) nil "-d" "ru_RU"))))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name "hunspell"))
+      (ispell-tests--letopt
+          ((ispell-program-name "hunspell"))
         (ignore-errors (ispell-kill-ispell t t))
         (with-temp-buffer
           (insert
-           "hello\n")
-          (goto-char 0)
+           ispell-tests--constants/english/correct-one "\n")
+          (goto-char 1)
           (ispell-change-dictionary "ru_RU")
           (let ((ispell-check-only t))
             ;; should not fail
             (ispell-word))
-          (insert "\nпривет\n")
+          (insert "\n" ispell-tests--constants/russian/correct "\n")
           (forward-line -1)
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is correct" nil t)
-                         current-point)))
-            )))))
-)
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is correct" lres)))))))
+  )
 
 (ert-deftest ispell/hunspell/ispell-word/multilang ()
   "Hunspell is able to check two languages at once."
@@ -264,79 +221,54 @@ It should at least not crash or something."
   (skip-unless (equal
                 0
                 (call-process "hunspell" nil nil nil "-vv")))
+  (skip-unless (ispell-tests-hunspell--hunspell-working))
   (skip-unless (equal
                 0
                 (with-temp-buffer
-                  (insert "привет")
+                  (insert ispell-tests--constants/russian/correct)
                   (call-process-region nil nil "hunspell" nil '("*scratch*" t) nil "-d" "ru_RU"))))
   (skip-unless (equal
                 0
                 (with-temp-buffer
-                  (insert "привет")
+                  (insert ispell-tests--constants/russian/correct)
                   (call-process-region nil nil "hunspell" nil '("*scratch*" t) nil "-d" "en_US"))))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let ((default-directory temporary-file-directory)
           (multidict "en_US,ru_RU"))
-      (letopt ((ispell-program-name "hunspell"))
+      (ispell-tests--letopt
+          ((ispell-program-name "hunspell"))
         (ignore-errors (ispell-kill-ispell t t))
         (ispell-hunspell-add-multi-dic multidict)
         (with-temp-buffer
           (insert
-           "hello\n")
-          (goto-char 0)
+           ispell-tests--constants/english/correct-one "\n")
+          (goto-char 1)
           (ispell-change-dictionary multidict)
-          (insert "\nпривет\n")
+          (insert "\n" ispell-tests--constants/russian/correct "\n")
           (forward-line -1)
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is correct" nil t)
-                         current-point)))
-            )
-          (insert "\nhello\n")
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is correct" lres)))
+          (insert "\n" ispell-tests--constants/english/correct-one "\n")
           (forward-line -1)
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is correct" nil t)
-                         current-point)))
-            )
-          (insert "\nывафываываыфвавыафывавыфафывафываыва\n")
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is correct" lres)))
+          (insert "\n" ispell-tests--constants/russian/wrong "\n")
           (forward-line -1)
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is incorrect" nil t)
-                         current-point)))
-            )
-          (insert "\nhelooooooooo\n")
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is incorrect" lres)))
+          (insert "\n" ispell-tests--constants/english/wrong "\n")
           (forward-line -1)
-          (let ((ispell-check-only t)
-                (current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
-            (ispell-word)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (search-backward "is incorrect" nil t)
-                         current-point)))
-            )
-          ))))
-)
-
-
+          (ert-with-message-capture lres
+            (let ((ispell-check-only t))
+              (ispell-word))
+            (should (string-match "is incorrect" lres)))))))
+  )
 
 (provide 'ispell-hunspell-tests)
 ;;; ispell-hunspell-tests.el ends here

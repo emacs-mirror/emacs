@@ -45,56 +45,54 @@
 
 (ert-deftest ispell/ispell-program-name/nil ()
   "Sanity check.  Setting a non-string should produce a warning.
-Give ispell-program-name a wrong type."
-  (should (unwind-protect
-              (progn
-                (setq ispell-program-name "ispell")
-                (when (warnings-buffer-exists-p)
-                  (kill-buffer "*Warnings*"))
-                (setopt ispell-program-name nil)
-                (if (warnings-buffer-exists-p)
-                    t
-                  nil))
-            (when (warnings-buffer-exists-p)
-              (kill-buffer "*Warnings*")))))
+Give `ispell-program-name' a wrong type."
+  (should
+   (unwind-protect
+       (progn
+         (setq ispell-program-name "ispell")
+         (when (warnings-buffer-exists-p)
+           (kill-buffer "*Warnings*"))
+         (setopt ispell-program-name nil)
+         (if (warnings-buffer-exists-p)
+             t
+           nil))
+     (when (warnings-buffer-exists-p)
+       (kill-buffer "*Warnings*")))))
 
 (ert-deftest ispell/ispell-program-name/noncommand ()
-  "Sanity check.  Should error or at least warn.
-Give ispell-program-name a meaningless string."
+  "Should error or at least warn when `ispell-program-name' is a meaningless string."
   :expected-result :failed
   (should-error
    (setopt ispell-program-name "6c628ac4-63a0-11f0-b37c-e38fc166e3fc") ;; random ispellnonexistent name
    ))
 
 (ert-deftest ispell/ispell-program-name/noncommand/interactive ()
-  "Sanity check.  Should error or at least warn.
-Give ispell-program-name a meaningless string."
+  "Should error or at least warn when `ispell-program-name' is a meaningless string."
   (should-error
    (progn
-     (setopt ispell-program-name "6c628ac4-63a0-11f0-b37c-e38fc166e3fc") ;; random ispellnonexistent name
+     (setopt ispell-program-name "baf8cc1a-a811-11f0-abc7-ef02b7a6dda1") ;; random ispellnonexistent name
      (ispell-check-version)
      )))
 
 (ert-deftest ispell/ispell-program-name/non-executable ()
   "Sanity check.  Should error or at least warn.
-Give ispell-program-name a path to a non-executable.
+Give `ispell-program-name' a path to a non-executable.
 I personally think that this should always fail, but
-at the moment only an interactive call fails."
+at the moment only the interactive call fails."
   :expected-result :failed
   (should-error
    (progn
      (setopt ispell-program-name null-device))))
 
 (ert-deftest ispell/ispell-program-name/non-executable/interactive ()
-  "Sanity check.  Should error or at least warn.
-Give ispell-program-name a path to a non-executable."
+  "Should error or at least warn if `ispell-program-name' is a path to a non-executable."
   (should-error
    (progn
      (setopt ispell-program-name null-device)
      (ispell-check-version t))))
 
 (ert-deftest ispell/ispell-program-name/non-spellchecker ()
-  "Sanity check.  Give ispell-program-name a path to a non-spellchecker.
+  "Give `ispell-program-name' a path to a non-spellchecker.
 Fails because for non-interactive runs, `ispell-check-version' does
 not actually err."
   :expected-result :failed
@@ -102,7 +100,7 @@ not actually err."
   (should-error (string-equal "etags" (setopt ispell-ispell-program "etags"))))
 
 (ert-deftest ispell/ispell-program-name/non-spellchecker/interactive ()
-  "Sanity check.  Give ispell-program-name a path to a non-spellchecker."
+  "Give `ispell-program-name' a path to a non-spellchecker."
   (skip-unless (executable-find "etags"))
   (should-error
    (progn (setopt ispell-ispell-program "etags")
@@ -111,7 +109,7 @@ not actually err."
 
 (ert-deftest ispell/ispell-program-name/ispell ()
   "Sanity check.  If at least some ispell is available, should pass.
-Give ispell-program-name a real spellchecker"
+Give `ispell-program-name' a real spellchecker."
   (skip-unless (and (executable-find "ispell")
                     (with-temp-buffer
                       (call-process "ispell" nil t nil "-vv")
@@ -134,9 +132,9 @@ Give ispell-program-name a real spellchecker"
                 (equal default-directory temporary-file-directory))))))
 
 (ert-deftest ispell/ispell-call-process/simple ()
-  "Check that ispell-call-process works.
+  "Check that `ispell-call-process' works.
 This test fails, because HOME is not defined.
-This should not be the case, because ispell-call-process
+This should not be the case, because `ispell-call-process'
 whould be making sure that the directory for running
 the backend's process exists."
   :expected-result :failed
@@ -147,7 +145,7 @@ the backend's process exists."
        (search-backward (expand-file-name "~"))))))
 
 (ert-deftest ispell/ispell-call-process/simple-writable ()
-  "Check that ispell-call-process works."
+  "Check that `ispell-call-process' works."
   (should
    (with-temp-buffer
      (let ((default-directory temporary-file-directory))
@@ -157,9 +155,9 @@ the backend's process exists."
        (search-backward (directory-file-name temporary-file-directory))))))
 
 (ert-deftest ispell/ispell-call-process-region/cat-empty ()
-  "Check ispell-call-process-region works with unrelated process.
+  "Check `ispell-call-process-region' works with unrelated process.
 This test is expected to fail, because at the moment, there is
-a construction (let ((default-directory default-directory))...) in
+a construction (let ((default-directory `default-directory'))...) in
 the `ispell-with-safe-default-directory' function, which effectively
 makes it useless."
   :expected-result :failed
@@ -177,9 +175,9 @@ makes it useless."
          (equal (buffer-string) string-to-send))))))
 
 (ert-deftest ispell/ispell-call-process-region/cat-random ()
-  "Check ispell-call-process-region works with unrelad process.
+  "Check `ispell-call-process-region' works with unrelad process.
 This test is expected to fail, because at the moment, there is
-a construction (let ((default-directory default-directory))...) in
+a construction (let ((default-directory `default-directory'))...) in
 the `ispell-with-safe-default-directory' function, which effectively
 makes it useless."
   :expected-result :failed
@@ -217,24 +215,19 @@ I think this is an issue in itself, but this test is added to verify
 that changes to third-party code do not break existing behaviour."
   (skip-unless (executable-find "hunspell"))
   (skip-unless (equal 0 (call-process "hunspell" nil nil nil)))
-  (let ((old-ispell ispell-program-name)
-        (old-library-directory ispell-library-directory))
-    (unwind-protect
-        (progn
-          (setopt ispell-program-name "hunspell")
-          (setopt ispell-library-directory nil)
-          (ispell-check-version t)
-          (should
-           (equal
-            (sort (ispell-valid-dictionary-list) 'string<)
-            (sort (cl-substitute "default" nil (mapcar #'car ispell-dictionary-alist)) 'string<))))
-      (setopt ispell-library-directory old-library-directory)
-      (setopt ispell-program-name old-ispell)))
+  (ispell-tests--letopt
+              ((ispell-program-name "hunspell")
+               (ispell-library-directory nil))
+            (ispell-check-version t)
+            (should
+             (equal
+              (sort (ispell-valid-dictionary-list) 'string<)
+              (sort (cl-substitute "default" nil (mapcar #'car ispell-dictionary-alist)) 'string<))))
   )
 
-;; FIXME: this test should probably go into a separate file, dedicated
-;; to the hunspell backend, but so far there is not partition between
-;; backends, so let us add it here.  It is easy to move it.
+;; FIXME:
+;; `ispell-valid-dictionary-list' should be calling backend-specific code,
+;; and not check all possible backends by itself.
 (ert-deftest ispell/ispell-valid-dictionary-list/hunspell/library-directory ()
   "If hunspell, `ispell-valid-dictionary-list' returns default.
 This function only works for aspell and ispell, for hunspell and
@@ -243,24 +236,19 @@ I think this is an issue in itself, but this test is added to verify
 that changes to third-party code do not break existing behaviour."
   (skip-unless (executable-find "hunspell"))
   (skip-unless (equal 0 (call-process "hunspell" nil nil nil)))
-  (let ((old-ispell ispell-program-name)
-        (old-library-directory ispell-library-directory))
-    (unwind-protect
-        (progn
-          (setopt ispell-program-name "hunspell")
-          (ispell-check-version t)
-          (setopt ispell-library-directory temporary-file-directory)
-          (should
-           (equal
-            (ispell-valid-dictionary-list)
-            '("default"))))
-      (setopt ispell-library-directory old-library-directory)
-      (setopt ispell-program-name old-ispell)))
+  (ispell-tests--letopt
+              ((ispell-program-name "hunspell")
+               (ispell-library-directory temporary-file-directory))
+            (ispell-check-version t)
+            (should
+             (equal
+              (ispell-valid-dictionary-list)
+              '("default"))))
   )
 
-;; FIXME: this test should probably go into a separate file, dedicated
-;; to the enchant-2 backend, but so far there is not partition between
-;; backends, so let us add it here.  It is easy to move it.
+;; FIXME:
+;; `ispell-valid-dictionary-list' should be calling backend-specific code,
+;; and not check all possible backends by itself.
 (ert-deftest ispell/ispell-valid-dictionary-list/enchant-2/no-library-directory ()
   "If enchant-2, `ispell-valid-dictionary-list' returns default.
 This function only works for aspell and ispell, for hunspell and
@@ -268,24 +256,19 @@ enchant-2 it always returns either default or everything.
 I think this is an issue in itself, but this test is added to verify
 that changes to third-party code do not break existing behaviour."
   (skip-unless (executable-find "enchant-2"))
-  (let ((old-ispell ispell-program-name)
-        (old-library-directory ispell-library-directory))
-    (unwind-protect
-        (progn
-          (setopt ispell-program-name "enchant-2")
-          (setopt ispell-library-directory nil)
+  (ispell-tests--letopt
+          ((ispell-program-name "enchant-2")
+           (ispell-library-directory nil))
           (ispell-check-version t)
           (should
            (equal
             (sort (ispell-valid-dictionary-list) 'string<)
             (sort (cl-substitute "default" nil (mapcar #'car ispell-dictionary-alist)) 'string<))))
-      (setopt ispell-library-directory old-library-directory)
-      (setopt ispell-program-name old-ispell)))
   )
 
-;; FIXME: this test should probably go into a separate file, dedicated
-;; to the enchant-2 backend, but so far there is not partition between
-;; backends, so let us add it here.  It is easy to move it.
+;; FIXME:
+;; `ispell-valid-dictionary-list' should be calling backend-specific code,
+;; and not check all possible backends by itself.
 (ert-deftest ispell/ispell-valid-dictionary-list/enchant-2/library-directory ()
   "If enchant-2, `ispell-valid-dictionary-list' returns default.
 This function only works for aspell and ispell, for hunspell and
@@ -293,23 +276,18 @@ enchant-2 it always returns either default or everything.
 I think this is an issue in itself, but this test is added to verify
 that changes to third-party code do not break existing behaviour."
   (skip-unless (executable-find "enchant-2"))
-  (let ((old-ispell ispell-program-name)
-        (old-library-directory ispell-library-directory))
-    (unwind-protect
-        (progn
-          (setopt ispell-program-name "enchant-2")
-          (setopt ispell-library-directory temporary-file-directory)
+  (ispell-tests--letopt
+            ((ispell-program-name "enchant-2")
+             (ispell-library-directory temporary-file-directory))
           (ispell-check-version t)
           (should
            (equal
             (ispell-valid-dictionary-list)
             '("default"))))
-      (setopt ispell-library-directory old-library-directory)
-      (setopt ispell-program-name old-ispell)))
   )
 
 (ert-deftest ispell/ispell-valid-dictionary-list/international-ispell ()
-  "Check that ispell-valid-dictionary-list does something useful for ispell.
+  "Check that `ispell-valid-dictionary-list' does something useful for ispell.
 For ispell, `ispell-valid-dictionary-list' checks that a corresponding
 file is present in `ispell-library-directory'."
   (skip-unless (executable-find "ispell"))
@@ -320,33 +298,47 @@ file is present in `ispell-library-directory'."
                                       "LIBDIR *= *\"\\([^\"]+\\)\"" nil t)
                                  (match-string 1)))))
                  (file-readable-p (expand-file-name "english.hash" libdir))))
-  (let ((old-ispell ispell-program-name)
-        (old-library-directory ispell-library-directory)
-        (old-ispell-local-dictionary-alist ispell-local-dictionary-alist))
-    (unwind-protect
-        (progn
+  (ispell-tests--letopt
+            ((ispell-library-directory ispell-library-directory)
+             (ispell-local-dictionary-alist ispell-local-dictionary-alist)
+             (ispell-program-name "ispell"))
           (setopt ispell-program-name "ispell") ;; this should set ispell-library-directory
           (ispell-check-version t) ;; sets ispell-library-directory
           (should (not (null ispell-library-directory)))
-          ;; english is always shipped with international ispell,
-          ;; other languages not necessarily
           (setopt ispell-local-dictionary-alist
                   '(("english" "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil utf-8)))
           (should (member "english" (ispell-valid-dictionary-list)))
-          (should (member "default" (ispell-valid-dictionary-list)))
-          )
-      (setopt ispell-library-directory old-library-directory)
-      (setopt ispell-program-name old-ispell)
-      (setopt ispell-local-dictionary-alist old-ispell-local-dictionary-alist))))
+          (should (member "default" (ispell-valid-dictionary-list))))
+  )
 
 (ert-deftest ispell/ispell-valid-dictionary-list/aspell ()
-  "Check that ispell-valid-dictionary-list does something useful for aspell.
+  "Check that `ispell-valid-dictionary-list' does something useful for aspell.
 For aspell, `ispell-valid-dictionary-list' computes an intersection of
 `ispell-dictionary-alist' and `ispell--aspell-found-dictionaries'."
   (skip-unless (executable-find "aspell"))
   (skip-unless (with-temp-buffer
                  (call-process "aspell" nil t nil "dicts")
                  (> (length (buffer-string)) 2)))
+  (skip-unless
+   (with-temp-buffer
+     (call-process "aspell" nil t nil "dicts")
+     (goto-char 1)
+     (let ((ht (make-hash-table :test 'equal))
+           (has-duplicates-p nil))
+       (while
+           (progn
+             (let* ((l (buffer-substring-no-properties
+                        (line-beginning-position)
+                        (line-end-position)))
+                    (_ (setf has-duplicates-p (hash-table-contains-p l ht)))
+                    (_ (puthash l t ht))
+                    (endfile (forward-line)))
+               (and (not has-duplicates-p) (= 0 endfile))))
+         t)
+       (when has-duplicates-p
+         (message "Your aspell setup is unconventional: %s Cannot run tests."
+                  "it has duplicate dictionaries. "))
+       (not has-duplicates-p))))
   (let ((old-ispell ispell-program-name)
         (old-library-directory ispell-library-directory)
         (old-ispell-local-dictionary-alist ispell-local-dictionary-alist)
@@ -355,8 +347,6 @@ For aspell, `ispell-valid-dictionary-list' computes an intersection of
         (progn
           (setopt ispell-program-name "aspell") ;; this should set ispell-library-directory
           (ispell-check-version t) ;; sets ispell-library-directory
-          ;; english is always shipped with international ispell,
-          ;; other languages not necessarily
           (setopt ispell-local-dictionary-alist
                   '(("english" "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil utf-8)))
           (should
@@ -371,8 +361,8 @@ For aspell, `ispell-valid-dictionary-list' computes an intersection of
 ;; backend in this function.)
 
 (ert-deftest ispell/ispell-add-per-file-word-list/simple ()
-  "Adding a per-file word to an empty buffer.  No comment
-syntax expected."
+  "Adding a per-file word to an empty buffer.
+No comment syntax expected."
   (with-temp-buffer
     (let ((testword (format "%s" (random))))
       (ispell-add-per-file-word-list testword)
@@ -382,8 +372,8 @@ syntax expected."
 "))))))
 
 (ert-deftest ispell/ispell-add-per-file-word-list/comments ()
-  "Adding a per-file word to an empty buffer.  Uses default
-emacs-lisp comment syntax."
+  "Adding a per-file word to an empty buffer.
+Uses default emacs-lisp comment syntax."
   (with-temp-buffer
     (let ((testword (format "%s" (random))))
       (emacs-lisp-mode)
@@ -394,9 +384,9 @@ emacs-lisp comment syntax."
 "))))))
 
 (ert-deftest ispell/ispell-add-per-file-word-list/nxml ()
-  "Adding a per-file word to an empty buffer.  Uses default
-xml comment syntax, which has an opening and a closing
-marker."
+  "Adding a per-file word to an empty buffer.
+Uses default
+xml comment syntax, which has an opening and a closing marker."
   (with-temp-buffer
     (let ((testword (format "%s" (random))))
       (nxml-mode)
@@ -408,9 +398,9 @@ marker."
 "))))))
 
 (ert-deftest ispell/ispell-add-per-file-word-list/keyword-there-space ()
-  "Adding a per-file word to buffer with keyword.  Uses default
-xml comment syntax, which has an opening and a closing
-marker. "
+  "Adding a per-file word to buffer with keyword.
+Uses default
+xml comment syntax, which has an opening and a closing marker."
   (with-temp-buffer
     (let ((testword (format "%s" (random))))
       (nxml-mode)
@@ -426,24 +416,24 @@ marker. "
 "))))))
 
 (ert-deftest ispell/ispell-add-per-file-word-list/longline ()
-  "Adding a per-file word to buffer with keyword.  Uses default
-xml comment syntax, which has an opening and a closing
-marker.
+  "Adding a per-file word to buffer with keyword.
+Uses default
+xml comment syntax, which has an opening and a closing marker.
 This test fails, because ispell.el does not work well with
 nXML comments."
   :expected-result :failed
-  (letopt ((ispell-program-name "ispell"))
-          (with-temp-buffer
-            (let* ((testword (format "%s" (random)))
-                   (fill-column 50))
-              (nxml-mode)
-              (insert "
+  (ispell-tests--letopt ((ispell-program-name "ispell"))
+    (with-temp-buffer
+      (let* ((testword (format "%s" (random)))
+             (fill-column 50))
+        (nxml-mode)
+        (insert "
 <!-- " ispell-words-keyword (make-string fill-column ?a) "
 -->
 ")
-              (ispell-add-per-file-word-list testword)
-              (should (equal (buffer-string)
-                             (concat "
+        (ispell-add-per-file-word-list testword)
+        (should (equal (buffer-string)
+                       (concat "
 <!-- " ispell-words-keyword (make-string fill-column ?a) "
 -->
 "
@@ -457,70 +447,75 @@ nXML comments."
 ;; this function.)
 
 (ert-deftest ispell/ispell-buffer-local-words/ispell-words-keyword ()
-  "Send some words prefixed by @ from the file's cellar to backend.
+  "Send some words prefixed by @ from the file's footer to backend.
 Should pass regardless of the backend and the dictionary, because
-presumably nobody will have `hellooooooo' in their dictionary."
+presumably nobody will have (`hellooooooo')
+`ispell-tests--constants/english/wrong' in their dictionary."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
-    (with-ispell-global-dictionary nil
-      (letopt ((ispell-program-name (ispell-tests--some-backend)))
+    (ispell-tests--letopt ((ispell-program-name (ispell-tests--some-backend)))
+      (ispell-tests--with-ispell-global-dictionary
+          nil
         (with-temp-buffer
           (nxml-mode)
           (ignore-errors (ispell-kill-ispell))
           (ispell-init-process)
-          (let ((test-output (ispell--run-on-word "hellooooooo")))
+          (let ((test-output (ispell--run-on-word ispell-tests--constants/english/wrong)))
             (should (listp test-output))
             (should-not (equal t test-output)))
-          (ispell-add-per-file-word-list "hellooooooo")
+          (ispell-add-per-file-word-list ispell-tests--constants/english/wrong)
           (ispell-buffer-local-words)
-          (should (equal t (ispell--run-on-word "hellooooooo")))))))
+          (should (equal t (ispell--run-on-word  ispell-tests--constants/english/wrong)))))))
   )
 
 
 (ert-deftest
     ispell/ispell-buffer-local-words/ispell-buffer-session-localwords ()
-  "Send some words prefixed by @ from the file's cellar to backend.
+  "Send some words prefixed by @ from the file's footer to backend.
 Should pass regardless of the backend and the dictionary, because
-presumably nobody will have `hellooooooo' in their dictionary."
+presumably nobody will have `ispell-tests--constants/english/wrong'
+\(`hellooooooo') in their dictionary."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
-    (with-ispell-global-dictionary nil
-      (letopt ((ispell-program-name (ispell-tests--some-backend))
-               (ispell-dictionary nil))
+    (ispell-tests--letopt ((ispell-program-name (ispell-tests--some-backend))
+                           (ispell-dictionary nil))
+      (ispell-tests--with-ispell-global-dictionary
+          nil
         (cd temporary-file-directory)
         (with-temp-buffer
           (nxml-mode)
           (ignore-errors (ispell-kill-ispell))
           (ispell-init-process)
-          (let ((test-output (ispell--run-on-word "hellooooooo")))
+          (let ((test-output (ispell--run-on-word ispell-tests--constants/english/wrong)))
             (should (listp test-output))
             (should-not (equal t test-output)))
-          (let ((ispell-buffer-session-localwords (list "hellooooooo")))
+          (let ((ispell-buffer-session-localwords (list ispell-tests--constants/english/wrong)))
             (ispell-buffer-local-words)
-            (should (equal t (ispell--run-on-word "hellooooooo"))))))))
+            (should (equal t (ispell--run-on-word ispell-tests--constants/english/wrong))))))))
   )
 
 (ert-deftest ispell/ispell-init-process/works-no-home ()
-  "Simple test to check that ispell-init-process works."
+  "Simple test to check that `ispell-init-process' works."
   :expected-result :failed
   (skip-unless (ispell-tests--some-backend-available-p))
-  (with-ispell-global-dictionary nil
-      (letopt ((ispell-program-name (ispell-tests--some-backend)))
-        (with-temp-buffer
-          (with-environment-variables
-              (("HOME" (make-temp-name temporary-file-directory)))
-            (ispell-init-process))))
-      'passed)
-)
+  (ispell-tests--with-ispell-global-dictionary nil
+    (ispell-tests--letopt ((ispell-program-name (ispell-tests--some-backend)))
+      (with-temp-buffer
+        (with-environment-variables
+            (("HOME" (make-temp-name temporary-file-directory)))
+          (ispell-init-process))))
+    'passed)
+  )
 
 (ert-deftest ispell/ispell-init-process/works-with-home ()
-  "Simple test to check that ispell-init-process works."
+  "Simple test to check that `ispell-init-process' works."
   (skip-unless (ispell-tests--some-backend-available-p))
-  (with-ispell-global-dictionary nil
-      (letopt ((ispell-program-name (ispell-tests--some-backend)))
-        (with-temp-buffer
-          (with-environment-variables (("HOME" temporary-file-directory))
-            (ispell-init-process))))))
+  (ispell-tests--letopt ((ispell-program-name (ispell-tests--some-backend)))
+    (ispell-tests--with-ispell-global-dictionary
+        nil
+      (with-temp-buffer
+        (with-environment-variables (("HOME" temporary-file-directory))
+          (ispell-init-process))))))
 
 ;; Some more tests for buffer-local stuff.
 ;; `ispell-buffer-local-dict'
@@ -540,7 +535,7 @@ personal-dictionary."
       (let ((test-dict "ispellnonexistent"))
         (seq-map (lambda (test-pdict)
                    (insert
-                    "hello\n\n\n"
+                    (car ispell-tests--constants/english/correct-list) "\n\n\n"
                     "<!-- " ispell-dictionary-keyword test-dict " -->"
                     "<!-- " ispell-pdict-keyword test-pdict " -->")
                    (ispell-buffer-local-dict t)
@@ -557,10 +552,10 @@ personal-dictionary."
       (let ((test-dict "ispellnonexistent"))
         (seq-map (lambda (test-pdict)
                    (insert
-                    "hello\n\n\n"
+                    (car ispell-tests--constants/english/correct-list) "\n\n\n"
                     "<!-- " ispell-dictionary-keyword test-dict " -->"
                     "<!-- " ispell-pdict-keyword test-pdict " -->")
-                   (letopt ((ispell-current-dictionary "ispellnonexistent2"))
+                   (ispell-tests--letopt ((ispell-current-dictionary "ispellnonexistent2"))
                      (ispell-buffer-local-dict)
                      (should (equal ispell-current-dictionary test-dict))
                      (should (equal ispell-current-personal-dictionary test-pdict))))
@@ -571,13 +566,13 @@ personal-dictionary."
 personal-dictionary.  With no-reload it needs no backend at all."
     (with-temp-buffer
       (nxml-mode)
-      (let ((test-dict "ispellnonexistent"))
+      (let ((test-dict "ispellnonexistent3"))
         (seq-map (lambda (test-pdict)
                    (insert
-                    "hello\n\n\n"
+                    (car ispell-tests--constants/english/correct-list) "\n\n\n"
                     "<!-- " ispell-dictionary-keyword test-dict " -->"
                     "<!-- " ispell-pdict-keyword test-pdict " -->")
-                   (letopt ((ispell-current-dictionary "ispellnonexistent2"))
+                   (ispell-tests--letopt ((ispell-current-dictionary "ispellnonexistent4"))
                      (let ((ispell-local-dictionary-overridden t))
                        (ispell-buffer-local-dict t))
                      (should-not (equal ispell-local-dictionary test-dict))
@@ -590,62 +585,64 @@ personal-dictionary.  With no-reload it needs no backend at all."
     :expected-result :failed
     (with-temp-buffer
       (nxml-mode)
-      (let ((test-dict "ispellnonexistent"))
-        (seq-map (lambda (test-pdict)
-                   (insert
-                    "hello\n\n\n"
-                    "<!-- " ispell-dictionary-keyword test-dict " -->"
-                    "<!-- " ispell-pdict-keyword test-pdict " -->")
-                   (letopt ((ispell-current-dictionary "ispellnonexistent2"))
-                     (let ((ispell-local-dictionary-overridden t))
-                       (ispell-buffer-local-dict t))
-                     (should-not (equal ispell-current-dictionary test-dict))
-                     (should (equal ispell-current-personal-dictionary
-                                    test-pdict))))
+      (let ((test-dict "ispellnonexistent5"))
+        (seq-map
+         (lambda (test-pdict)
+           (insert
+            (car ispell-tests--constants/english/correct-list) "\n\n\n"
+            "<!-- " ispell-dictionary-keyword test-dict " -->"
+            "<!-- " ispell-pdict-keyword test-pdict " -->")
+           (ispell-tests--letopt ((ispell-current-dictionary "ispellnonexistent4"))
+             (let ((ispell-local-dictionary-overridden t))
+               (ispell-buffer-local-dict t))
+             (should-not (equal ispell-current-dictionary test-dict))
+             (should (equal ispell-current-personal-dictionary
+                            test-pdict))))
                  possible-pdict-paths)))))
 
 ;; parsing
 
 (ert-deftest ispell/ispell-buffer-local-parsing/local-keyword ()
-  "Check that ispell.el can suscessfully pick up a tex parser
-from a buffer-local keyword."
+  "Check that ispell.el can suscessfully pick up a tex parser from a buffer-local keyword."
   ;; FIXME: what if default dictionary sets
   ;; (ispell-get-extended-character-mode) ?
   (with-temp-buffer
     (let ((test-parser  "~tex")
           (test-dictname "testdict")
           (test-extcharmode "~latin3"))
-      (letopt ((ispell-parser 'ispellnonexistent)
-               (ispell-local-dictionary-alist
-                `((,test-dictname "[A-Za-z]" "[^A-Za-z]" "[']"
-                                  nil ("-B") ,test-extcharmode utf-8)))
-               (ispell-current-dictionary test-dictname))
+      (ispell-tests--letopt
+          ((ispell-parser 'ispellnonexistent)
+           (ispell-local-dictionary-alist
+            `((,test-dictname "[A-Za-z]" "[^A-Za-z]" "[']"
+                              nil ("-B") ,test-extcharmode utf-8)))
+           (ispell-current-dictionary test-dictname))
 
-              (insert
-               "hello\n\n\n" ispell-parsing-keyword test-parser)
-              (let* ((counter 0))
-                (cl-labels ((checker (s)
-                              (setq counter (+ 1 counter))
-                              (when (equal counter 1)
-                                (should (string-equal s "!\n")))
-                              (when (equal counter 2)
-                                (should (string-equal s "-\n")))
-                              (when (equal counter 3)
-                                (should (string-equal s (concat test-extcharmode "\n"))))
-                              (when (equal counter 4)
-                                (should (string-equal s (concat test-parser "\n"))))
-                              t))
-                  (unwind-protect (progn
-                                    (advice-add 'ispell-send-string :override
-                                                #'checker)
-                                    (let ((ispell-really-hunspell nil))
-                                      (ispell-buffer-local-parsing)))
-                    (advice-remove 'ispell-send-string #'checker)))))))
+        (insert
+         (car ispell-tests--constants/english/correct-list)"\n\n\n"
+         ispell-parsing-keyword test-parser)
+        (let* ((counter 0))
+          (cl-labels ((checker (s)
+                        (setq counter (+ 1 counter))
+                        (when (equal counter 1)
+                          (should (string-equal s "!\n")))
+                        (when (equal counter 2)
+                          (should (string-equal s "-\n")))
+                        (when (equal counter 3)
+                          (should (string-equal s (concat test-extcharmode "\n"))))
+                        (when (equal counter 4)
+                          (should (string-equal s (concat test-parser "\n"))))
+                        t))
+            (unwind-protect
+                (progn
+                  (advice-add 'ispell-send-string :override
+                              #'checker)
+                  (let ((ispell-really-hunspell nil))
+                    (ispell-buffer-local-parsing)))
+              (advice-remove 'ispell-send-string #'checker)))))))
   )
 
 (ert-deftest ispell/ispell-buffer-local-parsing/local-keyword/hunspell-bug ()
-  "Check that ispell.el can suscessfully pick up a tex parser
-from a buffer-local keyword."
+  "Check that ispell.el can suscessfully pick up a tex parser from a buffer-local keyword."
   ;; FIXME: what if default dictionary sets
   ;; (ispell-get-extended-character-mode) ?
   :expected-result :failed
@@ -653,101 +650,109 @@ from a buffer-local keyword."
     (let ((test-parser  "~tex")
           (test-dictname "testdict")
           (test-extcharmode "~latin3"))
-      (letopt ((ispell-parser 'ispellnonexistent)
-               (ispell-local-dictionary-alist
-                `((,test-dictname "[A-Za-z]" "[^A-Za-z]" "[']"
-                                  nil ("-B") ,test-extcharmode utf-8)))
-               (ispell-current-dictionary test-dictname))
+      (ispell-tests--letopt ((ispell-parser 'ispellnonexistent)
+                             (ispell-local-dictionary-alist
+                              `((,test-dictname "[A-Za-z]" "[^A-Za-z]" "[']"
+                                                nil ("-B") ,test-extcharmode utf-8)))
+                             (ispell-current-dictionary test-dictname))
 
-              (insert
-               "hello\n\n\n" ispell-parsing-keyword test-parser)
-              (let* ((counter 0))
-                (cl-labels ((checker (s)
-                              (setq counter (+ 1 counter))
-                              (when (equal counter 1)
-                                (should (string-equal s "!\n")))
-                              (when (equal counter 2)
-                                (should (string-equal s "-\n")))
-                              (when (equal counter 3)
-                                (should (string-equal s (concat test-extcharmode "\n"))))
-                              (when (equal counter 4)
-                                (should (string-equal s (concat test-parser "\n"))))
-                              t))
-                  (unwind-protect (progn
-                                    (advice-add 'ispell-send-string :override
-                                                #'checker)
-                                    (let ((ispell-really-hunspell t))
-                                      (ispell-buffer-local-parsing)))
-                    (advice-remove 'ispell-send-string #'checker)))))))
+        (insert
+         ispell-tests--constants/english/correct-one "\n\n\n" ispell-parsing-keyword test-parser)
+        (let* ((counter 0))
+          (cl-labels
+              ((checker (s)
+                 (setq counter (+ 1 counter))
+                 (when (equal counter 1)
+                   (should (string-equal s "!\n")))
+                 (when (equal counter 2)
+                   (should (string-equal s "-\n")))
+                 (when (equal counter 3)
+                   (should (string-equal s (concat test-extcharmode "\n"))))
+                 (when (equal counter 4)
+                   (should (string-equal s (concat test-parser "\n"))))
+                 t))
+            (unwind-protect
+                (progn
+                  (advice-add 'ispell-send-string :override
+                              #'checker)
+                  (let ((ispell-really-hunspell t))
+                    (ispell-buffer-local-parsing)))
+              (advice-remove 'ispell-send-string #'checker)))))))
   )
 
 (ert-deftest ispell/ispell-buffer-local-parsing/mode-tex ()
-  "Check that ispell.el can suscessfully pick up a tex parser
-from tex-based mode-name.
+  "Check that ispell.el can suscessfully pick up a tex parser from tex-based mode-name.
 There is another implicit check here: explicit-character-mode
-(argument 7 from the ispell.el dictionary structure) is nil."
+\(argument 7 from the ispell.el dictionary structure) is nil."
   (with-temp-buffer
     (let ((test-dictname "testdict")
           (test-extcharmode nil))
-      (letopt ((ispell-check-comments t)
-               (ispell-parser 'use-mode-name)
-               (ispell-local-dictionary-alist
-                `((,test-dictname "[A-Za-z]" "[^A-Za-z]" "[']"
-                                  nil ("-B") ,test-extcharmode utf-8)))
-               (ispell-current-dictionary test-dictname))
-              (insert
-               "hello\n\n\n")
-              (tex-mode)
-              (let* ((counter 0))
-                (cl-labels ((checker (s)
-                              (setq counter (+ 1 counter))
-                              (when (equal counter 1)
-                                (should (string-equal s "!\n")))
-                              (when (equal counter 2)
-                                (should (string-equal s "+\n")))
-                              (when (equal counter 3)
-                                (error "Should not have a third call to `ispell-send-string'"))
-                              t))
-                  (unwind-protect (progn
-                                    (advice-add 'ispell-send-string :override
-                                                #'checker)
-                                    (ispell-buffer-local-parsing))
-                    (advice-remove 'ispell-send-string #'checker)))))))
+      (ispell-tests--letopt
+          ((ispell-check-comments t)
+           (ispell-parser 'use-mode-name)
+           (ispell-local-dictionary-alist
+            `((,test-dictname "[A-Za-z]" "[^A-Za-z]" "[']"
+                              nil ("-B") ,test-extcharmode utf-8)))
+           (ispell-current-dictionary test-dictname))
+
+        (insert
+         (car ispell-tests--constants/english/correct-list) "\n\n\n")
+        (tex-mode)
+        (let* ((counter 0))
+          (cl-labels
+              ((checker (s)
+                 (setq counter (+ 1 counter))
+                 (when (equal counter 1)
+                   (should (string-equal s "!\n")))
+                 (when (equal counter 2)
+                   (should (string-equal s "+\n")))
+                 (when (equal counter 3)
+                   (error "Should not have a third call to `ispell-send-string'"))
+                 t))
+            (unwind-protect
+                (progn
+                  (advice-add 'ispell-send-string :override
+                              #'checker)
+                  (ispell-buffer-local-parsing))
+              (advice-remove 'ispell-send-string #'checker)))))))
   )
 
 (ert-deftest ispell/ispell-buffer-local-parsing/extended-character-mode ()
-  "Check that ispell.el can suscessfully pick up an extended character
-mode from the dictionary."
+  "Check that ispell.el can suscessfully pick up an extended character mode from the dictionary."
   (with-temp-buffer
     (insert
-     "hello\n\n\n")
+     ispell-tests--constants/english/correct-one "\n\n\n")
     (let ((test-extcharmode "~latin3"))
-      (letopt ((ispell-check-comments t)
-               (ispell-parser 'use-mode-name)
-               ;; FIXME: what if default dictionary sets
-               ;; (ispell-get-extended-character-mode)?
-               (ispell-local-dictionary-alist
-                `(("english" "[A-Za-z]" "[^A-Za-z]" "[']"
-                   nil ("-B") ,test-extcharmode utf-8)))
-               )
-              (tex-mode)
-              (let* ((counter 0))
-                (cl-labels ((checker (s)
-                              (setq counter (+ 1 counter))
-                              (when (equal counter 1)
-                                (should (string-equal s "!\n")))
-                              (when (equal counter 2)
-                                (should (string-equal s "+\n")))
-                              (when (equal counter 3)
-                                (should (string-equal s (concat test-extcharmode "\n"))))
-                              (when (equal counter 4)
-                                (error "Should not have a third call to `ispell-send-string'"))
-                              t))
-                  (unwind-protect (progn
-                                    (advice-add 'ispell-send-string :override
-                                                #'checker)
-                                    (ispell-buffer-local-parsing))
-                    (advice-remove 'ispell-send-string #'checker)))))))
+      (ispell-tests--letopt
+          ((ispell-check-comments t)
+           (ispell-parser 'use-mode-name)
+           ;; FIXME: what if default dictionary sets
+           ;; (ispell-get-extended-character-mode)?
+           (ispell-local-dictionary-alist
+            `(("english" "[A-Za-z]" "[^A-Za-z]" "[']"
+               nil ("-B") ,test-extcharmode utf-8))))
+
+        (tex-mode)
+        (let* ((counter 0))
+          (cl-labels
+              ((checker (s)
+                 (setq counter (+ 1 counter))
+                 (when (equal counter 1)
+                   (should (string-equal s "!\n")))
+                 (when (equal counter 2)
+                   (should (string-equal s "+\n")))
+                 (when (equal counter 3)
+                   (should (string-equal s (concat test-extcharmode "\n"))))
+                 (when (equal counter 4)
+                   (error "Should not have a third call to `ispell-send-string'"))
+                 t))
+
+            (unwind-protect
+                (progn
+                  (advice-add 'ispell-send-string :override
+                              #'checker)
+                  (ispell-buffer-local-parsing))
+              (advice-remove 'ispell-send-string #'checker)))))))
   )
 
 ;; Let us now test the most important state-related function:
@@ -760,8 +765,7 @@ mode from the dictionary."
 
 
 (ert-deftest ispell/ispell-accept-buffer-local-defs/simple ()
-  "Check that `ispell-accept-buffer-local-defs' works for a
-batch mode.
+  "Check that `ispell-accept-buffer-local-defs' works for a batch mode.
 1. local words
 2. dictionary and pdict
 3. parser and extcharmode.
@@ -774,61 +778,93 @@ hunspell.  Hence skipping."
                                "enchant-2"))))
   (with-environment-variables (("HOME" temporary-file-directory))
     (with-temp-buffer
-      (letopt ((ispell-program-name (ispell-tests--some-backend)))
-        (let ((test-dictname "english")
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend)))
+
+        (let ((test-dictname (ispell-tests--some-valid-dictionary ispell-program-name))
               (test-extcharmode "~latin3")
               (test-parser "~testparser")
               (test-localword1 "aaaaaaaaaaaaa")
               (test-localword2 "bbbbbbbbbbb")
               (test-pdict "test-pdict.pdict"))
           (insert
-           "hello\n\n\n"
+           (car ispell-tests--constants/english/correct-list) "\n\n\n"
            ispell-dictionary-keyword test-dictname "\n"
            ispell-pdict-keyword (expand-file-name test-pdict temporary-file-directory) "\n"
            ispell-parsing-keyword test-parser "\n"
            ispell-words-keyword " " test-localword1 " " test-localword2 "\n")
-          (letopt ((ispell-check-comments t)
-                   (ispell-parser 'tex)
-                   ;; FIXME: what if default dictionary sets
-                   ;; (ispell-get-extended-character-mode)?
-                   (ispell-local-dictionary-alist
-                    `((,test-dictname "[A-Za-z]" "[^A-Za-z]" "[']"
-                                      nil ("-B") ,test-extcharmode utf-8))))
+          (ispell-tests--letopt
+              ((ispell-check-comments t)
+               (ispell-parser 'tex)
+               ;; FIXME: what if default dictionary sets
+               ;; (ispell-get-extended-character-mode)?
+               (ispell-local-dictionary-alist
+                `((,test-dictname "[A-Za-z]" "[^A-Za-z]" "[']"
+                                  nil ("-B") ,test-extcharmode utf-8))))
+
             (tex-mode)
             (let* ((counter 0))
-              (cl-labels ((checker-ispell-send-string (s)
-                            (let ((references
-                                   (list nil
-                                         (concat test-extcharmode "\n")
-                                         (concat "@" test-localword1 "\n")
-                                         (concat "@" test-localword2 "\n")
-                                         "!\n"
-                                         "+\n"
-                                         (concat test-extcharmode "\n")
-                                         (concat test-parser "\n"))))
-                              (setq counter (+ 1 counter))
-                              (should (<= counter (length references)))
-                              (should (string-equal
-                                       (concat s)
-                                       (concat (nth counter references))))
-                              t)))
-                (unwind-protect (progn
-                                  (advice-add 'ispell-send-string :before
-                                              #'checker-ispell-send-string)
-                                  (ignore-errors (ispell-kill-ispell))
-                                  (ispell-accept-buffer-local-defs)
-                                  (should (equal ispell-local-dictionary test-dictname))
-                                  (should (equal ispell-local-pdict (expand-file-name test-pdict temporary-file-directory)))
-                                  )
+              (cl-labels
+                  ((checker-ispell-send-string (s)
+                     (let ((references
+                            (list nil
+                                  (concat test-extcharmode "\n")
+                                  (concat "@" test-localword1 "\n")
+                                  (concat "@" test-localword2 "\n")
+                                  "!\n"
+                                  "+\n"
+                                  (concat test-extcharmode "\n")
+                                  (concat test-parser "\n"))))
+                       (setq counter (+ 1 counter))
+                       (should (<= counter (length references)))
+                       (should (string-equal
+                                (concat s)
+                                (concat (nth counter references))))
+                       t)))
+
+                (unwind-protect
+                    (progn
+                      (advice-add 'ispell-send-string :before
+                                  #'checker-ispell-send-string)
+                      (ignore-errors (ispell-kill-ispell))
+                      (ispell-accept-buffer-local-defs)
+                      (should (equal ispell-local-dictionary test-dictname))
+                      (should (equal ispell-local-pdict (expand-file-name test-pdict temporary-file-directory)))
+                      )
                   (advice-remove 'ispell-send-string #'checker-ispell-send-string)))))))))
   )
 
+(ert-deftest ispell/ispell-accept-buffer-local-defs/received-file ()
+  "Check that `ispell-accept-buffer-local-defs' is broken when a file has a nonexistent file-local dictionary.
+We do not control this data, but this should make ispell.el failx."
+  :expected-result :failed
+  (with-environment-variables (("HOME" temporary-file-directory))
+    (with-temp-buffer
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend)))
+
+        (let ((test-dictname (format "%s" (random))))
+          (insert
+           (car ispell-tests--constants/english/correct-list) "\n\n\n"
+           ispell-dictionary-keyword test-dictname "\n")
+          (ispell-tests--letopt
+              ((ispell-check-comments t)
+               (ispell-parser 'tex))
+
+            (tex-mode)
+            (progn
+              (ignore-errors (ispell-kill-ispell))
+              ;; should not error
+              (ispell-accept-buffer-local-defs)
+              )))))))
+
 (ert-deftest ispell/ispell--run-on-word/default ()
-  "`ispell--run-on-word' should be the simplest interface
-for checking a word."
+  "`ispell--run-on-word' should be the simplest interface for checking a word."
   (skip-unless (ispell-tests--some-backend-available-p))
-  (letopt ((ispell-program-name (ispell-tests--some-backend))
-           (ispell-dictionary "default"))
+  (ispell-tests--letopt
+      ((ispell-program-name (ispell-tests--some-backend))
+       (ispell-dictionary "default"))
+
     (let ((default-directory temporary-file-directory))
       (with-temp-buffer
         (with-environment-variables (("HOME" temporary-file-directory))
@@ -837,47 +873,36 @@ for checking a word."
           (ignore-errors (ispell-kill-ispell t t))
           (ispell-init-process)
 
-          (let ((test-output (ispell--run-on-word "hellooooooo")))
+          (let ((test-output (ispell--run-on-word ispell-tests--constants/english/wrong)))
             (should (listp test-output))
             (should-not (equal t test-output))
             (setq ispell-filter nil)
             (setq ispell-filter-continue nil))
-
-          (let ((test-output (ispell--run-on-word "hello")))
-            (should-not (listp test-output))
-            (should (equal t test-output))
-            (setq ispell-filter nil)
-            (setq ispell-filter-continue nil))
-
-          (let ((test-output (ispell--run-on-word "fail")))
-            (should-not (listp test-output))
-            (should (equal t test-output))
-            (setq ispell-filter nil)
-            (setq ispell-filter-continue nil))
-
-          (let ((test-output (ispell--run-on-word "tail")))
-            (should-not (listp test-output))
-            (should (equal t test-output))
-            (setq ispell-filter nil)
-            (setq ispell-filter-continue nil))
+          (mapc (lambda (word)
+                  (let ((test-output (ispell--run-on-word word)))
+                    (should-not (listp test-output))
+                    (should (equal t test-output))
+                    (setq ispell-filter nil)
+                    (setq ispell-filter-continue nil)))
+                ispell-tests--constants/english/correct-list)
           ))))
   )
 
 (ert-deftest ispell/ispell--run-on-word/default/fails ()
-  "`ispell--run-on-word' should be the simplest interface
-for checking a word.  This test fails due to what I consider
+  "Check `ispell--run-on-word', the simplest interface for checking a word.
+This test fails due to what I consider
 to be a bug.  I am quite convinced that `ispell--run-on-word'
 should work twice in a row, without having to call
-(`ispell-init-process') or (setq ispell-filter nil)
-before each call.
-"
+\(`ispell-init-process') or (setq ispell-filter nil)
+before each call."
   :expected-result :failed
   (skip-unless (ispell-tests--some-backend-available-p))
   (skip-unless (equal
                 0
                 (call-process (ispell-tests--some-backend) nil nil nil "-vv")))
-  (letopt ((ispell-program-name (ispell-tests--some-backend))
-           (ispell-dictionary "default"))
+  (ispell-tests--letopt
+      ((ispell-program-name (ispell-tests--some-backend))
+       (ispell-dictionary "default"))
     (let ((default-directory temporary-file-directory))
       (with-temp-buffer
         (with-environment-variables (("HOME" temporary-file-directory))
@@ -886,11 +911,11 @@ before each call.
           (ignore-errors (ispell-kill-ispell t t))
           (ispell-init-process)
 
-          (let ((test-output (ispell--run-on-word "hellooooooo")))
+          (let ((test-output (ispell--run-on-word ispell-tests--constants/english/wrong)))
             (should (listp test-output))
             (should-not (equal t test-output)))
 
-          (let ((test-output (ispell--run-on-word "hello")))
+          (let ((test-output (ispell--run-on-word (car ispell-tests--constants/english/correct-list))))
             (should-not (listp test-output))
             (should (equal t test-output)))
 
@@ -898,23 +923,23 @@ before each call.
   )
 
 (ert-deftest ispell/ispell-word/default/check-only/correct ()
-  "Check that `ispell-word' works with a default
-dictionary, which we expect to be english, as
-Ispell ships it.  This is probably wrong and should
-be rewritten with a mock."
+  "Check that `ispell-word' works with a default dictionary.
+We expect it to be english, as Ispell ships it."
   (skip-unless (ispell-tests--some-backend-available-p))
   (skip-unless (equal
                 0
                 (call-process (ispell-tests--some-backend) nil nil nil "-vv")))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend))
-               (ispell-dictionary nil))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend))
+           (ispell-dictionary nil))
+
         (ignore-errors (ispell-kill-ispell t t))
         (with-temp-buffer
           (insert
-           "hello\n")
-          (goto-char 0)
+           (car ispell-tests--constants/english/correct-list) "\n")
+          (goto-char 1)
           (ert-with-message-capture lres
             (ispell-word)
             (should (string-match "is correct" lres))))
@@ -922,28 +947,28 @@ be rewritten with a mock."
   )
 
 (ert-deftest ispell/ispell-word/default/check-only/correct/add-init ()
-  "Check that `ispell-word' works with a default
-dictionary, which we expect to be english, as
-Ispell ships it.  This is probably wrong and should
-be rewritten with a mock.
-This test is different from the previous one in that an explicit init
-call to (ispell-init-process) is added. I had issues with it, so I would
-like to test it explicitly."
+  "Check that `ispell-word' works with a default dictionary.
+We expect it to be english, as Ispell ships it.  This test is different
+from the previous one in that an explicit init call
+to (`ispell-init-process') is added.  I had issues with it, so I would like
+to test it explicitly."
   (skip-unless (ispell-tests--some-backend-available-p))
   (skip-unless (equal
                 0
                 (call-process (ispell-tests--some-backend) nil nil nil "-vv")))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend))
-               (ispell-dictionary nil)
-               (ispell-check-only t))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend))
+           (ispell-dictionary nil)
+           (ispell-check-only t))
+
         (ignore-errors (ispell-kill-ispell t t))
         (with-temp-buffer
           (ispell-init-process) ;; this is added
           (insert
-           "hello\n")
-          (goto-char 0)
+           (car ispell-tests--constants/english/correct-list) "\n")
+          (goto-char 1)
           (ert-with-message-capture lres
             (ispell-word)
             (should (string-match "is correct" lres)))
@@ -952,22 +977,22 @@ like to test it explicitly."
   )
 
 (ert-deftest ispell/ispell-word/default/check-only/incorrect ()
-  "Check that `ispell-word' works with a default
-dictionary, which we expect to be english, as
-Ispell ships it.  This is probably wrong and should
-be rewritten with a mock.
-This test gives it a word which does not exist."
+  "Check that `ispell-word' works with a default dictionary.
+We expect it to be english, as Ispell ships it.  This test gives it a
+word which does not exist."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend))
-               (ispell-dictionary nil)
-               (ispell-check-only t))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend))
+           (ispell-dictionary nil)
+           (ispell-check-only t))
+
         (ignore-errors (ispell-kill-ispell t t))
         (with-temp-buffer
           (insert
-           "hellooooooo\n")
-          (goto-char 0)
+           ispell-tests--constants/english/wrong "\n")
+          (goto-char 1)
           (ert-with-message-capture lres
             (ispell-word)
             (should (string-match "is incorrect" lres))
@@ -979,10 +1004,13 @@ This test gives it a word which does not exist."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory)
-           (words '("hello" "test" "test" "more" "obvious" "word"))
+           (words ispell-tests--constants/english/correct-list)
            (text (string-join words " ")))
-      (letopt ((ispell-program-name (ispell-tests--some-backend))
-               (ispell-dictionary nil))
+      (ispell-tests--letopt
+          ((ispell-program-name
+            (ispell-tests--some-backend))
+           (ispell-dictionary nil))
+
         (ignore-errors (ispell-kill-ispell t t))
         (with-temp-buffer
           (insert text)
@@ -1000,17 +1028,22 @@ This test gives it a word which does not exist."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory)
-           (words '("hello" "tarampampamtararam" "world"))
+           (words (list
+                   (nth 0 ispell-tests--constants/english/correct-list)
+                   ispell-tests--constants/english/wrong
+                   (nth 1 ispell-tests--constants/english/correct-list)))
            (text (string-join words " ")))
-      (letopt ((ispell-program-name (ispell-tests--some-backend))
-               (ispell-dictionary nil)
-               (ispell-check-only t))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend))
+           (ispell-dictionary nil)
+           (ispell-check-only t))
+
         (ignore-errors (ispell-kill-ispell t t))
         (with-temp-buffer
           (insert text)
           (goto-char (length (nth 0 words)))
           (cl-labels ((checker ()
-                        (user-error "expected error")))
+                        (user-error "Expected error")))
             (unwind-protect
                 (progn
                   (advice-add 'ispell-show-choices :override #'checker)
@@ -1026,23 +1059,19 @@ so this test virtually mirrors the previous one."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory)
-           (words '("hello" "test" "test" "more" "obvious" "word"))
+           (words ispell-tests--constants/english/correct-list)
            (text (string-join words " ")))
-      (letopt ((ispell-dictionary nil)
-               (ispell-program-name (ispell-tests--some-backend)))
+      (ispell-tests--letopt
+          ((ispell-dictionary nil)
+           (ispell-program-name (ispell-tests--some-backend)))
+
         (ignore-errors (ispell-kill-ispell t t))
         (with-temp-buffer
           (insert text)
-          (goto-char (length (nth 0 words)))
-          (let ((current-point
-                 (with-current-buffer "*Messages*"
-                   (point))))
+          (ert-with-message-capture lres
             (ispell-buffer)
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (should (> (re-search-backward "^Spell-checking .* using .* with .* dictionary...done" nil t) current-point))
-              'passed)
-            )))))
+            (should (string-match "^Spell-checking .* using .* with .* dictionary...done" lres))
+          )))))
   )
 
 (ert-deftest ispell/ispell-buffer/incorrect ()
@@ -1052,10 +1081,13 @@ so this test virtually mirrors the previous one."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory)
-           (words '("tarampampamtararam" "test" "test" "more" "obvious" "word" "badworddd"))
+           (words (append ispell-tests--constants/english/correct-list
+                          (list ispell-tests--constants/english/wrong)))
            (text (string-join words " ")))
-      (letopt ((ispell-dictionary nil)
-               (ispell-program-name (ispell-tests--some-backend)))
+      (ispell-tests--letopt
+          ((ispell-dictionary nil)
+           (ispell-program-name (ispell-tests--some-backend)))
+
         (ignore-errors (ispell-kill-ispell t t))
         (with-temp-buffer
           (insert text)
@@ -1063,8 +1095,9 @@ so this test virtually mirrors the previous one."
           ;; but `ispell-buffer' should move the point to the beginning
           ;; of the buffer.
           (goto-char (length (nth 0 words)))
-          (cl-labels ((checker ()
-                        (user-error "expected error")))
+          (cl-labels
+              ((checker ()
+                 (user-error "Expected error")))
             (unwind-protect
                 (progn
                   (advice-add 'ispell-show-choices :override
@@ -1081,11 +1114,14 @@ so this test virtually mirrors the previous one."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory)
-           (words '("tarampampamtararam" "test" "test" "more" "obvious" "word"))
+           (words (append ispell-tests--constants/english/correct-list
+                          (list ispell-tests--constants/english/wrong)))
            (text (string-join words " ")))
       (with-temp-buffer
-        (with-ispell-global-dictionary nil
-          (letopt ((ispell-program-name  (ispell-tests--some-backend)))
+        (ispell-tests--letopt
+            ((ispell-program-name  (ispell-tests--some-backend)))
+          (ispell-tests--with-ispell-global-dictionary
+              nil
             (insert text)
             (ispell-init-process)
             (should ispell-async-processp)
@@ -1093,12 +1129,11 @@ so this test virtually mirrors the previous one."
             (ispell-kill-ispell nil t)))
         'passed
         )))
-  (message "lwf:debug2:ispell-program-name=%s:ispell-dictionary=%s"
-           ispell-program-name ispell-dictionary)
   )
 
 (ert-deftest ispell/ispell/buffer ()
-  "`ispell' is just a wrapper around `ispell-region'
+  "Test `ispell-buffer'.
+`ispell' is just a wrapper around `ispell-region'
 and `ispell-buffer', which is also a wrapper around
 `ispell-buffer'.
 This test might seem confusing, as it does not check
@@ -1107,7 +1142,7 @@ not matter `ispell' function does not use the
 backend."
   (let ((transient-mark-mode t))
     (with-temp-buffer
-      (insert "hello world test test")
+      (insert (string-join ispell-tests--constants/english/correct-list " "))
       (goto-char 2)
       (set-mark (point))
       (goto-char (point-max))
@@ -1115,7 +1150,7 @@ backend."
       (cl-labels ((checker-buffer ()
                     t)
                   (checker-region (_a _b)
-                    (user-error "test failed")))
+                    (user-error "Test failed")))
         (unwind-protect
             (progn
               (advice-add 'ispell-buffer :override #'checker-buffer)
@@ -1129,18 +1164,19 @@ backend."
   )
 
 (ert-deftest ispell/ispell/region ()
-  "`ispell' is just a wrapper around `ispell-region'
+  "Test `ispell-region'.
+`ispell' is just a wrapper around `ispell-region'
 and `ispell-buffer', which is also a wrapper around
 `ispell-buffer'."
   (let ((transient-mark-mode t))
     (with-temp-buffer
-      (insert "hello world test test")
+      (insert (string-join ispell-tests--constants/english/correct-list " "))
       (goto-char 2)
       (set-mark (point))
       (goto-char (point-max))
       (activate-mark)
       (cl-labels ((checker-buffer ()
-                    (user-error "test failed"))
+                    (user-error "Test failed"))
                   (checker-region (_a _b)
                     t))
         (unwind-protect
@@ -1156,11 +1192,12 @@ and `ispell-buffer', which is also a wrapper around
   )
 
 (ert-deftest ispell/ispell-change-dictionary ()
-  "Simple test for changing a dictionary"
+  "Simple test for changing a dictionary."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend)))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend)))
         (with-temp-buffer
           (ispell-change-dictionary "english")
           (should (equal ispell-local-dictionary "english"))
@@ -1173,37 +1210,42 @@ and `ispell-buffer', which is also a wrapper around
   )
 
 (ert-deftest ispell/ispell-comments-and-strings/correct ()
-  "Test that `ispell-comments-and-strings' does not err
-on a correct buffer."
+  "Test that `ispell-comments-and-strings' does not err on a correct buffer."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory))
-      (letopt ((ispell-dictionary nil)
-               (ispell-program-name (ispell-tests--some-backend)))
+      (ispell-tests--letopt
+          ((ispell-dictionary nil)
+           (ispell-program-name (ispell-tests--some-backend)))
         (with-temp-buffer
           (ispell-kill-ispell t t)
           (insert "#!/bin/bash\n"
-                  "echo \"string to check\"\n"
+                  "echo \""
+                  (string-join
+                   ispell-tests--constants/english/correct-list " ")
+                  "\"\n"
                   "# commented line\n")
           (sh-mode)
           (ert-with-message-capture lres
             (ispell-comments-and-strings)
             (should (string-match "Spell-checking .* using .* with .* dictionary...done" lres))))
-          'passed
-          )))
+        'passed
+        )))
   )
 
 (ert-deftest ispell/ispell-comments-and-strings/incorrect ()
-  "Test that `ispell-comments-and-strings' errs
-on a correct buffer."
+  "Test that `ispell-comments-and-strings' errs on a correct buffer."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend)))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend)))
         (with-temp-buffer
           (insert "#!/bin/bash\n"
-                  "echo \"string to check\"\n"
-                  "# tarampampamtararam\n")
+                  "echo \"" (string-join
+                             ispell-tests--constants/english/correct-list " ")
+                  "\"\n"
+                  "# " ispell-tests--constants/english/wrong "\n")
           (sh-mode)
           (ert-with-message-capture lres
             (should-error (ispell-comments-and-strings)))
@@ -1217,19 +1259,31 @@ One correct an one incorrect in the same buffer."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory))
-      (letopt ((ispell-dictionary nil)
-               (ispell-program-name (ispell-tests--some-backend)))
+      (ispell-tests--letopt
+          ((ispell-dictionary nil)
+           (ispell-program-name (ispell-tests--some-backend)))
         (with-temp-buffer
-          (insert "#!/bin/bash\n"
-                  "echo \"string to check\"\n"
-                  "# tarampampamtararam\n")
-          (sh-mode)
-          (goto-char 25)
-          (ert-with-message-capture lres
-            (ispell-comment-or-string-at-point)
-            (should (string-match "Spell-checking .* using .* with .* dictionary...done" lres)))
-          (goto-char 47)
-          (should-error (ispell-comment-or-string-at-point))
+          (let ((string1 "#!/bin/bash\necho\"")
+                (string2 (string-join
+                          ispell-tests--constants/english/correct-list " "))
+                (string3 "\"\n# ")
+                (string4 ispell-tests--constants/english/wrong)
+                (string5 "\n"))
+            (insert string1
+                    string2
+                    string3
+                    string4
+                    string5)
+            (sh-mode)
+            (goto-char (+ (length string1) (length (nth 0 ispell-tests--constants/english/correct-list))))
+            (ert-with-message-capture lres
+              (ispell-comment-or-string-at-point)
+              (should (string-match "Spell-checking .* using .* with .* dictionary...done" lres)))
+            (goto-char (+ (length string1)
+                          (length string2)
+                          (length string3)
+                          1))
+            (should-error (ispell-comment-or-string-at-point)))
           'passed))))
   )
 
@@ -1238,9 +1292,10 @@ One correct an one incorrect in the same buffer."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend)))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend)))
         (with-temp-buffer
-          (insert "test")
+          (insert (format "%s" (random)))
           (ispell-kill-ispell t t)
           (ispell-pdict-save t t)
           'passed))))
@@ -1251,9 +1306,10 @@ One correct an one incorrect in the same buffer."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend)))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend)))
         (with-temp-buffer
-          (insert "testttttt")
+          (insert (format "%s" (random)))
           (goto-char 1)
           (ispell-kill-ispell t t)
           (ispell-pdict-save t t)
@@ -1265,18 +1321,21 @@ One correct an one incorrect in the same buffer."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend-available-p)))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend-available-p)))
         (with-temp-buffer
-          (insert "testttttt")
+          (insert (format "%s" (random)))
           (goto-char 1)
           (ispell-kill-ispell t t)
-          (cl-labels ((checker (s)
-                        (should (equal s "#\n"))))
-            (unwind-protect (progn
-                              (advice-add 'ispell-send-string :override
-                                          #'checker)
-                              (let ((ispell-pdict-modified-p t))
-                                (ispell-pdict-save t nil)))
+          (cl-labels
+              ((checker (s)
+                 (should (equal s "#\n"))))
+            (unwind-protect
+                (progn
+                  (advice-add 'ispell-send-string :override
+                              #'checker)
+                  (let ((ispell-pdict-modified-p t))
+                    (ispell-pdict-save t nil)))
               (advice-remove 'ispell-send-string #'checker))))
         'passed)))
   )
@@ -1286,18 +1345,20 @@ One correct an one incorrect in the same buffer."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend)))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend)))
         (with-temp-buffer
-          (insert "testttttt")
+          (insert (format "%s" (random)))
           (goto-char 1)
           (ispell-kill-ispell t t)
           (cl-labels ((checker (_s)
-                        (user-error "test failed")))
-            (unwind-protect (progn
-                              (advice-add 'ispell-send-string :override
-                                          #'checker)
-                              (let ((ispell-pdict-modified-p nil))
-                                (ispell-pdict-save t nil)))
+                        (user-error "Test failed")))
+            (unwind-protect
+                (progn
+                  (advice-add 'ispell-send-string :override
+                              #'checker)
+                  (let ((ispell-pdict-modified-p nil))
+                    (ispell-pdict-save t nil)))
               (advice-remove 'ispell-send-string #'checker))))
         'passed)))
   )
@@ -1306,34 +1367,36 @@ One correct an one incorrect in the same buffer."
   "Test if `ispell-lookup-words' is runnable."
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory)
-           (tempfile (make-temp-file "emacs-ispell.el-test" nil nil "waveguides")))
-      (letopt ((ispell-complete-word-dict tempfile))
+           (tempfile (make-temp-file "emacs-ispell.el-test" nil nil ispell-tests--constants/completion)))
+      (ispell-tests--letopt
+          ((ispell-complete-word-dict tempfile))
         (with-temp-buffer
-          (insert "waveguid")
+          (insert (substring ispell-tests--constants/completion 0 -2))
           (unwind-protect
-                (progn
-                  (should (equal
-                           (ispell-lookup-words "waveguid")
-                           '("waveguides")))
-                  (should (equal
-                           (ispell-lookup-words "sdfsdfasdfsadfasdfasdf")
-                           nil)))
-              (delete-file tempfile)))
+              (progn
+                (should (equal
+                         (ispell-lookup-words (substring ispell-tests--constants/completion 0 -2))
+                         (list ispell-tests--constants/completion)))
+                (should (equal
+                         (ispell-lookup-words ispell-tests--constants/english/wrong)
+                         nil)))
+            (delete-file tempfile)))
         'passed)))
   )
 
 (ert-deftest ispell/ispell-complete-word/ispell-completion-at-point ()
-  "Test if `ispell-complete-word' and `ispell-completion-at-point'
-are runnable."
+  "Test if `ispell-complete-word' and `ispell-completion-at-point' are runnable."
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory)
-           (tempfile (make-temp-file "emacs-ispell.el-test" nil nil "waveguides")))
+           (tempfile (make-temp-file "emacs-ispell.el-test" nil nil ispell-tests--constants/completion)))
       (ignore-errors (ispell-kill-ispell t t))
-      (with-ispell-global-dictionary nil
-        (letopt ((ispell-program-name (ispell-tests--some-backend))
-                 (ispell-complete-word-dict tempfile))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend))
+           (ispell-complete-word-dict tempfile))
+        (ispell-tests--with-ispell-global-dictionary
+            nil
           (with-temp-buffer
-            (insert "waveguid")
+            (insert (substring ispell-tests--constants/completion 0 -2))
             (cl-labels ((my-ispell-command-loop (_p _n _w _s _e)
                           (car (nth 2 (ispell-completion-at-point)))))
               (unwind-protect
@@ -1341,9 +1404,9 @@ are runnable."
                     (advice-add 'ispell-command-loop :override
                                 #'my-ispell-command-loop)
                     (should (equal (car (nth 2 (ispell-completion-at-point)))
-                                   "waveguides"))
+                                   ispell-tests--constants/completion))
                     (ispell-complete-word)
-                    (should (equal "waveguides" (buffer-string))))
+                    (should (equal ispell-tests--constants/completion (buffer-string))))
                 (progn
                   (delete-file tempfile)
                   (advice-remove
@@ -1357,20 +1420,24 @@ are runnable."
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory)
            (tempfile (make-temp-file "emacs-ispell.el-test" nil nil "waveguides")))
-      (with-ispell-global-dictionary nil
-        (letopt ((ispell-program-name (ispell-tests--some-backend))
-                 (ispell-complete-word-dict tempfile))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend))
+           (ispell-complete-word-dict tempfile))
+        (ispell-tests--with-ispell-global-dictionary
+            nil
           (with-temp-buffer
-            (insert "waveguid")
-            (cl-labels ((my-ispell-command-loop (_p _n _w _s _e)
-                          (car (nth 2 (ispell-completion-at-point)))))
+            (insert (substring ispell-tests--constants/completion 0 -2))
+            (cl-labels
+                ((my-ispell-command-loop (_p _n _w _s _e)
+                   (car (nth 2 (ispell-completion-at-point)))))
               (unwind-protect
                   (progn
                     (advice-add 'ispell-command-loop :override
                                 #'my-ispell-command-loop)
                     (goto-char 4)
                     (ispell-complete-word-interior-frag)
-                    (should (equal "waveguides" (buffer-string))))
+                    (should (equal ispell-tests--constants/completion
+                                   (buffer-string))))
                 (progn
                   (delete-file tempfile)
                   (advice-remove
@@ -1380,21 +1447,26 @@ are runnable."
   )
 
 (ert-deftest ispell/ispell-minor-mode/simple ()
-  "Try enabling `ispell-minor-mode' and test
-one test file."
+  "Try enabling `ispell-minor-mode' and test one test file."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend))
-               (ispell-dictionary nil))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend))
+           (ispell-dictionary nil))
         (with-temp-buffer
           (text-mode)
           (ispell-minor-mode)
-          (insert "tarampampamtararam")
+          (insert ispell-tests--constants/english/wrong)
           (set--this-command-keys " ")
           (ert-with-message-capture lres
             (ispell-minor-check)
-            (should (string-match "TARAMPAMPAMTARARAM is incorrect" lres)))
+            (should (string-match
+                     (seq-concatenate
+                      'string
+                      (upcase ispell-tests--constants/english/wrong)
+                      " is incorrect")
+                     lres)))
           )
         'passed)))
   )
@@ -1406,11 +1478,14 @@ a message is sent in `message-mode' or `mml-mode'."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend))
-               (ispell-dictionary nil))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend))
+           (ispell-dictionary nil))
         (with-temp-buffer
           (insert
-           "To:
+           (seq-concatenate
+            'string
+            "To:
 Subject:
 From: Anon <anon@anon>
 Fcc: /tmp/234234.cb022f1a625b65b2.mainframe:2,S
@@ -1418,10 +1493,12 @@ User-Agent: mu4e 1.12.9; emacs 31.0.50
 Date: Tue, 09 Sep 2025 07:43:58 +0800
 Message-ID: <878qiov7b5.fsf@mainframe>
 --text follows this line--
-Hello World
+" (string-join
+   ispell-tests--constants/english/correct-list " ")
+            "
 --
 signature
-")
+"))
           (message-mode)
           (ert-with-message-capture lres
             (ispell-message)
@@ -1438,10 +1515,13 @@ a message is sent in `message-mode' or `mml-mode'."
   (skip-unless (ispell-tests--some-backend-available-p))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory))
-      (letopt ((ispell-program-name (ispell-tests--some-backend)))
+      (ispell-tests--letopt
+          ((ispell-program-name (ispell-tests--some-backend)))
         (with-temp-buffer
           (insert
-           "To:
+           (seq-concatenate
+            'string
+            "To:
 Subject:
 From: Anon <anon@anon>
 Fcc: /tmp/234234.cb022f1a625b65b2.mainframe:2,S
@@ -1450,32 +1530,24 @@ Date: Tue, 09 Sep 2025 07:43:58 +0800
 Message-ID: <878qiov7b5.fsf@mainframe>
 --text follows this line--
 <#part sign=pgpmime>
-tarampampamtararam
+" ispell-tests--constants/english/wrong "
 --
 signature
-")
+"))
           (message-mode)
           (cl-labels ((checker ()
-                        (user-error "expected error")))
+                        (user-error "Expected error")))
             (unwind-protect
                 (progn
                   (advice-add 'ispell-show-choices :override #'checker)
                   (should-error (ispell-message)))
               (progn
                 (advice-remove 'ispell-show-choices #'checker)
-                (set-buffer-modified-p nil))))
-
-          )
+                (set-buffer-modified-p nil)))))
         'passed)))
   )
 
-
 
-;;======================================================================
-;; On this "emacs page" I want to test that customise variables change
-;; function behavior in the way are intended to do.
+(provide 'ispell-tests)
 
-
-
-(provide 'tests-ispell)
-;;; tests-ispell.el ends here
+;;; ispell-tests.el ends here
