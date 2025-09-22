@@ -5624,30 +5624,30 @@ It's displayed on the minibuffer window when the minibuffer
 remains active, but the minibuffer window is no longer selected."
   :version "31.1")
 
-(defvar-local minibuffer-nonselected-overlay nil)
+(defvar-local minibuffer--nonselected-overlay nil)
 
-(defun minibuffer-nonselected-check (window)
+(defun minibuffer--nonselected-check (window)
   "Check if the active minibuffer's window is no longer selected.
 Use overlay to highlight the minibuffer window when another window
 is selected.  But don't warn in case when the *Completions* window
 becomes selected."
   (if (eq window (selected-window))
       (with-current-buffer (window-buffer window)
-        (when (overlayp minibuffer-nonselected-overlay)
-          (delete-overlay minibuffer-nonselected-overlay)))
-    (unless (eq major-mode 'completion-list-mode)
+        (when (overlayp minibuffer--nonselected-overlay)
+          (delete-overlay minibuffer--nonselected-overlay)))
+    (unless (eq major-mode #'completion-list-mode)
       (with-current-buffer (window-buffer window)
         (let ((ov (make-overlay (point-min) (point-max))))
           (overlay-put ov 'face 'minibuffer-nonselected)
-          (overlay-put ov 'window window)
           (overlay-put ov 'evaporate t)
-          (setq minibuffer-nonselected-overlay ov))))))
+          (setq minibuffer--nonselected-overlay ov))))))
 
-(defun minibuffer-nonselected-setup ()
+(defun minibuffer--nonselected-setup ()
+  "Setup hooks for `minibuffer-nonselected-mode' to update the overlay."
   (add-hook 'window-buffer-change-functions
-            'minibuffer-nonselected-check nil t)
+            #'minibuffer--nonselected-check nil t)
   (add-hook 'window-selection-change-functions
-            'minibuffer-nonselected-check nil t))
+            #'minibuffer--nonselected-check nil t))
 
 (define-minor-mode minibuffer-nonselected-mode
   "Minor mode to warn about non-selected active minibuffer.
@@ -5655,12 +5655,12 @@ Use the face `minibuffer-nonselected' to highlight the minibuffer
 window when the minibuffer remains active, but the minibuffer window
 is no longer selected."
   :global t
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-delay
   :init-value t
   :version "31.1"
   (if minibuffer-nonselected-mode
-      (add-hook 'minibuffer-setup-hook #'minibuffer-nonselected-setup)
-    (remove-hook 'minibuffer-setup-hook #'minibuffer-nonselected-setup)))
+      (add-hook 'minibuffer-setup-hook #'minibuffer--nonselected-setup)
+    (remove-hook 'minibuffer-setup-hook #'minibuffer--nonselected-setup)))
 
 
 (provide 'minibuffer)
