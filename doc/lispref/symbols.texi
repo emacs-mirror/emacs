@@ -761,7 +761,7 @@ local variables section of your file.
 
 ;; Local Variables:
 ;; read-symbol-shorthands: (("t/" . "my-tricks-")
-;;                          ("t//" . "my-tricks--")
+;;                          ("t//" . "my-tricks--"))
 ;; End:
 @end example
 
