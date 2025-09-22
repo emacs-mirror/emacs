@@ -3440,8 +3440,8 @@ displaying the *Completions* buffer exists."
 
 (defvar-keymap minibuffer-visible-completions-map
   :doc "Local keymap for minibuffer input with visible completions."
-  "<left>"  (minibuffer-visible-completions--bind #'minibuffer-previous-completion)
-  "<right>" (minibuffer-visible-completions--bind #'minibuffer-next-completion)
+  "<left>"  (minibuffer-visible-completions--bind #'minibuffer-previous-column-completion)
+  "<right>" (minibuffer-visible-completions--bind #'minibuffer-next-column-completion)
   "<up>"    (minibuffer-visible-completions--bind #'minibuffer-previous-line-completion)
   "<down>"  (minibuffer-visible-completions--bind #'minibuffer-next-line-completion)
   "C-g"     (minibuffer-visible-completions--bind #'minibuffer-hide-completions))
@@ -5224,15 +5224,15 @@ selected by these commands to the minibuffer."
   "Move to the next item in its completions window from the minibuffer.
 When the optional argument VERTICAL is non-nil, move vertically
 to the next item on the next line using `next-line-completion'.
-Otherwise, move to the next item horizontally using `next-completion'.
+Otherwise, move to the next item horizontally using `next-column-completion'.
 When `minibuffer-completion-auto-choose' is non-nil, then also
 insert the selected completion candidate to the minibuffer."
   (interactive "p")
   (let ((auto-choose minibuffer-completion-auto-choose))
     (with-minibuffer-completions-window
-      (if vertical
+      (if (or vertical (eq completions-format 'vertical))
           (next-line-completion (or n 1))
-        (next-completion (or n 1)))
+        (next-column-completion (or n 1)))
       (when auto-choose
         (let ((completion-auto-deselect nil))
           (choose-completion nil t t))))))
@@ -5261,6 +5261,26 @@ When `minibuffer-completion-auto-choose' is non-nil, then also
 insert the selected completion candidate to the minibuffer."
   (interactive "p")
   (minibuffer-next-completion (- (or n 1)) t))
+
+(defun minibuffer-next-column-completion (&optional n)
+  "Move to the next completion column from the minibuffer.
+This means to move to the completion candidate in the next column
+in the *Completions* buffer while point stays in the minibuffer.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion candidate to the minibuffer."
+  (interactive "p")
+  (with-minibuffer-completions-window
+    (next-column-completion (or n 1))))
+
+(defun minibuffer-previous-column-completion (&optional n)
+  "Move to the previous completion column from the minibuffer.
+This means to move to the completion candidate on the previous column
+in the *Completions* buffer while point stays in the minibuffer.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion candidate to the minibuffer."
+  (interactive "p")
+  (with-minibuffer-completions-window
+    (next-column-completion (- (or n 1)))))
 
 (defun minibuffer-choose-completion (&optional no-exit no-quit)
   "Run `choose-completion' from the minibuffer in its completions window.

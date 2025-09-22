@@ -276,9 +276,11 @@ can fill in the rest, or some of it, based on what was typed so far.
 @key{RET}, and @key{SPC}) are rebound in the minibuffer to special
 completion commands (@pxref{Completion Commands}).  These commands
 attempt to complete the text in the minibuffer, based on a set of
-@dfn{completion alternatives} provided by the command that requested
-the argument.  You can usually type @kbd{?} to see a list of
-completion alternatives.
+@dfn{completion alternatives} provided by the command that requested the
+argument.  You can usually type @kbd{?} to have Emacs pop up a buffer
+(named @samp{*Completions*}) displaying the relevant completion
+alternatives.  As described in more detail below, you can navigate this
+buffer and choose the desired completion from it.
 
   Although completion is usually done in the minibuffer, the feature
 is sometimes available in ordinary buffers too.  @xref{Symbol
@@ -336,8 +338,8 @@ at the end of the minibuffer, so that the minibuffer contains
 @node Completion Commands
 @subsection Completion Commands
 
-  Here is a list of the completion commands defined in the minibuffer
-when completion is allowed.
+  Here is a list of the completion commands defined in the minibuffer or
+the completions buffer when completion is available.
 
 @table @kbd
 @item @key{TAB}
@@ -357,7 +359,7 @@ Display a list of completions and a few useful key bindings
 (@code{minibuffer-completion-help}).
 @item M-@key{DOWN}
 @itemx M-@key{UP}
-Navigate through list of completions.
+Navigate through the list of completions.
 @item M-v
 @itemx M-g M-c
 @itemx @key{PageUp}
@@ -369,13 +371,17 @@ In the completions buffer, choose the completion at point.
 @itemx mouse-2
 In the completions buffer, choose the completion at mouse click.
 @item @key{TAB}
-@itemx @key{RIGHT}
-@itemx @key{n}
+@itemx n
 In the completions buffer, move to the following completion candidate.
-@item @key{S-TAB}
-@itemx @key{LEFT}
-@itemx @key{p}
+@item S-@key{TAB}
+@itemx p
 In the completions buffer, move to the previous completion candidate.
+@item @key{RIGHT}
+@itemx @key{LEFT}
+In the completions buffer, navigate column-wise through the completion list.
+@item @key{DOWN}
+@itemx @key{UP}
+In the completions buffer, navigate line-wise through the completion list.
 @item q
 Quit the completions window and switch to the minibuffer window.
 @item z
@@ -416,19 +422,24 @@ with the completion list:
 @findex minibuffer-next-completion
 @findex minibuffer-previous-completion
 @findex minibuffer-choose-completion
-While in the minibuffer or in the completion list buffer, @kbd{M-@key{DOWN}}
-(@code{minibuffer-next-completion} and @kbd{M-@key{UP}}
-(@code{minibuffer-previous-completion}) navigate through the
-completions displayed in the completions buffer.  When
-@code{minibuffer-completion-auto-choose} is non-@code{nil} (which is
-the default), using these commands also inserts the current completion
-candidate into the minibuffer.  If
-@code{minibuffer-completion-auto-choose} is @code{nil}, you can use
-the @kbd{M-@key{RET}} command (@code{minibuffer-choose-completion}) to
-insert the completion candidates into the minibuffer.  By default,
-that exits the minibuffer, but with a prefix argument, @kbd{C-u
-M-@key{RET}} inserts the currently active candidate without exiting
-the minibuffer.
+@findex minibuffer-complete-and-exit
+While in the minibuffer or in the completion list buffer,
+@kbd{M-@key{DOWN}} (@code{minibuffer-next-completion}) and
+@kbd{M-@key{UP}} (@code{minibuffer-previous-completion}) navigate
+through the completions displayed in the completions buffer.  These
+commands are sensitive to the completion list format: they move point
+column-wise when the value of @code{completions-format} is
+@code{horizontal} and line-wise when its value is @code{vertical}
+(@pxref{Completion Options}).  If you set
+@code{minibuffer-completion-auto-choose} to non-@code{nil}, using these
+commands also inserts the current completion candidate into the
+minibuffer.  You can use @kbd{M-@key{RET}}
+(@code{minibuffer-choose-completion}) or @kbd{@key{RET}}
+(@code{minibuffer-complete-and-exit}) to choose the selected completion
+candidate.  By default, these commands exit the minibuffer, but with a
+prefix argument (that is, @kbd{C-u M-@key{RET}} or @kbd{C-u @key{RET}})
+they insert the currently selected candidate into the minibuffer without
+exiting it.
 
 @findex switch-to-completions
 Typing @kbd{M-v}, while in the minibuffer, selects the window showing
@@ -446,11 +457,27 @@ minibuffer, but doesn't exit the minibuffer---thus, you can change your
 mind and choose another candidate.
 
 @findex next-completion
-While in the completion list buffer, you can use @kbd{@key{TAB}},
-@kbd{@key{RIGHT}}, or @kbd{n} to move point to the following completion
-candidate (@code{next-completion}).  You can also use @kbd{@key{S-TAB}},
-@kbd{@key{LEFT}}, and @kbd{p} to move point to the previous completion
-alternative (@code{previous-completion}).
+@findex previous-completion
+While in the completion list buffer, you can use @kbd{@key{TAB}} or
+@kbd{n} to move point to the following completion candidate
+(@code{next-completion}) and @kbd{S-@key{TAB}} or @kbd{p} to move point
+to the previous completion alternative (@code{previous-completion}).
+Like @kbd{M-@key{DOWN}} and @kbd{M-@key{UP}}, these commands are also
+sensitive to the completion list format.
+
+@findex next-column-completion
+@findex next-line-completion
+@findex previous-column-completion
+@findex previous-line-completion
+In contrast, @kbd{@key{RIGHT}} (@code{next-column-completion}) and
+@kbd{@key{LEFT}} (@code{previous-column-completion}) always move point
+column-wise, regardless of the completion list format.  Likewise,
+@kbd{@key{DOWN}} (@code{next-line-completion}) and @kbd{@key{UP}}
+(@code{previous-line-completion}) always move point line-wise.
+
+  All of these movement commands (and also @kbd{M-@key{DOWN}} and
+@kbd{M-@key{UP}}) accept a numeric prefix argument @var{n}, which makes
+point move to the @var{n}th following or preceding completion candidate.
 
 @findex minibuffer-complete-history
 @findex minibuffer-complete-defaults
@@ -475,10 +502,14 @@ completion buffer and delete the window showing it
   If the variable @code{minibuffer-visible-completions} is customized to
 a non-@code{nil} value, it changes the commands bound to the arrow keys:
 instead of moving in the minibuffer, they move between completion
-candidates, like meta-arrow keys do by default.  Similarly,
-@kbd{@key{RET}} selects the current candidate, like @kbd{M-@key{RET}}
-does normally.  @code{C-g} hides the completion window, but leaves the
-minibuffer active, so you can continue typing at the prompt.
+candidates, like meta-arrow keys do by default (but note that, just as
+when the window showing the completion list is selected, here too,
+@kbd{@key{RIGHT}} and @kbd{@key{LEFT}} only move point column-wise and
+@kbd{@key{DOWN}} and @kbd{@key{UP}} only move point line-wise,
+regardless of the completion list format).  Similarly, @kbd{@key{RET}}
+selects the current candidate, like @kbd{M-@key{RET}} does normally.
+@code{C-g} hides the completion window, but leaves the minibuffer
+active, so you can continue typing at the prompt.
 
 @node Completion Exit
 @subsection Completion Exit
@@ -725,18 +756,6 @@ then move to a candidate by cursor motion commands and select it with
 @code{second-tab}, then the first @kbd{@key{TAB}} will pop up the
 completions list buffer, and the second one will switch to it.
 
-@findex previous-line-completion
-@findex next-line-completion
-@vindex completion-auto-wrap
-  When the window showing the completions is selected, either because
-you customized @code{completion-auto-select} or because you switched to
-it by typing @kbd{C-x o}, the @kbd{@key{UP}} and @kbd{@key{DOWN}} arrow
-keys (@code{previous-line-completion} and @code{next-line-completion},
-respectively) move by lines between completion candidates; with a prefix
-numeric argument, they move that many lines.  If
-@code{completion-auto-wrap} is non-@code{nil}, these commands will wrap
-at bottom and top of the candidate list.
-
 @vindex completion-cycle-threshold
   If @code{completion-cycle-threshold} is non-@code{nil}, completion
 commands can cycle through completion alternatives.  Normally, if
@@ -750,24 +769,57 @@ in a cyclic manner.  If you give @code{completion-cycle-threshold} a
 numeric value @var{n}, completion commands switch to this cycling
 behavior only when there are @var{n} or fewer alternatives.
 
-@vindex completions-format
-  When displaying completions, Emacs will normally pop up a new buffer
-to display the completions.  The completions will by default be sorted
-horizontally, using as many columns as will fit in the window-width,
-but this can be changed by customizing the @code{completions-format}
-user option.  If its value is @code{vertical}, Emacs will sort the
-completions vertically instead, and if it's @code{one-column}, Emacs
-will use just one column.
-
 @vindex completions-sort
-  The @code{completions-sort} user option controls the order in which
-the completions are sorted in the @samp{*Completions*} buffer.  The
-default is @code{alphabetical}, which sorts in alphabetical order.
-The value @code{nil} disables sorting; the value @code{historical}
-sorts alphabetically first, and then rearranges according to the order
-of the candidates in the minibuffer history.  The value can also be a
-function, which will be called with the list of completions, and
-should return the list in the desired order.
+  The user option @code{completions-sort} controls the order in which
+the completions are sorted in the @samp{*Completions*} buffer.  With the
+default value @code{alphabetical}, the completions are displayed in
+alphabetical order.  The value @code{nil} disables sorting; the value
+@code{historical} sorts alphabetically first, and then rearranges
+according to the order of the candidates in the minibuffer history.  The
+value can also be a function, which will be called with the list of
+completions, and should return the list in the desired order.
+
+@vindex completions-format
+  By default, the @samp{*Completions*} buffer lists the sorted
+completions horizontally (that is, from left to right across the columns
+and continuing to the next line below), using as many columns as will
+fit in the window-width.  You can change this by customizing the user
+option @code{completions-format}.  If its value is @code{vertical}, the
+@samp{*Completions*} buffer lists the sorted completions vertically
+(that is, within each column and continuing with the next column to the
+left), and with the value @code{one-column}, all completions appear in a
+single column.@footnote{If a completion candidate is too long for more
+than one column to fit in the window, or it there are three or less
+candidates, all completions appear in a single column even if the value
+of @code{completions-format} is @code{horizontal} or @code{vertical}.}
+
+@vindex completion-auto-wrap
+  When point is on the last completion candidate, typing a key that
+moves point to the next candidate (according to the sorting order of
+current format) ``wraps around'' by default, that is, moves point to the
+first candidate in the completions buffer.  Likewise, when point is on
+the first candidate, typing a key to move to the previous candidate puts
+point on the last candidate in the buffer.  You can suppress this
+wrapping around by customizing the user option
+@code{completion-auto-wrap} to @code{nil}; then typing @kbd{@key{TAB}}
+or @kbd{n} on the last candidate, or typing @kbd{S-@key{TAB}} or @kbd{p}
+on the first candidate, does not move point.
+
+With the arrow keys, the wrapping behavior depends on the completions
+format in use.  In the horizontal format, you can use @kbd{@key{RIGHT}}
+and @kbd{@key{LEFT}}, and in the vertical format @kbd{@key{DOWN}} and
+@kbd{@key{UP}}, exactly like the format-sensitive keys for moving
+between completion candidates in the sorting order, and with the same
+wrapping behavior.  In contrast, in the horizontal format
+@kbd{@key{DOWN}} and @kbd{@key{UP}} move---and wrap, if wrapping is
+enabled---only within the current column of completions, and in the
+vertical format @kbd{@key{RIGHT}} and @kbd{@key{LEFT}} move (and wrap,
+if enabled) only within the current line of completions.@footnote{If the
+completions buffer contains only single column even in the horizontal or
+vertical format, then both the format-sensitive keys and the arrow keys
+move point to the next (respectively, previous) candidate, wrapping only
+at the last (respectively, first) candidate, if the value of
+@code{completion-auto-wrap} is non-@code{nil}.}
 
 @vindex completions-max-height
   When @code{completions-max-height} is non-@code{nil}, it limits the

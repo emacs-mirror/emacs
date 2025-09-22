@@ -216,6 +216,23 @@ different values for completion-affecting variables like
 applies for the styles configuration in 'completion-category-overrides'
 and 'completion-category-defaults'.
 
++++++
+*** Navigating "*Completions*" now accommodates 'completions-format'.
+When 'completions-format' is set to 'vertical', typing 'n', '<TAB>' or
+'M-<down>' in the "*Completions*" buffer (the latter also in the
+minibuffer) now moves point to the completion candidate in the next line
+in the current column, and wraps to the next column when typed on the
+last completion candidate of the current column.  Likewise, typing 'p',
+'S-<TAB>' or 'M-<up>' moves point to the completion candidate in the
+previous line or wraps to the previous column.  Previously, these keys
+ignored the vertical format, i.e., moved point only to the item in the
+same line of the next or previous column, in accordance with the default
+horizontal format.  In vertical format, typing '<left>' and '<right>' in
+the "*Completions*" buffer (and when 'minibuffer-visible-completions' is
+non-nil, also in the minibuffer) moves point only within the current
+line, analogously to how, in horizontal format, '<down>' and '<up>' move
+point only within the current column.
+
 ---
 *** Selected completion candidate is preserved across "*Completions*" updates.
 When point is on a completion candidate in the "*Completions*" buffer
@@ -2935,6 +2952,19 @@ The display optimization where the combination 'TAB' characters +
 by default and controlled by this variable; it can be set to non-nil
 to keep the old behavior.  This change is to accomodate screen
 readers.
+
+---
+** 'next-completion' and 'previous-completion' now use 'completions-format'.
+Previously, these commands only took horizontal format into account;
+now, they call either '{next,previous}-line-completion' or the new
+commands '{next,previous}-column-completion', depending on the value of
+'completions-format'.  The latter two commands improve and extend the
+previous implementations of '{next,previous}-completion', which better
+reflect that they only take the (default) horizontal completions format
+into account.  Any external code using '{next,previous}-completion' that
+assumes the previous implementation must be adjusted accordingly; see
+'minibuffer-next-completion' for an example of such an adjustment in
+Emacs core.
 
 +++
 ** A thread's current buffer can now be killed.
