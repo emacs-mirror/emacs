@@ -533,7 +533,8 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 
   while (true)
     {
-      int op;
+      ptrdiff_t op;
+      ptrdiff_t arg;
       enum handlertype type;
 
       if (BYTE_CODE_SAFE && !valid_sp (bc, top))
@@ -601,7 +602,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
       FIRST
 	{
 	CASE (Bvarref7):
-	  op = FETCH2;
+	  arg = FETCH2;
 	  goto varref;
 
 	CASE (Bvarref):
@@ -610,16 +611,16 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	CASE (Bvarref3):
 	CASE (Bvarref4):
 	CASE (Bvarref5):
-	  op -= Bvarref;
+	  arg = op - Bvarref;
 	  goto varref;
 
 	/* This seems to be the most frequently executed byte-code
 	   among the Bvarref's, so avoid a goto here.  */
 	CASE (Bvarref6):
-	  op = FETCH;
+	  arg = FETCH;
 	varref:
 	  {
-	    Lisp_Object v1 = vectorp[op], v2;
+	    Lisp_Object v1 = vectorp[arg], v2;
 	    if (XBARE_SYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
 		|| (v2 = XBARE_SYMBOL (v1)->u.s.val.value,
 		    BASE_EQ (v2, Qunbound)))
@@ -631,7 +632,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	CASE (Bgotoifnil):
 	  {
 	    Lisp_Object v1 = POP;
-	    op = FETCH2;
+	    arg = FETCH2;
 	    if (NILP (v1))
 	      goto op_branch;
 	    NEXT;
@@ -679,18 +680,18 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	CASE (Bvarset3):
 	CASE (Bvarset4):
 	CASE (Bvarset5):
-	  op -= Bvarset;
+	  arg = op - Bvarset;
 	  goto varset;
 
 	CASE (Bvarset7):
-	  op = FETCH2;
+	  arg = FETCH2;
 	  goto varset;
 
 	CASE (Bvarset6):
-	  op = FETCH;
+	  arg = FETCH;
 	varset:
 	  {
-	    Lisp_Object sym = vectorp[op];
+	    Lisp_Object sym = vectorp[arg];
 	    Lisp_Object val = POP;
 	    if (XBARE_SYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL
 		&& !XBARE_SYMBOL (sym)->u.s.trapped_write)
@@ -710,11 +711,11 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	/* ------------------ */
 
 	CASE (Bvarbind6):
-	  op = FETCH;
+	  arg = FETCH;
 	  goto varbind;
 
 	CASE (Bvarbind7):
-	  op = FETCH2;
+	  arg = FETCH2;
 	  goto varbind;
 
 	CASE (Bvarbind):
@@ -723,18 +724,18 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	CASE (Bvarbind3):
 	CASE (Bvarbind4):
 	CASE (Bvarbind5):
-	  op -= Bvarbind;
+	  arg = op - Bvarbind;
 	varbind:
 	  /* Specbind can signal and thus GC.  */
-	  specbind (vectorp[op], POP);
+	  specbind (vectorp[arg], POP);
 	  NEXT;
 
 	CASE (Bcall6):
-	  op = FETCH;
+	  arg = FETCH;
 	  goto docall;
 
 	CASE (Bcall7):
-	  op = FETCH2;
+	  arg = FETCH2;
 	  goto docall;
 
 	CASE (Bcall):
@@ -743,10 +744,10 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	CASE (Bcall3):
 	CASE (Bcall4):
 	CASE (Bcall5):
-	  op -= Bcall;
+	  arg = op - Bcall;
 	docall:
 	  {
-	    DISCARD (op);
+	    DISCARD (arg);
 #ifdef BYTE_CODE_METER
 	    if (byte_metering_on && SYMBOLP (TOP))
 	      {
@@ -770,7 +771,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		  error ("Lisp nesting exceeds `max-lisp-eval-depth'");
 	      }
 
-	    ptrdiff_t call_nargs = op;
+	    ptrdiff_t call_nargs = arg;
 	    Lisp_Object call_fun = TOP;
 	    Lisp_Object *call_args = &TOP + 1;
 
@@ -815,11 +816,11 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	  }
 
 	CASE (Bunbind6):
-	  op = FETCH;
+	  arg = FETCH;
 	  goto dounbind;
 
 	CASE (Bunbind7):
-	  op = FETCH2;
+	  arg = FETCH2;
 	  goto dounbind;
 
 	CASE (Bunbind):
@@ -828,44 +829,44 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	CASE (Bunbind3):
 	CASE (Bunbind4):
 	CASE (Bunbind5):
-	  op -= Bunbind;
+	  arg = op - Bunbind;
 	dounbind:
-	  unbind_to (specpdl_ref_add (SPECPDL_INDEX (), -op), Qnil);
+	  unbind_to (specpdl_ref_add (SPECPDL_INDEX (), -arg), Qnil);
 	  NEXT;
 
 	CASE (Bgoto):
-	  op = FETCH2;
+	  arg = FETCH2;
 	op_branch:
-	  op -= pc - bytestr_data;
+	  arg -= pc - bytestr_data;
 	  if (BYTE_CODE_SAFE
-	      && ! (bytestr_data - pc <= op
-		    && op < bytestr_data + bytestr_length - pc))
+	      && ! (bytestr_data - pc <= arg
+		    && arg < bytestr_data + bytestr_length - pc))
 	    emacs_abort ();
-	  quitcounter += op < 0;
+	  quitcounter += arg < 0;
 	  if (!quitcounter)
 	    {
 	      quitcounter = 1;
 	      maybe_gc ();
 	      maybe_quit ();
 	    }
-	  pc += op;
+	  pc += arg;
 	  NEXT;
 
 	CASE (Bgotoifnonnil):
-	  op = FETCH2;
+	  arg = FETCH2;
 	  if (!NILP (POP))
 	    goto op_branch;
 	  NEXT;
 
 	CASE (Bgotoifnilelsepop):
-	  op = FETCH2;
+	  arg = FETCH2;
 	  if (NILP (TOP))
 	    goto op_branch;
 	  DISCARD (1);
 	  NEXT;
 
 	CASE (Bgotoifnonnilelsepop):
-	  op = FETCH2;
+	  arg = FETCH2;
 	  if (!NILP (TOP))
 	    goto op_branch;
 	  DISCARD (1);
@@ -965,7 +966,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		struct handler *c = handlerlist;
 		handlerlist = c->next;
 		top = c->bytecode_top;
-		op = c->bytecode_dest;
+		arg = c->bytecode_dest;
 		bc = &current_thread->bc;
 		struct bc_frame *fp = bc->fp;
 
@@ -1105,10 +1106,12 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	  NEXT;
 
 	CASE (BlistN):
-	  op = FETCH;
-	  DISCARD (op - 1);
-	  TOP = Flist (op, &TOP);
-	  NEXT;
+	  {
+	    ptrdiff_t n = FETCH;
+	    DISCARD (n - 1);
+	    TOP = Flist (n, &TOP);
+	    NEXT;
+	  }
 
 	CASE (Blength):
 	  TOP = Flength (TOP);
@@ -1224,10 +1227,12 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	  NEXT;
 
 	CASE (BconcatN):
-	  op = FETCH;
-	  DISCARD (op - 1);
-	  TOP = Fconcat (op, &TOP);
-	  NEXT;
+	  {
+	    ptrdiff_t n = FETCH;
+	    DISCARD (n - 1);
+	    TOP = Fconcat (n, &TOP);
+	    NEXT;
+	  }
 
 	CASE (Bsub1):
 	  TOP = (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
@@ -1410,10 +1415,12 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	  NEXT;
 
 	CASE (BinsertN):
-	  op = FETCH;
-	  DISCARD (op - 1);
-	  TOP = Finsert (op, &TOP);
-	  NEXT;
+	  {
+	    ptrdiff_t n = FETCH;
+	    DISCARD (n - 1);
+	    TOP = Finsert (n, &TOP);
+	    NEXT;
+	  }
 
 	CASE (Bpoint_max):
 	  PUSH (make_fixed_natnum (ZV));
@@ -1676,7 +1683,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	     for that instead.  */
 	  /* CASE (Bstack_ref): */
 	  error ("Invalid byte opcode: op=%d, ptr=%"pD"d",
-		 op, pc - 1 - bytestr_data);
+		 pc[-1], pc - 1 - bytestr_data);
 
 	  /* Handy byte-codes for lexical binding.  */
 	CASE (Bstack_ref1):
@@ -1715,14 +1722,16 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    NEXT;
 	  }
 	CASE (BdiscardN):
-	  op = FETCH;
-	  if (op & 0x80)
-	    {
-	      op &= 0x7F;
-	      top[-op] = TOP;
-	    }
-	  DISCARD (op);
-	  NEXT;
+	  {
+	    ptrdiff_t n = FETCH;
+	    if (n & 0x80)
+	      {
+		n &= 0x7F;
+		top[-n] = TOP;
+	      }
+	    DISCARD (n);
+	    NEXT;
+	  }
 
         CASE (Bswitch):
           {
@@ -1750,7 +1759,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		for (ptrdiff_t i = h->count - 1; i >= 0; i--)
 		  if (BASE_EQ (v1, HASH_KEY (h, i)))
 		    {
-		      op = XFIXNUM (HASH_VALUE (h, i));
+		      arg = XFIXNUM (HASH_VALUE (h, i));
 		      goto op_branch;
 		    }
               }
@@ -1759,7 +1768,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		ptrdiff_t i = hash_find (h, v1);
 		if (i >= 0)
 		  {
-		    op = XFIXNUM (HASH_VALUE (h, i));
+		    arg = XFIXNUM (HASH_VALUE (h, i));
 		    goto op_branch;
 		  }
 	      }
