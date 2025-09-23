@@ -5014,8 +5014,9 @@ make_arena (struct igc *gc)
   MPS_ARGS_BEGIN (args)
   {
     double pause_time;
-    if (read_pause_time (&pause_time))
-      MPS_ARGS_ADD (args, MPS_KEY_PAUSE_TIME, pause_time);
+    if (!read_pause_time (&pause_time))
+      pause_time = 0.01;
+    MPS_ARGS_ADD (args, MPS_KEY_PAUSE_TIME, pause_time);
 
     size_t commit_limit;
     if (read_commit_limit (&commit_limit))
@@ -5030,8 +5031,7 @@ make_arena (struct igc *gc)
   mps_gen_param_s gens[ngens];
   if (!read_gens (&ngens, gens))
     {
-      static const mps_gen_param_s default_gens[]
-	= { { 128000, 0.8 }, { 5 * 128000, 0.4 } };
+      static const mps_gen_param_s default_gens[] = { { 16000, 0.5 } };
       memcpy (gens, default_gens, sizeof (default_gens));
       ngens = ARRAYELTS (default_gens);
     }
