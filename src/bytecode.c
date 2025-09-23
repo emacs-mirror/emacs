@@ -275,7 +275,7 @@ enum byte_code_op
 /* Fetch two bytes from the bytecode stream and make a 16-bit number
    out of them.  */
 
-#define FETCH2 (op = FETCH, op | (FETCH << 8))
+#define FETCH2 (pc += 2, pc[-2] | pc[-1] << 8)
 
 /* Push X onto the execution stack.  The expression X should not
    contain TOP, to avoid competing side effects.  */
