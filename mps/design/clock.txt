@@ -1,0 +1,119 @@
+.. mode: -*- rst -*-
+
+Fast high-resolution clock
+==========================
+
+:Tag: design.mps.clock
+:Author: Gareth Rees
+:Date: 2016-03-06
+:Status: complete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: clock; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the clock module, which implements a
+fast high-resolution clock for use by the telemetry system.
+
+_`.readership`: This document is intended for any MPS developer.
+
+
+Requirements
+------------
+
+_`.req.monotonic`: Successive calls to ``EVENT_CLOCK()`` must yield
+values that are monotonically increasing. (So that comparing the
+timestamp on two events never gives false positives.)
+
+_`.req.fast`: ``EVENT_CLOCK()`` should take very little time; it
+should not require a system call. (So that programs that use the MPS
+remain usable when telemetry is turned on.)
+
+_`.req.high-resolution`: Successive calls to ``EVENT_CLOCK()`` should
+yield values that are strictly monotonically increasing (so that
+sorting the telemetry stream puts the events in the order they
+happened).
+
+
+Interface
+---------
+
+``EventClock``
+
+_`.if.type`: The type of timestamps. It must be an unsigned 64-bit
+integral type, for example a ``typedef`` for ``uint64_t`` or
+``unsigned __int64``.
+
+``EVENT_CLOCK_MAKE(lvalue, low, high)``
+
+_`.if.make`: Construct an ``EventClock`` timestamp from its two
+halves. The first parameter is an lvalue with type ``EventClock``, and
+the second and third parameters are 32-bit unsigned integers. The
+macro must assign a timestamp to ``lvalue`` with the value ``(high
+<< 32) + low``.
+
+``EVENT_CLOCK(lvalue)``
+
+_`.if.get`: Assign an ``EventClock`` timestamp for the current time to
+``lvalue``, which is an lvalue with type ``EventClock``.
+
+``EVENT_CLOCK_PRINT(stream, clock)``
+
+_`.if.print`: Write the value of ``clock`` to the standard C output
+file handle ``stream`` as 16 hexadecimal digits (with leading zeros,
+and capital letters A to F).
+
+``EVENT_CLOCK_WRITE(stream, clock)``
+
+_`.if.write`: Write the value of ``clock`` to the output stream
+``stream`` as 16 hexadecimal digits (with leading zeros, and capital
+letters A to F). The macro should be implemented using ``WriteF()``.
+
+
+Implementation
+--------------
+
+_`.impl.tsc`: On IA-32 and x86-64, the `Time Stamp Counter
+<https://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ returned by the
+RDTSC instruction is a suitable clock for single-core CPUs, but on
+multiple-core CPUs, different cores may have different values or tick at different speeds, and so it may fail to meet `.req.monotonic`_.
+
+
+Document History
+----------------
+
+- 2016-03-06 GDR_ Created.
+
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2016–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

@@ -1,0 +1,121 @@
+.. mode: -*- rst -*-
+
+Library interface
+=================
+
+:Tag: design.mps.lib
+:Author: Richard Brooksby
+:Date: 1996-09-03
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms: pair: library interface; design
+
+
+Introduction
+------------
+
+_`.intro`: This document is the design of the MPS Library Interface, a
+part of the plinth.
+
+_`.readership`: Any MPS developer. Any clients that are prepared to
+read this in order to get documentation.
+
+
+Goals
+-----
+
+_`.goal`: The goals of the MPS library interface are:
+
+_`.goal.host`: To control the dependency of the MPS on the hosted ISO
+C library so that the core MPS remains freestanding (see
+design.mps.exec-env_).
+
+.. _design.mps.exec-env: exec-env
+
+_`.goal.free`: To allow the core MPS convenient access to ISO C
+functionality that is provided on freestanding platforms (see
+design.mps.exec-env_).
+
+
+Description
+-----------
+
+Overview
+........
+
+_`.overview.access`: The core MPS needs to access functionality that
+could be provided by an ISO C hosted environment.
+
+_`.overview.hosted`: The core MPS must not make direct use of any
+facilities in the hosted environment (design.mps.exec-env_). However,
+it is sensible to make use of them when the MPS is deployed in a
+hosted environment.
+
+_`.overview.hosted.indirect`: The core MPS does not make any direct
+use of hosted ISO C library facilities. Instead, it indirects through
+the MPS Library Interface, impl.h.mpslib.
+
+_`.overview.provision.client`: In a freestanding environment the
+client is expected to provide functions meeting this interface to the
+MPS.
+
+_`.overview.provision.hosted`: In a hosted environment,
+impl.c.mpsliban may be used. It just maps impl.h.mpslib directly onto
+the ISO C library equivalents.
+
+
+Implementation
+--------------
+
+_`.impl`: The MPS Library Interface comprises a header file
+impl.h.mpslib and some documentation.
+
+_`.impl.decl`: The header file defines the interface to definitions
+which parallel those parts of the non-freestanding ISO headers which
+are used by the MPS.
+
+_`.impl.include`: The header file also includes the freestanding
+header ``<stddef.h>``.
+
+
+Document History
+----------------
+
+- 1996-09-03 RB_ Incomplete design.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-23 GDR_ Converted to reStructuredText.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

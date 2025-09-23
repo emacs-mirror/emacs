@@ -1,0 +1,36 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# set directories up for testing
+# n.b. this must happen _after_ options have been
+# parsed, so we know what the value of $PLATFORM is
+#
+
+1;
+
+sub set_dirs {
+ $testlib_dir = $test_dir."/testlib";
+
+ $obj_dir = $test_dir."/obj/".$PLATFORM;
+ &ensuredir($obj_dir);
+
+ &ensuredir($LOG_DIR);
+}
+
+sub ensuredir {
+ local ($dir, $tdir, $odir) = @_;
+
+ until (-e $dir) {
+  $tdir = $dir;
+  $odir = $dir;
+  until (-e $tdir) {
+   $odir = $tdir;
+   unless ($tdir =~ /\/[^\/]*$/) {
+    die "Failed to create dir: $dir.\n";
+   }
+   $tdir =~ s/\/[^\/]*$//; # assume / is separator;
+  }
+  mkdir($odir, 0777) || die "Failed to create dir: $dir.\n";
+ }
+}
+ 

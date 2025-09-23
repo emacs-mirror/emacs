@@ -1,0 +1,31 @@
+% $Id$
+%
+% Symbols listed here will be assumed by the harness to be available for
+% tests to use, even if they're not present in mps header files.
+%
+% If you define macros to cover for symbols that aren't defined, you need
+% to list them here
+%
+mps_space_clamp
+mps_arena_clamp
+mps_space_release
+mps_arena_release
+mps_space_collect
+mps_arena_collect
+mps_space_park
+mps_arena_park
+mps_space_reserved
+mps_arena_reserved
+mps_space_committed
+mps_arena_committed
+mps_space_destroy
+mps_arena_destroy
+mps_space_t
+mps_arena_t
+mps_arena_spare_committed
+mps_arena_spare_commit_limit
+mps_arena_spare_commit_limit_set
+mps_gen_param_s
+mps_chain_t
+mps_chain_create
+mps_chain_destroy

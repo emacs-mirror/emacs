@@ -345,8 +345,9 @@ FONT_OBJ=@FONT_OBJ@
 CM_OBJ=@CM_OBJ@
 
 LIBGPM = @LIBGPM@
-LIBMPS = @LIBMPS@
+MPSOBJ = @MPSOBJ@
 IGCOBJ = @IGCOBJ@
+MPS_CONFIG= @MPS_CONFIG@
 
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 LIBSELINUX_CFLAGS = @LIBSELINUX_CFLAGS@
@@ -499,7 +500,8 @@ VMLIMIT_OBJ=@VMLIMIT_OBJ@
 RALLOC_OBJ=@RALLOC_OBJ@
 
 ## List of object files that make-docfile should not be told about.
-otherobj= $(TERMCAP_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+otherobj= $(TERMCAP_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) $(WIDGET_OBJ) \
+  $(LIBOBJS) $(MPSOBJ)
 
 ## All object files linked into temacs.  $(VMLIMIT_OBJ) should be first.
 ALLOBJS = $(VMLIMIT_OBJ) $(obj) $(otherobj)
@@ -699,6 +701,10 @@ LIBEGNU_ARCHIVE = $(lib)/libgnu.a
 $(LIBEGNU_ARCHIVE): $(config_h)
 	$(MAKE) -C $(dir $@) all
 
+mps.o:
+	$(AM_V_CC)$(CC) $(CFLAGS) $(MPS_CONFIG) $(DEPFLAGS) \
+	-c $(top_srcdir)/mps/code/mps.c -o $@
+
 ifeq ($(HAVE_PDUMPER),yes)
 MAKE_PDUMPER_FINGERPRINT = $(libsrc)/make-fingerprint$(EXEEXT)
 else
@@ -839,7 +845,8 @@ ${ETAGS}: FORCE
 
 # Remove macuvs.h since it'd cause `src/emacs`
 # to be built before we can get TAGS.
-ctagsfiles1 = $(filter-out ${srcdir}/macuvs.h, $(wildcard ${srcdir}/*.[hc]))
+ctagsfiles1 = $(filter-out ${srcdir}/macuvs.h, \
+		$(wildcard ${srcdir}/*.[hc]) $(wildcard ../mps/code/*.[hc]))
 ctagsfiles2 = $(wildcard ${srcdir}/*.m)
 ctagsfiles3 = $(wildcard ${srcdir}/*.cc)
 

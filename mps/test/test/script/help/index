@@ -1,0 +1,10 @@
+list tests in a directory
+% $Id$
+
+Usage: qa index [<directory>]
+
+'index' lists the tests in the directory specified, or the
+current directory if none is. For each test, the filename
+and test summary are displayed.
+
+

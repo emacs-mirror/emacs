@@ -1,0 +1,16 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# Compile all the .c files in $testlib_dir,
+# putting the resulting .o files in $obj_dir.
+#
+
+&requiredoptions(
+ "MPS_INCLUDE_DIR",
+ "MPS_LINK_OBJ",
+ "VARIETY",
+ "PLATFORM"
+);
+
+&clib;
+

@@ -5554,34 +5554,28 @@ if test "${with_gpm}" != "no"; then
 fi
 AC_SUBST([LIBGPM])
 
-### Use -lmps if available, unless '--with-mps=no'.
 AC_SUBST([HAVE_MPS])
 HAVE_MPS=no
-LIBMPS=
+MPSOBJ=
 IGCOBJ=
 MPS_CFLAGS=
+MPS_CONFIG=
 if test "${with_mps}" != "no"; then
-  AC_CHECK_HEADER([mps.h],
-    [AC_CHECK_LIB([mps], [mps_arena_create], [HAVE_MPS=yes], [], [$LIB_PTHREAD])])
-
-  if test "${HAVE_MPS}" = "yes"; then
-    IGCOBJ="igc.o"
-    AC_DEFINE([HAVE_MPS], [1],
-      [Define to 1 if you have the mps library (-lmps).])
-    if test "${with_mps}" = "debug"; then
-      LIBMPS="-lmps-debug $LIB_PTHREAD"
-    else
-      LIBMPS="-lmps $LIB_PTHREAD"
-    fi
-    # Force -fno-omit-frame-pointer to avoid register scanning bug:
-    # https://github.com/Ravenbrook/mps/pull/38
-    MPS_CFLAGS="-fno-omit-frame-pointer"
-  else
-    AC_MSG_ERROR([The MPS library libmps is missing]):
+  HAVE_MPS=yes
+  IGCOBJ="igc.o"
+  MPSOBJ="mps.o"
+  AC_DEFINE([HAVE_MPS], [1], [Define to build with MPS.])
+  if test "${with_mps}" = "debug"; then
+    MPS_CONFIG=-DCONFIG_VAR_COOL
   fi
+  # Force -fno-omit-frame-pointer to avoid register scanning bug:
+  # https://github.com/Ravenbrook/mps/pull/38
+  MPS_CFLAGS="-fno-omit-frame-pointer"
+
+  AC_CONFIG_SUBDIRS([mps])
 fi
 
-
+# FIXME: update for in-tree MPS
 if test "$REALLY_ANDROID" = "yes" && test "$with_mps" != "no"; then
   HAVE_MPS=no
   ndk_SEARCH_MODULE([mps], [MPS], [HAVE_MPS=yes])
@@ -5599,9 +5593,9 @@ if test "$REALLY_ANDROID" = "yes" && test "$with_mps" != "no"; then
   fi
 fi
 AC_SUBST([MPS_CFLAGS])
-AC_SUBST([LIBMPS])
+AC_SUBST([MPSOBJ])
 AC_SUBST([IGCOBJ])
-
+AC_SUBST([MPS_CONFIG])
 
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADERS_ONCE([malloc/malloc.h])

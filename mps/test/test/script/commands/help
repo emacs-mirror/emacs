@@ -1,0 +1,53 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# provide help on QA functions
+#
+
+if (@ARGV) {
+ foreach (@ARGV) {
+  &printhelp($_);
+ }
+} else {
+ opendir(DIR, $script_dir."/help");
+
+ print "Help topics:\n";
+ foreach (readdir(DIR)) {
+  unless (/^\./) {
+   &summhelp($_);
+  }
+ }
+ print "For help on a topic, type 'qa help <topic>'.\n\n";
+ print "For general instructions on how to run tests, see guide.mmqa in\n";
+ print "the MM Information database.\n";
+
+ closedir(DIR);
+}
+
+sub summhelp {
+ local ($infile, $sumline) = @_;
+ unless(open(IN, $script_dir."/help/".$infile)) {
+  die "File ".$infile." unexpectedly not found.\n";
+ }
+ $sumline = <IN>;
+ close(IN);
+ write STDOUT;
+}
+
+sub printhelp {
+ local ($infile) = @_;
+ unless(open(IN, $script_dir."/help/".$infile)) {
+  print "No help available on $infile.\n";
+ } else {
+  <IN>;
+  while (<IN>) {
+   print $_;
+  }
+ }
+}
+
+format STDOUT =
+  @<<<<<<<<<<<@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$infile, $sumline
+.
+
