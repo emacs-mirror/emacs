@@ -22,6 +22,7 @@
 (require 'ert)
 
 (declare-function igc--set-commit-limit "igc.c")
+(declare-function igc--set-pause-time "igc.c")
 (declare-function igc-info "igc.c")
 
 (ert-deftest set-commit-limit-test ()
@@ -36,5 +37,16 @@
   (should (equal (igc--set-commit-limit nil) nil))
   (should (equal (assoc-string "commit-limit" (igc-info))
                  '("commit-limit" 1 -1 0))))
+
+(ert-deftest set-pause-time-test ()
+  :tags '(:igc)
+  (should (equal (igc--set-pause-time 0.5) nil))
+  (should (equal (assoc-string "pause-time" (igc-info))
+                 '("pause-time" nil 0.5 nil)))
+  (should-error (igc--set-pause-time -1) :type 'range-error)
+  (should (equal (igc--set-pause-time 1.0e+INF) nil))
+  (should (equal (assoc-string "pause-time" (igc-info))
+                 '("pause-time" nil 1.0e+INF nil)))
+  (should (equal (igc--set-pause-time 0.01) nil)))
 
 ;;; igc-tests.el ends here.
