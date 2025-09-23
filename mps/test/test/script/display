@@ -1,0 +1,35 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# provide a subroutine to pretty-print tests to a
+# output stream
+#
+
+1;
+
+sub display_test_source {
+ local ($file, $stream, $width) = @_;
+
+ unless (open(IN, $file)) {
+  die "File ".$infile." unexpectedly not found.\n";
+ }
+
+ $l = "";
+
+ while (<IN>) {
+  print $stream $_;
+ }
+
+ close(IN);
+}
+
+#
+# Ideas:
+#
+# line properties:  join at start / join at end?
+# specials:
+#   start paragraph
+#   special formatting (alignment?)
+#   lists, itemised, tables &c
+#
+#

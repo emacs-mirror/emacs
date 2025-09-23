@@ -1,0 +1,119 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# provides subroutines to compile or compile and link
+# tests and test libraries.
+#
+# it should work at least on SunOS, Solaris and NT
+#
+
+1;
+
+sub log_system {
+    local ($command, $output, $logfile, $stdin) = @_;
+    my $time0; my $time1;
+
+    $std_log = "$obj_dir/std_log.log";
+    $err_log = "$obj_dir/err_log.log";
+
+    &debug("LOG SYSTEM:\n c>$command\n i<$stdin\n o>$output\n l>$logfile");
+
+    if ($stdin eq "STDIN") {
+        $stdin = "";
+    } else {
+        $stdin = $stdin_red." ".$stdin;
+    }
+
+    $time0 = time;
+
+    if ($logfile ne "no") {
+        open(SAVEERR, ">&STDERR");
+        open(STDERR, ">$err_log");
+        if ($output eq "no") {
+            &mysystem("$comwrap$command$comwrapend $stdin $stdout_red $std_log");
+        } else {
+            &mysystem("$comwrap$command$comwrapend $stdin $stdout_dup $std_log");
+        }
+        $time1 = time;
+        close(STDERR);
+        if ($output ne "no") {
+            &mysystem("$catcommand $err_log");
+        }
+        open(STDERR, ">&SAVEERR");
+        &mysystem("$catcommand $std_log $err_log $stdout_red $logfile");
+    } else {
+        if ($output eq "no") {
+            die "Silly attempt to run test and ignore results.\n";
+        } else {
+            &mysystem("$comwrap$command$comwrapend $stdin");
+            $time1 = time;
+        }
+    }
+    $time1 = time;
+    $testtotaltime = $time1-$time0;
+}
+
+sub compile {
+ local($srcfile, $objfile) = @_;
+ 
+ $command = "$cc_command $cc_conly $cc_opts $cc_obj$objfile ".
+  "$srcfile $cc_include";
+
+ if (&mysystem($command)) {
+  return 0;
+ } else {
+  return 1;
+ }
+}
+
+sub compile_and_link {
+ local($srcfile, $exefile, $linkfiles, $objfile, $hashdefs) = @_;
+
+ unless ($linkfiles) {$linkfiles =""};
+ $linkfiles = " ".$linkfiles;
+ $linkfiles =~ s/ +(\S)/ $obj_dir\/$1/g;
+ $linkfiles = $linkfiles." ";
+ $linkfiles =~ s/\.o /$obj_suffix /g;
+ $objfile = "$obj_dir/tmp_obj$obj_suffix";
+
+ $hashdefs = ""; 
+ foreach (keys %parmdefs) {
+  $hashdefs .= &$quotestring($cc_def.$_.$cc_defeq.$parmdefs{$_})." ";
+ }
+ chop $hashdefs;
+
+ if ($cc_objandexe) {
+  $comobjfspec = "$cc_obj$objfile "
+ } else {
+  $comobjfspec = ""
+ }
+
+ $command = &convdirseps(
+  "$cc_command $cc_opts $hashdefs $comobjfspec$cc_exe$exefile ".
+  "$srcfile $linkfiles $MPS_LINK_OBJ $cc_link $cc_include $cc_link_opts|");
+ 
+ &debug("OPEN >>$command<<");
+
+ unless(open(COMLINK, $command)) {
+  return 0;
+ }
+ 
+ $compoutput = "";
+
+ while (<COMLINK>) {
+  $compoutput .= $_;
+  print $_;
+ }
+ close(COMLINK);
+
+ if ($compoutput) {
+  chop $compoutput;
+ }
+
+ if ($?) {
+  return 0;
+ } else {
+  return 1;
+ }
+}
+

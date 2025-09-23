@@ -1,0 +1,4 @@
+# manual/requirements.pip -- MPS manual build requirements for pip
+
+sphinx
+sphinx-rtd-theme

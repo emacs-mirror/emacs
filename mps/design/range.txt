@@ -1,0 +1,165 @@
+.. mode: -*- rst -*-
+
+Ranges of addresses
+===================
+
+:Tag: design.mps.range
+:Author: Gareth Rees
+:Date: 2013-05-21
+:Status: complete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: address range; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the Range module, which implements
+objects representing address ranges.
+
+_`.readership`: This document is intended for any MPS developer.
+
+
+Requirements
+------------
+
+_`.req.range`: A range object must be able to represent an arbitrary
+range of addresses that neither starts at ``NULL`` nor includes the
+top grain of the address space.
+
+_`.req.empty`: A range object must be able to represent the empty
+range.
+
+_`.req.stack-alloc`: It must be possible to allocate range objects on
+the stack: that is, they do not require any heap resource.
+
+
+Interface
+---------
+
+``typedef RangeStruct *Range``
+
+``Range`` is the type of a range. It is an alias for
+``RangeStruct *``. ``RangeStruct`` is defined in the header so that it
+can be inlined in client structures or allocated on the stack. Clients
+must not depend on its implementation details.
+
+``void RangeInit(Range range, Addr base, Addr limit)``
+
+Initialize a range object to represent the half-open address range
+between ``base`` (inclusive) and ``limit`` (exclusive). It must be the
+case that ``base <= limit``. If ``base == limit`` then the range is
+empty.
+
+``void RangeCopy(Range dest, Range src)``
+
+Initialize ``dest`` to be a copy of ``src``.
+
+``void RangeInitSize(Range range, Addr base, Size size)``
+
+Initialize a range object to represent the half-open address range
+between ``base`` (inclusive) and ``base + size`` (exclusive). If
+``size == 0`` then the range is empty.
+
+``void RangeFinish(Range range)``
+
+Finish a range object. Because a range object uses no heap resources
+(`.req.stack-alloc`_) it is not necessary to call this. However,
+clients may wish to do so in order to ensure that the range object is
+invalid.
+
+``Addr RangeBase(Range range)``
+
+Return the base of the range. (This is implemented as a macro, but
+there is a function too.)
+
+``Addr RangeLimit(Range range)``
+
+Return the limit of the range. (This is implemented as a macro, but
+there is a function too.)
+
+``void RangeSetBase(Range range, Addr addr)``
+
+Set the base of the range. ``addr`` must not be greater than the range
+limit. To set them both at once, use ``RangeInit()``. (This is
+implemented as a macro, but there is a function too.)
+
+``void RangeSetLimit(Range range, Addr addr)``
+
+Set the limit of the range. ``addr`` must not be less than the range
+base. To set the both at once, use ``RangeInit()``. (This is
+implemented as a macro, but there's a function too.)
+
+``Size RangeSize(Range range)``
+
+Return the size of the range. (This is implemented as a macro, but
+there is a function too. The macro evaluates its argument twice.)
+
+``Bool RangeContains(Range range, Addr addr)``
+
+Return ``TRUE`` if ``addr`` belongs to the range, or ``FALSE`` if it
+does not. (This is implemented as a macro, but there is a function
+too. The macro evaluates its arguments twice.)
+
+``Bool RangeIsEmpty(Range range)``
+
+Return ``TRUE`` if the range is empty (contains no addresses),
+``FALSE`` otherwise. (This is implemented as a macro, but there is a
+function too. The macro evaluates its argument twice.)
+
+``Bool RangeIsAligned(Range range, Align alignment)``
+
+Return ``TRUE`` if the base and limit of the range are both aligned to
+the given alignment, or ``FALSE`` if either is not.
+
+``Bool RangesOverlap(Range range1, Range range2)``
+
+Return ``TRUE`` if the two ranges overlap (have at least one address
+in common), or ``FALSE`` if they do not. Note that ranges [*A*, *B*) and
+[*B*, *C*) do not overlap.
+
+``Bool RangesNest(Range outer, Range inner)``
+
+Return ``TRUE`` if all addresses in ``inner`` are also in ``outer``,
+or ``FALSE`` otherwise.
+
+
+Document history
+----------------
+
+- 2013-05-21 GDR_ Created.
+- 2014-01-15 GDR_ Added ``RangeContains()``.
+- 2016-03-27 RB_ Added ``RangeSetBase()`` and ``RangeSetLimit()``.
+
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

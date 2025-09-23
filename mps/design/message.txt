@@ -1,0 +1,430 @@
+.. mode: -*- rst -*-
+
+Client message protocol
+=======================
+
+:Tag: design.mps.message
+:Author: David Jones
+:Date: 1997-02-13
+:Status: complete document
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: messages; design
+   single: client message protocol
+
+
+Introduction
+------------
+
+_`.intro`: The client message protocol provides a means by which
+clients can receive messages from the MPS. The motivating use case is
+finalization notification (see design.mps.finalize_), but the
+mechanism is also used for feedback about collections.
+
+.. _design.mps.finalize: finalize
+
+_`.contents`: This document describes the design of the external and
+internal interfaces and concludes with a sketch of an example design
+of an internal client. The example is that of implementing
+finalization using the MRG pool.
+
+_`.readership`: Any MPS developer.
+
+
+Requirements
+------------
+
+_`.req.synchronous`: The message protocol must be synchronous with the
+client program: that is, the client program must be able to choose
+when to collect and act on messages. Justification: [Boehm_2002]_
+shows that asynchronous finalization is impossible to implement
+correctly.
+
+_`.req.reliable`: Posting a message must be reliable: that is, it must
+not fail for a dynamic reason such as running out memory to store the
+message. Justification: messages can't be used to implement
+finalization unless the messages can be delivered reliably.
+
+_`.req.extensible.types`: The message mechanism must be extensible
+with new types of message in future versions of the MPS, without
+breaking client programs that do not receive those types of message.
+
+_`.req.resources`: It follows from `.req.extensible.types`_ that
+messages must not use resources unless the client program has
+requested them (otherwise resources would leak in client programs that
+have not been updated to handle new types of message).
+
+_`.req.extensible.fields`: It must be possible to add new fields to
+existing types of message in future versions of the MPS, without
+breaking client programs that do not receive those types of message.
+
+
+Design
+------
+
+_`.sol.synchronous`: Messages are stored on a ring belonging to the
+arena. An interface is provided that allows the client program to
+collect messages from the ring at a time of its choosing.
+
+_`.sol.reliable`: The memory needed for the message is allocated at an
+earlier point in time, when it possible to communicate an allocation
+failure via a result code. In particular, space for a finalization
+message is allocated when the client program calls ``mps_finalize()``,
+and space for trace messages is allocated in the arena (there can be
+at most one instance of each message per trace, and the maximum number
+of traces is known statically).
+
+_`.sol.resources`: Messages are not posted unless they belong to a
+type that has been enabled by the client program calling
+``mps_message_enable()``. This means that message types that are not
+understood by the client program are not posted and use no resources.
+
+_`.sol.extensible.fields`: Message fields are retrieved by calling
+accessor functions.
+
+
+External interface
+------------------
+
+
+Functions
+.........
+
+_`.if.fun`: The following functions are provided:
+
+_`.if.fun.poll`: ``mps_message_poll()`` sees whether there are any
+messages pending. Returns 1 only if there is a message on the queue of
+arena. Returns 0 otherwise.
+
+_`.if.fun.enable`: ``mps_message_type_enable()`` enables the flow of
+messages of a certain type. The queue of messages of a arena will
+contain only messages whose types have been enabled. Initially all
+message types are disabled. Effectively this function allows the
+client to declare to the MPS what message types the client
+understands.
+
+_`.if.fun.disable`: ``mps_message_type_disable()`` disables the flow
+of messages of a certain type. The antidote to
+``mps_message_type_enable()``. Disables the specified message type.
+Flushes any existing messages of that type on the queue, and stops any
+further generation of messages of that type. This permits clients to
+dynamically decline interest in a message type, which may help to
+avoid a memory leak or bloated queue when the messages are only
+required temporarily.
+
+_`.if.fun.get`: ``mps_message_get()`` begins a message "transaction".
+If there is a message of the specified type on the queue then the
+first such message will be removed from the queue and a handle to it
+will be returned to the client via the ``messageReturn`` argument; in
+this case the function will return ``TRUE``. Otherwise it will return
+``FALSE``. Having obtained a handle on a message in this way, the
+client can use the type-specific accessors to find out about the
+message. When the client is done with the message the client should
+call ``mps_message_discard()``; failure to do so will result in a
+resource leak.
+
+_`.if.fun.discard`: ``mps_message_discard()`` ends a message
+"transaction". It indicates to the MPS that the client is done with
+this message and its resources may be reclaimed.
+
+_`.if.fun.type.any`: ``mps_message_queue_type()`` determines the type
+of a message in the queue. Returns ``TRUE`` only if there is a message
+on the queue of arena, and in this case updates the ``typeReturn``
+argument to be the type of a message in the queue. Otherwise returns
+``FALSE``.
+
+_`.if.fun.type`: ``mps_message_type()`` determines the type of a
+message (that has already been got). Only legal when inside a message
+transaction (that is, after ``mps_message_get()`` and before
+``mps_message_discard()``). Note that the type will be the same as the
+type that the client passed in the call to ``mps_message_get()``.
+
+
+Types of messages
+.................
+
+_`.type`: The type governs the "shape" and meaning of the message.
+
+_`.type.int`: A message type is an integer belonging to the
+``MessageType`` enumeration.
+
+_`.type.semantics`: A type indicates the semantics of the message.
+
+_`.type.semantics.interpret`: The semantics of a message are
+interpreted by the client by calling various accessor methods on the
+message.
+
+_`.type.accessor`: The type of a message governs which accessor
+methods are legal to apply to the message.
+
+_`.type.finalization`: There is a finalization type,
+``MessageTypeFINALIZATION``.
+
+_`.type.finalization.semantics`: A finalization message indicates that
+an object has been discovered to be finalizable (see
+design.mps.poolmrg.def.final.object_ for a definition of finalizable).
+
+.. _design.mps.poolmrg.def.final.object: poolmrg#.def.final.object
+
+_`.type.finalization.ref`: The accessor function
+``mps_message_finalization_ref()`` retrieves the reference to the
+object which is finalizable.
+
+_`.type.finalization.ref.scan`: Note that the reference returned
+must be stored in scanned memory.
+
+
+
+Internal interface
+------------------
+
+Types
+.....
+
+``typedef struct MessageStruct *Message``
+
+_`.message.type`: ``Message`` is the type of messages.
+
+_`.message.instance`: Messages are instances of Message Classes.
+
+_`.message.concrete`: Concretely a message is represented by a
+``MessageStruct``. A ``MessageStruct`` has the usual signature field
+(see design.mps.sig_). A ``MessageStruct`` has a type field which
+defines its type, a ring node, which is used to attach the message to
+the queue of pending messages, a class field, which identifies a
+``MessageClass`` object.
+
+.. _design.mps.sig: sig
+
+_`.message.intent`: The intention is that a ``MessageStruct`` will be
+embedded in some richer object which contains information relevant to
+that specific type of message.
+
+_`.message.struct`: The structure is declared as follows::
+
+    typedef struct mps_message_s {
+      Sig sig;                      /* <design/sig/> */
+      Arena arena;                  /* owning arena */
+      MessageClass klass;           /* Message Class Structure */
+      Clock postedClock;            /* mps_clock() at post time, or 0 */
+      RingStruct queueRing;         /* Message queue ring */
+    } MessageStruct;
+
+``typedef struct MessageClassStruct *MessageClass``
+
+_`.class`: A message class is an encapsulation of methods. It
+encapsulates methods that are applicable to all types of messages
+(generic) and methods that are applicable to messages only of a
+certain type (type-specific).
+
+_`.class.concrete`: Concretely a message class is represented by a
+``MessageClassStruct`` (a struct). Clients of the Message module are
+expected to allocate storage for and initialise the
+``MessageClassStruct``. It is expected that such storage will be
+allocated and initialised statically.
+
+_`.class.one-type`: A message class implements exactly one message
+type. The identifier for this type is stored in the ``type`` field of
+the ``MessageClassStruct``. Note that the converse is not true: a
+single message type may be implemented by two (or more) different
+message classes (for example: for two pool classes that require
+different implementations for that message type).
+
+_`.class.methods.generic`: The generic methods are as follows:
+
+* ``delete`` -- used when the message is destroyed (by the client
+  calling ``mps_message_discard()``). The class implementation should
+  finish the message (by calling ``MessageFinish()``) and storage for
+  the message should be reclaimed (if applicable).
+
+_`.class.methods.specific`: The type specific methods are:
+
+_`.class.methods.specific.finalization`: Specific to
+``MessageTypeFINALIZATION``:
+
+* ``finalizationRef`` -- returns a reference to the finalizable object
+  represented by this message.
+
+_`.class.methods.specific.gc`: Specific to ``MessageTypeGC``:
+
+* ``gcLiveSize`` -- returns the number of bytes (of objects) that were
+  condemned by the trace but survived.
+
+* ``gcCondemnedSize`` -- returns the number of bytes condemned by the
+  trace.
+
+* ``gcNotCondemnedSize`` -- returns the number of bytes (of
+  objects) that are collectable but were not condemned by the trace.
+
+_`.class.methods.specific.gcstart`: Specific to ``MessageTypeGCSTART``:
+
+* ``gcStartWhy`` -- returns an English-language description of the
+  reason why the trace was started.
+
+_`.class.sig.double`: The ``MessageClassStruct`` has a signature field
+at both ends. This is so that if the ``MessageClassStruct`` changes
+size (by adding extra methods for example) then any static
+initializers will generate errors from the compiler (there will be a
+type error causes by initialising a non-signature type field with a
+signature) unless the static initializers are changed as well.
+
+_`.class.struct`: The structure is declared as follows::
+
+    typedef struct MessageClassStruct {
+      Sig sig;                      /* <design/sig/> */
+      const char *name;             /* Human readable Class name */
+
+      MessageType type;             /* Message Type */
+
+      /* generic methods */
+      MessageDeleteMethod delete;   /* terminates a message */
+
+      /* methods specific to MessageTypeFINALIZATION */
+      MessageFinalizationRefMethod finalizationRef;
+
+      /* methods specific to MessageTypeGC */
+      MessageGCLiveSizeMethod gcLiveSize;
+      MessageGCCondemnedSizeMethod gcCondemnedSize;
+      MessageGCNotCondemnedSizeMethod gcNotCondemnedSize;
+
+      /* methods specific to MessageTypeGCSTART */
+      MessageGCStartWhyMethod gcStartWhy;
+
+      Sig endSig;                   /* <design/message/#class.sig.double> */
+    } MessageClassStruct;
+
+_`.space.queue`: The arena structure is augmented with a structure for
+managing for queue of pending messages. This is a ring in the
+``ArenaStruct``::
+
+    struct ArenaStruct
+    {
+      ...
+      RingStruct messageRing;
+      ...
+    }
+
+
+Functions
+.........
+
+``void MessageInit(Arena arena, Message message, MessageClass klass, MessageType type)``
+
+_`.fun.init`: Initializes the ``MessageStruct`` pointed to by
+``message``. The caller of this function is expected to manage the
+store for the ``MessageStruct``.
+
+``void MessageFinish(Message message)``
+
+_`.fun.finish`: Finishes the ``MessageStruct`` pointed to by
+``message``. The caller of this function is expected to manage the
+store for the ``MessageStruct``.
+
+``void MessagePost(Arena arena, Message message)``
+
+_`.fun.post`: Places a message on the queue of an arena.
+
+_`.fun.post.precondition`: Prior to calling the function, the
+``queueRing`` field of the message must be a singleton
+(design.mps.ring.def.singleton_). After the call to the function the
+message will be available for MPS client to access. After the call to
+the function the message fields must not be manipulated except from
+the message's class's method functions (that is, you mustn't poke
+about with the ``queueRing`` field in particular).
+
+.. _design.mps.ring.def.singleton: ring#.def.singleton
+
+``void MessageEmpty(Arena arena)``
+
+_`.fun.empty`: Empties the message queue. This function has the same
+effect as discarding all the messages on the queue. After calling this
+function there will be no messages on the queue.
+
+_`.fun.empty.internal-only`: This functionality is not exposed to
+clients. We might want to expose this functionality to our clients in
+the future.
+
+
+Message life cycle
+------------------
+
+_`.life.alloc`: Space for the message structure is allocated at the
+earliest point in time when the MPS knows that the message might be
+needed.
+
+_`.life.init`: The message structure is initialized by calling
+``MessageInit()``.
+
+_`.life.post`: The message is posted on the arena's message queue by
+calling ``MessagePost()``.
+
+_`.life.get`: The client program retrieves the message by calling ``mps_message_get()``.
+
+_`.life.discard`: The client program indicates that it is finished
+with the message by calling ``mps_message_discard()``.
+
+_`.life.reuse`: The MPS may reuse the message structure, in which case
+the lifecycle continues from `.life.post`_.
+
+_`.life.delete`: When the MPS no longer needs the message structure,
+its ``delete`` method is called.
+
+
+References
+----------
+
+.. [Boehm_2002] Hans-J. Boehm. 2002. "`Destructors, Finalizers, and
+   Synchronization
+   <http://www.hpl.hp.com/techreports/2002/HPL-2002-335.html>`_". HP
+   Labs technical report HPL-2002-335.
+
+
+Document History
+----------------
+
+- 1997-02-13 David Jones. incomplete document.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2006-10-25 Richard Kistruck. Created guide.
+
+- 2006-12-11 Richard Kistruck. More on lifecycle; unmention evil hack
+  in initial design.
+
+- 2008-12-19 Richard Kistruck. Simplify and clarify lifecycle. Remove
+  description of and deprecate re-use of messages.
+
+- 2013-05-23 GDR_ Converted to reStructuredText.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

@@ -1,0 +1,20 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# run a set of tests specified in a test-set file
+#
+
+&requiredoptions(
+ "MPS_INCLUDE_DIR",
+ "MPS_LINK_OBJ",
+ "VARIETY",
+ "PLATFORM",
+ "LOG_DIR"
+);
+
+@LOGS = ("$LOG_DIR/summ.log", "$LOG_DIR/res.log", "$LOG_DIR/full.log");
+unlink(@LOGS);
+foreach $testset (@ARGV) {
+ &run_testset($testset, @LOGS);
+}
+

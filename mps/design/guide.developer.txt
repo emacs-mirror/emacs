@@ -1,0 +1,88 @@
+.. mode: -*- rst -*-
+
+New developer guide
+===================
+
+:Tag: guide.developer
+:Status: draft documentation
+:Author: Gareth Rees
+:Organization: Ravenbrook Limited
+:Date: 2018-09-18
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: developer; guide
+
+
+Introduction
+------------
+
+_`.intro`: This is an introduction to the Memory Pool System (MPS) for
+new developers.
+
+_`.source`: This is based on [APT_2018-09-17]_.
+
+
+What to read first
+------------------
+
+* `manual/build.txt`_ -- how to build the MPS.
+* `manual/guide`_ -- tutorial for the public interface.
+* `manual/topic`_ -- reference manual for the public interface.
+* `manual/code-index`_ -- description and purpose of each file of source code.
+* design.mps.config_ -- build configuration.
+* design.mps.tests_ -- how to run test cases.
+* design.mps.doc_ -- how to write and edit documentation.
+
+.. _manual/build.txt: https://www.ravenbrook.com/project/mps/master/manual/build.txt
+.. _manual/guide: https://www.ravenbrook.com/project/mps/master/manual/html/guide/index.html
+.. _manual/topic: https://www.ravenbrook.com/project/mps/master/manual/html/topic/index.html
+.. _manual/code-index: https://www.ravenbrook.com/project/mps/master/manual/html/code-index.html
+.. _design.mps.config: config
+.. _design.mps.tests: tests
+.. _design.mps.doc: doc
+
+
+References
+----------
+
+.. [APT_2018-09-17]
+   "Procedure for new developers";
+   Alistair Turnbull; Ravenbrook Limited; 2018-09-17;
+   <https://info.ravenbrook.com/mail/2018/09/17/11-16-41/0/>
+
+
+Document History
+----------------
+
+- 2018-09-18  GDR_  Created based on [APT_2018-09-17]_.
+
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2015–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

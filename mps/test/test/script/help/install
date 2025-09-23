@@ -1,0 +1,44 @@
+installing and invoking the MMQA test harness
+% $Id$
+
+The MMQA test system consists of the test harness (in hope as MMQA_harness!),
+suites of individual tests (MMQA_test_function!, MMQA_test_argerr!,
+MMQA_test_conerr!, MMQA_test_misc!), data files (MMQA_data!) and a number of
+test sets (MMQA_testsets!). To run tests, you need at least the test harness
+and the individual tests you want to run. To checkout everything, use the
+hope command:
+   checkout -recursive -missing-dir create MMQA!(.)
+
+(There are no useful checkpoints or branches on the MMQA compound.)
+This will give you a directory structure as follows:
+
+  mmqa         -- MMQA top-level directory, i.e. MMQA!
+    test       -- test harness, i.e. MMQA_harness!
+      qa       -- perl script for compiling and running test &c
+      script   -- perl programs and other files used by 'qa'
+      testlibs -- test libraries (.c and .h files)
+      obj      -- compiled tests and libraries go in here
+      report   -- test reports (unused)
+    function   -- mps functional tests, i.e. MMQA_test_function!
+    conerr     -- context error tests, i.e. MMQA_test_conerr!
+    argerr     -- argument error tests, i.e. MMQA_test_argerr!
+    misc       -- miscellaneous tests, i.e. MMQA_test_misc!
+    data       -- data files, i.e. MMQA_data!
+    testsets   -- test sets, i.e. MMQA_testsets!
+
+Actually, it doesn't matter where you put the directories of individual
+tests (function, conerr, argerr, misc), but it will be simplest if you
+use the structure above.
+
+All qa commands are invoked by running the perl script in the mmqa/test
+directory, as follows:
+
+ perl mmqa/test/qa <command> <parameters>
+
+Perl is required: if the above fails, try
+
+ perl5 mmqa/test/qa <command> <parameters>
+
+You will probably find it useful to set up an alias, batch file or similar
+so that you can just type "qa <command> <parameters>" to invoke qa commands.
+

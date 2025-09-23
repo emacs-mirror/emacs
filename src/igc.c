@@ -31,12 +31,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # pragma clang attribute push(__attribute__((warn_unused_result)), \
 			      apply_to = hasType(functionType))
 #endif
-#include <mps.h>
-#include <mpsavm.h>
-#include <mpscamc.h>
-#include "mpscams.h"
-#include <mpscawl.h>
-#include <mpslib.h>
+#include "../mps/code/mps.h"
+#include "../mps/code/mpsavm.h"
+#include "../mps/code/mpscamc.h"
+#include "../mps/code/mpscams.h"
+#include "../mps/code/mpscawl.h"
+#include "../mps/code/mpslib.h"
 #ifdef __clang__
 #pragma clang attribute pop
 #pragma clang diagnostic pop

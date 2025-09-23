@@ -1,0 +1,328 @@
+.. mode: -*- rst -*-
+
+Thread safety in the MPS
+========================
+
+:Tag: design.mps.thread-safety
+:Author: David Moore
+:Date: 1995-10-03
+:Status: complete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:    pair: thread safety; design
+
+
+Introduction
+------------
+
+_`.intro`: This describes how thread safety is achieved in the MPS.
+
+_`.overview`: The MPS is expected to run in an environment with
+multiple threads calling into the MPS. The initial approach is very
+simple. Some of the code is known to operate with exclusive access to
+the data it manipulates, so this code is safe. For the rest of the
+code, shared data structures are locked by the use of a single binary
+lock (design.mps.lock_) per arena. This lock is claimed on entry to
+the MPS and released on exit from it. So there is at most a single
+thread (per arena) running "inside" the MPS at a time.
+
+.. _design.mps.lock: lock
+
+
+Requirements
+------------
+
+_`.req.threads`: Code must work correctly in presence of multiple
+threads all calling into the MPS.
+
+_`.req.arena`: The MPS must safely manage per-arena non-shared data.
+
+_`.req.global.mutable`: The MPS must safely manage global data that
+may be updated many times (that is, the arena ring).
+
+_`.req.global.once`: The MPS must safely manage global data that is
+updated at most once (that is, the protocol classes).
+
+_`.req.deadlock`: The MPS must not deadlock.
+
+_`.req.fork`: On Unix platforms, the MPS should be able to continue in
+the child process after a ``fork()``. (Source: job004062_.)
+
+.. _job004062: https://www.ravenbrook.com/project/mps/issue/job004062/
+
+_`.req.perf`: Performance should not be unreasonably hindered.
+
+
+Analysis
+--------
+
+_`.analysis.simple`: To have the code functioning correctly it should be
+easy to change correctly. So a simple approach is desirable. We have
+to also ensure that performance is not unreasonably downgraded.
+
+
+Performance cost of locking
+...........................
+
+_`.lock-cost`: The cost of locking in performance terms are:
+
+- _`.lock-cost.overhead`: the overhead of claiming and releasing locks;
+
+- _`.lock-cost.pause`: the pauses caused by one thread being blocked
+  on another thread.
+
+- _`.lock-cost.wait`: the time wasted by one thread being blocked on
+  another thread.
+
+_`.analysis.perf.signif`: `.lock-cost.pause`_ is significant if there are
+MPS functions that take a long time. Using more locks, e.g. having a
+lock per pool as well as a lock per arena, is a way of decreasing the
+locking conflict between threads (`.lock-cost.pause`_ and
+`.lock-cost.wait`_). However this could increase
+`.lock-cost.overhead`_ significantly.
+
+_`.analysis.perf.work`: But all MPS functions imply a small work-load
+unless a collection is taking place. In the case of a collection, in
+practice and certainly in the near future, all threads will most
+likely be suspended while the collection work is going on. (The pages
+being scanned will need to be unprotected which implies the mutator
+will have to be stopped.) We also have to remember that unless we are
+running on genuine multiprocessor `.lock-cost.wait`_ is irrelevant.
+
+_`.analysis.perf.alloc`: During typical use we expect that it is
+allocation that is the most frequent activity. Allocation buffers
+(design.mps.buffer_) are designed to allow allocation in concurrent
+threads without needing a lock. So the most significant time a thread
+spends in the MPS will be on a buffer-fill or during a collection. The
+next most significant use is likely to be buffer create and deletion,
+as a separate buffer will be required for each thread.
+
+.. _design.mps.buffer: buffer
+
+_`.analysis.perf.lock`: So overall the performance cost of locking is, I
+estimate, most significantly the overhead of calling the locking
+functions. Hence it would be undesirable from a performance point of
+view to have more than one lock.
+
+
+Recursive vs binary locks
+.........................
+
+_`.analysis.reentrance`: The simplest way to lock the code safely is to
+define which code runs inside or outside the lock. Calling from the
+outside to the inside implies a lock has to be claimed. Returning
+means the lock has to be released. Control flow from outside to
+outside and from inside to inside needs no locking action. To
+implement this a function defined on the external interface needs to
+claim the lock on entry and release it on exit. Our code currently
+uses some external functions with the lock already held. There are two
+ways to implement this:
+
+#. _`.recursive`: Each external function claims a recursive lock.
+
+   - simple;
+   - have to worry about locking depth;
+   - extra locking overhead on internal calls of external functions;
+
+#. _`.binary`: Each external function claims a binary lock. Replace
+   each internal call of an external function with a call to a newly
+   defined internal one.
+
+   - more code
+   - slightly easier to reason about
+
+_`.analysis.strategy`: It seems that the `.recursive`_ strategy is the
+easiest to implement first, but could be evolved into a `.binary`_
+strategy. (That evolution has now happened. tony 1999-08-31).
+
+
+Fork safety
+...........
+
+In order to support ``fork()``, we need to solve the following problems:
+
+_`.analysis.fork.lock`: Any MPS lock might be held by another thread at
+the point where ``fork()`` is called. The lock would be protecting the
+integrity of some data structure. But in the child the thread holding
+the lock no longer exists, and so there is no way to restore the
+integrity.
+
+_`.analysis.fork.threads`: In the child process after a ``fork()``, there
+is only one thread, which is a copy of the thread that called
+``fork()`` in the parent process. All other threads no longer exist.
+But the MPS maintains references to these threads, via the
+``ThreadStruct`` object` created by calls to ``mps_thread_reg()``. If
+we try to communicate with these threads it will fail or crash.
+
+_`.analysis.fork.exc-thread`: On macOS, the MPS handles protection faults
+using a dedicated thread. But in the child process after a ``fork()``,
+this dedicated thread no longer exists. Also, the Mach port on which
+the dedicated thread receives its messages does not exist in the child
+either.
+
+_`.analysis.fork.mach-port`: On macOS, the MPS identifies threads via
+their Mach port numbers, which are stashed in the ``ThreadStruct`` and
+used to identify the current thread, for example in
+``ThreadSuspend()``. But in the child process after ``fork()`` the
+running thread has a different Mach port number than it did in the
+parent.
+
+
+Design
+------
+
+_`.sol.locks`: Use MPS locks (design.mps.lock_) to implement the
+locking.
+
+.. _design.mps.lock: lock
+
+_`.sol.arena`: Each arena has a binary lock that protects the
+non-shared data for that arena. Functions in the public interface fall
+into the following categories:
+
+- _`.sol.arena.entry`: Must be called with the arena lock not held
+  (thus, these functions are not callable from format methods and
+  other callbacks). Claims arena binary lock on entry, releases it on
+  exit. The usual case. For example, ``mps_arena_park()``.
+
+- _`.sol.arena.recursive`: May be called with the arena lock held (for
+  example, from format methods and other callbacks). Claim arena lock
+  recursively on entry, release it on exit. For example,
+  ``mps_addr_fmt()``.
+
+- _`.sol.arena.lock-free`: May be called at any time and does not
+  claim or release any locks, because it is documented as being up to
+  the client program to ensure thread safety (for example,
+  ``mps_ld_add()``).
+
+- _`.sol.arena.maybe-entry`: Must be called with the arena lock not
+  held. In the common case, does not claim or release any locks
+  (because it is documented as being up to the client program to
+  ensure thread safety, as for `.sol.arena.lock-free`_), but may need
+  to claim and release the arena binary lock (as for
+  `.sol.arena.entry`_). For example, ``mps_reserve()``,
+  ``mps_commit()``, ``mps_ap_frame_push()``, and
+  ``mps_ap_frame_pop()``.
+
+_`.sol.global.mutable`: There is a global binary lock (see
+design.mps.lock.req.global.binary_) that protects mutable data shared
+between all arenas (that is, the arena ring lock: see
+design.mps.arena.static.ring.lock_).
+
+.. _design.mps.lock.req.global.binary: lock#.req.global.binary
+.. _design.mps.arena.static.ring.lock: arena#.static.ring.lock
+
+_`.sol.global.once`: There is a global recursive lock (see
+design.mps.lock.req.global.recursive_) that protects static data which
+must be initialized at most once (that is, the protocol classes). Each
+static data structure is accessed only via an "ensure" function that
+claims the global recursive lock, checks to see if the data structure
+has been initialized yet, and does so if necessary (see
+design.mps.protocol.impl.define-class.lock_).
+
+.. _design.mps.lock.req.global.recursive: lock#.req.global.recursive
+.. _design.mps.protocol.impl.define-class.lock: protocol#.impl.define-class.lock
+
+_`.sol.deadlock`: A strict ordering is required between the global and
+arena locks to prevent deadlock. The binary global lock may not be
+claimed while either the arena or recursive global lock is held; the
+arena lock may not be claimed while the recursive global lock is held.
+Each arena lock is independent of all other arena locks; that is, a
+thread may not attempt to claim more than one arena lock at a time.
+See design.mps.arena.lock.avoid_.
+
+.. _design.mps.arena.lock.avoid: arena#.lock.avoid
+
+_`.sol.check`: The MPS interface design requires that a function must
+check the signatures on the data structures pointed to by its
+parameters (see design.mps.sig.check.arg_). In particular, for
+functions in the class `.sol.arena.entry`_ it is necessary to check
+some data structure signatures before taking the arena lock. The
+checking interface provides a ``TESTT()`` macro that checks the
+signature in a thread-safe way (see
+design.mps.sig.check.arg.unlocked_).
+
+.. _design.mps.sig.check.arg: sig#.check.arg
+.. _design.mps.sig.check.arg.unlocked: sig#.check.arg.unlocked
+
+
+Fork safety
+-----------
+
+_`.sol.fork.atfork`: The MPS solves the fork-safety problems by
+calling |pthread_atfork|_ to install handler functions that are
+called in the parent process just before fork (the "prepare" handler),
+and in the parent and child processes just after fork (the "parent"
+and "child" handlers respectively).
+
+.. |pthread_atfork| replace:: ``pthread_atfork()``
+.. _pthread_atfork: https://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_atfork.html
+
+_`.sol.fork.lock`: In the prepare handler, the MPS takes all the
+locks: that is, the global locks, and then the arena lock for every
+arena. Note that a side-effect of this is that the shield is entered
+for each arena. In the parent handler, the MPS releases all the locks.
+In the child handler, the MPS would like to release the locks but this
+does not work on any supported platform, so instead it reinitializes
+them, by calling ``LockInitGlobal()``.
+
+_`.sol.fork.thread`: On macOS, in the prepare handler, the MPS
+identifies for each arena the current thread, that is, the one calling
+``fork()`` which will survive into the child process, and marks this
+thread by setting a flag in the appropriate ``ThreadStruct``. In the
+parent handler, this flag is cleared. On all Unix platforms, in the
+child handler, all threads (except for the current thread) are marked
+as dead and transferred to the ring of dead threads. (The MPS can't
+destroy the thread structures at this point because they are owned by
+the client program.)
+
+_`.sol.fork.exc-thread`: On macOS, in the child handler, the exception
+port and dedicated thread are re-created, and the current thread
+re-registered with the exception port.
+
+_`.sol.fork.mach-port`: On macOS, in the child handler, the thread
+flagged as forking gets its port number updated.
+
+
+Document History
+----------------
+
+- 1995-10-03 David Moore. Incomplete design.
+
+- 2002-06-21 RB_ Converted from MMInfo database design document.
+
+- 2013-05-22 GDR_ Converted to reStructuredText.
+
+- 2018-06-14 GDR_ Added fork safety design.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

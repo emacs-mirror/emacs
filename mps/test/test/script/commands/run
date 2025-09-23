@@ -1,0 +1,19 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# run tests interactively (allows for user input, immediate results,
+# &c, and give results in standard format, and mailing results)
+
+&requiredoptions(
+ "MPS_INCLUDE_DIR",
+ "MPS_LINK_OBJ",
+ "VARIETY",
+ "PLATFORM",
+ "LOG_DIR"
+);
+
+foreach $testfile (@ARGV) {
+ &run_test($testfile, "yes", "results", "$LOG_DIR/last.log");
+ &mailfile("$LOG_DIR/last.log", "$MAIL_SUBJECT $testid $testconclusion");
+}
+

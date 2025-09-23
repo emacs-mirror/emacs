@@ -1,0 +1,157 @@
+.. mode: -*- rst -*-
+
+Walking formatted objects
+=========================
+
+:Tag: design.mps.walk
+:Author: Gareth Rees
+:Date: 2020-08-31
+:Status: complete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:    pair: walk; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the formatted objects walk interface.
+The intended audience is MPS developers.
+
+_`.source`: Based on [GDR_2020-08-30]_.
+
+
+Use cases
+---------
+
+_`.case.reload`: A language runtime that offers hot reloading of code
+will need to walk all objects belonging to a class (say) in order to
+modify the references in the objects so they refer to the updated
+class definition. [Strömbäck_2020-08-20]_
+
+_`.case.serialize`: A language runtime that offers serialization and
+deserialization of the heap will need to walk all formatted objects in
+order to identify references to globals (during serialization) and
+modify references to refer to the new locations of the globals (after
+deserialization). [GDR_2018-08-30]_
+
+
+Requirements
+------------
+
+_`.req.walk.all`: It must be possible for the client program to visit
+all automatically managed formatted objects using a callback.
+
+_`.req.walk.assume-format`: The callback should not need to switch on
+the format, as this may be awkward in a program which has modules
+using different pools with different formats.
+
+_`.req.walk.examine`: It must be possible for the callback to examine
+other automatically managed memory while walking the objects.
+
+_`.req.walk.modify`: It must be possible for the callback to modify
+the references in the objects.
+
+_`.req.walk.overhead`: The overhead of calling the callback should be
+minimized.
+
+_`.req.walk.perf`: The performance of subsequent collections should
+not be affected.
+
+_`.req.walk.closure`: The callback must have access to arbitrary data
+from the caller.
+
+_`.req.walk.maint`: The interface should be easy to implement and
+maintain.
+
+
+Design
+------
+
+A new public function ``mps_pool_walk()`` visits the live formatted
+objects in an automatically managed pool.
+
+_`.sol.walk.all`: The client program must know which pools it has
+created so it can call ``mps_pool_walk()`` for each pool.
+
+_`.sol.walk.assume-format`: All objects in a pool share the same
+format, so the callback does not need to switch on the format.
+
+_`.sol.walk.examine`: ``mps_pool_walk()`` must only be called when the
+arena is parked, and so there is no read barrier on any object.
+
+_`.sol.walk.modify`: ``mps_pool_walk()`` arranges for write-protection
+to be removed from each segment while it is being walked and restored
+afterwards if necessary.
+
+_`.sol.walk.overhead`: The callback is called for contiguous regions
+of formatted objects (not just for each object) where possible so that
+the per-object function call overhead is minimized.
+
+_`.sol.walk.perf`: The callback uses the scanning protocol so that
+every reference is fixed and the summary is maintained.
+
+_`.sol.walk.closure`: ``mps_pool_walk()`` takes a closure pointer
+which is stored in the ``ScanState`` and passed to the callback.
+
+_`.sol.walk.maint`: We reuse the scanning protocol and provide a
+generic implementation that iterates over the ring of segments in the
+pool. We set up an empty white set in the ``ScanState`` so that the
+``MPS_FIX1()`` test always fails and ``_mps_fix2()`` is never called.
+This avoids any per-pool code to support the interface.
+
+
+References
+----------
+
+.. [GDR_2018-08-30]
+   "Save/restore draft proposal";
+   Gareth Rees; 2018-08-30;
+   <https://info.ravenbrook.com/mail/2018/08/30/12-57-09/0/>.
+
+.. [GDR_2020-08-30]
+   "Re: Modifying objects during mps_formatted_objects_walk";
+   Gareth Rees; 2020-08-30;
+   <https://info.ravenbrook.com/mail/2020/08/31/19-17-03/0/>.
+
+.. [Strömbäck_2020-08-20]
+   "Modifying objects during mps_formatted_objects_walk";
+   Filip Strömbäck; 2020-08-20;
+   <https://info.ravenbrook.com/mail/2020/08/20/21-01-34/0/>.
+
+
+Document History
+----------------
+
+- 2020-08-31 GDR_ Initial version based on [GDR_2020-08-30]_
+
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2001–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

@@ -1,0 +1,40 @@
+{# manual/source/_templates/layout.html -- add index to manual sidebar.
+ #
+ # See https://stackoverflow.com/a/37843854 .
+ #}
+
+{% extends "!layout.html" %}
+
+  {% block menu %}
+    {{ super() }}
+
+<p class="caption" role="heading">
+  <span class="caption-text">Indices and tables</span>
+</p>
+
+<ul>
+
+  {# The class toctree-l1 seems to correspond to list items generated
+     by a Sphinx toctree directive that are at depth 1.  I have not
+     found documented confirmation of this but it is confirmed
+     `_toctree_add_classes
+     <https://github.com/sphinx-doc/sphinx/blob/bb74aec2b6aa1179868d83134013450c9ff9d4d6/sphinx/environment/adapters/toctree.py#L403-L430>`_
+     in the Sphinx source code.  If the list layout goes wonky, this
+     might be to blame.  RB 2023-10-20. #}
+
+  <li class="toctree-l1">
+
+    <a class="reference internal" href="{{pathto('genindex.html', 1)}}">Index</a>
+
+    {# Module index and search page aren't used in the MPS manual but
+       might be in future.  This is how they might be added. #}
+
+    {# <a class="reference internal" href="{{pathto('modindex.html', 1)}}">Module Index</a> #}
+
+    {# <a class="reference internal" href="{{pathto('search.html', 1)}}">Search Page</a> #}
+
+  </li>
+
+</ul>
+
+  {% endblock %}

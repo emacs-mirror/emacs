@@ -1,0 +1,42 @@
+
+TEST_HEADER
+ id = $Id$
+ summary = compare MM and boehm performance in Dylan
+ language = english
+END_HEADER
+
+1. Get a recent, stable release of Dylan. If you're not sure what release would
+be appropriate, ask Tony.
+
+2. Create a version of hqn-dylan.dll that uses the memory manager to be tested.
+Do this by compiling the dylan library, then copying the mmdw.lib you want to
+the dylan\lib directory, then from the dylan\build\dylan directory run
+"build microsoft force dll". This is assuming you have not already done
+step 3, which creates a new pentium-run-time.lib.
+
+3. Create a version of hqn-dylan.dll that uses the boehm collector.
+Do this by running "nmake install-boehm" from from the Sources\lib\pentium-run-time
+directory.
+
+4. Run the following tests on each version:
+
+dylan-compile
+compile-library -force-parse -force-compile harlequin-extensions
+compile-library -force-parse -force-compile harlequin-extensions
+compile-library -force-compile dylan
+quit
+
+dylan-compile
+update-libraries -force -save -flush dfmc-modeling
+quit
+
+Or make up some other similar tests.
+Compare CPU times and lines per minute as reported by Dylan.
+
+The test is passed if the MM being tested is as fast as or faster than the
+boehm collector (in all cases). The two may have different memory requirements,
+so make sure to note how much memory your machine has, as well as the version of
+dylan used, and to check whether cpu time and clock-on-the-wall time are noticeably
+different.
+
+rit 1998-03-13

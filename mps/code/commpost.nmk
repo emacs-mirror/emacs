@@ -1,0 +1,416 @@
+# commpost.nmk: SECOND COMMON FRAGMENT FOR PLATFORMS USING NMAKE -*- makefile -*-
+#
+# $Id$
+# Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
+#
+# DESCRIPTION
+#
+# Second common makefile fragment for w3*mv.nmk.  See commpre.nmk
+
+
+# == Pseudo-targets ==
+
+all: $(ALL_TARGETS)
+
+
+# Convenience targets
+
+$(ALL_TARGETS) $(OPTIONAL_TARGETS):
+!IFDEF VARIETY
+	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
+!ELSE
+	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
+!ENDIF
+
+# "clean" removes the directory containing the build results.
+# Depends on there being no file called "clean".
+# Note that we suspend error processing on the if line because rmdir
+# sometimes exits with an error and the message "The directory is not
+# empty" even if the /s option is given. See job003854.
+
+clean:
+	$(ECHO) $(PFM): $@
+	-if exist $(PFM) rmdir /q /s $(PFM)
+
+# target target
+# %%VARIETY: When adding a new variety, optionally, add a recursive make
+# call for the new variety, if it should be built by default.  It probably
+# shouldn't without a product design decision and an update of the readme
+# and build manual!
+# Depends on there being no file called "target".
+
+!IFDEF TARGET
+!IFNDEF VARIETY
+target:
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot variety
+!ENDIF
+!ENDIF
+
+# variety
+# Depends on there being no file called "variety".
+
+!IFDEF VARIETY
+!IFDEF TARGET
+variety: $(PFM)\$(VARIETY)\$(TARGET)
+!ENDIF
+!ENDIF
+
+# testrun testci testall testansi testpollnone
+# Runs automated test cases. See design.mps.tests.target.
+
+testrun testci testall testansi testpollnone: $(TEST_TARGETS)
+!IFDEF VARIETY
+	..\tool\testrun.bat $(PFM) $(VARIETY) $@
+!ELSE
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool $@
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot $@
+!ENDIF
+
+
+# FLAGS AMALGAMATION
+#
+# %%VARIETY: When adding a new variety, add the following macros that
+# expand to sets of flags that the variety should use:
+#
+# CFLAGS --  when compiling C;
+# CFLAGSSQL -- when compiling mpseventsql;
+# LINKFLAGS -- when building executables;
+# LIBFLAGS -- when building libraries.
+
+!IF "$(VARIETY)" == "hot"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFHOT) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFHOT) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFHOT)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSHOT)
+
+!ELSEIF "$(VARIETY)" == "cool"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFCOOL) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFCOOL) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCOOL)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCOOL)
+
+!ELSEIF "$(VARIETY)" == "rash"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFRASH) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFRASH) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRASH)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRASH)
+
+!ENDIF
+
+
+# SOURCE TO OBJECT FILE MAPPINGS
+#
+# %%PART: When adding a new part, add new macros which expand to the object
+# files included in the part
+#
+# Note: nmake doesn't expand variables within a string replacement
+# operation. We work around this by writing out a temporary makefile
+# and including it.
+
+TEMPMAKE=$(TEMP)\mps.nmk
+!IF [echo MPMOBJ0 = $$(MPM:[=$(PFM)\$(VARIETY)\) > $(TEMPMAKE)] == 0 \
+ && [echo FMTDYOBJ0 = $$(FMTDY:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo FMTTESTOBJ0 = $$(FMTTEST:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo FMTSCHEMEOBJ0 = $$(FMTSCHEME:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo POOLNOBJ0 = $$(POOLN:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo TESTLIBOBJ0 = $$(TESTLIB:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0 \
+ && [echo TESTTHROBJ0 = $$(TESTTHR:[=$(PFM)\$(VARIETY)\) >> $(TEMPMAKE)] == 0
+!INCLUDE $(TEMPMAKE)
+!IF [del $(TEMPMAKE)] != 0
+!ERROR Failed to delete $(TEMPMAKE)
+!ENDIF
+!ENDIF
+
+MPMOBJ = $(MPMOBJ0:]=.obj)
+FMTDYOBJ = $(FMTDYOBJ0:]=.obj)
+FMTTESTOBJ = $(FMTTESTOBJ0:]=.obj)
+FMTSCHEMEOBJ = $(FMTSCHEMEOBJ0:]=.obj)
+POOLNOBJ = $(POOLNOBJ0:]=.obj)
+TESTLIBOBJ = $(TESTLIBOBJ0:]=.obj)
+TESTTHROBJ = $(TESTTHROBJ0:]=.obj)
+
+
+# THE MPS LIBRARY
+#
+# The MPS library is built in two ways:
+#
+#   1. In the usual way, from a pile of object files compiled from their
+#      corresponding sources.
+#
+#   2. From mps.c, which effectively concatenates all the sources, allowing
+#      important global optimisation and inlining to occur.
+#
+# We mostly use the method (2), because it is fast to compile and execute.
+# But we use method (1) for some varieties to ensure correctness of
+# code (linkage errors are masked by (2)) and to maintain a correct list
+# of source files in case method (1) won't work on some future constrained
+# platform.
+#
+# %%VARIETY: When adding a new variety, add a rule for how to build the
+# MPS library for the variety
+
+$(PFM)\rash\mps.lib: $(PFM)\rash\mps.obj
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\hot\mps.lib: $(PFM)\hot\mps.obj
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\cool\mps.lib: $(MPMOBJ)
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+
+# OTHER GENUINE TARGETS
+#
+# Each line defines an executable or library target to be built and the object
+# files it is build from.  For an executable these lines add dependencies to
+# the generic rules below, and should not include commands to execute.
+# For a library this is not possible and the target should include commands
+# to build it.
+# %%TARGET: When adding a new target, add your new target here
+
+!IFDEF VARIETY
+
+$(PFM)\$(VARIETY)\abqtest.exe: $(PFM)\$(VARIETY)\abqtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\addrobj.exe: $(PFM)\$(VARIETY)\addrobj.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\airtest.exe: $(PFM)\$(VARIETY)\airtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTSCHEMEOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\amcsshe.exe: $(PFM)\$(VARIETY)\amcsshe.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\amcssth.exe: $(PFM)\$(VARIETY)\amcssth.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ)
+
+$(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\amssshe.exe: $(PFM)\$(VARIETY)\amssshe.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\apss.exe: $(PFM)\$(VARIETY)\apss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\arenacv.exe:  $(PFM)\$(VARIETY)\arenacv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\awlut.exe: $(PFM)\$(VARIETY)\awlut.obj \
+        $(FMTTESTOBJ) \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ) $(TESTTHROBJ)
+
+$(PFM)\$(VARIETY)\awluthe.exe:  $(PFM)\$(VARIETY)\awluthe.obj \
+	$(FMTTESTOBJ) \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ) $(TESTTHROBJ)
+
+$(PFM)\$(VARIETY)\awlutth.exe:  $(PFM)\$(VARIETY)\awlutth.obj \
+	$(FMTTESTOBJ) \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ) $(TESTTHROBJ)
+
+$(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\bttest.exe: $(PFM)\$(VARIETY)\bttest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\djbench.exe: $(PFM)\$(VARIETY)\djbench.obj \
+	$(TESTLIBOBJ) $(TESTTHROBJ)
+
+$(PFM)\$(VARIETY)\extcon.exe: $(PFM)\$(VARIETY)\extcon.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\finaltest.exe: $(PFM)\$(VARIETY)\finaltest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\fotest.exe: $(PFM)\$(VARIETY)\fotest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\gcbench.exe: $(PFM)\$(VARIETY)\gcbench.obj \
+	$(FMTTESTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ)
+
+$(PFM)\$(VARIETY)\landtest.exe: $(PFM)\$(VARIETY)\landtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\locbwcss.exe: $(PFM)\$(VARIETY)\locbwcss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\lockut.exe: $(PFM)\$(VARIETY)\lockut.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ) $(TESTTHROBJ)
+
+$(PFM)\$(VARIETY)\locusss.exe: $(PFM)\$(VARIETY)\locusss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\messtest.exe: $(PFM)\$(VARIETY)\messtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\nailboardtest.exe: $(PFM)\$(VARIETY)\nailboardtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\poolncv.exe: $(PFM)\$(VARIETY)\poolncv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ) $(POOLNOBJ)
+
+$(PFM)\$(VARIETY)\qs.exe: $(PFM)\$(VARIETY)\qs.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\sacss.exe: $(PFM)\$(VARIETY)\sacss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\segsmss.exe: $(PFM)\$(VARIETY)\segsmss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\sncss.exe: $(PFM)\$(VARIETY)\sncss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\tagtest.exe: $(PFM)\$(VARIETY)\tagtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\teletest.exe: $(PFM)\$(VARIETY)\teletest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\walkt0.exe: $(PFM)\$(VARIETY)\walkt0.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\zcoll.exe: $(PFM)\$(VARIETY)\zcoll.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\zmess.exe: $(PFM)\$(VARIETY)\zmess.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\ztfm.exe: $(PFM)\$(VARIETY)\ztfm.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\mpseventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
+	$(PFM)\$(VARIETY)\mps.lib
+
+$(PFM)\$(VARIETY)\mpseventpy.exe: $(PFM)\$(VARIETY)\eventpy.obj \
+	$(PFM)\$(VARIETY)\mps.lib
+
+$(PFM)\$(VARIETY)\mpseventtxt.exe: $(PFM)\$(VARIETY)\eventtxt.obj \
+	$(PFM)\$(VARIETY)\mps.lib
+
+$(PFM)\$(VARIETY)\mpseventsql.exe: $(PFM)\$(VARIETY)\eventsql.obj \
+	$(PFM)\$(VARIETY)\sqlite3.obj $(PFM)\$(VARIETY)\mps.lib
+
+$(PFM)\$(VARIETY)\replay.exe: $(PFM)\$(VARIETY)\replay.obj \
+  $(PFM)\$(VARIETY)\eventrep.obj \
+  $(PFM)\$(VARIETY)\table.obj \
+  $(PFM)\$(VARIETY)\mps.lib
+
+# Have to rename the object file, because the names must match, or
+# the template rule for .exe.obj won't be used.
+$(PFM)\$(VARIETY)\replaysw.obj: $(PFM)\$(VARIETY)\replay.obj
+	$(ECHO) $@
+	copy $** $@ >nul:
+
+$(PFM)\$(VARIETY)\mpseventcnv.obj: $(PFM)\$(VARIETY)\eventcnv.obj
+	copy $** $@ >nul:
+
+$(PFM)\$(VARIETY)\mpseventpy.obj: $(PFM)\$(VARIETY)\eventpy.obj
+	copy $** $@ >nul:
+
+$(PFM)\$(VARIETY)\mpseventtxt.obj: $(PFM)\$(VARIETY)\eventtxt.obj
+	copy $** $@ >nul:
+
+$(PFM)\$(VARIETY)\mpseventsql.obj: $(PFM)\$(VARIETY)\eventsql.obj
+	copy $** $@ >nul:
+
+!ENDIF
+
+
+# GENERIC RULES
+
+# Object files
+
+{}.c{$(PFM)\$(VARIETY)}.obj:
+	$(ECHO) $@
+	@if not exist $(PFM) mkdir $(PFM)
+	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
+	$(CC) /c $(CFLAGS) /Fo$@ $<
+
+$(PFM)\$(VARIETY)\sqlite3.obj:
+	$(ECHO) $@
+	@if not exist $(PFM) mkdir $(PFM)
+	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
+        $(CC) /c $(CFLAGSSQL) /Fo$@ sqlite3.c
+
+{}.asm{$(PFM)\$(VARIETY)}.obj:
+	$(ECHO) $@
+	@if not exist $(PFM) mkdir $(PFM)
+	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
+	$(MASM) /nologo /c /Fo$@ $<
+
+# Coverage files
+#{$(PFM)\$(VARIETY)}.exe{$(PFM)\$(VARIETY)}.cov:
+#	$(ECHO) $@
+#	cd $(PFM)\$(VARIETY)
+#	prep /nologo /lv  $(<F)
+#	profile /nologo $(<B)
+#	prep /nologo /m $(<B)
+#	plist /nologo /D ..\.. $(<B) > $(@F)
+
+
+# Executables
+
+{$(PFM)\$(VARIETY)}.obj{$(PFM)\$(VARIETY)}.exe:
+	$(ECHO) $@
+	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**)
+
+
+# C. COPYRIGHT AND LICENSE
+#
+# Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+

@@ -1,0 +1,9 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# display all the options ever
+#
+
+&displayalloptions;
+
+

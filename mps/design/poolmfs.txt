@@ -1,0 +1,98 @@
+.. mode: -*- rst -*-
+
+MFS pool class
+==============
+
+:Tag: design.mps.poolmfs
+:Author: Richard Brooksby
+:Date: 1996-11-07
+:Status: Incomplete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: MFS pool class; design
+   single: pool class; MFS design
+
+
+Overview
+--------
+
+MFS stands for "Manual Fixed Small". The MFS pool class manages
+objects that are of a fixed size. It is intended to only manage small
+objects efficiently. Storage is recycled manually by the client
+programmer.
+
+A particular instance of an MFS Pool can manage objects only of a
+single size, but different instances can manage objects of different
+sizes. The size of object that an instance can manage is declared when
+the instance is created.
+
+
+Implementation
+--------------
+
+_`.impl.extents`: MFS operates in a very simple manner: each extent
+allocated from the arena is divided into units.
+
+_`.impl.free-units`: Free units are kept on a linked list using a
+header stored in the unit itself. The linked list is not ordered;
+allocation and deallocation simply pop and push from the head of the
+list. This is fast, but successive allocations might have poor
+locality if previous successive frees did.
+
+_`.impl.extent-ring`: The list of extents belonging to the pool is
+maintained as a ring with a node at the start of each extent.
+
+_`.impl.extent-ring.justify`: Storing the linked list of free nodes
+and the extent ring node in the managed memory is against the general
+principle of the MPS design, which keeps its management structures
+away from client memory. However, the MFS pool is used during the
+bootstrapping process (see design.mps.bootstrap.land.sol.pool_) and so
+has no other memory pools available for storage.
+
+.. _design.mps.bootstrap.land.sol.pool: bootstrap#.land.sol.pool
+
+
+Document History
+----------------
+
+- 1996-11-07 RB_ Incomplete design.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-23 GDR_ Converted to reStructuredText.
+
+- 2016-03-18 RB_ Moved design text from leader comment of poolmfs.c.
+  Explained chaining of extents using an embedded ring node.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

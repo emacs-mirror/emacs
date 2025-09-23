@@ -1,0 +1,31 @@
+
+TEST_HEADER
+ id = $Id$
+ summary = MM works with Dylan
+ language = english
+END_HEADER
+
+1. Get a recent, stable release of Dylan. If you're not sure what release would
+be appropriate, ask Tony.
+
+2. Create a version of hqn-dylan.dll that uses the memory manager to be tested.
+Do this by compiling the dylan library ("compile-library -force-compile dylan"),
+then copying the mmdw.lib you want to the dylan\lib directory, then from the
+dylan\build\dylan directory run "build microsoft force dll".
+
+3. Run the following tests:
+
+dylan-compile
+compile-library -force-parse -force-compile harlequin-extensions
+compile-library -force-parse -force-compile harlequin-extensions
+compile-library -force-compile dylan
+quit
+
+dylan-compile
+update-libraries -force -save dfmc-modeling
+quit
+
+The test is passed if there are no problems (apart from the usual
+dylan compiler warnings) with these runs.
+
+rit 1998-03-13

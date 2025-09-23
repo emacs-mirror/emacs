@@ -1,0 +1,98 @@
+.. mode: -*- rst -*-
+
+The generic fix function
+========================
+
+:Tag: design.mps.fix
+:Author: Richard Brooksby
+:Date: 1995-08-25
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms: pair: fix function; design
+
+
+Introduction
+-------------
+
+_`.intro`: Fix is the interface through which the existence of
+references are communicated from the MPS client to the MPS. The
+interface also allows the value of such references to be changed (this
+is necessary in order to implement a moving memory manager).
+
+
+Was-marked protocol
+-------------------
+
+_`.was-marked`: The ``ScanState`` has a ``Bool wasMarked``
+field. This is used for finalization.
+
+_`.was-marked.not`: If a segment's fix method discovers that the
+object referred to by the ref (the one that it is supposed to be
+fixing) has not previously been marked (that is, this is the first
+reference to this object that has been fixed), and that the object was
+white (that is, in condemned space), it should (but need not) set the
+``wasMarked`` field to ``FALSE`` in the passed ``ScanState``.
+
+_`.was-marked.otherwise`: Otherwise, the fix method must
+leave the ``wasMarked`` field unchanged.
+
+_`.was-marked.finalizable`: The MRG pool (design.mps.poolmrg_)
+uses the value of the ``wasMarked`` field to determine whether an
+object is finalizable.
+
+.. _design.mps.poolmrg: poolmrg
+
+
+Implementation
+---------------
+
+_`.fix.nailed`: In a copying collection, a non-ambiguous fix to a
+broken heart should be snapped out *even if* there is a ``RankAMBIG``
+ref to same object (that is, if the broken heart is nailed); the
+``RankAMBIG`` reference must either be stale (no longer in existence)
+or bogus.
+
+
+Document History
+----------------
+
+- 1995-08-25 RB_ Incomplete design.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-04-14 GDR_ Converted to reStructuredText.
+
+- 2018-06-18 GDR_ Simplify the ``wasMarked`` protocol.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

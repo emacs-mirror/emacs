@@ -1,0 +1,266 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# Settings that depend on the platform, including C compiler and command syntax
+#
+# And the %identify hash of useful information
+# to record in the test results.
+#
+
+1;
+
+#
+# Set lots of variables correctly, depending on the platform
+# (which was determined in 'options')
+#
+# Currently, it should work correctly on Windows, Linux, macOS,
+# FreeBSD.
+#
+
+sub platform_settings {
+ if ($PLATFORM =~ "^w3") {
+  &settings_nt();
+  &settings_nt_coff();
+ } elsif ($PLATFORM =~ "^li") {
+  &settings_unix();
+  &settings_linux();
+ } elsif ($PLATFORM =~ "^xc") {
+  &settings_unix();
+  &settings_macosx();
+ } elsif ($PLATFORM =~ "^fr") {
+  &settings_unix();
+  &settings_freebsd();
+ } else {
+  die "Sorry: I don't know how to use $PLATFORM.\n";
+ }
+ unless (defined $MPS_LINK_OBJ && $MPS_LINK_OBJ ne "") {
+  $MPS_LINK_OBJ = "$MPS_INCLUDE_DIR/$link_obj";
+ }
+}
+
+
+sub settings_nt {
+ $dirsep = "/";
+ $link_obj = "$PLATFORM/$VARIETY/mps.obj";
+ $make_command = "nmake /f $PLATFORM.nmk VARIETY=$VARIETY $link_obj";
+ $debug_command = "vsjitdebugger";
+ $cc_command = "cl";
+ $cc_opts = "/nologo /DWIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /W3 /Zi /Oy- /MD";
+ $cc_link = "$obj_dir/platform.obj";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug";
+ $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR /I$obj_dir";
+ $cc_def = "/D";
+ $cc_defeq = "=";
+ $cc_preonly = "/EP";
+ $cc_conly = "/c";
+ $cc_obj = "/Fo";
+ $cc_exe = "/Fe";
+ $cc_objandexe = 1;
+ $obj_suffix = ".obj";
+ $try_command = "";
+ $catcommand = "cat";
+ $comwrap = "\"";
+ $comwrapend = "\"";
+ $stdout_red = ">";
+ $stdout_dup = "| tee";
+ $stdin_red = "<";
+ $stdboth_red = ">%s 2>&1";
+ $quotestring = \&nt_quotestring;
+ $platmailfile = \&nt_mailfile;
+ $stringscommand = "strings";
+ $preprocommand = "$cc_command /nologo $cc_preonly";
+ $exesuff = ".exe";
+ %ignored_headers = ();
+}
+
+sub settings_nt_cap {
+ $cc_opts = "$cc_opts /Gh";
+ $cc_link = "$cc_link CAP.lib";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug";
+}
+
+sub settings_nt_coff {
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug";
+}
+
+
+sub settings_unix {
+ $dirsep = "/";
+ $link_obj = "$PLATFORM/$VARIETY/mps.o";
+ $make_command = "make -B -f $PLATFORM.gmk VARIETY=$VARIETY $link_obj";
+ $cc_link = "$obj_dir/platform.o -lm";
+ $cc_link_opts = "-z muldefs";
+ if ($PLATFORM =~ /ll$/) {
+  $cc_command = "clang";
+  $debug_command = "lldb";
+ } elsif ($PLATFORM =~ /gc$/) {
+  $cc_command = "gcc";
+  $debug_command = "gdb";
+ } else {
+  $cc_command = "cc";
+  $debug_command = "gdb";
+ }
+ $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes ".
+  "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
+  "-Wshadow -Wmissing-prototypes -Wcast-align ".
+  "-O -g -ggdb3 ";
+ $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR -I$obj_dir";
+ $cc_def = "-D";
+ $cc_defeq = "=";
+ $cc_preonly = "-E";
+ $cc_conly = "-c";
+ $cc_obj = "-o ";
+ $cc_exe = "-o ";
+ $cc_objandexe = 0;
+ $obj_suffix = ".o";
+ $try_command = "sh -c ";
+ $catcommand = "cat";
+ $comwrap = "sh -c 'ulimit -c 0; ";
+ # The "true" after the test program forces the test program to be run
+ # inside the subshell (with "Segmentation fault" messages written to
+ # the pipe and captured) rather than in the parent shell (with
+ # "Segmentation fault" messages written to the terminal and so lost).
+ $comwrapend = "; true'";
+ $stdout_red = ">";
+ $stdout_dup = "| tee";
+ $stdin_red = "<";
+ $stdboth_red = ">%s 2>&1";
+ $quotestring = \&unix_quotestring;
+ $platmailfile = \&unix_mailfile;
+ $stringscommand = "strings";
+ $preprocommand = "$cc_command $cc_preonly";
+ $exesuff = "";
+ %ignored_headers = ("mpswin.h" => 1, "mpsw3.h" => 1);
+}
+
+
+sub settings_gprof {
+ $cc_opts = "-pg ".$cc_opts;
+}
+
+
+sub settings_linux {
+ $cc_link .= " -lpthread";
+}
+
+
+sub settings_freebsd {
+ $make_command = "gmake -B -f $PLATFORM.gmk VARIETY=$VARIETY $link_obj";
+ $cc_link .= " -lpthread";
+}
+
+
+sub settings_macosx {
+ local $config = "Debug";
+ if ($VARIETY eq "hot") {
+  $config = "Release";
+ } elsif ($VARIETY eq "rash") {
+  $config = "Rash";
+ }
+ $link_obj = "xc/$config/libmps.a";
+ $make_command = "xcodebuild -project mps.xcodeproj -config $config -target mps";
+ $debug_command = "lldb";
+ $cc_command = "clang";
+ $cc_link = "$obj_dir/platform.o";
+ $cc_link_opts =~ s/-z muldefs//;
+ $cc_opts =~ s/-Wstrict-prototypes//;
+ $cc_opts .= " -Wno-unused -Wno-missing-prototypes";
+}
+
+
+#
+# Wrapping up strings to quote them in system calls
+#
+
+sub nt_quotestring {
+ return $_[0];
+}
+
+sub unix_quotestring {
+ local ($_) = @_;
+ s/'/'\''/;
+ return "'".$_."'";
+}
+
+#
+# Subroutines to send email (for archiving test results).
+#
+
+sub nt_mailfile {
+ local ($file, $to, $subj, $from) = @_;
+ 
+ if (exists $ENV{"USERNAME"}) {
+  $from = $ENV{"USERNAME"};
+ } else {
+  $from = "mm-qa";
+ }
+ &mysystem(
+  "$script_dir/ntx86bin/blat.exe ".
+  "$file -server mailhost -f $from -t $to -s \"$subj\" -q");
+}
+
+sub unix_mailfile {
+ local ($file, $to, $subj) = @_;
+
+ &mysystem(
+  "{ echo 'To: $to'; echo 'Subject: $subj'; cat $file; } | /usr/lib/sendmail -t");
+}
+
+
+#
+# %identify records useful information to present in the test results
+# &identify sets it up.
+#
+
+sub identify {
+ %identify = ();
+ if ($PLATFORM =~ /^w3/) {
+  &identify_nt;
+ } elsif ($PLATFORM =~ /^(fr|li|xc)/) {
+  &identify_unix;
+ }
+ $identify{"time"} = localtime;
+ $identify{"harness_version"} = $HARNESS_VERSION;
+}
+
+
+sub envvar {
+ if (exists $ENV{$_[1]}) {
+  $identify{$_[0]} = $ENV{$_[1]};
+ }
+}
+
+sub comvar {
+ my ($var, $com, $pat) = @_;
+ if (open(COM, $com." 2>&1 |")) {
+  while (<COM>) {
+   chop;
+   if ($pat eq "" || /$pat/) {
+    $identify{$_[0]} = $_;
+    last;
+   }
+  }
+  close(COM);
+ }
+}
+
+
+sub identify_nt {
+ &envvar("machine", "COMPUTERNAME");
+ &envvar("user", "USERNAME");
+ &envvar("OS", "OS");
+ &envvar("arch", "PROCESSOR_ARCHITECTURE");
+ &comvar("c_version", "cl /?", "");
+}
+
+
+sub identify_unix {
+ &comvar("machine", "uname -n", "");
+ &comvar("user", "who am i", "");
+ if (exists $identify{"user"}) {
+  $identify{"user"} =~ s/\s.*//;
+ }
+ &comvar("c_version", "$cc_command -v", "version");
+ &comvar("OS", "uname", "");
+ &comvar("arch", "uname -a", "");
+}

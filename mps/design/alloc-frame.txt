@@ -1,0 +1,429 @@
+.. mode: -*- rst -*-
+
+Allocation frame protocol
+=========================
+
+:Tag: design.mps.alloc-frame
+:Author: Tony Mann
+:Date: 1998-10-02
+:Status: incomplete document
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms: pair: allocation frames; design
+
+
+Introduction
+------------
+
+_`.intro`: This document explains the design of the support for
+allocation frames in MPS.
+
+_`.readership`: This document is intended for any MM developer.
+
+_`.overview`: Allocation frames are used for implementing stack pools;
+each stack frame corresponds to an allocation frame. Allocation frames
+may also be suitable for implementing other sub-pool groupings, such
+as generations and ramp allocation patterns.
+
+_`.overview.ambition`: We now believe this to be a design that loses
+too many advantages of stack allocation for questionable gains. The
+requirements are almost entirely based on unanalysed anecdote, instead
+of actual clients.
+
+.. note::
+
+    We plan to supersede this with a stack pool design at some point
+    in the future. Pekka P. Pirinen, 2000-03-09.
+
+
+Definitions
+-----------
+
+_`.def.alloc-frame`: An allocation frame is a generic name for a
+device which groups objects together with other objects at allocation
+time, and which may have a parent/child relationship with other
+allocation frames.
+
+
+Purpose
+-------
+
+_`.purpose.stack-allocation`: The allocation frame protocol is
+intended to support efficient memory management for stack allocation,
+that is, the allocation of objects which have dynamic extent.
+
+_`.purpose.general`: The allocation frame protocol is intended to be
+sufficiently general that it will be useful in supporting other types
+of nested allocation patterns too. For example, it could be used to
+for EPVM-style save and restore, ramp allocation patterns or
+generations.
+
+
+Requirements
+------------
+
+Known requirements
+..................
+
+_`.req.stack-alloc`: Provide a interface for clients to describe a
+stack allocation pattern, as an alternative to using the control
+stack.
+
+_`.req.efficient`: Permit an implementation which is comparable in
+efficiency to allocating on the control stack.
+
+_`.req.ap`: Support allocation via allocation points (APs).
+
+_`.req.format`: Support the allocation of formatted objects.
+
+_`.req.scan`: Ensure that objects in allocation frames can participate
+in garbage collection by being scanned.
+
+_`.req.fix`: Ensure that objects in allocation frames can participate
+in garbage collection by accepting Fix requests.
+
+_`.req.condemn`: Ensure that objects in allocation frames can
+participate in garbage collection by being condemned.
+
+_`.attr.locking`: Minimize the synchronization cost for the creation
+and destruction of frames.
+
+
+Proto-requirements
+..................
+
+_`.proto-req`: The following are possible requirements that might be
+important in the future. The design does not necessarily meet all
+these requirements, but it does consider them all. Each requirement
+either has direct support in the framework, or could be supported with
+future additions to the framework.
+
+_`.req.parallels`: The allocation frame protocol should provide a
+framework for exploiting the parallels between stack extents,
+generations and "ramps".
+
+_`.req.pool-destroy`: It should be possible to use allocation frames
+to free all objects in a pool without destroying the pool.
+
+_`.req.epvm`: It should be possible to implement EPVM-style save and
+restore operations by creating and destroying allocation frames.
+
+_`.req.subst`: It should be possible to substitute a stack pool with a
+GC-ed pool so that erroneous use of a stack pool can be detected.
+
+_`.req.format-extensions`: It should be possible for stack pools to
+utilize the same format as any other pool, including debugging formats
+that include fenceposting, etc.
+
+_`.req.mis-nest`: Should ensure "mis-nested" stacks are safe.
+
+_`.req.non-top-level`: Should support allocation in the non-top stack
+extent.
+
+_`.req.copy-if-necessary`: Should ensure that stack pools can support
+"copy-if-necessary" (so that low-level system code can heapify stack
+objects.)
+
+_`.req.preserve`: When an object is in an allocation frame which is
+being destroyed, it should be possible to preserve that object in the
+parent frame.
+
+_`.req.contained`: Should allow clients to ask if an object is
+"contained" in a frame. The object is contained in a frame if it is
+affected when the frame is ended.
+
+_`.req.alloc-with-other`: Should allow clients to allocate an object
+in the same frame as another object.
+
+
+Overview
+--------
+
+_`.frame-classes`: The protocol supports different types of allocation
+frames, which are represented as "frame classes". It's up to pools to
+determine which classes of allocation frames they support. Pools which
+support more than one frame class rely on the client to indicate which
+class is currently of interest. The client indicates this by means of
+an operation which stores the class in the buffer to which the
+allocation point is attached.
+
+_`.frame-handles`: Allocation frames are described via abstract "frame
+handles". Pools may choose what the representation of a frame handle
+should be. Frame handles are static, and the client need not store
+them in a GC root.
+
+_`.lightweight-frames`: The design includes an extension to the
+allocation point protocol, which permits the creation and destruction
+of allocation frames without the necessity for claiming the arena
+lock. Such frames are called "lightweight frames".
+
+
+Operations
+----------
+
+_`.op.intro`: Each operation has both an external (client) interface
+and an internal (MPS) interface. The external function takes an
+allocation point as a parameter, determines which buffer and pool it
+belongs to, and calls the internal function with the buffer and pool
+as parameters.
+
+_`.op.obligatory`: The following operations are supported on any
+allocation point which supports allocation frames:-
+
+_`.operation.push`: The *FramePush* operation creates a new
+allocation frame of the currently chosen frame class, makes this new
+frame the current frame, and returns a handle for the frame.
+
+_`.operation.pop`: The *FramePop* operation takes a frame handle
+as a parameter. Some pool classes might insist or assume that this is
+the handle for the current frame. It finds the parent of that frame
+and makes it the current frame. The operation indicates that all
+children of the new current frame contain objects which are likely to
+be dead. The reclaim policy is up to the pool; some classes might
+insist or assume that the objects must be dead, and eagerly free them.
+Note that this might introduce the possibility of leaving dangling
+pointers elsewhere in the arena. If so, it's up to the pool to decide
+what to do about this.
+
+_`.op.optional`: The following operations are supported for some
+allocation frames, but not all. Pools may choose to support some or
+all of these operations for certain frame classes. An unsupported
+operation will return a failure value:-
+
+_`.operation.select`: The *FrameSelect* operation takes a frame
+handle as a parameter and makes that frame the current frame. It does
+not indicate that any children of the current frame contain objects
+which are likely to be dead.
+
+_`.operation.select-addr`: The *FrameSelectOfAddr* operation takes
+an address as a parameter and makes the frame of that address the
+current frame. It does not indicate that any children of the current
+frame contain objects which are likely to be dead.
+
+_`.operation.in-frame`: The *FrameHasAddr* operation determines
+whether the supplied address is the address of an object allocated in
+the supplied frame, or any child of that frame.
+
+_`.operation.set`: The *SetFrameClass* operation takes a frame
+class and an allocation point as parameters, and makes that the
+current frame class for the allocation point. The next *FramePush*
+operation will create a new frame of that class.
+
+
+Interface
+---------
+
+External types
+..............
+
+_`.type.client.frame-handle`: Frame handles are defined as the abstract
+type ``mps_frame_t``.
+
+``typedef struct mps_frame_class_s *mps_frame_class_t``
+
+_`.type.client.frame-class`: Frame classes are defined as an abstract
+type.
+
+_`.type.client.frame-class.access`: Clients access frame classes by
+means of dedicated functions for each frame class.
+
+External functions
+..................
+
+_`.fn.client.push`: ``mps_ap_frame_push()`` is used by clients to
+invoke the *FramePush* operation. For lightweight frames, this
+might not invoke the corresponding internal function.
+
+_`.fn.client.pop`: ``mps_ap_frame_pop()`` is used by clients to invoke
+the *FramePop* operation. For lightweight frames, this might not
+invoke the corresponding internal function.
+
+``mps_res_t mps_ap_frame_select(mps_ap_t buf, mps_frame_t frame)``
+
+_`.fn.client.select`: This following function is used by clients to
+invoke the *FrameSelect* operation.
+
+``mps_res_t mps_ap_frame_select_from_addr(mps_ap_t buf, mps_addr_t addr)``
+
+_`.fn.client.select-addr`: This function is used by clients to invoke
+the *FrameSelectOfAddr* operation.
+
+``mps_res_t mps_ap_addr_in_frame(mps_bool_t *inframe_o, mps_ap_t buf, mps_addr_t *addrref, mps_frame_t frame)``
+
+_`.fn.client.in-frame`: This function is used by clients to invoke the
+*FrameHasAddr* operation.
+
+``mps_res_t mps_ap_set_frame_class(mps_ap_t buf, mps_frame_class_t class)``
+
+_`.fn.client.set`: This function is used by clients to invoke the
+*SetFrameClass* operation.
+
+``mps_frame_class_t mps_alloc_frame_class_stack(void)``
+
+_`.fn.client.stack-frame-class`: This function is used by clients to
+access the frame class used for simple stack allocation.
+
+
+Internal types
+..............
+
+``typedef struct AllocFrameStruct *AllocFrame``
+
+_`.type.frame-handle`: Frame handles are defined as an abstract type.
+
+``typedef struct AllocFrameClassStruct *AllocFrameClass``
+
+_`.type.frame-class`: Frame classes are defined as an abstract type.
+
+``typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn, Pool pool, Buffer buf)``
+
+_`.fn.push`: A pool method of this type is called (if needed) to
+invoke the *FramePush* operation.
+
+``typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf, AllocFrame frame)``
+
+_`.fn.pop`: A pool method of this type is called (if needed)
+to invoke the *FramePop* operation:
+
+``typedef Res (*PoolFrameSelectMethod)(Pool pool, Buffer buf, AllocFrame frame)``
+
+_`.fn.select`: A pool method of this type is called to invoke the
+*FrameSelect* operation.
+
+``typedef Res (*PoolFrameSelectFromAddrMethod)(Pool pool, Buffer buf, Addr addr)``
+
+_`.fn.select-addr`: A pool method of this type is called to invoke the
+*FrameSelectOfAddr* operation.
+
+``typedef Res (*PoolFrameHasAddrMethod)(Bool *inframeReturn, Pool pool, Seg seg, Addr *addrref, AllocFrame frame)``
+
+_`.fn.in-frame`: A pool method of this type is called to invoke the
+*FrameHasAddr* operation.
+
+``typedef Res (*PoolSetFrameClassMethod)(Pool pool, Buffer buf, AllocFrameClass class)``
+
+_`.fn.set`: A pool method of this type is called to invoke the
+*SetFrameClass* operation.
+
+
+Lightweight frames
+-------------------
+
+Overview
+........
+
+_`.lw-frame.overview`: Allocation points provide direct support for
+lightweight frames, and are designed to permit *FramePush* and
+*FramePop* operations without the need for locking and delegation to
+the pool method. The pool method will be called whenever
+synchronization is required for other reasons (e.g. the buffer is
+tripped).
+
+_`.lw-frame.model`: Lightweight frames offer direct support for a
+particular model of allocation frame use, whereby the *FramePush*
+operation returns the current allocation pointer as a frame handle,
+and the *FramePop* operation causes the allocation pointer to be reset
+to the address of the frame handle. This model should be suitable for
+simple stack frames, where more advanced operations like *FrameSelect*
+are not supported. It may also be suitable for more advanced
+allocation frame models when they are being used simply. The use of a
+complex operation always involves synchronization via locking, and the
+pool may disable lightweight synchronization temporarily at this time.
+
+
+Synchronization
+...............
+
+_`.lw-frame.sync`: The purpose of the design is that mutator may
+access the state of an AP without locking with MPS (via the external
+functions). The design assumes the normal MPS restriction that an
+operation on an AP may only be performed by a single mutator thread at
+a time. Each of the operations on allocation frames counts as an
+operation on an AP.
+
+
+Implementation
+..............
+
+_`.lw-frame.push`: The external *FramePush* operation
+``mps_ap_frame_push()`` performs the following operations::
+
+    IF ap->init != ap->alloc
+       FAIL
+    ELSE IF ap->init < ap->limit
+       *frame_o = ap->init;
+    ELSE
+      WITH_ARENA_LOCK
+        PerformInternalFramePushOperation(...)
+      END
+    END
+
+_`.lw-frame.push.limit`: The reason for testing ``ap->init <
+ap->limit`` and not ``ap->init <= ap->limit`` is that a frame pointer
+at the limit of a buffer (and possibly therefore of a segment) would
+be ambiguous: is it at the limit of the segment, or at the base of the
+segment that's adjacent in memory? The internal operation must handle
+this case, for example by refilling the buffer and setting the frame
+at the beginning.
+
+_`.lw-frame.pop`: The external *FramePop* operation
+(``mps_ap_frame_pop()``) performs the following operations::
+
+    IF ap->init != ap->alloc
+       FAIL
+    ELSE IF BufferBase(ap) <= frame AND frame < ap->init
+       ap->init = ap->alloc = frame;
+    ELSE
+      WITH_ARENA_LOCK
+        PerformInternalFramePopOperation(...)
+      END
+    END
+
+_`.lw-frame.pop.buffer`: The reason for testing that ``frame`` is in
+the buffer is that if it's not, then we're popping to an address in
+some other segment, and that means that some objects in the other
+segment (and all objects in any segments on the stack in between) are
+now dead, and the only way for the pool to mark them as being dead is
+to do a heavyweight pop.
+
+
+Document History
+----------------
+
+- 1998-10-02 Tony Mann. Incomplete document.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-23 GDR_ Converted to reStructuredText.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
