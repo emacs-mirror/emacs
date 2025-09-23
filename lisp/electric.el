@@ -207,7 +207,7 @@ significant."
                          (const :tag "Before saving" before-save)))
   :set (lambda (var val)
          (set-default var val)
-         (when electric-indent-mode
+         (when (bound-and-true-p electric-indent-mode)
            (electric-indent-mode -1)
            (electric-indent-mode +1)))
   :safe (lambda (v)
