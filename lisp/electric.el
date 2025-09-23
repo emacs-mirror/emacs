@@ -208,8 +208,7 @@ significant."
   :set (lambda (var val)
          (set-default var val)
          (when (bound-and-true-p electric-indent-mode)
-           (electric-indent-mode -1)
-           (electric-indent-mode +1)))
+           (electric-indent--activate-indent-actions t)))
   :safe (lambda (v)
           (and (proper-list-p v)
                (null (seq-filter (lambda (e) (not (symbolp e)) ) v))))
@@ -273,17 +272,15 @@ mode set `electric-indent-inhibit', but this can be used as a workaround.")
       (with-demoted-errors "Error reindenting: %S"
         (indent-region (point-min) (point-max))))))
 
-(defun electric-indent-toggle-indent-actions (enable)
+(defun electric-indent--activate-indent-actions (enable)
   "Enable the actions specified in `electric-indent-actions'."
-  (cond
-   ((memq 'yank electric-indent-actions)
-    (if enable
-        (advice-add #'yank :around #'electric-indent--yank-advice)
-      (advice-remove #'yank #'electric-indent--yank-advice)))
-   ((memq 'before-save electric-indent-actions)
-    (if enable
-        (add-hook 'before-save-hook #'electric-indent-save-hook)
-      (remove-hook 'before-save-hook #'electric-indent-save-hook)))))
+  (advice-remove 'yank #'electric-indent--yank-advice)
+  (remove-hook 'before-save-hook #'electric-indent-save-hook)
+  (when enable
+    (when (memq 'yank electric-indent-actions)
+      (advice-add 'yank :around #'electric-indent--yank-advice))
+    (when (memq 'before-save electric-indent-actions)
+      (add-hook 'before-save-hook #'electric-indent-save-hook))))
 
 (defun electric-indent-post-self-insert-function ()
   "Function that `electric-indent-mode' adds to `post-self-insert-hook'.
@@ -401,7 +398,7 @@ use `electric-indent-local-mode'."
               60))
 
   ;; Toggle the reindentation on actions
-  (electric-indent-toggle-indent-actions electric-indent-mode))
+  (electric-indent--activate-indent-actions electric-indent-mode))
 
 ;;;###autoload
 (define-minor-mode electric-indent-local-mode
