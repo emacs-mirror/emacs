@@ -1,0 +1,602 @@
+.. mode: -*- rst -*-
+
+MPS Strategy
+============
+
+:Tag: design.mps.strategy
+:Author: Nick Barnes
+:Organization: Ravenbrook Limited
+:Date: 2013-06-04
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: strategy; design
+
+
+Introduction
+------------
+
+_`.intro` This is the design of collection strategy for the MPS.
+
+_`.readership` MPS developers.
+
+
+Overview
+--------
+
+_`.overview` The MPS uses "strategy" code to make three decisions:
+
+- when to start a collection trace;
+
+- what to condemn;
+
+- how to schedule tracing work.
+
+This document describes the current strategy, identifies some
+weaknesses in it, and outlines some possible future development
+directions.
+
+
+Requirements
+------------
+
+[TODO: source some from req.dylan, or do an up-to-date requirements
+analysis -- NB 2013-03-25]
+
+Garbage collection is a trade-off between time and space: it consumes
+some [CPU] time in order to save some [memory] space.  Strategy shifts
+the balance point.  A better strategy will take less time to produce
+more space.  Examples of good strategy might include:
+
+- choosing segments to condemn which contain high proportions of dead
+  objects;
+
+- starting a trace when a large number of objects have just died;
+
+- doing enough collection soon enough that the client program never
+  suffers low-memory problems;
+
+- using otherwise-idle CPU resources for tracing.
+
+Conversely, it would be bad strategy to do the reverse of each of
+these (condemning live objects; tracing when there's very little
+garbage; not collecting enough; tracing when the client program is
+busy).
+
+Abstracting from these notions, requirements on strategy would
+relate to:
+
+- Maximum pause time and other utilization metrics (for example,
+  bounded mutator utilization, minimum mutator utilization, total MPS
+  CPU usage);
+
+- Collecting enough garbage (for example: overall heap size;
+  low-memory requirements).
+
+- Allowing client control (for example, client recommendations for
+  collection timing or condemnation).
+
+There are other possible strategy considerations which are so far
+outside the scope of current strategy and MPS design that this
+document disregards them. For example, either inferring or allowing
+the client to specify preferred relative object locations ("this
+object should be kept in the same cache line as that one"), to improve
+cache locality.
+
+
+Generations
+-----------
+
+The largest part of the current MPS strategy implementation is the
+support for generational garbage collections.
+
+
+General data structures
+.......................
+
+The fundamental structure of generational garbage collection is the
+``Chain``, which describes a sequence of generations.
+
+A chain specifies the "capacity" and "mortality" for each generation.
+When creating an automatically collected pool, the client code may
+specify the chain which will control collections for that pool. The
+same chain may be used for multiple pools. If no chain is specified,
+the pool uses the arena's default generation chain.
+
+Each generation in a chain has a ``GenDesc`` structure, allocated in
+an array pointed to from the chain. In addition to the generations in
+the chains, the arena has a unique ``GenDesc`` structure, named
+``topGen`` and described in comments as "the dynamic generation"
+(misleadingly: in fact it is the *least* dynamic generation).
+
+Each automatically collected pool has a set of ``PoolGen`` structures,
+one for each generation that it can allocate or promote into. The
+``PoolGen`` structures for each generation point to the ``GenDesc``
+for that generation, and are linked together in a ring on the
+``GenDesc``. These structures are used to gather accounting
+information for strategy decisions.
+
+The non-moving automatic pool classes (AMS, AWL and LO) do not support
+generational collection, so they allocate into a single generation.
+The moving automatic pool classes (AMC and AMCZ) have one pool
+generations for each generation in the chain, plus one pool generation
+for the arena's "top generation".
+
+
+AMC data structures
+...................
+
+An AMC pool creates an array of pool generation structures of type
+``amcGen`` (a subclass of ``PoolGen``). Each pool generation points to
+the *forwarding buffer* for that generation: this is the buffer that
+surviving objects are copied into.
+
+AMC segments point to the AMC pool generation that the segment belongs
+to, and AMC buffers point to the AMC pool generation that the buffer
+will be allocating into.
+
+The forwarding buffers are set up during AMC pool creation. Each
+generation forwards into the next higher generation in the chain,
+except for the top generation, which forwards to itself. Thus, objects
+are "promoted" up the chain of generations until they end up in the
+top generations, which is shared between all generational pools.
+
+
+Collections
+...........
+
+Collections in the MPS start in one of two ways:
+
+1. A collection of the world starts via ``TraceStartCollectAll()``.
+   This simply condemns all segments in all automatic pools.
+
+2. A collection of some set of generations starts via
+   ``PolicyStartTrace()``. See `.policy.start`_.
+
+
+Zones
+.....
+
+Each generation in each chain has a zoneset associated with it
+(``gen->zones``); the condemned zoneset is the union of some number of
+generation's zonesets.
+
+An attempt is made to use distinct zonesets for different generations.
+Segments in automatic pools are allocated using ``PoolGenAlloc()``
+which creates a ``LocusPref`` using the zoneset from the generation's
+``GenDesc``. The zoneset for each generation starts out empty. If the
+zoneset is empty, an attempt is made to allocate from a free zone. The
+``GenDesc`` zoneset is augmented with whichever zones the new segment
+occupies.
+
+Note that this zoneset can never shrink.
+
+
+Parameters
+..........
+
+_`.param.intro`: A generation has two parameters, *capacity* and
+*mortality*, specified by the client program.
+
+_`.param.capacity`: The *capacity* of a generation is the amount of
+*new* allocation in that generation (that is, allocation since the
+last time the generation was condemned) that will cause the generation
+to be collected by ``TracePoll()``.
+
+_`.param.capacity.misnamed`: The name *capacity* is unfortunate since
+it suggests that the total amount of memory in the generation will not
+exceed this value. But that will only be the case for pool classes
+that always promote survivors to another generation. When there is
+*old* allocation in the generation (that is, prior to the last time
+the generation was condemned), as there is in the case of non-moving
+pool classes, the size of a generation is unrelated to its capacity.
+
+_`.param.mortality`: The *mortality* of a generation is the proportion
+(between 0 and 1) of memory in the generation that is expected to be
+dead when the generation is collected. It is used in ``TraceStart()``
+to estimate the amount of data that will have to be scanned in order
+to complete the trace.
+
+
+Accounting
+..........
+
+_`.accounting.intro`: Pool generations maintain the sizes of various
+categories of data allocated in that generation for that pool. This
+accounting information is reported via the event system, but also used
+in two places:
+
+_`.accounting.poll`: ``ChainDeferral()`` uses the *new size* of
+each generation to determine which generations in the chain are over
+capacity and so might need to be collected by ``PolicyStartTrace()``.
+
+_`.accounting.condemn`: ``PolicyStartTrace()`` uses the *new size* of
+each generation to determine which generations in the chain will be
+collected; it also uses the *total size* of the generation to compute
+the mortality.
+
+_`.accounting.check`: Computing the new size for a pool generation is
+far from straightforward: see job003772_ and job004007_ for some
+(former) errors in this code. In order to assist with checking that
+this has been computed correctly, the locus module uses a double-entry
+book-keeping system to account for every byte in each pool generation.
+This uses seven accounts:
+
+.. _job003772: https://www.ravenbrook.com/project/mps/issue/job003772/
+.. _job004007: https://www.ravenbrook.com/project/mps/issue/job004007/
+
+_`.account.total`: Memory acquired from the arena.
+
+_`.account.total.negated`: From the point of view of the double-entry
+system, the *total* should be negative as it is owing to the arena,
+but it is inconvenient to represent negative sizes, and so the
+positive value is stored instead.
+
+_`.account.total.negated.justification`: We don't have a type for
+signed sizes; but if we represented it in two's complement using the
+unsigned ``Size`` type then Clang's unsigned integer overflow detector
+would complain.
+
+_`.account.free`: Memory that is not in use (free or lost to
+fragmentation).
+
+_`.account.buffered`: Memory in a buffer that was handed out to the
+client program via ``BufferFill()``, and which has not yet been
+condemned.
+
+_`.account.new`: Memory in use by the client program, allocated
+since the last time the generation was condemned.
+
+_`.account.old`: Memory in use by the client program, allocated
+prior to the last time the generation was condemned.
+
+_`.account.newDeferred`: Memory in use by the client program,
+allocated since the last time the generation was condemned, but which
+should not cause collections via ``TracePoll()``. (Due to ramping; see
+below.)
+
+_`.account.oldDeferred`: Memory in use by the client program,
+allocated prior to the last time the generation was condemned, but
+which should not cause collections via ``TracePoll()``. (Due to
+ramping; see below.)
+
+_`.accounting.op`: The following operations are provided:
+
+_`.accounting.op.alloc`: Allocate a segment in a pool generation.
+Debit *total*, credit *free*. (But see `.account.total.negated`_.)
+
+_`.accounting.op.free`: Free a segment. First, ensure that the
+contents of the segment are accounted as free, by artificially ageing
+any memory accounted as *new* or *newDeferred* (see
+`.accounting.op.age`_) and then artificially reclaiming any memory
+accounted as *old* or *oldDeferred* (see `.accounting.op.reclaim`_).
+Finally, debit *free*, credit *total*. (But see
+`.account.total.negated`_.)
+
+_`.accounting.op.fill`: Fill a buffer. Debit *free*, credit *buffered*.
+
+_`.accounting.op.empty`: Empty a buffer. Debit *buffered*, credit
+*new* or *newDeferred* with the allocated part of the buffer, credit
+*free* with the unused part of the buffer.
+
+_`.accounting.op.age`: Condemn memory. Debit *buffered* (if part or
+all of a buffer was condemned) and either *new* or *newDeferred*,
+credit *old* or *oldDeferred*. Note that the condemned part of the
+buffer remains part of the buffer until the buffer is emptied, but is
+now accounted as *old* or *oldDeferred*. The uncondemned part of the
+buffer, if any, remains accounted as *buffered* until it is either
+emptied or condemned in its turn.
+
+_`.accounting.op.reclaim`: Reclaim dead memory. Debit *old* or
+*oldDeferred*, credit *free*.
+
+_`.accounting.op.undefer`: Stop deferring the accounting of memory. Debit *oldDeferred*, credit *old*. Debit *newDeferred*, credit *new*.
+
+
+Ramps
+.....
+The intended semantics of ramping are pretty simple.  It allows the
+client to advise us of periods of large short-lived allocation on a
+particular AP.  Stuff allocated using that AP during its "ramp" will
+probably be dead when the ramp finishes.  How the MPS makes use of this
+advice is up to us, but for instance we might segregate those objects,
+collect them less enthusiastically during the ramp and then more
+enthusiastically soon after the ramp finishes.  Ramps can nest.
+
+A ramp is entered by calling::
+
+    mps_ap_alloc_pattern_begin(ap, mps_alloc_pattern_ramp())
+
+or similar, and left in a similar way.
+
+This is implemented on a per-pool basis, for AMC only (it's ignored by
+the other automatic pools).  PoolAMC throws away the identity of the AP
+specified by the client.  The implementation is intended to work by
+changing the generational forwarding behaviour, so that there is a "ramp
+generation" - one of the regular AMC generations - which forwards to
+itself if collected during a ramp (instead of promoting to an older
+generation).  It also tweaks the strategy calculation code, in a way
+with consequences I am documenting elsewhere.
+
+Right now, the code sets this ramp generation to the last generation
+specified in the pool's "chain": it ordinarily forwards to the
+"after-ramp" generation, which is the "dynamic generation" (i.e. the
+least dynamic generation, i.e. the arena-wide "top generation").  My
+recollection, and some mentions in design/poolamc, suggests that the
+ramp generation used to be chosen differently from this.
+
+So far, it doesn't sound too ghastly, I guess, although the subversion
+of the generational system seems a little daft.  Read on....
+
+An AMC pool has a ``rampMode`` (which is really a state of a state
+machine), taking one of five values: OUTSIDE, BEGIN, RAMPING, FINISH,
+and COLLECTING (actually the enum values are called RampX for these
+X). We initialize in OUTSIDE.  The pool also has a ``rampCount``,
+which is the ramp nesting depth and is used to allow us to ignore ramp
+transitions other than the outermost.  According to design/poolamc,
+there's an invariant (in BEGIN or RAMPING, ``rampCount > 0``; in
+COLLECTING or OUTSIDE, ``rampCount == 0``), but this isn't checked in
+``AMCCheck()`` and in fact is false for COLLECTING (see below).
+
+There is a small set of events causing state machine transitions:
+
+- entering an outermost ramp;
+- leaving an outermost ramp;
+- condemning any segment of a ramp generation (detected in AMCWhiten);
+- reclaiming any AMC segment.
+
+Here's pseudo-code for all the transition events:
+
+Entering an outermost ramp:
+ if not FINISH, go to BEGIN.
+
+Leaving an outermost ramp:
+ if RAMPING, go to FINISH.   Otherwise, go to OUTSIDE.
+
+Condemning a ramp generation segment:
+ If BEGIN, go to RAMPING and make the ramp generation forward
+ to itself (detach the forwarding buffer and reset its generation).
+ If FINISH, go to COLLECTING and make the ramp generation
+ forward to the after-ramp generation.
+
+Reclaiming any AMC segment:
+ If COLLECTING:
+   if ``rampCount > 0``, go to BEGIN.  Otherwise go to OUTSIDE.
+
+Now, some deductions:
+
+#. When OUTSIDE, the count is always zero, because (a) it starts that
+   way, and the only ways to go OUTSIDE are (b) by leaving an
+   outermost ramp (count goes to zero) or (c) by reclaiming when the
+   count is zero.
+
+#. When BEGIN, the count is never zero (consider the transitions to
+   BEGIN and the transition to zero).
+
+#. When RAMPING, the count is never zero (again consider transitions
+   to RAMPING and the transition to zero).
+
+#. When FINISH, the count can be anything (the transition to FINISH
+   has zero count, but the Enter transition when FINISH can change
+   that and then it can increment to any value).
+
+#. When COLLECTING, the count can be anything (from the previous fact,
+   and the transition to COLLECTING).
+
+#. *This is a bug!!* The ramp generation is not always reset (to
+   forward to the after-ramp generation). If we get into FINISH and
+   then see another ramp before the next condemnation of the ramp
+   generation, we will Enter followed by Leave. The Enter will keep us
+   in FINISH, and the Leave will take us back to OUTSIDE, skipping the
+   transition to the COLLECTING state which is what resets the ramp
+   generation forwarding buffer. [TODO: check whether I made an issue
+   and/or fixed it; NB 2013-06-04]
+
+The simplest change to fix this is to change the behaviour of the Leave
+transition, which should only take us OUTSIDE if we are in BEGIN or
+COLLECTING.  We should also update design/poolamc to tell the truth, and
+check the invariants, which will be these:
+
+     OUTSIDE => zero
+     BEGIN => non-zero
+     RAMPING => non-zero
+
+A cleverer change might radically rearrange the state machine
+(e.g. reduce the number of states to three) but that would require
+closer design thought and should probably be postponed until we have a
+clearer overall strategy plan.
+
+While I'm writing pseudo-code versions of ramp-related code, I should
+mention this other snippet, which is the only other code relating to
+ramping (these notes are useful when thinking about the broader strategy
+code):
+
+    In ``AMCBufferFill()``, if we're RAMPING, and filling the forwarding
+    buffer of the ramp generation, and the ramp generation is the
+    forwarding buffer's generation, set ``amcSeg->new`` to FALSE.  Otherwise,
+    add the segment size to ``poolGen.newSize``.
+
+And since I've now mentioned the ``amcSeg->new`` flag, here are the only
+other uses of that:
+
+- it initializes as TRUE.
+
+- When leaving an outermost ramp, go through all the segments in the
+  pool.  Any non-white segment in the rampGen with new set to FALSE has
+  its size added to ``poolGen->newSize`` and gets new set to TRUE.
+
+- in ``amcSegWhiten()``, if new is TRUE, the segment size is deducted
+  from ``poolGen.newSize`` and new is set to FALSE.
+
+
+Policy
+------
+
+_`.policy`: Functions that make decisions about what action to take
+are collected into the policy module (policy.c). The purpose of doing
+so is to make it easier to understand this set of decisions and how
+they interact, and to make it easier to maintain and update the policy.
+
+
+Assignment of zones
+...................
+
+``Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref, Size size, Pool pool)``
+
+_`.policy.alloc`: Allocate ``size`` bytes of memory on behalf of
+``pool``, based on the preferences described by ``pref``. If
+successful, update ``*tractReturn`` to point to the first tract in the
+allocated memory and return ``ResOK``. Otherwise, return a result code
+describing the problem, for example ``ResCOMMIT_LIMIT``.
+
+_`.policy.alloc.impl`: This tries various methods in succession until
+one succeeds. First, it tries to allocate from the arena's free land
+in the requested zones. Second, it tries allocating from free zones.
+Third, it tries extending the arena and then trying the first two
+methods again. Fourth, it tries allocating from any zone that is not
+blacklisted. Fifth, it tries allocating from any zone at all.
+
+_`.policy.alloc.issue`: This plan performs poorly under stress. See
+for example job003898_.
+
+.. _job003898: https://www.ravenbrook.com/project/mps/issue/job003898/
+
+
+
+Deciding whether to collect the world
+.....................................
+
+``Bool PolicyShouldCollectWorld(Arena arena, double availableTime, Clock now, Clock clocks_per_sec)``
+
+_`.policy.world`: Determine whether now is a good time for
+``mps_arena_step()`` to start a collection of the world. Return
+``TRUE`` if so, ``FALSE`` if not. The ``availableTime`` argument is an
+estimate of the time that's available for the collection, ``now`` is
+the current time as returned by ``ClockNow()``, and ``clocks_per_sec``
+is the result of calling ``ClocksPerSec()``.
+
+_`.policy.world.impl`: There are two conditions: the estimate of the
+available time must be enough to complete the collection, and the last
+collection of the world must be long enough in the past that the
+``mps_arena_step()`` won't be spending more than a certain fraction of
+runtime in collections. (This fraction is given by the
+``ARENA_MAX_COLLECT_FRACTION`` configuration parameter.)
+
+
+
+Starting a trace
+................
+
+``Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn, Arena arena, Bool collectWorldAllowed)``
+
+_`.policy.start`: Consider starting a trace. If a trace was started,
+update ``*traceReturn`` to point to the trace and return TRUE.
+Otherwise, leave ``*traceReturn`` unchanged and return FALSE.
+
+_`.policy.start.world`: If ``collectWorldAllowed`` is TRUE, consider
+starting a collection of the whole world, and if such a collection is
+started, set ``*collectWorldReturn`` to TRUE.
+
+This decision uses the "Lisp Machine" strategy, which tries to
+schedule collections of the world so that the collector just keeps
+pace with the mutator: that is, it starts a collection when the
+predicted completion time of the collection is around the time when
+the mutator is predicted to reach the current memory limit. See
+[Pirinen]_.
+
+_`.policy.start.world.hack`: The ``collectWorldAllowed`` flag was
+added to fix job004011_ by ensuring that the MPS starts at most one
+collection of the world in each call to ``ArenaPoll()``. But this is
+is fragile and inelegant. Ideally the MPS would be able to deduce that
+a collection of a set of generations can't possibly make progress
+(because nothing that refers to this set of generations has changed),
+and so not start such a collection.
+
+.. _job004011: https://www.ravenbrook.com/project/mps/issue/job004011/
+
+_`.policy.start.chain`: If ``collectWorldAllowed`` is FALSE, or if it
+is not yet time to schedule a collection of the world,
+``PolicyStartTrace()`` considers collecting a set of zones
+corresponding to a set of generations on a chain.
+
+It picks these generations by calling ``ChainDeferral()`` for each
+chain; this function indicates if the chain needs collecting, and if
+so, how urgent it is to collect that chain. The most urgent chain in
+need of collection (if any) is then condemned by calling
+``policyCondemnChain()``, which chooses the set of generations to
+condemn, and condemns all the segments in those generations.
+
+
+Trace progress
+..............
+
+``Bool PolicyPoll(Arena arena)``
+
+_`.policy.poll`: Return TRUE if the MPS should do some tracing work;
+FALSE if it should return to the mutator.
+
+``Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork)``
+
+_`.policy.poll.again`: Return TRUE if the MPS should do another unit
+of work; FALSE if it should return to the mutator. ``start`` is the
+clock time when the MPS was entered; ``moreWork`` and ``tracedWork``
+are the results of the last call to ``TracePoll()``.
+
+_`.policy.poll.impl`: The implementation keep doing work until either
+the maximum pause time is exceeded (see `design.mps.arena.pause-time`_),
+or there is no more work to do. Then it schedules the next collection
+so that there is approximately one call to ``TracePoll()`` for every
+``ArenaPollALLOCTIME`` bytes of allocation.
+
+.. _design.mps.arena.pause-time: arena#.pause-time
+
+
+References
+----------
+
+.. [Pirinen]
+   "The Lisp Machine Strategy";
+   Pekka Pirinin;
+   1998-04-27;
+   <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/strategy/lisp-machine/>
+
+
+Document History
+----------------
+- 2013-06-04 NB_ Checked this in although it's far from complete.
+  Pasted in my 'ramping notes' from email, which mention some bugs
+  which I may have fixed (TODO: check this).
+- 2014-01-29 RB_ The arena no longer manages generation zonesets.
+- 2014-05-17 GDR_ Bring data structures and condemn logic up to date.
+
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+.. _NB: https://www.ravenbrook.com/consultants/nb/
+.. _RB: https://www.ravenbrook.com/consultants/rb
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

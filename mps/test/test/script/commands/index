@@ -1,0 +1,88 @@
+#!/usr/bin/perl -w
+# $Id$
+#
+# make an index of all the tests (all .c files) in the
+# current directory, and write it on stdout.
+#
+
+if (@ARGV == 0) {
+ @ARGV = (".");
+}
+
+$index_obj=$ARGV[0];
+{
+ if (-d $index_obj) {
+  chdir($index_obj);
+  $index_obj = ".";
+ } else {
+  $dir = $index_obj;
+  if ($dir =~ s/(\/|\\|:)([^\\\/:]*)$//) {
+   $leaf = $2;
+   if ($leaf eq "") {
+    $leaf = ".";
+   }
+   if (-d $dir) {
+    chdir($dir);
+    $index_obj = $leaf;
+   }
+  }
+ }
+
+ opendir(DIR, ".");
+ @names = readdir(DIR);
+ closedir(DIR);
+ @filtered = ();
+
+ while (@names) {
+  $file = pop(@names);
+  unless ($file =~ /^\./ || -d $file) {
+   if (&filematch($index_obj, $file)) {
+    push(@filtered, $file);
+   }
+  }
+ }
+
+ foreach $file (sort by_number_first @filtered) {
+  eval {
+   &readheader($file, 0);
+   $testname = $test_header{"summary"};
+   unless (defined $testname) {
+    print $file.": ** bad test header **\n";
+   } else {
+    print $file.": ".$testname."\n";
+   }
+  }
+ }
+}
+ 
+sub by_number_first {
+ $aa = $a;
+ $bb = $b;
+ $aa =~ s/\D*//g;
+ $bb =~ s/\D*//g;
+ ("0".$aa <=> "0".$bb) || ($a cmp $b);
+}
+
+sub filematch {
+ local ($p, $f, $n, $q, $a, $b) = @_;
+ if ($p eq ".") {
+  return 1;
+ }
+ if ($p =~ /\/(.*)\//) {
+  return $f =~ $1;
+ }
+ $n = $f;
+ $n =~ s/\D*//g;
+ $n = "0".$n;
+ if ($p =~ /(\d*)(.*)-+(\d*)(.*)/) {
+  $a = $1; $b = $3;
+  $a = 0   if ($a eq "");
+  $b = $n  if ($b eq "");
+  return ($n >= $a && $n <= $b);
+ }
+ $p =~ /^(\d*)/;
+ if ($1 ne "") {
+  return $1 == $n;
+ }
+ return ($p eq $f);
+}

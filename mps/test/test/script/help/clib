@@ -1,0 +1,16 @@
+compile test libraries
+% $Id$
+
+Usage: qa clib [<options>]
+
+'clib' recompiles the test libraries (as listed in testlib:manifest)
+This should be done before running tests with 'run'. The harness
+will check whether the test libraries are up-to-date when running
+tests, and give an error if not.
+
+Compiled libraries are placed in the obj:<platform>: directory.
+
+In addition to compiling the libraries, 'clib' looks at the mps header
+files and the specified link objects, to determine what mps interfaces
+are available. This information is recorded in the file 'mmqasym.h'.
+

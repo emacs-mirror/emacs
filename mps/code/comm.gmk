@@ -1,0 +1,755 @@
+# -*- makefile -*-
+#
+# comm.gmk: COMMON GNUMAKEFILE FRAGMENT
+#
+# $Id$
+# Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
+#
+# DESCRIPTION
+#
+# This makefile fragment is included in more specific makefiles for
+# platforms which use GNU make.
+#
+# PARAMETERS
+#
+# Assumes the following variables and definitions:
+# EXTRA_TARGETS     a list of extra targets to build
+# CFLAGSCOMPILER    a list of flags for all compilations
+# CFLAGSCOMPILERSTRICT a list of flags for almost all compilations
+# CFLAGSCOMPILERLAX a list of flags for compilations which can't be as
+#                   strict (e.g. because they have to include a third-
+#                   party header file that isn't -ansi -pedantic).
+# CFLAGSDEBUG       a list of flags for compilations with maximum debug
+#                   information, and any optimization possible
+# CFLAGSOPT         a list of flags for compilations with maximum
+#                   optimization, and any debug info possible
+# CC                the command for the C compiler
+# LINKFLAGS         a list of flags passed to the linker
+# ARFLAGSPFM        platform-specific flags for ar
+# RANLIB            the command to index a library (default: none needed)
+# gendep  optionally defined to be a command sequence for
+#         generating the dependency file (.d) from a C file (.c);
+#         it is used in a rule of the form:
+#           $(PFM)/$(VARIETY)/%.d: %.c
+# PFM     platform code, e.g. "sus8gc"
+# LIBS    extra libraries to include in tests (usually "-lm")
+# NOISY   if defined and non-empty, causes commands to be emitted
+# MPMPF   platform-dependent C sources for the "mpm" part
+# MPMS    assembler sources for the "mpm" part (.s files)
+#
+# %%PART: When adding a new part, add a new parameter above for the
+# files included in the part.
+#
+# EDITING
+#
+# To add new targets, varieties, and parts:
+# Search for the string "%%TARGET", "%%VARIETY", or "%%PART" in this
+# makefile and follow the instructions.  If you're adding a part, you'll
+# have to change the makefiles for all the platforms which use this
+# makefile to define the source list for that part, and the GNUmakefile
+# to include a recursive call to the name of that part.
+#
+# CHECK PARAMETERS
+#
+# Old versions of GNU make don't have the $(error) function, but lines
+# starting "error" cause it to exit with an error. [These only test to
+# see whether the symbol is defined. We could be more thorough and
+# test the syntax and content. -- richard 1995-09-07]
+
+ifndef CC
+error "comm.gmk: CC not defined"
+endif
+ifndef CFLAGSCOMPILER
+error "comm.gmk: CFLAGSCOMPILER not defined"
+endif
+ifndef CFLAGSDEBUG
+error "comm.gmk: CFLAGSDEBUG not defined"
+endif
+ifndef CFLAGSOPT
+error "comm.gmk: CFLAGSOPT not defined"
+endif
+
+ifdef SRCDIR
+VPATH=$(SRCDIR)
+endif
+
+# TELEMETRY TARGETS
+
+EVENT_TARGETS = mpseventcnv mpseventpy mpseventsql mpseventtxt
+
+
+# EXTRA TARGETS
+#
+# Don't build mpseventsql by default (might not have sqlite3 installed),
+# but do build the other event target.
+
+EXTRA_TARGETS ?= $(filter-out mpseventsql,$(EVENT_TARGETS))
+
+
+#
+# %%PART: When adding a new part, add checks for the parameter with the
+#         sources for the new part.
+
+ifndef PFM
+error "comm.gmk: PFM not defined"
+endif
+ifndef MPMPF
+error "comm.gmk: MPMPF not defined"
+endif
+
+
+# DECLARATIONS
+
+ifdef NOISY
+ECHO = :
+else
+.SILENT:
+ECHO = echo
+endif
+
+.PHONY: phony
+
+
+# C FLAGS
+
+# These flags are included in all compilations.
+# Avoid using PFMDEFS in platform makefiles, as they prevent the MPS being
+# built with a simple command like "cc -c mps.c".
+CFLAGSCOMMONSTRICT = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERSTRICT)
+CFLAGSCOMMONLAX = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERLAX)
+
+# %%VARIETY: When adding a new variety, define a macro containing the set
+# of flags for the new variety.
+
+# These flags are added to compilations for the indicated variety.
+CFRASH = -DCONFIG_VAR_RASH $(CFLAGSOPT)
+CFHOT  = -DCONFIG_VAR_HOT  $(CFLAGSOPT)
+CFCOOL = -DCONFIG_VAR_COOL $(CFLAGSDEBUG)
+
+# Bind CFLAGSVARIETY to the appropriate set of flags for the variety.
+# %%VARIETY: When adding a new variety, add a test for the variety and
+# set CFLAGSVARIETY here.
+ifeq ($(VARIETY),rash)
+CFLAGSVARIETY=$(CFRASH)
+else
+ifeq ($(VARIETY),hot)
+CFLAGSVARIETY=$(CFHOT)
+else
+ifeq ($(VARIETY),cool)
+CFLAGSVARIETY=$(CFCOOL)
+else
+ifneq ($(VARIETY),)
+$(error Variety "$(VARIETY)" not recognized: must be rash/hot/cool)
+endif
+endif
+endif
+endif
+
+CFLAGSSTRICT=$(CFLAGSCOMMONSTRICT) $(CFLAGSVARIETY) $(CFLAGS)
+CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFLAGSVARIETY) $(CFLAGS)
+ARFLAGS=rc$(ARFLAGSPFM)
+
+
+# == Common definitions ==
+# %%PART: When adding a new part, add it here, unless it's platform-specific
+# These values are defined here because they have no variation between
+# platforms.
+
+AMC = poolamc.c
+AMS = poolams.c
+AWL = poolawl.c
+LO = poollo.c
+SNC = poolsnc.c
+POOLN = pooln.c
+MV2 = poolmv2.c
+MVFF = poolmvff.c
+TESTLIB = testlib.c
+TESTTHR = testthrix.c
+FMTDY = fmtdy.c fmtno.c
+FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
+FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
+FMTSCM = fmtscheme.c
+PLINTH = mpsliban.c mpsioan.c
+MPMCOMMON = \
+    abq.c \
+    arena.c \
+    arenacl.c \
+    arenavm.c \
+    arg.c \
+    boot.c \
+    bt.c \
+    buffer.c \
+    cbs.c \
+    dbgpool.c \
+    dbgpooli.c \
+    event.c \
+    failover.c \
+    format.c \
+    freelist.c \
+    global.c \
+    land.c \
+    ld.c \
+    locus.c \
+    message.c \
+    meter.c \
+    mpm.c \
+    mpsi.c \
+    nailboard.c \
+    policy.c \
+    pool.c \
+    poolabs.c \
+    poolmfs.c \
+    poolmrg.c \
+    protocol.c \
+    range.c \
+    rangetree.c \
+    ref.c \
+    ring.c \
+    root.c \
+    sa.c \
+    sac.c \
+    scan.c \
+    seg.c \
+    shield.c \
+    splay.c \
+    ss.c \
+    table.c \
+    trace.c \
+    traceanc.c \
+    tract.c \
+    trans.c \
+    tree.c \
+    version.c \
+    vm.c \
+    walk.c
+POOLS = $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(SNC)
+MPM = $(MPMCOMMON) $(MPMPF) $(POOLS) $(PLINTH)
+
+
+# These map the source file lists onto object files and dependency files
+# in the platform/variety directory.
+#
+# %%PART: When adding a new part, add a new macro which expands to the files
+# included in the part.
+
+ifdef VARIETY
+MPMOBJ = $(MPM:%.c=$(PFM)/$(VARIETY)/%.o) \
+         $(MPMS:%.s=$(PFM)/$(VARIETY)/%.o)
+FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
+FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
+FMTHETSTOBJ = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.o)
+FMTSCMOBJ = $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.o)
+PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
+POOLNOBJ = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.o)
+TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
+TESTTHROBJ = $(TESTTHR:%.c=$(PFM)/$(VARIETY)/%.o)
+endif
+
+
+# == Test cases ==
+#
+# %%TARGET: When adding a new target, add it to one of the variables
+# in this section. Library components go in LIB_TARGETS.
+
+LIB_TARGETS=mps.a mpsplan.a
+
+# Test executables go in TEST_TARGETS.
+
+TEST_TARGETS=\
+    abqtest \
+    addrobj \
+    airtest \
+    amcss \
+    amcsshe \
+    amcssth \
+    amsss \
+    amssshe \
+    apss \
+    arenacv \
+    awlut \
+    awluthe \
+    awlutth \
+    btcv \
+    bttest \
+    djbench \
+    extcon \
+    finalcv \
+    finaltest \
+    forktest \
+    fotest \
+    gcbench \
+    landtest \
+    locbwcss \
+    lockcov \
+    lockut \
+    locusss \
+    locv \
+    messtest \
+    mpmss \
+    mpsicv \
+    mv2test \
+    nailboardtest \
+    poolncv \
+    qs \
+    sacss \
+    segsmss \
+    sncss \
+    steptest \
+    tagtest \
+    teletest \
+    walkt0 \
+    zcoll \
+    zmess \
+    ztfm
+
+# This target records programs that we were once able to build but
+# can't at the moment:
+
+UNBUILDABLE_TARGETS=\
+    replay # depends on the EPVM pool
+
+ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
+
+
+# == Pseudo-targets ==
+
+all: $(ALL_TARGETS)
+
+
+# == Automated test suites ==
+#
+# See design.mps.tests.target.
+
+TEST_SUITES=testrun testci testall testansi testpollnone
+
+$(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
+	../tool/testrun.sh -s "$(notdir $@)" "$(PFM)/$(VARIETY)"
+
+
+# == Automated performance testing ==
+#
+# See design.mps.tests.target.testratio.
+
+TESTRATIO_SEED = 1564912146
+
+define ratio
+TIME_HOT=$$(/usr/bin/time -p $(PFM)/hot/$(1) -x $(TESTRATIO_SEED) $(2) 2>&1 | tail -2 | awk '{T += $$2} END {print T}'); \
+TIME_RASH=$$(/usr/bin/time -p $(PFM)/rash/$(1) -x $(TESTRATIO_SEED) $(2) 2>&1 | tail -2 | awk '{T += $$2} END {print T}'); \
+RATIO=$$(awk "BEGIN{print int(100 * $$TIME_HOT / $$TIME_RASH)}"); \
+printf "Performance ratio (hot/rash) for $(2): %d%%\n" $$RATIO
+endef
+
+testratio: phony
+	$(MAKE) -f $(PFM).gmk VARIETY=hot djbench gcbench
+	$(MAKE) -f $(PFM).gmk VARIETY=rash djbench gcbench
+	$(call ratio,gcbench,amc)
+	$(call ratio,djbench,mvff)
+
+
+# == MMQA test suite ==
+#
+# See test/README for documentation on running the MMQA test suite.
+
+MMQA=perl test/qa -p $(PFM) -v $(VARIETY)
+
+$(PFM)/$(VARIETY)/testmmqa:
+	if [ "$(VARIETY)" = "cool" ]; then (cd ../test && $(MMQA) runset testsets/coolonly); fi
+	(cd ../test && $(MMQA) runset testsets/argerr testsets/conerr testsets/passing)
+
+
+# == Toy Scheme interpreter ==
+
+testscheme: phony
+	$(MAKE) -C ../example/scheme test
+
+
+# These convenience targets allow one to type "make foo" to build target
+# foo in selected varieties (or none, for the latter rule).
+
+ifdef VARIETY
+$(LIB_TARGETS) $(TEST_TARGETS) $(EVENT_TARGETS) $(TEST_SUITES) testmmqa: \
+	%: $(PFM)/$(VARIETY)/% ;
+else
+$(LIB_TARGETS) $(TEST_TARGETS) $(EVENT_TARGETS) $(TEST_SUITES) testmmqa:
+	$(MAKE) -f $(PFM).gmk TARGET=$@ target
+.NOTPARALLEL:
+endif
+
+# Targets for toplevel make
+clean-testansi: clean .WAIT testansi
+clean-testpollnone: clean .WAIT testpollnone
+
+# "clean" removes the directory containing the build results for the
+# platform.
+
+clean: phony
+	$(ECHO) "$(PFM): $@"
+	rm -rf "$(PFM)"
+
+# "target" builds some varieties of the target named in the TARGET
+# macro.
+#
+# %%VARIETY: When adding a new target, optionally add a recursive make call
+# for the new variety, if it should be built by default.  It probably
+# shouldn't without a product design decision and an update of the readme
+# and build manual!
+#
+# Note that we build VARIETY=cool before VARIETY=hot because
+# the former doesn't need to optimize and so detects errors more
+# quickly; and because the former uses file-at-a-time compilation and
+# so can pick up where it left off instead of having to start from the
+# beginning of mps.c
+
+ifdef TARGET
+ifndef VARIETY
+target: phony
+	$(MAKE) -f $(PFM).gmk VARIETY=cool variety
+	$(MAKE) -f $(PFM).gmk VARIETY=hot variety
+endif
+endif
+
+
+# "variety" builds the target named in the TARGET macro using the
+# variety named in the VARIETY macro.
+
+ifdef VARIETY
+ifdef TARGET
+variety: $(PFM)/$(VARIETY)/$(TARGET)
+endif
+endif
+
+
+# THE MPS LIBRARY
+#
+# The MPS library is built in two ways:
+#
+#   1. In the usual way, from a pile of object files compiled from their
+#      corresponding sources.
+#
+#   2. From mps.c, which effectively concatenates all the sources, allowing
+#      important global optimisation and inlining to occur.
+#
+# We mostly use the method (2), because it is fast to compile and execute.
+# But we use method (1) for some varieties to ensure correctness of
+# code (linkage errors are masked by (2)) and to maintain a correct list
+# of source files in case method (2) won't work on some future constrained
+# platform.
+#
+# %%VARIETY: When adding a new variety, add a rule for how to build the
+# MPS library for the variety.
+
+$(PFM)/rash/mps.a: $(PFM)/rash/mps.o
+$(PFM)/hot/mps.a: $(PFM)/hot/mps.o
+$(PFM)/cool/mps.a: $(MPMOBJ)
+
+
+# OTHER GENUINE TARGETS
+#
+# Each line defines an executable or library target to be built and the
+# object files it is built from.  These lines add dependencies to the
+# generic rules below, and should not include commands to execute.
+#
+# %%TARGET: When adding a new target, add the dependencies for the new target
+# here.
+
+ifdef VARIETY
+
+$(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/addrobj: $(PFM)/$(VARIETY)/addrobj.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/airtest: $(PFM)/$(VARIETY)/airtest.o \
+	$(FMTSCMOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/amcsshe: $(PFM)/$(VARIETY)/amcsshe.o \
+	$(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/amcssth: $(PFM)/$(VARIETY)/amcssth.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/amssshe: $(PFM)/$(VARIETY)/amssshe.o \
+	$(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/apss: $(PFM)/$(VARIETY)/apss.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/awluthe: $(PFM)/$(VARIETY)/awluthe.o \
+        $(FMTHETSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/btcv: $(PFM)/$(VARIETY)/btcv.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/bttest: $(PFM)/$(VARIETY)/bttest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/djbench: $(PFM)/$(VARIETY)/djbench.o \
+	$(TESTLIBOBJ) $(TESTTHROBJ)
+
+$(PFM)/$(VARIETY)/extcon: $(PFM)/$(VARIETY)/extcon.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/finaltest: $(PFM)/$(VARIETY)/finaltest.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/forktest: $(PFM)/$(VARIETY)/forktest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/fotest: $(PFM)/$(VARIETY)/fotest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/gcbench: $(PFM)/$(VARIETY)/gcbench.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ)
+
+$(PFM)/$(VARIETY)/landtest: $(PFM)/$(VARIETY)/landtest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/locbwcss: $(PFM)/$(VARIETY)/locbwcss.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/lockut: $(PFM)/$(VARIETY)/lockut.o \
+	$(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/locusss: $(PFM)/$(VARIETY)/locusss.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/messtest: $(PFM)/$(VARIETY)/messtest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mpmss: $(PFM)/$(VARIETY)/mpmss.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
+	$(FMTDYTSTOBJ) $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/nailboardtest: $(PFM)/$(VARIETY)/nailboardtest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
+	$(POOLNOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/qs: $(PFM)/$(VARIETY)/qs.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/sacss: $(PFM)/$(VARIETY)/sacss.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/sncss: $(PFM)/$(VARIETY)/sncss.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/steptest: $(PFM)/$(VARIETY)/steptest.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/tagtest: $(PFM)/$(VARIETY)/tagtest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/teletest: $(PFM)/$(VARIETY)/teletest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/walkt0: $(PFM)/$(VARIETY)/walkt0.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/zcoll: $(PFM)/$(VARIETY)/zcoll.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/ztfm: $(PFM)/$(VARIETY)/ztfm.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mpseventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
+  $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mpseventpy: $(PFM)/$(VARIETY)/eventpy.o \
+  $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mpseventtxt: $(PFM)/$(VARIETY)/eventtxt.o \
+  $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mpseventsql: $(PFM)/$(VARIETY)/eventsql.o \
+  $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
+  $(PFM)/$(VARIETY)/eventrep.o \
+  $(PFM)/$(VARIETY)/table.o \
+  $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mpsplan.a: $(PLINTHOBJ)
+
+endif
+
+
+# GENERIC RULES
+#
+# These generate build output in the <pfm>/<variety> directory.
+
+# Object files
+
+define run-cc-strict
+$(ECHO) "$(PFM): $@"
+mkdir -p $(PFM)/$(VARIETY)
+$(CC) $(CFLAGSSTRICT) -c -o $@ $<
+endef
+
+define run-cc-lax
+$(ECHO) "$(PFM): $@ - compiling with lax flags."
+mkdir -p $(PFM)/$(VARIETY)
+$(CC) $(CFLAGSLAX) -c -o $@ $<
+endef
+
+# .rule.c-to-o:
+$(PFM)/$(VARIETY)/%.o: %.c
+	$(run-cc-strict)
+
+$(PFM)/$(VARIETY)/eventsql.o: eventsql.c
+	$(run-cc-lax)
+
+$(PFM)/$(VARIETY)/%.o: %.s
+	$(run-cc-strict)
+
+$(PFM)/$(VARIETY)/%.o: %.S
+	$(run-cc-strict)
+
+# Dependencies
+#
+# These are included into _this_ makefile (see below).  GNU make does the
+# right thing as long as it knows how to make the dependency files before
+# including them.
+
+ifdef gendep
+
+$(PFM)/$(VARIETY)/%.d: %.c
+	$(ECHO) "$(PFM): $@"
+	mkdir -p $(PFM)
+	mkdir -p $(PFM)/$(VARIETY)
+	$(gendep)
+
+ifdef VARIETY
+ifdef TARGET
+
+# %%VARIETY: When adding a new variety, add the dependencies files for it
+# here.
+ifeq ($(VARIETY),rash)
+include $(PFM)/$(VARIETY)/mps.d
+else
+ifeq ($(VARIETY),hot)
+include $(PFM)/$(VARIETY)/mps.d
+else
+include $(MPM:%.c=$(PFM)/$(VARIETY)/%.d)
+endif # VARIETY != hot
+endif # VARIETY != rash
+
+# %%PART: When adding a new part, add the dependencies file for the
+# new part here.
+include \
+    $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(POOLN:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(TESTTHR:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(EXTRA_TARGETS:mps%=$(PFM)/$(VARIETY)/%.d) \
+    $(TEST_TARGETS:%=$(PFM)/$(VARIETY)/%.d)
+
+endif # !defined TARGET
+endif # !defined VARIETY
+
+endif # !defined gendep
+
+# Library
+
+ifndef RANLIB
+RANLIB = :
+endif
+
+$(PFM)/$(VARIETY)/%.a:
+	$(ECHO) "$(PFM): $@"
+	rm -f $@
+	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $@
+
+# Executable
+
+$(PFM)/$(VARIETY)/%:
+	$(ECHO) "$(PFM): $@"
+	$(CC) $(CFLAGSSTRICT) $(LINKFLAGS) -o $@ $^ $(LIBS)
+
+$(PFM)/$(VARIETY)/mpseventsql:
+	$(ECHO) "$(PFM): $@"
+	$(CC) $(CFLAGSLAX) $(LINKFLAGS) -o $@ $^ $(LIBS) -lsqlite3
+
+# Special targets for development
+
+# Currently FreeBSD 7 GCC 4.2.1 is the best platform we have for warning
+# us about strict aliasing rule violations caused by type puns.  This
+# target reveals them, and produces an assembler output file that can be
+# examined to see if they're actually dangerous.  RB 2012-09-07
+
+find-puns: phony
+	{ echo '#include "mps.c"'; echo '#include "fmtdy.c"'; } | \
+	gcc -S -fverbose-asm -ansi -pedantic -Wall -Wstrict-aliasing=2 -O3 -x c -o pun.s -
+
+
+# C. COPYRIGHT AND LICENSE
+#
+# Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+

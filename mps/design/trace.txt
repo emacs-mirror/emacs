@@ -1,0 +1,321 @@
+.. mode: -*- rst -*-
+
+Tracer
+======
+
+:Tag: design.mps.trace
+:Author: David Jones
+:Date: 1996-09-25
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:   pair: tracer; design
+
+
+Introduction
+------------
+
+.. warning::
+
+    This document is currently a mixture of very old design notes (the
+    preformatted section immediately following) and some newer stuff.
+    It doesn't yet form anything like a complete picture.
+
+
+Architecture
+------------
+
+_`.instance.limit`: There is a limit on the number of traces that can
+be created at any one time. This limits the number of concurrent
+traces. This limitation is expressed in the symbol ``TraceLIMIT``.
+
+.. note::
+
+    ``TraceLIMIT`` is currently set to 1 as the MPS assumes in various
+    places that only a single trace is active at a time. See
+    request.mps.160020_ "Multiple traces would not work". David Jones,
+    1998-06-15.
+
+.. _request.mps.160020: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/160020
+
+_`.rate`: See `mail.nickb.1997-07-31.14-37`_.
+
+.. _mail.nickb.1997-07-31.14-37: https://info.ravenbrook.com/project/mps/mail/1997/07/31/14-37/0.txt
+
+.. note::
+
+    Now revised? See request.epcore.160062_ and
+    change.epcore.minnow.160062. David Jones, 1998-06-15.
+
+.. _request.epcore.160062: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/160062
+
+_`.exact.legal`: Exact references must either point outside the arena
+(to non-managed address space) or to a tract allocated to a pool.
+Exact references that are to addresses which the arena has reserved
+but hasn't allocated memory to are illegal (such a reference cannot
+possibly refer to a real object, and so cannot be exact). We check
+that this is the case in ``TraceFix()``.
+
+.. note::
+
+    Depending on the future semantics of ``PoolDestroy()`` we might
+    need to adjust our strategy here. See `mail.dsm.1996-02-14.18-18`_
+    for a strategy of coping gracefully with ``PoolDestroy()``.
+
+    .. _mail.dsm.1996-02-14.18-18: https://info.ravenbrook.com/project/mps/mail/1996/02/14/18-18/0.txt
+
+_`.fix.fixed.all`: ``ss->fixedSummary`` is accumulated (in
+``TraceFix()``) for all pointers, whether or not they are genuine
+references. We could accumulate fewer pointers here; if a pointer
+fails the ``TractOfAddr()`` test then we know it isn't a reference, so
+we needn't accumulate it into the fixed summary. The design allows
+this, but it breaks a useful post-condition on scanning (if the
+accumulation of ``ss->fixedSummary`` was moved the accuracy of
+``ss->fixedSummary`` would vary according to the "width" of the white
+summary). See `mail.pekka.1998-02-04.16-48`_ for improvement suggestions.
+
+.. _mail.pekka.1998-02-04.16-48: https://info.ravenbrook.com/project/mps/mail/1998/02/04/16-48/0.txt
+
+
+Analysis
+--------
+
+_`.fix.copy-fail`: Fixing can always succeed, even if copying the
+referenced object has failed (due to lack of memory, for example), by
+backing off to treating a reference as ambiguous. Assuming that fixing
+an ambiguous reference doesn't allocate memory (which is no longer
+true for AMC for example). See request.dylan.170560_ for a slightly
+more sophisticated way to proceed when you can no longer allocate
+memory for copying.
+
+.. _request.dylan.170560: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170560
+
+
+Ideas
+-----
+
+_`.flip.after`: To avoid excessive barrier impact on the mutator
+immediately after flip, we could scan during flip other objects which
+are "near" the roots, or otherwise known to be likely to be accessed
+in the near future.
+
+
+Implementation
+--------------
+
+Speed
+.....
+
+_`.fix`: The function implementing the fix operation should be called
+``TraceFix()`` and this name is pervasive in the MPS and its documents
+to describe this function. Nonethless, optimisation and strict
+aliasing rules have meant that we need to use the external name for
+it, ``_mps_fix2()``.
+
+_`.fix.speed`: The fix path is critical to garbage collection speed.
+Abstractly, the fix operation is applied to all references in the
+non-white heap and all references in the copied heap. Remembered sets
+cut down the number of segments we have to scan. The zone test cuts
+down the number of references we call fix on. The speed of the
+remainder of the fix path is still critical to system performance.
+Various modifications to and aspects of the system are concerned with
+maintaining the speed along this path. See
+`design.mps.critical_path`_.
+
+.. _design.mps.critical_path: critical_path
+
+_`.fix.tractofaddr`: A reference that passes the zone test is then
+looked up to find the tract it points to, an operation equivalent to
+calling ``TractOfAddr()``.
+
+_`.fix.tractofaddr.inline`: ``TraceFix()`` doesn't actually call
+``TractOfAddr()``. Instead, it expands this operation inline (calling
+``ChunkOfAddr()``, then ``INDEX_OF_ADDR()``, checking the appropriate
+bit in the chunk's ``allocTable``, and finally looking up the tract in
+the chunk's page table). The reason for inlining this code is that we
+need to know whether the reference points to a chunk (and not just
+whether it points to a tract) in order to check the `.exact.legal`_
+condition.
+
+_`.fix.whiteseg`: The reason for looking up the tract is to determine
+whether the reference is to a white segment.
+
+.. note::
+
+    It is likely to be more efficient to maintain a separate lookup
+    table from address to white segment, rather than indirecting
+    through the chunk and the tract. See job003796_.
+
+.. _job003796: https://www.ravenbrook.com/project/mps/issue/job003796/
+
+_`.fix.noaver`: ``AVER()`` statements in the code add bulk to the code
+(reducing I-cache efficacy) and add branches to the path (polluting
+the branch pedictors) resulting in a slow down. Replacing the
+``AVER()`` statements with ``AVER_CRITICAL()`` on the critical path
+improves the overall speed of the Dylan compiler by as much as 9%. See
+`design.mps.critical_path`_.
+
+_`.fix.nocopy`: ``amcSegFix()`` used to copy objects by using the
+format's copy method. This involved a function call (through an
+indirection) and in ``dylan_copy`` a call to ``dylan_skip`` (to
+recompute the length) and call to ``memcpy`` with general parameters.
+Replacing this with a direct call to ``memcpy`` removes these
+overheads and the call to ``memcpy`` now has aligned parameters. The
+call to ``memcpy`` is inlined by the C compiler. This change results
+in a 4–5% speed-up in the Dylan compiler.
+
+_`.reclaim`: Because the reclaim phase of the trace (implemented by
+``TraceReclaim()``) examines every segment it is fairly time
+intensive. Richard Tucker's profiles presented in
+request.dylan.170551_ show a gap between the two varieties variety.hi
+and variety.wi.
+
+.. _request.dylan.170551: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170551
+
+_`.reclaim.noaver`: Accordingly, reclaim methods use
+``AVER_CRITICAL()`` instead of ``AVER()``.
+
+
+Life cycle of a trace object
+----------------------------
+
+``TraceCreate()`` creates a trace in state ``TraceINIT``
+
+Some segments get condemned (made white).
+
+``TraceStart()`` gets called which:
+
+- Derives an initial reference partition based on the existing
+  white set.  The white zone set and the segments' summaries are used to
+  create an initial grey set.
+
+- Emits a ``GCStart()`` message.
+
+- Initialises ``trace->rate`` by estimating the required scanning
+  rate.
+
+- Moves the trace into the state ``TraceUNFLIPPED``.
+
+- Immediately calls ``traceFlip`` which flips the trace and moves
+  it into state ``TraceFLIPPED``.
+
+Whilst a trace is alive every so often its ``TraceAdvance()`` method
+gets invoked (via ``TracePoll()``) in order to do a step of tracing
+work. ``TraceAdvance()`` is responsible for ticking through the trace's
+top-level state machine. Most of the interesting work, the tracing,
+happens in the ``TraceFLIPPED`` state.
+
+The trace transitions through its states in the following sequence:
+``TraceINIT`` → (``TraceUNFLIPPED``) → ``TraceFLIPPED`` →
+``TraceRECLAIM`` → ``TraceFINISHED``.
+
+Whilst ``TraceUNFLIPPED`` appears in the code, no trace does any work
+in this state; all traces are immediately flipped to be in the
+``TraceFLIPPED`` state (see above).
+
+Once the trace is in the ``TraceFINISHED`` state it performs no more
+work and it can be safely destroyed. Generally the callers of
+``TraceAdvance()`` will destroy the trace.
+
+
+Making progress: scanning grey segments
+.......................................
+
+Most of the interesting work of a trace, the actual tracing, happens
+in the ``TraceFLIPPED`` state (work *would* happen in the
+``TraceUNFLIPPED`` state, but that is not implemented).
+
+The tracer makes progress by choosing a grey segment to scan, and
+scanning it. The actual scanning is performed by pools.
+
+Note that at all times a reference partition is maintained.
+
+The order in which the trace scans things determines the semantics of
+certain types of references (in particular, weak and final
+references). Or, to put it another way the desired semantics of weak
+and final references impose certain restrictions on the order in which
+the trace can scan things.
+
+.rank: The tracer uses a system of *reference ranks* (or just ranks)
+so that it can impose an order on its scanning work. The ranks are
+ordered.  [TODO: Explain how ordering is also required for transforms.
+See impl.c.trans.rank-order.  RB 2023-06-16]
+
+The tracer proceeds band by band. The first band is all objects it can
+reach by following references of the first rank. The second band is
+all subsequent objects it can reach by following references of the
+second and first ranks. The third band is all subsequent objects it
+can reach by following references of the third, second, and first
+ranks. And so on. The description of the tracer working like this
+originated in [RHSK_2007-06-25]_.
+
+A trace keeps track of which band it is tracing. This is returned by
+the ``TraceBand()`` method. Keeping this band information helps it
+implement the semantics of finalization and weakness. The band used to
+not be explicitly stored, but this hindered the implementation of good
+finalization semantics (in some circumstances finalization messages
+were delayed by at least one collection cycle: see job001658_).
+
+.. _job001658: https://info.ravenbrook.com/project/mps/issue/job001658/
+
+The band is used when selecting a grey segment to scan (the selection
+occurs in ``traceFindGrey()``). The tracer attempts to first find
+segments whose rank is the current band, then segments whose rank is
+previous to the current band, and so on. If there are no segments
+found then the current band is exhausted and the current band is
+incremented to the next rank. When the current band is moved through
+all the ranks in this fashion there is no more tracing to be done.
+
+
+
+References
+----------
+
+.. [RHSK_2007-06-25]
+   "The semantics of rank-based tracing";
+   Richard Kistruck; Ravenbrook Limited; 2007-06-25;
+   <https://info.ravenbrook.com/mail/2007/06/25/11-35-57/0/>.
+
+
+Document History
+----------------
+
+- 1996-09-25 David Jones. Incomplete design.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2007-07-02 David Jones. Added notes on tracer progress.
+
+- 2013-05-22 GDR_ Converted to reStructuredText.
+
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
