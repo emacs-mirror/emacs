@@ -4913,6 +4913,22 @@ really know what you are doing!  */)
   return Qnil;
 }
 
+DEFUN ("igc--set-pause-time", Figc__set_pause_time,
+       Sigc__set_pause_time, 1, 1, 0,
+       doc: /* Set the arena pause time, in seconds, to PAUSE-TIME.
+PAUSE-TIME should be a non-negative number.
+Setting pause time to 1.0e+INF disables incremental garbage collection.
+
+For internal use only. */)
+  (Lisp_Object pause_time)
+{
+  double secs = extract_float (pause_time);
+  if (secs < 0.0)
+    xsignal1 (Qrange_error, pause_time);
+  mps_arena_pause_time_set (global_igc->arena, secs);
+  return Qnil;
+}
+
 /* Read GC generation settings from environment variable
    EMACS_IGC_GENS. Value must be a string consisting of pairs SIZE
    MORTALITY, where SIZE Is the size of the generation in KB, and
@@ -4952,7 +4968,7 @@ read_gens (size_t *ngens, mps_gen_param_s parms[*ngens])
     return true;
 
  parse_error:
-  fprintf (stderr, "Couldn't parse EMACS_IGC_GENS: %s\n",
+  fprintf (stderr, "Failed to parse EMACS_IGC_GENS: %s\n",
 	   getenv ("EMACS_IGC_GENS"));
   emacs_abort ();
 }
@@ -5583,6 +5599,7 @@ syms_of_igc (void)
   defsubr (&Sigc__roots);
   defsubr (&Sigc__collect);
   defsubr (&Sigc__set_commit_limit);
+  defsubr (&Sigc__set_pause_time);
   defsubr (&Sigc__add_extra_dependency);
   defsubr (&Sigc__remove_extra_dependency);
   defsubr (&Sigc__arena_step);
