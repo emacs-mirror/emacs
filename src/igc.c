@@ -4953,9 +4953,15 @@ read_gens (size_t *ngens, mps_gen_param_s parms[*ngens])
   for (size_t i = 0; i < len && env < end; ++i)
     {
       int nchars;
+#if __MINGW32_MAJOR_VERSION >= 5
+      if (sscanf (env, "%u %lf%n", &parms[i].mps_capacity,
+		  &parms[i].mps_mortality, &nchars)
+	  == 2)
+#else
       if (sscanf (env, "%zu %lf%n", &parms[i].mps_capacity,
 		  &parms[i].mps_mortality, &nchars)
 	  == 2)
+#endif
 	{
 	  env += nchars;
 	  *ngens = i + 1;
@@ -5004,7 +5010,11 @@ read_commit_limit (size_t *limit)
   const char *env = getenv ("EMACS_IGC_COMMIT_LIMIT");
   if (env == NULL)
     return false;
+#if __MINGW32_MAJOR_VERSION >= 5
+  return sscanf (env, "%u", limit) == 1;
+#else
   return sscanf (env, "%zu", limit) == 1;
+#endif
 }
 
 static void
