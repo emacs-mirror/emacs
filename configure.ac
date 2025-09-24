@@ -5575,23 +5575,6 @@ if test "${with_mps}" != "no"; then
   AC_CONFIG_SUBDIRS([mps])
 fi
 
-# FIXME: update for in-tree MPS
-if test "$REALLY_ANDROID" = "yes" && test "$with_mps" != "no"; then
-  HAVE_MPS=no
-  ndk_SEARCH_MODULE([mps], [MPS], [HAVE_MPS=yes])
-
-  if test "$HAVE_MPS" = "yes"; then
-    SAVE_CFLAGS="$CFLAGS"
-    CFLAGS="$CFLAGS $MPS_CFLAGS"
-    AC_CHECK_HEADERS([mps.h], [break])
-    CFLAGS="$SAVE_CFLAGS"
-    IGCOBJ="igc.o"
-    AC_DEFINE([HAVE_MPS], [1],
-       [Define to 1 if you have the mps library (-lmps).])
-    HAVE_MPS=yes
-    LIBMPS="$MPS_LIBS"
-  fi
-fi
 AC_SUBST([MPS_CFLAGS])
 AC_SUBST([MPSOBJ])
 AC_SUBST([IGCOBJ])
