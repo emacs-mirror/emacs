@@ -6352,7 +6352,7 @@ dnl recent, so we check for it specifically.
 AC_CHECK_HEADERS([spawn.h])
 AC_SUBST([HAVE_SPAWN_H])
 gl_CHECK_FUNCS_ANDROID([posix_spawn], [#include <spawn.h>])
-gl_CHECK_FUNCS_ANDROID([posix_spawn_file_actions_addchdir], [#include <spawn.h>])
+gl_CHECK_FUNCS_ANDROID_MACOS([posix_spawn_file_actions_addchdir], [#include <spawn.h>])
 gl_CHECK_FUNCS_ANDROID([posix_spawn_file_actions_addchdir_np], [#include <spawn.h>])
 gl_CHECK_FUNCS_ANDROID([posix_spawnattr_setflags], [#include <spawn.h>])
 AC_SUBST([HAVE_POSIX_SPAWN])
