@@ -23,7 +23,6 @@
 
 SRCID(ss, "$Id$");
 
-
 /* StackHot -- capture a hot stack pointer
  *
  * On all supported platforms, the arguments are pushed on to the
@@ -32,12 +31,23 @@ SRCID(ss, "$Id$");
  * is a hot stack pointer.  <design/ss#.sol.stack.hot>.
  */
 
+#ifdef __MINGW32__
+#pragma GCC diagnostic push
+
+#if defined(MPS_BUILD_GC) && (__GNUC__ >= 12)
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
+#endif
+#endif
+
 ATTRIBUTE_NOINLINE
 void StackHot(void **stackOut)
 {
   *stackOut = &stackOut;
 }
 
+#ifdef __MINGW32__
+#pragma GCC diagnostic pop
+#endif
 
 /* StackScan -- scan the mutator's stack and registers */
 

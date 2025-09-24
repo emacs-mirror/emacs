@@ -392,6 +392,38 @@
 #define MPS_PF_ALIGN    8
 
 
+#elif defined(__MINGW32__) && defined(_X86_) && defined(__GNUC__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I3GC)
+#error "specified CONFIG_PF_... inconsistent with detected w3i3gc"
+#endif
+#define MPS_PF_W3I3GC
+#define MPS_PF_STRING   "w3i3gc"
+#define MPS_OS_W3
+#define MPS_ARCH_I3
+#define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    4
+
+
+#elif defined(__MINGW64__) && defined(__x86_64) && defined(__GNUC__)
+#     if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I6GC)
+#           error "specified CONFIG_PF_... inconsistent with detected w3i6gc"
+#     endif
+#define MPS_PF_W3I6GC
+#define MPS_PF_STRING   "w3i6gc"
+#define MPS_OS_W3
+#define MPS_ARCH_I6
+#define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned __int64
+#define MPS_T_ULONGEST  unsigned __int64
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    16
+
+
 #else
 #error "The MPS Kit does not have a configuration for this platform out of the box; see manual/build.txt"
 #endif

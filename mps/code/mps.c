@@ -228,9 +228,9 @@
 #include "prmclii6.c"   /* x86-64 for Linux mutator context */
 #include "span.c"       /* generic stack probe */
 
-/* Windows on IA-32 with Microsoft Visual Studio or Pelles C */
+/* Windows on IA-32 with Microsoft Visual Studio or Pelles C or GCC */
 
-#elif defined(MPS_PF_W3I3MV) || defined(MPS_PF_W3I3PC)
+#elif defined(MPS_PF_W3I3MV) || defined(MPS_PF_W3I3PC) || defined(MPS_PF_W3I3GC)
 
 #include "lockw3.c"     /* Windows locks */
 #include "thw3.c"       /* Windows threading */
@@ -242,9 +242,9 @@
 #include "spw3i3.c"     /* Windows on IA-32 stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
-/* Windows on x86-64 with Microsoft Visual Studio or Pelles C */
+/* Windows on x86-64 with Microsoft Visual Studio or Pelles C or GCC */
 
-#elif defined(MPS_PF_W3I6MV) || defined(MPS_PF_W3I6PC)
+#elif defined(MPS_PF_W3I6MV) || defined(MPS_PF_W3I6PC) || defined(MPS_PF_W3I6GC)
 
 #include "lockw3.c"     /* Windows locks */
 #include "thw3.c"       /* Windows threading */
