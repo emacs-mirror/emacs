@@ -44,6 +44,7 @@ BUILD_TARGET=build-via-make
 CLEAN_TARGET=clean-make-build
 INSTALL_TARGET=install-make-build
 TEST_TARGET=test-make-build
+EXEEXT=
 case $host/$CLANG in
   aarch64-*-linux*/no)
       AC_MSG_RESULT([Linux ARM64])
@@ -163,7 +164,23 @@ case $host/$CLANG in
       CPP="$CC -I/usr/local/include -E"
       PFMCFLAGS="$CFLAGS_LL"
     ;;
-  *)
+  i*86-*-mingw*/no)
+      AC_MSG_RESULT([MinGW x86])
+      MPS_OS_NAME=w3
+      MPS_ARCH_NAME=i3
+      MPS_BUILD_NAME=gc
+      PFMCFLAGS="$CFLAGS_GC"
+      EXEEXT=.exe
+    ;;
+  x86_64-*-mingw*/no)
+      AC_MSG_RESULT([MinGW x86_64])
+      MPS_OS_NAME=w3
+      MPS_ARCH_NAME=i6
+      MPS_BUILD_NAME=gc
+      PFMCFLAGS="$CFLAGS_GC"
+      EXEEXT=.exe
+    ;;
+    *)
     AC_MSG_ERROR([MPS does not support this platform out of the box.  See manual/build.txt])
 esac
 
@@ -172,8 +189,8 @@ if ! $MAKE --version | grep -q "GNU" 2> /dev/null; then
   AC_MSG_ERROR([MPS requires GNU make to build from configure, but see manual/build.txt])
 fi
 
-EXTRA_TARGETS="mpseventcnv mpseventpy mpseventtxt"
-AC_CHECK_HEADER([sqlite3.h], [EXTRA_TARGETS="$EXTRA_TARGETS mpseventsql"])
+EXTRA_TARGETS="mpseventcnv$EXEEXT mpseventpy$EXEEXT mpseventtxt$EXEEXT"
+AC_CHECK_HEADER([sqlite3.h], [EXTRA_TARGETS="$EXTRA_TARGETS mpseventsql$EXEEXT"])
 
 # Put platform compiler flags like -ansi -pedantic into CFLAGS only
 # after checking for sqlite3.h -- that header doesn't compile with
