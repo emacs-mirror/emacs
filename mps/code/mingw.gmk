@@ -30,7 +30,7 @@ CFLAGSCOMPILER := \
 -Wstrict-prototypes \
 -Wswitch-default \
 -Wwrite-strings
-CFLAGSCOMPILERSTRICT := -std=gnu89 -pedantic
+CFLAGSCOMPILERSTRICT := -std=gnu99 -pedantic
 
 # A different set of compiler flags for less strict compilation, for
 # instance when we need to #include a third-party header file that
