@@ -1249,7 +1249,8 @@ It is an error to supply both or neither."
              (when to-stash
                (vc-git--with-apply-temp-to-staging cached
                  (with-temp-file cached
-                   (vc-git-command t 0 nil "stash" "show" "-p")))))))
+                   (vc-git-command t 0 nil "stash" "show" "-p")))
+               (vc-git-command nil 0 nil "stash" "drop")))))
       (when msg-file
         (let ((coding-system-for-write
                (or pcsw vc-git-commits-coding-system)))
