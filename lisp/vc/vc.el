@@ -688,6 +688,15 @@
 ;;   for REV the backend will attempt to check out a specific
 ;;   revision, if possible without first checking out the default
 ;;   branch.
+;;
+;; - cherry-pick-comment (files rev reverse)
+;;
+;;   Return a suitable log message for cherry-picking REV onto another
+;;   branch.  Typically this will be REV's original log message with
+;;   something appended (e.g. Git's "(cherry picked from commit ...)").
+;;   If REVERSE, return a suitable log message for a commit that undoes
+;;   the effects of REV.  FILES is for forward-compatibility; existing
+;;   implementations ignore it.
 
 ;;; Changes from the pre-25.1 API:
 ;;
@@ -4836,6 +4845,14 @@ MOVE non-nil means to move instead of copy."
       (diff-apply-buffer nil nil 'reverse))
     (message "Changes %s to `%s'"
              (if move "moved" "applied") directory)))
+
+(defun vc-default-cherry-pick-comment (files rev reverse)
+  (if reverse (format "Summary: Reverse-apply changes from revision %s\n\n"
+                      rev)
+    (and-let* ((fn (vc-find-backend-function
+                    (vc-responsible-backend default-directory)
+                    'get-change-comment)))
+      (format "Summary: %s\n" (string-trim (funcall fn files rev))))))
 
 
 

@@ -1801,6 +1801,24 @@ Cannot delete first working tree because this would break other working trees"))
     (user-error "\
 Cannot relocate first working tree because this would break other working trees")))
 
+(defun vc-hg-cherry-pick-comment (_files rev reverse)
+  (let (short long comment)
+    (with-temp-buffer
+      (vc-hg-command t 0 nil "log" "--limit=1"
+                     (format "--rev=%s" rev)
+                     "--template={node|short}\n{node}\n{desc}")
+      (goto-char (point-min))
+      (setq short (buffer-substring-no-properties (point) (pos-eol)))
+      (forward-line 1)
+      (setq long (buffer-substring-no-properties (point) (pos-eol)))
+      (forward-line 1)
+      (setq comment (buffer-substring-no-properties (point) (point-max))))
+    (if reverse
+        (format "Summary: Backed out changeset %s\n\n" short)
+      ;; The additional line is indeed separated from the original
+      ;; comment by just one line break, for 'hg graft'.
+      (format "Summary: %s\n(grafted from %s)\n" comment long))))
+
 (provide 'vc-hg)
 
 ;;; vc-hg.el ends here

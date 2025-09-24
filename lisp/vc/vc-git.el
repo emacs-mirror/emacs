@@ -2155,6 +2155,25 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     (vc-git-command standard-output 1 nil
                     "log" "--max-count=1" "--pretty=format:%B" rev)))
 
+(defun vc-git-cherry-pick-comment (_files rev reverse)
+  ;; Don't just call `vc-git-get-change-comment' in order to make one
+  ;; fewer call out to Git.  We have to resolve REV because even if it's
+  ;; already a hash it may be an abbreviated one.
+  (let (comment)
+    (with-temp-buffer
+      (vc-git-command t 0 nil "log" "-n1" "--pretty=format:%H%n%B" rev)
+      (goto-char (point-min))
+      (setq rev (buffer-substring-no-properties (point) (pos-eol)))
+      (forward-line 1)
+      (setq comment (buffer-substring-no-properties (point) (point-max))))
+    (if reverse
+        (format "Summary: %s\n(cherry picked from commit %s)\n"
+                comment rev)
+      (format "Summary: Revert \"%s\"\n\nThis reverts commit %s.\n"
+              (car (split-string comment "\n" t
+                                 split-string-default-separators))
+              rev))))
+
 (defun vc-git--assert-allowed-rewrite (rev)
   (when (and (not (and vc-allow-rewriting-published-history
                        (not (eq vc-allow-rewriting-published-history 'ask))))
