@@ -221,7 +221,14 @@ double rnd_double(void)
 
 static unsigned sizelog2(size_t size)
 {
+#ifdef __MINGW32__
+  /* For some reason, MinGW sometimes produces a value slightly
+     smaller than the expected one, so we round up to the next FP
+     value.  */
+  return (unsigned)(log((double)size) / log(2.0) * (1.0 + __DBL_EPSILON__));
+#else
   return (unsigned)(log((double)size) / log(2.0));
+#endif
 }
 
 size_t rnd_grain(size_t arena_size)
@@ -232,17 +239,17 @@ size_t rnd_grain(size_t arena_size)
   return rnd_align(sizeof(void *), (size_t)1 << sizelog2(arena_size >> MPS_WORD_SHIFT));
 }
 
-size_t rnd_align(size_t min, size_t max)
+size_t rnd_align(size_t minv, size_t maxv)
 {
-  unsigned log2min = sizelog2(min);
-  unsigned log2max = sizelog2(max);
-  Insist(min <= max);
-  Insist((size_t)1 << log2min == min);
-  Insist((size_t)1 << log2max == max);
+  unsigned log2min = sizelog2(minv);
+  unsigned log2max = sizelog2(maxv);
+  Insist(minv <= maxv);
+  Insist((size_t)1 << log2min == minv);
+  Insist((size_t)1 << log2max == maxv);
   if (log2min < log2max)
-    return min << (rnd() % (log2max - log2min + 1));
+    return minv << (rnd() % (log2max - log2min + 1));
   else
-    return min;
+    return minv;
 }
 
 double rnd_pause_time(void)
