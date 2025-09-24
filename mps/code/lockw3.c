@@ -33,6 +33,25 @@ SRCID(lockw3, "$Id$");
 
 #if defined(LOCK)
 
+#ifdef __MINGW32__
+# if defined __MINGW32_VERSION && __MINGW32_VERSION >= 5000000L
+
+   /* mingw.org's MinGW doesn't have this stuff in its headers.  */
+   typedef struct _RTL_RUN_ONCE { PVOID Ptr; } RTL_RUN_ONCE, *PRTL_RUN_ONCE;
+   typedef DWORD (WINAPI *PRTL_RUN_ONCE_INIT_FN)(PRTL_RUN_ONCE, PVOID, PVOID *);
+
+#  define RTL_RUN_ONCE_INIT {0}
+#  define INIT_ONCE_STATIC_INIT RTL_RUN_ONCE_INIT
+
+   typedef RTL_RUN_ONCE INIT_ONCE;
+   typedef PRTL_RUN_ONCE PINIT_ONCE;
+   typedef WINBOOL (WINAPI *PINIT_ONCE_FN) (PINIT_ONCE InitOnce, PVOID Parameter, PVOID *Context);
+
+   WINBASEAPI WINBOOL WINAPI InitOnceExecuteOnce (PINIT_ONCE InitOnce, PINIT_ONCE_FN InitFn, PVOID Parameter, LPVOID *Context);
+
+# endif	/* __MINGW32_VERSION >= 5000000L */
+#endif	/* __MINGW32__ */
+
 /* .lock.win32: Win32 lock structure; uses CRITICAL_SECTION */
 typedef struct LockStruct {
   Sig sig;                      /* design.mps.sig.field */

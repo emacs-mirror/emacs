@@ -75,7 +75,7 @@ endif
 
 # TELEMETRY TARGETS
 
-EVENT_TARGETS = mpseventcnv mpseventpy mpseventsql mpseventtxt
+EVENT_TARGETS = mpseventcnv$(EXEEXT) mpseventpy$(EXEEXT) mpseventsql$(EXEEXT) mpseventtxt$(EXEEXT)
 
 
 # EXTRA TARGETS
@@ -83,7 +83,7 @@ EVENT_TARGETS = mpseventcnv mpseventpy mpseventsql mpseventtxt
 # Don't build mpseventsql by default (might not have sqlite3 installed),
 # but do build the other event target.
 
-EXTRA_TARGETS ?= $(filter-out mpseventsql,$(EVENT_TARGETS))
+EXTRA_TARGETS ?= $(filter-out mpseventsql$(EXEEXT),$(EVENT_TARGETS))
 
 
 #
@@ -164,7 +164,15 @@ POOLN = pooln.c
 MV2 = poolmv2.c
 MVFF = poolmvff.c
 TESTLIB = testlib.c
+# Windows and Posix need different multithreaded tests, so here we must
+# deviate from the "no variation between platforms" rule.
+ifeq ($(PFM),w3i3gc)
+TESTTHR = testthrw3.c
+else ifeq ($(PFM),w3i6gc)
+TESTTHR = testthrw3.c
+else
 TESTTHR = testthrix.c
+endif
 FMTDY = fmtdy.c fmtno.c
 FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
 FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
@@ -256,57 +264,63 @@ LIB_TARGETS=mps.a mpsplan.a
 # Test executables go in TEST_TARGETS.
 
 TEST_TARGETS=\
-    abqtest \
-    addrobj \
-    airtest \
-    amcss \
-    amcsshe \
-    amcssth \
-    amsss \
-    amssshe \
-    apss \
-    arenacv \
-    awlut \
-    awluthe \
-    awlutth \
-    btcv \
-    bttest \
-    djbench \
-    extcon \
-    finalcv \
-    finaltest \
-    forktest \
-    fotest \
-    gcbench \
-    landtest \
-    locbwcss \
-    lockcov \
-    lockut \
-    locusss \
-    locv \
-    messtest \
-    mpmss \
-    mpsicv \
-    mv2test \
-    nailboardtest \
-    poolncv \
-    qs \
-    sacss \
-    segsmss \
-    sncss \
-    steptest \
-    tagtest \
-    teletest \
-    walkt0 \
-    zcoll \
-    zmess \
-    ztfm
+    abqtest$(EXEEXT) \
+    addrobj$(EXEEXT) \
+    airtest$(EXEEXT) \
+    amcss$(EXEEXT) \
+    amcsshe$(EXEEXT) \
+    amcssth$(EXEEXT) \
+    amsss$(EXEEXT) \
+    amssshe$(EXEEXT) \
+    apss$(EXEEXT) \
+    arenacv$(EXEEXT) \
+    awlut$(EXEEXT) \
+    awluthe$(EXEEXT) \
+    awlutth$(EXEEXT) \
+    btcv$(EXEEXT) \
+    bttest$(EXEEXT) \
+    djbench$(EXEEXT) \
+    extcon$(EXEEXT) \
+    finalcv$(EXEEXT) \
+    finaltest$(EXEEXT) \
+    fotest$(EXEEXT) \
+    gcbench$(EXEEXT) \
+    landtest$(EXEEXT) \
+    locbwcss$(EXEEXT) \
+    lockcov$(EXEEXT) \
+    lockut$(EXEEXT) \
+    locusss$(EXEEXT) \
+    locv$(EXEEXT) \
+    messtest$(EXEEXT) \
+    mpmss$(EXEEXT) \
+    mpsicv$(EXEEXT) \
+    mv2test$(EXEEXT) \
+    nailboardtest$(EXEEXT) \
+    poolncv$(EXEEXT) \
+    qs$(EXEEXT) \
+    sacss$(EXEEXT) \
+    segsmss$(EXEEXT) \
+    sncss$(EXEEXT) \
+    steptest$(EXEEXT) \
+    tagtest$(EXEEXT) \
+    teletest$(EXEEXT) \
+    walkt0$(EXEEXT) \
+    zcoll$(EXEEXT) \
+    zmess$(EXEEXT) \
+    ztfm$(EXEEXT)
+
+# Another deviation: MS-Windows doesn't have 'fork'.
+ifneq ($(PFM),w3i3gc)
+ifneq ($(PFM),w3i6gc)
+TEST_TARGETS += forktest$(EXEEXT)
+endif
+endif
 
 # This target records programs that we were once able to build but
 # can't at the moment:
 
 UNBUILDABLE_TARGETS=\
-    replay # depends on the EPVM pool
+    replay$(EXEEXT) # depends on the EPVM pool
 
 ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
 
@@ -454,154 +468,154 @@ $(PFM)/cool/mps.a: $(MPMOBJ)
 
 ifdef VARIETY
 
-$(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
+$(PFM)/$(VARIETY)/abqtest$(EXEEXT): $(PFM)/$(VARIETY)/abqtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/addrobj: $(PFM)/$(VARIETY)/addrobj.o \
+$(PFM)/$(VARIETY)/addrobj$(EXEEXT): $(PFM)/$(VARIETY)/addrobj.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/airtest: $(PFM)/$(VARIETY)/airtest.o \
+$(PFM)/$(VARIETY)/airtest$(EXEEXT): $(PFM)/$(VARIETY)/airtest.o \
 	$(FMTSCMOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
+$(PFM)/$(VARIETY)/amcss$(EXEEXT): $(PFM)/$(VARIETY)/amcss.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/amcsshe: $(PFM)/$(VARIETY)/amcsshe.o \
+$(PFM)/$(VARIETY)/amcsshe$(EXEEXT): $(PFM)/$(VARIETY)/amcsshe.o \
 	$(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/amcssth: $(PFM)/$(VARIETY)/amcssth.o \
+$(PFM)/$(VARIETY)/amcssth$(EXEEXT): $(PFM)/$(VARIETY)/amcssth.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
+$(PFM)/$(VARIETY)/amsss$(EXEEXT): $(PFM)/$(VARIETY)/amsss.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/amssshe: $(PFM)/$(VARIETY)/amssshe.o \
+$(PFM)/$(VARIETY)/amssshe$(EXEEXT): $(PFM)/$(VARIETY)/amssshe.o \
 	$(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/apss: $(PFM)/$(VARIETY)/apss.o \
+$(PFM)/$(VARIETY)/apss$(EXEEXT): $(PFM)/$(VARIETY)/apss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
+$(PFM)/$(VARIETY)/arenacv$(EXEEXT): $(PFM)/$(VARIETY)/arenacv.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
+$(PFM)/$(VARIETY)/awlut$(EXEEXT): $(PFM)/$(VARIETY)/awlut.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/awluthe: $(PFM)/$(VARIETY)/awluthe.o \
+$(PFM)/$(VARIETY)/awluthe$(EXEEXT): $(PFM)/$(VARIETY)/awluthe.o \
         $(FMTHETSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
+$(PFM)/$(VARIETY)/awlutth$(EXEEXT): $(PFM)/$(VARIETY)/awlutth.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/btcv: $(PFM)/$(VARIETY)/btcv.o \
+$(PFM)/$(VARIETY)/btcv$(EXEEXT): $(PFM)/$(VARIETY)/btcv.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/bttest: $(PFM)/$(VARIETY)/bttest.o \
+$(PFM)/$(VARIETY)/bttest$(EXEEXT): $(PFM)/$(VARIETY)/bttest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/djbench: $(PFM)/$(VARIETY)/djbench.o \
+$(PFM)/$(VARIETY)/djbench$(EXEEXT): $(PFM)/$(VARIETY)/djbench.o \
 	$(TESTLIBOBJ) $(TESTTHROBJ)
 
-$(PFM)/$(VARIETY)/extcon: $(PFM)/$(VARIETY)/extcon.o \
+$(PFM)/$(VARIETY)/extcon$(EXEEXT): $(PFM)/$(VARIETY)/extcon.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
+$(PFM)/$(VARIETY)/finalcv$(EXEEXT): $(PFM)/$(VARIETY)/finalcv.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/finaltest: $(PFM)/$(VARIETY)/finaltest.o \
+$(PFM)/$(VARIETY)/finaltest$(EXEEXT): $(PFM)/$(VARIETY)/finaltest.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/forktest: $(PFM)/$(VARIETY)/forktest.o \
+$(PFM)/$(VARIETY)/forktest$(EXEEXT): $(PFM)/$(VARIETY)/forktest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/fotest: $(PFM)/$(VARIETY)/fotest.o \
+$(PFM)/$(VARIETY)/fotest$(EXEEXT): $(PFM)/$(VARIETY)/fotest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/gcbench: $(PFM)/$(VARIETY)/gcbench.o \
+$(PFM)/$(VARIETY)/gcbench$(EXEEXT): $(PFM)/$(VARIETY)/gcbench.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ)
 
-$(PFM)/$(VARIETY)/landtest: $(PFM)/$(VARIETY)/landtest.o \
+$(PFM)/$(VARIETY)/landtest$(EXEEXT): $(PFM)/$(VARIETY)/landtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/locbwcss: $(PFM)/$(VARIETY)/locbwcss.o \
+$(PFM)/$(VARIETY)/locbwcss$(EXEEXT): $(PFM)/$(VARIETY)/locbwcss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
+$(PFM)/$(VARIETY)/lockcov$(EXEEXT): $(PFM)/$(VARIETY)/lockcov.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/lockut: $(PFM)/$(VARIETY)/lockut.o \
+$(PFM)/$(VARIETY)/lockut$(EXEEXT): $(PFM)/$(VARIETY)/lockut.o \
 	$(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/locusss: $(PFM)/$(VARIETY)/locusss.o \
+$(PFM)/$(VARIETY)/locusss$(EXEEXT): $(PFM)/$(VARIETY)/locusss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
+$(PFM)/$(VARIETY)/locv$(EXEEXT): $(PFM)/$(VARIETY)/locv.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/messtest: $(PFM)/$(VARIETY)/messtest.o \
+$(PFM)/$(VARIETY)/messtest$(EXEEXT): $(PFM)/$(VARIETY)/messtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/mpmss: $(PFM)/$(VARIETY)/mpmss.o \
+$(PFM)/$(VARIETY)/mpmss$(EXEEXT): $(PFM)/$(VARIETY)/mpmss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
+$(PFM)/$(VARIETY)/mpsicv$(EXEEXT): $(PFM)/$(VARIETY)/mpsicv.o \
 	$(FMTDYTSTOBJ) $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
+$(PFM)/$(VARIETY)/mv2test$(EXEEXT): $(PFM)/$(VARIETY)/mv2test.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/nailboardtest: $(PFM)/$(VARIETY)/nailboardtest.o \
+$(PFM)/$(VARIETY)/nailboardtest$(EXEEXT): $(PFM)/$(VARIETY)/nailboardtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
+$(PFM)/$(VARIETY)/poolncv$(EXEEXT): $(PFM)/$(VARIETY)/poolncv.o \
 	$(POOLNOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/qs: $(PFM)/$(VARIETY)/qs.o \
+$(PFM)/$(VARIETY)/qs$(EXEEXT): $(PFM)/$(VARIETY)/qs.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/sacss: $(PFM)/$(VARIETY)/sacss.o \
+$(PFM)/$(VARIETY)/sacss$(EXEEXT): $(PFM)/$(VARIETY)/sacss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
+$(PFM)/$(VARIETY)/segsmss$(EXEEXT): $(PFM)/$(VARIETY)/segsmss.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/sncss: $(PFM)/$(VARIETY)/sncss.o \
+$(PFM)/$(VARIETY)/sncss$(EXEEXT): $(PFM)/$(VARIETY)/sncss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/steptest: $(PFM)/$(VARIETY)/steptest.o \
+$(PFM)/$(VARIETY)/steptest$(EXEEXT): $(PFM)/$(VARIETY)/steptest.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/tagtest: $(PFM)/$(VARIETY)/tagtest.o \
+$(PFM)/$(VARIETY)/tagtest$(EXEEXT): $(PFM)/$(VARIETY)/tagtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/teletest: $(PFM)/$(VARIETY)/teletest.o \
+$(PFM)/$(VARIETY)/teletest$(EXEEXT): $(PFM)/$(VARIETY)/teletest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/walkt0: $(PFM)/$(VARIETY)/walkt0.o \
+$(PFM)/$(VARIETY)/walkt0$(EXEEXT): $(PFM)/$(VARIETY)/walkt0.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/zcoll: $(PFM)/$(VARIETY)/zcoll.o \
+$(PFM)/$(VARIETY)/zcoll$(EXEEXT): $(PFM)/$(VARIETY)/zcoll.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
+$(PFM)/$(VARIETY)/zmess$(EXEEXT): $(PFM)/$(VARIETY)/zmess.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/ztfm: $(PFM)/$(VARIETY)/ztfm.o \
+$(PFM)/$(VARIETY)/ztfm$(EXEEXT): $(PFM)/$(VARIETY)/ztfm.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/mpseventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
+$(PFM)/$(VARIETY)/mpseventcnv$(EXEEXT): $(PFM)/$(VARIETY)/eventcnv.o \
   $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/mpseventpy: $(PFM)/$(VARIETY)/eventpy.o \
+$(PFM)/$(VARIETY)/mpseventpy$(EXEEXT): $(PFM)/$(VARIETY)/eventpy.o \
   $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/mpseventtxt: $(PFM)/$(VARIETY)/eventtxt.o \
+$(PFM)/$(VARIETY)/mpseventtxt$(EXEEXT): $(PFM)/$(VARIETY)/eventtxt.o \
   $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/mpseventsql: $(PFM)/$(VARIETY)/eventsql.o \
+$(PFM)/$(VARIETY)/mpseventsql$(EXEEXT): $(PFM)/$(VARIETY)/eventsql.o \
   $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
+$(PFM)/$(VARIETY)/replay$(EXEEXT): $(PFM)/$(VARIETY)/replay.o \
   $(PFM)/$(VARIETY)/eventrep.o \
   $(PFM)/$(VARIETY)/table.o \
   $(PFM)/$(VARIETY)/mps.a
@@ -662,18 +676,18 @@ ifdef TARGET
 # %%VARIETY: When adding a new variety, add the dependencies files for it
 # here.
 ifeq ($(VARIETY),rash)
-include $(PFM)/$(VARIETY)/mps.d
+-include $(PFM)/$(VARIETY)/mps.d
 else
 ifeq ($(VARIETY),hot)
-include $(PFM)/$(VARIETY)/mps.d
+-include $(PFM)/$(VARIETY)/mps.d
 else
-include $(MPM:%.c=$(PFM)/$(VARIETY)/%.d)
+-include $(MPM:%.c=$(PFM)/$(VARIETY)/%.d)
 endif # VARIETY != hot
 endif # VARIETY != rash
 
 # %%PART: When adding a new part, add the dependencies file for the
 # new part here.
-include \
+-include \
     $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d) \
     $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.d) \
     $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.d) \
@@ -704,11 +718,11 @@ $(PFM)/$(VARIETY)/%.a:
 
 # Executable
 
-$(PFM)/$(VARIETY)/%:
+$(PFM)/$(VARIETY)/%$(EXEEXT):
 	$(ECHO) "$(PFM): $@"
 	$(CC) $(CFLAGSSTRICT) $(LINKFLAGS) -o $@ $^ $(LIBS)
 
-$(PFM)/$(VARIETY)/mpseventsql:
+$(PFM)/$(VARIETY)/mpseventsql$(EXEEXT):
 	$(ECHO) "$(PFM): $@"
 	$(CC) $(CFLAGSLAX) $(LINKFLAGS) -o $@ $^ $(LIBS) -lsqlite3
 

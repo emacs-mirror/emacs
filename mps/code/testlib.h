@@ -67,11 +67,11 @@
 
 /* alloca -- memory allocator
  *
- * Windows calls this function _alloca() instead of alloca().
+ * Windows (but not MinGW) calls this function _alloca() instead of alloca().
  * <https://docs.microsoft.com/en-gb/cpp/c-runtime-library/reference/alloca>
  */
 
-#if defined(MPS_OS_W3)
+#if defined(MPS_OS_W3) && !defined(__GNUC__)
 
 #define alloca _alloca
 
@@ -82,11 +82,12 @@
  *
  * Windows lacks setenv(), but _putenv_s() has similar functionality.
  * <https://docs.microsoft.com/en-gb/cpp/c-runtime-library/reference/putenv-s-wputenv-s>
+ * mingw.org's MinGW does have setenv, but MinGW64 doesn't.
  *
  * This macro version may evaluate the name argument twice.
  */
 
-#if defined(MPS_OS_W3)
+#if defined(MPS_OS_W3) && !defined(MPS_PF_W3I3GC)
 
 #define setenv(name, value, overwrite) \
     (((overwrite) || !getenv(name)) ? _putenv_s(name, value) : 0)
@@ -118,8 +119,13 @@
 #define SCNuLONGEST "llu"
 #define SCNXLONGEST "llX"
 #define PRIXLONGEST "llX"
+#ifdef __GNUC__
+typedef unsigned __int64 ulongest_t;
+typedef __int64 longest_t;
+#else
 typedef unsigned long long ulongest_t;
 typedef long long longest_t;
+#endif
 #define MPS_WORD_CONST(n) (n##ull)
 #else
 #define PRIuLONGEST "lu"

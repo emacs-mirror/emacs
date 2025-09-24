@@ -20,6 +20,11 @@ SRCID(mpsiw3, "$Id$");
 /* This is defined in protw3.c */
 extern LONG WINAPI ProtSEHfilter(LPEXCEPTION_POINTERS info);
 
+/* These seem to be unused, but MinGW GCC complains about lack of
+   previous prototype.  */
+LONG mps_SEH_filter(LPEXCEPTION_POINTERS, void **, size_t *);
+void mps_SEH_handler(void *, size_t);
+
 LONG mps_SEH_filter(LPEXCEPTION_POINTERS info,
                     void **hp_o, size_t *hs_o)
 {
