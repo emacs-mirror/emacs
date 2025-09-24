@@ -5594,7 +5594,7 @@ and make sexp navigation more intuitive.
 The list of prompts activating this mode in specific minibuffer
 interactions is customizable via `minibuffer-regexp-prompts'."
   :global t
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-delay
   :init-value t
   (if minibuffer-regexp-mode
       (progn
@@ -5635,7 +5635,9 @@ becomes selected."
       (with-current-buffer (window-buffer window)
         (when (overlayp minibuffer--nonselected-overlay)
           (delete-overlay minibuffer--nonselected-overlay)))
-    (unless (eq major-mode #'completion-list-mode)
+    (unless (eq (buffer-local-value 'completion-reference-buffer
+                                    (window-buffer (selected-window)))
+                (window-buffer (active-minibuffer-window)))
       (with-current-buffer (window-buffer window)
         (let ((ov (make-overlay (point-min) (point-max))))
           (overlay-put ov 'face 'minibuffer-nonselected)
