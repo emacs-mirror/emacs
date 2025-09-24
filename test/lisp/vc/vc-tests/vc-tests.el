@@ -881,15 +881,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               ;; Should take the author, date but not the comment from
               ;; PATCH-STRING.
               (let ((patch-string (get-patch-string)))
-                ;; FIXME: We shouldn't need to branch here.  Git should
-                ;; update the working tree after making the commit.
-                (cl-case backend
-                  (Git (with-current-buffer buf
-                         (vc-checkin (list file) backend)
-                         (insert "Revert modification, second time")
-                         (let (vc-async-checkin)
-                           (log-edit-done))))
-                  (t (revert "Revert modification, second time")))
+                (revert "Revert modification, second time")
                 (vc-call-backend backend 'checkin-patch patch-string desc2))
               (check author date desc2))
 

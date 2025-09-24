@@ -1122,8 +1122,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
        ("Sign-Off" . ,(boolean-arg-fn "--signoff")))
      comment)))
 
-(defmacro vc-git--with-apply-temp-to-staging (temp &rest body)
-  (declare (indent 1) (debug (symbolp body)))
+(cl-defmacro vc-git--with-apply-temp ((temp &rest args) &body body)
+  (declare (indent 1))
   `(let ((,temp (make-nearby-temp-file ,(format "git-%s" temp))))
      (unwind-protect (progn ,@body
                             ;; This uses `file-local-name' to strip the
@@ -1131,7 +1131,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                             ;; because we've had at least one problem
                             ;; report where relativizing the file name
                             ;; meant that Git failed to find it.
-                            (vc-git-command nil 0 nil "apply" "--cached"
+                            (vc-git-command nil 0 nil "apply"
+                                            ,@(or args '("--cached"))
                                             (file-local-name ,temp)))
        (delete-file ,temp))))
 
@@ -1235,7 +1236,7 @@ It is an error to supply both or neither."
                 ;; to have the Unix EOL format, because Git expects
                 ;; that, even on Windows.
                 (or pcsw vc-git-commits-coding-system) 'unix)))
-          (vc-git--with-apply-temp-to-staging patch
+          (vc-git--with-apply-temp (patch)
             (with-temp-file patch
               (insert patch-string)))))
       (when to-stash (vc-git--stash-staged-changes to-stash)))
@@ -1246,8 +1247,29 @@ It is an error to supply both or neither."
            (lambda ()
              (when (and msg-file (file-exists-p msg-file))
                (delete-file msg-file))
+             ;; If PATCH-STRING didn't come from C-x v = or C-x v D, we
+             ;; now need to update the working tree to include the
+             ;; changes from the commit we just created.
+             ;; If there are conflicts we want to favor the working
+             ;; tree's version and the version from the commit will just
+             ;; show up in the diff of uncommitted changes.
+             ;;
+             ;; 'git apply --3way --ours' is the way Git provides to
+             ;; achieve this.  This requires that the index match the
+             ;; working tree and also implies the --index option, which
+             ;; means applying the changes to the index in addition to
+             ;; the working tree.  These are both okay here because
+             ;; before doing this we know the index is empty (we just
+             ;; committed) and so we can just make use of it and reset
+             ;; afterwards.
+             (when patch-string
+               (vc-git-command nil 0 nil "add" "--all")
+               (vc-git--with-apply-temp (patch "--3way" "--ours")
+                 (with-temp-file patch
+                   (insert patch-string)))
+               (vc-git-command nil 0 nil "reset"))
              (when to-stash
-               (vc-git--with-apply-temp-to-staging cached
+               (vc-git--with-apply-temp (cached)
                  (with-temp-file cached
                    (vc-git-command t 0 nil "stash" "show" "-p")))
                (vc-git-command nil 0 nil "stash" "drop")))))
@@ -1391,7 +1413,7 @@ REV is ignored."
                 (unwind-protect
                     (progn
                       (vc-git-command nil 0 nil "read-tree" "HEAD")
-                      ;; See `vc-git--with-apply-temp-to-staging'
+                      ;; See `vc-git--with-apply-temp'
                       ;; regarding use of `file-local-name'.
                       (vc-git-command nil 0 nil "apply" "--cached"
                                       (file-local-name cached))

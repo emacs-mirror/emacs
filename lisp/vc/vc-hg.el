@@ -1255,23 +1255,30 @@ It is an error to supply both or neither."
                   (cond (msg-file (cl-list* "-l" (file-local-name msg-file)
                                             (cdr args)))
                         (args (cons "-m" args)))))
-          (post (lambda ()
-                  (when (and msg-file (file-exists-p msg-file))
-                    (delete-file msg-file))
-                  (when (and patch-file (file-exists-p patch-file))
-                    (delete-file patch-file))
-                  ;; When committing a patch we run 'hg import' and
-                  ;; then 'hg update'.  We have 'hg update' here in the
-                  ;; always-synchronous `post' function because we
-                  ;; assume that 'hg import' is the one that might be
-                  ;; slow and so benefits most from `vc-async-checkin'.
-                  ;; If in fact both the 'hg import' and the 'hg
-                  ;; update' can be slow, then we need to make both of
-                  ;; them part of the async command, possibly by
-                  ;; writing out a tiny shell script (bug#79235).
-                  (when patch-file
-                    (vc-hg-command nil 0 nil "update" "--merge"
-                                   "--tool" "internal:local" "tip")))))
+          (post
+           (lambda ()
+             (when (and msg-file (file-exists-p msg-file))
+               (delete-file msg-file))
+             (when (and patch-file (file-exists-p patch-file))
+               (delete-file patch-file))
+             ;; If PATCH-STRING didn't come from C-x v = or C-x v D, we
+             ;; now need to update the working tree to include the
+             ;; changes from the commit we just created.
+             ;; If there are conflicts we want to favor the working
+             ;; tree's version and the version from the commit will just
+             ;; show up in the diff of uncommitted changes.
+             ;;
+             ;; When committing a patch we run two commands, 'hg import'
+             ;; and then 'hg update'.  We have 'hg update' here in the
+             ;; always-synchronous `post' function because we assume
+             ;; that 'hg import' is the one that might be slow and so
+             ;; benefits most from `vc-async-checkin'.  If in fact both
+             ;; the 'hg import' and the 'hg update' can be slow, then we
+             ;; need to make both of them part of the async command,
+             ;; possibly by writing out a tiny shell script (bug#79235).
+             (when patch-file
+               (vc-hg-command nil 0 nil "update" "--merge"
+                              "--tool" "internal:local" "tip")))))
       (if vc-async-checkin
           (let ((buffer (vc-hg--async-buffer)))
             (vc-wait-for-process-before-save
