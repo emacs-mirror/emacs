@@ -391,7 +391,6 @@ completions.
 If the prefix argument is 16 (which comes from \\[universal-argument] \\[universal-argument]),
 then it searches *all* buffers."
   (interactive "*P")
-  (dabbrev--reset-global-variables)
   (setq dabbrev--check-other-buffers (and arg t))
   (setq dabbrev--check-all-buffers
         (and arg (= (prefix-numeric-value arg) 16)))
@@ -400,8 +399,7 @@ then it searches *all* buffers."
 
 (defun dabbrev-capf ()
   "Dabbrev completion function for `completion-at-point-functions'."
-  (or (stringp dabbrev--abbrev-char-regexp)
-      (dabbrev--reset-global-variables))
+  (dabbrev--reset-global-variables)
   (let* ((abbrev (dabbrev--abbrev-at-point))
          (beg (progn (search-backward abbrev) (point)))
          (end (progn (search-forward abbrev) (point)))
