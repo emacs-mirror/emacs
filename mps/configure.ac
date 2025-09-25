@@ -226,10 +226,6 @@ AC_CONFIG_COMMANDS(
 
 AC_OUTPUT
 
-echo 1>&2 "CONFIGURE/MAKE IS NOT THE BEST WAY TO BUILD THE MPS
--- see <manual/build.txt> for alternative approaches"
-
-
 # C. COPYRIGHT AND LICENSE
 #
 # Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
