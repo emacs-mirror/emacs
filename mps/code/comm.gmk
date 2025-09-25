@@ -354,8 +354,8 @@ printf "Performance ratio (hot/rash) for $(2): %d%%\n" $$RATIO
 endef
 
 testratio: phony
-	$(MAKE) -f $(PFM).gmk VARIETY=hot djbench gcbench
-	$(MAKE) -f $(PFM).gmk VARIETY=rash djbench gcbench
+	$(MAKE) -f $(PFM).gmk VARIETY=hot djbench$(EXEEXT) gcbench$(EXEEXT)
+	$(MAKE) -f $(PFM).gmk VARIETY=rash djbench$(EXEEXT) gcbench$(EXEEXT)
 	$(call ratio,gcbench,amc)
 	$(call ratio,djbench,mvff)
 
