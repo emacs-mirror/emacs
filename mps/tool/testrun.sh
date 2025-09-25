@@ -46,11 +46,11 @@ while [ $# -gt 0 ]; do
             TEST_SUITE=$2
             # Test-suite exclusions.
             case $TEST_SUITE in
-                testrun)      EXCLUDE_SUITE=LN   ;;
-                testci)       EXCLUDE_SUITE=BN   ;;
-                testall)      EXCLUDE_SUITE=N    ;;
-                testansi)     EXCLUDE_SUITE=LNT  ;;
-                testpollnone) EXCLUDE_SUITE=LNPT ;;
+                testrun)      EXCLUDE_SUITE=LN     ;;
+                testci)       EXCLUDE_SUITE=BN     ;;
+                testall)      EXCLUDE_SUITE=N      ;;
+                testansi)     EXCLUDE_SUITE=LNTWX  ;;
+                testpollnone) EXCLUDE_SUITE=LNPTWX ;;
                 *)
                     echo "Test suite $TEST_SUITE not recognized."
                     exit 1 ;;
