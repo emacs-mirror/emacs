@@ -1123,7 +1123,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
      comment)))
 
 (cl-defmacro vc-git--with-apply-temp
-    ((temp &optional buffer &rest args) &body body)
+    ((temp &optional buffer okstatus &rest args) &body body)
   (declare (indent 1))
   `(let ((,temp (make-nearby-temp-file ,(format "git-%s" temp))))
      (unwind-protect (progn ,@body
@@ -1132,7 +1132,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                             ;; because we've had at least one problem
                             ;; report where relativizing the file name
                             ;; meant that Git failed to find it.
-                            (vc-git-command ,buffer 0 nil "apply"
+                            (vc-git-command ,buffer ,(or okstatus 0)
+                                            nil "apply"
                                             ,@(or args '("--cached"))
                                             (file-local-name ,temp)))
        (delete-file ,temp))))
@@ -1266,7 +1267,7 @@ It is an error to supply both or neither."
              (when patch-string
                (vc-git-command nil 0 nil "add" "--all")
                (with-temp-buffer
-                 (vc-git--with-apply-temp (patch t "--3way")
+                 (vc-git--with-apply-temp (patch t 1 "--3way")
                    (with-temp-file patch
                      (insert patch-string)))
                  ;; We could delete the following if we could also pass
