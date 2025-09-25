@@ -1122,12 +1122,13 @@ fontified."
                                        "body"))
                        (throw 'break 'font-lock-doc-face))
 
-                     (let ((idx 0))
-                       (while (< idx cursor-idx)
-                         (unless (equal (treesit-node-type
-                                         (treesit-node-child parent idx))
-                                        "comment")
-                           (throw 'break 'font-lock-string-face))))
+                     ;; If there's any non-comment sibling before
+                     ;; cursor, the string isn't a docstring.
+                     (dotimes (idx cursor-idx)
+                       (unless (equal (treesit-node-type
+                                       (treesit-node-child parent idx))
+                                      "comment")
+                         (throw 'break 'font-lock-string-face)))
                      (setq cursor parent)))))
          (ignore-interpolation
           (not (seq-some
