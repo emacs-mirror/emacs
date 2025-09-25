@@ -196,9 +196,9 @@ Returns nil when we can't find this char."
   "List of actions to indent.
 
 The valid elements of this list can be:
- - yank: Indent the yanked text only if point is not in a string or
+ - `yank': Indent the yanked text only if point is not in a string or
          comment and yanked region is longer than 1 line.
- - save: Indent the whole buffer before saving it.
+ - `before-save': Indent the whole buffer before saving it.
 
 The indentation will not happen when the major mode is unable to
 reindent code reliably, such as in buffers where indentation is

@@ -737,6 +737,12 @@ To use this, add a list to both electric pair user options: '("/*" . "*/")'.
 You can also specify to insert an extra space after the first string
 pair: '("/*" " */" t)'.
 
+---
+** New user option 'electric-indent-actions'.
+This user options specifies a list of actions to reindent.  The possible
+elements for this list are: 'yank', reindent the yanked text;
+'before-save', indent the whole buffer before saving it.
+
 +++
 ** You can now use 'M-~' during 'C-x s' ('save-some-buffers').
 Typing 'M-~' while saving some buffers means not to save the buffer and
