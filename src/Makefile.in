@@ -592,7 +592,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(PGTK_LIBS) $(LIBX_BASE) $(LIBIMAGE
    $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS) \
    $(LIBGMP) $(LIBGCCJIT_LIBS) $(XINPUT_LIBS) $(HAIKU_LIBS) \
    $(TREE_SITTER_LIBS) $(SQLITE3_LIBS) $(XCOMPOSITE_LIBS) $(XSHAPE_LIBS) \
-   $(ANDROID_LIBS) $(LIBMPS)
+   $(ANDROID_LIBS)
 
 ## FORCE it so that admin/unidata can decide whether this file is
 ## up-to-date.  Although since charprop depends on bootstrap-emacs,
