@@ -1,0 +1,44 @@
+			    How to test MPS
+			    ---------------
+
+When you first build MPS on your system, it is advisable to run the MPS
+test suite, to make sure the library is working on your platform and
+configuration.  This file gives short "cook-book style" instructions for
+how to do that.
+
+First, build the MP library locally, as described in manual/build.txt,
+under "Running make".  For example, for 64-bit GNU/Linux using x86_64
+and GCC:
+
+  $ cd code
+  $ make -f lii6gc.gmk
+
+This builds the mps.a library locally in the subdirectories of 'code',
+and also builds several test programs.
+
+Then you can run the test suite.  On Posix systems:
+
+  $ cd code
+  $ make -f <platform>.gmk <test-suite>
+
+On MS-Windows:
+
+  > cd code
+  > ..\tool\testrun.bat <platform> <test-suite>
+
+Here:
+       <platform>   is as used in the build above, but without the .gmk
+                    extension (e.g., lii6gc for 64-bit GNU/Linux+GCC,
+                    w3i6gc for 64-bit MinGW build on Windows, etc.)
+       <test-suite> is the part of the test suite to run, see below
+
+The important test suites to use are:
+
+  testrun -- the so-called "smoke tests", a subset of tests that quickly
+             checks that main functionalities of MPS are working
+  testci  -- all of the tests that are known to pass
+  testall -- all the tests, even those known to fail
+
+There are additional test subsets, and it is also possible to run the
+tests only on the "cool" or the "hot" builds of the library.  See the
+file design/tests.txt for more details.
