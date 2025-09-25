@@ -11,8 +11,8 @@ amsss          =P
 amssshe        =P
 apss
 arenacv
-awlut
-awluthe
+awlut          =T
+awluthe        =T
 awlutth        =T
 btcv
 bttest         =N                interactive
