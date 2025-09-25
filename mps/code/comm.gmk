@@ -310,10 +310,8 @@ TEST_TARGETS=\
     ztfm$(EXEEXT)
 
 # Another deviation: MS-Windows doesn't have 'fork'.
-ifneq ($(PFM),w3i3gc)
-ifneq ($(PFM),w3i6gc)
+ifeq ($(findstring $(PFM),w3i3gc w3i6gc anangc),)
 TEST_TARGETS += forktest$(EXEEXT)
-endif
 endif
 
 # This target records programs that we were once able to build but
