@@ -33,6 +33,12 @@ case $(uname -m) in
     *) EXCLUDE_ARCH= ;;
 esac
 
+# OS exclusions.
+case $(uname -o) in
+    Msys) EXCLUDE_OS=X ;;
+    *) EXCLUDE_OS=W ;;
+esac
+
 # Parse command-line arguments.
 while [ $# -gt 0 ]; do
     case $1 in
@@ -40,19 +46,20 @@ while [ $# -gt 0 ]; do
             TEST_SUITE=$2
             # Test-suite exclusions.
             case $TEST_SUITE in
-                testrun)      EXCLUDE_SUITE=LNW   ;;
-                testci)       EXCLUDE_SUITE=BNW   ;;
-                testall)      EXCLUDE_SUITE=NW    ;;
-                testansi)     EXCLUDE_SUITE=LNTW  ;;
-                testpollnone) EXCLUDE_SUITE=LNPTW ;;
+                testrun)      EXCLUDE_SUITE=LN   ;;
+                testci)       EXCLUDE_SUITE=BN   ;;
+                testall)      EXCLUDE_SUITE=N    ;;
+                testansi)     EXCLUDE_SUITE=LNT  ;;
+                testpollnone) EXCLUDE_SUITE=LNPT ;;
                 *)
                     echo "Test suite $TEST_SUITE not recognized."
                     exit 1 ;;
             esac
             echo "Test suite: $TEST_SUITE"
             TEST_CASE_DB=$(dirname -- "$0")/testcases.txt
+	    EXCLUDE_FLAGS=${EXCLUDE_ARCH}${EXCLUDE_OS}${EXCLUDE_SUITE}
             TEST_CASES=$(<"$TEST_CASE_DB" grep -e '^[a-z]' |
-                             grep -v -e "=[${EXCLUDE_ARCH}${EXCLUDE_SUITE}]" |
+                             grep -v -e "=[${EXCLUDE_FLAGS}]" |
                              cut -d' ' -f1)
             shift 2
             ;;
