@@ -36,7 +36,7 @@
  * Then Microsoft made unsigned long shorter than a pointer on Win64.  Ugh.
  */
 
-#if defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
+#if (defined(_MSC_VER) || defined(__GNUC__)) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
 typedef unsigned __int64 mps_word_t;
 #else
 typedef unsigned long mps_word_t;
