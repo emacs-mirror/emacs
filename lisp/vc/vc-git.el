@@ -1122,7 +1122,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
        ("Sign-Off" . ,(boolean-arg-fn "--signoff")))
      comment)))
 
-(cl-defmacro vc-git--with-apply-temp ((temp &rest args) &body body)
+(cl-defmacro vc-git--with-apply-temp
+    ((temp &optional buffer &rest args) &body body)
   (declare (indent 1))
   `(let ((,temp (make-nearby-temp-file ,(format "git-%s" temp))))
      (unwind-protect (progn ,@body
@@ -1131,7 +1132,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                             ;; because we've had at least one problem
                             ;; report where relativizing the file name
                             ;; meant that Git failed to find it.
-                            (vc-git-command nil 0 nil "apply"
+                            (vc-git-command ,buffer 0 nil "apply"
                                             ,@(or args '("--cached"))
                                             (file-local-name ,temp)))
        (delete-file ,temp))))
@@ -1264,9 +1265,26 @@ It is an error to supply both or neither."
              ;; afterwards.
              (when patch-string
                (vc-git-command nil 0 nil "add" "--all")
-               (vc-git--with-apply-temp (patch "--3way" "--ours")
-                 (with-temp-file patch
-                   (insert patch-string)))
+               (with-temp-buffer
+                 (vc-git--with-apply-temp (patch t "--3way")
+                   (with-temp-file patch
+                     (insert patch-string)))
+                 ;; We could delete the following if we could also pass
+                 ;; --ours to git-apply, but that is only available in
+                 ;; recent versions of Git.  --3way is much older.
+                 (cl-loop
+                  initially (goto-char (point-min))
+                  ;; git-apply doesn't apply Git's usual quotation and
+                  ;; escape rules for printing file names so we can do
+                  ;; this simple regexp processing.
+                  ;; (Passing -z does not affect the relevant output.)
+                  while (re-search-forward "^U " nil t)
+                  collect (buffer-substring-no-properties (point)
+                                                          (pos-eol))
+                  into paths
+                  finally (when paths
+                            (vc-git-command nil 0 paths
+                                            "checkout" "--ours"))))
                (vc-git-command nil 0 nil "reset"))
              (when to-stash
                (vc-git--with-apply-temp (cached)
