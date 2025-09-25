@@ -4796,7 +4796,8 @@ form (NAME NOBJECTS NBYTES LARGEST), where:
 In addition, there are several pseudo-objects which provide overall
 IGC statistics:
  - committed       -- the amount of committed memory in bytes
- - commit-limit    -- max amount of memory the arena is allowed to commit
+ - commit-limit    -- max amount of memory the arena is allowed to commit;
+     the value -1 means no limit
  - spare-committed -- memory which remains committed and which the
      arena is managing as free memory
  - reserved        -- total address space reserved by the arena
@@ -4833,7 +4834,11 @@ IGC statistics:
   result = Fcons (e, result);
   e = make_entry ("spare-committed", 1, mps_arena_spare_committed (gc->arena), 0);
   result = Fcons (e, result);
-  e = make_entry ("commit-limit", 1, mps_arena_commit_limit (gc->arena), 0);
+  size_t commit_limit = mps_arena_commit_limit (gc->arena);
+  /* Don't assume size_t and intmax_t are of the same width.  */
+  e = make_entry ("commit-limit", 1,
+		  commit_limit == SIZE_MAX ? (intmax_t) -1 : commit_limit,
+		  0);
   result = Fcons (e, result);
   e = make_entry ("committed", 1, mps_arena_committed (gc->arena), 0);
   result = Fcons (e, result);
