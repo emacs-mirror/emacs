@@ -5636,8 +5636,8 @@ becomes selected."
         (when (overlayp minibuffer--nonselected-overlay)
           (delete-overlay minibuffer--nonselected-overlay)))
     (unless (eq (buffer-local-value 'completion-reference-buffer
-                                    (window-buffer (selected-window)))
-                (window-buffer (active-minibuffer-window)))
+                                    (window-buffer))
+                (window-buffer window))
       (with-current-buffer (window-buffer window)
         (let ((ov (make-overlay (point-min) (point-max))))
           (overlay-put ov 'face 'minibuffer-nonselected)
