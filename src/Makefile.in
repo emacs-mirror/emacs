@@ -701,7 +701,7 @@ LIBEGNU_ARCHIVE = $(lib)/libgnu.a
 $(LIBEGNU_ARCHIVE): $(config_h)
 	$(MAKE) -C $(dir $@) all
 
-mps.o:
+mps.o: $(config_h)
 	$(AM_V_CC)$(CC) $(CFLAGS) $(MPS_CONFIG) $(DEPFLAGS) \
 	-c $(top_srcdir)/mps/code/mps.c -o $@
 
