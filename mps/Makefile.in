@@ -67,6 +67,11 @@ Makefile: $(srcdir)/Makefile.in config.status
 clean: @CLEAN_TARGET@
 
 config.status: $(srcdir)/configure
+	if [ -x config.status ]; then	\
+	  ./config.status --recheck;	\
+	else				\
+	  $(srcdir)/configure;		\
+	fi
 
 $(srcdir)/configure: $(srcdir)/configure.ac
 	autoreconf -vif $(srcdir)
