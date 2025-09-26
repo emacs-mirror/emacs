@@ -581,7 +581,8 @@ config.status: ${srcdir}/configure
 	    $(CFG) $(srcdir)/configure $(CONFIGURE_FLAGS); \
 	fi
 
-$(srcdir)/configure: $(srcdir)/configure.ac $(srcdir)/m4/*.m4
+$(srcdir)/configure: $(srcdir)/configure.ac $(srcdir)/m4/*.m4 \
+	$(srcdir)/mps/configure.ac $(srcdir)/exec/configure.ac
 	cd $(srcdir) && ./autogen.sh autoconf
 
 # ==================== Installation ====================
