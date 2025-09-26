@@ -883,19 +883,19 @@ The block beginning is adjusted by `hs-adjust-block-beginning'
 and then further adjusted to be at the end of the line."
   (if comment-reg
       (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
-    (let* ((block (hs-block-positions))
-           (p (car-safe block))
-           (q (cdr-safe block))
-           ov)
-      (if (hs-hideable-region-p p q)
-          (progn
-            (cond ((and hs-allow-nesting (setq ov (hs-overlay-at p)))
-                   (delete-overlay ov))
-                  ((not hs-allow-nesting)
-                   (hs-discard-overlays p q)))
-            (goto-char q)
-            (hs-make-overlay p q 'code (- (match-end 0) p)))
-        (goto-char (if end q (min p (match-end 0))))))))
+    (when-let* ((block (hs-block-positions)))
+      (let ((p (car-safe block))
+            (q (cdr-safe block))
+            ov)
+        (if (hs-hideable-region-p p q)
+            (progn
+              (cond ((and hs-allow-nesting (setq ov (hs-overlay-at p)))
+                     (delete-overlay ov))
+                    ((not hs-allow-nesting)
+                     (hs-discard-overlays p q)))
+              (goto-char q)
+              (hs-make-overlay p q 'code (- (match-end 0) p)))
+          (goto-char (if end q (min p (match-end 0)))))))))
 
 (defun hs-inside-comment-p ()
   "Return non-nil if point is inside a comment, otherwise nil.
