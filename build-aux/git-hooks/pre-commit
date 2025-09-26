@@ -73,7 +73,7 @@ while IFS= read -r new_name; do
 done
 
 # Try to keep commits to MPS apart from commits to Emacs
-stats=$(git diff --numstat "$head")
+stats=$(git diff --cached --numstat "$head")
 nmpsfiles=$(printf "%s" "$stats"|grep --count '	mps/')
 nnonmpsfiles=$(printf "%s" "$stats"|grep --count --invert-match '	mps/')
 
