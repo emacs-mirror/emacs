@@ -2186,12 +2186,12 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
       (forward-line 1)
       (setq comment (buffer-substring-no-properties (point) (point-max))))
     (if reverse
-        (format "Summary: %s\n(cherry picked from commit %s)\n"
-                comment rev)
-      (format "Summary: Revert \"%s\"\n\nThis reverts commit %s.\n"
-              (car (split-string comment "\n" t
-                                 split-string-default-separators))
-              rev))))
+        (format "Summary: Revert \"%s\"\n\nThis reverts commit %s.\n"
+                (car (split-string comment "\n" t
+                                   split-string-default-separators))
+                rev)
+      (format "Summary: %s\n(cherry picked from commit %s)\n"
+              comment rev))))
 
 (defun vc-git--assert-allowed-rewrite (rev)
   (when (and (not (and vc-allow-rewriting-published-history
