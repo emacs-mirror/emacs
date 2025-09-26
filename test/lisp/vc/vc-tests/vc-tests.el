@@ -835,7 +835,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                          (with-output-to-string
                            (vc-hg-command standard-output 0 nil "log" "--limit=1"
                                           "--template"
-                                          "{user}\n{date|rfc822date}\n{desc}")))))
+                                          "{author}\n{date|rfc822date}\n{desc}")))))
                      (format "%s\n%s\n%s" author date desc)))))
               ;; (1) Cleanup.
               (add-hook 'vc-test--cleanup-hook
