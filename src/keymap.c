@@ -1721,33 +1721,12 @@ means to return the active maps for that window's buffer.  */)
 	  /* For a mouse click, get the local text-property keymap
 	     of the place clicked on, rather than point.  */
 
-	  if (POSN_INBUFFER_P (position))
-	    {
-	      Lisp_Object pos = POSN_BUFFER_POSN (position);
-	      if (FIXNUMP (pos)
-		  && XFIXNUM (pos) >= BEG && XFIXNUM (pos) <= Z)
-		{
-		  local_map = get_local_map (XFIXNUM (pos),
-					     current_buffer, Qlocal_map);
-
-		  keymap = get_local_map (XFIXNUM (pos),
-					  current_buffer, Qkeymap);
-		}
-	    }
-
-	  Lisp_Object pos_area = POSN_POSN (position);
-	  if (EQ (pos_area, Qmode_line) || EQ (pos_area, Qheader_line))
-	    {
-	      /* For clicks on mode line or header line, ignore the maps
-		 we found at POSITION, because properties at point are
-		 not relevant in that case.  */
-	      local_map = Qnil;
-	      keymap = Qnil;
-	    }
+	  local_map = Qnil;
+	  keymap = Qnil;
 
 	  /* If on a mode line string with a local keymap, or for a
 	     click on a string, i.e. overlay string or a string
-	     displayed via the `display' property, consider only the
+	     displayed via the `display' property, first consider the
 	     `local-map' and `keymap' properties of that string.  */
 
 	  if (CONSP (string) && STRINGP (XCAR (string)))
@@ -1763,6 +1742,26 @@ means to return the active maps for that window's buffer.  */)
 		}
 	    }
 
+	  Lisp_Object buffer_posn = POSN_BUFFER_POSN (position);
+	  /* Then, if the click was in the buffer, get the local
+	     text-property keymap of the place clicked on.  */
+
+	  if (FIXNUMP (buffer_posn)
+	      && XFIXNUM (buffer_posn) >= BEG && XFIXNUM (buffer_posn) <= Z)
+	    {
+	      /* The properties in POSN_STRING take precedence, if set. */
+	      if (NILP (local_map))
+		local_map = get_local_map (XFIXNUM (buffer_posn),
+					   current_buffer, Qlocal_map);
+
+	      if (NILP (keymap))
+		keymap = get_local_map (XFIXNUM (buffer_posn),
+					current_buffer, Qkeymap);
+	    }
+
+	  /* Finally, fall back on the buffer's local map. */
+	  if (NILP (local_map))
+	    local_map = BVAR (current_buffer, keymap);
 	}
 
       if (!NILP (local_map))
