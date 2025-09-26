@@ -520,8 +520,10 @@ stopped because it wouldn't move into a window marked with
 (define-minor-mode windmove-mode
   "Global minor mode for default windmove commands."
   :keymap windmove-mode-map
+  :initialize 'custom-initialize-delay
   :init-value t
-  :global t)
+  :global t
+  :group 'windows)
 
 (defun windmove-install-defaults (prefix modifiers alist &optional uninstall)
   "Install keys as specified by ALIST.
