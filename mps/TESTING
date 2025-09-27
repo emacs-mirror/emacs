@@ -24,13 +24,14 @@ Then you can run the test suite.  On Posix systems:
 On MS-Windows:
 
   > cd code
-  > ..\tool\testrun.bat <platform> <test-suite>
+  > ..\tool\testrun.bat <platform> <variety> <test-suite>
 
 Here:
        <platform>   is as used in the build above, but without the .gmk
                     extension (e.g., lii6gc for 64-bit GNU/Linux+GCC,
                     w3i6gc for 64-bit MinGW build on Windows, etc.)
        <test-suite> is the part of the test suite to run, see below
+       <variety>    is either "cool" or "hot"; we suggest running both
 
 The important test suites to use are:
 
