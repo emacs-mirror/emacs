@@ -11,6 +11,7 @@
 # Autoconf and Automake output
 Makefile
 autom4te.cache
+aclocal.m4
 config.log
 config.status
 .deps
