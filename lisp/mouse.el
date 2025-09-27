@@ -854,40 +854,100 @@ This command must be bound to a mouse click."
            (min (max new-width first-col) last-col)))))))
 
 (defun mouse-drag-line (start-event line)
-  "Drag a mode line, header line, or vertical line with the mouse.
+  "Drag a mode, header, tab or vertical line with the mouse.
 START-EVENT is the starting mouse event of the drag action.  LINE
-must be one of the symbols `header', `mode', or `vertical'."
+must be one of the symbols `header', `mode', `tab' or `vertical'."
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
+  ;; The earlier version of this was based on using the position of the
+  ;; start event for each sampled mouse movement.  That approach had the
+  ;; disadvantage that when, for example, dragging the mode line down,
+  ;; the 'posn-window' of that event was usually the window below the
+  ;; mode line and its coordinates were relative to that window.  So we
+  ;; had to add position and height of the window above the mode line in
+  ;; order to get a meaningful value for comparing the old and current
+  ;; mouse position.  However, when a user changed the direction during
+  ;; dragging, the mouse moved into the window above the mode line and
+  ;; the relative position changed to one of that window too.  Since
+  ;; keeping track of these changes was tricky, we now simply use
+  ;; absolute mouse positions and do not care about the window at the
+  ;; mouse position any more.
   (let* ((echo-keystrokes 0)
 	 (start (event-start start-event))
 	 (window (posn-window start))
 	 (frame (window-frame window))
-	 ;; `position' records the x- or y-coordinate of the last
-	 ;; sampled position.
+	 ;; tty is needed because `mouse-absolute-pixel-position' does
+	 ;; not return a meaningful value on ttys so there we have to
+	 ;; use `mouse-position-in-root-frame'.
+	 (tty (tty-type frame))
+	 ;; 'charwise' means to drag by character sizes on graphical
+	 ;; displays.
+	 (charwise (not (or window-resize-pixelwise tty)))
+	 ;; The initial absolute position of the mouse.  We
+	 ;; intentionally do not use the value of 'posn-x-y' of
+	 ;; START-EVENT here because that would give us coordinates for
+	 ;; 'posn-window' of that event and we don't want that (see the
+	 ;; comment above).
+	 (position-x-y (if tty
+		       (mouse-position-in-root-frame)
+		     (mouse-absolute-pixel-position)))
+	 ;; 'position' records the x- (for vertical dragging) or y- (for
+	 ;; mode, header and tab line dragging) coordinate of the
+	 ;; current mouse position
 	 (position (if (eq line 'vertical)
-		       (+ (window-pixel-left window)
-			  (car (posn-x-y start)))
-		     (+ (window-pixel-top window)
-			(cdr (posn-x-y start)))))
-	 ;; `last-position' records the x- or y-coordinate of the
-	 ;; previously sampled position.  The difference of `position'
-	 ;; and `last-position' determines the size change of WINDOW.
+		       (car position-x-y)
+		     (cdr position-x-y)))
+	 ;; 'last-position' records the the x- or y-coordinate of the
+	 ;; previously sampled position.  The difference of 'position'
+	 ;; and 'last-position' determines the size change of WINDOW.
 	 (last-position position)
-	 posn-window growth dragged)
-    ;; Decide on whether we are allowed to track at all and whose
-    ;; window's edge we drag.
+	 ;; The next two bindings are used for characterwise dragging
+	 ;; only.  'residue' is the remainder of the difference between
+	 ;; 'position' and 'last-position' divided by the frame's
+	 ;; character size and will be considered in the next difference
+	 ;; calculation.
+	 (residue 0)
+	 ;; 'forward' indicates the current dragging direction and is
+	 ;; non-nil when dragging to the right or down.  Its purpose is
+	 ;; to detect changes in the dragging direction in order to keep
+	 ;; the mouse cursor nearer to the dragged line.
+	 (forward t)
+	 ;; 'char-size' is the frame's character width) for vertical
+	 ;; dragging) or character height (for mode, header, tab line
+	 ;; dragging).
+	 char-size
+	 ;; 'growth' is the position change of the mouse in pixels if
+	 ;; 'charwise' is nil, in characters if 'charwise' is non-nil.
+	 growth
+	 ;; `dragged' is initially nil and sticks to non-nil after the
+	 ;; first time growth has become non-nil.  Its purpose is to
+	 ;; give characterwise dragging a head start to avoid that the
+	 ;; mouse cursor moves to far away from the line to drag.
+	 dragged)
+    ;; Set up the window whose edge to drag.
     (cond
      ((memq line '(header tab))
-      ;; Drag bottom edge of window above the header line.
-      (setq window (window-in-direction 'above window t)))
-     ((eq line 'mode))
+      ;;  LINE is a header or tab line.  Drag the bottom edge of the
+      ;;  window above it.
+      (setq window (window-in-direction 'above window t))
+      (when charwise
+	(setq char-size (frame-char-height frame))))
+     ((eq line 'mode)
+      ;; LINE is a mode line or a bottom window divider.  Drag the bottom edge
+      ;; of its window.
+      (when charwise
+	(setq char-size (frame-char-height frame))))
      ((eq line 'vertical)
+      ;; LINE is a window divider on the right.  Drag the right edge of
+      ;; the window on its left.
       (let ((divider-width (frame-right-divider-width frame)))
         (when (and (or (not (numberp divider-width))
                        (zerop divider-width))
                    (eq (frame-parameter frame 'vertical-scroll-bars) 'left))
-          (setq window (window-in-direction 'left window t))))))
+          (setq window (window-in-direction 'left window t))))
+      (when charwise
+	(setq char-size (frame-char-width frame)))))
+
     (let* ((exitfun nil)
            (move
 	    (lambda (event) (interactive "e")
@@ -895,74 +955,76 @@ must be one of the symbols `header', `mode', or `vertical'."
 	       ((not (consp event))
 		nil)
 	       ((eq line 'vertical)
-		;; Drag right edge of `window'.
-		(setq start (event-start event))
-		(setq position (car (posn-x-y start)))
-		;; Set `posn-window' to the window where `event' was recorded.
-		;; This can be `window' or the window on the left or right of
-		;; `window'.
-		(when (window-live-p (setq posn-window (posn-window start)))
-		  ;; Add left edge of `posn-window' to `position'.
-		  (setq position (+ (window-pixel-left posn-window) position))
-		  (unless (posn-area start)
-		    ;; Add width of objects on the left of the text area to
-		    ;; `position'.
-		    (when (eq (window-current-scroll-bars posn-window) 'left)
-		      (setq position (+ (window-scroll-bar-width posn-window)
-					position)))
-		    (setq position (+ (car (window-fringes posn-window))
-				      (or (car (window-margins posn-window)) 0)
-				      position))))
-		;; When the cursor overshoots after shrinking a window to its
-		;; minimum size and the dragging direction changes, have the
-		;; cursor first catch up with the window edge.
-		(unless (or (zerop (setq growth (- position last-position)))
-			    (and (> growth 0)
-				 (< position (+ (window-pixel-left window)
-						(window-pixel-width window))))
-			    (and (< growth 0)
-				 (> position (+ (window-pixel-left window)
-						(window-pixel-width window)))))
+		;; Drag right edge of 'window'.
+		(setq position (if tty
+				   (car (mouse-position-in-root-frame))
+				 (car (mouse-absolute-pixel-position))))
+		(unless (zerop (setq growth (- position last-position)))
+		  ;; When we drag characterwise and we either drag for
+		  ;; the first time or the dragging direction changes,
+		  ;; try to keep in synch cursor and dragged line.
+		  (when (and charwise
+			     (or (not dragged)
+				 (if forward
+				     (< growth 0)
+				   (> growth 0))))
+		    (setq forward (> growth 0))
+		    (setq growth
+			  (if (> growth 0)
+			      (+ growth (/ char-size 2))
+			    (- growth (/ char-size 2)))))
+
 		  (setq dragged t)
-		  (adjust-window-trailing-edge window growth t t))
-		(setq last-position position))
+		  (when charwise
+		    (setq residue (% growth char-size))
+		    (setq growth (/ growth char-size)))
+		  (unless (zerop growth)
+		    (adjust-window-trailing-edge window growth t (not charwise)))
+		  (setq last-position (- position residue))
+
+;; 		  ;; Debugging code.
+;; 		  (message "last %s pos %s growth %s residue %s char-size %s"
+;; 			   last-position position growth residue char-size)
+
+		  ))
 	       (t
-		;; Drag bottom edge of `window'.
-		(setq start (event-start event))
-		;; Set `posn-window' to the window where `event' was recorded.
-		;; This can be either `window' or the window above or below of
-		;; `window'.
-		(setq posn-window (posn-window start))
-		(setq position (cdr (posn-x-y start)))
-		(when (window-live-p posn-window)
-		  ;; Add top edge of `posn-window' to `position'.
-		  (setq position (+ (window-pixel-top posn-window) position))
-		  ;; If necessary, add height of header and tab line to
-		  ;; `position'.
-		  (when (memq (posn-area start)
-			      '(nil left-fringe right-fringe left-margin right-margin))
-		    (setq position (+ (window-header-line-height posn-window)
-				      (window-tab-line-height posn-window)
-				      position))))
-		;; When the cursor overshoots after shrinking a window to its
-		;; minimum size and the dragging direction changes, have the
-		;; cursor first catch up with the window edge.
-		(unless (or (zerop (setq growth (- position last-position)))
-			    (and (> growth 0)
-				 (< position (+ (window-pixel-top window)
-						(window-pixel-height window))))
-			    (and (< growth 0)
-				 (> position (+ (window-pixel-top window)
-						(window-pixel-height window)))))
+		;; Drag bottom edge of 'window'.
+		(setq position (cdr (if tty
+					(mouse-position-in-root-frame)
+				      (mouse-absolute-pixel-position))))
+		(unless (zerop (setq growth (- position last-position)))
+		  ;; When we drag characterwise and we either drag for
+		  ;; the first time or the dragging direction changes,
+		  ;; try to keep in synch cursor and dragged line.
+		  (when (and charwise
+			     (or (not dragged)
+				 (if forward
+				     (< growth 0)
+				   (> growth 0))))
+		    (setq forward (> growth 0))
+		    (setq growth
+			  (if (> growth 0)
+			      (+ growth (/ char-size 2))
+			    (- growth (/ char-size 2)))))
+
 		  (setq dragged t)
-		  (adjust-window-trailing-edge window growth nil t))
-		(setq last-position position)))))
+		  (when charwise
+		    (setq residue (% growth char-size))
+		    (setq growth (/ growth char-size)))
+		  (unless (zerop growth)
+		    (adjust-window-trailing-edge window growth nil (not charwise)))
+		  (setq last-position (- position residue))
+
+;; 		  ;; Debugging code.
+;; 		  (message "last %s pos %s growth %s residue %s char-size %s"
+;; 			   last-position position growth residue char-size)
+
+		  )))))
            (old-track-mouse track-mouse))
       ;; Start tracking.  The special value 'dragging' signals the
       ;; display engine to freeze the mouse pointer shape for as long
       ;; as we drag.
       (setq track-mouse 'dragging)
-      ;; Loop reading events and sampling the position of the mouse.
       (setq exitfun
 	    (set-transient-map
 	     (let ((map (make-sparse-keymap)))

@@ -288,6 +288,16 @@ to extend the boundaries of the active region by dragging the mouse pointer.
 The menu item enables sending current file(s) or region text to external
 (non-Emacs) applications or services.  See send-to.el for customisations.
 
+---
+*** The mouse now drags lines in character increments again.
+Dragging a horizontal or vertical line like the mode line or the lines
+dividing side-by-side windows now by default happens in increments of
+the corresponding frame's character size again.  This is the behavior
+described in the manual and was the default behavior before
+'window-resize-pixelwise' was added for Emacs 24.1.  To drag in pixel
+increments as with Emcas 24 through Emacs 30 you now have to set
+'window-resize-pixelwise' to t.
+
 ** Windows
 
 +++
