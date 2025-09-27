@@ -89,6 +89,13 @@
 #define strtoll _strtoi64
 #endif
 
+#ifdef __MINGW32__
+/* We need GNU-compatible ANSI-compatible printf support.  */
+#define PRINTF_ARCHETYPE __gnu_printf__
+#else
+#define PRINTF_ARCHETYPE printf
+#endif
+
 
 typedef sqlite3_int64 int64;
 
@@ -110,7 +117,7 @@ static unsigned int verbosity = 0;
 #define LOG_SELDOM    3
 #define LOG_RARELY    4
 
-ATTRIBUTE_FORMAT((printf, 2, 0))
+ATTRIBUTE_FORMAT((PRINTF_ARCHETYPE, 2, 0))
 static void vlog(unsigned int level, const char *format, va_list args)
 {
   if (level <= verbosity) {
@@ -121,7 +128,7 @@ static void vlog(unsigned int level, const char *format, va_list args)
   }
 }
 
-ATTRIBUTE_FORMAT((printf, 2, 3))
+ATTRIBUTE_FORMAT((PRINTF_ARCHETYPE, 2, 3))
 static void evlog(unsigned int level, const char *format, ...)
 {
   va_list args;
@@ -130,7 +137,7 @@ static void evlog(unsigned int level, const char *format, ...)
   va_end(args);
 }
 
-ATTRIBUTE_FORMAT((printf, 1, 2))
+ATTRIBUTE_FORMAT((PRINTF_ARCHETYPE, 1, 2))
 static void error(const char *format, ...)
 {
   va_list args;
