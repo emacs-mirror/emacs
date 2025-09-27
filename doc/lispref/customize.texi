@@ -655,6 +655,12 @@ the symbol name.  The widget provides completion.
 The value must be either a lambda expression or a function name.  The
 widget provides completion for function names.
 
+@item buffer-predicate
+The value must be a form suitable for the @var{condition} argument of
+the @code{buffer-match-p} function (@pxref{Buffer List}).  This is handy
+for options whose value is submitted to @code{buffer-match-p} to select
+suitable buffers.
+
 @item variable
 The value must be a variable name.  The widget provides completion.
 
