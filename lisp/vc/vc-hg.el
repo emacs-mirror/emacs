@@ -1673,14 +1673,18 @@ This runs the command \"hg merge\"."
 
 (defun vc-hg-prepare-patch (rev)
   (with-current-buffer (generate-new-buffer " *vc-hg-prepare-patch*")
-    (vc-hg-command t 0 '() "export" "--rev" rev)
-    (let (subject)
-      ;; Extract the subject line
-      (goto-char (point-min))
-      (search-forward-regexp "^[^#].*")
-      (setq subject (match-string 0))
-      ;; Return the extracted data
-      (list :subject subject :buffer (current-buffer)))))
+    (vc-hg-command t 0 nil "export" "--git" "--rev" rev)
+    (condition-case _
+        (let (subject patch-start)
+          (goto-char (point-min))
+          (re-search-forward "^[^#].*")
+          (setq subject (match-string 0))
+          (re-search-forward "\n\ndiff --git a/")
+          (setq patch-start (pos-bol))
+          (list :subject subject
+                :patch-start patch-start
+                :buffer (current-buffer)))
+      (search-failed (error "'hg export' output parse failure")))))
 
 ;;; Internal functions
 

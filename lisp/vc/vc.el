@@ -670,15 +670,17 @@
 ;;
 ;; - prepare-patch (rev)
 ;;
-;;   Prepare a patch and return a property list with the keys
-;;   `:subject' indicating the patch message as a string, `:buffer'
-;;   with a buffer object that contains the entire patch message and
-;;   `:body-start' and `:body-end' demarcating what part of said
-;;   buffer should be inserted into an inline patch.  If the two last
-;;   properties are omitted, `point-min' and `point-max' will
-;;   respectively be used instead.  If supported by the backend, the
-;;   patch should contain authorship identity and date information, and
-;;   REV's log message.
+;;   Prepare a patch and return a property list with the keys `:subject'
+;;   with the summary line (first line) of the patch message as a
+;;   string; `:buffer' with a buffer object that contains the entire
+;;   patch message; `:body-start' and `:body-end' demarcating the part
+;;   of that buffer which should be inserted inline into a mail message
+;;   body; and `:patch-start' and `:patch-end' demarcating the part of
+;;   the buffer that is purely the patch, excluding any log message.
+;;   If any of these *-start and *-end properties are omitted, they
+;;   default to (point-min) and (point-max), respectively.
+;;   If supported by the backend, the patch should contain authorship
+;;   identity and date information, and REV's log message.
 ;;
 ;; - clone (remote directory rev)
 ;;
@@ -4210,7 +4212,7 @@ If nil, no default will be used.  This option may be set locally."
             :buffer (current-buffer)))))
 
 (defun vc-prepare-patch-prompt-revisions ()
-  "Prompt the user for a list revisions.
+  "Prompt the user for a list of revisions.
 Prepare a default value, depending on the current context.  With
 a numerical prefix argument, use the last N revisions as the
 default value.  If the current buffer is a log-view buffer, use
