@@ -2158,6 +2158,8 @@ messages.  Changing the locale can cause messages to come out in a
 different language or in a different orthography.  If the variable is
 @code{nil}, the locale is specified by environment variables in the
 usual POSIX fashion.
+Otherwise, the variable should specify a locale compatible with the
+coding system implied by those environment variables.
 @end defvar
 
 @defvar system-time-locale
@@ -2165,6 +2167,8 @@ This variable specifies the locale to use for formatting time values.
 Changing the locale can cause messages to appear according to the
 conventions of a different language.  If the variable is @code{nil}, the
 locale is specified by environment variables in the usual POSIX fashion.
+Otherwise, the variable should specify a locale compatible with the
+coding system implied by those environment variables.
 @end defvar
 
 @defun locale-info item
