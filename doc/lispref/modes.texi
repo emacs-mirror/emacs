@@ -1861,9 +1861,10 @@ marking the @code{define-minor-mode} form as autoloaded.
 @item :init-value @var{init-value}
 This is the value to which the @var{mode} variable is initialized.
 Except in unusual circumstances (see below), this value must be
-@code{nil}.  If the mode is global (see below), and the initial value is
-@code{t}, i.e., the mode is turned on by default, you should consider
-forcing Emacs to run the mode function at startup, like this:
+@code{nil}.  If the mode is global (see below) and preloaded, and the
+initial value is @code{t}, i.e., the mode is turned on by default, you
+should consider forcing Emacs to run the mode function at startup, like
+this:
 
 @lisp
  :initialize #'custom-initialize-delay
