@@ -4395,7 +4395,9 @@ is inline."
                  (function :tag "Predicate function")
                  (cons :tag "Derived mode"
                        (const derived-mode)
-                       (symbol derived-mode))
+                       (choice
+                        (symbol :tag "Single mode" derived-mode)
+                        (repeat :tag "List of modes" (symbol derived-mode))))
                  (cons :tag "Major mode"
                        (const major-mode)
                        (symbol major-mode))

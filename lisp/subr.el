@@ -7651,7 +7651,8 @@ CONDITION is either:
 - a cons-cell, where the car describes how to interpret the cdr.
   The car can be one of the following:
   * `derived-mode': the buffer matches if the buffer's major mode
-    is derived from the major mode in the cons-cell's cdr.
+    is derived from the major mode in the cons-cell's cdr, or from any
+    major mode in the list as accepted by `provided-mode-derived-p'.
   * `major-mode': the buffer matches if the buffer's major mode
     is eq to the cons-cell's cdr.  Prefer using `derived-mode'
     instead when both can work.
