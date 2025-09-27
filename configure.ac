@@ -7692,7 +7692,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use native APIs for images?                  ${NATIVE_IMAGE_API}
   Does Emacs support sound?                               ${HAVE_SOUND}
   Does Emacs use -lgpm?                                   ${HAVE_GPM}
-  Does Emacs use -lmps?                                   ${HAVE_MPS}
+  Does Emacs use incremental GC with MPS?                 ${HAVE_MPS}
   Does Emacs use -ldbus?                                  ${HAVE_DBUS}
   Does Emacs use -lgconf?                                 ${HAVE_GCONF}
   Does Emacs use GSettings?                               ${HAVE_GSETTINGS}
