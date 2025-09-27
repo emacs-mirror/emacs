@@ -218,7 +218,11 @@ is t or contains the mode name."
 (when (treesit-available-p)
   (add-to-list 'auto-mode-alist
                ;; NOTE: We can't use `rx' here, as it breaks bootstrap.
-               '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
+               ;; (rx (or (and (or "Dockerfile" "Containerfile")
+               ;;              (? "." (* nonl)))
+               ;;         (and "." (and (any "Dd") "ocker") "file"))
+               ;;     eos)
+               '("\\(?:\\(?:\\(?:Contain\\|Dock\\)erfile\\)\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
                  . dockerfile-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
   (defvar treesit-major-mode-remap-alist)
