@@ -1623,6 +1623,16 @@ Predefined values include visiting the file in Emacs, jumping to the
 file in Dired, or opening the file with an external program.  You can
 also provide a custom function.
 
+---
+*** Rmail now detects email messages from suspicious sender addresses.
+If the "From" header of a message contains a suspicious email address,
+Rmail will now highlight it in a distinct face and provide a 'help-echo'
+tooltip explaining the reason.  (What exactly is considered as
+suspicious email addresses is determined by the function
+'textsec-suspicious-p', which see.)  This is controlled by the new user
+option 'rmail-detect-suspicious-headers', whose default value is
+non-nil; customize to nil to disable the check.
+
 ** Message
 
 +++
@@ -1633,6 +1643,17 @@ honored if it was already set.
 
 +++
 *** 'message-strip-subject-re' now matches case-insensitively.
+
+** Sendmail
+
+---
+*** Sending an email via 'sendmail' checks for suspicious addressees.
+The command 'mail-send', used to send email in Mail mode, now checks the
+addressees for suspicious email addresses.  If such addresses are found,
+the command will show them and the reason they are considered
+suspicious, and will request a confirmation before sending the message.
+This follows the behavior of Message mode, and affects users who
+customize 'mail-user-agent' to the value 'sendmail-user-agent'.
 
 ** SHR
 
