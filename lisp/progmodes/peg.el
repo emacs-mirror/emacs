@@ -837,7 +837,7 @@ input.  PATH is the list of rules that we have visited so far."
 (cl-defgeneric peg--detect-cycles (head _path &rest args)
   (error "No detect-cycle method for: %S" (cons head args)))
 
-(cl-defmethod peg--detect-cycles (path (_ (eql call)) name)
+(cl-defmethod peg--detect-cycles (path (_ (eql call)) name &rest _args)
   (if (member name path)
       (error "Possible left recursion: %s"
 	     (mapconcat (lambda (x) (format "%s" x))
@@ -885,6 +885,13 @@ input.  PATH is the list of rules that we have visited so far."
 (cl-defmethod peg--detect-cycles (_path (_ (eql guard)) _e)      t)
 (cl-defmethod peg--detect-cycles (_path (_ (eql =)) _s)          nil)
 (cl-defmethod peg--detect-cycles (_path (_ (eql syntax-class)) _n) nil)
+
+(cl-defmethod peg--detect-cycles (_path (_ (eql funcall)) &rest _args)
+  ;; There might very well be a cycle here, and we may very well match
+  ;; the empty string, but it's much too hard (and in general
+  ;; impossible) to try and figure out.
+  nil)
+
 (cl-defmethod peg--detect-cycles (_path (_ (eql action)) _form)  t)
 
 (defun peg-merge-errors (exps)
