@@ -620,6 +620,16 @@ Skip \"internal\" overlays if `hs-allow-nesting' is non-nil."
       (when (overlay-get ov 'hs)
         (delete-overlay ov)))))
 
+(defun hs-hideable-region-p (beg end)
+  "Return t if region in BEG and END can be hidden."
+  ;; Check if BEG and END are not in the same line number,
+  ;; since using `count-lines' is slow, only check if both
+  ;; positions do not share the same BOL.
+  (save-excursion
+    (let ((pos1 (progn (goto-char beg) (line-beginning-position)))
+          (pos2 (progn (goto-char end) (line-beginning-position))))
+      (and (< pos1 pos2) (not (= pos1 pos2))))))
+
 (defun hs-make-overlay (b e kind &optional b-offset e-offset)
   "Return a new overlay in region defined by B and E with type KIND.
 KIND is either `code' or `comment'.  Optional fourth arg B-OFFSET
@@ -690,40 +700,44 @@ point."
 (defun hs--make-indicators-overlays (beg)
   "Helper function to make the indicators overlays."
   (let ((hiddenp (eq 'hs (get-char-property (pos-eol) 'invisible))))
-    (when-let* ((o (make-overlay
-                    (if hs-indicator-type beg (pos-eol))
-                    (1+ (if hs-indicator-type beg (pos-eol)))))
-                (fringe-type (if hiddenp 'hs-show 'hs-hide))
-                (face-or-icon (if hiddenp 'hs-indicator-show 'hs-indicator-hide)))
+    ;; If we are going to use the EOL indicators, then
+    ;; ignore the invisible lines which mostly are already
+    ;; hidden blocks.
+    (when (or hs-indicator-type (not hiddenp))
+      (let* ((o (make-overlay
+                 (if hs-indicator-type beg (pos-eol))
+                 (1+ (if hs-indicator-type beg (pos-eol)))))
+             (fringe-type (if hiddenp 'hs-show 'hs-hide))
+             (face-or-icon (if hiddenp 'hs-indicator-show 'hs-indicator-hide)))
 
-      (overlay-put o 'hs-indicator t)
-      (overlay-put o 'hs-indicator-block-start beg)
-      (overlay-put o 'evaporate t)
-      (overlay-put o 'priority -50)
+        (overlay-put o 'hs-indicator t)
+        (overlay-put o 'hs-indicator-block-start beg)
+        (overlay-put o 'evaporate t)
+        (overlay-put o 'priority -50)
 
-      (overlay-put
-       o 'before-string
-       (pcase hs-indicator-type
-         ;; Fringes
-         ('fringe
-          (propertize
-           "+" 'display
-           `(left-fringe ,fringe-type ,face-or-icon)))
-         ;; Margins
-         ('margin
-          (propertize
-           "+" 'display
-           `((margin left-margin)
-             ,(or (plist-get (icon-elements face-or-icon) 'image)
-                  (icon-string face-or-icon)))
-           'face face-or-icon
-           'keymap hs-indicators-map))
-         ;; EOL string
-         ('nil
-          (propertize
-           (icon-string face-or-icon)
-           'mouse-face 'highlight
-           'keymap hs-indicators-map)))))))
+        (overlay-put
+         o 'before-string
+         (pcase hs-indicator-type
+           ;; Fringes
+           ('fringe
+            (propertize
+             "+" 'display
+             `(left-fringe ,fringe-type ,face-or-icon)))
+           ;; Margins
+           ('margin
+            (propertize
+             "+" 'display
+             `((margin left-margin)
+               ,(or (plist-get (icon-elements face-or-icon) 'image)
+                    (icon-string face-or-icon)))
+             'face face-or-icon
+             'keymap hs-indicators-map))
+           ;; EOL string
+           ('nil
+            (propertize
+             (icon-string face-or-icon)
+             'mouse-face 'highlight
+             'keymap hs-indicators-map))))))))
 
 (defun hs--add-indicators (&optional beg end)
   "Add hideable indicators from BEG to END."
@@ -749,11 +763,7 @@ point."
                              (scan-error (throw 'hs-indicator-error nil)))
                            (point))))
                 ;; Check if block is longer than 1 line.
-                (_ (< b-beg b-end))
-                ;; If we are going to use the EOL indicators, then
-                ;; ignore the invisible lines which mostly are already
-                ;; hidden blocks.
-                (_ (> (count-lines b-beg b-end (not hs-indicator-type)) 1)))
+                (_ (hs-hideable-region-p b-beg b-end)))
       (hs--make-indicators-overlays b-beg))
     ;; Only 1 indicator per line
     (forward-line 1))
@@ -879,7 +889,7 @@ and then further adjusted to be at the end of the line."
            (p (car-safe block))
            (q (cdr-safe block))
            ov)
-      (if (and block (< p q) (> (count-lines p q) 1))
+      (if (hs-hideable-region-p p q)
           (progn
             (cond ((and hs-allow-nesting (setq ov (hs-overlay-at p)))
                    (delete-overlay ov))
@@ -1136,7 +1146,7 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
            ;; found a comment, probably
            (let ((c-reg (hs-inside-comment-p)))
              (when (and c-reg (car c-reg))
-               (if (> (count-lines (car c-reg) (nth 1 c-reg)) 1)
+               (if (hs-hideable-region-p (car c-reg) (nth 1 c-reg))
                    (hs-hide-block-at-point t c-reg)
                  (goto-char (nth 1 c-reg))))))
          (progress-reporter-update spew (point)))
@@ -1163,7 +1173,7 @@ Upon completion, point is repositioned and the normal hook
    (let ((c-reg (hs-inside-comment-p)))
      (cond
       ((and c-reg (or (null (nth 0 c-reg))
-                      (<= (count-lines (car c-reg) (nth 1 c-reg)) 1)))
+                      (not (hs-hideable-region-p (car c-reg) (nth 1 c-reg)))))
        (message "(not enough comment lines to hide)"))
       ((or c-reg
 	   (funcall hs-looking-at-block-start-p-func)
@@ -1259,7 +1269,7 @@ This can be useful if you have huge RCS logs in those comments."
      (when c-reg
        (let ((beg (car c-reg)) (end (cadr c-reg)))
          ;; see if we have enough comment lines to hide
-         (when (> (count-lines beg end) 1)
+         (when (hs-hideable-region-p beg end)
            (hs-hide-comment-region beg end)))))))
 
 ;;;###autoload
