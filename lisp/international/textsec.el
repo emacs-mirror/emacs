@@ -290,7 +290,7 @@ or use certain other unusual mixtures of characters."
      (lambda (char)
        (when (eq (elt idna-mapping-table char) t)
          (throw 'found
-                (format "Disallowed character%s (#x%x, %s)"
+                (format "Disallowed character in domain%s (#x%x, %s)"
                         (if (eq (get-char-code-property char 'general-category)
                                 'Cf)
                             ""
@@ -308,7 +308,8 @@ or use certain other unusual mixtures of characters."
     ;; an ASCII-only segment.
     (dolist (elem (split-string domain "\\."))
       (when (textsec-ascii-confusable-p elem)
-        (throw 'found (format "`%s' is confusable with ASCII" elem))))
+        (throw 'found (format "`%s' includes characters confusable with ASCII"
+                              elem))))
     nil))
 
 (defun textsec-local-address-suspicious-p (local)
@@ -323,14 +324,14 @@ that can look similar to other characters when displayed, or use
 certain other unusual mixtures of characters."
   (cond
    ((not (equal local (ucs-normalize-NFKC-string local)))
-    (format "`%s' is not in normalized format `%s'"
+    (format "`%s' is not in normalized form `%s', its display might deceive"
             local (ucs-normalize-NFKC-string local)))
    ((textsec-mixed-numbers-p local)
     (format "`%s' contains numbers from different number systems" local))
    ((eq (textsec-restriction-level local) 'unrestricted)
-    (format "`%s' isn't restrictive enough" local))
+    (format "`%s' uses characters from too many unusual scripts" local))
    ((string-match-p "\\`\\.\\|\\.\\'\\|\\.\\." local)
-    (format "`%s' contains invalid dots" local))))
+    (format "`%s' contains invalid dot characters" local))))
 
 (defun textsec-bidi-controls-suspicious-p (string)
   "Return non-nil of STRING uses bidirectional controls in suspicious ways.
@@ -364,7 +365,7 @@ look similar to other characters when displayed, or use certain
 other unusual mixtures of characters."
   (cond
    ((not (equal name (ucs-normalize-NFC-string name)))
-    (format "`%s' is not in normalized format `%s'"
+    (format "`%s' is not in normalized form `%s', its display might deceive"
             name (ucs-normalize-NFC-string name)))
    ((and (seq-find (lambda (char)
                      (and (member char bidi-control-characters)
@@ -403,13 +404,13 @@ consecutive nonspacing characters."
                       '(Mn Me))))
            (when (and nonspacing
                       (equal char prev))
-             (throw 'found "Two identical consecutive nonspacing characters"))
+             (throw 'found "Two identical consecutive accent/diacritic characters"))
            (setq nonspace-count (if nonspacing
                                     (1+ nonspace-count)
                                   0))
            (when (> nonspace-count 4)
              (throw 'found
-                    "Too many consecutive nonspacing characters"))
+                    "Too many consecutive accent/diacritic characters"))
            (setq prev char)))
        string)
       nil)))
