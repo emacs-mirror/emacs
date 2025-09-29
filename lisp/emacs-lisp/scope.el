@@ -1608,7 +1608,8 @@ trusted code macro expansion is always safe."
   :group 'lisp)
 
 (defvar scope-unsafe-macros
-  '( static-if cl-eval-when eval-when-compile eval-and-compile let-when-compile
+  '( static-if static-when static-unless
+     cl-eval-when eval-when-compile eval-and-compile let-when-compile
      rx cl-macrolet nnoo-define-basics))
 
 (defun scope-safe-macro-p (macro)
@@ -2355,6 +2356,12 @@ trusted code macro expansion is always safe."
   (scope-1 test)
   (scope-1 then scope--output-type)
   (scope-n else scope--output-type))
+
+(scope-define-macro-analyzer static-when (&optional test &rest body)
+  (scope-1 test)
+  (scope-n body scope--output-type))
+
+(put 'static-unless 'scope-analyzer #'scope--analyze-static-when)
 
 (scope-define-macro-analyzer eval-when-compile (&rest body)
   (scope-n body scope--output-type))
