@@ -434,7 +434,7 @@ the role of each symbol and highlight it accordingly."
     (save-excursion
       (goto-char pos)
       (beginning-of-defun)
-      (scope (lambda (_type beg len id &optional _def)
+      (elisp-scope-analyze-form (lambda (_type beg len id &optional _def)
                (when (<= beg pos (+ beg len))
                  (setq cur id))
                (when id (setf (alist-get beg all) (list len id))))))
@@ -491,7 +491,7 @@ the role of each symbol and highlight it accordingly."
   (when elisp-add-help-echo
     (put-text-property
      beg end 'help-echo
-     (when-let* ((fun (scope-get-symbol-type-property type :help)))
+     (when-let* ((fun (elisp-scope-get-symbol-type-property type :help)))
        (funcall fun beg end def)))))
 
 (defvar font-lock-beg)
@@ -524,7 +524,7 @@ that `font-lock-keywords' applied takes precedence, if any."
 (defun elisp-fontify-symbol (type beg len id &optional def)
   (let ((end (+ beg len)))
     (elisp--annotate-symbol-with-help-echo type beg end def)
-    (let ((face (scope-get-symbol-type-property type :face)))
+    (let ((face (elisp-scope-get-symbol-type-property type :face)))
       (add-face-text-property
        beg end face
        (cl-case elisp-fontify-symbol-precedence-function
@@ -543,7 +543,8 @@ that `font-lock-keywords' applied takes precedence, if any."
   "Fontify symbols between BEG and END according to their semantics."
   (save-excursion
     (goto-char beg)
-    (while (< (point) end) (ignore-errors (scope #'elisp-fontify-symbol)))))
+    (while (< (point) end)
+      (ignore-errors (elisp-scope-analyze-form #'elisp-fontify-symbol)))))
 
 (defun elisp-fontify-region (beg end &optional loudly)
   "Fontify ELisp code between BEG and END.

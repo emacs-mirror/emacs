@@ -1,0 +1,2667 @@
+;;; elisp-scope.el --- Semantic analysis for ELisp symbols  -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2025  Free Software Foundation, Inc.
+
+;; Author: Eshel Yaron <me@eshelyaron.com>
+;; Keywords: lisp, languages
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; This library implements an analysis that determines the role of each
+;; symbol in ELisp code.  The entry point for the analysis is the
+;; function `elisp-scope-analyze-form', see its docstring for usage
+;; information.
+
+;;; Code:
+
+(require 'cl-lib)
+
+(defvar elisp-scope--symbol-type-property-cache (make-hash-table))
+
+(defun elisp-scope--define-symbol-type (name parents props)
+  (clrhash elisp-scope--symbol-type-property-cache)
+  (put name 'elisp-scope-parent-types parents)
+  (put name 'elisp-scope-type-properties props))
+
+;;;###autoload
+(defmacro elisp-scope-define-symbol-type (name parents &rest props)
+  (declare (indent defun))
+  `(elisp-scope--define-symbol-type ',name ',parents ,(when props `(list ,@props))))
+
+;;;###autoload
+(defun elisp-scope-get-symbol-type-property (type prop)
+  (with-memoization (alist-get prop (gethash type elisp-scope--symbol-type-property-cache))
+    (named-let loop ((current type)
+                     (parents (get type 'elisp-scope-parent-types))
+                     (more nil)
+                     (done nil))
+      (or (plist-get (get current 'elisp-scope-type-properties) prop)
+          (when-let* ((next (car parents)))
+            (loop (car parents) (get next 'elisp-scope-parent-types) (append (cdr parents) more) done))
+          (when-let* ((next (car more)))
+            (loop next (let (res)
+                         (dolist (per (get next 'elisp-scope-parent-types))
+                           (unless (memq per done)
+                             (push per res)))
+                         (nreverse res))
+                  (cdr more) done))))))
+
+;;;###autoload
+(defun elisp-scope-set-symbol-type-property (type prop value)
+  (clrhash elisp-scope--symbol-type-property-cache)
+  (put type 'elisp-scope-type-properties
+       (plist-put (get type 'elisp-scope-type-properties) prop value)))
+
+;;;###autoload
+(defun elisp-scope-symbol-type-p (sym)
+  (or (get sym 'elisp-scope-parent-types) (get sym 'elisp-scope-type-properties)))
+
+(defvar elisp-scope-read-symbol-type-history nil)
+
+(defun elisp-scope-read-symbol-type (prompt &optional default)
+  (completing-read
+   (format-prompt prompt default)
+   obarray #'elisp-scope-symbol-type-p 'confirm
+   nil 'elisp-scope-read-symbol-type-history default))
+
+(defvar help-mode--current-data)
+
+;;;###autoload
+(defun elisp-scope-describe-symbol-type (type)
+  (interactive (list (elisp-scope-read-symbol-type
+                      "Describe symbol type"
+                      (when-let* ((def (symbol-at-point))
+                                  ((elisp-scope-symbol-type-p def)))
+                        def))))
+  (when (stringp type) (setq type (intern type)))
+  (let ((help-buffer-under-preparation t))
+    (help-setup-xref (list #'elisp-scope-describe-symbol-type type)
+                     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
+      (with-current-buffer standard-output
+        (insert "Symbol type "
+                (substitute-quotes (concat "`" (symbol-name type) "'"))
+                ":\n\n"
+                (substitute-quotes
+                 (or (elisp-scope-get-symbol-type-property type :doc)
+                     "Undocumented.")))
+        (when-let* ((parents (get type 'elisp-scope-parent-types)))
+          (insert "\n\nParent types: "
+                  (mapconcat (lambda (parent)
+                               (let ((name (symbol-name parent)))
+                                 (substitute-quotes
+                                  (concat
+                                   "`"
+                                   (buttonize
+                                    name #'elisp-scope-describe-symbol-type name
+                                    "mouse-2, RET: describe this symbol type")
+                                   "'"))))
+                             parents ", ")))
+        (setq help-mode--current-data
+              (list :symbol type :type 'define-symbol-type
+                    :file (find-lisp-object-file-name type 'define-symbol-type)))))))
+
+(elisp-scope-define-symbol-type symbol-type ()
+  :doc "Symbol type names."
+  :definition 'symbol-type-definition
+  :face 'elisp-symbol-type
+  :help (cl-constantly "Symbol type")
+  :namespace 'symbol-type)
+
+(elisp-scope-define-symbol-type symbol-type-definition (symbol-type)
+  :doc "Symbol type name definitions."
+  :face 'elisp-symbol-type-definition
+  :help (cl-constantly "Symbol type definition")
+  :imenu "Symbol Type"
+  :namespace 'symbol-type)
+
+(elisp-scope-define-symbol-type variable ()
+  :doc "Variable names."
+  :definition 'defvar
+  :face 'elisp-free-variable
+  :help (lambda (beg end _def)
+          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
+              (lambda (&rest _)
+                (let ((val (if (boundp sym) (truncate-string-to-width (prin1-to-string (symbol-value sym)) 60 nil nil t) "#<unbound>")))
+                  (if-let* ((doc (documentation-property sym 'variable-documentation t)))
+                      (format "Special variable `%S'.\n\nValue: %s\n\n%s" sym val doc)
+                    (format "Special variable `%S'.\n\nValue: %s" sym val))))
+            "Special variable"))
+  :namespace 'variable)
+
+(elisp-scope-define-symbol-type bound-variable (variable)
+  :doc "Local variable names."
+  :face 'elisp-bound-variable
+  :help (cl-constantly "Local variable"))
+
+(elisp-scope-define-symbol-type binding-variable (bound-variable)
+  :doc "Local variable definitions."
+  :face 'elisp-binding-variable
+  :help (cl-constantly "Local variable binding"))
+
+(elisp-scope-define-symbol-type shadowed-variable (variable)
+  :doc "Locally shadowed variable names."
+  :face 'elisp-shadowed-variable
+  :help (cl-constantly "Locally shadowed variable"))
+
+(elisp-scope-define-symbol-type shadowing-variable (shadowed-variable)
+  :doc "Local variable definitions."
+  :face 'elisp-shadowing-variable
+  :help (cl-constantly "Local variable shadowing"))
+
+(elisp-scope-define-symbol-type face ()
+  :doc "Face names."
+  :definition 'defface
+  :face 'elisp-face
+  :help (lambda (beg end _def)
+          (elisp--help-echo beg end 'face-documentation "Face"))
+  :namespace 'face)
+
+(elisp-scope-define-symbol-type callable ()
+  :doc "Abstract symbol type of function-like symbols."
+  :namespace 'function)
+
+(elisp-scope-define-symbol-type function (callable)
+  :doc "Function names."
+  :definition '(defun defcmd)
+  :face 'elisp-function-reference
+  :help (lambda (beg end def)
+          (cond ((equal beg def) "Local function definition")
+                (def             "Local function call")
+                (t (if-let* ((sym (intern-soft (buffer-substring-no-properties beg end))))
+                       (apply-partially #'elisp--function-help-echo sym)
+                     "Function call")))))
+
+(elisp-scope-define-symbol-type command (function)
+  :doc "Command names.")
+
+(elisp-scope-define-symbol-type unknown (function)
+  :doc "Unknown symbols at function position."
+  :face 'elisp-unknown-call
+  :help (cl-constantly "Unknown callable"))
+
+(elisp-scope-define-symbol-type non-local-exit (function)
+  :doc "Functions that do not return."
+  :face 'elisp-non-local-exit
+  :help (lambda (beg end _def)
+          (if-let* ((sym (intern-soft (buffer-substring-no-properties beg end))))
+              (apply-partially #'elisp--function-help-echo sym)
+            "Non-local exit")))
+
+(elisp-scope-define-symbol-type macro (callable)
+  :doc "Macro names."
+  :definition 'defmacro
+  :face 'elisp-macro-call
+  :help (lambda (beg end _def)
+          (if-let* ((sym (intern-soft (buffer-substring-no-properties beg end))))
+              (apply-partially #'elisp--function-help-echo sym)
+            "Macro call")))
+
+(elisp-scope-define-symbol-type undefined-macro (macro)
+  :doc "Known macro names whose definition is unknown."
+  :help (cl-constantly "Call to macro with unknown definition"))
+
+(elisp-scope-define-symbol-type special-form (callable)
+  :doc "Special form names."
+  :face 'elisp-special-form
+  :help (lambda (beg end _def)
+          (if-let* ((sym (intern-soft (buffer-substring-no-properties beg end))))
+              (apply-partially #'elisp--function-help-echo sym)
+            "Special form")))
+
+(elisp-scope-define-symbol-type throw-tag ()
+  :doc "Symbols used as `throw'/`catch' tags."
+  :face 'elisp-throw-tag
+  :help (cl-constantly "`throw'/`catch' tag"))
+
+(elisp-scope-define-symbol-type warning-type ()
+  :doc "Byte-compilation warning types."
+  :face 'elisp-warning-type
+  :help (cl-constantly "Warning type"))
+
+(elisp-scope-define-symbol-type feature ()
+  :doc "Feature names."
+  :definition 'deffeature
+  :face 'elisp-feature
+  :help (cl-constantly "Feature")
+  :namespace 'feature)
+
+(elisp-scope-define-symbol-type deffeature (feature)
+  :doc "Feature definitions."
+  :imenu "Feature"
+  :help (cl-constantly "Feature definition"))
+
+(elisp-scope-define-symbol-type declaration ()
+  :doc "Function attribute declaration types."
+  :face 'elisp-declaration
+  :help (cl-constantly "Declaration"))
+
+(elisp-scope-define-symbol-type rx-construct ()
+  :doc "`rx' constructs."
+  :face 'elisp-rx
+  :help (cl-constantly "`rx' construct"))
+
+(elisp-scope-define-symbol-type theme ()
+  :doc "Custom theme names."
+  :definition 'deftheme
+  :face 'elisp-theme
+  :help (cl-constantly "Theme"))
+
+(elisp-scope-define-symbol-type deftheme (theme)
+  :doc "Custom theme definitions."
+  :imenu "Theme"
+  :help (cl-constantly "Theme definition"))
+
+(elisp-scope-define-symbol-type thing ()
+  :doc "`thing-at-point' \"thing\" identifiers."
+  :face 'elisp-thing
+  :help (cl-constantly "Thing (text object)"))
+
+(elisp-scope-define-symbol-type slot ()
+  :doc "EIEIO slots."
+  :face 'elisp-slot
+  :help (cl-constantly "Slot"))
+
+(elisp-scope-define-symbol-type widget-type ()
+  :doc "Widget types."
+  :definition 'widget-type-definition
+  :face 'elisp-widget-type
+  :help (cl-constantly "Widget type")
+  :namespace 'widget-type)
+
+(elisp-scope-define-symbol-type widget-type-definition (widget-type)
+  :doc "Widget type definitions."
+  :imenu "Widget"
+  :help (cl-constantly "Widget type definition"))
+
+(elisp-scope-define-symbol-type type ()
+  :doc "ELisp object type names."
+  :face 'elisp-type
+  :help (cl-constantly "Type"))
+
+(elisp-scope-define-symbol-type deftype (type)
+  :doc "ELisp object type definitions."
+  :imenu "Type"
+  :help (cl-constantly "Type definition"))
+
+(elisp-scope-define-symbol-type group ()
+  :doc "Customization groups."
+  :definition 'defgroup
+  :face 'elisp-group
+  :help (cl-constantly "Customization group"))
+
+(elisp-scope-define-symbol-type defgroup (group)
+  :doc "Customization group definitions."
+  :imenu "Group"
+  :help (cl-constantly "Customization group definition"))
+
+(elisp-scope-define-symbol-type nnoo-backend ()
+  :doc "`nnoo' backend names."
+  :face 'elisp-nnoo-backend
+  :help (cl-constantly "`nnoo' backend"))
+
+(elisp-scope-define-symbol-type condition ()
+  :doc "`condition-case' conditions."
+  :definition 'defcondition
+  :face 'elisp-condition
+  :help (lambda (beg end _def)
+          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
+              (lambda (&rest _)
+                (let ((msg (get sym 'error-message)))
+                  (apply #'concat
+                         "`condition-case' condition"
+                         (when (and msg (not (string-empty-p msg)))
+                           `(": " ,msg)))))
+            "`condition-case' condition"))
+  :namespace 'condition)
+
+(elisp-scope-define-symbol-type defcondition (condition)
+  :doc "`condition-case' condition definitions."
+  :definition 'defcondition
+  :help (cl-constantly "`condition-case' condition definition"))
+
+(elisp-scope-define-symbol-type ampersand ()
+  :doc "Argument list markers, such as `&optional' and `&rest'."
+  :face 'elisp-ampersand
+  :help (cl-constantly "Arguments separator"))
+
+(elisp-scope-define-symbol-type constant ()
+  :doc "Self-evaluating symbols."
+  :face 'elisp-constant
+  :help (cl-constantly "Constant"))
+
+(elisp-scope-define-symbol-type defun ()
+  :doc "Function definitions."
+  :definition 'defun
+  :face 'elisp-defun
+  :help (cl-constantly "Function definition")
+  :imenu "Function"
+  :namespace 'function)
+
+(elisp-scope-define-symbol-type defmacro ()
+  :doc "Macro definitions."
+  :definition 'defmacro
+  :face 'elisp-defmacro
+  :help (cl-constantly "Macro definition")
+  :imenu "Macro"
+  :namespace 'function)
+
+(elisp-scope-define-symbol-type defcmd (defun)
+  :doc "Command definitions."
+  :definition 'defcmd
+  :help (cl-constantly "Command definition")
+  :imenu "Command")
+
+(elisp-scope-define-symbol-type defvar ()
+  :doc "Variable definitions."
+  :definition 'defvar
+  :face 'elisp-defvar
+  :help (cl-constantly "Special variable definition")
+  :imenu "Variable"
+  :namespace 'variable)
+
+(elisp-scope-define-symbol-type defface ()
+  :doc "Face definitions."
+  :definition 'defface
+  :face 'elisp-defface
+  :help (cl-constantly "Face definition")
+  :imenu "Face"
+  :namespace 'face)
+
+(elisp-scope-define-symbol-type major-mode ()
+  :doc "Major mode names."
+  :definition 'major-mode-definition
+  :face 'elisp-major-mode-name
+  :help (lambda (beg end _def)
+          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
+              (lambda (&rest _)
+                (if-let* ((doc (documentation sym)))
+                    (format "Major mode `%S'.\n\n%s" sym doc)
+                  "Major mode"))
+            "Major mode"))
+  :namespace 'function)
+
+(elisp-scope-define-symbol-type major-mode-definition (major-mode)
+  :doc "Major mode definitions."
+  :help (cl-constantly "Major mode definition")
+  :imenu "Major Mode")
+
+(elisp-scope-define-symbol-type block ()
+  :doc "`cl-block' block names."
+  :help (lambda (beg _end def)
+          (if (equal beg def) "Block definition" "Block")))
+
+(elisp-scope-define-symbol-type icon ()
+  :doc "Icon names."
+  :definition 'deficon
+  :face 'elisp-icon
+  :help (cl-constantly "Icon")
+  :namespace 'icon)
+
+(elisp-scope-define-symbol-type deficon ()
+  :doc "Icon definitions."
+  :definition 'deficon
+  :face 'elisp-deficon
+  :help (cl-constantly "Icon definition")
+  :imenu "Icon"
+  :namespace 'icon)
+
+(elisp-scope-define-symbol-type oclosure ()
+  :doc "OClosure type names."
+  :definition 'defoclosure
+  :face 'elisp-oclosure
+  :help (lambda (beg end _def)
+          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
+              (lambda (&rest _)
+                (if-let* ((doc (oclosure--class-docstring (get sym 'cl--class))))
+                    (format "OClosure type `%S'.\n\n%s" sym doc)
+                  "OClosure type"))
+            "OClosure type"))
+  :namespace 'oclosure)
+
+(elisp-scope-define-symbol-type defoclosure ()
+  :doc "OClosure type definitions."
+  :definition 'defoclosure
+  :face 'elisp-defoclosure
+  :help (cl-constantly "OClosure type definition")
+  :imenu "OClosure type"
+  :namespace 'oclosure)
+
+(elisp-scope-define-symbol-type coding ()
+  :doc "Coding system names."
+  :definition 'defcoding
+  :face 'elisp-coding
+  :help (lambda (beg end _def)
+          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
+              (lambda (&rest _)
+                (if-let* ((doc (coding-system-doc-string sym)))
+                    (format "Coding system `%S'.\n\n%s" sym doc)
+                  "Coding system"))
+            "Coding system"))
+  :namespace 'coding)
+
+(elisp-scope-define-symbol-type defcoding ()
+  :doc "Coding system definitions."
+  :definition 'defcoding
+  :face 'elisp-defcoding
+  :help (cl-constantly "Coding system definition")
+  :imenu "Coding system"
+  :namespace 'coding)
+
+(elisp-scope-define-symbol-type charset ()
+  :doc "Charset names."
+  :definition 'defcharset
+  :face 'elisp-charset
+  :help (lambda (beg end _def)
+          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
+              (lambda (&rest _)
+                (if-let* ((doc (charset-description sym)))
+                    (format "Charset `%S'.\n\n%s" sym doc)
+                  "Charset"))
+            "Charset"))
+  :namespace 'charset)
+
+(elisp-scope-define-symbol-type defcharset ()
+  :doc "Charset definitions."
+  :definition 'defcharset
+  :face 'elisp-defcharset
+  :help (cl-constantly "Charset definition")
+  :imenu "Charset"
+  :namespace 'charset)
+
+(elisp-scope-define-symbol-type completion-category ()
+  :doc "Completion categories."
+  :definition 'completion-category-definition
+  :face 'elisp-completion-category
+  :help (lambda (beg end _def)
+          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
+              (lambda (&rest _)
+                (if-let* ((doc (get sym 'completion-category-documentation)))
+                    (format "Completion category `%S'.\n\n%s" sym doc)
+                  "Completion category"))
+            "Completion category"))
+  :namespace 'completion-category)
+
+(elisp-scope-define-symbol-type completion-category-definition ()
+  :doc "Completion category definitions."
+  :definition 'completion-category-definition
+  :face 'elisp-completion-category-definition
+  :help (cl-constantly "Completion category definition")
+  :imenu "Completion category"
+  :namespace 'completion-category)
+
+(defvar elisp-scope-counter nil)
+
+(defvar elisp-scope-local-functions nil)
+
+(defvar elisp-scope--local nil)
+
+(defvar elisp-scope--output-type nil)
+
+(defvar elisp-scope-callback #'ignore)
+
+(defvar elisp-scope-current-let-alist-form nil)
+
+(defvar elisp-scope-gen-id-alist nil)
+
+(defsubst elisp-scope-local-new (sym pos &optional local)
+  "Return new local context with SYM bound at POS.
+
+Optional argument LOCAL is a local context to extend."
+  (cons (cons sym (or pos (cons 'gen (incf elisp-scope-counter)))) local))
+
+(defsubst elisp-scope-sym-pos (sym)
+  (when (symbol-with-pos-p sym) (symbol-with-pos-pos sym)))
+
+(defsubst elisp-scope-sym-bare (sym)
+  (cond
+   ((symbolp sym) sym)
+   ((symbol-with-pos-p sym) (bare-symbol sym))))
+
+(defvar elisp-scope--quoted nil)
+
+(defsubst elisp-scope-report (type beg len &optional id def)
+  (funcall elisp-scope-callback type beg len id (or def (and (numberp id) id))))
+
+(defvar elisp-scope-special-variables nil)
+
+(defun elisp-scope-special-variable-p (sym)
+  (or (memq sym elisp-scope-special-variables) (special-variable-p sym)))
+
+(defun elisp-scope-variable (sym beg len id)
+  (elisp-scope-report
+   (if id (if (elisp-scope-special-variable-p sym) 'shadowed-variable 'bound-variable) 'variable)
+   beg len id))
+
+(defun elisp-scope-binding (sym beg len)
+  (elisp-scope-report
+   (if (elisp-scope-special-variable-p sym) 'shadowing-variable 'binding-variable)
+   beg len beg))
+
+(defun elisp-scope-s (sym)
+  (let* ((beg (elisp-scope-sym-pos sym))
+         (bare (elisp-scope-sym-bare sym))
+         (name (symbol-name bare))
+         (len (length name)))
+    (when (and beg (not (booleanp bare)))
+      (cond
+       ((keywordp bare) (elisp-scope-report 'constant beg len))
+       ((and elisp-scope-current-let-alist-form (= (aref name 0) ?.))
+        (if (and (length> name 1) (= (aref name 1) ?.))
+            ;; Double dot escapes `let-alist'.
+            (let* ((unescaped (intern (substring name 1))))
+              (elisp-scope-variable unescaped beg len (alist-get unescaped elisp-scope--local)))
+          (elisp-scope-report 'bound-variable beg len
+                        (list 'let-alist (car elisp-scope-current-let-alist-form) bare)
+                        (cdr elisp-scope-current-let-alist-form))))
+       (t (elisp-scope-variable bare beg len (alist-get bare elisp-scope--local)))))))
+
+(defun elisp-scope-let-1 (local bindings body)
+  (if bindings
+      (let* ((binding (ensure-list (car bindings)))
+             (sym (car binding))
+             (bare (elisp-scope-sym-bare sym))
+             (len (length (symbol-name bare)))
+             (beg (elisp-scope-sym-pos sym)))
+        (when beg (elisp-scope-binding bare beg len))
+        (elisp-scope-1 (cadr binding))
+        (elisp-scope-let-1 (if bare (elisp-scope-local-new bare beg local) local)
+                     (cdr bindings) body))
+    (let ((elisp-scope--local local))
+      (elisp-scope-n body elisp-scope--output-type))))
+
+(defun elisp-scope-let (bindings body)
+  (elisp-scope-let-1 elisp-scope--local bindings body))
+
+(defun elisp-scope-let* (bindings body)
+  (if bindings
+      (let* ((binding (ensure-list (car bindings)))
+             (sym (car binding))
+             (bare (bare-symbol sym))
+             (len (length (symbol-name bare)))
+             (beg (elisp-scope-sym-pos sym)))
+        (when beg (elisp-scope-binding bare beg len))
+        (elisp-scope-1 (cadr binding))
+        (let ((elisp-scope--local (elisp-scope-local-new bare beg elisp-scope--local)))
+          (elisp-scope-let* (cdr bindings) body)))
+    (elisp-scope-n body elisp-scope--output-type)))
+
+(defun elisp-scope-interactive (intr spec modes)
+  (when (symbol-with-pos-p intr)
+    (elisp-scope-report 'special-form
+                  (symbol-with-pos-pos intr)
+                  (length (symbol-name (elisp-scope-sym-bare intr)))))
+  (elisp-scope-1 spec)
+  (mapc #'elisp-scope-major-mode-name modes))
+
+(defun elisp-scope-lambda (args body &optional outtype)
+  (let ((l elisp-scope--local))
+    (when (listp args)
+      (dolist (arg args)
+        (when-let* ((bare (bare-symbol arg))
+                    (beg (elisp-scope-sym-pos arg)))
+          (unless (memq bare '(&optional &rest))
+            (setq l (elisp-scope-local-new bare beg l))))))
+    ;; Handle docstring.
+    (cond
+     ((and (consp (car body))
+           (or (symbol-with-pos-p (caar body))
+               (symbolp (caar body)))
+           (eq (bare-symbol (caar body)) :documentation))
+      (elisp-scope-s (caar body))
+      (elisp-scope-1 (cadar body))
+      (setq body (cdr body)))
+     ((stringp (car body)) (setq body (cdr body))))
+    ;; Handle `declare'.
+    (when-let* ((form (car body))
+                (decl (car-safe form))
+                ((or (symbol-with-pos-p decl)
+                     (symbolp decl)))
+                ((eq (bare-symbol decl) 'declare)))
+      (when (symbol-with-pos-p decl)
+        (elisp-scope-report 'macro
+                      (symbol-with-pos-pos decl)
+                      (length (symbol-name (bare-symbol decl)))))
+      (dolist (spec (cdr form))
+        (when-let* ((head (car-safe spec))
+                    (bare (elisp-scope-sym-bare head)))
+          (when (symbol-with-pos-p head)
+            (elisp-scope-report 'declaration
+                          (symbol-with-pos-pos head)
+                          (length (symbol-name bare))))
+          (cl-case bare
+            (completion (elisp-scope-sharpquote (cadr spec)))
+            (interactive-only
+             (when-let* ((bare (elisp-scope-sym-bare (cadr spec)))
+                         ((not (eq bare t))))
+               (elisp-scope-sharpquote (cadr spec))))
+            (obsolete
+             (when-let* ((bare (elisp-scope-sym-bare (cadr spec))))
+               (elisp-scope-sharpquote (cadr spec))))
+            ((compiler-macro gv-expander gv-setter)
+             ;; Use the extended lexical environment `l'.
+             (let ((elisp-scope--local l))
+               (elisp-scope-sharpquote (cadr spec))))
+            (modes (mapc #'elisp-scope-major-mode-name (cdr spec)))
+            (interactive-args
+             (dolist (arg-form (cdr spec))
+               (when-let* ((arg (car-safe arg-form)))
+                 (let ((elisp-scope--local l)) (elisp-scope-s arg))
+                 (when (consp (cdr arg-form))
+                   (elisp-scope-1 (cadr arg-form)))))))))
+      (setq body (cdr body)))
+    ;; Handle `interactive'.
+    (when-let* ((form (car body))
+                (intr (car-safe form))
+                ((or (symbol-with-pos-p intr)
+                     (symbolp intr)))
+                ((eq (bare-symbol intr) 'interactive)))
+      (elisp-scope-interactive intr (cadar body) (cddar body))
+      (setq body (cdr body)))
+    ;; Handle ARGS.
+    (when (listp args)
+      (dolist (arg args)
+        (and (symbol-with-pos-p arg)
+             (let* ((beg (symbol-with-pos-pos arg))
+                    (bare (bare-symbol arg))
+                    (len (length (symbol-name bare))))
+               (when (and beg (not (eq bare '_)))
+                 (if (memq bare '(&optional &rest))
+                     (elisp-scope-report 'ampersand beg len)
+                   (elisp-scope-report 'binding-variable beg len beg)))))))
+    ;; Handle BODY.
+    (let ((elisp-scope--local l)) (elisp-scope-n body outtype))))
+
+(defun elisp-scope-defun (name args body)
+  (when-let* ((beg (elisp-scope-sym-pos name))
+              (bare (elisp-scope-sym-bare name)))
+    (elisp-scope-report
+     (let ((tmp body))
+       (when (stringp (car-safe tmp)) (pop tmp))
+       (when (eq 'declare (elisp-scope-sym-bare (car-safe (car-safe tmp)))) (pop tmp))
+       (if (eq 'interactive (elisp-scope-sym-bare (car-safe (car-safe tmp))))
+           'defcmd
+         'defun))
+     beg (length (symbol-name bare))))
+  (elisp-scope-lambda args body))
+
+(defun elisp-scope-setq (args) (elisp-scope-n args elisp-scope--output-type))
+
+(defvar elisp-scope-flet-alist nil)
+
+(defun elisp-scope-flet (defs body)
+  (if defs
+      (let* ((def (car defs))
+             (func (car def))
+             (exps (cdr def))
+             (beg (elisp-scope-sym-pos func))
+             (bare (bare-symbol func)))
+        (when beg
+          (elisp-scope-report 'function beg (length (symbol-name bare)) beg))
+        (if (cdr exps)
+            ;; def is (FUNC ARGLIST BODY...)
+            (elisp-scope-cl-lambda (car exps) (cdr exps))
+          ;; def is (FUNC EXP)
+          (elisp-scope-1 (car exps)))
+        (let ((elisp-scope-flet-alist (elisp-scope-local-new bare beg elisp-scope-flet-alist)))
+          (elisp-scope-flet (cdr defs) body)))
+    (elisp-scope-n body)))
+
+(defun elisp-scope-labels (defs forms)
+  (if defs
+      (let* ((def (car defs))
+             (func (car def))
+             (args (cadr def))
+             (body (cddr def))
+             (beg (elisp-scope-sym-pos func))
+             (bare (bare-symbol func)))
+        (when beg
+          (elisp-scope-report 'function beg (length (symbol-name bare)) beg))
+        (let ((elisp-scope-flet-alist (elisp-scope-local-new bare beg elisp-scope-flet-alist)))
+          (elisp-scope-lambda args body)
+          (elisp-scope-flet (cdr defs) forms)))
+    (elisp-scope-n forms)))
+
+(defvar elisp-scope-block-alist nil)
+
+(defun elisp-scope-block (name body)
+  (if name
+      (let* ((beg (elisp-scope-sym-pos name))
+             (bare (bare-symbol name)))
+        (when beg
+          (elisp-scope-report 'block beg (length (symbol-name bare)) beg))
+        (let ((elisp-scope-block-alist (elisp-scope-local-new bare beg elisp-scope-block-alist)))
+          (elisp-scope-n body)))
+    (elisp-scope-n body)))
+
+(defun elisp-scope-return-from (name result)
+  (when-let* ((bare (and (symbol-with-pos-p name) (bare-symbol name)))
+              (pos (alist-get bare elisp-scope-block-alist)))
+    (elisp-scope-report 'block
+                  (symbol-with-pos-pos name) (length (symbol-name bare)) pos))
+  (elisp-scope-1 result))
+
+(defvar elisp-scope-assume-func nil)
+
+(defun elisp-scope-sharpquote (arg)
+  (cond
+   ((or (symbol-with-pos-p arg) (symbolp arg))
+    (let ((bare (bare-symbol arg)))
+      (cond
+       ((or (functionp bare) (memq bare elisp-scope-local-functions) (assq bare elisp-scope-flet-alist) elisp-scope-assume-func)
+        (elisp-scope-report-s arg 'function))
+       (t (elisp-scope-report-s arg 'unknown)))))
+   ((consp arg) (elisp-scope-1 arg))))
+
+(defun elisp-scope-loop-for-and (rest)
+  (if (eq (elisp-scope-sym-bare (car rest)) 'and)
+      (elisp-scope-loop-for elisp-scope--local (cadr rest) (cddr rest))
+    (elisp-scope-loop rest)))
+
+(defun elisp-scope-loop-for-by (local expr rest)
+  (elisp-scope-1 expr)
+  (let ((elisp-scope--local local))
+    (elisp-scope-loop-for-and rest)))
+
+(defun elisp-scope-loop-for-to (local expr rest)
+  (elisp-scope-1 expr)
+  (when-let* ((bare (elisp-scope-sym-bare (car rest)))
+              (more (cdr rest)))
+    (cond
+     ((eq bare 'by)
+      (elisp-scope-loop-for-by local (car more) (cdr more)))
+     (t (let ((elisp-scope--local local))
+          (elisp-scope-loop-for-and rest))))))
+
+(defun elisp-scope-loop-for-from (local expr rest)
+  (elisp-scope-1 expr)
+  (when-let* ((bare (elisp-scope-sym-bare (car rest)))
+              (more (cdr rest)))
+    (cond
+     ((memq bare '(to upto downto below above))
+      (elisp-scope-loop-for-to local (car more) (cdr more)))
+     ((eq bare 'by)
+      (elisp-scope-loop-for-by local (car more) (cdr more)))
+     (t (let ((elisp-scope--local local))
+          (elisp-scope-loop-for-and rest))))))
+
+(defun elisp-scope-loop-for-= (local expr rest)
+  (elisp-scope-1 expr)
+  (when-let* ((bare (elisp-scope-sym-bare (car rest)))
+              (more (cdr rest)))
+    (cond
+     ((eq bare 'then)
+      (elisp-scope-loop-for-by local (car more) (cdr more)))
+     (t (let ((elisp-scope--local local))
+          (elisp-scope-loop-for-and rest))))))
+
+(defun elisp-scope-loop-for-being-the-hash-keys-of-using (form rest)
+  (let* ((var (cadr form))
+         (bare (elisp-scope-sym-bare var))
+         (beg (elisp-scope-sym-pos var)))
+    (when beg (elisp-scope-binding bare beg (length (symbol-name bare))))
+    (let ((elisp-scope--local (elisp-scope-local-new bare beg elisp-scope--local)))
+      (elisp-scope-loop-for-and rest))))
+
+(defun elisp-scope-loop-for-being-the-hash-keys-of (local expr rest)
+  (elisp-scope-1 expr)
+  (when-let* ((bare (elisp-scope-sym-bare (car rest)))
+              (more (cdr rest)))
+    (let ((elisp-scope--local local))
+      (cond
+       ((eq bare 'using)
+        (elisp-scope-loop-for-being-the-hash-keys-of-using (car more) (cdr more)))
+       (t (elisp-scope-loop-for-and rest))))))
+
+(defun elisp-scope-loop-for-being-the-hash-keys (local word rest)
+  (when-let* ((bare (elisp-scope-sym-bare word)))
+    (cond
+     ((eq bare 'of)
+      (elisp-scope-loop-for-being-the-hash-keys-of local (car rest) (cdr rest))))))
+
+(defun elisp-scope-loop-for-being-the (local word rest)
+  (when-let* ((bare (elisp-scope-sym-bare word)))
+    (cond
+     ((memq bare '(buffer buffers))
+      (let ((elisp-scope--local local))
+        (elisp-scope-loop-for-and rest)))
+     ((memq bare '( hash-key hash-keys
+                    hash-value hash-values
+                    key-code key-codes
+                    key-binding key-bindings))
+      (elisp-scope-loop-for-being-the-hash-keys local (car rest) (cdr rest))))))
+
+(defun elisp-scope-loop-for-being (local next rest)
+  (elisp-scope-loop-for-being-the
+   local (car rest)
+   (if (memq (elisp-scope-sym-bare next) '(the each)) (cdr rest) rest)))
+
+(defun elisp-scope-loop-for (local vars rest)
+  (if vars
+      ;; FIXME: var need not be a symbol, see
+      ;; `cl-macs-loop-destructure-cons' test in cl-macs-tests.el.
+      (let* ((var (car (ensure-list vars)))
+             (bare (bare-symbol var))
+             (beg (elisp-scope-sym-pos var)))
+        (when beg (elisp-scope-binding bare beg (length (symbol-name bare))))
+        (elisp-scope-loop-for (elisp-scope-local-new bare beg local) (cdr-safe vars) rest))
+    (when-let* ((bare (elisp-scope-sym-bare (car rest)))
+                (more (cdr rest)))
+      (cond
+       ((memq bare '(from upfrom downfrom))
+        (elisp-scope-loop-for-from local (car more) (cdr more)))
+       ((memq bare '( to upto downto below above
+                      in on in-ref))
+        (elisp-scope-loop-for-to local (car more) (cdr more)))
+       ((memq bare '(by
+                     across across-ref))
+        (elisp-scope-loop-for-by local (car more) (cdr more)))
+       ((eq bare '=)
+        (elisp-scope-loop-for-= local (car more) (cdr more)))
+       ((eq bare 'being)
+        (elisp-scope-loop-for-being local (car more) (cdr more)))))))
+
+(defun elisp-scope-loop-repeat (form rest)
+  (elisp-scope-1 form)
+  (elisp-scope-loop rest))
+
+(defvar elisp-scope-loop-into-vars nil)
+
+(defun elisp-scope-loop-collect (expr rest)
+  (elisp-scope-1 expr)
+  (let ((bw (elisp-scope-sym-bare (car rest)))
+        (more (cdr rest)))
+    (if (eq bw 'into)
+        (let* ((var (car more))
+               (bare (elisp-scope-sym-bare var))
+               (beg (elisp-scope-sym-pos var)))
+          (if (memq bare elisp-scope-loop-into-vars)
+              (progn
+                (elisp-scope-s var)
+                (elisp-scope-loop (cdr more)))
+            (when beg (elisp-scope-binding bare beg (length (symbol-name bare))))
+            (let ((elisp-scope-loop-into-vars (cons bare elisp-scope-loop-into-vars))
+                  (elisp-scope--local (elisp-scope-local-new bare beg elisp-scope--local)))
+              (elisp-scope-loop (cdr more)))))
+      (elisp-scope-loop rest))))
+
+(defun elisp-scope-loop-with-and (rest)
+  (if (eq (elisp-scope-sym-bare (car rest)) 'and)
+      (elisp-scope-loop-with (cadr rest) (cddr rest))
+    (elisp-scope-loop rest)))
+
+(defun elisp-scope-loop-with (var rest)
+  (let* ((bare (elisp-scope-sym-bare var))
+         (beg (symbol-with-pos-pos var))
+         (l (elisp-scope-local-new bare beg elisp-scope--local))
+         (eql (car rest)))
+    (when beg (elisp-scope-binding bare beg (length (symbol-name bare))))
+    (if (eq (elisp-scope-sym-bare eql) '=)
+        (let* ((val (cadr rest)) (more (cddr rest)))
+          (elisp-scope-1 val)
+          (let ((elisp-scope--local l))
+            (elisp-scope-loop-with-and more)))
+      (let ((elisp-scope--local l))
+        (elisp-scope-loop-with-and rest)))))
+
+(defun elisp-scope-loop-do (form rest)
+  (elisp-scope-1 form)
+  (if (consp (car rest))
+      (elisp-scope-loop-do (car rest) (cdr rest))
+    (elisp-scope-loop rest)))
+
+(defun elisp-scope-loop-named (name rest)
+  (let* ((beg (elisp-scope-sym-pos name))
+         (bare (elisp-scope-sym-bare name)))
+    (when beg
+      (elisp-scope-report 'block beg (length (symbol-name bare)) beg))
+    (let ((elisp-scope-block-alist (elisp-scope-local-new bare beg elisp-scope-block-alist)))
+      (elisp-scope-loop rest))))
+
+(defun elisp-scope-loop-finally (next rest)
+  (if-let* ((bare (elisp-scope-sym-bare next)))
+      (cond
+       ((eq bare 'do)
+        (elisp-scope-loop-do (car rest) (cdr rest)))
+       ((eq bare 'return)
+        (elisp-scope-1 (car rest))
+        (elisp-scope-loop (cdr rest))))
+    (if (eq (elisp-scope-sym-bare (car-safe next)) 'return)
+        (progn
+          (elisp-scope-1 (cadr next))
+          (elisp-scope-loop (cdr rest)))
+      (elisp-scope-loop-do next rest))))
+
+(defun elisp-scope-loop-initially (next rest)
+  (if (eq (elisp-scope-sym-bare next) 'do)
+      (elisp-scope-loop-do (car rest) (cdr rest))
+    (elisp-scope-loop-do next rest)))
+
+(defvar elisp-scope-loop-if-depth 0)
+
+(defun elisp-scope-loop-if (keyword condition rest)
+  (elisp-scope-1 condition)
+  (let ((elisp-scope-loop-if-depth (1+ elisp-scope-loop-if-depth))
+        (elisp-scope--local
+         ;; `if' binds `it'.
+         (elisp-scope-local-new 'it (elisp-scope-sym-pos keyword) elisp-scope--local)))
+    (elisp-scope-loop rest)))
+
+(defun elisp-scope-loop-end (rest)
+  (let ((elisp-scope-loop-if-depth (1- elisp-scope-loop-if-depth)))
+    (unless (minusp elisp-scope-loop-if-depth)
+      (elisp-scope-loop rest))))
+
+(defun elisp-scope-loop-and (rest)
+  (when (plusp elisp-scope-loop-if-depth) (elisp-scope-loop rest)))
+
+(defun elisp-scope-loop (forms)
+  (when forms
+    (let* ((kw (car forms))
+           (bare (elisp-scope-sym-bare kw))
+           (rest (cdr forms)))
+      (cond
+       ((memq bare '(for as))
+        (elisp-scope-loop-for elisp-scope--local (car rest) (cdr rest)))
+       ((memq bare '( repeat while until always never thereis iter-by
+                      return))
+        (elisp-scope-loop-repeat (car rest) (cdr rest)))
+       ((memq bare '(collect append nconc concat vconcat count sum maximize minimize))
+        (elisp-scope-loop-collect (car rest) (cdr rest)))
+       ((memq bare '(with))
+        (elisp-scope-loop-with (car rest) (cdr rest)))
+       ((memq bare '(do)) (elisp-scope-loop-do (car rest) (cdr rest)))
+       ((memq bare '(named)) (elisp-scope-loop-named (car rest) (cdr rest)))
+       ((memq bare '(finally)) (elisp-scope-loop-finally (car rest) (cdr rest)))
+       ((memq bare '(initially)) (elisp-scope-loop-initially (car rest) (cdr rest)))
+       ((memq bare '(if when unless)) (elisp-scope-loop-if kw (car rest) (cdr rest)))
+       ((memq bare '(end)) (elisp-scope-loop-end rest))
+       ((memq bare '(and else)) (elisp-scope-loop-and rest))))))
+
+(defun elisp-scope-named-let (name bindings body &optional outtype)
+  (let ((bare (elisp-scope-sym-bare name))
+        (beg (elisp-scope-sym-pos name)))
+    (when beg
+      (elisp-scope-report 'function beg (length (symbol-name bare)) beg))
+    (dolist (binding bindings)
+      (let* ((sym (car (ensure-list binding)))
+             (beg (symbol-with-pos-pos sym))
+             (bare (bare-symbol sym)))
+        (when beg (elisp-scope-binding bare beg (length (symbol-name bare))))
+        (elisp-scope-1 (cadr binding))))
+    (let ((l elisp-scope--local))
+      (dolist (binding bindings)
+        (when-let* ((sym (car (ensure-list binding)))
+                    (bare (elisp-scope-sym-bare sym)))
+          (setq l (elisp-scope-local-new bare (elisp-scope-sym-pos sym) l))))
+      (let ((elisp-scope-flet-alist (elisp-scope-local-new bare beg elisp-scope-flet-alist))
+            (elisp-scope--local l))
+        (elisp-scope-n body outtype)))))
+
+(defun elisp-scope-with-slots (spec-list object body)
+  (elisp-scope-1 object)
+  (elisp-scope-let spec-list body))
+
+(defun elisp-scope-rx (regexps)
+  (dolist (regexp regexps) (elisp-scope-rx-1 regexp)))
+
+(defvar elisp-scope-rx-alist nil)
+
+(defun elisp-scope-rx-1 (regexp)
+  (if (consp regexp)
+      (let* ((head (car regexp))
+             (bare (elisp-scope-sym-bare head)))
+        (when (and bare (symbol-with-pos-p head))
+          (elisp-scope-report 'rx-construct
+                        (symbol-with-pos-pos head) (length (symbol-name bare))
+                        (alist-get bare elisp-scope-rx-alist)))
+        (cond
+         ((memq bare '(literal regex regexp eval))
+          (elisp-scope-1 (cadr regexp)))
+         ((memq bare '( seq sequence and :
+                        or |
+                        zero-or-more 0+ * *?
+                        one-or-more 1+ + +?
+                        zero-or-one optional opt \? \??
+                        = >= ** repeat
+                        minimal-match maximal-match
+                        group submatch
+                        group-n submatch-n))
+          (elisp-scope-rx (cdr regexp)))))
+    (when-let* (((symbol-with-pos-p regexp))
+                (bare (elisp-scope-sym-bare regexp)))
+      (elisp-scope-report 'rx-construct
+                    (symbol-with-pos-pos regexp) (length (symbol-name bare))
+                    (alist-get bare elisp-scope-rx-alist)))))
+
+(defun elisp-scope-rx-define (name rest)
+  (when-let* ((bare (elisp-scope-sym-bare name)))
+    (elisp-scope-report 'rx-construct
+                  (symbol-with-pos-pos name) (length (symbol-name bare)) nil))
+  (if (not (cdr rest))
+      (elisp-scope-rx-1 (car rest))
+    (let ((l elisp-scope-rx-alist)
+          (args (car rest))
+          (rx (cadr rest)))
+      (dolist (arg args)
+        (and (symbol-with-pos-p arg)
+             (let* ((beg (symbol-with-pos-pos arg))
+                    (bare (bare-symbol arg))
+                    (len (length (symbol-name bare))))
+               (when beg
+                 (if (memq (bare-symbol arg) '(&optional &rest _))
+                     (elisp-scope-report 'ampersand beg len)
+                   (elisp-scope-report 'rx-construct beg len beg))))))
+      (dolist (arg args)
+        (when-let* ((bare (bare-symbol arg))
+                    (beg (elisp-scope-sym-pos arg)))
+          (unless (memq bare '(&optional &rest))
+            (setq l (elisp-scope-local-new bare beg l)))))
+      (let ((elisp-scope-rx-alist l))
+        (elisp-scope-rx-1 rx)))))
+
+(defun elisp-scope-rx-let (bindings body)
+  (if-let* ((binding (car bindings)))
+      (let ((name (car binding)) (rest (cdr binding)))
+        (when-let* ((bare (elisp-scope-sym-bare name))
+                    (beg (symbol-with-pos-pos name)))
+          (elisp-scope-report 'rx-construct
+                        beg (length (symbol-name bare)) beg))
+        (if (cdr rest)
+            (let ((l elisp-scope-rx-alist)
+                  (args (car rest))
+                  (rx (cadr rest)))
+              (dolist (arg args)
+                (and (symbol-with-pos-p arg)
+                     (let* ((beg (symbol-with-pos-pos arg))
+                            (bare (bare-symbol arg))
+                            (len (length (symbol-name bare))))
+                       (when beg
+                         (if (memq (bare-symbol arg) '(&optional &rest _))
+                             (elisp-scope-report 'ampersand beg len)
+                           (elisp-scope-report 'rx-construct beg len beg))))))
+              (dolist (arg args)
+                (when-let* ((bare (bare-symbol arg))
+                            (beg (elisp-scope-sym-pos arg)))
+                  (unless (memq bare '(&optional &rest))
+                    (setq l (elisp-scope-local-new bare beg l)))))
+              (let ((elisp-scope-rx-alist l))
+                (elisp-scope-rx-1 rx))
+              (let ((elisp-scope-rx-alist (elisp-scope-local-new (elisp-scope-sym-bare name)
+                                                     (elisp-scope-sym-pos name)
+                                                     elisp-scope-rx-alist)))
+                (elisp-scope-rx-let (cdr bindings) body)))
+          (elisp-scope-rx-1 (car rest))
+          (let ((elisp-scope-rx-alist (elisp-scope-local-new (elisp-scope-sym-bare name)
+                                                 (elisp-scope-sym-pos name)
+                                                 elisp-scope-rx-alist)))
+            (elisp-scope-rx-let (cdr bindings) body))))
+    (elisp-scope-n body)))
+
+(defun elisp-scope-gv-define-expander (name handler)
+  (when-let* ((beg (elisp-scope-sym-pos name)) (bare (elisp-scope-sym-bare name)))
+    (elisp-scope-report 'defun beg (length (symbol-name bare))))
+  (elisp-scope-1 handler))
+
+(defun elisp-scope-gv-define-simple-setter (name setter rest)
+  (when-let* ((beg (elisp-scope-sym-pos name)) (bare (elisp-scope-sym-bare name)))
+    (elisp-scope-report 'defun beg (length (symbol-name bare))))
+  (when-let* ((beg (elisp-scope-sym-pos setter)) (bare (elisp-scope-sym-bare setter)))
+    (elisp-scope-report 'function beg (length (symbol-name bare))))
+  (elisp-scope-n rest))
+
+(defun elisp-scope-face (face)
+  (if (or (elisp-scope-sym-bare face)
+          (keywordp (elisp-scope-sym-bare (car-safe face))))
+      (elisp-scope-face-1 face)
+    (mapc #'elisp-scope-face-1 face)))
+
+(defun elisp-scope-face-1 (face)
+  (cond
+   ((symbol-with-pos-p face)
+    (when-let* ((beg (elisp-scope-sym-pos face)) (bare (elisp-scope-sym-bare face)))
+      (elisp-scope-report 'face beg (length (symbol-name bare)))))
+   ((keywordp (elisp-scope-sym-bare (car-safe face)))
+    (let ((l face))
+      (while l
+        (let ((kw (car l))
+              (vl (cadr l)))
+          (setq l (cddr l))
+          (when-let* ((bare (elisp-scope-sym-bare kw))
+                      ((keywordp bare)))
+            (when-let* ((beg (elisp-scope-sym-pos kw))
+                        (len (length (symbol-name bare))))
+              (elisp-scope-report 'constant beg len))
+            (when (eq bare :inherit)
+              (when-let* ((beg (elisp-scope-sym-pos vl)) (fbare (elisp-scope-sym-bare vl)))
+                (elisp-scope-report 'face beg (length (symbol-name fbare))))))))))))
+
+(defun elisp-scope-deftype (name args body)
+  (when-let* ((beg (elisp-scope-sym-pos name)) (bare (elisp-scope-sym-bare name)))
+    (elisp-scope-report 'deftype beg (length (symbol-name bare))))
+  (elisp-scope-lambda args body))
+
+(defun elisp-scope-widget-type (form)
+  (when-let* (((memq (elisp-scope-sym-bare (car-safe form)) '(quote \`)))
+              (type (cadr form)))
+    (elisp-scope-widget-type-1 type)))
+
+(defun elisp-scope-widget-type-1 (type)
+  (cond
+   ((symbol-with-pos-p type)
+    (when-let* ((beg (elisp-scope-sym-pos type)) (bare (elisp-scope-sym-bare type)))
+      (elisp-scope-report 'widget-type
+                    (symbol-with-pos-pos type)
+                    (length (symbol-name (bare-symbol type))))))
+   ((consp type)
+    (let ((head (car type)))
+      (when-let* ((beg (elisp-scope-sym-pos head)) (bare (elisp-scope-sym-bare head)))
+        (elisp-scope-report 'widget-type beg (length (symbol-name bare))))
+      (when-let* ((bare (elisp-scope-sym-bare head)))
+        (elisp-scope-widget-type-arguments bare (cdr type)))))))
+
+(defun elisp-scope-widget-type-keyword-arguments (head kw args)
+  (when-let* ((beg (elisp-scope-sym-pos kw))
+              (len (length (symbol-name (bare-symbol kw)))))
+    (elisp-scope-report 'constant beg len))
+  (cond
+   ((and (memq head '(plist alist))
+         (memq kw   '(:key-type :value-type)))
+    (elisp-scope-widget-type-1 (car args)))
+   ((memq kw '(:action :match :match-inline :validate))
+    (when-let* ((fun (car args))
+                (beg (elisp-scope-sym-pos fun))
+                (bare (elisp-scope-sym-bare fun)))
+      (elisp-scope-report 'function beg (length (symbol-name bare)))))
+   ((memq kw '(:args))
+    (mapc #'elisp-scope-widget-type-1 (car args))))
+  ;; TODO: (restricted-sexp :match-alternatives CRITERIA)
+  (elisp-scope-widget-type-arguments head (cdr args)))
+
+(defun elisp-scope-widget-type-arguments (head args)
+  (let* ((arg (car args))
+         (bare (elisp-scope-sym-bare arg)))
+    (if (keywordp bare)
+        (elisp-scope-widget-type-keyword-arguments head bare (cdr args))
+      (elisp-scope-widget-type-arguments-1 head args))))
+
+(defun elisp-scope-widget-type-arguments-1 (head args)
+  (cl-case head
+    ((list cons group vector choice radio set repeat checklist)
+     (mapc #'elisp-scope-widget-type-1 args))
+    ((function-item)
+     (when-let* ((fun (car args))
+                 (beg (elisp-scope-sym-pos fun))
+                 (bare (elisp-scope-sym-bare fun)))
+       (elisp-scope-report 'function beg (length (symbol-name bare)))))
+    ((variable-item)
+     (when-let* ((var (car args))
+                 (beg (elisp-scope-sym-pos var))
+                 (bare (elisp-scope-sym-bare var)))
+       (elisp-scope-report 'variable beg (length (symbol-name bare)))))))
+
+(defun elisp-scope-quoted-group (sym-form)
+  (when-let* (((eq (elisp-scope-sym-bare (car-safe sym-form)) 'quote))
+              (sym (cadr sym-form))
+              (beg (elisp-scope-sym-pos sym))
+              (bare (elisp-scope-sym-bare sym)))
+    (elisp-scope-report 'group beg (length (symbol-name bare)))))
+
+(defun elisp-scope-defmethod-1 (local args body)
+  (if args
+      (let ((arg (car args)) (bare nil))
+        (cond
+         ((consp arg)
+          (let* ((var (car arg))
+                 (spec (cadr arg)))
+            (cond
+             ((setq bare (elisp-scope-sym-bare var))
+              (when-let* ((beg (elisp-scope-sym-pos var))
+                          (len (length (symbol-name bare))))
+                (elisp-scope-binding bare beg len))
+              (cond
+               ((consp spec)
+                (let ((head (car spec)) (form (cadr spec)))
+                  (and (eq 'eql (elisp-scope-sym-bare head))
+                       (not (or (symbolp form) (symbol-with-pos-p form)))
+                       (elisp-scope-1 form))))
+               ((symbol-with-pos-p spec)
+                (when-let* ((beg (symbol-with-pos-pos spec))
+                            (bare (bare-symbol spec))
+                            (len (length (symbol-name bare))))
+                  (elisp-scope-report 'type beg len))))
+              (elisp-scope-defmethod-1 (elisp-scope-local-new bare (elisp-scope-sym-pos var) local)
+                                 (cdr args) body)))))
+         ((setq bare (elisp-scope-sym-bare arg))
+          (cond
+           ((memq bare '(&optional &rest &body _))
+            (when-let* ((beg (elisp-scope-sym-pos arg)))
+              (elisp-scope-report 'ampersand beg (length (symbol-name bare))))
+            (elisp-scope-defmethod-1 local (cdr args) body))
+           ((eq bare '&context)
+            (let* ((expr-type (cadr args))
+                   (expr (car expr-type))
+                   (spec (cadr expr-type))
+                   (more (cddr args)))
+              (when-let* ((beg (elisp-scope-sym-pos arg)))
+                (elisp-scope-report 'ampersand beg (length (symbol-name bare))))
+              (elisp-scope-1 expr)
+              (cond
+               ((consp spec)
+                (let ((head (car spec)) (form (cadr spec)))
+                  (and (eq 'eql (elisp-scope-sym-bare head))
+                       (not (or (symbolp form) (symbol-with-pos-p form)))
+                       (elisp-scope-1 form))))
+               ((symbol-with-pos-p spec)
+                (when-let* ((beg (symbol-with-pos-pos spec))
+                            (bare (bare-symbol spec))
+                            (len (length (symbol-name bare))))
+                  (elisp-scope-report 'type beg len beg))))
+              (elisp-scope-defmethod-1 local more body)))
+           (t
+            (when-let* ((beg (elisp-scope-sym-pos arg))
+                        (len (length (symbol-name bare))))
+              (elisp-scope-binding bare beg len))
+            (elisp-scope-defmethod-1 (elisp-scope-local-new bare (elisp-scope-sym-pos arg) local)
+                               (cdr args) body))))))
+    (let ((elisp-scope--local local))
+      (elisp-scope-n body))))
+
+;; (defun elisp-scope-defmethod (local name rest)
+;;   (when (and (symbol-with-pos-p (car rest))
+;;              (eq (bare-symbol (car rest)) :extra))
+;;     (setq rest (cddr rest)))
+;;   (when (and (symbol-with-pos-p (car rest))
+;;              (memq (bare-symbol (car rest)) '(:before :after :around)))
+;;     (setq rest (cdr rest)))
+;;   (elisp-scope-defmethod-1 local local name (car rest)
+;;                      (if (stringp (cadr rest)) (cddr rest) (cdr rest))))
+
+(defun elisp-scope-defmethod (name rest)
+  (when-let* ((beg (elisp-scope-sym-pos name)) (bare (elisp-scope-sym-bare name)))
+    (elisp-scope-report 'defun beg (length (symbol-name bare))))
+  ;; [EXTRA]
+  (when (eq (elisp-scope-sym-bare (car rest)) :extra)
+    (elisp-scope-s (car rest))
+    (setq rest (cddr rest)))
+  ;; [QUALIFIER]
+  (when (keywordp (elisp-scope-sym-bare (car rest)))
+    (elisp-scope-s (car rest))
+    (setq rest (cdr rest)))
+  ;; ARGUMENTS
+  (elisp-scope-defmethod-1 elisp-scope--local (car rest) (cdr rest)))
+
+(defun elisp-scope-cl-defun (name arglist body)
+  (let ((beg (elisp-scope-sym-pos name))
+        (bare (elisp-scope-sym-bare name)))
+    (when beg (elisp-scope-report 'defun beg (length (symbol-name bare))))
+    (let ((elisp-scope-block-alist (elisp-scope-local-new bare beg elisp-scope-block-alist)))
+      (elisp-scope-cl-lambda arglist body))))
+
+(defun elisp-scope-cl-lambda (arglist body)
+  (elisp-scope-cl-lambda-1 arglist nil body))
+
+(defun elisp-scope-cl-lambda-1 (arglist more body)
+  (cond
+   (arglist
+    (if (consp arglist)
+        (let ((head (car arglist)))
+          (if (consp head)
+              (elisp-scope-cl-lambda-1 head (cons (cdr arglist) more) body)
+            (let ((bare (elisp-scope-sym-bare head)))
+              (if (memq bare '(&optional &rest &body &key &aux &whole &cl-defs &cl-quote))
+                  (progn
+                    (when-let* ((beg (elisp-scope-sym-pos head)))
+                      (elisp-scope-report 'ampersand beg (length (symbol-name bare))))
+                    (cl-case bare
+                      (&optional (elisp-scope-cl-lambda-optional (cadr arglist) (cddr arglist) more body))
+                      (&cl-defs (elisp-scope-cl-lambda-defs (cadr arglist) (cddr arglist) more body))
+                      ((&rest &body) (elisp-scope-cl-lambda-rest (cadr arglist) (cddr arglist) more body))
+                      (&key (elisp-scope-cl-lambda-key (cadr arglist) (cddr arglist) more body))
+                      (&aux (elisp-scope-cl-lambda-aux (cadr arglist) (cddr arglist) more body))
+                      (&whole (elisp-scope-cl-lambda-1 (cdr arglist) more body))))
+                (when-let* ((beg (elisp-scope-sym-pos head)))
+                  (elisp-scope-binding bare beg (length (symbol-name bare))))
+                (let ((elisp-scope--local (elisp-scope-local-new bare (elisp-scope-sym-pos head) elisp-scope--local)))
+                  (elisp-scope-cl-lambda-1 (cdr arglist) more body))))))
+      (elisp-scope-cl-lambda-1 (list '&rest arglist) more body)))
+   (more (elisp-scope-cl-lambda-1 (car more) (cdr more) body))
+   (t (elisp-scope-lambda nil body))))
+
+(defun elisp-scope-cl-lambda-defs (arg arglist more body)
+  (when (consp arg)
+    (let ((def (car arg))
+          (defs (cdr arg)))
+      (elisp-scope-1 def)
+      (dolist (d defs) (elisp-scope-n (cdr-safe d)))))
+  (elisp-scope-cl-lambda-1 arglist more body))
+
+(defun elisp-scope-cl-lambda-optional (arg arglist more body)
+  (let* ((a (ensure-list arg))
+         (var (car a))
+         (l elisp-scope--local)
+         (init (cadr a))
+         (svar (caddr a)))
+    (elisp-scope-1 init)
+    (if (consp var)
+        (let ((elisp-scope--local l))
+          (elisp-scope-cl-lambda-1 var (cons (append (when svar (list svar))
+                                               (cons '&optional arglist))
+                                       more)
+                             body))
+      (when-let* ((bare (elisp-scope-sym-bare svar)))
+        (when-let* ((beg (elisp-scope-sym-pos svar)))
+          (elisp-scope-binding bare beg (length (symbol-name bare))))
+        (setq l (elisp-scope-local-new bare (elisp-scope-sym-pos svar) l)))
+      (when-let* ((bare (elisp-scope-sym-bare var)))
+        (when-let* ((beg (elisp-scope-sym-pos var)))
+          (elisp-scope-binding bare beg (length (symbol-name bare))))
+        (setq l (elisp-scope-local-new bare (elisp-scope-sym-pos var) l)))
+      (cond
+       (arglist
+        (let ((head (car arglist)))
+          (if-let* ((bare (elisp-scope-sym-bare head))
+                    ((memq bare '(&rest &body &key &aux))))
+              (progn
+                (when-let* ((beg (elisp-scope-sym-pos head)))
+                  (elisp-scope-report 'ampersand beg (length (symbol-name bare))))
+                (cl-case bare
+                  ((&rest &body)
+                   (let ((elisp-scope--local l))
+                     (elisp-scope-cl-lambda-rest (cadr arglist) (cddr arglist) more body)))
+                  (&key (let ((elisp-scope--local l))
+                          (elisp-scope-cl-lambda-key (cadr arglist) (cddr arglist) more body)))
+                  (&aux (let ((elisp-scope--local l))
+                          (elisp-scope-cl-lambda-aux (cadr arglist) (cddr arglist) more body)))))
+            (let ((elisp-scope--local l))
+              (elisp-scope-cl-lambda-optional head (cdr arglist) more body)))))
+       (more
+        (let ((elisp-scope--local l))
+          (elisp-scope-cl-lambda-1 (car more) (cdr more) body)))
+       (t (let ((elisp-scope--local l)) (elisp-scope-lambda nil body)))))))
+
+(defun elisp-scope-cl-lambda-rest (var arglist more body)
+  (let* ((l elisp-scope--local))
+    (if (consp var)
+        (elisp-scope-cl-lambda-1 var (cons arglist more) body)
+      (when-let* ((bare (elisp-scope-sym-bare var)))
+        (when-let* ((beg (elisp-scope-sym-pos var)))
+          (elisp-scope-binding bare beg (length (symbol-name bare))))
+        (setq l (elisp-scope-local-new bare (elisp-scope-sym-pos var) l)))
+      (cond
+       (arglist
+        (let ((head (car arglist)))
+          (if-let* ((bare (elisp-scope-sym-bare head))
+                    ((memq bare '(&key &aux))))
+              (progn
+                (when-let* ((beg (elisp-scope-sym-pos head)))
+                  (elisp-scope-report 'ampersand beg (length (symbol-name bare))))
+                (cl-case bare
+                  (&key
+                   (let ((elisp-scope--local l))
+                     (elisp-scope-cl-lambda-key (cadr arglist) (cddr arglist) more body)))
+                  (&aux
+                   (let ((elisp-scope--local l))
+                     (elisp-scope-cl-lambda-aux (cadr arglist) (cddr arglist) more body)))))
+            (let ((elisp-scope--local l))
+              (elisp-scope-cl-lambda-1 (car more) (cdr more) body)))))
+       (more (let ((elisp-scope--local l))
+               (elisp-scope-cl-lambda-1 (car more) (cdr more) body)))
+       (t (let ((elisp-scope--local l))
+            (elisp-scope-lambda nil body)))))))
+
+(defun elisp-scope-cl-lambda-key (arg arglist more body)
+  (let* ((a (ensure-list arg))
+         (var (car a))
+         (l elisp-scope--local)
+         (init (cadr a))
+         (svar (caddr a))
+         (kw (car-safe var)))
+    (elisp-scope-1 init)
+    (and kw (or (symbolp kw) (symbol-with-pos-p kw))
+         (cadr var)
+         (not (cddr var))
+         ;; VAR is (KEYWORD VAR)
+         (setq var (cadr var)))
+    (when-let* ((bare (elisp-scope-sym-bare kw))
+                ((keywordp bare)))
+      (when-let* ((beg (elisp-scope-sym-pos kw)))
+        (elisp-scope-report 'constant beg (length (symbol-name bare))))
+      (setq l (elisp-scope-local-new bare (elisp-scope-sym-pos svar) l)))
+    (if (consp var)
+        (let ((elisp-scope--local l))
+          (elisp-scope-cl-lambda-1 var (cons (append (when svar (list svar))
+                                               (cons '&key arglist))
+                                       more)
+                             body))
+      (when-let* ((bare (elisp-scope-sym-bare svar)))
+        (when-let* ((beg (elisp-scope-sym-pos svar)))
+          (elisp-scope-binding bare beg (length (symbol-name bare))))
+        (setq l (elisp-scope-local-new bare (elisp-scope-sym-pos svar) l)))
+      (when-let* ((bare (elisp-scope-sym-bare var)))
+        (when-let* ((beg (elisp-scope-sym-pos var)))
+          (elisp-scope-binding bare beg (length (symbol-name bare))))
+        (setq l (elisp-scope-local-new bare (elisp-scope-sym-pos var) l)))
+      (cond
+       (arglist
+        (let ((head (car arglist)))
+          (if-let* ((bare (elisp-scope-sym-bare head))
+                    ((memq bare '(&aux &allow-other-keys))))
+              (progn
+                (when-let* ((beg (elisp-scope-sym-pos head)))
+                  (elisp-scope-report 'ampersand beg (length (symbol-name bare))))
+                (cl-case bare
+                  (&aux
+                   (let ((elisp-scope--local l))
+                     (elisp-scope-cl-lambda-aux (cadr arglist) (cddr arglist) more body)))
+                  (&allow-other-keys
+                   (let ((elisp-scope--local l))
+                     (elisp-scope-cl-lambda-1 (car more) (cdr more) body)))))
+            (let ((elisp-scope--local l))
+              (elisp-scope-cl-lambda-key head (cdr arglist) more body)))))
+       (more (let ((elisp-scope--local l))
+               (elisp-scope-cl-lambda-1 (car more) (cdr more) body)))
+       (t (let ((elisp-scope--local l))
+            (elisp-scope-lambda nil body)))))))
+
+(defun elisp-scope-cl-lambda-aux (arg arglist more body)
+  (let* ((a (ensure-list arg))
+         (var (car a))
+         (l elisp-scope--local)
+         (init (cadr a)))
+    (elisp-scope-1 init)
+    (if (consp var)
+        (let ((elisp-scope--local l))
+          (elisp-scope-cl-lambda-1 var (cons arglist more) body))
+      (when-let* ((bare (elisp-scope-sym-bare var)))
+        (when-let* ((beg (elisp-scope-sym-pos var)))
+          (elisp-scope-binding bare beg (length (symbol-name bare))))
+        (setq l (elisp-scope-local-new bare (elisp-scope-sym-pos var) l)))
+      (let ((elisp-scope--local l))
+        (cond
+         (arglist (elisp-scope-cl-lambda-aux (car arglist) (cdr arglist) more body))
+         (more (elisp-scope-cl-lambda-1 (car more) (cdr more) body))
+         (t (elisp-scope-lambda nil body)))))))
+
+(defvar elisp-scope-macrolet-alist nil)
+
+(defun elisp-scope-cl-macrolet (bindings body)
+  (if-let* ((b (car bindings)))
+      (let ((name (car b))
+            (arglist (cadr b))
+            (mbody (cddr b)))
+        (elisp-scope-cl-lambda arglist mbody)
+        (when-let* ((bare (elisp-scope-sym-bare name)))
+          (when-let* ((beg (elisp-scope-sym-pos name)))
+            (elisp-scope-report 'macro beg (length (symbol-name bare)) beg))
+          (let ((elisp-scope-macrolet-alist (elisp-scope-local-new bare (elisp-scope-sym-pos name) elisp-scope-macrolet-alist)))
+            (elisp-scope-cl-macrolet (cdr bindings) body))))
+    (elisp-scope-n body)))
+
+(defun elisp-scope-define-minor-mode (mode _doc body)
+  (let ((explicit-var nil) (command t))
+    (while-let ((kw (car-safe body))
+                (bkw (elisp-scope-sym-bare kw))
+                ((keywordp bkw)))
+      (when-let* ((beg (elisp-scope-sym-pos kw)))
+        (elisp-scope-report 'constant beg (length (symbol-name bkw))))
+      (cl-case bkw
+        ((:init-value :keymap :after-hook :initialize)
+         (elisp-scope-1 (cadr body)))
+        (:lighter (elisp-scope-mode-line-construct (cadr body)))
+        ((:interactive)
+         (let ((val (cadr body)))
+           (when (consp val) (mapc #'elisp-scope-major-mode-name val))
+           (setq command val)))
+        ((:variable)
+         (let* ((place (cadr body))
+                (tail (cdr-safe place)))
+           (if (and tail (let ((symbols-with-pos-enabled t))
+                           (or (symbolp tail) (functionp tail))))
+               (progn
+                 (elisp-scope-1 (car place))
+                 (elisp-scope-sharpquote tail))
+             (elisp-scope-1 place)))
+         (setq explicit-var t))
+        ((:group)
+         (elisp-scope-quoted-group (cadr body)))
+        ((:predicate)                   ;For globalized minor modes.
+         (elisp-scope-global-minor-mode-predicate (cadr body)))
+        ((:on :off)
+         (let ((obod (cdr body)))
+           (while (and obod (not (keywordp (elisp-scope-sym-bare (car obod)))))
+             (elisp-scope-1 (pop obod)))
+           (setq body (cons bkw (cons nil obod))))))
+      (setq body (cddr body)))
+    (when-let* ((bare (elisp-scope-sym-bare mode)) (beg (elisp-scope-sym-pos mode))
+                (typ (if command 'defcmd 'defun)))
+      (elisp-scope-report typ beg (length (symbol-name bare)))
+      (unless explicit-var
+        (elisp-scope-report 'defvar beg (length (symbol-name bare)))))
+    (elisp-scope-n body)))
+
+(defun elisp-scope-global-minor-mode-predicate (pred)
+  (if (consp pred)
+      (if (eq 'not (elisp-scope-sym-bare (car pred)))
+          (mapc #'elisp-scope-global-minor-mode-predicate (cdr pred))
+        (mapc #'elisp-scope-global-minor-mode-predicate pred))
+    (elisp-scope-major-mode-name pred)))
+
+(defun elisp-scope-major-mode-name (mode)
+  (when-let* ((beg (elisp-scope-sym-pos mode))
+              (bare (bare-symbol mode))
+              ((not (booleanp bare)))
+              (len (length (symbol-name bare))))
+    (elisp-scope-report 'major-mode beg len)))
+
+(defun elisp-scope-mode-line-construct (format)
+  (elisp-scope-mode-line-construct-1 format))
+
+(defun elisp-scope-mode-line-construct-1 (format)
+  (cond
+   ((symbol-with-pos-p format)
+    (elisp-scope-report 'variable
+                  (symbol-with-pos-pos format)
+                  (length (symbol-name (bare-symbol format)))))
+   ((consp format)
+    (let ((head (car format)))
+      (cond
+       ((or (stringp head) (consp head) (integerp head))
+        (mapc #'elisp-scope-mode-line-construct-1 format))
+       ((or (symbolp head) (symbol-with-pos-p head))
+        (elisp-scope-s head)
+        (cl-case (bare-symbol head)
+          (:eval
+           (elisp-scope-1 (cadr format)))
+          (:propertize
+           (elisp-scope-mode-line-construct-1 (cadr format))
+           (when-let* ((props (cdr format))
+                       (symbols-with-pos-enabled t)
+                       (val-form (plist-get props 'face)))
+             (elisp-scope-face-1 val-form)))
+          (otherwise
+           (elisp-scope-mode-line-construct-1 (cadr format))
+           (elisp-scope-mode-line-construct-1 (caddr format))))))))))
+
+(defcustom elisp-scope-safe-macros nil
+  "Specify which macros are safe to expand during code analysis.
+
+If this is t, macros are considered safe by default.  Otherwise, this is
+a (possibly empty) list of safe macros.
+
+Note that this option only affects analysis of untrusted code, for
+trusted code macro expansion is always safe."
+  :type '(choice (const :tag "Trust all macros" t)
+                 (repeat :tag "Trust these macros" symbol))
+  :group 'lisp)
+
+(defvar elisp-scope-unsafe-macros
+  '( static-if static-when static-unless
+     cl-eval-when eval-when-compile eval-and-compile let-when-compile
+     rx cl-macrolet nnoo-define-basics))
+
+(defun elisp-scope-safe-macro-p (macro)
+  (and (not (memq macro elisp-scope-unsafe-macros))
+       (or (eq elisp-scope-safe-macros t)
+           (memq macro elisp-scope-safe-macros)
+           (get macro 'safe-macro)
+           (trusted-content-p))))
+
+(defvar warning-minimum-log-level)
+
+(defmacro elisp-scope-define-analyzer (fsym args &rest body)
+  (declare (indent defun))
+  (let ((analyzer (intern (concat "elisp-scope--analyze-" (symbol-name fsym)))))
+    `(progn
+       (defun ,analyzer ,args ,@body)
+       (put ',fsym 'elisp-scope-analyzer #',analyzer))))
+
+(defmacro elisp-scope--define-function-analyzer (fsym args type &rest body)
+  (declare (indent defun))
+  (let* ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
+    `(progn
+       (defun ,helper ,args ,@body)
+       (elisp-scope-define-analyzer ,fsym (f &rest args)
+         (elisp-scope-report-s f ',type)
+         (apply #',helper args)
+         (elisp-scope-n args)))))
+
+(defmacro elisp-scope-define-function-analyzer (fsym args &rest body)
+  (declare (indent defun))
+  `(elisp-scope--define-function-analyzer ,fsym ,args function ,@body)
+  ;; (let* ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
+  ;;   `(progn
+  ;;      (defun ,helper ,args ,@body)
+  ;;      (elisp-scope-define-analyzer ,fsym (l f &rest args)
+  ;;        (elisp-scope-report-s f 'function)
+  ;;        (apply #',helper args)
+  ;;        (elisp-scope-n l args))))
+  )
+
+(defmacro elisp-scope-define-func-analyzer (fsym args &rest body)
+  (declare (indent defun))
+  (let* ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
+    `(progn
+       (defun ,helper ,args ,@body)
+       (elisp-scope-define-analyzer ,fsym (f &rest args)
+         (elisp-scope-report-s f 'function)
+         (apply #',helper args)))))
+
+(defmacro elisp-scope-define-macro-analyzer (fsym args &rest body)
+  (declare (indent defun))
+  (let* ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
+    `(progn
+       (defun ,helper ,args ,@body)
+       (elisp-scope-define-analyzer ,fsym (f &rest args)
+         (elisp-scope-report-s f 'macro)
+         (apply #',helper args)))))
+
+(defmacro elisp-scope-define-special-form-analyzer (fsym args &rest body)
+  (declare (indent defun))
+  (let* ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
+    `(progn
+       (defun ,helper ,args ,@body)
+       (elisp-scope-define-analyzer ,fsym (f &rest args)
+         (elisp-scope-report-s f 'macro)
+         (apply #',helper args)))))
+
+(defun elisp-scope--unquote (form)
+  (when (memq (elisp-scope-sym-bare (car-safe form)) '(quote function \`))
+    (cadr form)))
+
+(elisp-scope-define-analyzer with-suppressed-warnings (f warnings &rest body)
+  (elisp-scope-report-s f 'macro)
+  (dolist (warning warnings)
+    (when-let* ((wsym (car-safe warning)))
+      (elisp-scope-report-s wsym 'warning-type)))
+  (elisp-scope-n body))
+
+(elisp-scope-define-analyzer eval (f form &optional lexical)
+  (elisp-scope-report-s f 'function)
+  (if-let* ((quoted (elisp-scope--unquote form)))
+      (elisp-scope-1 quoted)
+    (elisp-scope-1 form))
+  (elisp-scope-1 lexical))
+
+(elisp-scope-define-func-analyzer funcall (&optional f &rest args)
+  (elisp-scope-1 f '(symbol . function))
+  (dolist (arg args) (elisp-scope-1 arg)))
+
+(put 'apply 'elisp-scope-analyzer #'elisp-scope--analyze-funcall)
+
+(elisp-scope-define-func-analyzer defalias (&optional sym def docstring)
+  (elisp-scope-1 sym '(symbol . defun))
+  (elisp-scope-1 def '(symbol . defun))
+  (elisp-scope-1 docstring))
+
+(elisp-scope-define-function-analyzer oclosure--define
+  (&optional name _docstring parent-names _slots &rest props)
+  (when-let* ((quoted (elisp-scope--unquote name))) (elisp-scope-report-s quoted 'defoclosure))
+  (when-let* ((qs (elisp-scope--unquote parent-names)))
+    (dolist (q qs)
+      (elisp-scope-report-s q 'oclosure)))
+  (while-let ((kw (car-safe props))
+              (bkw (elisp-scope-sym-bare kw))
+              ((keywordp bkw)))
+    (elisp-scope-report-s kw 'constant)
+    (cl-case bkw
+      (:predicate
+       (when-let* ((q (elisp-scope--unquote (cadr props)))) (elisp-scope-report-s q 'defun))))
+    (setq props (cddr props))))
+
+(elisp-scope-define-function-analyzer define-charset
+  (&optional name _docstring &rest _props)
+  (when-let* ((quoted (elisp-scope--unquote name))) (elisp-scope-report-s quoted 'defcharset)))
+
+(elisp-scope-define-function-analyzer define-charset-alias
+  (&optional alias charset)
+  (when-let* ((quoted (elisp-scope--unquote alias))) (elisp-scope-report-s quoted 'defcharset))
+  (when-let* ((quoted (elisp-scope--unquote charset))) (elisp-scope-report-s quoted 'charset)))
+
+(elisp-scope-define-func-analyzer charset-chars
+  (&optional charset &rest rest)
+  (elisp-scope-1 charset '(symbol . charset))
+  (mapc #'elisp-scope-1 rest))
+
+(dolist (sym '(charset-description charset-info charset-iso-final-char
+                                   charset-long-name charset-plist
+                                   charset-short-name
+                                   get-charset-property put-charset-property
+                                   list-charset-chars
+                                   set-charset-plist
+                                   set-charset-priority
+                                   unify-charset
+                                   locale-charset-to-coding-system))
+  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-charset-chars))
+
+(elisp-scope-define-func-analyzer define-coding-system
+  (&optional name &rest rest)
+  (elisp-scope-1 name '(symbol . defcoding))
+  (mapc #'elisp-scope-1 rest))
+
+(elisp-scope-define-func-analyzer define-coding-system-alias
+  (&optional alias coding-system)
+  (elisp-scope-1 alias '(symbol . defcoding))
+  (elisp-scope-1 coding-system '(symbol . coding)))
+
+(elisp-scope-define-function-analyzer decode-coding-region
+  (&optional _start _end coding-system &rest _)
+  (when-let* ((quoted (elisp-scope--unquote coding-system))) (elisp-scope-report-s quoted 'coding)))
+
+(put 'encode-coding-region 'elisp-scope-analyzer #'elisp-scope--analyze-decode-coding-region)
+
+(elisp-scope-define-function-analyzer decode-coding-string
+  (&optional _string coding-system &rest _)
+  (when-let* ((quoted (elisp-scope--unquote coding-system))) (elisp-scope-report-s quoted 'coding)))
+
+(dolist (sym '(encode-coding-char encode-coding-string))
+  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-decode-coding-string))
+
+(elisp-scope-define-function-analyzer coding-system-mnemonic
+  (&optional coding-system &rest _)
+  (when-let* ((quoted (elisp-scope--unquote coding-system))) (elisp-scope-report-s quoted 'coding)))
+
+(dolist (sym '(add-to-coding-system-list
+               check-coding-system
+               coding-system-aliases
+               coding-system-base
+               coding-system-category
+               coding-system-change-eol-conversion
+               coding-system-change-text-conversion
+               coding-system-charset-list
+               coding-system-doc-string
+               coding-system-eol-type
+               coding-system-eol-type-mnemonic
+               coding-system-get
+               coding-system-plist
+               coding-system-post-read-conversion
+               coding-system-pre-write-conversion
+               coding-system-put
+               coding-system-translation-table-for-decode
+               coding-system-translation-table-for-encode
+               coding-system-type
+               describe-coding-system
+               prefer-coding-system
+               print-coding-system
+               print-coding-system-briefly
+               revert-buffer-with-coding-system
+               set-buffer-file-coding-system
+               set-clipboard-coding-system
+               set-coding-system-priority
+               set-default-coding-systems
+               set-file-name-coding-system
+               set-keyboard-coding-system
+               set-next-selection-coding-system
+               set-selection-coding-system
+               set-terminal-coding-system
+               universal-coding-system-argument))
+  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-coding-system-mnemonic))
+
+(elisp-scope-define-func-analyzer thing-at-point (&optional thing no-props)
+  (elisp-scope-1 thing '(symbol . thing))
+  (elisp-scope-1 no-props))
+
+(dolist (sym '( forward-thing
+                beginning-of-thing
+                end-of-thing
+                bounds-of-thing-at-point))
+  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-thing-at-point))
+
+(elisp-scope-define-func-analyzer bounds-of-thing-at-mouse (&optional event thing)
+  (elisp-scope-1 event)
+  (elisp-scope-1 thing '(symbol . thing)))
+
+(elisp-scope-define-func-analyzer thing-at-mouse (&optional event thing no-props)
+  (elisp-scope-1 event)
+  (elisp-scope-1 thing '(symbol . thing))
+  (elisp-scope-1 no-props))
+
+(elisp-scope-define-function-analyzer custom-declare-variable (sym _default _doc &rest args)
+  (when-let* ((quoted (elisp-scope--unquote sym))) (elisp-scope-report-s quoted 'defvar))
+  (while-let ((kw (car-safe args))
+              (bkw (elisp-scope-sym-bare kw))
+              ((keywordp bkw)))
+    (cl-case bkw
+      (:type
+       (when-let* ((quoted (elisp-scope--unquote (cadr args)))) (elisp-scope-widget-type-1 quoted)))
+      (:group
+       (when-let* ((quoted (elisp-scope--unquote (cadr args)))) (elisp-scope-report-s quoted 'group))))
+    (setq args (cddr args))))
+
+(elisp-scope-define-function-analyzer custom-declare-group (sym _members _doc &rest args)
+  (when-let* ((quoted (elisp-scope--unquote sym))) (elisp-scope-report-s quoted 'defgroup))
+  (while-let ((kw (car-safe args))
+              (bkw (elisp-scope-sym-bare kw))
+              ((keywordp bkw)))
+    (cl-case bkw
+      (:group
+       (when-let* ((quoted (elisp-scope--unquote (cadr args)))) (elisp-scope-report-s quoted 'group))))
+    (setq args (cddr args))))
+
+(elisp-scope-define-function-analyzer custom-declare-face (face spec _doc &rest args)
+  (when-let* ((q (elisp-scope--unquote face))) (elisp-scope-report-s q 'defface))
+  (when-let* ((q (elisp-scope--unquote spec)))
+    (when (consp q) (dolist (s q) (elisp-scope-face (cdr s)))))
+  (while-let ((kw (car-safe args))
+              (bkw (elisp-scope-sym-bare kw))
+              ((keywordp bkw)))
+    (cl-case bkw
+      (:group
+       (when-let* ((q (elisp-scope--unquote (cadr args)))) (elisp-scope-report-s q 'group))))
+    (setq args (cddr args))))
+
+(defun elisp-scope-typep (type)
+  (cond
+   ((or (symbolp type) (symbol-with-pos-p type))
+    (unless (booleanp (elisp-scope-sym-bare type))
+      (elisp-scope-report-s type 'type)))
+   ((consp   type)
+    (cond
+     ((memq (elisp-scope-sym-bare (car type)) '(and or not))
+      (mapc #'elisp-scope-typep (cdr type)))
+     ((eq (elisp-scope-sym-bare (car type)) 'satisfies)
+      (elisp-scope-report-s (cadr type) 'function))))))
+
+(elisp-scope-define-function-analyzer cl-typep (_val type)
+  (when-let* ((q (elisp-scope--unquote type)))
+    (elisp-scope-typep q)))
+
+(elisp-scope-define-function-analyzer pulse-momentary-highlight-region (_start _end &optional face)
+  (when-let* ((q (elisp-scope--unquote face))) (elisp-scope-face q)))
+
+(elisp-scope--define-function-analyzer throw (tag _value) non-local-exit
+  (when-let* ((q (elisp-scope--unquote tag))) (elisp-scope-report-s q 'throw-tag)))
+
+(elisp-scope--define-function-analyzer signal (error-symbol &optional _data) non-local-exit
+  (when-let* ((q (elisp-scope--unquote error-symbol))) (elisp-scope-report-s q 'condition)))
+
+(elisp-scope--define-function-analyzer kill-emacs                     (&rest _) non-local-exit)
+(elisp-scope--define-function-analyzer abort-recursive-edit           (&rest _) non-local-exit)
+(elisp-scope--define-function-analyzer top-level                      (&rest _) non-local-exit)
+(elisp-scope--define-function-analyzer exit-recursive-edit            (&rest _) non-local-exit)
+(elisp-scope--define-function-analyzer tty-frame-restack              (&rest _) non-local-exit)
+(elisp-scope--define-function-analyzer error                          (&rest _) non-local-exit)
+(elisp-scope--define-function-analyzer user-error                     (&rest _) non-local-exit)
+(elisp-scope--define-function-analyzer minibuffer-quit-recursive-edit (&rest _) non-local-exit)
+(elisp-scope--define-function-analyzer exit-minibuffer                (&rest _) non-local-exit)
+
+(elisp-scope-define-func-analyzer run-hooks (&rest hooks)
+  (dolist (hook hooks) (elisp-scope-1 hook '(symbol . variable))))
+
+(elisp-scope-define-func-analyzer fboundp (&optional symbol)
+  (elisp-scope-1 symbol '(symbol . function)))
+
+(elisp-scope-define-function-analyzer overlay-put (&optional _ov prop val)
+  (when-let* ((q (elisp-scope--unquote prop))
+              ((eq (elisp-scope-sym-bare q) 'face))
+              (face (elisp-scope--unquote val)))
+    (elisp-scope-face face)))
+
+(elisp-scope-define-function-analyzer add-face-text-property (&optional _start _end face &rest _)
+  (when-let* ((q (elisp-scope--unquote face))) (elisp-scope-face q)))
+
+(elisp-scope-define-function-analyzer facep (&optional face &rest _)
+  (when-let* ((q (elisp-scope--unquote face))) (elisp-scope-report-s q 'face)))
+
+(dolist (sym '( check-face face-id face-differs-from-default-p
+                face-name face-all-attributes face-attribute
+                face-foreground face-background face-stipple
+                face-underline-p face-inverse-video-p face-bold-p
+                face-italic-p face-extend-p face-documentation
+                set-face-documentation set-face-attribute
+                set-face-font set-face-background set-face-foreground
+                set-face-stipple set-face-underline set-face-inverse-video
+                set-face-bold set-face-italic set-face-extend))
+  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-facep))
+
+(elisp-scope-define-func-analyzer boundp (&optional var &rest rest)
+  (elisp-scope-1 var '(symbol . variable))
+  (mapc #'elisp-scope-1 rest))
+
+(dolist (sym '( set symbol-value define-abbrev-table
+                special-variable-p local-variable-p
+                local-variable-if-set-p add-variable-watcher
+                get-variable-watchers remove-variable-watcher
+                default-value set-default make-local-variable
+                buffer-local-value add-to-list add-to-history find-buffer
+                customize-set-variable set-variable
+                add-hook remove-hook run-hook-with-args run-hook-wrapped))
+  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-boundp))
+
+(elisp-scope-define-function-analyzer defvaralias (new base &optional _docstring)
+  (when-let* ((q (elisp-scope--unquote new))) (elisp-scope-report-s q 'defvar))
+  (when-let* ((q (elisp-scope--unquote base))) (elisp-scope-report-s q 'variable)))
+
+(elisp-scope-define-func-analyzer define-error (&optional name message parent)
+  (elisp-scope-1 name '(symbol . defcondition))
+  (elisp-scope-1 message)
+  (elisp-scope-1 parent '(or (symbol . condition)
+                       (repeat . (symbol . condition)))))
+
+(elisp-scope-define-function-analyzer featurep (feature &rest _)
+  (when-let* ((q (elisp-scope--unquote feature))) (elisp-scope-report-s q 'feature)))
+
+(put 'require 'elisp-scope-analyzer #'elisp-scope--analyze-featurep)
+
+(elisp-scope-define-function-analyzer provide (feature &rest _)
+  (when-let* ((q (elisp-scope--unquote feature))) (elisp-scope-report-s q 'deffeature)))
+
+(elisp-scope-define-function-analyzer put-text-property (&optional _ _ prop val _)
+  (when (memq (elisp-scope-sym-bare (elisp-scope--unquote prop)) '(mouse-face face))
+    (when-let* ((q (elisp-scope--unquote val))) (elisp-scope-face q))))
+
+(put 'remove-overlays 'elisp-scope-analyzer #'elisp-scope--analyze-put-text-property)
+
+(elisp-scope-define-function-analyzer propertize (_string &rest props)
+  (while props
+    (cl-case (elisp-scope-sym-bare (elisp-scope--unquote (car props)))
+      ((face mouse-face)
+       (when-let* ((q (elisp-scope--unquote (cadr props)))) (elisp-scope-face q))))
+    (setq props (cddr props))))
+
+(elisp-scope-define-function-analyzer eieio-defclass-internal (name superclasses _ _)
+  (when-let* ((q (elisp-scope--unquote name))) (elisp-scope-report-s q 'deftype))
+  (when-let* ((q (elisp-scope--unquote superclasses)))
+    (dolist (sup q) (elisp-scope-report-s sup 'type))))
+
+(elisp-scope-define-function-analyzer cl-struct-define
+  (name _doc parent _type _named _slots _children _tab _print)
+  (when-let* ((q (elisp-scope--unquote name)))   (elisp-scope-report-s q 'deftype))
+  (when-let* ((q (elisp-scope--unquote parent))) (elisp-scope-report-s q 'type)))
+
+(elisp-scope-define-function-analyzer define-widget (name class _doc &rest args)
+  (when-let* ((q (elisp-scope--unquote name)))  (elisp-scope-report-s q 'widget-type))
+  (when-let* ((q (elisp-scope--unquote class))) (elisp-scope-report-s q 'widget-type))
+  (while-let ((kw (car-safe args))
+              (bkw (elisp-scope-sym-bare kw))
+              ((keywordp bkw)))
+    (cl-case bkw
+      (:type
+       (when-let* ((q (elisp-scope--unquote (cadr args)))) (elisp-scope-widget-type-1 q)))
+      (:args
+       (when-let* ((q (elisp-scope--unquote (cadr args)))) (mapc #'elisp-scope-widget-type-1 q))))
+    (setq args (cddr args))))
+
+(elisp-scope-define-function-analyzer provide-theme (name &rest _)
+  (when-let* ((q (elisp-scope--unquote name))) (elisp-scope-report-s q 'theme)))
+
+(dolist (sym '(enable-theme disable-theme load-theme custom-theme-p))
+  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-provide-theme))
+
+(elisp-scope-define-function-analyzer custom-theme-set-variables (theme &rest args)
+  (when-let* ((q (elisp-scope--unquote theme))) (elisp-scope-report-s q 'theme))
+  (dolist (arg args)
+    (when-let* ((q (elisp-scope--unquote arg)))
+      (when (consp q)
+        (elisp-scope-report-s (pop q) 'variable)
+        (when (consp q)
+          (elisp-scope-1 (pop q))
+          (dolist (request (car (cdr-safe q)))
+            (elisp-scope-report-s request 'feature)))))))
+
+(elisp-scope-define-function-analyzer custom-declare-theme (name &rest _)
+  (when-let* ((q (elisp-scope--unquote name))) (elisp-scope-report-s q 'deftheme)))
+
+(elisp-scope-define-function-analyzer eieio-oref (_obj slot)
+  (when-let* ((q (elisp-scope--unquote slot))) (elisp-scope-report-s q 'slot)))
+
+(dolist (fun '(slot-boundp slot-makeunbound slot-exists-p eieio-oref-default))
+  (put fun 'elisp-scope-analyzer #'elisp-scope--analyze-eieio-oref))
+
+(elisp-scope-define-function-analyzer eieio-oset (_obj slot _value)
+  (when-let* ((q (elisp-scope--unquote slot))) (elisp-scope-report-s q 'slot)))
+
+(put 'eieio-oset-default 'elisp-scope-analyzer #'elisp-scope--analyze-eieio-oset)
+
+(elisp-scope-define-function-analyzer derived-mode-p (modes &rest _obsolete)
+  (when-let* ((q (elisp-scope--unquote modes))) (elisp-scope-report-s q 'major-mode)))
+
+(elisp-scope-define-func-analyzer derived-mode-set-parent (&optional mode parent)
+  (elisp-scope-1 mode '(symbol . major-mode))
+  (elisp-scope-1 parent '(symbol . major-mode)))
+
+(elisp-scope-define-func-analyzer elisp-scope-report (type &rest args)
+  (elisp-scope-1 type '(symbol . symbol-type))
+  (mapc #'elisp-scope-1 args))
+
+(elisp-scope-define-func-analyzer elisp-scope-report-s (&optional sym type)
+  (elisp-scope-1 sym)
+  (elisp-scope-1 type '(symbol . symbol-type)))
+
+(elisp-scope-define-func-analyzer elisp-scope-1 (&optional form outtype)
+  (elisp-scope-1 form)
+  (elisp-scope-1 outtype 'type))
+
+(elisp-scope-define-function-analyzer icons--register (&optional name parent _spec _doc kws)
+  (when-let* ((q (elisp-scope--unquote name))) (elisp-scope-report-s q 'deficon))
+  (when-let* ((q (elisp-scope--unquote parent))) (elisp-scope-report-s q 'icon))
+  (when-let* ((q (elisp-scope--unquote kws)))
+    (while-let ((kw (car-safe q))
+                (bkw (elisp-scope-sym-bare kw))
+                ((keywordp bkw)))
+      (elisp-scope-report-s kw 'constant)
+      (cl-case bkw
+        (:group (elisp-scope-report-s (cadr q) 'group)))
+      (setq q (cddr q)))))
+
+(elisp-scope-define-function-analyzer setopt--set (&optional var _val)
+  (when-let* ((q (elisp-scope--unquote var))) (elisp-scope-report-s q 'variable)))
+
+(elisp-scope-define-function-analyzer autoload (&optional func _file _doc int &rest _)
+  (when-let* ((q (elisp-scope--unquote func))) (elisp-scope-report-s q 'function))
+  (when-let* ((q (elisp-scope--unquote int)) ((listp q)))
+    (dolist (mode q) (elisp-scope-report-s mode 'major-mode))))
+
+(elisp-scope-define-function-analyzer minibuffer--define-completion-category (&optional name parents &rest _)
+  (when-let* ((q (elisp-scope--unquote name))) (elisp-scope-report-s q 'completion-category-definition))
+  (when-let* ((q (elisp-scope--unquote parents)))
+    (dolist (p (ensure-list q)) (elisp-scope-report-s p 'completion-category))))
+
+;; (elisp-scope-define-macro-analyzer define-completion-category (l &optional name parent &rest rest)
+;;   (elisp-scope-report-s name 'completion-category-definition)
+;;   (elisp-scope-report-s parent 'completion-category)
+;;   (elisp-scope-n l rest))
+
+(elisp-scope-define-func-analyzer completion-table-with-category (&optional category table)
+  (elisp-scope-1 category '(symbol . completion-category))
+  (elisp-scope-1 table))
+
+(defun elisp-scope--easy-menu-do-define-menu (menu)
+  (let ((items (cdr menu)))
+    (while-let ((kw (car-safe items))
+                (bkw (elisp-scope-sym-bare kw))
+                ((keywordp bkw)))
+      (elisp-scope-report-s kw 'constant)
+      (cl-case bkw
+        ((:active :label :visible) (elisp-scope-1 (cadr items)))
+        ((:filter) (elisp-scope-sharpquote (cadr items))))
+      (setq items (cddr items)))
+    (dolist (item items)
+      (cond
+       ((vectorp item)
+        (when (length> item 2)
+          (elisp-scope-sharpquote (aref item 1))
+          (let ((it (cddr (append item nil))))
+            (elisp-scope-1 (car it))
+            (while-let ((kw (car-safe it))
+                        (bkw (elisp-scope-sym-bare kw))
+                        ((keywordp bkw)))
+              (elisp-scope-report-s kw 'constant)
+              (cl-case bkw
+                ((:active :enable :label :visible :suffix :selected) (elisp-scope-1 (cadr it))))
+              (setq it (cddr it))))))
+       ((consp item) (elisp-scope--easy-menu-do-define-menu item))))))
+
+(elisp-scope-define-function-analyzer easy-menu-do-define (&optional _symbol _maps _doc menu)
+  (when-let* ((q (elisp-scope--unquote menu)))
+    (elisp-scope--easy-menu-do-define-menu q)))
+
+(elisp-scope-define-function-analyzer define-key (&optional _keymaps _key def _remove)
+  (when-let* ((q (elisp-scope--unquote def)))
+    (cond
+     ((eq (elisp-scope-sym-bare (car-safe q)) 'menu-item)
+      (let ((fn (caddr q)) (it (cdddr q)))
+        (elisp-scope-sharpquote fn)
+        (while-let ((kw (car-safe it))
+                    (bkw (elisp-scope-sym-bare kw))
+                    ((keywordp bkw)))
+          (elisp-scope-report-s kw 'constant)
+          (cl-case bkw
+            ((:active :enable :label :visible :suffix :selected) (elisp-scope-1 (cadr it)))
+            ((:filter) (elisp-scope-sharpquote (cadr it))))
+          (setq it (cddr it)))))
+     ((or (symbolp q) (symbol-with-pos-p q))
+      (elisp-scope-report-s q 'function)))))
+
+(elisp-scope-define-function-analyzer eval-after-load (&optional file form)
+  (when-let* ((q (elisp-scope--unquote file))) (elisp-scope-report-s q 'feature))
+  (when-let* ((q (elisp-scope--unquote form))) (elisp-scope-1 q)))
+
+(elisp-scope-define-macro-analyzer define-globalized-minor-mode (global mode turn-on &rest body)
+  (elisp-scope-report-s mode 'function)
+  (elisp-scope-report-s turn-on 'function)
+  (elisp-scope-define-minor-mode global nil body))
+
+(elisp-scope-define-macro-analyzer define-derived-mode (&optional child parent name &rest body)
+  (elisp-scope-report-s child 'major-mode-definition)
+  (elisp-scope-report-s parent 'major-mode)
+  (elisp-scope-mode-line-construct name)
+  (when (stringp (car body)) (pop body))
+  (while-let ((kw (car-safe body))
+              (bkw (elisp-scope-sym-bare kw))
+              ((keywordp bkw)))
+    (elisp-scope-report-s kw 'constant)
+    (cl-case bkw
+      (:group (elisp-scope-quoted-group (cadr body)))
+      ((:syntax-table :abbrev-table :after-hook) (elisp-scope-1 (cadr body))))
+    (setq body (cddr body)))
+  (elisp-scope-n body))
+
+(elisp-scope-define-macro-analyzer lambda (args &rest body)
+  (elisp-scope-lambda args body))
+
+(defun elisp-scope-oclosure-lambda-1 (local bindings args body)
+  (if bindings
+      (let* ((binding (ensure-list (car bindings)))
+             (sym (car binding))
+             (bare (elisp-scope-sym-bare sym))
+             (len (length (symbol-name bare)))
+             (beg (elisp-scope-sym-pos sym)))
+        (when beg (elisp-scope-binding bare beg len))
+        (elisp-scope-1 (cadr binding))
+        (elisp-scope-oclosure-lambda-1
+         (if bare (elisp-scope-local-new bare beg local) local)
+         (cdr bindings) args body))
+    (let ((elisp-scope--local local))
+      (elisp-scope-lambda args body))))
+
+(defun elisp-scope-oclosure-lambda (spec args body)
+  (let ((type (car-safe spec)))
+    (elisp-scope-report-s type 'oclosure))
+  (elisp-scope-oclosure-lambda-1 elisp-scope--local (cdr-safe spec) args body))
+
+(elisp-scope-define-macro-analyzer oclosure-lambda (&optional spec args &rest body)
+  (elisp-scope-oclosure-lambda spec args body))
+
+(elisp-scope-define-macro-analyzer cl-loop (&rest clauses)
+  (elisp-scope-loop clauses))
+
+(elisp-scope-define-macro-analyzer named-let (name bindings &rest body)
+  (elisp-scope-named-let name bindings body elisp-scope--output-type))
+
+(elisp-scope-define-macro-analyzer cl-flet (bindings &rest body)
+  (elisp-scope-flet bindings body))
+
+(elisp-scope-define-macro-analyzer cl-labels (bindings &rest body)
+  (elisp-scope-labels bindings body))
+
+(elisp-scope-define-macro-analyzer with-slots (spec-list object &rest body)
+  (elisp-scope-with-slots spec-list object body))
+
+(elisp-scope-define-macro-analyzer cl-defmethod (name &rest rest)
+  (elisp-scope-defmethod name rest))
+
+(elisp-scope-define-macro-analyzer cl-destructuring-bind (args expr &rest body)
+  (elisp-scope-1 expr)
+  (elisp-scope-cl-lambda args body))
+
+(elisp-scope-define-macro-analyzer declare-function (&optional fn _file arglist _fileonly)
+  (elisp-scope-report-s fn 'function)
+  (elisp-scope-lambda (and (listp arglist) arglist) nil))
+
+(elisp-scope-define-macro-analyzer cl-block (name &rest body)
+  (elisp-scope-block name body))
+
+(elisp-scope-define-macro-analyzer cl-return-from (name &optional result)
+  (elisp-scope-return-from name result))
+
+(elisp-scope-define-macro-analyzer rx (&rest regexps)
+  ;; Unsafe macro!
+  (elisp-scope-rx regexps))
+
+(elisp-scope-define-macro-analyzer cl-tagbody (&rest body)
+  (let (labels statements)
+    (while body
+      (let ((head (pop body)))
+        (if (consp head)
+            (push head statements)
+          (push head labels))))
+    (elisp-scope-cl-tagbody (nreverse labels) (nreverse statements))))
+
+(defvar elisp-scope-label-alist nil)
+
+(defun elisp-scope-cl-tagbody (labels statements)
+  (if labels
+      (let* ((label (car labels))
+             (bare (elisp-scope-sym-bare label)))
+        (when-let* ((beg (elisp-scope-sym-pos label)))
+          (elisp-scope-report 'label beg (length (symbol-name bare)) beg))
+        (let ((elisp-scope-label-alist
+               (if bare
+                   (elisp-scope-local-new bare (elisp-scope-sym-pos label) elisp-scope-label-alist)
+                 elisp-scope-label-alist)))
+          (elisp-scope-cl-tagbody (cdr labels) statements)))
+    (elisp-scope-n statements)))
+
+(elisp-scope-define-macro-analyzer go (label)
+  ;; TODO: Change to a local macro defintion induced by `cl-tagbody'.
+  (when-let* ((bare (elisp-scope-sym-bare label))
+              (pos (alist-get bare elisp-scope-label-alist))
+              (beg (elisp-scope-sym-pos label)))
+    (elisp-scope-report 'label beg (length (symbol-name bare)) pos)))
+
+(elisp-scope-define-macro-analyzer rx-define (name &rest rest)
+  (elisp-scope-rx-define name rest))
+
+(elisp-scope-define-macro-analyzer rx-let (bindings &rest body)
+  (elisp-scope-rx-let bindings body))
+
+(elisp-scope-define-macro-analyzer let-when-compile (bindings &rest body)
+  ;; Unsafe macro!
+  (elisp-scope-let* bindings body))
+
+(elisp-scope-define-macro-analyzer cl-eval-when (_when &rest body)
+  ;; Unsafe macro!
+  (elisp-scope-n body))
+
+(elisp-scope-define-macro-analyzer cl-macrolet (bindings &rest body)
+  ;; Unsafe macro!
+  (elisp-scope-cl-macrolet bindings body))
+
+(elisp-scope-define-macro-analyzer cl-symbol-macrolet (bindings &rest body)
+  ;; Unsafe macro!
+  (elisp-scope-let* bindings body))
+
+(elisp-scope-define-macro-analyzer nnoo-define-basics (&optional backend)
+  ;; Unsafe macro!
+  (let* ((bare (bare-symbol backend))
+         (len (length (symbol-name bare)))
+         (beg (elisp-scope-sym-pos backend)))
+    (when beg (elisp-scope-report 'nnoo-backend beg len))))
+
+(elisp-scope-define-macro-analyzer gv-define-expander (name handler)
+  (elisp-scope-gv-define-expander name handler))
+
+(elisp-scope-define-macro-analyzer gv-define-simple-setter (name setter &rest rest)
+  (elisp-scope-gv-define-simple-setter name setter rest))
+
+(elisp-scope-define-macro-analyzer cl-deftype (name arglist &rest body)
+  (elisp-scope-deftype name arglist body))
+
+(elisp-scope-define-macro-analyzer define-minor-mode (&optional mode doc &rest body)
+  (when mode (elisp-scope-define-minor-mode mode doc body)))
+
+(elisp-scope-define-macro-analyzer setq-local (&rest args)
+  (elisp-scope-setq args))
+
+(put 'setq-default 'elisp-scope-analyzer #'elisp-scope--analyze-setq-local)
+
+(elisp-scope-define-macro-analyzer cl-defun (name arglist &rest body)
+  (elisp-scope-cl-defun name arglist body))
+
+(put 'cl-defmacro 'elisp-scope-analyzer #'elisp-scope--analyze-cl-defun)
+
+(elisp-scope-define-macro-analyzer defun (&optional name arglist &rest body)
+  (when name (elisp-scope-defun name arglist body)))
+
+(elisp-scope-define-macro-analyzer defmacro (&optional name arglist &rest body)
+  (elisp-scope-report-s name 'defmacro)
+  (elisp-scope-lambda arglist body))
+
+(put 'ert-deftest 'elisp-scope-analyzer #'elisp-scope--analyze-defun)
+
+(elisp-scope-define-macro-analyzer elisp-scope-define-symbol-type (&optional name parents &rest props)
+  (elisp-scope-report-s name 'symbol-type-definition)
+  (dolist (parent parents) (elisp-scope-report-s parent 'symbol-type))
+  (while-let ((kw (car-safe props))
+              (bkw (elisp-scope-sym-bare kw))
+              ((keywordp bkw)))
+    (elisp-scope-report-s kw 'constant)
+    (cl-case bkw
+      (:face
+       (if-let* ((q (elisp-scope--unquote (cadr props)))) (elisp-scope-face-1 q)
+         (elisp-scope-1 (cadr props))))
+      (:definition
+       (if-let* ((q (elisp-scope--unquote (cadr props))))
+           (dolist (st (ensure-list q)) (elisp-scope-report-s st 'symbol-type))
+         (elisp-scope-1 (cadr props))))
+      (otherwise (elisp-scope-1 (cadr props))))
+    (setq props (cddr props))))
+
+(elisp-scope-define-macro-analyzer cl-letf (bindings &rest body)
+  (let ((l elisp-scope--local))
+    (dolist (binding bindings)
+      (let ((place (car binding)))
+        (if (or (symbol-with-pos-p place) (symbolp place))
+            (let* ((bare (bare-symbol place))
+                   (len (length (symbol-name bare)))
+                   (beg (elisp-scope-sym-pos place)))
+              (when beg (elisp-scope-binding bare beg len))
+              (setq l (elisp-scope-local-new bare beg l)))
+          (elisp-scope-1 place))
+        (elisp-scope-1 (cadr binding))))
+    (let ((elisp-scope--local l)) (elisp-scope-n body elisp-scope--output-type))))
+
+(elisp-scope-define-macro-analyzer setf (&rest args) (elisp-scope-setq args))
+
+(elisp-scope-define-macro-analyzer pop (&optional place) (elisp-scope-1 place))
+
+(elisp-scope-define-macro-analyzer push (&optional newelt place)
+  (elisp-scope-1 newelt)
+  (elisp-scope-1 place))
+
+(elisp-scope-define-macro-analyzer with-memoization (&optional place &rest body)
+  (elisp-scope-1 place)
+  (elisp-scope-n body elisp-scope--output-type))
+
+(elisp-scope-define-macro-analyzer cl-pushnew (&rest args)
+  (mapc #'elisp-scope-1 args))
+
+(dolist (sym '(incf decf))
+  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-cl-pushnew))
+
+(elisp-scope-define-macro-analyzer static-if (&optional test then &rest else)
+  (elisp-scope-1 test)
+  (elisp-scope-1 then elisp-scope--output-type)
+  (elisp-scope-n else elisp-scope--output-type))
+
+(elisp-scope-define-macro-analyzer static-when (&optional test &rest body)
+  (elisp-scope-1 test)
+  (elisp-scope-n body elisp-scope--output-type))
+
+(put 'static-unless 'elisp-scope-analyzer #'elisp-scope--analyze-static-when)
+
+(elisp-scope-define-macro-analyzer eval-when-compile (&rest body)
+  (elisp-scope-n body elisp-scope--output-type))
+
+(put 'eval-and-compile 'elisp-scope-analyzer #'elisp-scope--analyze-eval-when-compile)
+
+(elisp-scope-define-macro-analyzer cl-callf (&rest args)
+  (elisp-scope-sharpquote (car args))
+  (elisp-scope-n (cdr args)))
+
+(put 'cl-callf2 'elisp-scope-analyzer #'elisp-scope--analyze-cl-callf)
+
+(elisp-scope-define-macro-analyzer seq-let (args sequence &rest body)
+  (elisp-scope-1 sequence)
+  (let ((l elisp-scope--local))
+    (dolist (arg args)
+      (let* ((bare (elisp-scope-sym-bare arg))
+             (len (length (symbol-name bare)))
+             (beg (elisp-scope-sym-pos arg)))
+        (if (eq bare '&rest)
+            (elisp-scope-report 'ampersand beg len)
+          (when beg (elisp-scope-binding bare beg len))
+          (setq l (elisp-scope-local-new bare beg l)))))
+    (let ((elisp-scope--local l)) (elisp-scope-n body))))
+
+(elisp-scope-define-analyzer let-alist (f alist &rest body)
+  (elisp-scope-report-s f 'macro)
+  (elisp-scope-1 alist)
+  (let ((elisp-scope-current-let-alist-form
+         (cons (or (elisp-scope-sym-pos f) (cons 'gen (incf elisp-scope-counter)))
+               (elisp-scope-sym-pos f))))
+    (elisp-scope-n body)))
+
+(elisp-scope-define-macro-analyzer define-obsolete-face-alias (&optional obs cur when)
+  (when-let* ((q (elisp-scope--unquote obs))) (elisp-scope-report-s q 'defface))
+  (when-let* ((q (elisp-scope--unquote cur))) (elisp-scope-report-s q 'face))
+  (elisp-scope-1 when))
+
+(elisp-scope-define-macro-analyzer backquote (&optional structure)
+  (elisp-scope-backquote structure elisp-scope--output-type))
+
+(defvar elisp-scope-backquote-depth 0)
+
+(defun elisp-scope-backquote (structure &optional outtype)
+  (let ((elisp-scope-backquote-depth (1+ elisp-scope-backquote-depth)))
+    (elisp-scope-backquote-1 structure outtype)))
+
+(defun elisp-scope-backquote-1 (structure &optional outtype)
+  (cond
+   ((vectorp structure)
+    (dotimes (i (length structure))
+      (elisp-scope-backquote-1 (aref structure i))))
+   ((atom structure) (elisp-scope-quote structure outtype))
+   ((or (eq (car structure) backquote-unquote-symbol)
+        (eq (car structure) backquote-splice-symbol))
+    (if (= elisp-scope-backquote-depth 1)
+        (elisp-scope-1 (cadr structure) outtype)
+      (let ((elisp-scope-backquote-depth (1- elisp-scope-backquote-depth)))
+        (elisp-scope-backquote-1 (cadr structure)))))
+   (t
+    (while (consp structure) (elisp-scope-backquote-1 (pop structure)))
+    (when structure (elisp-scope-backquote-1 structure)))))
+
+(elisp-scope-define-special-form-analyzer let (bindings &rest body)
+  (elisp-scope-let bindings body))
+
+(elisp-scope-define-special-form-analyzer let* (bindings &rest body)
+  (elisp-scope-let* bindings body))
+
+(elisp-scope-define-special-form-analyzer cond (&rest clauses)
+  (dolist (clause clauses) (elisp-scope-n clause elisp-scope--output-type)))
+
+(elisp-scope-define-special-form-analyzer setq (&rest args)
+  (elisp-scope-setq args))
+
+(elisp-scope-define-special-form-analyzer defvar (&optional sym init _doc)
+  (elisp-scope-report-s sym 'defvar)
+  (elisp-scope-1 init))
+
+(put 'defconst 'elisp-scope-analyzer #'elisp-scope--analyze-defvar)
+
+(defun elisp-scope-condition-case (var bodyform handlers)
+  (let* ((bare (bare-symbol var))
+         (beg (when (symbol-with-pos-p var) (symbol-with-pos-pos var)))
+         (l (elisp-scope-local-new bare beg elisp-scope--local)))
+    (when beg (elisp-scope-binding bare beg (length (symbol-name bare))))
+    (elisp-scope-1 bodyform elisp-scope--output-type)
+    (dolist (handler handlers)
+      (dolist (cond-name (ensure-list (car-safe handler)))
+        (when-let* ((cbeg (elisp-scope-sym-pos cond-name))
+                    (cbare (elisp-scope-sym-bare cond-name))
+                    (clen (length (symbol-name cbare))))
+          (cond
+           ((booleanp cbare))
+           ((keywordp cbare) (elisp-scope-report 'constant cbeg clen))
+           (t                (elisp-scope-report 'condition cbeg clen)))))
+      (let ((elisp-scope--local l))
+        (elisp-scope-n (cdr handler) elisp-scope--output-type)))))
+
+(elisp-scope-define-special-form-analyzer condition-case (var bodyform &rest handlers)
+  (elisp-scope-condition-case var bodyform handlers))
+
+(elisp-scope-define-macro-analyzer condition-case-unless-debug (var bodyform &rest handlers)
+  (elisp-scope-condition-case var bodyform handlers))
+
+(elisp-scope-define-special-form-analyzer function (&optional arg)
+  (when arg (elisp-scope-sharpquote arg)))
+
+(elisp-scope-define-special-form-analyzer quote (arg)
+  (elisp-scope-quote arg elisp-scope--output-type))
+
+(elisp-scope-define-special-form-analyzer if (&optional test then &rest else)
+  (elisp-scope-1 test)
+  (elisp-scope-1 then elisp-scope--output-type)
+  (elisp-scope-n else elisp-scope--output-type))
+
+(elisp-scope-define-special-form-analyzer and (&rest forms)
+  (elisp-scope-n forms elisp-scope--output-type))
+
+(elisp-scope-define-special-form-analyzer or (&rest forms)
+  (dolist (form forms) (elisp-scope-1 form elisp-scope--output-type)))
+
+(defun elisp-scope-quote (arg &optional outtype)
+  (when outtype
+    (when-let* ((type (elisp-scope--match-type-to-arg outtype arg)))
+      (elisp-scope--handle-quoted type arg))))
+
+(cl-defgeneric elisp-scope--handle-quoted (type arg))
+
+(cl-defmethod elisp-scope--handle-quoted ((_type (eql t)) _arg)
+  ;; Do nothing.
+  )
+
+(cl-defmethod elisp-scope--handle-quoted ((_type (eql 'code)) arg)
+  (let ((elisp-scope--local nil)
+        (elisp-scope-current-let-alist-form nil)
+        (elisp-scope-flet-alist nil)
+        (elisp-scope-block-alist nil)
+        (elisp-scope-macrolet-alist nil)
+        (elisp-scope-label-alist nil)
+        (elisp-scope-rx-alist nil)
+        (elisp-scope--quoted t))
+    (elisp-scope-1 arg)))
+
+(cl-defmethod elisp-scope--handle-quoted ((type (head symbol)) arg)
+  (elisp-scope-report-s arg (cdr type)))
+
+(cl-defmethod elisp-scope--handle-quoted ((type (head list)) arg)
+  (let ((types (cdr type)))
+    (while types (elisp-scope--handle-quoted (pop types) (pop arg)))))
+
+(cl-defmethod elisp-scope--handle-quoted ((type (head cons)) arg)
+  (elisp-scope--handle-quoted (cadr type) (car arg))
+  (elisp-scope--handle-quoted (cddr type) (cdr arg)))
+
+(cl-defgeneric elisp-scope--match-type-to-arg (type arg))
+
+(cl-defmethod elisp-scope--match-type-to-arg ((type (eql 'code)) _arg) type)
+
+(cl-defmethod elisp-scope--match-type-to-arg ((_type (eql 'type)) arg)
+  (elisp-scope--match-type-to-arg
+   ;; Unfold `type'.
+   '(or (equal . code)
+        (equal . type)
+        (cons (equal . symbol) . (symbol . symbol-type))
+        (cons (equal . repeat) . type)
+        (cons (equal . or)     . (repeat . type))
+        (cons (equal . cons)   . (cons type . type))
+        (cons (equal . equal)  . t))
+   arg))
+
+(cl-defmethod elisp-scope--match-type-to-arg ((type (head symbol)) arg)
+  (when (or (symbolp arg) (symbol-with-pos-p arg)) type))
+
+(cl-defmethod elisp-scope--match-type-to-arg ((type (head repeat)) arg)
+  (when (listp arg)
+    (named-let loop ((args arg) (acc nil))
+      (if args
+          (when-let* ((res (elisp-scope--match-type-to-arg (cdr type) (car args))))
+            (loop (cdr args) (cons res acc)))
+        (cons 'list (nreverse acc))))))
+
+(cl-defmethod elisp-scope--match-type-to-arg ((type (head or)) arg)
+  (named-let loop ((types (cdr type)))
+    (when types
+      (if-let* ((res (elisp-scope--match-type-to-arg (car types) arg))) res
+        (loop (cdr types))))))
+
+(cl-defmethod elisp-scope--match-type-to-arg ((type (head cons)) arg)
+  (when (consp arg)
+    (let ((car-type (cadr type))
+          (cdr-type (cddr type)))
+      (when-let* ((car-res (elisp-scope--match-type-to-arg car-type (car arg)))
+                  (cdr-res (elisp-scope--match-type-to-arg cdr-type (cdr arg))))
+        (cons 'cons (cons car-res cdr-res))))))
+
+(cl-defmethod elisp-scope--match-type-to-arg ((type (head equal)) arg)
+  (equal (cdr type) arg))
+
+(elisp-scope--match-type-to-arg '(repeat .
+                                   (or (cons (equal . foo) . (symbol footype))
+                                       (cons (equal . bar) . (symbol bartype))))
+                          '((bar . spambar) (foo . spamfoo)))
+
+(elisp-scope-define-special-form-analyzer catch (&optional tag &rest body)
+  (elisp-scope-1 tag '(symbol . throw-tag))
+  (elisp-scope-n body elisp-scope--output-type))
+
+(elisp-scope-define-special-form-analyzer progn (&rest body)
+  (elisp-scope-n body elisp-scope--output-type))
+
+(put 'inline 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
+(put 'save-current-buffer 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
+(put 'save-excursion 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
+(put 'save-restriction 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
+
+(elisp-scope-define-special-form-analyzer while (&rest rest)
+  (mapc #'elisp-scope-1 rest))
+
+(elisp-scope-define-special-form-analyzer prog1 (&rest body)
+  (when (consp body) (elisp-scope-1 (pop body) elisp-scope--output-type))
+  (elisp-scope-n body))
+
+(put 'unwind-protect 'elisp-scope-analyzer #'elisp-scope--analyze-prog1)
+
+(defun elisp-scope-report-s (sym type)
+  (when-let* ((beg (elisp-scope-sym-pos sym)) (bare (bare-symbol sym)))
+    (elisp-scope-report type beg (length (symbol-name bare)))))
+
+(defvar-local elisp-scope-buffer-file-name nil)
+
+(defun elisp-scope-1 (form &optional outtype)
+  (cond
+   ((consp form)
+    (let* ((f (car form)) (bare (elisp-scope-sym-bare f))
+           (forms (cdr form)) (this nil))
+      (when bare
+        (cond
+         ((setq this (assq bare elisp-scope-flet-alist))
+          (elisp-scope-report
+           'function (symbol-with-pos-pos f) (length (symbol-name bare)) (cdr this))
+          (elisp-scope-n forms))
+         ((setq this (assq bare elisp-scope-macrolet-alist))
+          (when (symbol-with-pos-p f)
+            (elisp-scope-report
+             'macro (symbol-with-pos-pos f) (length (symbol-name bare)) (cdr this)))
+          ;; Local macros can be unsafe, so we do not expand them.
+          ;; Hence we cannot interpret their arguments.
+          )
+         ((setq this (function-get bare 'elisp-scope-analyzer))
+          (let ((elisp-scope--output-type outtype)) (apply this form)))
+         ((special-form-p bare) (elisp-scope-report-s f 'special-form) (elisp-scope-n forms))
+         ((macrop bare) (elisp-scope-report-s f 'macro)
+          (cond
+           ((eq (get bare 'edebug-form-spec) t) (elisp-scope-n forms))
+           ((elisp-scope-safe-macro-p bare)
+            (let* ((warning-minimum-log-level :emergency)
+                   (macroexp-inhibit-compiler-macros t)
+                   (symbols-with-pos-enabled t)
+                   (message-log-max nil)
+                   (inhibit-message t)
+                   (macroexpand-all-environment
+                    (append (mapcar #'list elisp-scope-unsafe-macros) macroexpand-all-environment))
+                   (expanded (ignore-errors (macroexpand-1 form macroexpand-all-environment))))
+              (elisp-scope-1 expanded)))))
+         ((or (functionp bare) (memq bare elisp-scope-local-functions))
+          (elisp-scope-report-s f 'function) (elisp-scope-n forms))
+         (t
+          (elisp-scope-report-s f 'unknown)
+          (when elisp-scope-assume-func (elisp-scope-n forms)))))))
+   ((symbol-with-pos-p form) (elisp-scope-s form))))
+
+(defun elisp-scope-n (body &optional outtype)
+  (while (cdr-safe body) (elisp-scope-1 (pop body)))
+  (when-let* ((form (car-safe body))) (elisp-scope-1 form outtype)))
+
+;;;###autoload
+(defun elisp-scope-analyze-form (callback &optional stream)
+  "Read and analyze code from STREAM, reporting findings via CALLBACK.
+
+Call CALLBACK for each analyzed symbol SYM with arguments TYPE, POS,
+LEN, ID and DEF, where TYPE is a symbol that specifies the semantics of
+SYM; POS is the position of SYM in STREAM; LEN is SYM's length; ID is an
+object that uniquely identifies (co-)occurrences of SYM in the current
+defun; and DEF is the position in which SYM is locally defined, or nil.
+If SYM is itself a binding occurrence, then POS and BINDER are equal.
+If SYM is not lexically bound, then BINDER is nil.  This function
+ignores `read-symbol-shorthands', so SYM and LEN always correspond to
+the symbol as it appears in STREAM.
+
+If STREAM is nil, it defaults to the current buffer.
+
+This function recursively analyzes Lisp forms (HEAD . TAIL), usually
+starting with a top-level form, by inspecting HEAD at each level."
+  (let ((elisp-scope-counter 0)
+        (elisp-scope-callback callback)
+        (read-symbol-shorthands nil)
+        (max-lisp-eval-depth 32768))
+    (elisp-scope-1 (read-positioning-symbols (or stream (current-buffer))))))
+
+(provide 'elisp-scope)
+;;; elisp-scope.el ends here
