@@ -2633,16 +2633,18 @@ activate it.  When t (the default), the click will both activate the
 frame and be interpreted as a command.
 
 ---
-*** New user option 'global-hl-line-modes'.
-This specifies in which major modes should the 'global-hl-line-mode' be
-switched on.  The default is t, which means enable it in all major
-modes.
+*** New user option 'global-hl-line-buffers'.
+This specifies in which buffers should the 'global-hl-line-mode' be
+switched on.  The default is all buffers except the minibuffer
+and the buffers like the completions buffer that enable
+'cursor-face-highlight-mode'.
 
 ---
-*** New value 'all' for the user option 'global-hl-line-sticky-flag'.
-It updates the line highlighting in all windows and buffers,
-unlike the value t that updates only windows that display
-the current buffer.
+*** New value 'window' for the user option 'global-hl-line-sticky-flag'.
+Unlike the value t that highlights the line with buffer's point,
+it highlights the line with window's point.  Also it uses the new face
+`hl-line-nonselected' for highlighting the line with window's point
+in non-selected windows.
 
 ---
 *** New user option 'display-fill-column-indicator-warning'.

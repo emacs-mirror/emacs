@@ -79,6 +79,12 @@ when `global-hl-line-sticky-flag' is non-nil.")
   :version "22.1"
   :group 'hl-line)
 
+(defface hl-line-nonselected
+  '((t :inherit hl-line :extend t))
+  "Face for highlighting the line with non-selected window's point.
+Used only when the value of `global-hl-line-sticky-flag' is `window'."
+  :version "31.1")
+
 (defcustom hl-line-face 'hl-line
   "Face with which to highlight the current line in Hl-Line mode."
   :type 'face
@@ -127,17 +133,27 @@ This means that even when point moves in a non-selected window
 that displays another buffer, the new position will be updated
 to highlight the current line of other buffers.
 
+If the value is `window', then instead of highlighting the line
+with buffer's point, the Global HL-Line mode highlights the line
+with window's point that might differ from the buffer's point
+when the buffer is displayed in multiple windows.
+
 Setting this variable takes effect the next time you use
 the command `global-hl-line-mode' to turn Global Hl-Line mode on."
   :type '(choice (const :tag "Disable" nil)
                  (const :tag "Enable for buffer in multiple windows" t)
-                 (const :tag "Enable and update in all windows" all))
+                 (const :tag "Enable and update in all windows" all)
+                 (const :tag "Highlight window-point lines" window))
   :version "24.1"
   :group 'hl-line)
 
-(defcustom global-hl-line-buffers '(not (derived-mode . completion-list-mode))
+(defcustom global-hl-line-buffers
+  '(not (or (lambda (b) (buffer-local-value 'cursor-face-highlight-mode b))
+            minibufferp))
   "Whether the Global HL-Line mode should be enabled in a buffer.
-The predicate is passed as argument to `buffer-match-p', which see."
+The predicate is passed as argument to `buffer-match-p', which see.
+By default, this mode is disabled in the minibuffer and in buffers
+like the completions buffer that enable `cursor-face-highlight-mode'."
   :type '(buffer-predicate :tag "Predicate for `buffer-match-p'")
   :version "31.1")
 
@@ -159,6 +175,7 @@ This variable is expected to be made buffer-local by modes.")
   :version "28.1"
   :group 'hl-line)
 
+
 ;;;###autoload
 (define-minor-mode hl-line-mode
   "Toggle highlighting of the current line (Hl-Line mode).
@@ -231,6 +248,7 @@ such overlays in all buffers except the current one."
                (eq (overlay-buffer hl-line-overlay) curbuf))
       (setq hl-line-overlay-buffer curbuf))))
 
+
 ;;;###autoload
 (define-minor-mode global-hl-line-mode
   "Toggle line highlighting in all buffers (Global Hl-Line mode).
@@ -239,22 +257,43 @@ If `global-hl-line-sticky-flag' is non-nil, Global Hl-Line mode
 highlights the line about the current buffer's point in all live
 windows.
 
+If `global-hl-line-sticky-flag' is customized to `window',
+then instead of highlighting the line with buffer's point,
+this mode highlights the line with window's point that might differ from
+the buffer's point when the buffer is displayed in multiple windows.
+In this case this mode uses the function
+`global-hl-line-window-redisplay' on `pre-redisplay-functions'.
+
 Global-Hl-Line mode uses the function `global-hl-line-highlight'
 on `post-command-hook'."
   :global t
   :group 'hl-line
   (if global-hl-line-mode
-      (progn
+      (cond
+       ((eq global-hl-line-sticky-flag 'window)
+        (add-hook 'pre-redisplay-functions
+                  #'global-hl-line-window-redisplay))
+       (t
         ;; In case `kill-all-local-variables' is called.
         (add-hook 'change-major-mode-hook #'global-hl-line-unhighlight)
         (global-hl-line-highlight-all)
         (add-hook 'post-command-hook (if (eq global-hl-line-sticky-flag 'all)
                                          #'global-hl-line-highlight-all
-                                       #'global-hl-line-highlight)))
-    (global-hl-line-unhighlight-all)
-    (remove-hook 'post-command-hook #'global-hl-line-highlight)
-    (remove-hook 'post-command-hook #'global-hl-line-highlight-all)
-    (remove-hook 'change-major-mode-hook #'global-hl-line-unhighlight)))
+                                       #'global-hl-line-highlight))))
+    (cond
+     ((eq global-hl-line-sticky-flag 'window)
+      (remove-hook 'pre-redisplay-functions
+                   #'global-hl-line-window-redisplay)
+      (walk-windows (lambda (window)
+                      (redisplay--unhighlight-overlay-function
+                       (window-parameter window 'hl-line-overlay))
+                      (set-window-parameter window 'hl-line-overlay nil))
+                    t t))
+     (t
+      (global-hl-line-unhighlight-all)
+      (remove-hook 'post-command-hook #'global-hl-line-highlight)
+      (remove-hook 'post-command-hook #'global-hl-line-highlight-all)
+      (remove-hook 'change-major-mode-hook #'global-hl-line-unhighlight)))))
 
 (defun global-hl-line-highlight ()
   "Highlight the current line in the current window."
@@ -310,6 +349,27 @@ all such overlays in all buffers except the current one."
 	global-hl-line-overlays)
   (setq global-hl-line-overlays nil))
 
+
+(defun global-hl-line-window-redisplay (window)
+  "Highlight the overlay that indicates the line with window's point."
+  (let ((rol (window-parameter window 'hl-line-overlay)))
+    (with-current-buffer (window-buffer window)
+      (if (buffer-match-p global-hl-line-buffers (current-buffer))
+          (let* ((bounds (save-excursion
+                           (goto-char (window-point window))
+                           (if hl-line-range-function
+                               (funcall hl-line-range-function)
+                             (cons (line-beginning-position)
+                                   (line-beginning-position 2)))))
+                 (new (redisplay--highlight-overlay-function
+                       (car bounds) (cdr bounds) window rol
+                       (if (eq window (selected-window))
+                           'hl-line 'hl-line-nonselected))))
+            (unless (equal new rol)
+              (set-window-parameter window 'hl-line-overlay new)))
+        (redisplay--unhighlight-overlay-function rol)))))
+
+
 (defun hl-line-move (overlay)
   "Move the Hl-Line overlay.
 If `hl-line-range-function' is non-nil, move the OVERLAY to the position
