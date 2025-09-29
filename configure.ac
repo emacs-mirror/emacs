@@ -191,8 +191,9 @@ AS_IF([test "$XCONFIGURE" = "android"],[
   AS_MKDIR_P([exec])
 
   # Enter exec and configure it, using the C compiler as both the
-  # assembler and the linker.  Determine the absolute name of the
-  # source directory.
+  # assembler and the linker; it is for this reason that
+  # AC_CONFIG_SUBDIRS is not suitable in this context.  Establish the
+  # absolute name of the source directory.
   # N.B. that the linker is actually cc, so pass -nostdlib, lest
   # the crt be linked in.  Likewise for as.
 
