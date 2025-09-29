@@ -319,7 +319,7 @@ If third arg ALL is non-nil, concatenate all such fields with commas between.
 If 4th arg LIST is non-nil, return a list of all such fields.
 If 5th arg DELETE is non-nil, delete all header lines that are
 included in the result.
-The buffer should be narrowed to just the header, else false
+The buffer should be narrowed to just the headers, else false
 matches may be returned from the message body."
   (save-excursion
     (goto-char (point-min))
@@ -404,7 +404,7 @@ matches may be returned from the message body."
 
 (defun mail-mbox-from ()
   "Return an mbox \"From \" line for the current message.
-The buffer should be narrowed to just the header."
+The buffer should be narrowed to just the headers."
   (let* ((from (mail-strip-quoted-names (or (mail-fetch-field "from")
 					    (mail-fetch-field "really-from")
 					    (mail-fetch-field "sender")
