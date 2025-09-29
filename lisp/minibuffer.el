@@ -1730,7 +1730,6 @@ scroll the window of possible completions."
          ((eq completion-auto-select 'second-tab))
          ;; Reverse tab
          ((equal (this-command-keys) [backtab])
-          (completion--lazy-insert-strings)
           (if (pos-visible-in-window-p (point-min) window)
               ;; If beginning is in view, scroll up to the end.
               (set-window-point window (point-max))
@@ -1738,7 +1737,6 @@ scroll the window of possible completions."
             (with-selected-window window (scroll-down))))
          ;; Normal tab
          (t
-          (completion--lazy-insert-strings)
           (if (pos-visible-in-window-p (point-max) window)
               ;; If end is in view, scroll up to the end.
               (set-window-start window (point-min) nil)
@@ -2327,6 +2325,21 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
                        'action #'completion--lazy-insert-strings))
           (button-put completions--lazy-insert-button
                       'completions-continuation completions-continuation))))))
+
+(defun completion--lazy-insert-strings-on-scroll (window _start)
+  (with-current-buffer (window-buffer window)
+    (let ((track-eob (eobp)))
+      (completion--lazy-insert-strings)
+      ;; Keep point at the end of the updated buffer.
+      (when track-eob
+        (with-selected-window window
+          (goto-char (point-max))
+          (previous-completion 1)
+          (recenter -1)
+          (when cursor-face-highlight-mode
+            (redisplay--update-cursor-face-highlight window))))))
+  (remove-hook 'window-scroll-functions
+               'completion--lazy-insert-strings-on-scroll t))
 
 (defun completion--lazy-insert-strings (&optional button)
   (setq button (or button completions--lazy-insert-button))

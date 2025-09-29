@@ -10702,6 +10702,8 @@ Called from `temp-buffer-show-hook'."
       (if base-dir (setq default-directory base-dir))
       (when completion-tab-width
         (setq tab-width completion-tab-width))
+      (add-hook 'window-scroll-functions
+                'completion--lazy-insert-strings-on-scroll nil t)
       ;; Maybe enable cursor completions-highlight.
       (when completions-highlight-face
         (cursor-face-highlight-mode 1))
