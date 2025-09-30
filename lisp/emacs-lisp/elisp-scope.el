@@ -36,7 +36,6 @@
   (put name 'elisp-scope-parent-types parents)
   (put name 'elisp-scope-type-properties props))
 
-;;;###autoload
 (defmacro elisp-scope-define-symbol-type (name parents &rest props)
   (declare (indent defun))
   `(elisp-scope--define-symbol-type ',name ',parents ,(when props `(list ,@props))))
