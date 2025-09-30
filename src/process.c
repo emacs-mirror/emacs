@@ -6054,7 +6054,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		 process gone just because its pipe is closed.  */
 	      else if (nread == 0 && !NETCONN_P (proc) && !SERIALCONN_P (proc)
 		       && !PIPECONN_P (proc))
-		;
+		delete_read_fd (channel);
 	      else if (nread == 0 && PIPECONN_P (proc))
 		{
 		  /* Preserve status of processes already terminated.  */
