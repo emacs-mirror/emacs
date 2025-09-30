@@ -378,6 +378,7 @@
 ;;
 ;;   Remove the working tree, assumed to be one that uses the same
 ;;   backing repository as this working tree, at DIRECTORY.
+;;   Callers must ensure that DIRECTORY is not the current working tree.
 ;;   This removal should be unconditional with respect to the state of
 ;;   the working tree: the caller is responsible for checking for
 ;;   uncommitted work in DIRECTORY.
@@ -386,6 +387,7 @@
 ;;
 ;;   Relocate the working tree, assumed to be one that uses the same
 ;;   backing repository as this working tree, at FROM to TO.
+;;   Callers must ensure that FROM is not the current working tree.
 
 ;; HISTORY FUNCTIONS
 ;;
@@ -4576,19 +4578,27 @@ When called from Lisp, BACKEND is the VC backend."
 
 (defvar project-prompter)
 
-(defun vc--prompt-other-working-tree (backend prompt)
+(defun vc--prompt-other-working-tree (backend prompt &optional allow-empty)
   "Invoke `project-prompter' to choose another working tree.
 BACKEND is the VC backend.
-PROMPT is the prompt string for `project-prompter'."
+PROMPT is the prompt string for `project-prompter'.
+If ALLOW-EMPTY is non-nil, empty input means the current working tree."
   (if-let* ((trees (vc-call-backend backend 'known-other-working-trees)))
-      (progn (require 'project)
-             (dolist (tree trees)
-               (when-let* ((p (project-current nil tree)))
-                 (project-remember-project p nil t)))
-             (funcall project-prompter prompt
-                      (lambda (k &optional _v)
-                        (member (or (car-safe k) k) trees))
-                      t))
+      (let (res)
+        (require 'project)
+        (dolist (tree trees)
+          (when-let* ((p (project-current nil tree)))
+            (project-remember-project p nil t)))
+        (setq res
+              (funcall project-prompter
+                       (if allow-empty
+                           (format "%s (empty for this working tree)"
+                                   prompt)
+                         prompt)
+                       (lambda (k &optional _v)
+                         (member (or (car-safe k) k) trees))
+                       t allow-empty))
+        (if (string-empty-p res) (vc-root-dir) res))
     (user-error
      (substitute-command-keys
       "No other working trees.  Use \\[vc-add-working-tree] to add one"))))
@@ -4633,20 +4643,40 @@ BACKEND is the VC backend."
   (interactive
    (let ((backend (vc-responsible-backend default-directory)))
      (list backend
-           (vc--prompt-other-working-tree backend "Delete working tree"))))
-  ;; We could consider not prompting here, thus always failing when
-  ;; there is uncommitted work, and requiring the user to review and
-  ;; revert the uncommitted changes before invoking this command again.
-  ;; But other working trees are often created as throwaways to quickly
-  ;; test some changes, so it is more useful to offer to recursively
-  ;; delete them on the user's behalf.
-  (when (and (vc-dir-status-files directory nil backend)
-             (not (yes-or-no-p (format "\
-%s contains uncommitted work.  Continue to recursively delete it?" directory))))
-    (user-error "Aborted due to uncommitted work in %s" directory))
+           (vc--prompt-other-working-tree backend "Delete working tree"
+                                          'allow-empty))))
+  (let* ((delete-this (file-in-directory-p default-directory directory))
+         (directory (expand-file-name directory))
+         (default-directory
+          (if delete-this
+              (or (car (vc-call-backend backend
+                                        'known-other-working-trees))
+                  (user-error "No other working trees"))
+            default-directory))
+         (status (vc-dir-status-files directory nil backend)))
 
-  (project-forget-project directory)
-  (vc-call-backend backend 'delete-working-tree directory))
+    ;; We could consider not prompting here, thus always failing when
+    ;; there is uncommitted work, and requiring the user to review and
+    ;; revert the uncommitted changes before invoking this command again.
+    ;; But other working trees are often created as throwaways to quickly
+    ;; test some changes, so it is more useful to offer to recursively
+    ;; delete them on the user's behalf.
+    (when (and status
+               (not (yes-or-no-p (format "\
+%s contains uncommitted work.  Continue to recursively delete it?" directory))))
+      (user-error "Aborted due to uncommitted work in %s" directory))
+    ;; Extra prompt to avoid a surprise after accidentally typing 'RET'.
+    (when (and (not status) delete-this
+               (not (yes-or-no-p (format "Really delete working tree %s?"
+                                         directory))))
+      (user-error "Aborted"))
+
+    (project-forget-project directory)
+    (vc-call-backend backend 'delete-working-tree directory)
+    (when delete-this
+      (bury-buffer)
+      (while (string-prefix-p directory default-directory)
+        (bury-buffer)))))
 
 (autoload 'dired-rename-subdir "dired-aux")
 ;;;###autoload
@@ -4659,12 +4689,20 @@ BACKEND is the VC backend."
   (interactive
    (let ((backend (vc-responsible-backend default-directory)))
      (list backend
-           (vc--prompt-other-working-tree backend "Relocate working tree")
+           (vc--prompt-other-working-tree backend "Relocate working tree"
+                                          'allow-empty)
            (read-directory-name "New location for working tree: "
                                 (file-name-parent-directory (vc-root-dir))))))
-  (let ((inhibit-message t))
-    (project-forget-project from))
-  (vc-call-backend backend 'move-working-tree from to)
+  (let* ((move-this (file-in-directory-p default-directory from))
+         (default-directory
+          (if move-this
+              (or (car (vc-call-backend backend
+                                        'known-other-working-trees))
+                  (user-error "No other working trees"))
+            default-directory)))
+    (let ((inhibit-message t))
+      (project-forget-project from))
+    (vc-call-backend backend 'move-working-tree from to))
 
   ;; Update visited file names for buffers visiting files under FROM.
   (let ((from (expand-file-name from)))

@@ -525,10 +525,11 @@ It is equivalent to running 'project-any-command' with
 The prompt now displays the chosen project on which to invoke a command.
 
 ---
-*** 'project-prompter' values may be called with up to three arguments.
+*** 'project-prompter' values may be called with up to four arguments.
 These allow callers of the value of 'project-prompter' to specify a
 prompt string; prompt the user to choose between a subset of all the
-known projects; and disallow returning arbitrary directories.
+known projects; disallow returning arbitrary directories; and allow
+returning an empty string.
 See the docstring of 'project-prompter' for a full specification of
 these new optional arguments.
 

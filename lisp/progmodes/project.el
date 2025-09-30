@@ -199,8 +199,8 @@ When it is non-nil, `project-current' will always skip prompting too.")
 
 (defcustom project-prompter #'project-prompt-project-dir
   "Function to call to prompt for a project.
-The function is called either with no arguments or with up to three
-optional arguments: (&optional PROMPT PREDICATE REQUIRE-KNOWN).
+The function is called either with no arguments or with up to four
+optional arguments: (&optional PROMPT PREDICATE REQUIRE-KNOWN ALLOW-EMPTY).
 
 PROMPT is the prompt string to use.
 
@@ -216,14 +216,21 @@ If REQUIRE-KNOWN is non-nil, the value of `project-prompter' should only
 allow the user to select from known projects.  Otherwise, the function
 may allow the user to input arbitrary directories.  If PREDICATE and
 REQUIRE-KNOWN are both non-nil, the value of `project-prompter' should
-not return any project root directory for which PREDICATE returns nil."
+not return any project root directory for which PREDICATE returns nil.
+
+If ALLOW-EMPTY is non-nil, then irrespective of REQUIRE-KNOWN, the user
+may enter nothing (i.e., just type RET).
+In this case the function should return \"\".  Conventionally this is
+used to allow the user to select the current project.
+Callers should append something like \" (empty for current project)\" to
+PROMPT when passing ALLOW-EMPTY non-nil."
   :type '(choice (const :tag "Prompt for a project directory"
                         project-prompt-project-dir)
                  (const :tag "Prompt for a project name"
                         project-prompt-project-name)
                  (function :tag "Custom function" nil))
   :group 'project
-  :version "30.1")
+  :version "31.1")
 
 ;;;###autoload
 (defun project-current (&optional maybe-prompt directory)
@@ -2174,7 +2181,8 @@ the project list."
 
 (defvar project--dir-history)
 
-(defun project-prompt-project-dir (&optional prompt predicate require-known)
+(defun project-prompt-project-dir
+    (&optional prompt predicate require-known allow-empty)
   "Prompt the user for a directory that is one of the known project roots.
 The project is chosen among projects known from the project list,
 see `project-list-file'.
@@ -2182,7 +2190,8 @@ If PROMPT is non-nil, use it as the prompt string.
 If PREDICATE is non-nil, filter possible project choices using this
 function; see `project-prompter' for more details.
 Unless REQUIRE-KNOWN is non-nil, it's also possible to enter an
-arbitrary directory not in the list of known projects."
+arbitrary directory not in the list of known projects.
+If ALLOW-EMPTY is non-nil, it is possible to exit with no input."
   (project--ensure-read-project-list)
   (if-let* ((pred (alist-get 'prompt project-prune-zombie-projects))
             (inhibit-message t))
@@ -2195,10 +2204,9 @@ arbitrary directory not in the list of known projects."
            (if require-known project--list
              (append project--list `(,dir-choice)))))
          (project--dir-history (project-known-project-roots))
-         (pr-dir ""))
-    (while (equal pr-dir "")
-      ;; If the user simply pressed RET, do this again until they don't.
-      (setq pr-dir
+         pr-dir)
+    (cl-loop
+     do (setq pr-dir
             (let (history-add-new-input)
               (completing-read (if prompt
                                    ;; TODO: Use `format-prompt' (Emacs 28.1+)
@@ -2209,14 +2217,17 @@ arbitrary directory not in the list of known projects."
                                     (lambda (choice)
                                       (or (equal choice dir-choice)
                                           (funcall predicate choice))))
-                               t nil 'project--dir-history))))
+                               t nil 'project--dir-history)))
+     ;; If the user simply pressed RET, do this again until they don't.
+     while (and (not allow-empty) (equal pr-dir "")))
     (if (equal pr-dir dir-choice)
         (read-directory-name "Select directory: " default-directory nil t)
       pr-dir)))
 
 (defvar project--name-history)
 
-(defun project-prompt-project-name (&optional prompt predicate require-known)
+(defun project-prompt-project-name
+    (&optional prompt predicate require-known allow-empty)
   "Prompt the user for a project, by name, that is one of the known project roots.
 The project is chosen among projects known from the project list,
 see `project-list-file'.
@@ -2224,7 +2235,8 @@ If PROMPT is non-nil, use it as the prompt string.
 If PREDICATE is non-nil, filter possible project choices using this
 function; see `project-prompter' for more details.
 Unless REQUIRE-KNOWN is non-nil, it's also possible to enter an
-arbitrary directory not in the list of known projects."
+arbitrary directory not in the list of known projects.
+If ALLOW-EMPTY is non-nil, it is possible to exit with no input."
   (if-let* ((pred (alist-get 'prompt project-prune-zombie-projects))
             (inhibit-message t))
       (project--delete-zombie-projects pred))
@@ -2248,19 +2260,22 @@ arbitrary directory not in the list of known projects."
          (table (project--file-completion-table
                  (reverse (if require-known choices
                             (cons dir-choice choices)))))
-         (pr-name ""))
-    (while (equal pr-name "")
-      ;; If the user simply pressed RET, do this again until they don't.
-      (setq pr-name
-            (let (history-add-new-input)
-              (completing-read (if prompt
-                                   (format "%s: " prompt)
-                                 "Select project: ")
-                               table nil t nil 'project--name-history))))
-    (if (equal pr-name dir-choice)
-        (read-directory-name "Select directory: " default-directory nil t)
-      (let ((proj (assoc pr-name choices)))
-        (if (stringp proj) proj (project-root (cdr proj)))))))
+         pr-name)
+    (cl-loop
+     do (setq pr-name
+              (let (history-add-new-input)
+                (completing-read (if prompt
+                                     (format "%s: " prompt)
+                                   "Select project: ")
+                                 table nil t nil 'project--name-history)))
+     ;; If the user simply pressed RET, do this again until they don't.
+     while (and (not allow-empty) (equal pr-name "")))
+    (pcase pr-name
+      ("" "")
+      (dir-choice (read-directory-name "Select directory: "
+                                       default-directory nil t))
+      (_ (let ((proj (assoc pr-name choices)))
+           (if (stringp proj) proj (project-root (cdr proj))))))))
 
 ;;;###autoload
 (defun project-known-project-roots ()
