@@ -449,7 +449,7 @@
 
 
 (defmacro with-minibuffer-setup (completing-read &rest body)
-  (declare (indent 1) (debug (collection body)))
+  (declare (indent 1) (debug t))
   `(catch 'result
      (minibuffer-with-setup-hook
          (lambda ()
@@ -460,7 +460,7 @@
          ,completing-read))))
 
 (defmacro completing-read-with-minibuffer-setup (collection &rest body)
-  (declare (indent 1) (debug (collection body)))
+  (declare (indent 1) (debug t))
   `(catch 'result
      (minibuffer-with-setup-hook
          (lambda ()
