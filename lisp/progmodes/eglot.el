@@ -2018,7 +2018,7 @@ Doubles as an indicator of snippet support."
            (unless (bound-and-true-p yas-minor-mode) (yas-minor-mode 1))
            (apply #'yas-expand-snippet args)))))
 
- (defun eglot--format-markup (markup &optional mode)
+(defun eglot--format-markup (markup &optional mode)
   "Format MARKUP according to LSP's spec.
 MARKUP is either an LSP MarkedString or MarkupContent object."
   (let (string render-mode language)
@@ -2050,9 +2050,14 @@ MARKUP is either an LSP MarkedString or MarkupContent object."
         (goto-char (point-min))
         (let ((inhibit-read-only t))
           (when (fboundp 'text-property-search-forward)
+            ;; If `render-mode' is `gfm-view-mode', the `invisible'
+            ;; regions are set to `markdown-markup'.  Set them to 't'
+            ;; instead, since this has actual meaning in the "*eldoc*"
+            ;; buffer where we're taking this string (#bug79552).
             (while (setq match (text-property-search-forward 'invisible))
-              (delete-region (prop-match-beginning match)
-                             (prop-match-end match)))))
+              (put-text-property (prop-match-beginning match)
+                                 (prop-match-end match)
+                                 'invisible t))))
         (string-trim (buffer-string))))))
 
 (defun eglot--read-server (prompt &optional dont-if-just-the-one)
