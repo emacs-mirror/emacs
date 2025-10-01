@@ -304,10 +304,10 @@ the role of each symbol and highlight it accordingly."
 (defface elisp-face '((t :inherit font-lock-type-face))
   "Face for highlighting face names in Emacs Lisp code.")
 
-(defface elisp-symbol-type '((t :foreground "#00008b" :inherit font-lock-function-call-face))
+(defface elisp-symbol-role '((t :foreground "#00008b" :inherit font-lock-function-call-face))
   "Face for highlighting symbol type names in Emacs Lisp code.")
 
-(defface elisp-symbol-type-definition '((t :foreground "#00008b" :inherit font-lock-function-name-face))
+(defface elisp-symbol-role-definition '((t :foreground "#00008b" :inherit font-lock-function-name-face))
   "Face for highlighting symbol type names in Emacs Lisp code.")
 
 (defface elisp-function-reference '((t :inherit font-lock-function-call-face))
@@ -491,7 +491,7 @@ the role of each symbol and highlight it accordingly."
   (when elisp-add-help-echo
     (put-text-property
      beg end 'help-echo
-     (when-let* ((fun (elisp-scope-get-symbol-type-property type :help)))
+     (when-let* ((fun (elisp-scope-get-symbol-role-property type :help)))
        (funcall fun beg end def)))))
 
 (defvar font-lock-beg)
@@ -524,7 +524,7 @@ that `font-lock-keywords' applied takes precedence, if any."
 (defun elisp-fontify-symbol (type beg len id &optional def)
   (let ((end (+ beg len)))
     (elisp--annotate-symbol-with-help-echo type beg end def)
-    (let ((face (elisp-scope-get-symbol-type-property type :face)))
+    (let ((face (elisp-scope-get-symbol-role-property type :face)))
       (add-face-text-property
        beg end face
        (cl-case elisp-fontify-symbol-precedence-function

@@ -29,100 +29,100 @@
 
 (require 'cl-lib)
 
-(defun elisp-scope--define-symbol-type (name parents props)
-  (put name 'elisp-scope-parent-types parents)
-  (put name 'elisp-scope-type-properties props))
+(defun elisp-scope--define-symbol-role (name parents props)
+  (put name 'elisp-scope-parent-roles parents)
+  (put name 'elisp-scope-role-properties props))
 
-(defmacro elisp-scope-define-symbol-type (name parents &rest props)
+(defmacro elisp-scope-define-symbol-role (name parents &rest props)
   (declare (indent defun))
-  `(elisp-scope--define-symbol-type ',name ',parents ,(when props `(list ,@props))))
+  `(elisp-scope--define-symbol-role ',name ',parents ,(when props `(list ,@props))))
 
 ;;;###autoload
-(defun elisp-scope-get-symbol-type-property (type prop)
+(defun elisp-scope-get-symbol-role-property (role prop)
   (seq-some
-   (lambda (c) (plist-get (get c 'elisp-scope-type-properties) prop))
-   (elisp-scope--all-reachable-symbol-types type)))
+   (lambda (c) (plist-get (get c 'elisp-scope-role-properties) prop))
+   (elisp-scope--all-reachable-symbol-roles role)))
 
-(defvar elisp-scope--all-reachable-symbol-types-cache (make-hash-table))
+(defvar elisp-scope--all-reachable-symbol-roles-cache (make-hash-table))
 
-(defun elisp-scope--all-reachable-symbol-types (symbol-type)
-  (with-memoization (gethash symbol-type elisp-scope--all-reachable-symbol-types-cache)
-    (cons symbol-type
-          (let* ((parents (get symbol-type 'elisp-scope-parent-types))
-                 (aps (mapcar #'elisp-scope--all-reachable-symbol-types parents)))
+(defun elisp-scope--all-reachable-symbol-roles (symbol-role)
+  (with-memoization (gethash symbol-role elisp-scope--all-reachable-symbol-roles-cache)
+    (cons symbol-role
+          (let* ((parents (get symbol-role 'elisp-scope-parent-roles))
+                 (aps (mapcar #'elisp-scope--all-reachable-symbol-roles parents)))
             (if (cdr aps)
                 (merge-ordered-lists (nconc aps (list parents)))
               (car aps))))))
 
 ;;;###autoload
-(defun elisp-scope-set-symbol-type-property (type prop value)
-  (put type 'elisp-scope-type-properties
-       (plist-put (get type 'elisp-scope-type-properties) prop value)))
+(defun elisp-scope-set-symbol-role-property (role prop value)
+  (put role 'elisp-scope-role-properties
+       (plist-put (get role 'elisp-scope-role-properties) prop value)))
 
 ;;;###autoload
-(defun elisp-scope-symbol-type-p (sym)
-  (or (get sym 'elisp-scope-parent-types) (get sym 'elisp-scope-type-properties)))
+(defun elisp-scope-symbol-role-p (sym)
+  (or (get sym 'elisp-scope-parent-roles) (get sym 'elisp-scope-role-properties)))
 
-(defvar elisp-scope-read-symbol-type-history nil)
+(defvar elisp-scope-read-symbol-role-history nil)
 
-(defun elisp-scope-read-symbol-type (prompt &optional default)
+(defun elisp-scope-read-symbol-role (prompt &optional default)
   (completing-read
    (format-prompt prompt default)
-   obarray #'elisp-scope-symbol-type-p 'confirm
-   nil 'elisp-scope-read-symbol-type-history default))
+   obarray #'elisp-scope-symbol-role-p 'confirm
+   nil 'elisp-scope-read-symbol-role-history default))
 
 (defvar help-mode--current-data)
 
 ;;;###autoload
-(defun elisp-scope-describe-symbol-type (type)
-  (interactive (list (elisp-scope-read-symbol-type
-                      "Describe symbol type"
+(defun elisp-scope-describe-symbol-role (role)
+  (interactive (list (elisp-scope-read-symbol-role
+                      "Describe symbol role"
                       (when-let* ((def (symbol-at-point))
-                                  ((elisp-scope-symbol-type-p def)))
+                                  ((elisp-scope-symbol-role-p def)))
                         def))))
-  (when (stringp type) (setq type (intern type)))
+  (when (stringp role) (setq role (intern role)))
   (let ((help-buffer-under-preparation t))
-    (help-setup-xref (list #'elisp-scope-describe-symbol-type type)
+    (help-setup-xref (list #'elisp-scope-describe-symbol-role role)
                      (called-interactively-p 'interactive))
     (with-help-window (help-buffer)
       (with-current-buffer standard-output
-        (insert "Symbol type "
-                (substitute-quotes (concat "`" (symbol-name type) "'"))
+        (insert "Symbol role "
+                (substitute-quotes (concat "`" (symbol-name role) "'"))
                 ":\n\n"
                 (substitute-quotes
-                 (or (elisp-scope-get-symbol-type-property type :doc)
+                 (or (elisp-scope-get-symbol-role-property role :doc)
                      "Undocumented.")))
-        (when-let* ((parents (get type 'elisp-scope-parent-types)))
-          (insert "\n\nParent types: "
+        (when-let* ((parents (get role 'elisp-scope-parent-roles)))
+          (insert "\n\nParent roles: "
                   (mapconcat (lambda (parent)
                                (let ((name (symbol-name parent)))
                                  (substitute-quotes
                                   (concat
                                    "`"
                                    (buttonize
-                                    name #'elisp-scope-describe-symbol-type name
-                                    "mouse-2, RET: describe this symbol type")
+                                    name #'elisp-scope-describe-symbol-role name
+                                    "mouse-2, RET: describe this symbol role")
                                    "'"))))
                              parents ", ")))
         (setq help-mode--current-data
-              (list :symbol type :type 'define-symbol-type
-                    :file (find-lisp-object-file-name type 'define-symbol-type)))))))
+              (list :symbol role :type 'define-symbol-role
+                    :file (find-lisp-object-file-name role 'define-symbol-role)))))))
 
-(elisp-scope-define-symbol-type symbol-type ()
-  :doc "Symbol type names."
-  :definition 'symbol-type-definition
-  :face 'elisp-symbol-type
-  :help (cl-constantly "Symbol type")
-  :namespace 'symbol-type)
+(elisp-scope-define-symbol-role symbol-role ()
+  :doc "Symbol role names."
+  :definition 'symbol-role-definition
+  :face 'elisp-symbol-role
+  :help (cl-constantly "Symbol role")
+  :namespace 'symbol-role)
 
-(elisp-scope-define-symbol-type symbol-type-definition (symbol-type)
-  :doc "Symbol type name definitions."
-  :face 'elisp-symbol-type-definition
-  :help (cl-constantly "Symbol type definition")
-  :imenu "Symbol Type"
-  :namespace 'symbol-type)
+(elisp-scope-define-symbol-role symbol-role-definition (symbol-role)
+  :doc "Symbol role name definitions."
+  :face 'elisp-symbol-role-definition
+  :help (cl-constantly "Symbol role definition")
+  :imenu "Symbol Role"
+  :namespace 'symbol-role)
 
-(elisp-scope-define-symbol-type variable ()
+(elisp-scope-define-symbol-role variable ()
   :doc "Variable names."
   :definition 'defvar
   :face 'elisp-free-variable
@@ -136,27 +136,27 @@
             "Special variable"))
   :namespace 'variable)
 
-(elisp-scope-define-symbol-type bound-variable (variable)
+(elisp-scope-define-symbol-role bound-variable (variable)
   :doc "Local variable names."
   :face 'elisp-bound-variable
   :help (cl-constantly "Local variable"))
 
-(elisp-scope-define-symbol-type binding-variable (bound-variable)
+(elisp-scope-define-symbol-role binding-variable (bound-variable)
   :doc "Local variable definitions."
   :face 'elisp-binding-variable
   :help (cl-constantly "Local variable binding"))
 
-(elisp-scope-define-symbol-type shadowed-variable (variable)
+(elisp-scope-define-symbol-role shadowed-variable (variable)
   :doc "Locally shadowed variable names."
   :face 'elisp-shadowed-variable
   :help (cl-constantly "Locally shadowed variable"))
 
-(elisp-scope-define-symbol-type shadowing-variable (shadowed-variable)
+(elisp-scope-define-symbol-role shadowing-variable (shadowed-variable)
   :doc "Local variable definitions."
   :face 'elisp-shadowing-variable
   :help (cl-constantly "Local variable shadowing"))
 
-(elisp-scope-define-symbol-type face ()
+(elisp-scope-define-symbol-role face ()
   :doc "Face names."
   :definition 'defface
   :face 'elisp-face
@@ -164,11 +164,11 @@
           (elisp--help-echo beg end 'face-documentation "Face"))
   :namespace 'face)
 
-(elisp-scope-define-symbol-type callable ()
-  :doc "Abstract symbol type of function-like symbols."
+(elisp-scope-define-symbol-role callable ()
+  :doc "Abstract symbol role of function-like symbols."
   :namespace 'function)
 
-(elisp-scope-define-symbol-type function (callable)
+(elisp-scope-define-symbol-role function (callable)
   :doc "Function names."
   :definition '(defun defcmd)
   :face 'elisp-function-reference
@@ -179,15 +179,15 @@
                        (apply-partially #'elisp--function-help-echo sym)
                      "Function call")))))
 
-(elisp-scope-define-symbol-type command (function)
+(elisp-scope-define-symbol-role command (function)
   :doc "Command names.")
 
-(elisp-scope-define-symbol-type unknown (function)
+(elisp-scope-define-symbol-role unknown (function)
   :doc "Unknown symbols at function position."
   :face 'elisp-unknown-call
   :help (cl-constantly "Unknown callable"))
 
-(elisp-scope-define-symbol-type non-local-exit (function)
+(elisp-scope-define-symbol-role non-local-exit (function)
   :doc "Functions that do not return."
   :face 'elisp-non-local-exit
   :help (lambda (beg end _def)
@@ -195,7 +195,7 @@
               (apply-partially #'elisp--function-help-echo sym)
             "Non-local exit")))
 
-(elisp-scope-define-symbol-type macro (callable)
+(elisp-scope-define-symbol-role macro (callable)
   :doc "Macro names."
   :definition 'defmacro
   :face 'elisp-macro-call
@@ -204,11 +204,11 @@
               (apply-partially #'elisp--function-help-echo sym)
             "Macro call")))
 
-(elisp-scope-define-symbol-type undefined-macro (macro)
+(elisp-scope-define-symbol-role undefined-macro (macro)
   :doc "Known macro names whose definition is unknown."
   :help (cl-constantly "Call to macro with unknown definition"))
 
-(elisp-scope-define-symbol-type special-form (callable)
+(elisp-scope-define-symbol-role special-form (callable)
   :doc "Special form names."
   :face 'elisp-special-form
   :help (lambda (beg end _def)
@@ -216,98 +216,98 @@
               (apply-partially #'elisp--function-help-echo sym)
             "Special form")))
 
-(elisp-scope-define-symbol-type throw-tag ()
+(elisp-scope-define-symbol-role throw-tag ()
   :doc "Symbols used as `throw'/`catch' tags."
   :face 'elisp-throw-tag
   :help (cl-constantly "`throw'/`catch' tag"))
 
-(elisp-scope-define-symbol-type warning-type ()
+(elisp-scope-define-symbol-role warning-type ()
   :doc "Byte-compilation warning types."
   :face 'elisp-warning-type
   :help (cl-constantly "Warning type"))
 
-(elisp-scope-define-symbol-type feature ()
+(elisp-scope-define-symbol-role feature ()
   :doc "Feature names."
   :definition 'deffeature
   :face 'elisp-feature
   :help (cl-constantly "Feature")
   :namespace 'feature)
 
-(elisp-scope-define-symbol-type deffeature (feature)
+(elisp-scope-define-symbol-role deffeature (feature)
   :doc "Feature definitions."
   :imenu "Feature"
   :help (cl-constantly "Feature definition"))
 
-(elisp-scope-define-symbol-type declaration ()
+(elisp-scope-define-symbol-role declaration ()
   :doc "Function attribute declaration types."
   :face 'elisp-declaration
   :help (cl-constantly "Declaration"))
 
-(elisp-scope-define-symbol-type rx-construct ()
+(elisp-scope-define-symbol-role rx-construct ()
   :doc "`rx' constructs."
   :face 'elisp-rx
   :help (cl-constantly "`rx' construct"))
 
-(elisp-scope-define-symbol-type theme ()
+(elisp-scope-define-symbol-role theme ()
   :doc "Custom theme names."
   :definition 'deftheme
   :face 'elisp-theme
   :help (cl-constantly "Theme"))
 
-(elisp-scope-define-symbol-type deftheme (theme)
+(elisp-scope-define-symbol-role deftheme (theme)
   :doc "Custom theme definitions."
   :imenu "Theme"
   :help (cl-constantly "Theme definition"))
 
-(elisp-scope-define-symbol-type thing ()
+(elisp-scope-define-symbol-role thing ()
   :doc "`thing-at-point' \"thing\" identifiers."
   :face 'elisp-thing
   :help (cl-constantly "Thing (text object)"))
 
-(elisp-scope-define-symbol-type slot ()
+(elisp-scope-define-symbol-role slot ()
   :doc "EIEIO slots."
   :face 'elisp-slot
   :help (cl-constantly "Slot"))
 
-(elisp-scope-define-symbol-type widget-type ()
+(elisp-scope-define-symbol-role widget-type ()
   :doc "Widget types."
   :definition 'widget-type-definition
   :face 'elisp-widget-type
   :help (cl-constantly "Widget type")
   :namespace 'widget-type)
 
-(elisp-scope-define-symbol-type widget-type-definition (widget-type)
-  :doc "Widget type definitions."
+(elisp-scope-define-symbol-role widget-type-definition (widget-type)
+  :doc "Widget role definitions."
   :imenu "Widget"
-  :help (cl-constantly "Widget type definition"))
+  :help (cl-constantly "Widget role definition"))
 
-(elisp-scope-define-symbol-type type ()
+(elisp-scope-define-symbol-role type ()
   :doc "ELisp object type names."
   :face 'elisp-type
   :help (cl-constantly "Type"))
 
-(elisp-scope-define-symbol-type deftype (type)
+(elisp-scope-define-symbol-role deftype (type)
   :doc "ELisp object type definitions."
   :imenu "Type"
   :help (cl-constantly "Type definition"))
 
-(elisp-scope-define-symbol-type group ()
+(elisp-scope-define-symbol-role group ()
   :doc "Customization groups."
   :definition 'defgroup
   :face 'elisp-group
   :help (cl-constantly "Customization group"))
 
-(elisp-scope-define-symbol-type defgroup (group)
+(elisp-scope-define-symbol-role defgroup (group)
   :doc "Customization group definitions."
   :imenu "Group"
   :help (cl-constantly "Customization group definition"))
 
-(elisp-scope-define-symbol-type nnoo-backend ()
+(elisp-scope-define-symbol-role nnoo-backend ()
   :doc "`nnoo' backend names."
   :face 'elisp-nnoo-backend
   :help (cl-constantly "`nnoo' backend"))
 
-(elisp-scope-define-symbol-type condition ()
+(elisp-scope-define-symbol-role condition ()
   :doc "`condition-case' conditions."
   :definition 'defcondition
   :face 'elisp-condition
@@ -322,22 +322,22 @@
             "`condition-case' condition"))
   :namespace 'condition)
 
-(elisp-scope-define-symbol-type defcondition (condition)
+(elisp-scope-define-symbol-role defcondition (condition)
   :doc "`condition-case' condition definitions."
   :definition 'defcondition
   :help (cl-constantly "`condition-case' condition definition"))
 
-(elisp-scope-define-symbol-type ampersand ()
+(elisp-scope-define-symbol-role ampersand ()
   :doc "Argument list markers, such as `&optional' and `&rest'."
   :face 'elisp-ampersand
   :help (cl-constantly "Arguments separator"))
 
-(elisp-scope-define-symbol-type constant ()
+(elisp-scope-define-symbol-role constant ()
   :doc "Self-evaluating symbols."
   :face 'elisp-constant
   :help (cl-constantly "Constant"))
 
-(elisp-scope-define-symbol-type defun ()
+(elisp-scope-define-symbol-role defun ()
   :doc "Function definitions."
   :definition 'defun
   :face 'elisp-defun
@@ -345,7 +345,7 @@
   :imenu "Function"
   :namespace 'function)
 
-(elisp-scope-define-symbol-type defmacro ()
+(elisp-scope-define-symbol-role defmacro ()
   :doc "Macro definitions."
   :definition 'defmacro
   :face 'elisp-defmacro
@@ -353,13 +353,13 @@
   :imenu "Macro"
   :namespace 'function)
 
-(elisp-scope-define-symbol-type defcmd (defun)
+(elisp-scope-define-symbol-role defcmd (defun)
   :doc "Command definitions."
   :definition 'defcmd
   :help (cl-constantly "Command definition")
   :imenu "Command")
 
-(elisp-scope-define-symbol-type defvar ()
+(elisp-scope-define-symbol-role defvar ()
   :doc "Variable definitions."
   :definition 'defvar
   :face 'elisp-defvar
@@ -367,7 +367,7 @@
   :imenu "Variable"
   :namespace 'variable)
 
-(elisp-scope-define-symbol-type defface ()
+(elisp-scope-define-symbol-role defface ()
   :doc "Face definitions."
   :definition 'defface
   :face 'elisp-defface
@@ -375,7 +375,7 @@
   :imenu "Face"
   :namespace 'face)
 
-(elisp-scope-define-symbol-type major-mode ()
+(elisp-scope-define-symbol-role major-mode ()
   :doc "Major mode names."
   :definition 'major-mode-definition
   :face 'elisp-major-mode-name
@@ -388,24 +388,24 @@
             "Major mode"))
   :namespace 'function)
 
-(elisp-scope-define-symbol-type major-mode-definition (major-mode)
+(elisp-scope-define-symbol-role major-mode-definition (major-mode)
   :doc "Major mode definitions."
   :help (cl-constantly "Major mode definition")
   :imenu "Major Mode")
 
-(elisp-scope-define-symbol-type block ()
+(elisp-scope-define-symbol-role block ()
   :doc "`cl-block' block names."
   :help (lambda (beg _end def)
           (if (equal beg def) "Block definition" "Block")))
 
-(elisp-scope-define-symbol-type icon ()
+(elisp-scope-define-symbol-role icon ()
   :doc "Icon names."
   :definition 'deficon
   :face 'elisp-icon
   :help (cl-constantly "Icon")
   :namespace 'icon)
 
-(elisp-scope-define-symbol-type deficon ()
+(elisp-scope-define-symbol-role deficon ()
   :doc "Icon definitions."
   :definition 'deficon
   :face 'elisp-deficon
@@ -413,7 +413,7 @@
   :imenu "Icon"
   :namespace 'icon)
 
-(elisp-scope-define-symbol-type oclosure ()
+(elisp-scope-define-symbol-role oclosure ()
   :doc "OClosure type names."
   :definition 'defoclosure
   :face 'elisp-oclosure
@@ -426,7 +426,7 @@
             "OClosure type"))
   :namespace 'oclosure)
 
-(elisp-scope-define-symbol-type defoclosure ()
+(elisp-scope-define-symbol-role defoclosure ()
   :doc "OClosure type definitions."
   :definition 'defoclosure
   :face 'elisp-defoclosure
@@ -434,7 +434,7 @@
   :imenu "OClosure type"
   :namespace 'oclosure)
 
-(elisp-scope-define-symbol-type coding ()
+(elisp-scope-define-symbol-role coding ()
   :doc "Coding system names."
   :definition 'defcoding
   :face 'elisp-coding
@@ -447,7 +447,7 @@
             "Coding system"))
   :namespace 'coding)
 
-(elisp-scope-define-symbol-type defcoding ()
+(elisp-scope-define-symbol-role defcoding ()
   :doc "Coding system definitions."
   :definition 'defcoding
   :face 'elisp-defcoding
@@ -455,7 +455,7 @@
   :imenu "Coding system"
   :namespace 'coding)
 
-(elisp-scope-define-symbol-type charset ()
+(elisp-scope-define-symbol-role charset ()
   :doc "Charset names."
   :definition 'defcharset
   :face 'elisp-charset
@@ -468,7 +468,7 @@
             "Charset"))
   :namespace 'charset)
 
-(elisp-scope-define-symbol-type defcharset ()
+(elisp-scope-define-symbol-role defcharset ()
   :doc "Charset definitions."
   :definition 'defcharset
   :face 'elisp-defcharset
@@ -476,7 +476,7 @@
   :imenu "Charset"
   :namespace 'charset)
 
-(elisp-scope-define-symbol-type completion-category ()
+(elisp-scope-define-symbol-role completion-category ()
   :doc "Completion categories."
   :definition 'completion-category-definition
   :face 'elisp-completion-category
@@ -489,7 +489,7 @@
             "Completion category"))
   :namespace 'completion-category)
 
-(elisp-scope-define-symbol-type completion-category-definition ()
+(elisp-scope-define-symbol-role completion-category-definition ()
   :doc "Completion category definitions."
   :definition 'completion-category-definition
   :face 'elisp-completion-category-definition
@@ -527,8 +527,8 @@ Optional argument LOCAL is a local context to extend."
 
 (defvar elisp-scope--quoted nil)
 
-(defsubst elisp-scope-report (type beg len &optional id def)
-  (funcall elisp-scope-callback type beg len id (or def (and (numberp id) id))))
+(defsubst elisp-scope-report (role beg len &optional id def)
+  (funcall elisp-scope-callback role beg len id (or def (and (numberp id) id))))
 
 (defvar elisp-scope-special-variables nil)
 
@@ -1623,13 +1623,13 @@ trusted code macro expansion is always safe."
        (defun ,analyzer ,args ,@body)
        (put ',fsym 'elisp-scope-analyzer #',analyzer))))
 
-(defmacro elisp-scope--define-function-analyzer (fsym args type &rest body)
+(defmacro elisp-scope--define-function-analyzer (fsym args role &rest body)
   (declare (indent defun))
   (let ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
     `(progn
        (defun ,helper ,args ,@body)
        (elisp-scope-define-analyzer ,fsym (f &rest args)
-         (elisp-scope-report-s f ',type)
+         (elisp-scope-report-s f ',role)
          (apply #',helper args)))))
 
 (defmacro elisp-scope-define-function-analyzer (fsym args &rest body)
@@ -2085,12 +2085,12 @@ trusted code macro expansion is always safe."
   (elisp-scope-1 parent '(symbol . major-mode)))
 
 (elisp-scope-define-function-analyzer elisp-scope-report (type &rest args)
-  (elisp-scope-1 type '(symbol . symbol-type))
+  (elisp-scope-1 type '(symbol . symbol-role))
   (mapc #'elisp-scope-1 args))
 
 (elisp-scope-define-function-analyzer elisp-scope-report-s (&optional sym type)
   (elisp-scope-1 sym)
-  (elisp-scope-1 type '(symbol . symbol-type)))
+  (elisp-scope-1 type '(symbol . symbol-role)))
 
 (elisp-scope-define-function-analyzer elisp-scope-1 (&optional form outtype)
   (elisp-scope-1 form)
@@ -2366,9 +2366,9 @@ trusted code macro expansion is always safe."
 
 (put 'ert-deftest 'elisp-scope-analyzer #'elisp-scope--analyze-defun)
 
-(elisp-scope-define-macro-analyzer elisp-scope-define-symbol-type (&optional name parents &rest props)
-  (elisp-scope-report-s name 'symbol-type-definition)
-  (dolist (parent parents) (elisp-scope-report-s parent 'symbol-type))
+(elisp-scope-define-macro-analyzer elisp-scope-define-symbol-role (&optional name parents &rest props)
+  (elisp-scope-report-s name 'symbol-role-definition)
+  (dolist (parent parents) (elisp-scope-report-s parent 'symbol-role))
   (while-let ((kw (car-safe props))
               (bkw (elisp-scope-sym-bare kw))
               ((keywordp bkw)))
@@ -2379,7 +2379,7 @@ trusted code macro expansion is always safe."
          (elisp-scope-1 (cadr props))))
       (:definition
        (if-let* ((q (elisp-scope--unquote (cadr props))))
-           (dolist (st (ensure-list q)) (elisp-scope-report-s st 'symbol-type))
+           (dolist (st (ensure-list q)) (elisp-scope-report-s st 'symbol-role))
          (elisp-scope-1 (cadr props))))
       (otherwise (elisp-scope-1 (cadr props))))
     (setq props (cddr props))))
@@ -2593,7 +2593,7 @@ trusted code macro expansion is always safe."
    '(or (equal . t)
         (equal . code)
         (equal . type)
-        (cons (equal . symbol) . (symbol . symbol-type))
+        (cons (equal . symbol) . (symbol . symbol-role))
         (cons (equal . repeat) . type)
         (cons (equal . or)     . (repeat . type))
         (cons (equal . cons)   . (cons type . type))
@@ -2649,9 +2649,9 @@ trusted code macro expansion is always safe."
 
 (put 'unwind-protect 'elisp-scope-analyzer #'elisp-scope--analyze-prog1)
 
-(defun elisp-scope-report-s (sym type)
+(defun elisp-scope-report-s (sym role)
   (when-let* ((beg (elisp-scope-sym-pos sym)) (bare (bare-symbol sym)))
-    (elisp-scope-report type beg (length (symbol-name bare)))))
+    (elisp-scope-report role beg (length (symbol-name bare)))))
 
 (defvar-local elisp-scope-buffer-file-name nil)
 
@@ -2704,8 +2704,8 @@ trusted code macro expansion is always safe."
 (defun elisp-scope-analyze-form (callback &optional stream)
   "Read and analyze code from STREAM, reporting findings via CALLBACK.
 
-Call CALLBACK for each analyzed symbol SYM with arguments TYPE, POS,
-LEN, ID and DEF, where TYPE is a symbol that specifies the semantics of
+Call CALLBACK for each analyzed symbol SYM with arguments ROLE, POS,
+LEN, ID and DEF, where ROLE is a symbol that specifies the semantics of
 SYM; POS is the position of SYM in STREAM; LEN is SYM's length; ID is an
 object that uniquely identifies (co-)occurrences of SYM in the current
 defun; and DEF is the position in which SYM is locally defined, or nil.
