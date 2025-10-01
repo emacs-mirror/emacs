@@ -2131,7 +2131,7 @@ trusted code macro expansion is always safe."
   (elisp-scope-1 int '(repeat . (symbol . major-mode)))
   (elisp-scope-1 type))
 
-(elisp-scope-define-function-analyzer minibuffer--define-completion-category (&optional name parents &rest rest)
+(elisp-scope-define-function-analyzer define-completion-category (&optional name parents &rest rest)
   (elisp-scope-1 name '(symbol . completion-category-definition))
   (elisp-scope-1 parents '(repeat . (symbol . completion-category)))
   (elisp-scope-n rest))
