@@ -1671,9 +1671,12 @@ trusted code macro expansion is always safe."
 
 (elisp-scope-define-analyzer eval (f form &optional lexical)
   (elisp-scope-report-s f 'function)
-  (if-let* ((quoted (elisp-scope--unquote form)))
-      (elisp-scope-1 quoted)
-    (elisp-scope-1 form))
+  ;; TODO: Use elisp-scope-1 with outtype `code' in the next line.
+  ;; Difficulty: that would analyze the quoted code as if it is
+  ;; evaluated in an unrelated local environment, so local variables
+  ;; wouldn't be recognized correctly etc.  We can solve that by adding
+  ;; some `code-evaled-here' outtype.
+  (elisp-scope-1 (or (elisp-scope--unquote form) form))
   (elisp-scope-1 lexical))
 
 (elisp-scope-define-function-analyzer funcall (&optional f &rest args)
