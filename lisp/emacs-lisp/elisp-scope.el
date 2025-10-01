@@ -34,6 +34,14 @@
   (put name 'elisp-scope-role-properties props))
 
 (defmacro elisp-scope-define-symbol-role (name parents &rest props)
+  "Define NAME as the name of a symbol role that inherits from PARENTS.
+
+A symbol role is a symbol that Emacs uses to describe the role
+of (other) symbols in ELisp source code.  For example, the symbol role
+`face' characterizes symbols that are face names.
+
+PROPS is a plist specifying the properties of the new symbol role NAME.
+NAME inherits properties that do not appear in PROPS from its PARENTS."
   (declare (indent defun))
   `(elisp-scope--define-symbol-role ',name ',parents ,(when props `(list ,@props))))
 
