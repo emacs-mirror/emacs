@@ -2178,6 +2178,7 @@ other working trees:
 
 - 'C-x v w c': Add a new working tree.
 - 'C-x v w w': Visit this file in another working tree.
+- 'C-x v w k': Kill buffers visiting this file in other working trees.
 - 'C-x v w s': Like 'C-x p p' but limited to other working trees.
 - 'C-x v w a': Copy or move fileset changes to another working tree.
 - 'C-x v w A': Copy or move all changes to another working tree.

@@ -4886,6 +4886,24 @@ MOVE non-nil means to move instead of copy."
     (message "Changes %s to `%s'"
              (if move "moved" "applied") directory)))
 
+;;;###autoload
+(defun vc-kill-other-working-tree-buffers (backend)
+  "Kill buffers visiting versions of this file in other working trees.
+BACKEND is the VC backend.
+
+This command kills the buffers that \\[vc-switch-working-tree] switches to,
+except that this command works only in file-visiting buffers."
+  (interactive (list (vc-responsible-backend default-directory)))
+  (when (cdr uniquify-managed)
+    (cl-loop with trees = (vc-call-backend backend
+                                           'known-other-working-trees)
+             for item in uniquify-managed
+             for buf = (uniquify-item-buffer item)
+             when (and (not (eq buf (current-buffer)))
+                       (cl-find (uniquify-item-dirname item) trees
+                                :test #'file-in-directory-p))
+             do (kill-buffer buf))))
+
 (defun vc-default-cherry-pick-comment (files rev reverse)
   (if reverse (format "Summary: Reverse-apply changes from revision %s\n\n"
                       rev)

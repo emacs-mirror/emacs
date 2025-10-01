@@ -5110,8 +5110,8 @@ However, the mode will not be changed if
 This also renames the buffer to correspond to the new file.
 The next time the buffer is saved it will go in the newly specified file.
 FILENAME nil or an empty string means mark buffer as not visiting any file.
-Remember to delete the initial contents of the minibuffer
-if you wish to pass an empty string as the argument.
+When calling interactively, remember to delete the initial contents of
+the minibuffer if you wish to pass an empty string as the argument.
 
 The optional second argument NO-QUERY, if non-nil, inhibits asking for
 confirmation in the case where another buffer is already visiting FILENAME.

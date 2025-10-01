@@ -436,6 +436,9 @@ Add a new working tree.
 @item C-x v w w
 Visit this file or directory in another working tree.
 
+@item C-x v w k
+Kill buffers visiting this file in other working trees.
+
 @item C-x v w s
 Invoke @kbd{C-x p p} (@code{project-switch-project}) but limited to
 other working trees.
@@ -493,6 +496,16 @@ can use @kbd{C-x v w w} and then standard Diff mode commands like
 @w{@kbd{C-c C-a}} (@code{diff-apply-hunk}) and @kbd{C-c RET C-a}
 (@code{diff-apply-buffer}) to apply hunks from one working tree to
 another.
+
+@kindex C-x v w k
+@findex vc-kill-other-working-tree-buffers
+After using @kbd{C-x v w w} in file-visiting buffers you will have
+multiple buffers visiting identically named files (@pxref{Uniquify}).
+You can kill all but one of these buffers by typing @kbd{C-x v w k}
+(@code{vc-kill-other-working-tree-buffers}).  This command kills buffers
+visiting versions of the current buffer's file in other working trees,
+preserving the current buffer.  It does not work in non-file-visiting
+buffers.
 
 @kindex C-x v w s
 @findex vc-working-tree-switch-project
