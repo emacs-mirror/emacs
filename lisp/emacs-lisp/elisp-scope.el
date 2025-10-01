@@ -242,10 +242,10 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
   :imenu "Feature"
   :help (cl-constantly "Feature definition"))
 
-(elisp-scope-define-symbol-role declaration ()
-  :doc "Function attribute declaration types."
-  :face 'elisp-declaration
-  :help (cl-constantly "Declaration"))
+(elisp-scope-define-symbol-role function-property-declaration ()
+  :doc "Function/macro property declaration types."
+  :face 'elisp-function-property-declaration
+  :help (cl-constantly "Function/macro property declaration"))
 
 (elisp-scope-define-symbol-role rx-construct ()
   :doc "`rx' constructs."
@@ -637,7 +637,7 @@ Optional argument LOCAL is a local context to extend."
         (when-let* ((head (car-safe spec))
                     (bare (elisp-scope-sym-bare head)))
           (when (symbol-with-pos-p head)
-            (elisp-scope-report 'declaration
+            (elisp-scope-report 'function-property-declaration
                           (symbol-with-pos-pos head)
                           (length (symbol-name bare))))
           (cl-case bare

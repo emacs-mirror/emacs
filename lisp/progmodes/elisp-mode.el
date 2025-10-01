@@ -358,8 +358,8 @@ the role of each symbol and highlight it accordingly."
 (defface elisp-warning-type '((t :inherit font-lock-type-face))
   "Face for highlighting byte-compilation warning type names in Emacs Lisp.")
 
-(defface elisp-declaration '((t :inherit font-lock-variable-use-face))
-  "Face for highlighting function attribute declaration type names.")
+(defface elisp-function-property-declaration '((t :inherit font-lock-variable-use-face))
+  "Face for highlighting function/macro property declaration type names.")
 
 (defface elisp-thing '((t :inherit font-lock-type-face))
   "Face for highlighting `thing-at-point' \"thing\" names in Emacs Lisp.")
