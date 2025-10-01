@@ -149,6 +149,7 @@ the command `global-hl-line-mode' to turn Global Hl-Line mode on."
 
 (defcustom global-hl-line-buffers
   '(not (or (lambda (b) (buffer-local-value 'cursor-face-highlight-mode b))
+            (lambda (b) (string-match-p "\\` " (buffer-name b)))
             minibufferp))
   "Whether the Global HL-Line mode should be enabled in a buffer.
 The predicate is passed as argument to `buffer-match-p', which see.
