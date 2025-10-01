@@ -212,10 +212,6 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
               (apply-partially #'elisp--function-help-echo sym)
             "Macro call")))
 
-(elisp-scope-define-symbol-role undefined-macro (macro)
-  :doc "Known macro names whose definition is unknown."
-  :help (cl-constantly "Call to macro with unknown definition"))
-
 (elisp-scope-define-symbol-role special-form (callable)
   :doc "Special form names."
   :face 'elisp-special-form
