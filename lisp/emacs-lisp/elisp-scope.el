@@ -281,9 +281,9 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
   :namespace 'widget-type)
 
 (elisp-scope-define-symbol-role widget-type-definition (widget-type)
-  :doc "Widget role definitions."
+  :doc "Widget type definitions."
   :imenu "Widget"
-  :help (cl-constantly "Widget role definition"))
+  :help (cl-constantly "Widget type definition"))
 
 (elisp-scope-define-symbol-role type ()
   :doc "ELisp object type names."
