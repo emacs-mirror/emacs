@@ -131,6 +131,10 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
   :namespace 'symbol-role)
 
 (elisp-scope-define-symbol-role variable ()
+  :doc "Abstract symbol role of variables."
+  :namespace 'variable)
+
+(elisp-scope-define-symbol-role free-variable (variable)
   :doc "Variable names."
   :definition 'defvar
   :face 'elisp-free-variable
@@ -141,8 +145,7 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
                   (if-let* ((doc (documentation-property sym 'variable-documentation t)))
                       (format "Special variable `%S'.\n\nValue: %s\n\n%s" sym val doc)
                     (format "Special variable `%S'.\n\nValue: %s" sym val))))
-            "Special variable"))
-  :namespace 'variable)
+            "Special variable")))
 
 (elisp-scope-define-symbol-role bound-variable (variable)
   :doc "Local variable names."
@@ -541,7 +544,7 @@ Optional argument LOCAL is a local context to extend."
 
 (defun elisp-scope-variable (sym beg len id)
   (elisp-scope-report
-   (if id (if (elisp-scope-special-variable-p sym) 'shadowed-variable 'bound-variable) 'variable)
+   (if id (if (elisp-scope-special-variable-p sym) 'shadowed-variable 'bound-variable) 'free-variable)
    beg len id))
 
 (defun elisp-scope-binding (sym beg len)
@@ -1209,7 +1212,7 @@ Optional argument LOCAL is a local context to extend."
      (when-let* ((var (car args))
                  (beg (elisp-scope-sym-pos var))
                  (bare (elisp-scope-sym-bare var)))
-       (elisp-scope-report 'variable beg (length (symbol-name bare)))))))
+       (elisp-scope-report 'free-variable beg (length (symbol-name bare)))))))
 
 (defun elisp-scope-quoted-group (sym-form)
   (when-let* (((eq (elisp-scope-sym-bare (car-safe sym-form)) 'quote))
@@ -1571,7 +1574,7 @@ Optional argument LOCAL is a local context to extend."
 (defun elisp-scope-mode-line-construct-1 (format)
   (cond
    ((symbol-with-pos-p format)
-    (elisp-scope-report 'variable
+    (elisp-scope-report 'free-variable
                   (symbol-with-pos-pos format)
                   (length (symbol-name (bare-symbol format)))))
    ((consp format)
@@ -1905,7 +1908,7 @@ trusted code macro expansion is always safe."
   (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-kill-emacs))
 
 (elisp-scope-define-function-analyzer run-hooks (&rest hooks)
-  (dolist (hook hooks) (elisp-scope-1 hook '(symbol . variable))))
+  (dolist (hook hooks) (elisp-scope-1 hook '(symbol . free-variable))))
 
 (elisp-scope-define-function-analyzer fboundp (&optional symbol)
   (elisp-scope-1 symbol '(symbol . function)))
@@ -1942,7 +1945,7 @@ trusted code macro expansion is always safe."
   (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-facep))
 
 (elisp-scope-define-function-analyzer boundp (&optional var &rest rest)
-  (elisp-scope-1 var '(symbol . variable))
+  (elisp-scope-1 var '(symbol . free-variable))
   (elisp-scope-n rest))
 
 (dolist (sym '( set symbol-value define-abbrev-table
@@ -1957,7 +1960,7 @@ trusted code macro expansion is always safe."
 
 (elisp-scope-define-function-analyzer defvaralias (new base &optional docstring)
   (elisp-scope-1 new '(symbol . defvar))
-  (elisp-scope-1 base '(symbol . variable))
+  (elisp-scope-1 base '(symbol . free-variable))
   (elisp-scope-1 docstring))
 
 (elisp-scope-define-function-analyzer define-error (&optional name message parent)
@@ -2057,7 +2060,7 @@ trusted code macro expansion is always safe."
   (dolist (arg args)
     (elisp-scope-1
      arg
-     '(cons (symbol . variable) .
+     '(cons (symbol . free-variable) .
             (cons code .
                   (or (cons t .
                             (cons (repeat . (symbol . feature)) .
@@ -2120,7 +2123,7 @@ trusted code macro expansion is always safe."
     (elisp-scope-1 kws)))
 
 (elisp-scope-define-function-analyzer setopt--set (&optional var val)
-  (elisp-scope-1 var '(symbol . variable))
+  (elisp-scope-1 var '(symbol . free-variable))
   (elisp-scope-1 val elisp-scope--output-type))
 
 (elisp-scope-define-function-analyzer autoload (&optional func file doc int type)
