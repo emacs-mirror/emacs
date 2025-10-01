@@ -29,10 +29,7 @@
 
 (require 'cl-lib)
 
-(defvar elisp-scope--symbol-type-property-cache (make-hash-table))
-
 (defun elisp-scope--define-symbol-type (name parents props)
-  (clrhash elisp-scope--symbol-type-property-cache)
   (put name 'elisp-scope-parent-types parents)
   (put name 'elisp-scope-type-properties props))
 
@@ -42,25 +39,23 @@
 
 ;;;###autoload
 (defun elisp-scope-get-symbol-type-property (type prop)
-  (with-memoization (alist-get prop (gethash type elisp-scope--symbol-type-property-cache))
-    (named-let loop ((current type)
-                     (parents (get type 'elisp-scope-parent-types))
-                     (more nil)
-                     (done nil))
-      (or (plist-get (get current 'elisp-scope-type-properties) prop)
-          (when-let* ((next (car parents)))
-            (loop (car parents) (get next 'elisp-scope-parent-types) (append (cdr parents) more) done))
-          (when-let* ((next (car more)))
-            (loop next (let (res)
-                         (dolist (per (get next 'elisp-scope-parent-types))
-                           (unless (memq per done)
-                             (push per res)))
-                         (nreverse res))
-                  (cdr more) done))))))
+  (seq-some
+   (lambda (c) (plist-get (get c 'elisp-scope-type-properties) prop))
+   (elisp-scope--all-reachable-symbol-types type)))
+
+(defvar elisp-scope--all-reachable-symbol-types-cache (make-hash-table))
+
+(defun elisp-scope--all-reachable-symbol-types (symbol-type)
+  (with-memoization (gethash symbol-type elisp-scope--all-reachable-symbol-types-cache)
+    (cons symbol-type
+          (let* ((parents (get symbol-type 'elisp-scope-parent-types))
+                 (aps (mapcar #'elisp-scope--all-reachable-symbol-types parents)))
+            (if (cdr aps)
+                (merge-ordered-lists (nconc aps (list parents)))
+              (car aps))))))
 
 ;;;###autoload
 (defun elisp-scope-set-symbol-type-property (type prop value)
-  (clrhash elisp-scope--symbol-type-property-cache)
   (put type 'elisp-scope-type-properties
        (plist-put (get type 'elisp-scope-type-properties) prop value)))
 
