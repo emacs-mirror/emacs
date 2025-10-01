@@ -4574,7 +4574,7 @@ When called from Lisp, BACKEND is the VC backend."
   (when-let* ((p (project-current nil directory)))
     (project-remember-project p))
 
-  (vc-dir directory backend))
+  (dired directory))
 
 (defvar project-prompter)
 
