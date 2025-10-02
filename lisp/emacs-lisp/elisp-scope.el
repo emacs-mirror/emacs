@@ -512,7 +512,9 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
 
 (defvar elisp-scope--local nil)
 
-(defvar elisp-scope--output-type nil)
+(defvar elisp-scope-output-type nil
+  "Output type of the form currently analyzed, or nil if unknown.
+See `elisp-scope-1' for possible values.")
 
 (defvar elisp-scope-callback #'ignore)
 
@@ -584,7 +586,7 @@ Optional argument LOCAL is a local context to extend."
         (elisp-scope-let-1 (if bare (elisp-scope-local-new bare beg local) local)
                      (cdr bindings) body))
     (let ((elisp-scope--local local))
-      (elisp-scope-n body elisp-scope--output-type))))
+      (elisp-scope-n body elisp-scope-output-type))))
 
 (defun elisp-scope-let (bindings body)
   (elisp-scope-let-1 elisp-scope--local bindings body))
@@ -600,7 +602,7 @@ Optional argument LOCAL is a local context to extend."
         (elisp-scope-1 (cadr binding))
         (let ((elisp-scope--local (elisp-scope-local-new bare beg elisp-scope--local)))
           (elisp-scope-let* (cdr bindings) body)))
-    (elisp-scope-n body elisp-scope--output-type)))
+    (elisp-scope-n body elisp-scope-output-type)))
 
 (defun elisp-scope-interactive (intr spec modes)
   (when (symbol-with-pos-p intr)
@@ -701,7 +703,7 @@ Optional argument LOCAL is a local context to extend."
      beg (length (symbol-name bare))))
   (elisp-scope-lambda args body))
 
-(defun elisp-scope-setq (args) (elisp-scope-n args elisp-scope--output-type))
+(defun elisp-scope-setq (args) (elisp-scope-n args elisp-scope-output-type))
 
 (defvar elisp-scope-flet-alist nil)
 
@@ -2132,7 +2134,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 
 (elisp-scope-define-function-analyzer setopt--set (&optional var val)
   (elisp-scope-1 var '(symbol . free-variable))
-  (elisp-scope-1 val elisp-scope--output-type))
+  (elisp-scope-1 val elisp-scope-output-type))
 
 (elisp-scope-define-function-analyzer autoload (&optional func file doc int type)
   (elisp-scope-1 func '(symbol . function))
@@ -2261,7 +2263,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-loop clauses))
 
 (elisp-scope-define-macro-analyzer named-let (name bindings &rest body)
-  (elisp-scope-named-let name bindings body elisp-scope--output-type))
+  (elisp-scope-named-let name bindings body elisp-scope-output-type))
 
 (elisp-scope-define-macro-analyzer cl-flet (bindings &rest body)
   (elisp-scope-flet bindings body))
@@ -2414,7 +2416,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
               (setq l (elisp-scope-local-new bare beg l)))
           (elisp-scope-1 place))
         (elisp-scope-1 (cadr binding))))
-    (let ((elisp-scope--local l)) (elisp-scope-n body elisp-scope--output-type))))
+    (let ((elisp-scope--local l)) (elisp-scope-n body elisp-scope-output-type))))
 
 (elisp-scope-define-macro-analyzer setf (&rest args) (elisp-scope-setq args))
 
@@ -2426,7 +2428,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 
 (elisp-scope-define-macro-analyzer with-memoization (&optional place &rest body)
   (elisp-scope-1 place)
-  (elisp-scope-n body elisp-scope--output-type))
+  (elisp-scope-n body elisp-scope-output-type))
 
 (elisp-scope-define-macro-analyzer cl-pushnew (&rest args)
   (mapc #'elisp-scope-1 args))
@@ -2436,17 +2438,17 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 
 (elisp-scope-define-macro-analyzer static-if (&optional test then &rest else)
   (elisp-scope-1 test)
-  (elisp-scope-1 then elisp-scope--output-type)
-  (elisp-scope-n else elisp-scope--output-type))
+  (elisp-scope-1 then elisp-scope-output-type)
+  (elisp-scope-n else elisp-scope-output-type))
 
 (elisp-scope-define-macro-analyzer static-when (&optional test &rest body)
   (elisp-scope-1 test)
-  (elisp-scope-n body elisp-scope--output-type))
+  (elisp-scope-n body elisp-scope-output-type))
 
 (put 'static-unless 'elisp-scope-analyzer #'elisp-scope--analyze-static-when)
 
 (elisp-scope-define-macro-analyzer eval-when-compile (&rest body)
-  (elisp-scope-n body elisp-scope--output-type))
+  (elisp-scope-n body elisp-scope-output-type))
 
 (put 'eval-and-compile 'elisp-scope-analyzer #'elisp-scope--analyze-eval-when-compile)
 
@@ -2483,7 +2485,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-1 when))
 
 (elisp-scope-define-macro-analyzer backquote (&optional structure)
-  (elisp-scope-backquote structure elisp-scope--output-type))
+  (elisp-scope-backquote structure elisp-scope-output-type))
 
 (defvar elisp-scope-backquote-depth 0)
 
@@ -2514,7 +2516,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-let* bindings body))
 
 (elisp-scope-define-special-form-analyzer cond (&rest clauses)
-  (dolist (clause clauses) (elisp-scope-n clause elisp-scope--output-type)))
+  (dolist (clause clauses) (elisp-scope-n clause elisp-scope-output-type)))
 
 (elisp-scope-define-special-form-analyzer setq (&rest args)
   (elisp-scope-setq args))
@@ -2530,7 +2532,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
          (beg (when (symbol-with-pos-p var) (symbol-with-pos-pos var)))
          (l (elisp-scope-local-new bare beg elisp-scope--local)))
     (when beg (elisp-scope-binding bare beg (length (symbol-name bare))))
-    (elisp-scope-1 bodyform elisp-scope--output-type)
+    (elisp-scope-1 bodyform elisp-scope-output-type)
     (dolist (handler handlers)
       (dolist (cond-name (ensure-list (car-safe handler)))
         (when-let* ((cbeg (elisp-scope-sym-pos cond-name))
@@ -2541,7 +2543,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
            ((keywordp cbare) (elisp-scope-report 'constant cbeg clen))
            (t                (elisp-scope-report 'condition cbeg clen)))))
       (let ((elisp-scope--local l))
-        (elisp-scope-n (cdr handler) elisp-scope--output-type)))))
+        (elisp-scope-n (cdr handler) elisp-scope-output-type)))))
 
 (elisp-scope-define-special-form-analyzer condition-case (var bodyform &rest handlers)
   (elisp-scope-condition-case var bodyform handlers))
@@ -2553,18 +2555,18 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (when arg (elisp-scope-sharpquote arg)))
 
 (elisp-scope-define-special-form-analyzer quote (arg)
-  (elisp-scope-quote arg elisp-scope--output-type))
+  (elisp-scope-quote arg elisp-scope-output-type))
 
 (elisp-scope-define-special-form-analyzer if (&optional test then &rest else)
   (elisp-scope-1 test)
-  (elisp-scope-1 then elisp-scope--output-type)
-  (elisp-scope-n else elisp-scope--output-type))
+  (elisp-scope-1 then elisp-scope-output-type)
+  (elisp-scope-n else elisp-scope-output-type))
 
 (elisp-scope-define-special-form-analyzer and (&rest forms)
-  (elisp-scope-n forms elisp-scope--output-type))
+  (elisp-scope-n forms elisp-scope-output-type))
 
 (elisp-scope-define-special-form-analyzer or (&rest forms)
-  (dolist (form forms) (elisp-scope-1 form elisp-scope--output-type)))
+  (dolist (form forms) (elisp-scope-1 form elisp-scope-output-type)))
 
 (defun elisp-scope-quote (arg &optional outtype)
   (when outtype
@@ -2648,10 +2650,10 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 
 (elisp-scope-define-special-form-analyzer catch (&optional tag &rest body)
   (elisp-scope-1 tag '(symbol . throw-tag))
-  (elisp-scope-n body elisp-scope--output-type))
+  (elisp-scope-n body elisp-scope-output-type))
 
 (elisp-scope-define-special-form-analyzer progn (&rest body)
-  (elisp-scope-n body elisp-scope--output-type))
+  (elisp-scope-n body elisp-scope-output-type))
 
 (put 'inline 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
 (put 'save-current-buffer 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
@@ -2662,7 +2664,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (mapc #'elisp-scope-1 rest))
 
 (elisp-scope-define-special-form-analyzer prog1 (&rest body)
-  (when (consp body) (elisp-scope-1 (pop body) elisp-scope--output-type))
+  (when (consp body) (elisp-scope-1 (pop body) elisp-scope-output-type))
   (elisp-scope-n body))
 
 (put 'unwind-protect 'elisp-scope-analyzer #'elisp-scope--analyze-prog1)
@@ -2732,7 +2734,7 @@ are analyzed."
           ;; Hence we cannot interpret their arguments.
           )
          ((setq this (function-get bare 'elisp-scope-analyzer))
-          (let ((elisp-scope--output-type outtype)) (apply this form)))
+          (let ((elisp-scope-output-type outtype)) (apply this form)))
          ((special-form-p bare) (elisp-scope-report-s f 'special-form) (elisp-scope-n forms))
          ((macrop bare) (elisp-scope-report-s f 'macro)
           (cond
@@ -2782,10 +2784,9 @@ This function recursively analyzes Lisp forms (HEAD . TAIL), usually
 starting with a top-level form, by inspecting HEAD at each level:
 
 - If HEAD is a symbol with a non-nil `elisp-scope-analyzer' symbol
-  property, then the value of that property specifies an analzyer
-  function AF that is called as (AF HEAD . TAIL) to analyze the form.
-  The analyzer function can use `elisp-scope-report-s', `elisp-scope-1'
-  and `elisp-scope-n' to analyze its arguments.
+  property, then the value of that property specifies a bespoke analzyer
+  function, AF, that is called as (AF HEAD . TAIL) to analyze the form.
+  See more details about writing analyzer functions below.
 
 - If HEAD satisfies `functionp', which means it is a function in the
   running Emacs session, analzye the form as a function call.
@@ -2795,7 +2796,18 @@ starting with a top-level form, by inspecting HEAD at each level:
 
 - If HEAD is unknown, then the arguments in TAIL are ignored, unless
   `elisp-scope-assume-func' is non-nil, in which case they are analyzed
-  as evaluated forms (i.e. HEAD is assumed to be a function)."
+  as evaluated forms (i.e. HEAD is assumed to be a function).
+
+An analyzer (function specified via the `elisp-scope-analyzer' property)
+can use the functions `elisp-scope-report-s', `elisp-scope-1' and
+`elisp-scope-n' to analyze its arguments, and it can consult the
+variable `elisp-scope-output-type' to obtain the expected output type of
+the analyzed form.  For example, the following is a suitable analyzer
+for the `identity' function:
+
+  (lambda (fsym arg)
+    (elisp-scope-report-s fsym \\='function)
+    (elisp-scope-1 arg elisp-scope-output-type))"
   (let ((elisp-scope-counter 0)
         (elisp-scope-callback callback)
         (read-symbol-shorthands nil)
