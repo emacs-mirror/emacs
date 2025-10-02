@@ -284,7 +284,21 @@ Comments in the form will be lost."
   "Whether to highlight symbols according to their meaning.
 
 If this is non-nil, `emacs-lisp-mode' uses code analysis to determine
-the role of each symbol and highlight it accordingly."
+the role of each symbol and highlight it accordingly.  We call this kind
+of highlighting \"semantic highlighting\".
+
+Semantic highlighting works best when you keep your code syntactically
+correct while editing it, for example by using `electric-pair-mode'.
+
+In trusted buffers (see `trusted-content-p'), the code analysis may
+expand some macro calls in your code to analyze the expanded forms.  In
+untrusted buffers, for security reasons, macro-expansion is restricted
+to safe macros only (see `elisp-scope-safe-macro-p').  Hence in
+untrusted buffers the arguments of some macros might not be analyzed,
+and therefore not highighted.
+
+See the function `elisp-scope-analyze-form' for more details about the
+code analysis."
   :type 'boolean)
 
 (defface elisp-symbol-at-mouse

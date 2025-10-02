@@ -1156,7 +1156,8 @@ the previous silence.
 *** Semantic highlighting support for Emacs Lisp.
 'emacs-lisp-mode' can now use code analysis to highlight more symbols
 more accurately.  Customize the new user option
-'elisp-fontify-semantically' to non-nil to enable this feature.
+'elisp-fontify-semantically' to non-nil to enable this feature, and see
+its documentation for more information.
 
 ** Text mode
 

@@ -47,6 +47,7 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
 
 ;;;###autoload
 (defun elisp-scope-get-symbol-role-property (role prop)
+  "Return value of property PROP for symbol role ROLE."
   (seq-some
    (lambda (c) (plist-get (get c 'elisp-scope-role-properties) prop))
    (elisp-scope--all-reachable-symbol-roles role)))
@@ -64,6 +65,7 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
 
 ;;;###autoload
 (defun elisp-scope-set-symbol-role-property (role prop value)
+  "Set value of property PROP for symbol role ROLE to VALUE."
   (put role 'elisp-scope-role-properties
        (plist-put (get role 'elisp-scope-role-properties) prop value)))
 
@@ -1615,6 +1617,12 @@ trusted code macro expansion is always safe."
      rx cl-macrolet nnoo-define-basics))
 
 (defun elisp-scope-safe-macro-p (macro)
+  "Check whether it is safe to expand MACRO, return non-nil iff so.
+
+If MACRO is one of the macros in `elisp-scope-unsafe-macros', then it is
+never considered safe.  Otherwise, MACRO is safe if it specified in
+`elisp-scope-safe-macros', or if it has a non-nil `safe-macro' symbol
+property, or if the current buffer is trusted (see `trusted-content-p')."
   (and (not (memq macro elisp-scope-unsafe-macros))
        (or (eq elisp-scope-safe-macros t)
            (memq macro elisp-scope-safe-macros)
@@ -1645,7 +1653,7 @@ trusted code macro expansion is always safe."
 
 (defmacro elisp-scope-define-macro-analyzer (fsym args &rest body)
   (declare (indent defun))
-  (let* ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
+  (let ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
     `(progn
        (defun ,helper ,args ,@body)
        (elisp-scope-define-analyzer ,fsym (f &rest args)
@@ -1654,7 +1662,7 @@ trusted code macro expansion is always safe."
 
 (defmacro elisp-scope-define-special-form-analyzer (fsym args &rest body)
   (declare (indent defun))
-  (let* ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
+  (let ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
     `(progn
        (defun ,helper ,args ,@body)
        (elisp-scope-define-analyzer ,fsym (f &rest args)
@@ -2660,12 +2668,52 @@ trusted code macro expansion is always safe."
 (put 'unwind-protect 'elisp-scope-analyzer #'elisp-scope--analyze-prog1)
 
 (defun elisp-scope-report-s (sym role)
+  "Report that symbol SYM has role ROLE.
+
+If SYM is not a symbol with position information, do nothing."
   (when-let* ((beg (elisp-scope-sym-pos sym)) (bare (bare-symbol sym)))
     (elisp-scope-report role beg (length (symbol-name bare)))))
 
 (defvar-local elisp-scope-buffer-file-name nil)
 
 (defun elisp-scope-1 (form &optional outtype)
+  "Analyze FORM as an evaluated form with expected output type OUTTYPE.
+
+If OUTTYPE is non-nil, it specifies FORM's expected \"output type\".
+This guides the analysis of quoted (sub)forms.
+OUTTYPE can be one the following:
+
+- t: FORM evaluates to an arbitrary object.
+  In other words, OUTTYPE of t conveys no information about FORM.
+
+- `code': FORM evaluates to a form to be evaluated elsewhere.
+  The quoted output of FORM will again be analyzed as an evaluated form,
+  in a \"clean\" local environment.
+
+- (symbol . ROLE): FORM evaluates to a symbol with role ROLE.
+  See `elisp-scope-define-symbol-role' for more information about
+  defining new symbol roles.
+
+- (repeat . TYPE): FORM evaluates to a list with elements of type TYPE.
+
+- (cons CARTYPE . CDRTYPE): FORM evaluates to a cons cell whose `car'
+  has type CARTYPE and whose `cdr' has type CDRTYPE.
+
+- (equal . VAL): FORM evaluates to VAL (or something `equal' to VAL).
+
+- (or . TYPES): FORM evaluates to a value that matches one of TYPES.
+
+For example, to analyze a FORM that evaluates to either a list of major
+mode names or just to a single major mode name, use OUTTYPE as follows:
+
+  (elisp-scope-1 FORM \\='(or (repeat . (symbol . major-mode))
+                           (symbol . major-mode)))
+
+If FORM in this example is (if (something-p) \\='foo \\='(bar baz)),
+then all of `foo', `bar' and `baz' will be analyzed as major mode names.
+
+See also `elisp-scope-analyze-form' for an details about how subforms
+are analyzed."
   (cond
    ((consp form)
     (let* ((f (car form)) (bare (elisp-scope-sym-bare f))
@@ -2706,9 +2754,13 @@ trusted code macro expansion is always safe."
           (when elisp-scope-assume-func (elisp-scope-n forms)))))))
    ((symbol-with-pos-p form) (elisp-scope-s form))))
 
-(defun elisp-scope-n (body &optional outtype)
-  (while (cdr-safe body) (elisp-scope-1 (pop body)))
-  (when-let* ((form (car-safe body))) (elisp-scope-1 form outtype)))
+(defun elisp-scope-n (forms &optional outtype)
+  "Analyze FORMS as evaluated forms.
+
+OUTTYPE is the expected output type of the last form in FORMS, if any.
+It is passed to `elisp-scope-1', which see."
+  (while (cdr-safe forms) (elisp-scope-1 (pop forms)))
+  (when-let* ((form (car-safe forms))) (elisp-scope-1 form outtype)))
 
 ;;;###autoload
 (defun elisp-scope-analyze-form (callback &optional stream)
@@ -2727,7 +2779,23 @@ the symbol as it appears in STREAM.
 If STREAM is nil, it defaults to the current buffer.
 
 This function recursively analyzes Lisp forms (HEAD . TAIL), usually
-starting with a top-level form, by inspecting HEAD at each level."
+starting with a top-level form, by inspecting HEAD at each level:
+
+- If HEAD is a symbol with a non-nil `elisp-scope-analyzer' symbol
+  property, then the value of that property specifies an analzyer
+  function AF that is called as (AF HEAD . TAIL) to analyze the form.
+  The analyzer function can use `elisp-scope-report-s', `elisp-scope-1'
+  and `elisp-scope-n' to analyze its arguments.
+
+- If HEAD satisfies `functionp', which means it is a function in the
+  running Emacs session, analzye the form as a function call.
+
+- If HEAD is a safe macro (see `elisp-scope-safe-macro-p'), expand it
+  and analyzes the resulting form.
+
+- If HEAD is unknown, then the arguments in TAIL are ignored, unless
+  `elisp-scope-assume-func' is non-nil, in which case they are analyzed
+  as evaluated forms (i.e. HEAD is assumed to be a function)."
   (let ((elisp-scope-counter 0)
         (elisp-scope-callback callback)
         (read-symbol-shorthands nil)
