@@ -38,8 +38,9 @@
                    (- (ash 1 32) 1))
                 :type 'args-out-of-range))
   (should (equal (igc--set-commit-limit nil) nil))
-  (should (equal (assoc-string "commit-limit" (igc-info))
-                 '("commit-limit" 1 -1 0))))
+  (should (member (assoc-string "commit-limit" (igc-info))
+                  '(("commit-limit" 1 #xffffffff 0)
+                    ("commit-limit" 1 #xffffffffffffffff 0)))))
 
 (ert-deftest set-pause-time-test ()
   :tags '(:igc)

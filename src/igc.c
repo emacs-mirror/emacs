@@ -4776,9 +4776,11 @@ walk_pool (struct igc *gc, mps_pool_t p, struct igc_stats *st)
 }
 
 static Lisp_Object
-make_entry (const char *s, intmax_t n, intmax_t bytes, intmax_t largest)
+make_entry (const char *s, uintmax_t n, uintmax_t bytes,
+	    uintmax_t largest)
 {
-  return list4 (build_string (s), make_int (n), make_int (bytes), make_int (largest));
+  return list4 (build_string (s), make_uint (n), make_uint (bytes),
+		make_uint (largest));
 }
 
 #ifndef __clang__
