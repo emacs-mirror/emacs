@@ -4786,6 +4786,12 @@ make_entry (const char *s, uintmax_t n, uintmax_t bytes,
 #pragma GCC diagnostic ignored "-Wsuggest-attribute=noreturn"
 #endif
 
+static Lisp_Object
+make_stat_entry (const char *name, struct igc_stat const *s)
+{
+  return make_entry (name, s->nobjs, s->nbytes, s->largest);
+}
+
 DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0,
        doc: /* Return information about incremental GC.
 The return value is a list of elements describing the various
@@ -4800,7 +4806,6 @@ In addition, there are several pseudo-objects which provide overall
 IGC statistics:
  - committed       -- the amount of committed memory in bytes
  - commit-limit    -- max amount of memory the arena is allowed to commit;
-     the value -1 means no limit
  - spare-committed -- memory which remains committed and which the
      arena is managing as free memory
  - reserved        -- total address space reserved by the arena
@@ -4816,35 +4821,36 @@ IGC statistics:
   walk_pool (gc, gc->weak_hash_pool, &st);
   walk_pool (gc, gc->immovable_pool, &st);
 
-  Lisp_Object result = Qnil, e;
+  Lisp_Object result = Qnil;
   for (int i = 0; i < IGC_OBJ_NUM_TYPES; ++i)
-    {
-      e = make_entry (obj_type_name (i), st.obj[i].nobjs, st.obj[i].nbytes, st.obj[i].largest);
-      result = Fcons (e, result);
-    }
+    result = Fcons (make_stat_entry (obj_type_name (i), &st.obj[i]),
+		    result);
+
   for (enum pvec_type i = 0; i <= PVEC_TAG_MAX; ++i)
-    {
-      e = make_entry (pvec_type_name (i), st.pvec[i].nobjs, st.pvec[i].nbytes, st.pvec[i].largest),
-	result = Fcons (e, result);
-    }
-  e = list4 (build_string ("pause-time"), Qnil, make_float (mps_arena_pause_time (gc->arena)),
-	     Qnil);
-  result = Fcons (e, result);
-  e = list4 (build_string ("spare"), Qnil, make_float (mps_arena_spare (gc->arena)),
-	     Qnil);
-  result = Fcons (e, result);
-  e = make_entry ("reserved", 1, mps_arena_reserved (gc->arena), 0);
-  result = Fcons (e, result);
-  e = make_entry ("spare-committed", 1, mps_arena_spare_committed (gc->arena), 0);
-  result = Fcons (e, result);
-  size_t commit_limit = mps_arena_commit_limit (gc->arena);
-  /* Don't assume size_t and intmax_t are of the same width.  */
-  e = make_entry ("commit-limit", 1,
-		  commit_limit == SIZE_MAX ? (intmax_t) -1 : commit_limit,
-		  0);
-  result = Fcons (e, result);
-  e = make_entry ("committed", 1, mps_arena_committed (gc->arena), 0);
-  result = Fcons (e, result);
+    result = Fcons (make_stat_entry (pvec_type_name (i), &st.pvec[i]),
+		    result);
+
+  Lisp_Object entries[] = {
+    list4 (build_string ("pause-time"), Qnil,
+	   make_float (mps_arena_pause_time (gc->arena)), Qnil),
+
+    list4 (build_string ("spare"), Qnil,
+	   make_float (mps_arena_spare (gc->arena)), Qnil),
+
+    make_entry ("reserved", 1, mps_arena_reserved (gc->arena), 0),
+
+    make_entry ("spare-committed", 1,
+		mps_arena_spare_committed (gc->arena), 0),
+
+    make_entry ("commit-limit", 1, mps_arena_commit_limit (gc->arena),
+		0),
+
+    make_entry ("committed", 1, mps_arena_committed (gc->arena), 0),
+  };
+
+  for (size_t i = 0; i < ARRAYELTS (entries); i++)
+    result = Fcons (entries[i], result);
+
   return result;
 }
 
