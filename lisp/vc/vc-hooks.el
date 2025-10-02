@@ -1010,11 +1010,16 @@ other commands receive global bindings where they had none before."
 
 (defvar vc-menu-map
   (let ((map (make-sparse-keymap "Version Control")))
-    ;;(define-key map [show-files]
-    ;;  '("Show Files under VC" . (vc-directory t)))
+    (define-key map [vc-revision-revert]
+                '(menu-item "Revert Revision" vc-revision-revert
+                            :help "Undo the effects of a revision"))
+    (define-key map [vc-revision-cherry-pick]
+                '(menu-item "Cherry-Pick Revision" vc-revision-cherry-pick
+                            :help "Copy the changes from a single revision to this branch"))
+    (define-key map [separator1] menu-bar-separator)
     (define-key map [vc-retrieve-tag]
-      '(menu-item "Retrieve Tag" vc-retrieve-tag
-		  :help "Retrieve tagged version or branch"))
+                '(menu-item "Retrieve Tag" vc-retrieve-tag
+		            :help "Retrieve tagged version or branch"))
     (define-key map [vc-create-tag]
       '(menu-item "Create Tag" vc-create-tag
 		  :help "Create version tag"))
@@ -1027,7 +1032,7 @@ other commands receive global bindings where they had none before."
     (define-key map [vc-create-branch]
       '(menu-item "Create Branch..." vc-create-branch
 		  :help "Make a new branch"))
-    (define-key map [separator1] menu-bar-separator)
+    (define-key map [separator2] menu-bar-separator)
     (define-key map [vc-annotate]
       '(menu-item "Annotate" vc-annotate
 		  :help "Display the edit history of the current file using colors"))
@@ -1058,7 +1063,7 @@ other commands receive global bindings where they had none before."
     (define-key map [vc-print-root-log]
       '(menu-item "Show Top of the Tree History " vc-print-root-log
 		  :help "List the change log for the current tree in a window"))
-    (define-key map [separator2] menu-bar-separator)
+    (define-key map [separator3] menu-bar-separator)
     (define-key map [vc-insert-header]
       '(menu-item "Insert Header" vc-insert-headers
 		  :help "Insert headers into a file for use with a version control system."))

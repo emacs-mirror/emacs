@@ -2227,6 +2227,14 @@ after VCS operations, the new mode is a more reliable way to ensure that
 Emacs reverts buffers visiting tracked files when VCS operations change
 the contents of those files.
 
++++
+*** New commands to cherry-pick and revert revisions.
+The commands 'vc-revision-cherry-pick' and 'vc-revision-revert' let you
+copy revisions between branches, and revert revisions.
+From Log View buffers, you can use 'C' to cherry-pick the revision at
+point or all marked revisions, and 'R' to revert the revision at point
+or all marked revisions.
+
 *** New command 'log-edit-done-strip-cvs-lines'.
 This command strips all lines beginning with "CVS:" from the buffer.
 It is intended to be added to the 'log-edit-done-hook' so that

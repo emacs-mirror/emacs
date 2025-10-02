@@ -1175,6 +1175,21 @@ PREFIX is only used internally: don't use it."
                            (cons (cons fs file) diff-remembered-files-alist)))
              file)))))))
 
+(defun diff-buffer-file-names (&optional old noprompt)
+  "Return file names corresponding to all of this buffer's hunks.
+Optional arguments OLD and NOPROMPT are passed on to
+`diff-find-file-name', which see."
+  (save-excursion
+    (cl-loop initially
+             (goto-char (point-min))
+             (ignore-errors (diff-file-next))
+             when (and (looking-at diff-file-header-re)
+                       (diff-find-file-name old noprompt))
+             collect it
+             until (eq (prog1 (point)
+                         (ignore-errors (diff-file-next)))
+                       (point)))))
+
 
 (defun diff-ediff-patch ()
   "Call `ediff-patch-file' on the current buffer."
