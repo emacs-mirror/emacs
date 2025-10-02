@@ -10939,6 +10939,9 @@ w32_reexec_emacs (char *cmd_line, const char *wdir)
   DWORD dwCreationFlags = NORMAL_PRIORITY_CLASS;
 
   GetStartupInfo (&si);		/* Use the same startup info as the caller.  */
+  /* Reset undocumented bits in STARTUPINFO flags, as they could cause a
+     crash in the re-exec'ed Emacs.  */
+  si.dwFlags &= 0xbbff;	/* reset the 0x4000 and 0x0400 bits */
   if (inhibit_window_system)
     {
       HANDLE screen_handle;
