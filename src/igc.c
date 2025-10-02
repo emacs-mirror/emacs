@@ -517,21 +517,17 @@ pvec_type_name (enum pvec_type type)
   return pvec_type_names[type];
 }
 
+struct igc_stat
+{
+  size_t nbytes;
+  size_t nobjs;
+  size_t largest;
+};
+
 struct igc_stats
 {
-  struct
-  {
-    size_t nbytes;
-    size_t nobjs;
-    size_t largest;
-  } obj[IGC_OBJ_NUM_TYPES];
-
-  struct
-  {
-    size_t nbytes;
-    size_t nobjs;
-    size_t largest;
-  } pvec[PVEC_TAG_MAX + 1];
+  struct igc_stat obj[IGC_OBJ_NUM_TYPES];
+  struct igc_stat pvec[PVEC_TAG_MAX + 1];
 };
 
 /* Always having a header makes it possible to have an
@@ -2022,24 +2018,26 @@ static mps_res_t fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_
 static mps_res_t fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Part *w);
 
 static void
+collect_stats_1 (struct igc_stat *s, size_t nbytes)
+{
+  s->nbytes += nbytes;
+  s->nobjs += 1;
+  s->largest = max (s->largest, nbytes);
+}
+
+static void
 collect_stats (struct igc_stats *st, struct igc_header *header)
 {
   mps_word_t obj_type = igc_header_type (header);
   igc_assert (obj_type < IGC_OBJ_NUM_TYPES);
   size_t size = obj_size (header);
-  st->obj[obj_type].nbytes += size;
-  st->obj[obj_type].nobjs += 1;
-  if (size > st->obj[obj_type].largest)
-    st->obj[obj_type].largest = size;
+  collect_stats_1 (&st->obj[obj_type], size);
   if (obj_type == IGC_OBJ_VECTOR)
     {
       struct Lisp_Vector *v = (struct Lisp_Vector *) header;
       enum pvec_type pvec_type = pseudo_vector_type (v);
       igc_assert (0 <= pvec_type && pvec_type <= PVEC_TAG_MAX);
-      st->pvec[pvec_type].nbytes += size;
-      st->pvec[pvec_type].nobjs += 1;
-      if (size > st->pvec[pvec_type].largest)
-	st->pvec[pvec_type].largest = size;
+      collect_stats_1 (&st->pvec[pvec_type], size);
     }
 }
 
