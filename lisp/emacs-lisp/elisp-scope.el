@@ -2736,7 +2736,6 @@ are analyzed."
          ((special-form-p bare) (elisp-scope-report-s f 'special-form) (elisp-scope-n forms))
          ((macrop bare) (elisp-scope-report-s f 'macro)
           (cond
-           ;; ((eq (get bare 'edebug-form-spec) t) (elisp-scope-n forms))
            ((elisp-scope-safe-macro-p bare)
             (let* ((warning-minimum-log-level :emergency)
                    (macroexp-inhibit-compiler-macros t)
@@ -2746,7 +2745,8 @@ are analyzed."
                    (macroexpand-all-environment
                     (append (mapcar #'list elisp-scope-unsafe-macros) macroexpand-all-environment))
                    (expanded (ignore-errors (macroexpand-1 form macroexpand-all-environment))))
-              (elisp-scope-1 expanded outtype)))))
+              (elisp-scope-1 expanded outtype)))
+           ((eq (get bare 'edebug-form-spec) t) (elisp-scope-n forms))))
          ((or (functionp bare) (memq bare elisp-scope-local-functions))
           (elisp-scope-report-s f 'function) (elisp-scope-n forms))
          (t
