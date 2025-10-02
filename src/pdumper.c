@@ -4559,7 +4559,6 @@ types.  */)
   dump_drain_cold_data (ctx);
 # ifdef HAVE_MPS
   dump_align_output (ctx, DUMP_ALIGNMENT);
-  fprintf (stderr, "cold user data: %x\n", (unsigned)ctx->offset);
   ctx->header.cold_user_data_start = ctx->offset;
   union gc_header header = { 0 };
   dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, &header);
@@ -4575,7 +4574,6 @@ types.  */)
 # ifdef HAVE_MPS
   dump_align_output (ctx, DUMP_ALIGNMENT);
   dump_igc_finish_obj (ctx);
-  fprintf (stderr, "heap end: %x\n", (unsigned)ctx->offset);
 # endif
   /* After this point, the dump file contains no data that can be part
      of the Lisp heap.  */
@@ -4618,7 +4616,6 @@ types.  */)
 		    &ctx->emacs_relocs, &ctx->header.emacs_relocs);
 
 # ifdef HAVE_MPS
-  fprintf (stderr, "cold end: %x\n", (unsigned)ctx->offset);
   dump_igc_finish_obj (ctx);
 # endif
   const dump_off cold_end = ctx->offset;
