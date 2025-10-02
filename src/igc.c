@@ -2021,6 +2021,28 @@ static mps_res_t fix_marker_vector (mps_ss_t ss, struct Lisp_Vector *v);
 static mps_res_t fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong_Part *t);
 static mps_res_t fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Part *w);
 
+static void
+collect_stats (struct igc_stats *st, struct igc_header *header)
+{
+  mps_word_t obj_type = igc_header_type (header);
+  igc_assert (obj_type < IGC_OBJ_NUM_TYPES);
+  size_t size = obj_size (header);
+  st->obj[obj_type].nbytes += size;
+  st->obj[obj_type].nobjs += 1;
+  if (size > st->obj[obj_type].largest)
+    st->obj[obj_type].largest = size;
+  if (obj_type == IGC_OBJ_VECTOR)
+    {
+      struct Lisp_Vector *v = (struct Lisp_Vector *) header;
+      enum pvec_type pvec_type = pseudo_vector_type (v);
+      igc_assert (0 <= pvec_type && pvec_type <= PVEC_TAG_MAX);
+      st->pvec[pvec_type].nbytes += size;
+      st->pvec[pvec_type].nobjs += 1;
+      if (size > st->pvec[pvec_type].largest)
+	st->pvec[pvec_type].largest = size;
+    }
+}
+
 static mps_res_t
 dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	       void *closure)
@@ -2032,26 +2054,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
     struct igc_header *header = base;
 
     if (closure)
-      {
-	struct igc_stats *st = closure;
-	mps_word_t obj_type = igc_header_type (header);
-	igc_assert (obj_type < IGC_OBJ_NUM_TYPES);
-	size_t size = obj_size (header);
-	st->obj[obj_type].nbytes += size;
-	st->obj[obj_type].nobjs += 1;
-	if (size > st->obj[obj_type].largest)
-	  st->obj[obj_type].largest = size;
-	if (obj_type == IGC_OBJ_VECTOR)
-	  {
-	    struct Lisp_Vector* v = (struct Lisp_Vector*) client;
-	    enum pvec_type pvec_type = pseudo_vector_type (v);
-	    igc_assert (0 <= pvec_type && pvec_type <= PVEC_TAG_MAX);
-	    st->pvec[pvec_type].nbytes += size;
-	    st->pvec[pvec_type].nobjs += 1;
-	    if (size > st->pvec[pvec_type].largest)
-	      st->pvec[pvec_type].largest = size;
-	  }
-      }
+      collect_stats (closure, header);
 
     if (header_tag (header) == IGC_TAG_EXTHDR)
       {
