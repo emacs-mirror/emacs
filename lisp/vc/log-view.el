@@ -345,8 +345,8 @@ See `log-view-mark-entry'."
   (save-excursion
     (when-let* ((entry (log-view-current-entry)))
       (if (get-char-property (car entry) 'log-view-self)
-          (log-view-unmark-entry)
-        (log-view-mark-entry)))))
+          (log-view-unmark-entry 1)
+        (log-view-mark-entry 1)))))
 
 (defun log-view--mark-unmark (mark-unmark-function arg beg end)
   "Call MARK-UNMARK-FUNCTION on each line of an active region or ARG times.
@@ -383,12 +383,12 @@ characters."
     (dotimes (_ arg)
       (funcall mark-unmark-function))))
 
-(defun log-view-mark-entry (&optional arg beg end)
+(defun log-view-mark-entry (arg &optional beg end)
   "Mark the log entry at point.
 If the region is active in Transient Mark mode, mark all entries.
 When called with a prefix argument, mark that many log entries.
-When called from Lisp, mark ARG entries or all entries between lying
-between BEG and END.  If BEG and END are supplied, ARG is ignored.
+When called from Lisp, mark ARG entries or all entries lying between BEG
+and END.  If BEG and END are supplied, ARG is ignored.
 
 When entries are marked, some commands that usually operate on the entry
 at point will instead operate on all marked entries.
@@ -419,12 +419,12 @@ marked revisions."
 	  (overlay-put ov 'log-view-marked (nth 1 entry)))))
     (log-view-msg-next 1)))
 
-(defun log-view-unmark-entry (&optional arg beg end)
+(defun log-view-unmark-entry (arg &optional beg end)
   "Unmark the log entry at point.
 If the region is active in Transient Mark mode, unmark all entries.
 When called with a prefix argument, unmark that many log entries.
-When called from Lisp, mark ARG entries or all entries between lying
-between BEG and END.  If BEG and END are supplied, ARG is ignored.
+When called from Lisp, mark ARG entries or all entries lying between BEG
+and END.  If BEG and END are supplied, ARG is ignored.
 
 See `log-view-mark-entry'."
   (interactive (list (prefix-numeric-value current-prefix-arg)
