@@ -539,25 +539,11 @@ that `font-lock-keywords' applied takes precedence, if any."
                            ;; from the value in adjacent regions.
                            (elisp-cursor-sensor beg))))))
 
-(defun elisp-fontify-region-semantically (beg end)
-  "Fontify symbols between BEG and END according to their semantics."
-  (save-excursion
-    (goto-char beg)
+(defun elisp-fontify-symbols (end)
+  "Fontify symbols from point to END according to their role in the code."
+  (when elisp-fontify-semantically
     (while (< (point) end)
       (ignore-errors (elisp-scope-analyze-form #'elisp-fontify-symbol)))))
-
-(defun elisp-fontify-region (beg end &optional loudly)
-  "Fontify ELisp code between BEG and END.
-
-Non-nil optional argument LOUDLY permits printing status messages.
-
-This is the `font-lock-fontify-region-function' for `emacs-lisp-mode'."
-  (if (not elisp-fontify-semantically)
-      (font-lock-default-fontify-region beg end loudly)
-    (pcase (font-lock-default-fontify-region beg end loudly)
-      (`(jit-lock-bounds ,beg1 . ,end1) (setq beg beg1 end end1)))
-    (elisp-fontify-region-semantically beg end)
-    `(jit-lock-bounds ,beg . ,end)))
 
 (defun elisp-outline-search (&optional bound move backward looking-at)
   "Don't use leading parens in strings for outline headings."
@@ -629,6 +615,9 @@ disable it."
 (defvar-keymap elisp--dynlex-modeline-map
   "<mode-line> <mouse-1>" #'elisp-enable-lexical-binding)
 
+(defconst elisp-semantic-font-lock-keywords
+  (append lisp-el-font-lock-keywords-2 '((elisp-fontify-symbols))))
+
 ;;;###autoload
 (define-derived-mode emacs-lisp-mode lisp-data-mode
   `("Elisp"
@@ -655,14 +644,12 @@ be used instead.
   (setcar font-lock-defaults
           '(lisp-el-font-lock-keywords
             lisp-el-font-lock-keywords-1
-            lisp-el-font-lock-keywords-2))
+            lisp-el-font-lock-keywords-2
+            elisp-semantic-font-lock-keywords))
   (dolist (prop '(cursor-sensor-functions help-echo mouse-face))
     (cl-pushnew prop
                 (alist-get 'font-lock-extra-managed-props
                            (nthcdr 5 font-lock-defaults))))
-  (setf (alist-get 'font-lock-fontify-region-function
-                   (nthcdr 5 font-lock-defaults))
-        #'elisp-fontify-region)
   (setf (nth 2 font-lock-defaults) nil)
   (add-hook 'font-lock-extend-region-functions
             #'elisp-extend-region-to-whole-defuns nil t)
