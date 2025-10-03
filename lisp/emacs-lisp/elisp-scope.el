@@ -512,8 +512,8 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
 
 (defvar elisp-scope--local nil)
 
-(defvar elisp-scope-output-type nil
-  "Output type of the form currently analyzed, or nil if unknown.
+(defvar elisp-scope-output-spec nil
+  "Output spec of the form currently analyzed, or nil if unknown.
 See `elisp-scope-1' for possible values.")
 
 (defvar elisp-scope-callback #'ignore)
@@ -586,7 +586,7 @@ Optional argument LOCAL is a local context to extend."
         (elisp-scope-let-1 (if bare (elisp-scope-local-new bare beg local) local)
                      (cdr bindings) body))
     (let ((elisp-scope--local local))
-      (elisp-scope-n body elisp-scope-output-type))))
+      (elisp-scope-n body elisp-scope-output-spec))))
 
 (defun elisp-scope-let (bindings body)
   (elisp-scope-let-1 elisp-scope--local bindings body))
@@ -602,7 +602,7 @@ Optional argument LOCAL is a local context to extend."
         (elisp-scope-1 (cadr binding))
         (let ((elisp-scope--local (elisp-scope-local-new bare beg elisp-scope--local)))
           (elisp-scope-let* (cdr bindings) body)))
-    (elisp-scope-n body elisp-scope-output-type)))
+    (elisp-scope-n body elisp-scope-output-spec)))
 
 (defun elisp-scope-interactive (intr spec modes)
   (when (symbol-with-pos-p intr)
@@ -612,7 +612,7 @@ Optional argument LOCAL is a local context to extend."
   (elisp-scope-1 spec)
   (mapc #'elisp-scope-major-mode-name modes))
 
-(defun elisp-scope-lambda (args body &optional outtype)
+(defun elisp-scope-lambda (args body &optional outspec)
   (let ((l elisp-scope--local))
     (when (listp args)
       (dolist (arg args)
@@ -688,7 +688,7 @@ Optional argument LOCAL is a local context to extend."
                      (elisp-scope-report 'ampersand beg len)
                    (elisp-scope-report 'binding-variable beg len beg)))))))
     ;; Handle BODY.
-    (let ((elisp-scope--local l)) (elisp-scope-n body outtype))))
+    (let ((elisp-scope--local l)) (elisp-scope-n body outspec))))
 
 (defun elisp-scope-defun (name args body)
   (when-let* ((beg (elisp-scope-sym-pos name))
@@ -703,7 +703,7 @@ Optional argument LOCAL is a local context to extend."
      beg (length (symbol-name bare))))
   (elisp-scope-lambda args body))
 
-(defun elisp-scope-setq (args) (elisp-scope-n args elisp-scope-output-type))
+(defun elisp-scope-setq (args) (elisp-scope-n args elisp-scope-output-spec))
 
 (defvar elisp-scope-flet-alist nil)
 
@@ -996,7 +996,7 @@ Optional argument LOCAL is a local context to extend."
        ((memq bare '(end)) (elisp-scope-loop-end rest))
        ((memq bare '(and else)) (elisp-scope-loop-and rest))))))
 
-(defun elisp-scope-named-let (name bindings body &optional outtype)
+(defun elisp-scope-named-let (name bindings body &optional outspec)
   (let ((bare (elisp-scope-sym-bare name))
         (beg (elisp-scope-sym-pos name)))
     (when beg
@@ -1014,7 +1014,7 @@ Optional argument LOCAL is a local context to extend."
           (setq l (elisp-scope-local-new bare (elisp-scope-sym-pos sym) l))))
       (let ((elisp-scope-flet-alist (elisp-scope-local-new bare beg elisp-scope-flet-alist))
             (elisp-scope--local l))
-        (elisp-scope-n body outtype)))))
+        (elisp-scope-n body outspec)))))
 
 (defun elisp-scope-with-slots (spec-list object body)
   (elisp-scope-1 object)
@@ -1684,11 +1684,11 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 
 (elisp-scope-define-analyzer eval (f form &optional lexical)
   (elisp-scope-report-s f 'function)
-  ;; TODO: Use elisp-scope-1 with outtype `code' in the next line.
+  ;; TODO: Use elisp-scope-1 with outspec `code' in the next line.
   ;; Difficulty: that would analyze the quoted code as if it is
   ;; evaluated in an unrelated local environment, so local variables
   ;; wouldn't be recognized correctly etc.  We can solve that by adding
-  ;; some `code-evaled-here' outtype.
+  ;; some `code-evaled-here' outspec.
   (elisp-scope-1 (or (elisp-scope--unquote form) form))
   (elisp-scope-1 lexical))
 
@@ -1708,7 +1708,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-1 name '(symbol . defoclosure))
   (elisp-scope-1 docstring)
   (elisp-scope-1 parent-names '(repeat . (symbol . oclosure)))
-  (elisp-scope-1 slots)                 ;TODO: Specify type of `slots'.
+  (elisp-scope-1 slots)                 ;TODO: Specify spec of `slots'.
   (while-let ((kw (car-safe props))
               (bkw (elisp-scope-sym-bare kw))
               ((keywordp bkw)))
@@ -1842,7 +1842,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
     (elisp-scope-report-s kw 'constant)
     (cl-case bkw
       (:type
-       ;; TODO: Use `elisp-scope-1' with an appropriate outtype.
+       ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
        (if-let* ((quoted (elisp-scope--unquote (cadr args))))
            (elisp-scope-widget-type-1 quoted)
          (elisp-scope-1 (cadr args))))
@@ -1866,7 +1866,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 
 (elisp-scope-define-function-analyzer custom-declare-face (face spec doc &rest args)
   (elisp-scope-1 face '(symbol . defface))
-  ;; TODO: Use `elisp-scope-1' with an appropriate outtype.
+  ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
   (when-let* ((q (elisp-scope--unquote spec)))
     (when (consp q) (dolist (s q) (elisp-scope-face (cdr s)))))
   (elisp-scope-1 doc)
@@ -1915,7 +1915,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (if-let* ((q (elisp-scope--unquote prop))
            ((eq (elisp-scope-sym-bare q) 'face))
            (face (elisp-scope--unquote val)))
-      ;; TODO: Use `elisp-scope-1' with an appropriate outtype.
+      ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
       (elisp-scope-face face)
     (elisp-scope-1 val)))
 
@@ -1982,7 +1982,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (if-let* (((memq (elisp-scope-sym-bare (elisp-scope--unquote prop))
                   '(mouse-face face)))
            (q (elisp-scope--unquote val)))
-      ;; TODO: Use `elisp-scope-1' with an appropriate outtype.
+      ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
       (elisp-scope-face q)
     (elisp-scope-1 val))
   (elisp-scope-1 obj))
@@ -1996,7 +1996,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
     (cl-case (elisp-scope-sym-bare (elisp-scope--unquote (car props)))
       ((face mouse-face)
        (if-let* ((q (elisp-scope--unquote (cadr props))))
-           ;; TODO: Use `elisp-scope-1' with an appropriate outtype.
+           ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
            (elisp-scope-face q)
          (elisp-scope-1 (cadr props))))
       (otherwise (elisp-scope-1 (cadr props))))
@@ -2103,22 +2103,22 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-1 mode '(symbol . major-mode))
   (elisp-scope-1 parent '(symbol . major-mode)))
 
-(elisp-scope-define-function-analyzer elisp-scope-report (type &rest args)
-  (elisp-scope-1 type '(symbol . symbol-role))
+(elisp-scope-define-function-analyzer elisp-scope-report (role &rest args)
+  (elisp-scope-1 role '(symbol . symbol-role))
   (mapc #'elisp-scope-1 args))
 
-(elisp-scope-define-function-analyzer elisp-scope-report-s (&optional sym type)
+(elisp-scope-define-function-analyzer elisp-scope-report-s (&optional sym role)
   (elisp-scope-1 sym)
-  (elisp-scope-1 type '(symbol . symbol-role)))
+  (elisp-scope-1 role '(symbol . symbol-role)))
 
-(elisp-scope-define-function-analyzer elisp-scope-1 (&optional form outtype)
+(elisp-scope-define-function-analyzer elisp-scope-1 (&optional form outspec)
   (elisp-scope-1 form)
-  (elisp-scope-1 outtype 'type))
+  (elisp-scope-1 outspec 'spec))
 
 (elisp-scope-define-function-analyzer icons--register (&optional name parent spec doc kws)
   (elisp-scope-1 name '(symbol . deficon))
   (elisp-scope-1 parent '(symbol . icon))
-  (elisp-scope-1 spec)                  ;TODO: Specify type of `spec'.
+  (elisp-scope-1 spec)                  ;TODO: Specify spec of `spec'.
   (elisp-scope-1 doc)
   (if-let* ((q (elisp-scope--unquote kws)))
       (progn
@@ -2133,7 +2133,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 
 (elisp-scope-define-function-analyzer setopt--set (&optional var val)
   (elisp-scope-1 var '(symbol . free-variable))
-  (elisp-scope-1 val elisp-scope-output-type))
+  (elisp-scope-1 val elisp-scope-output-spec))
 
 (elisp-scope-define-function-analyzer autoload (&optional func file doc int type)
   (elisp-scope-1 func '(symbol . function))
@@ -2182,7 +2182,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-1 maps)
   (elisp-scope-1 doc)
   (if-let* ((q (elisp-scope--unquote menu)))
-      ;; TODO: Use `elisp-scope-1' with an appropriate outtype.
+      ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
       (elisp-scope--easy-menu-do-define-menu q)
     (elisp-scope-1 menu)))
 
@@ -2190,7 +2190,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-1 keymap)
   (elisp-scope-1 key)
   (if-let* ((q (elisp-scope--unquote def)))
-      ;; TODO: Use `elisp-scope-1' with an appropriate outtype.
+      ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
       (cond
        ((eq (elisp-scope-sym-bare (car-safe q)) 'menu-item)
         (let ((fn (caddr q)) (it (cdddr q)))
@@ -2262,7 +2262,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-loop clauses))
 
 (elisp-scope-define-macro-analyzer named-let (name bindings &rest body)
-  (elisp-scope-named-let name bindings body elisp-scope-output-type))
+  (elisp-scope-named-let name bindings body elisp-scope-output-spec))
 
 (elisp-scope-define-macro-analyzer cl-flet (bindings &rest body)
   (elisp-scope-flet bindings body))
@@ -2415,7 +2415,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
               (setq l (elisp-scope-local-new bare beg l)))
           (elisp-scope-1 place))
         (elisp-scope-1 (cadr binding))))
-    (let ((elisp-scope--local l)) (elisp-scope-n body elisp-scope-output-type))))
+    (let ((elisp-scope--local l)) (elisp-scope-n body elisp-scope-output-spec))))
 
 (elisp-scope-define-macro-analyzer setf (&rest args) (elisp-scope-setq args))
 
@@ -2427,7 +2427,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 
 (elisp-scope-define-macro-analyzer with-memoization (&optional place &rest body)
   (elisp-scope-1 place)
-  (elisp-scope-n body elisp-scope-output-type))
+  (elisp-scope-n body elisp-scope-output-spec))
 
 (elisp-scope-define-macro-analyzer cl-pushnew (&rest args)
   (mapc #'elisp-scope-1 args))
@@ -2437,17 +2437,17 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 
 (elisp-scope-define-macro-analyzer static-if (&optional test then &rest else)
   (elisp-scope-1 test)
-  (elisp-scope-1 then elisp-scope-output-type)
-  (elisp-scope-n else elisp-scope-output-type))
+  (elisp-scope-1 then elisp-scope-output-spec)
+  (elisp-scope-n else elisp-scope-output-spec))
 
 (elisp-scope-define-macro-analyzer static-when (&optional test &rest body)
   (elisp-scope-1 test)
-  (elisp-scope-n body elisp-scope-output-type))
+  (elisp-scope-n body elisp-scope-output-spec))
 
 (put 'static-unless 'elisp-scope-analyzer #'elisp-scope--analyze-static-when)
 
 (elisp-scope-define-macro-analyzer eval-when-compile (&rest body)
-  (elisp-scope-n body elisp-scope-output-type))
+  (elisp-scope-n body elisp-scope-output-spec))
 
 (put 'eval-and-compile 'elisp-scope-analyzer #'elisp-scope--analyze-eval-when-compile)
 
@@ -2484,24 +2484,24 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-1 when))
 
 (elisp-scope-define-macro-analyzer backquote (&optional structure)
-  (elisp-scope-backquote structure elisp-scope-output-type))
+  (elisp-scope-backquote structure elisp-scope-output-spec))
 
 (defvar elisp-scope-backquote-depth 0)
 
-(defun elisp-scope-backquote (structure &optional outtype)
+(defun elisp-scope-backquote (structure &optional outspec)
   (let ((elisp-scope-backquote-depth (1+ elisp-scope-backquote-depth)))
-    (elisp-scope-backquote-1 structure outtype)))
+    (elisp-scope-backquote-1 structure outspec)))
 
-(defun elisp-scope-backquote-1 (structure &optional outtype)
+(defun elisp-scope-backquote-1 (structure &optional outspec)
   (cond
    ((vectorp structure)
     (dotimes (i (length structure))
       (elisp-scope-backquote-1 (aref structure i))))
-   ((atom structure) (elisp-scope-quote structure outtype))
+   ((atom structure) (elisp-scope-quote structure outspec))
    ((or (eq (car structure) backquote-unquote-symbol)
         (eq (car structure) backquote-splice-symbol))
     (if (= elisp-scope-backquote-depth 1)
-        (elisp-scope-1 (cadr structure) outtype)
+        (elisp-scope-1 (cadr structure) outspec)
       (let ((elisp-scope-backquote-depth (1- elisp-scope-backquote-depth)))
         (elisp-scope-backquote-1 (cadr structure)))))
    (t
@@ -2515,7 +2515,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-let* bindings body))
 
 (elisp-scope-define-special-form-analyzer cond (&rest clauses)
-  (dolist (clause clauses) (elisp-scope-n clause elisp-scope-output-type)))
+  (dolist (clause clauses) (elisp-scope-n clause elisp-scope-output-spec)))
 
 (elisp-scope-define-special-form-analyzer setq (&rest args)
   (elisp-scope-setq args))
@@ -2531,7 +2531,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
          (beg (when (symbol-with-pos-p var) (symbol-with-pos-pos var)))
          (l (elisp-scope-local-new bare beg elisp-scope--local)))
     (when beg (elisp-scope-binding bare beg (length (symbol-name bare))))
-    (elisp-scope-1 bodyform elisp-scope-output-type)
+    (elisp-scope-1 bodyform elisp-scope-output-spec)
     (dolist (handler handlers)
       (dolist (cond-name (ensure-list (car-safe handler)))
         (when-let* ((cbeg (elisp-scope-sym-pos cond-name))
@@ -2542,7 +2542,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
            ((keywordp cbare) (elisp-scope-report 'constant cbeg clen))
            (t                (elisp-scope-report 'condition cbeg clen)))))
       (let ((elisp-scope--local l))
-        (elisp-scope-n (cdr handler) elisp-scope-output-type)))))
+        (elisp-scope-n (cdr handler) elisp-scope-output-spec)))))
 
 (elisp-scope-define-special-form-analyzer condition-case (var bodyform &rest handlers)
   (elisp-scope-condition-case var bodyform handlers))
@@ -2554,31 +2554,31 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (when arg (elisp-scope-sharpquote arg)))
 
 (elisp-scope-define-special-form-analyzer quote (arg)
-  (elisp-scope-quote arg elisp-scope-output-type))
+  (elisp-scope-quote arg elisp-scope-output-spec))
 
 (elisp-scope-define-special-form-analyzer if (&optional test then &rest else)
   (elisp-scope-1 test)
-  (elisp-scope-1 then elisp-scope-output-type)
-  (elisp-scope-n else elisp-scope-output-type))
+  (elisp-scope-1 then elisp-scope-output-spec)
+  (elisp-scope-n else elisp-scope-output-spec))
 
 (elisp-scope-define-special-form-analyzer and (&rest forms)
-  (elisp-scope-n forms elisp-scope-output-type))
+  (elisp-scope-n forms elisp-scope-output-spec))
 
 (elisp-scope-define-special-form-analyzer or (&rest forms)
-  (dolist (form forms) (elisp-scope-1 form elisp-scope-output-type)))
+  (dolist (form forms) (elisp-scope-1 form elisp-scope-output-spec)))
 
-(defun elisp-scope-quote (arg &optional outtype)
-  (when outtype
-    (when-let* ((type (elisp-scope--match-type-to-arg outtype arg)))
-      (elisp-scope--handle-quoted type arg))))
+(defun elisp-scope-quote (arg &optional outspec)
+  (when outspec
+    (when-let* ((spec (elisp-scope--match-spec-to-arg outspec arg)))
+      (elisp-scope--handle-quoted spec arg))))
 
-(cl-defgeneric elisp-scope--handle-quoted (type arg))
+(cl-defgeneric elisp-scope--handle-quoted (spec arg))
 
-(cl-defmethod elisp-scope--handle-quoted ((_type (eql t)) _arg)
+(cl-defmethod elisp-scope--handle-quoted ((_spec (eql t)) _arg)
   ;; Do nothing.
   )
 
-(cl-defmethod elisp-scope--handle-quoted ((_type (eql 'code)) arg)
+(cl-defmethod elisp-scope--handle-quoted ((_spec (eql 'code)) arg)
   (let ((elisp-scope--local nil)
         (elisp-scope-current-let-alist-form nil)
         (elisp-scope-flet-alist nil)
@@ -2589,37 +2589,37 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
         (elisp-scope--quoted t))
     (elisp-scope-1 arg)))
 
-(cl-defmethod elisp-scope--handle-quoted ((type (head symbol)) arg)
-  (when-let* ((role (cdr type))) (elisp-scope-report-s arg role)))
+(cl-defmethod elisp-scope--handle-quoted ((spec (head symbol)) arg)
+  (when-let* ((role (cdr spec))) (elisp-scope-report-s arg role)))
 
-(cl-defmethod elisp-scope--handle-quoted ((type (head list)) arg)
-  (let ((types (cdr type)))
-    (while types (elisp-scope--handle-quoted (pop types) (pop arg)))))
+(cl-defmethod elisp-scope--handle-quoted ((spec (head list)) arg)
+  (let ((specs (cdr spec)))
+    (while specs (elisp-scope--handle-quoted (pop specs) (pop arg)))))
 
-(cl-defmethod elisp-scope--handle-quoted ((type (head cons)) arg)
-  (elisp-scope--handle-quoted (cadr type) (car arg))
-  (elisp-scope--handle-quoted (cddr type) (cdr arg)))
+(cl-defmethod elisp-scope--handle-quoted ((spec (head cons)) arg)
+  (elisp-scope--handle-quoted (cadr spec) (car arg))
+  (elisp-scope--handle-quoted (cddr spec) (cdr arg)))
 
-(cl-defgeneric elisp-scope--match-type-to-arg (type arg))
+(cl-defgeneric elisp-scope--match-spec-to-arg (spec arg))
 
-(cl-defmethod elisp-scope--match-type-to-arg ((type (eql t)) _arg) type)
+(cl-defmethod elisp-scope--match-spec-to-arg ((spec (eql t)) _arg) spec)
 
-(cl-defmethod elisp-scope--match-type-to-arg ((type (eql 'code)) _arg) type)
+(cl-defmethod elisp-scope--match-spec-to-arg ((spec (eql 'code)) _arg) spec)
 
-(cl-defmethod elisp-scope--match-type-to-arg ((_type (eql 'type)) arg)
-  (elisp-scope--match-type-to-arg
-   ;; Unfold `type'.
+(cl-defmethod elisp-scope--match-spec-to-arg ((_spec (eql 'spec)) arg)
+  (elisp-scope--match-spec-to-arg
+   ;; Unfold `spec'.
    '(or (symbol)
         (cons (member symbol) . (symbol . symbol-role))
-        (cons (member repeat) . type)
-        (cons (member or)     . (repeat . type))
-        (cons (member cons)   . (cons type . type))
+        (cons (member repeat) . spec)
+        (cons (member or)     . (repeat . spec))
+        (cons (member cons)   . (cons spec . spec))
         (cons (member member) . t)
-        (cons (member plist)  . (repeat . (cons (symbol . constant) . type))))
+        (cons (member plist)  . (repeat . (cons (symbol . constant) . spec))))
    arg))
 
-(cl-defmethod elisp-scope--match-type-to-arg ((_type (eql 'cl-type)) arg)
-  (elisp-scope--match-type-to-arg
+(cl-defmethod elisp-scope--match-spec-to-arg ((_spec (eql 'cl-type)) arg)
+  (elisp-scope--match-spec-to-arg
    ;; Unfold `cl-type'.
    '(or (member t)
         (symbol . type)
@@ -2629,35 +2629,35 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
         (cons (member satisfies)                 . (cons (or (symbol . function) code) . t)))
    arg))
 
-(cl-defmethod elisp-scope--match-type-to-arg ((type (head symbol)) arg)
-  (when (or (symbolp arg) (symbol-with-pos-p arg)) type))
+(cl-defmethod elisp-scope--match-spec-to-arg ((spec (head symbol)) arg)
+  (when (or (symbolp arg) (symbol-with-pos-p arg)) spec))
 
-(cl-defmethod elisp-scope--match-type-to-arg ((type (head repeat)) arg)
+(cl-defmethod elisp-scope--match-spec-to-arg ((spec (head repeat)) arg)
   (when (listp arg)
     (named-let loop ((args arg) (acc nil))
       (if args
-          (when-let* ((res (elisp-scope--match-type-to-arg (cdr type) (car args))))
+          (when-let* ((res (elisp-scope--match-spec-to-arg (cdr spec) (car args))))
             (loop (cdr args) (cons res acc)))
         (cons 'list (nreverse acc))))))
 
-(cl-defmethod elisp-scope--match-type-to-arg ((type (head or)) arg)
-  (named-let loop ((types (cdr type)))
-    (when types
-      (if-let* ((res (elisp-scope--match-type-to-arg (car types) arg))) res
-        (loop (cdr types))))))
+(cl-defmethod elisp-scope--match-spec-to-arg ((spec (head or)) arg)
+  (named-let loop ((specs (cdr spec)))
+    (when specs
+      (if-let* ((res (elisp-scope--match-spec-to-arg (car specs) arg))) res
+        (loop (cdr specs))))))
 
-(cl-defmethod elisp-scope--match-type-to-arg ((type (head cons)) arg)
+(cl-defmethod elisp-scope--match-spec-to-arg ((spec (head cons)) arg)
   (when (consp arg)
-    (let ((car-type (cadr type))
-          (cdr-type (cddr type)))
-      (when-let* ((car-res (elisp-scope--match-type-to-arg car-type (car arg)))
-                  (cdr-res (elisp-scope--match-type-to-arg cdr-type (cdr arg))))
+    (let ((car-spec (cadr spec))
+          (cdr-spec (cddr spec)))
+      (when-let* ((car-res (elisp-scope--match-spec-to-arg car-spec (car arg)))
+                  (cdr-res (elisp-scope--match-spec-to-arg cdr-spec (cdr arg))))
         (cons 'cons (cons car-res cdr-res))))))
 
-(cl-defmethod elisp-scope--match-type-to-arg ((type (head member)) arg)
-  (let ((symbols-with-pos-enabled t)) (and (member arg (cdr type)) t)))
+(cl-defmethod elisp-scope--match-spec-to-arg ((spec (head member)) arg)
+  (let ((symbols-with-pos-enabled t)) (and (member arg (cdr spec)) t)))
 
-(cl-defmethod elisp-scope--match-type-to-arg ((type (head plist)) arg)
+(cl-defmethod elisp-scope--match-spec-to-arg ((spec (head plist)) arg)
   (cond
    ((consp arg)
     (let ((res nil) (go t))
@@ -2666,17 +2666,17 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
                (bkw (elisp-scope-sym-bare key))
                (val (cadr arg)))
           (push (if (keywordp bkw) '(symbol . constant) t) res)
-          (push (setq go (elisp-scope--match-type-to-arg (alist-get bkw (cdr type) t) val)) res))
+          (push (setq go (elisp-scope--match-spec-to-arg (alist-get bkw (cdr spec) t) val)) res))
         (setq arg (cddr arg)))
       (when go (cons 'list (nreverse res)))))
    ((null arg) t)))
 
 (elisp-scope-define-special-form-analyzer catch (&optional tag &rest body)
   (elisp-scope-1 tag '(symbol . throw-tag))
-  (elisp-scope-n body elisp-scope-output-type))
+  (elisp-scope-n body elisp-scope-output-spec))
 
 (elisp-scope-define-special-form-analyzer progn (&rest body)
-  (elisp-scope-n body elisp-scope-output-type))
+  (elisp-scope-n body elisp-scope-output-spec))
 
 (put 'inline 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
 (put 'save-current-buffer 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
@@ -2687,7 +2687,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (mapc #'elisp-scope-1 rest))
 
 (elisp-scope-define-special-form-analyzer prog1 (&rest body)
-  (when (consp body) (elisp-scope-1 (pop body) elisp-scope-output-type))
+  (when (consp body) (elisp-scope-1 (pop body) elisp-scope-output-spec))
   (elisp-scope-n body))
 
 (put 'unwind-protect 'elisp-scope-analyzer #'elisp-scope--analyze-prog1)
@@ -2701,15 +2701,15 @@ If SYM is not a symbol with position information, do nothing."
 
 (defvar-local elisp-scope-buffer-file-name nil)
 
-(defun elisp-scope-1 (form &optional outtype)
-  "Analyze FORM as an evaluated form with expected output type OUTTYPE.
+(defun elisp-scope-1 (form &optional outspec)
+  "Analyze FORM as an evaluated form with expected output spec OUTSPEC.
 
-If OUTTYPE is non-nil, it specifies FORM's expected \"output type\".
+If OUTSPEC is non-nil, it specifies FORM's expected \"output spec\".
 This guides the analysis of quoted (sub)forms.
-OUTTYPE can be one the following:
+OUTSPEC can be one the following:
 
 - t: FORM evaluates to an arbitrary object.
-  In other words, OUTTYPE of t conveys no information about FORM.
+  In other words, OUTSPEC of t conveys no information about FORM.
 
 - `code': FORM evaluates to a form to be evaluated elsewhere.
   The quoted output of FORM will again be analyzed as an evaluated form,
@@ -2719,22 +2719,22 @@ OUTTYPE can be one the following:
   See `elisp-scope-define-symbol-role' for more information about
   defining new symbol roles.
 
-- (repeat . TYPE): FORM evaluates to a list with elements of type TYPE.
+- (repeat . SPEC): FORM evaluates to a list with elements of spec SPEC.
 
-- (cons CARTYPE . CDRTYPE): FORM evaluates to a cons cell whose `car'
-  has type CARTYPE and whose `cdr' has type CDRTYPE.
+- (cons CARSPEC . CDRSPEC): FORM evaluates to a cons cell whose `car'
+  has spec CARSPEC and whose `cdr' has spec CDRSPEC.
 
 - (member . VALS): FORM evaluates to a `member' of VALS.
 
-- (plist . VALTYPES): FORM evaluates to a plist.  VALTYPES is an alist
-  associating value types to properties in the plist.  For example, an
-  entry (:face . (symbol . face)) in VALTYPES says that the value of the
+- (plist . VALSPECS): FORM evaluates to a plist.  VALSPECS is an alist
+  associating value specs to properties in the plist.  For example, an
+  entry (:face . (symbol . face)) in VALSPECS says that the value of the
   property `:face' in the plist is a face name.
 
-- (or . TYPES): FORM evaluates to a value that matches one of TYPES.
+- (or . SPECS): FORM evaluates to a value that matches one of SPECS.
 
 For example, to analyze a FORM that evaluates to either a list of major
-mode names or just to a single major mode name, use OUTTYPE as follows:
+mode names or just to a single major mode name, use OUTSPEC as follows:
 
   (elisp-scope-1 FORM \\='(or (repeat . (symbol . major-mode))
                            (symbol . major-mode)))
@@ -2762,7 +2762,7 @@ are analyzed."
           ;; Hence we cannot interpret their arguments.
           )
          ((setq this (function-get bare 'elisp-scope-analyzer))
-          (let ((elisp-scope-output-type outtype)) (apply this form)))
+          (let ((elisp-scope-output-spec outspec)) (apply this form)))
          ((special-form-p bare) (elisp-scope-report-s f 'special-form) (elisp-scope-n forms))
          ((macrop bare) (elisp-scope-report-s f 'macro)
           (cond
@@ -2775,7 +2775,7 @@ are analyzed."
                    (macroexpand-all-environment
                     (append (mapcar #'list elisp-scope-unsafe-macros) macroexpand-all-environment))
                    (expanded (ignore-errors (macroexpand-1 form macroexpand-all-environment))))
-              (elisp-scope-1 expanded outtype)))
+              (elisp-scope-1 expanded outspec)))
            ((eq (get bare 'edebug-form-spec) t) (elisp-scope-n forms))))
          ((or (functionp bare) (memq bare elisp-scope-local-functions))
           (elisp-scope-report-s f 'function) (elisp-scope-n forms))
@@ -2784,13 +2784,13 @@ are analyzed."
           (when elisp-scope-assume-func (elisp-scope-n forms)))))))
    ((symbol-with-pos-p form) (elisp-scope-s form))))
 
-(defun elisp-scope-n (forms &optional outtype)
+(defun elisp-scope-n (forms &optional outspec)
   "Analyze FORMS as evaluated forms.
 
-OUTTYPE is the expected output type of the last form in FORMS, if any.
+OUTSPEC is the expected output spec of the last form in FORMS, if any.
 It is passed to `elisp-scope-1', which see."
   (while (cdr-safe forms) (elisp-scope-1 (pop forms)))
-  (when-let* ((form (car-safe forms))) (elisp-scope-1 form outtype)))
+  (when-let* ((form (car-safe forms))) (elisp-scope-1 form outspec)))
 
 ;;;###autoload
 (defun elisp-scope-analyze-form (callback &optional stream)
@@ -2829,13 +2829,13 @@ starting with a top-level form, by inspecting HEAD at each level:
 An analyzer (function specified via the `elisp-scope-analyzer' property)
 can use the functions `elisp-scope-report-s', `elisp-scope-1' and
 `elisp-scope-n' to analyze its arguments, and it can consult the
-variable `elisp-scope-output-type' to obtain the expected output type of
+variable `elisp-scope-output-spec' to obtain the expected output spec of
 the analyzed form.  For example, the following is a suitable analyzer
 for the `identity' function:
 
   (lambda (fsym arg)
     (elisp-scope-report-s fsym \\='function)
-    (elisp-scope-1 arg elisp-scope-output-type))"
+    (elisp-scope-1 arg elisp-scope-output-spec))"
   (let ((elisp-scope-counter 0)
         (elisp-scope-callback callback)
         (read-symbol-shorthands nil)
