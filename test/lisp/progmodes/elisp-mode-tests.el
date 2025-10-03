@@ -1148,5 +1148,11 @@ evaluation of BODY."
     (insert "(a ,@)")
     (should-error (scan-sexps (+ (point-min) 3) 1))))
 
+(ert-deftest elisp-test-font-lock ()
+  (let ((elisp-fontify-semantically t))
+    (ert-font-lock-test-file
+     (ert-resource-file "semantic-highlighting.el")
+     'emacs-lisp-mode)))
+
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here
