@@ -82,7 +82,6 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
    nil 'elisp-scope-read-symbol-role-history default))
 
 (defvar describe-symbol-backends)
-(defvar help-mode--current-data)
 
 ;;;###autoload
 (defun elisp-scope-add-symbol-roles-to-describe-symbol ()
@@ -122,9 +121,6 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
                                     "mouse-2, RET: describe this symbol role")
                                    "'"))))
                              parents ", ")))
-        (setq help-mode--current-data
-              (list :symbol role :type 'define-symbol-role
-                    :file (find-lisp-object-file-name role 'define-symbol-role)))
         ;; Return the text we displayed for `describe-symbol-backends'.
         (buffer-string)))))
 
