@@ -407,6 +407,8 @@ Type \\`?' to see the mode's help."
 Used in calls to `format-time-string'.")
 
 (defun igc--collect-stats-csv ()
+  "Collect IGC statistics from `igc-info' into CSV file.
+This function is called from a timer;  see `igc-start-collecting-stats'."
   (let ((buffer (get-file-buffer igc--collect-file)))
     (when buffer
       (with-current-buffer buffer
@@ -421,6 +423,8 @@ Used in calls to `format-time-string'.")
       (save-buffer))))
 
 (defun igc--collect-stats-sqlite ()
+    "Collect IGC statistics from `igc-info' into sqlite database.
+This function is called from a timer;  see `igc-start-collecting-stats'."
   (let ((values (cl-loop with time = (format-time-string igc-stats-time-format)
                          for (title n bytes) in (igc-info)
                          collect (format "(\"%s\",\"%s\",\"%s\",\"%s\")"
