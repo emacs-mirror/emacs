@@ -4581,26 +4581,41 @@ When called from Lisp, BACKEND is the VC backend."
   "Invoke `project-prompter' to choose another working tree.
 BACKEND is the VC backend.
 PROMPT is the prompt string for `project-prompter'.
-If ALLOW-EMPTY is non-nil, empty input means the current working tree."
-  (if-let* ((trees (vc-call-backend backend 'known-other-working-trees)))
-      (let (res)
-        (require 'project)
-        (dolist (tree trees)
-          (when-let* ((p (project-current nil tree)))
-            (project-remember-project p nil t)))
-        (setq res
-              (funcall project-prompter
-                       (if allow-empty
-                           (format "%s (empty for this working tree)"
-                                   prompt)
-                         prompt)
+If ALLOW-EMPTY is non-nil, empty input means the current working tree.
+In typical usage ALLOW-EMPTY non-nil means that it makes sense to apply
+the caller's operation to the current working tree."
+  ;; If there are no other working trees and ALLOW-EMPTY is non-nil, we
+  ;; still invoke the `project-prompter' and require the user to type
+  ;; \\`RET', even though it's redundant.  Doing it this way means that
+  ;; invoking the command on the current working tree works the same
+  ;; whether or not there exist any other working trees.  In particular,
+  ;; the number of keys you have to type is always the same.  It's more
+  ;; ergonomic not to require the user to think about whether there are
+  ;; other working trees when what they care about is doing something
+  ;; with the current working tree: they can just type \\`RET' without
+  ;; stopping to look at the echo area.
+  (let ((trees (vc-call-backend backend 'known-other-working-trees))
+        res)
+    (unless (or trees allow-empty)
+      (user-error
+       (substitute-command-keys
+        "No other working trees.  Use \\[vc-add-working-tree] to add one")))
+    (require 'project)
+    (dolist (tree trees)
+      (when-let* ((p (project-current nil tree)))
+        (project-remember-project p nil t)))
+    (setq res
+          (funcall project-prompter
+                   (if allow-empty
+                       (format "%s (empty for this working tree)"
+                               prompt)
+                     prompt)
+                   (if trees
                        (lambda (k &optional _v)
                          (member (or (car-safe k) k) trees))
-                       t allow-empty))
-        (if (string-empty-p res) (vc-root-dir) res))
-    (user-error
-     (substitute-command-keys
-      "No other working trees.  Use \\[vc-add-working-tree] to add one"))))
+                     #'ignore)
+                   t allow-empty))
+    (if (string-empty-p res) (vc-root-dir) res)))
 
 (defvar project-current-directory-override)
 
