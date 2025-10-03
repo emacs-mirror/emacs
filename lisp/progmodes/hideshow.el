@@ -471,20 +471,25 @@ info node `(elisp)Overlays'."
   "Non-nil if using hideshow mode as a minor mode of some other mode.
 Use the command `hs-minor-mode' to toggle or set this variable.")
 
+(defvar-keymap hs-prefix-map
+  :doc "Keymap for hideshow commands."
+  :prefix t
+  ;; These bindings roughly imitate those used by Outline mode.
+  "C-h"   #'hs-hide-block
+  "C-s"   #'hs-show-block
+  "C-M-h" #'hs-hide-all
+  "C-M-s" #'hs-show-all
+  "C-l"   #'hs-hide-level
+  "C-c"   #'hs-toggle-hiding
+  "C-a"   #'hs-show-all
+  "C-t"   #'hs-hide-all
+  "C-d"   #'hs-hide-block
+  "C-e"   #'hs-toggle-hiding)
+
 (defvar-keymap hs-minor-mode-map
   :doc "Keymap for hideshow minor mode."
-  ;; These bindings roughly imitate those used by Outline mode.
-  "C-c @ C-h"   #'hs-hide-block
-  "C-c @ C-s"   #'hs-show-block
-  "C-c @ C-M-h" #'hs-hide-all
-  "C-c @ C-M-s" #'hs-show-all
-  "C-c @ C-l"   #'hs-hide-level
-  "C-c @ C-c"   #'hs-toggle-hiding
-  "C-c @ C-a"   #'hs-show-all
-  "C-c @ C-t"   #'hs-hide-all
-  "C-c @ C-d"   #'hs-hide-block
-  "C-c @ C-e"   #'hs-toggle-hiding
   "S-<mouse-2>" #'hs-toggle-hiding
+  "C-c @" hs-prefix-map
   "<left-fringe> <mouse-1>" #'hs-indicator-mouse-toggle-hidding)
 
 (defvar-keymap hs-indicators-map
