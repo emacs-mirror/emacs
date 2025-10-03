@@ -1871,8 +1871,9 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 (elisp-scope-define-function-analyzer custom-declare-face (face spec doc &rest args)
   (elisp-scope-1 face '(symbol . defface))
   ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
-  (when-let* ((q (elisp-scope--unquote spec)))
-    (when (consp q) (dolist (s q) (elisp-scope-face (cdr s)))))
+  (if-let* ((q (elisp-scope--unquote spec)))
+      (when (consp q) (dolist (s q) (elisp-scope-face (cdr s))))
+    (elisp-scope-1 spec))
   (elisp-scope-1 doc)
   (while-let ((kw (car-safe args))
               (bkw (elisp-scope-sym-bare kw))
