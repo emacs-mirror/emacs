@@ -7160,7 +7160,7 @@ verbosity of 6."
 		     ;; The returned command name could be truncated
 		     ;; to 15 characters.  Therefore, we cannot check
 		     ;; for `string-equal'.
-		     ((string-prefix-p comm process-name))
+		     ((eq t (compare-strings comm 0 15 process-name 0 15)))
 		     ((throw 'result t)))))))))
 
 ;; When calling "emacs -Q", `auth-source-search' won't be called.  If
