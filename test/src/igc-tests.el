@@ -29,7 +29,7 @@
   :tags '(:igc)
   (should (equal (igc--set-commit-limit (ash 1 30)) nil))
   (should (equal (assoc-string "commit-limit" (igc-info))
-                 '("commit-limit" 1 1073741824 0)))
+                 '("commit-limit" nil #x40000000 nil)))
   (should-error (igc--set-commit-limit -1)
                 :type 'args-out-of-range)
   (should-error (igc--set-commit-limit
@@ -39,8 +39,8 @@
                 :type 'args-out-of-range))
   (should (equal (igc--set-commit-limit nil) nil))
   (should (member (assoc-string "commit-limit" (igc-info))
-                  '(("commit-limit" 1 #xffffffff 0)
-                    ("commit-limit" 1 #xffffffffffffffff 0)))))
+                  '(("commit-limit" nil #xffffffff nil)
+                    ("commit-limit" nil #xffffffffffffffff nil)))))
 
 (ert-deftest set-pause-time-test ()
   :tags '(:igc)
