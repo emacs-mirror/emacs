@@ -42,6 +42,9 @@
   "IGC snapshot B.  Used for debugging.")
 (defvar igc--display-mode 'a
   "IGC stats current snapshot, \='a or \='b.")
+(defvar igc--number-format 'human-readable
+  "Format for displaying numbers.
+Should be either the symbol human-readable or nil.")
 
 (defun igc-snapshot ()
   "Take snapshot A or B depending on igc--display-mode."
@@ -88,6 +91,14 @@
   (setq igc--a nil igc--b nil)
   (igc-stats))
 
+(defun igc-cycle-number-format ()
+  "Switch between human-readable and plain number format."
+  (interactive)
+  (setq igc--number-format (cl-ecase igc--number-format
+                             (human-readable nil)
+                             ((nil) 'human-readable)))
+  (igc-stats))
+
 (define-derived-mode igc-stats-mode special-mode "Statistics"
   "Display memory statistics from `igc-info', about incremental GC.
 You can display two snapshots A and B containing the info from `igc-info'
@@ -123,6 +134,7 @@ IGC statistics:
   (keymap-local-set "d" #'igc-display-diff)
   (keymap-local-set "s" #'igc-snapshot)
   (keymap-local-set "x" #'igc-clear)
+  (keymap-local-set "n" #'igc-cycle-number-format)
   (display-line-numbers-mode -1)
   (setq header-line-format
 	'((:eval (format " %-35s %10s %15s %10s %13s"
@@ -138,11 +150,47 @@ IGC statistics:
 		(igc-snapshot)
 		(igc-stats))))
 
-(defun igc--format-cell (x)
+(defun igc--format-bytes-human-readable (n)
+  (let* ((negative (< n 0))
+         (n (abs n))
+         (units '((10 . "K")
+                  (20 . "M")
+                  (30 . "G")
+                  (40 . "T")
+                  (50 . "P")
+                  (60 . "E")))
+         (p (cl-assoc-if (lambda (key) (<= (ash 1 key) n))
+                         (reverse units)))
+         (unit-bits (if p (car p) 0))
+         (unit-name (if p (cdr p) ""))
+         (d (ash 1 unit-bits))
+         (r (mod n d)))
+    (format "%s%s%s" (if negative "-" "")
+            (cond ((= r 0) (number-to-string (/ n d)))
+                  (t (format "%.1f" (/ (float n) d))))
+            unit-name)))
+
+(defun igc--format-bytes (n)
+  (cl-ecase igc--number-format
+    (human-readable
+     (cl-etypecase n
+       (integer (igc--format-bytes-human-readable n))
+       (float (number-to-string n))))
+    ((nil) (number-to-string n))))
+
+(defun igc--format-cell (x f)
   (cl-etypecase x
-    (number (number-to-string x))
+    (number (funcall f x))
     (string x)
     (null "")))
+
+(defun igc--format-bytes-cell (x)
+  (igc--format-cell x #'igc--format-bytes))
+
+(defun igc--format-avg-cell (bytes n)
+  (cond ((not (and bytes n)) "")
+        ((zerop n) "0")
+        (t (igc--format-bytes-cell (abs (/ bytes n))))))
 
 (defun igc--compute-column-widths (rows)
   (let* ((widths (make-vector (length (car rows)) 0)))
@@ -168,13 +216,10 @@ IGC statistics:
                        "Objects" "Bytes" "Avg" "Largest"))
          (rows (cl-loop for (title n bytes largest) in info
                         collect (list title
-                                      (igc--format-cell n)
-                                      (igc--format-cell bytes)
-                                      (cond ((not (and n bytes)) "")
-                                            ((zerop n) "0")
-                                            (t (number-to-string
-                                                (abs (/ bytes n)))))
-                                      (igc--format-cell largest))))
+                                      (igc--format-cell n #'number-to-string)
+                                      (igc--format-bytes-cell bytes)
+                                      (igc--format-avg-cell bytes n)
+                                      (igc--format-bytes-cell largest))))
          (widths (igc--compute-column-widths (cons header rows)))
          (sorted-rows (sort rows :key #'car :lessp #'string<)))
     (igc--insert-info-row header widths)
