@@ -4774,23 +4774,25 @@ walk_pool (struct igc *gc, mps_pool_t p, struct igc_stats *st)
 }
 
 static Lisp_Object
-make_entry (const char *s, uintmax_t n, uintmax_t bytes,
-	    uintmax_t largest)
+make_stat_entry (const char *name, struct igc_stat const *s)
 {
-  return list4 (build_string (s), make_uint (n), make_uint (bytes),
-		make_uint (largest));
+  return list4 (build_string (name), make_uint (s->nobjs),
+		make_uint (s->nbytes), make_uint (s->largest));
+}
+
+static Lisp_Object
+make_fake_entry (const char *name, double (*f) (mps_arena_t),
+		 size_t (*s) (mps_arena_t), mps_arena_t arena)
+{
+  return list4 (build_string (name), Qnil,
+		f ? make_float (f (arena)) : make_uint (s (arena)),
+		Qnil);
 }
 
 #ifndef __clang__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsuggest-attribute=noreturn"
 #endif
-
-static Lisp_Object
-make_stat_entry (const char *name, struct igc_stat const *s)
-{
-  return make_entry (name, s->nobjs, s->nbytes, s->largest);
-}
 
 DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0,
        doc: /* Return information about incremental GC.
@@ -4830,26 +4832,18 @@ IGC statistics:
     result = Fcons (make_stat_entry (pvec_type_name (i), &st.pvec[i]),
 		    result);
 
-  Lisp_Object entries[] = {
-    list4 (build_string ("pause-time"), Qnil,
-	   make_float (mps_arena_pause_time (gc->arena)), Qnil),
-
-    list4 (build_string ("spare"), Qnil,
-	   make_float (mps_arena_spare (gc->arena)), Qnil),
-
-    make_entry ("reserved", 1, mps_arena_reserved (gc->arena), 0),
-
-    make_entry ("spare-committed", 1,
-		mps_arena_spare_committed (gc->arena), 0),
-
-    make_entry ("commit-limit", 1, mps_arena_commit_limit (gc->arena),
-		0),
-
-    make_entry ("committed", 1, mps_arena_committed (gc->arena), 0),
+  mps_arena_t a = gc->arena;
+  Lisp_Object fake_entries[] = {
+    make_fake_entry ("pause-time", mps_arena_pause_time, NULL, a),
+    make_fake_entry ("spare", mps_arena_spare, NULL, a),
+    make_fake_entry ("reserved", NULL, mps_arena_reserved, a),
+    make_fake_entry ("spare-committed", NULL,
+		     mps_arena_spare_committed, a),
+    make_fake_entry ("commit-limit", NULL, mps_arena_commit_limit, a),
+    make_fake_entry ("committed", NULL, mps_arena_committed, a),
   };
-
-  for (size_t i = 0; i < ARRAYELTS (entries); i++)
-    result = Fcons (entries[i], result);
+  for (size_t i = 0; i < ARRAYELTS (fake_entries); i++)
+    result = Fcons (fake_entries[i], result);
 
   return result;
 }
