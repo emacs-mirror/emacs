@@ -520,8 +520,6 @@ See `elisp-scope-1' for possible values.")
 
 (defvar elisp-scope-current-let-alist-form nil)
 
-(defvar elisp-scope-gen-id-alist nil)
-
 (defsubst elisp-scope-local-new (sym pos &optional local)
   "Return new local context with SYM bound at POS.
 
