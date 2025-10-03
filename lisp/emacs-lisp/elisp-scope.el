@@ -1672,7 +1672,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
     `(progn
        (defun ,helper ,args ,@body)
        (elisp-scope-define-analyzer ,fsym (f &rest args)
-         (elisp-scope-report-s f 'macro)
+         (elisp-scope-report-s f 'special-form)
          (apply #',helper args)))))
 
 (defun elisp-scope--unquote (form)
