@@ -1878,23 +1878,9 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
     (setq args (cddr args)))
   (when args (elisp-scope-n args)))
 
-(defun elisp-scope-typep (type)
-  (cond
-   ((or (symbolp type) (symbol-with-pos-p type))
-    (unless (booleanp (elisp-scope-sym-bare type))
-      (elisp-scope-report-s type 'type)))
-   ((consp   type)
-    (cond
-     ((memq (elisp-scope-sym-bare (car type)) '(and or not))
-      (mapc #'elisp-scope-typep (cdr type)))
-     ((eq (elisp-scope-sym-bare (car type)) 'satisfies)
-      (elisp-scope-report-s (cadr type) 'function))))))
-
 (elisp-scope-define-function-analyzer cl-typep (val type)
   (elisp-scope-1 val)
-  ;; TODO: Use `elisp-scope-1' with an appropriate outtype.
-  (when-let* ((q (elisp-scope--unquote type)))
-    (elisp-scope-typep q)))
+  (elisp-scope-1 type 'cl-type))
 
 (elisp-scope-define-function-analyzer pulse-momentary-highlight-region (start end &optional face)
   (elisp-scope-1 start)
@@ -2021,7 +2007,20 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (&optional name superclasses slots options)
   (elisp-scope-1 name '(symbol . deftype))
   (elisp-scope-1 superclasses '(repeat . (symbol . type)))
-  (elisp-scope-1 slots)                 ;TODO: Specify type of `slots'.
+  (elisp-scope-1 slots
+                 '(repeat
+                     cons
+                       (symbol . slot)
+                       plist
+                         (:initform   . code)
+                         (:initarg    . (symbol . constant))
+                         (:accessor   . (symbol . defun))
+                         (:allocation . code)
+                         (:writer     . (symbol . function))
+                         (:reader     . (symbol . function))
+                         (:type       . cl-type)
+                         ;; TODO: add (:custom  . custom-type)
+                         ))
   (elisp-scope-1 options))
 
 (elisp-scope-define-function-analyzer cl-struct-define
@@ -2591,7 +2590,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
     (elisp-scope-1 arg)))
 
 (cl-defmethod elisp-scope--handle-quoted ((type (head symbol)) arg)
-  (elisp-scope-report-s arg (cdr type)))
+  (when-let* ((role (cdr type))) (elisp-scope-report-s arg role)))
 
 (cl-defmethod elisp-scope--handle-quoted ((type (head list)) arg)
   (let ((types (cdr type)))
@@ -2610,14 +2609,24 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 (cl-defmethod elisp-scope--match-type-to-arg ((_type (eql 'type)) arg)
   (elisp-scope--match-type-to-arg
    ;; Unfold `type'.
-   '(or (equal . t)
-        (equal . code)
-        (equal . type)
-        (cons (equal . symbol) . (symbol . symbol-role))
-        (cons (equal . repeat) . type)
-        (cons (equal . or)     . (repeat . type))
-        (cons (equal . cons)   . (cons type . type))
-        (cons (equal . equal)  . t))
+   '(or (symbol)
+        (cons (member symbol) . (symbol . symbol-role))
+        (cons (member repeat) . type)
+        (cons (member or)     . (repeat . type))
+        (cons (member cons)   . (cons type . type))
+        (cons (member member) . t)
+        (cons (member plist)  . (repeat . (cons (symbol . constant) . type))))
+   arg))
+
+(cl-defmethod elisp-scope--match-type-to-arg ((_type (eql 'cl-type)) arg)
+  (elisp-scope--match-type-to-arg
+   ;; Unfold `cl-type'.
+   '(or (member t)
+        (symbol . type)
+        (cons (member integer float real number) . t)
+        (cons (member or and not)                . (repeat . cl-type))
+        (cons (member member cl-member)          . (repeat . t))
+        (cons (member satisfies)                 . (cons (or (symbol . function) code) . t)))
    arg))
 
 (cl-defmethod elisp-scope--match-type-to-arg ((type (head symbol)) arg)
@@ -2645,8 +2654,22 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
                   (cdr-res (elisp-scope--match-type-to-arg cdr-type (cdr arg))))
         (cons 'cons (cons car-res cdr-res))))))
 
-(cl-defmethod elisp-scope--match-type-to-arg ((type (head equal)) arg)
-  (let ((symbols-with-pos-enabled t)) (equal (cdr type) arg)))
+(cl-defmethod elisp-scope--match-type-to-arg ((type (head member)) arg)
+  (let ((symbols-with-pos-enabled t)) (and (member arg (cdr type)) t)))
+
+(cl-defmethod elisp-scope--match-type-to-arg ((type (head plist)) arg)
+  (cond
+   ((consp arg)
+    (let ((res nil) (go t))
+      (while (and arg go)
+        (let* ((key (car arg))
+               (bkw (elisp-scope-sym-bare key))
+               (val (cadr arg)))
+          (push (if (keywordp bkw) '(symbol . constant) t) res)
+          (push (setq go (elisp-scope--match-type-to-arg (alist-get bkw (cdr type) t) val)) res))
+        (setq arg (cddr arg)))
+      (when go (cons 'list (nreverse res)))))
+   ((null arg) t)))
 
 (elisp-scope-define-special-form-analyzer catch (&optional tag &rest body)
   (elisp-scope-1 tag '(symbol . throw-tag))
@@ -2701,7 +2724,12 @@ OUTTYPE can be one the following:
 - (cons CARTYPE . CDRTYPE): FORM evaluates to a cons cell whose `car'
   has type CARTYPE and whose `cdr' has type CDRTYPE.
 
-- (equal . VAL): FORM evaluates to VAL (or something `equal' to VAL).
+- (member . VALS): FORM evaluates to a `member' of VALS.
+
+- (plist . VALTYPES): FORM evaluates to a plist.  VALTYPES is an alist
+  associating value types to properties in the plist.  For example, an
+  entry (:face . (symbol . face)) in VALTYPES says that the value of the
+  property `:face' in the plist is a face name.
 
 - (or . TYPES): FORM evaluates to a value that matches one of TYPES.
 
