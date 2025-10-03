@@ -138,6 +138,52 @@ IGC statistics:
 		(igc-snapshot)
 		(igc-stats))))
 
+(defun igc--format-cell (x)
+  (cl-etypecase x
+    (number (number-to-string x))
+    (string x)
+    (null "")))
+
+(defun igc--compute-column-widths (rows)
+  (let* ((widths (make-vector (length (car rows)) 0)))
+    (dolist (row rows)
+      (cl-loop for col in row
+               for i from 0
+               do (aset widths i (max (length col) (aref widths i)))))
+    widths))
+
+(defun igc--insert-info-row (row widths)
+  (let ((title (car row)))
+    (insert title)
+    (insert-char ?\s (- (aref widths 0) (length title))))
+  (cl-loop for col in (cdr row)
+           for i from 1 do
+           (insert " ")
+           (insert-char ?\s (- (aref widths i) (length col)))
+           (insert col))
+  (insert "\n"))
+
+(defun igc--insert-info (info)
+  (let* ((header (list (format "Display %s" igc--display-mode)
+                       "Objects" "Bytes" "Avg" "Largest"))
+         (rows (cl-loop for (title n bytes largest) in info
+                        collect (list title
+                                      (igc--format-cell n)
+                                      (igc--format-cell bytes)
+                                      (cond ((not (and n bytes)) "")
+                                            ((zerop n) "0")
+                                            (t (number-to-string
+                                                (abs (/ bytes n)))))
+                                      (igc--format-cell largest))))
+         (widths (igc--compute-column-widths (cons header rows)))
+         (sorted-rows (sort rows :key #'car :lessp #'string<)))
+    (igc--insert-info-row header widths)
+    (setq header-line-format
+          (buffer-substring-no-properties (point-min) (1- (point))))
+    (delete-region (point-min) (point))
+    (dolist (row sorted-rows)
+      (igc--insert-info-row row widths))))
+
 ;;;###autoload
 (defun igc-stats ()
   "Display memory statistics from `igc-info'.
@@ -160,16 +206,7 @@ Type \\`?' to see the mode's help."
 	  (standard-output (current-buffer)))
       (erase-buffer)
       (delete-all-overlays)
-      (when info
-	(cl-loop for (title n bytes largest) in info do
-                 (insert (format "%-35s %10s %15s %10s %13s\n"
-                                 title n bytes
-                                 (and bytes n
-                                      (if (zerop n)
-                                          0
-                                        (abs (/ bytes n))))
-                                 largest)))
-	(sort-lines nil (point-min) (point-max)))
+      (igc--insert-info info)
       (goto-char (point-min))
       (forward-line (1- old-line))))
   (display-buffer "*igc*")
