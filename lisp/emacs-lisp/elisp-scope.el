@@ -2753,6 +2753,8 @@ are analyzed."
            (forms (cdr form)) (this nil))
       (when bare
         (cond
+         ;; TODO: Collapse `elisp-scope-flet/macrolet/...-alist' into a
+         ;; unified "context", associating role+binder position to syms.
          ((setq this (assq bare elisp-scope-flet-alist))
           (elisp-scope-report
            'function (symbol-with-pos-pos f) (length (symbol-name bare)) (cdr this))
