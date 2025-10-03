@@ -127,6 +127,7 @@
   "RET" #'log-view-toggle-entry-display
   "m" #'log-view-mark-entry
   "u" #'log-view-unmark-entry
+  "U" #'log-view-unmark-all-entries
   "e" #'log-view-modify-change-comment
   "d" #'log-view-diff
   "=" #'log-view-diff
@@ -438,6 +439,12 @@ See `log-view-mark-entry'."
     (when-let* ((found (get-char-property (car entry) 'log-view-self)))
       (delete-overlay found))
     (log-view-msg-next 1)))
+
+(defun log-view-unmark-all-entries ()
+  "Unmark all marked log entries in this buffer."
+  (interactive)
+  (log-view--mark-unmark #'log-view--unmark-entry
+                         nil (point-min) (point-max)))
 
 ;;;###autoload
 (defun log-view-get-marked ()

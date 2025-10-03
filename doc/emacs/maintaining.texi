@@ -1248,6 +1248,15 @@ changes to all files made in that revision.
 In a compact-style log buffer (e.g., the one created by @kbd{C-x v L}),
 toggle between showing and hiding the full log entry for the revision at
 point (@code{log-view-toggle-entry-display}).
+
+@item m
+Mark the entry at point (@code{log-view-mark-entry}).
+
+@item u
+Unmark the entry at point (@code{log-view-unmark-entry}).
+
+@item U
+Unmark all marked entries (@code{log-view-unmark-all-entries}).
 @end table
 
 @vindex vc-log-show-limit

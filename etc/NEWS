@@ -2391,6 +2391,8 @@ You can get back the old behavior with something like this:
     (with-eval-after-load 'log-view
       (keymap-set log-view-mode-map "m" #'log-view-toggle-mark-entry))
 
+In addition, a new command 'U' removes all marks.
+
 ** Diff mode
 
 +++
