@@ -1708,7 +1708,11 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-1 name '(symbol . defoclosure))
   (elisp-scope-1 docstring)
   (elisp-scope-1 parent-names '(repeat . (symbol . oclosure)))
-  (elisp-scope-1 slots)                 ;TODO: Specify spec of `slots'.
+  (elisp-scope-1 slots
+                 '(repeat .
+                          (or (symbol . slot)
+                              (cons (symbol . slot) .
+                                    (plist (:type . cl-type))))))
   (while-let ((kw (car-safe props))
               (bkw (elisp-scope-sym-bare kw))
               ((keywordp bkw)))
