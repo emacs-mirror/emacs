@@ -152,27 +152,9 @@ IGC statistics:
 
 (defun igc--format-bytes-human-readable (n)
   (let* ((negative (< n 0))
-         (n (abs n))
-         (units (eval-when-compile
-                  (cl-map 'vector
-                          (lambda (p) (cons (ash 1 (car p)) (cdr p)))
-                          '((10 . "K")
-                            (20 . "M")
-                            (30 . "G")
-                            (40 . "T")
-                            (50 . "P")
-                            (60 . "E")))))
-         (pos (cl-position-if (lambda (p) (< n (car p))) units))
-         (p (cl-case pos
-              ((nil 0) '(1 . ""))
-              (t (aref units (1- pos)))))
-         (base (car p))
-         (name (cdr p))
-         (rem (mod n base)))
+         (n (abs n)))
     (concat (if negative "-" "")
-            (cond ((= rem 0) (number-to-string (/ n base)))
-                  (t (format "%.1f" (/ (float n) base))))
-            name)))
+            (file-size-human-readable n))))
 
 (defun igc--format-bytes (n)
   (cl-ecase igc--number-format
