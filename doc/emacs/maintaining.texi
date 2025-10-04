@@ -1245,9 +1245,11 @@ earlier revision (@code{log-view-diff-changeset}).  This shows the
 changes to all files made in that revision.
 
 @item w
-Copy the revision of the log entry at point, or all marked revisions, to
-the kill ring, as if you had used @kbd{M-w}
-(@code{log-view-copy-revision-as-kill}).
+Copy to the kill ring (@pxref{Kill Ring}) the revision ID of the log
+entry at point, as if you had used @kbd{M-w}
+(@code{log-view-copy-revision-as-kill}).  If several revisions are
+marked, the command copies to the kill ring the IDs of all of them,
+separated by spaces.
 
 @item @key{RET}
 In a compact-style log buffer (e.g., the one created by @kbd{C-x v L}),

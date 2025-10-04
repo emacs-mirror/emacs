@@ -2395,8 +2395,10 @@ In addition, a new command 'U' removes all marks.
 
 +++
 *** New command 'w' in Log View mode.
-'w' now copies the revision of the log entry at point to the kill ring.
-If there are marked revisions, it copies those, instead.
+The new command 'log-view-copy-revision-as-kill', by default bound to
+'w' in Log View mode, copies to the kill ring the ID of the revision at
+point in the log entry.  If there are marked revisions, it copies the
+IDs of those, instead.
 
 ** Diff mode
 

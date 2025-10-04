@@ -751,8 +751,8 @@ considered file(s)."
      fr to)))
 
 (defun log-view-copy-revision-as-kill ()
-  "Copy the revision at point to the kill ring.
-If there are marked revisions, use those, separated by spaces."
+  "Copy the ID of the revision at point to the kill ring.
+If there are marked revisions, copy the IDs of those, separated by spaces."
   (interactive)
   (let ((revisions (log-view-get-marked)))
     (if (length> revisions 1)
