@@ -271,11 +271,43 @@ File extensions to generate the tags for."
               ;; Either match a full name segment, or eos.
               "\\(?:/\\|\\'\\)"))))
 
+(defun etags-regen--process-file-region ( start end program
+                                          &optional output-buffer error-buffer
+                                          &rest args)
+  (let ((error-file (and error-buffer (make-temp-file "erpfr-err")))
+        infile)
+    (unwind-protect
+        (progn
+          (if (not (file-remote-p default-directory))
+              (if (and start end)
+                  (apply #'call-process-region
+                         start end program nil
+                         (list output-buffer error-file) nil args)
+                (apply #'call-process
+                       program nil (list output-buffer error-file) nil args))
+            (when (and start end)
+              (setq infile (make-temp-file "erpfr"))
+              (write-region start end infile nil 'silent))
+            (apply #'process-file
+                   program infile (list output-buffer error-file) nil args))
+          (when (and error-file
+                     (file-exists-p error-file)
+                     (< 0 (file-attribute-size (file-attributes error-file))))
+            (with-current-buffer (get-buffer-create error-buffer)
+              (erase-buffer)
+              (format-insert-file error-file nil)
+              (display-buffer (current-buffer)))))
+      (if infile (delete-file infile))
+      (if error-file (delete-file error-file)))))
+
 (defun etags-regen--tags-generate (proj)
   (let* ((root (project-root proj))
          (default-directory root)
          (files (etags-regen--all-files proj))
          (tags-file (etags-regen--choose-tags-file proj))
+         (fun (if (equal (file-name-directory tags-file)
+                         (expand-file-name root))
+                  #'file-relative-name #'file-local-name))
          (ctags-p (etags-regen--ctags-p))
          (command (format "%s %s %s - -o %s"
                           etags-regen-program
@@ -284,13 +316,19 @@ File extensions to generate the tags for."
                                      " ")
                           ;; ctags's etags requires '-L' for stdin input.
                           (if ctags-p "-L" "")
-                          (shell-quote-argument tags-file))))
+                          (shell-quote-argument (file-local-name tags-file)))))
     (with-temp-buffer
       (mapc (lambda (f)
-              (insert f "\n"))
+              (insert (funcall fun f) "\n"))
             files)
-      (shell-command-on-region (point-min) (point-max) command
-                               nil nil etags-regen--errors-buffer-name t))
+      (with-connection-local-variables
+       (etags-regen--process-file-region (point-min)
+                                         (point-max)
+                                         shell-file-name
+                                         nil
+                                         etags-regen--errors-buffer-name
+                                         shell-command-switch
+                                         command)))
     (etags-regen--visit-table tags-file root)))
 
 (defun etags-regen--visit-table (tags-file root)
@@ -334,6 +372,9 @@ File extensions to generate the tags for."
                              (get-file-buffer etags-regen--tags-file)))
          (relname (concat "/" (file-relative-name file-name
                                                   etags-regen--tags-root)))
+         (fun (if (equal (file-name-directory etags-regen--tags-file)
+                         (expand-file-name etags-regen--tags-root))
+                  #'file-relative-name #'file-local-name))
          (ignores etags-regen-ignores)
          pr should-scan)
     (save-excursion
@@ -347,7 +388,7 @@ File extensions to generate the tags for."
           (set-buffer tags-file-buf)
           (setq should-scan t))
          ((progn (set-buffer tags-file-buf)
-                 (etags-regen--remove-tag file-name))
+                 (etags-regen--remove-tag (funcall fun file-name)))
           (setq should-scan t))))
       (when (and should-scan
                  (not (cl-some
@@ -376,15 +417,17 @@ File extensions to generate the tags for."
 (defun etags-regen--append-tags (&rest file-names)
   (goto-char (point-max))
   (let ((options (etags-regen--build-program-options (etags-regen--ctags-p)))
+        (fun (if (equal (file-name-directory etags-regen--tags-file)
+                        (expand-file-name etags-regen--tags-root))
+                 #'file-relative-name #'file-local-name))
         (inhibit-read-only t))
-    ;; XXX: call-process is significantly faster, though.
-    ;; Like 10ms vs 20ms here.  But `shell-command' makes it easy to
-    ;; direct stderr to a separate buffer.
-    (shell-command
-     (format "%s %s -o - %s"
-             etags-regen-program (mapconcat #'identity options " ")
-             (mapconcat #'identity file-names " "))
-     t etags-regen--errors-buffer-name))
+    (with-connection-local-variables
+     (etags-regen--process-file-region
+      nil nil shell-file-name t etags-regen--errors-buffer-name
+      shell-command-switch
+      (format "%s %s -o - %s"
+              etags-regen-program (mapconcat #'identity options " ")
+              (mapconcat fun file-names " ")))))
   ;; FIXME: Is there a better way to do this?
   ;; Completion table is the only remaining place where the
   ;; update is not incremental.

@@ -1,0 +1,74 @@
+default namespace = ""
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+namespace ns_1 = "http://relaxng.org/ns/compatibility/annotations/1.0"
+namespace rng = "http://relaxng.org/ns/structure/1.0"
+
+start |= starting_Solution
+starting_Solution =
+  element Solution {
+    (element Configurations { Configurations }?
+     | element Project { Project }*
+     | element Folder { Folder }*
+     | PropertiesGroup*)*,
+    attribute Description { xsd:string }?,
+    attribute Version { xsd:string }?
+  }
+Configurations =
+  (element BuildType {
+     attribute Name { xsd:string }
+   }*
+   | element Platform {
+       attribute Name { xsd:string }
+     }*
+   | element ProjectType { ProjectType }*)*
+ProjectType =
+  (ConfigurationRulesGroup*)*,
+  attribute TypeId { xsd:string }?,
+  attribute Name { xsd:string }?,
+  attribute Extension { xsd:string }?,
+  attribute BasedOn { xsd:string }?,
+  [ ns_1:defaultValue = "true" ] attribute IsBuildable { xsd:boolean }?,
+  [ ns_1:defaultValue = "true" ]
+  attribute SupportsPlatform { xsd:boolean }?
+Folder =
+  (element File {
+     attribute Path { xsd:string }
+   }*
+   | element Project { Project }*
+   | PropertiesGroup*)*,
+  attribute Name { xsd:string }
+Project =
+  (element BuildDependency {
+     attribute Project { text }
+   }*
+   | ConfigurationRulesGroup*
+   | PropertiesGroup*)*,
+  attribute Path { xsd:string },
+  attribute Type { xsd:string }?,
+  attribute DisplayName { xsd:string }?
+PropertiesGroup =
+  element Properties {
+    element Property {
+      attribute Name { xsd:string },
+      attribute Value { xsd:string }?
+    }*,
+    attribute Name { text },
+    attribute Scope { text }?
+  }
+ConfigurationRulesGroup =
+  element BuildType {
+    attribute Solution { xsd:string }?,
+    attribute Project { xsd:string }?
+  }+
+  | element Platform {
+      attribute Solution { xsd:string }?,
+      attribute Project { xsd:string }
+    }+
+  | element Build {
+      attribute Solution { xsd:string }?,
+      attribute Project { xsd:string }?
+    }+
+  | element Deploy {
+      attribute Solution { xsd:string }?,
+      attribute Project { xsd:string }?
+    }+

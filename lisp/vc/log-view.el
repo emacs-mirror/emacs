@@ -125,7 +125,9 @@
 
 (defvar-keymap log-view-mode-map
   "RET" #'log-view-toggle-entry-display
-  "m" #'log-view-toggle-mark-entry
+  "m" #'log-view-mark-entry
+  "u" #'log-view-unmark-entry
+  "U" #'log-view-unmark-all-entries
   "e" #'log-view-modify-change-comment
   "d" #'log-view-diff
   "=" #'log-view-diff
@@ -134,6 +136,7 @@
   "f" #'log-view-find-revision
   "n" #'log-view-msg-next
   "p" #'log-view-msg-prev
+  "w" #'log-view-copy-revision-as-kill
   "TAB" #'log-view-msg-next
   "<backtab>" #'log-view-msg-prev)
 
@@ -249,6 +252,8 @@ The match group number 1 should match the revision number itself.")
 ;;;; Actual code
 ;;;;
 
+(declare-function project-change-to-matching-directory "project")
+
 ;;;###autoload
 (define-derived-mode log-view-mode special-mode "Log-View"
   "Major mode for browsing CVS log output."
@@ -257,6 +262,8 @@ The match group number 1 should match the revision number itself.")
   (setq-local beginning-of-defun-function #'log-view-beginning-of-defun)
   (setq-local end-of-defun-function #'log-view-end-of-defun)
   (setq-local cvs-minor-wrap-function #'log-view-minor-wrap)
+  (setq-local project-find-matching-buffer-function
+              #'project-change-to-matching-directory)
   (hack-dir-local-variables-non-file-buffer))
 
 ;;;;
@@ -335,30 +342,110 @@ if POS is omitted or nil, it defaults to point."
 
 (defun log-view-toggle-mark-entry ()
   "Toggle the marked state for the log entry at point.
-Individual log entries can be marked and unmarked.  The marked
-entries are denoted by changing their background color.
-`log-view-get-marked' returns the list of tags for the marked
-log entries."
+See `log-view-mark-entry'."
   (interactive)
   (save-excursion
-    (let* ((entry (log-view-current-entry nil t))
-	   (beg (car entry))
-	   found)
-      (when entry
-	;; Look to see if the current entry is marked.
-	(setq found (get-char-property beg 'log-view-self))
-	(if found
-	    (delete-overlay found)
-	  ;; Create an overlay covering this entry and change its color.
-	  (let* ((end (if (get-text-property beg 'log-view-entry-expanded)
-			  (next-single-property-change beg 'log-view-comment)
-			(log-view-end-of-defun)
-			(point)))
-		 (ov (make-overlay beg end)))
-	    (overlay-put ov 'face 'log-view-file)
-	    ;; This is used to check if the overlay is present.
-	    (overlay-put ov 'log-view-self ov)
-	    (overlay-put ov 'log-view-marked (nth 1 entry))))))))
+    (when-let* ((entry (log-view-current-entry)))
+      (if (get-char-property (car entry) 'log-view-self)
+          (log-view-unmark-entry 1)
+        (log-view-mark-entry 1)))))
+
+(defun log-view--mark-unmark (mark-unmark-function arg beg end)
+  "Call MARK-UNMARK-FUNCTION on each line of an active region or ARG times.
+MARK-UNMARK-FUNCTION should end by advancing point to the next line to
+be processed.
+The last line of an active region is excluded in the case that the
+region ends right at the beginning of the line, or after only non-word
+characters."
+  (when (xor beg end)
+    (error "log-view--mark-unmark called with invalid arguments"))
+  (if (and beg end)
+      (let ((processed-line nil)
+            ;; Exclude the region's last line if the region ends right
+            ;; at the beginning of that line or almost at the beginning.
+            ;; This is like the `file' value of `dired-mark-region'.
+            ;; We don't want to include the last line unless the region
+            ;; visually includes that revision.
+            (lastl (save-excursion
+                     (goto-char end)
+                     (skip-syntax-backward "^w")
+                     (if (bolp)
+                         (1- (line-number-at-pos))
+                       (line-number-at-pos)))))
+        (save-excursion
+          (goto-char beg)
+          (while-let ((n (line-number-at-pos))
+                      ;; Make sure we don't get stuck processing the
+                      ;; same line infinitely.
+                      ((<= (line-number-at-pos) lastl))
+                      ((not (eq processed-line n))))
+            (setq processed-line n)
+            (funcall mark-unmark-function)))
+        (setq deactivate-mark t))
+    (dotimes (_ arg)
+      (funcall mark-unmark-function))))
+
+(defun log-view-mark-entry (arg &optional beg end)
+  "Mark the log entry at point.
+If the region is active in Transient Mark mode, mark all entries.
+When called with a prefix argument, mark that many log entries.
+When called from Lisp, mark ARG entries or all entries lying between BEG
+and END.  If BEG and END are supplied, ARG is ignored.
+
+When entries are marked, some commands that usually operate on the entry
+at point will instead operate on all marked entries.
+Use \\[log-view-unmark-entry] to unmark an entry.
+
+Lisp programs can use `log-view-get-marked' to obtain a list of all
+marked revisions."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     (use-region-beginning)
+                     (use-region-end)))
+  (log-view--mark-unmark #'log-view--mark-entry arg beg end))
+
+(defun log-view--mark-entry ()
+  "Mark the log entry at point."
+  (when-let* ((entry (log-view-current-entry))
+	      (beg (car entry)))
+    (save-excursion
+      (goto-char beg)
+      (unless (get-char-property beg 'log-view-self)
+        (let* ((end (if (get-text-property beg 'log-view-entry-expanded)
+			(next-single-property-change beg 'log-view-comment)
+		      (log-view-end-of-defun)
+		      (point)))
+	       (ov (make-overlay beg end)))
+	  (overlay-put ov 'face 'log-view-file)
+	  ;; This is used to check if the overlay is present.
+	  (overlay-put ov 'log-view-self ov)
+	  (overlay-put ov 'log-view-marked (nth 1 entry)))))
+    (log-view-msg-next 1)))
+
+(defun log-view-unmark-entry (arg &optional beg end)
+  "Unmark the log entry at point.
+If the region is active in Transient Mark mode, unmark all entries.
+When called with a prefix argument, unmark that many log entries.
+When called from Lisp, mark ARG entries or all entries lying between BEG
+and END.  If BEG and END are supplied, ARG is ignored.
+
+See `log-view-mark-entry'."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     (use-region-beginning)
+                     (use-region-end)))
+  (log-view--mark-unmark #'log-view--unmark-entry arg beg end))
+
+(defun log-view--unmark-entry ()
+  "Unmark the log entry at point."
+  (when-let* ((entry (log-view-current-entry)))
+    (when-let* ((found (get-char-property (car entry) 'log-view-self)))
+      (delete-overlay found))
+    (log-view-msg-next 1)))
+
+(defun log-view-unmark-all-entries ()
+  "Unmark all marked log entries in this buffer."
+  (interactive)
+  (log-view--mark-unmark #'log-view--unmark-entry
+                         nil (point-min) (point-max)))
 
 ;;;###autoload
 (defun log-view-get-marked ()
@@ -662,6 +749,20 @@ considered file(s)."
                  (list (log-view-current-file))
                log-view-vc-fileset)))
      fr to)))
+
+(defun log-view-copy-revision-as-kill ()
+  "Copy the ID of the revision at point to the kill ring.
+If there are marked revisions, copy the IDs of those, separated by spaces."
+  (interactive)
+  (let ((revisions (log-view-get-marked)))
+    (if (length> revisions 1)
+        (let ((found (string-join revisions " ")))
+          (kill-new found)
+          (message "%s" found))
+      (if-let* ((rev (or (car revisions) (log-view-current-tag))))
+          (progn (kill-new rev)
+                 (message "%s" rev))
+        (user-error "No revision at point")))))
 
 (provide 'log-view)
 

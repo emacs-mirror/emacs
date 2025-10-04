@@ -242,6 +242,7 @@
 	(nabataean #x10880)
 	(phoenician #x10900)
 	(lydian #x10920)
+        (sidetic #x10940)
 	(kharoshthi #x10A00)
 	(manichaean #x10AC0)
 	(avestan #x10B00)
@@ -280,6 +281,7 @@
 	(marchen #x11C72)
 	(masaram-gondi #x11D00)
 	(gunjala-gondi #x11D60)
+        (tolong-siki #x11DB0)
 	(makasar #x11EE0 #x11EF7)
         (kawi #x11F04 #x11F41 #x11F4F)
 	(cuneiform #x12000)
@@ -292,6 +294,7 @@
 	(pahawh-hmong #x16B11)
         (kirat-rai #x16D43 #x16D63 #x16D71)
 	(medefaidrin #x16E40)
+        (beria-erfe #x16EA0)
 	(tangut #x17000)
 	(khitan-small-script #x18B00)
 	(nushu #x1B170)
@@ -308,6 +311,7 @@
 	(wancho #x1E2C0 #x1E2E8 #x1E2EF)
         (nag-mundari #x1E4D0 #x1E4EB #x1E4F0)
         (ol-onal #x1E5D0 #x1E5F2)
+        (tai-yo #x1E6E0)
 	(mende-kikakui #x1E810 #x1E8A6)
 	(adlam #x1E900 #x1E943)
 	(indic-siyaq-number #x1EC71 #x1EC9F)
@@ -335,6 +339,7 @@
 	(batk . batak)
 	(bng2 . bengali)
 	(beng . bengali)
+        (berf . beria-erfe)
 	(bhks . bhaiksuki)
 	(bopo . bopomofo)
 	(brah . brahmi)
@@ -467,6 +472,7 @@
 	(shrd . sharada)
 	(shaw . shavian)
 	(sidd . siddham)
+        (sidt . sidetic)
 	(sgnw . sutton-sign-writing)
 	(sinh . sinhala)
 	(sogd . sogdian)
@@ -487,6 +493,7 @@
 	(tml2 . tamil)
         (tnsa . tangsa)
 	(tang . tangut)
+        (tayo . tai-yo)
 	(telu . telugu)
 	(tel2 . telugu)
 	(thaa . thaana)
@@ -495,6 +502,7 @@
 	(tfng . tifinagh)
 	(tirh . tirhuta)
         (todr . todhri)
+        (tols . tolong-siki)
         (toto . toto)
         (tutg . tulu-tigalari)
 	(ugar . ugaritic)
@@ -912,7 +920,11 @@
                     emoji
                     chess-symbol
                     garay
-                    sunuwar))
+                    sunuwar
+                    sidetic
+                    tolong-siki
+                    beria-erfe
+                    tai-yo))
     (set-fontset-font "fontset-default"
 		      script (font-spec :registry "iso10646-1" :script script)
 		      nil 'append))

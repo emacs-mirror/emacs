@@ -261,6 +261,8 @@
 (defun comp-tests-trampoline-removal-f ()
   (make-hash-table))
 
+(define-error 'foo "foo")
+
 (defun comp-tests-signal-f ()
   (signal 'foo t))
 

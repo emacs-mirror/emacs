@@ -59,11 +59,10 @@
   (let ((result
 	 (tramp-skeleton-directory-files directory full match nosort count
 	   ;; Some storage systems do not return "." and "..".
-	   (delete-dups
-	    (append
-	     '("." "..")
-	     (tramp-fuse-remove-hidden-files
-	      (directory-files (tramp-fuse-local-file-name directory))))))))
+	   (seq-union
+	    '("." "..")
+	    (tramp-fuse-remove-hidden-files
+	     (directory-files (tramp-fuse-local-file-name directory)))))))
     (if full
 	;; Massage the result.
 	(let ((local (rx

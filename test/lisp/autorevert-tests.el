@@ -572,7 +572,7 @@ Set modified file time in order to trigger auto-revert."
        nil 'local))))
 
 (ert-deftest auto-revert-test05-global-notify ()
-  "Test `global-auto-revert-mode' without polling."
+  "Test `global-auto-revert-mode'."
   (skip-unless (or file-notify--library
                    (file-remote-p auto-revert--test-rootdir)))
 
@@ -584,7 +584,6 @@ Set modified file time in order to trigger auto-revert."
        (ert-with-temp-file file-3
          :prefix ert-temp-file-prefix
          (let ((auto-revert-use-notify t)
-               (auto-revert-avoid-polling t)
                (was-in-global-auto-revert-mode global-auto-revert-mode)
                (file-2b (concat file-2 "-b"))
                require-final-newline buf-1 buf-2 buf-3)
@@ -592,8 +591,12 @@ Set modified file time in order to trigger auto-revert."
                (progn
                  (setq buf-1 (find-file-noselect file-1))
                  (auto-revert-test--instrument-kill-buffer-hook buf-1)
+		 (should-not (buffer-local-value 'auto-revert-mode buf-1))
+		 (should-not (buffer-local-value 'auto-revert--global-mode buf-1))
                  (setq buf-2 (find-file-noselect file-2))
                  (auto-revert-test--instrument-kill-buffer-hook buf-2)
+		 (should-not (buffer-local-value 'auto-revert-mode buf-2))
+		 (should-not (buffer-local-value 'auto-revert--global-mode buf-2))
                  ;; File stamps of remote files have an accuracy of 1
                  ;; second.  Wait a little bit.
                  (when (file-remote-p file-1)
@@ -604,6 +607,10 @@ Set modified file time in order to trigger auto-revert."
 
                  (global-auto-revert-mode 1) ; Turn it on.
                  (auto-revert--skip-unless-proper-library-and-monitor buf-1)
+		 (should-not (buffer-local-value 'auto-revert-mode buf-1))
+		 (should (buffer-local-value 'auto-revert--global-mode buf-1))
+		 (should-not (buffer-local-value 'auto-revert-mode buf-2))
+		 (should (buffer-local-value 'auto-revert--global-mode buf-2))
 
                  ;; buf-1 should have been reverted immediately when the mode
                  ;; was enabled.
@@ -611,23 +618,17 @@ Set modified file time in order to trigger auto-revert."
                   (string-equal (auto-revert-test--buffer-string buf-1) "1-a"))
 
                  ;; Alter a file.
-                 (ert-with-message-capture auto-revert--messages
-                   (auto-revert-test--write-region "2-a" file-2 buf-2)
-                   (auto-revert--wait-for-revert buf-2))
+                 (auto-revert-test--write-region "2-a" file-2)
+                 (auto-revert-test--wait-for-buffer-text
+                  buf-2 "2-a" (auto-revert--timeout))
                  (should
                   (string-equal (auto-revert-test--buffer-string buf-2) "2-a"))
 
                  ;; Visit a file, and modify it on disk.
                  (setq buf-3 (find-file-noselect file-3))
                  (auto-revert-test--instrument-kill-buffer-hook buf-3)
-                 ;; Newly opened buffers won't be use notification until the
-                 ;; first poll cycle; wait for it.
-                 (auto-revert-test--wait-for
-                  (lambda () (buffer-local-value
-                              'auto-revert-notify-watch-descriptor buf-3))
-                  (auto-revert--timeout))
-                 (should (buffer-local-value
-                          'auto-revert-notify-watch-descriptor buf-3))
+		 (should-not (buffer-local-value 'auto-revert-mode buf-3))
+		 (should (buffer-local-value 'auto-revert--global-mode buf-3))
                  (auto-revert-test--write-region "3-a" file-3)
                  (auto-revert-test--wait-for-buffer-text
                   buf-3 "3-a" (auto-revert--timeout))
@@ -644,8 +645,6 @@ Set modified file time in order to trigger auto-revert."
                  ;; while polling.  So increase the timeout.
                  (auto-revert-test--wait-for-buffer-text
                   buf-1 "1-b" (* 2 (auto-revert--timeout)))
-                 (should (buffer-local-value
-                          'auto-revert-notify-watch-descriptor buf-1))
 
                  ;; Write a buffer to a new file, then modify the new
                  ;; file on disk.
@@ -655,9 +654,7 @@ Set modified file time in order to trigger auto-revert."
                   (string-equal (auto-revert-test--buffer-string buf-2) "2-a"))
                  (auto-revert-test--write-region "2-b" file-2b)
                  (auto-revert-test--wait-for-buffer-text
-                  buf-2 "2-b" (auto-revert--timeout))
-                 (should (buffer-local-value
-                          'auto-revert-notify-watch-descriptor buf-2)))
+                  buf-2 "2-b" (auto-revert--timeout)))
 
              ;; Clean up.
              (unless was-in-global-auto-revert-mode
@@ -776,9 +773,6 @@ Set modified file time in order to trigger auto-revert."
                  (auto-revert-mode 0)
                  (should-not auto-revert-mode))
                (with-current-buffer (car buffers)
-                 (should
-                  (buffer-local-value
-                   'auto-revert-notify-watch-descriptor (current-buffer)))
                  (should auto-revert-mode)))
 
              ;; Killing an indirect buffer does not disable autorevert in
@@ -786,9 +780,6 @@ Set modified file time in order to trigger auto-revert."
              (dolist (buf (cdr buffers))
                (kill-buffer buf))
              (with-current-buffer (car buffers)
-               (should
-                (buffer-local-value
-                 'auto-revert-notify-watch-descriptor (current-buffer)))
                (should auto-revert-mode)))
 
          ;; Exit.

@@ -978,7 +978,7 @@ or an empty string if none."
   "Return the existing branches, as a list of strings.
 The car of the list is the current branch."
   (with-temp-buffer
-    (vc-git--call t "branch")
+    (vc-git--call nil t "branch")
     (goto-char (point-min))
     (let (current-branch branches)
       (while (not (eobp))
@@ -1083,21 +1083,21 @@ If toggling on, also insert its message into the buffer."
   "C-c C-e" #'vc-git-log-edit-toggle-amend)
 
 (defun vc-git--log-edit-summary-check (limit)
-  (and (re-search-forward "^Summary: " limit t)
-       (when-let* ((regex
-                    (cond ((and (natnump vc-git-log-edit-summary-max-len)
-                                (natnump vc-git-log-edit-summary-target-len))
-                           (format ".\\{,%d\\}\\(.\\{,%d\\}\\)\\(.*\\)"
-                                   vc-git-log-edit-summary-target-len
-                                   (- vc-git-log-edit-summary-max-len
-                                      vc-git-log-edit-summary-target-len)))
-                          ((natnump vc-git-log-edit-summary-max-len)
-                           (format ".\\{,%d\\}\\(?2:.*\\)"
-                                   vc-git-log-edit-summary-max-len))
-                          ((natnump vc-git-log-edit-summary-target-len)
-                           (format ".\\{,%d\\}\\(.*\\)"
-                                   vc-git-log-edit-summary-target-len)))))
-         (re-search-forward regex limit t))))
+  (and-let* (((re-search-forward "^Summary: " limit t))
+             (regex
+              (cond ((and (natnump vc-git-log-edit-summary-max-len)
+                          (natnump vc-git-log-edit-summary-target-len))
+                     (format ".\\{,%d\\}\\(.\\{,%d\\}\\)\\(.*\\)"
+                             vc-git-log-edit-summary-target-len
+                             (- vc-git-log-edit-summary-max-len
+                                vc-git-log-edit-summary-target-len)))
+                    ((natnump vc-git-log-edit-summary-max-len)
+                     (format ".\\{,%d\\}\\(?2:.*\\)"
+                             vc-git-log-edit-summary-max-len))
+                    ((natnump vc-git-log-edit-summary-target-len)
+                     (format ".\\{,%d\\}\\(.*\\)"
+                             vc-git-log-edit-summary-target-len)))))
+    (re-search-forward regex limit t)))
 
 (define-derived-mode vc-git-log-edit-mode log-edit-mode "Log-Edit/git"
   "Major mode for editing Git log messages.
@@ -1108,12 +1108,6 @@ It is based on `log-edit-mode', and has Git-specific extensions."
            '((vc-git--log-edit-summary-check
 	      (1 'vc-git-log-edit-summary-target-warning prepend t)
               (2 'vc-git-log-edit-summary-max-warning prepend t))))))
-
-(defvar vc-git-patch-string nil)
-
-(defun vc-git-checkin-patch (patch-string comment)
-  (let ((vc-git-patch-string patch-string))
-    (vc-git-checkin nil comment)))
 
 (autoload 'vc-switches "vc")
 
@@ -1128,8 +1122,9 @@ It is based on `log-edit-mode', and has Git-specific extensions."
        ("Sign-Off" . ,(boolean-arg-fn "--signoff")))
      comment)))
 
-(defmacro vc-git--with-apply-temp-to-staging (temp &rest body)
-  (declare (indent 1) (debug (symbolp body)))
+(cl-defmacro vc-git--with-apply-temp
+    ((temp &optional buffer okstatus &rest args) &body body)
+  (declare (indent 1))
   `(let ((,temp (make-nearby-temp-file ,(format "git-%s" temp))))
      (unwind-protect (progn ,@body
                             ;; This uses `file-local-name' to strip the
@@ -1137,13 +1132,22 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                             ;; because we've had at least one problem
                             ;; report where relativizing the file name
                             ;; meant that Git failed to find it.
-                            (vc-git-command nil 0 nil "apply" "--cached"
+                            (vc-git-command ,buffer ,(or okstatus 0)
+                                            nil "apply"
+                                            ,@(or args '("--cached"))
                                             (file-local-name ,temp)))
        (delete-file ,temp))))
 
 (defalias 'vc-git-async-checkins #'always)
 
-(defun vc-git-checkin (files comment &optional _rev)
+(defun vc-git--checkin (comment &optional files patch-string)
+  "Workhorse routine for `vc-git-checkin' and `vc-git-checkin-patch'.
+COMMENT is the commit message; must be non-nil.
+For a regular checkin, FILES is the list of files to check in.
+To check in a patch, PATCH-STRING is the patch text.
+It is an error to supply both or neither."
+  (unless (xor files patch-string)
+    (error "Invalid call to `vc-git--checkin'"))
   (let* ((file1 (or (car files) default-directory))
          (root (vc-git-root file1))
          (default-directory (expand-file-name root))
@@ -1167,7 +1171,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                                            default-directory)))
                 (make-nearby-temp-file "git-msg"))))
          to-stash)
-    (when vc-git-patch-string
+    (when patch-string
       (unless (zerop (vc-git-command nil t nil "diff" "--cached" "--quiet"))
         ;; Check that what's already staged is compatible with what
         ;; we want to commit (bug#60126).
@@ -1200,23 +1204,23 @@ It is based on `log-edit-mode', and has Git-specific extensions."
               (when (and (looking-at "^diff --git a/\\(.+\\) b/\\(.+\\)")
                          (string= (match-string 1) (match-string 2)))
                 (setq file-name (match-string 1)))
-              (forward-line 1) ; skip current "diff --git" line
+              (forward-line 1)          ; skip current "diff --git" line
               (setq file-header (buffer-substring pos (point)))
               (search-forward "diff --git" nil 'move)
               (move-beginning-of-line 1)
               (setq file-diff (buffer-substring pos (point)))
-              (cond ((and (setq file-beg (string-search
-                                          file-diff vc-git-patch-string))
+              (cond ((and (setq file-beg
+                                (string-search file-diff patch-string))
                           ;; Check that file diff ends with an empty string
                           ;; or the beginning of the next file diff.
                           (string-match-p "\\`\\'\\|\\`diff --git"
-                                          (substring
-                                           vc-git-patch-string
-                                           (+ file-beg (length file-diff)))))
-                     (setq vc-git-patch-string
-                           (string-replace file-diff "" vc-git-patch-string)))
+                                          (substring patch-string
+                                                     (+ file-beg
+                                                        (length file-diff)))))
+                     (setq patch-string
+                           (string-replace file-diff "" patch-string)))
                     ((string-match (format "^%s" (regexp-quote file-header))
-                                   vc-git-patch-string)
+                                   patch-string)
                      (if (and file-name
                               (yes-or-no-p
                                (format "Unstage already-staged changes to %s?"
@@ -1225,7 +1229,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                        (user-error "Index not empty")))
                     (t (push file-name to-stash)))
               (setq pos (point))))))
-      (unless (string-empty-p vc-git-patch-string)
+      (unless (string-empty-p patch-string)
         (let (;; Temporarily countermand the let-binding at the
               ;; beginning of this function.
               (coding-system-for-write
@@ -1234,21 +1238,60 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                 ;; to have the Unix EOL format, because Git expects
                 ;; that, even on Windows.
                 (or pcsw vc-git-commits-coding-system) 'unix)))
-          (vc-git--with-apply-temp-to-staging patch
+          (vc-git--with-apply-temp (patch)
             (with-temp-file patch
-              (insert vc-git-patch-string)))))
+              (insert patch-string)))))
       (when to-stash (vc-git--stash-staged-changes to-stash)))
-    (let ((files (and only (not vc-git-patch-string) files))
+    (let ((files (and only (not patch-string) files))
           (args (vc-git--log-edit-extract-headers comment))
           (buffer (format "*vc-git : %s*" (expand-file-name root)))
           (post
            (lambda ()
              (when (and msg-file (file-exists-p msg-file))
                (delete-file msg-file))
+             ;; If PATCH-STRING didn't come from C-x v = or C-x v D, we
+             ;; now need to update the working tree to include the
+             ;; changes from the commit we just created.
+             ;; If there are conflicts we want to favor the working
+             ;; tree's version and the version from the commit will just
+             ;; show up in the diff of uncommitted changes.
+             ;;
+             ;; 'git apply --3way --ours' is the way Git provides to
+             ;; achieve this.  This requires that the index match the
+             ;; working tree and also implies the --index option, which
+             ;; means applying the changes to the index in addition to
+             ;; the working tree.  These are both okay here because
+             ;; before doing this we know the index is empty (we just
+             ;; committed) and so we can just make use of it and reset
+             ;; afterwards.
+             (when patch-string
+               (vc-git-command nil 0 nil "add" "--all")
+               (with-temp-buffer
+                 (vc-git--with-apply-temp (patch t 1 "--3way")
+                   (with-temp-file patch
+                     (insert patch-string)))
+                 ;; We could delete the following if we could also pass
+                 ;; --ours to git-apply, but that is only available in
+                 ;; recent versions of Git.  --3way is much older.
+                 (cl-loop
+                  initially (goto-char (point-min))
+                  ;; git-apply doesn't apply Git's usual quotation and
+                  ;; escape rules for printing file names so we can do
+                  ;; this simple regexp processing.
+                  ;; (Passing -z does not affect the relevant output.)
+                  while (re-search-forward "^U " nil t)
+                  collect (buffer-substring-no-properties (point)
+                                                          (pos-eol))
+                  into paths
+                  finally (when paths
+                            (vc-git-command nil 0 paths
+                                            "checkout" "--ours"))))
+               (vc-git-command nil 0 nil "reset"))
              (when to-stash
-               (vc-git--with-apply-temp-to-staging cached
+               (vc-git--with-apply-temp (cached)
                  (with-temp-file cached
-                   (vc-git-command t 0 nil "stash" "show" "-p")))))))
+                   (vc-git-command t 0 nil "stash" "show" "-p")))
+               (vc-git-command nil 0 nil "stash" "drop")))))
       (when msg-file
         (let ((coding-system-for-write
                (or pcsw vc-git-commits-coding-system)))
@@ -1262,7 +1305,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                         ;; When operating on the whole tree, better pass
                         ;; "-a" than ".", since "."  fails when we're
                         ;; committing a merge.
-                        (and (not vc-git-patch-string)
+                        (and (not patch-string)
                              (if only (list "--only" "--") '("-a")))))
       (if vc-async-checkin
           (progn (vc-wait-for-process-before-save
@@ -1277,6 +1320,90 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                  (list 'async (get-buffer-process buffer)))
         (apply #'vc-git-command nil 0 files args)
         (funcall post)))))
+
+(defun vc-git--mailinfo (patch-string)
+  "Pipe PATCH-STRING to git-mailinfo(1) and return an alist of its output.
+
+The alist always contains an entry with key `message'.
+This contains the commit log message.
+In the case that there is also an alist entry with key \"Subject\", the
+first line of the commit message is missing from the `message' entry.
+To recover the full commit message, concatenate the \"Subject\" and
+`message' entries, interpolating two newline characters.
+
+The alist also always contains an entry with key `patch'.
+This contains the patch extracted from PATCH-STRING.
+If there is text in PATCH-STRING occurring before the actual hunks but
+after the commit message, separated from the latter with a line
+consisting of three hyphens, then that extra text is included in this
+alist entry.  (This space between the line of three hyphens and the
+hunks is conventionally used for a diffstat, and/or additional
+explanatory text submitted with the patch but not to be included in the
+commit log message.)
+
+The remaining entries in the alist correspond to the information
+returned by git-mailinfo(1) on standard output.  These specify the
+authorship and date information for the commit, and sometimes the first
+line of the commit message in an entry with key \"Subject\"."
+  (let ((input-file (make-nearby-temp-file "git-mailinfo-input"))
+        (msg-file (make-nearby-temp-file "git-mailinfo-msg"))
+        (patch-file (make-nearby-temp-file "git-mailinfo-patch"))
+        (coding-system-for-read (or coding-system-for-read
+                                    vc-git-log-output-coding-system))
+        res)
+    (unwind-protect
+        (with-temp-buffer
+          (let ((coding-system-for-write
+                 ;; Git expects Unix line endings here even on Windows.
+                 (coding-system-change-eol-conversion
+                  (or coding-system-for-write vc-git-commits-coding-system)
+                  'unix)))
+            (with-temp-file input-file
+              (insert patch-string)))
+          (let ((coding-system-for-write
+                 ;; On MS-Windows, we must encode command-line arguments
+                 ;; in the system codepage.
+                 (if (eq system-type 'windows-nt)
+                     locale-coding-system
+                   coding-system-for-write)))
+            (vc-git--call input-file t "mailinfo" msg-file patch-file))
+          (goto-char (point-min))
+          ;; git-mailinfo joins up any header continuation lines for us.
+          (while (re-search-forward "^\\([^\t\n\s:]+\\):\\(.*\\)$" nil t)
+            (push (cons (match-string 1) (string-trim (match-string 2)))
+                  res))
+          (erase-buffer)
+          (insert-file-contents-literally patch-file)
+          (push (cons 'patch (buffer-string)) res)
+          (erase-buffer)
+          (insert-file-contents-literally msg-file)
+          (push (cons 'message (string-trim (buffer-string))) res))
+      (dolist (file (list input-file msg-file patch-file))
+        (when (file-exists-p file)
+          (delete-file file))))
+    res))
+
+(defun vc-git-checkin-patch (patch-string comment)
+  "Git-specific version of `vc-BACKEND-checkin-patch'."
+  (let ((mailinfo (vc-git--mailinfo patch-string)))
+    (unless comment
+      (setq comment (if-let* ((subject (assoc "Subject" mailinfo)))
+                        (format "Summary: %s\n\n%s"
+                                (cdr subject)
+                                (cdr (assq 'message mailinfo)))
+                      (cdr (assq 'message mailinfo)))))
+    (when-let* ((date (assoc "Date" mailinfo)))
+      (setq comment (format "Date: %s\n%s" (cdr date) comment)))
+    (when-let* ((author (assoc "Author" mailinfo))
+                (email (assoc "Email" mailinfo)))
+      (setq comment (format "Author: %s <%s>\n%s"
+                            (cdr author) (cdr email) comment)))
+    (vc-git--checkin comment nil (cdr (assq 'patch mailinfo)))))
+
+(defun vc-git-checkin (files comment &optional _rev)
+  "Git-specific version of `vc-BACKEND-checkin'.
+REV is ignored."
+  (vc-git--checkin comment files nil))
 
 (defun vc-git--stash-staged-changes (files)
   "Stash only the staged changes to FILES."
@@ -1305,7 +1432,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                 (unwind-protect
                     (progn
                       (vc-git-command nil 0 nil "read-tree" "HEAD")
-                      ;; See `vc-git--with-apply-temp-to-staging'
+                      ;; See `vc-git--with-apply-temp'
                       ;; regarding use of `file-local-name'.
                       (vc-git-command nil 0 nil "apply" "--cached"
                                       (file-local-name cached))
@@ -2047,6 +2174,25 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     (vc-git-command standard-output 1 nil
                     "log" "--max-count=1" "--pretty=format:%B" rev)))
 
+(defun vc-git-cherry-pick-comment (_files rev reverse)
+  ;; Don't just call `vc-git-get-change-comment' in order to make one
+  ;; fewer call out to Git.  We have to resolve REV because even if it's
+  ;; already a hash it may be an abbreviated one.
+  (let (comment)
+    (with-temp-buffer
+      (vc-git-command t 0 nil "log" "-n1" "--pretty=format:%H%n%B" rev)
+      (goto-char (point-min))
+      (setq rev (buffer-substring-no-properties (point) (pos-eol)))
+      (forward-line 1)
+      (setq comment (buffer-substring-no-properties (point) (point-max))))
+    (if reverse
+        (format "Summary: Revert \"%s\"\n\nThis reverts commit %s.\n"
+                (car (split-string comment "\n" t
+                                   split-string-default-separators))
+                rev)
+      (format "Summary: %s\n(cherry picked from commit %s)\n"
+              comment rev))))
+
 (defun vc-git--assert-allowed-rewrite (rev)
   (when (and (not (and vc-allow-rewriting-published-history
                        (not (eq vc-allow-rewriting-published-history 'ask))))
@@ -2071,7 +2217,7 @@ Will not rewrite likely-public history; see option `vc-allow-rewriting-published
 
 (defun vc-git-modify-change-comment (files rev comment)
   (vc-git--assert-allowed-rewrite rev)
-  (when (zerop (vc-git--call nil "rev-parse" (format "%s^2" rev)))
+  (when (zerop (vc-git--call nil nil "rev-parse" (format "%s^2" rev)))
     ;; This amend! approach doesn't work for merge commits.
     ;; Error out now instead of leaving an amend! commit hanging.
     (error "Cannot modify merge commit comments"))
@@ -2165,26 +2311,39 @@ Rebase may --autosquash your other squash!/fixup!/amend!; proceed?")))
 
 (defun vc-git-prepare-patch (rev)
   (with-current-buffer (generate-new-buffer " *vc-git-prepare-patch*")
-    (vc-git-command
-     t 0 '()  "format-patch"
-     "--no-numbered" "--stdout"
-     ;; From gitrevisions(7): ^<n> means the <n>th parent
-     ;; (i.e.  <rev>^ is equivalent to <rev>^1). As a
-     ;; special rule, <rev>^0 means the commit itself and
-     ;; is used when <rev> is the object name of a tag
-     ;; object that refers to a commit object.
-     (concat rev "^.." rev))
-    (let (subject)
-      ;; Extract the subject line
-      (goto-char (point-min))
-      (search-forward-regexp "^Subject: \\(.+\\)")
-      (setq subject (match-string 1))
-      ;; Jump to the beginning for the patch
-      (search-forward-regexp "\n\n")
-      ;; Return the extracted data
-      (list :subject subject
-            :buffer (current-buffer)
-            :body-start (point)))))
+    (vc-git-command t 0 nil "format-patch"
+                    "--no-numbered" "--stdout" "-n1" rev)
+    (condition-case _
+        (let (subject body-start patch-start patch-end)
+          (goto-char (point-min))
+          (re-search-forward "^Subject: \\(.*\\)")
+          (setq subject (match-string 1))
+          (while (progn (forward-line 1)
+                        (looking-at "[\s\t]\\(.*\\)"))
+            (setq subject (format "%s %s" subject (match-string 1))))
+          (goto-char (point-min))
+          (re-search-forward "\n\n")
+          (setq body-start (point))
+          (if ;; If the user has added any of these to
+              ;; `vc-git-diff-switches' then they expect to see the
+              ;; diffstat in *vc-diff* buffers.
+              (cl-intersection '("--stat"
+                                 "--patch-with-stat"
+                                 "--compact-summary")
+                               (vc-switches 'git 'diff)
+                               :test #'equal)
+              (progn (re-search-forward "^---$")
+                     (setq patch-start (pos-bol 2)))
+            (re-search-forward "^diff --git a/")
+            (setq patch-start (pos-bol)))
+          (re-search-forward "^-- $")
+          (setq patch-end (pos-bol))
+          (list :subject subject
+                :body-start body-start
+                :patch-start patch-start
+                :patch-end patch-end
+                :buffer (current-buffer)))
+      (search-failed (error "git-format-patch output parse failure")))))
 
 ;; grep-compute-defaults autoloads grep.
 (declare-function grep-read-regexp "grep" ())
@@ -2276,7 +2435,7 @@ In other modes, call `vc-deduce-fileset' to determine files to stash."
   (interactive "sStash name: ")
   (let ((root (vc-git-root default-directory)))
     (when root
-      (apply #'vc-git--call nil "stash" "push" "-m" name
+      (apply #'vc-git--call nil nil "stash" "push" "-m" name
              (vc-git--deduce-files-for-stash))
       (vc-resynch-buffer root t t))))
 
@@ -2343,7 +2502,7 @@ In `vc-dir-mode', if there are files marked, stash the changes to those.
 If no files are marked, stash all uncommitted changes to tracked files.
 In other modes, call `vc-deduce-fileset' to determine files to stash."
   (interactive)
-  (apply #'vc-git--call nil "stash" "push" "-m"
+  (apply #'vc-git--call nil nil "stash" "push" "-m"
 	 (format-time-string "Snapshot on %Y-%m-%d at %H:%M")
          (vc-git--deduce-files-for-stash))
   (vc-git-command "*vc-git-stash*" 0 nil "stash" "apply" "-q" "stash@{0}")
@@ -2533,9 +2692,9 @@ The difference to `vc-do-command' is that this function always invokes
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."
   (let (process-file-side-effects)
-    (not (eq 0 (vc-git--call nil "rev-parse" "--verify" "HEAD")))))
+    (not (zerop (vc-git--call nil nil "rev-parse" "--verify" "HEAD")))))
 
-(defun vc-git--call (buffer command &rest args)
+(defun vc-git--call (infile buffer command &rest args)
   ;; We don't need to care the arguments.  If there is a file name, it
   ;; is always a relative one.  This works also for remote
   ;; directories.  We enable `inhibit-null-byte-detection', otherwise
@@ -2555,12 +2714,13 @@ The difference to `vc-do-command' is that this function always invokes
 	    ,@(when revert-buffer-in-progress
 		'("GIT_OPTIONAL_LOCKS=0")))
 	  process-environment)))
-    (apply #'process-file vc-git-program nil buffer nil "--no-pager" command args)))
+    (apply #'process-file vc-git-program infile buffer nil
+           "--no-pager" command args)))
 
 (defun vc-git--out-ok (command &rest args)
   "Run `git COMMAND ARGS...' and insert standard output in current buffer.
 Return whether the process exited with status zero."
-  (zerop (apply #'vc-git--call '(t nil) command args)))
+  (zerop (apply #'vc-git--call nil '(t nil) command args)))
 
 (defun vc-git--out-str (command &rest args)
   "Run `git COMMAND ARGS...' and return standard output as a string.

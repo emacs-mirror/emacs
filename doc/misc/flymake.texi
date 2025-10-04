@@ -231,7 +231,7 @@ can use the variables @code{flymake-mode-line-format} and
 @cindex disabled backends
 @cindex backends, disabled
 As Flymake supports multiple simultaneously active external backends,
-is becomes useful to monitor their status.  For example, some backends
+it becomes useful to monitor their status.  For example, some backends
 may take longer than others to respond or complete, and some may
 decide to @emph{disable} themselves if they are not suitable for the
 current buffer or encounter some unavoidable problem.  A disabled

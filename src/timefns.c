@@ -138,6 +138,26 @@ make_timeval (struct timespec t)
   return tv;
 }
 
+/* Return the current time with an epoch specific to this Emacs instance
+   (e.g., system boot).  The clock should be unaffected by changes to
+   the system time, and should be cheap to access.  Its resolution
+   should be appropriate for human time scales, e.g., better than 10 ms.
+   Make do with realtime if such a clock is not available.  */
+struct timespec
+monotonic_coarse_timespec (void)
+{
+  struct timespec ts;
+#ifdef CLOCK_MONOTONIC_COARSE
+  if (clock_gettime (CLOCK_MONOTONIC_COARSE, &ts) == 0)
+    return ts;
+#elif defined CLOCK_MONOTONIC
+  if (clock_gettime (CLOCK_MONOTONIC, &ts) == 0)
+    return ts;
+#endif
+  ts = current_timespec ();
+  return ts;
+}
+
 /* Yield A's UTC offset, or an unspecified value if unknown.  */
 static long int
 tm_gmtoff (struct tm *a)

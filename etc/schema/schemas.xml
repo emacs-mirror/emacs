@@ -93,4 +93,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
   <documentElement localName="Project" typeId="MSBuild"/>
   <typeId id="MSBuild" uri="msbuild.rnc" />
 
+  <uri pattern="*.slnx" typeId="Dotnet Slnx" />
+  <typeId id="Dotnet Slnx" uri="dotnet-slnx.rnc" />
+
 </locatingRules>

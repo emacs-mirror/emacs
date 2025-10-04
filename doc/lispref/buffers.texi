@@ -991,10 +991,13 @@ Satisfied if @emph{any} condition in @var{conds} satisfies
 Satisfied if @emph{all} the conditions in @var{conds} satisfy
 @code{buffer-match-p}, with the same buffer and @code{args}.
 @item derived-mode
-Satisfied if the buffer's major mode derives from @var{expr}.  Note
-that this condition might fail to report a match if
-@code{buffer-match-p} is invoked before the major mode of the buffer
-has been established.
+Satisfied if the buffer's major mode derives from @var{expr}.
+The value of @var{expr} can be either a single mode symbol
+or a list of mode symbols as accepted by the function
+@code{provided-mode-derived-p} (@pxref{Derived Modes}).
+Note that this condition might fail to report a match if
+@code{buffer-match-p} is invoked before the major mode of
+the buffer has been established.
 @item major-mode
 Satisfied if the buffer's major mode is equal to @var{expr}.  Prefer
 using @code{derived-mode} instead, when both can work.  Note that this

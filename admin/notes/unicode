@@ -97,10 +97,23 @@ might need to be updated because it knows about used and unused ranges
 of Unicode codepoints, which a new release of the Unicode Standard
 could change.
 
+Next, run the ucs-names test:
+
+  make -C test lisp/international/mule-tests
+
+If it fails, the exclusion ranges of codepoints in
+'mule-cmds-tests--ucs-names-missing-names' may need to be updated to
+account for the added Unicode codepoints.
+
 The data used by ucs-normalize.el might need to be updated.
 Specifically, the values of 'ucs-normalize-composition-exclusions' and
 'check-range", defined at the beginning of ucs-normalize.el, should be
-verified against the latest Unicode data files.
+verified against the latest Unicode data files.  But even if
+ucs-normalize.el is not modified, make sure it has been byte-compiled
+_after_ the lisp/international/uni-*.el files were regenerated, because
+it depends on uni-decomposition.el and uni-combining.el.  (We don't have
+this dependency in lisp/Makefile.in because recompiling ucs-normalize.el
+is expensive, and updates for a new Unicode version are rare.)
 
 Next, test normalization functions against NormalizationTests.txt,
 in the top-level directory run:

@@ -301,7 +301,8 @@ the choices can get pretty complex."
                                                (const :tag "Any" t)
                                                (string
                                                 :tag "Name"))))))
-                  (sexp :tag "A data structure (external provider)"))))
+                  (sexp :tag "A data structure (external provider)")))
+  :link '(custom-manual "(auth) Help for users"))
 
 (defcustom auth-source-gpg-encrypt-to t
   "List of recipient keys that `authinfo.gpg' encrypted to.
@@ -369,6 +370,15 @@ soon as a function returns non-nil.")
                                    :type 'ignore)))
     (auth-source-backend-parse-parameters entry backend)))
 
+(defcustom auth-source-ignore-non-existing-file t
+  "If set non-nil, file-based backends are ignored if the file does not exist.
+Consequently, no newly created entry is saved in such a backend when
+this user option is non-nil.
+
+Supported backend types are `netrc', `plstore' and `json'."
+  :version "31.1"
+  :type 'boolean)
+
 (defun auth-source-backends-parser-file (entry)
   ;; take just a file name use it as a netrc/plist file
   ;; matching any user, host, and protocol
@@ -383,26 +393,35 @@ soon as a function returns non-nil.")
          (extension (or (and (stringp source-without-gpg)
                              (file-name-extension source-without-gpg))
                         "")))
-    (when (stringp source)
-      (cond
-       ((equal extension "plist")
-        (auth-source-backend
-         :source source
-         :type 'plstore
-         :search-function #'auth-source-plstore-search
-         :create-function #'auth-source-plstore-create
-         :data (plstore-open source)))
-       ((member-ignore-case extension '("json"))
-        (auth-source-backend
-         :source source
-         :type 'json
-         :search-function #'auth-source-json-search))
-       (t
-        (auth-source-backend
-         :source source
-         :type 'netrc
-         :search-function #'auth-source-netrc-search
-         :create-function #'auth-source-netrc-create))))))
+    (cond
+     ((or (not (stringp source))
+          (and auth-source-ignore-non-existing-file
+               (not (file-exists-p source))))
+      (when auth-source-debug
+        (auth-source-do-warn
+         "auth-source-backend-parse: not existing file, ignoring spec: %S"
+         entry))
+      (auth-source-backend
+       :source ""
+       :type 'ignore))
+     ((equal extension "plist")
+      (auth-source-backend
+       :source source
+       :type 'plstore
+       :search-function #'auth-source-plstore-search
+       :create-function #'auth-source-plstore-create
+       :data (plstore-open source)))
+     ((member-ignore-case extension '("json"))
+      (auth-source-backend
+       :source source
+       :type 'json
+       :search-function #'auth-source-json-search))
+     (t
+      (auth-source-backend
+       :source source
+       :type 'netrc
+       :search-function #'auth-source-netrc-search
+       :create-function #'auth-source-netrc-create)))))
 
 ;; Note this function should be last in the parser functions, so we add it first
 (add-hook 'auth-source-backend-parser-functions #'auth-source-backends-parser-file)
@@ -1449,7 +1468,9 @@ See `auth-source-search' for details on SPEC."
         (when (and (stringp data)
                    (< 0 (length data)))
           (when (eq r 'secret)
-            (setq save-function t))
+            (setq save-function
+                  (not (and (string-match-p "\"" data)
+                            (string-match-p "'" data)))))
           ;; this function is not strictly necessary but I think it
           ;; makes the code clearer -tzz
           (let ((printer (lambda ()
@@ -1465,9 +1486,12 @@ See `auth-source-search' for details on SPEC."
                                      (secret "password")
                                      (port   "port") ; redundant but clearer
                                      (t (symbol-name r)))
-                                   (if (string-match "[\"# ]" data)
-                                       (format "%S" data)
-                                     data)))))
+                                   (cond
+                                    ((string-match-p "\"" data)
+                                     (format "'%s'" data))
+                                    ((string-match-p "['# ]" data)
+                                     (format "%S" data))
+                                    (t data))))))
             (setq add (concat add (funcall printer)))))))
 
     (when save-function

@@ -131,7 +131,7 @@
       #x1D1BF #x1D1C0)
    "Composition Exclusion List.
   This list is taken from
-    https://www.unicode.org/Public/UNIDATA/15.0/CompositionExclusions.txt")
+    https://www.unicode.org/Public/UNIDATA/CompositionExclusions.txt")
 
   ;; Unicode ranges where decompositions & combining characters are
   ;; defined.  Find them by running the following Awk program on

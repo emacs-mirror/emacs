@@ -2012,6 +2012,15 @@ Very long popup menus cannot be shown in their entirety, and don't have
 a scroll bar to scroll them vertically.  Lucid does not support this
 feature.  A workaround is to use other toolkits (GTK, LessTif, etc.).
 
+*** In Emacs built with Lucid cannot keep context menus open.
+
+After enabling context-menu-mode, when the menu is opened by
+<down-mouse-3>, it closes right away when the right mouse button
+is released.  It's possible to keep the context menu open
+after releasing the mouse button by disabling XInput 2 support:
+
+  ./configure --with-x-toolkit=lucid --without-xinput2
+
 *** Emacs running under X Window System does not handle mouse clicks.
 *** 'emacs -geometry 80x20' finds a file named '80x20'.
 

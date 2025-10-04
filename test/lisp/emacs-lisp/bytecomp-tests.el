@@ -32,6 +32,28 @@
 (require 'bytecomp)
 
 ;;; Code:
+
+;; Replacement for `byte-compile--log-warning-for-byte-compile'
+;; that doesn't call `display-warning' to avoid warnings being printed
+;; to the test log when running noninteractively.
+(defun bytecomp-tests--log-warning-for-byte-compile (string _pos _fill level)
+  (with-current-buffer (get-buffer-create byte-compile-log-buffer)
+    (save-excursion
+      (goto-char (point-max))
+      (let ((inhibit-read-only t))
+        (byte-compile-warning-prefix level nil)
+        (insert
+         (format "%s%s\n"
+                 (cond ((eq level :warning) "Warning: ")
+                       ((eq level :error) "Error: "))
+                 string))))))
+
+(defmacro bytecomp-tests--with-warnings (&rest body)
+  "Run BODY, compiler warnings going to `byte-compile-log-buffer' only."
+  `(cl-letf (((symbol-function 'byte-compile--log-warning-for-byte-compile)
+              #'bytecomp-tests--log-warning-for-byte-compile))
+     ,@body))
+
 (defvar bytecomp-test-var nil)
 
 (defun bytecomp-test-get-var ()
@@ -820,7 +842,8 @@ These are only tested with lexical binding.")
   "Evaluate FORM using the Lisp interpreter, returning errors as a
 special value."
   (condition-case err
-      (eval form lexical-binding)
+      (let ((inhibit-message t))
+        (eval form lexical-binding))
     (error (list 'bytecomp-check-error (car err)))))
 
 (defun bytecomp-tests--eval-compiled (form)
@@ -828,9 +851,10 @@ special value."
 special value."
   (let ((warning-minimum-log-level :emergency)
         (byte-compile-warnings nil))
-    (condition-case err
-	(funcall (byte-compile (list 'lambda nil form)))
-      (error (list 'bytecomp-check-error (car err))))))
+     (condition-case err
+	 (funcall (bytecomp-tests--with-warnings
+                   (byte-compile (list 'lambda nil form))))
+       (error (list 'bytecomp-check-error (car err))))))
 
 (ert-deftest bytecomp-tests-lexbind ()
   "Check that various expressions behave the same when interpreted and
@@ -861,7 +885,9 @@ byte-compiled.  Run with dynamic binding."
              (s-comp (byte-compile s-int))
              (v-int (lambda (x) (1+ x)))
              (v-comp (byte-compile v-int))
-             (comp (lambda (f) (funcall (byte-compile `(lambda () (,f 3)))))))
+             (comp (lambda (f)
+                     (funcall (bytecomp-tests--with-warnings
+                               (byte-compile `(lambda () (,f 3))))))))
         (should (equal (funcall comp s-int) 4))
         (should (equal (funcall comp s-comp) 4))
         (should (equal (funcall comp v-int) 4))
@@ -870,7 +896,8 @@ byte-compiled.  Run with dynamic binding."
 (defmacro bytecomp-tests--with-fresh-warnings (&rest body)
   `(let ((macroexp--warned            ; oh dear
           (make-hash-table :test #'equal :weakness 'key)))
-     ,@body))
+     (bytecomp-tests--with-warnings
+      ,@body)))
 
 (defun test-byte-comp-compile-and-load (compile &rest forms)
   (declare (indent 1))
@@ -1093,7 +1120,8 @@ byte-compiled.  Run with dynamic binding."
   `(ert-deftest ,(intern (format "bytecomp/%s" file)) ()
      (with-current-buffer (get-buffer-create "*Compile-Log*")
        (let ((inhibit-read-only t)) (erase-buffer))
-       (byte-compile-file ,(ert-resource-file file))
+       (bytecomp-tests--with-warnings
+        (byte-compile-file ,(ert-resource-file file)))
        (ert-info ((buffer-string) :prefix "buffer: ")
          (,(if reverse 'should-not 'should)
           (re-search-forward ,re-warning nil t))))))
@@ -1342,7 +1370,8 @@ byte-compiled.  Run with dynamic binding."
      nil elfile)
     (let* ((byte-compile-debug t)
            (byte-compile-dest-file-function #'ignore))
-      (byte-compile-file elfile)
+      (bytecomp-tests--with-warnings
+       (byte-compile-file elfile))
       (should (equal (funcall 'def) 5)))))
 
 (defmacro bytecomp-tests--with-temp-file (file-name-var &rest body)
@@ -1362,7 +1391,8 @@ byte-compiled.  Run with dynamic binding."
       (let ((inhibit-read-only t)) (erase-buffer)))
     (bytecomp-tests--with-temp-file el-file
       (write-region source nil el-file)
-      (byte-compile-file el-file))
+      (bytecomp-tests--with-warnings
+       (byte-compile-file el-file)))
     (with-current-buffer byte-compile-log-buffer
       (buffer-string))))
 
@@ -1437,7 +1467,7 @@ literals (Bug#20852)."
       (print form (current-buffer)))
     (write-region (point-min) (point-max) source nil 'silent)
     (byte-compile-file source)
-    (load source)
+    (load source nil t)
     (should (equal bytecomp-tests--foobar (cons 1 2)))))
 
 (ert-deftest bytecomp-tests--test-no-warnings-with-advice ()
@@ -1476,7 +1506,8 @@ literals (Bug#20852)."
   (or (featurep 'emacs)
       (some-undefined-function-or)))
 ")
-            (byte-compile-from-buffer (current-buffer)))
+            (bytecomp-tests--with-warnings
+             (byte-compile-from-buffer (current-buffer))))
           (with-current-buffer byte-compile-log-buffer
             (should (search-forward "an-undefined-function" nil t))
             (should-not (search-forward "some-undefined-function" nil t))))
@@ -1549,9 +1580,10 @@ literals (Bug#20852)."
       (goto-char (point-min))
       (should-not (string-match match (buffer-string))))
     ;; Also check that byte compiled forms are identical.
-    (should (equal (byte-compile form)
-                   (byte-compile
-                    `(with-suppressed-warnings ,suppress ,form))))))
+    (let ((normal (bytecomp-tests--with-warnings (byte-compile form)))
+          (nowarn (bytecomp-tests--with-warnings
+                   (byte-compile `(with-suppressed-warnings ,suppress ,form)))))
+      (should (equal normal nowarn)))))
 
 (ert-deftest bytecomp-test--with-suppressed-warnings ()
   (test-suppression
@@ -1869,7 +1901,10 @@ compiled correctly."
 (ert-deftest bytecomp-string-vs-docstring ()
   ;; Don't confuse a string return value for a docstring.
   (let ((lexical-binding t))
-    (should (equal (funcall (byte-compile '(lambda (x) "foo")) 'dummy) "foo"))))
+    (should (equal (funcall (bytecomp-tests--with-warnings
+                             (byte-compile '(lambda (x) "foo")))
+                            'dummy)
+                   "foo"))))
 
 (ert-deftest bytecomp-condition-case-success ()
   ;; No error, no success handler.
@@ -1954,7 +1989,7 @@ compiled correctly."
   (let ((file (ert-resource-file "bc-test-alpha.el"))
         (load-path (cons (ert-resource-directory) load-path)))
     (byte-compile-file file)
-    (load-file (concat file "c"))
+    (load (concat file "c") nil t t)
     (should (equal (bc-test-alpha-f 'a) '(nil a)))))
 
 (ert-deftest bytecomp-tests-byte-compile--wide-docstring-p/func-arg-list ()
@@ -2100,7 +2135,8 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
     (with-current-buffer (get-buffer-create "*Compile-Log*")
       (let ((inhibit-read-only t))
         (erase-buffer))
-      (byte-compile-file el)
+      (bytecomp-tests--with-warnings
+       (byte-compile-file el))
       (let ((expected
              '("70:4: Warning: `declare' after `interactive'"
                "74:4: Warning: Doc string after `interactive'"

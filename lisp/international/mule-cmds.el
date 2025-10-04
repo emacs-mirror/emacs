@@ -3105,12 +3105,14 @@ on encoding."
                (#x16100 . #x16139)
                ;; (#x1613A . #x167FF) unused
 	       (#x16800 . #x16F9F)
-               (#x16FE0 . #x16FF1)
+               (#x16FE0 . #x16FF6)
                ;; (#x17000 . #x187FF) Tangut Ideographs
                ;; (#x18800 . #x18AFF) Tangut Components
                ;; (#x18B00 . #x18CFF) Khitan Small Script
-               ;; (#x18D00 . #x18D0F) Tangut Ideograph Supplement
-	       ;; (#x18D10 . #x1AFEF) unused
+               ;; (#x18D00 . #x18D1E) Tangut Ideograph Supplement
+               ;; (#x18D1F . #x18D7F) unused
+	       ;; (#x18D80 . #x18DF2) Tangut Components
+               ;; (#x18DF3 . #x18DFF) unused
 	       (#x1AFF0 . #x1B122)
                ;; (#x1B123 . #x1B131) unused
                (#x1B132 . #x1B132)
@@ -3125,6 +3127,7 @@ on encoding."
 	       (#xE0000 . #xE01FF)))
             (gc-cons-threshold (max gc-cons-threshold 10000000))
 	    (names (make-hash-table :size 42943 :test #'equal)))
+	(require 'charprop) ;; Usually preloaded, but not during bootstrap.
         (dolist (range ranges)
           (let ((c (car range))
 	        (end (cdr range)))

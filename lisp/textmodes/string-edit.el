@@ -93,7 +93,7 @@ Also see `read-string-from-buffer'."
 ;;;###autoload
 (defun read-string-from-buffer (prompt string)
   "Switch to a new buffer to edit STRING in a recursive edit.
-The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or aborts with \\<string-edit-mode-map>\\[string-edit-abort]).
+The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or aborts with \\<string-edit-mode-map>\\[string-edit-abort].
 
 Insert PROMPT at the start of the buffer.  If nil, no prompt is
 inserted.
@@ -108,9 +108,7 @@ Also see `string-edit'."
    (lambda (edited)
      (setq string edited)
      (exit-recursive-edit))
-   :abort-callback (lambda ()
-                     (exit-recursive-edit)
-                     (error "Aborted edit")))
+   :abort-callback (lambda () (throw 'exit "Aborted edit")))
   (recursive-edit)
   string)
 

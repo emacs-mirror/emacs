@@ -559,7 +559,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 
   (let (;; We test for the summary line.  Keyword "total" could be localized.
 	(process-environment
-	 (append '("LANG=C" "LANGUAGE=C" "LC_ALL=C") process-environment)))
+	 (seq-union '("LANG=C" "LANGUAGE=C" "LC_ALL=C") process-environment)))
     (unwind-protect
 	(progn
 	  (with-temp-buffer
