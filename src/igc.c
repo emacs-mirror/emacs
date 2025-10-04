@@ -4987,59 +4987,13 @@ read_gens (size_t *ngens, mps_gen_param_s parms[*ngens])
   emacs_abort ();
 }
 
-/* Read GC maximum pause time from environment variable
-   EMACS_IGC_PAUSE_TIME. Value must be a floating point number
-   specifying the pause time in seconds. Example:
-
-   export EMACS_IGC_PAUSE_TIME=0.05
-
-   says to use 50ms maximum pause time. */
-
-static bool
-read_pause_time (double *time)
-{
-  const char *env = getenv ("EMACS_IGC_PAUSE_TIME");
-  if (env == NULL)
-    return false;
-  return sscanf (env, "%lf", time) == 1;
-}
-
-/* Read GC commit limit from environment variable
-   EMACS_IGC_COMMIT_LIMIT. Value must be an integer number specifying
-   the commit limit in bytes. Example:
-
-   export EMACS_IGC_COMMIT_LIMIT=1000000000
-
-   Do not use this, except for testing.  */
-
-static bool
-read_commit_limit (size_t *limit)
-{
-  const char *env = getenv ("EMACS_IGC_COMMIT_LIMIT");
-  if (env == NULL)
-    return false;
-#if __MINGW32_MAJOR_VERSION >= 5
-  return sscanf (env, "%u", limit) == 1;
-#else
-  return sscanf (env, "%zu", limit) == 1;
-#endif
-}
-
 static void
 make_arena (struct igc *gc)
 {
   mps_res_t res;
   MPS_ARGS_BEGIN (args)
   {
-    double pause_time;
-    if (!read_pause_time (&pause_time))
-      pause_time = 0.01;
-    MPS_ARGS_ADD (args, MPS_KEY_PAUSE_TIME, pause_time);
-
-    size_t commit_limit;
-    if (read_commit_limit (&commit_limit))
-      MPS_ARGS_ADD (args, MPS_KEY_COMMIT_LIMIT, commit_limit);
-
+    MPS_ARGS_ADD (args, MPS_KEY_PAUSE_TIME, 0.01);
     res = mps_arena_create_k (&gc->arena, mps_arena_class_vm (), args);
   }
   MPS_ARGS_END (args);
