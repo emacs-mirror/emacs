@@ -1,6 +1,6 @@
-# BidiMirroring-16.0.0.txt
-# Date: 2024-01-30
-# © 2024 Unicode®, Inc.
+# BidiMirroring-17.0.0.txt
+# Date: 2025-08-01
+# © 2025 Unicode®, Inc.
 # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
 # For terms of use and license, see https://www.unicode.org/terms_of_use.html
 #
@@ -16,7 +16,7 @@
 # value, for which there is another Unicode character that typically has a glyph
 # that is the mirror image of the original character's glyph.
 #
-# The repertoire covered by the file is Unicode 16.0.0.
+# The repertoire covered by the file is Unicode 17.0.0.
 #
 # The file contains a list of lines with mappings from one code point
 # to another one for character-based mirroring.

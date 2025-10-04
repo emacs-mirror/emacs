@@ -1644,7 +1644,7 @@ Based on https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-infore
   ;; happen sometimes because of a <br> tag and the intent seems to be
   ;; alignment of subscript and superscript but I don't think that is
   ;; possible in Emacs.  So we remove the newline in that case.
-  (when (bolp)
+  (when (and (bolp) (not (bobp)))
     (forward-char -1)
     (delete-char 1))
   (let ((start (point)))

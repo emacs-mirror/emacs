@@ -1533,7 +1533,9 @@ See `window-dedicated-p' for what that means."
         (unless calc-inhibit-startup-message
           (message (substitute-command-keys
                     (concat "Welcome to the GNU Emacs Calculator!  \\<calc-mode-map>"
-                            "Press \\[calc-help] or \\[calc-help-prefix] for help, \\[calc-quit] to quit"))))
+                            "Press \\[calc-help] "
+                            (if (featurep 'calc-ext) "or \\[calc-help-prefix] ")
+                            "for help, \\[calc-quit] to quit"))))
         (run-hooks 'calc-start-hook)
         (and (windowp full-display)
              (window-point full-display)

@@ -132,13 +132,13 @@ use them automatically, either pass @code{:client-certificate t} to
 @code{open-network-stream}, or customize
 @code{network-stream-use-client-certificates} to @code{t}.
 
-You can use spaces inside a password or other token by surrounding the
-token with either single or double quotes.
+You can use spaces or number signs (@t{"#"}) inside a password or other
+token by surrounding the token with either single or double quotes.
 
 You can use apostrophes inside a password or other token by
-surrounding it with double quotes, e.g., @code{"he'llo"}.  Similarly you
+surrounding it with double quotes, e.g., @t{"he'llo"}.  Similarly you
 can use double quotes inside a password or other token by surrounding
-it with apostrophes, e.g., @code{'he"llo'}.  You can't mix both (so a
+it with apostrophes, e.g., @t{'he"llo'}.  You can't mix both (so a
 password or other token can't have both apostrophes and double quotes).
 
 All this is optional.  You could just say (but we don't recommend it,
@@ -157,13 +157,13 @@ library encourages this confusion by accepting both, as you'll see
 later.
 
 If you have problems with the search, set @code{auth-source-debug} to
-@code{'trivia} and see what host, port, and user the library is
+@code{trivia} and see what host, port, and user the library is
 checking in the @file{*Messages*} buffer.  Ditto for any other
 problems, your first step is always to see what's being checked.  The
 second step, of course, is to write a blog entry about it and wait for
 the answer in the comments.
 
-You can customize the variable @code{auth-sources}.  The following may
+You can customize the user option @code{auth-sources}.  The following may
 be needed if you are using an older version of Emacs or if the
 auth-source library is not loaded for some other reason.
 
@@ -172,29 +172,29 @@ auth-source library is not loaded for some other reason.
 (customize-variable 'auth-sources) ;; optional, do it once
 @end lisp
 
-@defvar auth-sources
+@defopt auth-sources
 
-The @code{auth-sources} variable tells the auth-source library where
+The @code{auth-sources} user option tells the auth-source library where
 your netrc files, Secret Service API collection items, or your
 password store live for a particular host and protocol.  While you can
 get fancy, the default and simplest configuration is:
 
 @lisp
 ;;; old default: required :host and :port, not needed anymore
-(setq auth-sources '((:source "~/.authinfo.gpg" :host t :port t)))
+(setopt auth-sources '((:source "~/.authinfo.gpg" :host t :port t)))
 ;;; mostly equivalent (see below about fallbacks) but shorter:
-(setq auth-sources '((:source "~/.authinfo.gpg")))
-;;; even shorter and the @emph{default}:
-(setq auth-sources '("~/.authinfo.gpg" "~/.authinfo" "~/.netrc"))
+(setopt auth-sources '((:source "~/.authinfo.gpg")))
+;;; even shorter:
+(setopt auth-sources '("~/.authinfo.gpg"))
 ;;; use the Secrets API @var{Login} collection
 ;;; (@pxref{Secret Service API})
-(setq auth-sources '("secrets:Login"))
+(setopt auth-sources '("secrets:Login"))
 ;;; use pass (@file{~/.password-store})
 ;;; (@pxref{The Unix password store})
 (auth-source-pass-enable)
 ;;; JSON data in format [@{ "machine": "SERVER",
 ;;; "login": "USER", "password": "PASSWORD" @}...]
-(setq auth-sources '("~/.authinfo.json.gpg"))
+(setopt auth-sources '("~/.authinfo.json.gpg"))
 @end lisp
 
 By adding multiple entries to @code{auth-sources} with a particular
@@ -206,12 +206,12 @@ have unusual setups and the remaining 10% are @emph{really} unusual).
 Here's a mixed example using two sources:
 
 @lisp
-(setq auth-sources '((:source (:secrets default)
-                      :host "myserver" :user "joe")
-                     "~/.authinfo.gpg"))
+(setopt auth-sources '((:source (:secrets default)
+                        :host "myserver" :user "joe")
+                       "~/.authinfo.gpg"))
 @end lisp
 
-@end defvar
+@end defopt
 
 If you don't customize @code{auth-sources}, you'll have to live with
 the defaults: the unencrypted netrc file @file{~/.authinfo} will be
@@ -265,16 +265,35 @@ Note that the port denotes the Tramp connection method.  When you
 don't use a port entry, you match any Tramp method, as explained
 earlier.  Since Tramp has about 88 connection methods, this may be
 necessary if you have an unusual (see earlier comment on those) setup.
+@xref{Password handling, Password handling,, tramp, Tramp}.
 
-The netrc format is directly translated into JSON, if you are into
-that sort of thing.  Just point to a JSON file with entries like this:
+The netrc format is directly translated into JSON, if you are into that
+sort of thing.  Just point to a file which has the name extension
+@file{.json} with entries like this:
 
 @example
 [
  @{ "machine": "yourmachine.com", "port": "http",
-    "login": "testuser", "password": "testpass" @}
+   "login": "testuser", "password": "testpass" @}
 ]
 @end example
+
+It is also possible to translate this into property lists, used in files
+with name extension @file{.plist}.  Its format is described in the
+@file{plstore.el} library:
+
+@example
+(("foo" :host "yourmachine.com" :port "http"
+        :user "testuser" :password "testpass"))
+@end example
+
+@vindex auth-source-ignore-non-existing-file
+File-based data stores are ignored in @code{auth-sources}, if the
+underlying data file does not exist.  This is relevant, if a new secret
+is stored in such a file; the first usable entry of @code{auth-sources}
+is selected as target.  If you want also not existing files to be
+selected, set the user option
+@code{auth-source-ignore-non-existing-file} to @code{nil}.
 
 @node Multiple GMail accounts with Gnus
 @chapter Multiple GMail accounts with Gnus
@@ -285,9 +304,9 @@ names:
 
 @example
 (setq gnus-secondary-select-methods '((nnimap "gmail"
-                                         (nnimap-address "imap.gmail.com"))
+                                       (nnimap-address "imap.gmail.com"))
                                       (nnimap "gmail2"
-                                         (nnimap-address "imap.gmail.com"))))
+                                       (nnimap-address "imap.gmail.com"))))
 @end example
 
 Your netrc entries will then be:
@@ -334,12 +353,12 @@ sometimes called a @samp{keyring} or @samp{wallet} in GNOME Keyring
 and KDE Wallet but it's the same thing, a group of secrets.
 Collections are personal and protected so only the owner can open them.
 
-The most common collection is called @code{"login"}.
+The most common collection is called @t{"login"}.
 
-A collection can have an alias.  The alias @code{"default"} is
+A collection can have an alias.  The alias @t{"default"} is
 commonly used so the clients don't have to know the specific name of
 the collection they open.  Other aliases are not supported yet.
-Since aliases are globally accessible, set the @code{"default"} alias
+Since aliases are globally accessible, set the @t{"default"} alias
 only when you're sure it's appropriate.
 
 @defun secrets-list-collections
@@ -348,31 +367,31 @@ This function returns all the collection names as a list.
 
 @defun secrets-set-alias collection alias
 Set @var{alias} as alias of collection labeled @var{collection}.
-Currently only the alias @code{"default"} is supported.
+Currently only the alias @t{"default"} is supported.
 @end defun
 
 @defun secrets-get-alias alias
 Return the collection name @var{alias} is referencing to.
-Currently only the alias @code{"default"} is supported.
+Currently only the alias @t{"default"} is supported.
 @end defun
 
 Collections can be created and deleted by the functions
 @code{secrets-create-collection} and @code{secrets-delete-collection}.
 Usually, this is not done from within Emacs.  Do not delete standard
-collections such as @code{"login"}.
+collections such as @t{"login"}.
 
 With GNOME Keyring, there exists a special collection called
-@code{"session"}, which has the lifetime of the user being logged in.
+@t{"session"}, which has the lifetime of the user being logged in.
 Its data is not stored on disk and goes away when the user logs out.
 Therefore, it can be used to store and retrieve secret items
-temporarily.  The @code{"session"} collection is better than a
+temporarily.  The @t{"session"} collection is better than a
 persistent collection when the secret items should not live
-permanently.  The @code{"session"} collection can be addressed either
-by the string @code{"session"}, or by @code{nil}, whenever a
+permanently.  The @t{"session"} collection can be addressed either
+by the string @t{"session"}, or by @code{nil}, whenever a
 collection parameter is needed.
 
 However, other Secret Service provider don't create this temporary
-@code{"session"} collection.  You must check first that this
+@t{"session"} collection.  You must check first that this
 collection exists, before you use it.
 
 @defun secrets-list-items collection
@@ -450,20 +469,20 @@ in @code{secrets-create-item}.  Example:
 
 The auth-source library uses the @file{secrets.el} library and thus
 the Secret Service API when you specify a source matching
-@code{"secrets:COLLECTION"}.  For instance, you could use
-@code{"secrets:session"} to use the @code{"session"} collection, open only
-for the lifetime of Emacs.  Or you could use @code{"secrets:Login"} to
-open the @code{"Login"} collection.  As a special case, you can use the
+@t{"secrets:@var{collection}"}.  For instance, you could use
+@t{"secrets:session"} to use the @t{"session"} collection, open only
+for the lifetime of Emacs.  Or you could use @t{"secrets:Login"} to
+open the @t{"Login"} collection.  As a special case, you can use the
 symbol @code{default} in @code{auth-sources} (not a string, but a
-symbol) to specify the @code{"default"} alias.  Here is a contrived
+symbol) to specify the @t{"default"} alias.  Here is a contrived
 example that sets @code{auth-sources} to search three collections and
 then fall back to @file{~/.authinfo.gpg}.
 
 @example
-(setq auth-sources '(default
-                     "secrets:session"
-                     "secrets:Login"
-                     "~/.authinfo.gpg"))
+(setopt auth-sources '(default
+                       "secrets:session"
+                       "secrets:Login"
+                       "~/.authinfo.gpg"))
 @end example
 
 Attribute values in the auth-source spec, which are not strings (like
@@ -477,7 +496,7 @@ functions.
 manager} (or just @samp{pass}) stores your passwords in
 @code{gpg}-protected files following the Unix philosophy.  The store
 location (any directory) must be specified in the
-@code{auth-source-pass-filename} variable which defaults to
+@code{auth-source-pass-filename} user option which defaults to
 @file{~/.password-store}.
 
 Emacs integration of @samp{pass} follows the approach suggested by the
@@ -503,7 +522,7 @@ host with an at-sign (@code{@@}).
 @item gnu.org:22.gpg
 The port (aka. service) to match can only be expressed after the host
 and separated with a colon (@code{:}).  The separator can be changed
-through the @code{auth-source-pass-port-separator} variable.
+through the @code{auth-source-pass-port-separator} user option.
 
 @item gnu.org:22/rms.gpg
 
@@ -544,17 +563,17 @@ library wrapping @samp{pass};
 @uref{https://github.com/jabranham/helm-pass,,helm-pass}: helm interface for pass.
 @end itemize
 
-@defvar auth-source-pass-filename
-Set this variable to a string locating the password store on the disk.
+@defopt auth-source-pass-filename
+Set this user option to a string locating the password store on the disk.
 Defaults to @file{~/.password-store}.
-@end defvar
+@end defopt
 
-@defvar auth-source-pass-port-separator
-Set this variable to a string that should separate an host name from a
+@defopt auth-source-pass-port-separator
+Set this user option to a string that should separate an host name from a
 port in an entry.  Defaults to @samp{:}.
-@end defvar
+@end defopt
 
-@defvar auth-source-pass-extra-query-keywords
+@defopt auth-source-pass-extra-query-keywords
 This expands the selection of available keywords to include
 @code{:max} and @code{:require} and tells more of them to accept a
 list of query parameters as an argument.  When searching, it also
@@ -569,18 +588,18 @@ matching against subdomain labels, keep this option set to @code{nil}
 of searches relative to other auth-source backends or encounter code
 expecting to query multiple backends uniformly, try flipping it to
 @code{t}.
-@end defvar
+@end defopt
 
 @node Help for developers
 @chapter Help for developers
 
 The auth-source library lets you control logging output easily.
 
-@defvar auth-source-debug
-Set this variable to @code{'trivia} to see lots of output in
+@defopt auth-source-debug
+Set this user option to @code{trivia} to see lots of output in
 @file{*Messages*}, or set it to a function that behaves like
 @code{message} to do your own logging.
-@end defvar
+@end defopt
 
 The auth-source library only has a few functions for external use.
 
@@ -610,6 +629,7 @@ from Gnus's @code{nnimap.el}.
       nil)))
 @end example
 
+@vindex auth-source-creation-defaults
 This call requires the user and password (secret) to be in the
 results.  It also requests that an entry be created if it doesn't
 exist already.  While the created entry is being assembled, the shown
@@ -635,7 +655,7 @@ authentication information we just used, if it was newly created.''
 
 After the first time it's called, the @code{:save-function} will not
 run again (but it will log something if you have set
-@code{auth-source-debug} to @code{'trivia}).  This is so it won't ask
+@code{auth-source-debug} to @code{trivia}).  This is so it won't ask
 the same question again, which is annoying.
 
 So the responsibility of the API user that specified @code{:create t}
@@ -671,7 +691,7 @@ record.
 @node GnuPG and EasyPG Assistant Configuration
 @appendix GnuPG and EasyPG Assistant Configuration
 
-If the @code{auth-sources} variable contains @file{~/.authinfo.gpg}
+If the @code{auth-sources} user option contains @file{~/.authinfo.gpg}
 before @file{~/.authinfo}, the auth-source library will try to
 read the GnuPG encrypted @file{.gpg} file first, before
 the unencrypted file.

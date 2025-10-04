@@ -1730,7 +1730,6 @@ scroll the window of possible completions."
          ((eq completion-auto-select 'second-tab))
          ;; Reverse tab
          ((equal (this-command-keys) [backtab])
-          (completion--lazy-insert-strings)
           (if (pos-visible-in-window-p (point-min) window)
               ;; If beginning is in view, scroll up to the end.
               (set-window-point window (point-max))
@@ -1738,7 +1737,6 @@ scroll the window of possible completions."
             (with-selected-window window (scroll-down))))
          ;; Normal tab
          (t
-          (completion--lazy-insert-strings)
           (if (pos-visible-in-window-p (point-max) window)
               ;; If end is in view, scroll up to the end.
               (set-window-start window (point-min) nil)
@@ -2327,6 +2325,21 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
                        'action #'completion--lazy-insert-strings))
           (button-put completions--lazy-insert-button
                       'completions-continuation completions-continuation))))))
+
+(defun completion--lazy-insert-strings-on-scroll (window _start)
+  (with-current-buffer (window-buffer window)
+    (let ((track-eob (eobp)))
+      (completion--lazy-insert-strings)
+      ;; Keep point at the end of the updated buffer.
+      (when track-eob
+        (with-selected-window window
+          (goto-char (point-max))
+          (previous-completion 1)
+          (recenter -1)
+          (when cursor-face-highlight-mode
+            (redisplay--update-cursor-face-highlight window))))))
+  (remove-hook 'window-scroll-functions
+               'completion--lazy-insert-strings-on-scroll t))
 
 (defun completion--lazy-insert-strings (&optional button)
   (setq button (or button completions--lazy-insert-button))
@@ -3440,8 +3453,8 @@ displaying the *Completions* buffer exists."
 
 (defvar-keymap minibuffer-visible-completions-map
   :doc "Local keymap for minibuffer input with visible completions."
-  "<left>"  (minibuffer-visible-completions--bind #'minibuffer-previous-completion)
-  "<right>" (minibuffer-visible-completions--bind #'minibuffer-next-completion)
+  "<left>"  (minibuffer-visible-completions--bind #'minibuffer-previous-column-completion)
+  "<right>" (minibuffer-visible-completions--bind #'minibuffer-next-column-completion)
   "<up>"    (minibuffer-visible-completions--bind #'minibuffer-previous-line-completion)
   "<down>"  (minibuffer-visible-completions--bind #'minibuffer-next-line-completion)
   "C-g"     (minibuffer-visible-completions--bind #'minibuffer-hide-completions))
@@ -5224,15 +5237,15 @@ selected by these commands to the minibuffer."
   "Move to the next item in its completions window from the minibuffer.
 When the optional argument VERTICAL is non-nil, move vertically
 to the next item on the next line using `next-line-completion'.
-Otherwise, move to the next item horizontally using `next-completion'.
+Otherwise, move to the next item horizontally using `next-column-completion'.
 When `minibuffer-completion-auto-choose' is non-nil, then also
 insert the selected completion candidate to the minibuffer."
   (interactive "p")
   (let ((auto-choose minibuffer-completion-auto-choose))
     (with-minibuffer-completions-window
-      (if vertical
+      (if (or vertical (eq completions-format 'vertical))
           (next-line-completion (or n 1))
-        (next-completion (or n 1)))
+        (next-column-completion (or n 1)))
       (when auto-choose
         (let ((completion-auto-deselect nil))
           (choose-completion nil t t))))))
@@ -5261,6 +5274,26 @@ When `minibuffer-completion-auto-choose' is non-nil, then also
 insert the selected completion candidate to the minibuffer."
   (interactive "p")
   (minibuffer-next-completion (- (or n 1)) t))
+
+(defun minibuffer-next-column-completion (&optional n)
+  "Move to the next completion column from the minibuffer.
+This means to move to the completion candidate in the next column
+in the *Completions* buffer while point stays in the minibuffer.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion candidate to the minibuffer."
+  (interactive "p")
+  (with-minibuffer-completions-window
+    (next-column-completion (or n 1))))
+
+(defun minibuffer-previous-column-completion (&optional n)
+  "Move to the previous completion column from the minibuffer.
+This means to move to the completion candidate on the previous column
+in the *Completions* buffer while point stays in the minibuffer.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion candidate to the minibuffer."
+  (interactive "p")
+  (with-minibuffer-completions-window
+    (next-column-completion (- (or n 1)))))
 
 (defun minibuffer-choose-completion (&optional no-exit no-quit)
   "Run `choose-completion' from the minibuffer in its completions window.
@@ -5425,6 +5458,7 @@ The latter is implemented in `touch-screen.el'."
 (add-hook 'minibuffer-setup-hook #'minibuffer-setup-on-screen-keyboard)
 (add-hook 'minibuffer-exit-hook #'minibuffer-exit-on-screen-keyboard)
 
+
 (defvar minibuffer-regexp-mode)
 
 (defun minibuffer--regexp-propertize ()
@@ -5573,7 +5607,7 @@ and make sexp navigation more intuitive.
 The list of prompts activating this mode in specific minibuffer
 interactions is customizable via `minibuffer-regexp-prompts'."
   :global t
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-delay
   :init-value t
   (if minibuffer-regexp-mode
       (progn
@@ -5595,6 +5629,55 @@ interactions is customizable via `minibuffer-regexp-prompts'."
     (remove-hook 'minibuffer-setup-hook #'minibuffer--regexp-setup)
     (remove-hook 'minibuffer-exit-hook #'minibuffer--regexp-exit)))
 
+
+(defface minibuffer-nonselected
+  '((t (:background "yellow" :foreground "dark red" :weight bold)))
+  "Face for non-selected minibuffer prompts.
+It's displayed on the minibuffer window when the minibuffer
+remains active, but the minibuffer window is no longer selected."
+  :version "31.1")
+
+(defvar-local minibuffer--nonselected-overlay nil)
+
+(defun minibuffer--nonselected-check (window)
+  "Check if the active minibuffer's window is no longer selected.
+Use overlay to highlight the minibuffer window when another window
+is selected.  But don't warn in case when the *Completions* window
+becomes selected."
+  (if (eq window (selected-window))
+      (with-current-buffer (window-buffer window)
+        (when (overlayp minibuffer--nonselected-overlay)
+          (delete-overlay minibuffer--nonselected-overlay)))
+    (unless (eq (buffer-local-value 'completion-reference-buffer
+                                    (window-buffer))
+                (window-buffer window))
+      (with-current-buffer (window-buffer window)
+        (let ((ov (make-overlay (point-min) (point-max))))
+          (overlay-put ov 'face 'minibuffer-nonselected)
+          (overlay-put ov 'evaporate t)
+          (setq minibuffer--nonselected-overlay ov))))))
+
+(defun minibuffer--nonselected-setup ()
+  "Setup hooks for `minibuffer-nonselected-mode' to update the overlay."
+  (add-hook 'window-buffer-change-functions
+            #'minibuffer--nonselected-check nil t)
+  (add-hook 'window-selection-change-functions
+            #'minibuffer--nonselected-check nil t))
+
+(define-minor-mode minibuffer-nonselected-mode
+  "Minor mode to warn about non-selected active minibuffer.
+Use the face `minibuffer-nonselected' to highlight the minibuffer
+window when the minibuffer remains active, but the minibuffer window
+is no longer selected."
+  :global t
+  :initialize #'custom-initialize-delay
+  :init-value t
+  :version "31.1"
+  (if minibuffer-nonselected-mode
+      (add-hook 'minibuffer-setup-hook #'minibuffer--nonselected-setup)
+    (remove-hook 'minibuffer-setup-hook #'minibuffer--nonselected-setup)))
+
+
 (provide 'minibuffer)
 
 ;;; minibuffer.el ends here

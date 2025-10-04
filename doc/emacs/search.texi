@@ -160,8 +160,8 @@ matches that begin after it.
 @node Repeat Isearch
 @subsection Repeating Incremental Search
 
-@kindex C-s @r{(Incremental Search)}
-@kindex C-r @r{(Incremental Search)}
+@kindex C-s @r{(repeating incremental search)}
+@kindex C-r @r{(repeating incremental search)}
 @findex isearch-repeat-forward
 @findex isearch-repeat-backward
   Suppose you search forward for @samp{FOO} and find a match, but not
@@ -660,26 +660,31 @@ but it applies only for certain motion command that have the
 @node Isearch Minibuffer
 @subsection Searching the Minibuffer
 @cindex minibuffer history, searching
+@cindex incremental search in minibuffer history
 
-If you start an incremental search while the minibuffer is active,
-Emacs searches the contents of the minibuffer.  Unlike searching an
-ordinary buffer, the search string is not shown in the echo area,
-because that is used to display the minibuffer.
+@kindex C-s @r{in minibuffer}
+@kindex C-r @r{in minibuffer}
+If you start an incremental search while the minibuffer is active, Emacs
+searches the contents of the minibuffer, as in any other buffer.  Unlike
+searching an ordinary buffer, the search string is not shown in the echo
+area, because that is used to display the minibuffer.
 
-If an incremental search fails in the minibuffer, it tries searching
-the minibuffer history.  @xref{Minibuffer History}.  You can visualize
-the minibuffer and its history as a series of pages, with the
-earliest history element on the first page and the current minibuffer
-on the last page.  A forward search, @kbd{C-s}, searches forward to
-later pages; a reverse search, @kbd{C-r}, searches backwards to
-earlier pages.  Like in ordinary buffer search, a failing search can
-wrap around, going from the last page to the first page or vice versa.
+If an incremental search in the minibuffer fails to find a match, it
+tries searching the minibuffer history.  @xref{Minibuffer History}.
+Emacs pretends that the minibuffer and its history are a series of
+pages, with the earliest history element on the first page and the
+current minibuffer on the last page.  A forward search, @kbd{C-s},
+searches forward to later pages; a reverse search, @kbd{C-r}, searches
+backwards to earlier pages.  Like in ordinary buffer search, a failing
+search can wrap around, going from the last page to the first page or
+vice versa.
 
-When the current match is on a history element, that history element
-is pulled into the minibuffer.  If you exit the incremental search
-normally (e.g., by typing @key{RET}), it remains in the minibuffer
-afterwards.  Canceling the search, with @kbd{C-g}, restores the
-contents of the minibuffer when you began the search.
+When an incremental search in the minibuffer finds a match that is part
+of a history element, that history element is pulled into the minibuffer
+and displayed.  If you exit the incremental search normally (e.g., by
+typing @key{RET}), it remains in the minibuffer afterwards.  Canceling
+the search, with @kbd{C-g}, restores the contents of the minibuffer to
+what it was when you began the search.
 
 @node Nonincremental Search
 @section Nonincremental Search

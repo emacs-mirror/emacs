@@ -1236,11 +1236,12 @@ This command queries the shell with the command bound to
 `shell-dirstack-query' (default \"dirs\"), reads the next
 line output and parses it to form the new directory stack."
   (interactive)
-  (let* ((dls (car
-               (last
-                (string-lines
-                 (string-chop-newline
-                  (shell-eval-command (concat shell-dirstack-query "\n")))))))
+  (let* ((lines (nreverse
+                 (string-lines
+                  (string-chop-newline
+                   (shell-eval-command (concat shell-dirstack-query "\n"))))))
+         (dls (or (seq-find #'file-directory-p lines)
+                  (car lines)))
          (dlsl nil)
          (pos 0)
          (ds nil))

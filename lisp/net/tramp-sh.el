@@ -2770,7 +2770,7 @@ The method used must be an out-of-band method."
 			 #'file-name-directory (list localname))))
       (unless (or full-directory-p (member "-d" switches))
         (setq switches (append switches '("-d"))))
-      (setq switches (delete-dups switches)
+      (setq switches (seq-uniq switches)
 	    switches (mapconcat #'tramp-shell-quote-argument switches " "))
       (when wildcard
 	(setq switches (concat switches " " wildcard)))
@@ -3052,8 +3052,7 @@ will be used."
 	     ;; `process-environment'.
 	     env uenv
 	     (env (dolist (elt (cons prompt process-environment) env)
-		    (or (member
-			 elt (default-toplevel-value 'process-environment))
+		    (or (tramp-local-environment-variable-p elt)
 			(if (string-search "=" elt)
 			    (setq env (append env `(,elt)))
 			  (setq uenv (cons elt uenv))))))
@@ -3288,7 +3287,7 @@ will be used."
 			       (cons program args) " "))
       ;; We use as environment the difference to toplevel `process-environment'.
       (dolist (elt process-environment)
-        (or (member elt (default-toplevel-value 'process-environment))
+        (or (tramp-local-environment-variable-p elt)
             (if (string-search "=" elt)
                 (setq env (append env `(,elt)))
               (setq uenv (cons elt uenv)))))

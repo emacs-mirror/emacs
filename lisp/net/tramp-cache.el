@@ -647,7 +647,7 @@ your laptop to different networks frequently."
   "Return a list of (user host) tuples allowed to access for METHOD.
 This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from connection history."
-  (delete-dups
+  (seq-uniq
    (tramp-compat-seq-keep
     (lambda (key)
       (let ((tramp-verbose 0))

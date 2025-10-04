@@ -683,19 +683,24 @@
 	    ;; headers).  In this case, there is an Xref line which
 	    ;; provides the relevant information to construct the
 	    ;; missing header(s).
-	    (save-excursion
-	      (save-restriction
-		(narrow-to-region start end)
-		(if (re-search-forward "\nXref: [^ ]+" end-header t)
-		    ;; generate headers from Xref:
-		    (let (alist)
-		      (while (re-search-forward " \\([^:]+\\):\\([0-9]+\\)" end-header t)
-			(push (cons (match-string 1)
-				    (string-to-number (match-string 2))) alist))
-		      (nnmbox-insert-newsgroup-line alist))
-		  ;; this is really a new article
-		  (nnmbox-save-mail
-		   (nnmail-article-group 'nnmbox-active-number))))))
+            (save-excursion
+              (save-restriction
+                (narrow-to-region start end)
+                (let ((xref (with-restriction start end-header
+                              (mail-fetch-field "Xref")))
+                      alist)
+                  (if (null xref)
+                      ;; this is a new article
+                      (nnmbox-save-mail
+                       (nnmail-article-group 'nnmbox-active-number))
+                    ;; generate headers from Xref
+                    ;; the first element is hostname so we skip it
+                    (dolist (xref-entry (cdr (split-string xref " ")))
+                      (push (cons
+                             (car (setq xref-entry (split-string xref-entry ":")))
+                             (string-to-number (cadr xref-entry)))
+                            alist))
+                    (nnmbox-insert-newsgroup-line alist))))))
 	  (goto-char end))
 	;; put article lists in order
 	(setq alist nnmbox-group-active-articles)

@@ -191,8 +191,9 @@ AS_IF([test "$XCONFIGURE" = "android"],[
   AS_MKDIR_P([exec])
 
   # Enter exec and configure it, using the C compiler as both the
-  # assembler and the linker.  Determine the absolute name of the
-  # source directory.
+  # assembler and the linker; it is for this reason that
+  # AC_CONFIG_SUBDIRS is not suitable in this context.  Establish the
+  # absolute name of the source directory.
   # N.B. that the linker is actually cc, so pass -nostdlib, lest
   # the crt be linked in.  Likewise for as.
 
@@ -2247,7 +2248,7 @@ AC_CACHE_CHECK([for flag to work around GCC union bugs],
 	   [/* Work around GCC bugs 117423 and 119085 re holes in unions:
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=117423
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119085
-	       These are fixed in GCC 14.4 and 15.2.
+	       These are fixed in GCC 13.5, 14.4 and 15.2.
 
 	       Working around them also works around GCC bug 58416
 	       with double in unions on x86, where the generated insns
@@ -6392,7 +6393,7 @@ dnl recent, so we check for it specifically.
 AC_CHECK_HEADERS([spawn.h])
 AC_SUBST([HAVE_SPAWN_H])
 gl_CHECK_FUNCS_ANDROID([posix_spawn], [#include <spawn.h>])
-gl_CHECK_FUNCS_ANDROID([posix_spawn_file_actions_addchdir], [#include <spawn.h>])
+gl_CHECK_FUNCS_ANDROID_MACOS([posix_spawn_file_actions_addchdir], [#include <spawn.h>])
 gl_CHECK_FUNCS_ANDROID([posix_spawn_file_actions_addchdir_np], [#include <spawn.h>])
 gl_CHECK_FUNCS_ANDROID([posix_spawnattr_setflags], [#include <spawn.h>])
 AC_SUBST([HAVE_POSIX_SPAWN])

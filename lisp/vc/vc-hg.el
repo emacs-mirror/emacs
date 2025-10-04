@@ -556,10 +556,10 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
 (defun vc-hg-diff (files &optional oldvers newvers buffer async)
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
-         (working (and firstfile (vc-working-revision firstfile))))
-    (when (and (equal oldvers working) (not newvers))
+         (working (and firstfile (vc-working-revision firstfile 'Hg))))
+    (when (and (not newvers) (equal oldvers working))
       (setq oldvers nil))
-    (when (and (not oldvers) newvers)
+    (when (and newvers (not oldvers))
       (setq oldvers working))
     (apply #'vc-hg-command
 	   (or buffer "*vc-diff*")
@@ -1215,13 +1215,13 @@ It is based on `log-edit-mode', and has Hg-specific extensions.")
 
 (defun vc-hg--checkin (comment &optional files patch-string)
   "Workhorse routine for `vc-hg-checkin' and `vc-hg-checkin-patch'.
-COMMENT is the commit message.
+COMMENT is the commit message; nil if it should come from PATCH-STRING.
 For a regular checkin, FILES is the list of files to check in.
 To check in a patch, PATCH-STRING is the patch text.
 It is an error to supply both or neither."
   (unless (xor files patch-string)
     (error "Invalid call to `vc-hg--checkin'"))
-  (let* ((args (vc-hg--extract-headers comment))
+  (let* ((args (and comment (vc-hg--extract-headers comment)))
          (temps-dir (or (file-name-directory (or (car files)
                                                  default-directory))
                         default-directory))
@@ -1231,7 +1231,7 @@ It is an error to supply both or neither."
           ;; must be in the system codepage, and therefore might not
           ;; support non-ASCII characters in the log message.
           ;; Also handle remote files.
-          (and (eq system-type 'windows-nt)
+          (and args (eq system-type 'windows-nt)
                (let ((default-directory temps-dir))
                  (make-nearby-temp-file "hg-msg"))))
          (patch-file (and patch-string
@@ -1252,26 +1252,33 @@ It is an error to supply both or neither."
            (nconc (if patch-file
                       (list "import" "--bypass" patch-file)
                     (list "commit" "-A"))
-                  (if msg-file
-                      (cl-list* "-l" (file-local-name msg-file) (cdr args))
-                    (cl-list* "-m" args))))
-          (post (lambda ()
-                  (when (and msg-file (file-exists-p msg-file))
-                    (delete-file msg-file))
-                  (when (and patch-file (file-exists-p patch-file))
-                    (delete-file patch-file))
-                  ;; When committing a patch we run 'hg import' and
-                  ;; then 'hg update'.  We have 'hg update' here in the
-                  ;; always-synchronous `post' function because we
-                  ;; assume that 'hg import' is the one that might be
-                  ;; slow and so benefits most from `vc-async-checkin'.
-                  ;; If in fact both the 'hg import' and the 'hg
-                  ;; update' can be slow, then we need to make both of
-                  ;; them part of the async command, possibly by
-                  ;; writing out a tiny shell script (bug#79235).
-                  (when patch-file
-                    (vc-hg-command nil 0 nil "update" "--merge"
-                                   "--tool" "internal:local" "tip")))))
+                  (cond (msg-file (cl-list* "-l" (file-local-name msg-file)
+                                            (cdr args)))
+                        (args (cons "-m" args)))))
+          (post
+           (lambda ()
+             (when (and msg-file (file-exists-p msg-file))
+               (delete-file msg-file))
+             (when (and patch-file (file-exists-p patch-file))
+               (delete-file patch-file))
+             ;; If PATCH-STRING didn't come from C-x v = or C-x v D, we
+             ;; now need to update the working tree to include the
+             ;; changes from the commit we just created.
+             ;; If there are conflicts we want to favor the working
+             ;; tree's version and the version from the commit will just
+             ;; show up in the diff of uncommitted changes.
+             ;;
+             ;; When committing a patch we run two commands, 'hg import'
+             ;; and then 'hg update'.  We have 'hg update' here in the
+             ;; always-synchronous `post' function because we assume
+             ;; that 'hg import' is the one that might be slow and so
+             ;; benefits most from `vc-async-checkin'.  If in fact both
+             ;; the 'hg import' and the 'hg update' can be slow, then we
+             ;; need to make both of them part of the async command,
+             ;; possibly by writing out a tiny shell script (bug#79235).
+             (when patch-file
+               (vc-hg-command nil 0 nil "update" "--merge"
+                              "--tool" "internal:local" "tip")))))
       (if vc-async-checkin
           (let ((buffer (vc-hg--async-buffer)))
             (vc-wait-for-process-before-save
@@ -1567,7 +1574,8 @@ This runs the command \"hg summary\"."
 If PROMPT is non-nil, prompt for the Hg command to run.
 POST-PROCESSING is a list of commands to execute after the command.
 If OBSOLETE is non-nil, behave like the old versions of the Hg push/pull
-commands, which only operated on marked files."
+commands: when called interactively in a Log View buffer with marked
+revisions, fetch only those revisions."
   (let (marked-list)
     ;; The `vc-hg-pull' and `vc-hg-push' commands existed before the
     ;; `pull'/`push' VC actions were implemented.
@@ -1665,14 +1673,18 @@ This runs the command \"hg merge\"."
 
 (defun vc-hg-prepare-patch (rev)
   (with-current-buffer (generate-new-buffer " *vc-hg-prepare-patch*")
-    (vc-hg-command t 0 '() "export" "--rev" rev)
-    (let (subject)
-      ;; Extract the subject line
-      (goto-char (point-min))
-      (search-forward-regexp "^[^#].*")
-      (setq subject (match-string 0))
-      ;; Return the extracted data
-      (list :subject subject :buffer (current-buffer)))))
+    (vc-hg-command t 0 nil "export" "--git" "--rev" rev)
+    (condition-case _
+        (let (subject patch-start)
+          (goto-char (point-min))
+          (re-search-forward "^[^#].*")
+          (setq subject (match-string 0))
+          (re-search-forward "\n\ndiff --git a/")
+          (setq patch-start (pos-bol))
+          (list :subject subject
+                :patch-start patch-start
+                :buffer (current-buffer)))
+      (search-failed (error "'hg export' output parse failure")))))
 
 ;;; Internal functions
 
@@ -1792,6 +1804,24 @@ Cannot delete first working tree because this would break other working trees"))
       (rename-file from (directory-file-name to) 1)
     (user-error "\
 Cannot relocate first working tree because this would break other working trees")))
+
+(defun vc-hg-cherry-pick-comment (_files rev reverse)
+  (let (short long comment)
+    (with-temp-buffer
+      (vc-hg-command t 0 nil "log" "--limit=1"
+                     (format "--rev=%s" rev)
+                     "--template={node|short}\n{node}\n{desc}")
+      (goto-char (point-min))
+      (setq short (buffer-substring-no-properties (point) (pos-eol)))
+      (forward-line 1)
+      (setq long (buffer-substring-no-properties (point) (pos-eol)))
+      (forward-line 1)
+      (setq comment (buffer-substring-no-properties (point) (point-max))))
+    (if reverse
+        (format "Summary: Backed out changeset %s\n\n" short)
+      ;; The additional line is indeed separated from the original
+      ;; comment by just one line break, for 'hg graft'.
+      (format "Summary: %s\n(grafted from %s)\n" comment long))))
 
 (provide 'vc-hg)
 

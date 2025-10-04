@@ -45,6 +45,7 @@
 (defvar-keymap bug-reference-map
   :doc "Keymap used by bug reference buttons."
   "<mouse-2>" #'bug-reference-push-button
+  "RET"       (read-only-keymap-bind #'bug-reference-push-button)
   "C-c RET"   #'bug-reference-push-button)
 
 ;; E.g., "https://gcc.gnu.org/PR%s"

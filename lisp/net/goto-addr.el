@@ -121,6 +121,7 @@ will have no effect.")
 (defvar-keymap goto-address-highlight-keymap
   :doc "Keymap to hold goto-addr's mouse key defs under highlighted URLs."
   "<mouse-2>" #'goto-address-at-point
+  "RET"       (read-only-keymap-bind #'goto-address-at-point)
   "C-c RET"   #'goto-address-at-point)
 
 (defun goto-address-context-menu (menu click)

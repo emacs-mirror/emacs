@@ -4995,8 +4995,9 @@ The following commands are available:
   ;; Initialize radio targets.
   (org-update-radio-target-regexp)
   ;; Indentation.
-  (setq-local indent-line-function 'org-indent-line)
-  (setq-local indent-region-function 'org-indent-region)
+  (setq-local indent-line-function #'org-indent-line)
+  (setq-local indent-region-function #'org-indent-region)
+  (setq-local electric-indent-inhibit t)
   ;; Filling and auto-filling.
   (org-setup-filling)
   ;; Comments.
