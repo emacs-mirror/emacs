@@ -5599,7 +5599,9 @@ syms_of_igc (void)
   defsubr (&Sigc__add_extra_dependency);
   defsubr (&Sigc__remove_extra_dependency);
   defsubr (&Sigc__arena_step);
+#ifdef HAVE_OPEN_MEMSTREAM
   defsubr (&Sigc__describe_arena);
+#endif
   DEFSYM (Qambig, "ambig");
   DEFSYM (Qexact, "exact");
   Fprovide (intern_c_string ("mps"), Qnil);
