@@ -2753,6 +2753,64 @@ See also `unrmail-mbox-format'."
   :group 'rmail
   :version "28.1")
 
+(defcustom rmail-detect-suspicious-headers t
+  "If non-nil, detect and highlight suspicious email addresses in Rmail buffer.
+Currently, only the From address is checked."
+  :type 'boolean
+  :version "31.1"
+  :group 'rmail
+  :group 'security)
+
+(defun rmail-check-suspicious-from ()
+  "Look for suspicious email addresses in message headers; highlight if found.
+This checks the From header of the email message using `textsec-suspicious-p',
+and if a suspicious address is found, highlights it with a specialized
+face.
+
+Should be called with point at the beginning of the message."
+  (save-excursion
+    (search-forward "\n\n" nil 'move)
+    (save-restriction
+      (narrow-to-region (point-min) (point))
+      (goto-char (point-min))
+      (let ((case-fold-search t)
+	    (inhibit-read-only t)
+            (overlays rmail-overlay-list))
+	(when (re-search-forward "^From:" nil t)
+          (skip-chars-forward " \t")
+          (let ((beg (point))
+                end from overlay)
+            (while (progn (forward-line 1)
+                          (looking-at "[ \t]")))
+            ;; Back up over newline, then trailing spaces or tabs
+	    (forward-char -1)
+	    (skip-chars-backward " \t" beg)
+            (setq end (point)
+                  ;; RFC 2047 encode to escape quotes and other
+                  ;; problematic characters.
+                  from (rfc2047-encode-string
+                        (buffer-substring-no-properties beg end)))
+            ;; Is "From" address suspicious?  If yes, make it stand out.
+	    (when-let* ((warning (textsec-suspicious-p
+                                  from 'email-address-header)))
+	      (if overlays
+		  ;; Reuse an overlay we already have.
+		  (progn
+		    (setq overlay (car overlays)
+			  overlays (cdr overlays))
+		    (overlay-put overlay 'face 'textsec-suspicious)
+                    ;; Override any other faces
+                    (overlay-put overlay 'priority 100)
+		    (move-overlay overlay beg end))
+		  ;; Make a new overlay and add it to
+		  ;; rmail-overlay-list.
+		  (setq overlay (make-overlay beg end))
+		  (overlay-put overlay 'face 'textsec-suspicious)
+                  (overlay-put overlay 'priority 100)
+		  (setq rmail-overlay-list
+			(cons overlay rmail-overlay-list)))
+              (insert (propertize "⚠️" 'help-echo warning)))))))))
+
 (defun rmail-show-message-1 (&optional msg)
   "Show message MSG (default: current message) using `rmail-view-buffer'.
 Return text to display in the minibuffer if MSG is out of
@@ -2882,6 +2940,8 @@ The current mail message becomes the message displayed."
 	  (rmail-highlight-headers)
 					;(rmail-activate-urls)
 					;(rmail-process-quoted-material)
+          (if rmail-detect-suspicious-headers
+              (rmail-check-suspicious-from))
 	  )
 	;; Update the mode-line with message status information and swap
 	;; the view buffer/mail buffer contents.

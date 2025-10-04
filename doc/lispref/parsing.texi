@@ -2287,7 +2287,7 @@ non-@code{nil}, it sets up indentation.
 @item
 If @code{treesit-defun-type-regexp} is non-@code{nil}, it sets up
 navigation functions for @code{beginning-of-defun} and
-@code{end-of-defun}.
+@code{end-of-defun}.  @xref{List Motion}.
 
 @item
 If @code{treesit-defun-name-function} is non-@code{nil}, it sets up

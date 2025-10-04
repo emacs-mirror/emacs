@@ -44,6 +44,7 @@
     "Password (again):"
     "Enter password:"
     "(user@host) Password: " ; openssh-8.6p1
+    "(user@host) Password for user@host:" ; (Bug#79424)
     "Current password:"    ; "passwd" (to change password) in Debian.
     "Enter encryption key: " ; ccrypt
     "Enter decryption key: " ; ccrypt

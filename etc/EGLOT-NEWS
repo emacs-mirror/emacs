@@ -54,6 +54,12 @@ by the LSP server pertain.  This helps in skipping useless or harmful
 updates, avoiding flakiness with code actions and flickering overlays
 when the buffer is changed.
 
+** Markdown links migrating to *eldoc* buffer now clickable (bug#79552)
+
+Eglot now preserves crucial properties in the Markdown documentation
+provided by the LSP server, fixing a longstanding bug with clickable
+hyperlinks.  See also github#1238.
+
 
 * Changes in Eglot 1.18 (20/1/2025)
 

@@ -2292,27 +2292,32 @@ containing the file being compiled, as determined by `project-current'.
 If nil, or if the file named by this does not exist, Flymake will
 use the same executable as the running Emacs, as specified by the
 variables `invocation-name' and `invocation-directory'."
-  :type 'file
+  :type '(choice
+          (const :tag "Current session's executable" nil)
+          (file :tag "Specific Emacs executable"))
   :group 'lisp
   :version "31.1")
 
 (declare-function project-root "project" (project))
 (defun elisp-flymake-byte-compile--executable ()
   "Return absolute file name of the Emacs executable for flymake byte-compilation."
-  (let ((filename
-         (cond
-          ((file-name-absolute-p elisp-flymake-byte-compile-executable)
-           elisp-flymake-byte-compile-executable)
-          ((stringp elisp-flymake-byte-compile-executable)
-           (when-let* ((pr (project-current)))
-             (file-name-concat (project-root pr)
-                               elisp-flymake-byte-compile-executable))))))
-    (if (file-executable-p filename)
-        filename
-      (when elisp-flymake-byte-compile-executable
-        (message "No such `elisp-flymake-byte-compile-executable': %s"
-                 filename))
-      (expand-file-name invocation-name invocation-directory))))
+  (cond
+   ((null elisp-flymake-byte-compile-executable)
+    (expand-file-name invocation-name invocation-directory))
+   ((not (stringp elisp-flymake-byte-compile-executable))
+    (error "Invalid `elisp-flymake-byte-compile-executable': %s"
+           elisp-flymake-byte-compile-executable))
+   ((file-name-absolute-p elisp-flymake-byte-compile-executable)
+    elisp-flymake-byte-compile-executable)
+   (t ; relative file name
+    (let ((filename (file-name-concat (project-root (project-current))
+                                      elisp-flymake-byte-compile-executable)))
+      (if (file-executable-p filename)
+          filename
+        ;; The user might not have built Emacs yet, so just fall back.
+        (message "`elisp-flymake-byte-compile-executable' (%s) doesn't exist"
+                 elisp-flymake-byte-compile-executable)
+        (expand-file-name invocation-name invocation-directory))))))
 
 ;;;###autoload
 (defun elisp-flymake-byte-compile (report-fn &rest _args)

@@ -2204,6 +2204,7 @@ A slash character after any of these should begin a regexp."))
                         (or (not
                              ;; Looks like division.
                              (or (eql (char-after) ?\s)
+                                 (eql (char-after) ?=)
                                  (not (eql (char-before (1- (point))) ?\s))))
                             (save-excursion
                               (forward-char -1)

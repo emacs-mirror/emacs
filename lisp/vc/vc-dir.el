@@ -353,7 +353,6 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     (define-key map "D" #'vc-root-diff)	   ;; C-x v D
     (define-key map "i" #'vc-register)	   ;; C-x v i
     (define-key map "+" #'vc-pull)	   ;; C-x v +
-    ;; I'd prefer some kind of symmetry with vc-pull:
     (define-key map "P" #'vc-push)	   ;; C-x v P
     (define-key map "l" #'vc-print-log)	   ;; C-x v l
     (define-key map "L" #'vc-print-root-log) ;; C-x v L
@@ -689,7 +688,9 @@ With prefix argument ARG, move that many lines."
 		      (not (eq processed-line (line-number-at-pos))))
 	    (setq processed-line (line-number-at-pos))
 	    (condition-case nil
-		(funcall mark-unmark-function)
+                ;; Avoid any prompting.
+                (let (vc-dir-allow-mass-mark-changes)
+		  (funcall mark-unmark-function))
 	      ;; `vc-dir-mark-file' signals an error if we try marking
 	      ;; a directory containing marked files in its tree, or a
 	      ;; file in a marked directory tree.  Just continue.

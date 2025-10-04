@@ -169,32 +169,28 @@ Earlier variables shadow later ones with the same name.")
        ;; letbind byte-code (or any other combination for that matter), we
        ;; can only inline dynbind source into dynbind source or lexbind
        ;; source into lexbind source.
-       ;; When the function comes from another file, we byte-compile
+       ;; We assume that the function comes from another file (it would
+       ;; have already been compiled otherwise) and byte-compile
        ;; the inlined function first, and then inline its byte-code.
        ;; This also has the advantage that the final code does not
        ;; depend on the order of compilation of Elisp files, making
        ;; the build more reproducible.
-       (if (eq fn localfn)
-           ;; From the same file => same mode.
-           (let* ((newform `(,fn ,@(cdr form)))
-                  (unfolded (macroexp--unfold-lambda newform)))
-             ;; Use the newform only if it could be optimized.
-             (if (eq unfolded newform) form unfolded))
-         ;; Since we are called from inside the optimizer, we need to make
-         ;; sure not to propagate lexvar values.
-         (let ((byte-optimize--lexvars nil)
-               ;; Silence all compilation warnings: the useful ones should
-               ;; be displayed when the function's source file will be
-               ;; compiled anyway, but more importantly we would otherwise
-               ;; emit spurious warnings here because we don't have the full
-               ;; context, such as `declare-function's placed earlier in the
-               ;; source file's code or `with-suppressed-warnings' that
-               ;; surrounded the `defsubst'.
-               (byte-compile-warnings nil))
-           (byte-compile name))
-         (let ((bc (symbol-function name)))
-           (byte-compile--check-arity-bytecode form bc)
-           `(,bc ,@(cdr form)))))
+
+       ;; Since we are called from inside the optimizer, we need to make
+       ;; sure not to propagate lexvar values.
+       (let ((byte-optimize--lexvars nil)
+             ;; Silence all compilation warnings: the useful ones should
+             ;; be displayed when the function's source file will be
+             ;; compiled anyway, but more importantly we would otherwise
+             ;; emit spurious warnings here because we don't have the full
+             ;; context, such as `declare-function's placed earlier in the
+             ;; source file's code or `with-suppressed-warnings' that
+             ;; surrounded the `defsubst'.
+             (byte-compile-warnings nil))
+         (byte-compile name))
+       (let ((bc (symbol-function name)))
+         (byte-compile--check-arity-bytecode form bc)
+         `(,bc ,@(cdr form))))
 
       (_ ;; Give up on inlining.
        form))))

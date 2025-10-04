@@ -101,7 +101,7 @@
        (if (>= libgnutls-version 30400)
 	   '(gnutls "libgnutls-30.dll")
 	 '(gnutls "libgnutls-28.dll" "libgnutls-26.dll"))
-       '(libxml2 "libxml2-2.dll" "libxml2.dll")
+       '(libxml2 "libxml2-16.dll" "libxml2-2.dll" "libxml2.dll")
        '(zlib "zlib1.dll" "libz-1.dll")
        '(lcms2 "liblcms2-2.dll")
        '(gccjit "libgccjit-0.dll")

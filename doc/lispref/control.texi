@@ -2181,7 +2181,8 @@ concept of continuable errors.
 @subsubsection How Emacs Processes Errors
 @cindex processing of errors
 
-When an error is signaled, @code{signal} searches for an active
+When a Lisp program signals an error, it calls the function
+@code{signal}, which searches for an active
 @dfn{handler} for the error.  A handler is a sequence of Lisp
 expressions designated to be executed if an error happens in part of the
 Lisp program.  If the error has an applicable handler, the handler is
@@ -2191,9 +2192,16 @@ established it; all functions called within that @code{condition-case}
 have already been exited, and the handler cannot return to them.
 
 If there is no applicable handler for the error, it terminates the
-current command and returns control to the editor command loop.  (The
-command loop has an implicit handler for all kinds of errors.)  The
-command loop's handler uses the error symbol and associated data to
+current command, flushes all pending unprocessed input events
+(@pxref{Input Events})@footnote{
+Pending input is discarded because the user could have typed something
+in advance under the assumption that execution will proceed without
+errors, so keeping these input events would cause unintended
+consequences, like inserting stray characters into an unrelated buffer
+or execution of some unintended command.
+}, and returns control to the editor command loop.
+(The command loop has an implicit handler for all kinds of errors.)  The
+command loop's handler then uses the error symbol and associated data to
 print an error message.  You can use the variable
 @code{command-error-function} to control how this is done:
 

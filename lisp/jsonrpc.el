@@ -548,7 +548,9 @@ connection object, called when the process dies.")
     (set-process-buffer proc (get-buffer-create (format " *%s output*" name)))
     (set-process-filter proc #'jsonrpc--process-filter)
     (set-process-sentinel proc #'jsonrpc--process-sentinel)
+    (set-process-coding-system proc 'binary 'binary)
     (with-current-buffer (process-buffer proc)
+      (set-buffer-multibyte nil)
       (buffer-disable-undo)
       (set-marker (process-mark proc) (point-min))
       (let ((inhibit-read-only t))
@@ -578,16 +580,11 @@ connection object, called when the process dies.")
                      (id 'request)
                      (method 'notification)))
          (converted (jsonrpc-convert-to-endpoint connection args kind))
-         (json (jsonrpc--json-encode converted))
-         (headers
-          `(("Content-Length" . ,(format "%d" (string-bytes json)))
-            ;; ("Content-Type" . "application/vscode-jsonrpc; charset=utf-8")
-            )))
+         (json (jsonrpc--json-encode converted)))
     (process-send-string
      (jsonrpc--process connection)
-     (cl-loop for (header . value) in headers
-              concat (concat header ": " value "\r\n") into header-section
-              finally return (format "%s\r\n%s" header-section json)))
+     (concat "Content-Length: " (number-to-string (string-bytes json)) "\r\n"
+              "\r\n" json))
     (jsonrpc--event
      connection
      'client
@@ -641,11 +638,19 @@ and delete the network process."
                            :false-object :json-false))
     (require 'json)
     (defvar json-object-type)
-    (declare-function json-read "json" ())
+    (declare-function json-read-from-string "json" (string))
     (lambda ()
       (let ((json-object-type 'plist))
-        (json-read))))
-  "Read JSON object in buffer, move point to end of buffer.")
+        ;; `json-read' can't be used because the old json API requires
+        ;; decoded input.
+        (prog1
+            (json-read-from-string
+             (decode-coding-string
+              (buffer-substring-no-properties (point) (point-max))
+              'utf-8-unix t))
+          (goto-char (point-max))))))
+  "Read JSON object in (binary unibyte) buffer from point.
+Move point to end of buffer.")
 
 (defalias 'jsonrpc--json-encode
   (if (fboundp 'json-serialize)
@@ -745,8 +750,11 @@ and delete the network process."
                   ;;
                   (setq expected-bytes
                         (and (search-forward-regexp
-                              "\\(?:.*: .*\r\n\\)*Content-Length: \
-*\\([[:digit:]]+\\)\r\n\\(?:.*: .*\r\n\\)*\r\n"
+                              (rx bol "Content-Length: " (group (+ digit))
+                                  "\r\n"
+                                  (* (* (not (in ":\n"))) ": "
+                                     (* (not (in "\r\n"))) "\r\n")
+                                  "\r\n")
                               (+ (point) 100)
                               t)
                              (string-to-number (match-string 1))))
@@ -987,6 +995,20 @@ TIMEOUT is nil)."
                                              fn oops)
                            (remove-hook 'jsonrpc-event-hook fn)))))))
 
+(defun jsonrpc--limit-buffer-size (max-size)
+  "Limit the current buffer to MAX-SIZE by eating lines at the beginning.
+Do nothing if MAX-SIZE is nil."
+  (when max-size
+    (while (> (buffer-size) max-size)
+      (delete-region
+       (point-min)
+       (save-excursion
+         ;; Remove 1/4, so that the cost is O(1) amortised, since each
+         ;; call to `delete-region' will move the buffer contents twice.
+         (goto-char (+ (point-min) (/ (buffer-size) 4)))
+         (forward-line)
+         (point))))))
+
 (defvar jsonrpc-event-hook (list #'jsonrpc--log-event)
   "Hook run when JSON-RPC events are emitted.
 This hooks runs in the events buffer of every  `jsonrpc-connection'
@@ -1063,15 +1085,7 @@ of the API instead.")
           (when error
             (setq msg (propertize msg 'face 'error)))
           (insert-before-markers msg)
-          ;; Trim the buffer if it's too large
-          (when max
-            (save-excursion
-              (goto-char (point-min))
-              (while (> (buffer-size) max)
-                (delete-region (point) (progn (forward-line 1)
-                                              (forward-sexp 1)
-                                              (forward-line 2)
-                                              (point)))))))))))
+          (jsonrpc--limit-buffer-size max))))))
 
 (defun jsonrpc--forwarding-buffer (name prefix conn)
   "Helper for `jsonrpc-process-connection' helpers.
@@ -1085,19 +1099,23 @@ PREFIX to CONN's events buffer."
       (add-hook
        'after-change-functions
        (lambda (beg _end _pre-change-len)
-         (cl-loop initially (goto-char beg)
-                  do (forward-line)
-                  when (bolp)
-                  for line = (buffer-substring
-                              (line-beginning-position 0)
-                              (line-end-position 0))
-                  do (with-current-buffer (jsonrpc-events-buffer conn)
-                       (goto-char (point-max))
-                       (let ((inhibit-read-only t))
-                         (insert
-                          (propertize (format "%s %s\n" prefix line)
-                                      'face 'shadow))))
-                  until (eobp)))
+         (let* ((props (slot-value conn '-events-buffer-config))
+                (max (plist-get props :size)))
+           (unless (eql max 0)
+             (cl-loop initially (goto-char beg)
+                      do (forward-line)
+                      when (bolp)
+                      for line = (buffer-substring
+                                  (line-beginning-position 0)
+                                  (line-end-position 0))
+                      do (with-current-buffer (jsonrpc-events-buffer conn)
+                           (goto-char (point-max))
+                           (let ((inhibit-read-only t))
+                             (insert
+                              (propertize (format "%s %s\n" prefix line)
+                                          'face 'shadow))
+                             (jsonrpc--limit-buffer-size max)))
+                      until (eobp)))))
        nil t))
     (current-buffer)))
 

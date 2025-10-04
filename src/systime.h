@@ -79,6 +79,7 @@ enum { LO_TIME_BITS = 16 };
 
 /* defined in timefns.c */
 extern struct timeval make_timeval (struct timespec) ATTRIBUTE_CONST;
+extern struct timespec monotonic_coarse_timespec (void);
 extern Lisp_Object make_lisp_time (struct timespec);
 extern Lisp_Object timespec_to_lisp (struct timespec);
 extern struct timespec list4_to_timespec (Lisp_Object, Lisp_Object,

@@ -570,7 +570,7 @@ Disable the mode if ARG is a negative number.\n\n"
 	 (dolist (buf (buffer-list))
 	   (with-current-buffer buf
              (if ,global-mode (funcall ,turn-on-function)
-               (when ,mode (,mode -1)))))
+               (when ,MODE-variable (,mode -1)))))
          ,@body)
 
        ,(when predicate

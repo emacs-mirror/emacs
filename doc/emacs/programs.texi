@@ -1730,6 +1730,9 @@ Hide all blocks @var{n} levels below this block
 
 @vindex hs-hide-comments-when-hiding-all
 @vindex hs-display-lines-hidden
+@vindex hs-show-indicators
+@vindex hs-indicator-type
+@vindex hs-indicator-maximum-buffer-size
 @vindex hs-isearch-open
 @vindex hs-special-modes-alist
   These variables can be used to customize Hideshow mode:
@@ -1742,6 +1745,26 @@ comments too.
 @item hs-display-lines-hidden
 If non-@code{nil}, display the number of hidden lines next to the
 ellipsis.
+
+@item hs-show-indicators
+This variable controls whether Hideshow mode should display indicators
+of hidden and shown blocks.  The indicators also allow toggling the
+hide/show state of each block.  If the value is non-@code{nil}, it enables
+the indicators.  The default is @code{nil}, which disables
+the indicators.
+
+@item hs-indicator-type
+This variable controls where to show the indicators, if they are
+enabled.  You can show them on the fringe (@pxref{Fringes}) or
+in the window's margin.  The default is to use the fringe if it's
+available, otherwise to use the margin.
+
+@item hs-indicator-maximum-buffer-size
+This variable limits the display of hideshow indicators to buffers that
+are not too large.  (Larger buffers might adversely affect redisplay
+performance.)  By default, buffers larger than 2MB have the indicators
+disabled; the value of @code{nil} will activate the indicators
+regardless of the buffer size.
 
 @item hs-isearch-open
 This variable specifies the conditions under which incremental search

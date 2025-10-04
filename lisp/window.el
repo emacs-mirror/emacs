@@ -8048,11 +8048,8 @@ where:
 
 `display-buffer' scans this alist until the CONDITION is satisfied
 and adds the associated ACTION to the list of actions it will try."
-  :type `(alist :key-type
-		(choice :tag "Condition"
-			regexp
-			(function :tag "Matcher function"))
-		:value-type ,display-buffer--action-custom-type)
+  :type `(alist :key-type (buffer-predicate :tag "Condition")
+                :value-type ,display-buffer--action-custom-type)
   :risky t
   :version "24.1"
   :group 'windows)

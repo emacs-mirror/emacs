@@ -1161,15 +1161,22 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		      (setq elts (cdr-safe elts)))
 		    (concat beg (if is-full "keymap" "sparse keymap"))))
 		 (t
-		  (concat beg (format "%s"
-		                      (if (and (consp def) (symbolp (car def)))
-		                          (car def)
-		                        (let ((type (or (oclosure-type def)
-		                                        (cl-type-of def))))
-		                          (make-text-button
-		                           (symbol-name type) nil
-		                           'type 'help-type
-		                           'help-args (list type))))))))))
+                  (let* ((type (or (oclosure-type def) (cl-type-of def)))
+                         (typ-str
+                          (format "%s"
+		                  (if (and (consp def) (symbolp (car def)))
+                                      (car def)
+                                    (make-text-button
+                                       (symbol-name type) nil
+                                       'type 'help-type
+                                       'help-args (list type))))))
+                    ;; FIXME: If someday Emacs has a function type symbol
+                    ;; like `unicode-function' or `hour-function', this
+                    ;; will produce an ungrammatical string (bug#79469).
+                    (concat (if (string-match-p "\\`[aeiou]" (symbol-name type))
+                                "an "
+                              beg)
+                            typ-str))))))
     (with-current-buffer standard-output
       (insert description))
 

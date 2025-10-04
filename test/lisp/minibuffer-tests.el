@@ -449,7 +449,7 @@
 
 
 (defmacro with-minibuffer-setup (completing-read &rest body)
-  (declare (indent 1) (debug (collection body)))
+  (declare (indent 1) (debug t))
   `(catch 'result
      (minibuffer-with-setup-hook
          (lambda ()
@@ -460,7 +460,7 @@
          ,completing-read))))
 
 (defmacro completing-read-with-minibuffer-setup (collection &rest body)
-  (declare (indent 1) (debug (collection body)))
+  (declare (indent 1) (debug t))
   `(catch 'result
      (minibuffer-with-setup-hook
          (lambda ()
@@ -734,9 +734,302 @@
     (let ((completion-auto-wrap nil))
       (first-completion)
       (next-line-completion 7)
-      (should (equal "ac2" (get-text-property (point) 'completion--string)))
+      (should (equal "ac1" (get-text-property (point) 'completion--string)))
       (previous-line-completion 7)
       (should (equal "aa1" (get-text-property (point) 'completion--string))))))
+
+(defun completions-format-navigation--tests (n)
+  "Make tests for navigating buffer of N completion candidate.
+The tests check expected results of navigating with and without wrapping
+for combinations of the values of `completion-auto-wrap' and
+`completions-format' (see bug#78959 for motivation and discussion of the
+expected behavior).  The tests are actually run by calling this
+function, with specific values of N (> 1 to have a \"*Completions*\"
+buffer), from functions defined by `ert-deftest.'"
+  (let* (
+         ;; Make list of N unique completions.
+         (letters (mapcar 'string (number-sequence 97 122)))
+         (gen-compl (lambda (x)
+                      (let (comps)
+                        (dotimes (_ x)
+                          (push (concat (car comps) (pop letters)) comps))
+                        (nreverse comps))))
+         (completions (funcall gen-compl n))
+
+         ;; Navigation tests.
+         ;; (i) For both horizontal and vertical formats.
+         (all-completions
+          (lambda (type)
+            (let ((next-fn (pcase type
+                             ('any 'next-completion)
+                             ('column 'next-column-completion)
+                             ('line 'next-line-completion)))
+                  (prev-fn (pcase type
+                             ('any 'previous-completion)
+                             ('column 'previous-column-completion)
+                             ('line 'previous-line-completion))))
+              (completing-read-with-minibuffer-setup completions
+                (insert (car completions))
+                (minibuffer-completion-help)
+                (switch-to-completions)
+                ;; Sanity check that we're on first completion candidate.
+                (should
+                 (equal (car completions)
+                        (get-text-property (point) 'completion--string)))
+                ;; Double check.
+                (first-completion)
+                (should
+                 (equal (car completions)
+                        (get-text-property (point) 'completion--string)))
+                ;; Test moving from first to Ith next completion
+                ;; candidate (0<I<N-1).
+                (dolist (i (number-sequence 1 (1- n)))
+                  (funcall next-fn i)
+                  (should
+                   (equal (nth i completions)
+                          (get-text-property (point) 'completion--string)))
+                  (if (< i (1- n))
+                      (first-completion)
+                    (last-completion)
+                    (should
+                     (equal (nth i completions)
+                            (get-text-property (point) 'completion--string)))
+                    (funcall next-fn 1)
+                    (if completion-auto-wrap
+                        ;; Wrap around to first completion candidate.
+                        (should
+                         (equal (car completions)
+                                (get-text-property (point) 'completion--string)))
+                      ;; No wrapping.
+                      (should
+                       (equal (nth i completions)
+                              (get-text-property (point) 'completion--string))))))
+                (last-completion)
+                ;; Test moving from last to Ith previous completion
+                ;; candidate (0<I<N-1).
+                (dolist (i (number-sequence 1 (1- n)))
+                  (funcall prev-fn i)
+                  (should
+                   (equal (nth (- n i 1) completions)
+                          (get-text-property (point) 'completion--string)))
+                  (if (< i (1- n))
+                      (last-completion)
+                    (first-completion)
+                    (should
+                     (equal (car completions)
+                            (get-text-property (point) 'completion--string)))
+                    (funcall prev-fn 1)
+                    (if completion-auto-wrap
+                        ;; Wrap around to last completion candidate.
+                        (should
+                         (equal (nth (1- n) completions)
+                                (get-text-property (point) 'completion--string)))
+                      ;; No wrapping.
+                      (should
+                       (equal (car completions)
+                              (get-text-property (point)
+                                                 'completion--string))))))))))
+
+         ;; (ii) Only for horizontal format.
+         (within-column
+          (lambda ()
+            (completing-read-with-minibuffer-setup completions
+              (insert (car completions))
+              (minibuffer-completion-help)
+              (switch-to-completions)
+              (while (not (eolp))
+                (completion--move-to-candidate-start)
+                (let* ((first (get-text-property (point) 'completion--string))
+                       (pos (point))
+                       (i 0)
+                       last1 last2)
+                  ;; Keep moving to next completion candidate in this
+                  ;; column until we reach the last one, and then wrap
+                  ;; back to the first candidate, if
+                  ;; `completion-auto-wrap' is non-nil, otherwise stay
+                  ;; on the last one.
+                  (while (or (and completion-auto-wrap
+                                  (not (equal last1 first)))
+                             (not (equal last1
+                                         (get-text-property
+                                          (point) 'completion--string))))
+                    (setq last2 last1)
+                    (next-line-completion 1)
+                    (incf i)
+                    ;; Set `last1' to either the first or last
+                    ;; candidate, depending on the value of
+                    ;; `completion-auto-wrap'.
+                    (setq last1 (get-text-property (point) 'completion--string)))
+                  (setq last1 last2
+                        last2 nil)
+                  (decf i)
+                  (when completion-auto-wrap
+                    (should (equal (get-text-property (point) 'completion--string)
+                                   first))
+                    ;; Test wrapping from last to first line in this column.
+                    (next-line-completion i) ; Move to last candidate.
+                    (should (equal (get-text-property (point) 'completion--string)
+                                   last1)))
+                  ;; Now keeping move from last to first completion
+                  ;; candidate in this column.
+                  (while (or (not (equal last2 first))
+                             (not (equal last2
+                                         (get-text-property
+                                          (point) 'completion--string))))
+                    (previous-line-completion 1)
+                    (setq last2 (get-text-property (point) 'completion--string)))
+                  ;; Test wrapping from first to last line in this column.
+                  (when completion-auto-wrap
+                    (should (equal (get-text-property (point) 'completion--string)
+                                   first))
+                    (next-line-completion i)
+                    (should (equal (get-text-property (point) 'completion--string)
+                                   last1)))
+                  ;; Move to first candidate in next column to continue loop
+                  (completion--move-to-candidate-end)
+                  (unless (eolp)
+                    (goto-char pos)
+                    (next-column-completion 1)))))))
+
+         ;; (iii) Only for vertical format.
+         (within-line
+          (lambda ()
+            (completing-read-with-minibuffer-setup completions
+              (insert (car completions))
+              (minibuffer-completion-help)
+              (switch-to-completions)
+              (let ((one-col (save-excursion
+                                (first-completion)
+                                (completion--move-to-candidate-end)
+                                (eolp))))
+                (while (not (eobp))
+                  (let ((first (get-text-property (point) 'completion--string))
+                         last pos)
+                    ;; Test moving to next column in this line.
+                    (while (not (eolp))
+                      (next-column-completion 1)
+                      (let ((next (get-text-property (point) 'completion--string)))
+                        (should
+                         ;; FIXME: tautology?
+                         (equal (nth (seq-position completions next) completions)
+                                next)))
+                      ;; If this is the last completion in this line,
+                      ;; exit the loop.
+                      (when (or (> (current-column) 0)
+                                (save-excursion (and (forward-line) (eobp)))
+                                (unless one-col
+                                  (save-excursion
+                                    (and (progn
+                                           (completion--move-to-candidate-start)
+                                           (bolp))
+                                         (progn
+                                           (completion--move-to-candidate-end)
+                                           (eolp))))))
+                        (completion--move-to-candidate-end)))
+                    (backward-char)
+                    (completion--move-to-candidate-start)
+                    (setq last (get-text-property (point) 'completion--string)
+                          pos (point))
+                    ;; We're on the last column, so next move either
+                    ;; wraps or stays put.
+                    (next-column-completion 1)
+                    (if completion-auto-wrap
+                        ;; We wrapped around to first candidate in this line.
+                        (progn
+                          (should (bolp))
+                          (should
+                           (equal (get-text-property (point) 'completion--string)
+                                  first))
+                          ;; Go back to last completion in this line for next test.
+                          (goto-char (if one-col pos (pos-eol)))
+                          (backward-char))
+                      (should
+                       (equal (get-text-property (point) 'completion--string)
+                              last)))
+                    ;; Test moving to previous column in this line.
+                    (while (if one-col
+                               (save-excursion
+                                 (forward-line -1)
+                                 (get-text-property (point) 'completion--string))
+                             (not (bolp)))
+                      (previous-column-completion 1)
+                      (let ((prev (get-text-property (point) 'completion--string)))
+                        (should
+                         ;; FIXME: tautology?
+                         (equal (nth (seq-position completions prev) completions)
+                                prev))))
+                    ;; We're on the first column, so next move either
+                    ;; wraps or stay put.
+                    (previous-column-completion 1)
+                    (if completion-auto-wrap
+                        ;; We wrapped around to last candidate in this line.
+                        (progn
+                          (completion--move-to-candidate-end)
+                          (should (eolp))
+                          (backward-char)
+                          (should
+                           (equal (get-text-property (point) 'completion--string)
+                                  last)))
+                      ;; We stayed on the first candidate.
+                      (should
+                       (equal (get-text-property (point) 'completion--string)
+                              first)))
+                    (if one-col
+                        (goto-char (point-max))
+                      (forward-line)))))))))
+
+    ;; Run tests.
+    ;; Test navigation with wrapping...
+    (let ((completion-auto-wrap t))
+      ;; ...in horizontal format,
+      (let ((completions-format 'horizontal))
+        (funcall all-completions 'any)
+        (funcall all-completions 'column)
+        (funcall within-column))
+      ;; ...in vertical format.
+      (let ((completions-format 'vertical))
+        (funcall all-completions 'any)
+        (funcall all-completions 'line)
+        (funcall within-line)))
+    ;; Test navigation without wrapping...
+    (let ((completion-auto-wrap nil))
+      ;; ...in horizontal format,
+      (let ((completions-format 'horizontal))
+        (funcall all-completions 'any)
+        (funcall all-completions 'column)
+        (funcall within-column))
+      ;; ...in vertical format.
+      (let ((completions-format 'vertical))
+        (funcall all-completions 'any)
+        (funcall all-completions 'line)
+        (funcall within-line)))))
+
+;; (ert-deftest completions-format-navigation-test-1 ()
+;;   (completions-format-navigation--tests 1))
+
+(ert-deftest completions-format-navigation-test-2 ()
+  (completions-format-navigation--tests 2))
+
+(ert-deftest completions-format-navigation-test-3 ()
+  (completions-format-navigation--tests 3))
+
+(ert-deftest completions-format-navigation-test-4 ()
+  (completions-format-navigation--tests 4))
+
+(ert-deftest completions-format-navigation-test-5 ()
+  (completions-format-navigation--tests 5))
+
+(ert-deftest completions-format-navigation-test-9 ()
+  (completions-format-navigation--tests 9))
+
+(ert-deftest completions-format-navigation-test-10 ()
+  (completions-format-navigation--tests 10))
+
+(ert-deftest completions-format-navigation-test-15 ()
+  (completions-format-navigation--tests 15))
+
+(ert-deftest completions-format-navigation-test-16 ()
+  (completions-format-navigation--tests 16))
 
 (ert-deftest completion-cycle ()
   (completing-read-with-minibuffer-setup '("aaa" "bbb" "ccc")

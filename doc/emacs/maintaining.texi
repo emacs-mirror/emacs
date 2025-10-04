@@ -1213,38 +1213,57 @@ compare past revisions (@pxref{Old Revisions}):
 
 @table @kbd
 @item p
-Move to the previous revision entry.  (Revision entries in the log
-buffer are usually in reverse-chronological order, so the previous
-revision-item usually corresponds to a newer revision.)  A numeric
-prefix argument is a repeat count.
+Move to the previous revision entry (@code{log-view-msg-prev}).
+(Revision entries in the log buffer are usually in reverse-chronological
+order, so the previous revision-item usually corresponds to a newer
+revision.)  A numeric prefix argument is a repeat count.
 
 @item n
-Move to the next revision entry.  A numeric prefix argument is a
-repeat count.
+Move to the next revision entry (@code{log-view-msg-next}).  A numeric
+prefix argument is a repeat count.
 
 @item a
-Annotate the revision on the current line (@pxref{Old Revisions}).
+Annotate the revision on the current line
+(@code{log-view-annotate-version}; @pxref{Old Revisions}).
 
 @item e
-Modify the change comment displayed at point.  Note that not all VC
-systems support modifying change comments.
+Modify the change comment displayed at point
+(@code{log-view-modify-change-comment}).  Note that not all VC systems
+support modifying change comments.
 
 @item f
-Visit the revision indicated at the current line.
+Visit the revision indicated at the current line
+(@code{log-view-find-revision}).
 
 @item d
 Display a diff between the revision at point and the next earlier
-revision, for the specific file.
+revision, for the specific file (@code{log-view-diff}).
 
 @item D
 Display the changeset diff between the revision at point and the next
-earlier revision.  This shows the changes to all files made in that
-revision.
+earlier revision (@code{log-view-diff-changeset}).  This shows the
+changes to all files made in that revision.
+
+@item w
+Copy to the kill ring (@pxref{Kill Ring}) the revision ID of the log
+entry at point, as if you had used @kbd{M-w}
+(@code{log-view-copy-revision-as-kill}).  If several revisions are
+marked, the command copies to the kill ring the IDs of all of them,
+separated by spaces.
 
 @item @key{RET}
-In a compact-style log buffer (e.g., the one created by @kbd{C-x v
-L}), toggle between showing and hiding the full log entry for the
-revision at point.
+In a compact-style log buffer (e.g., the one created by @kbd{C-x v L}),
+toggle between showing and hiding the full log entry for the revision at
+point (@code{log-view-toggle-entry-display}).
+
+@item m
+Mark the entry at point (@code{log-view-mark-entry}).
+
+@item u
+Unmark the entry at point (@code{log-view-unmark-entry}).
+
+@item U
+Unmark all marked entries (@code{log-view-unmark-all-entries}).
 @end table
 
 @vindex vc-log-show-limit

@@ -246,7 +246,7 @@ Format of each entry is controlled by the variable `register-preview-function'."
         nil
         (with-current-buffer standard-output
           (setq cursor-in-non-selected-windows nil)
-          (dolist (elem registers)
+          (dolist (elem (sort registers :key #'car))
             (when (cdr elem)
               (let ((beg (point)))
                 (insert (funcall register-preview-function elem))

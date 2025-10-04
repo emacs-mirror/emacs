@@ -388,14 +388,14 @@ literals (Bug#20852)."
   ;; but eagerly with `force-load-doc-strings' set.
   (let ((file (expand-file-name "lazydoc.el" (ert-resource-directory))))
     (fmakunbound 'lazydoc-fun)
-    (load file)
+    (load file nil t)
     (let ((f (symbol-function 'lazydoc-fun)))
       (should (byte-code-function-p f))
       (should (equal (aref f 4) (cons file 87))))
 
     (fmakunbound 'lazydoc-fun)
     (let ((load-force-doc-strings t))
-      (load file)
+      (load file nil t)
       (let ((f (symbol-function 'lazydoc-fun)))
         (should (byte-code-function-p f))
         (should (equal (aref f 4) "My little\ndoc string\nhere"))))))

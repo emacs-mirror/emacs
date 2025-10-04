@@ -787,6 +787,19 @@ in the echo area.
   (put symbol 'non-key-event t)
   symbol)
 
+
+
+(defun read-only-keymap-filter (cmd)
+  "Return CMD if `browse-url' and similar button bindings should be active.
+They are considered active only in read-only buffers."
+  (when buffer-read-only cmd))
+
+(defun read-only-keymap-bind (binding)
+  "Use BINDING according to `read-only-keymap-filter'."
+  `(menu-item
+    "" ,binding
+    :filter ,#'read-only-keymap-filter))
+
 (provide 'keymap)
 
 ;;; keymap.el ends here

@@ -616,7 +616,9 @@ to be disabled.  On Emacs 28 and below, return END minus BEG."
   ;; `with-selected-window' seems to interfere with the implementation
   ;; of `erc-scrolltobottom-all' in ERC 5.6, which needs improvement.
   (if (fboundp 'buffer-text-pixel-size)
-      ;; `buffer-text-pixel-size' can move point!
+      ;; This `save-excursion' is likely unnecessary.  It was originally
+      ;; meant to protect point from `buffer-text-pixel-size', which no
+      ;; longer runs in the selected window's buffer.
       (save-excursion
         (save-restriction
           (narrow-to-region beg end)
@@ -745,12 +747,7 @@ See `erc-fill-wrap-mode' for details."
   ;; Clear an existing `line-prefix' before measuring (bug#64971).
   (remove-text-properties erc-insert-marker erc-input-marker
                           '(line-prefix nil wrap-prefix nil))
-  ;; Restoring window configuration seems to prevent unwanted
-  ;; recentering reminiscent of `scrolltobottom'-related woes.
-  (let ((c (and (get-buffer-window) (current-window-configuration)))
-        (len (erc-fill--wrap-measure erc-insert-marker erc-input-marker)))
-    (when c
-      (set-window-configuration c))
+  (let ((len (erc-fill--wrap-measure erc-insert-marker erc-input-marker)))
     (put-text-property erc-insert-marker erc-input-marker
                        'line-prefix
                        `(space :width (- erc-fill--wrap-value ,len)))))

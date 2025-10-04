@@ -1108,7 +1108,11 @@ detailed description of this mode.
   ;; trigger questions about debuginfod queries.
   (if (eq gdb-debuginfod-enable 'ask)
       (setq gdb-debuginfod-enable
-            (y-or-n-p "Enable querying debuginfod servers for this session?")))
+            ;; Temporarily defer processing of GDB responses, to avoid
+            ;; confusing us, until the user responds to the query.
+            (let ((gud-filter-defer-flag t))
+              (y-or-n-p
+               "Enable querying debuginfod servers for this session?"))))
   (gdb-input (format "-gdb-set debuginfod enabled %s"
                      (if gdb-debuginfod-enable "on" "off"))
              'gdb-debuginfod-message)

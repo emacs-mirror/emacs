@@ -10,6 +10,11 @@ The (co-)maintainers of Emacs are:
 	Eli Zaretskii <eliz@gnu.org>
 	Stefan Kangas <stefankangas@gmail.com>
 	Andrea Corallo <acorallo@gnu.org>
+	Richard Stallman <rms@gnu.org>
+
+(Richard Stallman is one of the Emacs maintainers,
+as well as being the Chief GNUisance to whom
+GNU package maintainers are responsible.)
 
 ==============================================================================
 1. Areas that someone wants to be maintaining (i.e. has a particularly

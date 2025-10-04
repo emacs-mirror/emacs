@@ -1803,7 +1803,8 @@ and pass it the output of the last Ispell invocation."
     (if (null ispell-process)
 	(error "No Ispell process to read output from!")
       (let ((buf ispell-output-buffer)
-	    ispell-output)
+	    (ispell-output nil))
+
 	(if (not (bufferp buf))
 	    (setq ispell-filter nil)
 	  (with-current-buffer buf

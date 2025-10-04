@@ -300,9 +300,8 @@ standard error, you can write to the Eshell virtual target
 
 @cindex batch scripts
 @defun eshell-batch-file
-This function lets you make an Eshell script file executable from
-outside of Emacs by adding it to the script's interpreter directive like
-this:
+You can use this function in the interpreter directive of an Eshell
+script file to make the script executable from outside of Emacs:
 
 @example
 #!/usr/bin/env -S emacs --batch -f eshell-batch-file
@@ -607,7 +606,7 @@ ls is an alias, defined as "*ls $@@*"
 @group
 ~ $ alias compile 'apply #''compile $*'
 ~ $ which compile
-ls is an alias, defined as "apply #'compile $*"
+compile is an alias, defined as "apply #'compile $*"
 @end group
 @end example
 

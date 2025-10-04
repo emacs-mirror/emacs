@@ -1,4 +1,4 @@
-;;; vc-hooks.el --- resident support for version-control  -*- lexical-binding:t -*-
+;;; vc-hooks.el --- Preloaded support for version control  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1992-1996, 1998-2025 Free Software Foundation, Inc.
 
@@ -23,10 +23,9 @@
 
 ;;; Commentary:
 
-;; This is the always-loaded portion of VC.  It takes care of
-;; VC-related activities that are done when you visit a file, so that
-;; vc.el itself is loaded only when you use a VC command.  See the
-;; commentary of vc.el.
+;; This is the preloaded portion of VC.  It takes care of VC-related
+;; activities that are done when you visit a file, so that vc.el itself
+;; is loaded only when you use a VC command.  See commentary of vc.el.
 
 ;;; Code:
 
@@ -960,7 +959,6 @@ In the latter case, VC mode is deactivated for this buffer."
   "u"   #'vc-revert
   "v"   #'vc-next-action
   "+"   #'vc-update
-  ;; I'd prefer some kind of symmetry with vc-update:
   "P"   #'vc-push
   "="   #'vc-diff
   "D"   #'vc-root-diff
@@ -970,9 +968,12 @@ In the latter case, VC mode is deactivated for this buffer."
   "!"   #'vc-edit-next-command
   "w c" #'vc-add-working-tree
   "w w" #'vc-switch-working-tree
+  "w k" #'vc-kill-other-working-tree-buffers
   "w s" #'vc-working-tree-switch-project
   "w x" #'vc-delete-working-tree
-  "w R" #'vc-move-working-tree)
+  "w R" #'vc-move-working-tree
+  "w a" #'vc-apply-to-other-working-tree
+  "w A" #'vc-apply-root-to-other-working-tree)
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key ctl-x-map "v" 'vc-prefix-map)
 

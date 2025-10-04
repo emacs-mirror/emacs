@@ -509,6 +509,33 @@ g .. h		foo
     ;; From the parent this time/
     (should (equal (keymap-lookup map "u") #'undo))))
 
+(defun keymap-test--maps-for-posn (area string)
+  (current-active-maps
+   nil
+   ;; FIXME: This test would be better if this was a real position
+   ;; created by a real click.
+   `(,(selected-window) ,area (1 . 1) 0 (,string . 0) nil (1 . 1) nil (1 . 1) (1 . 1))))
+
+(ert-deftest keymap-test-keymaps-for-non-buffer-positions ()
+  "`current-active-maps' with non-buffer positions.  (bug#76620)"
+  (with-temp-buffer
+    (pop-to-buffer (current-buffer))
+    (let ((keymap (make-sparse-keymap "keymap-at-point")))
+      (insert (propertize "string" 'keymap keymap))
+      (goto-char (point-min))
+      (should (memq keymap (current-active-maps)))
+      (should-not (memq keymap (keymap-test--maps-for-posn 'mode-line nil)))
+      (should-not (memq keymap (keymap-test--maps-for-posn 'mode-line "s")))
+      (should-not (memq keymap (keymap-test--maps-for-posn nil "s")))
+      (should (memq keymap (keymap-test--maps-for-posn nil nil)))
+      (let* ((mode-line-keymap (make-sparse-keymap "keymap-in-mode-line"))
+             (s (propertize "string" 'keymap mode-line-keymap)))
+        ;; Respect `keymap' in the string clicked on.
+        (should-not (memq keymap (keymap-test--maps-for-posn nil s)))
+        (should-not (memq keymap (keymap-test--maps-for-posn 'mode-line s)))
+        (should (memq mode-line-keymap (keymap-test--maps-for-posn nil s)))
+        (should (memq mode-line-keymap (keymap-test--maps-for-posn 'mode-line s)))))))
+
 (provide 'keymap-tests)
 
 ;;; keymap-tests.el ends here

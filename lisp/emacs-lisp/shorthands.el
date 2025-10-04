@@ -36,7 +36,11 @@
   ;; detail of files.el.  That function should be exported,
   ;; possibly be refactored into two parts, since we're only
   ;; interested in basic "Local Variables" parsing.
-  (alist-get 'read-symbol-shorthands (hack-local-variables--find-variables)))
+  ;; FIXME: Disable ourselves temporarily to avoid inf-loops during bootstrap,
+  ;; trying to look for shorthands in the files that implement shorthands.
+  (let ((hack-read-symbol-shorthands-function #'ignore))
+    (alist-get 'read-symbol-shorthands
+               (hack-local-variables--find-variables))))
 
 (setq hack-read-symbol-shorthands-function #'hack-read-symbol-shorthands)
 

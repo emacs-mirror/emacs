@@ -256,29 +256,31 @@ must be a valid watch descriptor."
   ;; - GPollFileMonitor (gio on cygwin)
   ;; - SMBSamba (smb-notify on Samba server)
   ;; - SMBWindows (smb-notify on MS Windows).
-  (when file-notify--test-desc
-    (or (alist-get file-notify--test-desc file-notify--test-monitors)
-        (when (member
-               (file-notify--test-library) '("gfilenotify" "gio" "smb-notify"))
-	  (add-to-list
-	   'file-notify--test-monitors
-	   (cons file-notify--test-desc
-	         (if (file-remote-p file-notify--test-rootdir)
-                     ;; `file-notify--test-desc' is the connection process.
-                     (progn
-                       (while (and (process-live-p file-notify--test-desc)
-                                   (not (tramp-connection-property-p
-		                         file-notify--test-desc "file-monitor")))
-                         (accept-process-output file-notify--test-desc 0))
-		       (tramp-get-connection-property
-		        file-notify--test-desc "file-monitor"))
-		   (and (functionp 'gfile-monitor-name)
-		        (gfile-monitor-name file-notify--test-desc)))))
-          ;; If we don't know the monitor, there are good chances the
-          ;; test will fail.  We skip it.
-          (unless (alist-get file-notify--test-desc file-notify--test-monitors)
-            (ert-skip "Cannot determine test monitor")))
-	(alist-get file-notify--test-desc file-notify--test-monitors))))
+  (if file-notify--test-desc
+      (or (alist-get file-notify--test-desc file-notify--test-monitors)
+          (when (member
+                 (file-notify--test-library) '("gfilenotify" "gio" "smb-notify"))
+	    (add-to-list
+	     'file-notify--test-monitors
+	     (cons file-notify--test-desc
+	           (if (file-remote-p file-notify--test-rootdir)
+                       ;; `file-notify--test-desc' is the connection process.
+                       (progn
+                         (while
+                             (and (process-live-p file-notify--test-desc)
+                                  (not (tramp-connection-property-p
+		                        file-notify--test-desc "file-monitor")))
+                           (accept-process-output file-notify--test-desc 0))
+		         (tramp-get-connection-property
+		          file-notify--test-desc "file-monitor"))
+		     (and (functionp 'gfile-monitor-name)
+		          (gfile-monitor-name file-notify--test-desc)))))
+            ;; If we don't know the monitor, there are good chances the
+            ;; test will fail.  We skip it.
+            (unless (alist-get file-notify--test-desc file-notify--test-monitors)
+              (ert-skip "Cannot determine test monitor")))
+	  (alist-get file-notify--test-desc file-notify--test-monitors))
+    (ert-skip "`file-notify--test-desc' is nil when checking for test monitor")))
 
 (defmacro file-notify--deftest-remote (test docstring &optional unstable)
   "Define ert `TEST-remote' for remote files.
@@ -882,7 +884,7 @@ delivered."
                '(GFamFileMonitor GFamDirectoryMonitor
                  GKqueueFileMonitor GPollFileMonitor))
          '())
-	;; For GInotifyFileMonitor,`write-region' raises also an
+	;; For GInotifyFileMonitor, `write-region' raises also an
 	;; `attribute-changed' event on gio.
 	((and (string-equal (file-notify--test-library) "gio")
               (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
@@ -1174,7 +1176,12 @@ delivered."
 	  (file-notify--test-add-watch
 	   file-notify--test-tmpdir
 	   '(change) #'file-notify--test-event-handler)))
-   (let ((n 10);00)
+   (let ((file-notify-debug ;; Temporarily.
+         (or file-notify-debug
+             (and (getenv "EMACS_EMBA_CI")
+                  (string-equal (file-notify--test-library) "gio")
+                  (eq (file-notify--test-monitor) 'GInotifyFileMonitor))))
+         (n 10);00)
          source-file-list target-file-list
          (default-directory file-notify--test-tmpdir))
      (dotimes (i n)

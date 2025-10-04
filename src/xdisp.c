@@ -17145,8 +17145,6 @@ redisplay_internal (void)
   bool polling_stopped_here = false;
   Lisp_Object tail, frame;
 
-  redisplay_counter++;
-
   /* Set a limit to the number of retries we perform due to horizontal
      scrolling, this avoids getting stuck in an uninterruptible
      infinite loop (Bug #24633).  */
@@ -17204,6 +17202,8 @@ redisplay_internal (void)
   if (popup_activated_p)
     return;
 #endif
+
+  redisplay_counter++;
 
   /* Record a function that clears redisplaying_p
      when we leave this function.  */

@@ -189,10 +189,10 @@ be updated as you type, or nil to suppress this always.  Note that for
 large or inefficient completion tables this can slow down typing.
 
 ---
-*** RET chooses the completion selected with M-<up>/M-<down>
-If a completion candidate is selected with M-<up> or M-<down>, hitting
-RET will exit completion with that as the result.  This works both in
-minibuffer completion and in-buffer completion.  This supersedes
+*** 'RET' chooses the completion selected with 'M-<up>/M-<down>'.
+If a completion candidate is selected with 'M-<up>' or 'M-<down>',
+hitting 'RET' will exit completion with that as the result.  This works
+both in minibuffer completion and in-buffer completion.  This supersedes
 'minibuffer-completion-auto-choose', which previously provided similar
 behavior; that variable is now nil by default.
 
@@ -215,6 +215,23 @@ different values for completion-affecting variables like
 'completion-pcm-leading-wildcard' or 'completion-ignore-case'.  This also
 applies for the styles configuration in 'completion-category-overrides'
 and 'completion-category-defaults'.
+
++++++
+*** Navigating "*Completions*" now accommodates 'completions-format'.
+When 'completions-format' is set to 'vertical', typing 'n', '<TAB>' or
+'M-<down>' in the "*Completions*" buffer (the latter also in the
+minibuffer) now moves point to the completion candidate in the next line
+in the current column, and wraps to the next column when typed on the
+last completion candidate of the current column.  Likewise, typing 'p',
+'S-<TAB>' or 'M-<up>' moves point to the completion candidate in the
+previous line or wraps to the previous column.  Previously, these keys
+ignored the vertical format, i.e., moved point only to the item in the
+same line of the next or previous column, in accordance with the default
+horizontal format.  In vertical format, typing '<left>' and '<right>' in
+the "*Completions*" buffer (and when 'minibuffer-visible-completions' is
+non-nil, also in the minibuffer) moves point only within the current
+line, analogously to how, in horizontal format, '<down>' and '<up>' move
+point only within the current column.
 
 ---
 *** Selected completion candidate is preserved across "*Completions*" updates.
@@ -253,12 +270,33 @@ that your popup interface uses for a more integrated experience.
 ('completion-preview-sort-function' was already present in Emacs 30.1,
 but as a plain Lisp variable, not a user option.)
 
+---
+*** New mode 'minibuffer-nonselected-mode'.
+This mode enabled by default directs the attention to the active
+minibuffer window using the 'minibuffer-nonselected' face in case
+when the minibuffer window is no longer selected, but the minibuffer
+is still waiting for input.
+
 ** Mouse
 
+*** New mode 'mouse-shift-adjust-mode' extends selection with 'S-<mouse-1>'.
+When enabled, you can use the left mouse button with the <Shift> modifier
+to extend the boundaries of the active region by dragging the mouse pointer.
+
 ---
-*** 'context-menu-mode now' includes a "Send to..." menu item.
+*** 'context-menu-mode' now includes a "Send to..." menu item.
 The menu item enables sending current file(s) or region text to external
 (non-Emacs) applications or services.  See send-to.el for customisations.
+
+---
+*** The mouse now drags lines in character increments again.
+Dragging a horizontal or vertical line like the mode line or the lines
+dividing side-by-side windows now by default happens in increments of
+the corresponding frame's character size again.  This is the behavior
+described in the manual and was the default behavior before
+'window-resize-pixelwise' was added for Emacs 24.1.  To drag in pixel
+increments as with Emcas 24 through Emacs 30 you now have to set
+'window-resize-pixelwise' to t.
 
 ** Windows
 
@@ -487,10 +525,11 @@ It is equivalent to running 'project-any-command' with
 The prompt now displays the chosen project on which to invoke a command.
 
 ---
-*** 'project-prompter' values may be called with up to three arguments.
+*** 'project-prompter' values may be called with up to four arguments.
 These allow callers of the value of 'project-prompter' to specify a
 prompt string; prompt the user to choose between a subset of all the
-known projects; and disallow returning arbitrary directories.
+known projects; disallow returning arbitrary directories; and allow
+returning an empty string.
 See the docstring of 'project-prompter' for a full specification of
 these new optional arguments.
 
@@ -525,10 +564,10 @@ project.
 
 The value must be an alist where each element must be in the form:
 
- (WHEN . PREDICATE)
+    (WHEN . PREDICATE)
 
 where WHEN specifies where the deletion will be performed, and PREDICATE
-a function which takes one argument, and must return non-nil if the
+is a function which takes one argument, and must return non-nil if the
 project should be removed.
 
 ---
@@ -553,14 +592,6 @@ project, during completion.  That makes some items shorter.
 *** 'project-switch-buffer' uses 'project-buffer' as completion category.
 The category defaults are the same as for 'buffer' but any user
 customizations would need to be re-added.
-
-** Registers
-
-*** New functions 'buffer-to-register' and 'file-to-register'.
-These allow users to interactively store file and buffers in registers.
-Killed buffers stored in a register using 'buffer-to-register' are
-automatically converted to a file-query value if the buffer was visiting
-a file.
 
 ** IDLWAVE has been moved to GNU ELPA.
 The version bundled with Emacs is out-of-date, and is now marked as
@@ -645,7 +676,7 @@ pair with 'completing-read', and removes it from the translation table.
 ** Internationalization
 
 ---
-*** Emacs now supports Unicode version 16.0.
+*** Emacs now supports Unicode Standard version 17.0.
 
 ---
 *** New input method 'greek-polytonic'.
@@ -717,6 +748,12 @@ To use this, add a list to both electric pair user options: '("/*" . "*/")'.
 You can also specify to insert an extra space after the first string
 pair: '("/*" " */" t)'.
 
+---
+** New user option 'electric-indent-actions'.
+This user options specifies a list of actions to reindent.  The possible
+elements for this list are: 'yank', reindent the yanked text;
+'before-save', indent the whole buffer before saving it.
+
 +++
 ** You can now use 'M-~' during 'C-x s' ('save-some-buffers').
 Typing 'M-~' while saving some buffers means not to save the buffer and
@@ -763,6 +800,16 @@ you could already use 'C-u C-x C-n' to clear the goal column.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Auth Source
+
++++
+*** Non-existing or empty files are ignored in 'auth-sources'.
+File-based data stores are ignored in ‘auth-sources’, if the underlying
+data file does not exist.  This is relevant, if a new secret is stored
+in such a file; the first usable entry of ‘auth-sources’ is selected as
+target.  If you want also not existing files to be selected, set the
+user option ‘auth-source-ignore-non-existing-file’ to nil.
+
 ** Autoinsert
 
 +++
@@ -774,18 +821,31 @@ with finer grained control.
 
 ** Register
 
++++
+*** New functions 'buffer-to-register' and 'file-to-register'.
+These allow users to interactively store file and buffers in registers.
+Killed buffers stored in a register using 'buffer-to-register' are
+automatically converted to a file-query value if the buffer was visiting
+a file.
+
+---
 *** The "*Register Preview*" buffer shows only suitable registers.
 That was already the case for the "fancy" UI but is now also true in
 the default UI you get, i.e., when 'register-use-preview' is 'traditional'.
+
+---
+*** The "*Register Preview*" buffer shows sorted items.
 
 ** Tree-sitter
 
 +++
 *** New user option 'treesit-enabled-modes'.
-You can customize it either to t to enable all available ts-modes,
-or to select a list of ts-modes to enable.  Depending on customization,
-it modifies the variable 'major-mode-remap-alist' from the corresponding
-variable 'treesit-major-mode-remap-alist' prepared by ts-mode packages.
+You can customize it either to t to enable all available tree-sitter
+based modes, or to select a list of tree-sitter based modes to enable.
+Depending on customization, it modifies the variable
+'major-mode-remap-alist' from the corresponding variable
+'treesit-major-mode-remap-alist' prepared by tree-sitter based mode
+packages.
 
 *** New user option 'treesit-auto-install-grammar'.
 It controls the automatic installation of tree-sitter grammar libraries
@@ -943,9 +1003,36 @@ at point to explore.
 
 ** Hideshow
 
++++
 *** New user option 'hs-display-lines-hidden'.
-If this option is non-nil, Hideshow displays the number of hidden
-lines next to the ellipsis.
+If this option is non-nil, Hideshow displays the number of hidden lines
+next to the ellipsis.  By default this is disabled.
+
++++
+*** New user option 'hs-show-indicators'.
+This user option determines if hideshow should display indicators to
+show and toggle the block hiding.  If non-nil, the indicators are enabled.
+
+By default this is disabled.
+
+*** New user option 'hs-indicator-maximum-buffer-size'.
+This user option limits the display of hideshow indicators to buffers
+that are not too large.  By default, buffers larger than 2MB have the
+indicators disabled; the value of nil will activate the indicators
+regardless of the buffer size.
+
++++
+*** New user option 'hs-indicator-type'.
+This user option determine which indicator type should be used for the
+block indicators.
+
+The possible values can be: 'fringe', display the indicators in the
+fringe (the default); 'margin', display the indicators in the margin;
+nil, display the indicators at end-of-line.
+
+The new icons 'hs-indicator-show' and 'hs-indicator-hide', can be used
+for customize the indicators appearance, only if 'hs-indicator-type' is
+set to 'margin' or nil.
 
 ** C-ts mode
 
@@ -955,6 +1042,12 @@ By default, this is nil, and the Doxygen comment blocks in C/C++ sources
 are highlighted like other comments.  When non-nil, Doxygen comment
 blocks are syntax-highlighted if the Doxygen grammar library is
 available.
+
+** Csharp-ts-mode
+
+*** Renamed feature in 'treesit-font-lock-feature-list'
+The feature 'property' has been renamed to 'attribute', since this is
+what it is called in the general C# community.
 
 ** Go-ts mode
 
@@ -1003,9 +1096,9 @@ option controls how much is indented for method chaining.
 
 ---
 *** 'php-ts-mode' now depends on 'mhtml-ts-mode'.
-The direct dependency on js-ts-mode, css-ts-mode and html-ts-mode has
-now been replaced by ‘mhtml-ts-mode’.  Navigation, Outline and Imenu
-work for all languages and code maintenance is easier.
+The direct dependency on 'js-ts-mode', 'css-ts-mode' and 'html-ts-mode'
+has now been replaced by ‘mhtml-ts-mode’.  Navigation, Outline and Imenu
+work for all languages, and code maintenance is easier.
 
 ---
 *** 'php-ts-mode-run-php-webserver' can now accept a custom "php.ini" file.
@@ -1016,7 +1109,7 @@ argument, 'php-ts-mode-run-php-webserver' prompts for the config file as
 well as for other connection parameters.
 
 ---
-*** The option 'php-ts-mode-css-fontify-colors' has been removed.
+*** The user option 'php-ts-mode-css-fontify-colors' has been removed.
 'mhtml-ts-mode-css-fontify-colors' replaces this option.
 
 ---
@@ -1040,8 +1133,8 @@ When non nil, it highlights unknown PHPDOC tags using
 
 ---
 *** New command 'php-ts-mode-show-ini'.
-Show the location of the PHP ini files, if the buffer is associated to a remote
-PHP file show the remote PHP ini files.
+Show the location of the PHP ini files.  If the current buffer is
+associated to a remote PHP file, show the remote PHP ini files.
 
 ** Rust-ts mode
 
@@ -1203,6 +1296,11 @@ are browsed from a PGTK frame.  For other frames, we fall back to the
 default URL launch function.  This change allows us to properly raise
 browser windows under Wayland using the xdg_activation_v1 protocol.
 
+*** 'RET' can visit URLs in read-only buffers.
+In some keymaps such as 'ansi-osc-hyperlink-map', 'browse-url-button-map',
+'goto-address-highlight-keymap', 'bug-reference-map' it's possible now
+to visit URLs by typing just 'RET' instead of 'C-c RET' in read-only buffers.
+
 *** Removed support for some obsolete web browsers.
 Conkeror (obsolete since Emacs 28.1), gnome-moz-remote (obsolete since
 Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).
@@ -1262,10 +1360,10 @@ If 'whitespace-style' includes 'missing-newline-at-eof' (which is the
 default), the 'whitespace-cleanup' function will now add the newline.
 
 ---
-*** 'whitespace-mode' now can prettify page delimiter characters (^L).
+*** 'whitespace-mode' now can prettify page delimiter characters ('^L').
 If 'page-delimiters' is set in 'whitespace-style', or the new minor mode
 'whitespace-page-delimiters-mode' is on, the page delimiter characters
-(^L) are displayed as a pretty horizontal line that spans the entire
+('^L') are displayed as a pretty horizontal line that spans the entire
 width of the window.  The new 'whitespace-page-delimiter' face can be
 used to customize the appearence.
 
@@ -1526,6 +1624,16 @@ Predefined values include visiting the file in Emacs, jumping to the
 file in Dired, or opening the file with an external program.  You can
 also provide a custom function.
 
+---
+*** Rmail now detects email messages from suspicious sender addresses.
+If the "From" header of a message contains a suspicious email address,
+Rmail will now highlight it in a distinct face and provide a 'help-echo'
+tooltip explaining the reason.  (What exactly is considered as
+suspicious email addresses is determined by the function
+'textsec-suspicious-p', which see.)  This is controlled by the new user
+option 'rmail-detect-suspicious-headers', whose default value is
+non-nil; customize to nil to disable the check.
+
 ** Message
 
 +++
@@ -1536,6 +1644,17 @@ honored if it was already set.
 
 +++
 *** 'message-strip-subject-re' now matches case-insensitively.
+
+** Sendmail
+
+---
+*** Sending an email via 'sendmail' checks for suspicious addressees.
+The command 'mail-send', used to send email in Mail mode, now checks the
+addressees for suspicious email addresses.  If such addresses are found,
+the command will show them and the reason they are considered
+suspicious, and will request a confirmation before sending the message.
+This follows the behavior of Message mode, and affects users who
+customize 'mail-user-agent' to the value 'sendmail-user-agent'.
 
 ** SHR
 
@@ -1722,7 +1841,7 @@ To unconditionally enable 'flyspell-mode' from a hook, use this instead:
 Connection-related objects for which no associated buffers exist, except
 for Tramp internal buffers, are flushed.  This is helpful to prune
 connections after you close remote-file buffers without having to either
-cherry pick via 'tramp-cleanup-connection' or clear them all via
+cherry-pick via 'tramp-cleanup-connection' or clear them all via
 'tramp-cleanup-all-connections'.
 
 +++
@@ -2059,9 +2178,16 @@ other working trees:
 
 - 'C-x v w c': Add a new working tree.
 - 'C-x v w w': Visit this file in another working tree.
+- 'C-x v w k': Kill buffers visiting this file in other working trees.
 - 'C-x v w s': Like 'C-x p p' but limited to other working trees.
+- 'C-x v w a': Copy or move fileset changes to another working tree.
+- 'C-x v w A': Copy or move all changes to another working tree.
 - 'C-x v w x': Delete a working tree you no longer need.
 - 'C-x v w R': Relocate a working tree to another file name.
+
+The new user option 'vc-no-confirm-moving-changes' controls whether
+'C-x v w a' and 'C-x v w A' ask for confirmation when moving changes
+between working trees.  The default is to ask for confirmation.
 
 In addition, Lisp programs that extend VC can invoke the new backend
 functions to obtain a list of other working trees, and to add, remove
@@ -2154,7 +2280,7 @@ statuses to files, and 'C-x v v' behaved subtly differently for the two
 statuses.  The combination of these differences between backends and in
 'C-x v v' behavior was confusing.  Now,
 
-- in VC-Dir, you can use 'C-x v v' on missing files to mark them as
+- in VC Directory, you can use 'C-x v v' on missing files to mark them as
   removed
 - when committing, you can include missing files in a set of files with
   different statuses, just like you've always been able to include
@@ -2255,6 +2381,25 @@ Backend authors should implement the 'incoming-revision' and 'mergebase'
 backend functions instead.  These are jointly sufficient to support the
 'C-x v I' and 'C-x v O' commands.
 
+---
+*** Marking revisions in Log View now works more like other modes.
+Previously, 'm' toggled whether the current revision was marked, and
+didn't advance point.  Now 'm' only adds marks, 'u' removes marks, and
+both advance point, like how marking works in Dired and VC Directory.
+You can get back the old behavior with something like this:
+
+    (with-eval-after-load 'log-view
+      (keymap-set log-view-mode-map "m" #'log-view-toggle-mark-entry))
+
+In addition, a new command 'U' removes all marks.
+
++++
+*** New command 'w' in Log View mode.
+The new command 'log-view-copy-revision-as-kill', by default bound to
+'w' in Log View mode, copies to the kill ring the ID of the revision at
+point in the log entry.  If there are marked revisions, it copies the
+IDs of those, instead.
+
 ** Diff mode
 
 +++
@@ -2322,7 +2467,7 @@ packages.
 ** Rcirc
 
 +++
-*** Authentication via NickServ can access password from 'auth-source'.
+*** Authentication via NickServ can access passwords with auth-source.el.
 For details, consult 'rcirc-authinfo'.
 
 ** Xref
@@ -2499,10 +2644,18 @@ activate it.  When t (the default), the click will both activate the
 frame and be interpreted as a command.
 
 ---
-*** New user option 'global-hl-line-modes'.
-This specifies in which major modes should the 'global-hl-line-mode' be
-switched on.  The default is t, which means enable it in all major
-modes.
+*** New user option 'global-hl-line-buffers'.
+This specifies in which buffers should the 'global-hl-line-mode' be
+switched on.  The default is all buffers except the minibuffer
+and the buffers like the completions buffer that enable
+'cursor-face-highlight-mode'.
+
+---
+*** New value 'window' for the user option 'global-hl-line-sticky-flag'.
+Unlike the value t that highlights the line with buffer's point,
+it highlights the line with window's point.  Also it uses the new face
+`hl-line-nonselected' for highlighting the line with window's point
+in non-selected windows.
 
 ---
 *** New user option 'display-fill-column-indicator-warning'.
@@ -2549,10 +2702,10 @@ If non-nil, FFAP always finds remote files in buffers with remote
 'default-directory'.  If nil, FFAP finds local files first for absolute
 file names in above buffers.  The default is nil.
 
-** Debugging
+** Edebug
 
 +++
-*** New command 'edebug-bounce-to-previous-value' (bound to 'P')
+*** New command 'edebug-bounce-to-previous-value' (bound to 'P').
 This command temporarily displays the outside current buffer with the
 outside point corresponding to the previous value, where the previous
 value is what Edebug has evaluated before its last stop point or what
@@ -2593,7 +2746,7 @@ widths based on content, optimizing display space and readability.
 
 *** New user option 'elisp-flymake-byte-compile-executable'.
 This allows customizing the Emacs executable used for Flymake byte
-compilation in emacs-lisp-mode.  This option should be set when editing
+compilation in 'emacs-lisp-mode'.  This option should be set when editing
 Lisp code which will run with a different Emacs version than the running
 Emacs, such as code from an older or newer version of Emacs.  This will
 provide more accurate warnings from byte compilation.
@@ -2844,15 +2997,28 @@ on GNU/Linux systems.
 
 ---
 ** New variable 'tty-cursor-movement-use-TAB-BS'.
-The display optimization where the combination TAB characters +
-BACKSPACE is used to move to a position on a TTY frame is now disabled
+The display optimization where the combination 'TAB' characters +
+'BACKSPACE' is used to move to a position on a TTY frame is now disabled
 by default and controlled by this variable; it can be set to non-nil
 to keep the old behavior.  This change is to accomodate screen
 readers.
 
+---
+** 'next-completion' and 'previous-completion' now use 'completions-format'.
+Previously, these commands only took horizontal format into account;
+now, they call either '{next,previous}-line-completion' or the new
+commands '{next,previous}-column-completion', depending on the value of
+'completions-format'.  The latter two commands improve and extend the
+previous implementations of '{next,previous}-completion', which better
+reflect that they only take the (default) horizontal completions format
+into account.  Any external code using '{next,previous}-completion' that
+assumes the previous implementation must be adjusted accordingly; see
+'minibuffer-next-completion' for an example of such an adjustment in
+Emacs core.
+
 +++
 ** A thread's current buffer can now be killed.
-We introduce a new attribute for threads called buffer-disposition.
+We introduce a new attribute for threads called 'buffer-disposition'.
 See the new argument in 'make-thread'.  The default value allows the
 thread's current buffer to be killed by another thread.  This does not
 apply to the main thread's buffer.

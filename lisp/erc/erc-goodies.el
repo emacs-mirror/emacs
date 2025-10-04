@@ -87,10 +87,15 @@ be experimental.  It currently only works with Emacs 28+."
    (unless erc--updating-modules-p (erc-buffer-do #'erc--scrolltobottom-setup))
    (if erc-scrolltobottom-all
        (progn
+         (remove-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)
          (add-hook 'erc-insert-pre-hook #'erc--scrolltobottom-on-pre-insert 25)
          (add-hook 'erc-pre-send-functions #'erc--scrolltobottom-on-pre-insert)
          (add-hook 'erc-insert-done-hook #'erc--scrolltobottom-all)
          (add-hook 'erc-send-completed-hook #'erc--scrolltobottom-all))
+     (remove-hook 'erc-insert-pre-hook #'erc--scrolltobottom-on-pre-insert)
+     (remove-hook 'erc-pre-send-functions #'erc--scrolltobottom-on-pre-insert)
+     (remove-hook 'erc-insert-done-hook #'erc--scrolltobottom-all)
+     (remove-hook 'erc-send-completed-hook #'erc--scrolltobottom-all)
      (add-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)))
   ((remove-hook 'erc-mode-hook #'erc--scrolltobottom-setup)
    (erc-buffer-do #'erc--scrolltobottom-setup)

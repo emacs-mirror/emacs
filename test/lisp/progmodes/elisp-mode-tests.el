@@ -1079,7 +1079,7 @@ evaluation of BODY."
     (mapatoms (lambda (s)
                 (when (string-match "^elisp--foo-" (symbol-name s))
                   (unintern s obarray))))
-    (load test-file)
+    (load test-file nil t)
     (should (intern-soft "elisp--foo-test"))
     (should-not (intern-soft "f-test"))))
 
@@ -1094,13 +1094,13 @@ evaluation of BODY."
     (should-not (intern-soft "f-test"))
     (should (intern-soft "elisp--foo-test"))
     (should-not (fboundp (intern-soft "elisp--foo-test")))
-    (load byte-compiled)
+    (load byte-compiled nil t)
     (should (intern-soft "elisp--foo-test"))
     (should-not (intern-soft "f-test"))))
 
 (ert-deftest elisp-shorthand-completion-at-point ()
   (let ((test-file (ert-resource-file "simple-shorthand-test.el")))
-    (load test-file)
+    (load test-file nil t)
     (with-current-buffer (find-file-noselect test-file)
       (revert-buffer t t)
       (goto-char (point-min))
@@ -1115,7 +1115,7 @@ evaluation of BODY."
 
 (ert-deftest elisp-shorthand-escape ()
   (let ((test-file (ert-resource-file "simple-shorthand-test.el")))
-    (load test-file)
+    (load test-file nil t)
     (should (intern-soft "f-test4---"))
     (should-not (intern-soft "elisp--foo-test4---"))
     (should (= 84 (funcall (intern-soft "f-test4---"))))
