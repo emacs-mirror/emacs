@@ -543,6 +543,15 @@ This function is called from a timer;  see `igc-start-collecting-stats'."
                                  (* igc--idle-delay (ash 1 repetition)))
                               nil #'igc--on-idle state (1+ repetition)))))))))
 
+
+(defun igc-describe-arena ()
+  "Describe MPS internals in a separate window."
+  (interactive)
+  (with-output-to-temp-buffer "*Arena*"
+    (with-current-buffer standard-output
+      (insert (igc--describe-arena))
+      (setq truncate-lines t))))
+
 (provide 'igc)
 
 ;;; igc.el ends here.

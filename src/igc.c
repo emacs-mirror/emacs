@@ -5596,6 +5596,30 @@ Return t if there was work to do, nil otherwise. */)
   return work_to_do ? Qt : Qnil;
 }
 
+#ifdef HAVE_OPEN_MEMSTREAM
+/* Only used for debugging */
+extern int ArenaDescribe(mps_arena_t, FILE *, size_t depth);
+
+DEFUN ("igc--describe-arena", Figc__describe_arena, Sigc__describe_arena,
+       0, 0, 0,
+       doc: /* Return a string describing the MPS arena.
+
+Only useful for low-level debugging. */)
+  (void)
+{
+  char *buffer = NULL;
+  size_t size = 0;
+  FILE *f = open_memstream (&buffer, &size);
+  if (!f)
+    report_file_error ("open_memstream failed", Qnil);
+  ArenaDescribe (global_igc->arena, f, 0);
+  fclose (f);
+  Lisp_Object description = make_string (buffer, size);
+  free (buffer);
+  return description;
+}
+#endif
+
 /***********************************************************************
 				  Init
  ***********************************************************************/
@@ -5621,6 +5645,7 @@ syms_of_igc (void)
   defsubr (&Sigc__add_extra_dependency);
   defsubr (&Sigc__remove_extra_dependency);
   defsubr (&Sigc__arena_step);
+  defsubr (&Sigc__describe_arena);
   DEFSYM (Qambig, "ambig");
   DEFSYM (Qexact, "exact");
   Fprovide (intern_c_string ("mps"), Qnil);
