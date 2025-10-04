@@ -2393,12 +2393,10 @@ You can get back the old behavior with something like this:
 
 In addition, a new command 'U' removes all marks.
 
----
-*** A new command 'log-view-copy-revision-as-kill' added.
-The new 'log-view-copy-revision-as-kill' command copies the revision of
-the log entry at point to the kill-ring.  When multiple log entries are
-marked the command copies all revisions in a single space separated
-string.  The command is bound by default to `w' in log-view-mode-map.
++++
+*** New command 'w' in Log View mode.
+'w' now copies the revision of the log entry at point to the kill ring.
+If there are marked revisions, it copies those, instead.
 
 ** Diff mode
 

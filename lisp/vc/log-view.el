@@ -751,16 +751,18 @@ considered file(s)."
      fr to)))
 
 (defun log-view-copy-revision-as-kill ()
-  "Copy the revision under point, as a string, to the `kill-ring'."
+  "Copy the revision at point to the kill ring.
+If there are marked revisions, use those, separated by spaces."
   (interactive)
   (let ((revisions (log-view-get-marked)))
     (if (length> revisions 1)
         (let ((found (string-join revisions " ")))
           (kill-new found)
           (message "%s" found))
-      (when-let* ((rev (or (car revisions) (cadr (log-view-current-entry)))))
-        (kill-new rev)
-        (message "%s" rev)))))
+      (if-let* ((rev (or (car revisions) (log-view-current-tag))))
+          (progn (kill-new rev)
+                 (message "%s" rev))
+        (user-error "No revision at point")))))
 
 (provide 'log-view)
 
