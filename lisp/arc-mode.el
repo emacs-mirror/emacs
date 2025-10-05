@@ -1648,6 +1648,12 @@ as a relative change like \"g+rw\" as for chmod(2)."
 (defun archive--mode-revert (orig-fun &rest args)
   (let ((no (archive-get-lineno)))
     (setq archive-files nil)
+    ;; 'orig-fun' will indirectly call 'archive-desummarize', which will
+    ;; delete the region between point-min and
+    ;; 'archive-proper-file-start'.  But the latter will be invalidated
+    ;; by 'orig-fun' (which actually reverts the buffer), so by setting
+    ;; it to 1 we prevent the damage from that deletion.
+    (setq archive-proper-file-start 1)
     (let ((coding-system-for-read 'no-conversion))
       (apply orig-fun t t (cddr args)))
     (archive-mode)
