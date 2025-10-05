@@ -309,6 +309,9 @@ code analysis."
 (defface elisp-free-variable '((t :inherit underline))
   "Face for highlighting free variables in Emacs Lisp code.")
 
+(defface elisp-special-variable-declaration '((t :inherit elisp-free-variable))
+  "Face for highlighting free variable declarations in Emacs Lisp code.")
+
 (defface elisp-condition '((t :foreground "red"))
   "Face for highlighting `condition-case' conditions in Emacs Lisp code.")
 

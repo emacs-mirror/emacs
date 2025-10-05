@@ -382,6 +382,13 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
   :imenu "Variable"
   :namespace 'variable)
 
+(elisp-scope-define-symbol-role special-variable-declaration ()
+  :doc "Special variable declarations."
+  :definition 'defvar
+  :face 'elisp-special-variable-declaration
+  :help (cl-constantly "Special variable declaration")
+  :namespace 'variable)
+
 (elisp-scope-define-symbol-role defface ()
   :doc "Face definitions."
   :definition 'defface
@@ -2529,13 +2536,17 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 (elisp-scope-define-special-form-analyzer setq (&rest args)
   (elisp-scope-setq args))
 
-(elisp-scope-define-special-form-analyzer defvar (&optional sym init _doc)
+(elisp-scope-define-special-form-analyzer defvar (&rest args)
+  (elisp-scope-report-s
+   (car args)
+   (if (cdr args) 'defvar 'special-variable-declaration))
+  (elisp-scope-1 (cadr args)))
+
+(elisp-scope-define-special-form-analyzer defconst (&optional sym init _doc)
   (elisp-scope-report-s sym 'defvar)
   (elisp-scope-1 init))
 
-(put 'defconst 'elisp-scope-analyzer #'elisp-scope--analyze-defvar)
-
-(defun elisp-scope-condition-case (var bodyform handlers)
+(elisp-scope-define-special-form-analyzer condition-case (var bodyform &rest handlers)
   (let* ((bare (bare-symbol var))
          (beg (when (symbol-with-pos-p var) (symbol-with-pos-pos var)))
          (l (elisp-scope-local-new bare beg elisp-scope--local)))
@@ -2552,12 +2563,6 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
            (t                (elisp-scope-report 'condition cbeg clen)))))
       (let ((elisp-scope--local l))
         (elisp-scope-n (cdr handler) elisp-scope-output-spec)))))
-
-(elisp-scope-define-special-form-analyzer condition-case (var bodyform &rest handlers)
-  (elisp-scope-condition-case var bodyform handlers))
-
-(elisp-scope-define-macro-analyzer condition-case-unless-debug (var bodyform &rest handlers)
-  (elisp-scope-condition-case var bodyform handlers))
 
 (elisp-scope-define-special-form-analyzer function (&optional arg)
   (when arg (elisp-scope-sharpquote arg)))
