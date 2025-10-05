@@ -718,7 +718,7 @@ Optional argument LOCAL is a local context to extend."
 
 (defvar elisp-scope-flet-alist nil)
 
-(defun elisp-scope-flet (defs body)
+(defun elisp-scope-flet (defs body outspec)
   (if defs
       (let* ((def (car defs))
              (func (car def))
@@ -733,10 +733,10 @@ Optional argument LOCAL is a local context to extend."
           ;; def is (FUNC EXP)
           (elisp-scope-1 (car exps)))
         (let ((elisp-scope-flet-alist (elisp-scope-local-new bare beg elisp-scope-flet-alist)))
-          (elisp-scope-flet (cdr defs) body)))
-    (elisp-scope-n body)))
+          (elisp-scope-flet (cdr defs) body outspec)))
+    (elisp-scope-n body outspec)))
 
-(defun elisp-scope-labels (defs forms)
+(defun elisp-scope-labels (defs forms outspec)
   (if defs
       (let* ((def (car defs))
              (func (car def))
@@ -748,8 +748,8 @@ Optional argument LOCAL is a local context to extend."
           (elisp-scope-report 'function beg (length (symbol-name bare)) beg))
         (let ((elisp-scope-flet-alist (elisp-scope-local-new bare beg elisp-scope-flet-alist)))
           (elisp-scope-lambda args body)
-          (elisp-scope-flet (cdr defs) forms)))
-    (elisp-scope-n forms)))
+          (elisp-scope-flet (cdr defs) forms outspec)))
+    (elisp-scope-n forms outspec)))
 
 (defvar elisp-scope-block-alist nil)
 
@@ -1026,10 +1026,6 @@ Optional argument LOCAL is a local context to extend."
       (let ((elisp-scope-flet-alist (elisp-scope-local-new bare beg elisp-scope-flet-alist))
             (elisp-scope--local l))
         (elisp-scope-n body outspec)))))
-
-(defun elisp-scope-with-slots (spec-list object body)
-  (elisp-scope-1 object)
-  (elisp-scope-let spec-list body))
 
 (defun elisp-scope-rx (regexps)
   (dolist (regexp regexps) (elisp-scope-rx-1 regexp)))
@@ -1514,7 +1510,7 @@ Optional argument LOCAL is a local context to extend."
 
 (defvar elisp-scope-macrolet-alist nil)
 
-(defun elisp-scope-cl-macrolet (bindings body)
+(defun elisp-scope-cl-macrolet (bindings body outspec)
   (if-let* ((b (car bindings)))
       (let ((name (car b))
             (arglist (cadr b))
@@ -1524,8 +1520,8 @@ Optional argument LOCAL is a local context to extend."
           (when-let* ((beg (elisp-scope-sym-pos name)))
             (elisp-scope-report 'macro beg (length (symbol-name bare)) beg))
           (let ((elisp-scope-macrolet-alist (elisp-scope-local-new bare (elisp-scope-sym-pos name) elisp-scope-macrolet-alist)))
-            (elisp-scope-cl-macrolet (cdr bindings) body))))
-    (elisp-scope-n body)))
+            (elisp-scope-cl-macrolet (cdr bindings) body outspec))))
+    (elisp-scope-n body outspec)))
 
 (defun elisp-scope-define-minor-mode (mode _doc body)
   (let ((explicit-var nil) (command t))
@@ -2281,13 +2277,14 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-named-let name bindings body elisp-scope-output-spec))
 
 (elisp-scope-define-macro-analyzer cl-flet (bindings &rest body)
-  (elisp-scope-flet bindings body))
+  (elisp-scope-flet bindings body elisp-scope-output-spec))
 
 (elisp-scope-define-macro-analyzer cl-labels (bindings &rest body)
-  (elisp-scope-labels bindings body))
+  (elisp-scope-labels bindings body elisp-scope-output-spec))
 
 (elisp-scope-define-macro-analyzer with-slots (spec-list object &rest body)
-  (elisp-scope-with-slots spec-list object body))
+  (elisp-scope-1 object)
+  (elisp-scope-let spec-list body))
 
 (elisp-scope-define-macro-analyzer cl-defmethod (name &rest rest)
   (elisp-scope-defmethod name rest))
@@ -2357,7 +2354,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 
 (elisp-scope-define-macro-analyzer cl-macrolet (bindings &rest body)
   ;; Unsafe macro!
-  (elisp-scope-cl-macrolet bindings body))
+  (elisp-scope-cl-macrolet bindings body elisp-scope-output-spec))
 
 (elisp-scope-define-macro-analyzer cl-symbol-macrolet (bindings &rest body)
   ;; Unsafe macro!
