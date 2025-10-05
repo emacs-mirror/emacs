@@ -2459,6 +2459,10 @@ you can say:
 @example
 (apply #'insert (cdr (string-glyph-split string))))
 @end example
+
+Caveat: for this function to recognize and process character
+compositions, @code{auto-composition-mode} must be enabled, and the
+current buffer must be displayed in some window.
 @end defun
 
 When a buffer is displayed with line numbers (@pxref{Display Custom,,,
