@@ -32,6 +32,13 @@
 (require 'auth-source)
 (require 'secrets)
 
+;; (dolist
+;;     (elt
+;;      (append
+;;       (mapcar #'intern (all-completions "auth-" obarray #'functionp))
+;;       (mapcar #'intern (all-completions "password-" obarray #'functionp))))
+;;   (trace-function-background elt))
+
 (defun auth-source-ensure-ignored-backend (source)
     (auth-source-validate-backend source '((source . "")
                                            (type . ignore))))
@@ -103,6 +110,14 @@
                                   (create-function
                                    . auth-source-plstore-create))))
 
+(ert-deftest auth-source-backend-parse-plstore-string ()
+  (auth-source-validate-backend "foo.plist"
+                                '((source . "foo.plist")
+                                  (type . plstore)
+                                  (search-function . auth-source-plstore-search)
+                                  (create-function
+                                   . auth-source-plstore-create))))
+
 (ert-deftest auth-source-backend-parse-netrc ()
   (auth-source-validate-backend '(:source "foo")
                                 '((source . "foo")
@@ -121,6 +136,16 @@
 
 (ert-deftest auth-source-backend-parse-json ()
   (auth-source-validate-backend '(:source "foo.json")
+                                '((source . "foo.json")
+                                  (type . json)
+                                  (search-function . auth-source-json-search)
+                                  (create-function
+                                   ;; To be implemented:
+                                   ;; . auth-source-json-create))))
+                                   . ignore))))
+
+(ert-deftest auth-source-backend-parse-json-string ()
+  (auth-source-validate-backend "foo.json"
                                 '((source . "foo.json")
                                   (type . json)
                                   (search-function . auth-source-json-search)
@@ -197,6 +222,20 @@
     (auth-source-ensure-ignored-backend nil)
     (auth-source-ensure-ignored-backend '(:source '(foo)))
     (auth-source-ensure-ignored-backend '(:source nil))))
+
+(ert-deftest auth-source-backend-parse-fallback ()
+  (let* (auth-sources
+         (backends (auth-source-backends))
+         (backend (car backends))
+         (validation-alist
+          '((source . "")
+            (type . read-passwd)
+            (search-function . auth-source-read-passwd-search)
+            (create-function . auth-source-read-passwd-create))))
+    (should (length= backends 1))
+    (should (auth-source-backend-p backend))
+    (dolist (pair validation-alist)
+      (should (equal (eieio-oref backend (car pair)) (cdr pair))))))
 
 (defun auth-source--test-netrc-parse-entry (entry host user port)
   "Parse a netrc entry from buffer."
@@ -433,6 +472,35 @@
               (should (string-equal (plist-get auth-info :host) host))
               (should (string-equal auth-passwd passwd))
               (should (search-forward host nil 'noerror)))))))))
+
+(ert-deftest auth-source-test-read-passwd-create-secret ()
+  (let (auth-sources auth-info auth-passwd host)
+    (auth-source-forget-all-cached)
+    (dolist (passwd '("foo" "" nil))
+      (unwind-protect
+          ;; Redefine `read-*' in order to avoid interactive input.
+          (cl-letf (((symbol-function 'read-passwd) (lambda (_) passwd))
+                    ((symbol-function 'read-string)
+                     (lambda (_prompt &optional _initial _history default
+                                      _inherit-input-method)
+                       default)))
+            (setq host
+                  (md5 (concat (prin1-to-string process-environment) passwd))
+                  auth-info
+                  (car (auth-source-search
+                        :max 1 :host host :require '(:user :secret) :create t))
+	          auth-passwd (auth-info-password auth-info))
+            (should (string-equal (plist-get auth-info :user) (user-login-name)))
+            (should (string-equal (plist-get auth-info :host) host))
+            (should (equal auth-passwd passwd))
+            (should-not (plist-get auth-info :save-function))
+
+            ;; Check, that the item hasn't been created persistently.
+            (auth-source-forget+ :host t)
+            (should-not (auth-source-search :host host)))
+
+        ;; Cleanup.
+        t))))
 
 (ert-deftest auth-source-delete ()
   (ert-with-temp-file netrc-file
