@@ -4789,11 +4789,6 @@ make_fake_entry (const char *name, double (*f) (mps_arena_t),
 		Qnil);
 }
 
-#ifndef __clang__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsuggest-attribute=noreturn"
-#endif
-
 DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0,
        doc: /* Return information about incremental GC.
 The return value is a list of elements describing the various
@@ -4847,10 +4842,6 @@ IGC statistics:
 
   return result;
 }
-
-#ifndef __clang__
-#pragma GCC diagnostic pop
-#endif
 
 DEFUN ("igc--roots", Figc__roots, Sigc__roots, 0, 0, 0,
        doc: /* Return the list of IGC roots.
