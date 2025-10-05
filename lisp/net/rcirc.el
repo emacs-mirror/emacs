@@ -3103,7 +3103,11 @@ indicated by RESPONSE)."
                       (#x1f 'underline)
                       (#x1e '(:strike-through t))
                       (#x11 'rcirc-monospace-text)))
-    (goto-char (1+ (match-beginning 0)))))
+    (goto-char (match-beginning 0))
+    (forward-char)
+    (unless (eq (char-before (match-end 2)) ?\C-o)
+      (delete-region (match-beginning 2) (match-end 2)))
+    (delete-region (match-beginning 1) (match-end 1))))
 
 (defconst rcirc-color-codes
   ;; Taken from https://modern.ircdocs.horse/formatting.html
