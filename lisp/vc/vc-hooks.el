@@ -965,6 +965,7 @@ In the latter case, VC mode is deactivated for this buffer."
 ;; in the menu because they don't exist yet when the menu is built.
 ;; (autoload 'vc-prefix-map "vc" nil nil 'keymap)
 (defvar-keymap vc-prefix-map
+  :prefix t
   "a"   #'vc-update-change-log
   "b c" #'vc-create-branch
   "b l" #'vc-print-branch-log
@@ -1003,7 +1004,6 @@ In the latter case, VC mode is deactivated for this buffer."
   "w R" #'vc-move-working-tree
   "w a" #'vc-apply-to-other-working-tree
   "w A" #'vc-apply-root-to-other-working-tree)
-(fset 'vc-prefix-map vc-prefix-map)
 (define-key ctl-x-map "v" 'vc-prefix-map)
 
 (defvar-keymap vc-incoming-prefix-map

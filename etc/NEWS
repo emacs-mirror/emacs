@@ -3310,6 +3310,12 @@ a remote host.  It must be used in conjunction with the function
 The column number is no longer available; the line number will be
 removed in next Emacs release.
 
++++
+** defvar-keymap can now take a ':prefix t' option.
+This is an abbreviation for using the name of the keymap as the prefix
+command name.  E.g. (defvar-keymap foo-map :prefix t) is equivalent to
+(defvar-keymap foo-map :prefix 'foo-map).
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
