@@ -24,6 +24,11 @@
 
 #include <stdio.h> /* fprintf, stderr */
 #include <stdlib.h> /* alloca, exit, EXIT_SUCCESS, EXIT_FAILURE */
+
+#ifdef MPS_OS_CY
+#include <alloca.h> /* alloca is here on Cygwin */
+#endif
+
 #include <time.h> /* CLOCKS_PER_SEC, clock */
 
 #define DJMUST(expr) \

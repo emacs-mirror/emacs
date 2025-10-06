@@ -14,8 +14,8 @@
 
 #include "mpm.h"
 
-#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
-#error "prmcix.c is specific to MPS_OS_FR or MPS_OS_LI"
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_CY)
+#error "prmcix.c is specific to MPS_OS_FR, MPS_OS_LI, or MPS_OS_CY"
 #endif
 
 #include "prmcix.h"
