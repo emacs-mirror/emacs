@@ -405,12 +405,12 @@ A fallback backend is added to ensure, that at least `read-passwd' is called."
 (defmacro auth-source-search-spec (spec)
   "Build a search spec without the ignored keys.
 If a search key is nil or t (match anything), skip it."
-  `(seq-keep
+  `(apply #'append (mapcar
     (lambda (k)
       (and-let* ((v (plist-get ,spec k))
                  ((not (eq t v)))
-                 ((cons k (auth-source-ensure-strings v))))))
-    (auth-source-search-keys spec)))
+                 ((list k (auth-source-ensure-strings v))))))
+    (auth-source-search-keys ,spec))))
 
 (defcustom auth-source-ignore-non-existing-file t
   "If set non-nil, file-based backends are ignored if the file does not exist.
@@ -1804,8 +1804,7 @@ authentication tokens:
          (items
           (cl-loop
            for search-spec in
-           (apply #'auth-source-secrets-listify-pattern
-                  (auth-source-search-spec spec))
+           (auth-source-secrets-listify-pattern (auth-source-search-spec spec))
            nconc
            (cl-loop for item in (apply #'secrets-search-items coll search-spec)
                     unless (and (stringp label)
