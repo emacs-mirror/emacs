@@ -732,10 +732,12 @@ point."
              'keymap hs-indicators-map))
            ;; EOL string
            ('nil
-            (propertize
-             (icon-string face-or-icon)
-             'mouse-face 'highlight
-             'keymap hs-indicators-map))))))))
+            (concat
+             (propertize " " 'cursor t)
+             (propertize
+              (icon-string face-or-icon)
+              'mouse-face 'highlight
+              'keymap hs-indicators-map)))))))))
 
 (defun hs--add-indicators (&optional beg end)
   "Add hideable indicators from BEG to END."
