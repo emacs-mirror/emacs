@@ -733,6 +733,7 @@ Optional argument LOCAL is a local context to extend."
              (bare (bare-symbol func))
              (len (length (symbol-name bare))))
         (when beg
+          ;; TODO: Use a bespoke 'local-function-definition' role.
           (elisp-scope-report 'function beg len beg))
         (if (cdr exps)
             ;; def is (FUNC ARGLIST BODY...)
@@ -1540,6 +1541,7 @@ Optional argument LOCAL is a local context to extend."
         (when-let* ((bare (elisp-scope-sym-bare name))
                     (len (length (symbol-name bare))))
           (let ((beg (elisp-scope-sym-pos name)))
+            ;; TODO: Use a bespoke 'local-macro-definition' role.
             (when beg (elisp-scope-report 'macro beg len beg))
             (let ((pos (or beg (cons 'gen (incf elisp-scope-counter)))))
               (elisp-scope-with-local-definition bare

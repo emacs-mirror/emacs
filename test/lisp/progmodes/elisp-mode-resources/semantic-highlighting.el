@@ -97,3 +97,17 @@
                                              (length long))))))
 ;;                                            ^ elisp-function-reference
 ;;                                                   ^ elisp-bound-variable
+
+(let ((foo 'bar))
+;; ^ (elisp-special-form font-lock-keyword-face)
+;;     ^ elisp-binding-variable
+  (cl-flet ((foo () 'baz))
+;; ^ (elisp-macro-call font-lock-keyword-face)
+;;           ^ elisp-function-reference
+    (foo)
+;;   ^ elisp-function-reference
+    (cl-macrolet ((foo () 'foo))
+;;   ^ (elisp-macro-call font-lock-keyword-face)
+;;                 ^ elisp-macro-call
+      (foo))))
+;;     ^ elisp-macro-call
