@@ -7415,10 +7415,14 @@ This variable specifies functions called during redisplay when window
 buffers have changed.  The value should be a list of functions that
 take one argument.
 
-Functions specified buffer-locally are called for any window showing
-the corresponding buffer if that window has been created or assigned
-that buffer since the last time window change functions were run.  In
-this case the window is passed as argument.
+Functions specified buffer-locally are called for each window showing
+the corresponding buffer if and only if that window has been added or
+changed its buffer since the last redisplay.  Note that functions may be
+run twice for such a window: Once for the buffer shown in the window at
+the time of the last redisplay (provided that buffer is still live) and
+once for the buffer currently shown in the window.  In either case the
+window is passed as argument and the respective buffer is made
+temporarily current.
 
 Functions specified by the default value are called for a frame if at
 least one window on that frame has been added, deleted or assigned
@@ -7436,11 +7440,11 @@ This variable specifies functions called during redisplay when a
 window size change occurred.  The value should be a list of functions
 that take one argument.
 
-Functions specified buffer-locally are called for any window showing
-the corresponding buffer if that window has been added or assigned
-another buffer or changed its total or body size since the last time
-window change functions were run.  In this case the window is passed
-as argument.
+Functions specified buffer-locally are called for any window showing the
+corresponding buffer if that window has been added or assigned another
+buffer or changed its total or body size since the last time window
+change functions were run.  In this case the window is passed as
+argument and the respective buffer is temporarily made current.
 
 Functions specified by the default value are called for a frame if at
 least one window on that frame has been added or assigned another
@@ -7458,11 +7462,12 @@ This variable specifies functions called during redisplay when the
 selected window or a frame's selected window has changed.  The value
 should be a list of functions that take one argument.
 
-Functions specified buffer-locally are called for any window showing
-the corresponding buffer if that window has been selected or
-deselected (among all windows or among all windows on its frame) since
-the last time window change functions were run.  In this case the
-window is passed as argument.
+Functions specified buffer-locally are called for any window showing the
+corresponding buffer if that window has been selected or deselected
+(among all windows or among all windows on its frame) since the last
+time window change functions were run.  In this case the window is
+passed as argument and the respective buffer is temporarily made
+current.
 
 Functions specified by the default value are called for a frame if
 that frame has been selected or deselected or the frame's selected
@@ -7481,12 +7486,13 @@ window buffer or size change occurred or the selected window or a
 frame's selected window has changed.  The value should be a list of
 functions that take one argument.
 
-Functions specified buffer-locally are called for any window showing
-the corresponding buffer if that window has been added or assigned
-another buffer, changed its total or body size or has been selected or
+Functions specified buffer-locally are called for any window showing the
+corresponding buffer if that window has been added or assigned another
+buffer, changed its total or body size or has been selected or
 deselected (among all windows or among all windows on its frame) since
-the last time window change functions were run.  In this case the
-window is passed as argument.
+the last time window change functions were run.  In this case the window
+is passed as argument and the respective buffer is temporarily made
+current.
 
 Functions specified by the default value are called for a frame if at
 least one window on that frame has been added, deleted or assigned

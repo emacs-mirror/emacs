@@ -325,6 +325,20 @@ deleted implicitly by functions like 'kill-buffer', 'bury-buffer' and
 'quit-restore-window'.
 
 +++
+*** Buffer-local window change functions run in their buffers now.
+Running the buffer-local version of each of the abnormal hooks
+'window-buffer-change-functions', 'window-size-change-functions'
+'window-selection-change-functions' and 'window-state-change-functions'
+will make the respective buffer temporarily current for running the
+hook.'
+
++++
+*** 'window-buffer-change-functions' is run for removed buffer too.
+The buffer-local version of 'window-buffer-change-functions' may be run
+twice now: Once for the buffer removed from the respective window and
+once for the buffer now shown in that window.
+
++++
 *** New user option 'quit-window-kill-buffer'.
 This option specifies whether 'quit-window' should preferably kill or
 bury the buffer shown by the window to quit.  The default is nil.
