@@ -1,0 +1,210 @@
+#+TITLE: Semantic Highlighting for Emacs Lisp
+
+This document describes the semantic highlighting facility that Emacs
+provides for Emacs Lisp (ELisp), and the ELisp code analysis that powers
+this feature.
+
+* Semantic Highlighting
+
+The term "semantic highlighting" refers to a semi-advanced feature of
+code editors, in which the editor uses some kind of semantic analysis to
+understand a program's source code, and communicates useful information
+about the meaning of different tokens to the user by highlighting these
+tokens according to their specific role in the program.
+
+Semantic highlighting is more sophisticated then traditional "syntax
+highlighting", which only considers the syntactic role of a token,
+i.e. how it affects the code's /parsing/, unlike semantic analysis which
+takes into account the token's effect on the program's /execution/.  For
+example, a semantic highlighting implementation may be able to tell
+apart local and global variables and give distinct highlighting to each
+category, even though the language's /syntax/ doesn't make such a
+distinction.  Semantic highlighting is especially beneficial in
+languages in which syntactic constructs can mean completely different
+things depending on the context in which they occur, such as Lisp and
+Prolog.  In such language, syntactic analysis alone misses a lot of
+important information that coders need to reason about their programs.
+
+* Highlighting ELisp
+
+Emacs implements semantic highlighting for Emacs Lisp as an optional
+feature of =emacs-lisp-mode=.  To enable it, set the option
+=elisp-fontify-semantically= to non-nil.
+
+When this option is enabled, =emacs-lisp-mode= analyzes your code and
+highlights symbols according to their semantic roles, as part of the
+mode's usual =font-lock= highlighting.  It doesn't effect the
+highlighting of strings, comments and other syntactic elements such as
+brackets; =elisp-fontify-semantically= only affects symbol highlighting.
+Also note that this option assumes that lexical-binding is in effect.
+
+** Symbol Roles
+
+The semantic analysis assigns to each symbol a "symbol role", such as
+=function=, =bound-variable=, =binding-variable=, =face=, etc.  Each
+symbol role has an associated face, which is applied to symbols with
+that role during semantic.  By default, most of these faces inherit from
+appropriate =font-lock-*= faces.  For example, =binding-variable=
+symbols get the =elisp-binding-variable= face, which inherits from
+=font-lock-variable-name-face=.
+
+To define new symbol roles, see the macro =elisp-scope-define-symbol-role=.
+
+** Helpful Annotations
+
+The analysis can differentiate between more than 50 symbol roles, but
+you don't need to memorize the appearance of so many faces to leverage
+semantic highlighting.  During semantic highlighting, Emacs annotates
+each highlighted symbol with an =help-echo= text property that describes
+the role of that symbol, so you an see exactly which role was inferred
+for a given symbol just by hovering over it with your mouse.  You can
+control these =help-echo= annotations by setting =elisp-add-help-echo=.
+
+** Bonus Feature: Highlighting Occurrences of the Local Variable at Point
+
+If you enable =cursor-sensor-mode= along with
+=elisp-fontify-semantically=, then when you move point to a local
+variable Emacs will apply special highlighting to all occurrences of
+that variable in its local scope.  This lets you see at a glance where a
+certain local variable is used.
+
+* ELisp Code Analysis
+
+The analysis that powers =elisp-fontify-semantically= is implemented in
+the library ~elisp-scope.el~.  The entry point of the analysis in the
+function =elisp-scope-analyze-form=, it takes a caller-provided callback
+function which will be called to report the information we find about
+each analyzed symbol: the callback gets the position and length of the
+analyzed symbol, along with its inferred role and, for locally-bound
+variables, the position of the binder.  =elisp-scope-analyze-form= reads
+a form from the current buffer, starting from point, using
+=read-positioning-symbols= to attach position information to symbols.
+It then recursively analyzes the form, reporting information about each
+symbol it encounters via the caller-provided callback function.  For
+semantic highlighting, =elisp-scope-analyze-form= is called with a
+callback that highlights each reported symbol during analysis.
+
+Hence, semantic highlighting always processes the whole top-level form
+in one go, which might become slow for very large function definitions.
+Please report such slowness to bug-gnu-emacs@gnu.org if you encounter it
+so we can improve this aspect.
+
+Also note that, since semantic highlighting reads and analyzes forms,
+for best results you should keep your code syntactically correct while
+editing it, for example by using =electric-pair-mode=.
+
+** Recursive Form Analysis
+
+The core of the analysis that =elisp-scope-analyze-form= performs is
+implemented in the recursive function =elisp-scope-1=, which analyzes an
+sexp as an evaluated form, propagating contextual information such as
+local variable bindings down to analyzed sub-forms.  =elisp-scope-1=
+takes two arguments: =form=, which is the form to analyze, and =spec=,
+which is a specification of the expected value of =form= used to analyze
+quoted data.  The analysis proceeds as follows:
+
+- If =form= is a symbol, =elisp-scope-1= reports it as a variable.
+  See [[*Analyzing Variables][Analyzing Variables]] for details about the exact symbol roles used
+  for variables.
+
+- If =form= is a cons cell =(head . args)=, then the analysis depends on
+  =head=.  =head= can have a bespoke "analyzer function" =af=, which is
+  called as =(af head . args)= and is responsible for (recursively)
+  analyzing =form=.  The analyzer function can be associated to =head=
+  either locally, as an alist entry in =elisp-scope-local-definitions=,
+  or globally, via the symbol property =elisp-scope-analyzer=.
+
+  An analyzer may use the functions =elisp-scope-report-s=,
+  =elisp-scope-1= and =elisp-scope-n= to analyze its arguments, and it
+  can consult the variable =elisp-scope-output-spec= to obtain the
+  expected output spec of the analyzed form.  For example, the following
+  is a suitable analyzer for the `identity' function:
+
+  #+begin_src emacs-lisp
+    (lambda (fsym arg)
+      (elisp-scope-report-s fsym 'function)
+      (elisp-scope-1 arg elisp-scope-output-spec))
+  #+end_src
+
+  In particular, the analyzer function of =quote= analyzes its argument
+  according to =elisp-scope-output-spec=, which is bound to the value of
+  the =spec= argument passed to =elisp-scope-1=.  See [[*Analyzing Data][Analyzing Data]] for
+  more details about this analysis.
+
+- If =head= is a macro, normally it is expanded, and then the expanded
+  form is analyzed recursively.  Since macro-expansion may involve
+  arbitrary code execution, only "safe" macro invocations are expanded:
+  If =head= is one of the macros in =elisp-scope-unsafe-macros=, then it
+  is never considered safe.  Otherwise, =head= is safe if it specified
+  in the variable =elisp-scope-safe-macros=; or if it has a non-nil
+  =safe-macro= symbol property; or if the current buffer is trusted
+  according to =trusted-content-p=.
+
+  If a macro =head= is not safe to expand (and has no associated
+  analyzer function), then the macro arguments =args= are not analyzed.
+  Hence semantic highlighting gives best results in trusted buffers,
+  where all macros can be expanded when needed.
+
+- If =head= is a function, it is reported as such, and =args= are
+  recursively analyzed as evaluated forms.
+
+- Otherwise, if =head= has no associated analyzer function, and it is
+  not a known macro or function, then it is reported with the =unknown=
+  symbol role.  If the variable =elisp-scope-assume-func= is non-nil,
+  then unknown =head= is assumed to be a function call, and thus =args=
+  are analyzed as evaluated forms; otherwise =args= are not analyzed.
+
+** Analyzing Variables
+
+When =elisp-scope-1= encounters a variable reference =var=, it checks
+whether =var= has a local binding in =elisp-scope-local-bindings=, and
+whether =var= is a known special variable.  If =var= is a locally-bound
+special variable, =elisp-scope-1= reports the role =shadowed-variable=.
+If =var= is locally-bound and not a special variable, it gets the role
+=bound-variable=.  Lastly, if it not locally-bound, then it gets the
+role =free-variable=.
+
+** Analyzing Data
+
+When analyzer functions invoke =elisp-scope-1/n= to analyze some
+sub-forms, they specify the =outspec= argument to convey information but
+the expected value of the evaluated sub-form(s), so =elisp-scope-1/n=
+will know what to do with a sub-form that is just (quoted) data.
+
+For example, the analyzer function for =face-attribute= calls
+=elisp-scope-1= to analyze its first argument with an =outspec= which
+says that a quoted symbol in this position refers to a face name.  That
+way, in a form such as =(face-attribute 'default :foreground)= the
+symbol =default= is reported as a face reference (symbol role =face=).
+Moreover, the =outspec= is passed down as appropriate through various
+predefined analyzers, so every quoted symbol in a "tail position" of the
+first argument to =face-attribute= will also be recognized as a face.
+For instance, in the following form, both =success= and =error= are
+reported as face references:
+
+#+begin_src emacs-lisp
+  (face-attribute (if (something-p)
+                      'success
+                    (message "oops")
+                    'error)
+                  :foreground)
+#+end_src
+
+See also the docstring of =elisp-scope-1= for details about the format
+of the =outspec= argument.
+
+* Takeaways
+
+- Set =elisp-fontify-semantically= to non-nil to enable semantic
+  highlighting for ELisp.
+- It uses various =elisp-*= faces for the various symbol roles it
+  recognizes (function, macro, local/global variable...); most of these
+  faces inherit from appropriate =font-lock-*= faces.
+- The current implementation can be slow when editing very large defuns.
+- Syntax errors break semantic analysis, so =electric-pair-mode= or
+  similar is recommended.
+- In untrusted buffers (as in =trusted-content-p=), some macro arguments
+  may not be highlighted.
+- Highlighting is informed by definitions in the current Emacs session,
+  hence code that uses unloaded libraries may miss some highlighting.
+- You can extend it with new analyzer functions and new symbol roles.
