@@ -45,7 +45,8 @@ typedef struct testthr_t {
   void *result;               /* result returned from start */
 } testthr_t;
 
-#elif defined(MPS_OS_FR) || defined(MPS_OS_LI) || defined(MPS_OS_XC)
+#elif defined(MPS_OS_FR) || defined(MPS_OS_LI) || defined(MPS_OS_XC) \
+  || defined(MPS_OS_CY)
 
 #include <pthread.h>
 

@@ -256,6 +256,21 @@
 #include "spw3i6.c"     /* Windows on x86-64 stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
+/* Cygwin on x86-64 built with GCC */
+
+#elif defined(MPS_PF_CYI6GC)
+
+#include "lockix.c"     /* Posix locks */
+#include "thix.c"       /* Posix threading */
+#include "pthrdext.c"   /* Posix thread extensions */
+#include "vmix.c"       /* Posix virtual memory */
+#include "protix.c"     /* Posix protection */
+#include "protsgix.c"   /* Posix signal handling */
+#include "prmcanan.c"   /* generic architecture mutator context */
+#include "prmcix.c"     /* Posix mutator context */
+#include "prmccyi6.c"   /* x86-64 for Cygwin mutator context */
+#include "span.c"       /* generic stack probe */
+
 #else
 
 #error "Unknown platform -- can't determine platform specific parts."

@@ -180,6 +180,14 @@ case $host/$CLANG in
       PFMCFLAGS="$CFLAGS_GC"
       EXEEXT=.exe
     ;;
+  x86_64-*-cygwin*/no)
+      AC_MSG_RESULT([Cygwin x86_64])
+      MPS_OS_NAME=cy
+      MPS_ARCH_NAME=i6
+      MPS_BUILD_NAME=gc
+      PFMCFLAGS="$CFLAGS_GC"
+      EXEEXT=.exe
+    ;;
     *)
     AC_MSG_ERROR([MPS does not support this platform out of the box.  See manual/build.txt])
 esac

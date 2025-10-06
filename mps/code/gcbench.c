@@ -21,6 +21,11 @@
 
 #include <stdio.h> /* fprintf, printf, putchars, sscanf, stderr, stdout */
 #include <stdlib.h> /* alloca, exit, EXIT_FAILURE, EXIT_SUCCESS, strtoul */
+
+#ifdef MPS_OS_CY
+#include <alloca.h> /* alloca is here on Cygwin */
+#endif
+
 #include <time.h> /* clock, CLOCKS_PER_SEC */
 
 #define RESMUST(expr) \

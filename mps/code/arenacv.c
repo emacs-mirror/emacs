@@ -464,7 +464,11 @@ static void testSize(Size size)
 }
 
 
+#ifdef MPS_OS_CY		/* Bug#74805 */
+#define TEST_ARENA_SIZE (ARENA_CLIENT_GRAIN_SIZE << 17)
+#lse
 #define TEST_ARENA_SIZE              ((Size)16<<22)
+#endif
 
 
 int main(int argc, char *argv[])
