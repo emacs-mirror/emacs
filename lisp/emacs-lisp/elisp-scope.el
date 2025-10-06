@@ -2594,6 +2594,10 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 (elisp-scope-define-special-form-analyzer quote (arg)
   (elisp-scope-quote arg elisp-scope-output-spec))
 
+(elisp-scope-define-special-form-analyzer interactive (&rest _)
+  ;; Out-of-place `interactive' call, do nothing.
+  )
+
 (elisp-scope-define-special-form-analyzer if (&optional test then &rest else)
   (elisp-scope-1 test)
   (elisp-scope-1 then elisp-scope-output-spec)
@@ -2790,7 +2794,6 @@ are analyzed."
          ((setq this (or (alist-get bare elisp-scope-local-definitions)
                          (function-get bare 'elisp-scope-analyzer)))
           (let ((elisp-scope-output-spec outspec)) (apply this form)))
-         ((special-form-p bare) (elisp-scope-report-s f 'special-form) (elisp-scope-n forms))
          ((macrop bare) (elisp-scope-report-s f 'macro)
           (cond
            ((elisp-scope-safe-macro-p bare)
