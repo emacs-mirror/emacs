@@ -521,8 +521,6 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
 
 (defvar elisp-scope-counter nil)
 
-(defvar elisp-scope-local-functions nil)
-
 (defvar elisp-scope--local nil)
 
 (defvar elisp-scope-output-spec nil
@@ -795,7 +793,6 @@ Optional argument LOCAL is a local context to extend."
     (let ((bare (bare-symbol arg)))
       (cond
        ((or (functionp bare)
-            (memq bare elisp-scope-local-functions)
             (assq bare elisp-scope-local-definitions)
             elisp-scope-assume-func)
         (elisp-scope-report-s arg 'function))
@@ -2807,7 +2804,7 @@ are analyzed."
                    (expanded (ignore-errors (macroexpand-1 form macroexpand-all-environment))))
               (elisp-scope-1 expanded outspec)))
            ((eq (get bare 'edebug-form-spec) t) (elisp-scope-n forms))))
-         ((or (functionp bare) (memq bare elisp-scope-local-functions))
+         ((functionp bare)
           (elisp-scope-report-s f 'function) (elisp-scope-n forms))
          (t
           (elisp-scope-report-s f 'unknown)
@@ -2850,7 +2847,7 @@ starting with a top-level form, by inspecting HEAD at each level:
   running Emacs session, analzye the form as a function call.
 
 - If HEAD is a safe macro (see `elisp-scope-safe-macro-p'), expand it
-  and analyzes the resulting form.
+  and analyze the resulting form.
 
 - If HEAD is unknown, then the arguments in TAIL are ignored, unless
   `elisp-scope-assume-func' is non-nil, in which case they are analyzed
