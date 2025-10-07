@@ -623,12 +623,10 @@ Skip \"internal\" overlays if `hs-allow-nesting' is non-nil."
 (defun hs-hideable-region-p (beg end)
   "Return t if region in BEG and END can be hidden."
   ;; Check if BEG and END are not in the same line number,
-  ;; since using `count-lines' is slow, only check if both
-  ;; positions do not share the same BOL.
+  ;; since using `count-lines' is slow.
   (save-excursion
-    (let ((pos1 (progn (goto-char beg) (line-beginning-position)))
-          (pos2 (progn (goto-char end) (line-beginning-position))))
-      (and (< pos1 pos2) (not (= pos1 pos2))))))
+    (let ((pos2 (progn (goto-char end) (line-beginning-position))))
+      (< beg pos2))))
 
 (defun hs-make-overlay (b e kind &optional b-offset e-offset)
   "Return a new overlay in region defined by B and E with type KIND.
