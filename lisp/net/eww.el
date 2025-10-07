@@ -1363,8 +1363,8 @@ within text input fields."
   (setq buffer-read-only t)
   ;; Insertion at the first character of a field should inherit the
   ;; field's face, form and field, not the previous character's.
-  (setq text-property-default-nonsticky '((face . t) (eww-form . t)
-                                          (field . t))))
+  (setq-local text-property-default-nonsticky '((face . t) (eww-form . t)
+                                                (field . t))))
 
 (declare-function imagep "image.c")
 (defvar text-scale-mode)
