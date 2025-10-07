@@ -317,7 +317,7 @@ following way instead:
   (do-something result2))
 @end example
 
-There are a number of variations on this theme, and they're briefly
+There's a number of variations on this theme, and they're briefly
 described below.
 
 @defmac if-let* varlist then-form else-forms...
