@@ -1149,10 +1149,11 @@ evaluation of BODY."
     (should-error (scan-sexps (+ (point-min) 3) 1))))
 
 (ert-deftest elisp-test-font-lock ()
-  (let ((elisp-fontify-semantically t))
-    (ert-font-lock-test-file
-     (ert-resource-file "semantic-highlighting.el")
-     'emacs-lisp-mode)))
+  (ert-font-lock-test-file (ert-resource-file "semantic-highlighting.el")
+                           (lambda ()
+                             (emacs-lisp-mode)
+                             (setq-local trusted-content :all
+                                         elisp-fontify-semantically t))))
 
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

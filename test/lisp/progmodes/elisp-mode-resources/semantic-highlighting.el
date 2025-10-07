@@ -111,3 +111,13 @@
 ;;                 ^ elisp-macro-call
       (foo))))
 ;;     ^ elisp-macro-call
+
+(when-let* ((foo (symbol-at-point))
+;; ^ (elisp-macro-call font-lock-keyword-face)
+;;           ^ elisp-binding-variable
+
+            ((commandp foo)))
+;;            ^ elisp-function-reference
+;;                     ^ elisp-bound-variable
+  foo)
+;; ^ elisp-bound-variable
