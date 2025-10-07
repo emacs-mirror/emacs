@@ -12,7 +12,7 @@ understand a program's source code, and communicates useful information
 about the meaning of different tokens to the user by highlighting these
 tokens according to their specific role in the program.
 
-Semantic highlighting is more sophisticated then traditional "syntax
+Semantic highlighting is more sophisticated than traditional "syntax
 highlighting", which only considers the syntactic role of a token,
 i.e. how it affects the code's /parsing/, unlike semantic analysis which
 takes into account the token's effect on the program's /execution/.  For
@@ -22,7 +22,7 @@ category, even though the language's /syntax/ doesn't make such a
 distinction.  Semantic highlighting is especially beneficial in
 languages in which syntactic constructs can mean completely different
 things depending on the context in which they occur, such as Lisp and
-Prolog.  In such language, syntactic analysis alone misses a lot of
+Prolog.  In such languages, syntactic analysis alone misses a lot of
 important information that coders need to reason about their programs.
 
 * Highlighting ELisp
@@ -43,10 +43,10 @@ Also note that this option assumes that lexical-binding is in effect.
 The semantic analysis assigns to each symbol a "symbol role", such as
 =function=, =bound-variable=, =binding-variable=, =face=, etc.  Each
 symbol role has an associated face, which is applied to symbols with
-that role during semantic.  By default, most of these faces inherit from
-appropriate =font-lock-*= faces.  For example, =binding-variable=
-symbols get the =elisp-binding-variable= face, which inherits from
-=font-lock-variable-name-face=.
+that role during semantic highlighting.  By default, most of these faces
+inherit from appropriate =font-lock-*= faces.  For example,
+=binding-variable= symbols get the =elisp-binding-variable= face, which
+inherits from =font-lock-variable-name-face=.
 
 To define new symbol roles, see the macro =elisp-scope-define-symbol-role=.
 
@@ -55,8 +55,8 @@ To define new symbol roles, see the macro =elisp-scope-define-symbol-role=.
 The analysis can differentiate between more than 50 symbol roles, but
 you don't need to memorize the appearance of so many faces to leverage
 semantic highlighting.  During semantic highlighting, Emacs annotates
-each highlighted symbol with an =help-echo= text property that describes
-the role of that symbol, so you an see exactly which role was inferred
+each highlighted symbol with a =help-echo= text property that describes
+the role of that symbol, so you can see exactly which role was inferred
 for a given symbol just by hovering over it with your mouse.  You can
 control these =help-echo= annotations by setting =elisp-add-help-echo=.
 
