@@ -621,13 +621,13 @@ list."
 
        ;; The function that calls TURN-ON in the current buffer.
        (defun ,MODE-enable-in-buffer ()
-         (unless ,MODE-set-explicitly
-           (unless (eq ,MODE-major-mode major-mode)
-             (if ,MODE-variable
-                 (progn
-                   (,mode -1)
-                   (funcall ,turn-on-function))
-               (funcall ,turn-on-function))))
+         (unless (or ,MODE-set-explicitly
+                     (eq ,MODE-major-mode major-mode))
+           (if ,MODE-variable
+               (progn
+                 (,mode -1)
+                 (funcall ,turn-on-function))
+             (funcall ,turn-on-function)))
          (setq ,MODE-major-mode major-mode))
        (put ',MODE-enable-in-buffer 'definition-name ',global-mode))))
 
