@@ -323,16 +323,16 @@ code analysis."
   "Face for highlighting face names in Emacs Lisp code.")
 
 (defface elisp-symbol-role '((t :foreground "#00008b" :inherit font-lock-function-call-face))
-  "Face for highlighting symbol type names in Emacs Lisp code.")
+  "Face for highlighting symbol role names in Emacs Lisp code.")
 
 (defface elisp-symbol-role-definition '((t :foreground "#00008b" :inherit font-lock-function-name-face))
-  "Face for highlighting symbol type names in Emacs Lisp code.")
+  "Face for highlighting symbol role definitions in Emacs Lisp code.")
 
 (defface elisp-function-reference '((t :inherit font-lock-function-call-face))
   "Face for highlighting function calls in Emacs Lisp code.")
 
 (defface elisp-non-local-exit '((t :inherit elisp-function-reference :underline "red"))
-  "Face for highlighting function calls in Emacs Lisp code.")
+  "Face for highlighting calls to functions that do not return.")
 
 (defface elisp-unknown-call '((t :inherit elisp-function-reference :foreground "#2f4f4f"))
   "Face for highlighting unknown functions/macros in Emacs Lisp code.")
@@ -365,11 +365,11 @@ code analysis."
 
 (defface elisp-shadowing-variable
   '((t :inherit elisp-binding-variable :underline t))
-  "Face for highlighting binding occurrences of variables in Emacs Lisp code.")
+  "Face for highlighting local bindings that shadow special variables.")
 
 (defface elisp-shadowed-variable
   '((t :inherit elisp-bound-variable :underline t))
-  "Face for highlighting bound occurrences of variables in Emacs Lisp code.")
+  "Face for highlighting special variables that are shadowed by a local binding.")
 
 (defface elisp-variable-at-point '((t :inherit bold))
   "Face for highlighting (all occurrences of) the variable at point.")
@@ -417,7 +417,7 @@ code analysis."
   "Face for highlighting face definitions in Emacs Lisp code.")
 
 (defface elisp-icon '((t :inherit font-lock-type-face))
-  "Face for highlighting icon name in Emacs Lisp code.")
+  "Face for highlighting icon names in Emacs Lisp code.")
 
 (defface elisp-deficon '((t :inherit elisp-icon))
   "Face for highlighting icon definitions in Emacs Lisp code.")
