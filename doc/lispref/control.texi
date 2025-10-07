@@ -330,7 +330,10 @@ Each element of @code{varlist} has the form @w{@code{(@var{symbol}
 locally bound to the result.  Bindings are sequential, as in @code{let*}
 (@pxref{Local Variables}).  If only the test result of @var{value-form}
 is of interest, use @code{_} for @var{symbol}.  Then @var{value-form} is
-evaluated and checked for @code{nil}, but its value is not bound.
+evaluated and checked for @code{nil}, but its value is not bound.  As a
+special case, an entry of @code{varlist} may be of the form just
+@code{@var{symbol}}, which means to check the current binding of symbol
+for @code{nil}.
 @end defmac
 
 @defmac when-let* varlist then-forms...
@@ -342,9 +345,12 @@ form in @var{then-forms}.
 @code{varlist} has the form @w{@code{(@var{symbol} @var{value-form})}},
 in which @var{value-form} is evaluated and @var{symbol} is locally bound
 to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
-Variables}).  If only the test result of @var{value-form}
-is of interest, use @code{_} for @var{symbol}.  Then @var{value-form} is
-evaluated and checked for @code{nil}, but its value is not bound.
+Variables}).  If only the test result of @var{value-form} is of
+interest, use @code{_} for @var{symbol}.  Then @var{value-form} is
+evaluated and checked for @code{nil}, but its value is not bound.  As a
+special case, an entry of @code{varlist} may be of the form just
+@code{@var{symbol}}, which means to check the current binding of symbol
+for @code{nil}.
 @end defmac
 
 @defmac and-let* varlist then-forms...
@@ -359,7 +365,10 @@ in which @var{value-form} is evaluated and @var{symbol} is locally bound
 to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
 Variables}).  If only the test result of @var{value-form} is of
 interest, use @code{_} for @var{symbol}.  Then @var{value-form} is
-evaluated and checked for @code{nil}, but its value is not bound.
+evaluated and checked for @code{nil}, but its value is not bound.  As a
+special case, an entry of @code{varlist} may be of the form just
+@code{@var{symbol}}, which means to check the current binding of symbol
+for @code{nil}.
 @end defmac
 
 Some Lisp programmers follow the convention that @code{and} and
@@ -383,7 +392,10 @@ in which @var{value-form} is evaluated and @var{symbol} is locally bound
 to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
 Variables}).  If only the test result of @var{value-form} is of
 interest, use @code{_} for @var{symbol}.  Then @var{value-form} is
-evaluated and checked for @code{nil}, but its value is not bound.
+evaluated and checked for @code{nil}, but its value is not bound.  As a
+special case, an entry of @code{varlist} may be of the form just
+@code{@var{symbol}}, which means to check the current binding of symbol
+for @code{nil}.
 
 The return value of @code{while-let} is always @code{nil}.
 @end defmac
