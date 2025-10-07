@@ -1053,5 +1053,11 @@ Return nil if FILENAME doesn't exist."
   (should (integerp (num-processors)))
   (should (< 0 (num-processors))))
 
+(ert-deftest process-test-make-pipe-process-no-buffer ()
+  "Test that a pipe process can be created without a buffer."
+  (should     (process-buffer (make-pipe-process :name "test")))
+  (should     (process-buffer (make-pipe-process :name "test" :buffer "test")))
+  (should-not (process-buffer (make-pipe-process :name "test" :buffer nil))))
+
 (provide 'process-tests)
 ;;; process-tests.el ends here
