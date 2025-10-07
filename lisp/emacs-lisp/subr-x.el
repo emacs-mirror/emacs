@@ -397,7 +397,10 @@ substring that does not include newlines."
 This takes into account combining characters and grapheme clusters:
 if compositions are enabled, each sequence of characters composed
 on display into a single grapheme cluster is treated as a single
-indivisible unit."
+indivisible unit.
+Caveat: for this function to recognize characters compositions, the
+automatic compositions should be enabled (see `auto-composition-mode')
+and the current buffer must be displayed in some window."
   (declare (side-effect-free t))
   (let ((result nil)
         (start 0)
