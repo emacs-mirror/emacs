@@ -376,8 +376,14 @@ soon as a function returns non-nil.")
 
 (defmacro auth-source-backends ()
   "List of usable backends from `auth-sources'.
+Filter out backends with type `ignore'.
 A fallback backend is added to ensure, that at least `read-passwd' is called."
-  `(or (mapcar #'auth-source-backend-parse auth-sources)
+  `(or (seq-keep
+        (lambda (entry)
+          (and-let* ((backend (auth-source-backend-parse entry))
+                     ((not (eq (slot-value backend 'type) 'ignore)))
+                     backend)))
+        auth-sources)
        ;; Fallback.
        (list (auth-source-backend
               :source ""
@@ -407,9 +413,9 @@ A fallback backend is added to ensure, that at least `read-passwd' is called."
 If a search key is nil or t (match anything), skip it."
   `(apply #'append (mapcar
     (lambda (k)
-      (and-let* ((v (plist-get ,spec k))
-                 ((not (eq t v)))
-                 ((list k (auth-source-ensure-strings v))))))
+      (when-let* ((v (plist-get ,spec k))
+                 (_ (not (eq t v))))
+        (list k (auth-source-ensure-strings v))))
     (auth-source-search-keys ,spec))))
 
 (defcustom auth-source-ignore-non-existing-file t
