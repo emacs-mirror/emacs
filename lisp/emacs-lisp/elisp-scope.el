@@ -2258,6 +2258,12 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
   (elisp-scope-1 file '(symbol . feature))
   (elisp-scope-1 form 'code))
 
+;; We use a bespoke analyzer for `if-let*' instead of letting
+;; `elisp-scope-1' expand it because `if-let*' expands to a form that
+;; uses each binding symbol also as a bound symbol, and hence after
+;; macro-expansion, we would analyze the same symbol(-with-position)
+;; first as a `binding-variable' and then as `bound-variable'.  With
+;; this bespoke analyzer, we only analyze it as a `binding-variable'.
 (elisp-scope-define-macro-analyzer if-let* (&optional varlist then &rest else)
   (elisp-scope-if-let varlist then else elisp-scope-output-spec))
 
