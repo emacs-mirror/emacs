@@ -449,6 +449,20 @@ valid_sp (struct bc_thread_state *bc, Lisp_Object *sp)
   return sp < (Lisp_Object *)fp && sp + 1 >= fp->saved_fp->next_stack;
 }
 
+/* GCC seems to have difficulty putting important variables in
+   registers, so give it some heavy-handed assistance by specifying
+   which ones to use.  Use callee-saved registers to reduce spill/fill.  */
+#if __GNUC__ && !__clang__ && defined __x86_64__
+#define BC_REG_TOP asm ("rbx")
+#define BC_REG_PC asm ("r12")
+#elif __GNUC__ && !__clang__ && defined __aarch64__
+#define BC_REG_TOP asm ("x19")
+#define BC_REG_PC asm ("x20")
+#else
+#define BC_REG_TOP
+#define BC_REG_PC
+#endif
+
 /* Execute the byte-code in FUN.  ARGS_TEMPLATE is the function arity
    encoded as an integer (the one in FUN is ignored), and ARGS, of
    size NARGS, should be a vector of the actual arguments.  The
@@ -466,8 +480,8 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
   struct bc_thread_state *bc = &current_thread->bc;
 
   /* Values used for the first stack record when called from C.  */
-  Lisp_Object *top = NULL;
-  unsigned char const *pc = NULL;
+  register Lisp_Object *top BC_REG_TOP = NULL;
+  register unsigned char const *pc BC_REG_PC = NULL;
 
   Lisp_Object bytestr = AREF (fun, CLOSURE_CODE);
 
