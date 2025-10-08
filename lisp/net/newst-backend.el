@@ -1110,9 +1110,9 @@ same as in `newsticker--parse-atom-1.0'."
 (defun newsticker--unxml (node)
   "Reverse parsing of an xml string.
 Restore an xml-string from a an xml NODE that was returned by xml-parse..."
-  (if (or (not node) (stringp node))
-      node
-    (newsticker--unxml-node node)))
+  (cond ((not node) node)
+        ((stringp node) (xml-escape-string node))
+        (t (newsticker--unxml-node node))))
 
 (defun newsticker--unxml-node (node)
   "Actually restore xml-string of an xml NODE."
