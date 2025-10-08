@@ -26,6 +26,11 @@
 ;; This is the preloaded portion of VC.  It takes care of VC-related
 ;; activities that are done when you visit a file, so that vc.el itself
 ;; is loaded only when you use a VC command.  See commentary of vc.el.
+;;
+;; The noninteractive hooks into the rest of Emacs are:
+;; - `vc-refresh-state' in `find-file-hook'
+;; - `vc-kill-buffer-hook' in `kill-buffer-hook'
+;; - `vc-after-save' which is called by `basic-save-buffer'.
 
 ;;; Code:
 
@@ -916,9 +921,9 @@ In the latter case, VC mode is deactivated for this buffer."
 			       (not (equal buffer-file-name truename))
 			       (vc-backend truename))))
 	  (cond ((not link-type) nil)	;Nothing to do.
-		((eq vc-follow-symlinks nil)
-		 (message
-		  "Warning: symbolic link to %s-controlled source file" link-type))
+		((not vc-follow-symlinks)
+		 (message "Warning: symbolic link to %s-controlled source file"
+                          link-type))
 		((or (not (eq vc-follow-symlinks 'ask))
 		     ;; Assume we cannot ask, default to yes.
 		     noninteractive
