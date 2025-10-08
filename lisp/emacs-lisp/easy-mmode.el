@@ -504,6 +504,8 @@ on if the hook has explicitly disabled it.
 	  (intern (concat global-mode-name "-enable-in-buffer")))
 	 (minor-MODE-hook (intern (concat mode-name "-hook")))
 	 (MODE-set-explicitly (intern (concat mode-name "--set-explicitly")))
+         (MODE-suppress-set-explicitly (intern (concat mode-name
+                                                       "--suppress-set-explicitly")))
 	 (MODE-major-mode (intern (concat global-mode-name "--major-mode")))
          (MODE-predicate (intern (concat (replace-regexp-in-string
                                           "-mode\\'" "" global-mode-name)
@@ -611,8 +613,10 @@ list."
        ;; MODE-set-explicitly is set in MODE-set-explicitly and cleared by
        ;; kill-all-local-variables.
        (defvar-local ,MODE-set-explicitly nil)
+       (defvar ,MODE-suppress-set-explicitly nil)
        (defun ,MODE-set-explicitly ()
-         (setq ,MODE-set-explicitly t))
+         (unless ,MODE-suppress-set-explicitly
+           (setq ,MODE-set-explicitly t)))
        (put ',MODE-set-explicitly 'definition-name ',global-mode)
 
        ;; A function which checks whether MODE has been disabled in the major
@@ -623,11 +627,18 @@ list."
        (defun ,MODE-enable-in-buffer ()
          (unless (or ,MODE-set-explicitly
                      (eq ,MODE-major-mode major-mode))
-           (if ,MODE-variable
-               (progn
-                 (,mode -1)
-                 (funcall ,turn-on-function))
-             (funcall ,turn-on-function)))
+           (let (;; We are not part of the major mode hook so we don't
+                 ;; want to set MODE-set-explicitly to t.
+                 ;; In particular this is necessary when there are
+                 ;; multiple globalized versions of a single minor mode.
+                 ;; If one of them declines to turn the minor mode on,
+                 ;; that should not mean the others can't.
+                 (,MODE-suppress-set-explicitly t))
+             (if ,MODE-variable
+                 (progn
+                   (,mode -1)
+                   (funcall ,turn-on-function))
+               (funcall ,turn-on-function))))
          (setq ,MODE-major-mode major-mode))
        (put ',MODE-enable-in-buffer 'definition-name ',global-mode))))
 
