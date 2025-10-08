@@ -3402,6 +3402,12 @@ and with point where the previous invocation left it, until
 @var{function} fails.  On failure, @var{function} need not reset point
 in any particular way.
 
+@var{function} can also take on the responsibility of performing the
+highlighting of the region between point and the limit argument it
+receives.  In that case, it should return @code{nil}, otherwise
+font-lock will highlight the match described by the match data
+and may call the function again with the same limit.
+
 @item (@var{matcher} . @var{subexp})
 In this kind of element, @var{matcher} is either a regular
 expression or a function, as described above.  The @sc{cdr},
