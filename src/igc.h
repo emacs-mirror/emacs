@@ -80,7 +80,10 @@ void igc_remove_marker (struct buffer *b, struct Lisp_Marker *m);
 void igc_remove_all_markers (struct buffer *b);
 void igc_resurrect_markers (struct buffer *b);
 Lisp_Object igc_alloc_symbol (void);
+#ifdef HAVE_MODULES
 void *igc_alloc_global_ref (void);
+void igc_free_global_ref (struct module_global_reference *ref);
+#endif
 
 struct Lisp_Buffer_Local_Value *igc_alloc_blv (void);
 void *igc_alloc_handler (void);
