@@ -14,6 +14,7 @@ extern const struct mps_key_s _mps_key_AWL_FIND_DEPENDENT;
 #define MPS_KEY_AWL_FIND_DEPENDENT_FIELD addr_method
 
 extern mps_pool_class_t mps_class_awl(void);
+extern mps_pool_class_t mps_class_awl0(void);
 
 typedef mps_addr_t (*mps_awl_find_dependent_t)(mps_addr_t addr);
 
