@@ -203,7 +203,7 @@ See Info node `Fringes' and Info node `(elisp)Display Margins'."
                  (const :tag "No indicators" nil)))
 
 (defcustom flymake-margin-indicators-string
-  '((error "!!" compilation-error)
+  '((error "‼" compilation-error)
     (warning "!" compilation-warning)
     (note "!" compilation-info))
   "Strings used for margins indicators.
@@ -213,7 +213,10 @@ or a list of 2 elements specifying only the error type and
 the corresponding string.
 
 The option `flymake-margin-indicator-position' controls how and where
-this is used."
+this is used.
+
+When the default character for the error indicator is not displayable
+by the terminal, it will be replaced by the ASCII equivalent."
   :version "30.1"
   :type '(repeat :tag "Error types lists"
                  (list :tag "String and face for error types"
@@ -873,6 +876,10 @@ associated `flymake-category' return DEFAULT."
 (defun flymake--resize-margins (&optional orig-width)
   "Resize current window margins according to `flymake-margin-indicator-position'.
 Return to original margin width if ORIG-WIDTH is non-nil."
+  (let ((indicator (get 'flymake-error 'flymake-margin-string)))
+    (when (and (equal (car indicator) "‼") (not (char-displayable-p ?‼)))
+      (put 'flymake-error 'flymake-margin-string (cons "!!" (cdr indicator)))))
+
   (when (and (eq flymake-indicator-type 'margins)
              flymake-autoresize-margins)
     (cond
@@ -881,11 +888,15 @@ Return to original margin width if ORIG-WIDTH is non-nil."
           (setq left-margin-width flymake--original-margin-width)
         (setq right-margin-width flymake--original-margin-width)))
      (t
-      (if (eq flymake-margin-indicator-position 'left-margin)
-          (setq flymake--original-margin-width left-margin-width
-		left-margin-width 2)
-        (setq flymake--original-margin-width right-margin-width
-	      right-margin-width 2))))
+      (let ((width (apply #'max (mapcar (lambda (sym)
+                                          (string-width
+                                           (car (get sym 'flymake-margin-string))))
+                                        '(flymake-error flymake-warning flymake-note)))))
+        (if (eq flymake-margin-indicator-position 'left-margin)
+            (setq flymake--original-margin-width left-margin-width
+                  left-margin-width width)
+          (setq flymake--original-margin-width right-margin-width
+                right-margin-width width)))))
     ;; Apply margin to all windows available.
     (mapc (lambda (x)
             (set-window-buffer x (window-buffer x)))
