@@ -1277,6 +1277,182 @@ static Bool AWLCheck(AWL awl)
   return TRUE;
 }
 
+
+/* AWL0 POOL
+ *
+ * The AWL0 pool is similar to the AWL pool but has fewer restrictions
+ * on the object format.  It has fewer restrictions because it does
+ * not scan single references and doesn't use the emulated
+ * instructions.
+ */
+
+#define AWL0SegSig ((Sig)0x519A3705) /* SIGnature AWL0 Seg */
+
+typedef struct AWL0SegStruct {
+  AWLSegStruct awlSegStruct;
+  Sig sig;
+} *AWL0Seg;
+
+DECLARE_CLASS(Seg, AWL0Seg, AWLSeg);
+
+
+#define AWL0Sig ((Sig)0x519BA370) /* SIGnature Pool AWL0 */
+
+typedef struct AWL0PoolStruct {
+  AWLPoolStruct awlStruct;
+  Sig sig;
+} AWL0PoolStruct, *AWL0Pool;
+
+DECLARE_CLASS(Pool, AWL0Pool, AWLPool);
+
+static Res awl0SegAccess(Seg seg, Arena arena, Addr addr,
+                         AccessSet mode, MutatorContext context)
+{
+  AWL0Pool awl0;
+  Res res;
+
+  AVERT(Seg, seg);
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  AVERT(AccessSet, mode);
+  AVERT(MutatorContext, context);
+
+  awl0 = MustBeA(AWL0Pool, SegPool(seg));
+
+  /* Always scan the entire seg anyway. */
+  res = SegWholeAccess(seg, arena, addr, mode, context);
+  if (ResOK == res) {
+    AWLNoteSegAccess(&awl0->awlStruct, seg, addr);
+  }
+
+  return res;
+}
+
+ATTRIBUTE_UNUSED
+static Bool AWL0SegCheck(AWL0Seg awl0seg)
+{
+  if (!AWLSegCheck(&awl0seg->awlSegStruct))
+    return FALSE;
+
+  CHECKS(AWL0Seg, awl0seg);
+  CHECKL(Method(Seg, awl0seg, access) == awl0SegAccess);
+  return TRUE;
+}
+
+static Res AWL0SegInit(Seg seg, Pool pool, Addr base, Size size,
+                       ArgList args)
+{
+  Res res
+      = NextMethod(Seg, AWL0Seg, init)(seg, pool, base, size, args);
+  AWL0Seg awl0seg;
+
+  if (res != ResOK)
+    return res;
+
+  awl0seg = CouldBeA(AWL0Seg, seg);
+
+  SetClassOfPoly(seg, CLASS(AWL0Seg));
+  awl0seg->sig = AWL0SegSig;
+  AVERC(AWL0Seg, awl0seg);
+
+  return ResOK;
+}
+
+DEFINE_CLASS(Seg, AWL0Seg, klass)
+{
+  INHERIT_CLASS(klass, AWL0Seg, AWLSeg);
+  klass->size = sizeof(struct AWL0SegStruct);
+  klass->init = AWL0SegInit;
+  klass->access = awl0SegAccess;
+  AVERT(SegClass, klass);
+}
+
+
+/* awl0BufferFill -- BufferFill method for AWL0 */
+/* TODO: Share common code with awlBufferFill. */
+
+static Res awl0BufferFill(Addr *baseReturn, Addr *limitReturn,
+                          Pool pool, Buffer buffer, Size size)
+{
+  AWL0Pool awl0 = MustBeA(AWL0Pool, pool);
+  Res res;
+  Ring node, nextNode;
+  RankSet rankSet;
+  Seg seg;
+  Bool b;
+
+  AVER(baseReturn != NULL);
+  AVER(limitReturn != NULL);
+  AVERC(Buffer, buffer);
+  AVER(BufferIsReset(buffer));
+  AVER(size > 0);
+  AVER(SizeIsAligned(size, PoolAlignment(pool)));
+
+  rankSet = BufferRankSet(buffer);
+  RING_FOR(node, &pool->segRing, nextNode)
+  {
+    seg = SegOfPoolRing(node);
+    if (SegBufferFill(baseReturn, limitReturn, seg, size, rankSet))
+      return ResOK;
+  }
+
+  /* No segment had enough space, so make a new one. */
+  MPS_ARGS_BEGIN(args)
+  {
+    MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u,
+                       BufferRankSet(buffer));
+    res = PoolGenAlloc(&seg, awl0->awlStruct.pgen, CLASS(AWL0Seg),
+                       SizeArenaGrains(size, PoolArena(pool)), args);
+  }
+  MPS_ARGS_END(args);
+  if (res != ResOK)
+    return res;
+  b = SegBufferFill(baseReturn, limitReturn, seg, size, rankSet);
+  AVER(b);
+  return ResOK;
+}
+
+ATTRIBUTE_UNUSED
+static Bool AWL0PoolCheck(AWL0Pool awl0)
+{
+  if (!AWLCheck(&awl0->awlStruct))
+    return FALSE;
+  CHECKS(AWL0, awl0);
+  CHECKC(AWL0Pool, awl0);
+  CHECKD(AWL, CouldBeA(AWLPool, awl0));
+  return TRUE;
+}
+
+static Res AWL0Init(Pool pool, Arena arena, PoolClass klass,
+                    ArgList args)
+{
+  Res res
+      = NextMethod(Pool, AWL0Pool, init)(pool, arena, klass, args);
+  if (res != ResOK)
+    return res;
+
+  AWL0Pool awl0 = CouldBeA(AWL0Pool, pool);
+
+  SetClassOfPoly(pool, CLASS(AWL0Pool));
+  awl0->sig = AWL0Sig;
+  AVERC(AWL0Pool, awl0);
+
+  return ResOK;
+}
+
+DEFINE_CLASS(Pool, AWL0Pool, klass)
+{
+  INHERIT_CLASS(klass, AWL0Pool, AWLPool);
+  klass->size = sizeof(AWL0PoolStruct);
+  klass->init = AWL0Init;
+  klass->bufferFill = awl0BufferFill;
+  AVERT(PoolClass, klass);
+}
+
+mps_pool_class_t mps_class_awl0(void)
+{
+  return (mps_pool_class_t)CLASS(AWL0Pool);
+}
 
 /* C. COPYRIGHT AND LICENSE
  *
