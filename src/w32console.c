@@ -351,10 +351,23 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
       conversion_buffer = (LPCSTR) encode_terminal_code (string, n, coding);
       if (coding->produced > 0)
 	{
+	  /* By default, assume single-byte encoding and single-column
+             characters...  */
+	  ptrdiff_t nchars = coding->produced;
+	  ptrdiff_t ncols = nchars;
+	  /* ...but if we are using UTF-8, correct that by computing
+             characters.  Note: multibyte_chars_in_text and strwidth
+             handle the internal encoding of characters, which is a
+             superset of UTF-8.
+	     FIXME: this doesn't handle character compositions.  */
+	  if (coding->encoder == encode_coding_utf_8)
+	    {
+	      ncols = strwidth (conversion_buffer, nchars);
+	      nchars = multibyte_chars_in_text (conversion_buffer, nchars);
+	    }
 	  /* Set the attribute for these characters.  */
-	  if (!FillConsoleOutputAttribute (cur_screen, char_attr,
-					   coding->produced, cursor_coords,
-					   &r))
+	  if (!FillConsoleOutputAttribute (cur_screen, char_attr, nchars,
+					   cursor_coords, &r))
 	    {
 	      printf ("Failed writing console attributes: %lu\n",
 		      GetLastError ());
@@ -371,7 +384,7 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
 	      fflush (stdout);
 	    }
 
-	  cursor_coords.X += coding->produced;
+	  cursor_coords.X += ncols;
 	  w32con_move_cursor (f, cursor_coords.Y, cursor_coords.X);
 	}
       len -= n;
@@ -407,19 +420,28 @@ w32con_write_glyphs_with_face (struct frame *f, register int x, register int y,
       /* Compute the character attributes corresponding to the face.  */
       DWORD char_attr = w32_face_attributes (f, face_id);
       COORD start_coords;
+      /* By default, assume single-byte encoding...  */
+      ptrdiff_t nchars = coding->produced;
+      /* ...but if we are using UTF-8, correct that by counting
+         characters.  Note: multibyte_chars_in_text handles the
+         internal encoding of characters, which is a superset of
+         UTF-8.
+	 FIXME: this doesn't handle character compositions.  */
+      if (coding->encoder == encode_coding_utf_8)
+	nchars = multibyte_chars_in_text (conversion_buffer, nchars);
 
       start_coords.X = x;
       start_coords.Y = y;
       /* Set the attribute for these characters.  */
-      if (!FillConsoleOutputAttribute (cur_screen, char_attr,
-				       coding->produced, start_coords,
-				       &filled))
+      if (!FillConsoleOutputAttribute (cur_screen, char_attr, nchars,
+				       start_coords, &filled))
 	DebPrint (("Failed writing console attributes: %d\n", GetLastError ()));
       else
 	{
 	  /* Write the characters.  */
 	  if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
-					    filled, start_coords, &written))
+					    coding->produced, start_coords,
+					    &written))
 	    DebPrint (("Failed writing console characters: %d\n",
 		       GetLastError ()));
 	}
