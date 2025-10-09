@@ -471,7 +471,12 @@ module_free_global_ref (emacs_env *env, emacs_value global_value)
       struct module_global_reference *ref = XMODULE_GLOBAL_REFERENCE (value);
       eassert (0 < ref->refcount);
       if (--ref->refcount == 0)
-        hash_remove_from_table (h, obj);
+	{
+	  hash_remove_from_table (h, obj);
+#ifdef HAVE_MPS
+	  igc_free_global_ref (ref);
+#endif
+	}
     }
 
   MODULE_INTERNAL_CLEANUP ();
