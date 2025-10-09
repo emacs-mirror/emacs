@@ -86,9 +86,9 @@
      ;; compat macros for the old subfigure package.  The context regexp
      ;; must match combinations of
      ;; \subfigure[list-capt.][sub-capt.]{body}
-     (("\\subfigure[][]{}" ?f "fig:" "~\\subref{%s}"
+     (("\\subfigure[][]{}" ?f "fig:" nil
        "\\\\subfigure\\(?:\\(?:\\[[^]]*\\]\\)?\\[\\|{\\)")
-      ("\\subtable[][]{}"  ?t "tab:" "~\\subref{%s}"
+      ("\\subtable[][]{}"  ?t "tab:" nil
        "\\\\subtable\\(?:\\(?:\\[[^]]*\\]\\)?\\[\\|{\\)")))
 
     (wrapfig     "The wrapfigure and wraptable environments"
