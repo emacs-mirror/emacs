@@ -385,7 +385,8 @@ Results are cached in `xdg-mime-table'."
     (when (null (assoc type xdg-mime-table))
       (push (cons type (make-hash-table :test #'equal)) xdg-mime-table))
     (if (let ((table (cdr (assoc type xdg-mime-table))))
-          (hash-table-contains-p subtype table))
+          (and (hash-table-contains-p subtype table)
+               (setq files (gethash subtype table))))
         files
       (and files (setq files nil))
       (let ((dirs (mapcar (lambda (dir) (expand-file-name "applications" dir))
