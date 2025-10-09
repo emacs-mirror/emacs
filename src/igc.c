@@ -34,7 +34,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include "../mps/code/mps.h"
 #include "../mps/code/mpsavm.h"
 #include "../mps/code/mpscamc.h"
-#include "../mps/code/mpscams.h"
 #include "../mps/code/mpscawl.h"
 #include "../mps/code/mpslib.h"
 #ifdef __clang__
@@ -929,6 +928,21 @@ struct igc_thread
 typedef struct igc_thread igc_thread;
 IGC_DEFINE_LIST (igc_thread);
 
+/* The following struct is used to register/deregister objects that
+   should not move in memory.  Objects are made immovable by
+   creating/removing ambiguous references to them.  This is part of the
+   global struct igc.  */
+
+struct igc_pins
+{
+  ptrdiff_t capacity;
+  ptrdiff_t free;
+  union {
+    void *obj;
+    ptrdiff_t next_free;
+  } *entries;
+};
+
 /* The registry for an MPS arena.  There is only one arena used.  */
 
 struct igc
@@ -959,9 +973,80 @@ struct igc
 
   /* Registered threads.  */
   struct igc_thread_list *threads;
+
+  /* Ambiguous references to objects to make them immovable.  */
+  struct igc_pins *pins;
 };
 
 static bool process_one_message (struct igc *gc);
+
+/* Allocate new initialized igc_pins structure.  */
+
+static struct igc_pins *
+make_pins (void)
+{
+  struct igc_pins *p = xzalloc (sizeof *p);
+  p->free = -1;
+  return p;
+}
+
+/* Make sure that at least 1 free pin entry exists in P.  */
+
+static void
+ensure_free_pin (struct igc_pins *p)
+{
+  if (p->free < 0)
+    {
+      const ptrdiff_t used = p->capacity;
+      p->entries = igc_xpalloc_ambig (p->entries, &p->capacity, 1, -1,
+				      sizeof *p->entries);
+      for (ptrdiff_t i = used; i < p->capacity; ++i)
+	{
+	  p->entries[i].next_free = p->free;
+	  p->free = i;
+	}
+    }
+}
+
+/* Pin OBJ.  This add an ambiguous reference to OBJ to the pin registry
+   of GC, which makes OBJ immovable, and also means that OBJ will not
+   die before that reference is removed again by calling unpin.  Value
+   is the index of the pin entry, which is needed to unpin.  */
+
+static ptrdiff_t
+pin (struct igc *gc, void *obj)
+{
+  struct igc_pins *p = gc->pins;
+  ensure_free_pin (p);
+  const ptrdiff_t e = p->free;
+  p->free = p->entries[e].next_free;
+  p->entries[e].obj = obj;
+  return e;
+}
+
+/* Unpin OBJ in GC. I is the index of the pin returned when calling
+   pin.  */
+
+static void
+unpin (struct igc *gc, void *obj, ptrdiff_t i)
+{
+  struct igc_pins *p = gc->pins;
+  eassert (p->entries[i].obj == obj);
+  p->entries[i].next_free = p->free;
+  p->free = i;
+}
+
+/* Return the number of pins recorded in GC.  */
+
+static ptrdiff_t
+count_pins (struct igc *gc)
+{
+  struct igc_pins *p = gc->pins;
+  ptrdiff_t n = p->capacity;
+  for (ptrdiff_t i = p->free; i >= 0; i = p->entries[i].next_free)
+    --n;
+  return n;
+}
 
 /* The global registry.  */
 
@@ -3312,6 +3397,7 @@ igc_thread_remove (void **pinfo)
 {
   struct igc_thread_list *t = *pinfo;
   *pinfo = NULL;
+  unpin (global_igc, t->d.ts, t->d.ts->pin_index);
   destroy_root (&t->d.stack_root);
   destroy_root (&t->d.specpdl_root);
   destroy_root (&t->d.bc_root);
@@ -4320,7 +4406,14 @@ igc_alloc_global_ref (void)
   struct Lisp_Vector *v
     = alloc_immovable (header_size + nwords_mem * word_size, IGC_OBJ_VECTOR);
   XSETPVECTYPESIZE (v, PVEC_MODULE_GLOBAL_REFERENCE, 0, nwords_mem);
+  ((struct module_global_reference *) v)->pin_index = pin (global_igc, v);
   return v;
+}
+
+void
+igc_free_global_ref (struct module_global_reference *r)
+{
+  unpin (global_igc, r, r->pin_index);
 }
 #endif
 
@@ -4406,6 +4499,7 @@ igc_alloc_pseudovector (size_t nwords_mem, size_t nwords_lisp,
 	 scanning the bytecode stack (scan_bc), and making thread_state
 	 immovable simplifies the code.  */
       v = alloc_immovable (client_size, IGC_OBJ_VECTOR);
+      ((struct thread_state *) v)->pin_index = pin (global_igc, v);
     }
   else
     v = alloc (client_size, IGC_OBJ_VECTOR);
@@ -4801,6 +4895,14 @@ make_fake_entry (const char *name, double (*f) (mps_arena_t),
 		Qnil);
 }
 
+static Lisp_Object
+make_fake_entry_pins (const char *name)
+{
+  return list4 (build_string (name), Qnil,
+		make_uint (count_pins (global_igc)),
+		make_uint (global_igc->pins->capacity));
+}
+
 DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0,
        doc: /* Return information about incremental GC.
 The return value is a list of elements describing the various
@@ -4848,6 +4950,7 @@ IGC statistics:
 		     mps_arena_spare_committed, a),
     make_fake_entry ("commit-limit", NULL, mps_arena_commit_limit, a),
     make_fake_entry ("committed", NULL, mps_arena_committed, a),
+    make_fake_entry_pins ("pins (used, capacity)"),
   };
   for (size_t i = 0; i < ARRAYELTS (fake_entries); i++)
     result = Fcons (fake_entries[i], result);
@@ -5082,12 +5185,6 @@ make_pool_amc (struct igc *gc, mps_fmt_t fmt)
 }
 
 static mps_pool_t
-make_pool_ams (struct igc *gc, mps_fmt_t fmt)
-{
-  return make_pool_with_class (gc, fmt, mps_class_ams (), NULL);
-}
-
-static mps_pool_t
 make_pool_awl (struct igc *gc, mps_fmt_t fmt, mps_awl_find_dependent_t find_dependent)
 {
   return make_pool_with_class (gc, fmt, mps_class_awl (), find_dependent);
@@ -5111,6 +5208,7 @@ static struct igc *
 make_igc (void)
 {
   struct igc *gc = xzalloc (sizeof *gc);
+  gc->pins = make_pins ();
   make_arena (gc);
 
   /* We cannot let the GC run until at least all staticpros have been
@@ -5127,7 +5225,7 @@ make_igc (void)
   gc->weak_hash_fmt = make_dflt_fmt (gc);
   gc->weak_hash_pool = make_pool_awl (gc, gc->weak_hash_fmt, weak_hash_find_dependent);
   gc->immovable_fmt = make_dflt_fmt (gc);
-  gc->immovable_pool = make_pool_ams (gc, gc->immovable_fmt);
+  gc->immovable_pool = make_pool_amc (gc, gc->immovable_fmt);
 
   root_create_charset_table (gc);
   root_create_buffer (gc, &buffer_defaults);
