@@ -123,3 +123,29 @@
 ;;                     ^ elisp-bound-variable
   foo)
 ;; ^ elisp-bound-variable
+
+;; Taken from minibuffer.el:
+(defcustom my-foo nil
+;; ^ (elisp-macro font-lock-keyword-face)
+;;         ^ (elisp-defvar font-lock-variable-name-face)
+  "Foo."
+  :type '(choice (const :tag "No special message handling" nil)
+;;        ^ elisp-widget-type
+;;                ^ elisp-widget-type
+                 (repeat
+;;                ^ elisp-widget-type
+                  (choice (function-item :tag "Inhibit some messages"
+;;                 ^ elisp-widget-type
+;;                         ^ elisp-widget-type
+                                         inhibit-message)
+;;                                       ^ elisp-function
+                          (function-item :tag "Accumulate messages"
+                                         set-multi-message)
+;;                                       ^ elisp-function
+                          (function-item :tag "Handle minibuffer"
+                                         set-minibuffer-message)
+;;                                       ^ elisp-function
+                          (function :tag "Custom function")
+;;                         ^ (elisp-widget-type font-lock-keyword-face)
+                          )))
+  :version "29.1")

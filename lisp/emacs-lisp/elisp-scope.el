@@ -1239,65 +1239,6 @@ Optional argument LOCAL is a local context to extend."
     (elisp-scope-report 'deftype beg (length (symbol-name bare))))
   (elisp-scope-lambda args body))
 
-(defun elisp-scope-widget-type (form)
-  (when-let* (((memq (elisp-scope-sym-bare (car-safe form)) '(quote \`)))
-              (type (cadr form)))
-    (elisp-scope-widget-type-1 type)))
-
-(defun elisp-scope-widget-type-1 (type)
-  (cond
-   ((symbol-with-pos-p type)
-    (when-let* ((beg (elisp-scope-sym-pos type)) (bare (elisp-scope-sym-bare type)))
-      (elisp-scope-report 'widget-type
-                    (symbol-with-pos-pos type)
-                    (length (symbol-name (bare-symbol type))))))
-   ((consp type)
-    (let ((head (car type)))
-      (when-let* ((beg (elisp-scope-sym-pos head)) (bare (elisp-scope-sym-bare head)))
-        (elisp-scope-report 'widget-type beg (length (symbol-name bare))))
-      (when-let* ((bare (elisp-scope-sym-bare head)))
-        (elisp-scope-widget-type-arguments bare (cdr type)))))))
-
-(defun elisp-scope-widget-type-keyword-arguments (head kw args)
-  (when-let* ((beg (elisp-scope-sym-pos kw))
-              (len (length (symbol-name (bare-symbol kw)))))
-    (elisp-scope-report 'constant beg len))
-  (cond
-   ((and (memq head '(plist alist))
-         (memq kw   '(:key-type :value-type)))
-    (elisp-scope-widget-type-1 (car args)))
-   ((memq kw '(:action :match :match-inline :validate))
-    (when-let* ((fun (car args))
-                (beg (elisp-scope-sym-pos fun))
-                (bare (elisp-scope-sym-bare fun)))
-      (elisp-scope-report 'function beg (length (symbol-name bare)))))
-   ((memq kw '(:args))
-    (mapc #'elisp-scope-widget-type-1 (car args))))
-  ;; TODO: (restricted-sexp :match-alternatives CRITERIA)
-  (elisp-scope-widget-type-arguments head (cdr args)))
-
-(defun elisp-scope-widget-type-arguments (head args)
-  (let* ((arg (car args))
-         (bare (elisp-scope-sym-bare arg)))
-    (if (keywordp bare)
-        (elisp-scope-widget-type-keyword-arguments head bare (cdr args))
-      (elisp-scope-widget-type-arguments-1 head args))))
-
-(defun elisp-scope-widget-type-arguments-1 (head args)
-  (cl-case head
-    ((list cons group vector choice radio set repeat checklist)
-     (mapc #'elisp-scope-widget-type-1 args))
-    ((function-item)
-     (when-let* ((fun (car args))
-                 (beg (elisp-scope-sym-pos fun))
-                 (bare (elisp-scope-sym-bare fun)))
-       (elisp-scope-report 'function beg (length (symbol-name bare)))))
-    ((variable-item)
-     (when-let* ((var (car args))
-                 (beg (elisp-scope-sym-pos var))
-                 (bare (elisp-scope-sym-bare var)))
-       (elisp-scope-report 'free-variable beg (length (symbol-name bare)))))))
-
 (defun elisp-scope-quoted-group (sym-form)
   (when-let* (((eq (elisp-scope-sym-bare (car-safe sym-form)) 'quote))
               (sym (cadr sym-form))
@@ -1928,15 +1869,10 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
               (bkw (elisp-scope-sym-bare kw))
               ((keywordp bkw)))
     (elisp-scope-report-s kw 'constant)
-    (cl-case bkw
-      (:type
-       ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
-       (if-let* ((quoted (elisp-scope--unquote (cadr args))))
-           (elisp-scope-widget-type-1 quoted)
-         (elisp-scope-1 (cadr args))))
-      (:group
-       (elisp-scope-1 (cadr args) '(symbol . group)))
-      (otherwise (elisp-scope-1 (cadr args))))
+    (elisp-scope-1 (cadr args)
+                   (cl-case bkw
+                     (:type  'widget-type)
+                     (:group '(symbol . group))))
     (setq args (cddr args)))
   (when args (elisp-scope-n args)))
 
@@ -2132,17 +2068,10 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
               (bkw (elisp-scope-sym-bare kw))
               ((keywordp bkw)))
     (elisp-scope-report-s kw 'constant)
-    (cl-case bkw
-      (:type
-       ;; TODO: Use `elisp-scope-1' with an appropriate outtype.
-       (if-let* ((quoted (elisp-scope--unquote (cadr args))))
-           (elisp-scope-widget-type-1 quoted)
-         (elisp-scope-1 (cadr args))))
-      (:args
-       (if-let* ((quoted (elisp-scope--unquote (cadr args))))
-           (mapc #'elisp-scope-widget-type-1 quoted)
-         (elisp-scope-1 (cadr args))))
-      (otherwise (elisp-scope-1 (cadr args))))
+    (elisp-scope-1 (cadr args)
+                   (cl-case bkw
+                     (:type 'widget-type)
+                     (:args '(repeat . widget-type))))
     (setq args (cddr args)))
   (when args (elisp-scope-n args)))
 
@@ -2727,10 +2656,13 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
    '(or (symbol)
         (cons (member symbol) . (symbol . symbol-role))
         (cons (member repeat) . spec)
+        (cons (member list)   . spec)
         (cons (member or)     . (repeat . spec))
+        (cons (member and)    . (repeat . spec))
         (cons (member cons)   . (cons spec . spec))
         (cons (member member) . t)
-        (cons (member plist)  . (repeat . (cons (symbol . constant) . spec))))
+        (cons (member plist)  . (repeat . (cons (symbol . constant) . spec)))
+        (cons (member plist-and-then) . (repeat . (cons (symbol . constant) . spec))))
    arg))
 
 (cl-defmethod elisp-scope--match-spec-to-arg ((_spec (eql 'cl-type)) arg)
@@ -2742,6 +2674,30 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
         (cons (member or and not)                . (repeat . cl-type))
         (cons (member member cl-member)          . (repeat . t))
         (cons (member satisfies)                 . (cons (or (symbol . function) code) . t)))
+   arg))
+
+(cl-defmethod elisp-scope--match-spec-to-arg ((_spec (eql 'widget-type)) arg)
+  (elisp-scope--match-spec-to-arg
+   (let ((kws
+          '((:key-type . widget-type)
+            (:value-type . widget-type)
+            (:action . (symbol . function))
+            (:match . (symbol . function))
+            (:match-inline . (symbol . function))
+            (:validate . (symbol . function))
+            (:args . (repeat . widget-type)))))
+     `(or (symbol . widget-type)
+          (cons (and (member cons group vector choice radio set repeat checklist)
+                     (symbol . widget-type))
+                . (plist-and-then ,@kws (t . (repeat . widget-type))))
+          (cons (and (member function-item)
+                     (symbol . widget-type))
+                . (plist-and-then ,@kws (t . (list (symbol . function)))))
+          (cons (and (member variable-item)
+                     (symbol . widget-type))
+                . (plist-and-then ,@kws (t . (list (symbol . free-variable)))))
+          (cons (symbol . widget-type)  ;Fallback.
+                . (plist-and-then ,@kws (t . (repeat . t))))))
    arg))
 
 (cl-defmethod elisp-scope--match-spec-to-arg ((spec (head symbol)) arg)
@@ -2760,6 +2716,15 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
     (when specs
       (if-let* ((res (elisp-scope--match-spec-to-arg (car specs) arg))) res
         (loop (cdr specs))))))
+
+(cl-defmethod elisp-scope--match-spec-to-arg ((spec (head and)) arg)
+  (let ((specs (cdr spec)))
+    (if (null specs) t
+      (let ((go t))
+        (while (and (cdr specs) (setq go (elisp-scope--match-spec-to-arg
+                                          (car specs) arg)))
+          (pop specs))
+        (when go (elisp-scope--match-spec-to-arg (car specs) arg))))))
 
 (cl-defmethod elisp-scope--match-spec-to-arg ((spec (head cons)) arg)
   (when (consp arg)
@@ -2784,6 +2749,35 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
           (push (setq go (elisp-scope--match-spec-to-arg (alist-get bkw (cdr spec) t) val)) res))
         (setq arg (cddr arg)))
       (when go (cons 'list (nreverse res)))))
+   ((null arg) t)))
+
+(cl-defmethod elisp-scope--match-spec-to-arg ((spec (head list)) arg)
+  (cond
+   ((consp arg)
+    (let ((specs (cdr spec)) (go t) res)
+      (while (and specs (setq go (elisp-scope--match-spec-to-arg (pop specs) (pop arg))))
+        (push go res))
+      (when go (cons 'list (nreverse res)))))
+   ((null arg) t)))
+
+(cl-defmethod elisp-scope--match-spec-to-arg ((spec (head plist-and-then)) arg)
+  (cond
+   ((consp arg)
+    (let ((val-spec-alist (cdr spec))
+          (res nil)
+          (go t)
+          bkw)
+      (while (and go (keywordp (setq bkw (elisp-scope-sym-bare (car arg)))))
+        (push '(symbol . constant) res)
+        (setq go (elisp-scope--match-spec-to-arg (alist-get bkw val-spec-alist t) (cadr arg)))
+        (push go res)
+        (setq arg (cddr arg)))
+      (when go
+        (let ((rest-res (elisp-scope--match-spec-to-arg (alist-get t val-spec-alist t) arg)))
+          (when (eq (car rest-res) 'list)
+            (setq rest-res (cdr rest-res))
+            (dolist (s res) (push s rest-res))
+            (cons 'list rest-res))))))
    ((null arg) t)))
 
 (elisp-scope-define-special-form-analyzer catch (&optional tag &rest body)
@@ -2839,6 +2833,9 @@ OUTSPEC can be one the following:
 - (cons CARSPEC . CDRSPEC): FORM evaluates to a cons cell whose `car'
   has spec CARSPEC and whose `cdr' has spec CDRSPEC.
 
+- (list . SPECS): FORM evaluates to a list of the same length as SPECS,
+  in which the `i'th element matches the `i'th spec in SPECS.
+
 - (member . VALS): FORM evaluates to a `member' of VALS.
 
 - (plist . VALSPECS): FORM evaluates to a plist.  VALSPECS is an alist
@@ -2847,6 +2844,9 @@ OUTSPEC can be one the following:
   property `:face' in the plist is a face name.
 
 - (or . SPECS): FORM evaluates to a value that matches one of SPECS.
+
+- (and . SPECS): FORM evaluates to a value that matches all of SPECS.
+  The last spec in SPECS determines how to analyze FORM if it matches.
 
 For example, to analyze a FORM that evaluates to either a list of major
 mode names or just to a single major mode name, use OUTSPEC as follows:
