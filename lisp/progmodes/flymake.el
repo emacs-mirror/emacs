@@ -215,7 +215,7 @@ the corresponding string.
 The option `flymake-margin-indicator-position' controls how and where
 this is used.
 
-When the default character for the error indicator is not displayable
+When the \"DOUBLE EXCLAMATION MARK\" character is not displayable
 by the terminal, it will be replaced by the ASCII equivalent."
   :version "30.1"
   :type '(repeat :tag "Error types lists"
@@ -876,10 +876,6 @@ associated `flymake-category' return DEFAULT."
 (defun flymake--resize-margins (&optional orig-width)
   "Resize current window margins according to `flymake-margin-indicator-position'.
 Return to original margin width if ORIG-WIDTH is non-nil."
-  (let ((indicator (get 'flymake-error 'flymake-margin-string)))
-    (when (and (equal (car indicator) "‼") (not (char-displayable-p ?‼)))
-      (put 'flymake-error 'flymake-margin-string (cons "!!" (cdr indicator)))))
-
   (when (and (eq flymake-indicator-type 'margins)
              flymake-autoresize-margins)
     (cond
@@ -888,10 +884,16 @@ Return to original margin width if ORIG-WIDTH is non-nil."
           (setq left-margin-width flymake--original-margin-width)
         (setq right-margin-width flymake--original-margin-width)))
      (t
-      (let ((width (apply #'max (mapcar (lambda (sym)
-                                          (string-width
-                                           (car (get sym 'flymake-margin-string))))
-                                        '(flymake-error flymake-warning flymake-note)))))
+      (let* ((indicators
+              (mapcar (lambda (sym)
+                        (let ((ind (get sym 'flymake-margin-string)))
+                          (when (and (equal (car ind) "‼")
+                                     (not (char-displayable-p ?‼)))
+                            (setq ind (cons "!!" (cdr ind)))
+                            (put sym 'flymake-margin-string ind))
+                          (car ind)))
+                      '(flymake-error flymake-warning flymake-note)))
+             (width (apply #'max (mapcar #'string-width indicators))))
         (if (eq flymake-margin-indicator-position 'left-margin)
             (setq flymake--original-margin-width left-margin-width
                   left-margin-width width)
