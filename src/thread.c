@@ -40,7 +40,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef HAVE_MPS
-static sys_jmp_buf main_thread_getcjmp;
+static struct
+{
+  sys_jmp_buf jmpbuf;
+} GCALIGNED_STRUCT main_thread_getcjmp;
+
+/* In MPS, roots must be word aligned. */
+static_assert (sizeof main_thread_getcjmp % sizeof (void *) == 0);
 #endif
 
 union aligned_thread_state main_thread
@@ -52,7 +58,7 @@ union aligned_thread_state main_thread
       .m_last_thing_searched = LISPSYM_INITIALLY (Qnil),
       .m_saved_last_thing_searched = LISPSYM_INITIALLY (Qnil),
 #ifdef HAVE_MPS
-      .m_getcjmp = &main_thread_getcjmp,
+      .m_getcjmp = &main_thread_getcjmp.jmpbuf,
 #endif
       .name = LISPSYM_INITIALLY (Qnil),
       .function = LISPSYM_INITIALLY (Qnil),
