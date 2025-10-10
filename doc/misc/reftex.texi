@@ -1098,7 +1098,7 @@ the @code{\endnote} macro (from @file{endnotes.sty})
 @cindex LaTeX packages, @code{floatflt}
 @cindex @code{floatingfigure}, LaTeX environment
 @cindex @code{floatingtable}, LaTeX environment
-@code{floatingfigure}, @code{floatingtable} (@File{floatflt.sty})
+@code{floatingfigure}, @code{floatingtable} (@file{floatflt.sty})
 @item
 @cindex @code{minted}, LaTeX package
 @cindex LaTeX packages, @code{minted}
