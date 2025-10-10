@@ -1176,6 +1176,20 @@ side-effects, and the argument LIST is not modified."
   (while (and list (funcall pred (car list)))
     (setq list (cdr list)))
   list)
+
+(defun all (pred list)
+  "Non-nil if PRED is true for all elements in LIST."
+  (declare (compiler-macro (lambda (_) `(not (drop-while ,pred ,list)))))
+  (not (drop-while pred list)))
+
+(defun any (pred list)
+  "Non-nil if PRED is true for at least one element in LIST.
+Returns the LIST suffix starting at the first element that satisfies PRED,
+or nil if none does."
+  (declare (compiler-macro
+            (lambda (_)
+              `(drop-while (lambda (x) (not (funcall ,pred x))) ,list))))
+  (drop-while (lambda (x) (not (funcall pred x))) list))
 
 ;;;; Keymap support.
 

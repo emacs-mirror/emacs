@@ -415,6 +415,33 @@ will return a list equal to @var{list}.
 @end example
 @end defun
 
+@defun all pred list
+This function returns @code{t} if @var{pred} is true for all elements in
+@var{list}.
+
+@example
+@group
+(all #'numberp '(1 2 3 4))     @result{} t
+(all #'numberp '(1 2 a b 3 4)) @result{} nil
+(all #'numberp '())            @result{} t
+@end group
+@end example
+@end defun
+
+@defun any pred list
+This function returns non-@code{nil} if @var{pred} is true for at least
+one element in @var{list}.  The returned value is the longest @var{list}
+suffix whose first element satisfies @var{pred}.
+
+@example
+@group
+(any #'symbolp '(1 2 3 4))     @result{} nil
+(any #'symbolp '(1 2 a b 3 4)) @result{} (a b 3 4)
+(any #'symbolp '())            @result{} nil
+@end group
+@end example
+@end defun
+
 @defun last list &optional n
 This function returns the last link of @var{list}.  The @code{car} of
 this link is the list's last element.  If @var{list} is null,
