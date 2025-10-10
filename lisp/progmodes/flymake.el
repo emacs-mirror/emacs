@@ -215,8 +215,9 @@ the corresponding string.
 The option `flymake-margin-indicator-position' controls how and where
 this is used.
 
-When the \"DOUBLE EXCLAMATION MARK\" character is not displayable
-by the terminal, it will be replaced by the ASCII equivalent."
+Note that the default value \"DOUBLE EXCLAMATION MARK\" for the
+indicator of the \\+`error' type will be silently replaced by the
+ASCII equivalent if that character is not displayable by the terminal."
   :version "30.1"
   :type '(repeat :tag "Error types lists"
                  (list :tag "String and face for error types"
