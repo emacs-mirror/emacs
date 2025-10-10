@@ -3139,6 +3139,10 @@ They return non-nil if an integer is odd or even, respectively, and
 signal an error if they are given a non-integer.
 
 +++
+** New functions 'drop-while' and 'take-while'.
+These work like 'drop' and 'take' but use a predicate instead of counting.
+
++++
 ** The 'defvar-local' macro second argument is now optional.
 This means that you can now call it with just one argument, like
 'defvar', to declare a variable both special, and buffer-local.

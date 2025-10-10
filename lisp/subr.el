@@ -1134,6 +1134,48 @@ side-effects, and the argument LIST is not modified."
   (if (memq elt list)
       (delq elt (copy-sequence list))
     list))
+
+(defun internal--effect-free-fun-arg-p (x)
+  (or (symbolp x) (closurep x) (memq (car-safe x) '(function quote))))
+
+(defun take-while (pred list)
+  "Return the longest prefix of LIST whose elements satisfy PRED."
+  (declare (compiler-macro
+            (lambda (_form)
+              (let* ((tail (make-symbol "tail"))
+                     (pred (macroexpand-all pred macroexpand-all-environment))
+                     (f (and (not (internal--effect-free-fun-arg-p pred))
+                             (make-symbol "f")))
+                     (r (make-symbol "r")))
+                `(let (,@(and f `((,f ,pred)))
+                       (,tail ,list)
+                       (,r nil))
+                   (while (and ,tail (funcall ,(or f pred) (car ,tail)))
+                     (push (car ,tail) ,r)
+                     (setq ,tail (cdr ,tail)))
+                   (nreverse ,r))))))
+  (let ((r nil))
+    (while (and list (funcall pred (car list)))
+      (push (car list) r)
+      (setq list (cdr list)))
+    (nreverse r)))
+
+(defun drop-while (pred list)
+  "Skip initial elements of LIST satisfying PRED and return the rest."
+  (declare (compiler-macro
+            (lambda (_form)
+              (let* ((tail (make-symbol "tail"))
+                     (pred (macroexpand-all pred macroexpand-all-environment))
+                     (f (and (not (internal--effect-free-fun-arg-p pred))
+                             (make-symbol "f"))))
+                `(let (,@(and f `((,f ,pred)))
+                       (,tail ,list))
+                   (while (and ,tail (funcall ,(or f pred) (car ,tail)))
+                     (setq ,tail (cdr ,tail)))
+                   ,tail)))))
+  (while (and list (funcall pred (car list)))
+    (setq list (cdr list)))
+  list)
 
 ;;;; Keymap support.
 
