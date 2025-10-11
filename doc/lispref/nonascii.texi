@@ -2000,7 +2000,7 @@ original text:
 @example
 @group
 (decode-coding-string "Gr\374ss Gott" 'latin-1)
-     @result{} #("Grüss Gott" 0 9 (charset iso-8859-1))
+     @result{} #("Grüss Gott" 0 10 (charset iso-8859-1))
 @end group
 @end example
 @end defun
