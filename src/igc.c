@@ -2982,9 +2982,7 @@ root_create_main_thread (struct igc *gc)
   void *start = &main_thread.s;
   void *end = (char *) &main_thread.s + sizeof (main_thread.s);
   root_create_exact (gc, start, end, scan_main_thread, "main-thread");
-  sys_jmp_buf *jmpbuf = main_thread.s.m_getcjmp;
-  size_t jmpbuf_size = igc_round (sizeof *jmpbuf, GCALIGNMENT);
-  root_create_ambig (gc, jmpbuf, (char *) jmpbuf + jmpbuf_size,
+  root_create_ambig (gc, main_thread.s.m_getcjmp, main_thread.s.m_getcjmp + 1,
 		     "main-thread-getcjmp");
 }
 
