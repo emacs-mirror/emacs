@@ -21,9 +21,113 @@
 ;;; Commentary:
 
 ;; This library implements an analysis that determines the role of each
-;; symbol in ELisp code.  The entry point for the analysis is the
-;; function `elisp-scope-analyze-form', see its docstring for usage
-;; information.
+;; symbol in ELisp code.
+
+;; The analysis assigns to each symbol a "symbol role", such as
+;; `function', `bound-variable', `binding-variable', `face', etc.  Each
+;; symbol role has associated properties, such as the `:face' property,
+;; which specifies a face that is applied to symbols with that role when
+;; using semantic highlighting with `elisp-fontify-semantically'.
+;; To define new symbol roles, see `elisp-scope-define-symbol-role'.
+;;
+;; The entry point of the analysis in the function
+;; `elisp-scope-analyze-form'.  It takes a caller-provided callback
+;; function which will be called to report the information we find about
+;; each analyzed symbol: the callback gets the position and length of
+;; the analyzed symbol, along with its inferred role and, for
+;; locally-bound variables, the position of the binder.
+;; `elisp-scope-analyze-form' reads a form from the current buffer,
+;; starting from point, using `read-positioning-symbols' to attach
+;; position information to symbols.  It then recursively analyzes the
+;; form, reporting information about each symbol it encounters via the
+;; caller-provided callback function.
+;;
+;; The core of the analysis that `elisp-scope-analyze-form' performs is
+;; implemented in the recursive function `elisp-scope-1', which analyzes
+;; an sexp as an evaluated form, propagating contextual information such
+;; as local variable bindings down to analyzed sub-forms.
+;; `elisp-scope-1' takes two arguments: `form', which is the form to
+;; analyze, and `outspec', which is a specification of the expected
+;; value of `form' used to analyze quoted data.  The analysis proceeds
+;; as follows:
+;;
+;; - If `form' is a symbol, `elisp-scope-1' reports it as a variable.
+;;
+;; - If `form' is a cons cell (head . args), then the analysis depends
+;;   on `head'.  `head' can have a bespoke "analyzer function" `af',
+;;   which is called as (af head . args) and is responsible for
+;;   (recursively) analyzing `form'.  The analyzer function can be
+;;   associated to `head' either locally, as an alist entry in
+;;   `elisp-scope-local-definitions', or globally, via the symbol
+;;   property `elisp-scope-analyzer'.
+;;
+;;   An analyzer may use the functions `elisp-scope-report-s',
+;;   `elisp-scope-1' and `elisp-scope-n' to analyze its arguments, and
+;;   it can consult the variable `elisp-scope-output-spec' to obtain the
+;;   expected output spec of the analyzed form.  For example, the
+;;   following is a suitable analyzer for the `identity' function:
+;;
+;;     (lambda (fsym arg)
+;;       (elisp-scope-report-s fsym 'function)
+;;       (elisp-scope-1 arg elisp-scope-output-spec))
+;;
+;;   In particular, the analyzer function of `quote' analyzes its
+;;   argument according to `elisp-scope-output-spec', which is bound to
+;;   the value of the `outspec' argument passed to `elisp-scope-1'.
+;;
+;; - If `head' is a macro, normally it is expanded, and then the
+;;   expanded form is analyzed recursively.  Since macro-expansion may
+;;   involve arbitrary code execution, only "safe" macro invocations are
+;;   expanded: if `head' is one of the macros in
+;;   `elisp-scope-unsafe-macros', then it is never considered safe.
+;;   Otherwise, `head' is safe if it specified in the variable
+;;   `elisp-scope-safe-macros'; or if it has a non-nil `safe-macro'
+;;   symbol property; or if the current buffer is trusted according to
+;;   `trusted-content-p'.  If a macro `head' is not safe to expand (and
+;;   has no associated analyzer function), then the macro arguments
+;;   `args' are not analyzed.
+;;
+;; - If `head' is a function, it is reported as such, and `args' are
+;;   recursively analyzed as evaluated forms.
+;;
+;; - Otherwise, if `head' has no associated analyzer function, and it is
+;;   not a known macro or function, then it is reported with the `unknown'
+;;   symbol role.  If the variable `elisp-scope-assume-func' is non-nil,
+;;   then unknown `head' is assumed to be a function call, and thus `args'
+;;   are analyzed as evaluated forms; otherwise `args' are not analyzed.
+;;
+;; When `elisp-scope-1' encounters a variable reference `var', it checks
+;; whether `var' has a local binding in `elisp-scope-local-bindings', and
+;; whether `var' is a known special variable.  If `var' is a locally-bound
+;; special variable, `elisp-scope-1' reports the role `shadowed-variable'.
+;; If `var' is locally-bound and not a special variable, it gets the role
+;; `bound-variable'.  Lastly, if it not locally-bound, then it gets the
+;; role `free-variable'.
+;;
+;; When analyzer functions invoke `elisp-scope-1/n' to analyze some
+;; sub-forms, they specify the `outspec' argument to convey information
+;; but the expected value of the evaluated sub-form(s), so
+;; `elisp-scope-1/n' will know what to do with a sub-form that is just
+;; (quoted) data.  For example, the analyzer function for
+;; `face-attribute' calls `elisp-scope-1' to analyze its first argument
+;; with an `outspec' which says that a quoted symbol in this position
+;; refers to a face name.
+;; That way, in a form such as (face-attribute 'default :foreground),
+;; the symbol `default' is reported as a face reference (`face' role).
+;; Moreover, the `outspec' is passed down as appropriate through various
+;; predefined analyzers, so every quoted symbol in a "tail position" of
+;; the first argument to `face-attribute' will also be recognized as a
+;; face.  For instance, in the following form, both `success' and
+;; `error' are reported as face references:
+;;
+;;   (face-attribute (if (something-p)
+;;                       'success
+;;                     (message "oops")
+;;                     'error)
+;;                   :foreground)
+;;
+;; See also the docstring of `elisp-scope-1' for details about the
+;; format of the `outspec' argument.
 
 ;;; Code:
 
