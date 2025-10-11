@@ -34,24 +34,196 @@ SRCID(prmci6, "$Id$");
 #error "prmci6.c is specific to MPS_ARCH_I6"
 #endif
 
+/* DecodeCB -- Decode an Intel x86 control byte into Hi, Medium & Low
+   fields */
 
-static Bool IsSimpleMov(Size *inslenReturn,
-                        MRef *srcReturn,
-                        MRef *destReturn,
-                        MutatorContext context)
+static void DecodeCB(size_t *hReturn, size_t *mReturn, size_t *lReturn,
+                     Byte op)
+{
+  *lReturn = op & 7;
+  *mReturn = (op >> 3) & 7;
+  *hReturn = (op >> 6) & 3;
+}
+
+
+/* DecodeSIB -- Decode a Scale Index Base byte for an Intel x86
+   instruction */
+
+static void DecodeSIB(size_t *sReturn, size_t *iReturn, size_t *bReturn,
+                      Byte op)
+{
+  DecodeCB(sReturn, iReturn, bReturn, op);
+}
+
+
+/* DecodeModRM -- Decode a ModR/M byte for an Intel x86 instruction */
+
+static void DecodeModRM(size_t *modReturn, size_t *rReturn,
+                        size_t *mReturn, Byte op)
+{
+  DecodeCB(modReturn, rReturn, mReturn, op);
+}
+
+
+/* RegValue -- Return the value of a machine register from a context */
+
+static Word RegValue(MutatorContext context, size_t regnum)
+{
+  MRef addr;
+
+  addr = Prmci6AddressHoldingReg(context, regnum);
+  return *addr;
+}
+
+
+/* Return a byte element of an instruction vector as a
+ * Word value, with sign extension
+ */
+static Word SignedInsElt(Byte insvec[], Count i)
+{
+  signed char eltb;
+
+  eltb = ((signed char *)insvec)[i];
+  return (Word)eltb;
+}
+
+static signed DecodeDisp32(Byte *bytes)
+{
+  unsigned r = 0;
+  size_t i;
+  for (i = 0; i < 4; i++) r |= bytes[i] << (i * 8);
+  return r;
+}
+
+static Word RexR(Byte rex) { return (rex >> 2) & 1; }
+static Word RexB(Byte rex) { return (rex >> 0) & 1; }
+static Word RexX(Byte rex) { return (rex >> 1) & 1; }
+
+static Bool DecodeSimpleMov(size_t *regnumReturn, MRef *memReturn,
+                            Size *inslenReturn, MutatorContext context,
+                            Byte insvec[])
+{
+  Byte rex = insvec[0];
+  Byte modRM = insvec[2];
+  Word base, disp = 0, scaled_index = 0;
+  size_t mod, reg, rm;
+  DecodeModRM(&mod, &reg, &rm, modRM);
+  switch (mod) {
+    case 0:
+      switch (rm) {
+        default:
+          *inslenReturn = 3;
+          base = RegValue(context, rm | (RexB(rex) << 3));
+          goto done;
+
+        case 4:
+          *inslenReturn = 4;
+          goto decode_sib;
+
+        case 5: {
+          Word rip = (Word)insvec;
+          *inslenReturn = 7;
+          base = rip + *inslenReturn;
+          disp = DecodeDisp32(insvec + 3);
+          goto done;
+        }
+      }
+
+    case 1:
+      switch (rm) {
+        default:
+          *inslenReturn = 4;
+          disp = SignedInsElt(insvec, 3);
+          base = RegValue(context, rm | (RexB(rex) << 3));
+          goto done;
+
+        case 4:
+          *inslenReturn = 5;
+          disp = SignedInsElt(insvec, 4);
+          goto decode_sib;
+      }
+
+    case 2:
+      switch (rm) {
+        default:
+          *inslenReturn = 7;
+          disp = DecodeDisp32(insvec + 3);
+          base = RegValue(context, rm | (RexB(rex) << 3));
+          goto done;
+
+        case 4:
+          *inslenReturn = 8;
+          disp = DecodeDisp32(insvec + 4);
+          goto decode_sib;
+      }
+
+    case 3:
+      return FALSE;
+
+    default:
+      NOTREACHED;
+  }
+  NOTREACHED;
+
+decode_sib: {
+  size_t s, i, b;
+  DecodeSIB(&s, &i, &b, insvec[3]);
+  base = RegValue(context, b | (RexB(rex) << 3));
+  if (i == 4 && !RexX(rex))
+    scaled_index = 0;
+  else
+    scaled_index = (RegValue(context, i | RexX(rex) << 3) << s);
+}
+
+done:
+  *memReturn = (MRef)(base + disp + scaled_index);
+  *regnumReturn = reg | (RexR(rex) << 3);
+  return TRUE;
+}
+
+static Bool IsRexPrefix(Byte b) { return (b >> 4) == 0x4; }
+
+static Bool IsSimpleMov(Size *inslenReturn, MRef *srcReturn,
+                        MRef *destReturn, MutatorContext context)
 {
   Byte *insvec;
+  size_t regnum;
+  MRef mem;
   MRef faultmem;
 
   Prmci6DecodeFaultContext(&faultmem, &insvec, context);
-  /* Unimplemented */
-  UNUSED(inslenReturn);
-  UNUSED(srcReturn);
-  UNUSED(destReturn);
+
+  if (IsRexPrefix(insvec[0])) {
+    switch (insvec[1]) {
+      case 0x8b: /* MOV r64, r/m64 */
+        if (DecodeSimpleMov(&regnum, &mem, inslenReturn, context,
+                            insvec)) {
+          AVER(faultmem == mem); /* Ensure computed address
+                                    matches exception */
+          *srcReturn = mem;
+          *destReturn = Prmci6AddressHoldingReg(context, regnum);
+          return TRUE;
+        } else
+          return FALSE;
+
+      case 0x89: /* MOV r/m64, r64 */
+        if (DecodeSimpleMov(&regnum, &mem, inslenReturn, context,
+                            insvec)) {
+          AVER(faultmem == mem); /* Ensure computed address
+                                    matches exception */
+          *destReturn = mem;
+          *srcReturn = Prmci6AddressHoldingReg(context, regnum);
+          return TRUE;
+        } else
+          return FALSE;
+
+      default:
+        return FALSE;
+    }
+  }
 
   return FALSE;
 }
-
 
 Bool MutatorContextCanStepInstruction(MutatorContext context)
 {
@@ -62,7 +234,7 @@ Bool MutatorContextCanStepInstruction(MutatorContext context)
   AVERT(MutatorContext, context);
 
   /* .assume.null */
-  if(IsSimpleMov(&inslen, &src, &dest, context)) {
+  if (IsSimpleMov(&inslen, &src, &dest, context)) {
     return TRUE;
   }
 
@@ -79,7 +251,7 @@ Res MutatorContextStepInstruction(MutatorContext context)
   AVERT(MutatorContext, context);
 
   /* .assume.null */
-  if(IsSimpleMov(&inslen, &src, &dest, context)) {
+  if (IsSimpleMov(&inslen, &src, &dest, context)) {
     *dest = *src;
     Prmci6StepOverIns(context, inslen);
     return ResOK;
