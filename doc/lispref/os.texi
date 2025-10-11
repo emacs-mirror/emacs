@@ -3255,9 +3255,10 @@ Note that versions of Windows before W2K support only @code{:icon} and
 @code{:tip}.  The other parameters can be passed, but they will be
 ignored on those old systems.
 
-There can be at most one active notification at any given time.  An
-active notification must be removed by calling
-@code{w32-notification-close} before a new one can be shown.
+There can be at most one active notification at any given time for each
+Emacs frame.  An active notification must be removed by calling
+@code{w32-notification-close} before a new one can be shown for the same
+frame.
 @end defun
 
 To remove the notification and its icon from the taskbar, use the
@@ -3265,7 +3266,12 @@ following function:
 
 @defun w32-notification-close id
 This function removes the tray notification given by its unique
-@var{id}.
+@var{id}.  The same Emacs frame which was the selected frame when the
+notification was created must be selected when removing the
+notification.  A Lisp program which shows notifications must track which
+frame corresponds to which notification @var{id}, and select that frame
+when removing the notification.  (When a frame is deleted, a
+notification it created, if any, will be removed by MS-Windows.)
 @end defun
 
 @cindex desktop notifications, Haiku
