@@ -297,6 +297,7 @@ TEST_TARGETS=\
     mv2test$(EXEEXT) \
     nailboardtest$(EXEEXT) \
     poolncv$(EXEEXT) \
+    prmctest$(EXEEXT) \
     qs$(EXEEXT) \
     sacss$(EXEEXT) \
     segsmss$(EXEEXT) \
@@ -567,6 +568,9 @@ $(PFM)/$(VARIETY)/nailboardtest$(EXEEXT): $(PFM)/$(VARIETY)/nailboardtest.o \
 
 $(PFM)/$(VARIETY)/poolncv$(EXEEXT): $(PFM)/$(VARIETY)/poolncv.o \
 	$(POOLNOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/prmctest$(EXEEXT): $(PFM)/$(VARIETY)/prmctest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/qs$(EXEEXT): $(PFM)/$(VARIETY)/qs.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a

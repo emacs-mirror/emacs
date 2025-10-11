@@ -35,6 +35,7 @@ mpsicv
 mv2test
 nailboardtest
 poolncv
+prmctest
 qs
 sacss
 segsmss
