@@ -1074,8 +1074,10 @@ autoloaded from the given package.  However, this does not work if one of
 those commands is actually a keymap, since keymaps are not functions,
 and cannot be autoloaded using the built-in @code{autoload} function.
 
-When you define a keymap using @code{defvar-keymap}, you make it behave
-as a function, including @code{:prefix t} in the keymap definition.
+When you define a keymap using @code{defvar-keymap} you can add the
+required function definition by including @code{:prefix t} in the keymap
+definition (@pxref{Creating Keymaps,,, elisp, GNU Emacs Lisp Reference
+Manual}).
 
 For example:
 
@@ -1088,13 +1090,13 @@ For example:
  "B" #'foo-command-b)
 
 (use-package foo
-  :bind (("C-c x" . foo-mode-exit)
-         ("C-c p" . foo-command-map)))
+  :bind (("C-c p" . foo-command-map)))
 @end group
 @end lisp
 
-would create the bindings for the key sequences @code{"C-c p A"},
-@code{"C-c p B"}  and @code{"C-c x"} for package @code{foo}.
+@noindent
+would create the bindings for the key sequences @code{"C-c p A"}, and
+@code{"C-c p B"} for package @code{foo}.
 
 @findex :bind-keymap
 Alternatively, to handle this case, @code{use-package} offers a special, limited
