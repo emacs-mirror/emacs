@@ -3343,7 +3343,7 @@ The format control string may contain %-sequences meaning to substitute
 the next available argument, or the argument explicitly specified:
 
 %s means produce a string argument.  Actually, produces any object with `princ'.
-%d means produce as signed number in decimal.
+%d or %i means produce a signed number in decimal.
 %o means produce a number in octal.
 %x means produce a number in hex.
 %X is like %x, but uses upper case.
@@ -3355,7 +3355,7 @@ the next available argument, or the argument explicitly specified:
 %c means produce a number as a single character.
 %S means produce any object as an s-expression (using `prin1').
 
-The argument used for %d, %o, %x, %e, %f, %g or %c must be a number.
+The argument used for %d, %i, %o, %x, %e, %f, %g or %c must be a number.
 %o, %x, and %X treat arguments as unsigned if `binary-as-unsigned' is t
   (this is experimental; email 32252@debbugs.gnu.org if you need it).
 Use %% to put a single % into the output.

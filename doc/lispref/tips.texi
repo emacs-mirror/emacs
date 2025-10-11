@@ -774,6 +774,15 @@ that satisfy the criterion.
 does not make a hyperlink to the documentation, irrelevant here, of the
 function @code{list}.
 
+Alternatively, you could precede the symbol with @samp{\\+} to prevent
+marking it as a hyperlink.  Example:
+
+@example
+If the value of KIND-OF-RESULT is \\+`list',
+this function returns a list of all the objects
+that satisfy the criterion.
+@end example
+
 Normally, no hyperlink is made for a variable without variable
 documentation.  You can force a hyperlink for such variables by
 preceding them with one of the words @samp{variable} or
