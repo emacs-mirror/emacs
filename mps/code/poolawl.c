@@ -1426,13 +1426,13 @@ static Bool AWL0PoolCheck(AWL0Pool awl0)
 static Res AWL0Init(Pool pool, Arena arena, PoolClass klass,
                     ArgList args)
 {
+  AWL0Pool awl0;
   Res res
       = NextMethod(Pool, AWL0Pool, init)(pool, arena, klass, args);
   if (res != ResOK)
     return res;
 
-  AWL0Pool awl0 = CouldBeA(AWL0Pool, pool);
-
+  awl0 = CouldBeA(AWL0Pool, pool);
   SetClassOfPoly(pool, CLASS(AWL0Pool));
   awl0->sig = AWL0Sig;
   AVERC(AWL0Pool, awl0);
