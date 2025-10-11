@@ -1069,13 +1069,35 @@ before the first use of @code{:map} are applied to the global keymap:
 @subsection Binding to keymaps
 @cindex binding keys to keymaps
 
-@findex :bind-keymap
 Normally @code{:bind} expects that commands are functions that will be
 autoloaded from the given package.  However, this does not work if one of
 those commands is actually a keymap, since keymaps are not functions,
 and cannot be autoloaded using the built-in @code{autoload} function.
 
-To handle this case, @code{use-package} offers a special, limited
+When you define a keymap using @code{defvar-keymap}, you make it behave
+as a function, including @code{:prefix t} in the keymap definition.
+
+For example:
+
+@lisp
+@group
+(defvar-keymap foo-command-map
+ :doc "A keymap that returns a function"
+ :prefix t
+ "A" #'foo-command-a
+ "B" #'foo-command-b)
+
+(use-package foo
+  :bind (("C-c x" . foo-mode-exit)
+         ("C-c p" . foo-command-map)))
+@end group
+@end lisp
+
+would create the bindings for the key sequences @code{"C-c p A"},
+@code{"C-c p B"}  and @code{"C-c x"} for package @code{foo}.
+
+@findex :bind-keymap
+Alternatively, to handle this case, @code{use-package} offers a special, limited
 variant of @code{:bind} called @code{:bind-keymap}.  The only difference
 is that the ``commands'' bound to by @code{:bind-keymap} must be keymaps
 defined in the package, rather than interactive functions.  This is handled
