@@ -1939,6 +1939,9 @@ expected to be a string, which will be used."
       (when (cadr args)
 	(setq localname (and (stringp (cadr args)) (cadr args))))
       (when hop
+	;; Do not keep the hop for the "archive" method.
+	(when (string-equal method tramp-archive-method)
+	  (setq hop nil))
 	;; Keep hop in file name for completion or when indicated.
 	(unless (or minibuffer-completing-file-name tramp-show-ad-hoc-proxies)
 	  (setq hop nil))
