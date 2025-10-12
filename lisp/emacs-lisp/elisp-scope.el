@@ -292,7 +292,7 @@ symbol role properties."
 
 (elisp-scope-define-symbol-role function (callable)
   :doc "Function names."
-  :face 'elisp-function-reference
+  :face 'elisp-function
   :help (lambda (beg end def)
           (cond ((equal beg def) "Local function definition")
                 (def             "Local function call")
@@ -318,7 +318,7 @@ symbol role properties."
 
 (elisp-scope-define-symbol-role macro (callable)
   :doc "Macro names."
-  :face 'elisp-macro-call
+  :face 'elisp-macro
   :help (lambda (beg end _def)
           (if-let* ((sym (intern-soft (buffer-substring-no-properties beg end))))
               (apply-partially #'elisp--function-help-echo sym)

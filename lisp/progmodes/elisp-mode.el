@@ -328,19 +328,19 @@ code analysis."
 (defface elisp-symbol-role-definition '((t :foreground "#00008b" :inherit font-lock-function-name-face))
   "Face for highlighting symbol role definitions in Emacs Lisp code.")
 
-(defface elisp-function-reference '((t :inherit font-lock-function-call-face))
+(defface elisp-function '((t :inherit font-lock-function-call-face))
   "Face for highlighting function calls in Emacs Lisp code.")
 
-(defface elisp-non-local-exit '((t :inherit elisp-function-reference :underline "red"))
+(defface elisp-non-local-exit '((t :inherit elisp-function :underline "red"))
   "Face for highlighting calls to functions that do not return.")
 
-(defface elisp-unknown-call '((t :inherit elisp-function-reference :foreground "#2f4f4f"))
+(defface elisp-unknown-call '((t :inherit elisp-function :foreground "#2f4f4f"))
   "Face for highlighting unknown functions/macros in Emacs Lisp code.")
 
-(defface elisp-macro-call '((t :inherit font-lock-keyword-face))
+(defface elisp-macro '((t :inherit font-lock-keyword-face))
   "Face for highlighting macro calls in Emacs Lisp code.")
 
-(defface elisp-special-form '((t :inherit elisp-macro-call))
+(defface elisp-special-form '((t :inherit elisp-macro))
   "Face for highlighting special forms in Emacs Lisp code.")
 
 (defface elisp-throw-tag '((t :inherit font-lock-constant-face))
