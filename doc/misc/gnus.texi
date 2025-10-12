@@ -30269,6 +30269,19 @@ in the same format as @code{nnchoke-request-group} gives.
 group-buffer = *active-line / *group-status
 @end example
 
+@item (nnchoke-retrieve-group-data-early @var{server} &optional @var{infos})
+
+This is for starting an early async retrieval from @var{server} to
+update @var{infos}, its current group info structure list.  The return
+value is a token for the corresponding
+@code{nnchoke-finish-retrieve-group-infos}.
+
+@item (nnchoke-finish-retrieve-group-infos @var{server} @var{infos} @var{data})
+
+This will be called later to conclude the async retrieval of
+@code{nnchoke-retrieve-group-data-early} -- whose token is passed as
+@var{data} -- and should update @var{infos}.
+
 @item (nnchoke-request-update-info @var{group} @var{info} &optional @var{server})
 
 A Gnus group info (@pxref{Group Info}) is handed to the back end for
