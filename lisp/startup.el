@@ -958,7 +958,7 @@ to prepare for opening the first frame (e.g. open a connection to an X server)."
 	       (push (cons 'tty-color-mode
                            (cond
                             ((numberp argval) argval)
-                            ((string-match "-?[0-9]+" argval)
+                            ((string-match "-?[0-9]+$" argval)
                              (string-to-number argval))
                             (t (intern argval))))
                      default-frame-alist))

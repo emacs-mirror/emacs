@@ -19,6 +19,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /*
    Tim Fleehart (apollo@online.com)		1-17-92
    Geoff Voelker (voelker@cs.washington.edu)	9-12-93
+   Ewan Townshend (ewan@etown.dev)              2025-08
+   * c. ~ 2025: 24bit RGB support in Windows (10+) Terminal
+   * https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
 */
 
 
@@ -53,11 +56,17 @@ static void w32con_set_terminal_modes (struct terminal *t);
 static void w32con_update_begin (struct frame * f);
 static void w32con_update_end (struct frame * f);
 static WORD w32_face_attributes (struct frame *f, int face_id);
+static int  w32con_write_vt_seq (const char *);
+static void turn_on_face (struct frame *, int face_id);
+static void turn_off_face (struct frame *, int face_id);
+static COORD w32con_get_cursor_coords ();
 
 static COORD	cursor_coords;
 static HANDLE	prev_screen, cur_screen;
 static WORD	char_attr_normal;
 static DWORD	prev_console_mode;
+static int      bg_normal;
+static int      fg_normal;
 
 static CONSOLE_CURSOR_INFO console_cursor_info;
 #ifndef USE_SEPARATE_SCREEN
@@ -67,7 +76,10 @@ static CONSOLE_CURSOR_INFO prev_console_cursor;
 extern HANDLE  keyboard_handle;
 HANDLE  keyboard_handle;
 int w32_console_unicode_input;
-
+extern int w32_use_virtual_terminal;
+int w32_use_virtual_terminal = 1;
+extern struct tty_display_info *current_tty;
+struct tty_display_info *current_tty = NULL;
 
 /* Setting this as the ctrl handler prevents emacs from being killed when
    someone hits ^C in a 'suspended' session (child shell).
@@ -83,6 +95,38 @@ ctrl_c_handler (unsigned long type)
 	  && (type == CTRL_C_EVENT || type == CTRL_BREAK_EVENT));
 }
 
+#define DEFAULTP(p)							\
+  (p == FACE_TTY_DEFAULT_COLOR						\
+   || p == FACE_TTY_DEFAULT_FG_COLOR					\
+   || p == FACE_TTY_DEFAULT_BG_COLOR)
+
+#define SEQMAX 256 /* Arbitrary upper limit on VT sequence size */
+
+#define SSPRINTF(buf, i, sz, fmt, ...)					\
+  do {									\
+    eassert (*i < sz && sz <= SEQMAX);					\
+    if (fmt && *i < sz && sz <= SEQMAX)				\
+      *i += snprintf (buf + *i, sz - *i, fmt, __VA_ARGS__);		\
+  } while (0)
+
+/* Writes virtual terminal sequence to screen */
+static int
+w32con_write_vt_seq (const char *seq)
+{
+  char buf[SEQMAX];
+  DWORD n = 0, k = 0;
+  SSPRINTF (buf, &n, SEQMAX, seq, NULL);
+  if (n) WriteConsole (cur_screen, (LPCSTR) buf, n, &k, NULL);
+  return k;
+}
+
+static COORD
+w32con_get_cursor_coords ()
+{
+  CONSOLE_SCREEN_BUFFER_INFO info;
+  GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info);
+  return info.dwCursorPosition;
+}
 
 /* Move the cursor to (ROW, COL) on FRAME.  */
 static void
@@ -309,9 +353,10 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
                      register int len)
 {
   DWORD r;
-  WORD char_attr;
   LPCSTR conversion_buffer;
   struct coding_system *coding;
+
+  w32con_hide_cursor();
 
   if (len <= 0)
     return;
@@ -342,8 +387,6 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
 
       /* w32con_clear_end_of_line sets frame of glyphs to NULL.  */
       struct frame *attr_frame = face_id_frame ? face_id_frame : f;
-      /* Turn appearance modes of the face of the run on.  */
-      char_attr = w32_face_attributes (attr_frame, face_id);
 
       if (n == len)
 	/* This is the last run.  */
@@ -351,31 +394,45 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
       conversion_buffer = (LPCSTR) encode_terminal_code (string, n, coding);
       if (coding->produced > 0)
 	{
-	  /* Compute the string's width on display by accounting for
-	     character's width.  FIXME: this doesn't handle character
-	     compositions.  */
-	  ptrdiff_t ncols = strwidth (coding->source, coding->src_bytes);
-	  /* Set the attribute for these characters.  */
-	  if (!FillConsoleOutputAttribute (cur_screen, char_attr, ncols,
-					   cursor_coords, &r))
+	  if (w32_use_virtual_terminal)
 	    {
-	      printf ("Failed writing console attributes: %lu\n",
-		      GetLastError ());
-	      fflush (stdout);
+	      turn_on_face (f, face_id);
+	      WriteConsole (cur_screen, conversion_buffer,
+			    coding->produced, &r, NULL);
+	      turn_off_face (f, face_id);
+	      cursor_coords = w32con_get_cursor_coords ();
 	    }
-
-	  /* Write the characters.  */
-	  if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
-					    coding->produced, cursor_coords,
-					    &r))
+	  else
 	    {
-	      printf ("Failed writing console characters: %lu\n",
-		      GetLastError ());
-	      fflush (stdout);
-	    }
+	      /* Account for character width.
+		 FIXME: this doesn't handle character compositions.  */
+	      ptrdiff_t ncols = strwidth (coding->source, coding->src_bytes);
 
-	  cursor_coords.X += ncols;
-	  w32con_move_cursor (f, cursor_coords.Y, cursor_coords.X);
+	      /* Turn appearance modes of the face of the run on.  */
+	      WORD char_attr = w32_face_attributes (attr_frame, face_id);
+
+	      /* Set the attribute for these characters.  */
+	      if (!FillConsoleOutputAttribute (cur_screen, char_attr, ncols,
+					       cursor_coords, &r))
+		{
+		  printf ("Failed writing console attributes: %lu\n",
+			  GetLastError ());
+		  fflush (stdout);
+		}
+
+	      /* Write the characters.  */
+	      if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
+						coding->produced, cursor_coords,
+						&r))
+		{
+		  printf ("Failed writing console characters: %lu\n",
+			  GetLastError ());
+		  fflush (stdout);
+		}
+
+	      cursor_coords.X += ncols;
+	      w32con_move_cursor (f, cursor_coords.Y, cursor_coords.X);
+	    }
 	}
       len -= n;
       string += n;
@@ -390,6 +447,8 @@ w32con_write_glyphs_with_face (struct frame *f, register int x, register int y,
 {
   LPCSTR conversion_buffer;
   struct coding_system *coding;
+
+  w32con_hide_cursor();
 
   if (len <= 0)
     return;
@@ -407,28 +466,42 @@ w32con_write_glyphs_with_face (struct frame *f, register int x, register int y,
   if (coding->produced > 0)
     {
       DWORD filled, written;
-      /* Compute the character attributes corresponding to the face.  */
-      DWORD char_attr = w32_face_attributes (f, face_id);
-      COORD start_coords;
-      /* Compute the string's width on display by accounting for
-	 character's width.  FIXME: this doesn't handle character
-	 compositions.  */
-      ptrdiff_t ncols = strwidth (coding->source, coding->src_bytes);
-
-      start_coords.X = x;
-      start_coords.Y = y;
-      /* Set the attribute for these characters.  */
-      if (!FillConsoleOutputAttribute (cur_screen, char_attr, ncols,
-				       start_coords, &filled))
-	DebPrint (("Failed writing console attributes: %d\n", GetLastError ()));
+      if (w32_use_virtual_terminal)
+	{
+	  COORD saved_coords = cursor_coords;
+	  w32con_move_cursor(f, y, x);
+	  turn_on_face (f, face_id);
+	  WriteConsole (cur_screen, conversion_buffer,
+			coding->produced, &written, NULL);
+	  turn_off_face (f, face_id);
+	  w32con_move_cursor(f, saved_coords.Y, saved_coords.X);
+	}
       else
 	{
-	  /* Write the characters.  */
-	  if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
-					    coding->produced, start_coords,
-					    &written))
-	    DebPrint (("Failed writing console characters: %d\n",
-		       GetLastError ()));
+	  /* Compute the character attributes corresponding to the face.  */
+	  DWORD char_attr = w32_face_attributes (f, face_id);
+	  COORD start_coords;
+
+	  start_coords.X = x;
+	  start_coords.Y = y;
+
+	  /* Account for character width.
+	     FIXME: this doesn't handle character compositions.  */
+	  ptrdiff_t ncols = strwidth (coding->source, coding->src_bytes);
+
+	  /* Set the attribute for these characters.  */
+	  if (!FillConsoleOutputAttribute (cur_screen, char_attr, ncols,
+					   start_coords, &filled))
+	    DebPrint (("Failed writing console attributes: %d\n", GetLastError ()));
+	  else
+	    {
+	      /* Write the characters.  */
+	      if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
+						coding->produced, start_coords,
+						&written))
+		DebPrint (("Failed writing console characters: %d\n",
+			   GetLastError ()));
+	    }
 	}
     }
 }
@@ -529,6 +602,33 @@ w32con_delete_glyphs (struct frame *f, int n)
   scroll_line (f, n, LEFT);
 }
 
+static void
+w32con_setup_virtual_terminal (void)
+{
+  /* Disable unless 24bit color is supported (v. > 10.0.15063).  */
+  w32_use_virtual_terminal = w32_use_virtual_terminal
+    && (w32_major_version > 10
+	|| (w32_major_version == 10
+	    && (w32_minor_version > 0 || w32_build_number > 15063)));
+
+  DWORD out_mode;
+  GetConsoleMode (cur_screen, &out_mode);
+  out_mode |= ENABLE_PROCESSED_OUTPUT;
+  out_mode |= DISABLE_NEWLINE_AUTO_RETURN;
+
+  if (w32_use_virtual_terminal)
+    out_mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+  else
+    out_mode &= ~ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+  int out_mode_set = SetConsoleMode (cur_screen, out_mode);
+  w32_use_virtual_terminal = w32_use_virtual_terminal && out_mode_set;
+
+  int max_colors = w32_use_virtual_terminal ? 16777216 : 16;
+  tty_setup_colors (current_tty, max_colors);
+
+  safe_calln (Qtty_set_up_initial_frame_faces);
+}
 
 static void
 w32con_reset_terminal_modes (struct terminal *t)
@@ -585,6 +685,7 @@ w32con_set_terminal_modes (struct terminal *t)
   /* Initialize input mode: interrupt_input off, no flow control, allow
      8 bit character input, standard quit char.  */
   Fset_input_mode (Qnil, Qnil, make_fixnum (2), Qnil);
+  w32con_setup_virtual_terminal ();
 }
 
 /* hmmm... perhaps these let us bracket screen changes so that we can flush
@@ -631,8 +732,6 @@ sys_tgetstr (char *cap, char **area)
 			stubs from cm.c
  ***********************************************************************/
 
-extern struct tty_display_info *current_tty;
-struct tty_display_info *current_tty = NULL;
 extern int cost;
 int cost = 0;
 
@@ -734,6 +833,87 @@ w32_face_attributes (struct frame *f, int face_id)
     char_attr = (char_attr & 0xff0f) + (face->background << 4);
 
   return char_attr;
+}
+
+static void
+turn_on_face (struct frame *f, int face_id)
+{
+  struct face *face = FACE_FROM_ID (f, face_id);
+  struct tty_display_info *tty = FRAME_TTY (f);
+  unsigned long fg = face->foreground;
+  unsigned long bg = face->background;
+
+  /* construct combined VT sequence for face attributes */
+  DWORD n = 0;
+  size_t sz = SEQMAX;
+  char seq[sz];
+  sz--;
+
+  if (face->tty_bold_p)
+    SSPRINTF (seq, &n, sz, tty->TS_enter_bold_mode, NULL);
+  if (face->tty_italic_p)
+    SSPRINTF (seq, &n, sz, tty->TS_enter_italic_mode, NULL);
+  if (face->tty_strike_through_p)
+    SSPRINTF (seq, &n, sz, tty->TS_enter_strike_through_mode, NULL);
+  if (face->underline != 0)
+    SSPRINTF (seq, &n, sz, tty->TS_enter_underline_mode, NULL);
+  /* Note: when face->tty_reverse_p != 0 and fg and bg are specified,
+     their values are already swapped and reversing them here would swap
+     them back, but we need to handle the reversal when unspecified.  */
+  if (face->tty_reverse_p && DEFAULTP (fg) && DEFAULTP (bg))
+    SSPRINTF (seq, &n, sz, tty->TS_enter_reverse_mode, NULL);
+
+  if (DEFAULTP (fg)) fg = fg_normal;
+  if (DEFAULTP (bg)) bg = bg_normal;
+
+  const char *set_fg = tty->TS_set_foreground;
+  const char *set_bg = tty->TS_set_background;
+  if (tty->TN_max_colors == 8  || tty->TN_max_colors == 16)
+    {
+      /* fg and bg are indices into 16 base colors (see link at top).  */
+      unsigned long fgi = 0, bgi = 0;
+
+      fgi = (fg >= 0  && fg < 8)
+	    ? fg + 30
+	    : (fg >= 8  && fg < 16)
+	      ? fg - 8 + 90
+	      : 0;
+      if (fgi)
+	SSPRINTF (seq, &n, sz, set_fg, fgi);
+
+      bgi = (bg >= 0  && bg < 8)
+	    ? bg + 40
+	    : (bg >= 8  && bg < 16)
+	      ? bg - 8 + 100
+	      : 0;
+      if (bgi)
+	SSPRINTF (seq, &n, sz, set_bg, bgi);
+    }
+  else if (tty->TN_max_colors == 256)
+    {
+      /* fg and bg are xterm indices.  */
+      if (fg >= 0 && fg < 256)
+	SSPRINTF (seq, &n, sz, set_fg, fg);
+
+      if (bg >= 0 && bg < 256)
+	SSPRINTF (seq, &n, sz, set_bg, bg);
+    }
+  else if (tty->TN_max_colors == 16777216)
+    {
+      /* fg and bg are pixel values -- decompose to rgb triples.  */
+      unsigned long rf = fg/65536, gf = (fg/256)&255, bf = fg&255;
+      unsigned long rb = bg/65536, gb = (bg/256)&255, bb = bg&255;
+      SSPRINTF (seq, &n, sz, set_fg, rf, gf, bf);
+      SSPRINTF (seq, &n, sz, set_bg, rb, gb, bb);
+    }
+  w32con_write_vt_seq ((const char *) seq);
+}
+
+static void
+turn_off_face (struct frame *f, int face_id)
+{
+  struct tty_display_info *tty = FRAME_TTY (f);
+  w32con_write_vt_seq (tty->TS_exit_attribute_mode);
 }
 
 /* The IME window is needed to receive the session notifications
@@ -868,6 +1048,8 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
     }
 
   char_attr_normal = info.wAttributes;
+  fg_normal = char_attr_normal & 0x000f;
+  bg_normal = (char_attr_normal >> 4) & 0x000f;
 
   /* Determine if the info returned by GetConsoleScreenBufferInfo
      is realistic.  Old MS Telnet servers used to only fill out
@@ -921,31 +1103,81 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
 
   /* Set up the keyboard hook.  */
   setup_w32_kbdhook (hwnd);
+
+  /* Set current_tty to the tty of this terminal */
+  current_tty = term->display_info.tty;
 }
 
 
-DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
+DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 3, 0,
        doc: /* Set screen foreground and background colors.
 
-Arguments should be indices between 0 and 15, see w32console.el.  */)
-  (Lisp_Object foreground, Lisp_Object background)
+Arguments should be indices for colors in the list returned by `tty-color-alist'.
+If VTP is non-nil, settings affect virtual terminal processing only.
+Otherwise, arguments should be between 0 and 15, and settings will
+be effective only when virtual terminal processing is disabled.
+
+See w32console.el and the documentation for `w32-use-virtual-terminal'.  */)
+  (Lisp_Object foreground, Lisp_Object background, Lisp_Object vtp)
 {
-  char_attr_normal = XFIXNAT (foreground) + (XFIXNAT (background) << 4);
+  int fg = XFIXNAT (foreground);
+  int bg = XFIXNAT (background);
+
+  if (NILP (vtp))
+    {
+      char_attr_normal = fg + (bg << 4);
+    }
+  else
+    {
+      fg_normal = fg;
+      bg_normal = bg;
+    }
 
   Frecenter (Qnil, Qt);
   return Qt;
 }
 
-DEFUN ("get-screen-color", Fget_screen_color, Sget_screen_color, 0, 0, 0,
+DEFUN ("get-screen-color", Fget_screen_color, Sget_screen_color, 0, 1, 0,
        doc: /* Get color indices of the current screen foreground and background.
 
-The colors are returned as a list of 2 indices (FOREGROUND BACKGROUND).
-See w32console.el and `tty-defined-color-alist' for mapping of indices
-to colors.  */)
+The colors are returned as a list of 2 indices (FOREGROUND BACKGROUND) for
+colors in the list returned by `tty-color-alist`.
+
+If VTP is non-nil, returns settings effective when virtual terminal
+processing is enabled.  Otherwise, returns settings effective when
+virtual terminal processing is disabled.
+
+See w32console.el and the documentation for `w32-use-virtual-terminal'.  */)
+  (Lisp_Object vtp)
+{
+  int fg = NILP (vtp) ? char_attr_normal & 0x000f : fg_normal;
+  int bg = NILP (vtp) ? (char_attr_normal >> 4) & 0x000f : bg_normal;
+
+  return Fcons (make_fixnum (fg), Fcons (make_fixnum (bg), Qnil));
+}
+
+DEFUN ("w32-use-virtual-terminal", Fw32_use_virtual_terminal, Sw32_use_virtual_terminal, 1, 1, 0,
+       doc: /* Enables (disables) virtual terminal sequence processing if argument is t (nil).  */)
+  (Lisp_Object arg)
+{
+  if (EQ (arg, Qt))
+    w32_use_virtual_terminal = 1;
+  else if (EQ (arg, Qnil))
+    w32_use_virtual_terminal = 0;
+  else {
+    error ("Invalid argument: expects t or nil.");
+    return Qnil;
+  }
+
+  w32con_setup_virtual_terminal ();
+  return Qt;
+}
+
+DEFUN ("w32-use-virtual-terminal-p", Fw32_use_virtual_terminal_p, Sw32_use_virtual_terminal_p, 0, 0, 0,
+       doc: /* Returns t (nil) if virtual terminal sequence processing is enabled (disabled).  */)
   (void)
 {
-  return Fcons (make_fixnum (char_attr_normal & 0x000f),
-		Fcons (make_fixnum ((char_attr_normal >> 4) & 0x000f), Qnil));
+  return w32_use_virtual_terminal ? Qt : Qnil;
 }
 
 DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
@@ -974,5 +1206,7 @@ scroll-back buffer.  */);
 
   defsubr (&Sset_screen_color);
   defsubr (&Sget_screen_color);
+  defsubr (&Sw32_use_virtual_terminal);
+  defsubr (&Sw32_use_virtual_terminal_p);
   defsubr (&Sset_cursor_size);
 }

@@ -1024,19 +1024,26 @@ colored display.
 @itemx ansi8
 Turn on the color support unconditionally, and use color commands
 specified by the ANSI escape sequences for the 8 standard colors.
+@item 8bit
+Turn on support for 8-bit (256 color) display if available.
+Currently this option is effective on MS-Windows (10+) only.
+On other systems, maximal color support is enabled automatically.
+@item 24bit
+Turn on support for 24-bit (true color) display if available.
+Currently this option is effective on MS-Windows (10+) only.
+On other systems, 24-bit color is enabled automatically if supported.
 @item @var{num}
 Use color mode for @var{num} colors.  If @var{num} is @minus{}1, turn off
 color support (equivalent to @samp{never}); if it is 0, use the
 default color support for this terminal (equivalent to @samp{auto});
 otherwise use an appropriate standard mode for @var{num} colors.
 Depending on your terminal's capabilities, Emacs might be able to turn
-on a color mode for 8, 16, 88, or 256 as the value of @var{num}.  If
-there is no mode that supports @var{num} colors, Emacs acts as if
-@var{num} were 0, i.e., it uses the terminal's default color support
-mode.
+on a color mode for 8, 16, 88, 256, or 16777216 as the value of @var{num}.
+If there is no mode that supports @var{num} colors, Emacs acts as if
+@var{num} were 0, i.e., it uses the terminal's default color support mode.
 @end table
 
-This option has no effect on MS-Windows and MS-DOS.
+This option has no effect on MS-DOS, nor MS-Windows prior to Windows 10.
 
 @cindex colors on character terminal, changing during session
 @cindex character terminal, change color mode

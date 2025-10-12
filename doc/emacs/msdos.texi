@@ -1200,6 +1200,33 @@ you should set its value in your init file (@pxref{Init File}), either
 directly or via @kbd{M-x customize-variable}, which lets you save the
 customized value, see @ref{Saving Customizations}.
 
+@findex w32-use-virtual-terminal
+@cindex Windows Terminal, Windows Console, MS-Windows
+  The implementation of display functionality for Windows Console
+differs from the implementation for other terminal emulators,
+because historically, Windows required use of an idiosyncractic API.
+That API limited Windows Console display of Emacs to 16 basic colors.
+With the introduction of Windows Terminal, Microsoft implemented
+support for ANSI control sequences, modelled on the VT100 and Xterm,
+as well as 24-bit RBG color display.
+
+  The functions @code{w32-use-virtual-terminal} and
+@code{w32-use-virtual-terminal-p} can be used to set and inspect
+(respectively) an internal variable which determines whether this newer
+mechanism is used for display, or the older one.  The internal variable is
+automatically set based on your terminal's capabilities on startup.
+By default, 24-bit RGB color will be used, but other (8, 16, 256) color
+spaces may be used, by passing the @code{--color} command line argument,
+or setting the value of the @code{tty-color-mode} frame parameter.
+
+   @code{'(w32-use-virtual-terminal-p)} evaluates to @code{t} if and only if
+the internal variable has a non-zero numerical value, and otherwise to
+@code{nil}.  If it evaluates to @code{t}, ANSI escape sequences are used
+for color, otherwise, the older mechanism is used.  The internal variable
+can be set by evaluating @code{(w32-use-virtual-terminal x)}, where @code{x} is
+@code{t} or @code{nil}: if @code{x} is @code{t} and the feature is supported by
+your terminal, it will be enabled.  Otherwise, the feature will be disabled.
+
 @ifnottex
 @include msdos-xtra.texi
 @end ifnottex

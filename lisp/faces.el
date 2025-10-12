@@ -2405,11 +2405,15 @@ If you set `term-file-prefix' to nil, this function does nothing."
 
 ;; Called from C function init_display to initialize faces of the
 ;; dumped terminal frame on startup.
-
+(declare-function w32-tty-setup-colors "term/w32console" ())
 (defun tty-set-up-initial-frame-faces ()
-  (let ((frame (selected-frame)))
-    (frame-set-background-mode frame t)
-    (face-set-after-frame-default frame)))
+  (progn
+    (when (and (eq system-type 'windows-nt)
+               (featurep 'term/w32console))
+      (w32-tty-setup-colors))
+    (let ((frame (selected-frame)))
+      (frame-set-background-mode frame t)
+      (face-set-after-frame-default frame))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

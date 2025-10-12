@@ -249,4 +249,6 @@ struct input_event;
 extern Lisp_Object tty_handle_tab_bar_click (struct frame *, int, int, bool,
 					     struct input_event *);
 
+extern void tty_setup_colors (struct tty_display_info *tty, int mode);
+
 #endif /* EMACS_TERMCHAR_H */
