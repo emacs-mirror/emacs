@@ -634,7 +634,8 @@ Skip \"internal\" overlays if `hs-allow-nesting' is non-nil."
             (delete-overlay ov))))
     (dolist (ov (overlays-in from to))
       (when (overlay-get ov 'hs)
-        (delete-overlay ov)))))
+        (delete-overlay ov))))
+  (hs--refresh-indicators from to))
 
 (defun hs-hideable-region-p (beg end)
   "Return t if region in BEG and END can be hidden."
@@ -680,6 +681,7 @@ to call with the newly initialized overlay."
       (overlay-put ov 'isearch-open-invisible-temporary
                    'hs-isearch-show-temporary))
     (when hs-set-up-overlay (funcall hs-set-up-overlay ov))
+    (hs--refresh-indicators b e)
     ov))
 
 (defun hs-block-positions ()
@@ -785,14 +787,12 @@ point."
     (forward-line 1))
   `(jit-lock-bounds ,beg . ,end))
 
-(defun hs--refresh-indicators ()
-  "Update indicators appearance at current block."
-  (when hs-show-indicators
+(defun hs--refresh-indicators (from to)
+  "Update indicators appearance in FROM and TO."
+  (when (and hs-show-indicators hs-minor-mode)
     (save-match-data
       (save-excursion
-        ;; Using window-start and window-end is more faster
-        ;; than computing again the block positions
-        (hs--add-indicators (window-start) (window-end))))))
+        (hs--add-indicators from to)))))
 
 (defun hs--get-ellipsis (b e)
   "Helper function for `hs-make-overlay'.
@@ -1235,6 +1235,7 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
                ((eq 'comment (overlay-get ov 'hs)) here)
                (t (+ (overlay-start ov) (overlay-get ov 'hs-b-offset)))))
         (delete-overlay ov)
+        (hs--refresh-indicators (overlay-start ov) (overlay-end ov))
         t))
     ;; not immediately obvious, look for a suitable block
     (let ((c-reg (hs-inside-comment-p))
@@ -1251,7 +1252,6 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
       (when (and p q)
         (hs-discard-overlays p q)
         (goto-char (if end q (1+ p))))))
-   (hs--refresh-indicators)
    (run-hooks 'hs-show-hook)))
 
 (defun hs-hide-level (arg)
@@ -1354,12 +1354,12 @@ Key bindings:
           (jit-lock-register #'hs--add-indicators)))
 
     (remove-from-invisibility-spec '(hs . t))
-    (when hs-show-indicators
-      (jit-lock-unregister #'hs--add-indicators)
-      (remove-overlays nil nil 'hs-indicator t))
     ;; hs-show-all does nothing unless h-m-m is non-nil.
     (let ((hs-minor-mode t))
-      (hs-show-all))))
+      (hs-show-all))
+    (when hs-show-indicators
+      (jit-lock-unregister #'hs--add-indicators)
+      (remove-overlays nil nil 'hs-indicator t))))
 
 ;;;###autoload
 (defun turn-off-hideshow ()
