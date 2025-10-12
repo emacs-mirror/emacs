@@ -1168,6 +1168,15 @@ at run-time for the use of the associated deprecated features.
 '(setq eieio-backward-compatibility t)' can be used to recover
 the previous silence.
 
+** ELisp mode
+
++++
+*** Semantic highlighting support for Emacs Lisp.
+'emacs-lisp-mode' can now use code analysis to highlight more symbols
+more accurately.  Customize the new user option
+'elisp-fontify-semantically' to non-nil to enable this feature, and see
+the Info node "(emacs) Semantic Font Lock" for more information.
+
 ** Text mode
 
 ---

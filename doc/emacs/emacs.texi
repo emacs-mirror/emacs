@@ -391,6 +391,7 @@ Controlling the Display
 Font Lock
 * Traditional Font Lock::  Font Lock based on regexps and syntax tables.
 * Parser-based Font Lock:: Font Lock based on external parser.
+* Semantic Font Lock::     Font Lock based on semantic analysis.
 
 Searching and Replacement
 
