@@ -131,8 +131,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
-
 (defun elisp-scope--define-symbol-role (name parents props)
   (put name 'elisp-scope-parent-roles parents)
   (put name 'elisp-scope-role-properties props))
@@ -145,7 +143,17 @@ of (other) symbols in ELisp source code.  For example, the symbol role
 `face' characterizes symbols that are face names.
 
 PROPS is a plist specifying the properties of the new symbol role NAME.
-NAME inherits properties that do not appear in PROPS from its PARENTS."
+NAME inherits properties that do not appear in PROPS from its PARENTS.
+
+Common symbol role properties are:
+
+- `:doc': short documentation string describing this symbol role.
+- `:face': face for highlighting symbols with this role.
+- `:help': `help-echo' text for symbols with this role.
+
+See also `elisp-scope-get-symbol-role-property' and
+`elisp-scope-set-symbol-role-property' for getting and setting values of
+symbol role properties."
   (declare (indent defun))
   `(elisp-scope--define-symbol-role ',name ',parents ,(when props `(list ,@props))))
 
@@ -230,25 +238,19 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
 
 (elisp-scope-define-symbol-role symbol-role ()
   :doc "Symbol role names."
-  :definition 'symbol-role-definition
   :face 'elisp-symbol-role
-  :help (cl-constantly "Symbol role")
-  :namespace 'symbol-role)
+  :help "Symbol role")
 
 (elisp-scope-define-symbol-role symbol-role-definition (symbol-role)
   :doc "Symbol role name definitions."
   :face 'elisp-symbol-role-definition
-  :help (cl-constantly "Symbol role definition")
-  :imenu "Symbol Role"
-  :namespace 'symbol-role)
+  :help "Symbol role definition")
 
 (elisp-scope-define-symbol-role variable ()
-  :doc "Abstract symbol role of variables."
-  :namespace 'variable)
+  :doc "Abstract symbol role of variables.")
 
 (elisp-scope-define-symbol-role free-variable (variable)
   :doc "Variable names."
-  :definition 'defvar
   :face 'elisp-free-variable
   :help (lambda (beg end _def)
           (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
@@ -262,38 +264,34 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
 (elisp-scope-define-symbol-role bound-variable (variable)
   :doc "Local variable names."
   :face 'elisp-bound-variable
-  :help (cl-constantly "Local variable"))
+  :help "Local variable")
 
 (elisp-scope-define-symbol-role binding-variable (bound-variable)
   :doc "Local variable definitions."
   :face 'elisp-binding-variable
-  :help (cl-constantly "Local variable binding"))
+  :help "Local variable binding")
 
 (elisp-scope-define-symbol-role shadowed-variable (variable)
   :doc "Locally shadowed variable names."
   :face 'elisp-shadowed-variable
-  :help (cl-constantly "Locally shadowed variable"))
+  :help "Locally shadowed variable")
 
 (elisp-scope-define-symbol-role shadowing-variable (shadowed-variable)
-  :doc "Local variable definitions."
+  :doc "Locally shadowing variables."
   :face 'elisp-shadowing-variable
-  :help (cl-constantly "Local variable shadowing"))
+  :help "Local variable shadowing")
 
 (elisp-scope-define-symbol-role face ()
   :doc "Face names."
-  :definition 'defface
   :face 'elisp-face
   :help (lambda (beg end _def)
-          (elisp--help-echo beg end 'face-documentation "Face"))
-  :namespace 'face)
+          (elisp--help-echo beg end 'face-documentation "Face")))
 
 (elisp-scope-define-symbol-role callable ()
-  :doc "Abstract symbol role of function-like symbols."
-  :namespace 'function)
+  :doc "Abstract symbol role of function-like symbols.")
 
 (elisp-scope-define-symbol-role function (callable)
   :doc "Function names."
-  :definition '(defun defcmd)
   :face 'elisp-function-reference
   :help (lambda (beg end def)
           (cond ((equal beg def) "Local function definition")
@@ -308,7 +306,7 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
 (elisp-scope-define-symbol-role unknown (function)
   :doc "Unknown symbols at function position."
   :face 'elisp-unknown-call
-  :help (cl-constantly "Unknown callable"))
+  :help "Unknown callable")
 
 (elisp-scope-define-symbol-role non-local-exit (function)
   :doc "Functions that do not return."
@@ -320,7 +318,6 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
 
 (elisp-scope-define-symbol-role macro (callable)
   :doc "Macro names."
-  :definition 'defmacro
   :face 'elisp-macro-call
   :help (lambda (beg end _def)
           (if-let* ((sym (intern-soft (buffer-substring-no-properties beg end))))
@@ -338,97 +335,85 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
 (elisp-scope-define-symbol-role throw-tag ()
   :doc "Symbols used as `throw'/`catch' tags."
   :face 'elisp-throw-tag
-  :help (cl-constantly "`throw'/`catch' tag"))
+  :help "`throw'/`catch' tag")
 
 (elisp-scope-define-symbol-role warning-type ()
   :doc "Byte-compilation warning types."
   :face 'elisp-warning-type
-  :help (cl-constantly "Warning type"))
+  :help "Warning type")
 
 (elisp-scope-define-symbol-role feature ()
   :doc "Feature names."
-  :definition 'deffeature
   :face 'elisp-feature
-  :help (cl-constantly "Feature")
-  :namespace 'feature)
+  :help "Feature")
 
 (elisp-scope-define-symbol-role deffeature (feature)
   :doc "Feature definitions."
-  :imenu "Feature"
-  :help (cl-constantly "Feature definition"))
+  :help "Feature definition")
 
 (elisp-scope-define-symbol-role function-property-declaration ()
   :doc "Function/macro property declaration types."
   :face 'elisp-function-property-declaration
-  :help (cl-constantly "Function/macro property declaration"))
+  :help "Function/macro property declaration")
 
 (elisp-scope-define-symbol-role rx-construct ()
   :doc "`rx' constructs."
   :face 'elisp-rx
-  :help (cl-constantly "`rx' construct"))
+  :help "`rx' construct")
 
 (elisp-scope-define-symbol-role theme ()
   :doc "Custom theme names."
-  :definition 'deftheme
   :face 'elisp-theme
-  :help (cl-constantly "Theme"))
+  :help "Theme")
 
 (elisp-scope-define-symbol-role deftheme (theme)
   :doc "Custom theme definitions."
-  :imenu "Theme"
-  :help (cl-constantly "Theme definition"))
+  :help "Theme definition")
 
 (elisp-scope-define-symbol-role thing ()
   :doc "`thing-at-point' \"thing\" identifiers."
   :face 'elisp-thing
-  :help (cl-constantly "Thing (text object)"))
+  :help "Thing (text object)")
 
 (elisp-scope-define-symbol-role slot ()
   :doc "EIEIO slots."
   :face 'elisp-slot
-  :help (cl-constantly "Slot"))
+  :help "Slot")
 
 (elisp-scope-define-symbol-role widget-type ()
   :doc "Widget types."
-  :definition 'widget-type-definition
   :face 'elisp-widget-type
-  :help (cl-constantly "Widget type")
-  :namespace 'widget-type)
+  :help "Widget type")
 
 (elisp-scope-define-symbol-role widget-type-definition (widget-type)
   :doc "Widget type definitions."
-  :imenu "Widget"
-  :help (cl-constantly "Widget type definition"))
+  :help "Widget type definition")
 
 (elisp-scope-define-symbol-role type ()
   :doc "ELisp object type names."
   :face 'elisp-type
-  :help (cl-constantly "Type"))
+  :help "Type")
 
 (elisp-scope-define-symbol-role deftype (type)
   :doc "ELisp object type definitions."
-  :imenu "Type"
-  :help (cl-constantly "Type definition"))
+  :help "Type definition")
 
 (elisp-scope-define-symbol-role group ()
   :doc "Customization groups."
-  :definition 'defgroup
   :face 'elisp-group
-  :help (cl-constantly "Customization group"))
+  :help "Customization group")
 
 (elisp-scope-define-symbol-role defgroup (group)
   :doc "Customization group definitions."
-  :imenu "Group"
-  :help (cl-constantly "Customization group definition"))
+  :help "Customization group definition")
 
 (elisp-scope-define-symbol-role nnoo-backend ()
   :doc "`nnoo' backend names."
   :face 'elisp-nnoo-backend
-  :help (cl-constantly "`nnoo' backend"))
+  :help "`nnoo' backend")
 
 (elisp-scope-define-symbol-role condition ()
   :doc "`condition-case' conditions."
-  :definition 'defcondition
   :face 'elisp-condition
   :help (lambda (beg end _def)
           (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
@@ -438,72 +423,53 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
                          "`condition-case' condition"
                          (when (and msg (not (string-empty-p msg)))
                            `(": " ,msg)))))
-            "`condition-case' condition"))
-  :namespace 'condition)
+            "`condition-case' condition")))
 
 (elisp-scope-define-symbol-role defcondition (condition)
   :doc "`condition-case' condition definitions."
-  :definition 'defcondition
-  :help (cl-constantly "`condition-case' condition definition"))
+  :help "`condition-case' condition definition")
 
 (elisp-scope-define-symbol-role ampersand ()
   :doc "Argument list markers, such as `&optional' and `&rest'."
   :face 'elisp-ampersand
-  :help (cl-constantly "Arguments separator"))
+  :help "Arguments separator")
 
 (elisp-scope-define-symbol-role constant ()
   :doc "Self-evaluating symbols."
   :face 'elisp-constant
-  :help (cl-constantly "Constant"))
+  :help "Constant")
 
 (elisp-scope-define-symbol-role defun ()
   :doc "Function definitions."
-  :definition 'defun
   :face 'elisp-defun
-  :help (cl-constantly "Function definition")
-  :imenu "Function"
-  :namespace 'function)
+  :help "Function definition")
 
 (elisp-scope-define-symbol-role defmacro ()
   :doc "Macro definitions."
-  :definition 'defmacro
   :face 'elisp-defmacro
-  :help (cl-constantly "Macro definition")
-  :imenu "Macro"
-  :namespace 'function)
+  :help "Macro definition")
 
 (elisp-scope-define-symbol-role defcmd (defun)
   :doc "Command definitions."
-  :definition 'defcmd
-  :help (cl-constantly "Command definition")
-  :imenu "Command")
+  :help "Command definition")
 
 (elisp-scope-define-symbol-role defvar ()
   :doc "Variable definitions."
-  :definition 'defvar
   :face 'elisp-defvar
-  :help (cl-constantly "Special variable definition")
-  :imenu "Variable"
-  :namespace 'variable)
+  :help "Special variable definition")
 
 (elisp-scope-define-symbol-role special-variable-declaration ()
   :doc "Special variable declarations."
-  :definition 'defvar
   :face 'elisp-special-variable-declaration
-  :help (cl-constantly "Special variable declaration")
-  :namespace 'variable)
+  :help "Special variable declaration")
 
 (elisp-scope-define-symbol-role defface ()
   :doc "Face definitions."
-  :definition 'defface
   :face 'elisp-defface
-  :help (cl-constantly "Face definition")
-  :imenu "Face"
-  :namespace 'face)
+  :help "Face definition")
 
 (elisp-scope-define-symbol-role major-mode ()
   :doc "Major mode names."
-  :definition 'major-mode-definition
   :face 'elisp-major-mode-name
   :help (lambda (beg end _def)
           (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
@@ -511,13 +477,11 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
                 (if-let* ((doc (documentation sym)))
                     (format "Major mode `%S'.\n\n%s" sym doc)
                   "Major mode"))
-            "Major mode"))
-  :namespace 'function)
+            "Major mode")))
 
 (elisp-scope-define-symbol-role major-mode-definition (major-mode)
   :doc "Major mode definitions."
-  :help (cl-constantly "Major mode definition")
-  :imenu "Major Mode")
+  :help "Major mode definition")
 
 (elisp-scope-define-symbol-role block ()
   :doc "`cl-block' block names."
@@ -526,22 +490,16 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
 
 (elisp-scope-define-symbol-role icon ()
   :doc "Icon names."
-  :definition 'deficon
   :face 'elisp-icon
-  :help (cl-constantly "Icon")
-  :namespace 'icon)
+  :help "Icon")
 
 (elisp-scope-define-symbol-role deficon ()
   :doc "Icon definitions."
-  :definition 'deficon
   :face 'elisp-deficon
-  :help (cl-constantly "Icon definition")
-  :imenu "Icon"
-  :namespace 'icon)
+  :help "Icon definition")
 
 (elisp-scope-define-symbol-role oclosure ()
   :doc "OClosure type names."
-  :definition 'defoclosure
   :face 'elisp-oclosure
   :help (lambda (beg end _def)
           (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
@@ -549,20 +507,15 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
                 (if-let* ((doc (oclosure--class-docstring (get sym 'cl--class))))
                     (format "OClosure type `%S'.\n\n%s" sym doc)
                   "OClosure type"))
-            "OClosure type"))
-  :namespace 'oclosure)
+            "OClosure type")))
 
 (elisp-scope-define-symbol-role defoclosure ()
   :doc "OClosure type definitions."
-  :definition 'defoclosure
   :face 'elisp-defoclosure
-  :help (cl-constantly "OClosure type definition")
-  :imenu "OClosure type"
-  :namespace 'oclosure)
+  :help "OClosure type definition")
 
 (elisp-scope-define-symbol-role coding ()
   :doc "Coding system names."
-  :definition 'defcoding
   :face 'elisp-coding
   :help (lambda (beg end _def)
           (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
@@ -570,20 +523,15 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
                 (if-let* ((doc (coding-system-doc-string sym)))
                     (format "Coding system `%S'.\n\n%s" sym doc)
                   "Coding system"))
-            "Coding system"))
-  :namespace 'coding)
+            "Coding system")))
 
 (elisp-scope-define-symbol-role defcoding ()
   :doc "Coding system definitions."
-  :definition 'defcoding
   :face 'elisp-defcoding
-  :help (cl-constantly "Coding system definition")
-  :imenu "Coding system"
-  :namespace 'coding)
+  :help "Coding system definition")
 
 (elisp-scope-define-symbol-role charset ()
   :doc "Charset names."
-  :definition 'defcharset
   :face 'elisp-charset
   :help (lambda (beg end _def)
           (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
@@ -591,20 +539,15 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
                 (if-let* ((doc (charset-description sym)))
                     (format "Charset `%S'.\n\n%s" sym doc)
                   "Charset"))
-            "Charset"))
-  :namespace 'charset)
+            "Charset")))
 
 (elisp-scope-define-symbol-role defcharset ()
   :doc "Charset definitions."
-  :definition 'defcharset
   :face 'elisp-defcharset
-  :help (cl-constantly "Charset definition")
-  :imenu "Charset"
-  :namespace 'charset)
+  :help "Charset definition")
 
 (elisp-scope-define-symbol-role completion-category ()
   :doc "Completion categories."
-  :definition 'completion-category-definition
   :face 'elisp-completion-category
   :help (lambda (beg end _def)
           (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
@@ -612,16 +555,12 @@ NAME inherits properties that do not appear in PROPS from its PARENTS."
                 (if-let* ((doc (get sym 'completion-category-documentation)))
                     (format "Completion category `%S'.\n\n%s" sym doc)
                   "Completion category"))
-            "Completion category"))
-  :namespace 'completion-category)
+            "Completion category")))
 
 (elisp-scope-define-symbol-role completion-category-definition ()
   :doc "Completion category definitions."
-  :definition 'completion-category-definition
   :face 'elisp-completion-category-definition
-  :help (cl-constantly "Completion category definition")
-  :imenu "Completion category"
-  :namespace 'completion-category)
+  :help "Completion category definition")
 
 (defvar elisp-scope-counter nil)
 
@@ -2574,10 +2513,6 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
     (cl-case bkw
       (:face
        (if-let* ((q (elisp-scope--unquote (cadr props)))) (elisp-scope-face-1 q)
-         (elisp-scope-1 (cadr props))))
-      (:definition
-       (if-let* ((q (elisp-scope--unquote (cadr props))))
-           (dolist (st (ensure-list q)) (elisp-scope-report-s st 'symbol-role))
          (elisp-scope-1 (cadr props))))
       (otherwise (elisp-scope-1 (cadr props))))
     (setq props (cddr props))))

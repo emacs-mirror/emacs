@@ -295,7 +295,7 @@ expand some macro calls in your code to analyze the expanded forms.  In
 untrusted buffers, for security reasons, macro-expansion is restricted
 to safe macros only (see `elisp-scope-safe-macro-p').  Hence in
 untrusted buffers the arguments of some macros might not be analyzed,
-and therefore not highighted.
+and therefore not highlighted.
 
 See the function `elisp-scope-analyze-form' for more details about the
 code analysis."
@@ -510,8 +510,8 @@ code analysis."
   (when elisp-add-help-echo
     (put-text-property
      beg end 'help-echo
-     (when-let* ((fun (elisp-scope-get-symbol-role-property type :help)))
-       (funcall fun beg end def)))))
+     (when-let* ((hlp (elisp-scope-get-symbol-role-property type :help)))
+       (if (stringp hlp) hlp (funcall hlp beg end def))))))
 
 (defvar font-lock-beg)
 (defvar font-lock-end)
