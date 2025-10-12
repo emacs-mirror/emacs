@@ -621,7 +621,7 @@ static struct igc_exthdr *
 header_exthdr (const struct igc_header *h)
 {
   uint64_t v = *(uint64_t *) h;
-  return ((struct igc_exthdr *)(intptr_t)(v & ~IGC_HEADER_TAG_MASK));
+  return ((struct igc_exthdr *) (intptr_t) (v & ~IGC_HEADER_TAG_MASK));
 }
 
 #else
@@ -658,7 +658,7 @@ header_tag (const struct igc_header *h)
 static struct igc_exthdr *
 header_exthdr (const struct igc_header *h)
 {
-  return ((struct igc_exthdr *)(intptr_t)(h->v & ~IGC_HEADER_TAG_MASK));
+  return ((struct igc_exthdr *) (intptr_t) (h->v & ~IGC_HEADER_TAG_MASK));
 }
 
 #endif /* not IN_MY_FORK */
@@ -754,7 +754,7 @@ static size_t igc_round (size_t nbytes, size_t align);
    builtin symbols.  */
 void gc_init_header (union gc_header *header, enum igc_obj_type type)
 {
-  struct igc_header *h = (struct igc_header *)header;
+  struct igc_header *h = (struct igc_header *) header;
   switch (type)
     {
     case IGC_OBJ_CONS:
@@ -772,7 +772,7 @@ void gc_init_header (union gc_header *header, enum igc_obj_type type)
     case IGC_OBJ_VECTOR:
       {
 	ssize_t nbytes;
-	ptrdiff_t size = ((struct Lisp_Vector *)header)->header.size;
+	ptrdiff_t size = ((struct Lisp_Vector *) header)->header.size;
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
 	    /* Correct some incorrect pseudovector headers:
@@ -782,12 +782,12 @@ void gc_init_header (union gc_header *header, enum igc_obj_type type)
 	     * - thread.c uses VECSIZE (struct thread_state) for the
 	     *   restsize without subtracting the lispsize.
 	     */
-	    if (PSEUDOVECTOR_TYPE ((struct Lisp_Vector *)header) == PVEC_SUBR)
+	    if (PSEUDOVECTOR_TYPE ((struct Lisp_Vector *) header) == PVEC_SUBR)
 	      nbytes = sizeof (struct Lisp_Subr);
-	    else if (PSEUDOVECTOR_TYPE ((struct Lisp_Vector *)header) == PVEC_THREAD)
+	    else if (PSEUDOVECTOR_TYPE ((struct Lisp_Vector *) header) == PVEC_THREAD)
 	      nbytes = sizeof (struct thread_state);
 	    else
-	      nbytes = vectorlike_nbytes (&((struct Lisp_Vector *)header)->header);
+	      nbytes = vectorlike_nbytes (&((struct Lisp_Vector *) header)->header);
 	  }
 	else
 	  nbytes = size * sizeof (Lisp_Object) + header_size;
@@ -828,7 +828,7 @@ void gc_init_header (union gc_header *header, enum igc_obj_type type)
 void gc_init_header_bytes (union gc_header *header, enum igc_obj_type type,
 			   size_t nbytes)
 {
-  struct igc_header *h = (struct igc_header *)header;
+  struct igc_header *h = (struct igc_header *) header;
   switch (type)
     {
     case IGC_OBJ_STRING_DATA:
@@ -1209,7 +1209,7 @@ fix_wrapped_vec (mps_ss_t ss, mps_addr_t *p)
       return MPS_RES_OK;
     if (is_aligned (client))
       {
-	client = (char *)client - sizeof (struct Lisp_Vector);
+	client = (char *) client - sizeof (struct Lisp_Vector);
 	mps_addr_t base = client;
 	if (MPS_FIX1 (ss, base))
 	  {
@@ -1219,7 +1219,7 @@ fix_wrapped_vec (mps_ss_t ss, mps_addr_t *p)
 	    if (base == NULL)
 	      *p = NULL;
 	    else
-	      *p = (char *)base + sizeof (struct Lisp_Vector);
+	      *p = (char *) base + sizeof (struct Lisp_Vector);
 	  }
       }
   }
@@ -1239,7 +1239,7 @@ fix_wrapped_bytes (mps_ss_t ss, mps_addr_t *p)
       return MPS_RES_OK;
     if (is_aligned (client))
       {
-	client = (char *)client - sizeof (struct Lisp_String_Data);
+	client = (char *) client - sizeof (struct Lisp_String_Data);
 	mps_addr_t base = client;
 	if (MPS_FIX1 (ss, base))
 	  {
@@ -1249,7 +1249,7 @@ fix_wrapped_bytes (mps_ss_t ss, mps_addr_t *p)
 	    if (base == NULL)
 	      *p = NULL;
 	    else
-	      *p = (char *)base + sizeof (struct Lisp_String_Data);
+	      *p = (char *) base + sizeof (struct Lisp_String_Data);
 	  }
       }
   }
@@ -1932,7 +1932,7 @@ fix_face (mps_ss_t ss, struct face *f)
     IGC_FIX12_HEADER (ss, &f->prev);
     IGC_FIX12_HEADER (ss, &f->ascii_face);
 #if defined HAVE_XFT || defined HAVE_FREETYPE
-    IGC_FIX12_HEADER (ss, (struct vectorlike_header **)&f->extra);
+    IGC_FIX12_HEADER (ss, (struct vectorlike_header **) &f->extra);
 #endif
   }
   MPS_SCAN_END (ss);
@@ -2139,7 +2139,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit)
 	break;
 
       case IGC_OBJ_DUMPED_CHARSET_TABLE:
-	IGC_FIX_CALL (ss, fix_charset_table (ss, (struct charset *)client,
+	IGC_FIX_CALL (ss, fix_charset_table (ss, (struct charset *) client,
 					     obj_size (header)));
 	break;
 
@@ -2432,7 +2432,7 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
 #ifdef WORDS_BIGENDIAN
 	    off = sizeof (t->entries[i].intptr) - sizeof (mps_word_t);
 #endif
-	    IGC_FIX12_BASE (ss, ((char *)&t->entries[i].intptr) + off);
+	    IGC_FIX12_BASE (ss, ((char *) &t->entries[i].intptr) + off);
 	  }
       }
   }
@@ -2470,13 +2470,13 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 	for (ssize_t i = 0; i < limit; i++)
 	  {
 	    if (w->entries[i].intptr & 1)
-	      eassert (((mps_word_t)w->entries[i].intptr ^ w->entries[i].intptr) == 0);
+	      eassert (((mps_word_t) w->entries[i].intptr ^ w->entries[i].intptr) == 0);
 	    bool was_nil = (w->entries[i].intptr) == 0;
 	    intptr_t off = 0;
 #ifdef WORDS_BIGENDIAN
 	    off = sizeof (w->entries[i].intptr) - sizeof (mps_word_t);
 #endif
-	    IGC_FIX12_BASE (ss, ((char *)&w->entries[i].intptr) + off);
+	    IGC_FIX12_BASE (ss, ((char *) &w->entries[i].intptr) + off);
 	    bool is_now_nil = w->entries[i].intptr == 0;
 
 	    if (is_now_nil && !was_nil)
@@ -2904,7 +2904,7 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 igc_scan_result_t
 igc_fix12_obj (struct igc_ss *ssp, Lisp_Object *addr)
 {
-  mps_ss_t ss = (mps_ss_t)ssp;
+  mps_ss_t ss = (mps_ss_t) ssp;
   MPS_SCAN_BEGIN (ss) { IGC_FIX12_OBJ (ss, addr); }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2928,7 +2928,7 @@ root_create (struct igc *gc, void *start, void *end, mps_rank_t rank,
 static bool
 word_aligned (void *ptr)
 {
-  return ((intptr_t)ptr & (sizeof (void *) - 1)) == 0;
+  return ((intptr_t) ptr & (sizeof (void *) - 1)) == 0;
 }
 
 static igc_root_list *
@@ -3095,14 +3095,14 @@ igc_replace_specpdl (volatile union specbinding *old_pdlvec, ptrdiff_t old_entri
   struct igc_thread_list *t = current_thread->gc_info;
   mps_res_t res
     = mps_root_create_area (&root, gc->arena, mps_rank_exact (), 0,
-			    (void *)new_specpdl,
-			    (void *)(new_pdlvec + new_entries),
+			    (void *) new_specpdl,
+			    (void *) (new_pdlvec + new_entries),
 			    scan_specpdl, t);
   IGC_CHECK_RES (res);
   struct igc_root_list *old_root = t->d.specpdl_root;
   t->d.specpdl_root
-    = register_root (gc, root, (void *)new_specpdl,
-		     (void *)(new_pdlvec + new_entries),
+    = register_root (gc, root, (void *) new_specpdl,
+		     (void *) (new_pdlvec + new_entries),
 		     false, "specpdl");
 
   /* This is volatile so it's on the stack, where MPS sees it and it
@@ -3114,7 +3114,7 @@ igc_replace_specpdl (volatile union specbinding *old_pdlvec, ptrdiff_t old_entri
     {
     try_again:;
       orig = old_pdlvec[i];
-      if (memcmp ((void *)&orig, (void *)(&old_pdlvec[i]), sizeof orig))
+      if (memcmp ((void *) &orig, (void *) (&old_pdlvec[i]), sizeof orig))
 	{
 	  /* We tried to create a snapshot of old_pdlvec[i] on the
 	     stack, which would pin all pointers in old_pdlvec[i].  But
@@ -3126,11 +3126,11 @@ igc_replace_specpdl (volatile union specbinding *old_pdlvec, ptrdiff_t old_entri
       temp.kind = SPECPDL_FREE;
       new_pdlvec[i] = temp;
       new_pdlvec[i].kind = orig.kind;
-      eassert (memcmp ((void *)(&new_pdlvec[i]), (void *)(&old_pdlvec[i]),
+      eassert (memcmp ((void *) (&new_pdlvec[i]), (void *) (&old_pdlvec[i]),
 		       sizeof orig) == 0);
     }
 
-  eassert (memcmp ((void *)new_pdlvec, (void *)old_pdlvec,
+  eassert (memcmp ((void *) new_pdlvec, (void *) old_pdlvec,
 		   old_entries * sizeof (old_pdlvec[0])) == 0);
 
   igc_destroy_root_with_start (old_root->d.start);
@@ -3355,13 +3355,13 @@ igc_grow_rdstack (struct read_stack *rs)
      compiler might optimize it away, keeping only the heap copy.  */
   volatile struct read_stack_entry orig;
   struct read_stack *old_stack = rs;
-  root_create_exact (gc, new_stack, (char *)new_stack + nbytes, scan_rdstack,
+  root_create_exact (gc, new_stack, (char *) new_stack + nbytes, scan_rdstack,
 		     "rdstack");
   for (ptrdiff_t i = 0; i < old_nitems; i++)
     {
     try_again:;
       orig = old_stack->stack[i];
-      if (memcmp ((void *)&orig, (void *)(&old_stack->stack[i]), sizeof orig))
+      if (memcmp ((void *) &orig, (void *) (&old_stack->stack[i]), sizeof orig))
 	{
 	  /* We tried to create a snapshot of old_stack[i] on the
 	     stack, which would pin all pointers in old_stack[i].  But
@@ -3373,7 +3373,7 @@ igc_grow_rdstack (struct read_stack *rs)
       temp.type = RE_free;
       new_stack[i] = temp;
       new_stack[i].type = orig.type;
-      eassert (memcmp ((void *)(&new_stack[i]), (void *)(&old_stack->stack[i]), sizeof orig) == 0);
+      eassert (memcmp ((void *) (&new_stack[i]), (void *) (&old_stack->stack[i]), sizeof orig) == 0);
     }
 
   igc_xfree (rs->stack);
@@ -3440,9 +3440,9 @@ igc_realloc_ambig (void *block, size_t size)
   struct igc_root_list *r = root_find (block);
   igc_assert (r);
   eassume (r != NULL);
-  ptrdiff_t old_size = (char *)r->d.end - (char *)r->d.start;
+  ptrdiff_t old_size = (char *) r->d.end - (char *) r->d.start;
   ptrdiff_t min_size = min (old_size, size);
-  root_create_ambig (gc, p, (char *)p + size, "realloc-ambig");
+  root_create_ambig (gc, p, (char *) p + size, "realloc-ambig");
   mps_word_t *old_pw = block;
   mps_word_t *new_pw = p;
   for (ptrdiff_t i = 0; i < min_size / sizeof (mps_word_t); i++)
@@ -3451,7 +3451,7 @@ igc_realloc_ambig (void *block, size_t size)
 	 pins its references.  Omitting the "volatile" would mean the
 	 compiler might optimize it away, keeping only the heap copy.  */
       volatile mps_word_t word = old_pw[i];
-      eassert (memcmp ((void *)&word, old_pw + i, sizeof word) == 0);
+      eassert (memcmp ((void *) &word, old_pw + i, sizeof word) == 0);
       new_pw[i] = word;
     }
   memcpy (new_pw + (min_size / sizeof (mps_word_t)), old_pw + (min_size / sizeof (mps_word_t)),
@@ -3482,7 +3482,7 @@ igc_xpalloc_ambig (void *old_pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
   ptrdiff_t nbytes = xpalloc_nbytes (old_pa, &new_nitems, nitems_incr_min,
 				     nitems_max, item_size);
   void *new_pa = xzalloc (nbytes);
-  char *end = (char *)new_pa + nbytes;
+  char *end = (char *) new_pa + nbytes;
   root_create_ambig (global_igc, new_pa, end, "xpalloc-ambig");
   mps_word_t *old_word = old_pa;
   mps_word_t *new_word = new_pa;
@@ -3505,7 +3505,7 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
   ptrdiff_t nbytes = xpalloc_nbytes (old_pa, &new_nitems, nitems_incr_min,
 				     nitems_max, item_size);
   void *new_pa = xzalloc (nbytes);
-  char *end = (char *)new_pa + nbytes;
+  char *end = (char *) new_pa + nbytes;
   root_create (global_igc, new_pa, end, mps_rank_exact (), (mps_area_scan_t) scan_area,
 	       closure, false, "xpalloc-exact");
   for (ptrdiff_t i = 0; i < (old_nitems); i++)
@@ -3518,10 +3518,10 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
 	 pins its references.  Omitting the "volatile" would mean the
 	 compiler might optimize it away, keeping only the heap copy.  */
       volatile mps_word_t area[count];
-      memcpy ((void *)area, (char *)old_pa + item_size * i, item_size);
-      eassert (memcmp ((void *)area, (char *)old_pa + item_size * i,
+      memcpy ((void *) area, (char *) old_pa + item_size * i, item_size);
+      eassert (memcmp ((void *) area, (char *) old_pa + item_size * i,
 		       item_size) == 0);
-      memcpy ((char *)new_pa + item_size * i, (void *)area, item_size);
+      memcpy ((char *) new_pa + item_size * i, (void *) area, item_size);
     }
   if (old_pa != NULL)
     eassert (memcmp (old_pa, new_pa, old_nitems * item_size) == 0);
@@ -3540,7 +3540,7 @@ igc_xnrealloc_ambig (void *old_pa, ptrdiff_t nitems, ptrdiff_t item_size)
       struct igc_root_list *r = root_find (old_pa);
       igc_assert (r);
       eassume (r != NULL);
-      old_nbytes = (char *)r->d.end - (char *)r->d.start;
+      old_nbytes = (char *) r->d.end - (char *) r->d.start;
     }
   ptrdiff_t nbytes;
   if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
@@ -4519,12 +4519,12 @@ weak_hash_table_entry (struct Lisp_Weak_Hash_Table_Entry entry)
 
   if (alignment == 0)
     {
-      client = (mps_addr_t)(uintptr_t)entry.intptr;
+      client = (mps_addr_t) (uintptr_t) entry.intptr;
     }
   else
     {
       EMACS_UINT real_ptr = entry.intptr ^ alignment;
-      client = (mps_addr_t)(uintptr_t)real_ptr;
+      client = (mps_addr_t) (uintptr_t) real_ptr;
     }
 
   switch (XFIXNUM (entry.fixnum))
@@ -4533,7 +4533,7 @@ weak_hash_table_entry (struct Lisp_Weak_Hash_Table_Entry entry)
       return make_lisp_symbol (client);
     case Lisp_Int0:
     case Lisp_Int1:
-      return make_fixnum ((EMACS_INT)entry.intptr >> 1);
+      return make_fixnum ((EMACS_INT) entry.intptr >> 1);
     default:
       return make_lisp_ptr (client, XFIXNUM (entry.fixnum));
     }
@@ -4556,7 +4556,7 @@ make_weak_hash_table_entry (Lisp_Object obj)
   else
     client = XUNTAG (obj, XTYPE (obj), void);
 
-  entry.intptr = (EMACS_UINT)(uintptr_t)client;
+  entry.intptr = (EMACS_UINT) (uintptr_t) client;
 
   return entry;
 }
@@ -4569,14 +4569,14 @@ igc_alloc_weak_hash_table_strong_part (hash_table_weakness_t weak,
   switch (weak)
     {
     case Weak_Key:
-      total_size = 3 * size + ((ptrdiff_t)1 << index_bits);
+      total_size = 3 * size + ((ptrdiff_t) 1 << index_bits);
       break;
     case Weak_Value:
-      total_size = 3 * size + ((ptrdiff_t)1 << index_bits);
+      total_size = 3 * size + ((ptrdiff_t) 1 << index_bits);
       break;
     case Weak_Key_And_Value:
     case Weak_Key_Or_Value:
-      total_size = 2 * size + ((ptrdiff_t)1 << index_bits);
+      total_size = 2 * size + ((ptrdiff_t) 1 << index_bits);
       break;
     case Weak_None:
       emacs_abort ();
@@ -4892,7 +4892,7 @@ igc_external_header (struct igc_header *h)
       exthdr->obj_type = header_type (h);
       exthdr->extra_dependency = Qnil;
       /* On IA-32, the upper 32-bit word is 0 after this, which is okay.  */
-      uint64_t v = (intptr_t)exthdr + IGC_TAG_EXTHDR;
+      uint64_t v = (intptr_t) exthdr + IGC_TAG_EXTHDR;
       *(uint64_t *) h = v;
       mps_addr_t ref = (mps_addr_t) h;
       mps_res_t res = mps_finalize (global_igc->arena, &ref);
@@ -5368,7 +5368,7 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 		     void *cold_start, void *cold_end,
 		     void *cold_user_data_start, void *heap_end)
 {
-  dump_base = (char *)dump_base - igc_header_size ();
+  dump_base = (char *) dump_base - igc_header_size ();
   igc_assert (global_igc->park_count > 0);
   igc_assert (hot_start == charset_table);
   igc_assert (header_type ((struct igc_header *) hot_start)
@@ -5380,15 +5380,15 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   igc_assert (header_type ((struct igc_header *) heap_end)
 	      == IGC_OBJ_DUMPED_BYTES);
 
-  size_t discardable_size = (uint8_t *)cold_start - (uint8_t *)hot_end;
-  // size_t cold_size = (uint8_t *)cold_end - (uint8_t *)cold_start;
-  size_t dump_header_size = (uint8_t *)hot_start - (uint8_t *)dump_base;
-  size_t relocs_size = (uint8_t *)cold_end - (uint8_t *)heap_end;
+  size_t discardable_size = (uint8_t *) cold_start - (uint8_t *) hot_end;
+  // size_t cold_size = (uint8_t *) cold_end - (uint8_t *) cold_start;
+  size_t dump_header_size = (uint8_t *) hot_start - (uint8_t *) dump_base;
+  size_t relocs_size = (uint8_t *) cold_end - (uint8_t *) heap_end;
   struct igc_header *h = dump_base;
 
   igc_assert (header_type (h) == IGC_OBJ_INVALID);
   igc_assert (obj_size (h)
-	      == (uint8_t *)cold_end - (uint8_t *)dump_base);
+	      == (uint8_t *) cold_end - (uint8_t *) dump_base);
   igc_assert (discardable_size > 2 * sizeof *h);
   /* Ignore dump_header */
   set_header (h, IGC_OBJ_PAD, dump_header_size, 0);
