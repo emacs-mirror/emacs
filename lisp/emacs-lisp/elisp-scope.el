@@ -1239,13 +1239,6 @@ Optional argument LOCAL is a local context to extend."
     (elisp-scope-report 'deftype beg (length (symbol-name bare))))
   (elisp-scope-lambda args body))
 
-(defun elisp-scope-quoted-group (sym-form)
-  (when-let* (((eq (elisp-scope-sym-bare (car-safe sym-form)) 'quote))
-              (sym (cadr sym-form))
-              (beg (elisp-scope-sym-pos sym))
-              (bare (elisp-scope-sym-bare sym)))
-    (elisp-scope-report 'group beg (length (symbol-name bare)))))
-
 (defun elisp-scope-defmethod-1 (local args body)
   (if args
       (let ((arg (car args)) (bare nil))
@@ -1566,8 +1559,7 @@ Optional argument LOCAL is a local context to extend."
                  (elisp-scope-sharpquote tail))
              (elisp-scope-1 place)))
          (setq explicit-var t))
-        ((:group)
-         (elisp-scope-quoted-group (cadr body)))
+        ((:group) (elisp-scope-1 (cadr body) '(symbol . group)))
         ((:predicate)                   ;For globalized minor modes.
          (elisp-scope-global-minor-mode-predicate (cadr body)))
         ((:on :off)
@@ -2273,7 +2265,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
               ((keywordp bkw)))
     (elisp-scope-report-s kw 'constant)
     (cl-case bkw
-      (:group (elisp-scope-quoted-group (cadr body)))
+      (:group (elisp-scope-1 (cadr body) '(symbol . group)))
       ((:syntax-table :abbrev-table :after-hook) (elisp-scope-1 (cadr body))))
     (setq body (cddr body)))
   (elisp-scope-n body))
