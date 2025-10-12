@@ -801,16 +801,19 @@ in the echo area.
 
 
 
-(defun read-only-keymap-filter (cmd)
+(defun keymap--read-only-filter (cmd)
   "Return CMD if `browse-url' and similar button bindings should be active.
 They are considered active only in read-only buffers."
   (when buffer-read-only cmd))
 
-(defun read-only-keymap-bind (binding)
-  "Use BINDING according to `read-only-keymap-filter'."
+(defun keymap-read-only-bind (binding)
+  "Behave like BINDING, but only when the buffer is read-only.
+BINDING should be a command to pput in a keymap.
+Return an element that can be added in a keymap with `keymap-set', such that
+it is active only when the current buffer is read-only."
   `(menu-item
     "" ,binding
-    :filter ,#'read-only-keymap-filter))
+    :filter ,#'keymap--read-only-filter))
 
 (provide 'keymap)
 
