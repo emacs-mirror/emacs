@@ -1012,7 +1012,7 @@ using `make-temp-file', and the generated name is returned."
     (while again
       (setq name (directory-file-name (file-name-directory name)))
       (condition-case nil
-	  (delete-directory name)
+	  (delete-directory name t)
 	(error nil))
       (if (string= name top) (setq again nil)))))
 ;; -------------------------------------------------------------------------
@@ -2453,7 +2453,21 @@ NAME is expected to be the 16-bytes part of an ar record."
   (unless file
     (setq file buffer-file-name))
   (let ((copy (file-local-copy file))
-        (files ()))
+        (files ())
+        to-delete)
+    ;; Similar to 'archive-maybe-copy'.
+    (unless (or (and copy (null file))
+                (file-readable-p file))
+      (setq archive-local-name
+            (archive-unique-fname (or file copy (buffer-name))
+                                  archive-tmpdir)
+            file archive-local-name
+            to-delete t)
+      (save-restriction
+        (widen)
+        (let ((coding-system-for-write 'no-conversion))
+          (write-region (point-min) (point-max)
+                        archive-local-name nil 'nomessage))))
     (with-temp-buffer
       (call-process "unsquashfs" nil t nil "-ll" (or file copy))
       (when copy
@@ -2500,6 +2514,8 @@ NAME is expected to be the 16-bytes part of an ar record."
                                       date-time :uid uid :gid gid)
                   files)))
         (goto-char (match-end 0))))
+    (if to-delete
+        (archive-delete-local archive-local-name))
     (archive--summarize-descs (nreverse files))))
 
 (defun archive-squashfs-extract-by-stdout (archive name command
