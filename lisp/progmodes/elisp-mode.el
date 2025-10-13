@@ -307,8 +307,8 @@ code analysis."
   "Face for highlighting the symbol at mouse in Emacs Lisp code.")
 
 (defface elisp-free-variable
-  '((t :underline t :foreground "black" :inherit font-lock-variable-use-face))
-  "Face for highlighting free variables in Emacs Lisp code.")
+  '((t :underline t :foreground reset :inherit font-lock-variable-use-face))
+  "Face for highlighting free (special) variables in Emacs Lisp code.")
 
 (defface elisp-special-variable-declaration '((t :inherit elisp-free-variable))
   "Face for highlighting free variable declarations in Emacs Lisp code.")
@@ -360,7 +360,7 @@ code analysis."
   "Face for highlighting binding occurrences of variables in Emacs Lisp code.")
 
 (defface elisp-bound-variable
-  '((t :slant italic :foreground "black" :inherit font-lock-variable-use-face))
+  '((t :slant italic :foreground reset :inherit font-lock-variable-use-face))
   "Face for highlighting bound occurrences of variables in Emacs Lisp code.")
 
 (defface elisp-shadowing-variable
