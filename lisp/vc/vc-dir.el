@@ -1249,7 +1249,7 @@ that file."
                          ;; `default-directory' in order to do its work,
                          ;; but that's irrelevant to us here.
                          (buffer-local-toplevel-value 'default-directory))))
-              (when (string-prefix-p ddir file)
+              (when (file-in-directory-p file ddir)
                 (if (file-directory-p file)
 		    (progn
 		      (vc-dir-resync-directory-files file)
