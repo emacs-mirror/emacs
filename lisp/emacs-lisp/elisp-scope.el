@@ -1,4 +1,4 @@
-;;; elisp-scope.el --- Semantic analysis for ELisp symbols  -*- lexical-binding: t; -*-
+;;; elisp-scope.el --- Semantic analysis for Elisp symbols  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025  Free Software Foundation, Inc.
 
@@ -21,7 +21,7 @@
 ;;; Commentary:
 
 ;; This library implements an analysis that determines the role of each
-;; symbol in ELisp code.
+;; symbol in Emacs Lisp code.
 
 ;; The analysis assigns to each symbol a "symbol role", such as
 ;; `function', `bound-variable', `binding-variable', `face', etc.  Each
@@ -139,8 +139,8 @@
   "Define NAME as the name of a symbol role that inherits from PARENTS.
 
 A symbol role is a symbol that Emacs uses to describe the role
-of (other) symbols in ELisp source code.  For example, the symbol role
-`face' characterizes symbols that are face names.
+of (other) symbols in Emacs Lisp source code.  For example, the symbol
+role `face' characterizes symbols that are face names.
 
 PROPS is a plist specifying the properties of the new symbol role NAME.
 NAME inherits properties that do not appear in PROPS from its PARENTS.
@@ -392,12 +392,12 @@ Interactively, prompt for ROLE."
   :help "Widget type definition")
 
 (elisp-scope-define-symbol-role type ()
-  :doc "ELisp object type names."
+  :doc "Elisp object type names."
   :face 'elisp-type
   :help "Type")
 
 (elisp-scope-define-symbol-role deftype (type)
-  :doc "ELisp object type definitions."
+  :doc "Elisp object type definitions."
   :help "Type definition")
 
 (elisp-scope-define-symbol-role group ()

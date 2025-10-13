@@ -526,7 +526,7 @@ code analysis."
                      'elisp-highlight-variable t)))
 
 (defun elisp-cursor-sensor (pos)
-  "Return `cursor-sensor-functions' for ELisp symbol at POS."
+  "Return `cursor-sensor-functions' for Emacs Lisp symbol at POS."
   (list
    (lambda (_win old dir)
      (cl-case dir

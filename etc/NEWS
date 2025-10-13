@@ -1168,7 +1168,7 @@ at run-time for the use of the associated deprecated features.
 '(setq eieio-backward-compatibility t)' can be used to recover
 the previous silence.
 
-** ELisp mode
+** Emacs Lisp mode
 
 +++
 *** Semantic highlighting support for Emacs Lisp.
