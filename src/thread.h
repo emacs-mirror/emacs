@@ -224,12 +224,13 @@ struct thread_state
   /* Threads are kept on a linked list.  */
   struct thread_state *next_thread;
 
-  struct bc_thread_state bc;
-
-# ifdef HAVE_MPS
+#ifndef HAVE_MPS
+  struct bc_thread_state bc[1];
+#else
+  struct bc_thread_state *bc;
   void *gc_info;
   ptrdiff_t pin_index;
-# endif
+#endif
 
 } GCALIGNED_STRUCT;
 

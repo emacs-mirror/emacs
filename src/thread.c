@@ -687,7 +687,7 @@ mark_one_thread (struct thread_state *thread)
       mark_object (tem);
     }
 
-  mark_bytecode (&thread->bc);
+  mark_bytecode (thread->bc);
 
   /* No need to mark Lisp_Object members like m_last_thing_searched,
      as mark_threads_callback does that by calling mark_object.  */
@@ -895,7 +895,7 @@ finalize_one_thread (struct thread_state *state)
   free_search_regs (&state->m_search_regs);
   free_search_regs (&state->m_saved_search_regs);
   sys_cond_destroy (&state->thread_condvar);
-  free_bc_thread (&state->bc);
+  free_bc_thread (state->bc);
 }
 
 DEFUN ("make-thread", Fmake_thread, Smake_thread, 1, 3, 0,
@@ -925,6 +925,7 @@ will be signaled.  */)
   new_thread->name = name;
 #ifdef HAVE_MPS
   new_thread->m_getcjmp = igc_xzalloc_ambig (sizeof (*new_thread->m_getcjmp));
+  new_thread->bc = xzalloc (sizeof (*new_thread->bc));
 #endif
   /* Perhaps copy m_last_thing_searched from parent?  */
   new_thread->m_current_buffer = current_thread->m_current_buffer;
@@ -935,7 +936,7 @@ will be signaled.  */)
   new_thread->m_specpdl_end = new_thread->m_specpdl + size;
   new_thread->m_specpdl_ptr = new_thread->m_specpdl;
 
-  init_bc_thread (&new_thread->bc);
+  init_bc_thread (new_thread->bc);
   sys_cond_init (&new_thread->thread_condvar);
 
   /* We'll need locking here eventually.  */
@@ -1273,7 +1274,10 @@ init_threads (void)
 
   main_thread.s.thread_id = sys_thread_self ();
   main_thread.s.buffer_disposition = Qnil;
-  init_bc_thread (&main_thread.s.bc);
+#ifdef HAVE_MPS
+  main_thread.s.bc = xzalloc (sizeof (*main_thread.s.bc));
+#endif
+  init_bc_thread (main_thread.s.bc);
 #ifdef HAVE_MPS
   igc_on_alloc_main_thread_bc ();
 #endif

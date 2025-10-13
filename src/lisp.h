@@ -5640,13 +5640,13 @@ extern void *bc_next_frame (struct bc_frame *bc);
 INLINE struct bc_frame *
 get_act_rec (struct thread_state *th)
 {
-  return th->bc.fp;
+  return th->bc->fp;
 }
 
 INLINE void
 set_act_rec (struct thread_state *th, struct bc_frame *act_rec)
 {
-  th->bc.fp = act_rec;
+  th->bc->fp = act_rec;
 }
 
 /* Defined in macros.c.  */
