@@ -1567,7 +1567,8 @@ If ALL is non-nil, update prompts in all IRC buffers."
                     (with-rcirc-process-buffer process
                       (mapcar 'cdr rcirc-buffer-alist))))
             (rcirc-process-list))
-    (let ((inhibit-read-only t)
+    (let ((buffer-undo-list t)
+          (inhibit-read-only t)
           (prompt (or rcirc-prompt "")))
       (mapc (lambda (rep)
               (setq prompt
@@ -1719,6 +1720,8 @@ Create the buffer if it doesn't exist."
                     rcirc-prompt-end-marker (point))))
         (dolist (line (split-string input "\n"))
           (rcirc-process-input-line line))
+        ;; reset undo data after input is sent
+        (setq buffer-undo-list nil)
         ;; add to input-ring
         (save-excursion
           (ring-insert rcirc-input-ring input)
@@ -2004,6 +2007,30 @@ PROCESS is the process object for the current connection."
                (> last-activity-line 0))
       (- rcirc-current-line last-activity-line))))
 
+;; Copied from lisp/erc/erc.el (erc-update-undo-list)
+(defun rcirc-update-undo-list (shift)
+  "Translate buffer positions in buffer-undo-list by SHIFT."
+  (unless (or (zerop shift) (atom buffer-undo-list))
+    (let ((list buffer-undo-list) elt)
+      (while list
+        (setq elt (car list))
+        (cond ((integerp elt)           ; POSITION
+               (incf (car list) shift))
+              ((or (atom elt)           ; nil, EXTENT
+                   ;; (eq t (car elt))  ; (t . TIME)
+                   (markerp (car elt))) ; (MARKER . DISTANCE)
+               nil)
+              ((integerp (car elt))     ; (BEGIN . END)
+               (incf (car elt) shift)
+               (incf (cdr elt) shift))
+              ((stringp (car elt))      ; (TEXT . POSITION)
+               (incf (cdr elt) (* (if (natnump (cdr elt)) 1 -1) shift)))
+              ((null (car elt))         ; (nil PROPERTY VALUE BEG . END)
+               (let ((cons (nthcdr 3 elt)))
+                 (incf (car cons) shift)
+                 (incf (cdr cons) shift))))
+        (setq list (cdr list))))))
+
 (defvar rcirc-markup-text-functions
   '(rcirc-markup-attributes
     rcirc-color-attributes
@@ -2032,13 +2059,16 @@ connection."
                            rcirc-ignore-list))
                ;; do not ignore if we sent the message
                (not (string= sender (rcirc-nick process))))
-    (let* ((buffer (rcirc-target-buffer process sender response target text))
+    (let* (preinsert-prompt-end-position
+           (buffer (rcirc-target-buffer process sender response target text))
            (time (if-let* ((time (rcirc-get-tag "time")))
                      (parse-iso8601-time-string time t)
                    (current-time)))
            (inhibit-read-only t))
       (with-current-buffer buffer
-        (let ((moving (= (point) rcirc-prompt-end-marker))
+        (setq preinsert-prompt-end-position (marker-position rcirc-prompt-end-marker))
+        (let ((buffer-undo-list t)
+              (moving (= (point) rcirc-prompt-end-marker))
               (old-point (point-marker)))
 
           (setq text (decode-coding-string text rcirc-decode-coding-system))
@@ -2144,9 +2174,16 @@ connection."
                             0)
                     (recenter -1)))))))
 
-        ;; flush undo (can we do something smarter here?)
-        (buffer-disable-undo)
-        (buffer-enable-undo)
+        ;; as text is inserted before the prompt - moving it further
+        ;; away - the undo data for user input beyond the prompt is
+        ;; invalidated
+        ;;
+        ;; attempt to fix the undo data by shifting the undo positions
+        ;; in the undo list by the prompt's "drift", i.e. the delta
+        ;; between the current and previous (pre-insertion) prompt
+        ;; position
+        (rcirc-update-undo-list (- rcirc-prompt-end-marker
+                                   preinsert-prompt-end-position))
 
         ;; record mode line activity
         (when (and activity
