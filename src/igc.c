@@ -163,7 +163,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_User_Ptr_7DC5544B44
 #  error "struct Lisp_User_Ptr changed"
 # endif
-# ifndef HASH_thread_state_FFE7EECB29
+# ifndef HASH_thread_state_67C02A2EF0
 #  error "struct thread_state changed"
 # endif
 # ifndef HASH_Lisp_Mutex_744F44A86D
@@ -205,7 +205,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Obarray_29CFFD1B74
 #  error "struct Lisp_Obarray changed"
 # endif
-# ifndef HASH_module_global_reference_85FFC23A88
+# ifndef HASH_module_global_reference_DC69127EC6
 #  error "struct module_global_reference changed"
 # endif
 # ifndef HASH_Lisp_TS_Parser_66A8E2974E
