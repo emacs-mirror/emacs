@@ -1222,7 +1222,7 @@ their specific role in the program.
 
 Semantic highlighting is more sophisticated than traditional ``syntax
 highlighting'', which only considers the syntactic role of a token,
-i.e. how it affects the code's @emph{parsing}, unlike semantic analysis
+i.e., how it affects the code's @emph{parsing}, unlike semantic analysis
 which takes into account the token's effect on the program's
 @emph{execution}.  For example, a semantic highlighting implementation
 may be able to tell apart local and global variables and give distinct
@@ -1236,15 +1236,18 @@ about their programs.
 
 @vindex elisp-fontify-semantically
 Emacs implements semantic highlighting for Emacs Lisp as an optional
-feature of @code{emacs-lisp-mode}.  To enable it, set the option
-@code{elisp-fontify-semantically} to non-@code{nil}.
+feature of @code{emacs-lisp-mode} (@pxref{Executing Lisp}).  To enable
+it, customize the option @code{elisp-fontify-semantically} to a
+non-@code{nil} value.
 
 When this option is enabled, @code{emacs-lisp-mode} analyzes your code
 and highlights symbols according to their semantic roles, as part of the
-mode's usual Font Lock highlighting.  It doesn't effect the highlighting
-of strings, comments and other syntactic elements such as brackets;
-@code{elisp-fontify-semantically} only affects symbol highlighting.
+mode's usual Font Lock highlighting (@pxref{Font Lock}).  It doesn't
+affect the highlighting of strings, comments and other syntactic
+elements such as brackets; @code{elisp-fontify-semantically} only
+affects highlighting of symbols.
 
+@cindex symbol role, in semantic analysis
 The semantic analysis assigns to each symbol a @dfn{symbol role}, such
 as ``function'', ``local variable'', ``face name'', etc.  Each symbol
 role has an associated face property, which is applied to symbols with
@@ -1254,12 +1257,12 @@ locally-bound variables get the @code{elisp-bound-variable} face, which
 inherits from @code{font-lock-variable-use-face}.
 
 @vindex elisp-add-help-echo
-The analysis can differentiate between more than 50 such symbol roles,
+The semantic analysis can differentiate between more than 50 such symbol roles,
 but you don't need to memorize the appearance of so many faces to
 leverage semantic highlighting: you can hover over an highlighted symbol
 with the mouse to see a tooltip with the exact role Emacs inferred for
 that symbol (@pxref{Tooltips}).  If you want to disable this extra
-information, set @code{elisp-add-help-echo} to @code{nil}.
+information, customize @code{elisp-add-help-echo} to the @code{nil} value.
 
 There are a few more points you should keep in mind when using
 @code{elisp-fontify-semantically}:
@@ -1270,13 +1273,16 @@ Syntax errors break semantic analysis, so for best results you may want
 to enable @code{electric-pair-mode} to keep your code syntactically
 correct while you edit it.  @xref{Matching}.
 
+@cindex trusted buffers, and semantic highlighting
+@vindex elisp-scope-safe-macros
 @item
 The analysis uses macro-expansion in some cases, but by default it only
 does so in trusted buffers (@pxref{Host Security}).  In @emph{untrusted}
 buffers, some macro arguments may not be highlighted.  See the
 documentation string of @code{elisp-scope-safe-macro-p} for more
 information about which macros Emacs considers safe to expand for
-analysis.
+analysis.  The user option @code{elisp-scope-safe-macros} controls which
+macros are safe to expand during analysis in untrusted buffers.
 
 @item
 The analysis is informed by definitions in the current Emacs session,

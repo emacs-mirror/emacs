@@ -46,18 +46,18 @@
 ;; implemented in the recursive function `elisp-scope-1', which analyzes
 ;; an sexp as an evaluated form, propagating contextual information such
 ;; as local variable bindings down to analyzed sub-forms.
-;; `elisp-scope-1' takes two arguments: `form', which is the form to
-;; analyze, and `outspec', which is a specification of the expected
-;; value of `form' used to analyze quoted data.  The analysis proceeds
+;; `elisp-scope-1' takes two arguments: FORM, which is the form to
+;; analyze, and OUTSPEC, which is a specification of the expected
+;; value of FORM used to analyze quoted data.  The analysis proceeds
 ;; as follows:
 ;;
-;; - If `form' is a symbol, `elisp-scope-1' reports it as a variable.
+;; - If FORM is a symbol, `elisp-scope-1' reports it as a variable.
 ;;
-;; - If `form' is a cons cell (head . args), then the analysis depends
-;;   on `head'.  `head' can have a bespoke "analyzer function" `af',
-;;   which is called as (af head . args) and is responsible for
-;;   (recursively) analyzing `form'.  The analyzer function can be
-;;   associated to `head' either locally, as an alist entry in
+;; - If FORM is a cons cell (HEAD . ARGS), then the analysis depends
+;;   on HEAD.  HEAD can have a bespoke "analyzer function" AF,
+;;   which is called as (AF HEAD . ARGS) and is responsible for
+;;   (recursively) analyzing FORM.  The analyzer function can be
+;;   associated to HEAD either locally, as an alist entry in
 ;;   `elisp-scope-local-definitions', or globally, via the symbol
 ;;   property `elisp-scope-analyzer'.
 ;;
@@ -75,46 +75,46 @@
 ;;   argument according to `elisp-scope-output-spec', which is bound to
 ;;   the value of the `outspec' argument passed to `elisp-scope-1'.
 ;;
-;; - If `head' is a macro, normally it is expanded, and then the
+;; - If HEAD is a macro, normally it is expanded, and then the
 ;;   expanded form is analyzed recursively.  Since macro-expansion may
 ;;   involve arbitrary code execution, only "safe" macro invocations are
-;;   expanded: if `head' is one of the macros in
+;;   expanded: if HEAD is one of the macros in
 ;;   `elisp-scope-unsafe-macros', then it is never considered safe.
-;;   Otherwise, `head' is safe if it specified in the variable
+;;   Otherwise, HEAD is safe if it specified in the variable
 ;;   `elisp-scope-safe-macros'; or if it has a non-nil `safe-macro'
 ;;   symbol property; or if the current buffer is trusted according to
-;;   `trusted-content-p'.  If a macro `head' is not safe to expand (and
+;;   `trusted-content-p'.  If a macro HEAD is not safe to expand (and
 ;;   has no associated analyzer function), then the macro arguments
-;;   `args' are not analyzed.
+;;   ARGS are not analyzed.
 ;;
-;; - If `head' is a function, it is reported as such, and `args' are
+;; - If HEAD is a function, it is reported as such, and ARGS are
 ;;   recursively analyzed as evaluated forms.
 ;;
-;; - Otherwise, if `head' has no associated analyzer function, and it is
+;; - Otherwise, if HEAD has no associated analyzer function, and it is
 ;;   not a known macro or function, then it is reported with the `unknown'
 ;;   symbol role.  If the variable `elisp-scope-assume-func' is non-nil,
-;;   then unknown `head' is assumed to be a function call, and thus `args'
-;;   are analyzed as evaluated forms; otherwise `args' are not analyzed.
+;;   then unknown HEAD is assumed to be a function call, and thus ARGS
+;;   are analyzed as evaluated forms; otherwise ARGS are not analyzed.
 ;;
-;; When `elisp-scope-1' encounters a variable reference `var', it checks
-;; whether `var' has a local binding in `elisp-scope-local-bindings', and
-;; whether `var' is a known special variable.  If `var' is a locally-bound
+;; When `elisp-scope-1' encounters a variable reference VAR, it checks
+;; whether VAR has a local binding in `elisp-scope-local-bindings', and
+;; whether VAR is a known special variable.  If VAR is a locally-bound
 ;; special variable, `elisp-scope-1' reports the role `shadowed-variable'.
-;; If `var' is locally-bound and not a special variable, it gets the role
+;; If VAR is locally-bound and not a special variable, it gets the role
 ;; `bound-variable'.  Lastly, if it not locally-bound, then it gets the
 ;; role `free-variable'.
 ;;
 ;; When analyzer functions invoke `elisp-scope-1/n' to analyze some
-;; sub-forms, they specify the `outspec' argument to convey information
+;; sub-forms, they specify the OUTSPEC argument to convey information
 ;; but the expected value of the evaluated sub-form(s), so
 ;; `elisp-scope-1/n' will know what to do with a sub-form that is just
 ;; (quoted) data.  For example, the analyzer function for
 ;; `face-attribute' calls `elisp-scope-1' to analyze its first argument
-;; with an `outspec' which says that a quoted symbol in this position
+;; with an OUTSPEC which says that a quoted symbol in this position
 ;; refers to a face name.
 ;; That way, in a form such as (face-attribute 'default :foreground),
 ;; the symbol `default' is reported as a face reference (`face' role).
-;; Moreover, the `outspec' is passed down as appropriate through various
+;; Moreover, the OUTSPEC is passed down as appropriate through various
 ;; predefined analyzers, so every quoted symbol in a "tail position" of
 ;; the first argument to `face-attribute' will also be recognized as a
 ;; face.  For instance, in the following form, both `success' and
@@ -204,6 +204,8 @@ symbol role properties."
 
 ;;;###autoload
 (defun elisp-scope-describe-symbol-role (role &rest _)
+  "Describe ROLE of a symbol.
+Interactively, prompt for ROLE."
   (interactive (list (elisp-scope-read-symbol-role
                       "Describe symbol role"
                       (when-let* ((def (symbol-at-point))
@@ -515,36 +517,36 @@ symbol role properties."
   :help "OClosure type definition")
 
 (elisp-scope-define-symbol-role coding ()
-  :doc "Coding system names."
+  :doc "Coding-system names."
   :face 'elisp-coding
   :help (lambda (beg end _def)
           (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
               (lambda (&rest _)
                 (if-let* ((doc (coding-system-doc-string sym)))
-                    (format "Coding system `%S'.\n\n%s" sym doc)
-                  "Coding system"))
-            "Coding system")))
+                    (format "Coding-system `%S'.\n\n%s" sym doc)
+                  "Coding-system"))
+            "Coding-system")))
 
 (elisp-scope-define-symbol-role defcoding ()
-  :doc "Coding system definitions."
+  :doc "Coding-system definitions."
   :face 'elisp-defcoding
-  :help "Coding system definition")
+  :help "Coding-system definition")
 
 (elisp-scope-define-symbol-role charset ()
-  :doc "Charset names."
+  :doc "Character set names."
   :face 'elisp-charset
   :help (lambda (beg end _def)
           (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
               (lambda (&rest _)
                 (if-let* ((doc (charset-description sym)))
-                    (format "Charset `%S'.\n\n%s" sym doc)
-                  "Charset"))
-            "Charset")))
+                    (format "Character set `%S'.\n\n%s" sym doc)
+                  "Character set"))
+            "Character set")))
 
 (elisp-scope-define-symbol-role defcharset ()
-  :doc "Charset definitions."
+  :doc "Character set definitions."
   :face 'elisp-defcharset
-  :help "Charset definition")
+  :help "Character set definition")
 
 (elisp-scope-define-symbol-role completion-category ()
   :doc "Completion categories."
@@ -1622,12 +1624,15 @@ Optional argument LOCAL is a local context to extend."
   "Specify which macros are safe to expand during code analysis.
 
 If this is t, macros are considered safe by default.  Otherwise, this is
-a (possibly empty) list of safe macros.
+a (possibly empty) list of safe macros; nil means no macros are safe.
+
+Some macros are never safe, see `elisp-scope-safe-macro-p' for details.
 
 Note that this option only affects analysis of untrusted code, for
 trusted code macro expansion is always safe."
   :type '(choice (const :tag "Trust all macros" t)
                  (repeat :tag "Trust these macros" symbol))
+  :version "31.1"
   :group 'lisp)
 
 (defvar elisp-scope-unsafe-macros

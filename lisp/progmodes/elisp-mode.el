@@ -278,10 +278,10 @@ Comments in the form will be lost."
             (string-to-syntax "'")))))
      start end)))
 
-(defgroup elisp nil "Emacs Lisp editing support." :group 'lisp)
+(defgroup elisp nil "Emacs Lisp editing support." :version "31.1" :group 'lisp)
 
 (defcustom elisp-fontify-semantically nil
-  "Whether to highlight symbols according to their meaning.
+  "Whether to highlight symbols according to their semantic meaning.
 
 If this is non-nil, `emacs-lisp-mode' uses code analysis to determine
 the role of each symbol and highlight it accordingly.  We call this kind
@@ -295,157 +295,203 @@ expand some macro calls in your code to analyze the expanded forms.  In
 untrusted buffers, for security reasons, macro-expansion is restricted
 to safe macros only (see `elisp-scope-safe-macro-p').  Hence in
 untrusted buffers the arguments of some macros might not be analyzed,
-and therefore not highlighted.
+and therefore will not be semantically highlighted.
 
 See the function `elisp-scope-analyze-form' for more details about the
 code analysis."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 
 (defface elisp-symbol-at-mouse
   '((((background light)) :background "#fff6d8")
     (((background dark))  :background "#00422a"))
-  "Face for highlighting the symbol at mouse in Emacs Lisp code.")
+  "Face for highlighting the symbol at mouse in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-free-variable
   '((t :underline t :foreground reset :inherit font-lock-variable-use-face))
-  "Face for highlighting free (special) variables in Emacs Lisp code.")
+  "Face for highlighting free (special) variables in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-special-variable-declaration '((t :inherit elisp-free-variable))
-  "Face for highlighting free variable declarations in Emacs Lisp code.")
+  "Face for highlighting free variable declarations in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-condition '((t :foreground "red"))
-  "Face for highlighting `condition-case' conditions in Emacs Lisp code.")
+  "Face for highlighting `condition-case' conditions in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-major-mode-name '((t :foreground "#006400"))
   "Face for highlighting major mode names in Emacs Lisp code.")
 
 (defface elisp-face '((t :inherit font-lock-type-face))
-  "Face for highlighting face names in Emacs Lisp code.")
+  "Face for highlighting face names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-symbol-role '((t :foreground "#00008b" :inherit font-lock-function-call-face))
-  "Face for highlighting symbol role names in Emacs Lisp code.")
+  "Face for highlighting symbol role names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-symbol-role-definition '((t :foreground "#00008b" :inherit font-lock-function-name-face))
-  "Face for highlighting symbol role definitions in Emacs Lisp code.")
+  "Face for highlighting symbol role definitions in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-function '((t :inherit font-lock-function-call-face))
-  "Face for highlighting function calls in Emacs Lisp code.")
+  "Face for highlighting function calls in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-non-local-exit '((t :inherit elisp-function :underline "red"))
-  "Face for highlighting calls to functions that do not return.")
+  "Face for highlighting calls to functions that do not return."
+  :version "31.1")
 
 (defface elisp-unknown-call '((t :inherit elisp-function :foreground "#2f4f4f"))
-  "Face for highlighting unknown functions/macros in Emacs Lisp code.")
+  "Face for highlighting unknown functions/macros in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-macro '((t :inherit font-lock-keyword-face))
-  "Face for highlighting macro calls in Emacs Lisp code.")
+  "Face for highlighting macro calls in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-special-form '((t :inherit elisp-macro))
-  "Face for highlighting special forms in Emacs Lisp code.")
+  "Face for highlighting special forms in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-throw-tag '((t :inherit font-lock-constant-face))
-  "Face for highlighting `catch'/`throw' tags in Emacs Lisp code.")
+  "Face for highlighting `catch'/`throw' tags in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-feature '((t :inherit font-lock-constant-face))
-  "Face for highlighting feature names in Emacs Lisp code.")
+  "Face for highlighting feature names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-rx '((t :foreground "#00008b"))
-  "Face for highlighting `rx' constructs in Emacs Lisp code.")
+  "Face for highlighting `rx' constructs in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-theme '((t :inherit font-lock-constant-face))
-  "Face for highlighting custom theme names in Emacs Lisp code.")
+  "Face for highlighting custom theme names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-binding-variable
   '((t :slant italic :inherit font-lock-variable-name-face))
-  "Face for highlighting binding occurrences of variables in Emacs Lisp code.")
+  "Face for highlighting binding occurrences of variables in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-bound-variable
   '((t :slant italic :foreground reset :inherit font-lock-variable-use-face))
-  "Face for highlighting bound occurrences of variables in Emacs Lisp code.")
+  "Face for highlighting bound occurrences of variables in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-shadowing-variable
   '((t :inherit elisp-binding-variable :underline t))
-  "Face for highlighting local bindings that shadow special variables.")
+  "Face for highlighting local bindings that shadow special variables."
+  :version "31.1")
 
 (defface elisp-shadowed-variable
   '((t :inherit elisp-bound-variable :underline t))
-  "Face for highlighting special variables that are shadowed by a local binding.")
+  "Face for highlighting special variables that are shadowed by a local binding."
+  :version "31.1")
 
 (defface elisp-variable-at-point '((t :inherit bold))
-  "Face for highlighting (all occurrences of) the variable at point.")
+  "Face for highlighting (all occurrences of) the variable at point."
+  :version "31.1")
 
 (defface elisp-warning-type '((t :inherit font-lock-type-face))
-  "Face for highlighting byte-compilation warning type names in Emacs Lisp.")
+  "Face for highlighting byte-compilation warning type names in Emacs Lisp."
+  :version "31.1")
 
 (defface elisp-function-property-declaration '((t :inherit font-lock-variable-use-face))
-  "Face for highlighting function/macro property declaration type names.")
+  "Face for highlighting function/macro property declaration type names."
+  :version "31.1")
 
 (defface elisp-thing '((t :inherit font-lock-type-face))
-  "Face for highlighting `thing-at-point' \"thing\" names in Emacs Lisp.")
+  "Face for highlighting `thing-at-point' \"thing\" names in Emacs Lisp."
+  :version "31.1")
 
 (defface elisp-slot '((t :inherit font-lock-builtin-face))
-  "Face for highlighting EIEIO slot names.")
+  "Face for highlighting EIEIO slot names."
+  :version "31.1")
 
 (defface elisp-widget-type '((t :inherit font-lock-type-face))
-  "Face for highlighting widget type names in Emacs Lisp code.")
+  "Face for highlighting widget type names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-type '((t :inherit font-lock-type-face))
-  "Face for highlighting object type names in Emacs Lisp code.")
+  "Face for highlighting object type names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-group '((t :inherit font-lock-type-face))
-  "Face for highlighting customization group names in Emacs Lisp code.")
+  "Face for highlighting customization group names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-nnoo-backend '((t :inherit font-lock-type-face))
-  "Face for highlighting `nnoo' backend names in Emacs Lisp code.")
+  "Face for highlighting `nnoo' backend names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-ampersand '((t :inherit font-lock-type-face))
-  "Face for highlighting argument list markers, such as `&optional'.")
+  "Face for highlighting argument list markers, such as `&optional'."
+  :version "31.1")
 
 (defface elisp-constant '((t :inherit font-lock-builtin-face))
-  "Face for highlighting self-evaluating symbols in Emacs Lisp code.")
+  "Face for highlighting self-evaluating symbols in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-defun '((t :inherit font-lock-function-name-face))
-  "Face for highlighting function definitions in Emacs Lisp code.")
+  "Face for highlighting function definitions in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-defmacro '((t :inherit elisp-defun))
-  "Face for highlighting macro definitions in Emacs Lisp code.")
+  "Face for highlighting macro definitions in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-defvar '((t :inherit font-lock-variable-name-face))
-  "Face for highlighting variable definitions in Emacs Lisp code.")
+  "Face for highlighting variable definitions in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-defface '((t :inherit font-lock-variable-name-face))
-  "Face for highlighting face definitions in Emacs Lisp code.")
+  "Face for highlighting face definitions in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-icon '((t :inherit font-lock-type-face))
-  "Face for highlighting icon names in Emacs Lisp code.")
+  "Face for highlighting icon names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-deficon '((t :inherit elisp-icon))
-  "Face for highlighting icon definitions in Emacs Lisp code.")
+  "Face for highlighting icon definitions in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-oclosure '((t :inherit font-lock-type-face))
-  "Face for highlighting OClosure type names in Emacs Lisp code.")
+  "Face for highlighting OClosure type names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-defoclosure '((t :inherit elisp-oclosure))
-  "Face for highlighting OClosure type definitions in Emacs Lisp code.")
+  "Face for highlighting OClosure type definitions in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-coding '((t :inherit font-lock-type-face))
-  "Face for highlighting coding system names in Emacs Lisp code.")
+  "Face for highlighting coding system names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-defcoding '((t :inherit elisp-coding))
-  "Face for highlighting coding system definitions in Emacs Lisp code.")
+  "Face for highlighting coding system definitions in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-charset '((t :inherit font-lock-type-face))
-  "Face for highlighting charset names in Emacs Lisp code.")
+  "Face for highlighting charset names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-defcharset '((t :inherit elisp-charset))
-  "Face for highlighting charset definitions in Emacs Lisp code.")
+  "Face for highlighting charset definitions in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-completion-category '((t :inherit font-lock-type-face))
-  "Face for highlighting completion category names in Emacs Lisp code.")
+  "Face for highlighting completion category names in Emacs Lisp code."
+  :version "31.1")
 
 (defface elisp-completion-category-definition
   '((t :inherit elisp-completion-category))
-  "Face for highlighting completion category definitions in Emacs Lisp code.")
+  "Face for highlighting completion category definitions in Emacs Lisp code."
+  :version "31.1")
 
 (defun elisp-local-references (pos)
   "Return references to local variable at POS as (BEG . LEN) cons cells."
@@ -503,7 +549,9 @@ code analysis."
     str))
 
 (defcustom elisp-add-help-echo t
-  "Whether to add `help-echo' property to symbols while highlighting them."
+  "Whether to add `help-echo' property to symbols while highlighting them.
+This option has effect only if `elisp-fontify-semantically' is non-nil."
+  :version "31.1"
   :type 'boolean)
 
 (defun elisp--annotate-symbol-with-help-echo (type beg end def)
@@ -534,11 +582,13 @@ and end positions in the current buffer of a symbol that is about to be
 fontified during semantic highlighting.  The function is called after
 `font-lock-keywords' were already applied.  If the function returns nil,
 then semantic highlighting takes precedence, otherwise the highlighting
-that `font-lock-keywords' applied takes precedence, if any."
+that `font-lock-keywords' applied takes precedence, if any.  By default,
+semantic highlighting takes precedence."
   :type '(choice
           (function-item :tag "Prioritize semantic highlighting" ignore)
           (function-item :tag "Prioritize `font-lock-keywords'" always)
-          (function :tag "Custom function")))
+          (function :tag "Custom function"))
+  :version "31.1")
 
 (defun elisp-fontify-symbol (type beg len id &optional def)
   (let ((end (+ beg len)))
