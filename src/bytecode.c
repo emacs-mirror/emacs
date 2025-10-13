@@ -399,6 +399,9 @@ void
 free_bc_thread (struct bc_thread_state *bc)
 {
   xfree (bc->stack);
+#ifdef HAVE_MPS
+  xfree (bc);
+#endif
 }
 
 #ifndef HAVE_MPS
@@ -439,7 +442,7 @@ DEFUN ("internal-stack-stats", Finternal_stack_stats, Sinternal_stack_stats,
        doc: /* internal */)
   (void)
 {
-  struct bc_thread_state *bc = &current_thread->bc;
+  struct bc_thread_state *bc = current_thread->bc;
   int nframes = 0;
   int nruns = 0;
   for (struct bc_frame *fp = bc->fp; fp; fp = fp->saved_fp)
@@ -474,7 +477,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
   int volatile this_op = 0;
 #endif
   unsigned char quitcounter = 1;
-  struct bc_thread_state *bc = &current_thread->bc;
+  struct bc_thread_state *bc = current_thread->bc;
 
   /* Values used for the first stack record when called from C.  */
   Lisp_Object *top = NULL;
@@ -983,7 +986,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		handlerlist = c->next;
 		top = c->bytecode_top;
 		op = c->bytecode_dest;
-		bc = &current_thread->bc;
+		bc = current_thread->bc;
 		struct bc_frame *fp = bc->fp;
 
 		Lisp_Object fun = fp->fun;
