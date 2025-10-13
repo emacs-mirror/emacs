@@ -163,7 +163,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_User_Ptr_7DC5544B44
 #  error "struct Lisp_User_Ptr changed"
 # endif
-# ifndef HASH_thread_state_67C02A2EF0
+# ifndef HASH_thread_state_6DAE3DDD15
 #  error "struct thread_state changed"
 # endif
 # ifndef HASH_Lisp_Mutex_744F44A86D
@@ -923,6 +923,7 @@ struct igc_thread
   /* Back pointer to Emacs' thread object.  Allocated so that it doesn't
      move in memory.  */
   struct thread_state *ts;
+  struct bc_thread_state *bc;
 };
 
 typedef struct igc_thread igc_thread;
@@ -1732,7 +1733,7 @@ scan_bc (mps_ss_t ss, void *start, void *end, void *closure)
   MPS_SCAN_BEGIN (ss)
   {
     struct igc_thread_list *t = closure;
-    struct bc_thread_state *bc = &t->d.ts->bc;
+    struct bc_thread_state *bc = t->d.bc;
     igc_assert (start == (void *) bc->stack);
     igc_assert (end == (void *) bc->stack_end);
     /* FIXME/igc: AFAIU the current top frame starts at
@@ -3135,7 +3136,8 @@ static void
 root_create_bc (struct igc_thread_list *t)
 {
   struct igc *gc = t->d.gc;
-  struct bc_thread_state *bc = &t->d.ts->bc;
+  struct bc_thread_state *bc = t->d.ts->bc;
+  t->d.bc = bc;
   igc_assert (bc->stack != NULL);
   mps_root_t root;
   mps_res_t res = mps_root_create_area (&root, gc->arena, mps_rank_ambig (), 0,
