@@ -1262,7 +1262,8 @@ that file."
                      status-buf (or (not state)
 				    (eq state 'up-to-date)))))))))))
     ;; Remove out-of-date entries from vc-dir-buffers.
-    (dolist (b drop) (setq vc-dir-buffers (delq b vc-dir-buffers)))))
+    (setq vc-dir-buffers
+          (cl-nset-difference vc-dir-buffers drop :test #'eq))))
 
 (defvar use-vc-backend)  ;; dynamically bound
 
