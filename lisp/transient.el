@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; URL: https://github.com/magit/transient
 ;; Keywords: extensions
-;; Version: 0.10.0
+;; Version: 0.10.1
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -33,7 +33,7 @@
 ;;; Code:
 ;;;; Frontmatter
 
-(defconst transient-version "0.10.0-builtin")
+(defconst transient-version "v0.10.1-8-g188ec9a1-builtin")
 
 (require 'cl-lib)
 (require 'eieio)
@@ -1961,9 +1961,10 @@ probably use this instead:
        (t nil))))
    ((and-let* ((obj (transient--suffix-prototype (or command this-command)))
                (obj (clone obj)))
-      (transient-init-scope obj)
-      (transient-init-value obj)
-      obj))))
+      (progn
+        (transient-init-scope obj)
+        (transient-init-value obj)
+        obj)))))
 
 (defun transient--suffix-prototype (command)
   (or (get command 'transient--suffix)
@@ -2249,10 +2250,10 @@ of the corresponding object."
     map))
 
 (defun transient--make-predicate-map ()
-  (let* ((default (transient--resolve-pre-command
-                   (oref transient--prefix transient-suffix)))
-         (return (and transient--stack (oref transient--prefix return)))
-         (map (make-sparse-keymap)))
+  (let ((default (transient--resolve-pre-command
+                  (oref transient--prefix transient-suffix)))
+        (return (and transient--stack (oref transient--prefix return)))
+        (map (make-sparse-keymap)))
     (set-keymap-parent map transient-predicate-map)
     (when (or (and (slot-boundp transient--prefix 'transient-switch-frame)
                    (transient--resolve-pre-command
@@ -2463,9 +2464,9 @@ value.  Otherwise return CHILDREN as is.")
   (cl-etypecase spec
     (symbol (mapcan (lambda (c) (transient--init-child levels c parent))
                     (transient--get-children spec)))
-    (vector  (transient--init-group  levels spec parent))
-    (list    (transient--init-suffix levels spec parent))
-    (string  (list spec))))
+    (vector (transient--init-group  levels spec parent))
+    (list   (transient--init-suffix levels spec parent))
+    (string (list spec))))
 
 (defun transient--init-group (levels spec parent)
   (pcase-let* ((`[,class ,args ,children] spec)
@@ -2479,8 +2480,9 @@ value.  Otherwise return CHILDREN as is.")
                      (oset obj inapt t))))
                (suffixes (mapcan (lambda (c) (transient--init-child levels c obj))
                                  (transient-setup-children obj children))))
-      (oset obj suffixes suffixes)
-      (list obj))))
+      (progn
+        (oset obj suffixes suffixes)
+        (list obj)))))
 
 (defun transient--init-suffix (levels spec parent)
   (let* ((class  (car spec))
@@ -4037,7 +4039,7 @@ the value."
               (and (not (and (slot-exists-p obj 'unsavable)
                              (oref obj unsavable)))
                    (transient--get-wrapped-value obj)))
-            transient--suffixes)))
+            (or transient--suffixes transient-current-suffixes))))
 
 (defun transient--get-wrapped-value (obj)
   "Return a list of the value(s) of suffix object OBJ.
