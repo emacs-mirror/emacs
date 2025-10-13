@@ -344,7 +344,10 @@ code analysis."
   "Face for highlighting calls to functions that do not return."
   :version "31.1")
 
-(defface elisp-unknown-call '((t :inherit elisp-function :foreground "#2f4f4f"))
+(defface elisp-unknown-call
+  '((default :inherit elisp-function)
+    (((background light)) :foreground "#2f4f4f")
+    (((background dark))  :foreground "#7fa9a9"))
   "Face for highlighting unknown functions/macros in Emacs Lisp code."
   :version "31.1")
 
