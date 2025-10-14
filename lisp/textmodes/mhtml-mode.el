@@ -306,7 +306,7 @@ This is used by `mhtml--pre-command'.")
         (flyspell-generic-progmode-verify)
       t)))
 
-;; Support for hideshow.el (see `hs-special-modes-alist').
+;; Support for hideshow.el (see `hs-modes-alist').
 (defun mhtml-forward (arg)
   "Move point forward past a structured expression.
 If point is on a tag, move to the end of the tag.
