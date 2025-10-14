@@ -1057,6 +1057,13 @@ The new icons 'hs-indicator-show' and 'hs-indicator-hide' can be used
 to customize the indicators appearance only if 'hs-indicator-type' is
 set to 'margin' or nil.
 
++++
+*** New user option 'hs-hide-block-behavior'.
+This user option controls how 'hs-hide-block' and 'hs-toggle-hiding'
+should hide a block.  If set to 'after-bol', hide the innermost block to
+which the current line belongs.  If set to 'after-cursor', hide the block
+after cursor position.  By default this is set to 'after-bol'.
+
 ** C-ts mode
 
 +++

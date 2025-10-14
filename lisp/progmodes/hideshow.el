@@ -253,6 +253,20 @@ use that face for the ellipsis instead."
   "Hide the comments too when you do an `hs-hide-all'."
   :type 'boolean)
 
+(defcustom hs-hide-block-behavior 'after-bol
+  "How hideshow should hide a block.
+If set to `after-bol', hide the innermost block to which the current
+line belongs.
+
+If set to `after-cursor', hide the block after cursor position.
+
+This only have effect in `hs-hide-block' and `hs-toggle-hiding'
+commands."
+  :type '(choice
+          (const :tag "Hide the block after cursor" after-bol)
+          (const :tag "Hide the block after beginning of current line" after-cursor))
+  :version "31.1")
+
 (defcustom hs-display-lines-hidden nil
   "If non-nil, display the number of hidden lines next to the ellipsis."
   :type 'boolean
@@ -884,7 +898,10 @@ specifies the limits of the comment, or nil if the block is not
 a comment.
 
 The block beginning is adjusted by `hs-adjust-block-beginning'
-and then further adjusted to be at the end of the line."
+and then further adjusted to be at the end of the line.
+
+If hidding the block is successful, return non-nil.
+Otherwise, return nil."
   (if comment-reg
       (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
     (when-let* ((block (hs-block-positions)))
@@ -899,7 +916,8 @@ and then further adjusted to be at the end of the line."
                      (hs-discard-overlays p q)))
               (goto-char q)
               (hs-make-overlay p q 'code (- (match-end 0) p)))
-          (goto-char (if end q (min p (match-end 0)))))))))
+          (goto-char (if end q (min p (match-end 0))))
+          nil)))))
 
 (defun hs-inside-comment-p ()
   "Return non-nil if point is inside a comment, otherwise nil.
@@ -1056,7 +1074,8 @@ In the dynamic context of this macro, `case-fold-search' is t."
   (declare (debug t))
   `(when hs-minor-mode
      (let ((case-fold-search t))
-       ,@body)))
+       (save-match-data
+         (save-excursion ,@body)))))
 
 (defun hs-find-block-beginning-match ()
   "Reposition point at the end of match of the block-start regexp.
@@ -1176,13 +1195,28 @@ Upon completion, point is repositioned and the normal hook
      (cond
       ((and c-reg (or (null (nth 0 c-reg))
                       (not (hs-hideable-region-p (car c-reg) (nth 1 c-reg)))))
-       (message "(not enough comment lines to hide)"))
-      ((or c-reg
-	   (funcall hs-looking-at-block-start-p-func)
-           (funcall hs-find-block-beginning-func))
-       (hs-hide-block-at-point end c-reg)
-       (hs--refresh-indicators)
-       (run-hooks 'hs-hide-hook))))))
+       (user-error "(not enough comment lines to hide)"))
+
+      (c-reg (hs-hide-block-at-point end c-reg))
+
+      ((or (and (eq hs-hide-block-behavior 'after-bol)
+                (save-excursion
+                  (goto-char (line-beginning-position))
+                  (funcall hs-find-next-block-func hs-block-start-regexp
+                           (line-end-position) nil))
+                (goto-char (match-beginning 0)))
+           (funcall hs-looking-at-block-start-p-func))
+       ;; If hidding the block fails (due the block is not hideable)
+       ;; Then just hide the parent block (if possible)
+       (unless (save-excursion (hs-hide-block-at-point end))
+         (goto-char (1- (point)))
+         (funcall hs-find-block-beginning-func)
+         (hs-hide-block-at-point end)))
+
+      ((funcall hs-find-block-beginning-func)
+       (hs-hide-block-at-point end)))
+
+     (run-hooks 'hs-hide-hook))))
 
 (defun hs-show-block (&optional end)
   "Select a block and show it.
