@@ -66,6 +66,22 @@ system, including many technical ones.  Examples:
   (defun latin-ltx--ascii-p (char)
     (and (characterp char) (< char 128)))
 
+  ;; For mathematical alphabets
+  (defconst latin-ltx--math-variant-prefix-map
+    '(("BOLD" . "bf")
+      ("ITALIC" . "it")
+      ("BOLD ITALIC" . "bfit")
+      ("DOUBLE-STRUCK" . "bb")
+      ("SCRIPT" . "scr")
+      ("BOLD SCRIPT" . "bfscr")
+      ("FRAKTUR" . "frak")
+      ("BOLD FRAKTUR" . "bffrak")
+      ("SANS-SERIF" . "sf")
+      ("SANS-SERIF BOLD" . "bfsf")
+      ("SANS-SERIF ITALIC" . "sfit")
+      ("SANS-SERIF BOLD ITALIC" . "bfsfit")
+      ("MONOSPACE" . "tt")))
+
   (defmacro latin-ltx--define-rules (&rest rules)
     (load "uni-name" nil t)
     (let ((newrules ()))
@@ -741,6 +757,77 @@ system, including many technical ones.  Examples:
  ("\\wedge" ?∧)
  ("\\wp" ?℘)
  ("\\wr" ?≀)
+
+ ;;;; Mathematical alphabets
+ ;; Latin letters
+ ((lambda (name _char)
+    (let* ((variant (match-string 1 name))
+           (prefix (cdr (assoc variant latin-ltx--math-variant-prefix-map)))
+           (basename (match-string 3 name))
+           (name (if (match-end 2) (capitalize basename) (downcase basename))))
+      (concat "\\" prefix name)))
+  "\\`MATHEMATICAL \\(.+\\) \\(?:SMALL\\|CAPITA\\(L\\)\\) \\([[:ascii:]]+\\)\\'")
+
+ ;; Digits
+ ((lambda (name _char)
+    (let* ((variant (match-string 1 name))
+           (prefix (cdr (assoc variant latin-ltx--math-variant-prefix-map)))
+           (basename (match-string 2 name)))
+      (concat "\\" prefix (char-to-string (char-from-name basename)))))
+  "\\`MATHEMATICAL \\(.+\\) \\(DIGIT [[:ascii:]]+\\)\\'")
+
+ ;; Some Greek variants
+ ;; NOTE: Check if any of these are reversed from their counterparts, like
+ ;; the claim above of \phi and \varphi being swapped
+ ((lambda (name _char)
+    (let* ((variant (match-string 1 name))
+           (prefix (cdr (assoc variant latin-ltx--math-variant-prefix-map)))
+           (basename (downcase (match-string 2 name))))
+      (if prefix ;; This avoids e.g. MATHEMATICAL BOLD CAPITAL <greek> SYMBOL
+          (concat "\\" prefix "var" basename))))
+  "\\`MATHEMATICAL \\(.+\\) \\([A-Z]+\\) SYMBOL\\'")
+
+ ((lambda (name _char)
+    (let* ((variant (match-string 1 name))
+           (prefix (cdr (assoc variant latin-ltx--math-variant-prefix-map)))
+           (basename (if (match-end 2) "partial" "nabla")))
+      (concat "\\" prefix basename)))
+  "\\`MATHEMATICAL \\(.*\\) \\(?:NABLA\\|PARTIAL DIFFERENTIA\\(L\\)\\)\\'")
+
+ ;; Some of the math alphabet characters have other canonical names and must be
+ ;; added manually
+ ("\\scrB" ?ℬ)
+ ("\\scrE" ?ℰ)
+ ("\\scrF" ?ℱ)
+ ("\\scrH" ?ℋ)
+ ("\\scrI" ?ℐ)
+ ("\\scrL" ?ℒ)
+ ("\\scrM" ?ℳ)
+ ("\\scrR" ?ℛ)
+ ("\\frakC" ?ℭ)
+ ("\\frakH" ?ℌ)
+ ("\\frakI" ?ℑ)
+ ("\\frakR" ?ℜ)
+ ("\\frakZ" ?ℨ)
+ ("\\bbC" ?ℂ)
+ ("\\bbH" ?ℍ)
+ ("\\bbN" ?ℕ)
+ ("\\bbP" ?ℙ)
+ ("\\bbQ" ?ℚ)
+ ("\\bbR" ?ℝ)
+ ("\\bbZ" ?ℤ)
+ ("\\ith" ?ℎ)
+ ("\\scre" ?ℯ)
+ ("\\scrg" ?ℊ)
+ ("\\scro" ?ℴ)
+
+ ("\\bbsum" ?⅀)
+ ("\\bbSigma" ?⅀)
+ ("\\bbgamma" ?ℽ)
+ ("\\bbGamma" ?ℾ)
+ ("\\bbprod" ?ℿ)
+ ("\\bbPi" ?ℿ)
+ ("\\bbpi" ?ℼ)
 
  ("\\Bbb{A}" ?𝔸)			; AMS commands for blackboard bold
  ("\\Bbb{B}" ?𝔹)			; Also sometimes \mathbb.
