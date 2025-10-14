@@ -157,10 +157,6 @@ messages are highlighted; this helps to see what messages were visited."
   nil
   "Overlay highlighting the current error message in the `next-error' buffer.")
 
-(defvar global-minor-modes nil
-  "A list of the currently enabled global minor modes.
-This is a list of symbols.")
-
 (defcustom next-error-hook nil
   "List of hook functions run by `next-error' after visiting source file."
   :type 'hook

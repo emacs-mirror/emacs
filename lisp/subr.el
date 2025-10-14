@@ -3064,6 +3064,10 @@ though trying to avoid AVOIDED-MODES."
                                          hs-minor-mode)
   "List of all minor mode functions.")
 
+(defvar global-minor-modes nil
+  "A list of the currently enabled global minor modes.
+This is a list of symbols.")
+
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
   "Register a new minor mode.
 

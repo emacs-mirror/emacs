@@ -332,12 +332,16 @@ for a description of this minor mode."
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `%s'."))))
-	    `(defcustom ,mode ,init-value
-	       ,(format base-doc-string pretty-name mode mode)
-	       ,@set
-	       ,@initialize
-	       ,@type
-               ,@(nreverse extra-keywords)))))
+	    `(progn
+	       (defcustom ,mode ,init-value
+	         ,(format base-doc-string pretty-name mode mode)
+	         ,@set
+	         ,@initialize
+	         ,@type
+	         ,@(nreverse extra-keywords))
+	       ,(when init-value
+	          `(when (bound-and-true-p ,mode)
+                     (add-to-list 'global-minor-modes ',modefun)))))))
 
        ;; The actual function.
        ,(funcall
@@ -360,30 +364,21 @@ or call the function `%s'."))))
                            'toggle)))))
 	    (let ((,last-message (current-message)))
               (,@setter
-               (cond ((eq arg 'toggle)
-                      (not ,getter))
-                     ((and (numberp arg)
-                           (< arg 1))
-                      nil)
-                     (t
-                      t)))
+               (cond ((eq arg 'toggle) (not ,getter))
+                     (t (not (and (numberp arg) (< arg 1))))))
               ;; Keep minor modes list up to date.
-              ,@(if globalp
-                    ;; When running this byte-compiled code in earlier
-                    ;; Emacs versions, these variables may not be defined
-                    ;; there.  So check defensively, even if they're
-                    ;; always defined in Emacs 28 and up.
-                    `((when (boundp 'global-minor-modes)
-                        (setq global-minor-modes
-                              (delq ',modefun global-minor-modes))
-                        (when ,getter
-                          (push ',modefun global-minor-modes))))
-                  ;; Ditto check.
-                  `((when (boundp 'local-minor-modes)
-                      (setq local-minor-modes
-                            (delq ',modefun local-minor-modes))
-                      (when ,getter
-                        (push ',modefun local-minor-modes)))))
+              ,(let ((minor-modes-var (if globalp
+                                          'global-minor-modes
+                                        'local-minor-modes)))
+                 ;; When running this byte-compiled code in earlier
+                 ;; Emacs versions, these variables may not be defined
+                 ;; there.  So check defensively, even if they're
+                 ;; always defined in Emacs 28 and up.
+                 `(when (boundp ',minor-modes-var)
+                    (if ,getter
+                        (add-to-list ',minor-modes-var ',modefun)
+                      (setq ,minor-modes-var
+                            (delq ',modefun ,minor-modes-var)))))
               ,@body
               ;; The on/off hooks are here for backward compatibility only.
               (run-hooks ',hook (if ,getter ',hook-on ',hook-off))
