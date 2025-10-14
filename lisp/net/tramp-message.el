@@ -56,7 +56,6 @@
 (defvar tramp-repository-branch)
 (defvar tramp-repository-version)
 
-;;;###tramp-autoload
 (defcustom tramp-verbose 3
   "Verbosity level for Tramp messages.
 Any level x includes messages for all levels 1 .. x-1.  The levels are
