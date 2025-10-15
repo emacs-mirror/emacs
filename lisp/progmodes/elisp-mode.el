@@ -321,18 +321,26 @@ code analysis."
   "Face for highlighting `condition-case' conditions in Emacs Lisp code."
   :version "31.1")
 
-(defface elisp-major-mode-name '((t :foreground "#006400"))
+(defface elisp-major-mode-name
+  '((((background light)) :foreground "#006400")
+    (((background dark))  :foreground "#4ade80"))
   "Face for highlighting major mode names in Emacs Lisp code.")
 
 (defface elisp-face '((t :inherit font-lock-type-face))
   "Face for highlighting face names in Emacs Lisp code."
   :version "31.1")
 
-(defface elisp-symbol-role '((t :foreground "#00008b" :inherit font-lock-function-call-face))
+(defface elisp-symbol-role
+  '((default :inherit font-lock-function-call-face)
+    (((background light)) :foreground "#00008b")
+    (((background dark))  :foreground "#5c9cff"))
   "Face for highlighting symbol role names in Emacs Lisp code."
   :version "31.1")
 
-(defface elisp-symbol-role-definition '((t :foreground "#00008b" :inherit font-lock-function-name-face))
+(defface elisp-symbol-role-definition
+  '((default :inherit font-lock-function-name-face)
+    (((background light)) :foreground "#00008b")
+    (((background dark))  :foreground "#5c9cff"))
   "Face for highlighting symbol role definitions in Emacs Lisp code."
   :version "31.1")
 
@@ -367,7 +375,9 @@ code analysis."
   "Face for highlighting feature names in Emacs Lisp code."
   :version "31.1")
 
-(defface elisp-rx '((t :foreground "#00008b"))
+(defface elisp-rx
+  '((((background light)) :foreground "#00008b")
+    (((background dark))  :foreground "#5c9cff"))
   "Face for highlighting `rx' constructs in Emacs Lisp code."
   :version "31.1")
 
