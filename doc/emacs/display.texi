@@ -1214,7 +1214,7 @@ visit in the future in the same session.
 @subsection Semantic Font Lock
 @cindex semantic highlighting
 
-@dfn{Semantic highlighting} is a semi-advanced editor feature in which
+@dfn{Semantic highlighting} is feature in which
 an editor uses some kind of semantic analysis to understand a program's
 source code, and communicates useful information about the meaning of
 different tokens to the user by highlighting these tokens according to
