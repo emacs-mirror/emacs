@@ -1218,6 +1218,111 @@
             (t
              (should (eq w2 w)))))))
 
+
+;;; Weak hashtable tests
+
+(defun init-rng () (random "weak-hashtable-tests"))
+
+(defconst +nentries+ 50)
+
+(defun format-component (num key? dead?)
+  (format "%02d-%s-%s" num (if key? "key" "val") (if dead? "dead" "alive")))
+
+(defun parse-component (string)
+  (or (string-match "^\\([0-9]+\\)-\\(key\\|val\\)-\\(dead\\|alive\\)"
+                    string)
+      (error "Invalid argument: %S" string))
+  (vector (string-to-number (match-string 1 string))
+          (equal (match-string 2 string) "key")
+          (equal (match-string 3 string) "dead")))
+
+(defun component-num (string) (aref (parse-component string) 0))
+
+(defun populate-hashtable (table)
+  (let ((pairs '()))
+    (dotimes (i +nentries+)
+      (let* ((r (random 4))
+             (key (cl-ecase r
+                    ((0 2) (format-component i t nil))
+                    ((1 3) (format-component i t t))))
+             (val (cl-ecase r
+                    ((0 1) (format-component i nil nil))
+                    ((2 3) (format-component i nil t)))))
+        (puthash key val table)
+        (cl-ecase r
+          (0 (push (cons key val) pairs))
+          (1 (push (cons nil val) pairs))
+          (2 (push (cons key nil) pairs))
+          (3 ))))
+    (nreverse pairs)))
+
+(defun hash-table-entries (table)
+  (let ((entries '()))
+    (maphash (lambda (k v) (push (cons k v) entries))
+             table)
+    entries))
+
+(defun check-entry (weakness key1 val1 key2 val2)
+  (cl-ecase weakness
+    (key (should (eq key1 key2))
+         (cond (val1 (should (eq val1 val2)))
+               (t (equal (format-component (component-num key1) nil nil)
+                         val2))))
+    (value (should (eq val1 val2))
+           (cond (key1 (should (eq key1 key2)))
+                 (t (equal (format-component (component-num val1) t nil)
+                           key2))))
+    (key-and-value (should (eq key1 key2))
+                   (should (eq val1 val2)))
+    (key-or-value
+     (cond (key1 (should (eq key1 key2)))
+           (t (should (equal (format-component (component-num val1) t t)
+                             key2))))
+     (cond (val1 (should (eq val1 val2)))
+           (t (should (equal (format-component (component-num key1) nil t)
+                             val2)))))))
+
+(defun check-entries (table pairs)
+  (let* ((w (hash-table-weakness table))
+         (expected (cl-ecase w
+                     (key (cl-remove nil pairs :key #'car))
+                     (value (cl-remove nil pairs :key #'cdr))
+                     (key-and-value
+                      (cl-remove-if (lambda (e)
+                                      (not (and (car e) (cdr e))))
+                                    pairs))
+                     (key-or-value
+                      (cl-remove-if (lambda (e)
+                                      (not (or (car e) (cdr e))))
+                                    pairs))))
+         (actual (sort (hash-table-entries table)
+                       :key #'car :lessp #'string<)))
+    (cl-loop for (k1 . v1) in expected
+             for (k2 . v2) in actual
+             do (check-entry w k1 v1 k2 v2))
+    (should (= (length expected) (length actual)))))
+
+(defun gc ()
+  (cond ((fboundp 'igc-collect)
+         (igc-collect))
+        (t
+         (garbage-collect))))
+
+;; Use a separate thread to avoid stray references on the stack.
+(defun check-weak-hashtable (weakness)
+  (let* ((_ (init-rng))
+         (table (make-hash-table :weakness weakness))
+         (entries (thread-join (make-thread (lambda ()
+                                              (populate-hashtable table))))))
+    (gc)
+    (check-entries table entries)))
+
+(ert-deftest weak-key-test () (check-weak-hashtable 'key))
+(ert-deftest weak-value-test () (check-weak-hashtable 'value))
+(ert-deftest weak-and-test () (check-weak-hashtable 'key-and-value))
+(ert-deftest weak-or-test () (check-weak-hashtable 'key-or-value))
+
+
 (ert-deftest test-hash-function-that-mutates-hash-table ()
   (define-hash-table-test 'badeq 'eq 'bad-hash)
   (let ((h (make-hash-table :test 'badeq :size 1 :rehash-size 1)))
