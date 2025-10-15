@@ -418,12 +418,12 @@ Notes:
 All these arguments can be overwritten by connection properties.
 See Info node `(tramp) Predefined connection information'.
 
-When using `su', `sudo' or `doas' the phrase \"open connection to
-a remote host\" sounds strange, but it is used nevertheless, for
-consistency.  No connection is opened to a remote host, but `su',
-`sudo' or `doas' is started on the local host.  You should
-specify a remote host `localhost' or the name of the local host.
-Another host name is useful only in combination with
+When using `su', `surs', `sg', `sudo', `sudors', `doas', `run0' or `ksu'
+the phrase \"open connection to a remote host\" sounds strange, but it
+is used nevertheless, for consistency.  No connection is opened to a
+remote host, but the respective command is started on the local host.
+You should specify a remote host `localhost' or the name of the local
+host.  Another host name is useful only in combination with
 `tramp-default-proxies-alist'.")
 
 (defcustom tramp-default-method
@@ -5239,10 +5239,11 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	     vec "Method `%s' is not supported for multi-hops"
 	     (tramp-file-name-method item)))))
 
-      ;; Some methods ("su", "sg", "sudo", "doas", "run0", "ksu") do
-      ;; not use the host name in their command template.  In this
-      ;; case, the remote file name must use either a local host name
-      ;; (first hop), or a host name matching the previous hop.
+      ;; Some methods ("su", "surs", "sg", "sudo", "sudors", "doas",
+      ;; "run0", "ksu") do not use the host name in their command
+      ;; template.  In this case, the remote file name must use either
+      ;; a local host name (first hop), or a host name matching the
+      ;; previous hop.
       (let ((previous-host (or tramp-local-host-regexp "")))
 	(setq choices target-alist)
 	(while (setq item (pop choices))
