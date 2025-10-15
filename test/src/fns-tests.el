@@ -1264,14 +1264,16 @@
 
 (defun check-entry (weakness key1 val1 key2 val2)
   (cl-ecase weakness
-    (key (should (eq key1 key2))
-         (cond (val1 (should (eq val1 val2)))
-               (t (equal (format-component (component-num key1) nil nil)
-                         val2))))
-    (value (should (eq val1 val2))
-           (cond (key1 (should (eq key1 key2)))
-                 (t (equal (format-component (component-num val1) t nil)
-                           key2))))
+    (key
+     (should (eq key1 key2))
+     (cond (val1 (should (eq val1 val2)))
+           (t (should (equal (format-component (component-num key1) nil t)
+                             val2)))))
+    (value
+     (should (eq val1 val2))
+     (cond (key1 (should (eq key1 key2)))
+           (t (should (equal (format-component (component-num val1) t t)
+                             key2)))))
     (key-and-value (should (eq key1 key2))
                    (should (eq val1 val2)))
     (key-or-value
@@ -1312,10 +1314,10 @@
 (defun check-weak-hashtable (weakness)
   (let* ((_ (init-rng))
          (table (make-hash-table :weakness weakness))
-         (entries (thread-join (make-thread (lambda ()
-                                              (populate-hashtable table))))))
+         (pairs (thread-join (make-thread (lambda ()
+                                            (populate-hashtable table))))))
     (gc)
-    (check-entries table entries)))
+    (check-entries table pairs)))
 
 (ert-deftest weak-key-test () (check-weak-hashtable 'key))
 (ert-deftest weak-value-test () (check-weak-hashtable 'value))
