@@ -175,7 +175,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_terminal_4E8E555B40
 #  error "struct terminal changed"
 # endif
-# ifndef HASH_Lisp_Native_Comp_Unit_B0ECD25036
+# ifndef HASH_Lisp_Native_Comp_Unit_B617D9AE7C
 #  error "struct Lisp_Native_Comp_Unit changed"
 # endif
 # ifndef HASH_pvec_type_1C9DBCD69F
