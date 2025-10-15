@@ -131,19 +131,19 @@
                       after-change-major-mode-hook)))
   (easy-mmode--test-two-globalized-modes))
 
-;; FIXME: This case is broken by the introduction of the
-;; MODE-suppress-set-explicitly mechanism.
-;; This test should be re-enabled as part of resolving bug#79624.
-
-;; (ert-deftest easy-mmode--less-selective-first ()
-;;   "Test with the less selective globalized mode going first."
-;;   (easy-mmode-test-globalized-mode-1 -1)
-;;   (easy-mmode-test-globalized-mode-2 -1)
-;;   (easy-mmode-test-globalized-mode-1 1)
-;;   (easy-mmode-test-globalized-mode-2 1)
-;;   (should (memq 'easy-mmode-test-globalized-mode-1-enable-in-buffer
-;;                 (memq 'easy-mmode-test-globalized-mode-2-enable-in-buffer
-;;                       after-change-major-mode-hook)))
-;;   (easy-mmode--test-two-globalized-modes))
+(ert-deftest easy-mmode--less-selective-first ()
+  "Test with the less selective globalized mode going first."
+  ;; FIXME: This case is broken by the introduction of the
+  ;; MODE-suppress-set-explicitly mechanism.
+  ;; This test should be re-enabled as part of resolving bug#79624.
+  :expected-result :failed
+  (easy-mmode-test-globalized-mode-1 -1)
+  (easy-mmode-test-globalized-mode-2 -1)
+  (easy-mmode-test-globalized-mode-1 1)
+  (easy-mmode-test-globalized-mode-2 1)
+  (should (memq 'easy-mmode-test-globalized-mode-1-enable-in-buffer
+                (memq 'easy-mmode-test-globalized-mode-2-enable-in-buffer
+                      after-change-major-mode-hook)))
+  (easy-mmode--test-two-globalized-modes))
 
 ;;; easy-mmode-tests.el ends here
