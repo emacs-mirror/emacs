@@ -1209,6 +1209,15 @@
     (should-not (eq h1 h2))
     (should (equal (gethash 'foo h2) '(bar baz)))))
 
+(ert-deftest test-hash-table-weakness ()
+  (dolist (w '(nil key value key-or-value key-and-value t))
+    (let* ((h (make-hash-table :weakness w))
+           (w2 (hash-table-weakness h)))
+      (cond ((eq w t)
+             (should (eq w2 'key-and-value)))
+            (t
+             (should (eq w2 w)))))))
+
 (ert-deftest test-hash-function-that-mutates-hash-table ()
   (define-hash-table-test 'badeq 'eq 'bad-hash)
   (let ((h (make-hash-table :test 'badeq :size 1 :rehash-size 1)))
