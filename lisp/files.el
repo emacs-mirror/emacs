@@ -1445,13 +1445,9 @@ Tip: You can use this expansion of remote identifier components
 
 ;; Probably this entire variable should be obsolete now, in favor of
 ;; something Tramp-related (?).  It is not used in many places.
-;; It's not clear what the best file for this to be in is, but given
-;; it uses custom-initialize-delay, it is easier if it is preloaded
-;; rather than autoloaded.
-(defcustom remote-shell-program (or (executable-find "ssh") "ssh")
+(defcustom remote-shell-program "ssh"
   "Program to use to execute commands on a remote host (i.e. ssh)."
-  :version "29.1"
-  :initialize #'custom-initialize-delay
+  :version "31.1"
   :group 'environment
   :type 'file)
 
