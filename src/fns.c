@@ -6413,7 +6413,10 @@ DEFUN ("hash-table-weakness", Fhash_table_weakness, Shash_table_weakness,
 {
 #ifdef HAVE_MPS
   if (WEAK_HASH_TABLE_P (table))
-    table = strengthen_hash_table (table);
+    {
+      struct Lisp_Weak_Hash_Table *ht = XWEAK_HASH_TABLE (table);
+      return hash_table_weakness_symbol (ht->strong->weakness);
+    }
 #endif
   return hash_table_weakness_symbol (check_hash_table (table)->weakness);
 }
