@@ -49,13 +49,11 @@ struct Lisp_Native_Comp_Unit
   Lisp_Object data_vec;
   /* STUFFS WE DO NOT DUMP!!  */
 # ifdef HAVE_MPS
-  size_t n_data_imp_relocs;
   size_t n_data_relocs;
   Lisp_Object *data_eph_relocs;
   size_t n_data_eph_relocs;
   Lisp_Object *comp_unit;
   struct igc_root_list *data_relocs_root;
-  struct igc_root_list *data_imp_relocs_root;
   struct igc_root_list *data_eph_relocs_root;
   struct igc_root_list *comp_unit_root;
 # endif

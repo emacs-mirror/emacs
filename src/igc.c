@@ -3284,7 +3284,6 @@ void
 igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u)
 {
   maybe_destroy_root (&u->data_relocs_root);
-  maybe_destroy_root (&u->data_imp_relocs_root);
   maybe_destroy_root (&u->data_eph_relocs_root);
   maybe_destroy_root (&u->comp_unit_root);
 }
