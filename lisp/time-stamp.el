@@ -779,7 +779,8 @@ and all `time-stamp-format' compatibility."
 	          (format (format "%%%sd" field-width)
                           (or field-result "")))
               (let* ((field-width-num (string-to-number field-width))
-                     (needed-padding (- field-width-num (length field-result))))
+                     (needed-padding (- field-width-num
+                                        (string-width (or field-result "")))))
                 (if (> needed-padding 0)
                     (concat (make-string needed-padding ?\s) field-result)
                   field-result)))
