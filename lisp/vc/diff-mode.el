@@ -2471,7 +2471,7 @@ With non-nil prefix arg, re-diff all the hunks."
     (((class color) (min-colors 88) (background light))
      :background "#ffbbbb")
     (((class color) (min-colors 88) (background dark))
-     :background "#aa2222"))
+     :background "#882222"))
   "Face used for removed characters shown by `diff-refine-hunk'."
   :version "24.3")
 
@@ -2483,7 +2483,7 @@ With non-nil prefix arg, re-diff all the hunks."
     (((class color) (min-colors 88) (background light))
      :background "#aaffaa")
     (((class color) (min-colors 88) (background dark))
-     :background "#22aa22"))
+     :background "#228822"))
   "Face used for added characters shown by `diff-refine-hunk'."
   :version "24.3")
 
