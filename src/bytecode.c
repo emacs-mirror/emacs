@@ -851,20 +851,20 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	CASE (Bgoto):
 	  arg = FETCH2;
 	op_branch:
-	  arg -= pc - bytestr_data;
-	  if (BYTE_CODE_SAFE
-	      && ! (bytestr_data - pc <= arg
-		    && arg < bytestr_data + bytestr_length - pc))
-	    emacs_abort ();
-	  quitcounter += arg < 0;
-	  if (!quitcounter)
-	    {
-	      quitcounter = 1;
-	      maybe_gc ();
-	      maybe_quit ();
-	    }
-	  pc += arg;
-	  NEXT;
+	  {
+	    if (BYTE_CODE_SAFE && !(arg >= 0 && arg < bytestr_length))
+	      emacs_abort ();
+	    const unsigned char *new_pc = bytestr_data + arg;
+	    quitcounter += arg < 0;
+	    if (!quitcounter)
+	      {
+		quitcounter = 1;
+		maybe_gc ();
+		maybe_quit ();
+	      }
+	    pc = new_pc;
+	    NEXT;
+	  }
 
 	CASE (Bgotoifnonnil):
 	  arg = FETCH2;
