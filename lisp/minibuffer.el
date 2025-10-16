@@ -5655,7 +5655,7 @@ Used by `minibuffer-nonselected-mode'.")
   "Check if active minibuffer window is no longer selected.
 Use overlay to highlight its contents when another window is selected.
 But don't highlight when the *Completions* window is selected or the
-buffer-loval value of `completion-reference-buffer' in the selected
+buffer-local value of `completion-reference-buffer' in the selected
 window's buffer equals the buffer of the active minibuffer window."
   (let* ((active-minibuffer-window (active-minibuffer-window))
 	 (active-minibuffer (when active-minibuffer-window
@@ -5669,7 +5669,7 @@ window's buffer equals the buffer of the active minibuffer window."
 	      active-minibuffer))
       ;; When there's no active minibuffer window or either the
       ;; minibuffer or the *Completions* window is selected or the
-      ;; buffer-loval value of 'completion-reference-buffer' in the
+      ;; buffer-local value of 'completion-reference-buffer' in the
       ;; selected window's buffer equals the buffer of the active
       ;; minibuffer window, remove the overlay if it exists.
       (when minibuffer--nonselected-overlay
