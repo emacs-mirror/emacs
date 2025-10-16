@@ -751,6 +751,14 @@ Before doing that, check if there are any old backups and get rid of them."
     (when vc-dir-buffers
       (vc-dir-resynch-file file))))
 
+(defun vc-after-revert ()
+  "Update VC-Dir contents after reverting a buffer from disk."
+  (when-let* (vc-dir-buffers
+              (backend (vc-backend buffer-file-name)))
+    (vc-dir-resynch-file buffer-file-name)))
+
+(add-hook 'after-revert-hook #'vc-after-revert)
+
 (defvar vc-menu-entry
   '(menu-item "Version Control" vc-menu-map
     :filter vc-menu-map-filter))
