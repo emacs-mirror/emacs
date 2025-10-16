@@ -1279,6 +1279,46 @@ LANGUAGE's name and return the resulting string."
               "Generic tree-sitter font-lock error"
               'treesit-error)
 
+
+;; String form and sexp form will be keyed differently, but that's not a
+;; big deal.  We can't really use a weak table: it's possible that the
+;; query won't be referenced if all major modes are closed; error data
+;; isn't going to be referenced at all but we need to retend it.
+(defvar treesit--query-cache (make-hash-table :test #'equal)
+  "Cache of compiled queries for font-lock/indentation.
+
+They keys are (LANG . QUERY), where QUERY can be in string or sexp form;
+the values are either compiled queries or error data (returned by
+`treesit-query-compile').
+
+This table only stores actually (eagerly) compiled queries.  (Normally,
+compiled query objects are compiled lazily upon first use.)")
+
+(defun treesit--compile-query-with-cache (lang query)
+  "Return the cached compiled QUERY for LANG.
+
+If QUERY isn't cached, compile it and save to cache.
+
+If QUERY is invalid, signals `treesit-query-error'.  The fact that QUERY
+is invalid is also stored in cache, and the next call to this function
+with the same QUERY will signal too.
+
+QUERY is compared with `equal', so string form vs sexp form of a query,
+and the same query written differently are all considered separate
+queries."
+  (let ((value (gethash (cons lang query) treesit--query-cache)))
+    (if value
+        (if (treesit-compiled-query-p value)
+            value
+          (signal 'treesit-query-error value))
+      (condition-case err
+          (let ((compiled (treesit-query-compile lang query 'eager)))
+            (puthash (cons lang query) compiled treesit--query-cache)
+            compiled)
+        (treesit-query-error
+         (puthash (cons lang query) (cdr err) treesit--query-cache)
+         (signal 'treesit-query-error (cdr err)))))))
+
 (defvar-local treesit-font-lock-settings nil
   "A list of SETTINGs for treesit-based fontification.
 
@@ -1292,10 +1332,9 @@ debugging:
 
 Currently each SETTING has the form:
 
-    (QUERY ENABLE FEATURE OVERRIDE REVERSE)
+    (QUERY ENABLE FEATURE OVERRIDE REVERSE LANGUAGE)
 
-QUERY must be a compiled query.  See Info node `(elisp)Pattern
-Matching' for how to write a query and compile it.
+QUERY is a tree-sitter query in either string, sexp, or compiled form.
 
 For SETTING to be activated for font-lock, ENABLE must be t.  To
 disable this SETTING, set ENABLE to nil.
@@ -1309,7 +1348,9 @@ t, nil, append, prepend, keep.  See more in
 `treesit-font-lock-rules'.
 
 If REVERSED is t, enable the QUERY when FEATURE is not in the feature
-list.")
+list.
+
+LANGUAGE is the language of QUERY.")
 
 ;; Follow cl-defstruct naming conventions, in case we use cl-defstruct
 ;; in the future.
@@ -1332,6 +1373,10 @@ list.")
 (defsubst treesit-font-lock-setting-reversed (setting)
   "Return the REVERSED flag of SETTING in `treesit-font-lock-settings'."
   (nth 4 setting))
+
+(defsubst treesit-font-lock-setting-language (setting)
+  "Return the LANGUAGE of SETTING in `treesit-font-lock-settings'."
+  (nth 5 setting))
 
 (defsubst treesit--font-lock-setting-clone-enable (setting)
   "Return enabled SETTING."
@@ -1433,9 +1478,10 @@ QUERY preceded by multiple pairs of :KEYWORD and VALUE:
 
    :KEYWORD VALUE... QUERY
 
-QUERY is a tree-sitter query in either the string, s-expression
-or compiled form.  For each query, captured nodes are highlighted
-with the capture name as its face.
+QUERY is a tree-sitter query in either the string, s-expression or
+compiled form.  For each query, captured nodes are highlighted with the
+capture name as its face.  QUERY is compiled automatically when it's
+first used in a major mode.
 
 :KEYWORD and VALUE pairs preceding a QUERY add meta information
 to QUERY.  For example,
@@ -1554,14 +1600,13 @@ name, it is ignored."
                (when (null current-feature)
                  (signal 'treesit-font-lock-error
                          `("Feature unspecified, use :feature keyword to specify the feature name for this query" ,token)))
-               (if (treesit-compiled-query-p token)
-                   (push `(,lang token) result)
-                 (push `(,(treesit-query-compile lang token)
-                         t
-                         ,current-feature
-                         ,current-override
-                         ,current-reversed)
-                       result))
+               (push (list token
+                           t
+                           current-feature
+                           current-override
+                           current-reversed
+                           current-language)
+                     result)
                ;; Clears any configurations set for this query.
                (setq current-language nil
                      current-override nil
@@ -1570,6 +1615,22 @@ name, it is ignored."
             (_ (signal 'treesit-font-lock-error
                        `("Unexpected value" ,token))))))
       (nreverse result))))
+
+(defun treesit-query-with-optional (language mandatory &rest queries)
+  "Return the MANDATORY query plus first valid QUERIES.
+
+MANDATORY query is always included.  Queries in QUERIES are included if
+they're valid.  MANDATORY query and queries in QUERIES must be in sexp
+form for composition.
+
+Use LANGUAGE for validating queries."
+  (declare (indent 1))
+  (let (optional)
+    (dolist (query queries)
+      (ignore-errors
+        (when (treesit--compile-query-with-cache language query)
+          (push query optional))))
+    (append mandatory optional)))
 
 ;; `font-lock-fontify-region-function' has the LOUDLY argument, but
 ;; `jit-lock-functions' doesn't pass that argument.  So even if we set
@@ -1635,8 +1696,7 @@ and leave settings for other languages unchanged."
          (additive (or add-list remove-list)))
     (cl-loop for idx = 0 then (1+ idx)
              for setting in treesit-font-lock-settings
-             for lang = (treesit-query-language
-                         (treesit-font-lock-setting-query setting))
+             for lang = (treesit-font-lock-setting-language setting)
              for feature = (treesit-font-lock-setting-feature setting)
              for current-value = (treesit-font-lock-setting-enable setting)
              for reversed = (treesit-font-lock-setting-reversed setting)
@@ -1681,12 +1741,10 @@ Return a value suitable for `treesit-font-lock-settings'"
   (let ((result nil))
     (dolist (new-setting new-settings)
       (let ((new-feature (treesit-font-lock-setting-feature new-setting))
-            (new-lang (treesit-query-language
-                       (treesit-font-lock-setting-query new-setting))))
+            (new-lang (treesit-font-lock-setting-language new-setting)))
         (dolist (setting settings)
           (let ((feature (treesit-font-lock-setting-feature setting))
-                (lang (treesit-query-language
-                       (treesit-font-lock-setting-query setting))))
+                (lang (treesit-font-lock-setting-language setting)))
             (if (and (eq new-lang lang) (eq new-feature feature))
                 (push new-setting result)
               (push setting result))))))
@@ -1729,8 +1787,11 @@ docstring of `treesit-font-lock-rules' for what is a feature."
              (append rules
                      (nthcdr feature-idx treesit-font-lock-settings)))))))
 
-(defun treesit-validate-font-lock-rules (settings)
-  "Validate font-lock rules in SETTINGS before major mode starts.
+(defun treesit-validate-and-compile-font-lock-rules (settings)
+  "Validate and resolve font-lock rules in SETTINGS before major mode starts.
+
+For each enabled setting, if query isn't compiled, compile it and
+replace the query In-PLACE.
 
 If the tree-sitter grammar currently installed on the system is
 incompatible with the major mode's font-lock rules, this procedure will
@@ -1739,17 +1800,17 @@ user."
   (let ((faulty-features ()))
     (dolist (setting settings)
       (let* ((query (treesit-font-lock-setting-query setting))
-             (lang (treesit-query-language query))
+             (lang (treesit-font-lock-setting-language setting))
              (enabled (treesit-font-lock-setting-enable setting)))
-        (when (and enabled
-                   (condition-case nil
-                       (progn
-                         (treesit-query-compile lang query 'eager)
-                         nil)
-                     (treesit-query-error t)))
-          (push (cons (treesit-font-lock-setting-feature setting)
-                      lang)
-                faulty-features))))
+        (when enabled
+          (condition-case nil
+              (let ((compiled (treesit--compile-query-with-cache lang query)))
+                ;; Here we're modifying SETTINGS in-place.
+                (setcar setting compiled))
+            (treesit-query-error
+             (push (cons (treesit-font-lock-setting-feature setting)
+                         lang)
+                   faulty-features))))))
     (when faulty-features
       (treesit-font-lock-recompute-features
        nil (mapcar #'car faulty-features))
@@ -1932,7 +1993,7 @@ If LOUDLY is non-nil, display some debugging information."
       (let* ((query (treesit-font-lock-setting-query setting))
              (enable (treesit-font-lock-setting-enable setting))
              (override (treesit-font-lock-setting-override setting))
-             (language (treesit-query-language query))
+             (language (treesit-font-lock-setting-language setting))
              (root-nodes (cl-remove-if-not
                           (lambda (node)
                             (eq (treesit-node-language node) language))
@@ -4368,6 +4429,11 @@ before calling this function."
     (setq treesit-primary-parser (treesit--guess-primary-parser)))
   ;; Font-lock.
   (when treesit-font-lock-settings
+    ;; Functions like `treesit-font-lock-recompute-features' and
+    ;; `treesit-validate-and-compile-font-lock-rules' modifies
+    ;; `treesit-font-lock-settings' in-place, so make a copy to protect
+    ;; the original variable defined in major mode code.
+    (setq treesit-font-lock-settings (copy-tree treesit-font-lock-settings))
     ;; `font-lock-mode' wouldn't set up properly if
     ;; `font-lock-defaults' is nil, see `font-lock-specified-p'.
     (setq-local font-lock-defaults
@@ -4375,8 +4441,8 @@ before calling this function."
                    (font-lock-fontify-syntactically-function
                     . treesit-font-lock-fontify-region)))
     (treesit-font-lock-recompute-features)
-    (add-hook 'pre-redisplay-functions #'treesit--pre-redisplay 0 t)
-    (treesit-validate-font-lock-rules treesit-font-lock-settings))
+    (treesit-validate-and-compile-font-lock-rules treesit-font-lock-settings)
+    (add-hook 'pre-redisplay-functions #'treesit--pre-redisplay 0 t))
   ;; Syntax
   (add-hook 'syntax-propertize-extend-region-functions
             #'treesit--pre-syntax-ppss 0 t)
