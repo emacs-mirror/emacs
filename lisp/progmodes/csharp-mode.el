@@ -1287,8 +1287,7 @@ Key bindings:
 (derived-mode-add-parents 'csharp-ts-mode '(csharp-mode))
 
 ;;;###autoload
-(when (treesit-available-p)
-  (defvar treesit-major-mode-remap-alist)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(csharp-mode . csharp-ts-mode)))
 

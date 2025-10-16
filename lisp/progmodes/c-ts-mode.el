@@ -1674,8 +1674,7 @@ the code is C or C++, and based on that chooses whether to enable
     (funcall (major-mode-remap mode))))
 
 ;;;###autoload
-(when (treesit-available-p)
-  (defvar treesit-major-mode-remap-alist)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(c-mode . c-ts-mode))
   (add-to-list 'treesit-major-mode-remap-alist
