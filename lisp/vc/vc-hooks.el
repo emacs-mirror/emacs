@@ -210,7 +210,10 @@ VC commands are globally reachable under the prefix \\[vc-prefix-map]:
 \\{vc-prefix-map}"
   nil)
 
-(defvar auto-revert-mode)
+;; A compiler declaration (defvar auto-revert-mode) is not enough here
+;; because `define-globalized-minor-mode' wants to check the variable's
+;; value before causing autorevert.el to be autoloaded.
+(defvar-local auto-revert-mode nil)
 (define-globalized-minor-mode vc-auto-revert-mode auto-revert-mode
   vc-turn-on-auto-revert-mode-for-tracked-files
   :group 'vc
