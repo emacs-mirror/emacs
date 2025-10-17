@@ -59,6 +59,14 @@ enum igc_obj_type
 
 #ifdef HAVE_MPS
 
+enum { IGC_NO_PIN = -1 };
+void igc_unpin_comp_unit (struct Lisp_Native_Comp_Unit *u);
+void igc_maybe_unpin (void *obj, ptrdiff_t *pin);
+void igc_init_pin (ptrdiff_t *pin);
+ptrdiff_t igc_pin (void *obj);
+void igc_unpin (void *obj, ptrdiff_t idx);
+
+
 void igc_break (void);
 void init_igc (void);
 void syms_of_igc (void);
@@ -158,11 +166,10 @@ void igc_on_alloc_main_thread_specpdl (void);
 void igc_on_alloc_main_thread_bc (void);
 void igc_on_staticpros_complete (void);
 void igc_collect (bool incremental);
-void igc_root_create_ambig (void *start, void *end, const char *debug_name);
 void igc_root_create_exact (Lisp_Object *start, Lisp_Object *end);
-void igc_root_create_exact_ptr (void *var_addr);
-void igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u);
-void igc_root_destroy_comp_unit_eph (struct Lisp_Native_Comp_Unit *u);
+struct igc_root_list *igc_root_create_exact_ptr (void *var_addr);
+struct igc_root_list *igc_root_create_ambig (void *start, void *end,
+					     const char *debug_name);
 void *igc_root_create_n (Lisp_Object start[], size_t n);
 void igc_destroy_root_with_start (void *start);
 size_t igc_header_size (void);
@@ -175,6 +182,12 @@ void *igc_alloc_dump (size_t nbytes);
 bool igc_busy_p (void);
 Lisp_Object igc_discard_killed_buffers (Lisp_Object list);
 
+ptrdiff_t igc_pin (void *obj);
+void igc_unpin (void *obj, ptrdiff_t idx);
+
+# define eassert_not_mps() eassert (false)
+
+# define eassert_not_mps() eassert (false)
 #ifdef HAVE_NTGUI
 /* Union that is expected to be aligned as MPS expects from stack bottom.  */
 typedef union
@@ -190,6 +203,10 @@ void w32_remove_non_lisp_thread (void *);
 
 extern void igc_assert_not_an_mps_object (void *ptr);
 # define eassert_not_mps() eassert (false)
+
+ptrdiff_t igc_pin (void *obj);
+void igc_unpin (void *obj, ptrdiff_t idx);
+
 #else
 # define igc_break() (void) 0
 # define eassert_not_mps() (void) 0
