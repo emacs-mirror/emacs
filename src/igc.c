@@ -175,7 +175,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_terminal_4E8E555B40
 #  error "struct terminal changed"
 # endif
-# ifndef HASH_Lisp_Native_Comp_Unit_B617D9AE7C
+# ifndef HASH_Lisp_Native_Comp_Unit_876BE72D27
 #  error "struct Lisp_Native_Comp_Unit changed"
 # endif
 # ifndef HASH_pvec_type_1C9DBCD69F
@@ -1067,6 +1067,7 @@ static void
 unpin (struct igc *gc, void *obj, ptrdiff_t i)
 {
   struct igc_pins *p = gc->pins;
+  eassert (i >= 0 && i < p->capacity);
   eassert (p->entries[i].obj == obj);
   p->entries[i].next_free = p->free;
   p->free = i;
@@ -3090,10 +3091,10 @@ root_create_main_thread (struct igc *gc)
 		     "main-thread-getcjmp");
 }
 
-void
+struct igc_root_list *
 igc_root_create_ambig (void *start, void *end, const char* label)
 {
-  root_create_ambig (global_igc, start, end, label);
+  return root_create_ambig (global_igc, start, end, label);
 }
 
 void
@@ -3102,18 +3103,18 @@ igc_root_create_exact (Lisp_Object *start, Lisp_Object *end)
   root_create_exact (global_igc, start, end, scan_exact, "exact");
 }
 
-static void
+static struct igc_root_list *
 root_create_exact_ptr (struct igc *gc, void *var_addr)
 {
   char *start = var_addr;
   char *end = start + sizeof (void *);
-  root_create_exact (gc, start, end, scan_ptr_exact, "exact-ptr");
+  return root_create_exact (gc, start, end, scan_ptr_exact, "exact-ptr");
 }
 
-void
+struct igc_root_list *
 igc_root_create_exact_ptr (void *var_addr)
 {
-  root_create_exact_ptr (global_igc, var_addr);
+  return root_create_exact_ptr (global_igc, var_addr);
 }
 
 static void
@@ -3271,25 +3272,42 @@ igc_destroy_root_with_start (void *start)
     }
 }
 
-static void
-maybe_destroy_root (struct igc_root_list **root)
+ptrdiff_t
+igc_pin (void *obj)
 {
-  if (*root)
-    destroy_root (root);
+  return pin (global_igc, obj);
 }
 
 void
-igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u)
+igc_unpin (void *obj, ptrdiff_t idx)
 {
-  maybe_destroy_root (&u->data_relocs_root);
-  maybe_destroy_root (&u->data_eph_relocs_root);
-  maybe_destroy_root (&u->comp_unit_root);
+  unpin (global_igc, obj, idx);
 }
 
 void
-igc_root_destroy_comp_unit_eph (struct Lisp_Native_Comp_Unit *u)
+igc_maybe_unpin (void *obj, ptrdiff_t *pin)
 {
-  maybe_destroy_root (&u->data_eph_relocs_root);
+  if (*pin >= 0)
+    {
+      igc_unpin (obj, *pin);
+      *pin = IGC_NO_PIN;
+    }
+}
+
+void
+igc_init_pin (ptrdiff_t *pin)
+{
+  *pin = IGC_NO_PIN;
+}
+
+void
+igc_unpin_comp_unit (struct Lisp_Native_Comp_Unit *cu)
+{
+  if (VECTORP (cu->data_vec))
+    igc_maybe_unpin (XVECTOR (cu->data_vec)->contents, &cu->data_vec_pin);
+  if (VECTORP (cu->data_eph_vec))
+    igc_maybe_unpin (XVECTOR (cu->data_eph_vec)->contents, &cu->data_eph_vec_pin);
+  igc_maybe_unpin (cu, &cu->comp_unit_pin);
 }
 
 static mps_res_t

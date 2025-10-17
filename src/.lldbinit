@@ -116,6 +116,16 @@ command alias go process launch --disable-aslr false --working-dir ../lisp
 #settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest /Users/gerd/emacs/github/igc-copy/nextstep/Emacs.app/Contents/MacOS/ --eln-dest /Users/gerd/emacs/github/igc-copy/nextstep/Emacs.app/Contents/Frameworks/
 #command alias go process launch --working-dir .
 
-target create emacs
-settings set -- target.run-args
-command alias go process launch --working-dir .
+# Start process with stderr 2> log, open log and auto-revert-tail-mode
+#process attach --waitfor --name emacs (--continue)
+
+# Attach to future Emacs
+
+# target create temacs
+# settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest '/Users/gerd/emacs/github/cl-packages/carbon/Emacs.app/Contents/MacOS/' --eln-dest '/Users/gerd/emacs/github/cl-packages/carbon/Emacs.app/Contents/Frameworks/'
+# command alias go process launch --working-dir .
+# ##settings set target.disable-aslr false
+
+target create bootstrap-emacs
+settings set -- target.run-args -batch --no-site-file --no-site-lisp --eval "(setq load-prefer-newer t byte-compile-warnings 'all)" --eval "(setq org--inhibit-version-check t)" -l comp -f byte-compile-refresh-preloaded -f batch-byte+native-compile ../lisp/dos-w32.el
+command alias go process launch --working-dir ../lisp/
