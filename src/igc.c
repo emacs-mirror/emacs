@@ -322,9 +322,6 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 # define igc_assert(expr) ((void) (true || (expr)))
 #endif
 
-#define IGC_NOT_IMPLEMENTED() \
-  igc_assert_fail (__FILE__, __LINE__, "not implemented")
-
 /* An enum for telemetry event categories seems to be missing from MPS.
    The docs only mention the bare numbers.  */
 
