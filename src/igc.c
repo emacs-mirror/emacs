@@ -1255,10 +1255,7 @@ fix_raw (mps_ss_t ss, mps_addr_t *p)
 	    mps_res_t res = MPS_FIX2 (ss, &addr);
 	    if (res != MPS_RES_OK)
 	      return res;
-	    if (addr == NULL)
-	      *p = NULL;
-	    else
-	      *p = addr;
+	    *p = addr;
 	  }
       }
   }
@@ -1324,28 +1321,6 @@ fix_wrapped_bytes (mps_ss_t ss, mps_addr_t *p)
   return MPS_RES_OK;
 }
 
-static mps_res_t
-fix_base (mps_ss_t ss, mps_addr_t *p)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    mps_addr_t base = *p;
-    if (base == NULL)
-      return MPS_RES_OK;
-    if (is_aligned (base))
-      {
-	if (MPS_FIX1 (ss, base))
-	  {
-	    mps_res_t res = MPS_FIX2 (ss, p);
-	    if (res != MPS_RES_OK)
-	      return res;
-	  }
-      }
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
 #define IGC_FIX12_OBJ(ss, p)                           \
   do                                                   \
     {                                                  \
@@ -1403,16 +1378,6 @@ fix_base (mps_ss_t ss, mps_addr_t *p)
     {									\
       mps_res_t res;							\
       MPS_FIX_CALL (ss, res = fix_wrapped_bytes (ss, (mps_addr_t *) (p))); \
-      if (res != MPS_RES_OK)						\
-	return res;							\
-    }									\
-  while (0)
-
-#define IGC_FIX12_BASE(ss, p)						\
-  do									\
-    {									\
-      mps_res_t res;							\
-      MPS_FIX_CALL (ss, res = fix_base (ss, (mps_addr_t *) (p)));	\
       if (res != MPS_RES_OK)						\
 	return res;							\
     }									\
@@ -2495,7 +2460,7 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
 #ifdef WORDS_BIGENDIAN
 	    off = sizeof (t->entries[i].intptr) - sizeof (mps_word_t);
 #endif
-	    IGC_FIX12_BASE (ss, ((char *) &t->entries[i].intptr) + off);
+	    IGC_FIX12_RAW (ss, ((char *) &t->entries[i].intptr) + off);
 	  }
       }
   }
@@ -2539,7 +2504,7 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 #ifdef WORDS_BIGENDIAN
 	    off = sizeof (w->entries[i].intptr) - sizeof (mps_word_t);
 #endif
-	    IGC_FIX12_BASE (ss, ((char *) &w->entries[i].intptr) + off);
+	    IGC_FIX12_RAW (ss, ((char *) &w->entries[i].intptr) + off);
 	    bool is_now_nil = w->entries[i].intptr == 0;
 
 	    if (is_now_nil && !was_nil)
