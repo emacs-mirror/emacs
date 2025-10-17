@@ -68,8 +68,9 @@
   (erc-tests-common-make-server-buf)
 
   (setq erc-ignore-list (list ".")) ; match anything
-  (ert-simulate-keys (list ?\r)
-    (erc-cmd-IGNORE "abc"))
+  (let ((inhibit-message noninteractive))
+    (ert-simulate-keys (list ?\r)
+      (erc-cmd-IGNORE "abc")))
   (should (equal erc-ignore-list (list "abc" ".")))
 
   (cl-letf (((symbol-function 'y-or-n-p) #'always))
@@ -179,6 +180,7 @@
 
 (ert-deftest erc-hide-prompt ()
   (let ((erc-hide-prompt erc-hide-prompt)
+        (inhibit-message noninteractive)
         ;;
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
 
@@ -1317,16 +1319,17 @@
     (setq calls nil)
 
     (ert-info ("Remove existing")
-      (ert-with-message-capture messages
-        (erc--modify-local-map nil "C-c C-c" cmd-foo "C-c C-k" cmd-bar)
-        (with-temp-buffer
-          (set-window-buffer (selected-window) (current-buffer))
-          (use-local-map erc-mode-map)
+      (erc--modify-local-map nil "C-c C-c" cmd-foo "C-c C-k" cmd-bar)
+      (with-temp-buffer
+        (set-window-buffer (selected-window) (current-buffer))
+        (use-local-map erc-mode-map)
+        (cl-letf (((symbol-function 'undefined)
+                   (lambda ()
+                     (push (key-description (this-single-command-keys))
+                           calls))))
           (execute-kbd-macro "\C-c\C-c")
-          (execute-kbd-macro "\C-c\C-k"))
-        (should (string-search "C-c C-c is undefined" messages))
-        (should (string-search "C-c C-k is undefined" messages))
-        (should-not calls)))))
+          (execute-kbd-macro "\C-c\C-k")))
+      (should (equal calls '("C-c C-k" "C-c C-c"))))))
 
 (ert-deftest erc-ring-previous-command-base-case ()
   (ert-info ("Create ring when nonexistent and do nothing")
@@ -1811,6 +1814,7 @@
 
   (ert-info ("With `erc-ask-about-multiline-input'")
     (let ((erc-inhibit-multiline-input t)
+          (inhibit-message noninteractive)
           (erc-ask-about-multiline-input t))
       (ert-simulate-keys '(?n ?\r ?y ?\r)
         (should (erc--check-prompt-input-for-excess-lines "" '("a" "b")))
@@ -3107,8 +3111,9 @@
 (ert-deftest erc-select-read-args ()
 
   (ert-info ("Prompts for switch to TLS by default")
-    (should (equal (ert-simulate-keys "\r\r\r\ry\r"
-                     (erc-select-read-args))
+    (should (equal (let ((inhibit-message noninteractive))
+                     (ert-simulate-keys "\r\r\r\ry\r"
+                       (erc-select-read-args)))
                    (list :server "irc.libera.chat"
                          :port 6697
                          :nick (user-login-name)
@@ -3117,8 +3122,9 @@
                            (erc-join-buffer . window))))))
 
   (ert-info ("Switches to TLS when port matches default TLS port")
-    (should (equal (ert-simulate-keys "irc.gnu.org\r6697\r\r\r"
-                     (erc-select-read-args))
+    (should (equal (let ((inhibit-message noninteractive))
+                     (ert-simulate-keys "irc.gnu.org\r6697\r\r\r"
+                       (erc-select-read-args)))
                    (list :server "irc.gnu.org"
                          :port 6697
                          :nick (user-login-name)
@@ -3128,8 +3134,9 @@
 
   (ert-info ("Switches to TLS when URL is ircs://")
     (let ((erc--display-context '((erc-interactive-display . erc))))
-      (should (equal (ert-simulate-keys "ircs://irc.gnu.org\r\r\r\r"
-                       (erc-select-read-args))
+      (should (equal (let ((inhibit-message noninteractive))
+                       (ert-simulate-keys "ircs://irc.gnu.org\r\r\r\r"
+                         (erc-select-read-args)))
                      (list :server "irc.gnu.org"
                            :port 6697
                            :nick (user-login-name)
@@ -3143,67 +3150,76 @@
   (setq-local erc-interactive-display nil) ; cheat to save space
 
   (ert-info ("Opt out of non-TLS warning manually")
-    (should (equal (ert-simulate-keys "\r\r\r\rn\r"
-                     (erc-select-read-args))
+    (should (equal (let ((inhibit-message noninteractive))
+                     (ert-simulate-keys "\r\r\r\rn\r"
+                       (erc-select-read-args)))
                    (list :server "irc.libera.chat"
                          :port 6667
                          :nick (user-login-name)))))
 
   (ert-info ("Override default TLS")
-    (should (equal (ert-simulate-keys "irc://irc.libera.chat\r\r\r\r"
-                     (erc-select-read-args))
+    (should (equal (let ((inhibit-message noninteractive))
+                     (ert-simulate-keys "irc://irc.libera.chat\r\r\r\r"
+                       (erc-select-read-args)))
                    (list :server "irc.libera.chat"
                          :port 6667
                          :nick (user-login-name)))))
 
   (ert-info ("Address includes port")
-    (should (equal (ert-simulate-keys "localhost:6667\rnick\r\r"
-                     (erc-select-read-args))
-                   (list :server "localhost"
-                         :port 6667
-                         :nick "nick"))))
-
-  (ert-info ("Address includes nick, password skipped via option")
-    (should (equal (ert-simulate-keys "nick@localhost:6667\r"
-                     (let (erc-prompt-for-password)
+    (should (equal (let ((inhibit-message noninteractive))
+                     (ert-simulate-keys "localhost:6667\rnick\r\r"
                        (erc-select-read-args)))
                    (list :server "localhost"
                          :port 6667
                          :nick "nick"))))
 
+  (ert-info ("Address includes nick, password skipped via option")
+    (should (equal (let ((inhibit-message noninteractive))
+                     (ert-simulate-keys "nick@localhost:6667\r"
+                       (let (erc-prompt-for-password)
+                         (erc-select-read-args))))
+                   (list :server "localhost"
+                         :port 6667
+                         :nick "nick"))))
+
   (ert-info ("Address includes nick and password")
-    (should (equal (ert-simulate-keys "nick:sesame@localhost:6667\r\r"
-                     (erc-select-read-args))
+    (should (equal (let ((inhibit-message noninteractive))
+                     (ert-simulate-keys "nick:sesame@localhost:6667\r\r"
+                       (erc-select-read-args)))
                    (list :server "localhost"
                          :port 6667
                          :nick "nick"
                          :password "sesame"))))
 
   (ert-info ("IPv6 address plain")
-    (should (equal (ert-simulate-keys "::1\r\r\r\r"
-                     (erc-select-read-args))
+    (should (equal (let ((inhibit-message noninteractive))
+                     (ert-simulate-keys "::1\r\r\r\r"
+                       (erc-select-read-args)))
                    (list :server "[::1]"
                          :port 6667
                          :nick (user-login-name)))))
 
   (ert-info ("IPv6 address with port")
-    (should (equal (ert-simulate-keys "[::1]:6667\r\r\r"
-                     (erc-select-read-args))
+    (should (equal (let ((inhibit-message noninteractive))
+                     (ert-simulate-keys "[::1]:6667\r\r\r"
+                       (erc-select-read-args)))
                    (list :server "[::1]"
                          :port 6667
                          :nick (user-login-name)))))
 
   (ert-info ("IPv6 address includes nick")
-    (should (equal (ert-simulate-keys "nick@[::1]:6667\r\r"
-                     (erc-select-read-args))
+    (should (equal (let ((inhibit-message noninteractive))
+                     (ert-simulate-keys "nick@[::1]:6667\r\r"
+                       (erc-select-read-args)))
                    (list :server "[::1]"
                          :port 6667
                          :nick "nick"))))
 
   (ert-info ("Extra args use URL nick by default")
-    (should (equal (ert-simulate-keys "nick:sesame@localhost:6667\r\r\r\r"
-                     (let ((current-prefix-arg '(4)))
-                       (erc-select-read-args)))
+    (should (equal (let ((inhibit-message noninteractive))
+                     (ert-simulate-keys "nick:sesame@localhost:6667\r\r\r\r"
+                       (let ((current-prefix-arg '(4)))
+                         (erc-select-read-args))))
                    (list :server "localhost"
                          :port 6667
                          :nick "nick"
@@ -3213,7 +3229,8 @@
 
 (ert-deftest erc-tls ()
   (let (calls env)
-    (cl-letf (((symbol-function 'user-login-name)
+    (cl-letf ((inhibit-message noninteractive)
+              ((symbol-function 'user-login-name)
                (lambda (&optional _) "tester"))
               ((symbol-function 'erc-open)
                (lambda (&rest r)
@@ -3329,7 +3346,8 @@
 
 (ert-deftest erc--interactive ()
   (let (calls env)
-    (cl-letf (((symbol-function 'user-login-name)
+    (cl-letf ((inhibit-message noninteractive)
+              ((symbol-function 'user-login-name)
                (lambda (&optional _) "tester"))
               ((symbol-function 'erc-open)
                (lambda (&rest r)
@@ -3365,7 +3383,8 @@
 
 (ert-deftest erc-server-select ()
   (let (calls env)
-    (cl-letf (((symbol-function 'user-login-name)
+    (cl-letf ((inhibit-message noninteractive)
+              ((symbol-function 'user-login-name)
                (lambda (&optional _) "tester"))
               ((symbol-function 'erc-open)
                (lambda (&rest r)

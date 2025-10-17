@@ -558,6 +558,7 @@
            (erc-server-current-nick "tester")
            (erc-networks--id (erc-networks--id-create nil))
            (erc-session-port 6697)
+           (inhibit-message noninteractive)
            (search (erc-services-tests--wrap-search
                     #'erc-nickserv-get-password)))
 
