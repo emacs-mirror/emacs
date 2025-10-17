@@ -38,6 +38,8 @@
     "Enter your password: "             ; python3 -m twine ... Bug#37636
     "Passphrase for key root@GNU.ORG: " ; plink
     "[sudo] password for user:" ; Ubuntu sudo
+    "[sudo: authenticate] Password:" ; sudo-rs
+    "[su: authenticate] Password:" ; su-rs
     "[sudo] user 的密码：" ; localized
     "doas (user@host) password:" ; OpenBSD doas
     "PIN for user:"        ; Bug#35523

@@ -852,11 +852,19 @@ as the @option{rsh} method.
 @cindex method @option{su}
 @cindex @option{su} method
 @item @option{su}
+@cindex method @option{surs}
+@cindex @option{surs} method
+@item @option{surs}
 
 Instead of connecting to a remote host, @command{su} program allows
 editing as another user.  The host can be either @samp{localhost} or
 the host returned by the function @command{(system-name)}.
 @xref{Multi-hops}, for an exception to this behavior.
+
+Method @option{surs} is the same like method @option{su}, but it uses
+the modern @command{su-rs} program.  It can be used instead wherever
+method @option{su} is mentioned in this manual.  @option{surs} is an
+optional method, @pxref{Optional methods}.
 
 @cindex method @option{androidsu}
 @cindex @option{androidsu} method
@@ -876,6 +884,9 @@ default on @code{android} systems only.
 @cindex method @option{sudo}
 @cindex @option{sudo} method
 @item @option{sudo}
+@cindex method @option{sudors}
+@cindex @option{sudors} method
+@item @option{sudors}
 
 Similar to @option{su} method, @option{sudo} uses @command{sudo}.
 @command{sudo} must have sufficient rights to start a shell.
@@ -883,6 +894,11 @@ Similar to @option{su} method, @option{sudo} uses @command{sudo}.
 For security reasons, a @option{sudo} connection is disabled after a
 predefined timeout (5 minutes by default).  This can be changed,
 @pxref{Predefined connection information}.
+
+Method @option{sudors} is the same like method @option{sudo}, but it
+uses the modern @command{sudo-rs} program.  It can be used instead
+wherever method @option{sudo} is mentioned in this manual.
+@option{sudors} is an optional method, @pxref{Optional methods}.
 
 @cindex method @option{doas}
 @cindex @option{doas} method

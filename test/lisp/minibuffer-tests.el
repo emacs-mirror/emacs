@@ -345,7 +345,34 @@
   (should (equal
            (let ((completion-ignore-case t))
              (completion-pcm-try-completion "a" '("ABC" "ABD") nil 1))
-           '("AB" . 2))))
+           '("AB" . 2)))
+  ;; Even when the text isn't growing.
+  (should (equal
+           (let ((completion-ignore-case t))
+             (completion-pcm-try-completion "ab" '("ABC" "ABD") nil 2))
+           '("AB" . 2)))
+  ;; Or when point is in the middle of the region changing case.
+  (should (equal
+           (let ((completion-ignore-case t))
+             (completion-pcm-try-completion "ab" '("ABC" "ABD") nil 1))
+           '("AB" . 2)))
+  ;; Even when the existing minibuffer contents has mixed case.
+  (should (equal
+           (let ((completion-ignore-case t))
+             (completion-pcm-try-completion "Ab" '("ABC" "ABD") nil 1))
+           '("AB" . 2)))
+  ;; But not if the completions don't actually all have the same case.
+  (should (equal
+           (let ((completion-ignore-case t))
+             (completion-pcm-try-completion "Ab" '("abc" "ABD") nil 1))
+           '("Ab" . 2)))
+  ;; We don't change case if it doesn't match all of the completions, though.
+  (should (equal
+           (let ((completion-ignore-case t)) (try-completion "a" '("ax" "Ay")))
+           "a"))
+  (should (equal
+           (let ((completion-ignore-case t)) (try-completion "a" '("Ay" "ax")))
+           "a")))
 
 (ert-deftest completion-substring-test-1 ()
   ;; One third of a match!
@@ -409,6 +436,15 @@
   (should (equal
            (completion-pcm--merge-try '("a" prefix "b") '("axb" "ayb") "" "")
            '("ab" . 2)))
+  ;; Letter-casing from the completions on the common prefix is still applied.
+  (should (equal
+           (let ((completion-ignore-case t))
+             (completion-pcm--merge-try '("a" prefix "b") '("Axb" "Ayb") "" ""))
+           '("Ab" . 2)))
+  (should (equal
+           (let ((completion-ignore-case t))
+             (completion-pcm--merge-try '("a" prefix "b") '("AAxb" "AAyb") "" ""))
+           '("Ab" . 2)))
   ;; substring completion should successfully complete the entire string
   (should (equal
            (completion-substring-try-completion "b" '("ab" "ab") nil 0)

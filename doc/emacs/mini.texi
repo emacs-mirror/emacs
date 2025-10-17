@@ -897,13 +897,15 @@ minibuffer, replacing its existing contents.  Typing @kbd{M-n}
 list in the opposite direction, fetching later entries into the
 minibuffer.
 
+@cindex future history
   If you type @kbd{M-n} in the minibuffer when there are no later
 entries in the minibuffer history (e.g., if you haven't previously
 typed @kbd{M-p}), Emacs tries fetching from a list of default
 arguments: values that you are likely to enter.  You can think of this
-as moving through the ``future history''.
+as moving through the @dfn{future history}.  Searching forward through
+minibuffer history (@pxref{Isearch Minibuffer}) includes the ``future
+history'' as well.
 
-@cindex future history for file names
 @cindex minibuffer defaults for file names
 @vindex file-name-at-point-functions
   The ``future history'' for file names includes several possible

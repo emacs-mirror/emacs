@@ -7442,8 +7442,7 @@ implementations: `python-mode' and `python-ts-mode'."
   (derived-mode-add-parents 'python-ts-mode '(python-mode)))
 
 ;;;###autoload
-(when (and (fboundp 'treesit-available-p) (treesit-available-p)
-           (boundp 'treesit-major-mode-remap-alist)) ; Emacs 31.1
+(when (boundp 'treesit-major-mode-remap-alist) ; Emacs 31.1
   (add-to-list 'treesit-major-mode-remap-alist
                '(python-mode . python-ts-mode)))
 

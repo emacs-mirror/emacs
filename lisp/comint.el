@@ -408,7 +408,8 @@ This variable is buffer-local."
       "Vault" "SSH" "BECOME"
       "Enter Auth" "enter auth" "Old" "old" "New" "new" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
-      "[sudo]" "doas" "Repeat" "Bad" "Retype" "Verify")
+      "[sudo]" "[sudo: authenticate]" "[su: authenticate]"
+      "doas" "Repeat" "Bad" "Retype" "Verify")
     t)
    ;; Allow for user name to precede password equivalent (Bug#31075).
    " +.*\\)"

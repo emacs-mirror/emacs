@@ -650,11 +650,9 @@ and @var{pairs} to @code{define-keymap}, and uses the result as the
 default value for the variable.  It signals an error if there are
 duplicate key bindings in @var{pairs}.
 
-@var{options} is like the keywords in @code{define-keymap}, but
-there's an additional @code{:doc} keyword that provides the doc
-string for the defined variable.
-
-Here's an example:
+@var{options} is mostly like the keywords in @code{define-keymap}.
+There's an additional @code{:doc} keyword that provides the doc string
+for the defined variable.  Here's an example:
 
 @lisp
 (defvar-keymap eww-textarea-map
@@ -662,6 +660,24 @@ Here's an example:
   :doc "Keymap for the eww text area."
   "RET" #'forward-line
   "TAB" #'shr-next-link)
+@end lisp
+
+The @code{:prefix} keyword can take an additional value, @code{t}, which
+is an abbreviation for using @var{name} as the value of that option.
+I.e. instead of writing
+
+@lisp
+(defvar-keymap foo-map
+  :prefix 'foo-map
+  ...)
+@end lisp
+
+you can write
+
+@lisp
+(defvar-keymap foo-map
+  :prefix t
+  ...)
 @end lisp
 
 @kindex :repeat

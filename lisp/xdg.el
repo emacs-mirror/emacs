@@ -372,8 +372,7 @@ an absolute file name of a readable file.
 Results are cached in `xdg-mime-table'."
   (pcase-let ((`(,type ,subtype) (split-string mime "/"))
               (xdg-data-dirs (xdg-data-dirs))
-              (caches (xdg-mime-apps-files))
-              (files ()))
+              (caches (xdg-mime-apps-files)))
     (let ((mtim1 (get 'xdg-mime-table 'mtime))
           (mtim2 (cl-loop for f in caches when (file-readable-p f)
                           maximize (float-time
@@ -382,20 +381,21 @@ Results are cached in `xdg-mime-table'."
       ;; If one of the MIME/Desktop cache files has been modified:
       (when (or (null mtim1) (time-less-p mtim1 mtim2))
         (setq xdg-mime-table nil)))
-    (when (null (assoc type xdg-mime-table))
-      (push (cons type (make-hash-table :test #'equal)) xdg-mime-table))
-    (if (let ((table (cdr (assoc type xdg-mime-table))))
-          (hash-table-contains-p subtype table))
-        files
-      (and files (setq files nil))
-      (let ((dirs (mapcar (lambda (dir) (expand-file-name "applications" dir))
-                          (cons (xdg-data-home) xdg-data-dirs))))
-        ;; Not being particular about desktop IDs
-        (dolist (f (nreverse (xdg-mime-collect-associations mime caches)))
-          (push (locate-file f dirs) files))
-        (when files
-          (put 'xdg-mime-table 'mtime (current-time)))
-        (puthash subtype (delq nil files) (cdr (assoc type xdg-mime-table)))))))
+    (let ((table (cdr (or (assoc type xdg-mime-table)
+                          (let ((p (cons type (make-hash-table :test #'equal))))
+                            (push p xdg-mime-table)
+                            p)))))
+      (if (hash-table-contains-p subtype table)
+          (gethash subtype table)
+        (let ((files ())
+              (dirs (mapcar (lambda (dir) (expand-file-name "applications" dir))
+                            (cons (xdg-data-home) xdg-data-dirs))))
+          ;; Not being particular about desktop IDs
+          (dolist (f (nreverse (xdg-mime-collect-associations mime caches)))
+            (push (locate-file f dirs) files))
+          (when files
+            (put 'xdg-mime-table 'mtime (current-time)))
+          (puthash subtype (delq nil files) table))))))
 
 
 ;; Unofficial extension from systemd.

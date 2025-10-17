@@ -769,16 +769,22 @@ and all `time-stamp-format' compatibility."
                         (eq cur-char ?X)) ;full system name, experimental
 	            (system-name))
 	           ))
-            (and (numberp field-result)
-                 (= colon-cnt 0)
-                 (or (string-equal field-width "")
-                     (string-equal field-width "0"))
-                 ;; no width provided; set width for default
-                 (setq field-width "02"))
-	    (format (format "%%%s%c"
-			    field-width
-			    (if (numberp field-result) ?d ?s))
-                    (or field-result "")))))) ;end of handle-one-conversion
+            (if (numberp field-result)
+                (progn
+                  (and (= colon-cnt 0)
+                       (or (string-equal field-width "")
+                           (string-equal field-width "0"))
+                       ;; no width provided; set width for default
+                       (setq field-width "02"))
+	          (format (format "%%%sd" field-width)
+                          (or field-result "")))
+              (let* ((field-width-num (string-to-number field-width))
+                     (needed-padding (- field-width-num
+                                        (string-width (or field-result "")))))
+                (if (> needed-padding 0)
+                    (concat (make-string needed-padding ?\s) field-result)
+                  field-result)))
+            )))) ;end of handle-one-conversion
     ;; iterate over the format string
     (while (< ind fmt-len)
       (setq cur-char (aref format ind))

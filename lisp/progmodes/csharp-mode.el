@@ -784,340 +784,349 @@ compilation and evaluation time conflicts."
   (if (csharp-ts-mode--test-method-declaration-type-field)
       'type: 'returns:))
 
-(defvar csharp-ts-mode--font-lock-settings
-  (treesit-font-lock-rules
-   :language 'c-sharp
-   :feature 'expression
-   '((conditional_expression (identifier) @font-lock-variable-use-face)
-     (postfix_unary_expression (identifier)* @font-lock-variable-use-face)
-     (initializer_expression (assignment_expression left: (identifier) @font-lock-property-use-face))
-     (anonymous_object_creation_expression
-      (identifier) @font-lock-property-use-face
-      (identifier) @font-lock-variable-use-face)
-     (anonymous_object_creation_expression
-      (identifier) @font-lock-property-use-face
-      [(object_creation_expression)
-       (integer_literal)
-       (string_literal)
-       (binary_expression)
-       (invocation_expression)
-       (member_access_expression)
-       (conditional_expression)])
-     (interpolated_string_expression
-      (interpolation
-       (identifier) @font-lock-variable-use-face))
-     (interpolated_string_expression
-      (interpolation
-       (member_access_expression
-        name: (identifier) @font-lock-property-use-face)))
-     ((interpolated_string_expression
-       (interpolation
-        (member_access_expression
-         expression: (identifier) @font-lock-variable-use-face)))
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
-     ((element_access_expression (identifier) @font-lock-variable-use-face)
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
-     ((element_access_expression (identifier) @font-lock-variable-use-face)
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
-     ((return_statement (identifier) @font-lock-variable-use-face)
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
-     ((return_statement (member_access_expression
-                         expression: (identifier) @font-lock-variable-use-face))
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
-     ((is_pattern_expression
-       expression: (identifier) @font-lock-variable-use-face)
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
-     ((is_pattern_expression
-       expression: (member_access_expression
-                    expression: (identifier) @font-lock-variable-use-face))
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
-     (is_pattern_expression
-      expression: (member_access_expression
-                   name: (identifier) @font-lock-property-use-face))
-     (is_pattern_expression
-      pattern: (constant_pattern (identifier) @font-lock-type-face))
-     (is_pattern_expression
-      pattern: (constant_pattern (member_access_expression
-                                  name: (identifier) @font-lock-type-face)))
-     ((binary_expression
-       left: (identifier) @font-lock-variable-use-face)
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
-     ((binary_expression
-       right: (identifier) @font-lock-variable-use-face)
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
-     (assignment_expression
-      right: (identifier) @font-lock-variable-use-face)
-     (expression_statement ;; capture parent node to NOT shadow variable_declaration.
-      (assignment_expression
-       left: (identifier) @font-lock-variable-use-face))
-     (if_statement condition: (identifier) @font-lock-variable-use-face)
+(defvar csharp-ts-mode--font-lock-settings-cached nil
+  "Cached tree-sitter font-lock settings for `csharp-ts-mode'.")
 
-     ;; handle more specific matchers before generalized variable-use fallback.
-     (invocation_expression
-      function: (member_access_expression
-                 name: (identifier) @font-lock-function-call-face))
-     (invocation_expression
-      function: (member_access_expression
-                 name: (generic_name (identifier) @font-lock-function-call-face)))
-     (member_access_expression
-      expression: (identifier) @font-lock-variable-use-face
-      name: (identifier) @font-lock-property-use-face))
+(defun csharp-ts-mode--font-lock-settings ()
+  "Return tree-sitter font-lock settings for `csharp-ts-mode'.
 
-   :language 'c-sharp
-   :feature 'bracket
-   '((["(" ")" "[" "]" "{" "}" (interpolation_brace)]) @font-lock-bracket-face)
+Tree-sitter font-lock settings are evaluated the first time this
+function is called.  Subsequent calls return the first evaluated value."
+  (or csharp-ts-mode--font-lock-settings-cached
+      (setq csharp-ts-mode--font-lock-settings-cached
+            (treesit-font-lock-rules
+             :language 'c-sharp
+             :feature 'expression
+             '((conditional_expression (identifier) @font-lock-variable-use-face)
+               (postfix_unary_expression (identifier)* @font-lock-variable-use-face)
+               (initializer_expression (assignment_expression left: (identifier) @font-lock-property-use-face))
+               (anonymous_object_creation_expression
+                (identifier) @font-lock-property-use-face
+                (identifier) @font-lock-variable-use-face)
+               (anonymous_object_creation_expression
+                (identifier) @font-lock-property-use-face
+                [(object_creation_expression)
+                 (integer_literal)
+                 (string_literal)
+                 (binary_expression)
+                 (invocation_expression)
+                 (member_access_expression)
+                 (conditional_expression)])
+               (interpolated_string_expression
+                (interpolation
+                 (identifier) @font-lock-variable-use-face))
+               (interpolated_string_expression
+                (interpolation
+                 (member_access_expression
+                  name: (identifier) @font-lock-property-use-face)))
+               ((interpolated_string_expression
+                 (interpolation
+                  (member_access_expression
+                   expression: (identifier) @font-lock-variable-use-face)))
+                (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+               ((element_access_expression (identifier) @font-lock-variable-use-face)
+                (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+               ((element_access_expression (identifier) @font-lock-variable-use-face)
+                (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+               ((return_statement (identifier) @font-lock-variable-use-face)
+                (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+               ((return_statement (member_access_expression
+                                   expression: (identifier) @font-lock-variable-use-face))
+                (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+               ((is_pattern_expression
+                 expression: (identifier) @font-lock-variable-use-face)
+                (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+               ((is_pattern_expression
+                 expression: (member_access_expression
+                              expression: (identifier) @font-lock-variable-use-face))
+                (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+               (is_pattern_expression
+                expression: (member_access_expression
+                             name: (identifier) @font-lock-property-use-face))
+               (is_pattern_expression
+                pattern: (constant_pattern (identifier) @font-lock-type-face))
+               (is_pattern_expression
+                pattern: (constant_pattern (member_access_expression
+                                            name: (identifier) @font-lock-type-face)))
+               ((binary_expression
+                 left: (identifier) @font-lock-variable-use-face)
+                (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+               ((binary_expression
+                 right: (identifier) @font-lock-variable-use-face)
+                (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+               (assignment_expression
+                right: (identifier) @font-lock-variable-use-face)
+               (expression_statement ;; capture parent node to NOT shadow variable_declaration.
+                (assignment_expression
+                 left: (identifier) @font-lock-variable-use-face))
+               (if_statement condition: (identifier) @font-lock-variable-use-face)
 
-   :language 'c-sharp
-   :feature 'delimiter
-   '((["," ":" ";"]) @font-lock-delimiter-face)
-
-   :language 'c-sharp
-   :feature 'error
-   '((ERROR) @font-lock-warning-face)
-
-   :language 'c-sharp
-   :override t
-   :feature 'comment
-   '((comment) @font-lock-comment-face)
-
-   :language 'c-sharp
-   :override t
-   :feature 'keyword
-   `([,@csharp-ts-mode--keywords] @font-lock-keyword-face
-     (modifier) @font-lock-keyword-face
-     ,@(if (csharp-ts-mode--test-this-expression)
-           '((this_expression) @font-lock-keyword-face)
-         '("this" @font-lock-keyword-face))
-
-     ;; avoid fontifying indentifiers with a keyword-values as identifiers.
-     ((identifier) @font-lock-keyword-face
-      (:match ,(concat "\\`" (regexp-opt csharp-ts-mode--keywords t) "\\'") @font-lock-keyword-face)))
-
-   :language 'c-sharp
-   :override t
-   :feature 'attribute
-   `((attribute_list
-      "[" @csharp-ts-mode-attribute-face
-      (attribute name: (identifier) @csharp-ts-mode-attribute-face)
-      "]" @csharp-ts-mode-attribute-face))
-
-   :language 'c-sharp
-   :override t
-   :feature 'escape-sequence
-   '((escape_sequence) @font-lock-escape-face)
-
-   :language 'c-sharp
-   :override t
-   :feature 'literal
-   `((integer_literal) @font-lock-number-face
-     (real_literal) @font-lock-number-face
-     (null_literal) @font-lock-constant-face
-     (boolean_literal) @font-lock-constant-face)
-
-   :language 'c-sharp
-   :feature 'string
-   `([(string_literal)
-      (verbatim_string_literal)
-      ,@ (when (csharp-ts-mode--test-string-content)
-           '((string_content)
-             "\""))
-      ,@(if (csharp-ts-mode--test-interpolated-string-text)
-            '((interpolated_string_text)
-              (interpolated_verbatim_string_text)
-              (character_literal)
-              "\""
-              "$\""
-              "@$\""
-              "$@\"")
-          '((interpolation_start)
-            (interpolation_quote)))]
-     @font-lock-string-face)
-
-   :language 'c-sharp
-   :feature 'type
-   `((predefined_type) @font-lock-type-face
-     (implicit_type) @font-lock-type-face
-     (nullable_type) @font-lock-type-face
-     (type_parameter
-      (identifier) @font-lock-type-face)
-     (type_argument_list
-      (identifier) @font-lock-type-face)
-     (type_argument_list
-      (generic_name
-       (identifier) @font-lock-type-face))
-     (base_list
-      (generic_name
-       (identifier) @font-lock-type-face))
-     (array_type
-      (identifier) @font-lock-type-face)
-     (qualified_name
-      name: (generic_name (identifier) @font-lock-type-face))
-     (cast_expression (identifier) @font-lock-type-face)
-     (cast_expression (generic_name (identifier) @font-lock-type-face))
-     ["operator"] @font-lock-type-face
-     (type_parameter_constraints_clause
-      (identifier) @font-lock-type-face)
-     ,@(if (csharp-ts-mode--test-type-constraint)
-           '((type_constraint type: (identifier) @font-lock-type-face)
-             (type_constraint type: (generic_name (identifier) @font-lock-type-face)))
-         '((type_parameter_constraint (type type: (identifier) @font-lock-type-face))
-           (type_parameter_constraint (type type: (generic_name (identifier) @font-lock-type-face)))))
-
-     ,@(when (csharp-ts-mode--test-type-of-expression)
-         '((type_of_expression (identifier) @font-lock-type-face)))
-
-     ,@(when (csharp-ts-mode--test-typeof-expression)
-         '((typeof_expression (identifier) @font-lock-type-face)))
-
-     (object_creation_expression
-      type: (identifier) @font-lock-type-face)
-     (object_creation_expression
-      type: (generic_name (identifier) @font-lock-type-face))
-     (as_expression right: (identifier) @font-lock-type-face)
-     (as_expression right: (generic_name (identifier) @font-lock-type-face)))
-
-   :language 'c-sharp
-   :feature 'definition
-   `((qualified_name (identifier) @font-lock-type-face)
-     (using_directive (identifier) @font-lock-type-face)
-     ,@(when (csharp-ts-mode--test-name-equals)
-         '((using_directive (name_equals
-                             (identifier) @font-lock-type-face))))
-
-     (enum_declaration (identifier) @font-lock-type-face)
-     (enum_member_declaration (identifier) @font-lock-variable-name-face)
-     (field_declaration (variable_declaration (variable_declarator
-        name: (identifier) @font-lock-variable-name-face)))
-
-     (interface_declaration (identifier) @font-lock-type-face)
-
-     (struct_declaration (identifier) @font-lock-type-face)
-
-     (record_declaration (identifier) @font-lock-type-face)
-     (namespace_declaration (identifier) @font-lock-type-face)
-     (base_list (identifier) @font-lock-type-face)
-     (property_declaration
-      type: (nullable_type) @font-lock-type-face
-      name: (identifier) @font-lock-variable-name-face)
-     (property_declaration
-      type: (predefined_type) @font-lock-type-face
-      name: (identifier) @font-lock-variable-name-face)
-     (property_declaration
-      type: (identifier) @font-lock-type-face
-      name: (identifier) @font-lock-variable-name-face)
-     (class_declaration (identifier) @font-lock-type-face)
-
-     (constructor_declaration name: (_) @font-lock-type-face)
-     ;;; Handle different releases of tree-sitter-c-sharp.
-     ;;; Check if keyword void_keyword is available, then return the correct rule."
-     ,@(condition-case nil
-           (progn (treesit-query-capture 'csharp '((void_keyword) @capture))
-                  `((method_declaration ,csharp-ts-mode--type-field [(identifier) (void_keyword)] @font-lock-type-face)))
-         (error
-          `((method_declaration ,csharp-ts-mode--type-field [(identifier) (predefined_type)] @font-lock-type-face))))
-     (method_declaration ,csharp-ts-mode--type-field (generic_name (identifier) @font-lock-type-face))
-     (method_declaration name: (_) @font-lock-function-name-face)
-
-     ;; only fontify known expression-types, to avoid the need to use :override
-     ;; for lambda-expressions in 'function below.
-     (variable_declarator
-      name: (identifier) @font-lock-variable-name-face
-      [(object_creation_expression)
-       (integer_literal)
-       (string_literal)
-       (binary_expression)
-       (invocation_expression)
-       (member_access_expression)
-       (conditional_expression)])
-
-     (catch_declaration
-      ((identifier) @font-lock-type-face))
-     (catch_declaration
-      ((identifier) @font-lock-type-face
-       (identifier) @font-lock-variable-name-face))
-
-     (variable_declaration (identifier) @font-lock-type-face)
-     (variable_declaration (qualified_name
-                            name: (generic_name (identifier) @font-lock-type-face)))
-     (variable_declaration (generic_name (identifier) @font-lock-type-face))
-
-     (parameter type: (identifier) @font-lock-type-face)
-     (parameter type: (generic_name (identifier) @font-lock-type-face))
-     (parameter name: (identifier) @font-lock-variable-name-face)
-
-     (lambda_expression (identifier) @font-lock-variable-name-face)
-     (lambda_expression
-      parameters: (implicit_parameter) @font-lock-variable-name-face)
-
-     (declaration_expression type: (identifier) @font-lock-type-face)
-     (declaration_expression name: (identifier) @font-lock-variable-name-face))
-
-   :language 'c-sharp
-   :feature 'function
-   '((invocation_expression
-      function: (identifier) @font-lock-function-call-face)
-     ((invocation_expression
-       function: (member_access_expression
-                  expression: (identifier) @font-lock-variable-use-face))
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
-     (argument (identifier) @font-lock-variable-use-face)
-     ((argument (member_access_expression
-                 expression: (identifier) @font-lock-variable-use-face))
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
-     (argument (member_access_expression
+               ;; handle more specific matchers before generalized variable-use fallback.
+               (invocation_expression
+                function: (member_access_expression
+                           name: (identifier) @font-lock-function-call-face))
+               (invocation_expression
+                function: (member_access_expression
+                           name: (generic_name (identifier) @font-lock-function-call-face)))
+               (member_access_expression
+                expression: (identifier) @font-lock-variable-use-face
                 name: (identifier) @font-lock-property-use-face))
-     ;; only highlight as function if variable contains lambda expression
-     (variable_declarator
-      name: (identifier) @font-lock-function-name-face
-      (lambda_expression)))
 
-   :language 'c-sharp
-   :feature 'escape-sequence
-   :override t
-   '((escape_sequence) @font-lock-escape-face)
+             :language 'c-sharp
+             :feature 'bracket
+             '((["(" ")" "[" "]" "{" "}" (interpolation_brace)]) @font-lock-bracket-face)
 
-   :language 'c-sharp
-   :feature 'directives
-   :override t
-   (if (csharp-ts-mode--test-if-directive)
-       '((if_directive
-          "if" @font-lock-preprocessor-face
-          (identifier) @font-lock-variable-use-face)
-         (elif_directive
-          "elif" @font-lock-preprocessor-face
-          (identifier) @font-lock-variable-use-face)
-         (else_directive) @font-lock-preprocessor-face
-         (endif_directive) @font-lock-preprocessor-face
-         (define_directive
-          "define" @font-lock-preprocessor-face
-          (identifier) @font-lock-variable-use-face)
-         (nullable_directive) @font-lock-preprocessor-face
-         (pragma_directive) @font-lock-preprocessor-face
-         (region_directive) @font-lock-preprocessor-face
-         (endregion_directive) @font-lock-preprocessor-face
-         (region_directive
-          (preproc_message) @font-lock-variable-use-face)
-         (endregion_directive
-          (preproc_message) @font-lock-variable-use-face))
-     '((preproc_if
-        "#if" @font-lock-preprocessor-face
-        (identifier) @font-lock-variable-use-face)
-       (preproc_elif
-        "#elif" @font-lock-preprocessor-face
-        (identifier) @font-lock-variable-use-face)
-       (preproc_else) @font-lock-preprocessor-face
-       "#endif" @font-lock-preprocessor-face
-       (preproc_define
-        "#define" @font-lock-preprocessor-face
-        (preproc_arg) @font-lock-variable-use-face)
-       (preproc_nullable) @font-lock-preprocessor-face
-       (preproc_pragma) @font-lock-preprocessor-face
-       (preproc_region) @font-lock-preprocessor-face
-       (preproc_endregion) @font-lock-preprocessor-face
-       (preproc_region
-        (preproc_arg) @font-lock-variable-use-face)
-       (preproc_endregion
-        (preproc_arg) @font-lock-variable-use-face)))))
+             :language 'c-sharp
+             :feature 'delimiter
+             '((["," ":" ";"]) @font-lock-delimiter-face)
+
+             :language 'c-sharp
+             :feature 'error
+             '((ERROR) @font-lock-warning-face)
+
+             :language 'c-sharp
+             :override t
+             :feature 'comment
+             '((comment) @font-lock-comment-face)
+
+             :language 'c-sharp
+             :override t
+             :feature 'keyword
+             `([,@csharp-ts-mode--keywords] @font-lock-keyword-face
+               (modifier) @font-lock-keyword-face
+               ,@(if (csharp-ts-mode--test-this-expression)
+                     '((this_expression) @font-lock-keyword-face)
+                   '("this" @font-lock-keyword-face))
+
+               ;; avoid fontifying indentifiers with a keyword-values as identifiers.
+               ((identifier) @font-lock-keyword-face
+                (:match ,(concat "\\`" (regexp-opt csharp-ts-mode--keywords t) "\\'") @font-lock-keyword-face)))
+
+             :language 'c-sharp
+             :override t
+             :feature 'attribute
+             `((attribute_list
+                "[" @csharp-ts-mode-attribute-face
+                (attribute name: (identifier) @csharp-ts-mode-attribute-face)
+                "]" @csharp-ts-mode-attribute-face))
+
+             :language 'c-sharp
+             :override t
+             :feature 'escape-sequence
+             '((escape_sequence) @font-lock-escape-face)
+
+             :language 'c-sharp
+             :override t
+             :feature 'literal
+             `((integer_literal) @font-lock-number-face
+               (real_literal) @font-lock-number-face
+               (null_literal) @font-lock-constant-face
+               (boolean_literal) @font-lock-constant-face)
+
+             :language 'c-sharp
+             :feature 'string
+             `([(string_literal)
+                (verbatim_string_literal)
+                ,@ (when (csharp-ts-mode--test-string-content)
+                     '((string_content)
+                       "\""))
+                ,@(if (csharp-ts-mode--test-interpolated-string-text)
+                      '((interpolated_string_text)
+                        (interpolated_verbatim_string_text)
+                        (character_literal)
+                        "\""
+                        "$\""
+                        "@$\""
+                        "$@\"")
+                    '((interpolation_start)
+                      (interpolation_quote)))]
+               @font-lock-string-face)
+
+             :language 'c-sharp
+             :feature 'type
+             `((predefined_type) @font-lock-type-face
+               (implicit_type) @font-lock-type-face
+               (nullable_type) @font-lock-type-face
+               (type_parameter
+                (identifier) @font-lock-type-face)
+               (type_argument_list
+                (identifier) @font-lock-type-face)
+               (type_argument_list
+                (generic_name
+                 (identifier) @font-lock-type-face))
+               (base_list
+                (generic_name
+                 (identifier) @font-lock-type-face))
+               (array_type
+                (identifier) @font-lock-type-face)
+               (qualified_name
+                name: (generic_name (identifier) @font-lock-type-face))
+               (cast_expression (identifier) @font-lock-type-face)
+               (cast_expression (generic_name (identifier) @font-lock-type-face))
+               ["operator"] @font-lock-type-face
+               (type_parameter_constraints_clause
+                (identifier) @font-lock-type-face)
+               ,@(if (csharp-ts-mode--test-type-constraint)
+                     '((type_constraint type: (identifier) @font-lock-type-face)
+                       (type_constraint type: (generic_name (identifier) @font-lock-type-face)))
+                   '((type_parameter_constraint (type type: (identifier) @font-lock-type-face))
+                     (type_parameter_constraint (type type: (generic_name (identifier) @font-lock-type-face)))))
+
+               ,@(when (csharp-ts-mode--test-type-of-expression)
+                   '((type_of_expression (identifier) @font-lock-type-face)))
+
+               ,@(when (csharp-ts-mode--test-typeof-expression)
+                   '((typeof_expression (identifier) @font-lock-type-face)))
+
+               (object_creation_expression
+                type: (identifier) @font-lock-type-face)
+               (object_creation_expression
+                type: (generic_name (identifier) @font-lock-type-face))
+               (as_expression right: (identifier) @font-lock-type-face)
+               (as_expression right: (generic_name (identifier) @font-lock-type-face)))
+
+             :language 'c-sharp
+             :feature 'definition
+             `((qualified_name (identifier) @font-lock-type-face)
+               (using_directive (identifier) @font-lock-type-face)
+               ,@(when (csharp-ts-mode--test-name-equals)
+                   '((using_directive (name_equals
+                                       (identifier) @font-lock-type-face))))
+
+               (enum_declaration (identifier) @font-lock-type-face)
+               (enum_member_declaration (identifier) @font-lock-variable-name-face)
+               (field_declaration (variable_declaration (variable_declarator
+                                                         name: (identifier) @font-lock-variable-name-face)))
+
+               (interface_declaration (identifier) @font-lock-type-face)
+
+               (struct_declaration (identifier) @font-lock-type-face)
+
+               (record_declaration (identifier) @font-lock-type-face)
+               (namespace_declaration (identifier) @font-lock-type-face)
+               (base_list (identifier) @font-lock-type-face)
+               (property_declaration
+                type: (nullable_type) @font-lock-type-face
+                name: (identifier) @font-lock-variable-name-face)
+               (property_declaration
+                type: (predefined_type) @font-lock-type-face
+                name: (identifier) @font-lock-variable-name-face)
+               (property_declaration
+                type: (identifier) @font-lock-type-face
+                name: (identifier) @font-lock-variable-name-face)
+               (class_declaration (identifier) @font-lock-type-face)
+
+               (constructor_declaration name: (_) @font-lock-type-face)
+               ;; Handle different releases of tree-sitter-c-sharp.
+               ;; Check if keyword void_keyword is available, then return the correct rule."
+               ,@(condition-case nil
+                     (progn (treesit-query-capture 'csharp '((void_keyword) @capture))
+                            `((method_declaration ,csharp-ts-mode--type-field [(identifier) (void_keyword)] @font-lock-type-face)))
+                   (error
+                    `((method_declaration ,csharp-ts-mode--type-field [(identifier) (predefined_type)] @font-lock-type-face))))
+               (method_declaration ,csharp-ts-mode--type-field (generic_name (identifier) @font-lock-type-face))
+               (method_declaration name: (_) @font-lock-function-name-face)
+
+               ;; only fontify known expression-types, to avoid the need to use :override
+               ;; for lambda-expressions in 'function below.
+               (variable_declarator
+                name: (identifier) @font-lock-variable-name-face
+                [(object_creation_expression)
+                 (integer_literal)
+                 (string_literal)
+                 (binary_expression)
+                 (invocation_expression)
+                 (member_access_expression)
+                 (conditional_expression)])
+
+               (catch_declaration
+                ((identifier) @font-lock-type-face))
+               (catch_declaration
+                ((identifier) @font-lock-type-face
+                 (identifier) @font-lock-variable-name-face))
+
+               (variable_declaration (identifier) @font-lock-type-face)
+               (variable_declaration (qualified_name
+                                      name: (generic_name (identifier) @font-lock-type-face)))
+               (variable_declaration (generic_name (identifier) @font-lock-type-face))
+
+               (parameter type: (identifier) @font-lock-type-face)
+               (parameter type: (generic_name (identifier) @font-lock-type-face))
+               (parameter name: (identifier) @font-lock-variable-name-face)
+
+               (lambda_expression (identifier) @font-lock-variable-name-face)
+               (lambda_expression
+                parameters: (implicit_parameter) @font-lock-variable-name-face)
+
+               (declaration_expression type: (identifier) @font-lock-type-face)
+               (declaration_expression name: (identifier) @font-lock-variable-name-face))
+
+             :language 'c-sharp
+             :feature 'function
+             '((invocation_expression
+                function: (identifier) @font-lock-function-call-face)
+               ((invocation_expression
+                 function: (member_access_expression
+                            expression: (identifier) @font-lock-variable-use-face))
+                (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+               (argument (identifier) @font-lock-variable-use-face)
+               ((argument (member_access_expression
+                           expression: (identifier) @font-lock-variable-use-face))
+                (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+               (argument (member_access_expression
+                          name: (identifier) @font-lock-property-use-face))
+               ;; only highlight as function if variable contains lambda expression
+               (variable_declarator
+                name: (identifier) @font-lock-function-name-face
+                (lambda_expression)))
+
+             :language 'c-sharp
+             :feature 'escape-sequence
+             :override t
+             '((escape_sequence) @font-lock-escape-face)
+
+             :language 'c-sharp
+             :feature 'directives
+             :override t
+             (if (csharp-ts-mode--test-if-directive)
+                 '((if_directive
+                    "if" @font-lock-preprocessor-face
+                    (identifier) @font-lock-variable-use-face)
+                   (elif_directive
+                    "elif" @font-lock-preprocessor-face
+                    (identifier) @font-lock-variable-use-face)
+                   (else_directive) @font-lock-preprocessor-face
+                   (endif_directive) @font-lock-preprocessor-face
+                   (define_directive
+                    "define" @font-lock-preprocessor-face
+                    (identifier) @font-lock-variable-use-face)
+                   (nullable_directive) @font-lock-preprocessor-face
+                   (pragma_directive) @font-lock-preprocessor-face
+                   (region_directive) @font-lock-preprocessor-face
+                   (endregion_directive) @font-lock-preprocessor-face
+                   (region_directive
+                    (preproc_message) @font-lock-variable-use-face)
+                   (endregion_directive
+                    (preproc_message) @font-lock-variable-use-face))
+               '((preproc_if
+                  "#if" @font-lock-preprocessor-face
+                  (identifier) @font-lock-variable-use-face)
+                 (preproc_elif
+                  "#elif" @font-lock-preprocessor-face
+                  (identifier) @font-lock-variable-use-face)
+                 (preproc_else) @font-lock-preprocessor-face
+                 "#endif" @font-lock-preprocessor-face
+                 (preproc_define
+                  "#define" @font-lock-preprocessor-face
+                  (preproc_arg) @font-lock-variable-use-face)
+                 (preproc_nullable) @font-lock-preprocessor-face
+                 (preproc_pragma) @font-lock-preprocessor-face
+                 (preproc_region) @font-lock-preprocessor-face
+                 (preproc_endregion) @font-lock-preprocessor-face
+                 (preproc_region
+                  (preproc_arg) @font-lock-variable-use-face)
+                 (preproc_endregion
+                  (preproc_arg) @font-lock-variable-use-face)))))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
@@ -1245,7 +1254,7 @@ Key bindings:
   (setq-local treesit-defun-name-function #'csharp-ts-mode--defun-name)
 
   ;; Font-lock.
-  (setq-local treesit-font-lock-settings csharp-ts-mode--font-lock-settings)
+  (setq-local treesit-font-lock-settings (csharp-ts-mode--font-lock-settings))
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
                 ( keyword string type directives)
@@ -1278,8 +1287,7 @@ Key bindings:
 (derived-mode-add-parents 'csharp-ts-mode '(csharp-mode))
 
 ;;;###autoload
-(when (treesit-available-p)
-  (defvar treesit-major-mode-remap-alist)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(csharp-mode . csharp-ts-mode)))
 

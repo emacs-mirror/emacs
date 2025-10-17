@@ -237,135 +237,143 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
        'font-lock-constant-face override
        start end))))
 
-(defvar java-ts-mode--font-lock-settings
-  (treesit-font-lock-rules
-   :language 'java
-   :override t
-   :feature 'comment
-   `((line_comment) @font-lock-comment-face
-     (block_comment) @font-lock-comment-face)
-   :language 'java
-   :override t
-   :feature 'keyword
-   `([,@java-ts-mode--keywords
-      (this)
-      (super)] @font-lock-keyword-face
-      (labeled_statement
-       (identifier) @font-lock-keyword-face))
-   :language 'java
-   :override t
-   :feature 'operator
-   `([,@java-ts-mode--operators] @font-lock-operator-face
-     "@" @font-lock-constant-face)
-   :language 'java
-   :override t
-   :feature 'annotation
-   `((annotation
-      name: (identifier) @font-lock-constant-face)
+(defvar java-ts-mode--font-lock-settings-cached nil
+  "Cached tree-sitter font-lock settings for `java-ts-mode'.")
 
-     (marker_annotation
-      name: (identifier) @font-lock-constant-face))
-   :language 'java
-   :override t
-   :feature 'string
-   (java-ts-mode--string-highlight-helper)
-   :language 'java
-   :override t
-   :feature 'literal
-   `((null_literal) @font-lock-constant-face
-     (binary_integer_literal)  @font-lock-number-face
-     (decimal_integer_literal) @font-lock-number-face
-     (hex_integer_literal) @font-lock-number-face
-     (octal_integer_literal) @font-lock-number-face
-     (decimal_floating_point_literal) @font-lock-number-face
-     (hex_floating_point_literal) @font-lock-number-face)
-   :language 'java
-   :override t
-   :feature 'type
-   '((annotation_type_declaration
-      name: (identifier) @font-lock-type-face)
+(defun java-ts-mode--font-lock-settings ()
+  "Return tree-sitter font-lock settings for `java-ts-mode'.
 
-     (interface_declaration
-      name: (identifier) @font-lock-type-face)
+Tree-sitter font-lock settings are evaluated the first time this
+function is called.  Subsequent calls return the first evaluated value."
+  (or java-ts-mode--font-lock-settings-cached
+      (setq java-ts-mode--font-lock-settings-cached
+            (treesit-font-lock-rules
+             :language 'java
+             :override t
+             :feature 'comment
+             `((line_comment) @font-lock-comment-face
+               (block_comment) @font-lock-comment-face)
+             :language 'java
+             :override t
+             :feature 'keyword
+             `([,@java-ts-mode--keywords
+                (this)
+                (super)] @font-lock-keyword-face
+                (labeled_statement
+                 (identifier) @font-lock-keyword-face))
+             :language 'java
+             :override t
+             :feature 'operator
+             `([,@java-ts-mode--operators] @font-lock-operator-face
+               "@" @font-lock-constant-face)
+             :language 'java
+             :override t
+             :feature 'annotation
+             `((annotation
+                name: (identifier) @font-lock-constant-face)
 
-     (class_declaration
-      name: (identifier) @font-lock-type-face)
+               (marker_annotation
+                name: (identifier) @font-lock-constant-face))
+             :language 'java
+             :override t
+             :feature 'string
+             (java-ts-mode--string-highlight-helper)
+             :language 'java
+             :override t
+             :feature 'literal
+             `((null_literal) @font-lock-constant-face
+               (binary_integer_literal)  @font-lock-number-face
+               (decimal_integer_literal) @font-lock-number-face
+               (hex_integer_literal) @font-lock-number-face
+               (octal_integer_literal) @font-lock-number-face
+               (decimal_floating_point_literal) @font-lock-number-face
+               (hex_floating_point_literal) @font-lock-number-face)
+             :language 'java
+             :override t
+             :feature 'type
+             '((annotation_type_declaration
+                name: (identifier) @font-lock-type-face)
 
-     (record_declaration
-      name: (identifier) @font-lock-type-face)
+               (interface_declaration
+                name: (identifier) @font-lock-type-face)
 
-     (enum_declaration
-      name: (identifier) @font-lock-type-face)
+               (class_declaration
+                name: (identifier) @font-lock-type-face)
 
-     (constructor_declaration
-      name: (identifier) @font-lock-type-face)
+               (record_declaration
+                name: (identifier) @font-lock-type-face)
 
-     (compact_constructor_declaration
-      name: (identifier) @font-lock-type-face)
+               (enum_declaration
+                name: (identifier) @font-lock-type-face)
 
-     (field_access
-      object: (identifier) @font-lock-type-face)
+               (constructor_declaration
+                name: (identifier) @font-lock-type-face)
 
-     (method_reference (identifier) @font-lock-type-face)
+               (compact_constructor_declaration
+                name: (identifier) @font-lock-type-face)
 
-     (scoped_identifier (identifier) @font-lock-constant-face)
+               (field_access
+                object: (identifier) @font-lock-type-face)
 
-     ((scoped_identifier name: (identifier) @font-lock-type-face)
-      (:match "\\`[A-Z]" @font-lock-type-face))
+               (method_reference (identifier) @font-lock-type-face)
 
-     (type_identifier) @font-lock-type-face
+               (scoped_identifier (identifier) @font-lock-constant-face)
 
-     [(boolean_type)
-      (integral_type)
-      (floating_point_type)
-      (void_type)] @font-lock-type-face)
-   :language 'java
-   :override t
-   :feature 'definition
-   `((annotation_type_element_declaration
-      name: (identifier) @font-lock-function-name-face)
+               ((scoped_identifier name: (identifier) @font-lock-type-face)
+                (:match "\\`[A-Z]" @font-lock-type-face))
 
-     (method_declaration
-      name: (identifier) @font-lock-function-name-face)
+               (type_identifier) @font-lock-type-face
 
-     (variable_declarator
-      name: (identifier) @font-lock-variable-name-face)
+               [(boolean_type)
+                (integral_type)
+                (floating_point_type)
+                (void_type)] @font-lock-type-face)
+             :language 'java
+             :override t
+             :feature 'definition
+             `((annotation_type_element_declaration
+                name: (identifier) @font-lock-function-name-face)
 
-     (element_value_pair
-      key: (identifier) @font-lock-property-use-face)
+               (method_declaration
+                name: (identifier) @font-lock-function-name-face)
 
-     (formal_parameter
-      name: (identifier) @font-lock-variable-name-face)
+               (variable_declarator
+                name: (identifier) @font-lock-variable-name-face)
 
-     (catch_formal_parameter
-      name: (identifier) @font-lock-variable-name-face))
-   :language 'java
-   :override t
-   :feature 'expression
-   '((method_invocation
-      object: (identifier) @font-lock-variable-use-face)
+               (element_value_pair
+                key: (identifier) @font-lock-property-use-face)
 
-     (method_invocation
-      name: (identifier) @font-lock-function-call-face)
+               (formal_parameter
+                name: (identifier) @font-lock-variable-name-face)
 
-     (argument_list (identifier) @font-lock-variable-name-face)
+               (catch_formal_parameter
+                name: (identifier) @font-lock-variable-name-face))
+             :language 'java
+             :override t
+             :feature 'expression
+             '((method_invocation
+                object: (identifier) @font-lock-variable-use-face)
 
-     (expression_statement (identifier) @font-lock-variable-use-face))
-   ;; Make sure the constant feature is after expression and definition,
-   ;; because those two applies variable-name-face on some constants.
-   :language 'java
-   :override t
-   :feature 'constant
-   `((identifier) @java-ts-mode--fontify-constant
-     [(true) (false)] @font-lock-constant-face)
-   :language 'java
-   :feature 'bracket
-   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+               (method_invocation
+                name: (identifier) @font-lock-function-call-face)
 
-   :language 'java
-   :feature 'delimiter
-   '((["," ":" ";"]) @font-lock-delimiter-face))
-  "Tree-sitter font-lock settings for `java-ts-mode'.")
+               (argument_list (identifier) @font-lock-variable-name-face)
+
+               (expression_statement (identifier) @font-lock-variable-use-face))
+             ;; Make sure the constant feature is after expression and definition,
+             ;; because those two applies variable-name-face on some constants.
+             :language 'java
+             :override t
+             :feature 'constant
+             `((identifier) @java-ts-mode--fontify-constant
+               [(true) (false)] @font-lock-constant-face)
+             :language 'java
+             :feature 'bracket
+             '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+
+             :language 'java
+             :feature 'delimiter
+             '((["," ":" ";"]) @font-lock-delimiter-face)))))
 
 (defun java-ts-mode--defun-name (node)
   "Return the defun name of NODE.
@@ -488,7 +496,7 @@ Return nil if there is no name or if NODE is not a defun node."
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
-                java-ts-mode--font-lock-settings)
+                (java-ts-mode--font-lock-settings))
 
     ;; Inject doxygen parser for comment.
     (when (and java-ts-mode-enable-doxygen
@@ -525,8 +533,7 @@ Return nil if there is no name or if NODE is not a defun node."
 (derived-mode-add-parents 'java-ts-mode '(java-mode))
 
 ;;;###autoload
-(when (treesit-available-p)
-  (defvar treesit-major-mode-remap-alist)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(java-mode . java-ts-mode)))
 

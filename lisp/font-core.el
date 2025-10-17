@@ -44,8 +44,10 @@ comments) is not performed.
 If CASE-FOLD is non-nil, the case of the keywords is ignored when fontifying.
 
 If SYNTAX-ALIST is non-nil, it should be a list of cons pairs of the form
-\(CHAR-OR-STRING . STRING) used to set the local Font Lock syntax table, for
-keyword and syntactic fontification (see `modify-syntax-entry').
+\(CHAR-OR-STRING . STRING) used to modify the syntax table used during Font
+Lock  (see `modify-syntax-entry').
+For performance reasons, if `syntax-ppss-table' is not set, make sure the
+changes described by SYNTAX-ALIST cannot affect syntactic fontification.
 
 These item elements are used by Font Lock mode to set the variables
 `font-lock-keywords', `font-lock-keywords-only',
