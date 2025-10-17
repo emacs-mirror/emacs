@@ -356,12 +356,6 @@ enum
   IGC_ALIGN_DFLT = IGC_ALIGN,
 };
 
-static bool
-is_pure (const mps_addr_t addr)
-{
-  return false;
-}
-
 static enum pvec_type
 pseudo_vector_type (const struct Lisp_Vector *v)
 {
@@ -749,8 +743,8 @@ static unsigned alloc_hash (void);
 static size_t igc_round (size_t nbytes, size_t align);
 
 /* Called throughout Emacs to initialize the GC header of an object
-   which does not live in GC-managed memory, such as pure objects and
-   builtin symbols.  */
+   which does not live in GC-managed memory, such as a builtin
+   symbol.  */
 void gc_init_header (union gc_header *header, enum igc_obj_type type)
 {
   struct igc_header *h = (struct igc_header *) header;
@@ -5319,37 +5313,6 @@ builtin_obj_type_and_hash (size_t *hash, enum igc_obj_type type, void *client)
   emacs_abort ();
 }
 
-static enum igc_obj_type
-pure_obj_type_and_hash (size_t *hash_o, enum igc_obj_type type, void *client)
-{
-  switch (type)
-    {
-    case IGC_OBJ_STRING:
-      *hash_o = igc_hash (make_lisp_ptr (client, Lisp_String));
-      return type;
-
-    case IGC_OBJ_VECTOR:
-      *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Vectorlike));
-      return type;
-
-    case IGC_OBJ_CONS:
-      *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Cons));
-      return type;
-
-    case IGC_OBJ_STRING_DATA:
-      *hash_o = (uintptr_t) client & IGC_HEADER_HASH_MASK;
-      return type;
-
-    case IGC_OBJ_FLOAT:
-      *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Float));
-      return type;
-
-    default:
-      IGC_NOT_IMPLEMENTED ();
-      emacs_abort ();
-    }
-}
-
 /* Called from the dumper at the end of dumping an object.  This
    function is responsible for filling out the igc_header of the dumped
    object.  CLIENT points to the object being dumped.  TYPE is the type
@@ -5407,9 +5370,7 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
   size_t client_size = end - base;
   size_t nbytes = alloc_size (client_size);
   size_t hash;
-  type = (is_pure (client)
-	  ? pure_obj_type_and_hash (&hash, type, client)
-	  : builtin_obj_type_and_hash (&hash, type, client));
+  type = builtin_obj_type_and_hash (&hash, type, client);
   set_header (out, type, nbytes, hash);
   return base + nbytes;
 }
