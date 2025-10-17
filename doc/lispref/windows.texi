@@ -7426,20 +7426,23 @@ temporarily current.
 
 If you are using the buffer-local version of this hook, you may want to
 discern the case where the buffer was removed from a window from the
-case where the buffer is now shown in that window.  Let @code{window}
-denote the window argument passed to a function on this hook: To detect
-the case where the buffer was removed from @code{window} use the idiom
+case where the buffer is now shown in that window.  If @var{window}
+denotes the window argument passed to a function on this hook, then to
+detect the case where the buffer was removed from @var{window} use the
+idiom
 
 @example
-(eq (window-old-buffer window) (current-buffer))
+(eq (window-old-buffer @var{window}) (current-buffer))
 @end example
 
-while to detect whether the buffer is now shown in @code{window} use
+@noindent
+while to detect whether the buffer is now shown in @var{window} use
 
 @example
-(eq (window-buffer window) (current-buffer))
+(eq (window-buffer @var{window}) (current-buffer))
 @end example
 
+@noindent
 instead.
 
 Functions specified by the default value are called for a frame if at
