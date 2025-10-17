@@ -1310,9 +1310,14 @@
              do (ft--check-entry w k1 v1 k2 v2))
     (should (= (length expected) (length actual)))))
 
-(defun ft--gc ()
+(defun ft--gc (weakness)
   (cond ((fboundp 'igc--collect)
-         (igc--collect))
+         (igc--collect)
+         (cl-ecase weakness
+           (key-or-value
+            (igc--process-messages)
+            (igc--collect))
+           ((key value key-and-value))))
         (t
          (garbage-collect))))
 
@@ -1326,7 +1331,7 @@
          (table (make-hash-table :weakness weakness))
          (f (lambda () (ft--populate-hashtable table (ft--nentries))))
          (pairs (thread-join (make-thread f))))
-    (ft--gc)
+    (ft--gc weakness)
     (ft--check-entries table pairs)))
 
 (ert-deftest ft-weak-key-removal () (ft--test-weak-removal 'key))
