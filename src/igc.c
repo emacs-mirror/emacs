@@ -1248,15 +1248,13 @@ fix_raw (mps_ss_t ss, mps_addr_t *p)
     mps_addr_t addr = *p;
     if (addr == NULL)
       return MPS_RES_OK;
-    if (is_aligned (addr))
+    igc_assert (is_aligned (addr));
+    if (MPS_FIX1 (ss, addr))
       {
-	if (MPS_FIX1 (ss, addr))
-	  {
-	    mps_res_t res = MPS_FIX2 (ss, &addr);
-	    if (res != MPS_RES_OK)
-	      return res;
-	    *p = addr;
-	  }
+	mps_res_t res = MPS_FIX2 (ss, &addr);
+	if (res != MPS_RES_OK)
+	  return res;
+	*p = addr;
       }
   }
   MPS_SCAN_END (ss);
@@ -1273,19 +1271,17 @@ fix_wrapped_vec (mps_ss_t ss, mps_addr_t *p)
     mps_addr_t addr = *p;
     if (addr == NULL)
       return MPS_RES_OK;
-    if (is_aligned (addr))
+    igc_assert (is_aligned (addr));
+    addr = (char *) addr - sizeof (struct Lisp_Vector);
+    if (MPS_FIX1 (ss, addr))
       {
-	addr = (char *) addr - sizeof (struct Lisp_Vector);
-	if (MPS_FIX1 (ss, addr))
-	  {
-	    mps_res_t res = MPS_FIX2 (ss, &addr);
-	    if (res != MPS_RES_OK)
-	      return res;
-	    if (addr == NULL)
-	      *p = NULL;
-	    else
-	      *p = (char *) addr + sizeof (struct Lisp_Vector);
-	  }
+	mps_res_t res = MPS_FIX2 (ss, &addr);
+	if (res != MPS_RES_OK)
+	  return res;
+	if (addr == NULL)
+	  *p = NULL;
+	else
+	  *p = (char *) addr + sizeof (struct Lisp_Vector);
       }
   }
   MPS_SCAN_END (ss);
@@ -1302,19 +1298,17 @@ fix_wrapped_bytes (mps_ss_t ss, mps_addr_t *p)
     mps_addr_t addr = *p;
     if (addr == NULL)
       return MPS_RES_OK;
-    if (is_aligned (addr))
+    igc_assert (is_aligned (addr));
+    addr = (char *) addr - sizeof (struct Lisp_String_Data);
+    if (MPS_FIX1 (ss, addr))
       {
-	addr = (char *) addr - sizeof (struct Lisp_String_Data);
-	if (MPS_FIX1 (ss, addr))
-	  {
-	    mps_res_t res = MPS_FIX2 (ss, &addr);
-	    if (res != MPS_RES_OK)
-	      return res;
-	    if (addr == NULL)
-	      *p = NULL;
-	    else
-	      *p = (char *) addr + sizeof (struct Lisp_String_Data);
-	  }
+	mps_res_t res = MPS_FIX2 (ss, &addr);
+	if (res != MPS_RES_OK)
+	  return res;
+	if (addr == NULL)
+	  *p = NULL;
+	else
+	  *p = (char *) addr + sizeof (struct Lisp_String_Data);
       }
   }
   MPS_SCAN_END (ss);
