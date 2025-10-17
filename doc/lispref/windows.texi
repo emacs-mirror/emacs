@@ -7424,6 +7424,24 @@ once for the buffer currently shown in the window.  In either case the
 window is passed as argument and the respective buffer is made
 temporarily current.
 
+If you are using the buffer-local version of this hook, you may want to
+discern the case where the buffer was removed from a window from the
+case where the buffer is now shown in that window.  Let @code{window}
+denote the window argument passed to a function on this hook: To detect
+the case where the buffer was removed from @code{window} use the idiom
+
+@example
+(eq (window-old-buffer window) (current-buffer))
+@end example
+
+while to detect whether the buffer is now shown in @code{window} use
+
+@example
+(eq (window-buffer window) (current-buffer))
+@end example
+
+instead.
+
 Functions specified by the default value are called for a frame if at
 least one window on that frame has been added, deleted or assigned
 another buffer since the last time window change functions were run.
