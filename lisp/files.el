@@ -1445,13 +1445,9 @@ Tip: You can use this expansion of remote identifier components
 
 ;; Probably this entire variable should be obsolete now, in favor of
 ;; something Tramp-related (?).  It is not used in many places.
-;; It's not clear what the best file for this to be in is, but given
-;; it uses custom-initialize-delay, it is easier if it is preloaded
-;; rather than autoloaded.
-(defcustom remote-shell-program (or (executable-find "ssh") "ssh")
+(defcustom remote-shell-program "ssh"
   "Program to use to execute commands on a remote host (i.e. ssh)."
-  :version "29.1"
-  :initialize #'custom-initialize-delay
+  :version "31.1"
   :group 'environment
   :type 'file)
 
@@ -7216,23 +7212,24 @@ preserve markers and overlays, at the price of being slower."
 The arguments IGNORE-AUTO and NOCONFIRM are as described for `revert-buffer'.
 Runs the hooks `before-revert-hook' and `after-revert-hook' at the
 start and end.
-The function returns non-nil if it reverts the buffer; signals
-an error if the buffer is not associated with a file.
+The function returns non-nil if it reverts the buffer, and signals an
+error if the buffer is not associated with a file.
 
 Calls `revert-buffer-insert-file-contents-function' to reread the
 contents of the visited file, with two arguments: the first is the file
 name, the second is non-nil if reading an auto-save file.
 
 This function handles only buffers that are visiting files.
-Non-file buffers need a custom function."
+Non-file buffers need a custom `revert-buffer-function'; see
+`revert-buffer'."
   (with-current-buffer (or (buffer-base-buffer (current-buffer))
                            (current-buffer))
     (let* ((auto-save-p (and (not ignore-auto)
                              (recent-auto-save-p)
                              buffer-auto-save-file-name
                              (file-readable-p buffer-auto-save-file-name)
-                             (y-or-n-p
-                              "Buffer has been auto-saved recently.  Revert from auto-save file? ")))
+                             (y-or-n-p "Buffer has been auto-saved recently.  \
+Revert from auto-save file? ")))
            (file-name (if auto-save-p
                           buffer-auto-save-file-name
                         buffer-file-name)))
@@ -7258,8 +7255,8 @@ Non-file buffers need a custom function."
              ;; Effectively copy the after-revert-hook status,
              ;; since after-find-file will clobber it.
              (let ((global-hook (default-value 'after-revert-hook))
-                   (local-hook (when (local-variable-p 'after-revert-hook)
-                                 after-revert-hook))
+                   (local-hook (and (local-variable-p 'after-revert-hook)
+                                    after-revert-hook))
                    (inhibit-read-only t))
                ;; FIXME: Throw away undo-log when preserve-modes is nil?
                (funcall
@@ -7274,8 +7271,7 @@ Non-file buffers need a custom function."
                ;; Run after-revert-hook as it was before we reverted.
                (setq-default revert-buffer-internal-hook global-hook)
                (if local-hook
-                   (setq-local revert-buffer-internal-hook
-                        local-hook)
+                   (setq-local revert-buffer-internal-hook local-hook)
                  (kill-local-variable 'revert-buffer-internal-hook))
                (run-hooks 'revert-buffer-internal-hook))
              t)))))

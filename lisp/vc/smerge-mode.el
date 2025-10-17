@@ -126,7 +126,7 @@ Used in `smerge-diff-base-upper' and related functions."
     (((class color) (min-colors 88) (background light))
      :background "#ffbbbb")
     (((class color) (min-colors 88) (background dark))
-     :background "#aa2222")
+     :background "#882222")
     (t :inverse-video t))
   "Face used for removed characters shown by `smerge-refine'."
   :version "24.3")
@@ -137,7 +137,7 @@ Used in `smerge-diff-base-upper' and related functions."
     (((class color) (min-colors 88) (background light))
      :background "#aaffaa")
     (((class color) (min-colors 88) (background dark))
-     :background "#22aa22")
+     :background "#228822")
     (t :inverse-video t))
   "Face used for added characters shown by `smerge-refine'."
   :version "24.3")

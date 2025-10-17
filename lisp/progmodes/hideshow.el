@@ -338,7 +338,7 @@ size."
            :face hs-indicator-hide
            :height (0.6 . em)
            :ascent center)
-    (symbol "🞃" "▼" :face hs-indicator-hide)
+    (symbol "▾" "▼" :face hs-indicator-hide)
     (text "-" :face hs-indicator-hide))
   "Icon used for hide block at point.
 This is only used if `hs-indicator-type' is set to `margin' or nil."
@@ -413,10 +413,12 @@ whitespace.  Case does not matter.")
 (defvar hs-hide-all-non-comment-function nil
   "Function called if non-nil when doing `hs-hide-all' for non-comments.")
 
-(defvar hs-allow-nesting nil
+(defcustom hs-allow-nesting nil
   "If non-nil, hiding remembers internal blocks.
 This means that when the outer block is shown again,
-any previously hidden internal blocks remain hidden.")
+any previously hidden internal blocks remain hidden."
+  :type 'boolean
+  :version "31.1")
 
 (defvar hs-hide-hook nil
   "Hook called (with `run-hooks') at the end of commands to hide text.
@@ -623,12 +625,10 @@ Skip \"internal\" overlays if `hs-allow-nesting' is non-nil."
 (defun hs-hideable-region-p (beg end)
   "Return t if region in BEG and END can be hidden."
   ;; Check if BEG and END are not in the same line number,
-  ;; since using `count-lines' is slow, only check if both
-  ;; positions do not share the same BOL.
+  ;; since using `count-lines' is slow.
   (save-excursion
-    (let ((pos1 (progn (goto-char beg) (line-beginning-position)))
-          (pos2 (progn (goto-char end) (line-beginning-position))))
-      (and (< pos1 pos2) (not (= pos1 pos2))))))
+    (let ((pos2 (progn (goto-char end) (line-beginning-position))))
+      (< beg pos2))))
 
 (defun hs-make-overlay (b e kind &optional b-offset e-offset)
   "Return a new overlay in region defined by B and E with type KIND.
@@ -734,10 +734,12 @@ point."
              'keymap hs-indicators-map))
            ;; EOL string
            ('nil
-            (propertize
-             (icon-string face-or-icon)
-             'mouse-face 'highlight
-             'keymap hs-indicators-map))))))))
+            (concat
+             (propertize " " 'cursor t)
+             (propertize
+              (icon-string face-or-icon)
+              'mouse-face 'highlight
+              'keymap hs-indicators-map)))))))))
 
 (defun hs--add-indicators (&optional beg end)
   "Add hideable indicators from BEG to END."
@@ -885,19 +887,19 @@ The block beginning is adjusted by `hs-adjust-block-beginning'
 and then further adjusted to be at the end of the line."
   (if comment-reg
       (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
-    (let* ((block (hs-block-positions))
-           (p (car-safe block))
-           (q (cdr-safe block))
-           ov)
-      (if (hs-hideable-region-p p q)
-          (progn
-            (cond ((and hs-allow-nesting (setq ov (hs-overlay-at p)))
-                   (delete-overlay ov))
-                  ((not hs-allow-nesting)
-                   (hs-discard-overlays p q)))
-            (goto-char q)
-            (hs-make-overlay p q 'code (- (match-end 0) p)))
-        (goto-char (if end q (min p (match-end 0))))))))
+    (when-let* ((block (hs-block-positions)))
+      (let ((p (car-safe block))
+            (q (cdr-safe block))
+            ov)
+        (if (hs-hideable-region-p p q)
+            (progn
+              (cond ((and hs-allow-nesting (setq ov (hs-overlay-at p)))
+                     (delete-overlay ov))
+                    ((not hs-allow-nesting)
+                     (hs-discard-overlays p q)))
+              (goto-char q)
+              (hs-make-overlay p q 'code (- (match-end 0) p)))
+          (goto-char (if end q (min p (match-end 0)))))))))
 
 (defun hs-inside-comment-p ()
   "Return non-nil if point is inside a comment, otherwise nil.

@@ -126,12 +126,16 @@ Global Auto-Revert Mode does so in all buffers."
 
 ;; Variables:
 
-(defvar auto-revert-mode nil
+;; These two variables are defined here in addition to within the
+;; `define-minor-mode' forms below because the modes are mutually
+;; self-referential.
+
+(defvar-local auto-revert-mode nil
   "Non-nil when Auto-Revert Mode is active.
 Never set this variable directly, use the command `auto-revert-mode' instead.")
 (put 'auto-revert-mode 'permanent-local t)
 
-(defvar auto-revert-tail-mode nil
+(defvar-local auto-revert-tail-mode nil
   "Non-nil when Auto-Revert Tail Mode is active.
 Never set this variable directly, use the command
 `auto-revert-tail-mode' instead.")

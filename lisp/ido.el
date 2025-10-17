@@ -3305,7 +3305,7 @@ instead removed from the current item list."
                            name))
                        (split-string
                         (shell-command-to-string
-                         (concat "find "
+                         (concat find-program " "
                                  (shell-quote-argument dir)
                                  (if ido-case-fold " -iname " " -name ")
                                  (shell-quote-argument

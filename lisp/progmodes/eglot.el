@@ -306,6 +306,7 @@ automatically)."
      . ,(eglot-alternatives '("digestif" "texlab")))
     (erlang-mode . ("erlang_ls" "--transport" "stdio"))
     ((yaml-ts-mode yaml-mode) . ("yaml-language-server" "--stdio"))
+    ((toml-ts-mode conf-toml-mode) . ("tombi" "lsp"))
     (nix-mode . ,(eglot-alternatives '("nil" "rnix-lsp" "nixd")))
     (nickel-mode . ("nls"))
     ((nushell-mode nushell-ts-mode) . ("nu" "--lsp"))

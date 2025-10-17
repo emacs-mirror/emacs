@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.10.0
+@subtitle for version 0.10.1
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.10.0.
+This manual is for Transient version 0.10.1.
 
 @insertcopying
 @end ifnottex

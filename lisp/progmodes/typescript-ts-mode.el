@@ -735,10 +735,9 @@ is t or contains the mode name."
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
-  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(typescript-mode . typescript-ts-mode)))
 
@@ -872,10 +871,9 @@ is t or contains the mode name."
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
-  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(tsx-mode . tsx-ts-mode)))
 

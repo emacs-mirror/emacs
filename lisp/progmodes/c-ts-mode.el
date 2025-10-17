@@ -1468,7 +1468,7 @@ To use tree-sitter C/C++ modes by default, evaluate
     (add-to-list \\='major-mode-remap-alist
                  \\='(c-or-c++-mode . c-or-c++-ts-mode))
 
-in your init files."
+in your init files, or customize `treesit-enabled-modes'."
   :group 'c
   :after-hook (c-ts-mode-set-modeline)
 
@@ -1543,7 +1543,7 @@ To use tree-sitter C/C++ modes by default, evaluate
     (add-to-list \\='major-mode-remap-alist
                  \\='(c-or-c++-mode . c-or-c++-ts-mode))
 
-in your init files.
+in your init files, or customize `treesit-enabled-modes'.
 
 Since this mode uses a parser, unbalanced brackets might cause
 some breakage in indentation/fontification.  Therefore, it's
@@ -1674,8 +1674,7 @@ the code is C or C++, and based on that chooses whether to enable
     (funcall (major-mode-remap mode))))
 
 ;;;###autoload
-(when (treesit-available-p)
-  (defvar treesit-major-mode-remap-alist)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(c-mode . c-ts-mode))
   (add-to-list 'treesit-major-mode-remap-alist

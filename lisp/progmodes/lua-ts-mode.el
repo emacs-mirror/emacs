@@ -773,8 +773,7 @@ Calls REPORT-FN directly."
 (derived-mode-add-parents 'lua-ts-mode '(lua-mode))
 
 ;;;###autoload
-(when (treesit-available-p)
-  (defvar treesit-major-mode-remap-alist)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(lua-mode . lua-ts-mode)))
 

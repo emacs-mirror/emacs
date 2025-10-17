@@ -157,10 +157,6 @@ messages are highlighted; this helps to see what messages were visited."
   nil
   "Overlay highlighting the current error message in the `next-error' buffer.")
 
-(defvar global-minor-modes nil
-  "A list of the currently enabled global minor modes.
-This is a list of symbols.")
-
 (defcustom next-error-hook nil
   "List of hook functions run by `next-error' after visiting source file."
   :type 'hook
@@ -4719,13 +4715,16 @@ impose the use of a shell (with its need to quote arguments)."
                           (bufferp output-buffer)
                           (stringp output-buffer)
                           (error "Asynchronous shell commands cannot output to current buffer")))
+                   ;; Remove the ampersand and test if the command is
+                   ;; not empty before creating a new buffer.
+                   (command (substring command 0 (match-beginning 0)))
+                   (_ (or (not (string= command ""))
+                          (error "Empty asynchronous command")))
                    (buffer (get-buffer-create
                             (or output-buffer shell-command-buffer-name-async)))
                    (bname (buffer-name buffer))
                    (proc (get-buffer-process buffer))
                    (directory default-directory))
-	      ;; Remove the ampersand.
-	      (setq command (substring command 0 (match-beginning 0)))
 	      ;; Ask the user what to do with already running process.
 	      (when proc
 		(cond

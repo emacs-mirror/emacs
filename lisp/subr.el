@@ -2728,6 +2728,9 @@ Affects only hooks run in the current buffer."
                 binding))
             bindings)))
 
+;; FIXME: Once Emacs 29 is ancient history we can consider a
+;; byte-compiler warning.  This is because Emacs 29 and older will warn
+;; about unused variables with (_ VALUEFORM).
 (defmacro if-let* (varlist then &rest else)
   "Bind variables according to VARLIST and evaluate THEN or ELSE.
 Evaluate each binding in turn, as in `let*', stopping if a
@@ -2735,12 +2738,18 @@ binding value is nil.  If all are non-nil return the value of
 THEN, otherwise the value of the last form in ELSE, or nil if
 there are none.
 
-Each element of VARLIST is a list (SYMBOL VALUEFORM) that binds
-SYMBOL to the value of VALUEFORM.  An element can additionally be
-of the form (VALUEFORM), which is evaluated and checked for nil;
-i.e. SYMBOL can be omitted if only the test result is of
-interest.  It can also be of the form SYMBOL, then the binding of
-SYMBOL is checked for nil."
+Each element of VARLIST is a list (SYMBOL VALUEFORM) that binds SYMBOL
+to the value of VALUEFORM.  If only the test result is of interest, use
+`_' as SYMBOL, i.e. (_ VALUEFORM), in which case VALUEFORM is evaluated
+and checked for nil but the result is not bound.
+An element of VARLIST can also be of the form SYMBOL, in which case the
+binding of SYMBOL is checked for nil, only.
+
+An older form for entries of VARLIST is also supported, where SYMBOL is
+omitted, i.e. (VALUEFORM).  This means the same as (_ VALUEFORM).
+This form is not recommended because many programmers find it
+significantly less readable.  A future release of Emacs may introduce a
+byte-compiler warning for uses of (VALUEFORM) in VARLIST."
   (declare (indent 2)
            (debug ((&rest [&or symbolp (symbolp form) (form)])
                    body)))
@@ -3054,6 +3063,10 @@ though trying to avoid AVOIDED-MODES."
 					 overwrite-mode view-mode
                                          hs-minor-mode)
   "List of all minor mode functions.")
+
+(defvar global-minor-modes nil
+  "A list of the currently enabled global minor modes.
+This is a list of symbols.")
 
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
   "Register a new minor mode.

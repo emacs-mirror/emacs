@@ -522,6 +522,42 @@ The string is used in `tramp-methods'.")
   (tramp-set-completion-function "nc" tramp-completion-function-alist-telnet))
 
 ;;;###tramp-autoload
+(defun tramp-enable-surs-method ()
+  "Enable \"surs\" method."
+  (add-to-list 'tramp-methods
+               `("surs"
+                 (tramp-login-program        "su-rs")
+                 (tramp-login-args           (("-") ("%u")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-c"))
+                 (tramp-connection-timeout   10)))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "surs" eos) nil ,tramp-root-id-string))
+
+  (tramp-set-completion-function "surs" tramp-completion-function-alist-su))
+
+;;;###tramp-autoload
+(defun tramp-enable-sudors-method ()
+  "Enable \"sudors\" method."
+  (add-to-list 'tramp-methods
+               `("sudors"
+                 (tramp-login-program        "sudo-rs")
+                 (tramp-login-args           (("-u" "%u") ("-s") ("%l")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-c"))
+                 (tramp-connection-timeout   10)
+                 (tramp-session-timeout      300)
+		 (tramp-password-previous-hop t)))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "sudors" eos) nil ,tramp-root-id-string))
+
+  (tramp-set-completion-function "sudors" tramp-completion-function-alist-su))
+
+;;;###tramp-autoload
 (defun tramp-enable-run0-method ()
   "Enable \"run0\" method."
  (add-to-list 'tramp-methods
@@ -2964,7 +3000,10 @@ the result will be a local, non-Tramp, file name."
 	    ;; use a user name from the config file.
 	    (when (and (tramp-string-empty-or-nil-p uname)
 		       (string-match-p
-			(rx bos (| "su" "sudo" "doas" "run0" "ksu") eos) method))
+			(rx bos
+			    (| "su" "surs" "sudo" "sudors" "doas" "run0" "ksu")
+			    eos)
+			method))
 	      (setq uname user))
 	    (when (setq hname (tramp-get-home-directory v uname))
 	      (setq localname (concat hname fname)))))

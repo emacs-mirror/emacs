@@ -1012,7 +1012,7 @@ using `make-temp-file', and the generated name is returned."
     (while again
       (setq name (directory-file-name (file-name-directory name)))
       (condition-case nil
-	  (delete-directory name)
+	  (delete-directory name t)
 	(error nil))
       (if (string= name top) (setq again nil)))))
 ;; -------------------------------------------------------------------------
@@ -1648,6 +1648,12 @@ as a relative change like \"g+rw\" as for chmod(2)."
 (defun archive--mode-revert (orig-fun &rest args)
   (let ((no (archive-get-lineno)))
     (setq archive-files nil)
+    ;; 'orig-fun' will indirectly call 'archive-desummarize', which will
+    ;; delete the region between point-min and
+    ;; 'archive-proper-file-start'.  But the latter will be invalidated
+    ;; by 'orig-fun' (which actually reverts the buffer), so by setting
+    ;; it to 1 we prevent the damage from that deletion.
+    (setq archive-proper-file-start 1)
     (let ((coding-system-for-read 'no-conversion))
       (apply orig-fun t t (cddr args)))
     (archive-mode)
@@ -2447,7 +2453,21 @@ NAME is expected to be the 16-bytes part of an ar record."
   (unless file
     (setq file buffer-file-name))
   (let ((copy (file-local-copy file))
-        (files ()))
+        (files ())
+        to-delete)
+    ;; Similar to 'archive-maybe-copy'.
+    (unless (or (and copy (null file))
+                (file-readable-p file))
+      (setq archive-local-name
+            (archive-unique-fname (or file copy (buffer-name))
+                                  archive-tmpdir)
+            file archive-local-name
+            to-delete t)
+      (save-restriction
+        (widen)
+        (let ((coding-system-for-write 'no-conversion))
+          (write-region (point-min) (point-max)
+                        archive-local-name nil 'nomessage))))
     (with-temp-buffer
       (call-process "unsquashfs" nil t nil "-ll" (or file copy))
       (when copy
@@ -2494,6 +2514,8 @@ NAME is expected to be the 16-bytes part of an ar record."
                                       date-time :uid uid :gid gid)
                   files)))
         (goto-char (match-end 0))))
+    (if to-delete
+        (archive-delete-local archive-local-name))
     (archive--summarize-descs (nreverse files))))
 
 (defun archive-squashfs-extract-by-stdout (archive name command

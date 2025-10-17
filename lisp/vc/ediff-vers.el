@@ -152,9 +152,9 @@ With prefix argument, prompts for a revision name."
 	(setq buf2 (current-buffer)))
       (if ancestor-rev
 	  (save-excursion
-	    (if (string= ancestor-rev "")
-		(setq ancestor-rev (vc-working-revision
-                                    buffer-file-name)))
+	    (if (string-empty-p ancestor-rev)
+		(setq ancestor-rev
+                      (vc-symbolic-working-revision buffer-file-name)))
 	    (vc-revision-other-window ancestor-rev)
 	    (setq ancestor-buf (current-buffer)))))
     (if ancestor-rev

@@ -3322,11 +3322,21 @@ Font Lock mode ignores case during search-based fontification.
 
 If the fourth element, @var{syntax-alist}, is non-@code{nil}, it should
 be a list of cons cells of the form @code{(@var{char-or-string}
-. @var{string})}.  These are used to set up a syntax table for syntactic
+. @var{string})}.  These are used to set up a syntax table during
 fontification; the resulting syntax table is stored in
 @code{font-lock-syntax-table}.  If @var{syntax-alist} is omitted or
-@code{nil}, syntactic fontification uses the syntax table returned by
+@code{nil}, fontification uses the syntax table returned by
 the @code{syntax-table} function.  @xref{Syntax Table Functions}.
+
+The most common uses of @var{syntax-alist} simply change the syntax of
+a few chars from symbol constituent to word constituent so that the
+fontification rules can use regexp operators based on word boundaries.
+When @var{syntax-alist} describes more intrusive changes that can change
+what is recognized as a string or a comment, this prevents an important
+optimization in syntactic fontification, so it's better to either
+refrain from using such settings or to additionally set
+@code{syntax-ppss-table} to a non-@code{nil} value, which takes
+precedence during syntactic fontification.
 
 All the remaining elements (if any) are collectively called
 @var{other-vars}.  Each of these elements should have the form
@@ -3401,6 +3411,12 @@ Fontification will call @var{function} repeatedly with the same limit,
 and with point where the previous invocation left it, until
 @var{function} fails.  On failure, @var{function} need not reset point
 in any particular way.
+
+@var{function} can also take on the responsibility of performing the
+highlighting of the region between point and the limit argument it
+receives.  In that case, it should return @code{nil}, otherwise
+font-lock will highlight the match described by the match data
+and may call the function again with the same limit.
 
 @item (@var{matcher} . @var{subexp})
 In this kind of element, @var{matcher} is either a regular

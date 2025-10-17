@@ -26,6 +26,11 @@
 ;; This is the preloaded portion of VC.  It takes care of VC-related
 ;; activities that are done when you visit a file, so that vc.el itself
 ;; is loaded only when you use a VC command.  See commentary of vc.el.
+;;
+;; The noninteractive hooks into the rest of Emacs are:
+;; - `vc-refresh-state' in `find-file-hook'
+;; - `vc-kill-buffer-hook' in `kill-buffer-hook'
+;; - `vc-after-save' which is called by `basic-save-buffer'.
 
 ;;; Code:
 
@@ -205,7 +210,10 @@ VC commands are globally reachable under the prefix \\[vc-prefix-map]:
 \\{vc-prefix-map}"
   nil)
 
-(defvar auto-revert-mode)
+;; A compiler declaration (defvar auto-revert-mode) is not enough here
+;; because `define-globalized-minor-mode' wants to check the variable's
+;; value before causing autorevert.el to be autoloaded.
+(defvar-local auto-revert-mode nil)
 (define-globalized-minor-mode vc-auto-revert-mode auto-revert-mode
   vc-turn-on-auto-revert-mode-for-tracked-files
   :group 'vc
@@ -545,14 +553,42 @@ status of this file.  Otherwise, the value returned is one of:
 
 (defun vc-working-revision (file &optional backend)
   "Return the repository version from which FILE was checked out.
-If FILE is not registered, this function always returns nil."
+If FILE is not registered, this function always returns nil.
+
+This function does not return nil without first confirming with the
+underlying VCS that FILE is unregistered; this is in contrast to
+`vc-symbolic-working-revision'."
   (or (vc-file-getprop file 'vc-working-revision)
       (let ((default-directory (file-name-directory file)))
-        (setq backend (or backend (vc-backend file)))
-        (when backend
-          (vc-file-setprop file 'vc-working-revision
-                           (vc-call-backend
-                            backend 'working-revision file))))))
+        (and (setq backend (or backend (vc-backend file)))
+             (vc-file-setprop file 'vc-working-revision
+                              (vc-call-backend backend 'working-revision
+                                               file))))))
+
+(defun vc-symbolic-working-revision (file &optional backend)
+  "Return BACKEND's symbolic name for FILE's working revision.
+If FILE is not registered according to cached information, return nil.
+If BACKEND does not have a symbolic name for the working revision or
+Emacs doesn't know what it is, call `vc-working-revision' instead.
+
+Prefer this function to `vc-working-revision' whenever a symbolic name
+will do, for it avoids a call out to the underlying VCS."
+  ;; Returning nil if the file is unregistered (which is why we call
+  ;; `vc-backend' even if BACKEND is non-nil here) makes us closer to a
+  ;; drop-in replacement for `vc-working-revision'.  Don't actually
+  ;; query the VCS because the point of this function is to avoid such
+  ;; queries.  Code that purely wants to map BACKEND to a symbolic name
+  ;; can call the backend API function directly.
+  ;; (If we don't check whether FILE is registered, then whether this
+  ;; function is sensitive to FILE being registered depends on whether
+  ;; BACKEND implements `working-revision-symbol' (because we would be
+  ;; sensitive to whether FILE is registered if and only if we defer to
+  ;; `vc-working-revision'), which would be a strange interdependence.)
+  (and-let* ((cached-backend (vc-backend file)))
+    (let* ((backend (or backend cached-backend))
+           (fn (vc-find-backend-function backend
+                                         'working-revision-symbol)))
+      (if fn (funcall fn) (vc-working-revision file backend)))))
 
 (defvar vc-use-short-revision nil
   "If non-nil, VC backend functions should return short revisions if possible.
@@ -715,6 +751,14 @@ Before doing that, check if there are any old backups and get rid of them."
     (when vc-dir-buffers
       (vc-dir-resynch-file file))))
 
+(defun vc-after-revert ()
+  "Update VC-Dir contents after reverting a buffer from disk."
+  (when-let* (vc-dir-buffers
+              (backend (vc-backend buffer-file-name)))
+    (vc-dir-resynch-file buffer-file-name)))
+
+(add-hook 'after-revert-hook #'vc-after-revert)
+
 (defvar vc-menu-entry
   '(menu-item "Version Control" vc-menu-map
     :filter vc-menu-map-filter))
@@ -825,12 +869,13 @@ Format:
 This function assumes that the file is registered."
   (pcase-let* ((backend-name (symbol-name backend))
                (state (vc-state file backend))
-               (rev (vc-working-revision file backend))
+               (rev (vc-symbolic-working-revision file backend))
                (`(,state-echo ,face ,indicator)
                 (vc-mode-line-state state))
-               (state-string (concat (unless (eq vc-display-status 'no-backend)
-                                       backend-name)
-                                     indicator rev)))
+               (state-string
+                (concat (and (not (eq vc-display-status 'no-backend))
+                             backend-name)
+                        indicator rev)))
     (propertize state-string 'face face 'help-echo
                 (concat state-echo " under the " backend-name
                         " version control system"))))
@@ -887,9 +932,9 @@ In the latter case, VC mode is deactivated for this buffer."
 			       (not (equal buffer-file-name truename))
 			       (vc-backend truename))))
 	  (cond ((not link-type) nil)	;Nothing to do.
-		((eq vc-follow-symlinks nil)
-		 (message
-		  "Warning: symbolic link to %s-controlled source file" link-type))
+		((not vc-follow-symlinks)
+		 (message "Warning: symbolic link to %s-controlled source file"
+                          link-type))
 		((or (not (eq vc-follow-symlinks 'ask))
 		     ;; Assume we cannot ask, default to yes.
 		     noninteractive
@@ -936,6 +981,7 @@ In the latter case, VC mode is deactivated for this buffer."
 ;; in the menu because they don't exist yet when the menu is built.
 ;; (autoload 'vc-prefix-map "vc" nil nil 'keymap)
 (defvar-keymap vc-prefix-map
+  :prefix t
   "a"   #'vc-update-change-log
   "b c" #'vc-create-branch
   "b l" #'vc-print-branch-log
@@ -974,7 +1020,6 @@ In the latter case, VC mode is deactivated for this buffer."
   "w R" #'vc-move-working-tree
   "w a" #'vc-apply-to-other-working-tree
   "w A" #'vc-apply-root-to-other-working-tree)
-(fset 'vc-prefix-map vc-prefix-map)
 (define-key ctl-x-map "v" 'vc-prefix-map)
 
 (defvar-keymap vc-incoming-prefix-map
@@ -1010,11 +1055,16 @@ other commands receive global bindings where they had none before."
 
 (defvar vc-menu-map
   (let ((map (make-sparse-keymap "Version Control")))
-    ;;(define-key map [show-files]
-    ;;  '("Show Files under VC" . (vc-directory t)))
+    (define-key map [vc-revision-revert]
+                '(menu-item "Revert Revision" vc-revision-revert
+                            :help "Undo the effects of a revision"))
+    (define-key map [vc-revision-cherry-pick]
+                '(menu-item "Cherry-Pick Revision" vc-revision-cherry-pick
+                            :help "Copy the changes from a single revision to this branch"))
+    (define-key map [separator1] menu-bar-separator)
     (define-key map [vc-retrieve-tag]
-      '(menu-item "Retrieve Tag" vc-retrieve-tag
-		  :help "Retrieve tagged version or branch"))
+                '(menu-item "Retrieve Tag" vc-retrieve-tag
+		            :help "Retrieve tagged version or branch"))
     (define-key map [vc-create-tag]
       '(menu-item "Create Tag" vc-create-tag
 		  :help "Create version tag"))
@@ -1027,7 +1077,7 @@ other commands receive global bindings where they had none before."
     (define-key map [vc-create-branch]
       '(menu-item "Create Branch..." vc-create-branch
 		  :help "Make a new branch"))
-    (define-key map [separator1] menu-bar-separator)
+    (define-key map [separator2] menu-bar-separator)
     (define-key map [vc-annotate]
       '(menu-item "Annotate" vc-annotate
 		  :help "Display the edit history of the current file using colors"))
@@ -1058,7 +1108,7 @@ other commands receive global bindings where they had none before."
     (define-key map [vc-print-root-log]
       '(menu-item "Show Top of the Tree History " vc-print-root-log
 		  :help "List the change log for the current tree in a window"))
-    (define-key map [separator2] menu-bar-separator)
+    (define-key map [separator3] menu-bar-separator)
     (define-key map [vc-insert-header]
       '(menu-item "Insert Header" vc-insert-headers
 		  :help "Insert headers into a file for use with a version control system."))

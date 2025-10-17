@@ -59,15 +59,16 @@
     (fancybox "The Beqnarray environment"
      (("Beqnarray" ?e nil nil eqnarray-like)))
 
-    (floatfig "The floatingfigure environment"
-     (("floatingfigure" ?f nil nil caption)))
+    (floatflt "The floatingfigure and floatingtable environments"
+     (("floatingfigure" ?f nil nil caption)
+      ("floatingtable"  ?t nil nil caption)))
 
     (longtable   "The longtable environment"
      (("longtable"  ?t nil nil caption)))
 
     (picinpar    "The figwindow and tabwindow environments"
      (("figwindow" ?f nil nil 1)
-      ("tabwindow" ?f nil nil 1)))
+      ("tabwindow" ?t nil nil 1)))
 
     (rotating    "The sidewaysfigure and sidewaystable environments"
      (("sidewaysfigure"  ?f nil nil caption)
@@ -86,9 +87,9 @@
      ;; compat macros for the old subfigure package.  The context regexp
      ;; must match combinations of
      ;; \subfigure[list-capt.][sub-capt.]{body}
-     (("\\subfigure[][]{}" ?f "fig:" "~\\subref{%s}"
+     (("\\subfigure[][]{}" ?f "fig:" nil
        "\\\\subfigure\\(?:\\(?:\\[[^]]*\\]\\)?\\[\\|{\\)")
-      ("\\subtable[][]{}"  ?t "tab:" "~\\subref{%s}"
+      ("\\subtable[][]{}"  ?t "tab:" nil
        "\\\\subtable\\(?:\\(?:\\[[^]]*\\]\\)?\\[\\|{\\)")))
 
     (wrapfig     "The wrapfigure and wraptable environments"
@@ -458,7 +459,7 @@ If nil, `follow-mode' will be suspended for stuff in unvisited files."
   :group 'reftex-label-support)
 
 (defcustom reftex-default-label-alist-entries
-  '( amsmath endnotes fancybox floatfig longtable picinpar
+  '( amsmath endnotes fancybox floatflt longtable picinpar
      rotating sidecap subfig wrapfig
      listings minted ctable LaTeX)
   "Default label alist specifications.  LaTeX should always be the last entry.

@@ -16,4 +16,3 @@
 	     (numberp bar)))
     bar)
    (t (increase))))
-    
