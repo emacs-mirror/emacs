@@ -4084,6 +4084,13 @@ igc_process_messages (void)
   }
 }
 
+static void
+process_all_messages (void)
+{
+  while (process_one_message (global_igc))
+    ;
+}
+
 /* Discard entries for killed buffers from LIST and return the resulting
    list.  Used in window-{next,prev}-buffers.  */
 
@@ -4302,6 +4309,17 @@ DEFUN ("igc--collect", Figc__collect, Sigc__collect, 0, 0, 0,
   (void)
 {
   igc_collect ();
+  return Qnil;
+}
+
+DEFUN ("igc--process-messages", Figc__process_messages,
+       Sigc__process_messages, 0, 0, 0,
+       doc: /* Process all queued MPS messages.
+
+For internal use only. */)
+(void)
+{
+  process_all_messages ();
   return Qnil;
 }
 
@@ -5705,6 +5723,7 @@ syms_of_igc (void)
   defsubr (&Sigc_info);
   defsubr (&Sigc__roots);
   defsubr (&Sigc__collect);
+  defsubr (&Sigc__process_messages);
   defsubr (&Sigc__set_commit_limit);
   defsubr (&Sigc__set_pause_time);
   defsubr (&Sigc__add_extra_dependency);
