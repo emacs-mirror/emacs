@@ -3000,20 +3000,14 @@ root_create (struct igc *gc, void *start, void *end, mps_rank_t rank,
   return register_root (gc, root, start, end, ambig, label);
 }
 
-static bool
-word_aligned (void *ptr)
-{
-  return ((intptr_t) ptr & (sizeof (void *) - 1)) == 0;
-}
-
 static igc_root_list *
 root_create_ambig (struct igc *gc, void *start, void *end,
 		   const char *label)
 {
   /* Partial words cannot contain ambiguous references.  Ignore them.  */
-  while (!word_aligned (end))
+  while (!is_aligned (end))
     end = (char *) end - 1;
-  igc_assert (word_aligned (start));
+  igc_assert (is_aligned (start));
   igc_assert (start < end);
   return root_create (gc, start, end, mps_rank_ambig (), scan_ambig, NULL,
 		      true, label);
