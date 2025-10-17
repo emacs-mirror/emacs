@@ -2067,7 +2067,7 @@ collect_stats (struct igc_stats *st, struct igc_header *header)
 }
 
 static mps_res_t
-dflt_scan_obj (mps_ss_t ss, mps_addr_t start, mps_addr_t limit)
+dflt_scan_obj (mps_ss_t ss, mps_addr_t start)
 {
   MPS_SCAN_BEGIN (ss)
   {
@@ -2190,7 +2190,7 @@ dflt_scanx (mps_ss_t ss, mps_addr_t start, mps_addr_t limit,
     for (mps_addr_t addr = start; addr < limit; addr = dflt_skip (addr))
       {
 	collect_stats (closure, addr);
-	IGC_FIX_CALL (ss, dflt_scan_obj (ss, addr, limit));
+	IGC_FIX_CALL (ss, dflt_scan_obj (ss, addr));
       }
   }
   MPS_SCAN_END (ss);
@@ -2203,7 +2203,7 @@ dflt_scan (mps_ss_t ss, mps_addr_t start, mps_addr_t limit)
   MPS_SCAN_BEGIN (ss)
   {
     for (mps_addr_t addr = start; addr < limit; addr = dflt_skip (addr))
-      IGC_FIX_CALL (ss, dflt_scan_obj (ss, addr, limit));
+      IGC_FIX_CALL (ss, dflt_scan_obj (ss, addr));
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
