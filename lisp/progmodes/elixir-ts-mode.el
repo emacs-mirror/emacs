@@ -815,13 +815,12 @@ is t or contains the mode name."
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'auto-mode-alist '("\\.elixir\\'" . elixir-ts-mode-maybe))
   (add-to-list 'auto-mode-alist '("\\.ex\\'" . elixir-ts-mode-maybe))
   (add-to-list 'auto-mode-alist '("\\.exs\\'" . elixir-ts-mode-maybe))
   (add-to-list 'auto-mode-alist '("mix\\.lock" . elixir-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
-  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(elixir-mode . elixir-ts-mode)))
 

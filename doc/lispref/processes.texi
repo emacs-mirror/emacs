@@ -842,7 +842,8 @@ Use the string @var{name} as the process name.  As with
 @code{make-process}, it is modified if necessary to make it unique.
 
 @item :buffer @var{buffer}
-Use @var{buffer} as the process buffer.
+Use @var{buffer} as the process buffer.  If the value is @code{nil},
+the subprocess is not associated with any buffer.
 
 @item :coding @var{coding}
 If @var{coding} is a symbol, it specifies the coding system to be

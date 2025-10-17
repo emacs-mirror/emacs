@@ -836,12 +836,10 @@ AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'.
 BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer.
 PATCH-STRING is a patch to check in.
 DIFF-FUNCTION is `log-edit-diff-function' for the Log Edit buffer."
-  (let ((parent (if (and (length= files 1)
-                         (not (vc-dispatcher-browsing)))
-                    (get-file-buffer (car files))
-                  (current-buffer))))
-    (unless parent
-      (error "Unable to determine VC parent buffer"))
+  (let ((parent (or (and (length= files 1)
+                         (not (vc-dispatcher-browsing))
+                         (get-file-buffer (car files)))
+                    (current-buffer))))
     (if (and comment (not initial-contents))
 	(set-buffer (get-buffer-create logbuf))
       (pop-to-buffer (get-buffer-create logbuf)))

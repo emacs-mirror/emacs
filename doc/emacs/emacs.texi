@@ -391,6 +391,7 @@ Controlling the Display
 Font Lock
 * Traditional Font Lock::  Font Lock based on regexps and syntax tables.
 * Parser-based Font Lock:: Font Lock based on external parser.
+* Semantic Font Lock::     Font Lock based on semantic analysis.
 
 Searching and Replacement
 
@@ -857,10 +858,11 @@ VC Directory Mode
 
 Version Control Branches
 
-* Switching Branches::    How to get to another existing branch.
-* Pulling / Pushing::     Receiving/sending changes from/to elsewhere.
-* Merging::               Transferring changes between branches.
-* Creating Branches::     How to start a new branch.
+* Switching Branches::       How to get to another existing branch.
+* Pulling / Pushing::        Receiving/sending changes from/to elsewhere.
+* Merging::                  Transferring changes between branches.
+* Creating Branches::        How to start a new branch.
+* Copying Between Branches:: Copying the changes made by revisions.
 
 @ifnottex
 Miscellaneous Commands and Features of VC

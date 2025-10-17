@@ -1140,6 +1140,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
 
 (defalias 'vc-git-async-checkins #'always)
 
+(defalias 'vc-git-working-revision-symbol (cl-constantly "HEAD"))
+
 (defun vc-git--checkin (comment &optional files patch-string)
   "Workhorse routine for `vc-git-checkin' and `vc-git-checkin-patch'.
 COMMENT is the commit message; must be non-nil.
@@ -2073,26 +2075,31 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 
 (defun vc-git-previous-revision (file rev)
   "Git-specific version of `vc-previous-revision'."
-  (if file
-      (let* ((fname (file-relative-name file))
-             (prev-rev (with-temp-buffer
-                         (and
-                          (vc-git--out-ok "rev-list"
-                                          (vc-git--maybe-abbrev)
-                                          "-2" rev "--" fname)
-                          (goto-char (point-max))
-                          (bolp)
-                          (zerop (forward-line -1))
-                          (not (bobp))
-                          (buffer-substring-no-properties
-                           (point)
-                           (1- (point-max)))))))
-        (or (vc-git-symbolic-commit prev-rev) prev-rev))
-    ;; We used to use "^" here, but that fails on MS-Windows if git is
-    ;; invoked via a batch file, in which case cmd.exe strips the "^"
-    ;; because it is a special character for cmd which process-file
-    ;; does not (and cannot) quote.
-    (vc-git--rev-parse (concat rev "~1"))))
+  (cond ((string-match "\\`HEAD\\(\\^*\\)\\'" rev)
+         (format "HEAD~%d" (1+ (length (match-string 1 rev)))))
+        ((string-match "\\`HEAD~\\([0-9]+\\)\\'" rev)
+         (format "HEAD~%d" (1+ (string-to-number (match-string 1 rev)))))
+        (file
+         (let* ((fname (file-relative-name file))
+                (prev-rev (with-temp-buffer
+                            (and
+                             (vc-git--out-ok "rev-list"
+                                             (vc-git--maybe-abbrev)
+                                             "-2" rev "--" fname)
+                             (goto-char (point-max))
+                             (bolp)
+                             (zerop (forward-line -1))
+                             (not (bobp))
+                             (buffer-substring-no-properties
+                              (point)
+                              (1- (point-max)))))))
+           (or (vc-git-symbolic-commit prev-rev) prev-rev)))
+        (t
+         ;; We used to use "^" here, but that fails on MS-Windows if git
+         ;; is invoked via a batch file, in which case cmd.exe strips
+         ;; the "^" because it is a special character for cmd which
+         ;; process-file does not (and cannot) quote.
+         (vc-git--rev-parse (concat rev "~1")))))
 
 (defun vc-git--rev-parse (rev)
   (with-temp-buffer

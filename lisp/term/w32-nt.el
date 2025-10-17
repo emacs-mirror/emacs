@@ -117,7 +117,9 @@
            '(tree-sitter "libtree-sitter-0.24.dll"
                          "libtree-sitter.dll"
                          "libtree-sitter-0.dll")
-         '(tree-sitter "libtree-sitter-0.25.dll"))))
+         ;; Supported ABI 13..15
+         '(tree-sitter "libtree-sitter-0.26.dll"
+                       "libtree-sitter-0.25.dll"))))
 
 
 ;;;; Selections

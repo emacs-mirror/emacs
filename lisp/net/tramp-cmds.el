@@ -631,9 +631,9 @@ For details, see `tramp-rename-files'."
 (defcustom tramp-file-name-with-method "sudo"
   "Which method to be used in `tramp-file-name-with-sudo'."
   :group 'tramp
-  :version "30.1"
-  :type '(choice (const "su")
-		 (const "sudo")
+  :version "31.1"
+  :type '(choice (const "su") (const "surs")
+		 (const "sudo") (const "sudors")
 		 (const "doas")
 		 (const "run0")
 		 (const "ksu"))

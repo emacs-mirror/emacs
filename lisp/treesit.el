@@ -3209,6 +3209,10 @@ ARG is described in the docstring of `up-list'."
         (or (when (and (null (or treesit-sexp-thing-up-list
                                  treesit-sexp-thing))
                        default-pos
+                       ;; The default function returns wrong results
+                       ;; when crossing multi-language boundaries:
+                       (eq (treesit-language-at default-pos)
+                           (treesit-language-at (point)))
                        (or (null parent)
                            (if (> arg 0)
                                (<= default-pos (treesit-node-end parent))
@@ -4207,7 +4211,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
          (comment-p (and comment-thing (eq beg (treesit-node-start comment-thing))))
          (thing (if comment-p comment-thing list-thing))
          (end (if thing (min (1+ (treesit-node-start thing)) (point-max)))))
-    (when (and end (< end maxp))
+    (when (and end (<= end maxp))
       (goto-char end)
       (set-match-data
        (if (and comments comment-p)

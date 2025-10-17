@@ -36,12 +36,6 @@
 (defvar tramp-archive-test-file-archive (ert-resource-file "foo.tar.gz")
   "The test file archive.")
 
-(defun tramp-archive-test-file-archive-hexlified ()
-    "Return hexlified `tramp-archive-test-file-archive'.
-Do not hexlify \"/\".  This hexlified string is used in `file:///' URLs."
-  (let* ((url-unreserved-chars (cons ?/ url-unreserved-chars)))
-    (url-hexify-string tramp-archive-test-file-archive)))
-
 (defvar tramp-archive-test-archive
   (file-name-as-directory tramp-archive-test-file-archive)
   "The test archive.")
@@ -50,10 +44,27 @@ Do not hexlify \"/\".  This hexlified string is used in `file:///' URLs."
   (file-truename (ert-resource-file "foo.iso"))
   "A directory file name, which looks like an archive.")
 
+(defvar tramp-archive-test-cascaded-file-archive
+  (ert-resource-file "outer.zip/foo.tar.gz")
+  "The cascaded test file archive.")
+
+(defvar tramp-archive-test-cascaded-archive
+  (file-name-as-directory tramp-archive-test-cascaded-file-archive)
+  "The cascaded test archive.")
+
+(defun tramp-archive-test-file-archive-hexlified ()
+    "Return hexlified `tramp-archive-test-file-archive'.
+Do not hexlify \"/\".  This hexlified string is used in `file:///' URLs."
+  (let* ((url-unreserved-chars (cons ?/ url-unreserved-chars)))
+    (url-hexify-string tramp-archive-test-file-archive)))
+
 (setq password-cache-expiry nil
       tramp-cache-read-persistent-data t ;; For auth-sources.
       tramp-persistency-file-name nil
       tramp-verbose 0)
+
+(defvar tramp-archive-test-cascaded nil
+  "Indicator, whether we are testing a cascaded archive.")
 
 (defun tramp-archive--test-make-temp-name ()
   "Return a temporary file name for test.
@@ -86,9 +97,29 @@ the origin of the temporary TMPFILE, have no write permissions."
     (file-exists-p tramp-archive-test-file-archive)
     (tramp-archive-file-name-p tramp-archive-test-archive))))
 
+;; These tests are inspired by Bug#79582.
+(defmacro tramp-archive--test-deftest-cascaded (test)
+  "Define ert `TEST-cascaded'."
+  (declare (indent 1))
+  `(ert-deftest ,(intern (concat (symbol-name test) "-cascaded")) ()
+     :tags '(:expensive-test)
+     ;(tramp--test-set-ert-test-documentation ',test "cascaded")
+     (skip-unless tramp-archive-enabled)
+     (if-let* ((ert-test (ert-get-test ',test))
+	       (result (ert-test-most-recent-result ert-test))
+	       (tramp-archive-test-file-archive
+		tramp-archive-test-cascaded-file-archive)
+	       (tramp-archive-test-archive tramp-archive-test-cascaded-archive)
+	       (tramp-archive-test-cascaded t))
+	 (progn
+	   (skip-unless (< (ert-test-result-duration result) 300))
+	   (funcall (ert-test-body ert-test)))
+       (ert-skip (format "Test `%s' must run before" ',test)))))
+
 (ert-deftest tramp-archive-test01-file-name-syntax ()
   "Check archive file name syntax."
-  (should-not (tramp-archive-file-name-p tramp-archive-test-file-archive))
+  (unless tramp-archive-test-cascaded
+    (should-not (tramp-archive-file-name-p tramp-archive-test-file-archive)))
   (should (tramp-archive-file-name-p tramp-archive-test-archive))
   (should
    (string-equal
@@ -135,6 +166,8 @@ the origin of the temporary TMPFILE, have no write permissions."
     (tramp-archive-file-name-localname
      (concat tramp-archive-test-archive "baz.tar/"))
     "/")))
+
+(tramp-archive--test-deftest-cascaded tramp-archive-test01-file-name-syntax)
 
 (ert-deftest tramp-archive-test02-file-name-dissect ()
   "Check archive file name components."
@@ -250,10 +283,13 @@ the origin of the temporary TMPFILE, have no write permissions."
    (string-equal
     (expand-file-name (concat tramp-archive-test-archive "./file"))
     (concat tramp-archive-test-archive "file")))
-  (should
-   (string-equal
-    (expand-file-name (concat tramp-archive-test-archive "../file"))
-    (concat (ert-resource-directory) "file"))))
+  (unless tramp-archive-test-cascaded
+    (should
+     (string-equal
+      (expand-file-name (concat tramp-archive-test-archive "../file"))
+      (concat (ert-resource-directory) "file")))))
+
+(tramp-archive--test-deftest-cascaded tramp-archive-test05-expand-file-name)
 
 ;; This test is inspired by Bug#30293.
 (ert-deftest tramp-archive-test05-expand-file-name-non-archive-directory ()
@@ -332,6 +368,8 @@ This checks also `file-name-as-directory', `file-name-directory',
    (unhandled-file-name-directory
     (concat tramp-archive-test-archive "path/to/file"))))
 
+(tramp-archive--test-deftest-cascaded tramp-archive-test06-directory-file-name)
+
 (ert-deftest tramp-archive-test07-file-exists-p ()
   "Check `file-exist-p', `write-region' and `delete-file'."
   :tags '(:expensive-test)
@@ -354,6 +392,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 
     ;; Cleanup.
     (tramp-archive-cleanup-hash)))
+
+(tramp-archive--test-deftest-cascaded tramp-archive-test07-file-exists-p)
 
 (ert-deftest tramp-archive-test08-file-local-copy ()
   "Check `file-local-copy'."
@@ -382,6 +422,8 @@ This checks also `file-name-as-directory', `file-name-directory',
       (ignore-errors (tramp-archive--test-delete tmp-name))
       (tramp-archive-cleanup-hash))))
 
+(tramp-archive--test-deftest-cascaded tramp-archive-test08-file-local-copy)
+
 (ert-deftest tramp-archive-test09-insert-file-contents ()
   "Check `insert-file-contents'."
   :tags '(:expensive-test)
@@ -408,6 +450,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 
 	;; Cleanup.
 	(tramp-archive-cleanup-hash))))
+
+(tramp-archive--test-deftest-cascaded tramp-archive-test09-insert-file-contents)
 
 (ert-deftest tramp-archive-test11-copy-file ()
   "Check `copy-file'."
@@ -475,6 +519,8 @@ This checks also `file-name-as-directory', `file-name-directory',
       (ignore-errors (tramp-archive--test-delete tmp-name2))
       (tramp-archive-cleanup-hash))))
 
+(tramp-archive--test-deftest-cascaded tramp-archive-test11-copy-file)
+
 (ert-deftest tramp-archive-test15-copy-directory ()
   "Check `copy-directory'."
   :tags '(:expensive-test)
@@ -528,6 +574,8 @@ This checks also `file-name-as-directory', `file-name-directory',
       (ignore-errors (tramp-archive--test-delete tmp-name2))
       (tramp-archive-cleanup-hash))))
 
+(tramp-archive--test-deftest-cascaded tramp-archive-test15-copy-directory)
+
 (ert-deftest tramp-archive-test16-directory-files ()
   "Check `directory-files'."
   :tags '(:expensive-test)
@@ -551,6 +599,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
+
+(tramp-archive--test-deftest-cascaded tramp-archive-test16-directory-files)
 
 (ert-deftest tramp-archive-test17-insert-directory ()
   "Check `insert-directory'."
@@ -599,6 +649,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
+
+(tramp-archive--test-deftest-cascaded tramp-archive-test17-insert-directory)
 
 (ert-deftest tramp-archive-test18-file-attributes ()
   "Check `file-attributes'.
@@ -661,6 +713,8 @@ This tests also `access-file', `file-readable-p' and `file-regular-p'."
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
 
+(tramp-archive--test-deftest-cascaded tramp-archive-test18-file-attributes)
+
 (ert-deftest tramp-archive-test19-directory-files-and-attributes ()
   "Check `directory-files-and-attributes'."
   :tags '(:expensive-test)
@@ -685,6 +739,9 @@ This tests also `access-file', `file-readable-p' and `file-regular-p'."
 
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
+
+(tramp-archive--test-deftest-cascaded
+ tramp-archive-test19-directory-files-and-attributes)
 
 (ert-deftest tramp-archive-test20-file-modes ()
   "Check `file-modes'.
@@ -716,6 +773,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
+
+(tramp-archive--test-deftest-cascaded tramp-archive-test20-file-modes)
 
 (ert-deftest tramp-archive-test21-file-links ()
   "Check `file-symlink-p' and `file-truename'"
@@ -758,6 +817,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
 
+(tramp-archive--test-deftest-cascaded tramp-archive-test21-file-links)
+
 (ert-deftest tramp-archive-test26-file-name-completion ()
   "Check `file-name-completion' and `file-name-all-completions'."
   :tags '(:expensive-test)
@@ -797,6 +858,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
 
+(tramp-archive--test-deftest-cascaded tramp-archive-test26-file-name-completion)
+
 (ert-deftest tramp-archive-test40-make-nearby-temp-file ()
   "Check `make-nearby-temp-file' and `temporary-file-directory'."
   (skip-unless tramp-archive-enabled)
@@ -824,6 +887,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
     (delete-directory tmp-file)
     (should-not (file-exists-p tmp-file))))
 
+(tramp-archive--test-deftest-cascaded tramp-archive-test40-make-nearby-temp-file)
+
 (ert-deftest tramp-archive-test43-file-system-info ()
   "Check that `file-system-info' returns proper values."
   (skip-unless tramp-archive-enabled)
@@ -836,6 +901,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 		 ;; FREE and AVAIL are always 0.
 		 (zerop (nth 1 fsi))
 		 (zerop (nth 2 fsi))))))
+
+(tramp-archive--test-deftest-cascaded tramp-archive-test43-file-system-info)
 
 ;; `file-user-uid' and `file-group-gid' were introduced in Emacs 30.1.
 (ert-deftest tramp-archive-test44-user-group-ids ()
@@ -855,6 +922,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
     (let ((default-directory tramp-archive-test-file-archive))
       (should (equal uid (with-no-warnings (file-user-uid))))
       (should (equal gid (with-no-warnings (file-group-gid)))))))
+
+(tramp-archive--test-deftest-cascaded tramp-archive-test44-user-group-ids)
 
 (ert-deftest tramp-archive-test50-auto-load ()
   "Check that `tramp-archive' autoloads properly."

@@ -1685,12 +1685,6 @@ following constructs:
                    REF can be a number, as usual, or a name
                    introduced by a previous (let REF ...)
                    construct."
-  (rx--pcase-expand regexps))
-
-;; Autoloaded because it's referred to by the pcase rx macro above,
-;; whose body ends up in loaddefs.el.
-;;;###autoload
-(defun rx--pcase-expand (regexps)
   (let* ((rx--pcase-vars nil)
          (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps)))))
     `(and (pred stringp)
@@ -1726,7 +1720,7 @@ following constructs:
                                    (reverse rx--pcase-vars))))))))))
 
 ;; Obsolete internal symbol, used in old versions of the `flycheck' package.
-(define-obsolete-function-alias 'rx-submatch-n 'rx-to-string "27.1")
+(define-obsolete-function-alias 'rx-submatch-n #'rx-to-string "27.1")
 
 (provide 'rx)
 

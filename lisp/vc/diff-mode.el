@@ -1175,6 +1175,21 @@ PREFIX is only used internally: don't use it."
                            (cons (cons fs file) diff-remembered-files-alist)))
              file)))))))
 
+(defun diff-buffer-file-names (&optional old noprompt)
+  "Return file names corresponding to all of this buffer's hunks.
+Optional arguments OLD and NOPROMPT are passed on to
+`diff-find-file-name', which see."
+  (save-excursion
+    (cl-loop initially
+             (goto-char (point-min))
+             (ignore-errors (diff-file-next))
+             when (and (looking-at diff-file-header-re)
+                       (diff-find-file-name old noprompt))
+             collect it
+             until (eq (prog1 (point)
+                         (ignore-errors (diff-file-next)))
+                       (point)))))
+
 
 (defun diff-ediff-patch ()
   "Call `ediff-patch-file' on the current buffer."
@@ -2456,7 +2471,7 @@ With non-nil prefix arg, re-diff all the hunks."
     (((class color) (min-colors 88) (background light))
      :background "#ffbbbb")
     (((class color) (min-colors 88) (background dark))
-     :background "#aa2222"))
+     :background "#882222"))
   "Face used for removed characters shown by `diff-refine-hunk'."
   :version "24.3")
 
@@ -2468,7 +2483,7 @@ With non-nil prefix arg, re-diff all the hunks."
     (((class color) (min-colors 88) (background light))
      :background "#aaffaa")
     (((class color) (min-colors 88) (background dark))
-     :background "#22aa22"))
+     :background "#228822"))
   "Face used for added characters shown by `diff-refine-hunk'."
   :version "24.3")
 

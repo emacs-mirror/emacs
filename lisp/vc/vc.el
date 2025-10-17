@@ -124,6 +124,16 @@
 ;;
 ;;   Takes no arguments.  Backends that return non-nil can (and do)
 ;;   perform async checkins when `vc-async-checkin' is non-nil.
+;;
+;; - working-revision-symbol
+;;
+;;   Symbolic name for the/a working revision, a constant string.  If
+;;   defined, backend API functions that take revision numbers, revision
+;;   hashes or branch names can also take this string in place of those.
+;;   Emacs passes this name without first having to look up the working
+;;   revision, which is a small performance improvement.
+;;   In addition, using a name instead of a number or hash makes it
+;;   easier to edit backend commands with `vc-edit-next-command'.
 
 ;; STATE-QUERYING FUNCTIONS
 ;;
@@ -597,8 +607,14 @@
 ;;
 ;; - previous-revision (file rev)
 ;;
-;;   Return the revision number that precedes REV for FILE, or nil if no such
-;;   revision exists.
+;;   Return the revision number/hash that precedes REV for FILE, or nil
+;;   if no such revision exists.  If the working-revision-symbol
+;;   function is defined for this backend and that symbol, or a symbolic
+;;   name involving that symbol, is passed to this function as REV, this
+;;   function may return a symbolic name.
+;;
+;;   Possible future extension: make REV an optional argument, and if
+;;   nil, default it to FILE's working revision.
 ;;
 ;; - file-name-changes (rev)
 ;;
@@ -1313,7 +1329,8 @@ STATE-MODEL-ONLY-FILES argument to `vc-deduce-fileset' is nil.")
   "VCS revision to which this buffer's contents corresponds.
 Lisp code which sets this should also set `vc-buffer-overriding-fileset'
 such that the buffer's local variables also specify a VC backend,
-rendering the value of this variable unambiguous.")
+rendering the value of this variable unambiguous.
+Should never be a symbolic name but always a revision number/hash.")
 
 (defun vc-deduce-backend ()
   (cond ((car vc-buffer-overriding-fileset))
@@ -2006,9 +2023,15 @@ Type \\[vc-next-action] to check in changes.")
     (files backend &optional comment initial-contents rev patch-string register)
   "Check in FILES.
 
-COMMENT is a comment string; if omitted, a buffer is popped up to accept
-a comment.  If INITIAL-CONTENTS is non-nil, then COMMENT is used as the
-initial contents of the log entry buffer.
+There are three calling conventions for the COMMENT and INITIAL-CONTENTS
+optional arguments:
+- COMMENT a string, INITIAL-CONTENTS nil means use that comment string
+  without prompting the user to edit it.
+- COMMENT a string, INITIAL-CONTENTS non-nil means use that comment
+  string as the initial contents of the log entry buffer but stop for
+  editing.
+- COMMENT t means check in immediately with an empty comment, and ignore
+  INITIAL-CONTENTS.
 
 The optional argument REV may be a string specifying the new revision
 level (only supported for some older VCSes, like RCS and CVS).
@@ -2104,6 +2127,120 @@ have changed; continue with old fileset?" (current-buffer))))
     'vc-checkin-hook
     backend
     patch-string)))
+
+(declare-function diff-buffer-file-names "diff-mode")
+(declare-function diff-reverse-direction "diff-mode")
+
+(defun vc--pick-or-revert (rev reverse comment initial-contents backend)
+  "Copy a single revision REV to branch checked out in this working tree.
+REVERSE means to undo the effects of REV, instead.
+COMMENT is a comment string; if omitted, a buffer is popped up to accept
+a comment.  If INITIAL-CONTENTS is non-nil, then COMMENT is used as the
+initial contents of the log entry buffer.  If COMMENT is t then use
+BACKEND's default cherry-pick comment for REV without prompting.
+BACKEND is the VC backend to use."
+  (let* ((backend (or backend (vc-responsible-backend default-directory)))
+         ;; `vc-*-prepare-patch' will always give us a patch with file
+         ;; names relative to the VC root, so switch to there now.
+         ;; In particular this is needed for `diff-buffer-file-names' to
+         ;; work properly.
+         (default-directory (vc-call-backend backend 'root default-directory))
+         (patch (vc-call-backend backend 'prepare-patch rev))
+         files whole-patch-string diff-patch-string)
+    (with-current-buffer (plist-get patch :buffer)
+      (diff-mode)
+      (with-restriction
+          (or (plist-get patch :patch-start) (point-min))
+          (or (plist-get patch :patch-end) (point-max))
+        (when reverse
+          (diff-reverse-direction (point-min) (point-max)))
+        (setq files (diff-buffer-file-names nil t)
+              diff-patch-string (buffer-string)))
+      ;; In the case of reverting we mustn't copy the original
+      ;; authorship information.  The author of the revert is the
+      ;; current user, and its timestamp is now.
+      (setq whole-patch-string
+            (if reverse diff-patch-string (buffer-string))))
+    (unless (stringp comment)
+      (cl-psetq comment (vc-call-backend backend 'cherry-pick-comment
+                                         files rev reverse)
+                initial-contents (not (eq comment t))))
+    (vc-start-logentry files comment initial-contents
+                       (format "Edit log message for %s revision."
+                               (if reverse
+                                   "new"
+                                 ;; ^ "reverted revision" would mean
+                                 ;;   REV, not the revision we are about
+                                 ;;   to create.  We could use
+                                 ;;   "reverting revision" but it reads
+                                 ;;   oddly.
+                                 "copied"))
+                       "*vc-cherry-pick*"
+                       (lambda ()
+                         (vc-call-backend backend 'log-edit-mode))
+                       (lambda (_files comment)
+                         (vc-call-backend backend 'checkin-patch
+                                          whole-patch-string comment))
+                       nil
+                       backend
+                       diff-patch-string)))
+
+;; No bindings in `vc-prefix-map' for the following two commands because
+;; we expect users will usually use `log-view-revision-cherry-pick' and
+;; `log-view-revision-revert', which do have bindings.
+
+;;;###autoload
+(defun vc-revision-cherry-pick (rev &optional comment initial-contents backend)
+  "Copy the changes from a single revision REV to the current branch.
+When called interactively, prompts for REV.
+Typically REV is a revision from another branch, where that branch is
+one that will not be merged into the branch checked out in this working
+tree.
+
+Normally a log message for the new commit is generated by the backend
+and includes a reference to REV so that the copy can be traced.
+When called interactively with a prefix argument, use REV's log message
+unmodified, and also skip editing it.
+
+When called from Lisp, there are three calling conventions for the
+COMMENT and INITIAL-CONTENTS optional arguments:
+- COMMENT a string, INITIAL-CONTENTS nil means use that comment string
+  without prompting the user to edit it.
+- COMMENT a string, INITIAL-CONTENTS non-nil means use that comment
+  string as the initial contents of the log entry buffer but stop for
+  editing.
+- COMMENT t means use BACKEND's default cherry-pick comment for REV
+  without prompting for editing, and ignore INITIAL-CONTENTS.
+
+Optional argument BACKEND is the VC backend to use."
+  (interactive (let ((rev (vc-read-revision "Revision to copy: "))
+                     (backend (vc-responsible-backend default-directory)))
+                 (list rev
+                       (and current-prefix-arg
+                            (vc-call-backend backend 'get-change-comment
+                                             nil rev))
+                       nil
+                       backend)))
+  (vc--pick-or-revert rev nil comment initial-contents backend))
+
+;;;###autoload
+(defun vc-revision-revert (rev &optional comment initial-contents backend)
+  "Undo the effects of revision REV.
+When called interactively, prompts for REV.
+
+When called from Lisp, there are three calling conventions for the
+COMMENT and INITIAL-CONTENTS optional arguments:
+- COMMENT a string, INITIAL-CONTENTS nil means use that comment string
+  without prompting the user to edit it.
+- COMMENT a string, INITIAL-CONTENTS non-nil means use that comment
+  string as the initial contents of the log entry buffer but stop for
+  editing.
+- COMMENT t means use BACKEND's default revert comment for REV without
+  prompting for editing, and ignore INITIAL-CONTENTS.
+
+Optional argument BACKEND is the VC backend to use."
+  (interactive (list (vc-read-revision "Revision to revert: ")))
+  (vc--pick-or-revert rev t comment initial-contents backend))
 
 (declare-function diff-bounds-of-hunk "diff-mode")
 
@@ -2464,7 +2601,7 @@ INITIAL-INPUT are passed on to `vc-read-revision' directly."
      (t
       (push (ignore-errors         ;If `previous-revision' doesn't work.
               (vc-call-backend backend 'previous-revision first
-                               (vc-working-revision first backend)))
+                               (vc-symbolic-working-revision first backend)))
             rev1-default)
       (when (member (car rev1-default) '("" nil)) (setq rev1-default nil))))
     ;; construct argument list
@@ -2686,10 +2823,8 @@ global binding."
                       ;;                           'revision-granularity)
                       ;;          'repository)
                       ;;      (ignore-errors
-                      ;;        (vc-call-backend backend 'working-revision
-                      ;;                         (caadr fileset)))
-                      (vc-call-backend backend 'working-revision
-                                       (caadr fileset))
+                      ;;        (vc-symbolic-working-revision (caadr fileset)))
+                      (vc-symbolic-working-revision (caadr fileset))
                       (called-interactively-p 'interactive))))
 
 ;; For the following two commands, the default meaning for
@@ -2860,8 +2995,8 @@ If `F.~REV~' already exists, use it instead of checking it out again."
   (set-buffer (or (buffer-base-buffer) (current-buffer)))
   (vc-ensure-vc-buffer)
   (let* ((file buffer-file-name)
-	 (revision (if (string-equal rev "")
-		       (vc-working-revision file)
+	 (revision (if (string-empty-p rev)
+		       (vc-symbolic-working-revision file)
 		     rev)))
     (switch-to-buffer-other-window (vc-find-revision file revision))))
 
@@ -4402,7 +4537,7 @@ to provide the `find-revision' operation instead."
 
 (defun vc-default-revert (backend file contents-done)
   (unless contents-done
-    (let ((rev (vc-working-revision file))
+    (let ((rev (vc-symbolic-working-revision file))
           (file-buffer (or (get-file-buffer file) (current-buffer))))
       (message "Checking out %s..." file)
       (let ((failed t)

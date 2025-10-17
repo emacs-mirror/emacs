@@ -216,14 +216,14 @@ different values for completion-affecting variables like
 applies for the styles configuration in 'completion-category-overrides'
 and 'completion-category-defaults'.
 
-+++++
++++
 *** Navigating "*Completions*" now accommodates 'completions-format'.
-When 'completions-format' is set to 'vertical', typing 'n', '<TAB>' or
+When 'completions-format' is set to 'vertical', typing 'n', 'TAB' or
 'M-<down>' in the "*Completions*" buffer (the latter also in the
 minibuffer) now moves point to the completion candidate in the next line
 in the current column, and wraps to the next column when typed on the
 last completion candidate of the current column.  Likewise, typing 'p',
-'S-<TAB>' or 'M-<up>' moves point to the completion candidate in the
+'S-TAB' or 'M-<up>' moves point to the completion candidate in the
 previous line or wraps to the previous column.  Previously, these keys
 ignored the vertical format, i.e., moved point only to the item in the
 same line of the next or previous column, in accordance with the default
@@ -272,7 +272,7 @@ but as a plain Lisp variable, not a user option.)
 
 ---
 *** New mode 'minibuffer-nonselected-mode'.
-This mode enabled by default directs the attention to the active
+This mode, enabled by default, directs the attention to the active
 minibuffer window using the 'minibuffer-nonselected' face in case
 when the minibuffer window is no longer selected, but the minibuffer
 is still waiting for input.
@@ -280,7 +280,7 @@ is still waiting for input.
 ** Mouse
 
 *** New mode 'mouse-shift-adjust-mode' extends selection with 'S-<mouse-1>'.
-When enabled, you can use the left mouse button with the <Shift> modifier
+When enabled, you can use the left mouse button with the '<Shift>' modifier
 to extend the boundaries of the active region by dragging the mouse pointer.
 
 ---
@@ -323,6 +323,20 @@ if you want the old behavior.
 This abnormal hook gives its client a way to save a window from getting
 deleted implicitly by functions like 'kill-buffer', 'bury-buffer' and
 'quit-restore-window'.
+
++++
+*** Buffer-local window change functions run in their buffers now.
+Running the buffer-local version of each of the abnormal hooks
+'window-buffer-change-functions', 'window-size-change-functions',
+'window-selection-change-functions' and 'window-state-change-functions'
+will make the respective buffer temporarily current for running the
+hook.
+
++++
+*** 'window-buffer-change-functions' is run for removed buffers too.
+The buffer-local version of 'window-buffer-change-functions' may be run
+twice now: Once for the buffer removed from the respective window and
+once for the buffer now shown in that window.
 
 +++
 *** New user option 'quit-window-kill-buffer'.
@@ -750,7 +764,7 @@ pair: '("/*" " */" t)'.
 
 ---
 ** New user option 'electric-indent-actions'.
-This user options specifies a list of actions to reindent.  The possible
+This user option specifies a list of actions to reindent.  The possible
 elements for this list are: 'yank', reindent the yanked text;
 'before-save', indent the whole buffer before saving it.
 
@@ -810,6 +824,9 @@ in such a file; the first usable entry of ‘auth-sources’ is selected as
 target.  If you want also not existing files to be selected, set the
 user option ‘auth-source-ignore-non-existing-file’ to nil.
 
+---
+*** 'auth-sources' set to nil means using the password cache only.
+
 ** Autoinsert
 
 +++
@@ -823,7 +840,7 @@ with finer grained control.
 
 +++
 *** New functions 'buffer-to-register' and 'file-to-register'.
-These allow users to interactively store file and buffers in registers.
+These allow users to interactively store files and buffers in registers.
 Killed buffers stored in a register using 'buffer-to-register' are
 automatically converted to a file-query value if the buffer was visiting
 a file.
@@ -1010,28 +1027,27 @@ next to the ellipsis.  By default this is disabled.
 
 +++
 *** New user option 'hs-show-indicators'.
-This user option determines if hideshow should display indicators to
+This user option determines if Hideshow should display indicators to
 show and toggle the block hiding.  If non-nil, the indicators are enabled.
-
 By default this is disabled.
 
 *** New user option 'hs-indicator-maximum-buffer-size'.
-This user option limits the display of hideshow indicators to buffers
+This user option limits the display of Hideshow indicators to buffers
 that are not too large.  By default, buffers larger than 2MB have the
 indicators disabled; the value of nil will activate the indicators
 regardless of the buffer size.
 
 +++
 *** New user option 'hs-indicator-type'.
-This user option determine which indicator type should be used for the
+This user option determines which indicator type should be used for the
 block indicators.
 
 The possible values can be: 'fringe', display the indicators in the
 fringe (the default); 'margin', display the indicators in the margin;
 nil, display the indicators at end-of-line.
 
-The new icons 'hs-indicator-show' and 'hs-indicator-hide', can be used
-for customize the indicators appearance, only if 'hs-indicator-type' is
+The new icons 'hs-indicator-show' and 'hs-indicator-hide' can be used
+to customize the indicators appearance only if 'hs-indicator-type' is
 set to 'margin' or nil.
 
 ** C-ts mode
@@ -1043,9 +1059,9 @@ are highlighted like other comments.  When non-nil, Doxygen comment
 blocks are syntax-highlighted if the Doxygen grammar library is
 available.
 
-** Csharp-ts-mode
+** Csharp-ts mode
 
-*** Renamed feature in 'treesit-font-lock-feature-list'
+*** Renamed feature in 'treesit-font-lock-feature-list'.
 The feature 'property' has been renamed to 'attribute', since this is
 what it is called in the general C# community.
 
@@ -1151,6 +1167,15 @@ This is the new default value and causes warnings to be emitted
 at run-time for the use of the associated deprecated features.
 '(setq eieio-backward-compatibility t)' can be used to recover
 the previous silence.
+
+** Emacs Lisp mode
+
++++
+*** Semantic highlighting support for Emacs Lisp.
+'emacs-lisp-mode' can now use code analysis to highlight more symbols
+more accurately.  Customize the new user option
+'elisp-fontify-semantically' to non-nil to enable this feature, and see
+the Info node "(emacs) Semantic Font Lock" for more information.
 
 ** Text mode
 
@@ -1491,8 +1516,8 @@ It removes all the buttons in the specified region.
 You can now bookmark local and remote shell buffers using the bookmark
 menu 'bookmark-bmenu-list', or by using the command 'bookmark-set'.
 Shell bookmarks can be loaded via the menu and by using the command
-'bookmark-jump', which open a bookmarked shell, restore its buffer name,
-its current directory, and create a remote connection, if necessary.
+'bookmark-jump', which opens a bookmarked shell, restores its buffer name,
+its current directory, and creates a remote connection, if necessary.
 You can customize 'shell-bookmark-name-function'.
 
 *** New command to complete the shell history.
@@ -1856,6 +1881,11 @@ default, "sudo".
 
 +++
 *** 'tramp-file-name-with-method' can now be set as connection-local variable.
+
++++
+*** New optional connection methods "surs" and "sudors".
+These connection methods are similar to "su" and "sudo", but they use
+the modern 'su-rs' and 'sudo-rs' commands.
 
 +++
 *** Connection method "kubernetes" supports now optional namespace.
@@ -2227,6 +2257,14 @@ after VCS operations, the new mode is a more reliable way to ensure that
 Emacs reverts buffers visiting tracked files when VCS operations change
 the contents of those files.
 
++++
+*** New commands to cherry-pick and revert revisions.
+The commands 'vc-revision-cherry-pick' and 'vc-revision-revert' let you
+copy revisions between branches, and revert revisions.
+From Log View buffers, you can use 'C' to cherry-pick the revision at
+point or all marked revisions, and 'R' to revert the revision at point
+or all marked revisions.
+
 *** New command 'log-edit-done-strip-cvs-lines'.
 This command strips all lines beginning with "CVS:" from the buffer.
 It is intended to be added to the 'log-edit-done-hook' so that
@@ -2395,10 +2433,10 @@ In addition, a new command 'U' removes all marks.
 
 +++
 *** New command 'w' in Log View mode.
-The new command 'log-view-copy-revision-as-kill', by default bound to
-'w' in Log View mode, copies to the kill ring the ID of the revision at
-point in the log entry.  If there are marked revisions, it copies the
-IDs of those, instead.
+The new command 'log-view-copy-revision-as-kill', bound to 'w' in Log
+View mode, copies to the kill ring the ID of the revision at point in
+the log entry.  If there are marked revisions, it copies the IDs of
+those, instead.
 
 ** Diff mode
 
@@ -3011,8 +3049,8 @@ commands '{next,previous}-column-completion', depending on the value of
 'completions-format'.  The latter two commands improve and extend the
 previous implementations of '{next,previous}-completion', which better
 reflect that they only take the (default) horizontal completions format
-into account.  Any external code using '{next,previous}-completion' that
-assumes the previous implementation must be adjusted accordingly; see
+into account.  Any external code using '{next,previous}-completion', that
+assumes the previous implementation, must be adjusted accordingly; see
 'minibuffer-next-completion' for an example of such an adjustment in
 Emacs core.
 
@@ -3285,6 +3323,12 @@ a remote host.  It must be used in conjunction with the function
 ** JSON parse error line and column are now obsolete.
 The column number is no longer available; the line number will be
 removed in next Emacs release.
+
++++
+** 'defvar-keymap' can now take a ':prefix t' option.
+This is an abbreviation for using the name of the keymap as the prefix
+command name.  E.g., '(defvar-keymap foo-map :prefix t)' is equivalent
+to '(defvar-keymap foo-map :prefix 'foo-map)'.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems

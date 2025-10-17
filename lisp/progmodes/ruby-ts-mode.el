@@ -1278,8 +1278,7 @@ leading double colon is not added."
 (derived-mode-add-parents 'ruby-ts-mode '(ruby-mode))
 
 ;;;###autoload
-(when (treesit-available-p)
-  (defvar treesit-major-mode-remap-alist)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(ruby-mode . ruby-ts-mode)))
 

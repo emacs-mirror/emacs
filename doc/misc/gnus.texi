@@ -30023,7 +30023,7 @@ In the examples and definitions I will refer to the imaginary back end
 
 @table @code
 
-@item (nnchoke-retrieve-headers ARTICLES &optional GROUP SERVER FETCH-OLD)
+@item (nnchoke-retrieve-headers @var{articles} &optional @var{group} @var{server} @var{fetch-old})
 
 @var{articles} is either a range of article numbers or a list of
 @code{Message-ID}s.  Current back ends do not fully support either---only
@@ -30092,7 +30092,7 @@ For a closer look at what should be in those fields,
 @pxref{Headers}.
 
 
-@item (nnchoke-open-server SERVER &optional DEFINITIONS)
+@item (nnchoke-open-server @var{server} &optional @var{definitions})
 
 @var{server} is here the virtual server name.  @var{definitions} is a
 list of @code{(VARIABLE VALUE)} pairs that define this virtual server.
@@ -30105,7 +30105,7 @@ If the server is opened already, this function should return a
 non-@code{nil} value.  There should be no data returned.
 
 
-@item (nnchoke-close-server &optional SERVER)
+@item (nnchoke-close-server &optional @var{server})
 
 Close connection to @var{server} and free all resources connected
 to it.  Return @code{nil} if the server couldn't be closed for some
@@ -30124,7 +30124,7 @@ function is generally only called when Gnus is shutting down.
 There should be no data returned.
 
 
-@item (nnchoke-server-opened &optional SERVER)
+@item (nnchoke-server-opened &optional @var{server})
 
 If @var{server} is the current virtual server, and the connection to the
 physical server is alive, then this function should return a
@@ -30134,14 +30134,14 @@ attempt to reconnect to a server we have lost connection to.
 There should be no data returned.
 
 
-@item (nnchoke-status-message &optional SERVER)
+@item (nnchoke-status-message &optional @var{server})
 
 This function should return the last error message from @var{server}.
 
 There should be no data returned.
 
 
-@item (nnchoke-request-article ARTICLE &optional GROUP SERVER TO-BUFFER)
+@item (nnchoke-request-article @var{article} &optional @var{group} @var{server} @var{to-buffer})
 
 The result data from this function should be the article specified by
 @var{article}.  This might either be a @code{Message-ID} or a number.
@@ -30162,7 +30162,7 @@ group and article numbers are when fetching articles by
 on successful article retrieval.
 
 
-@item (nnchoke-request-group GROUP &optional SERVER FAST INFO)
+@item (nnchoke-request-group @var{group} &optional @var{server} @var{fast} @var{info})
 
 Get data on @var{group}.  This function also has the side effect of
 making @var{group} the current group.
@@ -30197,7 +30197,7 @@ info         = "211 " 3* [ <number> " " ] <string>
 @end example
 
 
-@item (nnchoke-close-group GROUP &optional SERVER)
+@item (nnchoke-close-group @var{group} &optional @var{server})
 
 Close @var{group} and free any resources connected to it.  This will be
 a no-op on most back ends.
@@ -30205,7 +30205,7 @@ a no-op on most back ends.
 There should be no data returned.
 
 
-@item (nnchoke-request-list &optional SERVER)
+@item (nnchoke-request-list &optional @var{server})
 
 Return a list of all groups available on @var{server}.  And that means
 @emph{all}.
@@ -30234,7 +30234,7 @@ The flag says whether the group is read-only (@samp{n}), is moderated
 (@samp{=other-group}) or none of the above (@samp{y}).
 
 
-@item (nnchoke-request-post &optional SERVER)
+@item (nnchoke-request-post &optional @var{server})
 
 This function should post the current buffer.  It might return whether
 the posting was successful or not, but that's not required.  If, for
@@ -30253,7 +30253,7 @@ There should be no result data from this function.
 
 @table @code
 
-@item (nnchoke-retrieve-groups GROUPS &optional SERVER)
+@item (nnchoke-retrieve-groups @var{groups} &optional @var{server})
 
 @var{groups} is a list of groups, and this function should request data
 on all those groups.  How it does it is of no concern to Gnus, but it
@@ -30269,8 +30269,20 @@ in the same format as @code{nnchoke-request-group} gives.
 group-buffer = *active-line / *group-status
 @end example
 
+@item (nnchoke-retrieve-group-data-early @var{server} &optional @var{infos})
 
-@item (nnchoke-request-update-info GROUP INFO &optional SERVER)
+This is for starting an early async retrieval from @var{server} to
+update @var{infos}, its current group info structure list.  The return
+value is a token for the corresponding
+@code{nnchoke-finish-retrieve-group-infos}.
+
+@item (nnchoke-finish-retrieve-group-infos @var{server} @var{infos} @var{data})
+
+This will be called later to conclude the async retrieval of
+@code{nnchoke-retrieve-group-data-early} -- whose token is passed as
+@var{data} -- and should update @var{infos}.
+
+@item (nnchoke-request-update-info @var{group} @var{info} &optional @var{server})
 
 A Gnus group info (@pxref{Group Info}) is handed to the back end for
 alterations.  This comes in handy if the back end really carries all
@@ -30283,7 +30295,7 @@ the network resources).
 There should be no result data from this function.
 
 
-@item (nnchoke-request-type GROUP &optional ARTICLE)
+@item (nnchoke-request-type @var{group} &optional @var{article})
 
 When the user issues commands for ``sending news'' (@kbd{F} in the
 summary buffer, for instance), Gnus has to know whether the article the
@@ -30297,7 +30309,7 @@ and @var{article} may be @code{nil}.
 There should be no result data from this function.
 
 
-@item (nnchoke-request-set-mark GROUP ACTION &optional SERVER)
+@item (nnchoke-request-set-mark @var{group} @var{action} &optional @var{server})
 
 Set/remove/add marks on articles.  Normally Gnus handles the article
 marks (such as read, ticked, expired etc.)@: internally, and store them in
@@ -30308,7 +30320,7 @@ propagate the mark information to the server.
 @var{action} is a list of mark setting requests, having this format:
 
 @example
-(RANGE ACTION MARK)
+(@code{range} @code{action} @code{mark})
 @end example
 
 @var{range} is a range of articles you wish to update marks on.
@@ -30338,7 +30350,7 @@ mark on (currently not used for anything).
 
 There should be no result data from this function.
 
-@item (nnchoke-request-update-mark GROUP ARTICLE MARK)
+@item (nnchoke-request-update-mark @var{group} @var{article} @var{mark})
 
 If the user tries to set a mark that the back end doesn't like, this
 function may change the mark.  Gnus will use whatever this function
@@ -30354,7 +30366,7 @@ expirable.
 There should be no result data from this function.
 
 
-@item (nnchoke-request-scan &optional GROUP SERVER)
+@item (nnchoke-request-scan &optional @var{group} @var{server})
 
 This function may be called at any time (by Gnus or anything else) to
 request that the back end check for incoming articles, in one way or
@@ -30368,7 +30380,7 @@ local if that's practical.
 There should be no result data from this function.
 
 
-@item (nnchoke-request-group-description GROUP &optional SERVER)
+@item (nnchoke-request-group-description @var{group} &optional @var{server})
 
 The result data from this function should be a description of
 @var{group}.
@@ -30379,7 +30391,7 @@ name             = <string>
 description      = <text>
 @end example
 
-@item (nnchoke-request-list-newsgroups &optional SERVER)
+@item (nnchoke-request-list-newsgroups &optional @var{server})
 
 The result data from this function should be the description of all
 groups available on the server.
@@ -30389,7 +30401,7 @@ description-buffer = *description-line
 @end example
 
 
-@item (nnchoke-request-newgroups DATE &optional SERVER)
+@item (nnchoke-request-newgroups @var{date} &optional @var{server})
 
 The result data from this function should be all groups that were
 created after @samp{date}, which is in normal human-readable date format
@@ -30406,14 +30418,14 @@ back ends like @code{nntp}, where the groups have been created by the
 server, it is quite likely that there can be many groups.
 
 
-@item (nnchoke-request-create-group GROUP &optional SERVER)
+@item (nnchoke-request-create-group @var{group} &optional @var{server})
 
 This function should create an empty group with name @var{group}.
 
 There should be no return data.
 
 
-@item (nnchoke-request-expire-articles ARTICLES &optional GROUP SERVER FORCE)
+@item (nnchoke-request-expire-articles @var{articles} &optional @var{group} @var{server} @var{force})
 
 This function should run the expiry process on all articles in the
 @var{articles} range (which is currently a simple list of article
@@ -30428,7 +30440,7 @@ able to delete.
 There should be no result data returned.
 
 
-@item (nnchoke-request-move-article ARTICLE GROUP SERVER ACCEPT-FORM &optional LAST)
+@item (nnchoke-request-move-article @var{article} @var{group} @var{server} @var{accept-form} &optional @var{last})
 
 This function should move @var{article} (which is a number) from
 @var{group} by calling @var{accept-form}.
@@ -30450,7 +30462,7 @@ the @code{cdr} is the article number that the article was entered as.
 There should be no data returned.
 
 
-@item (nnchoke-request-accept-article GROUP &optional SERVER LAST)
+@item (nnchoke-request-accept-article @var{group} &optional @var{server} @var{last})
 
 This function takes the current buffer and inserts it into @var{group}.
 If @var{last} in @code{nil}, that means that there will be more calls to
@@ -30465,7 +30477,7 @@ article for that group.
 There should be no data returned.
 
 
-@item (nnchoke-request-replace-article ARTICLE GROUP BUFFER)
+@item (nnchoke-request-replace-article @var{article} @var{group} @var{buffer})
 
 This function should remove @var{article} (which is a number) from
 @var{group} and insert @var{buffer} there instead.
@@ -30473,7 +30485,7 @@ This function should remove @var{article} (which is a number) from
 There should be no data returned.
 
 
-@item (nnchoke-request-delete-group GROUP FORCE &optional SERVER)
+@item (nnchoke-request-delete-group @var{group} @var{force} &optional @var{server})
 
 This function should delete @var{group}.  If @var{force}, it should
 really delete all the articles in the group, and then delete the group
@@ -30482,7 +30494,7 @@ itself.  (If there is such a thing as ``the group itself''.)
 There should be no data returned.
 
 
-@item (nnchoke-request-rename-group GROUP NEW-NAME &optional SERVER)
+@item (nnchoke-request-rename-group @var{group} @var{new-name} &optional @var{server})
 
 This function should rename @var{group} into @var{new-name}.  All
 articles in @var{group} should move to @var{new-name}.

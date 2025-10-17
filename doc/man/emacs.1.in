@@ -685,6 +685,6 @@ There is NO WARRANTY, to the extent permitted by law.
 
 .\" Local Variables:
 .\" eval: (add-hook 'before-save-hook 'time-stamp nil t)
-.\" time-stamp-pattern: "3/.TH EMACS 1 \"%Y-%02m-%02d\" \"GNU Emacs @version@\" \"GNU\"$"
+.\" time-stamp-pattern: "^\\.TH [^ ]+ [^ ]+ \"?%Y-%m-%d\\_>"
 .\" time-stamp-time-zone: "UTC0"
 .\" End:

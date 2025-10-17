@@ -1035,6 +1035,7 @@ way.  The object can also be a floating-point number that is formatted
 as an integer, dropping any fraction.
 
 @item %d
+@itemx %i
 Replace the specification with the base-ten representation of a signed
 integer.  The object can also be a floating-point number that is
 formatted as an integer, dropping any fraction.

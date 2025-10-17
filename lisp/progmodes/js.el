@@ -4106,8 +4106,7 @@ See `treesit-thing-settings' for more information.")
 (derived-mode-add-parents 'js-ts-mode '(js-mode))
 
 ;;;###autoload
-(when (treesit-available-p)
-  (defvar treesit-major-mode-remap-alist)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(javascript-mode . js-ts-mode)))
 
