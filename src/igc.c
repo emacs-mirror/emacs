@@ -4984,7 +4984,6 @@ root.  Each element has the form (LABEL TYPE START END), where
   return roots;
 }
 
-/* FIXME: amcz pools should not contain references! */
 static struct igc_exthdr *
 igc_external_header (struct igc_header *h)
 {
@@ -5520,6 +5519,7 @@ KEY is the key to associate with DEPENDENCY in a hash table.  */)
 
     case Lisp_Int0:
     case Lisp_Int1:
+    case Lisp_Float:
       return Qnil;
 
     case Lisp_Symbol:
@@ -5532,7 +5532,6 @@ KEY is the key to associate with DEPENDENCY in a hash table.  */)
     case Lisp_String:
     case Lisp_Vectorlike:
     case Lisp_Cons:
-    case Lisp_Float:
       client = (mps_addr_t) (word ^ tag);
       break;
     }
@@ -5570,6 +5569,7 @@ KEY is the key associated with DEPENDENCY in a hash table.  */)
 
     case Lisp_Int0:
     case Lisp_Int1:
+    case Lisp_Float:
       return Qnil;
 
     case Lisp_Symbol:
@@ -5582,7 +5582,6 @@ KEY is the key associated with DEPENDENCY in a hash table.  */)
     case Lisp_String:
     case Lisp_Vectorlike:
     case Lisp_Cons:
-    case Lisp_Float:
       client = (mps_addr_t) (word ^ tag);
       break;
     }
