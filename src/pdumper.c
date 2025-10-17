@@ -5870,15 +5870,23 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  Fgethash (build_string (c_name), comp_u->lambda_c_name_idx_h, Qnil);
 	if (!NILP (lambda_data_idx))
 	  {
+	    /* FIXME/elnroot: why is the fixup not done in the Lisp
+	       vector? does it not exist? */
+	    eassert (VECTORP (comp_u->data_vec));
+
 	    /* This is an anonymous lambda.
 	       We must fixup d_reloc so the lambda can be referenced
 	       by code.  */
 	    Lisp_Object tem;
 	    XSETSUBR (tem, subr);
+	    /* No need to fix something if pointers are used because
+	       there are no copies in vectors in the data segments. */
+#  ifndef USE_POINTER_TO_CONSTANTS
 	    Lisp_Object *fixup =
 	      &(comp_u->data_relocs[XFIXNUM (lambda_data_idx)]);
 	    eassert (EQ (*fixup, Vcomp__hashdollar));
 	    *fixup = tem;
+#  endif
 	    Fputhash (tem, Qt, comp_u->lambda_gc_guard_h);
 	  }
 	break;
