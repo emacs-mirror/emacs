@@ -6517,8 +6517,10 @@ VALUE.  In any case, return VALUE.  */)
 	{
 	  if (wh->strong->weakness == Weak_Key_Or_Value)
 	    {
-	      Figc__remove_extra_dependency (key, value, table);
-	      Figc__remove_extra_dependency (value, key, table);
+	      Figc__remove_extra_dependency (key, WEAK_HASH_VALUE (wh, i),
+					     table);
+	      Figc__remove_extra_dependency (WEAK_HASH_VALUE (wh, i), key,
+					     table);
 	    }
 	  set_weak_hash_value_slot (wh, i, value);
 	  if (wh->strong->weakness == Weak_Key_Or_Value)
