@@ -270,7 +270,11 @@ typedef struct
   /* The lock count.  */
   unsigned int count;
   /* The underlying system condition variable.  */
-  sys_cond_t condition;
+#ifdef HAVE_MPS
+  sys_cond_t *condition;
+#else
+  sys_cond_t condition[1];
+#endif
 } lisp_mutex_t;
 
 /* A mutex as a lisp object.  */
@@ -316,7 +320,11 @@ struct Lisp_CondVar
   Lisp_Object name;
 
   /* The lower-level condition variable object.  */
-  sys_cond_t cond;
+#ifdef HAVE_MPS
+  sys_cond_t *cond;
+#else
+  sys_cond_t cond[1];
+#endif
 } GCALIGNED_STRUCT;
 
 INLINE bool

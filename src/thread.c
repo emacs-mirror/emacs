@@ -194,7 +194,10 @@ lisp_mutex_init (lisp_mutex_t *mutex)
 {
   mutex->owner = NULL;
   mutex->count = 0;
-  sys_cond_init (&mutex->condition);
+#ifdef HAVE_MPS
+  mutex->condition = xzalloc (sizeof (*mutex->condition));
+#endif
+  sys_cond_init (mutex->condition);
 }
 
 /* Lock MUTEX for thread LOCKER, setting its lock count to COUNT, if
@@ -231,10 +234,10 @@ lisp_mutex_lock_for_thread (lisp_mutex_t *mutex, struct thread_state *locker,
     }
 
   self = locker;
-  self->wait_condvar = &mutex->condition;
+  self->wait_condvar = mutex->condition;
   while (mutex->owner != NULL && (new_count != 0
 				  || NILP (self->error_symbol)))
-    sys_cond_wait (&mutex->condition, &global_lock);
+    sys_cond_wait (mutex->condition, &global_lock);
   self->wait_condvar = NULL;
 
   if (new_count == 0 && !NILP (self->error_symbol))
@@ -268,7 +271,7 @@ lisp_mutex_unlock (lisp_mutex_t *mutex)
     return 0;
 
   mutex->owner = NULL;
-  sys_cond_broadcast (&mutex->condition);
+  sys_cond_broadcast (mutex->condition);
 
   return 1;
 }
@@ -285,7 +288,7 @@ lisp_mutex_unlock_for_wait (lisp_mutex_t *mutex)
 
   mutex->count = 0;
   mutex->owner = NULL;
-  sys_cond_broadcast (&mutex->condition);
+  sys_cond_broadcast (mutex->condition);
 
   return result;
 }
@@ -293,7 +296,10 @@ lisp_mutex_unlock_for_wait (lisp_mutex_t *mutex)
 static void
 lisp_mutex_destroy (lisp_mutex_t *mutex)
 {
-  sys_cond_destroy (&mutex->condition);
+  sys_cond_destroy (mutex->condition);
+#ifdef HAVE_MPS
+  xfree (mutex->condition);
+#endif
 }
 
 static int
@@ -438,7 +444,10 @@ informational only.  */)
     = ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_CondVar, name, PVEC_CONDVAR);
   condvar->mutex = mutex;
   condvar->name = name;
-  sys_cond_init (&condvar->cond);
+#ifdef HAVE_MPS
+  condvar->cond = xzalloc (sizeof (*condvar->cond));
+#endif
+  sys_cond_init (condvar->cond);
 
   Lisp_Object result;
   XSETCONDVAR (result, condvar);
@@ -460,9 +469,9 @@ condition_wait_callback (void *arg)
   /* If signaled while unlocking, skip the wait but reacquire the lock.  */
   if (NILP (self->error_symbol))
     {
-      self->wait_condvar = &cvar->cond;
+      self->wait_condvar = cvar->cond;
       /* This call could switch to another thread.  */
-      sys_cond_wait (&cvar->cond, &global_lock);
+      sys_cond_wait (cvar->cond, &global_lock);
       self->wait_condvar = NULL;
     }
   self->event_object = Qnil;
@@ -525,9 +534,9 @@ condition_notify_callback (void *arg)
   XSETCONDVAR (cond, na->cvar);
   saved_count = lisp_mutex_unlock_for_wait (&mutex->mutex);
   if (na->all)
-    sys_cond_broadcast (&na->cvar->cond);
+    sys_cond_broadcast (na->cvar->cond);
   else
-    sys_cond_signal (&na->cvar->cond);
+    sys_cond_signal (na->cvar->cond);
   /* Calling lisp_mutex_lock might yield to other threads while this
      one waits for the mutex to become unlocked, so we need to
      announce us as the current thread by calling
@@ -595,7 +604,10 @@ If no name was given when COND was created, return nil.  */)
 void
 finalize_one_condvar (struct Lisp_CondVar *condvar)
 {
-  sys_cond_destroy (&condvar->cond);
+  sys_cond_destroy (condvar->cond);
+#ifdef HAVE_MPS
+  xfree (condvar->cond);
+#endif
 }
 
 
