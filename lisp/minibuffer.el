@@ -2316,7 +2316,8 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
 		     ;; Windows can't show less than 3 lines anyway.
 		     (max 1 (/ (length strings) 2))))
 	   (colwidth (/ wwidth columns))
-	   (lines (or completions-max-height (frame-height))))
+	   (lines (or completions-max-height
+                      (frame-height (window-frame window)))))
       (unless (or tab-stop-list (null completion-tab-width)
                   (zerop (mod colwidth completion-tab-width)))
         ;; Align to tab positions for the case
