@@ -2854,7 +2854,7 @@ print_object (Lisp_Object obj, bool escapeflag, struct print_context *pc)
 			      escapeflag, pc);
 	      }
 
-	    obj = strengthen_hash_table (obj);
+	    obj = strong_copy_hash_table (obj);
 	    goto strong_hash_table;
 	  }
 #endif
