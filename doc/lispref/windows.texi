@@ -2115,33 +2115,33 @@ windows starting with @var{first} and ending with @var{last} and returns
 the new parent window.
 
 This function is useful to operate on several siblings of the same
-parent window as a whole.  Consider three sibling windows @var{W1},
-@var{W2} and @var{W3} aligned side by side.  To make a window below
-@var{W1} and @var{W2} but not below @var{W3}, first combine @var{W1} and
-@var{W2} using this function and then split the window it returned.  It
-can be also used to obtain the combined state of @var{W1} and @var{W2}
-by running @code{window-state-get} (@pxref{Window Configurations}) on
-the return value.
+parent window as a whole.  Consider three sibling windows @var{w1},
+@var{w2} and @var{w3} aligned side by side.  To create a window below
+@var{w1} and @var{w2} but not below @var{w3}, first combine @var{w1} and
+@var{w2} using this function, and then split the window it returned.  You
+can also call @code{window-state-get} (@pxref{Window Configurations}) on
+the return value of @code{combine-windows} to obtain the combined state
+of @var{w1} and @var{w2}.
 @end defun
 
 @cindex uncombining windows
 @defun uncombine-window window
 This function uncombines the specified @var{window}.  @var{window}
 should be an internal window whose parent window is an internal window
-of the same type.  This means, that @var{window} and its parent should
+of the same type.  This means that @var{window} and its parent should
 be either both horizontal or both vertical window combinations.  If this
-is the case, it makes the child windows of @var{window} child windows of
-@var{window}'s parent and returns @code{t}.  Otherwise, it leaves the
-current configuration of @var{window}'s frame unchanged and returns
-@code{nil}.
+is the case, the function makes the child windows of @var{window} become
+child windows of @var{window}'s parent, and returns @code{t}.
+Otherwise, it leaves the current configuration of @var{window}'s frame
+unchanged and returns @code{nil}.
 
 This function is useful to undo the effect of @code{combine-windows}.
-For example, to calculate the state of two adjacent windows @var{W1} and
-@var{W2}, proceed as follows: Run @code{combine-windows} with @var{W1}
-and @var{W2} as arguments and store the result in @var{W}.  Then run
-@code{window-state-get} with the argument @var{W}.  Finally, run this
-function with @var{W} as its argument to obtain the window configuration
-that existed before running @code{combine-windows}.
+For example, to calculate the state of two adjacent windows @var{w1} and
+@var{w2}, proceed as follows: first, call @code{combine-windows} with @var{w1}
+and @var{w2} as arguments, and store the result in @var{w}.  Then call
+@code{window-state-get} with the argument @var{w}.  Finally, call
+@code{uncombine-window} with @var{w} as its argument to obtain the
+window configuration that existed before the call to @code{combine-windows}.
 @end defun
 
 

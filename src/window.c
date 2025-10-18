@@ -5155,7 +5155,7 @@ windows with the same parent window.  If neither FIRST has a previous
 nor LAST has a next sibling, return that parent window.  Otherwise, make
 a new parent window whose first child window becomes FIRST and whose
 last child window becomes LAST, insert that parent window in the window
-tree in lieu of the windows starting with FIRST and ending with LAST and
+tree in lieu of the windows starting with FIRST and ending with LAST, and
 return the new parent window.  */)
   (Lisp_Object first, Lisp_Object last)
 {
@@ -5280,9 +5280,9 @@ DEFUN ("uncombine-window", Funcombine_window, Suncombine_window, 1, 1, 0,
 WINDOW should be an internal window whose parent window is an internal
 window of the same type.  This means, that WINDOW and its parent should
 be either both horizontal or both vertical window combinations.  If this
-is the case, make the child windows of WINDOW child windows of WINDOW's
-parent and return t.  Otherwise, leave the current configuration of
-WINDOW's frame unchanged and return nil.  */)
+is the case, make the child windows of WINDOW become child windows of
+WINDOW's parent and return t.  Otherwise, leave the current configuration
+of WINDOW's frame unchanged and return nil.  */)
   (Lisp_Object window)
 {
   struct window *w = decode_valid_window (window);
