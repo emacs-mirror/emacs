@@ -2047,7 +2047,10 @@ you can move to one of them and type C-c C-c to recover that one."
 
 ;;;###autoload
 (defun mail-other-window (&optional noerase to subject in-reply-to cc replybuffer sendactions)
-  "Like `mail' command, but display mail buffer in another window."
+  "Like `mail' command, but display mail buffer in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive "P")
   (switch-to-buffer-other-window "*mail*")
   (mail noerase to subject in-reply-to cc replybuffer sendactions))

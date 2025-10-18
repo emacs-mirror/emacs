@@ -912,7 +912,10 @@ system."
   (find-file (vc-dir-current-file)))
 
 (defun vc-dir-find-file-other-window (&optional event)
-  "Find the file on the current line, in another window."
+  "Find the file on the current line, in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive (list last-nonmenu-event))
   (if event (posn-set-point (event-end event)))
   (find-file-other-window (vc-dir-current-file)))

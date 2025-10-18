@@ -1203,7 +1203,10 @@ If DIRNAME is already in a Dired buffer, that buffer is used without refresh."
 ;;;###autoload (define-key ctl-x-4-map "d" 'dired-other-window)
 ;;;###autoload
 (defun dired-other-window (dirname &optional switches)
-  "\"Edit\" directory DIRNAME.  Like `dired' but select in another window."
+  "\"Edit\" directory DIRNAME.  Like `dired' but select in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive (dired-read-dir-and-switches "in other window "))
   (switch-to-buffer-other-window (dired-noselect dirname switches)))
 
@@ -3077,7 +3080,10 @@ so that the original Dired buffer is not kept."
       (dired--find-file find-file-func (file-name-sans-versions file t)))))
 
 (defun dired-mouse-find-file-other-window (event)
-  "In Dired, visit the file or directory name you click on in another window."
+  "In Dired, visit the file or directory name you click on in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive "e" dired-mode)
   (dired-mouse-find-file event 'find-file-other-window 'dired-other-window))
 
@@ -3099,7 +3105,10 @@ Otherwise, display it in another buffer."
       (view-file file))))
 
 (defun dired-find-file-other-window ()
-  "In Dired, visit this file or directory in another window."
+  "In Dired, visit this file or directory in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive nil dired-mode)
   (dired--find-file #'find-file-other-window (dired-get-file-for-visit)))
 
@@ -5215,7 +5224,10 @@ Interactively with prefix argument, read FILE-NAME."
 
 ;;;###autoload
 (defun dired-jump-other-window (&optional file-name)
-  "Like \\[dired-jump] (`dired-jump') but in other window."
+  "Like \\[dired-jump] (`dired-jump') but in other window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive
    (list (and current-prefix-arg
 	      (read-file-name "Jump to Dired file: "))))
