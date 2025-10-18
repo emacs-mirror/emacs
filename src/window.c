@@ -5133,6 +5133,200 @@ resize_frame_windows (struct frame *f, int size, bool horflag)
 }
 
 
+/** Make parent window on FRAME and return its object.  */
+static Lisp_Object
+make_parent_window (Lisp_Object frame)
+{
+  Lisp_Object parent;
+  struct window *p = allocate_window ();
+
+  p->sequence_number = ++sequence_number;
+  wset_frame (p, frame);
+  XSETWINDOW (parent, p);
+
+  return parent;
+}
+
+
+DEFUN ("combine-windows", Fcombine_windows, Scombine_windows, 2, 2, 0,
+       doc: /* Combine windows from FIRST to LAST.
+FIRST and LAST must be valid windows in the same combination, that is,
+windows with the same parent window.  If neither FIRST has a previous
+nor LAST has a next sibling, return that parent window.  Otherwise, make
+a new parent window whose first child window becomes FIRST and whose
+last child window becomes LAST, insert that parent window in the window
+tree in lieu of the windows starting with FIRST and ending with LAST and
+return the new parent window.  */)
+  (Lisp_Object first, Lisp_Object last)
+{
+  struct window *f = decode_valid_window (first);
+  struct window *l = decode_valid_window (last);
+  struct window *w = f;
+
+  if (f == l)
+    /* Don't make a matryoshka window.  */
+    error ("Invalid window to parentify");
+
+  while (w != l && !NILP (w->next))
+    w = XWINDOW (w->next);
+
+  if (w != l)
+    {
+      w = l;
+
+      while (w != f && !NILP (w->next))
+	w = XWINDOW (w->next);
+
+      if (w == f)
+	/* Invert FIRST and LAST.  */
+	{
+	  f = l;
+	  l = w;
+	  XSETWINDOW (first, f);
+	  XSETWINDOW (last, l);
+	}
+      else
+	error ("Invalid window to parentify");
+    }
+
+  if (NILP (f->prev) && NILP (l->next))
+    return f->parent;
+
+  /* Make new parent window PARENT.  */
+  Lisp_Object parent = make_parent_window (f->frame);
+  struct window *p = XWINDOW (parent);
+  double normal_size = 0.0;
+
+  /* Splice in PARENT into the window tree.  */
+  p->parent = f->parent;
+  p->horizontal = XWINDOW (p->parent)->horizontal;
+  p->contents = first;
+
+  if (NILP (f->prev))
+    /* FIRST has no previous sibling.  */
+    XWINDOW (p->parent)->contents = parent;
+  else
+    /* FIRST has a previous sibling.  */
+    {
+      XWINDOW (f->prev)->next = parent;
+      p->prev = f->prev;
+      f->prev = Qnil;
+    }
+
+  if (!NILP (l->next))
+    /* LAST has a next sibling.  */
+    {
+      XWINDOW (l->next)->prev = parent;
+      p->next = l->next;
+      l->next = Qnil;
+    }
+
+  /* Fix parent slots for PARENT's new children.  */
+  w = f;
+
+  while (w)
+    {
+      w->parent = parent;
+      if (w == l)
+	break;
+      else
+	{
+	  if (p->horizontal)
+	    normal_size = normal_size + XFLOAT_DATA (f->normal_cols);
+	  else
+	    normal_size = normal_size + XFLOAT_DATA (f->normal_lines);
+
+	  w = XWINDOW (w->next);
+	}
+    }
+
+  /* Set up PARENT's positions and sizes.  */
+  p->pixel_left = f->pixel_left;
+  p->left_col = f->left_col;
+  p->pixel_top = f->pixel_top;
+  p->top_line = f->top_line;
+
+  if (p->horizontal)
+    {
+      p->pixel_width = l->pixel_left + l->pixel_width - f->pixel_left;
+      p->total_cols = l->left_col + l->total_cols - f->left_col;
+      p->pixel_height = f->pixel_height;
+      p->total_lines = f->total_lines;
+    }
+  else
+    {
+      p->pixel_height = l->pixel_top + l->pixel_height - f->pixel_top;
+      p->total_lines = l->top_line + l->total_lines - f->top_line;
+      p->pixel_width = f->pixel_width;
+      p->total_cols = f->total_cols;
+    }
+
+  if (p->horizontal)
+    {
+      p->normal_cols = make_float (normal_size);
+      p->normal_lines = f->normal_lines;
+    }
+  else
+    {
+      p->normal_cols = f->normal_cols;
+      p->normal_lines = make_float (normal_size);
+    }
+
+  return parent;
+}
+
+DEFUN ("uncombine-window", Funcombine_window, Suncombine_window, 1, 1, 0,
+       doc: /* Uncombine specified WINDOW.
+WINDOW should be an internal window whose parent window is an internal
+window of the same type.  This means, that WINDOW and its parent should
+be either both horizontal or both vertical window combinations.  If this
+is the case, make the child windows of WINDOW child windows of WINDOW's
+parent and return t.  Otherwise, leave the current configuration of
+WINDOW's frame unchanged and return nil.  */)
+  (Lisp_Object window)
+{
+  struct window *w = decode_valid_window (window);
+  Lisp_Object parent = w->parent;
+
+  if (MINI_WINDOW_P (w))
+    error ("Cannot uncombine a mini window");
+
+  if (WINDOW_INTERNAL_P (w) && !NILP (parent)
+      && w->horizontal == XWINDOW (parent)->horizontal)
+    {
+      struct window *p = XWINDOW (w->parent);
+      /* WINDOW's first child.  */
+      Lisp_Object first = w->contents;
+      struct window *f = XWINDOW (first);
+      /* WINDOW's last child.  */
+      Lisp_Object last = Qnil;
+      struct window *l = f;
+
+      /* Make WINDOW's parent new parent of WINDOW's children.  */
+      while (!NILP (l->next))
+	{
+	  wset_parent (l, parent);
+	  l = XWINDOW (l->next);
+	}
+      wset_parent (l, parent);
+      XSETWINDOW (last, l);
+
+      wset_prev (f, w->prev);
+      if (NILP (f->prev))
+	wset_combination (p, p->horizontal, first);
+      else
+	wset_next (XWINDOW (f->prev), first);
+
+      wset_next (l, w->next);
+      if (!NILP (l->next))
+	wset_prev (XWINDOW (w->next), last);
+
+      return Qt;
+    }
+  else
+    return Qnil;
+}
+
 DEFUN ("split-window-internal", Fsplit_window_internal, Ssplit_window_internal, 4, 5, 0,
        doc: /* Split window OLD.
 Second argument PIXEL-SIZE specifies the number of pixels of the
@@ -5302,12 +5496,9 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 	= horflag ? o->normal_cols : o->normal_lines;
 
       if (NILP (parent))
-	/* This is the crux of the old make_parent_window.  */
 	{
-	  p = allocate_window ();
-	  XSETWINDOW (parent, p);
-	  p->sequence_number = ++sequence_number;
-	  wset_frame (p, frame);
+	  parent = make_parent_window (frame);
+	  p = XWINDOW (parent);
 	}
       else
 	/* Pacify GCC.  */
@@ -9345,6 +9536,8 @@ name to `'ignore'.  */);
   defsubr (&Sselect_window);
   defsubr (&Sforce_window_update);
   defsubr (&Ssplit_window_internal);
+  defsubr (&Scombine_windows);
+  defsubr (&Suncombine_window);
   defsubr (&Sscroll_up);
   defsubr (&Sscroll_down);
   defsubr (&Sscroll_left);
