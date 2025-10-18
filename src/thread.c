@@ -41,6 +41,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_MPS
 static sys_jmp_buf main_thread_getcjmp;
+static sys_cond_t main_thread_condvar;
 #endif
 
 union aligned_thread_state main_thread
@@ -53,6 +54,7 @@ union aligned_thread_state main_thread
       .m_saved_last_thing_searched = LISPSYM_INITIALLY (Qnil),
 #ifdef HAVE_MPS
       .m_getcjmp = &main_thread_getcjmp,
+      .thread_condvar = &main_thread_condvar,
 #endif
       .name = LISPSYM_INITIALLY (Qnil),
       .function = LISPSYM_INITIALLY (Qnil),
@@ -852,7 +854,7 @@ run_thread (void *state)
 #endif
 
   current_thread = NULL;
-  sys_cond_broadcast (&self->thread_condvar);
+  sys_cond_broadcast (self->thread_condvar);
 
 #ifdef HAVE_NS
   ns_release_autorelease_pool (pool);
@@ -894,7 +896,10 @@ finalize_one_thread (struct thread_state *state)
 {
   free_search_regs (&state->m_search_regs);
   free_search_regs (&state->m_saved_search_regs);
-  sys_cond_destroy (&state->thread_condvar);
+  sys_cond_destroy (state->thread_condvar);
+#ifdef HAVE_MPS
+  xfree (state->thread_condvar);
+#endif
   free_bc_thread (state->bc);
 }
 
@@ -925,6 +930,7 @@ will be signaled.  */)
   new_thread->name = name;
 #ifdef HAVE_MPS
   new_thread->m_getcjmp = igc_xzalloc_ambig (sizeof (*new_thread->m_getcjmp));
+  new_thread->thread_condvar = xzalloc (sizeof (*new_thread->thread_condvar));
   new_thread->bc = xzalloc (sizeof (*new_thread->bc));
 #endif
   /* Perhaps copy m_last_thing_searched from parent?  */
@@ -937,7 +943,7 @@ will be signaled.  */)
   new_thread->m_specpdl_ptr = new_thread->m_specpdl;
 
   init_bc_thread (new_thread->bc);
-  sys_cond_init (&new_thread->thread_condvar);
+  sys_cond_init (new_thread->thread_condvar);
 
   /* We'll need locking here eventually.  */
   new_thread->next_thread = all_threads;
@@ -1125,7 +1131,7 @@ thread_join_callback (void *arg)
 
   XSETTHREAD (thread, tstate);
   self->event_object = thread;
-  self->wait_condvar = &tstate->thread_condvar;
+  self->wait_condvar = tstate->thread_condvar;
   while (thread_live_p (tstate) && NILP (self->error_symbol))
     sys_cond_wait (self->wait_condvar, &global_lock);
 
@@ -1264,7 +1270,7 @@ in_current_thread (void)
 void
 init_threads (void)
 {
-  sys_cond_init (&main_thread.s.thread_condvar);
+  sys_cond_init (main_thread.s.thread_condvar);
   sys_mutex_init (&global_lock);
   sys_mutex_lock (&global_lock);
   current_thread = &main_thread.s;
