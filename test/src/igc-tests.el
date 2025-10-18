@@ -53,4 +53,23 @@
                  '("pause-time" nil 1.0e+INF nil)))
   (should (equal (igc--set-pause-time 0.01) nil)))
 
+(defvar igc-test--list-length 16000000
+  "Number of cons cells we created to trigger incremental GC.")
+
+(defun igc-test--trigger-incremental-gc ()
+  "Attempt to trigger incremental garbage collection."
+  (ignore (make-list igc-test--list-length nil)))
+
+;; Test whether triggering incremental GC from a secondary thread aborts
+;; the main thread.  This will cause an abort on unfixed Emacs versions
+;; on GNU/Linux with the message "The futex facility returned an
+;; unexpected error code."
+
+(ert-deftest igc-test-thread-incremental-gc ()
+  "Trigger incremental GC on a second thread."
+  :tags '(:igc :expensive-test)
+  (skip-unless (fboundp 'make-thread))
+  (igc-collect)
+  (thread-join (make-thread #'igc-test--trigger-incremental-gc)))
+
 ;;; igc-tests.el ends here.
