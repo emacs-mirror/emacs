@@ -683,7 +683,8 @@ enabled."
   ;; When the byte-compiler expands code, this macro is not used, so we're
   ;; either about to run `body' (plain interpretation) or we're doing eager
   ;; macroexpansion.
-  (list 'quote (eval (cons 'progn body) lexical-binding)))
+  (list 'quote (eval (cons 'progn body)
+                     (when lexical-binding (or macroexp--dynvars t)))))
 
 (defun with-no-warnings (&rest body)
   "Like `progn', but prevents compiler warnings in the body."

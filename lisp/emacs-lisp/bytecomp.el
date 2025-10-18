@@ -589,7 +589,11 @@ Only conses are traversed and duplicated, not arrays or any other structure."
                                       macroexpand-all-environment)))
                                 (eval (byte-run-strip-symbol-positions
                                        (bytecomp--copy-tree expanded))
-                                      lexical-binding)
+                                      (when lexical-binding
+                                        (or (append
+                                             macroexp--dynvars
+                                             byte-compile-bound-variables)
+                                            t)))
                                 expanded)))))
     (with-suppressed-warnings
         . ,(lambda (warnings &rest body)

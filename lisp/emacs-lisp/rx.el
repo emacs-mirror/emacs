@@ -1685,10 +1685,6 @@ following constructs:
                    REF can be a number, as usual, or a name
                    introduced by a previous (let REF ...)
                    construct."
-  ;; FIXME: We can't rely on the surrounding lexical context because
-  ;; `pcase-defmacro' wraps this function inside an `eval-and-compile',
-  ;; so we have to repeat the (defvar rx--pcase-vars).
-  (defvar rx--pcase-vars)
   (let* ((rx--pcase-vars nil)
          (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps)))))
     `(and (pred stringp)
