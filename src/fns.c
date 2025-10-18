@@ -5573,7 +5573,8 @@ maybe_resize_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
 {
   if (XFIXNUM (h->strong->next_free) < 0)
     {
-      ptrdiff_t old_size = WEAK_HASH_TABLE_SIZE (h);
+      Lisp_Object tmp_table = strengthen_hash_table (make_lisp_weak_hash_table (h));
+      ptrdiff_t old_size = XFIXNUM (Fhash_table_count (tmp_table));
       ptrdiff_t min_size = 6;
       ptrdiff_t base_size = min (max (old_size, min_size), PTRDIFF_MAX / 2);
       /* Grow aggressively at small sizes, then just double.  */
@@ -5637,21 +5638,25 @@ maybe_resize_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
       strong->table_size = make_fixnum (new_size);
       strong->next_free = make_fixnum (0);
 
-      struct Lisp_Weak_Hash_Table *pseudo =
-	ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Weak_Hash_Table, PVEC_WEAK_HASH_TABLE);
       /* Mark the new hash table as ready for scanning */
       weak->strong = strong;
       strong->weak = weak;
-      pseudo->strong = strong;
-      pseudo->weak = weak;
-      Lisp_Object k, v;
-      DOHASH_WEAK (h, k, v)
+      /* FIXME/igc: Fremhash and Fputhash can throw.  Do we need to
+	 handle that case?  */
+      if (strong->weakness == Weak_Key_Or_Value)
 	{
-	  Fputhash (k, v, make_lisp_weak_hash_table (pseudo));
+	  DOHASH (XHASH_TABLE (tmp_table), k, v)
+	    {
+	      Fremhash (k, make_lisp_weak_hash_table (h));
+	    }
 	}
 
       h->strong = strong;
       h->weak = weak;
+      DOHASH (XHASH_TABLE (tmp_table), k, v)
+	{
+	  Fputhash (k, v, make_lisp_weak_hash_table (h));
+	}
     }
 }
 
