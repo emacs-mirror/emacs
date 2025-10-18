@@ -287,9 +287,10 @@ yourself from entering changes accidentally, visit it with the command
 except that the buffer containing the specified file is selected in another
 window.  The window that was selected before @kbd{C-x 4 f} continues to
 show the same buffer it was already showing.  If this command is used when
-only one window is being displayed, that window is split in two, with one
-window showing the same buffer as before, and the other one showing the
-newly requested file.  @xref{Windows}.
+only one window is being displayed, that window is split in two
+(@pxref{Window Choice}), with one window showing the same buffer as
+before, and the other one showing the newly requested file.
+@xref{Windows}.
 
 @kindex C-x 5 f
 @findex find-file-other-frame

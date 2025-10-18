@@ -226,7 +226,11 @@ are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For a list of all View commands, type H or h while viewing.
 
-This command runs the normal hook `view-mode-hook'."
+This command runs the normal hook `view-mode-hook'.
+
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive "fIn other window view file: ")
   (unless (file-exists-p file) (error "%s does not exist" file))
   (let ((had-a-buf (get-file-buffer file))
@@ -306,7 +310,11 @@ this argument instead of explicitly setting `view-exit-action'.
 
 This function does not enable View mode if the buffer's major mode
 has a `special' mode-class, because such modes usually have their
-own View-like bindings."
+own View-like bindings.
+
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive "bIn other window view buffer:\nP")
   (let ((pop-up-windows t))
     (pop-to-buffer buffer t))

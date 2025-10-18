@@ -376,7 +376,7 @@ BOOKMARK-RECORD is, e.g., one element from `bookmark-alist'.  Its
 type is read from the symbol property named
 `bookmark-handler-type' read on the record handler function."
   (let ((handler (bookmark-get-handler bookmark-record)))
-    (when (autoloadp (symbol-function handler))
+    (when (and (symbolp handler) (autoloadp (symbol-function handler)))
       (autoload-do-load (symbol-function handler)))
     (if (symbolp handler)
         (get handler 'bookmark-handler-type)

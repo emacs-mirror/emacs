@@ -124,7 +124,7 @@ buffer, Emacs displays the directory listing of the parent directory
 and places point on the line that corresponds to the directory where
 you invoked @code{dired-jump}.  Typing @kbd{C-x 4 C-j}
 (@code{dired-jump-other-window}) has the same effect, but displays the
-Dired buffer in a new window.
+Dired buffer in a new window (@pxref{Window Choice}).
 
   The variable @code{dired-listing-switches} specifies the options to
 give to @command{ls} for listing the directory; this string
@@ -182,7 +182,7 @@ peculiarities of this emulation.
   To display the Dired buffer in another window, use @kbd{C-x 4 d}
 (@code{dired-other-window}).  @kbd{C-x 5 d}
 (@code{dired-other-frame}) displays the Dired buffer in a separate
-frame.
+frame.  @xref{Window Choice}.
 
 @kindex q @r{(Dired)}
 @findex quit-window@r{, in Dired buffers}
@@ -435,7 +435,8 @@ that of an alternate file or directory (@code{dired-find-alternate-file}).
 @item o
 @kindex o @r{(Dired)}
 @findex dired-find-file-other-window
-Like @kbd{f}, but uses another window to display the file's buffer
+Like @kbd{f}, but uses another window (@pxref{Window Choice}) to display
+the file's buffer
 (@code{dired-find-file-other-window}).  The Dired buffer remains visible
 in the first window.  This is like using @kbd{C-x 4 C-f} to visit the
 file.  @xref{Windows}.

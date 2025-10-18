@@ -9952,7 +9952,10 @@ To disable this warning, set `compose-mail-user-agent-warnings' to nil."
 (defun compose-mail-other-window (&optional to subject other-headers continue
 					    yank-action send-actions
 					    return-action)
-  "Like \\[compose-mail], but edit the outgoing message in another window."
+  "Like \\[compose-mail], but edit the outgoing message in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive (list nil nil nil current-prefix-arg))
   (compose-mail to subject other-headers continue
 		'switch-to-buffer-other-window yank-action send-actions
@@ -11036,7 +11039,10 @@ Returns the newly created indirect buffer."
 
 
 (defun clone-indirect-buffer-other-window (newname display-flag &optional norecord)
-  "Like `clone-indirect-buffer' but display in another window."
+  "Like `clone-indirect-buffer' but display in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive
    (progn
      (if (get major-mode 'no-clone-indirect)

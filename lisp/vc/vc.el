@@ -2985,7 +2985,11 @@ Return nil if the root directory cannot be identified."
 (defun vc-revision-other-window (rev)
   "Visit revision REV of the current file in another window.
 If the current file is named `F', the revision is named `F.~REV~'.
-If `F.~REV~' already exists, use it instead of checking it out again."
+If `F.~REV~' already exists, use it instead of checking it out again.
+
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive
    (with-current-buffer (or (buffer-base-buffer) (current-buffer))
      (vc-ensure-vc-buffer)

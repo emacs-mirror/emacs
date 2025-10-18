@@ -1339,6 +1339,22 @@
 (ert-deftest ft-weak-and-removal () (ft--test-weak-removal 'key-and-value))
 (ert-deftest ft-weak-or-removal () (ft--test-weak-removal 'key-or-value))
 
+(defun ft--test-puthash (weakness)
+  (let ((h (make-hash-table :weakness weakness))
+        (a (string ?a))
+        (b (string ?b))
+        (c (string ?c)))
+    (puthash a a h)
+    (should (eq (gethash a h) a))
+    (puthash a b h)
+    (should (eq (gethash a h) b))
+    (puthash a c h)
+    (should (eq (gethash a h) c))))
+
+(ert-deftest ft-puthash-weak ()
+  (dolist (w '(nil key value key-and-value key-or-value))
+    (ft--test-puthash w)))
+
 
 
 (ert-deftest test-hash-function-that-mutates-hash-table ()

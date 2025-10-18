@@ -9602,7 +9602,10 @@ Optional second argument NORECORD non-nil means do not put this
 buffer at the front of the list of recently selected ones.
 
 This uses the function `display-buffer' as a subroutine; see its
-documentation for additional customization information."
+documentation for additional customization information.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other window: ")))
   (let ((pop-up-windows t))

@@ -2099,6 +2099,51 @@ Deleting any of the live windows @var{W2}, @var{W3} or @var{W4} will
 distribute its space proportionally among the two remaining live
 windows.
 
+The following two functions allow to expressly make a new parent window
+for several adjacent windows and to undo that operation.
+
+@cindex combining windows
+@defun combine-windows first last
+This function combines the windows from @var{first} to @var{last}
+inclusive.  @var{first} and @var{last} must be valid windows in the same
+combination, that is, windows with the same parent window.  If neither
+@var{first} has a previous nor @var{last} has a next sibling, it returns
+that parent window.  Otherwise, it makes a new parent window whose first
+child window becomes @var{first} and whose last child window becomes
+@var{last}, inserts that parent window in the window tree in lieu of the
+windows starting with @var{first} and ending with @var{last} and returns
+the new parent window.
+
+This function is useful to operate on several siblings of the same
+parent window as a whole.  Consider three sibling windows @var{w1},
+@var{w2} and @var{w3} aligned side by side.  To create a window below
+@var{w1} and @var{w2} but not below @var{w3}, first combine @var{w1} and
+@var{w2} using this function, and then split the window it returned.  You
+can also call @code{window-state-get} (@pxref{Window Configurations}) on
+the return value of @code{combine-windows} to obtain the combined state
+of @var{w1} and @var{w2}.
+@end defun
+
+@cindex uncombining windows
+@defun uncombine-window window
+This function uncombines the specified @var{window}.  @var{window}
+should be an internal window whose parent window is an internal window
+of the same type.  This means that @var{window} and its parent should
+be either both horizontal or both vertical window combinations.  If this
+is the case, the function makes the child windows of @var{window} become
+child windows of @var{window}'s parent, and returns @code{t}.
+Otherwise, it leaves the current configuration of @var{window}'s frame
+unchanged and returns @code{nil}.
+
+This function is useful to undo the effect of @code{combine-windows}.
+For example, to calculate the state of two adjacent windows @var{w1} and
+@var{w2}, proceed as follows: first, call @code{combine-windows} with @var{w1}
+and @var{w2} as arguments, and store the result in @var{w}.  Then call
+@code{window-state-get} with the argument @var{w}.  Finally, call
+@code{uncombine-window} with @var{w} as its argument to obtain the
+window configuration that existed before the call to @code{combine-windows}.
+@end defun
+
 
 @node Resurrecting Windows
 @section Resurrecting Windows
@@ -7035,9 +7080,9 @@ sessions.  @xref{Uniquify,,, emacs, The GNU Emacs Manual}.
 @end defun
 
 The value returned by @code{window-state-get} can be used in the same
-session to make a clone of a window in another window.  It can be also
-written to disk and read back in another session.  In either case, use
-the following function to restore the state of the window.
+session to clone a window (see below).  It can be also written to disk
+and read back in another session.  In either case, use the following
+function to restore the state of the window.
 
 @defun window-state-put state &optional window ignore
 This function puts the window state @var{state} into @var{window}.
@@ -7059,11 +7104,22 @@ is @code{safe}, this means windows can get as small as one line
 and/or two columns.
 @end defun
 
+@cindex window clone
+@cindex clone of window
+In the context of window states, the @dfn{clone of a window} is a window
+that has the same decorations and contents as the window whose state was
+used to produce it, but is actually represented by another window
+object.  Operating on the original or the clone of a window does not
+affect the other in any way.  Note that while @code{window-state-get}
+clones existing windows, these clones are not yet valid windows.  They
+become valid only after @code{window-state-put} has put them into a live
+frame.
+
 By default, @code{set-window-configuration} and @code{window-state-put}
-may delete a window from the restored configuration when they find out
-that its buffer was killed since the corresponding configuration or
-state has been recorded.  The variable described next can be used to
-fine-tune that behavior.
+may delete a window from the restored configuration or state when they
+find out that its buffer was killed since the corresponding
+configuration or state has been recorded.  The variable described next
+can be used to fine-tune that behavior.
 
 @cindex restoring windows whose buffers have been killed
 @defvar window-restore-killed-buffer-windows
@@ -7426,20 +7482,23 @@ temporarily current.
 
 If you are using the buffer-local version of this hook, you may want to
 discern the case where the buffer was removed from a window from the
-case where the buffer is now shown in that window.  Let @code{window}
-denote the window argument passed to a function on this hook: To detect
-the case where the buffer was removed from @code{window} use the idiom
+case where the buffer is now shown in that window.  If @var{window}
+denotes the window argument passed to a function on this hook, then to
+detect the case where the buffer was removed from @var{window} use the
+idiom
 
 @example
-(eq (window-old-buffer window) (current-buffer))
+(eq (window-old-buffer @var{window}) (current-buffer))
 @end example
 
-while to detect whether the buffer is now shown in @code{window} use
+@noindent
+while to detect whether the buffer is now shown in @var{window} use
 
 @example
-(eq (window-buffer window) (current-buffer))
+(eq (window-buffer @var{window}) (current-buffer))
 @end example
 
+@noindent
 instead.
 
 Functions specified by the default value are called for a frame if at

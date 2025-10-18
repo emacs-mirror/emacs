@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Presumably it is okay to use GNU Bash, because it is one of the most
+# popular shells, and even if it is not available, the calling side
+# inside Emacs knows how to handle errors gracefully.
+
 #exec aspell "$@"
 
 #rm -rf ~/lwf_mock-aspell.log
@@ -8,14 +12,10 @@
 
 #printf 'args="%s"\n' "$*" >> /tmp/lwf_mock-aspell.log || { printf "lwf:ERROR\n" ; exit 3 ; }
 
-# coproc aspell { aspell "$@" ; }
-
 if [[ "$HOME" == '' ]] ; then
-    echo "HOME is unset. Aspell usually fails in such a case\n" 1>2
+    printf "HOME is unset. Aspell usually fails in such a case\n" 1>&2
     exit 3
 fi
-
-vv=
 
 show_vv()
 {
@@ -69,6 +69,9 @@ imitate_pipe()
 
 imitate_interactive()
 {
+    : "This function is not used at the moment, but it might become
+     useful eventually, if Emacs starts supporting calling the backend
+     using the human interface, not just the pipe interface."
     exit 6
     while true ; do
 	read a

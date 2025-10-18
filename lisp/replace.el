@@ -1522,7 +1522,10 @@ If not invoked by a mouse click, go to occurrence on the current line."
     (run-hooks 'occur-mode-find-occurrence-hook)))
 
 (defun occur-mode-goto-occurrence-other-window ()
-  "Go to the occurrence the current line describes, in another window."
+  "Go to the occurrence the current line describes, in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive)
   (let ((buffer (current-buffer))
         (pos (occur--targets-start (occur-mode--find-occurrences))))
