@@ -202,9 +202,13 @@ struct thread_state
   /* The OS identifier for this thread.  */
   sys_thread_t thread_id;
 
+#ifdef HAVE_MPS
+  sys_cond_t *thread_condvar;
+#else
   /* The condition variable for this thread.  This is associated with
      the global lock.  This thread broadcasts to it when it exits.  */
-  sys_cond_t thread_condvar;
+  sys_cond_t thread_condvar[1];
+#endif
 
   /* This thread might be waiting for some condition.  If so, this
      points to the condition.  If the thread is interrupted, the
