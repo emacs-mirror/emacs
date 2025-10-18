@@ -5465,20 +5465,40 @@ allocate_weak_hash_table (hash_table_weakness_t weak, ssize_t size, ssize_t inde
   return ret;
 }
 
+/* The purpose of this object is to ensure an ambiguous pointer to the
+   base of the strong and weak hash table parts exists while a weak hash
+   table is being accessed.  This is necessary because the AWL pool
+   provided by MPS does not consider an interior ambiguous pointer
+   sufficient for protecting an object.  */
+
+static volatile struct Lisp_Weak_Hash_Table *hash_table_being_accessed;
+
 /* Return a hash table containing a snapshot of the entries of weak hash
-   table WEAK. */
+   table TABLE.  */
 
 Lisp_Object
-strengthen_hash_table (Lisp_Object weak)
+strengthen_hash_table (Lisp_Object table)
 {
-  Lisp_Object ret = make_hash_table (XWEAK_HASH_TABLE (weak)->strong->test, 0, Weak_None);
+  if (!hash_table_being_accessed)
+    {
+      /* Never freed.  */
+      hash_table_being_accessed = igc_xzalloc_ambig (sizeof (*hash_table_being_accessed));
+    }
+  hash_table_being_accessed->strong = XWEAK_HASH_TABLE (table)->strong;
+  hash_table_being_accessed->weak = XWEAK_HASH_TABLE (table)->weak;
+  Lisp_Object ret = make_hash_table (XWEAK_HASH_TABLE (table)->strong->test, 0, Weak_None);
 
   Lisp_Object k, v;
-  DOHASH_WEAK (XWEAK_HASH_TABLE (weak), k, v)
+  DOHASH_WEAK (XWEAK_HASH_TABLE (table), k, v)
     {
       Fputhash (k, v, ret);
     }
 
+  /* If Fputhash throws, we'll fail to clear the pointers.  That's okay,
+     and rare, and will keep the hash table parts alive until the next
+     successful call to this function.  */
+  hash_table_being_accessed->strong = NULL;
+  hash_table_being_accessed->weak = NULL;
   return ret;
 }
 
