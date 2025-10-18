@@ -958,7 +958,7 @@ and type @kbd{C-x v ~ @var{revision} @key{RET}}
 (@code{vc-revision-other-window}).  This retrieves the file version
 corresponding to @var{revision}, saves it to
 @file{@var{filename}.~@var{revision}~}, and visits it in a separate
-window.
+window (@pxref{Window Choice}).
 
 @findex vc-annotate
 @vindex vc-annotate-background-mode
@@ -2284,7 +2284,8 @@ a backup file, it makes an entry appropriate for the file's
 parent---that is useful for making log entries for functions that
 have been deleted in the current version.
 
-  @kbd{C-x 4 a} visits the change log file and creates a new entry
+  @kbd{C-x 4 a} visits the change log file in a window other than the
+selected one (@pxref{Window Choice}) and creates a new entry
 unless the most recent entry is for today's date and your name.  It
 also creates a new item for the current file.  For many languages, it
 can even guess the name of the function or other object that was
@@ -2552,8 +2553,8 @@ known identifier names being the completion candidates.
 @findex xref-find-definitions-other-frame
   Like most commands that can switch buffers,
 @code{xref-find-definitions} has a variant that displays the new
-buffer in another window, and one that makes a new frame for it.  The
-former is @w{@kbd{C-x 4 .}}
+buffer in another window (@pxref{Window Choice}), and one that makes a
+new frame for it.  The former is @w{@kbd{C-x 4 .}}
 (@code{xref-find-definitions-other-window}), and the latter is
 @w{@kbd{C-x 5 .}}  (@code{xref-find-definitions-other-frame}).
 
