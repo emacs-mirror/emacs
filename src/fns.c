@@ -5757,38 +5757,13 @@ weak_hash_remove_from_table (struct Lisp_Weak_Hash_Table *h, Lisp_Object key)
 }
 
 /* Remove the entry at ID0 from weak hash table H.  Called from GC with H
-   being a pointer to a structure on the stack. */
+   being a pointer to a structure on the stack.  */
 
 void
 weak_hash_splat_from_table (struct Lisp_Weak_Hash_Table *h, ptrdiff_t i0)
 {
-  Lisp_Object hashval = WEAK_HASH_HASH (h, i0);
-  ptrdiff_t start_of_bucket = weak_hash_index_index (h, hashval);
-  ptrdiff_t prev = -1;
-
-  for (ptrdiff_t i = WEAK_HASH_INDEX (h, start_of_bucket);
-       0 <= i;
-       i = WEAK_HASH_NEXT (h, i))
-    {
-      if (i == i0)
-	{
-	  /* Take entry out of collision chain.  */
-	  if (prev < 0)
-	    set_weak_hash_index_slot (h, start_of_bucket, WEAK_HASH_NEXT (h, i));
-	  else
-	    set_weak_hash_next_slot (h, prev, WEAK_HASH_NEXT (h, i));
-
-	  /* Clear slots in key_and_value and add the slots to
-	     the free list.  */
-	  set_weak_hash_key_slot (h, i, HASH_UNUSED_ENTRY_KEY);
-	  set_weak_hash_value_slot (h, i, Qnil);
-	  set_weak_hash_next_slot (h, i, XFIXNUM (h->strong->next_free));
-	  h->strong->next_free = make_fixnum (i);
-	  break;
-	}
-
-      prev = i;
-    }
+  set_weak_hash_key_slot (h, i0, HASH_UNUSED_ENTRY_KEY);
+  set_weak_hash_value_slot (h, i0, Qnil);
 }
 
 /* Clear weak hash table H.  */
