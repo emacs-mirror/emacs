@@ -413,6 +413,13 @@ during the execution of particular commands.
 This moves in the opposite direction of 'other-window' and is for its
 default keybinding consistent with 'repeat-mode'.
 
++++
+*** New functions 'combine-windows' and 'uncombine-window'.
+'combine-windows' is useful to make a new parent window for several
+adjacent windows and subsequently operate on that parent.
+'uncombine-window' can then be used to restore the window configuration
+to the state it had before running 'combine-windows'.
+
 ** Frames
 
 +++
