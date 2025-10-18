@@ -2502,6 +2502,9 @@ version-list of a given package symbol.  These functions provide public
 interfaces for external tools to query information about built-in
 packages.
 
+---
+*** Uninstalling a package now removes its directory from 'load-path'.
+
 ** Rcirc
 
 +++
