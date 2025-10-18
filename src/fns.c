@@ -5539,8 +5539,8 @@ make_weak_hash_table (const struct hash_table_test *test,
   eassert (0 <= size
 	   && size <= min (MOST_POSITIVE_FIXNUM, PTRDIFF_MAX));
 
-  if (size < 65)
-    size = 65;
+  if (size < 1)
+    size = 1;
 
   struct Lisp_Weak_Hash_Table *h = allocate_weak_hash_table (weak, size, compute_hash_index_bits (size));
 
