@@ -8125,7 +8125,10 @@ you."
 
 ;;;###autoload
 (defun message-mail-other-window (&optional to subject)
-  "Like `message-mail' command, but display mail buffer in another window."
+  "Like `message-mail' command, but display mail buffer in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive)
   (unless (message-mail-user-agent)
     (message-pop-to-buffer (message-buffer-name "mail" to)
@@ -8147,7 +8150,10 @@ you."
 
 ;;;###autoload
 (defun message-news-other-window (&optional newsgroups subject)
-  "Start editing a news article to be sent."
+  "Start editing a news article to be sent.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive)
   (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups)
 			 'switch-to-buffer-other-window)

@@ -75,7 +75,7 @@ This is done by destructively modifying ARG.  Return ARG."
             (setq elt (aref arg i))
             (cond
              ((symbol-with-pos-p elt)
-              (aset arg i elt))
+              (aset arg i (bare-symbol elt)))
              ((consp elt)
               (byte-run--strip-list elt))
              ((or (vectorp elt) (recordp elt))

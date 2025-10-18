@@ -2015,7 +2015,11 @@ current directory to be available on first \\[next-history-element]
 request.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
-expand wildcards (if any) and visit multiple files."
+expand wildcards (if any) and visit multiple files.
+
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive
    (find-file-read-args "Find file in other window: "
                         (confirm-nonexistent-file-or-buffer)))
@@ -2095,7 +2099,10 @@ Use \\[read-only-mode] to permit editing."
 (defun find-file-read-only-other-window (filename &optional wildcards)
   "Edit file FILENAME in another window but don't allow changes.
 Like \\[find-file-other-window], but marks buffer as read-only.
-Use \\[read-only-mode] to permit editing."
+Use \\[read-only-mode] to permit editing.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive
    (find-file-read-args "Find file read-only other window: "
                         (confirm-nonexistent-file-or-buffer)))
@@ -2117,7 +2124,11 @@ This command does not select that window.
 See \\[find-file] for the possible forms of the FILENAME argument.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
-expand wildcards (if any) and replace the file with multiple files."
+expand wildcards (if any) and replace the file with multiple files.
+
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive
    (save-selected-window
      (other-window 1)

@@ -144,6 +144,9 @@ non-nil, otherwise in local time.
 Find change log file in other window and add entry and item.
 This is just like `add-change-log-entry' except that it displays
 the change log file in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically.
 
 (fn &optional WHOAMI FILE-NAME)" t)
 (autoload 'change-log-mode "add-log" "\
@@ -2949,7 +2952,7 @@ To use tree-sitter C/C++ modes by default, evaluate
     (add-to-list \\='major-mode-remap-alist
                  \\='(c-or-c++-mode . c-or-c++-ts-mode))
 
-in your init files.
+in your init files, or customize `treesit-enabled-modes'.
 
 (fn)" t)
 (autoload 'c++-ts-mode "c-ts-mode" "\
@@ -2966,7 +2969,7 @@ To use tree-sitter C/C++ modes by default, evaluate
     (add-to-list \\='major-mode-remap-alist
                  \\='(c-or-c++-mode . c-or-c++-ts-mode))
 
-in your init files.
+in your init files, or customize `treesit-enabled-modes'.
 
 Since this mode uses a parser, unbalanced brackets might cause
 some breakage in indentation/fontification.  Therefore, it's
@@ -2985,7 +2988,7 @@ This function attempts to use file contents to determine whether
 the code is C or C++, and based on that chooses whether to enable
 `c-ts-mode' or `c++-ts-mode'." t)
 (make-obsolete 'c-or-c++-ts-mode 'c-or-c++-mode "30.1")
-(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(c-mode . c-ts-mode)) (add-to-list 'treesit-major-mode-remap-alist '(c++-mode . c++-ts-mode)) (add-to-list 'treesit-major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(c-mode . c-ts-mode)) (add-to-list 'treesit-major-mode-remap-alist '(c++-mode . c++-ts-mode)) (add-to-list 'treesit-major-mode-remap-alist '(c-or-c++-mode . c-or-c++-ts-mode)))
 (register-definition-prefixes "c-ts-mode" '("c-ts-"))
 
 
@@ -4707,7 +4710,7 @@ Major mode for editing CMake files, powered by tree-sitter.
 Enable `cmake-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(cmake-mode . cmake-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(cmake-mode . cmake-ts-mode)))
 (register-definition-prefixes "cmake-ts-mode" '("cmake-ts-mode-"))
 
 
@@ -5932,7 +5935,7 @@ Key bindings:
 Major mode for editing C# code.
 
 (fn)" t)
-(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(csharp-mode . csharp-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(csharp-mode . csharp-ts-mode)))
 (register-definition-prefixes "csharp-mode" '("codedoc-font-lock-" "csharp-"))
 
 
@@ -5962,7 +5965,7 @@ can also be used to fill comments.
 \\{css-mode-map}
 
 (fn)" t)
-(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(css-mode . css-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(css-mode . css-ts-mode)))
 (autoload 'css-mode "css-mode" "\
 Major mode to edit Cascading Style Sheets (CSS).
 \\<css-mode-map>
@@ -7780,6 +7783,9 @@ If DIRNAME is already in a Dired buffer, that buffer is used without refresh.
  (keymap-set ctl-x-4-map "d" #'dired-other-window)
 (autoload 'dired-other-window "dired" "\
 \"Edit\" directory DIRNAME.  Like `dired' but select in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically.
 
 (fn DIRNAME &optional SWITCHES)" t)
  (keymap-set ctl-x-5-map "d" #'dired-other-frame)
@@ -7867,6 +7873,9 @@ Interactively with prefix argument, read FILE-NAME.
 (fn &optional OTHER-WINDOW FILE-NAME)" t)
 (autoload 'dired-jump-other-window "dired" "\
 Like \\[dired-jump] (`dired-jump') but in other window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically.
 
 (fn &optional FILE-NAME)" t)
 (register-definition-prefixes "dired" '("dired-"))
@@ -8400,7 +8409,7 @@ Major mode for editing Dockerfiles, powered by tree-sitter.
 Enable `dockerfile-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'" . dockerfile-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(dockerfile-mode . dockerfile-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\(?:\\(?:\\(?:Contain\\|Dock\\)erfile\\)\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'" . dockerfile-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(dockerfile-mode . dockerfile-ts-mode)))
 (register-definition-prefixes "dockerfile-ts-mode" '("dockerfile-ts-mode--"))
 
 
@@ -9976,7 +9985,7 @@ Major mode for editing Elixir, powered by tree-sitter.
 Enable `elixir-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.elixir\\'" . elixir-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("\\.ex\\'" . elixir-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("\\.exs\\'" . elixir-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("mix\\.lock" . elixir-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(elixir-mode . elixir-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.elixir\\'" . elixir-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("\\.ex\\'" . elixir-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("\\.exs\\'" . elixir-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("mix\\.lock" . elixir-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(elixir-mode . elixir-ts-mode)))
 (register-definition-prefixes "elixir-ts-mode" '("elixir-ts-"))
 
 
@@ -15140,7 +15149,7 @@ Major mode for editing Go, powered by tree-sitter.
 Enable `go-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(go-mode . go-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(go-mode . go-ts-mode)))
 (autoload 'go-mod-ts-mode "go-ts-mode" "\
 Major mode for editing go.mod files, powered by tree-sitter.
 
@@ -15149,7 +15158,7 @@ Major mode for editing go.mod files, powered by tree-sitter.
 Enable `go-mod-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(go-mod-mode . go-mod-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(go-mod-mode . go-mod-ts-mode)))
 (autoload 'go-work-ts-mode "go-ts-mode" "\
 Major mode for editing go.work files, powered by tree-sitter.
 
@@ -15158,7 +15167,7 @@ Major mode for editing go.work files, powered by tree-sitter.
 Enable `go-work-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("/go\\.work\\'" . go-work-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(go-work-mode . go-work-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("/go\\.work\\'" . go-work-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(go-work-mode . go-work-ts-mode)))
 (register-definition-prefixes "go-ts-mode" '("go-"))
 
 
@@ -15835,7 +15844,7 @@ Major mode for editing HEEx, powered by tree-sitter.
 Enable `heex-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(heex-mode . heex-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(heex-mode . heex-ts-mode)))
 (register-definition-prefixes "heex-ts-mode" '("heex-ts-"))
 
 
@@ -16912,6 +16921,13 @@ Toggle line highlighting in all buffers (Global Hl-Line mode).
 If `global-hl-line-sticky-flag' is non-nil, Global Hl-Line mode
 highlights the line about the current buffer's point in all live
 windows.
+
+If `global-hl-line-sticky-flag' is customized to `window',
+then instead of highlighting the line with buffer's point,
+this mode highlights the line with window's point that might differ from
+the buffer's point when the buffer is displayed in multiple windows.
+In this case this mode uses the function
+`global-hl-line-window-redisplay' on `pre-redisplay-functions'.
 
 Global-Hl-Line mode uses the function `global-hl-line-highlight'
 on `post-command-hook'.
@@ -19339,7 +19355,7 @@ Return the string read from the minibuffer.
 Major mode for editing Java, powered by tree-sitter.
 
 (fn)" t)
-(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(java-mode . java-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(java-mode . java-ts-mode)))
 (register-definition-prefixes "java-ts-mode" '("java-ts-mode-"))
 
 
@@ -19386,7 +19402,7 @@ Major mode for editing JavaScript.
 \\<js-ts-mode-map>
 
 (fn)" t)
-(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(javascript-mode . js-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(javascript-mode . js-ts-mode)))
 (autoload 'js-json-mode "js" "\
 
 
@@ -19422,7 +19438,7 @@ one of the aforementioned options instead of using this mode.
 Major mode for editing JSON, powered by tree-sitter.
 
 (fn)" t)
-(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(js-json-mode . json-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(js-json-mode . json-ts-mode)))
 (register-definition-prefixes "json-ts-mode" '("json-ts-"))
 
 
@@ -20175,7 +20191,7 @@ Major mode for editing Lua files, powered by tree-sitter.
 \\{lua-ts-mode-map}
 
 (fn)" t)
-(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(lua-mode . lua-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(lua-mode . lua-ts-mode)))
 (register-definition-prefixes "lua-ts-mode" '("lua-ts-"))
 
 
@@ -20419,7 +20435,7 @@ If third arg ALL is non-nil, concatenate all such fields with commas between.
 If 4th arg LIST is non-nil, return a list of all such fields.
 If 5th arg DELETE is non-nil, delete all header lines that are
 included in the result.
-The buffer should be narrowed to just the header, else false
+The buffer should be narrowed to just the headers, else false
 matches may be returned from the message body.
 
 (fn FIELD-NAME &optional LAST ALL LIST DELETE)")
@@ -20768,7 +20784,7 @@ Major mode for editing Markdown using tree-sitter grammar.
 Enable `markdown-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(markdown-mode . markdown-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(markdown-mode . markdown-ts-mode)))
 (register-definition-prefixes "markdown-ts-mode" '("markdown-ts-"))
 
 
@@ -20929,6 +20945,9 @@ contains some mail you have written which has been bounced back to
 you." t)
 (autoload 'message-mail-other-window "message" "\
 Like `message-mail' command, but display mail buffer in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically.
 
 (fn &optional TO SUBJECT)" t)
 (autoload 'message-mail-other-frame "message" "\
@@ -20937,6 +20956,9 @@ Like `message-mail' command, but display mail buffer in another frame.
 (fn &optional TO SUBJECT)" t)
 (autoload 'message-news-other-window "message" "\
 Start editing a news article to be sent.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically.
 
 (fn &optional NEWSGROUPS SUBJECT)" t)
 (autoload 'message-news-other-frame "message" "\
@@ -21274,7 +21296,7 @@ Major mode for editing HTML with embedded JavaScript and CSS.
 Powered by tree-sitter.
 
 (fn)" t)
-(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(mhtml-mode . mhtml-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(mhtml-mode . mhtml-ts-mode)))
 (register-definition-prefixes "mhtml-ts-mode" '("mhtml-ts-mode-"))
 
 
@@ -25224,7 +25246,7 @@ Optional CONFIG, if supplied, is the php.ini file to use.
 Enable `php-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.\\(?:php[s345]?\\|phtml\\)\\'" . php-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("\\.\\(?:php\\|inc\\|stub\\)\\'" . php-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("/\\.php_cs\\(?:\\.dist\\)?\\'" . php-ts-mode-maybe)) (add-to-list 'interpreter-mode-alist (cons "php\\(?:-?[34578]\\(?:\\.[0-9]+\\)*\\)?" 'php-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(php-mode . php-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.\\(?:php[s345]?\\|phtml\\)\\'" . php-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("\\.\\(?:php\\|inc\\|stub\\)\\'" . php-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("/\\.php_cs\\(?:\\.dist\\)?\\'" . php-ts-mode-maybe)) (add-to-list 'interpreter-mode-alist (cons "php\\(?:-?[34578]\\(?:\\.[0-9]+\\)*\\)?" 'php-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(php-mode . php-ts-mode)))
 (register-definition-prefixes "php-ts-mode" '("inferior-php-ts-mode" "php-ts-"))
 
 
@@ -26751,7 +26773,7 @@ Major mode for editing Python files, using tree-sitter library.
 \\{python-ts-mode-map}
 
 (fn)" t)
-(when (and (fboundp 'treesit-available-p) (treesit-available-p) (boundp 'treesit-major-mode-remap-alist)) (add-to-list 'treesit-major-mode-remap-alist '(python-mode . python-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(python-mode . python-ts-mode)))
 (add-to-list 'auto-mode-alist '("/\\(?:Pipfile\\|\\.?flake8\\)\\'" . conf-mode))
 (register-definition-prefixes "python" '("inferior-python-mode" "python-" "run-python-internal" "subword-mode"))
 
@@ -28454,7 +28476,7 @@ Major mode for editing Ruby code.
 Major mode for editing Ruby, powered by tree-sitter.
 
 (fn)" t)
-(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(ruby-mode . ruby-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(ruby-mode . ruby-ts-mode)))
 (register-definition-prefixes "ruby-ts-mode" '("ruby-ts-"))
 
 
@@ -28494,7 +28516,7 @@ Major mode for editing Rust, powered by tree-sitter.
 Enable `rust-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(rust-mode . rust-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(rust-mode . rust-ts-mode)))
 (register-definition-prefixes "rust-ts-mode" '("rust-ts-"))
 
 
@@ -28701,10 +28723,6 @@ following constructs:
 (fn &rest REGEXPS)")
 (define-symbol-prop 'rx--pcase-macroexpander 'edebug-form-spec 'nil)
 (define-symbol-prop 'rx 'pcase-macroexpander #'rx--pcase-macroexpander)
-(autoload 'rx--pcase-expand "rx" "\
-
-
-(fn REGEXPS)")
 (register-definition-prefixes "rx" '("rx-"))
 
 
@@ -29322,6 +29340,9 @@ The seventh argument ACTIONS is a list of actions to take
 (fn &optional NOERASE TO SUBJECT IN-REPLY-TO CC REPLYBUFFER ACTIONS RETURN-ACTION)" t)
 (autoload 'mail-other-window "sendmail" "\
 Like `mail' command, but display mail buffer in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically.
 
 (fn &optional NOERASE TO SUBJECT IN-REPLY-TO CC REPLYBUFFER SENDACTIONS)" t)
 (autoload 'mail-other-frame "sendmail" "\
@@ -29595,7 +29616,7 @@ This mode automatically falls back to `sh-mode' if the buffer is
 not written in Bash or sh.
 
 (fn)" t)
-(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(sh-mode . bash-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(sh-mode . bash-ts-mode)))
 (register-definition-prefixes "sh-script" '("sh-"))
 
 
@@ -31265,7 +31286,7 @@ Also see `read-string-from-buffer'.
 (fn PROMPT STRING SUCCESS-CALLBACK &key ABORT-CALLBACK MAJOR-MODE-SYM READ)")
 (autoload 'read-string-from-buffer "string-edit" "\
 Switch to a new buffer to edit STRING in a recursive edit.
-The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or aborts with \\<string-edit-mode-map>\\[string-edit-abort]).
+The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or aborts with \\<string-edit-mode-map>\\[string-edit-abort].
 
 Insert PROMPT at the start of the buffer.  If nil, no prompt is
 inserted.
@@ -31514,6 +31535,9 @@ This takes into account combining characters and grapheme clusters:
 if compositions are enabled, each sequence of characters composed
 on display into a single grapheme cluster is treated as a single
 indivisible unit.
+Caveat: for this function to recognize characters compositions, the
+automatic compositions should be enabled (see `auto-composition-mode')
+and the current buffer must be displayed in some window.
 
 (fn STRING)")
 (function-put 'string-glyph-split 'side-effect-free 't)
@@ -33005,7 +33029,7 @@ Available values of TYPE and corresponding OBJECTs are:
  `name'                 -- the \"display name\" part of an email address;
                            OBJECT should be a string.
 
-`email-address'         -- a full email address; OBJECT should be a string.
+ `email-address'        -- a full email address; OBJECT should be a string.
 
  `email-address-header' -- a raw email address header in RFC 2822 format;
                            OBJECT should be a string.
@@ -33735,7 +33759,7 @@ Mode for displaying and reprioritizing top priority Todo.
 Major mode for editing TOML, powered by tree-sitter.
 
 (fn)" t)
-(when (treesit-available-p) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(conf-toml-mode . toml-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(conf-toml-mode . toml-ts-mode)))
 (register-definition-prefixes "toml-ts-mode" '("toml-ts-mode-"))
 
 
@@ -34154,7 +34178,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from transient.el
 
-(push '(transient 0 10 0) package--builtin-versions)
+(push '(transient 0 10 1) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient" "\
 Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -34570,7 +34594,7 @@ Major mode for editing TypeScript.
 Enable `typescript-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(typescript-mode . typescript-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(typescript-mode . typescript-ts-mode)))
 (autoload 'tsx-ts-mode "typescript-ts-mode" "\
 Major mode for editing TSX and JSX documents.
 
@@ -34587,7 +34611,7 @@ at least 3 (which is the default value).
 Enable `tsx-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(tsx-mode . tsx-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(tsx-mode . tsx-ts-mode)))
 (register-definition-prefixes "typescript-ts-mode" '("tsx-ts-" "typescript-ts-"))
 
 
@@ -35707,6 +35731,48 @@ prefix argument is given, in which case prompt for a file FILE to
 remove from the list of ignored files.
 
 (fn FILE &optional DIRECTORY REMOVE)" t)
+(autoload 'vc-revision-cherry-pick "vc" "\
+Copy the changes from a single revision REV to the current branch.
+When called interactively, prompts for REV.
+Typically REV is a revision from another branch, where that branch is
+one that will not be merged into the branch checked out in this working
+tree.
+
+Normally a log message for the new commit is generated by the backend
+and includes a reference to REV so that the copy can be traced.
+When called interactively with a prefix argument, use REV's log message
+unmodified, and also skip editing it.
+
+When called from Lisp, there are three calling conventions for the
+COMMENT and INITIAL-CONTENTS optional arguments:
+- COMMENT a string, INITIAL-CONTENTS nil means use that comment string
+  without prompting the user to edit it.
+- COMMENT a string, INITIAL-CONTENTS non-nil means use that comment
+  string as the initial contents of the log entry buffer but stop for
+  editing.
+- COMMENT t means use BACKEND's default cherry-pick comment for REV
+  without prompting for editing, and ignore INITIAL-CONTENTS.
+
+Optional argument BACKEND is the VC backend to use.
+
+(fn REV &optional COMMENT INITIAL-CONTENTS BACKEND)" t)
+(autoload 'vc-revision-revert "vc" "\
+Undo the effects of revision REV.
+When called interactively, prompts for REV.
+
+When called from Lisp, there are three calling conventions for the
+COMMENT and INITIAL-CONTENTS optional arguments:
+- COMMENT a string, INITIAL-CONTENTS nil means use that comment string
+  without prompting the user to edit it.
+- COMMENT a string, INITIAL-CONTENTS non-nil means use that comment
+  string as the initial contents of the log entry buffer but stop for
+  editing.
+- COMMENT t means use BACKEND's default revert comment for REV without
+  prompting for editing, and ignore INITIAL-CONTENTS.
+
+Optional argument BACKEND is the VC backend to use.
+
+(fn REV &optional COMMENT INITIAL-CONTENTS BACKEND)" t)
 (autoload 'vc-version-diff "vc" "\
 Report diffs between revisions REV1 and REV2 in the repository history.
 This compares two revisions of the current fileset.
@@ -35866,6 +35932,10 @@ Return nil if the root directory cannot be identified.")
 Visit revision REV of the current file in another window.
 If the current file is named `F', the revision is named `F.~REV~'.
 If `F.~REV~' already exists, use it instead of checking it out again.
+
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically.
 
 (fn REV)" t)
 (autoload 'vc-insert-headers "vc" "\
@@ -36217,6 +36287,14 @@ If any changes to be moved can't be reverse-applied to this working
 tree, it is an error, and no changes are moved.
 
 (fn DIRECTORY &optional MOVE PREVIEW)" t)
+(autoload 'vc-kill-other-working-tree-buffers "vc" "\
+Kill buffers visiting versions of this file in other working trees.
+BACKEND is the VC backend.
+
+This command kills the buffers that \\[vc-switch-working-tree] switches to,
+except that this command works only in file-visiting buffers.
+
+(fn BACKEND)" t)
 (register-definition-prefixes "vc" '("log-view-vc-prev-" "vc-" "with-vc-properties"))
 
 
@@ -37282,6 +37360,10 @@ For a list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'.
 
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically.
+
 (fn FILE)" t)
 (autoload 'view-file-other-frame "view" "\
 View FILE in View mode in another frame.
@@ -37341,6 +37423,10 @@ this argument instead of explicitly setting `view-exit-action'.
 This function does not enable View mode if the buffer's major mode
 has a `special' mode-class, because such modes usually have their
 own View-like bindings.
+
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically.
 
 (fn BUFFER &optional NOT-RETURN EXIT-ACTION)" t)
 (autoload 'view-buffer-other-frame "view" "\
@@ -38551,6 +38637,8 @@ evaluate `(default-value \\='windmove-mode)'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
+\\{windmove-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'windmove-default-keybindings "windmove" "\
 Set up keybindings for `windmove'.
@@ -39069,6 +39157,9 @@ Use \\[xref-go-back] to return back to where you invoked this command.
 (fn IDENTIFIER)" t)
 (autoload 'xref-find-definitions-other-window "xref" "\
 Like `xref-find-definitions' but switch to the other window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically.
 
 (fn IDENTIFIER)" t)
 (autoload 'xref-find-definitions-other-frame "xref" "\
@@ -39217,7 +39308,7 @@ Major mode for editing YAML, powered by tree-sitter.
 Enable `yaml-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (treesit-available-p) (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode-maybe)) (defvar treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(yaml-mode . yaml-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(yaml-mode . yaml-ts-mode)))
 (register-definition-prefixes "yaml-ts-mode" '("yaml-ts-mode--"))
 
 
@@ -39276,6 +39367,74 @@ run a specific program.  The program must be a member of
 
 (fn &optional PGM)" t)
 (register-definition-prefixes "zone" '("zone-"))
+
+
+;;; Generated autoloads from emacs-lisp/elisp-scope.el
+
+(autoload 'elisp-scope-get-symbol-role-property "elisp-scope" "\
+Return value of property PROP for symbol role ROLE.
+
+(fn ROLE PROP)")
+(autoload 'elisp-scope-set-symbol-role-property "elisp-scope" "\
+Set value of property PROP for symbol role ROLE to VALUE.
+
+(fn ROLE PROP VALUE)")
+(autoload 'elisp-scope-symbol-role-p "elisp-scope" "\
+Check whether a symbol SYM is the name of a \"symbol role\".
+
+(fn SYM)")
+(autoload 'elisp-scope-add-symbol-roles-to-describe-symbol "elisp-scope")
+(autoload 'elisp-scope-describe-symbol-role "elisp-scope" "\
+Describe ROLE of a symbol.
+Interactively, prompt for ROLE.
+
+(fn ROLE &rest _)" t)
+(autoload 'elisp-scope-analyze-form "elisp-scope" "\
+Read and analyze code from STREAM, reporting findings via CALLBACK.
+
+Call CALLBACK for each analyzed symbol SYM with arguments ROLE, POS,
+LEN, ID and DEF, where ROLE is a symbol that specifies the semantics of
+SYM; POS is the position of SYM in STREAM; LEN is SYM's length; ID is an
+object that uniquely identifies (co-)occurrences of SYM in the current
+defun; and DEF is the position in which SYM is locally defined, or nil.
+If SYM is itself a binding occurrence, then POS and BINDER are equal.
+If SYM is not lexically bound, then BINDER is nil.  This function
+ignores `read-symbol-shorthands', so SYM and LEN always correspond to
+the symbol as it appears in STREAM.
+
+If STREAM is nil, it defaults to the current buffer.
+
+This function recursively analyzes Lisp forms (HEAD . TAIL), usually
+starting with a top-level form, by inspecting HEAD at each level:
+
+- If HEAD is a symbol with a non-nil `elisp-scope-analyzer' symbol
+  property, then the value of that property specifies a bespoke analzyer
+  function, AF, that is called as (AF HEAD . TAIL) to analyze the form.
+  See more details about writing analyzer functions below.
+
+- If HEAD satisfies `functionp', which means it is a function in the
+  running Emacs session, analzye the form as a function call.
+
+- If HEAD is a safe macro (see `elisp-scope-safe-macro-p'), expand it
+  and analyze the resulting form.
+
+- If HEAD is unknown, then the arguments in TAIL are ignored, unless
+  `elisp-scope-assume-func' is non-nil, in which case they are analyzed
+  as evaluated forms (i.e. HEAD is assumed to be a function).
+
+An analyzer (function specified via the `elisp-scope-analyzer' property)
+can use the functions `elisp-scope-report-s', `elisp-scope-1' and
+`elisp-scope-n' to analyze its arguments, and it can consult the
+variable `elisp-scope-output-spec' to obtain the expected output spec of
+the analyzed form.  For example, the following is a suitable analyzer
+for the `identity' function:
+
+  (lambda (fsym arg)
+    (elisp-scope-report-s fsym \\='function)
+    (elisp-scope-1 arg elisp-scope-output-spec))
+
+(fn CALLBACK &optional STREAM)")
+(register-definition-prefixes "elisp-scope" '("elisp-scope-"))
 
 ;;; End of scraped data
 

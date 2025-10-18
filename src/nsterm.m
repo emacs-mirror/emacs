@@ -1643,6 +1643,7 @@ ns_free_frame_resources (struct frame *f)
 
   [[view window] close];
   [view removeFromSuperview];
+  [view release];
 
   xfree (f->output_data.ns);
   f->output_data.ns = NULL;
@@ -6857,6 +6858,13 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   xfree (emacsframe);
 #endif
 
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+  /* Release layer and menu */
+  EmacsLayer *layer = (EmacsLayer *)[self layer];
+  [layer release];
+#endif
+
+  [[self menu] release];
   [super dealloc];
 }
 
@@ -9621,8 +9629,9 @@ ns_in_echo_area (void)
   NSTRACE ("[EmacsWindow dealloc]");
 
   /* We need to release the toolbar ourselves.  */
-  [self setToolbar: nil];
   [[self toolbar] release];
+  [self setToolbar: nil];
+
 
   /* Also the last button press event .  */
   if (last_drag_event)
