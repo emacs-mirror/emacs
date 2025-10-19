@@ -354,6 +354,32 @@ enum
   IGC_ALIGN_DFLT = IGC_ALIGN,
 };
 
+/* Return the pointer to the storage area for Lisp_Object OBJ, or NULL
+   if there is none.  */
+static void *
+igc_xpointer (Lisp_Object obj)
+{
+  mps_word_t word = (mps_word_t) XLI (obj);
+  mps_word_t tag = word & IGC_TAG_MASK;
+  switch (tag)
+    {
+    case Lisp_Int0:
+    case Lisp_Int1:
+    case Lisp_Type_Unused0:
+      return NULL;
+
+    case Lisp_Symbol:
+      return (void *) ((mps_word_t) lispsym + (word ^ tag));
+
+    case Lisp_Cons:
+    case Lisp_Vectorlike:
+    case Lisp_String:
+    case Lisp_Float:
+      return (void *) (word ^ tag);
+    }
+  eassume (0);
+}
+
 static enum pvec_type
 pseudo_vector_type (const struct Lisp_Vector *v)
 {
@@ -368,6 +394,25 @@ is_builtin_subr (enum igc_obj_type type, void *addr)
       Lisp_Object subr = make_lisp_ptr (addr, Lisp_Vectorlike);
       return !NATIVE_COMP_FUNCTIONP (subr);
     }
+  return false;
+}
+
+static bool
+is_builtin_obj (Lisp_Object obj)
+{
+  void *ptr = igc_xpointer (obj);
+  if (ptr == NULL)
+    return false;
+
+  if (c_symbol_p (ptr))
+    return true;
+
+  if (ptr == &main_thread.s)
+    return true;
+
+  if (SUBRP (obj) && is_builtin_subr (IGC_OBJ_VECTOR, ptr))
+    return true;
+
   return false;
 }
 
@@ -1470,13 +1515,15 @@ fix_symbol (mps_ss_t ss, struct Lisp_Symbol *sym)
   return MPS_RES_OK;
 }
 
+static mps_res_t dflt_scan_obj (mps_ss_t ss, mps_addr_t start);
+
 static mps_res_t
 scan_lispsym (mps_ss_t ss, void *start, void *end, void *closure)
 {
   MPS_SCAN_BEGIN (ss)
   {
     for (struct Lisp_Symbol *sym = start; (void *) sym < end; ++sym)
-      IGC_FIX_CALL (ss, fix_symbol (ss, sym));
+      IGC_FIX_CALL (ss, dflt_scan_obj (ss, sym));
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -4928,7 +4975,7 @@ root.  Each element has the form (LABEL TYPE START END), where
 }
 
 static struct igc_exthdr *
-igc_external_header (struct igc_header *h)
+igc_external_header (struct igc_header *h, bool is_builtin)
 {
   if (header_tag (h) != IGC_TAG_EXTHDR)
     {
@@ -4941,8 +4988,11 @@ igc_external_header (struct igc_header *h)
       uint64_t v = (intptr_t) exthdr + IGC_TAG_EXTHDR;
       *(uint64_t *) h = v;
       mps_addr_t ref = (mps_addr_t) h;
-      mps_res_t res = mps_finalize (global_igc->arena, &ref);
-      IGC_CHECK_RES (res);
+      if (!is_builtin)
+	{
+	  mps_res_t res = mps_finalize (global_igc->arena, &ref);
+	  IGC_CHECK_RES (res);
+	}
       return exthdr;
     }
 
@@ -5444,6 +5494,48 @@ igc_busy_p (void)
   return mps_arena_busy (global_igc->arena);
 }
 
+/* If OBJ isn't suitable for storing an extra dependency, return a
+   replacement that is.  */
+static Lisp_Object
+find_dependency_replacement (Lisp_Object obj)
+{
+  /* Floats are stored in the AMCZ pool, so they cannot have extra
+     dependencies.  Fixnums have no storage area.  Including builtin
+     objects makes it easier to test the code.  */
+  if (FLOATP (obj) || FIXNUMP (obj) || is_builtin_obj (obj))
+    {
+      Lisp_Object val = Fgethash (obj, Vigc__dependency_replacements, Qnil);
+      if (NILP (val))
+	{
+	  val = Fcons (val, Qnil);
+	  Fputhash (obj, val, Vigc__dependency_replacements);
+	}
+      return val;
+    }
+  return obj;
+}
+
+static void
+remove_dependency_replacement (Lisp_Object obj)
+{
+  Fremhash (obj, Vigc__dependency_replacements);
+}
+
+DEFUN ("igc--extra-dependency", Figc__extra_dependency,
+       Sigc__extra_dependency, 1, 1, 0,
+       doc: /* Return extra dependency for object OBJ.
+Internal use only.  */)
+  (Lisp_Object obj)
+{
+  obj = find_dependency_replacement (obj);
+  mps_addr_t addr = igc_xpointer (obj);
+  if (addr == NULL)
+    return Qnil;
+
+  struct igc_header *h = addr;
+  struct igc_exthdr *exthdr = igc_external_header (h, is_builtin_obj (obj));
+  return exthdr->extra_dependency;
+}
 
 DEFUN ("igc--add-extra-dependency", Figc__add_extra_dependency,
        Sigc__add_extra_dependency, 3, 3, 0,
@@ -5452,47 +5544,27 @@ This dependency is kept alive for as long as the object is alive.
 KEY is the key to associate with DEPENDENCY in a hash table.  */)
   (Lisp_Object obj, Lisp_Object dependency, Lisp_Object key)
 {
-  mps_word_t word = XLI (obj);
-  mps_word_t tag = word & IGC_TAG_MASK;
-  mps_addr_t addr = NULL;
-  switch (tag)
-    {
-    case Lisp_Type_Unused0:
-      emacs_abort ();
-
-    case Lisp_Int0:
-    case Lisp_Int1:
-    case Lisp_Float:
-      return Qnil;
-
-    case Lisp_Symbol:
-      {
-	ptrdiff_t off = word ^ tag;
-	addr = (mps_addr_t) ((char *) lispsym + off);
-      }
-      break;
-
-    case Lisp_String:
-    case Lisp_Vectorlike:
-    case Lisp_Cons:
-      addr = (mps_addr_t) (word ^ tag);
-      break;
-    }
+  obj = find_dependency_replacement (obj);
+  mps_addr_t addr = igc_xpointer (obj);
+  if (addr == NULL)
+    return Qnil;
 
   struct igc_header *h = addr;
-  struct igc_exthdr *exthdr = igc_external_header (h);
+  struct igc_exthdr *exthdr = igc_external_header (h, is_builtin_obj (obj));
   Lisp_Object hash = exthdr->extra_dependency;
   if (!WEAK_HASH_TABLE_P (hash))
-    {
-      hash = exthdr->extra_dependency =
-	CALLN (Fmake_hash_table, QCweakness, Qkey);
-    }
+    exthdr->extra_dependency = hash =
+      CALLN (Fmake_hash_table, QCtest, Qeq, QCweakness, Qkey);
 
-  if (NILP (Fgethash (key, hash, Qnil)))
+  Lisp_Object hash2 = Fgethash (key, hash, Qnil);
+  if (NILP (hash2))
     {
-      Fputhash (key, CALLN (Fmake_hash_table), hash);
+      hash2 = CALLN (Fmake_hash_table, QCtest, Qeq);
+      Fputhash (key, hash2, hash);
     }
-  Fputhash (dependency, Qt, Fgethash (key, hash, Qnil));
+  Lisp_Object count = Fgethash (dependency, hash2, make_fixnum (0));
+  count = Fadd1 (count);
+  Fputhash (dependency, count, hash2);
   return Qt;
 }
 
@@ -5502,42 +5574,42 @@ DEFUN ("igc--remove-extra-dependency", Figc__remove_extra_dependency,
 KEY is the key associated with DEPENDENCY in a hash table.  */)
   (Lisp_Object obj, Lisp_Object dependency, Lisp_Object key)
 {
-  mps_word_t word = XLI (obj);
-  mps_word_t tag = word & IGC_TAG_MASK;
-  mps_addr_t addr = NULL;
-  switch (tag)
-    {
-    case Lisp_Type_Unused0:
-      emacs_abort ();
-
-    case Lisp_Int0:
-    case Lisp_Int1:
-    case Lisp_Float:
-      return Qnil;
-
-    case Lisp_Symbol:
-      {
-	ptrdiff_t off = word ^ tag;
-	addr = (mps_addr_t) ((char *) lispsym + off);
-      }
-      break;
-
-    case Lisp_String:
-    case Lisp_Vectorlike:
-    case Lisp_Cons:
-      addr = (mps_addr_t) (word ^ tag);
-      break;
-    }
+  Lisp_Object repl = find_dependency_replacement (obj);
+  mps_addr_t addr = igc_xpointer (repl);
+  if (addr == NULL)
+    return Qnil;
 
   struct igc_header *h = addr;
-  struct igc_exthdr *exthdr = igc_external_header (h);
+  struct igc_exthdr *exthdr = igc_external_header (h, is_builtin_obj (repl));
   Lisp_Object hash = exthdr->extra_dependency;
   if (!WEAK_HASH_TABLE_P (hash))
-    hash = exthdr->extra_dependency =
-      CALLN (Fmake_hash_table, QCweakness, Qkey);
+    return Qnil;
 
-  /* This might throw.  */
-  Fremhash (dependency, Fgethash (key, hash, Qnil));
+  Lisp_Object hash2 = Fgethash (key, hash, Qnil);
+  if (NILP (hash2))
+    return Qnil;
+  Lisp_Object count = Fgethash (dependency, hash2, make_fixnum (1));
+  count = Fsub1 (count);
+  /* Clean up after ourselves.  */
+  if (BASE_EQ (count, make_fixnum (0)))
+    {
+      Fremhash (dependency, hash2);
+      if (BASE_EQ (Fhash_table_count (hash2), make_fixnum (0)))
+	{
+	  Fremhash (key, hash);
+	  /* FIXME: hash is a weak hash table.  If the last entry is
+	     splatted (rather than being removed here), we'll never
+	     clean up the empty hash table, and we'll never call
+	     remove_dependency_replacement.  */
+	  if (BASE_EQ (Fhash_table_count (hash), make_fixnum (0)))
+	    {
+	      exthdr->extra_dependency = Qnil;
+	      remove_dependency_replacement (obj);
+	    }
+	}
+    }
+  else
+    Fputhash (dependency, count, hash2);
 
   return Qt;
 }
@@ -5620,6 +5692,7 @@ syms_of_igc (void)
   defsubr (&Sigc__process_messages);
   defsubr (&Sigc__set_commit_limit);
   defsubr (&Sigc__set_pause_time);
+  defsubr (&Sigc__extra_dependency);
   defsubr (&Sigc__add_extra_dependency);
   defsubr (&Sigc__remove_extra_dependency);
   defsubr (&Sigc__arena_step);
@@ -5639,4 +5712,9 @@ were the default value.  */);
   DEFVAR_BOOL ("igc--balance-intervals", igc__balance_intervals,
      doc: /* Whether to balance buffer intervals when idle.  */);
   igc__balance_intervals = false;
+
+  DEFVAR_LISP ("igc--dependency-replacements", Vigc__dependency_replacements,
+     doc: /* Internal use only.  */);
+  Vigc__dependency_replacements = CALLN (Fmake_hash_table, QCtest, Qeq,
+					 QCweakness, Qkey);
 }
