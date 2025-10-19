@@ -1642,7 +1642,14 @@ If non-nil, it overrides `compilation-buffer-name-function' for
   (let ((default-directory (project-root (project-current t)))
         (compilation-buffer-name-function
          (or project-compilation-buffer-name-function
-             compilation-buffer-name-function)))
+             compilation-buffer-name-function))
+        ;; Specifically ignore the value of `compile-command' if we were
+        ;; invoked from a `vc-compilation-mode' buffer because for
+        ;; `project-compile' we know the user wants to build the
+        ;; project, not re-run a VC pull or push operation (bug#79658).
+        (compile-command (if (derived-mode-p 'vc-compilation-mode)
+                             (with-temp-buffer compile-command)
+                           compile-command)))
     (call-interactively #'compile)))
 
 ;;;###autoload
