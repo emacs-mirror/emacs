@@ -3062,7 +3062,8 @@ Actual value is never used, only the text property.")
 
 (defun compilation--set-up-margin (w)
   "Setup the margin for \"=>\" in window W if it isn't already set up."
-  (set-window-margins w (+ (or (car (window-margins w)) 0) 2)))
+  (when (eq (window-buffer w) (current-buffer))
+    (set-window-margins w (+ (or (car (window-margins w)) 0) 2))))
 
 (defun compilation--tear-down-margin (w)
   "Remove the margin for \"=>\" if it is setup in window W."
