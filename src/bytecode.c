@@ -858,7 +858,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (BYTE_CODE_SAFE && !(arg >= 0 && arg < bytestr_length))
 	      emacs_abort ();
 	    const unsigned char *new_pc = bytestr_data + arg;
-	    quitcounter += arg < 0;
+	    quitcounter += new_pc < pc;
 	    if (!quitcounter)
 	      {
 		quitcounter = 1;
