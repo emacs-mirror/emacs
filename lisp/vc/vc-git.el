@@ -292,27 +292,34 @@ Good example of file name that needs this: \"test[56].xx\".")
 (defun vc-git-registered (file)
   "Check whether FILE is registered with git."
   (let ((dir (vc-git-root file)))
-    (when dir
-      (with-temp-buffer
-        (let* (process-file-side-effects
-               ;; Do not use the `file-name-directory' here: git-ls-files
-               ;; sometimes fails to return the correct status for relative
-               ;; path specs.
-               ;; See also: https://marc.info/?l=git&m=125787684318129&w=2
-               (name (file-relative-name file dir))
-               (str (with-demoted-errors "Error: %S"
-                      (cd dir)
-                      (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
-                      ;; If result is empty, use ls-tree to check for deleted
-                      ;; file.
-                      (when (eq (point-min) (point-max))
-                        (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD"
-                                        "--" name))
-                      (buffer-string))))
-          (and str
-               (> (length str) (length name))
-               (string= (substring str 0 (1+ (length name)))
-                        (concat name "\0"))))))))
+    (and dir
+         ;; If git(1) isn't installed then the `with-demoted-errors'
+         ;; below will mean we get an error message echoed about that
+         ;; fact with every `find-file'.  That's noisy, and inconsistent
+         ;; with other backend's `vc-*-registered' functions which are
+         ;; quieter in the case that the VCS isn't installed.  So check
+         ;; up here that git(1) is available.  See also bug#18481.
+         (executable-find vc-git-program)
+         (with-temp-buffer
+           (let* (process-file-side-effects
+                  ;; Do not use the `file-name-directory' here: git-ls-files
+                  ;; sometimes fails to return the correct status for relative
+                  ;; path specs.
+                  ;; See also: https://marc.info/?l=git&m=125787684318129&w=2
+                  (name (file-relative-name file dir))
+                  (str (with-demoted-errors "Error: %S"
+                         (cd dir)
+                         (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
+                         ;; If result is empty, use ls-tree to check for deleted
+                         ;; file.
+                         (when (eq (point-min) (point-max))
+                           (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD"
+                                           "--" name))
+                         (buffer-string))))
+             (and str
+                  (> (length str) (length name))
+                  (string= (substring str 0 (1+ (length name)))
+                           (concat name "\0"))))))))
 
 (defvar vc-git--program-version nil)
 
