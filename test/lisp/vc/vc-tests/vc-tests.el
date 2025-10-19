@@ -570,7 +570,15 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               (vc-register
                (list backend (list (file-name-nondirectory tmp-name))))
 
-              (vc-rename-file tmp-name new-name)
+              ;; Test that `vc-rename-file' isn't affected by
+              ;; `default-directory' except for the meaning of OLD and
+              ;; NEW if they are relative file names.
+              (let ((tmp-name (file-relative-name tmp-name
+                                                  temporary-file-directory))
+                    (new-name (file-relative-name new-name
+                                                  temporary-file-directory))
+                    (default-directory temporary-file-directory))
+                (vc-rename-file tmp-name new-name))
 
               (should (not (file-exists-p tmp-name)))
               (should (file-exists-p new-name))

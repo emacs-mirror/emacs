@@ -4204,8 +4204,8 @@ file names."
 
 ;;;###autoload
 (defun vc-rename-file (old new)
-  "Rename file OLD to NEW in both work area and repository.
-If called interactively, read OLD and NEW, defaulting OLD to the
+  "Rename file OLD to NEW in both working tree and repository.
+When called interactively, read OLD and NEW, defaulting OLD to the
 current buffer's file name if it's under version control."
   ;; FIXME: Support renaming whole directories.
   ;; The use of `vc-call' will need to change to something like
@@ -4217,15 +4217,19 @@ current buffer's file name if it's under version control."
   ;;
   ;; as was done in `vc-revert-file'; see bug#43464.  --spwhitton
   (interactive (list (read-file-name "VC rename file: " nil
-                                     (when (vc-backend buffer-file-name)
-                                       buffer-file-name) t)
+                                     (and (vc-backend buffer-file-name)
+                                          buffer-file-name)
+                                     t)
                      (read-file-name "Rename to: ")))
   ;; in CL I would have said (setq new (merge-pathnames new old))
   (let ((old-base (file-name-nondirectory old)))
-    (when (and (not (string= "" old-base))
-               (string= "" (file-name-nondirectory new)))
+    (when (and (not (string-empty-p old-base))
+               (string-empty-p (file-name-nondirectory new)))
       (setq new (concat new old-base))))
-  (let ((oldbuf (get-file-buffer old)))
+  (cl-callf expand-file-name old)
+  (cl-callf expand-file-name new)
+  (let ((oldbuf (get-file-buffer old))
+        (default-directory (file-name-directory old)))
     (when (and oldbuf (buffer-modified-p oldbuf))
       (error "Please save files before moving them"))
     (when (get-file-buffer new)
