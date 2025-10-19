@@ -1355,6 +1355,28 @@
   (dolist (w '(nil key value key-and-value key-or-value))
     (ft--test-puthash w)))
 
+(defun ft--test-puthash-types (weakness test)
+  (let ((objects
+         (list 0 1 0.0
+               (cons nil nil) '(nil . nil) '#1=(#1# . #1#)
+               (make-symbol "uninterned") 'ft--test-puthash-types
+               nil t 'error
+               [] [1] (vector 2) (ash 1 128)
+               "" "a" (string ?a) (make-string 10 255 t)))
+        (ht (make-hash-table :weakness weakness :test test)))
+    (dolist (key objects)
+      (dolist (value objects)
+        (puthash key value ht)
+        (should (eq (gethash key ht 'test) value))
+        (should (= (hash-table-count ht) 1))
+        (remhash key ht)
+        (should (eq (gethash key ht 'test) 'test))
+        (should (= (hash-table-count ht) 0))))))
+
+(ert-deftest ft-puthash-types-weak ()
+  (dolist (w '(nil key value key-and-value key-or-value))
+    (dolist (test '(eq eql equal))
+      (ft--test-puthash-types w test))))
 
 
 (ert-deftest test-hash-function-that-mutates-hash-table ()
