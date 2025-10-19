@@ -71,7 +71,7 @@
                   (ldir (buffer-substring b e))
                   (d (file-name-sans-extension
                       (file-name-nondirectory
-                       (car (directory-files ldir t ".+\\.aff$"))))))
+                       (car (directory-files ldir t "\\.aff\\'"))))))
              d)))
         ((string-equal backend "aspell")
          (with-temp-buffer
