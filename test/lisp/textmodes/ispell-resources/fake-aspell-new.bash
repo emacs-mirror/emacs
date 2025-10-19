@@ -17,6 +17,9 @@ if [[ "$HOME" == '' ]] ; then
     exit 3
 fi
 
+dictionary=UNSET
+repl=UNSET
+
 show_vv()
 {
     printf  '%s\n' "@(#) International Ispell Version 3.1.20 (but really Aspell 0.60.0)"
@@ -94,11 +97,24 @@ while :; do
             exit
             ;;
         -a)       # imitate REPL
-	    imitate_pipe
-	    exit
+	    repl=pipe
             ;;
+	-d)
+	    if [ "$2" ]; then
+                dictionary=$2
+		if [[ "$dictionary" == "2110001888290146229" ]] ; then exit 3 ; fi
+                shift
+            else
+                printf 'ERROR: "-d" requires an argument.' 1>&2
+		exit 1
+            fi
+	    ;;
+	-d*)
+	    dictionary=${1#-d}
+	    if [[ "$dictionary" == "2110001888290146229" ]] ; then exit 3 ; fi
+	    ;;
 	-?*)
-            printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+	    :
 	    ;;
         *)
             break
@@ -106,6 +122,11 @@ while :; do
     shift
 done
 
-printf 'Usage: aspell [options] <command>\n'
+if [[ "$repl" == "pipe" ]] ; then
+    imitate_pipe
+else
+    printf 'Usage: aspell [options] <command>\n'
+    exit 4
+fi
 
 #printf 'this place should be unreachable\n' >> /tmp/lwf_mock-aspell.log

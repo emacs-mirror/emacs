@@ -37,15 +37,14 @@
   "Path to the mock backend.")
 
 
-(let* ((backend-binaries (list "ispell" "aspell"  "hunspell"  "enchant-2" fake-aspell-path)
-                         )
+(let* ((backend-binaries (list "ispell" "aspell"  "hunspell"  "enchant-2" fake-aspell-path))
        (filter-binaries (seq-filter
                          (lambda (b)
                            (and
                             (executable-find b)
                             (equal 0
                                    (with-temp-buffer
-                                     (call-process b nil t "-a")))))
+                                     (call-process b nil t nil "-a")))))
                          backend-binaries)))
 
   (defun ispell-tests--some-backend-available-p ()
@@ -86,7 +85,8 @@
            (forward-line 1)
            (let* ((s (buffer-substring (point) (line-end-position))))
              (file-name-sans-extension
-              (file-name-nondirectory s)))))))
+              (file-name-nondirectory s)))))
+        (t "english")))
 
 (eval-when-compile
   (require 'cl-macs))
@@ -140,6 +140,7 @@ its best."
 (defconst ispell-tests--constants/russian/correct "привет")
 (defconst ispell-tests--constants/russian/wrong "ыфаывфафыввпфыв")
 (defconst ispell-tests--constants/completion "waveguides")
+(defconst ispell-tests--constants/nonexistent-dictionary "2110001888290146229")
 
 (provide 'ispell-tests-common)
 
