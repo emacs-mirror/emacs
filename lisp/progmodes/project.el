@@ -1720,10 +1720,6 @@ If you exit the `query-replace', you can later continue the
    'default)
   (fileloop-continue))
 
-(defvar compilation-read-command)
-(declare-function compilation-read-command "compile")
-(declare-function recompile "compile")
-
 (defun project-prefixed-buffer-name (mode)
   (concat "*"
           (if-let* ((proj (project-current nil)))
@@ -1772,15 +1768,21 @@ If non-nil, it overrides `compilation-buffer-name-function' for
         (with-current-buffer orig-current-buffer
           (setq-local compile-command orig-compile-command))))))
 
+;; Autoloaded since Emacs 31.
+(autoload 'recompile "compile" nil t)
+
 ;;;###autoload
 (defun project-recompile (&optional edit-command)
   "Run `recompile' in the project root with an appropriate buffer."
   (declare (interactive-only recompile))
   (interactive "P")
-  (let ((default-directory (project-root (project-current t)))
-        (compilation-buffer-name-function
-         (or project-compilation-buffer-name-function
-             compilation-buffer-name-function)))
+  (defvar compilation-directory)
+  (let* ((default-directory (project-root (project-current t)))
+         ;; The former overrides the latter in `recompile'.
+         (compilation-directory default-directory)
+         (compilation-buffer-name-function
+          (or project-compilation-buffer-name-function
+              compilation-buffer-name-function)))
     (recompile edit-command)))
 
 (defcustom project-ignore-buffer-conditions nil
