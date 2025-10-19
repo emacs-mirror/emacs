@@ -14,7 +14,24 @@ GNU Emacs since Emacs version 22.1.
 
 * Changes in ERC 5.6.2
 
+** Option 'erc-log-insert-log-on-open' can be a function.
+Rather than insert redundant logs into all buffers when reconnecting,
+which is what happens when this option is set to t, ERC 5.6.2 allows
+users to exercise more control by specifying a predicate.  The provided
+'erc-log-new-target-buffer-p' tells ERC to only insert logs when
+creating a new target buffer, such as when issuing a "/JOIN" or a
+"/QUERY" or when connecting for the first time with autojoin configured.
+
 ** Changes in the library API.
+
+*** Function 'erc-log-setup-logging' deprecated.
+In order to ensure proper buffer-local setup, the 'log' module has
+always run this function somewhat indiscriminately and overly often.
+This might be fine were it not for the function's interest in the option
+'erc-log-insert-log-on-open' and its consequent altering of buffer text
+in a manner only conducive to buffer creation.  The module now conducts
+such business in a tidier and more internal fashion that no longer has
+any use for the function nor its presence in 'erc-connect-pre-hook'.
 
 *** Accessors like 'erc-channel-user-voice' may ignore assignments.
 ERC now silently ignores attempts to enable certain status flags on

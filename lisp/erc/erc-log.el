@@ -157,8 +157,16 @@ arguments."
 		 (const :tag "Disable logging" nil)))
 
 (defcustom erc-log-insert-log-on-open nil
-  "Insert log file contents into the buffer if a log file exists."
-  :type 'boolean)
+  "Insert an existing log file's contents into its associated buffer.
+A legacy value of t does so upon connecting and reconnecting in all
+buffers, often in an overlapping and redundant fashion.  A value of
+`erc-log-new-target-buffer-p' does so in new target buffers only.  If
+set to an arbitrary predicate, ERC calls it with no args in the
+associated buffer."
+  :type '(choice boolean
+                 (function-item :tag "Only new target buffers"
+                                erc-log-new-target-buffer-p)
+                 (function "User-defined predicate taking no args")))
 
 (defcustom erc-save-buffer-on-part t
   "Save the channel buffer content using `erc-save-buffer-in-logs' on PART.
@@ -231,10 +239,9 @@ also be a predicate function.  To only log when you are not set away, use:
    (add-hook 'erc-quit-hook #'erc-conditional-save-queries)
    (add-hook 'erc-part-hook #'erc-conditional-save-buffer)
    ;; append, so that 'erc-initialize-log-marker runs first
-   (add-hook 'erc-connect-pre-hook #'erc-log-setup-logging 'append)
-   ;; FIXME use proper local "setup" function and major-mode hook.
-   (dolist (buffer (erc-buffer-list))
-     (erc-log-setup-logging buffer))
+   (add-hook 'erc-connect-pre-hook #'erc-log--insert-log-on-open 80)
+   (add-hook 'erc-mode-hook #'erc-log--setup)
+   (unless erc--updating-modules-p (erc-buffer-do #'erc-log--setup))
    (erc--modify-local-map t "C-c C-l" #'erc-save-buffer-in-logs))
   ;; disable
   ((remove-hook 'erc-insert-post-hook #'erc-save-buffer-in-logs)
@@ -244,42 +251,74 @@ also be a predicate function.  To only log when you are not set away, use:
    (remove-hook 'kill-emacs-hook #'erc-log-save-all-buffers)
    (remove-hook 'erc-quit-hook #'erc-conditional-save-queries)
    (remove-hook 'erc-part-hook #'erc-conditional-save-buffer)
-   (remove-hook 'erc-connect-pre-hook #'erc-log-setup-logging)
-   (dolist (buffer (erc-buffer-list))
-     (erc-log-disable-logging buffer))
+   (remove-hook 'erc-connect-pre-hook #'erc-log--insert-log-on-open)
+   (remove-hook 'erc-mode-hook #'erc-log--setup)
+   (erc-buffer-do #'erc-log--setup)
    (erc--modify-local-map nil "C-c C-l" #'erc-save-buffer-in-logs)))
 
-;;; functionality referenced from erc.el
+(defun erc-log-new-target-buffer-p ()
+  "Return non-nil during `erc-open' if the current buffer is a new target.
+That is, return nil if it's a server buffer or a target being
+reassociated from a previous session."
+  (and (erc-target) (null erc--target-priors)))
+
+;; This function served double duty as the local setup function for both
+;; idempotent tasks and destructive ones typically confined to
+;; `erc-open'.  The caller was implicitly tasked with selectively
+;; inhibiting the destructive portion by binding
+;; `erc-log-insert-log-on-open' to nil when calling it, which led to
+;; bugs.
 (defun erc-log-setup-logging (buffer)
   "Setup the buffer-local logging variables in the current buffer.
 This function is destined to be run from `erc-connect-pre-hook'.
 The current buffer is given by BUFFER."
-  (when (erc-logging-enabled buffer)
-    (with-current-buffer buffer
-      (when-let* ((erc-last-saved-position)
-                  (priors (or erc--server-reconnecting erc--target-priors))
-                  (val (alist-get 'erc-last-saved-position priors))
-                  (_ (eq buffer (marker-buffer val))))
-        ;; Will have been initialized by `erc-initialize-log-marker'.
-        (move-marker erc-last-saved-position val))
+  (declare (obsolete "use `erc-log-mode' or mimic `erc-log--setup'" "31.1"))
+  (with-current-buffer buffer
+    (let ((erc-log-mode t))
+      (erc-log--setup)
+      (erc-log--insert-log-on-open))))
+
+;; This module's differs from other global modules in that it allows for
+;; effectively disabling itself in a subset of buffers by setting the
+;; option `erc-enable-logging' locally to nil.  Though not
+;; permanent-local, this option's variable is never explicitly killed
+;; when the module is disabled, such as via its mode command.
+(defun erc-log--setup ()
+  "Perform buffer-local setup for ERC's log module."
+  (if erc-log-mode
+    (when (erc-logging-enabled)
+      ;; If reconnecting, preserve `erc-last-saved-position' from prev
+      ;; session and preempt `erc-initialize-log-marker' in `erc-open'.
+      (unless erc-last-saved-position
+        (when-let* ((priors (or erc--server-reconnecting erc--target-priors))
+                    (val (alist-get 'erc-last-saved-position priors))
+                    (_ (eq (current-buffer) (marker-buffer val))))
+          (setq erc-last-saved-position val)))
       (auto-save-mode -1)
       (setq buffer-file-name nil)
       (add-hook 'write-file-functions #'erc-save-buffer-in-logs nil t)
       (add-function :before (local 'erc--clear-function)
-                    #'erc-log--save-on-clear '((depth . 50)))
-      (when erc-log-insert-log-on-open
+                    #'erc-log--save-on-clear '((depth . 50))))
+    (erc-log-disable-logging (current-buffer))))
+
+(defun erc-log--insert-log-on-open (&rest _)
+  "Conditionally perform insertion for `erc-log-insert-log-on-open'."
+  (when (if (functionp erc-log-insert-log-on-open)
+            (funcall erc-log-insert-log-on-open)
+          erc-log-insert-log-on-open)
+    (with-silent-modifications
+      (progn
 	(ignore-errors
 	  (save-excursion
 	    (goto-char (point-min))
-	    (insert-file-contents (erc-current-logfile)))
-	  (move-marker erc-last-saved-position
-		       (1- (point-max))))))))
+            (insert-file-contents (erc-current-logfile))))))))
 
 (defun erc-log-disable-logging (buffer)
   "Disable logging in BUFFER."
   (when (erc-logging-enabled buffer)
     (with-current-buffer buffer
       (remove-function (local 'erc--clear-function) #'erc-log--save-on-clear)
+      (remove-hook 'write-file-functions #'erc-save-buffer-in-logs t)
       (setq buffer-offer-save nil
 	    erc-enable-logging nil))))
 
