@@ -2792,6 +2792,10 @@ The tabulated listings produced by 'flymake-show-buffer-diagnostics' and
 'flymake-show-project-diagnostics' now automatically adjust their column
 widths based on content, optimizing display space and readability.
 
+*** New value 'auto' of user option 'flymake-indicator-type'.
+This value set by default tries to use fringes if possible,
+otherwise falls back to margins.
+
 *** New user option 'elisp-flymake-byte-compile-executable'.
 This allows customizing the Emacs executable used for Flymake byte
 compilation in 'emacs-lisp-mode'.  This option should be set when editing

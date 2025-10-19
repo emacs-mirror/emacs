@@ -185,21 +185,24 @@ See `flymake-error-bitmap' and `flymake-warning-bitmap'."
 		 (const right-fringe)
 		 (const :tag "No fringe indicators" nil)))
 
-(defcustom flymake-indicator-type 'fringes
+(defcustom flymake-indicator-type 'auto
   "Indicate which indicator type to use for display errors.
 
 The value can be nil (don't indicate errors but just highlight them),
-the symbol `fringes' (use fringes) or the symbol `margins' (use
-margins).
+the symbol `fringes' (use fringes), the symbol `margins' (use margins),
+or the symbol `auto' to automatically guess.
 
 Difference between fringes and margin is that fringes support displaying
 bitmaps on graphical displays and margins display text in a blank area
 from current buffer that works in both graphical and text displays.
+When margins are selected, Flymake may need to resize them for each
+buffer.  See `flymake-autoresize-margins'.
 
 See Info node `Fringes' and Info node `(elisp)Display Margins'."
   :version "31.1"
   :type '(choice (const :tag "Use Fringes" fringes)
                  (const :tag "Use Margins" margins)
+                 (const :tag "Use fringes if possible, otherwise margins" auto)
                  (const :tag "No indicators" nil)))
 
 (defcustom flymake-margin-indicators-string
@@ -877,7 +880,11 @@ associated `flymake-category' return DEFAULT."
 (defun flymake--resize-margins (&optional orig-width)
   "Resize current window margins according to `flymake-margin-indicator-position'.
 Return to original margin width if ORIG-WIDTH is non-nil."
-  (when (and (eq flymake-indicator-type 'margins)
+  (when (and (or (eq flymake-indicator-type 'margins)
+                 (and (eq flymake-indicator-type 'auto)
+                      (not (cl-case flymake-fringe-indicator-position
+                             (left-fringe (< 0 (nth 0 (window-fringes))))
+                             (right-fringe (< 0 (nth 1 (window-fringes))))))))
              flymake-autoresize-margins)
     (cond
      ((and orig-width flymake--original-margin-width)
@@ -1012,7 +1019,27 @@ Return nil or the overlay created."
                   (overlay-put ov prop (flymake--lookup-type-property
                                         type prop value)))))
       (default-maybe 'face 'flymake-error)
-      (default-maybe 'before-string (flymake--indicator-overlay-spec type))
+      (default-maybe
+       'before-string
+       (if (eq flymake-indicator-type 'auto)
+           (let ((condition
+                  `(< 0 (nth ,(cl-case flymake-fringe-indicator-position
+                                (left-fringe 0)
+                                (right-fringe 1))
+                             (window-fringes)))))
+             (propertize
+              "!" 'display
+              `((when ,condition
+                  . ,(get-text-property
+                      0 'display
+                      (let ((flymake-indicator-type 'fringes))
+                        (flymake--indicator-overlay-spec type))))
+                (when (not ,condition)
+                  . ,(get-text-property
+                      0 'display
+                      (let ((flymake-indicator-type 'margins))
+                        (flymake--indicator-overlay-spec type)))))))
+         (flymake--indicator-overlay-spec type)))
       ;; (default-maybe 'after-string
       ;;                (flymake--diag-text diagnostic))
       (default-maybe 'help-echo
