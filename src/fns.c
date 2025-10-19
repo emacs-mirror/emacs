@@ -5812,6 +5812,17 @@ weak_hash_splat_from_table (struct Lisp_Weak_Hash_Table *h, ptrdiff_t i0)
 static void
 weak_hash_clear (struct Lisp_Weak_Hash_Table *h)
 {
+  /* key-or-value weakness means Fremhash does some extra book-keeping, so let
+     it do that.  */
+  if (h->strong->weakness == Weak_Key_Or_Value)
+    {
+      Lisp_Object table = make_lisp_weak_hash_table (h);
+      Lisp_Object tmp_table = strong_copy_hash_table (table);
+      DOHASH (XHASH_TABLE (tmp_table), k, v)
+	{
+	  Fremhash (k, table);
+	}
+    }
   ptrdiff_t size = WEAK_HASH_TABLE_SIZE (h);
   for (ptrdiff_t i = 0; i < size; i++)
     {
@@ -6517,9 +6528,11 @@ VALUE.  In any case, return VALUE.  */)
 	{
 	  if (wh->strong->weakness == Weak_Key_Or_Value)
 	    {
-	      Figc__remove_extra_dependency (key, WEAK_HASH_VALUE (wh, i),
+	      Figc__remove_extra_dependency (WEAK_HASH_KEY (wh, i),
+					     WEAK_HASH_VALUE (wh, i),
 					     table);
-	      Figc__remove_extra_dependency (WEAK_HASH_VALUE (wh, i), key,
+	      Figc__remove_extra_dependency (WEAK_HASH_VALUE (wh, i),
+					     WEAK_HASH_KEY (wh, i),
 					     table);
 	    }
 	  set_weak_hash_value_slot (wh, i, value);
@@ -6556,6 +6569,19 @@ DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
   struct Lisp_Weak_Hash_Table *wh = check_maybe_weak_hash_table (table);
   if (wh)
     {
+      if (wh->strong->weakness == Weak_Key_Or_Value)
+	{
+	  ptrdiff_t i = weak_hash_lookup (wh, key);
+	  if (i >= 0)
+	    {
+	      Figc__remove_extra_dependency (WEAK_HASH_KEY (wh, i),
+					     WEAK_HASH_VALUE (wh, i),
+					     table);
+	      Figc__remove_extra_dependency (WEAK_HASH_VALUE (wh, i),
+					     WEAK_HASH_KEY (wh, i),
+					     table);
+	    }
+	}
       weak_hash_remove_from_table (wh, key);
       return Qnil;
     }
