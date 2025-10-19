@@ -295,7 +295,7 @@ int number_finalizers_run;
 #endif
 
 /* True during GC.  */
-
+/* FIXME/igc: always false for igc */
 bool gc_in_progress;
 
 /* System byte and object counts reported by GC.  */
