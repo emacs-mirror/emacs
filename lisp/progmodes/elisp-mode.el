@@ -512,10 +512,12 @@ code analysis."
     (save-excursion
       (goto-char pos)
       (beginning-of-defun)
-      (elisp-scope-analyze-form (lambda (_type beg len id &optional _def)
-               (when (<= beg pos (+ beg len))
-                 (setq cur id))
-               (when id (setf (alist-get beg all) (list len id))))))
+      (elisp-scope-analyze-form
+       (lambda (_role beg _sym id &optional _def)
+         (let* ((end (progn (goto-char beg) (read (current-buffer)) (point)))
+                (len (- end beg)))
+           (when (<= beg pos end) (setq cur id))
+           (when id (setf (alist-get beg all) (list len id)))))))
     (seq-keep
      (pcase-lambda (`(,beg ,len ,id)) (when (equal id cur) (cons beg len)))
      all)))
@@ -603,10 +605,10 @@ semantic highlighting takes precedence."
           (function :tag "Custom function"))
   :version "31.1")
 
-(defun elisp-fontify-symbol (type beg len id &optional def)
-  (let ((end (+ beg len)))
-    (elisp--annotate-symbol-with-help-echo type beg end def)
-    (let ((face (elisp-scope-get-symbol-role-property type :face)))
+(defun elisp-fontify-symbol (role beg _sym id &optional def)
+  (let ((end (progn (goto-char beg) (read (current-buffer)) (point))))
+    (elisp--annotate-symbol-with-help-echo role beg end def)
+    (let ((face (elisp-scope-get-symbol-role-property role :face)))
       (add-face-text-property
        beg end face
        (cl-case elisp-fontify-symbol-precedence-function

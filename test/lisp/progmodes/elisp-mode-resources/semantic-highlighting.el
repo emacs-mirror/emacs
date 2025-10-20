@@ -149,3 +149,8 @@
 ;;                         ^ (elisp-widget-type font-lock-keyword-face)
                           )))
   :version "29.1")
+
+(e-s-analyze-form #'ignore)
+;; ^ (elisp-shorthand-font-lock-face elisp-function)
+;;   ^ elisp-function
+;;                  ^ elisp-function
