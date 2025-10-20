@@ -1287,14 +1287,24 @@ To apply this to Eglot, and assuming you chose the
 @end lisp
 
 @noindent
-This sets the value of @code{eglot-workspace-configuration} in all the
-buffers inside the project; each server will use only the section of the
-parameters intended for that server, and ignore the rest.  Note how
-alists are used for associating Emacs mode names with alists associating
-variable names with variable values.  Then notice how plists are used
-inside the value of @code{eglot-workspace-configuration}.
+Note how alists are used for associating Emacs mode names with other
+alists, associating variable names with variable values.  Then, pay
+special attention to how the value of
+@code{eglot-workspace-configuration} is a plist and @emph{not} an alist.
 
-This following form may also be used:
+The above form sets the value of @code{eglot-workspace-configuration} in
+all the buffers inside the project; each language server will then use
+only the section of the parameters intended for it, and ignore the rest.
+In our example, @command{pylsp} and @command{gopls} are solely
+interested in the @code{:pylsp} and @code{:gopls} parameter section
+names, respectively.  However, section names don't have to match the
+server name and some servers may be even interested in multiple
+sections: the @command{typescript-language-server} server is known to be
+interested in the @code{:javascript} and @code{:typescript} section
+names.
+
+To avoid sending whole configuration sections to servers who are
+decidedly not interested in them, the following form may also be used:
 
 @lisp
 ((python-base-mode
@@ -1316,11 +1326,11 @@ buffers.  @code{python-base-mode} buffers will have the variable set to
 @code{(:pylsp (:plugins ...))}.  @code{go-mode} buffers will have the
 variable set to @code{(:gopls (:usePlaceholders t))}.
 
-Some servers will issue workspace configuration for specific files
-inside your project.  For example, if you know @code{gopls} is asking
-about specific files in the @code{src/imported} subdirectory and you
-want to set a different option for @code{gopls.usePlaceholders} , you
-may use something like:
+Some servers will issue workspace configuration for specific source
+files inside your project.  For example, if you know @code{gopls} is
+asking about specific files in the @code{src/imported} subdirectory and
+you want to set a different option for @code{gopls.usePlaceholders} ,
+you may use something like:
 
 @lisp
 ((python-base-mode
@@ -1340,10 +1350,10 @@ may use something like:
 
 Finally, if one needs to determine the workspace configuration based on
 some dynamic context, @code{eglot-workspace-configuration} can be set to
-a function.  The function is called with the @code{eglot-lsp-server}
-instance of the connected server (if any) and with
-@code{default-directory} set to the root of the project.  The function
-should return a plist suitable for use as the variable's value.
+a function instead of a plist.  The function is called with the
+@code{eglot-lsp-server} instance of the connected server (if any) and
+with @code{default-directory} set to the root of the project.  The
+function should return a plist suitable for use as the variable's value.
 
 @node User-specific configuration
 @section User-specific configuration
