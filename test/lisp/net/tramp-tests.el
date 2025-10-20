@@ -181,8 +181,11 @@ The temporary file is not created."
   `(condition-case err
        (progn ,@body)
      (file-error
-      (unless (string-equal (error-message-string err)
-			    "make-symbolic-link not supported")
+      (unless (string-match-p
+	       (rx bol (| "make-symbolic-link not supported"
+			  (: "Making symbolic link"
+			     (? ":") " Operation not permitted")))
+	       (error-message-string err))
 	(signal (car err) (cdr err))))))
 
 ;; Don't print messages in nested `tramp--test-instrument-test-case' calls.
@@ -8540,8 +8543,7 @@ process sentinels.  They shall not disturb each other."
 (ert-deftest tramp-test48-session-timeout ()
   "Check that Tramp handles a session timeout properly."
   (skip-unless (tramp--test-enabled))
-  (skip-unless
-   (tramp-get-method-parameter tramp-test-vec 'tramp-session-timeout))
+  (skip-unless (tramp--test-sh-p))
 
   ;; We want to see the timeout message.
   (tramp--test-instrument-test-case 3

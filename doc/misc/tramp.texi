@@ -678,7 +678,10 @@ not auto loaded by Emacs.  All examples require @value{tramp} to be
 installed and loaded:
 
 @lisp
+@group
+(require 'tramp)
 (customize-set-variable 'tramp-verbose 6 "Enable remote command traces")
+@end group
 @end lisp
 
 For functions used to configure @value{tramp}, the following clause

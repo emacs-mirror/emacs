@@ -253,19 +253,19 @@ Return VALUE."
 
 (defun tramp-flush-file-upper-properties (key file)
   "Remove some properties of FILE's upper directory."
-  (when (file-name-absolute-p file)
-    ;; `file-name-directory' can return nil, for example for "~".
-    (when-let* ((file (file-name-directory file))
-		(file (directory-file-name file)))
-      (setq key (tramp-file-name-unify key file))
-      (unless (eq key tramp-cache-undefined)
-	(dolist (property (hash-table-keys (tramp-get-hash-table key)))
-	  (when (string-match-p
-		 (rx
-		  bos (| "directory-" "file-name-all-completions"
-			 "file-entries"))
-		 property)
-	    (tramp-flush-file-property key file property)))))))
+  (when-let* (((file-name-absolute-p file))
+	      ;; `file-name-directory' can return nil, for example for "~".
+	      (file (file-name-directory file))
+	      (file (directory-file-name file)))
+    (setq key (tramp-file-name-unify key file))
+    (unless (eq key tramp-cache-undefined)
+      (dolist (property (hash-table-keys (tramp-get-hash-table key)))
+	(when (string-match-p
+	       (rx
+		bos (| "directory-" "file-name-all-completions"
+		       "file-entries"))
+	       property)
+	  (tramp-flush-file-property key file property))))))
 
 ;;;###tramp-autoload
 (defun tramp-flush-file-properties (key file)

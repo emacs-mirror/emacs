@@ -2934,15 +2934,15 @@ The method used must be an out-of-band method."
 	  ;; Try to insert the amount of free space.
 	  (goto-char (point-min))
 	  ;; First find the line to put it on.
-	  (when (and (search-forward-regexp
-		      (rx bol (group (* blank) "total")) nil t)
-		     ;; Emacs 29.1 or later.
-		     (not (fboundp 'dired--insert-disk-space)))
-	    (when-let* ((available (get-free-disk-space ".")))
-	      ;; Replace "total" with "total used", to avoid confusion.
-	      (replace-match "\\1 used in directory")
-	      (end-of-line)
-	      (insert " available " available))))
+	  (when-let* (((search-forward-regexp
+			(rx bol (group (* blank) "total")) nil t))
+		      ;; Emacs 29.1 or later.
+		      ((not (fboundp 'dired--insert-disk-space)))
+		      (available (get-free-disk-space ".")))
+	    ;; Replace "total" with "total used", to avoid confusion.
+	    (replace-match "\\1 used in directory")
+	    (end-of-line)
+	    (insert " available " available)))
 
 	(prog1 (goto-char end-marker)
 	  (set-marker beg-marker nil)
