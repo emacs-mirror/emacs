@@ -267,13 +267,6 @@ Return (REGEXP . PRECEDENCE)."
   "Regexp that never matches anything."
   (cons (list regexp-unmatchable) 'seq))
 
-;; `cl-every' replacement to avoid bootstrapping problems.
-(defun rx--every (pred list)
-  "Whether PRED is true for every element of LIST."
-  (while (and list (funcall pred (car list)))
-    (setq list (cdr list)))
-  (null list))
-
 (defun rx--foldl (f x l)
   "(F (F (F X L0) L1) L2) ...
 Left-fold the list L, starting with X, by the binary function F."
@@ -454,10 +447,10 @@ Each element of ARGS should have been normalised using
 
 (defun rx--all-string-branches-p (forms)
   "Whether FORMS are all strings or `or' forms with the same property."
-  (rx--every (lambda (x) (or (stringp x)
-                             (and (eq (car-safe x) 'or)
-                                  (rx--all-string-branches-p (cdr x)))))
-             forms))
+  (all (lambda (x) (or (stringp x)
+                       (and (eq (car-safe x) 'or)
+                            (rx--all-string-branches-p (cdr x)))))
+       forms))
 
 (defun rx--collect-or-strings (forms)
   "All strings from FORMS, which are strings or `or' forms."
@@ -598,10 +591,10 @@ classes."
   ;; regexp engine.  Ranges from ASCII to raw bytes will exclude the
   ;; all non-ASCII non-raw bytes, and ranges from non-ASCII Unicode
   ;; to raw bytes are ignored.
-  (unless (or classes
-              ;; Any interval set covering #x3fff7f should be negated.
-              (rx--every (lambda (iv) (not (<= (car iv) #x3fff7f (cdr iv))))
-                         intervals))
+  (when (and (not classes)
+             ;; Any interval set covering #x3fff7f should be negated.
+             (any (lambda (iv) (<= (car iv) #x3fff7f (cdr iv)))
+                  intervals))
     (setq negated (not negated))
     (setq intervals (rx--interval-set-complement intervals)))
   (cond
@@ -1132,7 +1125,7 @@ DEF is the definition tuple.  Return (REGEXP . PRECEDENCE)."
     (when (and max-args (> nargs max-args))
       (error "The `%s' form takes at most %d argument(s)"
              (car form) max-args))
-    (when (and predicate (not (rx--every predicate (cdr form))))
+    (when (and predicate (not (all predicate (cdr form))))
       (error "The `%s' form requires arguments satisfying `%s'"
              (car form) predicate))
     (let ((regexp (funcall fn form)))
@@ -1535,7 +1528,7 @@ TAIL is on the form ([ARGLIST] DEFINITION)."
     (`(,def)
      (list def))
     (`(,args ,def)
-     (unless (and (listp args) (rx--every #'symbolp args))
+     (unless (and (listp args) (all #'symbolp args))
        (error "Bad argument list for `rx' definition %s: %S" name args))
      (list args def))
     (_ (error "Bad `rx' definition of %s: %S" name tail))))
