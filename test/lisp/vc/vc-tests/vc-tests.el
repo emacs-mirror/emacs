@@ -798,7 +798,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
            (with-current-buffer ,buf
              (activate-change-group ,handle)
              (insert "bar\n")
-             (basic-save-buffer)
+             (write-region nil nil buffer-file-name nil t)
              ,@body)
          (cancel-change-group ,handle)
          (with-current-buffer ,buf
