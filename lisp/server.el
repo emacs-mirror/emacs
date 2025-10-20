@@ -1589,6 +1589,7 @@ LINE-COL should be a pair (LINE . COL)."
 
 (defun server-visit-files (files proc &optional nowait)
   "Find FILES and return a list of buffers created.
+If some file was deleted since last visited, offer to save its buffer.
 FILES is an alist whose elements are (FILENAME . FILEPOS)
 where FILEPOS can be nil or a pair (LINENUMBER . COLUMNNUMBER).
 PROC is the client that requested this operation.
@@ -1620,7 +1621,9 @@ so don't mark these buffers specially, just visit them normally."
             (cond ((file-exists-p filen)
                    (when (not (verify-visited-file-modtime obuf))
                      (revert-buffer t nil)))
-                  (t
+                  ;; Only ask the question if the file did exist at some
+                  ;; point, but was deleted since.
+                  ((listp (visited-file-modtime))
                    (when (y-or-n-p
                           (concat "File no longer exists: " filen
                                   ", write buffer to file? "))
