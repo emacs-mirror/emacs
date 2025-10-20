@@ -2590,6 +2590,9 @@ eval_sub (Lisp_Object form)
   /* Declare here, as this array may be accessed by call_debugger near
      the end of this function.  See Bug#21245.  */
   Lisp_Object argvals[8];
+  /* The stack overflow detection probably isn't worth the effort any more
+     but this may be the least bad spot to feed it.  */
+  current_thread->stack_top = argvals;
 
  retry:
 
