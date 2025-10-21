@@ -1005,19 +1005,19 @@ There can be multiple entries for the same NAME if it has several aliases.")
       (let* ((op (car form))
              (bindings nil)
              (rev-args nil))
-        (if (memq nil (mapcar #'macroexp-copyable-p (cddr form)))
-            ;; At least one arg beyond the first is non-constant non-variable:
-            ;; create temporaries for all args to guard against side-effects.
-            ;; The optimizer will eliminate trivial bindings later.
-            (let ((i 1))
-              (dolist (arg (cdr form))
-                (let ((var (make-symbol (format "arg%d" i))))
-                  (push var rev-args)
-                  (push (list var arg) bindings)
-                  (setq i (1+ i)))))
-          ;; All args beyond the first are copyable: no temporary variables
-          ;; required.
-          (setq rev-args (reverse (cdr form))))
+        (if (all #'macroexp-copyable-p (cddr form))
+            ;; All args beyond the first are copyable: no temporary variables
+            ;; required.
+            (setq rev-args (reverse (cdr form)))
+          ;; At least one arg beyond the first is non-constant non-variable:
+          ;; create temporaries for all args to guard against side-effects.
+          ;; The optimizer will eliminate trivial bindings later.
+          (let ((i 1))
+            (dolist (arg (cdr form))
+              (let ((var (make-symbol (format "arg%d" i))))
+                (push var rev-args)
+                (push (list var arg) bindings)
+                (setq i (1+ i))))))
         (let ((prev (car rev-args))
               (exprs nil))
           (dolist (arg (cdr rev-args))
@@ -1030,14 +1030,11 @@ There can be multiple entries for the same NAME if it has several aliases.")
      (t form))))
 
 (defun byte-optimize-constant-args (form)
-  (let ((rest (cdr form)))
-    (while (and rest (macroexp-const-p (car rest)))
-      (setq rest (cdr rest)))
-    (if rest
-	form
+  (if (all #'macroexp-const-p (cdr form))
       (condition-case ()
 	  (list 'quote (eval form t))
-	(error form)))))
+	(error form))
+    form))
 
 (defun byte-optimize-identity (form)
   (if (and (cdr form) (null (cdr (cdr form))))
@@ -1099,11 +1096,9 @@ See Info node `(elisp) Integer Basics'."
           (and (macroexp-const-p arg2)
                (let ((listval (byteopt--eval-const arg2)))
                  (and (listp listval)
-                      (not (memq nil (mapcar
-                                      (lambda (o)
-                                        (or (symbolp o)
-                                            (byte-optimize--fixnump o)))
-                                      listval))))))))
+                      (all (lambda (o)
+                             (or (symbolp o) (byte-optimize--fixnump o)))
+                           listval))))))
     (cons 'memq (cdr form)))
    (t form)))
 
@@ -1622,7 +1617,7 @@ See Info node `(elisp) Integer Basics'."
 
               ;; (list CONSTANTS...) -> '(CONSTANTS...)
               ((and (consp arg) (eq (car arg) 'list)
-                    (not (memq nil (mapcar #'macroexp-const-p (cdr arg)))))
+                    (all #'macroexp-const-p (cdr arg)))
                (loop (cons (list 'quote (eval arg)) (cdr args)) newargs))
 
               (t (loop (cdr args) (cons arg newargs)))))

@@ -372,9 +372,7 @@ for the Emacs build itself.")
 
 ;;;###autoload
 (put 'byte-compile-warnings 'safe-local-variable
-     (lambda (v)
-       (or (symbolp v)
-           (null (delq nil (mapcar (lambda (x) (not (symbolp x))) v))))))
+     (lambda (v) (or (symbolp v) (all #'symbolp v))))
 
 ;;;###autoload
 (defun byte-compile-warning-enabled-p (warning &optional symbol)
@@ -3344,7 +3342,7 @@ lambda-expression."
                                   (cons (nth 1 (car body)) (cdr body))
                                 (cons tmp body))))
                   (or (eq output-type 'file)
-                      (not (delq nil (mapcar 'consp (cdr (car body))))))))
+                      (not (any #'consp (cdr (car body)))))))
 	      (setq rest (cdr rest)))
 	    rest))
       (let ((byte-compile-vector (byte-compile-constants-vector)))
