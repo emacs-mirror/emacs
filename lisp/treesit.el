@@ -1605,7 +1605,7 @@ name, it is ignored."
                            current-feature
                            current-override
                            current-reversed
-                           current-language)
+                           lang)
                      result)
                ;; Clears any configurations set for this query.
                (setq current-language nil
