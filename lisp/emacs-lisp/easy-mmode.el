@@ -501,7 +501,6 @@ on if the hook has explicitly disabled it.
 	 (MODE-set-explicitly (intern (concat mode-name "--set-explicitly")))
          (MODE-suppress-set-explicitly (intern (concat mode-name
                                                        "--suppress-set-explicitly")))
-	 (MODE-major-mode (intern (concat global-mode-name "--major-mode")))
          (MODE-predicate (intern (concat (replace-regexp-in-string
                                           "-mode\\'" "" global-mode-name)
                                          "-modes")))
@@ -528,7 +527,6 @@ on if the hook has explicitly disabled it.
        (progn
          (put ',global-mode 'globalized-minor-mode t)
          :autoload-end
-         (defvar-local ,MODE-major-mode nil)
          ,@(when predicate `((defvar ,MODE-predicate))))
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
@@ -620,8 +618,7 @@ list."
 
        ;; The function that calls TURN-ON in the current buffer.
        (defun ,MODE-enable-in-buffer ()
-         (unless (or ,MODE-set-explicitly
-                     (eq ,MODE-major-mode major-mode))
+         (unless ,MODE-set-explicitly
            (let (;; We are not part of the major mode hook so we don't
                  ;; want to set MODE-set-explicitly to t.
                  ;; In particular this is necessary when there are
@@ -629,12 +626,7 @@ list."
                  ;; If one of them declines to turn the minor mode on,
                  ;; that should not mean the others can't.
                  (,MODE-suppress-set-explicitly t))
-             (if (bound-and-true-p ,MODE-variable)
-                 (progn
-                   (,mode -1)
-                   (funcall ,turn-on-function))
-               (funcall ,turn-on-function))))
-         (setq ,MODE-major-mode major-mode))
+             (funcall ,turn-on-function))))
        (put ',MODE-enable-in-buffer 'definition-name ',global-mode))))
 
 (defun easy-mmode--globalized-predicate-p (predicate)
