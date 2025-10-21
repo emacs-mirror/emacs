@@ -259,14 +259,11 @@ Interactively, prompt for ROLE."
 (elisp-scope-define-symbol-role free-variable (variable)
   :doc "Variable names."
   :face 'elisp-free-variable
-  :help (lambda (beg end _def)
-          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
-              (lambda (&rest _)
-                (let ((val (if (boundp sym) (truncate-string-to-width (prin1-to-string (symbol-value sym)) 60 nil nil t) "#<unbound>")))
-                  (if-let* ((doc (documentation-property sym 'variable-documentation t)))
-                      (format "Special variable `%S'.\n\nValue: %s\n\n%s" sym val doc)
-                    (format "Special variable `%S'.\n\nValue: %s" sym val))))
-            "Special variable")))
+  :help (lambda (sym &rest _)
+          (let ((val (if (boundp sym) (truncate-string-to-width (prin1-to-string (symbol-value sym)) 60 nil nil t) "#<unbound>")))
+            (if-let* ((doc (documentation-property sym 'variable-documentation t)))
+                (format "Special variable `%S'.\n\nValue: %s\n\n%s" sym val doc)
+              (format "Special variable `%S'.\n\nValue: %s" sym val)))))
 
 (elisp-scope-define-symbol-role bound-variable (variable)
   :doc "Local variable names."
@@ -291,8 +288,7 @@ Interactively, prompt for ROLE."
 (elisp-scope-define-symbol-role face ()
   :doc "Face names."
   :face 'elisp-face
-  :help (lambda (beg end _def)
-          (elisp--help-echo beg end 'face-documentation "Face")))
+  :help (apply-partially #'elisp--help-echo 'face-documentation "Face"))
 
 (elisp-scope-define-symbol-role callable ()
   :doc "Abstract symbol role of function-like symbols.")
@@ -300,12 +296,7 @@ Interactively, prompt for ROLE."
 (elisp-scope-define-symbol-role function (callable)
   :doc "Function names."
   :face 'elisp-function
-  :help (lambda (beg end def)
-          (cond ((equal beg def) "Local function definition")
-                (def             "Local function call")
-                (t (if-let* ((sym (intern-soft (buffer-substring-no-properties beg end))))
-                       (apply-partially #'elisp--function-help-echo sym)
-                     "Function call")))))
+  :help #'elisp--function-help-echo)
 
 (elisp-scope-define-symbol-role command (function)
   :doc "Command names.")
@@ -317,27 +308,17 @@ Interactively, prompt for ROLE."
 
 (elisp-scope-define-symbol-role non-local-exit (function)
   :doc "Functions that do not return."
-  :face 'elisp-non-local-exit
-  :help (lambda (beg end _def)
-          (if-let* ((sym (intern-soft (buffer-substring-no-properties beg end))))
-              (apply-partially #'elisp--function-help-echo sym)
-            "Non-local exit")))
+  :face 'elisp-non-local-exit)
 
 (elisp-scope-define-symbol-role macro (callable)
   :doc "Macro names."
   :face 'elisp-macro
-  :help (lambda (beg end _def)
-          (if-let* ((sym (intern-soft (buffer-substring-no-properties beg end))))
-              (apply-partially #'elisp--function-help-echo sym)
-            "Macro call")))
+  :help #'elisp--function-help-echo)
 
 (elisp-scope-define-symbol-role special-form (callable)
   :doc "Special form names."
   :face 'elisp-special-form
-  :help (lambda (beg end _def)
-          (if-let* ((sym (intern-soft (buffer-substring-no-properties beg end))))
-              (apply-partially #'elisp--function-help-echo sym)
-            "Special form")))
+  :help #'elisp--function-help-echo)
 
 (elisp-scope-define-symbol-role throw-tag ()
   :doc "Symbols used as `throw'/`catch' tags."
@@ -422,15 +403,12 @@ Interactively, prompt for ROLE."
 (elisp-scope-define-symbol-role condition ()
   :doc "`condition-case' conditions."
   :face 'elisp-condition
-  :help (lambda (beg end _def)
-          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
-              (lambda (&rest _)
-                (let ((msg (get sym 'error-message)))
-                  (apply #'concat
-                         "`condition-case' condition"
-                         (when (and msg (not (string-empty-p msg)))
-                           `(": " ,msg)))))
-            "`condition-case' condition")))
+  :help (lambda (sym &rest _)
+          (let ((msg (get sym 'error-message)))
+            (apply #'concat
+                   "`condition-case' condition"
+                   (when (and msg (not (string-empty-p msg)))
+                     `(": " ,msg))))))
 
 (elisp-scope-define-symbol-role defcondition (condition)
   :doc "`condition-case' condition definitions."
@@ -478,12 +456,9 @@ Interactively, prompt for ROLE."
 (elisp-scope-define-symbol-role major-mode ()
   :doc "Major mode names."
   :face 'elisp-major-mode-name
-  :help (lambda (beg end _def)
-          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
-              (lambda (&rest _)
-                (if-let* ((doc (documentation sym)))
-                    (format "Major mode `%S'.\n\n%s" sym doc)
-                  "Major mode"))
+  :help (lambda (sym &rest _)
+          (if-let* ((doc (documentation sym)))
+              (format "Major mode `%S'.\n\n%s" sym doc)
             "Major mode")))
 
 (elisp-scope-define-symbol-role major-mode-definition (major-mode)
@@ -492,8 +467,7 @@ Interactively, prompt for ROLE."
 
 (elisp-scope-define-symbol-role block ()
   :doc "`cl-block' block names."
-  :help (lambda (beg _end def)
-          (if (equal beg def) "Block definition" "Block")))
+  :help "Block")
 
 (elisp-scope-define-symbol-role icon ()
   :doc "Icon names."
@@ -508,12 +482,9 @@ Interactively, prompt for ROLE."
 (elisp-scope-define-symbol-role oclosure ()
   :doc "OClosure type names."
   :face 'elisp-oclosure
-  :help (lambda (beg end _def)
-          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
-              (lambda (&rest _)
-                (if-let* ((doc (oclosure--class-docstring (get sym 'cl--class))))
-                    (format "OClosure type `%S'.\n\n%s" sym doc)
-                  "OClosure type"))
+  :help (lambda (sym &rest _)
+          (if-let* ((doc (oclosure--class-docstring (get sym 'cl--class))))
+              (format "OClosure type `%S'.\n\n%s" sym doc)
             "OClosure type")))
 
 (elisp-scope-define-symbol-role defoclosure ()
@@ -524,12 +495,9 @@ Interactively, prompt for ROLE."
 (elisp-scope-define-symbol-role coding ()
   :doc "Coding-system names."
   :face 'elisp-coding
-  :help (lambda (beg end _def)
-          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
-              (lambda (&rest _)
-                (if-let* ((doc (coding-system-doc-string sym)))
-                    (format "Coding-system `%S'.\n\n%s" sym doc)
-                  "Coding-system"))
+  :help (lambda (sym &rest _)
+          (if-let* ((doc (coding-system-doc-string sym)))
+              (format "Coding-system `%S'.\n\n%s" sym doc)
             "Coding-system")))
 
 (elisp-scope-define-symbol-role defcoding ()
@@ -540,12 +508,9 @@ Interactively, prompt for ROLE."
 (elisp-scope-define-symbol-role charset ()
   :doc "Character set names."
   :face 'elisp-charset
-  :help (lambda (beg end _def)
-          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
-              (lambda (&rest _)
-                (if-let* ((doc (charset-description sym)))
-                    (format "Character set `%S'.\n\n%s" sym doc)
-                  "Character set"))
+  :help (lambda (sym &rest _)
+          (if-let* ((doc (charset-description sym)))
+              (format "Character set `%S'.\n\n%s" sym doc)
             "Character set")))
 
 (elisp-scope-define-symbol-role defcharset ()
@@ -556,12 +521,9 @@ Interactively, prompt for ROLE."
 (elisp-scope-define-symbol-role completion-category ()
   :doc "Completion categories."
   :face 'elisp-completion-category
-  :help (lambda (beg end _def)
-          (if-let* ((sym (intern (buffer-substring-no-properties beg end))))
-              (lambda (&rest _)
-                (if-let* ((doc (get sym 'completion-category-documentation)))
-                    (format "Completion category `%S'.\n\n%s" sym doc)
-                  "Completion category"))
+  :help (lambda (sym &rest _)
+          (if-let* ((doc (get sym 'completion-category-documentation)))
+              (format "Completion category `%S'.\n\n%s" sym doc)
             "Completion category")))
 
 (elisp-scope-define-symbol-role completion-category-definition ()

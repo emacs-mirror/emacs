@@ -553,14 +553,9 @@ code analysis."
         (describe-function-1 sym))
       (buffer-string))))
 
-(defun elisp--help-echo-1 (str sym prop &rest _)
+(defun elisp--help-echo (prop str sym &rest _)
   (if-let* ((doc (documentation-property sym prop t)))
       (format "%s `%S'.\n\n%s" str sym doc)
-    str))
-
-(defun elisp--help-echo (beg end prop str)
-  (if-let* ((sym (intern-soft (buffer-substring-no-properties beg end))))
-      (apply-partially #'elisp--help-echo-1 str sym prop)
     str))
 
 (defcustom elisp-add-help-echo t
@@ -569,12 +564,15 @@ This option has effect only if `elisp-fontify-semantically' is non-nil."
   :version "31.1"
   :type 'boolean)
 
-(defun elisp--annotate-symbol-with-help-echo (type beg end def)
+(defun elisp--annotate-symbol-with-help-echo (role beg end sym)
   (when elisp-add-help-echo
     (put-text-property
      beg end 'help-echo
-     (when-let* ((hlp (elisp-scope-get-symbol-role-property type :help)))
-       (if (stringp hlp) hlp (funcall hlp beg end def))))))
+     (when-let* ((hlp (elisp-scope-get-symbol-role-property role :help)))
+       ;; HLP is either a string, or a function that takes SYM as an
+       ;; additional argument on top of the usual WINDOW, OBJECT and POS
+       ;; that `help-echo' functions takes.
+       (if (stringp hlp) hlp (apply-partially hlp sym))))))
 
 (defvar font-lock-beg)
 (defvar font-lock-end)
@@ -605,9 +603,9 @@ semantic highlighting takes precedence."
           (function :tag "Custom function"))
   :version "31.1")
 
-(defun elisp-fontify-symbol (role beg _sym id &optional def)
+(defun elisp-fontify-symbol (role beg sym id &optional _def)
   (let ((end (progn (goto-char beg) (read (current-buffer)) (point))))
-    (elisp--annotate-symbol-with-help-echo role beg end def)
+    (elisp--annotate-symbol-with-help-echo role beg end sym)
     (let ((face (elisp-scope-get-symbol-role-property role :face)))
       (add-face-text-property
        beg end face
