@@ -293,11 +293,12 @@ line belongs.
 
 If set to `after-cursor', hide the block after cursor position.
 
-This only have effect in `hs-hide-block' and `hs-toggle-hiding'
+This only has effect in `hs-hide-block' and `hs-toggle-hiding'
 commands."
-  :type '(choice
-          (const :tag "Hide the block after cursor" after-bol)
-          (const :tag "Hide the block after beginning of current line" after-cursor))
+  :type
+  '(choice
+    (const :tag "Hide the block after cursor" after-cursor)
+    (const :tag "Hide the block after beginning of current line" after-bol))
   :version "31.1")
 
 (defcustom hs-display-lines-hidden nil
@@ -343,7 +344,7 @@ The possible values can be:
  - `margin', display the indicators in the margin.
  - nil, display the indicators at end-of-line.
 
-This only have effect if `hs-show-indicators' is non-nil."
+This only has effect if `hs-show-indicators' is non-nil."
   :type '(choice
           (const :tag "Fringes" fringe)
           (const :tag "Margins" margin)
@@ -471,11 +472,11 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
   :doc "Keymap for hideshow minor mode."
   "S-<mouse-2>" #'hs-toggle-hiding
   "C-c @" hs-prefix-map
-  "<left-fringe> <mouse-1>" #'hs-indicator-mouse-toggle-hidding)
+  "<left-fringe> <mouse-1>" #'hs-indicator-mouse-toggle-hiding)
 
 (defvar-keymap hs-indicators-map
   :doc "Keymap for hideshow indicators."
-  "<left-margin> <mouse-1>" #'hs-indicator-mouse-toggle-hidding
+  "<left-margin> <mouse-1>" #'hs-indicator-mouse-toggle-hiding
   "<mouse-1>" #'hs-toggle-hiding)
 
 (easy-menu-define hs-minor-mode-menu hs-minor-mode-map
@@ -507,10 +508,12 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
       :help "Show hidden comment blocks when isearch matches inside them"
       :active t :style radio :selected (eq hs-isearch-open 'comment)]
      ["Code and Comment blocks" (setq hs-isearch-open t)
-      :help "Show both hidden code and comment blocks when isearch matches inside them"
+      :help "\
+Show both hidden code and comment blocks when isearch matches inside them"
       :active t :style radio :selected (eq hs-isearch-open t)]
      ["None" (setq hs-isearch-open nil)
-      :help "Do not hidden code or comment blocks when isearch matches inside them"
+      :help "\
+Do not show hidden code or comment blocks when isearch matches inside them"
       :active t :style radio :selected (eq hs-isearch-open nil)])))
 
 (defvar hs-hide-all-non-comment-function nil
@@ -622,7 +625,7 @@ It should reposition point at next block start.
 It is called with three arguments REGEXP, MAXP, and COMMENTS.
 REGEXP is a regexp representing block start.  When block start is
 found, `match-data' should be set using REGEXP.  MAXP is a buffer
-position that bounds the search.  When COMMENTS is nil, comments
+position that limits the search.  When COMMENTS is nil, comments
 should be skipped.  When COMMENTS is not nil, REGEXP matches not
 only beginning of a block but also beginning of a comment.  In
 this case, the function should find nearest block or comment.
@@ -726,7 +729,7 @@ to call with the newly initialized overlay."
 
 (defun hs-block-positions ()
   "Return the current code block positions.
-This return a cons-cell with the current code block beginning and end
+This returns a cons-cell with the current code block beginning and end
 positions.  This does nothing if there is not a code block at current
 point."
   (save-match-data
@@ -815,8 +818,8 @@ point."
                 (_ (save-excursion
                      (goto-char b-beg)
                      (funcall hs-looking-at-block-start-predicate)))
-                ;; `catch' is used here if the search fail due
-                ;; unbalanced parenthesis or any other unknown error
+                ;; `catch' is used here if the search fails due
+                ;; unbalanced parentheses or any other unknown error
                 ;; caused in `hs-forward-sexp'.
                 (b-end (catch 'hs-indicator-error
                          (save-excursion
@@ -833,7 +836,7 @@ point."
   `(jit-lock-bounds ,beg . ,end))
 
 (defun hs--refresh-indicators (from to)
-  "Update indicators appearance in FROM and TO."
+  "Update indicator appearance in FROM and TO."
   (when (and hs-show-indicators hs-minor-mode)
     (save-match-data
       (save-excursion
@@ -945,7 +948,7 @@ a comment.
 The block beginning is adjusted by `hs-adjust-block-beginning-function'
 and then further adjusted to be at the end of the line.
 
-If hidding the block is successful, return non-nil.
+If hiding the block is successful, return non-nil.
 Otherwise, return nil."
   (if comment-reg
       (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
@@ -1247,8 +1250,8 @@ Upon completion, point is repositioned and the normal hook
                            (line-end-position) nil))
                 (goto-char (match-beginning 0)))
            (funcall hs-looking-at-block-start-predicate))
-       ;; If hidding the block fails (due the block is not hideable)
-       ;; Then just hide the parent block (if possible)
+       ;; If hiding the block fails (due the block is not hideable)
+       ;; then just hide the parent block (if possible)
        (unless (save-excursion (hs-hide-block-at-point end))
          (goto-char (1- (point)))
          (funcall hs-find-block-beginning-function)
@@ -1320,10 +1323,11 @@ Argument E should be the event that triggered this action."
        (hs-show-block)
      (hs-hide-block))))
 
-(define-obsolete-function-alias 'hs-mouse-toggle-hiding #'hs-toggle-hiding "27.1")
+(define-obsolete-function-alias
+  'hs-mouse-toggle-hiding #'hs-toggle-hiding "27.1")
 
-(defun hs-indicator-mouse-toggle-hidding (event)
-  "Toggle block hidding with indicators."
+(defun hs-indicator-mouse-toggle-hiding (event)
+  "Toggle block hiding with indicators."
   (interactive "e")
   (hs-life-goes-on
    (when hs-show-indicators
