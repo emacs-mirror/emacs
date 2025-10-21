@@ -2685,8 +2685,7 @@ ARGS bound to the analyzed arguments."
   (let ((symbols-with-pos-enabled t)) (and (member arg (cdr spec)) t)))
 
 (cl-defmethod elisp-scope--match-spec-to-arg ((spec (head plist)) arg)
-  (cond
-   ((consp arg)
+  (when (listp arg)
     (let ((res nil) (go t))
       (while (and arg go)
         (let* ((key (car arg))
@@ -2695,17 +2694,14 @@ ARGS bound to the analyzed arguments."
           (push (if (keywordp bkw) '(symbol . constant) t) res)
           (push (setq go (elisp-scope--match-spec-to-arg (alist-get bkw (cdr spec) t) val)) res))
         (setq arg (cddr arg)))
-      (when go (cons 'list (nreverse res)))))
-   ((null arg) t)))
+      (when go (cons 'list (nreverse res))))))
 
 (cl-defmethod elisp-scope--match-spec-to-arg ((spec (head list)) arg)
-  (cond
-   ((consp arg)
+  (when (listp arg)
     (let ((specs (cdr spec)) (go t) res)
       (while (and specs (setq go (elisp-scope--match-spec-to-arg (pop specs) (pop arg))))
         (push go res))
-      (when go (cons 'list (nreverse res)))))
-   ((null arg) t)))
+      (when go (cons 'list (nreverse res))))))
 
 (cl-defmethod elisp-scope--match-spec-to-arg ((spec (head plist-and-then)) arg)
   (cond

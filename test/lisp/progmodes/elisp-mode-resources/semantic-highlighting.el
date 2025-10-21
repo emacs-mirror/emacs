@@ -150,6 +150,13 @@
                           )))
   :version "29.1")
 
+;; Taken from browse-url.el:
+(defcustom baz-opt 'browse-url-mail
+  "Baz."
+  :type '(function-item :tag "Emacs Mail" :value browse-url-mail))
+;;        ^ elisp-widget-type
+;;                                         ^ (elisp-constant font-lock-builtin-face)
+
 (e-s-analyze-form #'ignore)
 ;; ^ (elisp-shorthand-font-lock-face elisp-function)
 ;;   ^ elisp-function
