@@ -11150,9 +11150,10 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 	    if ((FIXNUMP (key) && XFIXNUM (key) == -2) /* wrong_kboard_jmpbuf */
 		/* When switching to a new tty (with a new keyboard),
 		   read_char returns the new buffer, rather than -2
-		   (Bug#5095).  This is because `terminal-init-xterm'
-		   calls read-char, which eats the wrong_kboard_jmpbuf
-		   return.  Any better way to fix this? -- cyd  */
+		   (bug#5095, bug#37782, bug#79513).
+		   This is because `terminal-init-xterm' calls
+		   read-char, which eats the wrong_kboard_jmpbuf return.
+		   Any better way to fix this? -- cyd  */
 		|| (interrupted_kboard != current_kboard))
 	      {
 		bool found = false;
@@ -11205,8 +11206,14 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
                    if (FIXNUMP (key) && XFIXNUM (key) != -2)
                      {
                        /* If interrupted while initializing terminal, we
-                          need to replay the interrupting key.  See
-                          Bug#5095 and Bug#37782.  */
+                          need to replay the interrupting key.
+                          There may also have been a current buffer
+                          change we would otherwise miss.
+                          See bug#5095, bug#37782, bug#79513.  */
+		       if (fix_current_buffer
+			   && (XBUFFER (XWINDOW (selected_window)->contents)
+			       != current_buffer))
+			 Fset_buffer (XWINDOW (selected_window)->contents);
                        mock_input = 1;
                        keybuf[0] = key;
                      }
