@@ -172,7 +172,7 @@ frame_get (Lisp_Object name)
   Lisp_Object _list_var, frame;
 
   FOR_EACH_FRAME (_list_var, frame)
-    if (Fstring_equal (XFRAME (frame)->name, name))
+    if (!NILP (Fstring_equal (XFRAME (frame)->name, name)))
       return frame;
   return Qnil;
 }
