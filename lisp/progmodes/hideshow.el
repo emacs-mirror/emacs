@@ -632,7 +632,7 @@ Skip \"internal\" overlays if `hs-allow-nesting' is non-nil."
   (when (< to from)
     (setq from (prog1 to (setq to from))))
   (if hs-allow-nesting
-      (let (ov)
+      (let ((from from) ov)
         (while (> to (setq from (next-overlay-change from)))
           (when (setq ov (hs-overlay-at from))
             (setq from (overlay-end ov))
@@ -1233,14 +1233,17 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
    (or
     ;; first see if we have something at the end of the line
     (let ((ov (hs-overlay-at (line-end-position)))
-          (here (point)))
+          (here (point))
+          ov-start ov-end)
       (when ov
         (goto-char
          (cond (end (overlay-end ov))
                ((eq 'comment (overlay-get ov 'hs)) here)
                (t (+ (overlay-start ov) (overlay-get ov 'hs-b-offset)))))
+        (setq ov-start (overlay-start ov))
+        (setq ov-end   (overlay-end ov))
         (delete-overlay ov)
-        (hs--refresh-indicators (overlay-start ov) (overlay-end ov))
+        (hs--refresh-indicators ov-start ov-end)
         t))
     ;; not immediately obvious, look for a suitable block
     (let ((c-reg (hs-inside-comment-p))
