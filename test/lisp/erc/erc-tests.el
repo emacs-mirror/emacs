@@ -930,7 +930,8 @@
       (should-not calls))))
 
 (ert-deftest erc--channel-modes ()
-  :tags (and (null (getenv "CI")) '(:unstable))
+  ;; Only mark :unstable when running locally.
+  :tags (and (null (getenv "CI")) (null (getenv "EMACS_EMBA_CI")) '(:unstable))
 
   (setq erc--isupport-params (make-hash-table)
         erc--target (erc--target-from-string "#test")

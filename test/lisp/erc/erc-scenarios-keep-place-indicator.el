@@ -31,9 +31,10 @@
 ;; away, the indicator is updated if it's earlier in the buffer.
 (ert-deftest erc-scenarios-keep-place-indicator--follow ()
   :tags `(:expensive-test
-          ,@(and (getenv "CI") '(:unstable))
+          ,@(and (getenv "EMACS_EMBA_CI") '(:unstable))
           ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
 
+  ;; ERC's tests also run in external CI that exports this variable.
   (when (getenv "CI")
     (ert-skip "Times out intermittently"))
 

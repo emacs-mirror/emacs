@@ -278,7 +278,8 @@
         (kill-buffer)))))
 
 (ert-deftest erc-echo-timestamp ()
-  :tags (and (null (getenv "CI")) '(:unstable))
+  ;; Only mark :unstable when running locally.
+  :tags (and (null (getenv "CI")) (null (getenv "EMACS_EMBA_CI")) '(:unstable))
 
   (should-not erc-echo-timestamps)
   (should-not erc-stamp--last-stamp)
