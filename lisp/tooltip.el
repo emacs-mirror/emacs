@@ -53,19 +53,19 @@ echo area, instead of making a pop-up window."
   ;; Even if we start on a text-only terminal, make this non-nil by
   ;; default because we can open a graphical frame later (multi-tty).
   :init-value t
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-after-file-load
   :group 'tooltip
   (if (and tooltip-mode (fboundp 'x-show-tip))
       (progn
-	(add-hook 'pre-command-hook 'tooltip-hide)
-	(add-hook 'tooltip-functions 'tooltip-help-tips)
-        (add-hook 'x-pre-popup-menu-hook 'tooltip-hide))
+	(add-hook 'pre-command-hook #'tooltip-hide)
+	(add-hook 'tooltip-functions #'tooltip-help-tips)
+        (add-hook 'x-pre-popup-menu-hook #'tooltip-hide))
     (unless (and (boundp 'gud-tooltip-mode) gud-tooltip-mode)
-      (remove-hook 'pre-command-hook 'tooltip-hide)
-      (remove-hook 'x-pre-popup-menu-hook 'tooltip-hide))
-    (remove-hook 'tooltip-functions 'tooltip-help-tips))
+      (remove-hook 'pre-command-hook #'tooltip-hide)
+      (remove-hook 'x-pre-popup-menu-hook #'tooltip-hide))
+    (remove-hook 'tooltip-functions #'tooltip-help-tips))
   (setq show-help-function
-	(if tooltip-mode 'tooltip-show-help 'tooltip-show-help-non-mode)))
+	(if tooltip-mode #'tooltip-show-help #'tooltip-show-help-non-mode)))
 
 
 ;;; Customizable settings

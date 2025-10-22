@@ -522,6 +522,12 @@ on if the hook has explicitly disabled it.
                   (when (easy-mmode--globalized-predicate-p ,MODE-predicate)
                     (funcall ,turn-on-function)))))
         (_ (push keyw extra-keywords) (push (pop body) extra-keywords))))
+    (setq extra-keywords (nreverse extra-keywords))
+
+    (when (and (plist-get extra-keywords :init-value)
+               (null (plist-get extra-keywords :initialize)))
+      (setq extra-keywords `(:initialize #'custom-initialize-after-file-load
+                             . ,extra-keywords)))
 
     `(progn
        (progn
@@ -553,7 +559,7 @@ Disable the mode if ARG is a negative number.\n\n"
                         "`%s' is used to control which modes this minor mode is used in."
                         MODE-predicate))
                     ""))
-         :global t ,@group ,@(nreverse extra-keywords)
+         :global t ,@group ,@extra-keywords
 
 	 ;; Setup hook to handle future mode changes and new buffers.
 	 (if ,global-mode

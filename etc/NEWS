@@ -2674,6 +2674,13 @@ New faces have been added to 'icomplete-vertical-mode':
 
 ** Customize
 
++++
+*** New function 'custom-initialize-after-file-load'.
+Useful to delay initialization to the end of the file, so it can use
+functions defined later than the variable, as is common for minor modes.
+'define-globalized-minor-mode' now automatically uses it if the
+init-value is non-nil.
+
 ---
 *** New major mode 'Customize-dirlocals-mode'.
 This is intended for customizing directory-local variables in the

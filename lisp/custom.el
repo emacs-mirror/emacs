@@ -140,6 +140,7 @@ For the standard setting, use `set-default-toplevel-value'."
 Once this list has been processed, this var is set to a non-list value.")
 
 (defun custom-initialize-delay (symbol value)
+  ;; FIXME: Rename to `custom-initialize-after-dump'?
   "Delay initialization of SYMBOL to the next Emacs start.
 This is used in files that are preloaded (or for autoloaded
 variables), so that the initialization is done in the run-time
@@ -158,6 +159,27 @@ the :set function."
     ;; In case this is called after startup, there is no "later" to which to
     ;; delay it, so initialize it "normally" (bug#47072).
     (custom-initialize-reset symbol value)))
+
+(defun custom-initialize-after-file-load (symbol value)
+  "Delay initialization to after the current file is loaded.
+This is handy when the initialization needs functions defined after the variable,
+such as for global minor modes."
+  ;; Defvar it so as to mark it special, etc (bug#25770).
+  (internal--define-uninitialized-variable symbol)
+
+  ;; Until the var is actually initialized, it is kept unbound.
+  ;; This seemed to be at least as good as setting it to an arbitrary
+  ;; value like nil (evaluating `value' is not an option because it
+  ;; may have undesirable side-effects).
+  (if (not load-file-name)
+      ;; There's no "after file" to speak of.
+      (custom-initialize-set symbol value)
+    (let ((thisfile load-file-name))
+      (letrec ((f (lambda (file)
+                    (when (equal file thisfile)
+                      (remove-hook 'after-load-functions f)
+                      (custom-initialize-set symbol value)))))
+        (add-hook 'after-load-functions f)))))
 
 (defun custom-declare-variable (symbol default doc &rest args)
   "Like `defcustom', but SYMBOL and DEFAULT are evaluated as normal arguments.

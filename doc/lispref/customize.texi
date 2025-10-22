@@ -434,14 +434,12 @@ Use the @code{:set} function to initialize the variable, if it is
 already set or has been customized; otherwise, just use
 @code{set-default-toplevel-value}.
 
-@item custom-initialize-delay
+@item custom-initialize-after-file-load
 This function behaves like @code{custom-initialize-set}, but it
-delays the actual initialization to the next Emacs start.  This should
-be used in files that are preloaded (or for autoloaded variables), so
-that the initialization is done in the run-time context rather than
-the build-time context.  This also has the side-effect that the
-(delayed) initialization is performed with the @code{:set} function.
-@xref{Building Emacs}.
+delays the actual initialization until after the containing file is loaded.
+This can be useful to break the common dependency where the setter
+is (or uses) a function which needs to be defined after the variable,
+such as when a global minor mode has a non-@code{nil} @code{:init-value}.
 @end table
 
 @item :local @var{value}
