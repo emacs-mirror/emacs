@@ -124,7 +124,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_vectorlike_header_AF1B22D957
 #  error "struct vectorlike_header changed"
 # endif
-# ifndef HASH_Lisp_Hash_Table_DC3E781B68
+# ifndef HASH_Lisp_Hash_Table_4D998522EC
 #  error "struct Lisp_Hash_Table changed"
 # endif
 # ifndef HASH_Lisp_Weak_Hash_Table_7C5D3EDAD7
@@ -163,7 +163,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_User_Ptr_7DC5544B44
 #  error "struct Lisp_User_Ptr changed"
 # endif
-#
 # ifndef HASH_thread_state_B80B5DE649
 #  error "struct thread_state changed"
 # endif
@@ -203,7 +202,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_face_cache_C289FB8D72
 #  error "struct face_cache changed"
 # endif
-# ifndef HASH_Lisp_Obarray_29CFFD1B74
+# ifndef HASH_Lisp_Obarray_381CF3389E
 #  error "struct Lisp_Obarray changed"
 # endif
 # ifndef HASH_module_global_reference_DC69127EC6
@@ -2450,8 +2449,8 @@ fix_hash_table (mps_ss_t ss, struct Lisp_Hash_Table *h)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_WRAPPED_VEC (ss, &h->key);
-    IGC_FIX12_WRAPPED_VEC (ss, &h->value);
+    IGC_FIX12_PVEC (ss, &h->key);
+    IGC_FIX12_PVEC (ss, &h->value);
     IGC_FIX12_WRAPPED_BYTES (ss, &h->hash);
     IGC_FIX12_WRAPPED_BYTES (ss, &h->next);
     IGC_FIX12_WRAPPED_BYTES (ss, &h->index);
@@ -2806,7 +2805,7 @@ fix_obarray (mps_ss_t ss, struct Lisp_Obarray *o)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_WRAPPED_VEC (ss, &o->buckets);
+    IGC_FIX12_PVEC (ss, &o->buckets);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -4590,10 +4589,10 @@ weak_hash_find_dependent (mps_addr_t addr)
   return 0;
 }
 
-Lisp_Object *
+struct Lisp_Vector *
 igc_make_hash_table_vec (size_t n)
 {
-  return XVECTOR (make_vector (n, Qnil))->contents;
+  return XVECTOR (make_vector (n, Qnil));
 }
 
 Lisp_Object
