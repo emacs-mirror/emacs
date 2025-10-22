@@ -435,6 +435,11 @@ This will inhibit implied resizing while a new frame is made and can be
 useful on tiling window managers where the initial frame size should be
 specified by external means.
 
+---
+*** Frames can now be renamed to F<number> on text terminals.
+Unlike with other frame names, an attempt to rename to F<number> throws
+an error when a frame of that name already exists.
+
 ** Mode Line
 
 +++

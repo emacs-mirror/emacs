@@ -163,6 +163,20 @@ check_tty (struct frame *f)
     error ("tty frame should be used");
 }
 
+/* Return a frame with the given NAME (a string) or nil.  Note that if
+   there are several frames with this NAME, the first found is returned.
+   This function was inspired by Fget_buffer.  */
+static Lisp_Object
+frame_get (Lisp_Object name)
+{
+  Lisp_Object _list_var, frame;
+
+  FOR_EACH_FRAME (_list_var, frame)
+    if (Fstring_equal (XFRAME (frame)->name, name))
+      return frame;
+  return Qnil;
+}
+
 /* Return the value of frame parameter PROP in frame FRAME.  */
 
 Lisp_Object
@@ -1288,6 +1302,20 @@ make_minibuffer_frame (void)
 
 static intmax_t tty_frame_count;
 
+static Lisp_Object
+frame_next_F_name (void)
+{
+  char string_name[24];
+  Lisp_Object list, frame;
+
+ next_name: sprintf (string_name, "F%"PRIdMAX, ++tty_frame_count);
+  FOR_EACH_FRAME (list, frame)
+    if (!NILP (XFRAME (frame)->name)
+	&& !strcmp (string_name, SSDATA (XFRAME (frame)->name)))
+      goto next_name;
+  return build_string (string_name);
+}
+
 struct frame *
 make_initial_frame (void)
 {
@@ -1427,7 +1455,7 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
   XSETFRAME (frame, f);
   Vframe_list = Fcons (frame, Vframe_list);
 
-  fset_name (f, make_formatted_string ("F%"PRIdMAX, ++tty_frame_count));
+  fset_name (f, frame_next_F_name());
 
   SET_FRAME_VISIBLE (f, true);
 
@@ -3664,8 +3692,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
 	 before we do any consing.  */
       if (frame_name_fnn_p (SSDATA (f->name), SBYTES (f->name)))
 	return;
-
-      name = make_formatted_string ("F%"PRIdMAX, ++tty_frame_count);
+      name = frame_next_F_name ();
     }
   else
     {
@@ -3675,10 +3702,11 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
       if (! NILP (Fstring_equal (name, f->name)))
 	return;
 
-      /* Don't allow the user to set the frame name to F<num>, so it
-	 doesn't clash with the names we generate for terminal frames.  */
-      if (frame_name_fnn_p (SSDATA (name), SBYTES (name)))
-	error ("Frame names of the form F<num> are usurped by Emacs");
+      /* Stop the user setting the name to F<num> if it is already in use.  */
+      if (frame_name_fnn_p (SSDATA (name), SBYTES (name))
+	  && !NILP (frame_get (name)))
+	error ("Frame of the form F<num> named `%s' already exists",
+	       SSDATA (name));
     }
 
   fset_name (f, name);
