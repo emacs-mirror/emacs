@@ -1579,6 +1579,9 @@ struct Lisp_String
       ptrdiff_t size_byte;
 
       INTERVAL intervals;	/* Text properties in this string.  */
+      /* The data is always followed by a NUL, not included in size or
+	 size_byte, for C interoperability, but may also contain NULs
+	 itself.  */
       unsigned char *data;
     } s;
     struct Lisp_String *next;
