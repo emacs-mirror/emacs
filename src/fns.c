@@ -4850,12 +4850,12 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
     }
   else
     {
-      Lisp_Object *key = hash_table_alloc_kv (h, size);
-      Lisp_Object *value = hash_table_alloc_kv (h, size);
+      Lisp_KV_Vector key = hash_table_alloc_kv (h, size);
+      Lisp_KV_Vector value = hash_table_alloc_kv (h, size);
       for (ptrdiff_t i = 0; i < size; i++)
 	{
-	  key[i] = HASH_UNUSED_ENTRY_KEY;
-	  value[i] = Qnil;
+	  kv_vector_data (key)[i] = HASH_UNUSED_ENTRY_KEY;
+	  kv_vector_data (value)[i] = Qnil;
 	}
 
       /* Initialize, then set. */
@@ -4899,11 +4899,11 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 
   if (h1->table_size > 0)
     {
-      ptrdiff_t kv_bytes = h1->table_size * sizeof *h1->key;
-      Lisp_Object *key = hash_table_alloc_kv (h2, h1->table_size);
-      Lisp_Object *value = hash_table_alloc_kv (h2, h1->table_size);
-      memcpy (key, h1->key, kv_bytes);
-      memcpy (value, h1->value, kv_bytes);
+      ptrdiff_t kv_bytes = h1->table_size * word_size;
+      Lisp_KV_Vector key = hash_table_alloc_kv (h2, h1->table_size);
+      Lisp_KV_Vector value = hash_table_alloc_kv (h2, h1->table_size);
+      memcpy (kv_vector_data(key), kv_vector_data (h1->key), kv_bytes);
+      memcpy (kv_vector_data(value), kv_vector_data (h1->value), kv_bytes);
       h2->key = key;
       h2->value = value;
 
@@ -4953,14 +4953,15 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	next[i] = i + 1;
       next[new_size - 1] = -1;
 
-      Lisp_Object *key = hash_table_alloc_kv (h, new_size);
-      Lisp_Object *value = hash_table_alloc_kv (h, new_size);
-      memcpy (key, h->key, old_size * sizeof *key);
-      memcpy (value, h->value, old_size * sizeof *value);
+      size_t kv_bytes = old_size * word_size;
+      Lisp_KV_Vector key = hash_table_alloc_kv (h, new_size);
+      Lisp_KV_Vector value = hash_table_alloc_kv (h, new_size);
+      memcpy (kv_vector_data (key), kv_vector_data (h->key), kv_bytes);
+      memcpy (kv_vector_data (value), kv_vector_data (h->value), kv_bytes);
       for (ptrdiff_t i = old_size; i < new_size; i++)
 	{
-	  key[i] = HASH_UNUSED_ENTRY_KEY;
-	  value[i] = Qnil;
+	  kv_vector_data (key)[i] = HASH_UNUSED_ENTRY_KEY;
+	  kv_vector_data (value)[i] = Qnil;
 	}
 
       hash_hash_t *hash = hash_table_alloc_bytes (new_size * sizeof *hash);
@@ -4981,7 +4982,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	hash_table_free_bytes (h->index, old_index_size * sizeof *h->index);
       h->index = index;
 
-      Lisp_Object *old = h->key;
+      Lisp_KV_Vector old = h->key;
       h->key = key;
       hash_table_free_kv (h, old, old_size);
       old = h->value;
@@ -5101,7 +5102,7 @@ hash_table_rehash (struct Lisp_Hash_Table *h)
 
   ptrdiff_t j = 0;
   for (ptrdiff_t i = 0; i < h->table_size; ++i)
-    if (!hash_unused_entry_key_p (h->key[i]))
+    if (!hash_unused_entry_key_p (kv_vector_data (h->key)[i]))
       {
 	h->key[j] = h->key[i];
 	h->value[j] = h->value[i];
@@ -5111,8 +5112,8 @@ hash_table_rehash (struct Lisp_Hash_Table *h)
 
   for (; j < h->table_size; ++j)
     {
-      h->key[j] = HASH_UNUSED_ENTRY_KEY;
-      h->value[j] = Qnil;
+      kv_vector_data (h->key)[j] = HASH_UNUSED_ENTRY_KEY;
+      kv_vector_data (h->value)[j] = Qnil;
     }
 
   if (h->count < h->table_size)

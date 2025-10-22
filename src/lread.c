@@ -4647,7 +4647,7 @@ intern_sym (Lisp_Object sym, Lisp_Object obarray, Lisp_Object index)
     }
 
   struct Lisp_Obarray *o = XOBARRAY (obarray);
-  Lisp_Object *ptr = o->buckets + XFIXNUM (index);
+  Lisp_Object *ptr = kv_vector_data (o->buckets) + XFIXNUM (index);
   s->u.s.next = BARE_SYMBOL_P (*ptr) ? XBARE_SYMBOL (*ptr) : NULL;
   *ptr = sym;
   o->count++;
@@ -4849,7 +4849,7 @@ OBARRAY, if nil, defaults to the value of the variable `obarray'.  */)
   struct Lisp_Obarray *o = XOBARRAY (obarray);
   Lisp_Object symname = SYMBOL_NAME (sym);
   ptrdiff_t idx = obarray_index (o, SSDATA (symname), SBYTES (symname));
-  Lisp_Object *loc = &o->buckets[idx];
+  Lisp_Object *loc = kv_vector_data (o->buckets) + idx;
   if (BASE_EQ (*loc, make_fixnum (0)))
     return Qnil;
 
@@ -4890,7 +4890,7 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
 {
   struct Lisp_Obarray *o = XOBARRAY (obarray);
   ptrdiff_t idx = obarray_index (o, ptr, size_byte);
-  Lisp_Object bucket = o->buckets[idx];
+  Lisp_Object bucket = kv_vector_data (o->buckets)[idx];
 
   if (!BASE_EQ (bucket, make_fixnum (0)))
     {
@@ -4993,7 +4993,7 @@ make_obarray (unsigned bits)
   o->buckets = hash_table_alloc_bytes (size * sizeof *o->buckets);
 #endif
   for (ptrdiff_t i = 0; i < size; i++)
-    o->buckets[i] = make_fixnum (0);
+    kv_vector_data (o->buckets)[i] = make_fixnum (0);
   return make_lisp_obarray (o);
 }
 
@@ -5009,7 +5009,7 @@ grow_obarray (struct Lisp_Obarray *o)
 {
   ptrdiff_t old_size = obarray_size (o);
   eassert (o->count > old_size);
-  Lisp_Object *old_buckets = o->buckets;
+  Lisp_KV_Vector old_buckets = o->buckets;
 
   int new_bits = o->size_bits + 1;
   if (new_bits > obarray_max_bits)
@@ -5021,7 +5021,7 @@ grow_obarray (struct Lisp_Obarray *o)
   o->buckets = hash_table_alloc_bytes (new_size * sizeof *o->buckets);
 #endif
   for (ptrdiff_t i = 0; i < new_size; i++)
-    o->buckets[i] = make_fixnum (0);
+    kv_vector_data (o->buckets)[i] = make_fixnum (0);
   o->size_bits = new_bits;
 
   /* Rehash symbols.
@@ -5029,7 +5029,7 @@ grow_obarray (struct Lisp_Obarray *o)
      symbol name.  Would it be reasonable to store it in the symbol?  */
   for (ptrdiff_t i = 0; i < old_size; i++)
     {
-      Lisp_Object obj = old_buckets[i];
+      Lisp_Object obj = kv_vector_data (old_buckets)[i];
       if (BARE_SYMBOL_P (obj))
 	{
 	  struct Lisp_Symbol *s = XBARE_SYMBOL (obj);
@@ -5037,7 +5037,7 @@ grow_obarray (struct Lisp_Obarray *o)
 	    {
 	      Lisp_Object name = s->u.s.name;
 	      ptrdiff_t idx = obarray_index (o, SSDATA (name), SBYTES (name));
-	      Lisp_Object *loc = o->buckets + idx;
+	      Lisp_Object *loc = kv_vector_data (o->buckets) + idx;
 	      struct Lisp_Symbol *next = s->u.s.next;
 	      s->u.s.next = BARE_SYMBOL_P (*loc) ? XBARE_SYMBOL (*loc) : NULL;
 	      *loc = make_lisp_symbol (s);
@@ -5090,13 +5090,13 @@ DEFUN ("obarray-clear", Fobarray_clear, Sobarray_clear, 1, 1, 0,
   int new_bits = obarray_default_bits;
   int new_size = (ptrdiff_t)1 << new_bits;
 #ifdef HAVE_MPS
-  Lisp_Object *new_buckets = hash_table_alloc_kv (o, new_size);
+  Lisp_KV_Vector new_buckets = hash_table_alloc_kv (o, new_size);
 #else
-  Lisp_Object *new_buckets
+  Lisp_KV_Vector new_buckets
     = hash_table_alloc_bytes (new_size * sizeof *new_buckets);
 #endif
   for (ptrdiff_t i = 0; i < new_size; i++)
-    new_buckets[i] = make_fixnum (0);
+    kv_vector_data (new_buckets)[i] = make_fixnum (0);
 
 #ifdef HAVE_MPS
   hash_table_free_kv (o, o->buckets, -1 /* ignored */);
@@ -5150,7 +5150,7 @@ DEFUN ("internal--obarray-buckets",
   for (ptrdiff_t i = 0; i < size; i++)
     {
       Lisp_Object bucket = Qnil;
-      Lisp_Object sym = XOBARRAY (obarray)->buckets[i];
+      Lisp_Object sym = kv_vector_data (XOBARRAY (obarray)->buckets)[i];
       if (BARE_SYMBOL_P (sym))
 	while (1)
 	  {
