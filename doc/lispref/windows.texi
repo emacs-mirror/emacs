@@ -2453,52 +2453,6 @@ selected window will change to the window that appears at the location
 of the selected window before any of these commands were invoked.
 @end defopt
 
-The next command allows to split the window layout of a frame and move
-the resulting parts to one or several new frames.
-
-@cindex split window layout
-@cindex split frame
-@deffn Command split-frame &optional arg frame
-This commands splits the window layout of @var{frame} which must be a
-live frame and defaults to the selected one.  It moves the resulting
-parts into one or several new frames and returns these frames.
-
-If the optional argument @var{arg} is @code{nil}, it makes a new frame
-whose root window occupies approximately one half of @var{frame}'s
-original estate.  If @var{arg} is a number, it creates @var{arg} - 1 new
-frames and puts any child window of the main window of @var{frame} into
-one of these frames.  As a special case, if @var{arg} equals 1, it makes
-one new frame containing all children but the first of the main window
-of @var{frame}.  With a non-numeric prefix @var{arg}, it tries to put
-all children of @var{frame}'s main window but the first into a new
-frame.  Interactively, @var{arg} is the prefix argument.
-
-Note that any window put on a new frame is a clone (@pxref{Window
-Configurations}) of the original window and the original window is
-deleted.
-@end deffn
-
-The effect of @code{split-frame} can be undone with the following
-command which merges the window layout of one frame into the layout of
-another.
-
-@cindex merge window layouts
-@cindex merge frames
-@deffn Command merge-frames &optional vertical frame1 frame2
-This commands merges the window layout of @var{frame2} into that of
-@var{frame1}.  For this purpose, it splits the root window of
-@var{frame1} and makes the new window display the root window of
-@var{frame2}.  Both @var{frame1} and @var{frame2} must be distinct, live
-frames where @var{frame1} defaults to the selected frame and
-@var{frame2} to the frame following @var{frame1} in the frame list.
-@var{frame2} gets deleted if its windows have been merged successfully.
-
-If @var{vertical} is non-@code{nil}, this makes the new window appear
-below the old main window of @var{frame1}.  Otherwise, it makes the new
-window on the right of @var{frame1}'s main window.  Interactively,
-@var{vertical} is the prefix argument.
-@end deffn
-
 
 @node Cyclic Window Ordering
 @section Cyclic Ordering of Windows
