@@ -5286,7 +5286,13 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       comp_u->loaded_once = true;
     }
   else
-    *saved_cu = comp_u_lisp_obj;
+    {
+#ifdef HAVE_MPS
+      comp_u->comp_unit = saved_cu;
+      comp_u->comp_unit_root = igc_root_create_n (saved_cu, 1);
+#endif
+      *saved_cu = comp_u_lisp_obj;
+    }
 
   /* Once we are sure to have the right compilation unit we want to
      identify is we have at least another load active on it.  */
@@ -5305,10 +5311,6 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   /* Always set data_imp_relocs pointer in the compilation unit (in can be
      used in 'dump_do_dump_relocation').  */
   comp_u->data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
-#ifdef HAVE_MPS
-  comp_u->comp_unit = dynlib_sym (handle, COMP_UNIT_SYM);
-  comp_u->comp_unit_root = igc_root_create_n (saved_cu, 1);
-#endif
 
   if (!comp_u->loaded_once)
     {
