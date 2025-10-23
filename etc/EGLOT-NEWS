@@ -18,7 +18,7 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
-* Changes in upcoming Eglot
+* Changes in Eglot 1.19 (23/10/2025)
 
 ** Support for call and type hierarchies
 
@@ -36,9 +36,9 @@ performance.
 ** Suggests code actions at point
 
 A commonly requested feature, Eglot will use ElDoc to ask the server for
-code actions available at point, indicating to the user, who may use
-execute them quickly via the usual 'eglot-code-actions' command.
-Customize with 'eglot-code-action-indications' and
+code actions available at point.  This is indicated to the user, who may
+quickly execute via the usual 'eglot-code-actions' command or with the
+mouse.  Customize with 'eglot-code-action-indications' and
 'eglot-code-action-indicator'.
 
 ** Mode line is customizable
@@ -49,10 +49,10 @@ or removing symbols and strings from the customizable variable
 
 ** Improved diagnostic-reporting performance and bugfixes (bug#77588)
 
-Eglot remembers the LSP document version to which diagonstics reported
-by the LSP server pertain.  This helps in skipping useless or harmful
-updates, avoiding flakiness with code actions and flickering overlays
-when the buffer is changed.
+Eglot remembers the LSP document version pertaining to the diagnostics
+reported by the LSP server.  This helps in skipping useless or confusing
+diagnostic updates, avoids flakiness with code actions and prevents
+flickering overlays when the buffer is changed.
 
 ** Markdown links migrating to *eldoc* buffer now clickable (bug#79552)
 
