@@ -422,9 +422,9 @@ to the state it had before running 'combine-windows'.
 
 +++
 *** New commands 'split-frame' and 'merge-frames'.
-These commands allow to split the window layout of an existing frame
-into several frames and to merge the window layouts of two existing
-frames into one frame.
+These commands allow spliting the window layout of an existing frame
+into several frames, and merging the window layouts of two existing
+frames into one frame, respectively.
 
 ** Frames
 
