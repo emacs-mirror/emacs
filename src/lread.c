@@ -2207,6 +2207,12 @@ readevalloop (Lisp_Object readcharfun,
 
   specbind (Qstandard_input, readcharfun);
 
+  /* In an .elc file, all shorthand expansion has alreay taken place, so
+     make sure we disable any read-symbol-shorthands set higher up in
+     the stack of recursive 'load'. */
+  if (STRINGP (sourcename) && suffix_p (sourcename, ".elc"))
+    specbind (Qread_symbol_shorthands, Qnil);
+
   /* If lexical binding is active (either because it was specified in
      the file's header, or via a buffer-local variable), create an empty
      lexical environment, otherwise, turn off lexical binding.  */
@@ -5907,6 +5913,7 @@ will use instead of `load-path' to look for the file to load.  */);
 	       doc: /* Function to decide default lexical-binding.  */);
   Vinternal__get_default_lexical_binding_function = Qnil;
 
+  DEFSYM (Qread_symbol_shorthands, "read-symbol-shorthands");
   DEFVAR_LISP ("read-symbol-shorthands", Vread_symbol_shorthands,
           doc: /* Alist of known symbol-name shorthands.
 This variable's value can only be set via file-local variables.
