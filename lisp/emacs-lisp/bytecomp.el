@@ -1581,8 +1581,7 @@ when printing the error message."
 
 (defun byte-compile--check-arity-bytecode (form bytecode)
   "Check that the call in FORM matches that allowed by BYTECODE."
-  (when (and (byte-code-function-p bytecode)
-             (byte-compile-warning-enabled-p 'callargs))
+  (when (byte-code-function-p bytecode)
     (let* ((actual-args (length (cdr form)))
            (arity (func-arity bytecode))
            (min-args (car arity))
@@ -1883,18 +1882,19 @@ It is too wide if it has any lines longer than the largest of
 ;; defined, issue a warning enumerating them.
 ;; `unresolved' in the list `byte-compile-warnings' disables this.
 (defun byte-compile-warn-about-unresolved-functions ()
-  (when (byte-compile-warning-enabled-p 'unresolved)
-    (let ((byte-compile-current-form :end))
-      ;; Separate the functions that will not be available at runtime
-      ;; from the truly unresolved ones.
-      (dolist (urf byte-compile-unresolved-functions)
-        (let ((f (car urf)))
-          (when (not (memq f byte-compile-new-defuns))
-            (byte-compile-warn-x
-             f
-             (if (fboundp f) "the function `%s' might not be defined at runtime." "the function `%s' is not known to be defined.")
-               (car urf)))))))
-  nil)
+  (let ((byte-compile-current-form :end))
+    ;; Separate the functions that will not be available at runtime
+    ;; from the truly unresolved ones.
+    (dolist (urf byte-compile-unresolved-functions)
+      (let ((f (car urf)))
+        (when (and (not (memq f byte-compile-new-defuns))
+                   (byte-compile-warning-enabled-p 'unresolved))
+          (byte-compile-warn-x
+           f
+           (if (fboundp f)
+               "the function `%s' might not be defined at runtime."
+             "the function `%s' is not known to be defined.")
+           (car urf)))))))
 
 
 ;; Dynamically bound in byte-compile-from-buffer.
@@ -3428,11 +3428,11 @@ lambda-expression."
               (let ((hook (car-safe (cdr form))))
                 (if (eq (car-safe hook) 'quote)
                     (byte-compile-check-variable (cadr hook) nil))))
-          (when (and (byte-compile-warning-enabled-p 'suspicious)
-                     (macroexp--const-symbol-p fn))
+          (when (and (macroexp--const-symbol-p fn)
+                     (byte-compile-warning-enabled-p 'suspicious))
             (byte-compile-warn-x fn "`%s' called as a function" fn))
-	  (when (and (byte-compile-warning-enabled-p 'interactive-only fn)
-		     interactive-only)
+	  (when (and interactive-only
+		     (byte-compile-warning-enabled-p 'interactive-only fn))
 	    (byte-compile-warn-x fn "`%s' is for interactive use only%s"
 			         fn
 			         (cond ((stringp interactive-only)
@@ -3842,12 +3842,12 @@ VAR must not be lexically bound.
 ARG is a position argument, used by `byte-compile-warn-x'.
 If optional argument ASSIGNMENT is non-nil, this is treated as an
 assignment (i.e. `setq')."
-  (unless (or (not (byte-compile-warning-enabled-p 'free-vars var))
-              (boundp var)
+  (unless (or (boundp var)
               (memq var byte-compile-bound-variables)
               (memq var (if assignment
                             byte-compile-free-assignments
-                          byte-compile-free-references)))
+                          byte-compile-free-references))
+              (not (byte-compile-warning-enabled-p 'free-vars var)))
     (let* ((varname (prin1-to-string var))
            (desc (if assignment "assignment" "reference"))
            (suggestions (help-uni-confusable-suggestions varname)))
