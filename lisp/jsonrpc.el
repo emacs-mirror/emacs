@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.25
+;; Version: 1.0.26
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -360,8 +360,8 @@ object, using the keywords `:code', `:message' and `:data'."
                                  _timeout-fn
                                  _timeout _deferred)
   "Make a request to CONNECTION, expecting a reply, return immediately.
-The JSONRPC request is formed by METHOD, a symbol, and PARAMS a
-JSON object.
+The JSONRPC request is formed by METHOD, a symbol; and PARAMS, a JSON
+object value as described in `json-serialize' (which see).
 
 The caller can expect SUCCESS-FN or ERROR-FN to be called with a
 JSONRPC `:result' or `:error' object, respectively.  If this
@@ -378,6 +378,9 @@ never be sent at all, in case it is overridden in the meantime by
 a new request with identical DEFERRED and for the same buffer.
 However, in that situation, the original timeout is kept.
 
+PARAMS can also be the keyword `:jsonrpc-omit', in which case the
+JSONRPC request object is formed witout a `params' entry.
+
 Returns a list whose first element is an integer identifying the request
 as specified in the JSONRPC 2.0 spec."
   (apply #'jsonrpc--async-request-1 connection method params args))
@@ -387,9 +390,8 @@ as specified in the JSONRPC 2.0 spec."
                            deferred timeout
                            cancel-on-input
                            cancel-on-input-retval)
-  "Make a request to CONNECTION, wait for a reply.
-Like `jsonrpc-async-request' for CONNECTION, METHOD and PARAMS,
-but synchronous.
+  "Make a request to CONNECTION, synchronously wait for a reply.
+CONNECTION, METHOD and PARAMS as in `jsonrpc-async-request' (which see).
 
 Except in the case of a non-nil CANCEL-ON-INPUT (explained
 below), this function doesn't exit until anything interesting
@@ -401,11 +403,13 @@ error of type `jsonrpc-error'.
 DEFERRED and TIMEOUT as in `jsonrpc-async-request', which see.
 
 If CANCEL-ON-INPUT is non-nil and the user inputs something while the
-function is waiting, then any future replies to the request by the
-remote endpoint (normal or error) are ignored and the function exits
-returning CANCEL-ON-INPUT-RETVAL.  If CANCEL-ON-INPUT is a function, it
-is invoked with one argument, an integer identifying the canceled
-request as specified in the JSONRPC 2.0 spec."
+function is waiting, the function locally exits immediately returning
+CANCEL-ON-INPUT-RETVAL.  Any future replies to the request coming from
+the remote endpoint (normal or error) are ignored.  If CANCEL-ON-INPUT
+is a function, it is invoked with one argument, an integer identifying
+the canceled request as specified in the JSONRPC 2.0 spec.  Callers may
+use this function to issue a cancel notification to the endpoint, thus
+preventing it from continuing to work on the now-cancelled request."
   (let* ((tag (funcall (if (fboundp 'gensym) 'gensym 'cl-gensym)
                        "jsonrpc-request-catch-tag"))
          id-and-timer
@@ -465,10 +469,11 @@ request as specified in the JSONRPC 2.0 spec."
     (cadr retval)))
 
 (cl-defun jsonrpc-notify (connection method params)
-  "Notify CONNECTION of something, don't expect a reply."
-  (jsonrpc-connection-send connection
-                           :method method
-                           :params params))
+  "Notify CONNECTION of something, don't expect a reply.
+CONNECTION, METHOD and PARAMS as in `jsonrpc-async-request' (which see)."
+  (apply #'jsonrpc-connection-send connection
+         :method method
+         (unless (eq params :jsonrpc-omit) `(:params ,params))))
 
 (define-obsolete-variable-alias 'jrpc-default-request-timeout
   'jsonrpc-default-request-timeout "28.1")
@@ -933,10 +938,10 @@ TIMEOUT is nil)."
         (cl-return-from jsonrpc--async-request-1 (list id timer))))
     ;; Really send it thru the wire
     ;;
-    (jsonrpc-connection-send connection
-                             :id id
-                             :method method
-                             :params params)
+    (apply #'jsonrpc-connection-send connection
+           :id id
+           :method method
+           (unless (eq params :jsonrpc-omit) `(:params ,params)))
     ;; Setup some control structures
     ;;
     (when sync-request
