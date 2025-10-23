@@ -5816,8 +5816,7 @@ something changed since the last display cycle.
   A buffer can have blank areas called @dfn{display margins} on the
 left and on the right.  Ordinary text never appears in these areas,
 but you can put things into the display margins using the
-@code{display} property.  There is currently no way to make text or
-images in the margin mouse-sensitive.
+@code{display} property.
 
   The way to display something in the margins is to specify it in a
 margin display specification in the @code{display} property of some
