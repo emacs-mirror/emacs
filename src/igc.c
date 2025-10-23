@@ -1138,6 +1138,22 @@ set_state (enum igc_state state)
     }
 }
 
+/* Check if root R to conflicts with existing roots of GC.  */
+
+static void
+check_root (const struct igc *gc, const struct igc_root *r)
+{
+#ifdef ENABLE_CHECKING
+  for (const struct igc_root_list *p = gc->roots; p; p = p->next)
+    {
+      if (p->d.end)
+	eassert (r->start >= p->d.end || r->end <= p->d.start);
+      else
+	eassert (p->d.start != r->start);
+    }
+#endif
+}
+
 /* Register the root ROOT in registry GC with additional info.  START
    and END are the area of memory covered by the root.  END being NULL
    means not known.  AMBIG true means the root is scanned ambiguously, as
@@ -1166,6 +1182,7 @@ register_root (struct igc *gc, mps_root_t root, void *start, void *end,
     .ambig = ambig,
     .label = label,
   };
+  check_root (gc, &r);
   return igc_root_list_push (&gc->roots, &r);
 }
 
