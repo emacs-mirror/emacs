@@ -319,9 +319,13 @@ ones in `window--transpose'."
 (defun merge-frames (&optional vertical frame1 frame2)
   "Merge FRAME2 into FRAME1.
 Split the root window of FRAME1 and make the new window display the root
-window of FRAME2.  Both FRAME1 and FRAME2 must be live frames.  If
-VERTICAL is non-nil, make the new window below the old root window of
-FRAME1.  Otherwise, make the new window on the right of FRAME1's root
+window of FRAME2.  Both FRAME1 and FRAME2 must be distinct, live frames
+where FRAME1 defaults to the selected frame and FRAME2 to the frame
+following FRAME1 in the frame list.  Delete FRAME2 if it has been merged
+successfully.
+
+If VERTICAL is non-nil, make the new window below the old main window
+of FRAME1.  Otherwise, make the new window on the right of FRAME1's main
 window.  Interactively, VERTICAL is the prefix argument, FRAME1 is the
 selected frame and FRAME2 is the frame following FRAME1 in the frame
 list."
@@ -330,34 +334,37 @@ list."
          (frame2 (if frame2
                      (window-normalize-frame frame2)
                    (next-frame frame1))))
-    (window-state-put
-     ;; Source window on frame2.
-     (window-state-get (window-main-window frame2))
-     ;; Make new window on frame1.
-     (split-window (window-main-window frame1) nil (null vertical)))
-    (delete-frame frame2)
-    frame1))
+    (if (eq frame1 frame2)
+	(user-error "Cannot merge frame into itself")
+      (window-state-put
+       ;; Source window on frame2.
+       (window-state-get (window-main-window frame2))
+       ;; Make new window on frame1.
+       (split-window (window-main-window frame1) nil (not vertical)))
+      (delete-frame frame2)
+      frame1)))
 
 ;;;###autoload
 (defun split-frame (&optional arg frame)
   "Split FRAME.
-FRAME must be a live frame and defaults to the selected one.
+FRAME must be a live frame and defaults to the selected frame.
 
-Interactively, ARG is the prefix argument.  If ARG is a number, make ARG
-- 1 new frames and put any child window of the main window of FRAME into
-one of these frames.  As a special case, if ARG equals 1, make one new
-frame containing all children but the first of the root window of FRAME.
-With a non-numeric prefix ARG, try to put all children of FRAME's main
-window but the first into a new frame.  In either case, any window put
-on a new frame is a clone of the original window and the original window
-is deleted."
+Interactively, ARG is the prefix argument.  If ARG is nil, make a new
+frame whose root window occupies approximately one half of FRAME's
+original estate.  If ARG is a number, make ARG - 1 new frames and put
+any child window of the main window of FRAME into one of these frames.
+As a special case, if ARG equals 1, make one new frame containing all
+children but the first of the main window of FRAME.  With a non-numeric
+prefix ARG, try to put all children of FRAME's main window but the first
+into a new frame.  In either case, any window put on a new frame is a
+clone of the original window and the original window is deleted."
   (interactive "P")
   (let* ((mw (window-main-window frame))
          (first-child (window-child mw))
          (nwindows (window-child-count mw)))
     (cond
-     ((or (<= nwindows 1))
-      (error "Cannot split a one-window frame"))
+     ((<= nwindows 1)
+      (user-error "Cannot split a one-window frame"))
      ;; One frame for each window.
      ((or (eq nwindows 2) (and arg (not (numberp arg))))
       (let ((sib (window-next-sibling first-child))
@@ -384,7 +391,7 @@ is deleted."
      (t
       (let ((nframes (or arg 2)))
         (when (< nwindows nframes)
-          (error "%i frames cannot be made from %i windows" arg nwindows))
+          (user-error "%i frames cannot be made from %i windows" arg nwindows))
         (let* ((horizontal (window-combined-p first-child t))
                (ideal (/ (window-size mw horizontal) nframes))
                (current-window first-child)
