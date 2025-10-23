@@ -60,6 +60,12 @@ Eglot now preserves crucial properties in the Markdown documentation
 provided by the LSP server, fixing a longstanding bug with clickable
 hyperlinks.  See also github#1238.
 
+** Compliant shutdown requests  (bug#79653, bug#66144, github#1540)
+
+Eglot now complies with the latest LSP spec, which mandates that the
+shutdown request mustn't have any parameters.  This should fix problems
+with some servers.
+
 
 * Changes in Eglot 1.18 (20/1/2025)
 
