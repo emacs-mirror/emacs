@@ -38,6 +38,11 @@
   :prefix "holidays-"
   :group 'local)
 
+(defun holidays--set-calendar-holidays (sym val)
+  (custom-set-default sym val)
+  (when (get 'calendar-holidays 'standard-value)
+    (custom-reevaluate-setting 'calendar-holidays)))
+
 ;; The various holiday variables are autoloaded because people
 ;; are used to using them to set calendar-holidays without having to
 ;; explicitly load this file.
@@ -63,6 +68,7 @@
     (holiday-float 11 4 4 "Thanksgiving"))
   "General holidays.  Default value is for the United States.
 See the documentation for `calendar-holidays' for details."
+  :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
 (put 'holiday-general-holidays 'risky-local-variable t)
@@ -78,11 +84,11 @@ See the documentation for `calendar-holidays' for details."
          (holiday-chinese 7  7 "Double Seventh Festival")
          (holiday-chinese 8 15 "Mid-Autumn Festival")
          (holiday-chinese 9  9 "Double Ninth Festival")
-         (holiday-chinese-winter-solstice)
-         )))
+         (holiday-chinese-winter-solstice))))
   "Oriental holidays.
 See the documentation for `calendar-holidays' for details."
   :version "23.1"                       ; added more holidays
+  :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
 (put 'holiday-oriental-holidays 'risky-local-variable t)
@@ -91,6 +97,7 @@ See the documentation for `calendar-holidays' for details."
 (defcustom holiday-local-holidays nil
   "Local holidays.
 See the documentation for `calendar-holidays' for details."
+  :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
 (put 'holiday-local-holidays 'risky-local-variable t)
@@ -99,6 +106,7 @@ See the documentation for `calendar-holidays' for details."
 (defcustom holiday-other-holidays nil
   "User defined holidays.
 See the documentation for `calendar-holidays' for details."
+  :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
 (put 'holiday-other-holidays 'risky-local-variable t)
@@ -114,6 +122,7 @@ See the documentation for `calendar-holidays' for details."
          (holiday-hebrew-misc))))
   "Jewish holidays.
 See the documentation for `calendar-holidays' for details."
+  :set #'holidays--set-calendar-holidays
   :type 'sexp
   :version "23.1")            ; removed dependency on hebrew-holidays-N
 
@@ -133,6 +142,7 @@ See the documentation for `calendar-holidays' for details."
          (holiday-advent 0 "Advent"))))
   "Christian holidays.
 See the documentation for `calendar-holidays' for details."
+  :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
 (put 'holiday-christian-holidays 'risky-local-variable t)
@@ -152,6 +162,7 @@ See the documentation for `calendar-holidays' for details."
          (holiday-islamic 12 10 "Id-al-Adha"))))
   "Islamic holidays.
 See the documentation for `calendar-holidays' for details."
+  :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
 (put 'holiday-islamic-holidays 'risky-local-variable t)
@@ -171,6 +182,7 @@ See the documentation for `calendar-holidays' for details."
          (holiday-fixed 11 28 "Ascension of `Abdu’l-Bahá"))))
   "Bahá’í holidays.
 See the documentation for `calendar-holidays' for details."
+  :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
 (put 'holiday-bahai-holidays 'risky-local-variable t)
@@ -190,13 +202,13 @@ See the documentation for `calendar-holidays' for details."
                            calendar-daylight-time-zone-name))))
   "Sun-related holidays.
 See the documentation for `calendar-holidays' for details."
+  :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
 (put 'holiday-solar-holidays 'risky-local-variable t)
 
 ;; This one should not be autoloaded, else .emacs changes of
 ;; holiday-general-holidays etc have no effect.
-;; FIXME should have some :set-after.
 (defcustom calendar-holidays
   (append holiday-general-holidays holiday-local-holidays
           holiday-other-holidays holiday-christian-holidays
@@ -218,10 +230,7 @@ by the function `holiday-list' when it is called interactively.
 
 They also initialize the default value of `calendar-holidays',
 which is the default list of holidays used by the function
-`holiday-list' in the non-interactive case.  Note that these
-variables have no effect on `calendar-holidays' after it has been
-set (e.g. after the calendar is loaded).  In that case, customize
-`calendar-holidays' directly.
+`holiday-list' in the non-interactive case.
 
 The intention is that (in the US) `holiday-local-holidays' be set in
 site-init.el and `holiday-other-holidays' be set by the user.
