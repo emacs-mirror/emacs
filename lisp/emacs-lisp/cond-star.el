@@ -69,6 +69,10 @@ and runs the body of the clause if the first binding's value is non-nil.
 For its patterns, see `match*'.
 The condition counts as true if PATTERN matches DATUM.
 
+`(bind-and* BINDINGS...)' means to bind BINDINGS (as if they were in
+`if-let*') for only the the body of the clause.  If any expression
+evaluates to nil, the condition counts as false.
+
 `(pcase* PATTERN DATUM)' means to match DATUM against the
 pattern PATTERN, using the same pattern syntax as `pcase'.
 The condition counts as true if PATTERN matches DATUM.
@@ -153,6 +157,13 @@ ATOM (meaning any other kind of non-list not described above)
   EXP can refer to symbols bound earlier in the pattern."
   ;; FIXME: `byte-compile-warn-x' is not necessarily defined here.
   (byte-compile-warn-x pattern "`match*' used other than as a `cond*' condition"))
+
+(defmacro bind-and* (&rest bindings)
+  "This macro evaluates BINDINGS like `if-let*'.
+It is not really a Lisp function, and it is meaningful
+only in the CONDITION of a `cond*' clause."
+  ;; FIXME: `byte-compile-warn-x' is not necessarily defined here.
+  (byte-compile-warn-x bindings "`bind-and*' used other than as a `cond*' condition"))
 
 (defun cond*-non-exit-clause-p (clause)
   "If CLAUSE, a cond* clause, is a non-exit clause, return t."
@@ -279,6 +290,30 @@ This is used for conditional exit clauses."
                     (let* ,mod-bindings
                       (when ,init-gensym
                         . ,true-exps)))))))
+          ((eq pat-type 'bind-and*)
+           (let ((checks '()) (last t))
+             (dolist (bind (cdr condition))
+               (push (list (car bind) (list 'and last (cadr bind)))
+                     checks)
+               (setq last (car bind)))
+             (cond
+              ;; For explanations on these cases, see "Ordinary
+              ;; Lisp expression is the condition." below.
+              (rest
+               (let ((quit (gensym "quit")))
+                 `(catch ',quit
+                    (let* (,@(nreverse checks))
+                      (if ,last (throw ',quit ,(macroexp-progn true-exps))))
+                    ,iffalse)))
+              (uncondit-clauses
+               `(progn
+                  (let* (,@(nreverse checks))
+                    (if ,last ,(macroexp-progn true-exps)))
+                  ,(cond*-convert uncondit-clauses)))
+              (true-exps
+               `(let* (,@(nreverse checks))
+                  (if ,last ,(macroexp-progn true-exps))))
+              (t last))))
           ((eq pat-type 'pcase*)
            (if true-exps
                (progn
