@@ -985,7 +985,10 @@ or an empty string if none."
   "Return the existing branches, as a list of strings.
 The car of the list is the current branch."
   (with-temp-buffer
-    (vc-git--call nil t "branch")
+    ;; 'git branch' is a porcelain command whose output could change in
+    ;; the future.
+    (vc-git--call nil t "for-each-ref"
+                  "--format=%(HEAD) %(refname:short)" "refs/heads/")
     (goto-char (point-min))
     (let (current-branch branches)
       (while (not (eobp))
