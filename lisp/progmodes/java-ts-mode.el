@@ -312,9 +312,6 @@ function is called.  Subsequent calls return the first evaluated value."
                (compact_constructor_declaration
                 name: (identifier) @font-lock-type-face)
 
-               (field_access
-                object: (identifier) @font-lock-type-face)
-
                (method_reference (identifier) @font-lock-type-face)
 
                (scoped_identifier (identifier) @font-lock-constant-face)
