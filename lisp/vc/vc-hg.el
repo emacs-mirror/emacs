@@ -1549,10 +1549,8 @@ This runs the command \"hg summary\"."
          (nreverse result))
        "\n"))))
 
-(defun vc-hg-incoming-revision (upstream-location &optional _refresh)
-  (let* ((upstream-location (if (string-empty-p upstream-location)
-                              "default"
-                            upstream-location))
+(defun vc-hg-incoming-revision (&optional upstream-location _refresh)
+  (let* ((upstream-location (or upstream-location "default"))
          ;; Use 'hg identify' like this, and not 'hg incoming', because
          ;; this will give a sensible answer regardless of whether the
          ;; incoming revision has been pulled yet.

@@ -427,9 +427,10 @@
 ;;   received when performing a pull operation from UPSTREAM-LOCATION.
 ;;   Deprecated: implement incoming-revision and mergebase instead.
 ;;
-;; * incoming-revision (upstream-location &optional refresh)
+;; * incoming-revision (&optional upstream-location refresh)
 ;;
 ;;   Return revision at the head of the branch at UPSTREAM-LOCATION.
+;;   UPSTREAM-LOCATION defaults to where `vc-update' would pull from.
 ;;   If there is no such branch there, return nil.  (Should signal an
 ;;   error, not return nil, in the case that fetching data fails.)
 ;;   For a distributed VCS, should also fetch that revision into local
@@ -2752,8 +2753,7 @@ global binding."
   (let* ((fileset (or fileset (vc-deduce-fileset t)))
          (backend (car fileset))
          (incoming (vc--incoming-revision backend
-                                          (or upstream-location "")
-                                          'refresh)))
+                                          upstream-location 'refresh)))
     (vc-diff-internal vc-allow-async-diff fileset
                       (vc-call-backend backend 'mergebase incoming)
                       incoming
@@ -2799,8 +2799,7 @@ global binding."
   (interactive (list (vc--maybe-read-upstream-location)))
   (let* ((fileset (or fileset (vc-deduce-fileset t)))
          (backend (car fileset))
-         (incoming (vc--incoming-revision backend
-                                          (or upstream-location ""))))
+         (incoming (vc--incoming-revision backend upstream-location)))
     (vc-diff-internal vc-allow-async-diff fileset
                       (vc-call-backend backend 'mergebase incoming)
                       ;; FIXME: In order to exclude uncommitted
@@ -2885,8 +2884,7 @@ includes uncommitted changes."
   (interactive (list (vc--maybe-read-upstream-location) nil))
   (let* ((fileset (or fileset (vc-deduce-fileset t)))
          (backend (car fileset))
-         (incoming (vc--incoming-revision backend
-                                          (or upstream-location ""))))
+         (incoming (vc--incoming-revision backend upstream-location)))
     (vc-diff-internal vc-allow-async-diff fileset
                       (vc-call-backend backend 'mergebase incoming)
                       nil
@@ -3744,7 +3742,7 @@ The command prompts for the branch whose change log to show."
        (read-string "Upstream location/branch (empty for default): " nil
                     'vc-remote-location-history)))
 
-(defun vc--incoming-revision (backend upstream-location &optional refresh)
+(defun vc--incoming-revision (backend &optional upstream-location refresh)
   (or (vc-call-backend backend 'incoming-revision upstream-location refresh)
       (user-error "No incoming revision -- local-only branch?")))
 

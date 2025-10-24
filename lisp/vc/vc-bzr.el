@@ -822,13 +822,12 @@ If LIMIT is non-nil, show no more than this many entries."
 	 (list "--theirs-only" (and (not (string-empty-p upstream-location))
                                     upstream-location))))
 
-(defun vc-bzr-incoming-revision (upstream-location &optional _refresh)
+(defun vc-bzr-incoming-revision (&optional upstream-location _refresh)
   (with-temp-buffer
     (vc-bzr-command "missing" t 1 nil
                     "--log-format=long" "--show-ids"
                     "--theirs-only" "-r-1.."
-                    (and (not (string-empty-p upstream-location))
-		         upstream-location))
+                    upstream-location)
     (goto-char (point-min))
     (and (re-search-forward "^revision-id: " nil t)
          (buffer-substring (point) (pos-eol)))))
