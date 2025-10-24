@@ -719,6 +719,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "sysselect.h"
 #include "menu.h"
 #include "pdumper.h"
+#include "gc-handles.h"
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
@@ -15928,7 +15929,9 @@ xg_end_scroll_callback (GtkWidget *widget,
 static void
 xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
-  struct scroll_bar *bar = client_data;
+  gc_handle bar_handle = client_data;
+  Lisp_Object bar_obj = gc_handle_value (bar_handle);
+  struct scroll_bar *bar = XSCROLL_BAR (bar_obj);
   float *top_addr = call_data;
   float top = *top_addr;
   float shown;
@@ -15995,7 +15998,9 @@ xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 static void
 xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
-  struct scroll_bar *bar = client_data;
+  gc_handle bar_handle = client_data;
+  Lisp_Object bar_obj = gc_handle_value (bar_handle);
+  struct scroll_bar *bar = XSCROLL_BAR (bar_obj);
   /* The position really is stored cast to a pointer.  */
   int position = (intptr_t) call_data;
   Dimension height, width;
@@ -16048,6 +16053,14 @@ xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
       x_send_scroll_bar_event (bar->window, part, position, height,
 			       bar->horizontal);
     }
+}
+
+static void
+xaw_destroy_scrollbar_callback (Widget widget, XtPointer client_data,
+				XtPointer call_data)
+{
+  gc_handle handle = client_data;
+  free_gc_handle (handle);
 }
 
 #endif /* not USE_GTK and not USE_MOTIF */
@@ -16268,10 +16281,15 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
       }
   }
 
+  gc_handle bar_handle = gc_handle_for_pvec (&bar->header);
   /* Define callbacks.  */
-  XtAddCallback (widget, XtNjumpProc, xaw_jump_callback, (XtPointer) bar);
+  XtAddCallback (widget, XtNjumpProc, xaw_jump_callback,
+		 (XtPointer) bar_handle);
   XtAddCallback (widget, XtNscrollProc, xaw_scroll_callback,
-		 (XtPointer) bar);
+		 (XtPointer) bar_handle);
+  XtAddCallback (widget, XtNdestroyCallback,
+		 xaw_destroy_scrollbar_callback,
+		 (XtPointer) bar_handle);
 
   /* Realize the widget.  Only after that is the X window created.  */
   XtRealizeWidget (widget);
