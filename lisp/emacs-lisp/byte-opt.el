@@ -2192,13 +2192,13 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
          ;; Ops that can be sunk past an unbind.
          ;; This means they have to commute with anything else, which rules
          ;; out ones like `byte-car-safe' and `byte-equal'.
-         ;; In particular, `byte-eq' isn't here despite `eq' being
-         ;; nominally pure because it is currently affected by
+         ;; In particular, `byte-eq' and `byte-symbolp' aren't here despite
+         ;; being nominally pure because they are currently affected by
          ;; `symbols-with-pos-enabled'.  Yes, this is unsatisfactory.
          (after-unbind-ops
           '( byte-constant byte-dup byte-stack-ref byte-stack-set byte-discard
              byte-discardN byte-discardN-preserve-tos
-             byte-symbolp byte-consp byte-stringp byte-listp byte-numberp
+             byte-consp byte-stringp byte-listp byte-numberp
              byte-integerp byte-not
              byte-cons byte-list1 byte-list2 byte-list3 byte-list4 byte-listN))
 
