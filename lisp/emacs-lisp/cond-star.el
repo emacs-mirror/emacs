@@ -111,7 +111,7 @@ ATOM (meaning any other kind of non-list not described above)
   to (match-string 0 DATUM), (match-string 1 DATUM), and so on.
   You can use as many SYMs as regexp matching supports.
 
-`OBJECT  matches any value `equal' to OBJECT.
+\\=`OBJECT  matches any value `equal' to OBJECT.
 \(cons CARPAT CDRPAT)
   matches a cons cell if CARPAT matches its car and CDRPAT matches its cdr.
 \(list ELTPATS...)
