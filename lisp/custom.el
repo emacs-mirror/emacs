@@ -162,8 +162,8 @@ the :set function."
 
 (defun custom-initialize-after-file-load (symbol value)
   "Delay initialization to after the current file is loaded.
-This is handy when the initialization needs functions defined after the variable,
-such as for global minor modes."
+This is handy when the initialization needs functions defined after the
+variable, such as for global minor modes."
   ;; Defvar it so as to mark it special, etc (bug#25770).
   (internal--define-uninitialized-variable symbol)
 
