@@ -4291,36 +4291,59 @@ or a symbol, see `completion-pcm--merge-completions'."
         (_ (push (pop p) n))))
     (nreverse n)))
 
-(defun completion-pcm--pattern->regex (pattern &optional group)
-  (let ((re
-         (concat "\\`"
-                 (mapconcat
-                  (lambda (x)
-                    (cond
-                     ((stringp x) (regexp-quote x))
-                     (t
-                      (let ((re (if (eq x 'any-delim)
-                                    (concat completion-pcm--delim-wild-regex "*?")
-                                  "[^z-a]*?")))
-                        (if (if (consp group) (memq x group) group)
-                            (concat "\\(" re "\\)")
-                          re)))))
-                  pattern
-                  ""))))
-    ;; Avoid pathological backtracking.
-    (while (string-match "\\.\\*\\?\\(?:\\\\[()]\\)*\\(\\.\\*\\?\\)" re)
-      (setq re (replace-match "" t t re 1)))
-    re))
+(defun completion-pcm--pattern->segments (pattern)
+  "Segment PATTERN into more structured sublists.
 
-(defun completion-pcm--pattern-point-idx (pattern)
-  "Return index of subgroup corresponding to `point' element of PATTERN.
-Return nil if there's no such element."
+Returns a list of lists which when concatenated is semantically the same
+as PATTERN.
+
+The first element in each sublist is a (possibly empty) string.  The
+remaining elements in the sublist are all wildcard symbols.  If PATTERN
+ends with a wildcard, then each sublist is guaranteed to have at least
+one wildcard."
+  (let (ret)
+    (while pattern
+      (let ((fixed "")
+            wildcards)
+        ;; Pop strings from PATTERN and concatenate them.
+        (while (stringp (car-safe pattern))
+          (setq fixed (concat fixed (pop pattern))))
+        ;; Pop wildcards from PATTERN.
+        (while (and pattern (symbolp (car-safe pattern)))
+          (push (pop pattern) wildcards))
+        ;; The sublist is a fixed string followed by all the wildcards.
+        (push (cons fixed (nreverse wildcards)) ret)))
+    (nreverse ret)))
+
+(defun completion-pcm--segments->regex (segments &optional group)
+  (concat "\\`"
+          (mapconcat
+           (lambda (segment)
+             (concat
+              (regexp-quote (car segment))
+              (when (cdr segment)
+                (concat
+                 (when group "\\(")
+                 (if (cl-every (lambda (x) (eq x 'any-delim)) (cdr segment))
+                     (concat completion-pcm--delim-wild-regex "*?")
+                   "[^z-a]*?")
+                 (when group "\\)")))))
+           segments
+           "")))
+
+(defun completion-pcm--pattern->regex (pattern &optional group)
+  (completion-pcm--segments->regex (completion-pcm--pattern->segments pattern) group))
+
+(defun completion-pcm--segments-point-idx (segments)
+  "Return index of subgroup corresponding to `point' element of SEGMENTS.
+Return nil if there's no such element.
+This is used in combination with `completion-pcm--segments->regex'."
   (let ((idx nil)
         (i 0))
-    (dolist (x pattern)
-      (unless (stringp x)
-        (incf i)
-        (if (eq x 'point) (setq idx i))))
+    (dolist (x segments)
+      (incf i)
+      (when (memq 'point (cdr x))
+        (setq idx i)))
     idx))
 
 (defun completion-pcm--all-completions (prefix pattern table pred)
@@ -4551,8 +4574,9 @@ see) for later lazy highlighting."
         completion-lazy-hilit-fn nil)
   (cond
    ((and completions (cl-loop for e in pattern thereis (stringp e)))
-    (let* ((re (completion-pcm--pattern->regex pattern 'group))
-           (point-idx (completion-pcm--pattern-point-idx pattern)))
+    (let* ((segments (completion-pcm--pattern->segments pattern))
+           (re (completion-pcm--segments->regex segments 'group))
+           (point-idx (completion-pcm--segments-point-idx segments)))
       (setq completion-pcm--regexp re)
       (cond (completion-lazy-hilit
              (setq completion-lazy-hilit-fn
@@ -4696,12 +4720,13 @@ the same set of elements."
   (cond
    ((null (cdr strs)) (list (car strs)))
    (t
-    (let ((re (completion-pcm--pattern->regex pattern 'group))
+    (let ((segmented (completion-pcm--pattern->segments (append pattern '(any))))
           (ccs ()))                     ;Chopped completions.
 
       ;; First chop each string into the parts corresponding to each
       ;; non-constant element of `pattern', using regexp-matching.
-      (let ((case-fold-search completion-ignore-case))
+      (let ((re (concat (completion-pcm--segments->regex segmented t) "\\'"))
+            (case-fold-search completion-ignore-case))
         (dolist (str strs)
           (unless (string-match re str)
             (error "Internal error: %s doesn't match %s" str re))
@@ -4713,24 +4738,15 @@ the same set of elements."
               (push (substring str last next) chopped)
               (setq last next)
               (setq i (1+ i)))
-            ;; Add the text corresponding to the implicit trailing `any'.
-            (push (substring str last) chopped)
             (push (nreverse chopped) ccs))))
 
       ;; Then for each of those non-constant elements, extract the
       ;; commonality between them.
-      (let ((res ())
-            (fixed "")
-            ;; Accumulate each stretch of wildcards, and process them as a unit.
-            (wildcards ()))
-        ;; Make the implicit trailing `any' explicit.
-        (dolist (elem (append pattern '(any)))
-          (if (stringp elem)
-              (progn
-                (setq fixed (concat fixed elem))
-                (setq wildcards nil))
+      (let ((res ()))
+        (dolist (elem segmented)
+          (let ((fixed (car elem))
+                (wildcards (cdr elem)))
             (let ((comps ()))
-              (push elem wildcards)
               (dolist (cc (prog1 ccs (setq ccs nil)))
                 (push (car cc) comps)
                 (push (cdr cc) ccs))
@@ -4768,7 +4784,8 @@ the same set of elements."
                   (push prefix res)
                   ;; Push all the wildcards in this stretch, to preserve `point' and
                   ;; `star' wildcards before ELEM.
-                  (setq res (append wildcards res))
+                  (dolist (wildcard wildcards)
+                    (push wildcard res))
                   ;; Extract common suffix additionally to common prefix.
                   ;; Don't do it for `any' since it could lead to a merged
                   ;; completion that doesn't itself match the candidates.
@@ -4786,10 +4803,7 @@ the same set of elements."
                                         comps))))))
                       (cl-assert (stringp suffix))
                       (unless (equal suffix "")
-                        (push suffix res))))
-                  ;; We pushed these wildcards on RES, so we're done with them.
-                  (setq wildcards nil))
-                (setq fixed "")))))
+                        (push suffix res)))))))))
         ;; We return it in reverse order.
         res)))))
 
