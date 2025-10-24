@@ -116,6 +116,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "getpagesize.h"
 #include "gnutls.h"
+#include "gc-handles.h"
 
 #ifdef HAVE_HAIKU
 #include <kernel/OS.h>
@@ -2488,6 +2489,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_profiler ();
       syms_of_pdumper ();
       syms_of_json ();
+      syms_of_gc_handles ();
 
       keys_of_keyboard ();
 
