@@ -15540,6 +15540,15 @@ xt_horizontal_action_hook (Widget widget, XtPointer client_data, String action_n
 	}
     }
 }
+
+static void
+xt_free_gc_handle (Widget widget, XtPointer client_data,
+		   XtPointer call_data)
+{
+  gc_handle handle = client_data;
+  free_gc_handle (handle);
+}
+
 #endif /* not USE_GTK */
 
 /* Protect WINDOW from garbage collection until a matching scroll bar
@@ -15719,7 +15728,8 @@ x_horizontal_scroll_bar_to_input_event (struct x_display_info *dpyinfo,
 static void
 xm_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
-  struct scroll_bar *bar = client_data;
+  gc_handle bar_gch = client_data;
+  struct scroll_bar *bar = XSCROLL_BAR (gc_handle_value (bar_gch));
   XmScrollBarCallbackStruct *cs = call_data;
   enum scroll_bar_part part = scroll_bar_nowhere;
   bool horizontal = bar->horizontal;
@@ -16055,14 +16065,6 @@ xaw_scroll_callback (Widget widget, XtPointer client_data,
     }
 }
 
-static void
-xaw_free_gc_handle (Widget widget, XtPointer client_data,
-		    XtPointer call_data)
-{
-  gc_handle handle = client_data;
-  free_gc_handle (handle);
-}
-
 #endif /* not USE_GTK and not USE_MOTIF */
 
 #define SCROLL_BAR_NAME "verticalScrollBar"
@@ -16140,20 +16142,17 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 			      (char *) scroll_bar_name, av, ac);
 
   /* Add one callback for everything that can happen.  */
-  XtAddCallback (widget, XmNdecrementCallback, xm_scroll_callback,
-		 (XtPointer) bar);
-  XtAddCallback (widget, XmNdragCallback, xm_scroll_callback,
-		 (XtPointer) bar);
-  XtAddCallback (widget, XmNincrementCallback, xm_scroll_callback,
-		 (XtPointer) bar);
+  XtPointer bar_gch = gc_handle_for_pvec (&bar->header);
+  XtAddCallback (widget, XmNdecrementCallback, xm_scroll_callback, bar_gch);
+  XtAddCallback (widget, XmNdragCallback, xm_scroll_callback, bar_gch);
+  XtAddCallback (widget, XmNincrementCallback, xm_scroll_callback, bar_gch);
   XtAddCallback (widget, XmNpageDecrementCallback, xm_scroll_callback,
-		 (XtPointer) bar);
+		 bar_gch);
   XtAddCallback (widget, XmNpageIncrementCallback, xm_scroll_callback,
-		 (XtPointer) bar);
-  XtAddCallback (widget, XmNtoBottomCallback, xm_scroll_callback,
-		 (XtPointer) bar);
-  XtAddCallback (widget, XmNtoTopCallback, xm_scroll_callback,
-		 (XtPointer) bar);
+		 bar_gch);
+  XtAddCallback (widget, XmNtoBottomCallback, xm_scroll_callback, bar_gch);
+  XtAddCallback (widget, XmNtoTopCallback, xm_scroll_callback, bar_gch);
+  XtAddCallback (widget, XtNdestroyCallback, xt_free_gc_handle, bar_gch);
 
   /* Realize the widget.  Only after that is the X window created.  */
   XtRealizeWidget (widget);
@@ -16285,7 +16284,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   XtPointer bar_gch = gc_handle_for_pvec (&bar->header);
   XtAddCallback (widget, XtNjumpProc, xaw_jump_callback, bar_gch);
   XtAddCallback (widget, XtNscrollProc, xaw_scroll_callback, bar_gch);
-  XtAddCallback (widget, XtNdestroyCallback, xaw_free_gc_handle, bar_gch);
+  XtAddCallback (widget, XtNdestroyCallback, xt_free_gc_handle, bar_gch);
 
   /* Realize the widget.  Only after that is the X window created.  */
   XtRealizeWidget (widget);
@@ -16349,20 +16348,17 @@ x_create_horizontal_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 			      (char *) scroll_bar_name, av, ac);
 
   /* Add one callback for everything that can happen.  */
-  XtAddCallback (widget, XmNdecrementCallback, xm_scroll_callback,
-		 (XtPointer) bar);
-  XtAddCallback (widget, XmNdragCallback, xm_scroll_callback,
-		 (XtPointer) bar);
-  XtAddCallback (widget, XmNincrementCallback, xm_scroll_callback,
-		 (XtPointer) bar);
+  XtPointer bar_gch = gc_handle_for_pvec (&bar->header);
+  XtAddCallback (widget, XmNdecrementCallback, xm_scroll_callback, bar_gch);
+  XtAddCallback (widget, XmNdragCallback, xm_scroll_callback, bar_gch);
+  XtAddCallback (widget, XmNincrementCallback, xm_scroll_callback, bar_gch);
   XtAddCallback (widget, XmNpageDecrementCallback, xm_scroll_callback,
-		 (XtPointer) bar);
+		 bar_gch);
   XtAddCallback (widget, XmNpageIncrementCallback, xm_scroll_callback,
-		 (XtPointer) bar);
-  XtAddCallback (widget, XmNtoBottomCallback, xm_scroll_callback,
-		 (XtPointer) bar);
-  XtAddCallback (widget, XmNtoTopCallback, xm_scroll_callback,
-		 (XtPointer) bar);
+		 bar_gch);
+  XtAddCallback (widget, XmNtoBottomCallback, xm_scroll_callback, bar_gch);
+  XtAddCallback (widget, XmNtoTopCallback, xm_scroll_callback, bar_gch);
+  XtAddCallback (widget, XtNdestroyCallback, xt_free_gc_handle, bar_gch);
 
   /* Realize the widget.  Only after that is the X window created.  */
   XtRealizeWidget (widget);
@@ -16494,7 +16490,7 @@ x_create_horizontal_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   XtPointer bar_gch = gc_handle_for_pvec (&bar->header);
   XtAddCallback (widget, XtNjumpProc, xaw_jump_callback, bar_gch);
   XtAddCallback (widget, XtNscrollProc, xaw_scroll_callback, bar_gch);
-  XtAddCallback (widget, XtNdestroyCallback, xaw_free_gc_handle, bar_gch);
+  XtAddCallback (widget, XtNdestroyCallback, xt_free_gc_handle, bar_gch);
 
   /* Realize the widget.  Only after that is the X window created.  */
   XtRealizeWidget (widget);
