@@ -1,4 +1,22 @@
-/* GC-handles can be used to retain Lisp_Objects. A GC-handle keeps
+/* Implementation of GC handles
+   Copyright (C) 2025 Free Software Foundation, Inc.
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
+
+/* GC-handles can be used to retain Lisp_Objects.  A GC-handle keeps
    its Lisp_Object alive until the GC-handle is freed.  */
 
 #include "gc-handles.h"
@@ -23,11 +41,11 @@ shrink_handle_table (void)
 {
   Lisp_Object new_table = CALLN (Fmake_hash_table, QCtest, Qeq);
   DOHASH (XHASH_TABLE (global_handle_table), k, v)
-    {
-      gc_handle gch = xmint_pointer (v);
-      Fputhash (k, v, new_table);
-      gch->index = hash_find (XHASH_TABLE (new_table), k);
-    }
+  {
+    gc_handle gch = xmint_pointer (v);
+    Fputhash (k, v, new_table);
+    gch->index = hash_find (XHASH_TABLE (new_table), k);
+  }
   global_handle_table = new_table;
 }
 
@@ -68,8 +86,9 @@ free_gc_handle (gc_handle h)
       Fremhash (gc_handle_value (h), global_handle_table);
       xfree (h);
       /* FIXME: better (but still safe) heuristic needed.  */
-      if (XFIXNUM (Fhash_table_count (global_handle_table)) <
-	  XFIXNUM (Fhash_table_size (global_handle_table)) / 4 - 128)
+      if (XFIXNUM (Fhash_table_count (global_handle_table))
+	  < XFIXNUM (Fhash_table_size (global_handle_table)) / 4
+	      - 128)
 	shrink_handle_table ();
     }
 }
