@@ -2187,7 +2187,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
          (conditional-ops
           '( byte-goto-if-nil byte-goto-if-not-nil byte-goto-if-nil-else-pop
              byte-goto-if-not-nil-else-pop))
-         (conditional-or-discard-ops (cons 'discard conditional-ops))
+         (conditional-or-discard-ops (cons 'byte-discard conditional-ops))
 
          ;; Ops that can be sunk past an unbind.
          ;; This means they have to commute with anything else, which rules
