@@ -753,9 +753,9 @@ that encompasses the region between START and END."
                  (when (null host)
                    (signal 'treesit-error (list "Value of :host option cannot be omitted")))
                  (when (treesit-available-p)
-                  (push (list (treesit-query-compile host query)
-                             embed local offset range-fn)
-                       result)))
+                   (push (list (treesit--compile-query-with-cache host query)
+                               embed local offset range-fn)
+                         result)))
                (setq host nil embed nil offset nil local nil range-fn nil))))
     (nreverse result)))
 
