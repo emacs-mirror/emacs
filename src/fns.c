@@ -5516,7 +5516,7 @@ strong_copy_hash_table (Lisp_Object table)
 void
 strengthen_hash_table_for_dump (struct Lisp_Weak_Hash_Table *weak)
 {
-  if (weak->dump_replacement)
+  if (!NILP (weak->dump_replacement))
     return;
   Lisp_Object copy = strong_copy_hash_table (make_lisp_weak_hash_table (weak));
   XHASH_TABLE (copy)->weakness = weak->strong->weakness;
