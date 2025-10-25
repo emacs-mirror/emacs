@@ -133,6 +133,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defun elisp-scope--define-symbol-role (name parents props)
   (put name 'elisp-scope-parent-roles parents)
   (put name 'elisp-scope-role-properties props))
@@ -1370,9 +1372,9 @@ Optional argument LOCAL is a local context to extend."
         (setq l (elisp-scope--local-new bare (elisp-scope--sym-pos var) l)))
       (cond
        (arglist
-        (let ((head (car arglist)))
-          (if-let* ((bare (elisp-scope--sym-bare head))
-                    ((memq bare '(&key &aux))))
+        (let* ((head (car arglist))
+               (bare (elisp-scope--sym-bare head)))
+          (if (memq bare '(&key &aux))
               (progn
                 (when-let* ((beg (elisp-scope--sym-pos head)))
                   (elisp-scope--report 'ampersand beg bare))
@@ -1424,9 +1426,9 @@ Optional argument LOCAL is a local context to extend."
         (setq l (elisp-scope--local-new bare (elisp-scope--sym-pos var) l)))
       (cond
        (arglist
-        (let ((head (car arglist)))
-          (if-let* ((bare (elisp-scope--sym-bare head))
-                    ((memq bare '(&aux &allow-other-keys))))
+        (let* ((head (car arglist))
+               (bare (elisp-scope--sym-bare head)))
+          (if (memq bare '(&aux &allow-other-keys))
               (progn
                 (when-let* ((beg (elisp-scope--sym-pos head)))
                   (elisp-scope--report 'ampersand beg bare))
