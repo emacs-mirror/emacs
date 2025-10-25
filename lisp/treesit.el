@@ -4514,10 +4514,8 @@ before calling this function."
     (setq-local show-paren-data-function #'treesit-show-paren-data)
     (setq-local hs-c-start-regexp nil
                 hs-block-start-regexp nil
-                hs-block-start-mdata-select 0
                 hs-block-end-regexp #'treesit-hs-block-end
                 hs-forward-sexp-func #'forward-list
-                hs-adjust-block-beginning nil
                 hs-find-block-beginning-func #'treesit-hs-find-block-beginning
                 hs-find-next-block-func #'treesit-hs-find-next-block
                 hs-looking-at-block-start-p-func #'treesit-hs-looking-at-block-start-p

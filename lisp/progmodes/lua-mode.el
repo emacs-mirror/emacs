@@ -553,12 +553,9 @@ See `imenu-generic-expression'.")
   (add-hook 'flymake-diagnostic-functions #'lua-flymake nil t)
 
   ;; Hide-show setup
-  (unless (assq 'lua-mode hs-modes-alist)
-    (add-to-list 'hs-modes-alist
-                 `(lua-mode
-                   (start . ,(regexp-opt (mapcar 'car lua-sexp-alist) 'words)) ; Start
-                   (end . ,(regexp-opt (mapcar 'cdr lua-sexp-alist) 'words)) ; End
-                   (forward-fn . lua-forward-sexp)))))
+  (setq-local hs-block-start-regexp (regexp-opt (mapcar 'car lua-sexp-alist) 'words))
+  (setq-local hs-block-end-regexp (regexp-opt (mapcar 'cdr lua-sexp-alist) 'words))
+  (setq-local hs-forward-sexp-func #'lua-forward-sexp))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-mode))

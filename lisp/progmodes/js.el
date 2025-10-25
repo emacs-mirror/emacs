@@ -3832,7 +3832,9 @@ Return nil if there is no name or if NODE is not a defun node."
 This mode is intended to be inherited by concrete major modes.
 Currently there are `js-mode' and `js-ts-mode'."
   :group 'js
-  nil)
+  (setq-local hs-block-start-regexp "\\s(\\|{\\|\"")
+  (setq-local hs-block-end-regexp "\\s)\\|}\\|\"")
+  (setq-local hs-c-start-regexp "/[*/]"))
 
 ;;;###autoload
 (define-derived-mode js-mode js-base-mode "JavaScript"
