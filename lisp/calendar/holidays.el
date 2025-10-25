@@ -67,7 +67,10 @@
     (holiday-fixed 11 11 "Veteran's Day")
     (holiday-float 11 4 4 "Thanksgiving"))
   "General holidays.  Default value is for the United States.
-See the documentation for `calendar-holidays' for details."
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'."
   :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
@@ -86,7 +89,10 @@ See the documentation for `calendar-holidays' for details."
          (holiday-chinese 9  9 "Double Ninth Festival")
          (holiday-chinese-winter-solstice))))
   "Oriental holidays.
-See the documentation for `calendar-holidays' for details."
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'."
   :version "23.1"                       ; added more holidays
   :set #'holidays--set-calendar-holidays
   :type 'sexp)
@@ -96,7 +102,10 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (defcustom holiday-local-holidays nil
   "Local holidays.
-See the documentation for `calendar-holidays' for details."
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'."
   :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
@@ -105,7 +114,10 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (defcustom holiday-other-holidays nil
   "User defined holidays.
-See the documentation for `calendar-holidays' for details."
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'."
   :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
@@ -121,7 +133,10 @@ See the documentation for `calendar-holidays' for details."
          (holiday-hebrew-tisha-b-av)
          (holiday-hebrew-misc))))
   "Jewish holidays.
-See the documentation for `calendar-holidays' for details."
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'."
   :set #'holidays--set-calendar-holidays
   :type 'sexp
   :version "23.1")            ; removed dependency on hebrew-holidays-N
@@ -141,7 +156,10 @@ See the documentation for `calendar-holidays' for details."
          (holiday-fixed 8 15 "Assumption")
          (holiday-advent 0 "Advent"))))
   "Christian holidays.
-See the documentation for `calendar-holidays' for details."
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'."
   :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
@@ -161,7 +179,10 @@ See the documentation for `calendar-holidays' for details."
          (holiday-islamic 10 1 "Id-al-Fitr")
          (holiday-islamic 12 10 "Id-al-Adha"))))
   "Islamic holidays.
-See the documentation for `calendar-holidays' for details."
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'."
   :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
@@ -201,7 +222,10 @@ See the documentation for `calendar-holidays' for details."
                            (/ calendar-daylight-savings-ends-time (float 60))
                            calendar-daylight-time-zone-name))))
   "Sun-related holidays.
-See the documentation for `calendar-holidays' for details."
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'."
   :set #'holidays--set-calendar-holidays
   :type 'sexp)
 ;;;###autoload
