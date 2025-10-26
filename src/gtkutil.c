@@ -1925,7 +1925,11 @@ xg_free_frame_widgets (struct frame *f)
         = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
                              TB_INFO_KEY);
       if (tbinfo)
-	xfree (tbinfo);
+	{
+	  free_gc_handle (tbinfo->style);
+	  free_gc_handle (tbinfo->last_tool_bar);
+	  xfree (tbinfo);
+	}
 
       if (x->toolbar_widget && !x->toolbar_is_packed)
 	{
@@ -3054,6 +3058,8 @@ update_cl_data (xg_menu_cb_data *cl_data,
 {
   if (cl_data)
     {
+      free_gc_handle (cl_data->frame);
+      free_gc_handle (cl_data->menu_bar_vector);
       cl_data->frame = gc_handle_for_pvec (&f->header);
       cl_data->menu_bar_vector = gc_handle_for (f->menu_bar_vector);
       cl_data->menu_bar_items_used = f->menu_bar_items_used;
@@ -3075,6 +3081,8 @@ unref_cl_data (xg_menu_cb_data *cl_data)
 #ifndef HAVE_MPS
           xg_list_remove (&xg_menu_cb_list, &cl_data->ptrs);
 #endif
+	  free_gc_handle (cl_data->frame);
+	  free_gc_handle (cl_data->menu_bar_vector);
           xfree (cl_data);
         }
     }
@@ -3108,6 +3116,7 @@ menuitem_destroy_callback (GtkWidget *w, gpointer client_data)
   xg_menu_item_cb_data *data = client_data;
   if (data)
     {
+      free_gc_handle (data->help);
 #ifndef HAVE_MPS
       xg_list_remove (&xg_menu_item_cb_list, &data->ptrs);
 #endif
@@ -3136,7 +3145,8 @@ menuitem_highlight_callback (GtkWidget *w,
   data = g_object_get_data (G_OBJECT (subwidget), XG_ITEM_DATA);
   if (data)
     {
-      if (! NILP (data->help) && data->cl_data->highlight_cb)
+      if (! NILP (gc_handle_value (data->help))
+	  && data->cl_data->highlight_cb)
         {
           gpointer call_data = event->type == GDK_LEAVE_NOTIFY ? 0 : data;
           GtkCallback func = (GtkCallback) data->cl_data->highlight_cb;
@@ -3886,6 +3896,7 @@ xg_update_menu_item (widget_value *val,
   if (cb_data)
     {
       cb_data->call_data = val->call_data;
+      free_gc_handle (cb_data->help);
       cb_data->help = gc_handle_for (val->help);
       cb_data->cl_data = cl_data;
 
@@ -5902,8 +5913,10 @@ update_frame_tool_bar (struct frame *f)
       return;
     }
 
+  free_gc_handle (tbinfo->last_tool_bar);
   tbinfo->last_tool_bar = gc_handle_for (f->tool_bar_items);
   tbinfo->n_last_items = f->n_tool_bar_items;
+  free_gc_handle (tbinfo->style);
   tbinfo->style = gc_handle_for (style);
   tbinfo->hmargin = hmargin;
   tbinfo->vmargin = vmargin;
@@ -6178,6 +6191,8 @@ free_frame_tool_bar (struct frame *f)
                                   TB_INFO_KEY);
       if (tbinfo)
         {
+	  free_gc_handle (tbinfo->last_tool_bar);
+	  free_gc_handle (tbinfo->style);
           xfree (tbinfo);
           g_object_set_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
                              TB_INFO_KEY,
