@@ -37,6 +37,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "igc.h"
 #endif
 
+#include "gc-handles.h"
+
 /* Helper functions for glib callbacks.  On MPS builds, we need to pin
    (pointers to) the objects, which requires an extra layer of
    indirection. */
@@ -70,6 +72,7 @@ get_glib_user_data (gpointer p)
 #endif
 
 extern void free_glib_user_data (gpointer data, GClosure *closure);
+extern void free_glib_gc_handle (gpointer data, GClosure *closure);
 
 /* Minimum and maximum values used for GTK scroll bars  */
 
@@ -102,8 +105,8 @@ typedef struct xg_menu_cb_data_
 {
   xg_list_node  ptrs;
 
-  struct frame  *f;
-  Lisp_Object   menu_bar_vector;
+  gc_handle     frame;
+  gc_handle     menu_bar_vector;
   int           menu_bar_items_used;
   GCallback     highlight_cb;
   int           ref_count;
@@ -115,7 +118,7 @@ typedef struct xg_menu_item_cb_data_
   xg_list_node  ptrs;
 
   gulong        select_id;
-  Lisp_Object   help;
+  gc_handle     help;
   gpointer	call_data;
   xg_menu_cb_data *cl_data;
 
