@@ -134,8 +134,8 @@ static void update_theme_scrollbar_height (void);
 #define TB_INFO_KEY "xg_frame_tb_info"
 struct xg_frame_tb_info
 {
-  Lisp_Object last_tool_bar;
-  Lisp_Object style;
+  gc_handle last_tool_bar;
+  gc_handle style;
   int n_last_items;
   int hmargin, vmargin;
   GtkTextDirection dir;
@@ -159,6 +159,12 @@ void free_glib_user_data (gpointer data, GClosure *closure)
   return;
 }
 #endif
+
+void
+free_glib_gc_handle (gpointer data, GClosure *closure)
+{
+  free_gc_handle (data);
+}
 
 #ifdef HAVE_GTK3
 static void
@@ -841,7 +847,7 @@ hierarchy_ch_cb (GtkWidget *widget,
                  GtkWidget *previous_toplevel,
                  gpointer   user_data)
 {
-  struct frame *f = get_glib_user_data (user_data);
+  struct frame *f = XFRAME (gc_handle_value (user_data));
   xp_output *x = f->output_data.xp;
   GtkWidget *top = gtk_widget_get_toplevel (x->ttip_lbl);
 
@@ -863,7 +869,7 @@ qttip_cb (GtkWidget  *widget,
           GtkTooltip *tooltip,
           gpointer    user_data)
 {
-  struct frame *f = get_glib_user_data (user_data);
+  struct frame *f = XFRAME (gc_handle_value (user_data));
   xp_output *x = f->output_data.xp;
   if (x->ttip_widget == NULL)
     {
@@ -897,8 +903,8 @@ qttip_cb (GtkWidget  *widget,
 
       g_signal_connect_data (x->ttip_lbl, "hierarchy-changed",
 			     G_CALLBACK (hierarchy_ch_cb),
-			     glib_user_data (f),
-			     free_glib_user_data,
+			     gc_handle_for_pvec (&f->header),
+			     free_glib_gc_handle,
 			     0);
     }
 
@@ -1478,7 +1484,7 @@ style_changed_cb (GObject *go,
                   gpointer user_data)
 {
   struct input_event event;
-  GdkDisplay *gdpy = get_glib_user_data (user_data);
+  GdkDisplay *gdpy = user_data;
   const char *display_name = gdk_display_get_name (gdpy);
 #ifndef HAVE_PGTK
   Display *dpy = GDK_DISPLAY_XDISPLAY (gdpy);
@@ -1578,8 +1584,8 @@ xg_create_frame_widgets (struct frame *f)
 #if GTK_CHECK_VERSION (3, 10, 0)
   g_signal_connect_data (G_OBJECT (wtop), "style-updated",
 			 G_CALLBACK (xg_widget_style_updated),
-			 glib_user_data (f),
-			 free_glib_user_data,
+			 gc_handle_for_pvec (&f->header),
+			 free_glib_gc_handle,
 			 0);
 #endif
 
@@ -1671,8 +1677,8 @@ xg_create_frame_widgets (struct frame *f)
      GTK is to destroy the widget.  We want Emacs to do that instead.  */
   g_signal_connect_data (G_OBJECT (wtop), "delete-event",
 			 G_CALLBACK (delete_cb),
-			 glib_user_data (f),
-			 free_glib_user_data,
+			 gc_handle_for_pvec (&f->header),
+			 free_glib_gc_handle,
 			 0);
 #endif
 
@@ -1762,7 +1768,7 @@ xg_create_frame_widgets (struct frame *f)
 #ifndef HAVE_PGTK
   gtk_widget_set_tooltip_text (wtop, "Dummy text");
   g_signal_connect_data (wtop, "query-tooltip", G_CALLBACK (qttip_cb),
-			 glib_user_data (f), free_glib_user_data,
+			 gc_handle_for_pvec (&f->header), free_glib_gc_handle,
 			 0);
 
   imc = gtk_im_multicontext_new ();
@@ -1770,7 +1776,7 @@ xg_create_frame_widgets (struct frame *f)
 
   g_signal_connect_data (G_OBJECT (imc), "commit",
 			 G_CALLBACK (xg_im_context_commit),
-			 glib_user_data (f), free_glib_user_data,
+			 gc_handle_for_pvec (&f->header), free_glib_gc_handle,
 			 0);
   g_signal_connect (G_OBJECT (imc), "preedit-changed",
 		    G_CALLBACK (xg_im_context_preedit_changed), NULL);
@@ -1794,8 +1800,8 @@ xg_create_frame_widgets (struct frame *f)
       {
         g_signal_connect_data (G_OBJECT (gs), "notify::gtk-theme-name",
 			       G_CALLBACK (style_changed_cb),
-			       glib_user_data (gdk_screen_get_display (screen)),
-			       free_glib_user_data, 0);
+			       gdk_screen_get_display (screen),
+			       0, 0);
       }
   }
 
@@ -1884,7 +1890,7 @@ xg_create_frame_outer_widgets (struct frame *f)
 #ifndef HAVE_PGTK
   gtk_widget_set_tooltip_text (wtop, "Dummy text");
   g_signal_connect_data (wtop, "query-tooltip", G_CALLBACK (qttip_cb),
-			 glib_user_data (f), free_glib_user_data,
+			 gc_handle_for_pvec (&f->header), free_glib_gc_handle,
 			 0);
 #endif
 
@@ -1900,8 +1906,8 @@ xg_create_frame_outer_widgets (struct frame *f)
       {
         g_signal_connect_data (G_OBJECT (gs), "notify::gtk-theme-name",
 			       G_CALLBACK (style_changed_cb),
-			       glib_user_data (gdk_screen_get_display (screen)),
-			       free_glib_user_data, 0);
+			       gdk_screen_get_display (screen),
+			       0, 0);
       }
   }
 
@@ -1919,13 +1925,7 @@ xg_free_frame_widgets (struct frame *f)
         = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
                              TB_INFO_KEY);
       if (tbinfo)
-	{
-#ifdef HAVE_MPS
-	  igc_xfree (tbinfo);
-#else
-	  xfree (tbinfo);
-#endif
-	}
+	xfree (tbinfo);
 
       if (x->toolbar_widget && !x->toolbar_is_packed)
 	{
@@ -2418,9 +2418,7 @@ create_dialog (widget_value *wv,
           if (select_cb)
             g_signal_connect_data (G_OBJECT (w), "clicked",
 				   select_cb,
-				   glib_user_data (item->call_data),
-				   free_glib_user_data,
-				   0);
+				   item->call_data, 0, 0);
 
           gtk_box_pack_start (cur_box, w, TRUE, TRUE, button_spacing);
           if (++button_nr == left_buttons)
@@ -2454,7 +2452,7 @@ xg_dialog_response_cb (GtkDialog *w,
 		       gint response,
 		       gpointer user_data)
 {
-  struct xg_dialog_data *dd = get_glib_user_data (user_data);
+  struct xg_dialog_data *dd = user_data;
   dd->response = response;
   g_main_loop_quit (dd->loop);
 }
@@ -2524,8 +2522,7 @@ xg_dialog_run (struct frame *f, GtkWidget *w)
   g_signal_connect_data (G_OBJECT (w),
 			 "response",
 			 G_CALLBACK (xg_dialog_response_cb),
-			 glib_user_data (&dd), free_glib_user_data,
-			 0);
+			 &dd, 0, 0);
   /* Don't destroy the widget if closed by the window manager close button.  */
   g_signal_connect (G_OBJECT (w), "delete-event", G_CALLBACK (gtk_true), NULL);
   gtk_widget_show (w);
@@ -2593,7 +2590,7 @@ xg_toggle_notify_cb (GObject *gobject, GParamSpec *arg1, gpointer user_data)
 {
   if (strcmp (arg1->name, "show-hidden") == 0)
     {
-      GtkWidget *wtoggle = GTK_WIDGET (get_glib_user_data (user_data));
+      GtkWidget *wtoggle = GTK_WIDGET (user_data);
       gboolean visible, toggle_on;
 
       g_object_get (G_OBJECT (gobject), "show-hidden", &visible, NULL);
@@ -2661,11 +2658,10 @@ xg_get_file_with_chooser (struct frame *f,
   gtk_widget_show (wtoggle);
   g_signal_connect_data (G_OBJECT (wtoggle), "clicked",
 			 G_CALLBACK (xg_toggle_visibility_cb),
-			 glib_user_data (filewin),
-			 free_glib_user_data, 0);
+			 filewin, 0, 0);
   g_signal_connect_data (G_OBJECT (filewin), "notify",
-			 G_CALLBACK (xg_toggle_notify_cb), glib_user_data (wtoggle),
-			 free_glib_user_data, 0);
+			 G_CALLBACK (xg_toggle_notify_cb), wtoggle,
+			 0, 0);
 
   if (x_gtk_file_dialog_help_text)
     {
@@ -3023,13 +3019,9 @@ make_cl_data (xg_menu_cb_data *cl_data, struct frame *f, GCallback highlight_cb)
 {
   if (! cl_data)
     {
-#ifndef HAVE_MPS
       cl_data = xmalloc (sizeof *cl_data);
-#else
-      cl_data = igc_xzalloc_ambig (sizeof *cl_data);
-#endif
-      cl_data->f = f;
-      cl_data->menu_bar_vector = f->menu_bar_vector;
+      cl_data->frame = gc_handle_for_pvec (&f->header);
+      cl_data->menu_bar_vector = gc_handle_for (f->menu_bar_vector);
       cl_data->menu_bar_items_used = f->menu_bar_items_used;
       cl_data->highlight_cb = highlight_cb;
       cl_data->ref_count = 0;
@@ -3062,8 +3054,8 @@ update_cl_data (xg_menu_cb_data *cl_data,
 {
   if (cl_data)
     {
-      cl_data->f = f;
-      cl_data->menu_bar_vector = f->menu_bar_vector;
+      cl_data->frame = gc_handle_for_pvec (&f->header);
+      cl_data->menu_bar_vector = gc_handle_for (f->menu_bar_vector);
       cl_data->menu_bar_items_used = f->menu_bar_items_used;
       cl_data->highlight_cb = highlight_cb;
     }
@@ -3082,10 +3074,8 @@ unref_cl_data (xg_menu_cb_data *cl_data)
         {
 #ifndef HAVE_MPS
           xg_list_remove (&xg_menu_cb_list, &cl_data->ptrs);
-          xfree (cl_data);
-#else
-	  igc_xfree (cl_data);
 #endif
+          xfree (cl_data);
         }
     }
 }
@@ -3096,37 +3086,6 @@ unref_cl_data (xg_menu_cb_data *cl_data)
 void
 xg_mark_data (void)
 {
-  xg_list_node *iter;
-  Lisp_Object rest, frame;
-
-  for (iter = xg_menu_cb_list.next; iter; iter = iter->next)
-    mark_object (((xg_menu_cb_data *) iter)->menu_bar_vector);
-
-  for (iter = xg_menu_item_cb_list.next; iter; iter = iter->next)
-    {
-      xg_menu_item_cb_data *cb_data = (xg_menu_item_cb_data *) iter;
-
-      if (! NILP (cb_data->help))
-        mark_object (cb_data->help);
-    }
-
-  FOR_EACH_FRAME (rest, frame)
-    {
-      struct frame *f = XFRAME (frame);
-
-      if ((FRAME_X_P (f) || FRAME_PGTK_P (f)) && FRAME_GTK_OUTER_WIDGET (f))
-        {
-          struct xg_frame_tb_info *tbinfo
-            = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
-                                 TB_INFO_KEY);
-          if (tbinfo)
-            {
-              mark_object (tbinfo->last_tool_bar);
-              mark_object (tbinfo->style);
-            }
-        }
-    }
-
 #ifndef HAVE_PGTK
   if (xg_pending_quit_event.kind != NO_EVENT)
     {
@@ -3146,15 +3105,13 @@ xg_mark_data (void)
 static void
 menuitem_destroy_callback (GtkWidget *w, gpointer client_data)
 {
-  xg_menu_item_cb_data *data = get_glib_user_data (client_data);
+  xg_menu_item_cb_data *data = client_data;
   if (data)
     {
 #ifndef HAVE_MPS
       xg_list_remove (&xg_menu_item_cb_list, &data->ptrs);
-      xfree (data);
-#else
-      igc_xfree (data);
 #endif
+      xfree (data);
     }
 }
 
@@ -3197,7 +3154,7 @@ menuitem_highlight_callback (GtkWidget *w,
 static void
 menu_destroy_callback (GtkWidget *w, gpointer client_data)
 {
-  unref_cl_data (get_glib_user_data (client_data));
+  unref_cl_data (client_data);
 }
 
 /* Make a GTK widget that contains both UTF8_LABEL and UTF8_KEY (both
@@ -3336,25 +3293,21 @@ xg_create_one_menuitem (widget_value *item,
   if (utf8_label) g_free (utf8_label);
   if (utf8_key) g_free (utf8_key);
 
-#ifdef HAVE_MPS
-  cb_data = igc_xzalloc_ambig (sizeof *cb_data);
-#else
   cb_data = xmalloc (sizeof *cb_data);
 
+#ifndef HAVE_MPS
   xg_list_insert (&xg_menu_item_cb_list, &cb_data->ptrs);
 #endif
 
   cb_data->select_id = 0;
-  cb_data->help = item->help;
+  cb_data->help = gc_handle_for (item->help);
   cb_data->cl_data = cl_data;
   cb_data->call_data = item->call_data;
 
   g_signal_connect_data (G_OBJECT (w),
 			 "destroy",
 			 G_CALLBACK (menuitem_destroy_callback),
-			 glib_user_data (cb_data),
-			 free_glib_user_data,
-			 0);
+			 cb_data, 0, 0);
 
   /* Put cb_data in widget, so we can get at it when modifying menubar  */
   g_object_set_data (G_OBJECT (w), XG_ITEM_DATA, cb_data);
@@ -3365,9 +3318,7 @@ xg_create_one_menuitem (widget_value *item,
       if (select_cb)
         cb_data->select_id
           = g_signal_connect_data (G_OBJECT (w), "activate", select_cb,
-				   glib_user_data (cb_data),
-				   free_glib_user_data,
-				   0);
+				   cb_data, 0, 0);
     }
 
   return w;
@@ -3378,7 +3329,7 @@ static gboolean
 menu_bar_button_pressed_cb (GtkWidget *widget, GdkEvent *event,
 			    gpointer user_data)
 {
-  struct frame *f = get_glib_user_data (user_data);
+  struct frame *f = XFRAME (gc_handle_value (user_data));
 
   if (event->button.button < 4
       && event->button.window != gtk_widget_get_window (widget)
@@ -3457,7 +3408,7 @@ create_menus (widget_value *data,
 #ifdef HAVE_PGTK
 	  g_signal_connect_data (G_OBJECT (wmenu), "button-press-event",
 				 G_CALLBACK (menu_bar_button_pressed_cb),
-				 glib_user_data (f), free_glib_user_data,
+				 gc_handle_for_pvec (&f->header), free_glib_gc_handle,
 				 0);
 #endif
           /* Set width of menu bar to a small value so it doesn't enlarge
@@ -3472,8 +3423,7 @@ create_menus (widget_value *data,
       g_object_set_data (G_OBJECT (wmenu), XG_FRAME_DATA, (gpointer)cl_data);
       g_signal_connect_data (G_OBJECT (wmenu), "destroy",
 			     G_CALLBACK (menu_destroy_callback),
-			     glib_user_data (cl_data), free_glib_user_data,
-			     0);
+			     cl_data, 0, 0);
 
       if (name)
         gtk_widget_set_name (wmenu, name);
@@ -3936,7 +3886,7 @@ xg_update_menu_item (widget_value *val,
   if (cb_data)
     {
       cb_data->call_data = val->call_data;
-      cb_data->help = val->help;
+      cb_data->help = gc_handle_for (val->help);
       cb_data->cl_data = cl_data;
 
       /* We assume the callback functions don't change.  */
@@ -3947,9 +3897,7 @@ xg_update_menu_item (widget_value *val,
             cb_data->select_id
               = g_signal_connect_data (G_OBJECT (w), "activate",
 				       select_cb,
-				       glib_user_data (cb_data),
-				       free_glib_user_data,
-				       0);
+				       cb_data, 0, 0);
         }
       else if (cb_data->select_id)
         {
@@ -4195,7 +4143,7 @@ static void
 menubar_map_cb (GtkWidget *w, gpointer user_data)
 {
   GtkRequisition req;
-  struct frame *f = get_glib_user_data (user_data);
+  struct frame *f = XFRAME (gc_handle_value (user_data));
   gtk_widget_get_preferred_size (w, NULL, &req);
   req.height *= xg_get_scale (f);
   if (FRAME_MENUBAR_HEIGHT (f) != req.height)
@@ -4228,7 +4176,7 @@ xg_update_frame_menubar (struct frame *f)
   gtk_box_reorder_child (GTK_BOX (x->vbox_widget), x->menubar_widget, 0);
 
   g_signal_connect_data (x->menubar_widget, "map", G_CALLBACK (menubar_map_cb),
-			 glib_user_data (f), free_glib_user_data,
+			 gc_handle_for_pvec (&f->header), free_glib_gc_handle,
 			 0);
   gtk_widget_show_all (x->menubar_widget);
   gtk_widget_get_preferred_size (x->menubar_widget, NULL, &req);
@@ -4459,7 +4407,7 @@ xg_get_widget_from_map (ptrdiff_t idx, Display *dpy)
 static void
 find_scrollbar_cb (GtkWidget *widget, gpointer user_data)
 {
-  GtkWidget **scroll_bar = get_glib_user_data (user_data);
+  GtkWidget **scroll_bar = user_data;
 
   if (GTK_IS_SCROLLBAR (widget))
     *scroll_bar = widget;
@@ -4480,11 +4428,10 @@ xg_get_widget_from_map (ptrdiff_t window, Display *dpy)
       event.any.type = GDK_NOTHING;
       gwdesc = gtk_get_event_widget (&event);
 
-      gpointer user_data = glib_user_data (&scroll_bar);
+      gpointer user_data = &scroll_bar;
       if (gwdesc && GTK_IS_EVENT_BOX (gwdesc))
 	gtk_container_forall (GTK_CONTAINER (gwdesc),
 			      find_scrollbar_cb, user_data);
-      free_glib_user_data (user_data, NULL);
     }
   else
     return NULL;
@@ -4614,15 +4561,6 @@ xg_scroll_bar_size_allocate_cb (GtkWidget *widget,
 }
 #endif
 
-#ifdef HAVE_MPS
-static void
-xg_gtk_scroll_free_scroll_bar_cell (GtkWidget *widget, gpointer data)
-{
-  struct scroll_bar **bar_cell = data;
-  igc_xfree (bar_cell);
-}
-#endif
-
 static void
 xg_finish_scroll_bar_creation (struct frame *f,
                                GtkWidget *wscroll,
@@ -4655,41 +4593,24 @@ xg_finish_scroll_bar_creation (struct frame *f,
   g_signal_connect_data (G_OBJECT (wscroll),
 			 "destroy",
 			 G_CALLBACK (xg_gtk_scroll_destroy),
-			 glib_user_data ((gpointer) scroll_id),
-			 free_glib_user_data, 0);
+			 (gpointer) scroll_id,
+			 0, 0);
 #endif
 
-#ifdef HAVE_MPS
-  // FIXME/igc: can use exact reference
-  struct scroll_bar **bar_cell =
-    igc_xzalloc_ambig (sizeof (struct scroll_bar*));
-  bar_cell[0] = bar;
-#endif
+  gc_handle bar_gch = gc_handle_for_pvec (&bar->header);
   g_signal_connect (G_OBJECT (wscroll),
                     "change-value",
                     scroll_callback,
-#ifdef HAVE_MPS
-                    (gpointer) bar_cell
-#else
-		    (gpointer) bar
-#endif
-		    );
+		    bar_gch);
   g_signal_connect (G_OBJECT (wscroll),
                     "button-release-event",
                     end_callback,
-#ifdef HAVE_MPS
-                    (gpointer) bar_cell
-#else
-		    (gpointer) bar
-#endif
-		    );
+		    bar_gch);
 
-#ifdef HAVE_MPS
-    g_signal_connect (G_OBJECT (wscroll),
-		      "destroy",
-		      G_CALLBACK (xg_gtk_scroll_free_scroll_bar_cell),
-		      (gpointer) bar_cell);
-#endif
+  g_signal_connect (G_OBJECT (wscroll),
+		    "destroy",
+		    G_CALLBACK (free_glib_gc_handle),
+		    (gpointer) bar_gch);
 
   /* The scroll bar widget does not draw on a window of its own.  Instead
      it draws on the parent window, in this case the edit widget.  So
@@ -5312,7 +5233,7 @@ static void
 draw_page (GtkPrintOperation *operation, GtkPrintContext *context,
 	   gint page_nr, gpointer user_data)
 {
-  Lisp_Object frames = *(Lisp_Object *)get_glib_user_data (user_data);
+  Lisp_Object frames = gc_handle_value (user_data);
   struct frame *f = XFRAME (Fnth (make_fixnum (page_nr), frames));
   cairo_t *cr = gtk_print_context_get_cairo_context (context);
 
@@ -5335,10 +5256,8 @@ xg_print_frames_dialog (Lisp_Object frames)
   if (page_setup != NULL)
     gtk_print_operation_set_default_page_setup (print, page_setup);
   gtk_print_operation_set_n_pages (print, list_length (frames));
-  Lisp_Object *frames_ptr = &frames;
   g_signal_connect_data (print, "draw-page", G_CALLBACK (draw_page),
-			 glib_user_data (frames_ptr), free_glib_user_data,
-			 0);
+			 gc_handle_for (frames), free_glib_gc_handle, 0);
   res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
                                  NULL, NULL);
   if (res == GTK_PRINT_OPERATION_RESULT_APPLY)
@@ -5401,7 +5320,7 @@ xg_tool_bar_button_cb (GtkWidget *widget,
 static void
 xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
 {
-  intptr_t idx = (intptr_t) get_glib_user_data (client_data);
+  intptr_t idx = (intptr_t) client_data;
   gpointer gmod = g_object_get_data (G_OBJECT (w), XG_TOOL_BAR_LAST_MODIFIER);
   intptr_t mod = (intptr_t) gmod;
 
@@ -5463,7 +5382,7 @@ xg_tool_bar_help_callback (GtkWidget *w,
                            GdkEventCrossing *event,
                            gpointer client_data)
 {
-  intptr_t idx = (intptr_t) get_glib_user_data (client_data);
+  intptr_t idx = (intptr_t) client_data;
   struct frame *f = g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object help, frame;
 
@@ -5570,7 +5489,7 @@ tb_size_cb (GtkWidget    *widget,
   /* When tool bar is created it has one preferred size.  But when size is
      allocated between widgets, it may get another.  So we must update
      size hints if tool bar size changes.  Seen on Fedora 18 at least.  */
-  struct frame *f = get_glib_user_data (user_data);
+  struct frame *f = XFRAME (gc_handle_value (user_data));
 
   if (xg_update_tool_bar_sizes (f))
     adjust_frame_size (f, -1, -1, 2, false, Qtool_bar_lines);
@@ -5590,14 +5509,9 @@ xg_create_tool_bar (struct frame *f)
                          TB_INFO_KEY);
   if (! tbinfo)
     {
-#ifdef HAVE_MPS
-      // FIXME/igc: use exact references
-      tbinfo = igc_xzalloc_ambig (sizeof (*tbinfo));
-#else
       tbinfo = xmalloc (sizeof (*tbinfo));
-#endif
-      tbinfo->last_tool_bar = Qnil;
-      tbinfo->style = Qnil;
+      tbinfo->last_tool_bar = gc_handle_for (Qnil);
+      tbinfo->style = gc_handle_for (Qnil);
       tbinfo->hmargin = tbinfo->vmargin = 0;
       tbinfo->dir = GTK_TEXT_DIR_NONE;
       tbinfo->n_last_items = 0;
@@ -5615,7 +5529,7 @@ xg_create_tool_bar (struct frame *f)
                                   GTK_ORIENTATION_HORIZONTAL);
   g_signal_connect_data (x->toolbar_widget, "size-allocate",
 			 G_CALLBACK (tb_size_cb),
-			 glib_user_data (f), free_glib_user_data,
+			 gc_handle_for_pvec (&f->header), free_glib_gc_handle,
 			 0);
 #ifdef HAVE_GTK3
   gsty = gtk_widget_get_style_context (x->toolbar_widget);
@@ -5713,8 +5627,7 @@ xg_make_tool_item (struct frame *f,
 
       g_signal_connect_data (G_OBJECT (wb), "clicked",
 			     G_CALLBACK (xg_tool_bar_callback),
-			     glib_user_data (gi), free_glib_user_data,
-			     0);
+			     gi, 0, 0);
 
       g_object_set_data (G_OBJECT (weventbox), XG_FRAME_DATA, (gpointer)f);
 
@@ -5744,13 +5657,11 @@ xg_make_tool_item (struct frame *f,
       g_signal_connect_data (G_OBJECT (weventbox),
 			     "enter-notify-event",
 			     G_CALLBACK (xg_tool_bar_help_callback),
-			     glib_user_data (gi), free_glib_user_data,
-			     0);
+			     gi, 0, 0);
       g_signal_connect_data (G_OBJECT (weventbox),
 			     "leave-notify-event",
 			     G_CALLBACK (xg_tool_bar_help_callback),
-			     glib_user_data (gi), free_glib_user_data,
-			     0);
+			     gi, 0, 0);
     }
 
   if (wbutton) *wbutton = wb;
@@ -5978,20 +5889,22 @@ update_frame_tool_bar (struct frame *f)
   tbinfo = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
                               TB_INFO_KEY);
 
-  if (! NILP (tbinfo->last_tool_bar) && ! NILP (f->tool_bar_items)
+  if (! NILP (gc_handle_value (tbinfo->last_tool_bar))
+      && ! NILP (f->tool_bar_items)
       && tbinfo->n_last_items == f->n_tool_bar_items
       && tbinfo->hmargin == hmargin && tbinfo->vmargin == vmargin
       && tbinfo->dir == dir
-      && ! NILP (Fequal (tbinfo->style, style))
-      && ! NILP (Fequal (tbinfo->last_tool_bar, f->tool_bar_items)))
+      && ! NILP (Fequal (gc_handle_value (tbinfo->style), style))
+      && ! NILP (Fequal (gc_handle_value (tbinfo->last_tool_bar),
+			 f->tool_bar_items)))
     {
       unblock_input ();
       return;
     }
 
-  tbinfo->last_tool_bar = f->tool_bar_items;
+  tbinfo->last_tool_bar = gc_handle_for (f->tool_bar_items);
   tbinfo->n_last_items = f->n_tool_bar_items;
-  tbinfo->style = style;
+  tbinfo->style = gc_handle_for (style);
   tbinfo->hmargin = hmargin;
   tbinfo->vmargin = vmargin;
   tbinfo->dir = dir;
@@ -6265,11 +6178,7 @@ free_frame_tool_bar (struct frame *f)
                                   TB_INFO_KEY);
       if (tbinfo)
         {
-#ifdef HAVE_MPS
-	  igc_xfree (tbinfo);
-#else
           xfree (tbinfo);
-#endif
           g_object_set_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
                              TB_INFO_KEY,
                              NULL);
@@ -6435,7 +6344,7 @@ static void
 xg_im_context_commit (GtkIMContext *imc, gchar *str,
 		      gpointer user_data)
 {
-  struct frame *f = get_glib_user_data (user_data);
+  struct frame *f = XFRAME (gc_handle_value (user_data));
   struct input_event ie;
 #ifdef HAVE_XINPUT2
   struct xi_device_t *source;
@@ -6806,7 +6715,7 @@ xg_filter_key (struct frame *frame, XEvent *xkey)
 static void
 xg_widget_style_updated (GtkWidget *widget, gpointer user_data)
 {
-  struct frame *f = get_glib_user_data (user_data);
+  struct frame *f = XFRAME (gc_handle_value (user_data));
 
   if (f->alpha_background < 1.0)
     {

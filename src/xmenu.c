@@ -754,7 +754,7 @@ menu_highlight_callback (GtkWidget *widget, gpointer call_data)
   cb_data = g_object_get_data (G_OBJECT (widget), XG_ITEM_DATA);
   if (! cb_data) return;
 
-  help = call_data ? cb_data->help : Qnil;
+  help = call_data ? gc_handle_value (cb_data->help) : Qnil;
 
   /* If popup_activated_flag is greater than 1 we are in a popup menu.
      Don't pass the frame to show_help_event for those.
@@ -762,7 +762,9 @@ menu_highlight_callback (GtkWidget *widget, gpointer call_data)
      popup_widget_loop, it won't be handled.  Passing NULL shows the tip
      directly without using an Emacs event.  This is what the Lucid code
      does below.  */
-  show_help_event (popup_activated_flag <= 1 ? cb_data->cl_data->f : NULL,
+  show_help_event (popup_activated_flag <= 1
+		   ? XFRAME (gc_handle_value (cb_data->cl_data->frame))
+		   : NULL,
                    widget, help);
 }
 #else
@@ -793,12 +795,13 @@ static bool xg_crazy_callback_abort;
 static void
 menubar_selection_callback (GtkWidget *widget, gpointer client_data)
 {
-  xg_menu_item_cb_data *cb_data = get_glib_user_data (client_data);
+  xg_menu_item_cb_data *cb_data = client_data;
 
   if (xg_crazy_callback_abort)
     return;
 
-  if (! cb_data || ! cb_data->cl_data || ! cb_data->cl_data->f)
+  if (! cb_data || ! cb_data->cl_data
+      || NILP (gc_handle_value (cb_data->cl_data->frame)))
     return;
 
   /* For a group of radio buttons, GTK calls the selection callback first
@@ -821,9 +824,11 @@ menubar_selection_callback (GtkWidget *widget, gpointer client_data)
     gtk_main_iteration ();
   unblock_input ();
 
-  find_and_call_menu_selection (cb_data->cl_data->f,
+  find_and_call_menu_selection (XFRAME
+				(gc_handle_value (cb_data->cl_data->frame)),
                                 cb_data->cl_data->menu_bar_items_used,
-                                cb_data->cl_data->menu_bar_vector,
+                                gc_handle_value
+				(cb_data->cl_data->menu_bar_vector),
                                 cb_data->call_data);
 }
 
@@ -1478,7 +1483,7 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
 static void
 popup_selection_callback (GtkWidget *widget, gpointer client_data)
 {
-  xg_menu_item_cb_data *cb_data = get_glib_user_data (client_data);
+  xg_menu_item_cb_data *cb_data = client_data;
 
   if (xg_crazy_callback_abort) return;
   if (cb_data) menu_item_selection = cb_data->call_data;
@@ -2168,7 +2173,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 static void
 dialog_selection_callback (GtkWidget *widget, gpointer client_data)
 {
-  Lisp_Object *selection_pointer = get_glib_user_data (client_data);
+  Lisp_Object *selection_pointer = client_data;
   /* Treat the pointer as an integer.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
   if ((intptr_t) client_data != -1)
