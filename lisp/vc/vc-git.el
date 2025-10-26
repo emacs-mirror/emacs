@@ -2208,27 +2208,40 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
       (format "Summary: %s\n(cherry picked from commit %s)\n"
               comment rev))))
 
+(defun vc-git-revision-published-p (rev)
+  "Whether we think REV has been pushed such that it is public history.
+Considers only the current branch.  Does not fetch."
+  (let ((branch (vc-git--current-branch)))
+    ;; 'git branch --contains' is a porcelain command whose output could
+    ;; change in the future.
+    (unless (zerop (vc-git-command nil 1 nil "merge-base"
+                                   "--is-ancestor" rev branch))
+      (error "Revision %s does not exist on branch %s" rev branch))
+    (and
+     ;; BRANCH has an upstream.
+     (with-temp-buffer
+       (vc-git--out-ok "config" "--get"
+                       (format "branch.%s.merge" branch)))
+     ;; REV is not outgoing.
+     (not (cl-member rev
+                     (split-string
+                      (with-output-to-string
+                        (vc-git-command standard-output 0 nil "log"
+                                        "--pretty=format:%H"
+                                        "@{upstream}..HEAD")))
+                     :test #'string-prefix-p)))))
+
 (defun vc-git--assert-allowed-rewrite (rev)
   (when (and (not (and vc-allow-rewriting-published-history
                        (not (eq vc-allow-rewriting-published-history 'ask))))
-             ;; Check there is an upstream.
-             (with-temp-buffer
-               (vc-git--out-ok "config" "--get"
-                               (format "branch.%s.merge"
-                                       (vc-git--current-branch)))))
-    (let ((outgoing (split-string
-                     (with-output-to-string
-                       (vc-git-command standard-output 0 nil "log"
-                                       "--pretty=format:%H"
-                                       "@{upstream}..HEAD")))))
-      (unless (or (cl-member rev outgoing :test #'string-prefix-p)
-                  (and (eq vc-allow-rewriting-published-history 'ask)
+             (vc-git-revision-published-p rev)
+             (not (and (eq vc-allow-rewriting-published-history 'ask)
                        (yes-or-no-p
                         (format "\
 Commit %s appears published; allow rewriting history?"
-                                rev))))
-        (user-error "\
-Will not rewrite likely-public history; see option `vc-allow-rewriting-published-history'")))))
+                                rev)))))
+    (user-error "Will not rewrite likely-public history; \
+see option `vc-allow-rewriting-published-history'")))
 
 (defun vc-git-modify-change-comment (files rev comment)
   (vc-git--assert-allowed-rewrite rev)

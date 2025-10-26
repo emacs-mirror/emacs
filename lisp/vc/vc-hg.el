@@ -1832,6 +1832,13 @@ Cannot relocate first working tree because this would break other working trees"
       ;; comment by just one line break, for 'hg graft'.
       (format "Summary: %s\n(grafted from %s)\n" comment long))))
 
+(defun vc-hg-revision-published-p (rev)
+  "Whether REV has been pushed such that it is public history.
+Always has to fetch, like `vc-hg-incoming-revision' does."
+  (with-temp-buffer
+    (vc-hg-command t 0 nil "log" (format "--rev=outgoing() and %s" rev))
+    (<= (point-max) 1)))
+
 (provide 'vc-hg)
 
 ;;; vc-hg.el ends here

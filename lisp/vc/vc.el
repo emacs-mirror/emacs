@@ -544,6 +544,16 @@
 ;;
 ;;   Return the most recent revision of FILE that made a change
 ;;   on LINE.
+;;
+;; - revision-published-p (rev)
+;;
+;;   For a distributed VCS, return whether REV is part of the public
+;;   history of this branch, or only local history.  I.e., whether REV
+;;   has been pushed.  Implementations should not consider whether REV
+;;   is part of the public history of any other branches.
+;;   It is an error if REV is not present on the current branch.
+;;   Centralized VCS *must not* implement this, and there is no default
+;;   implementation.
 
 ;; TAG/BRANCH SYSTEM
 ;;
