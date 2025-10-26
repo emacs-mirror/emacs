@@ -565,14 +565,13 @@ This option has effect only if `elisp-fontify-semantically' is non-nil."
   :type 'boolean)
 
 (defun elisp--annotate-symbol-with-help-echo (role beg end sym)
-  (when elisp-add-help-echo
-    (put-text-property
-     beg end 'help-echo
-     (when-let* ((hlp (elisp-scope-get-symbol-role-property role :help)))
-       ;; HLP is either a string, or a function that takes SYM as an
-       ;; additional argument on top of the usual WINDOW, OBJECT and POS
-       ;; that `help-echo' functions takes.
-       (if (stringp hlp) hlp (apply-partially hlp sym))))))
+  (put-text-property
+   beg end 'help-echo
+   (when-let* ((hlp (elisp-scope-get-symbol-role-property role :help)))
+     ;; HLP is either a string, or a function that takes SYM as an
+     ;; additional argument on top of the usual WINDOW, OBJECT and POS
+     ;; that `help-echo' functions takes.
+     (if (stringp hlp) hlp (apply-partially hlp sym)))))
 
 (defvar font-lock-beg)
 (defvar font-lock-end)
@@ -604,8 +603,12 @@ semantic highlighting takes precedence."
   :version "31.1")
 
 (defun elisp-fontify-symbol (role beg sym id &optional _def)
+  "Fontify symbol SYM starting at position BEG according to its ROLE.
+
+If `elisp-add-help-echo' is non-nil, also annotate the symbol with the
+`help-echo' text property.  If `cursor-sensor-mode' is enabled and ID is
+non-nil, also annotate the symbol with `cursor-sensor-functions'."
   (let ((end (progn (goto-char beg) (read (current-buffer)) (point))))
-    (elisp--annotate-symbol-with-help-echo role beg end sym)
     (let ((face (elisp-scope-get-symbol-role-property role :face)))
       (add-face-text-property
        beg end face
@@ -613,8 +616,10 @@ semantic highlighting takes precedence."
          (ignore nil)
          (always t)
          (otherwise (funcall elisp-fontify-symbol-precedence-function beg end))))
-      (put-text-property beg end 'mouse-face `(,face elisp-symbol-at-mouse))
-      (when id
+      (when elisp-add-help-echo
+        (elisp--annotate-symbol-with-help-echo role beg end sym)
+        (put-text-property beg end 'mouse-face `(,face elisp-symbol-at-mouse)))
+      (when (and id (bound-and-true-p cursor-sensor-mode))
         (put-text-property beg (1+ end) 'cursor-sensor-functions
                            ;; Get a fresh list with SYM hardcoded,
                            ;; so that the value is distinguishable
