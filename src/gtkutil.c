@@ -148,18 +148,6 @@ bool xg_gtk_initialized;        /* Used to make sure xwidget calls are possible 
 static GtkWidget *xg_get_widget_from_map (ptrdiff_t idx, Display *dpy);
 
 
-#ifdef HAVE_MPS
-void free_glib_user_data (gpointer data, GClosure *closure)
-{
-  igc_xfree (data);
-}
-#else
-void free_glib_user_data (gpointer data, GClosure *closure)
-{
-  return;
-}
-#endif
-
 void
 free_glib_gc_handle (gpointer data, GClosure *closure)
 {
