@@ -551,8 +551,6 @@ See `elisp-scope-1' for possible values.")
 (defvar elisp-scope--callback #'ignore
   "Function to call to report information about each analyzed symbol.")
 
-(defvar elisp-scope--current-let-alist-form nil)
-
 (defsubst elisp-scope--local-new (sym pos &optional local)
   "Return new local context with SYM bound at POS.
 
@@ -590,21 +588,12 @@ Optional argument LOCAL is a local context to extend."
    beg sym beg))
 
 (defun elisp-scope--symbol (sym)
-  (let* ((beg (elisp-scope--sym-pos sym))
-         (bare (elisp-scope--sym-bare sym))
-         (name (symbol-name bare)))
-    (when (and beg (not (booleanp bare)))
-      (cond
-       ((keywordp bare) (elisp-scope--report 'constant beg bare))
-       ((and elisp-scope--current-let-alist-form (= (aref name 0) ?.))
-        (if (and (length> name 1) (= (aref name 1) ?.))
-            ;; Double dot escapes `let-alist'.
-            (let* ((unescaped (intern (substring name 1))))
-              (elisp-scope--variable unescaped beg (alist-get unescaped elisp-scope-local-bindings)))
-          (elisp-scope--report 'bound-variable beg
-                               (list 'let-alist (car elisp-scope--current-let-alist-form) bare)
-                               (cdr elisp-scope--current-let-alist-form))))
-       (t (elisp-scope--variable bare beg (alist-get bare elisp-scope-local-bindings)))))))
+  (when-let* ((beg (elisp-scope--sym-pos sym))
+              (bare (bare-symbol sym)))
+    (if (keywordp bare) (elisp-scope--report 'constant beg bare)
+      (unless (eq bare t) ; Do not report t as a variable.
+        (elisp-scope--variable
+         bare beg (alist-get bare elisp-scope-local-bindings))))))
 
 (defun elisp-scope--let-1 (local bindings body)
   (if bindings
@@ -2462,14 +2451,6 @@ ARGS bound to the analyzed arguments."
           (setq l (elisp-scope--local-new bare beg l)))))
     (let ((elisp-scope-local-bindings l)) (elisp-scope-n body))))
 
-(elisp-scope-define-analyzer let-alist (f alist &rest body)
-  (elisp-scope-report-s f 'macro)
-  (elisp-scope-1 alist)
-  (let ((elisp-scope--current-let-alist-form
-         (cons (or (elisp-scope--sym-pos f) (cons 'gen (incf elisp-scope--counter)))
-               (elisp-scope--sym-pos f))))
-    (elisp-scope-n body)))
-
 (elisp-scope-define-macro-analyzer define-obsolete-face-alias (&optional obs cur when)
   (when-let* ((q (elisp-scope--unquote obs))) (elisp-scope-report-s q 'defface))
   (when-let* ((q (elisp-scope--unquote cur))) (elisp-scope-report-s q 'face))
@@ -2574,7 +2555,6 @@ ARGS bound to the analyzed arguments."
 
 (cl-defmethod elisp-scope--handle-quoted ((_spec (eql 'code)) arg)
   (let ((elisp-scope-local-bindings nil)
-        (elisp-scope--current-let-alist-form nil)
         (elisp-scope-local-definitions nil)
         (elisp-scope-block-alist nil)
         (elisp-scope-label-alist nil)
