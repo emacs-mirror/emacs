@@ -62,6 +62,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "syssignal.h"
 #include "w32term.h"
 #include "coding.h"
+#ifdef HAVE_MPS
+# include "igc.h"
+#endif
 
 void w32_raise (int);
 
@@ -449,12 +452,17 @@ w32_get_timer_time (HANDLE thread)
 static DWORD WINAPI
 timer_loop (LPVOID arg)
 {
+#ifdef HAVE_MPS
+  DWORD stk_bot;
+  void *igc_thr = w32_add_non_lisp_thread (&stk_bot);
+#endif
   struct itimer_data *itimer = (struct itimer_data *)arg;
   int which = itimer->type;
   int sig = (which == ITIMER_REAL) ? SIGALRM : SIGPROF;
   CRITICAL_SECTION *crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
   const DWORD max_sleep = MAX_SINGLE_SLEEP * 1000 / TIMER_TICKS_PER_SEC;
   HANDLE hth = (which == ITIMER_REAL) ? NULL : itimer->caller_thread;
+  DWORD retval = 0;
 
   while (1)
     {
@@ -468,7 +476,10 @@ timer_loop (LPVOID arg)
       reload = itimer->reload;
       LeaveCriticalSection (crit);
       if (itimer->terminate)
-	return 0;
+	{
+	  retval = 0;
+	  goto out;
+	}
 
       if (expire == 0)
 	{
@@ -486,7 +497,10 @@ timer_loop (LPVOID arg)
       while (sleep_time > max_sleep)
 	{
 	  if (itimer->terminate)
-	    return 0;
+	    {
+	      retval = 0;
+	      goto out;
+	    }
 	  Sleep (max_sleep);
 	  EnterCriticalSection (crit);
 	  expire = itimer->expire;
@@ -495,7 +509,10 @@ timer_loop (LPVOID arg)
 	    (expire > (now = w32_get_timer_time (hth))) ? expire - now : 0;
 	}
       if (itimer->terminate)
-	return 0;
+	{
+	  retval = 0;
+	  goto out;
+	}
       if (sleep_time > 0)
 	{
 	  Sleep (sleep_time * 1000 / TIMER_TICKS_PER_SEC);
@@ -533,7 +550,10 @@ timer_loop (LPVOID arg)
 	  DWORD result = SuspendThread (th);
 
 	  if (result == (DWORD)-1)
-	    return 2;
+	    {
+	      retval = 2;
+	      goto out;
+	    }
 
 	  handler (sig);
 	  ResumeThread (th);
@@ -569,7 +589,13 @@ timer_loop (LPVOID arg)
       itimer->expire = expire;
       LeaveCriticalSection (crit);
     }
-  return 0;
+
+ out:
+
+#ifdef HAVE_MPS
+  w32_remove_non_lisp_thread (igc_thr);
+#endif
+  return retval;
 }
 
 static void

@@ -176,10 +176,15 @@ void *igc_alloc_dump (size_t nbytes);
 bool igc_busy_p (void);
 Lisp_Object igc_discard_killed_buffers (Lisp_Object list);
 
+#ifdef HAVE_NTGUI
+void * w32_add_non_lisp_thread (void *);
+void w32_remove_non_lisp_thread (void *);
+#endif
+
 # define eassert_not_mps() eassert (false)
 #else
 # define igc_break() (void) 0
 # define eassert_not_mps() (void) 0
-#endif // HAVE_MPS
+#endif 	/* HAVE_MPS */
 
-#endif // EMACS_IGC_H
+#endif	/* EMACS_IGC_H */

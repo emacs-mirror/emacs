@@ -3067,6 +3067,12 @@ root_create_kbd_buffer (struct igc *gc)
 	       true, "kbd-buffer");
 }
 
+
+/***********************************************************************
+				Threads, roots
+ ***********************************************************************/
+
+
 static void
 root_create_main_thread (struct igc *gc)
 {
@@ -3404,6 +3410,43 @@ igc_thread_remove (void **pinfo)
   mps_ap_destroy (t->d.immovable_ap);
   mps_thread_dereg (deregister_thread (t));
 }
+
+#ifdef HAVE_NTGUI
+
+/* On MS-Windows we start Non-Lisp threads that need to access Lisp
+   objects.  These need to be registered with MPS.  */
+void *
+w32_add_non_lisp_thread (void *thread_stack_bottom)
+{
+  mps_thr_t thr;
+  mps_res_t res = mps_thread_reg (&thr, global_igc->arena);
+  IGC_CHECK_RES (res);
+  struct igc_thread *t = xzalloc (sizeof *t);
+  t->gc = global_igc;
+  t->thr = thr;
+  t->ts = NULL;
+  mps_root_t root;
+  void *cold = thread_stack_bottom;
+  res = mps_root_create_thread_scanned (&root, global_igc->arena,
+					mps_rank_ambig (), 0, thr,
+					scan_ambig, 0, cold);
+  IGC_CHECK_RES (res);
+  t->stack_root = register_root (global_igc, root, cold, NULL, true,
+				 "control stack");
+  return t;
+}
+
+void
+w32_remove_non_lisp_thread (void *info)
+{
+  struct igc_thread *t = info;
+
+  mps_root_destroy (deregister_root (t->stack_root));
+  mps_thread_dereg (t->thr);
+  xfree (t);
+}
+
+#endif
 
 static void
 _release_arena (void)
