@@ -1837,7 +1837,7 @@ Cannot relocate first working tree because this would break other working trees"
 Always has to fetch, like `vc-hg-incoming-revision' does."
   (with-temp-buffer
     (vc-hg-command t 0 nil "log" (format "--rev=outgoing() and %s" rev))
-    (<= (point-max) 1)))
+    (bobp)))
 
 (provide 'vc-hg)
 
