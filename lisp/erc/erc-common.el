@@ -100,7 +100,7 @@ ERC only refolds `string', never `substxt'."))
                                 :named)
   "Object containing channel-specific data for a single user."
   ;; voice halfop op admin owner
-  (status 0 :type integer)
+  (status 0 :type natnum)
   ;; Last message time (in the form of the return value of
   ;; (current-time)
   ;;

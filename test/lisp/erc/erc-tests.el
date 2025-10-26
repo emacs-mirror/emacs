@@ -688,6 +688,9 @@
   (should-not (erc--parse-nuh "abc\nde!fg@xy")))
 
 (ert-deftest erc--parsed-prefix ()
+  ;; Effectively a no-op in a non-ERC buffer.
+  (should-not (erc--parsed-prefix))
+
   (erc-tests-common-make-server-buf (buffer-name))
 
   ;; Uses fallback values when no PREFIX parameter yet received, thus
@@ -816,6 +819,156 @@
       (erc--cusr-change-status cusr ?q nil 'reset)
       (should-not (erc--cusr-status-p cusr ?v))
       (should-not (erc--cusr-status-p cusr ?q)))))
+
+(defun erc-tests--make-combinations (flags)
+  "Return a list of all combinations in FLAGS, preserving order."
+  (let* ((flags (apply #'vector flags))
+         (n (length flags))
+         (max (1- (ash 1 n)))
+         (mask 0)
+         (out ()))
+    (while (<= (cl-incf mask) max)
+      (let ((i 0)
+            (subset ()))
+        (while (< i n)
+          (unless (zerop (logand mask (ash 1 i)))
+            (push (aref flags i) subset))
+          (cl-incf i))
+        (when (cdr subset)
+          (push (nreverse subset) out))))
+    out))
+
+(defun erc-tests--with-channel-user-status-accessors (test)
+  (erc-tests-common-make-server-buf)
+
+  (let* ((u (make-erc-channel-user))
+         (get (lambda (letter)
+                (pcase letter
+                  (?v (erc-channel-user-voice u))
+                  (?h (erc-channel-user-halfop u))
+                  (?o (erc-channel-user-op u))
+                  (?a (erc-channel-user-admin u))
+                  (?q (erc-channel-user-owner u)))))
+
+         (set (lambda (letter val)
+                (pcase letter
+                  (?v (setf (erc-channel-user-voice u) val))
+                  (?h (setf (erc-channel-user-halfop u) val))
+                  (?o (setf (erc-channel-user-op u) val))
+                  (?a (setf (erc-channel-user-admin u) val))
+                  (?q (setf (erc-channel-user-owner u) val)))))
+
+         (assert-null
+          (lambda (&rest letters)
+            (dolist (letter letters)
+              (ert-info ((format "Assert null: %c" letter))
+                (should-not (funcall get letter))))))
+
+         (assert-set
+          (lambda (letter &optional nop)
+            (ert-info ((format "Assert: %c%s" letter (if nop " (no-op)" "")))
+              (should-not (funcall get letter))
+              (if (and nop erc-channel-user-signal-if-status-unknown)
+                  (should-error (funcall set letter t))
+                ;; If the flag is unsupported, always return nil,
+                ;; and don't set anything, otherwise, return t.
+                (let ((rv (funcall set letter t)))
+                  (ert-info ((format "Set: %S" rv))
+                    (should (xor rv nop)))))
+              (let ((rv (funcall get letter)))
+                (ert-info ((format "Get: %S" rv))
+                  (should (xor rv nop)))))))
+
+         (assert-solo
+          (lambda (letter &optional nop)
+            (setf (erc-channel-user-status u) 0) ; clear
+            (funcall assert-set letter nop)
+            (apply assert-null (seq-difference '(?v ?h ?o ?a ?q)
+                                               (list letter)))))
+
+         (assert-multi
+          (lambda (&rest supported)
+            ;; Set all defined flags from smallest to largest rank.
+            (dolist (flags (erc-tests--make-combinations '(?v ?h ?o ?a ?q)))
+              (setf (erc-channel-user-status u) 0)
+              (ert-info ((let ((print-integers-as-characters t))
+                           (format "Multi %S" (list :flags flags
+                                                    :supported supported))))
+                (let ((seen-supported ())
+                      (seen-unsupported ()))
+                  (dolist (a flags)
+                    (let ((supportedp (memq a supported)))
+                      (push a (if supportedp seen-supported seen-unsupported))
+                      (funcall assert-set a (not supportedp))
+                      ;; Addition of new flag has not corrupted others.
+                      (dolist (aa seen-supported)
+                        (ert-info ((format "Seen supported: %s %c" u aa))
+                          (should (funcall get aa))))
+                      (dolist (aa `(,@seen-unsupported ,@(cdr (memq a flags))))
+                        (should-not (funcall get aa))))))
+                ;; Unset in reverse, although not doing so is valid.
+                (setq flags (nreverse flags))
+                (let ((seen ()))
+                  (while-let ((b (pop flags)))
+                    (ert-info ((format "Unsetting: %S %c" u b))
+                      (should-not (funcall set b nil))
+                      (dolist (bb (push b seen))
+                        (ert-info ((format "Seen unset: %c" bb))
+                          (should-not (funcall get bb))))
+                      (dolist (bb flags)
+                        (ert-info ((format "Unseen set: %c" bb))
+                          (if (memq bb supported)
+                              (should (funcall get bb))
+                            (should-not (funcall get bb)))))))))))))
+
+    ;; Run the same test twice, with compat flag nil and non-nil.
+    (let ((erc-channel-user-signal-if-status-unknown nil))
+      (funcall test assert-null assert-set assert-solo assert-multi))
+
+    (ert-info ("With `erc-channel-user-signal-if-status-unknown'")
+      (setf (erc-channel-user-status u) 0) ; clear
+      (let ((erc-channel-user-signal-if-status-unknown t))
+        (funcall test assert-null assert-set assert-solo assert-multi)))
+
+    (erc-tests-common-kill-buffers)))
+
+(ert-deftest erc-channel-user/status-accessors/solo/default ()
+  (erc-tests--with-channel-user-status-accessors
+   (lambda (assert-null _assert-set assert-solo _assert-multi)
+
+     (ert-info ("Baseline")
+       (funcall assert-null ?v ?h ?o ?a ?q))
+
+     (ert-info ("+v") (funcall assert-solo ?v))
+     (ert-info ("+h") (funcall assert-solo ?h))
+     (ert-info ("+o") (funcall assert-solo ?o))
+     (ert-info ("+a") (funcall assert-solo ?a))
+     (ert-info ("+q") (funcall assert-solo ?q)))))
+
+(ert-deftest erc-channel-user/status-accessors/solo/ov ()
+  (erc-tests--with-channel-user-status-accessors
+   (lambda (assert-null _assert-set assert-solo _assert-multi)
+     (erc-tests-common-simulate-line ":irc.gnu.org 005 tester PREFIX=(ov)@+")
+
+     (ert-info ("Baseline")
+       (funcall assert-null ?v ?h ?o ?a ?q))
+
+     (ert-info ("+v") (funcall assert-solo ?v))
+     (ert-info ("+h (unknown)") (funcall assert-solo ?h 'nop))
+     (ert-info ("+o") (funcall assert-solo ?o))
+     (ert-info ("+a (unknown)") (funcall assert-solo ?a 'nop))
+     (ert-info ("+q (unknown)") (funcall assert-solo ?q 'nop)))))
+
+(ert-deftest erc-channel-user/status-accessors/multi/default ()
+  (erc-tests--with-channel-user-status-accessors
+   (lambda (_assert-null _assert-set _assert-solo assert-multi)
+     (funcall assert-multi ?v ?h ?o ?a ?q))))
+
+(ert-deftest erc-channel-user/status-accessors/multi/ov ()
+  (erc-tests--with-channel-user-status-accessors
+   (lambda (_assert-null _assert-set _assert-solo assert-multi)
+     (erc-tests-common-simulate-line ":irc.gnu.org 005 tester PREFIX=(ov)@+")
+     (funcall assert-multi ?v ?o))))
 
 ;; This exists as a reference to assert legacy behavior in order to
 ;; preserve and incorporate it as a fallback in the 5.6+ replacement.
@@ -3489,8 +3642,11 @@
   (when noninteractive
     (erc-tests-common-kill-buffers)))
 
+;; For legacy accessors, like `erc-channel-user-halfop', this test only
+;; demonstrates compat-oriented behavior in a non-ERC buffer.  See
+;; `erc-tests--with-channel-user-status-accessors' based tests for
+;; behavior in ERC buffers, both fallback and ISUPPORT-defined.
 (ert-deftest erc-channel-user ()
-  ;; Traditional and alternate constructor swapped for compatibility.
   (should (= 0 (erc-channel-user-status (erc-channel-user--make))))
   (should-not (erc-channel-user-last-message-time (erc-channel-user--make)))
 
