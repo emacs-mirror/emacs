@@ -136,9 +136,9 @@ both for the body of the function and for the body of the compiler-macro
 used to generate the code inlined at each call site.
 See Info node `(elisp)Inline Functions for more details.
 
-A (noinline t) in the `declare' form prevents the definition of the compiler macro,
-for the rare case where you want to use this macro to define a function that should
-not be inlined."
+A (noinline t) in the `declare' form prevents the definition of the
+compiler macro.  This is for the rare case that you want to use this
+macro to define a function that should not be inlined."
   ;; FIXME: How can this work with CL arglists?
   (declare (indent defun) (debug defun) (doc-string 3)
            (autoload-macro expand)) ; expand to the defun on autoload gen
