@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 typedef struct x_output xp_output;
 #else
 #define xp pgtk
+#include "xsettings.h"
 typedef struct pgtk_output xp_output;
 #endif
 #include "blockinput.h"
@@ -1450,6 +1451,47 @@ xg_set_widget_bg (struct frame *f, GtkWidget *w, unsigned long pixel)
 #endif
 }
 
+/* Apply dark mode preference to GTK window decorations.  */
+
+#ifdef HAVE_PGTK
+void
+xg_set_gtk_theme_dark_mode (bool dark_mode_p, GtkSettings *settings)
+{
+  g_object_set (settings, "gtk-application-prefer-dark-theme",
+                dark_mode_p ? TRUE : FALSE, NULL);
+}
+#endif
+
+/* Update all frames' dark mode based on system setting.  */
+
+#ifdef HAVE_PGTK
+void
+xg_update_dark_mode_for_all_displays (bool dark_mode_p)
+{
+   struct pgtk_display_info *dpyinfo;
+   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+     {
+       GdkScreen *screen
+	 = gdk_display_get_default_screen (dpyinfo->gdpy);
+       GtkSettings *settings
+	 = gtk_settings_get_for_screen (screen);
+       xg_set_gtk_theme_dark_mode (dark_mode_p, settings);
+     }
+}
+#endif
+
+/* Set initial dark mode for a new frame (called during frame
+ * creation).  */
+
+#ifdef HAVE_PGTK
+void
+xg_set_initial_dark_mode (struct frame *f)
+{
+  bool dark_mode_p = xg_get_system_dark_mode ();
+  xg_update_dark_mode_for_all_displays (dark_mode_p);
+}
+#endif
+
 /* Callback called when the gtk theme changes.
    We notify lisp code so it can fix faces used for region for example.  */
 
@@ -1769,6 +1811,10 @@ xg_create_frame_widgets (struct frame *f)
       }
   }
 
+#ifdef HAVE_PGTK
+  xg_set_initial_dark_mode (f);
+#endif
+
   unblock_input ();
 
   return 1;
@@ -1871,6 +1917,10 @@ xg_create_frame_outer_widgets (struct frame *f)
                           gdk_screen_get_display (screen));
       }
   }
+
+#ifdef HAVE_PGTK
+  xg_set_initial_dark_mode (f);
+#endif
 
   unblock_input ();
 }

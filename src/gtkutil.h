@@ -184,6 +184,9 @@ extern bool xg_check_special_colors (struct frame *f,
 				     Emacs_Color *color);
 #ifdef HAVE_PGTK
 extern void xg_create_frame_outer_widgets (struct frame *f);
+extern void xg_set_gtk_theme_dark_mode (bool dark_mode_p, GtkSettings *settings);
+extern void xg_update_dark_mode_for_all_displays (bool dark_mode_p);
+extern void xg_set_initial_dark_mode (struct frame *f);
 #endif
 
 #ifndef HAVE_PGTK

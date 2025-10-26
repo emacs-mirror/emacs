@@ -3409,6 +3409,12 @@ This is an abbreviation for using the name of the keymap as the prefix
 command name.  E.g., '(defvar-keymap foo-map :prefix t)' is equivalent
 to '(defvar-keymap foo-map :prefix 'foo-map)'.
 
+---
+** Emacs PGTK toolkit respects dark and light modes.
+Emacs when built with the pure GTK toolkit now respects desktop
+dark and light modes for drawing a GTK toolbar and widgets,
+automatically toggling between them.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 

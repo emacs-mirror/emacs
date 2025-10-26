@@ -227,6 +227,7 @@ static cairo_font_options_t *font_options;
 #define GSETTINGS_FONT_ANTIALIASING  "font-antialiasing"
 #define GSETTINGS_FONT_RGBA_ORDER    "font-rgba-order"
 #define GSETTINGS_FONT_HINTING       "font-hinting"
+#define GSETTINGS_COLOR_SCHEME       "color-scheme"
 #endif
 
 /* The single GSettings instance, or NULL if not connected to GSettings.  */
@@ -447,6 +448,25 @@ something_changed_gsettingsCB (GSettings *settings,
     {
       apply_gsettings_font_rgba_order (settings);
       store_font_options_changed ();
+    }
+  else if (!strcmp (key, GSETTINGS_COLOR_SCHEME))
+    {
+      if (xg_settings_key_valid_p (settings, GSETTINGS_COLOR_SCHEME))
+        {
+          val = g_settings_get_value (settings, GSETTINGS_COLOR_SCHEME);
+          if (val)
+            {
+              g_variant_ref_sink (val);
+              if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+                {
+                  const char *color_scheme = g_variant_get_string (val, NULL);
+                  /* Check dark mode preference and update all frames. */
+                  bool dark_mode_p = (strstr (color_scheme, "dark") != NULL);
+                  xg_update_dark_mode_for_all_displays (dark_mode_p);
+                }
+              g_variant_unref (val);
+            }
+        }
     }
 #endif /* HAVE_PGTK */
 }
@@ -1108,6 +1128,32 @@ init_gsettings (void)
 
 #endif /* HAVE_GSETTINGS */
 }
+
+/* Get current system dark mode state.  */
+
+#ifdef HAVE_PGTK
+bool
+xg_get_system_dark_mode (void)
+{
+  if (gsettings_client && xg_settings_key_valid_p (gsettings_client, GSETTINGS_COLOR_SCHEME))
+    {
+      GVariant *val = g_settings_get_value (gsettings_client, GSETTINGS_COLOR_SCHEME);
+      if (val)
+        {
+          g_variant_ref_sink (val);
+          if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+            {
+              const char *color_scheme = g_variant_get_string (val, NULL);
+              bool dark_mode_p = (strstr (color_scheme, "dark") != NULL);
+              g_variant_unref (val);
+              return dark_mode_p;
+            }
+          g_variant_unref (val);
+        }
+    }
+  return false;
+}
+#endif
 
 /* Init GConf and read startup values.  */
 
