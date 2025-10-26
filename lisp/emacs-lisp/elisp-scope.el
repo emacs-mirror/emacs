@@ -588,6 +588,7 @@ Optional argument LOCAL is a local context to extend."
    beg sym beg))
 
 (defun elisp-scope--symbol (sym)
+  "Analyze and report symbol SYM as a variable reference."
   (when-let* ((beg (elisp-scope--sym-pos sym))
               (bare (bare-symbol sym)))
     (if (keywordp bare) (elisp-scope--report 'constant beg bare)
