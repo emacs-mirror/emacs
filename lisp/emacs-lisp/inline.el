@@ -137,7 +137,7 @@ used to generate the code inlined at each call site.
 See Info node `(elisp)Inline Functions for more details.
 
 A (noinline t) in the `declare' form prevents the definition of the
-compiler macro.  This is for the rare case that you want to use this
+compiler macro.  This is for the rare case in which you want to use this
 macro to define a function that should not be inlined."
   ;; FIXME: How can this work with CL arglists?
   (declare (indent defun) (debug defun) (doc-string 3)
