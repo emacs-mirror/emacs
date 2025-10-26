@@ -69,6 +69,9 @@ typedef enum _WTS_VIRTUAL_CLASS {
 #include "cygw32.h"
 #else
 #include "w32.h"
+#ifdef HAVE_MPS
+# include "igc.h"
+#endif
 #endif
 
 #include "pdumper.h"
@@ -3920,6 +3923,10 @@ DWORD WINAPI w32_msg_worker (void *);
 DWORD WINAPI
 w32_msg_worker (void *arg)
 {
+#ifdef HAVE_MPS
+  DWORD stk_bot;
+  void *igc_thr = w32_add_non_lisp_thread (&stk_bot);
+#endif
   MSG msg;
   deferred_msg dummy_buf;
 
@@ -3937,6 +3944,10 @@ w32_msg_worker (void *arg)
   /* This is the initial message loop which should only exit when the
      application quits.  */
   w32_msg_pump (&dummy_buf);
+
+#ifdef HAVE_MPS
+  w32_remove_non_lisp_thread (igc_thr);
+#endif
 
   return 0;
 }
