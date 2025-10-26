@@ -5084,7 +5084,7 @@ size_allocate (GtkWidget *widget, GtkAllocation *alloc,
   struct frame *f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
 
   if (!f)
-    f = user_data;
+    f = XFRAME (gc_handle_value (user_data));
 
   if (f)
     {
@@ -6814,8 +6814,10 @@ pgtk_set_event_handler (struct frame *f)
 
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "map-event",
 		    G_CALLBACK (map_event), NULL);
-  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "size-allocate",
-		    G_CALLBACK (size_allocate), f);
+  g_signal_connect_data (G_OBJECT (FRAME_GTK_WIDGET (f)), "size-allocate",
+			 G_CALLBACK (size_allocate),
+			 gc_handle_for_pvec (&f->header),
+			 free_glib_gc_handle, 0);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "key-press-event",
 		    G_CALLBACK (key_press_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "key-release-event",
