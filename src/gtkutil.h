@@ -33,6 +33,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define EVENT XEvent
 #endif
 
+#include "gc-handles.h"
+
+extern void free_glib_gc_handle (gpointer data, GClosure *closure);
+
 /* Minimum and maximum values used for GTK scroll bars  */
 
 #define XG_SB_MIN 1
@@ -64,8 +68,8 @@ typedef struct xg_menu_cb_data_
 {
   xg_list_node  ptrs;
 
-  struct frame  *f;
-  Lisp_Object   menu_bar_vector;
+  gc_handle     frame;
+  gc_handle     menu_bar_vector;
   int           menu_bar_items_used;
   GCallback     highlight_cb;
   int           ref_count;
@@ -77,7 +81,7 @@ typedef struct xg_menu_item_cb_data_
   xg_list_node  ptrs;
 
   gulong        select_id;
-  Lisp_Object   help;
+  gc_handle     help;
   gpointer	call_data;
   xg_menu_cb_data *cl_data;
 
