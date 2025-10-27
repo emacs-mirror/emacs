@@ -1839,6 +1839,73 @@ Always has to fetch, like `vc-hg-incoming-revision' does."
     (vc-hg-command t 0 nil "log" (format "--rev=outgoing() and %s" rev))
     (bobp)))
 
+(defun vc-hg-delete-revision (rev)
+  "Use `hg histedit' to delete REV from the history of the current branch.
+
+`hg histedit' will fail unless
+- REV is an ancestor of the working directory;
+- all commits back to REV are not yet public; and
+- there aren't any merges in the history to be edited."
+  (with-temp-buffer
+    ;; Resolve REV to a full changeset hash.
+    (vc-hg-command t 0 nil "log" "--limit=1"
+                   (format "--rev=%s" rev) "--template={node}")
+    (when (bobp)
+      ;; If REV is not found, hg exits 255, so this should never happen.
+      (error "'hg log' unexpectedly gave no output"))
+    (setq rev (buffer-string)))
+  (let ((repo default-directory)
+        (commands (make-nearby-temp-file "hg-commands")))
+    (unwind-protect
+        (let ((coding-system-for-write
+               ;; On MS-Windows, we must encode command-line arguments
+               ;; in the system codepage.
+               (if (eq system-type 'windows-nt)
+                   locale-coding-system
+                 coding-system-for-write)))
+          (with-temp-file commands
+            (let ((default-directory repo))
+              (vc-hg-command t 0 nil "log" (format "--rev=.:%s" rev)
+                             "--template=pick {node}\n"))
+            (goto-char (point-min))
+            (unless (re-search-forward (format "^pick %s\n\\'" rev) nil t)
+              (error "'hg log' output parse failure"))
+            (replace-match (format "drop %s\n" rev)))
+          (unless (zerop
+                   (vc-hg-command
+                    nil 1 nil
+                    "--config=extensions.histedit="
+
+                    ;; Without this, --commands is ignored and histedit
+                    ;; starts a curses interface.  (Actually redundant
+                    ;; with the HGPLAIN=1 set by vc-hg--command-1.)
+                    "--config=ui.interface=text"
+
+                    ;; Request validation of the commands file:
+                    ;; stop if any commits in the history back to REV
+                    ;; are missing, somehow.
+                    "--config=histedit.dropmissing=False"
+
+                    ;; Prevent Mercurial trying to open Meld or similar.
+                    ;; FIXME: According to
+                    ;; <https://repo.mercurial-scm.org/hg/help/merge-tools>,
+                    ;; this can be overridden by user's "merge-patterns"
+                    ;; settings.
+                    "--config=ui.merge=internal:fail"
+
+                    "histedit"
+                    (format "--rev=%s" rev) "--commands" commands))
+            ;; FIXME: Ideally we would leave some sort of conflict for
+            ;; the user to resolve, instead of just giving up.
+            ;; We would want C-x v v to do 'hg histedit --continue' like
+            ;; how it can currently be used to conclude a merge after
+            ;; resolving conflicts.
+            (vc-hg-command nil 0 nil "--config=extensions.histedit="
+                           "histedit" "--abort")
+            (error "Merge conflicts while trying to delete %s; aborting"
+                   rev)))
+      (delete-file commands))))
+
 (provide 'vc-hg)
 
 ;;; vc-hg.el ends here
