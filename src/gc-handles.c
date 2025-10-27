@@ -97,19 +97,28 @@ DEFUN ("gc-handles-info", Fgc_handles_info, Sgc_handles_info, 0, 0, 0,
        doc: /* Return information about registered GC handles.
 Return value is an list with the following entries:
 - ("objects" OBJECTS) -- the number of distinct objects which have GC handles
-- ("refs" REFS) -- the number of handles which were allocated.  */)
-  (void)
+- ("refs" REFS) -- the number of handles which were allocated
+- ("refcounts" ((OBJ . COUNT) ...)) -- per object reference counts.  */)
+(void)
 {
-  Lisp_Object nobj = make_fixnum (0);
-  Lisp_Object nref = make_fixnum (0);
+  size_t nobj = 0;
+  size_t nref = 0;
+  Lisp_Object refcounts = Qnil;
   DOHASH (XHASH_TABLE (global_handle_table), k, v)
   {
     gc_handle gch = xmint_pointer (v);
-    nobj = CALLN (Fplus, nobj, make_fixnum (1));
-    nref = CALLN (Fplus, nref, make_fixnum (gch->refcount));
+    nobj += 1;
+    nref += gch->refcount;
+    Lisp_Object obj = k;
+    if (XTYPE (k) == Lisp_Vectorlike
+	&& PSEUDOVECTOR_TYPE (XVECTOR (k)) == PVEC_OTHER)
+      obj = build_string ("#<PVEC_OTHER>");
+    refcounts
+      = Fcons (Fcons (obj, make_uint (gch->refcount)), refcounts);
   }
-  return list (list (build_string ("objects"), nobj),
-	       list (build_string ("refs"), nref));
+  return list (list (build_string ("objects"), make_uint (nobj)),
+	       list (build_string ("refs"), make_uint (nref)),
+	       list (build_string ("refcounts"), refcounts));
 }
 
 void
