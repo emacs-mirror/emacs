@@ -3112,6 +3112,16 @@ See the new argument in 'make-thread'.  The default value allows the
 thread's current buffer to be killed by another thread.  This does not
 apply to the main thread's buffer.
 
+---
+** Defining or modifying a face so that it inherits from itself signals error.
+Calling any function that defines or modifies a face in a way that
+causes cyclical inheritance (i.e., the face inherits from itself, either
+directly or indirectly) now signals an error.  Previously, Lisp programs
+could get away with this, and the problem would either be detected at
+display time or even cause Emacs to hang trying to display such a face.
+Affected APIs include 'defface', 'set-face-attribute', their callers,
+and other similar functions.
+
 
 * Lisp Changes in Emacs 31.1
 

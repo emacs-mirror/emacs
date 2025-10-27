@@ -2426,6 +2426,60 @@ face_inherited_attr (struct window *w, struct frame *f,
   return attr_val;
 }
 
+/* Chase the chain of inheritance for FACE on frame F, and return
+   non-zero if FACE inherits from its CHILD face, directly or
+   indirectly.  FACE is either a symbol or a list of face symbols, which
+   are two forms of values for the :inherit attribute of a face.  CHILD
+   must be a face symbol.  */
+static bool
+face_inheritance_cycle (struct frame *f, Lisp_Object face, Lisp_Object child)
+{
+  Lisp_Object face_attrs[LFACE_VECTOR_SIZE];
+  Lisp_Object parent_face;
+  bool ok, cycle_found = false;
+
+  eassert (SYMBOLP (child));
+  if (CONSP (face))
+    {
+      Lisp_Object tail;
+      for (tail = face; !NILP (tail); tail = XCDR (tail))
+	{
+	  ok = get_lface_attributes (NULL, f, XCAR (tail), face_attrs,
+				     false, NULL);
+	  if (!ok)
+	    break;
+	  parent_face = face_attrs[LFACE_INHERIT_INDEX];
+	  if (EQ (parent_face, child))
+	    cycle_found = true;
+	  else if (!NILP (parent_face)
+		   && !UNSPECIFIEDP (parent_face)
+		   && !IGNORE_DEFFACE_P (parent_face)
+		   && !RESET_P (parent_face))
+	    cycle_found = face_inheritance_cycle (f, parent_face, child);
+	  if (cycle_found)
+	    break;
+	}
+    }
+  else
+    {
+      eassert (SYMBOLP (face));
+      ok = get_lface_attributes (NULL, f, face, face_attrs, false, NULL);
+      if (ok)
+	{
+	  parent_face = face_attrs[LFACE_INHERIT_INDEX];
+	  if (EQ (parent_face, child))
+	    cycle_found = true;
+	  else if (!NILP (parent_face)
+		   && !UNSPECIFIEDP (parent_face)
+		   && !IGNORE_DEFFACE_P (parent_face)
+		   && !RESET_P (parent_face))
+	    cycle_found = face_inheritance_cycle (f, parent_face, child);
+	}
+    }
+
+  return cycle_found;
+}
+
 /* Merge the named face FACE_NAME on frame F, into the vector of face
    attributes TO.  Use NAMED_MERGE_POINTS to detect loops in face
    inheritance.  Return true if FACE_NAME is a valid face name and
@@ -3654,7 +3708,9 @@ FRAME 0 means change the face on all frames, and change the default
 	for (tail = value; CONSP (tail); tail = XCDR (tail))
 	  if (!SYMBOLP (XCAR (tail)))
 	    break;
-      if (NILP (tail))
+      if (face_inheritance_cycle (f, value, face))
+	signal_error ("Face inheritance results in inheritance cycle", value);
+      else if (NILP (tail))
 	ASET (lface, LFACE_INHERIT_INDEX, value);
       else
 	signal_error ("Invalid face inheritance", value);
