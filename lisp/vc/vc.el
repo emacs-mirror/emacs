@@ -3765,7 +3765,7 @@ UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
 can be a remote branch name."
   (interactive (list (vc--maybe-read-upstream-location)))
   (vc--with-backend-in-rootdir "VC root-log"
-    (vc-incoming-outgoing-internal backend (or upstream-location "")
+    (vc-incoming-outgoing-internal backend upstream-location
                                    "*vc-incoming*" 'log-incoming)))
 
 (defun vc-default-log-incoming (_backend buffer upstream-location)
@@ -3784,7 +3784,7 @@ UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
 can be a remote branch name."
   (interactive (list (vc--maybe-read-upstream-location)))
   (vc--with-backend-in-rootdir "VC root-log"
-    (vc-incoming-outgoing-internal backend (or upstream-location "")
+    (vc-incoming-outgoing-internal backend upstream-location
                                    "*vc-outgoing*" 'log-outgoing)))
 
 (defun vc-default-log-outgoing (_backend buffer upstream-location)
