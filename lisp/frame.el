@@ -493,7 +493,7 @@ there (in decreasing order of priority)."
 	   (setq parms (append initial-frame-alist window-system-frame-alist
 			       default-frame-alist parms nil))
 	   ;; Don't enable tab-bar in daemon's initial frame.
-	   (when (and (daemonp) (not (frame-parameter nil 'client)))
+	   (when (and (daemonp) (eq (selected-frame) terminal-frame))
 	     (setq parms (delq (assq 'tab-bar-lines parms) parms)))
 	   parms))
 	(if (null initial-window-system) ;; MS-DOS does this differently in pc-win.el

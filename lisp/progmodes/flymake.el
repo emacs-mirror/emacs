@@ -1390,7 +1390,7 @@ Interactively, with a prefix arg, FORCE is t."
     (cl-labels
         ((visible-buffer-window ()
            (and (or (not (daemonp))
-                    (not (null (frame-parameter nil 'client))))
+                    (not (eq (selected-frame) terminal-frame)))
                 (get-buffer-window (current-buffer))))
          (start-post-command ()
           (remove-hook 'post-command-hook #'start-post-command

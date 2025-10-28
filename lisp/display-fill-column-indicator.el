@@ -102,7 +102,7 @@ See Info node `Displaying Boundaries' for details."
 (defun display-fill-column-indicator--turn-on ()
   "Turn on `display-fill-column-indicator-mode'."
   (unless (or (minibufferp)
-              (and (daemonp) (null (frame-parameter nil 'client))))
+              (and (daemonp) (eq (selected-frame) terminal-frame)))
     (display-fill-column-indicator-mode)))
 
 ;;;###autoload

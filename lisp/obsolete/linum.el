@@ -129,7 +129,7 @@ Linum mode is a buffer-local minor mode."
               ;; Note that nowadays, this actually doesn't show line
               ;; numbers in client frames at all, because we visit the
               ;; file before creating the client frame.  See bug#35726.
-              (and (daemonp) (null (frame-parameter nil 'client))))
+              (and (daemonp) (eq (selected-frame) terminal-frame)))
     (linum-mode 1)))
 
 (defun linum-delete-overlays ()
