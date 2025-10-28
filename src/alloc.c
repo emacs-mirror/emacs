@@ -5866,7 +5866,6 @@ garbage_collect (void)
   mark_terminals ();
   mark_kboards ();
   mark_threads ();
-  mark_charset ();
   mark_composite ();
   mark_profiler ();
 #ifdef HAVE_PGTK
