@@ -4557,7 +4557,6 @@ extern ptrdiff_t multibyte_chars_in_text (const unsigned char *, ptrdiff_t);
 extern void syms_of_character (void);
 
 /* Defined in charset.c.  */
-extern void mark_charset (void);
 extern void init_charset (void);
 extern void init_charset_once (void);
 extern void syms_of_charset (void);
