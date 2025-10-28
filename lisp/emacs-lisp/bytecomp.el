@@ -1147,17 +1147,6 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		     (unless (or (get f 'function-history)
                                  (assq f byte-compile-function-environment))
                        (push f byte-compile-noruntime-functions)))))))))))))
-
-(defun byte-compile-eval-before-compile (form)
-  "Evaluate FORM for `eval-and-compile'."
-  (let ((hist-nil-orig current-load-list))
-    (prog1 (eval form lexical-binding)
-      ;; (eval-and-compile (require 'cl) turns off warnings for cl functions.
-      ;; FIXME Why does it do that - just as a hack?
-      ;; There are other ways to do this nowadays.
-      (let ((tem current-load-list))
-	(while (not (eq tem hist-nil-orig))
-          (setq tem (cdr tem)))))))
 
 ;;; byte compiler messages
 
