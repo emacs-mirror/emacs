@@ -66,6 +66,12 @@ struct charset *charset_table;
 int charset_table_size;
 int charset_table_used;
 
+/* Table of attribute vectors.  charset_attributes_table[id] contains
+   the attribute vector for the charset at charset_table[id].
+
+   This is a separate vector to simplify GC.  */
+Lisp_Object charset_attributes_table;
+
 /* Special charsets corresponding to symbols.  */
 int charset_ascii;
 int charset_eight_bit;
@@ -1132,18 +1138,19 @@ usage: (define-charset-internal ...)  */)
 	     coding_system.charbuf[i] entries, which are 'int'.  */
 	  int old_size = charset_table_size;
 	  ptrdiff_t new_size = old_size;
-	  struct charset *new_table =
-#ifdef HAVE_MPS
-	    igc_xpalloc_ambig
-#else
-	    xpalloc
-#endif
-	    (0, &new_size, 1,
-	     min (INT_MAX, MOST_POSITIVE_FIXNUM),
-	     sizeof *charset_table);
-          memcpy (new_table, charset_table, old_size * sizeof *new_table);
-          charset_table = new_table;
+	  struct charset *new_table
+	    = xpalloc (0, &new_size, 1,
+		       min (INT_MAX, MOST_POSITIVE_FIXNUM),
+		       sizeof *charset_table);
+	  memcpy (new_table, charset_table,
+		  old_size * sizeof *new_table);
+	  charset_table = new_table;
 	  charset_table_size = new_size;
+	  Lisp_Object new_attr_table = make_vector (new_size, Qnil);
+	  for (size_t i = 0; i < old_size; i++)
+	    ASET (new_attr_table, i,
+		  AREF (charset_attributes_table, i));
+	  charset_attributes_table = new_attr_table;
 	  /* FIXME: This leaks memory, as the old charset_table becomes
 	     unreachable.  If the old charset table is charset_table_init
 	     then this leak is intentional; otherwise, it's unclear.
@@ -1158,8 +1165,9 @@ usage: (define-charset-internal ...)  */)
 
   ASET (attrs, charset_id, make_fixnum (id));
   charset.id = id;
-  charset.attributes = attrs;
   charset_table[id] = charset;
+  ASET (charset_attributes_table, id, attrs);
+  eassert (ASIZE (charset_attributes_table) == charset_table_size);
 
   if (charset.method == CHARSET_METHOD_MAP)
     {
@@ -2278,17 +2286,6 @@ See also `charset-priority-list' and `set-charset-priority'.  */)
   return charsets;
 }
 
-#ifndef HAVE_MPS
-/* Not strictly necessary, because all charset attributes are also
-   reachable from `Vcharset_hash_table`.  */
-void
-mark_charset (void)
-{
-  for (int i = 0; i < charset_table_used; i++)
-    mark_object (charset_table[i].attributes);
-}
-#endif
-
 
 void
 init_charset (void)
@@ -2395,6 +2392,9 @@ syms_of_charset (void)
   PDUMPER_REMEMBER_SCALAR (charset_table_size);
   charset_table_used = 0;
   PDUMPER_REMEMBER_SCALAR (charset_table_used);
+
+  charset_attributes_table = make_vector (charset_table_size, Qnil);
+  staticpro (&charset_attributes_table);
 
   defsubr (&Scharsetp);
   defsubr (&Smap_charset_chars);

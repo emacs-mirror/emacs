@@ -184,7 +184,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Type_45F0582FD7
 #  error "enum Lisp_Type changed"
 # endif
-# ifndef HASH_charset_84DCEA663B
+# ifndef HASH_charset_0E23186647
 #  error "struct charset changed"
 # endif
 # ifndef HASH_itree_tree_A8CE87B78A
@@ -2095,7 +2095,7 @@ fix_charset_table (mps_ss_t ss, struct charset *table, size_t nbytes)
   MPS_SCAN_BEGIN (ss)
   {
     for (size_t i = 0, len = nbytes / sizeof (struct charset); i < len; i++)
-      IGC_FIX12_OBJ (ss, &table[i].attributes);
+      ;
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
