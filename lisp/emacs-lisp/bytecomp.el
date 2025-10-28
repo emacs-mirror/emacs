@@ -4069,18 +4069,22 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 
 (defun byte-compile-cmp (form)
   "Compile calls to numeric comparisons such as `<', `=' etc."
-  ;; Lisp-level transforms should already have reduced valid calls to 2 args.
-  (if (not (= (length form) 3))
-      (byte-compile-subr-wrong-args form "1 or more")
-    (byte-compile-two-args
-     (if (macroexp-const-p (nth 1 form))
-         ;; First argument is constant: flip it so that the constant
-         ;; is last, which may allow more lapcode optimizations.
-         (let* ((op (car form))
-                (flipped-op (cdr (assq op '((< . >) (<= . >=)
-                                            (> . <) (>= . <=) (= . =))))))
-           (list flipped-op (nth 2 form) (nth 1 form)))
-       form))))
+  ;; Lisp-level transforms should already have reduced valid calls to 2 args,
+  ;; but optimisations may have been disabled.
+  (let ((l (length form)))
+    (cond
+     ((= l 3)
+      (byte-compile-two-args
+       (if (macroexp-const-p (nth 1 form))
+           ;; First argument is constant: flip it so that the constant
+           ;; is last, which may allow more lapcode optimizations.
+           (let* ((op (car form))
+                  (flipped-op (cdr (assq op '((< . >) (<= . >=)
+                                              (> . <) (>= . <=) (= . =))))))
+             (list flipped-op (nth 2 form) (nth 1 form)))
+         form)))
+     ((= l 2) (byte-compile-form `(progn ,(nth 1 form) t)))
+     (t (byte-compile-normal-call form)))))
 
 (defun byte-compile-three-args (form)
   (if (not (= (length form) 4))
