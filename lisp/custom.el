@@ -771,10 +771,16 @@ Normally, this sets the default value of VARIABLE to nil if VALUE
 is nil and to t otherwise,
 but if `custom-local-buffer' is non-nil,
 this sets the local binding in that buffer instead."
-  (if custom-local-buffer
-      (with-current-buffer custom-local-buffer
-	(funcall variable (if value 1 0)))
-    (funcall variable (if value 1 0))))
+  (if (and (null value)
+           (autoloadp (symbol-function variable))
+           (not (and (boundp variable) (symbol-value variable))))
+      ;; We're disabling a minor mode that's not even loaded yet.
+      ;; Let's avoid autoloading it needlessly.
+      (custom-set-default variable value)
+    (if custom-local-buffer
+	(with-current-buffer custom-local-buffer
+	  (funcall variable (if value 1 0)))
+      (funcall variable (if value 1 0)))))
 
 (defun custom-quote (sexp)
   "Quote SEXP if it is not self quoting."
