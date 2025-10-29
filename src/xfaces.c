@@ -2442,7 +2442,7 @@ face_inheritance_cycle (struct frame *f, Lisp_Object face, Lisp_Object child)
   if (CONSP (face))
     {
       Lisp_Object tail;
-      for (tail = face; !NILP (tail); tail = XCDR (tail))
+      for (tail = face; CONSP (tail); tail = XCDR (tail))
 	{
 	  ok = get_lface_attributes (NULL, f, XCAR (tail), face_attrs,
 				     false, NULL);
@@ -2460,9 +2460,8 @@ face_inheritance_cycle (struct frame *f, Lisp_Object face, Lisp_Object child)
 	    break;
 	}
     }
-  else
+  else if (SYMBOLP (face))
     {
-      eassert (SYMBOLP (face));
       ok = get_lface_attributes (NULL, f, face, face_attrs, false, NULL);
       if (ok)
 	{
