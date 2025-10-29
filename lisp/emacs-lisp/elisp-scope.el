@@ -1835,10 +1835,7 @@ ARGS bound to the analyzed arguments."
 
 (elisp-scope-define-function-analyzer custom-declare-face (face spec doc &rest args)
   (elisp-scope-1 face '(symbol . defface))
-  ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
-  (if-let* ((q (elisp-scope--unquote spec)))
-      (when (consp q) (dolist (s q) (elisp-scope-face (cdr s))))
-    (elisp-scope-1 spec))
+  (elisp-scope-1 spec '(repeat . (cons t . (plist (:inherit . (symbol . face))))))
   (elisp-scope-1 doc)
   (while-let ((kw (car-safe args))
               (bkw (elisp-scope--sym-bare kw))

@@ -161,3 +161,13 @@
 ;; ^ (elisp-shorthand-font-lock-face elisp-function)
 ;;   ^ elisp-function
 ;;                  ^ elisp-function
+
+(defface foobar
+  '((default :inherit font-lock-function-call-face)
+;;            ^ (elisp-constant font-lock-builtin-face)
+;;                    ^ elisp-face
+    (((background light)) :foreground "#00008b")
+    (((background dark))  :foreground "#5c9cff"))
+  "Face for highlighting symbol role names in Emacs Lisp code."
+  :version "31.1")
+;; ^ (elisp-constant font-lock-builtin-face)
