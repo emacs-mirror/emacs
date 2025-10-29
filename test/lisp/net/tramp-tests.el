@@ -8670,11 +8670,17 @@ process sentinels.  They shall not disturb each other."
     (let ((default-directory ert-remote-temporary-file-directory))
       (should
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation))))
+		     (tramp--handler-for-test-operation)))
+      (should
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handler-for-test-operation "foo"))))
     (let ((default-directory temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation))))
+		     (tramp--handler-for-test-operation)))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handler-for-test-operation "foo"))))
 
     (tramp-remove-external-operation
      #'tramp--test-operation backend)
@@ -8690,11 +8696,17 @@ process sentinels.  They shall not disturb each other."
     (let ((default-directory ert-remote-temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation))))
+		     (tramp--handler-for-test-operation)))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handler-for-test-operation "foo"))))
     (let ((default-directory temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation))))))
+		     (tramp--handler-for-test-operation)))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handler-for-test-operation "foo"))))))
 
 ;; This test is inspired by Bug#29163.
 (ert-deftest tramp-test50-auto-load ()
