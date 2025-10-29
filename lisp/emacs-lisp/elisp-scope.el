@@ -1151,31 +1151,6 @@ Optional argument LOCAL is a local context to extend."
     (elisp-scope--report 'function beg bare))
   (elisp-scope-n rest))
 
-(defun elisp-scope-face (face)
-  (if (or (elisp-scope--sym-bare face)
-          (keywordp (elisp-scope--sym-bare (car-safe face))))
-      (elisp-scope-face-1 face)
-    (mapc #'elisp-scope-face-1 face)))
-
-(defun elisp-scope-face-1 (face)
-  (cond
-   ((symbol-with-pos-p face)
-    (when-let* ((beg (elisp-scope--sym-pos face)) (bare (elisp-scope--sym-bare face)))
-      (elisp-scope--report 'face beg bare)))
-   ((keywordp (elisp-scope--sym-bare (car-safe face)))
-    (let ((l face))
-      (while l
-        (let ((kw (car l))
-              (vl (cadr l)))
-          (setq l (cddr l))
-          (when-let* ((bare (elisp-scope--sym-bare kw))
-                      ((keywordp bare)))
-            (when-let* ((beg (elisp-scope--sym-pos kw)))
-              (elisp-scope--report 'constant beg bare))
-            (when (eq bare :inherit)
-              (when-let* ((beg (elisp-scope--sym-pos vl)) (fbare (elisp-scope--sym-bare vl)))
-                (elisp-scope--report 'face beg fbare))))))))))
-
 (defun elisp-scope-deftype (name args body)
   (when-let* ((beg (elisp-scope--sym-pos name)) (bare (elisp-scope--sym-bare name)))
     (elisp-scope--report 'deftype beg bare))
@@ -1546,10 +1521,10 @@ Optional argument LOCAL is a local context to extend."
            (elisp-scope-1 (cadr format)))
           (:propertize
            (elisp-scope-mode-line-construct-1 (cadr format))
-           (when-let* ((props (cdr format))
+           (when-let* ((props (cddr format))
                        (symbols-with-pos-enabled t)
                        (val-form (plist-get props 'face)))
-             (elisp-scope-face-1 val-form)))
+             (elisp-scope-quote val-form 'face)))
           (otherwise
            (elisp-scope-mode-line-construct-1 (cadr format))
            (elisp-scope-mode-line-construct-1 (caddr format))))))))))
@@ -1879,17 +1854,16 @@ ARGS bound to the analyzed arguments."
 (elisp-scope-define-function-analyzer overlay-put (&optional ov prop val)
   (elisp-scope-1 ov)
   (elisp-scope-1 prop)                  ;TODO: Recognize overlay props.
-  (if-let* ((q (elisp-scope--unquote prop))
-            ((eq (elisp-scope--sym-bare q) 'face))
-            (face (elisp-scope--unquote val)))
-      ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
-      (elisp-scope-face face)
-    (elisp-scope-1 val)))
+  (elisp-scope-1
+   val
+   (let* ((q (elisp-scope--unquote prop)))
+     (when (memq (elisp-scope--sym-bare q) '(face mouse-face))
+       'face))))
 
 (elisp-scope-define-function-analyzer add-face-text-property (&optional start end face &rest rest)
   (elisp-scope-1 start)
   (elisp-scope-1 end)
-  (elisp-scope-1 face '(symbol . face))
+  (elisp-scope-1 face 'face)
   (elisp-scope-n rest))
 
 (elisp-scope-define-function-analyzer facep (&optional face &rest rest)
@@ -1946,12 +1920,11 @@ ARGS bound to the analyzed arguments."
   (elisp-scope-1 beg)
   (elisp-scope-1 end)
   (elisp-scope-1 prop)
-  (if-let* (((memq (elisp-scope--sym-bare (elisp-scope--unquote prop))
-                   '(mouse-face face)))
-            (q (elisp-scope--unquote val)))
-      ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
-      (elisp-scope-face q)
-    (elisp-scope-1 val))
+  (elisp-scope-1
+   val
+   (let* ((q (elisp-scope--unquote prop)))
+     (when (memq (elisp-scope--sym-bare q) '(face mouse-face))
+       'face)))
   (elisp-scope-1 obj))
 
 (put 'remove-overlays 'elisp-scope-analyzer #'elisp-scope--analyze-put-text-property)
@@ -1960,13 +1933,11 @@ ARGS bound to the analyzed arguments."
   (elisp-scope-1 string)
   (while props
     (elisp-scope-1 (car props))
-    (cl-case (elisp-scope--sym-bare (elisp-scope--unquote (car props)))
-      ((face mouse-face)
-       (if-let* ((q (elisp-scope--unquote (cadr props))))
-           ;; TODO: Use `elisp-scope-1' with an appropriate outspec.
-           (elisp-scope-face q)
-         (elisp-scope-1 (cadr props))))
-      (otherwise (elisp-scope-1 (cadr props))))
+    (elisp-scope-1
+     (cadr props)
+     (let* ((q (elisp-scope--unquote (car props))))
+       (when (memq (elisp-scope--sym-bare q) '(face mouse-face))
+         'face)))
     (setq props (cddr props)))
   (when props (elisp-scope-n props)))
 
@@ -2377,11 +2348,7 @@ ARGS bound to the analyzed arguments."
               (bkw (elisp-scope--sym-bare kw))
               ((keywordp bkw)))
     (elisp-scope-report-s kw 'constant)
-    (cl-case bkw
-      (:face
-       (if-let* ((q (elisp-scope--unquote (cadr props)))) (elisp-scope-face-1 q)
-         (elisp-scope-1 (cadr props))))
-      (otherwise (elisp-scope-1 (cadr props))))
+    (elisp-scope-1 (cadr props) (when (eq bkw :face) 'face))
     (setq props (cddr props))))
 
 (elisp-scope-define-macro-analyzer cl-letf (bindings &rest body)
@@ -2590,6 +2557,18 @@ ARGS bound to the analyzed arguments."
         (cons (member member) . t)
         (cons (member plist)  . (repeat . (cons (symbol . constant) . spec)))
         (cons (member plist-and-then) . (repeat . (cons (symbol . constant) . spec))))
+   arg))
+
+(cl-defmethod elisp-scope--match-spec-to-arg ((_spec (eql 'face)) arg)
+  (elisp-scope--match-spec-to-arg
+   (if (consp arg)
+       (if (keywordp (elisp-scope--sym-bare (car arg)))
+           ;; One face, given as a plist of face attributes.
+           '(plist (:inherit . (symbol . face)))
+         ;; Multiple faces.
+         '(repeat . (or (symbol . face)
+                        (plist (:inherit . (symbol . face))))))
+     '(symbol . face))
    arg))
 
 (cl-defmethod elisp-scope--match-spec-to-arg ((_spec (eql 'cl-type)) arg)

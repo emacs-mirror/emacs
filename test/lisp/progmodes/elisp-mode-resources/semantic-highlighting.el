@@ -171,3 +171,14 @@
   "Face for highlighting symbol role names in Emacs Lisp code."
   :version "31.1")
 ;; ^ (elisp-constant font-lock-builtin-face)
+
+(propertize foo
+            'face
+            (cond
+             ((random) '(success (:foreground "green" :inherit default)))
+;;                       ^ elisp-face
+;;                                                             ^ elisp-face
+             ((foobar) 'font-lock-keyword-face)
+;;                      ^ elisp-face
+             (t '(:inherit error))))
+;;                         ^ elisp-face
