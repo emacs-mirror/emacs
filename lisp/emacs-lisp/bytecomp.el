@@ -4911,28 +4911,6 @@ binding slots have been popped."
                              (> byte-compile-depth init-stack-depth))))))
 
 
-
-(byte-defop-compiler-1 /= byte-compile-negated)
-(byte-defop-compiler-1 atom byte-compile-negated)
-(byte-defop-compiler-1 nlistp byte-compile-negated)
-
-(put '/= 'byte-compile-negated-op '=)
-(put 'atom 'byte-compile-negated-op 'consp)
-(put 'nlistp 'byte-compile-negated-op 'listp)
-
-(defun byte-compile-negated (form)
-  (byte-compile-form-do-effect (byte-compile-negation-optimizer form)))
-
-;; Even when optimization is off, /= is optimized to (not (= ...)).
-(defun byte-compile-negation-optimizer (form)
-  ;; an optimizer for forms where <form1> is less efficient than (not <form2>)
-  (list 'not
-    (cons (or (get (car form) 'byte-compile-negated-op)
-	      (error
-	       "Compiler error: `%s' has no `byte-compile-negated-op' property"
-	       (car form)))
-	  (cdr form))))
-
 ;;; other tricky macro-like special-forms
 
 (byte-defop-compiler-1 catch)
@@ -5882,6 +5860,18 @@ and corresponding effects."
        (if (and (member feature '('xemacs 'sxemacs 'emacs)) (not rest))
            (featurep (cadr feature))
          form)))
+
+(defmacro bytecomp--define-negated (fn arity negfn)
+  "Define FN with ARITY as the Boolean negation of NEGFN."
+  `(put ',fn 'compiler-macro
+        (lambda (form &rest args)
+          (if (= (length args) ,arity)
+              (list 'not (cons ',negfn args))
+            form))))
+
+(bytecomp--define-negated /=     2 =    )
+(bytecomp--define-negated atom   1 consp)
+(bytecomp--define-negated nlistp 1 listp)
 
 ;; Report comma operator used outside of backquote.
 ;; Inside backquote, backquote will transform it before it gets here.

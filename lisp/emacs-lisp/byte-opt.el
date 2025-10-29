@@ -1424,12 +1424,6 @@ See Info node `(elisp) Integer Basics'."
 (put 'not   'byte-optimizer #'byte-optimize-not)
 (put 'null  'byte-optimizer #'byte-optimize-not)
 
-;; byte-compile-negation-optimizer lives in bytecomp.el
-(put '/= 'byte-optimizer #'byte-compile-negation-optimizer)
-(put 'atom 'byte-optimizer #'byte-compile-negation-optimizer)
-(put 'nlistp 'byte-optimizer #'byte-compile-negation-optimizer)
-
-
 (defun byte-optimize-funcall (form)
   ;; (funcall #'(lambda ...) ...) -> (let ...)
   ;; (funcall #'SYM ...) -> (SYM ...)
