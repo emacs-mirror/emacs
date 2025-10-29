@@ -210,38 +210,7 @@ Another is that undo information is not kept."
           (inhibit-read-only t))
       (erase-buffer))))
 
-(defvar vc-sentinel-movepoint)          ;Dynamically scoped.
-
-(defun vc--process-sentinel (p code &optional success)
-  (let ((buf (process-buffer p)))
-    ;; Impatient users sometime kill "slow" buffers; check liveness
-    ;; to avoid "error in process sentinel: Selecting deleted buffer".
-    (when (buffer-live-p buf)
-      (with-current-buffer buf
-        (setq mode-line-process
-              (let ((status (process-status p)))
-                ;; Leave mode-line uncluttered, normally.
-                (unless (eq 'exit status)
-                  (format " (%s)" status))))
-        (let (vc-sentinel-movepoint
-              (m (process-mark p)))
-          ;; Normally, we want async code such as sentinels to not move point.
-          (save-excursion
-            (goto-char m)
-            ;; Each sentinel may move point and the next one should be run
-            ;; at that new point.  We could get the same result by having
-            ;; each sentinel read&set process-mark, but since `cmd' needs
-            ;; to work both for async and sync processes, this would be
-            ;; difficult to achieve.
-            (vc-exec-after code success)
-            (move-marker m (point)))
-          ;; But sometimes the sentinels really want to move point.
-          (when vc-sentinel-movepoint
-	    (let ((win (get-buffer-window (current-buffer) 0)))
-	      (if (not win)
-		  (goto-char vc-sentinel-movepoint)
-		(with-selected-window win
-		  (goto-char vc-sentinel-movepoint))))))))))
+(defvar vc-sentinel-movepoint)
 
 (defun vc-set-mode-line-busy-indicator ()
   (setq mode-line-process
@@ -253,6 +222,7 @@ Another is that undo information is not kept."
 (defun vc-exec-after (code &optional success proc)
   "Execute CODE when PROC, or the current buffer's process, is done.
 CODE should be a function of no arguments.
+CODE a bare form to pass to `eval' is also supported for compatibility.
 
 The optional PROC argument specifies the process Emacs should wait for
 before executing CODE.  It defaults to the current buffer's process.
@@ -261,7 +231,41 @@ CODE.  Otherwise, add CODE to the process's sentinel.
 
 If SUCCESS, it should be a process object.
 Only run CODE if the SUCCESS process has a zero exit code."
-  (let ((proc (or proc (get-buffer-process (current-buffer)))))
+  (unless proc (setq proc (get-buffer-process (current-buffer))))
+  (letrec ((buf (and proc (process-buffer proc)))
+           (fun
+            (lambda (proc _msg)
+              ;; In the unlikely event of `set-buffer-process'.
+              (setq buf (process-buffer proc))
+              (remove-function (process-sentinel proc) fun)
+              ;; Impatient users sometime kill "slow" buffers; check liveness
+              ;; to avoid "error in process sentinel: Selecting deleted buffer".
+              (when (buffer-live-p buf)
+                (with-current-buffer buf
+                  (setq mode-line-process
+                        (let ((status (process-status proc)))
+                          ;; Leave mode-line uncluttered, normally.
+                          (and (not (eq 'exit status))
+                               (format " (%s)" status))))
+                  (let (vc-sentinel-movepoint
+                        (m (process-mark proc)))
+                    ;; Normally, we want async code such as sentinels to
+                    ;; not move point.
+                    (save-excursion
+                      (goto-char m)
+                      ;; Each sentinel may move point and the next one
+                      ;; should be run from that new position.
+                      ;; Handling this up here, instead of requiring
+                      ;; CODE to handle it, means CODE can be written
+                      ;; for both sync and async processes.
+                      (vc-exec-after code success)
+                      (move-marker m (point)))
+                    ;; But sometimes the sentinels really want to move point.
+                    (when vc-sentinel-movepoint
+                      (if-let* ((win (get-buffer-window (current-buffer) 0)))
+                          (with-selected-window win
+		            (goto-char vc-sentinel-movepoint))
+                        (goto-char vc-sentinel-movepoint)))))))))
     (cond
      ;; If there's no background process, just execute the code.
      ;; We used to explicitly call delete-process on exited processes,
@@ -269,21 +273,15 @@ Only run CODE if the SUCCESS process has a zero exit code."
      ;; lost.  Terminated processes get deleted automatically
      ;; anyway. -- cyd
      ((or (null proc) (eq (process-status proc) 'exit))
-      ;; Make sure we've read the process's output before going further.
       (when proc (accept-process-output proc))
       (when (or (not success)
                 (zerop (process-exit-status success)))
         (if (functionp code) (funcall code) (eval code t))))
-     ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
-      (let ((buf (process-buffer proc)))
-        (when (buffer-live-p buf)
-          (with-current-buffer buf
-            (vc-set-mode-line-busy-indicator))))
-      (letrec ((fun (lambda (p _msg)
-                      (remove-function (process-sentinel p) fun)
-                      (vc--process-sentinel p code success))))
-        (add-function :after (process-sentinel proc) fun)))
+      (when (buffer-live-p buf)
+        (with-current-buffer buf
+          (vc-set-mode-line-busy-indicator)))
+      (add-function :after (process-sentinel proc) fun))
      (t (error "Unexpected process state"))))
   nil)
 
