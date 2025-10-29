@@ -232,21 +232,25 @@ CODE.  Otherwise, add CODE to the process's sentinel.
 If SUCCESS, it should be a process object.
 Only run CODE if the SUCCESS process has a zero exit code."
   (unless proc (setq proc (get-buffer-process (current-buffer))))
-  (letrec ((buf (and proc (process-buffer proc)))
+  (letrec ((eval-code
+            (lambda ()
+              (when (or (not success)
+                        (zerop (process-exit-status success)))
+                (if (functionp code) (funcall code) (eval code t)))))
+           (buf (and proc (process-buffer proc)))
            (fun
             (lambda (proc _msg)
               ;; In the unlikely event of `set-buffer-process'.
               (setq buf (process-buffer proc))
-              (remove-function (process-sentinel proc) fun)
-              ;; Impatient users sometime kill "slow" buffers; check liveness
-              ;; to avoid "error in process sentinel: Selecting deleted buffer".
-              (when (buffer-live-p buf)
+              (cond
+               ;; Impatient users sometime kill "slow" buffers; check
+               ;; liveness to avoid "error in process sentinel:
+               ;; Selecting deleted buffer".
+               ((not (buffer-live-p buf))
+                (remove-function (process-sentinel proc) fun))
+               ((eq (process-status proc) 'exit)
                 (with-current-buffer buf
-                  (setq mode-line-process
-                        (let ((status (process-status proc)))
-                          ;; Leave mode-line uncluttered, normally.
-                          (and (not (eq 'exit status))
-                               (format " (%s)" status))))
+                  (setq mode-line-process nil)
                   (let (vc-sentinel-movepoint
                         (m (process-mark proc)))
                     ;; Normally, we want async code such as sentinels to
@@ -258,14 +262,17 @@ Only run CODE if the SUCCESS process has a zero exit code."
                       ;; Handling this up here, instead of requiring
                       ;; CODE to handle it, means CODE can be written
                       ;; for both sync and async processes.
-                      (vc-exec-after code success)
+                      (funcall eval-code)
                       (move-marker m (point)))
                     ;; But sometimes the sentinels really want to move point.
                     (when vc-sentinel-movepoint
                       (if-let* ((win (get-buffer-window (current-buffer) 0)))
                           (with-selected-window win
 		            (goto-char vc-sentinel-movepoint))
-                        (goto-char vc-sentinel-movepoint)))))))))
+                        (goto-char vc-sentinel-movepoint))))))
+               ((not (eq (process-status proc) 'run))
+                (remove-function (process-sentinel proc) fun)
+                (error "Unexpected process state"))))))
     (cond
      ;; If there's no background process, just execute the code.
      ;; We used to explicitly call delete-process on exited processes,
@@ -274,9 +281,7 @@ Only run CODE if the SUCCESS process has a zero exit code."
      ;; anyway. -- cyd
      ((or (null proc) (eq (process-status proc) 'exit))
       (when proc (accept-process-output proc))
-      (when (or (not success)
-                (zerop (process-exit-status success)))
-        (if (functionp code) (funcall code) (eval code t))))
+      (funcall eval-code))
      ((eq (process-status proc) 'run)
       (when (buffer-live-p buf)
         (with-current-buffer buf
