@@ -573,7 +573,7 @@ separate ranges for each language detected in the query.
 
 Query NODE with QUERY, the captured nodes generates ranges.  Nodes
 captured by the `@language' capture name are converted to language
-symbols with LANGUAGE-FN.  LANGUAGE-FN can return nil which means no
+symbols with LANGUAGE-FN.  LANGUAGE-FN can return nil, meaning no
 valid language is detected, in which case the range is skipped.
 
 RANGE-FN, if non-nil, is a function that takes a NODE and OFFSET, and
@@ -696,13 +696,13 @@ this way: Emacs queries QUERY in the host language's parser,
 computes the ranges spanned by the captured nodes, and applies
 these ranges to parsers for the embedded language.
 
-If the embed language is dynamic, then `:embed' can specify a function.
-This function will by passed a node and should return the language
-symbol for the embedded code block.  The node is the one captured from
-QUERY with capture name `@language'.  Make sure the code block and
-language capture are in the same match group.  The function can return
-nil if no valid language can be found; in that case, the range is
-discarded.
+If the embedded language is dynamic, then `:embed' can specify a function.
+This function will be passed a node as an argument, and should return
+the language symbol for the embedded code block.  The node is the one
+captured from QUERY with capture name `@language'.  Make sure the code
+block and language capture are in the same match group.  The function
+can return nil if no valid language can be found; in that case, the range
+is discarded.
 
 If there's a `:local' keyword with value t, the range computed by
 this QUERY is given a dedicated local parser.  Otherwise, the
