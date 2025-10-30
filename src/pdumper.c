@@ -186,6 +186,7 @@ enum dump_reloc_type
     RELOC_BIGNUM,
 #ifdef HAVE_MPS
     RELOC_BUFFER,
+    RELOC_CHARSET_CODE_SPACE_MASK,
 #endif
     /* dump_lv = make_lisp_ptr (dump_lv + dump_base,
 				type - RELOC_DUMP_TO_DUMP_LV)
@@ -1758,6 +1759,9 @@ enum dump_fixup_type
     DUMP_FIXUP_LISP_OBJECT_RAW,
     DUMP_FIXUP_PTR_DUMP_RAW,
     DUMP_FIXUP_BIGNUM_DATA,
+#ifdef HAVE_MPS
+    DUMP_FIXUP_CHARSET_CODE_SPACE_MASK,
+#endif
   };
 
 enum dump_lv_fixup_type
@@ -3440,7 +3444,14 @@ dump_charset_table (struct dump_context *ctx)
   for (int i = 0; i < charset_table_size; ++i)
     dump_charset (ctx, i);
   dump_clear_referrer (ctx);
+#ifndef HAVE_MPS
   dump_emacs_reloc_to_dump_ptr_raw (ctx, &charset_table, offset);
+#else
+  size_t size = ctx->offset - offset;
+  eassert (size <= sizeof charset_table_init);
+  dump_emacs_reloc_copy_from_dump (ctx, offset, &charset_table_init,
+				   size);
+#endif
   ctx->flags = old_flags;
 # ifdef HAVE_MPS
   dump_igc_finish_obj (ctx);
@@ -3602,10 +3613,17 @@ dump_cold_charset (struct dump_context *ctx, Lisp_Object data)
   /* Dump charset lookup tables.  */
   int cs_i = XFIXNUM (XCAR (data));
   dump_off cs_dump_offset = dump_off_from_lisp (XCDR (data));
-  dump_remember_fixup_ptr_raw
-    (ctx,
-     cs_dump_offset + dump_offsetof (struct charset, code_space_mask),
-     ctx->offset);
+  dump_off foff = dump_offsetof (struct charset, code_space_mask);
+  dump_off code_space_mask_offset = cs_dump_offset + foff;
+  dump_off here = ctx->offset;
+#ifndef HAVE_MPS
+  dump_remember_fixup_ptr_raw (ctx, code_space_mask_offset, here);
+#else
+  dump_push (&ctx->fixups,
+	     list3 (make_fixnum (DUMP_FIXUP_CHARSET_CODE_SPACE_MASK),
+		    dump_off_to_lisp (code_space_mask_offset),
+		    dump_off_to_lisp (here)));
+#endif
   struct charset *cs = charset_table + cs_i;
   dump_write (ctx, cs->code_space_mask, 256);
 }
@@ -3626,7 +3644,7 @@ dump_cold_charsets (struct dump_context *ctx, Lisp_Object *cold_queue,
     {
       dump_cold_charset (ctx, data);
       Lisp_Object next = XCAR (*cold_queue);
-      enum cold_op op = (enum cold_op)XFIXNUM (XCAR (next));
+      enum cold_op op = (enum cold_op) XFIXNUM (XCAR (next));
       if (op != COLD_OP_CHARSET)
 	break;
       data = XCDR (next);
@@ -4265,6 +4283,16 @@ dump_do_fixup (struct dump_context *ctx,
         do_write = false;
         break;
       }
+#ifdef HAVE_MPS
+    case DUMP_FIXUP_CHARSET_CODE_SPACE_MASK:
+      {
+	dump_value = dump_off_from_lisp (arg);
+	dump_push (&ctx->dump_relocs[EARLY_RELOCS],
+		   list2 (make_fixnum (RELOC_CHARSET_CODE_SPACE_MASK),
+			  dump_off_to_lisp (dump_fixup_offset)));
+	break;
+      }
+#endif
     default:
       emacs_abort ();
     }
@@ -5881,6 +5909,21 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	enlarge_buffer_text (b, 0);
 	eassert (!pdumper_object_p (b->text->beg));
 	igc_resurrect_markers (b);
+      }
+      break;
+    case RELOC_CHARSET_CODE_SPACE_MASK:
+      {
+	/* Copy the code space mask out of the dump. */
+	dump_off field_offset
+	  = dump_offsetof (struct charset, code_space_mask);
+	dump_off cs_off = reloc_offset - field_offset;
+	struct charset *cs = dump_ptr (dump_base, cs_off);
+	dump_off csm_off = (intptr_t) cs->code_space_mask;
+	uint8_t *old = dump_ptr (dump_base, csm_off);
+	size_t nbytes = 256;
+	uint8_t *new = xmalloc (nbytes);
+	memcpy (new, old, nbytes);
+	cs->code_space_mask = new;
       }
       break;
 #endif
