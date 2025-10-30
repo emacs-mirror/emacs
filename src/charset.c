@@ -62,7 +62,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 Lisp_Object Vcharset_hash_table;
 
 /* Table of struct charset.  */
-struct charset *charset_table;
+struct charset *charset_table = charset_table_init;
 int charset_table_size;
 int charset_table_used;
 
@@ -2387,7 +2387,6 @@ syms_of_charset (void)
   staticpro (&Vcharset_hash_table);
   Vcharset_hash_table = CALLN (Fmake_hash_table, QCtest, Qeq);
 
-  charset_table = charset_table_init;
   charset_table_size = ARRAYELTS (charset_table_init);
   PDUMPER_REMEMBER_SCALAR (charset_table_size);
   charset_table_used = 0;

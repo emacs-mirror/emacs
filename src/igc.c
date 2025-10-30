@@ -5527,7 +5527,6 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 {
   dump_base = (char *) dump_base - igc_header_size ();
   igc_assert (global_igc->park_count > 0);
-  igc_assert (hot_start == charset_table);
   igc_assert (header_type ((struct igc_header *) hot_start)
 	      == IGC_OBJ_DUMPED_CHARSET_TABLE);
   igc_assert (header_type ((struct igc_header *) cold_start)
