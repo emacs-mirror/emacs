@@ -63,5 +63,93 @@
         (should (equal (test-it `(Git ("missing" ,temp "present")))
                        missing+present))))))
 
+(defmacro vc-test--exec-after-wait ()
+  '(progn
+     (while (process-live-p proc)
+       (when (input-pending-p)
+         (discard-input))
+       (should-not success)
+       (sit-for 0.05))
+     (sit-for 0.05)))
+
+(ert-deftest vc-test-exec-after-1 ()
+  "Test `vc-exec-after' adding a sentinel."
+  (with-temp-buffer
+    (let ((proc (start-process-shell-command "test" (current-buffer)
+                                             "sleep 0.2; echo hello"))
+          success)
+      (vc-exec-after (lambda () (setq success t)))
+      (should-not (eq (process-sentinel proc)
+                      #'internal-default-process-sentinel))
+      (vc-test--exec-after-wait)
+      (should success))))
+
+(ert-deftest vc-test-exec-after-2 ()
+  "Test `vc-exec-after' executing the code immediately."
+  (with-temp-buffer
+    (let ((proc (start-process-shell-command "test" (current-buffer)
+                                             "sleep 0.2; echo hello"))
+          success)
+      (vc-test--exec-after-wait)
+      (vc-exec-after (lambda () (setq success t)))
+      (should (eq (process-sentinel proc)
+                  #'internal-default-process-sentinel))
+      (should success))))
+
+(ert-deftest vc-test-exec-after-3 ()
+  "Test SUCCESS argument to `vc-exec-after'."
+  (with-temp-buffer
+    (let ((proc (start-process-shell-command "test" (current-buffer)
+                                             "sleep 0.2; echo hello"))
+          (passes (start-process "test2" nil "true"))
+          success)
+      (vc-exec-after (lambda () (setq success t)) passes)
+      (vc-test--exec-after-wait)
+      (should success)))
+
+  (with-temp-buffer
+    (let ((proc (start-process-shell-command "test" (current-buffer)
+                                             "sleep 0.2; echo hello"))
+          (fails (start-process "test2" nil "false"))
+          success)
+      (vc-exec-after (lambda () (setq success t)) fails)
+      (vc-test--exec-after-wait)
+      (should-not success))))
+
+(ert-deftest vc-test-exec-after-4 ()
+  "Test `vc-exec-after' handling the process mark."
+  (with-temp-buffer
+    (let ((proc (start-process-shell-command "test" (current-buffer)
+                                             "echo hello there; sleep 0.2"))
+          success)
+      ;; Disable the default output, which further moves point.
+      (set-process-sentinel proc #'ignore)
+
+      (vc-exec-after (lambda ()
+                       (goto-char (point-min))
+                       (should (looking-at "hello"))))
+      (vc-exec-after (lambda ()
+                       (forward-word 1)
+                       (should (looking-at " there"))))
+      (accept-process-output proc)
+      (let ((opoint (point)))
+        (vc-test--exec-after-wait)
+        (should (eq (point) opoint))))))
+
+(ert-deftest vc-test-exec-after-5 ()
+  "Test `vc-exec-after' with `vc-sentinel-movepoint' variable."
+  (with-temp-buffer
+    (let ((proc (start-process-shell-command "test" (current-buffer)
+                                             "echo hello there; sleep 0.2"))
+          success)
+      ;; Disable the default output, which further moves point.
+      (set-process-sentinel proc #'ignore)
+
+      (vc-exec-after (lambda () (setq vc-sentinel-movepoint (point-min))))
+      (accept-process-output proc)
+      (should-not (eq (point) (point-min)))
+      (vc-test--exec-after-wait)
+      (should (eq (point) (point-min))))))
+
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here
