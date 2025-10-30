@@ -2676,29 +2676,19 @@ typedef enum hash_table_weakness_t {
    (hash) indices.  It's signed and a subtype of ptrdiff_t.  */
 typedef int32_t hash_idx_t;
 
-/* The reason for this unusual structure is an MPS peculiarity on 32-bit x86 systems. */
-struct Lisp_Weak_Hash_Table_Entry
-{
-  EMACS_UINT intptr; /* must be an MPS base pointer */
-  Lisp_Object fixnum; /* a fixnum indicating the tag, or just a fixnum */
-};
-
-extern Lisp_Object weak_hash_table_entry (struct Lisp_Weak_Hash_Table_Entry entry);
-extern struct Lisp_Weak_Hash_Table_Entry make_weak_hash_table_entry (Lisp_Object);
-
 struct Lisp_Weak_Hash_Table_Strong_Part
 {
   GC_HEADER
-  Lisp_Object index_bits;
-  Lisp_Object next_free;
-  Lisp_Object table_size;
+  ptrdiff_t index_bits;
+  hash_idx_t next_free;
+  hash_idx_t table_size;
   struct Lisp_Weak_Hash_Table_Weak_Part *weak;
   const struct hash_table_test *test;
-  struct Lisp_Weak_Hash_Table_Entry *index; /* internal pointer to an all-fixnum array */
-  struct Lisp_Weak_Hash_Table_Entry *hash; /* internal pointer to an all-fixnum array */
-  struct Lisp_Weak_Hash_Table_Entry *next; /* internal pointer to an all-fixnum array */
-  struct Lisp_Weak_Hash_Table_Entry *key; /* either internal pointer or pointer to dependent object */
-  struct Lisp_Weak_Hash_Table_Entry *value; /* either internal pointer or pointer to dependent object */
+  hash_idx_t *index; /* internal pointer to an all-fixnum array */
+  hash_hash_t *hash; /* internal pointer to an all-fixnum array */
+  hash_idx_t *next; /* internal pointer to an all-fixnum array */
+  struct Lisp_Vector *key; /* either internal pointer or pointer to dependent object */
+  struct Lisp_Vector *value; /* either internal pointer or pointer to dependent object */
   hash_table_weakness_t weakness : 3;
   hash_table_std_test_t frozen_test : 2;
 
@@ -2710,14 +2700,12 @@ struct Lisp_Weak_Hash_Table_Strong_Part
      pure tables are not, and while a table is being mutated it is
      immutable for recursive attempts to mutate it.  */
   bool_bf mutable : 1;
-  struct Lisp_Weak_Hash_Table_Entry entries[FLEXIBLE_ARRAY_MEMBER];
 };
 
 struct Lisp_Weak_Hash_Table_Weak_Part
 {
   GC_HEADER
   struct Lisp_Weak_Hash_Table_Strong_Part *strong;
-  struct Lisp_Weak_Hash_Table_Entry entries[FLEXIBLE_ARRAY_MEMBER];
 };
 
 struct Lisp_Weak_Hash_Table
@@ -2927,39 +2915,39 @@ make_lisp_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
 INLINE Lisp_Object
 WEAK_HASH_KEY (const struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx)
 {
-  eassert (idx >= 0 && idx < XFIXNUM (h->strong->table_size));
-  return weak_hash_table_entry (h->strong->key[idx]);
+  eassert (idx >= 0 && idx < h->strong->table_size);
+  return h->strong->key->contents[idx];
 }
 
 INLINE Lisp_Object
 WEAK_HASH_VALUE (const struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx)
 {
-  return weak_hash_table_entry (h->strong->value[idx]);
+  return h->strong->value->contents[idx];
 }
 
 /* Value is the hash code computed for entry IDX in hash table H.  */
-INLINE Lisp_Object
+INLINE hash_hash_t
 WEAK_HASH_HASH (const struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx)
 {
-  eassert (idx >= 0 && idx < XFIXNUM (h->strong->table_size));
-  return weak_hash_table_entry (h->strong->hash[idx]);
+  eassert (idx >= 0 && idx < h->strong->table_size);
+  return h->strong->hash[idx];
 }
 
 /* Value is the size of hash table H.  */
 INLINE ptrdiff_t
 WEAK_HASH_TABLE_SIZE (const struct Lisp_Weak_Hash_Table *h)
 {
-  return XFIXNUM (h->strong->table_size);
+  return h->strong->table_size;
 }
 
 INLINE ptrdiff_t
 weak_hash_table_index_size (const struct Lisp_Weak_Hash_Table *h)
 {
-  return (ptrdiff_t)1 << XFIXNUM (h->strong->index_bits);
+  return (ptrdiff_t)1 << h->strong->index_bits;
 }
 
 /* Hash value for KEY in hash table H.  */
-extern Lisp_Object weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Object key);
+extern hash_hash_t weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Object key);
 #endif
 
 /* Iterate K and V as key and value of valid entries in hash table H.
@@ -2989,16 +2977,16 @@ extern Lisp_Object weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Obje
    The body may remove the current entry or alter its value slot, but not
    mutate TABLE in any other way.  */
 # define DOHASH_WEAK(h, k, v)						\
-  for (struct Lisp_Weak_Hash_Table_Entry *dohash_##k##_##v##_k = (h)->strong->key, \
-	 *dohash_##k##_##v##_v = (h)->strong->value,			\
+  for (Lisp_Object *dohash_##k##_##v##_k = (h)->strong->key->contents,	\
+	 *dohash_##k##_##v##_v = (h)->strong->value->contents,		\
 	 *dohash_##k##_##v##_end = dohash_##k##_##v##_k			\
 	 + WEAK_HASH_TABLE_SIZE (h),					\
 	 *dohash_##k##_##v##_base = dohash_##k##_##v##_k;		\
        dohash_##k##_##v##_k < dohash_##k##_##v##_end			\
-	 && (k = weak_hash_table_entry (dohash_##k##_##v##_k[0]),	\
-	     v = weak_hash_table_entry (dohash_##k##_##v##_v[0]),	\
+	 && (k = dohash_##k##_##v##_k[0],				\
+	     v = dohash_##k##_##v##_v[0],				\
            true);			                                \
-       eassert (dohash_##k##_##v##_base == (h)->strong->key		\
+       eassert (dohash_##k##_##v##_base == (h)->strong->key->contents	\
 		&& dohash_##k##_##v##_end				\
 		   == dohash_##k##_##v##_base				\
 		+ WEAK_HASH_TABLE_SIZE (h)),				\
@@ -4300,17 +4288,19 @@ set_hash_value_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 void weak_hash_table_thaw (Lisp_Object hash_table);
 
 INLINE void
-set_weak_hash_key_slot (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+set_weak_hash_key_slot (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx,
+			Lisp_Object val)
 {
-  eassert (idx >= 0 && idx < XFIXNUM (h->strong->table_size));
-  h->strong->key[idx] = make_weak_hash_table_entry (val);
+  eassert (idx >= 0 && idx < h->strong->table_size);
+  h->strong->key->contents[idx] = val;
 }
 
 INLINE void
-set_weak_hash_value_slot (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+set_weak_hash_value_slot (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx,
+			  Lisp_Object val)
 {
-  eassert (idx >= 0 && idx < XFIXNUM (h->strong->table_size) );
-  h->strong->value[idx] = make_weak_hash_table_entry (val);
+  eassert (idx >= 0 && idx < h->strong->table_size);
+  h->strong->value->contents[idx] = val;
 }
 #endif
 
@@ -4592,7 +4582,7 @@ Lisp_Object strong_copy_hash_table (Lisp_Object);
 void strengthen_hash_table_for_dump (struct Lisp_Weak_Hash_Table *);
 ptrdiff_t weak_hash_lookup (struct Lisp_Weak_Hash_Table *, Lisp_Object);
 ptrdiff_t weak_hash_put (struct Lisp_Weak_Hash_Table *, Lisp_Object, Lisp_Object,
-			 Lisp_Object);
+			 hash_hash_t);
 void weak_hash_remove_from_table (struct Lisp_Weak_Hash_Table *, Lisp_Object);
 void weak_hash_splat_from_table (struct Lisp_Weak_Hash_Table *h, ptrdiff_t i0);
 #endif
