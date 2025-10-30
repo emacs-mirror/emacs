@@ -5328,12 +5328,6 @@ make_pool_amc (struct igc *gc, mps_fmt_t fmt)
 }
 
 static mps_pool_t
-make_pool_awl (struct igc *gc, mps_fmt_t fmt, mps_awl_find_dependent_t find_dependent)
-{
-  return make_pool_with_class (gc, fmt, mps_class_awl (), find_dependent);
-}
-
-static mps_pool_t
 make_pool_awl0 (struct igc *gc, mps_fmt_t fmt,
 		mps_awl_find_dependent_t find_dependent)
 {
@@ -5366,7 +5360,7 @@ make_igc (void)
   gc->weak_fmt = make_dflt_fmt (gc);
   gc->weak_pool = make_pool_awl0 (gc, gc->weak_fmt, NULL);
   gc->weak_hash_fmt = make_dflt_fmt (gc);
-  gc->weak_hash_pool = make_pool_awl (gc, gc->weak_hash_fmt, weak_hash_find_dependent);
+  gc->weak_hash_pool = make_pool_awl0 (gc, gc->weak_hash_fmt, weak_hash_find_dependent);
   gc->immovable_fmt = make_dflt_fmt (gc);
   gc->immovable_pool = make_pool_amc (gc, gc->immovable_fmt);
 
