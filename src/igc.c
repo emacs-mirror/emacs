@@ -2498,7 +2498,7 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
       {
 	bool scan_key = true;
 	bool scan_value = true;
-	switch (t->weakness)
+	switch (t->h.weakness)
 	  {
 	  case Weak_Key:
 	    scan_key = false;
@@ -2515,13 +2515,13 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
 	    emacs_abort ();
 	  }
 
-	for (ssize_t i = 0; i < t->table_size; i++)
+	for (ssize_t i = 0; i < t->h.table_size; i++)
 	  {
 	    if (scan_key)
-	      IGC_FIX12_OBJ (ss, &t->key->contents[i]);
+	      IGC_FIX12_OBJ (ss, &t->h.key->contents[i]);
 
 	    if (scan_value)
-	      IGC_FIX12_OBJ (ss, &t->value->contents[i]);
+	      IGC_FIX12_OBJ (ss, &t->h.value->contents[i]);
 	  }
       }
   }
@@ -2540,7 +2540,7 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
       {
 	bool scan_key = false;
 	bool scan_value = false;
-	switch (t->weakness)
+	switch (t->h.weakness)
 	  {
 	  case Weak_Key:
 	    scan_key = true;
@@ -2557,13 +2557,13 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 	    emacs_abort ();
 	  }
 
-	for (ssize_t i = 0; i < t->table_size; i++)
+	for (ssize_t i = 0; i < t->h.table_size; i++)
 	  {
 	    if (scan_key)
 	      {
-		bool was_nil = NILP (t->key->contents[i]);
-		IGC_FIX12_OBJ (ss, &t->key->contents[i]);
-		bool is_now_nil = NILP (t->key->contents[i]);
+		bool was_nil = NILP (t->h.key->contents[i]);
+		IGC_FIX12_OBJ (ss, &t->h.key->contents[i]);
+		bool is_now_nil = NILP (t->h.key->contents[i]);
 
 		if (is_now_nil && !was_nil)
 		  {
@@ -2578,9 +2578,9 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 
 	    if (scan_value)
 	      {
-		bool was_nil = NILP (t->value->contents[i]);
-		IGC_FIX12_OBJ (ss, &t->value->contents[i]);
-		bool is_now_nil = NILP (t->value->contents[i]);
+		bool was_nil = NILP (t->h.value->contents[i]);
+		IGC_FIX12_OBJ (ss, &t->h.value->contents[i]);
+		bool is_now_nil = NILP (t->h.value->contents[i]);
 
 		if (is_now_nil && !was_nil)
 		  {
