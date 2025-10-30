@@ -4418,6 +4418,64 @@ igc_hash (Lisp_Object key)
   return igc_header_hash (h);
 }
 
+/* Allocate a number of (Emacs) objects in one contiguous MPS object.
+   This is necessary for weak hash tables because only a single
+   dependent object is allowed for each MPS object.  */
+static void
+alloc_multi (ptrdiff_t count, mps_addr_t ret[count],
+	     size_t sizes[count], enum igc_obj_type types[count],
+	     mps_ap_t ap)
+{
+  mps_addr_t p UNINIT;
+  size_t size = 0;
+  for (ptrdiff_t i = 0; i < count; i++)
+    size += alloc_size (sizes[i]);
+  switch (igc_state)
+    {
+    case IGC_STATE_USABLE_PARKED:
+    case IGC_STATE_USABLE:
+      do
+	{
+	  mps_res_t res = mps_reserve (&p, ap, size);
+	  ptrdiff_t off = 0;
+	  if (res != MPS_RES_OK)
+	    memory_full (0);
+	  /* Object _must_ have valid contents before commit.  */
+	  memclear (p, size);
+	  for (ptrdiff_t i = 0; i < count; i++)
+	    {
+	      set_header ((struct igc_header *) ((char *) p + off), types[i],
+			  (i == 0) ? size : sizes[i],
+			  alloc_hash ());
+	      off += sizes[i];
+	    }
+	}
+      while (!mps_commit (ap, p, size));
+      break;
+
+    case IGC_STATE_DEAD:
+      p = xzalloc (size);
+      ptrdiff_t off = 0;
+      for (ptrdiff_t i = 0; i < count; i++)
+	{
+	  set_header ((struct igc_header *) ((char *) p + off), types[i],
+		      (i == 0) ? size : sizes[i],
+		      alloc_hash ());
+	  off += sizes[i];
+	}
+      break;
+
+    case IGC_STATE_INITIAL:
+      emacs_abort ();
+    }
+  ptrdiff_t off = 0;
+  for (ptrdiff_t i = 0; i < count; i++)
+    {
+      ret[i] = ((char *) p + off);
+      off += sizes[i];
+    }
+}
+
 /* Allocate an object of client size SIZE and of type TYPE from
    allocation point AP.  Value is a pointer to the new object.  */
 
