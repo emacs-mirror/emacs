@@ -280,7 +280,10 @@ Only run CODE if the SUCCESS process has a zero exit code."
      ;; lost.  Terminated processes get deleted automatically
      ;; anyway. -- cyd
      ((or (null proc) (eq (process-status proc) 'exit))
-      (when proc (accept-process-output proc))
+      (when proc
+        ;; Nonblocking call in case we are ourselves called from a
+        ;; process sentinel (GNU ELPA's diff-hl does this).
+        (accept-process-output proc 0))
       (funcall eval-code))
      ((eq (process-status proc) 'run)
       (when (buffer-live-p buf)
