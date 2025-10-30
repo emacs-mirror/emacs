@@ -1377,6 +1377,18 @@
   (dolist (w '(nil key value key-and-value key-or-value))
     (dolist (test '(eq eql equal))
       (ft--test-puthash-types w test))))
+
+(defun ft--test-weak-fixnums (weakness test)
+  (let ((h (make-hash-table :weakness weakness :test test)))
+    (dotimes (i 32)
+      (puthash i (lognot 2) h))
+    (ft--gc weakness)))
+
+(ert-deftest ft-weak-fixnums ()
+  (dolist (w '(key value key-and-value key-or-value))
+    (dolist (test '(eq eql equal))
+      (ft--test-weak-fixnums w test))))
+
 
 
 (ert-deftest test-hash-function-that-mutates-hash-table ()
