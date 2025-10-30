@@ -3180,14 +3180,6 @@ root_create_bc (struct igc_thread_list *t)
 }
 
 static void
-root_create_charset_table (struct igc *gc)
-{
-  root_create_ambig (gc, charset_table_init,
-		     charset_table_init + ARRAYELTS (charset_table_init),
-		     "charset-table");
-}
-
-static void
 root_create_thread (struct igc_thread_list *t)
 {
   struct igc *gc = t->d.gc;
@@ -5320,7 +5312,6 @@ make_igc (void)
   gc->immovable_fmt = make_dflt_fmt (gc);
   gc->immovable_pool = make_pool_amc (gc, gc->immovable_fmt);
 
-  root_create_charset_table (gc);
   root_create_buffer (gc, &buffer_defaults);
   root_create_buffer (gc, &buffer_local_symbols);
   root_create_staticvec (gc);
