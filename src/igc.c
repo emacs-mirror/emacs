@@ -1323,6 +1323,27 @@ fix_raw (mps_ss_t ss, mps_addr_t *p)
   return MPS_RES_OK;
 }
 
+/* Like fix_raw, but unaligned addresses are allowed. */
+static mps_res_t
+fix_weak (mps_ss_t ss, mps_addr_t *p)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    mps_addr_t addr = *p;
+    if (addr == NULL)
+      return MPS_RES_OK;
+    if (MPS_FIX1 (ss, addr))
+      {
+	mps_res_t res = MPS_FIX2 (ss, &addr);
+	if (res != MPS_RES_OK)
+	  return res;
+	*p = addr;
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 /* Fix an object that's actually just a Lisp_Vector, but where P points
    to the data contents rather than the header.  */
 static mps_res_t
@@ -1468,6 +1489,16 @@ fix_wrapped_bytes (mps_ss_t ss, mps_addr_t *p)
       if (res != MPS_RES_OK)                       \
 	return res;                                \
     }                                              \
+  while (0)
+
+#define IGC_FIX12_WEAK(ss, p)                                     \
+  do                                                              \
+    {                                                             \
+      mps_res_t res;                                              \
+      MPS_FIX_CALL (ss, res = fix_weak (ss, (mps_addr_t *) (p))); \
+      if (res != MPS_RES_OK)                                      \
+	return res;                                               \
+    }                                                             \
   while (0)
 
 static mps_res_t
@@ -2518,7 +2549,7 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
 #ifdef WORDS_BIGENDIAN
 	    off = sizeof (t->entries[i].intptr) - sizeof (mps_word_t);
 #endif
-	    IGC_FIX12_RAW (ss, ((char *) &t->entries[i].intptr) + off);
+	    IGC_FIX12_WEAK (ss, ((char *) &t->entries[i].intptr) + off);
 	  }
       }
   }
@@ -2562,7 +2593,7 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 #ifdef WORDS_BIGENDIAN
 	    off = sizeof (w->entries[i].intptr) - sizeof (mps_word_t);
 #endif
-	    IGC_FIX12_RAW (ss, ((char *) &w->entries[i].intptr) + off);
+	    IGC_FIX12_WEAK (ss, ((char *) &w->entries[i].intptr) + off);
 	    bool is_now_nil = w->entries[i].intptr == 0;
 
 	    if (is_now_nil && !was_nil)
