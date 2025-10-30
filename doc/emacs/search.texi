@@ -1125,6 +1125,18 @@ ends of the range in upper case, or both in lower case, or both should
 be non-letters.  The behavior of a mixed-case range such as @samp{A-z}
 is somewhat ill-defined, and it may change in future Emacs versions.
 
+To search for raw bytes (@pxref{International Chars}) using regular
+expressions, specify their codepoints in the bracket expression, as in
+@w{@kbd{C-M-s [ C-x 8 @key{RET} 3fff80 @key{RET} - C-x 8 @key{RET}
+3fffff @key{RET} ]}}.  Emacs will show the equivalent
+
+@example
+Regexp I-search: [\200-\377]
+@end example
+
+@noindent
+in the echo area.
+
 @item @kbd{[^ @dots{} ]}
 @samp{[^} begins a @dfn{complemented character set}, which matches any
 character except the ones specified.  Thus, @samp{[^a-z0-9A-Z]} matches
