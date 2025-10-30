@@ -1721,7 +1721,7 @@ FG and BG are the main colors."
     `(warning ((,c :inherit bold :foreground ,warning)))
 ;;;;; buttons, links, widgets
     `(button ((,c :background ,bg-link :foreground ,fg-link :underline ,underline-link)))
-    `(link ((,c :inherit button)))
+    `(link ((,c :background ,bg-link :foreground ,fg-link :underline ,underline-link)))
     `(link-visited ((,c :background ,bg-link-visited :foreground ,fg-link-visited :underline ,underline-link-visited)))
     `(tooltip ((,c :background ,bg-active :foreground ,fg-main)))
 ;;;;; adoc-mode
