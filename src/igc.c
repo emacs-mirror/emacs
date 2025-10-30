@@ -4775,7 +4775,16 @@ igc_alloc_blv (void)
 void *
 igc_alloc_handler (void)
 {
+#if defined DARWIN_OS && defined __arm64__
+  /* This was changed to use malloc and a root for Windows 64-bit,
+     AFAIU.  I don't understand why it is necessary on macOS/arm64, it
+     produces ~700 roots, and I did not have a problem using MPS
+     memory from the beginning.  Don't rock the boat too much, so only
+     for the case I know. --gerd  */
+  struct handler *h = alloc (sizeof *h, IGC_OBJ_HANDLER);
+#else
   struct handler *h = igc_xzalloc_ambig_with_label (sizeof *h, "handler");
+#endif
   return h;
 }
 
