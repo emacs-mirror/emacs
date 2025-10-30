@@ -177,6 +177,14 @@ bool igc_busy_p (void);
 Lisp_Object igc_discard_killed_buffers (Lisp_Object list);
 
 #ifdef HAVE_NTGUI
+/* Union that is expected to be aligned as MPS expects from stack bottom.  */
+typedef union
+{
+  Lisp_Object o;
+  void *p;
+  char c;
+} w32_aligned_stack_pos;
+
 void * w32_add_non_lisp_thread (void *);
 void w32_remove_non_lisp_thread (void *);
 #endif

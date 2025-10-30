@@ -453,8 +453,8 @@ static DWORD WINAPI
 timer_loop (LPVOID arg)
 {
 #ifdef HAVE_MPS
-  void *stk_bot;
-  void *igc_thr = w32_add_non_lisp_thread (&stk_bot);
+  w32_aligned_stack_pos stk_bot;
+  void *igc_thr = w32_add_non_lisp_thread (&stk_bot.c);
 #endif
   struct itimer_data *itimer = (struct itimer_data *)arg;
   int which = itimer->type;
