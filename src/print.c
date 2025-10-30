@@ -2841,16 +2841,17 @@ print_object (Lisp_Object obj, bool escapeflag, struct print_context *pc)
 	       #s(hash-table test equal data (k1 v1 k2 v2)) */
 	    print_c_string ("#s(hash-table", printcharfun);
 
-	    if (!BASE_EQ (h->strong->test->name, Qeql))
+	    if (!BASE_EQ (h->strong->h.test->name, Qeql))
 	      {
 		print_c_string (" test ", printcharfun);
-		print_object (h->strong->test->name, escapeflag, pc);
+		print_object (h->strong->h.test->name, escapeflag, pc);
 	      }
 
-	    if (h->strong->weakness != Weak_None)
+	    if (h->strong->h.weakness != Weak_None)
 	      {
 		print_c_string (" weakness ", printcharfun);
-		print_object (hash_table_weakness_symbol (h->strong->weakness),
+		print_object (hash_table_weakness_symbol
+			      (h->strong->h.weakness),
 			      escapeflag, pc);
 	      }
 
