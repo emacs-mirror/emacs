@@ -2121,6 +2121,7 @@ fix_handler (mps_ss_t ss, struct handler *h)
 static mps_res_t
 fix_charset_table (mps_ss_t ss, struct charset *table, size_t nbytes)
 {
+  emacs_abort ();
   igc_assert (table == charset_table);
   igc_assert (nbytes == (charset_table_size * sizeof (struct charset)));
   MPS_SCAN_BEGIN (ss)
@@ -5513,8 +5514,6 @@ check_dump (mps_addr_t start, mps_addr_t end)
   return true;
 }
 
-static mps_addr_t pinned_objects_in_dump[3];
-
 /* Called from pdumper_load.  [HOT_START, HOT_END) is the hot section of
    the dump.  [COL_START, COLD_END) is the cold section of the
    dump.  COLD_USER_DATA_START is where actual object memory starts.
@@ -5536,9 +5535,10 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   igc_assert (header_type ((struct igc_header *) heap_end)
 	      == IGC_OBJ_DUMPED_BYTES);
 
-  size_t discardable_size = (uint8_t *) cold_start - (uint8_t *) hot_end;
-  // size_t cold_size = (uint8_t *) cold_end - (uint8_t *) cold_start;
-  size_t dump_header_size = (uint8_t *) hot_start - (uint8_t *) dump_base;
+  size_t discardable_size
+    = (uint8_t *) cold_start - (uint8_t *) hot_end;
+  size_t dump_header_size
+    = (uint8_t *) hot_start - (uint8_t *) dump_base;
   size_t relocs_size = (uint8_t *) cold_end - (uint8_t *) heap_end;
   struct igc_header *h = dump_base;
 
@@ -5554,18 +5554,6 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   set_header (heap_end, IGC_OBJ_PAD, relocs_size, 0);
 
   eassert (check_dump (h, cold_end));
-  /* Pin some stuff in the dump  */
-  mps_addr_t pinned_roots[] = {
-    charset_table,
-    cold_start, /* code_space_masks */
-    cold_user_data_start,
-  };
-  static_assert (sizeof pinned_roots == sizeof pinned_objects_in_dump);
-  memcpy (pinned_objects_in_dump, pinned_roots, sizeof pinned_roots);
-  igc_root_create_ambig (pinned_objects_in_dump,
-			 (uint8_t *) pinned_objects_in_dump
-			   + sizeof pinned_objects_in_dump,
-			 "dump-pins");
 }
 
 void *
