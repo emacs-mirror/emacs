@@ -690,6 +690,12 @@ or strings.  If set to 'on-mismatch', mismatched parens inside comments
 and strings will not be highlighted.  If set to nil (the default),
 highlight the parens wherever they are.
 
++++
+** New user option 'view-lossage-auto-refresh'.
+If this option is non-nil, the lossage buffer in 'view-lossage' will be
+refreshed automatically for each new input keystroke and command
+performed.
+
 ** Change in SVG foreground color handling.
 SVG images no longer have the 'fill' attribute set to the value of
 ':foreground' or the current text foreground color.  The 'currentcolor'
