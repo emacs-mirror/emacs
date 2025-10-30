@@ -35,7 +35,8 @@
           ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
 
   ;; ERC's tests also run in external CI that exports this variable.
-  (when (getenv "CI")
+  ;; Skip on 27 because `erc-scrolltobottom-all' currently requires 28+.
+  (when (or (getenv "CI") (< emacs-major-version 28))
     (ert-skip "Times out intermittently"))
 
   (should-not erc-scrolltobottom-all)
