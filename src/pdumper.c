@@ -3448,7 +3448,8 @@ dump_charset_table (struct dump_context *ctx)
   dump_emacs_reloc_to_dump_ptr_raw (ctx, &charset_table, offset);
 #else
   size_t size = ctx->offset - offset;
-  eassert (size <= sizeof charset_table_init);
+  if (size > sizeof charset_table_init)
+    emacs_abort ();
   dump_emacs_reloc_copy_from_dump (ctx, offset, &charset_table_init,
 				   size);
 #endif
