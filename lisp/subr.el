@@ -7266,15 +7266,15 @@ See documentation for `version-separator' and `version-regexp-alist'."
 	      (setq al (cdr al)))
 	    (cond (al
 		   (push (cdar al) lst))
-        ;; Convert 22.3a to 22.3.1, 22.3b to 22.3.2, etc., but only if
-        ;; the letter is the end of the version-string, to avoid
-        ;; 22.8X3 being valid
-        ((and (string-match "^[-._+ ]?\\([a-zA-Z]\\)$" s)
-           (= i (length ver)))
+                  ;; Convert 22.3a to 22.3.1, 22.3b to 22.3.2, etc., but only if
+                  ;; the letter is the end of the version-string, to avoid
+                  ;; 22.8X3 being valid
+                  ((and (string-match "^[-._+ ]?\\([a-zA-Z]\\)$" s)
+                        (= i (length ver)))
 		   (push (- (aref (downcase (match-string 1 s)) 0) ?a -1)
 			 lst))
 		  (t (error "Invalid version syntax: `%s'" ver))))))
-    (nreverse lst))))
+      (nreverse lst))))
 
 (defun version-list-< (l1 l2)
   "Return t if L1, a list specification of a version, is lower than L2.
