@@ -371,7 +371,7 @@ otherwise it's assumed to be an Info file."
   (let* ((pkg-name (package-desc-name pkg-desc))
          (default-directory (package-desc-dir pkg-desc))
          (docs-directory (file-name-directory (expand-file-name file)))
-         (output (expand-file-name (format "%s.info" pkg-name)))
+         (output (expand-file-name (format "%s.info" (file-name-base file))))
          (log-buffer (get-buffer-create (format " *package-vc doc: %s*" pkg-name)))
          clean-up)
     (with-current-buffer log-buffer
