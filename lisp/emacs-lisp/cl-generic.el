@@ -1047,7 +1047,7 @@ those methods.")
       ('cl--generic-eql-generalizer '(eql 'x))
       ('cl--generic-struct-generalizer 'cl--generic)
       ('cl--generic-typeof-generalizer 'integer)
-      ('cl--generic-derived-generalizer '(derived-mode c-mode))
+      ('cl--generic-derived-mode-generalizer '(derived-mode c-mode))
       ('cl--generic-oclosure-generalizer 'oclosure)
       (_ x))))
 
@@ -1466,19 +1466,19 @@ This currently works for built-in types and types built on top of records."
 ;;   "&context (major-mode c-mode)" rather than
 ;;   "&context (major-mode (derived-mode c-mode))".
 
-(defun cl--generic-derived-specializers (mode &rest _)
+(defun cl--generic-derived-mode-specializers (mode &rest _)
   ;; FIXME: Handle (derived-mode <mode1> ... <modeN>)
   (mapcar (lambda (mode) `(derived-mode ,mode))
           (derived-mode-all-parents mode)))
 
-(cl-generic-define-generalizer cl--generic-derived-generalizer
-  90 (lambda (name) `(and (symbolp ,name) (functionp ,name) ,name))
-  #'cl--generic-derived-specializers)
+(cl-generic-define-generalizer cl--generic-derived-mode-generalizer
+  90 (lambda (name &rest _) `(and (symbolp ,name) (functionp ,name) ,name))
+  #'cl--generic-derived-mode-specializers)
 
 (cl-defmethod cl-generic-generalizers ((_specializer (head derived-mode)))
   "Support for (derived-mode MODE) specializers.
 Used internally for the (major-mode MODE) context specializers."
-  (list cl--generic-derived-generalizer))
+  (list cl--generic-derived-mode-generalizer))
 
 (cl-generic-define-context-rewriter major-mode (mode &rest modes)
   `(major-mode ,(if (consp mode)

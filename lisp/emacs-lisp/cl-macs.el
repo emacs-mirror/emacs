@@ -3816,12 +3816,39 @@ If PARENTS is non-nil, ARGLIST must be nil."
       (cl-callf (lambda (x) (delq parent-decl x)) (cdr declares))
       (when (equal declares '(declare))
         (cl-callf (lambda (x) (delq declares x)) decls)))
-    (and parents arglist
-         (error "Parents specified, but arglist not empty"))
     (let* ((expander
-            `(cl-function (lambda (&cl-defs ('*) ,@arglist) ,@decls ,@forms)))
-           ;; FIXME: Pass a better lexical context.
-           (specifier (ignore-errors (funcall (eval expander t))))
+            `(cl-function
+              (lambda (&cl-defs ('*) ,@arglist) ,@decls ,@forms)))
+           (specifier
+            (condition-case nil
+                ;; FIXME: Pass a better lexical context.
+                (funcall (eval expander t))
+              ;; We previously signaled an error when the type specified
+              ;; both non-nil parents and arglist, like `unsigned-byte'
+              ;; in below example:
+              ;;
+              ;; (cl-deftype my-integer ()
+              ;;   'integer)
+              ;;
+              ;; (cl-deftype unsigned-byte (&optional bits)
+              ;;   "Unsigned integer."
+              ;;   (declare (parents my-integer))
+              ;;   `(integer 0 ,(if (memq bits '(nil *))
+              ;;                    bits
+              ;;                  (1- (ash 1 bits)))))
+              ;;
+              ;; In order to accept the above (correct) definition of
+              ;; `unsigned-byte', call the expander without arguments to
+              ;; check if the arglist is mandatory by catching a
+              ;; `wrong-number-of-arguments' error.  If so, and the type
+              ;; specified both parents and arglist, there is a good
+              ;; chance that the type is not atomic, so signal it;
+              ;; otherwise, return nil as previously.  Report any other
+              ;; error on type definition.
+              (wrong-number-of-arguments
+               (and parents arglist ;; type is not atomic
+                    (error "Type %S with parents may be not atomic: %S"
+                           name arglist)))))
            (predicate
             (pcase specifier
               (`(satisfies ,f) `#',f)
