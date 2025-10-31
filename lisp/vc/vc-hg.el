@@ -1918,7 +1918,8 @@ Always has to fetch, like `vc-hg-incoming-revision' does."
 (defun vc-hg--reset-back-to (rev keep)
   "Strip revisions up to but not including rev.
 If KEEP is non-nil, also pass --keep to `hg strip'."
-  (apply #'vc-hg-command nil 0 nil "--config=extensions.strip="
+  (apply #'vc-hg-command nil 0 nil
+         "--config=extensions.strip="
          "strip" "--force"
          (format "--rev=descendants(%s) & !%s" rev rev)
          (and keep '("--keep"))))
