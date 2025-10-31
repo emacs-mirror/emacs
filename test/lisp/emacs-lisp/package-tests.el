@@ -279,7 +279,7 @@ Must called from within a `tar-mode' buffer."
 
     (let* ((pkg-el "multi-file-0.2.3.tar")
            (source-file (expand-file-name pkg-el (ert-resource-directory))))
-      (should-not (package-installed-p 'multie-file))
+      (should-not (package-installed-p 'multi-file))
       (package-install-file source-file)
       (should (package-installed-p 'multi-file))
       (package-delete (cadr (assq 'multi-file package-alist))))))
