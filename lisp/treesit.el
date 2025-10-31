@@ -757,7 +757,22 @@ that encompasses the region between START and END."
                  (when (null host)
                    (signal 'treesit-error (list "Value of :host option cannot be omitted")))
                  (when (treesit-available-p)
-                   (push (list (treesit--compile-query-with-cache host query)
+                   ;; Don't replace this with
+                   ;; `treesit--compile-query-with-cache'.
+                   ;; `treesit-query-compile' is lazy and don't actually
+                   ;; load the grammar until the query is
+                   ;; used. `treesit--compile-query-with-cache' compiles
+                   ;; eagerly so it's not safe to use for this function
+                   ;; which might be called when loading a package.  To
+                   ;; do it properly like font-lock, we need to not
+                   ;; compile the queries here, and compile them with
+                   ;; `treesit--compile-query-with-cache' when major
+                   ;; mode is enabled.  Let's just keep things simple
+                   ;; and keep range rules as-is.  Because for range
+                   ;; rules, the queries generally don't need to
+                   ;; computed dynamically, and queries are simple and
+                   ;; few, so recompiling isn't as much of a problem.
+                   (push (list (treesit-query-compile host query)
                                embed local offset range-fn)
                          result)))
                (setq host nil embed nil offset nil local nil range-fn nil))))
