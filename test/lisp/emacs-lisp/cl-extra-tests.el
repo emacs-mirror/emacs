@@ -392,7 +392,7 @@
           (cl-call-next-method)))
 
 (ert-deftest cl-types-test ()
-  "Test types definition, cl-types-of and method dispatching."
+  "Test types definition, specializers, and method dispatching."
 
   ;; Invalid DAG error
   ;; FIXME: We don't test that any more.
@@ -405,26 +405,35 @@
   ;;   lexical-binding
   ;;   ))
 
-  ;; Test that (cl-types-of 4) is (multiples-of-4 multiples-of-2 ...)
-  ;; Test that (cl-types-of 6) is (multiples-of-3 multiples-of-2 ...)
-  ;; Test that (cl-types-of 12) is (multiples-of-4 multiples-of-3 multiples-of-2 ...)
+  ;; With possible 'types' in multiples-of-{2,3,4} verify that:
   (let ((types '(multiples-of-2 multiples-of-3 multiples-of-4)))
+
+    ;; (cl--derived-type-specializers  2 types) is multiples-of-2
     (should (equal '(multiples-of-2)
-		   (seq-intersection (cl-types-of 2) types)))
+		   (seq-intersection
+                    (cl--derived-type-specializers 2 types) types)))
 
+    ;; (cl--derived-type-specializers  4 types) is multiples-of-{4,2}
     (should (equal '(multiples-of-4 multiples-of-2)
-		   (seq-intersection (cl-types-of 4) types)))
+		   (seq-intersection
+                    (cl--derived-type-specializers 4 types) types)))
 
+    ;; (cl--derived-type-specializers  6 types) is multiples-of-{3,2}
     (should (equal '(multiples-of-3 multiples-of-2)
-		   (seq-intersection (cl-types-of 6) types)))
+		   (seq-intersection
+                    (cl--derived-type-specializers 6 types) types)))
 
-    (should (member (seq-intersection (cl-types-of 12) types)
+    ;; (cl--derived-type-specializers 12 types) is multiples-of-{4,3,2}
+    (should (member (seq-intersection
+                     (cl--derived-type-specializers 12 types) types)
 		    ;; Order between 3 and 4/2 is undefined.
 		    '((multiples-of-3 multiples-of-4 multiples-of-2)
 		      (multiples-of-4 multiples-of-2 multiples-of-3))))
 
+    ;; (cl--derived-type-specializers  5 types) is not of any 'types'
     (should (equal '()
-		   (seq-intersection (cl-types-of 5) types)))
+		   (seq-intersection
+                    (cl--derived-type-specializers 5 types) types)))
     )
 
   ;;; Method dispatching.

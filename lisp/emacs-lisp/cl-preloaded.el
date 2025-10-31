@@ -473,9 +473,6 @@ The fields are used as follows:
 
 ;;;; Support for `cl-deftype'.
 
-(defvar cl--derived-type-list nil
-  "Precedence list of the defined cl-types.")
-
 ;; FIXME: The `cl-deftype-handler' property should arguably be turned
 ;; into a field of this struct (but it has performance and
 ;; compatibility implications, so let's not make that change for now).
@@ -521,19 +518,7 @@ PARENTS is a list of types NAME is a subtype of, or nil."
            parents))
     (define-symbol-prop name 'cl-deftype-handler expander)
     (when predicate
-      (define-symbol-prop name 'cl-deftype-satisfies predicate)
-      ;; If the type can be used without arguments, record it for
-      ;; use by `cl-types-of'.
-      ;; The order in `cl--derived-type-list' is important, but the
-      ;; constructor of the class `cl-type-class' already ensures that
-      ;; parent types must be defined before their "child" types
-      ;; (i.e. already added to the `cl--derived-type-list' for types
-      ;; defined with `cl-deftype').  So it is enough to simply push
-      ;; a new type at the beginning of the list.
-      ;; Redefinition is a can of worms anyway, so we don't try to be clever
-      ;; in that case.
-      (or (memq name cl--derived-type-list)
-          (push name cl--derived-type-list)))))
+      (define-symbol-prop name 'cl-deftype-satisfies predicate))))
 
 ;; Make sure functions defined with cl-defsubst can be inlined even in
 ;; packages which do not require CL.  We don't put an autoload cookie
