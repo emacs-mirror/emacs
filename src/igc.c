@@ -130,10 +130,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Weak_Hash_Table_7C5D3EDAD7
 #  error "struct Lisp_Weak_Hash_table changed"
 # endif
-# ifndef HASH_Lisp_Weak_Hash_Table_Strong_Part_E6E1344F69
+# ifndef HASH_Lisp_Weak_Hash_Table_Strong_Part_2EFD944FB0
 #  error "struct Lisp_Weak_Hash_Table_Strong_Part changed"
 # endif
-# ifndef HASH_Lisp_Weak_Hash_Table_Weak_Part_DA91AF2025
+# ifndef HASH_Lisp_Weak_Hash_Table_Weak_Part_23119F9924
 #  error "struct Lisp_Weak_Hash_Table_Weak_Part changed"
 # endif
 # ifndef HASH_buffer_text_07D802E2D4
