@@ -5148,15 +5148,76 @@ make_parent_window (Lisp_Object frame)
 }
 
 
+/** Assign parent and normal sizes to all child windows of window P.
+    Normal sizes are calculated from the child windows' pixel widths and
+    heights so these must be in place already.  This function is called
+    when parent/child window relationships change without resizing as in
+    Fcombine_windows or Funcombine_window.  */
+static void
+window_set_parent_and_normal_sizes (Lisp_Object parent)
+{
+  struct window *p = XWINDOW (parent);
+  struct window *w = XWINDOW (p->contents);
+  /* Normal size left for yet unprocessed windows.  */
+  double remainder = 1.0;
+
+  if (w->horizontal)
+    {
+      while (true)
+	{
+	  wset_parent (w, parent);
+	  wset_normal_lines (w, make_float (1.0));
+
+	  if (NILP (w->next))
+	    {
+	      wset_normal_cols (w, make_float (remainder));
+	      break;
+	    }
+	  else
+	    {
+	      wset_normal_cols (w, make_float ((double) w->pixel_width
+					       / (double) p->pixel_width));
+	      remainder -= XFLOAT_DATA (w->normal_cols);
+	      w = XWINDOW (w->next);
+	    }
+	}
+    }
+  else
+    {
+      while (true)
+	{
+	  wset_parent (w, parent);
+	  wset_normal_cols (w, make_float (1.0));
+
+	  if (NILP (w->next))
+	    {
+	      wset_normal_lines (w, make_float (remainder));
+	      break;
+	    }
+	  else
+	    {
+	      wset_normal_lines (w, make_float ((double) w->pixel_height
+						/ (double) p->pixel_height));
+	      remainder -= XFLOAT_DATA (w->normal_lines);
+	      w = XWINDOW (w->next);
+	    }
+	}
+    }
+}
+
+
 DEFUN ("combine-windows", Fcombine_windows, Scombine_windows, 2, 2, 0,
-       doc: /* Combine windows from FIRST to LAST.
-FIRST and LAST must be valid windows in the same combination, that is,
-windows with the same parent window.  If neither FIRST has a previous
-nor LAST has a next sibling, return that parent window.  Otherwise, make
-a new parent window whose first child window becomes FIRST and whose
-last child window becomes LAST, insert that parent window in the window
-tree in lieu of the windows starting with FIRST and ending with LAST, and
-return the new parent window.  */)
+       doc: /* Combine windows from FIRST to LAST inclusive.
+FIRST and LAST must be different, valid windows in the same combination,
+that is, windows with the same parent window.  If LAST is not reachable
+from FIRST by applying `window-next-sibling' repeatedly, invert FIRST
+and LAST.
+
+If FIRST has no previous and LAST has no next sibling, return nil.
+Otherwise, make a new parent window whose first child window becomes
+FIRST and whose last child window becomes LAST, insert that parent
+window in the window tree in lieu of the windows starting with FIRST and
+ending with LAST and return the new parent window.  */)
   (Lisp_Object first, Lisp_Object last)
 {
   struct window *f = decode_valid_window (first);
@@ -5165,7 +5226,7 @@ return the new parent window.  */)
 
   if (f == l)
     /* Don't make a matryoshka window.  */
-    error ("Invalid window to parentify");
+    error ("Cannot combine a window with itself");
 
   while (w != l && !NILP (w->next))
     w = XWINDOW (w->next);
@@ -5186,58 +5247,43 @@ return the new parent window.  */)
 	  XSETWINDOW (last, l);
 	}
       else
-	error ("Invalid window to parentify");
+	error ("Windows to combine must be children of same parent");
     }
 
   if (NILP (f->prev) && NILP (l->next))
-    return f->parent;
+    /* FIRST and LAST are already the first and last child of their
+       parent.  */
+    return Qnil;
 
   /* Make new parent window PARENT.  */
   Lisp_Object parent = make_parent_window (f->frame);
   struct window *p = XWINDOW (parent);
-  double normal_size = 0.0;
+  bool horflag = XWINDOW (f->parent)->horizontal;
 
   /* Splice in PARENT into the window tree.  */
-  p->parent = f->parent;
-  p->horizontal = XWINDOW (p->parent)->horizontal;
-  p->contents = first;
+  wset_parent (p, f->parent);
+  wset_combination (p, horflag, first);
 
   if (NILP (f->prev))
-    /* FIRST has no previous sibling.  */
-    XWINDOW (p->parent)->contents = parent;
+    /* FIRST has no previous sibling.  Make PARENT the first child of
+       FIRST's old parent.  */
+    wset_combination (XWINDOW (p->parent), horflag, parent);
   else
-    /* FIRST has a previous sibling.  */
+    /* FIRST has a previous sibling.  Make PARENT the new next sibling
+       of FIRST's previous sibling.  */
     {
-      XWINDOW (f->prev)->next = parent;
-      p->prev = f->prev;
-      f->prev = Qnil;
+      wset_next (XWINDOW (f->prev), parent);
+      wset_prev (p, f->prev);
+      wset_prev (f, Qnil);
     }
 
   if (!NILP (l->next))
-    /* LAST has a next sibling.  */
+    /* LAST has a next sibling.  Make PARENT the new previous sibling of
+       LAST's old next sibling.  */
     {
-      XWINDOW (l->next)->prev = parent;
-      p->next = l->next;
-      l->next = Qnil;
-    }
-
-  /* Fix parent slots for PARENT's new children.  */
-  w = f;
-
-  while (w)
-    {
-      w->parent = parent;
-      if (w == l)
-	break;
-      else
-	{
-	  if (p->horizontal)
-	    normal_size = normal_size + XFLOAT_DATA (f->normal_cols);
-	  else
-	    normal_size = normal_size + XFLOAT_DATA (f->normal_lines);
-
-	  w = XWINDOW (w->next);
-	}
+      wset_prev (XWINDOW (l->next), parent);
+      wset_next (p, l->next);
+      wset_next (l, Qnil);
     }
 
   /* Set up PARENT's positions and sizes.  */
@@ -5246,7 +5292,7 @@ return the new parent window.  */)
   p->pixel_top = f->pixel_top;
   p->top_line = f->top_line;
 
-  if (p->horizontal)
+  if (horflag)
     {
       p->pixel_width = l->pixel_left + l->pixel_width - f->pixel_left;
       p->total_cols = l->left_col + l->total_cols - f->left_col;
@@ -5261,19 +5307,15 @@ return the new parent window.  */)
       p->total_cols = f->total_cols;
     }
 
-  if (p->horizontal)
-    {
-      p->normal_cols = make_float (normal_size);
-      p->normal_lines = f->normal_lines;
-    }
-  else
-    {
-      p->normal_cols = f->normal_cols;
-      p->normal_lines = make_float (normal_size);
-    }
+  /* Fix parent slots for PARENT's children and assign them new normal
+     sizes.  */
+  window_set_parent_and_normal_sizes (parent);
+  /* Assign new normal sizes for PARENT and its siblings.  */
+  window_set_parent_and_normal_sizes (p->parent);
 
   return parent;
 }
+
 
 DEFUN ("uncombine-window", Funcombine_window, Suncombine_window, 1, 1, 0,
        doc: /* Uncombine specified WINDOW.
@@ -5286,6 +5328,8 @@ of WINDOW's frame unchanged and return nil.  */)
   (Lisp_Object window)
 {
   struct window *w = decode_valid_window (window);
+  /* PARENT is WINDOW's parent and is supposed to be a combination of
+     the same type as WINDOW.  */
   Lisp_Object parent = w->parent;
 
   if (MINI_WINDOW_P (w))
@@ -5302,13 +5346,9 @@ of WINDOW's frame unchanged and return nil.  */)
       Lisp_Object last = Qnil;
       struct window *l = f;
 
-      /* Make WINDOW's parent new parent of WINDOW's children.  */
+      /* Find last child window of WINDOW.  */
       while (!NILP (l->next))
-	{
-	  wset_parent (l, parent);
-	  l = XWINDOW (l->next);
-	}
-      wset_parent (l, parent);
+	l = XWINDOW (l->next);
       XSETWINDOW (last, l);
 
       wset_prev (f, w->prev);
@@ -5320,6 +5360,10 @@ of WINDOW's frame unchanged and return nil.  */)
       wset_next (l, w->next);
       if (!NILP (l->next))
 	wset_prev (XWINDOW (w->next), last);
+
+      /* Fix parent slots for PARENT's new children and assign new normal
+	 sizes.  */
+      window_set_parent_and_normal_sizes (parent);
 
       return Qt;
     }
