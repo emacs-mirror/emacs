@@ -1916,7 +1916,7 @@ Always has to fetch, like `vc-hg-incoming-revision' does."
       (error "Revision %s is not on the current branch" rev))))
 
 (defun vc-hg--reset-back-to (rev keep)
-  "Strip revisions up to but not including rev.
+  "Strip revisions up to but not including REV.
 If KEEP is non-nil, also pass --keep to `hg strip'."
   (apply #'vc-hg-command nil 0 nil
          "--config=extensions.strip="
