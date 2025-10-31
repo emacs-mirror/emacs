@@ -1108,7 +1108,7 @@ same as in `newsticker--parse-atom-1.0'."
     (or new-item new-feed)))
 
 (defun newsticker--parse-text-container (node)
-  "Handle content according to ``type'' attirbute."
+  "Handle content according to ``type'' attribute."
   (let ((content (car (xml-node-children node))))
     (if (string= "html" (xml-get-attribute node 'type))
         ;; element contains entity escaped html
