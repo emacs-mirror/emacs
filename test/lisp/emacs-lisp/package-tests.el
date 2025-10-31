@@ -464,6 +464,33 @@ but with a different end of line convention (bug#48137)."
         (should (version-list-= '(1 3)
                                 (package-desc-version installed)))))))
 
+(ert-deftest package-test-install-singlefile ()
+  "Check properties of the installed single-file package."
+  (with-package-test (:install '(simple-single))
+    (let ((autoload-file
+           (expand-file-name "simple-single-autoloads.el"
+                             (expand-file-name
+                              "simple-single-1.3"
+                              package-test-user-dir)))
+          (installed-files '("README-elpa"
+                             "simple-single-autoloads.el"
+                             "simple-single-pkg.el"
+                             "simple-single.elc"))
+          (autoload-forms '("^(autoload 'simple-single-mode"))
+          (pkg-dir (file-name-as-directory
+                    (expand-file-name
+                     "simple-single-1.3"
+                     package-test-user-dir))))
+      (package-refresh-contents)
+      (should (package-installed-p 'simple-single))
+      (dolist (fn installed-files)
+        (should (file-exists-p (expand-file-name fn pkg-dir))))
+      (with-temp-buffer
+        (insert-file-contents-literally autoload-file)
+        (dolist (re autoload-forms)
+          (goto-char (point-min))
+          (should (re-search-forward re nil t)))))))
+
 (ert-deftest package-test-install-multifile ()
   "Check properties of the installed multi-file package."
   (with-package-test (:basedir (ert-resource-directory) :install '(multi-file))
@@ -472,8 +499,13 @@ but with a different end of line convention (bug#48137)."
                              (expand-file-name
                               "multi-file-0.2.3"
                               package-test-user-dir)))
-          (installed-files '("dir" "multi-file.info" "multi-file-sub.elc"
-                             "multi-file-autoloads.el" "multi-file.elc"))
+          (installed-files '(;; already present in tar
+                             "README" "dir" "multi-file.info"
+                             ;; generated during installation
+                             "README-elpa"
+                             "multi-file-autoloads.el"
+                             "multi-file-sub.elc"
+                             "multi-file.elc"))
           (autoload-forms '("^(defvar multi-file-custom-var"
                             "^(custom-autoload 'multi-file-custom-var"
                             "^(autoload 'multi-file-mode"))
@@ -693,6 +725,17 @@ but with a different end of line convention (bug#48137)."
     (should (package-installed-p 'project nil))
     (should (not (package-installed-p 'imaginary-package nil)))))
 
+;; The long description of installed packages should primarily come from
+;; the package archive through file *-readme.txt stored in README-elpa,
+;; and not from any README (or commentary) of the package itself.  So
+;; below we intentionally test for the contents of files *-readme.txt
+;; ("*server* readme"), which differs from what the simple-single-1.3.el
+;; or multi-file-0.2.3.tar/README contain.
+;;
+;; If the package archive provides a whitespace-only file *-readme.txt,
+;; then that should *not* be used as README-elpa, so that
+;; `describe-package' tries to come up with something reasonable itself.
+
 (ert-deftest package-test-describe-package ()
   "Test displaying help for a package."
 
@@ -723,7 +766,35 @@ but with a different end of line convention (bug#48137)."
      (save-excursion (should (re-search-forward "Keywords: \\[?frobnicate\\]?" nil t)))
      (save-excursion (should (search-forward "This package provides a minor mode to frobnicate"
                                              nil t)))
+     (save-excursion (should (search-forward "This is a server readme file."
+                                             nil t)))
      )))
+
+(ert-deftest package-test-describe-installed-with-ws-only-readme ()
+  "Test displaying of the readme for installed package with ws-only readme."
+
+  (ert-with-temp-directory temp-archive
+    (copy-file (ert-resource-file "archive-contents") temp-archive)
+    (copy-file (ert-resource-file "simple-single-1.3.el") temp-archive)
+    (write-region " \t\n\t \n" nil
+                  (expand-file-name "simple-single-readme.txt"
+                                    temp-archive))
+    (with-package-test (:location temp-archive)
+      (package-initialize)
+      (package-refresh-contents)
+      (package-install 'simple-single)
+      (with-fake-help-buffer
+       (describe-package 'simple-single)
+       (goto-char (point-min))
+       (should
+        (search-forward "Package simple-single is installed." nil t))
+       (save-excursion
+         (should
+          (search-forward "This package provides a minor mode to frobnicate"
+                          nil t)))
+       (save-excursion
+         (should-not
+          (search-forward "This is a server readme file." nil t)))))))
 
 (ert-deftest package-test-describe-installed-multi-file-package ()
   "Test displaying of the readme for installed multi-file package."
@@ -736,7 +807,7 @@ but with a different end of line convention (bug#48137)."
      (describe-package 'multi-file)
      (goto-char (point-min))
      (should (search-forward "Website: http://puddles.li" nil t))
-     (should (search-forward "This is a bare-bones readme file for the multi-file"
+     (should (search-forward "This is a bare-bones server readme file for the multi-file"
                              nil t)))))
 
 (ert-deftest package-test-describe-non-installed-package ()
@@ -750,6 +821,8 @@ but with a different end of line convention (bug#48137)."
      (goto-char (point-min))
      (should (search-forward "Website: http://doodles.au" nil t))
      (should (search-forward "This package provides a minor mode to frobnicate"
+                             nil t))
+     (should (search-forward "This is a server readme file."
                              nil t)))))
 
 (ert-deftest package-test-describe-non-installed-multi-file-package ()
@@ -762,7 +835,7 @@ but with a different end of line convention (bug#48137)."
      (describe-package 'multi-file)
      (goto-char (point-min))
      (should (search-forward "Website: http://puddles.li" nil t))
-     (should (search-forward "This is a bare-bones readme file for the multi-file"
+     (should (search-forward "This is a bare-bones server readme file for the multi-file"
                              nil t)))))
 
 (defvar epg-config--program-alist) ; Silence byte-compiler.

@@ -516,7 +516,9 @@ Slots:
         required version.
 
 `kind'	The distribution format of the package.  Currently, it is
-        either `single' or `tar'.
+        either `single', `tar', or (temporarily only) `dir'.  In
+        addition, there is distribution format `vc', which is handled
+        by package-vc.el.
 
 `archive' The name of the archive (as a string) whence this
         package came.
@@ -2113,6 +2115,18 @@ if all the in-between dependencies are also in PACKAGE-LIST."
 ;; installed in a variety of ways (archives, buffer, file), but
 ;; requirements (dependencies) are always satisfied by looking in
 ;; `package-archive-contents'.
+;;
+;; If Emacs installs a package from a package archive, it might create
+;; some files in addition to the package's contents.  For example:
+;;
+;; - If the package archive provides a non-trivial long description for
+;;   some package in "PACKAGE-readme.txt", Emacs stores it in a file
+;;   named "README-elpa" in the package's content directory, unless the
+;;   package itself provides such a file.
+;;
+;; - If a package archive provides package signatures, Emacs stores
+;;   information on the signatures in files named "NAME-VERSION.signed"
+;;   below directory `package-user-dir'.
 
 (defun package-archive-base (desc)
   "Return the package described by DESC."
@@ -2162,7 +2176,22 @@ if all the in-between dependencies are also in PACKAGE-LIST."
                ;; Update the new (activated) pkg-desc as well.
                (when-let* ((pkg-descs (cdr (assq (package-desc-name pkg-desc)
                                                  package-alist))))
-                 (setf (package-desc-signed (car pkg-descs)) t))))))))))
+                 (setf (package-desc-signed (car pkg-descs)) t))))))))
+    ;; fetch a backup of the readme file from the server.  Slot `dir' is
+    ;; not yet available in PKG-DESC, so cobble that up.
+    (let* ((dirname (package-desc-full-name pkg-desc))
+           (pkg-dir (expand-file-name dirname package-user-dir))
+           (readme (expand-file-name "README-elpa" pkg-dir)))
+      (unless (file-readable-p readme)
+        (package--with-response-buffer (package-archive-base pkg-desc)
+          :file (format "%s-readme.txt" (package-desc-name pkg-desc))
+          :noerror t
+          ;; do not write empty or whitespace-only readmes to give
+          ;; `package--get-description' a chance to find another readme
+          (unless (save-excursion
+                    (goto-char (point-min))
+                    (looking-at-p "[[:space:]]*\\'"))
+            (write-region nil nil readme)))))))
 
 ;;;###autoload
 (defun package-installed-p (package &optional min-version)
