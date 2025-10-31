@@ -408,6 +408,20 @@
 ;;   different; for example CVS has true undos (not yet implemented in
 ;;   Emacs).  A distributed VCS that implements this must also implement
 ;;   revision-published-p.
+;;
+;; - delete-revisions-from-end (rev)
+;;
+;;   Delete revisions from the revision history, from the end of the
+;;   branch up to but not including REV, including removing the changes
+;;   made by those revisions to the working tree.  If there are
+;;   uncommitted changes the implementation should discard them.
+;;
+;; - uncommit-revisions-from-end (rev)
+;;
+;;   Delete revisions from the revision history, from the end of the
+;;   branch up to but not including REV, but without removing the
+;;   changes made by those revisions from the working tree.
+;;   I.e., the working tree contents should not change.
 
 ;; HISTORY FUNCTIONS
 ;;

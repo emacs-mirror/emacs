@@ -2332,6 +2332,18 @@ Rebase may --autosquash your other squash!/fixup!/amend!; proceed?")))
     (vc-git-command nil 0 nil "rebase" "--abort")
     (error "Merge conflicts while trying to delete %s; aborting" rev)))
 
+(defun vc-git-delete-revisions-from-end (rev)
+  "Hard reset back to REV.
+It is an error if REV is not on the current branch."
+  (vc-git--assert-revision-on-branch rev (vc-git--current-branch))
+  (vc-git-command nil 0 nil "reset" "--hard" rev))
+
+(defun vc-git-uncommit-revisions-from-end (rev)
+  "Soft reset back to REV.
+It is an error if REV is not on the current branch."
+  (vc-git--assert-revision-on-branch rev (vc-git--current-branch))
+  (vc-git-command nil 0 nil "reset" "--soft" rev))
+
 (defvar vc-git-extra-menu-map
   (let ((map (make-sparse-keymap)))
     (define-key map [git-grep]
