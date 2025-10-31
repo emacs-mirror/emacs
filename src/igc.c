@@ -4412,7 +4412,9 @@ alloc_multi (ptrdiff_t count, mps_addr_t ret[count],
   mps_addr_t p UNINIT;
   size_t size = 0;
   for (ptrdiff_t i = 0; i < count; i++)
-    size += alloc_size (sizes[i]);
+    sizes[i] = alloc_size (sizes[i]);
+  for (ptrdiff_t i = 0; i < count; i++)
+    size += sizes[i];
   switch (igc_state)
     {
     case IGC_STATE_USABLE_PARKED:
