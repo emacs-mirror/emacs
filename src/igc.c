@@ -1286,7 +1286,7 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
 	   IOW, MPS_FIX1 has undefined behavior if called on an address that
 	   is not in the arena.  */
 	mps_addr_t addr = (mps_addr_t) (word ^ tag);
-	if (MPS_FIX1 (ss, addr))
+	if (addr != NULL && MPS_FIX1 (ss, addr))
 	  {
 	    mps_res_t res = MPS_FIX2 (ss, &addr);
 	    if (res != MPS_RES_OK)
