@@ -4054,10 +4054,11 @@ and \"%y\" format specifiers are replaced by the respective `awk',
 `hexdump', `ls', `test', od', `perl', `test -e', `readlink', `stat' and
 `python' commands.  \"%n\" is replaced by \"2>/dev/null\", and \"%t\" is
 replaced by a temporary file name.  If VEC is nil, the respective local
-commands are used.  If there is a format specifier which cannot be
-expanded, this function returns nil."
-  (if (not (string-match-p
-	    (rx (| bol (not "%")) "%" (any "ahlmnopqrsty")) script))
+commands are used.
+\"%%\" is replaced by \"%\".  If one of the format specifiers cannot be
+expanded, this function returns nil.  If there are only other format
+specifiers, SCRIPT is returned unchanged."
+  (if (not (string-match-p (rx "%" (any "ahlmnopqrsty%")) script))
       script
     (catch 'wont-work
       (let ((awk (when (string-match-p (rx (| bol (not "%")) "%a") script)
