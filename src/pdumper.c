@@ -3438,10 +3438,7 @@ dump_charset_table (struct dump_context *ctx)
   dump_off offset = ctx->offset;
   if (dump_set_referrer (ctx))
     ctx->current_referrer = build_string ("charset_table");
-  /* We are dumping the entire table, not just the used slots, because
-     otherwise when we restore from the pdump file, the actual size of
-     the table will be smaller than charset_table_size, and we will
-     crash if/when a new charset is defined.  */
+  eassert (charset_table_size == charset_table_used);
   for (int i = 0; i < charset_table_size; ++i)
     dump_charset (ctx, i);
   dump_clear_referrer (ctx);
@@ -5930,9 +5927,9 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	/* Copy the charset table out of the dump.  */
 	struct charset *old = dump_ptr (dump_base, reloc_offset);
 	eassert (old == charset_table);
-	eassert (charset_table_size >= charset_table_used);
+	eassert (charset_table_size == charset_table_used);
 	eassert (charset_table_size > 0);
-	size_t nbytes = charset_table_size * sizeof * old;
+	size_t nbytes = charset_table_size * sizeof *old;
 	struct charset *new = xmalloc (nbytes);
 	memcpy (new, old, nbytes);
 	charset_table = new;

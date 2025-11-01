@@ -291,6 +291,7 @@ extern int emacs_mule_charset[256];
 INLINE Lisp_Object
 charset_attributes_getter (struct charset *charset)
 {
+  eassert (ASIZE (charset_attributes_table) == charset_table_size);
   return AREF (charset_attributes_table, charset->id);
 }
 
@@ -545,8 +546,6 @@ extern int string_xstring_p (Lisp_Object);
 extern void map_charset_chars (void (*) (Lisp_Object, Lisp_Object),
                                Lisp_Object, Lisp_Object,
                                struct charset *, unsigned, unsigned);
-
-extern struct charset charset_table_init[180];
 
 INLINE_HEADER_END
 
