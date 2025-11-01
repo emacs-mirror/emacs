@@ -62,7 +62,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 Lisp_Object Vcharset_hash_table;
 
 /* Table of struct charset.  */
-struct charset *charset_table = charset_table_init;
+struct charset *charset_table;
 int charset_table_size;
 int charset_table_used;
 
@@ -2118,6 +2118,29 @@ DIMENSION, CHARS, and FINAL-CHAR.  */)
   return (id >= 0 ? CHARSET_NAME (CHARSET_FROM_ID (id)) : Qnil);
 }
 
+/* Shrink charset_table to charset_table_used.  */
+static void
+shrink_charset_table (void)
+{
+  eassert (charset_table_size >= charset_table_used);
+  eassert (ASIZE (charset_attributes_table) == charset_table_size);
+
+  struct charset *old = charset_table;
+  size_t nbytes = charset_table_used * sizeof *old;
+  struct charset *new = xmalloc (nbytes);
+  memcpy (new, old, nbytes);
+  charset_table = new;
+  xfree (old);
+
+  Lisp_Object new_attr_table = make_vector (charset_table_used, Qnil);
+  for (size_t i = 0; i < charset_table_used; i++)
+    ASET (new_attr_table, i, AREF (charset_attributes_table, i));
+  charset_attributes_table = new_attr_table;
+
+  charset_table_size = charset_table_used;
+
+  eassert (ASIZE (charset_attributes_table) == charset_table_size);
+}
 
 DEFUN ("clear-charset-maps", Fclear_charset_maps, Sclear_charset_maps,
        0, 0, 0,
@@ -2135,6 +2158,8 @@ It should be called only from temacs invoked for dumping.  */)
 
   if (CHAR_TABLE_P (Vchar_unify_table))
     Foptimize_char_table (Vchar_unify_table, Qnil);
+
+  shrink_charset_table ();
 
   return Qnil;
 }
@@ -2345,17 +2370,11 @@ init_charset_once (void)
   PDUMPER_REMEMBER_SCALAR (charset_ksc5601);
 }
 
-/* Allocate an initial charset table that is large enough to handle
-   Emacs while it is bootstrapping.  As of September 2011, the size
-   needs to be at least 166; make it a bit bigger to allow for future
-   expansion.
-
-   Don't make the value so small that the table is reallocated during
-   bootstrapping, as glibc malloc calls larger than just under 64 KiB
-   during an initial bootstrap wreak havoc after dumping; see the
-   M_MMAP_THRESHOLD value in alloc.c, plus there is an extra overhead
-   internal to glibc malloc and perhaps to Emacs malloc debugging.  */
-struct charset charset_table_init[180];
+/* Intitial value for charset_table_size.  As of October 2025, the
+   charset table uses 179 entries.  charset_table grows if needed and
+   we only dump the used entries; so getting the initial value right
+   is not overly important.  */
+#define CHARSET_TABLE_INIT_SIZE 190
 
 void
 syms_of_charset (void)
@@ -2387,8 +2406,10 @@ syms_of_charset (void)
   staticpro (&Vcharset_hash_table);
   Vcharset_hash_table = CALLN (Fmake_hash_table, QCtest, Qeq);
 
-  charset_table_size = ARRAYELTS (charset_table_init);
+  charset_table_size = CHARSET_TABLE_INIT_SIZE;
   PDUMPER_REMEMBER_SCALAR (charset_table_size);
+  charset_table
+    = xmalloc (charset_table_size * sizeof *charset_table);
   charset_table_used = 0;
   PDUMPER_REMEMBER_SCALAR (charset_table_used);
 
