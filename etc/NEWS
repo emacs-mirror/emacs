@@ -282,6 +282,10 @@ is still waiting for input.
 It still can use 'read-key' when the variable
 'read-char-choice-use-read-key' is non-nil.
 
+*** 'map-y-or-n-p' now uses the minibuffer to read a character.
+It still can use 'read-key' when the variable
+'y-or-n-p-use-read-key' is non-nil.
+
 ** Mouse
 
 *** New mode 'mouse-shift-adjust-mode' extends selection with 'S-<mouse-1>'.
