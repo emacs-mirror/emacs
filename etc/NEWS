@@ -2640,7 +2640,7 @@ Meant to be given a global binding convenient to the user.  Example:
 
 - 'speedbar-prefer-window' tells 'speedbar' to open a side window
   instead of a frame.
-- 'speedbar-dedicated-window' defines whether the 'speedbar' is
+- 'speedbar-window-dedicated-window' defines whether 'speedbar' is
   displayed in a dedicated window.
 - 'speedbar-window-default-width' defines the initial width of the
   'speedbar-window'.
