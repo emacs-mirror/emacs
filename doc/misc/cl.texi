@@ -890,7 +890,7 @@ error.
 @end defun
 
 @node Derived Types
-@subsection Derived Types
+@section Derived Types
 
 @defmac cl-deftype name arglist [docstring] [decls] forms@dots{}
 This macro defines a new type called @var{name}.
