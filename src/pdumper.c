@@ -187,6 +187,7 @@ enum dump_reloc_type
 #ifdef HAVE_MPS
     RELOC_BUFFER,
     RELOC_CHARSET_CODE_SPACE_MASK,
+    RELOC_CHARSET_TABLE,
 #endif
     /* dump_lv = make_lisp_ptr (dump_lv + dump_base,
 				type - RELOC_DUMP_TO_DUMP_LV)
@@ -3444,14 +3445,11 @@ dump_charset_table (struct dump_context *ctx)
   for (int i = 0; i < charset_table_size; ++i)
     dump_charset (ctx, i);
   dump_clear_referrer (ctx);
-#ifndef HAVE_MPS
   dump_emacs_reloc_to_dump_ptr_raw (ctx, &charset_table, offset);
-#else
-  size_t size = ctx->offset - offset;
-  if (size > sizeof charset_table_init)
-    emacs_abort ();
-  dump_emacs_reloc_copy_from_dump (ctx, offset, &charset_table_init,
-				   size);
+#ifdef HAVE_MPS
+  dump_push (&ctx->dump_relocs[LATE_RELOCS],
+	     list2 (make_fixnum (RELOC_CHARSET_TABLE),
+		    dump_off_to_lisp (offset)));
 #endif
   ctx->flags = old_flags;
 # ifdef HAVE_MPS
@@ -5925,6 +5923,19 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	uint8_t *new = xmalloc (nbytes);
 	memcpy (new, old, nbytes);
 	cs->code_space_mask = new;
+      }
+      break;
+    case RELOC_CHARSET_TABLE:
+      {
+	/* Copy the charset table out of the dump.  */
+	struct charset *old = dump_ptr (dump_base, reloc_offset);
+	eassert (old == charset_table);
+	eassert (charset_table_size >= charset_table_used);
+	eassert (charset_table_size > 0);
+	size_t nbytes = charset_table_size * sizeof * old;
+	struct charset *new = xmalloc (nbytes);
+	memcpy (new, old, nbytes);
+	charset_table = new;
       }
       break;
 #endif
