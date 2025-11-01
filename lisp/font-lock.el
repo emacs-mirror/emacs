@@ -560,8 +560,12 @@ This is normally set via `font-lock-add-keywords' and
 `font-lock-remove-keywords'.")
 
 (defvar font-lock-keywords-only nil
-  "Non-nil means Font Lock should not fontify comments or strings.
-This is normally set via `font-lock-defaults'.")
+  "Non-nil means Font Lock should not use syntactic fontifications.
+This is normally set via `font-lock-defaults'.  Setting it to a
+non-nil value will usually cause comments and strings not to be
+fontified, unless `font-lock-keywords' are set so as to fontify them,
+or some other font-lock mechanism has the same effect even when this
+variable is non-nil.")
 
 (defvar-local font-lock-keywords-case-fold-search nil
   "Non-nil means the patterns in `font-lock-keywords' are case-insensitive.

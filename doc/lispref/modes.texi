@@ -4118,16 +4118,17 @@ table in special cases.  @xref{Syntax Properties}.
 @defvar font-lock-keywords-only
 If the value of this variable is non-@code{nil}, Font Lock does not do
 syntactic fontification, only search-based fontification based on
-@code{font-lock-keywords}.  It is normally set by Font Lock mode based
-on the @var{keywords-only} element in @code{font-lock-defaults}.  If
-the value is @code{nil}, Font Lock will call @code{jit-lock-register}
-(@pxref{Other Font Lock Variables}) to set up for automatic
-refontification of buffer text following a modified line to reflect
-the new syntactic context due to the change.
+@code{font-lock-keywords}; this will usually have the effect of not
+fontifying comments and strings.  This variable is normally set by Font
+Lock mode based on the @var{keywords-only} element in
+@code{font-lock-defaults}.  If the value is @code{nil}, Font Lock will
+call @code{jit-lock-register} (@pxref{Other Font Lock Variables}) to set
+up for automatic refontification of buffer text following a modified
+line to reflect the new syntactic context due to the change.
 
-To use only syntactic fontification, this variable should
-be non-@code{nil}, while @code{font-lock-keywords} should be set to
-@code{nil} (@pxref{Font Lock Basics}).
+To use only syntactic fontification, both this variable and
+@code{font-lock-keywords} should be set to @code{nil} (@pxref{Font Lock
+Basics}).
 @end defvar
 
 @defvar font-lock-syntax-table
