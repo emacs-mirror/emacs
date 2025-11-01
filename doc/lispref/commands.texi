@@ -3691,6 +3691,9 @@ will have to type in long-form answers (using @code{completing-read})
 instead of hitting a single key.  The answers must be among the second
 elements of the values in the @var{choices} list.
 
+If the variable @code{read-char-choice-use-read-key} is non-@code{nil},
+this function uses @code{read-key} instead of @code{read-from-minibuffer}.
+
 The return value is the matching value from @var{choices}.
 
 @lisp

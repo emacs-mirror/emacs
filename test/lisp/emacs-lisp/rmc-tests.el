@@ -62,35 +62,57 @@
              (rmc--add-key-description '(?n "foo"))
              `(?n . ,(concat (propertize "n" 'face 'help-key-binding) " foo"))))))
 
+(defmacro test-rmc--with-minibuffer-setup (fun-call &rest body)
+  (declare (indent 1) (debug t))
+  `(minibuffer-with-setup-hook
+       (lambda ()
+         (let ((redisplay-skip-initial-frame nil)
+               (executing-kbd-macro nil)) ; Don't skip redisplay
+           (progn . ,body)))
+     (let ((executing-kbd-macro t)) ; Force the real minibuffer
+       ,fun-call)))
+
 (ert-deftest test-read-multiple-choice ()
   (skip-when (display-graphic-p))
-  (dolist (char '(?y ?n))
-    (cl-letf* (((symbol-function #'read-key) (lambda () char))
-               (str (if (eq char ?y) "yes" "no")))
-      (should (equal (list char str)
-                     (read-multiple-choice "Do it? " '((?y "yes") (?n "no"))))))))
+  (dolist (read-char-choice-use-read-key '(t nil))
+    (dolist (char '(?y ?n))
+      (cl-letf* (((symbol-function #'exit-minibuffer) (lambda ()))
+                 ((symbol-function #'read-key) (lambda () char))
+                 (str (if (eq char ?y) "yes" "no")))
+        (should (equal (list char str)
+                       (test-rmc--with-minibuffer-setup
+                           (read-multiple-choice "Do it? " '((?y "yes") (?n "no")))
+                         (execute-kbd-macro (string char)))))))))
 
 (ert-deftest test-read-multiple-choice-help ()
   (skip-when (display-graphic-p))
-  (let ((chars '(?o ?a))
-        help)
-    (cl-letf* (((symbol-function #'read-key)
-                (lambda ()
-                  (message "chars %S" chars)
-                  (when (= 1 (length chars))
-                    (with-current-buffer "*Multiple Choice Help*"
-                      (setq help (buffer-string))))
-                  (pop chars))))
-      (read-multiple-choice
-       "Choose:"
-       '((?a "aaa")
-         (?b "bbb")
-         (?c "ccc" "a really long description of ccc")))
-      (should (equal help "Choose:
+  (dolist (read-char-choice-use-read-key '(t nil))
+    (let ((chars '(?o ?a))
+          help)
+      (cl-letf* (((symbol-function #'exit-minibuffer) (lambda ()))
+                 ((symbol-function #'ding) (lambda ()))
+                 ((symbol-function #'sit-for) (lambda (_)))
+                 ((symbol-function #'read-key)
+                  (lambda ()
+                    (message "chars %S" chars)
+                    (when (= 1 (length chars))
+                      (with-current-buffer "*Multiple Choice Help*"
+                        (setq help (buffer-string))))
+                    (pop chars))))
+        (test-rmc--with-minibuffer-setup
+            (read-multiple-choice
+             "Choose:"
+             '((?a "aaa")
+               (?b "bbb")
+               (?c "ccc" "a really long description of ccc")))
+          (execute-kbd-macro (string (car chars)))
+          (with-current-buffer "*Multiple Choice Help*"
+            (setq help (buffer-string))))
+        (should (equal help "Choose:
 
 a: [A]aa                 b: [B]bb                 c: [C]cc
                                                   a really long
                                                   description of ccc
-                                                  \n")))))
+                                                  \n"))))))
 
 ;;; rmc-tests.el ends here

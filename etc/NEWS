@@ -277,6 +277,11 @@ minibuffer window using the 'minibuffer-nonselected' face in case
 when the minibuffer window is no longer selected, but the minibuffer
 is still waiting for input.
 
++++
+*** 'read-multiple-choice' now uses the minibuffer to read a character.
+It still can use 'read-key' when the variable
+'read-char-choice-use-read-key' is non-nil.
+
 ** Mouse
 
 *** New mode 'mouse-shift-adjust-mode' extends selection with 'S-<mouse-1>'.
