@@ -3260,10 +3260,7 @@ dump_charset_table (struct dump_context *ctx)
   dump_off offset = ctx->offset;
   if (dump_set_referrer (ctx))
     ctx->current_referrer = build_string ("charset_table");
-  /* We are dumping the entire table, not just the used slots, because
-     otherwise when we restore from the pdump file, the actual size of
-     the table will be smaller than charset_table_size, and we will
-     crash if/when a new charset is defined.  */
+  eassert (charset_table_size == charset_table_used);
   for (int i = 0; i < charset_table_size; ++i)
     dump_charset (ctx, i);
   dump_clear_referrer (ctx);
