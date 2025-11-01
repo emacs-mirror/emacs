@@ -2471,7 +2471,10 @@ fix_hash_table (mps_ss_t ss, struct Lisp_Hash_Table *h)
     IGC_FIX12_PVEC (ss, &h->value);
     IGC_FIX12_WRAPPED_BYTES (ss, &h->hash);
     IGC_FIX12_WRAPPED_BYTES (ss, &h->next);
-    IGC_FIX12_WRAPPED_BYTES (ss, &h->index);
+    /* If h->table_size == 0, h->index is empty_hash_index_vector which
+       is not allocated from MPS.  */
+    if (h->table_size > 0)
+      IGC_FIX12_WRAPPED_BYTES (ss, &h->index);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
