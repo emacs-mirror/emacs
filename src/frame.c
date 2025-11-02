@@ -786,6 +786,26 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
   min_inner_height
     = frame_windows_min_size (frame, Qnil, (inhibit == 5) ? Qsafe : Qnil, Qt);
 
+  if (inhibit == 1 && !NILP (alter_fullscreen_frames))
+    {
+      Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
+
+      if ((new_text_width != old_text_width
+	   && !NILP (fullscreen) && !EQ (fullscreen, Qfullheight))
+	  || (new_text_height != old_text_height
+	      && !NILP (fullscreen) && !EQ (fullscreen, Qfullwidth)))
+
+	{
+	  if (EQ (alter_fullscreen_frames, Qt))
+	    /* Reset fullscreen status and proceed.  */
+	    Fmodify_frame_parameters
+	      (frame, Fcons (Fcons (Qfullscreen, Qnil), Qnil));
+	  else if (EQ (alter_fullscreen_frames, Qinhibit))
+	    /* Do nothing and return.  */
+	    return;
+	}
+    }
+
   if (inhibit >= 2 && inhibit <= 4)
     /* When INHIBIT is in [2..4] inhibit if the "old" window sizes stay
        within the limits and either resizing is inhibited or INHIBIT
@@ -7102,6 +7122,7 @@ syms_of_frame (void)
   DEFSYM (Quse_frame_synchronization, "use-frame-synchronization");
   DEFSYM (Qfont_parameter, "font-parameter");
   DEFSYM (Qforce, "force");
+  DEFSYM (Qinhibit, "inhibit");
 
   for (int i = 0; i < ARRAYELTS (frame_parms); i++)
     {
@@ -7485,6 +7506,29 @@ allow `make-frame' to show the current buffer even if its hidden.  */);
   frame_internal_parameters = list4 (Qname, Qparent_id, Qwindow_id, Qouter_window_id);
 #else
   frame_internal_parameters = list3 (Qname, Qparent_id, Qwindow_id);
+#endif
+
+  DEFVAR_LISP ("alter-fullscreen-frames", alter_fullscreen_frames,
+	       doc: /* How to handle requests to alter fullscreen frames.
+Emacs consults this option when asked to resize a fullscreen frame via
+functions like 'set-frame-size' or when setting the 'width' or 'height'
+parameter of a frame.  The following values are provided:
+
+- nil means to forward the resize request to the window manager and
+  leave it to the latter how to proceed.
+
+- t means to first reset the fullscreen status and then forward the
+  request to the window manager.
+
+- 'inhibit' means to reject the resize request and leave the fullscreen
+  status unchanged.
+
+The default is 'inhibit' on NS builds and nil everywhere else.  */);
+
+#if defined (NS_IMPL_COCOA)
+  alter_fullscreen_frames = Qinhibit;
+#else
+  alter_fullscreen_frames = Qnil;
 #endif
 
   defsubr (&Sframep);
