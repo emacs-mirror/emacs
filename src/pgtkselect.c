@@ -501,8 +501,6 @@ pgtk_reply_selection_request (struct selection_input_event *event,
   for (cs = frame->converted_selections; cs; cs = cs->next)
     if (cs->wait_object)
       {
-	int format_bytes = cs->format / 8;
-
         /* Must set this inside block_input ().  unblock_input may read
            events and setting property_change_reply in
            wait_for_property_change is then too late.  */
