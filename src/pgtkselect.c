@@ -464,7 +464,6 @@ pgtk_reply_selection_request (struct selection_input_event *event,
 {
   GdkDisplay *display = SELECTION_EVENT_DISPLAY (event);
   GdkWindow *window = SELECTION_EVENT_REQUESTOR (event);
-  ptrdiff_t bytes_remaining;
   struct selection_data *cs;
   struct pgtk_selection_request *frame;
 
@@ -480,9 +479,6 @@ pgtk_reply_selection_request (struct selection_input_event *event,
     {
       if (cs->property == GDK_NONE)
 	continue;
-
-      bytes_remaining = cs->size;
-      bytes_remaining *= cs->format >> 3;
 
       gdk_property_change (window, cs->property,
 			   cs->type, cs->format,
@@ -512,9 +508,6 @@ pgtk_reply_selection_request (struct selection_input_event *event,
            wait_for_property_change is then too late.  */
         set_property_change_object (cs->wait_object);
 	unblock_input ();
-
-	bytes_remaining = cs->size;
-	bytes_remaining *= format_bytes;
 
 	/* Wait for the requestor to ack by deleting the property.
 	   This can run Lisp code (process handlers) or signal.  */

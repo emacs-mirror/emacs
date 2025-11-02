@@ -161,6 +161,7 @@ map_tool_bar_style (const char *tool_bar_style)
   return style;
 }
 
+#ifdef HAVE_GSETTINGS
 /* Store a tool bar style change event if the tool bar style changed.  */
 
 static void
@@ -176,6 +177,7 @@ store_tool_bar_style_changed (const char *newstyle,
     store_config_changed_event (Qtool_bar_style,
                                 XCAR (dpyinfo->name_list_element));
 }
+#endif	/* HAVE_GSETTINGS */
 
 #ifndef HAVE_PGTK
 #if defined USE_CAIRO || defined HAVE_XFT
@@ -234,7 +236,7 @@ static cairo_font_options_t *font_options;
 
 static GSettings *gsettings_client;
 
-#if defined HAVE_PGTK && defined HAVE_GSETTINGS
+#ifdef HAVE_PGTK
 
 static bool
 xg_settings_key_valid_p (GSettings *settings, const char *key)
@@ -259,7 +261,7 @@ xg_settings_key_valid_p (GSettings *settings, const char *key)
 #endif
 }
 
-#endif
+#endif	/* HAVE_PGTK */
 
 #ifdef HAVE_PGTK
 /* Store an event for re-rendering of the fonts.  */
@@ -1131,7 +1133,7 @@ init_gsettings (void)
 
 /* Get current system dark mode state.  */
 
-#ifdef HAVE_PGTK
+#if defined HAVE_PGTK && defined HAVE_GSETTINGS
 bool
 xg_get_system_dark_mode (void)
 {
@@ -1153,7 +1155,7 @@ xg_get_system_dark_mode (void)
     }
   return false;
 }
-#endif
+#endif	/* HAVE_PGTK && HAVE_GSETTINGS */
 
 /* Init GConf and read startup values.  */
 
