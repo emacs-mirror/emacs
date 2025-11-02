@@ -154,6 +154,13 @@ free_glib_gc_handle (gpointer data, GClosure *closure)
   free_gc_handle (data);
 }
 
+static void
+free_gc_handle_callback (GtkWidget *widget, gpointer user_data)
+{
+  gc_handle gch = user_data;
+  free_gc_handle (gch);
+}
+
 #ifdef HAVE_GTK3
 static void
 emacs_menu_bar_init (EmacsMenuBar *menu_bar)
@@ -4597,19 +4604,12 @@ xg_finish_scroll_bar_creation (struct frame *f,
 #endif
 
   gc_handle bar_gch = gc_handle_for_pvec (&bar->header);
-  g_signal_connect (G_OBJECT (wscroll),
-                    "change-value",
-                    scroll_callback,
-		    bar_gch);
-  g_signal_connect (G_OBJECT (wscroll),
-                    "button-release-event",
-                    end_callback,
-		    bar_gch);
-
-  g_signal_connect (G_OBJECT (wscroll),
-		    "destroy",
-		    G_CALLBACK (free_glib_gc_handle),
-		    (gpointer) bar_gch);
+  g_signal_connect (G_OBJECT (wscroll), "change-value",
+		    scroll_callback, bar_gch);
+  g_signal_connect (G_OBJECT (wscroll), "button-release-event",
+		    end_callback, bar_gch);
+  g_signal_connect (G_OBJECT (wscroll), "destroy",
+		    G_CALLBACK (free_gc_handle_callback), bar_gch);
 
   /* The scroll bar widget does not draw on a window of its own.  Instead
      it draws on the parent window, in this case the edit widget.  So
