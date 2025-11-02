@@ -528,51 +528,55 @@ frames by specifying @dfn{frame parameters}.  @xref{Frame Parameters}.
   The following commands are used to delete and operate on frames:
 
 @table @kbd
-@item C-x 5 0
 @kindex C-x 5 0
 @findex delete-frame
+@item C-x 5 0
 Delete the selected frame (@code{delete-frame}).  This signals an
 error if there is only one frame.
 
-@item C-x 5 u
 @kindex C-x 5 u
 @findex undelete-frame
 @findex undelete-frame-mode
+@item C-x 5 u
 When @code{undelete-frame-mode} is enabled, undelete one of the 16
 most recently deleted frames.  Without a prefix argument, undelete the
 most recently deleted frame.  With a numerical prefix argument between
 1 and 16, where 1 is the most recently deleted frame, undelete the
 corresponding deleted frame.
 
-@item C-z
 @kindex C-z @r{(X windows)}
+@item C-z
 Minimize (or iconify) the selected Emacs frame
 (@code{suspend-frame}).  @xref{Exiting}.
 
-@item C-x 5 o
 @kindex C-x 5 o
 @findex other-frame
+@item C-x 5 o
 Select another frame, and raise it.  If you repeat this command, it
 cycles through all the frames on your terminal.
 
-@item C-x 5 1
 @kindex C-x 5 1
 @findex delete-other-frames
+@item C-x 5 1
 Delete all frames on the current terminal, except the selected one.
 
-@item M-@key{F10}
 @kindex M-F10
 @findex toggle-frame-maximized
+@item M-@key{F10}
 Toggle the maximization state of the current frame.  When a frame is
 maximized, it fills the screen.
 
-@item @key{F11}
 @kindex F11
 @findex toggle-frame-fullscreen
+@vindex alter-fullscreen-frames
+@cindex resizing full-screen frames
+@item @key{F11}
 Toggle full-screen mode for the current frame.  (The difference
 between full-screen and maximized is normally that the former
 hides window manager decorations, giving slightly more screen space to
-Emacs itself.)
+Emacs itself.)  Note that whether resizing of full-screen frames is
+allowed and how Emacs handles that is controlled by the user option
+@code{alter-fullscreen-frames}.
 @end table
 
 @vindex frame-resize-pixelwise

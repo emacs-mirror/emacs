@@ -7509,9 +7509,9 @@ allow `make-frame' to show the current buffer even if its hidden.  */);
 #endif
 
   DEFVAR_LISP ("alter-fullscreen-frames", alter_fullscreen_frames,
-	       doc: /* How to handle requests to alter fullscreen frames.
+	       doc: /* How to handle requests to resize fullscreen frames.
 Emacs consults this option when asked to resize a fullscreen frame via
-functions like 'set-frame-size' or when setting the 'width' or 'height'
+functions like `set-frame-size' or when setting the \\+`width' or \\+`height'
 parameter of a frame.  The following values are provided:
 
 - nil means to forward the resize request to the window manager and
@@ -7520,10 +7520,10 @@ parameter of a frame.  The following values are provided:
 - t means to first reset the fullscreen status and then forward the
   request to the window manager.
 
-- 'inhibit' means to reject the resize request and leave the fullscreen
+- \\+`inhibit' means to reject the resize request and leave the fullscreen
   status unchanged.
 
-The default is 'inhibit' on NS builds and nil everywhere else.  */);
+The default is \\+`inhibit' in NS builds and nil everywhere else.  */);
 
 #if defined (NS_IMPL_COCOA)
   alter_fullscreen_frames = Qinhibit;
