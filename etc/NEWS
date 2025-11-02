@@ -3049,6 +3049,16 @@ Other functions that use 'aset' to modify string data, such as
 'subst-char-in-string' with a non-nil INPLACE argument, will signal an
 error if called with arguments that would violate these rules.
 
++++
+** More program constants are combined by the compiler.
+The compiler now unifies more constants that are 'equal' for better code
+generation.  This does not affect correct programs but may expose some
+coding mistakes.  For example,
+
+    (eq (cdr '(1 2 3)) '(2 3)))
+
+may return either nil or t.
+
 ** Nested backquotes are not supported any more in Pcase patterns.
 
 ---
