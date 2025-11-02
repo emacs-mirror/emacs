@@ -36,6 +36,7 @@
 
 (declare-function x-popup-dialog "menu.c" (position contents &optional header))
 (declare-function set-text-conversion-style "textconv.c")
+(autoload 'cl--map-keymap-recursively "cl-extra")
 
 (defvar overriding-text-conversion-style)
 

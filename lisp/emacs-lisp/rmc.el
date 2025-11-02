@@ -329,6 +329,8 @@ Usage example:
                 (equal (cadr elem) answer))
               choices)))
 
+(defvar overriding-text-conversion-style)
+
 (defun read-multiple-choice--from-minibuffer (prompt choices help-string show-help)
   ;; Read short answers from the minibuffer.
   (let* ((prompt-choices
