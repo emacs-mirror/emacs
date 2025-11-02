@@ -3191,12 +3191,12 @@ previous element of the minibuffer history in the minibuffer."
           ;; Avoid moving point to the prompt
           (when (< (point) (minibuffer-prompt-end))
             ;; If there is minibuffer contents on the same line
-            (if (<= (minibuffer-prompt-end)
-                    (save-excursion
-                      (if (or truncate-lines (not line-move-visual))
-                          (end-of-line)
-                        (end-of-visual-line))
-                      (point)))
+            (if (< (minibuffer-prompt-end)
+                   (save-excursion
+                     (if (or truncate-lines (not line-move-visual))
+                         (end-of-line)
+                       (end-of-visual-line))
+                     (point)))
                 ;; Move to the beginning of minibuffer contents
                 (goto-char (minibuffer-prompt-end))
               ;; Otherwise, go to the previous history element
