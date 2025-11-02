@@ -315,6 +315,12 @@ function is called.  Subsequent calls return the first evaluated value."
       (:match "\\`[A-Z]" @font-lock-type-face))
 
      (type_identifier) @font-lock-type-face
+     ;; In Java, var is not a keyword but rather a auto-determined type.
+     ;; But we want to fontify it as a keyword.  (The override query is
+     ;; below the general query because :override flag is set for this
+     ;; rule.)
+     ((type_identifier) @font-lock-keyword-face
+      (:match "\\`var\\'" @font-lock-keyword-face))
 
      [(boolean_type)
       (integral_type)
