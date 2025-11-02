@@ -386,8 +386,8 @@ Evaluate BODY for each created sequence.
    (should (same-contents-p (seq-union v1 v2)
                             '("a" "b" "c" "f" "e"))))
 
-  (let ((v1 '("a"))
-        (v2 '("a"))
+  (let ((v1 (list (make-string 1 ?a)))
+        (v2 (list (make-string 1 ?a)))
         (testfn #'eq))
    (should (same-contents-p (seq-union v1 v2 testfn)
                             '("a" "a")))))

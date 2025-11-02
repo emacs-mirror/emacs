@@ -208,7 +208,7 @@
     (should (null (cl-ldiff l l)))
     (should (equal l (cl-ldiff l '())))
     ;; must be part of the list
-    (should (equal l (cl-ldiff l '(2 3))))
+    (should (equal l (cl-ldiff l (list 2 3))))
     (should (equal '(1) (cl-ldiff l (nthcdr 1 l))))
     ;; should return a copy
     (should-not (eq (cl-ldiff l '()) l))))
