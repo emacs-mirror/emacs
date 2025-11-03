@@ -2369,56 +2369,40 @@ regards it as its bare symbol when @code{symbols-with-pos-enabled} is
 non-@code{nil} (@pxref{Symbols with Position}).
 
 @example
-@group
-(eq 'foo 'foo)
-     @result{} t
-@end group
+(eq 'abc 'abc)  @result{} t
+(eq 'abc 'ABC)  @result{} nil
+(eq ?A ?A)      @result{} t
+(eq 3 3)        @result{} t
+@end example
 
-@group
-(eq ?A ?A)
-     @result{} t
-@end group
+Equal non-fixnum numbers may or may not be the same object:
 
-@group
-(eq 3.0 3.0)
-     @result{} t @r{or} nil
-;; @r{Equal floats may or may not be the same object.}
-@end group
+@example
+(eq 3.0 3.0)                    @result{} t @r{or} nil
+(eq (expt 10 50) (expt 10 50))  @result{} t @r{or} nil
+@end example
 
-@group
-(eq (make-string 3 ?A) (make-string 3 ?A))
-     @result{} nil
-@end group
+Newly created mutable objects are distinct:
 
-@group
-(eq "asdf" "asdf")
-     @result{} t @r{or} nil
-;; @r{Equal string constants or may not be the same object.}
-@end group
+@example
+(eq (list 1 2 3) (list 1 2 3))      @result{} nil
+(eq (point-marker) (point-marker))  @result{} nil
+@end example
 
-@group
-(eq '(1 (2 (3))) '(1 (2 (3))))
-     @result{} nil
-@end group
+Equal constants of other types may or may not be the same object:
 
-@group
-(setq foo '(1 (2 (3))))
-     @result{} (1 (2 (3)))
-(eq foo foo)
-     @result{} t
-(eq foo '(1 (2 (3))))
-     @result{} nil
-@end group
+@example
+(eq "abc" "abc")        @result{} t @r{or} nil
+(eq '(1 2 3) '(1 2 3))  @result{} t @r{or} nil
+(eq [1 2 3] [1 2 3])    @result{} t @r{or} nil
+@end example
 
-@group
-(eq [(1 2) 3] [(1 2) 3])
-     @result{} nil
-@end group
+Unless they are the same literal constant:
 
-@group
-(eq (point-marker) (point-marker))
-     @result{} nil
-@end group
+@example
+(let ((x "abc"))    (eq x x))  @result{} t
+(let ((x '(1 2 3))) (eq x x))  @result{} t
+(let ((x [1 2 3]))  (eq x x))  @result{} t
 @end example
 
 @noindent
@@ -2473,37 +2457,20 @@ the converse is not always true.
 (equal "asdf" "asdf")
      @result{} t
 @end group
-@group
-(eq "asdf" "asdf")
-     @result{} nil
-@end group
 
 @group
 (equal '(1 (2 (3))) '(1 (2 (3))))
      @result{} t
-@end group
-@group
-(eq '(1 (2 (3))) '(1 (2 (3))))
-     @result{} nil
 @end group
 
 @group
 (equal [(1 2) 3] [(1 2) 3])
      @result{} t
 @end group
-@group
-(eq [(1 2) 3] [(1 2) 3])
-     @result{} nil
-@end group
 
 @group
 (equal (point-marker) (point-marker))
      @result{} t
-@end group
-
-@group
-(eq (point-marker) (point-marker))
-     @result{} nil
 @end group
 @end example
 
