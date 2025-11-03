@@ -3740,6 +3740,9 @@ record_unwind_protect_array (Lisp_Object *array, ptrdiff_t nelts)
 void
 record_unwind_protect_ptr (void (*function) (void *), void *arg)
 {
+#ifdef HAVE_MPS
+  igc_assert_not_an_mps_object (arg);
+#endif
   specpdl_ptr->unwind_ptr.kind = SPECPDL_UNWIND_PTR;
   specpdl_ptr->unwind_ptr.func = function;
   specpdl_ptr->unwind_ptr.arg = arg;
@@ -3753,6 +3756,9 @@ void
 record_unwind_protect_ptr_mark (void (*function) (void *), void *arg,
 				void (*mark) (void *))
 {
+#ifdef HAVE_MPS
+  igc_assert_not_an_mps_object (arg);
+#endif
   specpdl_ptr->unwind_ptr.kind = SPECPDL_UNWIND_PTR;
   specpdl_ptr->unwind_ptr.func = function;
   specpdl_ptr->unwind_ptr.arg = arg;
@@ -3797,6 +3803,9 @@ record_unwind_protect_void (void (*function) (void))
 void
 record_unwind_protect_module (enum specbind_tag kind, void *ptr)
 {
+#ifdef HAVE_MPS
+  igc_assert_not_an_mps_object (ptr);
+#endif
   specpdl_ptr->kind = kind;
   specpdl_ptr->unwind_ptr.func = NULL;
   specpdl_ptr->unwind_ptr.arg = ptr;

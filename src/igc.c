@@ -5573,6 +5573,18 @@ igc_busy_p (void)
   return mps_arena_busy (global_igc->arena);
 }
 
+/* Warn if PTR looks like an MPS reference, which is most likely a
+   bug.  */
+void
+igc_assert_not_an_mps_object (void *ptr)
+{
+  mps_addr_t object;
+  if (mps_addr_object (&object, global_igc->arena, ptr) == MPS_RES_OK
+      && object != NULL)
+    fprintf (stderr, "Warning: argument should not be an MPS pointer (%p)\n",
+	     ptr);
+}
+
 /* If OBJ isn't suitable for storing an extra dependency, return a
    replacement that is.  */
 static Lisp_Object
