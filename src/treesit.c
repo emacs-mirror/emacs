@@ -490,17 +490,17 @@ static Lisp_Object Vtreesit_str_dot;
 static Lisp_Object Vtreesit_str_question_mark;
 static Lisp_Object Vtreesit_str_star;
 static Lisp_Object Vtreesit_str_plus;
-static Lisp_Object Vtreesit_str_pound_equal;
-static Lisp_Object Vtreesit_str_pound_match;
-static Lisp_Object Vtreesit_str_pound_pred;
+static Lisp_Object Vtreesit_str_pound_eq_question_mark;
+static Lisp_Object Vtreesit_str_pound_match_question_mark;
+static Lisp_Object Vtreesit_str_pound_pred_question_mark;
 static Lisp_Object Vtreesit_str_open_bracket;
 static Lisp_Object Vtreesit_str_close_bracket;
 static Lisp_Object Vtreesit_str_open_paren;
 static Lisp_Object Vtreesit_str_close_paren;
 static Lisp_Object Vtreesit_str_space;
-static Lisp_Object Vtreesit_str_equal;
-static Lisp_Object Vtreesit_str_match;
-static Lisp_Object Vtreesit_str_pred;
+static Lisp_Object Vtreesit_str_eq_question_mark;
+static Lisp_Object Vtreesit_str_match_question_mark;
+static Lisp_Object Vtreesit_str_pred_question_mark;
 static Lisp_Object Vtreesit_str_empty;
 
 /* This is the limit on recursion levels for some tree-sitter
@@ -3471,12 +3471,12 @@ See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
     return Vtreesit_str_star;
   if (BASE_EQ (pattern, QCplus))
     return Vtreesit_str_plus;
-  if (BASE_EQ (pattern, QCequal))
-    return Vtreesit_str_pound_equal;
-  if (BASE_EQ (pattern, QCmatch))
-    return Vtreesit_str_pound_match;
-  if (BASE_EQ (pattern, QCpred))
-    return Vtreesit_str_pound_pred;
+  if (BASE_EQ (pattern, QCequal) || BASE_EQ (pattern, QCeq_q))
+    return Vtreesit_str_pound_eq_question_mark;
+  if (BASE_EQ (pattern, QCmatch) || BASE_EQ (pattern, QCmatch_q))
+    return Vtreesit_str_pound_match_question_mark;
+  if (BASE_EQ (pattern, QCpred) || BASE_EQ (pattern, QCpred_q))
+    return Vtreesit_str_pound_pred_question_mark;
   Lisp_Object opening_delimeter
     = VECTORP (pattern)
       ? Vtreesit_str_open_bracket : Vtreesit_str_open_paren;
@@ -3507,7 +3507,9 @@ A PATTERN in QUERY can be
     :*
     :+
     :equal
+    :eq?
     :match
+    :match?
     (TYPE PATTERN...)
     [PATTERN...]
     FIELD-NAME:
@@ -3670,7 +3672,7 @@ treesit_predicate_equal (Lisp_Object args, struct capture_range captures,
   return !NILP (Fstring_equal (text1, text2));
 }
 
-/* Handles predicate (#match "regexp" @node).  Return true if "regexp"
+/* Handles predicate (#match? "regexp" @node).  Return true if "regexp"
    matches the text spanned by @node; return false otherwise.
    Matching is case-sensitive.  If everything goes fine, don't touch
    SIGNAL_DATA; if error occurs, set it to a suitable signal data.  */
@@ -3680,26 +3682,25 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures,
 {
   if (list_length (args) != 2)
     {
-      *signal_data = list2 (build_string ("Predicate `match' requires two "
+      *signal_data = list2 (build_string ("Predicate `match?' requires two "
 					  "arguments but got"),
 			    Flength (args));
       return false;
     }
-  Lisp_Object regexp = XCAR (args);
-  Lisp_Object capture_name = XCAR (XCDR (args));
+  Lisp_Object arg1 = XCAR (args);
+  Lisp_Object arg2 = XCAR (XCDR (args));
+  Lisp_Object regexp = SYMBOLP (arg2) ? arg1 : arg2;
+  Lisp_Object capture_name = SYMBOLP (arg2) ? arg2 : arg1;
 
-  /* It's probably common to get the argument order backwards.  Catch
-     this mistake early and show helpful explanation, because Emacs
-     loves you.  (We put the regexp first because that's what
-     string-match does.)  */
-  if (!STRINGP (regexp))
-    xsignal1 (Qtreesit_query_error,
-	      build_string ("The first argument to `match' should "
-		            "be a regexp string, not a capture name"));
-  if (!SYMBOLP (capture_name))
-    xsignal1 (Qtreesit_query_error,
-	      build_string ("The second argument to `match' should "
-		            "be a capture name, not a string"));
+  if (!STRINGP (regexp) || !SYMBOLP (capture_name))
+    {
+      *signal_data = list2 (build_string ("Predicate `match?' takes a regexp "
+	                                  "and a node capture (order doesn't "
+					  "matter), but got"),
+			    Flength (args));
+      return false;
+    }
+
 
   Lisp_Object node = Qnil;
   if (!treesit_predicate_capture_name_to_node (capture_name, captures, &node,
@@ -3783,11 +3784,11 @@ treesit_eval_predicates (struct capture_range captures, Lisp_Object predicates,
       Lisp_Object predicate = XCAR (tail);
       Lisp_Object fn = XCAR (predicate);
       Lisp_Object args = XCDR (predicate);
-      if (!NILP (Fstring_equal (fn, Vtreesit_str_equal)))
+      if (!NILP (Fstring_equal (fn, Vtreesit_str_eq_question_mark)))
 	pass &= treesit_predicate_equal (args, captures, signal_data);
-      else if (!NILP (Fstring_equal (fn, Vtreesit_str_match)))
+      else if (!NILP (Fstring_equal (fn, Vtreesit_str_match_question_mark)))
 	pass &= treesit_predicate_match (args, captures, signal_data);
-      else if (!NILP (Fstring_equal (fn, Vtreesit_str_pred)))
+      else if (!NILP (Fstring_equal (fn, Vtreesit_str_pred_question_mark)))
 	pass &= treesit_predicate_pred (args, captures, signal_data);
       else
 	{
@@ -5175,8 +5176,11 @@ syms_of_treesit (void)
   DEFSYM (QCstar, ":*");
   DEFSYM (QCplus, ":+");
   DEFSYM (QCequal, ":equal");
+  DEFSYM (QCeq_q, ":eq?");
   DEFSYM (QCmatch, ":match");
+  DEFSYM (QCmatch_q, ":match?");
   DEFSYM (QCpred, ":pred");
+  DEFSYM (QCpred_q, ":pred?");
   DEFSYM (QCline, ":line");
   DEFSYM (QCcol, ":col");
   DEFSYM (QCpos, ":pos");
@@ -5357,12 +5361,12 @@ depending on customization of `treesit-enabled-modes'.  */);
   Vtreesit_str_star = build_string ("*");
   staticpro (&Vtreesit_str_plus);
   Vtreesit_str_plus = build_string ("+");
-  staticpro (&Vtreesit_str_pound_equal);
-  Vtreesit_str_pound_equal = build_string ("#equal");
-  staticpro (&Vtreesit_str_pound_match);
-  Vtreesit_str_pound_match = build_string ("#match");
-  staticpro (&Vtreesit_str_pound_pred);
-  Vtreesit_str_pound_pred = build_string ("#pred");
+  staticpro (&Vtreesit_str_pound_eq_question_mark);
+  Vtreesit_str_pound_eq_question_mark = build_string ("#eq?");
+  staticpro (&Vtreesit_str_pound_match_question_mark);
+  Vtreesit_str_pound_match_question_mark = build_string ("#match?");
+  staticpro (&Vtreesit_str_pound_pred_question_mark);
+  Vtreesit_str_pound_pred_question_mark = build_string ("#pred?");
   staticpro (&Vtreesit_str_open_bracket);
   Vtreesit_str_open_bracket = build_string ("[");
   staticpro (&Vtreesit_str_close_bracket);
@@ -5373,12 +5377,12 @@ depending on customization of `treesit-enabled-modes'.  */);
   Vtreesit_str_close_paren = build_string (")");
   staticpro (&Vtreesit_str_space);
   Vtreesit_str_space = build_string (" ");
-  staticpro (&Vtreesit_str_equal);
-  Vtreesit_str_equal = build_string ("equal");
-  staticpro (&Vtreesit_str_match);
-  Vtreesit_str_match = build_string ("match");
-  staticpro (&Vtreesit_str_pred);
-  Vtreesit_str_pred = build_string ("pred");
+  staticpro (&Vtreesit_str_eq_question_mark);
+  Vtreesit_str_eq_question_mark = build_string ("eq?");
+  staticpro (&Vtreesit_str_match_question_mark);
+  Vtreesit_str_match_question_mark = build_string ("match?");
+  staticpro (&Vtreesit_str_pred_question_mark);
+  Vtreesit_str_pred_question_mark = build_string ("pred?");
   staticpro (&Vtreesit_str_empty);
   Vtreesit_str_empty = build_string ("");
 

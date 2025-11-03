@@ -57,7 +57,7 @@ A `cond*' construct is a series of clauses, and a clause
 normally has the form (CONDITION BODY...).
 
 CONDITION can be a Lisp expression, as in `cond'.
-Or it can be one of`(bind* BINDINGS...)', `(match* PATTERN DATUM)',
+Or it can be one of `(bind* BINDINGS...)', `(match* PATTERN DATUM)',
 or `(pcase* PATTERN DATUM)',
 
 `(bind* BINDINGS...)' means to bind BINDINGS (as if they were in `let*')

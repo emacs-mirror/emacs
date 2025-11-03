@@ -1049,6 +1049,18 @@ Now 'treesit-explore-mode' (or 'treesit-explore') prompts for a parser
 rather than a language, and it is now possible to select a local parser
 at point to explore.
 
++++
+*** Tree-sitter query predicate :equal, :match, and :pred are deprecated
+Use :eq?, :match?, :pred? instead.  The change is because newer
+tree-sitter library mandates query predicates to end with question mark.
+Emacs will transparently converts :equal, :match and :pred to :eq?,
+:match? and :pred?, respectively, so existing queries still work fine
+with latest tree-sitter library.  Predicate :equal is changed to :eq? to
+better follow tree-sitter’s convention.  Also, the :match?  predicates
+can now take the regexp as either the first or second argument, so it
+works with both tree-sitter convention (regexp arg second) and Emacs
+convention (regexp arg first).
+
 ** Hideshow
 
 +++

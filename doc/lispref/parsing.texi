@@ -1473,7 +1473,7 @@ example, with the following pattern:
 @group
 (
  (array :anchor (_) @@first (_) @@last :anchor)
- (:equal @@first @@last)
+ (:eq? @@first @@last)
 )
 @end group
 @end example
@@ -1482,24 +1482,32 @@ example, with the following pattern:
 tree-sitter only matches arrays where the first element is equal to
 the last element.  To attach a predicate to a pattern, we need to
 group them together.  Currently there are three predicates:
-@code{:equal}, @code{:match}, and @code{:pred}.
+@code{:eq?}, @code{:match?}, and @code{:pred?}.
 
-@deffn Predicate :equal arg1 arg2
+@deffn Predicate :eq? arg1 arg2
 Matches if @var{arg1} is equal to @var{arg2}.  Arguments can be either
 strings or capture names.  Capture names represent the text that the
-captured node spans in the buffer.
+captured node spans in the buffer.  Note that this is more like
+@code{equal} in Elisp, but @code{eq?} is the convention used by
+tree-sitter.  Previously we supported the @code{:equal} predicate but
+it's now considered deprecated.
 @end deffn
 
-@deffn Predicate :match regexp capture-name
+@deffn Predicate :match? capture-name regexp
 Matches if the text that @var{capture-name}'s node spans in the buffer
 matches regular expression @var{regexp}, given as a string literal.
-Matching is case-sensitive.
+Matching is case-sensitive.  The ordering of the arguments doesn't
+matter.  Previously we supported the @code{:match} predicate but it's
+now considered deprecated.
 @end deffn
 
-@deffn Predicate :pred fn &rest nodes
+@deffn Predicate :pred? fn &rest nodes
 Matches if function @var{fn} returns non-@code{nil} when passed each
 node in @var{nodes} as arguments.  The function runs with the current
-buffer set to the buffer of node being queried.
+buffer set to the buffer of node being queried.  Be very careful when
+using this predicate, since it can be expensive when used in a tight
+loop.  Previously we supported the @code{:pred} predicate but it's now
+considered deprecated.
 @end deffn
 
 Note that a predicate can only refer to capture names that appear in
@@ -1554,9 +1562,9 @@ Anchor @code{:anchor} is written as @samp{.}.
 @item
 @samp{:+} is written as @samp{+}.
 @item
-@code{:equal}, @code{:match} and @code{:pred} are written as
-@code{#equal}, @code{#match} and @code{#pred}, respectively.
-In general, predicates change their @samp{:} to @samp{#}.
+@code{:eq?}, @code{:match?} and @code{:pred?} are written as
+@code{#eq?}, @code{#match?} and @code{#pred?}, respectively.  In
+general, predicates change the @samp{:} to @samp{#}.
 @end itemize
 
 For example,
@@ -1565,7 +1573,7 @@ For example,
 @group
 '((
    (compound_expression :anchor (_) @@first (_) :* @@rest)
-   (:match "love" @@first)
+   (:match? "love" @@first)
    ))
 @end group
 @end example
@@ -1577,7 +1585,7 @@ is written in string form as
 @group
 "(
   (compound_expression . (_) @@first (_)* @@rest)
-  (#match \"love\" @@first)
+  (#match? \"love\" @@first)
   )"
 @end group
 @end example
