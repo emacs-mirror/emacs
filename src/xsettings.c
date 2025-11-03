@@ -70,6 +70,8 @@ static char *current_font;
 static Display_Info *first_dpyinfo;
 static Lisp_Object current_tool_bar_style;
 
+#if defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK
+
 /* Store a config changed event in to the event queue.  */
 
 static void
@@ -100,6 +102,7 @@ dpyinfo_valid (Display_Info *dpyinfo)
     }
   return found;
 }
+#endif
 
 /* Store a monospace font change event if the monospaced font changed.  */
 
@@ -122,7 +125,7 @@ store_monospaced_changed (const char *newfont)
 
 /* Store a font name change event if the font name changed.  */
 
-#if defined USE_CAIRO || defined HAVE_XFT
+#if (defined USE_CAIRO || defined HAVE_XFT) && (defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK)
 static void
 store_font_name_changed (const char *newfont)
 {
@@ -139,6 +142,7 @@ store_font_name_changed (const char *newfont)
 }
 #endif /* USE_CAIRO || HAVE_XFT */
 
+#if defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK
 /* Map TOOL_BAR_STYLE from a string to its corresponding Lisp value.
    Return Qnil if TOOL_BAR_STYLE is not known.  */
 
@@ -160,8 +164,9 @@ map_tool_bar_style (const char *tool_bar_style)
 
   return style;
 }
+#endif
 
-#ifdef HAVE_GSETTINGS
+#if defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK
 /* Store a tool bar style change event if the tool bar style changed.  */
 
 static void
@@ -177,7 +182,7 @@ store_tool_bar_style_changed (const char *newstyle,
     store_config_changed_event (Qtool_bar_style,
                                 XCAR (dpyinfo->name_list_element));
 }
-#endif	/* HAVE_GSETTINGS */
+#endif
 
 #ifndef HAVE_PGTK
 #if defined USE_CAIRO || defined HAVE_XFT
