@@ -2653,7 +2653,6 @@ fix_misc_ptr (mps_ss_t ss, struct Lisp_Misc_Ptr *p)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, p, fix_vectorlike);
-    IGC_FIX12_RAW (ss, &p->pointer);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
