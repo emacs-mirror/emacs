@@ -4654,9 +4654,9 @@ HASH_INDEX (struct Lisp_Hash_Table *h, ptrdiff_t idx)
 /* Restore a hash table's mutability after the critical section exits.  */
 
 static void
-restore_mutability (void *ptr)
+restore_mutability (Lisp_Object obj)
 {
-  struct Lisp_Hash_Table *h = ptr;
+  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
   h->mutable = true;
 }
 
@@ -4676,7 +4676,8 @@ hash_table_user_defined_call (ptrdiff_t nargs, Lisp_Object *args,
 #else
   specpdl_ref count = inhibit_garbage_collection ();
 #endif
-  record_unwind_protect_ptr (restore_mutability, h);
+  Lisp_Object ht = make_lisp_ptr (h, Lisp_Vectorlike);
+  record_unwind_protect (restore_mutability, ht);
   h->mutable = false;
   return unbind_to (count, Ffuncall (nargs, args));
 }
