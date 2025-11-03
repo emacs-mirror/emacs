@@ -4060,9 +4060,9 @@ re_match_2 (struct re_pattern_buffer *bufp,
 }
 
 static void
-unwind_re_match (void *ptr)
+unwind_re_match (Lisp_Object obj)
 {
-  struct buffer *b = (struct buffer *) ptr;
+  struct buffer *b = XBUFFER (obj);
   b->text->inhibit_shrinking = 0;
 }
 
@@ -4181,7 +4181,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
      our C pointers to buffer text.  */
   if (!current_buffer->text->inhibit_shrinking)
     {
-      record_unwind_protect_ptr (unwind_re_match, current_buffer);
+      record_unwind_protect (unwind_re_match, make_lisp_ptr (current_buffer,
+							     Lisp_Vectorlike));
       current_buffer->text->inhibit_shrinking = 1;
     }
 
