@@ -189,6 +189,7 @@ void * w32_add_non_lisp_thread (void *);
 void w32_remove_non_lisp_thread (void *);
 #endif
 
+extern void igc_assert_not_an_mps_object (void *ptr);
 # define eassert_not_mps() eassert (false)
 #else
 # define igc_break() (void) 0
