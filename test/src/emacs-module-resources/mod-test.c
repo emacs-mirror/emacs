@@ -310,6 +310,21 @@ Fmod_test_userptr_get (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
   return env->make_integer (env, p->amazing_int);
 }
 
+static emacs_value
+Fmod_test_address_to_userptr (emacs_env *env, ptrdiff_t nargs,
+			      emacs_value args[], void *data)
+{
+  intmax_t address = env->extract_integer (env, args[0]);
+  return env->make_user_ptr (env, NULL, (void *) address);
+}
+
+static emacs_value
+Fmod_test_userptr_to_address (emacs_env *env, ptrdiff_t nargs,
+			      emacs_value args[], void *data)
+{
+  intmax_t address = (intmax_t) env->get_user_ptr (env, args[0]);
+  return env->make_integer (env, address);
+}
 
 /* Fill vector in args[0] with value in args[1].  */
 static emacs_value
@@ -817,6 +832,10 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-return-unibyte", Fmod_test_return_unibyte, 0, 0, NULL, NULL);
   DEFUN ("mod-test-userptr-make", Fmod_test_userptr_make, 1, 1, NULL, NULL);
   DEFUN ("mod-test-userptr-get", Fmod_test_userptr_get, 1, 1, NULL, NULL);
+  DEFUN ("mod-test-address-to-userptr", Fmod_test_address_to_userptr,
+	 1, 1, NULL, NULL);
+  DEFUN ("mod-test-userptr-to-address", Fmod_test_userptr_to_address,
+	 1, 1, NULL, NULL);
   DEFUN ("mod-test-vector-fill", Fmod_test_vector_fill, 2, 2, NULL, NULL);
   DEFUN ("mod-test-vector-eq", Fmod_test_vector_eq, 2, 2, NULL, NULL);
   DEFUN ("mod-test-invalid-store", Fmod_test_invalid_store, 0, 0, NULL, NULL);

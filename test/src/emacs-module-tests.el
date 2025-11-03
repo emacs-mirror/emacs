@@ -200,6 +200,16 @@ changes."
 
 ;; TODO: try to test finalizer
 
+;; This came up in the discussion surrounding bug 79736.  There was a
+;; time when this triggered an assertion failure in the GC code.
+(ert-deftest mod-test-unaligned-userptr ()
+  (let* ((addresses (cl-loop for i from 0 to 20
+                             collect (logior (ash 1 i) 7)))
+         (ptrs (mapcar #'mod-test-address-to-userptr addresses)))
+    (module--gc)
+    (should (equal (mapcar #'mod-test-userptr-to-address ptrs)
+                   addresses))))
+
 ;;; Vector tests
 
 (ert-deftest mod-test-vector-test ()
