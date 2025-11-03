@@ -4324,7 +4324,7 @@ one wildcard."
               (when (cdr segment)
                 (concat
                  (when group "\\(")
-                 (if (cl-every (lambda (x) (eq x 'any-delim)) (cdr segment))
+                 (if (all (lambda (x) (eq x 'any-delim)) (cdr segment))
                      (concat completion-pcm--delim-wild-regex "*?")
                    "[^z-a]*?")
                  (when group "\\)")))))
