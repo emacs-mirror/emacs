@@ -148,12 +148,6 @@ memcpyz (void *dest, void const *src, ptrdiff_t len)
 }
 
 static bool
-streq (char const *s, char const *t)
-{
-  return strcmp (s, t) == 0;
-}
-
-static bool
 strcaseeq (char const *s, char const *t)
 {
   return c_strcasecmp (s, t) == 0;

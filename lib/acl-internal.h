@@ -68,7 +68,7 @@ _GL_INLINE_HEADER_BEGIN
 
 # if HAVE_ACL_GET_FILE
 /* POSIX 1003.1e (draft 17 -- abandoned) specific version.  */
-/* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
+/* Linux, FreeBSD, Mac OS X, Cygwin >= 2.5 */
 
 #  ifndef MIN_ACL_ENTRIES
 #   define MIN_ACL_ENTRIES 4
@@ -76,17 +76,7 @@ _GL_INLINE_HEADER_BEGIN
 
 /* POSIX 1003.1e (draft 17) */
 #  ifdef HAVE_ACL_GET_FD
-/* Most platforms have a 1-argument acl_get_fd, only OSF/1 has a 2-argument
-   macro(!).  */
-#   if HAVE_ACL_FREE_TEXT /* OSF/1 */
-ACL_INTERNAL_INLINE acl_t
-rpl_acl_get_fd (int fd)
-{
-  return acl_get_fd (fd, ACL_TYPE_ACCESS);
-}
-#    undef acl_get_fd
-#    define acl_get_fd rpl_acl_get_fd
-#   endif
+/* acl_get_fd takes one argument.  */
 #  else
 #   define HAVE_ACL_GET_FD false
 #   undef acl_get_fd
@@ -95,17 +85,7 @@ rpl_acl_get_fd (int fd)
 
 /* POSIX 1003.1e (draft 17) */
 #  ifdef HAVE_ACL_SET_FD
-/* Most platforms have a 2-argument acl_set_fd, only OSF/1 has a 3-argument
-   macro(!).  */
-#   if HAVE_ACL_FREE_TEXT /* OSF/1 */
-ACL_INTERNAL_INLINE int
-rpl_acl_set_fd (int fd, acl_t acl)
-{
-  return acl_set_fd (fd, ACL_TYPE_ACCESS, acl);
-}
-#    undef acl_set_fd
-#    define acl_set_fd rpl_acl_set_fd
-#   endif
+/* acl_set_fd takes two arguments.  */
 #  else
 #   define HAVE_ACL_SET_FD false
 #   undef acl_set_fd
@@ -136,7 +116,7 @@ rpl_acl_set_fd (int fd, acl_t acl)
 #  endif
 
 /* Set to 0 if a file's mode is stored independently from the ACL.  */
-#  if (HAVE_ACL_COPY_EXT_NATIVE && HAVE_ACL_CREATE_ENTRY_NP) || defined __sgi /* Mac OS X, IRIX */
+#  if HAVE_ACL_COPY_EXT_NATIVE && HAVE_ACL_CREATE_ENTRY_NP /* Mac OS X */
 #   define MODE_INSIDE_ACL 0
 #  endif
 
@@ -260,7 +240,7 @@ extern int acl_nontrivial (int count, struct acl *entries);
 struct permission_context {
   mode_t mode;
 #if USE_ACL
-# if HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
+# if HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, Cygwin >= 2.5 */
   acl_t acl;
 #  if !HAVE_ACL_TYPE_EXTENDED
   acl_t default_acl;

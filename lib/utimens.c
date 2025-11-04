@@ -21,6 +21,7 @@
 
 #include <config.h>
 
+/* Specification.  */
 #define _GL_UTIMENS_INLINE _GL_EXTERN_INLINE
 #include "utimens.h"
 
@@ -32,6 +33,7 @@
 #include <unistd.h>
 #include <utime.h>
 
+#include "issymlink.h"
 #include "stat-time.h"
 #include "timespec.h"
 
@@ -670,9 +672,17 @@ lutimens (char const *file, struct timespec const timespec[2])
 # endif /* HAVE_LUTIMES && !HAVE_UTIMENSAT */
 
   /* Out of luck for symlinks, but we still handle regular files.  */
-  if (!(adjustment_needed || REPLACE_FUNC_STAT_FILE) && lstat (file, &st))
-    return -1;
-  if (!S_ISLNK (st.st_mode))
+  bool not_symlink;
+  if (adjustment_needed || REPLACE_FUNC_STAT_FILE)
+    not_symlink = !S_ISLNK (st.st_mode);
+  else
+    {
+      int ret = issymlink (file);
+      if (ret < 0)
+        return -1;
+      not_symlink = !ret;
+    }
+  if (not_symlink)
     return fdutimens (-1, file, ts);
   errno = ENOSYS;
   return -1;

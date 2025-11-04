@@ -1,5 +1,5 @@
 # stdlib_h.m4
-# serial 84
+# serial 85
 dnl Copyright (C) 2007-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -205,7 +205,6 @@ AC_DEFUN([gl_STDLIB_H_DEFAULTS],
   HAVE_PTSNAME_R=1;          AC_SUBST([HAVE_PTSNAME_R])
   HAVE_QSORT_R=1;            AC_SUBST([HAVE_QSORT_R])
   HAVE_RANDOM=1;             AC_SUBST([HAVE_RANDOM])
-  HAVE_RANDOM_H=1;           AC_SUBST([HAVE_RANDOM_H])
   HAVE_RANDOM_R=1;           AC_SUBST([HAVE_RANDOM_R])
   HAVE_REALLOCARRAY=1;       AC_SUBST([HAVE_REALLOCARRAY])
   HAVE_REALPATH=1;           AC_SUBST([HAVE_REALPATH])

@@ -24,6 +24,7 @@
 
 # if __GNUC_PREREQ (4, 6)
 #  pragma GCC diagnostic ignored "-Wsuggest-attribute=pure"
+#  pragma GCC diagnostic ignored "-Wswitch-enum"
 #  pragma GCC diagnostic ignored "-Wvla"
 # endif
 #endif

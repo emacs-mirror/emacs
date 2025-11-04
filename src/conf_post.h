@@ -402,8 +402,8 @@ extern int emacs_setenv_TZ (char const *);
 #include <time.h>
 #undef _GL_TIME_H
 
-/* Redefine tzalloc and tzfree so as not to conflict with their
-   system-provided versions, which are incompatible.  */
+/* Redefine tzalloc so as not to conflict with its
+   system-provided version, which is incompatible.
+   Do not redefine tzfree, as Gnulib does that.  */
 #define tzalloc rpl_tzalloc
-#define tzfree rpl_tzfree
 #endif /* defined __ANDROID__ && __ANDROID_API__ >= 35 */

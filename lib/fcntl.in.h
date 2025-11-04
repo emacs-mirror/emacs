@@ -249,6 +249,46 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 # endif
 #endif
 
+#if @GNULIB_OPENAT2@
+# if !defined RESOLVE_NO_XDEV && defined __has_include
+#  if __has_include (<linux/openat2.h>)
+#   include <linux/openat2.h>
+#  endif
+# endif
+# ifndef RESOLVE_NO_XDEV
+struct open_how
+{
+#  ifdef __UINT64_TYPE__
+  __UINT64_TYPE__ flags, mode, resolve;
+#  else
+  unsigned long long int flags, mode, resolve;
+#  endif
+};
+#  define RESOLVE_NO_XDEV	0x01
+#  define RESOLVE_NO_MAGICLINKS	0x02
+#  define RESOLVE_NO_SYMLINKS	0x04
+#  define RESOLVE_BENEATH	0x08
+#  define RESOLVE_IN_ROOT	0x10
+#  define RESOLVE_CACHED	0x20
+# endif
+
+# if !@HAVE_OPENAT2@
+_GL_FUNCDECL_SYS (openat2, int,
+                  (int fd, char const *file, struct open_how const *how,
+                   size_t size),
+                  _GL_ARG_NONNULL ((2, 3)));
+# endif
+_GL_CXXALIAS_SYS (openat2, int,
+                  (int fd, char const *file, struct open_how const *how,
+                   size_t size));
+_GL_CXXALIASWARN (openat2);
+#elif defined GNULIB_POSIXCHECK
+# undef openat2
+# if HAVE_RAW_DECL_OPENAT2
+_GL_WARN_ON_USE (openat2, "openat2 is not portable - "
+                 "use gnulib module openat2 for portability");
+# endif
+#endif
 
 /* Fix up the FD_* macros, only known to be missing on mingw.  */
 
@@ -291,11 +331,6 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 # if defined O_TTY_INIT && ! (INT_MIN <= O_TTY_INIT && O_TTY_INIT <= INT_MAX)
 #  undef O_TTY_INIT
 # endif
-#endif
-
-#if !defined O_DIRECT && defined O_DIRECTIO
-/* Tru64 spells it 'O_DIRECTIO'.  */
-# define O_DIRECT O_DIRECTIO
 #endif
 
 #if !defined O_CLOEXEC && defined O_NOINHERIT

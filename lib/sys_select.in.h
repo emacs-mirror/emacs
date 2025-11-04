@@ -26,17 +26,14 @@
  #error "Please include config.h first."
 #endif
 
-/* On OSF/1 and Solaris 2.6, <sys/types.h> and <sys/time.h>
-   both include <sys/select.h>.
+/* On Solaris 2.6, <sys/types.h> and <sys/time.h> both include <sys/select.h>.
    On Cygwin and OpenBSD, <sys/time.h> includes <sys/select.h>.
    Simply delegate to the system's header in this case.  */
 #if (@HAVE_SYS_SELECT_H@                                                \
      && !defined _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_TYPES_H             \
-     && ((defined __osf__ && defined _SYS_TYPES_H_                      \
-          && defined _OSF_SOURCE)                                       \
-         || (defined __sun && defined _SYS_TYPES_H                      \
-             && (! (defined _XOPEN_SOURCE || defined _POSIX_C_SOURCE)   \
-                 || defined __EXTENSIONS__))))
+     && (defined __sun && defined _SYS_TYPES_H                          \
+         && (! (defined _XOPEN_SOURCE || defined _POSIX_C_SOURCE)       \
+             || defined __EXTENSIONS__)))
 
 # define _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_TYPES_H
 # @INCLUDE_NEXT@ @NEXT_SYS_SELECT_H@
@@ -44,25 +41,13 @@
 #elif (@HAVE_SYS_SELECT_H@                                              \
        && (defined _CYGWIN_SYS_TIME_H                                   \
            || (!defined _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_TIME_H       \
-               && ((defined __osf__ && defined _SYS_TIME_H_             \
-                    && defined _OSF_SOURCE)                             \
-                   || (defined __OpenBSD__ && defined _SYS_TIME_H_)     \
+               && ((defined __OpenBSD__ && defined _SYS_TIME_H_)        \
                    || (defined __sun && defined _SYS_TIME_H             \
                        && (! (defined _XOPEN_SOURCE                     \
                               || defined _POSIX_C_SOURCE)               \
                            || defined __EXTENSIONS__))))))
 
 # define _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_TIME_H
-# @INCLUDE_NEXT@ @NEXT_SYS_SELECT_H@
-
-/* On IRIX 6.5, <sys/timespec.h> includes <sys/types.h>, which includes
-   <sys/bsd_types.h>, which includes <sys/select.h>.  At this point we cannot
-   include <signal.h>, because that includes <internal/signal_core.h>, which
-   gives a syntax error because <sys/timespec.h> has not been completely
-   processed.  Simply delegate to the system's header in this case.  */
-#elif @HAVE_SYS_SELECT_H@ && defined __sgi && (defined _SYS_BSD_TYPES_H && !defined _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_BSD_TYPES_H)
-
-# define _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_BSD_TYPES_H
 # @INCLUDE_NEXT@ @NEXT_SYS_SELECT_H@
 
 /* On OpenBSD 5.0, <pthread.h> includes <sys/types.h>, which includes
@@ -90,23 +75,12 @@
 
 #if @HAVE_SYS_SELECT_H@
 
-/* On OSF/1 4.0, <sys/select.h> provides only a forward declaration
-   of 'struct timeval', and no definition of this type.
-   Also, Mac OS X, AIX, HP-UX, IRIX, Solaris, Interix declare select()
-   in <sys/time.h>.
+/* Mac OS X, AIX, HP-UX, Solaris, Interix declare select() in <sys/time.h>.
    But avoid namespace pollution on glibc systems, a circular include
    <sys/select.h> -> <sys/time.h> -> <sys/select.h> on FreeBSD 13.1, and
    "unknown type name" problems on Cygwin.  */
 # if !(defined __GLIBC__ || defined __FreeBSD__ || defined __CYGWIN__)
 #  include <sys/time.h>
-# endif
-
-/* On AIX 7 and Solaris 10, <sys/select.h> provides an FD_ZERO implementation
-   that relies on memset(), but without including <string.h>.
-   But in any case avoid namespace pollution on glibc systems.  */
-# if (defined __OpenBSD__ || defined _AIX || defined __sun || defined __osf__ || defined __BEOS__) \
-     && ! defined __GLIBC__
-#  include <string.h>
 # endif
 
 /* The include_next requires a split double-inclusion guard.  */
@@ -352,5 +326,20 @@ _GL_WARN_ON_USE (select, "select is not always POSIX compliant - "
 
 
 #endif /* _@GUARD_PREFIX@_SYS_SELECT_H */
+
+
+/* Includes that provide only macros that don't need to be overridden.
+   (Includes that are needed for type definitions and function declarations
+   have their place above, before the function overrides.)  */
+
+/* On AIX 7 and Solaris 10, <sys/select.h> provides an FD_ZERO implementation
+   that relies on memset(), but without including <string.h>.
+   But in any case avoid namespace pollution on glibc systems.  */
+# if (defined __OpenBSD__ || defined _AIX || defined __sun || defined __BEOS__) \
+     && ! defined __GLIBC__
+#  include <string.h>
+# endif
+
+
 #endif /* _@GUARD_PREFIX@_SYS_SELECT_H */
-#endif /* OSF/1 */
+#endif

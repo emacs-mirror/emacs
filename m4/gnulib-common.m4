@@ -168,7 +168,7 @@ AC_DEFUN([gl_COMMON_BODY], [
       ======================================================================
       This gives a syntax error
         - in C mode with gcc
-          <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108796>, and
+          <https://gcc.gnu.org/PR108796>, and
         - in C++ mode with clang++ version < 16, and
         - in C++ mode, inside extern "C" {}, still in newer clang++ versions
           <https://github.com/llvm/llvm-project/issues/101990>.
@@ -451,7 +451,7 @@ AC_DEFUN([gl_COMMON_BODY], [
    yet.  */
 #ifndef _GL_ATTRIBUTE_DEALLOC_FREE
 # if defined __cplusplus && defined __GNUC__ && !defined __clang__
-/* Work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108231> */
+/* Work around GCC bug <https://gcc.gnu.org/PR108231> */
 #  define _GL_ATTRIBUTE_DEALLOC_FREE \
      _GL_ATTRIBUTE_DEALLOC ((void (*) (void *)) free, 1)
 # else

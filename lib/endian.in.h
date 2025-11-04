@@ -109,6 +109,15 @@ _GL_INLINE_HEADER_BEGIN
 extern "C" {
 #endif
 
+/* These declarations are needed if Gnulib byteswap.h -> stdint.h ->
+   sys/types.h -> endian.h -> Gnulib byteswap.h, the last of which is blocked
+   by its include guard so the functions are not yet declared.  */
+#ifdef _GL_BYTESWAP_INLINE
+_GL_BYTESWAP_INLINE uint_least16_t bswap_16 (uint_least16_t);
+_GL_BYTESWAP_INLINE uint_least32_t bswap_32 (uint_least32_t);
+_GL_BYTESWAP_INLINE uint_least64_t bswap_64 (uint_least64_t);
+#endif
+
 /* Big endian to host.  */
 
 _GL_ENDIAN_INLINE uint16_t

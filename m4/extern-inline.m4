@@ -1,5 +1,5 @@
 # extern-inline.m4
-# serial 1
+# serial 2
 dnl Copyright 2012-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -43,9 +43,11 @@ AC_DEFUN([gl_EXTERN_INLINE],
    functions or macros in standard C headers like <ctype.h>.  For example,
    if isdigit is mistakenly implemented via a static inline function,
    a program containing an extern inline function that calls isdigit
-   may not work since the C standard prohibits extern inline functions
-   from calling static functions (ISO C 99 section 6.7.4.(3).
-   This bug is known to occur on:
+   may not work since C99 through C23 prohibit extern inline functions
+   from calling static functions (ISO C 23 section 6.7.5.(2)).
+   Although a future C standard will likely relax this restriction
+   <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3622.txt>,
+   respect it for now.  This bug is known to occur on:
 
      OS X 10.8 and earlier; see:
      https://lists.gnu.org/r/bug-gnulib/2012-12/msg00023.html
@@ -112,8 +114,8 @@ AC_DEFUN([gl_EXTERN_INLINE],
    suppress bogus "no previous prototype for 'FOO'"
    and "no previous declaration for 'FOO'" diagnostics,
    when FOO is an inline function in the header; see
-   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113> and
-   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63877>.  */
+   <https://gcc.gnu.org/PR54113> and
+   <https://gcc.gnu.org/PR63877>.  */
 #if __GNUC__ == 4 && 6 <= __GNUC_MINOR__
 # if defined __GNUC_STDC_INLINE__ && __GNUC_STDC_INLINE__
 #  define _GL_INLINE_HEADER_CONST_PRAGMA

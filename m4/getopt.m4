@@ -1,5 +1,5 @@
 # getopt.m4
-# serial 50
+# serial 52
 dnl Copyright (C) 2002-2006, 2008-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -88,8 +88,8 @@ AC_DEFUN([gl_GETOPT_CHECK_HEADERS],
         dnl Merging these three different test programs into a single one
         dnl would require a reset mechanism. On BSD systems, it can be done
         dnl through 'optreset'; on some others (glibc), it can be done by
-        dnl setting 'optind' to 0; on others again (HP-UX, IRIX, OSF/1,
-        dnl Solaris 9, musl libc), there is no such mechanism.
+        dnl setting 'optind' to 0; on others again (HP-UX, Solaris 9,
+        dnl musl libc), there is no such mechanism.
         if test $cross_compiling = no; then
           dnl Sanity check. Succeeds everywhere (except on MSVC,
           dnl which lacks <unistd.h> and getopt() entirely).
@@ -238,8 +238,7 @@ dnl is ambiguous with environment values that contain newlines.
              nocrash_init();
 
              /* This code succeeds on glibc 2.8, OpenBSD 4.0, Cygwin, mingw,
-                and fails on Mac OS X 10.5, AIX 5.2, HP-UX 11, IRIX 6.5,
-                OSF/1 5.1, Solaris 10.  */
+                and fails on Mac OS X 10.5, AIX 5.2, HP-UX 11, Solaris 10.  */
              {
                static char conftest[] = "conftest";
                static char plus[] = "-+";
@@ -250,7 +249,7 @@ dnl is ambiguous with environment values that contain newlines.
              }
              /* This code succeeds on glibc 2.8, mingw,
                 and fails on Mac OS X 10.5, OpenBSD 4.0, AIX 5.2, HP-UX 11,
-                IRIX 6.5, OSF/1 5.1, Solaris 10, Cygwin 1.5.x.  */
+                Solaris 10, Cygwin 1.5.x.  */
              {
                static char program[] = "program";
                static char p[] = "-p";

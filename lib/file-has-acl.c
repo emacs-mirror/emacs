@@ -261,7 +261,7 @@ get_aclinfo (int fd, char const *name, struct aclinfo *ai, int flags)
                  first case, and ENODATA in the latter.  */
               if (r == 0)
                 scontext_err = ENOTSUP;
-              if (r == 10 && memcmp (ai->scontext, "unlabeled", 10) == 0)
+              if (r == 10 && memeq (ai->scontext, "unlabeled", 10))
                 {
                   freecon (ai->scontext);
                   scontext_err = ENODATA;
@@ -364,9 +364,9 @@ acl_nfs4_nontrivial (uint32_t *xattr, ssize_t nbytes)
       /* For a trivial ACL, max 6 (typically 3) ACEs, 3 allow, 3 deny.
          Check that there is at most one ACE of each TYPE and WHO.  */
       int who2
-        = (wholen == 6 && memcmp (xattr, "OWNER@", 6) == 0 ? 0
-           : wholen == 6 && memcmp (xattr, "GROUP@", 6) == 0 ? 2
-           : wholen == 9 && memcmp (xattr, "EVERYONE@", 9) == 0 ? 4
+        = (wholen == 6 && memeq (xattr, "OWNER@", 6) ? 0
+           : wholen == 6 && memeq (xattr, "GROUP@", 6) ? 2
+           : wholen == 9 && memeq (xattr, "EVERYONE@", 9) ? 4
            : -1);
       if (who2 < 0)
         return 1;
@@ -384,9 +384,9 @@ acl_nfs4_nontrivial (uint32_t *xattr, ssize_t nbytes)
 
 #if (!USE_LINUX_XATTR && USE_ACL && HAVE_ACL_GET_FILE \
      && !HAVE_ACL_EXTENDED_FILE && !HAVE_ACL_TYPE_EXTENDED)
-/* FreeBSD, NetBSD >= 10, IRIX, Tru64, Cygwin >= 2.5 */
+/* FreeBSD, NetBSD >= 10, Cygwin >= 2.5 */
 
-# if HAVE_ACL_GET_FD && !HAVE_ACL_GET_LINK_NP /* IRIX, Tru64, Cygwin >= 2.5 */
+# if HAVE_ACL_GET_FD && !HAVE_ACL_GET_LINK_NP /* Cygwin >= 2.5 */
 #  include <fcntl.h>
 #  ifdef O_PATH
 #   define acl_get_fd_np(fd, type) acl_get_fd (fd)
@@ -522,7 +522,7 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
 
   {
     /* POSIX 1003.1e (draft 17 -- abandoned) specific version.  */
-    /* Linux, FreeBSD, NetBSD >= 10, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
+    /* Linux, FreeBSD, NetBSD >= 10, Mac OS X, Cygwin >= 2.5 */
     int ret;
 
 #   if HAVE_ACL_EXTENDED_FILE /* Linux */
@@ -553,7 +553,7 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
       }
     else
       ret = -1;
-#   else /* FreeBSD, NetBSD >= 10, IRIX, Tru64, Cygwin >= 2.5 */
+#   else /* FreeBSD, NetBSD >= 10, Cygwin >= 2.5 */
 
     acl_t acl = acl_get_fdfile (fd, name, ACL_TYPE_ACCESS, flags);
     if (acl)
@@ -562,12 +562,7 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
         int saved_errno = errno;
         acl_free (acl);
         errno = saved_errno;
-#    if HAVE_ACL_FREE_TEXT /* Tru64 */
-        /* On OSF/1, acl_get_file (name, ACL_TYPE_DEFAULT) always
-           returns NULL with errno not set.  There is no point in
-           making this call.  */
-#    else /* FreeBSD, NetBSD >= 10, IRIX, Cygwin >= 2.5 */
-        /* On Linux, FreeBSD, NetBSD, IRIX,
+        /* On Linux, FreeBSD, NetBSD,
                acl_get_file (name, ACL_TYPE_ACCESS)
            and acl_get_file (name, ACL_TYPE_DEFAULT) on a directory
            either both succeed or both fail; it depends on the
@@ -580,26 +575,25 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
             acl = acl_get_fdfile (fd, name, ACL_TYPE_DEFAULT, flags);
             if (acl)
               {
-#     ifdef __CYGWIN__ /* Cygwin >= 2.5 */
+#    ifdef __CYGWIN__ /* Cygwin >= 2.5 */
                 ret = acl_access_nontrivial (acl);
                 saved_errno = errno;
                 acl_free (acl);
                 errno = saved_errno;
-#     else
+#    else
                 ret = (0 < acl_entries (acl));
                 acl_free (acl);
-#     endif
+#    endif
               }
             else
               {
                 ret = -1;
-#     ifdef __CYGWIN__ /* Cygwin >= 2.5 */
+#    ifdef __CYGWIN__ /* Cygwin >= 2.5 */
                 if (d_type == DT_UNKNOWN)
                   ret = 0;
-#     endif
+#    endif
               }
           }
-#    endif
       }
     else
       ret = -1;

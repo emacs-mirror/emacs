@@ -22,7 +22,7 @@
 #include "acl-internal.h"
 
 /* This file assumes POSIX-draft like ACLs
-   (Linux, FreeBSD, NetBSD >= 10, Mac OS X, IRIX, Tru64, Cygwin >= 2.5).  */
+   (Linux, FreeBSD, NetBSD >= 10, Mac OS X, Cygwin >= 2.5).  */
 
 /* Return the number of entries in ACL.
    Return -1 and set errno upon failure to determine it.  */
@@ -34,8 +34,7 @@ acl_entries (acl_t acl)
 
   if (acl != NULL)
     {
-#if HAVE_ACL_FIRST_ENTRY /* Linux, FreeBSD, NetBSD >= 10, Mac OS X, Cygwin >= 2.5 */
-# if HAVE_ACL_TYPE_EXTENDED /* Mac OS X */
+#if HAVE_ACL_TYPE_EXTENDED /* Mac OS X */
       /* acl_get_entry returns 0 when it successfully fetches an entry,
          and -1/EINVAL at the end.  */
       acl_entry_t ace;
@@ -45,7 +44,7 @@ acl_entries (acl_t acl)
            got_one >= 0;
            got_one = acl_get_entry (acl, ACL_NEXT_ENTRY, &ace))
         count++;
-# else /* Linux, FreeBSD, NetBSD >= 10, Cygwin >= 2.5 */
+#else /* Linux, FreeBSD, NetBSD >= 10, Cygwin >= 2.5 */
       /* acl_get_entry returns 1 when it successfully fetches an entry,
          and 0 at the end.  */
       acl_entry_t ace;
@@ -57,17 +56,6 @@ acl_entries (acl_t acl)
         count++;
       if (got_one < 0)
         return -1;
-# endif
-#else /* IRIX, Tru64 */
-# if HAVE_ACL_TO_SHORT_TEXT /* IRIX */
-      /* Don't use acl_get_entry: it is undocumented.  */
-      count = acl->acl_cnt;
-# endif
-# if HAVE_ACL_FREE_TEXT /* Tru64 */
-      /* Don't use acl_get_entry: it takes only one argument and does not
-         work.  */
-      count = acl->acl_num;
-# endif
 #endif
     }
 

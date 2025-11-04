@@ -26,7 +26,7 @@
 const char *
 sigdescr_np (int sig)
 {
-  /* Note: Some platforms (glibc, FreeBSD, NetBSD, OpenBSD, AIX, IRIX, Haiku,
+  /* Note: Some platforms (glibc, FreeBSD, NetBSD, OpenBSD, AIX, Haiku,
      Android) have an array 'sys_siglist'.  (On AIX, you need to declare it
      yourself, and it has fewer than NSIG elements.)  Its contents varies
      depending on the OS.
@@ -160,12 +160,7 @@ sigdescr_np (int sig)
     case SIGBREAK:
       return "Ctrl-Break";
     #endif
-    /* IRIX */
-    #if defined SIGCKPT
-    case SIGCKPT:
-      return "Checkpoint"; /* See man 1 cpr, man 3C atcheckpoint */
-    #endif
-    /* Linux, IRIX, Cygwin */
+    /* Linux, Cygwin */
     #if defined SIGCLD && SIGCLD != SIGCHLD
     case SIGCLD:
       return "Child stopped or exited";
@@ -182,7 +177,7 @@ sigdescr_np (int sig)
       /* AIX: "Paging space low".  */
       return "Swap space nearly exhausted";
     #endif
-    /* Mac OS X, FreeBSD, NetBSD, OpenBSD, Minix, AIX, IRIX, Cygwin, mingw */
+    /* Mac OS X, FreeBSD, NetBSD, OpenBSD, Minix, AIX, Cygwin, mingw */
     #if defined SIGEMT
     case SIGEMT:
       /* glibc/Hurd, *BSD: "EMT trap".  Solaris: "Emulation trap".  */
@@ -193,12 +188,12 @@ sigdescr_np (int sig)
     case SIGINFO:
       return "Information request";
     #endif
-    /* Linux, Mac OS X, FreeBSD, NetBSD, OpenBSD, Minix, AIX, IRIX, Cygwin */
+    /* Linux, Mac OS X, FreeBSD, NetBSD, OpenBSD, Minix, AIX, Cygwin */
     #if defined SIGIO && SIGIO != SIGPOLL
     case SIGIO:
       return "I/O possible";
     #endif
-    /* Linux, IRIX, Cygwin, mingw */
+    /* Linux, Cygwin, mingw */
     #if defined SIGIOT && SIGIOT != SIGABRT
     case SIGIOT:
       return "IOT instruction"; /* a PDP-11 instruction */
@@ -267,17 +262,7 @@ sigdescr_np (int sig)
     case SIGPRE:
       return "Programmed exception";
     #endif
-    /* IRIX */
-    #if defined SIGPTINTR
-    case SIGPTINTR:
-      return "Pthread interrupt";
-    #endif
-    /* IRIX */
-    #if defined SIGPTRESCHED
-    case SIGPTRESCHED:
-      return "Pthread rescheduling";
-    #endif
-    /* Linux, NetBSD, Minix, AIX, IRIX, Cygwin */
+    /* Linux, NetBSD, Minix, AIX, Cygwin */
     #if defined SIGPWR
     case SIGPWR:
       /* glibc: "Power failure".  NetBSD: "Power fail/restart".  */
@@ -292,11 +277,6 @@ sigdescr_np (int sig)
     #if defined SIGRECOVERY
     case SIGRECOVERY:
       return "Kernel recovery";
-    #endif
-    /* IRIX */
-    #if defined SIGRESTART
-    case SIGRESTART:
-      return "Checkpoint restart"; /* See man 1 cpr, man 3C atrestart */
     #endif
     /* AIX */
     #if defined SIGRETRACT
@@ -347,11 +327,6 @@ sigdescr_np (int sig)
       /* OpenBSD: "Thread AST".  */
       return "Thread library interrupt";
     #endif
-    /* IRIX */
-    #if defined SIGUME
-    case SIGUME:
-      return "Uncorrectable memory error";
-    #endif
     /* AIX */
     #if defined SIGVIRT
     case SIGVIRT:
@@ -363,7 +338,7 @@ sigdescr_np (int sig)
       /* AIX: "No runnable lwp".  */
       return "Thread waiting";
     #endif
-    /* Linux, Mac OS X, FreeBSD, NetBSD, OpenBSD, Minix, AIX, IRIX, Cygwin, Haiku */
+    /* Linux, Mac OS X, FreeBSD, NetBSD, OpenBSD, Minix, AIX, Cygwin, Haiku */
     #if defined SIGWINCH
     case SIGWINCH:
       /* glibc: "Window changed".  *BSD: "Window size changed" or "Window size changes".  */

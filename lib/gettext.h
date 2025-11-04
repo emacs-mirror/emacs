@@ -70,7 +70,12 @@
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wbuiltin-declaration-mismatch"
 #  endif
-__attribute__ ((__always_inline__, __gnu_inline__)) extern inline
+#  if __GNUC__ + (__GNUC_MINOR__ >= 2) > 4
+__attribute__ ((__always_inline__, __gnu_inline__))
+#  else
+__attribute__ ((__always_inline__))
+#  endif
+extern inline
 #  if !defined(__sun)
 const
 #  endif
@@ -79,7 +84,12 @@ gettext (const char *msgid)
 {
   return msgid;
 }
-__attribute__ ((__always_inline__, __gnu_inline__)) extern inline
+#  if __GNUC__ + (__GNUC_MINOR__ >= 2) > 4
+__attribute__ ((__always_inline__, __gnu_inline__))
+#  else
+__attribute__ ((__always_inline__))
+#  endif
+extern inline
 #  if !defined(__sun)
 const
 #  endif
@@ -89,7 +99,12 @@ dgettext (const char *domain, const char *msgid)
   (void) domain;
   return msgid;
 }
-__attribute__ ((__always_inline__, __gnu_inline__)) extern inline
+#  if __GNUC__ + (__GNUC_MINOR__ >= 2) > 4
+__attribute__ ((__always_inline__, __gnu_inline__))
+#  else
+__attribute__ ((__always_inline__))
+#  endif
+extern inline
 #  if !defined(__sun)
 const
 #  endif

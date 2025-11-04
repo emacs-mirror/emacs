@@ -101,40 +101,6 @@ static_assert (DT_UNKNOWN != DT_FIFO && DT_UNKNOWN != DT_CHR
 /* Other optional information about a directory entry.  */
 #define _GL_DT_NOTDIR 0x100   /* Not a directory */
 
-/* Conversion between S_IF* and DT_* file types.  */
-#if ! (defined IFTODT && defined DTTOIF)
-# include <sys/stat.h>
-# ifdef S_ISWHT
-#  define _GL_DIRENT_S_ISWHT(mode) S_ISWHT(mode)
-# else
-#  define _GL_DIRENT_S_ISWHT(mode) 0
-# endif
-# ifdef S_IFWHT
-#  define _GL_DIRENT_S_IFWHT S_IFWHT
-# else
-#  define _GL_DIRENT_S_IFWHT (DT_WHT << 12) /* just a guess */
-# endif
-#endif
-/* Conversion from a 'stat' mode to a DT_* value.  */
-#ifndef IFTODT
-# define IFTODT(mode) \
-   (S_ISREG (mode) ? DT_REG : S_ISDIR (mode) ? DT_DIR \
-    : S_ISLNK (mode) ? DT_LNK : S_ISBLK (mode) ? DT_BLK \
-    : S_ISCHR (mode) ? DT_CHR : S_ISFIFO (mode) ? DT_FIFO \
-    : S_ISSOCK (mode) ? DT_SOCK \
-    : _GL_DIRENT_S_ISWHT (mode) ? DT_WHT : DT_UNKNOWN)
-#endif
-/* Conversion from a DT_* value to a 'stat' mode.  */
-#ifndef DTTOIF
-# define DTTOIF(dirtype) \
-   ((dirtype) == DT_REG ? S_IFREG : (dirtype) == DT_DIR ? S_IFDIR \
-    : (dirtype) == DT_LNK ? S_IFLNK : (dirtype) == DT_BLK ? S_IFBLK \
-    : (dirtype) == DT_CHR ? S_IFCHR :  dirtype == DT_FIFO ? S_IFIFO \
-    : (dirtype) == DT_SOCK ? S_IFSOCK \
-    : (dirtype) == DT_WHT ? _GL_DIRENT_S_IFWHT \
-    : (dirtype) << 12 /* just a guess */)
-#endif
-
 #if !@DIR_HAS_FD_MEMBER@
 # if !GNULIB_defined_DIR
 /* struct gl_directory is a type with a field 'int fd_to_close'.
@@ -423,6 +389,45 @@ _GL_CXXALIASWARN (alphasort);
 _GL_WARN_ON_USE (alphasort, "alphasort is unportable - "
                  "use gnulib module alphasort for portability");
 # endif
+#endif
+
+
+/* Includes that provide only macros that don't need to be overridden.
+   (Includes that are needed for type definitions and function declarations
+   have their place above, before the function overrides.)  */
+
+/* Conversion between S_IF* and DT_* file types.  */
+#if ! (defined IFTODT && defined DTTOIF)
+# include <sys/stat.h>
+# ifdef S_ISWHT
+#  define _GL_DIRENT_S_ISWHT(mode) S_ISWHT(mode)
+# else
+#  define _GL_DIRENT_S_ISWHT(mode) 0
+# endif
+# ifdef S_IFWHT
+#  define _GL_DIRENT_S_IFWHT S_IFWHT
+# else
+#  define _GL_DIRENT_S_IFWHT (DT_WHT << 12) /* just a guess */
+# endif
+#endif
+/* Conversion from a 'stat' mode to a DT_* value.  */
+#ifndef IFTODT
+# define IFTODT(mode) \
+   (S_ISREG (mode) ? DT_REG : S_ISDIR (mode) ? DT_DIR \
+    : S_ISLNK (mode) ? DT_LNK : S_ISBLK (mode) ? DT_BLK \
+    : S_ISCHR (mode) ? DT_CHR : S_ISFIFO (mode) ? DT_FIFO \
+    : S_ISSOCK (mode) ? DT_SOCK \
+    : _GL_DIRENT_S_ISWHT (mode) ? DT_WHT : DT_UNKNOWN)
+#endif
+/* Conversion from a DT_* value to a 'stat' mode.  */
+#ifndef DTTOIF
+# define DTTOIF(dirtype) \
+   ((dirtype) == DT_REG ? S_IFREG : (dirtype) == DT_DIR ? S_IFDIR \
+    : (dirtype) == DT_LNK ? S_IFLNK : (dirtype) == DT_BLK ? S_IFBLK \
+    : (dirtype) == DT_CHR ? S_IFCHR :  dirtype == DT_FIFO ? S_IFIFO \
+    : (dirtype) == DT_SOCK ? S_IFSOCK \
+    : (dirtype) == DT_WHT ? _GL_DIRENT_S_IFWHT \
+    : (dirtype) << 12 /* just a guess */)
 #endif
 
 

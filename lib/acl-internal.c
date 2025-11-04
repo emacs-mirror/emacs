@@ -31,7 +31,7 @@
 # include <string.h>
 #endif
 
-#if USE_ACL && HAVE_ACL_GET_FILE /* Linux, FreeBSD, NetBSD >= 10, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
+#if USE_ACL && HAVE_ACL_GET_FILE /* Linux, FreeBSD, NetBSD >= 10, Mac OS X, Cygwin >= 2.5 */
 
 # if HAVE_ACL_TYPE_EXTENDED /* Mac OS X */
 
@@ -45,7 +45,7 @@ acl_extended_nontrivial (acl_t acl)
   return (acl_entries (acl) > 0);
 }
 
-# else /* Linux, FreeBSD, NetBSD >= 10, IRIX, Tru64, Cygwin >= 2.5 */
+# else /* Linux, FreeBSD, NetBSD >= 10, Cygwin >= 2.5 */
 
 /* ACL is an ACL, from a file, stored as type ACL_TYPE_ACCESS.
    Return 1 if the given ACL is non-trivial.
@@ -118,9 +118,9 @@ acl_access_nontrivial (acl_t acl)
                        - S-1-5-32-545 (group "Users")
                        Cf. <https://learn.microsoft.com/en-us/windows/win32/secauthz/well-known-sids>
                        and look at the output of the 'mkgroup' command.  */
-                    ignorable = (strcmp (group_sid, "S-1-5-18") == 0
-                                 || strcmp (group_sid, "S-1-5-32-544") == 0
-                                 || strcmp (group_sid, "S-1-5-32-545") == 0);
+                    ignorable = (streq (group_sid, "S-1-5-18")
+                                 || streq (group_sid, "S-1-5-32-544")
+                                 || streq (group_sid, "S-1-5-32-545"));
                   }
               }
             if (!ignorable)
@@ -136,46 +136,6 @@ acl_access_nontrivial (acl_t acl)
         }
     }
   return got_one;
-
-#  elif HAVE_ACL_TO_SHORT_TEXT /* IRIX */
-  /* Don't use acl_get_entry: it is undocumented.  */
-
-  int count = acl->acl_cnt;
-  int i;
-
-  for (i = 0; i < count; i++)
-    {
-      acl_entry_t ace = &acl->acl_entry[i];
-      acl_tag_t tag = ace->ae_tag;
-
-      if (!(tag == ACL_USER_OBJ || tag == ACL_GROUP_OBJ
-            || tag == ACL_OTHER_OBJ))
-        return 1;
-    }
-  return 0;
-
-#  elif HAVE_ACL_FREE_TEXT /* Tru64 */
-  /* Don't use acl_get_entry: it takes only one argument and does not work.  */
-
-  int count = acl->acl_num;
-  acl_entry_t ace;
-
-  for (ace = acl->acl_first; count > 0; ace = ace->next, count--)
-    {
-      acl_tag_t tag;
-      acl_perm_t perm;
-
-      tag = ace->entry->acl_type;
-      if (!(tag == ACL_USER_OBJ || tag == ACL_GROUP_OBJ || tag == ACL_OTHER))
-        return 1;
-
-      perm = ace->entry->acl_perm;
-      /* On Tru64, perm can also contain non-standard bits such as
-         PERM_INSERT, PERM_DELETE, PERM_MODIFY, PERM_LOOKUP, ... */
-      if ((perm & ~(ACL_READ | ACL_WRITE | ACL_EXECUTE)) != 0)
-        return 1;
-    }
-  return 0;
 
 #  else
 
@@ -548,7 +508,7 @@ void
 free_permission_context (struct permission_context *ctx)
 {
 #if USE_ACL
-# if HAVE_ACL_GET_FILE /* Linux, FreeBSD, NetBSD >= 10, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
+# if HAVE_ACL_GET_FILE /* Linux, FreeBSD, NetBSD >= 10, Mac OS X, Cygwin >= 2.5 */
   if (ctx->acl)
     acl_free (ctx->acl);
 #  if !HAVE_ACL_TYPE_EXTENDED

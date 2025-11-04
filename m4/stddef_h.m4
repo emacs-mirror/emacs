@@ -85,7 +85,7 @@ AC_DEFUN_ONCE([gl_STDDEF_H],
   dnl Provide gl_unreachable() unconditionally.
   GL_GENERATE_STDDEF_H=true
 
-  dnl https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114869
+  dnl https://gcc.gnu.org/PR114869
   AC_CACHE_CHECK([whether nullptr_t needs <stddef.h>],
     [gl_cv_nullptr_t_needs_stddef],
     [AC_COMPILE_IFELSE([AC_LANG_DEFINES_PROVIDED[nullptr_t x;]],
@@ -96,7 +96,7 @@ AC_DEFUN_ONCE([gl_STDDEF_H],
     GL_GENERATE_STDDEF_H=true
   fi
 
-  dnl https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114870
+  dnl https://gcc.gnu.org/PR114870
   dnl affects GCC 13.3 and 14.2.
   AC_CACHE_CHECK([whether <stddef.h> is idempotent],
     [gl_cv_stddef_idempotent],

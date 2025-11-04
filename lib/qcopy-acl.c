@@ -50,9 +50,9 @@ is_attr_permissions (const char *name, struct error_context *ctx)
 {
   /* We need to explicitly test for the known extended attribute names,
      because at least on CentOS 7, attr_copy_action does not do it.  */
-  return strcmp (name, XATTR_NAME_POSIX_ACL_ACCESS) == 0
-         || strcmp (name, XATTR_NAME_POSIX_ACL_DEFAULT) == 0
-         || strcmp (name, XATTR_NAME_NFSV4_ACL) == 0
+  return streq (name, XATTR_NAME_POSIX_ACL_ACCESS)
+         || streq (name, XATTR_NAME_POSIX_ACL_DEFAULT)
+         || streq (name, XATTR_NAME_NFSV4_ACL)
          || attr_copy_action (name, ctx) == ATTR_ACTION_PERMISSIONS;
 }
 

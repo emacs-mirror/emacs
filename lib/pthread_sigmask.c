@@ -26,10 +26,6 @@
 # include <string.h>
 #endif
 
-#if PTHREAD_SIGMASK_UNBLOCK_BUG
-# include <unistd.h>
-#endif
-
 int
 pthread_sigmask (int how, const sigset_t *new_mask, sigset_t *old_mask)
 #undef pthread_sigmask
@@ -58,7 +54,7 @@ pthread_sigmask (int how, const sigset_t *new_mask, sigset_t *old_mask)
          Don't cache the information: libpthread.so could be dynamically
          loaded after the program started and after pthread_sigmask was
          called for the first time.  */
-      if (memcmp (&omask_copy, &omask, sizeof omask) == 0
+      if (memeq (&omask_copy, &omask, sizeof omask)
           && pthread_sigmask (1729, &omask_copy, NULL) == 0)
         {
           /* pthread_sigmask is currently ineffective.  The program is not
@@ -73,16 +69,6 @@ pthread_sigmask (int how, const sigset_t *new_mask, sigset_t *old_mask)
 # if PTHREAD_SIGMASK_FAILS_WITH_ERRNO
   if (ret == -1)
     return errno;
-# endif
-# if PTHREAD_SIGMASK_UNBLOCK_BUG
-  if (ret == 0
-      && new_mask != NULL
-      && (how == SIG_UNBLOCK || how == SIG_SETMASK))
-    {
-      /* Give the OS the opportunity to raise signals that were pending before
-         the pthread_sigmask call and have now been unblocked.  */
-      usleep (1);
-    }
 # endif
   return ret;
 #else

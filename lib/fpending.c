@@ -25,8 +25,8 @@
 #include "stdio-impl.h"
 
 /* This file is not used on systems that already have the __fpending function,
-   namely glibc >= 2.2, Solaris >= 7, UnixWare >= 7.1.4.MP4, Cygwin >= 1.7.34,
-   Android API >= 23, musl libc, Haiku >= hrev58760.  */
+   namely glibc >= 2.2, OpenBSD >= 7.6, Solaris >= 7, UnixWare >= 7.1.4.MP4,
+   Cygwin >= 1.7.34, Android API >= 23, musl libc, Haiku >= hrev58760.  */
 
 /* Return the number of pending (aka buffered, unflushed)
    bytes on the stream, FP, that is open for writing.  */
@@ -39,14 +39,14 @@ __fpending (FILE *fp)
 #if defined _IO_EOF_SEEN || defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1
   /* GNU libc, BeOS, Haiku, Linux libc5 */
   return fp->_IO_write_ptr - fp->_IO_write_base;
-#elif defined __sferror || defined __OpenBSD__ || defined __DragonFly__ || defined __ANDROID__
-  /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin < 1.7.34, Minix 3, Android */
+#elif defined __sferror || defined __DragonFly__ || defined __ANDROID__
+  /* FreeBSD, NetBSD, OpenBSD < 7.6, DragonFly, Mac OS X, Cygwin < 1.7.34, Minix 3, Android */
   return fp_->_p - fp_->_bf._base;
 #elif defined __EMX__                /* emx+gcc */
   return fp->_ptr - fp->_buffer;
 #elif defined __minix                /* Minix */
   return fp_->_ptr - fp_->_buf;
-#elif defined _IOERR                 /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, UnixWare, mingw, MSVC, NonStop Kernel, OpenVMS */
+#elif defined _IOERR                 /* AIX, HP-UX, Solaris, OpenServer, UnixWare, mingw, MSVC, NonStop Kernel, OpenVMS */
   return (fp_->_ptr ? fp_->_ptr - fp_->_base : 0);
 #elif defined __UCLIBC__             /* uClibc */
   return (fp->__modeflags & __FLAG_WRITING ? fp->__bufpos - fp->__bufstart : 0);

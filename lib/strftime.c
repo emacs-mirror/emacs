@@ -110,6 +110,7 @@
 #include <locale.h>
 #include <stdckdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -198,17 +199,48 @@ enum pad_style
 # define mktime(tp) __mktime64 (tp)
 #endif
 
+/* For functions that fill an in-memory string, the number of bytes fits in a
+   size_t.  For functions that write to a stream, the number of bytes fits in
+   an off64_t (a type that is always at least 64 bits large).  */
 #if FPRINTFTIME
 # define STREAM_OR_CHAR_T FILE
 # define STRFTIME_ARG(x) /* empty */
+typedef off64_t byte_count_t;
+typedef off64_t sbyte_count_t;
 #else
 # define STREAM_OR_CHAR_T CHAR_T
 # define STRFTIME_ARG(x) x,
+typedef size_t byte_count_t;
+typedef ptrdiff_t sbyte_count_t;
+#endif
+
+/* The functions strftime[_l], wcsftime[_l] defined by glibc have a return type
+   'size_t', for compatibility with POSIX, and return 0 upon failure.
+   The functions defined by Gnulib have a signed return type, and return -1
+   upon failure.  */
+#ifdef _LIBC
+typedef size_t retval_t;
+# define FAILURE 0
+#else
+typedef sbyte_count_t retval_t;
+# define FAILURE (-1)
 #endif
 
 #if FPRINTFTIME
+# define FPUTC(Byte, P) \
+   do \
+     { \
+       int _r = fputc (Byte, P); \
+       if (_r < 0) \
+         return FAILURE; \
+     } \
+   while (false)
+
 # define memset_byte(P, Len, Byte) \
-  do { size_t _i; for (_i = 0; _i < Len; _i++) fputc (Byte, P); } while (0)
+   do \
+     for (byte_count_t _i = Len; 0 < _i; _i--) \
+       FPUTC (Byte, P); \
+   while (false)
 # define memset_space(P, Len) memset_byte (P, Len, ' ')
 # define memset_zero(P, Len) memset_byte (P, Len, '0')
 #elif defined COMPILE_WIDE
@@ -226,22 +258,32 @@ enum pad_style
 #endif
 
 #define add(n, f) width_add (width, n, f)
+
+/* Add INCR, returning true if I would become too large.
+   INCR should not have side effects.  */
+#if FPRINTFTIME
+# define incr_overflow(incr) ckd_add (&i, i, incr)
+#else
+/* Use <= not <, to leave room for trailing NUL.  */
+# define incr_overflow(incr) (maxsize - i <= (incr) || (i += (incr), false))
+#endif
+
 #define width_add(width, n, f)                                                \
   do                                                                          \
     {                                                                         \
-      size_t _n = (n);                                                        \
-      size_t _w = pad == NO_PAD || width < 0 ? 0 : width;                    \
-      size_t _incr = _n < _w ? _w : _n;                                       \
-      if (_incr >= maxsize - i)                                               \
+      byte_count_t _n = n;                                                    \
+      byte_count_t _w = pad == NO_PAD || width < 0 ? 0 : width;               \
+      byte_count_t _incr = _n < _w ? _w : _n;                                 \
+      if (incr_overflow (_incr))                                              \
         {                                                                     \
           errno = ERANGE;                                                     \
-          return 0;                                                           \
+          return FAILURE;                                                     \
         }                                                                     \
       if (p)                                                                  \
         {                                                                     \
           if (_n < _w)                                                        \
             {                                                                 \
-              size_t _delta = _w - _n;                                        \
+              byte_count_t _delta = _w - _n;                                  \
               if (pad == ALWAYS_ZERO_PAD || pad == SIGN_PAD)                  \
                 memset_zero (p, _delta);                                      \
               else                                                            \
@@ -250,12 +292,11 @@ enum pad_style
           f;                                                                  \
           advance (p, _n);                                                    \
         }                                                                     \
-      i += _incr;                                                             \
     } while (0)
 
 #define add1(c) width_add1 (width, c)
 #if FPRINTFTIME
-# define width_add1(width, c) width_add (width, 1, fputc (c, p))
+# define width_add1(width, c) width_add (width, 1, FPUTC (c, p))
 #else
 # define width_add1(width, c) width_add (width, 1, *p = c)
 #endif
@@ -266,19 +307,15 @@ enum pad_style
     width_add (width, n,                                                      \
      do                                                                       \
        {                                                                      \
+         CHAR_T const *_s = s;                                                \
          if (to_lowcase)                                                      \
-           fwrite_lowcase (p, (s), _n);                                       \
+           for (byte_count_t _i = 0; _i < _n; _i++)                           \
+             FPUTC (TOLOWER ((UCHAR_T) _s[_i], loc), p);                      \
          else if (to_uppcase)                                                 \
-           fwrite_uppcase (p, (s), _n);                                       \
-         else                                                                 \
-           {                                                                  \
-             /* Ignore the value of fwrite.  The caller can determine whether \
-                an error occurred by inspecting ferror (P).  All known fwrite \
-                implementations set the stream's error indicator when they    \
-                fail due to ENOMEM etc., even though C11 and POSIX.1-2008 do  \
-                not require this.  */                                         \
-             fwrite (s, _n, 1, p);                                            \
-           }                                                                  \
+           for (byte_count_t _i = 0; _i < _n; _i++)                           \
+             FPUTC (TOUPPER ((UCHAR_T) _s[_i], loc), p);                      \
+         else if (fwrite (_s, _n, 1, p) == 0)                                 \
+           return FAILURE;                                                    \
        }                                                                      \
      while (0)                                                                \
     )
@@ -355,32 +392,12 @@ enum pad_style
 /* Avoid false GCC warning "'memset' specified size 18446744073709551615 exceeds
    maximum object size 9223372036854775807", caused by insufficient data flow
    analysis and value propagation of the 'width_add' expansion when GCC is not
-   optimizing.  Cf. <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88443>.  */
+   optimizing.  Cf. <https://gcc.gnu.org/PR88443>.  */
 #if _GL_GNUC_PREREQ (7, 0) && !__OPTIMIZE__
 # pragma GCC diagnostic ignored "-Wstringop-overflow"
 #endif
 
-#if FPRINTFTIME
-static void
-fwrite_lowcase (FILE *fp, const CHAR_T *src, size_t len)
-{
-  while (len-- > 0)
-    {
-      fputc (TOLOWER ((UCHAR_T) *src, loc), fp);
-      ++src;
-    }
-}
-
-static void
-fwrite_uppcase (FILE *fp, const CHAR_T *src, size_t len)
-{
-  while (len-- > 0)
-    {
-      fputc (TOUPPER ((UCHAR_T) *src, loc), fp);
-      ++src;
-    }
-}
-#else
+#if !FPRINTFTIME
 static CHAR_T *memcpy_lowcase (CHAR_T *dest, const CHAR_T *src,
                                size_t len LOCALE_PARAM);
 
@@ -894,12 +911,14 @@ static CHAR_T const c_month_names[][sizeof "September"] =
 # define ns 0
 #endif
 
-static size_t __strftime_internal (STREAM_OR_CHAR_T *, STRFTIME_ARG (size_t)
-                                   const CHAR_T *, const struct tm *,
-                                   CAL_ARGS (const struct calendar *,
-                                             struct calendar_date *)
-                                   bool, enum pad_style, int, bool *
-                                   extra_args_spec LOCALE_PARAM);
+static retval_t __strftime_internal (STREAM_OR_CHAR_T *,
+                                     STRFTIME_ARG (size_t)
+                                     const CHAR_T *, const struct tm *,
+                                     CAL_ARGS (const struct calendar *,
+                                               struct calendar_date *)
+                                     bool, enum pad_style,
+                                     sbyte_count_t, bool *
+                                     extra_args_spec LOCALE_PARAM);
 
 #if !defined _LIBC \
     && (!(HAVE_ONLY_C_LOCALE || (USE_C_LOCALE && !HAVE_STRFTIME_L)) \
@@ -1102,12 +1121,16 @@ get_tm_zone (timezone_t tz, char *ubuf, int ubufsize, int modifier,
 }
 
 /* Write information from TP into S according to the format
-   string FORMAT, writing no more that MAXSIZE characters
-   (including the terminating '\0') and returning number of
-   characters written.  If S is NULL, nothing will be written
-   anywhere, so to determine how many characters would be
-   written, use NULL for S and (size_t) -1 for MAXSIZE.  */
-size_t
+   string FORMAT.  Return the number of bytes written.
+   Upon failure:
+     - return 0 for the functions defined by glibc,
+     - return -1 for the functions defined by Gnulib.
+
+   If !FPRINTFTIME, write no more than MAXSIZE bytes (including the
+   terminating '\0'), and if S is NULL do not write into S.
+   To determine how many characters would be written, use NULL for S
+   and (size_t) -1 for MAXSIZE.  */
+retval_t
 my_strftime (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
              const CHAR_T *format,
              const struct tm *tp extra_args_spec LOCALE_PARAM)
@@ -1150,24 +1173,26 @@ libc_hidden_def (my_strftime)
    UPCASE indicates that the result should be converted to upper case.
    YR_SPEC and WIDTH specify the padding and width for the year.
    *TZSET_CALLED indicates whether tzset has been called here.  */
-static size_t
+static retval_t
 __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                      const CHAR_T *format,
                      const struct tm *tp,
                      CAL_ARGS (const struct calendar *cal,
                                struct calendar_date *caldate)
                      bool upcase,
-                     enum pad_style yr_spec, int width, bool *tzset_called
+                     enum pad_style yr_spec, sbyte_count_t width,
+                     bool *tzset_called
                      extra_args_spec LOCALE_PARAM)
 {
 #if defined _LIBC && defined USE_IN_EXTENDED_LOCALE_MODEL
   struct __locale_data *const current = loc->__locales[LC_TIME];
 #endif
-#if FPRINTFTIME
-  size_t maxsize = (size_t) -1;
-#endif
-
+#if FAILURE == 0
   int saved_errno = errno;
+#elif !FPRINTFTIME
+  if (PTRDIFF_MAX < maxsize)
+    maxsize = PTRDIFF_MAX;
+#endif
 
 #ifdef _NL_CURRENT
   /* We cannot make the following values variables since we must delay
@@ -1221,7 +1246,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 # define ampm (L_("AMPM") + 2 * (tp->tm_hour > 11))
 # define ap_len 2
 #endif
-  size_t i = 0;
+  retval_t i = 0;
   STREAM_OR_CHAR_T *p = s;
   const CHAR_T *f;
 #if DO_MULTIBYTE && !defined COMPILE_WIDE
@@ -1260,7 +1285,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
       size_t colons;
       bool change_case = false;
       int format_char;
-      int subwidth;
+      sbyte_count_t subwidth;
 
 #if DO_MULTIBYTE && !defined COMPILE_WIDE
       switch (*f)
@@ -1384,7 +1409,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             {
               if (ckd_mul (&width, width, 10)
                   || ckd_add (&width, width, *f - L_('0')))
-                width = INT_MAX;
+                return FAILURE;
               ++f;
             }
           while (ISDIGIT (*f));
@@ -1585,12 +1610,15 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           subwidth = -1;
         subformat_width:
           {
-            size_t len = __strftime_internal (NULL, STRFTIME_ARG ((size_t) -1)
-                                              subfmt, tp,
-                                              CAL_ARGS (cal, caldate)
-                                              to_uppcase, pad, subwidth,
-                                              tzset_called
-                                              extra_args LOCALE_ARG);
+            retval_t len =
+              __strftime_internal (NULL, STRFTIME_ARG ((size_t) -1)
+                                   subfmt, tp,
+                                   CAL_ARGS (cal, caldate)
+                                   to_uppcase, pad, subwidth,
+                                   tzset_called
+                                   extra_args LOCALE_ARG);
+            if (FAILURE < 0 && len < 0)
+              return FAILURE; /* errno is set here */
             add (len, __strftime_internal (p,
                                            STRFTIME_ARG (maxsize - i)
                                            subfmt, tp,
@@ -1862,8 +1890,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             if (digits_base >= 0x100)
               number_digits = number_bytes / 2;
 #endif
-            int shortage = width - !!sign_char - number_digits;
-            int padding = pad == NO_PAD || shortage <= 0 ? 0 : shortage;
+            byte_count_t shortage = width - !!sign_char - number_digits;
+            byte_count_t padding = (pad == NO_PAD || shortage <= 0
+                                    ? 0 : shortage);
 
             if (sign_char)
               {
@@ -1871,7 +1900,11 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                   {
                     if (p)
                       memset_space (p, padding);
-                    i += padding;
+                    if (ckd_add (&i, i, padding) && FPRINTFTIME)
+                      {
+                        errno = ERANGE;
+                        return FAILURE;
+                      }
                     width -= padding;
                   }
                 width_add1 (0, sign_char);
@@ -2033,7 +2066,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             if (ltm.tm_yday < 0)
               {
                 errno = EOVERFLOW;
-                return 0;
+                return FAILURE;
               }
 
             /* Generate string value for T using time_t arithmetic;
@@ -2252,12 +2285,12 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             mbstate_t st = {0};
             size_t len = __mbsrtowcs_l (p, &z, maxsize - i, &st, loc);
             if (len == (size_t) -1)
-              return 0;
+              return FAILURE;
             size_t incr = len < w ? w : len;
             if (incr >= maxsize - i)
               {
                 errno = ERANGE;
-                return 0;
+                return FAILURE;
               }
             if (p)
               {
@@ -2375,6 +2408,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
     *p = L_('\0');
 #endif
 
+#if FAILURE == 0
   errno = saved_errno;
+#endif
+
   return i;
 }
