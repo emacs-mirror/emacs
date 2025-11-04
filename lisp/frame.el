@@ -2889,7 +2889,10 @@ deleting them."
         (if iconify (iconify-frame this) (delete-frame this))))
     ;; In a second round consider all remaining frames.
     (dolist (this frames)
-      (unless (or (eq this frame)
+      ;; We did not recalculate FRAMES so make sure THIS is still a live
+      ;; frame since otherwise 'frame-terminal' will throw an error.
+      (unless (or (not (frame-live-p this))
+                  (eq this frame)
 		  (eq this minibuffer-frame)
 		  (not (eq (frame-terminal this) terminal))
                   ;; When FRAME is a child frame, delete its siblings
