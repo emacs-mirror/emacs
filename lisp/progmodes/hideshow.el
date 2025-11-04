@@ -426,33 +426,25 @@ see the `hs-modes-alist' entry for `bibtex-mode'.
 For some major modes, `forward-sexp' does not work properly.  In those
 cases, FORWARD-SEXP-FUNC specifies another function to use instead.
 
-See the documentation for `hs-adjust-block-beginning' to see what is the
-use of ADJUST-BEG-FUNC.
+See `hs-adjust-block-beginning' for how to use ADJUST-BEG-FUNC,
+and `hs-adjust-block-end' for how to use ADJUST-END-FUNC.
 
-See the documentation for `hs-adjust-block-end' to see what is the
-use of ADJUST-END-FUNC.
+See `hs-find-block-beginning-func' for how to use FIND-BLOCK-BEGINNING-FUNC
+and `hs-find-next-block-func' for how to use FIND-NEXT-BLOCK-FUNC.
 
-See the documentation for `hs-find-block-beginning-func' to see
-what is the use of FIND-BLOCK-BEGINNING-FUNC.
-
-See the documentation for `hs-find-next-block-func' to see what
-is the use of FIND-NEXT-BLOCK-FUNC.
-
-See the documentation for `hs-looking-at-block-start-p-func' to
-see what is the use of LOOKING-AT-BLOCK-START-P-FUNC.
-
-See the documentation for `hs-inside-comment-p-func' to see what is the
-use of INSIDE-COMMENT-P-FUNC.
+See `hs-looking-at-block-start-p-func' for how to use
+LOOKING-AT-BLOCK-START-P-FUNC and `hs-inside-comment-p-func' for how to
+use INSIDE-COMMENT-P-FUNC.
 
 TREESIT-THINGS is a thing defined in `treesit-thing-settings' to
-determine if current block at point is valid, see
-`treesit-thing-settings' for more information.
+determine if the block at point is valid, see `treesit-thing-settings'
+for more information.
 
 All the elements support mode hierarchy.  If any of the elements is left
 nil or omitted, hideshow searches for a value defined in some parent
 mode in this alist; if no value is found, it tries to guess the
-appropriate values.  The regexps should not contain leading or trailing
-whitespace.  Case does not matter.")
+appropriate value.  The regexps should not contain leading or trailing
+whitespace.  Letter-case does not matter.")
 
 (defvar hs-hide-all-non-comment-function nil
   "Function called if non-nil when doing `hs-hide-all' for non-comments.")
@@ -611,11 +603,9 @@ See `hs-c-like-adjust-block-beginning' for an example of using this.")
 This is useful to ensure some characters such as parenthesis or curly
 braces get properly hidden in python-like modes.
 
-It is called with 1 argument which is the start position where the
-overlay will be created.
-
-It should return the last position to hide or nil.  If it returns nil,
-hideshow will guess the end position.")
+It is called with one argument, which is the start position where the
+overlay will be created, and should return either the last position to
+hide or nil.  If it returns nil, hideshow will guess the end position.")
 
 (defvar-local hs-find-block-beginning-func nil
   "Function used to do `hs-find-block-beginning'.
@@ -652,14 +642,14 @@ to check if the point is at the block start.")
 
 (defvar-local hs-inside-comment-p-func nil
   "Function used to check if point is inside a comment.
-If point is inside a comment, it should return a list containing the
-buffer position of the start and the end of the comment, otherwise
-return nil.
+If point is inside a comment, the function should return a list
+containing the buffer position of the start and the end of the
+comment, otherwise it should return nil.
 
 A comment block can be hidden only if on its starting line there is only
 whitespace preceding the actual comment beginning.  If point is inside
-of a comment but this condition is not met, it can return a list having
-a nil as its car and the end of comment position as cdr.")
+a comment but this condition is not met, the function can return a list
+having nil as its `car' and the end of comment position as its `cdr'.")
 
 (defvar-local hs-treesit-things nil
   "Treesit things to check if point is at a valid block.

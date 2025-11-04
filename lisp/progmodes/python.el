@@ -5917,7 +5917,7 @@ are also searched.  REGEXP is passed to `looking-at' to set
 
 BLOCK-BEG is the beginning position where the hiding will be performed.
 
-This is only used to properly hide the block when there are not closing
+This is only used to properly hide the block when there are no closing
 parens."
   (unless (save-excursion
             (goto-char block-beg)
