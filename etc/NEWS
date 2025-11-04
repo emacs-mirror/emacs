@@ -1987,6 +1987,10 @@ the Tramp manual.
 ** Diff
 
 ---
+*** 'diff-mode' now refrains from automatically refining big hunks.
+What is big is defined by the new 'diff-refine-threshold' variable.
+
+---
 *** New command 'diff-kill-ring-save'.
 This command copies to the 'kill-ring' a region of text modified
 according to diffs in the current buffer, but without applying the diffs

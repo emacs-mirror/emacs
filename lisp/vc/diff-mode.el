@@ -113,6 +113,17 @@ You can always manually refine a hunk with `diff-refine-hunk'."
                  (const :tag "Refine hunks during font-lock" font-lock)
                  (const :tag "Refine hunks during navigation" navigation)))
 
+(defcustom diff-refine-threshold 30000  ;FIXME: Arbitrary choice.
+  ;; FIXME: A better way to handle this would be to do the refinement
+  ;; asynchronously, so pathological cases just delay the refinement's display
+  ;; but don't freeze Emacs.
+  "Maximum size of diff hunk that can be automatically refined.
+If a hunk is larger than that limit, measured in characters, `diff-refine'
+is not automatically applied, to avoid pathological cases taking too long.
+Does not affect the `diff-refine-hunk' interactive command."
+  :version "31.1"
+  :type 'integer)
+
 (defcustom diff-font-lock-prettify nil
   "If non-nil, font-lock will try and make the format prettier.
 
@@ -322,7 +333,8 @@ well."
     (if diff-auto-refine-mode
         (progn
           (customize-set-variable 'diff-refine 'navigation)
-          (condition-case-unless-debug nil (diff-refine-hunk) (error nil)))
+          (condition-case-unless-debug nil (diff-refine-hunk 'skip-if-large)
+            (error nil)))
       (customize-set-variable 'diff-refine nil))))
 (make-obsolete 'diff-auto-refine-mode "set `diff-refine' instead." "27.1")
 (make-obsolete-variable 'diff-auto-refine-mode
@@ -805,7 +817,7 @@ next hunk if TRY-HARDER is non-nil; otherwise signal an error."
                             (with-current-buffer buffer
                               (save-excursion
                                 (goto-char point)
-                                (diff-refine-hunk))))))))))))
+                                (diff-refine-hunk 'skip-if-large))))))))))))
 
 (easy-mmode-define-navigation
  diff-file diff-file-header-re "file" diff-end-of-file)
@@ -2508,8 +2520,9 @@ Return new point, if it was moved."
       (setq pt (point)))
     pt))
 
-(defun diff-refine-hunk ()
-  "Highlight changes of hunk at point at a finer granularity."
+(defun diff-refine-hunk (&optional skip-if-large)
+  "Highlight changes of hunk at point at a finer granularity.
+If SKIP-IF-LARGE is non-nil, obey `diff-refine-threshold'."
   (interactive)
   (when (diff--some-hunks-p)
     (save-excursion
@@ -2517,7 +2530,7 @@ Return new point, if it was moved."
             ;; Be careful to start from the hunk header so diff-end-of-hunk
             ;; gets to read the hunk header's line info.
             (end (progn (diff-end-of-hunk) (point))))
-        (diff--refine-hunk beg end)))))
+        (diff--refine-hunk beg end skip-if-large)))))
 
 (defun diff--refine-propertize (beg end face)
   (let ((ol (make-overlay beg end)))
@@ -2537,7 +2550,7 @@ by `diff-refine-hunk'."
   :version "30.1"
   :type 'boolean)
 
-(defun diff--refine-hunk (start end)
+(defun diff--refine-hunk (start end &optional skip-if-large)
   (require 'smerge-mode)
   (goto-char start)
   (let* ((style (diff-hunk-style))      ;Skips the hunk header as well.
@@ -2550,6 +2563,17 @@ by `diff-refine-hunk'."
 
     (goto-char beg)
     (pcase style
+      ((guard (and skip-if-large
+                   ;; FIXME: Maybe instead of testing the hunk size, we
+                   ;; should test the size of each individual "delete+insert"
+                   ;; pairs, since a big hunk with many small del+ins pairs
+                   ;; should not suffer from the usual pathological
+                   ;; complexity problems.
+                   ;; Or maybe even push the test down into
+                   ;; `smerge-refine-regions' where `smerge-mode' could
+                   ;; also use it?
+                   (> (- end beg) diff-refine-threshold)))
+       nil)
       ('unified
        (while (re-search-forward "^[-+]" end t)
          (let ((beg-del (progn (beginning-of-line) (point)))
@@ -2669,7 +2693,7 @@ Call FUN with two args (BEG and END) for each hunk."
        max
        (lambda (beg end)
          (unless (get-char-property beg 'diff--font-lock-refined)
-           (diff--refine-hunk beg end)
+           (diff--refine-hunk beg end 'skip-if-large)
            (let ((ol (make-overlay beg end)))
              (overlay-put ol 'diff--font-lock-refined t)
              (overlay-put ol 'diff-mode 'fine)
