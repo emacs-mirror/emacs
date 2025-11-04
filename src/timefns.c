@@ -1565,11 +1565,10 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
   struct tm local_tm, gmt_tm;
   timezone_t tz = tzlookup (zone, false);
   struct tm *tm = emacs_localtime_rz (tz, &time_spec, &local_tm);
-  int localtime_errno = errno;
   xtzfree (tz);
 
   if (!tm)
-    time_error (localtime_errno);
+    time_error (errno);
 
   /* Let YEAR = LOCAL_TM.tm_year + TM_YEAR_BASE.  */
   Lisp_Object year;
@@ -1760,11 +1759,10 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
   timezone_t tz = tzlookup (zone, false);
   tm.tm_wday = -1;
   time_t value = mktime_z (tz, &tm);
-  int mktime_errno = errno;
   xtzfree (tz);
 
   if (tm.tm_wday < 0)
-    time_error (mktime_errno);
+    time_error (errno);
 
   if (BASE_EQ (hz, make_fixnum (1)))
     return (current_time_list
@@ -1875,10 +1873,9 @@ without consideration for daylight saving time.  */)
      range -999 .. 9999.  */
   struct tm tm;
   struct tm *tmp = emacs_localtime_rz (tz, &value, &tm);
-  int localtime_errno = errno;
   xtzfree (tz);
   if (! tmp)
-    time_error (localtime_errno);
+    time_error (errno);
 
   static char const wday_name[][4] =
     { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
