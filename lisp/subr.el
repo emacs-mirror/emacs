@@ -3745,7 +3745,16 @@ causes it to evaluate `help-form' and display the result."
 	     ((and (null esc-flag) (eq char ?\e))
 	      (setq esc-flag t))
 	     ((memq char '(?\C-g ?\e))
-	      (keyboard-quit))))))))
+	      (keyboard-quit))))
+	   (t
+	    (beep)
+	    (message "Please type %s"
+		     (substitute-command-keys
+		      (mapconcat (lambda (c)
+				   (format "\\`%s'"
+					   (single-key-description c)))
+				 chars ", ")))
+	    (sit-for 3))))))
     ;; Display the question with the answer.  But without cursor-in-echo-area.
     (message "%s%s" prompt (char-to-string char))
     char))
