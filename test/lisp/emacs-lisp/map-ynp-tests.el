@@ -33,14 +33,15 @@
 
 (ert-deftest test-map-ynp-kmacro ()
   "Test that `map-y-or-n-p' in a kmacro terminates on end of input."
-  (execute-kbd-macro (read-kbd-macro "M-: (map-ynp-tests-simple-call) RET y"))
-  (should-error
-   (execute-kbd-macro (read-kbd-macro "M-: (map-ynp-tests-simple-call) RET")))
-  (unless noninteractive
-    (let ((noninteractive t))
-      (execute-kbd-macro (read-kbd-macro "M-: (map-ynp-tests-simple-call) RET y"))
-      (should-error
-       (execute-kbd-macro (read-kbd-macro "M-: (map-ynp-tests-simple-call) RET"))))))
+  (cl-letf* (((symbol-function #'backtrace-print) (lambda ()))) ;; bug#67836
+    (execute-kbd-macro (read-kbd-macro "M-: (map-ynp-tests-simple-call) RET y"))
+    (should-error
+     (execute-kbd-macro (read-kbd-macro "M-: (map-ynp-tests-simple-call) RET")))
+    (unless noninteractive
+      (let ((noninteractive t))
+        (execute-kbd-macro (read-kbd-macro "M-: (map-ynp-tests-simple-call) RET y"))
+        (should-error
+         (execute-kbd-macro (read-kbd-macro "M-: (map-ynp-tests-simple-call) RET")))))))
 
 (provide 'map-ynp-tests)
 ;;; map-ynp-tests.el ends here
