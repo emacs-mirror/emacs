@@ -1100,6 +1100,12 @@ should hide a block.  If set to 'after-bol', hide the innermost block to
 which the current line belongs.  If set to 'after-cursor', hide the block
 after cursor position.  By default this is set to 'after-bol'.
 
++++
+*** The variable 'hs-special-modes-alist' is now obsolete.
+Use the new variable 'hs-modes-alist' instead, which supports mode
+hierarchy for each value.
+
+
 ** C-ts mode
 
 +++

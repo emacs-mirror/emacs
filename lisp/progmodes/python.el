@@ -5912,6 +5912,22 @@ are also searched.  REGEXP is passed to `looking-at' to set
         (beginning-of-line)
         (looking-at regexp)))))
 
+(defun python-ts-hs-adjust-block-end-fn (block-beg)
+  "Python-ts-mode specific `hs-adjust-block-end' function for `hs-minor-mode'.
+
+BLOCK-BEG is the beginning position where the hiding will be performed.
+
+This is only used to properly hide the block when there are not closing
+parens."
+  (unless (save-excursion
+            (goto-char block-beg)
+            (treesit-thing-at
+             (1- (point))
+             '(or "argument_list"
+                  (and anonymous "\\`[](),[{}]\\'")
+                  "string")))
+    (line-end-position)))
+
 
 ;;; Imenu
 
@@ -7339,21 +7355,24 @@ implementations: `python-mode' and `python-ts-mode'."
                       #'python-eldoc-function))))
   (eldoc-add-command-completions "python-indent-dedent-line-backspace")
 
-  ;; TODO: Use tree-sitter to figure out the block in `python-ts-mode'.
-  (dolist (mode '(python-mode python-ts-mode))
-    (add-to-list
-     'hs-special-modes-alist
-     `(,mode
-       ,python-nav-beginning-of-block-regexp
-       ;; Use the empty string as end regexp so it doesn't default to
-       ;; "\\s)".  This way parens at end of defun are properly hidden.
-       ""
-       "#"
-       python-hideshow-forward-sexp-function
-       nil
-       python-nav-beginning-of-block
-       python-hideshow-find-next-block
-       python-info-looking-at-beginning-of-block)))
+  (add-to-list
+   'hs-modes-alist
+   `(python-mode
+     (start . ,python-nav-beginning-of-block-regexp)
+     ;; Use the empty string as end regexp so it doesn't default to
+     ;; "\\s)".  This way parens at end of defun are properly hidden.
+     (end . "")
+     (c-start . "#")
+     (forward-fn . python-hideshow-forward-sexp-function)
+     (find-beg-fn . python-nav-beginning-of-block)
+     (find-next-fn . python-hideshow-find-next-block)
+     (look-start-fn . python-info-looking-at-beginning-of-block)))
+
+  (add-to-list
+   'hs-modes-alist
+   '(python-ts-mode
+     (treesit-things . (or defun sexp))
+     (adjust-end-fn . python-ts-hs-adjust-block-end-fn)))
 
   (setq-local outline-regexp (python-rx (* space) block-start))
   (setq-local outline-level

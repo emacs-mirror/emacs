@@ -549,7 +549,7 @@ than ENDDO.")
           "\\|!\\|$\\)")
   "Regexp matching the end of a Fortran \"block\", from the line start.
 Note that only ENDDO is handled for the end of a DO-loop.  Used
-in the Fortran entry in `hs-special-modes-alist'.")
+in the Fortran entry in `hs-modes-alist'.")
 
 (defconst fortran-start-block-re
   (concat
@@ -582,11 +582,11 @@ in the Fortran entry in `hs-special-modes-alist'.")
   "Regexp matching the start of a Fortran \"block\", from the line start.
 A simple regexp cannot do this in fully correct fashion, so this
 tries to strike a compromise between complexity and flexibility.
-Used in the Fortran entry in `hs-special-modes-alist'.")
+Used in the Fortran entry in `hs-modes-alist'.")
 
-(add-to-list 'hs-special-modes-alist
-             `(fortran-mode ,fortran-start-block-re ,fortran-end-block-re
-                            "^[cC*!]" fortran-end-of-block nil))
+(add-to-list 'hs-modes-alist
+             `(fortran-mode (start . ,fortran-start-block-re) (end . ,fortran-end-block-re)
+                            (c-start . "^[cC*!]") (forward-fn . fortran-end-of-block)))
 
 
 (defvar fortran-mode-syntax-table
@@ -1247,7 +1247,7 @@ Directive lines are treated as comments."
           (goto-char i)
           (= (line-beginning-position) p)))))
 
-;; Used in hs-special-modes-alist.
+;; Used in hs-modes-alist.
 (defun fortran-end-of-block (&optional num)
   "Move point forward to the end of the current code block.
 With optional argument NUM, go forward that many balanced blocks.

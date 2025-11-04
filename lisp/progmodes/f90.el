@@ -930,7 +930,7 @@ allowed.  This minor issue currently only affects \"(/\" and \"/)\".")
                         "block" "critical") t)
           "\\_>")
   "Regexp matching the end of an F90 \"block\", from the line start.
-Used in the F90 entry in `hs-special-modes-alist'.")
+Used in the F90 entry in `hs-modes-alist'.")
 
 ;; Ignore the fact that FUNCTION, SUBROUTINE, WHERE, FORALL have a
 ;; following "(".  DO, CASE, IF can have labels.
@@ -966,12 +966,12 @@ Used in the F90 entry in `hs-special-modes-alist'.")
   "Regexp matching the start of an F90 \"block\", from the line start.
 A simple regexp cannot do this in fully correct fashion, so this
 tries to strike a compromise between complexity and flexibility.
-Used in the F90 entry in `hs-special-modes-alist'.")
+Used in the F90 entry in `hs-modes-alist'.")
 
-;; hs-special-modes-alist is autoloaded.
-(add-to-list 'hs-special-modes-alist
-             `(f90-mode ,f90-start-block-re ,f90-end-block-re
-                        "!" f90-end-of-block nil))
+;; hs-modes-alist is autoloaded.
+(add-to-list 'hs-modes-alist
+             `(f90-mode (start . ,f90-start-block-re) (end . ,f90-end-block-re)
+                        (c-start . "!") (forward-fn . f90-end-of-block)))
 
 
 ;; Imenu support.
