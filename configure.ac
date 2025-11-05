@@ -1599,6 +1599,12 @@ AC_DEFUN([gl_CRYPTO_CHECK])
 # Avoid gnulib's tests for HAVE_WORKING_O_NOATIME and HAVE_WORKING_O_NOFOLLOW,
 # as we don't use them.
 AC_DEFUN([gl_FCNTL_O_FLAGS])
+# Disable nproc.c's usage of mntent.h if setmntent is undefined, as on
+# Android SDK <= 20.
+AC_DEFUN([gl_PREREQ_NPROC],
+  [AS_IF([test "$opsys" = "android"],
+    [AC_CHECK_DECL([setmntent], [], [ac_cv_header_mntent_h=no],
+      [[#include <mntent.h>]])])]m4_defn([gl_PREREQ_NPROC]))
 # Avoid gnulib's test for pthread_sigmask.
 funcs=
 for func in $ac_func_list; do
