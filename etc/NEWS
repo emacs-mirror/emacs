@@ -2358,11 +2358,12 @@ the contents of those files.
 
 +++
 *** New commands to cherry-pick and revert revisions.
-The commands 'vc-revision-cherry-pick' and 'vc-revision-revert' let you
-copy revisions between branches, and revert revisions.
+The commands 'vc-cherry-pick', 'vc-revert-or-delete-revision',
+'vc-revert-revision' and 'vc-delete-revision' let you copy revisions
+between branches, revert and delete revisions.
 From Log View buffers, you can use 'C' to cherry-pick the revision at
-point or all marked revisions, and 'R' to revert the revision at point
-or all marked revisions.
+point or all marked revisions, and 'R' to undo the revision at point or
+all marked revisions.
 
 *** New command 'log-edit-done-strip-cvs-lines'.
 This command strips all lines beginning with "CVS:" from the buffer.

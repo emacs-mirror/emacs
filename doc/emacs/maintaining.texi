@@ -1268,11 +1268,11 @@ Unmark all marked entries (@code{log-view-unmark-all-entries}).
 @item C
 Copy changes to a currently checked out branch; either the changes from
 the revision at point, or the changes from all marked revisions
-(@code{log-view-revision-cherry-pick}).
+(@code{log-view-cherry-pick}).
 
 @item R
 Undo the effects of old revisions; either the revision at point, or all
-marked revisions (@code{log-view-revision-revert}).
+marked revisions (@code{log-view-revert-or-delete-revisions}).
 @end table
 
 @vindex vc-log-show-limit
@@ -1317,8 +1317,14 @@ also prompt for a specific VCS shell command to run for this purpose.
 Revert the work file(s) in the current VC fileset to the last revision
 (@code{vc-revert}).
 
-@item M-x vc-revision-revert
+@item M-x vc-revert-or-delete-revision
 Undo the effects of an older commit.
+
+@item M-x vc-revert-revision
+Make a new commit which undoes the changes made by an older one.
+
+@item M-x vc-delete-revision
+Delete an unpushed commit from the revision history.
 @end table
 
 @kindex C-x v u
@@ -1342,20 +1348,37 @@ unlocked; you must lock again to resume editing.  You can also use
 @kbd{C-x v u} to unlock a file if you lock it and then decide not to
 change it.
 
-@findex vc-revision-revert
+@findex vc-revert-or-delete-revision
 @cindex reverting commits
   To discard changes that have already been committed, by yourself or
-someone else, you can use @w{@kbd{M-x vc-revision-revert}}.  This is
-called @dfn{reverting} a commit.  The command prompts for a revision to
-revert, and then the VC backend reverts it.  Most backends implement
-this by making a new commit which undoes the changes made by the
-revision.
+someone else, you can use @w{@kbd{M-x vc-revert-or-delete-revision}}.
+This is called @dfn{reverting} a commit.  The command prompts for a
+revision to revert, and then the VC backend reverts it.
 
-  An alternative way to access this functionality is to the
-@code{log-view-revision-revert} command, bound to @kbd{R} in Log View
-mode buffers (@pxref{VC Change Log}).  Compared to using @w{@kbd{M-x
-vc-revision revert}} directly, this can make it easier to be sure you
-are reverting the revision you intend.
+  Most backends implement this by making a new commit which undoes the
+changes made by the revision.  For a distributed VCS, if the commit is
+one that you made and have not yet pushed, Emacs will offer to delete it
+entirely, instead.  With a prefix argument, this command will only try
+to entirely delete the revision, failing if it has already been pushed.
+
+  An alternative way to access this functionality is the
+@code{log-view-revert-or-delete-revisions} command, bound to @kbd{R} in
+Log View mode buffers (@pxref{VC Change Log}).  Compared to using
+@w{@kbd{M-x vc-revision revert}} directly, this can make it easier to be
+sure you are reverting the revision you intend.
+
+@findex vc-revert-revision
+@findex vc-delete-revision
+  More specific, specialized commands are @w{@kbd{M-x
+vc-revert-revision}} and @w{@kbd{M-x vc-delete-revision}}.  The first of
+these prompts for a revision and then always makes a new commit which
+undoes the changes made by that revision, regardless of the VCS in use
+and whether or not the revision is pushed.  The second command prompts
+for a revision and then always deletes it, though it will stop if the
+commit has been pushed.  Usually @code{vc-revert-or-delete-revision} is
+sufficient, but @code{vc-revert-revision} and @code{vc-delete-revision}
+can sometimes be useful for constructing particular version control
+histories.
 
 @node VC Ignore
 @subsection Ignore Version Control Files
@@ -1889,7 +1912,7 @@ different revision with @kbd{C-u C-x v v}.
 @subsubsection Copying Changes Made By Revisions Between Branches
 
 @table @kbd
-@item M-x vc-revision-cherry-pick
+@item M-x vc-cherry-pick
 Copy a single revision to branch checked out in this working tree.
 @end table
 
@@ -1910,25 +1933,25 @@ can then cherry-pick that revision onto the feature-frozen branch in
 order to fix the bug there, too.  This is called @dfn{backporting} the
 revision, or backporting the fix.
 
-@findex vc-revision-cherry-pick
-  You can use the command @kbd{M-x vc-revision-cherry-pick} to
-cherry-pick revisions.  It prompts for a revision to cherry-pick.  It
-then pops up a buffer for you to edit the log message for the new
-revision.  Normally the VC backend generates a log message including a
-reference to the revision you want to copy, so that the copy can be
-traced.  If you wish, you can delete this reference before typing
-@kbd{C-c C-c} to conclude the cherry-pick.
+@findex vc-cherry-pick
+  You can use the command @kbd{M-x vc-cherry-pick} to cherry-pick
+revisions.  It prompts for a revision to cherry-pick.  It then pops up a
+buffer for you to edit the log message for the new revision.  Normally
+the VC backend generates a log message including a reference to the
+revision you want to copy, so that the copy can be traced.  If you wish,
+you can delete this reference before typing @kbd{C-c C-c} to conclude
+the cherry-pick.
 
   Alternatively you can invoke the command with a prefix argument,
-i.e. @w{@kbd{C-u M-x vc-revision-cherry-pick}}.  In this case the log
-message from the source revision is used unmodified, and the cherry-pick
-happens immediately, without popping up a buffer for log message edits.
+i.e. @w{@kbd{C-u M-x vc-cherry-pick}}.  In this case the log message
+from the source revision is used unmodified, and the cherry-pick happens
+immediately, without popping up a buffer for log message edits.
 
   An alternative way to access this functionality is the
-@code{log-view-revision-cherry-pick} command, bound to @kbd{C} in Log
-View mode buffers (@pxref{VC Change Log}).  Compared to using
-@w{@kbd{M-x vc-revision-cherry-pick}} directly, this can make it easier
-to be sure you are cherry-picking the revision you intend.
+@code{log-view-cherry-pick} command, bound to @kbd{C} in Log View mode
+buffers (@pxref{VC Change Log}).  Compared to using @w{@kbd{M-x
+vc-cherry-pick}} directly, this can make it easier to be sure you are
+cherry-picking the revision you intend.
 
 @ifnottex
 @include vc1-xtra.texi
