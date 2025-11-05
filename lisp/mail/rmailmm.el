@@ -842,9 +842,8 @@ directly."
      ((string-match "text/" content-type)
       (setq type 'text))
      ((string-match "image/\\(.*\\)" content-type)
-      (setq type (and (fboundp 'image-supported-file-p)
-                      (image-supported-file-p
-		       (concat "." (match-string 1 content-type)))))
+      (setq type (image-supported-file-p
+		  (concat "." (match-string 1 content-type))))
       (when (and type
                  rmail-mime-show-images
 	         (not (eq rmail-mime-show-images 'button))
