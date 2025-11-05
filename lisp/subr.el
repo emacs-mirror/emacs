@@ -2756,7 +2756,34 @@ Affects only hooks run in the current buffer."
      (let ((delay-mode-hooks t))
        ,@body)))
 
-;;; `when-let' and friends.
+;;; `if-let*' and friends.
+;;;
+;;; We considered adding a `cond-let*' in late 2025:
+;;; <https://lists.gnu.org/archive/html/emacs-devel/2025-09/msg00058.html>.
+;;; We decided to add the `bind-and*' clause type to `cond*' instead.
+;;; At first it seems simple to extend `if-let*'/`when-let*'/`and-let*'
+;;; to `cond', but the extension is not unambiguous: there are multiple
+;;; useful, incompatible ways to do it.
+;;; In particular, it quickly becomes clear that one wants clauses that
+;;; only establish bindings for proceeding clauses, instead of exiting
+;;; the `cond-let*'.  But then
+;;; - Should these bindings be just like in `let*', or like in
+;;;   `if-let*'?  In other words, should it be that if a binding
+;;;   evaluates to nil we skip the remaining bindings (bind them all to
+;;;   nil)?  Both ways of doing it seem useful.
+;;; - The parentheses quickly pile up.  How can we avoid the programmer
+;;;   having to count parentheses?  Some propose using square brackets
+;;;   (i.e., vectors) for the binding-only clauses, but Emacs Lisp is a
+;;;   traditional Lisp which uses exclusively parentheses for control
+;;;   constructs.  Therefore, introducing square brackets here would be
+;;;   jarring to read.  Another option would be to use symbols at the
+;;;   beginning of clauses, like `cond*' does.
+;;; Whichever way one goes, the resulting macro ends up complicated,
+;;; with a substantial learning burden.  Adding `bind-and*' clauses to
+;;; `cond*' gives us the desired functionality, and does not make
+;;; `cond*' much more complicated.  In other words, `cond*' is already
+;;; complicated, and one complicated `cond'-extending macro is better
+;;; than two.  --spwhitton
 
 (defun internal--build-binding (binding prev-var)
   "Check and build a single BINDING with PREV-VAR."
@@ -2803,7 +2830,7 @@ binding of SYMBOL is checked for nil, only.
 
 An older form for entries of VARLIST is also supported, where SYMBOL is
 omitted, i.e. (VALUEFORM).  This means the same as (_ VALUEFORM).
-This form is not recommended because many programmers find it
+This form is not recommended because many Lisp programmers find it
 significantly less readable.  A future release of Emacs may introduce a
 byte-compiler warning for uses of (VALUEFORM) in VARLIST."
   (declare (indent 2)

@@ -3870,8 +3870,7 @@ assignment (i.e. `setq')."
       (byte-compile-dynamic-variable-op 'byte-varset var))))
 
 (defmacro byte-compile-get-constant (const)
-  `(or (assoc ,const byte-compile-constants
-              (if (stringp ,const) #'equal-including-properties #'eql))
+  `(or (assoc ,const byte-compile-constants #'equal-including-properties)
        (car (setq byte-compile-constants
 		  (cons (list ,const) byte-compile-constants)))))
 
