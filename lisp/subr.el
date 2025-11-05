@@ -2830,7 +2830,7 @@ binding of SYMBOL is checked for nil, only.
 
 An older form for entries of VARLIST is also supported, where SYMBOL is
 omitted, i.e. (VALUEFORM).  This means the same as (_ VALUEFORM).
-This form is not recommended because many programmers find it
+This form is not recommended because many Lisp programmers find it
 significantly less readable.  A future release of Emacs may introduce a
 byte-compiler warning for uses of (VALUEFORM) in VARLIST."
   (declare (indent 2)
