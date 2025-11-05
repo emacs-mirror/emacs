@@ -396,14 +396,3 @@ extern int emacs_setenv_TZ (char const *);
     : S_ISCHR (mode) ? DT_CHR : S_ISFIFO (mode) ? DT_FIFO \
     : S_ISSOCK (mode) ? DT_SOCK : DT_UNKNOWN)
 #endif /* MSDOS */
-
-#if defined __ANDROID__ && __ANDROID_API__ >= 35
-#define _GL_TIME_H
-#include <time.h>
-#undef _GL_TIME_H
-
-/* Redefine tzalloc so as not to conflict with its
-   system-provided version, which is incompatible.
-   Do not redefine tzfree, as Gnulib does that.  */
-#define tzalloc rpl_tzalloc
-#endif /* defined __ANDROID__ && __ANDROID_API__ >= 35 */
