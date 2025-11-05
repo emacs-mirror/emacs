@@ -5686,7 +5686,7 @@ the rest of the FUNCS.  */);
 	       doc: /* Alist mapping loaded file names to symbols and features.
 Each alist element should be a list (FILE-NAME ENTRIES...), where
 FILE-NAME is the name of a file that has been loaded into Emacs.
-The file name is absolute and true (i.e. it doesn't contain symlinks).
+The file name is absolute.
 As an exception, one of the alist elements may have FILE-NAME nil,
 for symbols and features not associated with any file.
 
