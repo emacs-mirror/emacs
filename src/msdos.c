@@ -3996,12 +3996,12 @@ careadlinkat (int fd, char const *filename,
     }
   else
     {
-      ssize_t len = preadlinkat (fd, filename, buffer, buffer_size);
+      ssize_t len = (*preadlinkat) (fd, filename, buffer, buffer_size);
 
       if (len < 0 || len == buffer_size)
 	buffer = NULL;
       else
-	buffer[len + 1] = '\0';
+	buffer[len] = '\0';
     }
   return buffer;
 }

@@ -449,7 +449,7 @@ command (@pxref{Eglot Commands}).
 On-the-fly succinct informative annotations, so-called @dfn{inlay
 hints}.  Eglot adds special intangible text nearby certain identifiers,
 be it the type of a variable, or the name of a formal parameter in a
-function call.  @xref{Eglot Commands} and the
+function call.  @xref{Eglot Commands}, and the
 @code{eglot-inlay-hints-mode} minor mode.
 
 @item
