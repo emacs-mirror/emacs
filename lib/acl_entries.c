@@ -44,7 +44,7 @@ acl_entries (acl_t acl)
            got_one >= 0;
            got_one = acl_get_entry (acl, ACL_NEXT_ENTRY, &ace))
         count++;
-#else /* Linux, FreeBSD, NetBSD >= 10, Cygwin >= 2.5 */
+#elif !defined __MINGW32__ /* Linux, FreeBSD, NetBSD >= 10, Cygwin >= 2.5 */
       /* acl_get_entry returns 1 when it successfully fetches an entry,
          and 0 at the end.  */
       acl_entry_t ace;
