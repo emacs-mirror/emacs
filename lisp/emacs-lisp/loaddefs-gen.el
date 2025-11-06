@@ -594,17 +594,17 @@ If COMPILE, don't include a \"don't compile\" cookie."
 
 ;;;###autoload
 (defun loaddefs-generate (dirs output-file &optional excluded-files
-                              extra-data include-package-version
-                              generate-full)
-  "Generate loaddefs files for Lisp files in one or more directories given by DIR.
-DIR can be either a single directory or a list of directories.
+                               extra-data include-package-version
+                               generate-full)
+  "Generate loaddefs files for Lisp files in directories given by DIRS.
+DIRS can be either a single directory or a list of directories.
 
 The autoloads will be written to OUTPUT-FILE.  If any Lisp file
 binds `generated-autoload-file' as a file-local variable, write
 its autoloads into the specified file instead.
 
-The function does NOT recursively descend into subdirectories of the
-directories specified by DIR.
+This function does NOT recursively descend into subdirectories of the
+directories specified by DIRS.
 
 Optional argument EXCLUDED-FILES, if non-nil, should be a list of
 files, such as preloaded files, whose autoloads should not be written
@@ -636,9 +636,9 @@ instead of just updating them with the new/changed autoloads."
          (updating (and (file-exists-p output-file) (not generate-full)))
          (defs nil))
     ;; Allow the excluded files to be relative.
-    ;; We used to do (expand-file-name file dir), which strangely enough
-    ;; doesn't signal an error when DIR is a list but does something weird
-    ;; instead, so let's preserve the old behavior when DIR is a string,
+    ;; We used to do (expand-file-name file dirs), which strangely enough
+    ;; doesn't signal an error when DIRS is a list but does something weird
+    ;; instead, so let's preserve the old behavior when DIRS is a string,
     ;; even tho it's different from what we do when it's a list.
     (let ((basedir (if (stringp dirs) dirs)))
       (setq excluded-files
