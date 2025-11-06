@@ -6258,8 +6258,8 @@ pdumper_load (const char *dump_filename, char *argv0)
     dump_late_hooks[i] ();
 
 #ifdef HAVE_MPS
-  dump_public.start = (uintptr_t)cold_user_data_start;
-  dump_public.end = (uintptr_t)heap_end;
+  /* From now on, pdumper_object_p returns false.  */
+  dump_public.end = dump_public.start;
 #endif
 
   initialized = true;
