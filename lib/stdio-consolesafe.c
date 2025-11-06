@@ -75,6 +75,56 @@ gl_consolesafe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *fp)
 
 # include "fseterr.h"
 
+# if !HAVE_VASPRINTF
+
+#  include <errno.h>
+#  include <stdarg.h>
+
+/* The old mingw (before mingw-w64) does not have the vasprintf function.
+   Define a suitable replacement here, that supports the same format
+   specifiers as the mingw *printf functions.  */
+
+static int
+vasprintf (char **resultp, const char *format, va_list args)
+{
+  /* First try: Use a stack-allocated buffer.  */
+  char buf[2048];
+  size_t bufsize = sizeof (buf);
+  int ret = __mingw_vsnprintf (buf, bufsize, format, args);
+  if (ret < 0)
+    return -1;
+  size_t nbytes = ret;
+  char *mem = (char *) malloc (nbytes + 1);
+  if (mem == NULL)
+    {
+      errno = ENOMEM;
+      return -1;
+    }
+  if (ret < bufsize)
+    {
+      /* The buffer was sufficiently large.  */
+      memcpy (mem, buf, nbytes + 1);
+    }
+  else
+    {
+      /* Second try: Use the heap-allocated memory.  */
+      ret = __mingw_vsnprintf (mem, nbytes + 1, format, args);
+      if (ret < 0)
+        {
+          int saved_errno = errno;
+          free (mem);
+          errno = saved_errno;
+          return -1;
+        }
+      if (ret != nbytes)
+        abort ();
+    }
+  *resultp = mem;
+  return nbytes;
+}
+
+# endif
+
 /* Bypass the functions __mingw_[v][f]printf, that trigger a bug in msvcrt,
    but without losing the support for modern format specifiers added by
    __mingw_*printf.  */
