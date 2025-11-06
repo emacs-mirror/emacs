@@ -1378,17 +1378,18 @@ Argument E should be the event that triggered this action."
 (defun hs-indicator-mouse-toggle-hidding (event)
   "Toggle block hidding with indicators."
   (interactive "e")
-  (when hs-show-indicators
-    (let* ((overlays (save-excursion
-                       (goto-char (posn-point (event-end event)))
-                       (overlays-in (pos-bol) (pos-eol))))
-           (pos (catch 'hs--indicator-ov
-                  (dolist (ov overlays)
-                    (when-let* ((ov (overlay-get ov 'hs-indicator-block-start)))
-                      (throw 'hs--indicator-ov ov))))))
-      (when pos
-        (goto-char pos)
-        (hs-toggle-hiding)))))
+  (hs-life-goes-on
+   (when hs-show-indicators
+     (let* ((overlays (save-excursion
+                        (goto-char (posn-point (event-end event)))
+                        (overlays-in (pos-bol) (pos-eol))))
+            (pos (catch 'hs--indicator-ov
+                   (dolist (ov overlays)
+                     (when-let* ((ov (overlay-get ov 'hs-indicator-block-start)))
+                       (throw 'hs--indicator-ov ov))))))
+       (when pos
+         (goto-char pos)
+         (hs-toggle-hiding))))))
 
 (defun hs-hide-initial-comment-block ()
   "Hide the first block of comments in a file.
