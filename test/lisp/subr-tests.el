@@ -762,6 +762,28 @@ cf. Bug#25477."
     (should-error (eval '(dolist "foo") lb)
                   :type 'wrong-type-argument)))
 
+(ert-deftest subr-tests--dolist--every-element-is-handled ()
+  "Test that `dolist' processes each element of a list in order."
+  (let ((expected-elements '(1 2 3 4)))
+    (dolist (x '(1 2 3 4))
+      (should (equal x (pop expected-elements))))))
+
+(ert-deftest subr-tests--dolist--returns-spec-result ()
+  "Test that `dolist' returns result specified in SPEC."
+  (let ((dolist-result (dolist (x '(1 2 3 4) t)
+                         x))
+        (dolist-no-result (dolist (x '(1 2 3 4))
+                            x)))
+    (should (equal dolist-result t))
+    (should (equal dolist-no-result nil))))
+
+(ert-deftest subr-tests--dolist--does-not-shadow-tail-binding ()
+  "Test that `dolist` does not shadow bindings named `tail'"
+  (let ((tail 0))
+    (dolist (x '(1 2 3 4))
+      (setq tail (+ tail x)))
+    (should (equal tail 10))))
+
 (ert-deftest subr-tests-bug22027 ()
   "Test for https://debbugs.gnu.org/22027 ."
   (let ((default "foo") res)
