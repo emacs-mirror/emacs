@@ -22,7 +22,7 @@
 
 #include <errno.h>
 #include <limits.h>
-#if HAVE_MNTENT_H
+#if HAVE_SETMNTENT
 # include <mntent.h>
 #endif
 #include <stdlib.h>
@@ -385,7 +385,7 @@ cgroup2_mount (void)
   if (access ("/sys/fs/cgroup/cgroup.controllers", F_OK) == 0)
     return strdup ("/sys/fs/cgroup");
 
-#if HAVE_MNTENT_H
+#if HAVE_SETMNTENT
   /* Otherwise look for the mount point.  */
   struct mntent *mnt;
   if (! (fp = setmntent ("/proc/mounts", "r")))

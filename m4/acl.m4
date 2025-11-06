@@ -1,5 +1,5 @@
 # acl.m4
-# serial 39
+# serial 40
 dnl Copyright (C) 2002, 2004-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -28,6 +28,7 @@ AC_DEFUN_ONCE([gl_FUNC_ACL],
   AC_CHECK_FUNCS_ONCE([fchmod])
   LIB_ACL=
   use_acl=0
+  NEED_ACL_ENTRIES=0
   if test "$enable_acl" != no; then
     dnl On all platforms, the ACL related API is declared in <sys/acl.h>.
     AC_CHECK_HEADERS([sys/acl.h])
@@ -55,7 +56,10 @@ AC_DEFUN_ONCE([gl_FUNC_ACL],
            if test $use_acl = 1; then
              dnl On GNU/Linux, an additional API is declared in <acl/libacl.h>.
              AC_CHECK_HEADERS([acl/libacl.h])
-             AC_REPLACE_FUNCS([acl_entries])
+             AC_CHECK_FUNC([acl_entries],
+               [AC_DEFINE([HAVE_ACL_ENTRIES], [1],
+                  [Define to 1 if libc or libacl defines the function acl_entries.])],
+               [NEED_ACL_ENTRIES=1])
              AC_CACHE_CHECK([for ACL_FIRST_ENTRY],
                [gl_cv_acl_ACL_FIRST_ENTRY],
                [AC_COMPILE_IFELSE([AC_LANG_PROGRAM(

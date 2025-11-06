@@ -166,7 +166,9 @@
 #  stdckdint-h \
 #  stddef-h \
 #  stdio-h \
+#  stdio-windows \
 #  stpcpy \
+#  stringeq \
 #  strnlen \
 #  strtoimax \
 #  symlink \
@@ -295,6 +297,7 @@ GIF_CFLAGS = @GIF_CFLAGS@
 GL_CFLAG_ALLOW_WARNINGS = @GL_CFLAG_ALLOW_WARNINGS@
 GL_CFLAG_GNULIB_WARNINGS = @GL_CFLAG_GNULIB_WARNINGS@
 GL_COND_LIBTOOL_CONDITION = @GL_COND_LIBTOOL_CONDITION@
+GL_COND_OBJ_ACL_ENTRIES_CONDITION = @GL_COND_OBJ_ACL_ENTRIES_CONDITION@
 GL_COND_OBJ_CANONICALIZE_LGPL_CONDITION = @GL_COND_OBJ_CANONICALIZE_LGPL_CONDITION@
 GL_COND_OBJ_COPY_FILE_RANGE_CONDITION = @GL_COND_OBJ_COPY_FILE_RANGE_CONDITION@
 GL_COND_OBJ_DIRFD_CONDITION = @GL_COND_OBJ_DIRFD_CONDITION@
@@ -1588,10 +1591,11 @@ endif
 ifeq (,$(OMIT_GNULIB_MODULE_acl-permissions))
 
 libgnu_a_SOURCES += acl-errno-valid.c acl-internal.c    get-permissions.c set-permissions.c
+ifneq (,$(GL_COND_OBJ_ACL_ENTRIES_CONDITION))
+libgnu_a_SOURCES += acl_entries.c
+endif
 
-EXTRA_DIST += acl-internal.h acl.h acl_entries.c
-
-EXTRA_libgnu_a_SOURCES += acl_entries.c
+EXTRA_DIST += acl-internal.h acl.h
 
 endif
 ## end   gnulib module acl-permissions
@@ -3502,9 +3506,6 @@ stdio.h: stdio.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) 
 	$(AM_V_at)mv $@-t3 $@
 MOSTLYCLEANFILES += stdio.h stdio.h-t1 stdio.h-t2 stdio.h-t3
 
-ifneq (,$(GL_COND_OBJ_STDIO_CONSOLESAFE_CONDITION))
-libgnu_a_SOURCES += stdio-consolesafe.c
-endif
 ifneq (,$(GL_COND_OBJ_STDIO_READ_CONDITION))
 libgnu_a_SOURCES += stdio-read.c
 endif
@@ -3516,6 +3517,16 @@ EXTRA_DIST += stdio.in.h
 
 endif
 ## end   gnulib module stdio-h
+
+## begin gnulib module stdio-windows
+ifeq (,$(OMIT_GNULIB_MODULE_stdio-windows))
+
+ifneq (,$(GL_COND_OBJ_STDIO_CONSOLESAFE_CONDITION))
+libgnu_a_SOURCES += stdio-consolesafe.c
+endif
+
+endif
+## end   gnulib module stdio-windows
 
 ## begin gnulib module stdlib-h
 ifeq (,$(OMIT_GNULIB_MODULE_stdlib-h))
