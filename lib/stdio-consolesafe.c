@@ -74,11 +74,11 @@ gl_consolesafe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *fp)
 #if defined __MINGW32__ && __USE_MINGW_ANSI_STDIO
 
 # include "fseterr.h"
+# include <stdarg.h>
 
 # if !HAVE_VASPRINTF
 
 #  include <errno.h>
-#  include <stdarg.h>
 
 /* The old mingw (before mingw-w64) does not have the vasprintf function.
    Define a suitable replacement here, that supports the same format
