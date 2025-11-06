@@ -871,9 +871,7 @@ DIFF-FUNCTION is `log-edit-diff-function' for the Log Edit buffer."
       (when (stringp comment) (insert comment)))
     (if (or (not comment) initial-contents)
         (message (substitute-command-keys
-                  (if (eq major-mode 'log-edit-mode)
-                      "%s  Type \\[log-edit-done] when done"
-                    "%s  Type \\`C-c C-c' when done"))
+                  "%s  Type \\<log-edit-mode-map>\\[log-edit-done] when done")
                  msg)
       (vc-finish-logentry (eq comment t)))))
 
