@@ -1287,7 +1287,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame, 1, 1, 0,
 
   f->output_method = output_pgtk;
 #ifdef HAVE_MPS
-  FRAME_X_OUTPUT (f) = igc_xzalloc_ambig (sizeof *FRAME_X_OUTPUT (f));
+  FRAME_X_OUTPUT (f)
+    = igc_xzalloc_ambig_with_label (sizeof *FRAME_X_OUTPUT (f),
+				    "pgtk_output");
 #else
   FRAME_X_OUTPUT (f) = xzalloc (sizeof *FRAME_X_OUTPUT (f));
 #endif

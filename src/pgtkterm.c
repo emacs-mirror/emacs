@@ -185,7 +185,8 @@ pgtk_enumerate_devices (struct pgtk_display_info *dpyinfo,
       for (t1 = devices_on_seat; t1; t1 = t1->next)
 	{
 #ifdef HAVE_MPS
-	  rec = igc_xzalloc_ambig (sizeof *rec);
+	  rec = igc_xzalloc_ambig_with_label (sizeof *rec,
+					      "pgtk_device_t");
 #else
 	  rec = xmalloc (sizeof *rec);
 #endif
@@ -306,7 +307,9 @@ evq_enqueue (union buffered_input_event *ev)
     {
       evq->cap = 4;
 #ifdef HAVE_MPS
-      evq->q = igc_xzalloc_ambig (sizeof *evq->q * evq->cap);
+      evq->q
+	= igc_xzalloc_ambig_with_label (sizeof *evq->q * evq->cap,
+					"buffered_input_event");
 #else
       evq->q = xmalloc (sizeof *evq->q * evq->cap);
 #endif
@@ -7168,7 +7171,8 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
 #ifdef HAVE_MPS
   // FIXME/igc: use exact references
-  dpyinfo = igc_xzalloc_ambig (sizeof *dpyinfo);
+  dpyinfo = igc_xzalloc_ambig_with_label (sizeof *dpyinfo,
+					  "pgtk_display_info");
 #else
   dpyinfo = xzalloc (sizeof *dpyinfo);
 #endif
