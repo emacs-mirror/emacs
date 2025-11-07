@@ -3168,6 +3168,16 @@ and blocks Emacs, or does not provide ways to limit how often it runs.
 
 * Incompatible Lisp Changes in Emacs 31.1
 
+** Files loaded from '-x' and '--script' now use lexical binding.
+If you don't have time to adapt your script's code to the lexical
+binding dialect (see (info "(elisp)Converting to Lexical Binding")),
+you can wrap your code in:
+
+    #!/usr/bin/env -S emacs --batch --script
+    (eval
+     '(progn
+        YOUR CODE HERE))
+
 +++
 ** String mutation has been restricted further.
 'aset' on unibyte strings now requires the new character to be a single
