@@ -2558,6 +2558,7 @@ Manual}.
 * Find Init::           How Emacs finds the init file.
 * Init Non-ASCII::      Using non-@acronym{ASCII} characters in an init file.
 * Early Init File::     Another init file, which is read early on.
+* User Lisp Directory:: Directory of Lisp files to prepare on startup.
 @end menu
 
 @node Init Syntax
@@ -3087,6 +3088,59 @@ provided by the Emacs startup, such as @code{window-setup-hook} or
 
   For more information on the early init file, @pxref{Init File,,,
 elisp, The Emacs Lisp Reference Manual}.
+
+@node User Lisp Directory
+@subsection User Lisp Directory
+@cindex user-lisp
+@cindex @file{user-lisp/} directory
+
+@vindex user-lisp-directory
+  If the directory specified by @code{user-lisp-directory}, defaulting
+to @file{~/.config/emacs/user-lisp/} or @file{~/.emacs.d/user-lisp/},
+exists, then at startup Emacs will prepare Lisp files within that
+directory for use in the session.  Emacs does the following things:
+@itemize
+@item
+Gather and activate autoload cookies.  This means that you can use
+autoloaded commands and other entry points for the files in your
+@code{user-lisp-directory} without explicitly loading any of the
+files in your initialization file. (@pxref{Autoload,,, elisp, The
+Emacs Lisp Reference Manual})
+@item
+Bytecompile all files, and if supported on your system, natively
+compile them too.  This speeds up the execution of the code in the
+files when they are loaded.  (@pxref{Byte Compilation,,, elisp, The Emacs
+Lisp Reference Manual}, )
+@item
+Adjust @code{load-path} such that all the files can be loaded and
+autoloaded in the usual ways.  (@pxref{Library Search,,, elisp, The
+Emacs Lisp Reference Manual})
+@end itemize
+
+  Keep in mind that as the User Lisp directory is processed at startup,
+before loading the @ref{Init File} file, adjustment have to be made in
+your early-init file (@pxref{Early Init File}).
+
+@vindex user-lisp-ignored-directories
+@vindex user-lisp-auto-scrape
+@findex prepare-user-lisp
+  By default, Emacs considers all Lisp files within
+@code{user-lisp-directory}, even in subdirectories.  You prevent Emacs
+from descending into specific subdirectories by customizing
+@code{user-lisp-ignored-directories}.  You can disable scraping at
+startup by setting @code{user-lisp-auto-scrape} to @code{nil}.  All
+preparations automatically occur at startup if necessary, but can be
+manually invoked during a session using the @code{prepare-user-lisp}
+command.  It is recommended to run the command with a prefix argument
+after upgrading Emacs, to force all generated files to be updated.
+
+  The User Lisp directory is a simpler mechanism than package
+installations (@pxref{Packages}).  In particular, there is no automatic
+dependency resolution or upgrading for files in the User Lisp directory,
+or any facility for building and registering package documentation.
+This means that usually the User Lisp directory is best for code you
+have written only for yourself.  However, it is possible to use the User
+Lisp directory for third party packages or packages you maintain.
 
 @node Authentication
 @section Keeping Persistent Authentication Information

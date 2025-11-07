@@ -68,6 +68,17 @@ user's regular init file, but now site-start.el comes first.  This
 allows site administrators to customize things that can normally only be
 done from early-init.el, such as adding to 'package-directory-list'.
 
++++
+** Emacs prepares a User Lisp directory by default.
+If you have a directory named "user-lisp" in your Emacs configuration
+directory, then the recursive contents will now be byte-compiled,
+scraped for autoload cookies and ensured to be in 'load-path' by
+default.  You can disable the feature by setting 'user-lisp-auto-scrape'
+to nil, or set the 'user-lisp-directory' user option to process any
+other directory on your system.  You can also invoke the
+'prepare-user-lisp' command manually at any time.  See the Info node
+"(emacs) User Lisp Directory" for more details.
+
 
 * Changes in Emacs 31.1
 
