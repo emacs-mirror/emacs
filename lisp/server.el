@@ -1268,7 +1268,7 @@ The following commands are accepted by the client:
 	    ;; Remove this line from STRING.
 	    (setq string (substring string (match-end 0)))
 	    (cl-assert (equal (substring request -1) " ")
-		       nil "emacsclient request did not end in SPC")
+		       nil "emacsclient request did not end in SPC: %S" request)
 	    (setq args-left (mapcar #'server-unquote-arg
 				    (nbutlast (split-string request " "))))
 	    (while args-left
@@ -2091,7 +2091,7 @@ something that cannot be printed readably."
       (process-send-string process
 			   (concat "-eval "
 				   (server-quote-arg (format "%S" form))
-				   "\n"))
+				   " \n"))
       (while (memq (process-status process) '(open run))
 	(accept-process-output process 0.01))
       (goto-char (point-min))
