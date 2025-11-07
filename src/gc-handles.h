@@ -27,8 +27,11 @@ typedef struct gc_handle_struct *gc_handle;
 
 gc_handle gc_handle_for (Lisp_Object);
 gc_handle gc_handle_for_pvec (struct vectorlike_header *);
+gc_handle gc_handle_for_gc_handle (gc_handle src);
 void free_gc_handle (gc_handle);
 Lisp_Object gc_handle_value (gc_handle);
+
+void gc_handle_assign (gc_handle *dst, gc_handle src);
 
 void syms_of_gc_handles (void);
 

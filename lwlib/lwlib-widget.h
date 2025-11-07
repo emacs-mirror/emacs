@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define LWLIB_WIDGET_H
 
 #include "../src/lisp.h"
+#include "../src/gc-handles.h"
 
 typedef enum
 {
@@ -53,10 +54,8 @@ typedef struct _widget_value
   Lisp_Object lkey;
   char *key;
 
-  /* Help string or nil if none.
-     GC finds this string through the frame's menu_bar_vector
-     or through menu_items.  */
-  Lisp_Object help;
+  /* Help string or nil if none.  */
+  gc_handle help;
 
   /* True if enabled.  */
   bool enabled;

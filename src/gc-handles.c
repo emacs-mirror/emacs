@@ -154,6 +154,19 @@ gc_handle_for_pvec (struct vectorlike_header *h)
   return gc_handle_for (obj);
 }
 
+gc_handle
+gc_handle_for_gc_handle (gc_handle gch)
+{
+  return gc_handle_for (gc_handle_value (gch));
+}
+
+void
+gc_handle_assign (gc_handle *dst, gc_handle src)
+{
+  free_gc_handle (*dst);
+  *dst = gc_handle_for_gc_handle (src);
+}
+
 DEFUN ("gc-handles-info", Fgc_handles_info, Sgc_handles_info, 0, 0, 0,
        doc: /* Return information about registered GC handles.
 Return value is an list with the following entries:

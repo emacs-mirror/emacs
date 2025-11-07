@@ -3256,8 +3256,11 @@ make_menu_item (const char *utf8_label,
   if (! item->enabled) gtk_widget_set_sensitive (w, FALSE);
 
 #ifdef HAVE_PGTK
-  if (!NILP (item->help))
-    gtk_widget_set_tooltip_text (w, SSDATA (item->help));
+  {
+    Lisp_Object help = gc_handle_value (item->help);
+    if (!NILP (help))
+      gtk_widget_set_tooltip_text (w, SSDATA (help));
+  }
 #endif
 
   return w;
@@ -3305,7 +3308,7 @@ xg_create_one_menuitem (widget_value *item,
 #endif
 
   cb_data->select_id = 0;
-  cb_data->help = gc_handle_for (item->help);
+  cb_data->help = gc_handle_for_gc_handle (item->help);
   cb_data->cl_data = cl_data;
   cb_data->call_data = item->call_data;
 
@@ -3891,8 +3894,7 @@ xg_update_menu_item (widget_value *val,
   if (cb_data)
     {
       cb_data->call_data = val->call_data;
-      free_gc_handle (cb_data->help);
-      cb_data->help = gc_handle_for (val->help);
+      gc_handle_assign (&cb_data->help, val->help);
       cb_data->cl_data = cl_data;
 
       /* We assume the callback functions don't change.  */
