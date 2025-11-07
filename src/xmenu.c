@@ -1661,16 +1661,16 @@ prepare_for_entry_into_toolkit_menu (struct frame *f)
 }
 
 static void
-leave_toolkit_menu (void *data)
+leave_toolkit_menu (Lisp_Object frame)
 {
   XIEventMask mask;
   ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
   unsigned char *m;
-  Lisp_Object tail, frame;
+  Lisp_Object tail;
   struct x_display_info *dpyinfo;
   struct frame *f;
 
-  dpyinfo = FRAME_DISPLAY_INFO ((struct frame *) data);
+  dpyinfo = FRAME_DISPLAY_INFO (XFRAME (frame));
 
   if (!dpyinfo->supports_xi2)
     return;
@@ -1876,7 +1876,8 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
     record_unwind_protect_int (pop_down_menu, (int) menu_id);
 #ifdef HAVE_XINPUT2
-    record_unwind_protect_ptr (leave_toolkit_menu, f);
+    record_unwind_protect (leave_toolkit_menu,
+			   make_lisp_ptr (f, Lisp_Vectorlike));
 #endif
 
     /* Process events that apply to the menu.  */
