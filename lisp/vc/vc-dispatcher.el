@@ -834,6 +834,8 @@ NOT-ESSENTIAL means it is okay to continue if the user says not to save."
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
+(defvar log-edit-hook)
+
 (defun vc-start-logentry (files comment initial-contents msg logbuf mode action &optional after-hook backend patch-string diff-function)
   "Accept a comment for an operation on FILES.
 If COMMENT is nil, pop up a LOGBUF buffer, emit MSG, and set the
@@ -852,7 +854,8 @@ DIFF-FUNCTION is `log-edit-diff-function' for the Log Edit buffer."
   (let ((parent (or (and (length= files 1)
                          (not (vc-dispatcher-browsing))
                          (get-file-buffer (car files)))
-                    (current-buffer))))
+                    (current-buffer)))
+        (immediate (and comment (not initial-contents))))
     (if (and comment (not initial-contents))
 	(set-buffer (get-buffer-create logbuf))
       (pop-to-buffer (get-buffer-create logbuf)))
@@ -861,7 +864,12 @@ DIFF-FUNCTION is `log-edit-diff-function' for the Log Edit buffer."
                 (concat " from " (buffer-name vc-parent-buffer)))
     (when patch-string
       (setq-local vc-patch-string patch-string))
-    (vc-log-edit files mode backend diff-function)
+    (let (;; `log-edit-hook' is usually for things like
+          ;; `log-edit-show-files' and `log-edit-maybe-show-diff' which
+          ;; don't make sense if the user is not going to do any
+          ;; editing, and can cause unexpected window layout changes.
+          (log-edit-hook (and (not immediate) log-edit-hook)))
+      (vc-log-edit files mode backend diff-function))
     (make-local-variable 'vc-log-after-operation-hook)
     (when after-hook
       (setq vc-log-after-operation-hook after-hook))
@@ -869,11 +877,11 @@ DIFF-FUNCTION is `log-edit-diff-function' for the Log Edit buffer."
     (when comment
       (erase-buffer)
       (when (stringp comment) (insert comment)))
-    (if (or (not comment) initial-contents)
-        (message (substitute-command-keys
+    (if immediate
+        (vc-finish-logentry (eq comment t))
+      (message (substitute-command-keys
                   "%s  Type \\<log-edit-mode-map>\\[log-edit-done] when done")
-                 msg)
-      (vc-finish-logentry (eq comment t)))))
+                 msg))))
 
 (defvar log-edit-vc-backend)
 (declare-function vc-buffer-sync-fileset "vc")
