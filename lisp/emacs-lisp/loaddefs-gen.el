@@ -663,11 +663,12 @@ instead of just updating them with the new/changed autoloads."
           ;; If we're scanning for package versions, we want to look
           ;; at the file even if it's excluded.
           (let* ((excluded
-                  ;; FIXME: In out-of-tree builds (bug#79694) `excluded.files'
+                  ;; FIXME: In out-of-tree builds (bug#79694) `excluded-files'
                   ;; (derived via `lisp-directory' from `invocation-directory')
                   ;; may end up using names which don't quite match those of
-                  ;; `file' (derived from the command line arguments), w.r.t
-                  ;; "c:" vs "C:", so use a test more lax than `member'.
+                  ;; `file' (derived from the command line arguments), w.r.t.
+                  ;; "c:/" vs "C:/" on MS-Windows, so use a test more lax
+                  ;; than `member'.
                   (let ((x (member-ignore-case file excluded-files)))
                     (and x (file-equal-p file (car x)))))
                  (package-data
