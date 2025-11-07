@@ -102,6 +102,7 @@ free_widget_value_tree (widget_value *wv)
   xfree (wv->name);
   xfree (wv->value);
   xfree (wv->key);
+  free_gc_handle (wv->help);
 
   wv->name = wv->value = wv->key = (char *) 0xDEADBEEF;
 
@@ -139,7 +140,7 @@ copy_widget_value_tree (widget_value *val, change_type change)
   copy->name = xstrdup (val->name);
   copy->value = val->value ? xstrdup (val->value) : NULL;
   copy->key = val->key ? xstrdup (val->key) : NULL;
-  copy->help = val->help;
+  copy->help = gc_handle_for_gc_handle (val->help);
   copy->enabled = val->enabled;
   copy->button_type = val->button_type;
   copy->selected = val->selected;
@@ -384,12 +385,13 @@ merge_widget_value (widget_value *val1,
       change = max (change, VISIBLE_CHANGE);
       dupstring (&val1->key, val2->key);
     }
-  if (! EQ (val1->help, val2->help))
+  if (!EQ (gc_handle_value (val1->help),
+	   gc_handle_value (val2->help)))
     {
       EXPLAIN (val1->name, change, VISIBLE_CHANGE, "help change",
 	       val1->help, val2->help);
       change = max (change, VISIBLE_CHANGE);
-      val1->help = val2->help;
+      gc_handle_assign (&val1->help, val2->help);
     }
   if (val1->enabled != val2->enabled)
     {
