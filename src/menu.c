@@ -586,7 +586,7 @@ make_widget_value (const char *name, char *value,
   wv->name = (char *) name;
   wv->value = value;
   wv->enabled = enabled;
-  wv->help = help;
+  wv->help = gc_handle_for (help);
   return wv;
 }
 
@@ -601,6 +601,7 @@ free_menubar_widget_value_tree (widget_value *wv)
   if (! wv) return;
 
   wv->name = wv->value = wv->key = (char *) 0xDEADBEEF;
+  free_gc_handle (wv->help);
 
   if (wv->contents && (wv->contents != (widget_value *) 1))
     {
