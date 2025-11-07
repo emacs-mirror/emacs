@@ -2030,6 +2030,13 @@ They suggest the previous revision as the default for REV1, not the last
 one as before.  This makes them different from 'vc-diff' and
 'vc-root-diff' when those are called without a prefix argument.
 
++++
+*** 'diff-apply-buffer' now considers the region and can reverse-apply.
+If the region is active, this command now applies all hunks that the
+region overlaps; otherwise, it applies all hunks.
+With a prefix argument, it now reverse-applies the hunks.
+This matches the existing prefix argument to 'diff-apply-hunk'.
+
 ** Ediff
 
 +++
@@ -2529,15 +2536,6 @@ The new command 'log-view-copy-revision-as-kill', bound to 'w' in Log
 View mode, copies to the kill ring the ID of the revision at point in
 the log entry.  If there are marked revisions, it copies the IDs of
 those, instead.
-
-** Diff mode
-
-+++
-*** 'diff-apply-buffer' now considers the region and can reverse-apply.
-If the region is active, this command now applies all hunks that the
-region overlaps; otherwise, it applies all hunks.
-With a prefix argument, it now reverse-applies the hunks.
-This matches the existing prefix argument to 'diff-apply-hunk'.
 
 ** Package
 
