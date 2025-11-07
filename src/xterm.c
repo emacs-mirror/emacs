@@ -5738,7 +5738,10 @@ x_cache_xi_devices (struct x_display_info *dpyinfo)
 
 #ifdef HAVE_MPS
   // FIXME/igc: use exact references
-  dpyinfo->devices = igc_xzalloc_ambig (sizeof *dpyinfo->devices * ndevices);
+  dpyinfo->devices
+    = igc_xzalloc_ambig_with_label (sizeof *dpyinfo->devices
+				      * ndevices,
+				    "xi_device_t[]");
 #else
   dpyinfo->devices = xzalloc (sizeof *dpyinfo->devices * ndevices);
 #endif
@@ -13886,7 +13889,9 @@ xi_disable_devices (struct x_display_info *dpyinfo,
   ndevices = 0;
 #ifdef HAVE_MPS
   // FIXME/igc: use exact references
-  devices = igc_xzalloc_ambig (sizeof *devices * dpyinfo->num_devices);
+  devices = igc_xzalloc_ambig_with_label (sizeof *devices
+					    * dpyinfo->num_devices,
+					  "xi_device_t[]");
 #else
   devices = xzalloc (sizeof *devices * dpyinfo->num_devices);
 #endif
@@ -30800,7 +30805,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #ifdef HAVE_MPS
   // FIXME/igc: use exact references
-  dpyinfo = igc_xzalloc_ambig (sizeof *dpyinfo);
+  dpyinfo = igc_xzalloc_ambig_with_label (sizeof *dpyinfo,
+					  "x_display_info");
 #else
   dpyinfo = xzalloc (sizeof *dpyinfo);
 #endif
