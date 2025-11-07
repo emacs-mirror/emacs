@@ -772,7 +772,7 @@ static void
 menu_highlight_callback (Widget widget, LWLIB_ID id, void *call_data)
 {
   widget_value *wv = call_data;
-  Lisp_Object help = wv ? wv->help : Qnil;
+  Lisp_Object help = wv ? gc_handle_value (wv->help) : Qnil;
 
   /* Determine the frame for the help event.  */
   struct frame *f = menubar_id_to_frame (id);
