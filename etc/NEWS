@@ -715,6 +715,12 @@ debugger and show the backtrace.  If 'debug-on-error' is nil, these
 errors will be sent to 'emacsclient', as before, and will be displayed
 on the terminal from which 'emacsclient' was invoked.
 
++++
+** Empty string arguments to emacsclient are no longer ignored.
+Emacs previously discarded arguments to emacsclient of zero length, such
+as in 'emacsclient --eval "(length (pop server-eval-args-left))" ""'.
+These are no longer discarded.
+
 
 * Editing Changes in Emacs 31.1
 
