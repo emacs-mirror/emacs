@@ -1114,6 +1114,11 @@ after cursor position.  By default this is set to 'after-bol'.
 
 +++
 *** The variable 'hs-special-modes-alist' is now obsolete.
+Instead of customizing Hideshow for a mode by setting the elements of
+'hs-special-modes-alist', such as START, COMMENT-START,
+FORWARD-SEXP-FUNC, etc., major mode authors should set the corresponding
+buffer-local variables 'hs-block-start-regexp', 'hs-c-start-regexp',
+'hs-forward-sexp-function', etc.
 
 ** C-ts mode
 
