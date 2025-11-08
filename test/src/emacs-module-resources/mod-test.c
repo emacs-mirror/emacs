@@ -315,14 +315,16 @@ Fmod_test_address_to_userptr (emacs_env *env, ptrdiff_t nargs,
 			      emacs_value args[], void *data)
 {
   intmax_t address = env->extract_integer (env, args[0]);
-  return env->make_user_ptr (env, NULL, (void *) address);
+  assert (address <= PTRDIFF_MAX);
+  ptrdiff_t addr = address;
+  return env->make_user_ptr (env, NULL, (void *) addr);
 }
 
 static emacs_value
 Fmod_test_userptr_to_address (emacs_env *env, ptrdiff_t nargs,
 			      emacs_value args[], void *data)
 {
-  intmax_t address = (intmax_t) env->get_user_ptr (env, args[0]);
+  intmax_t address = (ptrdiff_t) env->get_user_ptr (env, args[0]);
   return env->make_integer (env, address);
 }
 
