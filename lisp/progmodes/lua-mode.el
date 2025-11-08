@@ -555,7 +555,7 @@ See `imenu-generic-expression'.")
   ;; Hide-show setup
   (setq-local hs-block-start-regexp (regexp-opt (mapcar 'car lua-sexp-alist) 'words))
   (setq-local hs-block-end-regexp (regexp-opt (mapcar 'cdr lua-sexp-alist) 'words))
-  (setq-local hs-forward-sexp-func #'lua-forward-sexp))
+  (setq-local hs-forward-sexp-function #'lua-forward-sexp))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-mode))

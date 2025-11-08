@@ -169,7 +169,7 @@ with no args, if that value is non-nil."
   ;; hideshow support
   (setq-local hs-block-start-regexp "\\<procedure\\>")
   (setq-local hs-block-end-regexp "\\<end\\>")
-  (setq-local hs-forward-sexp-func #'icon-forward-sexp-function))
+  (setq-local hs-forward-sexp-function #'icon-forward-sexp-function))
 
 ;; This is used by indent-for-comment to decide how much to
 ;; indent a comment in Icon code based on its context.

@@ -13284,7 +13284,7 @@ File statistics: \"%s\"\n\
     ;; initialize hideshow
     (setq-local hs-block-start-regexp vhdl-hs-start-regexp)
     (setq-local hs-c-start-regexp "--\\( \\|$\\)")
-    (setq-local hs-forward-sexp-func #'vhdl-hs-forward-sexp-func)
+    (setq-local hs-forward-sexp-function #'vhdl-hs-forward-sexp-func)
     (if (featurep 'xemacs) (make-local-hook 'hs-minor-mode-hook))
     (if vhdl-hide-all-init
 	(add-hook 'hs-minor-mode-hook #'hs-hide-all nil t)

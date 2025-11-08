@@ -837,7 +837,7 @@ with no args, if that value is non-nil."
   (setq-local hs-block-start-regexp fortran-start-block-re)
   (setq-local hs-block-end-regexp fortran-end-block-re)
   (setq-local hs-c-start-regexp "^[cC*!]")
-  (setq-local hs-forward-sexp-func #' fortran-end-of-block))
+  (setq-local hs-forward-sexp-function #' fortran-end-of-block))
 
 
 (defun fortran-line-length (nchars &optional global)
@@ -1247,7 +1247,7 @@ Directive lines are treated as comments."
           (goto-char i)
           (= (line-beginning-position) p)))))
 
-;; Used in hs-forward-sexp-func.
+;; Used in hs-forward-sexp-function.
 (defun fortran-end-of-block (&optional num)
   "Move point forward to the end of the current code block.
 With optional argument NUM, go forward that many balanced blocks.

@@ -1187,7 +1187,7 @@ with no args, if that value is non-nil."
   (setq-local hs-block-start-regexp f90-start-block-re)
   (setq-local hs-block-end-regexp f90-end-block-re)
   (setq-local hs-c-start-regexp "!")
-  (setq-local hs-forward-sexp-func #'f90-end-of-block))
+  (setq-local hs-forward-sexp-function #'f90-end-of-block))
 
 
 ;; Inline-functions.

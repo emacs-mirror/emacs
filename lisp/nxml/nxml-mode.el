@@ -535,7 +535,7 @@ Many aspects this mode can be customized using
   (setq-local hs-block-start-regexp "<[^/>]*?")
   (setq-local hs-block-end-regexp "</[^/>]*[^/]>")
   (setq-local hs-c-start-regexp "<!--")
-  (setq-local hs-forward-sexp-func #'sgml-skip-tag-forward)
+  (setq-local hs-forward-sexp-function #'sgml-skip-tag-forward)
   (save-excursion
     (save-restriction
       (widen)

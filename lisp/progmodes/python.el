@@ -5913,7 +5913,7 @@ are also searched.  REGEXP is passed to `looking-at' to set
         (looking-at regexp)))))
 
 (defun python-ts-hs-adjust-block-end-fn (block-beg)
-  "Python-ts-mode specific `hs-adjust-block-end' function for `hs-minor-mode'.
+  "Python-ts-mode specific `hs-adjust-block-end-function' function.
 
 BLOCK-BEG is the beginning position where the hiding will be performed.
 
@@ -7360,10 +7360,10 @@ implementations: `python-mode' and `python-ts-mode'."
   ;; "\\s)".  This way parens at end of defun are properly hidden.
   (setq-local hs-block-end-regexp "")
   (setq-local hs-c-start-regexp "#")
-  (setq-local hs-forward-sexp-func #'python-hideshow-forward-sexp-function)
-  (setq-local hs-find-block-beginning-func #'python-nav-beginning-of-block)
-  (setq-local hs-find-next-block-func #'python-hideshow-find-next-block)
-  (setq-local hs-looking-at-block-start-p-func #'python-info-looking-at-beginning-of-block)
+  (setq-local hs-forward-sexp-function #'python-hideshow-forward-sexp-function)
+  (setq-local hs-find-block-beginning-function #'python-nav-beginning-of-block)
+  (setq-local hs-find-next-block-function #'python-hideshow-find-next-block)
+  (setq-local hs-looking-at-block-start-predicate #'python-info-looking-at-beginning-of-block)
 
   (setq-local outline-regexp (python-rx (* space) block-start))
   (setq-local outline-level
@@ -7438,7 +7438,7 @@ implementations: `python-mode' and `python-ts-mode'."
                 treesit-sexp-thing 'sexp)
 
     (setq-local hs-treesit-things '(or defun sexp))
-    (setq-local hs-adjust-block-end #'python-ts-hs-adjust-block-end-fn)
+    (setq-local hs-adjust-block-end-function #'python-ts-hs-adjust-block-end-fn)
 
     (setq-local syntax-propertize-function #'python--treesit-syntax-propertize)
 

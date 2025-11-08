@@ -306,7 +306,7 @@ This is used by `mhtml--pre-command'.")
         (flyspell-generic-progmode-verify)
       t)))
 
-;; Support for hideshow.el (see `hs-forward-sexp-func').
+;; Support for hideshow.el (see `hs-forward-sexp-function').
 (defun mhtml-forward (arg)
   "Move point forward past a structured expression.
 If point is on a tag, move to the end of the tag.
@@ -331,7 +331,7 @@ the rules from `css-mode'."
               #'mhtml--submode-fontify-region)
   (setq-local hs-block-start-regexp "{\\|<[^/>]*?")
   (setq-local hs-block-end-regexp "}\\|</[^/>]*[^/]>")
-  (setq-local hs-forward-sexp-func #'mhtml-forward)
+  (setq-local hs-forward-sexp-function #'mhtml-forward)
 
   ;; Attach this to both pre- and post- hooks just in case it ever
   ;; changes a key binding that might be accessed from the menu bar.

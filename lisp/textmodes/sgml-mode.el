@@ -671,7 +671,7 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (setq-local hs-block-start-regexp "<[^/>]*?")
   (setq-local hs-block-end-regexp "</[^/>]*[^/]>")
   (setq-local hs-c-start-regexp "<!--")
-  (setq-local hs-forward-sexp-func #'sgml-skip-tag-forward))
+  (setq-local hs-forward-sexp-function #'sgml-skip-tag-forward))
 
 (defun sgml-comment-indent ()
   (if (looking-at "--") comment-column 0))

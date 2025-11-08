@@ -4365,7 +4365,7 @@ Key bindings specific to `verilog-mode-map' are:
   ;; hideshow support
   (setq-local hs-block-start-regexp "\\<begin\\>")
   (setq-local hs-block-end-regexp "\\<end\\>")
-  (setq-local hs-forward-sexp-func #'verilog-forward-sexp-function)
+  (setq-local hs-forward-sexp-function #'verilog-forward-sexp-function)
 
   (add-hook 'completion-at-point-functions
             #'verilog-completion-at-point nil 'local)
