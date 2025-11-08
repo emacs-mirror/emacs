@@ -3775,10 +3775,12 @@ for which LSP on-type-formatting should be requested."
        :textDocument/hover (eglot--TextDocumentPositionParams)
        :success-fn (eglot--lambda ((Hover) contents range)
                      (eglot--when-buffer-window buf
-                       (let ((info (unless (seq-empty-p contents)
-                                     (eglot--hover-info contents range))))
-                         (funcall cb info
-                                  :echo (and info (string-match "\n" info))))))
+                       (let* ((info (unless (seq-empty-p contents)
+                                      (eglot--hover-info contents range)))
+                              (pos (and info (string-match "\n" info))))
+                         (while (and pos (get-text-property pos 'invisible info))
+                           (setq pos (string-match "\n" info (1+ pos))))
+                         (funcall cb info :echo pos))))
        :hint :textDocument/hover))
     t))
 
