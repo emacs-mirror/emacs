@@ -5585,6 +5585,13 @@ igc_assert_not_an_mps_object (void *ptr)
 	     ptr);
 }
 
+/* Alternative name for use in lisp.h, which doesn't include igc.h.  */
+void
+gc_assert_untraced_object (void *ptr)
+{
+  igc_assert_not_an_mps_object (ptr);
+}
+
 /* If OBJ isn't suitable for storing an extra dependency, return a
    replacement that is.  */
 static Lisp_Object
