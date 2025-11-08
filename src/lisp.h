@@ -54,6 +54,7 @@ union gc_header { };
 enum igc_obj_type;
 extern void gc_init_header (union gc_header *header, enum igc_obj_type type);
 extern void gc_init_header_bytes (union gc_header *header, enum igc_obj_type type, size_t bytes);
+extern void gc_assert_untraced_object (void *obj);
 #else
 /* These are macros so they don't evaluate their `type' argument.  */
 #define gc_init_header(header, type) ((void)(header))
@@ -3147,6 +3148,9 @@ extern Lisp_Object make_misc_ptr (void *);
 INLINE Lisp_Object
 make_mint_ptr (void *a)
 {
+#ifdef HAVE_MPS
+  gc_assert_untraced_object (a);
+#endif
   Lisp_Object val = TAG_PTR_INITIALLY (Lisp_Int0, a);
   return FIXNUMP (val) && XFIXNUMPTR (val) == a ? val : make_misc_ptr (a);
 }
