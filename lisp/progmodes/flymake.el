@@ -4,9 +4,9 @@
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: Spencer Baugh <sbaugh@janestreet.com>
-;; Version: 1.4.2
+;; Version: 1.4.3
 ;; Keywords: c languages tools
-;; Package-Requires: ((emacs "26.1") (eldoc "1.14.0") (project "0.7.1"))
+;; Package-Requires: ((emacs "26.1") (eldoc "1.14.0") (project "0.11.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
 ;; compatible with the version of Emacs recorded above.
@@ -1926,12 +1926,12 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
 
 (defvar flymake-diagnostics-buffer-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'flymake-goto-diagnostic)
-    (define-key map (kbd "SPC") 'flymake-show-diagnostic)
-    (keymap-set map "C-o" #'flymake-show-diagnostic)
-    (keymap-set map "C-m" #'flymake-goto-diagnostic)
-    (keymap-set map "n" #'next-error-this-buffer-no-select)
-    (keymap-set map "p" #'previous-error-this-buffer-no-select)
+    (define-key map (kbd "RET") #'flymake-goto-diagnostic)
+    (define-key map (kbd "SPC") #'flymake-show-diagnostic)
+    (define-key map (kbd "C-o") #'flymake-show-diagnostic)
+    (define-key map (kbd "C-m") #'flymake-goto-diagnostic)
+    (define-key map (kbd "n") #'next-error-this-buffer-no-select)
+    (define-key map (kbd "p") #'previous-error-this-buffer-no-select)
     map))
 
 (defun flymake-show-diagnostic (pos &optional other-window)
