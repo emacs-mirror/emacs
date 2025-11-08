@@ -110,10 +110,30 @@
                                            basedir
                                            install
                                            location
-                                           update-news
                                            upload-base)
                                 &rest body)
-  "Set up temporary locations and variables for testing."
+  "Set up temporary locations and variables for testing.
+Create a temporary buffer and execute BODY in it.
+
+This macro interprets the following keywords:
+
+:basedir BASEDIR - Bind default directory to BASEDIR in the temporary
+  buffer before executing BODY.
+  You should use keyword :basedir only when BODY or FILE requires it;
+  this macro itself does not require its usage.
+
+:file FILE - Execute `insert-file-contents' on FILE in the temporary buffer
+  before executing BODY.
+
+:install PACKAGES - Execute `package-install' on each package in list
+  PACKAGES before executing BODY.
+
+:location ARCHIVE-DIR - Use directory ARCHIVE-DIR as package archive
+  directory instead of `package-test-user-dir'.
+
+:upload-base UPDATE-BASE - If UPDATE-BASE is non-nil, create a temporary
+  directory, bind `package-archive-upload-base' to the location of that
+  while executing BODY, and clean it up after that."
   (declare (indent 1) (debug (([&rest form]) body)))
   `(ert-with-temp-directory package-test-user-dir
      (let* ((process-environment (cons (format "HOME=%s" package-test-user-dir)
@@ -125,46 +145,24 @@
             abbreviated-home-dir
             package--initialized
             package-alist
-            package-selected-packages
-            ,@(if update-news
-                  '(package-update-news-on-upload t)
-                (list (gensym)))
-            ,@(if upload-base
-                  '((package-test-archive-upload-base (make-temp-file "pkg-archive-base-" t))
-                    (package-archive-upload-base package-test-archive-upload-base))
-                (list (gensym)))) ;; Dummy value so `let' doesn't try to bind nil
+            package-selected-packages)
        (let ((buf (get-buffer "*Packages*")))
          (when (buffer-live-p buf)
            (kill-buffer buf)))
-       (unwind-protect
-           (progn
-             ,(if basedir `(cd ,basedir))
-             (unless (file-directory-p package-user-dir)
-               (mkdir package-user-dir))
-             (cl-letf (((symbol-function 'yes-or-no-p) (lambda (&rest _) t))
-                       ((symbol-function 'y-or-n-p)    (lambda (&rest _) t)))
-               ,@(when install
-                   `((package-initialize)
-                     (package-refresh-contents)
-                     (mapc 'package-install ,install)))
-               (with-temp-buffer
-                 ,(if file
-                      `(insert-file-contents ,file))
-                 ,@body)))
-
-         (when ,upload-base
-           (dolist (f '("archive-contents"
-                        "simple-single-1.3.el"
-                        "simple-single-1.4.el"
-                        "simple-single-readme.txt"))
-             (ignore-errors
-               (delete-file
-                (expand-file-name f package-test-archive-upload-base))))
-           (delete-directory package-test-archive-upload-base))
-
-         (when (and (boundp 'package-test-archive-upload-base)
-                    (file-directory-p package-test-archive-upload-base))
-           (delete-directory package-test-archive-upload-base t))))))
+       (unless (file-directory-p package-user-dir)
+         (make-directory package-user-dir))
+       (cl-letf (((symbol-function 'y-or-n-p) #'always))
+         ,@(when install
+             `((package-initialize)
+               (package-refresh-contents)
+               (mapc #'package-install ,install)))
+         (with-temp-buffer
+           (let ,(if basedir `((default-directory ,basedir)) '())
+             ,@(and file `((insert-file-contents ,file)))
+             ,@(if upload-base
+                   `((ert-with-temp-directory package-archive-upload-base
+                       ,@body))
+                 body)))))))
 
 (defmacro with-fake-help-buffer (&rest body)
   "Execute BODY in a temp buffer which is treated as the \"*Help*\" buffer."
@@ -269,7 +267,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-install-file ()
   "Install files with `package-install-file'."
-  (with-package-test (:basedir (ert-resource-directory))
+  (with-package-test ()
     (package-initialize)
     (let* ((pkg-el "simple-single-1.3.el")
            (source-file (expand-file-name pkg-el (ert-resource-directory))))
@@ -288,7 +286,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-bug58367 ()
   "Check variations in tarball formats."
-  (with-package-test (:basedir (ert-resource-directory))
+  (with-package-test ()
     (package-initialize)
 
     ;; A package whose first entry is the main dir but without trailing /.
@@ -310,7 +308,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-bug65475 ()
   "Deleting the last package clears `package-selected-packages'."
-  (with-package-test (:basedir (ert-resource-directory))
+  (with-package-test ()
     (package-initialize)
     (let* ((pkg-el "simple-single-1.3.el")
            (source-file (expand-file-name pkg-el (ert-resource-directory))))
@@ -326,7 +324,7 @@ Must called from within a `tar-mode' buffer."
 (ert-deftest package-test-install-file-EOLs ()
   "Install same file multiple time with `package-install-file'
 but with a different end of line convention (bug#48137)."
-  (with-package-test (:basedir (ert-resource-directory))
+  (with-package-test ()
     (package-initialize)
     (let* ((pkg-el "simple-single-1.3.el")
            (source-file (expand-file-name pkg-el (ert-resource-directory))))
@@ -485,10 +483,10 @@ but with a different end of line convention (bug#48137)."
                      package-test-user-dir))))
       (package-refresh-contents)
       (should (package-installed-p 'multi-file))
+      (dolist (fn installed-files)
+        (should (file-exists-p (expand-file-name fn pkg-dir))))
       (with-temp-buffer
         (insert-file-contents-literally autoload-file)
-        (dolist (fn installed-files)
-          (should (file-exists-p (expand-file-name fn pkg-dir))))
         (dolist (re autoload-forms)
           (goto-char (point-min))
           (should (re-search-forward re nil t)))))))
