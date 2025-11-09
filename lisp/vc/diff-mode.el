@@ -410,11 +410,11 @@ well."
   '((default
      :inherit diff-changed)
     (((class color) (min-colors 88) (background light))
-     :background "grey90" :extend t)
+     :background "#ffffaa" :extend t)
     (((class color) (min-colors 88) (background dark))
-     :background "grey20" :extend t)
+     :background "#888833" :extend t)
     (((class color))
-     :foreground "grey" :extend t))
+     :foreground "yellow" :extend t))
   "`diff-mode' face used to highlight changed lines."
   :version "28.1")
 
