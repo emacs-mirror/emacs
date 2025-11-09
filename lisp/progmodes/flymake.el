@@ -1420,10 +1420,11 @@ Interactively, with a prefix arg, FORCE is t."
             (flymake-mode
              ;; The buffer about to be annotated is visible.  Check
              ;; necessary conditions to auto-set margins here (bug#77313)
-             (let* ((w (and (eq flymake-indicator-type 'auto)
-                            flymake-autoresize-margins
-                            (visible-buffer-window))))
-               (unless (flymake--suitably-fringed-p w) (flymake--resize-margins)))
+             (when-let* ((w (and (eq flymake-indicator-type 'auto)
+                                 flymake-autoresize-margins
+                                 (visible-buffer-window))))
+               (unless (flymake--suitably-fringed-p w)
+                 (flymake--resize-margins)))
              (setq flymake-check-start-time (float-time))
              (let ((backend-args
                     (and
