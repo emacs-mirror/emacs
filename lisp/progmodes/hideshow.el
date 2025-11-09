@@ -1058,7 +1058,7 @@ adjust-block-beginning function."
   (hs--set-variable 'hs-block-end-regexp 2)
   (hs--set-variable 'hs-c-start-regexp 3
                     (string-trim-right (regexp-quote comment-start)))
-  (hs--set-variable 'hs-forward-sexp-function 4 #'forward-sexp)
+  (hs--set-variable 'hs-forward-sexp-function 4)
   (hs--set-variable 'hs-adjust-block-beginning-function 5)
   (hs--set-variable 'hs-find-block-beginning-function 6)
   (hs--set-variable 'hs-find-next-block-function 7)
@@ -1381,12 +1381,12 @@ Key bindings:
   :keymap hs-minor-mode-map
   (setq hs-headline nil)
 
-  (unless (and comment-start comment-end)
-    (setq hs-minor-mode nil)
-    (user-error "%S doesn't support Hideshow Minor Mode" major-mode))
-
   (if hs-minor-mode
       (progn
+        (unless (and comment-start comment-end)
+          (setq hs-minor-mode nil)
+          (user-error "%S doesn't support Hideshow Minor Mode" major-mode))
+
         ;; Set the variables
         (hs-grok-mode-type)
         ;; Turn off this mode if we change major modes.
