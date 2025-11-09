@@ -197,11 +197,10 @@
 (c-lang-defconst c-at-vsemi-p-fn
   csharp 'csharp-at-vsemi-p)
 
-(defun csharp-vsemi-status-unknown () t)
+(defun csharp-vsemi-status-unknown-p () t)
 
 (c-lang-defconst c-vsemi-status-unknown-p-fn
   csharp 'csharp-vsemi-status-unknown-p)
-
 
 (c-lang-defconst c-modifier-kwds
   csharp '("abstract" "default" "final" "native" "private" "protected"
@@ -239,9 +238,6 @@
 
 (c-lang-defconst c-inexpr-class-kwds
   csharp nil)
-
-(c-lang-defconst c-class-decl-kwds
-  csharp '("class" "struct" "interface"))
 
 (c-lang-defconst c-std-abbrev-keywords
   csharp (append (c-lang-const c-std-abbrev-keywords) '("catch" "finally")))
@@ -593,7 +589,6 @@ compilation and evaluation time conflicts."
   (concat
    "[[:blank:]]+Stack Trace:\n"
    "[[:blank:]]+at [^\n]+ in \\([^\n]+\\):line \\([0-9]+\\)"))
-
 
 (eval-after-load 'compile
   (lambda ()
@@ -1080,11 +1075,6 @@ function is called.  Subsequent calls return the first evaluated value."
                (variable_declarator
                 name: (identifier) @font-lock-function-name-face
                 (lambda_expression)))
-
-             :language 'c-sharp
-             :feature 'escape-sequence
-             :override t
-             '((escape_sequence) @font-lock-escape-face)
 
              :language 'c-sharp
              :feature 'directives
