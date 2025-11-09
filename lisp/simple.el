@@ -4317,8 +4317,7 @@ stdout will be intermixed in the output stream.")
 This function is used to add all related commands retrieved by
 `shell-command-guess' to the end of the list of defaults just
 after the default value."
-  (let* ((filename (if (listp minibuffer-default)
-		       (car minibuffer-default)
+  (let* ((filename (unless (consp minibuffer-default)
 		     minibuffer-default))
 	 (commands (and filename (require 'dired-aux)
                         (shell-command-guess (list filename)))))
