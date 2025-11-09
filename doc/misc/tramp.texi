@@ -6848,6 +6848,11 @@ they are kept.  Example:
 @end lisp
 @end defun
 
+@findex tramp-expand-script
+Shell scripts intended for the @code{tramp-sh} backend are used as a
+format string.  They must observe the restrictions for format
+specifiers, as documented in @code{tramp-expand-script}.
+
 
 @node Traces and Profiles
 @chapter How to Customize Traces
