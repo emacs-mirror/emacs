@@ -1019,21 +1019,21 @@ Otherwise, return nil."
           (when (>= (point) q)
             (list (and hideable p) (point))))))))
 
-(defun hs--set-variable (var old-nth &optional default)
+(defun hs--set-variable (var nth &optional default)
   "Set Hideshow VAR if already not set.
 This function is meant to be used for backward compatibility with
 `hs-special-modes-alist'.
 
-OLD-NTH is a number indicating NTH element of `hs-special-modes-alist'.
+NTH must be a number indicating NTH element of
+`hs-special-modes-alist' or a function.
 
 DEFAULT is a value to use as fallback."
   (unless (local-variable-p var) ; Already set, nothing to do.
-    (if-let* (old-nth
-              (old-lookup (assoc major-mode hs-special-modes-alist)))
-        (set (make-local-variable var)
-             (if (integerp old-nth)
-                 (nth old-nth old-lookup)
-               (funcall old-nth old-lookup)))
+    (if-let* ((old-lookup (assoc major-mode hs-special-modes-alist))
+              (val (if (integerp nth)
+                       (nth nth old-lookup)
+                     (funcall nth old-lookup))))
+        (set (make-local-variable var) val)
       (when default
         (set (make-local-variable var) default)))))
 
@@ -1048,12 +1048,14 @@ If `hs-special-modes-alist' has information associated with the current
 buffer's major mode, use that.  Otherwise, guess start, end and
 `comment-start' regexps; `forward-sexp' function; and
 adjust-block-beginning function."
-  (hs--set-variable 'hs-block-start-regexp #'caadr)
-  (hs--set-variable 'hs-block-start-mdata-select #'cadadr)
+  (hs--set-variable 'hs-block-start-regexp
+                    (lambda (v) (car (ensure-list (nth 1 v)))))
+  (hs--set-variable 'hs-block-start-mdata-select
+                    (lambda (v) (cadr (ensure-list (nth 1 v)))))
   (hs--set-variable 'hs-block-end-regexp 2)
   (hs--set-variable 'hs-c-start-regexp 3
                     (string-trim-right (regexp-quote comment-start)))
-  (hs--set-variable 'hs-forward-sexp-function 4)
+  (hs--set-variable 'hs-forward-sexp-function 4 #'forward-sexp)
   (hs--set-variable 'hs-adjust-block-beginning-function 5)
   (hs--set-variable 'hs-find-block-beginning-function 6)
   (hs--set-variable 'hs-find-next-block-function 7)

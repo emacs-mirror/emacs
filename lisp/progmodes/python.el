@@ -7355,15 +7355,30 @@ implementations: `python-mode' and `python-ts-mode'."
                       #'python-eldoc-function))))
   (eldoc-add-command-completions "python-indent-dedent-line-backspace")
 
-  (setq-local hs-block-start-regexp python-nav-beginning-of-block-regexp)
-  ;; Use the empty string as end regexp so it doesn't default to
-  ;; "\\s)".  This way parens at end of defun are properly hidden.
-  (setq-local hs-block-end-regexp "")
-  (setq-local hs-c-start-regexp "#")
-  (setq-local hs-forward-sexp-function #'python-hideshow-forward-sexp-function)
-  (setq-local hs-find-block-beginning-function #'python-nav-beginning-of-block)
-  (setq-local hs-find-next-block-function #'python-hideshow-find-next-block)
-  (setq-local hs-looking-at-block-start-predicate #'python-info-looking-at-beginning-of-block)
+  (if (< emacs-major-version 31)
+      (dolist (mode '(python-mode python-ts-mode))
+        (add-to-list
+         'hs-special-modes-alist
+         `(,mode
+           ,python-nav-beginning-of-block-regexp
+           ;; Use the empty string as end regexp so it doesn't default to
+           ;; "\\s)".  This way parens at end of defun are properly hidden.
+           ""
+           "#"
+           python-hideshow-forward-sexp-function
+           nil
+           python-nav-beginning-of-block
+           python-hideshow-find-next-block
+           python-info-looking-at-beginning-of-block)))
+    (setq-local hs-block-start-regexp python-nav-beginning-of-block-regexp)
+    ;; Use the empty string as end regexp so it doesn't default to
+    ;; "\\s)".  This way parens at end of defun are properly hidden.
+    (setq-local hs-block-end-regexp "")
+    (setq-local hs-c-start-regexp "#")
+    (setq-local hs-forward-sexp-function #'python-hideshow-forward-sexp-function)
+    (setq-local hs-find-block-beginning-function #'python-nav-beginning-of-block)
+    (setq-local hs-find-next-block-function #'python-hideshow-find-next-block)
+    (setq-local hs-looking-at-block-start-predicate #'python-info-looking-at-beginning-of-block))
 
   (setq-local outline-regexp (python-rx (* space) block-start))
   (setq-local outline-level
@@ -7437,8 +7452,9 @@ implementations: `python-mode' and `python-ts-mode'."
     (setq-local forward-sexp-function #'treesit-forward-sexp
                 treesit-sexp-thing 'sexp)
 
-    (setq-local hs-treesit-things '(or defun sexp))
-    (setq-local hs-adjust-block-end-function #'python-ts-hs-adjust-block-end-fn)
+    (when (>= emacs-major-version 31)
+      (setq-local hs-treesit-things '(or defun sexp))
+      (setq-local hs-adjust-block-end-function #'python-ts-hs-adjust-block-end-fn))
 
     (setq-local syntax-propertize-function #'python--treesit-syntax-propertize)
 
