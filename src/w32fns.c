@@ -10983,6 +10983,31 @@ DEFUN ("w32-set-wallpaper", Fw32_set_wallpaper, Sw32_set_wallpaper, 1, 1, 0,
 
   return Qnil;
 }
+
+/* Return time in milliseconds since the last input event.  */
+typedef BOOL (WINAPI *GetLastInputInfo_Proc) (PLASTINPUTINFO);
+static GetLastInputInfo_Proc get_last_input_info_fn = NULL;
+
+DEFUN ("w32-system-idle-time", Fw32_system_idle_time, Sw32_system_idle_time,
+       0, 0, 0,
+       doc: /* Return the time in milliseconds since last system-wide input event.
+
+Return -1 if the required system API is not available or fails.  */)
+  (void)
+{
+  LASTINPUTINFO info;
+  info.cbSize = sizeof info;
+
+  if (get_last_input_info_fn && get_last_input_info_fn (&info))
+    {
+      DWORD time_since_last_input = GetTickCount () - info.dwTime;
+      if (time_since_last_input > EMACS_INT_MAX)
+	return Vmost_positive_fixnum;
+      return make_fixnum (time_since_last_input);
+    }
+  return make_fixnum (-1);
+}
+
 #endif
 
 /***********************************************************************
@@ -11467,6 +11492,7 @@ keys when IME input is received.  */);
 #ifdef WINDOWSNT
   defsubr (&Ssystem_move_file_to_trash);
   defsubr (&Sw32_set_wallpaper);
+  defsubr (&Sw32_system_idle_time);
 #endif
 
   DEFSYM (Qnot_useful, "not-useful");
@@ -11764,6 +11790,8 @@ globals_of_w32fns (void)
 #ifndef CYGWIN
   system_parameters_info_w_fn = (SystemParametersInfoW_Proc)
     get_proc_addr (user32_lib, "SystemParametersInfoW");
+  get_last_input_info_fn = (GetLastInputInfo_Proc)
+    get_proc_addr (user32_lib, "GetLastInputInfo");
 #endif
   RegisterTouchWindow_fn
     = (RegisterTouchWindow_proc) get_proc_addr (user32_lib,
