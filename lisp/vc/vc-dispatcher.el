@@ -404,7 +404,7 @@ case, and the process object in the asynchronous case."
              (eq (selected-window) (active-minibuffer-window)))))
     (save-current-buffer
       (unless (or (eq buffer t)
-                  (eq buffer (get-buffer buffer)))
+                  (eq (current-buffer) (get-buffer buffer)))
         (vc-setup-buffer buffer))
       (cl-destructuring-bind (command file-or-list flags)
           (funcall vc-filter-command-function command file-or-list flags)
