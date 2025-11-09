@@ -2125,25 +2125,31 @@ get_lface_attributes (struct window *w,
 
   face_name = resolve_face_name (face_name, signal_p);
 
-  /* See if SYMBOL has been remapped to some other face (usually this
-     is done buffer-locally).  */
-  face_remapping = assq_no_quit (face_name, Vface_remapping_alist);
-  if (CONSP (face_remapping))
+  /* See if SYMBOL has been remapped to some other face (usually this is
+     done buffer-locally).  We only do that of F is non-NULL, because
+     face remapping is not relevant for default attributes of faces for
+     future frames, and because merge_face_ref cannot handle NULL frames
+     anyway.  */
+  if (f)
     {
-      struct named_merge_point named_merge_point;
-
-      if (push_named_merge_point (&named_merge_point,
-				  face_name, NAMED_MERGE_POINT_REMAP,
-				  &named_merge_points))
+      face_remapping = assq_no_quit (face_name, Vface_remapping_alist);
+      if (CONSP (face_remapping))
 	{
-	  int i;
+	  struct named_merge_point named_merge_point;
 
-	  for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-	    attrs[i] = Qunspecified;
+	  if (push_named_merge_point (&named_merge_point,
+				      face_name, NAMED_MERGE_POINT_REMAP,
+				      &named_merge_points))
+	    {
+	      int i;
 
-	  return merge_face_ref (w, f, XCDR (face_remapping), attrs,
-	                         signal_p, named_merge_points,
-	                         0);
+	      for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
+		attrs[i] = Qunspecified;
+
+	      return merge_face_ref (w, f, XCDR (face_remapping), attrs,
+	                             signal_p, named_merge_points,
+	                             0);
+	    }
 	}
     }
 
