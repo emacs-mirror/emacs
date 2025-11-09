@@ -473,9 +473,8 @@ case, and the process object in the asynchronous case."
                 (goto-char (point-min))
                 (shrink-window-if-larger-than-buffer))
               (when-let* (noninteractive
-                          (out (string-trim (buffer-string)))
-                          (_ (not (string-empty-p out))))
-                (with-current-buffer buffer
+                          (out (string-trim (buffer-string))))
+                (unless (string-empty-p out)
                   (message "%s" out)))
               (error "Failed (%s): %s"
                      (if (integerp status)
