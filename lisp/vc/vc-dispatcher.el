@@ -870,7 +870,8 @@ DIFF-FUNCTION is `log-edit-diff-function' for the Log Edit buffer."
           ;; `log-edit-show-files' and `log-edit-maybe-show-diff' which
           ;; don't make sense if the user is not going to do any
           ;; editing, and can cause unexpected window layout changes.
-          (log-edit-hook (and (not immediate) log-edit-hook)))
+          (log-edit-hook (and (not immediate)
+                              (require 'log-edit) log-edit-hook)))
       (vc-log-edit files mode backend diff-function))
     (make-local-variable 'vc-log-after-operation-hook)
     (when after-hook
