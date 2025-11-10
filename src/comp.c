@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
-
-// clang-format off
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -43,8 +41,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include "coding.h"
 #include "md5.h"
 #include "sysstdio.h"
-# include "zlib.h"
-
+#include "zlib.h"
 
 
 /********************************/
@@ -474,16 +471,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION 13
-
-/* The name of a global emitted to the text segment that contains the
-   ABI version that was used to generate the file.  This is checked
-   against the current ABI version when a file is loaded.  */
-#ifdef USE_POINTER_TO_CONSTANTS
-#define ABI_VERSION_SYM "ABI_" STR (ABI_VERSION) "_POINTERS"
-#else
-#define ABI_VERSION_SYM "ABI_" STR (ABI_VERSION)
-#endif
+#define ABI_VERSION "12"
 
 /* Length of the hashes used for eln file naming.  */
 #define HASH_LENGTH 8
@@ -668,10 +656,8 @@ typedef struct {
   Lisp_Object emitter_dispatcher;
   /* Synthesized struct holding data relocs.  */
   reloc_array_t data_relocs;
-  EMACS_INT n_data_relocs;
   /* Same as before but content does not survive load phase. */
   reloc_array_t data_relocs_ephemeral;
-  EMACS_INT n_data_relocs_ephemeral;
   /* Global structure holding function relocations.  */
   gcc_jit_lvalue *func_relocs;
   gcc_jit_type *func_relocs_ptr_type;
@@ -811,7 +797,7 @@ hash_native_abi (void)
 
   Vcomp_abi_hash =
     comp_hash_string (
-      concat3 (build_string (ABI_VERSION_SYM),
+      concat3 (build_string (ABI_VERSION),
 	       concat3 (Vemacs_version, Vsystem_configuration,
 			Vsystem_configuration_options),
 	       Fmapconcat (intern_c_string ("comp--subr-signature"),
@@ -934,42 +920,34 @@ register_emitter (Lisp_Object key, void *func)
 static imm_reloc_t
 obj_to_reloc (Lisp_Object obj)
 {
-  /* Find OBJ in one of the possible constants containers. */
-  imm_reloc_t reloc = { .array = comp.data_relocs };
-  EMACS_INT nconstants = comp.n_data_relocs;
+  imm_reloc_t reloc;
+  Lisp_Object idx;
 
-  Lisp_Object idx = Fgethash (obj, comp.d_default_idx, Qnil);
-  if (NILP (idx))
+  idx = Fgethash (obj, comp.d_default_idx, Qnil);
+  if (!NILP (idx)) {
+      reloc.array = comp.data_relocs;
+      goto found;
+  }
+
+  idx = Fgethash (obj, comp.d_ephemeral_idx, Qnil);
+  if (!NILP (idx))
     {
-      idx = Fgethash (obj, comp.d_ephemeral_idx, Qnil);
-      if (NILP (idx))
-	xsignal1 (Qnative_ice,
-		  build_string ("can't find data in relocation containers"));
       reloc.array = comp.data_relocs_ephemeral;
-      nconstants = comp.n_data_relocs_ephemeral;
+      goto found;
     }
 
-  /* Check the index IDX in the constants vector. */
+  xsignal1 (Qnative_ice,
+	    build_string ("can't find data in relocation containers"));
+  eassume (false);
+
+ found:
+  eassert (XFIXNUM (idx) < reloc.array.len);
   if (!FIXNUMP (idx))
     xsignal1 (Qnative_ice,
 	      build_string ("inconsistent data relocation container"));
-  eassert (XFIXNUM (idx) < nconstants);
   reloc.idx = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						   comp.ptrdiff_type,
 						   XFIXNUM (idx));
-
-  /* If we are using pointers to constant vectors instead of copying to
-     vectors in the data segment, construct an indirect access.  Note
-     that there is no decay of arrays to pointers or similar in
-     libgccjit. */
-#ifdef USE_POINTER_TO_CONSTANTS
-  gcc_jit_rvalue *zero = gcc_jit_context_zero (comp.ctxt, comp.ptrdiff_type);
-  gcc_jit_lvalue *constants =
-    gcc_jit_context_new_array_access (comp.ctxt, NULL, reloc.array.r_val, zero);
-  reloc.array.len = nconstants;
-  reloc.array.r_val = gcc_jit_lvalue_as_rvalue (constants);
-#endif
-
   return reloc;
 }
 
@@ -2718,9 +2696,7 @@ emit_static_object (const char *name, Lisp_Object obj)
   ptrdiff_t len = SBYTES (str);
   const char *p = SSDATA (str);
 
-# if defined(LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
-  /* FIXME/elnroot; What is this if-condition for? This is the name of
-     function and should always be true. */
+#if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
   if (gcc_jit_global_set_initializer)
     {
       ptrdiff_t str_size = len + 1;
@@ -2743,9 +2719,6 @@ emit_static_object (const char *name, Lisp_Object obj)
       return;
     }
 #endif
-
-  /* FIXME/elnroot; Is the following still needed? The above case
-     seems to always be taken nowadays. */
 
   gcc_jit_type *a_type =
     gcc_jit_context_new_array_type (comp.ctxt,
@@ -2883,65 +2856,35 @@ emit_static_object (const char *name, Lisp_Object obj)
   gcc_jit_rvalue *res = gcc_jit_lvalue_get_address (data_struct, NULL);
   gcc_jit_block_end_with_return (block, NULL, res);
 }
-
-# pragma GCC diagnostic pop
-
-/* Emit code/global variables for a constants vector.
-
-   CONTAINER is a comp-data-container Lisp struct from comp.el that
-   holds the data for which to generate code.
-
-   TEXT_SYMBOL is the name of a symbol in the text segment which will
-   be used for the printed representation of the Lisp objects in
-   CONTAINER. It corresponds to a "char TEXT_SYMBOL[N]" in the text
-   segment. When an eln is loaded, this is read using the Lisp reader
-   to produce a vector of Lisp objects.
-
-   CODE__SYMBOL is the name of a symbol in the data segment that native
-   code uses to access constant Lisp objects. There are two cases:
-
-   If USE_POINTER_TO_CONSTANTS, this is a "Lisp_Object
-   *CODE_SYMBOL[1]". The array member is set to the contents of the Lisp
-   vector read from TEXT_SYMBOL.
-
-   If not USE_POINTER_TO_CONSTANTS, this is a "Lisp_Object
-   CODE_SYMBOL[N]". When the eln is loaded, Lisp objects read from
-   TEXT_SYMBOL are copied to this vector.  */
+#pragma GCC diagnostic pop
 
 static reloc_array_t
 declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
-			      const char *text_symbol, EMACS_INT *nconstants)
+			      const char *text_symbol)
 {
-  Lisp_Object tem = CALLNI (comp-data-container-l, container);
-  Lisp_Object constants = Fvconcat (1, &tem);
+  /* Imported objects.  */
+  reloc_array_t res;
+  res.len =
+    XFIXNUM (CALLNI (hash-table-count,
+		     CALLNI (comp-data-container-idx, container)));
+  Lisp_Object d_reloc = CALLNI (comp-data-container-l, container);
+  d_reloc = Fvconcat (1, &d_reloc);
 
-  /* Emit the printed representation of the constants as a C string. */
-  emit_static_object (text_symbol, constants);
+  res.r_val =
+    gcc_jit_lvalue_as_rvalue (
+      gcc_jit_context_new_global (
+	comp.ctxt,
+	NULL,
+	GCC_JIT_GLOBAL_EXPORTED,
+	gcc_jit_context_new_array_type (comp.ctxt,
+					NULL,
+					comp.lisp_obj_type,
+					res.len),
+	code_symbol));
 
-  *nconstants = XFIXNUM (CALLNI (hash-table-count,
-				 CALLNI (comp-data-container-idx,
-					 container)));
+  emit_static_object (text_symbol, d_reloc);
 
-#ifdef USE_POINTER_TO_CONSTANTS
-  /* volatile Lisp_Object *CODE_SYMBOL[1] */
-  EMACS_INT len = 1;
-  gcc_jit_type *type = gcc_jit_type_get_volatile (comp.lisp_obj_ptr_type);
-#else
-  /* Lisp_Object CODE_SYMBOL[N], N = number of constants. */
-  EMACS_INT len = *nconstants;
-  gcc_jit_type *type = comp.lisp_obj_type;
-#endif
-
-  return (reloc_array_t) {
-    .len = len,
-    .r_val = gcc_jit_lvalue_as_rvalue (
-        gcc_jit_context_new_global (
-	  comp.ctxt,
-	  NULL,
-	  GCC_JIT_GLOBAL_EXPORTED,
-	  gcc_jit_context_new_array_type (comp.ctxt, NULL, type, len),
-	code_symbol))
-  };
+  return res;
 }
 
 static void
@@ -2951,13 +2894,11 @@ declare_imported_data (void)
   comp.data_relocs =
     declare_imported_data_relocs (CALLNI (comp-ctxt-d-default, Vcomp_ctxt),
 				  DATA_RELOC_SYM,
-				  TEXT_DATA_RELOC_SYM,
-				  &comp.n_data_relocs);
+				  TEXT_DATA_RELOC_SYM);
   comp.data_relocs_ephemeral =
     declare_imported_data_relocs (CALLNI (comp-ctxt-d-ephemeral, Vcomp_ctxt),
 				  DATA_RELOC_EPHEMERAL_SYM,
-				  TEXT_DATA_RELOC_EPHEMERAL_SYM,
-				  &comp.n_data_relocs_ephemeral);
+				  TEXT_DATA_RELOC_EPHEMERAL_SYM);
 }
 
 /*
@@ -5284,7 +5225,6 @@ load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 static bool
 check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
 {
-#ifndef USE_POINTER_TO_CONSTANTS
   dynlib_handle_ptr handle = comp_u->handle;
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
 
@@ -5303,7 +5243,6 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
       else if (!EQ (x, AREF (comp_u->data_vec, i)))
 	return false;
     }
-#endif
   return true;
 }
 
@@ -5311,54 +5250,6 @@ static void
 unset_cu_load_ongoing (Lisp_Object comp_u)
 {
   XNATIVE_COMP_UNIT (comp_u)->load_ongoing = false;
-}
-
-/* Setup constatns vector in the data segment VEC from Lisp vector
-   CONSTANTS. Store in *N the number of elements in VEC. Store in *ROOT
-   an MPS root for VEC, if one is needed.  */
-
-static void
-setup_constants (comp_data_vector_t vec, Lisp_Object constants,
-		 size_t *n, gc_root_t *root)
-{
-  *n = ASIZE (constants);
-  Lisp_Object *contents = &XVECTOR (constants)->contents[0];
-
-#ifdef USE_POINTER_TO_CONSTANTS
-
-  if (*n > 0)
-    {
-# ifdef HAVE_MPS
-      eassert (*root == NULL);
-      /* Ensure that the root can be scanned. */
-      *vec = NULL;
-      // FIXME/elnroots: ambig works, exact does not.
-      //*root = igc_root_create_exact_ptr (vec);
-      *root = igc_root_create_ambig (vec, vec + 1, "eln constants");
-# endif
-      *vec = contents;
-      *n = 1;
-    }
-  else
-    {
-      *vec = NULL;
-      *root = NULL;
-    }
-
-#else /* not USE_POINTER_TO_CONSTANTS */
-
-# ifdef HAVE_MPS
-  if (*n > 0)
-    {
-      eassert (*root == NULL);
-      /* Ensure that the root can be scanned. */
-      memset (vec, 0, *n * sizeof *vec);
-      *root = igc_root_create_n (vec, *n);
-    }
-# endif
-  memcpy (vec, contents, *n * sizeof *contents);
-
-#endif /* not USE_POINTER_TO_CONSTANTS */
 }
 
 Lisp_Object
@@ -5374,7 +5265,8 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   if (!saved_cu)
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
   comp_u->loaded_once = !NILP (*saved_cu);
-  comp_u->data_eph_relocs = dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
+  Lisp_Object *data_eph_relocs =
+    dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
 
   /* While resurrecting from an image dump loading more than once the
      same compilation unit does not make any sense.  */
@@ -5426,12 +5318,13 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
       bool **f_symbols_with_pos_enabled_reloc =
 	dynlib_sym (handle, F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM);
+      Lisp_Object *data_relocs = comp_u->data_relocs;
       void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
 
       if (!(current_thread_reloc
 	    && f_symbols_with_pos_enabled_reloc
-	    && comp_u->data_relocs
-	    && comp_u->data_eph_relocs
+	    && data_relocs
+	    && data_eph_relocs
 	    && freloc_link_table
 	    && top_level_run)
 	  || NILP (Fstring_equal (load_static_obj (comp_u, LINK_TABLE_HASH_SYM),
@@ -5452,45 +5345,63 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	  comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
 	}
 
-      /* Setup the constants vector.  In the case of
-	 USE_POINTER_TO_CONSTANTS, store a pointer to the contents of
-	 the Lisp vector read, otherwise copy Lisp objects to the vector
-	 created in the data segment.  */
-      setup_constants (comp_u->data_relocs, comp_u->data_vec,
-		       &comp_u->n_data_relocs, &comp_u->data_relocs_root);
+      EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
+#ifdef HAVE_MPS
+      comp_u->n_data_relocs = d_vec_len;
+      if (d_vec_len > 0)
+	comp_u->data_relocs_root = igc_root_create_n (data_relocs, d_vec_len);
+#endif
+      for (EMACS_INT i = 0; i < d_vec_len; i++)
+	data_relocs[i] = AREF (comp_u->data_vec, i);
     }
 
   if (!loading_dump)
     {
+      /* Note: data_ephemeral_vec is not GC protected except than by
+	 this function frame.  After this functions will be
+	 deactivated GC will be free to collect it, but it MUST
+	 survive till 'top_level_run' has finished his job.  We store
+	 into the ephemeral allocation class only objects that we know
+	 are necessary exclusively during the first load.  Once these
+	 are collected we don't have to maintain them in the heap
+	 forever.  */
+      Lisp_Object volatile data_ephemeral_vec = Qnil;
+      /* In case another load of the same CU is active on the stack
+	 all ephemeral data is hold by that frame.  Re-writing
+	 'data_ephemeral_vec' would be not only a waste of cycles but
+	 more importantly would lead to crashes if the contained data
+	 is not cons hashed.  */
       if (!recursive_load)
 	{
-	  eassert (NILP (comp_u->data_eph_vec));
-	  comp_u->data_eph_vec
-	    = load_static_obj (comp_u, TEXT_DATA_RELOC_EPHEMERAL_SYM);
-	  setup_constants (comp_u->data_eph_relocs, comp_u->data_eph_vec,
-			   &comp_u->n_data_eph_relocs,
-			   &comp_u->data_eph_relocs_root);
+	  data_ephemeral_vec =
+	    load_static_obj (comp_u, TEXT_DATA_RELOC_EPHEMERAL_SYM);
+
+	  EMACS_INT d_vec_len = XFIXNUM (Flength (data_ephemeral_vec));
+# ifdef HAVE_MPS
+	  /* The root is only needed until top_level_run below has
+	     completed.  Beware of recursice loads. */
+	  comp_u->data_eph_relocs = data_eph_relocs;
+	  comp_u->n_data_eph_relocs = d_vec_len;
+	  if (d_vec_len > 0)
+	    comp_u->data_eph_relocs_root
+	      = igc_root_create_n (data_eph_relocs, d_vec_len);
+# endif
+	  for (EMACS_INT i = 0; i < d_vec_len; i++)
+	    data_eph_relocs[i] = AREF (data_ephemeral_vec, i);
 	}
 
       /* Executing this will perform all the expected environment
 	 modifications.  */
-      /* FIXME/igc: (1) Can top_level_run signal, and is this then safe
-	 then (leaking MPS roots, for example)? (2) Should we bind
-	 inhibit-quit?  */
       res = top_level_run (comp_u_lisp_obj);
+      /* Make sure data_ephemeral_vec still exists after top_level_run has run.
+	 Guard against sibling call optimization (or any other).  */
+      data_ephemeral_vec = data_ephemeral_vec;
       eassert (check_comp_unit_relocs (comp_u));
 
-      if (!recursive_load)
-	{
-	  /* No longer needed after top-level code has run.  Let the
-	     vector be GC'd. */
-	  comp_u->data_eph_vec = Qnil;
 # ifdef HAVE_MPS
-	  /* Get rid of the root for ephemeral objects (objects only
-	     used by top-level code.  */
-	  igc_root_destroy_comp_unit_eph (comp_u);
+      if (!recursive_load)
+	igc_root_destroy_comp_unit_eph (comp_u);
 # endif
-	}
     }
 
 
@@ -5617,11 +5528,7 @@ This gets called by top_level_run during the load phase.  */)
   eassert (NILP (Fgethash (c_name, cu->lambda_c_name_idx_h, Qnil)));
   Fputhash (c_name, reloc_idx, cu->lambda_c_name_idx_h);
   /* Do the real relocation fixup.  */
-# ifdef USE_POINTER_TO_CONSTANTS
-  (*cu->data_relocs)[XFIXNUM (reloc_idx)] = tem;
-# else
   cu->data_relocs[XFIXNUM (reloc_idx)] = tem;
-# endif
 
   return tem;
 }
