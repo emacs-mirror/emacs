@@ -163,5 +163,65 @@
       (vc-test--exec-after-wait)
       (should (eq (point) (point-min))))))
 
+(ert-deftest vc-test-do-command-1 ()
+  "Test `vc-run-command' synchronous, discarding stderr."
+  (with-temp-buffer
+    (vc-do-command '(t nil) 0 "sh" nil "-c" "echo foo; echo >&2 bar")
+    (should (equal (buffer-string) "foo\n"))))
+
+(ert-deftest vc-test-do-command-2 ()
+  "Test `vc-run-command' synchronous, keeping stderr."
+  (with-temp-buffer
+    (vc-do-command t 0 "sh" nil "-c" "echo foo; echo >&2 bar")
+    (goto-char (point-min))
+    (should (save-excursion (re-search-forward "foo" nil t)))
+    (should (save-excursion (re-search-forward "bar" nil t)))))
+
+(ert-deftest vc-test-do-command-3 ()
+  "Test `vc-run-command' synchronous, discarding both."
+  (with-temp-buffer
+    (vc-do-command '(nil t) 0 "sh" nil "-c" "echo foo; echo >&2 bar")
+    (should (bobp))))
+
+(ert-deftest vc-test-do-command-4 ()
+  "Test `vc-run-command' asynchronous, discarding stderr."
+  (with-temp-buffer
+    (let ((proc (vc-do-command '(t nil) 'async "sh" nil
+                               "-c" "echo foo; echo >&2 bar"))
+          success)
+      (vc-test--exec-after-wait)
+      (should (equal (buffer-string) "foo\n")))))
+
+(ert-deftest vc-test-do-command-5 ()
+  "Test `vc-run-command' asynchronous, keeping stderr."
+  (with-temp-buffer
+    (let ((proc (vc-do-command t 'async "sh" nil
+                               "-c" "echo foo; echo >&2 bar"))
+          success)
+      (vc-test--exec-after-wait)
+      (goto-char (point-min))
+      (should (save-excursion (re-search-forward "foo" nil t)))
+      (should (save-excursion (re-search-forward "bar" nil t))))))
+
+(ert-deftest vc-test-do-command-6 ()
+  "Test `vc-run-command' asynchronous, discarding both."
+  (with-temp-buffer
+    (let ((proc (vc-do-command '(nil t) 'async "sh" nil
+                               "-c" "echo foo; echo >&2 bar"))
+          success)
+      (vc-test--exec-after-wait)
+      (should (bobp)))))
+
+(ert-deftest vc-test-do-command-7 ()
+  "Test `vc-run-command' setting up the buffer."
+  (let ((buf (generate-new-buffer " *temp*" t)))
+    (unwind-protect
+        (progn
+          (vc-do-command (list buf nil) 0 "sh" nil
+                         "-c" "echo foo; echo >&2 bar")
+          (with-current-buffer buf
+            (should (equal (buffer-string) "foo\n"))))
+      (kill-buffer buf))))
+
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here

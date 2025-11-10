@@ -1518,7 +1518,7 @@ REV is the revision to check out into WORKFILE."
   ;; XXX: We can't pass DIR directly to 'hg status' because that
   ;; returns all ignored files if FILES is non-nil (bug#22481).
   (let ((default-directory dir))
-    (apply #'vc-hg-command (current-buffer) 'async files
+    (apply #'vc-hg-command '(t nil) 'async files
            "status" (concat "-mardu" (if files "i")) "-C"
            (if (version<= "4.2" (vc-hg--program-version))
                '("--config" "commands.status.relative=1")
@@ -1700,7 +1700,7 @@ This runs the command \"hg merge\"."
 (defun vc-hg-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-hg.el.
 This function differs from `vc-do-command' in that
-- BUFFER may be nil
+- BUFFER nil means use a buffer called \"*vc*\"
 - it invokes `vc-hg-program' and passes `vc-hg-global-switches' to it
   before FLAGS."
   ;; Commands which pass command line arguments which might
