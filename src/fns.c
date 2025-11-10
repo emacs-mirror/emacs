@@ -5512,8 +5512,7 @@ strong_copy_hash_table (Lisp_Object table)
     {
       /* Never freed.  */
       hash_table_being_accessed
-	= igc_xzalloc_ambig_with_label (sizeof (
-					  *hash_table_being_accessed),
+	= igc_xzalloc_ambig_with_label (sizeof *hash_table_being_accessed,
 					"hash_table_being_accessed");
     }
   hash_table_being_accessed->strong = XWEAK_HASH_TABLE (table)->strong;
