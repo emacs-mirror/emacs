@@ -141,8 +141,6 @@
 (defvar company-tooltip-align-annotations)
 (defvar tramp-ssh-controlmaster-options)
 (defvar tramp-use-ssh-controlmaster-options)
-(defvar eglot-semantic-tokens-faces)
-(defvar eglot-semantic-tokens-modifier-faces)
 
 
 ;;; Obsolete aliases
@@ -630,6 +628,71 @@ Note additionally:
           `(choice ,@basic-choices
                    (string :tag "Specify your own")))
   :package-version '(Eglot . "1.19"))
+
+(defcustom eglot-semantic-tokens-faces
+  '(("namespace" . font-lock-keyword-face)
+    ("type" . font-lock-type-face)
+    ("class" . font-lock-type-face)
+    ("enum" . font-lock-type-face)
+    ("interface" . font-lock-type-face)
+    ("struct" . font-lock-type-face)
+    ("typeParameter" . font-lock-type-face)
+    ("parameter" . font-lock-variable-name-face)
+    ("variable" . font-lock-variable-name-face)
+    ("property" . font-lock-property-use-face)
+    ("enumMember" . font-lock-constant-face)
+    ("event" . font-lock-variable-name-face)
+    ("function" . font-lock-function-name-face)
+    ("method" . font-lock-function-name-face)
+    ("macro" . font-lock-preprocessor-face)
+    ("keyword" . font-lock-keyword-face)
+    ("modifier" . font-lock-function-name-face)
+    ("comment" . font-lock-comment-face)
+    ("string" . font-lock-string-face)
+    ("number" . font-lock-constant-face)
+    ("regexp" . font-lock-string-face)
+    ("operator" . font-lock-function-name-face)
+    ("decorator" . font-lock-type-face))
+  "Alist of faces to use to highlight semantic tokens.
+Each element is a cons cell whose car is a token type name and cdr is
+the face to use."
+  :type `(alist :key-type (string :tag "Token name")
+                :value-type (choice (face :tag "Face")
+                                    (plist :tag "Face Attributes"
+                                           :key-type
+                                           (choice
+                                            ,@(mapcar
+                                               (lambda (cell)
+                                                 `(const :tag ,(capitalize
+                                                                (cdr cell))
+                                                         ,(car cell)))
+                                               face-attribute-name-alist))))))
+
+(defcustom eglot-semantic-tokens-modifier-faces
+  '(("declaration" . font-lock-function-name-face)
+    ("definition" . font-lock-function-name-face)
+    ("readonly" . font-lock-constant-face)
+    ("static" . font-lock-keyword-face)
+    ("deprecated" . eglot-diagnostic-tag-deprecated-face)
+    ("abstract" . font-lock-keyword-face)
+    ("async" . font-lock-preprocessor-face)
+    ("modification" . font-lock-function-name-face)
+    ("documentation" . font-lock-doc-face)
+    ("defaultLibrary" . font-lock-builtin-face))
+  "List of face to use to highlight tokens with modifiers.
+Each element is a cons cell whose car is a modifier name and cdr is
+the face to use."
+  :type `(alist :key-type (string :tag "Token name")
+                :value-type (choice (face :tag "Face")
+                                    (plist :tag "Face Attributes"
+                                           :key-type
+                                           (choice
+                                            ,@(mapcar
+                                               (lambda (cell)
+                                                 `(const :tag ,(capitalize
+                                                                (cdr cell))
+                                                         ,(car cell)))
+                                               face-attribute-name-alist))))))
 
 (defvar eglot-withhold-process-id nil
   "If non-nil, Eglot will not send the Emacs process id to the language server.
@@ -4531,74 +4594,94 @@ If NOERROR, return predicate, else erroring function."
 
 
 ;;; Semantic tokens
-
-(defcustom eglot-semantic-tokens-faces
-  '(("namespace" . font-lock-keyword-face)
-    ("type" . font-lock-type-face)
-    ("class" . font-lock-type-face)
-    ("enum" . font-lock-type-face)
-    ("interface" . font-lock-type-face)
-    ("struct" . font-lock-type-face)
-    ("typeParameter" . font-lock-type-face)
-    ("parameter" . font-lock-variable-name-face)
-    ("variable" . font-lock-variable-name-face)
-    ("property" . font-lock-property-use-face)
-    ("enumMember" . font-lock-constant-face)
-    ("event" . font-lock-variable-name-face)
-    ("function" . font-lock-function-name-face)
-    ("method" . font-lock-function-name-face)
-    ("macro" . font-lock-preprocessor-face)
-    ("keyword" . font-lock-keyword-face)
-    ("modifier" . font-lock-function-name-face)
-    ("comment" . font-lock-comment-face)
-    ("string" . font-lock-string-face)
-    ("number" . font-lock-constant-face)
-    ("regexp" . font-lock-string-face)
-    ("operator" . font-lock-function-name-face)
-    ("decorator" . font-lock-type-face))
-  "Alist of faces to use to highlight semantic tokens.
-Each element is a cons cell whose car is a token type name and cdr is
-the face to use."
-  :type `(alist :key-type (string :tag "Token name")
-                :value-type (choice (face :tag "Face")
-                                    (plist :tag "Face Attributes"
-                                           :key-type
-                                           (choice
-                                            ,@(mapcar
-                                               (lambda (cell)
-                                                 `(const :tag ,(capitalize
-                                                                (cdr cell))
-                                                         ,(car cell)))
-                                               face-attribute-name-alist))))))
-
-(defcustom eglot-semantic-tokens-modifier-faces
-  '(("declaration" . font-lock-function-name-face)
-    ("definition" . font-lock-function-name-face)
-    ("readonly" . font-lock-constant-face)
-    ("static" . font-lock-keyword-face)
-    ("deprecated" . eglot-diagnostic-tag-deprecated-face)
-    ("abstract" . font-lock-keyword-face)
-    ("async" . font-lock-preprocessor-face)
-    ("modification" . font-lock-function-name-face)
-    ("documentation" . font-lock-doc-face)
-    ("defaultLibrary" . font-lock-builtin-face))
-  "List of face to use to highlight tokens with modifiers.
-Each element is a cons cell whose car is a modifier name and cdr is
-the face to use."
-  :type `(alist :key-type (string :tag "Token name")
-                :value-type (choice (face :tag "Face")
-                                    (plist :tag "Face Attributes"
-                                           :key-type
-                                           (choice
-                                            ,@(mapcar
-                                               (lambda (cell)
-                                                 `(const :tag ,(capitalize
-                                                                (cdr cell))
-                                                         ,(car cell)))
-                                               face-attribute-name-alist))))))
+(defun eglot--semtok-font-lock (limit)
+  "Apply face property for tokens from point until LIMIT.
+Intended for `font-lock-add-keywords'."
+  (with-slots ((faces semtok-faces)
+               (modifier-faces semtok-modifier-faces)
+               (modifier-cache semtok-modifier-cache))
+      (eglot-current-server)
+    (let (beg (end (point)) tok)
+      (while (and (< end limit)
+                  (setq beg (text-property-not-all end limit 'eglot-semantic-token nil))
+                  (setq end (next-single-property-change beg 'eglot-semantic-token nil limit))
+                  (setq tok (get-text-property beg 'eglot-semantic-token)))
+        (when-let* ((face (aref faces (car tok))))
+          (add-face-text-property beg end face))
+        (let* ((code (cdr tok))
+               (faces (gethash code modifier-cache 'not-found)))
+          (when (eq faces 'not-found)
+            (setq faces (cl-loop for j from 0 below (length modifier-faces)
+                                 if (> (logand code (ash 1 j)) 0)
+                                 if (aref modifier-faces j)
+                                 collect (aref modifier-faces j)))
+            (puthash code faces modifier-cache))
+          (dolist (face faces) (add-face-text-property beg end face)))))
+    nil))
 
 (defvar-local eglot--semtok-idle-timer nil
   "Idle timer to request full semantic tokens.")
+
+(defun eglot--semtok-request-full-on-idle ()
+  "Make a full semantic tokens request after an idle timer."
+  (let* ((buf (current-buffer))
+         (fun (lambda ()
+                (eglot--when-live-buffer buf (eglot--semtok-request)))))
+    (when eglot--semtok-idle-timer (cancel-timer eglot--semtok-idle-timer))
+    (setq eglot--semtok-idle-timer (run-with-idle-timer (* 3 eglot-send-changes-idle-time) nil fun))))
+
+(cl-defmethod eglot-handle-request
+  (server (_method (eql workspace/semanticTokens/refresh)))
+  "Handle a semanticTokens/refresh request from SERVER."
+  (dolist (buffer (eglot--managed-buffers server))
+    (eglot--when-live-buffer buffer
+      (cl-incf eglot--versioned-identifier)
+      (font-lock-flush))))
+
+(defun eglot--semtok-build-face-map (identifiers faces category varname)
+  "Build map of FACES for IDENTIFIERS using CATEGORY and VARNAME."
+  (vconcat
+   (mapcar (lambda (id)
+             (let ((maybe-face (cdr (assoc id faces))))
+               (when (not maybe-face)
+                 (eglot--warn "No face has been associated to the %s `%s': consider adding a corresponding definition to %s"
+                                 category id varname))
+               maybe-face))
+           identifiers)))
+
+(defun eglot--semtok-initialize (server)
+  "Initialize SERVER for semantic tokens."
+  (cl-destructuring-bind (&key tokenTypes tokenModifiers &allow-other-keys)
+      (plist-get (plist-get (eglot--capabilities server)
+                            :semanticTokensProvider)
+                 :legend)
+    (oset server semtok-faces
+          (eglot--semtok-build-face-map
+           tokenTypes eglot-semantic-tokens-faces
+           "semantic token" "eglot-semantic-tokens-faces"))
+    (oset server semtok-modifier-faces
+          (eglot--semtok-build-face-map
+           tokenModifiers eglot-semantic-tokens-modifier-faces
+           "semantic token modifier" "eglot-semantic-tokens-modifier-faces"))))
+
+(define-minor-mode eglot-semantic-tokens-mode
+  "Minor mode for fontifying buffer with LSP server's semantic tokens."
+  :global nil
+  (when eglot-semantic-tokens-mode
+    (if (not (eglot-server-capable :semanticTokensProvider))
+        (eglot-semantic-tokens-mode -1)
+      (with-silent-modifications
+        (save-restriction
+          (widen)
+          (remove-list-of-text-properties
+           (point-min) (point-max) '(eglot--semtok-propertized))))
+      (jit-lock-register #'eglot--semtok-propertize)
+      (font-lock-add-keywords nil '((eglot--semtok-font-lock)) 'append)
+      (font-lock-flush)))
+  (unless eglot-semantic-tokens-mode
+    (jit-lock-unregister #'eglot--semtok-propertize)
+    (font-lock-remove-keywords nil '((eglot--semtok-font-lock)))
+    (font-lock-flush)))
 
 (defvar-local eglot--semtok-cache nil
   "Cache of the last response from the server.")
@@ -4631,7 +4714,7 @@ the face to use."
      finally do (push (substring old-data old-token-index old-token-count) substrings))
     (apply #'vconcat (nreverse substrings))))
 
-(defun eglot--semtok-ingest-full/delta-response (response)
+(defun eglot--semtok-ingest-delta-response (response)
   "Handle RESPONSE to semanticTokens/full/delta request."
   (if-let* ((edits (plist-get response :edits)))
       (progn
@@ -4668,7 +4751,7 @@ the face to use."
              (and (plist-get response :resultId) (plist-get response :data)
                   (not (plist-get eglot--semtok-cache :region)))))
       (setq method :textDocument/semanticTokens/full/delta)
-      (setq response-handler #'eglot--semtok-ingest-full/delta-response)
+      (setq response-handler #'eglot--semtok-ingest-delta-response)
       (setq params
             (plist-put params :previousResultId
                        (plist-get (plist-get eglot--semtok-cache :response) :resultId))))
@@ -4744,91 +4827,6 @@ Also request new tokens from the server, if necessary."
                                   (cons (aref data (+ i 3))
                                         (aref data (+ i 4))))))
            (put-text-property beg end 'eglot--semtok-propertized eglot--versioned-identifier)))))))
-
-(defun eglot--semtok-fontify-tokens (limit)
-  "Apply face property for tokens from point until LIMIT."
-  (with-slots ((faces semtok-faces)
-               (modifier-faces semtok-modifier-faces)
-               (modifier-cache semtok-modifier-cache))
-      (eglot-current-server)
-    (let (beg (end (point)) tok)
-      (while (and (< end limit)
-                  (setq beg (text-property-not-all end limit 'eglot-semantic-token nil))
-                  (setq end (next-single-property-change beg 'eglot-semantic-token nil limit))
-                  (setq tok (get-text-property beg 'eglot-semantic-token)))
-        (when-let* ((face (aref faces (car tok))))
-          (add-face-text-property beg end face))
-        (let* ((code (cdr tok))
-               (faces (gethash code modifier-cache 'not-found)))
-          (when (eq faces 'not-found)
-            (setq faces (cl-loop for j from 0 below (length modifier-faces)
-                                 if (> (logand code (ash 1 j)) 0)
-                                 if (aref modifier-faces j)
-                                 collect (aref modifier-faces j)))
-            (puthash code faces modifier-cache))
-          (dolist (face faces) (add-face-text-property beg end face)))))
-    nil))
-
-(defun eglot--semtok-request-full-on-idle ()
-  "Make a full semantic tokens request after an idle timer."
-  (let* ((buf (current-buffer))
-         (fun (lambda ()
-                (eglot--when-live-buffer buf (eglot--semtok-request)))))
-    (when eglot--semtok-idle-timer (cancel-timer eglot--semtok-idle-timer))
-    (setq eglot--semtok-idle-timer (run-with-idle-timer (* 3 eglot-send-changes-idle-time) nil fun))))
-
-(cl-defmethod eglot-handle-request
-  (server (_method (eql workspace/semanticTokens/refresh)))
-  "Handle a semanticTokens/refresh request from SERVER."
-  (dolist (buffer (eglot--managed-buffers server))
-    (eglot--when-live-buffer buffer
-      (cl-incf eglot--versioned-identifier)
-      (font-lock-flush))))
-
-(defun eglot--semtok-build-face-map (identifiers faces category varname)
-  "Build map of FACES for IDENTIFIERS using CATEGORY and VARNAME."
-  (vconcat
-   (mapcar (lambda (id)
-             (let ((maybe-face (cdr (assoc id faces))))
-               (when (not maybe-face)
-                 (eglot--warn "No face has been associated to the %s `%s': consider adding a corresponding definition to %s"
-                                 category id varname))
-               maybe-face))
-           identifiers)))
-
-(defun eglot--semtok-initialize (server)
-  "Initialize SERVER for semantic tokens."
-  (cl-destructuring-bind (&key tokenTypes tokenModifiers &allow-other-keys)
-      (plist-get (plist-get (eglot--capabilities server)
-                            :semanticTokensProvider)
-                 :legend)
-    (oset server semtok-faces
-          (eglot--semtok-build-face-map
-           tokenTypes eglot-semantic-tokens-faces
-           "semantic token" "eglot-semantic-tokens-faces"))
-    (oset server semtok-modifier-faces
-          (eglot--semtok-build-face-map
-           tokenModifiers eglot-semantic-tokens-modifier-faces
-           "semantic token modifier" "eglot-semantic-tokens-modifier-faces"))))
-
-(define-minor-mode eglot-semantic-tokens-mode
-  "Minor mode for fontifying buffer with LSP server's semantic tokens."
-  :global nil
-  (when eglot-semantic-tokens-mode
-    (if (not (eglot-server-capable :semanticTokensProvider))
-        (eglot-semantic-tokens-mode -1)
-      (with-silent-modifications
-        (save-restriction
-          (widen)
-          (remove-list-of-text-properties
-           (point-min) (point-max) '(eglot--semtok-propertized))))
-      (jit-lock-register #'eglot--semtok-propertize)
-      (font-lock-add-keywords nil '((eglot--semtok-fontify-tokens)) 'append)
-      (font-lock-flush)))
-  (unless eglot-semantic-tokens-mode
-    (jit-lock-unregister #'eglot--semtok-propertize)
-    (font-lock-remove-keywords nil '((eglot--semtok-fontify-tokens)))
-    (font-lock-flush)))
 
 
 ;;; Call and type hierarchies
