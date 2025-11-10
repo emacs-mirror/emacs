@@ -152,7 +152,8 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (_ nil)))
 
 (defvar heex-ts--thing-settings
-  `((sexp
+  `((defun ,(rx bos (or "component" "tag" "slot") eos))
+    (sexp
      (not (or (and named
                    ,(rx bos (or "fragment" "comment") eos))
               (and anonymous
@@ -262,7 +263,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
     ;; Enable the 'sexp' navigation by default
     (setq-local forward-sexp-function #'treesit-forward-sexp
                 treesit-sexp-thing 'sexp
-                hs-treesit-things 'list)))
+                hs-treesit-things '(or defun list))))
 
 (derived-mode-add-parents 'heex-ts-mode '(heex-mode))
 
