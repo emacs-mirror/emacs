@@ -682,11 +682,16 @@ Skip \"internal\" overlays if `hs-allow-nesting' is non-nil."
         (delete-overlay ov))))
   (hs--refresh-indicators from to))
 
-(defun hs-hideable-region-p (beg end)
-  "Return t if region in BEG and END can be hidden."
+(defun hs-hideable-region-p (&optional beg end)
+  "Return t if region in BEG and END can be hidden.
+If BEG and END are not specified, it will try to check at the current
+block at point."
   ;; Check if BEG and END are not in the same line number,
   ;; since using `count-lines' is slow.
-  (< beg (save-excursion (goto-char end) (line-beginning-position))))
+  (if (and beg end)
+      (< beg (save-excursion (goto-char end) (line-beginning-position)))
+    (when-let* ((block (hs-block-positions)))
+      (apply #'hs-hideable-region-p block))))
 
 (defun hs-make-overlay (b e kind &optional b-offset e-offset)
   "Return a new overlay in region defined by B and E with type KIND.
@@ -729,7 +734,7 @@ to call with the newly initialized overlay."
 
 (defun hs-block-positions ()
   "Return the current code block positions.
-This returns a cons-cell with the current code block beginning and end
+This returns a list with the current code block beginning and end
 positions.  This does nothing if there is not a code block at current
 point."
   (save-match-data
@@ -759,7 +764,7 @@ point."
             (setq block-end
                   (or (funcall hs-adjust-block-end-function block-beg)
                       block-end)))
-          (cons block-beg block-end))))))
+          (list block-beg block-end))))))
 
 (defun hs--make-indicators-overlays (beg)
   "Helper function to make the indicators overlays."
@@ -830,9 +835,9 @@ point."
                            (point))))
                 ;; Check if block is longer than 1 line.
                 (_ (hs-hideable-region-p b-beg b-end)))
-      (hs--make-indicators-overlays b-beg))
-    ;; Only 1 indicator per line
-    (forward-line 1))
+      ;; Only 1 indicator per line
+      (when (hs--make-indicators-overlays b-beg)
+        (forward-line))))
   `(jit-lock-bounds ,beg . ,end))
 
 (defun hs--refresh-indicators (from to)
@@ -953,8 +958,8 @@ Otherwise, return nil."
   (if comment-reg
       (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
     (when-let* ((block (hs-block-positions)))
-      (let ((p (car-safe block))
-            (q (cdr-safe block))
+      (let ((p (car block))
+            (q (cadr block))
             ov)
         (if (hs-hideable-region-p p q)
             (progn
@@ -1235,7 +1240,8 @@ Upon completion, point is repositioned and the normal hook
 `hs-hide-hook' is run.  See documentation for `run-hooks'."
   (interactive "P")
   (hs-life-goes-on
-   (let ((c-reg (funcall hs-inside-comment-predicate)))
+   (let ((c-reg (funcall hs-inside-comment-predicate))
+         (pos (point)))
      (cond
       ((and c-reg (or (null (nth 0 c-reg))
                       (not (hs-hideable-region-p (car c-reg) (nth 1 c-reg)))))
@@ -1244,20 +1250,24 @@ Upon completion, point is repositioned and the normal hook
       (c-reg (hs-hide-block-at-point end c-reg))
 
       ((or (and (eq hs-hide-block-behavior 'after-bol)
-                (save-excursion
-                  (goto-char (line-beginning-position))
-                  (funcall hs-find-next-block-function hs-block-start-regexp
-                           (line-end-position) nil))
+                (setq pos (point))
+                (goto-char (line-beginning-position))
+                (catch 'hs--exit-hide
+                  (while (and (funcall hs-find-next-block-function
+                                       hs-block-start-regexp
+                                       (line-end-position) nil)
+                              (save-excursion
+                                (goto-char (match-beginning 0))
+                                (if (hs-hideable-region-p)
+                                    (throw 'hs--exit-hide t)
+                                  t)))))
                 (goto-char (match-beginning 0)))
-           (funcall hs-looking-at-block-start-predicate))
-       ;; If hiding the block fails (due the block is not hideable)
-       ;; then just hide the parent block (if possible)
-       (unless (save-excursion (hs-hide-block-at-point end))
-         (goto-char (1- (point)))
-         (funcall hs-find-block-beginning-function)
-         (hs-hide-block-at-point end)))
+           (and (goto-char pos)
+                (funcall hs-looking-at-block-start-predicate)))
+       (hs-hide-block-at-point end))
 
-      ((funcall hs-find-block-beginning-function)
+      ((and (goto-char (line-beginning-position))
+            (funcall hs-find-block-beginning-function))
        (hs-hide-block-at-point end)))
 
      (run-hooks 'hs-hide-hook))))
