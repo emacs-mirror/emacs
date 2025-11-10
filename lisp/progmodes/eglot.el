@@ -4586,8 +4586,9 @@ If NOERROR, return predicate, else erroring function."
 
 
 ;;; Semantic tokens
-(defun eglot--semtok-fontify-tokens (limit)
-  "Apply face property for tokens from point until LIMIT."
+(defun eglot--semtok-font-lock (limit)
+  "Apply face property for tokens from point until LIMIT.
+Intended for `font-lock-add-keywords'."
   (with-slots ((faces semtok-faces)
                (modifier-faces semtok-modifier-faces)
                (modifier-cache semtok-modifier-cache))
@@ -4667,11 +4668,11 @@ If NOERROR, return predicate, else erroring function."
           (remove-list-of-text-properties
            (point-min) (point-max) '(eglot--semtok-propertized))))
       (jit-lock-register #'eglot--semtok-propertize)
-      (font-lock-add-keywords nil '((eglot--semtok-fontify-tokens)) 'append)
+      (font-lock-add-keywords nil '((eglot--semtok-font-lock)) 'append)
       (font-lock-flush)))
   (unless eglot-semantic-tokens-mode
     (jit-lock-unregister #'eglot--semtok-propertize)
-    (font-lock-remove-keywords nil '((eglot--semtok-fontify-tokens)))
+    (font-lock-remove-keywords nil '((eglot--semtok-font-lock)))
     (font-lock-flush)))
 
 (defvar-local eglot--semtok-cache nil
@@ -4705,7 +4706,7 @@ If NOERROR, return predicate, else erroring function."
      finally do (push (substring old-data old-token-index old-token-count) substrings))
     (apply #'vconcat (nreverse substrings))))
 
-(defun eglot--semtok-ingest-full/delta-response (response)
+(defun eglot--semtok-ingest-delta-response (response)
   "Handle RESPONSE to semanticTokens/full/delta request."
   (if-let* ((edits (plist-get response :edits)))
       (progn
@@ -4742,7 +4743,7 @@ If NOERROR, return predicate, else erroring function."
              (and (plist-get response :resultId) (plist-get response :data)
                   (not (plist-get eglot--semtok-cache :region)))))
       (setq method :textDocument/semanticTokens/full/delta)
-      (setq response-handler #'eglot--semtok-ingest-full/delta-response)
+      (setq response-handler #'eglot--semtok-ingest-delta-response)
       (setq params
             (plist-put params :previousResultId
                        (plist-get (plist-get eglot--semtok-cache :response) :resultId))))
