@@ -341,7 +341,9 @@ This keymap inherits from `compilation-minor-mode-map'."
      :help "Kill the currently running grep process"]
     "----"
     ["Toggle command abbreviation" grep-find-toggle-abbreviation
-     :help "Toggle showing verbose command options"]))
+     :help "Toggle showing verbose command options"]
+    ["Edit Grep Buffer" grep-change-to-grep-edit-mode
+     :help "Edit the *grep* buffer and apply changes to the original buffers."]))
 
 (defvar grep-mode-tool-bar-map
   ;; When bootstrapping, tool-bar-map is not properly initialized yet,
