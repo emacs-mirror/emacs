@@ -3007,6 +3007,92 @@ CPerl mode creates imenu entries for ":writer" generated accessors and
 recognizes the new functions "all" and "any".
 See https://perldoc.perl.org/5.42.0/perldelta for details.
 
+** Zone
+Zone can scramble multiple windows across multiple frames; it may also
+reorganize frames to be a single window.  As before, when a key or mouse
+event occurs, all of the frames and windows are restored to their
+original state.  This is controlled by three new customization flags
+which control the use of frames and windows beyond the currently active
+ones.  It is identifies suitable buffers for zoning out so that
+potentially important buffer contents are not exposed.
+
+When a zone program encounters an error, it will apologize for a minute
+and then start a new round of zoning.  Previously, it just kept
+apologizing.  Finally, zone does not pollute the *Messages* buffer with
+extraneous messages.
+
+**** New function 'zone-add-program'
+This function accepts a symbol, whose name starts with "zone-pgm-", that
+runs a zone program when 'zone' is invoked.  It adds the program to the
+'zone-programs' vector if it is not already present.''
+
+**** New functipon 'zone-remove-program'
+This function removes a program from the 'zone-programs' vector.  If the
+parameter is a symbol, and the symbol is present in the vector, it is
+removed.  If the parameter is a string, it is a regular expression that
+will remove any programs whose name matches the parameter pattern.
+
+*** Multi-window and -frame customization options
+Prior to this update, zone would only (safely) scramble the contents of
+the current window on the current frame.  Now, with the use of these
+three options, it is possible to scramble to contents of all windows
+across all frames.  It is also possible to make frames single window
+displays while zoning.  But when zoning is interrupted by a key- or
+mouse-press, the original window layout across all frames is restored.
+
+**** New user option 'zone-delete-other-windows'
+When non-nil, the frame is made into a single full frame window to hold
+the zoned buffer.  If all frames were to be used (`zone-all-frames' set
+to non-nil), then all frames are converted to single window frames.
+
+**** New user option 'zone-all-frames'
+When non-nil, zone will appear on all visible frames.  While the buffer
+scrambling will appear on each frame, it will be the same buffer so they
+will all behave the same way.
+
+**** New user option 'zone-all-windows-in-frame'
+When non-nil, the zoned buffer will be mapped to all of the windows
+present on the frame.  If the option is nil, then only the selected
+window will show the zoned buffer.  Note, however, that each window
+holding the zoned buffer is showing the same zoned buffer.
+
+*** Selecting source buffers suitable for zoning
+When the idle timer, or the user, invokes `zone', the current buffer may
+not be appropriate as the source of the zone buffer.  For example,
+encrypted buffers, empty buffers, or specialized buffers like
+`*Messages*' probably shouldn't have their content splashed across zoned
+windows.  So the selection of a suitable buffer for zoning can be controlled with a variable that identifies buffers with concerns.
+
+**** New variable 'zone-ignored-buffers'
+The variable is a list of criteria for excluding a buffer from
+consideration as the source of zoning.  The list has entries that are
+tested against each buffer until a suitable one is found.  The criteria
+can be a symbol that ends in `-mode' which excludes buffers that are in
+a mode derived from the specified mode.  It may also be a function-bound
+symbol or lambda expression that is called with a buffer that returns a
+non-nil value if it should not be the zone source.  Finally, an entry
+can also be a regular expression string that must not match the buffer's
+name.
+
+Initially, the list excludes buffers in a special-mode, in an
+image-mode, contains an encrypted file, is an empty buffer, is a hidden
+buffer, or is the `*scratch*' buffer.  If it cannot locate any
+acceptable buffers, it will begrudgingly use the scratch buffer.
+
+*** Zone hooks
+Hooks have been added to notify programs of the start and end of zone activity.  For example, you may want to credit time spent zoning as a Pomodoro break.
+
+**** New hook 'zone-start-hook'
+This hook contains functions that are invoked when zoning is about to begin.
+
+**** New hook 'zone-finish-hook'
+This hook contains functions that are invoked when zoning has finished.
+
+**** New variable 'zone-time-elapsed-while-zoning'
+This is the elapsed time between the start and finish hooks.  So this
+represents how long Emacs was zoning.  Zone calculates this so that the
+finish hook can communicate this to other modes if necessary.
+
 
 * New Modes and Packages in Emacs 31.1
 
