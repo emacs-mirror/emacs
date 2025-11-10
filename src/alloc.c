@@ -3855,7 +3855,9 @@ Its value is void, and its function definition and property list are nil.  */)
 Lisp_Object
 make_misc_ptr (void *a)
 {
+#ifdef HAVE_MPS
   igc_assert_not_an_mps_object (a);
+#endif
   struct Lisp_Misc_Ptr *p = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Misc_Ptr,
 							 PVEC_MISC_PTR);
   p->pointer = a;
@@ -3986,7 +3988,9 @@ make_event_array (ptrdiff_t nargs, Lisp_Object *args)
 Lisp_Object
 make_user_ptr (void (*finalizer) (void *), void *p)
 {
+#ifdef HAVE_MPS
   igc_assert_not_an_mps_object (p);
+#endif
   struct Lisp_User_Ptr *uptr
     = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_User_Ptr, PVEC_USER_PTR);
   uptr->finalizer = finalizer;
