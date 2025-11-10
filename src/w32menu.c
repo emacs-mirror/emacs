@@ -1622,7 +1622,9 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  /* Set help string for menu item.  Leave it as a pointer to
 	     a Lisp_String until it is ready to be displayed, since GC
 	     can happen while menus are active.  */
-	  if (!NILP (wv->help))
+	  /* FIXME/igc: store a gc_handle in info.dwItemData */
+	  Lisp_Object help = gc_handle_value (wv->help);
+	  if (!NILP (help))
 	    {
 	      /* We use XUNTAG below because in a 32-bit build
 		 --with-wide-int we cannot pass a Lisp_Object
@@ -1632,8 +1634,8 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 		 be ULONG_PTR, which is correct for 32-bit and 64-bit
 		 Windows alike.  MSVC headers get it right; hopefully,
 		 MinGW headers will, too.  */
-	      eassert (STRINGP (wv->help));
-	      info.dwItemData = (ULONG_PTR) XUNTAG (wv->help, Lisp_String,
+	      eassert (STRINGP (help));
+	      info.dwItemData = (ULONG_PTR) XUNTAG (help, Lisp_String,
 						    struct Lisp_String);
 	    }
 	  if (wv->button_type == BUTTON_TYPE_RADIO)
