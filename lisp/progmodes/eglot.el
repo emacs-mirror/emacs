@@ -1665,8 +1665,7 @@ Use current server's or first available Eglot events buffer."
   (jsonrpc-forget-pending-continuations server))
 
 (defvar eglot-connect-hook
-  '(eglot-signal-didChangeConfiguration
-    eglot--semtok-initialize)
+  '(eglot-signal-didChangeConfiguration)
   "Hook run after connecting to a server.
 Each function is passed an `eglot-lsp-server' instance
 as argument.")
@@ -1821,6 +1820,7 @@ This docstring appeases checkdoc, that's all."
                                 (gethash project eglot--servers-by-project))
                           (setf (eglot--capabilities server) capabilities)
                           (setf (eglot--server-info server) serverInfo)
+                          (eglot--semtok-initialize server)
                           (jsonrpc-notify server :initialized eglot--{})
                           (dolist (buffer (buffer-list))
                             (with-current-buffer buffer
@@ -4586,30 +4586,22 @@ If NOERROR, return predicate, else erroring function."
 
 
 ;;; Semantic tokens
-(defun eglot--semtok-font-lock (limit)
-  "Apply face property for tokens from point until LIMIT.
-Intended for `font-lock-add-keywords'."
-  (with-slots ((faces semtok-faces)
+(defun eglot--semtok-token-faces (tok)
+  (with-slots (semtok-faces
                (modifier-faces semtok-modifier-faces)
                (modifier-cache semtok-modifier-cache))
       (eglot-current-server)
-    (let (beg (end (point)) tok)
-      (while (and (< end limit)
-                  (setq beg (text-property-not-all end limit 'eglot-semantic-token nil))
-                  (setq end (next-single-property-change beg 'eglot-semantic-token nil limit))
-                  (setq tok (get-text-property beg 'eglot-semantic-token)))
-        (when-let* ((face (aref faces (car tok))))
-          (add-face-text-property beg end face))
-        (let* ((code (cdr tok))
-               (faces (gethash code modifier-cache 'not-found)))
-          (when (eq faces 'not-found)
-            (setq faces (cl-loop for j from 0 below (length modifier-faces)
-                                 if (> (logand code (ash 1 j)) 0)
-                                 if (aref modifier-faces j)
-                                 collect (aref modifier-faces j)))
-            (puthash code faces modifier-cache))
-          (dolist (face faces) (add-face-text-property beg end face)))))
-    nil))
+    (let* ((code (cdr tok))
+           (mods (gethash code modifier-cache 'not-found)))
+      (when (eq mods 'not-found)
+        (setq mods (cl-loop for j from 0 below (length modifier-faces)
+                             if (> (logand code (ash 1 j)) 0)
+                             if (aref modifier-faces j)
+                             collect (aref modifier-faces j)))
+        (puthash code mods modifier-cache))
+      (if-let* ((main (aref semtok-faces (car tok))))
+          (cons main mods)
+        mods))))
 
 (defvar-local eglot--semtok-idle-timer nil
   "Idle timer to request full semantic tokens.")
@@ -4634,37 +4626,29 @@ Intended for `font-lock-add-keywords'."
 
 (defun eglot--semtok-initialize (server)
   "Initialize SERVER for semantic tokens."
-  (cl-destructuring-bind (&key tokenTypes tokenModifiers &allow-other-keys)
-      (plist-get (plist-get (eglot--capabilities server)
-                            :semanticTokensProvider)
-                 :legend)
-    (oset server semtok-faces
-          (eglot--semtok-build-face-map
-           tokenTypes eglot-semantic-tokens-faces
-           "semantic token" "eglot-semantic-tokens-faces"))
-    (oset server semtok-modifier-faces
-          (eglot--semtok-build-face-map
-           tokenModifiers eglot-semantic-tokens-modifier-faces
-           "semantic token modifier" "eglot-semantic-tokens-modifier-faces"))))
+  (with-slots (semtok-faces semtok-modifier-faces capabilities) server
+    ;; FIXME: eglot-dbind
+    (cl-destructuring-bind (&key tokenTypes tokenModifiers &allow-other-keys)
+        (plist-get (plist-get capabilities :semanticTokensProvider) :legend)
+      (setq semtok-faces
+            (eglot--semtok-build-face-map
+             tokenTypes eglot-semantic-tokens-faces
+             "semantic token" 'eglot-semantic-tokens-faces)
+            semtok-modifier-faces
+            (eglot--semtok-build-face-map
+             tokenModifiers eglot-semantic-tokens-modifier-faces
+             "semantic token modifier" 'eglot-semantic-tokens-modifier-faces)))))
 
 (define-minor-mode eglot-semantic-tokens-mode
   "Minor mode for fontifying buffer with LSP server's semantic tokens."
   :global nil
-  (when eglot-semantic-tokens-mode
-    (if (not (eglot-server-capable :semanticTokensProvider))
-        (eglot-semantic-tokens-mode -1)
-      (with-silent-modifications
-        (save-restriction
-          (widen)
-          (remove-list-of-text-properties
-           (point-min) (point-max) '(eglot--semtok-propertized))))
-      (jit-lock-register #'eglot--semtok-jit-lock)
-      (font-lock-add-keywords nil '((eglot--semtok-font-lock)) 'append)
-      (font-lock-flush)))
-  (unless eglot-semantic-tokens-mode
-    (jit-lock-unregister #'eglot--semtok-jit-lock)
-    (font-lock-remove-keywords nil '((eglot--semtok-font-lock)))
-    (font-lock-flush)))
+  (cond (eglot-semantic-tokens-mode
+         (if (not (eglot-server-capable :semanticTokensProvider))
+             (eglot-semantic-tokens-mode -1)
+           (jit-lock-register #'eglot--semtok-jit-lock 'contextual)))
+        (t
+         (font-lock-flush)
+         (jit-lock-unregister #'eglot--semtok-jit-lock))))
 
 (defvar-local eglot--semtok-cache nil
   "Cache of the last response from the server.")
@@ -4703,8 +4687,7 @@ Intended for `font-lock-add-keywords'."
                                    :method method
                                    :response (funcall cont response)
                                    :from from :to to))
-                       (eglot--semtok-jit-lock-1 beg end)
-                       (font-lock-flush beg end))))
+                       (eglot--semtok-jit-lock-1 beg end))))
                  :hint method))
               (cache-get (&rest path)
                 (let ((x eglot--semtok-cache))
@@ -4753,44 +4736,38 @@ lock machinery calls us again."
                   eglot--versioned-identifier)
               (and (<= (plist-get eglot--semtok-cache :from) beg)
                    (<= end (plist-get eglot--semtok-cache :to))))
-         (eglot--semtok-jit-lock-1 beg end))
+         (eglot--semtok-jit-lock-1 beg end)
+         `(jit-lock-bounds ,beg . ,end))
         (t
-         (eglot--semtok-request beg end))))
+         (eglot--semtok-request beg end)
+         `(jit-lock-bounds ,0 . ,0))))
 
 (defun eglot--semtok-jit-lock-1 (beg end)
   (eglot--widening
    (with-silent-modifications
-     ;; when full tokens are available, add some margins for performance
-     (unless (plist-get eglot--semtok-cache :region)
-       (setq beg (max (point-min) (- beg (* 5 jit-lock-chunk-size))))
-       (setq end (min (point-max) (+ end (* 5 jit-lock-chunk-size)))))
-     (when-let* ((beg (text-property-not-all beg end 'eglot--semtok-propertized
-                                             eglot--versioned-identifier)))
-       (setq beg (prog2 (goto-char beg) (eglot--bol)))
-       (when (eq (get-text-property end 'eglot--semtok-propertized)
-                 eglot--versioned-identifier)
-         (setq end (previous-single-property-change end 'eglot--semtok-propertized nil beg)))
-       (let* ((data (plist-get (plist-get eglot--semtok-cache :response) :data))
-              (i-max (length data))
-              (property-beg)
-              (property-end))
-         (remove-list-of-text-properties beg end '(eglot-semantic-token))
-         (goto-char (point-min))
-         (cl-do ((i 0 (+ i 5)) (column 0)) ((>= i i-max))
-           (when (> (aref data i) 0)
-             (setq column 0)
-             (forward-line (aref data i)))
-           (unless (< (point) beg)
-             (setq column (+ column (aref data (+ i 1))))
-             (funcall eglot-move-to-linepos-function column)
-             (when (> (point) end) (cl-return))
-             (setq property-beg (point))
-             (funcall eglot-move-to-linepos-function (+ column (aref data (+ i 2))))
-             (setq property-end (point))
-             (put-text-property property-beg property-end 'eglot-semantic-token
-                                (cons (aref data (+ i 3))
-                                      (aref data (+ i 4))))))
-         (put-text-property beg end 'eglot--semtok-propertized eglot--versioned-identifier))))))
+     (remove-list-of-text-properties beg end '(font-lock-face))
+     (goto-char (point-min))
+     (cl-loop
+      with data = (plist-get (plist-get eglot--semtok-cache :response) :data)
+      with column = 0 with p-beg = 0 with p-end = 0
+      for i from 0 below (length data) by 5
+      when (> (aref data i) 0) do
+        (setq column 0)
+        (forward-line (aref data i))
+      unless (< (point) beg) do
+        (setq column (+ column (aref data (+ i 1))))
+        (funcall eglot-move-to-linepos-function column)
+        (when (> (point) end) (cl-return napplied))
+        (setq p-beg (point))
+        (funcall eglot-move-to-linepos-function (+ column (aref data (+ i 2))))
+        (setq p-end (point))
+        (let ((tok (cons (aref data (+ i 3))
+                         (aref data (+ i 4)))))
+          (put-text-property p-beg p-end 'eglot-semantic-token tok)
+          (dolist (f (eglot--semtok-token-faces tok))
+            (add-face-text-property p-beg p-end f ;; 'append
+                                    )))
+      count 1 into napplied))))
 
 
 ;;; Call and type hierarchies
