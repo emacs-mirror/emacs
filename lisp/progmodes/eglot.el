@@ -4627,8 +4627,7 @@ Intended for `font-lock-add-keywords'."
   "Handle a semanticTokens/refresh request from SERVER."
   (dolist (buffer (eglot--managed-buffers server))
     (eglot--when-live-buffer buffer
-      (cl-incf eglot--versioned-identifier)
-      (font-lock-flush))))
+      (unless (zerop eglot--versioned-identifier) (font-lock-flush)))))
 
 (defun eglot--semtok-build-face-map (identifiers faces category varname)
   "Build map of FACES for IDENTIFIERS using CATEGORY and VARNAME."
