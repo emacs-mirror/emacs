@@ -27,7 +27,7 @@
 
 ;; * Commands provided
 ;;
-;; This file provides Hideshow Minor Mode.  When active, nine commands
+;; This file provides the Hideshow minor mode.  When active, nine commands
 ;; are available, implementing block hiding and showing.  They (and their
 ;; keybindings) are:
 ;;
@@ -1395,7 +1395,8 @@ Key bindings:
       (progn
         (unless (and comment-start comment-end)
           (setq hs-minor-mode nil)
-          (user-error "%S doesn't support Hideshow Minor Mode" major-mode))
+          (user-error "%S doesn't support the Hideshow minor mode"
+                      major-mode))
 
         ;; Set the variables
         (hs-grok-mode-type)
