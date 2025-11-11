@@ -2400,36 +2400,43 @@ Leading \"Re: \" is not stripped by this function.  Use the function
 
 ;;; Suggested by Jonas Steverud  @  www.dtek.chalmers.se/~d4jonas/
 
-(defun message-change-subject (new-subject)
-  "Ask for NEW-SUBJECT header, append (was: <Old Subject>)."
-  (interactive
-   (list
-    (read-from-minibuffer "New subject: "))
-   message-mode)
-  (cond ((and (not (or (null new-subject) ; new subject not empty
-		       (zerop (string-width new-subject))
-		       (string-match "^[ \t]*$" new-subject))))
-	 (save-excursion
-	   (let ((old-subject
-		  (save-restriction
-		    (message-narrow-to-headers)
-		    (message-fetch-field "Subject"))))
-	     (cond ((not old-subject)
-		    (error "No current subject"))
-		   ((not (string-match
-			  (concat "^[ \t]*"
-				  (regexp-quote new-subject)
-				  "[ \t]*$")
-			  old-subject))  ; yes, it really is a new subject
-		    ;; delete eventual Re: prefix
-		    (setq old-subject
-			  (message-strip-subject-re old-subject))
-		    (message-goto-subject)
-		    (delete-line)
-		    (insert (concat "Subject: "
-				    new-subject
-				    " (was: "
-				    old-subject ")\n")))))))))
+(defun message-change-subject (&optional new-subject)
+  "Change subject to NEW-SUBJECT with \"(was: <Old Subject>)\" suffix.
+If NEW-SUBJECT is nil, the user is prompted for the new subject, with
+the old subject in \"future history\"."
+  (interactive nil message-mode)
+  (let ((old-subject (save-restriction
+		       (message-narrow-to-headers)
+		       (message-fetch-field "Subject"))))
+    (if (not old-subject)
+	(error "No current subject")
+      (let ((new-subject (or new-subject
+                             (read-from-minibuffer "New subject: "
+                                                   nil nil nil nil
+                                                   old-subject))))
+        (cond
+         ;; Abort on empty subject.
+         ((or (null new-subject)
+	      (zerop (string-width new-subject))
+	      (string-match "^[ \t]*$" new-subject))
+          (message "Subject empty"))
+         ;; Abort on unchanged subject.
+         ((string-match
+	   (concat "^[ \t]*"
+		   (regexp-quote new-subject)
+		   "[ \t]*$")
+	   old-subject)
+          (message "Subject unchanged"))
+         ;; Otherwise, proceed.
+         (t
+	  (save-excursion
+            (message-goto-subject)
+	    (delete-line)
+	    (insert (concat "Subject: "
+			    new-subject
+			    " (was: "
+                            (message-strip-subject-re old-subject)
+                            ")\n")))))))))
 
 (defun message-mark-inserted-region (beg end &optional verbatim)
   "Mark some region in the current article with enclosing tags.

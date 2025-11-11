@@ -1769,6 +1769,9 @@ honored if it was already set.
 +++
 *** 'message-strip-subject-re' now matches case-insensitively.
 
+---
+*** 'message-change-subject' inserts current subject to "future history".
+
 ** Sendmail
 
 ---
