@@ -30,7 +30,8 @@
 ;; The noninteractive hooks into the rest of Emacs are:
 ;; - `vc-refresh-state' in `find-file-hook'
 ;; - `vc-kill-buffer-hook' in `kill-buffer-hook'
-;; - `vc-after-save' which is called by `basic-save-buffer'.
+;; - `vc-after-save' which is called by `basic-save-buffer'
+;; - `vc-after-revert' in `after-revert-hook'.
 
 ;;; Code:
 
