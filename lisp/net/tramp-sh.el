@@ -303,6 +303,7 @@ The string is used in `tramp-methods'.")
               `("sg"
                 (tramp-login-program        "sg")
                 (tramp-login-args           (("-") ("%u")))
+		(tramp-direct-async         ("-c"))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-connection-timeout   10)))
@@ -4073,8 +4074,8 @@ If VEC is nil, the respective local commands are used."
 	  (bundle (when (string-match-p (rx (| bol (not "%")) "%b") script)
 		    (tramp-maybe-send-script
 		     vec tramp-bundle-read-file-names
-		     "tramp_bundle_read_file-names")
-		    "tramp_bundle_read_file-names"))
+		     "tramp_bundle_read_file_names")
+		    "tramp_bundle_read_file_names"))
 	  (hdmp (when (string-match-p (rx (| bol (not "%")) "%h") script)
 		  (or
 		   (if vec (tramp-get-remote-hexdump vec)
@@ -4142,7 +4143,7 @@ If VEC is nil, the respective local commands are used."
 	?p perl ?q test-e ?r readlink ?s stat ?t tmp ?y python)))))
 
 (defun tramp-maybe-send-script (vec script name)
-  "Define in remote shell function NAME implemented as SCRIPT.
+  "Define a remote shell function NAME implemented as SCRIPT.
 Only send the definition if it has not already been done."
   ;; We cannot let-bind (tramp-get-connection-process vec) because it
   ;; might be nil.
