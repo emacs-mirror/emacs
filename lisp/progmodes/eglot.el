@@ -4645,10 +4645,11 @@ If NOERROR, return predicate, else erroring function."
   (cond (eglot-semantic-tokens-mode
          (if (not (eglot-server-capable :semanticTokensProvider))
              (eglot-semantic-tokens-mode -1)
-           (jit-lock-register #'eglot--semtok-jit-lock 'contextual)))
+           (font-lock-add-keywords nil '((eglot--semtok-font-lock)) 'append)
+           (font-lock-flush)))
         (t
-         (font-lock-flush)
-         (jit-lock-unregister #'eglot--semtok-jit-lock))))
+         (font-lock-remove-keywords nil '((eglot--semtok-font-lock)))
+         (font-lock-flush))))
 
 (defvar-local eglot--semtok-cache nil
   "Cache of the last response from the server.")
@@ -4682,12 +4683,18 @@ If NOERROR, return predicate, else erroring function."
                      ;;               "data: "
                      ;;               (length (cl-getf response :data)))
                      (when (eq id eglot--versioned-identifier)
+                       ;; FIXME: If `id' is not `eglot--versioned-identifier'
+                       ;; should we re-send the reqquest?
+                       ;;
+                       ;; JT@2025-11-11: Good question.  Probably, and I
+                       ;; would hope `font-lock-flush' eventually does
+                       ;; that for us, so I moved it out of the `when'.
                        (setq eglot--semtok-cache
                              (list :documentVersion id
                                    :method method
                                    :response (funcall cont response)
-                                   :from from :to to))
-                       (eglot--semtok-jit-lock-1 beg end))))
+                                   :from from :to to)))
+                     (font-lock-flush beg end)))
                  :hint method))
               (cache-get (&rest path)
                 (let ((x eglot--semtok-cache))
@@ -4727,28 +4734,30 @@ If NOERROR, return predicate, else erroring function."
              (list :textDocument (eglot--TextDocumentIdentifier))
              #'identity))))))
 
-(defun eglot--semtok-jit-lock (beg end)
-  "Endeavor to update semantic tokens properties from BEG to END.
+(cl-defun eglot--semtok-font-lock (limit &aux (beg (point)) (end limit))
+  "Endeavor to semantically font-lock from point until LIMIT.
 Either do it immediately if the information available is up-to-date or
 request new information from the server and return and hope the font
 lock machinery calls us again."
   (cond ((and (eq (plist-get eglot--semtok-cache :documentVersion)
                   eglot--versioned-identifier)
               (and (<= (plist-get eglot--semtok-cache :from) beg)
-                   (<= end (plist-get eglot--semtok-cache :to))))
-         (eglot--semtok-jit-lock-1 beg end)
-         `(jit-lock-bounds ,beg . ,end))
+                   (<= beg (plist-get eglot--semtok-cache :to))))
+         (eglot--semtok-font-lock-1 beg end))
         (t
-         (eglot--semtok-request beg end)
-         `(jit-lock-bounds ,0 . ,0))))
+         (eglot--semtok-font-lock-2 beg end)
+         (eglot--semtok-request beg end)))
+  nil)
 
-(defun eglot--semtok-jit-lock-1 (beg end)
+(defun eglot--semtok-font-lock-1 (beg end &optional data)
+  "Do the face-painting work for `eglot--semtok-font-lock'."
   (eglot--widening
    (with-silent-modifications
-     (remove-list-of-text-properties beg end '(font-lock-face))
+     (remove-list-of-text-properties beg end '(eglot--semtok-token
+                                               eglot--semtok-faces))
      (goto-char (point-min))
      (cl-loop
-      with data = (plist-get (plist-get eglot--semtok-cache :response) :data)
+      with data = (or data (plist-get (plist-get eglot--semtok-cache :response) :data))
       with column = 0 with p-beg = 0 with p-end = 0
       for i from 0 below (length data) by 5
       when (> (aref data i) 0) do
@@ -4761,13 +4770,36 @@ lock machinery calls us again."
         (setq p-beg (point))
         (funcall eglot-move-to-linepos-function (+ column (aref data (+ i 2))))
         (setq p-end (point))
-        (let ((tok (cons (aref data (+ i 3))
-                         (aref data (+ i 4)))))
-          (put-text-property p-beg p-end 'eglot-semantic-token tok)
-          (dolist (f (eglot--semtok-token-faces tok))
-            (add-face-text-property p-beg p-end f ;; 'append
-                                    )))
+        (let* ((tok (cons (aref data (+ i 3))
+                          (aref data (+ i 4))))
+               (faces (eglot--semtok-token-faces tok)))
+          ;; The `eglot--semtok-token' prop doesn't serve much purpose:
+          ;; just for debug...
+          (put-text-property p-beg p-end 'eglot--semtok-token tok)
+          (put-text-property p-beg p-end 'eglot--semtok-faces faces)
+          (dolist (f faces)
+            (add-face-text-property p-beg p-end f)))
       count 1 into napplied))))
+
+(defun eglot--semtok-font-lock-2 (beg end)
+  ;; JT@2025-11-11: FIXME: I wish I didn't need this kludge but the
+  ;; faces applied earlier with `add-face-text-property' from
+  ;; `eglot--semtok-font-lock-1' disappear for a moment while the
+  ;; request is in flight.
+  "Repaint from stale-but-not-that-much local properties."
+  (eglot--widening
+   (with-silent-modifications
+     (save-excursion
+       (cl-loop
+        initially (goto-char beg)
+        with match = nil
+        while (and (setq match (text-property-search-forward
+                                'eglot--semtok-faces))
+                   (< (point) end))
+        do (dolist (f (prop-match-value match))
+             (add-face-text-property (prop-match-beginning match)
+                                     (prop-match-end match)
+                                     f)))))))
 
 
 ;;; Call and type hierarchies
