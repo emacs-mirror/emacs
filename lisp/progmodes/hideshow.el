@@ -683,8 +683,8 @@ Skip \"internal\" overlays if `hs-allow-nesting' is non-nil."
   (hs--refresh-indicators from to))
 
 (defun hs-hideable-region-p (&optional beg end)
-  "Return t if region in BEG and END can be hidden.
-If BEG and END are not specified, it will try to check at the current
+  "Return t if region between BEG and END can be hidden.
+If BEG and END are not specified, try to check the current
 block at point."
   ;; Check if BEG and END are not in the same line number,
   ;; since using `count-lines' is slow.
