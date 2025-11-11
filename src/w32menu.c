@@ -1622,21 +1622,16 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  /* Set help string for menu item.  Leave it as a pointer to
 	     a Lisp_String until it is ready to be displayed, since GC
 	     can happen while menus are active.  */
-	  /* FIXME/igc: store a gc_handle in info.dwItemData */
 	  Lisp_Object help = gc_handle_value (wv->help);
 	  if (!NILP (help))
 	    {
-	      /* We use XUNTAG below because in a 32-bit build
-		 --with-wide-int we cannot pass a Lisp_Object
-		 via a DWORD member of MENUITEMINFO.  */
 	      /* As of Jul-2012, w32api headers say that dwItemData
 		 has DWORD type, but that's a bug: it should actually
 		 be ULONG_PTR, which is correct for 32-bit and 64-bit
 		 Windows alike.  MSVC headers get it right; hopefully,
 		 MinGW headers will, too.  */
 	      eassert (STRINGP (help));
-	      info.dwItemData = (ULONG_PTR) XUNTAG (help, Lisp_String,
-						    struct Lisp_String);
+	      info.dwItemData = (ULONG_PTR) gc_handle_for (help);
 	    }
 	  if (wv->button_type == BUTTON_TYPE_RADIO)
 	    {
@@ -1729,7 +1724,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 
 	  help =
 	    info.dwItemData
-	    ? make_lisp_ptr ((void *) info.dwItemData, Lisp_String)
+	    ? gc_handle_value ((gc_handle) info.dwItemData)
 	    : Qnil;
 	}
 
@@ -1771,6 +1766,9 @@ w32_free_submenu_strings (HMENU menu)
 #endif
 	  local_free (info.dwItemData);
 	}
+      /* Free the help-echo handle.  */
+      else if (info.dwItemData)
+	free_gc_handle ((gc_handle) info.dwItemData);
 
       /* Recurse down submenus.  */
       if (info.hSubMenu)
