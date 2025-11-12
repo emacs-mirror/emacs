@@ -453,6 +453,13 @@ function call.  @xref{Eglot Commands}, and the
 @code{eglot-inlay-hints-mode} minor mode.
 
 @item
+Enhanced source code fontification via LSP @dfn{semantic tokens}.
+Eglot can leverage language server semantic analysis to provide more
+accurate syntax highlighting based on the actual meaning of identifiers
+in the code.  @xref{Eglot Commands}, and the
+@code{eglot-semantic-tokens-mode} minor mode.
+
+@item
 Display of function call and type hierarchies via the
 @code{eglot-show-call-hierarchy} and @code{eglot-show-type-hierarchy}
 commands (@pxref{Eglot Commands}).
@@ -743,6 +750,29 @@ instead of indicating problems.  For example, a C++ language server can
 serve hints about positional parameter names in function calls and a
 variable's automatically deduced type.  Inlay hints help the user not
 have to remember these things by heart.
+
+@cindex semantic tokens
+@item M-x eglot-semantic-tokens-mode
+This command toggles LSP @dfn{semantic tokens} fontification on and off
+for the current buffer.  Semantic tokens provide enhanced syntax
+highlighting based on the language server's semantic analysis of the
+code, going beyond traditional regular-expression-based fontification.
+For example, the server can distinguish between different kinds of
+variables (parameters, local variables, fields) or indicate whether a
+function is being declared or called.
+
+@vindex eglot-semantic-token-types
+@vindex eglot-semantic-token-modifiers
+The @code{eglot-semantic-faces} customization group contains the user
+options @code{eglot-semantic-token-types} and
+@code{eglot-semantic-token-modifiers}, which control which semantic
+token types and modifiers reported by the language server Eglot should
+consider when fontifying.  For performance reasons, the server
+connection has to be restarted before changes take effect.
+
+@cindex semantic token faces
+The @code{eglot-semantic-faces} customization group also contains the
+face definitions for controlling the appearance of each token.
 
 @cindex type hierarchy
 @item M-x eglot-show-type-hierarchy

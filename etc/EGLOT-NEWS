@@ -18,6 +18,18 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
+* Changes to upcoming Eglot
+
+** Support for semantic tokens (bug#79374)
+
+The new minor mode 'eglot-semantic-tokens-mode' provides enhanced syntax
+highlighting based on the language server's semantic analysis of the
+code, going beyond traditional regular-expression-based fontification.
+The 'eglot-semantic-faces' customization group contains options for
+controlling which token types and modifiers to consider, as well as
+faces for customizing their appearance.
+
+
 * Changes in Eglot 1.19 (23/10/2025)
 
 ** Support for call and type hierarchies
