@@ -22,12 +22,7 @@
 
 #if defined __need_FILE || defined __need___FILE || defined _@GUARD_PREFIX@_ALREADY_INCLUDING_STDIO_H || defined _GL_SKIP_GNULIB_STDIO_H
 /* Special invocation convention:
-   - Inside glibc header files.
-   - On OSF/1 5.1 we have a sequence of nested includes
-     <stdio.h> -> <getopt.h> -> <ctype.h> -> <sys/localedef.h> ->
-     <sys/lc_core.h> -> <nl_types.h> -> <mesg.h> -> <stdio.h>.
-     In this situation, the functions are not yet declared, therefore we cannot
-     provide the C++ aliases.  */
+   - Inside glibc header files.  */
 
 #@INCLUDE_NEXT@ @NEXT_STDIO_H@
 
@@ -269,13 +264,36 @@
    - with MSVC ucrt: "[-]nan" or "[-]nan(ind)" or "[-]nan(snan)",
    - with mingw: "[-]1.#IND" or "[-]1.#QNAN".  */
 #  define _PRINTF_NAN_LEN_MAX 10
-# elif defined __sgi
-/* On IRIX, the output typically is "[-]nan0xNNNNNNNN" with 8 hexadecimal
-   digits.  */
-#  define _PRINTF_NAN_LEN_MAX 14
 # else
 /* We don't know, but 32 should be a safe maximum.  */
 #  define _PRINTF_NAN_LEN_MAX 32
+# endif
+#endif
+
+
+#if (defined _WIN32 && !defined __CYGWIN__) && !defined _UCRT
+/* Workarounds against msvcrt bugs.  */
+_GL_FUNCDECL_SYS (gl_consolesafe_fwrite, size_t,
+                  (const void *ptr, size_t size, size_t nmemb, FILE *fp),
+                  _GL_ARG_NONNULL ((1, 4)));
+# if defined __MINGW32__
+_GL_FUNCDECL_SYS (gl_consolesafe_fprintf, int,
+                  (FILE *restrict fp, const char *restrict format, ...),
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_FUNCDECL_SYS (gl_consolesafe_printf, int,
+                  (const char *restrict format, ...),
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 2)
+                  _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (gl_consolesafe_vfprintf, int,
+                  (FILE *restrict fp,
+                   const char *restrict format, va_list args),
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_FUNCDECL_SYS (gl_consolesafe_vprintf, int,
+                  (const char *restrict format, va_list args),
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 0)
+                  _GL_ARG_NONNULL ((1)));
 # endif
 #endif
 
@@ -616,6 +634,11 @@ _GL_CXXALIAS_SYS (fprintf, int,
 # if __GLIBC__ >= 2
 _GL_CXXALIASWARN (fprintf);
 # endif
+#elif defined __MINGW32__ && !defined _UCRT && __USE_MINGW_ANSI_STDIO
+# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#  undef fprintf
+#  define fprintf gl_consolesafe_fprintf
+# endif
 #endif
 #if !@GNULIB_FPRINTF_POSIX@ && defined GNULIB_POSIXCHECK
 # if !GNULIB_overrides_fprintf
@@ -945,7 +968,7 @@ _GL_CXXALIAS_SYS (fwrite, size_t,
                    FILE *restrict stream));
 
 /* Work around bug 11959 when fortifying glibc 2.4 through 2.15
-   <https://sourceware.org/bugzilla/show_bug.cgi?id=11959>,
+   <https://sourceware.org/PR11959>,
    which sometimes causes an unwanted diagnostic for fwrite calls.
    This affects only function declaration attributes under certain
    versions of gcc and clang, and is not needed for C++.  */
@@ -969,6 +992,11 @@ _GL_EXTERN_C size_t __REDIRECT (rpl_fwrite_unlocked,
 # endif
 # if __GLIBC__ >= 2
 _GL_CXXALIASWARN (fwrite);
+# endif
+#elif (defined _WIN32 && !defined __CYGWIN__) && !defined _UCRT
+# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#  undef fwrite
+#  define fwrite gl_consolesafe_fwrite
 # endif
 #endif
 
@@ -1016,6 +1044,17 @@ _GL_CXXALIASWARN (getchar);
 #   undef getdelim
 #   define getdelim rpl_getdelim
 #  endif
+#  ifndef __has_feature
+#   define __has_feature(a) 0
+#  endif
+#  if __GLIBC__ >= 2 && !(defined __SANITIZE_ADDRESS__ \
+                          || __has_feature (address_sanitizer))
+/* Arrange for the inline definition of getline() in <bits/stdio.h>
+   to call our getdelim() override.  Do not use the __getdelim symbol
+   if address sanitizer is in use, otherwise it may be overridden by
+   __interceptor_trampoline___getdelim.  */
+#   define rpl_getdelim __getdelim
+#  endif
 _GL_FUNCDECL_RPL (getdelim, ssize_t,
                   (char **restrict lineptr, size_t *restrict linesize,
                    int delimiter,
@@ -1057,14 +1096,27 @@ _GL_WARN_ON_USE (getdelim, "getdelim is unportable - "
    Return the number of bytes read and stored at *LINEPTR (not including the
    NUL terminator), or -1 on error or EOF.  */
 # if @REPLACE_GETLINE@
-#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#   undef getline
-#   define getline rpl_getline
-#  endif
 _GL_FUNCDECL_RPL (getline, ssize_t,
                   (char **restrict lineptr, size_t *restrict linesize,
                    FILE *restrict stream),
                   _GL_ARG_NONNULL ((1, 2, 3)) _GL_ATTRIBUTE_NODISCARD);
+#  if defined __cplusplus
+/* The C++ standard library defines std::basic_istream::getline in <istream>
+   or <string>.  */
+#   if !(__GLIBC__ >= 2)
+extern "C" {
+inline ssize_t
+getline (char **restrict lineptr, size_t *restrict linesize,
+         FILE *restrict stream)
+{
+  return rpl_getline (lineptr, linesize, stream);
+}
+}
+#   endif
+#  else
+#   undef getline
+#   define getline rpl_getline
+#  endif
 _GL_CXXALIAS_RPL (getline, ssize_t,
                   (char **restrict lineptr, size_t *restrict linesize,
                    FILE *restrict stream));
@@ -1332,6 +1384,11 @@ _GL_CXXALIAS_SYS (printf, int, (const char *restrict format, ...));
 # endif
 # if __GLIBC__ >= 2
 _GL_CXXALIASWARN (printf);
+# endif
+#elif defined __MINGW32__ && !defined _UCRT && __USE_MINGW_ANSI_STDIO
+# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#  undef printf
+#  define printf gl_consolesafe_printf
 # endif
 #endif
 #if !@GNULIB_PRINTF_POSIX@ && defined GNULIB_POSIXCHECK
@@ -1885,6 +1942,11 @@ _GL_CXXALIAS_SYS_CAST (vfprintf, int,
 # if __GLIBC__ >= 2
 _GL_CXXALIASWARN (vfprintf);
 # endif
+#elif defined __MINGW32__ && !defined _UCRT && __USE_MINGW_ANSI_STDIO
+# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#  undef vfprintf
+#  define vfprintf gl_consolesafe_vfprintf
+# endif
 #endif
 #if !@GNULIB_VFPRINTF_POSIX@ && defined GNULIB_POSIXCHECK
 # if !GNULIB_overrides_vfprintf
@@ -1965,6 +2027,11 @@ _GL_CXXALIAS_SYS_CAST (vprintf, int,
 # endif
 # if __GLIBC__ >= 2
 _GL_CXXALIASWARN (vprintf);
+# endif
+#elif defined __MINGW32__ && !defined _UCRT && __USE_MINGW_ANSI_STDIO
+# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#  undef vprintf
+#  define vprintf gl_consolesafe_vprintf
 # endif
 #endif
 #if !@GNULIB_VPRINTF_POSIX@ && defined GNULIB_POSIXCHECK

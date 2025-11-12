@@ -194,7 +194,6 @@ present if the icon is represented by an image."
          (file-exists (and (stringp file) (file-readable-p file))))
     (and file-exists
          (display-images-p)
-         (fboundp 'image-supported-file-p)
          (image-supported-file-p file)
          (propertize
           " " 'display

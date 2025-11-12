@@ -311,11 +311,11 @@ ENV is a list where each entry takes the shape either:
 EXTEND is a list of variables which might need to be accessed even from places
 where they are shadowed, because some part of ENV causes them to be used at
 places where they originally did not directly appear."
-  (cl-assert (not (delq nil (mapcar (lambda (mapping)
-                                      (if (eq (cadr mapping) #'apply-partially)
-                                          (cconv--set-diff (cdr (cddr mapping))
-                                                           extend)))
-                                    env))))
+  (cl-assert (not (any (lambda (mapping)
+                         (and (eq (cadr mapping) #'apply-partially)
+                              (cconv--set-diff (cdr (cddr mapping))
+                                               extend)))
+                       env)))
 
   ;; What's the difference between fvrs and envs?
   ;; Suppose that we have the code

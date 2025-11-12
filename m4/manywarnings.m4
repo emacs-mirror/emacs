@@ -198,7 +198,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
   fi
 
   # This warning have too many false alarms in GCC 11.2.1.
-  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=101713
+  # https://gcc.gnu.org/PR101713
   AS_VAR_APPEND([$1], [' -Wno-analyzer-malloc-leak'])
 
   AC_LANG_POP([C])

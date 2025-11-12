@@ -146,7 +146,7 @@ the tool bar even if the current frame is not a graphical one, since a
 graphical frame may be created later on.
 
 @item
-It use @code{custom-reevaluate-setting} to re-initialize the members
+It uses @code{custom-reevaluate-setting} to re-initialize the members
 of the list @code{custom-delayed-init-variables}.  These are any
 pre-loaded user options whose default value depends on the run-time,
 rather than build-time, context.

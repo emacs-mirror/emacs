@@ -45,6 +45,7 @@ extern const char *xsettings_get_system_normal_font (void);
 
 #ifdef HAVE_PGTK
 extern cairo_font_options_t *xsettings_get_font_options (void);
+extern bool xg_get_system_dark_mode (void);
 #endif
 
 #endif /* XSETTINGS_H */

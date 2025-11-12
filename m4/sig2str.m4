@@ -1,5 +1,5 @@
 # sig2str.m4
-# serial 8
+# serial 9
 dnl Copyright (C) 2002, 2005-2006, 2009-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -9,7 +9,8 @@ dnl This file is offered as-is, without any warranty.
 AC_DEFUN([gl_FUNC_SIG2STR],
 [
   AC_REQUIRE([gl_SIGNAL_H_DEFAULTS])
-  AC_CHECK_FUNCS([sig2str str2sig])
+  gl_CHECK_FUNCS_ANDROID([sig2str], [[#include <signal.h>]])
+  gl_CHECK_FUNCS_ANDROID([str2sig], [[#include <signal.h>]])
   if test $ac_cv_func_sig2str = no; then
     HAVE_SIG2STR=0
   fi

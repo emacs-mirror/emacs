@@ -45,7 +45,7 @@
   "A directory file name, which looks like an archive.")
 
 (defvar tramp-archive-test-cascaded-file-archive
-  (ert-resource-file "outer.zip/foo.tar.gz")
+  (ert-resource-file "foo.zip/foo.tar.gz")
   "The cascaded test file archive.")
 
 (defvar tramp-archive-test-cascaded-archive

@@ -46,12 +46,13 @@ ac_cv_search_clock_gettime="none required"
 ac_cv_func_clock_gettime=no
 ac_cv_func_clock_settime=no
 
-# ACL functions are implemented in w32.c
+# ACL functions are either implemented in w32.c or not needed
 ac_cv_search_acl_get_file="none required"
 ac_cv_func_acl_get_file=yes
 ac_cv_func_acl_set_file=yes
 ac_cv_func_acl_free=yes
 ac_cv_func_acl_from_text=yes
+ac_cv_func_acl_entries=yes
 gl_cv_func_working_acl_get_file=yes
 # Autoconf's test program is not smart enough, and fails to detect gethostname
 ac_cv_func_gethostname=yes

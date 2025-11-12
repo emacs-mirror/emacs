@@ -1,5 +1,5 @@
 # getline.m4
-# serial 33
+# serial 35
 
 dnl Copyright (C) 1998-2003, 2005-2007, 2009-2025 Free Software Foundation,
 dnl Inc.
@@ -31,6 +31,7 @@ AC_DEFUN([gl_FUNC_GETLINE],
     AC_CACHE_CHECK([for working getline function],
       [am_cv_func_working_getline],
       [echo fooNbarN | tr -d '\012' | tr N '\012' > conftest.data
+       touch conftest.empty
        AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #    include <stdio.h>
 #    include <stdlib.h>
@@ -38,6 +39,7 @@ AC_DEFUN([gl_FUNC_GETLINE],
     int main ()
     {
       FILE *in = fopen ("./conftest.data", "r");
+      int result = 0;
       if (!in)
         return 1;
       {
@@ -47,7 +49,7 @@ AC_DEFUN([gl_FUNC_GETLINE],
         size_t siz = 0;
         int len = getline (&line, &siz, in);
         if (!(len == 4 && line && strcmp (line, "foo\n") == 0))
-          { free (line); fclose (in); return 2; }
+          result |= 2;
         free (line);
       }
       {
@@ -56,33 +58,38 @@ AC_DEFUN([gl_FUNC_GETLINE],
         char *line = NULL;
         size_t siz = (size_t)(~0) / 4;
         if (getline (&line, &siz, in) == -1)
-          { fclose (in); return 3; }
+          result |= 4;
         free (line);
       }
       fclose (in);
-      return 0;
+      {
+        /* Test that reading EOF as the first character sets the first byte
+           in the buffer to NUL.  This fails on glibc 2.42 and earlier.  */
+        in = fopen ("./conftest.empty", "r");
+        if (!in)
+          return 1;
+        char *line = malloc (1);
+        line[0] = 'A';
+        size_t siz = 1;
+        if (getline (&line, &siz, in) != -1 || line[0] != '\0')
+          result |= 8;
+        free (line);
+      }
+      fclose (in);
+      return result;
     }
     ]])],
          [am_cv_func_working_getline=yes],
          [am_cv_func_working_getline=no],
-         [dnl We're cross compiling.
-          dnl Guess it works on glibc2 systems and musl systems.
-          AC_EGREP_CPP([Lucky GNU user],
-            [
-#include <features.h>
-#ifdef __GNU_LIBRARY__
- #if (__GLIBC__ >= 2) && !defined __UCLIBC__
-  Lucky GNU user
- #endif
-#endif
-            ],
-            [am_cv_func_working_getline="guessing yes"],
-            [case "$host_os" in
-               *-musl* | midipix*) am_cv_func_working_getline="guessing yes" ;;
-               *)                  am_cv_func_working_getline="$gl_cross_guess_normal" ;;
-             esac
-            ])
+         [case "$host_os" in
+                                # Guess yes on musl.
+            *-musl* | midipix*) am_cv_func_working_getline="guessing yes" ;;
+                                # Guess no on glibc.
+            *-gnu* | gnu*)      am_cv_func_working_getline="guessing no" ;;
+            *)                  am_cv_func_working_getline="$gl_cross_guess_normal" ;;
+          esac
          ])
+       rm -f conftest.data conftest.empty
       ])
   else
     am_cv_func_working_getline=no

@@ -115,19 +115,19 @@ enum { UT_HOST_SIZE = -1 };
 
      Field        Type                       Platforms
      ----------   ------                     ---------
-   ⎡ ut_user      char[]                     glibc, musl, macOS, FreeBSD, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
+   ⎡ ut_user      char[]                     glibc, musl, macOS, FreeBSD, AIX, HP-UX, Solaris, Cygwin, Android
    ⎣ ut_name      char[]                     NetBSD, Minix
-     ut_id        char[]                     glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
-     ut_line      char[]                     glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
-     ut_pid       pid_t                      glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
-     ut_type      short                      glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
-   ⎡ ut_tv        struct                     glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
+     ut_id        char[]                     glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, Solaris, Cygwin, Android
+     ut_line      char[]                     glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, Solaris, Cygwin, Android
+     ut_pid       pid_t                      glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, Solaris, Cygwin, Android
+     ut_type      short                      glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, Solaris, Cygwin, Android
+   ⎡ ut_tv        struct                     glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, Solaris, Cygwin, Android
    ⎢              { tv_sec; tv_usec; }
    ⎣ ut_time      time_t                     Cygwin
-     ut_host      char[]                     glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
-     ut_exit      struct                     glibc, musl, NetBSD, Minix, HP-UX, IRIX, Solaris, Android
+     ut_host      char[]                     glibc, musl, macOS, FreeBSD, NetBSD, Minix, AIX, HP-UX, Solaris, Cygwin, Android
+     ut_exit      struct                     glibc, musl, NetBSD, Minix, HP-UX, Solaris, Android
                   { e_termination; e_exit; }
-     ut_session   [long] int                 glibc, musl, NetBSD, Minix, IRIX, Solaris, Android
+     ut_session   [long] int                 glibc, musl, NetBSD, Minix, Solaris, Android
    ⎡ ut_addr      [long] int                 HP-UX, Cygwin
    ⎢ ut_addr_v6   [u]int[4]                  glibc, musl, Android
    ⎣ ut_ss        struct sockaddr_storage    NetBSD, Minix
@@ -174,7 +174,7 @@ struct utmpx32
 # define SET_UTMP_ENT setutxent
 # define GET_UTMP_ENT getutxent
 # define END_UTMP_ENT endutxent
-# ifdef HAVE_UTMPXNAME /* glibc, musl, macOS, NetBSD, Minix, IRIX, Solaris, Cygwin */
+# ifdef HAVE_UTMPXNAME /* glibc, musl, macOS, NetBSD, Minix, Solaris, Cygwin */
 #  define UTMP_NAME_FUNCTION utmpxname
 # elif defined UTXDB_ACTIVE /* FreeBSD */
 #  define UTMP_NAME_FUNCTION(x) setutxdb (UTXDB_ACTIVE, x)
@@ -190,17 +190,17 @@ struct utmpx32
 
      Field        Type                       Platforms
      ----------   ------                     ---------
-   ⎡ ut_user      char[]                     glibc, musl, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
+   ⎡ ut_user      char[]                     glibc, musl, AIX, HP-UX, Solaris, Cygwin, Android
    ⎣ ut_name      char[]                     macOS, old FreeBSD, NetBSD, OpenBSD, Minix
-     ut_id        char[]                     glibc, musl, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
-     ut_line      char[]                     glibc, musl, macOS, old FreeBSD, NetBSD, OpenBSD, Minix, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
-     ut_pid       pid_t                      glibc, musl, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
-     ut_type      short                      glibc, musl, AIX, HP-UX, IRIX, Solaris, Cygwin, Android
+     ut_id        char[]                     glibc, musl, AIX, HP-UX, Solaris, Cygwin, Android
+     ut_line      char[]                     glibc, musl, macOS, old FreeBSD, NetBSD, OpenBSD, Minix, AIX, HP-UX, Solaris, Cygwin, Android
+     ut_pid       pid_t                      glibc, musl, AIX, HP-UX, Solaris, Cygwin, Android
+     ut_type      short                      glibc, musl, AIX, HP-UX, Solaris, Cygwin, Android
    ⎡ ut_tv        struct                     glibc, musl, Android
    ⎢              { tv_sec; tv_usec; }
-   ⎣ ut_time      time_t                     macOS, old FreeBSD, NetBSD, OpenBSD, Minix, AIX, HP-UX, IRIX, Solaris, Cygwin
+   ⎣ ut_time      time_t                     macOS, old FreeBSD, NetBSD, OpenBSD, Minix, AIX, HP-UX, Solaris, Cygwin
      ut_host      char[]                     glibc, musl, macOS, old FreeBSD, NetBSD, OpenBSD, Minix, AIX, HP-UX, Cygwin, Android
-     ut_exit      struct                     glibc, musl, AIX, HP-UX, IRIX, Solaris, Android
+     ut_exit      struct                     glibc, musl, AIX, HP-UX, Solaris, Android
                   { e_termination; e_exit; }
      ut_session   [long] int                 glibc, musl, Android
    ⎡ ut_addr      [long] int                 HP-UX, Cygwin
@@ -211,7 +211,7 @@ struct utmpx32
 # define SET_UTMP_ENT setutent
 # define GET_UTMP_ENT getutent
 # define END_UTMP_ENT endutent
-# ifdef HAVE_UTMPNAME /* glibc, musl, NetBSD, Minix, AIX, HP-UX, IRIX, Solaris, Cygwin, Android */
+# ifdef HAVE_UTMPNAME /* glibc, musl, NetBSD, Minix, AIX, HP-UX, Solaris, Cygwin, Android */
 #  define UTMP_NAME_FUNCTION utmpname
 # endif
 

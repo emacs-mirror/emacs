@@ -32,7 +32,7 @@
      || defined __need_wint_t)                                      \
     /* Avoid warning triggered by "gcc -std=gnu23 -Wsystem-headers" \
        in GCC 13.3 and 14.2                                         \
-       <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114870>.  */   \
+       <https://gcc.gnu.org/PR114870>.  */   \
     && !@STDDEF_NOT_IDEMPOTENT@
 /* Special invocation convention inside gcc header files.  In
    particular, <stddef.h> in some ancient versions of GCC blindly
@@ -91,7 +91,7 @@ typedef long max_align_t;
 
 #  if !defined _GCC_NULLPTR_T && !@NULLPTR_T_NEEDS_STDDEF@
     /* Suppress unwanted nullptr_t typedef.  See
-       <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114869>.  */
+       <https://gcc.gnu.org/PR114869>.  */
 #   define _GCC_NULLPTR_T
 #  endif
 

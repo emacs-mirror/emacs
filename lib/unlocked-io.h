@@ -73,6 +73,13 @@
 #  define fgets_unlocked(x,y,z) fgets (x,y,z)
 # endif
 
+# if HAVE_DECL_FILENO_UNLOCKED || defined fileno_unlocked
+#  undef fileno
+#  define fileno(x) fileno_unlocked (x)
+# else
+#  define fileno_unlocked(x) fileno (x)
+# endif
+
 # if HAVE_DECL_FPUTC_UNLOCKED || defined fputc_unlocked
 #  undef fputc
 #  define fputc(x,y) fputc_unlocked (x,y)

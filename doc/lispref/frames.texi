@@ -1234,6 +1234,37 @@ bottom corner of the frame.  The parameters @code{min-width} and
 @code{min-height} (@pxref{Size Parameters}) can be used to obtain a
 similar behavior when changing the frame size from within Emacs.
 
+When a frame is in a fullscreen state (@pxref{Size Parameters}),
+requests to change the frame size via one of these functions may be
+supported or refused either by Emacs itself or by the window manager.
+The following variable provides more control of the resulting behavior.
+
+@cindex altering the size of fullscreen frames
+@cindex resizing fullscreen frames
+@defopt alter-fullscreen-frames
+This options controls how to handle requests to alter fullscreen frames.
+Emacs consults it when asked to resize a fullscreen frame via functions
+like @code{set-frame-size} or when setting the @code{width} or
+@code{height} parameter of a frame.  The following values are provided:
+
+@table @code
+@item nil
+This will forward the resize request to the window manager and leave it
+to the latter how to proceed.
+
+@item t
+This will first reset the fullscreen status and then forward the resize
+request on to the window manager.
+
+@item inhibit
+This will reject the resize request and leave the fullscreen status
+unchanged.
+@end table
+
+The default is @code{inhibit} on NS builds and @code{nil} everywhere
+else.
+@end defopt
+
 @cindex tracking frame size changes
   The abnormal hook @code{window-size-change-functions} (@pxref{Window
 Hooks}) tracks all changes of the inner size of a frame including those

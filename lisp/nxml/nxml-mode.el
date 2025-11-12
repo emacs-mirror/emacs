@@ -532,6 +532,10 @@ Many aspects this mode can be customized using
   (setq-local comment-line-break-function #'nxml-newline-and-indent)
   (setq-local comment-quote-nested-function #'nxml-comment-quote-nested)
   (setq-local comment-continue "") ; avoid double-hyphens as a padding
+  (setq-local hs-block-start-regexp "<[^/>]*?")
+  (setq-local hs-block-end-regexp "</[^/>]*[^/]>")
+  (setq-local hs-c-start-regexp "<!--")
+  (setq-local hs-forward-sexp-function #'sgml-skip-tag-forward)
   (save-excursion
     (save-restriction
       (widen)

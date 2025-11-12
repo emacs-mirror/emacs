@@ -13282,11 +13282,9 @@ File statistics: \"%s\"\n\
   (if (not (boundp 'hs-block-start-mdata-select))
       (vhdl-warning-when-idle "Install included `hideshow.el' patch first (see INSTALL file)")
     ;; initialize hideshow
-    (unless (assoc 'vhdl-mode hs-special-modes-alist)
-      (setq hs-special-modes-alist
-	    (cons (list 'vhdl-mode vhdl-hs-start-regexp nil "--\\( \\|$\\)"
-			'vhdl-hs-forward-sexp-func nil)
-		  hs-special-modes-alist)))
+    (setq-local hs-block-start-regexp vhdl-hs-start-regexp)
+    (setq-local hs-c-start-regexp "--\\( \\|$\\)")
+    (setq-local hs-forward-sexp-function #'vhdl-hs-forward-sexp-func)
     (if (featurep 'xemacs) (make-local-hook 'hs-minor-mode-hook))
     (if vhdl-hide-all-init
 	(add-hook 'hs-minor-mode-hook #'hs-hide-all nil t)

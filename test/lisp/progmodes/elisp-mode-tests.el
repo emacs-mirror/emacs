@@ -1153,7 +1153,9 @@ evaluation of BODY."
                            (lambda ()
                              (emacs-lisp-mode)
                              (setq-local trusted-content :all
-                                         elisp-fontify-semantically t))))
+                                         elisp-fontify-semantically t
+                                         read-symbol-shorthands
+                                         '(("e-s-" . "elisp-scope-"))))))
 
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

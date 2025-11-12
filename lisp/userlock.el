@@ -51,7 +51,8 @@ You can redefine this function to choose among those three alternatives
 in any way you like."
   (discard-input)
   (save-window-excursion
-    (let (answer short-opponent short-file)
+    (let ((choices `(?s ?q ?p ?S ?Q ?P ?\C-g ?? ,help-char))
+          prompt short-opponent short-file answer)
       (setq short-file
 	    (if (> (length file) 22)
 		(concat "..." (substring file (- (length file) 22)))
@@ -63,16 +64,15 @@ in any way you like."
 		  (concat (substring opponent 0 13) "..."
 			  (match-string 0 opponent)))
 	      opponent))
+      (setq prompt (format-message
+                    (substitute-command-keys
+                     "%s locked by %s: (\\`s', \\`q', \\`p', \\`?')? ")
+                    short-file short-opponent))
       (while (null answer)
 	(when noninteractive
           (signal 'file-locked (list file opponent "Cannot resolve lock conflict in batch mode")))
-        (message (substitute-command-keys
-                  "%s locked by %s: (\\`s', \\`q', \\`p', \\`?')? ")
-                 short-file short-opponent)
-	(let ((tem (let ((inhibit-quit t)
-			 (cursor-in-echo-area t))
-		     (prog1 (downcase (read-char))
-		            (setq quit-flag nil)))))
+        (let ((tem (prog1 (downcase (read-char-choice prompt choices t))
+		     (setq quit-flag nil))))
 	  (if (= tem help-char)
 	      (ask-user-about-lock-help)
 	    (setq answer (assoc tem '((?s . t)

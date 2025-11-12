@@ -836,14 +836,14 @@ hunspell.  Hence skipping."
 
 (ert-deftest ispell/ispell-accept-buffer-local-defs/received-file ()
   "Check that `ispell-accept-buffer-local-defs' is broken when a file has a nonexistent file-local dictionary.
-We do not control this data, but this should make ispell.el failx."
+We do not control this data, but this should make ispell.el fail."
   :expected-result :failed
   (with-environment-variables (("HOME" temporary-file-directory))
     (with-temp-buffer
       (ispell-tests--letopt
           ((ispell-program-name (ispell-tests--some-backend)))
 
-        (let ((test-dictname (format "%s" (random))))
+        (let ((test-dictname ispell-tests--constants/nonexistent-dictionary))
           (insert
            (car ispell-tests--constants/english/correct-list) "\n\n\n"
            ispell-dictionary-keyword test-dictname "\n")

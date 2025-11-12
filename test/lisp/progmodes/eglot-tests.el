@@ -1005,26 +1005,31 @@ int main() {
   (eglot--with-fixture
       '(("project" .
          (("foo.c" . "const char write_data[] = u8\"🚂🚃🚄🚅🚆🚈🚇🚈🚉🚊🚋🚌🚎🚝🚞🚟🚠🚡🛤🛲\";"))))
-    (let ((eglot-server-programs
+    (let (expected-column
+          (eglot-server-programs
            '((c-mode . ("clangd")))))
       (with-current-buffer
           (eglot--find-file-noselect "project/foo.c")
-        (setq-local eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos)
-        (setq-local eglot-current-linepos-function #'eglot-utf-16-linepos)
         (eglot--sniffing (:client-notifications c-notifs)
           (eglot--tests-connect)
           (end-of-line)
+
+          ;; will be 71 if utf-16 was negotiated, 51 if utf-32,
+          ;; something else if utf-8
+          (setq expected-column (funcall eglot-current-linepos-function))
+          (eglot--test-message
+           "Looks like we negotiated %S as the offset encoding"
+           (list eglot-move-to-linepos-function eglot-current-linepos-function))
           (insert "p ")
           (eglot--signal-textDocument/didChange)
           (eglot--wait-for (c-notifs 2) (&key params &allow-other-keys)
-            (message "PARAMS=%S" params)
-            (should (equal 71 (eglot-tests--get
+            (should (equal expected-column
+                           (eglot-tests--get
                                params
                                '(:contentChanges 0
                                  :range :start :character)))))
           (beginning-of-line)
-          (should (eq eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos))
-          (funcall eglot-move-to-linepos-function 71)
+          (funcall eglot-move-to-linepos-function expected-column)
           (should (looking-at "p")))))))
 
 (ert-deftest eglot-test-lsp-abiding-column ()

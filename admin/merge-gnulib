@@ -48,10 +48,10 @@ GNULIB_MODULES='
   qcopy-acl readlink readlinkat realloc-posix regex
   sig2str sigdescr_np socklen stat-time std-gnu11
   stdc_bit_width stdc_count_ones stdc_trailing_zeros
-  stdckdint-h stddef-h stdio-h
-  stpcpy strnlen strnlen strtoimax symlink sys_stat-h sys_time-h
+  stdckdint-h stddef-h stdio-h stdio-windows
+  stpcpy stringeq strnlen strtoimax symlink sys_stat-h sys_time-h
   tempname time-h time_r time_rz timegm timer-time timespec-add timespec-sub
-  update-copyright unlocked-io utimensat
+  unlocked-io update-copyright utimensat
   vla warnings year2038
 '
 

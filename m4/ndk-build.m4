@@ -45,7 +45,13 @@ for file in $with_ndk_path; do
 done
 
 AC_REQUIRE_AUX_FILE([ndk-build-helper.mk])
-ndk_AUX_DIR=$ac_aux_dir
+m4_if(m4_version_compare(m4_defn([AC_AUTOCONF_VERSION]), [2.70]), [-1],
+  dnl $ac_aux_dir is an internal variable in 2.69 that
+  dnl is not guaranteed to be terminated with a separator character.
+  [AS_CASE([$ac_aux_dir],
+    [*/], [ndk_AUX_DIR=$ac_aux_dir],
+    [ndk_AUX_DIR=$ac_aux_dir/])],
+  [ndk_AUX_DIR=$ac_aux_dir])
 ndk_ABI=$1
 ndk_MODULES=
 ndk_MAKEFILES=

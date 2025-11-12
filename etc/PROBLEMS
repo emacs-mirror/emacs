@@ -1304,7 +1304,7 @@ Emacs will select some other font instead.
 The only workaround is not to choose such font variants as the default
 font when running Emacs on MS-Windows.
 
-** On OpenBSD, color Emoji are not supported by default.
+** On OpenBSD before version 7.8, color Emoji are not supported by default.
 
 The system's FreeType library is not built with libpng support, so it
 can't display color emoji.  This is due to the fact that, on OpenBSD,
@@ -1324,6 +1324,7 @@ following those steps:
 	5. Build and install Xenocara (also, see release(8)).
 
 Note that this support will be gone after each OpenBSD's system upgrade.
+Also note that upgrading to OpenBSD 7.8 solves this whole issue.
 
 * Internationalization problems
 

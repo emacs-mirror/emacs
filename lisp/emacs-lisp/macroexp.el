@@ -399,7 +399,6 @@ change this."
 (defun macroexp--dynamic-variable-p (var)
   "Whether the variable VAR is dynamically scoped.
 Only valid during macro-expansion."
-  (defvar byte-compile-bound-variables)
   (or (not lexical-binding)
       (special-variable-p var)
       (memq var macroexp--dynvars)

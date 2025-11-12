@@ -70,7 +70,7 @@
 ;; - get-change-comment (files rev)                OK
 ;; HISTORY FUNCTIONS
 ;; * print-log (files buffer &optional shortlog start-revision limit)   OK
-;; * incoming-revision (upstream-location &optional refresh)   OK
+;; * incoming-revision (&optional upstream-location refresh)   OK
 ;; - log-search (buffer pattern)                   OK
 ;; - log-view-mode ()                              OK
 ;; - show-log-entry (revision)                     OK
@@ -292,27 +292,34 @@ Good example of file name that needs this: \"test[56].xx\".")
 (defun vc-git-registered (file)
   "Check whether FILE is registered with git."
   (let ((dir (vc-git-root file)))
-    (when dir
-      (with-temp-buffer
-        (let* (process-file-side-effects
-               ;; Do not use the `file-name-directory' here: git-ls-files
-               ;; sometimes fails to return the correct status for relative
-               ;; path specs.
-               ;; See also: https://marc.info/?l=git&m=125787684318129&w=2
-               (name (file-relative-name file dir))
-               (str (with-demoted-errors "Error: %S"
-                      (cd dir)
-                      (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
-                      ;; If result is empty, use ls-tree to check for deleted
-                      ;; file.
-                      (when (eq (point-min) (point-max))
-                        (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD"
-                                        "--" name))
-                      (buffer-string))))
-          (and str
-               (> (length str) (length name))
-               (string= (substring str 0 (1+ (length name)))
-                        (concat name "\0"))))))))
+    (and dir
+         ;; If git(1) isn't installed then the `with-demoted-errors'
+         ;; below will mean we get an error message echoed about that
+         ;; fact with every `find-file'.  That's noisy, and inconsistent
+         ;; with other backend's `vc-*-registered' functions which are
+         ;; quieter in the case that the VCS isn't installed.  So check
+         ;; up here that git(1) is available.  See also bug#18481.
+         (executable-find vc-git-program)
+         (with-temp-buffer
+           (let* (process-file-side-effects
+                  ;; Do not use the `file-name-directory' here: git-ls-files
+                  ;; sometimes fails to return the correct status for relative
+                  ;; path specs.
+                  ;; See also: https://marc.info/?l=git&m=125787684318129&w=2
+                  (name (file-relative-name file dir))
+                  (str (with-demoted-errors "Error: %S"
+                         (cd dir)
+                         (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
+                         ;; If result is empty, use ls-tree to check for deleted
+                         ;; file.
+                         (when (eq (point-min) (point-max))
+                           (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD"
+                                           "--" name))
+                         (buffer-string))))
+             (and str
+                  (> (length str) (length name))
+                  (string= (substring str 0 (1+ (length name)))
+                           (concat name "\0"))))))))
 
 (defvar vc-git--program-version nil)
 
@@ -978,7 +985,10 @@ or an empty string if none."
   "Return the existing branches, as a list of strings.
 The car of the list is the current branch."
   (with-temp-buffer
-    (vc-git--call nil t "branch")
+    ;; 'git branch' is a porcelain command whose output could change in
+    ;; the future.
+    (vc-git--call nil t "for-each-ref"
+                  "--format=%(HEAD) %(refname:short)" "refs/heads/")
     (goto-char (point-min))
     (let (current-branch branches)
       (while (not (eobp))
@@ -1734,13 +1744,11 @@ If LIMIT is a non-empty string, use it as a base revision."
                               start-revision))
 		'("--")))))))
 
-(defun vc-git-incoming-revision (upstream-location &optional refresh)
-  (let ((rev (if (string-empty-p upstream-location)
-		 "@{upstream}"
-	       upstream-location)))
+(defun vc-git-incoming-revision (&optional upstream-location refresh)
+  (let ((rev (or upstream-location "@{upstream}")))
     (when (or refresh (null (vc-git--rev-parse rev)))
       (vc-git-command nil 0 nil "fetch"
-                      (and (not (string-empty-p upstream-location))
+                      (and upstream-location
                            ;; Extract remote from "remote/branch".
                            (replace-regexp-in-string "/.*" ""
                                                      upstream-location))))
@@ -2200,27 +2208,44 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
       (format "Summary: %s\n(cherry picked from commit %s)\n"
               comment rev))))
 
+(defun vc-git--assert-revision-on-branch (rev branch)
+  "Signal an error unless REV is on BRANCH."
+  ;; 'git branch --contains' is a porcelain command whose output could
+  ;; change in the future.
+  (unless (zerop (vc-git-command nil 1 nil "merge-base"
+                                 "--is-ancestor" rev branch))
+    (error "Revision %s does not exist on branch %s" rev branch)))
+
+(defun vc-git-revision-published-p (rev)
+  "Whether we think REV has been pushed such that it is public history.
+Considers only the current branch.  Does not fetch."
+  (let ((branch (vc-git--current-branch)))
+    (vc-git--assert-revision-on-branch rev branch)
+    (and
+     ;; BRANCH has an upstream.
+     (with-temp-buffer
+       (vc-git--out-ok "config" "--get"
+                       (format "branch.%s.merge" branch)))
+     ;; REV is not outgoing.
+     (not (cl-member rev
+                     (split-string
+                      (with-output-to-string
+                        (vc-git-command standard-output 0 nil "log"
+                                        "--pretty=format:%H"
+                                        "@{upstream}..HEAD")))
+                     :test #'string-prefix-p)))))
+
 (defun vc-git--assert-allowed-rewrite (rev)
   (when (and (not (and vc-allow-rewriting-published-history
                        (not (eq vc-allow-rewriting-published-history 'ask))))
-             ;; Check there is an upstream.
-             (with-temp-buffer
-               (vc-git--out-ok "config" "--get"
-                               (format "branch.%s.merge"
-                                       (vc-git--current-branch)))))
-    (let ((outgoing (split-string
-                     (with-output-to-string
-                       (vc-git-command standard-output 0 nil "log"
-                                       "--pretty=format:%H"
-                                       "@{upstream}..HEAD")))))
-      (unless (or (cl-member rev outgoing :test #'string-prefix-p)
-                  (and (eq vc-allow-rewriting-published-history 'ask)
+             (vc-git-revision-published-p rev)
+             (not (and (eq vc-allow-rewriting-published-history 'ask)
                        (yes-or-no-p
                         (format "\
 Commit %s appears published; allow rewriting history?"
-                                rev))))
-        (user-error "\
-Will not rewrite likely-public history; see option `vc-allow-rewriting-published-history'")))))
+                                rev)))))
+    (user-error "Will not rewrite likely-public history; \
+see option `vc-allow-rewriting-published-history'")))
 
 (defun vc-git-modify-change-comment (files rev comment)
   (vc-git--assert-allowed-rewrite rev)
@@ -2289,6 +2314,35 @@ Rebase may --autosquash your other squash!/fixup!/amend!; proceed?")))
   (with-environment-variables (("GIT_SEQUENCE_EDITOR" "true"))
     (vc-git-command nil 0 nil "rebase" "--autostash" "--autosquash" "-i"
                     (format "%s~1" rev))))
+
+(defun vc-git-delete-revision (rev)
+  "Rebase current branch to remove REV."
+  (vc-git--assert-revision-on-branch rev (vc-git--current-branch))
+  (with-temp-buffer
+    (vc-git-command t 0 nil "log" "--merges" (format "%s~1.." rev))
+    (unless (bobp)
+      (error "There have been merges since %s; cannot delete revision"
+             rev)))
+  (unless (zerop (vc-git-command nil 1 nil "rebase"
+                                 rev "--onto" (format "%s~1" rev)))
+    ;; FIXME: Ideally we would leave some sort of conflict for the user
+    ;; to resolve, instead of just giving up.  We would want C-x v v to
+    ;; do 'git rebase --continue' like how it can currently be used to
+    ;; conclude a merge after resolving conflicts.
+    (vc-git-command nil 0 nil "rebase" "--abort")
+    (error "Merge conflicts while trying to delete %s; aborting" rev)))
+
+(defun vc-git-delete-revisions-from-end (rev)
+  "Hard reset back to REV.
+It is an error if REV is not on the current branch."
+  (vc-git--assert-revision-on-branch rev (vc-git--current-branch))
+  (vc-git-command nil 0 nil "reset" "--hard" rev))
+
+(defun vc-git-uncommit-revisions-from-end (rev)
+  "Soft reset back to REV.
+It is an error if REV is not on the current branch."
+  (vc-git--assert-revision-on-branch rev (vc-git--current-branch))
+  (vc-git-command nil 0 nil "reset" "--soft" rev))
 
 (defvar vc-git-extra-menu-map
   (let ((map (make-sparse-keymap)))

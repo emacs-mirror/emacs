@@ -268,7 +268,29 @@
   (should (null
            (completion--pcm-first-difference-pos
             (car (completion-pcm-all-completions
-                  "f" '("few" "many") nil 0))))))
+                  "f" '("few" "many") nil 0)))))
+  (should (equal
+           (completion--pcm-first-difference-pos
+            (car (completion-pcm-all-completions
+                  "a*" '("ab" "ac") nil 2)))
+           1))
+  (should (equal
+           (completion--pcm-first-difference-pos
+            (car (completion-pcm-all-completions
+                  "a*" '("ab" "ac") nil 1)))
+           1))
+  (should (equal
+           (completion--pcm-first-difference-pos
+            (car (completion-pcm-all-completions
+                  "a*x" '("abx" "acx") nil 2)))
+           1))
+  (should (equal
+           (completion--pcm-first-difference-pos
+            (car (completion-pcm-all-completions
+                  "a*x" '("abxd" "acxe") nil 3)))
+           ;; FIXME: the highlighting should start at the 4th character
+           ;; rather than the third.
+           3)))
 
 (ert-deftest completion-pcm-test-6 ()
   ;; Wildcards and delimiters work
@@ -338,6 +360,20 @@
   (should (equal (completion-pcm-try-completion
                   "-x" '("-_.x" "-__x") nil 2)
                  '("-_x" . 3))))
+
+(ert-deftest completion-pcm-test-pattern->regex ()
+  (should (equal (completion-pcm--pattern->regex
+                  '("A" any prefix "B" point "C"))
+                 "\\`A[^z-a]*?B[^z-a]*?C"))
+  (should (equal (completion-pcm--pattern->regex
+                  '(any any-delim prefix "A" "B" "C"))
+                 "\\`[^z-a]*?ABC"))
+  (should (equal (completion-pcm--pattern->regex
+                  '(any-delim "A" "B" star "C"))
+                 "\\`[-_./:| *]*?AB[^z-a]*?C"))
+  (should (equal (completion-pcm--pattern->regex
+                  '(any "A" any-delim "B" any-delim "C" any))
+                 "\\`[^z-a]*?A[-_./:| *]*?B[-_./:| *]*?C[^z-a]*?")))
 
 (ert-deftest completion-pcm-bug4219 ()
   ;; With `completion-ignore-case', try-completion should change the

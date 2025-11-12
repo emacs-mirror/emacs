@@ -22,7 +22,12 @@
 
 #include <errno.h>
 #include <limits.h>
+#if HAVE_SETMNTENT
+# include <mntent.h>
+#endif
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #if HAVE_PTHREAD_GETAFFINITY_NP && 0
@@ -37,10 +42,6 @@
 
 #if HAVE_SYS_PSTAT_H
 # include <sys/pstat.h>
-#endif
-
-#if HAVE_SYS_SYSMP_H
-# include <sys/sysmp.h>
 #endif
 
 #if HAVE_SYS_PARAM_H
@@ -61,6 +62,8 @@
 #include "minmax.h"
 
 #define ARRAY_SIZE(a) (sizeof (a) / sizeof ((a)[0]))
+
+#define NPROC_MINIMUM 1
 
 /* Return the number of processors available to the current process, based
    on a modern system call that returns the "affinity" between the current
@@ -244,7 +247,7 @@ num_processors_via_affinity_mask (void)
 /* Return the total number of processors.  Here QUERY must be one of
    NPROC_ALL, NPROC_CURRENT.  The result is guaranteed to be at least 1.  */
 static unsigned long int
-num_processors_ignoring_omp (enum nproc_query query)
+num_processors_available (enum nproc_query query)
 {
   /* On systems with a modern affinity mask system call, we have
          sysconf (_SC_NPROCESSORS_CONF)
@@ -258,7 +261,7 @@ num_processors_ignoring_omp (enum nproc_query query)
      the /sys and /proc file systems (see
      glibc/sysdeps/unix/sysv/linux/getsysstats.c).
      In some situations these file systems are not mounted, and the sysconf call
-     returns 1 or 2 (<https://sourceware.org/bugzilla/show_bug.cgi?id=21542>),
+     returns 1 or 2 (<https://sourceware.org/PR21542>),
      which does not reflect the reality.  */
 
   if (query == NPROC_CURRENT)
@@ -272,8 +275,8 @@ num_processors_ignoring_omp (enum nproc_query query)
       }
 
 #if defined _SC_NPROCESSORS_ONLN
-      { /* This works on glibc, Mac OS X 10.5, FreeBSD, AIX, OSF/1, Solaris,
-           Cygwin, Haiku.  */
+      { /* This works on glibc, Mac OS X 10.5, FreeBSD, AIX, Solaris, Cygwin,
+           Haiku.  */
         long int nprocs = sysconf (_SC_NPROCESSORS_ONLN);
         if (nprocs > 0)
           return nprocs;
@@ -283,8 +286,8 @@ num_processors_ignoring_omp (enum nproc_query query)
   else /* query == NPROC_ALL */
     {
 #if defined _SC_NPROCESSORS_CONF
-      { /* This works on glibc, Mac OS X 10.5, FreeBSD, AIX, OSF/1, Solaris,
-           Cygwin, Haiku.  */
+      { /* This works on glibc, Mac OS X 10.5, FreeBSD, AIX, Solaris, Cygwin,
+           Haiku.  */
         long int nprocs = sysconf (_SC_NPROCESSORS_CONF);
 
 # if __GLIBC__ >= 2 && defined __linux__
@@ -330,20 +333,6 @@ num_processors_ignoring_omp (enum nproc_query query)
   }
 #endif
 
-#if HAVE_SYSMP && defined MP_NAPROCS && defined MP_NPROCS
-  { /* This works on IRIX.  */
-    /* MP_NPROCS yields the number of installed processors.
-       MP_NAPROCS yields the number of processors available to unprivileged
-       processes.  */
-    int nprocs =
-      sysmp (query == NPROC_CURRENT && getuid () != 0
-             ? MP_NAPROCS
-             : MP_NPROCS);
-    if (nprocs > 0)
-      return nprocs;
-  }
-#endif
-
   /* Finally, as fallback, use the APIs that don't distinguish between
      NPROC_CURRENT and NPROC_ALL.  */
 
@@ -377,7 +366,159 @@ num_processors_ignoring_omp (enum nproc_query query)
   }
 #endif
 
-  return 1;
+  return NPROC_MINIMUM;
+}
+
+#if defined __linux__ || defined __ANDROID__
+/* Identify the cgroup2 mount point,
+   initially at the usual location for efficiency,
+   resorting to searching mount points otherwise.
+   Return NULL if the mount point is not found.
+   The returned string can be freed.  */
+static char *
+cgroup2_mount (void)
+{
+  FILE *fp;
+  char *ret = NULL;
+
+  /* Check the usual location first.  */
+  if (access ("/sys/fs/cgroup/cgroup.controllers", F_OK) == 0)
+    return strdup ("/sys/fs/cgroup");
+
+#if HAVE_SETMNTENT
+  /* Otherwise look for the mount point.  */
+  struct mntent *mnt;
+  if (! (fp = setmntent ("/proc/mounts", "r")))
+    return NULL;
+  while ((mnt = getmntent (fp)) != NULL)
+    {
+      if (streq (mnt->mnt_type, "cgroup2"))
+        {
+          ret = strdup (mnt->mnt_dir);
+          break;
+        }
+    }
+  endmntent (fp);
+#endif
+
+  return ret;
+}
+
+/* Return the minimum configured cgroupv2 CPU quota for the current process.
+   Return ULONG_MAX if quota can't be read.
+   Returned value will be >= 1.  */
+static unsigned long int
+get_cgroup2_cpu_quota (void)
+{
+  unsigned long int cpu_quota = ULONG_MAX;
+  FILE *fp;
+
+  fp = fopen ("/proc/self/cgroup", "r");
+  if (! fp)
+    return cpu_quota;
+
+  /* Get our cgroupv2 (unififed) hierarchy.  */
+  char *cgroup = NULL;
+  char *cgroup_str = NULL;
+  size_t cgroup_size = 0;
+  ssize_t read;
+  while ((read = getline (&cgroup_str, &cgroup_size, fp)) != -1)
+    {
+      if (strncmp (cgroup_str, "0::/", 4) == 0)
+        {
+          char *end = cgroup_str + read - 1;
+          if (*end == '\n')
+            *end = '\0';
+          cgroup = cgroup_str + 3;
+          break;
+        }
+    }
+  fclose (fp);
+
+  char *mount = NULL;
+  if (cgroup && ! (mount = cgroup2_mount ()))
+    cgroup = NULL;
+
+  /* Find the lowest quota in the hierarchy.  */
+  char *quota_str = NULL;
+  size_t quota_size = 0;
+  while (cgroup && *cgroup)
+    {
+      /* Walk back up the nested cgroup hierarchy
+         to find the lowest cpu quota as defined in a cpu.max file.
+         Note this file may not be present if the cpu controller
+         is not enabled for that part of the hierarchy.  */
+
+      char cpu_max_file[PATH_MAX];
+      snprintf (cpu_max_file, sizeof (cpu_max_file),
+                "%s%s/cpu.max", mount, cgroup);
+
+      if ((fp = fopen (cpu_max_file, "r"))
+          && getline (&quota_str, &quota_size, fp) != -1
+          && strncmp (quota_str, "max", 3) != 0)
+        {
+          long quota, period;
+          if (sscanf (quota_str, "%ld %ld", &quota, &period) == 2 && period)
+            {
+              double ncpus = (double)quota / period;
+              if (cpu_quota == ULONG_MAX || ncpus < cpu_quota)
+                {
+                  cpu_quota = MAX (1, (long)(ncpus + 0.5));
+                  /* nproc will return 1 minimum, so no point going lower */
+                  if (cpu_quota == 1)
+                    *cgroup = '\0';
+                }
+            }
+        }
+
+      if (fp)
+        fclose (fp);
+
+      char *last_sep = strrchr (cgroup, '/');
+      if (! last_sep)
+        break;
+      if (last_sep == cgroup && *(cgroup + 1))
+        *(cgroup + 1) = '\0';  /* Iterate on "/" also.  */
+      else
+        *last_sep = '\0';
+    }
+
+  free (quota_str);
+  free (mount);
+  free (cgroup_str);
+
+  return cpu_quota;
+}
+#endif
+
+
+/* Return the cgroupv2 CPU quota if the current scheduler honors it.
+   Otherwise return ULONG_MAX.
+   Returned value will be >= 1.  */
+static unsigned long int
+cpu_quota (void)
+{
+  unsigned long int quota = ULONG_MAX;
+
+#if defined __linux__ || defined __ANDROID__
+# if HAVE_SCHED_GETAFFINITY_LIKE_GLIBC && defined SCHED_DEADLINE
+  /* We've a new enough sched.h  */
+  switch (sched_getscheduler (0))
+    {
+      case -1:
+      case SCHED_FIFO:
+      case SCHED_RR:
+      case SCHED_DEADLINE:
+        quota = ULONG_MAX;
+        break;
+      default:
+        quota = get_cgroup2_cpu_quota ();
+        break;
+    }
+# endif
+#endif
+
+  return quota;
 }
 
 /* Parse OMP environment variables without dependence on OMP.
@@ -416,13 +557,13 @@ parse_omp_threads (char const* threads)
 unsigned long int
 num_processors (enum nproc_query query)
 {
-  unsigned long int omp_env_limit = ULONG_MAX;
+  unsigned long int nproc_limit = ULONG_MAX;
 
+  /* Honor the OpenMP environment variables, recognized also by all
+     programs that are based on OpenMP.  */
   if (query == NPROC_CURRENT_OVERRIDABLE)
     {
-      unsigned long int omp_env_threads;
-      /* Honor the OpenMP environment variables, recognized also by all
-         programs that are based on OpenMP.  */
+      unsigned long int omp_env_threads, omp_env_limit;
       omp_env_threads = parse_omp_threads (getenv ("OMP_NUM_THREADS"));
       omp_env_limit = parse_omp_threads (getenv ("OMP_THREAD_LIMIT"));
       if (! omp_env_limit)
@@ -431,14 +572,22 @@ num_processors (enum nproc_query query)
       if (omp_env_threads)
         return MIN (omp_env_threads, omp_env_limit);
 
+      nproc_limit = omp_env_limit;
       query = NPROC_CURRENT;
     }
-  /* Here query is one of NPROC_ALL, NPROC_CURRENT.  */
-  if (omp_env_limit == 1)
-    /* No need to even call num_processors_ignoring_omp (query).  */
-    return 1;
-  {
-    unsigned long nprocs = num_processors_ignoring_omp (query);
-    return MIN (nprocs, omp_env_limit);
-  }
+
+  /* Honor any CPU quotas.  */
+  if (query == NPROC_CURRENT && nproc_limit > NPROC_MINIMUM)
+    {
+      unsigned long int quota = cpu_quota ();
+      nproc_limit = MIN (quota, nproc_limit);
+    }
+
+  if (nproc_limit > NPROC_MINIMUM)
+    {
+      unsigned long nprocs = num_processors_available (query);
+      nproc_limit = MIN (nprocs, nproc_limit);
+    }
+
+  return nproc_limit;
 }

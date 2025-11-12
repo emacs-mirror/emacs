@@ -146,7 +146,7 @@ Check that the resulting binaries do not differ."
   (should (= (comp-tests-aref-aset-f) 100)))
 
 (comp-deftest symbol-value ()
-  "Testing aref and aset."
+  "Testing `symbol-value'."
   (should (= (comp-tests-symbol-value-f) 3)))
 
 (comp-deftest concat ()
@@ -260,8 +260,8 @@ Check that the resulting binaries do not differ."
 
 (comp-deftest setcarcdr ()
   "Testing setcar setcdr."
-  (should (equal (comp-tests-setcar-f '(10 . 10) 3) '(3 . 10)))
-  (should (equal (comp-tests-setcdr-f '(10 . 10) 3) '(10 . 3)))
+  (should (equal (comp-tests-setcar-f (cons 10 10) 3) '(3 . 10)))
+  (should (equal (comp-tests-setcdr-f (cons 10 10) 3) '(10 . 3)))
   (should-error (comp-tests-setcar-f 3 10)
                 :type 'wrong-type-argument)
   (should-error (comp-tests-setcdr-f 3 10)

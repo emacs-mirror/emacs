@@ -1,5 +1,5 @@
 # sys_socket_h.m4
-# serial 31
+# serial 32
 dnl Copyright (C) 2005-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -12,17 +12,6 @@ AC_DEFUN_ONCE([gl_SYS_SOCKET_H],
 [
   AC_REQUIRE([gl_SYS_SOCKET_H_DEFAULTS])
   AC_REQUIRE([AC_CANONICAL_HOST])
-
-  dnl On OSF/1, the functions recv(), send(), recvfrom(), sendto() have
-  dnl old-style declarations (with return type 'int' instead of 'ssize_t')
-  dnl unless _POSIX_PII_SOCKET is defined.
-  case "$host_os" in
-    osf*)
-      AC_DEFINE([_POSIX_PII_SOCKET], [1],
-        [Define to 1 in order to get the POSIX compatible declarations
-         of socket functions.])
-      ;;
-  esac
 
   GL_GENERATE_SYS_SOCKET_H=false
   AC_CACHE_CHECK([whether <sys/socket.h> is self-contained],

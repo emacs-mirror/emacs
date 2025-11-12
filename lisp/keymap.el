@@ -39,7 +39,7 @@
   (dolist (key keys)
     (when (or (vectorp key)
               (and (stringp key) (not (key-valid-p key))))
-      (byte-compile-warn "Invalid `kbd' syntax: %S" key))))
+      (byte-compile-warn "Invalid `key-valid-p' syntax: %S" key))))
 
 (defun keymap-set (keymap key definition)
   "Set KEY to DEFINITION in KEYMAP.
@@ -585,7 +585,7 @@ If MESSAGE (and interactively), message the result."
     (let* ((wargs args)
            (key (pop args)))
       (when (and (stringp key) (not (key-valid-p key)))
-        (byte-compile-warn-x wargs "Invalid `kbd' syntax: %S" key)))
+        (byte-compile-warn-x wargs "Invalid `key-valid-p' syntax: %S" key)))
     (when (null args)
       (byte-compile-warn-x form "Uneven number of key bindings in %S" form))
     (setq args (cdr args)))

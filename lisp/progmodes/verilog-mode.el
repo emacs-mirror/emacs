@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2025.01.01.100165202
+;; Version: 2025.11.08.248496848
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2025-01-01-5f86652-vpo-GNU"
+(defconst verilog-mode-version "2025-11-08-ecfc2d0-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -1586,7 +1586,6 @@ If set will become buffer local.")
     (define-key map "\C-c\C-r" #'verilog-label-be)
     (define-key map "\C-c\C-i" #'verilog-pretty-declarations)
     (define-key map "\C-c="    #'verilog-pretty-expr)
-    (define-key map "\C-c\C-b" #'verilog-submit-bug-report)
     (define-key map "\C-c/"    #'verilog-star-comment)
     (define-key map "\C-c\C-c" #'verilog-comment-region)
     (define-key map "\C-c\C-u" #'verilog-uncomment-region)
@@ -4363,12 +4362,16 @@ Key bindings specific to `verilog-mode-map' are:
   (when (and (boundp 'which-func-modes) (listp which-func-modes))
     (add-to-list 'which-func-modes 'verilog-mode))
   ;; hideshow support
-  (when (boundp 'hs-special-modes-alist)
-    (unless (assq 'verilog-mode hs-special-modes-alist)
-      (setq hs-special-modes-alist
-            (cons '(verilog-mode "\\<begin\\>" "\\<end\\>" nil
-                                 verilog-forward-sexp-function)
-                  hs-special-modes-alist))))
+  (cond ((boundp 'hs-forward-sexp-function)  ;; 31.1 and beyond
+         (setq-local hs-block-start-regexp "\\<begin\\>")
+         (setq-local hs-block-end-regexp "\\<end\\>")
+         (setq-local hs-forward-sexp-function #'verilog-forward-sexp-function))
+        ((boundp 'hs-special-modes-alist)  ;; pre 31.1, not XEmacs
+         (unless (assq 'verilog-mode hs-special-modes-alist)
+           (setq hs-special-modes-alist
+                 (cons '(verilog-mode "\\<begin\\>" "\\<end\\>" nil
+                                      verilog-forward-sexp-function)
+                       hs-special-modes-alist)))))
 
   (add-hook 'completion-at-point-functions
             #'verilog-completion-at-point nil 'local)

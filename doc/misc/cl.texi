@@ -796,6 +796,7 @@ facts are true or false.
 
 @menu
 * Type Predicates::      @code{cl-typep}, @code{cl-deftype}, and @code{cl-coerce}.
+* Derived Types::        @code{cl-deftype}.
 * Equality Predicates::  @code{cl-equalp}.
 @end menu
 
@@ -888,8 +889,8 @@ floats.  In all other circumstances, @code{cl-coerce} signals an
 error.
 @end defun
 
-@node Derived types
-@subsection Derived types
+@node Derived Types
+@section Derived Types
 
 @defmac cl-deftype name arglist [docstring] [decls] forms@dots{}
 This macro defines a new type called @var{name}.

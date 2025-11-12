@@ -1,5 +1,5 @@
 # lchmod.m4
-# serial 10
+# serial 11
 dnl Copyright (C) 2005-2006, 2008-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -16,7 +16,7 @@ AC_DEFUN([gl_FUNC_LCHMOD],
   dnl Persuade glibc <sys/stat.h> to declare lchmod().
   AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
 
-  AC_CHECK_FUNCS_ONCE([lchmod])
+  gl_CHECK_FUNCS_ANDROID([lchmod], [[#include <sys/stat.h>]])
   if test "$ac_cv_func_lchmod" = no; then
     HAVE_LCHMOD=0
   fi

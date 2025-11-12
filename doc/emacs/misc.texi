@@ -2024,8 +2024,8 @@ server file, as the default @code{server-auth-dir} is hard-coded in
 relative filenames.
 
 @node Invoking emacsclient
-@subsection Invoking @code{emacsclient}
-@cindex @code{emacsclient} invocation
+@subsection Invoking @command{emacsclient}
+@cindex @command{emacsclient} invocation
 
   The simplest way to use the @command{emacsclient} program is to run
 the shell command @samp{emacsclient @var{file}}, where @var{file} is a
@@ -2193,8 +2193,9 @@ option sometimes requires elaborate escaping of characters special to
 the shell.  To avoid this, you can pass arguments to Lisp functions in
 your expression as additional separate arguments to
 @command{emacsclient}, and use @var{server-eval-args-left} in the
-expression to access those arguments.  Be careful to have your
-expression remove the processed arguments from
+expression to access those arguments.  If empty string arguments are
+passed to @command{emacsclient}, those are included as well.  Be careful
+to have your expression remove the processed arguments from
 @var{server-eval-args-left} regardless of whether your code succeeds,
 for example by using @code{pop}, otherwise Emacs will attempt to
 evaluate those arguments as separate Lisp expressions.

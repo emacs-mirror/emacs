@@ -1,5 +1,5 @@
 # stdint.m4
-# serial 64
+# serial 65
 dnl Copyright (C) 2001-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -391,9 +391,9 @@ AC_DEFUN([gl_STDINT_BITSIZEOF],
       ])
     eval result=\$gl_cv_bitsizeof_${gltype}
     if test $result = unknown; then
-      dnl Use a nonempty default, because some compilers, such as IRIX 5 cc,
-      dnl do a syntax check even on unused #if conditions and give an error
-      dnl on valid C code like this:
+      dnl Use a nonempty default, because some old compilers do a syntax check
+      dnl even on unused #if conditions and give an error on valid C code like
+      dnl this:
       dnl   #if 0
       dnl   # if  > 32
       dnl   # endif

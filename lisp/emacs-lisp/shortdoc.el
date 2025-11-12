@@ -761,6 +761,15 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (take 3 '(one two three four)))
   (ntake
    :eval (ntake 3 (list 'one 'two 'three 'four)))
+  (take-while
+   :eval (take-while #'numberp '(1 2 three 4 five)))
+  (drop-while
+   :eval (drop-while #'numberp '(1 2 three 4 five)))
+  (any
+   :eval (any #'symbolp '(1 2 three 4 five)))
+  (all
+   :eval (all #'symbolp '(one 2 three))
+   :eval (all #'symbolp '(one two three)))
   (elt
    :eval (elt '(one two three) 1))
   (car-safe

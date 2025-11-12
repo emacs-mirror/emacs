@@ -1,5 +1,5 @@
 # malloc.m4
-# serial 43
+# serial 44
 dnl Copyright (C) 2007, 2009-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -186,9 +186,7 @@ AC_DEFUN([gl_CHECK_MALLOC_POSIX],
             [gl_cv_func_malloc_posix="guessing yes"],
             [gl_cv_func_malloc_posix="guessing no"])
           ;;
-        irix* | solaris*)
-          dnl On IRIX 6.5, the three functions return NULL with errno unset
-          dnl when the argument is larger than PTRDIFF_MAX.
+        solaris*)
           dnl On Solaris 11.3, the three functions return NULL with errno set
           dnl to EAGAIN, not ENOMEM, when the argument is larger than
           dnl PTRDIFF_MAX.

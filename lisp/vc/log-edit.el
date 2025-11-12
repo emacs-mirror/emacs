@@ -560,8 +560,12 @@ done.  Otherwise, this function will use the current buffer."
       (erase-buffer)
       (run-hooks 'log-edit-hook))
     (push-mark (point-max))
-    (message "%s" (substitute-command-keys
-	      "Press \\[log-edit-done] when you are done editing."))))
+    ;; `vc-start-logentry' already emits a message; avoid a duplicate,
+    ;; and ensure we don't emit one at all in the case of doing the
+    ;; action immediately.
+    (unless mode
+      (message "%s" (substitute-command-keys
+	             "Press \\[log-edit-done] when you are done editing.")))))
 
 (define-derived-mode log-edit-mode text-mode "Log-Edit"
   "Major mode for editing version-control (VC) commit log messages.
