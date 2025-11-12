@@ -52,6 +52,19 @@
   (should (equal (color-values-from-color-spec "rgbi:0/0x0/0") nil))
   (should (equal (color-values-from-color-spec "rgbi:0/+0x1/0") nil)))
 
+(ert-deftest xfaces-test-circular-inheritance ()
+  "Test that bug#79672 remains solved."
+  (let ((buf (get-buffer-create "xfaces-test")))
+    (with-current-buffer buf
+      (font-lock-mode -1)
+      (set-face-attribute 'button nil :inherit 'link)
+      (should (equal
+               (should-error (set-face-attribute 'link nil :inherit 'button))
+               (list 'error
+                     "Face inheritance results in inheritance cycle"
+                     'button))))
+    (kill-buffer buf)))
+
 (provide 'xfaces-tests)
 
 ;;; xfaces-tests.el ends here

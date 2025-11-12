@@ -3668,14 +3668,17 @@ character, or for keyboard-quit.
 @end defun
 
 @defun read-multiple-choice prompt choices &optional help-string show-help long-form
-Ask user a multiple choice question.  @var{prompt} should be a string
-that will be displayed as the prompt.
+Ask user a multiple-choice question and return user's choice.
+@var{prompt} should be a string to display as the prompt.
 
 @var{choices} is an alist where the first element in each entry is a
-character to be entered, the second element is a short name for the
+character the user can type, the second element is a short name for the
 entry to be displayed while prompting (if there's room, it might be
 shortened), and the third, optional entry is a longer explanation that
 will be displayed in a help buffer if the user requests more help.
+
+The return value is the entry from @var{choices} that matches the
+character the user types.
 
 If optional argument @var{help-string} is non-@code{nil}, it should be
 a string with a more detailed description of all choices.  It will be
@@ -3691,7 +3694,10 @@ will have to type in long-form answers (using @code{completing-read})
 instead of hitting a single key.  The answers must be among the second
 elements of the values in the @var{choices} list.
 
-The return value is the matching value from @var{choices}.
+By default, this function uses @code{read-from-minibuffer} (@pxref{Text
+from Minibuffer}) to read user input, but if the variable
+@code{read-char-choice-use-read-key} is non-@code{nil}, it uses
+@code{read-key} instead.
 
 @lisp
 (read-multiple-choice

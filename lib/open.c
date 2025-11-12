@@ -38,13 +38,7 @@ orig_open (const char *filename, int flags, mode_t mode)
 }
 
 /* Specification.  */
-#ifdef __osf__
-/* Write "fcntl.h" here, not <fcntl.h>, otherwise OSF/1 5.1 DTK cc eliminates
-   this include because of the preliminary #include <fcntl.h> above.  */
-# include "fcntl.h"
-#else
-# include <fcntl.h>
-#endif
+#include <fcntl.h>
 
 #include "cloexec.h"
 
@@ -100,7 +94,7 @@ open (const char *filename, int flags, ...)
 #endif
 
 #if defined _WIN32 && ! defined __CYGWIN__
-  if (strcmp (filename, "/dev/null") == 0)
+  if (streq (filename, "/dev/null"))
     filename = "NUL";
 #endif
 

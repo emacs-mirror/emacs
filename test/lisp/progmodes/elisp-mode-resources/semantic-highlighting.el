@@ -149,3 +149,36 @@
 ;;                         ^ (elisp-widget-type font-lock-keyword-face)
                           )))
   :version "29.1")
+
+;; Taken from browse-url.el:
+(defcustom baz-opt 'browse-url-mail
+  "Baz."
+  :type '(function-item :tag "Emacs Mail" :value browse-url-mail))
+;;        ^ elisp-widget-type
+;;                                         ^ (elisp-constant font-lock-builtin-face)
+
+(e-s-analyze-form #'ignore)
+;; ^ (elisp-shorthand-font-lock-face elisp-function)
+;;   ^ elisp-function
+;;                  ^ elisp-function
+
+(defface foobar
+  '((default :inherit font-lock-function-call-face)
+;;            ^ (elisp-constant font-lock-builtin-face)
+;;                    ^ elisp-face
+    (((background light)) :foreground "#00008b")
+    (((background dark))  :foreground "#5c9cff"))
+  "Face for highlighting symbol role names in Emacs Lisp code."
+  :version "31.1")
+;; ^ (elisp-constant font-lock-builtin-face)
+
+(propertize foo
+            'face
+            (cond
+             ((random) '(success (:foreground "green" :inherit default)))
+;;                       ^ elisp-face
+;;                                                             ^ elisp-face
+             ((foobar) 'font-lock-keyword-face)
+;;                      ^ elisp-face
+             (t '(:inherit error))))
+;;                         ^ elisp-face

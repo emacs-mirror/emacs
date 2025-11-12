@@ -1237,8 +1237,7 @@ please check its value")
 	  (unless (file-readable-p lispdir)
 	    (princ (format "Lisp directory %s not readable?" lispdir))
 	    (terpri)))
-      (setq lisp-directory
-            (file-truename (file-name-directory simple-file-name)))
+      (setq lisp-directory (file-name-directory simple-file-name))
       (setq load-history
 	    (mapcar (lambda (elt)
 		      (if (and (stringp (car elt))

@@ -167,12 +167,9 @@ with no args, if that value is non-nil."
   ;; imenu support
   (setq-local imenu-generic-expression icon-imenu-generic-expression)
   ;; hideshow support
-  ;; we start from the assertion that `hs-special-modes-alist' is autoloaded.
-  (unless (assq 'icon-mode hs-special-modes-alist)
-    (setq hs-special-modes-alist
-	  (cons '(icon-mode  "\\<procedure\\>" "\\<end\\>" nil
-			     icon-forward-sexp-function)
-		hs-special-modes-alist))))
+  (setq-local hs-block-start-regexp "\\<procedure\\>")
+  (setq-local hs-block-end-regexp "\\<end\\>")
+  (setq-local hs-forward-sexp-function #'icon-forward-sexp-function))
 
 ;; This is used by indent-for-comment to decide how much to
 ;; indent a comment in Icon code based on its context.

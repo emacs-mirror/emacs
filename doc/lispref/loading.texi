@@ -1320,6 +1320,11 @@ This macro arranges to evaluate @var{body} at the end of loading
 the file @var{library}, each time @var{library} is loaded.  If
 @var{library} is already loaded, it evaluates @var{body} right away.
 
+Usually @var{library} is a feature (i.e., a symbol), in which case
+@var{body} is evaluated at the end of any file where
+@code{(provide @var{library})} is called.
+
+@var{library} can be also a file name (i.e., a string).
 You don't need to give a directory or extension in the file name
 @var{library}.  Normally, you just give a bare file name, like this:
 
@@ -1329,8 +1334,8 @@ You don't need to give a directory or extension in the file name
 
 To restrict which files can trigger the evaluation, include a
 directory or an extension or both in @var{library}.  Only a file whose
-absolute true name (i.e., the name with all symbolic links chased out)
-matches all the given name components will match.  In the following
+absolute name matches all the given name components will match.
+In the following
 example, @file{my_inst.elc} or @file{my_inst.elc.gz} in some directory
 @code{..../foo/bar} will trigger the evaluation, but not
 @file{my_inst.el}:
@@ -1338,10 +1343,6 @@ example, @file{my_inst.elc} or @file{my_inst.elc.gz} in some directory
 @example
 (with-eval-after-load "foo/bar/my_inst.elc" @dots{})
 @end example
-
-@var{library} can also be a feature (i.e., a symbol), in which case
-@var{body} is evaluated at the end of any file where
-@code{(provide @var{library})} is called.
 
 An error in @var{body} does not undo the load, but does prevent
 execution of the rest of @var{body}.

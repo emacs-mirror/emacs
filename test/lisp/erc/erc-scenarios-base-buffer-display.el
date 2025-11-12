@@ -230,7 +230,8 @@
        (erc-user-full-name "tester"))
 
     (ert-info ("Connect to foonet")
-      (with-current-buffer (let (inhibit-interaction)
+      (with-current-buffer (let ((inhibit-message noninteractive)
+                                 (inhibit-interaction nil))
                              (ert-simulate-keys url
                                (call-interactively #'erc)))
         (should (string= (buffer-name) (format "127.0.0.1:%d" port)))

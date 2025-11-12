@@ -49,11 +49,6 @@ if test "$XCONFIGURE" = "android"; then
     CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=32"
     enable_largefile=no
     enable_year2038=no])
-  # Gnulib should not attempt not to reimplement tzalloc, as strftime
-  # attempts to link with symbols that are only present in the Gnulib
-  # replacement.
-  AS_IF([test "$ANDROID_SDK" -ge "35"],
-    [gl_cv_onwards_func_tzalloc="future OS version"])
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,

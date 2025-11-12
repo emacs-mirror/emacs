@@ -99,11 +99,10 @@ interface, update `file-name-handler-alist'."
 (define-minor-mode auto-encryption-mode
   "Toggle automatic file encryption/decryption (Auto Encryption mode)."
   :global t :init-value t :group 'epa-file :version "23.1"
-  ;; We'd like to use custom-initialize-set here so the setup is done
-  ;; before dumping, but at the point where the defcustom is evaluated,
+  ;; At the point where the defcustom is evaluated,
   ;; the corresponding function isn't defined yet, so
-  ;; custom-initialize-set signals an error.
-  :initialize 'custom-initialize-delay
+  ;; custom-initialize-set would signal an error.
+  :initialize #'custom-initialize-after-file-load
   (setq file-name-handler-alist
 	(delq epa-file-handler file-name-handler-alist))
   (remove-hook 'find-file-hook 'epa-file-find-file-hook)

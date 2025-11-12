@@ -632,12 +632,27 @@ For details, see `tramp-rename-files'."
   "Which method to be used in `tramp-file-name-with-sudo'."
   :group 'tramp
   :version "31.1"
+  ;; It should be a choice of constant strings.  See
+  ;; `with-tramp-file-name-with-method'.
   :type '(choice (const "su") (const "surs")
 		 (const "sudo") (const "sudors")
 		 (const "doas")
 		 (const "run0")
 		 (const "ksu"))
+  :initialize #'custom-initialize-default
+  :set #'tramp-set-file-name-with-method
   :link '(tramp-info-link :tag "Tramp manual" tramp-file-name-with-method))
+
+(defun tramp-set-file-name-with-method (symbol value)
+  "Set SYMBOL to value VALUE.
+Used in user option `tramp-file-name-with-method'.  If VALUE is an
+optional method, enable it."
+  (unless (string-equal (symbol-value symbol) value)
+    ;; Enable optional method.
+    (tramp-enable-method value)
+    ;; Set the value.
+    (when (assoc value tramp-methods)
+      (set-default symbol value))))
 
 (defun tramp-get-file-name-with-method ()
   "Return connection-local value of `tramp-file-name-with-method'."
@@ -651,8 +666,11 @@ Run BODY."
           (if current-prefix-arg
 	      (completing-read
 	       "Tramp method: "
-               (mapcar
-		#'cadr (cdr (get 'tramp-file-name-with-method 'custom-type)))
+	       ;; Filter out enabled methods.
+	       (seq-intersection
+		(mapcar #'car tramp-methods)
+		(mapcar
+		 #'cadr (cdr (get 'tramp-file-name-with-method 'custom-type))))
                nil t (tramp-get-file-name-with-method))
             (tramp-get-file-name-with-method))))
      ,@body))

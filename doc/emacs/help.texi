@@ -716,8 +716,17 @@ use @kbd{C-h l} (@code{view-lossage}).  @kbd{C-h l} displays your last
 input keystrokes and the commands they invoked.  By default, Emacs
 stores the last 300 keystrokes; if you wish, you can change this number with
 the command @code{lossage-size}.
-If you see commands that you are not familiar with, you can use @kbd{C-h k} or
-@kbd{C-h f} to find out what they do.
+If you see commands that you are not familiar with, use
+@kbd{C-h k}, or press @kbd{RET} or click on them to find out what they do.
+
+@vindex view-lossage-auto-refresh
+By default, once the lossage buffer is displayed, it will not show the
+keystroke and commands you will type after displaying it.  But if you
+set the variable @code{view-lossage-auto-refresh} to the value @code{t},
+the lossage buffer will be continuously refreshed as you type further
+commands.  Alternatively, you can invoke @code{view-lossage} with a
+prefix argument, as in @kbd{C-u C-h l}, to display the lossage buffer
+and have it auto-refresh thereafter.
 
 @kindex C-h e
 @findex view-echo-area-messages

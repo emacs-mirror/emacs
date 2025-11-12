@@ -376,12 +376,6 @@ fcntl (int fd, int action, /* arg */...)
           #ifdef F_NOTIFY                        /* Linux */
           case F_NOTIFY:
           #endif
-          #ifdef F_OPLKACK                       /* IRIX */
-          case F_OPLKACK:
-          #endif
-          #ifdef F_OPLKREG                       /* IRIX */
-          case F_OPLKREG:
-          #endif
           #ifdef F_RDAHEAD                       /* macOS */
           case F_RDAHEAD:
           #endif

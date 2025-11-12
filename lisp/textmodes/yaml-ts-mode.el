@@ -217,6 +217,9 @@ Return nil if there is no name or if NODE is not a defun node."
 
     (treesit-major-mode-setup)
 
+    (setq-local hs-treesit-things "block_mapping_pair")
+    (setq-local hs-adjust-block-end-function (lambda (_) (line-end-position)))
+
     ;; Use the `list' thing defined above to navigate only lists
     ;; with `C-M-n', `C-M-p', `C-M-u', `C-M-d', but not sexps
     ;; with `C-M-f', `C-M-b' neither adapt to 'show-paren-mode'

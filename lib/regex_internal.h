@@ -98,24 +98,14 @@
 #endif
 
 /* This is for other GNU distributions with internationalized messages.  */
-#if (HAVE_LIBINTL_H && ENABLE_NLS) || defined _LIBC
+#ifdef _LIBC
 # include <libintl.h>
 # undef gettext
-# ifdef _LIBC
-#  define gettext(msgid) \
+# define gettext(msgid) \
   __dcgettext (_libc_intl_domainname, msgid, LC_MESSAGES)
-# else
-#  define gettext(msgid) dgettext ("gnulib", msgid)
-# endif
-#else
-# undef gettext
-# define gettext(msgid) (msgid)
-#endif
-
-#ifndef gettext_noop
-/* This define is so xgettext can find the internationalizable
-   strings.  */
 # define gettext_noop(String) String
+#else
+# include "gettext.h"
 #endif
 
 /* Number of ASCII characters.  */

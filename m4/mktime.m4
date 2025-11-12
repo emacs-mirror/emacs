@@ -1,5 +1,5 @@
 # mktime.m4
-# serial 42
+# serial 43
 dnl Copyright (C) 2002-2003, 2005-2007, 2009-2025 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -110,22 +110,6 @@ mktime_test (time_t now)
   return (mktime_test1 (now)
           && mktime_test1 ((time_t) (time_t_max - now))
           && mktime_test1 ((time_t) (time_t_min + now)));
-}
-
-static int
-irix_6_4_bug ()
-{
-  /* Based on code from Ariel Faigon.  */
-  struct tm tm;
-  tm.tm_year = 96;
-  tm.tm_mon = 3;
-  tm.tm_mday = 0;
-  tm.tm_hour = 0;
-  tm.tm_min = 0;
-  tm.tm_sec = 0;
-  tm.tm_isdst = -1;
-  mktime (&tm);
-  return tm.tm_mon == 2 && tm.tm_mday == 31;
 }
 
 static int
@@ -255,12 +239,10 @@ main ()
       if ((result & 8) == 0 && ! bigtime_test (INT_MAX))
         result |= 8;
     }
-  if (! irix_6_4_bug ())
-    result |= 16;
   if (! spring_forward_gap ())
-    result |= 32;
+    result |= 16;
   if (! year_2050_test () || ! indiana_test ())
-    result |= 64;
+    result |= 32;
   return result;
 }]])],
          [gl_cv_func_working_mktime=yes],

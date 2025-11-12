@@ -45,7 +45,7 @@ enum { STACK_BUF_SIZE = 1024 };
    If GCC_LINT is defined, do not inline this function with GCC 10.1
    and later, to avoid creating a pointer to the stack that GCC
    -Wreturn-local-addr incorrectly complains about.  See:
-   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93644
+   https://gcc.gnu.org/PR93644
    Although the noinline attribute can hurt performance a bit, no better way
    to pacify GCC is known; even an explicit #pragma does not pacify GCC.
    When the GCC bug is fixed this workaround should be limited to the
@@ -174,7 +174,7 @@ careadlinkat (int fd, char const *filename,
      shrinking realloc.  */
   #ifdef GCC_BOGUS_WRETURN_LOCAL_ADDR
    #warning "GCC might issue a bogus -Wreturn-local-addr warning here."
-   #warning "See <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93644>."
+   #warning "See <https://gcc.gnu.org/PR93644>."
   #endif
   char stack_buf[STACK_BUF_SIZE];
   return readlink_stk (fd, filename, buffer, buffer_size, alloc,

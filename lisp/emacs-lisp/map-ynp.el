@@ -36,6 +36,7 @@
 
 (declare-function x-popup-dialog "menu.c" (position contents &optional header))
 (declare-function set-text-conversion-style "textconv.c")
+(autoload 'cl--map-keymap-recursively "cl-extra")
 
 (defvar overriding-text-conversion-style)
 
@@ -95,6 +96,11 @@ Optional argument NO-CURSOR-IN-ECHO-AREA, if non-nil, means not to set
 This function uses `query-replace-map' to define the standard responses,
 but only some of the responses which `query-replace' understands
 are meaningful here, as described above.
+
+By default, this function uses the minibuffer to read the key
+non-modally (see `read-from-minibuffer').  However, if
+`y-or-n-p-use-read-key' is non-nil, the modal `read-key'
+function is used instead.
 
 The function's value is the number of actions taken."
   (let* ((actions 0)
@@ -161,11 +167,13 @@ The function's value is the number of actions taken."
 	    (cond ((stringp prompt)
 		   ;; Prompt the user about this object.
 		   (setq quit-flag nil)
-		   (if use-menus
-		       (setq def (or (x-popup-dialog (or mouse-event use-menus)
-						     (cons prompt map))
-				     'quit))
-		     ;; Prompt in the echo area.
+		   (cond
+		    (use-menus
+		     (setq def (or (x-popup-dialog (or mouse-event use-menus)
+						   (cons prompt map))
+				   'quit)))
+		    (y-or-n-p-use-read-key
+		     ;; Prompt in the echo area using `read-key'.
 		     (let ((cursor-in-echo-area (not no-cursor-in-echo-area)))
                        (message "%s" (substitute-command-keys
                                      (format
@@ -203,7 +211,48 @@ The function's value is the number of actions taken."
                                            "[end-of-keyboard-macro]"
                                          (single-key-description char))))))
 		     (setq def (lookup-key map (vector char))))
-		   (cond ((eq def 'exit)
+                    (t
+                     ;; Read from the minibuffer.
+                     (let* ((full-prompt
+                             (substitute-command-keys
+                              (format
+                               (apply #'propertize
+                                      "%s(\\`y', \\`n', \\`!', \\`.', \\`q', %sor \\`%s') "
+                                      minibuffer-prompt-properties)
+                               prompt user-keys (help-key))))
+                            (remap (make-sparse-keymap))
+                            (cmd-char
+                             (lambda ()
+                               (interactive)
+                               (setq char last-command-event)
+                               (exit-minibuffer)))
+                            (cmd-help
+                             (lambda ()
+                               (interactive)
+                               (message "%s" (substitute-command-keys
+                                              (format
+                                               "Type \\`%s' for help"
+                                               (help-key))))))
+                            (this-command this-command)
+                            (real-this-command real-this-command)
+                            (enable-recursive-minibuffers t)
+                            (overriding-text-conversion-style nil))
+                       (set-keymap-parent remap minibuffer-local-map)
+                       (define-key remap [remap self-insert-command] cmd-help)
+                       (cl--map-keymap-recursively
+                        (lambda (key _cmd)
+                          (define-key remap key cmd-char))
+                        map)
+                       (if minibuffer-auto-raise
+                           (raise-frame (window-frame (minibuffer-window))))
+                       (when (fboundp 'set-text-conversion-style)
+                         (set-text-conversion-style text-conversion-style))
+                       (read-from-minibuffer
+                        full-prompt nil remap nil
+                        (or y-or-n-p-history-variable t))
+                       (message "%s%s" full-prompt (single-key-description char)))
+                     (setq def (lookup-key map (vector char)))))
+                   (cond ((eq def 'exit)
 			  (setq next (lambda () nil)))
 			 ((eq def 'act)
 			  ;; Act on the object.
@@ -274,6 +323,8 @@ Type \\`SPC' or \\`y' to %s the current %s;
 			  ;; switch-frame event.  Put it off until we're done.
 			  (setq delayed-switch-frame char)
 			  (funcall try-again))
+			 ((eq def nil) ;; Special case for bug#67836
+			  (error "Can't use in a kmacro in batch mode"))
 			 (t
 			  ;; Random char.
                           (message "%s" (substitute-command-keys

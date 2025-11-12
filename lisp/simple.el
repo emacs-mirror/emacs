@@ -3191,12 +3191,12 @@ previous element of the minibuffer history in the minibuffer."
           ;; Avoid moving point to the prompt
           (when (< (point) (minibuffer-prompt-end))
             ;; If there is minibuffer contents on the same line
-            (if (<= (minibuffer-prompt-end)
-                    (save-excursion
-                      (if (or truncate-lines (not line-move-visual))
-                          (end-of-line)
-                        (end-of-visual-line))
-                      (point)))
+            (if (< (minibuffer-prompt-end)
+                   (save-excursion
+                     (if (or truncate-lines (not line-move-visual))
+                         (end-of-line)
+                       (end-of-visual-line))
+                     (point)))
                 ;; Move to the beginning of minibuffer contents
                 (goto-char (minibuffer-prompt-end))
               ;; Otherwise, go to the previous history element
@@ -4317,9 +4317,8 @@ stdout will be intermixed in the output stream.")
 This function is used to add all related commands retrieved by
 `shell-command-guess' to the end of the list of defaults just
 after the default value."
-  (let* ((filename (if (listp minibuffer-default)
-		       (car minibuffer-default)
-		     minibuffer-default))
+  (let* ((filename (and (atom minibuffer-default)
+		        minibuffer-default))
 	 (commands (and filename (require 'dired-aux)
                         (shell-command-guess (list filename)))))
     (setq commands (mapcar (lambda (command)

@@ -282,7 +282,7 @@ a list of frames to update."
                   (and (eq auto-resize-tab-bars 'grow-only)
                        (> (frame-parameter frame 'tab-bar-lines) 1))
                   ;; Don't enable tab-bar in daemon's initial frame.
-                  (and (daemonp) (not (frame-parameter frame 'client))))
+                  (and (daemonp) (eq frame terminal-frame)))
         (set-frame-parameter frame 'tab-bar-lines
                              (tab-bar--tab-bar-lines-for-frame frame)))))
   ;; Update `default-frame-alist'

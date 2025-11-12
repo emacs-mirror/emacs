@@ -133,10 +133,6 @@
 
 (ert-deftest easy-mmode--less-selective-first ()
   "Test with the less selective globalized mode going first."
-  ;; FIXME: This case is broken by the introduction of the
-  ;; MODE-suppress-set-explicitly mechanism.
-  ;; This test should be re-enabled as part of resolving bug#79624.
-  :expected-result :failed
   (easy-mmode-test-globalized-mode-1 -1)
   (easy-mmode-test-globalized-mode-2 -1)
   (easy-mmode-test-globalized-mode-1 1)

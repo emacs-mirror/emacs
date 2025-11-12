@@ -107,21 +107,21 @@ Adapted from scenario clash-of-chans/uniquify described in Bug#48598:
 
     (ert-info ("#chan@foonet is exclusive and not contaminated")
       (with-current-buffer "#chan/127.0.0.1"
-        (funcall expect 1 "<bob>")
+        (funcall expect 10 "<bob>")
         (erc-d-t-absent-for 0.1 "<joe>")
         (funcall expect 1 "strength to climb")
         (should (eq erc-server-process server-process-foo))))
 
     (ert-info ("#chan@barnet is exclusive and not contaminated")
       (with-current-buffer "#chan/127.0.0.1<2>"
-        (funcall expect 1 "<joe>")
+        (funcall expect 10 "<joe>")
         (erc-d-t-absent-for 0.1 "<bob>")
         (funcall expect 1 "the loudest noise")
         (should (eq erc-server-process server-process-bar))))
 
     (ert-info ("Part #chan@foonet")
       (with-current-buffer "#chan/127.0.0.1"
-        (erc-d-t-search-for 1 "shake my sword")
+        (erc-d-t-search-for 10 "shake my sword")
         (erc-cmd-PART "#chan")
         (funcall expect 3 "You have left channel #chan")
         (should-not (erc-get-channel-user (erc-current-nick)))

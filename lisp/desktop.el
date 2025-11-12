@@ -775,7 +775,7 @@ if different)."
                         ;; Don't delete daemon's initial frame, or
                         ;; we'll never be able to close the last
                         ;; client's frame (Bug#26912).
-                        (if (daemonp) (not (frame-parameter frame 'client)))
+                        (and (daemonp) (eq frame terminal-frame))
 			(frame-parameter frame 'desktop-dont-clear))
 	      (delete-frame frame))
 	  (error
@@ -1255,7 +1255,7 @@ This function also sets `desktop-dirname' to nil."
   (and desktop-restore-frames desktop-saved-frameset
        ;; Don't restore frames when the selected frame is the daemon's
        ;; initial frame.
-       (not (and (daemonp) (not (frame-parameter nil 'client))))
+       (not (and (daemonp) (eq (selected-frame) terminal-frame)))
        t))
 
 (defun desktop-restore-frameset ()

@@ -387,7 +387,6 @@ revisions or branches (@pxref{Branches}) checked out simultaneously, in
 different working trees, but with all revision history, branches, tags
 and other metadata shared.
 
-@indentedblock
 Suppose your project has a trunk where you're developing the new version
 3 of your software, and a stable release branch from which you make
 point releases of version 2.  Someone sends you a patch fixing a bug
@@ -406,7 +405,6 @@ use @kbd{C-x v m} (@pxref{Merging}) to merge the branch you have checked
 out in the other working tree.  Now your version of the trunk has all of
 version 2's fixes merged into it, but you haven't pushed it yet because
 you're still refactoring.  You'll use @kbd{C-x v P} later.
-@end indentedblock
 
 Ordinary VC commands like @kbd{C-x v v} (@pxref{Basic VC Editing}) and
 @kbd{C-x v d} (@pxref{VC Directory Mode}) don't work any differently

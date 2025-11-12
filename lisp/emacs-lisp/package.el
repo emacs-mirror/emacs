@@ -2341,7 +2341,7 @@ from ELPA by either using `\\[package-upgrade]' or
 `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'."
   (interactive (list (not noninteractive)))
   (package-refresh-contents)
-  (let ((upgradeable (package--upgradeable-packages)))
+  (let ((upgradeable (package--upgradeable-packages package-install-upgrade-built-in)))
     (if (not upgradeable)
         (message "No packages to upgrade")
       (when (and query

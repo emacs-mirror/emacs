@@ -63,7 +63,15 @@
   (let* ((buf-name (if (stringp show-help)
                        show-help
                      "*Multiple Choice Help*"))
-         (buf (get-buffer-create buf-name)))
+         (buf (get-buffer-create buf-name))
+         ;; Show non-selected resized Help window at bottom.
+         (help-window-select nil)
+         (display-buffer-base-action
+          `(display-buffer--maybe-at-bottom
+            . ((window-height . ,#'fit-window-to-buffer))))
+         ;; Inhibit useless message "Type q in help window to delete it".
+         (set-message-functions (cons 'inhibit-message set-message-functions))
+         (inhibit-message-regexps (cons "^Type " inhibit-message-regexps)))
     (if (stringp help-string)
         (with-help-window buf
           (with-current-buffer buf
@@ -71,7 +79,6 @@
       (with-help-window buf
         (with-current-buffer buf
           (erase-buffer)
-          (pop-to-buffer buf)
           (insert prompt "\n\n")
           (let* ((columns (/ (window-width) 25))
                  (fill-column 21)
@@ -145,11 +152,16 @@ If optional argument SHOW-HELP is non-nil, show the help screen
 immediately, before any user input.  If SHOW-HELP is a string,
 use it as the name of the help buffer.
 
-This function translates user input into responses by consulting
-the bindings in `query-replace-map'; see the documentation of
-that variable for more information.  The relevant bindings for the
-purposes of this function are `recenter', `scroll-up', `scroll-down',
-and `edit'.
+By default, this function uses the minibuffer to read the key
+non-modally (see `read-from-minibuffer').  However, if
+`read-char-choice-use-read-key' is non-nil, the modal `read-key'
+function is used instead.
+
+In case of using the modal `read-key', this function translates user
+input into responses by consulting the bindings in `query-replace-map';
+see the documentation of that variable for more information.  The
+relevant bindings for the purposes of this function are `recenter',
+`scroll-up', `scroll-down', and `edit'.
 If the user types the `recenter', `scroll-up', or `scroll-down'
 responses, the function performs the requested window recentering or
 scrolling, and then asks the question again.  If the user enters `edit',
@@ -174,10 +186,14 @@ Usage example:
                       \\='((?a \"always\")
                         (?s \"session only\")
                         (?n \"no\")))"
-  (if long-form
-      (read-multiple-choice--long-answers prompt choices)
-    (read-multiple-choice--short-answers
-     prompt choices help-string show-help)))
+  (cond (long-form
+         (read-multiple-choice--long-answers prompt choices))
+        ((or read-char-choice-use-read-key (use-dialog-box-p))
+         (read-multiple-choice--short-answers
+          prompt choices help-string show-help))
+        (t
+         (read-multiple-choice--from-minibuffer
+          prompt choices help-string show-help))))
 
 (declare-function touch-screen-scroll "touch-screen.el")
 (declare-function touch-screen-pinch "touch-screen.el")
@@ -312,6 +328,66 @@ Usage example:
     (seq-find (lambda (elem)
                 (equal (cadr elem) answer))
               choices)))
+
+(defvar overriding-text-conversion-style)
+
+(defun read-multiple-choice--from-minibuffer (prompt choices help-string show-help)
+  ;; Read short answers from the minibuffer.
+  (let* ((prompt-choices
+          (if show-help choices (append choices '((?? "?")))))
+         (altered-names (mapcar #'rmc--add-key-description prompt-choices))
+         (full-prompt
+          (format
+           "%s (%s): "
+           prompt
+           (mapconcat #'cdr altered-names ", ")))
+         tchar buf
+         (map (make-sparse-keymap))
+         (cmd-char
+          (lambda ()
+            (interactive)
+            (setq tchar last-command-event)
+            (exit-minibuffer)))
+         (cmd-help
+          (lambda ()
+            (interactive)
+            (setq buf (rmc--show-help prompt help-string show-help
+                                      choices altered-names))))
+         (cmd-wrong
+          (lambda ()
+            (interactive)
+            (ding)
+            (setq buf (rmc--show-help prompt help-string show-help
+                                      choices altered-names))
+            (minibuffer-message "Invalid choice")
+            (sit-for 2)))
+         (this-command this-command)
+         (real-this-command real-this-command)
+         (enable-recursive-minibuffers t)
+         (overriding-text-conversion-style nil))
+
+    (unwind-protect
+        (progn
+          (when show-help
+            (setq buf (rmc--show-help prompt help-string show-help
+                                      choices altered-names)))
+
+          (set-keymap-parent map minibuffer-local-map)
+          (dolist (char choices)
+            (define-key map `[,(car char)] cmd-char))
+          (define-key map [help-char] cmd-help)
+          (unless show-help (define-key map [??] cmd-help))
+          (define-key map [remap self-insert-command] cmd-wrong)
+
+          (when (fboundp 'set-text-conversion-style)
+            (set-text-conversion-style text-conversion-style))
+          (read-from-minibuffer full-prompt nil map))
+
+      (when (buffer-live-p buf)
+        (let ((kill-buffer-quit-windows t))
+          (kill-buffer buf))))
+
+    (assq tchar choices)))
 
 (provide 'rmc)
 

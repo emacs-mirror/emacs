@@ -1005,19 +1005,19 @@ There can be multiple entries for the same NAME if it has several aliases.")
       (let* ((op (car form))
              (bindings nil)
              (rev-args nil))
-        (if (memq nil (mapcar #'macroexp-copyable-p (cddr form)))
-            ;; At least one arg beyond the first is non-constant non-variable:
-            ;; create temporaries for all args to guard against side-effects.
-            ;; The optimizer will eliminate trivial bindings later.
-            (let ((i 1))
-              (dolist (arg (cdr form))
-                (let ((var (make-symbol (format "arg%d" i))))
-                  (push var rev-args)
-                  (push (list var arg) bindings)
-                  (setq i (1+ i)))))
-          ;; All args beyond the first are copyable: no temporary variables
-          ;; required.
-          (setq rev-args (reverse (cdr form))))
+        (if (all #'macroexp-copyable-p (cddr form))
+            ;; All args beyond the first are copyable: no temporary variables
+            ;; required.
+            (setq rev-args (reverse (cdr form)))
+          ;; At least one arg beyond the first is non-constant non-variable:
+          ;; create temporaries for all args to guard against side-effects.
+          ;; The optimizer will eliminate trivial bindings later.
+          (let ((i 1))
+            (dolist (arg (cdr form))
+              (let ((var (make-symbol (format "arg%d" i))))
+                (push var rev-args)
+                (push (list var arg) bindings)
+                (setq i (1+ i))))))
         (let ((prev (car rev-args))
               (exprs nil))
           (dolist (arg (cdr rev-args))
@@ -1030,14 +1030,11 @@ There can be multiple entries for the same NAME if it has several aliases.")
      (t form))))
 
 (defun byte-optimize-constant-args (form)
-  (let ((rest (cdr form)))
-    (while (and rest (macroexp-const-p (car rest)))
-      (setq rest (cdr rest)))
-    (if rest
-	form
+  (if (all #'macroexp-const-p (cdr form))
       (condition-case ()
 	  (list 'quote (eval form t))
-	(error form)))))
+	(error form))
+    form))
 
 (defun byte-optimize-identity (form)
   (if (and (cdr form) (null (cdr (cdr form))))
@@ -1099,11 +1096,9 @@ See Info node `(elisp) Integer Basics'."
           (and (macroexp-const-p arg2)
                (let ((listval (byteopt--eval-const arg2)))
                  (and (listp listval)
-                      (not (memq nil (mapcar
-                                      (lambda (o)
-                                        (or (symbolp o)
-                                            (byte-optimize--fixnump o)))
-                                      listval))))))))
+                      (all (lambda (o)
+                             (or (symbolp o) (byte-optimize--fixnump o)))
+                           listval))))))
     (cons 'memq (cdr form)))
    (t form)))
 
@@ -1429,12 +1424,6 @@ See Info node `(elisp) Integer Basics'."
 (put 'not   'byte-optimizer #'byte-optimize-not)
 (put 'null  'byte-optimizer #'byte-optimize-not)
 
-;; byte-compile-negation-optimizer lives in bytecomp.el
-(put '/= 'byte-optimizer #'byte-compile-negation-optimizer)
-(put 'atom 'byte-optimizer #'byte-compile-negation-optimizer)
-(put 'nlistp 'byte-optimizer #'byte-compile-negation-optimizer)
-
-
 (defun byte-optimize-funcall (form)
   ;; (funcall #'(lambda ...) ...) -> (let ...)
   ;; (funcall #'SYM ...) -> (SYM ...)
@@ -1622,7 +1611,7 @@ See Info node `(elisp) Integer Basics'."
 
               ;; (list CONSTANTS...) -> '(CONSTANTS...)
               ((and (consp arg) (eq (car arg) 'list)
-                    (not (memq nil (mapcar #'macroexp-const-p (cdr arg)))))
+                    (all #'macroexp-const-p (cdr arg)))
                (loop (cons (list 'quote (eval arg)) (cdr args)) newargs))
 
               (t (loop (cdr args) (cons arg newargs)))))
@@ -2158,108 +2147,76 @@ See Info node `(elisp) Integer Basics'."
 
 ;;; peephole optimizer
 
-(defconst byte-tagref-ops (cons 'TAG byte-goto-ops))
+(eval-when-compile
+  (defconst byte-opt--side-effect-and-error-free-ops
+    '( byte-stack-ref byte-constant byte-dup byte-symbolp byte-consp
+       byte-stringp byte-listp byte-integerp byte-numberp byte-eq byte-not
+       byte-car-safe byte-cdr-safe
+       byte-cons byte-list1 byte-list2 byte-list3 byte-list4 byte-listN
+       byte-point byte-point-max byte-point-min
+       byte-following-char byte-preceding-char
+       byte-current-column byte-eolp byte-eobp byte-bolp byte-bobp
+       byte-current-buffer))
 
-(defconst byte-conditional-ops
-  '(byte-goto-if-nil byte-goto-if-not-nil byte-goto-if-nil-else-pop
-    byte-goto-if-not-nil-else-pop))
-
-(defconst byte-after-unbind-ops
-   '(byte-constant byte-dup byte-stack-ref byte-stack-set byte-discard
-     byte-discardN byte-discardN-preserve-tos
-     byte-symbolp byte-consp byte-stringp byte-listp byte-numberp byte-integerp
-     byte-not
-     byte-cons byte-list1 byte-list2 byte-list3 byte-list4 byte-listN
-     byte-interactive-p)
-   ;; How about other side-effect-free-ops?  Is it safe to move an
-   ;; error invocation (such as from nth) out of an unwind-protect?
-   ;; No, it is not, because the unwind-protect forms can alter
-   ;; the inside of the object to which nth would apply.
-   ;; For the same reason, byte-equal was deleted from this list.
-   ;;
-   ;; In particular, `byte-eq' isn't here despite `eq' being nominally
-   ;; pure because it is currently affected by `symbols-with-pos-enabled'
-   ;; and so cannot be sunk past an unwind op that might end a binding of
-   ;; that variable.  Yes, this is unsatisfactory.
-   "Byte-codes that can be moved past an unbind.")
-
-(defconst byte-compile-side-effect-and-error-free-ops
-  '(byte-constant byte-dup byte-symbolp byte-consp byte-stringp byte-listp
-    byte-integerp byte-numberp byte-eq byte-not byte-car-safe
-    byte-cdr-safe byte-cons byte-list1 byte-list2 byte-list3 byte-list4
-    byte-listN byte-point byte-point-max
-    byte-point-min byte-following-char byte-preceding-char
-    byte-current-column byte-eolp byte-eobp byte-bolp byte-bobp
-    byte-current-buffer byte-stack-ref))
-
-(defconst byte-compile-side-effect-free-ops
-  (append
-   '(byte-varref byte-nth byte-memq byte-car byte-cdr byte-length byte-aref
-     byte-symbol-value byte-get byte-concat2 byte-concat3 byte-sub1 byte-add1
-     byte-eqlsign byte-equal byte-gtr byte-lss byte-leq byte-geq byte-diff
-     byte-negate byte-plus byte-max byte-min byte-mult byte-char-after
-     byte-char-syntax byte-buffer-substring byte-string= byte-string<
-     byte-nthcdr byte-elt byte-member byte-assq byte-quo byte-rem
-     byte-substring)
-   byte-compile-side-effect-and-error-free-ops))
-
-;; This crock is because of the way DEFVAR_BOOL variables work.
-;; Consider the code
-;;
-;;	(defun foo (flag)
-;;	  (let ((old-pop-ups pop-up-windows)
-;;		(pop-up-windows flag))
-;;	    (cond ((not (eq pop-up-windows old-pop-ups))
-;;		   (setq old-pop-ups pop-up-windows)
-;;		   ...))))
-;;
-;; Uncompiled, old-pop-ups will always be set to nil or t, even if FLAG is
-;; something else.  But if we optimize
-;;
-;;	varref flag
-;;	varbind pop-up-windows
-;;	varref pop-up-windows
-;;	not
-;; to
-;;	varref flag
-;;	dup
-;;	varbind pop-up-windows
-;;	not
-;;
-;; we break the program, because it will appear that pop-up-windows and
-;; old-pop-ups are not EQ when really they are.  So we have to know what
-;; the BOOL variables are, and not perform this optimization on them.
-
-;; The variable `byte-boolean-vars' is now primitive and updated
-;; automatically by DEFVAR_BOOL.
+  (defconst byte-opt--side-effect-free-ops
+    (append
+     '( byte-varref byte-nth byte-memq byte-car byte-cdr byte-length byte-aref
+        byte-symbol-value byte-get byte-concat2 byte-concat3 byte-sub1 byte-add1
+        byte-eqlsign byte-equal byte-gtr byte-lss byte-leq byte-geq byte-diff
+        byte-negate byte-plus byte-max byte-min byte-mult byte-char-after
+        byte-char-syntax byte-buffer-substring byte-string= byte-string<
+        byte-nthcdr byte-elt byte-member byte-assq byte-quo byte-rem
+        byte-substring)
+     byte-opt--side-effect-and-error-free-ops))
+  )
 
 (defun byte-optimize-lapcode (lap &optional _for-effect)
   "Simple peephole optimizer.  LAP is both modified and returned.
 If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
-  (let ((side-effect-free (if byte-compile-delete-errors
-			      byte-compile-side-effect-free-ops
-			    byte-compile-side-effect-and-error-free-ops))
-        ;; Ops taking and produce a single value on the stack.
-        (unary-ops '( byte-not byte-length byte-list1 byte-nreverse
-                      byte-car byte-cdr byte-car-safe byte-cdr-safe
-                      byte-symbolp byte-consp byte-stringp
-                      byte-listp byte-integerp byte-numberp
-                      byte-add1 byte-sub1 byte-negate
-                      ;; There are more of these but the list is
-                      ;; getting long and the gain is typically small.
-                      ))
-        ;; Ops producing a single result without looking at the stack.
-        (producer-ops '( byte-constant byte-varref
-                         byte-point byte-point-max byte-point-min
-                         byte-following-char byte-preceding-char
-                         byte-current-column
-                         byte-eolp byte-eobp byte-bolp byte-bobp
-                         byte-current-buffer byte-widen))
-	(add-depth 0)
-	(keep-going 'first-time)
-        ;; Create a cons cell as head of the list so that removing the first
-        ;; element does not need special-casing: `setcdr' always works.
-        (lap-head (cons nil lap)))
+  (let* ((side-effect-free
+          (if byte-compile-delete-errors
+	      (eval-when-compile byte-opt--side-effect-free-ops)
+	    (eval-when-compile byte-opt--side-effect-and-error-free-ops)))
+
+         (conditional-ops
+          '( byte-goto-if-nil byte-goto-if-not-nil byte-goto-if-nil-else-pop
+             byte-goto-if-not-nil-else-pop))
+         (conditional-or-discard-ops (cons 'byte-discard conditional-ops))
+
+         ;; Ops that can be sunk past an unbind.
+         ;; This means they have to commute with anything else, which rules
+         ;; out ones like `byte-car-safe' and `byte-equal'.
+         ;; In particular, `byte-eq' and `byte-symbolp' aren't here despite
+         ;; being nominally pure because they are currently affected by
+         ;; `symbols-with-pos-enabled'.  Yes, this is unsatisfactory.
+         (after-unbind-ops
+          '( byte-constant byte-dup byte-stack-ref byte-stack-set byte-discard
+             byte-discardN byte-discardN-preserve-tos
+             byte-consp byte-stringp byte-listp byte-numberp
+             byte-integerp byte-not
+             byte-cons byte-list1 byte-list2 byte-list3 byte-list4 byte-listN))
+
+         ;; Ops taking and produce a single value on the stack.
+         (unary-ops '( byte-not byte-length byte-list1 byte-nreverse
+                       byte-car byte-cdr byte-car-safe byte-cdr-safe
+                       byte-symbolp byte-consp byte-stringp
+                       byte-listp byte-integerp byte-numberp
+                       byte-add1 byte-sub1 byte-negate
+                       ;; There are more of these but the list is
+                       ;; getting long and the gain is typically small.
+                       ))
+         ;; Ops producing a single result without looking at the stack.
+         (producer-ops '( byte-constant byte-varref
+                          byte-point byte-point-max byte-point-min
+                          byte-following-char byte-preceding-char
+                          byte-current-column
+                          byte-eolp byte-eobp byte-bolp byte-bobp
+                          byte-current-buffer byte-widen))
+	 (add-depth 0)
+	 (keep-going 'first-time)
+         ;; Create a cons cell as head of the list so that removing the first
+         ;; element does not need special-casing: `setcdr' always works.
+         (lap-head (cons nil lap)))
     (while keep-going
       (byte-compile-log-lap "  ---- %s pass"
                             (if (eq keep-going 'first-time) "first" "next"))
@@ -2337,6 +2294,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	     ((and (eq 'byte-varref (car lap2))
                    (eq (cdr lap1) (cdr lap2))
                    (memq (car lap1) '(byte-varset byte-varbind))
+                   ;; Can't optimise away varref for DEFVAR_BOOL vars
+                   ;; because what we put in might not be what we get out.
                    (let ((tmp (memq (car (cdr lap2)) byte-boolean-vars)))
                      (and
                       (not (and tmp (not (eq (car lap0) 'byte-constant))))
@@ -2435,7 +2394,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	     ;; const goto-if-* --> whatever
 	     ;;
 	     ((and (eq 'byte-constant (car lap0))
-	           (memq (car lap1) byte-conditional-ops)
+	           (memq (car lap1) conditional-ops)
                    ;; Must be an actual constant, not a closure variable.
                    (consp (cdr lap0)))
 	      (cond ((if (memq (car lap1) '(byte-goto-if-nil
@@ -2564,7 +2523,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	     ;; (this may enable other optimizations.)
 	     ;;
 	     ((and (eq 'byte-unbind (car lap1))
-	           (memq (car lap0) byte-after-unbind-ops))
+	           (memq (car lap0) after-unbind-ops))
 	      (byte-compile-log-lap "  %s %s\t-->\t%s %s" lap0 lap1 lap1 lap0)
 	      (setcar rest lap1)
 	      (setcar (cdr rest) lap0)
@@ -2679,9 +2638,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 				      byte-goto-if-not-nil-else-pop))
                    (let ((tmp (cdr (memq (cdr lap0) (cdr lap-head)))))
                      (and
-	              (memq (caar tmp)
-		            (eval-when-compile
-		              (cons 'byte-discard byte-conditional-ops)))
+	              (memq (caar tmp) conditional-or-discard-ops)
 	              (not (eq lap0 (car tmp)))
                       (let ((tmp2 (car tmp))
                             (tmp3 (assq (car lap0)
@@ -2714,9 +2671,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	           (eq (car lap1) 'byte-goto)
                    (let ((tmp (cdr (memq (cdr lap1) (cdr lap-head)))))
                      (and
-	              (memq (caar tmp)
-		            (eval-when-compile
-		              (cons 'byte-discard byte-conditional-ops)))
+	              (memq (caar tmp) conditional-or-discard-ops)
 	              (not (eq lap1 (car tmp)))
 	              (let ((tmp2 (car tmp)))
 	                (cond ((and (consp (cdr lap0))
@@ -2766,6 +2721,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
                      (and
 	              (eq (car (car tmp)) 'byte-varref)
 	              (eq (cdr (car tmp)) (cdr lap1))
+                      ;; Can't optimise away varref for DEFVAR_BOOL vars
+                      ;; because what we put in might not be what we get out.
 	              (not (memq (car (cdr lap1)) byte-boolean-vars))
 	              (let ((newtag (byte-compile-make-tag)))
 	                (byte-compile-log-lap

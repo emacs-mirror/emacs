@@ -974,23 +974,11 @@ Outputs to the current buffer."
 ;; Extend `cl-deftype' to define data types which are also valid
 ;; argument types for dispatching generic function methods (see also
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=77725>).
-;;
-;; The main entry points are:
-;;
-;; - `cl-deftype', that defines new data types.
-;;
-;; - `cl-types-of', that returns the types an object belongs to.
 
 ;; Ensure each type satisfies `eql'.
-(defvar cl--types-of-memo (make-hash-table :test 'equal)
-  "Memoization table used in `cl-types-of'.")
+(defvar cl--derived-type-specializers-memo (make-hash-table :test 'equal)
+  "Memoization table used in `cl--derived-type-specializers'.")
 
-;; FIXME: `cl-types-of' CPU cost is proportional to the number of types
-;; defined with `cl-deftype', so the more popular it gets, the slower
-;; it becomes.  And of course, the cost of each type check is
-;; unbounded, so a single "expensive" type can slow everything down
-;; further.
-;;
 ;; The usual dispatch is
 ;;
 ;;   (lambda (arg &rest args)
@@ -1026,49 +1014,34 @@ Outputs to the current buffer."
 ;;   associated with the `t' "dummy parent".  [ We could even go crazy
 ;;   and try and guess PARENTS when not provided, by analyzing the
 ;;   type's definition. ]
-;; - in `cl-types-of' start by calling `cl-type-of', then use the map
-;;   to find which cl-types may need to be checked.
+;; - in `cl--derived-type-specializers' start by calling `cl-type-of',
+;;   then use the map to find which cl-types may need to be checked.
 ;;
-;;;###autoload
-(defun cl-types-of (object &optional types)
-  "Return the atomic types OBJECT belongs to.
-Return an unique list of types OBJECT belongs to, ordered from the
-most specific type to the most general.
-TYPES is an internal argument."
-  (let* ((found nil))
+(defun cl--derived-type-specializers (object types)
+  "Return the list of specializers for OBJECT, derived from TYPES.
+Return an unique (eq) list of atomic types OBJECT belongs to, ordered
+from the most specific type to the most general.
+TYPES is a list of types that OBJECT can potentially belong to."
+  ;; This function is speed critical for the dispatch on CL's derived types.
+  ;; Currently TYPES is just the set of types we're interested in.
+  ;; TODO: We could speed this up by replacing TYPES with anything that can
+  ;; be precomputed from it.
+  (let* ((found (list (cl-type-of object))))
     ;; Build a list of all types OBJECT belongs to.
-    (dolist (type (or types cl--derived-type-list))
-      (let ((pred (get type 'cl-deftype-satisfies)))
-        (and
-         ;; If OBJECT is of type, add type to the matching list.
-         (if types
-             ;; For method dispatch, we don't need to filter out errors,
-             ;; since we can presume that method dispatch is used only on
-             ;; sanely-defined types.
-             (funcall pred object)
-           (condition-case-unless-debug e
-               (funcall pred object)
-             (error (setq cl--derived-type-list
-                          (delq type cl--derived-type-list))
-                    (warn  "cl-types-of %S: %s"
-                           type (error-message-string e))
-                    nil)))
-         (push type found))))
-    (push (cl-type-of object) found)
-    ;; Return the list of types OBJECT belongs to, which is also the list
-    ;; of specifiers for OBJECT. This memoization has two purposes:
+    (dolist (type types)
+      ;; If OBJECT is of type, add type to the matching list.
+      (if (funcall (get type 'cl-deftype-satisfies) object)
+          (push type found)))
+    ;; This memoization has two purposes:
     ;; - Speed up computation.
     ;; - Make sure we always return the same (eq) object, so that the
     ;;   method dispatch's own caching works as it should.
-    (with-memoization (gethash found cl--types-of-memo)
+    (with-memoization (gethash found cl--derived-type-specializers-memo)
       ;; Compute an ordered list of types from the DAG.
-      (let (dag)
-        (dolist (type found)
-          (push (cl--class-allparents (cl--find-class type)) dag))
-        (merge-ordered-lists dag)))))
-
-(defvar cl--derived-type-dispatch-list nil
-  "List of types that need to be checked during dispatch.")
+      (merge-ordered-lists
+       (mapcar (lambda (type)
+                 (cl--class-allparents (cl--find-class type)))
+               found)))))
 
 (cl-generic-define-generalizer cl--derived-type-generalizer
   ;; FIXME: This priority can't be always right.  :-(
@@ -1080,31 +1053,23 @@ TYPES is an internal argument."
   ;; Fixing this 100% is impossible so this generalizer is condemned to
   ;; suffer from "undefined method ordering" problems, unless/until we
   ;; restrict it somehow to a subset that we can handle reliably.
-  20 ;; "typeof" < "cl-types-of" < "head" priority
-  (lambda (obj &rest _) `(cl-types-of ,obj cl--derived-type-dispatch-list))
+  20 ;; "typeof" < "derived-types" < "head" priority
+  (lambda (obj &optional types &rest _)
+    (if (not types)
+        :need-specializers
+      `(nil ;; Extra bindings, if any.
+        . (cl--derived-type-specializers ,obj ,types))))
   (lambda (tag &rest _) (if (consp tag) tag)))
 
 ;;;###autoload
 (defun cl--derived-type-generalizers (type)
   ;; Make sure this derived type can be used without arguments.
-  (let ((expander (or (get type 'cl-deftype-handler)
-                      (error "Type %S lacks cl-deftype-handler" type))))
-    ;; Check that the type can be used without arguments.
-    (funcall expander)
-    ;; Check that we have a precomputed predicate since that's what
-    ;; `cl-types-of' uses.
-    (unless (get type 'cl-deftype-satisfies)
-      (error "Type %S lacks cl-deftype-satisfies" type)))
-  ;; Add a new dispatch type to the dispatch list, then
-  ;; synchronize with `cl--derived-type-list' so that both lists follow
-  ;; the same type precedence order.
-  ;; The `merge-ordered-lists' is `cl-types-of' should we make this
-  ;; ordering unnecessary, but it's still handy for all those types
-  ;; that don't declare their parents.
-  (unless (memq type cl--derived-type-dispatch-list)
-    (setq cl--derived-type-dispatch-list
-          (seq-intersection cl--derived-type-list
-                            (cons type cl--derived-type-dispatch-list))))
+  (funcall (or (get type 'cl-deftype-handler)
+               (error "Type %S lacks cl-deftype-handler" type)))
+  ;; Check that we have a precomputed predicate since that's what
+  ;; `cl--derived-type-specializers' uses.
+  (or (get type 'cl-deftype-satisfies)
+      (error "Type %S lacks cl-deftype-satisfies" type))
   (list cl--derived-type-generalizer))
 
 ;;;; Trailer

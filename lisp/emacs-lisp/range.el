@@ -198,6 +198,7 @@ these ranges."
 Note: LIST has to be sorted over `<'."
   (if (not ranges)
       (range-compress-list list)
+    (setq ranges (copy-tree ranges))
     (setq list (copy-sequence list))
     (unless (listp (cdr ranges))
       (setq ranges (list ranges)))

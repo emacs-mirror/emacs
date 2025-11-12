@@ -317,8 +317,8 @@ following way instead:
   (do-something result2))
 @end example
 
-There's a number of variations on this theme, and they're briefly
-described below.
+There's a number of variations on this theme, and they're described
+below.
 
 @defmac if-let* varlist then-form else-forms...
 Evaluate each binding in @var{varlist}, stopping if a binding value is
@@ -375,6 +375,22 @@ Some Lisp programmers follow the convention that @code{and} and
 @code{and-let*} are for forms evaluated for return value, and
 @code{when} and @code{when-let*} are for forms evaluated for side-effect
 with returned values ignored.
+
+There is no @code{cond-let*} macro because extending the structure
+shared by @code{if-let*}, @code{when-let*} and @code{and-let*} to the
+case of @code{cond} is not simple.@footnote{The problem is that there
+are multiple ways to do it that are all useful but not compatible.  In
+addition, the resulting macro is complicated, and so tricky to learn how
+to read and write.}  However, you can use the @code{cond*} macro's
+@code{bind-and*} clauses (@pxref{cond* Macro}) to achieve something
+similar:
+
+@example
+(cond* ((bind-and* (result1 (do-computation))
+                   (result2 (do-more result1)))
+        (do-something result2))
+       ...)
+@end example
 
 A similar macro exists to run a loop until one binding evaluates to
 @code{nil}:
@@ -1502,6 +1518,14 @@ Each clause normally has the form @w{@code{(@var{condition}
 the bindings list in @code{let*}, @pxref{Local Variables}) for the body
 of the clause, and all subsequent clauses.  As a condition, it counts as
 true if the first binding's value is non-@code{nil}.
+
+@findex bind-and*
+@code{(bind-and* @var{bindings}@dots{})} means to bind @var{bindings}
+(like the bindings list in @code{if-let*}, @pxref{Conditionals}) for
+only the body of the clause.  As a condition, it counts as true if none
+of the bindings evaluate to @code{nil}.  In addition, if any binding
+evaluates to @code{nil}, the expressions for the values of subsequent
+bindings are not evaluated.
 
 @findex match*
 @findex pcase*

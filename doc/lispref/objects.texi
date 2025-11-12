@@ -2370,54 +2370,49 @@ non-@code{nil} (@pxref{Symbols with Position}).
 
 @example
 @group
-(eq 'foo 'foo)
-     @result{} t
+(eq 'abc 'abc)  @result{} t
+(eq 'abc 'ABC)  @result{} nil
+(eq ?A ?A)      @result{} t
+(eq 3 3)        @result{} t
 @end group
+@end example
 
+Equal non-fixnum numbers may or may not be the same object:
+
+@example
 @group
-(eq ?A ?A)
-     @result{} t
+(eq 3.0 3.0)                    @result{} t @r{or} nil
+(eq (expt 10 50) (expt 10 50))  @result{} t @r{or} nil
 @end group
+@end example
 
+Newly created mutable objects are distinct:
+
+@example
 @group
-(eq 3.0 3.0)
-     @result{} t @r{or} nil
-;; @r{Equal floats may or may not be the same object.}
+(eq (list 1 2 3) (list 1 2 3))      @result{} nil
+(eq (point-marker) (point-marker))  @result{} nil
 @end group
+@end example
 
+Equal constants of other types may or may not be the same object:
+
+@example
 @group
-(eq (make-string 3 ?A) (make-string 3 ?A))
-     @result{} nil
+(eq "abc" "abc")        @result{} t @r{or} nil
+(eq '(1 2 3) '(1 2 3))  @result{} t @r{or} nil
+(eq [1 2 3] [1 2 3])    @result{} t @r{or} nil
 @end group
+@end example
 
-@group
-(eq "asdf" "asdf")
-     @result{} t @r{or} nil
-;; @r{Equal string constants or may not be the same object.}
-@end group
+@noindent
+unless they are the same literal constant:
 
+@example
 @group
-(eq '(1 (2 (3))) '(1 (2 (3))))
-     @result{} nil
-@end group
-
-@group
-(setq foo '(1 (2 (3))))
-     @result{} (1 (2 (3)))
-(eq foo foo)
-     @result{} t
-(eq foo '(1 (2 (3))))
-     @result{} nil
-@end group
-
-@group
-(eq [(1 2) 3] [(1 2) 3])
-     @result{} nil
-@end group
-
-@group
-(eq (point-marker) (point-marker))
-     @result{} nil
+(let ((x "abc"))    (eq x x))  @result{} t
+(let ((x '(1 2 3))) (eq x x))  @result{} t
+(let ((x [1 2 3]))  (eq x x))  @result{} t
 @end group
 @end example
 
@@ -2473,37 +2468,20 @@ the converse is not always true.
 (equal "asdf" "asdf")
      @result{} t
 @end group
-@group
-(eq "asdf" "asdf")
-     @result{} nil
-@end group
 
 @group
 (equal '(1 (2 (3))) '(1 (2 (3))))
      @result{} t
-@end group
-@group
-(eq '(1 (2 (3))) '(1 (2 (3))))
-     @result{} nil
 @end group
 
 @group
 (equal [(1 2) 3] [(1 2) 3])
      @result{} t
 @end group
-@group
-(eq [(1 2) 3] [(1 2) 3])
-     @result{} nil
-@end group
 
 @group
 (equal (point-marker) (point-marker))
      @result{} t
-@end group
-
-@group
-(eq (point-marker) (point-marker))
-     @result{} nil
 @end group
 @end example
 
@@ -2546,8 +2524,10 @@ returns @code{t} if and only if both the expressions below return
 @code{t}:
 
 @example
+@group
 (equal (car @var{x}) (car @var{y}))
 (equal (cdr @var{x}) (cdr @var{y}))
+@end group
 @end example
 
 Comparing circular lists may therefore cause deep recursion that leads
