@@ -4657,6 +4657,9 @@ If NOERROR, return predicate, else erroring function."
 (defvar-local eglot--semtok-cache nil
   "Cache of the last response from the server.")
 
+(defvar-local eglot--semtok-inflight nil
+  "List of (BEG . END) regions of inflight semtok requests.")
+
 (defsubst eglot--semtok-apply-delta-edits (old-data edits)
   "Apply EDITS obtained from full/delta request to OLD-DATA."
   (cl-loop
@@ -4668,54 +4671,66 @@ If NOERROR, return predicate, else erroring function."
    finally
    (cl-return (vconcat new (substring old-data old-token-index (length old-data))))))
 
-(defun eglot--semtok-request (beg end)
+(cl-defun eglot--semtok-request (beg end)
   "Ask server for tokens.  Font-lock flush from BEG to END."
   (let* ((buf (current-buffer))
          (id eglot--versioned-identifier))
-    (cl-flet ((req (method from to params cont)
-                ;; (trace-values
-                ;;  "Requesting: " from to method params)
-                (eglot--async-request
-                 (eglot--current-server-or-lose) method params
-                 :success-fn
-                 (lambda (response)
-                   (eglot--when-live-buffer buf
+    (cl-labels ((req (method from to params cont)
+                  ;; (trace-values
+                  ;;  "Requesting: " from to method params)
+                  (eglot--async-request
+                   (eglot--current-server-or-lose) method params
+                   :success-fn
+                   (lambda (response)
                      ;; (trace-values "Response: " eglot--versioned-identifier id
                      ;;               "edits: "
                      ;;               (length (cl-getf response :edits))
                      ;;               "data: "
                      ;;               (length (cl-getf response :data)))
-                     (when (eq id eglot--versioned-identifier)
-                       ;; FIXME: If `id' is not `eglot--versioned-identifier'
-                       ;; should we re-send the reqquest?
-                       ;;
-                       ;; JT@2025-11-11: Good question.  Probably, and I
-                       ;; would hope `font-lock-flush' eventually does
-                       ;; that for us, so I moved it out of the `when'.
-                       (setq eglot--semtok-cache
-                             (list :documentVersion id
-                                   :method method
-                                   :response (funcall cont response)
-                                   :from from :to to)))
-                     (font-lock-flush beg end)))
-                 :hint method))
-              (cache-get (&rest path)
-                (let ((x eglot--semtok-cache))
-                  (dolist (op path x) (setq x (if (natnump op) (aref x op)
-                                                (plist-get x op)))))))
+                     (eglot--when-live-buffer buf
+                       ;; A user edit may have come in while the request
+                       ;; was inflight, changing the state of the buffer...
+                       (when (eq id eglot--versioned-identifier)
+                         (setq eglot--semtok-cache
+                               (list :documentVersion id
+                                     :method method
+                                     :response (funcall cont response)
+                                     :from from :to to)))
+                       ;; ... but we should flush unconditionally.  If
+                       ;; this response is out-of-date,
+                       ;; `eglot--semtok-font-lock' should just trigger
+                       ;; another request.
+                       (cl-loop for (b . e) in eglot--semtok-inflight
+                                do (font-lock-flush b e))
+                       ;; (trace-values "Flushed" (length eglot--semtok-inflight)
+                       ;;               "regions")
+                       (setq eglot--semtok-inflight nil)))
+                   :hint method))
+                (cache-get (&rest path)
+                  (let ((x eglot--semtok-cache))
+                    (dolist (op path x) (setq x (if (natnump op) (aref x op)
+                                                  (plist-get x op)))))))
+      (push (cons beg end) eglot--semtok-inflight)
       (cond
        ((and (eglot-server-capable :semanticTokensProvider :full :delta)
              (cache-get :response :data)
              (not (eq :textDocument/semanticTokens/range (cache-get :method))))
+        ;; JT@2025-11-12: many back-to-back calls for
+        ;; `eglot--semtok-request' and small regions occur even on
+        ;; trivial/fast edits.  Even though it's fairly cheap to send
+        ;; multiple delta requests, it's nicer to just send just one.
+        (when (cdr eglot--semtok-inflight)
+          (cl-return-from eglot--semtok-request))
         (req :textDocument/semanticTokens/full/delta (point-min) (point-max)
              (list :textDocument (eglot--TextDocumentIdentifier)
                    :previousResultId (cache-get :response :resultId))
              (lambda (response)
                (if-let* ((edits (plist-get response :edits)))
                    (progn
-                     (plist-put response :data (eglot--semtok-apply-delta-edits
-                                              (cache-get :response :data)
-                                              edits)))
+                     (plist-put response :data
+                                (eglot--semtok-apply-delta-edits
+                                 (cache-get :response :data)
+                                 edits)))
                  ;; server sent full response instead, so just record that.
                  response))))
        ((eglot-server-capable :semanticTokensProvider :range)
