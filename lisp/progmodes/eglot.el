@@ -4768,14 +4768,11 @@ lock machinery calls us again."
      (save-excursion
        (cl-loop
         initially (goto-char beg)
-        with match = nil
-        while (and (setq match (text-property-search-forward
-                                'eglot--semtok-faces))
-                   (< (point) end))
+        for match = (text-property-search-forward 'eglot--semtok-faces)
+        while (and match (< (point) end))
         do (dolist (f (prop-match-value match))
-             (add-face-text-property (prop-match-beginning match)
-                                     (prop-match-end match)
-                                     f)))))))
+             (add-face-text-property
+              (prop-match-beginning match) (prop-match-end match) f)))))))
 
 
 ;;; Call and type hierarchies
