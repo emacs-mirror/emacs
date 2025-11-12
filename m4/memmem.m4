@@ -23,7 +23,7 @@ AC_DEFUN([gl_FUNC_MEMMEM_SIMPLE],
   if test $ac_cv_have_decl_memmem = no; then
     HAVE_DECL_MEMMEM=0
   else
-    dnl Detect https://sourceware.org/bugzilla/show_bug.cgi?id=12092.
+    dnl Detect https://sourceware.org/PR12092.
     dnl Also check that we handle empty needles correctly.
     AC_CACHE_CHECK([whether memmem works],
       [gl_cv_func_memmem_works_always],

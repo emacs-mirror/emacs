@@ -277,10 +277,10 @@
 */
 #endif
 
-/* GCC and clang have various useful declarations that can be made with
-   the '__attribute__' syntax.  All of the ways we use this do fine if
-   they are omitted for compilers that don't understand it.  */
-#if !(defined __GNUC__ || defined __clang__)
+/* GCC, clang, and compatible compilers have various useful declarations
+   that can be made with the '__attribute__' syntax.  All of the ways we use
+   this do fine if they are omitted for compilers that don't understand it.  */
+#if !(defined __GNUC__ || defined __clang__ || defined __TINYC__)
 # define __attribute__(xyz)	/* Ignore */
 #endif
 

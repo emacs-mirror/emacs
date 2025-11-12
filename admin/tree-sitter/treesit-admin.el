@@ -193,7 +193,7 @@ queries that has problems with latest grammar."
             (all-queries-valid t))
         (dolist (setting settings)
           (let* ((query (treesit-font-lock-setting-query setting))
-                 (language (treesit-query-language query))
+                 (language (treesit-font-lock-setting-language setting))
                  (feature (treesit-font-lock-setting-feature setting)))
             ;; Record that MODE uses LANGUAGE.
             (unless (memq language (alist-get mode mode-language-alist))
@@ -299,7 +299,7 @@ Return non-nil if all queries are valid, nil otherwise."
     (dolist (setting settings)
       ;; `treesit-font-lock-setting-query' isn't available in Emacs 30.
       (let* ((query (car setting))
-             (language (treesit-query-language query)))
+             (language (treesit-font-lock-setting-language setting)))
         ;; Validate query.
         (when (and (eq lang language)
                    (not (treesit-query-valid-p language query)))
@@ -322,9 +322,7 @@ Return non-nil if all queries are valid, nil otherwise."
              treesit-font-lock-settings)))
         (all-queries-valid t))
     (cl-remove-duplicates
-     (mapcar #'treesit-query-language
-             (mapcar #'treesit-font-lock-setting-query
-                     settings)))))
+     (mapcar #'treesit-font-lock-setting-language settings))))
 
 (defun treesit-admin--find-latest-compatible-revision
     (mode language source-alist grammar-dir revision-type

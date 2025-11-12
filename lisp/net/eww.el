@@ -148,7 +148,9 @@ If nil, buffers will require manual reload, and will contain the text
 specified in `eww-restore-reload-prompt' instead of the actual Web
 page contents."
   :version "25.1"
-  :type '(choice (const :tag "Restore all automatically" t)
+  :type '(choice (choice :tag "Restore all automatically" :value t
+                         (const t)
+                         (const auto))
                  (const :tag "Require manual reload" nil)))
 
 (defcustom eww-restore-reload-prompt

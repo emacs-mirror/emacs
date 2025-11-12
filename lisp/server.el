@@ -1267,8 +1267,10 @@ The following commands are accepted by the client:
 		args-left)
 	    ;; Remove this line from STRING.
 	    (setq string (substring string (match-end 0)))
-	    (setq args-left
-		  (mapcar #'server-unquote-arg (split-string request " " t)))
+	    (cl-assert (equal (substring request -1) " ")
+		       nil "emacsclient request did not end in SPC: %S" request)
+	    (setq args-left (mapcar #'server-unquote-arg
+				    (nbutlast (split-string request " "))))
 	    (while args-left
               (pcase (pop args-left)
                 ;; -version CLIENT-VERSION: obsolete at birth.
@@ -1481,6 +1483,9 @@ Adding or removing strings from this variable while the Emacs
 server is processing a series of eval requests will affect what
 Emacs evaluates.
 
+This list includes empty strings if empty string arguments were passed
+when invoking emacsclient.
+
 See also `argv' for a similar variable which works for
 invocations of \"emacs\".")
 
@@ -1589,6 +1594,7 @@ LINE-COL should be a pair (LINE . COL)."
 
 (defun server-visit-files (files proc &optional nowait)
   "Find FILES and return a list of buffers created.
+If some file was deleted since last visited, offer to save its buffer.
 FILES is an alist whose elements are (FILENAME . FILEPOS)
 where FILEPOS can be nil or a pair (LINENUMBER . COLUMNNUMBER).
 PROC is the client that requested this operation.
@@ -1620,7 +1626,9 @@ so don't mark these buffers specially, just visit them normally."
             (cond ((file-exists-p filen)
                    (when (not (verify-visited-file-modtime obuf))
                      (revert-buffer t nil)))
-                  (t
+                  ;; Only ask the question if the file did exist at some
+                  ;; point, but was deleted since.
+                  ((listp (visited-file-modtime))
                    (when (y-or-n-p
                           (concat "File no longer exists: " filen
                                   ", write buffer to file? "))
@@ -2083,7 +2091,7 @@ something that cannot be printed readably."
       (process-send-string process
 			   (concat "-eval "
 				   (server-quote-arg (format "%S" form))
-				   "\n"))
+				   " \n"))
       (while (memq (process-status process) '(open run))
 	(accept-process-output process 0.01))
       (goto-char (point-min))

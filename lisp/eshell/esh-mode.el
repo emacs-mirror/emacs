@@ -128,7 +128,10 @@ buffer.  If `this', scroll only the selected window.
 
 See `eshell-preinput-scroll-to-bottom'."
   :type '(radio (const :tag "Do not scroll Eshell windows" nil)
-		(const :tag "Scroll all windows showing the buffer" all)
+                (choice :tag "Scroll all windows showing the buffer"
+                        :value all
+                        (const t)
+                        (const all))
                 (const :tag "Scroll only the selected window" this)))
 
 (defcustom eshell-scroll-to-bottom-on-output nil
@@ -140,7 +143,10 @@ scroll only those that are not the selected window.
 See variable `eshell-scroll-show-maximum-output' and function
 `eshell-postoutput-scroll-to-bottom'."
   :type '(radio (const :tag "Do not scroll Eshell windows" nil)
-		(const :tag "Scroll all windows showing the buffer" all)
+                (choice :tag "Scroll all windows showing the buffer"
+                        :value all
+                        (const t)
+                        (const all))
 		(const :tag "Scroll only the selected window" this)
                 (const :tag "Scroll all windows other than selected" others)))
 

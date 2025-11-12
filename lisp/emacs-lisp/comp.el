@@ -2478,8 +2478,9 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                  (setf (comp-vec-aref frame slot-n) mvar
                        (cadr insn) mvar))))
      (pcase insn
-       (`(setimm ,(pred targetp) ,_imm)
-        (new-lvalue))
+       (`(setimm ,lval ,_imm)
+        (when (targetp lval)
+          (new-lvalue)))
        (`(,(pred comp--assign-op-p) ,(pred targetp) . ,_)
         (let ((mvar (comp-vec-aref frame slot-n)))
           (setf (cddr insn) (cl-nsubst-if mvar #'targetp (cddr insn))))

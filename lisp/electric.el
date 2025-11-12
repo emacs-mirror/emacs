@@ -383,7 +383,7 @@ indent the line according to context and rules of the major mode.
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `electric-indent-local-mode'."
   :global t :group 'electricity
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-after-file-load
   :init-value t
   (if (not electric-indent-mode)
       (unless (catch 'found
@@ -767,7 +767,7 @@ ones listed here.  Also see `electric-quote-replace-consecutive'.
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `electric-quote-local-mode'."
   :global t :group 'electricity
-  :initialize 'custom-initialize-delay
+  ;; :initialize #'custom-initialize-after-file-load
   :init-value nil
   (if (not electric-quote-mode)
       (unless (catch 'found

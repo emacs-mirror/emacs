@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2025-07-31.19}
+\def\texinfoversion{2025-10-25.20}
 %
 % Copyright 1985, 1986, 1988, 1990-2025 Free Software Foundation, Inc.
 %
@@ -9952,7 +9952,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
         % node and anchor labels.  And \xrdef uses it to construct the
         % lists of floats.
         %
-        \edef\tmp{\noexpand\setref{\floatlabel}{Yfloat}%
+        \edef\tmp{\noexpand\setref{\noexpand\floatlabel}{Yfloat}%
                   {\floatmagic=\safefloattype}}%
         \tmp
       }%

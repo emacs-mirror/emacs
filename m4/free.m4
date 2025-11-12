@@ -14,10 +14,10 @@ AC_DEFUN([gl_FUNC_FREE],
 
   dnl In the next release of POSIX, free must preserve errno.
   dnl https://www.austingroupbugs.net/view.php?id=385
-  dnl https://sourceware.org/bugzilla/show_bug.cgi?id=17924
+  dnl https://sourceware.org/PR17924
   dnl So far, we know of three platforms that do this:
   dnl * glibc >= 2.33, thanks to the fix for this bug:
-  dnl   <https://sourceware.org/bugzilla/show_bug.cgi?id=17924>
+  dnl   <https://sourceware.org/PR17924>
   dnl * OpenBSD >= 4.5, thanks to this commit:
   dnl   <https://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/stdlib/malloc.c.diff?r1=1.100&r2=1.101&f=h>
   dnl * Solaris, because its malloc() implementation is based on brk(),

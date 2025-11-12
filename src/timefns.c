@@ -1323,21 +1323,23 @@ or (if you need time as a string) `format-time-string'.  */)
 
 /* Write information into buffer S of size MAXSIZE, according to the
    FORMAT of length FORMAT_LEN, using time information taken from *TP.
+   FORMAT[FORMATLEN] must be NUL.
    Use the time zone specified by TZ.
    Use NS as the number of nanoseconds in the %N directive.
-   Return the number of bytes written, not including the terminating
-   '\0'.  If S is NULL, nothing will be written anywhere; so to
+   Return the number of bytes written, not including the terminating NUL.
+   On error return -1, setting errno and possibly writing some bytes.
+
+   If S is NULL, nothing will be written anywhere; so to
    determine how many bytes would be written, use NULL for S and
-   ((size_t) -1) for MAXSIZE.
+   SIZE_MAX for MAXSIZE.
 
    This function behaves like nstrftime, except it allows null
    bytes in FORMAT.  */
-static size_t
+static ptrdiff_t
 emacs_nmemftime (char *s, size_t maxsize, const char *format,
 		 size_t format_len, const struct tm *tp, timezone_t tz, int ns)
 {
-  int saved_errno = errno;
-  size_t total = 0;
+  ptrdiff_t total = 0;
 
   /* Loop through all the null-terminated strings in the format
      argument.  Normally there's just one null-terminated string, but
@@ -1346,24 +1348,24 @@ emacs_nmemftime (char *s, size_t maxsize, const char *format,
      '\0' byte so we must invoke it separately for each such string.  */
   for (;;)
     {
-      errno = 0;
-      size_t result = nstrftime (s, maxsize, format, tp, tz, ns);
-      if (result == 0 && errno != 0)
+      ptrdiff_t result = nstrftime (s, maxsize, format, tp, tz, ns);
+      if (result < 0)
 	return result;
-      if (s)
-	s += result + 1;
-
-      maxsize -= result + 1;
-      total += result;
       size_t len = strlen (format);
+      if (ckd_add (&total, total, result + (len != format_len)))
+	{
+	  errno = ERANGE;
+	  return -1;
+	}
       if (len == format_len)
 	break;
-      total++;
+      if (s)
+	s += result + 1;
+      maxsize -= result + 1;
       format += len + 1;
       format_len -= len + 1;
     }
 
-  errno = saved_errno;
   return total;
 }
 
@@ -1373,9 +1375,7 @@ format_time_string (char const *format, ptrdiff_t formatlen,
 {
   char buffer[4000];
   char *buf = buffer;
-  ptrdiff_t size = sizeof buffer;
-  size_t len;
-  int ns = t.tv_nsec;
+  ptrdiff_t len = -1;
   USE_SAFE_ALLOCA;
 
   timezone_t tz = tzlookup (zone, false);
@@ -1384,34 +1384,29 @@ format_time_string (char const *format, ptrdiff_t formatlen,
      expects a pointer to time_t value.  */
   time_t tsec = t.tv_sec;
   tmp = emacs_localtime_rz (tz, &tsec, tmp);
-  if (! tmp)
+  if (tmp)
     {
-      int localtime_errno = errno;
-      xtzfree (tz);
-      time_error (localtime_errno);
-    }
-  synchronize_system_time_locale ();
-
-  while (true)
-    {
-      errno = 0;
-      len = emacs_nmemftime (buf, size, format, formatlen, tmp, tz, ns);
-      if (len != 0 || errno == 0)
-	break;
-      eassert (errno == ERANGE);
-
-      /* Buffer was too small, so make it bigger and try again.  */
-      len = emacs_nmemftime (NULL, SIZE_MAX, format, formatlen, tmp, tz, ns);
-      if (STRING_BYTES_BOUND <= len)
+      synchronize_system_time_locale ();
+      int ns = t.tv_nsec;
+      len = emacs_nmemftime (buffer, sizeof buffer, format, formatlen,
+			     tmp, tz, ns);
+      if (len < 0 && errno == ERANGE)
 	{
-	  xtzfree (tz);
-	  string_overflow ();
+	  /* Buffer was too small, so make it bigger and try again.  */
+	  len = emacs_nmemftime (NULL, SIZE_MAX, format, formatlen,
+				 tmp, tz, ns);
+	  if (0 <= len && len < STRING_BYTES_BOUND)
+	    {
+	      buf = SAFE_ALLOCA (len + 1);
+	      len = emacs_nmemftime (buf, len + 1, format, formatlen,
+				     tmp, tz, ns);
+	    }
 	}
-      size = len + 1;
-      buf = SAFE_ALLOCA (size);
     }
 
   xtzfree (tz);
+  if (len < 0)
+    time_error (errno);
   AUTO_STRING_WITH_LEN (bufstring, buf, len);
   Lisp_Object result = code_convert_string_norecord (bufstring,
 						     Vlocale_coding_system, 0);
@@ -1570,11 +1565,10 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
   struct tm local_tm, gmt_tm;
   timezone_t tz = tzlookup (zone, false);
   struct tm *tm = emacs_localtime_rz (tz, &time_spec, &local_tm);
-  int localtime_errno = errno;
   xtzfree (tz);
 
   if (!tm)
-    time_error (localtime_errno);
+    time_error (errno);
 
   /* Let YEAR = LOCAL_TM.tm_year + TM_YEAR_BASE.  */
   Lisp_Object year;
@@ -1765,11 +1759,10 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
   timezone_t tz = tzlookup (zone, false);
   tm.tm_wday = -1;
   time_t value = mktime_z (tz, &tm);
-  int mktime_errno = errno;
   xtzfree (tz);
 
   if (tm.tm_wday < 0)
-    time_error (mktime_errno);
+    time_error (errno);
 
   if (BASE_EQ (hz, make_fixnum (1)))
     return (current_time_list
@@ -1880,10 +1873,9 @@ without consideration for daylight saving time.  */)
      range -999 .. 9999.  */
   struct tm tm;
   struct tm *tmp = emacs_localtime_rz (tz, &value, &tm);
-  int localtime_errno = errno;
   xtzfree (tz);
   if (! tmp)
-    time_error (localtime_errno);
+    time_error (errno);
 
   static char const wday_name[][4] =
     { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };

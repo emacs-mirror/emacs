@@ -181,8 +181,11 @@ The temporary file is not created."
   `(condition-case err
        (progn ,@body)
      (file-error
-      (unless (string-equal (error-message-string err)
-			    "make-symbolic-link not supported")
+      (unless (string-match-p
+	       (rx bol (| "make-symbolic-link not supported"
+			  (: "Making symbolic link"
+			     (? ":") " Operation not permitted")))
+	       (error-message-string err))
 	(signal (car err) (cdr err))))))
 
 ;; Don't print messages in nested `tramp--test-instrument-test-case' calls.
@@ -8540,8 +8543,7 @@ process sentinels.  They shall not disturb each other."
 (ert-deftest tramp-test48-session-timeout ()
   "Check that Tramp handles a session timeout properly."
   (skip-unless (tramp--test-enabled))
-  (skip-unless
-   (tramp-get-method-parameter tramp-test-vec 'tramp-session-timeout))
+  (skip-unless (tramp--test-sh-p))
 
   ;; We want to see the timeout message.
   (tramp--test-instrument-test-case 3
@@ -8668,11 +8670,17 @@ process sentinels.  They shall not disturb each other."
     (let ((default-directory ert-remote-temporary-file-directory))
       (should
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation))))
+		     (tramp--handler-for-test-operation)))
+      (should
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handler-for-test-operation "foo"))))
     (let ((default-directory temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation))))
+		     (tramp--handler-for-test-operation)))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handler-for-test-operation "foo"))))
 
     (tramp-remove-external-operation
      #'tramp--test-operation backend)
@@ -8688,11 +8696,17 @@ process sentinels.  They shall not disturb each other."
     (let ((default-directory ert-remote-temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation))))
+		     (tramp--handler-for-test-operation)))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handler-for-test-operation "foo"))))
     (let ((default-directory temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation))))))
+		     (tramp--handler-for-test-operation)))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handler-for-test-operation "foo"))))))
 
 ;; This test is inspired by Bug#29163.
 (ert-deftest tramp-test50-auto-load ()

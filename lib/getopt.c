@@ -42,7 +42,7 @@
 # define funlockfile(fp) _IO_funlockfile (fp)
 #else
 # include "gettext.h"
-# define _(msgid) dgettext ("gnulib", msgid)
+# define _(msgid) dgettext (GNULIB_TEXT_DOMAIN, msgid)
 /* When used standalone, flockfile and funlockfile might not be
    available.  */
 # if (!defined _POSIX_THREAD_SAFE_FUNCTIONS \

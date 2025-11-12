@@ -523,11 +523,18 @@ _GL_CXXALIAS_SYS (tzalloc, timezone_t, (char const *__name));
 #  endif
 
 /* tzfree (tz)
-   Frees a time zone object.
+   Free a time zone object, preserving errno.
    The argument must have been returned by tzalloc().  */
 #  if !@HAVE_TZALLOC@
 _GL_FUNCDECL_SYS (tzfree, void, (timezone_t __tz), );
 _GL_CXXALIAS_SYS (tzfree, void, (timezone_t __tz));
+#  else
+#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    undef tzfree
+#    define tzfree rpl_tzfree
+#   endif
+_GL_FUNCDECL_RPL (tzfree, void, (timezone_t __tz), );
+_GL_CXXALIAS_RPL (tzfree, void, (timezone_t __tz));
 #  endif
 
 /* localtime_rz (tz, &t, &result)

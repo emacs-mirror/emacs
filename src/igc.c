@@ -88,7 +88,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_interval_DE36B11AE7
 #  error "struct interval changed"
 # endif
-# ifndef HASH_Lisp_String_39D7E563BF
+# ifndef HASH_Lisp_String_D08B4A1DD1
 #  error "struct Lisp_String changed"
 # endif
 # ifndef HASH_Lisp_Marker_123009D29E

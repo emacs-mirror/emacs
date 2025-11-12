@@ -1123,6 +1123,7 @@ See also `comint-read-input-ring'."
 	 (let* ((history-buf (get-buffer-create " *Temp Input History*"))
 		(ring comint-input-ring)
 		(file comint-input-ring-file-name)
+                (separator comint-input-ring-separator)
 		(index (ring-length ring)))
 	   ;; Write it all out into a buffer first.  Much faster, but messier,
 	   ;; than writing it one line at a time.
@@ -1130,7 +1131,7 @@ See also `comint-read-input-ring'."
 	     (erase-buffer)
 	     (while (> index 0)
 	       (setq index (1- index))
-	       (insert (ring-ref ring index) comint-input-ring-separator))
+	       (insert (ring-ref ring index) separator))
 	     (write-region (buffer-string) nil file nil 'no-message)
 	     (kill-buffer nil))))))
 
@@ -2313,14 +2314,12 @@ Make backspaces delete the previous character."
   ;; `yank' removes the field text property from the text it inserts
   ;; due to `yank-excluded-properties', so arrange for this text
   ;; property to be reapplied in the `after-change-functions'.
-  (let (fun)
-    (setq
-     fun
-     (lambda (beg1 end1 _len1)
-       (remove-hook 'after-change-functions fun t)
-       (when (and (= beg beg1)
-                  (= end end1))
-         (comint--mark-as-output beg1 end1))))
+  (letrec ((fun
+            (lambda (beg1 end1 _len1)
+              (remove-hook 'after-change-functions fun t)
+              (when (and (= beg beg1)
+                         (= end end1))
+                (comint--mark-as-output beg1 end1)))))
     (add-hook 'after-change-functions fun nil t)))
 
 (defun comint--unmark-string-as-output (string)

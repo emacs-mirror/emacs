@@ -36,14 +36,8 @@ orig_fstatat (int fd, char const *filename, struct stat *buf, int flags)
 }
 #endif
 
-#ifdef __osf__
-/* Write "sys/stat.h" here, not <sys/stat.h>, otherwise OSF/1 5.1 DTK cc
-   eliminates this include because of the preliminary #include <sys/stat.h>
-   above.  */
-# include "sys/stat.h"
-#else
-# include <sys/stat.h>
-#endif
+/* Specification.  */
+#include <sys/stat.h>
 
 #include "stat-time.h"
 

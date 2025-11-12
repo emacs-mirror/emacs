@@ -1396,7 +1396,10 @@ usage: (insert-and-inherit &rest ARGS)  */)
 
 DEFUN ("insert-before-markers", Finsert_before_markers, Sinsert_before_markers, 0, MANY, 0,
        doc: /* Insert strings or characters at point, relocating markers after the text.
-Point and markers move forward to end up after the inserted text.
+Point and all markers at or after the insertion point move forward to
+end up after the inserted text.  This is unlike with `insert' and other
+insertion functions, where before-insertion markers remain before the
+inserted text.
 
 If the current buffer is multibyte, unibyte strings are converted
 to multibyte for insertion (see `unibyte-char-to-multibyte').
@@ -1419,7 +1422,10 @@ usage: (insert-before-markers &rest ARGS)  */)
 DEFUN ("insert-before-markers-and-inherit", Finsert_and_inherit_before_markers,
   Sinsert_and_inherit_before_markers, 0, MANY, 0,
        doc: /* Insert text at point, relocating markers and inheriting properties.
-Point and markers move forward to end up after the inserted text.
+Point and all markers at or after the insertion point move forward to
+end up after the inserted text.  This is unlike with `insert' and other
+insertion functions, where before-insertion markers remain before the
+inserted text.
 
 If the current buffer is multibyte, unibyte strings are converted
 to multibyte for insertion (see `unibyte-char-to-multibyte').
@@ -1463,8 +1469,8 @@ its Unicode name in calls from Lisp, use `char-from-name'.
 When called interactively, COUNT is the prefix argument.  If omitted or
 nil, it defaults to 1.
 
-Inserting the character(s) relocates point and before-insertion
-markers in the same ways as the function `insert'.
+Inserting the character(s) relocates point and markers in the same ways
+as the function `insert'.
 
 The optional third argument INHERIT, if non-nil, says to inherit text
 properties from adjoining text, if those properties are sticky.  When
@@ -1520,7 +1526,8 @@ BYTE is a number of the range 0..255.
 If BYTE is 128..255 and the current buffer is multibyte, the
 corresponding eight-bit character is inserted.
 
-Point, and before-insertion markers, are relocated as in the function `insert'.
+Point and markers are relocated as in the function `insert'.
+
 The optional third arg INHERIT, if non-nil, says to inherit text properties
 from adjoining text, if those properties are sticky.  */)
   (Lisp_Object byte, Lisp_Object count, Lisp_Object inherit)
@@ -1707,9 +1714,7 @@ BUFFER may be a buffer or a buffer name.
 Arguments START and END are character positions specifying the substring.
 They default to the values of (point-min) and (point-max) in BUFFER.
 
-Point and before-insertion markers move forward to end up after the
-inserted text.
-Any other markers at the point of insertion remain before the text.
+Point and markers are relocated as in the function `insert'.
 
 If the current buffer is multibyte and BUFFER is unibyte, or vice
 versa, strings are converted from unibyte to multibyte or vice versa

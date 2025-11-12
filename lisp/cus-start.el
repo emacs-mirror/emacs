@@ -347,6 +347,12 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                             ;; :initialize custom-initialize-default
 			    :set custom-set-minor-mode)
 	     (frame-resize-pixelwise frames boolean "24.4")
+	     (alter-fullscreen-frames frames
+	                              (choice
+					    (const :tag "Forward request to window manager" nil)
+					    (const :tag "Reset fullscreen status first" t)
+					    (const :tag "Inhibit altering fullscreen frames" inhibit))
+				      "31.1")
 	     (frame-inhibit-implied-resize frames
 					   (choice
 					    (const :tag "Never" nil)

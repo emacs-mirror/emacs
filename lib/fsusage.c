@@ -148,15 +148,6 @@ get_fs_usage (char const *file, char const *disk, struct fs_usage *fsp)
                         ? PROPAGATE_ALL_ONES (fsd.f_frsize)
                         : PROPAGATE_ALL_ONES (fsd.f_bsize));
 
-#elif defined STAT_STATFS3_OSF1         /* OSF/1 */
-
-  struct statfs fsd;
-
-  if (statfs (file, &fsd, sizeof (struct statfs)) != 0)
-    return -1;
-
-  fsp->fsu_blocksize = PROPAGATE_ALL_ONES (fsd.f_fsize);
-
 #elif defined STAT_STATFS2_FRSIZE        /* 2.6 < glibc/Linux < 2.6.36 */
 
   struct statfs fsd;
@@ -201,7 +192,7 @@ get_fs_usage (char const *file, char const *disk, struct fs_usage *fsp)
 
   fsp->fsu_blocksize = PROPAGATE_ALL_ONES (fsd.f_fsize);
 
-#elif defined STAT_STATFS4              /* SVR3, old Irix */
+#elif defined STAT_STATFS4              /* SVR3 */
 
   struct statfs fsd;
 

@@ -140,21 +140,6 @@
 #  define SUNOS_5
 # endif
 
-# if defined (__osf__) && defined (__alpha)
-#  define OSF_ALPHA
-#  include <sys/mbuf.h>
-#  include <sys/socket.h>
-#  include <net/route.h>
-#  include <sys/table.h>
-/* Tru64 4.0D's table.h redefines sys */
-#  undef sys
-# endif
-
-# if defined (__osf__) && (defined (mips) || defined (__mips__))
-#  define OSF_MIPS
-#  include <sys/table.h>
-# endif
-
 
 /* VAX C can't handle multi-line #ifs, or lines longer than 256 chars.  */
 # ifndef LOAD_AVE_TYPE
@@ -167,15 +152,7 @@
 #   define LOAD_AVE_TYPE long
 #  endif
 
-#  ifdef sgi
-#   define LOAD_AVE_TYPE long
-#  endif
-
 #  ifdef SVR4
-#   define LOAD_AVE_TYPE long
-#  endif
-
-#  ifdef OSF_ALPHA
 #   define LOAD_AVE_TYPE long
 #  endif
 
@@ -184,13 +161,6 @@
 #  endif
 
 # endif /* No LOAD_AVE_TYPE.  */
-
-# ifdef OSF_ALPHA
-/* <sys/param.h> defines an incorrect value for FSCALE on Alpha OSF/1,
-   according to ghazi@noc.rutgers.edu.  */
-#  undef FSCALE
-#  define FSCALE 1024.0
-# endif
 
 
 # ifndef FSCALE
@@ -324,10 +294,6 @@
 #  endif
 # endif /* NeXT */
 
-# ifdef sgi
-#  include <sys/sysmp.h>
-# endif /* sgi */
-
 # ifdef UMAX
 #  include <signal.h>
 #  include <sys/time.h>
@@ -389,7 +355,7 @@ static bool getloadavg_initialized;
 /* Offset in kmem to seek to read load average, or 0 means invalid.  */
 static long offset;
 
-#  if ! defined __VMS && ! defined sgi && ! (defined __linux__ || defined __ANDROID__)
+#  if ! defined __VMS && ! (defined __linux__ || defined __ANDROID__)
 static struct nlist name_list[2];
 #  endif
 
@@ -781,18 +747,6 @@ getloadavg (double loadavg[], int nelem)
     }
 # endif  /* __MSDOS__ || WINDOWS32 */
 
-# if !defined (LDAV_DONE) && defined (OSF_ALPHA)           /* OSF/1 */
-#  define LDAV_DONE
-
-  struct tbl_loadavg load_ave;
-  table (TBL_LOADAVG, 0, &load_ave, 1, sizeof (load_ave));
-  for (elem = 0; elem < nelem; elem++)
-    loadavg[elem]
-      = (load_ave.tl_lscale == 0
-         ? load_ave.tl_avenrun.d[elem]
-         : (load_ave.tl_avenrun.l[elem] / (double) load_ave.tl_lscale));
-# endif /* OSF_ALPHA */
-
 # if ! defined LDAV_DONE && defined __VMS                  /* VMS */
   /* VMS specific code -- read from the Load Ave driver.  */
 
@@ -837,7 +791,7 @@ getloadavg (double loadavg[], int nelem)
 # endif /* ! defined LDAV_DONE && defined __VMS */
 
 # if ! defined LDAV_DONE && defined LOAD_AVE_TYPE && ! defined __VMS
-                                                  /* IRIX, other old systems */
+                                                  /* other old systems */
 
   /* UNIX-specific code -- read the average from /dev/kmem.  */
 
@@ -848,41 +802,35 @@ getloadavg (double loadavg[], int nelem)
   /* Get the address of LDAV_SYMBOL.  */
   if (offset == 0)
     {
-#  ifndef sgi
-#   if ! defined NLIST_STRUCT || ! defined N_NAME_POINTER
+#  if ! defined NLIST_STRUCT || ! defined N_NAME_POINTER
       strcpy (name_list[0].n_name, LDAV_SYMBOL);
       strcpy (name_list[1].n_name, "");
-#   else /* NLIST_STRUCT */
-#    ifdef HAVE_STRUCT_NLIST_N_UN_N_NAME
+#  else /* NLIST_STRUCT */
+#   ifdef HAVE_STRUCT_NLIST_N_UN_N_NAME
       name_list[0].n_un.n_name = LDAV_SYMBOL;
       name_list[1].n_un.n_name = 0;
-#    else /* not HAVE_STRUCT_NLIST_N_UN_N_NAME */
+#   else /* not HAVE_STRUCT_NLIST_N_UN_N_NAME */
       name_list[0].n_name = LDAV_SYMBOL;
       name_list[1].n_name = 0;
-#    endif /* not HAVE_STRUCT_NLIST_N_UN_N_NAME */
-#   endif /* NLIST_STRUCT */
+#   endif /* not HAVE_STRUCT_NLIST_N_UN_N_NAME */
+#  endif /* NLIST_STRUCT */
 
-#   ifndef SUNOS_5
+#  ifndef SUNOS_5
       if (
-#    if !defined (_AIX)
+#   if !defined (_AIX)
           nlist (KERNEL_FILE, name_list)
-#    else  /* _AIX */
+#   else  /* _AIX */
           knlist (name_list, 1, sizeof (name_list[0]))
-#    endif
+#   endif
           >= 0)
           /* Omit "&& name_list[0].n_type != 0 " -- it breaks on Sun386i.  */
           {
-#    ifdef FIXUP_KERNEL_SYMBOL_ADDR
+#   ifdef FIXUP_KERNEL_SYMBOL_ADDR
             FIXUP_KERNEL_SYMBOL_ADDR (name_list);
-#    endif
+#   endif
             offset = name_list[0].n_value;
           }
-#   endif /* !SUNOS_5 */
-#  else  /* sgi */
-      ptrdiff_t ldav_off = sysmp (MP_KERNADDR, MPKA_AVENRUN);
-      if (ldav_off != -1)
-        offset = (long int) ldav_off & 0x7fffffff;
-#  endif /* sgi */
+#  endif /* !SUNOS_5 */
     }
 
   /* Make sure we have /dev/kmem open.  */

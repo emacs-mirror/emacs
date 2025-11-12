@@ -25,17 +25,13 @@
 #include "minmax.h"
 
 #if USE_ACL
-# if ! defined HAVE_ACL_FROM_MODE && defined HAVE_ACL_FROM_TEXT /* FreeBSD, IRIX, Tru64, Cygwin >= 2.5 */
+# if ! defined HAVE_ACL_FROM_MODE && defined HAVE_ACL_FROM_TEXT /* FreeBSD, Cygwin >= 2.5 */
 #  if HAVE_ACL_GET_FILE && !HAVE_ACL_TYPE_EXTENDED
 
 static acl_t
 acl_from_mode (mode_t mode)
 {
-#  if HAVE_ACL_FREE_TEXT /* Tru64 */
-  char acl_text[] = "u::---,g::---,o::---,";
-#  else /* FreeBSD, IRIX, Cygwin >= 2.5 */
   char acl_text[] = "u::---,g::---,o::---";
-#  endif
 
   if (mode & S_IRUSR) acl_text[ 3] = 'r';
   if (mode & S_IWUSR) acl_text[ 4] = 'w';
@@ -490,9 +486,9 @@ set_acls (struct permission_context *ctx, const char *name, int desc,
 
 # if HAVE_ACL_GET_FILE
   /* POSIX 1003.1e (draft 17 -- abandoned) specific version.  */
-  /* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
+  /* Linux, FreeBSD, Mac OS X, Cygwin >= 2.5 */
 #  if !HAVE_ACL_TYPE_EXTENDED
-  /* Linux, FreeBSD, IRIX, Tru64, Cygwin >= 2.5 */
+  /* Linux, FreeBSD, Cygwin >= 2.5 */
 
 #   ifndef HAVE_ACL_FROM_TEXT
 #    error Must have acl_from_text (see POSIX 1003.1e draft 17).

@@ -371,7 +371,7 @@ otherwise it's assumed to be an Info file."
   (let* ((pkg-name (package-desc-name pkg-desc))
          (default-directory (package-desc-dir pkg-desc))
          (docs-directory (file-name-directory (expand-file-name file)))
-         (output (expand-file-name (format "%s.info" pkg-name)))
+         (output (expand-file-name (format "%s.info" (file-name-base file))))
          (log-buffer (get-buffer-create (format " *package-vc doc: %s*" pkg-name)))
          clean-up)
     (with-current-buffer log-buffer
@@ -393,15 +393,16 @@ otherwise it's assumed to be an Info file."
                                 "--no-split" file
                                 "-o" output))
             (message "Failed to build manual %s, see buffer %S"
-                     file (buffer-name)))
+                     file (buffer-name log-buffer)))
            ((/= 0 (call-process "install-info" nil log-buffer nil
                                 output (expand-file-name "dir")))
             (message "Failed to install manual %s, see buffer %S"
-                     output (buffer-name)))
+                     output (buffer-name log-buffer)))
            ((kill-buffer log-buffer))))
       (error (with-current-buffer log-buffer
                (insert (error-message-string err)))
-             (message "Failed to export org manual for %s, see buffer %S" pkg-name log-buffer)))
+             (message "Failed to export org manual for %s, see buffer %S"
+                      pkg-name (buffer-name log-buffer))))
     (when clean-up
       (delete-file file))))
 

@@ -676,7 +676,7 @@ its argument list allows full Common Lisp conventions."
            ((eq keys t) nil)            ;No &keys at all
            ((null keys)                 ;A &key but no actual keys specified.
             (push `(when ,restarg
-                     (error ,(format "Keyword argument %%s not one of %s"
+                     (error ,(format "Keyword argument %%S not one of %S"
                                      keys)
                             (car ,restarg)))
                   cl--bind-forms))
@@ -693,7 +693,7 @@ its argument list allows full Common Lisp conventions."
                                (setq ,var nil))
                               (t
                                (error
-                                ,(format "Keyword argument %%s not one of %s"
+                                ,(format "Keyword argument %%S not one of %S"
                                          keys)
                                 (car ,var)))))))
 	      (push `(let ((,var ,restarg)) ,check) cl--bind-forms)))))
@@ -1888,9 +1888,7 @@ An implicit nil block is established around the loop.
 \(fn (VAR LIST [RESULT]) BODY...)"
   (declare (debug ((symbolp form &optional form) cl-declarations body))
            (indent 1))
-  (let ((loop `(dolist ,spec ,@body)))
-    (if (advice-member-p 'cl--wrap-in-nil-block 'dolist)
-        loop `(cl-block nil ,loop))))
+  `(cl-block nil (dolist ,spec ,@body)))
 
 ;;;###autoload
 (defmacro cl-dotimes (spec &rest body)
@@ -1901,9 +1899,7 @@ nil.
 
 \(fn (VAR COUNT [RESULT]) BODY...)"
   (declare (debug cl-dolist) (indent 1))
-  (let ((loop `(dotimes ,spec ,@body)))
-    (if (advice-member-p 'cl--wrap-in-nil-block 'dotimes)
-        loop `(cl-block nil ,loop))))
+    `(cl-block nil (dotimes ,spec ,@body)))
 
 (defvar cl--tagbody-alist nil)
 
@@ -3127,8 +3123,7 @@ To see the documentation for a defined struct type, use
 	 (include-name nil)
 	 (type nil)         ;nil here means not specified explicitly.
 	 (named nil)
-         (cldefsym (if cl--struct-inline 'cl-defsubst 'cl-defun))
-         (defsym (if cl--struct-inline 'cl-defsubst 'defun))
+         (noinline (not cl--struct-inline))
 	 (forms nil)
          (docstring (if (stringp (car descs)) (pop descs)))
          (dynbound-slotnames '())
@@ -3175,8 +3170,7 @@ To see the documentation for a defined struct type, use
                  (error "Invalid :type specifier: %s" type)))
 	      ((eq opt :named)
 	       (setq named t))
-	      ((eq opt :noinline)
-	       (setq defsym 'defun) (setq cldefsym 'cl-defun))
+	      ((eq opt :noinline) (setq noinline t))
 	      ((eq opt :initial-offset)
 	       (setq descs (nconc (make-list (car args) '(cl-skip-slot))
 				  descs)))
@@ -3228,30 +3222,40 @@ To see the documentation for a defined struct type, use
 						     descs)))))
 			   (cond
                             ((null type) ;Record type.
-                             `(memq (type-of cl-x) ,tag-symbol))
+                             (lambda (var) `(memq (type-of ,var) ,tag-symbol)))
                             ((eq type 'vector)
-                             `(and (vectorp cl-x)
-                                   (>= (length cl-x) ,(length descs))
-                                   (memq (aref cl-x ,pos) ,tag-symbol)))
-                            ((= pos 0) `(memq (car-safe cl-x) ,tag-symbol))
-                            (t `(and (consp cl-x)
-				     (memq (nth ,pos cl-x) ,tag-symbol))))))
+                             (lambda (var)
+                               `(and (vectorp ,var)
+                                     (>= (length ,var) ,(length descs))
+                                     (memq (aref ,var ,pos) ,tag-symbol))))
+                            ((= pos 0)
+                             (lambda (var) `(memq (car-safe ,var) ,tag-symbol)))
+                            (t (lambda (var) `(and (consp ,var)
+                                              (memq (nth ,pos ,var)
+                                                    ,tag-symbol)))))))
 	  pred-check (and pred-form (> safety 0)
-                          (if (and (eq (caadr pred-form) 'vectorp)
-				   (= safety 1))
-                              (cons 'and (cdddr pred-form))
-                            `(,predicate cl-x))))
+                          (lambda (var)
+                            (let ((pf (funcall pred-form var)))
+                              (cond
+                               ((eq (caadr pf) 'vectorp) (nth 3 pf))
+                               ((eq (caadr pf) 'consp) (nth 2 pf))
+                               (t `(,predicate ,var)))))))
     (when pred-form
       (push `(eval-and-compile
                ;; Define the predicate to be effective at compile time
                ;; as native comp relies on `cl-typep' that relies on
                ;; predicates to be defined as they are registered in
                ;; cl-deftype-satisfies.
-               (,defsym ,predicate (cl-x)
-               (declare (side-effect-free error-free) (pure t))
-               ,(if (eq (car pred-form) 'and)
-                    (append pred-form '(t))
-                  `(and ,pred-form t)))
+               (define-inline ,predicate (x)
+                 (declare (side-effect-free error-free) (pure t)
+                          (noinline ,noinline))
+                 ,(let* ((varexp ',x)
+                         (pf (funcall pred-form varexp))
+                         (body (if (eq (car pf) 'and)
+                                   (append pf '(t))
+                                 `(and ,pf t))))
+                    `(inline-letevals (x)
+                       (inline-quote ,body))))
                (define-symbol-prop ',name 'cl-deftype-satisfies ',predicate))
             forms))
     (let ((pos 0) (descp descs))
@@ -3264,26 +3268,29 @@ To see the documentation for a defined struct type, use
 	      (progn
 		(push nil slots)
 		(push (and (eq slot 'cl-tag-slot) `',tag)
-			 defaults))
+		      defaults))
 	    (if (assq slot descp)
 		(error "Duplicate slots named %s in %s" slot name))
 	    (let ((accessor (intern (format "%s%s" conc-name slot)))
                   (default-value (pop desc))
                   (doc (plist-get desc :documentation))
                   (access-body
-                   `(progn
-                      ,@(and pred-check
-			     (list `(or ,pred-check
-                                        (signal 'wrong-type-argument
-                                                (list ',name cl-x)))))
-                      ,(if (memq type '(nil vector)) `(aref cl-x ,pos)
-                         (if (= pos 0) '(car cl-x)
-                           `(nth ,pos cl-x))))))
+                   (lambda (var)
+                     `(progn
+                        ,@(if pred-check
+                              (let ((pc (funcall pred-check var)))
+                                `((or ,pc
+                                      (signal 'wrong-type-argument
+                                              (list ',name ,var))))))
+                        ,(if (memq type '(nil vector))
+                             `(aref ,var ,pos)
+                           (if (= pos 0) `(car ,var)
+                             `(nth ,pos ,var)))))))
 	      (push slot slots)
 	      (push default-value defaults)
-              ;; The arg "cl-x" is referenced by name in e.g. pred-form
-	      ;; and pred-check, so changing it is not straightforward.
-	      (push `(,defsym ,accessor (cl-x)
+              ;; FIXME: If this is an inherited slot, use an alias of
+              ;; the parent's accessor?
+	      (push `(define-inline ,accessor (x)
                        ,(let ((long-docstring
                                (format "Access slot \"%s\" of `%s' struct X."
                                        slot name)))
@@ -3311,8 +3318,10 @@ To see the documentation for a defined struct type, use
                            (if doc (concat "\n" doc) "")
                            "\n"
                            (format "\n\n(fn %s X)" accessor)))
-                       (declare (side-effect-free t))
-                       ,access-body)
+                       (declare (side-effect-free t) (noinline ,noinline))
+                       (inline-letevals (x)
+                               (inline-quote
+                                ,(funcall access-body ',x))))
                     forms)
               ;; FIXME: This hack is to document this as a generalized
               ;; variable, despite it not having the `gv-expander'
@@ -3340,14 +3349,14 @@ To see the documentation for a defined struct type, use
                     (push kw desc)
                     (setcar defaults nil))))
               (cond
-               ((eq defsym 'defun)
+               (noinline
                 (unless (plist-get desc ':read-only)
-                  (push `(defun ,(gv-setter accessor) (val cl-x)
-                           (setf ,access-body val))
+                  (push `(defun ,(gv-setter accessor) (val x)
+                           (setf ,(funcall access-body 'x) val))
                         forms)))
                ((plist-get desc ':read-only)
                 (push `(gv-define-expander ,accessor
-                         (lambda (_cl-do _cl-x)
+                         (lambda (_do _x)
                            (error "%s is a read-only slot" ',accessor)))
                       forms))
                (t
@@ -3388,7 +3397,7 @@ To see the documentation for a defined struct type, use
              (make (cl-mapcar (lambda (s d) (if (memq s anames) s d))
 			      slots defaults))
 	     (con-fun (or type #'record)))
-	(push `(,cldefsym ,cname
+	(push `(,(if noinline 'cl-defun 'cl-defsubst) ,cname
                    (&cl-defs (nil ,@descs) ,@args)
                  ,(if (stringp doc) doc
                     ;; NB.  This will produce incorrect results in
@@ -3423,6 +3432,9 @@ To see the documentation for a defined struct type, use
              (nreverse forms)
            `((with-suppressed-warnings ((lexical . ,dynbound-slotnames))
                ,@(nreverse forms))))
+       ;; Don't include cl-struct-define in the autoloads file, since ordering
+       ;; there is not guaranteed, so we can't be sure that the parent struct
+       ;; is already defined :-(
        :autoload-end
        ;; Call cl-struct-define during compilation as well, so that
        ;; a subsequent cl-defstruct in the same file can correctly include this
@@ -3804,12 +3816,39 @@ If PARENTS is non-nil, ARGLIST must be nil."
       (cl-callf (lambda (x) (delq parent-decl x)) (cdr declares))
       (when (equal declares '(declare))
         (cl-callf (lambda (x) (delq declares x)) decls)))
-    (and parents arglist
-         (error "Parents specified, but arglist not empty"))
     (let* ((expander
-            `(cl-function (lambda (&cl-defs ('*) ,@arglist) ,@decls ,@forms)))
-           ;; FIXME: Pass a better lexical context.
-           (specifier (ignore-errors (funcall (eval expander t))))
+            `(cl-function
+              (lambda (&cl-defs ('*) ,@arglist) ,@decls ,@forms)))
+           (specifier
+            (condition-case nil
+                ;; FIXME: Pass a better lexical context.
+                (funcall (eval expander t))
+              ;; We previously signaled an error when the type specified
+              ;; both non-nil parents and arglist, like `unsigned-byte'
+              ;; in below example:
+              ;;
+              ;; (cl-deftype my-integer ()
+              ;;   'integer)
+              ;;
+              ;; (cl-deftype unsigned-byte (&optional bits)
+              ;;   "Unsigned integer."
+              ;;   (declare (parents my-integer))
+              ;;   `(integer 0 ,(if (memq bits '(nil *))
+              ;;                    bits
+              ;;                  (1- (ash 1 bits)))))
+              ;;
+              ;; In order to accept the above (correct) definition of
+              ;; `unsigned-byte', call the expander without arguments to
+              ;; check if the arglist is mandatory by catching a
+              ;; `wrong-number-of-arguments' error.  If so, and the type
+              ;; specified both parents and arglist, there is a good
+              ;; chance that the type is not atomic, so signal it;
+              ;; otherwise, return nil as previously.  Report any other
+              ;; error on type definition.
+              (wrong-number-of-arguments
+               (and parents arglist ;; type is not atomic
+                    (error "Type %S with parents may be not atomic: %S"
+                           name arglist)))))
            (predicate
             (pcase specifier
               (`(satisfies ,f) `#',f)
@@ -3847,13 +3886,13 @@ If PARENTS is non-nil, ARGLIST must be nil."
         `(cl-deftype ,type (&optional min max)
            (list 'and ',base
                  (if (memq min '(* nil)) t
-                   (if (consp min)
-                       `(satisfies . ,(lambda (val) (> val (car min))))
-                     `(satisfies . ,(lambda (val) (>= val min)))))
+                   `(satisfies . ,(if (consp min)
+                                      (lambda (val) (> val (car min)))
+                                    (lambda (val) (>= val min)))))
                  (if (memq max '(* nil)) t
-                   (if (consp max)
-                       `(satisfies . ,(lambda (val) (< val (car max))))
-                     `(satisfies . ,(lambda (val) (<= val max)))))))))
+                   `(satisfies . ,(if (consp max)
+                                      (lambda (val) (< val (car max)))
+                                    (lambda (val) (<= val max)))))))))
     ;;(cl--defnumtype integer ??)
     ;;(cl--defnumtype float ??)
     ;;(cl--defnumtype number ??)

@@ -155,7 +155,7 @@ this mode is enabled in.
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `show-paren-local-mode'."
   :global t :group 'paren-showing
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-after-file-load
   :init-value t
   ;; Enable or disable the mechanism.
   ;; First get rid of the old idle timer.

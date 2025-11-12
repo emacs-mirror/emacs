@@ -131,16 +131,25 @@ After VARS is handled, BODY is evaluated in the new environment."
 ;;;###autoload
 (defmacro define-inline (name args &rest body)
   "Define an inline function NAME with arguments ARGS and body in BODY.
+This is halfway between `defmacro' and `defun'.  BODY is used as a blueprint
+both for the body of the function and for the body of the compiler-macro
+used to generate the code inlined at each call site.
+See Info node `(elisp)Inline Functions for more details.
 
-This is like `defmacro', but has several advantages.
-See Info node `(elisp)Defining Functions' for more details."
+A (noinline t) in the `declare' form prevents the definition of the
+compiler macro.  This is for the rare case in which you want to use this
+macro to define a function that should not be inlined."
   ;; FIXME: How can this work with CL arglists?
   (declare (indent defun) (debug defun) (doc-string 3)
-           (autoload-macro expand))     ; expand to the defun on autoload gen
-  (let ((doc (if (stringp (car-safe body)) (list (pop body))))
-        (declares (if (eq (car-safe (car-safe body)) 'declare) (pop body)))
-        (cm-name (intern (format "%s--inliner" name)))
-        (bodyexp (macroexp-progn body)))
+           (autoload-macro expand)) ; expand to the defun on autoload gen
+  (let* ((doc (if (stringp (car-safe body)) (list (pop body))))
+         (declares (if (eq (car-safe (car-safe body)) 'declare) (pop body)))
+         (cm-name (intern (format "%s--inliner" name)))
+         (noinline-decl (assq 'noinline declares))
+         (inline (not (cadr noinline-decl)))
+         (bodyexp (macroexp-progn body)))
+    (when noinline-decl
+      (setq declares (delq noinline-decl declares)))
     ;; If the function is autoloaded then when we load the .el file, the
     ;; `compiler-macro' property is already set (from loaddefs.el) and might
     ;; hence be called during the macroexpand-all calls below (if the function
@@ -150,7 +159,8 @@ See Info node `(elisp)Defining Functions' for more details."
     `(progn
        (defun ,name ,args
          ,@doc
-         (declare (compiler-macro ,cm-name) ,@(cdr declares))
+         (declare ,@(when inline `((compiler-macro ,cm-name)))
+                  ,@(cdr declares))
          ,(macroexpand-all bodyexp
                            `((inline-quote . inline--dont-quote)
                              ;; (inline-\` . inline--dont-quote)
@@ -160,22 +170,23 @@ See Info node `(elisp)Defining Functions' for more details."
                              (inline-const-val . inline--alwaysconst-val)
                              (inline-error . inline--error)
                              ,@macroexpand-all-environment)))
-       :autoload-end
-       (eval-and-compile
-         (defun ,cm-name ,(cons 'inline--form args)
-           (ignore inline--form)     ;In case it's not used!
-           (catch 'inline--just-use
-             ,(macroexpand-all
-               bodyexp
-               `((inline-quote . inline--do-quote)
-                 ;; (inline-\` . inline--do-quote)
-                 (inline--leteval . inline--do-leteval)
-                 (inline--letlisteval
-                  . inline--do-letlisteval)
-                 (inline-const-p . inline--testconst-p)
-                 (inline-const-val . inline--getconst-val)
-                 (inline-error . inline--warning)
-                 ,@macroexpand-all-environment))))))))
+       ,@(when inline
+           `(:autoload-end
+             (eval-and-compile
+               (defun ,cm-name ,(cons 'inline--form args)
+                 (ignore inline--form)  ;In case it's not used!
+                 (catch 'inline--just-use
+                   ,(macroexpand-all
+                     bodyexp
+                     `((inline-quote . inline--do-quote)
+                       ;; (inline-\` . inline--do-quote)
+                       (inline--leteval . inline--do-leteval)
+                       (inline--letlisteval
+                        . inline--do-letlisteval)
+                       (inline-const-p . inline--testconst-p)
+                       (inline-const-val . inline--getconst-val)
+                       (inline-error . inline--warning)
+                       ,@macroexpand-all-environment))))))))))
 
 (defun inline--do-quote (exp)
   (pcase exp

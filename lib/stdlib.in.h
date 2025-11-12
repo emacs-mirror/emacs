@@ -62,12 +62,6 @@
 /* NetBSD 5.0 mis-defines NULL.  */
 #include <stddef.h>
 
-/* MirBSD 10 defines WEXITSTATUS in <sys/wait.h>, not in <stdlib.h>.
-   glibc 2.41 defines WCOREDUMP in <sys/wait.h>, not in <stdlib.h>.  */
-#if @GNULIB_SYSTEM_POSIX@ && !(defined WEXITSTATUS && defined WCOREDUMP)
-# include <sys/wait.h>
-#endif
-
 /* Solaris declares getloadavg() in <sys/loadavg.h>.  */
 #if (@GNULIB_GETLOADAVG@ || defined GNULIB_POSIXCHECK) && @HAVE_SYS_LOADAVG_H@
 /* OpenIndiana has a bug: <sys/time.h> must be included before
@@ -82,13 +76,6 @@
 #endif
 
 #if @GNULIB_RANDOM_R@
-
-/* OSF/1 5.1 declares 'struct random_data' in <random.h>, which is included
-   from <stdlib.h> if _REENTRANT is defined.  Include it whenever we need
-   'struct random_data'.  */
-# if @HAVE_RANDOM_H@
-#  include <random.h>
-# endif
 
 # include <stdint.h>
 
@@ -2026,6 +2013,18 @@ _GL_CXXALIASWARN (wctomb);
 
 
 _GL_INLINE_HEADER_END
+
+
+/* Includes that provide only macros that don't need to be overridden.
+   (Includes that are needed for type definitions and function declarations
+   have their place above, before the function overrides.)  */
+
+/* MirBSD 10 defines WEXITSTATUS in <sys/wait.h>, not in <stdlib.h>.
+   glibc 2.41 defines WCOREDUMP in <sys/wait.h>, not in <stdlib.h>.  */
+#if @GNULIB_SYSTEM_POSIX@ && !(defined WEXITSTATUS && defined WCOREDUMP)
+# include <sys/wait.h>
+#endif
+
 
 #endif /* _@GUARD_PREFIX@_STDLIB_H */
 #endif /* _@GUARD_PREFIX@_STDLIB_H */

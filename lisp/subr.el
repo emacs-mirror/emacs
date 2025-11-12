@@ -1134,6 +1134,62 @@ side-effects, and the argument LIST is not modified."
   (if (memq elt list)
       (delq elt (copy-sequence list))
     list))
+
+(defun internal--effect-free-fun-arg-p (x)
+  (or (symbolp x) (closurep x) (memq (car-safe x) '(function quote))))
+
+(defun take-while (pred list)
+  "Return the longest prefix of LIST whose elements satisfy PRED."
+  (declare (compiler-macro
+            (lambda (_form)
+              (let* ((tail (make-symbol "tail"))
+                     (pred (macroexpand-all pred macroexpand-all-environment))
+                     (f (and (not (internal--effect-free-fun-arg-p pred))
+                             (make-symbol "f")))
+                     (r (make-symbol "r")))
+                `(let (,@(and f `((,f ,pred)))
+                       (,tail ,list)
+                       (,r nil))
+                   (while (and ,tail (funcall ,(or f pred) (car ,tail)))
+                     (push (car ,tail) ,r)
+                     (setq ,tail (cdr ,tail)))
+                   (nreverse ,r))))))
+  (let ((r nil))
+    (while (and list (funcall pred (car list)))
+      (push (car list) r)
+      (setq list (cdr list)))
+    (nreverse r)))
+
+(defun drop-while (pred list)
+  "Skip initial elements of LIST satisfying PRED and return the rest."
+  (declare (compiler-macro
+            (lambda (_form)
+              (let* ((tail (make-symbol "tail"))
+                     (pred (macroexpand-all pred macroexpand-all-environment))
+                     (f (and (not (internal--effect-free-fun-arg-p pred))
+                             (make-symbol "f"))))
+                `(let (,@(and f `((,f ,pred)))
+                       (,tail ,list))
+                   (while (and ,tail (funcall ,(or f pred) (car ,tail)))
+                     (setq ,tail (cdr ,tail)))
+                   ,tail)))))
+  (while (and list (funcall pred (car list)))
+    (setq list (cdr list)))
+  list)
+
+(defun all (pred list)
+  "Non-nil if PRED is true for all elements in LIST."
+  (declare (compiler-macro (lambda (_) `(not (drop-while ,pred ,list)))))
+  (not (drop-while pred list)))
+
+(defun any (pred list)
+  "Non-nil if PRED is true for at least one element in LIST.
+Returns the LIST suffix starting at the first element that satisfies PRED,
+or nil if none does."
+  (declare (compiler-macro
+            (lambda (_)
+              `(drop-while (lambda (x) (not (funcall ,pred x))) ,list))))
+  (drop-while (lambda (x) (not (funcall pred x))) list))
 
 ;;;; Keymap support.
 
@@ -2700,7 +2756,34 @@ Affects only hooks run in the current buffer."
      (let ((delay-mode-hooks t))
        ,@body)))
 
-;;; `when-let' and friends.
+;;; `if-let*' and friends.
+;;
+;; We considered adding a `cond-let*' in late 2025:
+;; <https://lists.gnu.org/archive/html/emacs-devel/2025-09/msg00058.html>.
+;; We decided to add the `bind-and*' clause type to `cond*' instead.
+;; At first it seems simple to extend `if-let*'/`when-let*'/`and-let*'
+;; to `cond', but the extension is not unambiguous: there are multiple
+;; useful, incompatible ways to do it.
+;; In particular, it quickly becomes clear that one wants clauses that
+;; only establish bindings for proceeding clauses, instead of exiting
+;; the `cond-let*'.  But then
+;; - Should these bindings be just like in `let*', or like in
+;;   `if-let*'?  In other words, should it be that if a binding
+;;   evaluates to nil we skip the remaining bindings (bind them all to
+;;   nil)?  Both ways of doing it seem useful.
+;; - The parentheses quickly pile up.  How can we avoid the programmer
+;;   having to count parentheses?  Some propose using square brackets
+;;   (i.e., vectors) for the binding-only clauses, but Emacs Lisp is a
+;;   traditional Lisp which uses exclusively parentheses for control
+;;   constructs.  Therefore, introducing square brackets here would be
+;;   jarring to read.  Another option would be to use symbols at the
+;;   beginning of clauses, like `cond*' does.
+;; Whichever way one goes, the resulting macro ends up complicated,
+;; with a substantial learning burden.  Adding `bind-and*' clauses to
+;; `cond*' gives us the desired functionality, and does not make
+;; `cond*' much more complicated.  In other words, `cond*' is already
+;; complicated, and one complicated `cond'-extending macro is better
+;; than two.  --spwhitton
 
 (defun internal--build-binding (binding prev-var)
   "Check and build a single BINDING with PREV-VAR."
@@ -2747,7 +2830,7 @@ binding of SYMBOL is checked for nil, only.
 
 An older form for entries of VARLIST is also supported, where SYMBOL is
 omitted, i.e. (VALUEFORM).  This means the same as (_ VALUEFORM).
-This form is not recommended because many programmers find it
+This form is not recommended because many Lisp programmers find it
 significantly less readable.  A future release of Emacs may introduce a
 byte-compiler warning for uses of (VALUEFORM) in VARLIST."
   (declare (indent 2)
@@ -3689,7 +3772,16 @@ causes it to evaluate `help-form' and display the result."
 	     ((and (null esc-flag) (eq char ?\e))
 	      (setq esc-flag t))
 	     ((memq char '(?\C-g ?\e))
-	      (keyboard-quit))))))))
+	      (keyboard-quit))))
+	   (t
+	    (beep)
+	    (message "Please type %s"
+		     (substitute-command-keys
+		      (mapconcat (lambda (c)
+				   (format "\\`%s'"
+					   (single-key-description c)))
+				 chars ", ")))
+	    (sit-for 3))))))
     ;; Display the question with the answer.  But without cursor-in-echo-area.
     (message "%s%s" prompt (char-to-string char))
     char))
@@ -7210,15 +7302,15 @@ See documentation for `version-separator' and `version-regexp-alist'."
 	      (setq al (cdr al)))
 	    (cond (al
 		   (push (cdar al) lst))
-        ;; Convert 22.3a to 22.3.1, 22.3b to 22.3.2, etc., but only if
-        ;; the letter is the end of the version-string, to avoid
-        ;; 22.8X3 being valid
-        ((and (string-match "^[-._+ ]?\\([a-zA-Z]\\)$" s)
-           (= i (length ver)))
+                  ;; Convert 22.3a to 22.3.1, 22.3b to 22.3.2, etc., but only if
+                  ;; the letter is the end of the version-string, to avoid
+                  ;; 22.8X3 being valid
+                  ((and (string-match "^[-._+ ]?\\([a-zA-Z]\\)$" s)
+                        (= i (length ver)))
 		   (push (- (aref (downcase (match-string 1 s)) 0) ?a -1)
 			 lst))
 		  (t (error "Invalid version syntax: `%s'" ver))))))
-    (nreverse lst))))
+      (nreverse lst))))
 
 (defun version-list-< (l1 l2)
   "Return t if L1, a list specification of a version, is lower than L2.

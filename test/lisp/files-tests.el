@@ -2059,6 +2059,7 @@ CALLERS-DIR specifies the value to let-bind
   (let* ((dir (make-temp-file "testdir" 'dir))
          (inhibit-message t)
          (use-dialog-box nil)
+         (y-or-n-p-use-read-key t)
          buffers)
     (pcase-dolist (`(,bufsym ,offer-save) buffers-offer)
       (let* ((buf (generate-new-buffer (symbol-name bufsym)))

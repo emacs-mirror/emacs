@@ -172,6 +172,7 @@ They are completed by `M-x TAB' only in Tramp debug buffers."
   (use-local-map special-mode-map)
   (set-buffer-modified-p nil)
   ;; For debugging purposes.
+  ;(add-hook 'kill-buffer-hook #'debug nil 'local)
   (local-set-key "\M-n" 'clone-buffer)
   (add-hook 'clone-buffer-hook #'tramp-setup-debug-buffer nil 'local))
 

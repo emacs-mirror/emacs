@@ -729,7 +729,9 @@ font-lock keywords will not be case sensitive."
   :group 'lisp
   (lisp-mode-variables nil t nil)
   (setq-local electric-quote-string t)
-  (setq imenu-case-fold-search nil))
+  (setq imenu-case-fold-search nil)
+  (setq-local hs-block-start-regexp "\\s(\\|\"")
+  (setq-local hs-block-end-regexp "\\s)\\|\""))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."

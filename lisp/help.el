@@ -518,6 +518,67 @@ If that doesn't give a function, return nil."
                 (and (fboundp sym) sym))))))))
 
 
+;;; Lossage
+
+(defcustom view-lossage-auto-refresh nil
+  "Whether to auto-refresh the lossage buffer.
+If non-nil, the lossage buffer will be refreshed automatically for each
+new input keystroke and command performed."
+  :type 'boolean
+  :group 'help
+  :version "31.1")
+
+(defvar-local help--lossage-update nil
+  "Variable used to determine if lossage buffer should be refreshed.")
+
+(defun help--lossage-make-recent-keys (&optional most-recent)
+  "Return a string containing all the recent keys and its commands.
+If MOST-RECENT is non-nil, only return the most recent key and its
+command."
+  (let ((keys
+         (if most-recent
+             `[,@(this-single-command-raw-keys) (nil . ,this-command)]
+           (recent-keys 'include-cmds))))
+    (mapconcat
+     (lambda (key)
+       (cond
+        ((and (consp key) (null (car key)))
+         (concat
+          ";; "
+          (if (symbolp (cdr key))
+              (buttonize
+               (symbol-name (cdr key))
+               (lambda (&rest _)
+                 (interactive)
+                 (describe-function (cdr key)))
+               "mouse-1: go to the documentation for this command.")
+	    (propertize "anonymous-command" 'face 'shadow))
+          "\n"))
+        ((or (integerp key) (symbolp key) (listp key))
+         (propertize (single-key-description key)
+                     'face 'help-key-binding
+                     'rear-nonsticky t))
+        (t
+         (propertize (prin1-to-string key nil)
+                     'face 'help-key-binding
+                     'rear-nonsticky t))))
+     keys
+     " ")))
+
+(defun help--refresh-lossage-buffer ()
+  (if-let* ((buf (get-buffer "*Help*"))
+            (_ (buffer-local-value 'help--lossage-update buf)))
+      (with-current-buffer buf
+        (let ((inhibit-read-only t))
+          (save-excursion
+            (goto-char (point-max))
+            (insert-before-markers
+             (concat " " (help--lossage-make-recent-keys :most-recent)))
+            (forward-line -1)
+            (comment-indent))))
+    (remove-hook 'post-command-hook #'help--refresh-lossage-buffer)))
+
+
 ;;; `User' help functions
 
 (defun view-help-file (file &optional dir)
@@ -692,43 +753,50 @@ the variable `message-log-max'."
   (interactive)
   (info "(efaq)Packages that do not come with Emacs"))
 
-(defun view-lossage ()
+(defun view-lossage (&optional auto-refresh)
   "Display last few input keystrokes and the commands run.
 For convenience this uses the same format as
 `edit-last-kbd-macro'.
 See `lossage-size' to update the number of recorded keystrokes.
 
+With argument, auto-refresh the lossage buffer for each new input
+keystroke, see also `view-lossage-auto-refresh'.
+
 To record all your input, use `open-dribble-file'."
-  (interactive)
-  (let ((help-buffer-under-preparation t))
-    (help-setup-xref (list #'view-lossage)
-		     (called-interactively-p 'interactive))
+  (interactive "P")
+  (let ((help-buffer-under-preparation t)
+        (view-lossage-auto-refresh
+         (if auto-refresh t view-lossage-auto-refresh)))
+    (unless view-lossage-auto-refresh
+      ;; `view-lossage-auto-refresh' conflicts with xref buttons, add
+      ;; them if `view-lossage-auto-refresh' is nil.
+      (help-setup-xref (list #'view-lossage)
+		       (called-interactively-p 'interactive)))
     (with-help-window (help-buffer)
       (princ " ")
-      (princ (mapconcat (lambda (key)
-			  (cond
-			   ((and (consp key) (null (car key)))
-			    (format ";; %s\n" (if (symbolp (cdr key)) (cdr key)
-						"anonymous-command")))
-			   ((or (integerp key) (symbolp key) (listp key))
-			    (single-key-description key))
-			   (t
-			    (prin1-to-string key nil))))
-			(recent-keys 'include-cmds)
-			" "))
+      (insert (help--lossage-make-recent-keys))
       (with-current-buffer standard-output
 	(goto-char (point-min))
-	(let ((comment-start ";; ")
-              ;; Prevent 'comment-indent' from handling a single
-              ;; semicolon as the beginning of a comment.
-              (comment-start-skip ";; ")
-              (comment-use-syntax nil)
-              (comment-column 24))
-          (while (not (eobp))
-            (comment-indent)
-	    (forward-line 1)))
+        (setq-local comment-start ";; "
+                    ;; Prevent 'comment-indent' from handling a single
+                    ;; semicolon as the beginning of a comment.
+                    comment-start-skip ";; "
+                    comment-use-syntax nil
+                    comment-column 24)
+	(while (not (eobp))
+          (comment-indent)
+	  (forward-line 1))
 	;; Show point near the end of "lossage", as we did in Emacs 24.
-	(set-marker help-window-point-marker (point))))))
+	(set-marker help-window-point-marker (point))
+
+        (when view-lossage-auto-refresh
+          (setq-local help--lossage-update t)
+          (add-hook 'post-command-hook #'help--refresh-lossage-buffer))))
+
+    ;; `help-make-xrefs' adds a newline at the end of the buffer, which
+    ;; makes impossible to reposition point in `with-help-window'.
+    (when view-lossage-auto-refresh
+      (set-window-point (get-buffer-window (help-buffer)) (point-max)))))
 
 
 ;; Key bindings

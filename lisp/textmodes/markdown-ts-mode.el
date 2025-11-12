@@ -292,12 +292,17 @@ the same features enabled in MODE."
                  (intern (downcase lang-string)))))
     ;; FIXME: Kind of a hack here: we use this function as a hook for
     ;; loading up configs for the language for the code block on-demand.
-    (unless (memq lang markdown-ts--configured-languages)
-      (let ((mode (alist-get lang markdown-ts-code-block-source-mode-map)))
-        (when (fboundp mode)
+    (let ((mode (alist-get lang markdown-ts-code-block-source-mode-map)))
+      ;; If there's no supported mode for the langauge, return nil,
+      ;; which makes Emacs skip the code block.
+      (if (not (and mode (fboundp mode)))
+          nil
+        ;; If there's a major mode for the language, set up the config
+        ;; and return the language.
+        (when (not (memq lang markdown-ts--configured-languages))
           (markdown-ts--add-config-for-mode lang mode)
-          (push lang markdown-ts--configured-languages))))
-    lang))
+          (push lang markdown-ts--configured-languages))
+        lang))))
 
 (defun markdown-ts--range-settings ()
   "Return range settings for `markdown-ts-mode'."

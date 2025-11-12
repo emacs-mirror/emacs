@@ -1,5 +1,5 @@
 # sys_select_h.m4
-# serial 23
+# serial 24
 dnl Copyright (C) 2006-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -13,17 +13,14 @@ AC_DEFUN_ONCE([gl_SYS_SELECT_H],
   AC_CACHE_CHECK([whether <sys/select.h> is self-contained],
     [gl_cv_header_sys_select_h_selfcontained],
     [
-      dnl Test against two bugs:
+      dnl Test against a bug:
       dnl 1. On many platforms, <sys/select.h> assumes prior inclusion of
       dnl    <sys/types.h>.
-      dnl 2. On OSF/1 4.0, <sys/select.h> provides only a forward declaration
-      dnl    of 'struct timeval', and no definition of this type.
-      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/select.h>]],
-                                         [[struct timeval b;]])],
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/select.h>]], [])],
         [gl_cv_header_sys_select_h_selfcontained=yes],
         [gl_cv_header_sys_select_h_selfcontained=no])
       dnl Test against another bug:
-      dnl 3. On Solaris 10, <sys/select.h> provides an FD_ZERO implementation
+      dnl 2. On Solaris 10, <sys/select.h> provides an FD_ZERO implementation
       dnl    that relies on memset(), but without including <string.h>.
       if test $gl_cv_header_sys_select_h_selfcontained = yes; then
         AC_COMPILE_IFELSE(

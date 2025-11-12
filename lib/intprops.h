@@ -205,11 +205,11 @@
     || INT_MULTIPLY_RANGE_OVERFLOW (a, b, min, max))
 #endif
 #define _GL_DIVIDE_OVERFLOW(a, b, min, max)                             \
-  ((min) < 0 ? (b) == _GL_INT_NEGATE_CONVERT (min, 1) && (a) < - (max)  \
+  ((min) < 0 ? (b) == _GL_INT_CONVERT (min, -1) && (a) < - (max)        \
    : (a) < 0 ? (b) <= (a) + (b) - 1                                     \
    : (b) < 0 && (a) + (b) <= (a))
 #define _GL_REMAINDER_OVERFLOW(a, b, min, max)                          \
-  ((min) < 0 ? (b) == _GL_INT_NEGATE_CONVERT (min, 1) && (a) < - (max)  \
+  ((min) < 0 ? (b) == _GL_INT_CONVERT (min, -1) && (a) < - (max)        \
    : (a) < 0 ? (a) % (b) != ((max) - (b) + 1) % (b)                     \
    : (b) < 0 && ! _GL_UNSIGNED_NEG_MULTIPLE (a, b, max))
 

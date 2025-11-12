@@ -493,7 +493,7 @@ there (in decreasing order of priority)."
 	   (setq parms (append initial-frame-alist window-system-frame-alist
 			       default-frame-alist parms nil))
 	   ;; Don't enable tab-bar in daemon's initial frame.
-	   (when (and (daemonp) (not (frame-parameter nil 'client)))
+	   (when (and (daemonp) (eq (selected-frame) terminal-frame))
 	     (setq parms (delq (assq 'tab-bar-lines parms) parms)))
 	   parms))
 	(if (null initial-window-system) ;; MS-DOS does this differently in pc-win.el
@@ -2889,7 +2889,10 @@ deleting them."
         (if iconify (iconify-frame this) (delete-frame this))))
     ;; In a second round consider all remaining frames.
     (dolist (this frames)
-      (unless (or (eq this frame)
+      ;; We did not recalculate FRAMES so make sure THIS is still a live
+      ;; frame since otherwise 'frame-terminal' will throw an error.
+      (unless (or (not (frame-live-p this))
+                  (eq this frame)
 		  (eq this minibuffer-frame)
 		  (not (eq (frame-terminal this) terminal))
                   ;; When FRAME is a child frame, delete its siblings

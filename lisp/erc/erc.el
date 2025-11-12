@@ -12,7 +12,7 @@
 ;;               David Edmondson (dme@dme.org)
 ;;               Michael Olson (mwolson@gnu.org)
 ;;               Kelvin White (kwhite@gnu.org)
-;; Version: 5.6.1-git
+;; Version: 5.6.2-git
 ;; Package-Requires: ((emacs "27.1") (compat "29.1.4.5"))
 ;; Keywords: IRC, chat, client, Internet
 ;; URL: https://www.gnu.org/software/emacs/erc.html
@@ -70,7 +70,7 @@
 (require 'auth-source)
 (eval-when-compile (require 'subr-x))
 
-(defconst erc-version "5.6.1-git"
+(defconst erc-version "5.6.2-git"
   "This version of ERC.")
 
 (defvar erc-official-location
@@ -88,7 +88,8 @@
        ("5.4.1" . "29.1")
        ("5.5" . "29.1")
        ("5.6" . "30.1")
-       ("5.6.1" . "31.1")))
+       ("5.6.1" . "31.1")
+       ("5.6.2" . "31.1")))
 
 (defgroup erc nil
   "Emacs Internet Relay Chat client."
@@ -683,6 +684,11 @@ Also remove members from the server table if this was their only buffer."
                      (funcall original-function nick user))))))
     (erc-remove-channel-users)))
 
+(defvar erc-channel-user-signal-if-status-unknown nil
+  "If non-nil ERC signals before setting an unadvertized status prefix.
+But only in ERC buffers.  Otherwise, if nil, accessors like
+`erc-channel-user-halfop' ignore such attempts and return nil.")
+
 (defmacro erc--define-channel-user-status-compat-getter (name c d)
   "Define accessor with gv getter for historical `erc-channel-user' slot NAME.
 Expect NAME to be a string, C to be its traditionally associated letter,
@@ -690,19 +696,30 @@ and D to be its fallback power-of-2 integer for non-ERC buffers.  Unlike
 pre-ERC-5.6 accessors, do not bother generating a compiler macro for
 inlining calls to these adapters."
   `(defun ,(intern (concat "erc-channel-user-" name)) (u)
-     ,(format "Get equivalent of pre-5.6 `%s' slot for `erc-channel-user'."
-              name)
-     (declare (gv-setter (lambda (v)
-                           (macroexp-let2 nil v v
-                             (,'\`(let ((val (erc-channel-user-status ,',u))
-                                        (n (or (erc--get-prefix-flag ,c) ,d)))
-                                    (setf (erc-channel-user-status ,',u)
-                                          (if ,',v
-                                              (logior val n)
-                                            (logand val (lognot n))))
-                                    ,',v))))))
-     (let ((n (or (erc--get-prefix-flag ,c) ,d)))
-       (= n (logand n (erc-channel-user-status u))))))
+     ,(concat
+       "Get equivalent of pre-5.6 `" name "' slot for `erc-channel-user'."
+       "\nUse a fallback value in non-ERC buffers.  Treat an unadvertised"
+       "\nstatus according to `erc-channel-user-signal-if-status-unknown'.")
+     (declare (gv-setter
+               (lambda (v)
+                 (macroexp-let2 nil v v
+                   (,'\`(let* ((val (erc-channel-user-status ,',u))
+                               (p (erc--parsed-prefix))
+                               (n (if p (or (erc--get-prefix-flag ,c p) 0) ,d))
+                               (nop (and p ,',v (zerop n))) ; unsupportedp
+                               (rv (and (not nop) ,',v)))
+                          (when (and nop
+                                     erc-channel-user-signal-if-status-unknown)
+                            (error "Unsupported status prefix: %c" ,c))
+                          (unless nop
+                            (setf (erc-channel-user-status ,',u)
+                                  (if ,',v
+                                      (logior val n)
+                                    (logand val (lognot n)))))
+                          rv))))))
+     (let* ((p (erc--parsed-prefix))
+            (n (if p (erc--get-prefix-flag ,c p) ,d)))
+       (and n (= n (logand n (erc-channel-user-status u)))))))
 
 (erc--define-channel-user-status-compat-getter "voice"  ?v 1)
 (erc--define-channel-user-status-compat-getter "halfop" ?h 2)
@@ -7089,7 +7106,7 @@ Used when a channel names list is about to be received.  Should
 be called with the current buffer set to the channel buffer.
 
 See also `erc-channel-end-receiving-names'."
-  (setq erc-channel-new-member-names (make-hash-table :test 'equal)))
+  (setq erc-channel-new-member-names (make-hash-table :test #'equal)))
 
 (defun erc-channel-end-receiving-names ()
   "Internal function.
@@ -7141,7 +7158,7 @@ stand-in from the fallback value \"(qaohv)~&@%+\"."
        :alist (nreverse alist)))))
 
 (defun erc--get-prefix-flag (char &optional parsed-prefix from-prefix-p)
-  "Return numeric rank for CHAR or nil if unknown.
+  "Return numeric rank for CHAR or nil if unknown or unsupported.
 For example, given letters \"qaohv\" return 1 for ?v, 2 for ?h,
 and 4 for ?o, etc.  If given, expect PARSED-PREFIX to be a
 `erc--parsed-prefix' object.  With FROM-PREFIX-P, expect CHAR to

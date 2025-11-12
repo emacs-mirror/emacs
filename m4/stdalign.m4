@@ -30,7 +30,7 @@ AC_DEFUN([gl_ALIGNASOF],
 
             /* Test that alignof yields a result consistent with offsetof.
                This catches GCC bug 52023
-               <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52023>.  */
+               <https://gcc.gnu.org/PR52023>.  */
             #ifdef __cplusplus
                template <class t> struct alignof_helper { char a; t b; };
             # define ao(type) offsetof (alignof_helper<type>, b)
@@ -103,7 +103,7 @@ AC_DEFUN([gl_ALIGNASOF],
    want to be portable to HP-UX 10.20 cc and AIX 3.2.5 xlc.  */
 
 /* GCC releases before GCC 4.9 had a bug in _Alignof.  See GCC bug 52023
-   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52023>.
+   <https://gcc.gnu.org/PR52023>.
    clang versions < 8.0.0 have the same bug.
    IBM XL C V16.1.0 cc (non-clang) has the same bug.  */
 #  if (!defined __STDC_VERSION__ || __STDC_VERSION__ < 201112 \

@@ -1518,7 +1518,7 @@ REV is the revision to check out into WORKFILE."
   ;; XXX: We can't pass DIR directly to 'hg status' because that
   ;; returns all ignored files if FILES is non-nil (bug#22481).
   (let ((default-directory dir))
-    (apply #'vc-hg-command (current-buffer) 'async files
+    (apply #'vc-hg-command '(t nil) 'async files
            "status" (concat "-mardu" (if files "i")) "-C"
            (if (version<= "4.2" (vc-hg--program-version))
                '("--config" "commands.status.relative=1")
@@ -1549,10 +1549,8 @@ This runs the command \"hg summary\"."
          (nreverse result))
        "\n"))))
 
-(defun vc-hg-incoming-revision (upstream-location &optional _refresh)
-  (let* ((upstream-location (if (string-empty-p upstream-location)
-                              "default"
-                            upstream-location))
+(defun vc-hg-incoming-revision (&optional upstream-location _refresh)
+  (let* ((upstream-location (or upstream-location "default"))
          ;; Use 'hg identify' like this, and not 'hg incoming', because
          ;; this will give a sensible answer regardless of whether the
          ;; incoming revision has been pulled yet.
@@ -1702,7 +1700,7 @@ This runs the command \"hg merge\"."
 (defun vc-hg-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-hg.el.
 This function differs from `vc-do-command' in that
-- BUFFER may be nil
+- BUFFER nil means use a buffer called \"*vc*\"
 - it invokes `vc-hg-program' and passes `vc-hg-global-switches' to it
   before FLAGS."
   ;; Commands which pass command line arguments which might
@@ -1833,6 +1831,110 @@ Cannot relocate first working tree because this would break other working trees"
       ;; The additional line is indeed separated from the original
       ;; comment by just one line break, for 'hg graft'.
       (format "Summary: %s\n(grafted from %s)\n" comment long))))
+
+(defun vc-hg-revision-published-p (rev)
+  "Whether REV has been pushed such that it is public history.
+Always has to fetch, like `vc-hg-incoming-revision' does."
+  (with-temp-buffer
+    (vc-hg-command t 0 nil "log" (format "--rev=outgoing() and %s" rev))
+    (bobp)))
+
+(defun vc-hg-delete-revision (rev)
+  "Use `hg histedit' to delete REV from the history of the current branch.
+
+`hg histedit' will fail unless
+- REV is an ancestor of the working directory;
+- all commits back to REV are not yet public; and
+- there aren't any merges in the history to be edited."
+  (with-temp-buffer
+    ;; Resolve REV to a full changeset hash.
+    (vc-hg-command t 0 nil "log" "--limit=1"
+                   (format "--rev=%s" rev) "--template={node}")
+    (when (bobp)
+      ;; If REV is not found, hg exits 255, so this should never happen.
+      (error "'hg log' unexpectedly gave no output"))
+    (setq rev (buffer-string)))
+  (let ((repo default-directory)
+        (commands (make-nearby-temp-file "hg-commands")))
+    (unwind-protect
+        (let ((coding-system-for-write
+               ;; On MS-Windows, we must encode command-line arguments
+               ;; in the system codepage.
+               (if (eq system-type 'windows-nt)
+                   locale-coding-system
+                 coding-system-for-write)))
+          (with-temp-file commands
+            (let ((default-directory repo))
+              (vc-hg-command t 0 nil "log" (format "--rev=.:%s" rev)
+                             "--template=pick {node}\n"))
+            (goto-char (point-min))
+            (unless (re-search-forward (format "^pick %s\n\\'" rev) nil t)
+              (error "'hg log' output parse failure"))
+            (replace-match (format "drop %s\n" rev)))
+          (unless (zerop
+                   (vc-hg-command
+                    nil 1 nil
+                    "--config=extensions.histedit="
+
+                    ;; Without this, --commands is ignored and histedit
+                    ;; starts a curses interface.  (Actually redundant
+                    ;; with the HGPLAIN=1 set by vc-hg--command-1.)
+                    "--config=ui.interface=text"
+
+                    ;; Request validation of the commands file:
+                    ;; stop if any commits in the history back to REV
+                    ;; are missing, somehow.
+                    "--config=histedit.dropmissing=False"
+
+                    ;; Prevent Mercurial trying to open Meld or similar.
+                    ;; FIXME: According to
+                    ;; <https://repo.mercurial-scm.org/hg/help/merge-tools>,
+                    ;; this can be overridden by user's "merge-patterns"
+                    ;; settings.
+                    "--config=ui.merge=internal:fail"
+
+                    "histedit"
+                    (format "--rev=%s" rev) "--commands" commands))
+            ;; FIXME: Ideally we would leave some sort of conflict for
+            ;; the user to resolve, instead of just giving up.
+            ;; We would want C-x v v to do 'hg histedit --continue' like
+            ;; how it can currently be used to conclude a merge after
+            ;; resolving conflicts.
+            (vc-hg-command nil 0 nil "--config=extensions.histedit="
+                           "histedit" "--abort")
+            (error "Merge conflicts while trying to delete %s; aborting"
+                   rev)))
+      (delete-file commands))))
+
+(defun vc-hg--assert-rev-on-current-branch (rev)
+  "Assert that REV is on the current branch."
+  (with-temp-buffer
+    (vc-hg-command t nil nil "log" "--limit=1"
+                   (format "--rev=%s & ancestors(.)" rev)
+                   "--template={node}")
+    (when (bobp)
+      (error "Revision %s is not on the current branch" rev))))
+
+(defun vc-hg--reset-back-to (rev keep)
+  "Strip revisions up to but not including REV.
+If KEEP is non-nil, also pass --keep to `hg strip'."
+  (apply #'vc-hg-command nil 0 nil
+         "--config=extensions.strip="
+         "strip" "--force"
+         (format "--rev=descendants(%s) & !%s" rev rev)
+         (and keep '("--keep"))))
+
+(defun vc-hg-delete-revisions-from-end (rev)
+  "Strip revisions up to but not including REV.
+It is an error if REV is not on the current branch."
+  (vc-hg--assert-rev-on-current-branch rev)
+  (vc-hg--reset-back-to rev nil))
+
+(defun vc-hg-uncommit-revisions-from-end (rev)
+  "Strip revisions up to but not including REV w/o modifying working tree.
+It is an error if REV is not on the current branch."
+  (vc-hg--assert-rev-on-current-branch rev)
+  (vc-hg--reset-back-to rev t))
 
 (provide 'vc-hg)
 

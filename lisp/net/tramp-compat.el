@@ -259,5 +259,8 @@ value is the default binding of the variable."
 ;;   instead of `condition-case' when the origin of an error shall be
 ;;   kept, for example when the HANDLER propagates the error with
 ;;   `(signal (car err) (cdr err)'.
+;;
+;; * Starting with Emacs 30.1, use '(_ VALUEFORM)' instead of
+;;   '(VALUEFORM)' in 'if-let*/when-let*/and-let*'.
 
 ;;; tramp-compat.el ends here
