@@ -629,71 +629,6 @@ Note additionally:
                    (string :tag "Specify your own")))
   :package-version '(Eglot . "1.19"))
 
-(defcustom eglot-semantic-tokens-faces
-  '(("namespace" . font-lock-keyword-face)
-    ("type" . font-lock-type-face)
-    ("class" . font-lock-type-face)
-    ("enum" . font-lock-type-face)
-    ("interface" . font-lock-type-face)
-    ("struct" . font-lock-type-face)
-    ("typeParameter" . font-lock-type-face)
-    ("parameter" . font-lock-variable-name-face)
-    ("variable" . font-lock-variable-name-face)
-    ("property" . font-lock-property-use-face)
-    ("enumMember" . font-lock-constant-face)
-    ("event" . font-lock-variable-name-face)
-    ("function" . font-lock-function-name-face)
-    ("method" . font-lock-function-name-face)
-    ("macro" . font-lock-preprocessor-face)
-    ("keyword" . font-lock-keyword-face)
-    ("modifier" . font-lock-function-name-face)
-    ("comment" . font-lock-comment-face)
-    ("string" . font-lock-string-face)
-    ("number" . font-lock-constant-face)
-    ("regexp" . font-lock-string-face)
-    ("operator" . font-lock-function-name-face)
-    ("decorator" . font-lock-type-face))
-  "Alist of faces to use to highlight semantic tokens.
-Each element is a cons cell whose car is a token type name and cdr is
-the face to use."
-  :type `(alist :key-type (string :tag "Token name")
-                :value-type (choice (face :tag "Face")
-                                    (plist :tag "Face Attributes"
-                                           :key-type
-                                           (choice
-                                            ,@(mapcar
-                                               (lambda (cell)
-                                                 `(const :tag ,(capitalize
-                                                                (cdr cell))
-                                                         ,(car cell)))
-                                               face-attribute-name-alist))))))
-
-(defcustom eglot-semantic-tokens-modifier-faces
-  '(("declaration" . font-lock-function-name-face)
-    ("definition" . font-lock-function-name-face)
-    ("readonly" . font-lock-constant-face)
-    ("static" . font-lock-keyword-face)
-    ("deprecated" . eglot-diagnostic-tag-deprecated-face)
-    ("abstract" . font-lock-keyword-face)
-    ("async" . font-lock-preprocessor-face)
-    ("modification" . font-lock-function-name-face)
-    ("documentation" . font-lock-doc-face)
-    ("defaultLibrary" . font-lock-builtin-face))
-  "List of face to use to highlight tokens with modifiers.
-Each element is a cons cell whose car is a modifier name and cdr is
-the face to use."
-  :type `(alist :key-type (string :tag "Token name")
-                :value-type (choice (face :tag "Face")
-                                    (plist :tag "Face Attributes"
-                                           :key-type
-                                           (choice
-                                            ,@(mapcar
-                                               (lambda (cell)
-                                                 `(const :tag ,(capitalize
-                                                                (cdr cell))
-                                                         ,(car cell)))
-                                               face-attribute-name-alist))))))
-
 (defvar eglot-withhold-process-id nil
   "If non-nil, Eglot will not send the Emacs process id to the language server.
 This can be useful when using docker to run a language server.")
@@ -725,6 +660,47 @@ This can be useful when using docker to run a language server.")
 (defconst eglot--tag-faces
   `((1 . eglot-diagnostic-tag-unnecessary-face)
     (2 . eglot-diagnostic-tag-deprecated-face)))
+
+(eval-when-compile
+  (defconst eglot--semtok-types
+    '(("namespace" . font-lock-keyword-face)
+      ("type" . font-lock-type-face)
+      ("class" . font-lock-type-face)
+      ("enum" . font-lock-type-face)
+      ("interface" . font-lock-type-face)
+      ("struct" . font-lock-type-face)
+      ("typeParameter" . font-lock-type-face)
+      ("parameter" . font-lock-variable-name-face)
+      ("variable" . font-lock-variable-name-face)
+      ("property" . font-lock-property-use-face)
+      ("enumMember" . font-lock-constant-face)
+      ("event" . font-lock-variable-name-face)
+      ("function" . font-lock-function-name-face)
+      ("method" . font-lock-function-name-face)
+      ("macro" . font-lock-preprocessor-face)
+      ("keyword" . font-lock-keyword-face)
+      ("modifier" . font-lock-function-name-face)
+      ("comment" . font-lock-comment-face)
+      ("string" . font-lock-string-face)
+      ("number" . font-lock-constant-face)
+      ("regexp" . font-lock-string-face)
+      ("operator" . font-lock-function-name-face)
+      ("decorator" . font-lock-type-face)))
+
+  (defconst eglot--semtok-modifiers
+    '(("declaration" . font-lock-function-name-face)
+      ("definition" . font-lock-function-name-face)
+      ("readonly" . font-lock-constant-face)
+      ("static" . font-lock-keyword-face)
+      ("deprecated" . eglot-diagnostic-tag-deprecated-face)
+      ("abstract" . font-lock-keyword-face)
+      ("async" . font-lock-preprocessor-face)
+      ("modification" . font-lock-function-name-face)
+      ("documentation" . font-lock-doc-face)
+      ("defaultLibrary" . font-lock-builtin-face))))
+
+(defvar eglot-semantic-token-types) ;; forward-declare
+(defvar eglot-semantic-token-modifiers) ;; forward-declare
 
 (defvaralias 'eglot-{} 'eglot--{})
 
@@ -777,6 +753,7 @@ This can be useful when using docker to run a language server.")
       (ResponseError (:code :message) (:data))
       (ShowMessageParams (:type :message))
       (ShowMessageRequestParams (:type :message) (:actions))
+      (SemanticTokensLegend (:tokenTypes :tokenModifiers))
       (SignatureHelp (:signatures) (:activeSignature :activeParameter))
       (SignatureInformation (:label) (:documentation :parameters :activeParameter))
       (SymbolInformation (:name :kind :location)
@@ -1149,10 +1126,10 @@ object."
              :rename             `(:dynamicRegistration :json-false)
              :semanticTokens     `(:dynamicRegistration :json-false
                                    :requests '(:range t :full (:delta t))
-                                   :tokenModifiers [,@(mapcar #'car eglot-semantic-tokens-modifier-faces)]
                                    :overlappingTokenSupport t
                                    :multilineTokenSupport t
-                                   :tokenTypes [,@(mapcar #'car eglot-semantic-tokens-faces)]
+                                   :tokenTypes [,@eglot-semantic-token-types]
+                                   :tokenModifiers [,@eglot-semantic-token-modifiers]
                                    :formats ["relative"])
              :inlayHint          `(:dynamicRegistration :json-false)
              :callHierarchy      `(:dynamicRegistration :json-false)
@@ -1225,15 +1202,9 @@ object."
    (saved-initargs
     :documentation "Saved initargs for reconnection purposes."
     :accessor eglot--saved-initargs)
-   (semtok-faces
-    :initform nil
-    :documentation "Semantic tokens faces.")
-   (semtok-modifier-faces
-    :initform nil
-    :documentation "Semantic tokens modifier faces.")
-   (semtok-modifier-cache
-    :initform (make-hash-table)
-    :documentation "Map LSP modifier values to the selected faces."))
+   (semtok-cache
+    :initform (make-hash-table :test #'equal)
+    :documentation "Map LSP token conses to face names."))
   :documentation
   "Represents a server. Wraps a process for LSP communication.")
 
@@ -1820,7 +1791,6 @@ This docstring appeases checkdoc, that's all."
                                 (gethash project eglot--servers-by-project))
                           (setf (eglot--capabilities server) capabilities)
                           (setf (eglot--server-info server) serverInfo)
-                          (eglot--semtok-initialize server)
                           (jsonrpc-notify server :initialized eglot--{})
                           (dolist (buffer (buffer-list))
                             (with-current-buffer buffer
@@ -4586,22 +4556,52 @@ If NOERROR, return predicate, else erroring function."
 
 
 ;;; Semantic tokens
+(defmacro eglot--semtok-define-things ()
+  (cl-flet ((def-it (name def)
+              `(defface ,(intern (format "eglot-semantic-%s-face" name))
+                 '((t (:inherit ,def)))
+                 ,(format "Face for painting a `%s' LSP semantic token" name)
+                 :group 'eglot-semantic-fontification)))
+    (let ((types (mapcar #'car eglot--semtok-types))
+          (modifiers (mapcar #'car eglot--semtok-modifiers)))
+      `(progn
+         (defgroup eglot-semantic-faces nil
+           "Faces and options for LSP semantic fontification." :group 'eglot)
+         ,@(cl-loop for (n . d) in eglot--semtok-types collect (def-it n d))
+         ,@(cl-loop for (n . d) in eglot--semtok-modifiers collect (def-it n d))
+         (defcustom eglot-semantic-token-types
+           ',types "LSP-supplied semantic types Eglot should consider."
+           :type '(set ,@(mapcar (lambda (o) `(const ,o)) types))
+           :group 'eglot-semantic-fontification)
+         (defcustom eglot-semantic-token-modifiers
+           ',modifiers "LSP-supplied semantic modifiers Eglot should consider."
+           :type '(set ,@(mapcar (lambda (o) `(const ,o)) modifiers))
+           :group 'eglot-semantic-fontification)))))
+
+(eglot--semtok-define-things)
+
 (defun eglot--semtok-token-faces (tok)
-  (with-slots (semtok-faces
-               (modifier-faces semtok-modifier-faces)
-               (modifier-cache semtok-modifier-cache))
-      (eglot-current-server)
-    (let* ((code (cdr tok))
-           (mods (gethash code modifier-cache 'not-found)))
-      (when (eq mods 'not-found)
-        (setq mods (cl-loop for j from 0 below (length modifier-faces)
-                             if (> (logand code (ash 1 j)) 0)
-                             if (aref modifier-faces j)
-                             collect (aref modifier-faces j)))
-        (puthash code mods modifier-cache))
-      (if-let* ((main (aref semtok-faces (car tok))))
-          (cons main mods)
-        mods))))
+  (with-slots (semtok-cache capabilities)
+      (eglot--current-server-or-lose)
+    (let ((probe (gethash tok semtok-cache :missing))
+          tname)
+      (if (eq probe :missing)
+          (puthash
+           tok
+           (eglot--dbind ((SemanticTokensLegend) tokenTypes tokenModifiers)
+               (plist-get (plist-get capabilities :semanticTokensProvider) :legend)
+             (setq tname (aref tokenTypes (car tok)))
+             (when (member tname eglot-semantic-token-types)
+               (cl-loop
+                for j from 0 for m across tokenModifiers
+                unless (or (zerop (logand (cdr tok) (ash 1 j)))
+                           (not (member m eglot-semantic-token-modifiers)))
+                collect (intern (format "eglot-semantic-%s-face" m)) into mfaces
+                finally (cl-return
+                         (cons (intern (format "eglot-semantic-%s-face" tname))
+                               mfaces)))))
+           semtok-cache)
+        probe))))
 
 (defvar-local eglot--semtok-idle-timer nil
   "Idle timer to request full semantic tokens.")
@@ -4612,32 +4612,6 @@ If NOERROR, return predicate, else erroring function."
   (dolist (buffer (eglot--managed-buffers server))
     (eglot--when-live-buffer buffer
       (unless (zerop eglot--versioned-identifier) (font-lock-flush)))))
-
-(defun eglot--semtok-build-face-map (identifiers faces category varname)
-  "Build map of FACES for IDENTIFIERS using CATEGORY and VARNAME."
-  (vconcat
-   (mapcar (lambda (id)
-             (let ((maybe-face (cdr (assoc id faces))))
-               (when (not maybe-face)
-                 (eglot--warn "No face has been associated to the %s `%s': consider adding a corresponding definition to %s"
-                                 category id varname))
-               maybe-face))
-           identifiers)))
-
-(defun eglot--semtok-initialize (server)
-  "Initialize SERVER for semantic tokens."
-  (with-slots (semtok-faces semtok-modifier-faces capabilities) server
-    ;; FIXME: eglot-dbind
-    (cl-destructuring-bind (&key tokenTypes tokenModifiers &allow-other-keys)
-        (plist-get (plist-get capabilities :semanticTokensProvider) :legend)
-      (setq semtok-faces
-            (eglot--semtok-build-face-map
-             tokenTypes eglot-semantic-tokens-faces
-             "semantic token" 'eglot-semantic-tokens-faces)
-            semtok-modifier-faces
-            (eglot--semtok-build-face-map
-             tokenModifiers eglot-semantic-tokens-modifier-faces
-             "semantic token modifier" 'eglot-semantic-tokens-modifier-faces)))))
 
 (define-minor-mode eglot-semantic-tokens-mode
   "Minor mode for fontifying buffer with LSP server's semantic tokens."
