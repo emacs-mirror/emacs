@@ -4679,13 +4679,13 @@ If NOERROR, return predicate, else erroring function."
                    (eglot--current-server-or-lose) method params
                    :success-fn
                    (lambda (response)
-                     (setq eglot--semtok-inflight nil)
                      ;; (trace-values "Response: " eglot--versioned-identifier id
                      ;;               "edits: "
                      ;;               (length (cl-getf response :edits))
                      ;;               "data: "
                      ;;               (length (cl-getf response :data)))
                      (eglot--when-live-buffer buf
+                       (setq eglot--semtok-inflight nil)
                        ;; A user edit may have come in while the request
                        ;; was inflight, changing the state of the buffer...
                        (when (eq id eglot--versioned-identifier)
