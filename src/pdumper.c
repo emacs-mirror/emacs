@@ -3382,7 +3382,7 @@ dump_object_for_offset (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_charset (struct dump_context *ctx, int cs_i)
 {
-#if CHECK_STRUCTS && !defined (HASH_charset_0E23186647)
+#if CHECK_STRUCTS && !defined (HASH_charset_C9F4DCA7A7)
 # error "charset changed. See CHECK_STRUCTS comment in config.h."
 #endif
   /* We can't change the alignment here, because ctx->offset is what
@@ -3432,7 +3432,6 @@ dump_charset_table (struct dump_context *ctx)
   ctx->flags.pack_objects = true;
   dump_align_output (ctx, alignof (struct charset));
 # ifdef HAVE_MPS
-  gc_init_header (&charset_table->gc_header, IGC_OBJ_DUMPED_CHARSET_TABLE);
   dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_CHARSET_TABLE, charset_table);
 # endif
   dump_off offset = ctx->offset;

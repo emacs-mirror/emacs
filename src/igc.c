@@ -184,7 +184,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Type_45F0582FD7
 #  error "enum Lisp_Type changed"
 # endif
-# ifndef HASH_charset_0E23186647
+# ifndef HASH_charset_C9F4DCA7A7
 #  error "struct charset changed"
 # endif
 # ifndef HASH_itree_tree_A8CE87B78A
