@@ -453,6 +453,13 @@ function call.  @xref{Eglot Commands}, and the
 @code{eglot-inlay-hints-mode} minor mode.
 
 @item
+Enhanced source code fontification via LSP @dfn{semantic tokens}.  Eglot
+can leverage the language server's understanding of the role and meaning
+of identifiers in the code to provide more accurate syntax highlighting.
+@xref{Eglot Commands}, and the @code{eglot-semantic-tokens-mode} minor
+mode.
+
+@item
 Display of function call and type hierarchies via the
 @code{eglot-show-call-hierarchy} and @code{eglot-show-type-hierarchy}
 commands (@pxref{Eglot Commands}).
@@ -501,7 +508,8 @@ capabilities to Emacs users.  However, @xref{Extending Eglot}.
 
 Finally, it's worth noting that, by default, Eglot generally turns on
 all features that it @emph{can} turn on.  It's possible to opt out of
-some features via user options (@pxref{Customizing Eglot}) and a hook
+features via the @code{eglot-ignored-server-capabilities} user option
+(@pxref{Customizing Eglot}) and the @code{eglot-managed-mode-hook} hook
 that runs after Eglot starts managing a buffer (@pxref{Eglot and
 Buffers}).
 
@@ -631,6 +639,17 @@ minor mode is turned on and when it's turned off; use the function
 or not.
 @end itemize
 
+For example, to turn off @dfn{inlay hints} and @dfn{semantic tokens} by
+default but still retain the ability to turn them on again
+interactively use this:
+
+@lisp
+  (add-hook 'eglot-managed-mode-hook
+    (lambda ()
+      (eglot-inlay-hints-mode -1)
+      (eglot-semantic-tokens-mode -1)))
+@end lisp
+
 @node Eglot Commands
 @section Eglot Commands
 @cindex commands, Eglot
@@ -743,6 +762,29 @@ instead of indicating problems.  For example, a C++ language server can
 serve hints about positional parameter names in function calls and a
 variable's automatically deduced type.  Inlay hints help the user not
 have to remember these things by heart.
+
+@cindex semantic tokens
+@item M-x eglot-semantic-tokens-mode
+This command toggles LSP @dfn{semantic tokens} fontification on and off
+for the current buffer.  Semantic tokens provide enhanced syntax
+highlighting based on the language server's semantic analysis of the
+code, going beyond traditional regular-expression-based fontification.
+For example, the server can distinguish between different kinds of
+variables (parameters, local variables, fields) or indicate whether a
+function is being declared or called.
+
+@vindex eglot-semantic-token-types
+@vindex eglot-semantic-token-modifiers
+The @code{eglot-semantic-faces} customization group contains the user
+options @code{eglot-semantic-token-types} and
+@code{eglot-semantic-token-modifiers}, which control which semantic
+token types and modifiers reported by the language server Eglot should
+consider when fontifying.  For performance reasons, the server
+connection has to be restarted before changes take effect.
+
+@cindex semantic token faces
+The @code{eglot-semantic-faces} customization group also contains the
+face definitions for controlling the appearance of each token.
 
 @cindex type hierarchy
 @item M-x eglot-show-type-hierarchy
