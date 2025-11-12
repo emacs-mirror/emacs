@@ -1036,6 +1036,7 @@ function is called.  Subsequent calls return the first evaluated value."
                  (string_literal)
                  (binary_expression)
                  (invocation_expression)
+                 (await_expression)
                  (member_access_expression)
                  (conditional_expression)])
 
