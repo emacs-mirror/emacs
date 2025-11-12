@@ -6258,7 +6258,7 @@ pdumper_load (const char *dump_filename, char *argv0)
 
 #ifdef HAVE_MPS
   /* From now on, pdumper_object_p returns false.  */
-  dump_public.end = dump_public.start;
+  dump_public.end = dump_public.start = ~0;
 #endif
 
   initialized = true;
