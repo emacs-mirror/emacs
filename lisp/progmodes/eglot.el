@@ -4603,9 +4603,6 @@ If NOERROR, return predicate, else erroring function."
            semtok-cache)
         probe))))
 
-(defvar-local eglot--semtok-idle-timer nil
-  "Idle timer to request full semantic tokens.")
-
 (cl-defmethod eglot-handle-request
   (server (_method (eql workspace/semanticTokens/refresh)))
   "Handle a semanticTokens/refresh request from SERVER."
@@ -4707,16 +4704,7 @@ If NOERROR, return predicate, else erroring function."
         (req :textDocument/semanticTokens/range beg end
              (list :textDocument (eglot--TextDocumentIdentifier)
                    :range (eglot-region-range beg end))
-             (lambda (response)
-               (when eglot--semtok-idle-timer
-                 (cancel-timer eglot--semtok-idle-timer))
-               (setq eglot--semtok-idle-timer
-                     (run-with-idle-timer (* 3 eglot-send-changes-idle-time) nil
-                                          (lambda ()
-                                            (eglot--when-live-buffer buf
-                                              (eglot--semtok-request
-                                               (point-min) (point-max))))))
-               response)))
+             #'identity))
        (t
         (req :textDocument/semanticTokens/full (point-min) (point-max)
              (list :textDocument (eglot--TextDocumentIdentifier))
