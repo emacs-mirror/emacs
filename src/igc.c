@@ -479,7 +479,6 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_BUILTIN_SYMBOL",
   "IGC_OBJ_BUILTIN_THREAD",
   "IGC_OBJ_BUILTIN_SUBR",
-  "IGC_OBJ_DUMPED_CHARSET_TABLE",
   "IGC_OBJ_DUMPED_CODE_SPACE_MASKS",
   "IGC_OBJ_DUMPED_BUFFER_TEXT",
   "IGC_OBJ_DUMPED_BIGNUM_DATA",
@@ -829,8 +828,6 @@ void gc_init_header (union gc_header *header, enum igc_obj_type type)
 	set_header (h, IGC_OBJ_VECTOR, nbytes, alloc_hash ());
 	break;
       }
-    case IGC_OBJ_DUMPED_CHARSET_TABLE:
-      break;
     case IGC_OBJ_INVALID:
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
@@ -2087,21 +2084,6 @@ fix_handler (mps_ss_t ss, struct handler *h)
   return MPS_RES_OK;
 }
 
-static mps_res_t
-fix_charset_table (mps_ss_t ss, struct charset *table, size_t nbytes)
-{
-  emacs_abort ();
-  igc_assert (table == charset_table);
-  igc_assert (nbytes == (charset_table_size * sizeof (struct charset)));
-  MPS_SCAN_BEGIN (ss)
-  {
-    for (size_t i = 0, len = nbytes / sizeof (struct charset); i < len; i++)
-      ;
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
 static mps_res_t fix_vector (mps_ss_t ss, struct Lisp_Vector *v);
 static mps_res_t fix_marker_vector (mps_ss_t ss, struct Lisp_Vector *v);
 static mps_res_t fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong_Part *t);
@@ -2225,11 +2207,6 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t start)
       case IGC_OBJ_BLV:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Buffer_Local_Value, addr,
 			 fix_blv);
-	break;
-
-      case IGC_OBJ_DUMPED_CHARSET_TABLE:
-	IGC_FIX_CALL (ss, fix_charset_table (ss, (struct charset *) addr,
-					     obj_size (header)));
 	break;
 
       case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
@@ -4289,7 +4266,6 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_BUILTIN_SYMBOL:
     case IGC_OBJ_BUILTIN_THREAD:
     case IGC_OBJ_BUILTIN_SUBR:
-    case IGC_OBJ_DUMPED_CHARSET_TABLE:
     case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
     case IGC_OBJ_DUMPED_BUFFER_TEXT:
     case IGC_OBJ_DUMPED_BIGNUM_DATA:
@@ -5376,8 +5352,7 @@ builtin_obj_type_and_hash (size_t *hash, enum igc_obj_type type, void *addr)
       return IGC_OBJ_BUILTIN_SUBR;
     }
 
-  if (type == IGC_OBJ_DUMPED_CHARSET_TABLE
-      || type == IGC_OBJ_DUMPED_CODE_SPACE_MASKS
+  if (type == IGC_OBJ_DUMPED_CODE_SPACE_MASKS
       || type == IGC_OBJ_DUMPED_BUFFER_TEXT
       || type == IGC_OBJ_DUMPED_BIGNUM_DATA
       || type == IGC_OBJ_DUMPED_BYTES)
@@ -5408,7 +5383,6 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
   bool is_in_dump;
   switch (type)
     {
-    case IGC_OBJ_DUMPED_CHARSET_TABLE:
     case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
     case IGC_OBJ_DUMPED_BUFFER_TEXT:
     case IGC_OBJ_DUMPED_BIGNUM_DATA:
@@ -5520,7 +5494,7 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   dump_base = (char *) dump_base - igc_header_size ();
   igc_assert (global_igc->park_count > 0);
   igc_assert (header_type ((struct igc_header *) hot_start)
-	      == IGC_OBJ_DUMPED_CHARSET_TABLE);
+	      == IGC_OBJ_DUMPED_BYTES);
   igc_assert (header_type ((struct igc_header *) cold_start)
 	      == IGC_OBJ_DUMPED_CODE_SPACE_MASKS);
   igc_assert (header_type ((struct igc_header *) cold_user_data_start)
