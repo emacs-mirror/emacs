@@ -839,26 +839,31 @@ point."
   (goto-char beg)
   (remove-overlays beg end 'hs-indicator t)
 
-  (while (funcall hs-find-next-block-function hs-block-start-regexp end nil)
-    (when-let* ((b-beg (match-beginning 0))
-                (_ (save-excursion
-                     (goto-char b-beg)
-                     (funcall hs-looking-at-block-start-predicate)))
-                ;; `catch' is used here if the search fails due
-                ;; unbalanced parentheses or any other unknown error
-                ;; caused in `hs-forward-sexp'.
-                (b-end (catch 'hs-indicator-error
-                         (save-excursion
+  (while (not (>= (point) end))
+    (save-excursion
+      (let (exit)
+        (while (and (not exit)
+                    (funcall hs-find-next-block-function hs-block-start-regexp (pos-eol) nil))
+          (when-let* ((b-beg (match-beginning 0))
+                      (_ (save-excursion
                            (goto-char b-beg)
-                           (condition-case _
-                               (funcall hs-forward-sexp-function 1)
-                             (scan-error (throw 'hs-indicator-error nil)))
-                           (point))))
-                ;; Check if block is longer than 1 line.
-                (_ (hs-hideable-region-p b-beg b-end)))
-      ;; Only 1 indicator per line
-      (when (hs--make-indicators-overlays b-beg)
-        (forward-line))))
+                           (funcall hs-looking-at-block-start-predicate)))
+                      ;; `catch' is used here if the search fails due
+                      ;; unbalanced parentheses or any other unknown error
+                      ;; caused in `hs-forward-sexp'.
+                      (b-end (catch 'hs-indicator-error
+                               (save-excursion
+                                 (goto-char b-beg)
+                                 (condition-case _
+                                     (funcall hs-forward-sexp-function 1)
+                                   (scan-error (throw 'hs-indicator-error nil)))
+                                 (point))))
+                      ;; Check if block is longer than 1 line.
+                      (_ (hs-hideable-region-p b-beg b-end)))
+            (hs--make-indicators-overlays b-beg)
+            (setq exit t)))))
+    ;; Only 1 indicator per line
+    (forward-line))
   `(jit-lock-bounds ,beg . ,end))
 
 (defun hs--refresh-indicators (from to)
@@ -1168,18 +1173,13 @@ Return point, or nil if original point was not in a block."
   "Return non-nil if point is in an already-hidden block, otherwise nil."
   (save-excursion
     (let ((c-reg (funcall hs-inside-comment-predicate)))
-      (if (and c-reg (nth 0 c-reg))
-          ;; point is inside a comment, and that comment is hideable
-          (goto-char (nth 0 c-reg))
-        (when (not c-reg)
-          (end-of-line)
-          (when (not (hs-find-block-beginning-match))
-            ;; We should also consider ourselves "in" a hidden block when
-            ;; point is right at the edge after a hidden block (bug#52092).
-            (beginning-of-line)
-            (hs-find-block-beginning-match)))))
-    (end-of-line)
-    (eq 'hs (get-char-property (point) 'invisible))))
+      (when (and c-reg (nth 0 c-reg))
+        ;; point is inside a comment, and that comment is hideable
+        (goto-char (nth 0 c-reg))))
+    ;; Search for a hidden block at EOL ...
+    (or (eq 'hs (get-char-property (line-end-position) 'invisible))
+        ;; ... or behind the current cursor position
+        (eq 'hs (get-char-property (1- (point)) 'invisible)))))
 
 ;; This function is not used anymore (Bug#700).
 (defun hs-c-like-adjust-block-beginning (initial)
@@ -1261,8 +1261,7 @@ Upon completion, point is repositioned and the normal hook
 `hs-hide-hook' is run.  See documentation for `run-hooks'."
   (interactive "P")
   (hs-life-goes-on
-   (let ((c-reg (funcall hs-inside-comment-predicate))
-         (pos (point)))
+   (let ((c-reg (funcall hs-inside-comment-predicate)))
      (cond
       ((and c-reg (or (null (nth 0 c-reg))
                       (not (hs-hideable-region-p (car c-reg) (nth 1 c-reg)))))
@@ -1270,25 +1269,26 @@ Upon completion, point is repositioned and the normal hook
 
       (c-reg (hs-hide-block-at-point end c-reg))
 
-      ((or (and (eq hs-hide-block-behavior 'after-bol)
-                (setq pos (point))
-                (goto-char (line-beginning-position))
-                (catch 'hs--exit-hide
-                  (while (and (funcall hs-find-next-block-function
-                                       hs-block-start-regexp
-                                       (line-end-position) nil)
-                              (save-excursion
-                                (goto-char (match-beginning 0))
-                                (if (hs-hideable-region-p)
-                                    (throw 'hs--exit-hide t)
-                                  t)))))
-                (goto-char (match-beginning 0)))
-           (and (goto-char pos)
-                (funcall hs-looking-at-block-start-predicate)))
-       (hs-hide-block-at-point end))
+      ((save-excursion
+         (and (eq hs-hide-block-behavior 'after-bol)
+              (goto-char (line-beginning-position))
+              (let (exit)
+                (while (and (not exit)
+                            (funcall hs-find-next-block-function
+                                     hs-block-start-regexp
+                                     (line-end-position) nil)
+                            (save-excursion
+                              (goto-char (match-beginning 0))
+                              (if (hs-hideable-region-p)
+                                  (setq exit t)
+                                t))))
+                exit)
+              (goto-char (match-beginning 0))
+              (hs-hide-block-at-point end))))
 
-      ((and (goto-char (line-beginning-position))
-            (funcall hs-find-block-beginning-function))
+      ((or (funcall hs-looking-at-block-start-predicate)
+           (and (goto-char (line-beginning-position))
+                (funcall hs-find-block-beginning-function)))
        (hs-hide-block-at-point end)))
 
      (run-hooks 'hs-hide-hook))))
