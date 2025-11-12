@@ -710,17 +710,15 @@ to call with the newly initialized overlay."
         (io (if (eq 'block hs-isearch-open)
                 ;; backward compatibility -- `block'<=>`code'
                 'code
-              hs-isearch-open))
-        (map (make-sparse-keymap)))
+              hs-isearch-open)))
     (overlay-put ov 'invisible 'hs)
-    (define-key map (kbd "<mouse-1>") #'hs-show-block)
     (overlay-put ov 'display
                  (propertize
                   (hs--get-ellipsis b e)
                   'mouse-face
                   'highlight
                   'help-echo "mouse-1: show hidden lines"
-                  'keymap map))
+                  'keymap '(keymap (mouse-1 . hs-toggle-hiding))))
     (overlay-put ov 'hs kind)
     (overlay-put ov 'hs-b-offset b-offset)
     (overlay-put ov 'hs-e-offset e-offset)
@@ -798,7 +796,8 @@ point."
              "+" 'display
              `((margin left-margin)
                ,(or (plist-get (icon-elements face-or-icon) 'image)
-                    (icon-string face-or-icon)))
+                    (propertize (icon-string face-or-icon)
+                                'keymap hs-indicators-map)))
              'face face-or-icon
              'keymap hs-indicators-map))
            ;; EOL string
