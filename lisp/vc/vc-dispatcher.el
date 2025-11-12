@@ -472,7 +472,7 @@ and the process object in the asynchronous case."
                       (make-process :name command
                                     :buffer (and stdout (current-buffer))
                                     :command (cons command squeezed)
-                                    :connection-type nil
+                                    :connection-type 'pipe
                                     :filter #'vc-process-filter
                                     :sentinel #'ignore
                                     :stderr stderr-buf
