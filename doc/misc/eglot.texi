@@ -422,21 +422,21 @@ enhances diagnostics with interactive server-suggested fixes (so-called
 @item
 Finding definitions and uses of identifiers, via Xref (@pxref{Xref,,,
 emacs, GNU Emacs Manual}).  Eglot provides a backend for the Xref
-capabilities which uses the language-server understanding of the program
-source.  In particular, it eliminates the need to generate tags tables
-(@pxref{Tags tables,,, emacs, GNU Emacs Manual}) for languages which are
-only supported by the @code{etags} backend.
+capabilities which uses the language server's understanding of the
+program source.  In particular, it eliminates the need to generate tags
+tables (@pxref{Tags tables,,, emacs, GNU Emacs Manual}) for languages
+which are only supported by the @code{etags} backend.
 
 @item
 Buffer navigation by name of function, class, method, etc., via Imenu
 (@pxref{Imenu,,, emacs, GNU Emacs Manual}).  Eglot provides its own
 variant of @code{imenu-create-index-function}, which generates the index
-for the buffer based on language-server program source analysis.
+for the buffer based on the language server's program source analysis.
 
 @item
 Enhanced completion of symbol at point by the @code{completion-at-point}
 command (@pxref{Symbol Completion,,, emacs, GNU Emacs Manual}).  This
-uses the language-server's parser data for the completion candidates.
+uses the language server's parser data for the completion candidates.
 
 @item
 Server-suggested code refactorings.  The ElDoc package is also leveraged
@@ -473,7 +473,7 @@ supported and is activated automatically as you type.
 If a completion package such as the Company package (a popular
 third-party completion package providing @code{company-mode}), is
 installed, Eglot enhances it by providing completion candidates based on
-the language-server analysis of the source code.  (Company can be
+the language server's analysis of the source code.  (Company can be
 installed from GNU ELPA.)
 
 @item
@@ -523,14 +523,14 @@ One of the main strong points of using a language server is that a
 language server has a broad view of the program: it considers more than
 just the single source file you are editing.  Ideally, the language
 server should know about all the source files of your program which are
-written in the language supported by the server.  In the language-server
-parlance, the set of the source files of a program is known as a
-@dfn{workspace}.  The Emacs equivalent of a workspace is a @dfn{project}
-(@pxref{Projects,,, emacs, GNU Emacs Manual}).  Eglot fully supports
-Emacs projects, and considers the file in whose buffer Eglot is turned
-on as belonging to a project.  In the simplest case, that file is the
-entire project, i.e.@: your project consists of a single file.  But
-there are other more complex projects:
+written in the language supported by the server.  In LSP parlance, the
+set of the source files of a program is known as a @dfn{workspace}.  The
+Emacs equivalent of a workspace is a @dfn{project} (@pxref{Projects,,,
+emacs, GNU Emacs Manual}).  Eglot fully supports Emacs projects, and
+considers the file in whose buffer Eglot is turned on as belonging to a
+project.  In the simplest case, that file is the entire project, i.e.@:
+your project consists of a single file.  But there are other more
+complex projects:
 
 @itemize @bullet
 @item
@@ -580,7 +580,7 @@ specially in several ways:
 @vindex eglot-menu
 @item
 All of the project's file-visiting buffers under the same major-mode are
-served by a single language-server connection.  (If the project uses
+served by a single language server connection.  (If the project uses
 several programming languages, there will usually be a separate server
 connection for each group of files written in the same language and
 using the same Emacs major-mode.)  Eglot adds the
@@ -674,7 +674,7 @@ major mode to use and for the server program to start.  If invoked with
 
 If the language server is successfully started and contacted, this
 command arranges for any other buffers belonging to the same project and
-using the same major mode to use the same language-server session.  That
+using the same major mode to use the same language server session.  That
 includes any buffers created by visiting files after this command
 succeeds to connect to a language server.
 
@@ -717,7 +717,7 @@ language server of the current buffer to implement the renaming.
 
 @item M-x eglot-format
 This command reformats the active region according to the
-language-server rules.  If no region is active, it reformats the entire
+language server rules.  If no region is active, it reformats the entire
 current buffer.
 
 @item M-x eglot-format-buffer
