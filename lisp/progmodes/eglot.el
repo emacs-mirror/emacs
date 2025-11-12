@@ -4626,7 +4626,7 @@ If NOERROR, return predicate, else erroring function."
   "Cache of the last response from the server.")
 
 (defvar-local eglot--semtok-inflight nil
-  "Non nil if there's an inflight full-buffer delta semtok request.")
+  "List of (BEG . END) regions of inflight semtok requests.")
 
 (defsubst eglot--semtok-apply-delta-edits (old-data edits)
   "Apply EDITS obtained from full/delta request to OLD-DATA."
@@ -4656,7 +4656,6 @@ If NOERROR, return predicate, else erroring function."
                      ;;               "data: "
                      ;;               (length (cl-getf response :data)))
                      (eglot--when-live-buffer buf
-                       (setq eglot--semtok-inflight nil)
                        ;; A user edit may have come in while the request
                        ;; was inflight, changing the state of the buffer...
                        (when (eq id eglot--versioned-identifier)
@@ -4669,25 +4668,27 @@ If NOERROR, return predicate, else erroring function."
                        ;; this response is out-of-date,
                        ;; `eglot--semtok-font-lock' should just trigger
                        ;; another request.
-                       (font-lock-flush beg end)))
+                       (cl-loop for (b . e) in eglot--semtok-inflight
+                                do (font-lock-flush b e))
+                       ;; (trace-values "Flushed" (length eglot--semtok-inflight)
+                       ;;               "regions")
+                       (setq eglot--semtok-inflight nil)))
                    :hint method))
                 (cache-get (&rest path)
                   (let ((x eglot--semtok-cache))
                     (dolist (op path x) (setq x (if (natnump op) (aref x op)
                                                   (plist-get x op)))))))
+      (push (cons beg end) eglot--semtok-inflight)
       (cond
        ((and (eglot-server-capable :semanticTokensProvider :full :delta)
              (cache-get :response :data)
              (not (eq :textDocument/semanticTokens/range (cache-get :method))))
         ;; JT@2025-11-12: many back-to-back calls for
-        ;; `eglot--semtok-request' and small regions occur even on trivial
-        ;; fast edits.  Even though it's cheap and harmless to send many
-        ;; delta rquests, it's nicer to just send just one.  The
-        ;; debouncing from jsonrpc-async-request (which see) almost
-        ;; suffices, but sometimes two requests creep in.  Use this
-        ;; simple flag to avoid.
-        (when eglot--semtok-inflight (cl-return-from eglot--semtok-request))
-        (setq eglot--semtok-inflight t)
+        ;; `eglot--semtok-request' and small regions occur even on
+        ;; trivial/fast edits.  Even though it's fairly cheap to send
+        ;; multiple delta requests, it's nicer to just send just one.
+        (when (cdr eglot--semtok-inflight)
+          (cl-return-from eglot--semtok-request))
         (req :textDocument/semanticTokens/full/delta (point-min) (point-max)
              (list :textDocument (eglot--TextDocumentIdentifier)
                    :previousResultId (cache-get :response :resultId))
