@@ -508,7 +508,8 @@ capabilities to Emacs users.  However, @xref{Extending Eglot}.
 
 Finally, it's worth noting that, by default, Eglot generally turns on
 all features that it @emph{can} turn on.  It's possible to opt out of
-some features via user options (@pxref{Customizing Eglot}) and a hook
+features via the @code{eglot-ignored-server-capabilities} user option
+(@pxref{Customizing Eglot}) and the @code{eglot-managed-mode-hook} hook
 that runs after Eglot starts managing a buffer (@pxref{Eglot and
 Buffers}).
 
@@ -637,6 +638,17 @@ minor mode is turned on and when it's turned off; use the function
 @code{eglot-managed-p} to tell if current buffer is still being managed
 or not.
 @end itemize
+
+For example, to turn off @dfn{inlay hints} and @dfn{semantic tokens} by
+default but still retain the ability to turn them on again
+interactively use this:
+
+@lisp
+  (add-hook 'eglot-managed-mode-hook
+    (lambda ()
+      (eglot-inlay-hints-mode -1)
+      (eglot-semantic-tokens-mode -1)))
+@end lisp
 
 @node Eglot Commands
 @section Eglot Commands
