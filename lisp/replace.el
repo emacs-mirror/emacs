@@ -2782,19 +2782,19 @@ to a regexp that is actually used for the search.")
 (defmacro replace--push-stack (replaced search-str next-replace stack)
   (declare (indent 0) (debug (form form form gv-place)))
   `(push (list (point) ,replaced
-;;;  If the replacement has already happened, all we need is the
-;;;  current match start and end.  We could get this with a trivial
-;;;  match like
-;;;  (save-excursion (goto-char (match-beginning 0))
-;;;		     (search-forward (match-string 0))
-;;;                  (match-data t))
-;;;  if we really wanted to avoid manually constructing match data.
-;;;  Adding current-buffer is necessary so that match-data calls can
-;;;  return markers which are appropriate for editing.
+               ;; If the replacement has already happened, all we need is the
+               ;; current match start and end.  We could get this with a trivial
+               ;; match like
+               ;; (save-excursion (goto-char (match-beginning 0))
+               ;;        	     (search-forward (match-string 0))
+               ;;                 (match-data t))
+               ;; if we really wanted to avoid manually constructing match data.
+               ;; Adding current-buffer is necessary so that match-data calls
+               ;; can return markers which are appropriate for editing.
 	       (if ,replaced
 		   (list
 		    (match-beginning 0) (match-end 0) (current-buffer))
-	         (match-data t))
+	         (match-data))
 	       ,search-str ,next-replace)
          ,stack))
 
@@ -2962,7 +2962,7 @@ characters."
 						(nth 0 match-again)
 					      (nth 1 match-again)))
 				 (replace-match-data
-				  t real-match-data match-again))
+				  nil real-match-data match-again))
 				;; MATCH-AGAIN non-nil means accept an
 				;; adjacent match.
 				(match-again
@@ -2972,7 +2972,7 @@ characters."
 						  case-fold-search backward)
 				  ;; For speed, use only integers and
 				  ;; reuse the list used last time.
-				  (replace-match-data t real-match-data)))
+				  (replace-match-data nil real-match-data)))
 				((and (if backward
 					  (> (1- (point)) (point-min))
 					(< (1+ (point)) (point-max)))
@@ -2990,7 +2990,7 @@ characters."
 						       regexp-flag delimited-flag
 						       case-fold-search backward)
 				       (replace-match-data
-					t real-match-data)
+					nil real-match-data)
 				     (goto-char opoint)
 				     nil))))))
 
@@ -3082,7 +3082,7 @@ characters."
                           (save-excursion
                             (goto-char (nth 0 real-match-data))
                             (looking-at search-string)
-                            (match-data t real-match-data))))
+                            (match-data nil real-match-data))))
                   ;; Matched string and next-replacement-replaced
                   ;; stored in stack.
                   (setq search-string-replaced (buffer-substring-no-properties
@@ -3146,7 +3146,7 @@ characters."
 			       (setq replaced (nth 1 elt)
 				     real-match-data
 				     (replace-match-data
-				      t real-match-data
+				      nil real-match-data
 				      (nth 2 elt))))
 			   (message "No previous match")
 			   (ding 'no-terminate)
@@ -3194,7 +3194,7 @@ characters."
                                            (goto-char (match-beginning 0))
                                            ;; We must quote the string (Bug#37073)
                                            (looking-at (regexp-quote search-string))
-                                           (match-data t (nth 2 elt)))
+                                           (match-data nil (nth 2 elt)))
                                          noedit
                                          (replace-match-maybe-edit
                                           last-replacement nocasify literal
@@ -3203,10 +3203,11 @@ characters."
                                          real-match-data
                                          (save-excursion
                                            (goto-char (match-beginning 0))
-                                           (if regexp-flag
-                                               (looking-at last-replacement)
-                                             (looking-at (regexp-quote last-replacement)))
-                                           (match-data t (nth 2 elt))))
+                                           (looking-at (if regexp-flag
+                                                           last-replacement
+                                                         (regexp-quote
+                                                          last-replacement)))
+                                           (match-data nil (nth 2 elt))))
                                    (when regexp-flag
                                      (setq next-replacement (nth 4 elt)))
                                    ;; Set replaced nil to keep in loop
@@ -3250,7 +3251,7 @@ characters."
 				    noedit real-match-data backward)
 				   replace-count (1+ replace-count)
 				   real-match-data (replace-match-data
-						    t real-match-data)
+						    nil real-match-data)
 				   replaced t last-was-act-and-show t)
                              (replace--push-stack
                               replaced
