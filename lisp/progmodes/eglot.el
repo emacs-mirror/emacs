@@ -4589,26 +4589,27 @@ If NOERROR, return predicate, else erroring function."
 
 (eglot--semtok-define-things)
 
-(defun eglot--semtok-token-faces (tok)
+(defun eglot--semtok-decode-token (tok)
+  "Decode TOK.  Return (NAMES . FACES).  Filter FACES via user options."
   (with-slots (semtok-cache capabilities)
       (eglot--current-server-or-lose)
-    (let ((probe (gethash tok semtok-cache :missing))
-          tname)
+    (let ((probe (gethash tok semtok-cache :missing)))
       (if (eq probe :missing)
           (puthash
            tok
            (eglot--dbind ((SemanticTokensLegend) tokenTypes tokenModifiers)
                (plist-get (plist-get capabilities :semanticTokensProvider) :legend)
-             (setq tname (aref tokenTypes (car tok)))
-             (when (member tname eglot-semantic-token-types)
-               (cl-loop
-                for j from 0 for m across tokenModifiers
-                unless (or (zerop (logand (cdr tok) (ash 1 j)))
-                           (not (member m eglot-semantic-token-modifiers)))
-                collect (intern (format "eglot-semantic-%s-face" m)) into mfaces
-                finally (cl-return
-                         (cons (intern (format "eglot-semantic-%s-face" tname))
-                               mfaces)))))
+             (cl-loop
+              with tname = (aref tokenTypes (car tok))
+              for j from 0 for m across tokenModifiers
+              when (cl-plusp (logand (cdr tok) (ash 1 j)))
+                collect m into names
+                and when (member m eglot-semantic-token-modifiers)
+                  collect (intern (format "eglot-semantic-%s-face" m)) into faces
+              finally
+              (when (member tname eglot-semantic-token-types)
+                (push (intern (format "eglot-semantic-%s-face" tname)) faces))
+              (cl-return (cons (cons tname names) faces))))
            semtok-cache)
         probe))))
 
@@ -4697,7 +4698,7 @@ If NOERROR, return predicate, else erroring function."
         ;; trivial/fast edits.  Even though it's fairly cheap to send
         ;; multiple delta requests, it's nicer to just send just one.
         (when (cdr eglot--semtok-inflight)
-          (cl-return-from eglot--semtok-request))
+          (cl-return-from eglot--semtok-request 'skipped))
         (req :textDocument/semanticTokens/full/delta (point-min) (point-max)
              (list :textDocument (eglot--TextDocumentIdentifier)
                    :previousResultId (cache-get :response :resultId))
@@ -4708,7 +4709,7 @@ If NOERROR, return predicate, else erroring function."
                                 (eglot--semtok-apply-delta-edits
                                  (cache-get :response :data)
                                  edits)))
-                 ;; server sent full response instead, so just record that.
+                 ;; (trace-values "Server send full response instead")
                  response))))
        ((eglot-server-capable :semanticTokensProvider :range)
         (req :textDocument/semanticTokens/range beg end
@@ -4753,20 +4754,21 @@ lock machinery calls us again."
       unless (< (point) beg) do
         (setq column (+ column (aref data (+ i 1))))
         (funcall eglot-move-to-linepos-function column)
-        (when (> (point) end) (cl-return napplied))
+        (when (> (point) end) (cl-return (cons napplied 'early)))
         (setq p-beg (point))
         (funcall eglot-move-to-linepos-function (+ column (aref data (+ i 2))))
         (setq p-end (point))
         (let* ((tok (cons (aref data (+ i 3))
                           (aref data (+ i 4))))
-               (faces (eglot--semtok-token-faces tok)))
+               (decoded (eglot--semtok-decode-token tok)))
           ;; The `eglot--semtok-token' prop doesn't serve much purpose:
           ;; just for debug...
-          (put-text-property p-beg p-end 'eglot--semtok-token tok)
-          (put-text-property p-beg p-end 'eglot--semtok-faces faces)
-          (dolist (f faces)
+          (put-text-property p-beg p-end 'eglot--semtok-names (car decoded))
+          (put-text-property p-beg p-end 'eglot--semtok-faces (cdr decoded))
+          (dolist (f (cdr decoded))
             (add-face-text-property p-beg p-end f)))
-      count 1 into napplied))))
+      count 1 into napplied
+      finally (cl-return (cons napplied 'normal))))))
 
 (defun eglot--semtok-font-lock-2 (beg end)
   ;; JT@2025-11-11: FIXME: I wish I didn't need this kludge but the
