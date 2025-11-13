@@ -821,7 +821,7 @@ use."
   "Generate the loaddefs for the Emacs build.
 This is like `loaddefs-generate-batch', but has some specific
 rules for built-in packages and excluded files."
-  (let* ((args command-line-args-left)
+  (let* ((args (mapcar #'expand-file-name command-line-args-left))
          ;; We're run from $BUILDDIR/lisp but all the .el(c) files reside
          ;; (and are generated) in `lisp-directory' which is in $SRCDIR,
          ;; so go there and don't look back.
