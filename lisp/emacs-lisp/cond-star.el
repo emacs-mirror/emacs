@@ -158,6 +158,13 @@ ATOM (meaning any other kind of non-list not described above)
   ;; FIXME: `byte-compile-warn-x' is not necessarily defined here.
   (byte-compile-warn-x pattern "`match*' used other than as a `cond*' condition"))
 
+(defmacro bind* (&rest bindings)
+  "This macro evaluates BINDINGS like `let*'.
+It is not really a Lisp function, and it is meaningful
+only in the CONDITION of a `cond*' clause."
+  ;; FIXME: `byte-compile-warn-x' is not necessarily defined here.
+  (byte-compile-warn-x bindings "`bind' used other than as a `cond*' condition"))
+
 (defmacro bind-and* (&rest bindings)
   "This macro evaluates BINDINGS like `if-let*'.
 It is not really a Lisp function, and it is meaningful
