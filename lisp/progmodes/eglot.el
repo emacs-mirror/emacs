@@ -1954,6 +1954,11 @@ and also used as a hint of the request cancellation mechanism (see
         (push id
               (plist-get eglot--inflight-async-requests hint))))))
 
+(cl-defun eglot--delete-overlays (&optional (prop 'eglot--overlays))
+  (eglot--widening
+   (dolist (o (overlays-in (point-min) (point-max)))
+     (when (overlay-get o prop) (delete-overlay o)))))
+
 
 ;;; Encoding fever
 ;;;
@@ -2260,8 +2265,9 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
       (eldoc-mode 1))
     (cl-pushnew (current-buffer) (eglot--managed-buffers (eglot-current-server))))
    (t
-    (mapc #'delete-overlay eglot--highlights)
-    (delete-overlay eglot--suggestion-overlay)
+    (eglot-inlay-hints-mode -1)
+    (eglot-semantic-tokens-mode -1)
+    (eglot--delete-overlays 'eglot--overlay)
     (remove-hook 'after-change-functions #'eglot--after-change t)
     (remove-hook 'before-change-functions #'eglot--before-change t)
     (remove-hook 'kill-buffer-hook #'eglot--managed-mode-off t)
@@ -2302,8 +2308,6 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
 
 (defun eglot--managed-mode-off ()
   "Turn off `eglot--managed-mode' unconditionally."
-  (remove-overlays nil nil 'eglot--overlay t)
-  (eglot-inlay-hints-mode -1)
   (eglot--managed-mode -1))
 
 (defun eglot-current-server ()
@@ -3860,6 +3864,7 @@ for which LSP on-type-formatting should be requested."
                                  (eglot-range-region range)))
                       (let ((ov (make-overlay beg end)))
                         (overlay-put ov 'face 'eglot-highlight-symbol-face)
+                        (overlay-put ov 'eglot--overlay t)
                         (overlay-put ov 'modification-hooks
                                      `(,(lambda (o &rest _) (delete-overlay o))))
                         ov)))
@@ -4218,6 +4223,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                (goto-char (car bounds))
                (let ((ov (make-overlay (car bounds) (cadr bounds))))
                  (overlay-put ov 'eglot--actions actions)
+                 (overlay-put ov 'eglot--overlay t)
                  (overlay-put
                   ov
                   'before-string
@@ -4555,7 +4561,7 @@ If NOERROR, return predicate, else erroring function."
            (eglot-inlay-hints-mode -1)))
         (t
          (jit-lock-unregister #'eglot--update-hints)
-         (remove-overlays nil nil 'eglot--inlay-hint t))))
+         (eglot--delete-overlays 'eglot--inlay-hint))))
 
 
 ;;; Semantic tokens
