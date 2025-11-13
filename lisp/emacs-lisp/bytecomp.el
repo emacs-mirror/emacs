@@ -2617,7 +2617,7 @@ Call from the source buffer."
 ;; for `byte-compile-dynamic-docstrings'.  Most other things can be output
 ;; as byte-code.
 
-(put 'autoload 'byte-hunk-handler 'byte-compile-file-form-autoload)
+(put 'autoload 'byte-hunk-handler #'byte-compile-file-form-autoload)
 (defun byte-compile-file-form-autoload (form)
   (and (let ((form form))
 	 (while (if (setq form (cdr form)) (macroexp-const-p (car form))))
@@ -2654,8 +2654,8 @@ Call from the source buffer."
     (byte-compile-keep-pending (byte-compile--list-with-n form 3 newdoc)
                                #'byte-compile-normal-call)))
 
-(put 'defvar   'byte-hunk-handler 'byte-compile-file-form-defvar)
-(put 'defconst 'byte-hunk-handler 'byte-compile-file-form-defvar)
+(put 'defvar   'byte-hunk-handler #'byte-compile-file-form-defvar)
+(put 'defconst 'byte-hunk-handler #'byte-compile-file-form-defvar)
 
 (defun byte-compile--check-prefixed-var (sym)
   (when (and (symbolp sym)
@@ -2679,8 +2679,8 @@ Call from the source buffer."
   (byte-compile-defvar form 'toplevel))
 
 (put 'define-abbrev-table 'byte-hunk-handler
-     'byte-compile-file-form-defvar-function)
-(put 'defvaralias 'byte-hunk-handler 'byte-compile-file-form-defvar-function)
+     #'byte-compile-file-form-defvar-function)
+(put 'defvaralias 'byte-hunk-handler #'byte-compile-file-form-defvar-function)
 
 (defun byte-compile-file-form-defvar-function (form)
   (pcase-let (((or `',name (let name nil)) (nth 1 form)))
@@ -2704,7 +2704,7 @@ Call from the source buffer."
     (byte-compile-keep-pending form)))
 
 (put 'custom-declare-variable 'byte-hunk-handler
-     'byte-compile-file-form-defvar-function)
+     #'byte-compile-file-form-defvar-function)
 
 (put 'custom-declare-face 'byte-hunk-handler
      #'byte-compile--custom-declare-face)
@@ -2716,14 +2716,14 @@ Call from the source buffer."
           (setq form (byte-compile--list-with-n form 3 newdocs)))))
     (byte-compile-keep-pending form)))
 
-(put 'require 'byte-hunk-handler 'byte-compile-file-form-require)
+(put 'require 'byte-hunk-handler #'byte-compile-file-form-require)
 (defun byte-compile-file-form-require (form)
-  (let* ((args (mapcar 'eval (cdr form)))
+  (let* ((args (mapcar #'eval (cdr form)))
          ;; The following is for the byte-compile-warn in
          ;; `do-after-load-evaluation' (in subr.el).
          (byte-compile-form-stack (cons (car args) byte-compile-form-stack))
          hist-new prov-cons)
-    (apply 'require args)
+    (apply #'require args)
 
     ;; Record the functions defined by the require in `byte-compile-new-defuns'.
     (setq hist-new load-history)
@@ -3648,6 +3648,8 @@ This assumes the function has the `important-return-value' property."
 (dolist (fa '((plist-put 4) (alist-get 5) (add-to-list 5)
               (cl-merge 4 :key)
               (custom-declare-variable :set :get :initialize :safe)
+              (define-widget :convert-widget :value-to-internal
+                             :value-to-external :match)
               (make-process :filter :sentinel)
               (make-network-process :filter :sentinel)
               (all-completions 2 3) (try-completion 2 3) (test-completion 2 3)
