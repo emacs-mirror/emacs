@@ -2400,9 +2400,9 @@ See also `vc-revert-revision'."
   "Make a commit undoing the effects of revision REV.
 When called interactively, prompts for REV.
 
-This is like `vc-revert-or-delete-revision' except that it only ever makes a new
-commit undoing the effects of REV, instead of considering VCS-specific
-alternative mechanisms to undo the effects of REV.
+This is like `vc-revert-or-delete-revision' except that it only ever
+makes a new commit undoing the effects of REV, instead of considering
+VCS-specific alternative mechanisms to undo the effects of REV.
 
 When called from Lisp, there are three calling conventions for the
 COMMENT and INITIAL-CONTENTS optional arguments:
