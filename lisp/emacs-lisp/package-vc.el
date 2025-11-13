@@ -321,6 +321,16 @@ asynchronously."
         "\n")
        nil pkg-file nil 'silent))))
 
+(defcustom package-vc-make-program nil
+  "Name of the GNU \"make\" executable on the system.
+
+If the name of the GNU \"make\" executable on the current system is
+neither \"make\" nor \"gmake\" then you will need to customize this
+variable in order to build some VC packages."
+  :type '(choice (const :tag "Auto-detect" nil)
+                 (string :tag "Name of GNU 'make' on current system"))
+  :version "31.1")
+
 (defcustom package-vc-allow-build-commands nil
   "Whether to run extra build commands when installing VC packages.
 
@@ -353,13 +363,15 @@ PKG-DESC is the package descriptor for the package that is being
 prepared."
   (let ((target (plist-get pkg-spec :make))
         (cmd (plist-get pkg-spec :shell-command))
-        (buf (format " *package-vc make %s*" (package-desc-name pkg-desc))))
+        (buf (format " *package-vc make %s*" (package-desc-name pkg-desc)))
+        (makexe (or package-vc-make-program
+                    (seq-find #'executable-find '("gmake" "make")))))
     (when (or cmd target)
       (with-current-buffer (get-buffer-create buf)
         (erase-buffer)
         (when (and cmd (/= 0 (call-process shell-file-name nil t nil shell-command-switch cmd)))
           (warn "Failed to run %s, see buffer %S" cmd (buffer-name)))
-        (when (and target (/= 0 (apply #'call-process "make" nil t nil (if (consp target) target (list target)))))
+        (when (and target (/= 0 (apply #'call-process makexe nil t nil (ensure-list target))))
           (warn "Failed to make %s, see buffer %S" target (buffer-name)))))))
 
 (declare-function org-export-to-file "ox" (backend file))
