@@ -559,7 +559,7 @@ Display the buffer in some window, but don't select it."
                          (goto-char (process-mark proc))
                          (let ((inhibit-read-only t))
                            (insert
-                            (format "Finished in %f seconds\n"
+                            (format "Finished in %.2f seconds\n"
                                     (time-to-seconds
                                      (time-since start-time))))
                            (set-marker (process-mark proc)
