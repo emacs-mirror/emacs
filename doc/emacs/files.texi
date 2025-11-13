@@ -1825,7 +1825,7 @@ version.  If @code{diff-jump-to-old-file} is non-@code{nil}, apply the
 hunk to the ``old'' version of the file instead.
 
 @findex diff-revert-and-kill-hunk
-@item C-c M-r
+@item C-c M-u
 Revert this hunk, and then remove the hunk from the diffs
 (@code{diff-revert-and-kill-hunk}).  Save the buffer visiting the target
 file.

@@ -2003,7 +2003,7 @@ to the original text.  If the selected range extends a hunk, the
 command attempts to look up and copy the text in between the hunks.
 
 +++
-*** New command 'diff-revert-and-kill-hunk' bound to 'C-c M-r'.
+*** New command 'diff-revert-and-kill-hunk' bound to 'u' and 'C-c M-u'.
 This command reverts the hunk at point (i.e., applies the reverse of the
 hunk), and then removes the hunk from the diffs.
 This is useful to undo or revert changes, committed and uncommitted, when
