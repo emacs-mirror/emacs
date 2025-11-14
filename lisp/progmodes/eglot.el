@@ -4620,12 +4620,20 @@ If NOERROR, return predicate, else erroring function."
            semtok-cache)
         probe))))
 
+(defvar-local eglot--semtok-cache nil
+  "Cache of the last response from the server.")
+
+(defvar-local eglot--semtok-inflight nil
+  "List of (BEG . END) regions of inflight semtok requests.")
+
 (cl-defmethod eglot-handle-request
   (server (_method (eql workspace/semanticTokens/refresh)))
   "Handle a semanticTokens/refresh request from SERVER."
   (dolist (buffer (eglot--managed-buffers server))
     (eglot--when-live-buffer buffer
-      (unless (zerop eglot--versioned-identifier) (font-lock-flush)))))
+      (unless (zerop eglot--versioned-identifier)
+        (setq eglot--semtok-cache nil)
+        (font-lock-flush)))))
 
 (define-minor-mode eglot-semantic-tokens-mode
   "Minor mode for fontifying buffer with LSP server's semantic tokens."
@@ -4638,12 +4646,6 @@ If NOERROR, return predicate, else erroring function."
         (t
          (font-lock-remove-keywords nil '((eglot--semtok-font-lock)))
          (font-lock-flush))))
-
-(defvar-local eglot--semtok-cache nil
-  "Cache of the last response from the server.")
-
-(defvar-local eglot--semtok-inflight nil
-  "List of (BEG . END) regions of inflight semtok requests.")
 
 (defsubst eglot--semtok-apply-delta-edits (old-data edits)
   "Apply EDITS obtained from full/delta request to OLD-DATA."
