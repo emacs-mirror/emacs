@@ -2197,7 +2197,9 @@ With a prefix argument, REVERSE the hunk."
 	(delete-region (car pos) (cdr pos))
 	(insert (car new)))
       ;; Display BUF in a window
-      (set-window-point (display-buffer buf) (+ (car pos) (cdr new)))
+      (let ((display-buffer-overriding-action
+             '(nil (inhibit-same-window . t))))
+        (set-window-point (display-buffer buf) (+ (car pos) (cdr new))))
       (diff-hunk-status-msg line-offset (xor switched reverse) nil)
       (when diff-advance-after-apply-hunk
 	(diff-hunk-next))))))
