@@ -146,7 +146,9 @@
 ;;                                              (overlay-end ov)))
 ;;                         'face 'font-lock-type-face)))))
 
-;; * Adding support for a major mode
+;; * Extending hideshow
+
+;; ** Adding support for a major mode
 ;;
 ;; Normally, hideshow tries to determine appropriate values for block
 ;; and comment definitions by examining the major mode settings.  If the
@@ -170,7 +172,7 @@
 ;; cases, `hs-forward-sexp-function' specifies another function to use
 ;; instead.
 
-;; ** Tree-sitter support
+;; *** Tree-sitter support
 ;;
 ;; All the treesit based modes already have support for hidding/showing
 ;; using the treesit thing `list' (see `treesit-major-mode-setup').
@@ -180,6 +182,26 @@
 ;; `hs-treesit-things' to override this, but ensure you have the proper
 ;; values in `hs-adjust-block-end-function' and `hs-adjust-block-beginning-function' to
 ;; properly hide the code block.
+
+;; ** Migrating from `hs-special-modes-alist'
+;;
+;; Starting with Emacs v31.1, `hs-special-modes-alist' has been
+;; deprecated.  Instead, hideshow provides a new set of buffer-local
+;; variables that replace each of the options in
+;; `hs-special-modes-alist':
+;;
+;; hs-special-modes-alist
+;; '(MODE ; Not necessary, set the variables locally inside the
+;;        ; definition of the minor or major mode.
+;;   START | (START . MDATA) ::= `hs-block-start-regexp'
+;;                               & `hs-block-start-mdata-select'
+;;   END                       ::= 'hs-block-end-regexp'
+;;   COMMENT-START             ::= 'hs-c-start-regexp'
+;;   FORWARD-SEXP-FUNC         ::= 'hs-forward-sexp-function'
+;;   ADJUST-BEG-FUNC           ::= 'hs-adjust-block-beginning-function'
+;;   FIND-BLOCK-BEGINNING-FUNC ::= 'hs-find-block-beginning-function'
+;;   FIND-NEXT-BLOCK-FUNC      ::= 'hs-find-next-block-function'
+;;   LOOKING-AT-BLOCK-START-P-FUNC ::= 'hs-looking-at-block-start-predicate')
 
 ;; * Bugs
 ;;
