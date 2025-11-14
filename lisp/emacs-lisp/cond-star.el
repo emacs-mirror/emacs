@@ -92,6 +92,10 @@ are passed along to the rest of the clauses in this `cond*' construct.
 \\[match*] for documentation of the patterns for use in `match*'."
   (cond*-convert clauses))
 
+;; The following three macros are autoloaded for the sake of syntax
+;; highlighting.
+
+;;;###autoload
 (defmacro match* (pattern _datum)
   "This specifies matching DATUM against PATTERN.
 It is not really a Lisp function, and it is meaningful
@@ -158,6 +162,7 @@ ATOM (meaning any other kind of non-list not described above)
   ;; FIXME: `byte-compile-warn-x' is not necessarily defined here.
   (byte-compile-warn-x pattern "`match*' used other than as a `cond*' condition"))
 
+;;;###autoload
 (defmacro bind* (&rest bindings)
   "This macro evaluates BINDINGS like `let*'.
 It is not really a Lisp function, and it is meaningful
@@ -165,6 +170,7 @@ only in the CONDITION of a `cond*' clause."
   ;; FIXME: `byte-compile-warn-x' is not necessarily defined here.
   (byte-compile-warn-x bindings "`bind' used other than as a `cond*' condition"))
 
+;;;###autoload
 (defmacro bind-and* (&rest bindings)
   "This macro evaluates BINDINGS like `if-let*'.
 It is not really a Lisp function, and it is meaningful
