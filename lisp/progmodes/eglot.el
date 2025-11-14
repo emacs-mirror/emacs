@@ -1259,12 +1259,17 @@ TRUENAMEP indicated PATH is already a truename."
                eglot--uri-path-allowed-chars)))))
 
 (defun eglot-range-region (range &optional markers)
-  "Return a cons (BEG . END) of positions representing LSP RANGE.
+  "Convert LSP \"Range\" RANGE to cons (BEG . END) of buffer positions.
 If optional MARKERS, make markers instead."
   (let* ((st (plist-get range :start))
          (beg (eglot--lsp-position-to-point st markers))
          (end (eglot--lsp-position-to-point (plist-get range :end) markers)))
     (cons beg end)))
+
+(defun eglot-region-range (from to)
+  "Convert FROM and TO buffer positions to an LSP \"Range\"."
+  (list :start (eglot--pos-to-lsp-position from)
+        :end (eglot--pos-to-lsp-position to)))
 
 (defun eglot-server-capable (&rest feats)
   "Determine if current server is capable of FEATS."
@@ -2051,21 +2056,19 @@ encoding and Eglot will set this variable automatically.")
 (defun eglot--lsp-position-to-point (pos-plist &optional marker)
   "Convert LSP position POS-PLIST to Emacs point.
 If optional MARKER, return a marker instead"
-  (save-excursion
-    (save-restriction
-      (widen)
-      (goto-char (point-min))
-      (forward-line (min most-positive-fixnum
-                         (plist-get pos-plist :line)))
-      (unless (eobp) ;; if line was excessive leave point at eob
-        (let ((col (plist-get pos-plist :character)))
-          (unless (wholenump col)
-            (eglot--warn
-             "Caution: LSP server sent invalid character position %s. Using 0 instead."
-             col)
-            (setq col 0))
-          (funcall eglot-move-to-linepos-function col)))
-      (if marker (copy-marker (point-marker)) (point)))))
+  (eglot--widening
+   (goto-char (point-min))
+   (forward-line (min most-positive-fixnum
+                      (plist-get pos-plist :line)))
+   (unless (eobp) ;; if line was excessive leave point at eob
+     (let ((col (plist-get pos-plist :character)))
+       (unless (wholenump col)
+         (eglot--warn
+          "Caution: LSP server sent invalid character position %s. Using 0 instead."
+          col)
+         (setq col 0))
+       (funcall eglot-move-to-linepos-function col)))
+   (if marker (copy-marker (point-marker)) (point))))
 
 
 ;;; More helpers
@@ -3023,6 +3026,13 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
                `(,lsp-beg ,lsp-end ,pre-change-length
                           ,(buffer-substring-no-properties beg end)))))
     (_ (setf eglot--recent-changes :emacs-messup)))
+  ;; JT@2025-11-14: Not 100% sure an idle timer is right to coalesce
+  ;; multiple edits into a single didChange notification.  It allows,
+  ;; for example, user to modify the buffer in one place, spend
+  ;; arbitrary time in quick successive movement and edit again.  Only
+  ;; after the idle delay will the change be sent.  A regular timer
+  ;; would be simpler would notify the server to start processing
+  ;; changes sooner.
   (when eglot--change-idle-timer (cancel-timer eglot--change-idle-timer))
   (let ((buf (current-buffer)))
     (setq eglot--change-idle-timer
@@ -3455,8 +3465,7 @@ for which LSP on-type-formatting should be requested."
                 ((and beg end)
                  `(:textDocument/rangeFormatting
                    :documentRangeFormattingProvider
-                   (:range ,(list :start (eglot--pos-to-lsp-position beg)
-                                  :end (eglot--pos-to-lsp-position end)))))
+                   (:range ,(eglot-region-range beg end))))
                 (t
                  '(:textDocument/formatting :documentFormattingProvider nil)))))
     (eglot-server-capable-or-lose cap)
@@ -4095,8 +4104,7 @@ edit proposed by the server."
 (cl-defun eglot--code-action-params (&key (beg (point)) (end beg)
                                           only triggerKind)
   (list :textDocument (eglot--TextDocumentIdentifier)
-        :range (list :start (eglot--pos-to-lsp-position beg)
-                     :end (eglot--pos-to-lsp-position end))
+        :range (eglot-region-range beg end)
         :context
         `(:diagnostics
           [,@(mapcar #'eglot--diag-to-lsp-diag
@@ -4531,8 +4539,7 @@ If NOERROR, return predicate, else erroring function."
      (eglot--current-server-or-lose)
      :textDocument/inlayHint
      (list :textDocument (eglot--TextDocumentIdentifier)
-           :range (list :start (eglot--pos-to-lsp-position from)
-                        :end (eglot--pos-to-lsp-position to)))
+           :range (eglot-region-range from to))
      :success-fn (lambda (hints)
                    (eglot--when-live-buffer buf
                      (eglot--widening
@@ -4714,8 +4721,7 @@ If NOERROR, return predicate, else erroring function."
        ((eglot-server-capable :semanticTokensProvider :range)
         (req :textDocument/semanticTokens/range beg end
              (list :textDocument (eglot--TextDocumentIdentifier)
-                   :range (list :start (eglot--pos-to-lsp-position beg)
-                                :end (eglot--pos-to-lsp-position end)))
+                   :range (eglot-region-range beg end))
              #'identity))
        (t
         (req :textDocument/semanticTokens/full (point-min) (point-max)
