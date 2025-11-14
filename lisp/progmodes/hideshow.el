@@ -185,23 +185,23 @@
 
 ;; ** Migrating from `hs-special-modes-alist'
 ;;
-;; Starting with Emacs v31.1, `hs-special-modes-alist' has been
-;; deprecated.  Instead, hideshow provides a new set of buffer-local
-;; variables that replace each of the options in
-;; `hs-special-modes-alist':
+;; Starting with Emacs 31, `hs-special-modes-alist' has been deprecated.
+;; Instead, modes should use the buffer-local variables that replace
+;; each of the options in `hs-special-modes-alist'.  The following table
+;; shows the old elements of `hs-special-modes-alist' and their
+;; replacement buffer-local variables:
 ;;
-;; hs-special-modes-alist
-;; '(MODE ; Not necessary, set the variables locally inside the
-;;        ; definition of the minor or major mode.
-;;   START | (START . MDATA) ::= `hs-block-start-regexp'
-;;                               & `hs-block-start-mdata-select'
-;;   END                       ::= 'hs-block-end-regexp'
-;;   COMMENT-START             ::= 'hs-c-start-regexp'
-;;   FORWARD-SEXP-FUNC         ::= 'hs-forward-sexp-function'
-;;   ADJUST-BEG-FUNC           ::= 'hs-adjust-block-beginning-function'
-;;   FIND-BLOCK-BEGINNING-FUNC ::= 'hs-find-block-beginning-function'
-;;   FIND-NEXT-BLOCK-FUNC      ::= 'hs-find-next-block-function'
-;;   LOOKING-AT-BLOCK-START-P-FUNC ::= 'hs-looking-at-block-start-predicate')
+;;   Instead of this                Use this
+;;   -----------------------------------------------------------------------
+;;   START                         `hs-block-start-regexp'
+;;   (START . MDATA)               `hs-block-start-regexp' and `hs-block-start-mdata-select'
+;;   END                           `hs-block-end-regexp'
+;;   COMMENT-START                 `hs-c-start-regexp'
+;;   FORWARD-SEXP-FUNC             `hs-forward-sexp-function'
+;;   ADJUST-BEG-FUNC               `hs-adjust-block-beginning-function'
+;;   FIND-BLOCK-BEGINNING-FUNC     `hs-find-block-beginning-function'
+;;   FIND-NEXT-BLOCK-FUNC          `hs-find-next-block-function'
+;;   LOOKING-AT-BLOCK-START-P-FUNC `hs-looking-at-block-start-predicate')
 
 ;; * Bugs
 ;;
