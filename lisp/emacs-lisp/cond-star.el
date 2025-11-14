@@ -90,6 +90,7 @@ All bindings made in CONDITION for the BODY of the non-exit clause
 are passed along to the rest of the clauses in this `cond*' construct.
 
 \\[match*] for documentation of the patterns for use in `match*'."
+  ;; FIXME: Want an Edebug declaration.
   (cond*-convert clauses))
 
 ;; The following three macros are autoloaded for the sake of syntax
