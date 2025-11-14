@@ -4738,7 +4738,7 @@ lock machinery calls us again."
   (cond ((and (eq (plist-get eglot--semtok-cache :documentVersion)
                   eglot--versioned-identifier)
               (and (<= (plist-get eglot--semtok-cache :from) beg)
-                   (<= beg (plist-get eglot--semtok-cache :to))))
+                   (<= end (plist-get eglot--semtok-cache :to))))
          (eglot--semtok-font-lock-1 beg end))
         (t
          (eglot--semtok-font-lock-2 beg end)
