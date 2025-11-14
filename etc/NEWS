@@ -846,6 +846,12 @@ The default value is t, which retains the old behavior.
 This variable has no effect when Transient Mark mode is off.
 
 ---
+** You can now use 'M-s t' to swap FROM and TO during 'query-replace'.
+Likewise during 'query-replace-regexp'.  The original binding of 'M-s'
+('next-matching-history-element') is now available on 'M-s M-s' or 'M-s
+s' for query replace minibuffer input.
+
+---
 ** New commands for filling text using semantic linefeeds.
 The new command 'fill-paragraph-semlf' fills a paragraph of text using
 "semantic linefeeds", whereby a newline is inserted after every

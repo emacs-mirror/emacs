@@ -201,7 +201,7 @@ by this function to the end of values available via
                   (car (symbol-value query-replace-from-history-variable)))))
 
 (defun query-replace-read-from (prompt regexp-flag)
-  "Query and return the `from' argument of a `query-replace' operation.
+  "Query and return the FROM argument of a `query-replace' operation.
 Prompt with PROMPT.  REGEXP-FLAG non-nil means the response should be a regexp.
 The return value can also be a pair (FROM . TO) indicating that the user
 wants to replace FROM with TO."
@@ -263,7 +263,7 @@ wants to replace FROM with TO."
                    query-replace-read-from-regexp-default
                    'minibuffer-history)
                 (read-from-minibuffer
-                 prompt nil nil nil nil
+                 prompt nil query-replace-read-map nil nil
                  (if default
                      (delete-dups
                       (cons default (query-replace-read-from-suggestions)))
@@ -337,7 +337,7 @@ the original string if not."
 
 
 (defun query-replace-read-to (from prompt regexp-flag)
-  "Query and return the `to' argument of a `query-replace' operation.
+  "Query and return the TO argument of a `query-replace' operation.
 Prompt with PROMPT.  REGEXP-FLAG non-nil means the response
 should a regexp."
   (query-replace-compile-replacement
@@ -386,6 +386,35 @@ should a regexp."
                 (and (plist-member (text-properties-at 0 from) 'isearch-regexp-function)
                      (get-text-property 0 'isearch-regexp-function from)))
             (and current-prefix-arg (eq current-prefix-arg '-))))))
+
+(defun query-replace-read-transpose-from-to ()
+  "Transpose the FROM and TO arguments of a `query-replace' operation.
+If there is an active region in the minibuffer, tranpose only those
+parts of FROM and TO that intersect with the active region, or complete
+TO or FROM if the active region only intersects with FROM or TO,
+respectively.
+For example, if '[...]' denotes the active region, this function would
+transpose '\\=\\<[foo]\\> -> bar' to '\\=\\<bar\\> -> foo'."
+  (interactive)
+  (let* ((from-beg (minibuffer-prompt-end))
+         (from-end (next-single-property-change from-beg 'separator))
+         (to-beg   (and from-end
+                        (next-single-property-change from-end 'separator)))
+         (to-end   (point-max))
+         (beg      (use-region-beginning))
+         (end      (use-region-end)))
+    (cond
+     ((or (not from-end) (not to-beg))
+      (user-error "No query-replace separator to transpose around"))
+     ((or (not beg) (not end))
+      (transpose-regions from-beg from-end to-beg to-end))
+     (t
+      ;; Calculate intersection of FROM and TO with active region.
+      (when (< from-beg beg from-end) (setq from-beg beg))
+      (when (< from-beg end from-end) (setq from-end end))
+      (when (< to-beg beg to-end)     (setq to-beg beg))
+      (when (< to-beg end to-end)     (setq to-end end))
+      (transpose-regions from-beg from-end to-beg to-end)))))
 
 (defun query-replace (from-string to-string &optional delimited start end backward region-noncontiguous-p)
   "Replace some occurrences of FROM-STRING with TO-STRING.
@@ -829,8 +858,17 @@ by this function to the end of values available via
    (regexp-quote (or (car search-ring) ""))
    (car (symbol-value query-replace-from-history-variable))))
 
-(defvar-keymap read-regexp-map
+(defvar-keymap query-replace-read-map
   :parent minibuffer-local-map
+  ;; Defining M-s as a prefix here has the side effect of hiding
+  ;; regular M-s, bound to `next-matching-history-element' in the
+  ;; default minibuffer map.  Try to mitigate that loss.
+  "M-s s" #'next-matching-history-element
+  "M-s M-s" #'next-matching-history-element
+  "M-s t" #'query-replace-read-transpose-from-to)
+
+(defvar-keymap read-regexp-map
+  :parent query-replace-read-map
   "M-s c" #'read-regexp-toggle-case-fold)
 
 (defvar read-regexp--case-fold nil)
