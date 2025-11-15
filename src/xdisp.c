@@ -12165,6 +12165,15 @@ message_log_maybe_newline (void)
     message_dolog ("", 0, true, false);
 }
 
+/* Reset the message_log_need_newline flag, for when we split the
+   message into two or more parts, and don't want a newline between
+   them.  */
+
+void
+reset_message_log_need_newline (void)
+{
+  message_log_need_newline = false;
+}
 
 /* Add a string M of length NBYTES to the message log, optionally
    terminated with a newline when NLFLAG is true.  MULTIBYTE, if

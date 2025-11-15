@@ -1130,6 +1130,8 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
 	 we throw any information away.  */
       && !NILP (XCAR (tail)) && NILP (XCDR (tail)))
     {
+      /* Prevent message3 from outputting a newline aftere "user-error:".  */
+      reset_message_log_need_newline ();
       message3 (XCAR (tail));
       return;
     }
