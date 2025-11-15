@@ -3449,7 +3449,7 @@ Check if a node type is available, then return the right indent rules."
                ((parent-is "jsx_fragment") parent js-indent-level)))
     (error
      `(((match "<" "jsx_text") parent 0)
-       ((parent-is "jsx_text") parent js-indent-level)))))
+       ((parent-is "jsx_text") parent-bol js-indent-level)))))
 
 (defun js--treesit-switch-body-helper (_node parent _bol &rest _args)
   "Anchor helper for the switch body..

@@ -141,7 +141,7 @@ Check if a node type is available, then return the right indent rules."
                ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)))
     (treesit-query-error
      `(((match "<" "jsx_text") parent 0)
-       ((parent-is "jsx_text") parent typescript-ts-mode-indent-offset)))))
+       ((parent-is "jsx_text") parent-bol typescript-ts-mode-indent-offset)))))
 
 (defun typescript-ts-mode--anchor-decl (_n parent &rest _)
   "Return the position after the declaration keyword before PARENT.
