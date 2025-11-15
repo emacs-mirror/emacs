@@ -288,7 +288,7 @@
   :group 'languages)
 
 (defface hs-ellipsis
-  '((t :height 0.80 :box (:line-width -1) :inherit default))
+  '((t :height 0.80 :box (:line-width -1) :inherit (shadow default)))
   "Face used for hideshow ellipsis.
 Note: If `selective-display' ellipsis already has a face, hideshow will
 use that face for the ellipsis instead."
@@ -881,30 +881,34 @@ This returns the ellipsis string to use and its face."
          (d-t-ellipsis
           (display-table-slot standard-display-table 'selective-display))
          ;; Convert ellipsis vector to a propertized string
+         (ellipsis
+          (and (vectorp d-t-ellipsis) ; Ensure the vector is not empty
+               (not (length= d-t-ellipsis 0))
+               (mapconcat
+                (lambda (g)
+                  (apply #'propertize (char-to-string (glyph-char g))
+                         (and (glyph-face g) (list 'face (glyph-face g)))))
+                d-t-ellipsis)))
+         (ellipsis-face (and ellipsis (get-text-property 0 'face ellipsis)))
+         (apply-face (lambda (str)
+                       (apply #'propertize str
+                              (and ellipsis-face (list 'face ellipsis-face)))))
+         (lines (when-let* (hs-display-lines-hidden
+                            (l (1- (count-lines b e)))
+                            (l-str (format "%d %s" l
+                                           (if (= l 1) "line" "lines"))))
+                  (funcall apply-face l-str)))
+         (tty-strings (and hs-display-lines-hidden (not (display-graphic-p))))
          (string
-          (if (and (vectorp d-t-ellipsis)
-                   ;; Ensure the vector is not empty
-                   (not (length= d-t-ellipsis 0)))
-              (mapconcat
-               (lambda (g)
-                 (apply #'propertize (char-to-string (glyph-char g))
-                        (if (glyph-face g) (list 'face (glyph-face g)))))
-               d-t-ellipsis)))
-         (string-face (if string (get-text-property 0 'face string)))
-         (lines (if-let* (hs-display-lines-hidden
-                          (l (1- (count-lines b e)))
-                          (l-str (concat (number-to-string l)
-                                         (if (= l 1) " line" " lines"))))
-                    (apply #'propertize l-str
-                           (if string-face
-                               (list 'face string-face))))))
-    (if string-face
-        ;; Return STRING and LINES if STRING has no face
-        (concat lines string)
+          (concat (and tty-strings (funcall apply-face "["))
+                  lines
+                  (or ellipsis (truncate-string-ellipsis))
+                  (and tty-strings (funcall apply-face "]")))))
+    (if ellipsis-face
+        ;; Return ELLIPSIS and LINES if ELLIPSIS has no face
+        string
       ;; Otherwise propertize both with `hs-ellipsis'
-      (propertize
-       (concat lines (or string (truncate-string-ellipsis)))
-       'face 'hs-ellipsis))))
+      (propertize string 'face 'hs-ellipsis))))
 
 (defun hs-isearch-show (ov)
   "Delete overlay OV, and set `hs-headline' to nil.
@@ -1179,7 +1183,7 @@ Return point, or nil if original point was not in a block."
     ;; Search for a hidden block at EOL ...
     (or (eq 'hs (get-char-property (line-end-position) 'invisible))
         ;; ... or behind the current cursor position
-        (eq 'hs (get-char-property (1- (point)) 'invisible)))))
+        (eq 'hs (get-char-property (if (bobp) (point) (1- (point))) 'invisible)))))
 
 ;; This function is not used anymore (Bug#700).
 (defun hs-c-like-adjust-block-beginning (initial)
