@@ -1294,6 +1294,13 @@ The prompts 'opstring' and 'active-opstring' can now either be strings
 or functions.  This is useful when your prompts can benefit from dynamic
 content.
 
+---
+*** New Ibuffer-dedicated faces.
+New faces 'ibuffer-marked', 'ibuffer-deletion', 'ibuffer-title', and
+'ibuffer-filter-group-name'.  By default they inherit from the
+general-purpose faces Ibuffer previously used, to preserve previous
+behavior.
+
 ** ElDoc
 
 ---
