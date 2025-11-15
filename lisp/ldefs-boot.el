@@ -2800,7 +2800,7 @@ disabled.
 (put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 (put 'byte-compile-dynamic-docstrings 'safe-local-variable 'booleanp)
 (put 'byte-compile-error-on-warn 'safe-local-variable 'booleanp)
-(put 'byte-compile-warnings 'safe-local-variable (lambda (v) (or (symbolp v) (null (delq nil (mapcar (lambda (x) (not (symbolp x))) v))))))
+(put 'byte-compile-warnings 'safe-local-variable (lambda (v) (or (symbolp v) (all #'symbolp v))))
 (autoload 'byte-compile-warning-enabled-p "bytecomp" "\
 Return non-nil if WARNING is enabled, according to `byte-compile-warnings'.
 
@@ -5424,7 +5424,7 @@ A `cond*' construct is a series of clauses, and a clause
 normally has the form (CONDITION BODY...).
 
 CONDITION can be a Lisp expression, as in `cond'.
-Or it can be one of`(bind* BINDINGS...)', `(match* PATTERN DATUM)',
+Or it can be one of `(bind* BINDINGS...)', `(match* PATTERN DATUM)',
 or `(pcase* PATTERN DATUM)',
 
 `(bind* BINDINGS...)' means to bind BINDINGS (as if they were in `let*')
@@ -5435,6 +5435,10 @@ and runs the body of the clause if the first binding's value is non-nil.
 `(match* PATTERN DATUM)' means to match DATUM against the pattern PATTERN
 For its patterns, see `match*'.
 The condition counts as true if PATTERN matches DATUM.
+
+`(bind-and* BINDINGS...)' means to bind BINDINGS (as if they were in
+`if-let*') for only the the body of the clause.  If any expression
+evaluates to nil, the condition counts as false.
 
 `(pcase* PATTERN DATUM)' means to match DATUM against the
 pattern PATTERN, using the same pattern syntax as `pcase'.
@@ -5455,7 +5459,84 @@ are passed along to the rest of the clauses in this `cond*' construct.
 \\[match*] for documentation of the patterns for use in `match*'.
 
 (fn &rest CLAUSES)" nil t)
-(register-definition-prefixes "cond-star" '("cond*-" "match*"))
+(autoload 'match* "cond-star" "\
+This specifies matching DATUM against PATTERN.
+It is not really a Lisp function, and it is meaningful
+only in the CONDITION of a `cond*' clause.
+
+`_' matches any value.
+KEYWORD matches that keyword.
+nil  matches nil.
+t    matches t.
+SYMBOL matches any value and binds SYMBOL to that value.
+  If SYMBOL has been matched and bound earlier in this pattern,
+  it matches here the same value that it matched before.
+REGEXP matches a string if REGEXP matches it.
+  The match must cover the entire string from its first char to its last.
+ATOM (meaning any other kind of non-list not described above)
+  matches anything `equal' to it.
+(rx REGEXP) uses a regexp specified in s-expression form,
+  as in the function `rx', and matches the data that way.
+(rx REGEXP SYM0 SYM1...) uses a regexp specified in s-expression form,
+  and binds the symbols SYM0, SYM1, and so on
+  to (match-string 0 DATUM), (match-string 1 DATUM), and so on.
+  You can use as many SYMs as regexp matching supports.
+
+\\=`OBJECT  matches any value `equal' to OBJECT.
+(cons CARPAT CDRPAT)
+  matches a cons cell if CARPAT matches its car and CDRPAT matches its cdr.
+(list ELTPATS...)
+  matches a list if the ELTPATS match its elements.
+  The first ELTPAT should match the list's first element.
+  The second ELTPAT should match the list's second element.  And so on.
+(vector ELTPATS...)
+  matches a vector if the ELTPATS match its elements.
+  The first ELTPAT should match the vector's first element.
+  The second ELTPAT should match the vector's second element.  And so on.
+(cdr PATTERN)  matches PATTERN with strict checking of cdrs.
+  That means that `list' patterns verify that the final cdr is nil.
+  Strict checking is the default.
+(cdr-safe PATTERN)  matches PATTERN with lax checking of cdrs.
+  That means that `list' patterns do not examine the final cdr.
+(and CONJUNCTS...)  matches each of the CONJUNCTS against the same data.
+  If all of them match, this pattern succeeds.
+  If one CONJUNCT fails, this pattern fails and does not try more CONJUNCTS.
+(or DISJUNCTS...)  matches each of the DISJUNCTS against the same data.
+  If one DISJUNCT succeeds, this pattern succeeds
+  and does not try more DISJUNCTs.
+  If all of them fail, this pattern fails.
+(COND*-EXPANDER ...)
+  Here the car is a symbol that has a `cond*-expander' property
+  which defines how to handle it in a pattern.  The property value
+  is a function.  Trying to match such a pattern calls that
+  function with one argument, the pattern in question (including its car).
+  The function should return an equivalent pattern
+  to be matched instead.
+(PREDICATE SYMBOL)
+  matches datum if (PREDICATE DATUM) is true,
+  then binds SYMBOL to DATUM.
+(PREDICATE SYMBOL MORE-ARGS...)
+  matches datum if (PREDICATE DATUM MORE-ARGS...) is true,
+  then binds SYMBOL to DATUM.
+  MORE-ARGS... can refer to symbols bound earlier in the pattern.
+(constrain SYMBOL EXP)
+  matches datum if the form EXP is true.
+  EXP can refer to symbols bound earlier in the pattern.
+
+(fn PATTERN DATUM)" nil t)
+(autoload 'bind* "cond-star" "\
+This macro evaluates BINDINGS like `let*'.
+It is not really a Lisp function, and it is meaningful
+only in the CONDITION of a `cond*' clause.
+
+(fn &rest BINDINGS)" nil t)
+(autoload 'bind-and* "cond-star" "\
+This macro evaluates BINDINGS like `if-let*'.
+It is not really a Lisp function, and it is meaningful
+only in the CONDITION of a `cond*' clause.
+
+(fn &rest BINDINGS)" nil t)
+(register-definition-prefixes "cond-star" '("cond*-"))
 
 
 ;;; Generated autoloads from textmodes/conf-mode.el
@@ -9632,7 +9713,7 @@ Turn on EDT Emulation." t)
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push '(eglot 1 18) package--builtin-versions)
+(push '(eglot 1 19) package--builtin-versions)
 (define-obsolete-function-alias 'eglot-update #'eglot-upgrade-eglot "29.1")
 (autoload 'eglot "eglot" "\
 Start LSP server for PROJECT's buffers under MANAGED-MAJOR-MODES.
@@ -9973,6 +10054,73 @@ mode hooks.
 (fn &optional ARG)" t)
 (make-obsolete 'elide-head 'elide-head-mode "29.1")
 (register-definition-prefixes "elide-head" '("elide-head-"))
+
+
+;;; Generated autoloads from emacs-lisp/elisp-scope.el
+
+(autoload 'elisp-scope-get-symbol-role-property "elisp-scope" "\
+Return value of property PROP for symbol role ROLE.
+
+(fn ROLE PROP)")
+(autoload 'elisp-scope-set-symbol-role-property "elisp-scope" "\
+Set value of property PROP for symbol role ROLE to VALUE.
+
+(fn ROLE PROP VALUE)")
+(autoload 'elisp-scope-symbol-role-p "elisp-scope" "\
+Check whether a symbol SYM is the name of a \"symbol role\".
+
+(fn SYM)")
+(autoload 'elisp-scope-add-symbol-roles-to-describe-symbol "elisp-scope")
+(autoload 'elisp-scope-describe-symbol-role "elisp-scope" "\
+Describe ROLE of a symbol.
+Interactively, prompt for ROLE.
+
+(fn ROLE &rest _)" t)
+(autoload 'elisp-scope-analyze-form "elisp-scope" "\
+Read and analyze code from STREAM, reporting findings via CALLBACK.
+
+Call CALLBACK for each analyzed symbol SYM with arguments ROLE, POS,
+SYM, ID and DEF, where ROLE is a symbol that specifies the semantics of
+SYM; POS is the position of SYM in STREAM; ID is an object that uniquely
+identifies (co-)occurrences of SYM in the current defun; and DEF is the
+position in which SYM is locally defined, or nil.  If SYM is itself a
+binding occurrence, then POS and DEF are equal.  If SYM is not lexically
+bound, then DEF is nil.
+
+If STREAM is nil, it defaults to the current buffer.  When reading from
+the current buffer, this function leaves point at the end of the form.
+
+This function recursively analyzes Lisp forms (HEAD . TAIL), usually
+starting with a top-level form, by inspecting HEAD at each level:
+
+- If HEAD is a symbol with a non-nil `elisp-scope-analyzer' symbol
+  property, then the value of that property specifies a bespoke analzyer
+  function, AF, that is called as (AF HEAD . TAIL) to analyze the form.
+  See more details about writing analyzer functions below.
+
+- If HEAD satisfies `functionp', which means it is a function in the
+  running Emacs session, analzye the form as a function call.
+
+- If HEAD is a safe macro (see `elisp-scope-safe-macro-p'), expand it
+  and analyze the resulting form.
+
+- If HEAD is unknown, then the arguments in TAIL are ignored, unless
+  `elisp-scope-assume-func' is non-nil, in which case they are analyzed
+  as evaluated forms (i.e. HEAD is assumed to be a function).
+
+An analyzer (function specified via the `elisp-scope-analyzer' property)
+can use the functions `elisp-scope-report-s', `elisp-scope-1' and
+`elisp-scope-n' to analyze its arguments, and it can consult the
+variable `elisp-scope-output-spec' to obtain the expected output spec of
+the analyzed form.  For example, the following is a suitable analyzer
+for the `identity' function:
+
+  (lambda (fsym arg)
+    (elisp-scope-report-s fsym \\='function)
+    (elisp-scope-1 arg elisp-scope-output-spec))
+
+(fn CALLBACK &optional STREAM)")
+(register-definition-prefixes "elisp-scope" '("elisp-scope-"))
 
 
 ;;; Generated autoloads from progmodes/elixir-ts-mode.el
@@ -10675,7 +10823,7 @@ Look at CONFIG and try to expand GROUP.
 
 ;;; Generated autoloads from erc/erc.el
 
-(push '(erc 5 6 1 -4) package--builtin-versions)
+(push '(erc 5 6 2 -4) package--builtin-versions)
 (dolist (symbol '( erc-sasl erc-spelling ; 29
                   erc-imenu erc-nicks)) ; 30
  (custom-add-load symbol symbol))
@@ -13298,7 +13446,7 @@ lines.
 
 ;;; Generated autoloads from progmodes/flymake.el
 
-(push '(flymake 1 4 1) package--builtin-versions)
+(push '(flymake 1 4 3) package--builtin-versions)
 (autoload 'flymake-log "flymake" "\
 Log, at level LEVEL, the message MSG formatted with ARGS.
 LEVEL is passed to `display-warning', which is used to display
@@ -16624,44 +16772,7 @@ disabled.
 
 ;;; Generated autoloads from progmodes/hideshow.el
 
-(defvar hs-special-modes-alist '((c-mode "{" "}" "/[*/]" nil nil) (c-ts-mode "{" "}" "/[*/]" nil nil) (c++-mode "{" "}" "/[*/]" nil nil) (c++-ts-mode "{" "}" "/[*/]" nil nil) (bibtex-mode ("@\\S(*\\(\\s(\\)" 1)) (java-mode "{" "}" "/[*/]" nil nil) (java-ts-mode "{" "}" "/[*/]" nil nil) (js-mode "{" "}" "/[*/]" nil) (js-ts-mode "{" "}" "/[*/]" nil) (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil)) "\
-Alist for initializing the hideshow variables for different modes.
-Each element has the form
-  (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC
-   FIND-BLOCK-BEGINNING-FUNC FIND-NEXT-BLOCK-FUNC
-   LOOKING-AT-BLOCK-START-P-FUNC).
-
-If non-nil, hideshow will use these values as regexps to define blocks
-and comments, respectively for major mode MODE.
-
-START, END and COMMENT-START are regular expressions.  A block is
-defined as text surrounded by START and END.
-
-As a special case, START may be a list of the form (COMPLEX-START
-MDATA-SELECTOR), where COMPLEX-START is a regexp with multiple parts and
-MDATA-SELECTOR an integer that specifies which sub-match is the proper
-place to adjust point, before calling `hs-forward-sexp-func'.  Point
-is adjusted to the beginning of the specified match.  For example,
-see the `hs-special-modes-alist' entry for `bibtex-mode'.
-
-For some major modes, `forward-sexp' does not work properly.  In those
-cases, FORWARD-SEXP-FUNC specifies another function to use instead.
-
-See the documentation for `hs-adjust-block-beginning' to see what is the
-use of ADJUST-BEG-FUNC.
-
-See the documentation for `hs-find-block-beginning-func' to see
-what is the use of FIND-BLOCK-BEGINNING-FUNC.
-
-See the documentation for `hs-find-next-block-func' to see what
-is the use of FIND-NEXT-BLOCK-FUNC.
-
-See the documentation for `hs-looking-at-block-start-p-func' to
-see what is the use of LOOKING-AT-BLOCK-START-P-FUNC.
-
-If any of the elements is left nil or omitted, hideshow tries to guess
-appropriate values.  The regexps should not contain leading or trailing
-whitespace.  Case does not matter.")
+(defvar hs-special-modes-alist nil)
 (autoload 'hs-minor-mode "hideshow" "\
 Minor mode to selectively hide/show code and comment blocks.
 
@@ -16964,48 +17075,72 @@ disabled.
 
 (defvar holiday-general-holidays '((holiday-fixed 1 1 "New Year's Day") (holiday-float 1 1 3 "Martin Luther King Day") (holiday-fixed 2 2 "Groundhog Day") (holiday-fixed 2 14 "Valentine's Day") (holiday-float 2 1 3 "President's Day") (holiday-fixed 3 17 "St. Patrick's Day") (holiday-fixed 4 1 "April Fools' Day") (holiday-float 5 0 2 "Mother's Day") (holiday-float 5 1 -1 "Memorial Day") (holiday-fixed 6 14 "Flag Day") (holiday-float 6 0 3 "Father's Day") (holiday-fixed 7 4 "Independence Day") (holiday-float 9 1 1 "Labor Day") (holiday-float 10 1 2 "Columbus Day") (holiday-fixed 10 31 "Halloween") (holiday-fixed 11 11 "Veteran's Day") (holiday-float 11 4 4 "Thanksgiving")) "\
 General holidays.  Default value is for the United States.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-general-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-general-holidays "holidays" nil)
 (put 'holiday-general-holidays 'risky-local-variable t)
 (defvar holiday-oriental-holidays '((holiday-chinese-new-year) (if calendar-chinese-all-holidays-flag (append (holiday-chinese 1 15 "Lantern Festival") (holiday-chinese-qingming) (holiday-chinese 5 5 "Dragon Boat Festival") (holiday-chinese 7 7 "Double Seventh Festival") (holiday-chinese 8 15 "Mid-Autumn Festival") (holiday-chinese 9 9 "Double Ninth Festival") (holiday-chinese-winter-solstice)))) "\
 Oriental holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-oriental-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-oriental-holidays "holidays" nil)
 (put 'holiday-oriental-holidays 'risky-local-variable t)
 (defvar holiday-local-holidays nil "\
 Local holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-local-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-local-holidays "holidays" nil)
 (put 'holiday-local-holidays 'risky-local-variable t)
 (defvar holiday-other-holidays nil "\
 User defined holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-other-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-other-holidays "holidays" nil)
 (put 'holiday-other-holidays 'risky-local-variable t)
 (defvar holiday-hebrew-holidays '((holiday-hebrew-passover) (holiday-hebrew-rosh-hashanah) (holiday-hebrew-hanukkah) (if calendar-hebrew-all-holidays-flag (append (holiday-hebrew-tisha-b-av) (holiday-hebrew-misc)))) "\
 Jewish holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-hebrew-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-hebrew-holidays "holidays" nil)
 (put 'holiday-hebrew-holidays 'risky-local-variable t)
 (defvar holiday-christian-holidays '((holiday-easter-etc) (holiday-fixed 12 25 "Christmas") (if calendar-christian-all-holidays-flag (append (holiday-fixed 1 6 "Epiphany") (holiday-julian 12 25 "Christmas (Julian calendar)") (holiday-greek-orthodox-easter) (holiday-fixed 8 15 "Assumption") (holiday-advent 0 "Advent")))) "\
 Christian holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-christian-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-christian-holidays "holidays" nil)
 (put 'holiday-christian-holidays 'risky-local-variable t)
 (defvar holiday-islamic-holidays '((holiday-islamic-new-year) (holiday-islamic 9 1 "Ramadan Begins") (if calendar-islamic-all-holidays-flag (append (holiday-islamic 1 10 "Ashura") (holiday-islamic 3 12 "Mulad-al-Nabi") (holiday-islamic 7 26 "Shab-e-Mi'raj") (holiday-islamic 8 15 "Shab-e-Bara't") (holiday-islamic 9 27 "Shab-e Qadr") (holiday-islamic 10 1 "Id-al-Fitr") (holiday-islamic 12 10 "Id-al-Adha")))) "\
 Islamic holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-islamic-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-islamic-holidays "holidays" nil)
 (put 'holiday-islamic-holidays 'risky-local-variable t)
 (defvar holiday-bahai-holidays '((holiday-bahai-new-year) (holiday-bahai-ridvan) (holiday-fixed 5 23 "Declaration of the Báb") (holiday-fixed 5 29 "Ascension of Bahá’u’lláh") (holiday-fixed 7 9 "Martyrdom of the Báb") (holiday-fixed 10 20 "Birth of the Báb") (holiday-fixed 11 12 "Birth of Bahá’u’lláh") (if calendar-bahai-all-holidays-flag (append (holiday-fixed 11 26 "Day of the Covenant") (holiday-fixed 11 28 "Ascension of `Abdu’l-Bahá")))) "\
 Bahá’í holidays.
 See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-bahai-holidays "holidays" t)
+(custom-autoload 'holiday-bahai-holidays "holidays" nil)
 (put 'holiday-bahai-holidays 'risky-local-variable t)
 (defvar holiday-solar-holidays '((solar-equinoxes-solstices) (holiday-sexp calendar-daylight-savings-starts (format "Daylight Saving Time Begins %s" (solar-time-string (/ calendar-daylight-savings-starts-time (float 60)) calendar-standard-time-zone-name))) (holiday-sexp calendar-daylight-savings-ends (format "Daylight Saving Time Ends %s" (solar-time-string (/ calendar-daylight-savings-ends-time (float 60)) calendar-daylight-time-zone-name)))) "\
 Sun-related holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-solar-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-solar-holidays "holidays" nil)
 (put 'holiday-solar-holidays 'risky-local-variable t)
 (put 'calendar-holidays 'risky-local-variable t)
 (autoload 'holidays "holidays" "\
@@ -17041,7 +17176,7 @@ values.
 
 (fn Y1 &optional Y2 L LABEL)" t)
 (defalias 'holiday-list 'list-holidays)
-(register-definition-prefixes "holidays" '("calendar-" "holiday-"))
+(register-definition-prefixes "holidays" '("calendar-" "holiday"))
 
 
 ;;; Generated autoloads from cedet/semantic/html.el
@@ -17786,6 +17921,13 @@ be determined.
 
 (fn FILE)")
 (make-obsolete 'image-type-from-file-name 'image-supported-file-p "29.1")
+(autoload 'image-supported-file-p "image" "\
+Return non-nil if Emacs can display the specified image FILE.
+The returned value is a symbol specifying the image type of FILE,
+or nil if Emacs cannot display that image type or if the type
+cannot be determined.
+
+(fn FILE)")
 (autoload 'image-type "image" "\
 Determine and return image type.
 SOURCE is an image file name or image data.
@@ -18903,9 +19045,14 @@ For example, invoke \"emacs -batch -f batch-info-validate $info/ ~/*.info\"")
 
 (autoload 'define-inline "inline" "\
 Define an inline function NAME with arguments ARGS and body in BODY.
+This is halfway between `defmacro' and `defun'.  BODY is used as a blueprint
+both for the body of the function and for the body of the compiler-macro
+used to generate the code inlined at each call site.
+See Info node `(elisp)Inline Functions for more details.
 
-This is like `defmacro', but has several advantages.
-See Info node `(elisp)Defining Functions' for more details.
+A (noinline t) in the `declare' form prevents the definition of the
+compiler macro.  This is for the rare case in which you want to use this
+macro to define a function that should not be inlined.
 
 (fn NAME ARGS &rest BODY)" nil t)
 (function-put 'define-inline 'lisp-indent-function 'defun)
@@ -19444,7 +19591,7 @@ Major mode for editing JSON, powered by tree-sitter.
 
 ;;; Generated autoloads from jsonrpc.el
 
-(push '(jsonrpc 1 0 25) package--builtin-versions)
+(push '(jsonrpc 1 0 26) package--builtin-versions)
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
 
@@ -19904,15 +20051,15 @@ sleep in seconds.
 (put 'generated-autoload-file 'safe-local-variable 'stringp)
 (put 'generated-autoload-load-name 'safe-local-variable 'stringp)
 (autoload 'loaddefs-generate "loaddefs-gen" "\
-Generate loaddefs files for Lisp files in one or more directories given by DIR.
-DIR can be either a single directory or a list of directories.
+Generate loaddefs files for Lisp files in directories given by DIRS.
+DIRS can be either a single directory or a list of directories.
 
 The autoloads will be written to OUTPUT-FILE.  If any Lisp file
 binds `generated-autoload-file' as a file-local variable, write
 its autoloads into the specified file instead.
 
-The function does NOT recursively descend into subdirectories of the
-directories specified by DIR.
+This function does NOT recursively descend into subdirectories of the
+directories specified by DIRS.
 
 Optional argument EXCLUDED-FILES, if non-nil, should be a list of
 files, such as preloaded files, whose autoloads should not be written
@@ -19928,7 +20075,7 @@ If INCLUDE-PACKAGE-VERSION is non-nil, include package version data.
 If GENERATE-FULL is non-nil, regenerate all the loaddefs files anew,
 instead of just updating them with the new/changed autoloads.
 
-(fn DIR OUTPUT-FILE &optional EXCLUDED-FILES EXTRA-DATA INCLUDE-PACKAGE-VERSION GENERATE-FULL)")
+(fn DIRS OUTPUT-FILE &optional EXCLUDED-FILES EXTRA-DATA INCLUDE-PACKAGE-VERSION GENERATE-FULL)")
 (autoload 'loaddefs-generate-batch "loaddefs-gen" "\
 Generate loaddefs.el files in batch mode.
 This scans for ;;;###autoload forms and related things.
@@ -22197,6 +22344,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `mouse-wheel-mode'.")
 (custom-autoload 'mouse-wheel-mode "mwheel" nil)
+(when (bound-and-true-p mouse-wheel-mode) (add-to-list 'global-minor-modes 'mouse-wheel-mode))
 (autoload 'mouse-wheel-mode "mwheel" "\
 Toggle mouse wheel support (Mouse Wheel mode).
 
@@ -31732,6 +31880,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `gpm-mouse-mode'.")
 (custom-autoload 'gpm-mouse-mode "t-mouse" nil)
+(when (bound-and-true-p gpm-mouse-mode) (add-to-list 'global-minor-modes 'gpm-mouse-mode))
 (autoload 'gpm-mouse-mode "t-mouse" "\
 Toggle mouse support in GNU/Linux consoles (GPM Mouse mode).
 
@@ -35439,7 +35588,7 @@ Usage:
 :load-path       Add to the `load-path' before attempting to load the package.
 :diminish        Support for diminish.el (if installed).
 :delight         Support for delight.el (if installed).
-:custom          Call `Custom-set' or `set-default' with each variable
+:custom          Call `customize-set-variable' on each variable
                  definition without modifying the Emacs `custom-file'.
                  (compare with `custom-set-variables').
 :custom-face     Call `face-spec-set' with each face definition.
@@ -35731,7 +35880,7 @@ prefix argument is given, in which case prompt for a file FILE to
 remove from the list of ignored files.
 
 (fn FILE &optional DIRECTORY REMOVE)" t)
-(autoload 'vc-revision-cherry-pick "vc" "\
+(autoload 'vc-cherry-pick "vc" "\
 Copy the changes from a single revision REV to the current branch.
 When called interactively, prompts for REV.
 Typically REV is a revision from another branch, where that branch is
@@ -35756,9 +35905,43 @@ COMMENT and INITIAL-CONTENTS optional arguments:
 Optional argument BACKEND is the VC backend to use.
 
 (fn REV &optional COMMENT INITIAL-CONTENTS BACKEND)" t)
-(autoload 'vc-revision-revert "vc" "\
+(autoload 'vc-revert-or-delete-revision "vc" "\
 Undo the effects of revision REV.
 When called interactively, prompts for REV.
+
+When called interactively (or with optional argument INTERACTIVE
+non-nil), then if the underlying VCS is distributed and REV has not been
+pushed, offer to entirely delete REV.
+This is instead of creating a new commit undoing the effects of REV.
+
+With a prefix argument (or with optional argument DELETE non-nil),
+only consider deleting REV, never create a new commit.
+In this case INTERACTIVE is ignored.
+This works only if REV has not been pushed, unless you have customized
+`vc-allow-rewriting-published-history' to a non-nil value.
+
+When called from Lisp, there are three calling conventions for the
+COMMENT and INITIAL-CONTENTS optional arguments:
+- COMMENT a string, INITIAL-CONTENTS nil means use that comment string
+  without prompting the user to edit it.
+- COMMENT a string, INITIAL-CONTENTS non-nil means use that comment
+  string as the initial contents of the log entry buffer but stop for
+  editing.
+- COMMENT t means use BACKEND's default revert comment for REV without
+  prompting for editing, and ignore INITIAL-CONTENTS.
+
+Optional argument BACKEND is the VC backend to use.
+
+See also `vc-revert-revision'.
+
+(fn REV &optional INTERACTIVE DELETE COMMENT INITIAL-CONTENTS BACKEND)" t)
+(autoload 'vc-revert-revision "vc" "\
+Make a commit undoing the effects of revision REV.
+When called interactively, prompts for REV.
+
+This is like `vc-revert-or-delete-revision' except that it only ever
+makes a new commit undoing the effects of REV, instead of considering
+VCS-specific alternative mechanisms to undo the effects of REV.
 
 When called from Lisp, there are three calling conventions for the
 COMMENT and INITIAL-CONTENTS optional arguments:
@@ -35773,6 +35956,15 @@ COMMENT and INITIAL-CONTENTS optional arguments:
 Optional argument BACKEND is the VC backend to use.
 
 (fn REV &optional COMMENT INITIAL-CONTENTS BACKEND)" t)
+(autoload 'vc-delete-revision "vc" "\
+Delete revision REV from the revision history.
+This works only if REV has not been pushed, unless you have customized
+`vc-allow-rewriting-published-history' to a non-nil value.
+
+This is the same as `vc-revert-or-delete-revision' invoked interactively
+with a prefix argument.
+
+(fn REV &optional BACKEND)" t)
 (autoload 'vc-version-diff "vc" "\
 Report diffs between revisions REV1 and REV2 in the repository history.
 This compares two revisions of the current fileset.
@@ -36173,8 +36365,8 @@ file names.
 
 (fn FILE-OR-FILES)" t)
 (autoload 'vc-rename-file "vc" "\
-Rename file OLD to NEW in both work area and repository.
-If called interactively, read OLD and NEW, defaulting OLD to the
+Rename file OLD to NEW in both working tree and repository.
+When called interactively, read OLD and NEW, defaulting OLD to the
 current buffer's file name if it's under version control.
 
 (fn OLD NEW)" t)
@@ -36397,23 +36589,33 @@ type returned by `vc-dir-bookmark-make-record'.
 ;;; Generated autoloads from vc/vc-dispatcher.el
 
 (autoload 'vc-do-command "vc-dispatcher" "\
-Execute a slave command, notifying user and checking for errors.
-Output from COMMAND goes to BUFFER, or the current buffer if
-BUFFER is t.  If the destination buffer is not already current,
-set it up properly and erase it.  The command is considered
-successful if its exit status does not exceed OKSTATUS (if
-OKSTATUS is nil, that means to ignore error status, if it is
-`async', that means not to wait for termination of the
-subprocess; if it is t it means to ignore all execution errors).
+Execute an inferior command, notifying user and checking for errors.
+
+DESTINATION specifies what to do with COMMAND's output.  It can be a
+buffer or the name of a buffer to insert output there, t to mean the
+current buffer, or nil to discard output.
+DESTINATION can also have the form (REAL-BUFFER STDERR-FILE); in that
+case, REAL-BUFFER says what to do with standard output, as above, while
+STDERR-FILE says what to do with standard error in the child.
+STDERR-FILE may only be nil which means to discard standard error
+output or t which means to mix it with standard output.
+If the destination for standard output is a buffer that is not the
+current buffer, set up the buffer properly and erase it.
+
+OKSTATUS `async' means not to wait for termination of the subprocess and
+return the process object.  Otherwise, OKSTATUS determines when to
+signal an error instead of returning a numeric exit status or signal
+description string.  OKSTATUS an integer means to signal an error if the
+command's exit status exceeds that value or the command is killed by a
+signal, nil means to signal an error only if the command is killed by a
+signal, and t means never to signal an error.
+
 FILE-OR-LIST is the name of a working file; it may be a list of
 files or be nil (to execute commands that don't expect a file
 name or set of files).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename.
 
-Return the return value of the slave command in the synchronous
-case, and the process object in the asynchronous case.
-
-(fn BUFFER OKSTATUS COMMAND FILE-OR-LIST &rest FLAGS)")
+(fn DESTINATION OKSTATUS COMMAND FILE-OR-LIST &rest FLAGS)")
 (register-definition-prefixes "vc-dispatcher" '("vc-"))
 
 
@@ -36575,7 +36777,7 @@ Key bindings:
 
 ;;; Generated autoloads from progmodes/verilog-mode.el
 
-(push '(verilog-mode 2025 1 1 100165202) package--builtin-versions)
+(push '(verilog-mode 2025 11 8 248496848) package--builtin-versions)
 (autoload 'verilog-mode "verilog-mode" "\
 Major mode for editing Verilog code.
 \\<verilog-mode-map>
@@ -38620,6 +38822,7 @@ Non-nil if Windmove mode is enabled.
 See the `windmove-mode' command
 for a description of this minor mode.")
 (custom-autoload 'windmove-mode "windmove" nil)
+(when (bound-and-true-p windmove-mode) (add-to-list 'global-minor-modes 'windmove-mode))
 (autoload 'windmove-mode "windmove" "\
 Global minor mode for default windmove commands.
 
@@ -38636,8 +38839,6 @@ evaluate `(default-value \\='windmove-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
-
-\\{windmove-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'windmove-default-keybindings "windmove" "\
@@ -39367,74 +39568,6 @@ run a specific program.  The program must be a member of
 
 (fn &optional PGM)" t)
 (register-definition-prefixes "zone" '("zone-"))
-
-
-;;; Generated autoloads from emacs-lisp/elisp-scope.el
-
-(autoload 'elisp-scope-get-symbol-role-property "elisp-scope" "\
-Return value of property PROP for symbol role ROLE.
-
-(fn ROLE PROP)")
-(autoload 'elisp-scope-set-symbol-role-property "elisp-scope" "\
-Set value of property PROP for symbol role ROLE to VALUE.
-
-(fn ROLE PROP VALUE)")
-(autoload 'elisp-scope-symbol-role-p "elisp-scope" "\
-Check whether a symbol SYM is the name of a \"symbol role\".
-
-(fn SYM)")
-(autoload 'elisp-scope-add-symbol-roles-to-describe-symbol "elisp-scope")
-(autoload 'elisp-scope-describe-symbol-role "elisp-scope" "\
-Describe ROLE of a symbol.
-Interactively, prompt for ROLE.
-
-(fn ROLE &rest _)" t)
-(autoload 'elisp-scope-analyze-form "elisp-scope" "\
-Read and analyze code from STREAM, reporting findings via CALLBACK.
-
-Call CALLBACK for each analyzed symbol SYM with arguments ROLE, POS,
-LEN, ID and DEF, where ROLE is a symbol that specifies the semantics of
-SYM; POS is the position of SYM in STREAM; LEN is SYM's length; ID is an
-object that uniquely identifies (co-)occurrences of SYM in the current
-defun; and DEF is the position in which SYM is locally defined, or nil.
-If SYM is itself a binding occurrence, then POS and BINDER are equal.
-If SYM is not lexically bound, then BINDER is nil.  This function
-ignores `read-symbol-shorthands', so SYM and LEN always correspond to
-the symbol as it appears in STREAM.
-
-If STREAM is nil, it defaults to the current buffer.
-
-This function recursively analyzes Lisp forms (HEAD . TAIL), usually
-starting with a top-level form, by inspecting HEAD at each level:
-
-- If HEAD is a symbol with a non-nil `elisp-scope-analyzer' symbol
-  property, then the value of that property specifies a bespoke analzyer
-  function, AF, that is called as (AF HEAD . TAIL) to analyze the form.
-  See more details about writing analyzer functions below.
-
-- If HEAD satisfies `functionp', which means it is a function in the
-  running Emacs session, analzye the form as a function call.
-
-- If HEAD is a safe macro (see `elisp-scope-safe-macro-p'), expand it
-  and analyze the resulting form.
-
-- If HEAD is unknown, then the arguments in TAIL are ignored, unless
-  `elisp-scope-assume-func' is non-nil, in which case they are analyzed
-  as evaluated forms (i.e. HEAD is assumed to be a function).
-
-An analyzer (function specified via the `elisp-scope-analyzer' property)
-can use the functions `elisp-scope-report-s', `elisp-scope-1' and
-`elisp-scope-n' to analyze its arguments, and it can consult the
-variable `elisp-scope-output-spec' to obtain the expected output spec of
-the analyzed form.  For example, the following is a suitable analyzer
-for the `identity' function:
-
-  (lambda (fsym arg)
-    (elisp-scope-report-s fsym \\='function)
-    (elisp-scope-1 arg elisp-scope-output-spec))
-
-(fn CALLBACK &optional STREAM)")
-(register-definition-prefixes "elisp-scope" '("elisp-scope-"))
 
 ;;; End of scraped data
 
