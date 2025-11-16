@@ -4472,7 +4472,16 @@ if test "$with_xwidgets" != "no"; then
     dnl FIXME: Check framework WebKit2
     dnl WEBKIT_REQUIRED=M.m.p
     WEBKIT_LIBS="-Wl,-framework -Wl,WebKit"
-    WEBKIT_CFLAGS="-I/System/Library/Frameworks/WebKit.framework/Headers"
+    WEBKIT_HEADERS="/System/Library/Frameworks/WebKit.framework/Headers"
+    if test -z "$xcsdkdir" -a -n "$XCRUN" -a ! -d "${WEBKIT_HEADERS}"; then
+      dnl WebKit headers not found.  Try Xcode SDK dir if it is sane.
+      xcsdkdir=`$XCRUN --show-sdk-path 2>/dev/null`
+      case $xcsdkdir in
+	*[[\\\"\#\$\&\'\`$am_lf\ \	]]*)
+	xcsdkdir="" ;;
+      esac
+    fi
+    WEBKIT_CFLAGS="-I${xcsdkdir}${WEBKIT_HEADERS}"
     HAVE_WEBKIT="yes"
     HAVE_XWIDGETS=$HAVE_WEBKIT
     XWIDGETS_OBJ="xwidget.o"
