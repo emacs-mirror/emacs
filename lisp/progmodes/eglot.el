@@ -4621,10 +4621,14 @@ If NOERROR, return predicate, else erroring function."
            semtok-cache)
         probe))))
 
-(defvar-local eglot--semtok-cache nil "Recent semtok responses.")
+(defvar-local eglot--semtok-cache nil
+  "List of plists describing recent semtok response.
+See `eglot--semtok-request' implementation for details.")
 
 (defvar-local eglot--semtok-inflight (make-hash-table)
-  "Info about inflight semtok requests.")
+  "Map of JSONRPC request ID to (METHOD DOCVER . REGIONS).
+REGIONS is a list of (BEG . END) of positions that can be serviced by
+this request.")
 
 (cl-defmethod eglot-handle-request
   (server (_method (eql workspace/semanticTokens/refresh)))
@@ -4807,10 +4811,6 @@ lock machinery calls us again."
       finally (cl-return (cons napplied 'normal))))))
 
 (defun eglot--semtok-font-lock-2 (beg end)
-  ;; JT@2025-11-11: FIXME: I wish I didn't need this kludge but the
-  ;; faces applied earlier with `add-face-text-property' from
-  ;; `eglot--semtok-font-lock-1' disappear for a moment while the
-  ;; request is in flight.
   "Repaint from stale-but-not-that-much local properties."
   (eglot--widening
    (with-silent-modifications
