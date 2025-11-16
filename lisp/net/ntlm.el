@@ -6,6 +6,7 @@
 ;; Maintainer: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Keywords: NTLM, SASL, comm
 ;; Version: 2.1.0
+;; Package-Requires: ((emacs "27.1"))
 ;; Created: February 2001
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -228,11 +229,12 @@ Return a random eight byte unibyte string."
    (random 256) (random 256) (random 256) (random 256)))
 
 (defun ntlm-build-auth-response (challenge user password-hashes)
-  "Return the response string to a challenge string CHALLENGE given by
-the NTLM based server for the user USER and the password hash list
-PASSWORD-HASHES.  NTLM uses two hash values which are represented
-by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
- (list (ntlm-smb-passwd-hash password) (ntlm-md4hash password))"
+  "Return the NTLM authentication response string.
+Return the response string to a challenge string CHALLENGE given by the
+NTLM based server for the user USER and the password hash list
+PASSWORD-HASHES.  NTLM uses two hash values which are represented by
+PASSWORD-HASHES.  PASSWORD-HASHES should be the return value
+of (list (ntlm-smb-passwd-hash password) (ntlm-md4hash password))"
   (let* ((rchallenge (if (multibyte-string-p challenge)
                          (progn
                            ;; FIXME: Maybe it would be better to
@@ -615,7 +617,7 @@ length of STR is LEN."
     (concat (substring str c len) (substring str 0 c))))
 
 (defsubst ntlm-string-xor (in1 in2 n)
-  "Return exclusive-or of sequences in1 and in2."
+  "Return exclusive-or of sequences IN1 and IN2 of length N."
   (let ((w (make-string n 0)) (i 0))
     (while (< i n)
       (aset w i (logxor (aref in1 i) (aref in2 i)))
