@@ -396,3 +396,41 @@ extern int emacs_setenv_TZ (char const *);
     : S_ISCHR (mode) ? DT_CHR : S_ISFIFO (mode) ? DT_FIFO \
     : S_ISSOCK (mode) ? DT_SOCK : DT_UNKNOWN)
 #endif /* MSDOS */
+
+#if defined WINDOWSNT
+# if !defined _UCRT
+#  include <stdarg.h>
+#  include <stdio.h>
+#  include <stddef.h>
+
+/* Workarounds for MSVCRT bugs.
+
+   The functions below are in Gnulib, but their prototypes and
+   redirections must be here because the MS-Windows build omits the
+   Gnulib stdio-h module, which does the below in Gnulib's stdio.h
+   file, which is not used by the MS-Windows build.  */
+
+extern size_t gl_consolesafe_fwrite (const void *ptr, size_t size,
+				     size_t nmemb, FILE *fp)
+  ARG_NONNULL ((1, 4));
+extern int gl_consolesafe_fprintf (FILE *restrict fp,
+				   const char *restrict format, ...)
+  ATTRIBUTE_FORMAT_PRINTF (2, 3)
+  ARG_NONNULL ((1, 2));
+extern int gl_consolesafe_printf (const char *restrict format, ...)
+  ATTRIBUTE_FORMAT_PRINTF (1, 2)
+  ARG_NONNULL ((1));
+extern int gl_consolesafe_vfprintf (FILE *restrict fp,
+				    const char *restrict format, va_list args)
+  ATTRIBUTE_FORMAT_PRINTF (2, 0)
+  ARG_NONNULL ((1, 2));
+extern int gl_consolesafe_vprintf (const char *restrict format, va_list args)
+  ATTRIBUTE_FORMAT_PRINTF (1, 0)
+  ARG_NONNULL ((1));
+#  define fwrite gl_consolesafe_fwrite
+#  define fprintf gl_consolesafe_fprintf
+#  define printf gl_consolesafe_printf
+#  define vfprintf gl_consolesafe_vfprintf
+#  define vprintf gl_consolesafe_vprintf
+# endif	/* !_UCRT */
+#endif	/* WINDOWSNT */
