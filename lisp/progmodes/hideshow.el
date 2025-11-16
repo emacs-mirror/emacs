@@ -841,27 +841,8 @@ point."
 
   (while (not (>= (point) end))
     (save-excursion
-      (let (exit)
-        (while (and (not exit)
-                    (funcall hs-find-next-block-function hs-block-start-regexp (pos-eol) nil))
-          (when-let* ((b-beg (match-beginning 0))
-                      (_ (save-excursion
-                           (goto-char b-beg)
-                           (funcall hs-looking-at-block-start-predicate)))
-                      ;; `catch' is used here if the search fails due
-                      ;; unbalanced parentheses or any other unknown error
-                      ;; caused in `hs-forward-sexp'.
-                      (b-end (catch 'hs-indicator-error
-                               (save-excursion
-                                 (goto-char b-beg)
-                                 (condition-case _
-                                     (funcall hs-forward-sexp-function 1)
-                                   (scan-error (throw 'hs-indicator-error nil)))
-                                 (point))))
-                      ;; Check if block is longer than 1 line.
-                      (_ (hs-hideable-region-p b-beg b-end)))
-            (hs--make-indicators-overlays b-beg)
-            (setq exit t)))))
+      (when-let* ((b-beg (hs-get-first-block)))
+        (hs--make-indicators-overlays b-beg)))
     ;; Only 1 indicator per line
     (forward-line))
   `(jit-lock-bounds ,beg . ,end))
@@ -1001,6 +982,22 @@ Otherwise, return nil."
               (hs-make-overlay p q 'code (- (match-end 0) p)))
           (goto-char (if end q (min p (match-end 0))))
           nil)))))
+
+(defun hs-get-first-block ()
+  "Return the position of the first valid block found on the current line.
+This searches for a valid block on the current line and returns the
+first block found.  Otherwise, if no block is found, it returns nil."
+  (let (exit)
+    (while (and (not exit)
+                (funcall hs-find-next-block-function
+                         hs-block-start-regexp
+                         (line-end-position) nil)
+                (save-excursion
+                  (goto-char (match-beginning 0))
+                  (if (hs-hideable-region-p)
+                      (setq exit (match-beginning 0))
+                    t))))
+    exit))
 
 (defun hs-inside-comment-p ()
   (declare (obsolete "Call `hs-inside-comment-predicate' instead." "31.1"))
@@ -1274,21 +1271,11 @@ Upon completion, point is repositioned and the normal hook
       (c-reg (hs-hide-block-at-point end c-reg))
 
       ((save-excursion
-         (and (eq hs-hide-block-behavior 'after-bol)
-              (goto-char (line-beginning-position))
-              (let (exit)
-                (while (and (not exit)
-                            (funcall hs-find-next-block-function
-                                     hs-block-start-regexp
-                                     (line-end-position) nil)
-                            (save-excursion
-                              (goto-char (match-beginning 0))
-                              (if (hs-hideable-region-p)
-                                  (setq exit t)
-                                t))))
-                exit)
-              (goto-char (match-beginning 0))
-              (hs-hide-block-at-point end))))
+         (and-let* ((_ (eq hs-hide-block-behavior 'after-bol))
+                    (_ (goto-char (line-beginning-position)))
+                    (pos (hs-get-first-block))
+                    (_ (goto-char pos))
+                    (_ (hs-hide-block-at-point end))))))
 
       ((or (funcall hs-looking-at-block-start-predicate)
            (and (goto-char (line-beginning-position))
