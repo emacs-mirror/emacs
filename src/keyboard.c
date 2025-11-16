@@ -1846,16 +1846,15 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 	     modified, but only if the invisible text is not shown on
 	     display.  If it _is_ shown, we don't need to move point,
 	     since the normal display of the cursor will DTRT.
-	     Invisible text might be "shown on display" if there's an
-	     overlay with a replacing display property on the same text:
-	     then whatever is specified by the display property will be
-	     shown instead of the invisible text.  */
+	     Invisible text might be "shown on display" if there's a
+	     replacing display property on the same text: then whatever
+	     is specified by the display property will be shown instead
+	     of the invisible text.  */
 	  bool shown =
 	    !NILP (val = get_char_property_and_overlay
 			   (make_fixnum (beg), Qdisplay, selected_window,
 			    &overlay))
-	    && display_prop_intangible_p (val, overlay, beg, CHAR_TO_BYTE (beg))
-	    && OVERLAYP (overlay);
+	    && display_prop_intangible_p (val, overlay, beg, CHAR_TO_BYTE (beg));
 
 	  /* If the "invisible" text is shown, undo any point
              adjustments due to invisible property, as cursor
