@@ -6469,14 +6469,14 @@ its prefixes and suffixes removed; otherwise return BUFFER's
 WINDOW can be any window and defaults to the root window of the
 selected frame.
 
-Optional argument WRITABLE non-nil means do not use markers for
-sampling `window-point' and `window-start'.  Together, WRITABLE
-and the variable `window-persistent-parameters' specify which
-window parameters are saved by this function.  WRITABLE should be
-non-nil when the return value shall be written to a file and read
-back in another session.  Otherwise, an application may run into
-an `invalid-read-syntax' error while attempting to read back the
-value from file.
+Optional argument WRITABLE non-nil means do not use markers for sampling
+`window-point' and `window-start'.  Together, WRITABLE and the variable
+`window-persistent-parameters' specify which parameters of WINDOW to
+save.  By default, this is the `clone-of' parameter if WRITABLE is nil.
+WRITABLE should be non-nil when the return value shall be written to a
+file and read back in another session.  Otherwise, an application may
+run into an `invalid-read-syntax' error while attempting to read back
+the value from file.
 
 The return value can be used as argument for `window-state-put'
 to put the state recorded here into an arbitrary window.  The
@@ -6761,6 +6761,10 @@ invocation of `window-state-get'.  Optional argument WINDOW must
 specify a valid window.  If WINDOW is not a live window,
 replace WINDOW by a new live window created on the same frame.
 If WINDOW is nil, create a new window before putting STATE into it.
+
+Assign all window parameters that have been stored in STATE.  By
+default, this is the `clone-of’ parameter provided STATE was obtained
+from an invocation of `window-state-get’ with WRITABLE nil.
 
 Optional argument IGNORE non-nil means ignore minimum window
 sizes and fixed size restrictions.  IGNORE equal `safe' means
