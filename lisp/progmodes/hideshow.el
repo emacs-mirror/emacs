@@ -469,15 +469,17 @@ info node `(elisp)Overlays'."
   :version "28.1")
 
 (defcustom hs-cycle-filter nil
-  "Control where \\`TAB' cycles the visibility.
-This option controls where on a line where a block begins, typing
-the key sequences bound to the visibility-cycling commands like
-`hs-toggle-hiding' will invoke those commands.  When t, you can invoke
-these commands by typing \\`TAB' anywhere on a headline.  Customizing
-this option to other values can make those bindings be in effect only at
-specific positions on the headline, like only at the line's beginning or
-line's end.  This allows these keys to be bound to their usual commands,
-as determined by the major mode, elsewhere on the headlines."
+  "Control where typing a \\`TAB' cycles the visibility.
+This option determines on which parts of a line where a block
+begins \\`TAB' will be bound to visibility-cycling commands such
+as `hs-toggle-hiding'.  The value t means you can type \\`TAB'
+anywhere on a headline.  The value nil means \\`TAB' always has its
+usual binding.  The value can also be a function of no arguments,
+then \\`TAB' will invoke the visibility-cycling commands where that
+function returns non-nil.  For example, if the value is `bolp',
+those commands will be invoked at the headline's beginning.
+This allows to preserve the usual bindings, as determined by the
+major mode, elsewhere on the headlines."
   :type `(choice (const :tag "Nowhere" nil)
                  (const :tag "Everywhere on the headline" t)
                  (const :tag "At block beginning"

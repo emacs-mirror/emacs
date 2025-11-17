@@ -1774,10 +1774,12 @@ disabled; the value of @code{nil} will activate the indicators
 regardless of the buffer size.
 
 @item hs-cycle-filter
-This variable controls where on the line with hideable blocks the
-@kbd{@key{TAB}} key cycles their visibility.  Depending on its non-nil
-values, @kbd{@key{TAB}} can be active on different parts of such lines.
-Anywhere else on the line this key has its default keybinding.
+This variable controls where on the line with hideable blocks typing the
+@kbd{@key{TAB}} key will cycle the visibility of the blocks.  Depending
+on its non-@code{nil} value, @key{TAB} can be active on different parts
+of such lines.  Anywhere else on the line @key{TAB} has its default key
+binding.  The value @code{nil} means @key{TAB} cannot cycle the
+visibility of the blocks anywhere on the heading line.
 
 @item hs-isearch-open
 This variable specifies the conditions under which incremental search

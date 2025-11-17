@@ -1114,8 +1114,8 @@ after cursor position.  By default this is set to 'after-bol'.
 
 +++
 *** New user option 'hs-cycle-filter' for visibility-cycling with 'TAB'.
-This user option controls where on the line with hideable blocks
-the 'TAB' key cycles their visibility.
+This user option controls the positions on the headline of hideable blocks
+where the 'TAB' key cycles the blocks' visibility.
 
 +++
 *** The variable 'hs-special-modes-alist' is now obsolete.
