@@ -1388,6 +1388,8 @@ Argument E should be the event that triggered this action."
   (interactive "e")
   (hs-life-goes-on
    (when hs-show-indicators
+     (when (mouse-event-p event)
+       (mouse-set-point event))
      (let* ((overlays (save-excursion
                         (goto-char (posn-point (event-end event)))
                         (overlays-in (pos-bol) (pos-eol))))
