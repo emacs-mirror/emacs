@@ -3735,7 +3735,7 @@ function is called.  Subsequent calls return the first evaluated value."
              :language 'jsdoc
              :override t
              :feature 'keyword
-             '((tag_name) @font-lock-constant-face)
+             '((tag_name) @font-lock-doc-markup-face)
 
              :language 'jsdoc
              :override t

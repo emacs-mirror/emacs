@@ -1213,7 +1213,7 @@ function is called.  Subsequent calls return the first evaluated value."
    :language 'phpdoc
    :feature 'attribute
    :override t
-   `((tag_name) @font-lock-constant-face
+   `((tag_name) @font-lock-doc-markup-face
      (uri) @font-lock-doc-markup-face
      (tag
       [(version) (email_address)] @font-lock-doc-markup-face)
