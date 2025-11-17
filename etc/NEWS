@@ -3603,6 +3603,13 @@ Emacs when built with the pure GTK toolkit now respects desktop
 dark and light modes for drawing a GTK toolbar and widgets,
 automatically toggling between them.
 
+---
+** toolkit-theme-set-functions called when the toolkit theme is set for Emacs.
+When the theme is set on PGTK or MS-Windows builds,
+'toolkit-theme-set-functions' is called.  Result is stored in var
+'toolkit-theme' as either symbol 'dark' or 'light', but may be
+expanded to future toolkit-specific symbols in the future.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 

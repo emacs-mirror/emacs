@@ -1475,6 +1475,16 @@ xg_update_dark_mode_for_all_displays (bool dark_mode_p)
 	 = gtk_settings_get_for_screen (screen);
        xg_set_gtk_theme_dark_mode (dark_mode_p, settings);
      }
+
+   Vtoolkit_theme = dark_mode_p ? Qdark : Qlight;
+   Lisp_Object hook = intern ("toolkit-theme-set-functions");
+   if (!NILP (Fboundp (hook)))
+     {
+       Lisp_Object args[2];
+       args[0] = hook;
+       args[1] = Vtoolkit_theme;
+       Frun_hook_with_args (2, args);
+     }
 }
 
 /* Set initial dark mode for a new frame (called during frame

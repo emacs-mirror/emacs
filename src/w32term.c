@@ -6083,6 +6083,20 @@ w32_read_socket (struct terminal *terminal,
 	  check_visibility = 1;
 	  break;
 
+	case WM_EMACS_SET_TOOLKIT_THEME:
+	  {
+	    Vtoolkit_theme = msg.msg.wParam ? Qdark : Qlight;
+	    Lisp_Object hook = intern ("toolkit-theme-set-functions");
+	    if (!NILP (Fboundp (hook)))
+	      {
+		Lisp_Object args[2];
+		args[0] = hook;
+		args[1] = Vtoolkit_theme;
+		Frun_hook_with_args (2, args);
+	      }
+	  }
+	  break;
+
 #if HAVE_W32NOTIFY
 	case WM_EMACS_FILENOTIFY:
 	  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);

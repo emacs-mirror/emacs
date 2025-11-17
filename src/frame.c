@@ -7618,4 +7618,17 @@ The default is \\+`inhibit' in NS builds and nil everywhere else.  */);
   Fprovide (Qmove_toolbar, Qnil);
 #endif /* !HAVE_EXT_TOOL_BAR || USE_GTK */
 #endif /* HAVE_WINDOW_SYSTEM */
+
+#if (defined(HAVE_PGTK) && defined(HAVE_GSETTINGS)) || defined (WINDOWSNT)
+  DEFVAR_LISP ("toolkit-theme", Vtoolkit_theme,
+               doc: /* The current toolkit theme.
+Either the symbol `light' or the symbol `dark', reflecting the system's
+current theme preference.  This variable is updated automatically when
+the system theme changes.
+
+This variable is only available on PGTK and MS-Windows builds.  */);
+  Vtoolkit_theme = Qnil;
+  DEFSYM (Qlight, "light");
+  DEFSYM (Qdark, "dark");
+#endif
 }
