@@ -468,6 +468,29 @@ info node `(elisp)Overlays'."
   :type 'function
   :version "28.1")
 
+(defcustom hs-cycle-filter nil
+  "Control where \\`TAB' cycles the visibility.
+This option controls where on a line where a block begins, typing
+the key sequences bound to the visibility-cycling commands like
+`hs-toggle-hiding' will invoke those commands.  When t, you can invoke
+these commands by typing \\`TAB' anywhere on a headline.  Customizing
+this option to other values can make those bindings be in effect only at
+specific positions on the headline, like only at the line's beginning or
+line's end.  This allows these keys to be bound to their usual commands,
+as determined by the major mode, elsewhere on the headlines."
+  :type `(choice (const :tag "Nowhere" nil)
+                 (const :tag "Everywhere on the headline" t)
+                 (const :tag "At block beginning"
+                        ,(lambda ()
+                           (pcase-let ((`(,beg ,end) (hs-block-positions)))
+                             (and beg (hs-hideable-region-p beg end)))))
+                 (const :tag "At line beginning" bolp)
+                 (const :tag "Not at line beginning"
+                        ,(lambda () (not (bolp))))
+                 (const :tag "At line end" eolp)
+                 (function :tag "Custom filter function"))
+  :version "31.1")
+
 ;;---------------------------------------------------------------------------
 ;; internal variables
 
@@ -494,6 +517,18 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
   :doc "Keymap for hideshow minor mode."
   "S-<mouse-2>" #'hs-toggle-hiding
   "C-c @" hs-prefix-map
+  "TAB" `(menu-item
+          "" hs-toggle-hiding
+          :filter
+          ,(lambda (cmd)
+             (when (and hs-cycle-filter
+                        ;; On the headline with hideable blocks
+                        (save-excursion
+                          (goto-char (line-beginning-position))
+                          (hs-get-first-block))
+                        (or (not (functionp hs-cycle-filter))
+                            (funcall hs-cycle-filter)))
+               cmd)))
   "<left-fringe> <mouse-1>" #'hs-indicator-mouse-toggle-hiding)
 
 (defvar-keymap hs-indicators-map
