@@ -519,8 +519,13 @@ static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
   amcbuf = CouldBeA(amcBuf, buffer);
 
   if (BufferIsMutator(buffer)) {
-    /* Set up the buffer to be allocating in the nursery. */
-    amcbuf->gen = amc->nursery;
+    if (ArgPick(&arg, args, MPS_KEY_GEN)) {
+      unsigned gen = arg.val.u;
+      amcbuf->gen = amc->gen[gen];
+    } else {
+      /* Set up the buffer to be allocating in the nursery. */
+      amcbuf->gen = amc->nursery;
+    }
   } else {
     /* No gen yet -- see <design/poolamc#.gen.forward>. */
     amcbuf->gen = NULL;
