@@ -946,6 +946,7 @@ struct igc_thread
   mps_ap_t weak_hash_strong_ap;
   mps_ap_t weak_hash_weak_ap;
   mps_ap_t immovable_ap;
+  mps_ap_t oldgen_ap;
 
   /* Quick access to the roots used for specpdl, bytecode stack and
      control stack.  */
@@ -988,6 +989,9 @@ struct igc
 
   /* The MPS generation chain.  */
   mps_chain_t chain;
+
+  /* Number of generations.  */
+  size_t gen_count;
 
   /* Object formats and pools used.  */
   mps_fmt_t dflt_fmt;
@@ -3312,6 +3316,20 @@ create_weak_hash_ap (mps_ap_t *ap, struct igc_thread *t, bool weak)
   return res;
 }
 
+static mps_res_t
+create_oldgen_ap (mps_ap_t *ap,  mps_pool_t pool, size_t gen_count)
+{
+  mps_res_t res;
+  MPS_ARGS_BEGIN (args)
+  {
+    MPS_ARGS_ADD (args, MPS_KEY_GEN, gen_count);
+    res = mps_ap_create_k (ap, pool, args);
+  }
+  MPS_ARGS_END (args);
+  IGC_CHECK_RES (res);
+  return res;
+}
+
 static void
 create_thread_aps (struct igc_thread *t)
 {
@@ -3330,6 +3348,8 @@ create_thread_aps (struct igc_thread *t)
   res = create_weak_ap (&t->weak_weak_ap, t, true);
   IGC_CHECK_RES (res);
   res = create_weak_hash_ap (&t->weak_hash_weak_ap, t, true);
+  IGC_CHECK_RES (res);
+  res = create_oldgen_ap (&t->oldgen_ap, gc->dflt_pool, gc->gen_count);
   IGC_CHECK_RES (res);
 }
 
@@ -5196,6 +5216,7 @@ make_arena (struct igc *gc)
 
   res = mps_chain_create (&gc->chain, gc->arena, ngens, gens);
   IGC_CHECK_RES (res);
+  gc->gen_count = ngens;
 }
 
 static mps_fmt_t
@@ -5527,7 +5548,8 @@ void *
 igc_alloc_dump (size_t nbytes)
 {
   igc_assert (global_igc->park_count > 0);
-  mps_ap_t ap = thread_ap (IGC_OBJ_CONS);
+  struct igc_thread_list *t = current_thread->gc_info;
+  mps_ap_t ap = t->d.oldgen_ap;
   size_t block_size = igc_header_size () + nbytes;
   mps_addr_t block;
   do
