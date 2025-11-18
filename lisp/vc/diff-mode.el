@@ -2187,7 +2187,8 @@ With a prefix argument, REVERSE the hunk."
 		     "Hunk has already been applied; undo it? ")))))
       (message "(Nothing done)"))
      ((and deletion (not switched))
-      (when (y-or-n-p (format-message "Delete file `%s'?" (buffer-file-name buf)))
+      (when (y-or-n-p (format-message "Delete file `%s'?"
+                                      (buffer-file-name buf)))
         (delete-file (buffer-file-name buf) delete-by-moving-to-trash)
         (kill-buffer buf)))
      (t
@@ -2197,9 +2198,8 @@ With a prefix argument, REVERSE the hunk."
 	(delete-region (car pos) (cdr pos))
 	(insert (car new)))
       ;; Display BUF in a window
-      (let ((display-buffer-overriding-action
-             '(nil (inhibit-same-window . t))))
-        (set-window-point (display-buffer buf) (+ (car pos) (cdr new))))
+      (set-window-point (display-buffer buf '(nil (inhibit-same-window . t)))
+                        (+ (car pos) (cdr new)))
       (diff-hunk-status-msg line-offset (xor switched reverse) nil)
       (when diff-advance-after-apply-hunk
 	(diff-hunk-next))))))
