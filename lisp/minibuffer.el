@@ -2767,9 +2767,19 @@ so that the update is less likely to interfere with user typing."
       (completions--start-eager-display))))
 
 (defun completions--start-eager-display ()
-  "Display the *Completions* buffer when the user is next idle."
-  (setq completion-eager-display--timer
-        (run-with-idle-timer 0 nil #'completions--eager-display)))
+  "Maybe display the *Completions* buffer when the user is next idle.
+
+Only displays if `completion-eager-display' is t, or if eager display
+has been requested by the completion table."
+  (when completion-eager-display
+    (when (or (eq completion-eager-display t)
+              (completion-metadata-get
+               (completion-metadata
+                (buffer-substring-no-properties (minibuffer-prompt-end) (point))
+                minibuffer-completion-table minibuffer-completion-predicate)
+               'eager-display))
+      (setq completion-eager-display--timer
+            (run-with-idle-timer 0 nil #'completions--eager-display)))))
 
 (defun completions--post-command-update ()
   "Update displayed *Completions* buffer after command, once."
@@ -5159,18 +5169,7 @@ See `completing-read' for the meaning of the arguments."
                 (setq-local minibuffer--original-buffer buffer)
                 ;; Copy the value from original buffer to the minibuffer.
                 (setq-local completion-ignore-case c-i-c)
-                ;; Show the completion help eagerly if
-                ;; `completion-eager-display' is t or if eager display
-                ;; has been requested by the completion table.
-                (when completion-eager-display
-                  (when (or (eq completion-eager-display t)
-                            (completion-metadata-get
-                             (completion-metadata
-                              (buffer-substring-no-properties
-                               (minibuffer-prompt-end) (point))
-                              collection predicate)
-                             'eager-display))
-                    (completions--start-eager-display))))
+                (completions--start-eager-display))
             (read-from-minibuffer prompt initial-input keymap
                                   nil hist def inherit-input-method))))
     (when (and (equal result "") def)
