@@ -4075,12 +4075,10 @@ edit proposed by the server."
 (defun eglot-rename (newname)
   "Rename the current symbol to NEWNAME."
   (interactive
-   (list (read-from-minibuffer
-          (eglot--format "Rename `%s' to: "
-                         (or (thing-at-point 'symbol t)
-                             "unknown symbol"))
-          nil nil nil nil
-          (symbol-name (symbol-at-point)))))
+   (let ((tap (thing-at-point 'symbol t)))
+     (list (read-from-minibuffer
+            (format "Rename `%s' to: " (or tap "unknown symbol"))
+            tap nil nil nil tap))))
   (eglot-server-capable-or-lose :renameProvider)
   (eglot--apply-workspace-edit
    (eglot--request (eglot--current-server-or-lose)
