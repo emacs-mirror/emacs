@@ -794,34 +794,39 @@ to call with the newly initialized overlay."
 This returns a list with the current code block beginning and end
 positions.  This does nothing if there is not a code block at current
 point."
-  (save-match-data
-    (save-excursion
-      (when (funcall hs-looking-at-block-start-predicate)
-        (let ((mdata (match-data t))
-              (header-end (match-end 0))
-              block-beg block-end)
-          ;; `block-start' is the point at the end of the block
-          ;; beginning, which may need to be adjusted
-          (save-excursion
-            (when hs-adjust-block-beginning-function
-              (goto-char (funcall hs-adjust-block-beginning-function header-end)))
-            (setq block-beg (line-end-position)))
-          ;; `block-end' is the point at the end of the block
-          (hs-forward-sexp mdata 1)
-          (setq block-end
-                (cond ((and (stringp hs-block-end-regexp)
-                            (looking-back hs-block-end-regexp nil))
-                       (match-beginning 0))
-                      ((functionp hs-block-end-regexp)
-                       (funcall hs-block-end-regexp)
-                       (match-beginning 0))
-                      (t (point))))
-          ;; adjust block end (if needed)
-          (when hs-adjust-block-end-function
+  ;; `catch' is used here if the search fails due unbalanced parentheses
+  ;; or any other unknown error caused in `hs-forward-sexp'.
+  (catch 'hs-sexp-error
+    (save-match-data
+      (save-excursion
+        (when (funcall hs-looking-at-block-start-predicate)
+          (let ((mdata (match-data t))
+                (header-end (match-end 0))
+                block-beg block-end)
+            ;; `block-start' is the point at the end of the block
+            ;; beginning, which may need to be adjusted
+            (save-excursion
+              (when hs-adjust-block-beginning-function
+                (goto-char (funcall hs-adjust-block-beginning-function header-end)))
+              (setq block-beg (line-end-position)))
+            ;; `block-end' is the point at the end of the block
+            (condition-case _
+                (hs-forward-sexp mdata 1)
+              (scan-error (throw 'hs-sexp-error nil)))
             (setq block-end
-                  (or (funcall hs-adjust-block-end-function block-beg)
-                      block-end)))
-          (list block-beg block-end))))))
+                  (cond ((and (stringp hs-block-end-regexp)
+                              (looking-back hs-block-end-regexp nil))
+                         (match-beginning 0))
+                        ((functionp hs-block-end-regexp)
+                         (funcall hs-block-end-regexp)
+                         (match-beginning 0))
+                        (t (point))))
+            ;; adjust block end (if needed)
+            (when hs-adjust-block-end-function
+              (setq block-end
+                    (or (funcall hs-adjust-block-end-function block-beg)
+                        block-end)))
+            (list block-beg block-end)))))))
 
 (defun hs--make-indicators-overlays (beg)
   "Helper function to make the indicators overlays."
@@ -1177,8 +1182,11 @@ region (point MAXP)."
 	    (not (nth 8 (syntax-ppss)))) ; not inside comments or strings
       (if (> arg 1)
 	  (hs-hide-level-recursive (1- arg) minp maxp)
-	(goto-char (match-beginning hs-block-start-mdata-select))
-	(hs-hide-block-at-point t))))
+        ;; `hs-hide-block-at-point' already moves the cursor, but if it
+        ;; fails, return to the previous position where we were.
+	(unless (and (goto-char (match-beginning hs-block-start-mdata-select))
+	             (hs-hide-block-at-point t))
+            (goto-char (match-end hs-block-start-mdata-select))))))
   (goto-char maxp))
 
 (defmacro hs-life-goes-on (&rest body)
