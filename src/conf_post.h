@@ -397,7 +397,7 @@ extern int emacs_setenv_TZ (char const *);
     : S_ISSOCK (mode) ? DT_SOCK : DT_UNKNOWN)
 #endif /* MSDOS */
 
-#if defined WINDOWSNT
+#if defined WINDOWSNT && !(defined OMIT_CONSOLESAFE && OMIT_CONSOLESAFE == 1)
 # if !defined _UCRT
 #  include <stdarg.h>
 #  include <stdio.h>
