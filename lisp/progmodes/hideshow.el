@@ -752,6 +752,15 @@ block at point."
     (when-let* ((block (hs-block-positions)))
       (apply #'hs-hideable-region-p block))))
 
+(defun hs--discard-overlay-after-change (o &rest _r)
+  "Remove overlay O after changes.
+Intended to be used in `modification-hooks', `insert-in-front-hooks' and
+`insert-behind-hooks'."
+  (let ((beg (overlay-start o))
+        (end (overlay-end o)))
+    (delete-overlay o)
+    (hs--refresh-indicators beg end)))
+
 (defun hs-make-overlay (b e kind &optional b-offset e-offset)
   "Return a new overlay in region defined by B and E with type KIND.
 KIND is either `code' or `comment'.  Optional fourth arg B-OFFSET
@@ -778,13 +787,20 @@ to call with the newly initialized overlay."
                   'highlight
                   'help-echo "mouse-1: show hidden lines"
                   'keymap '(keymap (mouse-1 . hs-toggle-hiding))))
+    ;; Internal properties
     (overlay-put ov 'hs kind)
     (overlay-put ov 'hs-b-offset b-offset)
     (overlay-put ov 'hs-e-offset e-offset)
+    ;; Isearch integration
     (when (or (eq io t) (eq io kind))
       (overlay-put ov 'isearch-open-invisible 'hs-isearch-show)
       (overlay-put ov 'isearch-open-invisible-temporary
                    'hs-isearch-show-temporary))
+    ;; Remove overlay after modifications
+    (overlay-put ov 'modification-hooks    '(hs--discard-overlay-after-change))
+    (overlay-put ov 'insert-in-front-hooks '(hs--discard-overlay-after-change))
+    (overlay-put ov 'insert-behind-hooks   '(hs--discard-overlay-after-change))
+
     (when hs-set-up-overlay (funcall hs-set-up-overlay ov))
     (hs--refresh-indicators b e)
     ov))
