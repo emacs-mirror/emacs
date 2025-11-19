@@ -251,9 +251,7 @@ Otherwise, use `delete-trailing-whitespace'."
   :type 'function)
 
 (defvar-local editorconfig-properties-hash nil
-  "Hash object of EditorConfig properties that was enabled for current buffer.
-Set by `editorconfig-apply' and nil if that is not invoked in
-current buffer yet.")
+  "Hash object of EditorConfig properties that was enabled for current buffer.")
 (put 'editorconfig-properties-hash 'permanent-local t)
 
 (defvar editorconfig-lisp-use-default-indent nil
@@ -527,9 +525,7 @@ This function will revert buffer when the coding-system has been changed."
 
 (defun editorconfig-call-get-properties-function (filename)
   "Call `editorconfig-core-get-properties-hash' with FILENAME and return result.
-
-This function also removes `unset' properties and calls
-`editorconfig-hack-properties-functions'."
+This function also removes `unset' properties."
   (if (stringp filename)
       (setq filename (expand-file-name filename))
     (editorconfig-error "Invalid argument: %S" filename))
@@ -541,6 +537,12 @@ This function also removes `unset' properties and calls
                            err)))
     (cl-loop for k being the hash-keys of props using (hash-values v)
              when (equal v "unset") do (remhash k props))
+    ;; E.g. for `editorconfig-display-current-properties'.
+    ;; FIXME: Use it for memoization as well to avoid the duplicate
+    ;; calls to `editorconfig-core-get-properties-hash' (one for
+    ;; `editorconfig--get-coding-system' and one for
+    ;; `editorconfig--get-dir-local-variables')?
+    (setq editorconfig-properties-hash props)
     props))
 
 (defvar editorconfig-get-local-variables-functions

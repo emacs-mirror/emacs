@@ -857,6 +857,12 @@ you could already use 'C-u C-x C-n' to clear the goal column.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Editorconfig
+---
+*** 'editorconfig-apply' is declared obsolete.
+You can now use 'editorconfig-display-current-properties' without having
+to call 'editorconfig-apply'.
+
 ** Auth Source
 
 +++
