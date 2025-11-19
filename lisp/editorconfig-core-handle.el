@@ -177,7 +177,7 @@ If CONF is not found return nil."
             nil)
 
            ;; Start of section
-           ((looking-at "\\[\\(.*\\)\\][ \t]*$")
+           ((looking-at "\\[\\(.*\\)\\][ \t]*\\(?:[#;].*\\)?$")
             (let ((newpattern (match-string 1)))
               (when pattern
                 (push (make-editorconfig-core-handle-section
