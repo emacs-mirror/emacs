@@ -187,8 +187,8 @@ If CONF is not found return nil."
               (setq props nil)
               (setq pattern newpattern)))
 
-           ((looking-at "\\([^=: \t]+\\)[ \t]*[=:][ \t]*\\(.*?\\)[ \t]*$")
-            (let ((key (downcase (match-string 1)))
+           ((looking-at "\\([^=: \t][^=:]*\\)[ \t]*[=:][ \t]*\\(.*?\\)[ \t]*$")
+            (let ((key (downcase (string-trim (match-string 1))))
                   (value (match-string 2)))
               (when (and (< (length key) 51)
                          (< (length value) 256))
