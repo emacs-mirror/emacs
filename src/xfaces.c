@@ -4194,8 +4194,7 @@ with the value VALUE is relative.
 A relative value is one that doesn't entirely override whatever is
 inherited from another face.  For most possible attributes,
 the only relative value that users see is `unspecified'.
-However, for :height, floating point values are also relative.  */
-       attributes: const)
+However, for :height, floating point values are also relative.  */)
   (Lisp_Object attribute, Lisp_Object value)
 {
   if (EQ (value, Qunspecified) || (EQ (value, QCignore_defface)))
