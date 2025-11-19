@@ -5872,7 +5872,8 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  ptrdiff_t charpos;
 
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
-	  col = wx;
+	  /* Skip any scroll bar on the left (Bug#79846).  */
+	  col = wx - WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w);
 	  row = wy;
 	  string = marginal_area_string (w, part, &col, &row, &charpos,
 					 &object, &dx, &dy, &width, &height);
