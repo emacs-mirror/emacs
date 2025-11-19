@@ -393,6 +393,8 @@ system, including many technical ones.  Examples:
  ("\\dddot" ?⃛)
  ("\\ddot" ?̈) ;; synonymous with \"
  ("\\ddots" ?⋱)
+ ("\\diagdown" ?⟍)
+ ("\\diagup" ?⟋)
  ("\\diamond" ?⋄)
  ("\\diamondsuit" ?♢)
  ("\\divideontimes" ?⋇)
@@ -483,8 +485,13 @@ system, including many technical ones.  Examples:
  ("\\ket" ?\⟩)
  ("\\land" ?∧) ;; logical and, same symbol as \wedge
  ("\\langle" ?⟨) ;; Was ?〈, see bug#12948.
+ ("\\lAngle" ?\⟪)
  ("\\lbrace" ?{)
  ("\\lbrack" ?\[)
+ ("\\lBrack" ?\⟦)
+ ("\\lblkbrbrak" ?\⦗)
+ ("\\lbrbrak" ?\❲)
+ ("\\Lbrbrak" ?\⟬)
  ("\\lceil" ?⌈)
  ("\\ldiv" ?∕)
  ("\\ldots" ?…)
@@ -633,9 +640,14 @@ system, including many technical ones.  Examples:
  ("\\qed" ?∎)
  ("\\quad" ? )
  ("\\rangle" ?\⟩) ;; Was ?〉, see bug#12948.
+ ("\\rAngle" ?\⟫)
  ("\\ratio" ?∶)
  ("\\rbrace" ?})
  ("\\rbrack" ?\])
+ ("\\rBrack" ?\⟧)
+ ("\\rblkbrbrak" ?\⦘)
+ ("\\rbrbrak" ?\❳)
+ ("\\Rbrbrak" ?\⟭)
  ("\\rceil" ?⌉)
  ("\\rddots" ?⋰)
  ("\\rect" ?▭)
