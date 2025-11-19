@@ -190,14 +190,11 @@ If CONF is not found return nil."
            ((looking-at "\\([^=: \t][^=:]*\\)[ \t]*[=:][ \t]*\\(.*?\\)[ \t]*$")
             (let ((key (downcase (string-trim (match-string 1))))
                   (value (match-string 2)))
-              (when (and (< (length key) 51)
-                         (< (length value) 256))
-                (if pattern
-                    (when (< (length pattern) 4097) ;;FIXME: 4097?
-                      (push `(,key . ,value)
-                            props))
+              (if pattern
                   (push `(,key . ,value)
-                        top-props)))))
+                        props)
+                (push `(,key . ,value)
+                      top-props))))
 
            (t (error "Error while reading config file: %s:%d:\n    %s\n"
                      conf current-line-number
