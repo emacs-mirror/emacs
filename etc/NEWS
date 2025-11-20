@@ -2773,7 +2773,14 @@ determined by the new user option 'pulse-face-duration'.
 ** Miscellaneous
 
 ---
-*** Daemon startup warnings are now displayed in the first client frame.
+*** The first client frame now shows warnings from daemon startup.
+When there are warnings emitted during Emacs startup, usually due to
+problems in your initialization file, these are shown in a "*Warnings*"
+buffer.  Until now such warnings were not made visible in the case that
+Emacs was started as a daemon.  Now the first frame after daemon startup
+will show the "*Warnings*" buffer.  So for example, starting Emacs with
+a command like 'emacsclient -a"" -c' will now show "*Warnings*" just
+like a plain invocation of 'emacs' would.
 
 ---
 *** 'tooltip-mode' now shows tooltips after delay on TTY frames.
