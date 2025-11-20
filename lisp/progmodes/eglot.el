@@ -2342,7 +2342,6 @@ LSP Document version reported for DIAGNOSTICS (comparable to
 (defvar revert-buffer-preserve-modes)
 (defun eglot--after-revert-hook ()
   "Eglot's `after-revert-hook'."
-  ;; FIXME: Do we really need this?
   (when revert-buffer-preserve-modes (eglot--signal-textDocument/didOpen)))
 
 (defun eglot--maybe-activate-editing-mode ()
