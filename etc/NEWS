@@ -3284,6 +3284,21 @@ This library provides functions to throttle or debounce Emacs Lisp
 functions.  This is useful for corralling overeager code that is slow
 and blocks Emacs, or does not provide ways to limit how often it runs.
 
++++
+** New mode 'system-taskbar-mode'.
+This is a global minor mode and companion functions that integrate Emacs
+with system GUI taskbars (also called docks or launchers or something
+similar) to display a taskbar icon "badge" overlay, a progress bar
+report overlay, alert the user that an Emacs session needs attention,
+often by flashing or bouncing the Emacs application icon.  Supported
+capable systems are GNU/Linux via D-Bus, macOS/GNUstep 10.5+, MS-Windows
+7+.
+
+On GNU/Linux systems, shell extensions or similar helpers such as
+"dash-to-dock" may be required.  See
+<https://extensions.gnome.org/extension/307/dash-to-dock/> and
+<https://wiki.ubuntu.com/Unity/LauncherAPI>.
+
 
 * Incompatible Lisp Changes in Emacs 31.1
 
@@ -3747,6 +3762,13 @@ When the theme is set on PGTK, Android, or MS-Windows systems,
 'toolkit-theme-set-functions' is called.  The result is stored in the
 variable 'toolkit-theme' as either symbol 'dark' or 'light', but may be
 extended to encompass other toolkit-specific symbols in the future.
+
++++
+** Progress reporter callbacks.
+'make-progress-reporter' now accepts optional arguments UPDATE-CALLBACK,
+called on progress steps, and DONE-CALLBACK, called when the progress
+reporter is done.  See the 'make-progress-reporter' docstring for a full
+specification of these new optional arguments.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems

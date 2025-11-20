@@ -34,6 +34,7 @@ terminal and the screen.
 * Batch Mode::          Running Emacs without terminal interaction.
 * Session Management::  Saving and restoring state with X Session Management.
 * Desktop Notifications:: Desktop notifications.
+* System Taskbar::      Controlling system GUI taskbar features.
 * File Notifications::  File notifications.
 * Dynamic Libraries::   On-demand loading of support libraries.
 * Security Considerations:: Running Emacs in an unfriendly environment.
@@ -3370,6 +3371,127 @@ If Emacs is not afforded the permission to display notifications
 Android 13 and later, any notifications sent will be silently
 disregarded.
 @end defun
+
+@node System Taskbar
+@section Controlling System GUI Taskbar Features
+@cindex system taskbar
+@cindex mode, system taskbar
+
+  @xref{System Taskbar,,, emacs, The GNU Emacs Manual}, for an overview
+and configuration.
+
+@defun system-taskbar-badge &optional count
+This function displays @var{count} as an overlay on the system taskbar
+Emacs icon.
+
+If @var{count} is an integer, display that.
+
+If @var{count} is a string on back ends that support strings, display
+that.  The string should be short.
+
+On back ends which do not support strings, convert @var{count} to an
+integer, or @code{nil} if that fails.
+
+If @var{count} is @code{nil} or an empty string, remove the counter or
+short string.
+
+Display the system taskbar icon badge set to @var{count}.  If
+@var{count} is @code{nil}, clear the badge.  @var{count} is typically an
+integer.
+
+If @var{count} is a string, it is converted to an integer on systems
+that do not support string badges, such as GNU/Linux D-Bus, and the
+badge will be cleared if the string is an invalid integer
+representation.  On systems that support strings, such as macOS/GNUstep
+and MS-Windows, the badge is set to the string and displayed, and may be
+truncated to fit the visual space allocated by the system.  In any case,
+if the string is empty, clear the badge.
+@end defun
+
+@defun system-taskbar-attention &optional urgency timeout
+This function flashes or bounces system taskbar Emacs icon and/or its
+frame to alert the user.
+
+@var{urgency} can be one of the symbols @code{informational}, or
+@code{critical}.
+
+If @var{urgency} is @code{nil}, clear the attention indicator.
+
+The attention indicator is cleared by the earliest of bringing the Emacs
+GUI into focus, or after @var{timeout} seconds.  If @var{timeout} is
+@code{nil}, the system GUI behavior has priority.
+
+On some back ends, @code{critical} has the same effect as
+@code{informational}.
+
+On some back ends, attention will be displayed
+only if Emacs is not the currently focused application.
+@end defun
+
+@defun system-taskbar-progress &optional progress
+  This function displays a progress indicator overlay on the system
+taskbar Emacs icon.
+
+@var{progress} is a float in the range 0.0 to 1.0.  If @var{progress} is
+@code{nil}, remove the progress indicator.
+
+It is convenient to use the built-in progress reporter functions which,
+when @code{system-taskbar-mode} is enabled, integrate with
+@code{system-taskbar-progress} by default.  @xref{Progress}
+@end defun
+
+@noindent
+Examples of system-taskbar functions:
+
+@lisp
+@group
+;; Enable and initialize system-taskbar-mode before calling its
+;; package functions.
+(system-taskbar-mode)
+
+;; Display a badge integer on the taskbar icon.
+(system-taskbar-badge emacs-major-version)
+
+;; A string representation of an integer is converted to an
+;; integer on GNU/Linux.
+(system-taskbar-badge "31")
+
+;; Short strings are displayed on macOS/GNUstep and MS-Windows.
+(system-taskbar-badge "Test")
+
+;; Clear the badge.
+(system-taskbar-badge)
+@end group
+
+@group
+;; Get the user's attention and clear the request after 3 seconds.
+(system-taskbar-attention 'informational 3)
+
+;; Get the user's attention and clear when Emacs is focused.
+(system-taskbar-attention 'critical)
+
+;; Clear the attention request.
+(system-taskbar-attention)
+@end group
+
+@group
+;; Make sure system-taskbar is integrated with progress-reporter.
+(setopt system-taskbar-use-progress-reporter t) ; t is the default
+(system-taskbar-mode)
+
+;; Report `dotimes` progress on the taskbar icon.
+(dotimes-with-progress-reporter
+    (i 10)
+    "Counting from 1 to 10..."
+  (sleep-for 1))
+
+;; Report `dolist` progress on the taskbar icon.
+(dolist-with-progress-reporter
+    (i (make-list 10 t))
+    "Progress from 1 to 10 elements..."
+  (sleep-for 1))
+@end group
+@end lisp
 
 @node File Notifications
 @section Notifications on File Changes
