@@ -99,19 +99,17 @@ set_acls_from_mode (const char *name, int desc, mode_t mode, bool *must_chmod)
                 errno = ENOMEM;
                 return -1;
               }
-            continue;
           }
-        break;
+        else
+          break;
       }
 
     if (count <= 0)
       convention = -1;
     else
       {
-        int i;
-
         convention = 0;
-        for (i = 0; i < count; i++)
+        for (int i = 0; i < count; i++)
           if (entries[i].a_flags & (OLD_ACE_OWNER | OLD_ACE_GROUP | OLD_ACE_OTHER))
             {
               convention = 1;

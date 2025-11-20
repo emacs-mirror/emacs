@@ -116,8 +116,8 @@
 #endif
 
 /* True if __builtin_mul_overflow (A, B, P) works when P is non-null.  */
-#if defined __clang_major__ && __clang_major__ < 14
-/* Work around Clang bug <https://bugs.llvm.org/show_bug.cgi?id=16404>.  */
+#if defined __clang_major__ && __clang_major__ < 21
+/* Work around Clang bug <https://github.com/llvm/llvm-project/issues/16778>. */
 # define _GL_HAS_BUILTIN_MUL_OVERFLOW 0
 #else
 # define _GL_HAS_BUILTIN_MUL_OVERFLOW _GL_HAS_BUILTIN_ADD_OVERFLOW
@@ -179,9 +179,9 @@
    _GL_INT_OP_WRAPV (a, b, r, *, _GL_INT_MULTIPLY_RANGE_OVERFLOW)
 #endif
 
-/* Nonzero if this compiler has GCC bug 68193 or Clang bug 25390.  See:
+/* Nonzero if this compiler has GCC bug 68193 or Clang bug 25764.  See:
    https://gcc.gnu.org/PR68193
-   https://llvm.org/bugs/show_bug.cgi?id=25390
+   https://github.com/llvm/llvm-project/issues/25764
    For now, assume GCC < 14 and all Clang versions generate bogus
    warnings for _Generic.  This matters only for compilers that
    lack relevant builtins.  */

@@ -95,15 +95,13 @@ rpl_pselect (int nfds, fd_set *restrict rfds,
              struct timespec const *restrict timeout,
              sigset_t const *restrict sigmask)
 {
-  int i;
-
   /* FreeBSD 8.2 has a bug: it does not always detect invalid fds.  */
   if (nfds < 0 || nfds > FD_SETSIZE)
     {
       errno = EINVAL;
       return -1;
     }
-  for (i = 0; i < nfds; i++)
+  for (int i = 0; i < nfds; i++)
     {
       if (((rfds && FD_ISSET (i, rfds))
            || (wfds && FD_ISSET (i, wfds))

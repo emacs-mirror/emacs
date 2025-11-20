@@ -232,8 +232,7 @@ stat_time_normalize (int result, _GL_UNUSED struct stat *st)
       short int const ts_off[] = { STAT_TIMESPEC_OFFSETOF (st_atim),
                                    STAT_TIMESPEC_OFFSETOF (st_mtim),
                                    STAT_TIMESPEC_OFFSETOF (st_ctim) };
-      int i;
-      for (i = 0; i < sizeof ts_off / sizeof *ts_off; i++)
+      for (int i = 0; i < sizeof ts_off / sizeof *ts_off; i++)
         {
           struct timespec *ts = (struct timespec *) ((char *) st + ts_off[i]);
           long int q = ts->tv_nsec / timespec_hz;
