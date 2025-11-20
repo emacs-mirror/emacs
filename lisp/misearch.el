@@ -406,10 +406,12 @@ modified buffer to be able to use unsaved changes."
 (declare-function diff-setup-whitespace "diff-mode" ())
 (declare-function diff-setup-buffer-type "diff-mode" ())
 
+;;;###autoload
 (defun multi-file-replace-as-diff (files from-string replacements regexp-flag delimited-flag)
   "Show as diffs replacements of FROM-STRING with REPLACEMENTS.
-FILES is a list of file names.  REGEXP-FLAG and DELIMITED-FLAG have
-the same meaning as in `perform-replace'."
+FILES is a list of file names.  Also it's possible to provide a list of
+buffers in FILES.  REGEXP-FLAG and DELIMITED-FLAG have the same meaning
+as in `perform-replace'."
   (require 'diff)
   (let ((inhibit-message t)
         (diff-buffer (get-buffer-create "*replace-diff*")))
@@ -427,12 +429,19 @@ the same meaning as in `perform-replace'."
       (setq buffer-read-only t)
       (diff-mode))
     (dolist (file-name files)
-      (let* ((file-exists (file-exists-p file-name))
+      (let* ((non-file-buffer (and (buffer-live-p file-name)
+                                   (not (buffer-local-value
+                                         'buffer-file-name file-name))))
+             (file-exists (unless non-file-buffer
+                            (file-exists-p file-name)))
              (file-buffer
-              (when (or (not file-exists)
-                        (eq multi-file-diff-unsaved 'use-modified-buffer))
-                (find-buffer-visiting file-name))))
-        (when file-name
+              (if non-file-buffer
+                  file-name
+                (when (or (not file-exists)
+                          (eq multi-file-diff-unsaved 'use-modified-buffer))
+                  (find-buffer-visiting file-name)))))
+        (when non-file-buffer (setq file-name (buffer-name file-name)))
+        (when (or file-exists file-buffer)
           (with-temp-buffer
             (if (and file-buffer
                      (or (not file-exists)
@@ -488,7 +497,8 @@ you can later apply as a patch after reviewing the changes."
            t t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common))))
   (multi-file-replace-as-diff
-   (list buffer-file-name) regexp to-string t delimited))
+   (list (or buffer-file-name (current-buffer)))
+   regexp to-string t delimited))
 
 (defvar diff-use-labels)
 (declare-function diff-check-labels "diff" (&optional force))
