@@ -181,7 +181,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat-time:
-  # Code from module std-gnu11:
+  # Code from module std-gnu23:
   # Code from module stdbit-h:
   # Code from module stdc_bit_width:
   # Code from module stdc_count_ones:
@@ -1617,7 +1617,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/socklen.m4
   m4/ssize_t.m4
   m4/stat-time.m4
-  m4/std-gnu11.m4
+  m4/std-gnu23.m4
   m4/stdalign.m4
   m4/stdbit_h.m4
   m4/stdckdint_h.m4
