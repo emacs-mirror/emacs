@@ -4077,11 +4077,12 @@ to the working revision (except for keyword expansion)."
 		   (format "Discard changes in %s? "
 			   (let ((str (vc-delistify files))
 				 (nfiles (length files)))
-			     (if (< (length str) 50)
+			     (if (length< str 50)
 				 str
-			       (format "%d file%s" nfiles
-				       (if (= nfiles 1) "" "s"))))))
-	    (error "Revert canceled")))
+                               (format (ngettext "%d file" "%d files"
+                                                 nfiles)
+                                       nfiles)))))
+	    (error "Revert cancelled")))
       (when diff-buffer
 	(quit-windows-on diff-buffer (eq vc-revert-show-diff 'kill))))
     (vc-revert-files backend files)))
