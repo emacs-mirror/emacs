@@ -2711,44 +2711,56 @@ page for the meanings of these attributes."
   "A wrapper around `vc-do-command' for use in vc-git.el.
 The difference to `vc-do-command' is that this function always invokes
 `vc-git-program'."
-  (let ((coding-system-for-read
-         (or coding-system-for-read vc-git-log-output-coding-system))
-        ;; Commands which pass command line arguments which might
-        ;; contain non-ASCII have to bind `coding-system-for-write' to
-        ;; `locale-coding-system' when (eq system-type 'windows-nt)
-        ;; because MS-Windows has the limitation that command line
-        ;; arguments must be in the system codepage.  We do that only
-        ;; within the commands which must do it, instead of implementing
-        ;; it here, even though that means code repetition.  This is
-        ;; because this let-binding has the disadvantage of overriding
-        ;; any `coding-system-for-write' explicitly selected by the user
-        ;; (e.g. with C-x RET c), or by enclosing function calls.  So we
-        ;; want to do it only for commands which really require it.
-	(coding-system-for-write
-         (or coding-system-for-write vc-git-commits-coding-system))
-        (process-environment
-         (append
-          `("GIT_DIR"
-            ,@(when vc-git-use-literal-pathspecs
-                '("GIT_LITERAL_PATHSPECS=1"))
-            ;; Avoid repository locking during background operations
-            ;; (bug#21559).
-            ,@(when revert-buffer-in-progress
-                '("GIT_OPTIONAL_LOCKS=0")))
-          process-environment)))
+  (let* ((coding-system-for-read
+          (or coding-system-for-read vc-git-log-output-coding-system))
+         ;; Commands which pass command line arguments which might
+         ;; contain non-ASCII have to bind `coding-system-for-write' to
+         ;; `locale-coding-system' when (eq system-type 'windows-nt)
+         ;; because MS-Windows has the limitation that command line
+         ;; arguments must be in the system codepage.  We do that only
+         ;; within the commands which must do it, instead of implementing
+         ;; it here, even though that means code repetition.  This is
+         ;; because this let-binding has the disadvantage of overriding
+         ;; any `coding-system-for-write' explicitly selected by the user
+         ;; (e.g. with C-x RET c), or by enclosing function calls.  So we
+         ;; want to do it only for commands which really require it.
+	 (coding-system-for-write
+          (or coding-system-for-write vc-git-commits-coding-system))
+         (process-environment
+          (append
+           `("GIT_DIR"
+             ,@(and vc-git-use-literal-pathspecs
+                    '("GIT_LITERAL_PATHSPECS=1"))
+             ;; Avoid repository locking during background operations
+             ;; (bug#21559).
+             ,@(and revert-buffer-in-progress
+                    '("GIT_OPTIONAL_LOCKS=0")))
+           process-environment))
+         (file1 (and (not (cdr-safe file-or-list))
+                     (or (car-safe file-or-list) file-or-list)))
+         (file-list-is-rootdir (and file1
+                                    (directory-name-p file1)
+                                    (equal file1 (vc-git-root file1))))
+         (default-directory (if file-list-is-rootdir
+                                file1
+                              default-directory)))
     (apply #'vc-do-command (or buffer "*vc*") okstatus vc-git-program
-           ;; https://debbugs.gnu.org/16897
-           (unless (vc-git--file-list-is-rootdir file-or-list)
-             file-or-list)
+           ;; Three cases:
+           ;; - operating on root directory and command is one where doing
+           ;;   so requires passing "." to have the usual effect
+           ;;   (e.g. 'git checkout --'   will do nothing;
+           ;;         'git checkout -- .' will revert all files as desired)
+           ;; - operating on root directory and command is one where we
+           ;;   must pass no list of files to have the usual effect
+           ;;   (e.g. 'git log' for root logs as discussed in bug#16897)
+           ;; - not operating on root directory,
+           ;;   pass FILE-OR-LIST along as normal.
+           (cond ((and file-list-is-rootdir
+                       (member (car flags) '("checkout")))
+                  ".")
+                 ((not file-list-is-rootdir)
+                  file-or-list))
            (cons "--no-pager" flags))))
-
-(defun vc-git--file-list-is-rootdir (file-or-list)
-  (and (not (cdr-safe file-or-list))
-       (let ((file (or (car-safe file-or-list)
-                       file-or-list)))
-         (and file
-              (directory-name-p file)
-              (equal file (vc-git-root file))))))
 
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."
