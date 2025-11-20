@@ -362,7 +362,7 @@ DEFUN ("bare-symbol-p", Fbare_symbol_p, Sbare_symbol_p, 1, 1, 0,
 DEFUN ("symbol-with-pos-p", Fsymbol_with_pos_p, Ssymbol_with_pos_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a symbol together with position.
 Ignore `symbols-with-pos-enabled'.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   if (SYMBOL_WITH_POS_P (object))
@@ -587,7 +587,7 @@ DEFUN ("integer-or-marker-p", Finteger_or_marker_p, Sinteger_or_marker_p, 1, 1, 
 
 DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
        doc: /* Return t if OBJECT is a nonnegative integer.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   return ((FIXNUMP (object) ? 0 <= XFIXNUM (object)
