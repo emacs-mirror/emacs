@@ -2459,6 +2459,7 @@ To be added to `context-menu-functions'."
 \\`U' to undo all replacements,
 \\`e' to edit the replacement string.
 \\`E' to edit the replacement string with exact case.
+\\`d' to display the diff buffer with all replacements.
 \\`C-l' to clear the screen, redisplay, and offer same replacement again,
 \\`Y' to replace all remaining matches in all remaining buffers (in
 multi-buffer replacements) with no more questions,
@@ -2492,6 +2493,7 @@ re-executed as a normal key sequence."
     (define-key map "^" 'backup)
     (define-key map "u" 'undo)
     (define-key map "U" 'undo-all)
+    (define-key map "d" 'diff)
     (define-key map "\C-h" 'help)
     (define-key map [f1] 'help)
     (define-key map [help] 'help)
@@ -2518,7 +2520,7 @@ The valid answers include `act', `skip', `act-and-show',
 `scroll-down', `scroll-other-window', `scroll-other-window-down',
 `edit', `edit-replacement', `edit-replacement-exact-case',
 `delete-and-edit', `automatic', `backup', `undo', `undo-all',
-`quit', and `help'.
+`diff', `quit', and `help'.
 
 This keymap is used by `y-or-n-p' as well as `query-replace'.")
 
@@ -3334,6 +3336,16 @@ characters."
 			 (replace-dehighlight)
 			 (save-excursion (recursive-edit))
 			 (setq replaced t))
+
+                        ((eq def 'diff)
+			 (let ((display-buffer-overriding-action
+				'(nil (inhibit-same-window . t))))
+			   (save-selected-window
+                             (multi-file-replace-as-diff
+                              (list (or buffer-file-name (current-buffer)))
+                              from-string (or replacements next-replacement)
+                              regexp-flag delimited-flag))))
+
                         ((commandp def t)
                          (call-interactively def))
 			;; Note: we do not need to treat `exit-prefix'

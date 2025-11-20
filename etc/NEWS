@@ -2007,6 +2007,10 @@ This can be used by external ELPA packages for performance optimizations
 in special cases.  For more information, see "(tramp) New operations" in
 the Tramp manual.
 
+** Isearch and Replace
+
+*** Typing 'd' during 'query-replace' shows the diff buffer with replacements.
+
 ** Diff
 
 ---
