@@ -752,8 +752,8 @@ block at point."
     (when-let* ((block (hs-block-positions)))
       (apply #'hs-hideable-region-p block))))
 
-(defun hs--discard-overlay-after-change (o &rest _r)
-  "Remove overlay O after changes.
+(defun hs--discard-overlay-before-changes (o &rest _r)
+  "Remove overlay O before changes.
 Intended to be used in `modification-hooks', `insert-in-front-hooks' and
 `insert-behind-hooks'."
   (let ((beg (overlay-start o))
@@ -797,9 +797,9 @@ to call with the newly initialized overlay."
       (overlay-put ov 'isearch-open-invisible-temporary
                    'hs-isearch-show-temporary))
     ;; Remove overlay after modifications
-    (overlay-put ov 'modification-hooks    '(hs--discard-overlay-after-change))
-    (overlay-put ov 'insert-in-front-hooks '(hs--discard-overlay-after-change))
-    (overlay-put ov 'insert-behind-hooks   '(hs--discard-overlay-after-change))
+    (overlay-put ov 'modification-hooks    '(hs--discard-overlay-before-changes))
+    (overlay-put ov 'insert-in-front-hooks '(hs--discard-overlay-before-changes))
+    (overlay-put ov 'insert-behind-hooks   '(hs--discard-overlay-before-changes))
 
     (when hs-set-up-overlay (funcall hs-set-up-overlay ov))
     (hs--refresh-indicators b e)
