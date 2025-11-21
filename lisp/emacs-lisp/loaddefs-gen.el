@@ -154,8 +154,7 @@ scanning for autoloads and will be in the `load-path'."
 ;; they request such expansion and produce suitable output (e.g. by
 ;; employing :autoload-end to omit unneeded forms).
 (defconst loaddefs--defining-macros
-  '( define-skeleton define-derived-mode define-compilation-mode
-     define-generic-mode
+  '( define-compilation-mode
      cl-defun defun* cl-defmacro defmacro* define-overloadable-function
      transient-define-prefix transient-define-suffix transient-define-infix
      transient-define-argument transient-define-group))
@@ -256,9 +255,7 @@ expand)' among their `declare' forms."
                           'transient-define-infix 'transient-define-argument
                           'transient-define-group)
                       (nth 2 form))
-                     ('define-skeleton '(&optional str arg))
-                     ((or 'define-generic-mode 'define-derived-mode
-                          'define-compilation-mode)
+                     ('define-compilation-mode
                       nil)
                      (_ t)))
 	     (body (nthcdr (or (function-get car 'doc-string-elt) 3) form))
@@ -270,9 +267,7 @@ expand)' among their `declare' forms."
         (loaddefs-generate--shorten-autoload
          `(autoload ,(if (listp name) name (list 'quote name))
             ,file ,doc
-            ,(or (and (memq car '( define-skeleton define-derived-mode
-                                   define-generic-mode
-                                   transient-define-prefix
+            ,(or (and (memq car '( transient-define-prefix
                                    transient-define-suffix
                                    transient-define-infix
                                    transient-define-argument
