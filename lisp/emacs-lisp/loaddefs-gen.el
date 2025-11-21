@@ -155,14 +155,10 @@ scanning for autoloads and will be in the `load-path'."
 ;; employing :autoload-end to omit unneeded forms).
 (defconst loaddefs--defining-macros
   '( define-skeleton define-derived-mode define-compilation-mode
-     define-generic-mode define-globalized-minor-mode define-minor-mode
+     define-generic-mode
      cl-defun defun* cl-defmacro defmacro* define-overloadable-function
      transient-define-prefix transient-define-suffix transient-define-infix
-     transient-define-argument transient-define-group
-     ;; Obsolete; keep until the alias is removed.
-     easy-mmode-define-global-mode
-     easy-mmode-define-minor-mode
-     define-global-minor-mode))
+     transient-define-argument transient-define-group))
 
 (defvar loaddefs--load-error-files nil)
 (defun loaddefs-generate--make-autoload (form file &optional expansion)
@@ -254,8 +250,7 @@ expand)' among their `declare' forms."
       (let* ((macrop (memq car '(defmacro cl-defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (args (pcase car
-                     ((or 'defun 'defmacro
-                          'defun* 'defmacro* 'cl-defun 'cl-defmacro
+                     ((or 'defun* 'defmacro* 'cl-defun 'cl-defmacro
                           'define-overloadable-function
                           'transient-define-prefix 'transient-define-suffix
                           'transient-define-infix 'transient-define-argument
@@ -277,17 +272,11 @@ expand)' among their `declare' forms."
             ,file ,doc
             ,(or (and (memq car '( define-skeleton define-derived-mode
                                    define-generic-mode
-                                   define-globalized-minor-mode
-                                   define-minor-mode
                                    transient-define-prefix
                                    transient-define-suffix
                                    transient-define-infix
                                    transient-define-argument
-                                   transient-define-group
-                                   ;; Obsolete; keep until the alias is removed.
-                                   easy-mmode-define-global-mode
-                                   easy-mmode-define-minor-mode
-                                   define-global-minor-mode))
+                                   transient-define-group))
                       t)
                  (and (eq (car-safe (car body)) 'interactive)
                       ;; List of modes or just t.
