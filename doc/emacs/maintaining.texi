@@ -1273,6 +1273,15 @@ the revision at point, or the changes from all marked revisions
 @item R
 Undo the effects of old revisions; either the revision at point, or all
 marked revisions (@code{log-view-revert-or-delete-revisions}).
+
+@item x
+Delete revisions newer than the revision at point from the current
+branch without touching the working tree
+(@code{log-view-uncommit-revisions-from-end}).
+
+@item X
+Delete revisions newer than the revision at point from the current
+branch (@code{log-view-delete-revisions-from-end}).
 @end table
 
 @vindex vc-log-show-limit

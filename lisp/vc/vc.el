@@ -2429,6 +2429,92 @@ with a prefix argument."
   (interactive (list (vc-read-revision "Revision to delete: ")))
   (vc--pick-or-revert rev t nil t nil nil backend))
 
+(defun vc--remove-revisions-from-end (rev delete prompt backend)
+  "Delete revisions newer than REV.
+DELETE non-nil means to remove the changes from the working tree.
+DELETE `discard' means to silently discard uncommitted changes.
+PROMPT non-nil means to always get confirmation.  (This is passed by
+`log-view-uncommit-revisions-from-end' and `log-view-delete-revisions'
+because they have single-letter bindings and don't otherwise prompt, so
+might be easy to use accidentally.)
+BACKEND is the VC backend."
+  (let ((backend (or backend (vc-responsible-backend default-directory))))
+    (unless (eq (vc-call-backend backend 'revision-granularity)
+                'repository)
+      (error "Requires VCS with whole-repository revision granularity"))
+    (unless (vc-find-backend-function backend 'revision-published-p)
+      (signal 'vc-not-supported (list 'revision-published-p backend)))
+    ;; Rewinding the end of the branch to REV does not in itself mean
+    ;; rewriting public history because a subsequent pull will generally
+    ;; undo the rewinding.  Rewinding and then making new commits before
+    ;; syncing with the upstream will necessitate merging, but that's
+    ;; just part of the normal workflow with a distributed VCS.
+    ;; Therefore we don't prompt about deleting published revisions (and
+    ;; so we ignore `vc-allow-rewriting-published-history').
+    ;; We do care about deleting *unpublished* revisions, however,
+    ;; because that could potentially mean losing work permanently.
+    (when (if (vc-call-backend backend 'revision-published-p
+                               (vc-call-backend backend
+                                                'working-revision-symbol))
+              (and prompt
+                   (not (y-or-n-p
+                         (format "Uncommit revisions newer than %s?"
+                                 rev))))
+            ;; FIXME: Actually potentially not all revisions newer than
+            ;; REV would be permanently deleted -- only those which are
+            ;; unpushed.  So this prompt is a little misleading.
+            (not (yes-or-no-p
+                  (format "Permanently delete revisions newer than %s?"
+                          rev))))
+      (user-error "Aborted"))
+    (if delete
+        ;; FIXME: As discussed in bug#79408, instead of just failing if
+        ;; the user declines reverting the changes, we would leave
+        ;; behind some sort of conflict for the user to resolve, like we
+        ;; do when there is a merge conflict.
+        (let ((root (vc-root-dir)))
+          (when (vc-dir-status-files root nil backend)
+            (if (eq delete 'discard)
+                (vc-revert-file root)
+              (let ((vc-buffer-overriding-fileset `(,backend (,root))))
+                (vc-revert))))
+          (vc-call-backend backend 'delete-revisions-from-end rev))
+      (vc-call-backend backend 'uncommit-revisions-from-end rev))))
+
+;;;###autoload
+(defun vc-uncommit-revisions-from-end (rev &optional backend)
+  "Delete revisions newer than REV without touching the working tree.
+REV must be on the current branch.  The newer revisions are deleted from
+the revision history but the changes made by those revisions to files in
+the working tree are not undone.
+When called interactively, prompts for REV.
+BACKEND is the VC backend.
+
+To delete revisions from the revision history and also undo the changes
+in the working tree, see `vc-delete-revisions-from-end'."
+  (interactive (list
+                (vc-read-revision "Uncommit revisions newer than revision: ")))
+  (vc--remove-revisions-from-end rev nil nil backend))
+
+;;;###autoload
+(defun vc-delete-revisions-from-end (rev &optional discard backend)
+  "Delete revisions newer than REV.
+REV must be on the current branch.  The newer revisions are deleted from
+the revision history and the changes made by those revisions to files in
+the working tree are undone.
+When called interactively, prompts for REV.
+If the are uncommitted changes, prompts to discard them.
+With a prefix argument (when called from Lisp, with optional argument
+DISCARD non-nil), discard any uncommitted changes without prompting.
+BACKEND is the VC backend.
+
+To delete revisions from the revision history without undoing the
+changes in the working tree, see `vc-uncommit-revisions-from-end'."
+  (interactive (list
+                (vc-read-revision "Delete revisions newer than revision: ")
+                current-prefix-arg))
+  (vc--remove-revisions-from-end rev (if discard 'discard t) nil backend))
+
 (declare-function diff-bounds-of-hunk "diff-mode")
 
 (defun vc-default-checkin-patch (_backend patch-string comment)
