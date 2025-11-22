@@ -871,7 +871,11 @@ a statement container is a node that matches
      ((and
        (not (eq ruby-bracketed-args-indent t))
        (string-match-p "\\`array\\|hash\\'" (treesit-node-type parent))
-       (equal (treesit-node-parent parent) found)
+       (or (equal (treesit-node-parent parent) found)
+           ;; When the array/hash is part of a pair (keyword argument),
+           ;; check if the pair's parent is the found node.
+           (and (equal (treesit-node-type (treesit-node-parent parent)) "pair")
+                (equal (treesit-node-parent (treesit-node-parent parent)) found)))
        ;; Grandparent is not a parenless call.
        (or (not (equal (treesit-node-type found) "argument_list"))
            (equal (treesit-node-type (treesit-node-child found 0))
