@@ -5248,8 +5248,6 @@ evaluate the variable `compilation-shell-minor-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
-\\{compilation-shell-minor-mode-map}
-
 (fn &optional ARG)" t)
 (autoload 'compilation-minor-mode "compile" "\
 Toggle Compilation minor mode.
@@ -5271,8 +5269,6 @@ evaluate the variable `compilation-minor-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
-
-\\{compilation-minor-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'compilation-next-error-function "compile" "\
@@ -5790,6 +5786,16 @@ If `copyright-year-ranges' (which see) is non-nil, also
 independently replaces consecutive years with a range." t)
 (autoload 'copyright "copyright" "\
 Insert a copyright by $ORGANIZATION notice at cursor.
+
+This is a skeleton command (see `skeleton-insert').
+Normally the skeleton text is inserted at point, with nothing \"inside\".
+If there is a highlighted region, the skeleton text is wrapped
+around the region text.
+
+A prefix argument ARG says to wrap the skeleton around the next ARG words.
+A prefix argument of -1 says to wrap around region, even if not highlighted.
+A prefix argument of zero says to wrap around zero words---that is, nothing.
+This is a way of overriding the use of a highlighted region.
 
 (fn &optional STR ARG)" t)
 (autoload 'copyright-update-directory "copyright" "\
@@ -13455,6 +13461,8 @@ evaluate `(default-value \\='find-function-mode)'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
+\\{find-function-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'find-function-setup-keys "find-func" "\
 Turn on `find-function-mode', which see.")
@@ -13638,8 +13646,6 @@ evaluate the variable `flymake-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
-
-\\{flymake-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'flymake-mode-on "flymake" "\
@@ -20487,13 +20493,18 @@ step during initialization.
 (defalias 'run-lua #'lua-start-process)
 (autoload 'lua-start-process "lua-mode" "\
 Start a Lua process named NAME, running PROGRAM.
-PROGRAM defaults to NAME, which defaults to `lua-default-application'.
 When called interactively, switch to the process buffer.
 
-STARTFILE is the name of a file, whose contents are sent to the process
-as its initial input.
+NAME is the name of the created process; default is
+`lua-process-buffer-name' or `lua-default-application'.
 
-SWITCHES is a list of strings passed as arguments to PROGRAM.
+PROGRAM is the executable to run; default is `lua-default-application'.
+
+STARTFILE is a file, whose contents are sent to the process as initial
+input; default is `lua-process-startfile'.
+
+SWITCHES is a list of strings passed as arguments to PROGRAM; default is
+`lua-default-command-switches'.
 
 (fn &optional NAME PROGRAM STARTFILE &rest SWITCHES)" t)
 (register-definition-prefixes "lua-mode" '("lua-"))
@@ -21906,6 +21917,13 @@ With a prefix argument, ask for a wildcard, and search in file buffers
 whose file names match the specified wildcard.
 
 (fn FILES)" t)
+(autoload 'multi-file-replace-as-diff "misearch" "\
+Show as diffs replacements of FROM-STRING with REPLACEMENTS.
+FILES is a list of file names.  Also it's possible to provide a list of
+buffers in FILES.  REGEXP-FLAG and DELIMITED-FLAG have the same meaning
+as in `perform-replace'.
+
+(fn FILES FROM-STRING REPLACEMENTS REGEXP-FLAG DELIMITED-FLAG)")
 (autoload 'multi-file-replace-regexp-as-diff "misearch" "\
 Show as diffs replacements of REGEXP with TO-STRING in FILES.
 DELIMITED has the same meaning as in `replace-regexp'.
@@ -39863,6 +39881,7 @@ run a specific program.  The program must be a member of
 (provide 'loaddefs)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; version-control: never
 ;; no-update-autoloads: t
 ;; no-native-compile: t
