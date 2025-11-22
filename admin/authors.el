@@ -124,6 +124,7 @@ files.")
     ("Hallvard B. Furuseth" "Hallvard B Furuseth" "Hallvard Furuseth")
     (nil "hokomo@airmail\\.cc" "hokomo")
     ("Hrvoje Nikšić" "Hrvoje Niksic")
+    ("Huang Jing" "rne\\.kou@icloud\\.com" "RadioNoiseE")
     ("Ian Dunn" "^Ian D\\>")
     ;; lisp/org/ChangeLog.1 2010-11-11.
     ("Ignacio Casso" "ignacio\\.decasso@imdea\\.org" "ignaciocasso@hotmail\\.com")
