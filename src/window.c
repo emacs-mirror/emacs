@@ -5161,7 +5161,7 @@ window_set_parent_and_normal_sizes (Lisp_Object parent)
   /* Normal size left for yet unprocessed windows.  */
   double remainder = 1.0;
 
-  if (w->horizontal)
+  if (p->horizontal)
     {
       while (true)
 	{
