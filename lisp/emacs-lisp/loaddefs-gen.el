@@ -154,9 +154,7 @@ scanning for autoloads and will be in the `load-path'."
 ;; they request such expansion and produce suitable output (e.g. by
 ;; employing :autoload-end to omit unneeded forms).
 (defconst loaddefs--defining-macros
-  '( define-compilation-mode
-     cl-defun defun* cl-defmacro defmacro* define-overloadable-function
-     transient-define-prefix transient-define-suffix transient-define-infix
+  '( transient-define-prefix transient-define-suffix transient-define-infix
      transient-define-argument transient-define-group))
 
 (defvar loaddefs--load-error-files nil)
@@ -246,17 +244,12 @@ expand)' among their `declare' forms."
      ;; For known special macros which define functions, use `autoload'
      ;; directly.
      ((memq car loaddefs--defining-macros)
-      (let* ((macrop (memq car '(defmacro cl-defmacro defmacro*)))
-	     (name (nth 1 form))
+      (let* ((name (nth 1 form))
 	     (args (pcase car
-                     ((or 'defun* 'defmacro* 'cl-defun 'cl-defmacro
-                          'define-overloadable-function
-                          'transient-define-prefix 'transient-define-suffix
+                     ((or 'transient-define-prefix 'transient-define-suffix
                           'transient-define-infix 'transient-define-argument
                           'transient-define-group)
                       (nth 2 form))
-                     ('define-compilation-mode
-                      nil)
                      (_ t)))
 	     (body (nthcdr (or (function-get car 'doc-string-elt) 3) form))
 	     (doc (if (stringp (car body)) (pop body))))
@@ -277,8 +270,7 @@ expand)' among their `declare' forms."
                       ;; List of modes or just t.
                       (or (if (nthcdr 2 (car body))
                               (list 'quote (nthcdr 2 (car body)))
-                            t))))
-            ,(if macrop ''macro nil)))))
+                            t))))))))
 
      ;; For defclass forms, use `eieio-defclass-autoload'.
      ((eq car 'defclass)
