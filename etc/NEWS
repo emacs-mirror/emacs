@@ -2566,6 +2566,9 @@ View mode, copies to the kill ring the ID of the revision at point in
 the log entry.  If there are marked revisions, it copies the IDs of
 those, instead.
 
+---
+*** New command alias 'vc-restore' for 'vc-revert'.
+
 ** Package
 
 +++

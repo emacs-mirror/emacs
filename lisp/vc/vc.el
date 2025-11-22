@@ -4088,6 +4088,9 @@ to the working revision (except for keyword expansion)."
     (vc-revert-files backend files)))
 
 ;;;###autoload
+(defalias 'vc-restore #'vc-revert)
+
+;;;###autoload
 (defun vc-pull (&optional arg)
   "Update the current fileset or branch.
 You must be visiting a version controlled file, or in a `vc-dir' buffer.
