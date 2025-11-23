@@ -1976,6 +1976,10 @@ for docstrings where symbols 'nil' and 't' are in quotes.
 In most cases, having it enabled leads to a large amount of false
 positives.
 
+*** New file-local variable 'lisp-indent-local-overrides'
+This variable can be used to locally override the indent specification
+of symbols.
+
 ** IELM
 
 ---

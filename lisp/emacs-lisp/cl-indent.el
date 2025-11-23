@@ -169,7 +169,10 @@ the standard Lisp indent package."
            (get symbol 'common-lisp-indent-function-for-elisp))
       (get symbol 'common-lisp-indent-function)
       (and (not no-compat)
-           (get symbol 'lisp-indent-function))))
+           (let ((local (assq symbol lisp-indent-local-overrides)))
+             (if local
+                 (cdr local)
+               (get symbol 'lisp-indent-function))))))
 
 (defun common-lisp-loop-part-indentation (indent-point state)
   "Compute the indentation of loop form constituents."
