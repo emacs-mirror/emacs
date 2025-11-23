@@ -406,6 +406,9 @@ modified buffer to be able to use unsaved changes."
 (declare-function diff-setup-whitespace "diff-mode" ())
 (declare-function diff-setup-buffer-type "diff-mode" ())
 
+(defvar coding-system--for-buffer-diff nil
+  "Used to pass encoding down to callees of `multi-file-diff-no-select'.")
+
 ;;;###autoload
 (defun multi-file-replace-as-diff (files from-string replacements regexp-flag delimited-flag)
   "Show as diffs replacements of FROM-STRING with REPLACEMENTS.
@@ -439,7 +442,11 @@ as in `perform-replace'."
                   file-name
                 (when (or (not file-exists)
                           (eq multi-file-diff-unsaved 'use-modified-buffer))
-                  (find-buffer-visiting file-name)))))
+                  (find-buffer-visiting file-name))))
+             ;; Make sure any supported characters can be written to a
+             ;; file without asking the user to select a safe
+             ;; coding-system.
+             (coding-system--for-buffer-diff 'utf-8-emacs))
         (when non-file-buffer (setq file-name (buffer-name file-name)))
         (when (or file-exists file-buffer)
           (with-temp-buffer
@@ -540,7 +547,9 @@ specify labels to use for file names."
                                         (or new-alt new)))))
                      " ")))
     (with-current-buffer buf
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t)
+            (coding-system-for-read (or coding-system--for-buffer-diff
+                                        coding-system-for-read)))
         (insert command "\n")
         (call-process shell-file-name nil buf nil
                       shell-command-switch command))
