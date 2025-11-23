@@ -311,7 +311,9 @@ This is used for conditional exit clauses."
              (dolist (bind (cdr condition))
                (push (list (car bind) (list 'and last (cadr bind)))
                      checks)
-               (setq last (car bind)))
+               (when (eq (caar checks) '_)
+                 (setcar (car checks) (make-symbol "s")))
+               (setq last (caar checks)))
              (cond
               ;; For explanations on these cases, see "Ordinary
               ;; Lisp expression is the condition." below.
