@@ -1279,7 +1279,7 @@ The return result is a `package-desc'."
       (catch 'found
         (let ((files (or (and (derived-mode-p 'dired-mode)
                               (dired-get-marked-files nil 'marked))
-                         (directory-files-recursively default-directory "\\.el\\'"))))
+                         (directory-files default-directory t "\\.el\\'" t))))
           ;; We sort the file names in lexicographical order, to ensure
           ;; that we check shorter file names first (ie. those further
           ;; up in the directory structure).
