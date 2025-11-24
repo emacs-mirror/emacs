@@ -658,17 +658,21 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
   "Return the coding system to use according to EditorConfig.
 Meant to be used on `auto-coding-functions'."
   (defvar auto-coding-file-name) ;; Emacs≥30
-  (when (and (stringp auto-coding-file-name)
-             (file-name-absolute-p auto-coding-file-name)
-	     ;; Don't recurse infinitely.
-	     (not (member auto-coding-file-name
-	                  editorconfig--getting-coding-system)))
-    (let* ((editorconfig--getting-coding-system
-            (cons auto-coding-file-name editorconfig--getting-coding-system))
-           (props (editorconfig-call-get-properties-function
-                   auto-coding-file-name)))
-      (editorconfig-merge-coding-systems (gethash 'end_of_line props)
-                                         (gethash 'charset props)))))
+  ;; Not only we don't want that an error in the `.editorconfig' file
+  ;; prevents opening a file but we don't want an error to be dropped on
+  ;; the floor by some `ignore-errors' higher up.
+  (with-demoted-errors "EditorConfig: %S"
+    (when (and (stringp auto-coding-file-name)
+               (file-name-absolute-p auto-coding-file-name)
+	       ;; Don't recurse infinitely.
+	       (not (member auto-coding-file-name
+	                    editorconfig--getting-coding-system)))
+      (let* ((editorconfig--getting-coding-system
+              (cons auto-coding-file-name editorconfig--getting-coding-system))
+             (props (editorconfig-call-get-properties-function
+                     auto-coding-file-name)))
+        (editorconfig-merge-coding-systems (gethash 'end_of_line props)
+                                           (gethash 'charset props))))))
 
 (defun editorconfig--get-dir-local-variables ()
   "Return the directory local variables specified via EditorConfig.
