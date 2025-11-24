@@ -111,7 +111,7 @@ If your files might be edited by older versions of Emacs also, you should
 limit yourself to the formats recommended by that older version."
   :type 'string
   :version "31.1")
-;;;###autoload(put 'time-stamp-format 'safe-local-variable 'stringp)
+;;;###autoload(put 'time-stamp-format 'safe-local-variable #'stringp)
 
 
 (defcustom time-stamp-active t
@@ -153,7 +153,7 @@ Its format is that of the ZONE argument of the `format-time-string' function."
                        (string :tag "Time zone abbreviation"))
                  (integer :tag "Offset (seconds east of UTC)"))
   :version "20.1")
-;;;###autoload(put 'time-stamp-time-zone 'safe-local-variable 'time-stamp-zone-type-p)
+;;;###autoload(put 'time-stamp-time-zone 'safe-local-variable #'time-stamp-zone-type-p)
 
 
 ;;;###autoload
@@ -191,7 +191,7 @@ These variables are best changed with file-local variables.
 If you were to change `time-stamp-line-limit', `time-stamp-start',
 `time-stamp-end', or `time-stamp-pattern' in your init file, you
 would be incompatible with other people's files.")
-;;;###autoload(put 'time-stamp-line-limit 'safe-local-variable 'integerp)
+;;;###autoload(put 'time-stamp-line-limit 'safe-local-variable #'integerp)
 
 
 (defvar time-stamp-start "Time-stamp:[ \t]+\\\\?[\"<]+"    ;Do not change!
@@ -205,7 +205,7 @@ These variables are best changed with file-local variables.
 If you were to change `time-stamp-line-limit', `time-stamp-start',
 `time-stamp-end', or `time-stamp-pattern' in your init file, you
 would be incompatible with other people's files.")
-;;;###autoload(put 'time-stamp-start 'safe-local-variable 'stringp)
+;;;###autoload(put 'time-stamp-start 'safe-local-variable #'stringp)
 
 
 (defvar time-stamp-end "\\\\?[\">]"    ;Do not change!
@@ -228,7 +228,7 @@ These variables are best changed with file-local variables.
 If you were to change `time-stamp-line-limit', `time-stamp-start',
 `time-stamp-end', `time-stamp-pattern', or `time-stamp-inserts-lines' in
 your init file, you would be incompatible with other people's files.")
-;;;###autoload(put 'time-stamp-end 'safe-local-variable 'stringp)
+;;;###autoload(put 'time-stamp-end 'safe-local-variable #'stringp)
 
 
 (defvar time-stamp-inserts-lines nil    ;Do not change!
@@ -244,7 +244,7 @@ for generating repeated time stamps.
 These variables are best changed with file-local variables.
 If you were to change `time-stamp-end' or `time-stamp-inserts-lines' in
 your init file, you would be incompatible with other people's files.")
-;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable 'booleanp)
+;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable #'booleanp)
 
 
 (defvar time-stamp-count 1		;Do not change!
@@ -313,7 +313,7 @@ in-depth examples.
 
 
 See also `time-stamp-count' and `time-stamp-inserts-lines'.")
-;;;###autoload(put 'time-stamp-pattern 'safe-local-variable 'stringp)
+;;;###autoload(put 'time-stamp-pattern 'safe-local-variable #'stringp)
 
 
 
@@ -838,7 +838,7 @@ TYPE is :absolute for the full name or :nondirectory for base name only."
            (let ((category (get-char-code-property chr 'general-category)))
              (if (or
                   ;; Letter, Mark, Number, Punctuation, or Symbol
-                  (member (aref (symbol-name category) 0) '(?L ?M ?N ?P ?S))
+                  (memq (aref (symbol-name category) 0) '(?L ?M ?N ?P ?S))
                   ;; spaces of various widths, but not ctrl chars like CR or LF
                   (eq category 'Zs))
                  chr
@@ -857,14 +857,15 @@ You really need to update your files instead.
 The new formats will work with old versions of Emacs.
 New formats are being recommended now to allow `time-stamp-format'
 to change in the future to be compatible with `format-time-string'.
-The new forms being recommended now will continue to work then.")
+The new formats being recommended now will continue to work then.")
 
 
-(defun time-stamp-conv-warn (old-form new-form &optional standard-form)
+(defun time-stamp-conv-warn (old-format new-format &optional standard-format)
   "Display a warning about a soon-to-be-obsolete format.
-Suggests replacing OLD-FORM with NEW-FORM (same effect, but stable)
-or (if provided) STANDARD-FORM (the effect the user may have expected
-if they didn't read the documentation)."
+Suggests replacing OLD-FORMAT with NEW-FORMAT (same effect, but stable)
+or (if provided) STANDARD-FORMAT (the effect the user may have expected
+if they didn't read the documentation).
+This is an internal function called by `time-stamp'."
   (cond
    (time-stamp-conversion-warn
     (with-current-buffer (get-buffer-create "*Time-stamp-compatibility*")
@@ -877,15 +878,15 @@ if they didn't read the documentation)."
            "The conversions recognized in `time-stamp-format' will change in a future\n"
            "release to be more compatible with the function `format-time-string'.\n"
            (cond
-            (standard-form
+            (standard-format
              (concat
               "Conversions that are changing are ambiguous and should be replaced by\n"
               "stable conversions that make your intention clear.\n")))
            "\n"
            "The following obsolescent `time-stamp-format' conversion(s) were found:\n\n")))))
-      (insert old-form " -- use " new-form)
-      (if standard-form
-          (insert " or " standard-form))
+      (insert old-format " -- use " new-format)
+      (if standard-format
+          (insert " or " standard-format))
       (insert "\n")
       (help-make-xrefs))
     (display-buffer "*Time-stamp-compatibility*"))))
