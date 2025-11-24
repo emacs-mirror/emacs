@@ -117,6 +117,8 @@
 (autoload 'vc--pick-or-revert "vc")
 (autoload 'vc--remove-revisions-from-end "vc")
 (autoload 'vc--prompt-other-working-tree "vc")
+(autoload 'vc-exec-after "vc-dispatcher")
+(eval-when-compile (require 'vc-dispatcher))
 
 (defvar cvs-minor-wrap-function)
 (defvar cvs-force-command)
@@ -276,6 +278,8 @@ The match group number 1 should match the revision number itself.")
   (setq-local cvs-minor-wrap-function #'log-view-minor-wrap)
   (setq-local project-find-matching-buffer-function
               #'project-change-to-matching-directory)
+  (add-hook 'revert-buffer-restore-functions #'log-view--restore-marks
+            nil t)
   (hack-dir-local-variables-non-file-buffer))
 
 ;;;;
@@ -470,6 +474,20 @@ See `log-view-mark-entry'."
 	  (push (overlay-get ov 'log-view-marked) marked-list)
 	  (setq pos (overlay-end ov))))
       marked-list)))
+
+(defun log-view--restore-marks ()
+  "Return a function to restore log entry marks after `revert-buffer'.
+Added to `revert-buffer-restore-functions' by Log View mode."
+  (let ((table (make-hash-table :test #'equal)))
+    (dolist (mark (log-view-get-marked))
+      (puthash mark t table))
+    (lambda ()
+      (vc-run-delayed
+        (log-view--mark-unmark (lambda ()
+                                 (if (gethash (log-view-current-tag) table)
+                                     (log-view--mark-entry)
+                                   (log-view-msg-next 1)))
+                               nil (point-min) (point-max))))))
 
 (defun log-view-toggle-entry-display ()
   "If possible, expand the current Log View entry.
