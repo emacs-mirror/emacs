@@ -163,6 +163,9 @@ double android_pixel_density_x, android_pixel_density_y;
    font sizes.  */
 double android_scaled_pixel_density;
 
+/* The display's current UI mode.  */
+int android_ui_mode;
+
 /* The Android application data directory.  */
 static char *android_files_dir;
 
@@ -1476,6 +1479,7 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 			      jfloat pixel_density_x,
 			      jfloat pixel_density_y,
 			      jfloat scaled_density,
+			      jint ui_mode,
 			      jobject class_path,
 			      jobject emacs_service_object,
 			      jint api_level)
@@ -1501,6 +1505,7 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
   android_pixel_density_x = pixel_density_x;
   android_pixel_density_y = pixel_density_y;
   android_scaled_pixel_density = scaled_density;
+  android_ui_mode = ui_mode;
 
   __android_log_print (ANDROID_LOG_INFO, __func__,
 		       "Initializing "PACKAGE_STRING"...\nPlease report bugs to "
@@ -2821,8 +2826,9 @@ NATIVE_NAME (sendNotificationAction) (JNIEnv *env, jobject object,
 
 JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendConfigurationChanged) (JNIEnv *env, jobject object,
-					jfloat dpi_x, jfloat dpi_y,
-					jfloat dpi_scaled)
+					int detail, jfloat dpi_x,
+					jfloat dpi_y, jfloat dpi_scaled,
+					int ui_mode)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -2831,9 +2837,24 @@ NATIVE_NAME (sendConfigurationChanged) (JNIEnv *env, jobject object,
   event.config.type = ANDROID_CONFIGURATION_CHANGED;
   event.config.serial = ++event_serial;
   event.config.window = ANDROID_NONE;
-  event.config.dpi_x = dpi_x;
-  event.config.dpi_y = dpi_y;
-  event.config.dpi_scaled = dpi_scaled;
+  event.config.detail = detail;
+
+  switch (detail)
+    {
+    case ANDROID_PIXEL_DENSITY_CHANGED:
+      event.config.u.pixel_density.dpi_x = dpi_x;
+      event.config.u.pixel_density.dpi_y = dpi_y;
+      event.config.u.pixel_density.dpi_scaled = dpi_scaled;
+      break;
+
+    case ANDROID_UI_MODE_CHANGED:
+      event.config.u.ui_mode = ui_mode;
+      break;
+
+    default:
+      emacs_abort ();
+    }
+
   android_write_event (&event);
   return event_serial;
 }

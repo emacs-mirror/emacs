@@ -341,6 +341,10 @@ enum event_kind
      which the monitors changed.  */
   , MONITORS_CHANGED_EVENT
 
+  /* In a TOOLKIT_THEME_CHANGED_EVENT, .arg is the value to which the
+     toolkit theme was altered.  */
+  , TOOLKIT_THEME_CHANGED_EVENT
+
 #ifdef HAVE_HAIKU
   /* In a NOTIFICATION_CLICKED_EVENT, .arg is an integer identifying
      the notification that was clicked.  */

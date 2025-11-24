@@ -6085,15 +6085,8 @@ w32_read_socket (struct terminal *terminal,
 
 	case WM_EMACS_SET_TOOLKIT_THEME:
 	  {
-	    Vtoolkit_theme = msg.msg.wParam ? Qdark : Qlight;
-	    Lisp_Object hook = intern ("toolkit-theme-set-functions");
-	    if (!NILP (Fboundp (hook)))
-	      {
-		Lisp_Object args[2];
-		args[0] = hook;
-		args[1] = Vtoolkit_theme;
-		Frun_hook_with_args (2, args);
-	      }
+	    inev.kind = TOOLKIT_THEME_CHANGED_EVENT;
+	    inev.arg = msg.msg.wParam ? Qdark : Qlight;
 	  }
 	  break;
 

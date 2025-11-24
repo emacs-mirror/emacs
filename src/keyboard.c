@@ -4242,6 +4242,15 @@ kbd_buffer_get_event (KBOARD **kbp,
 	}
 #endif /* HAVE_ANDROID */
 
+      case TOOLKIT_THEME_CHANGED_EVENT:
+	kbd_fetch_ptr = next_kbd_event (event);
+	input_pending = readable_events (0);
+
+	Vtoolkit_theme = event->ie.arg;
+	CALLN (Frun_hook_with_args, Qtoolkit_theme_set_functions,
+	       event->ie.arg);
+	break;
+
 #ifdef HAVE_EXT_MENU_BAR
       case MENU_BAR_ACTIVATE_EVENT:
 	{

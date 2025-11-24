@@ -596,6 +596,17 @@ struct android_notification_event
   size_t length;
 };
 
+enum android_configuration_change_type
+  {
+    ANDROID_PIXEL_DENSITY_CHANGED,
+    ANDROID_UI_MODE_CHANGED,
+  };
+
+#define UI_MODE_NIGHT_MASK	0x00000030
+#define UI_MODE_NIGHT_NO	0x00000010
+#define UI_MODE_NIGHT_YES	0x00000020
+#define UI_MODE_NIGHT_UNDEFINED 0x00000000
+
 struct android_configuration_changed_event
 {
   /* Type of the event.  */
@@ -607,13 +618,23 @@ struct android_configuration_changed_event
   /* The window that gave rise to the event (None).  */
   android_window window;
 
-  /* The density of the display along the horizontal and vertical
-     axes.  */
-  double dpi_x, dpi_y;
+  /* What type of change this event represents.  */
+  enum android_configuration_change_type detail;
 
-  /* The density to take into account when converting between point and
-     pixel dimensions.  */
-  double dpi_scaled;
+  union {
+    struct {
+      /* The density of the display along the horizontal and vertical
+	 axes.  */
+      double dpi_x, dpi_y;
+
+      /* The density to take into account when converting between point
+	 and pixel dimensions.  */
+      double dpi_scaled;
+    } pixel_density;
+
+    /* A change in the reported user interface UI mode.  */
+    int ui_mode;
+  } u;
 };
 
 union android_event

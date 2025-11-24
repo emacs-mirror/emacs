@@ -3573,10 +3573,10 @@ automatically toggling between them.
 
 ---
 *** 'toolkit-theme-set-functions' called when the toolkit theme is set for Emacs.
-When the theme is set on PGTK or MS-Windows builds,
+When the theme is set on PGTK, Android, or MS-Windows systems,
 'toolkit-theme-set-functions' is called.  The result is stored in the
 variable 'toolkit-theme' as either symbol 'dark' or 'light', but may be
-expanded to future toolkit-specific symbols in the future.
+extended to encompass other toolkit-specific symbols in the future.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems

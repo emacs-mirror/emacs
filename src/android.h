@@ -102,6 +102,7 @@ extern ssize_t android_readlinkat (int, const char *restrict, char *restrict,
 
 extern double android_pixel_density_x, android_pixel_density_y;
 extern double android_scaled_pixel_density;
+extern int android_ui_mode;
 
 static_assert (sizeof (android_handle) == sizeof (jobject));
 #define android_resolve_handle(handle) ((jobject) (handle))

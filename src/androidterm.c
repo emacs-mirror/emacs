@@ -1825,19 +1825,32 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       goto OTHER;
 
     case ANDROID_CONFIGURATION_CHANGED:
-      /* Update the display configuration from the event.  */
-      dpyinfo->resx = event->config.dpi_x;
-      dpyinfo->resy = event->config.dpi_y;
-      dpyinfo->font_resolution = event->config.dpi_scaled;
-#ifdef notdef
-      __android_log_print (ANDROID_LOG_VERBOSE, __func__,
-			   "New display configuration: "
-			   "resx = %.2f resy = %.2f font_resolution = %.2f",
-			   dpyinfo->resx, dpyinfo->resy, dpyinfo->font_resolution);
+
+      if (event->config.detail == ANDROID_PIXEL_DENSITY_CHANGED)
+	{
+	  /* Update the display configuration from the event.  */
+	  dpyinfo->resx = event->config.u.pixel_density.dpi_x;
+	  dpyinfo->resy = event->config.u.pixel_density.dpi_y;
+	  dpyinfo->font_resolution
+	    = event->config.u.pixel_density.dpi_scaled;
+#if notdef
+	  __android_log_print (ANDROID_LOG_VERBOSE, __func__,
+			       "New display configuration: "
+			       "resx = %.2f resy = %.2f font_resolution = %.2f",
+			       dpyinfo->resx, dpyinfo->resy, dpyinfo->font_resolution);
 #endif /* notdef */
-      inev.ie.kind = CONFIG_CHANGED_EVENT;
-      inev.ie.frame_or_window = XCAR (dpyinfo->name_list_element);
-      inev.ie.arg = Qfont_render;
+	  inev.ie.kind = CONFIG_CHANGED_EVENT;
+	  inev.ie.frame_or_window = XCAR (dpyinfo->name_list_element);
+	  inev.ie.arg = Qfont_render;
+	}
+      else if (event->config.detail == ANDROID_UI_MODE_CHANGED)
+	{
+	  android_ui_mode = event->config.u.ui_mode;
+	  inev.ie.kind = TOOLKIT_THEME_CHANGED_EVENT;
+	  inev.ie.arg = (android_ui_mode == UI_MODE_NIGHT_YES
+			 ? Qdark : Qlight);
+	}
+
       goto OTHER;
 
     default:
@@ -6753,6 +6766,8 @@ android_term_init (void)
   dpyinfo->resx = android_pixel_density_x;
   dpyinfo->resy = android_pixel_density_y;
   dpyinfo->font_resolution = android_scaled_pixel_density;
+  Vtoolkit_theme = (android_ui_mode == UI_MODE_NIGHT_YES
+		    ? Qdark : Qlight);
 #endif /* !ANDROID_STUBIFY */
 
   /* https://lists.gnu.org/r/emacs-devel/2015-11/msg00194.html  */
