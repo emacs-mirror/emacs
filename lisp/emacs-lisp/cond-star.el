@@ -93,7 +93,7 @@ are passed along to the rest of the clauses in this `cond*' construct.
   ;; FIXME: Want an Edebug declaration.
   (cond*-convert clauses))
 
-;; The following three macros are autoloaded for the sake of syntax
+;; The following four macros are autoloaded for the sake of syntax
 ;; highlighting.
 
 ;;;###autoload
@@ -169,7 +169,7 @@ ATOM (meaning any other kind of non-list not described above)
 It is not really a Lisp function, and it is meaningful
 only in the CONDITION of a `cond*' clause."
   ;; FIXME: `byte-compile-warn-x' is not necessarily defined here.
-  (byte-compile-warn-x bindings "`bind' used other than as a `cond*' condition"))
+  (byte-compile-warn-x bindings "`bind*' used other than as a `cond*' condition"))
 
 ;;;###autoload
 (defmacro bind-and* (&rest bindings)
@@ -178,6 +178,14 @@ It is not really a Lisp function, and it is meaningful
 only in the CONDITION of a `cond*' clause."
   ;; FIXME: `byte-compile-warn-x' is not necessarily defined here.
   (byte-compile-warn-x bindings "`bind-and*' used other than as a `cond*' condition"))
+
+;;;###autoload
+(defmacro pcase* (pattern _datum)
+  "This macro evaluates BINDINGS like `pcase-let'.
+It is not really a Lisp function, and it is meaningful
+only in the CONDITION of a `cond*' clause."
+  ;; FIXME: `byte-compile-warn-x' is not necessarily defined here.
+  (byte-compile-warn-x pattern "`pcase*' used other than as a `cond*' condition"))
 
 (defun cond*-non-exit-clause-p (clause)
   "If CLAUSE, a cond* clause, is a non-exit clause, return t."
