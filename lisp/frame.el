@@ -1528,6 +1528,12 @@ the `background-mode' terminal parameter."
 ;;                         :background (face-attribute 'default :foreground))
 ;;     (frame-set-background-mode (selected-frame))))
 
+(defvar toolkit-theme-set-functions nil
+  "Abnormal hook run when the system theme is applied to Emacs.
+Functions on this hook are called with the theme name as a symbol:
+`light' or `dark'.  By the time the hook is called, `toolkit-theme' will
+already be set to one of these values as well.")
+
 
 ;;;; Frame configurations
 

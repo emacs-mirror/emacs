@@ -660,9 +660,9 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
                   (aclent_t *) malloc (alloc * sizeof (aclent_t));
                 if (entries == NULL)
                   return -1;
-                continue;
               }
-            break;
+            else
+              break;
           }
         if (count < 0)
           {
@@ -732,9 +732,9 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
                 entries = malloced = (ace_t *) malloc (alloc * sizeof (ace_t));
                 if (entries == NULL)
                   return -1;
-                continue;
               }
-            break;
+            else
+              break;
           }
         if (count < 0)
           {

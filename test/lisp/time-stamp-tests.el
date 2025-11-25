@@ -745,6 +745,7 @@ This is a separate function so it can have an `ert-explainer' property."
   "Test that our variables are known to be safe local variables."
   (should (safe-local-variable-p 'time-stamp-format "a string"))
   (should-not (safe-local-variable-p 'time-stamp-format '(a list)))
+  (should (safe-local-variable-p 'time-stamp-time-zone t))
   (should (safe-local-variable-p 'time-stamp-time-zone "a string"))
   (should-not (safe-local-variable-p 'time-stamp-time-zone 0.5))
   (should (safe-local-variable-p 'time-stamp-line-limit -10))

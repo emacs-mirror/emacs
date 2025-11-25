@@ -3472,8 +3472,10 @@ symbolic form found in Lisp source that "abbreviates" a symbol's print
 name.  Among other applications, this feature can be used to avoid
 name clashes and namespace pollution by renaming an entire file's
 worth of symbols with proper and longer prefixes, without actually
-touching the Lisp source.  For details, see the Info node "(elisp)
-Shorthands".
+touching the Lisp source.  Instead you need to set the
+'read-symbol-shorthands' variable in the file-local section of the file
+to list the shorthand prefixes in use.
+For details, see the Info node "(elisp) Shorthands".
 
 ** New function 'string-search'.
 This function takes two string parameters and returns the position of

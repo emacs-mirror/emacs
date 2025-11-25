@@ -150,6 +150,10 @@ public final class EmacsService extends Service
      consulted for font scaling.  */
   private double dpiX, dpiY, dpiScaled;
 
+  /* The display's previously observed UI mode as it relates to the
+     system theme.  */
+  private int uiMode;
+
   static
   {
     servicingQuery = new AtomicInteger ();
@@ -240,6 +244,7 @@ public final class EmacsService extends Service
     float tempScaledDensity;
     Resources resources;
     DisplayMetrics metrics;
+    Configuration configuration;
 
     super.onCreate ();
 
@@ -254,6 +259,8 @@ public final class EmacsService extends Service
     tempScaledDensity = ((getScaledDensity (metrics)
 			  / metrics.density)
 			 * pixelDensityX);
+    configuration = resources.getConfiguration ();
+    uiMode = configuration.uiMode & Configuration.UI_MODE_NIGHT_MASK;
     resolver = getContentResolver ();
     mainThread = Thread.currentThread ();
 
@@ -311,7 +318,8 @@ public final class EmacsService extends Service
 	      EmacsNative.setEmacsParams (manager, filesDir, libDir,
 					  cacheDir, pixelDensityX,
 					  pixelDensityY, scaledDensity,
-					  classPath, EmacsService.this,
+					  uiMode, classPath,
+					  EmacsService.this,
 					  Build.VERSION.SDK_INT);
 	    }
 	  }, extraStartupArguments);
@@ -375,8 +383,14 @@ public final class EmacsService extends Service
 	dpiX = pixelDensityX;
 	dpiY = pixelDensityY;
 	dpiScaled = scaledDensity;
-	EmacsNative.sendConfigurationChanged (pixelDensityX, pixelDensityY,
-					      scaledDensity);
+	EmacsNative.sendConfigurationChanged (0, pixelDensityX, pixelDensityY,
+					      scaledDensity, 0);
+      }
+
+    if ((newConfig.uiMode & Configuration.UI_MODE_NIGHT_MASK) != uiMode)
+      {
+	uiMode = newConfig.uiMode & Configuration.UI_MODE_NIGHT_MASK;
+	EmacsNative.sendConfigurationChanged (1, 0.0f, 0.0f, 0.0f, uiMode);
       }
 
     super.onConfigurationChanged (newConfig);

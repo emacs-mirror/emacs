@@ -286,8 +286,7 @@ str2signum (char const *signame)
     }
   else
     {
-      unsigned int i;
-      for (i = 0; i < NUMNAME_ENTRIES; i++)
+      for (unsigned int i = 0; i < NUMNAME_ENTRIES; i++)
         if (streq (numname_table[i].name, signame))
           return numname_table[i].num;
 
@@ -331,8 +330,7 @@ str2sig (char const *signame, int *signum)
 int
 sig2str (int signum, char *signame)
 {
-  unsigned int i;
-  for (i = 0; i < NUMNAME_ENTRIES; i++)
+  for (unsigned int i = 0; i < NUMNAME_ENTRIES; i++)
     if (numname_table[i].num == signum)
       {
         strcpy (signame, numname_table[i].name);

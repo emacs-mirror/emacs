@@ -113,5 +113,54 @@ is where a feature works _differently_ in the previous version.
 In those cases, the user might have trouble figuring out how to use
 the old version without some sort of help.
 
+
 ** To indicate possession, write Emacs's rather than Emacs'.
 https://lists.gnu.org/r/emacs-devel/2012-02/msg00649.html
+
+
+** etc/NEWS style rules
+
+Any change that matters to end-users should have an entry in etc/NEWS.
+This is not intended as reference of design decisions or interfaces.
+
+*** Each NEWS entry starts with a heading that summarizes the entry.
+It takes just one line, and will finish with a period.  Section
+headings, which are one level up from entry headings, are not full
+sentences.  First-level headings are broad categories, and the other
+section headings are the names of Emacs features.  Don't use Lisp
+symbols for section headings.  E.g. "Random mode" not "'random-mode'".
+
+*** All new, changed or obsoleted user options and commands are documented.
+Document the default value or the argument list, respectively.
+
+If a user option or command is obsoleted or changes the default value /
+argument list, document how to keep the previous behavior.
+
+Document further new, changed or obsoleted variables and functions, if
+they are relevant for package authors.
+
+*** Lisp symbols, Lisp forms and and key sequences are quoted 'like-this'.
+This results in clickable Lisp symbols when the NEWS file is visited via
+'view-emacs-news' ('C-h n').  Also single key names or keywords must
+follow this rule, like 'TAB' or ':type'.  Exception: the symbols t and
+nil are not quoted.
+
+Arguments of a function are written in capital letters LIKE-THIS, and they
+are not quoted.
+
+If Lisp forms are written in a line of its own, they are not quoted.
+Separate these lines from the previous and following text by an empty
+line.  Indent them with a width of 4 spaces.
+
+*** File names, buffer names, process names are strings.
+Quote them with quotation marks "like this".  Exception: Lisp file names
+like subr.el, which are not quoted.
+
+*** External program names are quoted with quotation marks like "this".
+
+*** Manuals (Info pages) are referenced like "(elisp) Documentation Tips".
+
+*** Prior pushing your changes, check the result.
+Call 'emacs-news-view-mode'.  Lisp symbols and Info manual links shall
+be decorated, and clicking on them shall lead to the respective Help
+buffer or Info node.

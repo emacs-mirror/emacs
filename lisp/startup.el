@@ -2961,12 +2961,14 @@ nil default-directory" name)
    file file nil t
    (lambda (buffer file)
      (with-current-buffer buffer
+       (setq-local lexical-binding t)
        (goto-char (point-min))
        ;; Removing the #! and then calling `eval-buffer' will make the
        ;; reader not signal an error if it then turns out that the
        ;; buffer is empty.
        (when (looking-at "#!")
-         (delete-line))
+         (delete-line)
+         (insert ";; -*- lexical-binding: t -*-\n"))
        (eval-buffer buffer nil file nil t)))))
 
 (defun command-line--eval-script (file)
@@ -2975,6 +2977,7 @@ nil default-directory" name)
    (lambda (buffer _)
      (with-current-buffer buffer
        (goto-char (point-min))
+       (setq-local lexical-binding t)
        (when (looking-at "#!")
          (forward-line))
        (let (value form)

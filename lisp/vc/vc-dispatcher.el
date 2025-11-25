@@ -280,10 +280,7 @@ Only run CODE if the SUCCESS process has a zero exit code."
      ;; lost.  Terminated processes get deleted automatically
      ;; anyway. -- cyd
      ((or (null proc) (eq (process-status proc) 'exit))
-      (when proc
-        ;; Nonblocking call in case we are ourselves called from a
-        ;; process sentinel (GNU ELPA's diff-hl does this).
-        (accept-process-output proc 0))
+      (when proc (accept-process-output proc))
       (funcall eval-code))
      ((eq (process-status proc) 'run)
       (when (buffer-live-p buf)
@@ -559,7 +556,7 @@ Display the buffer in some window, but don't select it."
                          (goto-char (process-mark proc))
                          (let ((inhibit-read-only t))
                            (insert
-                            (format "Finished in %f seconds\n"
+                            (format "Finished in %.2f seconds\n"
                                     (time-to-seconds
                                      (time-since start-time))))
                            (set-marker (process-mark proc)
@@ -752,8 +749,6 @@ ARG and NO-CONFIRM are passed on to `revert-buffer'."
 
 (defvar view-old-buffer-read-only)
 
-(declare-function auto-revert-buffers "autorevert")
-
 (defun vc-resynch-window (file &optional keep noquery reset-vc-info)
   "If FILE is in the current buffer, either revert or unvisit it.
 The choice between revert (to see expanded keywords) and unvisit
@@ -771,13 +766,7 @@ editing!"
              ((file-exists-p file)
               (when reset-vc-info
 	        (vc-file-clearprops file))
-              ;; If `auto-revert-mode' is on (probably due to either
-              ;; `global-auto-revert-mode' or `vc-auto-revert-mode')
-              ;; then defer to that.  Otherwise we do our own
-              ;; VC-specific reverting.
-              (if (and (bound-and-true-p auto-revert-mode) noquery)
-                  (auto-revert-buffers)
-	        (vc-revert-buffer-internal t noquery))
+              (vc-revert-buffer-internal t noquery)
 
 	      ;; VC operations might toggle the read-only state.  In
 	      ;; that case we need to adjust the `view-mode' status

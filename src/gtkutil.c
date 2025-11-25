@@ -1495,6 +1495,14 @@ xg_update_dark_mode_for_all_displays (bool dark_mode_p)
 	 = gtk_settings_get_for_screen (screen);
        xg_set_gtk_theme_dark_mode (dark_mode_p, settings);
      }
+
+   {
+     struct input_event inev;
+     EVENT_INIT (inev);
+     inev.kind = TOOLKIT_THEME_CHANGED_EVENT;
+     inev.arg = dark_mode_p ? Qdark : Qlight;
+     kbd_buffer_store_event (&inev);
+   }
 }
 
 /* Set initial dark mode for a new frame (called during frame

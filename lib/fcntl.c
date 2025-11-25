@@ -146,9 +146,8 @@ dupfd (int oldfd, int newfd, int flags)
   /* Close the previous fds that turned out to be too small.  */
   {
     int saved_errno = errno;
-    unsigned int duplicated_fd;
 
-    for (duplicated_fd = 0;
+    for (unsigned int duplicated_fd = 0;
          duplicated_fd < fds_to_close_bound * CHAR_BIT;
          duplicated_fd++)
       if ((fds_to_close[duplicated_fd / CHAR_BIT]

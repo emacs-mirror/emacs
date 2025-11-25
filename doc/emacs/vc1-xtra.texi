@@ -21,6 +21,7 @@
 * Editing VC Commands:: Editing the VC shell commands that Emacs will run.
 * Preparing Patches::   Preparing and composing patches from within VC.
 * VC Auto-Reverting::   Updating buffer contents after VCS operations.
+* Rewinding Branches::  Commands to delete revisions from ends of branches.
 @end menu
 
 @node Change Logs and VC
@@ -677,6 +678,60 @@ contents, regardless of whether Emacs initiated those operations.
 
   @xref{VC Mode Line}, for details regarding Auto Revert mode in buffers
 visiting tracked files (which is what @code{vc-auto-revert-mode} enables).
+
+@node Rewinding Branches
+@subsubsection Rewinding Branches
+@cindex rewinding a branch (VC)
+
+@table @kbd
+@item M-x vc-delete-revisions-from-end
+Delete revisions from the end of the current branch.
+
+@item M-x vc-uncommit-revisions-from-end
+Delete revisions from the end of the current branch without touching the
+working tree.
+@end table
+
+@findex vc-delete-revisions-from-end
+  For decentralized version control systems (@pxref{VCS Repositories}),
+these commands provide ways to move the current branch back to an
+earlier revision.  @code{vc-delete-revisions-from-end} prompts for a
+revision, then removes all revisions from the end of the branch up to
+but not including the specified revision.  We say that the branch is
+@dfn{rewound} back to the specified revision.
+
+  This command removes the changes made by the revisions from the
+working tree.  Therefore, if there are any uncommitted changes, they
+must be reverted, first (@pxref{VC Undo}).  This command will prompt you
+to do that if necessary.  If you supply a prefix argument, Emacs will
+delete uncommitted changes without prompting.
+
+@cindex uncommitting revisions
+@findex vc-uncommit-revisions-from-end
+  To ``uncommit'' a revision means to remove it from the revision
+history without removing its changes from the working tree.  It is as
+though you had made the changes but had not yet checked them in.  The
+command @code{vc-uncommit-revisions-from-end} prompts for a revision,
+and then uncommits all revisions from the end of the branch up to but
+not including the specified revision.  The branch is rewound back to the
+specified revision but the changes are left behind in the working tree.
+
+  When rewinding the current branch, if all the revisions deleted from
+the revision history are among those you have pulled or pushed, then
+these operations do not permanently delete anything: a simple
+@w{@kbd{C-x v +}} (@pxref{Pulling / Pushing}) will bring the revisions
+back.  On the other hand, if there are new revisions on the end of the
+branch that have not yet been pushed, then these commands will delete
+them permanently.  Emacs tries to detect this situation and ask you if
+you are sure you want to delete them.
+
+  Alternative ways to access this functionality are the
+@code{log-view-uncommit-revisions-from-end} and
+@code{log-view-delete-revisions-from-end} commands, bound to @kbd{x} and
+@kbd{X}, respectively, in Log View mode buffers (@pxref{VC Change Log}).
+Compared to using the commands described here directly, the Log View
+mode commands can make it easier to be sure you are rewinding back to
+the revision you intend.
 
 @node Customizing VC
 @subsection Customizing VC

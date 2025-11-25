@@ -877,6 +877,7 @@ Miscellaneous Commands and Features of VC
 * Editing VC Commands::   Editing the VC shell commands that Emacs will run.
 * Preparing Patches::     Preparing and composing patches from within VC.
 * VC Auto-Reverting::     Updating buffer contents after VCS operations.
+* Rewinding Branches::    Commands to delete revisions from ends of branches.
 
 Customizing VC
 

@@ -1331,11 +1331,12 @@ lexical binding is enabled if the @var{lexical} argument to
 @findex eval-expression@r{, and }lexical-binding
 Lexical binding is also enabled in Lisp Interaction and IELM mode,
 used in the @file{*scratch*} and @file{*ielm*} buffers, and also when
-evaluating expressions via @kbd{M-:} (@code{eval-expression}) and when
-processing the @option{--eval} command-line options of Emacs
-(@pxref{Action Arguments,,, emacs, The GNU Emacs Manual}) and
-@command{emacsclient} (@pxref{emacsclient Options,,, emacs, The GNU
-Emacs Manual}).
+evaluating expressions via @kbd{M-:} (@code{eval-expression}), when
+processing the @option{--eval}, @option{-x}, and @option{--script}
+command-line options of Emacs (@pxref{Action Arguments,,, emacs, The GNU
+Emacs Manual}), and when processing the @option{--eval} command-line
+option of @command{emacsclient} (@pxref{emacsclient Options,,, emacs,
+The GNU Emacs Manual}).
 
 @node Converting to Lexical Binding
 @subsection Converting to Lexical Binding
