@@ -1657,7 +1657,7 @@ For more details about semantic linefeeds, see `https://sembr.org/' and
         (to (copy-marker (max from to) t))
         pfx)
     (goto-char from)
-    (let ((fill-column (point-max)))
+    (let ((fill-column (* 2 (point-max)))) ; Wide characters span up to two columns.
       (setq pfx (or (save-excursion
                       (fill-region-as-paragraph-default (point)
                                                         to
@@ -1666,14 +1666,18 @@ For more details about semantic linefeeds, see `https://sembr.org/' and
                                                         squeeze-after))
                     "")))
     (while (< (point) to)
-      (let ((fill-prefix pfx))
+      (let ((fill-to (copy-marker
+                      (min to
+                           (save-excursion
+                             (forward-sentence)
+                             (point)))
+                      t))
+            (fill-prefix pfx))
 	(fill-region-as-paragraph-default (point)
-				          (min to
-                                               (save-excursion
-                                                 (forward-sentence)
-                                                 (point)))
+				          fill-to
 				          justify
-                                          t))
+                                          t)
+        (goto-char fill-to))
       (when (and (> (point) (line-beginning-position))
 		 (< (point) (line-end-position))
                  (< (point) to))
