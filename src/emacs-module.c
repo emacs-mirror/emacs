@@ -1116,7 +1116,8 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
       MODULE_INTERNAL_CLEANUP ();
       return true;
     }
-  const mpz_t *x = xbignum_val (o);
+  const mpz_t z = XBIGNUM_VAL (o);
+  const mpz_t *x = &z;
   *sign = mpz_sgn (*x);
   if (count == NULL)
     {
