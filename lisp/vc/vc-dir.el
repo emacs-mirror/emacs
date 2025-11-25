@@ -131,7 +131,8 @@ See `run-hooks'."
 
 When a directory in VC-Dir is marked, then for most VCS, this means that
 all files within it are implicitly marked as well.
-For consistency, the mark and unmark commands (principally \\<vc-dir-mode-map>\\[vc-dir-mark] and \\[vc-dir-unmark]) will
+For consistency, the mark and unmark commands \
+(principally \\<vc-dir-mode-map>\\[vc-dir-mark] and \\[vc-dir-unmark]) will
 not explicitly mark or unmark entries if doing so would result in a
 situation where both a directory and a file or directory within it are
 both marked.
@@ -145,13 +146,7 @@ be marked or unmarked.
 If this variable is nil, the commands will refuse to do anything if they
 would need to mark or unmark other entries too.
 If this variable is any other non-nil value, the commands will always
-proceed to mark and unmark other entries, without asking.
-
-There is one operation where marking or unmarking other entries in order
-to mark or unmark the entry at point is unlikely to be surprising:
-when you use \\[vc-dir-mark] on a directory which already has marked items within it.
-In this case, the subitems are unmarked regardless of the value of this
-option."
+proceed to mark and unmark other entries, without asking."
   :type '(choice (const :tag "Don't allow" nil)
                  (const :tag "Prompt to allow" ask)
                  (const :tag "Allow without prompting" t))
@@ -739,16 +734,25 @@ If IF-MARKED, return the nearest marked parent."
          (file (ewoc-data crt))
          (to-inval (list crt)))
     ;; We do not allow a state in which a directory is marked and also
-    ;; some of its files are marked.  If the user's intent is clear,
-    ;; adjust things for them so that they can proceed.
-    (if-let* (((vc-dir-fileinfo->directory file))
-              (children (vc-dir--children crt t)))
+    ;; some of its files are marked.  If the user's intent is apparent,
+    ;; offer to adjust things for them so that they can proceed.
+    (if-let* ((_ (vc-dir-fileinfo->directory file))
+              (children (vc-dir--children crt t))
+              (name (vc-dir-fileinfo->name file)))
         ;; The user wants to mark a directory where some of its children
-        ;; are already marked.  The user's intent is quite clear, so
-        ;; unconditionally unmark the children.
-        (dolist (child children)
-          (setf (vc-dir-fileinfo->marked (ewoc-data child)) nil)
-          (push child to-inval))
+        ;; are already marked.  Although the user's intent is clear, by
+        ;; default we still ask them before unmarking in order to avoid
+        ;; accidental erasure of complex patterns of marks.
+        (progn (when (or (not vc-dir-allow-mass-mark-changes)
+                         (and (eq vc-dir-allow-mass-mark-changes 'ask)
+                              (not (y-or-n-p
+                                    (format "\
+Replace marks on subitems with marking `%s' itself?"
+                                            name)))))
+                 (user-error "`%s' is already marked" name))
+               (dolist (child children)
+                 (setf (vc-dir-fileinfo->marked (ewoc-data child)) nil)
+                 (push child to-inval)))
       (when-let* ((parent (vc-dir--parent crt t))
                   (name (vc-dir-fileinfo->name (ewoc-data parent))))
         ;; The user seems to want to mark an entry whose directory is
@@ -756,10 +760,10 @@ If IF-MARKED, return the nearest marked parent."
         ;; most VCS, they may not really intend this.
         (when (or (not vc-dir-allow-mass-mark-changes)
                   (and (eq vc-dir-allow-mass-mark-changes 'ask)
-                       (not (yes-or-no-p
+                       (not (y-or-n-p
                              (format "`%s' is already marked; unmark it?"
                                      name)))))
-          (error "`%s' is already marked" name))
+          (user-error "`%s' is already marked" name))
         (setf (vc-dir-fileinfo->marked (ewoc-data parent)) nil)
         (push parent to-inval)))
     (setf (vc-dir-fileinfo->marked file) t)
@@ -897,7 +901,7 @@ Directories must have trailing slashes."
                 (all-children (vc-dir--children parent)))
           (when (and vc-dir-allow-mass-mark-changes
                      (or (not (eq vc-dir-allow-mass-mark-changes 'ask))
-                         (yes-or-no-p
+                         (y-or-n-p
                           (format "\
 Replace mark on `%s' with marks on all subitems but this one?"
                                   (vc-dir-fileinfo->name file)))))
@@ -918,9 +922,8 @@ Replace mark on `%s' with marks on all subitems but this one?"
              (children (vc-dir--children crt t))
              ((and vc-dir-allow-mass-mark-changes
                    (or (not (eq vc-dir-allow-mass-mark-changes 'ask))
-                       (yes-or-no-p
-                        (format "Unmark all items within `%s'?"
-                                (vc-dir-fileinfo->name file)))))))
+                       (y-or-n-p (format "Unmark all items within `%s'?"
+                                         (vc-dir-fileinfo->name file)))))))
           (dolist (child children)
             (setf (vc-dir-fileinfo->marked (ewoc-data child)) nil)
             (push child to-inval)))))
