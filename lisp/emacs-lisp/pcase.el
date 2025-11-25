@@ -356,16 +356,17 @@ of the elements of LIST is performed as if by `pcase-let'.
 ;;;###autoload
 (defmacro pcase-setq (pat val &rest args)
   "Assign values to variables by destructuring with `pcase'.
-PATTERNS are normal `pcase' patterns, and VALUES are expression.
+Each PATTERN is a normal `pcase' pattern, and each VALUE an expression.
 
 Evaluation happens sequentially as in `setq' (not in parallel).
 
 An example: (pcase-setq \\=`((,a) [(,b)]) \\='((1) [(2)]))
 
-VAL is presumed to match PAT.  Failure to match may signal an error or go
-undetected, binding variables to arbitrary values, such as nil.
+Each VALUE is presumed to match its PATTERN.  Failure to match may
+signal an error or go undetected, binding variables to arbitrary values,
+such as nil.
 
-\(fn PATTERNS VALUE PATTERN VALUES ...)"
+\(fn PATTERN VALUE PATTERN VALUE ...)"
   (declare (debug (&rest [pcase-PAT form])))
   (cond
    (args
