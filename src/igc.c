@@ -2436,8 +2436,6 @@ fix_window (mps_ss_t ss, struct window *w)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->current_matrix));
     if (w->desired_matrix && !w->desired_matrix->pool)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->desired_matrix));
-    IGC_FIX12_OBJ (ss, &w->prev_buffers);
-    IGC_FIX12_OBJ (ss, &w->next_buffers);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
