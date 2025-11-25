@@ -349,20 +349,40 @@ directory, like `default-directory'."
 (make-obsolete-variable 'ibuffer-load-hook
                         "use `with-eval-after-load' instead." "28.1")
 
-(defcustom ibuffer-marked-face 'warning
+(defface ibuffer-marked '((t :inherit warning))
+  "Face used by default in `ibuffer-marked-face'."
+  :version "31.1")
+
+(defface ibuffer-deletion '((t :inherit error))
+  "Face used by default in `ibuffer-deletion-face'."
+  :version "31.1")
+
+(defface ibuffer-title '((t :inherit font-lock-type-face))
+  "Face used by default in `ibuffer-title-face'."
+  :version "31.1")
+
+(defface ibuffer-filter-group-name '((t :inherit bold))
+  "Face used by default in `ibuffer-filter-group-name-face'."
+  :version "31.1")
+
+(defcustom ibuffer-marked-face 'ibuffer-marked
   "Face used for displaying marked buffers."
+  :version "31.1"
   :type 'face)
 
-(defcustom ibuffer-deletion-face 'error
+(defcustom ibuffer-deletion-face 'ibuffer-deletion
   "Face used for displaying buffers marked for deletion."
+  :version "31.1"
   :type 'face)
 
-(defcustom ibuffer-title-face 'font-lock-type-face
+(defcustom ibuffer-title-face 'ibuffer-title
   "Face used for the title string."
+    :version "31.1"
   :type 'face)
 
-(defcustom ibuffer-filter-group-name-face 'bold
+(defcustom ibuffer-filter-group-name-face 'ibuffer-filter-group-name
   "Face used for displaying filtering group names."
+  :version "31.1"
   :type 'face)
 
 (defcustom ibuffer-directory-abbrev-alist nil

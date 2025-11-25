@@ -282,10 +282,9 @@ If it can't be found, return nil and don't move point."
   "Update OBJECT's representation in TABLE.
 If OLD-OBJECT is non-nil, replace OLD-OBJECT with OBJECT and display it.
 In either case, if the existing object is not found in the table (being
-compared with `equal'), signal an error.  Note a limitation: if TABLE's
-buffer is not in a visible window, or if its window has changed width
-since it was updated, updating the TABLE is not possible, and an error
-is signaled."
+compared with `equal'), signal an error.
+
+TABLE must be at point in the current buffer."
   (unless old-object
     (setq old-object object))
   (let* ((objects (vtable-objects table))
@@ -299,17 +298,16 @@ is signaled."
       (while (and (cdr objects)
                   (not (eq (cadr objects) old-object)))
         (setq objects (cdr objects)))
-      (unless objects
+      (unless (cdr objects)
         (error "Can't find the old object"))
       (setcar (cdr objects) object))
-    ;; Then update the cache...
-    ;; FIXME: If the table's buffer has no visible window, or if its
-    ;; width has changed since the table was updated, the cache key will
-    ;; not match and the object can't be updated.  (Bug #69837).
-    (if-let* ((line-number (seq-position (car (vtable--cache table)) old-object
-                                         (lambda (a b)
-                                           (equal (car a) b))))
-              (line (elt (car (vtable--cache table)) line-number)))
+    ;; Then update the rendered vtable in the current buffer.
+    (if-let* ((cache (vtable--current-cache))
+             (line-number (seq-position (vtable--cache-lines cache)
+                                        old-object
+                                        (lambda (a b)
+                                          (equal (car a) b))))
+             (line (elt (vtable--cache-lines cache) line-number)))
         (progn
           (setcar line object)
           (setcdr line (vtable--compute-cached-line table object))
@@ -320,10 +318,11 @@ is signaled."
                   (start (point)))
               (delete-line)
               (vtable--insert-line table line line-number
-                                   (nth 1 (vtable--cache table))
+                                   (vtable--cache-widths cache)
                                    (vtable--spacer table))
               (add-text-properties start (point) (list 'keymap keymap
-                                                       'vtable table))))
+                                                       'vtable table
+                                                       'vtable-cache cache))))
           ;; We may have inserted a non-numerical value into a previously
           ;; all-numerical table, so recompute.
           (vtable--recompute-numerical table (cdr line)))
@@ -335,11 +334,12 @@ This will also remove the displayed line."
   ;; First remove from the objects.
   (setf (vtable-objects table) (delq object (vtable-objects table)))
   ;; Then adjust the cache and display.
-  (let ((cache (vtable--cache table))
-        (inhibit-read-only t))
-    (setcar cache (delq (assq object (car cache)) (car cache)))
-    (save-excursion
-      (vtable-goto-table table)
+  (save-excursion
+    (vtable-goto-table table)
+    (let ((cache (vtable--current-cache))
+          (inhibit-read-only t))
+      (setcar cache (delq (assq object (vtable--cache-lines cache))
+                          (vtable--cache-lines cache)))
       (when (vtable-goto-object object)
         (delete-line)))))
 
@@ -400,7 +400,7 @@ This also updates the displayed table."
     ;; Then adjust the cache and display.
     (save-excursion
       (vtable-goto-table table)
-      (let* ((cache (vtable--cache table))
+      (let* ((cache (vtable--current-cache))
              (inhibit-read-only t)
              (keymap (get-text-property (point) 'keymap))
              (ellipsis (if (vtable-ellipsis table)
@@ -408,13 +408,14 @@ This also updates the displayed table."
                                        'face (vtable-face table))
                          ""))
              (ellipsis-width (string-pixel-width ellipsis))
+             (lines (vtable--cache-lines cache))
              (elem (if location  ; This binding mirrors the binding of `pos' above.
                        (if (integerp location)
-                           (nth location (car cache))
-                         (or (assq location (car cache))
-                             (and before (caar cache))))
-                     (if before (caar cache))))
-             (pos (memq elem (car cache)))
+                           (nth location lines)
+                         (or (assq location lines)
+                             (and before (car lines))))
+                     (if before (car lines))))
+             (pos (memq elem lines))
              (line (cons object (vtable--compute-cached-line table object))))
         (if (or before
                 (and pos (integerp location)))
@@ -433,16 +434,17 @@ This also updates the displayed table."
                     (forward-line 1)  ; Insert *after*.
                   (vtable-end-of-table)))
             ;; Otherwise, append the object.
-            (setcar cache (nconc (car cache) (list line)))
+            (setcar cache (nconc lines (list line)))
             (vtable-end-of-table)))
         (let ((start (point)))
           ;; FIXME: We have to adjust colors in lines below this if we
           ;; have :row-colors.
           (vtable--insert-line table line 0
-                               (nth 1 cache) (vtable--spacer table)
+                               (vtable--cache-widths cache) (vtable--spacer table)
                                ellipsis ellipsis-width)
           (add-text-properties start (point) (list 'keymap keymap
-                                                   'vtable table)))
+                                                   'vtable table
+                                                   'vtable-cache cache)))
         ;; We may have inserted a non-numerical value into a previously
         ;; all-numerical table, so recompute.
         (vtable--recompute-numerical table (cdr line))))))
@@ -512,15 +514,11 @@ recompute the column specs when the table data has changed."
 (defun vtable--spacer (table)
   (vtable--compute-width table (vtable-separator-width table)))
 
-(defun vtable--recompute-cache (table)
-  (let* ((data (vtable--compute-cache table))
-         (widths (vtable--compute-widths table data)))
-    (setf (gethash (vtable--cache-key) (slot-value table '-cache))
-          (list data widths))))
+(defun vtable--cache-widths (cache)
+  (nth 1 cache))
 
-(defun vtable--ensure-cache (table)
-  (or (vtable--cache table)
-      (vtable--recompute-cache table)))
+(defun vtable--cache-lines (cache)
+  (car cache))
 
 (defun vtable-insert (table)
   (let* ((spacer (vtable--spacer table))
@@ -533,7 +531,12 @@ recompute the column specs when the table data has changed."
          ;; We maintain a cache per screen/window width, so that we render
          ;; correctly if Emacs is open on two different screens (or the
          ;; user resizes the frame).
-         (widths (nth 1 (vtable--ensure-cache table))))
+         (cache (or (gethash (vtable--cache-key) (slot-value table '-cache))
+                    (let* ((data (vtable--compute-cache table))
+                           (widths (vtable--compute-widths table data)))
+                      (setf (gethash (vtable--cache-key) (slot-value table '-cache))
+                            (list data widths)))))
+         (widths (vtable--cache-widths cache)))
     ;; Don't insert any header or header line if the user hasn't
     ;; specified the columns.
     (when (slot-value table '-has-column-spec)
@@ -546,18 +549,20 @@ recompute the column specs when the table data has changed."
         (add-text-properties start (point)
                              (list 'keymap vtable-header-line-map
                                    'rear-nonsticky t
-                                   'vtable table))
+                                   'vtable table
+                                   'vtable-cache cache))
         (setq start (point))))
-    (vtable--sort table)
+    (vtable--sort table cache)
     ;; Insert the data.
     (let ((line-number 0))
-      (dolist (line (car (vtable--cache table)))
+      (dolist (line (vtable--cache-lines cache))
         (vtable--insert-line table line line-number widths spacer
                              ellipsis ellipsis-width)
         (setq line-number (1+ line-number))))
     (add-text-properties start (point)
                          (list 'rear-nonsticky t
-                               'vtable table))
+                               'vtable table
+                               'vtable-cache cache))
     (goto-char start)))
 
 (defun vtable--insert-line (table line line-number widths spacer
@@ -659,16 +664,22 @@ recompute the column specs when the table data has changed."
 (defun vtable--cache-key ()
   (cons (frame-terminal) (window-width)))
 
-(defun vtable--cache (table)
-  (gethash (vtable--cache-key) (slot-value table '-cache)))
+(defun vtable--current-cache ()
+  "Return the current cache for the table at point.
+
+In `vtable-insert', the lines and widths of the vtable text are computed
+based on the current selected frame and window and stored in a cache.
+Subsequent interaction with the text of the vtable should use that cache
+via this function rather than by calling `vtable--cache-key' to look up
+the cache."
+  (get-text-property (point) 'vtable-cache))
 
 (defun vtable--clear-cache (table)
   (setf (gethash (vtable--cache-key) (slot-value table '-cache)) nil))
 
-(defun vtable--sort (table)
+(defun vtable--sort (table cache)
   (pcase-dolist (`(,index . ,direction) (vtable-sort-by table))
-    (let ((cache (vtable--cache table))
-          (numerical (vtable-column--numerical
+    (let ((numerical (vtable-column--numerical
                       (elt (vtable-columns table) index)))
           (numcomp (if (eq direction 'descend)
                        #'> #'<))
@@ -971,9 +982,6 @@ CACHE is TABLE's cache data as returned by `vtable--compute-cache'."
     (when column
       (vtable-goto-column column))))
 
-(defun vtable--widths (table)
-  (nth 1 (vtable--ensure-cache table)))
-
 ;;; Commands.
 
 (defvar-keymap vtable-header-mode-map
@@ -998,7 +1006,7 @@ Interactively, N is the prefix argument."
                                 (- (* (vtable--char-width table) (or n 1))))))
 
 (defun vtable--alter-column-width (table column delta)
-  (let ((widths (vtable--widths table)))
+  (let ((widths (vtable--cache-widths (vtable--current-cache))))
     (setf (aref widths column)
           (max (* (vtable--char-width table) 2)
                (+ (aref widths column) delta)))
@@ -1020,14 +1028,14 @@ Interactively, N is the prefix argument."
   (interactive)
   (vtable-goto-column
    (max 0 (1- (or (vtable-current-column)
-                  (length (vtable--widths (vtable-current-table))))))))
+                  (length (vtable--cache-widths (vtable--current-cache))))))))
 
 (defun vtable-next-column ()
   "Go to the next column."
   (interactive)
   (when (vtable-current-column)
     (vtable-goto-column
-     (min (1- (length (vtable--widths (vtable-current-table))))
+     (min (1- (length (vtable--cache-widths (vtable--current-cache))))
           (1+ (vtable-current-column))))))
 
 (defun vtable-revert-command ()

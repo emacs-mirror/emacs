@@ -1801,7 +1801,8 @@ This function just searches for a `end' at the beginning of a line."
      "    error(e)"
      "  end"
      "  return x()"
-     "end")
+     "end"
+     "\n")
    " "))
 
 (defun lua-make-lua-string (str)
@@ -1843,27 +1844,34 @@ The value nil means that no command history is saved."
 ;;;###autoload
 (defun lua-start-process (&optional name program startfile &rest switches)
   "Start a Lua process named NAME, running PROGRAM.
-PROGRAM defaults to NAME, which defaults to `lua-default-application'.
 When called interactively, switch to the process buffer.
 
-STARTFILE is the name of a file, whose contents are sent to the process
-as its initial input.
+NAME is the name of the created process; default is
+`lua-process-buffer-name' or `lua-default-application'.
 
-SWITCHES is a list of strings passed as arguments to PROGRAM."
+PROGRAM is the executable to run; default is `lua-default-application'.
+
+STARTFILE is a file, whose contents are sent to the process as initial
+input; default is `lua-process-startfile'.
+
+SWITCHES is a list of strings passed as arguments to PROGRAM; default is
+`lua-default-command-switches'."
   (interactive)
   (if (not lua-default-application)
       (user-error "You must set `lua-default-application' to use this command")
-    (let* ((name (or name lua-process-buffer-name
-                             (if (consp lua-default-application)
-                                 (car lua-default-application)
-                               lua-default-application)))
+    (let* ((name (or name
+                     lua-process-buffer-name
+                     (if (consp lua-default-application)
+                         (car lua-default-application)
+                       lua-default-application)))
            (program (or program lua-default-application)))
       ;; Don't re-initialize if there already is a Lua process.
       (unless (comint-check-proc (format "*%s*" name))
         (setq lua-process-buffer
               (apply #'make-comint name program
                      (or startfile lua-process-startfile)
-                     (or switches lua-default-command-switches)))
+                     (or (flatten-tree switches)
+                         lua-default-command-switches)))
         (setq lua-process (get-buffer-process lua-process-buffer))
         (set-process-query-on-exit-flag lua-process nil)
         (with-current-buffer lua-process-buffer
@@ -1877,10 +1885,13 @@ SWITCHES is a list of strings passed as arguments to PROGRAM."
           (while (not (lua-prompt-line))
             (accept-process-output (get-buffer-process (current-buffer)))
             (goto-char (point-max)))
-          (lua-send-string lua-process-init-code)))
+          (process-send-string lua-process lua-process-init-code)))
       ;; When called interactively, switch to process buffer
       (when (called-interactively-p 'any)
-        (switch-to-buffer lua-process-buffer)))))
+        (pop-to-buffer lua-process-buffer
+                       '((display-buffer-pop-up-window
+                          display-buffer-reuse-window)
+                         (reusable-frames . t)))))))
 
 (defun lua-get-create-process ()
   "Return active Lua process creating one if necessary."

@@ -139,7 +139,7 @@ EMACS_MANIFEST = @EMACS_MANIFEST@
 WINDRES = @WINDRES@
 
 ## Extra libraries to use when linking addpm.
-LIBS_ADDPM = -lole32 -luuid
+LIBS_ADDPM = -L../lib -lgnu -lole32 -luuid
 
 ## Compilation and linking flags
 BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \

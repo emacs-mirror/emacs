@@ -148,8 +148,6 @@ Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
 (defvar newsticker--treeview-feed-tree nil)
 (defvar newsticker--treeview-vfeed-tree nil)
 
-(declare-function newsticker-handle-url "newst-plainview" ())
-
 ;; maps for the clickable portions
 (defvar newsticker--treeview-url-keymap
   (let ((map (make-sparse-keymap 'newsticker--treeview-url-keymap)))
@@ -157,7 +155,7 @@ Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
     (define-key map [mouse-2] #'newsticker-treeview-mouse-browse-url)
     (define-key map "\n" #'newsticker-treeview-browse-url)
     (define-key map "\C-m" #'newsticker-treeview-browse-url)
-    (define-key map [(control return)] #'newsticker-handle-url)
+    (define-key map [(control return)] #'newsticker--treeview-handle-url)
     map)
   "Key map for click-able headings in the newsticker treeview buffers.")
 
@@ -246,6 +244,19 @@ their id stays constant."
 (defun newsticker--treeview-get-current-node ()
   "Return current node in newsticker treeview tree."
   (newsticker--treeview-get-node-by-id newsticker--treeview-current-node-id))
+
+(defun newsticker--treeview-handle-url ()
+  "Ask for a program to open the link of the item at point."
+  (interactive)
+  (let ((url (get-text-property (point) 'nt-link)))
+    (when url
+      (let ((prog (read-string "Open url with: " nil
+                               'newsticker-open-url-history)))
+        (when prog
+          (message "%s %s" prog url)
+          (start-process prog prog prog url)
+          (if newsticker-automatically-mark-visited-items-as-old
+              (newsticker-treeview-mark-item-old)))))))
 
 ;; ======================================================================
 

@@ -116,13 +116,11 @@ are integer buffer positions in the reverse order of the insertion order.")
 DOCUMENTATION is that of the command.
 SKELETON is as defined under `skeleton-insert'."
   (declare (doc-string 2) (debug (&define name stringp skeleton-edebug-spec))
-           (indent defun))
+           (indent defun)
+           (autoload-macro expand))
   (if skeleton-debug
       (set command skeleton))
   `(progn
-     ;; Tell self-insert-command that this function, if called by an
-     ;; abbrev, should cause the self-insert to be skipped.
-     (put ',command 'no-self-insert t)
      (defun ,command (&optional str arg)
        ,(concat documentation
 		(if (string-match "\n\\'" documentation)
@@ -139,7 +137,11 @@ A prefix argument of zero says to wrap around zero words---that is, nothing.
 This is a way of overriding the use of a highlighted region.")
        (interactive "*P\nP")
        (atomic-change-group
-         (skeleton-proxy-new ',skeleton str arg)))))
+         (skeleton-proxy-new ',skeleton str arg)))
+     :autoload-end
+     ;; Tell self-insert-command that this function, if called by an
+     ;; abbrev, should cause the self-insert to be skipped.
+     (put ',command 'no-self-insert t)))
 
 ;;;###autoload
 (defun skeleton-proxy-new (skeleton &optional str arg)
@@ -257,7 +259,7 @@ available:
 		   (while (and l1 (> skeleton-regions 0))
 		     (push (copy-marker (pop l1) t) l2)
 		     (setq skeleton-regions (1- skeleton-regions)))
-		   (sort l2 '<))))
+		   (sort l2 #'<))))
 	 (goto-char (car skeleton-regions))
 	 (setq skeleton-regions (cdr skeleton-regions)))
     (let ((beg (point))
@@ -327,7 +329,7 @@ automatically, and you are prompted to fill in the variable parts.")))
                                                      (symbol-value 'input))))))
                            ((functionp prompt)
                             (funcall prompt))
-                           (t (eval prompt))))
+                           (t (eval prompt t))))
       (or eolp
 	  (delete-char 1))))
   (if (and recursive
@@ -436,7 +438,7 @@ automatically, and you are prompted to fill in the variable parts.")))
    ((eq element '@)
     (push (point) skeleton-positions))
    ((eq 'quote (car-safe element))
-    (eval (nth 1 element)))
+    (eval (nth 1 element) t))
    ((and (consp element)
 	 (or (stringp (car element)) (listp (car element))))
     ;; Don't forget: `symbolp' is also true for nil.
@@ -449,7 +451,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 	(skeleton-internal-list element (car literal))
 	(setq literal (cdr literal)))))
    ((null element))
-   (t (skeleton-internal-1 (eval element) t recursive))))
+   (t (skeleton-internal-1 (eval element t) t recursive))))
 
 ;; Maybe belongs into simple.el or elsewhere
 ;; ;;;###autoload

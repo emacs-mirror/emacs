@@ -245,8 +245,7 @@ counted.  */)
 
 DEFUN ("proper-list-p", Fproper_list_p, Sproper_list_p, 1, 1, 0,
        doc: /* Return OBJECT's length if it is a proper list, nil otherwise.
-A proper list is neither circular nor dotted (i.e., its last cdr is nil).  */
-       attributes: const)
+A proper list is neither circular nor dotted (i.e., its last cdr is nil).  */)
   (Lisp_Object object)
 {
   ptrdiff_t len = 0;

@@ -69,6 +69,7 @@
 #  --avoid=setenv \
 #  --avoid=sigprocmask \
 #  --avoid=stat \
+#  --avoid=std-gnu11 \
 #  --avoid=stdarg-h \
 #  --avoid=threadlib \
 #  --avoid=tzset \
@@ -159,7 +160,7 @@
 #  sigdescr_np \
 #  socklen \
 #  stat-time \
-#  std-gnu11 \
+#  std-gnu23 \
 #  stdc_bit_width \
 #  stdc_count_ones \
 #  stdc_trailing_zeros \

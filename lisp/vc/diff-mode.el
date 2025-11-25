@@ -221,7 +221,14 @@ and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'."
   "A" #'diff-ediff-patch
   "r" #'diff-restrict-view
   "R" #'diff-reverse-direction
-  "<remap> <undo>" #'diff-undo)
+  "<remap> <undo>" #'diff-undo
+
+  ;; The foregoing commands don't affect buffers beyond this one.
+  ;; The following command is the only one that has a single-letter
+  ;; binding and which affects buffers beyond this one.
+  ;; However, the following command asks for confirmation by default,
+  ;; so that seems okay.  --spwhitton
+  "u" #'diff-revert-and-kill-hunk)
 
 (defvar-keymap diff-mode-map
   :doc "Keymap for `diff-mode'.  See also `diff-mode-shared-map'."
@@ -238,7 +245,7 @@ and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'."
   "C-x 4 A" #'diff-add-change-log-entries-other-window
   ;; Misc operations.
   "C-c C-a" #'diff-apply-hunk
-  "C-c M-r" #'diff-revert-and-kill-hunk
+  "C-c M-u" #'diff-revert-and-kill-hunk
   "C-c C-m a" #'diff-apply-buffer
   "C-c C-m n" #'diff-delete-other-hunks
   "C-c C-e" #'diff-ediff-patch
@@ -2039,8 +2046,10 @@ Whitespace differences are ignored."
 OTHER-FILE, if non-nil, means to look at the diff's name and line
   numbers for the old file.  Furthermore, use `diff-vc-revisions'
   if it's available.  If `diff-jump-to-old-file' is non-nil, the
-  sense of this parameter is reversed.  If the prefix argument is
-  8 or more, `diff-jump-to-old-file' is set to OTHER-FILE.
+  sense of this parameter is reversed.  If OTHER-FILE considered
+  as a raw prefix argument has a numeric value bigger than 8,
+  toggle `diff-jump-to-old-file' for the remainder of this Emacs
+  session, i.e., set it to nil if it's non-nil, non-nil if it's nil.
 REVERSE, if non-nil, switches the sense of SRC and DST (see below).
 NOPROMPT, if non-nil, means not to prompt the user.
 Return a list (BUF LINE-OFFSET (BEG . END) SRC DST SWITCHED).
@@ -2129,71 +2138,97 @@ SWITCHED is non-nil if the patch is already applied."
 
 (defvar diff-apply-hunk-to-backup-file nil)
 
-(defun diff-apply-hunk (&optional reverse)
-  "Apply the current hunk to the source file and go to the next.
+(defun diff-apply-hunk (&optional reverse beg end)
+  "Apply the current hunk to its source file and go to the next hunk.
 By default, the new source file is patched, but if the variable
 `diff-jump-to-old-file' is non-nil, then the old source file is
 patched instead (some commands, such as `diff-goto-source' can change
 the value of this variable when given an appropriate prefix argument).
 
-With a prefix argument, REVERSE the hunk."
-  (interactive "P")
-  (diff-beginning-of-hunk t)
-  (pcase-let* (;; Do not accept BUFFER.REV buffers as source location.
-               (diff-vc-backend nil)
-               ;; When we detect deletion, we will use the old file name.
-               (deletion (equal null-device (car (diff-hunk-file-names reverse))))
-               (`(,buf ,line-offset ,pos ,old ,new ,switched)
-               ;; Sometimes we'd like to have the following behavior: if
-               ;; REVERSE go to the new file, otherwise go to the old.
-               ;; But that means that by default we use the old file, which is
-               ;; the opposite of the default for diff-goto-source, and is thus
-               ;; confusing.  Also when you don't know about it it's
-               ;; pretty surprising.
-               ;; TODO: make it possible to ask explicitly for this behavior.
-               ;;
-               ;; This is duplicated in diff-test-hunk.
-               (diff-find-source-location (xor deletion reverse) reverse)))
-    (cond
-     ((null line-offset)
-      (user-error "Can't find the text to patch"))
-     ((with-current-buffer buf
-        (and buffer-file-name
-             (backup-file-name-p buffer-file-name)
-             (not diff-apply-hunk-to-backup-file)
-             (not (setq-local diff-apply-hunk-to-backup-file
-                              (yes-or-no-p (format "Really apply this hunk to %s? "
-                                                   (file-name-nondirectory
-                                                    buffer-file-name)))))))
-      (user-error "%s"
-	     (substitute-command-keys
-              (format "Use %s\\[diff-apply-hunk] to apply it to the other file"
-                      (if (not reverse) "\\[universal-argument] ")))))
-     ((and switched
-	   ;; A reversed patch was detected, perhaps apply it in reverse.
-	   (not (save-window-excursion
-		  (pop-to-buffer buf)
-		  (goto-char (+ (car pos) (cdr old)))
-		  (y-or-n-p
-		   (if reverse
-		       "Hunk hasn't been applied yet; apply it now? "
-		     "Hunk has already been applied; undo it? ")))))
-      (message "(Nothing done)"))
-     ((and deletion (not switched))
-      (when (y-or-n-p (format-message "Delete file `%s'?" (buffer-file-name buf)))
-        (delete-file (buffer-file-name buf) delete-by-moving-to-trash)
-        (kill-buffer buf)))
-     (t
-      ;; Apply the hunk
-      (with-current-buffer buf
-	(goto-char (car pos))
-	(delete-region (car pos) (cdr pos))
-	(insert (car new)))
-      ;; Display BUF in a window
-      (set-window-point (display-buffer buf) (+ (car pos) (cdr new)))
-      (diff-hunk-status-msg line-offset (xor switched reverse) nil)
-      (when diff-advance-after-apply-hunk
-	(diff-hunk-next))))))
+With a prefix argument (when called from Lisp, with optional argument
+REVERSE non-nil), reverse-apply the hunk(s).
+
+Prompt to confirm deleting files and applying hunks to backup files.
+Offer to reverse-apply hunks that are already applied.
+Interactively, if the region is active, apply all hunks that the
+region overlaps.  In this mode, fail instead of prompting if any
+hunks do not cleanly apply, and do not confirm deletions or
+applying hunks to backup files (the same as the command
+`diff-apply-buffer' with an active region, which see).
+
+When called from Lisp with optional arguments BEG and END non-nil,
+apply all hunks overlapped by the region from BEG to END as though
+called interactively with an active region delimited by BEG and
+END."
+  (interactive (list current-prefix-arg
+                     (use-region-beginning)
+                     (use-region-end)))
+  (cond*
+   ((xor beg end)
+    (error "Invalid call to `diff-apply-hunk'"))
+   (beg
+    (diff-apply-buffer beg end reverse 'no-save))
+
+   (t (diff-beginning-of-hunk t))
+   ((bind*
+     ;; Do not accept BUFFER.REV buffers as source location.
+     (diff-vc-backend nil)
+     ;; When we detect deletion, we will use the old file name.
+     (deletion (equal null-device (car (diff-hunk-file-names reverse))))))
+   ((pcase* `(,buf ,line-offset ,pos ,old ,new ,switched)
+            ;; Sometimes we'd like to have the following behavior: if
+            ;; REVERSE go to the new file, otherwise go to the old.
+            ;; But that means that by default we use the old file, which is
+            ;; the opposite of the default for diff-goto-source, and is thus
+            ;; confusing.  Also when you don't know about it it's
+            ;; pretty surprising.
+            ;; TODO: make it possible to ask explicitly for this behavior.
+            ;;
+            ;; This is duplicated in diff-test-hunk.
+            (diff-find-source-location (xor deletion reverse) reverse)))
+
+   ((null line-offset)
+    (user-error "Can't find the text to patch"))
+   ((with-current-buffer buf
+      (and buffer-file-name
+           (backup-file-name-p buffer-file-name)
+           (not diff-apply-hunk-to-backup-file)
+           (not
+            (setq-local diff-apply-hunk-to-backup-file
+                        (yes-or-no-p
+                         (format "Really apply this hunk to %s? "
+                                 (file-name-nondirectory buffer-file-name)))))))
+    (user-error "%s"
+	        (substitute-command-keys
+                 (format "Use %s\\[diff-apply-hunk] to apply it to the other file"
+                         (and (not reverse) "\\[universal-argument] ")))))
+   ((and switched
+	 ;; A reversed patch was detected, perhaps apply it in reverse.
+	 (not (save-window-excursion
+		(pop-to-buffer buf)
+		(goto-char (+ (car pos) (cdr old)))
+		(y-or-n-p
+		 (if reverse
+		     "Hunk hasn't been applied yet; apply it now? "
+		   "Hunk has already been applied; undo it? ")))))
+    (message "(Nothing done)"))
+   ((and deletion (not switched))
+    (when (y-or-n-p (format-message "Delete file `%s'?"
+                                    (buffer-file-name buf)))
+      (delete-file (buffer-file-name buf) delete-by-moving-to-trash)
+      (kill-buffer buf)))
+   (t
+    ;; Apply the hunk
+    (with-current-buffer buf
+      (goto-char (car pos))
+      (delete-region (car pos) (cdr pos))
+      (insert (car new)))
+    ;; Display BUF in a window
+    (set-window-point (display-buffer buf '(nil (inhibit-same-window . t)))
+                      (+ (car pos) (cdr new)))
+    (diff-hunk-status-msg line-offset (xor switched reverse) nil)
+    (when diff-advance-after-apply-hunk
+      (diff-hunk-next)))))
 
 
 (defun diff-test-hunk (&optional reverse)
@@ -2226,7 +2261,8 @@ With a prefix argument, try to REVERSE the hunk."
 
 This command is useful in buffers generated by \\[vc-diff] and \\[vc-root-diff],
 especially when preparing to commit the patch with \\[vc-next-action].
-You can use \\<diff-mode-map>\\[diff-hunk-kill] to temporarily remove changes that you intend to
+You can use \\<diff-mode-map>\\[diff-hunk-kill] \
+to temporarily remove changes that you intend to
 include in a separate commit or commits, and you can use this command
 to permanently drop changes you didn't intend, or no longer want.
 
@@ -2240,32 +2276,40 @@ customize `diff-ask-before-revert-and-kill-hunk' to control that."
       (when (null (diff-apply-buffer beg end t))
         (diff-hunk-kill)))))
 
-(defun diff-apply-buffer (&optional beg end reverse test)
+(defun diff-apply-buffer (&optional beg end reverse test-or-no-save)
   "Apply the diff in the entire diff buffer.
 Interactively, if the region is active, apply all hunks that the region
 overlaps; otherwise, apply all hunks.
 With a prefix argument, reverse-apply the hunks.
 If applying all hunks succeeds, save the changed buffers.
+By default apply diffs to new source files; apply them to old
+files if `diff-jump-to-old-file' is non-nil.
 
 When called from Lisp, returns nil if buffers were successfully modified
 and saved, or the number of failed hunk applications otherwise.
 Optional arguments BEG and END restrict the hunks to be applied to those
 lying between BEG and END.
 Optional argument REVERSE means to reverse-apply hunks.
-Optional argument TEST means to not actually apply or reverse-apply any
-hunks, but return the same information: nil if all hunks can be applied,
-or the number of hunks that can't be applied."
+Optional argument TEST-OR-NO-SAVE `no-save' means not to save any
+changed buffers, `test' or t means to not actually apply or
+reverse-apply any hunks, but return the same information: nil if
+all hunks can be applied, or the number of hunks that can't be
+applied.  Other non-nil values are reserved."
   (interactive (list (use-region-beginning)
                      (use-region-end)
                      current-prefix-arg))
   (let ((buffer-edits nil)
         (failures 0)
-        (diff-refine nil))
+        (diff-refine nil)
+        (test (memq test-or-no-save '(t test))))
     (save-excursion
       (goto-char (or beg (point-min)))
       (diff-beginning-of-hunk t)
       (while (pcase-let ((`(,buf ,line-offset ,pos ,_src ,dst ,switched)
                           (diff-find-source-location nil reverse test)))
+               ;; FIXME: Should respect `diff-apply-hunk-to-backup-file'
+               ;; similarly to how `diff-apply-buffer' does.
+               ;; Prompt for each relevant file.
                (cond ((and line-offset (not switched))
                       (push (cons pos dst)
                             (alist-get buf buffer-edits)))
@@ -2285,8 +2329,12 @@ or the number of hunks that can't be applied."
                      (goto-char (car pos))
                      (delete-region (car pos) (cdr pos))
                      (insert (car dst))))
-                 (save-buffer)))
-             (message "Saved %d buffers" (length buffer-edits)))
+                 (unless (eq test-or-no-save 'no-save)
+                   (save-buffer))))
+             (message (ngettext "%s %d buffer" "%s %d buffers"
+                                (length buffer-edits))
+                      (if (eq test-or-no-save 'no-save) "Edited" "Saved")
+                      (length buffer-edits)))
            nil)
           (t
            (unless test
@@ -2300,14 +2348,27 @@ or the number of hunks that can't be applied."
 
 (defun diff-goto-source (&optional other-file event)
   "Jump to the corresponding source line.
-`diff-jump-to-old-file' (or its opposite if the OTHER-FILE prefix arg
-is given) determines whether to jump to the old or the new file.
-If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[universal-argument])
-then `diff-jump-to-old-file' is also set, for the next invocations.
 
-Under version control, the OTHER-FILE prefix arg means jump to the old
-revision of the file if point is on an old changed line, or to the new
-revision of the file otherwise."
+By default, jump to the new source file.
+With a prefix argument (when called from Lisp, with optional argument
+OTHER-FILE non-nil), jump to the old source file.
+If `diff-jump-to-old-file' is non-nil then the meaning of the prefix
+argument (or, when called from Lisp, the meaning of optional argument
+OTHER-FILE) is reversed: a prefix argument (respectively, OTHER-FILE
+non-nil) means to jump to the new source file, and the lack of one
+(respectively, OTHER-FILE nil) means to jump to the old source file.
+In addition, if you supply a prefix argument bigger than 8 (for example
+with \\[universal-argument] \\[universal-argument]), \
+the value of `diff-jump-to-old-file' is toggled for the
+remainder of this Emacs session (i.e., set to non-nil if nil, or
+set to nil if non-nil).  When called from Lisp this toggling
+happens when the value of optional argument OTHER-FILE considered
+as a prefix argument has a numeric value bigger than 8.
+
+Under version control, jumping to the old file means jumping to the old
+revision of the file in the manner of \\[vc-revision-other-window], \
+and occurs only when
+point is on an old changed line (i.e. a removed line)."
   (interactive (list current-prefix-arg last-input-event))
   ;; When pointing at a removal line, we probably want to jump to
   ;; the old location, and else to the new (i.e. as if reverting).

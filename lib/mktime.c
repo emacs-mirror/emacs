@@ -468,11 +468,9 @@ __mktime_internal (struct tm *tp, bool local, mktime_offset_t *offset)
       int year_seconds_bound = 366 * 24 * 60 * 60 + 1;
       int delta_bound = year_seconds_bound + stride;
 
-      int delta, direction;
-
       /* Search in both directions, closest first.  */
-      for (delta = stride; delta < delta_bound; delta += stride)
-	for (direction = -1; direction <= 1; direction += 2)
+      for (int delta = stride; delta < delta_bound; delta += stride)
+	for (int direction = -1; direction <= 1; direction += 2)
 	  {
 	    long_int ot;
 	    if (! ckd_add (&ot, t, delta * direction))

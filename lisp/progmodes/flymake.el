@@ -134,7 +134,7 @@
                        ("1.3.6" . "30.1")))
 
 (defcustom flymake-error-bitmap '(flymake-double-exclamation-mark
-                                  compilation-error)
+                                  flymake-error-fringe)
   "Bitmap (a symbol) used in the fringe for indicating errors.
 The value may also be a list of two elements where the second
 element specifies the face for the bitmap.  For possible bitmap
@@ -142,13 +142,13 @@ symbols, see `fringe-bitmaps'.  See also `flymake-warning-bitmap'.
 
 The option `flymake-fringe-indicator-position' controls how and where
 this is used."
-  :version "24.3"
+  :version "31.1"
   :type '(choice (symbol :tag "Bitmap")
                  (list :tag "Bitmap and face"
                        (symbol :tag "Bitmap")
                        (face :tag "Face"))))
 
-(defcustom flymake-warning-bitmap '(exclamation-mark compilation-warning)
+(defcustom flymake-warning-bitmap '(exclamation-mark flymake-warning-fringe)
   "Bitmap (a symbol) used in the fringe for indicating warnings.
 The value may also be a list of two elements where the second
 element specifies the face for the bitmap.  For possible bitmap
@@ -156,13 +156,13 @@ symbols, see `fringe-bitmaps'.  See also `flymake-error-bitmap'.
 
 The option `flymake-fringe-indicator-position' controls how and where
 this is used."
-  :version "24.3"
+  :version "31.1"
   :type '(choice (symbol :tag "Bitmap")
                  (list :tag "Bitmap and face"
                        (symbol :tag "Bitmap")
                        (face :tag "Face"))))
 
-(defcustom flymake-note-bitmap '(exclamation-mark compilation-info)
+(defcustom flymake-note-bitmap '(exclamation-mark flymake-note-fringe)
   "Bitmap (a symbol) used in the fringe for indicating info notes.
 The value may also be a list of two elements where the second
 element specifies the face for the bitmap.  For possible bitmap
@@ -170,7 +170,7 @@ symbols, see `fringe-bitmaps'.  See also `flymake-error-bitmap'.
 
 The option `flymake-fringe-indicator-position' controls how and where
 this is used."
-  :version "26.1"
+  :version "31.1"
   :type '(choice (symbol :tag "Bitmap")
                  (list :tag "Bitmap and face"
                        (symbol :tag "Bitmap")
@@ -617,6 +617,21 @@ See variable `flymake-show-diagnostics-at-end-of-line'."
        :slant italic))
   "Face used for information about end-of-line diagnostics."
   :package-version '(Flymake . "1.3.6"))
+
+(defface flymake-error-fringe '((t :inherit compilation-error))
+  "Face used by default in the `flymake-error-bitmap'."
+  :version "31.1"
+  :package-version '(Flymake . "1.4.4"))
+
+(defface flymake-warning-fringe '((t :inherit compilation-warning))
+  "Face used by default in the `flymake-warning-bitmap'."
+  :version "31.1"
+  :package-version '(Flymake . "1.4.4"))
+
+(defface flymake-note-fringe '((t :inherit compilation-info))
+  "Face used by default in the `flymake-note-bitmap'."
+  :version "31.1"
+  :package-version '(Flymake . "1.4.4"))
 
 (defcustom flymake-show-diagnostics-at-end-of-line nil
   "If non-nil, add diagnostic summary messages at end-of-line.

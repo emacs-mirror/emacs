@@ -174,7 +174,8 @@ See Info node `(elisp)Derived Modes' for more details.
   (declare (debug (&define name symbolp sexp [&optional stringp]
 			   [&rest keywordp sexp] def-body))
 	   (doc-string 4)
-	   (indent defun))
+	   (indent defun)
+	   (autoload-macro expand))
 
   (when (and docstring (not (stringp docstring)))
     ;; Some trickiness, since what appears to be the docstring may really be
@@ -208,42 +209,44 @@ See Info node `(elisp)Derived Modes' for more details.
 		     parent child docstring syntax abbrev))
 
     `(progn
-       (defvar ,hook nil)
-       (unless (get ',hook 'variable-documentation)
-         (put ',hook 'variable-documentation
-              ,(format "Hook run after entering `%S'.
+       (progn
+         :autoload-end
+         (defvar ,hook nil)
+         (unless (get ',hook 'variable-documentation)
+           (put ',hook 'variable-documentation
+                ,(format "Hook run after entering `%S'.
 No problems result if this variable is not bound.
 `add-hook' automatically binds it.  (This is true for all hook variables.)"
-                       child)))
-       (unless (boundp ',map)
-	 (put ',map 'definition-name ',child))
-       (with-no-warnings (defvar-keymap ,map))
-       (unless (get ',map 'variable-documentation)
-	 (put ',map 'variable-documentation
-              ,(format "Keymap for `%s'." child)))
-       ,(if declare-syntax
-	    `(progn
-               (defvar ,syntax)
-	       (unless (boundp ',syntax)
-		 (put ',syntax 'definition-name ',child)
-		 (defvar ,syntax (make-syntax-table)))
-	       (unless (get ',syntax 'variable-documentation)
-		 (put ',syntax 'variable-documentation
-                      ,(format "Syntax table for `%s'." child)))))
-       ,(if declare-abbrev
-	    `(progn
-               (defvar ,abbrev)
-	       (unless (boundp ',abbrev)
-		 (put ',abbrev 'definition-name ',child)
-		 (defvar ,abbrev
-		   (progn (define-abbrev-table ',abbrev nil) ,abbrev)))
-	       (unless (get ',abbrev 'variable-documentation)
-		 (put ',abbrev 'variable-documentation
-                      ,(format "Abbrev table for `%s'." child)))))
-       (if (fboundp 'derived-mode-set-parent) ;; Emacs≥30.1
-           (derived-mode-set-parent ',child ',parent)
-         (put ',child 'derived-mode-parent ',parent))
-       ,(if group `(put ',child 'custom-mode-group ,group))
+                         child)))
+         (unless (boundp ',map)
+	   (put ',map 'definition-name ',child))
+	 (with-no-warnings (defvar-keymap ,map))
+	 (unless (get ',map 'variable-documentation)
+	   (put ',map 'variable-documentation
+	        ,(format "Keymap for `%s'." child)))
+	 ,(if declare-syntax
+	      `(progn
+	         (defvar ,syntax)
+	         (unless (boundp ',syntax)
+		   (put ',syntax 'definition-name ',child)
+		   (defvar ,syntax (make-syntax-table)))
+		 (unless (get ',syntax 'variable-documentation)
+		   (put ',syntax 'variable-documentation
+		        ,(format "Syntax table for `%s'." child)))))
+	 ,(if declare-abbrev
+	      `(progn
+	         (defvar ,abbrev)
+	         (unless (boundp ',abbrev)
+		   (put ',abbrev 'definition-name ',child)
+		   (defvar ,abbrev
+		     (progn (define-abbrev-table ',abbrev nil) ,abbrev)))
+		 (unless (get ',abbrev 'variable-documentation)
+		   (put ',abbrev 'variable-documentation
+		        ,(format "Abbrev table for `%s'." child)))))
+         (if (fboundp 'derived-mode-set-parent) ;; Emacs≥30.1
+             (derived-mode-set-parent ',child ',parent)
+           (put ',child 'derived-mode-parent ',parent))
+         ,(if group `(put ',child 'custom-mode-group ,group)))
 
        (defun ,child ()
 	 ,docstring

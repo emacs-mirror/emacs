@@ -407,7 +407,7 @@ and /* */ comments.  SOFT works the same as in
    :language 'doxygen
    :override t
    :feature 'keyword
-   '((tag_name) @font-lock-constant-face
+   '((tag_name) @font-lock-doc-markup-face
      (type) @font-lock-type-face
      (emphasis) @bold
      ((tag_name) @bold (:match ".note" @bold))

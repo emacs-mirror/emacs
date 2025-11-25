@@ -1029,7 +1029,7 @@ untar into a directory named DIR; otherwise, signal an error."
        (make-directory pkg-dir t)
        (let ((file-list
               (or (and (derived-mode-p 'dired-mode)
-                       (dired-get-marked-files))
+                       (dired-get-marked-files nil 'marked))
                   (directory-files-recursively default-directory "" nil))))
          (dolist (source-file file-list)
            (let ((target (expand-file-name
@@ -1278,8 +1278,8 @@ The return result is a `package-desc'."
           (package--read-pkg-desc 'dir))
       (catch 'found
         (let ((files (or (and (derived-mode-p 'dired-mode)
-                              (dired-get-marked-files))
-                         (directory-files-recursively default-directory "\\.el\\'"))))
+                              (dired-get-marked-files nil 'marked))
+                         (directory-files default-directory t "\\.el\\'" t))))
           ;; We sort the file names in lexicographical order, to ensure
           ;; that we check shorter file names first (ie. those further
           ;; up in the directory structure).

@@ -191,7 +191,6 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
 {
   size_t len;
   char *XXXXXX;
-  unsigned int count;
   int fd = -1;
   int saved_errno = errno;
 
@@ -236,7 +235,7 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
   /* This is where the Xs start.  */
   XXXXXX = &tmpl[len - x_suffix_len - suffixlen];
 
-  for (count = 0; count < attempts; ++count)
+  for (unsigned int count = 0; count < attempts; ++count)
     {
       for (size_t i = 0; i < x_suffix_len; i++)
         {
