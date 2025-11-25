@@ -5218,8 +5218,10 @@ Format with `format-mode-line' to produce a string value.  */);
 		     doc: /* Local (mode-specific) abbrev table of current buffer.  */);
 
   DEFVAR_PER_BUFFER ("abbrev-mode", &BVAR (current_buffer, abbrev_mode), Qnil,
-		     doc: /*  Non-nil if Abbrev mode is enabled.
-Use the command `abbrev-mode' to change this variable.  */);
+		     doc: /* Non-nil if Abbrev mode is enabled.
+Use the command `abbrev-mode' to change the value of this variable in
+the current buffer.  Customize this variable to non-nil to enable Abbrev
+mode by default in all buffers.  */);
 
   DEFVAR_PER_BUFFER ("fill-column", &BVAR (current_buffer, fill_column),
 		     Qintegerp,

@@ -49,11 +49,13 @@ insert @samp{find outer otter.}.
 @cindex Abbrev mode
 @cindex mode, Abbrev
   Abbrevs expand only when Abbrev mode, a buffer-local minor mode, is
-enabled.  Disabling Abbrev mode does not cause abbrev definitions to
-be forgotten, but they do not expand until Abbrev mode is enabled
-again.  The command @kbd{M-x abbrev-mode} toggles Abbrev mode; with a
-numeric argument, it turns Abbrev mode on if the argument is positive,
-off otherwise.  @xref{Minor Modes}.
+enabled.  Disabling Abbrev mode does not cause abbrev definitions to be
+forgotten, but they do not expand until Abbrev mode is enabled again.
+The command @kbd{M-x abbrev-mode} toggles Abbrev mode in the current
+buffer; with a numeric argument, it turns Abbrev mode on if the argument
+is positive, off otherwise (@pxref{Minor Modes}).  To enable Abbrev mode
+by default in all buffers, customize the variable @code{abbrev-mode} to
+a non-@code{nil} value (@pxref{Easy Customization}).
 
   Abbrevs can have @dfn{mode-specific} definitions, active only in one major
 mode.  Abbrevs can also have @dfn{global} definitions that are active in

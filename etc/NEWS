@@ -3102,6 +3102,13 @@ contains an encrypted file, is an empty buffer, is a hidden buffer, or
 is the "*scratch*" buffer.  If it cannot locate any acceptable buffers,
 it will begrudgingly use the scratch buffer.
 
+** Abbrev mode
+
++++
+*** You can now enable Abbrev mode by default using Easy Customization.
+Customize the variable 'abbrev-mode' to non-nil to enable Abbrev mode by
+default in all buffers.
+
 
 * New Modes and Packages in Emacs 31.1
 

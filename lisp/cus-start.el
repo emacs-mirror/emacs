@@ -173,6 +173,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	      "24.1")
              (delete-auto-save-files auto-save boolean)
              (kill-buffer-delete-auto-save-files auto-save boolean "28.1")
+             (abbrev-mode abbrev boolean nil
+                          ;; Not `custom-set-minor-mode' because it is a
+                          ;; buffer-local minor mode.  Customizing it to
+                          ;; non-nil means enabling the mode in all
+                          ;; buffers which don't locally disable it.
+                          :initialize custom-initialize-default
+                          :set custom-set-default)
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
