@@ -2349,12 +2349,14 @@ applied.  Other non-nil values are reserved."
 (defun diff-goto-source (&optional other-file event)
   "Jump to the corresponding source line.
 
-By default, jump to the new source file; jump to the old source file
-instead when either
-- `diff-jump-to-old-file' is non-nil and you don't supply a prefix
-  argument (when called from Lisp, optional argument OTHER-FILE is nil)
-- `diff-jump-to-old-file' is nil and you supply a prefix argument
-  (when called from Lisp, optional argument OTHER-FILE is non-nil)
+By default, jump to the new source file.
+With a prefix argument (when called from Lisp, with optional argument
+OTHER-FILE non-nil), jump to the old source file.
+If `diff-jump-to-old-file' is non-nil then the meaning of the prefix
+argument (or, when called from Lisp, the meaning of optional argument
+OTHER-FILE) is reversed: a prefix argument (respectively, OTHER-FILE
+non-nil) means to jump to the new source file, and the lack of one
+(respectively, OTHER-FILE nil) means to jump to the old source file.
 In addition, if you supply a prefix argument bigger than 8 (for example
 with \\[universal-argument] \\[universal-argument]), \
 the value of `diff-jump-to-old-file' is toggled for the
