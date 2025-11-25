@@ -2046,8 +2046,10 @@ Whitespace differences are ignored."
 OTHER-FILE, if non-nil, means to look at the diff's name and line
   numbers for the old file.  Furthermore, use `diff-vc-revisions'
   if it's available.  If `diff-jump-to-old-file' is non-nil, the
-  sense of this parameter is reversed.  If the prefix argument is
-  8 or more, `diff-jump-to-old-file' is set to OTHER-FILE.
+  sense of this parameter is reversed.  If OTHER-FILE considered
+  as a raw prefix argument has a numeric value bigger than 8,
+  toggle `diff-jump-to-old-file' for the remainder of this Emacs
+  session, i.e., set it to nil if it's non-nil, non-nil if it's nil.
 REVERSE, if non-nil, switches the sense of SRC and DST (see below).
 NOPROMPT, if non-nil, means not to prompt the user.
 Return a list (BUF LINE-OFFSET (BEG . END) SRC DST SWITCHED).
@@ -2256,6 +2258,8 @@ Interactively, if the region is active, apply all hunks that the region
 overlaps; otherwise, apply all hunks.
 With a prefix argument, reverse-apply the hunks.
 If applying all hunks succeeds, save the changed buffers.
+By default apply diffs to new source files; apply them to old
+files if `diff-jump-to-old-file' is non-nil.
 
 When called from Lisp, returns nil if buffers were successfully modified
 and saved, or the number of failed hunk applications otherwise.
@@ -2276,6 +2280,9 @@ or the number of hunks that can't be applied."
       (diff-beginning-of-hunk t)
       (while (pcase-let ((`(,buf ,line-offset ,pos ,_src ,dst ,switched)
                           (diff-find-source-location nil reverse test)))
+               ;; FIXME: Should respect `diff-apply-hunk-to-backup-file'
+               ;; similarly to how `diff-apply-buffer' does.
+               ;; Prompt for each relevant file.
                (cond ((and line-offset (not switched))
                       (push (cons pos dst)
                             (alist-get buf buffer-edits)))
@@ -2310,14 +2317,25 @@ or the number of hunks that can't be applied."
 
 (defun diff-goto-source (&optional other-file event)
   "Jump to the corresponding source line.
-`diff-jump-to-old-file' (or its opposite if the OTHER-FILE prefix arg
-is given) determines whether to jump to the old or the new file.
-If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[universal-argument])
-then `diff-jump-to-old-file' is also set, for the next invocations.
 
-Under version control, the OTHER-FILE prefix arg means jump to the old
-revision of the file if point is on an old changed line, or to the new
-revision of the file otherwise."
+By default, jump to the new source file; jump to the old source file
+instead when either
+- `diff-jump-to-old-file' is non-nil and you don't supply a prefix
+  argument (when called from Lisp, optional argument OTHER-FILE is nil)
+- `diff-jump-to-old-file' is nil and you supply a prefix argument
+  (when called from Lisp, optional argument OTHER-FILE is non-nil)
+In addition, if you supply a prefix argument bigger than 8 (for example
+with \\[universal-argument] \\[universal-argument]), \
+the value of `diff-jump-to-old-file' is toggled for the
+remainder of this Emacs session (i.e., set to non-nil if nil, or
+set to nil if non-nil).  When called from Lisp this toggling
+happens when the value of optional argument OTHER-FILE considered
+as a prefix argument has a numeric value bigger than 8.
+
+Under version control, jumping to the old file means jumping to the old
+revision of the file in the manner of \\[vc-revision-other-window], \
+and occurs only when
+point is on an old changed line (i.e. a removed line)."
   (interactive (list current-prefix-arg last-input-event))
   ;; When pointing at a removal line, we probably want to jump to
   ;; the old location, and else to the new (i.e. as if reverting).
