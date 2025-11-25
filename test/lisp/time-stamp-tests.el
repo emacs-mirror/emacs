@@ -443,9 +443,9 @@ This is a separate function so it can have an `ert-explainer' property."
   "Return STRING padded on the left to 4 characters."
   (time-stamp-test--pad-left-to-string-width string 4))
 
-(defun formatz-mod-pad-l10 (string)
-  "Return STRING padded on the left to 10 characters."
-  (time-stamp-test--pad-left-to-string-width string 10))
+(defun formatz-mod-pad-l15 (string)
+  "Return STRING padded on the left to 15 characters."
+  (time-stamp-test--pad-left-to-string-width string 15))
 
 (defun time-stamp-test--pad-left-to-string-width (string width)
   "Return STRING padded on the left to string-width WIDTH."
@@ -460,23 +460,24 @@ This is a separate function so it can have an `ert-explainer' property."
   (with-time-stamp-test-env
       ;; implemented and recommended since 1997
       (time-stamp-test-AB "%#A" "%^A")
-      (time-stamp-test-AB "%#10A" "%^A" #'formatz-mod-pad-l10)
+      (time-stamp-test-AB "%#15A" "%^A" #'formatz-mod-pad-l15)
       ;; implemented since 1997, recommended 1997-2024
       (time-stamp-test-AB "%3a" "%a")
       ;; recommended 1997-2019
       (time-stamp-test-AB "%:a" "%A")
       ;; recommended 1997-2019, warned since 2024, will change
       (time-stamp-test-AB "%3A" "%^a" :warn)
-      (time-stamp-test-AB "%10A" "%^A" #'formatz-mod-pad-l10 :warn)
+      (time-stamp-test-AB "%15A" "%^A" #'formatz-mod-pad-l15 :warn)
       ;; implemented since 2001, recommended since 2019
       (time-stamp-test-AB ("%#a" "%#3a") "%^a")
       (time-stamp-test-AB "%#4a" "%^a" #'formatz-mod-pad-l4)
       ;; implemented since 2001, recommended 2019-2024
       (time-stamp-test-AB "%:A" "%A")
       ;; broken 2019-2024
-      (time-stamp-test-AB "%:10A" "%A" #'formatz-mod-pad-l10)
+      (time-stamp-test-AB "%:15A" "%A" #'formatz-mod-pad-l15)
       ;; broken in 2019, changed in 2024
       (time-stamp-test-AB ("%-A" "%_A") "%A")
+      (time-stamp-test-AB ("%-a" "%_a") "%a")
       ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
       (time-stamp-test-AB "%a" "%a")
       (time-stamp-test-AB ("%4a" "%04a") "%a" #'formatz-mod-pad-l4)
