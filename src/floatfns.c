@@ -283,9 +283,9 @@ DEFUN ("abs", Fabs, Sabs, 1, 1, 0,
     }
   else
     {
-      if (mpz_sgn (*xbignum_val (arg)) < 0)
+      if (mpz_sgn (xbignum_val (arg).z) < 0)
 	{
-	  mpz_neg (mpz[0], *xbignum_val (arg));
+	  mpz_neg (mpz[0], xbignum_val (arg).z);
 	  arg = make_integer_mpz ();
 	}
     }
@@ -322,7 +322,7 @@ This is the same as the exponent of a float.  */)
       value = ivalue - 1;
     }
   else if (!FIXNUMP (arg))
-    value = mpz_sizeinbase (*xbignum_val (arg), 2) - 1;
+    value = mpz_sizeinbase (xbignum_val (arg).z, 2) - 1;
   else
     {
       EMACS_INT i = XFIXNUM (arg);
