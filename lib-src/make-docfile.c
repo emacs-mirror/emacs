@@ -577,7 +577,13 @@ struct global
 };
 
 /* Bit values for FLAGS field from the above.  Applied for DEFUNs only.  */
-enum { DEFUN_noreturn = 1, DEFUN_const = 2, DEFUN_noinline = 4 };
+enum
+  {
+    DEFUN_noreturn = 1,
+    DEFUN_const = 2,
+    DEFUN_noinline = 4,
+    DEFUN_pure = 8,
+  };
 
 /* All the variable names we saw while scanning C sources in `-g'
    mode.  */
@@ -752,6 +758,8 @@ write_globals (void)
 	    fputs (" ATTRIBUTE_COLD", stdout);
 	  if (globals[i].flags & DEFUN_const)
 	    fputs (" ATTRIBUTE_CONST", stdout);
+	  if (globals[i].flags & DEFUN_pure)
+	    fputs (" ATTRIBUTE_PURE", stdout);
 
 	  puts (";");
 	}
@@ -1062,7 +1070,7 @@ scan_c_stream (FILE *infile)
 		   attributes: attribute1 attribute2 ...)
 	       (Lisp_Object arg...)
 
-	     Now only `const', `noinline' and `noreturn' attributes
+	     Now only 'const', 'noinline', 'noreturn', and 'pure' attributes
 	     are used.  */
 
 	  /* Advance to the end of docstring.  */
@@ -1110,6 +1118,8 @@ scan_c_stream (FILE *infile)
 		g->flags |= DEFUN_noreturn;
 	      if (strstr (input_buffer, "const"))
 		g->flags |= DEFUN_const;
+	      if (strstr (input_buffer, "pure"))
+		g->flags |= DEFUN_pure;
 
 	      /* Although the noinline attribute is no longer used,
 		 leave its support in, in case it's needed later.  */

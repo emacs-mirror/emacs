@@ -61,7 +61,13 @@ accessed as follows:
   touch point.
 
   (nth 9 touch-screen-current-tool)
-  The last known position of the touch point.
+  The last known position of the touch point, relative to the
+  window in the second element.
+
+  (nth 10 touch-screen-current-tool)
+  The same position, relative to the frame to which the window
+  in the second element belongs.
+
 
 See `touch-screen-handle-point-update' and
 `touch-screen-handle-point-up' for the meanings of the fourth
@@ -201,15 +207,16 @@ mouse-down, mouse motion, mouse drag, and mouse button events.")
 ;;; Scroll gesture.
 
 (defun touch-screen-relative-xy (posn window)
-  "Return the coordinates of POSN, a mouse position list.
-However, return the coordinates relative to WINDOW.
+  "Return the coordinates of POSN, a mouse position list, relative to WINDOW.
 
-If (posn-window posn) is the same as window, simply return the
-coordinates in POSN.  Otherwise, convert them to the frame, and
-then back again.
+If (posn-window POSN) is the same as window, simply return the
+coordinates in POSN.  Otherwise, translate these coordinates
+into that window's frame's coordinate system and from there into
+that of WINDOW.
 
-If WINDOW is the symbol `frame', simply convert the coordinates
-to the frame that they belong in."
+If WINDOW is the symbol `frame', just convert these coordinates
+to the coordinate system of the frame containing POSN or its
+window."
   (if (or (eq (posn-window posn) window)
           (and (eq window 'frame)
                (framep (posn-window posn))))
@@ -1104,6 +1111,10 @@ then move point to the position of POINT."
          (relative-xy (touch-screen-relative-xy posn window)))
     ;; Update the 10th field of the tool list with RELATIVE-XY.
     (setcar (nthcdr 9 touch-screen-current-tool) relative-xy)
+    ;; And the 11th with the absolute position of POSN relative to its
+    ;; frame.
+    (setcar (nthcdr 10 touch-screen-current-tool)
+            (touch-screen-relative-xy posn 'frame))
     (cond ((or (null what)
                (eq what 'ancillary-tool))
            (let* ((last-posn (nth 2 touch-screen-current-tool))
@@ -1576,6 +1587,8 @@ functions undertaking event management themselves to call
              (position (cdadr event))
              (window (posn-window position))
              (point (posn-point position))
+             (frame-or-window-frame
+              (if (framep window) window (window-frame window)))
              binding tool-list)
         ;; Cancel the touch screen timer, if it is still there by any
         ;; chance.
@@ -1603,7 +1616,7 @@ functions undertaking event management themselves to call
             ;; auxiliary tool was first pressed, then interpreted as a
             ;; scale by which to adjust text within the current tool's
             ;; window.
-            (when (eq (if (framep window) window (window-frame window))
+            (when (eq frame-or-window-frame
                       ;; Verify that the new tool was placed on the
                       ;; same frame the current tool has, so as not to
                       ;; consider events distributed across distinct
@@ -1657,7 +1670,9 @@ functions undertaking event management themselves to call
                                      (posn-x-y position)
                                      nil position
                                      nil nil nil nil
-                                     (posn-x-y position)))
+                                     (posn-x-y position)
+                                     (touch-screen-relative-xy position
+                                                               'frame)))
                 touch-screen-current-tool tool-list)
           ;; Select the window underneath the event as the checks below
           ;; will look up keymaps and markers inside its buffer.
@@ -2154,6 +2169,24 @@ Must be called from a command bound to a `touchscreen-hold' or
       (error "Calling `touch-screen-inhibit-drag' outside hold or drag"))
     ;; Now set the fourth element of tool to `command-inhibit'.
     (setcar (nthcdr 3 tool) 'command-inhibit)))
+
+;;;###autoload
+(defun touch-screen-last-drag-position ()
+  "Return the last attested position of the current touch screen tool.
+Value is a pair of integers (X . Y) representing the pixel
+position of the said tool relative to the frame where it was
+placed (not the selected frame), or nil if this function was
+not invoked after the generation of a `mouse-movement' or
+`down-mouse-1' event by touch screen event translation.
+
+This function must be consulted in preference to
+`mouse-absolute-pixel-position' if the latter is required in any
+command that handles `mouse-movement' or `down-mouse-1' events."
+  (when-let* ((tool touch-screen-current-tool)
+              (window (nth 1 tool))
+              (pos (nth 10 tool)))
+    (and (eq (nth 3 tool) 'mouse-drag)
+         (window-live-p window) pos)))
 
 
 

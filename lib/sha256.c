@@ -96,10 +96,9 @@ set_uint32 (char *cp, uint32_t v)
 void *
 sha256_read_ctx (const struct sha256_ctx *ctx, void *resbuf)
 {
-  int i;
   char *r = resbuf;
 
-  for (i = 0; i < 8; i++)
+  for (int i = 0; i < 8; i++)
     set_uint32 (r + i * sizeof ctx->state[0], SWAP (ctx->state[i]));
 
   return resbuf;
@@ -108,10 +107,9 @@ sha256_read_ctx (const struct sha256_ctx *ctx, void *resbuf)
 void *
 sha224_read_ctx (const struct sha256_ctx *ctx, void *resbuf)
 {
-  int i;
   char *r = resbuf;
 
-  for (i = 0; i < 7; i++)
+  for (int i = 0; i < 7; i++)
     set_uint32 (r + i * sizeof ctx->state[0], SWAP (ctx->state[i]));
 
   return resbuf;
@@ -338,9 +336,8 @@ sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
     {
       uint32_t tm;
       uint32_t t0, t1;
-      int t;
       /* FIXME: see sha1.c for a better implementation.  */
-      for (t = 0; t < 16; t++)
+      for (int t = 0; t < 16; t++)
         {
           x[t] = SWAP (*words);
           words++;

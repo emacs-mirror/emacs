@@ -853,6 +853,17 @@ This command must be bound to a mouse click."
           (split-window-horizontally
            (min (max new-width first-col) last-col)))))))
 
+(defun mouse-position-for-drag-line (tty)
+  "Return the last mouse position observed for the purposes of `mouse-drag-line'.
+If TTY is non-nil, return the last attested position of the mouse
+relative to the root frame.  Otherwise, return the position of the mouse
+relative to the selected frame, unless the current drag operation was
+produced from a touch screen event, in which event, return the position
+of the active touch-screen tool relative to the same."
+  (if tty (mouse-position-in-root-frame)
+    (or (touch-screen-last-drag-position)
+        (mouse-absolute-pixel-position))))
+
 (defun mouse-drag-line (start-event line)
   "Drag a mode, header, tab or vertical line with the mouse.
 START-EVENT is the starting mouse event of the drag action.  LINE
@@ -888,9 +899,7 @@ must be one of the symbols `header', `mode', `tab' or `vertical'."
 	 ;; START-EVENT here because that would give us coordinates for
 	 ;; 'posn-window' of that event and we don't want that (see the
 	 ;; comment above).
-	 (position-x-y (if tty
-		       (mouse-position-in-root-frame)
-		     (mouse-absolute-pixel-position)))
+	 (position-x-y (mouse-position-for-drag-line tty))
 	 ;; 'position' records the x- (for vertical dragging) or y- (for
 	 ;; mode, header and tab line dragging) coordinate of the
 	 ;; current mouse position
@@ -956,9 +965,7 @@ must be one of the symbols `header', `mode', `tab' or `vertical'."
 		nil)
 	       ((eq line 'vertical)
 		;; Drag right edge of 'window'.
-		(setq position (if tty
-				   (car (mouse-position-in-root-frame))
-				 (car (mouse-absolute-pixel-position))))
+		(setq position (car (mouse-position-for-drag-line tty)))
 		(unless (zerop (setq growth (- position last-position)))
 		  ;; When we drag characterwise and we either drag for
 		  ;; the first time or the dragging direction changes,
@@ -989,9 +996,7 @@ must be one of the symbols `header', `mode', `tab' or `vertical'."
 		  ))
 	       (t
 		;; Drag bottom edge of 'window'.
-		(setq position (cdr (if tty
-					(mouse-position-in-root-frame)
-				      (mouse-absolute-pixel-position))))
+		(setq position (cdr (mouse-position-for-drag-line tty)))
 		(unless (zerop (setq growth (- position last-position)))
 		  ;; When we drag characterwise and we either drag for
 		  ;; the first time or the dragging direction changes,

@@ -73,14 +73,13 @@ get_group_info (struct group_info *gi)
 int
 group_member (gid_t gid)
 {
-  int i;
   int found;
   struct group_info gi;
   int n_groups = get_group_info (&gi);
 
   /* Search through the list looking for GID. */
   found = 0;
-  for (i = 0; i < n_groups; i++)
+  for (int i = 0; i < n_groups; i++)
     {
       if (gid == gi.group[i])
         {
@@ -99,9 +98,7 @@ group_member (gid_t gid)
 int
 main (int argc, char **argv)
 {
-  int i;
-
-  for (i = 1; i < argc; i++)
+  for (int i = 1; i < argc; i++)
     {
       gid_t gid;
 

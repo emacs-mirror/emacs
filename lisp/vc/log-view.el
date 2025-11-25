@@ -115,7 +115,10 @@
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-diff-internal "vc")
 (autoload 'vc--pick-or-revert "vc")
+(autoload 'vc--remove-revisions-from-end "vc")
 (autoload 'vc--prompt-other-working-tree "vc")
+(autoload 'vc-exec-after "vc-dispatcher")
+(eval-when-compile (require 'vc-dispatcher))
 
 (defvar cvs-minor-wrap-function)
 (defvar cvs-force-command)
@@ -141,8 +144,10 @@
   "w" #'log-view-copy-revision-as-kill
   "TAB" #'log-view-msg-next
   "<backtab>" #'log-view-msg-prev
-  "C" #'log-view-revision-cherry-pick
-  "R" #'log-view-revision-revert)
+  "C" #'log-view-cherry-pick
+  "R" #'log-view-revert-or-delete-revisions
+  "x" #'log-view-uncommit-revisions-from-end
+  "X" #'log-view-delete-revisions-from-end)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
   "Log-View Display Menu."
@@ -165,9 +170,9 @@
     ["Toggle Details at Point" log-view-toggle-entry-display
      :active log-view-expanded-log-entry-function]
     "-----"
-    ["Cherry-Pick Revision(s)" log-view-revision-cherry-pick
+    ["Cherry-Pick Revision(s)" log-view-cherry-pick
      :help "Copy changes from revision(s) to a branch"]
-    ["Revert Revision(s)" log-view-revision-revert
+    ["Revert Revision(s)" log-view-revert-or-delete-revisions
      :help "Undo the effects of old revision(s)"]
     "-----"
     ["Next Log Entry"  log-view-msg-next
@@ -273,6 +278,8 @@ The match group number 1 should match the revision number itself.")
   (setq-local cvs-minor-wrap-function #'log-view-minor-wrap)
   (setq-local project-find-matching-buffer-function
               #'project-change-to-matching-directory)
+  (add-hook 'revert-buffer-restore-functions #'log-view--restore-marks
+            nil t)
   (hack-dir-local-variables-non-file-buffer))
 
 ;;;;
@@ -467,6 +474,20 @@ See `log-view-mark-entry'."
 	  (push (overlay-get ov 'log-view-marked) marked-list)
 	  (setq pos (overlay-end ov))))
       marked-list)))
+
+(defun log-view--restore-marks ()
+  "Return a function to restore log entry marks after `revert-buffer'.
+Added to `revert-buffer-restore-functions' by Log View mode."
+  (let ((table (make-hash-table :test #'equal)))
+    (dolist (mark (log-view-get-marked))
+      (puthash mark t table))
+    (lambda ()
+      (vc-run-delayed
+        (log-view--mark-unmark (lambda ()
+                                 (if (gethash (log-view-current-tag) table)
+                                     (log-view--mark-entry)
+                                   (log-view-msg-next 1)))
+                               nil (point-min) (point-max))))))
 
 (defun log-view-toggle-entry-display ()
   "If possible, expand the current Log View entry.
@@ -703,7 +724,8 @@ If called interactively, annotate the version at point."
 (defvar vc-log-short-style)
 (declare-function vc-print-log-internal "vc")
 
-(defun log-view--pick-or-revert (directory no-comment reverse)
+(defun log-view--pick-or-revert
+    (directory no-comment reverse interactive delete)
   "Copy changes from revision at point or all marked revisions.
 DIRECTORY is the destination, the root of the target working tree.
 NO-COMMENT non-nil means use the log messages of the revisions
@@ -711,12 +733,15 @@ unmodified, instead of using the backend's default cherry-pick comment
 for that revision.
 NO-COMMENT non-nil with zero or one revisions marked also means don't
 prompt to edit the log message.
-REVERSE non-nil means to make commit(s) undoing the effects of the
-revisions, instead."
+REVERSE non-nil means to undo the effects of the revisions, instead.
+INTERACTIVE and DELETE are passed on to `vc--pick-or-revert', except
+additionally if INTERACTIVE is non-nil and `vc--pick-or-revert' returns
+`deleted', pass `no-confirm' to subsequent calls to that function."
   (let ((default-directory directory)
-        (marked (log-view-get-marked)))
+        (marked (log-view-get-marked))
+        (buf (current-buffer)))
     (if (length> marked 1)
-        (progn
+        (let ((deleted 0))
           (save-excursion
             (dolist (rev (if reverse (reverse marked) marked))
               ;; Unmark each revision *before* copying it.
@@ -724,38 +749,48 @@ revisions, instead."
               ;; fails, after resolving that conflict and committing the
               ;; cherry-pick, the right revisions will be marked to
               ;; resume the original multiple cherry-pick operation.
+              ;; FIXME: This doesn't work so long as the backend
+              ;; functions just give up completely if there is a
+              ;; conflict (which behavior is also a FIXME).  Then in
+              ;; fact the user has to mark the revision again.
               (log-view-goto-rev rev)
               (log-view-unmark-entry 1)
-              (vc--pick-or-revert rev
-                                  reverse
-                                  (if no-comment
-                                      (vc-call-backend log-view-vc-backend
-                                                       'get-change-comment
-                                                       nil rev)
-                                    t)
-                                  nil
-                                  log-view-vc-backend)))
-          (when (vc-find-backend-function log-view-vc-backend
-                                          'modify-change-comment)
-            (let (vc-log-short-style)
-              (vc-print-log-internal log-view-vc-backend
-                                     (list default-directory)
-                                     nil nil (length marked)))
-            (setq-local vc-log-short-style nil ; For \\`g'.
-                        vc-parent-buffer-name nil)
-            (message (substitute-command-keys "Use \
-\\[log-view-modify-change-comment] to modify any of these messages"))))
+              (cl-case
+                  (vc--pick-or-revert rev reverse interactive delete
+                                      (if no-comment
+                                          (vc-call-backend log-view-vc-backend
+                                                           'get-change-comment
+                                                           nil rev)
+                                        t)
+                                      nil
+                                      log-view-vc-backend)
+                (deleted (incf deleted)
+                         (when interactive
+                           (setq interactive 'no-confirm))))))
+          (let ((new-commits (- (length marked) deleted)))
+            (when (and (plusp new-commits)
+                       (vc-find-backend-function log-view-vc-backend
+                                                 'modify-change-comment))
+              (let (vc-log-short-style)
+                (vc-print-log-internal log-view-vc-backend
+                                       (list default-directory)
+                                       nil nil new-commits))
+              (setq-local vc-log-short-style nil ; For \\`g'.
+                          vc-parent-buffer-name nil)
+              (message (substitute-command-keys "Use \
+\\[log-view-modify-change-comment] to modify any of these messages")))))
       (let ((rev (or (car marked) (log-view-current-tag))))
-        (vc--pick-or-revert rev
-                            reverse
+        (vc--pick-or-revert rev reverse interactive delete
                             (and no-comment
                                  (vc-call-backend log-view-vc-backend
                                                   'get-change-comment
                                                   nil rev))
                             nil
-                            log-view-vc-backend)))))
+                            log-view-vc-backend)))
+    (when (eq (current-buffer) buf)
+      (revert-buffer))))
 
-(defun log-view-revision-cherry-pick (directory &optional no-comment)
+(defun log-view-cherry-pick (directory &optional no-comment)
   "Copy changes from revision at point to current branch.
 If there are marked revisions, use those instead of the revision at point.
 
@@ -774,31 +809,120 @@ traced.  With optional argument NO-COMMENT non-nil (interactively, with
 a prefix argument), use the log messages from the source revisions
 unmodified.
 
-See also `vc-revision-cherry-pick'."
+See also `vc-cherry-pick'."
   (interactive
    (list (vc--prompt-other-working-tree log-view-vc-backend
                                         "Cherry-pick to working tree"
                                         'allow-empty)
          current-prefix-arg))
-  (log-view--pick-or-revert directory no-comment nil))
+  (log-view--pick-or-revert directory no-comment nil nil nil))
 
-(defun log-view-revision-revert (directory)
+(defun log-view-revert-or-delete-revisions
+    (directory &optional interactive delete)
   "Undo the effects of the revision at point.
 When revisions are marked, undo the effects of each of them.
 When called interactively, prompts for the target working tree in which
 to revert; the current working tree is the default choice.
 When called from Lisp, DIRECTORY is the root of the target working tree.
 
+When called interactively (or with optional argument INTERACTIVE
+non-nil), then if the underlying VCS is distributed, offer to entirely
+delete revisions that have not been pushed.
+This is instead of creating new commits undoing their effects.
+
+With a prefix argument (or with optional argument DELETE non-nil),
+always delete revisions and never create new commits.
+In this case INTERACTIVE is ignored.
+This works only for unpublished commits, unless you have customized
+`vc-allow-rewriting-published-history' to a non-nil value.
+
 When reverting a single revision, prompts for editing the log message
 for the new commit.
 When reverting multiple revisions, never prompts to edit log messages.
 
-See also `vc-revision-revert'."
+See also `vc-revert-or-delete-revision'."
+  (interactive (list (vc--prompt-other-working-tree
+                      (vc-responsible-backend default-directory)
+                      (if current-prefix-arg "Delete in working tree"
+                        "Revert in working tree")
+                      'allow-empty)
+                     t current-prefix-arg))
+  (log-view--pick-or-revert directory nil t interactive delete))
+
+(defun log-view-uncommit-revisions-from-end ()
+  "Uncommit revisions newer than the revision at point.
+The revision at point must be on the current branch.  The newer
+revisions are deleted from the revision history but the changes made by
+those revisions to files in the working tree are not undone.
+
+To delete revisions from the revision history and also undo the changes
+in the working tree, see `log-edit-delete-revisions-from-end'."
+  (interactive)
+  (vc--remove-revisions-from-end (log-view-current-tag)
+                                 nil t log-view-vc-backend)
+  (revert-buffer))
+
+(defun log-view-delete-revisions-from-end (&optional discard)
+  "Delete revisions newer than the revision at point.
+The revision at point must be on the current branch.  The newer
+revisions are deleted from the revision history and the changes made by
+those revisions to files in the working tree are undone.
+If the are uncommitted changes, prompts to discard them.
+With a prefix argument (when called from Lisp, with optional argument
+DISCARD non-nil), discard any uncommitted changes without prompting.
+
+To delete revisions from the revision history without undoing the
+changes in the working tree, see `log-edit-uncommit-revisions-from-end'."
+  (interactive "P")
+  (vc--remove-revisions-from-end (log-view-current-tag)
+                                 (if discard 'discard t)
+                                 t log-view-vc-backend)
+  (revert-buffer))
+
+;; These are left unbound by default.  A user who doesn't like the DWIM
+;; behavior of `log-view-revert-or-delete-revisions' can unbind that and
+;; bind these two commands instead.
+
+(defun log-view-revert-revisions (directory)
+  "Make a commit undoing the effects of the revision at point.
+When revisions are marked, make such a commit for each of them.
+When called interactively, prompts for the target working tree in which
+to make new commits; the current working tree is the default choice.
+When called from Lisp, DIRECTORY is the root of the target working tree.
+
+This is like `log-view-revert-or-delete-revisions' except that it only
+ever makes new commits undoing the effects of revisions, instead of
+considering VCS-specific alternative mechanisms to undo the effects of
+revisions.
+
+When reverting a single revision, prompts for editing the log message
+for the new commit.
+When reverting multiple revisions, never prompts to edit log messages.
+
+See also `vc-revert-revision'."
   (interactive (list (vc--prompt-other-working-tree
                       (vc-responsible-backend default-directory)
                       "Revert in working tree"
                       'allow-empty)))
-  (log-view--pick-or-revert directory nil t))
+  (log-view--pick-or-revert directory nil t nil 'never))
+
+(defun log-view-delete-revisions (directory)
+  "Delete the revision at point from the revision history.
+When revisions are marked, delete all of them.
+When called interactively, prompts for the target working tree in which
+to delete revisions; the current working tree is the default choice.
+When called from Lisp, DIRECTORY is the root of the target working tree.
+
+This works only for unpublished commits, unless you have customized
+`vc-allow-rewriting-published-history' to a non-nil value.
+
+This is the same as `log-view-revert-or-delete-revisions' invoked
+interactively with a prefix argument.  See also `vc-delete-revision'."
+  (interactive (list (vc--prompt-other-working-tree
+                      (vc-responsible-backend default-directory)
+                      "Delete in working tree"
+                      'allow-empty)))
+  (log-view--pick-or-revert directory nil t nil t))
 
 ;;;;
 ;;;; diff

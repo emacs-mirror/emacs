@@ -217,7 +217,6 @@ INTERNAL (strtol) (const STRING_TYPE *nptr, STRING_TYPE **endptr,
   register unsigned int cutlim;
   register unsigned LONG int i;
   register const STRING_TYPE *s;
-  register UCHAR_TYPE c;
   const STRING_TYPE *save, *end;
   int overflow;
 
@@ -307,7 +306,7 @@ INTERNAL (strtol) (const STRING_TYPE *nptr, STRING_TYPE **endptr,
     {
       /* Find the end of the digit string and check its grouping.  */
       end = s;
-      for (c = *end; c != L_('\0'); c = *++end)
+      for (UCHAR_TYPE c = *end; c != L_('\0'); c = *++end)
         if ((wchar_t) c != thousands
             && ((wchar_t) c < L_('0') || (wchar_t) c > L_('9'))
             && (!ISALPHA (c) || (int) (TOUPPER (c) - L_('A') + 10) >= base))
@@ -326,7 +325,7 @@ INTERNAL (strtol) (const STRING_TYPE *nptr, STRING_TYPE **endptr,
 
   overflow = 0;
   i = 0;
-  for (c = *s; c != L_('\0'); c = *++s)
+  for (UCHAR_TYPE c = *s; c != L_('\0'); c = *++s)
     {
       if (s == end)
         break;

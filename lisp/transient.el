@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; URL: https://github.com/magit/transient
 ;; Keywords: extensions
-;; Version: 0.10.1
+;; Version: 0.11.0
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -33,7 +33,7 @@
 ;;; Code:
 ;;;; Frontmatter
 
-(defconst transient-version "v0.10.1-8-g188ec9a1-builtin")
+(defconst transient-version "v0.11.0-10-g6637364e-builtin")
 
 (require 'cl-lib)
 (require 'eieio)
@@ -51,22 +51,6 @@
 (declare-function Man-getpage-in-background "man" (topic))
 
 (defvar Man-notify-method)
-
-(static-if (< emacs-major-version 30)
-    (progn
-      (defun internal--build-binding@backport-e680827e814 (fn binding prev-var)
-        "Backport not warning about `_' not being left unused.
-Backport fix for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=69108,
-from Emacs commit e680827e814e155cf79175d87ff7c6ee3a08b69a."
-        (let ((binding (funcall fn binding prev-var)))
-          (if (eq (car binding) '_)
-              (cons (make-symbol "s") (cdr binding))
-            binding)))
-      (advice-add 'internal--build-binding :around
-                  #'internal--build-binding@backport-e680827e814)))
-
-(make-obsolete-variable 'transient-hide-during-minibuffer-read
-                        'transient-show-during-minibuffer-read "0.8.0")
 
 (defvar transient-common-command-prefix)
 
@@ -94,9 +78,10 @@ from Emacs commit e680827e814e155cf79175d87ff7c6ee3a08b69a."
 
 (defcustom transient-show-popup t
   "Whether and when to show transient's menu in a buffer.
-\\<transient-map>
-- If t, then show the buffer as soon as a transient prefix command
-  is invoked.
+
+\\<transient-map>\
+- If t (the default), then show the buffer as soon as a transient
+  prefix command is invoked.
 
 - If nil, then do not show the buffer unless the user explicitly
   requests it, by pressing \\[transient-show] or a prefix key.
@@ -118,8 +103,8 @@ from Emacs commit e680827e814e155cf79175d87ff7c6ee3a08b69a."
 (defcustom transient-enable-popup-navigation 'verbose
   "Whether navigation commands are enabled in the menu buffer.
 
-If the value is `verbose', additionally show brief documentation
-about the command under point in the echo area.
+If the value is `verbose' (the default), additionally show brief
+documentation about the command under point in the echo area.
 
 While a transient is active transient's menu buffer is not the
 current buffer, making it necessary to use dedicated commands to
@@ -208,6 +193,7 @@ want to change the value of `transient-mode-line-format'."
 
 (defcustom transient-minimal-frame-width 83
   "Minimal width of dedicated frame used to display transient menu.
+
 This is only used if the transient menu is actually displayed in a
 dedicated frame (see `transient-display-buffer-action').  The value
 is in characters."
@@ -329,12 +315,15 @@ This command is not bound by default, see its docstring for instructions."
 (defcustom transient-highlight-mismatched-keys nil
   "Whether to highlight keys that do not match their argument.
 
-This only affects infix arguments that represent command-line
-arguments.  When this option is non-nil, then the key binding
-for infix argument are highlighted when only a long argument
-\(e.g., \"--verbose\") is specified but no shorthand (e.g., \"-v\").
-In the rare case that a short-hand is specified but does not
-match the key binding, then it is highlighted differently.
+This is mostly intended for authors of transient menus and disabled by
+default.
+
+This only affects infix arguments that represent command-line arguments.
+When this option is non-nil, then the key binding for infix argument are
+highlighted when only a long argument \(e.g., \"--verbose\") is specified
+but no shorthand (e.g., \"-v\"). In the rare case that a short-hand is
+specified but does not match the key binding, then it is highlighted
+differently.
 
 The highlighting is done using `transient-mismatched-key'
 and `transient-nonstandard-key'."
@@ -577,10 +566,9 @@ See info node `(transient)Enabling and Disabling Suffixes'."
   :group 'transient-faces)
 
 (defface transient-higher-level
-  `((t :box ( :line-width ,(if (>= emacs-major-version 28) (cons -1 -1) -1)
-              :color ,(let ((color (face-attribute 'shadow :foreground t t)))
-                        (or (and (not (eq color 'unspecified)) color)
-                            "grey60")))))
+  (let* ((color (face-attribute 'shadow :foreground t t))
+         (color (if (eq color 'unspecified) "grey60" color)))
+    `((t :box (:line-width (-1 . -1) :color ,color))))
   "Face optionally used to highlight suffixes on higher levels.
 See also option `transient-highlight-higher-levels'."
   :group 'transient-faces)
@@ -661,15 +649,13 @@ character used to separate possible values from each other."
   :group 'transient-faces)
 
 (defface transient-nonstandard-key
-  `((t :box ( :line-width ,(if (>= emacs-major-version 28) (cons -1 -1) -1)
-              :color "cyan")))
+  `((t :box (:line-width (-1 . -1) :color "cyan")))
   "Face optionally used to highlight keys conflicting with short-argument.
 See also option `transient-highlight-mismatched-keys'."
   :group 'transient-faces)
 
 (defface transient-mismatched-key
-  `((t :box ( :line-width ,(if (>= emacs-major-version 28) (cons -1 -1) -1)
-              :color "magenta")))
+  `((t :box (:line-width (-1 . -1) :color "magenta")))
   "Face optionally used to highlight keys without a short-argument.
 See also option `transient-highlight-mismatched-keys'."
   :group 'transient-faces)
@@ -1397,12 +1383,13 @@ commands are aliases for."
             (_ (use key val)))))
       (when spec
         (error "Need keyword, got %S" (car spec)))
-      (if-let* ((key (plist-get args :key)))
-          (when (string-match "\\`\\({p}\\)" key)
-            (use :key
-                 (replace-match transient-common-command-prefix t t key 1)))
-        (when-let* ((shortarg (plist-get args :shortarg)))
-          (use :key shortarg))))
+      (cond*
+        ((bind-and* (key (plist-get args :key)))
+         (when (string-match "\\`\\({p}\\)" key)
+           (use :key
+                (replace-match transient-common-command-prefix t t key 1))))
+        ((bind-and* (shortarg (plist-get args :shortarg)))
+         (use :key shortarg))))
     (list 'cons
           (macroexp-quote (or class 'transient-suffix))
           (cons 'list args))))
@@ -1427,8 +1414,7 @@ See also `transient-command-completion-not-suffix-only-p'.
 Only use this alias as the value of the `completion-predicate'
 symbol property.")
 
-(when (and (boundp 'read-extended-command-predicate) ; since Emacs 28.1
-           (not read-extended-command-predicate))
+(unless read-extended-command-predicate
   (setq read-extended-command-predicate
         #'transient-command-completion-not-suffix-only-p))
 
@@ -1436,50 +1422,52 @@ symbol property.")
   (put prefix 'transient--layout (vector 2 nil layout)))
 
 (defun transient--get-layout (prefix)
-  (if-let*
-      ((layout
-        (or (get prefix 'transient--layout)
-            ;; Migrate unparsed legacy group definition.
-            (condition-case-unless-debug err
-                (and-let* ((value (symbol-value prefix)))
-                  (transient--set-layout
-                   prefix
-                   (if (and (listp value)
-                            (or (listp (car value))
-                                (vectorp (car value))))
-                       (transient-parse-suffixes prefix value)
-                     (list (transient-parse-suffix prefix value)))))
-              (error
-               (message "Not a legacy group definition: %s: %S" prefix err)
-               nil)))))
-      (if (vectorp layout)
-          (let ((version (aref layout 0)))
-            (if (= version 2)
-                layout
-              (error "Unsupported layout version %s for %s" version prefix)))
-        ;; Upgrade from version 1.
-        (cl-labels
-            ((upgrade (spec)
-               (cond
-                ((vectorp spec)
-                 (pcase-let ((`[,level ,class ,args ,children] spec))
-                   (when level
-                     (setq args (plist-put args :level level)))
-                   (vector class args (mapcar #'upgrade children))))
-                ((and (listp spec)
-                      (length= spec 3)
-                      (or (null (car spec))
-                          (natnump (car spec)))
-                      (symbolp (cadr spec)))
-                 (pcase-let ((`(,level ,class ,args) spec))
-                   (when level
-                     (setq args (plist-put args :level level)))
-                   (cons class args)))
-                ((listp spec)
-                 (mapcar #'upgrade spec))
-                (t spec))))
-          (transient--set-layout prefix (upgrade layout))))
-    (error "Not a transient prefix command or group definition: %s" prefix)))
+  (cond*
+    ((bind*
+      (layout
+       (or (get prefix 'transient--layout)
+           ;; Migrate unparsed legacy group definition.
+           (condition-case-unless-debug err
+               (and-let* ((value (symbol-value prefix)))
+                 (transient--set-layout
+                  prefix
+                  (if (and (listp value)
+                           (or (listp (car value))
+                               (vectorp (car value))))
+                      (transient-parse-suffixes prefix value)
+                    (list (transient-parse-suffix prefix value)))))
+             (error
+              (message "Not a legacy group definition: %s: %S" prefix err)
+              nil))))))
+    ((not layout)
+     (error "Not a transient prefix command or group definition: %s" prefix))
+    ((vectorp layout)
+     (let ((version (aref layout 0)))
+       (if (= version 2)
+           layout
+         (error "Unsupported layout version %s for %s" version prefix))))
+    (t
+     ;; Upgrade from version 1.
+     (transient--set-layout
+      prefix
+      (named-let upgrade ((spec layout))
+        (cond ((vectorp spec)
+               (pcase-let ((`[,level ,class ,args ,children] spec))
+                 (when level
+                   (setq args (plist-put args :level level)))
+                 (vector class args (mapcar #'upgrade children))))
+              ((and (listp spec)
+                    (length= spec 3)
+                    (or (null (car spec))
+                        (natnump (car spec)))
+                    (symbolp (cadr spec)))
+               (pcase-let ((`(,level ,class ,args) spec))
+                 (when level
+                   (setq args (plist-put args :level level)))
+                 (cons class args)))
+              ((listp spec)
+               (mapcar #'upgrade spec))
+              (t spec)))))))
 
 (defun transient--get-children (prefix)
   (aref (transient--get-layout prefix) 2))
@@ -1674,11 +1662,12 @@ See info node `(transient)Modifying Existing Transients'."
 (defun transient--match-child (group loc child)
   (cl-etypecase child
     (string nil)
-    (symbol (if (symbolp loc)
-                (and (eq child loc)
-                     (list child group))
-              (and-let* ((include (transient--get-layout child)))
-                (transient--locate-child include loc))))
+    (symbol (cond*
+              ((symbolp loc)
+               (and (eq child loc)
+                    (list child group)))
+              ((bind-and* (include (transient--get-layout child)))
+               (transient--locate-child include loc))))
     (vector (seq-some (lambda (subgroup)
                         (transient--locate-child subgroup loc))
                       (aref group 2)))
@@ -1924,47 +1913,46 @@ probably use this instead:
   (get COMMAND \\='transient--suffix)"
   (when command
     (cl-check-type command command))
-  (cond
-   (transient--pending-suffix)
-   (transient--current-suffix)
-   ((or transient--prefix
-        transient-current-prefix)
-    (let ((suffixes
-           (cl-remove-if-not
-            (lambda (obj)
-              (eq (oref obj command)
-                  (or command
-                      (if (eq this-command 'transient-set-level)
-                          ;; This is how it can look up for which
-                          ;; command it is setting the level.
-                          this-original-command
-                        this-command))))
-            (or transient--suffixes
-                transient-current-suffixes))))
-      (cond
-       ((length= suffixes 1)
-        (car suffixes))
-       ((cl-find-if (lambda (obj)
-                      (equal (listify-key-sequence (kbd (oref obj key)))
-                             (listify-key-sequence (this-command-keys))))
-                    suffixes))
-       ;; COMMAND is only provided if `this-command' is meaningless, in
-       ;; which case `this-command-keys' is also meaningless, making it
-       ;; impossible to disambiguate bindings for the same command.
-       (command (car suffixes))
-       ;; If COMMAND is nil, then failure to disambiguate likely means
-       ;; that there is a bug somewhere.
-       ((length> suffixes 1)
-        (error "BUG: Cannot unambiguously determine suffix object"))
-       ;; It is legimate to use this function as a predicate of sorts.
-       ;; `transient--pre-command' and `transient-help' are examples.
-       (t nil))))
-   ((and-let* ((obj (transient--suffix-prototype (or command this-command)))
-               (obj (clone obj)))
-      (progn
-        (transient-init-scope obj)
-        (transient-init-value obj)
-        obj)))))
+  (cond*
+    (transient--pending-suffix)
+    (transient--current-suffix)
+    ((or transient--prefix
+         transient-current-prefix)
+     (let ((suffixes
+            (cl-remove-if-not
+             (lambda (obj)
+               (eq (oref obj command)
+                   (or command
+                       (if (eq this-command 'transient-set-level)
+                           ;; This is how it can look up for which
+                           ;; command it is setting the level.
+                           this-original-command
+                         this-command))))
+             (or transient--suffixes
+                 transient-current-suffixes))))
+       (cond
+        ((length= suffixes 1)
+         (car suffixes))
+        ((cl-find-if (lambda (obj)
+                       (equal (listify-key-sequence (kbd (oref obj key)))
+                              (listify-key-sequence (this-command-keys))))
+                     suffixes))
+        ;; COMMAND is only provided if `this-command' is meaningless, in
+        ;; which case `this-command-keys' is also meaningless, making it
+        ;; impossible to disambiguate bindings for the same command.
+        (command (car suffixes))
+        ;; If COMMAND is nil, then failure to disambiguate likely means
+        ;; that there is a bug somewhere.
+        ((length> suffixes 1)
+         (error "BUG: Cannot unambiguously determine suffix object"))
+        ;; It is legimate to use this function as a predicate of sorts.
+        ;; `transient--pre-command' and `transient-help' are examples.
+        (t nil))))
+    ((bind-and* (obj (transient--suffix-prototype (or command this-command)))
+                (obj (clone obj)))
+     (transient-init-scope obj)
+     (transient-init-value obj)
+     obj)))
 
 (defun transient--suffix-prototype (command)
   (or (get command 'transient--suffix)
@@ -1997,25 +1985,22 @@ to `transient-predicate-map'."
   "<next>"  #'transient-scroll-up
   "<prior>" #'transient-scroll-down)
 
-(defvar transient-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map transient-base-map)
-    (keymap-set map "C-u"   #'universal-argument)
-    (keymap-set map "C--"   #'negative-argument)
-    (keymap-set map "C-t"   #'transient-show)
-    (keymap-set map "?"     #'transient-help)
-    (keymap-set map "C-h"   #'transient-help)
-    ;; Next two have additional bindings in transient-common-commands.
-    (keymap-set map "C-M-p" #'transient-history-prev)
-    (keymap-set map "C-M-n" #'transient-history-next)
-    (when (fboundp 'other-frame-prefix) ;Emacs >= 28.1
-      (keymap-set map "C-x 5 5" 'other-frame-prefix)
-      (keymap-set map "C-x 4 4" 'other-window-prefix))
-    map)
-  "Top-level keymap used by all transients.
+(defvar-keymap transient-map
+  :doc "Top-level keymap used by all transients.
 
 If you add a new command here, then you must also add a binding
-to `transient-predicate-map'.  See also `transient-base-map'.")
+to `transient-predicate-map'.  See also `transient-base-map'."
+  :parent transient-base-map
+  "C-u"     #'universal-argument
+  "C--"     #'negative-argument
+  "C-t"     #'transient-show
+  "?"       #'transient-help
+  "C-h"     #'transient-help
+  "C-x 5 5" #'other-frame-prefix
+  "C-x 4 4" #'other-window-prefix
+  ;; These have additional bindings in transient-common-commands.
+  "C-M-p"   #'transient-history-prev
+  "C-M-n"   #'transient-history-next)
 
 (defvar-keymap transient-edit-map
   :doc "Keymap that is active while a transient in is in \"edit mode\"."
@@ -2449,16 +2434,14 @@ value.  Otherwise return CHILDREN as is.")
                          (transient--get-children 'transient-common-commands))))))
 
 (defun transient--flatten-suffixes (layout)
-  (cl-labels ((s (def)
-                (cond
-                 ((stringp def) nil)
-                 ((cl-typep def 'transient-information) nil)
-                 ((listp def) (mapcan #'s def))
-                 ((cl-typep def 'transient-group)
-                  (mapcan #'s (oref def suffixes)))
-                 ((cl-typep def 'transient-suffix)
-                  (list def)))))
-    (mapcan #'s layout)))
+  (named-let flatten ((def layout))
+    (cond ((stringp def) nil)
+          ((cl-typep def 'transient-information) nil)
+          ((listp def) (mapcan #'flatten def))
+          ((cl-typep def 'transient-group)
+           (mapcan #'flatten (oref def suffixes)))
+          ((cl-typep def 'transient-suffix)
+           (list def)))))
 
 (defun transient--init-child (levels spec parent)
   (cl-etypecase spec
@@ -3825,20 +3808,22 @@ command-line option) or \": \".
 
 Finally fall through to using \"(BUG: no prompt): \" as the
 prompt."
-  (if-let* ((prompt (oref obj prompt)))
-      (let ((prompt (if (functionp prompt)
-                        (funcall prompt obj)
-                      prompt)))
-        (if (stringp prompt)
-            prompt
-          "[BUG: invalid prompt]: "))
-    (if-let* ((name (or (and (slot-boundp obj 'argument) (oref obj argument))
-                        (and (slot-boundp obj 'variable) (oref obj variable)))))
-        (if (and (stringp name)
-                 (string-suffix-p "=" name))
-            name
-          (format "%s: " name))
-      "[BUG: no prompt]: ")))
+  (cond*
+    ((bind-and* (prompt (oref obj prompt)))
+     (let ((prompt (if (functionp prompt)
+                       (funcall prompt obj)
+                     prompt)))
+       (if (stringp prompt)
+           prompt
+         "[BUG: invalid prompt]: ")))
+    ((bind-and*
+      (name (or (and (slot-boundp obj 'argument) (oref obj argument))
+                (and (slot-boundp obj 'variable) (oref obj variable)))))
+     (if (and (stringp name)
+              (string-suffix-p "=" name))
+         name
+       (format "%s: " name)))
+    ("[BUG: no prompt]: ")))
 
 ;;;; Set
 
@@ -4415,8 +4400,7 @@ have a history of their own.")
              (height (cond ((not window-system) nil)
                            ((natnump format) format)
                            ((eq format 'line) 1)))
-             (face `(,@(and (>= emacs-major-version 27) '(:extend t))
-                     :background ,(transient--prefix-color))))
+             (face `(:background ,(transient--prefix-color) :extend t)))
     (concat (propertize "__" 'face face 'display `(space :height (,height)))
             (propertize "\n" 'face face 'line-height t))))
 
@@ -4699,9 +4683,9 @@ apply the face `transient-unreachable' to the complete string."
         (when-let* ((face (transient--get-face obj 'face)))
           (setq desc (transient--add-face desc face t)))
       (setq desc (propertize "(BUG: no description)" 'face 'error)))
-    (when (if transient--all-levels-p
-              (> (oref obj level) transient--default-prefix-level)
-            (and transient-highlight-higher-levels
+    (when (cond (transient--all-levels-p
+                 (> (oref obj level) transient--default-prefix-level))
+                (transient-highlight-higher-levels
                  (> (max (oref obj level) transient--max-group-level)
                     transient--default-prefix-level)))
       (setq desc (transient--add-face desc 'transient-higher-level)))
@@ -4887,28 +4871,28 @@ if non-nil, else show the `man-page' if non-nil, else use
 Also used to dispatch showing documentation for the current
 prefix.  If the suffix is a sub-prefix, then also call the
 prefix method."
-  (cond
-   ((eq this-command 'transient-help)
-    (transient-show-help transient--prefix))
-   ((let ((prefix (get (oref obj command)
-                       'transient--prefix)))
-      (and prefix (not (eq (oref transient--prefix command) this-command))
-           (prog1 t (transient-show-help prefix)))))
-   ((if-let* ((show-help (oref obj show-help)))
-        (funcall show-help obj)
-      (transient--describe-function this-command)))))
+  (cond*
+    ((eq this-command 'transient-help)
+     (transient-show-help transient--prefix))
+    ((bind-and* (prefix (get (oref obj command) 'transient--prefix))
+                (n/a (not (eq (oref transient--prefix command) this-command))))
+     (transient-show-help prefix))
+    ((bind-and* (show-help (oref obj show-help)))
+     (funcall show-help obj))
+    ((transient--describe-function this-command))))
 
 (cl-defmethod transient-show-help ((obj transient-infix))
   "Call `show-help' if non-nil, else show the `man-page'
 if non-nil, else use `describe-function'.  When showing the
 manpage, then try to jump to the correct location."
-  (if-let* ((show-help (oref obj show-help)))
-      (funcall show-help obj)
-    (if-let* ((man-page (oref transient--prefix man-page))
-              (argument (and (slot-boundp obj 'argument)
-                             (oref obj argument))))
-        (transient--show-manpage man-page argument)
-      (transient--describe-function this-command))))
+  (cond*
+    ((bind-and* (show-help (oref obj show-help)))
+     (funcall show-help obj))
+    ((bind-and* (man-page (oref transient--prefix man-page))
+                (argument (and (slot-boundp obj 'argument)
+                               (oref obj argument))))
+     (transient--show-manpage man-page argument))
+    ((transient--describe-function this-command))))
 
 ;; `cl-generic-generalizers' doesn't support `command' et al.
 (cl-defmethod transient-show-help (cmd)
@@ -5159,6 +5143,7 @@ See `forward-button' for information about N."
 
 (defvar-keymap transient--isearch-mode-map
   :parent isearch-mode-map
+  "<t>"                      #'transient-isearch-exit
   "<remap> <isearch-exit>"   #'transient-isearch-exit
   "<remap> <isearch-cancel>" #'transient-isearch-cancel
   "<remap> <isearch-abort>"  #'transient-isearch-abort)

@@ -358,6 +358,10 @@ if you want to upgrade a package, you can use the @kbd{M-x
 package-upgrade} command, and if you want to upgrade all the packages,
 you can use the @kbd{M-x package-upgrade-all} command.
 
+  Note that @code{package-install} will not suggest to install packages
+that are already installed.  Similarly, @code{package-upgrade} will only
+suggest to upgrade packages for which a newer version is available.
+
 @vindex package-install-upgrade-built-in
   By default, @code{package-install} doesn't consider built-in
 packages for which new versions are available from the archives.  (A

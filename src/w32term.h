@@ -715,6 +715,7 @@ do { \
 #define WM_EMACS_DRAGOVER              (WM_EMACS_START + 27)
 #define WM_EMACS_DROP                  (WM_EMACS_START + 28)
 #define WM_EMACS_END                   (WM_EMACS_START + 29)
+#define WM_EMACS_SET_TOOLKIT_THEME     (WM_EMACS_START + 30)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)

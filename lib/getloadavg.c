@@ -623,11 +623,11 @@ getloadavg (double loadavg[], int nelem)
   struct proc_summary proc_sum_data;
   struct stat_descr proc_info;
   double load;
-  register unsigned int i, j;
+  register unsigned int j;
 
   if (cpus == 0)
     {
-      register unsigned int c, i;
+      register unsigned int c;
       struct cpu_config conf;
       struct stat_descr desc;
 
@@ -641,7 +641,7 @@ getloadavg (double loadavg[], int nelem)
         return -1;
 
       c = 0;
-      for (i = 0; i < conf.config_maxclass; ++i)
+      for (unsigned int i = 0; i < conf.config_maxclass; ++i)
         {
           struct class_stats stats;
           memset (&stats, 0, sizeof stats);
@@ -672,7 +672,7 @@ getloadavg (double loadavg[], int nelem)
 
   load = proc_sum_data.ps_nrunnable;
   j = 0;
-  for (i = samples - 1; i > 0; --i)
+  for (unsigned int i = samples - 1; i > 0; --i)
     {
       load += proc_sum_data.ps_nrun[j];
       if (j++ == PS_NRUNSIZE)

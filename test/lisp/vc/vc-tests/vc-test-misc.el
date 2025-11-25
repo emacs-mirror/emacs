@@ -68,7 +68,7 @@
      (while (process-live-p proc)
        (when (input-pending-p)
          (discard-input))
-       (should-not success)
+       (should (memq success '(nil ignore)))
        (sit-for 0.05))
      (sit-for 0.05)))
 
@@ -131,7 +131,7 @@
                                              (if (eq system-type 'windows-nt)
                                                  "echo hello there & sleep 1"
                                                "echo hello there; sleep 0.2")))
-          success)
+          (success 'ignore))
       ;; Disable the default output, which further moves point.
       (set-process-sentinel proc #'ignore)
 
@@ -146,6 +146,8 @@
         (vc-test--exec-after-wait)
         (should (eq (point) opoint))))))
 
+(defvar vc-sentinel-movepoint)
+
 (ert-deftest vc-test-exec-after-5 ()
   "Test `vc-exec-after' with `vc-sentinel-movepoint' variable."
   (with-temp-buffer
@@ -153,7 +155,7 @@
                                              (if (eq system-type 'windows-nt)
                                                  "echo hello there & sleep 1"
                                                "echo hello there; sleep 0.2")))
-          success)
+          (success 'ignore))
       ;; Disable the default output, which further moves point.
       (set-process-sentinel proc #'ignore)
 
@@ -188,7 +190,7 @@
   (with-temp-buffer
     (let ((proc (vc-do-command '(t nil) 'async "sh" nil
                                "-c" "echo foo; echo >&2 bar"))
-          success)
+          (success 'ignore))
       (vc-test--exec-after-wait)
       (should (equal (buffer-string) "foo\n")))))
 
@@ -197,7 +199,7 @@
   (with-temp-buffer
     (let ((proc (vc-do-command t 'async "sh" nil
                                "-c" "echo foo; echo >&2 bar"))
-          success)
+          (success 'ignore))
       (vc-test--exec-after-wait)
       (goto-char (point-min))
       (should (save-excursion (re-search-forward "foo" nil t)))
@@ -208,7 +210,7 @@
   (with-temp-buffer
     (let ((proc (vc-do-command '(nil t) 'async "sh" nil
                                "-c" "echo foo; echo >&2 bar"))
-          success)
+          (success 'ignore))
       (vc-test--exec-after-wait)
       (should (bobp)))))
 

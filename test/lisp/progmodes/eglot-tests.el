@@ -1503,6 +1503,58 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
           (eglot--find-file-noselect "project/foolib.c")
         (should (eq (eglot-current-server) server))))))
 
+(defun eglot--semtok-faces () "Get semtok faces before point"
+  (get-text-property (1- (point)) 'eglot--semtok-faces))
+
+(defun eglot--semtok-wait (pos) "Wait for semtok faces to appear after POS"
+  (eglot--with-timeout
+      '(3 "Timeout waiting for semantic tokens")
+    (while (not (save-excursion
+                  (goto-char pos)
+                  (text-property-search-forward 'eglot--semtok-faces)))
+      (accept-process-output nil 0.1)
+      (font-lock-ensure))))
+
+(ert-deftest eglot-test-semtok-basic ()
+  "Test basic semantic tokens fontification."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("main.c" . "int main() { int x = 42; return x; }"))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/main.c")
+      (eglot--tests-connect)
+      (should (eglot-server-capable :semanticTokensProvider))
+      (should eglot-semantic-tokens-mode)
+      ;; Trigger initial fontification, then wait for semantic tokens
+      (font-lock-ensure)
+      (eglot--semtok-wait (point-min))
+      (goto-char (point-min))
+        (search-forward "main")
+        (should (memq 'eglot-semantic-function-face (eglot--semtok-faces)))
+        (search-forward "int x")
+        (should (memq 'eglot-semantic-variable-face (eglot--semtok-faces))))))
+
+(ert-deftest eglot-test-semtok-refontify ()
+  "Test semantic tokens refontification after edits."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("code.c" . "int foo() { return 0; }"))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/code.c")
+      (eglot--tests-connect)
+      (should eglot-semantic-tokens-mode)
+      (font-lock-ensure)
+      (eglot--semtok-wait (point-min))
+      (goto-char (point-max))
+      (save-excursion (insert "\nint bar() { int y = 10; return y; }"))
+      (font-lock-ensure)
+      (eglot--signal-textDocument/didChange) ; a bit unrealistic
+      (eglot--semtok-wait (point))
+      (search-forward "bar")
+      (should (memq 'eglot-semantic-function-face (eglot--semtok-faces)))
+      (search-forward "int y")
+      (should (memq 'eglot-semantic-variable-face (eglot--semtok-faces))))))
+
 (provide 'eglot-tests)
 
 ;; Local Variables:

@@ -49,6 +49,10 @@ if test "$XCONFIGURE" = "android"; then
     CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=32"
     enable_largefile=no
     enable_year2038=no])
+  # C23 cannot be enabled for Android builds on account of
+  # incompatibilities in many external dependencies (glib, librsvg,
+  # etc.) and system headers.
+  ac_cv_prog_cc_c23=no
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,

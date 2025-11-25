@@ -152,23 +152,27 @@ See the file generic-x.el for some examples of `define-generic-mode'."
   (declare (debug (sexp def-form def-form def-form form def-form
 			[&optional stringp] &rest [keywordp form]))
 	   (indent 1)
-           (doc-string 7))
+           (doc-string 7)
+           (autoload-macro expand))
 
   ;; Backward compatibility.
   (when (eq (car-safe mode) 'quote)
-    (setq mode (eval mode)))
+    (setq mode (eval mode t)))
 
   (let* ((name (symbol-name mode))
 	 (pretty-name (capitalize (replace-regexp-in-string
 				   "-mode\\'" "" name))))
 
     `(progn
-       ;; Add a new entry.
-       (add-to-list 'generic-mode-list ,name)
+       (progn
+         :autoload-end
 
-       ;; Add it to auto-mode-alist
-       (dolist (re ,auto-mode-list)
-	 (add-to-list 'auto-mode-alist (cons re ',mode)))
+         ;; Add a new entry.
+         (add-to-list 'generic-mode-list ,name)
+
+         ;; Add it to auto-mode-alist
+         (dolist (re ,auto-mode-list)
+	   (add-to-list 'auto-mode-alist (cons re ',mode))))
 
        (defun ,mode ()
 	 ,(or docstring
@@ -205,7 +209,7 @@ See the file generic-x.el for some examples of `define-generic-mode'."
     (setq font-lock-defaults '(generic-font-lock-keywords))
 
     ;; Call a list of functions
-    (mapc 'funcall function-list)
+    (mapc #'funcall function-list)
 
     (run-mode-hooks mode-hook)))
 

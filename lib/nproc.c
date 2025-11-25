@@ -89,10 +89,8 @@ num_processors_via_affinity_mask (void)
         /* glibc >= 2.6 has the CPU_COUNT macro.  */
         count = CPU_COUNT (&set);
 # else
-        size_t i;
-
         count = 0;
-        for (i = 0; i < CPU_SETSIZE; i++)
+        for (size_t i = 0; i < CPU_SETSIZE; i++)
           if (CPU_ISSET (i, &set))
             count++;
 # endif
@@ -112,9 +110,7 @@ num_processors_via_affinity_mask (void)
         if (pthread_getaffinity_np (pthread_self (), cpuset_size (set), set)
             == 0)
           {
-            cpuid_t i;
-
-            for (i = 0;; i++)
+            for (cpuid_t i = 0;; i++)
               {
                 int ret = cpuset_isset (i, set);
                 if (ret < 0)
@@ -180,10 +176,8 @@ num_processors_via_affinity_mask (void)
         /* glibc >= 2.6 has the CPU_COUNT macro.  */
         count = CPU_COUNT (&set);
 # else
-        size_t i;
-
         count = 0;
-        for (i = 0; i < CPU_SETSIZE; i++)
+        for (size_t i = 0; i < CPU_SETSIZE; i++)
           if (CPU_ISSET (i, &set))
             count++;
 # endif
@@ -202,9 +196,7 @@ num_processors_via_affinity_mask (void)
 
         if (sched_getaffinity_np (getpid (), cpuset_size (set), set) == 0)
           {
-            cpuid_t i;
-
-            for (i = 0;; i++)
+            for (cpuid_t i = 0;; i++)
               {
                 int ret = cpuset_isset (i, set);
                 if (ret < 0)

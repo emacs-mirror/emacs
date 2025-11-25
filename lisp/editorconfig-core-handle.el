@@ -166,10 +166,7 @@ If CONF is not found return nil."
             ;; nil when pattern not appeared yet, "" when pattern is empty ("[]")
             (pattern nil)
             ;; Alist of properties for current PATTERN
-            (props ())
-
-            ;; Current line num
-            (current-line-number 1))
+            (props ()))
         (while (not (eobp))
           (skip-chars-forward " \t\f")
           (cond
@@ -177,7 +174,7 @@ If CONF is not found return nil."
             nil)
 
            ;; Start of section
-           ((looking-at "\\[\\(.*\\)\\][ \t]*$")
+           ((looking-at "\\[\\(.*\\)\\][ \t]*\\(?:[#;].*\\)?$")
             (let ((newpattern (match-string 1)))
               (when pattern
                 (push (make-editorconfig-core-handle-section
@@ -187,25 +184,20 @@ If CONF is not found return nil."
               (setq props nil)
               (setq pattern newpattern)))
 
-           ((looking-at "\\([^=: \t]+\\)[ \t]*[=:][ \t]*\\(.*?\\)[ \t]*$")
-            (let ((key (downcase (match-string 1)))
+           ((looking-at "\\([^=: \n\t][^=:\n]*\\)[ \t]*[=:][ \t]*\\(.*?\\)[ \t]*$")
+            (let ((key (downcase (string-trim (match-string 1))))
                   (value (match-string 2)))
-              (when (and (< (length key) 51)
-                         (< (length value) 256))
-                (if pattern
-                    (when (< (length pattern) 4097) ;;FIXME: 4097?
-                      (push `(,key . ,value)
-                            props))
+              (if pattern
                   (push `(,key . ,value)
-                        top-props)))))
+                        props)
+                (push `(,key . ,value)
+                      top-props))))
 
            (t (error "Error while reading config file: %s:%d:\n    %s\n"
-                     conf current-line-number
+                     conf (line-number-at-pos)
                      (buffer-substring-no-properties (line-beginning-position)
                                                      (line-end-position)))))
-          (setq current-line-number (1+ current-line-number))
-          (goto-char (point-min))
-          (forward-line (1- current-line-number)))
+          (forward-line 1))
         (when pattern
           (push (make-editorconfig-core-handle-section
                  :name pattern

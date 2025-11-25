@@ -392,10 +392,10 @@ for which you can use '(category . tex-shell)'.
 +++
 *** New user option 'split-window-preferred-direction'.
 Users can now choose in which direction Emacs tries to split first:
-vertical or horizontal.  With this new setting, when the frame is in
-landscape shape for instance, Emacs could split horizontally before
-splitting vertically.  The default setting preserves Emacs historical
-behavior to try to split vertically first.
+vertically or horizontally.  The new default is to prefer to split
+horizontally if the frame is landscape and vertically if it is portrait.
+You can customize this option to 'vertical' to restore Emacs's old
+behavior of always preferring vertical splits.
 
 +++
 *** New argument INDIRECT for 'get-buffer-window-list'.
@@ -445,7 +445,7 @@ useful on tiling window managers where the initial frame size should be
 specified by external means.
 
 +++
-*** New option 'alter-fullscreen-frames'.
+*** New user option 'alter-fullscreen-frames'.
 This option is useful to maintain a consistent state when attempting to
 resize fullscreen frames.  It defaults to 'inhibit' on NS builds which
 means that a fullscreen frame would not change size.  It defaults to nil
@@ -455,8 +455,8 @@ keep the frame size unchanged.  The value t means to first reset the
 fullscreen status and then resize the frame.
 
 ---
-*** Frames can now be renamed to F<number> on text terminals.
-Unlike with other frame names, an attempt to rename to F<number> throws
+*** Frames can now be renamed to "F<number>" on text terminals.
+Unlike with other frame names, an attempt to rename to "F<number>" throws
 an error when a frame of that name already exists.
 
 ** Mode Line
@@ -857,6 +857,13 @@ you could already use 'C-u C-x C-n' to clear the goal column.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Editorconfig
+
+---
+*** 'editorconfig-apply' is declared obsolete.
+You can now use 'editorconfig-display-current-properties' without having
+to call 'editorconfig-apply'.
+
 ** Auth Source
 
 +++
@@ -1062,16 +1069,16 @@ rather than a language, and it is now possible to select a local parser
 at point to explore.
 
 +++
-*** Tree-sitter query predicate :equal, :match, and :pred are deprecated
-Use :eq?, :match?, :pred? instead.  The change is because newer
-tree-sitter library mandates query predicates to end with question mark.
-Emacs will transparently converts :equal, :match and :pred to :eq?,
-:match? and :pred?, respectively, so existing queries still work fine
-with latest tree-sitter library.  Predicate :equal is changed to :eq? to
-better follow tree-sitter’s convention.  Also, the :match?  predicates
-can now take the regexp as either the first or second argument, so it
-works with both tree-sitter convention (regexp arg second) and Emacs
-convention (regexp arg first).
+*** Tree-sitter query predicates ':equal', ':match', and ':pred' are deprecated.
+Use ':eq?', ':match?', and ':pred?' instead.  The change is because
+newer tree-sitter libraries mandate query predicates to end with a
+question mark.  Emacs will transparently convert ':equal', ':match', and
+':pred' to ':eq?', ':match?', and ':pred?', respectively, so existing
+queries still work fine with the latest tree-sitter library.  The
+predicate ':equal' is changed to ':eq?' to better follow tree-sitter’s
+convention.  Also, the ':match?' predicate can now take the regexp as
+either the first or second argument, so it works with both tree-sitter
+convention (regexp arg second) and Emacs convention (regexp arg first).
 
 ** Hideshow
 
@@ -1111,6 +1118,11 @@ This user option controls how 'hs-hide-block' and 'hs-toggle-hiding'
 should hide a block.  If set to 'after-bol', hide the innermost block to
 which the current line belongs.  If set to 'after-cursor', hide the block
 after cursor position.  By default this is set to 'after-bol'.
+
++++
+*** New user option 'hs-cycle-filter' for visibility-cycling with 'TAB'.
+This user option controls the positions on the headline of hideable blocks
+where the 'TAB' key cycles the blocks' visibility.
 
 +++
 *** The variable 'hs-special-modes-alist' is now obsolete.
@@ -1293,6 +1305,13 @@ When non-nil, buffer sizes are shown in human readable format.
 The prompts 'opstring' and 'active-opstring' can now either be strings
 or functions.  This is useful when your prompts can benefit from dynamic
 content.
+
+---
+*** New Ibuffer-dedicated faces.
+New faces 'ibuffer-marked', 'ibuffer-deletion', 'ibuffer-title', and
+'ibuffer-filter-group-name'.  By default they inherit from the
+general-purpose faces Ibuffer previously used, to preserve previous
+behavior.
 
 ** ElDoc
 
@@ -1989,11 +2008,15 @@ This can be used by external ELPA packages for performance optimizations
 in special cases.  For more information, see "(tramp) New operations" in
 the Tramp manual.
 
+** Isearch and Replace
+
+*** Typing 'd' during 'query-replace' shows the diff buffer with replacements.
+
 ** Diff
 
 ---
 *** 'diff-mode' now refrains from automatically refining big hunks.
-What is big is defined by the new 'diff-refine-threshold' variable.
+What is big is defined by the new 'diff-refine-threshold' user option.
 
 ---
 *** New command 'diff-kill-ring-save'.
@@ -2003,7 +2026,7 @@ to the original text.  If the selected range extends a hunk, the
 command attempts to look up and copy the text in between the hunks.
 
 +++
-*** New command 'diff-revert-and-kill-hunk' bound to 'C-c M-r'.
+*** New command 'diff-revert-and-kill-hunk' bound to 'u' and 'C-c M-u'.
 This command reverts the hunk at point (i.e., applies the reverse of the
 hunk), and then removes the hunk from the diffs.
 This is useful to undo or revert changes, committed and uncommitted, when
@@ -2022,19 +2045,22 @@ useful to prepare a "*vc-diff*" buffer for committing a single hunk.
 When the region is active, it deletes all hunks that the region does not
 overlap.
 
-*** 'diff-apply-hunk' now supports creating and deleting files.
-
 ---
 *** 'vc-version-diff' and 'vc-root-version-diff' changed default for REV1.
 They suggest the previous revision as the default for REV1, not the last
 one as before.  This makes them different from 'vc-diff' and
 'vc-root-diff' when those are called without a prefix argument.
 
+*** 'diff-apply-hunk' now supports creating and deleting files.
+
 +++
-*** 'diff-apply-buffer' now considers the region and can reverse-apply.
-If the region is active, this command now applies all hunks that the
-region overlaps; otherwise, it applies all hunks.
-With a prefix argument, it now reverse-applies the hunks.
+*** 'diff-apply-hunk' and 'diff-apply-buffer' now consider the region.
+If the region is active, these commands now apply all hunks that the
+region overlaps.  Otherwise, they have their existing behavior.
+
++++
+*** 'diff-apply-buffer' can reverse-apply.
+With a prefix argument, it now reverse-applies hunks.
 This matches the existing prefix argument to 'diff-apply-hunk'.
 
 ** Ediff
@@ -2261,6 +2287,11 @@ string instead of preprending it and 'tmm-mid-prompt' to said entry.
 
 ** Foldout
 
+*** Improved behavior of 'foldout-exit-fold' with negative prefix argument.
+When 'foldout-exit-fold' is called with a negative argument (so that the
+exited fold remains visible), the position of point and window view are
+preserved.
+
 ---
 *** New command 'foldout-widen-to-current-fold'.
 This command widens the view to the current fold level when in a fold,
@@ -2358,11 +2389,19 @@ the contents of those files.
 
 +++
 *** New commands to cherry-pick and revert revisions.
-The commands 'vc-revision-cherry-pick' and 'vc-revision-revert' let you
-copy revisions between branches, and revert revisions.
+The commands 'vc-cherry-pick', 'vc-revert-or-delete-revision',
+'vc-revert-revision' and 'vc-delete-revision' let you copy revisions
+between branches, revert and delete revisions.
 From Log View buffers, you can use 'C' to cherry-pick the revision at
-point or all marked revisions, and 'R' to revert the revision at point
-or all marked revisions.
+point or all marked revisions, and 'R' to undo the revision at point or
+all marked revisions.
+
++++
+*** New commands to rewind branches.
+In Log View mode, 'x' deletes revisions newer than the revision at point
+from the history of the current branch, though without undoing the
+changes made by those revisions to the working tree.  'X' is similar
+except that it does remove the changes from the working tree.
 
 *** New command 'log-edit-done-strip-cvs-lines'.
 This command strips all lines beginning with "CVS:" from the buffer.
@@ -2536,6 +2575,9 @@ The new command 'log-view-copy-revision-as-kill', bound to 'w' in Log
 View mode, copies to the kill ring the ID of the revision at point in
 the log entry.  If there are marked revisions, it copies the IDs of
 those, instead.
+
+---
+*** New command alias 'vc-restore' for 'vc-revert'.
 
 ** Package
 
@@ -2732,7 +2774,7 @@ New faces have been added to 'icomplete-vertical-mode':
 Useful to delay initialization to the end of the file, so it can use
 functions defined later than the variable, as is common for minor modes.
 'define-globalized-minor-mode' now automatically uses it if the
-init-value is non-nil.
+':init-value' is non-nil.
 
 ---
 *** New major mode 'Customize-dirlocals-mode'.
@@ -2747,6 +2789,16 @@ This function pulses a specified list of faces.  The pulse duration is
 determined by the new user option 'pulse-face-duration'.
 
 ** Miscellaneous
+
+---
+*** The first client frame now shows warnings from daemon startup.
+When there are warnings emitted during Emacs startup, usually due to
+problems in your initialization file, these are shown in a "*Warnings*"
+buffer.  Until now such warnings were not made visible in the case that
+Emacs was started as a daemon.  Now the first frame after daemon startup
+will show the "*Warnings*" buffer.  So for example, starting Emacs with
+a command like 'emacsclient -a"" -c' will now show "*Warnings*" just
+like a plain invocation of 'emacs' would.
 
 ---
 *** 'tooltip-mode' now shows tooltips after delay on TTY frames.
@@ -2883,8 +2935,8 @@ The tabulated listings produced by 'flymake-show-buffer-diagnostics' and
 widths based on content, optimizing display space and readability.
 
 *** New value 'auto' of user option 'flymake-indicator-type'.
-This value set by default tries to use fringes if possible,
-otherwise falls back to margins.
+This value (set by default) tries to use fringes if possible, otherwise
+falls back to margins.
 
 *** New user option 'elisp-flymake-byte-compile-executable'.
 This allows customizing the Emacs executable used for Flymake byte
@@ -3008,90 +3060,45 @@ recognizes the new functions "all" and "any".
 See https://perldoc.perl.org/5.42.0/perldelta for details.
 
 ** Zone
+
 Zone can scramble multiple windows across multiple frames; it may also
 reorganize frames to be a single window.  As before, when a key or mouse
 event occurs, all of the frames and windows are restored to their
-original state.  This is controlled by three new customization flags
-which control the use of frames and windows beyond the currently active
-ones.  It is identifies suitable buffers for zoning out so that
-potentially important buffer contents are not exposed.
+original state.  This is controlled by three new user options which
+control the use of frames and windows beyond the currently active ones.
+It identifies suitable buffers for zoning out so that potentially
+important buffer contents are not exposed.
 
-When a zone program encounters an error, it will apologize for a minute
-and then start a new round of zoning.  Previously, it just kept
-apologizing.  Finally, zone does not pollute the *Messages* buffer with
-extraneous messages.
-
-**** New function 'zone-add-program'
-This function accepts a symbol, whose name starts with "zone-pgm-", that
-runs a zone program when 'zone' is invoked.  It adds the program to the
-'zone-programs' vector if it is not already present.''
-
-**** New functipon 'zone-remove-program'
-This function removes a program from the 'zone-programs' vector.  If the
-parameter is a symbol, and the symbol is present in the vector, it is
-removed.  If the parameter is a string, it is a regular expression that
-will remove any programs whose name matches the parameter pattern.
-
-*** Multi-window and -frame customization options
-Prior to this update, zone would only (safely) scramble the contents of
-the current window on the current frame.  Now, with the use of these
-three options, it is possible to scramble to contents of all windows
-across all frames.  It is also possible to make frames single window
-displays while zoning.  But when zoning is interrupted by a key- or
-mouse-press, the original window layout across all frames is restored.
-
-**** New user option 'zone-delete-other-windows'
+*** New user option 'zone-delete-other-windows'.
 When non-nil, the frame is made into a single full frame window to hold
-the zoned buffer.  If all frames were to be used (`zone-all-frames' set
+the zoned buffer.  If all frames were to be used ('zone-all-frames' set
 to non-nil), then all frames are converted to single window frames.
 
-**** New user option 'zone-all-frames'
-When non-nil, zone will appear on all visible frames.  While the buffer
+*** New user option 'zone-all-frames'.
+When non-nil, Zone will appear on all visible frames.  While the buffer
 scrambling will appear on each frame, it will be the same buffer so they
 will all behave the same way.
 
-**** New user option 'zone-all-windows-in-frame'
+*** New user option 'zone-all-windows-in-frame'.
 When non-nil, the zoned buffer will be mapped to all of the windows
 present on the frame.  If the option is nil, then only the selected
 window will show the zoned buffer.  Note, however, that each window
 holding the zoned buffer is showing the same zoned buffer.
 
-*** Selecting source buffers suitable for zoning
-When the idle timer, or the user, invokes `zone', the current buffer may
-not be appropriate as the source of the zone buffer.  For example,
-encrypted buffers, empty buffers, or specialized buffers like
-`*Messages*' probably shouldn't have their content splashed across zoned
-windows.  So the selection of a suitable buffer for zoning can be controlled with a variable that identifies buffers with concerns.
-
-**** New variable 'zone-ignored-buffers'
-The variable is a list of criteria for excluding a buffer from
+*** New variable 'zone-ignored-buffers'.
+This variable is a list of criteria for excluding a buffer from
 consideration as the source of zoning.  The list has entries that are
 tested against each buffer until a suitable one is found.  The criteria
-can be a symbol that ends in `-mode' which excludes buffers that are in
+can be a symbol that ends in '-mode' which excludes buffers that are in
 a mode derived from the specified mode.  It may also be a function-bound
 symbol or lambda expression that is called with a buffer that returns a
-non-nil value if it should not be the zone source.  Finally, an entry
-can also be a regular expression string that must not match the buffer's
-name.
+non-nil value if it should not be the Zone source.  Finally, an entry
+can also be a regular expression that must not match the buffer's name.
 
-Initially, the list excludes buffers in a special-mode, in an
-image-mode, contains an encrypted file, is an empty buffer, is a hidden
-buffer, or is the `*scratch*' buffer.  If it cannot locate any
-acceptable buffers, it will begrudgingly use the scratch buffer.
-
-*** Zone hooks
-Hooks have been added to notify programs of the start and end of zone activity.  For example, you may want to credit time spent zoning as a Pomodoro break.
-
-**** New hook 'zone-start-hook'
-This hook contains functions that are invoked when zoning is about to begin.
-
-**** New hook 'zone-finish-hook'
-This hook contains functions that are invoked when zoning has finished.
-
-**** New variable 'zone-time-elapsed-while-zoning'
-This is the elapsed time between the start and finish hooks.  So this
-represents how long Emacs was zoning.  Zone calculates this so that the
-finish hook can communicate this to other modes if necessary.
+Initially, the list excludes buffers in 'special-mode', in 'image-mode',
+contains an encrypted file, is an empty buffer, is a hidden buffer, or
+is the "*scratch*" buffer.  If it cannot locate any acceptable buffers,
+it will begrudgingly use the scratch buffer.
 
 
 * New Modes and Packages in Emacs 31.1
@@ -3129,6 +3136,16 @@ and blocks Emacs, or does not provide ways to limit how often it runs.
 
 
 * Incompatible Lisp Changes in Emacs 31.1
+
+** Files loaded from '-x' and '--script' now use lexical binding.
+If you don't have time to adapt your script's code to the lexical
+binding dialect (see "(elisp) Converting to Lexical Binding"), you can
+wrap your code in:
+
+    #!/usr/bin/env -S emacs --batch --script
+    (eval
+     '(progn
+        YOUR CODE HERE))
 
 +++
 ** String mutation has been restricted further.
@@ -3549,11 +3566,20 @@ This is an abbreviation for using the name of the keymap as the prefix
 command name.  E.g., '(defvar-keymap foo-map :prefix t)' is equivalent
 to '(defvar-keymap foo-map :prefix 'foo-map)'.
 
+** Toolkit
+
 ---
-** Emacs PGTK toolkit respects dark and light modes.
+*** The Emacs PGTK toolkit respects dark and light modes.
 Emacs when built with the pure GTK toolkit now respects desktop
 dark and light modes for drawing a GTK toolbar and widgets,
 automatically toggling between them.
+
+---
+*** 'toolkit-theme-set-functions' called when the toolkit theme is set for Emacs.
+When the theme is set on PGTK, Android, or MS-Windows systems,
+'toolkit-theme-set-functions' is called.  The result is stored in the
+variable 'toolkit-theme' as either symbol 'dark' or 'light', but may be
+extended to encompass other toolkit-specific symbols in the future.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems

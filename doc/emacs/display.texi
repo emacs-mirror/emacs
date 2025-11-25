@@ -1234,18 +1234,23 @@ occur, such as Lisp and Prolog.  In such languages, syntactic analysis
 alone misses a lot of important information that coders need to reason
 about their programs.
 
-@vindex elisp-fontify-semantically
-Emacs implements semantic highlighting for Emacs Lisp as an optional
-feature of @code{emacs-lisp-mode} (@pxref{Executing Lisp}).  To enable
-it, customize the option @code{elisp-fontify-semantically} to a
-non-@code{nil} value.
+Some language servers provide semantic highlighting information, which
+Emacs can leverage via its LSP client, Eglot.  @xref{Eglot Features,,,
+eglot, Eglot: The Emacs LSP Client}.
 
-When this option is enabled, @code{emacs-lisp-mode} analyzes your code
-and highlights symbols according to their semantic roles, as part of the
-mode's usual Font Lock highlighting (@pxref{Font Lock}).  It doesn't
-affect the highlighting of strings, comments and other syntactic
-elements such as brackets; @code{elisp-fontify-semantically} only
-affects highlighting of symbols.
+@vindex elisp-fontify-semantically
+Additionally, Emacs implements semantic highlighting for Emacs Lisp as
+an optional feature of @code{emacs-lisp-mode} (@pxref{Executing Lisp}).
+To enable it, customize the option @code{elisp-fontify-semantically} to
+a non-@code{nil} value.  The rest of this subsection describes the use
+of this Emacs Lisp-specific semantic highlighting support.
+
+When @code{elisp-fontify-semantically} is enabled,
+@code{emacs-lisp-mode} analyzes your code and highlights symbols
+according to their semantic roles, as part of the mode's usual Font Lock
+highlighting (@pxref{Font Lock}).  It doesn't affect the highlighting of
+strings, comments and other syntactic elements such as brackets;
+@code{elisp-fontify-semantically} only affects highlighting of symbols.
 
 @cindex symbol role, in semantic analysis
 The semantic analysis assigns to each symbol a @dfn{symbol role}, such

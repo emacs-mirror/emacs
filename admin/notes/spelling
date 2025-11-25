@@ -21,3 +21,6 @@ Re "behavior" vs "behaviour", etc.
   In docstrings and the Texinfo manuals, say just "Lisp" whenever the
   context renders it unambiguous that you mean "Emacs Lisp".
   If you must abbreviate "Emacs Lisp", capitalize it thus: "Elisp".
+
+- To indicate possession, write Emacs's rather than Emacs'.
+  https://lists.gnu.org/r/emacs-devel/2012-02/msg00649.html

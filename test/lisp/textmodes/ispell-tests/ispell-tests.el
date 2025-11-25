@@ -393,7 +393,8 @@ xml comment syntax, which has an opening and a closing marker."
       (ispell-add-per-file-word-list testword)
       (should (equal (buffer-string)
                      (concat "
-<!-- " ispell-words-keyword " " testword "
+<!--
+" ispell-words-keyword " " testword "
 -->
 "))))))
 
@@ -421,7 +422,6 @@ Uses default
 xml comment syntax, which has an opening and a closing marker.
 This test fails, because ispell.el does not work well with
 nXML comments."
-  :expected-result :failed
   (ispell-tests--letopt ((ispell-program-name "ispell"))
     (with-temp-buffer
       (let* ((testword (format "%s" (random)))
@@ -434,11 +434,9 @@ nXML comments."
         (ispell-add-per-file-word-list testword)
         (should (equal (buffer-string)
                        (concat "
-<!-- " ispell-words-keyword (make-string fill-column ?a) "
--->
+<!-- " ispell-words-keyword (make-string fill-column ?a)
 "
-"
-<!-- " ispell-words-keyword " " testword "
+" ispell-words-keyword " " testword "
 -->
 ")))))))
 

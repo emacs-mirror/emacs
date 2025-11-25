@@ -1053,11 +1053,11 @@ other commands receive global bindings where they had none before."
 
 (defvar vc-menu-map
   (let ((map (make-sparse-keymap "Version Control")))
-    (define-key map [vc-revision-revert]
-                '(menu-item "Revert Revision" vc-revision-revert
+    (define-key map [vc-revert-or-delete-revision]
+                '(menu-item "Revert Revision" vc-revert-or-delete-revision
                             :help "Undo the effects of a revision"))
-    (define-key map [vc-revision-cherry-pick]
-                '(menu-item "Cherry-Pick Revision" vc-revision-cherry-pick
+    (define-key map [vc-cherry-pick]
+                '(menu-item "Cherry-Pick Revision" vc-cherry-pick
                             :help "Copy the changes from a single revision to this branch"))
     (define-key map [separator1] menu-bar-separator)
     (define-key map [vc-retrieve-tag]

@@ -46,7 +46,7 @@ GNULIB_MODULES='
   nanosleep nproc nstrftime-limited
   pathmax pipe2 pselect pthread_sigmask
   qcopy-acl readlink readlinkat realloc-posix regex
-  sig2str sigdescr_np socklen stat-time std-gnu11
+  sig2str sigdescr_np socklen stat-time std-gnu23
   stdc_bit_width stdc_count_ones stdc_trailing_zeros
   stdckdint-h stddef-h stdio-h stdio-windows
   stpcpy stringeq strnlen strtoimax symlink sys_stat-h sys_time-h
@@ -61,7 +61,7 @@ AVOIDED_MODULES='
   localcharset locale-h localename-unsafe-limited lock
   mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h raise
-  save-cwd select setenv sigprocmask stat stdarg-h
+  save-cwd select setenv sigprocmask stat std-gnu11 stdarg-h
   threadlib tzset unsetenv utime utime-h
   wchar-h wcrtomb wctype wctype-h
 '

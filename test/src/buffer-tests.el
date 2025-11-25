@@ -8507,7 +8507,10 @@ Finally, kill the buffer and its temporary file."
 
       ;; Clean up.
       (when (file-exists-p buffer-auto-save-file-name)
-        (delete-file buffer-auto-save-file-name))))
+        (delete-file buffer-auto-save-file-name))
+      ;; Don't leave modified and unsaved files, to avoid confirmation
+      ;; prompts when exiting Emacs in interactive sessions.
+      (restore-buffer-modified-p nil)))
 
   (ert-with-temp-file file
     (setq file (file-truename file))
@@ -8518,7 +8521,10 @@ Finally, kill the buffer and its temporary file."
       (should (buffer-modified-p))
       (should-not (eq (buffer-modified-p) 'autosaved))
       (restore-buffer-modified-p 'autosaved)
-      (should (eq (buffer-modified-p) 'autosaved)))))
+      (should (eq (buffer-modified-p) 'autosaved))
+      ;; Don't leave modified and unsaved files, to avoid confirmation
+      ;; prompts when exiting Emacs in interactive sessions.
+      (restore-buffer-modified-p nil))))
 
 (ert-deftest test-buffer-chars-modified-ticks ()
   "Test `buffer-chars-modified-tick'."
@@ -8532,7 +8538,11 @@ Finally, kill the buffer and its temporary file."
           (write-region text nil f2 nil 'silent)
           (insert-file-contents f2)
           (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
-          (should (> (buffer-chars-modified-tick) 1)))))))
+          (should (> (buffer-chars-modified-tick) 1))
+          ;; Don't leave modified and unsaved files, to avoid
+          ;; confirmation prompts when exiting Emacs in interactive
+          ;; sessions.
+          (restore-buffer-modified-p nil))))))
 
 (ert-deftest test-labeled-narrowing ()
   "Test `with-restriction' and `without-restriction'."

@@ -495,6 +495,15 @@ _GL_WARN_ON_USE (openat2, "openat2 is not portable - "
 # define AT_NO_AUTOMOUNT 0
 #endif
 
+/* errno when openat+O_NOFOLLOW fails because the file is a symlink.  */
+#if defined __FreeBSD__ || defined __FreeBSD_kernel__ || defined __DragonFly__
+# define _GL_OPENAT_ESYMLINK EMLINK
+#elif defined __NetBSD__
+# define _GL_OPENAT_ESYMLINK EFTYPE
+#else
+# define _GL_OPENAT_ESYMLINK ELOOP
+#endif
+
 #endif /* _@GUARD_PREFIX@_FCNTL_H */
 #endif /* _@GUARD_PREFIX@_FCNTL_H */
 #endif

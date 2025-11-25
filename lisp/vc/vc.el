@@ -2166,22 +2166,121 @@ have changed; continue with old fileset?" (current-buffer))))
 (declare-function diff-buffer-file-names "diff-mode")
 (declare-function diff-reverse-direction "diff-mode")
 
-(defun vc--pick-or-revert (rev reverse comment initial-contents backend)
+(defun vc--pick-or-revert
+    (rev reverse interactive delete comment initial-contents backend)
   "Copy a single revision REV to branch checked out in this working tree.
-REVERSE means to undo the effects of REV, instead.
+
+REVERSE non-nil means to undo the effects of REV, instead.
+This is affected by whether the VCS is centralized or distributed and
+the INTERACTIVE and DELETE arguments, as follows:
+- For a centralized VCS for which Emacs knows how to do true undos, then
+  unless DELETE is the special value `never', do a true undo of REV.
+  This function supports creating new commits undoing the effects of REV
+  for even a centralized VCS with true undos by passing `never' as
+  DELETE (as `vc-revert-revision' does).
+  For centralized VCS, INTERACTIVE is ignored.
+- For a distributed VCS, when INTERACTIVE is non-nil, DELETE is nil, and
+  REV has not yet been pushed, offer to delete REV entirely instead of
+  creating a new commit undoing its EFFECTS.
+  If INTERACTIVE is `no-confirm', don't prompt to confirm the deletion.
+- For a distributed VCS, when DELETE is non-nil (but not `never'), only
+  consider deleting REV, never create a new commit, but subject to
+  `vc-allow-rewriting-published-history'.
+  In this case INTERACTIVE is ignored.
+(This complex calling convention makes for simple usage of this
+workhorse function from the frontend VC commands that provide access to
+all this functionality.)
+
 COMMENT is a comment string; if omitted, a buffer is popped up to accept
 a comment.  If INITIAL-CONTENTS is non-nil, then COMMENT is used as the
 initial contents of the log entry buffer.  If COMMENT is t then use
 BACKEND's default cherry-pick comment for REV without prompting.
-BACKEND is the VC backend to use."
-  (let* ((backend (or backend (vc-responsible-backend default-directory)))
-         ;; `vc-*-prepare-patch' will always give us a patch with file
-         ;; names relative to the VC root, so switch to there now.
-         ;; In particular this is needed for `diff-buffer-file-names' to
-         ;; work properly.
-         (default-directory (vc-call-backend backend 'root default-directory))
-         (patch (vc-call-backend backend 'prepare-patch rev))
-         files whole-patch-string diff-patch-string)
+BACKEND is the VC backend to use.
+
+Return `deleted' if we actually undid/deleted a commit.
+Any other return value means we called `vc-start-logentry'."
+  (cond*
+   ((bind* (backend (or backend
+                        (vc-responsible-backend default-directory)))))
+   ((and reverse (not (eq delete 'never))
+         (null (vc-find-backend-function backend
+                                         'revision-published-p))
+         (vc-find-backend-function backend 'delete-revision))
+    ;; Centralized VCS implementing `delete-revision'.
+    (vc-call-backend backend 'delete-revision rev)
+    'deleted)
+   ((and reverse interactive (not delete)
+         ;; Distributed VCS for which we can do deletions.
+         (vc-find-backend-function backend 'revision-published-p)
+         (vc-find-backend-function backend 'delete-revision)
+         ;; REV is safe to delete.
+         (not (vc-call-backend backend 'revision-published-p rev)))
+    ;; Require confirmation, because the commit is unpublished, and so
+    ;; this might be the only copy of the work in REV.  Don't fall back
+    ;; to making a new commit undoing REV's changes because we don't
+    ;; know the user wants that just because they said "no" to our
+    ;; question here, and we want to avoid two y/n prompts in a row,
+    ;; which is probably a less good UI than this.
+    (cond ((or (eq interactive 'no-confirm)
+               (yes-or-no-p
+                (format "Permanently delete %s from the revision history?"
+                        rev)))
+           (vc-call-backend backend 'delete-revision rev)
+           'deleted)
+          ((derived-mode-p 'log-view-mode)
+           (user-error (substitute-command-keys "\
+Use \\[log-view-revert-revisions] to create new commits \
+undoing changes made by revision(s)")))
+          (t
+           (user-error (substitute-command-keys "\
+Use \\[vc-revert-revision] to create a new commit undoing %s's changes")
+                       rev))))
+   ((and reverse delete (not (eq delete 'never))
+         ;; Distributed VCS for which we can do deletions.
+         (vc-find-backend-function backend 'revision-published-p)
+         (vc-find-backend-function backend 'delete-revision))
+    ;; Even though the user has explicitly requested deletion with a
+    ;; prefix argument / invoking `vc-delete-revision' / invoking
+    ;; `log-view-delete-revisions', by default we still confirm such a
+    ;; destructive operation.
+    ;; However, we want to avoid prompting twice in the case that the
+    ;; user has set `vc-allow-rewriting-published-history' to `ask', and
+    ;; we should avoid prompting at all in the case that
+    ;; `vc-allow-rewriting-published-history' is another non-nil value.
+    ;; These requirements lead to the nested `cond*' form here.
+    (cond*
+     ((and vc-allow-rewriting-published-history
+           (not (eq vc-allow-rewriting-published-history 'ask)))
+      (vc-call-backend backend 'delete-revision rev)
+      'deleted)
+     ((bind* (published (vc-call-backend backend 'revision-published-p rev))))
+     ((and published
+           (eq vc-allow-rewriting-published-history 'ask)
+           (yes-or-no-p
+            (format "Revision %s appears published; allow rewriting history?"
+                    rev)))
+      (vc-call-backend backend 'delete-revision rev)
+      'deleted)
+     (published
+      (user-error "Will not rewrite likely-public history"))
+     ((yes-or-no-p
+       (format "Permanently delete %s from the revision history?"
+               rev))
+      (vc-call-backend backend 'delete-revision rev)
+      'deleted)
+     (t
+      (user-error "Aborted"))))
+   ;; If we get this far we give up on `delete-revision', i.e. we fall
+   ;; back to creating a commit undoing the effects of REV.
+   ;;
+   ;; `vc-*-prepare-patch' will always give us a patch with file names
+   ;; relative to the VC root, so switch to there now.  In particular
+   ;; this is needed for `diff-buffer-file-names' to work properly.
+   ((bind* (default-directory (vc-call-backend backend 'root
+                                               default-directory))
+           (patch (vc-call-backend backend 'prepare-patch rev))
+           files whole-patch-string diff-patch-string))
+   (t
     (with-current-buffer (plist-get patch :buffer)
       (diff-mode)
       (with-restriction
@@ -2218,14 +2317,14 @@ BACKEND is the VC backend to use."
                                           whole-patch-string comment))
                        nil
                        backend
-                       diff-patch-string)))
+                       diff-patch-string))))
 
-;; No bindings in `vc-prefix-map' for the following two commands because
-;; we expect users will usually use `log-view-revision-cherry-pick' and
-;; `log-view-revision-revert', which do have bindings.
+;; No bindings in `vc-prefix-map' for the following three items because
+;; we expect users will usually use `log-view-cherry-pick' and
+;; `log-view-revert-or-delete-revisions', which do have bindings.
 
 ;;;###autoload
-(defun vc-revision-cherry-pick (rev &optional comment initial-contents backend)
+(defun vc-cherry-pick (rev &optional comment initial-contents backend)
   "Copy the changes from a single revision REV to the current branch.
 When called interactively, prompts for REV.
 Typically REV is a revision from another branch, where that branch is
@@ -2256,12 +2355,54 @@ Optional argument BACKEND is the VC backend to use."
                                              nil rev))
                        nil
                        backend)))
-  (vc--pick-or-revert rev nil comment initial-contents backend))
+  (vc--pick-or-revert rev nil nil nil comment initial-contents backend))
 
 ;;;###autoload
-(defun vc-revision-revert (rev &optional comment initial-contents backend)
+(defun vc-revert-or-delete-revision
+    (rev &optional interactive delete comment initial-contents backend)
   "Undo the effects of revision REV.
 When called interactively, prompts for REV.
+
+When called interactively (or with optional argument INTERACTIVE
+non-nil), then if the underlying VCS is distributed and REV has not been
+pushed, offer to entirely delete REV.
+This is instead of creating a new commit undoing the effects of REV.
+
+With a prefix argument (or with optional argument DELETE non-nil),
+only consider deleting REV, never create a new commit.
+In this case INTERACTIVE is ignored.
+This works only if REV has not been pushed, unless you have customized
+`vc-allow-rewriting-published-history' to a non-nil value.
+
+When called from Lisp, there are three calling conventions for the
+COMMENT and INITIAL-CONTENTS optional arguments:
+- COMMENT a string, INITIAL-CONTENTS nil means use that comment string
+  without prompting the user to edit it.
+- COMMENT a string, INITIAL-CONTENTS non-nil means use that comment
+  string as the initial contents of the log entry buffer but stop for
+  editing.
+- COMMENT t means use BACKEND's default revert comment for REV without
+  prompting for editing, and ignore INITIAL-CONTENTS.
+
+Optional argument BACKEND is the VC backend to use.
+
+See also `vc-revert-revision'."
+  (interactive (list (vc-read-revision (if current-prefix-arg
+                                           "Revision to delete: "
+                                         "Revision to revert: "))
+                     t current-prefix-arg))
+  (vc--pick-or-revert rev t interactive delete
+                      comment initial-contents backend))
+
+;;;###autoload
+(defun vc-revert-revision
+  (rev &optional comment initial-contents backend)
+  "Make a commit undoing the effects of revision REV.
+When called interactively, prompts for REV.
+
+This is like `vc-revert-or-delete-revision' except that it only ever
+makes a new commit undoing the effects of REV, instead of considering
+VCS-specific alternative mechanisms to undo the effects of REV.
 
 When called from Lisp, there are three calling conventions for the
 COMMENT and INITIAL-CONTENTS optional arguments:
@@ -2275,7 +2416,104 @@ COMMENT and INITIAL-CONTENTS optional arguments:
 
 Optional argument BACKEND is the VC backend to use."
   (interactive (list (vc-read-revision "Revision to revert: ")))
-  (vc--pick-or-revert rev t comment initial-contents backend))
+  (vc--pick-or-revert rev t nil 'never comment initial-contents backend))
+
+;;;###autoload
+(defun vc-delete-revision (rev &optional backend)
+  "Delete revision REV from the revision history.
+This works only if REV has not been pushed, unless you have customized
+`vc-allow-rewriting-published-history' to a non-nil value.
+
+This is the same as `vc-revert-or-delete-revision' invoked interactively
+with a prefix argument."
+  (interactive (list (vc-read-revision "Revision to delete: ")))
+  (vc--pick-or-revert rev t nil t nil nil backend))
+
+(defun vc--remove-revisions-from-end (rev delete prompt backend)
+  "Delete revisions newer than REV.
+DELETE non-nil means to remove the changes from the working tree.
+DELETE `discard' means to silently discard uncommitted changes.
+PROMPT non-nil means to always get confirmation.  (This is passed by
+`log-view-uncommit-revisions-from-end' and `log-view-delete-revisions'
+because they have single-letter bindings and don't otherwise prompt, so
+might be easy to use accidentally.)
+BACKEND is the VC backend."
+  (let ((backend (or backend (vc-responsible-backend default-directory))))
+    (unless (eq (vc-call-backend backend 'revision-granularity)
+                'repository)
+      (error "Requires VCS with whole-repository revision granularity"))
+    (unless (vc-find-backend-function backend 'revision-published-p)
+      (signal 'vc-not-supported (list 'revision-published-p backend)))
+    ;; Rewinding the end of the branch to REV does not in itself mean
+    ;; rewriting public history because a subsequent pull will generally
+    ;; undo the rewinding.  Rewinding and then making new commits before
+    ;; syncing with the upstream will necessitate merging, but that's
+    ;; just part of the normal workflow with a distributed VCS.
+    ;; Therefore we don't prompt about deleting published revisions (and
+    ;; so we ignore `vc-allow-rewriting-published-history').
+    ;; We do care about deleting *unpublished* revisions, however,
+    ;; because that could potentially mean losing work permanently.
+    (when (if (vc-call-backend backend 'revision-published-p
+                               (vc-call-backend backend
+                                                'working-revision-symbol))
+              (and prompt
+                   (not (y-or-n-p
+                         (format "Uncommit revisions newer than %s?"
+                                 rev))))
+            ;; FIXME: Actually potentially not all revisions newer than
+            ;; REV would be permanently deleted -- only those which are
+            ;; unpushed.  So this prompt is a little misleading.
+            (not (yes-or-no-p
+                  (format "Permanently delete revisions newer than %s?"
+                          rev))))
+      (user-error "Aborted"))
+    (if delete
+        ;; FIXME: As discussed in bug#79408, instead of just failing if
+        ;; the user declines reverting the changes, we would leave
+        ;; behind some sort of conflict for the user to resolve, like we
+        ;; do when there is a merge conflict.
+        (let ((root (vc-root-dir)))
+          (when (vc-dir-status-files root nil backend)
+            (if (eq delete 'discard)
+                (vc-revert-file root)
+              (let ((vc-buffer-overriding-fileset `(,backend (,root))))
+                (vc-revert))))
+          (vc-call-backend backend 'delete-revisions-from-end rev))
+      (vc-call-backend backend 'uncommit-revisions-from-end rev))))
+
+;;;###autoload
+(defun vc-uncommit-revisions-from-end (rev &optional backend)
+  "Delete revisions newer than REV without touching the working tree.
+REV must be on the current branch.  The newer revisions are deleted from
+the revision history but the changes made by those revisions to files in
+the working tree are not undone.
+When called interactively, prompts for REV.
+BACKEND is the VC backend.
+
+To delete revisions from the revision history and also undo the changes
+in the working tree, see `vc-delete-revisions-from-end'."
+  (interactive (list
+                (vc-read-revision "Uncommit revisions newer than revision: ")))
+  (vc--remove-revisions-from-end rev nil nil backend))
+
+;;;###autoload
+(defun vc-delete-revisions-from-end (rev &optional discard backend)
+  "Delete revisions newer than REV.
+REV must be on the current branch.  The newer revisions are deleted from
+the revision history and the changes made by those revisions to files in
+the working tree are undone.
+When called interactively, prompts for REV.
+If the are uncommitted changes, prompts to discard them.
+With a prefix argument (when called from Lisp, with optional argument
+DISCARD non-nil), discard any uncommitted changes without prompting.
+BACKEND is the VC backend.
+
+To delete revisions from the revision history without undoing the
+changes in the working tree, see `vc-uncommit-revisions-from-end'."
+  (interactive (list
+                (vc-read-revision "Delete revisions newer than revision: ")
+                current-prefix-arg))
+  (vc--remove-revisions-from-end rev (if discard 'discard t) nil backend))
 
 (declare-function diff-bounds-of-hunk "diff-mode")
 
@@ -3925,14 +4163,18 @@ to the working revision (except for keyword expansion)."
 		   (format "Discard changes in %s? "
 			   (let ((str (vc-delistify files))
 				 (nfiles (length files)))
-			     (if (< (length str) 50)
+			     (if (length< str 50)
 				 str
-			       (format "%d file%s" nfiles
-				       (if (= nfiles 1) "" "s"))))))
-	    (error "Revert canceled")))
+                               (format (ngettext "%d file" "%d files"
+                                                 nfiles)
+                                       nfiles)))))
+	    (error "Revert cancelled")))
       (when diff-buffer
 	(quit-windows-on diff-buffer (eq vc-revert-show-diff 'kill))))
     (vc-revert-files backend files)))
+
+;;;###autoload
+(defalias 'vc-restore #'vc-revert)
 
 ;;;###autoload
 (defun vc-pull (&optional arg)

@@ -67,7 +67,7 @@ END {
 
      # The following codepoints are not emoji, but they are part of
      # emoji sequences.  We have code in font.c:font_range that will
-     # try to display them with the emoji font anyway.
+     # try to display those sequences with the emoji font anyway.
 
      trigger_codepoints[1] = "261D"
      trigger_codepoints[2] = "26F9"
@@ -82,6 +82,7 @@ END {
      trigger_codepoints[11] = "1F574"
      trigger_codepoints[12] = "1F575"
      trigger_codepoints[13] = "1F590"
+     trigger_codepoints[14] = "20E3"
 
      print "(setq auto-composition-emoji-eligible-codepoints"
      print "'("

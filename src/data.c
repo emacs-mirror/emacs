@@ -167,8 +167,7 @@ slow_eq (Lisp_Object x, Lisp_Object y)
 }
 
 DEFUN ("eq", Feq, Seq, 2, 2, 0,
-       doc: /* Return t if the two args are the same Lisp object.  */
-       attributes: const)
+       doc: /* Return t if the two args are the same Lisp object.  */)
   (Lisp_Object obj1, Lisp_Object obj2)
 {
   if (EQ (obj1, obj2))
@@ -369,7 +368,7 @@ DEFUN ("bare-symbol-p", Fbare_symbol_p, Sbare_symbol_p, 1, 1, 0,
 DEFUN ("symbol-with-pos-p", Fsymbol_with_pos_p, Ssymbol_with_pos_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a symbol together with position.
 Ignore `symbols-with-pos-enabled'.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   if (SYMBOL_WITH_POS_P (object))
@@ -379,7 +378,7 @@ Ignore `symbols-with-pos-enabled'.  */
 
 DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0,
        doc: /* Return t if OBJECT is a symbol.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   if (SYMBOLP (object))
@@ -557,7 +556,7 @@ DEFUN ("interpreted-function-p", Finterpreted_function_p,
 
 DEFUN ("module-function-p", Fmodule_function_p, Smodule_function_p, 1, 1, NULL,
        doc: /* Return t if OBJECT is a function loaded from a dynamic module.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   return MODULE_FUNCTIONP (object) ? Qt : Qnil;
@@ -575,7 +574,7 @@ DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0,
 
 DEFUN ("integerp", Fintegerp, Sintegerp, 1, 1, 0,
        doc: /* Return t if OBJECT is an integer.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   if (INTEGERP (object))
@@ -594,7 +593,7 @@ DEFUN ("integer-or-marker-p", Finteger_or_marker_p, Sinteger_or_marker_p, 1, 1, 
 
 DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
        doc: /* Return t if OBJECT is a nonnegative integer.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   return ((FIXNUMP (object) ? 0 <= XFIXNUM (object)
@@ -604,7 +603,7 @@ DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
 
 DEFUN ("numberp", Fnumberp, Snumberp, 1, 1, 0,
        doc: /* Return t if OBJECT is a number (floating point or integer).  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   if (NUMBERP (object))

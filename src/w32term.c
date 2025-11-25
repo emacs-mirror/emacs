@@ -6084,6 +6084,13 @@ w32_read_socket (struct terminal *terminal,
 	  check_visibility = 1;
 	  break;
 
+	case WM_EMACS_SET_TOOLKIT_THEME:
+	  {
+	    inev.kind = TOOLKIT_THEME_CHANGED_EVENT;
+	    inev.arg = msg.msg.wParam ? Qdark : Qlight;
+	  }
+	  break;
+
 #if HAVE_W32NOTIFY
 	case WM_EMACS_FILENOTIFY:
 	  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);

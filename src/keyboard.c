@@ -1743,7 +1743,7 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
      deleting characters around point.  */
   bool check_composition = ! modified;
   bool check_display = true, check_invisible = true;
-  ptrdiff_t orig_pt = PT;
+  ptrdiff_t orig_pt = PT, pt_before_invis = PT;
 
   eassert (XBUFFER (XWINDOW (selected_window)->contents) == current_buffer);
 
@@ -1782,6 +1782,7 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 	  check_composition = check_invisible = true;
 	}
       check_display = false;
+      pt_before_invis = PT;
       if (check_invisible && PT > BEGV && PT < ZV)
 	{
 	  int inv;
@@ -1858,10 +1859,27 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 	 point-motion hooks, intangibility, etc.  */
 	  eassert (PT == beg || PT == end);
 #endif
-
 	  /* Pretend the area doesn't exist if the buffer is not
-	     modified.  */
-	  if (!modified && !ellipsis && beg < end)
+	     modified, but only if the invisible text is not shown on
+	     display.  If it _is_ shown, we don't need to move point,
+	     since the normal display of the cursor will DTRT.
+	     Invisible text might be "shown on display" if there's a
+	     replacing display property on the same text: then whatever
+	     is specified by the display property will be shown instead
+	     of the invisible text.  */
+	  bool shown =
+	    !NILP (val = get_char_property_and_overlay
+			   (make_fixnum (beg), Qdisplay, selected_window,
+			    &overlay))
+	    && display_prop_intangible_p (val, overlay, beg, CHAR_TO_BYTE (beg));
+
+	  /* If the "invisible" text is shown, undo any point
+             adjustments due to invisible property, as cursor
+             positioning by the display engine will do a better job.  */
+	  if (shown)
+	    SET_PT (pt_before_invis);
+
+	  if (!modified && !shown && !ellipsis && beg < end)
 	    {
 	      if (last_pt == beg && PT == end && end < ZV)
 		(check_composition = check_display = true, SET_PT (end + 1));
@@ -4241,6 +4259,15 @@ kbd_buffer_get_event (KBOARD **kbp,
 	}
 #endif /* HAVE_ANDROID */
 
+      case TOOLKIT_THEME_CHANGED_EVENT:
+	kbd_fetch_ptr = next_kbd_event (event);
+	input_pending = readable_events (0);
+
+	Vtoolkit_theme = event->ie.arg;
+	CALLN (Frun_hook_with_args, Qtoolkit_theme_set_functions,
+	       event->ie.arg);
+	break;
+
 #ifdef HAVE_EXT_MENU_BAR
       case MENU_BAR_ACTIVATE_EVENT:
 	{
@@ -5875,7 +5902,8 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  ptrdiff_t charpos;
 
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
-	  col = wx;
+	  /* Skip any scroll bar on the left (Bug#79846).  */
+	  col = wx - WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w);
 	  row = wy;
 	  string = marginal_area_string (w, part, &col, &row, &charpos,
 					 &object, &dx, &dy, &width, &height);
@@ -11200,9 +11228,10 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 	    if ((FIXNUMP (key) && XFIXNUM (key) == -2) /* wrong_kboard_jmpbuf */
 		/* When switching to a new tty (with a new keyboard),
 		   read_char returns the new buffer, rather than -2
-		   (Bug#5095).  This is because `terminal-init-xterm'
-		   calls read-char, which eats the wrong_kboard_jmpbuf
-		   return.  Any better way to fix this? -- cyd  */
+		   (bug#5095, bug#37782, bug#79513).
+		   This is because `terminal-init-xterm' calls
+		   read-char, which eats the wrong_kboard_jmpbuf return.
+		   Any better way to fix this? -- cyd  */
 		|| (interrupted_kboard != current_kboard))
 	      {
 		bool found = false;
@@ -11254,16 +11283,20 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
                  {
                    if (FIXNUMP (key) && XFIXNUM (key) != -2)
                      {
-                       /* If interrupted while initializing terminal, we
-                          need to replay the interrupting key.  See
-                          Bug#5095 and Bug#37782.  */
+                       /* If interrupted while initializing terminal,
+                          we need to replay the interrupting key.
+                          There may also have been a current buffer
+                          change we would otherwise miss.
+                          See bug#5095, bug#37782, bug#79513.  */
+		       if (fix_current_buffer
+			   && (XBUFFER (XWINDOW (selected_window)->contents)
+			       != current_buffer))
+			 Fset_buffer (XWINDOW (selected_window)->contents);
                        mock_input = 1;
                        keybuf[0] = key;
                      }
                    else
-                     {
-                       mock_input = 0;
-                     }
+		     mock_input = 0;
 		  }
 		goto replay_entire_sequence;
 	      }

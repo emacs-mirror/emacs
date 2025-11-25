@@ -1430,6 +1430,8 @@ either nil or one of the symbols `start-tag', `end-tag', `markup',
 	 (if (memq context '(nil end-tag comment))
 	     'end-tag
 	   'mixed))
+        ((eq xmltok-type 'cdata-section)
+         (or context 'markup))
 	((eq xmltok-type 'comment)
 	 (cond ((memq context '(start-tag end-tag comment))
 		context)
@@ -1519,7 +1521,9 @@ OPEN-DELIM and CLOSE-DELIM are strings giving the opening and closing
 delimiters.  POS is the position of the first non-whitespace character
 of the line.  This expects the xmltok-* variables to be set up as by
 `xmltok-forward'."
-  (cond ((let ((end (+ pos (length close-delim))))
+  (cond ((string= open-delim "<![CDATA[")
+         (goto-char pos))
+        ((let ((end (+ pos (length close-delim))))
 	   (and (<= end (point-max))
 		(string= (buffer-substring-no-properties pos end)
 			 close-delim)))

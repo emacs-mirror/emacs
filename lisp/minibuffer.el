@@ -141,8 +141,7 @@ This metadata is an alist.  Currently understood keys are:
 - `cycle-sort-function': function to sort entries when cycling.
    Works like `display-sort-function'.
 - `eager-display': non-nil to request eager display of the
-  completion candidates.  Can also be a function which is invoked
-  after minibuffer setup.
+  completion candidates.
 The metadata of a completion table should be constant between two boundaries."
   (let ((metadata (if (functionp table)
                       (funcall table string pred 'metadata))))
@@ -1278,7 +1277,7 @@ an association list that can specify properties such as:
 - `group-function': function for grouping the completion candidates.
 - `annotation-function': function to add annotations in *Completions*.
 - `affixation-function': function to prepend/append a prefix/suffix.
-- `eager-display': function to show *Completions* eagerly.
+- `eager-display': non-nil to show *Completions* eagerly.
 
 Categories are symbols such as `buffer' and `file', used when
 completing buffer and file names, respectively.
@@ -1300,7 +1299,7 @@ possible values are the same as in `completions-sort'.
 - `group-function': function for grouping the completion candidates.
 - `annotation-function': function to add annotations in *Completions*.
 - `affixation-function': function to prepend/append a prefix/suffix.
-- `eager-display': function to show *Completions* eagerly.
+- `eager-display': non-nil to show *Completions* eagerly.
 See more description of metadata in `completion-metadata'.
 
 Categories are symbols such as `buffer' and `file', used when
@@ -2753,6 +2752,24 @@ so that the update is less likely to interfere with user typing."
        (completion-in-region-mode (completion-help-at-point t))
        ((completion--eager-update-p (minibuffer-prompt-end))
         (minibuffer-completion-help))))))
+
+(defvar completion-eager-display--timer nil)
+
+(defun completions--eager-display ()
+  "Try to display *Completions* without blocking input."
+  ;; If the user has left the minibuffer, give up on eager display of
+  ;; *Completions*.
+  (when (minibufferp nil t)
+    (when (while-no-input
+            (let ((non-essential t))
+              (minibuffer-completion-help)))
+      ;; If we got interrupted, try again the next time the user is idle.
+      (completions--start-eager-display))))
+
+(defun completions--start-eager-display ()
+  "Display the *Completions* buffer when the user is next idle."
+  (setq completion-eager-display--timer
+        (run-with-idle-timer 0 nil #'completions--eager-display)))
 
 (defun completions--post-command-update ()
   "Update displayed *Completions* buffer after command, once."
@@ -5143,14 +5160,14 @@ See `completing-read' for the meaning of the arguments."
                 ;; `completion-eager-display' is t or if eager display
                 ;; has been requested by the completion table.
                 (when completion-eager-display
-                  (let* ((md (completion-metadata
+                  (when (or (eq completion-eager-display t)
+                            (completion-metadata-get
+                             (completion-metadata
                               (buffer-substring-no-properties
                                (minibuffer-prompt-end) (point))
-                              collection predicate))
-                         (fun (completion-metadata-get md 'eager-display)))
-                    (when (or fun (eq completion-eager-display t))
-                      (funcall (if (functionp fun)
-                                   fun #'minibuffer-completion-help))))))
+                              collection predicate)
+                             'eager-display))
+                    (completions--start-eager-display))))
             (read-from-minibuffer prompt initial-input keymap
                                   nil hist def inherit-input-method))))
     (when (and (equal result "") def)

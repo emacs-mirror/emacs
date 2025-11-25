@@ -329,7 +329,6 @@ static RETURN_TYPE _GL_ATTRIBUTE_PURE
 two_way_long_needle (const unsigned char *haystack, size_t haystack_len,
                      const unsigned char *needle, size_t needle_len)
 {
-  size_t i; /* Index into current byte of NEEDLE.  */
   size_t j; /* Index into current window of HAYSTACK.  */
   size_t period; /* The period of the right half of needle.  */
   size_t suffix; /* The index of the right half of needle.  */
@@ -344,9 +343,9 @@ two_way_long_needle (const unsigned char *haystack, size_t haystack_len,
      shift_table[c] is the distance from the last occurrence of c to
      the end of NEEDLE, or NEEDLE_LEN if c is absent from the NEEDLE.
      shift_table[NEEDLE[NEEDLE_LEN - 1]] contains the only 0.  */
-  for (i = 0; i < 1U << CHAR_BIT; i++)
+  for (size_t i = 0; i < 1U << CHAR_BIT; i++)
     shift_table[i] = needle_len;
-  for (i = 0; i < needle_len; i++)
+  for (size_t i = 0; i < needle_len; i++)
     shift_table[CANON_ELEMENT (needle[i])] = needle_len - i - 1;
 
   /* Perform the search.  Each iteration compares the right half
@@ -379,7 +378,7 @@ two_way_long_needle (const unsigned char *haystack, size_t haystack_len,
             }
           /* Scan for matches in right half.  The last byte has
              already been matched, by virtue of the shift table.  */
-          i = MAX (suffix, memory);
+          size_t i = MAX (suffix, memory);
           while (i < needle_len - 1 && (CANON_ELEMENT (needle[i])
                                         == CANON_ELEMENT (haystack[i + j])))
             ++i;
@@ -423,7 +422,7 @@ two_way_long_needle (const unsigned char *haystack, size_t haystack_len,
             }
           /* Scan for matches in right half.  The last byte has
              already been matched, by virtue of the shift table.  */
-          i = suffix;
+          size_t i = suffix;
           while (i < needle_len - 1 && (CANON_ELEMENT (needle[i])
                                         == CANON_ELEMENT (haystack[i + j])))
             ++i;

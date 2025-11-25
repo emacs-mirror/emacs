@@ -4270,6 +4270,14 @@ Both should not be used to define a buffer-local dictionary."
 ;; If comment-normalize-vars is defined, newcomment must be loaded.
 (declare-function comment-normalize-vars "newcomment" (&optional noerror))
 
+(defun ispell--comment-prefix ()
+  "Return the comment marker for the current mode."
+  (progn
+    (comment-normalize-vars)
+    (comment-padright comment-start
+                      (comment-add nil))
+    comment-start))
+
 (defun ispell-add-per-file-word-list (word)
   "Add WORD to the per-file word list."
   (or ispell-buffer-local-name
@@ -4280,37 +4288,34 @@ Both should not be used to define a buffer-local dictionary."
       (while (not done)
         (let ((case-fold-search nil))
           (setq search (search-forward ispell-words-keyword nil t)
-	      found (or found search)
-	      line-okay (< (+ (length word) 1 ; 1 for space after word..
-			      (progn (end-of-line) (current-column)))
+                found (or found search)
+                line-okay (< (+ (length word) 1 ; 1 for space after word..
+                                (progn (end-of-line) (current-column)))
                              fill-column)))
-	(if (or (and search line-okay)
-		(null search))
-	    (progn
-	      (setq done t)
-	      (if (null search)
-		  (progn
-		    (if found (insert "\n")  ;; after an existing LocalWords
-                      (goto-char (point-max)) ;; no LocalWords, go to end of file
-                      (open-line 1)
-                      (newline))
-		    (insert (if comment-start
-                                (concat
-                                  (progn
-                                   ;; Try and use the proper comment marker,
-                                   ;; e.g. ";;" rather than ";".
-                                    (comment-normalize-vars)
-                                    (comment-padright comment-start
-                                                      (comment-add nil))
-                                    comment-start)
-                                  " ")
-                              "")
-                            ispell-words-keyword)
-                    (if (and comment-end (> (length comment-end) 0))
-			(save-excursion
-			  (newline)
-			  (insert comment-end)))))
-	      (insert (concat " " word))))))))
+        (if (or (and search line-okay)
+                (null search))
+            (progn
+              (setq done t)
+              (if (null search)
+                  (progn
+                    (let ((empty-comment-end (or (not comment-end) (= (length comment-end) 0))))
+                      (progn
+                        (if found (progn ;; after an existing LocalWords
+                                    (insert "\n")
+                                    (when (and empty-comment-end comment-start)
+                                      (insert (ispell--comment-prefix) " ")))
+                          (goto-char (point-max)) ;; no LocalWords, go to end of file
+                          (open-line 1)
+                          (newline)
+                          ;; Insert an end marker if needed, preceded by a newline.
+                          (if (not empty-comment-end)
+                              (save-excursion
+                                (newline)
+                                (insert comment-end)))
+                          (when comment-start
+                            (insert (ispell--comment-prefix) (if (not empty-comment-end) "\n" " "))))
+                        (insert ispell-words-keyword)))))
+              (insert (concat " " word))))))))
 
 (provide 'ispell)
 

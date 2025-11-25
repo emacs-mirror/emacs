@@ -7068,9 +7068,10 @@ not use markers for sampling positions like @code{window-point} or
 @code{window-start}.  This argument should be non-@code{nil} when the
 state will be written to disk and read back in another session.
 
-Together, the argument @var{writable} and the variable
+Together, @var{writable} and the variable
 @code{window-persistent-parameters} specify which window parameters are
-saved by this function.  @xref{Window Parameters}.
+saved by this function.  The default is to save the @code{clone-of}
+parameter if @var{writable} is @code{nil}.  @xref{Window Parameters}.
 
 @vindex window-state-normalize-buffer-name
 Bind @code{window-state-normalize-buffer-name} to non-@code{nil} to
@@ -7085,14 +7086,19 @@ and read back in another session.  In either case, use the following
 function to restore the state of the window.
 
 @defun window-state-put state &optional window ignore
-This function puts the window state @var{state} into @var{window}.
-The argument @var{state} should be the state of a window returned by
-an earlier invocation of @code{window-state-get}, see above.  The
-optional argument @var{window} can be either a live window or an
-internal window (@pxref{Windows and Frames}).  If @var{window} is not
-a live window, it is replaced by a new live window created on the same
-frame before putting @var{state} into it.  If @var{window} is @code{nil},
-it puts the window state into a new window.
+This function puts the window state @var{state} into @var{window}.  The
+argument @var{state} should be the state of a window returned by an
+earlier invocation of @code{window-state-get}, see above.  The optional
+argument @var{window} can be either a live window or an internal window
+(@pxref{Windows and Frames}).  If @var{window} is not a live window, it
+is replaced by a new live window created on the same frame before
+putting @var{state} into it.  If @var{window} is @code{nil}, it puts the
+window state into a new window.
+
+This function assigns all window parameters that have been stored in
+@var{state}.  By default, this is the @code{clone-of} parameter provided
+@var{state} was obtained from an invocation of @code{window-state-get}
+with the argument @var{writable} @code{nil}.  @xref{Window Parameters}.
 
 This function consults the variable
 @code{window-restore-killed-buffer-windows} (see below) when it tries to
@@ -7330,9 +7336,10 @@ specific window.
 
 @item clone-of
 @vindex clone-of@r{, a window parameter}
-This parameter specifies the window that this one has been cloned
-from.  It is installed by @code{window-state-get} (@pxref{Window
-Configurations}).
+This parameter specifies the window that this one has been cloned from.
+It is persistent by default and as such gets saved by
+@code{window-state-get} and installed by @code{window-state-put}
+(@pxref{Window Configurations}).
 
 @item window-preserved-size
 @vindex window-preserved-size@r{, a window parameter}

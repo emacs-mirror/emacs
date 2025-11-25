@@ -2611,7 +2611,9 @@ Sets the background transparency of the frame.  Unlike the @code{alpha}
 frame parameter, this only controls the transparency of the background
 while keeping foreground elements such as text fully opaque.  It
 should be an integer between 0 and 100, where 0 means
-completely transparent and 100 means completely opaque (default).
+completely transparent and 100 means completely opaque (default).  The
+value can also be a float between 0 and 1.0, where 1.0 means completely
+opaque.
 
 @vindex borders-respect-alpha-background@r{, a frame parameter}
 @item borders-respect-alpha-background

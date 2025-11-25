@@ -1908,6 +1908,10 @@ made.
 to undo all the replacements and go back to where the first
 replacement was made.
 
+@item d
+to show the diff buffer that changes all occurrences to their
+replacements.
+
 @item C-r
 to enter a recursive editing level, in case the occurrence needs to be
 edited rather than just replaced with @var{newstring}.  When you are

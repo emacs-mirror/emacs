@@ -156,9 +156,7 @@ New log entries are usually made with \\[add-change-log-entry] or \\[add-change-
 Each entry behaves as a paragraph, and the entries for one day as a page.
 Runs `change-log-mode-hook'.
 
-\\{change-log-mode-map}
-
-(fn)" t)
+\\{change-log-mode-map}" t)
 (autoload 'add-log-current-defun "add-log" "\
 Return name of function definition point is in, or nil.
 
@@ -305,7 +303,6 @@ usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
 
 (fn FUNCTION ARGS &rest BODY)" nil t)
 (function-put 'defadvice 'doc-string-elt 3)
-(function-put 'defadvice 'lisp-indent-function 2)
 (make-obsolete 'defadvice '"use `advice-add' or `define-advice'" "30.1")
 (register-definition-prefixes "advice" '("ad-"))
 
@@ -933,7 +930,11 @@ commentary with value `antlr-help-unknown-file-text' is added.  The
 (autoload 'antlr-mode "antlr-mode" "\
 Major mode for editing ANTLR grammar files.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `antlr-mode-hook', as the final or penultimate
+step during initialization.
+
+\\{antlr-mode-map}" t)
 (autoload 'antlr-set-tabs "antlr-mode" "\
 Use ANTLR's convention for TABs according to `antlr-tab-offset-alist'.
 Used in `antlr-mode'.  Also a useful function in `java-mode-hook'.")
@@ -1187,9 +1188,7 @@ take a numeric prefix argument):
 
         \\[array-display-local-variables]   Display current values of local variables.
 
-Entering array mode calls the function `array-mode-hook'.
-
-(fn)" t)
+Entering array mode calls the function `array-mode-hook'." t)
 (register-definition-prefixes "array" '("array-"))
 
 
@@ -1429,9 +1428,7 @@ Alternatively, you may set this variable in `asm-mode-hook'.
 Turning on Asm mode runs the hook `asm-mode-hook' at the end of initialization.
 
 Special commands:
-\\{asm-mode-map}
-
-(fn)" t)
+\\{asm-mode-map}" t)
 (register-definition-prefixes "asm-mode" '("asm-"))
 
 
@@ -1454,7 +1451,8 @@ point is moved into the passwords (see `authinfo-hide-elements').
 
 \\{authinfo-mode-map}
 
-(fn)" t)
+This mode runs the hook `authinfo-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'read-passwd "auth-source" "\
 Read a password, prompting with PROMPT, and return password as a string.
 If optional CONFIRM is non-nil, read the password twice to make sure.
@@ -1511,7 +1509,11 @@ added.  Possible values are:
 (autoload 'autoconf-mode "autoconf" "\
 Major mode for editing Autoconf configure.ac files.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `autoconf-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{autoconf-mode-map}" t)
 (register-definition-prefixes "autoconf" '("autoconf-"))
 
 
@@ -1761,7 +1763,9 @@ Run script using `bat-run' and `bat-run-args'.
 
 \\{bat-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `bat-mode-hook', as the final or penultimate
+step during initialization." t)
 (register-definition-prefixes "bat-mode" '("bat-"))
 
 
@@ -1835,7 +1839,6 @@ garbage collections that ran, and the time taken by garbage collection.
 See also `benchmark-run-compiled'.
 
 (fn &optional REPETITIONS &rest FORMS)" nil t)
-(function-put 'benchmark-run 'lisp-indent-function 1)
 (autoload 'benchmark-run-compiled "benchmark" "\
 Time execution of compiled version of FORMS.
 This is like `benchmark-run', but what is timed is a funcall of the
@@ -1843,7 +1846,6 @@ byte code obtained by wrapping FORMS in a `lambda' and compiling the
 result.  The overhead of the `lambda's is accounted for.
 
 (fn &optional REPETITIONS &rest FORMS)" nil t)
-(function-put 'benchmark-run-compiled 'lisp-indent-function 1)
 (autoload 'benchmark "benchmark" "\
 Print the time taken for REPETITIONS executions of FORM.
 Interactively, REPETITIONS is taken from the prefix arg, and
@@ -1859,7 +1861,6 @@ Evaluate BODY and message the time taken.
 The return value is the value of the final form in BODY.
 
 (fn &rest BODY)" nil t)
-(function-put 'benchmark-progn 'lisp-indent-function 0)
 (register-definition-prefixes "benchmark" '("benchmark-"))
 
 
@@ -1936,9 +1937,7 @@ BibTeX mode supports Imenu and hideshow minor mode (`hs-minor-mode').
 Entry to BibTeX mode calls the value of `bibtex-mode-hook'
 if that value is non-nil.
 
-\\{bibtex-mode-map}
-
-(fn)" t)
+\\{bibtex-mode-map}" t)
 (autoload 'bibtex-search-entry "bibtex" "\
 Move point to the beginning of BibTeX entry named KEY.
 Return position of entry if KEY is found or nil if not found.
@@ -1961,7 +1960,10 @@ A prefix arg negates the value of `bibtex-search-entry-globally'.
 (autoload 'bibtex-style-mode "bibtex-style" "\
 Major mode for editing BibTeX style files.
 
-(fn)" t)
+This mode runs the hook `bibtex-style-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{bibtex-style-mode-map}" t)
 (register-definition-prefixes "bibtex-style" '("bibtex-style-"))
 
 
@@ -2800,7 +2802,7 @@ disabled.
 (put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 (put 'byte-compile-dynamic-docstrings 'safe-local-variable 'booleanp)
 (put 'byte-compile-error-on-warn 'safe-local-variable 'booleanp)
-(put 'byte-compile-warnings 'safe-local-variable (lambda (v) (or (symbolp v) (null (delq nil (mapcar (lambda (x) (not (symbolp x))) v))))))
+(put 'byte-compile-warnings 'safe-local-variable (lambda (v) (or (symbolp v) (all #'symbolp v))))
 (autoload 'byte-compile-warning-enabled-p "bytecomp" "\
 Return non-nil if WARNING is enabled, according to `byte-compile-warnings'.
 
@@ -2954,7 +2956,11 @@ To use tree-sitter C/C++ modes by default, evaluate
 
 in your init files, or customize `treesit-enabled-modes'.
 
-(fn)" t)
+In addition to any hooks its parent mode `c-ts-base-mode' might have
+run, this mode runs the hook `c-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{c-ts-mode-map}" t)
 (autoload 'c++-ts-mode "c-ts-mode" "\
 Major mode for editing C++, powered by tree-sitter.
 
@@ -2975,7 +2981,11 @@ Since this mode uses a parser, unbalanced brackets might cause
 some breakage in indentation/fontification.  Therefore, it's
 recommended to enable `electric-pair-mode' with this mode.
 
-(fn)" t)
+In addition to any hooks its parent mode `c-ts-base-mode' might have
+run, this mode runs the hook `c++-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{c++-ts-mode-map}" t)
 (autoload 'c-or-c++-ts-mode "c-ts-mode" "\
 Analyze buffer and enable either C or C++ mode.
 
@@ -3160,7 +3170,6 @@ See Info node `(calc)Defining Functions'.
 
 (fn FUNC ARGS &rest BODY)" nil t)
 (function-put 'defmath 'doc-string-elt 3)
-(function-put 'defmath 'lisp-indent-function 'defun)
 (register-definition-prefixes "calc" '("calc" "defcalcmodevar" "inexact-result" "math-" "var-"))
 
 
@@ -3613,9 +3622,7 @@ The hook `c-mode-common-hook' is run with no args at mode
 initialization, then `c-mode-hook'.
 
 Key bindings:
-\\{c-mode-map}
-
-(fn)" t)
+\\{c-mode-map}" t)
 (autoload 'c-or-c++-mode "cc-mode" "\
 Analyze buffer and enable either C or C++ mode.
 
@@ -3641,9 +3648,7 @@ The hook `c-mode-common-hook' is run with no args at mode
 initialization, then `c++-mode-hook'.
 
 Key bindings:
-\\{c++-mode-map}
-
-(fn)" t)
+\\{c++-mode-map}" t)
  (add-to-list 'auto-mode-alist '("\\.m\\'" . objc-mode))
 (autoload 'objc-mode "cc-mode" "\
 Major mode for editing Objective C code.
@@ -3659,9 +3664,7 @@ The hook `c-mode-common-hook' is run with no args at mode
 initialization, then `objc-mode-hook'.
 
 Key bindings:
-\\{objc-mode-map}
-
-(fn)" t)
+\\{objc-mode-map}" t)
  (add-to-list 'auto-mode-alist '("\\.java\\'" . java-mode))
 (autoload 'java-mode "cc-mode" "\
 Major mode for editing Java code.
@@ -3677,9 +3680,7 @@ The hook `c-mode-common-hook' is run with no args at mode
 initialization, then `java-mode-hook'.
 
 Key bindings:
-\\{java-mode-map}
-
-(fn)" t)
+\\{java-mode-map}" t)
  (add-to-list 'auto-mode-alist '("\\.idl\\'" . idl-mode))
 (autoload 'idl-mode "cc-mode" "\
 Major mode for editing CORBA's IDL, PSDL and CIDL code.
@@ -3695,9 +3696,7 @@ The hook `c-mode-common-hook' is run with no args at mode
 initialization, then `idl-mode-hook'.
 
 Key bindings:
-\\{idl-mode-map}
-
-(fn)" t)
+\\{idl-mode-map}" t)
  (add-to-list 'auto-mode-alist '("\\.\\(u?lpc\\|pike\\|pmod\\(\\.in\\)?\\)\\'" . pike-mode))
  (add-to-list 'interpreter-mode-alist '("pike" . pike-mode))
 (autoload 'pike-mode "cc-mode" "\
@@ -3714,9 +3713,7 @@ The hook `c-mode-common-hook' is run with no args at mode
 initialization, then `pike-mode-hook'.
 
 Key bindings:
-\\{pike-mode-map}
-
-(fn)" t)
+\\{pike-mode-map}" t)
  (add-to-list 'auto-mode-alist '("\\.awk\\'" . awk-mode))
  (add-to-list 'interpreter-mode-alist '("awk" . awk-mode))
  (add-to-list 'interpreter-mode-alist '("mawk" . awk-mode))
@@ -3735,9 +3732,7 @@ The hook `c-mode-common-hook' is run with no args at mode
 initialization, then `awk-mode-hook'.
 
 Key bindings:
-\\{awk-mode-map}
-
-(fn)" t)
+\\{awk-mode-map}" t)
 (register-definition-prefixes "cc-mode" '("awk-mode-map" "c++-mode-" "c-" "idl-mode-" "java-mode-" "objc-mode-" "pike-mode-"))
 
 
@@ -4075,7 +4070,6 @@ MAP-ID := integer
 
 (fn NAME CCL-PROGRAM &optional DOC)" nil t)
 (function-put 'define-ccl-program 'doc-string-elt 3)
-(function-put 'define-ccl-program 'lisp-indent-function 'defun)
 (autoload 'check-ccl-program "ccl" "\
 Check validity of CCL-PROGRAM.
 If CCL-PROGRAM is a symbol denoting a CCL program, return
@@ -4130,7 +4124,9 @@ There are no special keybindings by default.
 Action blocks are treated as defuns, i.e. \\[beginning-of-defun] moves
 to the action header.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `cfengine3-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'cfengine2-mode "cfengine" "\
 Major mode for editing CFEngine2 input.
 There are no special keybindings by default.
@@ -4138,7 +4134,9 @@ There are no special keybindings by default.
 Action blocks are treated as defuns, i.e. \\[beginning-of-defun] moves
 to the action header.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `cfengine2-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'cfengine-auto-mode "cfengine" "\
 Choose `cfengine2-mode' or `cfengine3-mode' by buffer contents." t)
 (register-definition-prefixes "cfengine" '("cfengine"))
@@ -4705,7 +4703,11 @@ For use inside Lisp programs, see also `c-macro-expansion'.
 (autoload 'cmake-ts-mode "cmake-ts-mode" "\
 Major mode for editing CMake files, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `cmake-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{cmake-ts-mode-map}" t)
 (autoload 'cmake-ts-mode-maybe "cmake-ts-mode" "\
 Enable `cmake-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -5424,7 +5426,7 @@ A `cond*' construct is a series of clauses, and a clause
 normally has the form (CONDITION BODY...).
 
 CONDITION can be a Lisp expression, as in `cond'.
-Or it can be one of`(bind* BINDINGS...)', `(match* PATTERN DATUM)',
+Or it can be one of `(bind* BINDINGS...)', `(match* PATTERN DATUM)',
 or `(pcase* PATTERN DATUM)',
 
 `(bind* BINDINGS...)' means to bind BINDINGS (as if they were in `let*')
@@ -5435,6 +5437,10 @@ and runs the body of the clause if the first binding's value is non-nil.
 `(match* PATTERN DATUM)' means to match DATUM against the pattern PATTERN
 For its patterns, see `match*'.
 The condition counts as true if PATTERN matches DATUM.
+
+`(bind-and* BINDINGS...)' means to bind BINDINGS (as if they were in
+`if-let*') for only the the body of the clause.  If any expression
+evaluates to nil, the condition counts as false.
 
 `(pcase* PATTERN DATUM)' means to match DATUM against the
 pattern PATTERN, using the same pattern syntax as `pcase'.
@@ -5455,7 +5461,84 @@ are passed along to the rest of the clauses in this `cond*' construct.
 \\[match*] for documentation of the patterns for use in `match*'.
 
 (fn &rest CLAUSES)" nil t)
-(register-definition-prefixes "cond-star" '("cond*-" "match*"))
+(autoload 'match* "cond-star" "\
+This specifies matching DATUM against PATTERN.
+It is not really a Lisp function, and it is meaningful
+only in the CONDITION of a `cond*' clause.
+
+`_' matches any value.
+KEYWORD matches that keyword.
+nil  matches nil.
+t    matches t.
+SYMBOL matches any value and binds SYMBOL to that value.
+  If SYMBOL has been matched and bound earlier in this pattern,
+  it matches here the same value that it matched before.
+REGEXP matches a string if REGEXP matches it.
+  The match must cover the entire string from its first char to its last.
+ATOM (meaning any other kind of non-list not described above)
+  matches anything `equal' to it.
+(rx REGEXP) uses a regexp specified in s-expression form,
+  as in the function `rx', and matches the data that way.
+(rx REGEXP SYM0 SYM1...) uses a regexp specified in s-expression form,
+  and binds the symbols SYM0, SYM1, and so on
+  to (match-string 0 DATUM), (match-string 1 DATUM), and so on.
+  You can use as many SYMs as regexp matching supports.
+
+\\=`OBJECT  matches any value `equal' to OBJECT.
+(cons CARPAT CDRPAT)
+  matches a cons cell if CARPAT matches its car and CDRPAT matches its cdr.
+(list ELTPATS...)
+  matches a list if the ELTPATS match its elements.
+  The first ELTPAT should match the list's first element.
+  The second ELTPAT should match the list's second element.  And so on.
+(vector ELTPATS...)
+  matches a vector if the ELTPATS match its elements.
+  The first ELTPAT should match the vector's first element.
+  The second ELTPAT should match the vector's second element.  And so on.
+(cdr PATTERN)  matches PATTERN with strict checking of cdrs.
+  That means that `list' patterns verify that the final cdr is nil.
+  Strict checking is the default.
+(cdr-safe PATTERN)  matches PATTERN with lax checking of cdrs.
+  That means that `list' patterns do not examine the final cdr.
+(and CONJUNCTS...)  matches each of the CONJUNCTS against the same data.
+  If all of them match, this pattern succeeds.
+  If one CONJUNCT fails, this pattern fails and does not try more CONJUNCTS.
+(or DISJUNCTS...)  matches each of the DISJUNCTS against the same data.
+  If one DISJUNCT succeeds, this pattern succeeds
+  and does not try more DISJUNCTs.
+  If all of them fail, this pattern fails.
+(COND*-EXPANDER ...)
+  Here the car is a symbol that has a `cond*-expander' property
+  which defines how to handle it in a pattern.  The property value
+  is a function.  Trying to match such a pattern calls that
+  function with one argument, the pattern in question (including its car).
+  The function should return an equivalent pattern
+  to be matched instead.
+(PREDICATE SYMBOL)
+  matches datum if (PREDICATE DATUM) is true,
+  then binds SYMBOL to DATUM.
+(PREDICATE SYMBOL MORE-ARGS...)
+  matches datum if (PREDICATE DATUM MORE-ARGS...) is true,
+  then binds SYMBOL to DATUM.
+  MORE-ARGS... can refer to symbols bound earlier in the pattern.
+(constrain SYMBOL EXP)
+  matches datum if the form EXP is true.
+  EXP can refer to symbols bound earlier in the pattern.
+
+(fn PATTERN DATUM)" nil t)
+(autoload 'bind* "cond-star" "\
+This macro evaluates BINDINGS like `let*'.
+It is not really a Lisp function, and it is meaningful
+only in the CONDITION of a `cond*' clause.
+
+(fn &rest BINDINGS)" nil t)
+(autoload 'bind-and* "cond-star" "\
+This macro evaluates BINDINGS like `if-let*'.
+It is not really a Lisp function, and it is meaningful
+only in the CONDITION of a `cond*' clause.
+
+(fn &rest BINDINGS)" nil t)
+(register-definition-prefixes "cond-star" '("cond*-"))
 
 
 ;;; Generated autoloads from textmodes/conf-mode.el
@@ -5491,12 +5574,17 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
 
 \\{conf-mode-map}
 
-(fn)" t)
+This mode runs the hook `conf-mode-hook', as the final or penultimate
+step during initialization." t)
 (autoload 'conf-unix-mode "conf-mode" "\
 Conf Mode starter for Unix style Conf files.
 Comments start with `#'.  For details see `conf-mode'.
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `conf-unix-mode-hook', as the final or penultimate step
+during initialization.
+
+\\{conf-unix-mode-map}" t)
 (autoload 'conf-windows-mode "conf-mode" "\
 Conf Mode starter for Windows style Conf files.
 Comments start with `;'.
@@ -5511,7 +5599,9 @@ Default={5984FFE0-28D4-11CF-AE66-08002B2E1262}
 [{5984FFE0-28D4-11CF-AE66-08002B2E1262}]
 PersistMoniker=file://Folder.htt
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `conf-windows-mode-hook', as the final or penultimate
+step during initialization." t)
 (autoload 'conf-javaprop-mode "conf-mode" "\
 Conf Mode starter for Java properties files.
 Comments start with `#'.  Example:
@@ -5525,7 +5615,9 @@ x.1 =
 x.2.y.1.z.1 =
 x.2.y.1.z.2.zz =
 
-(fn)" t)
+In addition to any hooks its parent mode `conf-mode' might have run,
+this mode runs the hook `conf-javaprop-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'conf-space-mode "conf-mode" "\
 Conf Mode starter for space separated conf files.
 \"Assignments\" are with ` '.  Keywords before the parameters are
@@ -5549,7 +5641,9 @@ class desktop
 add /dev/audio		desktop
 add /dev/mixer		desktop
 
-(fn)" t)
+In addition to any hooks its parent mode `conf-unix-mode' might have
+run, this mode runs the hook `conf-space-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'conf-space-keywords "conf-mode" "\
 Enter Conf Space mode using regexp KEYWORDS to match the keywords.
 See `conf-space-mode'.
@@ -5565,7 +5659,9 @@ For details see `conf-mode'.  Example:
 <Multi_key> <exclam> <exclam>		: \"\\241\"	exclamdown
 <Multi_key> <c> <slash>			: \"\\242\"	cent
 
-(fn)" t)
+In addition to any hooks its parent mode `conf-unix-mode' might have
+run, this mode runs the hook `conf-colon-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'conf-ppd-mode "conf-mode" "\
 Conf Mode starter for Adobe/CUPS PPD files.
 Comments start with `*%' and \"assignments\" are with `:'.
@@ -5576,7 +5672,9 @@ For details see `conf-mode'.  Example:
 *DefaultTransfer: Null
 *Transfer Null.Inverse: \"{ 1 exch sub }\"
 
-(fn)" t)
+In addition to any hooks its parent mode `conf-colon-mode' might have
+run, this mode runs the hook `conf-ppd-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'conf-xdefaults-mode "conf-mode" "\
 Conf Mode starter for Xdefaults files.
 Comments start with `!' and \"assignments\" are with `:'.
@@ -5587,7 +5685,9 @@ For details see `conf-mode'.  Example:
 *background:			gray99
 *foreground:			black
 
-(fn)" t)
+In addition to any hooks its parent mode `conf-colon-mode' might have
+run, this mode runs the hook `conf-xdefaults-mode-hook', as the final
+or penultimate step during initialization." t)
 (autoload 'conf-toml-mode "conf-mode" "\
 Conf Mode starter for TOML files.
 Comments start with `#' and \"assignments\" are with `='.
@@ -5598,7 +5698,9 @@ For details see `conf-mode'.  Example:
 [entry]
 value = \"some string\"
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `conf-toml-mode-hook', as the final or penultimate step
+during initialization." t)
 (autoload 'conf-desktop-mode "conf-mode" "\
 Conf Mode started for freedesktop.org Desktop files.
 Comments start with `#' and \"assignments\" are with `='.
@@ -5611,11 +5713,24 @@ For details see `conf-mode'.
 	Exec=gimp-2.8 %U
 	Terminal=false
 
-(fn)" t)
+In addition to any hooks its parent mode `conf-unix-mode' might have
+run, this mode runs the hook `conf-desktop-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'conf-npmrc-mode "conf-mode" "\
+Major mode derived from `conf-mode' by `define-derived-mode'.
+It inherits all of the parent's attributes, but has its own keymap,
+abbrev table and syntax table:
 
+  `conf-npmrc-mode-map', `conf-npmrc-mode-abbrev-table' and
+`conf-npmrc-mode-syntax-table'
 
-(fn)" t)
+which more-or-less shadow conf-mode's corresponding tables.
+
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `conf-npmrc-mode-hook', as the final or penultimate step
+during initialization.
+
+\\{conf-npmrc-mode-map}" t)
 (register-definition-prefixes "conf-mode" '("conf-"))
 
 
@@ -5671,6 +5786,16 @@ If `copyright-year-ranges' (which see) is non-nil, also
 independently replaces consecutive years with a range." t)
 (autoload 'copyright "copyright" "\
 Insert a copyright by $ORGANIZATION notice at cursor.
+
+This is a skeleton command (see `skeleton-insert').
+Normally the skeleton text is inserted at point, with nothing \"inside\".
+If there is a highlighted region, the skeleton text is wrapped
+around the region text.
+
+A prefix argument ARG says to wrap the skeleton around the next ARG words.
+A prefix argument of -1 says to wrap around region, even if not highlighted.
+A prefix argument of zero says to wrap around zero words---that is, nothing.
+This is a way of overriding the use of a highlighted region.
 
 (fn &optional STR ARG)" t)
 (autoload 'copyright-update-directory "copyright" "\
@@ -5855,9 +5980,7 @@ with no args.
 
 DO NOT FORGET to read micro-docs (available from `Perl' menu)
 or as help on variables `cperl-tips', `cperl-problems',
-`cperl-praise', `cperl-speed'.
-
-(fn)" t)
+`cperl-praise', `cperl-speed'." t)
 (autoload 'cperl-perldoc "cperl-mode" "\
 Run `perldoc' on WORD.
 
@@ -5930,11 +6053,17 @@ Major mode for editing Csharp code.
 Key bindings:
 \\{csharp-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `csharp-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'csharp-ts-mode "csharp-mode" "\
 Major mode for editing C# code.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `csharp-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{csharp-ts-mode-map}" t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(csharp-mode . csharp-ts-mode)))
 (register-definition-prefixes "csharp-mode" '("codedoc-font-lock-" "csharp-"))
 
@@ -5964,7 +6093,9 @@ can also be used to fill comments.
 
 \\{css-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `css-base-mode' might have
+run, this mode runs the hook `css-ts-mode-hook', as the final or
+penultimate step during initialization." t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(css-mode . css-ts-mode)))
 (autoload 'css-mode "css-mode" "\
 Major mode to edit Cascading Style Sheets (CSS).
@@ -5987,12 +6118,18 @@ be used to fill comments.
 
 \\{css-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `css-base-mode' might have
+run, this mode runs the hook `css-mode-hook', as the final or
+penultimate step during initialization." t)
  (add-to-list 'auto-mode-alist '("\\.scss\\'" . scss-mode))
 (autoload 'scss-mode "css-mode" "\
 Major mode to edit \"Sassy CSS\" files.
 
-(fn)" t)
+In addition to any hooks its parent mode `css-mode' might have run,
+this mode runs the hook `scss-mode-hook', as the final or penultimate
+step during initialization.
+
+\\{scss-mode-map}" t)
 (autoload 'css-lookup-symbol "css-mode" "\
 Display the CSS documentation for SYMBOL, as found on MDN.
 When this command is used interactively, it picks a default
@@ -6509,7 +6646,10 @@ omitted, a buffer named *Custom Themes* is used.
 (autoload 'cvs-status-mode "cvs-status" "\
 Mode used for cvs status output.
 
-(fn)" t)
+This mode runs the hook `cvs-status-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{cvs-status-mode-map}" t)
 (register-definition-prefixes "cvs-status" '("cvs-"))
 
 
@@ -6838,9 +6978,7 @@ $
 
 
 There is some minimal font-lock support (see vars
-`dcl-font-lock-defaults' and `dcl-font-lock-keywords').
-
-(fn)" t)
+`dcl-font-lock-defaults' and `dcl-font-lock-keywords')." t)
 (register-definition-prefixes "dcl-mode" '("dcl-"))
 
 
@@ -6956,7 +7094,8 @@ The most useful commands are:
 \\[decipher-make-checkpoint]  Save the current cipher alphabet (checkpoint)
 \\[decipher-restore-checkpoint]  Restore a saved cipher alphabet (checkpoint)
 
-(fn)" t)
+This mode runs the hook `decipher-mode-hook', as the final or
+penultimate step during initialization." t)
 (register-definition-prefixes "decipher" '("decipher-"))
 
 
@@ -7140,7 +7279,7 @@ See Info node `(elisp)Derived Modes' for more details.
 
 (fn CHILD PARENT NAME [DOCSTRING] [KEYWORD-ARGS...] &rest BODY)" nil t)
 (function-put 'define-derived-mode 'doc-string-elt 4)
-(function-put 'define-derived-mode 'lisp-indent-function 'defun)
+(function-put 'define-derived-mode 'autoload-macro 'expand)
 (register-definition-prefixes "derived" '("derived-mode-"))
 
 
@@ -7501,7 +7640,10 @@ ensure that all relevant variables are set.
 (autoload 'diary-mode "diary-lib" "\
 Major mode for editing the diary file.
 
-(fn)" t)
+This mode runs the hook `diary-mode-hook', as the final or penultimate
+step during initialization.
+
+\\{diary-mode-map}" t)
 (register-definition-prefixes "diary-lib" '("calendar-mark-" "diary-"))
 
 
@@ -7529,7 +7671,9 @@ This is a quick reference to this mode describing the default key bindings:
  \\`RET'	visit link at point
  \\`<mouse-2>'	visit clicked link
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `dictionary-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'dictionary "dictionary" "\
 Create a new dictionary buffer and install `dictionary-mode'." t)
 (autoload 'dictionary-search "dictionary" "\
@@ -7676,7 +7820,8 @@ a diff with \\[diff-reverse-direction].
 In read-only buffers the following bindings are also available:
 \\{diff-read-only-map}
 
-(fn)" t)
+This mode runs the hook `diff-mode-hook', as the final or penultimate
+step during initialization." t)
 (autoload 'diff-minor-mode "diff-mode" "\
 Toggle Diff minor mode.
 
@@ -8339,7 +8484,7 @@ table and its own syntax table.
 
 Turning on DNS mode runs `dns-mode-hook'.
 
-(fn)" t)
+\\{dns-mode-map}" t)
  (defalias 'zone-mode 'dns-mode)
 (autoload 'dns-mode-soa-increment-serial "dns-mode" "\
 Locate SOA record and increment the serial field." t)
@@ -8404,7 +8549,11 @@ disabled.
 (autoload 'dockerfile-ts-mode "dockerfile-ts-mode" "\
 Major mode for editing Dockerfiles, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `dockerfile-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{dockerfile-ts-mode-map}" t)
 (autoload 'dockerfile-ts-mode-maybe "dockerfile-ts-mode" "\
 Enable `dockerfile-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -8558,7 +8707,6 @@ INIT-VALUE LIGHTER KEYMAP.
 
 (fn MODE DOC [KEYWORD VAL ... &rest BODY])" nil t)
 (function-put 'define-minor-mode 'doc-string-elt 2)
-(function-put 'define-minor-mode 'lisp-indent-function 'defun)
 (function-put 'define-minor-mode 'autoload-macro 'expand)
 (autoload 'define-globalized-minor-mode "easy-mmode" "\
 Make a global mode GLOBAL-MODE corresponding to buffer-local minor MODE.
@@ -8602,7 +8750,6 @@ on if the hook has explicitly disabled it.
 
 (fn GLOBAL-MODE MODE TURN-ON [KEY VALUE]... BODY...)" nil t)
 (function-put 'define-globalized-minor-mode 'doc-string-elt 2)
-(function-put 'define-globalized-minor-mode 'lisp-indent-function 'defun)
 (function-put 'define-globalized-minor-mode 'autoload-macro 'expand)
 (autoload 'easy-mmode-define-keymap "easy-mmode" "\
 Return a keymap built from bindings BS.
@@ -8632,7 +8779,6 @@ This macro is deprecated; use `defvar-keymap' instead.
 
 (fn M BS DOC &rest ARGS)" nil t)
 (function-put 'easy-mmode-defmap 'doc-string-elt 3)
-(function-put 'easy-mmode-defmap 'lisp-indent-function 1)
 (make-obsolete 'easy-mmode-defmap 'defvar-keymap "29.1")
 (autoload 'easy-mmode-defsyntax "easy-mmode" "\
 Define variable ST as a syntax-table.
@@ -8640,7 +8786,6 @@ CSS contains a list of syntax specifications of the form (CHAR . SYNTAX).
 
 (fn ST CSS DOC &rest ARGS)" nil t)
 (function-put 'easy-mmode-defsyntax 'doc-string-elt 3)
-(function-put 'easy-mmode-defsyntax 'lisp-indent-function 1)
 (define-obsolete-function-alias 'easy-mmode-define-minor-mode #'define-minor-mode "30.1")
 (define-obsolete-function-alias 'easy-mmode-define-global-mode #'define-globalized-minor-mode "30.1")
 (define-obsolete-function-alias 'define-global-minor-mode #'define-globalized-minor-mode "31.1")
@@ -8919,13 +9064,19 @@ E.g. \\[save-buffer] writes the tree to the file it was loaded from.
 Tree mode key bindings:
 \\{ebrowse-tree-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `ebrowse-tree-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'ebrowse-electric-choose-tree "ebrowse" "\
 Return a buffer containing a tree or nil if no tree found or canceled." t)
 (autoload 'ebrowse-member-mode "ebrowse" "\
 Major mode for Ebrowse member buffers.
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `ebrowse-member-mode-hook', as the final
+or penultimate step during initialization.
+
+\\{ebrowse-member-mode-map}" t)
 (autoload 'ebrowse-tags-view-declaration "ebrowse" "\
 View declaration of member at point." t)
 (autoload 'ebrowse-tags-find-declaration "ebrowse" "\
@@ -9517,7 +9668,11 @@ disabled.
 (autoload 'editorconfig-conf-mode "editorconfig-conf-mode" "\
 Major mode for editing .editorconfig files.
 
-(fn)" t)
+In addition to any hooks its parent mode `conf-unix-mode' might have
+run, this mode runs the hook `editorconfig-conf-mode-hook', as the
+final or penultimate step during initialization.
+
+\\{editorconfig-conf-mode-map}" t)
 (add-to-list 'auto-mode-alist '("\\.editorconfig\\'" . editorconfig-conf-mode))
 (register-definition-prefixes "editorconfig-conf-mode" '("editorconfig-conf-mode-"))
 
@@ -9540,11 +9695,8 @@ Major mode for editing .editorconfig files.
 ;;; Generated autoloads from editorconfig-tools.el
 
 (autoload 'editorconfig-apply "editorconfig-tools" "\
-Get and apply EditorConfig properties to current buffer.
-
-This function does not respect the values of `editorconfig-exclude-modes' and
-`editorconfig-exclude-regexps' and always applies available properties.
-Use `editorconfig-mode-apply' instead to make use of these variables." t)
+Get and apply EditorConfig properties to current buffer." t)
+(make-obsolete 'editorconfig-apply 'hack-local-variables "31.1")
 (autoload 'editorconfig-find-current-editorconfig "editorconfig-tools" "\
 Find the closest .editorconfig file for current file." t)
 (autoload 'editorconfig-display-current-properties "editorconfig-tools" "\
@@ -9632,7 +9784,7 @@ Turn on EDT Emulation." t)
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push '(eglot 1 18) package--builtin-versions)
+(push '(eglot 1 19) package--builtin-versions)
 (define-obsolete-function-alias 'eglot-update #'eglot-upgrade-eglot "29.1")
 (autoload 'eglot "eglot" "\
 Start LSP server for PROJECT's buffers under MANAGED-MAJOR-MODES.
@@ -9790,7 +9942,6 @@ and reference them using the function `class-option'.
 
 (fn NAME SUPERCLASSES SLOTS &rest OPTIONS-AND-DOC)" nil t)
 (function-put 'defclass 'doc-string-elt 4)
-(function-put 'defclass 'lisp-indent-function 'defun)
 (autoload 'make-instance "eieio" "\
 Make a new instance of CLASS based on INITARGS.
 For example:
@@ -9975,12 +10126,83 @@ mode hooks.
 (register-definition-prefixes "elide-head" '("elide-head-"))
 
 
+;;; Generated autoloads from emacs-lisp/elisp-scope.el
+
+(autoload 'elisp-scope-get-symbol-role-property "elisp-scope" "\
+Return value of property PROP for symbol role ROLE.
+
+(fn ROLE PROP)")
+(autoload 'elisp-scope-set-symbol-role-property "elisp-scope" "\
+Set value of property PROP for symbol role ROLE to VALUE.
+
+(fn ROLE PROP VALUE)")
+(autoload 'elisp-scope-symbol-role-p "elisp-scope" "\
+Check whether a symbol SYM is the name of a \"symbol role\".
+
+(fn SYM)")
+(autoload 'elisp-scope-add-symbol-roles-to-describe-symbol "elisp-scope")
+(autoload 'elisp-scope-describe-symbol-role "elisp-scope" "\
+Describe ROLE of a symbol.
+Interactively, prompt for ROLE.
+
+(fn ROLE &rest _)" t)
+(autoload 'elisp-scope-analyze-form "elisp-scope" "\
+Read and analyze code from STREAM, reporting findings via CALLBACK.
+
+Call CALLBACK for each analyzed symbol SYM with arguments ROLE, POS,
+SYM, ID and DEF, where ROLE is a symbol that specifies the semantics of
+SYM; POS is the position of SYM in STREAM; ID is an object that uniquely
+identifies (co-)occurrences of SYM in the current defun; and DEF is the
+position in which SYM is locally defined, or nil.  If SYM is itself a
+binding occurrence, then POS and DEF are equal.  If SYM is not lexically
+bound, then DEF is nil.
+
+If STREAM is nil, it defaults to the current buffer.  When reading from
+the current buffer, this function leaves point at the end of the form.
+
+This function recursively analyzes Lisp forms (HEAD . TAIL), usually
+starting with a top-level form, by inspecting HEAD at each level:
+
+- If HEAD is a symbol with a non-nil `elisp-scope-analyzer' symbol
+  property, then the value of that property specifies a bespoke analzyer
+  function, AF, that is called as (AF HEAD . TAIL) to analyze the form.
+  See more details about writing analyzer functions below.
+
+- If HEAD satisfies `functionp', which means it is a function in the
+  running Emacs session, analzye the form as a function call.
+
+- If HEAD is a safe macro (see `elisp-scope-safe-macro-p'), expand it
+  and analyze the resulting form.
+
+- If HEAD is unknown, then the arguments in TAIL are ignored, unless
+  `elisp-scope-assume-func' is non-nil, in which case they are analyzed
+  as evaluated forms (i.e. HEAD is assumed to be a function).
+
+An analyzer (function specified via the `elisp-scope-analyzer' property)
+can use the functions `elisp-scope-report-s', `elisp-scope-1' and
+`elisp-scope-n' to analyze its arguments, and it can consult the
+variable `elisp-scope-output-spec' to obtain the expected output spec of
+the analyzed form.  For example, the following is a suitable analyzer
+for the `identity' function:
+
+  (lambda (fsym arg)
+    (elisp-scope-report-s fsym \\='function)
+    (elisp-scope-1 arg elisp-scope-output-spec))
+
+(fn CALLBACK &optional STREAM)")
+(register-definition-prefixes "elisp-scope" '("elisp-scope-"))
+
+
 ;;; Generated autoloads from progmodes/elixir-ts-mode.el
 
 (autoload 'elixir-ts-mode "elixir-ts-mode" "\
 Major mode for editing Elixir, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `elixir-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{elixir-ts-mode-map}" t)
 (autoload 'elixir-ts-mode-maybe "elixir-ts-mode" "\
 Enable `elixir-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -10150,7 +10372,11 @@ top in order to make it into an executable script:
 Major mode for viewing \"etc/AUTHORS\" from the Emacs distribution.
 Provides some basic font locking and not much else.
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `emacs-authors-mode-hook', as the final
+or penultimate step during initialization.
+
+\\{emacs-authors-mode-map}" t)
 (define-obsolete-function-alias 'etc-authors-mode #'emacs-authors-mode "29.1")
 (register-definition-prefixes "emacs-authors-mode" '("emacs-authors-" "etc-authors-"))
 
@@ -10187,11 +10413,19 @@ some major modes from being locked under some circumstances.
 (autoload 'emacs-news-mode "emacs-news-mode" "\
 Major mode for editing the Emacs NEWS file.
 
-(fn)" t)
+In addition to any hooks its parent mode `text-mode' might have run,
+this mode runs the hook `emacs-news-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{emacs-news-mode-map}" t)
 (autoload 'emacs-news-view-mode "emacs-news-mode" "\
 Major mode for viewing the Emacs NEWS file.
 
-(fn)" t)
+In addition to any hooks its parent mode `emacs-news-mode' might have
+run, this mode runs the hook `emacs-news-view-mode-hook', as the final
+or penultimate step during initialization.
+
+\\{emacs-news-view-mode-map}" t)
 (register-definition-prefixes "emacs-news-mode" '("emacs-news-"))
 
 
@@ -10675,7 +10909,7 @@ Look at CONFIG and try to expand GROUP.
 
 ;;; Generated autoloads from erc/erc.el
 
-(push '(erc 5 6 1 -4) package--builtin-versions)
+(push '(erc 5 6 2 -4) package--builtin-versions)
 (dolist (symbol '( erc-sasl erc-spelling ; 29
                   erc-imenu erc-nicks)) ; 30
  (custom-add-load symbol symbol))
@@ -10979,7 +11213,8 @@ it has to be wrapped in `(eval (quote ...))'.
 If NAME is already defined as a test and Emacs is running
 in batch mode, an error is signaled.
 
-(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil 'macro)
+(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil t)
+(function-put 'ert-deftest 'doc-string-elt 3)
 (autoload 'ert-run-tests-batch "ert" "\
 Run the tests specified by SELECTOR, printing results to the terminal.
 
@@ -11029,7 +11264,6 @@ used through `ert'.
 
 (fn NAME [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] MAJOR-MODE TEST-STR)" nil t)
 (function-put 'ert-font-lock-deftest 'doc-string-elt 2)
-(function-put 'ert-font-lock-deftest 'lisp-indent-function 1)
 (autoload 'ert-font-lock-deftest-file "ert-font-lock" "\
 Define test NAME (a symbol) using assertions from FILE.
 
@@ -11043,7 +11277,6 @@ through `ert'.
 
 (fn NAME [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] MAJOR-MODE FILE)" nil t)
 (function-put 'ert-font-lock-deftest-file 'doc-string-elt 2)
-(function-put 'ert-font-lock-deftest-file 'lisp-indent-function 1)
 (autoload 'ert-font-lock-test-string "ert-font-lock" "\
 Check font faces in TEST-STRING set by MODE.
 
@@ -11072,7 +11305,9 @@ This mode mainly provides some font locking.
 
 \\{erts-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `erts-mode-hook', as the final or penultimate
+step during initialization." t)
 (register-definition-prefixes "erts-mode" '("erts-"))
 
 
@@ -11101,7 +11336,10 @@ This mode mainly provides some font locking.
 (autoload 'eshell-mode "esh-mode" "\
 Emacs shell interactive mode.
 
-(fn)" t)
+This mode runs the hook `eshell-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{eshell-mode-map}" t)
 (autoload 'eshell-bookmark-jump "esh-mode" "\
 Default bookmark handler for Eshell buffers.
 
@@ -11231,7 +11469,11 @@ Otherwise, `find-tag-default' is used.")
 (autoload 'tags-table-mode "etags" "\
 Major mode for tags table file buffers.
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `tags-table-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{tags-table-mode-map}" t)
 (autoload 'visit-tags-table "etags" "\
 Tell tags commands to use tags table file FILE.
 FILE should be the name of a file created with the `etags' program.
@@ -11957,7 +12199,11 @@ for the search engine used." t)
 (autoload 'eww-mode "eww" "\
 Mode for browsing the web.
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `eww-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{eww-mode-map}")
 (autoload 'eww-browse-url "eww" "\
 Ask the EWW browser to load URL.
 
@@ -12141,9 +12387,7 @@ Variables controlling indentation style and extra features:
   Do not left-justify line numbers (default nil).
 
 Turning on F90 mode calls the value of the variable `f90-mode-hook'
-with no args, if that value is non-nil.
-
-(fn)" t)
+with no args, if that value is non-nil." t)
 (register-definition-prefixes "f90" '("f90-"))
 
 
@@ -12784,7 +13028,6 @@ Apply connection-local variables for APPLICATION in `default-directory'.
 Execute BODY, and unwind connection-local variables.
 
 (fn APPLICATION &rest BODY)" nil t)
-(function-put 'with-connection-local-application-variables 'lisp-indent-function 1)
 (autoload 'with-connection-local-variables-1 "files-x" "\
 Apply connection-local variables according to `default-directory'.
 Call BODY-FUN with no args, and then unwind connection-local variables.
@@ -13218,6 +13461,8 @@ evaluate `(default-value \\='find-function-mode)'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
+\\{find-function-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'find-function-setup-keys "find-func" "\
 Turn on `find-function-mode', which see.")
@@ -13298,7 +13543,7 @@ lines.
 
 ;;; Generated autoloads from progmodes/flymake.el
 
-(push '(flymake 1 4 1) package--builtin-versions)
+(push '(flymake 1 4 3) package--builtin-versions)
 (autoload 'flymake-log "flymake" "\
 Log, at level LEVEL, the message MSG formatted with ARGS.
 LEVEL is passed to `display-warning', which is used to display
@@ -13832,9 +14077,7 @@ Variables controlling indentation style and extra features:
   Non-nil causes lines to be broken before delimiters (default t).
 
 Turning on Fortran mode calls the value of the variable `fortran-mode-hook'
-with no args, if that value is non-nil.
-
-(fn)" t)
+with no args, if that value is non-nil." t)
 (register-definition-prefixes "fortran" '("fortran-"))
 
 
@@ -14232,8 +14475,8 @@ mode hook `MODE-hook'.
 See the file generic-x.el for some examples of `define-generic-mode'.
 
 (fn MODE COMMENT-LIST KEYWORD-LIST FONT-LOCK-LIST AUTO-MODE-LIST FUNCTION-LIST &optional DOCSTRING)" nil t)
-(function-put 'define-generic-mode 'lisp-indent-function 1)
 (function-put 'define-generic-mode 'doc-string-elt 7)
+(function-put 'define-generic-mode 'autoload-macro 'expand)
 (autoload 'generic-mode-internal "generic" "\
 Go into the generic mode MODE.
 
@@ -15144,7 +15387,9 @@ Major mode for editing Go, powered by tree-sitter.
 
 \\{go-ts-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `go-ts-mode-hook', as the final or penultimate
+step during initialization." t)
 (autoload 'go-ts-mode-maybe "go-ts-mode" "\
 Enable `go-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -15153,7 +15398,11 @@ is t or contains the mode name.")
 (autoload 'go-mod-ts-mode "go-ts-mode" "\
 Major mode for editing go.mod files, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `go-mod-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{go-mod-ts-mode-map}" t)
 (autoload 'go-mod-ts-mode-maybe "go-ts-mode" "\
 Enable `go-mod-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -15162,7 +15411,11 @@ is t or contains the mode name.")
 (autoload 'go-work-ts-mode "go-ts-mode" "\
 Major mode for editing go.work files, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `go-work-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{go-work-ts-mode-map}" t)
 (autoload 'go-work-ts-mode-maybe "go-ts-mode" "\
 Enable `go-work-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -15287,7 +15540,11 @@ disabled.
 (autoload 'wisent-grammar-mode "semantic/wisent/grammar" "\
 Major mode for editing Wisent grammars.
 
-(fn)" t)
+In addition to any hooks its parent mode `semantic-grammar-mode' might
+have run, this mode runs the hook `wisent-grammar-mode-hook', as the
+final or penultimate step during initialization.
+
+\\{wisent-grammar-mode-map}" t)
 (register-definition-prefixes "semantic/wisent/grammar" '("semantic-grammar-" "wisent-"))
 
 
@@ -15296,7 +15553,11 @@ Major mode for editing Wisent grammars.
 (autoload 'bovine-grammar-mode "semantic/bovine/grammar" "\
 Major mode for editing Bovine grammars.
 
-(fn)" t)
+In addition to any hooks its parent mode `semantic-grammar-mode' might
+have run, this mode runs the hook `bovine-grammar-mode-hook', as the
+final or penultimate step during initialization.
+
+\\{bovine-grammar-mode-map}" t)
 (register-definition-prefixes "semantic/bovine/grammar" '("bovine-" "semantic-grammar-"))
 
 
@@ -15423,7 +15684,11 @@ The value depends on `grep-command', `grep-template',
 (autoload 'grep-mode "grep" "\
 Sets `grep-last-buffer' and `compilation-window-height'.
 
-(fn)")
+In addition to any hooks its parent mode `compilation-mode' might have
+run, this mode runs the hook `grep-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{grep-mode-map}" t)
 (autoload 'grep "grep" "\
 Run Grep with user-specified COMMAND-ARGS.
 The output from the command goes to the \"*grep*\" buffer.
@@ -15619,7 +15884,11 @@ gud, see `gud-mode'.
 (autoload 'gdb-script-mode "gud" "\
 Major mode for editing GDB scripts.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `gdb-script-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{gdb-script-mode-map}" t)
 (defvar gud-tooltip-mode nil "\
 Non-nil if Gud-Tooltip mode is enabled.
 See the `gud-tooltip-mode' command
@@ -15697,7 +15966,6 @@ The returned value will then be an Elisp expression that first evaluates
 all the parts of PLACE that can be evaluated and then runs E.
 
 (fn (GETTER SETTER) PLACE &rest BODY)" nil t)
-(function-put 'gv-letplace 'lisp-indent-function 2)
 (autoload 'gv-define-expander "gv" "\
 Use HANDLER to handle NAME as a generalized var.
 NAME is a symbol: the name of a function, macro, or special form.
@@ -15705,7 +15973,6 @@ HANDLER is a function which takes an argument DO followed by the same
 arguments as NAME.  DO is a function as defined in `gv-get'.
 
 (fn NAME HANDLER)" nil t)
-(function-put 'gv-define-expander 'lisp-indent-function 1)
 (autoload 'gv--defun-declaration "gv" "\
 
 
@@ -15728,7 +15995,6 @@ to be pure and copyable.  Example use:
   (gv-define-setter aref (v a i) \\=`(aset ,a ,i ,v))
 
 (fn NAME ARGLIST &rest BODY)" nil t)
-(function-put 'gv-define-setter 'lisp-indent-function 2)
 (autoload 'gv-define-simple-setter "gv" "\
 Define a simple setter method for generalized variable NAME.
 This macro is an easy-to-use substitute for `gv-define-expander' that works
@@ -15839,7 +16105,11 @@ Like `hanoi-unix', but with a 64-bit clock." t)
 (autoload 'heex-ts-mode "heex-ts-mode" "\
 Major mode for editing HEEx, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `html-mode' might have run,
+this mode runs the hook `heex-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{heex-ts-mode-map}" t)
 (autoload 'heex-ts-mode-maybe "heex-ts-mode" "\
 Enable `heex-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -16154,7 +16424,9 @@ Also see the `help-enable-variable-value-editing' variable.
 Commands:
 \\{help-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `help-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'help-mode-setup "help-mode" "\
 Enter Help mode in the current buffer.")
 (make-obsolete 'help-mode-setup 'nil "29.1")
@@ -16624,44 +16896,7 @@ disabled.
 
 ;;; Generated autoloads from progmodes/hideshow.el
 
-(defvar hs-special-modes-alist '((c-mode "{" "}" "/[*/]" nil nil) (c-ts-mode "{" "}" "/[*/]" nil nil) (c++-mode "{" "}" "/[*/]" nil nil) (c++-ts-mode "{" "}" "/[*/]" nil nil) (bibtex-mode ("@\\S(*\\(\\s(\\)" 1)) (java-mode "{" "}" "/[*/]" nil nil) (java-ts-mode "{" "}" "/[*/]" nil nil) (js-mode "{" "}" "/[*/]" nil) (js-ts-mode "{" "}" "/[*/]" nil) (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil)) "\
-Alist for initializing the hideshow variables for different modes.
-Each element has the form
-  (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC
-   FIND-BLOCK-BEGINNING-FUNC FIND-NEXT-BLOCK-FUNC
-   LOOKING-AT-BLOCK-START-P-FUNC).
-
-If non-nil, hideshow will use these values as regexps to define blocks
-and comments, respectively for major mode MODE.
-
-START, END and COMMENT-START are regular expressions.  A block is
-defined as text surrounded by START and END.
-
-As a special case, START may be a list of the form (COMPLEX-START
-MDATA-SELECTOR), where COMPLEX-START is a regexp with multiple parts and
-MDATA-SELECTOR an integer that specifies which sub-match is the proper
-place to adjust point, before calling `hs-forward-sexp-func'.  Point
-is adjusted to the beginning of the specified match.  For example,
-see the `hs-special-modes-alist' entry for `bibtex-mode'.
-
-For some major modes, `forward-sexp' does not work properly.  In those
-cases, FORWARD-SEXP-FUNC specifies another function to use instead.
-
-See the documentation for `hs-adjust-block-beginning' to see what is the
-use of ADJUST-BEG-FUNC.
-
-See the documentation for `hs-find-block-beginning-func' to see
-what is the use of FIND-BLOCK-BEGINNING-FUNC.
-
-See the documentation for `hs-find-next-block-func' to see what
-is the use of FIND-NEXT-BLOCK-FUNC.
-
-See the documentation for `hs-looking-at-block-start-p-func' to
-see what is the use of LOOKING-AT-BLOCK-START-P-FUNC.
-
-If any of the elements is left nil or omitted, hideshow tries to guess
-appropriate values.  The regexps should not contain leading or trailing
-whitespace.  Case does not matter.")
+(defvar hs-special-modes-alist nil)
 (autoload 'hs-minor-mode "hideshow" "\
 Minor mode to selectively hide/show code and comment blocks.
 
@@ -16964,48 +17199,72 @@ disabled.
 
 (defvar holiday-general-holidays '((holiday-fixed 1 1 "New Year's Day") (holiday-float 1 1 3 "Martin Luther King Day") (holiday-fixed 2 2 "Groundhog Day") (holiday-fixed 2 14 "Valentine's Day") (holiday-float 2 1 3 "President's Day") (holiday-fixed 3 17 "St. Patrick's Day") (holiday-fixed 4 1 "April Fools' Day") (holiday-float 5 0 2 "Mother's Day") (holiday-float 5 1 -1 "Memorial Day") (holiday-fixed 6 14 "Flag Day") (holiday-float 6 0 3 "Father's Day") (holiday-fixed 7 4 "Independence Day") (holiday-float 9 1 1 "Labor Day") (holiday-float 10 1 2 "Columbus Day") (holiday-fixed 10 31 "Halloween") (holiday-fixed 11 11 "Veteran's Day") (holiday-float 11 4 4 "Thanksgiving")) "\
 General holidays.  Default value is for the United States.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-general-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-general-holidays "holidays" nil)
 (put 'holiday-general-holidays 'risky-local-variable t)
 (defvar holiday-oriental-holidays '((holiday-chinese-new-year) (if calendar-chinese-all-holidays-flag (append (holiday-chinese 1 15 "Lantern Festival") (holiday-chinese-qingming) (holiday-chinese 5 5 "Dragon Boat Festival") (holiday-chinese 7 7 "Double Seventh Festival") (holiday-chinese 8 15 "Mid-Autumn Festival") (holiday-chinese 9 9 "Double Ninth Festival") (holiday-chinese-winter-solstice)))) "\
 Oriental holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-oriental-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-oriental-holidays "holidays" nil)
 (put 'holiday-oriental-holidays 'risky-local-variable t)
 (defvar holiday-local-holidays nil "\
 Local holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-local-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-local-holidays "holidays" nil)
 (put 'holiday-local-holidays 'risky-local-variable t)
 (defvar holiday-other-holidays nil "\
 User defined holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-other-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-other-holidays "holidays" nil)
 (put 'holiday-other-holidays 'risky-local-variable t)
 (defvar holiday-hebrew-holidays '((holiday-hebrew-passover) (holiday-hebrew-rosh-hashanah) (holiday-hebrew-hanukkah) (if calendar-hebrew-all-holidays-flag (append (holiday-hebrew-tisha-b-av) (holiday-hebrew-misc)))) "\
 Jewish holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-hebrew-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-hebrew-holidays "holidays" nil)
 (put 'holiday-hebrew-holidays 'risky-local-variable t)
 (defvar holiday-christian-holidays '((holiday-easter-etc) (holiday-fixed 12 25 "Christmas") (if calendar-christian-all-holidays-flag (append (holiday-fixed 1 6 "Epiphany") (holiday-julian 12 25 "Christmas (Julian calendar)") (holiday-greek-orthodox-easter) (holiday-fixed 8 15 "Assumption") (holiday-advent 0 "Advent")))) "\
 Christian holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-christian-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-christian-holidays "holidays" nil)
 (put 'holiday-christian-holidays 'risky-local-variable t)
 (defvar holiday-islamic-holidays '((holiday-islamic-new-year) (holiday-islamic 9 1 "Ramadan Begins") (if calendar-islamic-all-holidays-flag (append (holiday-islamic 1 10 "Ashura") (holiday-islamic 3 12 "Mulad-al-Nabi") (holiday-islamic 7 26 "Shab-e-Mi'raj") (holiday-islamic 8 15 "Shab-e-Bara't") (holiday-islamic 9 27 "Shab-e Qadr") (holiday-islamic 10 1 "Id-al-Fitr") (holiday-islamic 12 10 "Id-al-Adha")))) "\
 Islamic holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-islamic-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-islamic-holidays "holidays" nil)
 (put 'holiday-islamic-holidays 'risky-local-variable t)
 (defvar holiday-bahai-holidays '((holiday-bahai-new-year) (holiday-bahai-ridvan) (holiday-fixed 5 23 "Declaration of the Báb") (holiday-fixed 5 29 "Ascension of Bahá’u’lláh") (holiday-fixed 7 9 "Martyrdom of the Báb") (holiday-fixed 10 20 "Birth of the Báb") (holiday-fixed 11 12 "Birth of Bahá’u’lláh") (if calendar-bahai-all-holidays-flag (append (holiday-fixed 11 26 "Day of the Covenant") (holiday-fixed 11 28 "Ascension of `Abdu’l-Bahá")))) "\
 Bahá’í holidays.
 See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-bahai-holidays "holidays" t)
+(custom-autoload 'holiday-bahai-holidays "holidays" nil)
 (put 'holiday-bahai-holidays 'risky-local-variable t)
 (defvar holiday-solar-holidays '((solar-equinoxes-solstices) (holiday-sexp calendar-daylight-savings-starts (format "Daylight Saving Time Begins %s" (solar-time-string (/ calendar-daylight-savings-starts-time (float 60)) calendar-standard-time-zone-name))) (holiday-sexp calendar-daylight-savings-ends (format "Daylight Saving Time Ends %s" (solar-time-string (/ calendar-daylight-savings-ends-time (float 60)) calendar-daylight-time-zone-name)))) "\
 Sun-related holidays.
-See the documentation for `calendar-holidays' for details.")
-(custom-autoload 'holiday-solar-holidays "holidays" t)
+See the documentation for `calendar-holidays' for details.
+
+Do not set this variable with `setq'; instead, use `setopt'
+or `customize-option'.")
+(custom-autoload 'holiday-solar-holidays "holidays" nil)
 (put 'holiday-solar-holidays 'risky-local-variable t)
 (put 'calendar-holidays 'risky-local-variable t)
 (autoload 'holidays "holidays" "\
@@ -17041,7 +17300,7 @@ values.
 
 (fn Y1 &optional Y2 L LABEL)" t)
 (defalias 'holiday-list 'list-holidays)
-(register-definition-prefixes "holidays" '("calendar-" "holiday-"))
+(register-definition-prefixes "holidays" '("calendar-" "holiday"))
 
 
 ;;; Generated autoloads from cedet/semantic/html.el
@@ -17054,7 +17313,11 @@ values.
 (autoload 'html-ts-mode "html-ts-mode" "\
 Major mode for editing Html, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `html-mode' might have run,
+this mode runs the hook `html-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{html-ts-mode-map}" t)
 (register-definition-prefixes "html-ts-mode" '("html-ts-mode-"))
 
 
@@ -17129,7 +17392,7 @@ inlined into the compiled format versions.  This means that if you
 change its definition, you should explicitly call
 `ibuffer-recompile-formats'.
 
-(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil 'macro)
+(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil t)
 (autoload 'define-ibuffer-sorter "ibuf-macs" "\
 Define a method of sorting named NAME.
 DOCUMENTATION is the documentation of the function, which will be called
@@ -17140,7 +17403,8 @@ For sorting, the forms in BODY will be evaluated with `a' bound to one
 buffer object, and `b' bound to another.  BODY should return a non-nil
 value if and only if `a' is \"less than\" `b'.
 
-(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil 'macro)
+(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil t)
+(function-put 'define-ibuffer-sorter 'doc-string-elt 2)
 (autoload 'define-ibuffer-op "ibuf-macs" "\
 Generate a function which operates on a buffer.
 OP becomes the name of the function; if it doesn't begin with
@@ -17183,7 +17447,8 @@ BODY define the operation; they are forms to evaluate per each
 marked buffer.  BODY is evaluated with `buf' bound to the
 buffer object.
 
-(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil 'macro)
+(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil t)
+(function-put 'define-ibuffer-op 'doc-string-elt 3)
 (autoload 'define-ibuffer-filter "ibuf-macs" "\
 Define a filter named NAME.
 DOCUMENTATION is the documentation of the function.
@@ -17198,7 +17463,8 @@ not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter.
 
-(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil 'macro)
+(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil t)
+(function-put 'define-ibuffer-filter 'doc-string-elt 2)
 (register-definition-prefixes "ibuf-macs" '("ibuffer-"))
 
 
@@ -17462,9 +17728,7 @@ Variables controlling indentation style:
     this far to the right of the start of its line.
 
 Turning on Icon mode calls the value of the variable `icon-mode-hook'
-with no args, if that value is non-nil.
-
-(fn)" t)
+with no args, if that value is non-nil." t)
 (register-definition-prefixes "icon" '("beginning-of-icon-defun" "calculate-icon-indent" "electric-icon-brace" "end-of-icon-defun" "icon-" "indent-icon-exp" "mark-icon-function"))
 
 
@@ -17786,6 +18050,13 @@ be determined.
 
 (fn FILE)")
 (make-obsolete 'image-type-from-file-name 'image-supported-file-p "29.1")
+(autoload 'image-supported-file-p "image" "\
+Return non-nil if Emacs can display the specified image FILE.
+The returned value is a symbol specifying the image type of FILE,
+or nil if Emacs cannot display that image type or if the type
+cannot be determined.
+
+(fn FILE)")
 (autoload 'image-type "image" "\
 Determine and return image type.
 SOURCE is an image file name or image data.
@@ -17949,7 +18220,6 @@ Example:
 
 (fn SYMBOL SPECS &optional DOC)" nil t)
 (function-put 'defimage 'doc-string-elt 3)
-(function-put 'defimage 'lisp-indent-function 'defun)
 (autoload 'imagemagick-register-types "image" "\
 Register file types that can be handled by ImageMagick.
 This function is called at startup, after loading the init file.
@@ -18697,7 +18967,9 @@ Advanced commands:
 \\[universal-argument] \\[info]	Move to new Info file with completion.
 \\[universal-argument] N \\[info]	Select Info buffer with prefix number in the name *info*<N>.
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `Info-mode-hook', as the final or
+penultimate step during initialization." t)
  (put 'Info-goto-emacs-command-node 'info-file "emacs")
 (autoload 'Info-goto-emacs-command-node "info" "\
 Go to the Info node in the Emacs manual for command COMMAND.
@@ -18903,12 +19175,16 @@ For example, invoke \"emacs -batch -f batch-info-validate $info/ ~/*.info\"")
 
 (autoload 'define-inline "inline" "\
 Define an inline function NAME with arguments ARGS and body in BODY.
+This is halfway between `defmacro' and `defun'.  BODY is used as a blueprint
+both for the body of the function and for the body of the compiler-macro
+used to generate the code inlined at each call site.
+See Info node `(elisp)Inline Functions for more details.
 
-This is like `defmacro', but has several advantages.
-See Info node `(elisp)Defining Functions' for more details.
+A (noinline t) in the `declare' form prevents the definition of the
+compiler macro.  This is for the rare case in which you want to use this
+macro to define a function that should not be inlined.
 
 (fn NAME ARGS &rest BODY)" nil t)
-(function-put 'define-inline 'lisp-indent-function 'defun)
 (function-put 'define-inline 'doc-string-elt 3)
 (function-put 'define-inline 'autoload-macro 'expand)
 (register-definition-prefixes "inline" '("inline-"))
@@ -19354,7 +19630,11 @@ Return the string read from the minibuffer.
 (autoload 'java-ts-mode "java-ts-mode" "\
 Major mode for editing Java, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `java-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{java-ts-mode-map}" t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(java-mode . java-ts-mode)))
 (register-definition-prefixes "java-ts-mode" '("java-ts-mode-"))
 
@@ -19391,22 +19671,45 @@ Generic major mode for editing JavaScript.
 This mode is intended to be inherited by concrete major modes.
 Currently there are `js-mode' and `js-ts-mode'.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `js-base-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{js-base-mode-map}" t)
 (autoload 'js-mode "js" "\
 Major mode for editing JavaScript.
 
-(fn)" t)
+In addition to any hooks its parent mode `js-base-mode' might have
+run, this mode runs the hook `js-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{js-mode-map}" t)
 (autoload 'js-ts-mode "js" "\
 Major mode for editing JavaScript.
 
 \\<js-ts-mode-map>
 
-(fn)" t)
+In addition to any hooks its parent mode `js-base-mode' might have
+run, this mode runs the hook `js-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{js-ts-mode-map}" t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(javascript-mode . js-ts-mode)))
 (autoload 'js-json-mode "js" "\
+Major mode derived from `prog-mode' by `define-derived-mode'.
+It inherits all of the parent's attributes, but has its own keymap,
+abbrev table and syntax table:
 
+  `js-json-mode-map', `js-json-mode-abbrev-table' and
+`js-mode-syntax-table'
 
-(fn)" t)
+which more-or-less shadow prog-mode's corresponding tables.
+
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `js-json-mode-hook', as the final or penultimate step
+during initialization.
+
+\\{js-json-mode-map}" t)
 (autoload 'js-jsx-mode "js" "\
 Major mode for editing JavaScript+JSX.
 
@@ -19420,7 +19723,11 @@ could set `js-jsx-syntax' to t in your init file, or in a
 `js-jsx-enable' in `js-mode-hook'.  You may be better served by
 one of the aforementioned options instead of using this mode.
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `js-jsx-mode-hook', as the final or penultimate step
+during initialization.
+
+\\{js-jsx-mode-map}" t)
  (defalias 'javascript-mode 'js-mode)
 (dolist (name (list "node" "nodejs" "gjs" "rhino")) (add-to-list 'interpreter-mode-alist (cons name 'js-mode)))
 (register-definition-prefixes "js" '("js-"))
@@ -19437,14 +19744,18 @@ one of the aforementioned options instead of using this mode.
 (autoload 'json-ts-mode "json-ts-mode" "\
 Major mode for editing JSON, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `json-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{json-ts-mode-map}" t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(js-json-mode . json-ts-mode)))
 (register-definition-prefixes "json-ts-mode" '("json-ts-"))
 
 
 ;;; Generated autoloads from jsonrpc.el
 
-(push '(jsonrpc 1 0 25) package--builtin-versions)
+(push '(jsonrpc 1 0 26) package--builtin-versions)
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
 
@@ -19781,7 +20092,11 @@ isn't changed if the display can render Unicode characters.
 (autoload 'ld-script-mode "ld-script" "\
 A major mode to edit GNU ld script files.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `ld-script-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{ld-script-mode-map}" t)
 (register-definition-prefixes "ld-script" '("ld-script-"))
 
 
@@ -19802,7 +20117,9 @@ Major mode for editing Less files (https://lesscss.org/).
 Special commands:
 \\{less-css-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `css-mode' might have run,
+this mode runs the hook `less-css-mode-hook', as the final or
+penultimate step during initialization." t)
 (register-definition-prefixes "less-css-mode" '("less-css-"))
 
 
@@ -19853,7 +20170,6 @@ the following form evaluates to nil:
       .some-key)
 
 (fn ALIST &rest BODY)" nil t)
-(function-put 'let-alist 'lisp-indent-function 1)
 (register-definition-prefixes "let-alist" '("let-alist--"))
 
 
@@ -19901,18 +20217,18 @@ sleep in seconds.
 ;;; Generated autoloads from emacs-lisp/loaddefs-gen.el
 
 (put 'autoload-compute-prefixes 'safe-local-variable #'booleanp)
-(put 'generated-autoload-file 'safe-local-variable 'stringp)
-(put 'generated-autoload-load-name 'safe-local-variable 'stringp)
+(put 'generated-autoload-file 'safe-local-variable #'stringp)
+(put 'generated-autoload-load-name 'safe-local-variable #'stringp)
 (autoload 'loaddefs-generate "loaddefs-gen" "\
-Generate loaddefs files for Lisp files in one or more directories given by DIR.
-DIR can be either a single directory or a list of directories.
+Generate loaddefs files for Lisp files in directories given by DIRS.
+DIRS can be either a single directory or a list of directories.
 
 The autoloads will be written to OUTPUT-FILE.  If any Lisp file
 binds `generated-autoload-file' as a file-local variable, write
 its autoloads into the specified file instead.
 
-The function does NOT recursively descend into subdirectories of the
-directories specified by DIR.
+This function does NOT recursively descend into subdirectories of the
+directories specified by DIRS.
 
 Optional argument EXCLUDED-FILES, if non-nil, should be a list of
 files, such as preloaded files, whose autoloads should not be written
@@ -19928,7 +20244,7 @@ If INCLUDE-PACKAGE-VERSION is non-nil, include package version data.
 If GENERATE-FULL is non-nil, regenerate all the loaddefs files anew,
 instead of just updating them with the new/changed autoloads.
 
-(fn DIR OUTPUT-FILE &optional EXCLUDED-FILES EXTRA-DATA INCLUDE-PACKAGE-VERSION GENERATE-FULL)")
+(fn DIRS OUTPUT-FILE &optional EXCLUDED-FILES EXTRA-DATA INCLUDE-PACKAGE-VERSION GENERATE-FULL)")
 (autoload 'loaddefs-generate-batch "loaddefs-gen" "\
 Generate loaddefs.el files in batch mode.
 This scans for ;;;###autoload forms and related things.
@@ -20059,7 +20375,11 @@ done.  Otherwise, this function will use the current buffer.
 (autoload 'log-view-mode "log-view" "\
 Major mode for browsing CVS log output.
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `log-view-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{log-view-mode-map}" t)
 (autoload 'log-view-get-marked "log-view" "\
 Return the list of tags for the marked log entries.")
 (register-definition-prefixes "log-view" '("log-view-"))
@@ -20163,19 +20483,28 @@ Otherwise they are treated as Emacs regexps (for backward compatibility).")
 (autoload 'lua-mode "lua-mode" "\
 Major mode for editing Lua code.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `lua-mode-hook', as the final or penultimate
+step during initialization.
+
+\\{lua-mode-map}" t)
 (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-mode))
 (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
 (defalias 'run-lua #'lua-start-process)
 (autoload 'lua-start-process "lua-mode" "\
 Start a Lua process named NAME, running PROGRAM.
-PROGRAM defaults to NAME, which defaults to `lua-default-application'.
 When called interactively, switch to the process buffer.
 
-STARTFILE is the name of a file, whose contents are sent to the process
-as its initial input.
+NAME is the name of the created process; default is
+`lua-process-buffer-name' or `lua-default-application'.
 
-SWITCHES is a list of strings passed as arguments to PROGRAM.
+PROGRAM is the executable to run; default is `lua-default-application'.
+
+STARTFILE is a file, whose contents are sent to the process as initial
+input; default is `lua-process-startfile'.
+
+SWITCHES is a list of strings passed as arguments to PROGRAM; default is
+`lua-default-command-switches'.
 
 (fn &optional NAME PROGRAM STARTFILE &rest SWITCHES)" t)
 (register-definition-prefixes "lua-mode" '("lua-"))
@@ -20190,7 +20519,9 @@ Major mode for editing Lua files, powered by tree-sitter.
 
 \\{lua-ts-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `lua-ts-mode-hook', as the final or
+penultimate step during initialization." t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(lua-mode . lua-ts-mode)))
 (register-definition-prefixes "lua-ts-mode" '("lua-ts-"))
 
@@ -20211,7 +20542,11 @@ This function is suitable for execution in an init file.
 (autoload 'm4-mode "m4-mode" "\
 A major mode to edit m4 macro files.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `m4-mode-hook', as the final or penultimate
+step during initialization.
+
+\\{m4-mode-map}" t)
 (register-definition-prefixes "m4-mode" '("m4-"))
 
 
@@ -20662,29 +20997,47 @@ Makefile mode can be configured by modifying the following variables:
 `makefile-special-targets-list':
    List of special targets.  You will be offered to complete
    on one of those in the minibuffer whenever you enter a `.'.
-   at the beginning of a line in Makefile mode.
-
-(fn)" t)
+   at the beginning of a line in Makefile mode." t)
 (autoload 'makefile-automake-mode "make-mode" "\
 An adapted `makefile-mode' that knows about automake.
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `makefile-automake-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{makefile-automake-mode-map}" t)
 (autoload 'makefile-gmake-mode "make-mode" "\
 An adapted `makefile-mode' that knows about gmake.
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `makefile-gmake-mode-hook', as the final or penultimate
+step during initialization.
+
+\\{makefile-gmake-mode-map}" t)
 (autoload 'makefile-makepp-mode "make-mode" "\
 An adapted `makefile-mode' that knows about makepp.
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `makefile-makepp-mode-hook', as the final or penultimate
+step during initialization.
+
+\\{makefile-makepp-mode-map}" t)
 (autoload 'makefile-bsdmake-mode "make-mode" "\
 An adapted `makefile-mode' that knows about BSD make.
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `makefile-bsdmake-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{makefile-bsdmake-mode-map}" t)
 (autoload 'makefile-imake-mode "make-mode" "\
 An adapted `makefile-mode' that knows about imake.
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `makefile-imake-mode-hook', as the final or penultimate
+step during initialization.
+
+\\{makefile-imake-mode-map}" t)
 (register-definition-prefixes "make-mode" '("makefile-"))
 
 
@@ -20779,7 +21132,11 @@ Populate MENU with commands that open a man page at point.
 (autoload 'markdown-ts-mode "markdown-ts-mode" "\
 Major mode for editing Markdown using tree-sitter grammar.
 
-(fn)" t)
+In addition to any hooks its parent mode `text-mode' might have run,
+this mode runs the hook `markdown-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{markdown-ts-mode-map}" t)
 (autoload 'markdown-ts-mode-maybe "markdown-ts-mode" "\
 Enable `markdown-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -20882,7 +21239,9 @@ Like `text-mode', but with these additional commands:
 
 \\{message-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `message-mode-hook', as the final or penultimate step
+during initialization." t)
 (autoload 'message-mail "message" "\
 Start editing a mail message to be sent.
 OTHER-HEADERS is an alist of header/value pairs.  CONTINUE says whether
@@ -21003,11 +21362,19 @@ to the E-mail.
 (autoload 'metafont-mode "meta-mode" "\
 Major mode for editing Metafont sources.
 
-(fn)" t)
+In addition to any hooks its parent mode `meta-common-mode' might have
+run, this mode runs the hook `metafont-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{metafont-mode-map}" t)
 (autoload 'metapost-mode "meta-mode" "\
 Major mode for editing MetaPost sources.
 
-(fn)" t)
+In addition to any hooks its parent mode `meta-common-mode' might have
+run, this mode runs the hook `metapost-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{metapost-mode-map}" t)
 (register-definition-prefixes "meta-mode" '("meta"))
 
 
@@ -21185,9 +21552,7 @@ If the option `transient-mark-mode' is set to t and you set a
 region in the MH-Folder buffer, then the MH-E command will
 perform the operation on all messages in that region.
 
-\\{mh-folder-mode-map}
-
-(fn)" t)
+\\{mh-folder-mode-map}" t)
 (register-definition-prefixes "mh-folder" '("mh-"))
 
 
@@ -21285,7 +21650,11 @@ Code inside a <script> element is indented using the rules from
 `js-mode'; and code inside a <style> element is indented using
 the rules from `css-mode'.
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `mhtml-mode-hook', as the final or penultimate step
+during initialization.
+
+\\{mhtml-mode-map}" t)
 (register-definition-prefixes "mhtml-mode" '("mhtml-"))
 
 
@@ -21295,7 +21664,11 @@ the rules from `css-mode'.
 Major mode for editing HTML with embedded JavaScript and CSS.
 Powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `html-ts-mode' might have
+run, this mode runs the hook `mhtml-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{mhtml-ts-mode-map}" t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(mhtml-mode . mhtml-ts-mode)))
 (register-definition-prefixes "mhtml-ts-mode" '("mhtml-ts-mode-"))
 
@@ -21544,6 +21917,13 @@ With a prefix argument, ask for a wildcard, and search in file buffers
 whose file names match the specified wildcard.
 
 (fn FILES)" t)
+(autoload 'multi-file-replace-as-diff "misearch" "\
+Show as diffs replacements of FROM-STRING with REPLACEMENTS.
+FILES is a list of file names.  Also it's possible to provide a list of
+buffers in FILES.  REGEXP-FLAG and DELIMITED-FLAG have the same meaning
+as in `perform-replace'.
+
+(fn FILES FROM-STRING REPLACEMENTS REGEXP-FLAG DELIMITED-FLAG)")
 (autoload 'multi-file-replace-regexp-as-diff "misearch" "\
 Show as diffs replacements of REGEXP with TO-STRING in FILES.
 DELIMITED has the same meaning as in `replace-regexp'.
@@ -21567,7 +21947,11 @@ you can later apply as a patch after reviewing the changes.
 (autoload 'mixal-mode "mixal-mode" "\
 Major mode for the mixal asm language.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `mixal-mode-hook', as the final or penultimate
+step during initialization.
+
+\\{mixal-mode-map}" t)
 (register-definition-prefixes "mixal-mode" '("mixal-"))
 
 
@@ -21788,7 +22172,9 @@ followed by the first character of the construct.
    `m2-compile-command' holds the command to compile a Modula-2 program.
    `m2-link-command' holds the command to link a Modula-2 program.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `m2-mode-hook', as the final or penultimate
+step during initialization." t)
 (register-definition-prefixes "modula2" '("m2-" "m3-font-lock-keywords"))
 
 
@@ -22129,7 +22515,6 @@ This affects the implicit sorting of lists of coding systems returned by
 operations such as `find-coding-systems-region'.
 
 (fn CODING-SYSTEMS &rest BODY)" nil t)
-(function-put 'with-coding-priority 'lisp-indent-function 1)
 (autoload 'detect-coding-with-language-environment "mule-util" "\
 Detect a coding system for the text between FROM and TO with LANG-ENV.
 The detection takes into account the coding system priorities for the
@@ -22177,7 +22562,6 @@ DOC should be a doc string, and ARGS are keywords as applicable to
 `make-multisession'.
 
 (fn NAME INITIAL-VALUE &optional DOC &rest ARGS)" nil t)
-(function-put 'define-multisession-variable 'lisp-indent-function 'defun)
 (autoload 'list-multisession-values "multisession" "\
 List all values in the \"multisession\" database.
 If CHOOSE-STORAGE (interactively, the prefix), query for the
@@ -22197,6 +22581,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `mouse-wheel-mode'.")
 (custom-autoload 'mouse-wheel-mode "mwheel" nil)
+(when (bound-and-true-p mouse-wheel-mode) (add-to-list 'global-minor-modes 'mouse-wheel-mode))
 (autoload 'mouse-wheel-mode "mwheel" "\
 Toggle mouse wheel support (Mouse Wheel mode).
 
@@ -22716,9 +23101,7 @@ Major mode for editing text intended for nroff to format.
 \\{nroff-mode-map}
 Turning on Nroff mode runs `text-mode-hook', then `nroff-mode-hook'.
 Also, try `nroff-electric-mode', for automatically inserting
-closing requests for requests that are used in matched pairs.
-
-(fn)" t)
+closing requests for requests that are used in matched pairs." t)
 (register-definition-prefixes "nroff-mode" '("nroff-"))
 
 
@@ -22797,7 +23180,9 @@ to nil.  For more details, see the function `nxml-forward-balanced-item'.
 Many aspects this mode can be customized using
 \\[customize-group] nxml RET.
 
-(fn)" t)
+In addition to any hooks its parent mode `text-mode' might have run,
+this mode runs the hook `nxml-mode-hook', as the final or penultimate
+step during initialization." t)
 (defalias 'xml-mode 'nxml-mode)
 (register-definition-prefixes "nxml-mode" '("nxml-"))
 
@@ -23116,7 +23501,9 @@ See Info node `(octave-mode) Using Octave Mode' for more details.
 Key bindings:
 \\{octave-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `octave-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'inferior-octave "octave" "\
 Run an inferior Octave process, I/O via `inferior-octave-buffer'.
 This buffer is put in Inferior Octave mode.  See `inferior-octave-mode'.
@@ -23240,7 +23627,9 @@ Coloring:
  `opascal-keyword-face'                (default `font-lock-keyword-face')
     Face used to color OPascal keywords.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `opascal-mode-hook', as the final or
+penultimate step during initialization." t)
 (register-definition-prefixes "opascal" '("opascal-"))
 
 
@@ -23292,7 +23681,9 @@ The following commands are available:
 
 \\{org-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `outline-mode' might have
+run, this mode runs the hook `org-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'org-run-like-in-org-mode "org" "\
 Run a command, pretending that the current buffer is in Org mode.
 This will temporarily bind local variables that are typically bound in
@@ -23975,9 +24366,7 @@ A line is a heading if `outline-regexp' matches something at the
 beginning of the line.  The longer the match, the deeper the level.
 
 Turning on outline mode calls the value of `text-mode-hook' and then of
-`outline-mode-hook', if they are non-nil.
-
-(fn)" t)
+`outline-mode-hook', if they are non-nil." t)
 (autoload 'outline-minor-mode "outline" "\
 Toggle Outline minor mode.
 
@@ -24559,7 +24948,9 @@ Variables controlling indentation/edit style:
 See also the user variables `pascal-type-keywords', `pascal-start-keywords' and
 `pascal-separator-keywords'.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `pascal-mode-hook', as the final or
+penultimate step during initialization." t)
 (register-definition-prefixes "pascal" '("electric-pascal-" "pascal-"))
 
 
@@ -24624,7 +25015,6 @@ See Info node `(elisp) Pattern-Matching Conditional' in the
 Emacs Lisp manual for more information and examples.
 
 (fn EXP &rest CASES)" nil t)
-(function-put 'pcase 'lisp-indent-function 1)
 (put 'pcase 'function-documentation '(pcase--make-docstring))
 (autoload 'pcase--make-docstring "pcase")
 (autoload 'pcase-exhaustive "pcase" "\
@@ -24636,7 +25026,6 @@ In contrast, `pcase' will return nil if there is no match, but
 not signal an error.
 
 (fn EXP &rest CASES)" nil t)
-(function-put 'pcase-exhaustive 'lisp-indent-function 1)
 (autoload 'pcase-lambda "pcase" "\
 Like `lambda' but allow each argument to be a pattern.
 I.e. accepts the usual &optional and &rest keywords, but every formal
@@ -24650,7 +25039,6 @@ nil.
 
 (fn LAMBDA-LIST &rest BODY)" nil t)
 (function-put 'pcase-lambda 'doc-string-elt 2)
-(function-put 'pcase-lambda 'lisp-indent-function 'defun)
 (autoload 'pcase-let* "pcase" "\
 Like `let*', but supports destructuring BINDINGS using `pcase' patterns.
 As with `pcase-let', BINDINGS are of the form (PATTERN EXP), but the
@@ -24662,7 +25050,6 @@ compatible to PATTERN); a mismatch may signal an error or may go
 undetected, binding variables to arbitrary values, such as nil.
 
 (fn BINDINGS &rest BODY)" nil t)
-(function-put 'pcase-let* 'lisp-indent-function 1)
 (autoload 'pcase-let "pcase" "\
 Like `let', but supports destructuring BINDINGS using `pcase' patterns.
 BODY should be a list of expressions, and BINDINGS should be a list of
@@ -24676,7 +25063,6 @@ compatible to PATTERN); a mismatch may signal an error or may go
 undetected, binding variables to arbitrary values, such as nil.
 
 (fn BINDINGS &rest BODY)" nil t)
-(function-put 'pcase-let 'lisp-indent-function 1)
 (autoload 'pcase-dolist "pcase" "\
 Eval BODY once for each set of bindings defined by PATTERN and LIST elements.
 PATTERN should be a `pcase' pattern describing the structure of
@@ -24689,7 +25075,6 @@ destructuring bindings of variables in PATTERN to the subfields
 of the elements of LIST is performed as if by `pcase-let'.
 
 (fn (PATTERN LIST) BODY...)" nil t)
-(function-put 'pcase-dolist 'lisp-indent-function 1)
 (autoload 'pcase-setq "pcase" "\
 Assign values to variables by destructuring with `pcase'.
 PATTERNS are normal `pcase' patterns, and VALUES are expression.
@@ -24711,7 +25096,6 @@ By convention, DOC should use \"EXPVAL\" to stand
 for the result of evaluating EXP (first arg to `pcase').
 
 (fn NAME ARGS [DOC] &rest BODY...)" nil t)
-(function-put 'pcase-defmacro 'lisp-indent-function 2)
 (function-put 'pcase-defmacro 'doc-string-elt 3)
 (function-put 'pcase-defmacro 'autoload-macro 'expand)
 (register-definition-prefixes "pcase" '("pcase-"))
@@ -25194,9 +25578,7 @@ Various indentation styles:       K&R  BSD  BLK  GNU  LW
   perl-brace-imaginary-offset      0    0    4    0    0
   perl-label-offset               -5   -8   -2   -2   -2
 
-Turning on Perl mode runs the normal hook `perl-mode-hook'.
-
-(fn)" t)
+Turning on Perl mode runs the normal hook `perl-mode-hook'." t)
 (register-definition-prefixes "perl-mode" '("perl-"))
 
 
@@ -25210,7 +25592,11 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'.
 (autoload 'php-ts-mode "php-ts-mode" "\
 Major mode for editing PHP, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `php-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{php-ts-mode-map}" t)
 (autoload 'php-ts-mode-run-php-webserver "php-ts-mode" "\
 Run PHP built-in web server.
 
@@ -25413,7 +25799,11 @@ Create a plstore instance associated with FILE.
 (autoload 'plstore-mode "plstore" "\
 Major mode for editing plstore files.
 
-(fn)" t)
+In addition to any hooks its parent mode `emacs-lisp-mode' might have
+run, this mode runs the hook `plstore-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{plstore-mode-map}" t)
 (register-definition-prefixes "plstore" '("plstore-"))
 
 
@@ -26416,12 +26806,18 @@ To find out what version of Prolog mode you are running, enter
 Commands:
 \\{prolog-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `prolog-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'mercury-mode "prolog" "\
 Major mode for editing Mercury programs.
 Actually this is just customized `prolog-mode'.
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `mercury-mode-hook', as the final or penultimate step
+during initialization.
+
+\\{mercury-mode-map}" t)
 (autoload 'run-prolog "prolog" "\
 Run an inferior Prolog process, input and output via buffer *prolog*.
 With prefix argument ARG, restart the Prolog process if running before.
@@ -26478,9 +26874,7 @@ When Ghostscript encounters an error it displays an error message
 with a file position.  Clicking mouse-2 on this number will bring
 point to the corresponding spot in the PostScript window, if input
 to the interpreter was sent from that window.
-Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number has the same effect.
-
-(fn)" t)
+Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number has the same effect." t)
 (register-definition-prefixes "ps-mode" '("ps-"))
 
 
@@ -26760,19 +27154,27 @@ This is a generic major mode intended to be inherited by
 concrete implementations.  Currently there are two concrete
 implementations: `python-mode' and `python-ts-mode'.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `python-base-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{python-base-mode-map}" t)
 (autoload 'python-mode "python" "\
 Major mode for editing Python files.
 
 \\{python-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `python-base-mode' might have
+run, this mode runs the hook `python-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'python-ts-mode "python" "\
 Major mode for editing Python files, using tree-sitter library.
 
 \\{python-ts-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `python-base-mode' might have
+run, this mode runs the hook `python-ts-mode-hook', as the final or
+penultimate step during initialization." t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(python-mode . python-ts-mode)))
 (add-to-list 'auto-mode-alist '("/\\(?:Pipfile\\|\\.?flake8\\)\\'" . conf-mode))
 (register-definition-prefixes "python" '("inferior-python-mode" "python-" "run-python-internal" "subword-mode"))
@@ -28417,9 +28819,7 @@ Turning on `rst-mode' calls the normal hooks `text-mode-hook'
 and `rst-mode-hook'.  This mode also supports font-lock
 highlighting.
 
-\\{rst-mode-map}
-
-(fn)" t)
+\\{rst-mode-map}" t)
 (autoload 'rst-minor-mode "rst" "\
 Toggle ReST minor mode.
 
@@ -28459,11 +28859,19 @@ Generic major mode for editing Ruby.
 This mode is intended to be inherited by concrete major modes.
 Currently there are `ruby-mode' and `ruby-ts-mode'.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `ruby-base-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{ruby-base-mode-map}" t)
 (autoload 'ruby-mode "ruby-mode" "\
 Major mode for editing Ruby code.
 
-(fn)" t)
+In addition to any hooks its parent mode `ruby-base-mode' might have
+run, this mode runs the hook `ruby-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{ruby-mode-map}" t)
 (add-to-list 'auto-mode-alist (cons (concat "\\(?:\\.\\(?:" "rbw?\\|ru\\|rake\\|thor\\|axlsx" "\\|jbuilder\\|rabl\\|gemspec\\|podspec" "\\)" "\\|/" "\\(?:Gem\\|Rake\\|Cap\\|Thor" "\\|Puppet\\|Berks\\|Brew\\|Fast" "\\|Vagrant\\|Guard\\|Pod\\)file" "\\)\\'") 'ruby-mode))
 (dolist (name (list "ruby" "rbx" "jruby" "j?ruby\\(?:[0-9.]+\\)")) (add-to-list 'interpreter-mode-alist (cons name 'ruby-mode)))
 (register-definition-prefixes "ruby-mode" '("ruby-"))
@@ -28475,7 +28883,11 @@ Major mode for editing Ruby code.
 (autoload 'ruby-ts-mode "ruby-ts-mode" "\
 Major mode for editing Ruby, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `ruby-base-mode' might have
+run, this mode runs the hook `ruby-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{ruby-ts-mode-map}" t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(ruby-mode . ruby-ts-mode)))
 (register-definition-prefixes "ruby-ts-mode" '("ruby-ts-"))
 
@@ -28511,7 +28923,11 @@ disabled.
 (autoload 'rust-ts-mode "rust-ts-mode" "\
 Major mode for editing Rust, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `rust-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{rust-ts-mode-map}" t)
 (autoload 'rust-ts-mode-maybe "rust-ts-mode" "\
 Enable `rust-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -28662,7 +29078,6 @@ To make global rx extensions, use `rx-define'.
 For more details, see Info node `(elisp) Extending Rx'.
 
 (fn BINDINGS BODY...)" nil t)
-(function-put 'rx-let-eval 'lisp-indent-function 1)
 (autoload 'rx-let "rx" "\
 Evaluate BODY with local BINDINGS for `rx'.
 BINDINGS is an unevaluated list of bindings each on the form
@@ -28684,7 +29099,6 @@ To make global rx extensions, use `rx-define'.
 For more details, see Info node `(elisp) Extending Rx'.
 
 (fn BINDINGS BODY...)" nil t)
-(function-put 'rx-let 'lisp-indent-function 1)
 (autoload 'rx-define "rx" "\
 Define NAME as a global `rx' definition.
 If the ARGS list is omitted, define NAME as an alias for the `rx'
@@ -28702,7 +29116,6 @@ To make local rx extensions, use `rx-let' for `rx',
 For more details, see Info node `(elisp) Extending Rx'.
 
 (fn NAME [(ARGS...)] RX)" nil t)
-(function-put 'rx-define 'lisp-indent-function 'defun)
 (autoload 'rx--pcase-macroexpander "rx" "\
 A pattern that matches strings against `rx' REGEXPS in sexp form.
 REGEXPS are interpreted as in `rx'.  The pattern matches any
@@ -28899,7 +29312,9 @@ Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
 \\{scheme-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `scheme-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'dsssl-mode "scheme" "\
 Major mode for editing DSSSL code.
 Editing commands are similar to those of `lisp-mode'.
@@ -28910,9 +29325,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{scheme-mode-map}
 Entering this mode runs the hooks `scheme-mode-hook' and then
 `dsssl-mode-hook' and inserts the value of `dsssl-sgml-declaration' if
-that variable's value is a string.
-
-(fn)" t)
+that variable's value is a string." t)
 (register-definition-prefixes "scheme" '("dsssl-" "scheme-"))
 
 
@@ -28934,7 +29347,9 @@ This mode is an extended emacs-lisp mode.
 
 \\{gnus-score-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `emacs-lisp-mode' might have
+run, this mode runs the hook `gnus-score-mode-hook', as the final or
+penultimate step during initialization." t)
 (register-definition-prefixes "score-mode" '("gnus-score-" "score-mode-"))
 
 
@@ -29261,9 +29676,7 @@ Here are commands that move to a header field (and create it if there isn't):
 \\[mail-insert-file] insert a text file into the message.
 \\[mail-add-attachment] attach to the message a file as binary attachment.
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
-`mail-mode-hook' (in that order).
-
-(fn)" t)
+`mail-mode-hook' (in that order)." t)
 (autoload 'mail-send-and-exit "sendmail" "\
 Send message like `mail-send', then, if no errors, exit from mail buffer.
 Prefix arg means don't delete this window.
@@ -29502,7 +29915,9 @@ Do \\[describe-variable] sgml- SPC to see available variables.
 Do \\[describe-key] on the following bindings to discover what they do.
 \\{sgml-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `text-mode' might have run,
+this mode runs the hook `sgml-mode-hook', as the final or penultimate
+step during initialization." t)
 (autoload 'html-mode "sgml-mode" "\
 Major mode based on SGML mode for editing HTML documents.
 This allows inserting skeleton constructs used in hypertext documents with
@@ -29541,7 +29956,9 @@ To work around that, do:
 
 \\{html-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode might have run, this mode
+runs the hook `html-mode-hook', as the final or penultimate step
+during initialization." t)
 (register-definition-prefixes "sgml-mode" '("html-" "sgml-"))
 
 
@@ -29555,7 +29972,11 @@ This is a generic major mode intended to be inherited by concrete
 implementations.  Currently there are two: `sh-mode' and
 `bash-ts-mode'.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `sh-base-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{sh-base-mode-map}" t)
 (autoload 'sh-mode "sh-script" "\
 Major mode for editing shell scripts.
 This mode works for many shells, since they all have roughly the same syntax,
@@ -29606,16 +30027,18 @@ set `sh-shell-file' accordingly.  If your shell's file name doesn't correctly
 indicate what shell it is use `sh-alias-alist' to translate.
 
 If your shell gives error messages with line numbers, you can use \\[executable-interpret]
-with your script for an edit-interpret-debug cycle.
-
-(fn)" t)
+with your script for an edit-interpret-debug cycle." t)
 (defalias 'shell-script-mode 'sh-mode)
 (autoload 'bash-ts-mode "sh-script" "\
 Major mode for editing Bash shell scripts.
 This mode automatically falls back to `sh-mode' if the buffer is
 not written in Bash or sh.
 
-(fn)" t)
+In addition to any hooks its parent mode `sh-base-mode' might have
+run, this mode runs the hook `bash-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{bash-ts-mode-map}" t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(sh-mode . bash-ts-mode)))
 (register-definition-prefixes "sh-script" '("sh-"))
 
@@ -29921,7 +30344,7 @@ Upload script NAME and kill the current buffer.
 Major mode for editing Sieve code.
 Turning on Sieve mode runs `sieve-mode-hook'.
 
-(fn)" t)
+\\{sieve-mode-map}" t)
 (register-definition-prefixes "sieve-mode" '("sieve-"))
 
 
@@ -29968,9 +30391,7 @@ Variables controlling indentation style:
     (as in) `abbrev-table', or nil if they should not be changed.
 
 Turning on SIMULA mode calls the value of the variable simula-mode-hook
-with no arguments, if that value is non-nil.
-
-(fn)" t)
+with no arguments, if that value is non-nil." t)
 (register-definition-prefixes "simula" '("simula-"))
 
 
@@ -29990,7 +30411,7 @@ SKELETON is as defined under `skeleton-insert'.
 
 (fn COMMAND DOCUMENTATION &rest SKELETON)" nil t)
 (function-put 'define-skeleton 'doc-string-elt 2)
-(function-put 'define-skeleton 'lisp-indent-function 'defun)
+(function-put 'define-skeleton 'autoload-macro 'expand)
 (autoload 'skeleton-proxy-new "skeleton" "\
 Insert SKELETON.
 Prefix ARG allows wrapping around words or regions (see `skeleton-insert').
@@ -30281,7 +30702,8 @@ Use \\[so-long-commentary] for more information.
 Use \\[so-long-customize] to open the customization group `so-long' to
 configure the behavior.
 
-(fn)" t)
+This mode runs the hook `so-long-mode-hook', as the final or
+penultimate step during initialization." t)
 (autoload 'so-long "so-long" "\
 Invoke `so-long-action' and run `so-long-hook'.
 
@@ -30791,9 +31213,7 @@ must tell Emacs.  Here's how to do that in your init file:
 
 (add-hook \\='sql-mode-hook
           (lambda ()
-	    (modify-syntax-entry ?\\\\ \"\\\\\" sql-mode-syntax-table)))
-
-(fn)" t)
+	    (modify-syntax-entry ?\\\\ \"\\\\\" sql-mode-syntax-table)))" t)
 (autoload 'sql-connect "sql" "\
 Connect to an interactive session using CONNECTION settings.
 
@@ -31258,7 +31678,10 @@ Browse the contents of an sqlite file.
 (autoload 'srecode-template-mode "srecode/srt-mode" "\
 Major-mode for writing SRecode macros.
 
-(fn)" t)
+This mode runs the hook `srecode-template-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{srecode-template-mode-map}" t)
 (defalias 'srt-mode #'srecode-template-mode)
 (register-definition-prefixes "srecode/srt-mode" '("semantic-" "srecode-"))
 
@@ -31511,14 +31934,12 @@ as the new values of the bound variables in the recursive invocation.
 This construct can only be used with lexical binding.
 
 (fn NAME BINDINGS &rest BODY)" nil t)
-(function-put 'named-let 'lisp-indent-function 2)
 (autoload 'with-work-buffer "subr-x" "\
 Create a work buffer, and evaluate BODY there like `progn'.
 Like `with-temp-buffer', but reuse an already created temporary
 buffer when possible, instead of creating a new one on each call.
 
 (fn &rest BODY)" nil t)
-(function-put 'with-work-buffer 'lisp-indent-function 0)
 (autoload 'string-pixel-width "subr-x" "\
 Return the width of STRING in pixels.
 If BUFFER is non-nil, use the face remappings, alternative and default
@@ -31732,6 +32153,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `gpm-mouse-mode'.")
 (custom-autoload 'gpm-mouse-mode "t-mouse" nil)
+(when (bound-and-true-p gpm-mouse-mode) (add-to-list 'global-minor-modes 'gpm-mouse-mode))
 (autoload 'gpm-mouse-mode "t-mouse" "\
 Toggle mouse support in GNU/Linux consoles (GPM Mouse mode).
 
@@ -32444,7 +32866,9 @@ inside of a tar archive without extracting it and re-archiving it.
 See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 \\{tar-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `tar-mode-hook', as the final or
+penultimate step during initialization." t)
 (register-definition-prefixes "tar-mode" '("pax-" "tar-"))
 
 
@@ -32478,7 +32902,7 @@ Turning on Tcl mode runs `tcl-mode-hook'.  Read the documentation for
 `tcl-mode-hook' to see what kinds of interesting hook functions
 already exist.
 
-(fn)" t)
+\\{tcl-mode-map}" t)
 (autoload 'inferior-tcl "tcl" "\
 Run inferior Tcl process.
 Prefix arg means enter program name interactively.
@@ -32726,7 +33150,11 @@ this file is for plain TeX, LaTeX, or SliTeX and calls `plain-tex-mode',
 such as if there are no commands in the file, the value of `tex-default-mode'
 says which mode to use.
 
-(fn)" t)
+In addition to any hooks its parent mode `text-mode' might have run,
+this mode runs the hook `tex-mode-hook', as the final or penultimate
+step during initialization.
+
+\\{tex-mode-map}" t)
  (add-to-list 'major-mode-remap-defaults '(TeX-mode . tex-mode))
  (add-to-list 'major-mode-remap-defaults '(plain-TeX-mode . plain-tex-mode))
  (add-to-list 'major-mode-remap-defaults '(LaTeX-mode . latex-mode))
@@ -32772,9 +33200,7 @@ tex-show-queue-command
 
 Entering Plain-tex mode runs the hook `text-mode-hook', then the hook
 `tex-mode-hook', and finally the hook `plain-tex-mode-hook'.  When the
-special subshell is initiated, the hook `tex-shell-hook' is run.
-
-(fn)" t)
+special subshell is initiated, the hook `tex-shell-hook' is run." t)
 (autoload 'latex-mode "tex-mode" "\
 Major mode for editing files of input for LaTeX.
 Makes $ and } display the characters they match.
@@ -32814,9 +33240,7 @@ tex-show-queue-command
 
 Entering Latex mode runs the hook `text-mode-hook', then
 `tex-mode-hook', and finally `latex-mode-hook'.  When the special
-subshell is initiated, `tex-shell-hook' is run.
-
-(fn)" t)
+subshell is initiated, `tex-shell-hook' is run." t)
 (autoload 'slitex-mode "tex-mode" "\
 Major mode for editing files of input for SliTeX.
 Makes $ and } display the characters they match.
@@ -32857,14 +33281,16 @@ tex-show-queue-command
 Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 `tex-mode-hook', then the hook `latex-mode-hook', and finally the hook
 `slitex-mode-hook'.  When the special subshell is initiated, the hook
-`tex-shell-hook' is run.
-
-(fn)" t)
+`tex-shell-hook' is run." t)
 (autoload 'tex-start-shell "tex-mode")
 (autoload 'doctex-mode "tex-mode" "\
 Major mode to edit DocTeX files.
 
-(fn)" t)
+In addition to any hooks its parent mode `latex-mode' might have run,
+this mode runs the hook `doctex-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{doctex-mode-map}" t)
 (register-definition-prefixes "tex-mode" '("doctex-font-lock-" "latex-" "plain-tex-mode-map" "tex-"))
 
 
@@ -32987,9 +33413,7 @@ If the file has a `top' node, it must be called `top' or `Top' and
 be the first node in the file.
 
 Entering Texinfo mode calls the value of `text-mode-hook', and then the
-value of `texinfo-mode-hook'.
-
-(fn)" t)
+value of `texinfo-mode-hook'." t)
 (register-definition-prefixes "texinfo" '("fill-paragraph-separate" "texinfo-"))
 
 
@@ -33741,15 +34165,27 @@ and done items are always shown on visiting a category.
 (autoload 'todo-mode "todo-mode" "\
 Major mode for displaying, navigating and editing todo lists.
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `todo-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{todo-mode-map}" t)
 (autoload 'todo-archive-mode "todo-mode" "\
 Major mode for archived todo categories.
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `todo-archive-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{todo-archive-mode-map}" t)
 (autoload 'todo-filtered-items-mode "todo-mode" "\
 Mode for displaying and reprioritizing top priority Todo.
 
-(fn)" t)
+In addition to any hooks its parent mode `special-mode' might have
+run, this mode runs the hook `todo-filtered-items-mode-hook', as the
+final or penultimate step during initialization.
+
+\\{todo-filtered-items-mode-map}" t)
 (register-definition-prefixes "todo-mode" '("todo-"))
 
 
@@ -33758,7 +34194,11 @@ Mode for displaying and reprioritizing top priority Todo.
 (autoload 'toml-ts-mode "toml-ts-mode" "\
 Major mode for editing TOML, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `text-mode' might have run,
+this mode runs the hook `toml-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{toml-ts-mode-map}" t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(conf-toml-mode . toml-ts-mode)))
 (register-definition-prefixes "toml-ts-mode" '("toml-ts-mode-"))
 
@@ -34178,7 +34618,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from transient.el
 
-(push '(transient 0 10 1) package--builtin-versions)
+(push '(transient 0 11 0) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient" "\
 Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -34328,7 +34768,6 @@ of `define-treesit-generic-mode'.
 
 (fn MODE [DOCSTRING] [KEYWORD-ARGS...] &rest BODY)" nil t)
 (function-put 'define-treesit-generic-mode 'doc-string-elt 2)
-(function-put 'define-treesit-generic-mode 'lisp-indent-function 'defun)
 (autoload 'treesit-generic-mode-setup "treesit-x" "\
 Go into the treesit generic mode MODE.
 
@@ -34585,11 +35024,19 @@ Generic major mode for editing TypeScript.
 
 This mode is intended to be inherited by concrete major modes.
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `typescript-ts-base-mode-hook', as the final
+or penultimate step during initialization.
+
+\\{typescript-ts-base-mode-map}" t)
 (autoload 'typescript-ts-mode "typescript-ts-mode" "\
 Major mode for editing TypeScript.
 
-(fn)" t)
+In addition to any hooks its parent mode `typescript-ts-base-mode'
+might have run, this mode runs the hook `typescript-ts-mode-hook', as
+the final or penultimate step during initialization.
+
+\\{typescript-ts-mode-map}" t)
 (autoload 'typescript-ts-mode-maybe "typescript-ts-mode" "\
 Enable `typescript-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -34606,7 +35053,11 @@ and attributes, respectively.
 The JSX-specific faces are used when `treesit-font-lock-level' is
 at least 3 (which is the default value).
 
-(fn)" t)
+In addition to any hooks its parent mode `typescript-ts-base-mode'
+might have run, this mode runs the hook `tsx-ts-mode-hook', as the
+final or penultimate step during initialization.
+
+\\{tsx-ts-mode-map}" t)
 (autoload 'tsx-ts-mode-maybe "typescript-ts-mode" "\
 Enable `tsx-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -35439,7 +35890,7 @@ Usage:
 :load-path       Add to the `load-path' before attempting to load the package.
 :diminish        Support for diminish.el (if installed).
 :delight         Support for delight.el (if installed).
-:custom          Call `Custom-set' or `set-default' with each variable
+:custom          Call `customize-set-variable' on each variable
                  definition without modifying the Emacs `custom-file'.
                  (compare with `custom-set-variables').
 :custom-face     Call `face-spec-set' with each face definition.
@@ -35449,7 +35900,6 @@ Usage:
                  (using `package-vc.el').
 
 (fn NAME &rest ARGS)" nil t)
-(function-put 'use-package 'lisp-indent-function 'defun)
 (register-definition-prefixes "use-package-core" '("use-package-"))
 
 
@@ -35731,7 +36181,7 @@ prefix argument is given, in which case prompt for a file FILE to
 remove from the list of ignored files.
 
 (fn FILE &optional DIRECTORY REMOVE)" t)
-(autoload 'vc-revision-cherry-pick "vc" "\
+(autoload 'vc-cherry-pick "vc" "\
 Copy the changes from a single revision REV to the current branch.
 When called interactively, prompts for REV.
 Typically REV is a revision from another branch, where that branch is
@@ -35756,9 +36206,43 @@ COMMENT and INITIAL-CONTENTS optional arguments:
 Optional argument BACKEND is the VC backend to use.
 
 (fn REV &optional COMMENT INITIAL-CONTENTS BACKEND)" t)
-(autoload 'vc-revision-revert "vc" "\
+(autoload 'vc-revert-or-delete-revision "vc" "\
 Undo the effects of revision REV.
 When called interactively, prompts for REV.
+
+When called interactively (or with optional argument INTERACTIVE
+non-nil), then if the underlying VCS is distributed and REV has not been
+pushed, offer to entirely delete REV.
+This is instead of creating a new commit undoing the effects of REV.
+
+With a prefix argument (or with optional argument DELETE non-nil),
+only consider deleting REV, never create a new commit.
+In this case INTERACTIVE is ignored.
+This works only if REV has not been pushed, unless you have customized
+`vc-allow-rewriting-published-history' to a non-nil value.
+
+When called from Lisp, there are three calling conventions for the
+COMMENT and INITIAL-CONTENTS optional arguments:
+- COMMENT a string, INITIAL-CONTENTS nil means use that comment string
+  without prompting the user to edit it.
+- COMMENT a string, INITIAL-CONTENTS non-nil means use that comment
+  string as the initial contents of the log entry buffer but stop for
+  editing.
+- COMMENT t means use BACKEND's default revert comment for REV without
+  prompting for editing, and ignore INITIAL-CONTENTS.
+
+Optional argument BACKEND is the VC backend to use.
+
+See also `vc-revert-revision'.
+
+(fn REV &optional INTERACTIVE DELETE COMMENT INITIAL-CONTENTS BACKEND)" t)
+(autoload 'vc-revert-revision "vc" "\
+Make a commit undoing the effects of revision REV.
+When called interactively, prompts for REV.
+
+This is like `vc-revert-or-delete-revision' except that it only ever
+makes a new commit undoing the effects of REV, instead of considering
+VCS-specific alternative mechanisms to undo the effects of REV.
 
 When called from Lisp, there are three calling conventions for the
 COMMENT and INITIAL-CONTENTS optional arguments:
@@ -35773,6 +36257,15 @@ COMMENT and INITIAL-CONTENTS optional arguments:
 Optional argument BACKEND is the VC backend to use.
 
 (fn REV &optional COMMENT INITIAL-CONTENTS BACKEND)" t)
+(autoload 'vc-delete-revision "vc" "\
+Delete revision REV from the revision history.
+This works only if REV has not been pushed, unless you have customized
+`vc-allow-rewriting-published-history' to a non-nil value.
+
+This is the same as `vc-revert-or-delete-revision' invoked interactively
+with a prefix argument.
+
+(fn REV &optional BACKEND)" t)
 (autoload 'vc-version-diff "vc" "\
 Report diffs between revisions REV1 and REV2 in the repository history.
 This compares two revisions of the current fileset.
@@ -36173,8 +36666,8 @@ file names.
 
 (fn FILE-OR-FILES)" t)
 (autoload 'vc-rename-file "vc" "\
-Rename file OLD to NEW in both work area and repository.
-If called interactively, read OLD and NEW, defaulting OLD to the
+Rename file OLD to NEW in both working tree and repository.
+When called interactively, read OLD and NEW, defaulting OLD to the
 current buffer's file name if it's under version control.
 
 (fn OLD NEW)" t)
@@ -36397,23 +36890,33 @@ type returned by `vc-dir-bookmark-make-record'.
 ;;; Generated autoloads from vc/vc-dispatcher.el
 
 (autoload 'vc-do-command "vc-dispatcher" "\
-Execute a slave command, notifying user and checking for errors.
-Output from COMMAND goes to BUFFER, or the current buffer if
-BUFFER is t.  If the destination buffer is not already current,
-set it up properly and erase it.  The command is considered
-successful if its exit status does not exceed OKSTATUS (if
-OKSTATUS is nil, that means to ignore error status, if it is
-`async', that means not to wait for termination of the
-subprocess; if it is t it means to ignore all execution errors).
+Execute an inferior command, notifying user and checking for errors.
+
+DESTINATION specifies what to do with COMMAND's output.  It can be a
+buffer or the name of a buffer to insert output there, t to mean the
+current buffer, or nil to discard output.
+DESTINATION can also have the form (REAL-BUFFER STDERR-FILE); in that
+case, REAL-BUFFER says what to do with standard output, as above, while
+STDERR-FILE says what to do with standard error in the child.
+STDERR-FILE may only be nil which means to discard standard error
+output or t which means to mix it with standard output.
+If the destination for standard output is a buffer that is not the
+current buffer, set up the buffer properly and erase it.
+
+OKSTATUS `async' means not to wait for termination of the subprocess and
+return the process object.  Otherwise, OKSTATUS determines when to
+signal an error instead of returning a numeric exit status or signal
+description string.  OKSTATUS an integer means to signal an error if the
+command's exit status exceeds that value or the command is killed by a
+signal, nil means to signal an error only if the command is killed by a
+signal, and t means never to signal an error.
+
 FILE-OR-LIST is the name of a working file; it may be a list of
 files or be nil (to execute commands that don't expect a file
 name or set of files).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename.
 
-Return the return value of the slave command in the synchronous
-case, and the process object in the asynchronous case.
-
-(fn BUFFER OKSTATUS COMMAND FILE-OR-LIST &rest FLAGS)")
+(fn DESTINATION OKSTATUS COMMAND FILE-OR-LIST &rest FLAGS)")
 (register-definition-prefixes "vc-dispatcher" '("vc-"))
 
 
@@ -36569,13 +37072,15 @@ Key bindings:
 
 \\{vera-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `vera-mode-hook', as the final or penultimate
+step during initialization." t)
 (register-definition-prefixes "vera-mode" '("vera-"))
 
 
 ;;; Generated autoloads from progmodes/verilog-mode.el
 
-(push '(verilog-mode 2025 1 1 100165202) package--builtin-versions)
+(push '(verilog-mode 2025 11 8 248496848) package--builtin-versions)
 (autoload 'verilog-mode "verilog-mode" "\
 Major mode for editing Verilog code.
 \\<verilog-mode-map>
@@ -36734,9 +37239,7 @@ Some other functions are:
 All key bindings can be seen in a Verilog-buffer with \\[describe-bindings].
 Key bindings specific to `verilog-mode-map' are:
 
-\\{verilog-mode-map}
-
-(fn)" t)
+\\{verilog-mode-map}" t)
 (register-definition-prefixes "verilog-mode" '("electric-verilog-" "verilog-" "vl-"))
 
 
@@ -37289,7 +37792,9 @@ Key bindings:
 
 \\{vhdl-mode-map}
 
-(fn)" t)
+In addition to any hooks its parent mode `prog-mode' might have run,
+this mode runs the hook `vhdl-mode-hook', as the final or penultimate
+step during initialization." t)
 (register-definition-prefixes "vhdl-mode" '("vhdl-"))
 
 
@@ -38620,6 +39125,7 @@ Non-nil if Windmove mode is enabled.
 See the `windmove-mode' command
 for a description of this minor mode.")
 (custom-autoload 'windmove-mode "windmove" nil)
+(when (bound-and-true-p windmove-mode) (add-to-list 'global-minor-modes 'windmove-mode))
 (autoload 'windmove-mode "windmove" "\
 Global minor mode for default windmove commands.
 
@@ -38636,8 +39142,6 @@ evaluate `(default-value \\='windmove-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
-
-\\{windmove-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'windmove-default-keybindings "windmove" "\
@@ -39303,7 +39807,11 @@ a new xwidget-webkit session, otherwise use an existing session.
 (autoload 'yaml-ts-mode "yaml-ts-mode" "\
 Major mode for editing YAML, powered by tree-sitter.
 
-(fn)" t)
+In addition to any hooks its parent mode `text-mode' might have run,
+this mode runs the hook `yaml-ts-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{yaml-ts-mode-map}" t)
 (autoload 'yaml-ts-mode-maybe "yaml-ts-mode" "\
 Enable `yaml-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
@@ -39367,83 +39875,15 @@ run a specific program.  The program must be a member of
 
 (fn &optional PGM)" t)
 (register-definition-prefixes "zone" '("zone-"))
-
-
-;;; Generated autoloads from emacs-lisp/elisp-scope.el
-
-(autoload 'elisp-scope-get-symbol-role-property "elisp-scope" "\
-Return value of property PROP for symbol role ROLE.
-
-(fn ROLE PROP)")
-(autoload 'elisp-scope-set-symbol-role-property "elisp-scope" "\
-Set value of property PROP for symbol role ROLE to VALUE.
-
-(fn ROLE PROP VALUE)")
-(autoload 'elisp-scope-symbol-role-p "elisp-scope" "\
-Check whether a symbol SYM is the name of a \"symbol role\".
-
-(fn SYM)")
-(autoload 'elisp-scope-add-symbol-roles-to-describe-symbol "elisp-scope")
-(autoload 'elisp-scope-describe-symbol-role "elisp-scope" "\
-Describe ROLE of a symbol.
-Interactively, prompt for ROLE.
-
-(fn ROLE &rest _)" t)
-(autoload 'elisp-scope-analyze-form "elisp-scope" "\
-Read and analyze code from STREAM, reporting findings via CALLBACK.
-
-Call CALLBACK for each analyzed symbol SYM with arguments ROLE, POS,
-LEN, ID and DEF, where ROLE is a symbol that specifies the semantics of
-SYM; POS is the position of SYM in STREAM; LEN is SYM's length; ID is an
-object that uniquely identifies (co-)occurrences of SYM in the current
-defun; and DEF is the position in which SYM is locally defined, or nil.
-If SYM is itself a binding occurrence, then POS and BINDER are equal.
-If SYM is not lexically bound, then BINDER is nil.  This function
-ignores `read-symbol-shorthands', so SYM and LEN always correspond to
-the symbol as it appears in STREAM.
-
-If STREAM is nil, it defaults to the current buffer.
-
-This function recursively analyzes Lisp forms (HEAD . TAIL), usually
-starting with a top-level form, by inspecting HEAD at each level:
-
-- If HEAD is a symbol with a non-nil `elisp-scope-analyzer' symbol
-  property, then the value of that property specifies a bespoke analzyer
-  function, AF, that is called as (AF HEAD . TAIL) to analyze the form.
-  See more details about writing analyzer functions below.
-
-- If HEAD satisfies `functionp', which means it is a function in the
-  running Emacs session, analzye the form as a function call.
-
-- If HEAD is a safe macro (see `elisp-scope-safe-macro-p'), expand it
-  and analyze the resulting form.
-
-- If HEAD is unknown, then the arguments in TAIL are ignored, unless
-  `elisp-scope-assume-func' is non-nil, in which case they are analyzed
-  as evaluated forms (i.e. HEAD is assumed to be a function).
-
-An analyzer (function specified via the `elisp-scope-analyzer' property)
-can use the functions `elisp-scope-report-s', `elisp-scope-1' and
-`elisp-scope-n' to analyze its arguments, and it can consult the
-variable `elisp-scope-output-spec' to obtain the expected output spec of
-the analyzed form.  For example, the following is a suitable analyzer
-for the `identity' function:
-
-  (lambda (fsym arg)
-    (elisp-scope-report-s fsym \\='function)
-    (elisp-scope-1 arg elisp-scope-output-spec))
-
-(fn CALLBACK &optional STREAM)")
-(register-definition-prefixes "elisp-scope" '("elisp-scope-"))
 
 ;;; End of scraped data
 
 (provide 'loaddefs)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; version-control: never
 ;; no-update-autoloads: t
-;; no-byte-compile: t
 ;; no-native-compile: t
 ;; coding: utf-8-emacs-unix
 ;; End:
