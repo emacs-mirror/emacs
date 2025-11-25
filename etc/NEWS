@@ -2045,19 +2045,22 @@ useful to prepare a "*vc-diff*" buffer for committing a single hunk.
 When the region is active, it deletes all hunks that the region does not
 overlap.
 
-*** 'diff-apply-hunk' now supports creating and deleting files.
-
 ---
 *** 'vc-version-diff' and 'vc-root-version-diff' changed default for REV1.
 They suggest the previous revision as the default for REV1, not the last
 one as before.  This makes them different from 'vc-diff' and
 'vc-root-diff' when those are called without a prefix argument.
 
+*** 'diff-apply-hunk' now supports creating and deleting files.
+
 +++
-*** 'diff-apply-buffer' now considers the region and can reverse-apply.
-If the region is active, this command now applies all hunks that the
-region overlaps; otherwise, it applies all hunks.
-With a prefix argument, it now reverse-applies the hunks.
+*** 'diff-apply-hunk' and 'diff-apply-buffer' now consider the region.
+If the region is active, these commands now apply all hunks that the
+region overlaps.  Otherwise, they have their existing behavior.
+
++++
+*** 'diff-apply-buffer' can reverse-apply.
+With a prefix argument, it now reverse-applies hunks.
 This matches the existing prefix argument to 'diff-apply-hunk'.
 
 ** Ediff

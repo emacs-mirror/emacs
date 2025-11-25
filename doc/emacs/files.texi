@@ -1824,6 +1824,13 @@ reverse of the hunk, which changes the ``new'' version into the ``old''
 version.  If @code{diff-jump-to-old-file} is non-@code{nil}, apply the
 hunk to the ``old'' version of the file instead.
 
+@code{diff-apply-hunk} prompts you to confirm deleting files and
+applying hunks to backup files, and it offers to reverse-apply hunks
+that are already applied.  If the region is active, however, it applies
+all hunks that the region overlaps without doing any prompting.  In this
+mode, it simply fails if any hunks do not apply cleanly, and does not
+confirm deletions or applying hunks to backup files.
+
 @findex diff-revert-and-kill-hunk
 @item C-c M-u
 Revert this hunk, and then remove the hunk from the diffs

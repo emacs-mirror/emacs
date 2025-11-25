@@ -2138,73 +2138,97 @@ SWITCHED is non-nil if the patch is already applied."
 
 (defvar diff-apply-hunk-to-backup-file nil)
 
-(defun diff-apply-hunk (&optional reverse)
-  "Apply the current hunk to the source file and go to the next.
+(defun diff-apply-hunk (&optional reverse beg end)
+  "Apply the current hunk to its source file and go to the next hunk.
 By default, the new source file is patched, but if the variable
 `diff-jump-to-old-file' is non-nil, then the old source file is
 patched instead (some commands, such as `diff-goto-source' can change
 the value of this variable when given an appropriate prefix argument).
 
-With a prefix argument, REVERSE the hunk."
-  (interactive "P")
-  (diff-beginning-of-hunk t)
-  (pcase-let* (;; Do not accept BUFFER.REV buffers as source location.
-               (diff-vc-backend nil)
-               ;; When we detect deletion, we will use the old file name.
-               (deletion (equal null-device (car (diff-hunk-file-names reverse))))
-               (`(,buf ,line-offset ,pos ,old ,new ,switched)
-               ;; Sometimes we'd like to have the following behavior: if
-               ;; REVERSE go to the new file, otherwise go to the old.
-               ;; But that means that by default we use the old file, which is
-               ;; the opposite of the default for diff-goto-source, and is thus
-               ;; confusing.  Also when you don't know about it it's
-               ;; pretty surprising.
-               ;; TODO: make it possible to ask explicitly for this behavior.
-               ;;
-               ;; This is duplicated in diff-test-hunk.
-               (diff-find-source-location (xor deletion reverse) reverse)))
-    (cond
-     ((null line-offset)
-      (user-error "Can't find the text to patch"))
-     ((with-current-buffer buf
-        (and buffer-file-name
-             (backup-file-name-p buffer-file-name)
-             (not diff-apply-hunk-to-backup-file)
-             (not (setq-local diff-apply-hunk-to-backup-file
-                              (yes-or-no-p (format "Really apply this hunk to %s? "
-                                                   (file-name-nondirectory
-                                                    buffer-file-name)))))))
-      (user-error "%s"
-	     (substitute-command-keys
-              (format "Use %s\\[diff-apply-hunk] to apply it to the other file"
-                      (if (not reverse) "\\[universal-argument] ")))))
-     ((and switched
-	   ;; A reversed patch was detected, perhaps apply it in reverse.
-	   (not (save-window-excursion
-		  (pop-to-buffer buf)
-		  (goto-char (+ (car pos) (cdr old)))
-		  (y-or-n-p
-		   (if reverse
-		       "Hunk hasn't been applied yet; apply it now? "
-		     "Hunk has already been applied; undo it? ")))))
-      (message "(Nothing done)"))
-     ((and deletion (not switched))
-      (when (y-or-n-p (format-message "Delete file `%s'?"
-                                      (buffer-file-name buf)))
-        (delete-file (buffer-file-name buf) delete-by-moving-to-trash)
-        (kill-buffer buf)))
-     (t
-      ;; Apply the hunk
-      (with-current-buffer buf
-	(goto-char (car pos))
-	(delete-region (car pos) (cdr pos))
-	(insert (car new)))
-      ;; Display BUF in a window
-      (set-window-point (display-buffer buf '(nil (inhibit-same-window . t)))
-                        (+ (car pos) (cdr new)))
-      (diff-hunk-status-msg line-offset (xor switched reverse) nil)
-      (when diff-advance-after-apply-hunk
-	(diff-hunk-next))))))
+With a prefix argument (when called from Lisp, with optional argument
+REVERSE non-nil), reverse-apply the hunk(s).
+
+Prompt to confirm deleting files and applying hunks to backup files.
+Offer to reverse-apply hunks that are already applied.
+Interactively, if the region is active, apply all hunks that the
+region overlaps.  In this mode, fail instead of prompting if any
+hunks do not cleanly apply, and do not confirm deletions or
+applying hunks to backup files (the same as the command
+`diff-apply-buffer' with an active region, which see).
+
+When called from Lisp with optional arguments BEG and END non-nil,
+apply all hunks overlapped by the region from BEG to END as though
+called interactively with an active region delimited by BEG and
+END."
+  (interactive (list current-prefix-arg
+                     (use-region-beginning)
+                     (use-region-end)))
+  (cond*
+   ((xor beg end)
+    (error "Invalid call to `diff-apply-hunk'"))
+   (beg
+    (diff-apply-buffer beg end reverse 'no-save))
+
+   (t (diff-beginning-of-hunk t))
+   ((bind*
+     ;; Do not accept BUFFER.REV buffers as source location.
+     (diff-vc-backend nil)
+     ;; When we detect deletion, we will use the old file name.
+     (deletion (equal null-device (car (diff-hunk-file-names reverse))))))
+   ((pcase* `(,buf ,line-offset ,pos ,old ,new ,switched)
+            ;; Sometimes we'd like to have the following behavior: if
+            ;; REVERSE go to the new file, otherwise go to the old.
+            ;; But that means that by default we use the old file, which is
+            ;; the opposite of the default for diff-goto-source, and is thus
+            ;; confusing.  Also when you don't know about it it's
+            ;; pretty surprising.
+            ;; TODO: make it possible to ask explicitly for this behavior.
+            ;;
+            ;; This is duplicated in diff-test-hunk.
+            (diff-find-source-location (xor deletion reverse) reverse)))
+
+   ((null line-offset)
+    (user-error "Can't find the text to patch"))
+   ((with-current-buffer buf
+      (and buffer-file-name
+           (backup-file-name-p buffer-file-name)
+           (not diff-apply-hunk-to-backup-file)
+           (not
+            (setq-local diff-apply-hunk-to-backup-file
+                        (yes-or-no-p
+                         (format "Really apply this hunk to %s? "
+                                 (file-name-nondirectory buffer-file-name)))))))
+    (user-error "%s"
+	        (substitute-command-keys
+                 (format "Use %s\\[diff-apply-hunk] to apply it to the other file"
+                         (and (not reverse) "\\[universal-argument] ")))))
+   ((and switched
+	 ;; A reversed patch was detected, perhaps apply it in reverse.
+	 (not (save-window-excursion
+		(pop-to-buffer buf)
+		(goto-char (+ (car pos) (cdr old)))
+		(y-or-n-p
+		 (if reverse
+		     "Hunk hasn't been applied yet; apply it now? "
+		   "Hunk has already been applied; undo it? ")))))
+    (message "(Nothing done)"))
+   ((and deletion (not switched))
+    (when (y-or-n-p (format-message "Delete file `%s'?"
+                                    (buffer-file-name buf)))
+      (delete-file (buffer-file-name buf) delete-by-moving-to-trash)
+      (kill-buffer buf)))
+   (t
+    ;; Apply the hunk
+    (with-current-buffer buf
+      (goto-char (car pos))
+      (delete-region (car pos) (cdr pos))
+      (insert (car new)))
+    ;; Display BUF in a window
+    (set-window-point (display-buffer buf '(nil (inhibit-same-window . t)))
+                      (+ (car pos) (cdr new)))
+    (diff-hunk-status-msg line-offset (xor switched reverse) nil)
+    (when diff-advance-after-apply-hunk
+      (diff-hunk-next)))))
 
 
 (defun diff-test-hunk (&optional reverse)
@@ -2252,7 +2276,7 @@ customize `diff-ask-before-revert-and-kill-hunk' to control that."
       (when (null (diff-apply-buffer beg end t))
         (diff-hunk-kill)))))
 
-(defun diff-apply-buffer (&optional beg end reverse test)
+(defun diff-apply-buffer (&optional beg end reverse test-or-no-save)
   "Apply the diff in the entire diff buffer.
 Interactively, if the region is active, apply all hunks that the region
 overlaps; otherwise, apply all hunks.
@@ -2266,15 +2290,18 @@ and saved, or the number of failed hunk applications otherwise.
 Optional arguments BEG and END restrict the hunks to be applied to those
 lying between BEG and END.
 Optional argument REVERSE means to reverse-apply hunks.
-Optional argument TEST means to not actually apply or reverse-apply any
-hunks, but return the same information: nil if all hunks can be applied,
-or the number of hunks that can't be applied."
+Optional argument TEST-OR-NO-SAVE `no-save' means not to save any
+changed buffers, `test' or t means to not actually apply or
+reverse-apply any hunks, but return the same information: nil if
+all hunks can be applied, or the number of hunks that can't be
+applied.  Other non-nil values are reserved."
   (interactive (list (use-region-beginning)
                      (use-region-end)
                      current-prefix-arg))
   (let ((buffer-edits nil)
         (failures 0)
-        (diff-refine nil))
+        (diff-refine nil)
+        (test (memq test-or-no-save '(t test))))
     (save-excursion
       (goto-char (or beg (point-min)))
       (diff-beginning-of-hunk t)
@@ -2302,8 +2329,12 @@ or the number of hunks that can't be applied."
                      (goto-char (car pos))
                      (delete-region (car pos) (cdr pos))
                      (insert (car dst))))
-                 (save-buffer)))
-             (message "Saved %d buffers" (length buffer-edits)))
+                 (unless (eq test-or-no-save 'no-save)
+                   (save-buffer))))
+             (message (ngettext "%s %d buffer" "%s %d buffers"
+                                (length buffer-edits))
+                      (if (eq test-or-no-save 'no-save) "Edited" "Saved")
+                      (length buffer-edits)))
            nil)
           (t
            (unless test
