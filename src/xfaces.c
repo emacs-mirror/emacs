@@ -950,19 +950,25 @@ parse_hex_color_comp (const char *s, const char *e, unsigned short *dst)
 }
 
 /* Parse floating-point color component specification that starts at S
-   and ends right before E.  Return the parsed number if in the range
-   [0,1]; otherwise return -1.  */
-static double
-parse_float_color_comp (const char *s, const char *e)
+   and ends right before E.  Put the integer near-equivalent of that
+   into *DST.  Return true if successful, false otherwise.  */
+static bool
+parse_float_color_comp (const char *s, const char *e, unsigned short *dst)
 {
   /* Only allow decimal float literals without whitespace.  */
   for (const char *p = s; p < e; p++)
     if (!((*p >= '0' && *p <= '9')
 	  || *p == '.' || *p == '+' || *p == '-' || *p == 'e' || *p == 'E'))
-      return -1;
+      return false;
   char *end;
   double x = strtod (s, &end);
-  return (end == e && x >= 0 && x <= 1) ? x : -1;
+  if (end == e && 0 <= x && x <= 1)
+    {
+      *dst = lrint (x * 65535);
+      return true;
+    }
+  else
+    return false;
 }
 
 /* Parse SPEC as a numeric color specification and set *R, *G and *B.
@@ -997,28 +1003,25 @@ parse_color_spec (const char *spec,
     }
   else if (strncmp (spec, "rgb:", 4) == 0)
     {
-      char *sep1, *sep2;
-      return ((sep1 = strchr (spec + 4, '/')) != NULL
-              && (sep2 = strchr (sep1 + 1, '/')) != NULL
+      char const *sep1 = strchr (spec + 4, '/');
+      if (!sep1)
+	return false;
+      char const *sep2 = strchr (sep1 + 1, '/');
+      return (sep2
               && parse_hex_color_comp (spec + 4, sep1, r)
               && parse_hex_color_comp (sep1 + 1, sep2, g)
               && parse_hex_color_comp (sep2 + 1, spec + len, b));
     }
   else if (strncmp (spec, "rgbi:", 5) == 0)
     {
-      char *sep1, *sep2;
-      double red, green, blue;
-      if ((sep1 = strchr (spec + 5, '/')) != NULL
-          && (sep2 = strchr (sep1 + 1, '/')) != NULL
-          && (red = parse_float_color_comp (spec + 5, sep1)) >= 0
-          && (green = parse_float_color_comp (sep1 + 1, sep2)) >= 0
-          && (blue = parse_float_color_comp (sep2 + 1, spec + len)) >= 0)
-        {
-          *r = lrint (red * 65535);
-          *g = lrint (green * 65535);
-          *b = lrint (blue * 65535);
-          return true;
-        }
+      char const *sep1 = strchr (spec + 5, '/');
+      if (!sep1)
+	return false;
+      char const *sep2 = strchr (sep1 + 1, '/');
+      return (sep2
+	      && parse_float_color_comp (spec + 5, sep1, r)
+	      && parse_float_color_comp (sep1 + 1, sep2, g)
+	      && parse_float_color_comp (sep2 + 1, spec + len, b));
     }
   return false;
 }

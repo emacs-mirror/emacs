@@ -2894,10 +2894,11 @@ xg_font_filter (const PangoFontFamily *family,
    `FAMILY [VALUE1 VALUE2] SIZE'
 
    This can be parsed using font_parse_fcname in font.c.
-   DEFAULT_NAME, if non-zero, is the default font name.  */
+   DEFAULT_NAME, if non-null, is the default font name;
+   it might be updated in place.  */
 
 Lisp_Object
-xg_get_font (struct frame *f, const char *default_name)
+xg_get_font (struct frame *f, char *default_name)
 {
   GtkWidget *w;
   int done = 0;

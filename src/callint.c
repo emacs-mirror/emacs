@@ -450,7 +450,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
   char const *tem = string;
   for (ptrdiff_t i = 2; tem < string_end; i++)
     {
-      char *pnl = memchr (tem + 1, '\n', string_len - (tem + 1 - string));
+      char const *pnl = memchr (tem + 1, '\n', string_len - (tem + 1 - string));
       ptrdiff_t sz = pnl ? pnl - (tem + 1) : string_end - (tem + 1);
 
       visargs[1] = make_string (tem + 1, sz);

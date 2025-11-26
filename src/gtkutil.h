@@ -91,7 +91,7 @@ extern char *xg_get_file_name (struct frame *f,
                                bool mustmatch_p,
                                bool only_dir_p);
 
-extern Lisp_Object xg_get_font (struct frame *f, const char *);
+extern Lisp_Object xg_get_font (struct frame *f, char *);
 
 extern GtkWidget *xg_create_widget (const char *type,
                                     const char *name,
