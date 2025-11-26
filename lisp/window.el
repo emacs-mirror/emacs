@@ -8026,9 +8026,14 @@ See `display-buffer' for details.
 This variable is not intended for user customization.  Lisp
 programs should never set this variable permanently but may bind
 it around calls of buffer display functions like `display-buffer'
-or `pop-to-buffer'.  Since such a binding will affect any nested
+or `pop-to-buffer'.
+
+Since such a binding will affect unconditionally any nested
 buffer display requests, this variable should be used with utmost
-care.")
+care, typically in response to an explicit request by the user.
+Also, any code that sets this variable needs to interact nicely with
+other code that sets this variable.
+See `other-frame-prefix' for an example of use.")
 (put 'display-buffer-overriding-action 'risky-local-variable t)
 
 (defcustom display-buffer-alist nil
