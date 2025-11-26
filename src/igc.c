@@ -946,7 +946,6 @@ struct igc_thread
   mps_ap_t weak_hash_strong_ap;
   mps_ap_t weak_hash_weak_ap;
   mps_ap_t immovable_ap;
-  mps_ap_t oldgen_ap;
 
   /* Quick access to the roots used for specpdl, bytecode stack and
      control stack.  */
@@ -3347,8 +3346,6 @@ create_thread_aps (struct igc_thread *t)
   IGC_CHECK_RES (res);
   res = create_weak_hash_ap (&t->weak_hash_weak_ap, t, true);
   IGC_CHECK_RES (res);
-  res = create_oldgen_ap (&t->oldgen_ap, gc->dflt_pool, gc->gen_count);
-  IGC_CHECK_RES (res);
 }
 
 static struct igc_thread_list *
@@ -5546,8 +5543,10 @@ void *
 igc_alloc_dump (size_t nbytes)
 {
   igc_assert (global_igc->park_count > 0);
-  struct igc_thread_list *t = current_thread->gc_info;
-  mps_ap_t ap = t->d.oldgen_ap;
+  mps_ap_t ap;
+  mps_res_t res = create_oldgen_ap (&ap, global_igc->dflt_pool,
+				    global_igc->gen_count);
+  IGC_CHECK_RES (res);
   size_t block_size = igc_header_size () + nbytes;
   mps_addr_t block;
   do
@@ -5558,6 +5557,7 @@ igc_alloc_dump (size_t nbytes)
       set_header (block, IGC_OBJ_INVALID, block_size, 0);
     }
   while (!mps_commit (ap, block, block_size));
+  mps_ap_destroy (ap);
   return (char *) block + igc_header_size ();
 }
 
