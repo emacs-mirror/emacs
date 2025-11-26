@@ -9563,6 +9563,13 @@ ns_in_echo_area (void)
       if ([self respondsToSelector:@selector(setTabbingMode:)])
         [self setTabbingMode:NSWindowTabbingModeDisallowed];
 #endif
+      /* Always show the toolbar below the window title.  This is needed
+	 on Mac OS 11+ where the toolbar style is decided by the system
+	 (which is unpredictable) and the newfangled "compact" toolbar
+	 may be chosen (which is undesirable).  */
+#ifdef NS_IMPL_COCOA
+  [self setToolbarStyle: NSWindowToolbarStyleExpanded];
+#endif
     }
 
   return self;
