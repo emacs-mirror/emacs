@@ -1030,6 +1030,8 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
                "threadSerial $U\n", (WriteFU)arena->threadSerial,
                "busyTraces    $B\n", (WriteFB)arena->busyTraces,
                "flippedTraces $B\n", (WriteFB)arena->flippedTraces,
+	       "tracedWork $D\n", (WriteFD)arena->tracedWork,
+	       "tracedTime $D\n", (WriteFD)arena->tracedTime,
                NULL);
   if (res != ResOK)
     return res;
