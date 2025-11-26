@@ -1748,17 +1748,11 @@ FLYSPELL-BUFFER."
       (setq pos (point)))
     ;; Seek the next error.
     (while (and (/= pos max)
-		(let ((ovs (overlays-at pos))
-		      (r '()))
-		  (while (and (not r) (consp ovs))
-		    (if (flyspell-overlay-p (car ovs))
-			(setq r t)
-		      (setq ovs (cdr ovs))))
-		  (not r)))
-      (setq pos (if previous (1- pos) (1+ pos))))
+                (setq pos (if previous
+                              (previous-overlay-change pos)
+                            (next-overlay-change pos)))
+                (not (any #'flyspell-overlay-p (overlays-at pos)))))
     (goto-char pos)
-    (when previous
-      (forward-word -1))
     ;; Save the current location for next invocation.
     (setq flyspell-old-pos-error (point))
     (setq flyspell-old-buffer-error (current-buffer))
