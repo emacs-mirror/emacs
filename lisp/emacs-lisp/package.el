@@ -1280,10 +1280,10 @@ The return result is a `package-desc'."
         (let ((files (or (and (derived-mode-p 'dired-mode)
                               (dired-get-marked-files nil 'marked))
                          (directory-files default-directory t "\\.el\\'" t))))
-          ;; We sort the file names in lexicographical order, to ensure
-          ;; that we check shorter file names first (ie. those further
-          ;; up in the directory structure).
-          (dolist (file (sort files))
+          ;; We sort the file names by length, to ensure that we check
+          ;; shorter file names first, as these are more likely to
+          ;; contain the package metadata.
+          (dolist (file (sort files :key #'length))
             ;; The file may be a link to a nonexistent file; e.g., a
             ;; lock file.
             (when (file-exists-p file)
