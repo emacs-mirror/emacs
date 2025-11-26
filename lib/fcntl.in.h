@@ -122,7 +122,6 @@ _GL_CXXALIAS_SYS (creat, int, (const char *filename, mode_t mode));
 # endif
 _GL_CXXALIASWARN (creat);
 #elif defined GNULIB_POSIXCHECK
-# undef creat
 /* Assume creat is always declared.  */
 _GL_WARN_ON_USE (creat, "creat is not always POSIX compliant - "
                  "use gnulib module creat for portability");
@@ -165,7 +164,6 @@ _GL_CXXALIAS_SYS (fcntl, int, (int fd, int action, ...));
 # endif
 _GL_CXXALIASWARN (fcntl);
 #elif defined GNULIB_POSIXCHECK
-# undef fcntl
 # if HAVE_RAW_DECL_FCNTL
 _GL_WARN_ON_USE (fcntl, "fcntl is not always POSIX compliant - "
                  "use gnulib module fcntl for portability");
@@ -196,7 +194,6 @@ _GL_CXXALIAS_SYS (open, int, (const char *filename, int flags, ...));
 _GL_CXXALIASWARN (open);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef open
 /* Assume open is always declared.  */
 _GL_WARN_ON_USE (open, "open is not always POSIX compliant - "
                  "use gnulib module open for portability");
@@ -242,7 +239,6 @@ _GL_CXXALIAS_SYS (openat, int,
 # endif
 _GL_CXXALIASWARN (openat);
 #elif defined GNULIB_POSIXCHECK
-# undef openat
 # if HAVE_RAW_DECL_OPENAT
 _GL_WARN_ON_USE (openat, "openat is not portable - "
                  "use gnulib module openat for portability");
@@ -283,7 +279,6 @@ _GL_CXXALIAS_SYS (openat2, int,
                    size_t size));
 _GL_CXXALIASWARN (openat2);
 #elif defined GNULIB_POSIXCHECK
-# undef openat2
 # if HAVE_RAW_DECL_OPENAT2
 _GL_WARN_ON_USE (openat2, "openat2 is not portable - "
                  "use gnulib module openat2 for portability");

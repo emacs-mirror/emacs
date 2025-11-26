@@ -224,9 +224,9 @@ _GL_INLINE_HEADER_BEGIN
 
 /* Declarations for ISO C N3322.  */
 #if defined __GNUC__ && __GNUC__ >= 15 && !defined __clang__
-_GL_EXTERN_C void *bsearch (const void *__key,
-                            const void *__base, size_t __nmemb, size_t __size,
-                            int (*__compare) (const void *, const void *))
+_GL_EXTERN_C void *_GL_FUNCDECL_SYS_NAME (bsearch)
+  (const void *__key, const void *__base, size_t __nmemb, size_t __size,
+   int (*__compare) (const void *, const void *))
   _GL_ATTRIBUTE_NONNULL_IF_NONZERO (2, 3) _GL_ARG_NONNULL ((5));
 _GL_EXTERN_C void qsort (void *__base, size_t __nmemb, size_t __size,
                          int (*__compare) (const void *, const void *))
@@ -254,7 +254,6 @@ _GL_CXXALIAS_SYS (_Exit, void, (int status));
 _GL_CXXALIASWARN (_Exit);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef _Exit
 # if HAVE_RAW_DECL__EXIT
 _GL_WARN_ON_USE (_Exit, "_Exit is unportable - "
                  "use gnulib module _Exit for portability");
@@ -301,7 +300,6 @@ _GL_CXXALIAS_SYS (free, void, (void *ptr));
 _GL_CXXALIASWARN (free);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef free
 /* Assume free is always declared.  */
 _GL_WARN_ON_USE (free, "free is not POSIX:2024 compliant everywhere - "
                  "use gnulib module free-posix for portability");
@@ -359,7 +357,6 @@ _GL_FUNCDECL_SYS (aligned_alloc, void *,
 #  endif
 # endif
 # if defined GNULIB_POSIXCHECK
-#  undef aligned_alloc
 #  if HAVE_RAW_DECL_ALIGNED_ALLOC
 _GL_WARN_ON_USE (aligned_alloc, "aligned_alloc is not portable - "
                  "use gnulib module aligned_alloc for portability");
@@ -379,7 +376,6 @@ _GL_FUNCDECL_SYS (atoll, long long,
 _GL_CXXALIAS_SYS (atoll, long long, (const char *string));
 _GL_CXXALIASWARN (atoll);
 #elif defined GNULIB_POSIXCHECK
-# undef atoll
 # if HAVE_RAW_DECL_ATOLL
 _GL_WARN_ON_USE (atoll, "atoll is unportable - "
                  "use gnulib module atoll for portability");
@@ -436,7 +432,6 @@ _GL_FUNCDECL_SYS (calloc, void *,
 #  endif
 # endif
 # if defined GNULIB_POSIXCHECK
-#  undef calloc
 /* Assume calloc is always declared.  */
 _GL_WARN_ON_USE (calloc, "calloc is not POSIX compliant everywhere - "
                  "use gnulib module calloc-posix for portability");
@@ -497,7 +492,6 @@ _GL_FUNCDECL_SYS (canonicalize_file_name, char *,
 #  endif
 # endif
 # if defined GNULIB_POSIXCHECK
-#  undef canonicalize_file_name
 #  if HAVE_RAW_DECL_CANONICALIZE_FILE_NAME
 _GL_WARN_ON_USE (canonicalize_file_name,
                  "canonicalize_file_name is unportable - "
@@ -597,7 +591,6 @@ _GL_CXXALIAS_SYS (getloadavg, int, (double loadavg[], int nelem));
 _GL_CXXALIASWARN (getloadavg);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getloadavg
 # if HAVE_RAW_DECL_GETLOADAVG
 _GL_WARN_ON_USE (getloadavg, "getloadavg is not portable - "
                  "use gnulib module getloadavg for portability");
@@ -632,7 +625,6 @@ _GL_CXXALIAS_SYS (getprogname, const char *, (void));
 _GL_CXXALIASWARN (getprogname);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getprogname
 # if HAVE_RAW_DECL_GETPROGNAME
 _GL_WARN_ON_USE (getprogname, "getprogname is unportable - "
                  "use gnulib module getprogname for portability");
@@ -674,7 +666,6 @@ _GL_CXXALIAS_SYS (getsubopt, int,
 _GL_CXXALIASWARN (getsubopt);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getsubopt
 # if HAVE_RAW_DECL_GETSUBOPT
 _GL_WARN_ON_USE (getsubopt, "getsubopt is unportable - "
                  "use gnulib module getsubopt for portability");
@@ -690,7 +681,6 @@ _GL_FUNCDECL_SYS (grantpt, int, (int fd), );
 _GL_CXXALIAS_SYS (grantpt, int, (int fd));
 _GL_CXXALIASWARN (grantpt);
 #elif defined GNULIB_POSIXCHECK
-# undef grantpt
 # if HAVE_RAW_DECL_GRANTPT
 _GL_WARN_ON_USE (grantpt, "grantpt is not portable - "
                  "use gnulib module grantpt for portability");
@@ -751,7 +741,6 @@ _GL_FUNCDECL_SYS (malloc, void *,
 #  endif
 # endif
 # if defined GNULIB_POSIXCHECK && !_GL_USE_STDLIB_ALLOC
-#  undef malloc
 /* Assume malloc is always declared.  */
 _GL_WARN_ON_USE (malloc, "malloc is not POSIX compliant everywhere - "
                  "use gnulib module malloc-posix for portability");
@@ -802,7 +791,6 @@ _GL_CXXALIAS_SYS (mbstowcs, size_t,
 _GL_CXXALIASWARN (mbstowcs);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef mbstowcs
 # if HAVE_RAW_DECL_MBSTOWCS
 _GL_WARN_ON_USE (mbstowcs, "mbstowcs is unportable - "
                  "use gnulib module mbstowcs for portability");
@@ -832,7 +820,6 @@ _GL_CXXALIAS_SYS (mbtowc, int,
 _GL_CXXALIASWARN (mbtowc);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef mbtowc
 # if HAVE_RAW_DECL_MBTOWC
 _GL_WARN_ON_USE (mbtowc, "mbtowc is not portable - "
                  "use gnulib module mbtowc for portability");
@@ -853,7 +840,6 @@ _GL_FUNCDECL_SYS (mkdtemp, char *,
 _GL_CXXALIAS_SYS (mkdtemp, char *, (char * /*template*/));
 _GL_CXXALIASWARN (mkdtemp);
 #elif defined GNULIB_POSIXCHECK
-# undef mkdtemp
 # if HAVE_RAW_DECL_MKDTEMP
 _GL_WARN_ON_USE (mkdtemp, "mkdtemp is unportable - "
                  "use gnulib module mkdtemp for portability");
@@ -892,7 +878,6 @@ _GL_CXXALIAS_SYS (mkostemp, int, (char * /*template*/, int /*flags*/));
 _GL_CXXALIASWARN (mkostemp);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef mkostemp
 # if HAVE_RAW_DECL_MKOSTEMP
 _GL_WARN_ON_USE (mkostemp, "mkostemp is unportable - "
                  "use gnulib module mkostemp for portability");
@@ -936,7 +921,6 @@ _GL_CXXALIAS_SYS (mkostemps, int,
 _GL_CXXALIASWARN (mkostemps);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef mkostemps
 # if HAVE_RAW_DECL_MKOSTEMPS
 _GL_WARN_ON_USE (mkostemps, "mkostemps is unportable - "
                  "use gnulib module mkostemps for portability");
@@ -969,7 +953,6 @@ _GL_CXXALIAS_SYS (mkstemp, int, (char * /*template*/));
 # endif
 _GL_CXXALIASWARN (mkstemp);
 #elif defined GNULIB_POSIXCHECK
-# undef mkstemp
 # if HAVE_RAW_DECL_MKSTEMP
 _GL_WARN_ON_USE (mkstemp, "mkstemp is unportable - "
                  "use gnulib module mkstemp for portability");
@@ -994,7 +977,6 @@ _GL_FUNCDECL_SYS (mkstemps, int, (char * /*template*/, int /*suffixlen*/),
 _GL_CXXALIAS_SYS (mkstemps, int, (char * /*template*/, int /*suffixlen*/));
 _GL_CXXALIASWARN (mkstemps);
 #elif defined GNULIB_POSIXCHECK
-# undef mkstemps
 # if HAVE_RAW_DECL_MKSTEMPS
 _GL_WARN_ON_USE (mkstemps, "mkstemps is unportable - "
                  "use gnulib module mkstemps for portability");
@@ -1039,7 +1021,6 @@ _GL_CXXALIAS_SYS (posix_memalign, int,
 _GL_CXXALIASWARN (posix_memalign);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef posix_memalign
 # if HAVE_RAW_DECL_POSIX_MEMALIGN
 _GL_WARN_ON_USE (posix_memalign, "posix_memalign is not portable - "
                  "use gnulib module posix_memalign for portability");
@@ -1066,7 +1047,6 @@ _GL_CXXALIAS_SYS (posix_openpt, int, (int flags));
 _GL_CXXALIASWARN (posix_openpt);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef posix_openpt
 # if HAVE_RAW_DECL_POSIX_OPENPT
 _GL_WARN_ON_USE (posix_openpt, "posix_openpt is not portable - "
                  "use gnulib module posix_openpt for portability");
@@ -1091,7 +1071,6 @@ _GL_CXXALIAS_SYS (ptsname, char *, (int fd));
 # endif
 _GL_CXXALIASWARN (ptsname);
 #elif defined GNULIB_POSIXCHECK
-# undef ptsname
 # if HAVE_RAW_DECL_PTSNAME
 _GL_WARN_ON_USE (ptsname, "ptsname is not portable - "
                  "use gnulib module ptsname for portability");
@@ -1120,7 +1099,6 @@ _GL_CXXALIAS_SYS (ptsname_r, int, (int fd, char *buf, size_t len));
 # endif
 _GL_CXXALIASWARN (ptsname_r);
 #elif defined GNULIB_POSIXCHECK
-# undef ptsname_r
 # if HAVE_RAW_DECL_PTSNAME_R
 _GL_WARN_ON_USE (ptsname_r, "ptsname_r is not portable - "
                  "use gnulib module ptsname_r for portability");
@@ -1214,7 +1192,6 @@ _GL_CXXALIAS_SYS (qsort_r, void, (void *base, size_t nmemb, size_t size,
 _GL_CXXALIASWARN (qsort_r);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef qsort_r
 # if HAVE_RAW_DECL_QSORT_R
 _GL_WARN_ON_USE (qsort_r, "qsort_r is not portable - "
                  "use gnulib module qsort_r for portability");
@@ -1266,7 +1243,6 @@ _GL_CXXALIAS_SYS_CAST (random, long, (void));
 _GL_CXXALIASWARN (random);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef random
 # if HAVE_RAW_DECL_RANDOM
 _GL_WARN_ON_USE (random, "random is unportable - "
                  "use gnulib module random for portability");
@@ -1293,7 +1269,6 @@ _GL_CXXALIAS_SYS_CAST (srandom, void, (unsigned int seed));
 _GL_CXXALIASWARN (srandom);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef srandom
 # if HAVE_RAW_DECL_SRANDOM
 _GL_WARN_ON_USE (srandom, "srandom is unportable - "
                  "use gnulib module random for portability");
@@ -1326,7 +1301,6 @@ _GL_CXXALIAS_SYS_CAST (initstate, char *,
 _GL_CXXALIASWARN (initstate);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef initstate
 # if HAVE_RAW_DECL_INITSTATE
 _GL_WARN_ON_USE (initstate, "initstate is unportable - "
                  "use gnulib module random for portability");
@@ -1353,7 +1327,6 @@ _GL_CXXALIAS_SYS_CAST (setstate, char *, (char *arg_state));
 _GL_CXXALIASWARN (setstate);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef setstate
 # if HAVE_RAW_DECL_SETSTATE
 _GL_WARN_ON_USE (setstate, "setstate is unportable - "
                  "use gnulib module random for portability");
@@ -1379,7 +1352,6 @@ _GL_CXXALIAS_SYS (random_r, int, (struct random_data *buf, int32_t *result));
 # endif
 _GL_CXXALIASWARN (random_r);
 #elif defined GNULIB_POSIXCHECK
-# undef random_r
 # if HAVE_RAW_DECL_RANDOM_R
 _GL_WARN_ON_USE (random_r, "random_r is unportable - "
                  "use gnulib module random_r for portability");
@@ -1408,7 +1380,6 @@ _GL_CXXALIAS_SYS (srandom_r, int,
 # endif
 _GL_CXXALIASWARN (srandom_r);
 #elif defined GNULIB_POSIXCHECK
-# undef srandom_r
 # if HAVE_RAW_DECL_SRANDOM_R
 _GL_WARN_ON_USE (srandom_r, "srandom_r is unportable - "
                  "use gnulib module random_r for portability");
@@ -1443,7 +1414,6 @@ _GL_CXXALIAS_SYS_CAST (initstate_r, int,
 # endif
 _GL_CXXALIASWARN (initstate_r);
 #elif defined GNULIB_POSIXCHECK
-# undef initstate_r
 # if HAVE_RAW_DECL_INITSTATE_R
 _GL_WARN_ON_USE (initstate_r, "initstate_r is unportable - "
                  "use gnulib module random_r for portability");
@@ -1474,7 +1444,6 @@ _GL_CXXALIAS_SYS_CAST (setstate_r, int,
 # endif
 _GL_CXXALIASWARN (setstate_r);
 #elif defined GNULIB_POSIXCHECK
-# undef setstate_r
 # if HAVE_RAW_DECL_SETSTATE_R
 _GL_WARN_ON_USE (setstate_r, "setstate_r is unportable - "
                  "use gnulib module random_r for portability");
@@ -1544,7 +1513,6 @@ _GL_FUNCDECL_SYS (realloc, void *,
 #  endif
 # endif
 # if defined GNULIB_POSIXCHECK && !_GL_USE_STDLIB_ALLOC
-#  undef realloc
 /* Assume realloc is always declared.  */
 _GL_WARN_ON_USE (realloc, "realloc is not POSIX compliant everywhere - "
                  "use gnulib module realloc-posix for portability");
@@ -1576,7 +1544,6 @@ _GL_CXXALIAS_SYS (reallocarray, void *,
 _GL_CXXALIASWARN (reallocarray);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef reallocarray
 # if HAVE_RAW_DECL_REALLOCARRAY
 _GL_WARN_ON_USE (reallocarray, "reallocarray is not portable - "
                  "use gnulib module reallocarray for portability");
@@ -1604,7 +1571,6 @@ _GL_CXXALIAS_SYS (realpath, char *,
 # endif
 _GL_CXXALIASWARN (realpath);
 #elif defined GNULIB_POSIXCHECK
-# undef realpath
 # if HAVE_RAW_DECL_REALPATH
 _GL_WARN_ON_USE (realpath, "realpath is unportable - use gnulib module "
                  "canonicalize or canonicalize-lgpl for portability");
@@ -1621,7 +1587,6 @@ _GL_FUNCDECL_SYS (rpmatch, int, (const char *response),
 _GL_CXXALIAS_SYS (rpmatch, int, (const char *response));
 _GL_CXXALIASWARN (rpmatch);
 #elif defined GNULIB_POSIXCHECK
-# undef rpmatch
 # if HAVE_RAW_DECL_RPMATCH
 _GL_WARN_ON_USE (rpmatch, "rpmatch is unportable - "
                  "use gnulib module rpmatch for portability");
@@ -1638,7 +1603,6 @@ _GL_FUNCDECL_SYS (secure_getenv, char *,
 _GL_CXXALIAS_SYS (secure_getenv, char *, (char const *name));
 _GL_CXXALIASWARN (secure_getenv);
 #elif defined GNULIB_POSIXCHECK
-# undef secure_getenv
 # if HAVE_RAW_DECL_SECURE_GETENV
 _GL_WARN_ON_USE (secure_getenv, "secure_getenv is unportable - "
                  "use gnulib module secure_getenv for portability");
@@ -1671,7 +1635,6 @@ _GL_CXXALIAS_SYS (setenv, int,
 _GL_CXXALIASWARN (setenv);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef setenv
 # if HAVE_RAW_DECL_SETENV
 _GL_WARN_ON_USE (setenv, "setenv is unportable - "
                  "use gnulib module setenv for portability");
@@ -1716,7 +1679,6 @@ _GL_CXXALIAS_SYS (strtod, double,
 _GL_CXXALIASWARN (strtod);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef strtod
 # if HAVE_RAW_DECL_STRTOD
 _GL_WARN_ON_USE (strtod, "strtod is unportable - "
                  "use gnulib module strtod for portability");
@@ -1748,7 +1710,6 @@ _GL_CXXALIAS_SYS (strtof, float,
 _GL_CXXALIASWARN (strtof);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef strtof
 # if HAVE_RAW_DECL_STRTOF
 _GL_WARN_ON_USE (strtof, "strtof is unportable - "
                  "use gnulib module strtof for portability");
@@ -1778,7 +1739,6 @@ _GL_CXXALIAS_SYS (strtold, long double,
 # endif
 _GL_CXXALIASWARN (strtold);
 #elif defined GNULIB_POSIXCHECK
-# undef strtold
 # if HAVE_RAW_DECL_STRTOLD
 _GL_WARN_ON_USE (strtold, "strtold is unportable - "
                  "use gnulib module strtold for portability");
@@ -1821,7 +1781,6 @@ _GL_CXXALIAS_SYS (strtol, long,
 _GL_CXXALIASWARN (strtol);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef strtol
 # if HAVE_RAW_DECL_STRTOL
 _GL_WARN_ON_USE (strtol, "strtol is unportable - "
                  "use gnulib module strtol for portability");
@@ -1862,7 +1821,6 @@ _GL_CXXALIAS_SYS (strtoll, long long,
 # endif
 _GL_CXXALIASWARN (strtoll);
 #elif defined GNULIB_POSIXCHECK
-# undef strtoll
 # if HAVE_RAW_DECL_STRTOLL
 _GL_WARN_ON_USE (strtoll, "strtoll is unportable - "
                  "use gnulib module strtoll for portability");
@@ -1904,7 +1862,6 @@ _GL_CXXALIAS_SYS (strtoul, unsigned long,
 _GL_CXXALIASWARN (strtoul);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef strtoul
 # if HAVE_RAW_DECL_STRTOUL
 _GL_WARN_ON_USE (strtoul, "strtoul is unportable - "
                  "use gnulib module strtoul for portability");
@@ -1945,7 +1902,6 @@ _GL_CXXALIAS_SYS (strtoull, unsigned long long,
 # endif
 _GL_CXXALIASWARN (strtoull);
 #elif defined GNULIB_POSIXCHECK
-# undef strtoull
 # if HAVE_RAW_DECL_STRTOULL
 _GL_WARN_ON_USE (strtoull, "strtoull is unportable - "
                  "use gnulib module strtoull for portability");
@@ -1961,7 +1917,6 @@ _GL_FUNCDECL_SYS (unlockpt, int, (int fd), );
 _GL_CXXALIAS_SYS (unlockpt, int, (int fd));
 _GL_CXXALIASWARN (unlockpt);
 #elif defined GNULIB_POSIXCHECK
-# undef unlockpt
 # if HAVE_RAW_DECL_UNLOCKPT
 _GL_WARN_ON_USE (unlockpt, "unlockpt is not portable - "
                  "use gnulib module unlockpt for portability");
@@ -1987,7 +1942,6 @@ _GL_CXXALIAS_SYS (unsetenv, int, (const char *name));
 _GL_CXXALIASWARN (unsetenv);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef unsetenv
 # if HAVE_RAW_DECL_UNSETENV
 _GL_WARN_ON_USE (unsetenv, "unsetenv is unportable - "
                  "use gnulib module unsetenv for portability");

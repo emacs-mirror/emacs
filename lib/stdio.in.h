@@ -338,7 +338,7 @@ _GL_CXXALIAS_SYS (dprintf, int, (int fd, const char *restrict format, ...));
 _GL_CXXALIASWARN (dprintf);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef dprintf
+# undef dprintf /* https://lists.gnu.org/r/bug-gnulib/2025-11/msg00254.html */
 # if HAVE_RAW_DECL_DPRINTF
 _GL_WARN_ON_USE (dprintf, "dprintf is unportable - "
                  "use gnulib module dprintf for portability");
@@ -360,7 +360,6 @@ _GL_CXXALIAS_SYS (fclose, int, (FILE *stream));
 _GL_CXXALIASWARN (fclose);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef fclose
 /* Assume fclose is always declared.  */
 _GL_WARN_ON_USE (fclose, "fclose is not always POSIX compliant - "
                  "use gnulib module fclose for portable POSIX compliance");
@@ -447,7 +446,6 @@ _GL_FUNCDECL_SYS (fdopen, FILE *,
 #  endif
 # endif
 # if defined GNULIB_POSIXCHECK
-#  undef fdopen
 /* Assume fdopen is always declared.  */
 _GL_WARN_ON_USE (fdopen, "fdopen on native Windows platforms is not POSIX compliant - "
                  "use gnulib module fdopen for portability");
@@ -488,7 +486,6 @@ _GL_CXXALIAS_SYS (fflush, int, (FILE *gl_stream));
 _GL_CXXALIASWARN (fflush);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef fflush
 /* Assume fflush is always declared.  */
 _GL_WARN_ON_USE (fflush, "fflush is not always POSIX compliant - "
                  "use gnulib module fflush for portable POSIX compliance");
@@ -581,7 +578,6 @@ _GL_FUNCDECL_SYS (fopen, FILE *,
                   _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1));
 # endif
 # if defined GNULIB_POSIXCHECK
-#  undef fopen
 /* Assume fopen is always declared.  */
 _GL_WARN_ON_USE (fopen, "fopen on native Windows platforms is not POSIX compliant - "
                  "use gnulib module fopen for portability");
@@ -641,9 +637,6 @@ _GL_CXXALIASWARN (fprintf);
 # endif
 #endif
 #if !@GNULIB_FPRINTF_POSIX@ && defined GNULIB_POSIXCHECK
-# if !GNULIB_overrides_fprintf
-#  undef fprintf
-# endif
 /* Assume fprintf is always declared.  */
 _GL_WARN_ON_USE (fprintf, "fprintf is not always POSIX compliant - "
                  "use gnulib module fprintf-posix for portable "
@@ -673,7 +666,6 @@ _GL_CXXALIAS_SYS (fpurge, int, (FILE *gl_stream));
 _GL_CXXALIASWARN (fpurge);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef fpurge
 # if HAVE_RAW_DECL_FPURGE
 _GL_WARN_ON_USE (fpurge, "fpurge is not always present - "
                  "use gnulib module fpurge for portability");
@@ -761,7 +753,6 @@ _GL_CXXALIAS_SYS (freopen, FILE *,
 _GL_CXXALIASWARN (freopen);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef freopen
 /* Assume freopen is always declared.  */
 _GL_WARN_ON_USE (freopen,
                  "freopen on native Windows platforms is not POSIX compliant - "
@@ -868,7 +859,6 @@ _GL_CXXALIASWARN (fseeko);
 #elif defined GNULIB_POSIXCHECK
 # define _GL_FSEEK_WARN /* Category 1, above.  */
 # undef fseek
-# undef fseeko
 # if HAVE_RAW_DECL_FSEEKO
 _GL_WARN_ON_USE (fseeko, "fseeko is unportable - "
                  "use gnulib module fseeko for portability");
@@ -932,7 +922,6 @@ _GL_CXXALIASWARN (ftello);
 #elif defined GNULIB_POSIXCHECK
 # define _GL_FTELL_WARN /* Category 1, above.  */
 # undef ftell
-# undef ftello
 # if HAVE_RAW_DECL_FTELLO
 _GL_WARN_ON_USE (ftello, "ftello is unportable - "
                  "use gnulib module ftello for portability");
@@ -1081,7 +1070,6 @@ _GL_CXXALIAS_SYS (getdelim, ssize_t,
 _GL_CXXALIASWARN (getdelim);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getdelim
 # if HAVE_RAW_DECL_GETDELIM
 _GL_WARN_ON_USE (getdelim, "getdelim is unportable - "
                  "use gnulib module getdelim for portability");
@@ -1135,7 +1123,6 @@ _GL_CXXALIAS_SYS (getline, ssize_t,
 _GL_CXXALIASWARN (getline);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getline
 # if HAVE_RAW_DECL_GETLINE
 _GL_WARN_ON_USE (getline, "getline is unportable - "
                  "use gnulib module getline for portability");
@@ -1145,7 +1132,6 @@ _GL_WARN_ON_USE (getline, "getline is unportable - "
 /* It is very rare that the developer ever has full control of stdin,
    so any use of gets warrants an unconditional warning; besides, C11
    removed it.  */
-#undef gets
 #if HAVE_RAW_DECL_GETS && !defined __cplusplus
 _GL_WARN_ON_USE (gets, "gets is a security hole - use fgets instead");
 #endif
@@ -1258,7 +1244,6 @@ _GL_FUNCDECL_SYS (pclose, int, (FILE *stream), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_SYS (pclose, int, (FILE *stream));
 _GL_CXXALIASWARN (pclose);
 #elif defined GNULIB_POSIXCHECK
-# undef pclose
 # if HAVE_RAW_DECL_PCLOSE
 _GL_WARN_ON_USE (pclose, "pclose is unportable - "
                  "use gnulib module pclose for more portability");
@@ -1282,7 +1267,6 @@ _GL_CXXALIAS_SYS (perror, void, (const char *string));
 _GL_CXXALIASWARN (perror);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef perror
 /* Assume perror is always declared.  */
 _GL_WARN_ON_USE (perror, "perror is not always POSIX compliant - "
                  "use gnulib module perror for portability");
@@ -1319,7 +1303,6 @@ _GL_FUNCDECL_SYS (popen, FILE *,
                   _GL_ATTRIBUTE_MALLOC);
 # endif
 # if defined GNULIB_POSIXCHECK
-#  undef popen
 #  if HAVE_RAW_DECL_POPEN
 _GL_WARN_ON_USE (popen, "popen is buggy on some platforms - "
                  "use gnulib module popen or pipe for more portability");
@@ -1392,9 +1375,6 @@ _GL_CXXALIASWARN (printf);
 # endif
 #endif
 #if !@GNULIB_PRINTF_POSIX@ && defined GNULIB_POSIXCHECK
-# if !GNULIB_overrides_printf
-#  undef printf
-# endif
 /* Assume printf is always declared.  */
 _GL_WARN_ON_USE (printf, "printf is not always POSIX compliant - "
                  "use gnulib module printf-posix for portable "
@@ -1488,7 +1468,6 @@ _GL_CXXALIAS_SYS (remove, int, (const char *name));
 _GL_CXXALIASWARN (remove);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef remove
 /* Assume remove is always declared.  */
 _GL_WARN_ON_USE (remove, "remove cannot handle directories on some platforms - "
                  "use gnulib module remove for more portability");
@@ -1513,7 +1492,6 @@ _GL_CXXALIAS_SYS (rename, int,
 _GL_CXXALIASWARN (rename);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef rename
 /* Assume rename is always declared.  */
 _GL_WARN_ON_USE (rename, "rename is buggy on some platforms - "
                  "use gnulib module rename for more portability");
@@ -1541,7 +1519,6 @@ _GL_CXXALIAS_SYS (renameat, int,
 # endif
 _GL_CXXALIASWARN (renameat);
 #elif defined GNULIB_POSIXCHECK
-# undef renameat
 # if HAVE_RAW_DECL_RENAMEAT
 _GL_WARN_ON_USE (renameat, "renameat is not portable - "
                  "use gnulib module renameat for portability");
@@ -1635,7 +1612,6 @@ _GL_CXXALIAS_SYS (snprintf, int,
 _GL_CXXALIASWARN (snprintf);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef snprintf
 # if HAVE_RAW_DECL_SNPRINTF
 _GL_WARN_ON_USE (snprintf, "snprintf is unportable - "
                  "use gnulib module snprintf for portability");
@@ -1691,7 +1667,6 @@ _GL_CXXALIAS_SYS (sprintf, int,
 _GL_CXXALIASWARN (sprintf);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef sprintf
 /* Assume sprintf is always declared.  */
 _GL_WARN_ON_USE (sprintf, "sprintf is not always POSIX compliant - "
                  "use gnulib module sprintf-posix for portable "
@@ -1746,7 +1721,6 @@ _GL_FUNCDECL_SYS (tmpfile, FILE *, (void),
                                    _GL_ATTRIBUTE_MALLOC);
 # endif
 # if defined GNULIB_POSIXCHECK
-#  undef tmpfile
 #  if HAVE_RAW_DECL_TMPFILE
 _GL_WARN_ON_USE (tmpfile, "tmpfile is not usable on mingw - "
                  "use gnulib module tmpfile for portability");
@@ -1880,7 +1854,6 @@ _GL_CXXALIAS_SYS_CAST (vdprintf, int,
 _GL_CXXALIASWARN (vdprintf);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef vdprintf
 # if HAVE_RAW_DECL_VDPRINTF
 _GL_WARN_ON_USE (vdprintf, "vdprintf is unportable - "
                  "use gnulib module vdprintf for portability");
@@ -1949,9 +1922,6 @@ _GL_CXXALIASWARN (vfprintf);
 # endif
 #endif
 #if !@GNULIB_VFPRINTF_POSIX@ && defined GNULIB_POSIXCHECK
-# if !GNULIB_overrides_vfprintf
-#  undef vfprintf
-# endif
 /* Assume vfprintf is always declared.  */
 _GL_WARN_ON_USE (vfprintf, "vfprintf is not always POSIX compliant - "
                  "use gnulib module vfprintf-posix for portable "
@@ -2035,9 +2005,6 @@ _GL_CXXALIASWARN (vprintf);
 # endif
 #endif
 #if !@GNULIB_VPRINTF_POSIX@ && defined GNULIB_POSIXCHECK
-# if !GNULIB_overrides_vprintf
-#  undef vprintf
-# endif
 /* Assume vprintf is always declared.  */
 _GL_WARN_ON_USE (vprintf, "vprintf is not always POSIX compliant - "
                  "use gnulib module vprintf-posix for portable "
@@ -2116,7 +2083,6 @@ _GL_CXXALIAS_SYS (vsnprintf, int,
 _GL_CXXALIASWARN (vsnprintf);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef vsnprintf
 # if HAVE_RAW_DECL_VSNPRINTF
 _GL_WARN_ON_USE (vsnprintf, "vsnprintf is unportable - "
                  "use gnulib module vsnprintf for portability");
@@ -2169,7 +2135,6 @@ _GL_CXXALIAS_SYS_CAST (vsprintf, int,
 _GL_CXXALIASWARN (vsprintf);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef vsprintf
 /* Assume vsprintf is always declared.  */
 _GL_WARN_ON_USE (vsprintf, "vsprintf is not always POSIX compliant - "
                  "use gnulib module vsprintf-posix for portable "

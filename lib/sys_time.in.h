@@ -133,7 +133,6 @@ namespace GNULIB_NAMESPACE {
 }
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef gettimeofday
 # if HAVE_RAW_DECL_GETTIMEOFDAY
 _GL_WARN_ON_USE (gettimeofday, "gettimeofday is unportable - "
                  "use gnulib module gettimeofday for portability");

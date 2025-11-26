@@ -173,7 +173,6 @@ _GL_CXXALIAS_SYS (closedir, int, (DIR *dirp));
 # endif
 _GL_CXXALIASWARN (closedir);
 #elif defined GNULIB_POSIXCHECK
-# undef closedir
 # if HAVE_RAW_DECL_CLOSEDIR
 _GL_WARN_ON_USE (closedir, "closedir is not portable - "
                  "use gnulib module closedir for portability");
@@ -213,7 +212,6 @@ _GL_FUNCDECL_SYS (opendir, DIR *,
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC (closedir, 1));
 # endif
 # if defined GNULIB_POSIXCHECK
-#  undef opendir
 #  if HAVE_RAW_DECL_OPENDIR
 _GL_WARN_ON_USE (opendir, "opendir is not portable - "
                  "use gnulib module opendir for portability");
@@ -237,7 +235,6 @@ _GL_CXXALIAS_SYS (readdir, struct dirent *, (DIR *dirp));
 # endif
 _GL_CXXALIASWARN (readdir);
 #elif defined GNULIB_POSIXCHECK
-# undef readdir
 # if HAVE_RAW_DECL_READDIR
 _GL_WARN_ON_USE (readdir, "readdir is not portable - "
                  "use gnulib module readdir for portability");
@@ -260,7 +257,6 @@ _GL_CXXALIAS_SYS (rewinddir, void, (DIR *dirp));
 # endif
 _GL_CXXALIASWARN (rewinddir);
 #elif defined GNULIB_POSIXCHECK
-# undef rewinddir
 # if HAVE_RAW_DECL_REWINDDIR
 _GL_WARN_ON_USE (rewinddir, "rewinddir is not portable - "
                  "use gnulib module rewinddir for portability");
@@ -293,7 +289,6 @@ _GL_CXXALIAS_SYS (dirfd, int, (DIR *));
 # endif
 _GL_CXXALIASWARN (dirfd);
 #elif defined GNULIB_POSIXCHECK
-# undef dirfd
 # if HAVE_RAW_DECL_DIRFD
 _GL_WARN_ON_USE (dirfd, "dirfd is unportable - "
                  "use gnulib module dirfd for portability");
@@ -335,7 +330,6 @@ _GL_FUNCDECL_SYS (fdopendir, DIR *,
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC (closedir, 1));
 # endif
 # if defined GNULIB_POSIXCHECK
-#  undef fdopendir
 #  if HAVE_RAW_DECL_FDOPENDIR
 _GL_WARN_ON_USE (fdopendir, "fdopendir is unportable - "
                  "use gnulib module fdopendir for portability");
@@ -363,7 +357,6 @@ _GL_CXXALIAS_SYS_CAST (scandir, int,
                         int (*cmp) (const struct dirent **, const struct dirent **)));
 _GL_CXXALIASWARN (scandir);
 #elif defined GNULIB_POSIXCHECK
-# undef scandir
 # if HAVE_RAW_DECL_SCANDIR
 _GL_WARN_ON_USE (scandir, "scandir is unportable - "
                  "use gnulib module scandir for portability");
@@ -384,7 +377,6 @@ _GL_CXXALIAS_SYS_CAST (alphasort, int,
                        (const struct dirent **, const struct dirent **));
 _GL_CXXALIASWARN (alphasort);
 #elif defined GNULIB_POSIXCHECK
-# undef alphasort
 # if HAVE_RAW_DECL_ALPHASORT
 _GL_WARN_ON_USE (alphasort, "alphasort is unportable - "
                  "use gnulib module alphasort for portability");

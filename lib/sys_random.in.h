@@ -94,7 +94,6 @@ _GL_CXXALIAS_SYS (getrandom, ssize_t,
 _GL_CXXALIASWARN (getrandom);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getrandom
 # if HAVE_RAW_DECL_GETRANDOM
 _GL_WARN_ON_USE (getrandom, "getrandom is unportable - "
                  "use gnulib module getrandom for portability");

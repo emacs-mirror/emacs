@@ -925,7 +925,6 @@ _GL_CXXALIAS_SYS (imaxabs, intmax_t, (intmax_t x));
 _GL_CXXALIASWARN (imaxabs);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef imaxabs
 # if HAVE_RAW_DECL_IMAXABS
 _GL_WARN_ON_USE (imaxabs, "imaxabs is unportable - "
                  "use gnulib module imaxabs for portability");
@@ -956,7 +955,6 @@ _GL_CXXALIAS_SYS (imaxdiv, imaxdiv_t, (intmax_t numer, intmax_t denom));
 _GL_CXXALIASWARN (imaxdiv);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef imaxdiv
 # if HAVE_RAW_DECL_IMAXDIV
 _GL_WARN_ON_USE (imaxdiv, "imaxdiv is unportable - "
                  "use gnulib module imaxdiv for portability");
@@ -986,7 +984,6 @@ _GL_CXXALIAS_SYS (strtoimax, intmax_t,
 # endif
 _GL_CXXALIASWARN (strtoimax);
 #elif defined GNULIB_POSIXCHECK
-# undef strtoimax
 # if HAVE_RAW_DECL_STRTOIMAX
 _GL_WARN_ON_USE (strtoimax, "strtoimax is unportable - "
                  "use gnulib module strtoimax for portability");
@@ -1016,7 +1013,6 @@ _GL_CXXALIAS_SYS (strtoumax, uintmax_t,
 # endif
 _GL_CXXALIASWARN (strtoumax);
 #elif defined GNULIB_POSIXCHECK
-# undef strtoumax
 # if HAVE_RAW_DECL_STRTOUMAX
 _GL_WARN_ON_USE (strtoumax, "strtoumax is unportable - "
                  "use gnulib module strtoumax for portability");

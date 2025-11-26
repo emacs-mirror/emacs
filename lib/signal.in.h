@@ -156,7 +156,6 @@ _GL_CXXALIAS_SYS (sig2str, int, (int signo, char *str));
 _GL_CXXALIASWARN (sig2str);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef sig2str
 # if HAVE_RAW_DECL_SIG2STR
 _GL_WARN_ON_USE (sig2str, "sig2str is not portable - "
                  "use gnulib module sig2str for portability");
@@ -172,7 +171,6 @@ _GL_CXXALIAS_SYS (str2sig, int, (char const *str, int *signo_p));
 _GL_CXXALIASWARN (str2sig);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef str2sig
 # if HAVE_RAW_DECL_STR2SIG
 _GL_WARN_ON_USE (str2sig, "str2sig is not portable - "
                  "use gnulib module sig2str for portability");
@@ -210,7 +208,6 @@ _GL_CXXALIAS_SYS (pthread_sigmask, int,
 _GL_CXXALIASWARN (pthread_sigmask);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef pthread_sigmask
 # if HAVE_RAW_DECL_PTHREAD_SIGMASK
 _GL_WARN_ON_USE (pthread_sigmask, "pthread_sigmask is not portable - "
                  "use gnulib module pthread_sigmask for portability");
@@ -236,7 +233,6 @@ _GL_CXXALIAS_SYS (raise, int, (int sig));
 _GL_CXXALIASWARN (raise);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef raise
 /* Assume raise is always declared.  */
 _GL_WARN_ON_USE (raise, "raise can crash on native Windows - "
                  "use gnulib module raise for portability");
@@ -407,37 +403,30 @@ _GL_EXTERN_C int _gl_raise_SIGPIPE (void);
 # endif
 
 #elif defined GNULIB_POSIXCHECK
-# undef sigaddset
 # if HAVE_RAW_DECL_SIGADDSET
 _GL_WARN_ON_USE (sigaddset, "sigaddset is unportable - "
                  "use the gnulib module sigprocmask for portability");
 # endif
-# undef sigdelset
 # if HAVE_RAW_DECL_SIGDELSET
 _GL_WARN_ON_USE (sigdelset, "sigdelset is unportable - "
                  "use the gnulib module sigprocmask for portability");
 # endif
-# undef sigemptyset
 # if HAVE_RAW_DECL_SIGEMPTYSET
 _GL_WARN_ON_USE (sigemptyset, "sigemptyset is unportable - "
                  "use the gnulib module sigprocmask for portability");
 # endif
-# undef sigfillset
 # if HAVE_RAW_DECL_SIGFILLSET
 _GL_WARN_ON_USE (sigfillset, "sigfillset is unportable - "
                  "use the gnulib module sigprocmask for portability");
 # endif
-# undef sigismember
 # if HAVE_RAW_DECL_SIGISMEMBER
 _GL_WARN_ON_USE (sigismember, "sigismember is unportable - "
                  "use the gnulib module sigprocmask for portability");
 # endif
-# undef sigpending
 # if HAVE_RAW_DECL_SIGPENDING
 _GL_WARN_ON_USE (sigpending, "sigpending is unportable - "
                  "use the gnulib module sigprocmask for portability");
 # endif
-# undef sigprocmask
 # if HAVE_RAW_DECL_SIGPROCMASK
 _GL_WARN_ON_USE (sigprocmask, "sigprocmask is unportable - "
                  "use the gnulib module sigprocmask for portability");
@@ -523,7 +512,6 @@ _GL_CXXALIAS_SYS (sigaction, int, (int, const struct sigaction *restrict,
 _GL_CXXALIASWARN (sigaction);
 
 #elif defined GNULIB_POSIXCHECK
-# undef sigaction
 # if HAVE_RAW_DECL_SIGACTION
 _GL_WARN_ON_USE (sigaction, "sigaction is unportable - "
                  "use the gnulib module sigaction for portability");

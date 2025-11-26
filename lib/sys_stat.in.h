@@ -451,7 +451,6 @@ _GL_CXXALIAS_SYS (chmod, int, (const char *filename, mode_t mode));
 # endif
 _GL_CXXALIASWARN (chmod);
 #elif defined GNULIB_POSIXCHECK
-# undef chmod
 # if HAVE_RAW_DECL_CHMOD
 _GL_WARN_ON_USE (chmod, "chmod has portability problems - "
                  "use gnulib module chmod for portability");
@@ -496,7 +495,6 @@ _GL_CXXALIAS_SYS (fchmodat, int,
 # endif
 _GL_CXXALIASWARN (fchmodat);
 #elif defined GNULIB_POSIXCHECK
-# undef fchmodat
 # if HAVE_RAW_DECL_FCHMODAT
 _GL_WARN_ON_USE (fchmodat, "fchmodat is not portable - "
                  "use gnulib module openat for portability");
@@ -528,7 +526,6 @@ _GL_CXXALIASWARN (fstat);
 /* Above, we define stat to _stati64.  */
 # define fstat _fstati64
 #elif defined GNULIB_POSIXCHECK
-# undef fstat
 # if HAVE_RAW_DECL_FSTAT
 _GL_WARN_ON_USE (fstat, "fstat has portability problems - "
                  "use gnulib module fstat for portability");
@@ -567,7 +564,6 @@ _GL_CXXALIASWARN (fstatat);
 #  define fstatat fstatat_used_without_requesting_gnulib_module_fstatat
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef fstatat
 # if HAVE_RAW_DECL_FSTATAT
 _GL_WARN_ON_USE (fstatat, "fstatat is not portable - "
                  "use gnulib module openat for portability");
@@ -597,7 +593,6 @@ _GL_CXXALIAS_SYS (futimens, int, (int fd, struct timespec const times[2]));
 _GL_CXXALIASWARN (futimens);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef futimens
 # if HAVE_RAW_DECL_FUTIMENS
 _GL_WARN_ON_USE (futimens, "futimens is not portable - "
                  "use gnulib module futimens for portability");
@@ -618,7 +613,6 @@ _GL_CXXALIAS_SYS (getumask, mode_t, (void));
 _GL_CXXALIASWARN (getumask);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getumask
 # if HAVE_RAW_DECL_GETUMASK
 _GL_WARN_ON_USE (getumask, "getumask is not portable - "
                  "use gnulib module getumask for portability");
@@ -636,7 +630,6 @@ _GL_FUNCDECL_SYS (lchmod, int, (const char *filename, mode_t mode),
 _GL_CXXALIAS_SYS (lchmod, int, (const char *filename, mode_t mode));
 _GL_CXXALIASWARN (lchmod);
 #elif defined GNULIB_POSIXCHECK
-# undef lchmod
 # if HAVE_RAW_DECL_LCHMOD
 _GL_WARN_ON_USE (lchmod, "lchmod is unportable - "
                  "use gnulib module lchmod for portability");
@@ -698,7 +691,6 @@ _GL_CXXALIAS_SYS (mkdir, int, (char const *name, mode_t mode));
 # endif
 _GL_CXXALIASWARN (mkdir);
 #elif defined GNULIB_POSIXCHECK
-# undef mkdir
 # if HAVE_RAW_DECL_MKDIR
 _GL_WARN_ON_USE (mkdir, "mkdir does not always support two parameters - "
                  "use gnulib module mkdir for portability");
@@ -714,7 +706,6 @@ _GL_FUNCDECL_SYS (mkdirat, int, (int fd, char const *file, mode_t mode),
 _GL_CXXALIAS_SYS (mkdirat, int, (int fd, char const *file, mode_t mode));
 _GL_CXXALIASWARN (mkdirat);
 #elif defined GNULIB_POSIXCHECK
-# undef mkdirat
 # if HAVE_RAW_DECL_MKDIRAT
 _GL_WARN_ON_USE (mkdirat, "mkdirat is not portable - "
                  "use gnulib module openat for portability");
@@ -740,7 +731,6 @@ _GL_CXXALIAS_SYS (mkfifo, int, (char const *file, mode_t mode));
 # endif
 _GL_CXXALIASWARN (mkfifo);
 #elif defined GNULIB_POSIXCHECK
-# undef mkfifo
 # if HAVE_RAW_DECL_MKFIFO
 _GL_WARN_ON_USE (mkfifo, "mkfifo is not portable - "
                  "use gnulib module mkfifo for portability");
@@ -768,7 +758,6 @@ _GL_CXXALIAS_SYS (mkfifoat, int, (int fd, char const *file, mode_t mode));
 _GL_CXXALIASWARN (mkfifoat);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef mkfifoat
 # if HAVE_RAW_DECL_MKFIFOAT
 _GL_WARN_ON_USE (mkfifoat, "mkfifoat is not portable - "
                  "use gnulib module mkfifoat for portability");
@@ -794,7 +783,6 @@ _GL_CXXALIAS_SYS (mknod, int, (char const *file, mode_t mode, dev_t dev));
 # endif
 _GL_CXXALIASWARN (mknod);
 #elif defined GNULIB_POSIXCHECK
-# undef mknod
 # if HAVE_RAW_DECL_MKNOD
 _GL_WARN_ON_USE (mknod, "mknod is not portable - "
                  "use gnulib module mknod for portability");
@@ -826,7 +814,6 @@ _GL_CXXALIAS_SYS (mknodat, int,
 _GL_CXXALIASWARN (mknodat);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef mknodat
 # if HAVE_RAW_DECL_MKNODAT
 _GL_WARN_ON_USE (mknodat, "mknodat is not portable - "
                  "use gnulib module mkfifoat for portability");
@@ -904,7 +891,6 @@ _GL_EXTERN_C int stat (const char *restrict name, struct stat *restrict buf)
   #define stat stat_used_without_requesting_gnulib_module_stat
  */
 #elif defined GNULIB_POSIXCHECK
-# undef stat
 # if HAVE_RAW_DECL_STAT
 _GL_WARN_ON_USE (stat, "stat is unportable - "
                  "use gnulib module stat for portability");
@@ -944,7 +930,6 @@ _GL_CXXALIASWARN (lstat);
 #  define lstat lstat_used_without_requesting_gnulib_module_lstat
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef lstat
 # if HAVE_RAW_DECL_LSTAT
 _GL_WARN_ON_USE (lstat, "lstat is unportable - "
                  "use gnulib module lstat for portability");
@@ -998,7 +983,6 @@ _GL_CXXALIAS_SYS (utimensat, int, (int fd, char const *name,
 _GL_CXXALIASWARN (utimensat);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef utimensat
 # if HAVE_RAW_DECL_UTIMENSAT
 _GL_WARN_ON_USE (utimensat, "utimensat is not portable - "
                  "use gnulib module utimensat for portability");
