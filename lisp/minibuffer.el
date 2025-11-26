@@ -4188,8 +4188,8 @@ a submatch 1, then completion can add something at (match-end 1).
 This is used when the delimiter needs to be of size zero (e.g. the transition
 from lowercase to uppercase characters).")
 
-(defun completion-pcm--prepare-delim-re (delims)
-  (setq completion-pcm--delim-wild-regex (concat "[" delims "*]")))
+(defun completion-pcm--delim-re (delims)
+  (concat "[" delims "*]"))
 
 (defcustom completion-pcm-word-delimiters "-_./:| "
   "A string of characters treated as word delimiters for completion.
@@ -4202,7 +4202,8 @@ expression (not containing character ranges like `a-z')."
   :set (lambda (symbol value)
          (set-default symbol value)
          ;; Refresh other vars.
-         (completion-pcm--prepare-delim-re value))
+         (setq completion-pcm--delim-wild-regex
+               (completion-pcm--delim-re value)))
   :initialize 'custom-initialize-reset
   :type 'string)
 
@@ -4342,7 +4343,9 @@ one wildcard."
                 (concat
                  (when group "\\(")
                  (if (all (lambda (x) (eq x 'any-delim)) (cdr segment))
-                     (concat completion-pcm--delim-wild-regex "*?")
+                     (concat (completion-pcm--delim-re
+                              completion-pcm-word-delimiters)
+                             "*?")
                    "[^z-a]*?")
                  (when group "\\)")))))
            segments

@@ -375,6 +375,15 @@
                   '(any "A" any-delim "B" any-delim "C" any))
                  "\\`[^z-a]*?A[-_./:| *]*?B[-_./:| *]*?C[^z-a]*?")))
 
+(ert-deftest completion-pcm--test-zerowidth-delim ()
+  (let ((completion-pcm--delim-wild-regex ; Let "u8" complete to "utf-8".
+         (concat "\\(?:" completion-pcm--delim-wild-regex
+                 "\\|\\([[:alpha:]]\\)[[:digit:]]\\)")))
+    (should (equal (car (completion-try-completion
+                         "u8-d" '("utf-8-dos" "utf-8-foo-dos" "utf-8-unix")
+                         nil 4))
+                   "utf-8-dos"))))
+
 (ert-deftest completion-pcm-bug4219 ()
   ;; With `completion-ignore-case', try-completion should change the
   ;; case of existing text when the completions have different casing.
