@@ -2362,37 +2362,16 @@ struct bignum_reload_info
   dump_off nlimbs;
 };
 
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Bignum_B9D07E8637)
+static dump_off
+dump_bignum (struct dump_context *ctx, Lisp_Object object)
+{
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Bignum_8732048B98)
 # error "Lisp_Bignum changed. See CHECK_STRUCTS comment in config.h."
 #endif
-#ifdef FLAT_BIGNUMS
-static dump_off
-dump_bignum (struct dump_context *ctx, Lisp_Object object)
-{
-  const struct Lisp_Bignum *bignum = XBIGNUM (object);
-  dump_align_output (ctx, DUMP_ALIGNMENT);
-# ifdef HAVE_MPS
-  dump_igc_start_obj (ctx, IGC_OBJ_VECTOR, bignum);
-# endif
-  eassert (ctx->offset >= ctx->header.cold_start);
-  dump_off offset = ctx->offset;
-  ptrdiff_t nbytes = vectorlike_nbytes (&bignum->header);
-  if (nbytes > DUMP_OFF_MAX)
-    error ("bignum too large");
-  dump_write (ctx, bignum, ptrdiff_t_to_dump_off (nbytes));
-# ifdef HAVE_MPS
-  dump_igc_finish_obj (ctx);
-# endif
-  return offset;
-}
-#else
-static dump_off
-dump_bignum (struct dump_context *ctx, Lisp_Object object)
-{
   const struct Lisp_Bignum *bignum = XBIGNUM (object);
   START_DUMP_PVEC (ctx, &bignum->header, struct Lisp_Bignum, out);
   static_assert (sizeof (out->value) >= sizeof (struct bignum_reload_info));
-  dump_field_fixup_later (ctx, out, bignum, xbignum_val (object).z);
+  dump_field_fixup_later (ctx, out, bignum, xbignum_val (object));
   dump_off bignum_offset = finish_dump_pvec (ctx, &out->header);
   if (ctx->flags.dump_object_contents)
     {
@@ -2420,7 +2399,6 @@ dump_bignum (struct dump_context *ctx, Lisp_Object object)
 
   return bignum_offset;
 }
-#endif
 
 static dump_off
 dump_float (struct dump_context *ctx, const struct Lisp_Float *lfloat)
@@ -3702,18 +3680,11 @@ dump_cold_buffer (struct dump_context *ctx, Lisp_Object data)
 # endif
 }
 
-#ifdef FLAT_BIGNUMS
 static void
 dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
 {
-  emacs_abort ();
-}
-#else
-static void
-dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
-{
-  mpz_t const n = XBIGNUM_VAL (object);
-  size_t sz_nlimbs = mpz_size (n);
+  mpz_t const *n = xbignum_val (object);
+  size_t sz_nlimbs = mpz_size (*n);
   eassert (sz_nlimbs < DUMP_OFF_MAX);
   dump_align_output (ctx, alignof (mp_limb_t));
   dump_off nlimbs = (dump_off) sz_nlimbs;
@@ -3723,18 +3694,17 @@ dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
 # endif
   Lisp_Object descriptor
     = list2 (dump_off_to_lisp (ctx->offset),
-	     dump_off_to_lisp (mpz_sgn (n) < 0 ? -nlimbs : nlimbs));
+	     dump_off_to_lisp (mpz_sgn (*n) < 0 ? -nlimbs : nlimbs));
   Fputhash (object, descriptor, ctx->bignum_data);
   for (mp_size_t i = 0; i < nlimbs; ++i)
     {
-      mp_limb_t limb = mpz_getlimbn (n, i);
+      mp_limb_t limb = mpz_getlimbn (*n, i);
       dump_write (ctx, &limb, sizeof (limb));
     }
 # ifdef HAVE_MPS
   dump_igc_finish_obj (ctx);
 # endif
 }
-#endif
 
 #ifdef HAVE_NATIVE_COMP
 static void
@@ -5914,23 +5884,16 @@ dump_do_dump_relocation (const uintptr_t dump_base,
       }
 #endif
     case RELOC_BIGNUM:
-#ifdef FLAT_BIGNUMS
-      emacs_abort ();
-#else
       {
-	struct Lisp_Bignum *bignum
-	  = dump_ptr (dump_base, reloc_offset);
-	struct bignum_reload_info reload_info;
-	static_assert (sizeof (reload_info)
-		       <= sizeof (*bignum_val (bignum).z));
-	memcpy (&reload_info, bignum_val (bignum).z,
-		sizeof (reload_info));
-	const mp_limb_t *limbs
-	  = dump_ptr (dump_base, reload_info.data_location);
-	mpz_roinit_n (bignum->value, limbs, reload_info.nlimbs);
-	break;
+        struct Lisp_Bignum *bignum = dump_ptr (dump_base, reloc_offset);
+        struct bignum_reload_info reload_info;
+	static_assert (sizeof (reload_info) <= sizeof (*bignum_val (bignum)));
+        memcpy (&reload_info, bignum_val (bignum), sizeof (reload_info));
+        const mp_limb_t *limbs = dump_ptr (dump_base,
+					   reload_info.data_location);
+        mpz_roinit_n (bignum->value, limbs, reload_info.nlimbs);
+        break;
       }
-#endif
 #ifdef HAVE_MPS
     case RELOC_BUFFER:
       {
