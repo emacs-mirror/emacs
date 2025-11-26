@@ -36,13 +36,33 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 mpz_t mpz[5];
 
+static void *
+xrealloc_for_gmp (void *ptr, size_t ignore, size_t size)
+{
+  return xrealloc (ptr, size);
+}
+
+static void
+xfree_for_gmp (void *ptr, size_t ignore)
+{
+  xfree (ptr);
+}
+
 void
 init_bignum (void)
 {
   eassert (mp_bits_per_limb == GMP_NUMB_BITS);
   integer_width = 1 << 16;
 
-  init_gmp_memory_functions ();
+  /* FIXME: The Info node `(gmp) Custom Allocation' states: "No error
+     return is allowed from any of these functions, if they return
+     then they must have performed the specified operation. [...]
+     There's currently no defined way for the allocation functions to
+     recover from an error such as out of memory, they must terminate
+     program execution.  A 'longjmp' or throwing a C++ exception will
+     have undefined results."  But xmalloc and xrealloc do call
+     'longjmp'.  */
+  mp_set_memory_functions (xmalloc, xrealloc_for_gmp, xfree_for_gmp);
 
   for (int i = 0; i < ARRAYELTS (mpz); i++)
     mpz_init (mpz[i]);
@@ -52,7 +72,7 @@ init_bignum (void)
 double
 bignum_to_double (Lisp_Object n)
 {
-  return mpz_get_d_rounded (xbignum_val (n).z);
+  return mpz_get_d_rounded (*xbignum_val (n));
 }
 
 /* Return D, converted to a Lisp integer.  Discard any fraction.
@@ -65,31 +85,6 @@ double_to_integer (double d)
   mpz_set_d (mpz[0], d);
   return make_integer_mpz ();
 }
-
-#ifdef FLAT_BIGNUMS
-static struct Lisp_Bignum *
-make_bignum_from_mpz (mpz_srcptr z)
-{
-  size_t nlimbs = mpz_size (z);
-  const mp_limb_t *limbs = mpz_limbs_read (z);
-  bool negative = mpz_sgn (z) < 0;
-  size_t nbytes = (offsetof (struct Lisp_Bignum, limbs)
-		   + nlimbs * (sizeof *limbs) - header_size);
-  size_t roundup_size = max (GCALIGNMENT, word_size);
-  size_t nwords = ROUNDUP (nbytes, roundup_size) / word_size;
-  size_t rest_max = (1 << PSEUDOVECTOR_REST_BITS) - 1;
-  if (nwords > rest_max)
-    overflow_error ();
-  struct Lisp_Bignum *b
-    = (struct Lisp_Bignum *) allocate_pseudovector (nwords, 0, 0,
-						    PVEC_BIGNUM);
-  eassert (vectorlike_nbytes (&b->header)
-	   == ROUNDUP (nbytes + header_size, roundup_size));
-  b->sign_and_size = negative ? -nlimbs : nlimbs;
-  memcpy (b->limbs, limbs, nlimbs * sizeof *limbs);
-  return b;
-}
-#endif
 
 /* Return a Lisp integer equal to mpz[0], which has BITS bits and which
    must not be in fixnum range.  Set mpz[0] to a junk value.  */
@@ -104,14 +99,10 @@ make_bignum_bits (size_t bits)
   if (integer_width < bits && 2 * max (INTMAX_WIDTH, UINTMAX_WIDTH) < bits)
     overflow_error ();
 
-#ifdef FLAT_BIGNUMS
-  struct Lisp_Bignum *b = make_bignum_from_mpz (mpz[0]);
-#else
   struct Lisp_Bignum *b = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Bignum,
 						       PVEC_BIGNUM);
   mpz_init (b->value);
   mpz_swap (b->value, mpz[0]);
-#endif
   return make_lisp_ptr (b, Lisp_Vectorlike);
 }
 
@@ -314,13 +305,13 @@ intmax_t
 bignum_to_intmax (Lisp_Object x)
 {
   intmax_t i;
-  return mpz_to_intmax (xbignum_val (x).z, &i) ? i : 0;
+  return mpz_to_intmax (*xbignum_val (x), &i) ? i : 0;
 }
 uintmax_t
 bignum_to_uintmax (Lisp_Object x)
 {
   uintmax_t i;
-  return mpz_to_uintmax (xbignum_val (x).z, &i) ? i : 0;
+  return mpz_to_uintmax (*xbignum_val (x), &i) ? i : 0;
 }
 
 
@@ -412,7 +403,7 @@ mpz_bufsize (mpz_t const num, int base)
 ptrdiff_t
 bignum_bufsize (Lisp_Object num, int base)
 {
-  return mpz_bufsize (xbignum_val (num).z, base);
+  return mpz_bufsize (*xbignum_val (num), base);
 }
 
 /* Convert NUM to a nearest double, as opposed to mpz_get_d which
@@ -446,7 +437,7 @@ ptrdiff_t
 bignum_to_c_string (char *buf, ptrdiff_t size, Lisp_Object num, int base)
 {
   eassert (bignum_bufsize (num, abs (base)) == size);
-  mpz_get_str (buf, base, xbignum_val (num).z);
+  mpz_get_str (buf, base, *xbignum_val (num));
   ptrdiff_t n = size - 2;
   return !buf[n - 1] ? n - 1 : n + !!buf[n];
 }
@@ -470,18 +461,7 @@ bignum_to_string (Lisp_Object num, int base)
    NUM must consist of an optional '-', a nonempty sequence
    of base-BASE digits, and a terminating null byte, and
    the represented number must not be in fixnum range.  */
-#ifdef FLAT_BIGNUMS
-Lisp_Object
-make_bignum_str (char const *num, int base)
-{
-  mpz_t tmp;
-  int check = mpz_init_set_str (tmp, num, base);
-  eassert (check == 0);
-  struct Lisp_Bignum *b = make_bignum_from_mpz (tmp);
-  mpz_clear (tmp);
-  return make_lisp_ptr (b, Lisp_Vectorlike);
-}
-#else
+
 Lisp_Object
 make_bignum_str (char const *num, int base)
 {
@@ -492,7 +472,6 @@ make_bignum_str (char const *num, int base)
   eassert (check == 0);
   return make_lisp_ptr (b, Lisp_Vectorlike);
 }
-#endif
 
 /* Check that X is a Lisp integer in the range LO..HI.
    Return X's value as an intmax_t.  */
@@ -578,11 +557,11 @@ get_random_limb_lim (mp_limb_t lim)
 Lisp_Object
 get_random_bignum (struct Lisp_Bignum const *limit)
 {
-  mpz_t const lim = BIGNUM_VAL (limit);
-  mp_size_t nlimbs = mpz_size (lim);
+  mpz_t const *lim = bignum_val (limit);
+  mp_size_t nlimbs = mpz_size (*lim);
   eassume (0 < nlimbs);
   mp_limb_t *r_limb = mpz_limbs_write (mpz[0], nlimbs);
-  mp_limb_t const *lim_limb = mpz_limbs_read (lim);
+  mp_limb_t const *lim_limb = mpz_limbs_read (*lim);
   mp_limb_t limhi = lim_limb[nlimbs - 1];
   eassert (limhi);
   bool edgy;

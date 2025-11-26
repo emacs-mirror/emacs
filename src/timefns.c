@@ -87,7 +87,7 @@ static Lisp_Object trillion;
 #endif
 #if ! (FASTER_TIMEFNS && TRILLION <= ULONG_MAX)
 # if FIXNUM_OVERFLOW_P (TRILLION)
-#  define ztrillion (xbignum_val (trillion).z)
+#  define ztrillion (*xbignum_val (trillion))
 # else
 static mpz_t ztrillion;
 #  define NEED_ZTRILLION_INIT
@@ -547,14 +547,14 @@ ticks_hz_to_timespec (Lisp_Object ticks, Lisp_Object hz)
 	    s--, ns += TIMESPEC_HZ;
 	  return s_ns_to_timespec (s, ns);
 	}
-      ns = mpz_fdiv_q_ui (*q, xbignum_val (ticks).z, TIMESPEC_HZ);
+      ns = mpz_fdiv_q_ui (*q, *xbignum_val (ticks), TIMESPEC_HZ);
     }
   else if (FASTER_TIMEFNS && BASE_EQ (hz, make_fixnum (1)))
     {
       ns = 0;
       if (FIXNUMP (ticks))
 	return s_ns_to_timespec (XFIXNUM (ticks), ns);
-      qt = bignum_integer (q, ticks);
+      qt = xbignum_val (ticks);
     }
   else
     {
@@ -780,7 +780,7 @@ ticks_hz_hz_ticks (struct ticks_hz t, Lisp_Object hz)
 	  hz = make_fixnum (ihz);
 	}
     }
-  else if (! (BIGNUMP (hz) && 0 < mpz_sgn (xbignum_val (hz).z)))
+  else if (! (BIGNUMP (hz) && 0 < mpz_sgn (*xbignum_val (hz))))
     invalid_hz (hz);
 
   /* Fall back on bignum arithmetic.  */
@@ -1108,7 +1108,7 @@ lispint_arith (Lisp_Object a, Lisp_Object b, bool subtract)
       if (eabs (XFIXNUM (b)) <= ULONG_MAX)
 	{
 	  ((XFIXNUM (b) < 0) == subtract ? mpz_add_ui : mpz_sub_ui)
-	    (mpz[0], xbignum_val (a).z, eabs (XFIXNUM (b)));
+	    (mpz[0], *xbignum_val (a), eabs (XFIXNUM (b)));
 	  mpz_done = true;
 	}
     }

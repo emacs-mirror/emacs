@@ -36,20 +36,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 enum { GMP_NUMB_BITS = TYPE_WIDTH (mp_limb_t) };
 #endif
 
-/* Define FLAT_BIGNUMS to use the flat bignum representation.  */
-#ifdef HAVE_MPS
-# define FLAT_BIGNUMS
-#endif
-
 struct Lisp_Bignum
 {
   struct vectorlike_header header;
-#ifdef FLAT_BIGNUMS
-  mp_size_t sign_and_size;
-  mp_limb_t limbs[FLEXIBLE_ARRAY_MEMBER];
-#else
   mpz_t value;
-#endif
 } GCALIGNED_STRUCT;
 
 extern mpz_t mpz[5];
@@ -68,9 +58,6 @@ extern void emacs_mpz_pow_ui (mpz_t, mpz_t const, unsigned long)
   ARG_NONNULL ((1, 2));
 extern double mpz_get_d_rounded (mpz_t const);
 extern Lisp_Object get_random_bignum (struct Lisp_Bignum const *);
-
-/* defined in alloc.c  */
-extern void init_gmp_memory_functions (void);
 
 INLINE_HEADER_BEGIN
 
@@ -103,61 +90,17 @@ mpz_set_uintmax (mpz_t result, uintmax_t v)
     mpz_set_uintmax_slow (result, v);
 }
 
-/* To convert a bignum to an mpz_t, either use BIGNUM_VAL or bignum_val.
-   BIGNUM_VAL can be used to initialize an mpz_t.  E.g.:
-
-     mpz_t const z = BIGNUM_VAL (bignum)
-
-   The typical use for bignum_val is in argument context:
-
-     mpz_neg (foo, bignum_val.z (bignum))
-
-   In both cases, the mpz_t should not me mutated as it shares memory
-   with the bignum.  */
-
-#ifdef FLAT_BIGNUMS
-
-#define BIGNUM_VAL(b) \
-  MPZ_ROINIT_N ((mp_limb_t *) b->limbs, b->sign_and_size)
-
-struct bignum_val
-{
-  const mpz_t z;
-};
-
-INLINE struct bignum_val
-bignum_val (struct Lisp_Bignum const *i)
-{
-  struct bignum_val val = { BIGNUM_VAL (i) };
-  return val;
-}
-
+/* Return a pointer to the mpz_t value represented by the bignum I.
+   It is const because the value should not change.  */
 INLINE mpz_t const *
-bignum_integer (mpz_t *tmp, Lisp_Object i)
-{
-  if (FIXNUMP (i))
-    mpz_set_intmax (*tmp, XFIXNUM (i));
-  else
-    mpz_set (*tmp, bignum_val (XBIGNUM (i)).z);
-  return tmp;
-}
-
-#else
-
-#define BIGNUM_VAL(b)                                          \
-  MPZ_ROINIT_N ((mp_limb_t *) mpz_limbs_read (b->value),       \
-		(mpz_sgn (b->value) < 0 ? -mpz_size (b->value) \
-					: mpz_size (b->value)))
-struct bignum_val
-{
-  mpz_srcptr z;
-};
-
-INLINE struct bignum_val
 bignum_val (struct Lisp_Bignum const *i)
 {
-  struct bignum_val val = { i->value };
-  return val;
+  return &i->value;
+}
+INLINE mpz_t const *
+xbignum_val (Lisp_Object i)
+{
+  return bignum_val (XBIGNUM (i));
 }
 
 /* Return a pointer to an mpz_t that is equal to the Lisp integer I.
@@ -172,16 +115,7 @@ bignum_integer (mpz_t *tmp, Lisp_Object i)
       /* The unnecessary cast pacifies a buggy GCC 4.8.5.  */
       return (mpz_t const *) tmp;
     }
-  return &XBIGNUM (i)->value;
-}
-#endif
-
-#define XBIGNUM_VAL(b) BIGNUM_VAL (XBIGNUM (b))
-
-INLINE struct bignum_val
-xbignum_val (Lisp_Object i)
-{
-  return bignum_val (XBIGNUM (i));
+  return xbignum_val (i);
 }
 
 /* Set RESULT to the value stored in the Lisp integer I.  If I is a
@@ -193,7 +127,7 @@ mpz_set_integer (mpz_t result, Lisp_Object i)
   if (FIXNUMP (i))
     mpz_set_intmax (result, XFIXNUM (i));
   else
-    mpz_set (result, xbignum_val (i).z);
+    mpz_set (result, *xbignum_val (i));
 }
 
 INLINE_HEADER_END
