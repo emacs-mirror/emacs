@@ -2279,8 +2279,8 @@ If ALLOW-EMPTY is non-nil, it is possible to exit with no input."
      while (and (not allow-empty) (equal pr-name "")))
     (pcase pr-name
       ("" "")
-      ('dir-choice (read-directory-name "Select directory: "
-                                        default-directory nil t))
+      ((pred (equal dir-choice)) (read-directory-name "Select directory: "
+                                                      default-directory nil t))
       (_ (let ((proj (assoc pr-name choices)))
            (if (stringp proj) proj (project-root (cdr proj))))))))
 
