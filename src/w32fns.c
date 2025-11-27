@@ -180,11 +180,6 @@ struct MONITOR_INFO_EX
     char    szDevice[CCHDEVICENAME];
 };
 
-/* Reportedly, MSVC does not have this in its headers.  */
-#if defined (_MSC_VER) && _WIN32_WINNT < 0x0500
-DECLARE_HANDLE(HMONITOR);
-#endif
-
 typedef BOOL (WINAPI * TrackMouseEvent_Proc)
   (IN OUT LPTRACKMOUSEEVENT lpEventTrack);
 typedef LONG (WINAPI * ImmGetCompositionString_Proc)

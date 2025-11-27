@@ -120,38 +120,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    you should place, by convention, in sysdep.c).  */
 
 #ifdef __GNUC__
-#ifndef __cplusplus
-#undef inline
-#endif
-#else  /* MSVC */
-#define inline __inline
-#endif
-
-#ifdef __GNUC__
+# ifndef __cplusplus
+#  undef inline
 /* config.h may have defined already.  */
-# ifndef restrict
-#  define restrict __restrict__
-# endif
-#else
-  /* FIXME: should we define to __restrict, which MSVC supports? */
-# define restrict
-#endif
-
-/* `mode_t' is not defined for MSVC. Define. */
-#ifdef _MSC_VER
-typedef unsigned short mode_t;
-#endif
-
-/* A va_copy replacement for MSVC.  */
-#ifdef _MSC_VER
-# ifdef _WIN64
-#  ifndef va_copy               /* Need to be checked (?) */
-#   define va_copy(d,s) ((d) = (s))
+#  ifndef restrict
+#   define restrict __restrict__
 #  endif
-# else	/* not _WIN64 */
-#  define va_copy(d,s) ((d) = (s))
-# endif	 /* not _WIN64 */
-#endif	 /* _MSC_VER */
+# endif
+#endif
 
 #ifndef WINDOWSNT
 /* Some of the files of Emacs which are intended for use with other
@@ -228,17 +204,6 @@ typedef jmp_buf sigjmp_buf;
 #endif
 extern void w32_reset_stack_overflow_guard (void);
 
-#ifdef _MSC_VER
-#include <sys/timeb.h>
-#include <sys/stat.h>
-#include <signal.h>
-
-/* MSVC gets link-time errors without these redirections.  */
-#define fstat(a, b) sys_fstat(a, b)
-#define stat(a, b)  sys_stat(a, b)
-#define utime       sys_utime
-#endif
-
 /* Calls that are emulated or shadowed.  */
 #undef chdir
 #define chdir   sys_chdir
@@ -310,34 +275,16 @@ extern int sys_umask (int);
 #define open    sys_open
 
 /* Map to MSVC names.  */
-#define execlp    _execlp
-#define execvp    _execvp
-#include <stdint.h>		/* for intptr_t */
-extern intptr_t _execvp (const char *, char **);
 #define tcdrain _commit
 #define fdopen	  _fdopen
 #define fsync	  _commit
 #define ftruncate _chsize
 #define getpid    _getpid
-#ifdef _MSC_VER
-typedef int pid_t;
-#define snprintf  _snprintf
-#define strtoll   _strtoi64
-#define copysign  _copysign
-#endif
 #define isatty    _isatty
 #define _longjmp  longjmp
-/* MinGW64 defines lseek to invoke lseek64.  */
-#ifndef lseek
-#define lseek     _lseek
-#endif
-#define popen     _popen
-#define pclose    _pclose
-#define strdup    _strdup
-#define strupr    _strupr
-#define strnicmp  _strnicmp
-#define stricmp   _stricmp
-#define tzset     _tzset
+#define execvp    _execvp
+#include <stdint.h>		/* for intptr_t */
+extern intptr_t _execvp (const char *, char **);
 
 /* We cannot include system header process.h, since there's src/process.h.  */
 int _getpid (void);
@@ -354,27 +301,9 @@ int _getpid (void);
 extern struct tm *gmtime_r (time_t const * restrict, struct tm * restrict);
 extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 
-#ifdef _MSC_VER
-/* This is hacky, but is necessary to avoid warnings about macro
-   redefinitions using the MSVC compilers, since, when __STDC__ is
-   undefined or zero, those compilers declare functions like fileno,
-   lseek, and chdir, for which we defined macros above.  */
-#ifndef __STDC__
-#define __STDC__ 1
-#define MUST_UNDEF__STDC__
-#endif
 #include <direct.h>
 #include <io.h>
 #include <stdio.h>
-#ifdef MUST_UNDEF__STDC__
-#undef __STDC__
-#undef MUST_UNDEF__STDC__
-#endif
-#else  /* !_MSC_VER */
-#include <direct.h>
-#include <io.h>
-#include <stdio.h>
-#endif	/* !_MSC_VER */
 #ifndef fileno
 #define fileno	  _fileno
 #endif
@@ -405,11 +334,6 @@ int sys_read (int, char *, unsigned int);
 /* In case lib/errno.h is not used.  */
 #ifndef EOPNOTSUPP
 #define EOPNOTSUPP 130
-#endif
-
-#ifdef _MSC_VER
-typedef int sigset_t;
-typedef int ssize_t;
 #endif
 
 #ifdef MINGW_W64
@@ -479,11 +403,7 @@ extern char *get_emacs_configuration_options (void);
 /* Defines size_t and alloca ().  */
 #include <stdlib.h>
 #include <sys/stat.h>
-#ifdef _MSC_VER
-#define alloca _alloca
-#else
 #include <malloc.h>
-#endif
 
 /* Needed in Emacs and in Gnulib.  */
 /* This must be after including sys/stat.h, because we need mode_t.  */
@@ -564,80 +484,10 @@ extern int mkostemp (char *, int);
 
 #endif
 
-#ifdef _MSC_VER
-# if defined(_WIN64)
-typedef __int64 EMACS_INT;
-typedef unsigned __int64 EMACS_UINT;
-#  define EMACS_INT_MAX	          LLONG_MAX
-#  define PRIuMAX                 "llu"
-#  define pI			  "ll"
-/* Fix a bug in MSVC headers : stdint.h */
-#  define _INTPTR 2
-# elif defined(_WIN32)
-/* Temporarily disable wider-than-pointer integers until they're tested more.
-   Build with CFLAGS='-DWIDE_EMACS_INT' to try them out.  */
-
-#  ifdef WIDE_EMACS_INT
-
-/* Use pre-C99-style 64-bit integers.  */
-typedef __int64 EMACS_INT;
-typedef unsigned __int64 EMACS_UINT;
-#   define EMACS_INT_MAX           LLONG_MAX
-#   define PRIuMAX                 "llu"
-#   define pI			  "I64"
-#  else
-typedef int EMACS_INT;
-typedef unsigned int EMACS_UINT;
-#   define EMACS_INT_MAX           LONG_MAX
-#   define PRIuMAX                 "lu"
-#   define pI			  "l"
-#  endif
-# endif
-#endif
-
 #define DATA_START 	get_data_start ()
-
-/* For unexec to work on Alpha systems, we need to put Emacs'
-   initialized data into a separate section from the CRT initialized
-   data (because the Alpha linker freely reorders data variables, even
-   across libraries, so our data and the CRT data get intermingled).
-
-   Starting with MSVC 5.0, we must also place the uninitialized data
-   into its own section.  VC5 intermingles uninitialized data from the CRT
-   between Emacs's static uninitialized data and its public uninitialized
-   data.  A separate .bss section for Emacs groups both static and
-   public uninitialized together.
-
-   Note that unexw32.c relies on this fact, and must be modified
-   accordingly if this section name is changed, or if this pragma is
-   removed.  Also, obviously, all files that define initialized data
-   must include config.h to pick up this pragma.  */
-
-/* Names must be < 8 bytes.  */
-#ifdef _MSC_VER
-#pragma data_seg("EMDATA")
-#pragma bss_seg("EMBSS")
-#endif
 
 /* #define FULL_DEBUG */
 /* #define EMACSDEBUG */
-
-#ifdef _MSC_VER
-#if _MSC_VER >= 800 && !defined(__cplusplus)
-/* Unnamed type definition in parentheses.
-   A structure, union, or enumerated type with no name is defined in a
-   parenthetical expression.  The type definition is meaningless.  */
-#pragma warning(disable:4116)
-/* 'argument' : conversion from 'type1' to 'type2', possible loss of
-   data A floating point type was converted to an integer type.  A
-   possible loss of data may have occurred.  */
-#pragma warning(disable:4244)
-/* Negative integral constant converted to unsigned type.
-   An expression converts a negative integer constant to an unsigned type.
-   The result of the expression is probably meaningless.  */
-#pragma warning(disable:4308)
-#endif
-#endif
 
 /* Event name for when emacsclient starts the Emacs daemon on Windows.  */
 #define W32_DAEMON_EVENT "EmacsServerEvent"
