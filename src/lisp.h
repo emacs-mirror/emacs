@@ -253,10 +253,10 @@ DEFINE_GDB_SYMBOL_END (INTTYPEBITS)
    So, USE_LSB_TAG is true only on hosts where it might be useful.  */
 DEFINE_GDB_SYMBOL_BEGIN (bool, USE_LSB_TAG)
 #if (ALIGNOF_EMACS_INT < IDEAL_GCALIGNMENT && !defined alignas	\
+     && ! (__GNUC__ || 4 <= __clang_major__)			\
+     && __STDC_VERSION__ < 202311 && __cplusplus < 201103)	\
      && !defined WIDE_EMACS_INT					\
-     && !defined HAVE_STRUCT_ATTRIBUTE_ALIGNED			\
-     && !defined __alignas_is_defined				\
-     && __STDC_VERSION__ < 202311 && __cplusplus < 201103)
+     && !defined HAVE_STRUCT_ATTRIBUTE_ALIGNED
 #define USE_LSB_TAG 0
 #else /* ALIGNOF_EMACS_INT >= IDEAL_GCALIGNMENT || defined alignas ... */
 #define USE_LSB_TAG (VAL_MAX / 2 < INTPTR_MAX)
@@ -268,10 +268,14 @@ DEFINE_GDB_SYMBOL_BEGIN (EMACS_INT, VALMASK)
 # define VALMASK (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
 DEFINE_GDB_SYMBOL_END (VALMASK)
 
-/* Ignore 'alignas' on compilers lacking it.  */
-#if (!defined alignas && !defined __alignas_is_defined \
-     && __STDC_VERSION__ < 202311 && __cplusplus < 201103)
-# define alignas(a)
+/* Support 'alignas (A)' if possible, where A is an integer constant.  */
+#ifndef alignas
+# if __GNUC__ || 4 <= __clang_major__
+/* This is more reliable than the alignas operator, in GCC 14.  */
+#  define alignas(a) __attribute__ ((__aligned__ (a)))
+# elif __STDC_VERSION__ < 202311 && __cplusplus < 201103
+#  define alignas(a) /* not supported */
+# endif
 #endif
 
 /* The minimum alignment requirement for Lisp objects that is imposed by the
