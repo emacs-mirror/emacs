@@ -315,5 +315,103 @@ ones in `window--transpose'."
                              (if is-atom '(nil . t) conf)
 			     no-resize atom-windows)))))
 
+;;;###autoload
+(defun merge-frames (&optional frame1 frame2 vertical)
+  "Merge the main window of FRAME2 into FRAME1.
+Split the main window of FRAME1 and make the new window display the main
+window of FRAME2.  Both FRAME1 and FRAME2 must be live frames.  If
+VERTICAL is non-nil, make the new window below the old main window of
+FRAME1.  Otherwise, make the new window on the right of FRAME1's main
+window.  Interactively, VERTICAL is the prefix argument, FRAME1 is the
+selected frame and FRAME2 is the frame following FRAME1 in the frame
+list.  Delete FRAME2 if the merge completed successfully and return
+FRAME1."
+  (interactive "i\ni\nP")
+  (let* ((frame1 (window-normalize-frame frame1))
+         (frame2 (or (if frame2
+                         (window-normalize-frame frame2)
+                       (next-frame frame1))
+                     (user-error "Cannot find frame to merge"))))
+    (window-state-put
+     ;; Source window on frame2.
+     (window-state-get (window-main-window frame2))
+     ;; Make new window on frame1.
+     (split-window (window-main-window frame1) nil (not vertical)))
+    (delete-frame frame2)
+    frame1))
+
+;;;###autoload
+(defun split-frame (&optional frame arg)
+  "Split windows of specified FRAME into two separate frames.
+FRAME must be a live frame and defaults to the selected frame.  ARG
+specifies the number of windows to consider for splitting and defaults
+to 1.  Interactively, ARG is the prefix argument.
+
+First divide the child windows of FRAME's main window into two parts.
+The first part includes the first ARG child windows if ARG is positive,
+or -ARG last windows if it's negative.  The second part includes the
+remaining child windows of FRAME's main window.  Then clone into a
+newly-created frame each of the windows of the part which does not
+include FRAME's selected window and delete those windows from FRAME.
+
+Signal an error if ARG is either zero or not a number, if FRAME's main
+window is live or does not have more child windows than specified by the
+absolute value of ARG.  Return the new frame."
+  (interactive "i\nP")
+  (let* ((frame (window-normalize-frame frame))
+         ;; MAIN is FRAME'S main window.
+         (main (window-main-window frame))
+	 (total-window-count (window-child-count main))
+	 (arg (or arg 1)))
+    (cond
+     ((window-live-p main)
+      (user-error "Cannot split frame with only one window"))
+     ((or (not (numberp arg)) (zerop arg))
+      (user-error "Invalid ARG %s for splitting frame" arg))
+     ((>= (abs arg) total-window-count)
+      (user-error "ARG %s exceeds number of windows %s that can be split off"
+		  (abs arg) (1- total-window-count)))
+     (t (let* ((reverse (< arg 0))
+	       ;; This is where the pivot window is.
+	       (pivot-window-pos (- (if reverse
+					(+ total-window-count arg)
+				      arg)
+                                    1))
+	       (pivot-window (window-child main))
+	       (active-window (frame-selected-window frame))
+               ;; If FRAME's selected window is on the left side of the
+               ;; pivot window.
+	       (active-window-on-left (eq pivot-window active-window)))
+	  ;; We want the 2nd level window that the active window is a
+	  ;; part of.
+	  (while (not (eq (window-parent active-window) main))
+	    (setq active-window (window-parent active-window)))
+
+	  ;; Now we need to find the pivot window
+	  (dotimes (_ pivot-window-pos)
+	    (setq pivot-window (window-next-sibling pivot-window))
+	    (when (eq active-window pivot-window)
+	      (setq active-window-on-left t)))
+
+	  ;; Now we have pivot-window set, and we just need to
+	  ;; combine.  We want to split away all windows from the
+	  ;; side of the pivot that doesn't contain the active
+	  ;; window.
+	  (let* ((first (window-child main))
+		 (last (window-last-child main))
+		 (next-pivot-sib (window-next-sibling pivot-window))
+		 (right-comb (if (eq next-pivot-sib last)
+				 last
+			       (combine-windows next-pivot-sib last)))
+		 (left-comb (if (eq first pivot-window)
+				first
+			      (combine-windows first pivot-window)))
+		 ;; comb-win is the combination that will be
+		 ;; split off.
+		 (comb-win (if active-window-on-left right-comb left-comb)))
+	    (window-state-put (window-state-get comb-win)
+			      (window-main-window (make-frame)))
+	    (delete-window comb-win)))))))
+
 (provide 'window-x)
 ;;; window-x.el ends here
