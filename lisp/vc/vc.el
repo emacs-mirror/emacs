@@ -5280,7 +5280,7 @@ determine the changes to copy or move.
 MOVE non-nil means to move instead of copy."
   (unless (or (not move)
               vc-no-confirm-moving-changes
-              (yes-or-no-p
+              (y-or-n-p
                (format "Really %s uncommitted work out of this working tree?"
                        (propertize "move" 'face 'bold))))
     (user-error "Aborted"))
