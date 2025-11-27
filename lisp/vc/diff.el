@@ -118,7 +118,8 @@ Non-interactively, OLD and NEW may each be a file or a buffer."
   (display-buffer
    (diff-no-select old new switches no-async)))
 
-(defvar coding-system--for-buffer-diff) ; from misearch.el
+(defvar coding-system--for-buffer-diff nil
+  "Used to pass buffer text encoding from `multi-file-diff-no-select'.")
 
 (defun diff-file-local-copy (file-or-buf)
   "Like `file-local-copy' but also supports a buffer as the argument.

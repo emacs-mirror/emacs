@@ -406,8 +406,7 @@ modified buffer to be able to use unsaved changes."
 (declare-function diff-setup-whitespace "diff-mode" ())
 (declare-function diff-setup-buffer-type "diff-mode" ())
 
-(defvar coding-system--for-buffer-diff nil
-  "Used to pass encoding down to callees of `multi-file-diff-no-select'.")
+(defvar coding-system--for-buffer-diff) ; from diff.el
 
 ;;;###autoload
 (defun multi-file-replace-as-diff (files from-string replacements regexp-flag delimited-flag)
@@ -519,6 +518,7 @@ variable `diff-switches' are passed to the diff command,
 otherwise SWITCHES is used.  SWITCHES can be a string or a list
 of strings.  BUF should be non-nil.  LABEL-OLD and LABEL-NEW
 specify labels to use for file names."
+  (require 'diff)
   (unless (bufferp new) (setq new (expand-file-name new)))
   (unless (bufferp old) (setq old (expand-file-name old)))
   (or switches (setq switches diff-switches)) ; If not specified, use default.
