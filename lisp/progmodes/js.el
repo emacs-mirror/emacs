@@ -3513,72 +3513,64 @@ characters of the current line."
               node parent bol args)
        js-indent-level)))
 
-(defvar js--treesit-indent-rules-cached nil
-  "Cached tree-sitter indent rules for `js-ts-mode'.")
-
 (defun js--treesit-indent-rules ()
-  "Return tree-sitter indent rules for `js-ts-mode'.
+  "Return tree-sitter indent rules for `js-ts-mode'."
+  `((javascript
+     ((parent-is "program") parent-bol 0)
+     ((node-is "}") standalone-parent 0)
+     ((node-is ")") parent-bol 0)
+     ((node-is "]") parent-bol 0)
+     ((node-is ">") parent-bol 0)
+     ((and (parent-is "comment") c-ts-common-looking-at-star)
+      c-ts-common-comment-start-after-first-star -1)
+     ((parent-is "comment") prev-adaptive-prefix 0)
+     ((n-p-gp "identifier" "ternary_expression" "parenthesized_expression")
+      parent 0)
+     ((parent-is "ternary_expression") parent-bol js-indent-level)
+     ((parent-is "sequence_expression") parent 0)
+     ((parent-is "member_expression") js--treesit-member-chained-expression-helper 0)
+     ((parent-is "named_imports") parent-bol js-indent-level)
+     ((parent-is "statement_block") standalone-parent js-indent-level)
+     ((parent-is "variable_declarator") parent 0)
+     ((parent-is "arguments") parent-bol js-indent-level)
+     ((parent-is "array") parent-bol js-indent-level)
+     ((parent-is "formal_parameters") parent-bol js-indent-level)
+     ((parent-is "template_string") no-indent) ; Don't indent the string contents.
+     ((parent-is "template_substitution") parent-bol js-indent-level)
+     ((parent-is "object_pattern") parent-bol js-indent-level)
+     ((parent-is "object") parent-bol js-indent-level)
+     ((parent-is "pair") parent-bol js-indent-level)
+     ((parent-is "arrow_function") js--treesit-arrow-function-helper 0)
+     ((parent-is "parenthesized_expression") parent-bol js-indent-level)
+     ((parent-is "binary_expression") parent-bol js-indent-level)
+     ((parent-is "assignment_expression") parent-bol js-indent-level)
+     ((parent-is "class_body") parent-bol js-indent-level)
+     ;; "{" on the newline, should stay here.
+     ((node-is "statement_block") parent-bol 0)
+     ((parent-is "switch_statement") parent-bol 0)
+     ((parent-is "switch_body") js--treesit-switch-body-helper 0)
+     ((parent-is ,(rx "switch_" (or "case" "default"))) parent-bol js-indent-level)
+     ((match "while" "do_statement") parent-bol 0)
+     ((match "else" "if_statement") parent-bol 0)
+     ((parent-is ,(rx (or (seq (or "if" "for" "for_in" "while" "do") "_statement")
+                          "else_clause")))
+      parent-bol js-indent-level)
 
-Tree-sitter indent rules are evaluated the first time this function is
-called.  Subsequent calls return the first evaluated value."
-  (or js--treesit-indent-rules-cached
-      (setq js--treesit-indent-rules-cached
-            `((javascript
-               ((parent-is "program") parent-bol 0)
-               ((node-is "}") standalone-parent 0)
-               ((node-is ")") parent-bol 0)
-               ((node-is "]") parent-bol 0)
-               ((node-is ">") parent-bol 0)
-               ((and (parent-is "comment") c-ts-common-looking-at-star)
-                c-ts-common-comment-start-after-first-star -1)
-               ((parent-is "comment") prev-adaptive-prefix 0)
-               ((n-p-gp "identifier" "ternary_expression" "parenthesized_expression")
-	        parent 0)
-               ((parent-is "ternary_expression") parent-bol js-indent-level)
-               ((parent-is "sequence_expression") parent 0)
-               ((parent-is "member_expression") js--treesit-member-chained-expression-helper 0)
-               ((parent-is "named_imports") parent-bol js-indent-level)
-               ((parent-is "statement_block") standalone-parent js-indent-level)
-               ((parent-is "variable_declarator") parent 0)
-               ((parent-is "arguments") parent-bol js-indent-level)
-               ((parent-is "array") parent-bol js-indent-level)
-               ((parent-is "formal_parameters") parent-bol js-indent-level)
-               ((parent-is "template_string") no-indent) ; Don't indent the string contents.
-               ((parent-is "template_substitution") parent-bol js-indent-level)
-               ((parent-is "object_pattern") parent-bol js-indent-level)
-               ((parent-is "object") parent-bol js-indent-level)
-               ((parent-is "pair") parent-bol js-indent-level)
-               ((parent-is "arrow_function") js--treesit-arrow-function-helper 0)
-               ((parent-is "parenthesized_expression") parent-bol js-indent-level)
-               ((parent-is "binary_expression") parent-bol js-indent-level)
-               ((parent-is "assignment_expression") parent-bol js-indent-level)
-               ((parent-is "class_body") parent-bol js-indent-level)
-               ;; "{" on the newline, should stay here.
-               ((node-is "statement_block") parent-bol 0)
-               ((parent-is "switch_statement") parent-bol 0)
-               ((parent-is "switch_body") js--treesit-switch-body-helper 0)
-               ((parent-is ,(rx "switch_" (or "case" "default"))) parent-bol js-indent-level)
-               ((match "while" "do_statement") parent-bol 0)
-               ((match "else" "if_statement") parent-bol 0)
-               ((parent-is ,(rx (or (seq (or "if" "for" "for_in" "while" "do") "_statement")
-                                    "else_clause")))
-                parent-bol js-indent-level)
-
-               ;; JSX
-               ,@(js-jsx--treesit-indent-compatibility-bb1f97b)
-               ((node-is "jsx_closing_element") parent 0)
-               ((match "jsx_element" "statement") parent js-indent-level)
-               ((parent-is "jsx_element") parent js-indent-level)
-               ((parent-is "jsx_text") parent-bol js-indent-level)
-               ((parent-is "jsx_opening_element") parent js-indent-level)
-               ((parent-is "jsx_expression") parent-bol js-indent-level)
-               ((match "/" "jsx_self_closing_element") parent 0)
-               ((parent-is "jsx_self_closing_element") parent js-indent-level)
-               ;; FIXME(Theo): This no-node catch-all should be removed.  When is it needed?
-               (no-node parent-bol 0))
-              (jsdoc
-               ((and (parent-is "document") c-ts-common-looking-at-star)
-                c-ts-common-comment-start-after-first-star -1))))))
+     ;; JSX
+     ,@(js-jsx--treesit-indent-compatibility-bb1f97b)
+     ((node-is "jsx_closing_element") parent 0)
+     ((match "jsx_element" "statement") parent js-indent-level)
+     ((parent-is "jsx_element") parent js-indent-level)
+     ((parent-is "jsx_text") parent-bol js-indent-level)
+     ((parent-is "jsx_opening_element") parent js-indent-level)
+     ((parent-is "jsx_expression") parent-bol js-indent-level)
+     ((match "/" "jsx_self_closing_element") parent 0)
+     ((parent-is "jsx_self_closing_element") parent js-indent-level)
+     ;; FIXME(Theo): This no-node catch-all should be removed.  When is it needed?
+     (no-node parent-bol 0))
+    (jsdoc
+     ((and (parent-is "document") c-ts-common-looking-at-star)
+      c-ts-common-comment-start-after-first-star -1))))
 
 (defvar js--treesit-keywords
   '("as" "async" "await" "break" "case" "catch" "class" "const" "continue"
@@ -3595,162 +3587,154 @@ called.  Subsequent calls return the first evaluated value."
     "&&" "||" "!")
   "JavaScript operators for tree-sitter font-locking.")
 
-(defvar js--treesit-font-lock-settings-cached nil
-  "Cached tree-sitter font-lock settings for `js-ts-mode'.")
-
 (defun js--treesit-font-lock-settings ()
-  "Return tree-sitter font-lock settings for `js-ts-mode'.
+  "Return tree-sitter font-lock settings for `js-ts-mode'."
+  (treesit-font-lock-rules
 
-Tree-sitter font-lock settings are evaluated the first time this
-function is called.  Subsequent calls return the first evaluated value."
-  (or js--treesit-font-lock-settings-cached
-      (setq js--treesit-font-lock-settings-cached
-            (treesit-font-lock-rules
+   :language 'javascript
+   :feature 'comment
+   '([(comment) (hash_bang_line)] @font-lock-comment-face)
 
-             :language 'javascript
-             :feature 'comment
-             '([(comment) (hash_bang_line)] @font-lock-comment-face)
+   :language 'javascript
+   :feature 'constant
+   '(((identifier) @font-lock-constant-face
+      (:match "\\`[A-Z_][0-9A-Z_]*\\'" @font-lock-constant-face))
 
-             :language 'javascript
-             :feature 'constant
-             '(((identifier) @font-lock-constant-face
-                (:match "\\`[A-Z_][0-9A-Z_]*\\'" @font-lock-constant-face))
+     [(true) (false) (null)] @font-lock-constant-face)
 
-               [(true) (false) (null)] @font-lock-constant-face)
+   :language 'javascript
+   :feature 'keyword
+   `([,@js--treesit-keywords] @font-lock-keyword-face
+     [(this) (super)] @font-lock-keyword-face)
 
-             :language 'javascript
-             :feature 'keyword
-             `([,@js--treesit-keywords] @font-lock-keyword-face
-               [(this) (super)] @font-lock-keyword-face)
+   :language 'javascript
+   :feature 'string
+   '((regex pattern: (regex_pattern)) @font-lock-regexp-face
+     (string) @font-lock-string-face)
 
-             :language 'javascript
-             :feature 'string
-             '((regex pattern: (regex_pattern)) @font-lock-regexp-face
-               (string) @font-lock-string-face)
+   :language 'javascript
+   :feature 'string-interpolation
+   :override t
+   '((template_string) @js--fontify-template-string
+     (template_substitution ["${" "}"] @font-lock-misc-punctuation-face))
 
-             :language 'javascript
-             :feature 'string-interpolation
-             :override t
-             '((template_string) @js--fontify-template-string
-               (template_substitution ["${" "}"] @font-lock-misc-punctuation-face))
+   :language 'javascript
+   :feature 'definition
+   `(,@(js--treesit-font-lock-compatibility-definition-feature)
 
-             :language 'javascript
-             :feature 'definition
-             `(,@(js--treesit-font-lock-compatibility-definition-feature)
+     (class
+      name: (identifier) @font-lock-type-face)
 
-               (class
-                name: (identifier) @font-lock-type-face)
+     (class_declaration
+      name: (identifier) @font-lock-type-face)
 
-               (class_declaration
-                name: (identifier) @font-lock-type-face)
+     (function_declaration
+      name: (identifier) @font-lock-function-name-face)
 
-               (function_declaration
-                name: (identifier) @font-lock-function-name-face)
+     (method_definition
+      name: (property_identifier) @font-lock-function-name-face)
 
-               (method_definition
-                name: (property_identifier) @font-lock-function-name-face)
+     (formal_parameters
+      [(identifier) @font-lock-variable-name-face
+       (array_pattern (identifier) @font-lock-variable-name-face)
+       (object_pattern (shorthand_property_identifier_pattern) @font-lock-variable-name-face)])
 
-               (formal_parameters
-                [(identifier) @font-lock-variable-name-face
-                 (array_pattern (identifier) @font-lock-variable-name-face)
-                 (object_pattern (shorthand_property_identifier_pattern) @font-lock-variable-name-face)])
+     (variable_declarator
+      name: (identifier) @font-lock-variable-name-face)
 
-               (variable_declarator
-                name: (identifier) @font-lock-variable-name-face)
+     (variable_declarator
+      name: [(array_pattern (identifier) @font-lock-variable-name-face)
+             (object_pattern
+              (shorthand_property_identifier_pattern) @font-lock-variable-name-face)])
 
-               (variable_declarator
-                name: [(array_pattern (identifier) @font-lock-variable-name-face)
-                       (object_pattern
-                        (shorthand_property_identifier_pattern) @font-lock-variable-name-face)])
+     ;; full module imports
+     (import_clause (identifier) @font-lock-variable-name-face)
+     ;; named imports with aliasing
+     (import_clause (named_imports (import_specifier
+                                    alias: (identifier) @font-lock-variable-name-face)))
+     ;; named imports without aliasing
+     (import_clause (named_imports (import_specifier
+                                    !alias
+                                    name: (identifier) @font-lock-variable-name-face)))
 
-               ;; full module imports
-               (import_clause (identifier) @font-lock-variable-name-face)
-               ;; named imports with aliasing
-               (import_clause (named_imports (import_specifier
-                                              alias: (identifier) @font-lock-variable-name-face)))
-               ;; named imports without aliasing
-               (import_clause (named_imports (import_specifier
-                                              !alias
-                                              name: (identifier) @font-lock-variable-name-face)))
+     ;; full namespace import (* as alias)
+     (import_clause (namespace_import (identifier) @font-lock-variable-name-face)))
 
-               ;; full namespace import (* as alias)
-               (import_clause (namespace_import (identifier) @font-lock-variable-name-face)))
+   :language 'javascript
+   :feature 'assignment
+   '((assignment_expression
+      left: (_) @js--treesit-fontify-assignment-lhs))
 
-             :language 'javascript
-             :feature 'assignment
-             '((assignment_expression
-                left: (_) @js--treesit-fontify-assignment-lhs))
+   :language 'javascript
+   :feature 'function
+   '((call_expression
+      function: [(identifier) @font-lock-function-call-face
+                 (member_expression
+                  property:
+                  (property_identifier) @font-lock-function-call-face)]))
 
-             :language 'javascript
-             :feature 'function
-             '((call_expression
-                function: [(identifier) @font-lock-function-call-face
-                           (member_expression
-                            property:
-                            (property_identifier) @font-lock-function-call-face)]))
+   :language 'javascript
+   :feature 'jsx
+   '((jsx_opening_element name: (_) @font-lock-function-call-face)
+     (jsx_closing_element name: (_) @font-lock-function-call-face)
+     (jsx_self_closing_element name: (_) @font-lock-function-call-face)
+     (jsx_attribute (property_identifier) @font-lock-constant-face))
 
-             :language 'javascript
-             :feature 'jsx
-             '((jsx_opening_element name: (_) @font-lock-function-call-face)
-               (jsx_closing_element name: (_) @font-lock-function-call-face)
-               (jsx_self_closing_element name: (_) @font-lock-function-call-face)
-               (jsx_attribute (property_identifier) @font-lock-constant-face))
+   :language 'javascript
+   :feature 'property
+   '(((property_identifier) @font-lock-property-use-face)
+     (pair value: (identifier) @font-lock-variable-use-face)
+     ((shorthand_property_identifier) @font-lock-property-use-face))
 
-             :language 'javascript
-             :feature 'property
-             '(((property_identifier) @font-lock-property-use-face)
-               (pair value: (identifier) @font-lock-variable-use-face)
-               ((shorthand_property_identifier) @font-lock-property-use-face))
+   :language 'javascript
+   :feature 'number
+   '((number) @font-lock-number-face
+     ((identifier) @font-lock-number-face
+      (:match "\\`\\(?:NaN\\|Infinity\\)\\'" @font-lock-number-face)))
 
-             :language 'javascript
-             :feature 'number
-             '((number) @font-lock-number-face
-               ((identifier) @font-lock-number-face
-                (:match "\\`\\(?:NaN\\|Infinity\\)\\'" @font-lock-number-face)))
+   :language 'javascript
+   :feature 'operator
+   `([,@js--treesit-operators] @font-lock-operator-face
+     (ternary_expression ["?" ":"] @font-lock-operator-face))
 
-             :language 'javascript
-             :feature 'operator
-             `([,@js--treesit-operators] @font-lock-operator-face
-               (ternary_expression ["?" ":"] @font-lock-operator-face))
+   :language 'javascript
+   :feature 'bracket
+   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
 
-             :language 'javascript
-             :feature 'bracket
-             '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+   :language 'javascript
+   :feature 'delimiter
+   '((["," "." ";" ":"]) @font-lock-delimiter-face)
 
-             :language 'javascript
-             :feature 'delimiter
-             '((["," "." ";" ":"]) @font-lock-delimiter-face)
+   :language 'javascript
+   :feature 'escape-sequence
+   :override t
+   '((escape_sequence) @font-lock-escape-face)
 
-             :language 'javascript
-             :feature 'escape-sequence
-             :override t
-             '((escape_sequence) @font-lock-escape-face)
+   ;; "document" should be first, to avoid overlap.
+   :language 'jsdoc
+   :override t
+   :feature 'document
+   '((document) @font-lock-doc-face)
 
-             ;; "document" should be first, to avoid overlap.
-             :language 'jsdoc
-             :override t
-             :feature 'document
-             '((document) @font-lock-doc-face)
+   :language 'jsdoc
+   :override t
+   :feature 'keyword
+   '((tag_name) @font-lock-doc-markup-face)
 
-             :language 'jsdoc
-             :override t
-             :feature 'keyword
-             '((tag_name) @font-lock-doc-markup-face)
+   :language 'jsdoc
+   :override t
+   :feature 'bracket
+   '((["{" "}"]) @font-lock-bracket-face)
 
-             :language 'jsdoc
-             :override t
-             :feature 'bracket
-             '((["{" "}"]) @font-lock-bracket-face)
+   :language 'jsdoc
+   :override t
+   :feature 'property
+   '((type) @font-lock-type-face)
 
-             :language 'jsdoc
-             :override t
-             :feature 'property
-             '((type) @font-lock-type-face)
-
-             :language 'jsdoc
-             :override t
-             :feature 'definition
-             '((identifier) @font-lock-variable-name-face)))))
+   :language 'jsdoc
+   :override t
+   :feature 'definition
+   '((identifier) @font-lock-variable-name-face)))
 
 (defun js--fontify-template-string (node override start end &rest _)
   "Fontify template string but not substitution inside it.

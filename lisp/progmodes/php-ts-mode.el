@@ -955,244 +955,228 @@ characters of the current line."
     ("::" . ?∷))
   "Value for `prettify-symbols-alist' in `php-ts-mode'.")
 
-(defvar php-ts-mode--font-lock-settings-cached nil
-  "Cached tree-sitter font-lock settings for `php-ts-mode'.")
-
 (defun php-ts-mode--font-lock-settings ()
-  "Return tree-sitter font-lock settings for `php-ts-mode'.
+  "Return tree-sitter font-lock settings for `php-ts-mode'."
+  (treesit-font-lock-rules
 
-Tree-sitter font-lock settings are evaluated the first time this
-function is called.  Subsequent calls return the first evaluated value."
-  (or php-ts-mode--font-lock-settings-cached
-      (setq php-ts-mode--font-lock-settings-cached
-            (treesit-font-lock-rules
+   :language 'php
+   :feature 'keyword
+   :override t
+   `([,@(php-ts-mode--keywords)] @font-lock-keyword-face
+     ,@(when (php-ts-mode--test-visibility-modifier-operation-p)
+	 '((visibility_modifier (operation) @font-lock-builtin-face)))
+     (var_modifier) @font-lock-builtin-face)
 
-             :language 'php
-             :feature 'keyword
-             :override t
-             `([,@(php-ts-mode--keywords)] @font-lock-keyword-face
-               ,@(when (php-ts-mode--test-visibility-modifier-operation-p)
-	           '((visibility_modifier (operation) @font-lock-builtin-face)))
-               (var_modifier) @font-lock-builtin-face)
+   :language 'php
+   :feature 'comment
+   :override t
+   '((comment) @font-lock-comment-face)
 
-             :language 'php
-             :feature 'comment
-             :override t
-             '((comment) @font-lock-comment-face)
+   :language 'php
+   :feature 'constant
+   `((boolean) @font-lock-constant-face
+     (null) @font-lock-constant-face
+     ;; predefined constant or built in constant (part of PHP core)
+     ((name) @font-lock-builtin-face
+      (:match ,(rx-to-string
+		`(: bos (or ,@php-ts-mode--predefined-constant) eos))
+	      @font-lock-builtin-face))
+     ;; user defined constant
+     ((name) @font-lock-constant-face
+      (:match "\\`_*[A-Z][0-9A-Z_]+\\'" @font-lock-constant-face))
+     (const_declaration
+      (const_element (name) @font-lock-constant-face))
+     ;; declare directive
+     (declare_directive ["strict_types" "encoding" "ticks"] @font-lock-constant-face))
 
-             :language 'php
-             :feature 'constant
-             `((boolean) @font-lock-constant-face
-               (null) @font-lock-constant-face
-               ;; predefined constant or built in constant (part of PHP core)
-               ((name) @font-lock-builtin-face
-                (:match ,(rx-to-string
-		          `(: bos (or ,@php-ts-mode--predefined-constant) eos))
-	                @font-lock-builtin-face))
-               ;; user defined constant
-               ((name) @font-lock-constant-face
-                (:match "\\`_*[A-Z][0-9A-Z_]+\\'" @font-lock-constant-face))
-               (const_declaration
-                (const_element (name) @font-lock-constant-face))
-               ;; declare directive
-               (declare_directive ["strict_types" "encoding" "ticks"] @font-lock-constant-face))
+   :language 'php
+   :feature 'name
+   '((goto_statement (name) @font-lock-constant-face)
+     (named_label_statement (name) @font-lock-constant-face))
 
-             :language 'php
-             :feature 'name
-             '((goto_statement (name) @font-lock-constant-face)
-               (named_label_statement (name) @font-lock-constant-face))
+   :language 'php
+   :feature 'delimiter
+   `((["," ":" ";" "\\"]) @font-lock-delimiter-face)
 
-             :language 'php
-             :feature 'delimiter
-             `((["," ":" ";" "\\"]) @font-lock-delimiter-face)
+   :language 'php
+   :feature 'operator
+   `((error_suppression_expression "@" @font-lock-keyword-face)
+     [,@(php-ts-mode--operators)] @font-lock-operator-face)
 
-             :language 'php
-             :feature 'operator
-             `((error_suppression_expression "@" @font-lock-keyword-face)
-               [,@(php-ts-mode--operators)] @font-lock-operator-face)
+   :language 'php
+   :feature 'variable-name
+   :override t
+   '(((name) @font-lock-keyword-face (:equal "this" @font-lock-keyword-face))
+     (variable_name (name) @font-lock-variable-name-face)
+     (relative_scope ["parent" "self" "static"] @font-lock-builtin-face)
+     (relative_scope) @font-lock-constant-face
+     (dynamic_variable_name (name) @font-lock-variable-name-face)
+     (member_access_expression
+      name: (_) @font-lock-variable-name-face)
+     (scoped_property_access_expression
+      scope: (name) @font-lock-constant-face)
+     (nullsafe_member_access_expression (name) @font-lock-variable-name-face)
+     (error_suppression_expression (name) @font-lock-property-name-face))
 
-             :language 'php
-             :feature 'variable-name
-             :override t
-             '(((name) @font-lock-keyword-face (:equal "this" @font-lock-keyword-face))
-               (variable_name (name) @font-lock-variable-name-face)
-               (relative_scope ["parent" "self" "static"] @font-lock-builtin-face)
-               (relative_scope) @font-lock-constant-face
-               (dynamic_variable_name (name) @font-lock-variable-name-face)
-               (member_access_expression
-                name: (_) @font-lock-variable-name-face)
-               (scoped_property_access_expression
-                scope: (name) @font-lock-constant-face)
-               (nullsafe_member_access_expression (name) @font-lock-variable-name-face)
-               (error_suppression_expression (name) @font-lock-property-name-face))
+   :language 'php
+   :feature 'string
+   `(("\"") @font-lock-string-face
+     (encapsed_string) @font-lock-string-face
+     (string_content) @font-lock-string-face
+     (string) @font-lock-string-face)
 
-             :language 'php
-             :feature 'string
-             `(("\"") @font-lock-string-face
-               (encapsed_string) @font-lock-string-face
-               (string_content) @font-lock-string-face
-               (string) @font-lock-string-face)
+   :language 'php
+   :feature 'literal
+   '((integer) @font-lock-number-face
+     (float) @font-lock-number-face
+     (heredoc identifier: (heredoc_start) @font-lock-constant-face)
+     (heredoc_body (string_content) @font-lock-string-face)
+     (heredoc end_tag: (heredoc_end) @font-lock-constant-face)
+     (nowdoc identifier: (heredoc_start) @font-lock-constant-face)
+     (nowdoc_body (nowdoc_string) @font-lock-string-face)
+     (nowdoc end_tag: (heredoc_end) @font-lock-constant-face)
+     (shell_command_expression) @font-lock-string-face)
 
-             :language 'php
-             :feature 'literal
-             '((integer) @font-lock-number-face
-               (float) @font-lock-number-face
-               (heredoc identifier: (heredoc_start) @font-lock-constant-face)
-               (heredoc_body (string_content) @font-lock-string-face)
-               (heredoc end_tag: (heredoc_end) @font-lock-constant-face)
-               (nowdoc identifier: (heredoc_start) @font-lock-constant-face)
-               (nowdoc_body (nowdoc_string) @font-lock-string-face)
-               (nowdoc end_tag: (heredoc_end) @font-lock-constant-face)
-               (shell_command_expression) @font-lock-string-face)
+   :language 'php
+   :feature 'type
+   :override t
+   '((union_type "|" @font-lock-operator-face)
+     (union_type) @font-lock-type-face
+     (bottom_type) @font-lock-type-face
+     (primitive_type) @font-lock-type-face
+     ((primitive_type) @font-lock-keyword-face
+      (:equal "callable" @font-lock-keyword-face))
+     (cast_type) @font-lock-type-face
+     (named_type) @font-lock-type-face
+     (optional_type) @font-lock-type-face)
 
-             :language 'php
-             :feature 'type
-             :override t
-             '((union_type "|" @font-lock-operator-face)
-               (union_type) @font-lock-type-face
-               (bottom_type) @font-lock-type-face
-               (primitive_type) @font-lock-type-face
-               ((primitive_type) @font-lock-keyword-face
-                (:equal "callable" @font-lock-keyword-face))
-               (cast_type) @font-lock-type-face
-               (named_type) @font-lock-type-face
-               (optional_type) @font-lock-type-face)
+   :language 'php
+   :feature 'definition
+   :override t
+   `((php_tag) @font-lock-preprocessor-face
+     ,@(if (php-ts-mode--test-php-end-tag-p)
+	   '((php_end_tag) @font-lock-preprocessor-face)
+	 '(("?>") @font-lock-preprocessor-face))
+     ;; Highlights identifiers in declarations.
+     (class_declaration
+      name: (_) @font-lock-type-face)
+     (class_interface_clause (name) @font-lock-type-face)
+     (interface_declaration
+      name: (_) @font-lock-type-face)
+     (trait_declaration
+      name: (_) @font-lock-type-face)
+     (enum_declaration
+      name: (_) @font-lock-type-face)
+     (function_definition
+      name: (_) @font-lock-function-name-face)
+     ,@(when (php-ts-mode--test-property-hook-p)
+	 '((property_hook (name) @font-lock-function-name-face)))
+     (method_declaration
+      name: (_) @font-lock-function-name-face)
+     (method_declaration
+      name: (name) @font-lock-builtin-face
+      (:match ,(rx-to-string
+		`(: bos (or ,@php-ts-mode--class-magic-methods) eos))
+	      @font-lock-builtin-face))
+     ("=>") @font-lock-keyword-face
+     (object_creation_expression
+      (name) @font-lock-type-face)
+     ,@(when (php-ts-mode--test-namespace-name-as-prefix-p)
+	 '((namespace_name_as_prefix "\\" @font-lock-delimiter-face)
+	   (namespace_name_as_prefix
+	    (namespace_name (name)) @font-lock-type-face)))
+     ,@(if (php-ts-mode--test-namespace-aliasing-clause-p)
+	   '((namespace_aliasing_clause (name) @font-lock-type-face))
+	 '((namespace_use_clause alias: (name) @font-lock-type-face)))
+     ,@(when (not (php-ts-mode--test-namespace-use-group-clause-p))
+	 '((namespace_use_group
+	    (namespace_use_clause (name) @font-lock-type-face))))
+     (namespace_use_clause (name) @font-lock-type-face)
+     (namespace_name "\\" @font-lock-delimiter-face)
+     (namespace_name (name) @font-lock-type-face)
+     (use_declaration (name) @font-lock-property-use-face)
+     (use_instead_of_clause (name) @font-lock-type-face)
+     (binary_expression
+      operator: "instanceof"
+      right: (name) @font-lock-type-face))
 
-             :language 'php
-             :feature 'definition
-             :override t
-             `((php_tag) @font-lock-preprocessor-face
-               ,@(if (php-ts-mode--test-php-end-tag-p)
-	             '((php_end_tag) @font-lock-preprocessor-face)
-	           '(("?>") @font-lock-preprocessor-face))
-               ;; Highlights identifiers in declarations.
-               (class_declaration
-                name: (_) @font-lock-type-face)
-               (class_interface_clause (name) @font-lock-type-face)
-               (interface_declaration
-                name: (_) @font-lock-type-face)
-               (trait_declaration
-                name: (_) @font-lock-type-face)
-               (enum_declaration
-                name: (_) @font-lock-type-face)
-               (function_definition
-                name: (_) @font-lock-function-name-face)
-               ,@(when (php-ts-mode--test-property-hook-p)
-	           '((property_hook (name) @font-lock-function-name-face)))
-               (method_declaration
-                name: (_) @font-lock-function-name-face)
-               (method_declaration
-                name: (name) @font-lock-builtin-face
-                (:match ,(rx-to-string
-		          `(: bos (or ,@php-ts-mode--class-magic-methods) eos))
-	                @font-lock-builtin-face))
-               ("=>") @font-lock-keyword-face
-               (object_creation_expression
-                (name) @font-lock-type-face)
-               ,@(when (php-ts-mode--test-namespace-name-as-prefix-p)
-	           '((namespace_name_as_prefix "\\" @font-lock-delimiter-face)
-	             (namespace_name_as_prefix
-	              (namespace_name (name)) @font-lock-type-face)))
-               ,@(if (php-ts-mode--test-namespace-aliasing-clause-p)
-	             '((namespace_aliasing_clause (name) @font-lock-type-face))
-	           '((namespace_use_clause alias: (name) @font-lock-type-face)))
-               ,@(when (not (php-ts-mode--test-namespace-use-group-clause-p))
-	           '((namespace_use_group
-	              (namespace_use_clause (name) @font-lock-type-face))))
-               (namespace_use_clause (name) @font-lock-type-face)
-               (namespace_name "\\" @font-lock-delimiter-face)
-               (namespace_name (name) @font-lock-type-face)
-               (use_declaration (name) @font-lock-property-use-face)
-               (use_instead_of_clause (name) @font-lock-type-face)
-               (binary_expression
-                operator: "instanceof"
-                right: (name) @font-lock-type-face))
+   :language 'php
+   :feature 'function-scope
+   :override t
+   '((scoped_call_expression
+      scope: (name) @font-lock-constant-face)
+     (class_constant_access_expression (name) @font-lock-constant-face))
 
-             :language 'php
-             :feature 'function-scope
-             :override t
-             '((scoped_call_expression
-                scope: (name) @font-lock-constant-face)
-               (class_constant_access_expression (name) @font-lock-constant-face))
+   :language 'php
+   :feature  'function-call
+   :override t
+   '((function_call_expression
+      function: (name) @font-lock-function-call-face)
+     (scoped_call_expression
+      name: (name) @font-lock-function-call-face)
+     (member_call_expression
+      name: (name) @font-lock-function-call-face)
+     (nullsafe_member_call_expression
+      name: (_) @font-lock-function-call-face))
 
-             :language 'php
-             :feature  'function-call
-             :override t
-             '((function_call_expression
-                function: (name) @font-lock-function-call-face)
-               (scoped_call_expression
-                name: (name) @font-lock-function-call-face)
-               (member_call_expression
-                name: (name) @font-lock-function-call-face)
-               (nullsafe_member_call_expression
-                name: (_) @font-lock-function-call-face))
+   :language 'php
+   :feature 'argument
+   '((argument
+      name: (_) @font-lock-constant-face))
 
-             :language 'php
-             :feature 'argument
-             '((argument
-                name: (_) @font-lock-constant-face))
+   :language 'php
+   :feature 'escape-sequence
+   :override t
+   '((string (escape_sequence) @font-lock-escape-face)
+     (encapsed_string (escape_sequence) @font-lock-escape-face)
+     (heredoc_body (escape_sequence) @font-lock-escape-face))
 
-             :language 'php
-             :feature 'escape-sequence
-             :override t
-             '((string (escape_sequence) @font-lock-escape-face)
-               (encapsed_string (escape_sequence) @font-lock-escape-face)
-               (heredoc_body (escape_sequence) @font-lock-escape-face))
+   :language 'php
+   :feature 'base-clause
+   :override t
+   `((base_clause (name) @font-lock-type-face)
+     (use_as_clause (name) @font-lock-property-use-face)
+     ,@(when (not (php-ts-mode--test-namespace-name-as-prefix-p))
+	 '((qualified_name prefix: "\\" @font-lock-delimiter-face)))
+     (qualified_name (name) @font-lock-constant-face)
+     ,@(when (php-ts-mode--test-relative-name-p)
+	 '((relative_name (name) @font-lock-constant-face))))
 
-             :language 'php
-             :feature 'base-clause
-             :override t
-             `((base_clause (name) @font-lock-type-face)
-               (use_as_clause (name) @font-lock-property-use-face)
-               ,@(when (not (php-ts-mode--test-namespace-name-as-prefix-p))
-	           '((qualified_name prefix: "\\" @font-lock-delimiter-face)))
-               (qualified_name (name) @font-lock-constant-face)
-               ,@(when (php-ts-mode--test-relative-name-p)
-	           '((relative_name (name) @font-lock-constant-face))))
+   :language 'php
+   :feature 'property
+   '((enum_case
+      name: (_) @font-lock-type-face))
 
-             :language 'php
-             :feature 'property
-             '((enum_case
-                name: (_) @font-lock-type-face))
+   :language 'php
+   :feature 'attribute
+   '((((attribute (_) @attribute_name) @font-lock-preprocessor-face)
+      (:equal "Deprecated" @attribute_name))
+     (attribute_group (attribute (name) @font-lock-constant-face)))
 
-             :language 'php
-             :feature 'attribute
-             '((((attribute (_) @attribute_name) @font-lock-preprocessor-face)
-                (:equal "Deprecated" @attribute_name))
-               (attribute_group (attribute (name) @font-lock-constant-face)))
+   :language 'php
+   :feature 'bracket
+   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
 
-             :language 'php
-             :feature 'bracket
-             '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
-
-             :language 'php
-             :feature 'error
-             :override t
-             '((ERROR) @php-ts-mode--fontify-error)))))
+   :language 'php
+   :feature 'error
+   :override t
+   '((ERROR) @php-ts-mode--fontify-error)))
 
 
 ;;; Font-lock helpers
 
-(defvar php-ts-mode--custom-html-font-lock-settings-cached nil
-  "Cached tree-sitter font-lock settings for HTML when embedded in PHP.")
-
 (defun php-ts-mode--custom-html-font-lock-settings ()
   "Tree-sitter Font-lock settings for HTML when embedded in PHP.
-Like `mhtml-ts-mode--font-lock-settings' but adapted for `php-ts-mode'.
-
-Tree-sitter font-lock settings are evaluated the first time this
-function is called.  Subsequent calls return the first evaluated value."
-  (or php-ts-mode--custom-html-font-lock-settings-cached
-      (setq php-ts-mode--custom-html-font-lock-settings-cached
-            (treesit-replace-font-lock-feature-settings
-             (treesit-font-lock-rules
-              :language 'html
-              :override t
-              :feature 'comment
-              '((comment) @font-lock-comment-face
-                ;; handle shebang path and others type of comment
-                (document (text) @font-lock-comment-face)))
-             (mhtml-ts-mode--treesit-font-lock-settings)))))
+Like `mhtml-ts-mode--font-lock-settings' but adapted for `php-ts-mode'."
+  (treesit-replace-font-lock-feature-settings
+   (treesit-font-lock-rules
+    :language 'html
+    :override t
+    :feature 'comment
+    '((comment) @font-lock-comment-face
+      ;; handle shebang path and others type of comment
+      (document (text) @font-lock-comment-face)))
+   (mhtml-ts-mode--treesit-font-lock-settings)))
 
 (defvar php-ts-mode--phpdoc-font-lock-settings
   (treesit-font-lock-rules

@@ -61,35 +61,27 @@
     table)
   "Syntax table for `cmake-ts-mode'.")
 
-(defvar cmake-ts-mode--indent-rules-cached nil
-  "Cached tree-sitter indent rules for `cmake-ts-mode'.")
-
 (defun cmake-ts-mode--indent-rules ()
-  "Return tree-sitter indent rules for `cmake-ts-mode'.
-
-Tree-sitter indent rules are evaluated the first time this function is
-called.  Subsequent calls return the first evaluated value."
-  (or cmake-ts-mode--indent-rules-cached
-      (setq cmake-ts-mode--indent-rules-cached
-            `((cmake
-               ((node-is ")") parent-bol 0)
-               ((node-is "else_command") parent-bol 0)
-               ((node-is "elseif_command") parent-bol 0)
-               ((node-is "endforeach_command") parent-bol 0)
-               ((node-is "endfunction_command") parent-bol 0)
-               ((node-is "endif_command") parent-bol 0)
-               ((parent-is "foreach_loop") parent-bol cmake-ts-mode-indent-offset)
-               ((parent-is "function_def") parent-bol cmake-ts-mode-indent-offset)
-               ((parent-is "if_condition") parent-bol cmake-ts-mode-indent-offset)
-               ((parent-is "normal_command") parent-bol cmake-ts-mode-indent-offset)
-               ;; Release v0.4.0 wraps arguments in an argument_list node.
-               ,@(ignore-errors
-                   (treesit-query-capture 'cmake '((argument_list) @capture))
-                   `(((parent-is "argument_list") grand-parent cmake-ts-mode-indent-offset)))
-               ;; Release v0.3.0 wraps the body of commands into a body node.
-               ,@(ignore-errors
-                   (treesit-query-capture 'cmake '((body) @capture))
-                   `(((parent-is "body") grand-parent cmake-ts-mode-indent-offset))))))))
+  "Return tree-sitter indent rules for `cmake-ts-mode'."
+  `((cmake
+     ((node-is ")") parent-bol 0)
+     ((node-is "else_command") parent-bol 0)
+     ((node-is "elseif_command") parent-bol 0)
+     ((node-is "endforeach_command") parent-bol 0)
+     ((node-is "endfunction_command") parent-bol 0)
+     ((node-is "endif_command") parent-bol 0)
+     ((parent-is "foreach_loop") parent-bol cmake-ts-mode-indent-offset)
+     ((parent-is "function_def") parent-bol cmake-ts-mode-indent-offset)
+     ((parent-is "if_condition") parent-bol cmake-ts-mode-indent-offset)
+     ((parent-is "normal_command") parent-bol cmake-ts-mode-indent-offset)
+     ;; Release v0.4.0 wraps arguments in an argument_list node.
+     ,@(ignore-errors
+         (treesit-query-capture 'cmake '((argument_list) @capture))
+         `(((parent-is "argument_list") grand-parent cmake-ts-mode-indent-offset)))
+     ;; Release v0.3.0 wraps the body of commands into a body node.
+     ,@(ignore-errors
+         (treesit-query-capture 'cmake '((body) @capture))
+         `(((parent-is "body") grand-parent cmake-ts-mode-indent-offset))))))
 
 (defvar cmake-ts-mode--constants
   '("ON" "TRUE" "YES" "Y" "OFF" "FALSE" "NO" "N" "IGNORE" "NOTFOUND")
@@ -148,76 +140,68 @@ Check if a node type is available, then return the right font lock rules."
                           eol))
                   @font-lock-constant-face))))))))
 
-(defvar cmake-ts-mode--font-lock-settings-cached nil
-  "Cached tree-sitter font-lock settings for `cmake-ts-mode'.")
-
 (defun cmake-ts-mode--font-lock-settings ()
-  "Return tree-sitter font-lock settings for `cmake-ts-mode'.
+  "Return tree-sitter font-lock settings for `cmake-ts-mode'."
+  (treesit-font-lock-rules
+   :language 'cmake
+   :feature 'bracket
+   '((["(" ")"]) @font-lock-bracket-face)
 
-Tree-sitter font-lock settings are evaluated the first time this
-function is called.  Subsequent calls return the first evaluated value."
-  (or cmake-ts-mode--font-lock-settings-cached
-      (setq cmake-ts-mode--font-lock-settings-cached
-            (treesit-font-lock-rules
-             :language 'cmake
-             :feature 'bracket
-             '((["(" ")"]) @font-lock-bracket-face)
+   :language 'cmake
+   :feature 'builtin
+   (cmake-ts-mode--font-lock-compatibility-fe9b5e0)
 
-             :language 'cmake
-             :feature 'builtin
-             (cmake-ts-mode--font-lock-compatibility-fe9b5e0)
+   :language 'cmake
+   :feature 'comment
+   '([(bracket_comment) (line_comment)] @font-lock-comment-face)
 
-             :language 'cmake
-             :feature 'comment
-             '([(bracket_comment) (line_comment)] @font-lock-comment-face)
+   :language 'cmake
+   :feature 'constant
+   `(((argument) @font-lock-constant-face
+      (:match ,(rx-to-string
+                `(seq bol
+                      (or ,@cmake-ts-mode--constants)
+                      eol))
+              @font-lock-constant-face)))
 
-             :language 'cmake
-             :feature 'constant
-             `(((argument) @font-lock-constant-face
-                (:match ,(rx-to-string
-                          `(seq bol
-                                (or ,@cmake-ts-mode--constants)
-                                eol))
-                        @font-lock-constant-face)))
+   :language 'cmake
+   :feature 'function
+   '((normal_command (identifier) @font-lock-function-call-face))
 
-             :language 'cmake
-             :feature 'function
-             '((normal_command (identifier) @font-lock-function-call-face))
+   :language 'cmake
+   :feature 'keyword
+   `([,@cmake-ts-mode--keywords] @font-lock-keyword-face)
 
-             :language 'cmake
-             :feature 'keyword
-             `([,@cmake-ts-mode--keywords] @font-lock-keyword-face)
+   :language 'cmake
+   :feature 'number
+   '(((unquoted_argument) @font-lock-number-face
+      (:match "\\`-?[[:digit:]]*\\.?[[:digit:]]*\\.?[[:digit:]]+\\'"
+              @font-lock-number-face)))
 
-             :language 'cmake
-             :feature 'number
-             '(((unquoted_argument) @font-lock-number-face
-                (:match "\\`-?[[:digit:]]*\\.?[[:digit:]]*\\.?[[:digit:]]+\\'"
-                        @font-lock-number-face)))
+   :language 'cmake
+   :feature 'string
+   '([(bracket_argument) (quoted_argument)] @font-lock-string-face)
 
-             :language 'cmake
-             :feature 'string
-             '([(bracket_argument) (quoted_argument)] @font-lock-string-face)
+   :language 'cmake
+   :feature 'escape-sequence
+   :override t
+   '((escape_sequence) @font-lock-escape-face)
 
-             :language 'cmake
-             :feature 'escape-sequence
-             :override t
-             '((escape_sequence) @font-lock-escape-face)
+   :language 'cmake
+   :feature 'misc-punctuation
+   ;; Don't override strings.
+   :override 'nil
+   '((["$" "{" "}"]) @font-lock-misc-punctuation-face)
 
-             :language 'cmake
-             :feature 'misc-punctuation
-             ;; Don't override strings.
-             :override 'nil
-             '((["$" "{" "}"]) @font-lock-misc-punctuation-face)
+   :language 'cmake
+   :feature 'variable
+   :override t
+   '((variable) @font-lock-variable-use-face)
 
-             :language 'cmake
-             :feature 'variable
-             :override t
-             '((variable) @font-lock-variable-use-face)
-
-             :language 'cmake
-             :feature 'error
-             :override t
-             '((ERROR) @font-lock-warning-face)))))
+   :language 'cmake
+   :feature 'error
+   :override t
+   '((ERROR) @font-lock-warning-face)))
 
 (defun cmake-ts-mode--defun-name (node)
   "Return the defun name of NODE.

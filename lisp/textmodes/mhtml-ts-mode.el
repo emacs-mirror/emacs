@@ -259,28 +259,20 @@ NODE and PARENT are ignored."
     css--treesit-font-lock-feature-list))
   "Settings for `treesit-font-lock-feature-list'.")
 
-(defvar mhtml-ts-mode--treesit-font-lock-settings-cached nil
-  "Cached tree-sitter font-lock settings for `mhtml-ts-mode'.")
-
 (defun mhtml-ts-mode--treesit-font-lock-settings ()
-  "Return tree-sitter font-lock settings for `mhtml-ts-mode'.
-
-Tree-sitter font-lock settings are evaluated the first time this
-function is called.  Subsequent calls return the first evaluated value."
-  (or mhtml-ts-mode--treesit-font-lock-settings-cached
-      (setq mhtml-ts-mode--treesit-font-lock-settings-cached
-            (append html-ts-mode--font-lock-settings
-                    (js--treesit-font-lock-settings)
-                    ;; Let's replace a css rule with a new one that adds
-                    ;; color to the css value.
-                    (treesit-replace-font-lock-feature-settings
-                     (treesit-font-lock-rules
-                      :language 'css
-                      :override t
-                      :feature 'variable
-                      '((plain_value) @mhtml-ts-mode--colorize-css-value
-                        (color_value) @mhtml-ts-mode--colorize-css-value))
-                     css--treesit-settings)))))
+  "Return tree-sitter font-lock settings for `mhtml-ts-mode'."
+  (append html-ts-mode--font-lock-settings
+          (js--treesit-font-lock-settings)
+          ;; Let's replace a css rule with a new one that adds
+          ;; color to the css value.
+          (treesit-replace-font-lock-feature-settings
+           (treesit-font-lock-rules
+            :language 'css
+            :override t
+            :feature 'variable
+            '((plain_value) @mhtml-ts-mode--colorize-css-value
+              (color_value) @mhtml-ts-mode--colorize-css-value))
+           css--treesit-settings)))
 
 (defvar mhtml-ts-mode--treesit-thing-settings
   ;; In addition to putting together the various definitions, we need to
@@ -300,34 +292,26 @@ function is called.  Subsequent calls return the first evaluated value."
     `((defun ,css--treesit-defun-type-regexp))))
   "Settings for `treesit-thing-settings'.")
 
-(defvar mhtml-ts-mode--treesit-indent-rules-cached nil
-  "Cached tree-sitter indent rules for `mhtml-ts-mode'.")
-
 (defun mhtml-ts-mode--treesit-indent-rules ()
-  "Return tree-sitter indent rules for `mhtml-ts-mode'.
-
-Tree-sitter indent rules are evaluated the first time this function
-is called.  Subsequent calls return the first evaluated value."
-  (or mhtml-ts-mode--treesit-indent-rules-cached
-      (setq mhtml-ts-mode--treesit-indent-rules-cached
-            (treesit--indent-rules-optimize
-             (append html-ts-mode--indent-rules
-                     ;; Extended rules for js and css, to indent
-                     ;; appropriately when injected into html
-                     (treesit-simple-indent-modify-rules
-                      'javascript
-                      `((javascript ((parent-is "program")
-                                     mhtml-ts-mode--js-css-tag-bol
-                                     mhtml-ts-mode--js-css-indent-offset)))
-                      (js--treesit-indent-rules)
-                      :replace)
-                     (treesit-simple-indent-modify-rules
-                      'css
-                      `((css ((parent-is "stylesheet")
-                              mhtml-ts-mode--js-css-tag-bol
-                              mhtml-ts-mode--js-css-indent-offset)))
-                      css--treesit-indent-rules
-	              :prepend))))))
+  "Return tree-sitter indent rules for `mhtml-ts-mode'."
+  (treesit--indent-rules-optimize
+   (append html-ts-mode--indent-rules
+           ;; Extended rules for js and css, to indent
+           ;; appropriately when injected into html
+           (treesit-simple-indent-modify-rules
+            'javascript
+            `((javascript ((parent-is "program")
+                           mhtml-ts-mode--js-css-tag-bol
+                           mhtml-ts-mode--js-css-indent-offset)))
+            (js--treesit-indent-rules)
+            :replace)
+           (treesit-simple-indent-modify-rules
+            'css
+            `((css ((parent-is "stylesheet")
+                    mhtml-ts-mode--js-css-tag-bol
+                    mhtml-ts-mode--js-css-indent-offset)))
+            css--treesit-indent-rules
+	    :prepend))))
 
 (defvar mhtml-ts-mode--treesit-aggregated-simple-imenu-settings
   `((html ,@html-ts-mode--treesit-simple-imenu-settings)
