@@ -4355,22 +4355,32 @@ igc_break (void)
 }
 
 void
-igc_collect (void)
+igc_collect (bool incremental)
 {
   struct igc *gc = global_igc;
   if (gc->park_count == 0)
     {
-      mps_res_t res = mps_arena_collect (gc->arena);
-      IGC_CHECK_RES (res);
-      mps_arena_release (gc->arena);
+      if (!incremental)
+	{
+	  mps_res_t res = mps_arena_collect (gc->arena);
+	  IGC_CHECK_RES (res);
+	  mps_arena_release (gc->arena);
+	}
+      else
+	{
+	  mps_res_t res = mps_arena_start_collect (gc->arena);
+	  IGC_CHECK_RES (res);
+	}
     }
 }
 
-DEFUN ("igc--collect", Figc__collect, Sigc__collect, 0, 0, 0,
-       doc: /* Force an immediate arena garbage collection.  */)
-  (void)
+DEFUN ("igc--collect", Figc__collect, Sigc__collect, 0, 1, 0,
+       doc: /* Start a full garbage collection.
+If incremental is nil, collect the arena immediately.
+Otherwise, start a full collection but return quickly.  */)
+  (Lisp_Object incremental)
 {
-  igc_collect ();
+  igc_collect (!NILP (incremental));
   return Qnil;
 }
 
