@@ -376,7 +376,7 @@ third element of SEQUENCE, etc.  FUNCTION will be called with
 INITIAL-VALUE (and then the accumulated value) as the first
 argument, and the elements from SEQUENCE as the second argument.
 
-If SEQUENCE is empty, return INITIAL-VALUE and FUNCTION is not called."
+If SEQUENCE is empty, return INITIAL-VALUE without calling FUNCTION."
   (if (seq-empty-p sequence)
       initial-value
     (let ((acc initial-value))
