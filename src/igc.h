@@ -157,7 +157,7 @@ void igc_replace_specpdl (volatile union specbinding *old_specpdl, ptrdiff_t old
 void igc_on_alloc_main_thread_specpdl (void);
 void igc_on_alloc_main_thread_bc (void);
 void igc_on_staticpros_complete (void);
-void igc_collect (void);
+void igc_collect (bool incremental);
 void igc_root_create_ambig (void *start, void *end, const char *debug_name);
 void igc_root_create_exact (Lisp_Object *start, Lisp_Object *end);
 void igc_root_create_exact_ptr (void *var_addr);
