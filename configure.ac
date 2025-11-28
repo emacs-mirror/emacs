@@ -2957,16 +2957,24 @@ if test "${HAVE_NS}" = yes; then
   fi
 
   AC_CACHE_CHECK(
-    [if the Objective C compiler defaults to C99],
-    [emacs_cv_objc_c99],
-    [AC_COMPILE_IFELSE(
-       [AC_LANG_PROGRAM([], [[for (int i = 0;;);]])],
-       [emacs_cv_objc_c99=yes],
-       [emacs_cv_objc_c99=no])])
+    [for C99-or-better flag for Objective C compiler],
+    [emacs_cv_objc_c99_or_better],
+    [save_OBJCFLAGS=$OBJCFLAGS
+     for emacs_cv_objc_c99_or_better in \
+	'none needed' -std=gnu23 -std=gnu17 -std=gnu11 -std=gnu99 ''
+     do
+       AS_CASE([$emacs_cv_objc_c99_or_better],
+	 ['none needed'], [],
+	 [-*], [OBJCFLAGS="$save_OBJCFLAGS $emacs_cv_objc_c99_or_better"],
+	 [continue])
+       AC_COMPILE_IFELSE(
+	 [AC_LANG_PROGRAM([], [[for (int i = 0;;);]])],
+	 [break])
+     done
+     OBJCFLAGS=$save_OBJCFLAGS])
+  AS_CASE([$emacs_cv_objc_c99_or_better],
+    [-*], [GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS $emacs_cv_objc_c99_or_better"])
 
-  if test x$emacs_cv_objc_c99 = xno ; then
-    GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -std=c99"
-  fi
   AC_LANG_POP([Objective C])
 fi
 
