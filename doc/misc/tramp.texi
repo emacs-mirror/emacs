@@ -4737,7 +4737,9 @@ It works only for some connection methods defined in
 It does not support interactive user authentication.  With
 @option{ssh}-based methods, this can be avoided by using a password
 agent like @command{ssh-agent}, using public key authentication, or
-using @option{ControlMaster} options.
+using @option{ControlMaster} options.@*
+Other interactive authentication requests, like one-time passwords or
+security key confirmation messages, do not work either.
 
 @item
 It cannot be applied for @option{ssh}-based methods, which use the

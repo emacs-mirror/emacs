@@ -427,8 +427,7 @@ Obey `tramp-kubernetes-context'"
 ;;;###tramp-autoload
 (defun tramp-kubernetes--context-namespace (vec)
   "The kubectl options for context and namespace as string."
-  (mapconcat
-   #'identity
+  (string-join
    (delq nil
 	 `(,(when-let* ((context (tramp-kubernetes--current-context vec)))
 	      (format "--context=%s" context))

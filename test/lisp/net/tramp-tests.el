@@ -2675,7 +2675,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let ((tmp-name (tramp--test-make-temp-name nil quoted))
-          (inhibit-message t))
+          (inhibit-message (not (ignore-errors (edebug-mode)))))
       (unwind-protect
 	  (progn
             ;; Write buffer.  Use absolute and relative file name.
@@ -2801,7 +2801,7 @@ This checks also `file-name-as-directory', `file-name-directory',
   (skip-unless (tramp--test-sh-p))
 
   (let* ((tmp-name (tramp--test-make-temp-name))
-         (inhibit-message t)
+         (inhibit-message (not (ignore-errors (edebug-mode))))
          written-files
          (advice (lambda (_start _end filename &rest _r)
                    (push filename written-files))))
@@ -2838,7 +2838,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	 (archive (ert-resource-file "foo.tar.gz"))
 	 (tmp-file (expand-file-name (file-name-nondirectory archive)))
 	 (require-final-newline t)
-	 (inhibit-message t)
+	 (inhibit-message (not (ignore-errors (edebug-mode))))
          (backup-inhibited t)
 	 create-lockfiles buffer1 buffer2)
     (unwind-protect
@@ -5296,7 +5296,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (unless (tramp--test-ange-ftp-p)
 	      (load tmp-name 'noerror 'nomessage))
 	    (should-not (featurep 'tramp-test-load))
-	    (write-region "(provide 'tramp-test-load)" nil tmp-name)
+	    (write-region
+	     ";;; -*- lexical-binding: t; -*-\n(provide 'tramp-test-load)"
+	     nil tmp-name)
 	    ;; `load' in lread.c passes `must-suffix' since Emacs 29.
 	    ;; In Ange-FTP, `must-suffix' is ignored.
 	    (when (and (tramp--test-emacs29-p)
@@ -6119,7 +6121,7 @@ INPUT, if non-nil, is a string sent to the process."
     (let ((tmp-name (tramp--test-make-temp-name nil quoted))
 	  (default-directory ert-remote-temporary-file-directory)
 	  ;; Suppress nasty messages.
-	  (inhibit-message t)
+	  (inhibit-message (not (ignore-errors (edebug-mode))))
 	  kill-buffer-query-functions)
 
       (dolist (this-shell-command
@@ -6237,7 +6239,7 @@ INPUT, if non-nil, is a string sent to the process."
   ;; -----------------------------------------------
 
   (let (;; Suppress nasty messages.
-	(inhibit-message t)
+	(inhibit-message (not (ignore-errors (edebug-mode))))
 	buffer kill-buffer-query-functions)
     ;; We check both the local and remote case, in order to guarantee
     ;; that they behave similar.
@@ -6468,7 +6470,7 @@ INPUT, if non-nil, is a string sent to the process."
 	 (tmp-name2 (expand-file-name "foo" tmp-name1))
 	 (enable-local-variables :all)
 	 (enable-remote-dir-locals t)
-         (inhibit-message t)
+         (inhibit-message (not (ignore-errors (edebug-mode))))
 	 kill-buffer-query-functions
 	 (clpa connection-local-profile-alist)
 	 (clca connection-local-criteria-alist))
@@ -6735,7 +6737,7 @@ INPUT, if non-nil, is a string sent to the process."
 	   (tmp-name2 (expand-file-name "foo" tmp-name1))
 	   (tramp-remote-process-environment tramp-remote-process-environment)
 	   ;; Suppress nasty messages.
-           (inhibit-message t)
+           (inhibit-message (not (ignore-errors (edebug-mode))))
 	   (vc-handled-backends
 	    (cond
 	     ((tramp-find-executable
@@ -7069,7 +7071,7 @@ INPUT, if non-nil, is a string sent to the process."
 	  (remote-file-name-inhibit-locks nil)
 	  (create-lockfiles t)
 	  tramp-allow-unsafe-temporary-files
-          (inhibit-message t)
+          (inhibit-message (not (ignore-errors (edebug-mode))))
 	  ;; tramp-rclone.el and tramp-sshfs.el cache the mounted files.
 	  (tramp-fuse-unmount-on-cleanup t)
           auto-save-default
@@ -7229,7 +7231,7 @@ INPUT, if non-nil, is a string sent to the process."
 	    (remote-file-name-inhibit-cache t)
 	    (remote-file-name-inhibit-locks nil)
 	    tramp-allow-unsafe-temporary-files
-            (inhibit-message t)
+            (inhibit-message (not (ignore-errors (edebug-mode))))
 	    ;; tramp-rclone.el and tramp-sshfs.el cache the mounted files.
 	    (tramp-fuse-unmount-on-cleanup t)
             auto-save-default
@@ -8005,7 +8007,7 @@ process sentinels.  They shall not disturb each other."
            (remote-file-name-inhibit-cache t)
            (process-file-side-effects t)
            ;; Suppress nasty messages.
-           (inhibit-message t)
+           (inhibit-message (not (ignore-errors (edebug-mode))))
 	   ;; Do not run delayed timers.
 	   (timer-max-repeats 0)
 	   ;; Number of asynchronous processes for test.  Tests on
