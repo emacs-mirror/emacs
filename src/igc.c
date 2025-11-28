@@ -5214,6 +5214,21 @@ read_gens (size_t *ngens, mps_gen_param_s parms[*ngens])
   emacs_abort ();
 }
 
+static bool
+read_arena_size (size_t *size)
+{
+  const char *env = getenv ("EMACS_IGC_ARENA_SIZE");
+  if (env == NULL)
+    return false;
+  char *end;
+  *size = strtoull (env, &end, 10);
+  bool ok = *end == '\0';
+  if (!ok)
+    fprintf (stderr, "Failed to parse EMACS_IGC_ARENA_SIZE: %s\n",
+	     env);
+  return ok;
+}
+
 static void
 make_arena (struct igc *gc)
 {
@@ -5221,6 +5236,9 @@ make_arena (struct igc *gc)
   MPS_ARGS_BEGIN (args)
   {
     MPS_ARGS_ADD (args, MPS_KEY_PAUSE_TIME, 0.01);
+    size_t size;
+    if (read_arena_size (&size))
+      MPS_ARGS_ADD (args, MPS_KEY_ARENA_SIZE, size);
     res = mps_arena_create_k (&gc->arena, mps_arena_class_vm (), args);
   }
   MPS_ARGS_END (args);
