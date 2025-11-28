@@ -406,7 +406,7 @@ modified buffer to be able to use unsaved changes."
 (declare-function diff-setup-whitespace "diff-mode" ())
 (declare-function diff-setup-buffer-type "diff-mode" ())
 
-(defvar coding-system--for-buffer-diff) ; from diff.el
+(defvar diff--coding-system-for-buffer) ; from diff.el
 
 ;;;###autoload
 (defun multi-file-replace-as-diff (files from-string replacements regexp-flag delimited-flag)
@@ -445,7 +445,7 @@ as in `perform-replace'."
              ;; Make sure any supported characters can be written to a
              ;; file without asking the user to select a safe
              ;; coding-system.
-             (coding-system--for-buffer-diff 'utf-8-emacs))
+             (diff--coding-system-for-buffer 'utf-8-emacs))
         (when non-file-buffer (setq file-name (buffer-name file-name)))
         (when (or file-exists file-buffer)
           (with-temp-buffer
@@ -548,7 +548,7 @@ specify labels to use for file names."
                      " ")))
     (with-current-buffer buf
       (let ((inhibit-read-only t)
-            (coding-system-for-read (or coding-system--for-buffer-diff
+            (coding-system-for-read (or diff--coding-system-for-buffer
                                         coding-system-for-read)))
         (insert command "\n")
         (call-process shell-file-name nil buf nil
