@@ -5273,7 +5273,9 @@ The value should be a list of directories.
 When trying to load a tree-sitter language definition,
 Emacs first looks in the directories mentioned in this variable,
 then in the `tree-sitter' subdirectory of `user-emacs-directory', and
-then in the system default locations for dynamic libraries, in that order.  */);
+then in the system default locations for dynamic libraries, in that order.
+The first writeable directory in the list is special: it's used as the
+default directory when automatically installing the language grammar.  */);
   Vtreesit_extra_load_path = Qnil;
 
   DEFVAR_LISP ("treesit-thing-settings",

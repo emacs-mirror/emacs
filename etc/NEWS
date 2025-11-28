@@ -924,6 +924,11 @@ It controls the automatic installation of tree-sitter grammar libraries
 needed for tree-sitter based modes, if these grammar libraries are not
 available when such modes are turned on.
 
+*** 'treesit-extra-load-path' now is a customizable user option.
+The first directory in the list is used as the default directory
+to install the language grammar when 'treesit-auto-install-grammar'
+is 'ask' or 'ask-dir'.
+
 *** 'treesit-language-source-alist' supports keywords.
 The language and URL are mandatory, but remaining data can use keywords:
 '(json "https://github.com/tree-sitter/tree-sitter-json" :commit "4d770d3")'.
