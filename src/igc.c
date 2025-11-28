@@ -4078,25 +4078,50 @@ make_clock (double secs)
 static bool
 process_one_message (struct igc *gc)
 {
+  mps_message_type_t type;
+  if (!mps_message_queue_type (&type, gc->arena))
+    return false;
+
   mps_message_t msg;
-  if (mps_message_get (&msg, gc->arena, mps_message_type_finalization ()))
+  if (!mps_message_get (&msg, gc->arena, type))
+    emacs_abort ();
+
+  if (type == mps_message_type_finalization ())
     {
       mps_addr_t addr;
       mps_message_finalization_ref (&addr, gc->arena, msg);
-      /* FIXME/igc: other threads should be suspended while finalizing objects.  */
+      /* FIXME/igc: other threads should be suspended while finalizing
+	 objects.  */
       finalize (gc, addr);
     }
-  else if (mps_message_get (&msg, gc->arena, mps_message_type_gc_start ()))
+  else if (type == mps_message_type_gc_start ())
     {
       if (garbage_collection_messages)
 	{
-	  message1 ("Garbage collecting...");
+	  mps_clock_t clock = mps_message_clock (gc->arena, msg);
 	  const char *why = mps_message_gc_start_why (gc->arena, msg);
-	  message1 (why);
+	  message ("[%lu] GC start: %s", (unsigned long) clock, why);
+	}
+    }
+  else if (type == mps_message_type_gc ())
+    {
+      if (garbage_collection_messages)
+	{
+	  size_t condemned
+	    = mps_message_gc_condemned_size (gc->arena, msg);
+	  size_t live = mps_message_gc_live_size (gc->arena, msg);
+	  size_t not_condemned
+	    = mps_message_gc_not_condemned_size (gc->arena, msg);
+	  mps_clock_t clock = mps_message_clock (gc->arena, msg);
+	  message ("[%lu] GC: condemned: %lu live: %lu "
+		   "not_condemned: %lu",
+		   (unsigned long) clock, (unsigned long) condemned,
+		   (unsigned long) live,
+		   (unsigned long) not_condemned);
 	}
     }
   else
-    return false;
+    emacs_abort ();
 
   mps_message_discard (gc->arena, msg);
   return true;
@@ -4109,6 +4134,7 @@ enable_messages (struct igc *gc, bool enable)
     = enable ? mps_message_type_enable : mps_message_type_disable;
   fun (gc->arena, mps_message_type_finalization ());
   fun (gc->arena, mps_message_type_gc_start ());
+  fun (gc->arena, mps_message_type_gc ());
 }
 
 void
