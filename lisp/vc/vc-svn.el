@@ -175,7 +175,8 @@ A value of `default' means to use the value of `vc-resolve-conflicts'."
   "SVN-specific version of `vc-state'."
   (let (process-file-side-effects)
     (with-temp-buffer
-      (cd (file-name-directory file))
+      (when-let* ((d (file-name-directory file)))
+        (cd d))
       (vc-svn-command t 0 file "status" "-v")
       (vc-svn-parse-status file))))
 
