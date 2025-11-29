@@ -1574,6 +1574,20 @@ behavior included additional information about the originating message.
 The new variable 'message-header-use-obsolete-in-reply-to', nil by
 default, can be set to a non-nil value to restore the previous behavior.
 
+** Message
+
++++
+*** 'message-subject-re-regexp' default value is now derived from 'mail-re-regexps'.
+'mail-re-regexps' is a new user option that is easier to customize than
+'message-subject-re-regexp'.  'message-subject-re-regexp' is still
+honored if it was already set.
+
++++
+*** 'message-strip-subject-re' now matches case-insensitively.
+
+---
+*** 'message-change-subject' inserts current subject into "future history".
+
 +++
 *** Hashcash support has been removed.
 It is believed to no longer be useful as a method to fight spam.  The
@@ -1757,20 +1771,6 @@ suspicious email addresses is determined by the function
 'textsec-suspicious-p', which see.)  This is controlled by the new user
 option 'rmail-detect-suspicious-headers', whose default value is
 non-nil; customize to nil to disable the check.
-
-** Message
-
-+++
-*** 'message-subject-re-regexp' default value is now derived from 'mail-re-regexps'.
-'mail-re-regexps' is a new user option that is easier to customize than
-'message-subject-re-regexp'.  'message-subject-re-regexp' is still
-honored if it was already set.
-
-+++
-*** 'message-strip-subject-re' now matches case-insensitively.
-
----
-*** 'message-change-subject' inserts current subject to "future history".
 
 ** Sendmail
 
