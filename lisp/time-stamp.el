@@ -392,31 +392,37 @@ to customize the information in the time stamp and where it is written."
 	(let ((nl-start 0))
 	  (while (string-match "\n" ts-format nl-start)
 	    (setq format-lines (1+ format-lines) nl-start (match-end 0)))))
-    (let ((nl-start 0))
-      (while (string-match "\n" ts-end nl-start)
-	(setq end-lines (1+ end-lines) nl-start (match-end 0))))
-    ;; Find overall what lines to look at
-    (save-excursion
-      (save-restriction
-	(widen)
-	(cond ((> line-limit 0)
-	       (goto-char (setq start (point-min)))
-	       (forward-line line-limit)
-               (setq search-limit (point-marker)))
-	      ((< line-limit 0)
-               (goto-char (setq search-limit (point-max-marker)))
-	       (forward-line line-limit)
-	       (setq start (point)))
-	      (t			;0 => no limit (use with care!)
-	       (setq start (point-min))
-               (setq search-limit (point-max-marker))))))
-    (while (and start
-		(< start search-limit)
-		(> ts-count 0))
-      (setq start (time-stamp-once start search-limit ts-start ts-end
-				   ts-format format-lines end-lines))
-      (setq ts-count (1- ts-count)))
-    (set-marker search-limit nil))
+    (cond
+     ((not (and (stringp ts-start)
+                (stringp ts-end)))
+      (message "time-stamp-start or time-stamp-end is not a string")
+      (sit-for 1))
+     (t
+      (let ((nl-start 0))
+        (while (string-match "\n" ts-end nl-start)
+          (setq end-lines (1+ end-lines) nl-start (match-end 0))))
+      ;; Find overall what lines to look at
+      (save-excursion
+        (save-restriction
+          (widen)
+          (cond ((> line-limit 0)
+                 (goto-char (setq start (point-min)))
+                 (forward-line line-limit)
+                 (setq search-limit (point-marker)))
+                ((< line-limit 0)
+                 (goto-char (setq search-limit (point-max-marker)))
+                 (forward-line line-limit)
+                 (setq start (point)))
+                (t                      ;0 => no limit (use with care!)
+                 (setq start (point-min))
+                 (setq search-limit (point-max-marker))))))
+      (while (and start
+                  (< start search-limit)
+                  (> ts-count 0))
+        (setq start (time-stamp-once start search-limit ts-start ts-end
+                                     ts-format format-lines end-lines))
+        (setq ts-count (1- ts-count)))
+      (set-marker search-limit nil))))
   nil)
 
 (defun time-stamp-once (start search-limit ts-start ts-end
@@ -463,11 +469,8 @@ Returns the end point, which is where `time-stamp' begins the next search."
 		;; don't signal an error in a hook
 		(progn
 		  (message "Warning: time-stamp-active is off; did not time-stamp buffer.")
-		  (sit-for 1))))
-	   ((not (and (stringp ts-start)
-		      (stringp ts-end)))
-	    (message "time-stamp-start or time-stamp-end is not a string")
-	    (sit-for 1))
+                  (sit-for 1)))
+            nil)
 	   (t
 	    (let ((new-time-stamp (time-stamp-string ts-format)))
 	      (if (and (stringp new-time-stamp)
@@ -484,10 +487,9 @@ Returns the end point, which is where `time-stamp' begins the next search."
 		      (if (search-backward "\t" start t)
 			  (progn
 			    (untabify start end)
-			    (setq end (point))))))))))))
-    ;; return the location after this time stamp, if there was one
-    (and end end-length
-         (+ end (max advance-nudge end-length)))))
+                            (setq end (point))))))))
+            ;; return the location after this time stamp
+            (+ end (max advance-nudge end-length))))))))
 
 
 ;;;###autoload
