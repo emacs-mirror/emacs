@@ -2340,10 +2340,10 @@ It is an error if REV is not on the current branch."
   (vc-git-command nil 0 nil "reset" "--hard" rev))
 
 (defun vc-git-uncommit-revisions-from-end (rev)
-  "Soft reset back to REV.
+  "Mixed reset back to REV.
 It is an error if REV is not on the current branch."
   (vc-git--assert-revision-on-branch rev (vc-git--current-branch))
-  (vc-git-command nil 0 nil "reset" "--soft" rev))
+  (vc-git-command nil 0 nil "reset" "--mixed" rev))
 
 (defvar vc-git-extra-menu-map
   (let ((map (make-sparse-keymap)))
