@@ -945,6 +945,9 @@ since it could result in memory overflow and make Emacs crash."
 		       (fboundp 'new-fontset))
                       ((string-match "xwidget-" (symbol-name symbol))
                        (boundp 'xwidget-internal))
+                      ((string-match "treesit-" (symbol-name symbol))
+                       ;; Any function from treesit.c will do.
+                       (fboundp 'treesit-language-available-p))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
