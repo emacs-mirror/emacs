@@ -5169,6 +5169,15 @@ For internal use only. */)
   return Qnil;
 }
 
+static bool
+parse_error (const char *key)
+{
+  fprintf (stderr, "Failed to parse %s: %s\n", key, getenv (key));
+  fflush (stderr);
+  emacs_abort ();
+  return false;
+}
+
 /* Read GC generation settings from environment variable
    EMACS_IGC_GENS. Value must be a string consisting of pairs SIZE
    MORTALITY, where SIZE Is the size of the generation in KB, and
@@ -5184,7 +5193,8 @@ For internal use only. */)
 static bool
 read_gens (size_t *ngens, mps_gen_param_s parms[*ngens])
 {
-  const char *env = getenv ("EMACS_IGC_GENS");
+  const char *key = "EMACS_IGC_GENS";
+  const char *env = getenv (key);
   if (env == NULL)
     return false;
   const char *end = env + strlen (env);
@@ -5207,30 +5217,27 @@ read_gens (size_t *ngens, mps_gen_param_s parms[*ngens])
 	  *ngens = i + 1;
 	}
       else
-	goto parse_error;
+	return parse_error (key);
     }
 
   if (*ngens > 0 && env == end)
     return true;
 
- parse_error:
-  fprintf (stderr, "Failed to parse EMACS_IGC_GENS: %s\n",
-	   getenv ("EMACS_IGC_GENS"));
-  emacs_abort ();
+  return parse_error (key);
 }
 
 static bool
 read_arena_size (size_t *size)
 {
-  const char *env = getenv ("EMACS_IGC_ARENA_SIZE");
+  const char *key = "EMACS_IGC_ARENA_SIZE";
+  const char *env = getenv (key);
   if (env == NULL)
     return false;
   char *end;
   *size = strtoull (env, &end, 10);
   bool ok = *end == '\0';
   if (!ok)
-    fprintf (stderr, "Failed to parse EMACS_IGC_ARENA_SIZE: %s\n",
-	     env);
+    return parse_error (key);
   return ok;
 }
 
