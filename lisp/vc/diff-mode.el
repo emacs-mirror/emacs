@@ -1055,7 +1055,7 @@ them, instead."
 (defvar diff-remembered-defdir nil)
 
 (defun diff-filename-drop-dir (file)
-  (and (string-match "/" file) (substring file (match-end 0))))
+  (and (string-match "[/\\]" file) (substring file (match-end 0))))
 
 (defun diff-merge-strings (ancestor from to)
   "Merge the diff between ANCESTOR and FROM into TO.
