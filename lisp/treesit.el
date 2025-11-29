@@ -126,7 +126,8 @@ in a Emacs not built with tree-sitter library."
      (declare-function treesit-available-p "treesit.c")
 
      (defvar treesit-thing-settings)
-     (defvar treesit-major-mode-remap-alist)))
+     (defvar treesit-major-mode-remap-alist)
+     (defvar treesit-extra-load-path)))
 
 (treesit-declare-unavailable-functions)
 
