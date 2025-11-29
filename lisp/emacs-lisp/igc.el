@@ -80,7 +80,11 @@ Should be either the symbol human-readable or nil.")
 
 ;;;###autoload
 (defun igc-collect ()
-  "Perform a full GC."
+  "Perform a full GC.
+This triggers an immediate garbage collection of the entire memory
+used for Lisp objects, recycling any unreachable objects whose
+memory can be freed and attempting to reduce the size of
+the memory used for objects."
   (interactive)
   (let ((garbage-collection-messages t))
     (igc--collect)))
