@@ -251,6 +251,7 @@ automatically)."
          '("pylsp" "pyls" ("basedpyright-langserver" "--stdio")
            ("pyright-langserver" "--stdio")
            ("pyrefly" "lsp")
+           ("ty" "server")
            "jedi-language-server" ("ruff" "server") "ruff-lsp")))
     ((js-json-mode json-mode json-ts-mode jsonc-mode)
      . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio")
