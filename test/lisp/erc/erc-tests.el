@@ -674,6 +674,39 @@
   ;; No fallback behavior.
   (should-not (erc--parse-nuh "abc\nde!fg@xy")))
 
+;; NUH interpretation rules:
+;;
+;; 1. "a@b" or "a!b" - "a" is the nick and "b" is the host.  Can't have
+;;    a login without a nick and a host.
+;;
+;; 2. "a" - either a nick or a host, depending on message type.  The
+;;    presence of a "." does not imply a host because some IRC-adjacent
+;;    bridges allow nicks to contain dots, and a host can be a host
+;;    name, like "localhost" without a domain structure.  Nick-only
+;;    types include PRIVMSG, JOIN, PART, QUIT, NICK, KICK, TOPIC, AWAY,
+;;    ACCOUNT, and TAGMSG.  MODE can be either but is usually a nick
+;;    unless recovering from a netsplit or as a response to a ChanServ
+;;    OP.  NOTICE can be either but is always a nick when directed to a
+;;    channel.
+;;
+;; 3. "a!", "a!@", "a@", "!a@", "@a", etc. are pathological.
+;;
+(ert-deftest erc--interpret-nuh ()
+  (should (equal (erc--interpret-nuh (erc--parse-nuh "a@b"))
+                 '("a" nil "b")))
+  (should (equal (erc--interpret-nuh (erc--parse-nuh "a!b"))
+                 '("a" nil "b")))
+  (should (equal (erc--interpret-nuh (erc--parse-nuh "B..o..b"))
+                 '("B..o..b" nil nil)))
+  (should (equal (erc--interpret-nuh (erc--parse-nuh "gnu.org"))
+                 '("gnu.org" nil nil)))
+  (should (equal (erc--interpret-nuh (erc--parse-nuh "localhost"))
+                 '("localhost" nil nil)))
+
+  ;; Reject login containing CHANTYPE chars.
+  (should (equal (erc--parse-nuh "a&b@c") '(nil "a&b" "c")))
+  (should-error (erc--interpret-nuh '(nil "a&b" "c"))))
+
 (ert-deftest erc--parsed-prefix ()
   ;; Effectively a no-op in a non-ERC buffer.
   (should-not (erc--parsed-prefix))

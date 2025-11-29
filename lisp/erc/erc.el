@@ -7991,11 +7991,28 @@ See associated unit test for precise behavior."
           (match-string 2 string)
           (match-string 3 string))))
 
-(defun erc--shuffle-nuh-nickward (nick login host)
-  "Interpret results of `erc--parse-nuh', promoting loners to nicks."
-  (cond (nick (cl-assert (null login)) (list nick login host))
-        ((and (null login) host) (list host nil nil))
-        ((and login (null host)) (list login nil nil))))
+(defvar erc--user-nuh-message-types
+  '(PRIVMSG JOIN PART QUIT NICK KICK TOPIC AWAY ACCOUNT TAGMSG))
+
+(defun erc--interpret-nuh (nuh &optional cmd noerrorp)
+  "Return new NUH triple with non-nil nickname or host component, or signal.
+If CMD is null or appears in `erc--user-nuh-message-types', promote a
+lone host to a lone nick.  With NOERRORP, return a copy of NUH instead
+of signaling."
+  (pcase-let ((`(,nick ,login ,host) nuh))
+    (cond (nick (list nick login host))
+          ((and (null login) host)
+           (if (or (null cmd) (memq cmd erc--user-nuh-message-types))
+               (list host nil nil)
+             (list nil nil host)))
+          ((and login
+                (let ((types (or (erc--get-isupport-entry 'CHANTYPES 'single)
+                                 erc--fallback-channel-prefixes)))
+                  (not (seq-some (lambda (c) (seq-contains-p types c #'eq))
+                                 login))))
+           (list login nil host))
+          (noerrorp (list nick login host))
+          (t (error "Failed to interpret: %s" nuh)))))
 
 (defun erc-extract-nick (string)
   "Return the nick corresponding to a user specification STRING.
