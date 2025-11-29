@@ -122,6 +122,10 @@ of face attribute/value pairs.  If more than one face is listed,
 that specifies an aggregate face, in the same way as in a `face'
 text property, except for possible priority changes noted below.
 
+If a face property list specifies `:font', the value should be
+either a font-spec object or the return value of `font-face-attributes'
+called with a font object, font spec, or font entity.
+
 The face remapping specified by SPECS takes effect alongside the
 remappings from other calls to `face-remap-add-relative' for the
 same FACE, as well as the normal definition of FACE (at lowest
@@ -191,6 +195,10 @@ to apply on top of the face specification given by SPECS.
 The remaining arguments, SPECS, specify the base of the remapping.
 Each one of SPECS should be either a face name or a property list
 of face attribute/value pairs, like in a `face' text property.
+
+If a face property list specifies `:font', the value should be
+either a font-spec object or the return value of `font-face-attributes'
+called with a font object, font spec, or font entity.
 
 If SPECS is empty or a single face `eq' to FACE, call `face-remap-reset-base'
 to use the normal definition of FACE as the base remapping; note that
@@ -572,6 +580,10 @@ one face is listed, that specifies an aggregate face, like in a
 `face' text property.  If SPECS is nil or omitted, disable
 `buffer-face-mode'.
 
+If a face property list specifies `:font', the value should be
+either a font-spec object or the return value of `font-face-attributes'
+called with a font object, font spec, or font entity.
+
 This function makes the variable `buffer-face-mode-face' buffer
 local, and sets it to FACE."
   (interactive (list (read-face-name "Set buffer face" (face-at-point t))))
@@ -589,6 +601,10 @@ Each argument in SPECS should be a face, i.e. either a face name
 or a property list of face attributes and values.  If more than
 one face is listed, that specifies an aggregate face, like in a
 `face' text property.
+
+If a face property list specifies `:font', the value should be
+either a font-spec object or the return value of `font-face-attributes'
+called with a font object, font spec, or font entity.
 
 If `buffer-face-mode' is already enabled, and is currently using
 the face specs SPECS, then it is disabled; if `buffer-face-mode'
@@ -614,6 +630,10 @@ interpreted in the usual manner for minor-mode commands.
 SPECS can be any value suitable for a `face' text property,
 including a face name, a plist of face attributes and values,
 or a list of faces.
+
+If a face property list specifies `:font', the value should be
+either a font-spec object or the return value of `font-face-attributes'
+called with a font object, font spec, or font entity.
 
 If INTERACTIVE is non-nil, display a message describing the
 result.
