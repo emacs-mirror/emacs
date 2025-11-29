@@ -4376,8 +4376,13 @@ igc_collect (bool incremental)
 
 DEFUN ("igc--collect", Figc__collect, Sigc__collect, 0, 1, 0,
        doc: /* Start a full garbage collection.
-If incremental is nil, collect the arena immediately.
-Otherwise, start a full collection but return quickly.  */)
+This triggers garbage collection of the entire memory used
+for Lisp objects, recycling any unreachable objects whose
+memory can be freed and attempting to reduce the size of
+the memory used for objects.
+If INCREMENTAL is nil, perfrom garbage collection immediately.
+Otherwise, request the start of a full incremental collection cycle,
+and return.  */)
   (Lisp_Object incremental)
 {
   igc_collect (!NILP (incremental));
