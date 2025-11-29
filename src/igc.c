@@ -4100,7 +4100,8 @@ process_one_message (struct igc *gc)
 	{
 	  mps_clock_t clock = mps_message_clock (gc->arena, msg);
 	  const char *why = mps_message_gc_start_why (gc->arena, msg);
-	  message ("[%lu] GC start: %s", (unsigned long) clock, why);
+	  double secs = (double) clock / mps_clocks_per_sec ();
+	  message ("[%f] GC start: %s", secs, why);
 	}
     }
   else if (type == mps_message_type_gc ())
@@ -4113,11 +4114,10 @@ process_one_message (struct igc *gc)
 	  size_t not_condemned
 	    = mps_message_gc_not_condemned_size (gc->arena, msg);
 	  mps_clock_t clock = mps_message_clock (gc->arena, msg);
-	  message ("[%lu] GC: condemned: %lu live: %lu "
-		   "not_condemned: %lu",
-		   (unsigned long) clock, (unsigned long) condemned,
-		   (unsigned long) live,
-		   (unsigned long) not_condemned);
+	  double secs = (double) clock / mps_clocks_per_sec ();
+	  message ("[%f] GC: condemned: %" pD "u live: %" pD "u "
+		   "not_condemned: %" pD "u",
+		   secs, condemned, live, not_condemned);
 	}
     }
   else
