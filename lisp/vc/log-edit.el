@@ -915,11 +915,12 @@ visible when the *vc-log* buffer pops up."
       (cvs-insert-strings files)
       (special-mode)
       (goto-char (point-min))
-      (save-selected-window
-	(cvs-pop-to-buffer-same-frame buf)
-	(shrink-window-if-larger-than-buffer)
-        (set-window-dedicated-p (selected-window) t)
-	(selected-window)))))
+      (display-buffer buf '((display-buffer-below-selected)
+                            (dedicated . t)
+                            (window-height . shrink-window-if-larger-than-buffer)
+                            (inhibit-same-window . t)
+                            (reusable-frames . nil)
+                            (inhibit-switch-frame . t))))))
 
 (defun log-edit-empty-buffer-p ()
   "Return non-nil if the buffer is \"empty\"."
