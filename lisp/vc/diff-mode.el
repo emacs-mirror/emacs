@@ -980,14 +980,17 @@ data such as \"Index: ...\" and such."
       (goto-char orig)
       (signal (car err) (cdr err)))))
 
-(defun diff-file-kill ()
-  "Kill current file's hunks."
+(defun diff-file-kill (&optional delete)
+  "Kill current file's hunks.
+When called from Lisp with optional argument DELETE non-nil, delete
+them, instead."
   (interactive)
   (if (not (diff--some-hunks-p))
       (error "No hunks")
     (diff-beginning-of-hunk t)
     (let ((inhibit-read-only t))
-      (apply #'kill-region (diff-bounds-of-file)))
+      (apply (if delete #'delete-region #'kill-region)
+             (diff-bounds-of-file)))
     (ignore-errors (diff-beginning-of-hunk t))))
 
 (defun diff-kill-junk ()
@@ -1052,7 +1055,7 @@ data such as \"Index: ...\" and such."
 (defvar diff-remembered-defdir nil)
 
 (defun diff-filename-drop-dir (file)
-  (when (string-match "/" file) (substring file (match-end 0))))
+  (and (string-match "/" file) (substring file (match-end 0))))
 
 (defun diff-merge-strings (ancestor from to)
   "Merge the diff between ANCESTOR and FROM into TO.
@@ -1209,6 +1212,21 @@ Optional arguments OLD and NOPROMPT are passed on to
                          (ignore-errors (diff-file-next)))
                        (point)))))
 
+(defun diff-kill-creations-deletions (&optional delete)
+  "Kill all hunks for file creations and deletions.
+Optional argument DELETE is passed on to `diff-file-kill'."
+  (save-excursion
+    (cl-loop initially
+             (goto-char (point-min))
+             (ignore-errors (diff-file-next))
+             for (name1 name2) = (diff-hunk-file-names)
+             if (or (equal name1 null-device)
+                    (equal name2 null-device))
+             do (diff-file-kill delete)
+             else if (eq (prog1 (point)
+                           (ignore-errors (diff-file-next)))
+                         (point))
+             do (cl-return))))
 
 (defun diff-ediff-patch ()
   "Call `ediff-patch-file' on the current buffer."

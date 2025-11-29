@@ -3,6 +3,7 @@
 ;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
+;; Author: Sean Whitton <spwhitton@spwhitton.name>
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -902,6 +903,108 @@ This checks also `vc-backend' and `vc-responsible-backend'."
           (ignore-errors
             (run-hooks 'vc-test--cleanup-hook)))))))
 
+(defun vc-test--apply-to-other-working-tree (backend)
+  "Test `vc--apply-to-other-working-tree'."
+  (ert-with-temp-directory _tempdir
+    (let ((vc-handled-backends `(,backend))
+          (default-directory
+           (file-name-as-directory
+            (expand-file-name
+             (make-temp-name "vc-test") temporary-file-directory)))
+          vc-test--cleanup-hook)
+      (vc-test--with-author-identity backend
+        (unwind-protect
+            (let ((first (file-truename
+                          (file-name-as-directory
+                           (expand-file-name "first" default-directory))))
+                  (second (file-truename
+                           (file-name-as-directory
+                            (expand-file-name "second" default-directory)))))
+              ;; Cleanup.
+              (add-hook 'vc-test--cleanup-hook
+                        (let ((dir default-directory))
+                          (lambda ()
+                            (delete-directory dir 'recursive))))
+
+              ;; Set up the two working trees.
+              (make-directory first 'parents)
+              (let ((default-directory first)
+                    (names '("foo" "bar" "baz")))
+                (vc-test--create-repo-function backend)
+                (dolist (str names)
+                  (write-region (concat str "\n") nil str nil 'nomessage)
+                  (vc-register `(,backend (,str))))
+                (vc-checkin names backend "Test files"))
+              ;; For the purposes of this test just copying the tree is
+              ;; enough.  FIRST and SECOND don't have to actually share
+              ;; a backing revisions store.
+              (copy-directory first (directory-file-name second))
+
+              ;; Make modifications that we will try to move.
+              (let ((default-directory first))
+                (write-region "qux\n" nil "qux" nil 'nomessage)
+                (vc-register `(,backend ("qux")))
+                (write-region "quux\n" nil "quux" nil 'nomessage)
+                (cl-letf (((symbol-function 'y-or-n-p) #'always))
+                  (vc-delete-file "bar"))
+                (delete-file "baz")
+                (write-region "foobar\n" nil "foo" nil 'nomessage)
+                (should (eq (vc-state "foo"  backend) 'edited))
+                (should (eq (vc-state "baz"  backend) 'missing))
+                (should (eq (vc-state "bar"  backend) 'removed))
+                (should (eq (vc-state "qux"  backend) 'added))
+                (should (eq (vc-state "quux" backend) 'unregistered)))
+
+              (cl-flet ((go ()
+                          (let ((default-directory first)
+                                (vc-no-confirm-moving-changes t))
+                            (vc--apply-to-other-working-tree
+                             second second `(,backend
+                                             ("foo" "bar" "baz" "qux" "quux"))
+                             nil t))))
+                (let ((default-directory second))
+                  ;; Set up a series of incompatibilities, one-by-one, and
+                  ;; try to move.  In each case the problem should block the
+                  ;; move from proceeding.
+
+                  ;; User refuses to sync destination fileset.
+                  (with-current-buffer (find-file-noselect "bar")
+                    (set-buffer-modified-p t)
+                    (cl-letf (((symbol-function 'y-or-n-p) #'ignore))
+                      (should-error (go)))
+                    (set-buffer-modified-p nil))
+
+                  ;; New file to be copied already exists.
+                  (with-temp-file "qux")
+                  (should-error (go))
+                  (delete-file "qux")
+
+                  ;; File to be deleted has changes.
+                  (write-region "foobar\n" nil "bar" nil 'nomessage)
+                  (should-error (go))
+                  (vc-revert-file "bar")
+
+                  ;; Finally, a move that should succeed.  Check that
+                  ;; everything we expected to happen did happen.
+                  (go)
+                  (with-current-buffer (find-file-noselect "foo")
+                    (should (equal (buffer-string) "foobar\n")))
+                  (should-not (file-exists-p "bar"))
+                  (should-not (file-exists-p "baz"))
+                  (should (file-exists-p "qux"))
+                  (should (file-exists-p "quux"))
+                  (let ((default-directory first))
+                    (with-current-buffer (find-file-noselect "foo")
+                      (should (equal (buffer-string) "foo\n")))
+                    (should (file-exists-p "bar"))
+                    (should (file-exists-p "baz"))
+                    (should-not (file-exists-p "qux"))
+                    (should-not (file-exists-p "quux"))))))
+
+          ;; Save exit.
+          (ignore-errors
+            (run-hooks 'vc-test--cleanup-hook)))))))
+
 ;; Create the test cases.
 
 (defun vc-test--rcs-enabled ()
@@ -1066,7 +1169,19 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             (vc-test--other-working-trees ',backend)))
 
         (ert-deftest
-            ,(intern (format "vc-test-%s08-checkin-patch" backend-string)) ()
+            ,(intern (format "vc-test-%s08-apply-to-other-working-tree" backend-string)) ()
+          ,(format "Test `vc--apply-to-other-working-tree' with the %s backend."
+                   backend-string)
+          (skip-when
+	   (ert-test-skipped-p
+	    (ert-test-most-recent-result
+	     (ert-get-test
+	      ',(intern
+	         (format "vc-test-%s07-other-working-trees" backend-string))))))
+          (vc-test--apply-to-other-working-tree ',backend))
+
+        (ert-deftest
+            ,(intern (format "vc-test-%s09-checkin-patch" backend-string)) ()
           ,(format "Check preparing and checking in patches with the %s backend."
                    backend-string)
           (skip-unless
