@@ -164,7 +164,7 @@
   (iter-yield-from (time-stamp-test-pattern-sequential))
   (iter-yield-from (time-stamp-test-pattern-multiply)))
 
-(ert-deftest time-stamp-custom-start ()
+(ert-deftest time-stamp-custom-start-0 ()
   "Test that `time-stamp' isn't stuck by a start matching 0 characters."
   (with-time-stamp-test-env
     (with-time-stamp-test-time ref-time1
@@ -188,6 +188,18 @@
           ;; the second template should be found immediately after the first
           (time-stamp)
           (should (equal (buffer-string) "::05::05")))))))
+
+(ert-deftest time-stamp-custom-start-multiline ()
+  "Test `time-stamp-start' matching across multiple lines."
+  (with-time-stamp-test-env
+    (with-time-stamp-test-time ref-time1
+      (let ((time-stamp-pattern "l.1\n%Y-%m-%d<-TS")) ;start includes newline
+        (with-temp-buffer
+          (insert "l.1\n<-TS\n")
+          ;; we should look for the end on the line where the start ends,
+          ;; not the line where the start starts
+          (time-stamp)
+          (should (equal (buffer-string) "l.1\n2006-01-02<-TS\n")))))))
 
 (ert-deftest time-stamp-custom-pattern ()
   "Test that `time-stamp-pattern' is parsed correctly."
