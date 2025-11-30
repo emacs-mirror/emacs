@@ -787,12 +787,12 @@ system, including many technical ones.  Examples:
  ("\\sqrt" ?√)
  ("\\sqrt[3]" ?∛)
  ("\\sqrt[4]" ?∜)
- ("\\llbracket" ?\〚) 			; stmaryrd
- ("\\rrbracket" ?\〛)
+ ("\\llbracket" ?\⟦) 			; stmaryrd
+ ("\\rrbracket" ?\⟧)
  ;; ("\\lbag" ?\〚) 			; fuzz
  ;; ("\\rbag" ?\〛)
- ("\\ldata" ?\《) 			; fuzz/zed
- ("\\rdata" ?\》)
+ ("\\ldata" ?\⟪) 			; fuzz/zed
+ ("\\rdata" ?\⟫)
  ;; From Karl Eichwalder.
  ("\\glq"  ?‚)
  ("\\grq"  ?‘)
