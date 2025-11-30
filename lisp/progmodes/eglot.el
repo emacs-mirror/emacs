@@ -4083,7 +4083,7 @@ edit proposed by the server."
    (let ((tap (thing-at-point 'symbol t)))
      (list (read-from-minibuffer
             (format "Rename `%s' to: " (or tap "unknown symbol"))
-            tap nil nil nil tap))))
+            nil nil nil nil tap))))
   (eglot-server-capable-or-lose :renameProvider)
   (eglot--apply-workspace-edit
    (eglot--request (eglot--current-server-or-lose)
