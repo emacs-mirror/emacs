@@ -187,6 +187,7 @@ subexpression 10."
                            (let ((ov (make-overlay (car bounds) (cdr bounds)
                                                    nil t nil)))
                              (overlay-put ov 'category 'bug-reference)
+                             (overlay-put ov 'button ov)
                              ov))))
             ;; Don't put a link if format is undefined.
             (when bug-reference-url-format

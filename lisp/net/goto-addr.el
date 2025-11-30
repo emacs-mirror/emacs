@@ -187,6 +187,8 @@ and `goto-address-fontify-p'."
 			 'help-echo "mouse-2, C-c RET: follow URL")
 	    (overlay-put this-overlay
 			 'keymap goto-address-highlight-keymap)
+	    (overlay-put this-overlay 'button this-overlay)
+	    (overlay-put this-overlay 'category 'goto-address)
 	    (overlay-put this-overlay 'goto-address t))))
       (goto-char (or start (point-min)))
       (while (re-search-forward goto-address-mail-regexp end t)
