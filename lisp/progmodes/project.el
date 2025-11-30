@@ -1639,18 +1639,26 @@ If non-nil, it overrides `compilation-buffer-name-function' for
   "Run `compile' in the project root."
   (declare (interactive-only compile))
   (interactive)
-  (let ((default-directory (project-root (project-current t)))
-        (compilation-buffer-name-function
-         (or project-compilation-buffer-name-function
-             compilation-buffer-name-function))
-        ;; Specifically ignore the value of `compile-command' if we were
-        ;; invoked from a `vc-compilation-mode' buffer because for
-        ;; `project-compile' we know the user wants to build the
-        ;; project, not re-run a VC pull or push operation (bug#79658).
-        (compile-command (if (derived-mode-p 'vc-compilation-mode)
-                             (with-temp-buffer compile-command)
-                           compile-command)))
-    (call-interactively #'compile)))
+  (let* ((default-directory (project-root (project-current t)))
+         (compilation-buffer-name-function
+          (or project-compilation-buffer-name-function
+              compilation-buffer-name-function))
+         (orig-current-buffer (and (derived-mode-p 'vc-compilation-mode)
+                                   (local-variable-p 'compile-command)
+                                   (current-buffer)))
+         (orig-compile-command (and orig-current-buffer compile-command)))
+    ;; If invoked from a `vc-compilation-mode' buffer, we want to ignore
+    ;; `compile-command' because for this command we know the user wants
+    ;; to build the project, not re-run a VC pull or push (bug#79658).
+    ;; Do this without let-binding `compile-command', however, in order
+    ;; that the user's command to build the project is not immediately
+    ;; thrown away.  Essentially we want to turn the `setq' of
+    ;; `compile-command' done by `compile' into a `setq-default'.
+    (when orig-current-buffer
+      (kill-local-variable 'compile-command))
+    (unwind-protect (call-interactively #'compile)
+      (with-current-buffer orig-current-buffer
+        (setq-local compile-command orig-compile-command)))))
 
 ;;;###autoload
 (defun project-recompile (&optional edit-command)
