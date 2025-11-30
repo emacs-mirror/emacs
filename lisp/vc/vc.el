@@ -4015,7 +4015,28 @@ The command prompts for the branch whose change log to show."
                     'vc-remote-location-history)))
 
 (defun vc--incoming-revision (backend &optional upstream-location refresh)
-  (or (vc-call-backend backend 'incoming-revision upstream-location refresh)
+  ;; Some backends don't support REFRESH and so always behave as though
+  ;; REFRESH is non-nil.  This is not just for a lack of implementation
+  ;; in Emacs; for example, Mercurial repositories don't store any
+  ;; representation of the incoming revision between running commands.
+  ;;
+  ;; Fetching the incoming revision is often slow, and in many cases the
+  ;; last known incoming revision will serve perfectly well.  For
+  ;; example, when finding revisions that are outgoing, the last known
+  ;; incoming revision is fine except for the rare case in which someone
+  ;; else cherry-picks the very same commits that you have outstanding,
+  ;; and pushes them.  Given this, we implement our own caching.
+  (or (and (not refresh)
+           (cdr (assoc upstream-location
+                       (vc--repo-getprop 'vc-incoming-revision))))
+      (let ((res (vc-call-backend backend 'incoming-revision
+                                  upstream-location refresh)))
+        (if-let* ((alist (vc--repo-getprop 'vc-incoming-revision)))
+            (setf (alist-get upstream-location alist nil nil #'equal)
+                  res)
+          (vc--repo-setprop 'vc-incoming-revision
+                            `((,upstream-location . ,res))))
+        res)
       (user-error "No incoming revision -- local-only branch?")))
 
 ;;;###autoload

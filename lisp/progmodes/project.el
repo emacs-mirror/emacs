@@ -576,6 +576,8 @@ project backend implementation of `project-external-roots'.")
 
 See `project-vc-extra-root-markers' for the marker value format.")
 
+;; FIXME: Should perhaps use `vc--repo-*prop' functions
+;;        (after promoting those to public).  --spwhitton
 (defun project-try-vc (dir)
   ;; FIXME: Learn to invalidate when the value changes:
   ;; `project-vc-merge-submodules' or `project-vc-extra-root-markers'.

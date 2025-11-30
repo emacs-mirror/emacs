@@ -228,24 +228,26 @@ VC commands are globally reachable under the prefix \\[vc-prefix-map]:
 (defmacro vc-error-occurred (&rest body)
   `(condition-case nil (progn ,@body nil) (error t)))
 
-;; We need a notion of per-file properties because the version
-;; control state of a file is expensive to derive --- we compute
-;; them when the file is initially found, keep them up to date
-;; during any subsequent VC operations, and forget them when
-;; the buffer is killed.
+;; We need a notion of per-file properties because the version control
+;; state of a file is expensive to derive -- we compute it when the file
+;; is initially found, keep them up to date during any subsequent VC
+;; operations, and forget them when the buffer is killed.
+;;
+;; In addition we store some whole-repository properties keyed to the
+;; repository root.  We invalidate/update these during VC operations,
+;; but there isn't a point analagous to the killing of a buffer at which
+;; we clear them all out, like there is for per-file properties.
 
 (defvar vc-file-prop-obarray (obarray-make 17)
-  "Obarray for per-file properties.")
+  "Obarray for VC per-file and per-repository properties.")
 
 (defvar vc-touched-properties nil)
 
 (defun vc-file-setprop (file property value)
   "Set per-file VC PROPERTY for FILE to VALUE."
-  (if (and vc-touched-properties
-	   (not (memq property vc-touched-properties)))
-      (setq vc-touched-properties (append (list property)
-					  vc-touched-properties)))
-  (put (intern (expand-file-name file) vc-file-prop-obarray) property value))
+  (cl-pushnew property vc-touched-properties)
+  (put (intern (expand-file-name file) vc-file-prop-obarray)
+       property value))
 
 (defun vc-file-getprop (file property)
   "Get per-file VC PROPERTY for FILE."
@@ -256,6 +258,18 @@ VC commands are globally reachable under the prefix \\[vc-prefix-map]:
   (if (boundp 'vc-parent-buffer)
       (kill-local-variable 'vc-parent-buffer))
   (setplist (intern (expand-file-name file) vc-file-prop-obarray) nil))
+
+(defun vc--repo-setprop (property value)
+  "Set per-repository VC PROPERTY to VALUE and return the value."
+  (vc-file-setprop (vc-root-dir) property value))
+
+(defun vc--repo-getprop (property)
+  "Get per-repository VC PROPERTY."
+  (vc-file-getprop (vc-root-dir) property))
+
+(defun vc--repo-clearprops ()
+  "Clear all VC whole-repository properties."
+  (vc-file-clearprops (vc-root-dir)))
 
 
 ;; We keep properties on each symbol naming a backend as follows:
