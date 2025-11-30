@@ -879,9 +879,11 @@ that share the same state."
   (vc-dir-at-event e (vc-dir-mark-unmark 'vc-dir-toggle-mark-file)))
 
 (defun vc-dir-clean-files ()
-  "Delete the marked files, or the current file if no marks.
-The files will not be marked as deleted in the version control
-system; see `vc-dir-delete-file'."
+  "Delete marked files from repository, or the current file if no marks.
+This command cleans unregistered files from the repository.
+(To delete files that are registered, use `vc-dir-delete-file' instead.)
+It is therefore an error to use this command to delete files that are
+tracked by a VCS."
   (interactive)
   (let* ((files (or (vc-dir-marked-files)
                     (list (vc-dir-current-file))))
@@ -891,8 +893,8 @@ system; see `vc-dir-delete-file'."
                                  'unregistered)))
                       files)))
     (when tracked
-      (user-error (ngettext "Trying to clean tracked file: %s"
-                            "Trying to clean tracked files: %s"
+      (user-error (ngettext "Cannot clean tracked file: %s"
+                            "Cannot clean tracked files: %s"
                             (length tracked))
                   (mapconcat #'file-name-nondirectory tracked ", ")))
     (map-y-or-n-p "Delete %s? " #'delete-file files)
