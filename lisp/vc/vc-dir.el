@@ -64,6 +64,11 @@ See `run-hooks'."
   :group 'vc
   :version "28.1")
 
+(defface vc-dir-header-urgent-value '((t :inherit font-lock-warning-face))
+  "Face for urgent header values in VC-Dir buffers."
+  :group 'vc
+  :version "31.1")
+
 (defface vc-dir-directory '((t :inherit font-lock-comment-delimiter-face))
   "Face for directories in VC-Dir buffers."
   :group 'vc
@@ -1328,19 +1333,31 @@ the *vc-dir* buffer.
     (hack-dir-local-variables-non-file-buffer)
     (vc-dir-refresh)))
 
+(defvar-keymap vc-dir-outgoing-revisions-map
+  :doc "Local keymap for viewing outgoing revisions."
+  "<down-mouse-1>" #'vc-log-outgoing)
+
 (defun vc-dir-headers (backend dir)
-  "Display the headers in the *VC dir* buffer.
+  "Display the headers in the *VC-Dir* buffer.
 It calls the `dir-extra-headers' backend method to display backend
 specific headers."
   (concat
-   ;; First layout the common headers.
    (propertize "VC backend : " 'face 'vc-dir-header)
    (propertize (format "%s\n" backend) 'face 'vc-dir-header-value)
    (propertize "Working dir: " 'face 'vc-dir-header)
    (propertize (format "%s\n" (abbreviate-file-name dir))
                'face 'vc-dir-header-value)
-   ;; Then the backend specific ones.
    (vc-call-backend backend 'dir-extra-headers dir)
+   (and-let* ((count (ignore-errors (vc--count-outgoing backend)))
+              (_ (plusp count)))
+     (concat (propertize "\nOutgoing   : "
+                         'face 'vc-dir-header)
+             (propertize (format "%d unpushed revisions\n" count)
+                         'face 'vc-dir-header-urgent-value
+                         'mouse-face 'highlight
+                         'keymap vc-dir-outgoing-revisions-map
+                         'help-echo "\\<vc-dir-outgoing-revisions-map>\
+\\[vc-log-outgoing]: List outgoing revisions")))
    "\n"))
 
 (defun vc-dir-refresh-files (files)

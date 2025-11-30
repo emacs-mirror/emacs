@@ -4077,6 +4077,17 @@ can be a remote branch name."
                        ""
                        (vc-call-backend backend 'mergebase incoming)))))
 
+(defun vc--count-outgoing (backend)
+  "Return number of changes that will be sent with a `vc-push'."
+  (with-temp-buffer
+    (let ((display-buffer-overriding-action
+           '(display-buffer-no-window (allow-no-window . t))))
+      (vc-incoming-outgoing-internal backend nil
+                                     (current-buffer) 'log-outgoing))
+    (let ((proc (get-buffer-process (current-buffer))))
+      (while (accept-process-output proc)))
+    (how-many log-view-message-re)))
+
 ;;;###autoload
 (defun vc-log-search (pattern)
   "Search the VC log of changes for PATTERN and show log of matching changes.

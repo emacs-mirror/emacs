@@ -2529,6 +2529,11 @@ bindings:
 - 'C-x v O L' is bound to 'vc-log-outgoing'
 - 'C-x v O D' is bound to 'vc-root-diff-outgoing'.
 
+---
+*** New display of outgoing revisions count in VC-Dir.
+If there are outgoing revisions, VC-Dir now includes a count of how many
+in its headers, to remind you to push them.
+
 +++
 *** New user option 'vc-async-checkin' to enable async checkin operations.
 Currently only supported by the Git and Mercurial backends.
