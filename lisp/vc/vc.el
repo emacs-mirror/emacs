@@ -4029,8 +4029,8 @@ The command prompts for the branch whose change log to show."
   (or (and (not refresh)
            (cdr (assoc upstream-location
                        (vc--repo-getprop 'vc-incoming-revision))))
-      (let ((res (vc-call-backend backend 'incoming-revision
-                                  upstream-location refresh)))
+      (and-let* ((res (vc-call-backend backend 'incoming-revision
+                                       upstream-location refresh)))
         (if-let* ((alist (vc--repo-getprop 'vc-incoming-revision)))
             (setf (alist-get upstream-location alist nil nil #'equal)
                   res)
