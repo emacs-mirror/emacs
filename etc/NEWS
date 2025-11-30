@@ -927,7 +927,7 @@ available when such modes are turned on.
 *** 'treesit-extra-load-path' now is a customizable user option.
 The first directory in the list is used as the default directory
 to install the language grammar when 'treesit-auto-install-grammar'
-is 'ask' or 'ask-dir'.
+is 'ask', 'ask-dir' or 'always'.
 
 *** 'treesit-language-source-alist' supports keywords.
 The language and URL are mandatory, but remaining data can use keywords:

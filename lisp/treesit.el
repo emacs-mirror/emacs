@@ -5462,15 +5462,24 @@ The copied query files are queries/highlights.scm."
   "Whether to install tree-sitter language grammar libraries when needed.
 This controls whether Emacs will install missing grammar libraries
 when they are needed by some tree-sitter based mode.
+
 If `always', install the grammar library without asking.
-If `ask', ask for confirmation before installing the required grammar library.
+If `ask', ask for confirmation before installing the grammar library.
 If `ask-dir', ask for confirmation and also for a directory name where
-to install the grammar library.  The directory name is also asked when
-the value is `ask' and `treesit-extra-load-path' is customized to a list
-of directories.
-If nil or `never' or anything else, don't install the grammar library
-even while visiting a file in the mode that requires such grammar; this
-might display a warning and/or fail to turn on the mode."
+to install the grammar library.  The selected directory name is then
+added to the list in `treesit-extra-load-path', but not saved, so
+it's used only within the current session.  It's advisable to
+customize and save `treesit-extra-load-path' manually.
+
+The default directory for the above three values is the first writeable
+directory from the list in `treesit-extra-load-path'.  If it's nil, then
+the grammar is installed to the standard location, the \"tree-sitter\"
+directory under `user-emacs-directory'.
+
+If the value of this variable is nil or `never' or anything else, don't
+install the grammar library even while visiting a file in the mode that
+requires such grammar; this might display a warning and/or fail to turn
+on the mode."
   :type '(choice (const :tag "Never install grammar libraries" never)
                  (const :tag "Always automatically install grammar libraries"
                         always)
@@ -5486,23 +5495,20 @@ The option `treesit-auto-install-grammar' defines whether to install
 the grammar library if it's unavailable."
   (when (treesit-available-p)
     (or (treesit-ready-p lang t)
-        (let (out-dir)
+        (let ((out-dir (or (seq-find #'file-writable-p
+                                     treesit-extra-load-path)
+                           (locate-user-emacs-file "tree-sitter"))))
           (when (or (eq treesit-auto-install-grammar 'always)
                     (and (memq treesit-auto-install-grammar '(ask ask-dir))
                          (y-or-n-p (format "\
 Tree-sitter grammar for `%s' is missing; install it?" lang))
-                         (or (and (eq treesit-auto-install-grammar 'ask)
-                                  ;; Still ask dir for customized path
-                                  (null treesit-extra-load-path))
-                             (let ((default-out-dir
-                                    (or (seq-find #'file-writable-p
-                                                  treesit-extra-load-path)
-                                        (locate-user-emacs-file "tree-sitter"))))
+                         (or (eq treesit-auto-install-grammar 'ask)
+                             (progn
                                (setq out-dir (read-directory-name
                                               (format-prompt "\
 Install grammar for `%s' to" nil lang)
-                                              default-out-dir
-                                              treesit-extra-load-path t))
+                                              out-dir
+                                              treesit-extra-load-path))
                                (add-to-list 'treesit-extra-load-path out-dir)
                                t))))
             (treesit-install-language-grammar lang out-dir)
