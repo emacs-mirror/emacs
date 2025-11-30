@@ -1891,6 +1891,8 @@ correctly.")
                   #'flymake--mode-line-counter-scroll-next)
       (define-key map [mode-line wheel-up]
                   #'flymake--mode-line-counter-scroll-prev))
+    (define-key map [mode-line mouse-1]
+                  #'flymake-show-buffer-diagnostics)
     map))
 
 (defun flymake--mode-line-counter-1 (type)
