@@ -495,6 +495,9 @@ Filled in `cconv-analyze-form' but initialized and consulted here.")
 
 (defvar byte-compiler-error-flag)
 
+(defvar bytecomp--code-strings nil
+  "List of unique bytecode strings in this top-level form, for deduplication.")
+
 (defun byte-compile-recurse-toplevel (form non-toplevel-case)
   "Implement `eval-when-compile' and `eval-and-compile'.
 Return the compile-time value of FORM."
@@ -2417,6 +2420,7 @@ With argument ARG, insert value in current buffer after the form."
 	(byte-compile-depth 0)
 	(byte-compile-maxdepth 0)
 	(byte-compile-output nil)
+        (bytecomp--code-strings nil)
 	;;	  #### This is bound in b-c-close-variables.
 	;;	  (byte-compile-warnings byte-compile-warnings)
         (symbols-with-pos-enabled t))
@@ -2580,6 +2584,7 @@ Call from the source buffer."
 	      byte-compile-depth 0
 	      byte-compile-maxdepth 0
 	      byte-compile-output nil
+              bytecomp--code-strings nil
               byte-compile-jump-tables nil))))
 
 (defun byte-compile-preprocess (form &optional _for-effect)
@@ -3162,9 +3167,16 @@ lambda-expression."
 		    (if lexical-binding
 			(byte-compile-make-args-desc arglist)
 		      bare-arglist)
+                    ;; code string, deduplicated
+                    (let* ((code (cadr compiled))
+                           (prev (member code bytecomp--code-strings)))
+                      (if prev
+                          (car prev)
+                        (push code bytecomp--code-strings)
+                        code))
 		    (append
-		     ;; byte-string, constants-vector, stack depth
-		     (cdr compiled)
+		     ;; constants-vector and stack depth
+		     (drop 2 compiled)
 		     ;; optionally, the doc string.
 		     (when (or doc int) (list doc))
 		     ;; optionally, the interactive spec (and the modes the
