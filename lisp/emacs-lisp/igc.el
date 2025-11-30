@@ -468,7 +468,7 @@ This function is called from a timer;  see `igc-start-collecting-stats'."
 ;;; Opportunistic GC
 
 (defvar igc--idle-timer nil
-  "Idle timer to trigger oppurtunistic GC.")
+  "Idle timer to trigger opportunistic GC.")
 
 (defvar igc--idle-delay 1.0
   "Time, in seconds, to wait for `igc--idle-timer'.")
@@ -490,14 +490,18 @@ This function is called from a timer;  see `igc-start-collecting-stats'."
                              #'igc--on-idle (vector nil) 0)))
 
 (defun igc--current-idle-time ()
+  "Time since the last command finished, in seconds as a float.
+See `igc--on-idle'."
   (let ((idle-time (current-idle-time)))
     (if idle-time (float-time idle-time) 0)))
 
 (defun igc--predict-idle-time ()
+  "Predict available time until the next command starts.
+See `igc--on-idle'."
   (* (igc--current-idle-time) 0.80))
 
 ;; The igc-idle-timer works a bit like the blink-cursor-timer.  It can
-;; call 'gc--on-idle' multiple times per idle cycle either until some GC
+;; call 'igc--on-idle' multiple times per idle cycle either until some GC
 ;; work is done or until `igc--idle-repetitions' is reached.  We do this
 ;; because our idle time prediction primarily depends on the
 ;; `current-idle-time', i.e. our predicted idle time gets larger the
@@ -509,6 +513,9 @@ This function is called from a timer;  see `igc-start-collecting-stats'."
 ;; calling 'igc--arena-step' again.
 
 (defun igc--on-idle (state repetition)
+  "Timer function to do GC in idle Emacs state.
+Calls igc--arena-step, wrapper for mps_arena_step for this very purpose.
+See `igc-start-idle-timer."
   (let ((timer2 (aref state 0)))
     (when timer2
       (cancel-timer timer2)))
