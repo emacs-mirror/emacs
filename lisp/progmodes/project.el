@@ -1659,8 +1659,9 @@ If non-nil, it overrides `compilation-buffer-name-function' for
     (when orig-current-buffer
       (kill-local-variable 'compile-command))
     (unwind-protect (call-interactively #'compile)
-      (with-current-buffer orig-current-buffer
-        (setq-local compile-command orig-compile-command)))))
+      (when orig-current-buffer
+        (with-current-buffer orig-current-buffer
+          (setq-local compile-command orig-compile-command))))))
 
 ;;;###autoload
 (defun project-recompile (&optional edit-command)
