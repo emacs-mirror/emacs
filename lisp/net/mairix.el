@@ -200,6 +200,8 @@ Currently there are `threads' and `flags'.")
 
 ;;;; Internal variables
 
+(defvar mairix-search-history nil
+  "Minibuffer history for `mairix-search'.")
 (defvar mairix-last-search nil)
 (defvar mairix-searches-changed nil)
 
@@ -334,7 +336,7 @@ If THREADS is non-nil, also display whole threads of found
 messages.  Results will be put into the default search file."
   (interactive
    (list
-    (read-string "Query: ")
+    (read-string "Query: " nil 'mairix-search-history)
     (y-or-n-p "Include threads? ")))
   (when (mairix-call-mairix
 	 (split-string search)

@@ -1748,6 +1748,11 @@ This contains the list of regular expressions used to match "Re:" and
 international variants of it when modifying the Subject field in
 replies.
 
+** mairix
+
+---
+*** 'mairix-search' now keeps its own minibuffer history.
+
 ** Imap
 
 ---
