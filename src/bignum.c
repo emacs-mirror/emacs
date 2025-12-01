@@ -66,6 +66,33 @@ double_to_integer (double d)
   return make_integer_mpz ();
 }
 
+#ifdef HAVE_MPS
+static struct Lisp_Bignum *
+make_bignum_from_mpz (mpz_srcptr z)
+{
+  size_t nlimbs = mpz_size (z);
+  const mp_limb_t *limbs = mpz_limbs_read (z);
+  size_t nbytes = (offsetof (struct Lisp_Bignum, limbs)
+		   + nlimbs * (sizeof *limbs) - header_size);
+  size_t roundup_size = max (GCALIGNMENT, word_size);
+  size_t nwords = ROUNDUP (nbytes, roundup_size) / word_size;
+  size_t rest_max = (1 << PSEUDOVECTOR_REST_BITS) - 1;
+  if (nwords > rest_max)
+    overflow_error ();
+  struct Lisp_Bignum *b
+    = (struct Lisp_Bignum *) allocate_pseudovector (nwords, 0, 0,
+						    PVEC_BIGNUM);
+  eassert (vectorlike_nbytes (&b->header)
+	   == ROUNDUP (nbytes + header_size, roundup_size));
+  eassert (nlimbs > 0);
+  memcpy (b->limbs, limbs, nlimbs * sizeof *limbs);
+  const mpz_t value = MPZ_ROINIT_N (b->limbs, z->_mp_size);
+  mpz_ptr p = b->value;
+  *p = *value;
+  return b;
+}
+#endif
+
 /* Return a Lisp integer equal to mpz[0], which has BITS bits and which
    must not be in fixnum range.  Set mpz[0] to a junk value.  */
 static Lisp_Object
@@ -79,10 +106,14 @@ make_bignum_bits (size_t bits)
   if (integer_width < bits && 2 * max (INTMAX_WIDTH, UINTMAX_WIDTH) < bits)
     overflow_error ();
 
+#ifdef HAVE_MPS
+  struct Lisp_Bignum *b = make_bignum_from_mpz (mpz[0]);
+#else
   struct Lisp_Bignum *b = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Bignum,
 						       PVEC_BIGNUM);
   mpz_init (b->value);
   mpz_swap (b->value, mpz[0]);
+#endif
   return make_lisp_ptr (b, Lisp_Vectorlike);
 }
 
@@ -442,6 +473,18 @@ bignum_to_string (Lisp_Object num, int base)
    of base-BASE digits, and a terminating null byte, and
    the represented number must not be in fixnum range.  */
 
+#ifdef HAVE_MPS
+Lisp_Object
+make_bignum_str (char const *num, int base)
+{
+  mpz_t tmp;
+  int check = mpz_init_set_str (tmp, num, base);
+  eassert (check == 0);
+  struct Lisp_Bignum *b = make_bignum_from_mpz (tmp);
+  mpz_clear (tmp);
+  return make_lisp_ptr (b, Lisp_Vectorlike);
+}
+#else
 Lisp_Object
 make_bignum_str (char const *num, int base)
 {
@@ -452,6 +495,7 @@ make_bignum_str (char const *num, int base)
   eassert (check == 0);
   return make_lisp_ptr (b, Lisp_Vectorlike);
 }
+#endif
 
 /* Check that X is a Lisp integer in the range LO..HI.
    Return X's value as an intmax_t.  */
