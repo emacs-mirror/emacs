@@ -314,7 +314,6 @@ as a list of strings."
                                ",[[:blank:]]*" t)
            finally do (skip-chars-backward "\n[:blank:]")))
 
-(declare-function log-edit-fill-entry "log-edit")
 (defun change-log-insert-entries (changelogs)
   "Format and insert CHANGELOGS into current buffer.
 CHANGELOGS is a list in the form returned by

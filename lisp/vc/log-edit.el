@@ -1057,20 +1057,29 @@ names into a single entry where they all share the same description.
 Should you need to look at the diffs themselves, they can be found
 in the \"*vc-diff*\" buffer produced by this command."
   (interactive)
-  (change-log-insert-entries
-   (with-current-buffer
-       (let* ((diff-buf nil)
-              ;; Unfortunately, `log-edit-show-diff' doesn't have a
-              ;; NO-SHOW option, so we try to work around it via
-              ;; display-buffer machinery.
-              (display-buffer-overriding-action
-               `(,(lambda (buf alist)
-                    (setq diff-buf buf)
-                    (display-buffer-no-window buf alist))
-                 . ((allow-no-window . t)))))
-         (log-edit-show-diff)
-         diff-buf)
-     (diff-add-log-current-defuns))))
+  (let* ((entries
+          (with-current-buffer
+              (let* ((diff-buf nil)
+                     ;; Unfortunately, `log-edit-show-diff' doesn't have a
+                     ;; NO-SHOW option, so we try to work around it via
+                     ;; display-buffer machinery.
+                     (display-buffer-overriding-action
+                      `(,(lambda (buf alist)
+                           (setq diff-buf buf)
+                           (display-buffer-no-window buf alist))
+                        . ((allow-no-window . t)))))
+                (log-edit-show-diff)
+                diff-buf)
+            (diff-add-log-current-defuns)))
+         (single-line-summary
+          (and (length= entries 1)
+               (length< (cdar entries) 2)
+               (< (point) (save-excursion (rfc822-goto-eoh) (point)))
+               (save-excursion (forward-line 0) (looking-at "Summary:")))))
+    (change-log-insert-entries entries)
+    (when single-line-summary
+      (delete-char -1)
+      (insert " "))))
 
 (defun log-edit-insert-changelog (&optional use-first)
   "Insert a VC commit log message by looking at the ChangeLog.
