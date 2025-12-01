@@ -1348,17 +1348,17 @@ specific headers."
    (propertize (format "%s\n" (abbreviate-file-name dir))
                'face 'vc-dir-header-value)
    (vc-call-backend backend 'dir-extra-headers dir)
+   "\n"
    (and-let* ((count (ignore-errors (vc--count-outgoing backend)))
               (_ (plusp count)))
-     (concat (propertize "\nOutgoing   : "
+     (concat (propertize "Outgoing   : "
                          'face 'vc-dir-header)
              (propertize (format "%d unpushed revisions\n" count)
                          'face 'vc-dir-header-urgent-value
                          'mouse-face 'highlight
                          'keymap vc-dir-outgoing-revisions-map
                          'help-echo "\\<vc-dir-outgoing-revisions-map>\
-\\[vc-log-outgoing]: List outgoing revisions")))
-   "\n"))
+\\[vc-log-outgoing]: List outgoing revisions")))))
 
 (defun vc-dir-refresh-files (files)
   "Refresh some FILES in the *VC-Dir* buffer."
