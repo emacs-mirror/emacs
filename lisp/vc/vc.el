@@ -3906,7 +3906,7 @@ Each function runs in the log output buffer without args.")
 
 (defun vc-incoming-outgoing-internal (backend upstream-location buffer-name type)
   (vc-log-internal-common
-   backend buffer-name nil type
+   backend buffer-name (list (vc-root-dir)) type
    (lambda (bk buf type-arg _files)
      (vc-call-backend bk type-arg buf upstream-location))
    (lambda (_bk _files-arg _ret) nil)
