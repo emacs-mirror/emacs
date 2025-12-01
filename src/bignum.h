@@ -59,6 +59,9 @@ extern void emacs_mpz_pow_ui (mpz_t, mpz_t const, unsigned long)
 extern double mpz_get_d_rounded (mpz_t const);
 extern Lisp_Object get_random_bignum (struct Lisp_Bignum const *);
 
+/* defined in alloc.c  */
+extern void init_gmp_memory_functions (void);
+
 INLINE_HEADER_BEGIN
 
 INLINE struct Lisp_Bignum *
