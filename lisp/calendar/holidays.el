@@ -192,15 +192,14 @@ or `customize-option'."
 (defcustom holiday-bahai-holidays
   '((holiday-bahai-new-year)
     (holiday-bahai-ridvan)      ; respects calendar-bahai-all-holidays-flag
-    (holiday-fixed  5 23 "Declaration of the Báb")
-    (holiday-fixed  5 29 "Ascension of Bahá’u’lláh")
-    (holiday-fixed  7  9 "Martyrdom of the Báb")
-    (holiday-fixed 10 20 "Birth of the Báb")
-    (holiday-fixed 11 12 "Birth of Bahá’u’lláh")
+    (holiday-bahai  4  8 "Declaration of the Báb")
+    (holiday-bahai  4 13 "Ascension of Bahá’u’lláh")
+    (holiday-bahai  6 17 "Martyrdom of the Báb")
+    (holiday-bahai-twin-holy-birthdays) ; dates vary based on lunar calendar
     (if calendar-bahai-all-holidays-flag
         (append
-         (holiday-fixed 11 26 "Day of the Covenant")
-         (holiday-fixed 11 28 "Ascension of `Abdu’l-Bahá"))))
+         (holiday-bahai 14  4 "Day of the Covenant")
+         (holiday-bahai 14  6 "Ascension of ‘Abdu’l-Bahá"))))
   "Bahá’í holidays.
 See the documentation for `calendar-holidays' for details."
   :set #'holidays--set-calendar-holidays
