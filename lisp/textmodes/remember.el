@@ -605,7 +605,7 @@ the data away for latter retrieval, and possible indexing.
   (setq header-line-format
         (substitute-command-keys
          "Edit, then exit with `\\[remember-finalize]' or abort with \
-  `\\[remember-destroy]'")))
+`\\[remember-destroy]'")))
 
 ;; Notes buffer showing the notes:
 
