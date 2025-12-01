@@ -2365,16 +2365,24 @@ struct bignum_reload_info
 static dump_off
 dump_bignum (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Bignum_8732048B98)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Bignum_EC99943321)
 # error "Lisp_Bignum changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Bignum *bignum = XBIGNUM (object);
   START_DUMP_PVEC (ctx, &bignum->header, struct Lisp_Bignum, out);
+  dump_off bignum_offset = ctx->offset;
   static_assert (sizeof (out->value) >= sizeof (struct bignum_reload_info));
   dump_field_fixup_later (ctx, out, bignum, xbignum_val (object));
-  dump_off bignum_offset = finish_dump_pvec (ctx, &out->header);
   if (ctx->flags.dump_object_contents)
     {
+#ifdef HAVE_MPS
+      eassert (out->value->_mp_alloc == 0);
+      DUMP_FIELD_COPY (out, bignum, value->_mp_size);
+      eassert (out->value->_mp_size != 0);
+      eassert (out->value->_mp_d == NULL);
+      size_t nlimbs = mpz_size (bignum->value);
+      memcpy (out->limbs, bignum->limbs, nlimbs * sizeof *out->limbs);
+#else
       /* Export the bignum into a blob in the cold section.  */
       dump_remember_cold_op (ctx, COLD_OP_BIGNUM, object);
 
@@ -2386,7 +2394,7 @@ dump_bignum (struct dump_context *ctx, Lisp_Object object)
 		 list3 (make_fixnum (DUMP_FIXUP_BIGNUM_DATA),
 			dump_off_to_lisp (value_offset),
 			object));
-
+#endif
       /* When we load the dump, slurp the data blob and turn it into a
          real bignum.  Attach the relocation to the start of the
          Lisp_Bignum instead of the actual mpz field so that the
@@ -2396,8 +2404,7 @@ dump_bignum (struct dump_context *ctx, Lisp_Object object)
                  list2 (make_fixnum (RELOC_BIGNUM),
                         dump_off_to_lisp (bignum_offset)));
     }
-
-  return bignum_offset;
+  return finish_dump_pvec (ctx, &out->header);
 }
 
 static dump_off
@@ -3688,10 +3695,6 @@ dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
   eassert (sz_nlimbs < DUMP_OFF_MAX);
   dump_align_output (ctx, alignof (mp_limb_t));
   dump_off nlimbs = (dump_off) sz_nlimbs;
-# ifdef HAVE_MPS
-  char *dummy = (void *)igc_alloc_bytes (nlimbs * sizeof (mp_limb_t));
-  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BIGNUM_DATA, dummy - sizeof (uint64_t));
-# endif
   Lisp_Object descriptor
     = list2 (dump_off_to_lisp (ctx->offset),
 	     dump_off_to_lisp (mpz_sgn (*n) < 0 ? -nlimbs : nlimbs));
@@ -3701,9 +3704,6 @@ dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
       mp_limb_t limb = mpz_getlimbn (*n, i);
       dump_write (ctx, &limb, sizeof (limb));
     }
-# ifdef HAVE_MPS
-  dump_igc_finish_obj (ctx);
-# endif
 }
 
 #ifdef HAVE_NATIVE_COMP
@@ -5883,6 +5883,18 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	break;
       }
 #endif
+#ifdef HAVE_MPS
+    case RELOC_BIGNUM:
+      {
+        struct Lisp_Bignum *b = dump_ptr (dump_base, reloc_offset);
+	mpz_ptr p = b->value;
+	eassert (p->_mp_alloc == 0);
+	eassert (p->_mp_size != 0);
+	eassert (p->_mp_d == NULL);
+	p->_mp_d = b->limbs;
+	break;
+      }
+#else
     case RELOC_BIGNUM:
       {
         struct Lisp_Bignum *bignum = dump_ptr (dump_base, reloc_offset);
@@ -5894,6 +5906,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
         mpz_roinit_n (bignum->value, limbs, reload_info.nlimbs);
         break;
       }
+#endif
 #ifdef HAVE_MPS
     case RELOC_BUFFER:
       {
