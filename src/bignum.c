@@ -36,33 +36,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 mpz_t mpz[5];
 
-static void *
-xrealloc_for_gmp (void *ptr, size_t ignore, size_t size)
-{
-  return xrealloc (ptr, size);
-}
-
-static void
-xfree_for_gmp (void *ptr, size_t ignore)
-{
-  xfree (ptr);
-}
-
 void
 init_bignum (void)
 {
   eassert (mp_bits_per_limb == GMP_NUMB_BITS);
   integer_width = 1 << 16;
 
-  /* FIXME: The Info node `(gmp) Custom Allocation' states: "No error
-     return is allowed from any of these functions, if they return
-     then they must have performed the specified operation. [...]
-     There's currently no defined way for the allocation functions to
-     recover from an error such as out of memory, they must terminate
-     program execution.  A 'longjmp' or throwing a C++ exception will
-     have undefined results."  But xmalloc and xrealloc do call
-     'longjmp'.  */
-  mp_set_memory_functions (xmalloc, xrealloc_for_gmp, xfree_for_gmp);
+  init_gmp_memory_functions ();
 
   for (int i = 0; i < ARRAYELTS (mpz); i++)
     mpz_init (mpz[i]);
