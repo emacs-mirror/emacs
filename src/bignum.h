@@ -40,6 +40,9 @@ struct Lisp_Bignum
 {
   struct vectorlike_header header;
   mpz_t value;
+#ifdef HAVE_MPS
+  mp_limb_t limbs[FLEXIBLE_ARRAY_MEMBER];
+#endif
 } GCALIGNED_STRUCT;
 
 extern mpz_t mpz[5];

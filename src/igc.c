@@ -103,7 +103,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Finalizer_7DACDD23C5
 #  error "struct Lisp_Finalizer changed"
 # endif
-# ifndef HASH_Lisp_Bignum_8732048B98
+# ifndef HASH_Lisp_Bignum_EC99943321
 #  error "struct Lisp_Bignum changed"
 # endif
 # ifndef HASH_Lisp_Float_4F10F019A4
@@ -2733,6 +2733,18 @@ fix_marker (mps_ss_t ss, struct Lisp_Marker *m)
 }
 
 static mps_res_t
+fix_bignum (mps_ss_t ss, struct Lisp_Bignum *b)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    mpz_ptr p = b->value;
+    p->_mp_d = b->limbs;
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
 fix_finalizer (mps_ss_t ss, struct Lisp_Finalizer *f)
 {
   MPS_SCAN_BEGIN (ss)
@@ -2937,6 +2949,7 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 	break;
 
       case PVEC_BIGNUM:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Bignum, v, fix_bignum);
 	break;
 
       case PVEC_NATIVE_COMP_UNIT:
@@ -3733,12 +3746,6 @@ igc_alloc_hash_table_user_test (void)
 }
 
 static void
-finalize_bignum (struct Lisp_Bignum *n)
-{
-  mpz_clear (n->value);
-}
-
-static void
 finalize_font (struct font *font)
 {
   struct Lisp_Vector *v = (void *) font;
@@ -3846,10 +3853,6 @@ finalize_vector (mps_addr_t v)
   /* Please use exhaustive switches, just to do me a favor :-).  */
   switch (pseudo_vector_type (v))
     {
-    case PVEC_BIGNUM:
-      finalize_bignum (v);
-      break;
-
     case PVEC_FONT:
       finalize_font (v);
       break;
@@ -3934,6 +3937,7 @@ finalize_vector (mps_addr_t v)
     case PVEC_TERMINAL:
     case PVEC_MARKER:
     case PVEC_MODULE_GLOBAL_REFERENCE:
+    case PVEC_BIGNUM:
       igc_assert (!"finalization not implemented");
       break;
 
@@ -3994,7 +3998,6 @@ maybe_finalize (mps_addr_t ref, enum pvec_type tag)
     }
   switch (tag)
     {
-    case PVEC_BIGNUM:
     case PVEC_FONT:
     case PVEC_THREAD:
     case PVEC_MUTEX:
@@ -4044,6 +4047,7 @@ maybe_finalize (mps_addr_t ref, enum pvec_type tag)
     case PVEC_PACKAGE:
 #endif
     case PVEC_MODULE_GLOBAL_REFERENCE:
+    case PVEC_BIGNUM:
       break;
     }
 }
