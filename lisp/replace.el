@@ -3341,9 +3341,12 @@ characters."
 			 (setq replaced t))
 
                         ((eq def 'diff)
-			 (let ((display-buffer-overriding-action
-				'(nil (inhibit-same-window . t))))
-			   (save-selected-window
+                         (let ((display-buffer-overriding-action
+                                ;; Override only the default value.
+                                (if (equal display-buffer-overriding-action '(nil))
+                                    '(nil (inhibit-same-window . t))
+                                  display-buffer-overriding-action)))
+                           (save-selected-window
                              (multi-file-replace-as-diff
                               (list (or buffer-file-name (current-buffer)))
                               from-string (or replacements next-replacement)
