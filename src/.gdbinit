@@ -133,6 +133,10 @@ end
 define xfmt
   printf "%s\n", debug_format("%S", $arg0)
 end
+document xfmt
+Format the argument Lisp value using %S as format, and print it.
+Works only when an inferior emacs is executing.
+end
 
 # Print out current buffer point and boundaries
 define ppt
