@@ -1353,12 +1353,16 @@ specific headers."
               (_ (plusp count)))
      (concat (propertize "Outgoing   : "
                          'face 'vc-dir-header)
-             (propertize (format "%d unpushed revisions\n" count)
+             (propertize (format (ngettext "%d unpushed revision"
+                                           "%d unpushed revisions"
+                                           count)
+                                 count)
                          'face 'vc-dir-header-urgent-value
                          'mouse-face 'highlight
                          'keymap vc-dir-outgoing-revisions-map
                          'help-echo "\\<vc-dir-outgoing-revisions-map>\
-\\[vc-log-outgoing]: List outgoing revisions")))))
+\\[vc-log-outgoing]: List outgoing revisions")
+             "\n"))))
 
 (defun vc-dir-refresh-files (files)
   "Refresh some FILES in the *VC-Dir* buffer."
