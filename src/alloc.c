@@ -2600,6 +2600,42 @@ make_float (double float_value)
 #endif
 }
 
+
+static void *
+xmalloc_for_gmp (size_t size)
+{
+  tally_consing (size);
+  return xmalloc (size);
+}
+
+static void *
+xrealloc_for_gmp (void *ptr, size_t old_size, size_t new_size)
+{
+  tally_consing (new_size - old_size);
+  return xrealloc (ptr, new_size);
+}
+
+static void
+xfree_for_gmp (void *ptr, size_t size)
+{
+  tally_consing (-size);
+  xfree (ptr);
+}
+
+void
+init_gmp_memory_functions (void)
+{
+  /* FIXME: The Info node `(gmp) Custom Allocation' states: "No error
+     return is allowed from any of these functions, if they return
+     then they must have performed the specified operation. [...]
+       There's currently no defined way for the allocation functions
+     to recover from an error such as out of memory, they must
+     terminate program execution.  A 'longjmp' or throwing a C++
+     exception will have undefined results."  But xmalloc and xrealloc
+     do call 'longjmp'.  */
+  mp_set_memory_functions (xmalloc_for_gmp, xrealloc_for_gmp,
+			   xfree_for_gmp);
+}
 
 
 /***********************************************************************
