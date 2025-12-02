@@ -4277,7 +4277,8 @@ It also signals an error in a Bazaar bound branch."
         (progn (vc-call-backend backend 'push arg)
                ;; FIXME: Ideally we would only clear out the
                ;; REMOTE-LOCATION to which we are pushing.
-               (vc--repo-setprop 'vc-incoming-revision nil))
+               (vc-run-delayed
+                 (vc--repo-setprop 'vc-incoming-revision nil)))
       (user-error "VC push is unsupported for `%s'" backend))))
 
 ;;;###autoload
