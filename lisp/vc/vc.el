@@ -4026,18 +4026,23 @@ The command prompts for the branch whose change log to show."
   ;; incoming revision is fine except for the rare case in which someone
   ;; else cherry-picks the very same commits that you have outstanding,
   ;; and pushes them.  Given this, we implement our own caching.
-  (or (and (not refresh)
-           (cdr (assoc upstream-location
-                       (vc--repo-getprop 'vc-incoming-revision))))
-      (and-let* ((res (vc-call-backend backend 'incoming-revision
-                                       upstream-location refresh)))
-        (if-let* ((alist (vc--repo-getprop 'vc-incoming-revision)))
-            (setf (alist-get upstream-location alist nil nil #'equal)
-                  res)
-          (vc--repo-setprop 'vc-incoming-revision
-                            `((,upstream-location . ,res))))
-        res)
-      (user-error "No incoming revision -- local-only branch?")))
+  ;;
+  ;; Do store `nil', before signalling an error, if there is no incoming
+  ;; revision, because that's also something that can be slow to
+  ;; determine and so should be remembered.
+  (if-let* ((_ (not refresh))
+            (record (assoc upstream-location
+                           (vc--repo-getprop 'vc-incoming-revision))))
+      (cdr record)
+    (let ((res (vc-call-backend backend 'incoming-revision
+                                upstream-location refresh)))
+      (if-let* ((alist (vc--repo-getprop 'vc-incoming-revision)))
+          (setf (alist-get upstream-location alist nil nil #'equal)
+                res)
+        (vc--repo-setprop 'vc-incoming-revision
+                          `((,upstream-location . ,res))))
+      (or res
+          (user-error "No incoming revision -- local-only branch?")))))
 
 ;;;###autoload
 (defun vc-log-incoming (&optional upstream-location)
