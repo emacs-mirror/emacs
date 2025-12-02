@@ -1,9 +1,9 @@
 Point-Char: |
 
-Name: fill-region
+Name: fill-region-as-paragraph
 Code:
   (lambda ()
-    (fill-region
+    (fill-region-as-paragraph
      (point)
      (progn
        (goto-char (point-max))
@@ -23,20 +23,18 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor. 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
-
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.  Lorem
+ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+tempor.  Incididunt ut labore et dolore magna aliqua.
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
 =-=-=
 
-Name: fill-region - fill-region-as-paragraph-function
+Name: fill-region-as-paragraph - fill-region-as-paragraph-function
 Code:
   (lambda ()
     (setq-local fill-region-as-paragraph-function
                 #'fill-region-as-paragraph-semlf)
-    (fill-region
+    (fill-region-as-paragraph
      (point)
      (progn
        (goto-char (point-max))
@@ -58,10 +56,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor. 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
 eiusmod tempor.
 Incididunt ut labore et dolore magna aliqua.
-
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
 eiusmod tempor.
 Incididunt ut labore et dolore magna aliqua.
-
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
 =-=-=

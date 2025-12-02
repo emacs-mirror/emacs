@@ -1,6 +1,11 @@
 Point-Char: |
 
-Name: c-mode - single-line
+Code:
+  (lambda ()
+    (c-mode)
+    (fill-paragraph-semlf))
+
+Name: fill-paragraph-semlf - c-mode - single-line
 
 =-=
 // Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
@@ -13,7 +18,7 @@ Name: c-mode - single-line
 // veniam, quis nostrud exercitation ullamco laboris nisi ut.
 =-=-=
 
-Name: c-mode - single-line - fill-prefix - marker
+Name: fill-paragraph-semlf - c-mode - single-line - fill-prefix - marker
 
 =-=
 // - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
@@ -31,7 +36,7 @@ Name: c-mode - single-line - fill-prefix - marker
 // - officia deserunt mollit anim id est laborum.
 =-=-=
 
-Name: c-mode - single-line - fill-prefix - whitespace
+Name: fill-paragraph-semlf - c-mode - single-line - fill-prefix - whitespace
 
 =-=
 // - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
@@ -49,7 +54,7 @@ Name: c-mode - single-line - fill-prefix - whitespace
 //   officia deserunt mollit anim id est laborum.
 =-=-=
 
-Name: c-mode - single-line - indented block
+Name: fill-paragraph-semlf - c-mode - single-line - indented block
 
 =-=
 // Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
@@ -83,7 +88,7 @@ Name: c-mode - single-line - indented block
 // nisi ut.
 =-=-=
 
-Name: c-mode - multi-line
+Name: fill-paragraph-semlf - c-mode - multi-line
 
 =-=
 /*
@@ -100,7 +105,7 @@ Name: c-mode - multi-line
  */
 =-=-=
 
-Name: c-mode - multi-line - fill-prefix - marker
+Name: fill-paragraph-semlf - c-mode - multi-line - fill-prefix - marker
 
 =-=
 /*
@@ -122,7 +127,7 @@ Name: c-mode - multi-line - fill-prefix - marker
  */
 =-=-=
 
-Name: c-mode - multi-line - fill-prefix - whitespace
+Name: fill-paragraph-semlf - c-mode - multi-line - fill-prefix - whitespace
 
 =-=
 /*
@@ -144,7 +149,7 @@ Name: c-mode - multi-line - fill-prefix - whitespace
  */
 =-=-=
 
-Name: c-mode - multi-line - indented block
+Name: fill-paragraph-semlf - c-mode - multi-line - indented block
 
 =-=
 /*
