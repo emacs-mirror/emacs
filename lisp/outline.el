@@ -570,8 +570,7 @@ See the command `outline-mode' for more information on this mode."
             (setq-local outline--use-rtl t))
           (setq-local outline--button-icons (outline--create-button-icons))
           (when (and (eq outline-minor-mode-use-buttons 'in-margins)
-                     (> 1 (if outline--use-rtl right-margin-width
-                            left-margin-width)))
+                     (null outline--margin-width))
             (setq outline--margin-width
                   (or outline-margin-width
                       (ceiling
@@ -629,6 +628,7 @@ See the command `outline-mode' for more information on this mode."
     (when outline-minor-mode-use-buttons
       (outline--remove-buttons (point-min) (point-max))
       (when (and (eq outline-minor-mode-use-buttons 'in-margins)
+                 outline--margin-width
                  (< 0 (if outline--use-rtl right-margin-width
                         left-margin-width)))
         (if outline--use-rtl
@@ -636,7 +636,8 @@ See the command `outline-mode' for more information on this mode."
                                               outline--margin-width))
           (setq-local left-margin-width (- left-margin-width
                                            outline--margin-width)))
-        (setq-local fringes-outside-margins nil)
+        (setq-local outline--margin-width nil)
+        (kill-local-variable 'fringes-outside-margins)
         ;; Force removal of margins
         (when (eq (current-buffer) (window-buffer))
           (set-window-buffer nil (window-buffer)))))))
