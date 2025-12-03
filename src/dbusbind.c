@@ -328,34 +328,34 @@ XD_OBJECT_TO_STRING (Lisp_Object object)
 
 #if HAVE_DBUS_VALIDATE_BUS_NAME
 #define XD_DBUS_VALIDATE_BUS_NAME(bus_name)				\
-  XD_DBUS_VALIDATE_OBJECT(bus_name, dbus_validate_bus_name);
+  XD_DBUS_VALIDATE_OBJECT (bus_name, dbus_validate_bus_name)
 #else
 #define XD_DBUS_VALIDATE_BUS_NAME(bus_name)				\
-  if (!NILP (bus_name)) CHECK_STRING (bus_name);
+  do { if (!NILP (bus_name)) CHECK_STRING (bus_name); } while (false)
 #endif
 
 #if HAVE_DBUS_VALIDATE_PATH
 #define XD_DBUS_VALIDATE_PATH(path)					\
-  XD_DBUS_VALIDATE_OBJECT(path, dbus_validate_path);
+  XD_DBUS_VALIDATE_OBJECT (path, dbus_validate_path)
 #else
 #define XD_DBUS_VALIDATE_PATH(path)					\
-  if (!NILP (path)) CHECK_STRING (path);
+  do { if (!NILP (path)) CHECK_STRING (path); } while (false)
 #endif
 
 #if HAVE_DBUS_VALIDATE_INTERFACE
 #define XD_DBUS_VALIDATE_INTERFACE(interface)				\
-  XD_DBUS_VALIDATE_OBJECT(interface, dbus_validate_interface);
+  XD_DBUS_VALIDATE_OBJECT (interface, dbus_validate_interface)
 #else
 #define XD_DBUS_VALIDATE_INTERFACE(interface)				\
-  if (!NILP (interface)) CHECK_STRING (interface);
+  do { if (!NILP (interface)) CHECK_STRING (interface); } while (false)
 #endif
 
 #if HAVE_DBUS_VALIDATE_MEMBER
 #define XD_DBUS_VALIDATE_MEMBER(member)					\
-  XD_DBUS_VALIDATE_OBJECT(member, dbus_validate_member);
+  XD_DBUS_VALIDATE_OBJECT (member, dbus_validate_member)
 #else
 #define XD_DBUS_VALIDATE_MEMBER(member)					\
-  if (!NILP (member)) CHECK_STRING (member);
+  do { if (!NILP (member)) CHECK_STRING (member); } while (false)
 #endif
 
 /* Append to SIGNATURE a copy of X, making sure SIGNATURE does
@@ -425,7 +425,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       /* We don't check the syntax of signature.  This will be done by
 	 libdbus.  */
       if (dtype == DBUS_TYPE_OBJECT_PATH)
-	XD_DBUS_VALIDATE_PATH (object)
+	XD_DBUS_VALIDATE_PATH (object);
       else
 	CHECK_STRING (object);
       sprintf (signature, "%c", dtype);
@@ -749,7 +749,7 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 	/* We don't check the syntax of signature.  This will be done
 	   by libdbus.  */
 	if (dtype == DBUS_TYPE_OBJECT_PATH)
-	  XD_DBUS_VALIDATE_PATH (object)
+	  XD_DBUS_VALIDATE_PATH (object);
 	else
 	  CHECK_STRING (object);
 	{
