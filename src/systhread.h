@@ -32,7 +32,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    Unfortunately POSIX allows this curious situation.
    Do this by allocating possibly-poorly-aligned objects a bit larger
    than pthread_mutex_t and pthread_cond_t, and then aligning pointers
-   to these objects at runtime.  */
+   to these objects at runtime.
+
+   Although since glibc 2.4 (2006) the stricter alignment has not been
+   needed by the underlying 32-bit HPPA code so the types are overaligned,
+   the overalignment is still present in glibc 2.42 (2025) to avoid
+   changing ABI offsets in structs that other libraries make visible.
+   Address the issue for all platforms that overalign the two types.
+   Do not bother to optimize for glibc 2.4+ on 32-bit HPPA even though
+   as of 2025 it is the only maintained platform known to overalign and
+   it does not need the overalignment.  */
 
 #if (ALIGNOF_PTHREAD_COND_T <= ALIGNOF_MAX_ALIGN_T \
      && ALIGNOF_PTHREAD_MUTEX_T <= ALIGNOF_MAX_ALIGN_T)
@@ -40,17 +49,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    and is already aligned properly.  */
 # define SYSTHREAD_ALIGN_PTR(type, ptr) (ptr)
 #else
-/* An unusual case, e.g., GNU/Linux 32-bit HPPA.
+/* An unusual case, e.g., GNU/Linux 32-bit HPPA with glibc 2.42.
    Aligning SYSTHREAD_ALIGN_ROOM (TYPE) * up for TYPE * results in a
-   valid pointer.  TYPE's alignment must be at least that of int;
+   valid pointer.  TYPE's alignment must be at least that of double;
    in practice it is always greater than that of max_align_t.  */
 # define SYSTHREAD_ALIGN_ROOM(type) \
-    union { int i; char room[sizeof (type) + alignof (type) - alignof (int)]; }
+    union \
+    { \
+      double i; \
+      char room[sizeof (type) + alignof (type) - alignof (double)]; \
+    }
 /* Align PTR up for TYPE *.
    PTR should be of type SYSTHREAD_ALIGN_ROOM (TYPE) *.  */
 # define SYSTHREAD_ALIGN_PTR(type, ptr) \
-    ((type *) ((uintptr_t) ((ptr)->room  + (alignof (type) - alignof (int))) \
-	       & ~(alignof (type) - alignof (int))))
+    ((type *) ((uintptr_t) ((ptr)->room + (alignof (type) - alignof (double))) \
+	       & ~(alignof (type) - alignof (double))))
 #endif
 
 /* A system mutex is just a pthread mutex, possibly with alignment slop.
