@@ -3425,6 +3425,12 @@ if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
      done])
   if test "$emacs_cv_pthread_lib" != no; then
     AC_DEFINE([HAVE_PTHREAD], [1], [Define to 1 if you have POSIX threads.])
+    m4_foreach([emacs_type],
+      [[max_align_t], [pthread_cond_t], [pthread_mutex_t]],
+      [AC_CHECK_ALIGNOF(emacs_type,
+	 [[#include <stddef.h>
+	   #include <pthread.h>
+	 ]])])
     case $emacs_cv_pthread_lib in
       -*) LIB_PTHREAD=$emacs_cv_pthread_lib;;
     esac

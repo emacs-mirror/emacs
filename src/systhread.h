@@ -27,11 +27,45 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <pthread.h>
 
-/* A system mutex is just a pthread mutex.  This is only used for the
-   GIL.  */
-typedef pthread_mutex_t sys_mutex_t;
+/* Deal with platforms like GNU/Linux on 32-bit HPPA, where pthread_mutex_t
+   and pthread_cond_t have alignments stricter than what malloc guarantees.
+   Unfortunately POSIX allows this curious situation.
+   Do this by allocating possibly-poorly-aligned objects a bit larger
+   than pthread_mutex_t and pthread_cond_t, and then aligning pointers
+   to these objects at runtime.  */
 
+#if (ALIGNOF_PTHREAD_COND_T <= ALIGNOF_MAX_ALIGN_T \
+     && ALIGNOF_PTHREAD_MUTEX_T <= ALIGNOF_MAX_ALIGN_T)
+/* The typical case.  Align PTR for TYPE *, where PTR is of type TYPE *
+   and is already aligned properly.  */
+# define SYSTHREAD_ALIGN_PTR(type, ptr) (ptr)
+#else
+/* An unusual case, e.g., GNU/Linux 32-bit HPPA.
+   Aligning SYSTHREAD_ALIGN_ROOM (TYPE) * up for TYPE * results in a
+   valid pointer.  TYPE's alignment must be at least that of int;
+   in practice it is always greater than that of max_align_t.  */
+# define SYSTHREAD_ALIGN_ROOM(type) \
+    union { int i; char room[sizeof (type) + alignof (type) - alignof (int)]; }
+/* Align PTR up for TYPE *.
+   PTR should be of type SYSTHREAD_ALIGN_ROOM (TYPE) *.  */
+# define SYSTHREAD_ALIGN_PTR(type, ptr) \
+    ((type *) ((uintptr_t) ((ptr)->room  + (alignof (type) - alignof (int))) \
+	       & ~(alignof (type) - alignof (int))))
+#endif
+
+/* A system mutex is just a pthread mutex, possibly with alignment slop.
+   It is used only for the GIL.  */
+#if ALIGNOF_PTHREAD_MUTEX_T <= ALIGNOF_MAX_ALIGN_T
+typedef pthread_mutex_t sys_mutex_t;
+#else
+typedef SYSTHREAD_ALIGN_ROOM (pthread_mutex_t) sys_mutex_t;
+#endif
+
+#if ALIGNOF_PTHREAD_COND_T <= ALIGNOF_MAX_ALIGN_T
 typedef pthread_cond_t sys_cond_t;
+#else
+typedef SYSTHREAD_ALIGN_ROOM (pthread_cond_t) sys_cond_t;
+#endif
 
 /* A system thread.  */
 typedef pthread_t sys_thread_t;
