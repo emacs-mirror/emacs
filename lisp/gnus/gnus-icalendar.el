@@ -532,14 +532,15 @@ Return nil for non-recurring EVENT."
              recurring-days)
       (let ((repeat "+1w")
             (dates (seq-sort-by
-		    'car
-		    'time-less-p
+		    #'car
+		    #'time-less-p
 		    (seq-map (lambda (x)
 			       (gnus-icalendar--find-day start end x))
 			     recurring-days))))
         (mapconcat (lambda (x)
 		     (gnus-icalendar-event--org-timestamp (car x) (cadr x)
-							  repeat)) dates "\n"))
+							  repeat))
+		   dates "\n"))
       (gnus-icalendar-event--org-timestamp start end org-repeat))))
 
 (defun gnus-icalendar--format-summary-line (summary &optional location)
@@ -835,7 +836,7 @@ These will be used to retrieve the RSVP information from ical events."
 					(capitalize (symbol-name participation-type))))
 		       ("Method" ,method))))
 
-	(when (and (not (gnus-icalendar-event-reply-p event)) rsvp)
+	(when (and (not (cl-typep event 'gnus-icalendar-event-reply)) rsvp)
 	  (setq headers (append headers
 				`(("Status" ,(or reply-status "Not replied yet"))))))
 
@@ -964,7 +965,7 @@ These will be used to retrieve the RSVP information from ical events."
 
     (delq nil (list
                `("Show Agenda" gnus-icalendar-show-org-agenda ,event)
-               (when (gnus-icalendar-event-request-p event)
+               (when (cl-typep event 'gnus-icalendar-event-request)
                  `(,export-button-text gnus-icalendar-sync-event-to-org ,event))
                (when org-entry-exists-p
                  `("Show Org Entry" gnus-icalendar--show-org-event ,event))))))
