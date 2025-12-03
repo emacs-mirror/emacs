@@ -259,17 +259,17 @@ VC commands are globally reachable under the prefix \\[vc-prefix-map]:
       (kill-local-variable 'vc-parent-buffer))
   (setplist (intern (expand-file-name file) vc-file-prop-obarray) nil))
 
-(defun vc--repo-setprop (property value)
+(defun vc--repo-setprop (backend property value)
   "Set per-repository VC PROPERTY to VALUE and return the value."
-  (vc-file-setprop (vc-root-dir) property value))
+  (vc-file-setprop (vc-root-dir backend) property value))
 
-(defun vc--repo-getprop (property)
+(defun vc--repo-getprop (backend property)
   "Get per-repository VC PROPERTY."
-  (vc-file-getprop (vc-root-dir) property))
+  (vc-file-getprop (vc-root-dir backend) property))
 
-(defun vc--repo-clearprops ()
+(defun vc--repo-clearprops (backend)
   "Clear all VC whole-repository properties."
-  (vc-file-clearprops (vc-root-dir)))
+  (vc-file-clearprops (vc-root-dir backend)))
 
 
 ;; We keep properties on each symbol naming a backend as follows:

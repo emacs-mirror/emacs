@@ -3239,17 +3239,17 @@ saving the buffer."
                           (called-interactively-p 'interactive))))))
 
 ;;;###autoload
-(defun vc-root-dir ()
+(defun vc-root-dir (&optional backend)
   "Return the root directory for the current VC tree.
-Return nil if the root directory cannot be identified."
-  (let ((backend (vc-deduce-backend)))
-    (if backend
-        (condition-case err
-            (vc-call-backend backend 'root default-directory)
-          (vc-not-supported
-           (unless (eq (cadr err) 'root)
-             (signal (car err) (cdr err)))
-           nil)))))
+Return nil if the root directory cannot be identified.
+BACKEND is the VC backend."
+  (and-let* ((backend (or backend (vc-deduce-backend))))
+    (condition-case err
+        (vc-call-backend backend 'root default-directory)
+      (vc-not-supported
+       (unless (eq (cadr err) 'root)
+         (signal (car err) (cdr err)))
+       nil))))
 
 ;;;###autoload
 (defun vc-revision-other-window (rev)
@@ -4032,14 +4032,15 @@ The command prompts for the branch whose change log to show."
   ;; determine and so should be remembered.
   (if-let* ((_ (not refresh))
             (record (assoc upstream-location
-                           (vc--repo-getprop 'vc-incoming-revision))))
+                           (vc--repo-getprop backend 'vc-incoming-revision))))
       (cdr record)
     (let ((res (vc-call-backend backend 'incoming-revision
                                 upstream-location refresh)))
-      (if-let* ((alist (vc--repo-getprop 'vc-incoming-revision)))
+      (if-let* ((alist (vc--repo-getprop backend 'vc-incoming-revision)))
           (setf (alist-get upstream-location alist nil nil #'equal)
                 res)
-        (vc--repo-setprop 'vc-incoming-revision
+        (vc--repo-setprop backend
+                          'vc-incoming-revision
                           `((,upstream-location . ,res))))
       (or res
           (user-error "No incoming revision -- local-only branch?")))))
@@ -4056,12 +4057,13 @@ can be a remote branch name."
     (vc-incoming-outgoing-internal backend upstream-location
                                    "*vc-incoming*" 'log-incoming)))
 
-(defun vc-default-log-incoming (_backend buffer upstream-location)
-  (vc--with-backend-in-rootdir ""
-    (let ((incoming (vc--incoming-revision backend upstream-location 'refresh)))
-      (vc-call-backend backend 'print-log (list rootdir) buffer t
-                       incoming
-                       (vc-call-backend backend 'mergebase incoming)))))
+(defun vc-default-log-incoming (backend buffer upstream-location)
+  (let ((incoming (vc--incoming-revision backend upstream-location
+                                         'refresh))
+        (default-directory (vc-root-dir backend)))
+    (vc-call-backend backend 'print-log (list default-directory)
+                     buffer t incoming
+                     (vc-call-backend backend 'mergebase incoming))))
 
 ;;;###autoload
 (defun vc-log-outgoing (&optional upstream-location)
@@ -4075,12 +4077,12 @@ can be a remote branch name."
     (vc-incoming-outgoing-internal backend upstream-location
                                    "*vc-outgoing*" 'log-outgoing)))
 
-(defun vc-default-log-outgoing (_backend buffer upstream-location)
-  (vc--with-backend-in-rootdir ""
-    (let ((incoming (vc--incoming-revision backend upstream-location)))
-      (vc-call-backend backend 'print-log (list rootdir) buffer t
-                       ""
-                       (vc-call-backend backend 'mergebase incoming)))))
+(defun vc-default-log-outgoing (backend buffer upstream-location)
+  (let ((incoming (vc--incoming-revision backend upstream-location))
+        (default-directory (vc-root-dir backend)))
+    (vc-call-backend backend 'print-log (list default-directory)
+                     buffer t ""
+                     (vc-call-backend backend 'mergebase incoming))))
 
 (defun vc--count-outgoing (backend)
   "Return number of changes that will be sent with a `vc-push'."
@@ -4278,7 +4280,7 @@ It also signals an error in a Bazaar bound branch."
                ;; FIXME: Ideally we would only clear out the
                ;; REMOTE-LOCATION to which we are pushing.
                (vc-run-delayed
-                 (vc--repo-setprop 'vc-incoming-revision nil)))
+                 (vc--repo-setprop backend 'vc-incoming-revision nil)))
       (user-error "VC push is unsupported for `%s'" backend))))
 
 ;;;###autoload
