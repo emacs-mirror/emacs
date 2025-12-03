@@ -4236,10 +4236,14 @@ tip revision are merged into the working file."
     (cond
      ;; If a pull operation is defined, use it.
      ((vc-find-backend-function backend 'pull)
-      (vc-call-backend backend 'pull arg))
+      (vc-call-backend backend 'pull arg)
+      ;; FIXME: Ideally we would only clear out the stored value for the
+      ;; REMOTE-LOCATION from which we are pulling.
+      (vc-run-delayed
+        (vc--repo-setprop backend 'vc-incoming-revision nil)))
      ;; If VCS has `merge-news' functionality (CVS and SVN), use it.
      ((vc-find-backend-function backend 'merge-news)
-      (save-some-buffers ; save buffers visiting files
+      (save-some-buffers                ; save buffers visiting files
        nil (lambda ()
 	     (and (buffer-modified-p)
 		  (let ((file (buffer-file-name)))
