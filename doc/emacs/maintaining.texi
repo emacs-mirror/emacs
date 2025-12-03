@@ -1499,11 +1499,11 @@ the current VC fileset
 @end ifnottex
 
   The above example is typical for a decentralized version control
-system like Bazaar, Git, or Mercurial.  Other systems can show other
-statuses.  For instance, CVS shows the @samp{needs-update} status if
-the repository has changes that have not been applied to the work
-file.  RCS and SCCS show the name of the user locking a file as its
-status.
+system like Bazaar, Git, or Mercurial (@pxref{VCS Repositories}).  Other
+systems can show other statuses.  For instance, CVS shows the
+@samp{needs-update} status if the repository has changes that have not
+been applied to the work file.  RCS and SCCS show the name of the user
+locking a file as its status.
 
 @ifnottex
   On CVS, the @code{vc-dir} command normally contacts the repository,
@@ -1519,6 +1519,14 @@ are working offline or the network is slow.
   The VC Directory buffer omits subdirectories listed in the variable
 @code{vc-directory-exclusion-list}.  Its default value contains
 directories that are used internally by version control systems.
+
+  At the top of the buffer Emacs displays some information about the
+repository, such as the name of the backend in use and the working
+directory.  In addition, for decentralized VCS, if you have outgoing
+commits (@pxref{VC Change Log}), Emacs displays a line @w{"Outgoing : N
+unpushed revisions"} where @var{N} is a number.  You can click on this
+text to execute the @code{vc-log-outgoing} command (@pxref{VC Change
+Log}).
 
 @node VC Directory Commands
 @subsubsection VC Directory Commands
