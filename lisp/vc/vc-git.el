@@ -1320,16 +1320,18 @@ It is an error to supply both or neither."
                         (and (not patch-string)
                              (if only (list "--only" "--") '("-a")))))
       (if vc-async-checkin
-          (progn (vc-wait-for-process-before-save
-                  (apply #'vc-do-async-command buffer root
-                         vc-git-program (nconc args files))
-                  "Finishing checking in files...")
-                 (with-current-buffer buffer
-                   (vc-run-delayed
-                     (vc-compilation-mode 'git)
-                     (funcall post)))
-                 (vc-set-async-update buffer)
-                 (list 'async (get-buffer-process buffer)))
+          (let ((proc (apply #'vc-do-async-command buffer root
+                             vc-git-program (nconc args files))))
+            (set-process-query-on-exit-flag proc t)
+            (vc-wait-for-process-before-save
+             proc
+             "Finishing checking in files...")
+            (with-current-buffer buffer
+              (vc-run-delayed
+                (vc-compilation-mode 'git)
+                (funcall post)))
+            (vc-set-async-update buffer)
+            (list 'async (get-buffer-process buffer)))
         (apply #'vc-git-command nil 0 files args)
         (funcall post)))))
 
@@ -1527,6 +1529,7 @@ If PROMPT is non-nil, prompt for the Git command to run."
             vc-filter-command-function))
          (proc (apply #'vc-do-async-command
                       buffer root git-program command extra-args)))
+    (set-process-query-on-exit-flag proc t)
     ;; "git pull" includes progress output that uses ^M to move point
     ;; to the beginning of the line.  Just translate these to newlines
     ;; (but don't do anything with the CRLF sequence).

@@ -385,6 +385,7 @@ If PROMPT is non-nil, prompt for the Bzr command to run."
 	    args           (cddr args)))
     (require 'vc-dispatcher)
     (let ((buf (apply #'vc-bzr-async-command command args)))
+      (set-process-query-on-exit-flag (get-buffer-process buf) t)
       (with-current-buffer buf
         (vc-run-delayed
           (vc-compilation-mode 'bzr)

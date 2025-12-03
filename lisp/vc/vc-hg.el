@@ -1291,9 +1291,12 @@ It is an error to supply both or neither."
                (vc-hg-command nil 0 nil "update" "--merge"
                               "--tool" "internal:local" "tip")))))
       (if vc-async-checkin
-          (let ((buffer (vc-hg--async-buffer)))
+          (let* ((buffer (vc-hg--async-buffer))
+                 (proc (apply #'vc-hg--async-command buffer
+                              (nconc args files))))
+            (set-process-query-on-exit-flag proc t)
             (vc-wait-for-process-before-save
-             (apply #'vc-hg--async-command buffer (nconc args files))
+             proc
              (if patch-file
                  "Finishing checking in patch...."
                "Finishing checking in files..."))
@@ -1613,7 +1616,9 @@ revisions, fetch only those revisions."
 	  (setq hg-program (car  args)
 		command    (cadr args)
 		args       (cddr args)))
-	(apply #'vc-do-async-command buffer root hg-program command args)
+	(set-process-query-on-exit-flag
+         (apply #'vc-do-async-command buffer root hg-program command args)
+         t)
         (with-current-buffer buffer
           (vc-run-delayed
             (dolist (cmd post-processing)
