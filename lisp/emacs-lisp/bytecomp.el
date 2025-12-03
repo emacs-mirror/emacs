@@ -3606,7 +3606,7 @@ This assumes the function has the `important-return-value' property."
 (dolist (f '( funcall apply mapcar mapatoms mapconcat mapc maphash
               mapcan map-char-table map-keymap map-keymap-internal
               functionp
-              seq-do seq-do-indexed seq-sort seq-sort-by seq-group-by
+              seq-do seq-do-indexed seq-sort seq-group-by
               seq-find seq-count
               seq-filter seq-reduce seq-remove seq-keep
               seq-map seq-map-indexed seq-mapn seq-mapcat
@@ -3616,6 +3616,7 @@ This assumes the function has the `important-return-value' property."
               cl-mapcar cl-mapcan cl-mapcon cl-mapc cl-mapl cl-maplist
               ))
   (put f 'funarg-positions '(1)))
+(put 'seq-sort-by 'funarg-positions '(1 2))
 (dolist (f '( defalias fset sort
               replace-regexp-in-string
               add-hook remove-hook advice-remove advice--remove-function
@@ -3668,7 +3669,6 @@ This assumes the function has the `important-return-value' property."
               (completing-read 2 3)
               ))
   (put (car fa) 'funarg-positions (cdr fa)))
-
 
 (defun byte-compile-normal-call (form)
   (when (and (symbolp (car form))
