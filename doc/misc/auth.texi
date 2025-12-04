@@ -215,7 +215,8 @@ Here's a mixed example using two sources:
 
 If you don't customize @code{auth-sources}, you'll have to live with
 the defaults: the unencrypted netrc file @file{~/.authinfo} will be
-used for any host and any port.
+used for any host and any port (if it exists).  This is not recommended,
+as it exposes all your secrets in clear text.
 
 If that fails, any host and any port are looked up in the netrc file
 @file{~/.authinfo.gpg}, which is a GnuPG encrypted file (@pxref{GnuPG
