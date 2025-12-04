@@ -5870,7 +5870,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	if (!NILP (lambda_data_idx))
 	  {
 	    /* FIXME/elnroot: why is the fixup not done in the Lisp
-	       vector? does it not exist? */
+	       vector? does it not exist?  */
 	    eassert (VECTORP (comp_u->data_vec));
 
 	    /* This is an anonymous lambda.
@@ -5878,9 +5878,9 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	       by code.  */
 	    Lisp_Object tem;
 	    XSETSUBR (tem, subr);
-	    /* No need to fix something if pointers are used because
-	       there are no copies in vectors in the data segments. */
 #  ifndef USE_POINTER_TO_CONSTANTS
+	    /* No need to fix something if pointers are used because
+	       there are no copies in vectors in the data segments.  */
 	    Lisp_Object *fixup =
 	      &(comp_u->data_relocs[XFIXNUM (lambda_data_idx)]);
 	    eassert (EQ (*fixup, Vcomp__hashdollar));

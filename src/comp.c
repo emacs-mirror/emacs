@@ -957,11 +957,11 @@ obj_to_reloc (Lisp_Object obj)
 						   comp.ptrdiff_type,
 						   XFIXNUM (idx));
 
+#ifdef USE_POINTER_TO_CONSTANTS
   /* If we are using pointers to constant vectors instead of copying to
      vectors in the data segment, construct an indirect access.  Note
      that there is no decay of arrays to pointers or similar in
-     libgccjit. */
-#ifdef USE_POINTER_TO_CONSTANTS
+     libgccjit.  */
   gcc_jit_rvalue *zero = gcc_jit_context_zero (comp.ctxt, comp.ptrdiff_type);
   gcc_jit_lvalue *constants =
     gcc_jit_context_new_array_access (comp.ctxt, NULL, reloc.array.r_val, zero);
@@ -2718,8 +2718,9 @@ emit_static_object (const char *name, Lisp_Object obj)
   const char *p = SSDATA (str);
 
 # if defined(LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
-  /* FIXME; What is this if-condition for? This is the name of
-     function and should always be true.  */
+  /* This if-condition could only be false on MS-Windows if libgccjit
+     lacks 'gcc_jit_global_set_initializer', whose function pointer will
+     then be left at its original NULL value.  */
   if (gcc_jit_global_set_initializer)
     {
       ptrdiff_t str_size = len + 1;
@@ -2743,9 +2744,8 @@ emit_static_object (const char *name, Lisp_Object obj)
     }
 #endif
 
-  /* FIXME; Is the following still needed? The above case
-     seems to always be taken nowadays.  */
-
+  /* This is for older versions of libgccjit, which lack some functions,
+     and therefore cannot use the above code.  */
   gcc_jit_type *a_type =
     gcc_jit_context_new_array_type (comp.ctxt,
 				    NULL,
@@ -2914,7 +2914,7 @@ declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
   Lisp_Object tem = CALLNI (comp-data-container-l, container);
   Lisp_Object constants = Fvconcat (1, &tem);
 
-  /* Emit the printed representation of the constants as a C string. */
+  /* Emit the printed representation of the constants as a C string.  */
   emit_static_object (text_symbol, constants);
 
   *nconstants = XFIXNUM (CALLNI (hash-table-count,
@@ -2926,7 +2926,7 @@ declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
   EMACS_INT len = 1;
   gcc_jit_type *type = comp.lisp_obj_ptr_type;
 #else
-  /* Lisp_Object CODE_SYMBOL[N], N = number of constants. */
+  /* Lisp_Object CODE_SYMBOL[N], N = number of constants.  */
   EMACS_INT len = *nconstants;
   gcc_jit_type *type = comp.lisp_obj_type;
 #endif
@@ -3040,7 +3040,7 @@ emit_abi_version (void)
 			      comp.void_ptr_type, ABI_VERSION_SYM);
 }
 
-/* Check ABI version of CU against the current version. Do this because
+/* Check ABI version of CU against the current version.  Do this because
    relying on a substring of an MD5 checksum as part of an eln's file
    name is prone to fail.  */
 
@@ -5336,8 +5336,8 @@ unset_cu_load_ongoing (Lisp_Object comp_u)
 }
 
 /* Setup constatns vector in the data segment VEC from Lisp vector
-   CONSTANTS. Store in *N the number of elements in VEC. Store in *ROOT
-   an MPS root for VEC, if one is needed.  */
+   CONSTANTS.  Store in *N the number of elements in VEC.  Store in
+   *ROOT an MPS root for VEC, if one is needed.  */
 
 static void
 setup_constants (comp_data_vector_t vec, Lisp_Object constants,
@@ -5492,7 +5492,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 			   &comp_u->data_eph_vec_pin);
 # endif
 	  /* No longer needed after top-level code has run.  Let the
-	     vector be GC'd. */
+	     vector be GC'd.  */
 	  comp_u->data_eph_vec = Qnil;
 	}
     }
