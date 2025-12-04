@@ -3661,8 +3661,8 @@ if that value is non-nil.
   (setq-local comment-column 0)
   (setq-local defun-prompt-regexp "^[ \t]*@[[:alnum:]]+[ \t]*")
   (setq-local outline-regexp "[ \t]*@")
-  (setq-local hs-block-start-regexp "@\\S(*\\(\\s(\\)")
-  (setq-local hs-block-end-regexp 1)
+  (setq-local hs-block-start-regexp "@\\S(*\\(\\s(\\)"
+              hs-block-start-mdata-select 1)
   (setq-local fill-paragraph-function #'bibtex-fill-field)
   (setq-local font-lock-defaults
               '(bibtex-font-lock-keywords
