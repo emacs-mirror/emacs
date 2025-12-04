@@ -2307,20 +2307,18 @@ BEG and END."
           (setq end (cadr (diff-bounds-of-hunk))))
       (pcase-setq `(,beg ,end) (diff-bounds-of-hunk)))
     (when (null (diff-apply-buffer beg end t))
-      ;; Use `diff-hunk-kill' because it properly handles file headers,
-      ;; except if we are killing the last hunk we need not be concerned
-      ;; with that.  If we are not deleting the very last hunk then
-      ;; exploit how `diff-hunk-kill' will always leave us at the
-      ;; beginning of a hunk (except when killing the very last hunk!).
-      (if (eql end (point-max))
-          (let ((inhibit-read-only t))
-            (kill-region beg end))
-        (setq end (copy-marker end))
-        (unwind-protect
-            (cl-loop initially (goto-char beg)
-                     do (diff-hunk-kill)
-                     until (eql (point) (marker-position end)))
-          (set-marker end nil))))))
+      ;; Use `diff-hunk-kill' because it properly handles file headers.
+      (goto-char end)
+      (when-let* ((pos (diff--at-diff-header-p)))
+        (goto-char pos))
+      (setq beg (copy-marker beg) end (point-marker))
+      (unwind-protect
+          (cl-loop initially (goto-char beg)
+                   do (diff-hunk-kill)
+                   until (or (< (point) (marker-position beg))
+                             (eql (point) (marker-position end))))
+        (set-marker beg nil)
+        (set-marker end nil)))))
 
 (defun diff-apply-buffer (&optional beg end reverse test-or-no-save)
   "Apply the diff in the entire diff buffer.
