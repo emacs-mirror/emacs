@@ -40,14 +40,9 @@
                 (lambda (old-format _new &optional _newer)
                   (ert-fail
                    (format "Unexpected format warning for '%s'" old-format))))
-               ((symbol-function 'message)
-                (lambda (format-string &rest args)
-                  (ert-fail (format "Unexpected message: %s"
-                                    (apply #'format format-string args)))))
-               ((symbol-function 'sit-for)
-                (lambda (&rest _args)
-                  ;; do not wait during tests
-                  )))
+               ((symbol-function 'time-stamp--message)
+                (lambda (msg)
+                  (ert-fail (format "Unexpected message: %s" msg)))))
        ;; Not all reference times are used in all tests;
        ;; suppress the byte compiler's "unused" warning.
        (list ref-time1 ref-time2 ref-time3)
@@ -65,10 +60,13 @@
        ,@body)))
 
 (defmacro with-time-stamp-system-name (name &rest body)
-  "Force function `system-name' to return NAME while evaluating BODY."
+  "Force `time-stamp--system-name' to return NAME while evaluating BODY."
   (declare (indent 1) (debug t))
-  `(cl-letf (((symbol-function 'system-name)
-              (lambda () ,name)))
+  `(cl-letf (((symbol-function 'time-stamp--system-name)
+              (lambda (type)
+                (if (and (eq type :short) (string-match "\\." ,name))
+                    (substring ,name 0 (match-beginning 0))
+                  ,name))))
      ,@body))
 
 
@@ -92,10 +90,10 @@
      (should ,form)))
 
 (defmacro time-stamp-should-message (variable &rest body)
-  "Output a message about VARIABLE if `message' is not called by BODY."
+  "Fail test about VARIABLE if BODY does not call `time-stamp--message'."
   (declare (indent 1) (debug t))
   `(time-stamp-test--count-function-calls
-       message (format "variable %s" ',variable)
+       time-stamp--message (format "variable %s" ',variable)
      ,@body))
 
 ;;; Tests:

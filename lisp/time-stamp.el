@@ -117,7 +117,7 @@ limit yourself to the formats recommended by that older version."
 (defcustom time-stamp-active t
   "Non-nil enables time-stamping of buffers by \\[time-stamp].
 Can be toggled by \\[time-stamp-toggle-active] as an easy way to
-temporarily disable time-stamp while saving a file.
+temporarily disable `time-stamp' while saving a file.
 
 This option does not affect when `time-stamp' is run, only what it
 does when it runs.  To activate automatic time-stamping of buffers
@@ -377,12 +377,10 @@ to customize the information in the time stamp and where it is written."
 	       (setq ts-end (match-string 6 time-stamp-pattern)))))
     (cond ((not (integerp line-limit))
 	   (setq line-limit 8)
-	   (message "time-stamp-line-limit is not an integer")
-	   (sit-for 1)))
+           (time-stamp--message "time-stamp-line-limit is not an integer")))
     (cond ((not (integerp ts-count))
 	   (setq ts-count 1)
-	   (message "time-stamp-count is not an integer")
-	   (sit-for 1))
+           (time-stamp--message "time-stamp-count is not an integer"))
 	  ((< ts-count 1)
 	   ;; We need to call time-stamp-once at least once
 	   ;; to output any warnings about time-stamp not being active.
@@ -395,8 +393,7 @@ to customize the information in the time stamp and where it is written."
     (cond
      ((not (and (stringp ts-start)
                 (stringp ts-end)))
-      (message "time-stamp-start or time-stamp-end is not a string")
-      (sit-for 1))
+      (time-stamp--message "time-stamp-start or time-stamp-end is not a string"))
      (t
       (let ((nl-start 0))
         (while (string-match "\n" ts-end nl-start)
@@ -466,10 +463,8 @@ Returns the end point, which is where `time-stamp' begins the next search."
 	  (cond
 	   ((not time-stamp-active)
 	    (if time-stamp-warn-inactive
-		;; don't signal an error in a hook
-		(progn
-		  (message "Warning: time-stamp-active is off; did not time-stamp buffer.")
-                  (sit-for 1)))
+                (time-stamp--message
+                 "Warning: time-stamp-active is off; did not time-stamp buffer."))
             nil)
 	   (t
 	    (let ((new-time-stamp (time-stamp-string ts-format)))
@@ -753,7 +748,7 @@ and all `time-stamp-format' compatibility."
                       time-stamp-no-file))
 	           ((eq cur-char ?s)    ;system name, legacy
 		    (time-stamp-conv-warn "%s" "%Q")
-	            (system-name))
+                    (time-stamp--system-name :full))
 	           ((eq cur-char ?u)    ;user name, legacy
 		    (time-stamp-conv-warn "%u" "%l")
 	            (user-login-name))
@@ -765,16 +760,13 @@ and all `time-stamp-format' compatibility."
 	           ((eq cur-char ?L)    ;full name of logged-in user
 	            (user-full-name))
 	           ((eq cur-char ?h)    ;mail host name
-	            (or mail-host-address (system-name)))
+                    (or mail-host-address (time-stamp--system-name :full)))
                    ((or (eq cur-char ?q)  ;unqualified host name
                         (eq cur-char ?x)) ;short system name, experimental
-                    (let ((shortname (system-name)))
-                      (if (string-match "\\." shortname)
-                          (substring shortname 0 (match-beginning 0))
-                        shortname)))
+                    (time-stamp--system-name :short))
                    ((or (eq cur-char ?Q)  ;fully-qualified host name
                         (eq cur-char ?X)) ;full system name, experimental
-	            (system-name))
+                    (time-stamp--system-name :full))
 	           ))
             (if (numberp field-result)
                 (progn
@@ -838,7 +830,7 @@ This is an internal helper for `time-stamp-string-preprocess'."
 
 (defun time-stamp-filtered-buffer-file-name (type)
   "Return a printable string representing the buffer file name.
-Non-graphic characters are replaced by ?. TYPE is :absolute
+Non-graphic characters are replaced by ?.  TYPE is :absolute
 for the full name or :nondirectory for base name only."
   (declare (ftype (function ((member :absolute :nondirectory)) string)))
   (let ((file-name buffer-file-name)
@@ -857,6 +849,18 @@ for the full name or :nondirectory for base name only."
       (setq file-name (file-name-nondirectory file-name)))
     (apply #'string (mapcar safe-character-filter file-name))))
 
+(defun time-stamp--message (warning-string)
+  "Display WARNING-STRING for one second."
+  (message "%s" warning-string)
+  (sit-for 1))
+
+(defun time-stamp--system-name (type)
+  "Return the host name of this system.
+TYPE is :short for the unqualified name, :full for the full name."
+  (let ((fullname (system-name)))
+    (if (and (eq type :short) (string-match "\\." fullname))
+        (substring fullname 0 (match-beginning 0))
+      fullname)))
 
 (defvar time-stamp-conversion-warn t
   "Enable warnings for old formats in `time-stamp-format'.
