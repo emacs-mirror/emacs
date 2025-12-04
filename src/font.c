@@ -2488,6 +2488,8 @@ font_match_p (Lisp_Object spec, Lisp_Object font)
 	      val2 = XCDR (val2);
 	      if (CONSP (val2))
 		{
+		  if (! FONT_OBJECT_P (font))
+		    return 0;
 		  /* All characters in the list must be supported.  */
 		  for (; CONSP (val2); val2 = XCDR (val2))
 		    {
@@ -2500,6 +2502,8 @@ font_match_p (Lisp_Object spec, Lisp_Object font)
 		}
 	      else if (VECTORP (val2))
 		{
+		  if (! FONT_OBJECT_P (font))
+		    return 0;
 		  /* At most one character in the vector must be supported.  */
 		  for (i = 0; i < ASIZE (val2); i++)
 		    {
