@@ -97,8 +97,8 @@ struct Lisp_Native_Comp_Unit
   Lisp_Object data_eph_vec;
 
   /* A Lisp vector read from a string contained in the text segment of
-     the .eln (TEXT_DATA_RELOC_SYM). The elements of the vector are
-     constants used in the native code. */
+     the .eln (TEXT_DATA_RELOC_SYM).  The elements of the vector are
+     constants used in the native code.  */
   Lisp_Object data_vec;
 
   /* STUFF WE DO NOT DUMP!!  */
@@ -107,12 +107,12 @@ struct Lisp_Native_Comp_Unit
      stored (COMP_UNIT_SYM), and an exact root for it.  */
   Lisp_Object *comp_unit;
 
-  /* Pointers into data segment where constant vectors are found. */
+  /* Pointers into data segment where constant vectors are found.  */
   comp_data_vector_t data_relocs;
   comp_data_vector_t data_eph_relocs;
 
   /* Size of the vectors above. 1 in the USE_POINTER_TO_CONSTANTS
-     case. */
+     case.  */
   size_t n_data_relocs;
   size_t n_data_eph_relocs;
 
