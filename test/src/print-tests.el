@@ -342,7 +342,10 @@ otherwise, use a different charset."
       (should (string-match "\\`((a . #[0-9]+) (a . #[0-9]+))\\'"
                             (print-tests--prin1-to-string x))))
     (let ((print-circle t))
-      (should (equal "(#1=(a . #1#) #1#)" (print-tests--prin1-to-string x))))))
+      (should (equal "(#1=(a . #1#) #1#)" (print-tests--prin1-to-string x)))))
+  (let ((print-circle t))
+    (should (equal (print-tests--prin1-to-string '([] "" [] ""))
+                   "([] \"\" [] \"\")"))))
 
 (print-tests--deftest print-circle-2 ()
    ;; Bug#31146.
