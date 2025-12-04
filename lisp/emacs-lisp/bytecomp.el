@@ -3616,8 +3616,7 @@ This assumes the function has the `important-return-value' property."
               cl-mapcar cl-mapcan cl-mapcon cl-mapc cl-mapl cl-maplist
               ))
   (put f 'funarg-positions '(1)))
-(put 'seq-sort-by 'funarg-positions '(1 2))
-(dolist (f '( defalias fset sort
+(dolist (f '( defalias fset
               replace-regexp-in-string
               add-hook remove-hook advice-remove advice--remove-function
               global-set-key local-set-key keymap-global-set keymap-local-set
@@ -3667,6 +3666,8 @@ This assumes the function has the `important-return-value' property."
               (make-network-process :filter :sentinel)
               (all-completions 2 3) (try-completion 2 3) (test-completion 2 3)
               (completing-read 2 3)
+              (sort 2 :key :lessp)
+              (seq-sort-by 1 2)
               ))
   (put (car fa) 'funarg-positions (cdr fa)))
 
