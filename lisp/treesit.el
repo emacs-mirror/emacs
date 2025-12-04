@@ -4255,8 +4255,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
                  (if (bobp) (point) (1- (point))) pred))
          (end (when thing (treesit-node-end thing)))
          (last (when thing (treesit-node-child thing -1)))
-         (beg (if last (treesit-node-start last)
-                (if (bobp) (point) (1- (point))))))
+         (beg (treesit-node-start (or last thing))))
     (when (and thing (eq (point) end))
       (set-match-data (list beg end))
       t)))
@@ -4313,14 +4312,29 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 
 (defun treesit-hs-inside-comment-p ()
   "Tree-sitter implementation of `hs-inside-comment-predicate'."
-  (let* ((comment-pred
-          (if (treesit-thing-defined-p 'comment (treesit-language-at (point)))
-              'comment "\\`comment\\'"))
-         (thing (or (treesit-thing-at (point) comment-pred)
-                    (unless (bobp)
-                      (treesit-thing-at (1- (point)) comment-pred)))))
-    (when thing
-      (list (treesit-node-start thing) (treesit-node-end thing)))))
+  (when-let* ((comment-pred
+               (if (treesit-thing-defined-p 'comment (treesit-language-at (point)))
+                   'comment "\\`comment\\'"))
+              (thing (or (treesit-thing-at (point) comment-pred)
+                         (unless (bobp)
+                           (treesit-thing-at (1- (point)) comment-pred))))
+              (beg (treesit-node-start thing))
+              (end (treesit-node-end thing)))
+    (unless (and (fboundp 'hs-hideable-region-p) (hs-hideable-region-p beg end))
+      (save-excursion
+        (goto-char beg)
+        (while (and (skip-chars-forward "[:blank:]")
+                    (when-let* ((c (treesit-thing-at (point) comment-pred)))
+                      (setq beg (treesit-node-start c)))
+                    (not (bobp))
+                    (forward-line -1)))
+        (goto-char beg)
+        (while (and (skip-chars-forward "[:blank:]")
+                    (when-let* ((c (treesit-thing-at (point) comment-pred)))
+                      (setq end (treesit-node-end c)))
+                    (not (eobp))
+                    (forward-line 1)))))
+    (list beg end)))
 
 ;;; Show paren mode
 
