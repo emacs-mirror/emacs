@@ -3359,7 +3359,7 @@ See `sh-mode--treesit-other-keywords' and
    :feature 'command
    :language 'bash
    `(;; function/non-builtin command calls
-     (command_name (word) @font-lock-function-name-face)
+     (command_name (word) @font-lock-function-call-face)
      ;; builtin commands
      (command_name
       ((word) @font-lock-builtin-face
