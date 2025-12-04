@@ -95,6 +95,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_context_set_int_option
 #undef gcc_jit_context_set_logfile
 #undef gcc_jit_context_set_str_option
+#undef gcc_jit_context_zero
 #undef gcc_jit_function_get_param
 #undef gcc_jit_function_new_block
 #undef gcc_jit_function_new_local
@@ -271,6 +272,8 @@ DEF_DLL_FN (void, gcc_jit_context_set_logfile,
 DEF_DLL_FN (void, gcc_jit_context_set_str_option,
 	    (gcc_jit_context *ctxt, enum gcc_jit_str_option opt,
 	     const char *value));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_zero,
+            (gcc_jit_context *ctxt, gcc_jit_type *numeric_type));
 DEF_DLL_FN (void, gcc_jit_struct_set_fields,
             (gcc_jit_struct *struct_type, gcc_jit_location *loc, int num_fields,
              gcc_jit_field **fields));
@@ -334,6 +337,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_context_set_int_option);
   LOAD_DLL_FN (library, gcc_jit_context_set_logfile);
   LOAD_DLL_FN (library, gcc_jit_context_set_str_option);
+  LOAD_DLL_FN (library, gcc_jit_context_zero);
   LOAD_DLL_FN (library, gcc_jit_function_get_param);
   LOAD_DLL_FN (library, gcc_jit_function_new_block);
   LOAD_DLL_FN (library, gcc_jit_function_new_local);
@@ -415,6 +419,7 @@ init_gccjit_functions (void)
 #define gcc_jit_context_set_int_option fn_gcc_jit_context_set_int_option
 #define gcc_jit_context_set_logfile fn_gcc_jit_context_set_logfile
 #define gcc_jit_context_set_str_option fn_gcc_jit_context_set_str_option
+#define gcc_jit_context_zero fn_gcc_jit_context_zero
 #define gcc_jit_function_get_param fn_gcc_jit_function_get_param
 #define gcc_jit_function_new_block fn_gcc_jit_function_new_block
 #define gcc_jit_function_new_local fn_gcc_jit_function_new_local
