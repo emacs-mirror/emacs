@@ -289,12 +289,14 @@ with name extension @file{.plist}.  Its format is described in the
 @end example
 
 @vindex auth-source-ignore-non-existing-file
-File-based data stores are ignored in @code{auth-sources}, if the
-underlying data file does not exist.  This is relevant, if a new secret
-is stored in such a file; the first usable entry of @code{auth-sources}
-is selected as target.  If you want also not existing files to be
-selected, set the user option
-@code{auth-source-ignore-non-existing-file} to @code{nil}.
+Entries in @code{auth-sources} that point to file-based data stores are
+ignored if the underlying data file does not exist.  This matters if a
+new secret needs to be stored in a file; the first usable entry of
+@code{auth-sources} is selected as the target.  If you want an entry
+pointing at a non-existing file to be selected instead, set the user
+option @code{auth-source-ignore-non-existing-file} to @code{nil}.  Note
+that with the default value of @code{auth-sources}, this will cause new
+secrets to be stored in cleartext in @file{~/.authinfo}.
 
 @node Multiple GMail accounts with Gnus
 @chapter Multiple GMail accounts with Gnus
