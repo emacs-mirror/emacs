@@ -1523,25 +1523,30 @@ emit_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
     gcc_jit_rvalue_dereference (comp.f_symbols_with_pos_enabled_ref,
                                 NULL));
 
-  gcc_jit_rvalue *expect_args[] =
-    { emit_coerce (comp.long_type, symbols_with_pos_enabled_rval),
-      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-                                           comp.long_type,
-                                           0) };
+  /* Do not use '__builtin_expect' with libgccjit < 14 (bug#79722).  */
+  Lisp_Object version = Fcomp_libgccjit_version ();
+  if (!NILP (version) && XFIXNUM (XCAR (version)) >= 14)
+    {
+      gcc_jit_rvalue *expect_args[] =
+        { emit_coerce (comp.long_type, symbols_with_pos_enabled_rval),
+          gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+                                               comp.long_type,
+                                               0) };
 
-  gcc_jit_rvalue *unlikely_symbols_with_pos_enabled = emit_coerce (
-    comp.bool_type,
-    gcc_jit_context_new_call (
-      comp.ctxt,
-      NULL,
-      gcc_jit_context_get_builtin_function (comp.ctxt,
-                                            "__builtin_expect"),
-      2,
-      expect_args));
+      gcc_jit_rvalue *symbols_with_pos_enabled_rval = emit_coerce (
+        comp.bool_type,
+        gcc_jit_context_new_call (
+          comp.ctxt,
+          NULL,
+          gcc_jit_context_get_builtin_function (comp.ctxt,
+                                                "__builtin_expect"),
+          2,
+          expect_args));
+    }
 
   return emit_OR (
     base_eq,
-    emit_AND (unlikely_symbols_with_pos_enabled, emit_slow_eq (x, y)));
+    emit_AND (symbols_with_pos_enabled_rval, emit_slow_eq (x, y)));
 }
 
 static gcc_jit_rvalue *
