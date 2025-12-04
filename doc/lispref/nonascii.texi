@@ -733,16 +733,25 @@ specifies, for each character, its Unicode @code{General_Category}
 property as a symbol.
 @end defvar
 
-@defvar char-script-table
 @cindex script symbols
+@cindex list of scripts
+@defvar char-script-table
 The value of this variable is a char-table that specifies, for each
 character, a symbol whose name is the script to which the character
 belongs, according to the Unicode Standard classification of the
 Unicode code space into script-specific blocks.  This char-table has a
-single extra slot whose value is the list of all script symbols.  Note
-that Emacs's classification of characters into scripts is not a 1-for-1
-reflection of the Unicode standard, for example there is no @samp{symbol}
-script in Unicode.
+single extra slot whose value is the list of all script symbols, so you
+can evaluate
+
+@lisp
+(char-table-extra-slot char-script-table 0)
+@end lisp
+
+@noindent
+to obtain the list of all the scripts known to Emacs.  Note that Emacs's
+classification of characters into scripts is not a 1-for-1 reflection of
+the Unicode standard, for example there is no @samp{symbol} script in
+Unicode.
 @end defvar
 
 @defvar char-width-table
