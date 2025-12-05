@@ -4137,7 +4137,7 @@ process_one_message (struct igc *gc)
 	    = mps_message_gc_not_condemned_size (gc->arena, msg);
 	  mps_clock_t clock = mps_message_clock (gc->arena, msg);
 	  double secs = (double) clock / mps_clocks_per_sec ();
-	  message ("[%f] GC: condemned: %" pD "u live: %" pD "u "
+	  message ("[%f] GC end: condemned: %" pD "u live: %" pD "u "
 		   "not_condemned: %" pD "u",
 		   secs, condemned, live, not_condemned);
 	}
