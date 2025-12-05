@@ -2304,7 +2304,8 @@ BEG and END."
           (goto-char beg)
           (setq beg (car (diff-bounds-of-hunk)))
           (goto-char end)
-          (setq end (cadr (diff-bounds-of-hunk))))
+          (unless (looking-at diff-hunk-header-re)
+            (setq end (cadr (diff-bounds-of-hunk)))))
       (pcase-setq `(,beg ,end) (diff-bounds-of-hunk)))
     (when (null (diff-apply-buffer beg end t))
       ;; Use `diff-hunk-kill' because it properly handles file headers.
