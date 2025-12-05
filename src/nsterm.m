@@ -9567,8 +9567,9 @@ ns_in_echo_area (void)
 	 on Mac OS 11+ where the toolbar style is decided by the system
 	 (which is unpredictable) and the newfangled "compact" toolbar
 	 may be chosen (which is undesirable).  */
-#ifdef NS_IMPL_COCOA
-  [self setToolbarStyle: NSWindowToolbarStyleExpanded];
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 110000
+      if ([self respondsToSelector:@selector(setToolbarStyle:)])
+	[self setToolbarStyle: NSWindowToolbarStyleExpanded];
 #endif
     }
 
