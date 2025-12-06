@@ -1749,7 +1749,15 @@ If LIMIT is a non-empty string, use it as a base revision."
 
 (defun vc-git-incoming-revision (&optional upstream-location refresh)
   (let ((rev (or upstream-location "@{upstream}")))
-    (when (or refresh (null (vc-git--rev-parse rev)))
+    (when (and (or refresh (null (vc-git--rev-parse rev)))
+               ;; If the branch has no upstream, and we weren't supplied
+               ;; with one, then fetching is always useless (bug#79952).
+               (or upstream-location
+                   (and-let* ((branch (vc-git--current-branch)))
+                     (with-temp-buffer
+                       (vc-git--out-ok "config" "--get"
+                                       (format "branch.%s.remote"
+                                               branch))))))
       (vc-git-command nil 0 nil "fetch"
                       (and upstream-location
                            ;; Extract remote from "remote/branch".
