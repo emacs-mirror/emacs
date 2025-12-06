@@ -1649,8 +1649,8 @@ This function can be assigned to `fill-region-as-paragraph-function' to
 override how functions like `fill-paragraph' and `fill-region' fill
 text.
 
-For more details about semantic linefeeds, see `https://sembr.org/' and
-`https://rhodesmill.org/brandon/2012/one-sentence-per-line/'."
+For more details about semantic linefeeds, see URL `https://sembr.org/'
+and URL `https://rhodesmill.org/brandon/2012/one-sentence-per-line/'."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (region-beginning)
