@@ -3744,6 +3744,9 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
 	{
 	  if (!WINDOW_LIVE_P (val) || !MINI_WINDOW_P (XWINDOW (val)))
 	    error ("The `minibuffer' parameter does not specify a valid minibuffer window");
+	  else if (FRAME_LIVE_P (f)
+		   && FRAME_TERMINAL (WINDOW_XFRAME (XWINDOW (val))) != FRAME_TERMINAL (f))
+	    error ("Minibuffer window must be on same terminal as frame that uses it");
 	  else if (FRAME_MINIBUF_ONLY_P (f))
 	    {
 	      if (EQ (val, FRAME_MINIBUF_WINDOW (f)))
@@ -3797,7 +3800,9 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
 	  Lisp_Object frame;
 	  Lisp_Object frame1 = val;
 
-	  if (!FRAMEP (frame1) || !FRAME_LIVE_P (XFRAME (frame1)))
+	  if (!FRAMEP (frame1) || !FRAME_LIVE_P (XFRAME (frame1))
+	      || (FRAME_LIVE_P (f)
+		  && FRAME_TERMINAL (f) != FRAME_TERMINAL (XFRAME (frame1))))
 	    error ("Invalid `%s' frame parameter",
 		   SSDATA (SYMBOL_NAME (prop)));
 
@@ -3850,17 +3855,22 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
       FOR_EACH_FRAME (frames, frame1)
 	{
 	  struct frame *f1 = XFRAME (frame1);
-	  struct frame *m1 = WINDOW_XFRAME (XWINDOW (f1->minibuffer_window));
-	  bool mismatch = false;
 
-	  /* Temporarily install VAL and check whether our invariant
-	     above gets violated.  */
-	  f->parent_frame = val;
-	  mismatch = root_frame (f1) != root_frame (m1);
-	  f->parent_frame = old_val;
+	  /* Spare GUI frames (Bug#79947).  */
+	  if (is_tty_frame (f1))
+	    {
+	      struct frame *m1 = WINDOW_XFRAME (XWINDOW (f1->minibuffer_window));
+	      bool mismatch = false;
 
-	  if (mismatch)
-	    error ("Cannot re-root surrogate minibuffer frame");
+	      /* Temporarily install VAL and check whether our invariant
+		 above gets violated.  */
+	      f->parent_frame = val;
+	      mismatch = root_frame (f1) != root_frame (m1);
+	      f->parent_frame = old_val;
+
+	      if (mismatch)
+		error ("Cannot re-root surrogate minibuffer frame");
+	    }
 	}
 
       if (f == XFRAME (FRAME_TERMINAL (f)->display_info.tty->top_frame)
