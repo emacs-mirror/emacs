@@ -1120,21 +1120,16 @@ See also `comint-read-input-ring'."
 	((not (file-writable-p comint-input-ring-file-name))
 	 (message "Cannot write history file %s" comint-input-ring-file-name))
 	(t
-	 (let* ((history-buf (get-buffer-create " *Temp Input History*"))
-		(ring comint-input-ring)
+	 (let* ((ring comint-input-ring)
 		(file comint-input-ring-file-name)
                 (separator comint-input-ring-separator)
 		(index (ring-length ring)))
 	   ;; Write it all out into a buffer first.  Much faster, but messier,
 	   ;; than writing it one line at a time.
-	   (with-current-buffer history-buf
-	     (erase-buffer)
+	   (with-temp-buffer
 	     (while (> index 0)
-	       (setq index (1- index))
-	       (insert (ring-ref ring index) separator))
-	     (write-region (buffer-string) nil file nil 'no-message)
-	     (kill-buffer nil))))))
-
+	       (insert (ring-ref ring (decf index)) separator))
+	     (write-region nil nil file nil 'no-message))))))
 
 (defvar comint-dynamic-list-input-ring-window-conf)
 
