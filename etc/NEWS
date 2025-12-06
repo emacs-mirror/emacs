@@ -2551,6 +2551,7 @@ bindings:
 *** New display of outgoing revisions count in VC Directory.
 If there are outgoing revisions, VC Directory now includes a count of
 how many in its headers, to remind you to push them.
+You can disable this by customizing vc-dir-show-outgoing-count to nil.
 
 +++
 *** New user option 'vc-async-checkin' to enable async checkin operations.

@@ -1528,6 +1528,17 @@ unpushed revisions"} where @var{N} is a number.  You can click on this
 text to execute the @code{vc-log-outgoing} command (@pxref{VC Change
 Log}).
 
+@vindex vc-dir-show-outgoing-count
+  Emacs tries to use cached information to determine the number of
+unpushed revisions, but for some backends this isn't possible.  In these
+cases Emacs must occasionally fetch from the remote repository in order
+to determine the count.  If your connection to the remote repository is
+slow then this may cause unacceptable slowdowns in refreshing the VC
+Directory buffer.  If this affects you, you can customize
+@code{vc-dir-show-outgoing-count} to nil to disable the unpushed
+revisions count altogether.  You can also set this on a per-repository
+basis using directory local variables (@pxref{Directory Variables}).
+
 @node VC Directory Commands
 @subsubsection VC Directory Commands
 
