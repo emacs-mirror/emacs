@@ -50,7 +50,7 @@ A value of nil means that any change in indentation starts a new paragraph."
   :safe #'booleanp)
 
 (defcustom fill-separate-heterogeneous-words-with-space nil
-  "Non-nil means to use a space to separate words of a different kind.
+  "Non-nil means to use a space to separate words of different scripts.
 For example, when an English word at the end of a line and a CJK word
 at the beginning of the next line are joined into a single line, they
 will be separated by a space if this variable is non-nil.
@@ -656,6 +656,10 @@ margins given by the `current-left-margin' and `current-fill-column'
 functions.  (In most cases, the variable `fill-column' controls the
 width.)  It leaves point at the beginning of the line following the
 region.
+
+Note that how paragraph breaks are removed in text that includes
+characters from different scripts is affected by the value
+of `fill-separate-heterogeneous-words-with-space', which see.
 
 Normally, the command performs justification according to
 the `current-justification' function, but with a prefix arg, it
