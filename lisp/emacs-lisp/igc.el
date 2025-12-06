@@ -491,6 +491,8 @@ This function is called from a timer;  see `igc-start-collecting-stats'."
 
 (defun igc--current-idle-time ()
   "Time since the last command finished, in seconds as a float.
+This calls `current-idle-time', then converts the return value
+to a float number of seconds.
 See `igc--on-idle'."
   (let ((idle-time (current-idle-time)))
     (if idle-time (float-time idle-time) 0)))
@@ -514,8 +516,8 @@ See `igc--on-idle'."
 
 (defun igc--on-idle (state repetition)
   "Timer function to do GC in idle Emacs state.
-Calls igc--arena-step, wrapper for mps_arena_step for this very purpose.
-See `igc-start-idle-timer."
+Calls `igc--arena-step', wrapper for mps_arena_step for this very purpose.
+See `igc-start-idle-timer'."
   (let ((timer2 (aref state 0)))
     (when timer2
       (cancel-timer timer2)))

@@ -5795,12 +5795,12 @@ KEY is the key associated with DEPENDENCY in a hash table.  */)
 }
 
 DEFUN ("igc--arena-step", Figc__arena_step, Sigc__arena_step, 2, 2, 0,
-       doc: /* Do some GC work.
+       doc: /* Request some GC work while Emacs is idle.
 
 INTERVAL is the time, in seconds, that MPS is permitted to take.
 
-MULTIPLIER is the number of further similar calls that the client
-program expects to make during this idle period.
+MULTIPLIER is the number of further similar calls that Emacs
+expects to make during this idle period.
 
 Return t if there was work to do, nil otherwise. */)
   (Lisp_Object interval, Lisp_Object multiplier)
