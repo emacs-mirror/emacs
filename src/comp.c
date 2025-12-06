@@ -1533,7 +1533,7 @@ emit_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
                                                comp.long_type,
                                                0) };
 
-      gcc_jit_rvalue *symbols_with_pos_enabled_rval = emit_coerce (
+      symbols_with_pos_enabled_rval = emit_coerce (
         comp.bool_type,
         gcc_jit_context_new_call (
           comp.ctxt,
