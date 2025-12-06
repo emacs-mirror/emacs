@@ -4438,7 +4438,7 @@ uid=0(root) gid=0(root) groups=0(root)
 
 @anchor{Running a debugger on a remote host}
 @subsection Running a debugger on a remote host
-@cindex @file{gud.el}
+@cindex @file{gud.el} file
 @cindex @code{gdb}
 @cindex @code{perldb}
 
@@ -4489,38 +4489,60 @@ Arguments of the program to be debugged must be literal, can take
 relative or absolute paths, but not remote paths.
 
 
+@anchor{Running remote processes on MS Windows hosts}
 @subsection Running remote processes on MS Windows hosts
 @cindex @command{winexe}
 @cindex @command{powershell}
 
-@command{winexe} runs processes on a remote MS Windows host, and
-@value{tramp} can use it for @code{process-file} and
-@code{start-file-process}.
+@strong{Note}: This is an experimental feature.
 
+The program @command{winexe} from the Samba suite runs processes on a
+remote MS Windows host, and @value{tramp} uses it for
+@code{make-process}, @code{process-file} and
+@code{start-file-process}.  It does not work for remote Samba servers.
+
+Redirection from stdin and to sterr as well as process filters are not
+supported (yet).
+
+@c FIXME: Verify powershell version.
+@vindex tramp-smb-winexe-program
 @code{tramp-smb-winexe-program} specifies the local @command{winexe}
-command.  Powershell V2.0 on the remote host is required to run
-processes triggered from @value{tramp}.
+program.  Powershell V2.0 on the remote MS Windows host is required to
+run processes triggered from @value{tramp}.
 
-@code{explicit-shell-file-name} and @code{explicit-*-args} have to
-be set properly so @kbd{M-x shell @key{RET}} can open a proper remote
-shell on a MS Windows host.  To open @command{cmd}, set it as follows:
+@c https://woshub.com/enable-remote-access-to-admin-shares-in-workgroup/
+The remote user on the remote MS Windows host must be member of the
+local computer Administrators group of that remote MS Windows host.
+Since @command{winexe} uses the administrative share @file{ADMIN$} of
+that remote MS Windows host, the remote MS Windows host must be either
+part of an Active Directory domain, or the Remote UAC (User Account
+Control for remote connections) must be disabled.  The latter can be
+achieved by creating the
+@samp{HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\ LocalAccountTokenFilterPolicy}
+parameter in the MS Windows registry as DWORD (32-bit) with the value 1.
 
-@lisp
-@group
-(setq explicit-shell-file-name "cmd"
-      explicit-cmd-args '("/q"))
-@end group
-@end lisp
+@vindex tramp-smb-connection-local-powershell-profile
+@vindex tramp-smb-prompt
+@cindex @file{.emacs_powershell} file
+@code{shell} and @code{shell-command} are configured to use
+@command{powershell} on the remote MS Windows host.  If you want to
+change this, consider using another connection-local profile but
+@code{tramp-smb-connection-local-powershell-profile}.
+
+If you run a remote @code{shell}, you might consider to add the
+following line to your local @file{~/.emacs_powershell} file:
+
+@smallexample
+function prompt @{ "PS " + ((Get-Location).Path | Convert-Path) + "> " @}
+@end smallexample
 
 @noindent
-To open @command{powershell} as a remote shell, use this:
+Note, that the configured prompt must match @code{tramp-smb-prompt}.
 
-@lisp
-@group
-(setq explicit-shell-file-name "powershell"
-      explicit-powershell-args '("-file" "-"))
-@end group
-@end lisp
+If you run a remote @code{shell-command}, you must use
+@command{powershell} syntax.  For example, if you want to run a shell
+command from @code{dired}, use the command @t{"(ls * ).Name"} instead
+of @t{"ls"}.
 
 
 @subsection Remote process connection type

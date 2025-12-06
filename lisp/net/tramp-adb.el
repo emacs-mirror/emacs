@@ -756,6 +756,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	      (with-current-buffer outbuf
 		(insert-buffer-substring (tramp-get-connection-buffer v)))
 	      (when (and display (get-buffer-window outbuf t)) (redisplay))))
+
 	;; When the user did interrupt, we should do it also.  We use
 	;; return code -1 as marker.
 	(quit

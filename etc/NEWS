@@ -1100,7 +1100,7 @@ blocks.
 
 +++
 *** New command 'hs-toggle-all'.
-This command hide or show all the blocks in the current buffer.
+This command hides or shows all the blocks in the current buffer.
 
 +++
 *** New user option 'hs-display-lines-hidden'.
@@ -1584,10 +1584,8 @@ behavior included additional information about the originating message.
 The new variable 'message-header-use-obsolete-in-reply-to', nil by
 default, can be set to a non-nil value to restore the previous behavior.
 
-** Message
-
 +++
-*** 'message-subject-re-regexp' default value is now derived from 'mail-re-regexps'.
+*** 'message-subject-re-regexp' default value is derived from 'mail-re-regexps'.
 'mail-re-regexps' is a new user option that is easier to customize than
 'message-subject-re-regexp'.  'message-subject-re-regexp' is still
 honored if it was already set.
@@ -1748,7 +1746,7 @@ This contains the list of regular expressions used to match "Re:" and
 international variants of it when modifying the Subject field in
 replies.
 
-** mairix
+** Mairix
 
 ---
 *** 'mairix-search' now keeps its own minibuffer history.
@@ -2026,6 +2024,11 @@ This feature is experimental.
 
 ---
 *** Implementation of filesystem notifications for connection method "smb".
+
++++
+*** Remote process support has been rewritten for the "smb" connection method.
+For more information, see "(tramp) Running remote processes on MS
+Windows hosts" in the Tramp manual.
 
 +++
 *** New functions to extend the set of operations with a remote implementation.
@@ -2545,9 +2548,9 @@ bindings:
 - 'C-x v O D' is bound to 'vc-root-diff-outgoing'.
 
 +++
-*** New display of outgoing revisions count in VC-Dir.
-If there are outgoing revisions, VC-Dir now includes a count of how many
-in its headers, to remind you to push them.
+*** New display of outgoing revisions count in VC Directory.
+If there are outgoing revisions, VC Directory now includes a count of
+how many in its headers, to remind you to push them.
 
 +++
 *** New user option 'vc-async-checkin' to enable async checkin operations.

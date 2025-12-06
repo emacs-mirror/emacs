@@ -239,6 +239,7 @@ See `tramp-actions-before-shell' for more info.")
      . tramp-handle-directory-files-and-attributes)
     (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
+    ;; TODO: Add implementation.
     (exec-path . ignore)
     (expand-file-name . tramp-smb-handle-expand-file-name)
     (file-accessible-directory-p . tramp-handle-file-accessible-directory-p)
@@ -286,7 +287,7 @@ See `tramp-actions-before-shell' for more info.")
     (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
-    (make-process . ignore)
+    (make-process . tramp-smb-handle-make-process)
     (make-symbolic-link . tramp-smb-handle-make-symbolic-link)
     (memory-info . ignore)
     (process-attributes . ignore)
@@ -297,8 +298,8 @@ See `tramp-actions-before-shell' for more info.")
     (set-file-selinux-context . ignore)
     (set-file-times . tramp-smb-handle-set-file-times)
     (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
-    (shell-command . tramp-handle-shell-command)
-    (start-file-process . tramp-smb-handle-start-file-process)
+    (shell-command . tramp-smb-handle-shell-command)
+    (start-file-process . tramp-handle-start-file-process)
     (substitute-in-file-name . tramp-smb-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     (tramp-get-home-directory . tramp-smb-handle-get-home-directory)
@@ -1266,6 +1267,79 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (unless (file-directory-p dir)
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
+(defvar tramp-smb-matching-line nil
+  "Regexp to delete from current buffer.")
+
+(defun tramp-smb-delete-matching-lines (string)
+  "Delete matching lines in current buffer.
+Remove this function from `comint-preoutput-filter-functions'."
+  (save-excursion
+    (goto-char (point-min))
+    (unless
+	(zerop (delete-matching-lines tramp-smb-matching-line))
+      (setq tramp-smb-matching-line nil)
+      (remove-hook 'comint-preoutput-filter-functions
+		   #'tramp-smb-delete-matching-lines 'local))
+    string))
+
+;; We use BUFFER also as connection buffer during setup.  Because of
+;; this, its original contents must be saved, and restored once
+;; connection has been setup.
+(defun tramp-smb-handle-make-process (&rest args)
+  "Like `make-process' for Tramp files.
+If method parameter `tramp-direct-async' and connection-local variable
+`tramp-direct-async-process' are non-nil, an alternative implementation
+will be used."
+  (if (tramp-direct-async-process-p args)
+      (apply #'tramp-handle-make-process args)
+    (tramp-skeleton-make-process args nil t
+      (let* ((command (string-join command " "))
+	     (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
+	     p)
+	(with-tramp-saved-connection-properties
+	    v '(" process-name" " process-buffer")
+	  (unwind-protect
+	      (save-excursion
+		(save-restriction
+		  ;; Set the new process properties.
+		  (tramp-set-connection-property v " process-name" name)
+		  (tramp-set-connection-property v " process-buffer" buffer)
+		  ;; Activate narrowing in order to save BUFFER contents.
+		  (with-current-buffer (tramp-get-connection-buffer v)
+		    (let ((buffer-undo-list t))
+		      (narrow-to-region (point-max) (point-max))
+		      (tramp-smb-call-winexe v)
+		      (tramp-message v 6 "%s" command)
+		      (tramp-send-string v command)
+		      (setq
+		       tramp-smb-matching-line (rx bol (literal command) eol))
+		      (add-hook 'comint-preoutput-filter-functions
+				#'tramp-smb-delete-matching-lines nil 'local)))
+		  (setq p (tramp-get-connection-process v))
+		  ;; Set sentinel and filter.
+		  (when sentinel
+		    (set-process-sentinel p sentinel))
+		  (when filter
+		    (set-process-filter p filter))
+		  (process-put p 'remote-command orig-command)
+		  ;; Set query flag and process marker for this
+		  ;; process.  We ignore errors, because the process
+		  ;; could have finished already.
+		  (ignore-errors
+		    (set-process-query-on-exit-flag p (null noquery))
+		    (set-marker (process-mark p) (point)))
+		  ;; Return value.
+		  p))
+
+	    ;; Save exit.
+	    ;; FIXME: Does `tramp-get-connection-buffer' return the proper value?
+	    (with-current-buffer (tramp-get-connection-buffer v)
+	      (if (string-search tramp-temp-buffer-name (buffer-name))
+		  (progn
+		    (set-process-buffer (tramp-get-connection-process v) nil)
+		    (kill-buffer (current-buffer)))
+		(set-buffer-modified-p bmp)))))))))
+
 (defun tramp-smb-handle-make-symbolic-link
     (target linkname &optional ok-if-already-exists)
   "Like `make-symbolic-link' for Tramp files."
@@ -1286,120 +1360,62 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 (defun tramp-smb-handle-process-file
   (program &optional infile destination display &rest args)
   "Like `process-file' for Tramp files."
-  ;; The implementation is not complete yet.
-  (when (and (numberp destination) (zerop destination))
-    (error "Implementation does not handle immediate return"))
-
-  (with-parsed-tramp-file-name (expand-file-name default-directory) nil
-    (let* ((name (file-name-nondirectory program))
-	   (name1 name)
-	   (i 0)
-	   input tmpinput outbuf command ret)
-
-      ;; Determine input.
-      (when infile
-	(setq infile (file-name-unquote (expand-file-name infile)))
-	(if (tramp-equal-remote default-directory infile)
-	    ;; INFILE is on the same remote host.
-	    (setq input (tramp-unquote-file-local-name infile))
-	  ;; INFILE must be copied to remote host.
-	  (setq input (tramp-make-tramp-temp-file v)
-		tmpinput (tramp-make-tramp-file-name v input))
-	  (copy-file infile tmpinput t))
-	;; Transform input into a filename powershell does understand.
-	(setq input (format "//%s%s" host input)))
-
-      ;; Determine output.
-      (cond
-       ;; Just a buffer.
-       ((bufferp destination)
-	(setq outbuf destination))
-       ;; A buffer name.
-       ((stringp destination)
-	(setq outbuf (get-buffer-create destination)))
-       ;; (REAL-DESTINATION ERROR-DESTINATION)
-       ((consp destination)
-	;; output.
-	(cond
-	 ((bufferp (car destination))
-	  (setq outbuf (car destination)))
-	 ((stringp (car destination))
-	  (setq outbuf (get-buffer-create (car destination))))
-	 ((car destination)
-	  (setq outbuf (current-buffer))))
-	;; stderr.
-	(tramp-warning v "%s" "STDERR not supported"))
-       ;; 't
-       (destination
-	(setq outbuf (current-buffer))))
+  ;; STDERR is not impelmemted.
+  (when (consp destination)
+    (setcdr destination `(,tramp-cache-undefined)))
+  (tramp-skeleton-process-file program infile destination display args
+    (let ((name
+	   (string-replace "*tramp" "*tramp process" (tramp-buffer-name v))))
+      ;; Transform input into a filename powershell does understand.
+      (when input
+	(setq input
+	      (and (not (string-equal input (tramp-get-remote-null-device v)))
+		   (format "//%s%s" host input))))
 
       ;; Construct command.
       (setq command (string-join (cons program args) " ")
 	    command (if input
 			(format
-			 "get-content %s | & %s"
+			 "Get-Content %s | & %s"
 			 (tramp-smb-shell-quote-argument input) command)
-		      (format "& %s" command)))
-
-      (while (get-process name1)
-	;; NAME must be unique as process name.
-	(setq i (1+ i)
-	      name1 (format "%s<%d>" name i)))
+		      (format "%s" command)))
 
       ;; Call it.
       (condition-case nil
 	  (with-tramp-saved-connection-properties
 	      v '(" process-name" " process-buffer")
 	    ;; Set the new process properties.
-	    (tramp-set-connection-property v " process-name" name1)
+	    (tramp-set-connection-property v " process-name" name)
 	    (tramp-set-connection-property
-	     v " process-buffer"
-	     (or outbuf (generate-new-buffer tramp-temp-buffer-name)))
-	    (tramp-flush-connection-property v " process-exit-status")
+	     ;; v " process-buffer"
+	     ;; (or outbuf (generate-new-buffer tramp-temp-buffer-name)))
+	     v " process-buffer" (generate-new-buffer tramp-temp-buffer-name))
 	    (with-current-buffer (tramp-get-connection-buffer v)
 	      ;; Preserve buffer contents.
 	      (narrow-to-region (point-max) (point-max))
 	      (tramp-smb-call-winexe v)
-	      (when (tramp-smb-get-share v)
-		(tramp-smb-send-command
-		 v (format "cd //%s%s" host
-			   (tramp-smb-shell-quote-argument
-			    (file-name-directory localname)))))
-	      (tramp-smb-send-command v command)
-	      ;; Preserve command output.
-	      (narrow-to-region (point-max) (point-max))
-	      (let ((p (tramp-get-connection-process v)))
-		(tramp-smb-send-command v "exit $lasterrorcode")
-		(while (process-live-p p)
-		  (sleep-for 0.1)
-		  (setq ret (process-exit-status p))))
-	      (delete-region (point-min) (point-max))
-	      (widen)))
+	      (tramp-flush-connection-property v " process-exit-status")
+	      (tramp-smb-send-command
+	       v (format "%s; exit -not $?" command))
+	      (while (not (setq ret (tramp-get-connection-property
+				     v " process-exit-status")))
+		(sleep-for 0.1))
+	      (unless (natnump ret) (setq ret 1))
+	      ;; We should add the output anyway.
+	      (when outbuf
+		(with-current-buffer outbuf
+		  (insert-buffer-substring (tramp-get-connection-buffer v)))
+		(when (and display (get-buffer-window outbuf t)) (redisplay)))))
 
 	;; When the user did interrupt, we should do it also.  We use
 	;; return code -1 as marker.
 	(quit
+	 (kill-buffer (tramp-get-connection-buffer v))
 	 (setq ret -1))
 	;; Handle errors.
 	(error
-	 (setq ret 1)))
-
-      ;; We should redisplay the output.
-      (when (and display outbuf (get-buffer-window outbuf t)) (redisplay))
-
-      ;; Cleanup.  We remove all file cache values for the connection,
-      ;; because the remote process could have changed them.
-      (when tmpinput (delete-file tmpinput))
-      ;; FIXME: Does connection-property " process-buffer" still exist?
-      (unless outbuf
-	(kill-buffer (tramp-get-connection-property v " process-buffer")))
-      (when process-file-side-effects
-	(tramp-flush-directory-properties v "/"))
-
-      ;; Return exit status.
-      (if (equal ret -1)
-	  (keyboard-quit)
-	ret))))
+	 (kill-buffer (tramp-get-connection-buffer v))
+	 (setq ret 1))))))
 
 (defun tramp-smb-handle-rename-file
   (filename newname &optional ok-if-already-exists)
@@ -1543,62 +1559,18 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
         (tramp-smb-shell-quote-localname v)
         (format-time-string "%Y:%m:%d-%H:%M:%S" (tramp-defined-time time))))))
 
-;; We use BUFFER also as connection buffer during setup.  Because of
-;; this, its original contents must be saved, and restored once
-;; connection has been setup.
-(defun tramp-smb-handle-start-file-process (name buffer program &rest args)
-  "Like `start-file-process' for Tramp files."
-  (with-parsed-tramp-file-name default-directory nil
-    (let* ((buffer
-	    (if buffer
-		(get-buffer-create buffer)
-	      ;; BUFFER can be nil.  We use a temporary buffer.
-	      (generate-new-buffer tramp-temp-buffer-name)))
-	   (command (string-join (cons program args) " "))
-	   (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
-	   (name1 name)
-	   (i 0)
-	   p)
-      (unwind-protect
-	  (with-tramp-saved-connection-properties
-	      v '(" process-name" " process-buffer")
-	    (save-excursion
-	      (save-restriction
-		(while (get-process name1)
-		  ;; NAME must be unique as process name.
-		  (setq i (1+ i)
-			name1 (format "%s<%d>" name i)))
-		;; Set the new process properties.
-		(tramp-set-connection-property v " process-name" name1)
-		(tramp-set-connection-property v " process-buffer" buffer)
-		;; Activate narrowing in order to save BUFFER contents.
-		(with-current-buffer (tramp-get-connection-buffer v)
-		  (let ((buffer-undo-list t))
-		    (narrow-to-region (point-max) (point-max))
-		    (tramp-smb-call-winexe v)
-		    (when (tramp-smb-get-share v)
-		      (tramp-smb-send-command
-		       v (format
-			  "cd //%s%s"
-			  host
-			  (tramp-smb-shell-quote-argument
-			   (file-name-directory localname)))))
-		    (tramp-message v 6 "(%s); exit" command)
-		    (tramp-send-string v command)))
-		(setq p (tramp-get-connection-process v))
-		(when program
-		  (process-put p 'remote-command (cons program args)))
-		;; Return value.
-		p)))
+(defun tramp-smb-handle-shell-command
+    (command &optional output-buffer error-buffer)
+  "Like `shell-command' for Tramp files."
 
-	;; Save exit.
-	;; FIXME: Does `tramp-get-connection-buffer' return the proper value?
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (if (string-search tramp-temp-buffer-name (buffer-name))
-	      (progn
-		(set-process-buffer (tramp-get-connection-process v) nil)
-		(kill-buffer (current-buffer)))
-	    (set-buffer-modified-p bmp)))))))
+  (let* (;; "& wait" is added by `dired-shell-stuff-it'.
+	 (asynchronous
+	  (string-match-p
+	   (rx (? (* blank) "& wait") (* blank) "&" (* blank) eos) command))
+	 (command (substring command 0 asynchronous))
+	 (command (string-join `("\"" "&" "{" ,command "}" "\"") " "))
+	 (command (if asynchronous (concat command "; exit &") command)))
+    (tramp-handle-shell-command command output-buffer error-buffer)))
 
 (defun tramp-smb-handle-substitute-in-file-name (filename)
   "Like `substitute-in-file-name' for Tramp files.
@@ -1661,25 +1633,28 @@ VEC or USER, or if there is no home directory, return nil."
       (when (string-match (rx bol (? "/") (group (+ (not "/"))) "/") localname)
 	(match-string 1 localname)))))
 
-(defun tramp-smb-get-localname (vec)
+(defun tramp-smb-get-localname (vec &optional share)
   "Return the file name of LOCALNAME.
+If SHARE is non-nil, include the share name.
 If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
   (save-match-data
     (let ((localname (tramp-file-name-unquote-localname vec)))
-      (setq
-       localname
-       (if (string-match
-	    (rx bol (? "/") (+ (not "/")) (group "/" (* nonl))) localname)
-	   ;; There is a share, separated by "/".
-	   (if (not (tramp-smb-get-cifs-capabilities vec))
-	       (mapconcat
-		(lambda (x) (if (equal x ?/) "\\" (char-to-string x)))
-		(match-string 1 localname) "")
-	     (match-string 1 localname))
-	 ;; There is just a share.
-	 (if (string-match (rx bol (? "/") (group (+ (not "/"))) eol) localname)
-	     (match-string 1 localname)
-	   "")))
+      (unless share
+	(setq
+	 localname
+	 (if (string-match
+	      (rx bol (? "/") (+ (not "/")) (group "/" (* nonl))) localname)
+	     ;; There is a share, separated by "/".
+	     (if (not (tramp-smb-get-cifs-capabilities vec))
+		 (mapconcat
+		  (lambda (x) (if (equal x ?/) "\\" (char-to-string x)))
+		  (match-string 1 localname) "")
+	       (match-string 1 localname))
+	   ;; There is just a share.
+	   (if (string-match
+		(rx bol (? "/") (group (+ (not "/"))) eol) localname)
+	       (match-string 1 localname)
+	     ""))))
 
       ;; Sometimes we have discarded `substitute-in-file-name'.
       (when (string-match (rx (group "$$") (| "/" eol)) localname)
@@ -1939,7 +1914,13 @@ function waits for output unless NOOUTPUT is set."
   (tramp-smb-maybe-open-connection vec)
   (tramp-message vec 6 "%s" command)
   (tramp-send-string vec command)
-  (unless nooutput (tramp-smb-wait-for-output vec)))
+  (unless nooutput
+    (prog1
+	(tramp-smb-wait-for-output vec)
+      (with-current-buffer (tramp-get-connection-buffer vec)
+	(save-excursion
+	  (goto-char (point-min))
+	  (delete-matching-lines (rx bol (literal command) eol)))))))
 
 (defun tramp-smb-maybe-open-connection (vec &optional argument)
   "Maybe open a connection to HOST, log in as USER, using `tramp-smb-program'.
@@ -2047,12 +2028,21 @@ If ARGUMENT is non-nil, use it as argument for
 
 	      (let* (coding-system-for-read
 		     (process-connection-type tramp-process-connection-type)
+		     ;; There might be some unfortune values of
+                     ;; `tramp-smb-connection-local-default-system-variables'.
+                     ;(path-separator (default-value 'path-separator))
+                     ;(null-device (default-value 'null-device))
+                     ;(exec-suffixes (default-value 'exec-suffixes))
 		     (p (apply #'tramp-start-process vec
 			       (tramp-get-connection-name vec)
 			       (tramp-get-connection-buffer vec)
 			       (if argument
 				   tramp-smb-winexe-program tramp-smb-program)
 			       args)))
+
+		;; Set sentinel.  Initialize variables.
+		(set-process-sentinel p #'tramp-process-sentinel)
+		(setq tramp-current-connection (cons vec (current-time)))
 
 		;; Set connection-local variables.
 		(tramp-set-connection-local-variables vec)
@@ -2104,7 +2094,9 @@ Removes smb prompt.  Returns nil if an error message has appeared."
 	  (inhibit-read-only t))
 
       ;; Read pending output.
-      (while (not (search-forward-regexp tramp-smb-prompt nil t))
+      (tramp-accept-process-output p)
+      (while (and (process-live-p p)
+		  (not (search-forward-regexp tramp-smb-prompt nil t)))
 	(while (tramp-accept-process-output p))
 	(goto-char (point-min)))
       (tramp-message vec 6 "%S\n%s" p (buffer-string))
@@ -2138,6 +2130,10 @@ Removes smb prompt.  Returns nil if an error message has appeared."
   (when (tramp-file-name-port vec)
     (tramp-error vec 'file-error "Port not supported for remote processes"))
 
+  ;; Check share.
+  (unless (tramp-smb-get-share vec)
+    (tramp-error vec 'file-error "Default directory must contain a share."))
+
   ;; In case of "NT_STATUS_RPC_SS_CONTEXT_MISMATCH", the remote server
   ;; is a Samba server.  winexe cannot install the respective service there.
   (tramp-smb-maybe-open-connection
@@ -2150,7 +2146,9 @@ Removes smb prompt.  Returns nil if an error message has appeared."
 
   ;; Suppress "^M".  Shouldn't we specify utf8?
   (set-process-coding-system (tramp-get-connection-process vec) 'raw-text-dos)
-
+  ;; Enable UTF-8 encoding.  Suppress "^M".
+  ;; (set-process-coding-system (tramp-get-connection-process vec) 'utf-8-dos)
+  ;; (tramp-smb-send-command vec "$PSDefaultParameterValues['*:Encoding'] = 'utf8'")
   ;; Set width to 128 ($bufsize.Width) or 102 ($winsize.Width),
   ;; respectively.  $winsize.Width cannot be larger.  This avoids
   ;; mixing prompt and long error messages.
@@ -2160,16 +2158,23 @@ Removes smb prompt.  Returns nil if an error message has appeared."
   (tramp-smb-send-command vec "$bufsize.Width = 128")
   (tramp-smb-send-command vec "$winsize.Width = 102")
   (tramp-smb-send-command vec "$rawui.BufferSize = $bufsize")
-  (tramp-smb-send-command vec "$rawui.WindowSize = $winsize"))
+  (tramp-smb-send-command vec "$rawui.WindowSize = $winsize")
+  ;; Goto `default-directory'.
+  (tramp-smb-send-command
+   vec (format
+	"cd //%s%s"
+	(tramp-file-name-host vec)
+	(tramp-smb-shell-quote-localname vec 'share))))
 
 (defun tramp-smb-shell-quote-argument (s)
   "Similar to `shell-quote-argument', but uses Windows cmd syntax."
   (let ((system-type 'ms-dos))
     (tramp-unquote-shell-quote-argument s)))
 
-(defun tramp-smb-shell-quote-localname (vec)
-  "Call `tramp-smb-shell-quote-argument' on localname of VEC."
-  (tramp-smb-shell-quote-argument (tramp-smb-get-localname vec)))
+(defun tramp-smb-shell-quote-localname (vec &optional share)
+  "Call `tramp-smb-shell-quote-argument' on localname of VEC.
+SHARE will be passed to the call of `tramp-smb-get-localname'."
+  (tramp-smb-shell-quote-argument (tramp-smb-get-localname vec share)))
 
 ;;; Default connection-local variables for Tramp.
 
@@ -2193,6 +2198,57 @@ Removes smb prompt.  Returns nil if an error message has appeared."
 (connection-local-set-profiles
  `(:application tramp :protocol ,tramp-smb-method)
  'tramp-smb-connection-local-default-system-profile)
+
+;; (defconst tramp-smb-connection-local-bash-variables
+;;   '((explicit-shell-file-name . "bash")
+;;     (explicit-bash-args . ("--norc" "--noediting" "-i"))
+;;     (shell-file-name . "bash")
+;;     (shell-command-switch . "-c"))
+;;   "Default connection-local bash variables for remote smb connections.")
+
+;; (connection-local-set-profile-variables
+;;  'tramp-smb-connection-local-bash-profile
+;;  tramp-smb-connection-local-bash-variables)
+
+(defconst tramp-smb-connection-local-powershell-variables
+  `((explicit-shell-file-name . "powershell")
+    (explicit-powershell-args . ("-file" "-"))
+    (shell-file-name . "powershell")
+    (shell-command-switch . "-command")
+    (shell-history-file-name . t))
+  "Default connection-local powershell variables for remote smb connections.")
+
+(connection-local-set-profile-variables
+ 'tramp-smb-connection-local-powershell-profile
+ tramp-smb-connection-local-powershell-variables)
+
+(defun tramp-smb-shell-prompt ()
+  "Set `comint-prompt-regexp' to a proper value."
+  ;; Used for remote `shell-mode' buffers.
+  (when (tramp-smb-file-name-p default-directory)
+    (setq-local comint-prompt-regexp tramp-smb-prompt)))
+
+;; (defconst tramp-smb-connection-local-cmd-variables
+;;   '((explicit-shell-file-name . "cmd")
+;;     (explicit-cmd-args . ("/Q"))
+;;     (shell-file-name . "cmd")
+;;     (shell-command-switch . "/C"))
+;;   "Default connection-local cmd variables for remote smb connections.")
+
+;; (connection-local-set-profile-variables
+;;  'tramp-smb-connection-local-cmd-profile
+;;  tramp-smb-connection-local-cmd-variables)
+
+(with-eval-after-load 'shell
+  (connection-local-set-profiles
+   `(:application tramp :protocol ,tramp-smb-method)
+   'tramp-smb-connection-local-powershell-profile)
+  (add-hook 'shell-mode-hook
+	    #'tramp-smb-shell-prompt)
+  (add-hook 'tramp-smb-unload-hook
+	    (lambda ()
+	      (remove-hook 'shell-mode-hook
+			   #'tramp-smb-shell-prompt))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

@@ -3369,6 +3369,7 @@ will be used."
                 (insert
 		 (tramp-get-buffer-string (tramp-get-connection-buffer v))))
 	      (when (and display (get-buffer-window outbuf t)) (redisplay))))
+
 	;; When the user did interrupt, we should do it also.  We use
 	;; return code -1 as marker.
 	(quit
