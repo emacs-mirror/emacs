@@ -659,7 +659,7 @@ The Birth of the Báb and the Birth of Bahá’u’lláh are celebrated on
 consecutive days, determined by the eighth new moon after Naw-Rúz.
 These dates move through the Gregorian calendar, typically falling
 between mid-October and mid-November (Bahá’í months of Mashíyyat,
-'Ilm, and Qudrat).")
+\\='Ilm, and Qudrat).")
 
 (defun calendar-bahai--verify-nawruz ()
   "Verify Naw-Rúz calculations against official reference dates.
