@@ -1109,10 +1109,11 @@ instead of the default @code{equal}.
 @defun seq-intersection sequence1 sequence2 &optional function
 @cindex sequences, intersection of
 @cindex intersection of sequences
-  This function returns a list of the elements that appear both in
-@var{sequence1} and @var{sequence2}.  If the optional argument
-@var{function} is non-@code{nil}, it is a function of two arguments to
-use to compare elements instead of the default @code{equal}.
+  This function returns a copy of @var{sequence1} from which the
+elements that appear in @var{sequence2} where removed.  If the optional
+argument @var{function} is non-@code{nil}, it is a function of two
+arguments to use to compare elements instead of the default
+@code{equal}.
 
 @example
 @group
