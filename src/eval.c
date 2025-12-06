@@ -3444,7 +3444,12 @@ DEFUN ("func-arity", Ffunc_arity, Sfunc_arity, 1, 1, 0,
 FUNCTION must be a function of some kind.
 The returned value is a cons cell (MIN . MAX).  MIN is the minimum number
 of args.  MAX is the maximum number, or the symbol `many', for a
-function with `&rest' args, or `unevalled' for a special form.  */)
+function with `&rest' args, or `unevalled' for a special form.
+
+Note that this function might return inaccurate results in some cases,
+such as with functions defined using `apply-partially', functions
+advised using `advice-add', and functions that determine their arg
+list dynamically.  */)
   (Lisp_Object function)
 {
   Lisp_Object original;
