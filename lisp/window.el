@@ -8190,11 +8190,19 @@ perform.
 Action alist entries are:
  `inhibit-same-window' -- A non-nil value prevents the same
     window from being used for display.
+ \\+`previous-window' -- The value specifies a window which may
+    have previously displayed the buffer, and that should be
+    preferred for displaying the buffer.
+ `mode' -- A major mode or a list of modes; `display-buffer' may
+    reuse a window if its current buffer is under one of those modes.
  `inhibit-switch-frame' -- A non-nil value prevents any frame
     used for showing the buffer from being raised or selected.
     Note that a window manager may still raise a new frame and
     give it focus, effectively overriding the value specified
     here.
+ `frame-predicate' -- The value should be a function of one argument,
+    a frame, and should return non-nil if the frame is a candidate
+    for displaying the buffer.
  `reusable-frames' -- The value specifies the set of frames to
     search for a window that already displays the buffer.
     Possible values are nil (the selected frame), t (any live
@@ -8204,7 +8212,11 @@ Action alist entries are:
     Takes precedence over the variable.
  `pop-up-frame-parameters' -- The value specifies an alist of
     frame parameters to give a new frame, if one is created.
- `window-height' -- The value specifies the desired height of the
+ `parent-frame' -- The value specifies the parent frame to be used
+    when the buffer is displayed on a child frame.
+ `child-frame-parameters' -- The value specifies an alist of frame
+    parameters to use when displaying a buffer on a child frame.
+ \\+`window-height' -- The value specifies the desired height of the
     window chosen and is either an integer (the total height of
     the window specified in frame lines), a floating point
     number (the fraction of its total height with respect to the
@@ -8215,7 +8227,7 @@ Action alist entries are:
     window.  That function is supposed to adjust the height of
     the window.  Suitable functions are `fit-window-to-buffer'
     and `shrink-window-if-larger-than-buffer'.
- `window-width' -- The value specifies the desired width of the
+ \\+`window-width' -- The value specifies the desired width of the
     window chosen and is either an integer (the total width of
     the window specified in frame lines), a floating point
     number (the fraction of its total width with respect to the
@@ -8224,7 +8236,7 @@ Action alist entries are:
     width of the window's body in frame columns, or a function to
     be called with one argument - the chosen window.  That
     function is supposed to adjust the width of the window.
- `window-size' -- This entry is only useful for windows appearing
+ \\+`window-size' -- This entry is only useful for windows appearing
     alone on their frame and specifies the desired size of that
     window either as a cons of integers (the total width and
     height of the window on that frame), a cons cell whose car is
@@ -8233,15 +8245,42 @@ Action alist entries are:
     its frame), or a function to be called with one argument -
     the chosen window.  That function is supposed to adjust the
     size of the frame.
+ \\+`window-min-width' -- The minimum width of the window to be
+    used, in canonical frame columns.  The value could also be
+    the symbol `full-width', which means the window to be used should
+    be a full-width window on its frame.
+ \\+`window-min-height' -- The minimum height of the window to be
+    used, in frame's canonical lines.  The value could also be the
+    symbol `full-height', which means the window to be used should
+    be a full-height window on its frame.
  `preserve-size' -- The value should be either (t . nil) to
     preserve the width of the chosen window, (nil . t) to
     preserve its height or (t . t) to preserve its height and
     width in future changes of the window configuration.
- `window-parameters' -- The value specifies an alist of window
+ \\+`window-parameters' -- The value specifies an alist of window
     parameters to give the chosen window.
+ `dedicated' -- If the value is non-nil, `display-buffer' will make
+    the window it uses dedicated (see `set-window-dedicated-p') to the
+    buffer.
+ `lru-frames' -- The value specifies the set of frames to search for
+    a window that can be used to display the buffer.
+ `lru-time' -- The value specifies the maximum window use time (see
+    `window-use-time') to consider a window as a candidate for
+    displaying the buffer.
+ `bump-use-time' -- A non-nil value means bump the use time of the
+    window to use (see `window-bump-use-time').
+ `side' -- The value specifies the side of a frame where to create a
+    new window displaying the buffer.  See `display-buffer-in-side-window'.
+ `slot' -- If non-nil, specifies the side-window slot where to display
+    the buffer, see `display-buffer-in-side-window'.
+ \\+`window' -- The value specifies the window related to the window
+    to be used for displaying the buffer.
+ `direction' -- Together with a `window' entry, the value determines
+    the location of the window (see `display-buffer-in-direction') to
+    display the buffer.
  `allow-no-window' -- A non-nil value means that `display-buffer'
     may not display the buffer and return nil immediately.
- `some-window' -- This entry defines which window
+ \\+`some-window' -- This entry defines which window
     `display-buffer-use-some-window' should choose.  The possible choices
     are `lru' or nil (the default) to select the least recently used window,
     and `mru' to select the most recently used window.  It can also be a

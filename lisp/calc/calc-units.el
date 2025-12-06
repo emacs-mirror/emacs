@@ -47,8 +47,8 @@
 ;; https://www.bipm.org/en/committees/cg/cgpm/26-2018/resolution-1
 
 ;; CODATA values last updated June 2024, using 2022 adjustment:
-;; P. J. Mohr, E. Tiesinga, D. B. Newell, and B. N. Taylor (2024-05-08),
-;; https://pml.nist.gov/cuu/Constants/
+;; P. J. Mohr, D. B. Newell, B. N. Taylor, and E. Tiesinga,
+;; Rev. Mod. Phys. 97 (2025) 025002
 
 (defvar math-standard-units
   '( ;; Length

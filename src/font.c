@@ -4390,12 +4390,15 @@ See also `font-get' for KEYs that have special meanings.  */)
 }
 
 DEFUN ("list-fonts", Flist_fonts, Slist_fonts, 1, 4, 0,
-       doc: /* List available fonts matching FONT-SPEC on the current frame.
-Optional 2nd argument FRAME specifies the target frame.
+       doc: /* List available fonts matching FONT-SPEC on FRAME.
+If FRAME is nil or omitted, it defaults to the selected frame,
 Optional 3rd argument NUM, if non-nil, limits the number of returned fonts.
 Optional 4th argument PREFER, if non-nil, is a font-spec to
 control the order of the returned list.  Fonts are sorted by
-how close they are to PREFER.  */)
+how close they are to PREFER.
+
+The return value is a list of font-entity objects describing available
+fonts which match FONT-SPEC.  */)
   (Lisp_Object font_spec, Lisp_Object frame, Lisp_Object num, Lisp_Object prefer)
 {
   struct frame *f = decode_live_frame (frame);
