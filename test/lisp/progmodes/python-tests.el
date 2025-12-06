@@ -7428,7 +7428,7 @@ class SomeClass:
       (or enabled (hs-minor-mode -1)))))
 
 (ert-deftest python-hideshow-hide-levels-3 ()
-  "Should hide all blocks."
+  "Should hide 2nd level blocks."
   (python-tests-with-temp-buffer
    "
 def f():
@@ -7447,19 +7447,22 @@ def g():
      (python-tests-visible-string)
      "
 def f():
+    if 0:
 
 def g():
+    pass
 "))))
 
 (ert-deftest python-hideshow-hide-levels-4 ()
-  "Should hide 2nd level block."
+  "Should hide 3nd level block."
   (python-tests-with-temp-buffer
    "
 def f():
     if 0:
         l = [i for i in range(5)
              if i < 3]
-        abc = o.match(1, 2, 3)
+        if 1:
+            abc = o.match(1, 2, 3)
 
 def g():
     pass
@@ -7472,6 +7475,9 @@ def g():
      "
 def f():
     if 0:
+        l = [i for i in range(5)
+             if i < 3]
+        if 1:
 
 def g():
     pass

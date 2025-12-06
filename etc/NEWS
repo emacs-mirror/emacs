@@ -1113,6 +1113,12 @@ blocks.
 *** New command 'hs-toggle-all'.
 This command hides or shows all the blocks in the current buffer.
 
+---
+*** 'hs-hide-level' no longer hide all the blocks in the current buffer.
+If 'hs-hide-level' was not inside a code block it would hide all the
+blocks in the buffer like 'hs-hide-all'.  Now it should only hide all
+the second level blocks.
+
 +++
 *** New user option 'hs-display-lines-hidden'.
 If this option is non-nil, Hideshow displays the number of hidden lines
@@ -1155,7 +1161,7 @@ after cursor position.  By default this is set to 'after-bol'.
 This user option controls the positions on the headline of hideable blocks
 where the 'TAB' key cycles the blocks' visibility.
 
-+++
+---
 *** The variable 'hs-special-modes-alist' is now obsolete.
 Instead of customizing Hideshow for a mode by setting the elements of
 'hs-special-modes-alist', such as START, COMMENT-START,

@@ -246,7 +246,7 @@ sub()
      (should (string= (hideshow-tests-visible-string) contents)))))
 
 (ert-deftest hideshow-hide-level-1 ()
-  "Should hide 1st level blocks."
+  "Should hide 2st level blocks."
   (hideshow-tests-with-temp-buffer
    c-mode
    "
@@ -265,40 +265,6 @@ main(int argc, char **argv)
 }
 "
    (hs-hide-level 1)
-   (should (string=
-            (hideshow-tests-visible-string)
-            "
-/*
-   Comments
-*/
-
-\"String\"
-
-int
-main(int argc, char **argv)
-{}
-"))))
-
-(ert-deftest hideshow-hide-level-2 ()
-  "Should hide 2nd level blocks."
-  (hideshow-tests-with-temp-buffer
-   c-mode
-   "
-/*
-   Comments
-*/
-
-\"String\"
-
-int
-main(int argc, char **argv)
-{
-  if (argc > 1) {
-    printf(\"Hello\\n\");
-  }
-}
-"
-   (hs-hide-level 2)
    (should (string=
             (hideshow-tests-visible-string)
             "
