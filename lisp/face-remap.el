@@ -580,9 +580,10 @@ one face is listed, that specifies an aggregate face, like in a
 `face' text property.  If SPECS is nil or omitted, disable
 `buffer-face-mode'.
 
-If a face property list specifies `:font', the value should be
-either a font-spec object or the return value of `font-face-attributes'
-called with a font object, font spec, or font entity.
+If SPECS needs to specify a font, it should be either a list
+whose car is `:font' and whose cdr is a font-spec object,
+or the return value of `font-face-attributes' called with a font
+object, font spec, or font entity corresponding to the desired font.
 
 This function makes the variable `buffer-face-mode-face' buffer
 local, and sets it to FACE."
