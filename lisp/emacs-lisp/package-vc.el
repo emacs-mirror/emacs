@@ -84,12 +84,6 @@ the `clone' VC function."
 
 (defvar package-vc-selected-packages) ; pacify byte-compiler
 
-(defconst package-vc--url-scheme
-  (if (memq system-type '(ms-dos windows-nt cygwin))
-      "file:///"
-    "file://")
-  "Scheme for `:url' property in package spec.")
-
 ;;;###autoload
 (defun package-vc-install-selected-packages ()
   "Ensure packages specified in `package-vc-selected-packages' are installed."
@@ -189,11 +183,8 @@ located in a sub directory of the checkout, or the checkout has a sub
 directory named \"lisp\" or \"src\" that contains .el files and return
 that instead."
   (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
-         (pkg-dir (pcase (plist-get pkg-spec :url)
-                    ((rx (literal package-vc--url-scheme)
-                         (let checkout-dir (+ any)))
-                     checkout-dir)
-                    (_ (package-desc-dir pkg-desc)))))
+         (pkg-dir (or (alist-get :vc-dir (package-desc-extras pkg-desc))
+                      (package-desc-dir pkg-desc))))
     (expand-file-name
      (or (and lisp-dir
               (or (plist-get pkg-spec :lisp-dir)
@@ -749,14 +740,6 @@ This list is used by `package-vc--unpack' to better check if the
 user is fetching code from a repository that does not contain any
 Emacs Lisp files.")
 
-(defun package-vc--save-selected-packages (name pkg-spec)
-  "Save the package specification PKG-SPEC for a package NAME."
-  (customize-save-variable
-   'package-vc-selected-packages
-   (cons (cons name pkg-spec)
-         (seq-remove (lambda (spec) (string= name (car spec)))
-                     package-vc-selected-packages))))
-
 (defun package-vc--unpack (pkg-desc pkg-spec &optional rev)
   "Install the package described by PKG-DESC.
 PKG-SPEC is a package specification, a property list describing
@@ -792,7 +775,11 @@ abort installation?" name))
 
     ;; Ensure we have a copy of the package specification
     (when (null (package-vc--desc->spec pkg-desc name))
-      (package-vc--save-selected-packages name pkg-spec))
+      (customize-save-variable
+       'package-vc-selected-packages
+       (cons (cons name pkg-spec)
+             (seq-remove (lambda (spec) (string= name (car spec)))
+                         package-vc-selected-packages))))
 
     (package-vc--unpack-1 pkg-desc)))
 
@@ -1056,11 +1043,11 @@ interactively), DIR must be an absolute file name."
     ;; We store a custom package specification so that it is available
     ;; for `package-vc--unpack-1' as well as `package-vc--checkout-dir'
     ;; can later retrieve the actual checkout.
-    (package-vc--save-selected-packages
-     name (list :url (concat package-vc--url-scheme dir)))
     (package-vc--unpack-1
      (package-desc-create
       :name (intern name)
+      :extras (and (not (file-equal-p pkg-dir dir))
+                   `((:vc-dir . ,dir)))
       :dir pkg-dir
       :kind 'vc))))
 
