@@ -3720,6 +3720,11 @@ In addition to ':file FILE' for playing a sound from a file, ':data
 DATA' can now be used to play a sound from memory.
 
 ---
+** New primitive 'w32-sound-volume'.
+This primitive allows to get and set the volume of the system's default
+audio device (or the "optimal device", if there are several devices).
+
+---
 ** The MS-DOS port of Emacs now supports more recent releases of GCC and Binutils.
 Accordingly, we have revised our recommendations for a suitable DJGPP
 toolchain to GCC 14.2.0 and Binutils 2.35.1 in lieu of GCC 3.4.x and
