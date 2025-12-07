@@ -1,5 +1,5 @@
 # realloc.m4
-# serial 39
+# serial 40
 dnl Copyright (C) 2007, 2009-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -27,13 +27,54 @@ AC_DEFUN([gl_FUNC_REALLOC_POSIX],
 [
   AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
   AC_REQUIRE([gl_FUNC_MALLOC_POSIX])
+  AC_REQUIRE([AC_CANONICAL_HOST])
+  AC_CACHE_CHECK([whether realloc sets errno on failure],
+    [gl_cv_func_realloc_posix],
+    [
+      dnl FreeBSD 15.0 realloc() does not set errno when asked for more than
+      dnl 0x7000000000000000 bytes.
+      case "$host_os" in
+        darwin* | freebsd* | dragonfly* | midnightbsd* | netbsd* | openbsd*)
+          AC_RUN_IFELSE(
+            [AC_LANG_SOURCE(
+               [[#include <errno.h>
+                 #include <stdlib.h>
+                 int main (int argc, char **argv)
+                 {
+                   void *p;
+                   errno = 1729;
+                   p = realloc (malloc (1), (size_t)(-1) / 100 * 49);
+                   return (!p && errno == 1729);
+                 }
+               ]])
+            ],
+            [gl_cv_func_realloc_posix=yes],
+            [gl_cv_func_realloc_posix=no],
+            [case "$host_os" in
+               freebsd*) gl_cv_func_realloc_posix="guessing no" ;;
+               *)        gl_cv_func_realloc_posix="guessing yes" ;;
+             esac
+            ])
+          ;;
+        *)
+          gl_cv_func_realloc_posix="$gl_cv_func_malloc_posix"
+          ;;
+      esac
+    ])
+  case "$gl_cv_func_realloc_posix" in
+    *yes)
+      AC_DEFINE([HAVE_REALLOC_POSIX], [1],
+        [Define if realloc sets errno on allocation failure.])
+      ;;
+    *)
+      REPLACE_REALLOC_FOR_REALLOC_POSIX=1
+      ;;
+  esac
   AC_REQUIRE([gl_FUNC_REALLOC_SANITIZED])
   if test "$gl_cv_func_realloc_sanitize" != no; then
     REPLACE_REALLOC_FOR_REALLOC_POSIX=1
     AC_DEFINE([NEED_SANITIZED_REALLOC], [1],
       [Define to 1 if realloc should abort upon undefined behaviour.])
-  else
-    REPLACE_REALLOC_FOR_REALLOC_POSIX=$REPLACE_MALLOC_FOR_MALLOC_POSIX
   fi
 ])
 

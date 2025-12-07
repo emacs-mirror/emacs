@@ -94,7 +94,7 @@ rpl_realloc (void *p, size_t n)
 
   void *result = realloc (p, n1);
 
-# if !HAVE_MALLOC_POSIX
+# if !HAVE_REALLOC_POSIX
   if (result == NULL)
     errno = ENOMEM;
 # endif

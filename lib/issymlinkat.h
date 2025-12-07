@@ -14,8 +14,8 @@
    You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-#ifndef _ISSYMLINK_H
-#define _ISSYMLINK_H
+#ifndef _ISSYMLINKAT_H
+#define _ISSYMLINKAT_H
 
 /* This file uses _GL_ARG_NONNULL, _GL_INLINE.  */
 #if !_GL_CONFIG_H_INCLUDED
@@ -23,18 +23,21 @@
 #endif
 
 #include <errno.h>
-#include <unistd.h> /* for readlink */
+#include <unistd.h> /* for readlinkat */
 
 
 _GL_INLINE_HEADER_BEGIN
 
-#ifndef _GL_ISSYMLINK_INLINE
-# define _GL_ISSYMLINK_INLINE _GL_INLINE
+#ifndef _GL_ISSYMLINKAT_INLINE
+# define _GL_ISSYMLINKAT_INLINE _GL_INLINE
 #endif
 
 /* Tests whether FILENAME represents a symbolic link.
    This function is more reliable than lstat() / fstatat() followed by S_ISLNK,
    because it avoids possible EOVERFLOW errors.
+   If FILENAME is a relative file name, it is interpreted as relative to the
+   directory referred to by FD (where FD = AT_FDCWD denotes the current
+   directory).
    Returns
      1                      if FILENAME is a symbolic link,
      0                      if FILENAME exists and is not a symbolic link,
@@ -43,13 +46,13 @@ _GL_INLINE_HEADER_BEGIN
 #ifdef __cplusplus
 extern "C" {
 #endif
-_GL_ISSYMLINK_INLINE int issymlink (const char *filename)
-     _GL_ARG_NONNULL ((1));
-_GL_ISSYMLINK_INLINE int
-issymlink (const char *filename)
+_GL_ISSYMLINKAT_INLINE int issymlinkat (int fd, const char *filename)
+     _GL_ARG_NONNULL ((2));
+_GL_ISSYMLINKAT_INLINE int
+issymlinkat (int fd, const char *filename)
 {
   char linkbuf[1];
-  if (readlink (filename, linkbuf, sizeof (linkbuf)) >= 0)
+  if (readlinkat (fd, filename, linkbuf, sizeof (linkbuf)) >= 0)
     return 1;
   if (errno == EINVAL)
     return 0;
@@ -62,4 +65,4 @@ issymlink (const char *filename)
 
 _GL_INLINE_HEADER_END
 
-#endif /* _ISSYMLINK_H */
+#endif /* _ISSYMLINKAT_H */

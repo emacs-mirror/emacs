@@ -374,32 +374,34 @@ two_way_long_needle (const unsigned char *haystack, size_t haystack_len,
                 }
               memory = 0;
               j += shift;
-              continue;
-            }
-          /* Scan for matches in right half.  The last byte has
-             already been matched, by virtue of the shift table.  */
-          size_t i = MAX (suffix, memory);
-          while (i < needle_len - 1 && (CANON_ELEMENT (needle[i])
-                                        == CANON_ELEMENT (haystack[i + j])))
-            ++i;
-          if (needle_len - 1 <= i)
-            {
-              /* Scan for matches in left half.  */
-              i = suffix - 1;
-              while (memory < i + 1 && (CANON_ELEMENT (needle[i])
-                                        == CANON_ELEMENT (haystack[i + j])))
-                --i;
-              if (i + 1 < memory + 1)
-                return (RETURN_TYPE) (haystack + j);
-              /* No match, so remember how many repetitions of period
-                 on the right half were scanned.  */
-              j += period;
-              memory = needle_len - period;
             }
           else
             {
-              j += i - suffix + 1;
-              memory = 0;
+              /* Scan for matches in right half.  The last byte has
+                 already been matched, by virtue of the shift table.  */
+              size_t i = MAX (suffix, memory);
+              while (i < needle_len - 1 && (CANON_ELEMENT (needle[i])
+                                            == CANON_ELEMENT (haystack[i + j])))
+                ++i;
+              if (needle_len - 1 <= i)
+                {
+                  /* Scan for matches in left half.  */
+                  i = suffix - 1;
+                  while (memory < i + 1 && (CANON_ELEMENT (needle[i])
+                                            == CANON_ELEMENT (haystack[i + j])))
+                    --i;
+                  if (i + 1 < memory + 1)
+                    return (RETURN_TYPE) (haystack + j);
+                  /* No match, so remember how many repetitions of period
+                     on the right half were scanned.  */
+                  j += period;
+                  memory = needle_len - period;
+                }
+              else
+                {
+                  j += i - suffix + 1;
+                  memory = 0;
+                }
             }
         }
     }
@@ -418,27 +420,29 @@ two_way_long_needle (const unsigned char *haystack, size_t haystack_len,
           if (0 < shift)
             {
               j += shift;
-              continue;
-            }
-          /* Scan for matches in right half.  The last byte has
-             already been matched, by virtue of the shift table.  */
-          size_t i = suffix;
-          while (i < needle_len - 1 && (CANON_ELEMENT (needle[i])
-                                        == CANON_ELEMENT (haystack[i + j])))
-            ++i;
-          if (needle_len - 1 <= i)
-            {
-              /* Scan for matches in left half.  */
-              i = suffix - 1;
-              while (i != SIZE_MAX && (CANON_ELEMENT (needle[i])
-                                       == CANON_ELEMENT (haystack[i + j])))
-                --i;
-              if (i == SIZE_MAX)
-                return (RETURN_TYPE) (haystack + j);
-              j += period;
             }
           else
-            j += i - suffix + 1;
+            {
+              /* Scan for matches in right half.  The last byte has
+                 already been matched, by virtue of the shift table.  */
+              size_t i = suffix;
+              while (i < needle_len - 1 && (CANON_ELEMENT (needle[i])
+                                            == CANON_ELEMENT (haystack[i + j])))
+                ++i;
+              if (needle_len - 1 <= i)
+                {
+                  /* Scan for matches in left half.  */
+                  i = suffix - 1;
+                  while (i != SIZE_MAX && (CANON_ELEMENT (needle[i])
+                                           == CANON_ELEMENT (haystack[i + j])))
+                    --i;
+                  if (i == SIZE_MAX)
+                    return (RETURN_TYPE) (haystack + j);
+                  j += period;
+                }
+              else
+                j += i - suffix + 1;
+            }
         }
     }
   return NULL;

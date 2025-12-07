@@ -1383,6 +1383,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/issymlink.c
   lib/issymlink.h
   lib/issymlinkat.c
+  lib/issymlinkat.h
   lib/lchmod.c
   lib/libc-config.h
   lib/limits.in.h

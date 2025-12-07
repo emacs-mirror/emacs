@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2025-10-25.20}
+\def\texinfoversion{2025-12-06.19}
 %
 % Copyright 1985, 1986, 1988, 1990-2025 Free Software Foundation, Inc.
 %
@@ -335,7 +335,7 @@
   %
   % Make the heading and footing.  \makeheadline and \makefootline
   % use the contents of \headline and \footline.
-  \def\commonheadfootline{\let\hsize=\txipagewidth \texinfochars}
+  \def\commonheadfootline{\let\hsize=\txipagewidth \texinfochars}%
   \ifodd\pageno \getoddheadingmarks \else \getevenheadingmarks \fi
   \global\setbox\headlinebox = \vbox{\commonheadfootline \makeheadline}%
   \ifodd\pageno \getoddfootingmarks \else \getevenfootingmarks \fi
@@ -558,7 +558,13 @@
 \def\:{\spacefactor=1000 }
 
 % @* forces a line break.
-\def\*{\unskip\hfil\break\hbox{}\ignorespaces}
+% In internal horizontal or vertical mode, convert explicit line breaks
+% from @* into spaces.  For instance, if the user gives these in long
+% section titles, this may occur in the table of contents, or the page
+% heading line.
+\def\*{%
+  \ifinner\unskip\space\ignorespaces
+  \else\unskip\hfil\break\hbox{}\ignorespaces\fi}
 
 % @/ allows a line break.
 \let\/=\allowbreak
@@ -5681,14 +5687,16 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 \def\indexentry#1#2{%
   \let\entrypagetarget\empty
-  \ifpdforxetex
-    % only link the index text to the page if no comma appears in the
-    % list of pages, i.e. there is only one page
-    \checkpagelistcomma{#2}\pagelistcomma
-    \expandafter\ifcase\pagelistcomma
-      \def\entrypagetarget{#2}%
-    \fi
-  \fi%
+  \ifflagclear{txilinkindextext}{}{%
+    \ifpdforxetex
+      % link the index text to the page if no comma appears in the
+      % list of pages, i.e. there is only one page
+      \checkpagelistcomma{#2}\pagelistcomma
+      \expandafter\ifcase\pagelistcomma
+        \def\entrypagetarget{#2}%
+      \fi
+    \fi%
+  }%
   \entryinternal{#1}{#2}%
 }
 
@@ -5783,9 +5791,10 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \def\indexrbrace{\}}%
     \def\indexbackslash{\realbackslash}%
     \def\indexatchar{\@}%
-    \writetocentry{idxinitial}{\asis #1}{IDX\the\idxinitialno}%
+    \writetocentry{idxinitial}{\asis #1\empty}{IDX\the\idxinitialno}%
     % The @asis removes a pair of braces around e.g. {@indexatchar} that
-    % are output by texindex.
+    % are output by texindex.  \empty is an argument to \asis in case #1
+    % is empty.
     %
     \pdfmkdest{idx.\asis #1.IDX\the\idxinitialno}%
   \fi
@@ -5827,10 +5836,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     % No extra space above this paragraph.
     \parskip = 0in
     %
-    % When reading the text of entry, convert explicit line breaks
-    % from @* into spaces.  The user might give these in long section
-    % titles, for instance.
-    \def\*{\unskip\space\ignorespaces}%
     \def\entrybreak{\hfil\break}% An undocumented command
     %
     % Swallow the left brace of the text (first parameter):
@@ -6191,9 +6196,16 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     % and \thissection, as is done in \startcontents.
     \let\pchapsepmacro\relax
     \chapmacro{}{Yomitfromtoc}{}%
+    \gdef\thispart{#1}%
     \chapoddpage
   \endgroup
 }
+
+% Name of current part, if any.
+% Note: unlike @thischapter etc. defined below, the name of the part
+% is always set before a page with a heading or footing is shipped out,
+% so there is no need to keep the value of these in "marks".
+\def\thispart{}%
 
 % \unnumberedno is an oxymoron.  But we count the unnumbered
 % sections so that we can refer to them unambiguously in the pdf

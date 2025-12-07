@@ -44,9 +44,9 @@ rpl_free (void *p)
   free (p);
   errno = err[errno == 0];
 # else
-  int err = errno;
+  int saved_errno = errno;
   free (p);
-  errno = err;
+  errno = saved_errno;
 # endif
 }
 

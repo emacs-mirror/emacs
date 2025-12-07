@@ -46,7 +46,7 @@ orig_fchmodat (int dir, char const *file, mode_t mode, int flags)
 
 #include <intprops.h>
 
-#include "issymlink.h"
+#include "issymlinkat.h"
 
 /* Invoke chmod or lchmod on FILE, using mode MODE, in the directory
    open on descriptor FD.  If possible, do it without changing the

@@ -551,11 +551,11 @@ getloadavg (double loadavg[], int nelem)
   if (fd < 0)
     return fd;
   int nread = read (fd, readbuf, sizeof readbuf - 1);
-  int err = errno;
+  int saved_errno = errno;
   close (fd);
   if (nread < 0)
     {
-      errno = err;
+      errno = saved_errno;
       return -1;
     }
   readbuf[nread] = '\0';

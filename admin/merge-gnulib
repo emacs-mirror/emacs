@@ -61,7 +61,7 @@ AVOIDED_MODULES='
   localcharset locale-h localename-unsafe-limited lock
   mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h raise
-  save-cwd select setenv sigprocmask stat std-gnu11 stdarg-h
+  save-cwd select setenv sigprocmask stat std-gnu11 stdarg-h strncpy
   threadlib tzset unsetenv utime utime-h
   wchar-h wcrtomb wctype wctype-h
 '

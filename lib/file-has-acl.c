@@ -399,9 +399,9 @@ acl_get_link_np (char const *name, acl_type_t type)
   if (fd < 0)
     return NULL;
   acl_t r = acl_get_fd (fd);
-  int err = errno;
+  int saved_errno = errno;
   close (fd);
-  errno = err;
+  errno = saved_errno;
   return r;
 }
 #   define HAVE_ACL_GET_LINK_NP 1

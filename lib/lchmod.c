@@ -30,6 +30,7 @@
 
 #include <intprops.h>
 #include "issymlink.h"
+#include "issymlinkat.h"
 
 /* Work like chmod, except when FILE is a symbolic link.
    In that case, on systems where permissions on symbolic links are unsupported

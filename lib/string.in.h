@@ -840,6 +840,35 @@ _GL_WARN_ON_USE (strncat, "strncat is unportable - "
 # endif
 #endif
 
+/* Copy no more than N bytes of SRC to DST, returning DST.  */
+#if @GNULIB_STRNCPY@
+# if @REPLACE_STRNCPY@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef strncpy
+#   define strncpy rpl_strncpy
+#  endif
+_GL_FUNCDECL_RPL (strncpy, char *,
+                  (char *restrict __dst, char const *restrict __src,
+                   size_t __n),
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (strncpy, char *,
+                  (char *restrict __dst, char const *restrict __src,
+                   size_t __n));
+# else
+_GL_CXXALIAS_SYS (strncpy, char *,
+                  (char *restrict __dst, char const *restrict __src,
+                   size_t __n));
+# endif
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (strncpy);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# if HAVE_RAW_DECL_STRNCPY
+_GL_WARN_ON_USE (strncpy, "strncpy is unportable - "
+                 "use gnulib module strncpy for portability");
+# endif
+#endif
+
 /* Return a newly allocated copy of at most N bytes of STRING.  */
 #if @GNULIB_STRNDUP@
 # if @REPLACE_STRNDUP@

@@ -17,4 +17,4 @@
 #include <config.h>
 
 #define _GL_ISSYMLINKAT_INLINE _GL_EXTERN_INLINE
-#include "issymlink.h"
+#include "issymlinkat.h"

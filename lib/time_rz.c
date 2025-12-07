@@ -57,9 +57,9 @@ void
 tzfree (timezone_t tz)
 # undef tzfree
 {
-  int err = errno;
+  int saved_errno = errno;
   tzfree (tz);
-  errno = err;
+  errno = saved_errno;
 }
 
 #else

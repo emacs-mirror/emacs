@@ -1,5 +1,5 @@
 # string_h.m4
-# serial 45
+# serial 46
 dnl Copyright (C) 2007-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -24,7 +24,7 @@ AC_DEFUN_ONCE([gl_STRING_H],
     ]],
     [explicit_bzero ffsl ffsll memmem mempcpy memrchr memset_explicit
      rawmemchr stpcpy stpncpy strchrnul
-     strdup strncat strndup strnlen strpbrk strsep strcasestr strtok_r
+     strdup strncat strncpy strndup strnlen strpbrk strsep strcasestr strtok_r
      strerror_l strerror_r strerrorname_np
      sigabbrev_np sigdescr_np strsignal strverscmp])
 
@@ -65,6 +65,7 @@ AC_DEFUN([gl_STRING_H_REQUIRE_DEFAULTS],
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_STRDUP])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_STRINGEQ])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_STRNCAT])
+    gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_STRNCPY])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_STRNDUP])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_STRNLEN])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_STRPBRK])
@@ -149,6 +150,7 @@ AC_DEFUN([gl_STRING_H_DEFAULTS],
   REPLACE_STRCHRNUL=0;          AC_SUBST([REPLACE_STRCHRNUL])
   REPLACE_STRDUP=0;             AC_SUBST([REPLACE_STRDUP])
   REPLACE_STRNCAT=0;            AC_SUBST([REPLACE_STRNCAT])
+  REPLACE_STRNCPY=0;            AC_SUBST([REPLACE_STRNCPY])
   REPLACE_STRNDUP=0;            AC_SUBST([REPLACE_STRNDUP])
   REPLACE_STRNLEN=0;            AC_SUBST([REPLACE_STRNLEN])
   REPLACE_STRSTR=0;             AC_SUBST([REPLACE_STRSTR])
