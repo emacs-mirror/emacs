@@ -3099,6 +3099,7 @@ elisp, The Emacs Lisp Reference Manual}.
 to @file{~/.config/emacs/user-lisp/} or @file{~/.emacs.d/user-lisp/},
 exists, then at startup Emacs will prepare Lisp files within that
 directory for use in the session.  Emacs does the following things:
+
 @itemize
 @item
 Gather and activate autoload cookies.  This means that you can use
@@ -3107,10 +3108,10 @@ autoloaded commands and other entry points for the files in your
 files in your initialization file. (@pxref{Autoload,,, elisp, The
 Emacs Lisp Reference Manual})
 @item
-Bytecompile all files, and if supported on your system, natively
+Byte-compile all files, and if supported on your system, natively
 compile them too.  This speeds up the execution of the code in the
-files when they are loaded.  (@pxref{Byte Compilation,,, elisp, The Emacs
-Lisp Reference Manual}, )
+files when they are loaded.  (@pxref{Byte Compilation,,, elisp, The
+Emacs Lisp Reference Manual})
 @item
 Adjust @code{load-path} such that all the files can be loaded and
 autoloaded in the usual ways.  (@pxref{Library Search,,, elisp, The
