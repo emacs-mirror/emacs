@@ -21,23 +21,6 @@ License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <config.h>
 
-#if defined HAVE_PTHREAD
-#define USE_PTHREAD
-#endif
-
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-#include <stdint.h>
-#include <unistd.h>
-
-#ifdef USE_PTHREAD
-#include <pthread.h>
-#endif
-
-#include "lisp.h"
-
 #ifdef HAVE_MALLOC_H
 # if GNUC_PREREQ (4, 2, 0)
 #  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -56,6 +39,23 @@ extern void *(*__morecore) (ptrdiff_t);
   || (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 24)
 extern void (*__MALLOC_HOOK_VOLATILE __malloc_initialize_hook) (void);
 #endif /* !defined HAVE_MALLOC_H || glibc >= 2.24 */
+
+#if defined HAVE_PTHREAD
+#define USE_PTHREAD
+#endif
+
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+#include <stdint.h>
+#include <unistd.h>
+
+#ifdef USE_PTHREAD
+#include <pthread.h>
+#endif
+
+#include "lisp.h"
 
 #undef malloc
 #undef realloc

@@ -19,6 +19,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#ifdef HAVE_MALLOC_H
+# include <malloc.h>
+#endif
+
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -66,10 +70,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef MSDOS
 #include "dosfns.h"		/* For dos_memory_info.  */
-#endif
-
-#ifdef HAVE_MALLOC_H
-# include <malloc.h>
 #endif
 
 #if (defined ENABLE_CHECKING \
