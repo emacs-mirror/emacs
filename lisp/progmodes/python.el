@@ -4837,12 +4837,17 @@ With argument MSG show activation/deactivation message."
 (defun python-shell-completion-get-completions (process input)
   "Get completions of INPUT using PROCESS."
   (with-current-buffer (process-buffer process)
-    (python--parse-json-array
-     (python-shell-send-string-no-output
-      (format "%s\nprint(__PYTHON_EL_get_completions(%s))"
-              python-shell-completion-setup-code
-              (python-shell--encode-string input))
-      process))))
+    (let ((completions
+           (python-shell-send-string-no-output
+            (format "%s\nprint(__PYTHON_EL_get_completions(%s))"
+                    python-shell-completion-setup-code
+                    (python-shell--encode-string input))
+            process)))
+      (condition-case nil
+          (python--parse-json-array completions)
+        (json-parse-error
+         (python--parse-json-array
+          (car (last (split-string completions "[\n\r]+" t)))))))))
 
 (defun python-shell--get-multiline-input ()
   "Return lines at a multi-line input in Python shell."
