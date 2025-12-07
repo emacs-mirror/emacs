@@ -3227,8 +3227,13 @@ to configure.])
 fi
 
 # Configure gnulib.
-# Although this does not affect CFLAGS or LIBS permanently.
-# it temporarily reverts them to their pre-pkg-config values,
+#
+# Do this after any CC or CFLAGS changes that affect Gnulib,
+# and before any tests that depend on gnulib tests,
+# e.g., the system_malloc=no test below.
+#
+# Do not affect CFLAGS or LIBS permanently.
+# Instead, temporarily revert them to their pre-pkg-config values,
 # because gnulib needs to work with both src (which uses the
 # pkg-config stuff) and lib-src (which does not).  For example, gnulib
 # may need to determine whether CLOCK_TIME_LIB should contain -lrt,
@@ -3266,9 +3271,19 @@ AC_CACHE_CHECK(
    fi])
 doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
-AC_CHECK_ALIGNOF([int])
-AC_CHECK_ALIGNOF([long])
-AC_CHECK_ALIGNOF([long long])
+AC_CHECK_ALIGNOF([EMACS_INT],
+  [[#include <limits.h>
+    #include <stddef.h>
+    #include <stdint.h>
+    #if INTPTR_MAX <= INT_MAX && !defined WIDE_EMACS_INT
+    typedef int EMACS_INT;
+    #elif INTPTR_MAX <= LONG_MAX && !defined WIDE_EMACS_INT
+    typedef long int EMACS_INT;
+    #elif INTPTR_MAX <= LLONG_MAX
+    typedef long long int EMACS_INT;
+    #endif
+  ]])
+
 AC_CHECK_SIZEOF([long])
 
 AC_CACHE_CHECK([for struct alignment],
@@ -3293,40 +3308,27 @@ system_malloc=yes
 # adequately positioned memory, enable the GNU malloc, which more
 # consistently provides allocations at low addresses, as is required for
 # the pdumper to load dump files at a representable location.
-AS_IF([test "$with_pdumper" = "yes" && test "$with_wide_int" != "yes"],
-  AC_CHECK_HEADERS([stdalign.h])
-  [AC_CACHE_CHECK([whether alignas is required yet unavailable],
-    [emacs_cv_alignas_unavailable],
-    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#ifdef HAVE_STDALIGN_H
-#include <stdalign.h>
-#endif
-      #include <limits.h>
-     ]], [[
-#define IDEAL_GCALIGNMENT 8
-#if INTPTR_MAX <= INT_MAX && !defined WIDE_EMACS_INT
-#  define ALIGNOF_EMACS_INT ALIGNOF_INT
-# elif INTPTR_MAX <= LONG_MAX && !defined WIDE_EMACS_INT
-#  define ALIGNOF_EMACS_INT ALIGNOF_LONG
-# elif INTPTR_MAX <= LLONG_MAX
-#  define ALIGNOF_EMACS_INT ALIGNOF_LONG_LONG
-# else
-# error "INTPTR_MAX too large"
-#endif
+AS_CASE([$emacs_cv_struct_alignment%$gl_cv_header_working_stdalign_h%$with_wide_int%$ac_cv_alignof_EMACS_INT%$with_pdumper],
+  [*%*%*%*%*%*],
+    [AC_MSG_ERROR([configuration values cannot contain '%'])],
 
-#if (ALIGNOF_EMACS_INT < IDEAL_GCALIGNMENT && !defined alignas	\
-     && !defined HAVE_STRUCT_ATTRIBUTE_ALIGNED	       		\
-     && !defined __alignas_is_defined				\
-     && __STDC_VERSION__ < 202311 && __cplusplus < 201103)
-#error "!USE_LSB_TAG required"
-#endif
-   ]])], [emacs_cv_alignas_unavailable=no],
-        [emacs_cv_alignas_unavailable=yes])])
-   AS_IF([test "$emacs_cv_alignas_unavailable" = "yes"],
-     [system_malloc=no
-       AC_MSG_WARN([The GNU memory manager will be enabled as your system
-does not guarantee that the portable dumper can allocate memory at a suitably
-low address.])])])
+  dnl There is no problem in most situations, i.e.:
+  [dnl if emacs_cv_struct_alignment
+   yes%* \
+   dnl or if gl_cv_header_working_stdalign_h
+   | *%yes*%*%*%* \
+   dnl or if with_wide_int (as in practice tag bits are high-order)
+   | *%*%yes%*%* \
+   dnl or if EMACS_INT's alignment is at least 8.
+   | *%*%*%8%* | *%*%*%[1-9]?*%*],
+    [],
+
+  dnl Otherwise, if using the portable dumper, enable GNU malloc.
+  [*%yes],
+    [system_malloc=no
+     AC_MSG_WARN([The GNU memory manager will be enabled as your system
+       does not guarantee that the portable dumper can allocate memory
+       at a suitably low address.])])
 
 dnl This must be before the test of $ac_cv_func_sbrk below.
 AC_CHECK_FUNCS_ONCE([sbrk])
