@@ -3226,6 +3226,26 @@ to configure.])
    fi
 fi
 
+# Configure gnulib.
+# Although this does not affect CFLAGS or LIBS permanently.
+# it temporarily reverts them to their pre-pkg-config values,
+# because gnulib needs to work with both src (which uses the
+# pkg-config stuff) and lib-src (which does not).  For example, gnulib
+# may need to determine whether CLOCK_TIME_LIB should contain -lrt,
+# and it therefore needs to run in an environment where LIBS does not
+# already contain -lrt merely because 'pkg-config --libs' printed '-lrt'
+# for some package unrelated to lib-src.
+SAVE_CFLAGS=$CFLAGS
+SAVE_LIBS=$LIBS
+CFLAGS=$pre_PKG_CONFIG_CFLAGS
+LIBS="$LIB_PTHREAD $pre_PKG_CONFIG_LIBS"
+gl_ASSERT_NO_GNULIB_POSIXCHECK
+gl_ASSERT_NO_GNULIB_TESTS
+gl_EEMALLOC
+gl_INIT
+CFLAGS=$SAVE_CFLAGS
+LIBS=$SAVE_LIBS
+
 # Does the opsystem file prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
 GNU_MALLOC=yes
@@ -7361,25 +7381,6 @@ AH_VERBATIM([FORTIFY_SOUR],
 if test "$with_features" = no && test "$enable_acl" != yes; then
   enable_acl=no
 fi
-
-# Configure gnulib.  Although this does not affect CFLAGS or LIBS permanently.
-# it temporarily reverts them to their pre-pkg-config values,
-# because gnulib needs to work with both src (which uses the
-# pkg-config stuff) and lib-src (which does not).  For example, gnulib
-# may need to determine whether CLOCK_TIME_LIB should contain -lrt,
-# and it therefore needs to run in an environment where LIBS does not
-# already contain -lrt merely because 'pkg-config --libs' printed '-lrt'
-# for some package unrelated to lib-src.
-SAVE_CFLAGS=$CFLAGS
-SAVE_LIBS=$LIBS
-CFLAGS=$pre_PKG_CONFIG_CFLAGS
-LIBS="$LIB_PTHREAD $pre_PKG_CONFIG_LIBS"
-gl_ASSERT_NO_GNULIB_POSIXCHECK
-gl_ASSERT_NO_GNULIB_TESTS
-gl_EEMALLOC
-gl_INIT
-CFLAGS=$SAVE_CFLAGS
-LIBS=$SAVE_LIBS
 
 # Set up libgmp on Android.  Make sure to override what gnulib has
 # found.
