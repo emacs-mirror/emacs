@@ -1578,9 +1578,6 @@ fi
 
 #### Choose a compiler.
 
-dnl Don't bother to test for C89.
-AC_DEFUN([_AC_PROG_CC_C89], [$2])
-
 dnl Sets GCC=yes if using gcc.
 AC_PROG_CC([gcc cc cl clang "$XCRUN gcc" "$XCRUN clang"])
 
@@ -1588,11 +1585,6 @@ if test -n "$XCRUN"; then
   AC_CHECK_PROGS([AR], [ar "$XCRUN ar"])
   test -n "$AR" && export AR
 fi
-
-dnl Emacs needs C99 or later.
-gl_PROG_CC_C99
-
-AC_PROG_CC_C_O
 
 if test x$GCC = xyes; then
   test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
