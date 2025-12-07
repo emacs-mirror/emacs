@@ -1363,7 +1363,12 @@ specific headers."
    (vc-call-backend backend 'dir-extra-headers dir)
    "\n"
    (and-let* (vc-dir-show-outgoing-count
-              (count (ignore-errors (vc--count-outgoing backend)))
+              (count
+               (ignore-errors
+                 (with-delayed-message
+                     (2 (substitute-quotes "Counting outgoing revisions ...
+(see `vc-dir-show-outgoing-count' if this is frequently slow)" ))
+                   (vc--count-outgoing backend))))
               (_ (plusp count)))
      (concat (propertize "Outgoing   : "
                          'face 'vc-dir-header)
