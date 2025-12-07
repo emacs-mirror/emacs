@@ -218,7 +218,7 @@ A value of `default' means to use the value of `vc-resolve-conflicts'."
 
 ;; dir-status-files called from vc-dir, which loads vc,
 ;; which loads vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional okstatus proc))
 
 (autoload 'vc-expand-dirs "vc")
 
@@ -228,6 +228,7 @@ CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; FIXME shouldn't this rather default to all the files in dir?
   (apply #'vc-svn-command (current-buffer) 'async nil "status" "-u" files)
+  ;; FIXME: Consider `vc-run-delayed-success'.
   (vc-run-delayed (vc-svn-after-dir-status callback t)))
 
 (defun vc-svn-dir-extra-headers (_dir)

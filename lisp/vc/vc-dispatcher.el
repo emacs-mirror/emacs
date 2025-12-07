@@ -219,23 +219,38 @@ Another is that undo information is not kept."
                                 'help-echo
                                 "A command is in progress in this buffer"))))
 
-(defun vc-exec-after (code &optional success proc)
+(defun vc-exec-after (code &optional okstatus proc)
   "Execute CODE when PROC, or the current buffer's process, is done.
 CODE should be a function of no arguments.
 CODE a bare form to pass to `eval' is also supported for compatibility.
 
+Optional argument OKSTATUS, if non-nil, is a non-negative integer.
+Run CODE only if PROC (or, if PROC is nil, the current buffer's process)
+exits normally (i.e. does not die to a signal) with exit status not
+exceeding OKSTATUS.
+
+For backwards compatibility, passing PROC (or, if PROC is nil, the
+current buffer's process) as OKSTATUS means the same as OKSTATUS zero.
+Passing other process object is invalid.
+
 The optional PROC argument specifies the process Emacs should wait for
 before executing CODE.  It defaults to the current buffer's process.
 If PROC is nil and the current buffer has no process, just evaluate
-CODE.  Otherwise, add CODE to the process's sentinel.
-
-If SUCCESS, it should be a process object.
-Only run CODE if the SUCCESS process has a zero exit code."
+CODE.  Otherwise, add CODE to the process's sentinel."
   (unless proc (setq proc (get-buffer-process (current-buffer))))
+  ;; For Emacs 29--30 it was documented that the second argument
+  ;; (then named SUCCESS) could be any process, but the implementation
+  ;; was broken for any process other than the current buffer's process.
+  (cond ((eq okstatus proc)
+         (setq okstatus 0))
+        ((and okstatus (not (natnump okstatus)))
+         (error "Invalid OKSTATUS argument to `vc-exec-after': %S"
+                okstatus)))
   (letrec ((eval-code
             (lambda ()
-              (when (or (not success)
-                        (zerop (process-exit-status success)))
+              (when (or (null okstatus) (null proc)
+                        (and (eq (process-status proc) 'exit)
+                             (>= okstatus (process-exit-status proc))))
                 (if (functionp code) (funcall code) (eval code t)))))
            (buf (and proc (process-buffer proc)))
            (fun
@@ -248,7 +263,7 @@ Only run CODE if the SUCCESS process has a zero exit code."
                ;; Selecting deleted buffer".
                ((not (buffer-live-p buf))
                 (remove-function (process-sentinel proc) fun))
-               ((eq (process-status proc) 'exit)
+               ((memq (process-status proc) '(exit signal))
                 (with-current-buffer buf
                   (setq mode-line-process nil)
                   (let (vc-sentinel-movepoint
@@ -279,8 +294,11 @@ Only run CODE if the SUCCESS process has a zero exit code."
      ;; but this led to timing problems causing process output to be
      ;; lost.  Terminated processes get deleted automatically
      ;; anyway. -- cyd
-     ((or (null proc) (eq (process-status proc) 'exit))
-      (when proc (accept-process-output proc))
+     ((or (null proc) (memq (process-status proc) '(exit signal)))
+      (when proc
+        ;; Nonblocking call in case we are ourselves called from a
+        ;; process sentinel (GNU ELPA's diff-hl does this).
+        (accept-process-output proc 0))
       (funcall eval-code))
      ((eq (process-status proc) 'run)
       (when (buffer-live-p buf)
@@ -291,8 +309,18 @@ Only run CODE if the SUCCESS process has a zero exit code."
   nil)
 
 (defmacro vc-run-delayed (&rest body)
+  "Execute BODY when the current buffer's process is done.
+If the current buffer has no process, execute BODY immediately."
   (declare (indent 0) (debug (def-body)))
   `(vc-exec-after (lambda () ,@body)))
+
+(defmacro vc-run-delayed-success (okstatus &rest body)
+  "Execute BODY when the current buffer's process exits successfully.
+This means the current buffer's process exits normally (i.e., does not
+die to a signal) with status not exceeding OKSTATUS.
+If the current buffer has no process, execute BODY immediately."
+  (declare (indent 1) (debug (def-body)))
+  `(vc-exec-after (lambda () ,@body) ,okstatus))
 
 (defun vc-wait-for-process-before-save (proc message)
   "Make Emacs wait for PROC before saving buffers under current VC tree.

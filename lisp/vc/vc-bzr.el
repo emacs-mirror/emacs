@@ -349,7 +349,7 @@ in the repository root directory of FILE."
   "Value of `compilation-error-regexp-alist' in *vc-bzr* buffers.")
 
 ;; To be called via vc-pull from vc.el, which requires vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional okstatus proc))
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
 
@@ -1033,6 +1033,7 @@ stream.  Standard error output is discarded."
 (defun vc-bzr-dir-status-files (dir files update-function)
   "Return a list of conses (file . state) for DIR."
   (apply #'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
+  ;; FIXME: Consider `vc-run-delayed-success'.
   (vc-run-delayed
    (vc-bzr-after-dir-status update-function
                             ;; "bzr status" results are relative to

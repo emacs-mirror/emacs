@@ -101,26 +101,19 @@
       (should success))))
 
 (ert-deftest vc-test-exec-after-3 ()
-  "Test SUCCESS argument to `vc-exec-after'."
+  "Test OKSTATUS argument to `vc-exec-after'."
   (with-temp-buffer
-    (let ((proc (start-process-shell-command "test" (current-buffer)
-                                             (if (eq system-type 'windows-nt)
-                                                 "sleep 1 & echo hello"
-                                               "sleep 0.2; echo hello")))
-          (passes (start-process "test2" nil "true"))
+    (let ((proc (start-process-shell-command "test" (current-buffer) "true"))
           success)
-      (vc-exec-after (lambda () (setq success t)) passes)
+      (vc-exec-after (lambda () (setq success t)) 0)
       (vc-test--exec-after-wait)
       (should success)))
 
   (with-temp-buffer
-    (let ((proc (start-process-shell-command "test" (current-buffer)
-                                             (if (eq system-type 'windows-nt)
-                                                 "sleep 1 & echo hello"
-                                               "sleep 0.2; echo hello")))
+    (let ((proc (start-process-shell-command "test" (current-buffer) "false"))
           (fails (start-process "test2" nil "false"))
           success)
-      (vc-exec-after (lambda () (setq success t)) fails)
+      (vc-exec-after (lambda () (setq success t)) 0)
       (vc-test--exec-after-wait)
       (should-not success))))
 

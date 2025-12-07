@@ -1500,7 +1500,7 @@ REV is the revision to check out into WORKFILE."
 
 ;; Follows vc-hg-command (or vc-do-async-command), which uses vc-do-command
 ;; from vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code &optional success proc))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional okstatus proc))
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
@@ -1526,7 +1526,7 @@ REV is the revision to check out into WORKFILE."
            (if (version<= "4.2" (vc-hg--program-version))
                '("--config" "commands.status.relative=1")
              '("re:" "-I" "."))))
-  (vc-run-delayed
+  (vc-run-delayed-success 0
     (vc-hg-after-dir-status update-function)))
 
 (defun vc-hg-dir-extra-headers (dir)

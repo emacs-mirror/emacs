@@ -712,7 +712,7 @@ or an empty string if none."
 
 ;; Follows vc-git-command (or vc-do-async-command), which uses vc-do-command
 ;; from vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional okstatus proc))
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
@@ -749,7 +749,7 @@ or an empty string if none."
       ('diff-index
        (vc-git-command (current-buffer) 'async files
                        "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
-    (vc-run-delayed
+    (vc-run-delayed-success 1
       (vc-git-after-dir-status-stage git-state))))
 
 (defun vc-git-dir-status-files (_dir files update-function)
