@@ -111,7 +111,6 @@
 
   (with-temp-buffer
     (let ((proc (start-process-shell-command "test" (current-buffer) "false"))
-          (fails (start-process "test2" nil "false"))
           success)
       (vc-exec-after (lambda () (setq success t)) 0)
       (vc-test--exec-after-wait)
