@@ -191,7 +191,6 @@ extern ptrdiff_t n_compositions;
 #define CHECK_BORDER	(CHECK_HEAD | CHECK_TAIL)
 #define CHECK_ALL	(CHECK_BORDER | CHECK_INSIDE)
 
-extern Lisp_Object composition_hash_table;
 extern ptrdiff_t get_composition_id (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				     Lisp_Object, Lisp_Object);
 extern bool find_composition (ptrdiff_t, ptrdiff_t, ptrdiff_t *, ptrdiff_t *,

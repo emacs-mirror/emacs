@@ -2363,7 +2363,7 @@ pixel_to_glyph_coords (struct frame *f, int pix_x, int pix_y, int *x, int *y,
    text, or we can't tell because W's current matrix is not up to
    date.  */
 
-struct glyph *
+static struct glyph *
 x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
 		  int *dx, int *dy, int *area)
 {
@@ -2435,6 +2435,21 @@ x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
   *hpos = glyph - row->glyphs[*area];
   return glyph;
 }
+
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
+
+/* Find the glyph under window-relative coordinates X/Y in window W.
+   Consider only glyphs from buffer text, i.e. no glyphs from overlay
+   strings.  Return in *HPOS and *VPOS the row and column number of
+   the glyph found.  */
+
+void
+x_y_to_column_row (struct window *w, int x, int y, int *column, int *row)
+{
+  int dummy;
+  x_y_to_hpos_vpos (w, x, y, column, row, &dummy);
+}
+#endif
 
 /* Convert frame-relative x/y to coordinates relative to window W.
    Takes pseudo-windows into account.  */
@@ -37690,6 +37705,8 @@ gui_intersect_rectangles (const Emacs_Rectangle *r1, const Emacs_Rectangle *r2,
   return intersection_p;
 }
 
+# if HAVE_ANDROID
+
 /* EXPORT:
    Determine the union of the rectangles A and B.  Return the smallest
    rectangle encompassing both the bounds of A and B in *RESULT.  It
@@ -37738,6 +37755,7 @@ gui_union_rectangles (const Emacs_Rectangle *a, const Emacs_Rectangle *b,
   result->width = result_box.x2 - result_box.x1;
   result->height = result_box.y2 - result_box.y1;
 }
+# endif
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

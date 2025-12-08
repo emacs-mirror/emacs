@@ -223,7 +223,7 @@ EMACS_INT command_loop_level;
    read_key_sequence uses this to delay switch-frame events until the
    end of the key sequence; Fread_char uses it to put off switch-frame
    events until a non-ASCII event is acceptable as input.  */
-Lisp_Object unread_switch_frame;
+static Lisp_Object unread_switch_frame;
 
 /* Last size recorded for a current buffer which is not a minibuffer.  */
 static ptrdiff_t last_non_minibuf_size;
@@ -2530,7 +2530,7 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 
    Value is t if we showed a menu and the user rejected it.  */
 
-Lisp_Object
+static Lisp_Object
 read_char (int commandflag, Lisp_Object map,
 	   Lisp_Object prev_event,
 	   bool *used_mouse_menu, struct timespec *end_time)
@@ -6446,13 +6446,11 @@ make_lispy_event (struct input_event *event)
 		if (FRAME_WINDOW_P (f))
 		  {
 		    struct window *menu_w = XWINDOW (f->menu_bar_window);
-		    int x, y, dummy;
-
-		    x = FRAME_TO_WINDOW_PIXEL_X (menu_w, XFIXNUM (event->x));
-		    y = FRAME_TO_WINDOW_PIXEL_Y (menu_w, XFIXNUM (event->y));
-
-		    x_y_to_hpos_vpos (XWINDOW (f->menu_bar_window), x, y, &column, &row,
-				      NULL, NULL, &dummy);
+		    x_y_to_column_row
+		      (XWINDOW (f->menu_bar_window),
+		       FRAME_TO_WINDOW_PIXEL_X (menu_w, XFIXNUM (event->x)),
+		       FRAME_TO_WINDOW_PIXEL_Y (menu_w, XFIXNUM (event->y)),
+		       &column, &row);
 		  }
 		else
 #endif
@@ -10804,6 +10802,18 @@ restore_reading_key_sequence (int old_reading_key_sequence)
 
 #endif /* HAVE_TEXT_CONVERSION */
 
+/* Return true if there are any pending requeued events (command events
+   or events to be processed by other levels of the input processing
+   stages).  */
+
+static bool
+requeued_events_pending_p (void)
+{
+  return (requeued_command_events_pending_p ()
+	  || !NILP (Vunread_post_input_method_events)
+	  || !NILP (Vunread_input_method_events));
+}
+
 /* Read a sequence of keys that ends with a non prefix character,
    storing it in KEYBUF, a buffer of size READ_KEY_ELTS.
    Prompt with PROMPT.
@@ -11989,15 +11999,6 @@ detect_input_pending (void)
   return input_pending || get_input_pending (0);
 }
 
-/* Return true if input events other than mouse movements are
-   pending.  */
-
-bool
-detect_input_pending_ignore_squeezables (void)
-{
-  return input_pending || get_input_pending (READABLE_EVENTS_IGNORE_SQUEEZABLES);
-}
-
 /* Return true if input events are pending, and run any pending timers.  */
 
 bool
@@ -12030,18 +12031,6 @@ bool
 requeued_command_events_pending_p (void)
 {
   return (CONSP (Vunread_command_events));
-}
-
-/* Return true if there are any pending requeued events (command events
-   or events to be processed by other levels of the input processing
-   stages).  */
-
-bool
-requeued_events_pending_p (void)
-{
-  return (requeued_command_events_pending_p ()
-	  || !NILP (Vunread_post_input_method_events)
-	  || !NILP (Vunread_input_method_events));
 }
 
 DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 1, 0,

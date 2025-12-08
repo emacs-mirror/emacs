@@ -3988,7 +3988,7 @@ x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
    it as a request for XdndSelection.  Note that you must use
    the X data types instead of the MIME types in this case.
    (e.g. XA_STRING instead of text/plain).  */
-void
+static void
 x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
 			   Lisp_Object frame, Lisp_Object value,
 			   Lisp_Object targets, Window target_window,
@@ -5308,6 +5308,7 @@ x_extension_initialize (struct x_display_info *dpyinfo)
 
 #ifdef HAVE_XINPUT2
 
+# ifdef HAVE_X_TOOLKIT
 bool
 xi_frame_selected_for (struct frame *f, unsigned long event)
 {
@@ -5328,6 +5329,7 @@ xi_frame_selected_for (struct frame *f, unsigned long event)
 
   return false;
 }
+# endif
 
 /* Convert XI2 button state IN to a standard X button modifier
    mask, and place it in OUT.  */

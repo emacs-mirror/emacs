@@ -23,15 +23,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define Ctl(c) ((c)&037)
 
-/* If not Qnil, this is a switch-frame event which we decided to put
-   off until the end of a key sequence.  This should be read as the
-   next command input, after any Vunread_command_events.
-
-   read_key_sequence uses this to delay switch-frame events until the
-   end of the key sequence; Fread_char uses it to put off switch-frame
-   events until a non-ASCII event is acceptable as input.  */
-extern Lisp_Object unread_switch_frame;
-
 /* Nonzero if input is coming from the keyboard.  */
 
 #define INTERACTIVE (NILP (Vexecuting_kbd_macro) && !noninteractive)

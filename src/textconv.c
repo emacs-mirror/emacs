@@ -1743,6 +1743,9 @@ handle_pending_conversion_events (void)
    F should be constrained in *BEG and *END.  Should no field be active,
    set *END to PTRDIFF_MAX.  */
 
+#ifndef HAVE_ANDROID
+static
+#endif
 void
 get_conversion_field (struct frame *f, ptrdiff_t *beg, ptrdiff_t *end)
 {
@@ -1771,6 +1774,8 @@ get_conversion_field (struct frame *f, ptrdiff_t *beg, ptrdiff_t *end)
   *beg = 1;
   *end = PTRDIFF_MAX;
 }
+
+#ifdef HAVE_ANDROID
 
 /* Start a ``batch edit'' in frame F.  During a batch edit,
    point_changed will not be called until the batch edit ends.
@@ -2307,6 +2312,7 @@ get_surrounding_text (struct frame *f, ptrdiff_t left,
   unbind_to (count, Qnil);
   return buffer;
 }
+#endif /* HAVE_ANDROID */
 
 /* Return whether or not text conversion is temporarily disabled.
    `reset' should always call this to determine whether or not to

@@ -2370,6 +2370,33 @@ emacs_backtrace (int backtrace_limit)
     }
 }
 
+/* Rename directory SRCFD's entry SRC to directory DSTFD's entry DST.
+   This is like renameat except that it fails if DST already exists,
+   or if this operation is not supported atomically.  Return 0 if
+   successful, -1 (setting errno) otherwise.  */
+#ifndef HAVE_ANDROID
+static
+#endif
+int
+renameat_noreplace (int srcfd, char const *src, int dstfd, char const *dst)
+{
+#if HAVE_RENAMEAT2 && defined RENAME_NOREPLACE
+  return renameat2 (srcfd, src, dstfd, dst, RENAME_NOREPLACE);
+#elif defined SYS_renameat2 && defined RENAME_NOREPLACE
+  /* Linux kernel 3.15 (2014) or later, with glibc 2.27 (2018) or earlier.  */
+  return syscall (SYS_renameat2, srcfd, src, dstfd, dst, RENAME_NOREPLACE);
+#elif defined RENAME_EXCL
+  return renameatx_np (srcfd, src, dstfd, dst, RENAME_EXCL);
+#else
+# ifdef WINDOWSNT
+  if (srcfd == AT_FDCWD && dstfd == AT_FDCWD)
+    return sys_rename_replace (src, dst, 0);
+# endif
+  errno = ENOSYS;
+  return -1;
+#endif
+}
+
 #if !defined HAVE_NTGUI && !(defined HAVE_ANDROID		\
 			     && !defined ANDROID_STUBIFY)
 void
@@ -2861,30 +2888,6 @@ emacs_perror (char const *message)
       emacs_write (STDERR_FILENO, "\n", 1);
     }
   errno = err;
-}
-
-/* Rename directory SRCFD's entry SRC to directory DSTFD's entry DST.
-   This is like renameat except that it fails if DST already exists,
-   or if this operation is not supported atomically.  Return 0 if
-   successful, -1 (setting errno) otherwise.  */
-int
-renameat_noreplace (int srcfd, char const *src, int dstfd, char const *dst)
-{
-#if HAVE_RENAMEAT2 && defined RENAME_NOREPLACE
-  return renameat2 (srcfd, src, dstfd, dst, RENAME_NOREPLACE);
-#elif defined SYS_renameat2 && defined RENAME_NOREPLACE
-  /* Linux kernel 3.15 (2014) or later, with glibc 2.27 (2018) or earlier.  */
-  return syscall (SYS_renameat2, srcfd, src, dstfd, dst, RENAME_NOREPLACE);
-#elif defined RENAME_EXCL
-  return renameatx_np (srcfd, src, dstfd, dst, RENAME_EXCL);
-#else
-# ifdef WINDOWSNT
-  if (srcfd == AT_FDCWD && dstfd == AT_FDCWD)
-    return sys_rename_replace (src, dst, 0);
-# endif
-  errno = ENOSYS;
-  return -1;
-#endif
 }
 
 /* Like strsignal, except async-signal-safe, and this function

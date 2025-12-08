@@ -472,10 +472,10 @@ init_treesit_functions (void)
 /*** Constants */
 
 /* A linecol_cache that points to BOB, this is always valid.  */
-const struct ts_linecol TREESIT_BOB_LINECOL = { 1, 1, 0 };
+static struct ts_linecol const TREESIT_BOB_LINECOL = { 1, 1, 0 };
 /* An uninitialized linecol.  */
 const struct ts_linecol TREESIT_EMPTY_LINECOL = { 0, 0, 0 };
-const TSPoint TREESIT_TS_POINT_1_0 = { 1, 0 };
+static TSPoint const TREESIT_TS_POINT_1_0 = { 1, 0 };
 
 
 
@@ -563,7 +563,7 @@ treesit_initialize (void)
 
 /*** Debugging */
 
-void treesit_debug_print_parser_list (char *, Lisp_Object);
+void treesit_debug_print_parser_list (char *, Lisp_Object) EXTERNALLY_VISIBLE;
 
 void
 treesit_debug_print_parser_list (char *msg, Lisp_Object parser)
@@ -980,7 +980,7 @@ loaded or the file name couldn't be determined, return nil.  */)
 
 #define TREESIT_DEBUG_LINECOL false
 
-void treesit_debug_print_linecol (struct ts_linecol);
+void treesit_debug_print_linecol (struct ts_linecol) EXTERNALLY_VISIBLE;
 
 void
 treesit_debug_print_linecol (struct ts_linecol linecol)
@@ -988,8 +988,9 @@ treesit_debug_print_linecol (struct ts_linecol linecol)
   printf ("{ line=%td col=%td bytepos=%td }\n", linecol.line, linecol.col, linecol.bytepos);
 }
 
-/* Returns true if BUF tracks linecol.  */
-bool treesit_buf_tracks_linecol_p (struct buffer *buf)
+/* Return true if BUF tracks linecol.  */
+static bool
+treesit_buf_tracks_linecol_p (struct buffer *buf)
 {
   return BUF_TS_LINECOL_BEGV (buf).bytepos != 0;
 }
@@ -1990,7 +1991,7 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
 
 /* Wrap the parser in a Lisp_Object to be used in the Lisp
    machine.  */
-Lisp_Object
+static Lisp_Object
 make_treesit_parser (Lisp_Object buffer, TSParser *parser,
 		     TSTree *tree, Lisp_Object language_symbol,
 		     Lisp_Object tag, bool tracks_linecol)
@@ -2043,7 +2044,7 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
 }
 
 /* Wrap the node in a Lisp_Object to be used in the Lisp machine.  */
-Lisp_Object
+static Lisp_Object
 make_treesit_node (Lisp_Object parser, TSNode node)
 {
   struct Lisp_TS_Node *lisp_node;

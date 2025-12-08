@@ -1488,7 +1488,6 @@ window_system_available (struct frame *f)
 }
 
 extern WINDOW_SYSTEM_RETURN void check_window_system (struct frame *);
-void check_tty (struct frame *f);
 struct frame *decode_tty_frame (Lisp_Object frame);
 extern void frame_make_pointer_invisible (struct frame *);
 extern void frame_make_pointer_visible (struct frame *);

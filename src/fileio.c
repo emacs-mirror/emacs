@@ -429,35 +429,10 @@ use the standard functions without calling themselves recursively.  */)
   return result;
 }
 
-DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
-       1, 1, 0,
-       doc: /* Return the directory component in file name FILENAME.
-Return nil if FILENAME does not include a directory.
-Otherwise return a directory name.
-Given a Unix syntax file name, returns a string ending in slash.  */)
-  (Lisp_Object filename)
-{
-  Lisp_Object handler;
-
-  CHECK_STRING (filename);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file name handler.  */
-  handler = Ffind_file_name_handler (filename, Qfile_name_directory);
-  if (!NILP (handler))
-    {
-      Lisp_Object handled_name = calln (handler, Qfile_name_directory,
-					filename);
-      return STRINGP (handled_name) ? handled_name : Qnil;
-    }
-
-  return file_name_directory (filename);
-}
-
 /* Return the directory component of FILENAME, or nil if FILENAME does
    not contain a directory component.  */
 
-Lisp_Object
+static Lisp_Object
 file_name_directory (Lisp_Object filename)
 {
   char *beg = SSDATA (filename);
@@ -530,6 +505,31 @@ file_name_directory (Lisp_Object filename)
 #else  /* DOS_NT */
   return make_specified_string (beg, -1, p - beg, STRING_MULTIBYTE (filename));
 #endif	/* DOS_NT */
+}
+
+DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
+       1, 1, 0,
+       doc: /* Return the directory component in file name FILENAME.
+Return nil if FILENAME does not include a directory.
+Otherwise return a directory name.
+Given a Unix syntax file name, returns a string ending in slash.  */)
+  (Lisp_Object filename)
+{
+  Lisp_Object handler;
+
+  CHECK_STRING (filename);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file name handler.  */
+  handler = Ffind_file_name_handler (filename, Qfile_name_directory);
+  if (!NILP (handler))
+    {
+      Lisp_Object handled_name = calln (handler, Qfile_name_directory,
+					filename);
+      return STRINGP (handled_name) ? handled_name : Qnil;
+    }
+
+  return file_name_directory (filename);
 }
 
 DEFUN ("file-name-nondirectory", Ffile_name_nondirectory,

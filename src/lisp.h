@@ -4375,8 +4375,6 @@ extern void adjust_after_insert (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				 ptrdiff_t, ptrdiff_t);
 extern void adjust_markers_for_delete (ptrdiff_t, ptrdiff_t,
 				       ptrdiff_t, ptrdiff_t);
-extern void adjust_markers_for_insert (ptrdiff_t, ptrdiff_t,
-				       ptrdiff_t, ptrdiff_t, bool);
 extern void adjust_markers_bytepos (ptrdiff_t, ptrdiff_t,
 				    ptrdiff_t, ptrdiff_t, int);
 extern void replace_range (ptrdiff_t, ptrdiff_t, Lisp_Object, bool, bool, bool);
@@ -4785,7 +4783,6 @@ intern_c_string (const char *str)
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vrun_hooks;
 extern Lisp_Object Vsignaling_function;
-extern Lisp_Object inhibit_lisp_code;
 extern bool signal_quit_p (Lisp_Object);
 
 /* To run a normal hook, use the appropriate function from the list below.
@@ -4982,7 +4979,6 @@ extern void syms_of_marker (void);
 
 /* Defined in fileio.c.  */
 
-extern Lisp_Object file_name_directory (Lisp_Object);
 extern char *splice_dir_file (char *, char const *, char const *)
   ATTRIBUTE_RETURNS_NONNULL;
 extern bool file_name_absolute_p (const char *);
@@ -5111,7 +5107,6 @@ void handle_input_available_signal (int);
 #endif
 extern Lisp_Object pending_funcalls;
 extern bool detect_input_pending (void);
-extern bool detect_input_pending_ignore_squeezables (void);
 extern bool detect_input_pending_run_timers (bool);
 extern void safe_run_hooks (Lisp_Object);
 extern void safe_run_hooks_2 (Lisp_Object, Lisp_Object, Lisp_Object);
@@ -5354,7 +5349,9 @@ extern ptrdiff_t emacs_write (int, void const *, ptrdiff_t);
 extern ptrdiff_t emacs_write_sig (int, void const *, ptrdiff_t);
 extern ptrdiff_t emacs_write_quit (int, void const *, ptrdiff_t);
 extern void emacs_perror (char const *);
+#ifdef HAVE_ANDROID
 extern int renameat_noreplace (int, char const *, int, char const *);
+#endif
 extern int str_collate (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
 extern void syms_of_sysdep (void);
 

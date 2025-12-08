@@ -130,14 +130,6 @@ decode_window_system_frame (Lisp_Object frame)
 #endif
 }
 
-struct frame *
-decode_tty_frame (Lisp_Object frame)
-{
-  struct frame *f = decode_live_frame (frame);
-  check_tty (f);
-  return f;
-}
-
 void
 check_window_system (struct frame *f)
 {
@@ -149,7 +141,7 @@ check_window_system (struct frame *f)
 	 : "Window system is not in use or not initialized");
 }
 
-void
+static void
 check_tty (struct frame *f)
 {
   /* FIXME: the noninteractive case is here because some tests running
@@ -161,6 +153,14 @@ check_tty (struct frame *f)
 
   if (!f || !FRAME_TERMCAP_P (f))
     error ("tty frame should be used");
+}
+
+struct frame *
+decode_tty_frame (Lisp_Object frame)
+{
+  struct frame *f = decode_live_frame (frame);
+  check_tty (f);
+  return f;
 }
 
 /* Return a frame with the given NAME (a string) or nil.  Note that if
@@ -5799,6 +5799,8 @@ gui_set_scroll_bar_height (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #endif
 }
 
+#if (defined HAVE_PGTK || defined HAVE_NTGUI \
+     || defined HAVE_HAIKU || defined HAVE_NS)
 void
 gui_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
@@ -5848,6 +5850,7 @@ gui_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       unblock_input ();
     }
 }
+#endif
 
 void
 gui_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)

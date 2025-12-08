@@ -149,7 +149,7 @@ ptrdiff_t n_compositions;
 /* Hash table for compositions.  The key is COMPONENTS-VEC of
    `composition' property.  The value is the corresponding
    COMPOSITION-ID.  */
-Lisp_Object composition_hash_table;
+static Lisp_Object composition_hash_table;
 
 /* Maximum number of characters to look back for
    auto-compositions.  */
