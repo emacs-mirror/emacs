@@ -57,11 +57,7 @@
 ;;
 ;; Add the following to your init file:
 ;;
-;;     (require 'hideshow)
-;;     (add-hook 'X-mode-hook #'hs-minor-mode)       ; other modes similarly
-;;
-;;     ;; For use-package users:
-;;     (use-package hideshow :hook (X-mode . hs-minor-mode))
+;;     (add-hook 'X-mode-hook #'hs-minor-mode) ; other modes similarly
 ;;
 ;; where X = {emacs-lisp,c,c++,perl,...}.  You can also manually toggle
 ;; hideshow minor mode by typing `M-x hs-minor-mode'.  After hideshow is
@@ -118,9 +114,10 @@
 ;;     (defun ttn-hs-hide-level-2 ()
 ;;       (when (funcall hs-looking-at-block-start-predicate)
 ;;         (hs-hide-level 2)))
-;;     (setq-mode-local java-mode ; This requires the mode-local package
-;;                      hs-hide-all-non-comment-function
-;;                      'ttn-hs-hide-level-2)
+;;     (add-hook 'java-mode-hook
+;;               (lambda ()
+;;                 (setq-local hs-hide-all-non-comment-function
+;;                             #'ttn-hs-hide-level-2)))
 ;;
 ;; Hideshow works with incremental search (isearch) by setting the variable
 ;; `hs-headline', which is the line of text at the beginning of a hidden
