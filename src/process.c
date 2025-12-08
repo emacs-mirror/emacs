@@ -2635,13 +2635,7 @@ conv_sockaddr_to_lisp (struct sockaddr *sa, ptrdiff_t len)
            to walk past the end of the object looking for the name
            terminator, however.  */
         if (name_length > 0 && sockun->sun_path[0] != '\0')
-          {
-            const char *terminator
-	      = memchr (sockun->sun_path, '\0', name_length);
-
-            if (terminator)
-              name_length = terminator - (const char *) sockun->sun_path;
-          }
+	  name_length = strnlen (sockun->sun_path, name_length);
 
 	return make_unibyte_string (sockun->sun_path, name_length);
       }
