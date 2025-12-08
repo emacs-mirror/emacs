@@ -817,7 +817,7 @@ and `hs-block-end-regexp'."
             (goto-char (match-beginning hs-block-start-mdata-select))
             (condition-case _
                 (funcall hs-forward-sexp-function 1)
-              (scan-error (throw 'hs-sexp-error nil)))
+              (scan-error (throw 'hs--block-exit nil)))
             ;; `end' is the point at the end of the block
             (setq end (cond ((not adjust-end) (point))
                             ((and (stringp hs-block-end-regexp)
