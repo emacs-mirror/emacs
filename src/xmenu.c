@@ -474,7 +474,7 @@ DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_i
 {
   XEvent ev;
   struct frame *f = decode_window_system_frame (frame);
-#if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
+#ifdef HAVE_XINPUT2
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 #endif
   Widget menubar;
@@ -489,7 +489,7 @@ DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_i
       Window child;
       bool error_p = false;
 
-#if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
+#ifdef HAVE_XINPUT2
       /* Clear the XI2 grab so Motif or lwlib can set a core grab.
 	 Otherwise some versions of Motif will emit a warning and hang,
 	 and lwlib will fail to destroy the menu window.  */
