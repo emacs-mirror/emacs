@@ -1022,7 +1022,7 @@ one created by `package-vc-checkout'.  If invoked interactively with a
 prefix argument, prompt the user for the NAME of the package to set up.
 If the optional argument INTERACTIVE is non-nil (as happens
 interactively), DIR must be an absolute file name."
-  (declare (obsolete "Use the User Lisp directory instead." "30.1"))
+  (declare (obsolete "use the User Lisp directory instead." "31.1"))
   (interactive (let ((dir (expand-file-name (read-directory-name "Directory: "))))
                  (list dir (and current-prefix-arg
                                 (let ((base (file-name-base
