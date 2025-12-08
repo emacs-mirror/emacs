@@ -141,6 +141,7 @@ s/^#undef HAVE_PDUMPER *$/#define HAVE_PDUMPER 1/
 s/^#undef HAVE_STRTOLL *$/#define HAVE_STRTOLL 1/
 s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
 s/^#undef GNULIB_ISSYMLINK *$/#define GNULIB_ISSYMLINK 1/
+/^#undef ALIGNOF_EMACS_INT *$/s/^.*$/#define ALIGNOF_EMACS_INT 4/
 /^#undef ALIGNOF_INT *$/s/^.*$/#define ALIGNOF_INT 4/
 /^#undef ALIGNOF_LONG *$/s/^.*$/#define ALIGNOF_LONG 4/
 /^#undef ALIGNOF_LONG_LONG *$/s/^.*$/#define ALIGNOF_LONG_LONG 4/
