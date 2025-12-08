@@ -721,8 +721,8 @@ larger.
 @c FIXME: Mention it in tips.texi?
   Instead of using @code{region-beginning} and @code{region-end}, a
 command designed to operate on a region should normally use
-@code{interactive} with the @samp{r} specification to find the
-beginning and end of the region.  This lets other Lisp programs
+@code{interactive} with either a @samp{r} or @samp{R} code letter to
+find the beginning and end of the region.  This lets other Lisp programs
 specify the bounds explicitly as arguments.  @xref{Interactive Codes}.
 
 @defun use-region-p

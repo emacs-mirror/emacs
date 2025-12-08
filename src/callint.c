@@ -85,6 +85,7 @@ N -- Numeric prefix arg, or if none, do like code `n'.
 p -- Prefix arg converted to number.  Does not do I/O.
 P -- Prefix arg in raw form.  Does not do I/O.
 r -- Region: point and mark as 2 numeric args, smallest first.  Does no I/O.
+R -- Active region: as `r' but both nil unless `use-region-p'.  Does no I/O.
 s -- Any string.  Does not inherit the current input method.
 S -- Any symbol.
 U -- Mouse up event discarded by a previous k or K argument.
@@ -148,7 +149,8 @@ quotify_args (Lisp_Object exp)
 }
 
 static const char *callint_argfuns[]
-    = {"", "point", "mark", "region-beginning", "region-end"};
+    = {"", "point", "mark", "region-beginning", "region-end",
+       "use-region-beginning", "use-region-end"};
 
 static void
 check_mark (bool for_region)
@@ -375,7 +377,8 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	      if (!NILP (record_flag))
 		{
 		  for (char *p = string + 1; p < string_end; p++)
-		    if (! (*p == 'r' || *p == 'p' || *p == 'P' || *p == '\n'))
+		    if (! (*p == 'r' || *p == 'R'
+                           || *p == 'p' || *p == 'P' || *p == '\n'))
 		      Fbarf_if_buffer_read_only (Qnil);
 		  record_then_fail = true;
 		}
@@ -417,9 +420,9 @@ invoke it (via an `interactive' spec that contains, for instance, an
   ptrdiff_t nargs = 2;
   for (char const *tem = string; tem < string_end; tem++)
     {
-      /* 'r' specifications ("point and mark as 2 numeric args")
+      /* 'r'/'R' specifications ("point and mark as 2 numeric args")
 	 produce *two* arguments.  */
-      nargs += 1 + (*tem == 'r');
+      nargs += 1 + (*tem == 'r' || *tem == 'R');
       tem = memchr (tem, '\n', string_len - (tem - string));
       if (!tem)
 	break;
@@ -655,6 +658,16 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	  varies[i] = -1;
 	  break;
 
+        case 'R':		/* Active region, point and mark as 2 args.  */
+          if (NILP (calln (Quse_region_p)))
+            {
+              /* args[i] = args[i + 1] = visargs[i] = visargs[i + 1]
+                   = Qnil;  */
+              varies[i] = 5;
+              varies[++i] = 6;
+              break;
+            }
+          FALLTHROUGH;
 	case 'r':		/* Region, point and mark as 2 args.  */
 	  {
 	    check_mark (true);
@@ -662,9 +675,9 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	    ptrdiff_t mark = marker_position (BVAR (current_buffer, mark));
 	    /* visargs[i] = visargs[i + 1] = Qnil; */
 	    args[i] = PT < mark ? point_marker : BVAR (current_buffer, mark);
-	    varies[i] = 3;
+	    varies[i] = *tem == 'R' ? 5 : 3;
 	    args[++i] = PT > mark ? point_marker : BVAR (current_buffer, mark);
-	    varies[i] = 4;
+	    varies[i] = *tem == 'R' ? 6 : 4;
 	  }
 	  break;
 
@@ -822,7 +835,9 @@ syms_of_callint (void)
   callint_message = Qnil;
   staticpro (&callint_message);
 
-  preserved_fns = list (intern_c_string ("region-beginning"),
+  preserved_fns = list (intern_c_string ("use-region-beginning"),
+                        intern_c_string ("use-region-end"),
+                        intern_c_string ("region-beginning"),
 			intern_c_string ("region-end"),
 			intern_c_string ("point"),
 			intern_c_string ("mark"));
@@ -915,4 +930,5 @@ use `event-start', `event-end', and `event-click-count'.  */);
   DEFSYM (Qread_file_name, "read-file-name");
   DEFSYM (Qcommand_history, "command-history");
   DEFSYM (Qeval_minibuffer, "eval-minibuffer");
+  DEFSYM (Quse_region_p, "use-region-p");
 }

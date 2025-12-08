@@ -3629,6 +3629,17 @@ This is an abbreviation for using the name of the keymap as the prefix
 command name.  E.g., '(defvar-keymap foo-map :prefix t)' is equivalent
 to '(defvar-keymap foo-map :prefix 'foo-map)'.
 
++++
+** New 'R' code letter for 'interactive' forms.
+This specifies the beginning and end of an active region, and nil twice
+if the region is inactive.  The interactive specification
+
+    (interactive "R")
+
+is equivalent to
+
+    (interactive (list (use-region-beginning) (use-region-end))
+
 ** Toolkit
 
 ---

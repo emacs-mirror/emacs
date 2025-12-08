@@ -414,9 +414,7 @@ Use \\[log-view-unmark-entry] to unmark an entry.
 
 Lisp programs can use `log-view-get-marked' to obtain a list of all
 marked revisions."
-  (interactive (list (prefix-numeric-value current-prefix-arg)
-                     (use-region-beginning)
-                     (use-region-end)))
+  (interactive "p\nR")
   (log-view--mark-unmark #'log-view--mark-entry arg beg end))
 
 (defun log-view--mark-entry ()
@@ -445,9 +443,7 @@ When called from Lisp, mark ARG entries or all entries lying between BEG
 and END.  If BEG and END are supplied, ARG is ignored.
 
 See `log-view-mark-entry'."
-  (interactive (list (prefix-numeric-value current-prefix-arg)
-                     (use-region-beginning)
-                     (use-region-end)))
+  (interactive "p\nR")
   (log-view--mark-unmark #'log-view--unmark-entry arg beg end))
 
 (defun log-view--unmark-entry ()

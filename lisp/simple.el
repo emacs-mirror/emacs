@@ -7161,13 +7161,15 @@ point otherwise."
 (defun use-region-beginning ()
   "Return the start of the region if `use-region-p' returns non-nil.
 This is a convenience function to use in `interactive' forms of
-commands that need to act on the region when it is active."
+commands that need to act on the region when it is active.
+See also the `R' code letter for `interactive'."
   (and (use-region-p) (region-beginning)))
 
 (defun use-region-end ()
   "Return the end of the region if `use-region-p' returns non-nil.
 This is a convenience function to use in `interactive' forms of
-commands that need to act on the region when it is active."
+commands that need to act on the region when it is active.
+See also the `R' code letter for `interactive'."
   (and (use-region-p) (region-end)))
 
 (defun use-region-noncontiguous-p ()
@@ -7184,16 +7186,17 @@ mark is active; furthermore, if `use-empty-active-region' is nil,
 the region must not be empty.  Otherwise, the return value is nil.
 
 If `use-empty-active-region' is non-nil, there is one further
-caveat: If the user has used `mouse-1' to set point, but used the
-mouse to move point to a different character yet, this function
-returns nil.
+caveat: If the user has used \\`mouse-1' to set point, but used
+the mouse to move point to a different character yet, this
+function returns nil.
 
 For some commands, it may be appropriate to ignore the value of
 `use-empty-active-region'; in that case, use `region-active-p'.
 
-Also see the convenience functions `use-region-beginning' and
-`use-region-end', which may be handy when writing `interactive'
-specs."
+You can use the `interactive' code letter `R' when writing commands that
+act specially on an active region.  For `interactive' specs that
+evaluate Lisp forms to produce a list of arguments, see the functions
+`use-region-beginning' and `use-region-end'."
   (and (region-active-p)
        (or (> (region-end) (region-beginning))
            (and use-empty-active-region

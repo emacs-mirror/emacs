@@ -911,7 +911,7 @@ overlaps; otherwise delete all hunks except the current one.
 When calling from Lisp, pass BEG and END as the bounds of the region in
 which to delete hunks; BEG and END omitted or nil means to delete all
 the hunks but the one which contains point."
-  (interactive (list (use-region-beginning) (use-region-end)))
+  (interactive "R")
   (when (buffer-narrowed-p)
     (user-error "Command is not safe in a narrowed buffer"))
   (let ((inhibit-read-only t))
@@ -2178,9 +2178,7 @@ When called from Lisp with optional arguments BEG and END non-nil,
 apply all hunks overlapped by the region from BEG to END as though
 called interactively with an active region delimited by BEG and
 END."
-  (interactive (list current-prefix-arg
-                     (use-region-beginning)
-                     (use-region-end)))
+  (interactive "P\nR")
   (cond*
    ((xor beg end)
     (error "Invalid call to `diff-apply-hunk'"))
@@ -2294,7 +2292,7 @@ When called from Lisp with optional arguments BEG and END non-nil,
 reverse-apply and kill all hunks overlapped by the region from BEG to
 END as though called interactively with an active region delimited by
 BEG and END."
-  (interactive (list (use-region-beginning) (use-region-end)))
+  (interactive "R")
   (when (xor beg end)
     (error "Invalid call to `diff-revert-and-kill-hunk'"))
   (when (or (not diff-ask-before-revert-and-kill-hunk)
@@ -2340,9 +2338,7 @@ changed buffers, `test' or t means to not actually apply or
 reverse-apply any hunks, but return the same information: nil if
 all hunks can be applied, or the number of hunks that can't be
 applied.  Other non-nil values are reserved."
-  (interactive (list (use-region-beginning)
-                     (use-region-end)
-                     current-prefix-arg))
+  (interactive "R\nP")
   (let ((buffer-edits nil)
         (failures 0)
         (diff-refine nil)
