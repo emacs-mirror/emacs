@@ -3738,8 +3738,9 @@ DATA' can now be used to play a sound from memory.
 
 ---
 ** New primitive 'w32-sound-volume'.
-This primitive allows to get and set the volume of the system's default
-audio device (or the "optimal device", if there are several devices).
+This primitive allows getting and setting the volume of the system's
+default audio device (or the "optimal device", if there are several
+devices).
 
 ---
 ** The MS-DOS port of Emacs now supports more recent releases of GCC and Binutils.
