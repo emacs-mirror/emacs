@@ -407,7 +407,7 @@ prepared."
   (let ((default-directory (package-vc--checkout-dir pkg-desc))
         (target (plist-get pkg-spec :make))
         (cmd (plist-get pkg-spec :shell-command))
-        (buf (format " *package-vc make %s*" (package-desc-name pkg-desc)))
+        (buf (format " *package-vc make: %s*" (package-desc-name pkg-desc)))
         (makexe (or package-vc-make-program
                     (seq-find #'executable-find '("gmake" "make")))))
     (when (or cmd target)

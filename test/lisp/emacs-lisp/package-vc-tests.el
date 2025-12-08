@@ -43,6 +43,9 @@
 (require 'ert-x)
 (require 'ert)
 
+;; Silence byte-compiler
+(defvar message-auto-save-directory)
+
 (defvar package-vc-tests-preserve-artefacts nil
   "When non-nil preserve temporary files and buffers produced by tests.
 Each test produces a new temporary directory for each package under
@@ -391,22 +394,24 @@ names."
   ;; in directory package-vc-resources.  Before executing body make sure
   ;; that:
   ;;
-  ;; - `package' has been initialised, and there are no
-  ;;   `package-archives' defined
-  (let* ((package-archives (unless package--initialized
-                             (let (package-archives)
-                               (package-initialize)
-                               (package-vc--archives-initialize))
-                             nil))
-         ;; - create a temporary location for packages and test files
-         (package-vc-tests-dir
+  (let* ((package-vc-tests-dir
           (expand-file-name
            (make-temp-file "package-vc-tests-"
                            t
                            (format-time-string "-%Y%m%d.%H%M%S.%3N"))))
-         ;; - packages are installed into a test directory
+         ;; - packages are installed into test directory
          (package-user-dir (expand-file-name "elpa"
                                              package-vc-tests-dir))
+         ;; - keyring is saved in test directory
+         (package-gnupghome-dir (expand-file-name "gnupg"
+                                                  package-user-dir))
+         ;; - `package' has been initialised, and there are no
+         ;;   `package-archives' defined
+         (package-archives (unless package--initialized
+                             (let (package-archives)
+                               (package-initialize)
+                               (package-vc--archives-initialize))
+                             nil))
          ;; - define test packages, their checkout locations, lisp
          ;;   directories, and install functions
          (package-vc-tests-packages (package-vc-tests-packages))
@@ -476,12 +481,7 @@ names."
          ;; - don't register projects
          (package-vc-register-as-project nil)
          ;; - allow build commands
-         (package-vc-allow-build-commands t)
-         ;; - FIXME: something sets `default-directory' to last
-         ;;   checkout directory after `package-vc-checkout', which
-         ;;   causes problems when this function deletes the temporary
-         ;;   directory after body execution.
-         (default-directory package-vc-tests-dir))
+         (package-vc-allow-build-commands t))
     (funcall function)))
 
 (defun package-vc-tests-environment-tear-down (pkg)
@@ -524,8 +524,8 @@ when PKG matches `package-vc-tests-preserve-artefacts'."
          (delq nil
                (mapcar (lambda (type)
                          (get-buffer
-                          (package-vc-tests-log-buffer-name type
-                                                            pkg)))
+                          (package-vc-tests-log-buffer-name pkg
+                                                            type)))
                        '(doc make)))))
     (if (or (memq package-vc-tests-preserve-artefacts `(t ,pkg))
             (and (listp package-vc-tests-preserve-artefacts)
@@ -538,7 +538,7 @@ when PKG matches `package-vc-tests-preserve-artefacts'."
       (dolist (buffer buffers)
         (kill-buffer buffer)))))
 
-(defun package-vc-with-installed-tests (pkg function)
+(defun package-vc-tests-with-installed (pkg function)
   "Call FUNCTION with PKG installed in a test environment.
 FUNCTION should have no arguments."
   (package-vc-with-tests-environment
@@ -670,7 +670,7 @@ car of ARGS (a symbol) to name of the package."
               :file-name ,file
               :body
               (lambda ()
-                (package-vc-with-installed-tests
+                (package-vc-tests-with-installed
                  ',pkg (funcall ,fn ',pkg))
                 nil)))
          tests)))
@@ -932,7 +932,8 @@ car of ARGS (a symbol) to name of the package."
 
 (package-vc-test-deftest prepare-patch (pkg)
   ;; Ensure `vc-prepare-patch' respects subject from function argument
-  (let ((vc-prepare-patches-separately nil))
+  (let ((message-auto-save-directory package-vc-tests-dir)
+        (vc-prepare-patches-separately nil))
     (package-vc-prepare-patch (package-vc-tests-package-desc pkg t)
                               "test-subject"
                               (cdr package-vc-tests-repository))
