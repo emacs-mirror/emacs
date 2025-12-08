@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.26
+;; Version: 1.0.27
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -1109,7 +1109,7 @@ PREFIX to CONN's events buffer."
            (unless (eql max 0)
              (cl-loop initially (goto-char beg)
                       do (forward-line)
-                      when (bolp)
+                      while (bolp)
                       for line = (buffer-substring
                                   (line-beginning-position 0)
                                   (line-end-position 0))
