@@ -6872,9 +6872,6 @@ compute_char_face (struct frame *f, int ch, Lisp_Object prop)
 
    ATTR_FILTER is passed merge_face_ref.
 
-   REGION_BEG, REGION_END delimit the region, so it can be
-   highlighted.
-
    LIMIT is a position not to scan beyond.  That is to limit the time
    this function can take.
 
@@ -6883,8 +6880,11 @@ compute_char_face (struct frame *f, int ch, Lisp_Object prop)
    i.e. don't merge different mouse-face values if more than one
    source specifies it.
 
-   BASE_FACE_ID, if non-negative, specifies a base face id to use
+   BASE_FACE_ID, if non-negative, specifies a base face ID to use
    instead of DEFAULT_FACE_ID.
+
+   Set *ENDPTR to the next position where to check for face or
+   mouse-face.
 
    The face returned is suitable for displaying ASCII characters.  */
 
@@ -7085,8 +7085,6 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
    If STRING is an overlay string, it comes from position BUFPOS in
    current_buffer, otherwise BUFPOS is zero to indicate that STRING is
    not an overlay string.  W must display the current buffer.
-   REGION_BEG and REGION_END give the start and end positions of the
-   region; both are -1 if no region is visible.
 
    BASE_FACE_ID is the id of a face to merge with.  For strings coming
    from overlays or the `display' property it is the face at BUFPOS.
