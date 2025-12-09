@@ -604,7 +604,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
      ;; Eg if the user account has no GECOS, git commit can fail with
      ;; status 128 "fatal: empty ident name".
      (when (memq ,backend '(Bzr Git))
-       (push "EMAIL=john@doe.ee" process-environment))
+       (push "EMAIL=joh.doe@example.com" process-environment))
      (when (eq ,backend 'Git)
        (setq process-environment (append '("GIT_AUTHOR_NAME=A"
                                            "GIT_COMMITTER_NAME=C")
