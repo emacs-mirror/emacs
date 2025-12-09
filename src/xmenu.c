@@ -2876,7 +2876,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   return SAFE_FREE_UNBIND_TO (specpdl_count, entry);
 }
 
-#endif /* not USE_X_TOOLKIT */
+#endif /* not USE_X_TOOLKIT && not USE_GTK */
 
 #ifndef MSDOS
 /* Detect if a dialog or menu has been posted.  MSDOS has its own
