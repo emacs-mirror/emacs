@@ -145,8 +145,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* Needed by lib/lchmod.c.  */
 #define EOPNOTSUPP EINVAL
 
-#define MALLOC_0_IS_NONNULL 1
-
 /* We must intercept 'opendir' calls to stash away the directory name,
    so we could reuse it in readlinkat; see msdos.c.  */
 #define opendir sys_opendir
