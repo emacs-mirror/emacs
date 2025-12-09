@@ -2017,7 +2017,7 @@ extern int x_error_message_count;
 
 #ifdef HAVE_XINPUT2
 extern struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
-# ifdef HAVE_X_TOOLKIT
+# ifdef USE_X_TOOLKIT
 extern bool xi_frame_selected_for (struct frame *, unsigned long);
 # endif
 # ifndef USE_GTK

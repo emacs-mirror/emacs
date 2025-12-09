@@ -5308,7 +5308,7 @@ x_extension_initialize (struct x_display_info *dpyinfo)
 
 #ifdef HAVE_XINPUT2
 
-# ifdef HAVE_X_TOOLKIT
+# ifdef USE_X_TOOLKIT
 bool
 xi_frame_selected_for (struct frame *f, unsigned long event)
 {
