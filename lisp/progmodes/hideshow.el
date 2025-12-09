@@ -1497,13 +1497,26 @@ Key bindings:
           (when (and (not (display-graphic-p))
                      (eq hs-indicator-type 'fringe))
             (setq-local hs-indicator-type 'margin))
+          (when (eq hs-indicator-type 'margin)
+            (setq-local left-margin-width (1+ left-margin-width))
+            (setq-local fringes-outside-margins t)
+            ;; Force display of margins
+            (when (eq (current-buffer) (window-buffer))
+              (set-window-buffer nil (window-buffer))))
           (jit-lock-register #'hs--add-indicators)))
 
     (remove-from-invisibility-spec '(hs . t))
     (remove-overlays nil nil 'hs-indicator t)
     (remove-overlays nil nil 'invisible 'hs)
     (when hs-show-indicators
-      (jit-lock-unregister #'hs--add-indicators))))
+      (jit-lock-unregister #'hs--add-indicators)
+      (when (and (eq hs-indicator-type 'margin)
+                 (< 0 left-margin-width))
+        (setq-local left-margin-width (1- left-margin-width))
+        (kill-local-variable 'fringes-outside-margins)
+        ;; Force removal of margins
+        (when (eq (current-buffer) (window-buffer))
+          (set-window-buffer nil (window-buffer)))))))
 
 
 ;;;; that's it
