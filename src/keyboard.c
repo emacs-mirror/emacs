@@ -6925,7 +6925,7 @@ make_lispy_event (struct input_event *event)
 	Lisp_Object x, y, id, position;
 	struct frame *f = XFRAME (event->frame_or_window);
 #if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
-	int column, row, dummy;
+	int column, row;
 #endif /* defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR */
 #ifdef HAVE_WINDOW_SYSTEM
 	int tab_bar_item;
