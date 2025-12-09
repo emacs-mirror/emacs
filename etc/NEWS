@@ -3638,7 +3638,7 @@ if the region is inactive.  The interactive specification
 
 is equivalent to
 
-    (interactive (list (use-region-beginning) (use-region-end))
+    (interactive (list (use-region-beginning) (use-region-end)))
 
 ** Toolkit
 
