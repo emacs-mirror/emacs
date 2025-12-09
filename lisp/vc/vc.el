@@ -2147,10 +2147,15 @@ have changed; continue with old fileset?" (current-buffer))))
                                               patch-string comment)
                            (vc-call-backend backend 'checkin
                                             files comment rev))
-                    (mapc #'vc-delete-automatic-version-backups files))))
+                    (mapc #'vc-delete-automatic-version-backups files)))
+                (done-msg ()
+                  (message "Checking in %s...done" (vc-delistify files))))
         (if do-async
             ;; Rely on `vc-set-async-update' to update properties.
-            (do-it)
+            (let ((ret (do-it)))
+              (when (eq (car-safe ret) 'async)
+                (vc-exec-after #'done-msg nil (cadr ret)))
+              ret)
           (prog2 (message "Checking in %s..." (vc-delistify files))
               (with-vc-properties files (do-it)
                                   `((vc-state . up-to-date)
@@ -2158,7 +2163,7 @@ have changed; continue with old fileset?" (current-buffer))))
                                      . ,(file-attribute-modification-time
 			                 (file-attributes file)))
                                     (vc-working-revision . nil)))
-            (message "Checking in %s...done" (vc-delistify files))))))
+            (done-msg)))))
     'vc-checkin-hook
     backend
     patch-string)))
