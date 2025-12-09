@@ -329,7 +329,7 @@ asynchronously."
         (replace-regexp-in-string
          "-pkg\\.el\\'" ".el"
          (file-name-nondirectory pkg-file))
-        "  -*- no-byte-compile: t -*-\n"
+        "  -*- no-byte-compile: t; lexical-binding: t -*-\n"
         (prin1-to-string
          (nconc
           (list 'define-package
@@ -585,7 +585,7 @@ building documentation and marking the package as installed."
       (unless (file-equal-p lisp-dir pkg-dir)
         (write-region
          (concat
-          ";; Autoload indirection for package-vc\n\n"
+          ";; Autoload indirection for package-vc -*- lexical-binding: t -*-\n\n"
           (prin1-to-string
            ;; The indirection is just a single load statement to the
            ;; actual file (we don't want to use symbolic links due to
