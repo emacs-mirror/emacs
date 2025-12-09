@@ -94,47 +94,47 @@ the package.  Otherwise each entry is in a form of PKG."
         (list
          ;; checkout and install with `package-vc-install' (on ELPA)
          (test-package-def
-          test-package-1 package-user-dir nil
+          test-package-one package-user-dir nil
           package-vc-tests-install-from-elpa)
          ;; checkout and install with `package-vc-install' (not on ELPA)
          (test-package-def
-          test-package-2 package-user-dir nil
+          test-package-two package-user-dir nil
           package-vc-tests-install-from-spec)
          ;; checkout with `package-vc-checktout' and install with
          ;; `package-vc-install-from-checkout' (on ELPA)
          (test-package-def
-          test-package-3 package-vc-tests-dir nil
+          test-package-three package-vc-tests-dir nil
           package-vc-tests-checkout-from-elpa-install-from-checkout)
          ;; checkout with git and install with
          ;; `package-vc-install-from-checkout'
          (test-package-def
-          test-package-4 package-vc-tests-dir nil
+          test-package-four package-vc-tests-dir nil
           package-vc-tests-checkout-with-git-install-from-checkout)
          ;; sources in "lisp" sub directory, checkout and install with
          ;; `package-vc-install' (not on ELPA)
          (test-package-def
-          test-package-5 package-user-dir "lisp"
+          test-package-five package-user-dir "lisp"
           package-vc-tests-install-from-spec)
          ;; sources in "lisp" sub directory, checkout with git and
          ;; install with `package-vc-install-from-checkout'
          (test-package-def
-          test-package-6 package-vc-tests-dir "lisp"
+          test-package-six package-vc-tests-dir "lisp"
           package-vc-tests-checkout-with-git-install-from-checkout)
          ;; sources in "src" sub directory, checkout and install with
          ;; `package-vc-install' (on ELPA)
          (test-package-def
-          test-package-7 package-user-dir "src"
+          test-package-seven package-user-dir "src"
           package-vc-tests-install-from-elpa)
          ;; sources in "src" sub directory, checkout with
          ;; `package-vc-checktout' and install with
          ;; `package-vc-install-from-checkout' (on ELPA)
          (test-package-def
-          test-package-8 package-vc-tests-dir nil
+          test-package-eight package-vc-tests-dir nil
           package-vc-tests-checkout-from-elpa-install-from-checkout)
          ;; sources in "custom-dir" sub directory, checkout and install
          ;; with `package-vc-install' (on ELPA)
          (test-package-def
-          test-package-9  package-user-dir "custom-dir"
+          test-package-nine package-user-dir "custom-dir"
           package-vc-tests-install-from-elpa))))))
 
 ;; TODO: add test for deleting packages, with asserting
@@ -155,7 +155,8 @@ When LISP-DIR is non-nil place the NAME file under LISP-DIR."
                                     (: ".in" string-end)) )
                             (lambda (mat)
                               (if (string= mat "SUFFIX") suffix ""))
-                            in-file)))
+                            in-file
+                            :fixedcase)))
                  (file-name-concat lisp-dir file))))
     (unless (zerop (call-process
                     "sed" (expand-file-name in-file resource-dir)
@@ -171,7 +172,13 @@ If LISP-DIR is non-nil place sources of the package in LISP-DIR."
          (repo-dir (expand-file-name (file-name-concat "repo" name)
                                      package-vc-tests-dir)))
     (make-directory (expand-file-name (or lisp-dir ".") repo-dir) t)
-    (let ((default-directory repo-dir))
+    (let ((default-directory repo-dir)
+          (process-environment
+           (append (list
+                    (format "EMAIL=%s@example.com" name)
+                    (format "GIT_AUTHOR_NAME=%s" name)
+                    (format "GIT_COMMITTER_NAME=%s" name))
+                   process-environment)))
       (vc-git-command nil 0 nil "init" "-b" "master")
       (package-vc-tests-add
        suffix "test-package-SUFFIX-lib-v0.1.el.in" lisp-dir)
@@ -530,10 +537,20 @@ when PKG matches `package-vc-tests-preserve-artefacts'."
     (if (or (memq package-vc-tests-preserve-artefacts `(t ,pkg))
             (and (listp package-vc-tests-preserve-artefacts)
                  (memq pkg package-vc-tests-preserve-artefacts)))
-        (message
-         "package-vc-tests: preserving temporary directory: %s%s"
-         package-vc-tests-dir
-         (and buffers (format " and buffers: %s" buffers)))
+        (let ((buffers
+               (mapconcat (lambda (buffer)
+                            (with-current-buffer buffer
+                              (let* ((old-name (buffer-name))
+                                     (new-name (make-temp-name
+                                                (string-trim old-name))))
+                                (rename-buffer new-name)
+                                (concat old-name " -> " new-name))))
+                          buffers
+                          ", ")))
+          (message
+           "package-vc-tests: preserving temporary directory: %s%s"
+           package-vc-tests-dir
+           (and buffers (format " and buffers: %s" buffers))))
       (delete-directory package-vc-tests-dir t)
       (dolist (buffer buffers)
         (kill-buffer buffer)))))
