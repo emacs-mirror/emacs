@@ -1350,6 +1350,19 @@ therefore also disable the fetching."
   :group 'vc
   :version "31.1")
 
+(defun vc-dir--count-outgoing (backend)
+  "Call `vc--count-outgoing' with a delayed message and local quits."
+  (let ((inhibit-quit t))
+    (prog1
+        (with-local-quit
+          (with-delayed-message
+              (2 (substitute-command-keys
+                  "Counting outgoing revisions ...
+(\\[keyboard-quit] to skip; \
+see `vc-dir-show-outgoing-count' if this is frequently slow)"))
+            (ignore-errors (vc--count-outgoing backend))))
+      (setq quit-flag nil))))
+
 (defun vc-dir-headers (backend dir)
   "Display the headers in the *VC-Dir* buffer.
 It calls the `dir-extra-headers' backend method to display backend
@@ -1363,12 +1376,7 @@ specific headers."
    (vc-call-backend backend 'dir-extra-headers dir)
    "\n"
    (and-let* (vc-dir-show-outgoing-count
-              (count
-               (ignore-errors
-                 (with-delayed-message
-                     (2 (substitute-quotes "Counting outgoing revisions ...
-(see `vc-dir-show-outgoing-count' if this is frequently slow)" ))
-                   (vc--count-outgoing backend))))
+              (count (vc-dir--count-outgoing backend))
               (_ (plusp count)))
      (concat (propertize "Outgoing   : "
                          'face 'vc-dir-header)
