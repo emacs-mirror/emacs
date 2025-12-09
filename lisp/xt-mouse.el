@@ -515,7 +515,9 @@ enable, ?l to disable)."
     (unless (terminal-parameter terminal 'xterm-mouse-mode)
       ;; Simulate selecting a terminal by selecting one of its frames
       ;; so that we can set the terminal-local `input-decode-map'.
-      (with-selected-frame (car (frames-on-display-list terminal))
+      ;; Use the tty-top-frame to avoid accidentally making an invisible
+      ;; child frame visible by selecting it (bug#79960).
+      (with-selected-frame (tty-top-frame terminal)
         (define-key input-decode-map "\e[M" 'xterm-mouse-translate)
         (define-key input-decode-map "\e[<" 'xterm-mouse-translate-extended))
       (let ((enable (xterm-mouse-tracking-enable-sequence))
