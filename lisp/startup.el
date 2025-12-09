@@ -1259,7 +1259,7 @@ unconditionally."
          (dir (expand-file-name user-lisp-directory))
          (backup-inhibited t)
          (dirs (list dir)))
-    (add-to-list 'load-path dir)
+    (add-to-list 'load-path (directory-file-name dir))
     (dolist (file (directory-files-recursively dir "" t pred))
       (cond
        ((and (file-regular-p file) (string-suffix-p ".el" file))
@@ -1269,7 +1269,7 @@ unconditionally."
             (when (native-comp-available-p)
               (native-compile-async file)))))
        ((file-directory-p file)
-        (add-to-list 'load-path file)
+        (add-to-list 'load-path (directory-file-name file))
         (push file dirs))))
     (unless just-activate
       (loaddefs-generate dirs autoload-file nil nil nil force))
