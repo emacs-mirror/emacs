@@ -1739,13 +1739,12 @@ handle_pending_conversion_events (void)
   unbind_to (count, Qnil);
 }
 
+#ifdef HAVE_ANDROID
+
 /* Return the confines of the field to which editing operations on frame
    F should be constrained in *BEG and *END.  Should no field be active,
    set *END to PTRDIFF_MAX.  */
 
-#ifndef HAVE_ANDROID
-static
-#endif
 void
 get_conversion_field (struct frame *f, ptrdiff_t *beg, ptrdiff_t *end)
 {
@@ -1774,8 +1773,6 @@ get_conversion_field (struct frame *f, ptrdiff_t *beg, ptrdiff_t *end)
   *beg = 1;
   *end = PTRDIFF_MAX;
 }
-
-#ifdef HAVE_ANDROID
 
 /* Start a ``batch edit'' in frame F.  During a batch edit,
    point_changed will not be called until the batch edit ends.
