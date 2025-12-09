@@ -2447,7 +2447,7 @@ void
 x_y_to_column_row (struct window *w, int x, int y, int *column, int *row)
 {
   int dummy;
-  x_y_to_hpos_vpos (w, x, y, column, row, &dummy);
+  x_y_to_hpos_vpos (w, x, y, column, row, NULL, NULL, &dummy);
 }
 #endif
 

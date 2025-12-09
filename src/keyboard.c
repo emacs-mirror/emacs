@@ -6948,9 +6948,8 @@ make_lispy_event (struct input_event *event)
 
 	    if (!NILP (f->menu_bar_window))
 	      {
-		x_y_to_hpos_vpos (XWINDOW (f->menu_bar_window), XFIXNUM (x),
-				  XFIXNUM (y), &column, &row, NULL, NULL,
-				  &dummy);
+		x_y_to_column_row (XWINDOW (f->menu_bar_window), XFIXNUM (x),
+				  XFIXNUM (y), &column, &row);
 
 		if (row >= 0 && row < FRAME_MENU_BAR_LINES (f))
 		  {
