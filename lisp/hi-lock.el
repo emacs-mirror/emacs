@@ -393,7 +393,7 @@ The lines that match REGEXP will be displayed by merging
 the attributes of FACE with any other face attributes
 of text in those lines.
 
-Interactively, prompt for REGEXP using `read-regexp', then FACE.
+Interactively, prompt for REGEXP using `hi-lock-read-regexp', then FACE.
 Use the global history list for FACE.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\')
@@ -404,8 +404,7 @@ use overlays for highlighting.  If overlays are used, the
 highlighting will not update as you type."
   (interactive
    (list
-    (hi-lock-regexp-okay
-     (read-regexp "Regexp to highlight line" 'regexp-history-last))
+    (hi-lock-read-regexp "Regexp to highlight line")
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
@@ -423,7 +422,7 @@ highlighting will not update as you type."
 ;;;###autoload
 (defun hi-lock-face-buffer (regexp &optional face subexp lighter)
   "Set face of each match of REGEXP to FACE.
-Interactively, prompt for REGEXP using `read-regexp', then FACE.
+Interactively, prompt for REGEXP using `hi-lock-read-regexp', then FACE.
 Use the global history list for FACE.  Limit face setting to the
 corresponding SUBEXP (interactively, the prefix argument) of REGEXP.
 If SUBEXP is omitted or nil, the entire REGEXP is highlighted.
@@ -443,14 +442,7 @@ causes `font-lock-specified-p' to return non-nil, which means
 the major mode specifies support for Font Lock."
   (interactive
    (list
-    (hi-lock-regexp-okay
-     (read-regexp "Regexp to highlight"
-                  (if (use-region-p)
-                      (prog1
-                          (buffer-substring (region-beginning)
-                                            (region-end))
-                        (deactivate-mark))
-                    'regexp-history-last)))
+    (hi-lock-read-regexp "Regexp to highlight")
     (hi-lock-read-face-name)
     current-prefix-arg))
   (when (stringp face)
@@ -469,7 +461,7 @@ the major mode specifies support for Font Lock."
 ;;;###autoload
 (defun hi-lock-face-phrase-buffer (regexp &optional face)
   "Set face of each match of phrase REGEXP to FACE.
-Interactively, prompt for REGEXP using `read-regexp', then FACE.
+Interactively, prompt for REGEXP using `hi-lock-read-regexp', then FACE.
 Use the global history list for FACE.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\')
@@ -484,8 +476,7 @@ causes `font-lock-specified-p' to return non-nil, which means
 the major mode specifies support for Font Lock."
   (interactive
    (list
-    (hi-lock-regexp-okay
-     (read-regexp "Phrase to highlight" 'regexp-history-last))
+    (hi-lock-read-regexp "Phrase to highlight")
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
@@ -725,6 +716,21 @@ with completion and history."
       ;; Grow the list of defaults.
       (add-to-list 'hi-lock-face-defaults face t))
     (intern face)))
+
+(defun hi-lock-read-regexp (prompt)
+  "Read font-lock pattern from the minibuffer and return it.
+
+The pattern is read using `read-regexp' with PROMPT and validated using
+`hi-lock-regexp-okay'.  If the region is active, use its content as the
+default value."
+  (hi-lock-regexp-okay
+   (read-regexp prompt
+                (if (use-region-p)
+                    (prog1
+                        (buffer-substring (region-beginning)
+                                          (region-end))
+                      (deactivate-mark))
+                  'regexp-history-last))))
 
 (defvar hi-lock-use-overlays nil
   "Whether to always use overlays instead of font-lock rules.

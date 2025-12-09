@@ -3231,6 +3231,14 @@ Command 'antlr-run-tool' now usually runs on the file for the current
 buffer.  Customize this user option to have value ' nil' to get the
 previous behavior back.
 
+** Hi Lock
+
+---
+*** Use active region for default values in more functions.
+If an active region exists, the commands 'hi-lock-line-face-buffer' and
+'hi-lock-face-phrase-buffer' now use its contents as their default
+value.  Previously, only 'hi-lock-face-buffer' supported this.
+
 
 * New Modes and Packages in Emacs 31.1
 
