@@ -278,7 +278,7 @@ The value is language-dependent, see `antlr-language-variables'.")
 (defvar antlr-java-init-cc-mode 'java-mode
   "Value for `antlr-init-cc-mode' when using language `antlr-java'.")
 
-(defvar antlr-init-submode 'antlr-set-tabs
+(defvar antlr-init-submode #'antlr-set-tabs
   "Function used to initialize the action language.
 Important for languages which do not depend on CC Mode.
 The value is language-dependent, see `antlr-language-variables'.")
@@ -901,30 +901,30 @@ imenu.  For sorted menu entries, customize variable
 
 (defvar antlr-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\t" 'antlr-indent-command)
-    (define-key map "\e\C-a" 'antlr-beginning-of-rule)
-    (define-key map "\e\C-e" 'antlr-end-of-rule)
-    (define-key map "\C-c\C-a" 'antlr-beginning-of-body)
-    (define-key map "\C-c\C-e" 'antlr-end-of-body)
+    (define-key map "\t" #'antlr-indent-command)
+    (define-key map "\e\C-a" #'antlr-beginning-of-rule)
+    (define-key map "\e\C-e" #'antlr-end-of-rule)
+    (define-key map "\C-c\C-a" #'antlr-beginning-of-body)
+    (define-key map "\C-c\C-e" #'antlr-end-of-body)
     (define-key map "\C-c\C-f" 'subword-forward)
     (define-key map "\C-c\C-b" 'subword-backward)
-    (define-key map "\C-c\C-c" 'comment-region)
-    (define-key map "\C-c\C-k" 'antlr-insert-keyword-rule)
-    (define-key map "\C-c\C-v" 'antlr-hide-actions)
-    (define-key map "\C-c\C-r" 'antlr-run-tool)
-    (define-key map "\C-c\C-o" 'antlr-insert-option)
+    (define-key map "\C-c\C-c" #'comment-region)
+    (define-key map "\C-c\C-k" #'antlr-insert-keyword-rule)
+    (define-key map "\C-c\C-v" #'antlr-hide-actions)
+    (define-key map "\C-c\C-r" #'antlr-run-tool)
+    (define-key map "\C-c\C-o" #'antlr-insert-option)
     ;; I'm too lazy to define my own:
-    (define-key map "\ea" 'c-beginning-of-statement)
-    (define-key map "\ee" 'c-end-of-statement)
+    (define-key map "\ea" #'c-beginning-of-statement)
+    (define-key map "\ee" #'c-end-of-statement)
     ;; electric keys:
-    (define-key map ":" 'antlr-electric-character)
-    (define-key map ";" 'antlr-electric-character)
-    (define-key map "|" 'antlr-electric-character)
-    (define-key map "&" 'antlr-electric-character)
-    (define-key map "(" 'antlr-electric-character)
-    (define-key map ")" 'antlr-electric-character)
-    (define-key map "{" 'antlr-electric-character)
-    (define-key map "}" 'antlr-electric-character)
+    (define-key map ":" #'antlr-electric-character)
+    (define-key map ";" #'antlr-electric-character)
+    (define-key map "|" #'antlr-electric-character)
+    (define-key map "&" #'antlr-electric-character)
+    (define-key map "(" #'antlr-electric-character)
+    (define-key map ")" #'antlr-electric-character)
+    (define-key map "{" #'antlr-electric-character)
+    (define-key map "}" #'antlr-electric-character)
     map)
   "Keymap used in `antlr-mode' buffers.")
 
@@ -982,8 +982,8 @@ imenu.  For sorted menu entries, customize variable
 ;;;===========================================================================
 
 (defvar antlr-syntax-propertize nil
-  "Specification used to apply ‘syntax-table’ text properties.
-When non-nil, the value looks like \(MAIN EXTEND-REGION MULTILINE-CHAR).
+  "Specification used to apply `'syntax-table' text properties.
+When non-nil, the value looks like (MAIN EXTEND-REGION MULTILINE-CHAR).
 
 MAIN is used as value for `syntax-propertize-function'.
 
@@ -1121,7 +1121,8 @@ The value might be language-dependent, see `antlr-language-variables'.")
   "Valid ANTLR action names in Java.
 Value for `antlr-action-names' when using language `antlr-java'.")
 
-(defvar antlr-token-identifier-p 'antlr-upcase-p
+;; FIXME: We usually call such variables "foo-predicate".
+(defvar antlr-token-identifier-p #'antlr-upcase-p
   "Function for syntax highlighting to distinguish token refs from rule refs.
 Function is called with the first character of the identifier; it should
 return non-nil if the identifier is a token reference.")
@@ -1550,7 +1551,7 @@ If the matched string is an element of STRINGS (or STRINGS is not a list),
 return FACE, otherwise return `font-lock-warning-face'."
   (if (if (consp strings) (member (match-string-no-properties group) strings) strings)
       face
-    font-lock-warning-face))
+    'font-lock-warning-face))
 
 
 ;;;===========================================================================
@@ -1561,7 +1562,7 @@ return FACE, otherwise return `font-lock-warning-face'."
 ;; imenu-induced.  If entries are missing in the menu (as are sometimes for me
 ;; on Emacs-25.1.1), try M-x imenu RET -> you see all.  This might not be the
 ;; case anymore with the reordering of `imenu-add-to-menubar'...
-(defvar antlr-do-syntax-propertize (version< emacs-version "25")
+(defvar antlr-do-syntax-propertize (< emacs-major-version 25)
   "Whether \\[antlr-mode] runs `syntax-propertize' on the complete buffer.
 Running it explicitly at the beginning of the mode might be
 necessary for a correct Index menu and motion commands.")
@@ -1574,7 +1575,7 @@ necessary for a correct Index menu and motion commands.")
 (defun antlr-imenu-create-index-function (&optional refs-only)
   "Return imenu index-alist for ANTLR grammar files.
 IF REFS-ONLY is non-nil, just return alist with ref names,
-with value 'upcase, only return alist with tokenref names."
+with value `upcase', only return alist with tokenref names."
   (let ((items nil)
 	(classes nil)
 	(continue t))
@@ -1865,7 +1866,7 @@ prefix arg MSG, move to `:'."
   "Convert all literals in buffer to lower case.
 If non-nil, TRANSFORM is used on literals instead of `downcase-region'."
   (interactive)
-  (or transform (setq transform 'downcase-region))
+  (or transform (setq transform #'downcase-region))
   (let ((literals 0))
     (save-excursion
       (goto-char (point-min))
@@ -1877,7 +1878,7 @@ If non-nil, TRANSFORM is used on literals instead of `downcase-region'."
 (defun antlr-upcase-literals ()
   "Convert all literals in buffer to upper case."
   (interactive)
-  (antlr-downcase-literals 'upcase-region))
+  (antlr-downcase-literals #'upcase-region))
 
 ;; TODO: `antlr-hide-actions' should probably be a minor mode like
 ;; `hide-ifdef-mode'.  Whether to exclude arguments (of limited use) should be
@@ -2050,8 +2051,8 @@ Use `current-prefix-arg' for ARG.  Return \(LEVEL OPTION LOCATION)."
 	      (vector option
 		      (list 'antlr-insert-option level option)
 		      :active active))
-	    (sort (mapcar 'car (elt antlr-options-alists (1- level)))
-		  'string-lessp))))
+	    (sort (mapcar #'car (elt antlr-options-alists (1- level)))
+		  #'string-lessp))))
 
 
 ;;;===========================================================================
@@ -2370,8 +2371,8 @@ Used by `antlr-insert-option-do'."
 ;;;  Insert options: in `antlr-options-alists'
 ;;;===========================================================================
 
-(defun antlr-read-value (initial-contents prompt
-					  &optional as-string table table-x)
+(defun antlr-read-value ( initial-contents prompt
+			  &optional as-string table table-x)
   "Read a string from the minibuffer, possibly with completion.
 If INITIAL-CONTENTS is non-nil, insert it in the minibuffer initially.
 PROMPT is a string to prompt with, normally it ends in a colon and a
@@ -2419,7 +2420,7 @@ PROMPT is a string to prompt with, normally it ends in a colon and a
 space.
 
 Used inside `antlr-options-alists'."
-  (let ((table (apply 'nconc
+  (let ((table (apply #'nconc
                       (mapcar (lambda (l) (mapcar #'list (cdr l)))
                               antlr-language-list))))
     (antlr-read-value initial-contents prompt nil table)))
@@ -2597,7 +2598,7 @@ vocabulary of the super-grammar or nil if it is not needed."
 			     (format (cadr antlr-unknown-file-formats)
 				     (car super)))))
 	      glibs)))
-    (cons (if glibs (concat " -glib " (mapconcat 'car glibs ";")) "")
+    (cons (if glibs (concat " -glib " (mapconcat #'car glibs ";")) "")
 	  (cons unknown glibs))))
 
 
@@ -2631,7 +2632,7 @@ called interactively, the buffers are always saved, see also variable
         (error-regexp-alist antlr-compilation-error-regexp-alist)
         (process-environment
          (if antlr-tool-path
-             (let ((path (mapconcat 'substitute-env-vars
+             (let ((path (mapconcat #'substitute-env-vars
                                     antlr-tool-path path-separator)))
                (cons (concat "PATH=" path path-separator
                              (getenv "PATH"))
@@ -2994,12 +2995,12 @@ If not found, use the default, which is the first element."
                                 (car antlr-language-limit-n-regexp))
                              t)
       (car (cl-find (match-string-no-properties 1) antlr-language-list
-                    :key 'cdr :test 'member)))))
+                    :key #'cdr :test #'member)))))
 
 (defun antlr-guess-tool-version ()
   "Guess whether current grammar is for ANTLR v2 or v3.
-By default, we assume v3.  Only if we find a keyword 'class' or
-'header' at the beginning of a line before any 'grammar' keyword,
+By default, we assume v3.  Only if we find a keyword `class' or
+`header' at the beginning of a line before any `grammar' keyword,
 we assume v2."
   (save-excursion
     (goto-char (point-min))
@@ -3010,8 +3011,8 @@ we assume v2."
 
 (defun antlr-skip-import-statement ()
   "Skip whitespaces, comments and special declarations after the header.
-See  `antlr-skip-line-regexp', which skips the 'scope' declaration in
-ANTLR v3, and the 'import' declaration in ANTLR v4."
+See  `antlr-skip-line-regexp', which skips the `scope' declaration in
+ANTLR v3, and the `import' declaration in ANTLR v4."
   (if (not (and antlr-skip-line-regexp (looking-at antlr-skip-line-regexp)))
       (antlr-skip-sexps 1)
     (goto-char (match-end 0))
@@ -3051,9 +3052,11 @@ This function is used in `hack-local-variables-hook'."
            (assq 'antlr-language file-local-variables-alist))
        (antlr-set-tool-version-and-mode-line)))
 
-(add-hook 'hack-local-variables-hook 'antlr-hack-local-variables-hook)
+(add-hook 'hack-local-variables-hook #'antlr-hack-local-variables-hook)
 
 (defun antlr-set-tool-version-and-mode-line ()
+  ;; FIXME: This does a *lot* more setup than is normal for
+  ;; `hack-local-variables-hook'.
   "Late setup for `antlr-mode' and sub modes."
   ;; tool and language version and dependent variables -----------------------
   (let ((guess (if (local-variable-p 'antlr-tool-version)
@@ -3082,7 +3085,7 @@ This function is used in `hack-local-variables-hook'."
                        (or antlr-indent-style "gnu"))
   (funcall antlr-init-submode)
   (set (make-local-variable 'indent-line-function) #'antlr-indent-line)
-  (set (make-local-variable 'indent-region-function) nil) ; TODO
+  (kill-local-variable 'indent-region-function) ;FIXME: Needed?
   ;; syntax-propertize -------------------------------------------------------
   (when antlr-syntax-propertize
     (setq-local syntax-propertize-function (car antlr-syntax-propertize))
@@ -3107,8 +3110,8 @@ This function is used in `hack-local-variables-hook'."
        (fboundp 'imenu-add-to-menubar)
        (imenu-add-to-menubar
 	(if (stringp antlr-imenu-name) antlr-imenu-name "Index")))
-  (setq mode-name                       ; TODO: or use ("" ...)?
-        (concat antlr-tool-mode-name "." antlr-language-mode-name)))
+  ;; FIXME: No need to set this so late.
+  (setq mode-name '("" antlr-tool-mode-name "." antlr-language-mode-name)))
 
 
 (defvar antlr-delayed-mode-hook '(antlr-set-tool-version-and-mode-line)
@@ -3131,7 +3134,7 @@ This function is used in `hack-local-variables-hook'."
   (set (make-local-variable 'imenu-create-index-function)
        #'antlr-imenu-create-index-function)
   (set (make-local-variable 'imenu-generic-expression) t) ; fool stupid test
-  (easy-menu-add antlr-mode-menu)
+  ;; FIXME: How does this hook differ from `antlr-mode-hook'?
   (run-mode-hooks 'antlr-delayed-mode-hook))
 
 ;; A smarter version of `group-buffers-menu-by-mode-then-alphabetically' (in
@@ -3219,7 +3222,7 @@ It is probably better to automatically deduce the TAB setting."
 (defvar antlr-js-action-mode 'js-mode
   "Value for `antlr-action-mode' when using language `antlr-js'.")
 
-(defvar antlr-js-init-submode 'antlr-init-js
+(defvar antlr-js-init-submode #'antlr-init-js
   "Value for `antlr-init-submode' when using language `antlr-js'.")
 
 (defvar antlr-js-action-font-lock-keywords
@@ -3228,7 +3231,7 @@ It is probably better to automatically deduce the TAB setting."
     js--font-lock-keywords-1 js--font-lock-keywords-2)
   "Value for `antlr-action-font-lock-keywords' when using language `antlr-js'.")
 
-(defvar antlr-js-indent-action-line 'antlr-js-indent-action-line
+(defvar antlr-js-indent-action-line #'antlr-js-indent-action-line
   "Value for `antlr-indent-action-line' when using language `antlr-js'.")
 
 (defun antlr-init-js ()
@@ -3255,7 +3258,7 @@ It is probably better to automatically deduce the TAB setting."
 (defvar antlr-delphi-action-mode 'opascal-mode
   "Value for `antlr-action-mode' when using language `antlr-delphi'.")
 
-(defvar antlr-delphi-init-submode 'antlr-init-delphi
+(defvar antlr-delphi-init-submode #'antlr-init-delphi
   "Value for `antlr-init-submode' when using language `antlr-delphi'.")
 
 (defvar antlr-delphi-action-font-lock-keywords
@@ -3263,7 +3266,7 @@ It is probably better to automatically deduce the TAB setting."
     opascal-font-lock-keywords)
   "Value for `antlr-action-font-lock-keywords' when using language `antlr-delphi'.")
 
-(defvar antlr-delphi-indent-action-line 'antlr-delphi-indent-action-line
+(defvar antlr-delphi-indent-action-line #'antlr-delphi-indent-action-line
   "Value for `antlr-indent-action-line' when using language `antlr-delphi'.")
 
 (defun antlr-init-delphi ()
@@ -3279,14 +3282,14 @@ It is probably better to automatically deduce the TAB setting."
 (defun antlr-delphi-indent-action-line (boa)
   "Indent the current line in a Delphi (opascal) action.
 Argument BOA is the start position of the action."
-  (narrow-to-region (1+ boa) (point-at-eol))
+  (narrow-to-region (1+ boa) (line-end-position))
   ;; make Pascal mode only checks the code fragment after the opening brace,
   ;; otherwise its indentation gets confused as {...} are block comments
   (opascal-indent-line)
   ;; or use low-level `opascal-corrected-indentation' - but that does not have
   ;; a docstring, i.e. not really official ?
   (widen)
-  (unless (memq (char-after (point-at-bol)) '(?\ ?\t))
+  (unless (memq (char-after (line-beginning-position)) '(?\ ?\t))
     ;; no indentation -> considered top-level -> indentation can also be
     ;; performed by c-mode
     (c-indent-line)))
@@ -3306,7 +3309,7 @@ Argument BOA is the start position of the action."
 (defvar antlr-ruby-action-mode 'ruby-mode
   "Value for `antlr-action-mode' when using language `antlr-ruby'.")
 
-(defvar antlr-ruby-init-submode 'antlr-init-ruby
+(defvar antlr-ruby-init-submode #'antlr-init-ruby
   "Value for `antlr-init-submode' when using language `antlr-ruby'.")
 
 (defvar antlr-ruby-action-font-lock-keywords
@@ -3314,7 +3317,7 @@ Argument BOA is the start position of the action."
     ruby-font-lock-keywords)
   "Value for `antlr-action-font-lock-keywords' when using language `antlr-ruby'.")
 
-(defvar antlr-ruby-indent-action-line 'antlr-ruby-indent-action-line
+(defvar antlr-ruby-indent-action-line #'antlr-ruby-indent-action-line
   "Value for `antlr-indent-action-line' when using language `antlr-ruby'.")
 
 (defun antlr-init-ruby ()
@@ -3328,10 +3331,10 @@ Argument BOA is the start position of the action."
 (defun antlr-ruby-indent-action-line (boa)
   "Indent the current line in a Ruby action.
 Argument BOA is the start position of the action."
-  (narrow-to-region (1+ boa) (point-at-eol))
+  (narrow-to-region (1+ boa) (line-end-position))
   (ruby-indent-line)
   (widen)
-  (unless (memq (char-after (point-at-bol)) '(?\ ?\t))
+  (unless (memq (char-after (line-beginning-position)) '(?\ ?\t))
     ;; no indentation -> considered top-level -> indentation can also be
     ;; performed by cc-mode
     (c-indent-line)))
@@ -3350,7 +3353,7 @@ Argument BOA is the start position of the action."
 (defvar antlr-python-action-mode 'python-mode
   "Value for `antlr-action-mode' when using language `antlr-python'.")
 
-(defvar antlr-python-init-submode 'antlr-init-python
+(defvar antlr-python-init-submode #'antlr-init-python
   "Value for `antlr-init-submode' when using language `antlr-python'.")
 
 (defvar antlr-python-action-font-lock-keywords
@@ -3358,7 +3361,7 @@ Argument BOA is the start position of the action."
     python-font-lock-keywords)
   "Value for `antlr-action-font-lock-keywords' when using language `antlr-python'.")
 
-(defvar antlr-python-indent-action-line 'antlr-python-indent-action-line
+(defvar antlr-python-indent-action-line #'antlr-python-indent-action-line
   "Value for `antlr-indent-action-line' when using language `antlr-python'.")
 
 (defun antlr-init-python ()
@@ -3380,6 +3383,8 @@ Argument BOA is the start position of the action."
     (when (and boa
                (eq antlr-indent-comment t) ; indent-region
                (boundp 'prog-indentation-context)) ; Emacs 24.5 or later
+      ;; FIXME: These vars don't exist any more.
+      (defvar syntax-ppss-cache) (defvar syntax-ppss-last)
       (let ((syntax-ppss-cache nil) ;#dynamic, in older Emacs...
             (syntax-ppss-last nil) ;#dynamic, in older Emacs...
             ;; TODO: do we also need to call `syntax-propertize' or
