@@ -342,6 +342,90 @@ main()
      (funcall call-at "}")
      (should (string= (hideshow-tests-visible-string) contents)))))
 
+(ert-deftest hideshow-cycle-with-delimiters ()
+  "Should cycle the visibility of a block with delimiters."
+  (let ((contents "
+int
+main ()
+{
+  {
+    {
+    }
+  }
+}
+"))
+    (hideshow-tests-with-temp-buffer
+     c-mode
+     contents
+     (hideshow-tests-look-at "{")
+     (hs-cycle 1)
+     (should (string=
+              (hideshow-tests-visible-string)
+              "
+int
+main ()
+{}
+"))
+     (hs-cycle 1)
+     (should (string=
+              (hideshow-tests-visible-string)
+              "
+int
+main ()
+{
+  {}
+}
+"))
+     (hs-cycle 1)
+     (should (string=
+              (hideshow-tests-visible-string)
+              contents)))))
+
+(ert-deftest hideshow-cycle-without-delimiters ()
+  "Should cycle the visibility of a block without delimiters."
+  (let ((contents "
+def test1 ():
+    def test2 ():
+        def test3():
+"))
+    (hideshow-tests-with-temp-buffer
+      python-mode
+      contents
+      (hideshow-tests-look-at "test1")
+      (hs-cycle 1)
+      (should (string=
+               (hideshow-tests-visible-string)
+               "
+def test1 ():
+"))
+      (hs-cycle 1)
+      (should (string=
+               (hideshow-tests-visible-string)
+               "
+def test1 ():
+    def test2 ():
+"))
+      (hs-cycle 1)
+      (should (string=
+               (hideshow-tests-visible-string)
+               contents)))))
+
+(ert-deftest hideshow-check-unbalanced-parens ()
+  (let ((contents "
+(defun test1 ())
+
+(defun test2
+"))
+    (hideshow-tests-with-temp-buffer
+     c-mode
+     contents
+     (hideshow-tests-look-at "test1")
+     (beginning-of-line)
+     (should (hs-block-positions))
+     (hideshow-tests-look-at "test2")
+     (beginning-of-line)
+     (should-not (hs-block-positions)))))
+
 (provide 'hideshow-tests)
 
 ;;; hideshow-tests.el ends here

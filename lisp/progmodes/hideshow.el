@@ -1425,7 +1425,7 @@ only blocks which are that many levels below the level of point."
             (message "Hide %d level" level))
            (t
             (let* (hs-allow-nesting
-                   (block (hs-block-positions nil :ad-end))
+                   (block (hs-block-positions :ad-beg :ad-end))
                    (ov (seq-find
                         (lambda (o)
                           (and (eq (overlay-get o 'invisible) 'hs)))
@@ -1436,7 +1436,8 @@ only blocks which are that many levels below the level of point."
                 (hs-hide-block)
                 (message "Hide block and nested blocks"))
                ;; Hide the children blocks if the parent block is hidden
-               ((= (overlay-end ov) (cadr block))
+               ((and (= (overlay-start ov) (car block))
+                     (= (overlay-end ov) (cadr block)))
                 (apply #'hs-hide-level-recursive 1 block)
                 (message "Hide first nested blocks"))
                ;; Otherwise show all in the parent block, we cannot use
