@@ -1133,7 +1133,7 @@ See Info node `(elisp) Integer Basics'."
          ;; (memq foo '(bar)) => (and (eq foo 'bar) '(bar))
          ((and (eq (car-safe list) 'quote)
                (listp (setq list (cadr list)))
-               (= (length list) 1))
+               (null (cdr list)))
           `(and (eq ,(nth 1 form) ',(nth 0 list))
                 ',list))
          (t form)))
