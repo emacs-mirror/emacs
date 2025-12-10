@@ -64,9 +64,7 @@
   (declare (indent 1) (debug t))
   `(cl-letf (((symbol-function 'time-stamp--system-name)
               (lambda (type)
-                (if (and (eq type :short) (string-match "\\." ,name))
-                    (substring ,name 0 (match-beginning 0))
-                  ,name))))
+                (time-stamp--system-name-1 ,name type))))
      ,@body))
 
 

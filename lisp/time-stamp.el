@@ -387,17 +387,13 @@ to customize the information in the time stamp and where it is written."
 	   (setq ts-count 1)))
     ;; Figure out what lines the end should be on.
     (if (stringp ts-format)
-	(let ((nl-start 0))
-	  (while (string-match "\n" ts-format nl-start)
-	    (setq format-lines (1+ format-lines) nl-start (match-end 0)))))
+        (setq format-lines (time-stamp--count-newlines ts-format)))
     (cond
      ((not (and (stringp ts-start)
                 (stringp ts-end)))
       (time-stamp--message "time-stamp-start or time-stamp-end is not a string"))
      (t
-      (let ((nl-start 0))
-        (while (string-match "\n" ts-end nl-start)
-          (setq end-lines (1+ end-lines) nl-start (match-end 0))))
+      (setq end-lines (1+ (time-stamp--count-newlines ts-end)))
       ;; Find overall what lines to look at
       (save-excursion
         (save-restriction
@@ -849,6 +845,16 @@ for the full name or :nondirectory for base name only."
       (setq file-name (file-name-nondirectory file-name)))
     (apply #'string (mapcar safe-character-filter file-name))))
 
+(defun time-stamp--count-newlines (str)
+  "Return the number of newlines in STR."
+  (declare (pure t))
+  (let ((nl-count 0)
+        (nl-start 0))
+    (while (setq nl-start (string-match-p "\n" str nl-start))
+      (setq nl-count (1+ nl-count)
+            nl-start (1+ nl-start)))
+    nl-count))
+
 (defun time-stamp--message (warning-string)
   "Display WARNING-STRING for one second."
   (message "%s" warning-string)
@@ -857,10 +863,16 @@ for the full name or :nondirectory for base name only."
 (defun time-stamp--system-name (type)
   "Return the host name of this system.
 TYPE is :short for the unqualified name, :full for the full name."
-  (let ((fullname (system-name)))
-    (if (and (eq type :short) (string-match "\\." fullname))
-        (substring fullname 0 (match-beginning 0))
-      fullname)))
+  (time-stamp--system-name-1 (system-name) type))
+
+(defun time-stamp--system-name-1 (sysname type)
+  "Return SYSNAME, shortened if TYPE is :short."
+  (declare (pure t))
+  (let (first-dot)
+    (if (and (eq type :short)
+             (setq first-dot (string-match-p "\\." sysname)))
+        (substring sysname 0 first-dot)
+      sysname)))
 
 (defvar time-stamp-conversion-warn t
   "Enable warnings for old formats in `time-stamp-format'.
