@@ -112,6 +112,7 @@
 (when (< emacs-major-version 28)  ; preloaded in Emacs 28
   (require 'easymenu))
 (require 'cc-mode)
+(require 'cl-seq) ; for cl-find, whose autoload form is in cl-loaddefs.el
 
 (defvar outline-level)
 (defvar imenu-use-markers)
