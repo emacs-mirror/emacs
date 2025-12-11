@@ -1251,11 +1251,11 @@ unconditionally."
   (unless autoload-file
     (setq autoload-file (expand-file-name ".user-lisp-autoloads.el"
                                           user-lisp-directory)))
-  (let* ((pred
-          (let ((ignored
-                 (concat "\\`" (regexp-opt user-lisp-ignored-directories) "\\'")))
-            (lambda (dir)
-              (not (string-match-p ignored (file-name-nondirectory dir))))))
+  (let* ((ignored
+          (concat "\\`" (regexp-opt user-lisp-ignored-directories) "\\'"))
+         (pred
+          (lambda (dir)
+            (not (string-match-p ignored (file-name-nondirectory dir)))))
          (dir (expand-file-name user-lisp-directory))
          (backup-inhibited t)
          (dirs (list dir)))
@@ -1268,7 +1268,8 @@ unconditionally."
             (byte-recompile-file file force 0)
             (when (native-comp-available-p)
               (native-compile-async file)))))
-       ((file-directory-p file)
+       ((and (file-directory-p file)
+             (not (string-match-p ignored (file-name-nondirectory file))))
         (add-to-list 'load-path (directory-file-name file))
         (push file dirs))))
     (unless just-activate
