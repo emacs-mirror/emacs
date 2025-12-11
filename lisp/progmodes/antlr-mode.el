@@ -983,7 +983,7 @@ imenu.  For sorted menu entries, customize variable
 ;;;===========================================================================
 
 (defvar antlr-syntax-propertize nil
-  "Specification used to apply `'syntax-table' text properties.
+  "Specification used to apply \\+`syntax-table' text properties.
 When non-nil, the value looks like (MAIN EXTEND-REGION MULTILINE-CHAR).
 
 MAIN is used as value for `syntax-propertize-function'.
