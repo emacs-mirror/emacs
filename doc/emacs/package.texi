@@ -666,16 +666,6 @@ with the maintainers, first commit your changes then use the command
 @xref{Preparing Patches}.
 @end ifnottex
 
-@findex package-vc-install-from-checkout
-@findex package-vc-rebuild
-  If you maintain your own packages you might want to use a local
-checkout instead of cloning a remote repository.  You can do this by
-using @code{package-vc-install-from-checkout}, which creates a symbolic link
-from the package directory (@pxref{Package Files}) to your checkout
-and initializes the code.  Note that you might have to use
-@code{package-vc-rebuild} to repeat the initialization and update the
-autoloads.
-
 @subsection Specifying Package Sources
 @cindex package specification
 @cindex specification, for source packages

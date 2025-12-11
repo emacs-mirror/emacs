@@ -605,7 +605,8 @@ Make checkout with `package-vc-checkout'."
     (push (list (package-vc-tests-load-history-marker 'install-begin))
           load-history)
     (should (eq t
-                (package-vc-install-from-checkout checkout-dir)))
+                (with-suppressed-warnings ((obsolete package-vc-install-from-checkout))
+                  (package-vc-install-from-checkout checkout-dir))))
     (push (list (package-vc-tests-load-history-marker 'install-end))
           load-history)
     (let ((extras (package-desc-extras (package-vc-tests-package-desc pkg t))))
@@ -621,8 +622,8 @@ Make checkout with git(1)."
     (push (list (package-vc-tests-load-history-marker 'install-begin))
           load-history)
     (should (eq t
-                (package-vc-install-from-checkout checkout-dir
-                                                  (symbol-name pkg))))
+                (with-suppressed-warnings ((obsolete package-vc-install-from-checkout))
+                  (package-vc-install-from-checkout checkout-dir (symbol-name pkg)))))
     (push (list (package-vc-tests-load-history-marker 'install-end))
           load-history)
     (let ((extras (package-desc-extras (package-vc-tests-package-desc pkg t))))

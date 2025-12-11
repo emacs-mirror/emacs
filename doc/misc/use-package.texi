@@ -1747,20 +1747,6 @@ latest commit of the package @code{foo} from the specified remote.
 Alternatively, the @code{use-package-vc-prefer-newest} user option
 exists to always prefer the latest commit.
 
-The @code{:vc} keyword can also be used for local packages, by
-combining it with @code{:load-path} (@pxref{Load path}):
-
-@example
-@group
-;; Use a local copy of BBDB instead of the one from GNU ELPA.
-(use-package bbdb
-  :vc t
-  :load-path "/path/to/bbdb/dir/")
-@end group
-@end example
-
-The above dispatches to @code{package-vc-install-from-checkout}.
-
 @node Pinning packages
 @section Pinning packages using @code{:pin}
 @cindex installing package from specific archive
