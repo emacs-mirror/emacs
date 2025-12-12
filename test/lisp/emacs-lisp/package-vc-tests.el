@@ -989,7 +989,7 @@ car of ARGS (a symbol) to name of the package."
                       (substring
                        (cadr package-vc-tests-repository)
                        0 7))
-                     (one-or-more any)
+                     (one-or-more anychar)
                      "Second commit"
                      line-end)))
     (should (bufferp incoming-buffer))

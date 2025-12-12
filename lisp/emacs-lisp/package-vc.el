@@ -631,7 +631,7 @@ building documentation and marking the package as installed."
     (dolist (elc-file (directory-files-recursively
                        lisp-dir
                        (rx string-start
-                           (not ".") (zero-or-more any) ".elc"
+                           (not ".") (zero-or-more anychar) ".elc"
                            string-end)
                        nil
                        (lambda (dir)
