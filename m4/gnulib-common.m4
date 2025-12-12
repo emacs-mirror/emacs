@@ -1,5 +1,5 @@
 # gnulib-common.m4
-# serial 114
+# serial 115
 dnl Copyright (C) 2007-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -414,16 +414,17 @@ AC_DEFUN([gl_COMMON_BODY], [
 #endif
 
 /* _GL_ATTRIBUTE_CONST declares:
-   It is OK for a compiler to move calls to the function and to omit
-   calls to the function if another call has the same arguments or the
-   result is not used.
-   This attribute is safe for a function that neither depends on
-   nor affects state, and always returns exactly once -
+   It is OK for a compiler to move a call, or omit a duplicate call
+   and reuse a cached return value, even if the state changes between calls.
+   It is also OK to omit a call if the result is not used.
+   This attribute is safe if the function does not change observable state,
+   returns a value determined solely by its arguments' values
+   without examining state, and always returns exactly once -
    e.g., does not raise an exception, call longjmp, or loop forever.
    (This attribute is stricter than _GL_ATTRIBUTE_PURE because the
    function cannot observe state.  It is stricter than
    _GL_ATTRIBUTE_UNSEQUENCED because the function must return exactly
-   once and cannot depend on state addressed by its arguments.)  */
+   once and cannot access state addressed by its arguments.)  */
 /* Applies to: functions.  */
 #ifndef _GL_ATTRIBUTE_CONST
 # if _GL_HAS_ATTRIBUTE (const)
@@ -744,15 +745,16 @@ AC_DEFUN([gl_COMMON_BODY], [
 #endif
 
 /* _GL_ATTRIBUTE_PURE declares:
-   It is OK for a compiler to move calls to the function and to omit
-   calls to the function if another call has the same arguments or the
-   result is not used, and if observable state is the same.
-   This attribute is safe for a function that does not affect observable state
-   and always returns exactly once.
+   It is OK for a compiler to move a call, or omit a duplicate call
+   and reuse a cached return value, if observable state is the same.
+   It is also OK to omit a call if the return value is not used.
+   This attribute is safe if the function does not change observable state,
+   returns a value determined solely by its arguments's values
+   together with observable state, and always returns exactly once.
    (This attribute is looser than _GL_ATTRIBUTE_CONST because the function
    can depend on observable state.  It is stricter than
    _GL_ATTRIBUTE_REPRODUCIBLE because the function must return exactly
-   once and cannot affect state addressed by its arguments.)  */
+   once and cannot change state addressed by its arguments.)  */
 /* Applies to: functions.  */
 #ifndef _GL_ATTRIBUTE_PURE
 # if _GL_HAS_ATTRIBUTE (pure)
@@ -763,16 +765,17 @@ AC_DEFUN([gl_COMMON_BODY], [
 #endif
 
 /* _GL_ATTRIBUTE_REPRODUCIBLE declares:
-   It is OK for a compiler to move calls to the function and to omit duplicate
-   calls to the function with the same arguments, so long as the state
-   addressed by its arguments is the same and is updated in time for
-   the rest of the program.
-   This attribute is safe for a function that is effectless and idempotent; see
-   ISO C 23 § 6.7.13.8 for a definition of these terms.
+   It is OK for a compiler to move a call, or omit a duplicate call
+   and reuse a cached value returned either directly or indirectly
+   via a pointer argument, if other observable state is the same;
+   however, these pointer arguments cannot alias.
+   This attribute is safe for a function that is effectless and idempotent;
+   see ISO C 23 § 6.7.13.8 for a definition of these terms.
    (This attribute is looser than _GL_ATTRIBUTE_UNSEQUENCED because
-   the function need not be stateless and idempotent.  It is looser
-   than _GL_ATTRIBUTE_PURE because the function need not return
-   exactly once and can affect state addressed by its arguments.)
+   the function need not be stateless or independent.  It is looser
+   from _GL_ATTRIBUTE_PURE because the function need not return
+   exactly once, and it can change state addressed by its pointer arguments
+   that do not alias.)
    See also <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2956.htm> and
    <https://stackoverflow.com/questions/76847905/>.
    ATTENTION! Efforts are underway to change the meaning of this attribute.
@@ -816,16 +819,17 @@ AC_DEFUN([gl_COMMON_BODY], [
 #endif
 
 /* _GL_ATTRIBUTE_UNSEQUENCED declares:
-   It is OK for a compiler to move calls to the function and to omit duplicate
-   calls to the function with the same arguments, so long as the state
-   addressed by its arguments is the same.
+   It is OK for a compiler to move a call, or omit a duplicate call
+   and reuse a cached return value, addressed by its arguments is the same.
    This attribute is safe for a function that is effectless, idempotent,
    stateless, and independent; see ISO C 23 § 6.7.13.8 for a definition of
    these terms.
    (This attribute is stricter than _GL_ATTRIBUTE_REPRODUCIBLE because
-   the function must be stateless and independent.  It is looser than
+   the function must be stateless and independent.  It differs from
    _GL_ATTRIBUTE_CONST because the function need not return exactly
-   once and can depend on state addressed by its arguments.)
+   once and can depend on state accessed via its pointer arguments
+   that do not alias, or on other state that happens to have the
+   same value for all calls to the function.)
    See also <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2956.htm> and
    <https://stackoverflow.com/questions/76847905/>.
    ATTENTION! Efforts are underway to change the meaning of this attribute.

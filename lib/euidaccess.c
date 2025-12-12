@@ -111,16 +111,13 @@ euidaccess (const char *file, int mode)
     }
   else
     {
-      int result;
-      int saved_errno;
-
       if (uid != euid)
         setreuid (euid, uid);
       if (gid != egid)
         setregid (egid, gid);
 
-      result = access (file, mode);
-      saved_errno = errno;
+      int result = access (file, mode);
+      int saved_errno = errno;
 
       /* Restore them.  */
       if (uid != euid)
@@ -138,7 +135,6 @@ euidaccess (const char *file, int mode)
      correct on systems that have ACLs or the like.  However, it's
      better than nothing, and it is reentrant.  */
 
-  unsigned int granted;
   if (uid == euid && gid == egid)
     /* If we are not set-uid or set-gid, access does the same.  */
     return access (file, mode);
@@ -165,6 +161,7 @@ euidaccess (const char *file, int mode)
     return 0;                   /* The file exists.  */
 
   /* Convert the file's permission bits to traditional form.  */
+  unsigned int granted;
   if (S_IRUSR == (4 << 6) && S_IWUSR == (2 << 6) && S_IXUSR == (1 << 6)
       && S_IRGRP == (4 << 3) && S_IWGRP == (2 << 3) && S_IXGRP == (1 << 3)
       && S_IROTH == (4 << 0) && S_IWOTH == (2 << 0) && S_IXOTH == (1 << 0))
@@ -206,16 +203,12 @@ weak_alias (__euidaccess, euidaccess)
 int
 main (int argc, char **argv)
 {
-  char *file;
-  int mode;
-  int err;
-
   if (argc < 3)
     abort ();
-  file = argv[1];
-  mode = atoi (argv[2]);
+  char *file = argv[1];
+  int mode = atoi (argv[2]);
 
-  err = euidaccess (file, mode);
+  int err = euidaccess (file, mode);
   printf ("%d\n", err);
   if (err != 0)
     error (0, errno, "%s", file);

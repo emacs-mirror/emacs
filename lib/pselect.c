@@ -41,16 +41,14 @@ pselect (int nfds, fd_set *restrict rfds,
          struct timespec const *restrict timeout,
          sigset_t const *restrict sigmask)
 {
-  int select_result;
-  sigset_t origmask;
-  struct timeval tv, *tvp;
-
   if (nfds < 0 || nfds > FD_SETSIZE)
     {
       errno = EINVAL;
       return -1;
     }
 
+  struct timeval tv;
+  struct timeval *tvp;
   if (timeout)
     {
       if (! (0 <= timeout->tv_nsec && timeout->tv_nsec < 1000000000))
@@ -68,12 +66,13 @@ pselect (int nfds, fd_set *restrict rfds,
   else
     tvp = NULL;
 
+  sigset_t origmask;
   /* Signal mask munging should be atomic, but this is the best we can
      do in this emulation.  */
   if (sigmask)
     pthread_sigmask (SIG_SETMASK, sigmask, &origmask);
 
-  select_result = select (nfds, rfds, wfds, xfds, tvp);
+  int select_result = select (nfds, rfds, wfds, xfds, tvp);
 
   if (sigmask)
     {

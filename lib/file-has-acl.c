@@ -161,7 +161,6 @@ aclinfo_has_xattr (struct aclinfo const *ai, char const *xattr)
 static void
 get_aclinfo (int fd, char const *name, struct aclinfo *ai, int flags)
 {
-  int scontext_err = ENOTSUP;
   ai->buf = ai->u.__gl_acl_ch;
   ssize_t acl_alloc = sizeof ai->u.__gl_acl_ch;
 
@@ -221,6 +220,7 @@ get_aclinfo (int fd, char const *name, struct aclinfo *ai, int flags)
     }
 
   /* A security context can exist only if extended attributes do.  */
+  int scontext_err = ENOTSUP;
   if (flags & ACL_GET_SCONTEXT
       && (0 < ai->size || aclinfo_may_indicate_xattr (ai)))
     {
@@ -781,11 +781,9 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
 
       {
         struct acl_entry entries[NACLENTRIES];
-        int count;
-
-        count = (fd < 0
-                 ? getacl (name, NACLENTRIES, entries)
-                 : fgetacl (fd, NACLENTRIES, entries));
+        int count = (fd < 0
+                     ? getacl (name, NACLENTRIES, entries)
+                     : fgetacl (fd, NACLENTRIES, entries));
 
         if (count < 0)
           {
@@ -827,10 +825,9 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
 
       {
         struct acl entries[NACLVENTRIES];
-        int count;
 
         /* Ignore FD, unfortunately.  */
-        count = acl ((char *) name, ACL_GET, NACLVENTRIES, entries);
+        int count = acl ((char *) name, ACL_GET, NACLVENTRIES, entries);
 
         if (count < 0)
           {
@@ -867,13 +864,13 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
       char aclbuf[1024];
       void *acl = aclbuf;
       size_t aclsize = sizeof (aclbuf);
-      mode_t mode;
 
       for (;;)
         {
           /* The docs say that type being 0 is equivalent to ACL_ANY, but it
              is not true, in AIX 5.3.  */
           type.u64 = ACL_ANY;
+          mode_t mode;
           if (0 <= (fd < 0
                     ? aclx_get (name, 0, &type, aclbuf, &aclsize, &mode)
                     : aclx_fget (fd, 0, &type, aclbuf, &aclsize, &mode)))
@@ -934,10 +931,9 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
 
       {
         struct acl entries[NACLENTRIES];
-        int count;
 
         /* Ignore FD, unfortunately.  */
-        count = acl ((char *) name, ACL_GET, NACLENTRIES, entries);
+        int count = acl ((char *) name, ACL_GET, NACLENTRIES, entries);
 
         if (count < 0)
           {

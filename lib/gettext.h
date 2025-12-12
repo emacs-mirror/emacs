@@ -298,12 +298,11 @@ dcpgettext_expr (const char *domain,
   if (msg_ctxt_id != NULL)
 #endif
     {
-      int found_translation;
       memcpy (msg_ctxt_id, msgctxt, msgctxt_len - 1);
       msg_ctxt_id[msgctxt_len - 1] = '\004';
       memcpy (msg_ctxt_id + msgctxt_len, msgid, msgid_len);
       translation = dcgettext (domain, msg_ctxt_id, category);
-      found_translation = (translation != msg_ctxt_id);
+      int found_translation = (translation != msg_ctxt_id);
 #if !_LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS
       if (msg_ctxt_id != buf)
         free (msg_ctxt_id);
@@ -346,12 +345,11 @@ dcnpgettext_expr (const char *domain,
   if (msg_ctxt_id != NULL)
 #endif
     {
-      int found_translation;
       memcpy (msg_ctxt_id, msgctxt, msgctxt_len - 1);
       msg_ctxt_id[msgctxt_len - 1] = '\004';
       memcpy (msg_ctxt_id + msgctxt_len, msgid, msgid_len);
       translation = dcngettext (domain, msg_ctxt_id, msgid_plural, n, category);
-      found_translation = !(translation == msg_ctxt_id || translation == msgid_plural);
+      int found_translation = !(translation == msg_ctxt_id || translation == msgid_plural);
 #if !_LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS
       if (msg_ctxt_id != buf)
         free (msg_ctxt_id);

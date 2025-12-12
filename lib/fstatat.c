@@ -71,11 +71,10 @@ int
 rpl_fstatat (int fd, char const *file, struct stat *st, int flag)
 {
   int result = normal_fstatat (fd, file, st, flag);
-  size_t len;
-
   if (LSTAT_FOLLOWS_SLASHED_SYMLINK || result != 0)
     return result;
-  len = strlen (file);
+
+  size_t len = strlen (file);
   if (flag & AT_SYMLINK_NOFOLLOW)
     {
       /* Fix lstat behavior.  */

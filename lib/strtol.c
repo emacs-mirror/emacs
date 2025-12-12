@@ -212,14 +212,6 @@ INT
 INTERNAL (strtol) (const STRING_TYPE *nptr, STRING_TYPE **endptr,
                    int base GROUP_PARAM_PROTO LOCALE_PARAM_PROTO)
 {
-  int negative;
-  register unsigned LONG int cutoff;
-  register unsigned int cutlim;
-  register unsigned LONG int i;
-  register const STRING_TYPE *s;
-  const STRING_TYPE *save, *end;
-  int overflow;
-
 #ifdef USE_NUMBER_GROUPING
 # ifdef USE_IN_EXTENDED_LOCALE_MODEL
   struct locale_data *current = loc->__locales[LC_NUMERIC];
@@ -257,7 +249,8 @@ INTERNAL (strtol) (const STRING_TYPE *nptr, STRING_TYPE **endptr,
       return 0;
     }
 
-  save = s = nptr;
+  register const STRING_TYPE *s = nptr;
+  const STRING_TYPE *save = s;
 
   /* Skip white space.  */
   while (ISSPACE (*s))
@@ -266,6 +259,7 @@ INTERNAL (strtol) (const STRING_TYPE *nptr, STRING_TYPE **endptr,
     goto noconv;
 
   /* Check for a sign.  */
+  int negative;
   if (*s == L_('-'))
     {
       negative = 1;
@@ -301,6 +295,7 @@ INTERNAL (strtol) (const STRING_TYPE *nptr, STRING_TYPE **endptr,
   /* Save the pointer so we can check later if anything happened.  */
   save = s;
 
+  const STRING_TYPE *end;
 #ifdef USE_NUMBER_GROUPING
   if (group)
     {
@@ -320,11 +315,11 @@ INTERNAL (strtol) (const STRING_TYPE *nptr, STRING_TYPE **endptr,
 #endif
     end = NULL;
 
-  cutoff = STRTOL_ULONG_MAX / (unsigned LONG int) base;
-  cutlim = STRTOL_ULONG_MAX % (unsigned LONG int) base;
+  register unsigned LONG int cutoff = STRTOL_ULONG_MAX / (unsigned LONG int) base;
+  register unsigned int cutlim = STRTOL_ULONG_MAX % (unsigned LONG int) base;
 
-  overflow = 0;
-  i = 0;
+  int overflow = 0;
+  register unsigned LONG int i = 0;
   for (UCHAR_TYPE c = *s; c != L_('\0'); c = *++s)
     {
       if (s == end)

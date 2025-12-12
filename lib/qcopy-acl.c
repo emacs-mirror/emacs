@@ -114,11 +114,11 @@ qcopy_acl (const char *src_name, int source_desc, const char *dst_name,
 #else
   /* no XATTR, so we proceed the old dusty way */
   struct permission_context ctx;
-
-  ret = get_permissions (src_name, source_desc, mode, &ctx);
-  if (ret != 0)
+  if (get_permissions (src_name, source_desc, mode, &ctx) != 0)
     return -2;
+
   ret = set_permissions (&ctx, dst_name, dest_desc);
+
   free_permission_context (&ctx);
 #endif
   return ret;

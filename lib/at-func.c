@@ -78,12 +78,8 @@ AT_FUNC_NAME (int fd, char const *file AT_FUNC_POST_FILE_PARAM_DECLS)
   errno = ENOTSUP;
   return FUNC_FAIL;
 #else
-  {
-  /* Be careful to choose names unlikely to conflict with
+  /* Be careful to choose variable names unlikely to conflict with
      AT_FUNC_POST_FILE_PARAM_DECLS.  */
-  struct saved_cwd saved_cwd;
-  int saved_errno;
-  FUNC_RESULT err;
 
   {
     char proc_buf[OPENAT_BUFFER_SIZE];
@@ -107,6 +103,7 @@ AT_FUNC_NAME (int fd, char const *file AT_FUNC_POST_FILE_PARAM_DECLS)
       }
   }
 
+  struct saved_cwd saved_cwd;
   if (save_cwd (&saved_cwd) != 0)
     openat_save_fail (errno);
   if (0 <= fd && fd == saved_cwd.desc)
@@ -121,14 +118,14 @@ AT_FUNC_NAME (int fd, char const *file AT_FUNC_POST_FILE_PARAM_DECLS)
 
   if (fchdir (fd) != 0)
     {
-      saved_errno = errno;
+      int saved_errno = errno;
       free_cwd (&saved_cwd);
       errno = saved_errno;
       return FUNC_FAIL;
     }
 
-  err = CALL_FUNC (file);
-  saved_errno = (err == FUNC_FAIL ? errno : 0);
+  FUNC_RESULT err = CALL_FUNC (file);
+  int saved_errno = (err == FUNC_FAIL ? errno : 0);
 
   if (restore_cwd (&saved_cwd) != 0)
     openat_restore_fail (errno);
@@ -138,7 +135,6 @@ AT_FUNC_NAME (int fd, char const *file AT_FUNC_POST_FILE_PARAM_DECLS)
   if (saved_errno)
     errno = saved_errno;
   return err;
-  }
 #endif
 }
 #undef CALL_FUNC

@@ -133,8 +133,8 @@ int
 gl_consolesafe_fprintf (FILE *restrict fp, const char *restrict format, ...)
 {
   va_list args;
-  char *tmpstring;
   va_start (args, format);
+  char *tmpstring;
   int result = vasprintf (&tmpstring, format, args);
   va_end (args);
   if (result >= 0)
@@ -151,8 +151,8 @@ int
 gl_consolesafe_printf (const char *restrict format, ...)
 {
   va_list args;
-  char *tmpstring;
   va_start (args, format);
+  char *tmpstring;
   int result = vasprintf (&tmpstring, format, args);
   va_end (args);
   if (result >= 0)

@@ -17,10 +17,10 @@
 
    Written by Paul Eggert, Andreas Grünbacher, and Bruno Haible.  */
 
+#define ACL_INTERNAL_INLINE _GL_EXTERN_INLINE
 #include <config.h>
 
 /* Specification.  */
-#define ACL_INTERNAL_INLINE _GL_EXTERN_INLINE
 #include "acl-internal.h"
 
 #include "acl.h"
@@ -237,9 +237,8 @@ acl_ace_nontrivial (int count, ace_t *entries)
       for (int i = 0; i < count; i++)
         {
           ace_t *ace = &entries[i];
-          unsigned int index1;
-          unsigned int index2;
 
+          unsigned int index1;
           if (ace->a_type == NEW_ACE_ACCESS_ALLOWED_ACE_TYPE)
             index1 = 1;
           else if (ace->a_type == NEW_ACE_ACCESS_DENIED_ACE_TYPE)
@@ -247,6 +246,7 @@ acl_ace_nontrivial (int count, ace_t *entries)
           else
             return 1;
 
+          unsigned int index2;
           if (ace->a_flags == NEW_ACE_OWNER)
             index2 = 0;
           else if (ace->a_flags == (NEW_ACE_GROUP | NEW_ACE_IDENTIFIER_GROUP))

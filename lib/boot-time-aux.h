@@ -395,13 +395,15 @@ get_windows_boot_time_fallback (struct timespec *p_boot_time)
   if (GetTickCount64Func != NULL)
     {
       ULONGLONG uptime_ms = GetTickCount64Func ();
-      struct timespec uptime;
-      struct timespec result;
+
       struct timeval tv;
       if (gettimeofday (&tv, NULL) >= 0)
         {
+          struct timespec uptime;
           uptime.tv_sec = uptime_ms / 1000;
           uptime.tv_nsec = (uptime_ms % 1000) * 1000000;
+
+          struct timespec result;
           result.tv_sec = tv.tv_sec;
           result.tv_nsec = tv.tv_usec * 1000;
           if (result.tv_nsec < uptime.tv_nsec)
@@ -411,6 +413,7 @@ get_windows_boot_time_fallback (struct timespec *p_boot_time)
             }
           result.tv_sec -= uptime.tv_sec;
           result.tv_nsec -= uptime.tv_nsec;
+
           *p_boot_time = result;
           return 0;
         }

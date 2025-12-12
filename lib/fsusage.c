@@ -91,10 +91,12 @@ static int
 statvfs_works (void)
 {
   static int statvfs_works_cache = -1;
-  struct utsname name;
   if (statvfs_works_cache < 0)
-    statvfs_works_cache = (uname (&name) == 0
-                           && 0 <= strverscmp (name.release, "2.6.36"));
+    {
+      struct utsname name;
+      statvfs_works_cache = (uname (&name) == 0
+                             && 0 <= strverscmp (name.release, "2.6.36"));
+    }
   return statvfs_works_cache;
 }
 # endif

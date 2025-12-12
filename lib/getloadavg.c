@@ -384,51 +384,47 @@ getloadavg (double loadavg[], int nelem)
 # if !defined (LDAV_DONE) && defined (HAVE_LIBKSTAT)       /* Solaris <= 2.6 */
 /* Use libkstat because we don't have to be root.  */
 #  define LDAV_DONE
-  kstat_ctl_t *kc;
-  kstat_t *ksp;
-  kstat_named_t *kn;
-  int saved_errno;
+  {
+    kstat_ctl_t *kc = kstat_open ();
+    if (kc == NULL)
+      return -1;
+    kstat_t *ksp = kstat_lookup (kc, "unix", 0, "system_misc");
+    if (ksp == NULL)
+      return -1;
+    if (kstat_read (kc, ksp, 0) == -1)
+      return -1;
 
-  kc = kstat_open ();
-  if (kc == NULL)
-    return -1;
-  ksp = kstat_lookup (kc, "unix", 0, "system_misc");
-  if (ksp == NULL)
-    return -1;
-  if (kstat_read (kc, ksp, 0) == -1)
-    return -1;
+    kstat_named_t *kn = kstat_data_lookup (ksp, "avenrun_1min");
+    if (kn == NULL)
+      {
+        /* Return -1 if no load average information is available.  */
+        nelem = 0;
+        elem = -1;
+      }
 
+    if (nelem >= 1)
+      loadavg[elem++] = (double) kn->value.ul / FSCALE;
 
-  kn = kstat_data_lookup (ksp, "avenrun_1min");
-  if (kn == NULL)
-    {
-      /* Return -1 if no load average information is available.  */
-      nelem = 0;
-      elem = -1;
-    }
+    if (nelem >= 2)
+      {
+        kn = kstat_data_lookup (ksp, "avenrun_5min");
+        if (kn != NULL)
+          {
+            loadavg[elem++] = (double) kn->value.ul / FSCALE;
 
-  if (nelem >= 1)
-    loadavg[elem++] = (double) kn->value.ul / FSCALE;
+            if (nelem >= 3)
+              {
+                kn = kstat_data_lookup (ksp, "avenrun_15min");
+                if (kn != NULL)
+                  loadavg[elem++] = (double) kn->value.ul / FSCALE;
+              }
+          }
+      }
 
-  if (nelem >= 2)
-    {
-      kn = kstat_data_lookup (ksp, "avenrun_5min");
-      if (kn != NULL)
-        {
-          loadavg[elem++] = (double) kn->value.ul / FSCALE;
-
-          if (nelem >= 3)
-            {
-              kn = kstat_data_lookup (ksp, "avenrun_15min");
-              if (kn != NULL)
-                loadavg[elem++] = (double) kn->value.ul / FSCALE;
-            }
-        }
-    }
-
-  saved_errno = errno;
-  kstat_close (kc);
-  errno = saved_errno;
+    int saved_errno = errno;
+    kstat_close (kc);
+    errno = saved_errno;
+  }
 # endif /* HAVE_LIBKSTAT */
 
 # if !defined (LDAV_DONE) && defined (hpux) && defined (HAVE_PSTAT_GETDYNAMIC)
@@ -489,13 +485,12 @@ getloadavg (double loadavg[], int nelem)
 
   char ldavgbuf[3 * (INT_STRLEN_BOUND (int) + sizeof ".00 ")];
   char const *ptr = ldavgbuf;
-  int fd, count, saved_errno;
 
-  fd = open ("/proc/loadavg", O_RDONLY | O_CLOEXEC);
+  int fd = open ("/proc/loadavg", O_RDONLY | O_CLOEXEC);
   if (fd == -1)
     return -1;
-  count = read (fd, ldavgbuf, sizeof ldavgbuf - 1);
-  saved_errno = errno;
+  int count = read (fd, ldavgbuf, sizeof ldavgbuf - 1);
+  int saved_errno = errno;
   (void) close (fd);
   errno = saved_errno;
   if (count <= 0)
@@ -504,9 +499,6 @@ getloadavg (double loadavg[], int nelem)
 
   for (elem = 0; elem < nelem; elem++)
     {
-      double numerator = 0;
-      double denominator = 1;
-
       while (*ptr == ' ')
         ptr++;
 
@@ -521,6 +513,9 @@ getloadavg (double loadavg[], int nelem)
             }
           break;
         }
+
+      double numerator = 0;
+      double denominator = 1;
 
       while ('0' <= *ptr && *ptr <= '9')
         numerator = 10 * numerator + (*ptr++ - '0');
@@ -544,12 +539,11 @@ getloadavg (double loadavg[], int nelem)
 #   define NETBSD_LDAV_FILE "/kern/loadavg"
 #  endif
 
-  unsigned long int load_ave[3], scale;
-  int count;
-  char readbuf[4 * INT_BUFSIZE_BOUND (unsigned long int) + 1];
   int fd = open (NETBSD_LDAV_FILE, O_RDONLY | O_CLOEXEC);
   if (fd < 0)
     return fd;
+
+  char readbuf[4 * INT_BUFSIZE_BOUND (unsigned long int) + 1];
   int nread = read (fd, readbuf, sizeof readbuf - 1);
   int saved_errno = errno;
   close (fd);
@@ -559,9 +553,11 @@ getloadavg (double loadavg[], int nelem)
       return -1;
     }
   readbuf[nread] = '\0';
-  count = sscanf (readbuf, "%lu %lu %lu %lu\n",
-                  &load_ave[0], &load_ave[1], &load_ave[2],
-                  &scale);
+
+  unsigned long int load_ave[3], scale;
+  int count = sscanf (readbuf, "%lu %lu %lu %lu\n",
+                      &load_ave[0], &load_ave[1], &load_ave[2],
+                      &scale);
   if (count != 4)
     {
       errno = ENOTSUP;
@@ -579,10 +575,6 @@ getloadavg (double loadavg[], int nelem)
 #  define LDAV_DONE
   /* The NeXT code was adapted from iscreen 3.2.  */
 
-  host_t host;
-  struct processor_set_basic_info info;
-  unsigned int info_count;
-
   /* We only know how to get the 1-minute average for this system,
      so even if the caller asks for more than 1, we only return 1.  */
 
@@ -594,7 +586,9 @@ getloadavg (double loadavg[], int nelem)
 
   if (getloadavg_initialized)
     {
-      info_count = PROCESSOR_SET_BASIC_INFO_COUNT;
+      host_t host;
+      struct processor_set_basic_info info;
+      unsigned int info_count = PROCESSOR_SET_BASIC_INFO_COUNT;
       if (processor_set_info (default_set, PROCESSOR_SET_BASIC_INFO, &host,
                               (processor_set_info_t) &info, &info_count)
           != KERN_SUCCESS)
@@ -619,11 +613,6 @@ getloadavg (double loadavg[], int nelem)
    have a /dev/kmem.  Information about the workings of the running kernel
    can be gathered with inq_stats system calls.
    We only know how to get the 1-minute average for this system.  */
-
-  struct proc_summary proc_sum_data;
-  struct stat_descr proc_info;
-  double load;
-  register unsigned int j;
 
   if (cpus == 0)
     {
@@ -660,6 +649,9 @@ getloadavg (double loadavg[], int nelem)
       samples = cpus < 2 ? 3 : (2 * cpus / 3);
     }
 
+  struct proc_summary proc_sum_data;
+
+  struct stat_descr proc_info;
   proc_info.sd_next = 0;
   proc_info.sd_subsys = SUBSYS_PROC;
   proc_info.sd_type = PROCTYPE_SUMMARY;
@@ -670,8 +662,8 @@ getloadavg (double loadavg[], int nelem)
   if (inq_stats (1, &proc_info) != 0)
     return -1;
 
-  load = proc_sum_data.ps_nrunnable;
-  j = 0;
+  double load = proc_sum_data.ps_nrunnable;
+  register unsigned int j = 0;
   for (unsigned int i = samples - 1; i > 0; --i)
     {
       load += proc_sum_data.ps_nrun[j];
@@ -797,8 +789,6 @@ getloadavg (double loadavg[], int nelem)
 
 #  define LDAV_PRIVILEGED               /* This code requires special installation.  */
 
-  LOAD_AVE_TYPE load_ave[3];
-
   /* Get the address of LDAV_SYMBOL.  */
   if (offset == 0)
     {
@@ -856,6 +846,8 @@ getloadavg (double loadavg[], int nelem)
         }
 #  endif /* SUNOS_5 */
     }
+
+  LOAD_AVE_TYPE load_ave[3];
 
   /* If we can, get the load average values.  */
   if (offset && getloadavg_initialized)

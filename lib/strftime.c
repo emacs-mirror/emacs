@@ -1356,13 +1356,12 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
              an error, or come back to the initial shift state.  */
           {
             mbstate_t mbstate = mbstate_zero;
-            size_t len = 0;
-            size_t fsize;
 
             if (! format_end)
               format_end = f + strlen (f) + 1;
-            fsize = format_end - f;
+            size_t fsize = format_end - f;
 
+            size_t len = 0;
             do
               {
                 size_t bytes = mbrlen (f + len, fsize - len, &mbstate);
@@ -2086,12 +2085,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 
         case L_('s'):           /* GNU extension.  */
           {
-            struct tm ltm;
-            time_t t;
-
-            ltm = *tp;
+            struct tm ltm = *tp;
             ltm.tm_yday = -1;
-            t = mktime_z (tz, &ltm);
+            time_t t = mktime_z (tz, &ltm);
             if (ltm.tm_yday < 0)
               {
                 errno = EOVERFLOW;
@@ -2359,9 +2355,6 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 
           {
             int diff;
-            int hour_diff;
-            int min_diff;
-            int sec_diff;
 #if HAVE_STRUCT_TM_TM_GMTOFF
             diff = tp->tm_gmtoff;
 #else
@@ -2369,14 +2362,13 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               diff = 0;
             else
               {
-                struct tm gtm;
-                struct tm ltm;
-                time_t lt;
-
-                ltm = *tp;
+                struct tm ltm = *tp;
                 ltm.tm_wday = -1;
-                lt = mktime_z (tz, &ltm);
-                if (ltm.tm_wday < 0 || ! localtime_rz (0, &lt, &gtm))
+                time_t lt = mktime_z (tz, &ltm);
+                if (ltm.tm_wday < 0)
+                  break;
+                struct tm gtm;
+                if (! localtime_rz (0, &lt, &gtm))
                   break;
                 diff = tm_diff (&ltm, &gtm);
               }
@@ -2390,9 +2382,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                                                  0, tp)
                                    == '-');
               }
-            hour_diff = diff / 60 / 60;
-            min_diff = diff / 60 % 60;
-            sec_diff = diff % 60;
+            int hour_diff = diff / 60 / 60;
+            int min_diff = diff / 60 % 60;
+            int sec_diff = diff % 60;
 
             switch (colons)
               {

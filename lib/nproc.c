@@ -100,9 +100,7 @@ num_processors_via_affinity_mask (void)
   }
 #elif HAVE_PTHREAD_GETAFFINITY_NP && defined __NetBSD__ && 0
   {
-    cpuset_t *set;
-
-    set = cpuset_create ();
+    cpuset_t *set = cpuset_create ();
     if (set != NULL)
       {
         unsigned long count = 0;
@@ -187,9 +185,7 @@ num_processors_via_affinity_mask (void)
   }
 #elif HAVE_SCHED_GETAFFINITY_NP /* NetBSD >= 5 */
   {
-    cpuset_t *set;
-
-    set = cpuset_create ();
+    cpuset_t *set = cpuset_create ();
     if (set != NULL)
       {
         unsigned long count = 0;
@@ -370,18 +366,19 @@ num_processors_available (enum nproc_query query)
 static char *
 cgroup2_mount (void)
 {
-  FILE *fp;
-  char *ret = NULL;
 
   /* Check the usual location first.  */
   if (access ("/sys/fs/cgroup/cgroup.controllers", F_OK) == 0)
     return strdup ("/sys/fs/cgroup");
 
+  char *ret = NULL;
+
 #if HAVE_SETMNTENT
   /* Otherwise look for the mount point.  */
-  struct mntent *mnt;
-  if (! (fp = setmntent ("/proc/mounts", "r")))
+  FILE *fp = setmntent ("/proc/mounts", "r");
+  if (! fp)
     return NULL;
+  struct mntent *mnt;
   while ((mnt = getmntent (fp)) != NULL)
     {
       if (streq (mnt->mnt_type, "cgroup2"))
@@ -403,9 +400,8 @@ static unsigned long int
 get_cgroup2_cpu_quota (void)
 {
   unsigned long int cpu_quota = ULONG_MAX;
-  FILE *fp;
 
-  fp = fopen ("/proc/self/cgroup", "r");
+  FILE *fp = fopen ("/proc/self/cgroup", "r");
   if (! fp)
     return cpu_quota;
 
@@ -518,10 +514,8 @@ cpu_quota (void)
 static unsigned long int
 parse_omp_threads (char const* threads)
 {
-  unsigned long int ret = 0;
-
   if (threads == NULL)
-    return ret;
+    return 0;
 
   /* The OpenMP spec says that the value assigned to the environment variables
      "may have leading and trailing white space".  */
@@ -543,7 +537,7 @@ parse_omp_threads (char const* threads)
         return value;
     }
 
-  return ret;
+  return 0;
 }
 
 unsigned long int
@@ -555,9 +549,11 @@ num_processors (enum nproc_query query)
      programs that are based on OpenMP.  */
   if (query == NPROC_CURRENT_OVERRIDABLE)
     {
-      unsigned long int omp_env_threads, omp_env_limit;
-      omp_env_threads = parse_omp_threads (getenv ("OMP_NUM_THREADS"));
-      omp_env_limit = parse_omp_threads (getenv ("OMP_THREAD_LIMIT"));
+      unsigned long int omp_env_threads =
+        parse_omp_threads (getenv ("OMP_NUM_THREADS"));
+
+      unsigned long int omp_env_limit =
+        parse_omp_threads (getenv ("OMP_THREAD_LIMIT"));
       if (! omp_env_limit)
         omp_env_limit = ULONG_MAX;
 

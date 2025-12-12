@@ -324,8 +324,8 @@ sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
                     + S0(x[(I-15)&0x0f]) + x[I&0x0f]    \
                , x[I&0x0f] = tm )
 
-#define R(A,B,C,D,E,F,G,H,K,M)  do { t0 = SS0(A) + F2(A,B,C); \
-                                     t1 = H + SS1(E)  \
+#define R(A,B,C,D,E,F,G,H,K,M)  do { uint32_t t0 = SS0(A) + F2(A,B,C); \
+                                     uint32_t t1 = H + SS1(E)  \
                                       + F1(E,F,G)     \
                                       + K             \
                                       + M;            \
@@ -334,14 +334,14 @@ sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
 
   while (words < endp)
     {
-      uint32_t tm;
-      uint32_t t0, t1;
       /* FIXME: see sha1.c for a better implementation.  */
       for (int t = 0; t < 16; t++)
         {
           x[t] = SWAP (*words);
           words++;
         }
+
+      uint32_t tm;
 
       R( a, b, c, d, e, f, g, h, K( 0), x[ 0] );
       R( h, a, b, c, d, e, f, g, K( 1), x[ 1] );

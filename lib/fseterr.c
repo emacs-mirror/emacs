@@ -59,14 +59,10 @@ fseterr (FILE *fp)
      Not activated on any system, because there is no way to repair FP when
      the sequence of system calls fails, and library code should not call
      abort().  */
-  int saved_errno;
-  int fd;
-  int fd2;
-
-  saved_errno = errno;
+  int saved_errno = errno;
   fflush (fp);
-  fd = fileno (fp);
-  fd2 = dup (fd);
+  int fd = fileno (fp);
+  int fd2 = dup (fd);
   if (fd2 >= 0)
     {
       close (fd);

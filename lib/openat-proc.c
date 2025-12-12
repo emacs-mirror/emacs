@@ -46,15 +46,15 @@
 char *
 openat_proc_name (char buf[OPENAT_BUFFER_SIZE], int fd, char const *file)
 {
-  char *result = buf;
-  int dirlen;
-
   /* Make sure the caller gets ENOENT when appropriate.  */
   if (!*file)
     {
       buf[0] = '\0';
       return buf;
     }
+
+  char *result = buf;
+  int dirlen;
 
 #if !(defined __KLIBC__ || defined __MVS__)
   /* Generic code for Linux, Solaris, and similar platforms.  */

@@ -70,8 +70,6 @@ dup2_nothrow (int fd, int desired_fd)
 static int
 ms_windows_dup2 (int fd, int desired_fd)
 {
-  int result;
-
   /* If fd is closed, mingw hangs on dup2 (fd, fd).  If fd is open,
      dup2 (fd, fd) returns 0, but all further attempts to use fd in
      future dup2 calls will hang.  */
@@ -93,7 +91,7 @@ ms_windows_dup2 (int fd, int desired_fd)
       return -1;
     }
 
-  result = dup2_nothrow (fd, desired_fd);
+  int result = dup2_nothrow (fd, desired_fd);
 
   if (result == 0)
     result = desired_fd;
@@ -110,10 +108,7 @@ ms_windows_dup2 (int fd, int desired_fd)
 static int
 klibc_dup2dirfd (int fd, int desired_fd)
 {
-  int tempfd;
-  int dupfd;
-
-  tempfd = open ("NUL", O_RDONLY);
+  int tempfd = open ("NUL", O_RDONLY);
   if (tempfd < 0)
     return tempfd;
 
@@ -129,7 +124,7 @@ klibc_dup2dirfd (int fd, int desired_fd)
         {
           close (desired_fd);
 
-          dupfd = open (path, O_RDONLY);
+          int dupfd = open (path, O_RDONLY);
           if (dupfd < 0)
             return dupfd;
 
@@ -150,7 +145,7 @@ klibc_dup2dirfd (int fd, int desired_fd)
         }
     }
 
-  dupfd = klibc_dup2dirfd (fd, desired_fd);
+  int dupfd = klibc_dup2dirfd (fd, desired_fd);
 
   close (tempfd);
 
@@ -160,13 +155,17 @@ klibc_dup2dirfd (int fd, int desired_fd)
 static int
 klibc_dup2 (int fd, int desired_fd)
 {
-  int dupfd;
-  struct stat sbuf;
+  int dupfd = dup2 (fd, desired_fd);
+  if (dupfd < 0 && errno == ENOTSUP)
+    {
+      struct stat sbuf;
+      if (!fstat (fd, &sbuf) && S_ISDIR (sbuf.st_mode))
+        {
+          close (desired_fd);
 
-  dupfd = dup2 (fd, desired_fd);
-  if (dupfd < 0 && errno == ENOTSUP \
-      && !fstat (fd, &sbuf) && S_ISDIR (sbuf.st_mode))
-    return klibc_dup2dirfd (fd, desired_fd);
+          return klibc_dup2dirfd (fd, desired_fd);
+        }
+    }
 
   return dupfd;
 }
@@ -177,8 +176,6 @@ klibc_dup2 (int fd, int desired_fd)
 int
 rpl_dup2 (int fd, int desired_fd)
 {
-  int result;
-
 #ifdef F_GETFL
   /* On Linux kernels 2.6.26-2.6.29, dup2 (fd, fd) returns -EBADF.
      On Cygwin 1.5.x, dup2 (1, 1) returns 0.
@@ -194,7 +191,7 @@ rpl_dup2 (int fd, int desired_fd)
     return fcntl (fd, F_GETFL) == -1 ? -1 : fd;
 #endif
 
-  result = dup2 (fd, desired_fd);
+  int result = dup2 (fd, desired_fd);
 
   /* Correct an errno value on FreeBSD 6.1 and Cygwin 1.5.x.  */
   if (result < 0 && errno == EMFILE)

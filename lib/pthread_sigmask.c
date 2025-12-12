@@ -31,21 +31,20 @@ pthread_sigmask (int how, const sigset_t *new_mask, sigset_t *old_mask)
 #undef pthread_sigmask
 {
 #if HAVE_PTHREAD_SIGMASK
-  int ret;
-
 # if PTHREAD_SIGMASK_INEFFECTIVE
-  sigset_t omask, omask_copy;
+  sigset_t omask;
   sigset_t *old_mask_ptr = &omask;
   sigemptyset (&omask);
   /* Add a signal unlikely to be blocked, so that OMASK_COPY
      is unlikely to match the actual mask.  */
   sigaddset (&omask, SIGILL);
+  sigset_t omask_copy;
   memcpy (&omask_copy, &omask, sizeof omask);
 # else
   sigset_t *old_mask_ptr = old_mask;
 # endif
 
-  ret = pthread_sigmask (how, new_mask, old_mask_ptr);
+  int ret = pthread_sigmask (how, new_mask, old_mask_ptr);
 
 # if PTHREAD_SIGMASK_INEFFECTIVE
   if (ret == 0)

@@ -253,12 +253,13 @@ sha1_process_block (const void *buffer, size_t len, struct sha1_ctx *ctx)
 
   while (words < endp)
     {
-      uint32_t tm;
       for (int t = 0; t < 16; t++)
         {
           x[t] = SWAP (*words);
           words++;
         }
+
+      uint32_t tm;
 
       R( a, b, c, d, e, F1, K1, x[ 0] );
       R( e, a, b, c, d, F1, K1, x[ 1] );

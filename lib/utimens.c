@@ -19,10 +19,10 @@
 
 /* derived from a function in touch.c */
 
+#define _GL_UTIMENS_INLINE _GL_EXTERN_INLINE
 #include <config.h>
 
 /* Specification.  */
-#define _GL_UTIMENS_INLINE _GL_EXTERN_INLINE
 #include "utimens.h"
 
 #include <errno.h>
@@ -105,13 +105,13 @@ is_valid_timespecs (struct timespec const timespec[2])
 static int
 validate_timespec (struct timespec timespec[2])
 {
-  int result = 0;
-  int utime_omit_count = 0;
   if (!is_valid_timespecs (timespec))
     {
       errno = EINVAL;
       return -1;
     }
+  int result = 0;
+  int utime_omit_count = 0;
   /* Work around Linux kernel 2.6.25 bug, where utimensat fails with
      EINVAL if tv_sec is not 0 when using the flag values of tv_nsec.
      Flag a Linux kernel 2.6.32 bug, where an mtime of UTIME_OMIT
@@ -184,7 +184,6 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
   struct timespec adjusted_timespec[2];
   struct timespec *ts = timespec ? adjusted_timespec : NULL;
   int adjustment_needed = 0;
-  struct stat st;
 
   if (ts)
     {
@@ -220,6 +219,8 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
   else
     fsync (fd);
 #endif
+
+  struct stat st;
 
   /* POSIX 2008 added two interfaces to set file timestamps with
      nanosecond resolution; newer Linux implements both functions via
@@ -319,18 +320,14 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
      <https://docs.microsoft.com/en-us/windows/desktop/api/minwinbase/ns-minwinbase-filetime>  */
   if (0 <= fd)
     {
-      HANDLE handle;
-      FILETIME current_time;
-      FILETIME last_access_time;
-      FILETIME last_write_time;
-
-      handle = (HANDLE) _get_osfhandle (fd);
+      HANDLE handle = (HANDLE) _get_osfhandle (fd);
       if (handle == INVALID_HANDLE_VALUE)
         {
           errno = EBADF;
           return -1;
         }
 
+      FILETIME current_time;
       if (ts == NULL || ts[0].tv_nsec == UTIME_NOW || ts[1].tv_nsec == UTIME_NOW)
         {
           /* GetSystemTimeAsFileTime
@@ -341,6 +338,7 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
           GetSystemTimeAsFileTime (&current_time);
         }
 
+      FILETIME last_access_time;
       if (ts == NULL || ts[0].tv_nsec == UTIME_NOW)
         {
           last_access_time = current_time;
@@ -358,6 +356,7 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
           last_access_time.dwHighDateTime = time_since_16010101 >> 32;
         }
 
+      FILETIME last_write_time;
       if (ts == NULL || ts[1].tv_nsec == UTIME_NOW)
         {
           last_write_time = current_time;
@@ -468,10 +467,11 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
                     time_t adiff = st.st_atime - t[0].tv_sec;
                     time_t mdiff = st.st_mtime - t[1].tv_sec;
 
-                    struct timeval *tt = NULL;
                     struct timeval truncated_timeval[2];
                     truncated_timeval[0] = t[0];
                     truncated_timeval[1] = t[1];
+
+                    struct timeval *tt = NULL;
                     if (abig && adiff == 1 && get_stat_atime_ns (&st) == 0)
                       {
                         tt = truncated_timeval;
@@ -567,7 +567,6 @@ lutimens (char const *file, struct timespec const timespec[2])
   struct timespec adjusted_timespec[2];
   struct timespec *ts = timespec ? adjusted_timespec : NULL;
   int adjustment_needed = 0;
-  struct stat st;
 
   if (ts)
     {
@@ -577,6 +576,8 @@ lutimens (char const *file, struct timespec const timespec[2])
     }
   if (adjustment_needed < 0)
     return -1;
+
+  struct stat st;
 
   /* The Linux kernel did not support symlink timestamps until
      utimensat, in version 2.6.22, so we don't need to mimic
@@ -653,7 +654,6 @@ lutimens (char const *file, struct timespec const timespec[2])
   {
     struct timeval timeval[2];
     struct timeval *t;
-    int result;
     if (ts)
       {
         timeval[0] = (struct timeval) { .tv_sec = ts[0].tv_sec,
@@ -665,7 +665,7 @@ lutimens (char const *file, struct timespec const timespec[2])
     else
       t = NULL;
 
-    result = lutimes (file, t);
+    int result = lutimes (file, t);
     if (result == 0 || errno != ENOSYS)
       return result;
   }

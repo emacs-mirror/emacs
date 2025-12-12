@@ -64,9 +64,8 @@ nanosleep (const struct timespec *requested_delay,
 
     while (limit < seconds)
       {
-        int result;
         intermediate.tv_sec = limit;
-        result = nanosleep (&intermediate, remaining_delay);
+        int result = nanosleep (&intermediate, remaining_delay);
         seconds -= limit;
         if (result)
           {

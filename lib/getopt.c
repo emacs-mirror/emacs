@@ -133,7 +133,6 @@ exchange (char **argv, struct _getopt_data *d)
   int bottom = d->__first_nonopt;
   int middle = d->__last_nonopt;
   int top = d->optind;
-  char *tem;
 
   /* Exchange the shorter segment with the far end of the longer segment.
      That puts the shorter segment into the right place.
@@ -151,7 +150,7 @@ exchange (char **argv, struct _getopt_data *d)
 	  /* Swap it with the top part of the top segment.  */
 	  for (i = 0; i < len; i++)
 	    {
-	      tem = argv[bottom + i];
+	      char *tem = argv[bottom + i];
 	      argv[bottom + i] = argv[top - (middle - bottom) + i];
 	      argv[top - (middle - bottom) + i] = tem;
 	    }
@@ -167,7 +166,7 @@ exchange (char **argv, struct _getopt_data *d)
 	  /* Swap it with the bottom part of the bottom segment.  */
 	  for (i = 0; i < len; i++)
 	    {
-	      tem = argv[bottom + i];
+	      char *tem = argv[bottom + i];
 	      argv[bottom + i] = argv[middle + i];
 	      argv[middle + i] = tem;
 	    }
@@ -196,28 +195,29 @@ process_long_option (int argc, char **argv, const char *optstring,
 		     int long_only, struct _getopt_data *d,
 		     int print_errors, const char *prefix)
 {
-  char *nameend;
-  size_t namelen;
-  const struct option *p;
-  const struct option *pfound = NULL;
-  int n_options;
-  int option_index;
 
+  char *nameend;
   for (nameend = d->__nextchar; *nameend && *nameend != '='; nameend++)
     /* Do nothing.  */ ;
-  namelen = nameend - d->__nextchar;
+  size_t namelen = nameend - d->__nextchar;
 
   /* First look for an exact match, counting the options as a side
      effect.  */
-  for (p = longopts, n_options = 0; p->name; p++, n_options++)
-    if (!strncmp (p->name, d->__nextchar, namelen)
-	&& namelen == strlen (p->name))
-      {
-	/* Exact match found.  */
-	pfound = p;
-	option_index = n_options;
-	break;
-      }
+  const struct option *pfound = NULL;
+  int n_options;
+  int option_index;
+  {
+    const struct option *p;
+    for (p = longopts, n_options = 0; p->name; p++, n_options++)
+      if (!strncmp (p->name, d->__nextchar, namelen)
+	  && namelen == strlen (p->name))
+	{
+	  /* Exact match found.  */
+	  pfound = p;
+	  option_index = n_options;
+	  break;
+	}
+  }
 
   if (pfound == NULL)
     {
@@ -227,6 +227,7 @@ process_long_option (int argc, char **argv, const char *optstring,
       unsigned char ambig_fallback;
       void *ambig_malloced = NULL;
       int indfound = -1;
+      const struct option *p;
 
       for (p = longopts, option_index = 0; p->name; p++, option_index++)
 	if (!strncmp (p->name, d->__nextchar, namelen))
@@ -475,10 +476,10 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
 		    const struct option *longopts, int *longind,
 		    int long_only, struct _getopt_data *d, int posixly_correct)
 {
-  int print_errors = d->opterr;
-
   if (argc < 1)
     return -1;
+
+  int print_errors = d->opterr;
 
   d->optarg = NULL;
 
@@ -594,11 +595,10 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
 	  if (long_only && (argv[d->optind][2]
 			    || !strchr (optstring, argv[d->optind][1])))
 	    {
-	      int code;
 	      d->__nextchar = argv[d->optind] + 1;
-	      code = process_long_option (argc, argv, optstring, longopts,
-					  longind, long_only, d,
-					  print_errors, "-");
+	      int code = process_long_option (argc, argv, optstring, longopts,
+					      longind, long_only, d,
+					      print_errors, "-");
 	      if (code != -1)
 		return code;
 	    }
@@ -707,14 +707,12 @@ _getopt_internal (int argc, char **argv, const char *optstring,
 		  const struct option *longopts, int *longind, int long_only,
 		  int posixly_correct)
 {
-  int result;
-
   getopt_data.optind = optind;
   getopt_data.opterr = opterr;
 
-  result = _getopt_internal_r (argc, argv, optstring, longopts,
-			       longind, long_only, &getopt_data,
-			       posixly_correct);
+  int result = _getopt_internal_r (argc, argv, optstring, longopts,
+				   longind, long_only, &getopt_data,
+				   posixly_correct);
 
   optind = getopt_data.optind;
   optarg = getopt_data.optarg;
@@ -751,14 +749,13 @@ GETOPT_ENTRY(getopt, 1)
 int
 main (int argc, char **argv)
 {
-  int c;
   int digit_optind = 0;
 
   while (1)
     {
       int this_option_optind = optind ? optind : 1;
 
-      c = getopt (argc, argv, "abc:d:0123456789");
+      int c = getopt (argc, argv, "abc:d:0123456789");
       if (c == -1)
 	break;
 

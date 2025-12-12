@@ -56,19 +56,15 @@ dupfd (int oldfd, int newfd, int flags)
 {
   /* Mingw has no way to create an arbitrary fd.  Iterate until all
      file descriptors less than newfd are filled up.  */
-  HANDLE curr_process = GetCurrentProcess ();
-  HANDLE old_handle = (HANDLE) _get_osfhandle (oldfd);
-  unsigned char fds_to_close[OPEN_MAX_MAX / CHAR_BIT];
-  unsigned int fds_to_close_bound = 0;
-  int result;
-  BOOL inherit = flags & O_CLOEXEC ? FALSE : TRUE;
-  int mode;
 
   if (newfd < 0 || getdtablesize () <= newfd)
     {
       errno = EINVAL;
       return -1;
     }
+
+  HANDLE old_handle = (HANDLE) _get_osfhandle (oldfd);
+  int mode;
   if (old_handle == INVALID_HANDLE_VALUE
       || (mode = _setmode (oldfd, O_BINARY)) == -1)
     {
@@ -80,6 +76,11 @@ dupfd (int oldfd, int newfd, int flags)
   _setmode (oldfd, mode);
   flags |= mode;
 
+  HANDLE curr_process = GetCurrentProcess ();
+  BOOL inherit = flags & O_CLOEXEC ? FALSE : TRUE;
+  unsigned char fds_to_close[OPEN_MAX_MAX / CHAR_BIT];
+  unsigned int fds_to_close_bound = 0;
+  int result;
   for (;;)
     {
       HANDLE new_handle;
@@ -205,8 +206,9 @@ fcntl (int fd, int action, /* arg */...)
 #endif
 {
   va_list arg;
-  int result = -1;
   va_start (arg, action);
+
+  int result = -1;
   switch (action)
     {
     case F_DUPFD:
@@ -432,7 +434,9 @@ fcntl (int fd, int action, /* arg */...)
         break;
       }
     }
+
   va_end (arg);
+
   return result;
 }
 
@@ -542,10 +546,7 @@ rpl_fcntl_DUPFD_CLOEXEC (int fd, int target)
 static int
 klibc_dupdirfd (int fd, int minfd)
 {
-  int tempfd;
-  int dupfd;
-
-  tempfd = open ("NUL", O_RDONLY);
+  int tempfd = open ("NUL", O_RDONLY);
   if (tempfd == -1)
     return -1;
 
@@ -557,7 +558,7 @@ klibc_dupdirfd (int fd, int minfd)
       if (__libc_Back_ioFHToPath (fd, path, sizeof (path)))
         return -1;
 
-      dupfd = open (path, O_RDONLY);
+      int dupfd = open (path, O_RDONLY);
       if (dupfd == -1)
         return -1;
 
@@ -568,7 +569,7 @@ klibc_dupdirfd (int fd, int minfd)
       tempfd = dupfd;
     }
 
-  dupfd = klibc_dupdirfd (fd, minfd);
+  int dupfd = klibc_dupdirfd (fd, minfd);
 
   close (tempfd);
 
@@ -579,77 +580,78 @@ static int
 klibc_fcntl (int fd, int action, /* arg */...)
 {
   va_list arg_ptr;
-  int arg;
-  struct stat sbuf;
-  int result;
-
   va_start (arg_ptr, action);
-  arg = va_arg (arg_ptr, int);
-  result = fcntl (fd, action, arg);
+
+  int arg = va_arg (arg_ptr, int);
+  int result = fcntl (fd, action, arg);
   /* EPERM for F_DUPFD, ENOTSUP for others */
-  if (result == -1 && (errno == EPERM || errno == ENOTSUP)
-      && !fstat (fd, &sbuf) && S_ISDIR (sbuf.st_mode))
+  if (result == -1 && (errno == EPERM || errno == ENOTSUP))
     {
-      PLIBCFH pFH;
-      unsigned fFlags;
-
-      switch (action)
+      struct stat sbuf;
+      if (!fstat (fd, &sbuf) && S_ISDIR (sbuf.st_mode))
         {
-        case F_DUPFD:
-          result = klibc_dupdirfd (fd, arg);
-          break;
-
-        case F_GETFD:
-          pFH = __libc_FH (fd);
-          if (!pFH)
+          switch (action)
             {
-              errno = EBADF;
+            case F_DUPFD:
+              result = klibc_dupdirfd (fd, arg);
+              break;
+
+            case F_GETFD:
+              {
+                PLIBCFH pFH = __libc_FH (fd);
+                if (!pFH)
+                  {
+                    errno = EBADF;
+                    break;
+                }
+
+                result = (pFH->fFlags & ((FD_CLOEXEC << __LIBC_FH_FDFLAGS_SHIFT )
+                                         | O_NOINHERIT)) ? FD_CLOEXEC : 0;
+              }
+              break;
+
+            case F_SETFD:
+              {
+                if (arg & ~FD_CLOEXEC)
+                  break;
+
+                PLIBCFH pFH = __libc_FH (fd);
+                if (!pFH)
+                  {
+                    errno = EBADF;
+                    break;
+                  }
+
+                unsigned fFlags = pFH->fFlags;
+                if (arg & FD_CLOEXEC)
+                  fFlags |= (FD_CLOEXEC << __LIBC_FH_FDFLAGS_SHIFT) | O_NOINHERIT;
+                else
+                  fFlags &= ~((FD_CLOEXEC << __LIBC_FH_FDFLAGS_SHIFT) | O_NOINHERIT);
+
+                result = __libc_FHSetFlags (pFH, fd, fFlags);
+                if (result < 0)
+                  {
+                    errno = -result;
+                    result = -1;
+                  }
+              }
+              break;
+
+            case F_GETFL:
+              result = 0;
+              break;
+
+            case F_SETFL:
+              if (arg != 0)
+                break;
+
+              result = 0;
+              break;
+
+            default:
+              errno = EINVAL;
               break;
             }
-
-          result = (pFH->fFlags & ((FD_CLOEXEC << __LIBC_FH_FDFLAGS_SHIFT )
-                                   | O_NOINHERIT)) ? FD_CLOEXEC : 0;
-          break;
-
-        case F_SETFD:
-          if (arg & ~FD_CLOEXEC)
-            break;
-
-          pFH = __libc_FH (fd);
-          if (!pFH)
-            {
-              errno = EBADF;
-              break;
-            }
-
-          fFlags = pFH->fFlags;
-          if (arg & FD_CLOEXEC)
-            fFlags |= (FD_CLOEXEC << __LIBC_FH_FDFLAGS_SHIFT) | O_NOINHERIT;
-          else
-            fFlags &= ~((FD_CLOEXEC << __LIBC_FH_FDFLAGS_SHIFT) | O_NOINHERIT);
-
-          result = __libc_FHSetFlags (pFH, fd, fFlags);
-          if (result < 0)
-            {
-              errno = -result;
-              result = -1;
-            }
-          break;
-
-        case F_GETFL:
-          result = 0;
-          break;
-
-        case F_SETFL:
-          if (arg != 0)
-            break;
-
-          result = 0;
-          break;
-
-        default:
-          errno = EINVAL;
-          break;
         }
     }
 
