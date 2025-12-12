@@ -438,7 +438,9 @@ then \\`TAB' will invoke the visibility-cycling commands where that
 function returns non-nil.  For example, if the value is `bolp',
 those commands will be invoked at the headline's beginning.
 This allows to preserve the usual bindings, as determined by the
-major mode, elsewhere on the headlines."
+major mode, elsewhere on the headlines.
+Currently it affects only the command `hs-toggle-hiding' by default,
+but it can be easily replaced with the command `hs-cycle'."
   :type `(choice (const :tag "Nowhere" nil)
                  (const :tag "Everywhere on the headline" t)
                  (const :tag "At block beginning"
