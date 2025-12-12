@@ -887,66 +887,63 @@ since it could result in memory overflow and make Emacs crash."
   (pcase-dolist (`(,symbol ,group ,type ,version . ,rest) builtin-cus-vars)
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
-        (let ((native-p (save-match-data
+        (let ((native-p
 	       ;; Don't complain about missing variables which are
 	       ;; irrelevant to this platform.
-		     (cond
-		      ((string-match "\\`dos-" (symbol-name symbol))
-		       (eq system-type 'ms-dos))
-		      ((string-match "\\`w32-" (symbol-name symbol))
-		       (eq system-type 'windows-nt))
-		      ((string-match "\\`ns-" (symbol-name symbol))
-		       (featurep 'ns))
-                      ((string-match "\\`haiku-" (symbol-name symbol))
-                       (featurep 'haiku))
-                      ((eq symbol 'process-error-pause-time)
-                       (not (eq system-type 'ms-dos)))
-                      ((eq symbol 'x-gtk-use-native-input)
-                       (and (featurep 'x)
-                            (featurep 'gtk)))
-		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
-		       (featurep 'gtk))
-		      ((string-match "clipboard-manager" (symbol-name symbol))
-		       (boundp 'x-select-enable-clipboard-manager))
-                      ((or (equal "scroll-bar-adjust-thumb-portion"
-			          (symbol-name symbol))
-                           (equal "x-scroll-event-delta-factor"
-                                  (symbol-name symbol))
-                           (equal "x-dnd-disable-motif-drag"
-                                  (symbol-name symbol))
-                           (equal "x-auto-preserve-selections"
-                                  (symbol-name symbol)))
-		       (featurep 'x))
-		      ((string-match "\\`x-" (symbol-name symbol))
-		       (fboundp 'x-create-frame))
-		      ((string-match "selection" (symbol-name symbol))
-		       (fboundp 'x-selection-exists-p))
-		      ((string-match "fringe" (symbol-name symbol))
-		       (boundp 'fringe-bitmaps))
-		      ((string-match "\\`imagemagick" (symbol-name symbol))
-		       (fboundp 'imagemagick-types))
-		      ((equal "font-use-system-font" (symbol-name symbol))
-		       (featurep 'system-font-setting))
-		      ;; Conditioned on x-create-frame, because that's
-		      ;; the condition for loadup.el to preload tool-bar.el.
-		      ((string-match "tool-bar-" (symbol-name symbol))
-		       (fboundp 'x-create-frame))
-		      ((string-match "tab-bar-" (symbol-name symbol))
-		       (fboundp 'x-create-frame))
-                      ((string-match "image-" (symbol-name symbol))
-                       (fboundp 'x-create-frame))
-		      ((equal "vertical-centering-font-regexp"
-			      (symbol-name symbol))
-		       ;; Any function from fontset.c will do.
-		       (fboundp 'new-fontset))
-                      ((string-match "xwidget-" (symbol-name symbol))
-                       (boundp 'xwidget-internal))
-                      ((string-match "treesit-" (symbol-name symbol))
-                       ;; Any function from treesit.c will do.
-                       (fboundp 'treesit-language-available-p))
-                      (t t)))))
+               (let ((sym-name (symbol-name symbol)))
+		 (cond
+		  ((string-prefix-p "dos-" sym-name)
+                   (eq system-type 'ms-dos))
+		  ((string-prefix-p "w32-" sym-name)
+                   (eq system-type 'windows-nt))
+		  ((string-prefix-p "ns-" sym-name)
+		   (featurep 'ns))
+                  ((string-prefix-p "haiku-" sym-name)
+                   (featurep 'haiku))
+                  ((eq symbol 'process-error-pause-time)
+                   (not (eq system-type 'ms-dos)))
+                  ((eq symbol 'x-gtk-use-native-input)
+                   (and (featurep 'x)
+                        (featurep 'gtk)))
+		  ((string-match-p "\\`x-.*gtk" sym-name)
+		   (featurep 'gtk))
+		  ((string-search "clipboard-manager" sym-name)
+		   (boundp 'x-select-enable-clipboard-manager))
+                  ((memq symbol
+                         '(scroll-bar-adjust-thumb-portion
+                           x-scroll-event-delta-factor
+                           x-dnd-disable-motif-drag
+                           x-auto-preserve-selections))
+		   (featurep 'x))
+		  ((string-prefix-p "x-" sym-name)
+		   (fboundp 'x-create-frame))
+		  ((string-search "selection" sym-name)
+		   (fboundp 'x-selection-exists-p))
+		  ((string-search "fringe" sym-name)
+		   (boundp 'fringe-bitmaps))
+		  ((string-prefix-p "imagemagick" sym-name)
+		   (fboundp 'imagemagick-types))
+		  ((eq symbol 'font-use-system-font)
+		   (featurep 'system-font-setting))
+		  ;; Conditioned on x-create-frame, because that's
+		  ;; the condition for loadup.el to preload tool-bar.el.
+		  ((string-prefix-p "tool-bar-" sym-name)
+		   (fboundp 'x-create-frame))
+		  ((string-prefix-p "tab-bar-" sym-name)
+		   (fboundp 'x-create-frame))
+                  ((string-prefix-p "image-" sym-name)
+                   (fboundp 'x-create-frame))
+		  ((eq symbol 'vertical-centering-font-regexp)
+		   ;; Any function from fontset.c will do.
+		   (fboundp 'new-fontset))
+                  ((string-prefix-p "xwidget-" sym-name)
+                   (boundp 'xwidget-internal))
+                  ((string-prefix-p "treesit-" sym-name)
+                   ;; Any function from treesit.c will do.
+                   (fboundp 'treesit-language-available-p))
+		  (t t)))))
 	  (when native-p
-	    (message "Note, built-in variable `%S' not bound" symbol)))
+	    (error "built-in variable `%S' not bound" symbol)))
 
       ;; Save the standard value, unless we already did.
       (unless (get symbol 'standard-value)
