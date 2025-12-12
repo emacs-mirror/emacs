@@ -517,7 +517,11 @@ enable, ?l to disable)."
       ;; so that we can set the terminal-local `input-decode-map'.
       ;; Use the tty-top-frame to avoid accidentally making an invisible
       ;; child frame visible by selecting it (bug#79960).
-      (with-selected-frame (tty-top-frame terminal)
+      ;; The test for match mode is here because xt-mouse-tests run in
+      ;; match mode, and there is no top-frame in that case.
+      (with-selected-frame (if noninteractive
+                               (car (frame-list))
+                             (tty-top-frame terminal))
         (define-key input-decode-map "\e[M" 'xterm-mouse-translate)
         (define-key input-decode-map "\e[<" 'xterm-mouse-translate-extended))
       (let ((enable (xterm-mouse-tracking-enable-sequence))
