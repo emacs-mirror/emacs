@@ -166,7 +166,9 @@ translation is found for PATTERN."
             (setq pos index)
             (if (and (< pos length)
                      (= (aref pattern pos) ?*))
-                ".*"
+                (progn
+                  (setq index (1+ index))
+                  ".*")
               "[^/]*"))
 
            (?? "[^/]")
