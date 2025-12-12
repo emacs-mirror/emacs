@@ -3694,13 +3694,18 @@ def __PYTHON_EL_eval(source, filename):
 (defconst python-shell-eval-file-setup-code
   "\
 def __PYTHON_EL_eval_file(filename, tempname, delete):
-    import codecs, os, re
+    import os, re, sys
+    if sys.version_info.major < 3:
+        import codecs
+        _open = codecs.open
+    else:
+        _open = open
     pattern = r'^[ \t\f]*#.*?coding[:=][ \t]*([-_.a-zA-Z0-9]+)'
-    with codecs.open(tempname or filename, encoding='latin-1') as file:
+    with _open(tempname or filename, encoding='latin-1') as file:
         match = re.match(pattern, file.readline())
         match = match or re.match(pattern, file.readline())
         encoding = match.group(1) if match else 'utf-8'
-    with codecs.open(tempname or filename, encoding=encoding) as file:
+    with _open(tempname or filename, encoding=encoding) as file:
         source = file.read().encode(encoding)
     if delete and tempname:
         os.remove(tempname)
