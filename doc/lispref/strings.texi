@@ -1030,8 +1030,7 @@ Functions}).  Thus, strings are enclosed in @samp{"} characters, and
 @item %o
 @cindex integer to octal
 Replace the specification with the base-eight representation of an
-integer.  Negative integers are formatted in a platform-dependent
-way.  The object can also be a floating-point number that is formatted
+integer.  The object can also be a floating-point number that is formatted
 as an integer, dropping any fraction.
 
 @item %d
@@ -1044,8 +1043,7 @@ formatted as an integer, dropping any fraction.
 @itemx %X
 @cindex integer to hexadecimal
 Replace the specification with the base-sixteen representation of an
-integer.  Negative integers are formatted in a platform-dependent
-way.  @samp{%x} uses lower case and @samp{%X} uses upper
+integer.  @samp{%x} uses lower case and @samp{%X} uses upper
 case.  The object can also be a floating-point number that is
 formatted as an integer, dropping any fraction.
 
