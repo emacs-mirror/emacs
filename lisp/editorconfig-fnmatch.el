@@ -1,6 +1,6 @@
 ;;; editorconfig-fnmatch.el --- Glob pattern matching  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2025  Free Software Foundation, Inc.
 
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 ;; Package: editorconfig
@@ -55,13 +55,9 @@
 
 (require 'cl-lib)
 
-(defvar editorconfig-fnmatch--cache-hashtable
-  nil
+(defconst editorconfig-fnmatch--cache-hashtable ;; Clear cache on file reload.
+  (make-hash-table :test 'equal)
   "Cache of shell pattern and its translation.")
-;; Clear cache on file reload
-(setq editorconfig-fnmatch--cache-hashtable
-      (make-hash-table :test 'equal))
-
 
 (defconst editorconfig-fnmatch--left-brace-regexp
   "\\(^\\|[^\\]\\){"
@@ -147,7 +143,7 @@ translation is found for PATTERN."
 
     (while (< index length)
       (if (and (not is-escaped)
-               (string-match "[^]\\*?[{},/-]+"
+               (string-match "[^]\\*?[{},/]+"
                              ;;(string-match "[^]\\*?[{},/\\-]+" "?.a")
                              pattern
                              index)
@@ -203,8 +199,6 @@ translation is found for PATTERN."
                         "[^")
                     "[")))))
 
-           (?- (if in-brackets "-" "\\-"))
-
            (?\] (setq in-brackets nil) "]")
 
            (?\{
@@ -249,7 +243,7 @@ translation is found for PATTERN."
            (?,
             (if (and (> brace-level 0)
                      (not is-escaped))
-                "\\|" "\\,"))
+                "\\|" ","))
 
            (?\}
             (if (and (> brace-level 0)
