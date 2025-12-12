@@ -751,7 +751,7 @@ This variable should include all options passed to Antlr except the
 option \"-glib\" which is automatically suggested if necessary.
 
 OBSOLETE as user option - customize version dependent user options."
-  :type 'string)
+  :type '(choice (const nil) string))
 
 (defcustom antlr-v4-tool-command "java org.antlr.v4.Tool"
   ;; you probably also need to add s/th like
