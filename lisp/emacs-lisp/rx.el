@@ -48,7 +48,7 @@
 ;; (not-syntax X)               (not (syntax X))
 ;; not-wordchar                 (not wordchar)
 ;; (not-char ...)               (not (any ...))
-;; any                          nonl, not-newline
+;; any                          nonl, not-newline    -- warning since Emacs 31
 ;; (repeat N FORM)              (= N FORM)
 ;; (syntax CHARACTER)           (syntax NAME)
 ;; (syntax CHAR-SYM)      [1]   (syntax NAME)
@@ -66,7 +66,7 @@
 ;; minimal-match, maximal-match   lazy ops: ??, *?, +?
 
 ;; FIXME: Prepare a phase-out by emitting compile-time warnings about
-;; at least some of the legacy constructs above.
+;; more of the legacy constructs above.
 
 ;;; Code:
 
@@ -190,7 +190,7 @@ Each entry is:
   (pcase sym
     ;; Use `list' instead of a quoted list to wrap the strings here,
     ;; since the return value may be mutated.
-    ((or 'nonl 'not-newline 'any) (cons (list ".") t))
+    ((or 'nonl 'not-newline)      (cons (list ".") t))
     ((or 'anychar 'anything)      (cons (list "[^z-a]") t))
     ('unmatchable                 (rx--empty))
     ((or 'bol 'line-start)        (cons (list "^") 'lseq))
@@ -205,6 +205,13 @@ Each entry is:
     ('symbol-start                (cons (list "\\_<") t))
     ('symbol-end                  (cons (list "\\_>") t))
     ('not-wordchar                (rx--translate '(not wordchar)))
+    ('any
+     (when (and (macroexp-compiling-p)
+                (byte-compile-warning-enabled-p 'obsolete 'any))
+       (byte-compile-warn-x
+        sym (concat "`any' in rx is obsolete and means `not-newline';"
+                    " did you mean `anychar'?")))
+     (rx--translate-symbol 'nonl))
     (_
      (cond
       ((let ((class (cdr (assq sym rx--char-classes))))

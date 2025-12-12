@@ -296,7 +296,8 @@
                  "[^z-a][^z-a]"))
   (should (equal (rx unmatchable)
                  "\\`a\\`"))
-  (should (equal (rx line-start not-newline nonl any line-end)
+  (should (equal (with-suppressed-warnings ((obsolete any))
+                   (rx line-start not-newline nonl any line-end))
                  "^...$"))
   (should (equal (rx bol string-start string-end buffer-start buffer-end
                      bos eos bot eot eol)

@@ -3428,6 +3428,12 @@ satisfy a given predicate.
 This means that you can now call it with just one argument, like
 'defvar', to declare a variable both special, and buffer-local.
 
+---
+** The rx atom 'any' is obsolete and will cause warning when used.
+When used as an atom, 'any' is an old alias for 'not-newline' but is
+often mistakenly used where 'anychar' was intended.  Note that the
+construct '(any ...)' is unrelated and not obsolete.
+
 ** ERT
 
 *** Some experimental ERT macros are now considered stable.
