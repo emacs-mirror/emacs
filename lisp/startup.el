@@ -1245,7 +1245,7 @@ If AUTOLOAD-FILE is nil, store the autoload data in a file next to DIR.
 If FORCE is non-nil, or if invoked interactively with a prefix argument,
 re-create the entire autoload file and byte-compile everything
 unconditionally."
-  (interactive (list nil current-prefix-arg))
+  (interactive (list nil nil current-prefix-arg))
   (unless (file-directory-p user-lisp-directory)
     (error "No such directory: %S" user-lisp-directory))
   (unless autoload-file
