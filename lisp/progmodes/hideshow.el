@@ -83,7 +83,8 @@
 ;; Hideshow provides the following user options:
 ;;
 ;; - `hs-hide-comments-when-hiding-all'
-;;   self-explanatory!
+;;   If non-nil, `hs-hide-all', `hs-cycle' and `hs-hide-level' will hide
+;;   comments too.
 ;; - `hs-hide-all-non-comment-function'
 ;;   If non-nil, after calling `hs-hide-all', this function is called
 ;;   with no arguments.
@@ -322,7 +323,9 @@ a block), `hs-show-all' and `hs-show-block'."
   :version "31.1")
 
 (defcustom hs-hide-comments-when-hiding-all t
-  "Hide the comments too when you do an `hs-hide-all'."
+  "Whether the comments should be hidden.
+If non-nil, `hs-hide-all', `hs-cycle' and `hs-hide-level' will hide
+comments too."
   :type 'boolean)
 
 (defcustom hs-hide-block-behavior 'after-bol
@@ -560,7 +563,8 @@ This is only used if `hs-indicator-type' is set to `margin' or nil."
     ["Hide comments when hiding all"
      (setq hs-hide-comments-when-hiding-all
     	   (not hs-hide-comments-when-hiding-all))
-     :help "If t also hide comment blocks when doing `hs-hide-all'"
+     :help "\
+If t also hide comment blocks when doing `hs-hide-all', `hs-cycle' or `hs-hide-level'"
      :style toggle :selected hs-hide-comments-when-hiding-all]
     ("Reveal on isearch"
      ["Code blocks" (setq hs-isearch-open 'code)
@@ -693,12 +697,13 @@ to find the beginning of the current block.")
   "Function used to do `hs-find-next-block'.
 It should reposition point at next block start.
 
-It is called with three arguments REGEXP, BOUND, and COMMENTS.
-REGEXP is a regexp representing block start.  When block start is found,
+It is called with three arguments REGEXP, BOUND, and COMMENTS.  REGEXP
+is a regexp representing block start.  When block start is found,
 `match-data' should be set using REGEXP.  BOUND is a buffer position
 that limits the search.  When COMMENTS is non-nil, REGEXP matches not
 only beginning of a block but also beginning of a comment.  In this
-case, the function should find nearest block or comment.
+case, the function should find nearest block or comment and return
+non-nil.
 
 Specifying this function is necessary for languages such as Python,
 where regexp search is not enough to find the beginning of the next
@@ -871,7 +876,8 @@ line and returns the start position of the first block found.
 Otherwise, if no block is found, it returns nil.
 
 If INCLUDE-COMMENTS is non-nil, also search for a comment block."
-  (let ((regexp (if include-comments
+  (let ((bk-point (point))
+        (regexp (if include-comments
                     (concat "\\(" hs-block-start-regexp "\\)"
                             "\\|\\(" hs-c-start-regexp "\\)")
                   hs-block-start-regexp))
@@ -887,6 +893,7 @@ If INCLUDE-COMMENTS is non-nil, also search for a comment block."
                     (if (and beg (hs-hideable-region-p beg end))
                         (setq exit (point))
                       t)))))
+    (unless exit (goto-char bk-point))
     exit))
 
 (defun hs-get-near-block (&optional include-comment)
@@ -929,21 +936,21 @@ commands."
   (goto-char beg)
   (while (not (>= (point) end))
     (when-let* ((_ (not (invisible-p (point)))) ; Skip invisible lines
-                (block (save-excursion
-                         (hs-get-first-block-on-line include-comments))))
-      (goto-char (match-beginning 0))
-      (if (> arg 1)
-          ;; Find a block recursively according to ARG.
-          (pcase-let ((`(,beg ,end) (or (and include-comments
-                                             (funcall hs-inside-comment-predicate))
-                                        (hs-block-positions))))
-            (hs-hide-level-recursive (1- arg) beg end include-comments))
-        ;; Now hide the block we found.
-        (if func (funcall func)
-          (hs-hide-block-at-point
-           (and include-comments (funcall hs-inside-comment-predicate))))
-        (when progress
-          (progress-reporter-update progress (point)))))
+                (b-start (hs-get-first-block-on-line include-comments)))
+      (goto-char b-start)
+      (let ((comment (and include-comments (funcall hs-inside-comment-predicate)))
+            (code (hs-block-positions)))
+        ;; Find a block recursively according to ARG.
+        (if (> arg 1)
+            ;; Nested comment blocks in a comment block are impossible,
+            ;; so skip them.
+            (if comment
+                (goto-char (cadr comment))
+              (pcase-let ((`(,beg ,end) code))
+                (hs-hide-level-recursive (1- arg) beg end include-comments)))
+          ;; Now hide the block we found.
+          (if func (funcall func) (hs-hide-block-at-point comment))
+          (when progress (progress-reporter-update progress (point))))))
     (forward-line 1))
   (goto-char end))
 
@@ -1086,10 +1093,9 @@ the overlay: `invisible' `hs'.  Also, depending on variable
   (remove-overlays beg end 'hs-indicator t)
 
   (while (not (>= (point) end))
-    (save-excursion
-      (when-let* ((_ (not (invisible-p (point)))) ; Skip invisible lines
-                  (b-beg (hs-get-first-block-on-line)))
-        (hs--make-indicators-overlays b-beg)))
+    (when-let* ((_ (not (invisible-p (point)))) ; Skip invisible lines
+                (b-beg (hs-get-first-block-on-line)))
+      (hs--make-indicators-overlays b-beg))
     ;; Only 1 indicator per line
     (forward-line))
   `(jit-lock-bounds ,beg . ,end))
@@ -1354,14 +1360,14 @@ The hook `hs-hide-hook' is run; see `run-hooks'."
      (message "Hiding blocks ...")
      (if (hs-get-near-block)
          ;; Hide block if we are looking at one.
-         (apply #'hs-hide-level-recursive arg
-                (hs-block-positions))
+         (pcase-let ((`(,beg ,end) (hs-block-positions)))
+           (hs-hide-level-recursive arg beg end hs-hide-comments-when-hiding-all))
        ;; Otherwise hide all the blocks in the current buffer
        (hs-hide-level-recursive
         ;; Increment ARG by 1, avoiding it acts like
         ;; `hs-hide-all'
-        (1+ arg)
-        (point-min) (point-max)))
+        (1+ arg) (point-min) (point-max)
+        hs-hide-comments-when-hiding-all))
      (message "Hiding blocks ... done"))
    (run-hooks 'hs-hide-hook)))
 
@@ -1422,8 +1428,9 @@ only blocks which are that many levels below the level of point."
             (hs-toggle-hiding)
             (message "Toggle visibility"))
            ((> level 1)
-            (apply #'hs-hide-level-recursive level
-                   (hs-block-positions))
+            (pcase-let ((`(,beg ,end) (hs-block-positions)))
+              (hs-hide-level-recursive
+               level beg end hs-hide-comments-when-hiding-all))
             (message "Hide %d level" level))
            (t
             (let* (hs-allow-nesting
@@ -1440,7 +1447,9 @@ only blocks which are that many levels below the level of point."
                ;; Hide the children blocks if the parent block is hidden
                ((and (= (overlay-start ov) (car block))
                      (= (overlay-end ov) (cadr block)))
-                (apply #'hs-hide-level-recursive 1 block)
+                (hs-hide-level-recursive
+                 1 (car block) (cadr block)
+                 hs-hide-comments-when-hiding-all)
                 (message "Hide first nested blocks"))
                ;; Otherwise show all in the parent block, we cannot use
                ;; `hs-show-block' here because we already know the

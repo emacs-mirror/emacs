@@ -1169,6 +1169,11 @@ FORWARD-SEXP-FUNC, etc., major mode authors should set the corresponding
 buffer-local variables 'hs-block-start-regexp', 'hs-c-start-regexp',
 'hs-forward-sexp-function', etc.
 
++++
+*** 'hs-hide-level' and 'hs-cycle' can now hide comments too.
+This is controlled by 'hs-hide-comments-when-hiding-all'.
+
+
 ** C-ts mode
 
 +++

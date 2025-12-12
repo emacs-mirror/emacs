@@ -1747,8 +1747,8 @@ Either hide or show all the blocks in the current buffer. (@code{hs-toggle-all})
 
 @table @code
 @item hs-hide-comments-when-hiding-all
-If non-@code{nil}, @kbd{C-c @@ C-M-h} (@code{hs-hide-all}) hides
-comments too.
+If non-@code{nil}, @code{hs-hide-all}, @code{hs-cycle} and
+@code{hs-hide-level} hide comments too.
 
 @item hs-hide-block-behavior
 This variable controls how @code{hs-hide-block} and

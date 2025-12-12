@@ -281,6 +281,55 @@ main(int argc, char **argv)
 }
 "))))
 
+(ert-deftest hideshow-hide-levels-with-comments-1 ()
+  "Should hide 2nd and then 3rd level blocks including comment blocks."
+  (hideshow-tests-with-temp-buffer
+      lisp-data-mode
+    ;; 2nd
+   "
+;; comment
+;; comment
+;; comment
+
+(list
+ ;; comment2
+ ;; comment2
+ (list
+  ;; comment3
+  ;; comment3
+  '(lv3
+    lv3)))
+"
+   (hs-hide-level-recursive 2 (point-min) (point-max) :comments)
+   (should (string=
+            (hideshow-tests-visible-string)
+            "
+;; comment
+;; comment
+;; comment
+
+(list
+ ;; comment2
+ (list))
+"))
+   ;; 3rd
+   (hs-show-all)
+   (hs-hide-level-recursive 3 (point-min) (point-max) :comments)
+   (should (string=
+            (hideshow-tests-visible-string)
+            "
+;; comment
+;; comment
+;; comment
+
+(list
+ ;; comment2
+ ;; comment2
+ (list
+  ;; comment3
+  '(lv3)))
+"))))
+
 (ert-deftest hideshow-toggle-hiding-1 ()
   "Should toggle hiding/showing of a block."
   (let ((contents "
