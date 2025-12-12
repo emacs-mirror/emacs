@@ -1144,7 +1144,7 @@ fontification, see `antlr-font-lock-keywords-alist'.
 
 While calculating the decoration level for actions, `major-mode' is
 bound to the value of `antlr-action-mode'.  For example, with value
-  ((java-mode \. 2) (c++-mode \.  0))
+  ((java-mode . 2) (c++-mode .  0))
 Java actions are fontified with level 2 and C++ actions are not
 fontified at all."
   :type '(choice (const :tag "None" none)
