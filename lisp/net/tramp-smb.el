@@ -1294,8 +1294,19 @@ will be used."
       (apply #'tramp-handle-make-process args)
     (tramp-skeleton-make-process args nil t
       (let* ((command (string-join command " "))
+	     ;; STDERR can also be a file name.
+	     (tmpstderr
+	      (and stderr
+		   (tramp-unquote-file-local-name
+		    (if (stringp stderr)
+			stderr (tramp-make-tramp-temp-name v)))))
+	     ;; (remote-tmpstderr
+	     ;;  (and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
 	     (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
 	     p)
+	(if tmpstderr
+	    (setq command (format "%s 2>//%s%s" command host tmpstderr)))
+
 	(with-tramp-saved-connection-properties
 	    v '(" process-name" " process-buffer")
 	  (unwind-protect
@@ -1360,25 +1371,29 @@ will be used."
 (defun tramp-smb-handle-process-file
   (program &optional infile destination display &rest args)
   "Like `process-file' for Tramp files."
-  ;; STDERR is not impelmemted.
-  (when (consp destination)
-    (setcdr destination `(,tramp-cache-undefined)))
   (tramp-skeleton-process-file program infile destination display args
     (let ((name
 	   (string-replace "*tramp" "*tramp process" (tramp-buffer-name v))))
-      ;; Transform input into a filename powershell does understand.
+      ;; Transform input and stderr into a filename powershell does understand.
       (when input
 	(setq input
 	      (and (not (string-equal input (tramp-get-remote-null-device v)))
-		   (format "//%s%s" host input))))
+		   (format
+		    "//%s%s" host (tramp-smb-shell-quote-argument input)))))
+      (when stderr
+	(setq stderr
+	      (and (not (string-equal stderr (tramp-get-remote-null-device v)))
+		   (format
+		    "//%s%s" host (tramp-smb-shell-quote-argument stderr)))))
 
       ;; Construct command.
       (setq command (string-join (cons program args) " ")
+	    command (if stderr
+			(format "%s 2>%s" command stderr)
+		      command)
 	    command (if input
-			(format
-			 "Get-Content %s | & %s"
-			 (tramp-smb-shell-quote-argument input) command)
-		      (format "%s" command)))
+			(format "Get-Content %s | & %s" input command)
+		      command))
 
       ;; Call it.
       (condition-case nil
@@ -2149,16 +2164,10 @@ Removes smb prompt.  Returns nil if an error message has appeared."
   ;; Enable UTF-8 encoding.  Suppress "^M".
   ;; (set-process-coding-system (tramp-get-connection-process vec) 'utf-8-dos)
   ;; (tramp-smb-send-command vec "$PSDefaultParameterValues['*:Encoding'] = 'utf8'")
-  ;; Set width to 128 ($bufsize.Width) or 102 ($winsize.Width),
-  ;; respectively.  $winsize.Width cannot be larger.  This avoids
-  ;; mixing prompt and long error messages.
+  ;; This avoids mixing prompt and long error messages.
   (tramp-smb-send-command vec "$rawui = (Get-Host).UI.RawUI")
-  (tramp-smb-send-command vec "$bufsize = $rawui.BufferSize")
-  (tramp-smb-send-command vec "$winsize = $rawui.WindowSize")
-  (tramp-smb-send-command vec "$bufsize.Width = 128")
-  (tramp-smb-send-command vec "$winsize.Width = 102")
-  (tramp-smb-send-command vec "$rawui.BufferSize = $bufsize")
-  (tramp-smb-send-command vec "$rawui.WindowSize = $winsize")
+  (tramp-smb-send-command vec "$rawui.WindowSize = $rawui.MaxWindowSize")
+  (tramp-smb-send-command vec "$rawui.BufferSize.Width = 1024")
   ;; Goto `default-directory'.
   (tramp-smb-send-command
    vec (format

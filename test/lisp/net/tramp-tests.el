@@ -5463,8 +5463,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; 	(delete-file tmp-name)))
 
 	    ;; Check remote and local STDERR.
-	    ;; FIXME: tramp-smb.el should implement this.
-	    (unless (or (tramp--test-sshfs-p) (tramp--test-smb-p))
+	    (unless (tramp--test-sshfs-p)
 	      (dolist (local '(nil t))
 		(setq tmp-name (tramp--test-make-temp-name local quoted))
 		(should-not
@@ -5474,7 +5473,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		  (insert-file-contents tmp-name)
 		  (should
 		   (string-match-p
-		    (rx "cat:" (* nonl) " No such file or directory")
+		    (rx (| (: "cat:" (* nonl) "No such file or directory")
+			   ;; MS Windows.
+			   (: "cat : Cannot find path")))
 		    (buffer-string)))
 		  (should-not (get-buffer-window (current-buffer) t))
 		  (delete-file tmp-name)))))
@@ -5873,8 +5874,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    (ignore-errors (kill-buffer stderr)))))
 
       ;; Process with stderr file.
-      ;; FIXME: tramp-smb.el should implement this.
-      (unless (or (tramp--test-smb-p) (tramp-direct-async-process-p))
+      (unless (tramp-direct-async-process-p)
 	(unwind-protect
 	    (with-temp-buffer
 	      (setq command '("cat" "/does-not-exist")
@@ -5886,13 +5886,19 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	      (should (equal (process-get proc 'remote-command) command))
 	      ;; Read stderr.
 	      (with-timeout (10 (tramp--test-timeout-handler))
-		(while (accept-process-output proc nil nil t)))
+		(let ((remote-file-name-inhibit-cache t))
+		  (while
+		      (or (not (file-exists-p tmp-name))
+			  (zerop
+			   (file-attribute-size (file-attributes tmp-name)))))))
 	      (delete-process proc)
 	      (with-temp-buffer
 		(insert-file-contents tmp-name)
 		(should
 		 (string-match-p
-		  (rx "cat:" (* nonl) " No such file or directory")
+		  (rx (| (: "cat:" (* nonl) "No such file or directory")
+			 ;; MS Windows.
+			 (: "cat : Cannot find path")))
 		  (buffer-string)))))
 
 	  ;; Cleanup.

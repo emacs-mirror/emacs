@@ -253,7 +253,7 @@ arguments to pass to the OPERATION."
 (defun tramp-sshfs-handle-process-file
   (program &optional infile destination display &rest args)
   "Like `process-file' for Tramp files."
-  ;; STDERR is not impelmemted.
+  ;; STDERR is not implemented.
   (when (consp destination)
     (setcdr destination `(,tramp-cache-undefined)))
   (tramp-skeleton-process-file program infile destination display args

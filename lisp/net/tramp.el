@@ -3978,7 +3978,7 @@ BODY is the backend specific code."
 	  ((null (cadr ,destination))
 	   (setq stderr (tramp-get-remote-null-device v)))
 	  ((eq (cadr ,destination) tramp-cache-undefined)
-	   ;; stderr is not impelmemted.
+	   ;; stderr is not implemented.
 	   (tramp-warning v "%s" "STDERR not supported"))))
 	;; t
 	(,destination
