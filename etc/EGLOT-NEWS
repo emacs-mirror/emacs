@@ -20,6 +20,19 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes to upcoming Eglot
 
+** Support for pull diagnostics (github#1559, github#1290)
+
+For servers supporting the 'diagnosticProvider' capability, Eglot
+requests diagnostics on-demand rather than relying solely on
+server-pushed 'publishDiagnostics' notifications.  This may provide a
+more responsive user experience.  The 'ty' server is known to support it
+while the 'tsgo' server is known to support is exclusively.  However, no
+server has been found to support the 'relatedDocumentSupport'
+sub-capability, which e.g. introducing a problem in one file to bring
+diagnostics for another related file.  The traditional push diagnostics,
+as supported by some servers, are at the moment still a superior user
+experience in this particular regard.
+
 ** Support for semantic tokens (bug#79374)
 
 The new minor mode 'eglot-semantic-tokens-mode' provides enhanced syntax
