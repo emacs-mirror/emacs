@@ -718,12 +718,17 @@ or an empty string if none."
 
 (defun vc-git-dir-status-goto-stage (git-state)
   ;; TODO: Look into reimplementing this using `git status --porcelain=v2'.
-  (let ((files (vc-git-dir-status-state->files git-state)))
+  (let ((files (vc-git-dir-status-state->files git-state))
+        (allowed-exit 1))
     (erase-buffer)
     (pcase (vc-git-dir-status-state->stage git-state)
       ('update-index
        (if files
-           (vc-git-command (current-buffer) 'async files "add" "--refresh" "--")
+           (progn (vc-git-command (current-buffer) 'async files
+                                  "add" "--refresh" "--")
+                  ;; git-add exits 128 if some of FILES are untracked;
+                  ;; we can ignore that (bug#79999).
+                  (setq allowed-exit 128))
          (vc-git-command (current-buffer) 'async nil
                          "update-index" "--refresh")))
       ('ls-files-added
@@ -749,7 +754,7 @@ or an empty string if none."
       ('diff-index
        (vc-git-command (current-buffer) 'async files
                        "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
-    (vc-run-delayed-success 1
+    (vc-run-delayed-success allowed-exit
       (vc-git-after-dir-status-stage git-state))))
 
 (defun vc-git-dir-status-files (_dir files update-function)
