@@ -2794,7 +2794,6 @@ Return t if the buffer had changes, nil otherwise."
                      (if async 'async 1) "diff" file
                      (append (vc-switches nil 'diff) `(,(null-device)))))))
         (setq files (nreverse filtered))))
-    (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer async)
     (set-buffer buffer)
     ;; Make the *vc-diff* buffer read only, the diff-mode key
     ;; bindings are nicer for read only buffers. pcl-cvs does the
@@ -2806,6 +2805,7 @@ Return t if the buffer had changes, nil otherwise."
     (setq-local revert-buffer-function
                 (lambda (_ignore-auto _noconfirm)
                   (vc-diff-internal async vc-fileset rev1 rev2 verbose)))
+    (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer async)
     (if (and (zerop (buffer-size))
              (not (get-buffer-process (current-buffer))))
         ;; Treat this case specially so as not to pop the buffer.
