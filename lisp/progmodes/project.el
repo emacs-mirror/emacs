@@ -369,8 +369,8 @@ the user.")
 
 (cl-defgeneric project-files (project &optional dirs)
   "Return a list of files in directories DIRS in PROJECT.
-DIRS is a list of absolute directories; it should be some
-subset of the project root and external roots.
+DIRS is a list of absolute directories; the values can be some of the
+project roots or external roots or subdirectories of those.
 
 The default implementation uses `find-program'.  PROJECT is used
 to find the list of ignores for each directory."
@@ -679,7 +679,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
            (backend (cadr project)))
        (when backend
          (require (intern (concat "vc-" (downcase (symbol-name backend))))))
-       (if (and (file-equal-p dir (nth 2 project))
+       (if (and (file-in-directory-p dir (nth 2 project))
                 (cond
                  ((eq backend 'Hg))
                  ((and (eq backend 'Git)

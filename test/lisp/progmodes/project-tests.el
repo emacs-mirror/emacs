@@ -157,6 +157,20 @@ When `project-ignores' includes a name matching project dir."
     (should (equal '(".dir-locals.el" "foo")
                    (mapcar #'file-name-nondirectory (project-files project))))))
 
+(ert-deftest project-vc-supports-files-in-subdirectory ()
+  "Check that it lists only files from subdirectory."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  (let* ((dir (ert-resource-directory))
+         (_ (vc-file-clearprops dir))
+         (project-vc-extra-root-markers '("project-tests.el"))
+         (project (project-current nil dir)))
+    (should-not (null project))
+    (should (string-match-p "/test/lisp/progmodes/\\'" (project-root project)))
+    (should (equal '(".dir-locals.el" "etc" "foo")
+                   (mapcar #'file-name-nondirectory
+                           (project-files project
+                                          (list dir)))))))
+
 (ert-deftest project-vc-nonexistent-directory-no-error ()
   "Check that is doesn't error out when the current dir does not exist."
   (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
