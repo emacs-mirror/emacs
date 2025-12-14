@@ -1205,12 +1205,13 @@ scan_c_stream (FILE *infile)
 		  c = getc (infile);
 		}
 	      /* Copy arguments into ARGBUF.  */
-	      while (true)
+	      for (ptrdiff_t nested = 0; ; )
 		{
 		  *p++ = c;
 		  if (argbuf + sizeof argbuf <= p)
 		    fatal ("argument buffer exhausted");
-		  if (c == ')')
+		  nested += (c == '(') - (c == ')');
+		  if (c == ')' && !nested)
 		    break;
 		  c = getc (infile);
 		  if (c < 0)
