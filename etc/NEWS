@@ -3163,6 +3163,40 @@ it will begrudgingly use the scratch buffer.
 Customize the variable 'abbrev-mode' to non-nil to enable Abbrev mode by
 default in all buffers.
 
+** Antlr mode
+
+*** Variable 'antlr-tool-version' is no user option anymore.
+If becomes buffer-local and has the symbol 'antlr-v2', 'antlr-v3' or
+'antlr-v4' as value.  The value determines which of the tool-version
+dependent customization options are used.  For example, the command
+'antlr-run-tool' uses the option 'antlr-v3-tool-command' (with default
+value "java org.antlr.Tool") when 'antlr-tool-version' has the value
+'antlr-v3'.
+
+*** Command 'antlr-mode' now also works on ANTLR v3 or v4 grammars.
+If the variable 'antlr-tool-version' is not set locally, e.g. by the
+file’s local variables specs, the command sets its local value to
+'antlr-v2' if a keyword "class" or "header" appears at the beginning of
+the source, or to 'antlr-v3' otherwise.
+
+*** New command 'antlr-v4-mode' is a derived mode of 'antlr-mode'.
+It sets 'antlr-tool-version' to value 'antlr-v4', and is automatically
+used for files with extension "g4".
+
+*** The variable 'antlr-language' is now used more generally.
+The variable has a symbol as value which determines which of the
+language-dependent customization options are used.  These options
+influence font-locking and indentation commands.  Its value is usually
+set according to the grammar option "language", see the default values
+of 'antlr-v2-language-list', 'antlr-v3-language-list' and
+'antlr-v4-language-list'.  This mode now supports C, Delphi, JavaScript,
+ObjC, Python and Ruby, additional to Java and Cpp.
+
+*** New user option 'antlr-run-tool-on-buffer-file'.
+Command 'antlr-run-tool' now usually runs on the file for the current
+buffer.  Customize this user option to have value ' nil' to get the
+previous behavior back.
+
 
 * New Modes and Packages in Emacs 31.1
 

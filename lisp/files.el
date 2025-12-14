@@ -3215,6 +3215,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
     ("\\.ebrowse\\'" . ebrowse-tree-mode)
     ("#\\*mail\\*" . mail-mode)
     ("\\.g\\'" . antlr-mode)
+    ("\\.g4\\'" . antlr-v4-mode)
     ("\\.mod\\'" . m2-mode)
     ("\\.ses\\'" . ses-mode)
     ("\\.docbook\\'" . sgml-mode)
