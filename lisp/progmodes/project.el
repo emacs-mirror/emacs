@@ -72,8 +72,14 @@
 ;; customization group `project-vc' for other options that control its
 ;; behavior.
 ;;
-;; If the repository is using any other VCS than Git or Hg, the file
-;; listing uses the default mechanism based on `find-program'.
+;; The file listing uses the VC backend function `project-list-files'.
+;; If the current VC backend does not implement it, the default
+;; mechanism based on `find-program' is used as fallback.
+;;
+;;   project-list-files (dir extra-ignores)
+;;
+;; DIR is a directory inside the repository.
+;; EXTRA-IGNORES is a list of globs in the format of `project-ignores'.
 ;;
 ;; This project type can also be used for non-VCS controlled
 ;; directories, see the variable `project-vc-extra-root-markers'.
@@ -679,17 +685,13 @@ See `project-vc-extra-root-markers' for the marker value format.")
            (backend (cadr project)))
        (when backend
          (require (intern (concat "vc-" (downcase (symbol-name backend))))))
-       (if (and (file-in-directory-p dir (nth 2 project))
-                (cond
-                 ((eq backend 'Hg))
-                 ((and (eq backend 'Git)
-                       (or
-                        (not ignores)
-                        (version<= "1.9" (vc-git--program-version)))))))
-           (project--vc-list-files dir backend ignores)
-         (project--files-in-directory
-          dir
-          (project--dir-ignores project dir)))))
+       (if (file-in-directory-p dir (nth 2 project))
+           (condition-case nil
+               (project--vc-list-files dir backend ignores)
+             (vc-not-supported
+              (project--files-in-directory
+               dir
+               (project--dir-ignores project dir)))))))
    (or dirs
        (list (project-root project)))))
 
@@ -698,108 +700,109 @@ See `project-vc-extra-root-markers' for the marker value format.")
 (declare-function vc-hg-command "vc-hg")
 
 (defun project--vc-list-files (dir backend extra-ignores)
+  (vc-call-backend backend 'project-list-files dir extra-ignores))
+
+(defun vc-git-project-list-files (dir extra-ignores)
   (defvar vc-git-use-literal-pathspecs)
-  (pcase backend
-    (`Git
-     (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
-            (args '("-z" "-c" "--exclude-standard"))
-            (vc-git-use-literal-pathspecs nil)
-            (include-untracked (project--value-in-dir
-                                'project-vc-include-untracked
-                                dir))
-            (submodules (project--git-submodules))
-            files)
-       (setq args (append args
-                          (and (<= 31 emacs-major-version)
-                               (version<= "2.35" (vc-git--program-version))
-                               '("--sparse"))
-                          (and include-untracked '("-o"))))
-       (when extra-ignores
-         (setq args (append args
-                            (cons "--"
-                                  (mapcar
-                                   (lambda (i)
-                                     (format
-                                      ":(exclude,glob,top)%s"
-                                      (if (string-match "\\*\\*" i)
-                                          ;; Looks like pathspec glob
-                                          ;; format already.
-                                          i
-                                        (if (string-match "\\./" i)
-                                            ;; ./abc -> abc
-                                            (setq i (substring i 2))
-                                          ;; abc -> **/abc
-                                          (setq i (concat "**/" i))
-                                          ;; FIXME: '**/abc' should also
-                                          ;; match a directory with that
-                                          ;; name, but doesn't (git 2.25.1).
-                                          ;; Maybe we should replace
-                                          ;; such entries with two.
-                                          (if (string-match "/\\'" i)
-                                              ;; abc/ -> abc/**
-                                              (setq i (concat i "**"))))
-                                        i)))
-                                   extra-ignores)))))
-       (setq files
-             (delq nil
-                   (mapcar
-                    (lambda (file)
-                      (unless (or (member file submodules)
-                                  ;; Should occur for sparse directories
-                                  ;; only, when sparse index is enabled.
-                                  (directory-name-p file))
-                        (if project-files-relative-names
-                            file
-                          (concat default-directory file))))
-                    (split-string
-                     (with-output-to-string
-                       (apply #'vc-git-command standard-output 0 nil "ls-files" args))
-                     "\0" t))))
-       (when (project--vc-merge-submodules-p default-directory)
-         ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
-         (let ((sub-files
+  (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
+         (args '("-z" "-c" "--exclude-standard"))
+         (vc-git-use-literal-pathspecs nil)
+         (include-untracked (project--value-in-dir
+                             'project-vc-include-untracked
+                             dir))
+         (submodules (project--git-submodules))
+         files)
+    (setq args (append args
+                       (and (<= 31 emacs-major-version)
+                            (version<= "2.35" (vc-git--program-version))
+                            '("--sparse"))
+                       (and include-untracked '("-o"))))
+    (when extra-ignores
+      (setq args (append args
+                         (cons "--"
+                               (mapcar
+                                (lambda (i)
+                                  (format
+                                   ":(exclude,glob,top)%s"
+                                   (if (string-match "\\*\\*" i)
+                                       ;; Looks like pathspec glob
+                                       ;; format already.
+                                       i
+                                     (if (string-match "\\./" i)
+                                         ;; ./abc -> abc
+                                         (setq i (substring i 2))
+                                       ;; abc -> **/abc
+                                       (setq i (concat "**/" i))
+                                       ;; FIXME: '**/abc' should also
+                                       ;; match a directory with that
+                                       ;; name, but doesn't (git 2.25.1).
+                                       ;; Maybe we should replace
+                                       ;; such entries with two.
+                                       (if (string-match "/\\'" i)
+                                           ;; abc/ -> abc/**
+                                           (setq i (concat i "**"))))
+                                     i)))
+                                extra-ignores)))))
+    (setq files
+          (delq nil
                 (mapcar
-                 (lambda (module)
-                   (when (file-directory-p module)
-                     (let ((sub-files
-                            (project--vc-list-files
-                             (concat default-directory module)
-                             backend
-                             extra-ignores)))
-                       (if project-files-relative-names
-                           (mapcar (lambda (file)
-                                     (concat (file-name-as-directory module) file))
-                                   sub-files)
-                         sub-files))))
-                 submodules)))
-           (setq files
-                 (apply #'nconc files sub-files))))
-       ;; 'git ls-files' returns duplicate entries for merge conflicts.
-       ;; XXX: Better solutions welcome, but this seems cheap enough.
-       (delete-consecutive-dups files)))
-    (`Hg
-     (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
-            (include-untracked (project--value-in-dir
-                                'project-vc-include-untracked
-                                dir))
-            (args (list (concat "-mcard" (and include-untracked "u"))
-                        "--no-status"
-                        "-0"))
-            files)
-       (when extra-ignores
-         (setq args (nconc args
-                           (mapcan
-                            (lambda (i)
-                              (list "--exclude" i))
-                            extra-ignores))))
-       (with-temp-buffer
-         (apply #'vc-hg-command t 0 "." "status" args)
-         (setq files (split-string (buffer-string) "\0" t))
-         (unless project-files-relative-names
-           (setq files (mapcar
-                        (lambda (s) (concat default-directory s))
-                        files)))
-         files)))))
+                 (lambda (file)
+                   (unless (or (member file submodules)
+                               ;; Should occur for sparse directories
+                               ;; only, when sparse index is enabled.
+                               (directory-name-p file))
+                     (if project-files-relative-names
+                         file
+                       (concat default-directory file))))
+                 (split-string
+                  (with-output-to-string
+                    (apply #'vc-git-command standard-output 0 nil "ls-files" args))
+                  "\0" t))))
+    (when (project--vc-merge-submodules-p default-directory)
+      ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
+      (let ((sub-files
+             (mapcar
+              (lambda (module)
+                (when (file-directory-p module)
+                  (let ((sub-files
+                         (vc-git-project-list-files
+                          (concat default-directory module)
+                          extra-ignores)))
+                    (if project-files-relative-names
+                        (mapcar (lambda (file)
+                                  (concat (file-name-as-directory module) file))
+                                sub-files)
+                      sub-files))))
+              submodules)))
+        (setq files
+              (apply #'nconc files sub-files))))
+    ;; 'git ls-files' returns duplicate entries for merge conflicts.
+    ;; XXX: Better solutions welcome, but this seems cheap enough.
+    (delete-consecutive-dups files)))
+
+(defun vc-hg-project-list-files (dir extra-ignores)
+  (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
+         (include-untracked (project--value-in-dir
+                             'project-vc-include-untracked
+                             dir))
+         (args (list (concat "-mcard" (and include-untracked "u"))
+                     "--no-status"
+                     "-0"))
+         files)
+    (when extra-ignores
+      (setq args (nconc args
+                        (mapcan
+                         (lambda (i)
+                           (list "--exclude" i))
+                         extra-ignores))))
+    (with-temp-buffer
+      (apply #'vc-hg-command t 0 "." "status" args)
+      (setq files (split-string (buffer-string) "\0" t))
+      (unless project-files-relative-names
+        (setq files (mapcar
+                     (lambda (s) (concat default-directory s))
+                     files)))
+      files)))
 
 (defun project--vc-merge-submodules-p (dir)
   (project--value-in-dir
