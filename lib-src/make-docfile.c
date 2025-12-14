@@ -524,7 +524,7 @@ write_c_args (char *buf, int minargs, int maxargs)
 	  if (ident_length == 0)
 	    continue;
 
-	  if (strncmp (ident_start, "void", ident_length) == 0)
+	  if (ident_length == 4 && memeq (ident_start, "void", 4))
 	    continue;
 
 	  putchar (' ');
