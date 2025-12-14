@@ -485,7 +485,7 @@ read_c_string_or_comment (FILE *infile, int printflag, bool comment,
    MINARGS and MAXARGS are the minimum and maximum number of arguments.  */
 
 static void
-write_c_args (char *func, char *buf, int minargs, int maxargs)
+write_c_args (char *buf, int minargs, int maxargs)
 {
   char *p;
   bool in_ident = false;
@@ -522,10 +522,7 @@ write_c_args (char *func, char *buf, int minargs, int maxargs)
       if (c == ',' || c == ')')
 	{
 	  if (ident_length == 0)
-	    {
-	      error ("empty arg list for '%s' should be (void), not ()", func);
-	      continue;
-	    }
+	    continue;
 
 	  if (strncmp (ident_start, "void", ident_length) == 0)
 	    continue;
@@ -551,6 +548,8 @@ write_c_args (char *func, char *buf, int minargs, int maxargs)
 		  c = '-';
 		putchar (c);
 	      }
+
+	  ident_length = 0;
 	}
     }
 
@@ -1220,7 +1219,7 @@ scan_c_stream (FILE *infile)
 	      *p = '\0';
 	      /* Output them.  */
 	      fputs ("\n\n", stdout);
-	      write_c_args (input_buffer, argbuf, minargs, maxargs);
+	      write_c_args (argbuf, minargs, maxargs);
 	    }
 	  else if (defunflag && maxargs == -1 && !saw_usage)
 	    /* The DOC should provide the usage form.  */
