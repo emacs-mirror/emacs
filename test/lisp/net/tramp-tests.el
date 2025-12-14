@@ -5840,9 +5840,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
       ;; Process with stderr buffer.  "telnet" does not cooperate with
       ;; three processes.
-      ;; FIXME: tramp-smb.el should implement this.
-      (unless (or (tramp--test-telnet-p) (tramp--test-smb-p)
-		  (tramp-direct-async-process-p))
+      (unless (or (tramp--test-telnet-p) (tramp-direct-async-process-p))
 	(let ((stderr (generate-new-buffer "*stderr*")))
 	  (unwind-protect
 	      (with-temp-buffer
@@ -5860,13 +5858,19 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		(with-current-buffer stderr
 		  (with-timeout (10 (tramp--test-timeout-handler))
 		    (while (not (string-match-p
-				 "No such file or directory" (buffer-string)))
-		      (while (accept-process-output
-			      (get-buffer-process stderr) 0 nil t))))
+				 (rx (| "No such file or directory"
+					"Cannot find path"))
+				 (buffer-string)))
+		      (if (processp (get-buffer-process stderr))
+			  (while (accept-process-output
+				  (get-buffer-process stderr) 0 nil t))
+			(revert-buffer nil 'noconfirm))))
 		  (delete-process proc)
 		  (should
 		   (string-match-p
-		    (rx "cat:" (* nonl) " No such file or directory")
+		    (rx (| (: "cat:" (* nonl) "No such file or directory")
+			   ;; MS Windows.
+			   (: "cat : Cannot find path")))
 		    (buffer-string)))))
 
 	    ;; Cleanup.

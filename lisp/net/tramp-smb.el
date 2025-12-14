@@ -1300,12 +1300,28 @@ will be used."
 		   (tramp-unquote-file-local-name
 		    (if (stringp stderr)
 			stderr (tramp-make-tramp-temp-name v)))))
-	     ;; (remote-tmpstderr
-	     ;;  (and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
+	     (remote-tmpstderr
+	      (and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
 	     (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
 	     p)
 	(if tmpstderr
 	    (setq command (format "%s 2>//%s%s" command host tmpstderr)))
+
+	;; Handle error buffer.
+	(when (bufferp stderr)
+	  (make-empty-file remote-tmpstderr)
+	  (with-current-buffer stderr
+	    (setq buffer-read-only nil
+		  default-directory (file-name-directory remote-tmpstderr))
+	    (setq-local buffer-file-name remote-tmpstderr
+			auto-revert-notify-exclude-dir-regexp
+			"nothing-to-be-excluded"
+			create-lockfiles t)
+	    (set-visited-file-modtime)
+	    (set-buffer-modified-p nil)
+	    (auto-save-mode -1)
+	    (auto-save-visited-mode -1)
+	    (auto-revert-tail-mode 1)))
 
 	(with-tramp-saved-connection-properties
 	    v '(" process-name" " process-buffer")
@@ -1339,6 +1355,20 @@ will be used."
 		  (ignore-errors
 		    (set-process-query-on-exit-flag p (null noquery))
 		    (set-marker (process-mark p) (point)))
+		  ;; We must flush them here already; otherwise
+		  ;; `delete-file' will fail.
+		  (tramp-flush-connection-property v " process-name")
+		  (tramp-flush-connection-property v " process-buffer")
+		  ;; Stop auto-revert.  Delete stderr file.
+		  (when (bufferp stderr)
+		    (add-function
+		     :after (process-sentinel p)
+		     (lambda (_proc _msg)
+		       (with-current-buffer stderr
+			 (auto-revert-tail-mode -1)
+			 (revert-buffer nil 'noconfirm))
+		       (ignore-errors
+			 (delete-file remote-tmpstderr)))))
 		  ;; Return value.
 		  p))
 
