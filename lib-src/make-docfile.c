@@ -261,6 +261,8 @@ struct rcsoc_state
 
   /* If non-zero, a buffer into which to copy characters.  */
   char *buf_ptr;
+  /* If non-zero, one past the buffer's last byte.  */
+  char *buf_lim;
   /* If non-zero, a file into which to copy characters.  */
   FILE *out_file;
 
@@ -299,7 +301,11 @@ put_char (char ch, struct rcsoc_state *state)
       if (state->out_file)
 	putc (out_ch, state->out_file);
       if (state->buf_ptr)
-	*state->buf_ptr++ = out_ch;
+	{
+	  *state->buf_ptr++ = out_ch;
+	  if (state->buf_lim <= state->buf_ptr)
+	    fatal ("state buffer exhausted");
+	}
     }
   while (out_ch != ch);
 }
@@ -397,8 +403,9 @@ read_c_string_or_comment (FILE *infile, int printflag, bool comment,
   struct rcsoc_state state;
 
   state.in_file = infile;
-  state.buf_ptr = (printflag < 0 ? input_buffer : 0);
-  state.out_file = (printflag > 0 ? stdout : 0);
+  state.buf_ptr = printflag < 0 ? input_buffer : NULL;
+  state.buf_lim = printflag < 0 ? input_buffer + sizeof input_buffer : NULL;
+  state.out_file = printflag <= 0 ? NULL : stdout;
   state.pending_spaces = 0;
   state.pending_newlines = 0;
   state.keyword = (saw_usage ? "usage:" : 0);
@@ -1109,8 +1116,8 @@ scan_c_stream (FILE *infile)
 		    goto eof;
 		  if (c == ')')
 		    break;
-		  if (p - input_buffer > sizeof (input_buffer))
-		    abort ();
+		  if (input_buffer + sizeof input_buffer <= p)
+		    fatal ("attribute buffer exhausted");
 		  *p++ = c;
 		}
 	      *p = 0;
@@ -1199,16 +1206,17 @@ scan_c_stream (FILE *infile)
 		  c = getc (infile);
 		}
 	      /* Copy arguments into ARGBUF.  */
-	      *p++ = c;
-	      do
+	      while (true)
 		{
+		  *p++ = c;
+		  if (argbuf + sizeof argbuf <= p)
+		    fatal ("argument buffer exhausted");
+		  if (c == ')')
+		    break;
 		  c = getc (infile);
 		  if (c < 0)
 		    goto eof;
-		  *p++ = c;
 		}
-	      while (c != ')');
-
 	      *p = '\0';
 	      /* Output them.  */
 	      fputs ("\n\n", stdout);
