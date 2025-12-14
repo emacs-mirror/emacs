@@ -150,7 +150,7 @@ main (int argc, char **argv)
 
   /* If first two args are -o FILE, output to FILE.  */
   i = 1;
-  if (argc > i + 1 && !strcmp (argv[i], "-o"))
+  if (argc > i + 1 && streq (argv[i], "-o"))
     {
       if (! freopen (argv[i + 1], "w", stdout))
 	{
@@ -159,7 +159,7 @@ main (int argc, char **argv)
 	}
       i += 2;
     }
-  if (argc > i + 1 && !strcmp (argv[i], "-a"))
+  if (argc > i + 1 && streq (argv[i], "-a"))
     {
       if (! freopen (argv[i + 1], "a", stdout))
 	{
@@ -168,7 +168,7 @@ main (int argc, char **argv)
 	}
       i += 2;
     }
-  if (argc > i + 1 && !strcmp (argv[i], "-d"))
+  if (argc > i + 1 && streq (argv[i], "-d"))
     {
       if (chdir (argv[i + 1]) != 0)
 	{
@@ -177,7 +177,7 @@ main (int argc, char **argv)
 	}
       i += 2;
     }
-  if (argc > i && !strcmp (argv[i], "-g"))
+  if (argc > i && streq (argv[i], "-g"))
     {
       generate_globals = true;
       ++i;
@@ -198,7 +198,7 @@ main (int argc, char **argv)
 	  int j;
 	  /* Don't process one file twice.  */
 	  for (j = first_infile; j < i; j++)
-	    if (strcmp (argv[i], argv[j]) == 0)
+	    if (streq (argv[i], argv[j]))
 	      break;
 	  if (j == i)
 	    scan_file (argv[i]);
@@ -602,7 +602,7 @@ add_global (enum global_type type, char const *name, int value,
 	    char const *svalue)
 {
   /* Ignore the one non-symbol that can occur.  */
-  if (strcmp (name, "..."))
+  if (!streq (name, "..."))
     {
       if (num_globals == num_globals_allocated)
 	{
@@ -654,9 +654,9 @@ compare_globals (const void *a, const void *b)
       int ai = ncommonsym, bi = ncommonsym;
       for (int i = 0; i < ncommonsym; i++)
 	{
-	  if (ga->name[0] == 'Q' && strcmp (ga->name + 1, commonsym[i]) == 0)
+	  if (ga->name[0] == 'Q' && streq (ga->name + 1, commonsym[i]))
 	    ai = i;
-	  if (gb->name[0] == 'Q' && strcmp (gb->name + 1, commonsym[i]) == 0)
+	  if (gb->name[0] == 'Q' && streq (gb->name + 1, commonsym[i]))
 	    bi = i;
 	}
       if (! (ai == ncommonsym && bi == ncommonsym))
@@ -692,7 +692,7 @@ write_globals (void)
   for (i = 0; i < num_globals; i++)
     {
       while (i + 1 < num_globals
-	     && strcmp (globals[i].name, globals[i + 1].name) == 0)
+	     && streq (globals[i].name, globals[i + 1].name))
 	{
 	  if (globals[i].type == FUNCTION
 	      && globals[i].v.value != globals[i + 1].v.value)
