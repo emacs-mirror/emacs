@@ -691,7 +691,10 @@ See `project-vc-extra-root-markers' for the marker value format.")
              (vc-not-supported
               (project--files-in-directory
                dir
-               (project--dir-ignores project dir)))))))
+               (project--dir-ignores project dir))))
+         (project--files-in-directory
+          dir
+          (project--dir-ignores project dir)))))
    (or dirs
        (list (project-root project)))))
 
