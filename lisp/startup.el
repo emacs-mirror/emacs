@@ -1236,6 +1236,9 @@ directories that do not contain Lisp files."
   :type '(choice (repeat (string :tag "Directory name")))
   :version "31.1")
 
+(declare-function byte-recompile-file "bytecomp"
+                  (filename &optional force arg load))
+
 (defun prepare-user-lisp (&optional just-activate autoload-file force)
   "Byte-compile, scrape autoloads and prepare files in `user-lisp-directory'.
 Write the autoload file to AUTOLOAD-FILE.  If JUST-ACTIVATE is non-nil,
@@ -1246,6 +1249,7 @@ If FORCE is non-nil, or if invoked interactively with a prefix argument,
 re-create the entire autoload file and byte-compile everything
 unconditionally."
   (interactive (list nil nil current-prefix-arg))
+  (unless just-activate (require 'bytecomp))
   (unless (file-directory-p user-lisp-directory)
     (error "No such directory: %S" user-lisp-directory))
   (unless autoload-file
