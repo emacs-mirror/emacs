@@ -2731,7 +2731,7 @@ Output goes to the buffer BUFFER, which defaults to *vc-diff*.
 BUFFER, if non-nil, should be a buffer or a buffer name.
 Return t if the buffer had changes, nil otherwise."
   (unless buffer
-    (setq buffer "*vc-diff*"))
+    (setq buffer (get-buffer-create "*vc-diff*")))
   (let* ((files (cadr vc-fileset))
 	 (messages (cons (format "Finding changes in %s..."
                                  (vc-delistify files))
@@ -2799,15 +2799,13 @@ Return t if the buffer had changes, nil otherwise."
     ;; bindings are nicer for read only buffers. pcl-cvs does the
     ;; same thing.
     (setq buffer-read-only t)
-    (delay-mode-hooks
-      (diff-mode)
-      (setq-local diff-vc-backend (car vc-fileset))
-      (setq-local diff-vc-revisions (list rev1 rev2))
-      (setq-local revert-buffer-function
-                  (lambda (_ignore-auto _noconfirm)
-                    (vc-diff-internal async vc-fileset rev1 rev2 verbose)))
-      (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer async))
-    (run-mode-hooks 'diff-mode-hook)
+    (diff-mode)
+    (setq-local diff-vc-backend (car vc-fileset))
+    (setq-local diff-vc-revisions (list rev1 rev2))
+    (setq-local revert-buffer-function
+                (lambda (_ignore-auto _noconfirm)
+                  (vc-diff-internal async vc-fileset rev1 rev2 verbose)))
+    (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer async)
     (if (and (zerop (buffer-size))
              (not (get-buffer-process (current-buffer))))
         ;; Treat this case specially so as not to pop the buffer.
