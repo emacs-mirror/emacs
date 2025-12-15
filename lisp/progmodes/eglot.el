@@ -2221,6 +2221,14 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
 
 (defvar eglot--highlights nil "Overlays for `eglot-highlight-eldoc-function'.")
 
+(defvar-local eglot--diagnostics nil
+  "A list (DIAGNOSTICS VERSION RESULT-ID) for current buffer.
+DIAGNOSTICS is a list of Flymake diagnostics objects.  VERSION is the
+LSP Document version reported for DIAGNOSTICS (comparable to
+`eglot--docver') or nil if server didn't bother.  RESULT-ID is an
+optional string identifying this diagnostic result for pull
+diagnostics, used for incremental updates.")
+
 (defvar-local eglot--suggestion-overlay (make-overlay 0 0)
   "Overlay for `eglot-code-action-suggestion'.")
 
@@ -2300,7 +2308,8 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
              do (set (make-local-variable var) saved-binding))
     (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
     (when eglot--flymake-push-report-fn
-      (eglot--flymake-push nil nil)
+      (setq eglot--diagnostics nil)
+      (eglot--flymake-push)
       (setq eglot--flymake-push-report-fn nil))
     (run-hooks 'eglot-managed-mode-hook)
     (let ((server eglot--cached-server))
@@ -2336,12 +2345,6 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
   "Return current logical Eglot server connection or error."
   (or (eglot-current-server)
       (jsonrpc-error "No current JSON-RPC connection")))
-
-(defvar-local eglot--diagnostics nil
-  "A cons (DIAGNOSTICS . VERSION) for current buffer.
-DIAGNOSTICS is a list of Flymake diagnostics objects.  VERSION is the
-LSP Document version reported for DIAGNOSTICS (comparable to
-`eglot--docver') or nil if server didn't bother.")
 
 (defvar revert-buffer-preserve-modes)
 (defvar eglot-semantic-tokens-mode) ;; forward decl
@@ -2780,14 +2783,12 @@ expensive cached value of `file-truename'.")
            for diag-spec across diagnostics
            collect (eglot--flymake-make-diag diag-spec version)
            into diags
-           finally (cond ((and
-                           ;; only add to current report if Flymake
-                           ;; starts on idle-timer (github#958)
-                           (not (null flymake-no-changes-timeout))
-                           eglot--flymake-push-report-fn)
-                          (eglot--flymake-push diags version))
-                         (t
-                          (setq eglot--diagnostics (cons diags version))))))
+           finally
+           (setq eglot--diagnostics (list diags version nil))
+           (when (not (null flymake-no-changes-timeout ))
+               ;; only add to current report if Flymake
+               ;; starts on idle-timer (github#957)
+             (eglot--flymake-push))))
       (cl-loop
        for diag-spec across diagnostics
        collect (eglot--dbind ((Diagnostic) code range message severity source) diag-spec
@@ -3229,66 +3230,86 @@ publishes diagnostics.  Between calls to this function, REPORT-FN
 may be called multiple times (respecting the protocol of
 `flymake-diagnostic-functions')."
   (cond (eglot--managed-mode
+         (setq eglot--flymake-push-report-fn report-fn)
          (cond
           ;; Use pull diagnostics if server supports it
           ((eglot-server-capable :diagnosticProvider)
-           (eglot--flymake-pull report-fn))
-          ;; Otherwise use traditional push diagnostics
-          (t
-           (setq eglot--flymake-push-report-fn report-fn)
-           (eglot--flymake-push (car eglot--diagnostics)
-                                     (cdr eglot--diagnostics)))))
+           (eglot--flymake-pull))
+          ;; Otherwise push whatever we might have, and wait for
+          ;; `textDocument/publishDiagnostics'.
+          (t (eglot--flymake-push))))
         (t
          (funcall report-fn nil))))
 
-(defun eglot--flymake-pull (report-fn)
-  "Pull diagnostics from server and call REPORT-FN."
-  (let ((buf (current-buffer))
-        (server (eglot--current-server-or-lose))
-        (version eglot--docver))
-    (eglot--async-request
-     server
-     :textDocument/diagnostic
-     (list :textDocument (eglot--TextDocumentIdentifier))
-     :success-fn
-     (lambda (result)
-       (eglot--when-live-buffer buf
-         (eglot--dbind ((DocumentDiagnosticReport) kind items) result
-           (pcase kind
-             ("full"
-              (let ((diags
-                     (cl-loop
-                      for diag-spec across items
-                      collect (eglot--flymake-make-diag diag-spec version))))
-                (setq eglot--diagnostics (cons diags version))))
-             ("unchanged"
-              ;; Server says diagnostics haven't changed, report what we have
-              ))
-           (funcall report-fn (car eglot--diagnostics)
-                    :region (cons (point-min) (point-max))))))
-     :hint :textDocument/diagnostic)))
+(cl-defun eglot--flymake-pull (&aux (server (eglot--current-server-or-lose))
+                                    (origin (current-buffer)))
+  "Pull diagnostics from server, for all managed buffers.
+When response arrives call registered `eglot--flymake-push-report-fn'."
+  (cl-flet
+      ((pull-for (buf &optional then)
+         (with-current-buffer buf
+           (let ((version eglot--docver)
+                 (prev-result-id (nth 2 eglot--diagnostics)))
+             (eglot--async-request
+              server
+              :textDocument/diagnostic
+              (append
+               `(:textDocument ,(eglot--TextDocumentIdentifier)
+                               ,@(when prev-result-id
+                                   `(:previousResultId ,prev-result-id))))
+              :success-fn
+              (eglot--lambda ((DocumentDiagnosticReport) kind items resultId)
+                (eglot--when-live-buffer buf
+                  (pcase kind
+                    ("full"
+                     (setq eglot--diagnostics
+                           (list
+                            (cl-loop
+                             for spec across items
+                             collect (eglot--flymake-make-diag spec version))
+                            version
+                            resultId))
+                     (eglot--flymake-push))
+                    ("unchanged"
+                     (when (eq buf origin) (eglot--flymake-push 'void)))))
+                (when then (funcall then)))
+              :hint :textDocument/diagnostic)))))
+    ;; JT@2025-12-15: No known server yet supports "relatedDocuments" so
+    ;; the only way we have to get related diagnostics is to explicitly
+    ;; request them of all open documents.  Moreover, experience has
+    ;; shown this needs to happen after the 'origin''s response.
+    (pull-for origin
+              (unless (zerop eglot--docver)
+                (lambda ()
+                  (mapc #'pull-for
+                        (remove origin (eglot--managed-buffers server))))))))
 
-(defun eglot--flymake-push (diags version)
-  "Push previously collected diagnostics to `eglot--flymake-push-report-fn'."
-    (save-restriction
-      (widen)
-      (if (or (null version) (= version eglot--docver))
-          (funcall eglot--flymake-push-report-fn diags
-                   ;; If the buffer hasn't changed since last
-                   ;; call to the report function, flymake won't
-                   ;; delete old diagnostics.  Using :region
-                   ;; keyword forces flymake to delete
-                   ;; them (github#159).
-                   :region (cons (point-min) (point-max)))
-        ;; Here, we don't have anything up to date to give Flymake: we
-        ;; just want to keep whatever diagnostics it has annotated in
-        ;; the buffer. However, as a nice-to-have, we still want to
-        ;; signal we're alive and clear a possible "Wait" state.  We
-        ;; hackingly achieve this by reporting an empty list and making
-        ;; sure it pertains to a 0-length region.
-        (funcall eglot--flymake-push-report-fn nil
-                 :region (cons (point-min) (point-min)))))
-  (setq eglot--diagnostics (cons diags version)))
+(cl-defun eglot--flymake-push
+    (&optional void &aux (diags (nth 0 eglot--diagnostics))
+               (version (nth 1 eglot--diagnostics)))
+  "Push previously collected diagnostics to `eglot--flymake-push-report-fn'.
+If VOID, knowingly push a dummy do-nothing update."
+  (unless eglot--flymake-push-report-fn
+    ;; Occasionally called from contexts where report-fn not setup, such
+    ;; as a `didOpen''ed but yet undisplayed buffer.
+    (cl-return-from eglot--flymake-push))
+  (eglot--widening
+   (if (or void (and version (< version eglot--docver)))
+       ;; Here, we don't have anything interesting to give to Flymake: we
+       ;; just want to keep whatever diagnostics it has annotated in the
+       ;; buffer. However, as a nice-to-have, we still want to signal
+       ;; we're alive and clear a possible "Wait" state.  We hackingly
+       ;; achieve this by reporting an empty list and making sure it
+       ;; pertains to a 0-length region.
+       (funcall eglot--flymake-push-report-fn nil
+                :region (cons (point-min) (point-min)))
+     (funcall eglot--flymake-push-report-fn diags
+              ;; If the buffer hasn't changed since last
+              ;; call to the report function, flymake won't
+              ;; delete old diagnostics.  Using :region
+              ;; keyword forces flymake to delete
+              ;; them (github#159).
+              :region (cons (point-min) (point-max))))))
 
 (defun eglot-xref-backend () "Eglot xref backend." 'eglot)
 
