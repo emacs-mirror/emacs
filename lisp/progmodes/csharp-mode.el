@@ -1028,10 +1028,9 @@ compilation and evaluation time conflicts."
        (conditional_expression)])
 
      (catch_declaration
-      ((identifier) @font-lock-type-face))
+      type: (identifier) @font-lock-type-face)
      (catch_declaration
-      ((identifier) @font-lock-type-face
-       (identifier) @font-lock-variable-name-face))
+      name: (identifier) @font-lock-variable-name-face)
 
      (variable_declaration (identifier) @font-lock-type-face)
      (variable_declaration (qualified_name
