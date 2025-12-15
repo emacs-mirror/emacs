@@ -1536,6 +1536,19 @@ compatible.
 ** Recentf
 
 ---
+*** You can now regularly auto-save recently opened files.
+Customize user option 'recentf-autosave-interval' to the number of
+seconds between auto saving recently opened files.  For example,
+customize this variable to 300 to save recently opened files every 5
+minutes.  In Elisp, use 'setopt' not 'setq'.
+
+If 'recentf-autosave-interval' is nil, auto saving is disabled; this is
+the default.
+
+This user option is in sympathy with save-place, and savehist autosave
+timers.
+
+---
 *** New user option 'recentf-show-messages'.
 'recentf-save-list' can print a message when saving the recentf list.
 The new option, if set to nil, suppresses this message.
