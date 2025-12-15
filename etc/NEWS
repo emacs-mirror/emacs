@@ -2077,6 +2077,14 @@ option 'doc-view-djvused-program'.
 The default value is now 30 seconds, as the old value was too short to
 allow reading the help text.
 
++++
+*** Ispell can now save spelling corrections as abbrevs.
+In the Ispell command loop, type 'C-u' immediately before selecting a
+replacement to toggle whether that correction will be saved as a global
+abbrev expansion for its misspelling.  The new user option
+'ispell-save-corrections-as-abbrevs' determines whether abbrev saving
+is enabled by default.
+
 ** Flyspell
 
 ---

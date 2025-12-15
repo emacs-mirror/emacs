@@ -343,6 +343,19 @@ numbered @dfn{near-misses}---words that are close to the incorrect word.
 Then you must type a single-character response.  Here are the valid
 responses:
 
+@vindex ispell-save-corrections-as-abbrevs
+  You can have Ispell remember your spelling corrections so that they
+are applied automatically when Abbrev mode is enabled (@pxref{Abbrevs}).
+The user option @code{ispell-save-corrections-as-abbrevs} determines
+whether Ispell does so by default.  With that option enabled, each time
+you correct a misspelled word, Emacs saves the correction as a global
+abbrev expansion.  Then, whenever you type the misspelling and then a
+word-separator (@key{SPC}, comma, etc.) in a buffer with Abbrev mode
+enabled, Emacs will expand the misspelling to its correction.
+Regardless of this option's value, you can toggle abbrev saving for a
+single correction by typing @kbd{C-u} immediately before selecting a
+replacement in the command loop.
+
 @table @kbd
 @item @var{digit}
 Replace the word, just this time, with one of the displayed
