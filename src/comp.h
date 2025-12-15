@@ -60,13 +60,26 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    latency of incremental GC.  */
 
 #ifdef HAVE_MPS
-#define USE_POINTER_TO_CONSTANTS 1
+# if 0
+#  define USE_POINTER_TO_CONSTANTS 1
+# else
+#  define USE_PROTECTED_ROOTS 1
+# endif
 #endif
 
 #ifdef USE_POINTER_TO_CONSTANTS
 typedef Lisp_Object **comp_data_vector_t;
 #else
 typedef Lisp_Object *comp_data_vector_t;
+#endif
+
+#ifndef HAVE_MPS
+# ifdef USE_POINTER_TO_CONSTANTS
+#  error "!HAVE_MPS && USE_POINTER_TO_CONSTANTS"
+# endif
+# ifdef USE_PROTECTED_ROOTS
+#  error "!HAVE_MPS && USE_POINTER_TO_CONSTANTS"
+# endif
 #endif
 
 struct Lisp_Native_Comp_Unit
@@ -103,9 +116,11 @@ struct Lisp_Native_Comp_Unit
 
   /* STUFF WE DO NOT DUMP!!  */
 
+#if !(defined HAVE_MPS && defined USE_PROTECTED_ROOTS)
   /* Pointer into the data segment where the compilation unit is
      stored (COMP_UNIT_SYM), and an exact root for it.  */
   Lisp_Object *comp_unit;
+#endif
 
   /* Pointers into data segment where constant vectors are found.  */
   comp_data_vector_t data_relocs;
@@ -116,10 +131,12 @@ struct Lisp_Native_Comp_Unit
   size_t n_data_relocs;
   size_t n_data_eph_relocs;
 
+#if defined HAVE_MPS && defined USE_POINTER_TO_CONSTANTS
   /* Pins */
   ptrdiff_t data_vec_pin;
   ptrdiff_t data_eph_vec_pin;
   ptrdiff_t comp_unit_pin;
+#endif
 
   bool loaded_once;
   bool load_ongoing;

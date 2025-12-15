@@ -171,6 +171,7 @@ struct igc_root_list *igc_root_create_exact_ptr (void *var_addr);
 struct igc_root_list *igc_root_create_ambig (void *start, void *end,
 					     const char *debug_name);
 void *igc_root_create_n (Lisp_Object start[], size_t n);
+void *igc_root_protected_n (size_t n, Lisp_Object start[n]);
 void igc_destroy_root_with_start (void *start);
 size_t igc_header_size (void);
 char *igc_dump_finish_obj (void *client, enum igc_obj_type type,

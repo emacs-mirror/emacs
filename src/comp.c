@@ -551,6 +551,14 @@ typedef struct {
   gcc_jit_rvalue *r_val;
 } reloc_array_t;
 
+#if defined HAVE_MPS && defined USE_PROTECTED_ROOTS
+struct gc_root_area
+{
+  Lisp_Object comp_unit;
+  Lisp_Object data_relocs[FLEXIBLE_ARRAY_MEMBER];
+};
+#endif
+
 /* C side of the compiler context.  */
 
 typedef struct {
@@ -2885,6 +2893,22 @@ emit_static_object (const char *name, Lisp_Object obj)
 
 #pragma GCC diagnostic pop
 
+static EMACS_INT
+declare_serialized_constants (Lisp_Object container,
+			      const char *text_symbol)
+{
+  Lisp_Object tem = CALLNI (comp-data-container-l, container);
+  Lisp_Object constants = Fvconcat (1, &tem);
+
+  /* Emit the printed representation of the constants as a C string.
+   */
+  emit_static_object (text_symbol, constants);
+
+  Lisp_Object idx = CALLNI (comp-data-container-idx, container);
+  Lisp_Object nconstants = CALLNI (hash-table-count, idx);
+  return XFIXNUM (nconstants);
+}
+
 /* Emit code/global variables for a constants vector.
 
    CONTAINER is a comp-data-container Lisp struct from comp.el that
@@ -2911,16 +2935,7 @@ static reloc_array_t
 declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
 			      const char *text_symbol, EMACS_INT *nconstants)
 {
-  Lisp_Object tem = CALLNI (comp-data-container-l, container);
-  Lisp_Object constants = Fvconcat (1, &tem);
-
-  /* Emit the printed representation of the constants as a C string.  */
-  emit_static_object (text_symbol, constants);
-
-  *nconstants = XFIXNUM (CALLNI (hash-table-count,
-				 CALLNI (comp-data-container-idx,
-					 container)));
-
+  *nconstants = declare_serialized_constants (container, text_symbol);
 #ifdef USE_POINTER_TO_CONSTANTS
   /* Lisp_Object *CODE_SYMBOL[1] */
   EMACS_INT len = 1;
@@ -2943,15 +2958,70 @@ declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
   };
 }
 
+#if defined HAVE_MPS && defined USE_PROTECTED_ROOTS
+static reloc_array_t
+declare_gc_root_area (EMACS_INT n_data_relocs)
+{
+  gcc_jit_type *d_relocs_type
+    = gcc_jit_context_new_array_type (comp.ctxt, NULL,
+				      comp.lisp_obj_type,
+				      n_data_relocs);
+  gcc_jit_field *comp_unit = gcc_jit_context_new_field (
+    comp.ctxt, NULL,
+    gcc_jit_type_get_aligned (comp.lisp_obj_type, getpagesize ()),
+    "comp_unit");
+  gcc_jit_field *d_relocs
+    = gcc_jit_context_new_field (comp.ctxt, NULL, d_relocs_type,
+				 "data_relocs");
+  gcc_jit_field *fields[] = { comp_unit, d_relocs };
+  gcc_jit_struct *gc_root_area_struct
+    = gcc_jit_context_new_struct_type (comp.ctxt, NULL,
+				       "gc_root_area",
+				       ARRAYELTS (fields), fields);
+  gcc_jit_lvalue *gc_root_area_lval
+    = gcc_jit_context_new_global (comp.ctxt, NULL,
+				  GCC_JIT_GLOBAL_INTERNAL,
+				  gcc_jit_struct_as_type (
+				    gc_root_area_struct),
+				  "gc_root_area");
+  gcc_jit_rvalue *gc_root_area
+    = gcc_jit_lvalue_as_rvalue (gc_root_area_lval);
+  gcc_jit_rvalue *d_relocs_rval
+    = gcc_jit_rvalue_access_field (gc_root_area, NULL, d_relocs);
+  reloc_array_t result = { n_data_relocs, d_relocs_rval };
+  gcc_jit_rvalue *addr_rval =
+    gcc_jit_lvalue_get_address (gc_root_area_lval, NULL);
+  gcc_jit_function *get_addr_fun
+    = gcc_jit_context_new_function (comp.ctxt, NULL,
+				    GCC_JIT_FUNCTION_EXPORTED,
+				    gcc_jit_rvalue_get_type(addr_rval),
+				    "gc_root_area_addr", 0, NULL, false);
+  gcc_jit_block *block =
+    gcc_jit_function_new_block(get_addr_fun, NULL);
+  gcc_jit_block_end_with_return (block, NULL, addr_rval);
+  return result;
+}
+
+#endif
+
 static void
 declare_imported_data (void)
 {
+#if defined HAVE_MPS && defined USE_PROTECTED_ROOTS
+  comp.n_data_relocs
+    = declare_serialized_constants (CALLNI (comp-ctxt-d-default,
+					    Vcomp_ctxt),
+				    TEXT_DATA_RELOC_SYM);
+  comp.data_relocs =
+    declare_gc_root_area (comp.n_data_relocs);
+#else
   /* Imported objects.  */
   comp.data_relocs =
     declare_imported_data_relocs (CALLNI (comp-ctxt-d-default, Vcomp_ctxt),
 				  DATA_RELOC_SYM,
 				  TEXT_DATA_RELOC_SYM,
 				  &comp.n_data_relocs);
+#endif
   comp.data_relocs_ephemeral =
     declare_imported_data_relocs (CALLNI (comp-ctxt-d-ephemeral, Vcomp_ctxt),
 				  DATA_RELOC_EPHEMERAL_SYM,
@@ -3087,12 +3157,14 @@ emit_ctxt_code (void)
 	comp.bool_ptr_type,
 	F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM));
 
+#if !(defined HAVE_MPS && defined USE_PROTECTED_ROOTS)
   gcc_jit_context_new_global (
 	comp.ctxt,
 	NULL,
 	GCC_JIT_GLOBAL_EXPORTED,
 	comp.lisp_obj_type,
 	COMP_UNIT_SYM);
+#endif
 
   declare_imported_data ();
 
@@ -5301,6 +5373,16 @@ load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 
 }
 
+#if defined HAVE_MPS && defined USE_PROTECTED_ROOTS
+static struct gc_root_area *
+find_gc_root_area (dynlib_handle_ptr handle)
+{
+  struct gc_root_area *(*fun) (void)
+    = dynlib_sym (handle, "gc_root_area_addr");
+  return fun ? fun () : NULL;
+}
+#endif
+
 /* Return false when something is wrong or true otherwise.  */
 
 static bool
@@ -5308,7 +5390,12 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
 {
 #ifndef USE_POINTER_TO_CONSTANTS
   dynlib_handle_ptr handle = comp_u->handle;
+#if defined HAVE_MPS && defined USE_PROTECTED_ROOTS
+  struct gc_root_area *gc_root_area = find_gc_root_area (handle);
+  Lisp_Object *data_relocs = gc_root_area->data_relocs;
+#else
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+#endif
 
   EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
 
@@ -5340,8 +5427,13 @@ unset_cu_load_ongoing (Lisp_Object comp_u)
    *ROOT an MPS root for VEC, if one is needed.  */
 
 static void
+#ifdef USE_POINTER_TO_CONSTANTS
 setup_constants (comp_data_vector_t vec, Lisp_Object constants,
-		 size_t *n, ptrdiff_t *pin)
+		 size_t *n , ptrdiff_t *pin)
+#else
+setup_constants (comp_data_vector_t vec, Lisp_Object constants,
+		 size_t *n)
+#endif
 {
   *n = ASIZE (constants);
   Lisp_Object *contents = XVECTOR (constants)->contents;
@@ -5361,7 +5453,13 @@ setup_constants (comp_data_vector_t vec, Lisp_Object constants,
       *pin = IGC_NO_PIN;
     }
 #else
-  memcpy (vec, contents, *n * sizeof *contents);
+  if (*n > 0)
+    {
+#if defined HAVE_MPS && defined USE_PROTECTED_ROOTS
+      igc_root_create_n (vec, *n);
+#endif
+      memcpy (vec, contents, *n * sizeof *contents);
+    }
 #endif
 }
 
@@ -5374,10 +5472,18 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   Lisp_Object comp_u_lisp_obj;
   XSETNATIVE_COMP_UNIT (comp_u_lisp_obj, comp_u);
 
+#if defined HAVE_MPS && defined USE_PROTECTED_ROOTS
+  struct gc_root_area *gc_root_area = find_gc_root_area (handle);
+  if (!gc_root_area)
+    xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
+  Lisp_Object *saved_cu = &gc_root_area->comp_unit;
+#else
   Lisp_Object *saved_cu = dynlib_sym (handle, COMP_UNIT_SYM);
   if (!saved_cu)
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
+#endif
   comp_u->loaded_once = !NILP (*saved_cu);
+
   comp_u->data_eph_relocs = dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
 
   /* While resurrecting from an image dump loading more than once the
@@ -5399,7 +5505,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     }
   else
     {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS  && defined USE_POINTER_TO_CONSTANTS
       comp_u->comp_unit = saved_cu;
       comp_u->comp_unit_pin = igc_pin (comp_u);
       comp_u->data_vec_pin = -1;
@@ -5422,9 +5528,13 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     = dynlib_sym (handle,
 		  late_load ? "late_top_level_run" : "top_level_run");
 
+#if defined HAVE_MPS  && defined USE_PROTECTED_ROOTS
+  comp_u->data_relocs = gc_root_area->data_relocs;
+#else
   /* Always set data_imp_relocs pointer in the compilation unit (in can be
      used in 'dump_do_dump_relocation').  */
   comp_u->data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+#endif
 
   if (!comp_u->loaded_once)
     {
@@ -5464,8 +5574,28 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	 USE_POINTER_TO_CONSTANTS, store a pointer to the contents of
 	 the Lisp vector read, otherwise copy Lisp objects to the vector
 	 created in the data segment.  */
+#ifdef USE_POINTER_TO_CONSTANTS
       setup_constants (comp_u->data_relocs, comp_u->data_vec,
 		       &comp_u->n_data_relocs, &comp_u->data_vec_pin);
+#elif defined HAVE_MPS && defined USE_PROTECTED_ROOTS
+      {
+	size_t n = ASIZE (comp_u->data_vec);
+	Lisp_Object *contents = XVECTOR (comp_u->data_vec)->contents;
+	Lisp_Object *start = &gc_root_area->comp_unit;
+	igc_root_protected_n (1 + n, start);
+	memcpy (gc_root_area->data_relocs, contents, n * sizeof *contents);
+	{ /* probably not needed */
+	  comp_u->n_data_relocs = n;
+	  comp_u->data_relocs = gc_root_area->data_relocs;
+	  /* data_vec doesn't seem to be needed any longer and we
+	     could probably do: comp_u->data_vec = Qnil;
+	  */
+	}
+      }
+#else
+      setup_constants (comp_u->data_relocs, comp_u->data_vec,
+		       &comp_u->n_data_relocs);
+#endif
     }
 
   if (!loading_dump)
@@ -5475,9 +5605,14 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	  eassert (NILP (comp_u->data_eph_vec));
 	  comp_u->data_eph_vec
 	    = load_static_obj (comp_u, TEXT_DATA_RELOC_EPHEMERAL_SYM);
+#if defined HAVE_MPS && defined USE_POINTER_TO_CONSTANTS
 	  setup_constants (comp_u->data_eph_relocs, comp_u->data_eph_vec,
 			   &comp_u->n_data_eph_relocs,
 			   &comp_u->data_eph_vec_pin);
+#else
+	  setup_constants (comp_u->data_eph_relocs, comp_u->data_eph_vec,
+			   &comp_u->n_data_eph_relocs);
+#endif
 	}
 
       /* Executing this will perform all the expected environment
@@ -5487,10 +5622,14 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 
       if (!recursive_load)
 	{
-# ifdef HAVE_MPS
+# if defined HAVE_MPS && defined USE_POINTER_TO_CONSTANTS
 	  igc_maybe_unpin (XVECTOR (comp_u->data_eph_vec)->contents,
 			   &comp_u->data_eph_vec_pin);
 # endif
+#if defined HAVE_MPS && defined USE_PROTECTED_ROOTS
+	  if (comp_u->n_data_eph_relocs > 0)
+	    igc_destroy_root_with_start (comp_u->data_eph_relocs);
+#endif
 	  /* No longer needed after top-level code has run.  Let the
 	     vector be GC'd.  */
 	  comp_u->data_eph_vec = Qnil;
@@ -5513,15 +5652,25 @@ unload_comp_unit (struct Lisp_Native_Comp_Unit *cu)
   if (cu->handle == NULL)
     return;
 
-# ifdef HAVE_MPS
+# if defined HAVE_MPS && defined USE_POINTER_TO_CONSTANTS
   igc_unpin_comp_unit (cu);
 # endif
 
+# if defined HAVE_MPS && defined USE_PROTECTED_ROOTS
+  struct gc_root_area *gc_root_area = find_gc_root_area (cu->handle);
+  Lisp_Object *saved_cu = &gc_root_area->comp_unit;
+# else
   Lisp_Object *saved_cu = dynlib_sym (cu->handle, COMP_UNIT_SYM);
+# endif
   Lisp_Object this_cu;
   XSETNATIVE_COMP_UNIT (this_cu, cu);
   if (EQ (this_cu, *saved_cu))
-    *saved_cu = Qnil;
+    {
+# if defined HAVE_MPS && defined USE_PROTECTED_ROOTS
+      igc_destroy_root_with_start (gc_root_area);
+#endif
+      *saved_cu = Qnil;
+    }
   dynlib_close (cu->handle);
 }
 
@@ -5692,7 +5841,7 @@ LATE-LOAD has to be non-nil when loading for deferred compilation.  */)
   struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit ();
   Lisp_Object encoded_filename = ENCODE_FILE (filename);
 
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && defined USE_POINTER_TO_CONSTANTS
   igc_init_pin (&comp_u->data_vec_pin);
   igc_init_pin (&comp_u->data_eph_vec_pin);
   igc_init_pin (&comp_u->comp_unit_pin);

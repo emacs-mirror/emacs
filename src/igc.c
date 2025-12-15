@@ -175,8 +175,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_terminal_4E8E555B40
 #  error "struct terminal changed"
 # endif
-# ifndef HASH_Lisp_Native_Comp_Unit_876BE72D27
-#  error "struct Lisp_Native_Comp_Unit changed"
+# ifndef HASH_Lisp_Native_Comp_Unit_0BDAB1A94D
+#  warning "struct Lisp_Native_Comp_Unit changed"
 # endif
 # ifndef HASH_pvec_type_1C9DBCD69F
 #  error "enum pvec_type changed"
@@ -1133,7 +1133,10 @@ set_state (enum igc_state state)
       break;
 
     case IGC_STATE_DEAD:
-      igc_postmortem ();
+      /* old_state == IGC_STATE_DEAD if an assertion in
+	 mps_arena_postmortem fails.  */
+      if (old_state != IGC_STATE_DEAD)
+	igc_postmortem ();
       terminate_due_to_signal (SIGABRT, INT_MAX);
       break;
     }
@@ -3237,6 +3240,22 @@ igc_root_create_n (Lisp_Object start[], size_t n)
   return root_create_exact_n (start, n);
 }
 
+void *
+igc_root_protected_n (size_t n, Lisp_Object start[n])
+{
+  igc_assert (start != NULL);
+  igc_assert (n > 0);
+  void *end = start + n;
+  mps_root_t root;
+  mps_res_t res
+    = mps_root_create_area (&root, global_igc->arena,
+			    mps_rank_exact (), MPS_RM_PROT, start,
+			    end, scan_exact, NULL);
+  IGC_CHECK_RES (res);
+  return register_root (global_igc, root, start, end, false,
+			"protected-n");
+}
+
 static igc_root_list *
 root_find (void *start)
 {
@@ -3300,6 +3319,7 @@ igc_init_pin (ptrdiff_t *pin)
   *pin = IGC_NO_PIN;
 }
 
+#ifdef USE_POINTER_TO_CONSTANTS
 void
 igc_unpin_comp_unit (struct Lisp_Native_Comp_Unit *cu)
 {
@@ -3309,6 +3329,7 @@ igc_unpin_comp_unit (struct Lisp_Native_Comp_Unit *cu)
     igc_maybe_unpin (XVECTOR (cu->data_eph_vec)->contents, &cu->data_eph_vec_pin);
   igc_maybe_unpin (cu, &cu->comp_unit_pin);
 }
+#endif
 
 static mps_res_t
 create_weak_ap (mps_ap_t *ap, struct igc_thread *t, bool weak)
@@ -3817,7 +3838,9 @@ finalize_comp_unit (struct Lisp_Native_Comp_Unit *u)
   unload_comp_unit (u);
   u->data_eph_relocs = NULL;
   u->data_relocs = NULL;
+#ifndef USE_PROTECTED_ROOTS
   u->comp_unit = NULL;
+#endif
 }
 
 static void
