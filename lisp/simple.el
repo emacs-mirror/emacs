@@ -8609,7 +8609,7 @@ even beep.)"
         ;; like display or overlay strings, intangible text, etc.:
         ;; otherwise, we don't want to kill a character that's
         ;; unrelated to the place where the visual line wraps.
-        (and (numberp (nth 6 (posn-at-point)))
+        (and (numberp (cdr (nth 6 (posn-at-point))))
              (= (cdr (nth 6 (posn-at-point))) orig-vlnum)
              ;; Make sure we delete the character where the line wraps
              ;; under visual-line-mode, be it whitespace or a
