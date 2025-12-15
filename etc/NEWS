@@ -1533,6 +1533,12 @@ This user option controls the width of the type column on the bookmark
 menu 'bookmark-bmenu-list'.  The default value is 8 which is backwards
 compatible.
 
+---
+*** New hook 'bookmark-after-load-file-hook'.
+This hook is run by 'bookmark-load' after loading a bookmark file.  This
+hook can be used, for example, to reconcile 'bookmark-alist' against
+bookmark state that you, or a package that you use, maintains.
+
 ** Recentf
 
 ---

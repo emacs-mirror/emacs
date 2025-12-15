@@ -1763,6 +1763,13 @@ This is a helper for `bookmark-import-new-list'."
           (bookmark-set-name full-record new-name)))))
 
 
+(defcustom bookmark-after-load-file-hook nil
+  "Hook run after a bookmark file is loaded by `bookmark-load`.
+This hook can be used, for example, to reconcile 'bookmark-alist'
+against bookmark state that you, or a package that you use, maintains."
+  :type 'hook
+  :version "31.1")
+
 ;;;###autoload
 (defun bookmark-load (file &optional overwrite no-msg default)
   "Load bookmarks from FILE (which must be in bookmark format).
@@ -1824,6 +1831,7 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
 	  (bookmark-bmenu-surreptitiously-rebuild-list)
 	  (setq bookmark-file-coding-system buffer-file-coding-system))
 	(kill-buffer (current-buffer)))
+      (run-hooks 'bookmark-after-load-file-hook)
       (unless no-msg
 	(progress-reporter-done reporter)))))
 
