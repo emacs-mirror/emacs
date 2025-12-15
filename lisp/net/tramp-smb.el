@@ -1366,7 +1366,8 @@ will be used."
 		     (lambda (_proc _msg)
 		       (with-current-buffer stderr
 			 (auto-revert-tail-mode -1)
-			 (revert-buffer nil 'noconfirm))
+			 (let ((remote-file-name-inhibit-locks t))
+			   (revert-buffer nil 'noconfirm)))
 		       (ignore-errors
 			 (delete-file remote-tmpstderr)))))
 		  ;; Return value.

@@ -4501,8 +4501,20 @@ remote MS Windows host, and @value{tramp} uses it for
 @code{make-process}, @code{process-file} and
 @code{start-file-process}.  It does not work for remote Samba servers.
 
-Redirection from stdin and to sterr as well as process filters are not
-supported (yet).
+Redirection from stdin and process filters are not supported (yet).
+
+Check, that the default remote temporary file directory is usable.
+Otherwise, change it, for example (with adapted @t{"user"} and
+@t{"host"}):
+
+@lisp
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "host")
+		   "tmpdir" "/Users/user/AppData/Local/Temp"))
+@end lisp
+
+@noindent
+@xref{Predefined connection information}.
 
 @c FIXME: Verify powershell version.
 @vindex tramp-smb-winexe-program

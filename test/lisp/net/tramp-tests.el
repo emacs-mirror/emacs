@@ -80,6 +80,9 @@
 (declare-function tramp-method-out-of-band-p "tramp-sh")
 (declare-function tramp-smb-get-localname "tramp-smb")
 (defvar ange-ftp-make-backup-files)
+(defvar auto-revert-notify-watch-descriptor)
+(defvar auto-revert-remote-files)
+(defvar auto-revert-use-notify)
 (defvar comp-warn-primitives)
 (defvar tramp-connection-properties)
 (defvar tramp-copy-size-limit)
@@ -147,6 +150,8 @@
 
 (setq auth-source-cache-expiry nil
       auth-source-save-behavior nil
+      auto-revert-remote-files t
+      auto-revert-use-notify t
       ert-batch-backtrace-right-margin nil
       password-cache-expiry nil
       remote-file-name-inhibit-cache nil
@@ -5861,10 +5866,10 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 				 (rx (| "No such file or directory"
 					"Cannot find path"))
 				 (buffer-string)))
-		      (if (processp (get-buffer-process stderr))
-			  (while (accept-process-output
-				  (get-buffer-process stderr) 0 nil t))
-			(revert-buffer nil 'noconfirm))))
+		      (when-let* ((p (or (get-buffer-process stderr)
+					 auto-revert-notify-watch-descriptor))
+				  ((processp p)))
+			(while (accept-process-output p 0 nil t)))))
 		  (delete-process proc)
 		  (should
 		   (string-match-p
@@ -6209,7 +6214,7 @@ INPUT, if non-nil, is a string sent to the process."
 	  (ignore-errors (delete-file tmp-name)))
 
 	;; Test `{async-}shell-command' with error buffer.
-	;; FIXME: tramp-smb.el should implement this.
+	;; Method "smb" does not support ">&2" construct.
 	(unless (or (tramp--test-smb-p) (tramp-direct-async-process-p))
 	  (let ((stderr (generate-new-buffer "*stderr*")))
 	    (unwind-protect
