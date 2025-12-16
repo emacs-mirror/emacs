@@ -388,8 +388,10 @@
 
 (load "emacs-lisp/eldoc")
 (load "emacs-lisp/cconv")
-(when (and (compiled-function-p (symbol-function 'cconv-fv))
-           (compiled-function-p (symbol-function 'macroexpand-all)))
+;; It should be safe to set `internal-make-interpreted-closure-function'
+;; unconditionally, but if cconv and friends haven't been compiled yet,
+;; it's excruciatingly slow.
+(when (compiled-function-p (symbol-function 'cconv-fv))
   (setq internal-make-interpreted-closure-function
         #'cconv-make-interpreted-closure))
 (dlet ((cus-start--preload t)) ;; Tell `cus-start' we're preloading.

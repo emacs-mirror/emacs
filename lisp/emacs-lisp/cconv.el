@@ -910,10 +910,28 @@ FUN is the closure's source code, must be a lambda form.
 ENV is the runtime representation of the lexical environment,
 i.e. a list whose elements can be either plain symbols (which indicate
 that this symbol should use dynamic scoping) or pairs (SYMBOL . VALUE)
-for the lexical bindings."
+for the lexical bindings.
+
+The purpose of this function is to reduce ENV to the part actually used by the
+function, so we are closer to the ideal of \"safe for space\".  In practice it has
+two benefits: it makes closures a bit more predictable and human-readable,
+and more importantly it avoids accidentally including values that we cannot
+print `read'ably, which can break code that can save closures in files, such as
+in bookmark or savehist."
   (cl-assert (consp body))
   (cl-assert (listp args))
-  (let ((lexvars (delq nil (mapcar #'car-safe env))))
+  ;; Temporarily rebind `internal-make-interpreted-closure-function'
+  ;; to avoid infinite recursion during bootstrap, but also if you
+  ;; happen to reload or Edebug `cconv.el' or `macroexp.el'.
+  ;; FIXME: This means that we will not reduce the ENV of interpreted
+  ;; closures built during the computation of another interpreted closure,
+  ;; as in: cconv-make-interpreted-closure => macroexpand-all
+  ;; => cl-typep--inliner => cconv-make-interpreted-closure.
+  ;; We expect these cases are sufficiently infrequent and those closures are
+  ;; sufficiently short-lived that it's worth the tradeoff of avoiding
+  ;; nasty inf-loops when some of the code of cconv itself is interpreted.
+  (let ((internal-make-interpreted-closure-function #'make-interpreted-closure)
+        (lexvars (delq nil (mapcar #'car-safe env))))
     (if (or
          ;; Functions with a `:closure-dont-trim-context' marker
          ;; should keep their whole context untrimmed (bug#59213).
