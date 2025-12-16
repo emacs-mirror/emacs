@@ -666,7 +666,8 @@ Return nil on timeout or the value of last form in BODY."
   "For each package under test define a test with NAME.
 Use function `package-vc-tests-packages' to obtain packages under test.
 Execute BODY as a test body with a package under test installed.  Bind
-car of ARGS (a symbol) to name of the package."
+car of ARGS (a symbol) to name of the package.  When plist cdr ARGS
+contains key `:tags' use its value as tests tags."
   (declare (debug (&define [&name "test@" symbolp]
 			   sexp
 			   def-body))
@@ -676,7 +677,8 @@ car of ARGS (a symbol) to name of the package."
   (unless (symbolp (car-safe args))
     (error "`package-vc' tests first argument has to be a symbol"))
   (let ((file (or (macroexp-file-name) buffer-file-name))
-        (tests '()) (fn (gensym)))
+        (tests '()) (fn (gensym))
+        (tags (plist-get (cdr-safe args) :tags)))
     (dolist (pkg (package-vc-tests-packages))
       (let ((name (intern (format "package-vc-tests-%s/%s" name pkg))))
         (push
@@ -684,7 +686,7 @@ car of ARGS (a symbol) to name of the package."
              ',name
              (make-ert-test
               :name ',name
-              :tags '(package-vc)
+              :tags (cons 'package-vc ',tags)
               :file-name ,file
               :body
               (lambda ()
@@ -741,7 +743,7 @@ car of ARGS (a symbol) to name of the package."
                   pkg :main-compiled))))
     (should (< main-compiled-pos install-end))))
 
-(package-vc-test-deftest upgrade (pkg)
+(package-vc-test-deftest upgrade (pkg :tags (:expensive-test))
   (let ((head (package-vc-tests-package-head pkg)))
     (package-vc-tests-reset-head^ pkg)
     (push (list (package-vc-tests-load-history-marker
@@ -824,7 +826,7 @@ car of ARGS (a symbol) to name of the package."
   (package-vc-tests-assert-elc pkg)
   (package-vc-tests-assert-package-alist pkg '(0 2)))
 
-(package-vc-test-deftest upgrade-all (pkg)
+(package-vc-test-deftest upgrade-all (pkg :tags (:expensive-test))
   (let ((head (package-vc-tests-package-head pkg)))
     (package-vc-tests-reset-head^ pkg)
     (push (list (package-vc-tests-load-history-marker
@@ -863,7 +865,7 @@ car of ARGS (a symbol) to name of the package."
   (package-vc-tests-assert-elc pkg)
   (package-vc-tests-assert-package-alist pkg '(0 2)))
 
-(package-vc-test-deftest upgrade-all-after-require (pkg)
+(package-vc-test-deftest upgrade-all-after-require (pkg :tags (:expensive-test))
   (should (require pkg))
   (let ((head (package-vc-tests-package-head pkg)))
     (package-vc-tests-reset-head^ pkg)
@@ -907,7 +909,7 @@ car of ARGS (a symbol) to name of the package."
   (package-vc-tests-assert-elc pkg)
   (package-vc-tests-assert-package-alist pkg '(0 2)))
 
-(package-vc-test-deftest rebuild (pkg)
+(package-vc-test-deftest rebuild (pkg :tags (:expensive-test))
   (package-vc-tests-reset-head^ pkg)
   (let ((head (package-vc-tests-package-head pkg)))
     (package-vc-rebuild
@@ -948,7 +950,7 @@ car of ARGS (a symbol) to name of the package."
   (package-vc-tests-assert-elc pkg)
   (package-vc-tests-assert-package-alist pkg '(0 1)))
 
-(package-vc-test-deftest prepare-patch (pkg)
+(package-vc-test-deftest prepare-patch (pkg :tags (:expensive-test))
   ;; Ensure `vc-prepare-patch' respects subject from function argument
   (let ((message-auto-save-directory package-vc-tests-dir)
         (vc-prepare-patches-separately nil))
@@ -977,7 +979,7 @@ car of ARGS (a symbol) to name of the package."
           (set-buffer-modified-p nil))
         (kill-buffer message-buffer)))))
 
-(package-vc-test-deftest log-incoming (pkg)
+(package-vc-test-deftest log-incoming (pkg :tags (:expensive-test))
   (package-vc-tests-reset-head^ pkg)
   (should
    (package-vc-tests-package-vc-async-wait
@@ -1018,7 +1020,7 @@ car of ARGS (a symbol) to name of the package."
               (format "%s.cmd-build" pkg)
               checkout-dir)))))
 
-(package-vc-test-deftest pkg-spec-info-manual (pkg)
+(package-vc-test-deftest pkg-spec-info-manual (pkg :tags (:expensive-test))
   ;; Only `package-vc-install' builds info manuals, but only when
   ;; executable install-info is available.
   (skip-unless (and (executable-find "install-info")
