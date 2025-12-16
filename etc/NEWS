@@ -1567,18 +1567,16 @@ option is nil.
 ---
 *** You can now regularly auto-save places.
 Customize user option 'save-place-autosave-interval' to the number of
-seconds between auto saving places.  For example, to save places every 5
-minutes:
-
-    M-x customize-option RET save-place-autosave-interval RET 300
-
-Or in Elisp:
-
-    (setopt save-place-autosave-interval (* 60 5))
+seconds between auto saving places.  For example, customize this
+variable to 300 to save places every 5 minutes.  In Elisp, use 'setopt'
+not 'setq'.
 
 If 'save-place-autosave-interval' is nil, auto saving is disabled; this
-is the default.  As before, saved places are scheduled to be saved at
-Emacs exit.
+is the default.
+
+This user option is in sympathy with recentf, and savehist autosave
+timers.
+
 
 ** Savehist
 
