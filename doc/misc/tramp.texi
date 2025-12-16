@@ -4501,21 +4501,6 @@ remote MS Windows host, and @value{tramp} uses it for
 @code{make-process}, @code{process-file} and
 @code{start-file-process}.  It does not work for remote Samba servers.
 
-Redirection from stdin and process filters are not supported (yet).
-
-Check, that the default remote temporary file directory is usable.
-Otherwise, change it, for example (with adapted @t{"user"} and
-@t{"host"}):
-
-@lisp
-(add-to-list 'tramp-connection-properties
-             (list (regexp-quote "host")
-		   "tmpdir" "/Users/user/AppData/Local/Temp"))
-@end lisp
-
-@noindent
-@xref{Predefined connection information}.
-
 @c FIXME: Verify powershell version.
 @vindex tramp-smb-winexe-program
 @code{tramp-smb-winexe-program} specifies the local @command{winexe}
@@ -4532,6 +4517,26 @@ Control for remote connections) must be disabled.  The latter can be
 achieved by creating the
 @samp{HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\ LocalAccountTokenFilterPolicy}
 parameter in the MS Windows registry as DWORD (32-bit) with the value 1.
+
+Check, that the default remote temporary file directory is usable.
+Otherwise, change it, for example (with adapted @t{"user"} and
+@t{"host"}):
+
+@lisp
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "host")
+		   "tmpdir" "/Users/user/AppData/Local/Temp"))
+@end lisp
+
+@noindent
+@xref{Predefined connection information}.
+
+Redirection from stdin is not supported.
+
+@vindex auto-revert-remote-files
+If you use a remote asynchronous process with a separate error buffer,
+you must ensure that remote files can be auto-reverted.  Set user
+option @code{auto-revert-remote-files} to a non-@code{nil} value.
 
 @vindex tramp-smb-connection-local-powershell-profile
 @vindex tramp-smb-prompt

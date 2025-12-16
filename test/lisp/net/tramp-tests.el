@@ -5512,6 +5512,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  kill-buffer-query-functions command proc)
 
       ;; Simple process.
+      ;; The "smb" method does not support stdin redirection.
       (unless (tramp--test-smb-p)
 	(unwind-protect
 	    (with-temp-buffer
@@ -5561,11 +5562,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (delete-file tmp-name)))
 
       ;; Process filter.
-      ;; FIXME: tramp-smb.el should implement this.
-      (unless (tramp--test-smb-p)
       (unwind-protect
 	  (with-temp-buffer
-	    (setq command '("cat")
+	    (setq command '("echo" "foo")
 		  proc
 		  (apply #'start-file-process "test3" (current-buffer) command))
 	    (should (processp proc))
@@ -5573,17 +5572,19 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (should (equal (process-get proc 'remote-command) command))
 	    (set-process-filter
 	     proc
-	     (lambda (p s) (with-current-buffer (process-buffer p) (insert s))))
-	    (process-send-string proc "foo\n")
-	    (process-send-eof proc)
+	     (lambda (p s)
+	       (with-current-buffer
+		   (process-buffer p)
+		 (insert
+		  (replace-regexp-in-string (rx bol "foo" eol) "foobar" s)))))
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
-	      (while (< (- (point-max) (point-min)) (length "foo"))
+	      (while (not (string-match-p "foobar" (buffer-string)))
 		(while (accept-process-output proc 0 nil t))))
-	    (should (string-match-p "foo" (buffer-string))))
+	    (should (string-match-p "foobar" (buffer-string))))
 
 	;; Cleanup.
-	(ignore-errors (delete-process proc))))
+	(ignore-errors (delete-process proc)))
 
       ;; Disabled process filter.  It doesn't work reliable.
       (unless t
@@ -5709,10 +5710,12 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let ((default-directory ert-remote-temporary-file-directory)
 	  (tmp-name (tramp--test-make-temp-name nil quoted))
+	  (inhibit-message (not (ignore-errors (edebug-mode))))
 	  kill-buffer-query-functions command proc)
       (should-not (apply #'make-process nil)) ; Use `apply' to avoid warnings.
 
       ;; Simple process.
+      ;; The "smb" method does not support stdin redirection.
       (unless (tramp--test-smb-p)
 	(unwind-protect
 	    (with-temp-buffer
@@ -5765,31 +5768,31 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	  (delete-file tmp-name)))
 
       ;; Process filter.
-      ;; FIXME: tramp-smb.el should implement this.
-      (unless (tramp--test-smb-p)
       (unwind-protect
 	  (with-temp-buffer
-	    (setq command '("cat")
+	    (setq command '("echo" "foo")
 		  proc
 		  (make-process
 		   :name "test3" :buffer (current-buffer) :command command
 		   :filter
 		   (lambda (p s)
-		     (with-current-buffer (process-buffer p) (insert s)))
+		     (with-current-buffer
+			 (process-buffer p)
+		       (insert
+			(replace-regexp-in-string
+			 (rx bol "foo" eol) "foobar" s))))
 		   :file-handler t))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
 	    (should (equal (process-get proc 'remote-command) command))
-	    (process-send-string proc "foo\n")
-	    (process-send-eof proc)
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
-	      (while (not (string-match-p "foo" (buffer-string)))
+	      (while (not (string-match-p "foobar" (buffer-string)))
 		(while (accept-process-output proc 0 nil t))))
-	    (should (string-match-p "foo" (buffer-string))))
+	    (should (string-match-p "foobar" (buffer-string))))
 
 	;; Cleanup.
-	(ignore-errors (delete-process proc))))
+	(ignore-errors (delete-process proc)))
 
       ;; Disabled process filter.  It doesn't work reliable.
       (unless t
@@ -9016,11 +9019,7 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Implement `tramp-test31-interrupt-process' and
 ;;   `tramp-test31-signal-process' for "adb", "sshfs" and for direct
 ;;   async processes.  Check, why they don't run stable.
-;; * Fix the limitations for "smb" in `tramp-test28-process-file',
-;;   `tramp-test29-start-file-process', `tramp-test30-make-process',
-;;   `tramp-test32-shell-command',
-;;   `tramp-test34-explicit-shell-file-name' and
-;;   `tramp--test-check-files'.
+;; * Fix the limitations for "smb" in `tramp--test-check-files'.
 ;; * Check, why `tramp-test45-asynchronous-requests' often fails.  The
 ;;   famous reentrant error?
 ;; * Check, why direct async processes do not work for
