@@ -4342,7 +4342,10 @@ Returns success status for SERVER and registration ID."
              (cond
               ((and (memq action '(created changed deleted))
                     (> (logand kind action-bit) 0)
-                    (funcall compiled file))
+                    (funcall compiled
+                             (if base-path
+                                 (file-relative-name file base-path)
+                               file)))
                (jsonrpc-notify
                 server :workspace/didChangeWatchedFiles
                 `(:changes ,(vector `(:uri ,(eglot-path-to-uri file)
