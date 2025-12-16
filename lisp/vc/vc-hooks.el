@@ -579,7 +579,9 @@ underlying VCS that FILE is unregistered; this is in contrast to
 
 (defun vc-symbolic-working-revision (file &optional backend)
   "Return BACKEND's symbolic name for FILE's working revision.
-If FILE is not registered according to cached information, return nil.
+If FILE names an existing directory, the BACKEND argument is mandatory.
+If FILE is not registered according to cached information or names an
+existing directory and BACKEND is nil, return nil.
 If BACKEND does not have a symbolic name for the working revision or
 Emacs doesn't know what it is, call `vc-working-revision' instead.
 
@@ -596,11 +598,17 @@ will do, for it avoids a call out to the underlying VCS."
   ;; BACKEND implements `working-revision-symbol' (because we would be
   ;; sensitive to whether FILE is registered if and only if we defer to
   ;; `vc-working-revision'), which would be a strange interdependence.)
-  (and-let* ((cached-backend (vc-backend file)))
-    (let* ((backend (or backend cached-backend))
-           (fn (vc-find-backend-function backend
-                                         'working-revision-symbol)))
-      (if fn (funcall fn) (vc-working-revision file backend)))))
+  ;;
+  ;; Similarly, for consistency with `vc-working-revision',
+  ;; return nil for directories unless BACKEND is specified
+  ;; (`vc-backend' always returns nil for directories).
+  (let (cached-backend)
+    (and (or (and (file-directory-p file) backend)
+             (setq cached-backend (vc-backend file)))
+         (let* ((backend (or backend cached-backend))
+                (fn (vc-find-backend-function backend
+                                              'working-revision-symbol)))
+           (if fn (funcall fn) (vc-working-revision file backend))))))
 
 (defvar vc-use-short-revision nil
   "If non-nil, VC backend functions should return short revisions if possible.

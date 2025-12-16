@@ -3099,8 +3099,9 @@ global binding."
                       ;;                           'revision-granularity)
                       ;;          'repository)
                       ;;      (ignore-errors
-                      ;;        (vc-symbolic-working-revision (caadr fileset)))
-                      (vc-symbolic-working-revision (caadr fileset))
+                      ;;        (vc-symbolic-working-revision (caadr fileset)
+                      ;;                                      backend)))
+                      (vc-symbolic-working-revision (caadr fileset) backend)
                       (called-interactively-p 'interactive))))
 
 ;; For the following two commands, the default meaning for
