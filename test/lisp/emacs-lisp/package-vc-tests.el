@@ -1002,7 +1002,7 @@ car of ARGS (a symbol) to name of the package."
     (let (kill-buffer-query-functions)
       (kill-buffer incoming-buffer))))
 
-(package-vc-test-deftest pkg-spec-doc-make-shell-command (pkg)
+(package-vc-test-deftest pkg-spec-make-shell-command (pkg)
   ;; Only `package-vc-install' runs make and shell command
   (skip-unless (memq (caddr (alist-get pkg package-vc-tests-packages))
                      '(package-vc-tests-install-from-elpa
@@ -1016,7 +1016,15 @@ car of ARGS (a symbol) to name of the package."
     (should (file-exists-p
              (expand-file-name
               (format "%s.cmd-build" pkg)
-              checkout-dir))))
+              checkout-dir)))))
+
+(package-vc-test-deftest pkg-spec-info-manual (pkg)
+  ;; Only `package-vc-install' builds info manuals, but only when
+  ;; executable install-info is available.
+  (skip-unless (and (executable-find "install-info")
+                    (memq (caddr (alist-get pkg package-vc-tests-packages))
+                          '(package-vc-tests-install-from-elpa
+                            package-vc-tests-install-from-spec))))
   (should-not (package-vc-tests-log-buffer-exists 'doc pkg))
   (should (cl-member-if
            (lambda (dir)
