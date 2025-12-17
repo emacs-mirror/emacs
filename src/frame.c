@@ -1911,18 +1911,16 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 
 	  XSETFRAME (top_frame, root_frame (f));
 	  tty->top_frame = top_frame;
+	  SET_FRAME_VISIBLE (root_frame (f), true);
 
 	  while (p)
 	    {
-	      /* If FRAME is a child frame, make its ancsetors visible
-		 and garbage them ...  */
-	      SET_FRAME_VISIBLE (p, true);
+	      /* If FRAME is a child frame, make it redraw.  */
 	      SET_FRAME_GARBAGED (p);
 	      p = FRAME_PARENT_FRAME (p);
 	    }
 
 	  /* ... and FRAME itself too.  */
-	  SET_FRAME_VISIBLE (f, true);
 	  SET_FRAME_GARBAGED (f);
 
 	  /* FIXME: Why is it correct to set FrameCols/Rows here?  */
@@ -1937,9 +1935,6 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 		FrameRows (tty) = FRAME_TOTAL_LINES (f);
 	    }
 	}
-      else
-	/* Should be covered by the condition above.  */
-	SET_FRAME_VISIBLE (f, true);
     }
 
   sf->select_mini_window_flag = MINI_WINDOW_P (XWINDOW (sf->selected_window));
@@ -3530,9 +3525,7 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
 DEFUN ("raise-frame", Fraise_frame, Sraise_frame, 0, 1, "",
        doc: /* Bring FRAME to the front, so it occludes any frames it overlaps.
 If FRAME is invisible or iconified, make it visible.
-If you don't specify a frame, the selected frame is used.
-If Emacs is displaying on an ordinary terminal or some other device which
-doesn't support multiple overlapping frames, this function selects FRAME.  */)
+If you don't specify a frame, the selected frame is used.  */)
   (Lisp_Object frame)
 {
   struct frame *f = decode_live_frame (frame);
