@@ -4320,32 +4320,33 @@ at point.  With prefix argument, prompt for ACTION-KIND."
 (defvar eglot-watch-files-outside-project-root t
   "If non-nil, allow watching files outside project root")
 
-(defun eglot--watch-glob (server id pat kind &optional base-path)
-  "Set up file watching for files matching PAT under BASEPATH.
-PAT is a glob pattern, KIND is a bitmask of change types,
-BASEPATH is the directory to watch (nil means entire project).
+(defun eglot--watch-globs (server id globs &optional base-path)
+  "Set up file watching for files matching GLOBS under BASE-PATH.
+GLOBS is a list of (COMPILED-GLOB . KIND) pairs, where COMPILED-GLOB
+is a compiled glob predicate and KIND is a bitmask of change types.
+BASE-PATH is the directory to watch (nil means entire project).
 Returns success status for SERVER and registration ID."
   (let* ((project (eglot--project server))
          (dirs (delete-dups
                 (mapcar #'file-name-directory
                         (project-files project (and base-path
                                                     (list base-path))))))
-         (success nil)
-         (compiled (eglot--glob-compile pat t t)))
+         (success nil))
     (cl-labels
         ((handle-event (event)
            (pcase-let* ((`(,desc ,action ,file ,file1) event)
                         (action-type (cl-case action
                                        (created 1) (changed 2) (deleted 3)))
                         (action-bit (when action-type
-                                      (ash 1 (1- action-type)))))
+                                      (ash 1 (1- action-type))))
+                        (candidate (if base-path
+                                       (file-relative-name file base-path)
+                                     file)))
              (cond
               ((and (memq action '(created changed deleted))
-                    (> (logand kind action-bit) 0)
-                    (funcall compiled
-                             (if base-path
-                                 (file-relative-name file base-path)
-                               file)))
+                    (cl-loop for (compiled . kind) in globs
+                             thereis (and (> (logand kind action-bit) 0)
+                                          (funcall compiled candidate))))
                (jsonrpc-notify
                 server :workspace/didChangeWatchedFiles
                 `(:changes ,(vector `(:uri ,(eglot-path-to-uri file)
@@ -4373,29 +4374,36 @@ Returns success status for SERVER and registration ID."
           &aux (root (project-root (eglot--project server))))
   "Handle dynamic registration of workspace/didChangeWatchedFiles."
   (eglot-unregister-capability server method id)
-  (mapc
-   (eglot--lambda ((FileSystemWatcher) ((:globPattern pat)) kind)
-     (pcase-let*
-         ((`(,pat ,base-uri)
-           (if (consp pat)
-               (list (plist-get pat :pattern)
-                     (plist-get pat :baseUri))
-             (list pat nil)))
-          (base-path
-           (when base-uri
-             (if (stringp base-uri)
-                 (eglot-uri-to-path base-uri)
-               (eglot-uri-to-path (plist-get base-uri :uri))))))
-       (when (or eglot-watch-files-outside-project-root
-                 (null base-path)
-                 (file-in-directory-p base-path root))
-         (eglot--watch-glob server id pat
-                            ;; the default "7" means bitwise OR of
-                            ;; WatchKind.Create (1), WatchKind.Change
-                            ;; (2), WatchKind.Delete (4)
-                            (or kind 7)
-                            base-path))))
-   watchers))
+  (let ((groups (make-hash-table :test 'equal)))
+    ;; Parse, compile, and group by base-path
+    (mapc
+     (eglot--lambda ((FileSystemWatcher) ((:globPattern pat)) kind)
+       (pcase-let*
+           ((`(,pat ,base-uri)
+             (if (consp pat)
+                 (list (plist-get pat :pattern)
+                       (plist-get pat :baseUri))
+               (list pat nil)))
+            (base-path
+             (when base-uri
+               (if (stringp base-uri)
+                   (eglot-uri-to-path base-uri)
+                 (eglot-uri-to-path (plist-get base-uri :uri))))))
+         (when (or eglot-watch-files-outside-project-root
+                   (null base-path)
+                   (file-in-directory-p base-path root))
+           (push (cons (eglot--glob-compile pat t t)
+                       ;; the default "7" means bitwise OR of
+                       ;; WatchKind.Create (1), WatchKind.Change
+                       ;; (2), WatchKind.Delete (4)
+                       (or kind 7))
+                 (gethash base-path groups)))))
+     watchers)
+    ;; For each group, set up watches
+    (maphash
+     (lambda (base-path globs)
+       (eglot--watch-globs server id globs base-path))
+     groups)))
 
 (cl-defmethod eglot-unregister-capability
   (server (_method (eql workspace/didChangeWatchedFiles)) id)
