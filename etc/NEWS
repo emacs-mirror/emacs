@@ -2643,6 +2643,16 @@ You can get back the old behavior with something like this:
 In addition, a new command 'U' removes all marks.
 
 +++
+*** New commands 'M-RET', 'M-p' and 'M-n' in Log View mode.
+'M-RET' expands the current entry, if relevant, and displays its diff in
+another window.  'M-p' and 'M-n' move to the previous and next entries,
+respectively, expand them if relevant, and display their diffs.
+
+You can use these three commands together to more easily view all the
+log entries and diffs of a series of revisions: use 'M-RET' on the first
+revision, then either 'M-n' or 'M-p' repeatedly to view the others.
+
++++
 *** New command 'w' in Log View mode.
 The new command 'log-view-copy-revision-as-kill', bound to 'w' in Log
 View mode, copies to the kill ring the ID of the revision at point in

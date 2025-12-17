@@ -1256,6 +1256,26 @@ In a compact-style log buffer (e.g., the one created by @kbd{C-x v L}),
 toggle between showing and hiding the full log entry for the revision at
 point (@code{log-view-toggle-entry-display}).
 
+@item M-@key{RET}
+Show the full log entry like @kbd{RET} does, if relevant, and also
+display the diff like @kbd{D} does, but without selecting the window
+showing the diff (@code{log-view-display-entry-and-diff}).  Never hides
+the full log entry text if it is already shown.
+
+@item M-p
+Like @kbd{p} followed by @kbd{M-@key{RET}}: move to the previous entry,
+display it in full if relevant, and display its diff
+(@code{log-view-msg-and-diff-prev}).  A numeric prefix argument is a
+repeat count for the movement part; at most one entry is displayed in
+full.
+
+@item M-n
+Like @kbd{n} followed by @kbd{M-@key{RET}}: move to the previous entry,
+display it in full if relevant, and display its diff
+(@code{log-view-msg-and-diff-next}).  A numeric prefix argument is a
+repeat count for the movement part; at most one entry is displayed in
+full.
+
 @item m
 Mark the entry at point (@code{log-view-mark-entry}).
 
