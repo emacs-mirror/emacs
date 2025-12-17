@@ -4520,8 +4520,9 @@ ring.  */)
   (Lisp_Object startr1, Lisp_Object endr1, Lisp_Object startr2, Lisp_Object endr2, Lisp_Object leave_markers)
 {
   register ptrdiff_t start1, end1, start2, end2;
-  ptrdiff_t start1_byte, start2_byte, len1_byte, len2_byte, end2_byte;
+  ptrdiff_t start1_byte, end1_byte, start2_byte, end2_byte;
   ptrdiff_t gap, len1, len_mid, len2;
+  ptrdiff_t len1_byte, len_mid_byte, len2_byte;
   unsigned char *start1_addr, *start2_addr, *temp;
 
   INTERVAL cur_intv, tmp_interval1, tmp_interval2, tmp_interval3;
@@ -4607,7 +4608,7 @@ ring.  */)
     }
 
   start2_byte = CHAR_TO_BYTE (start2);
-  ptrdiff_t end1_byte = CHAR_TO_BYTE (end1);
+  end1_byte = CHAR_TO_BYTE (end1);
   len1_byte = end1_byte - start1_byte;
   len2_byte = end2_byte - start2_byte;
 
@@ -4672,7 +4673,8 @@ ring.  */)
     }
   else
     {
-      len_mid = start2_byte - end1_byte;
+      len_mid = start2 - end1;
+      len_mid_byte = start2_byte - end1_byte;
       record_change (start1, (end2 - start1));
       INTERVAL tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
       tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
@@ -4685,8 +4687,8 @@ ring.  */)
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
 	  memcpy (temp, start2_addr, len2_byte);
-	  memcpy (start1_addr + len_mid + len2_byte, start1_addr, len1_byte);
-	  memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid);
+	  memcpy (start1_addr + len_mid_byte + len2_byte, start1_addr, len1_byte);
+	  memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid_byte);
 	  memcpy (start1_addr, temp, len2_byte);
 	}
       else
@@ -4698,8 +4700,8 @@ ring.  */)
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
 	  memcpy (temp, start1_addr, len1_byte);
 	  memcpy (start1_addr, start2_addr, len2_byte);
-	  memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid);
-	  memcpy (start1_addr + len2_byte + len_mid, temp, len1_byte);
+	  memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid_byte);
+	  memcpy (start1_addr + len2_byte + len_mid_byte, temp, len1_byte);
 	}
       graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
                                    len_mid, current_buffer, 0);
