@@ -530,28 +530,27 @@ to the beginning of the ARGth following entry.
 This is Log View mode's default `beginning-of-defun-function'.
 It assumes that a log entry starts with a line matching
 `log-view-message-re'."
-  (when (null arg) (setf arg 1))
-  (if (< arg 0)
+  (when (null arg) (setq arg 1))
+  (if (minusp arg)
       ;; In log view, the end of one defun is the beginning of the
       ;; next, so punting to log-view-end-of-defun is safe in this
       ;; context.
       (log-view-end-of-defun (- arg))
     (let ((found t))
-      (while (> arg 0)
-        (setf arg (1- arg))
+      (while (plusp arg)
+        (decf arg)
         (let ((cur-start (log-view-current-entry)))
-          (setf found
-                (cond ((null cur-start)
-                       (goto-char (point-min))
-                       nil)
-                      ((>= (car cur-start) (point))
-                       (unless (bobp)
-                         (forward-line -1)
-                         (setf arg (1+ arg)))
-                       nil)
-                      (t
-                       (goto-char (car cur-start))
-                       t)))))
+          (setq found (cond ((null cur-start)
+                             (goto-char (point-min))
+                             nil)
+                            ((>= (car cur-start) (point))
+                             (unless (bobp)
+                               (forward-line -1)
+                               (incf arg))
+                             nil)
+                            (t
+                             (goto-char (car cur-start))
+                             t)))))
       found)))
 
 (defun log-view-end-of-defun-1 ()
@@ -578,12 +577,11 @@ It assumes that a log entry starts with a line matching
 (defun log-view-end-of-defun (&optional arg)
   "Move forward to the next Log View entry.
 Works like `end-of-defun'."
-  (when (null arg) (setf arg 1))
-  (if (< arg 0)
+  (when (null arg) (setq arg 1))
+  (if (minusp arg)
       (log-view-beginning-of-defun (- arg))
     (dotimes (_n arg)
-      (log-view-end-of-defun-1)
-      t)))
+      (log-view-end-of-defun-1))))
 
 (defvar cvs-minor-current-files)
 (defvar cvs-branch-prefix)
