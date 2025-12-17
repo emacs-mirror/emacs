@@ -1546,7 +1546,7 @@ bookmark state that you, or a package that you use, maintains.
 Customize user option 'recentf-autosave-interval' to the number of
 seconds between auto saving recently opened files.  For example,
 customize this variable to 300 to save recently opened files every 5
-minutes.  In Elisp, use 'setopt' not 'setq'.
+minutes.  From Lisp, use 'setopt' not 'setq'.
 
 If 'recentf-autosave-interval' is nil, auto saving is disabled; this is
 the default.
@@ -1574,7 +1574,7 @@ option is nil.
 *** You can now regularly auto-save places.
 Customize user option 'save-place-autosave-interval' to the number of
 seconds between auto saving places.  For example, customize this
-variable to 300 to save places every 5 minutes.  In Elisp, use 'setopt'
+variable to 300 to save places every 5 minutes.  From Lisp, use 'setopt'
 not 'setq'.
 
 If 'save-place-autosave-interval' is nil, auto saving is disabled; this
