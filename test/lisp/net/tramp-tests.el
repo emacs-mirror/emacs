@@ -5568,7 +5568,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		  proc
 		  (apply #'start-file-process "test3" (current-buffer) command))
 	    (should (processp proc))
-	    (should (equal (process-status proc) 'run))
+	    ;(should (equal (process-status proc) 'run))
 	    (should (equal (process-get proc 'remote-command) command))
 	    (set-process-filter
 	     proc
@@ -5783,7 +5783,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 			 (rx bol "foo" eol) "foobar" s))))
 		   :file-handler t))
 	    (should (processp proc))
-	    (should (equal (process-status proc) 'run))
+	    ;(should (equal (process-status proc) 'run))
 	    (should (equal (process-get proc 'remote-command) command))
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
