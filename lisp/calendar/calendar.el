@@ -1103,7 +1103,7 @@ Otherwise, use symbolic time zones like \"CET\"."
   "Name of the buffer used for the calendar.")
 
 (defun calendar-get-buffer ()
-  "Return current usable calendar buffer."
+  "Return current usable calendar-mode buffer."
   (if (derived-mode-p 'calendar-mode)
       (current-buffer)
     (get-buffer calendar-buffer)))
@@ -1780,7 +1780,7 @@ is COMMAND's keybinding, STRING describes the binding."
 (defcustom calendar-mode-line-format
   (list
    (calendar-mode-line-entry 'calendar-scroll-right "previous month" "<")
-   '(string-trim (buffer-name) "*" "*")
+   '(string-trim (buffer-name) "\\*" "\\*")
    (concat
     (calendar-mode-line-entry 'calendar-goto-info-node "read Info on Calendar"
                               nil "info")
@@ -1915,8 +1915,10 @@ concatenated and the result truncated."
 If KILL (interactively, the prefix), kill the buffers instead of
 hiding them."
   (interactive "P")
-  ;; Don't handle other buffers when exiting a non-default calendar
-  ;; buffer.
+  ;; FIXME: We need to record the associations between each
+  ;; calendar-mode buffer and its auxiliary buffers explicitly.  For the
+  ;; moment, don't handle buffers from `calendar-buffer-list' when
+  ;; exiting a calendar-mode buffer not named `calendar-buffer'.
   (if (and (derived-mode-p 'calendar-mode)
            (not (equal (current-buffer) (get-buffer calendar-buffer))))
       (quit-windows-on nil kill)

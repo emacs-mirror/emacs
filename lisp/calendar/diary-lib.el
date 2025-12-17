@@ -1401,7 +1401,7 @@ marks.  This is intended to deal with deleted diary entries."
   (let ((diary-marking-entries-flag t)
         (diary-buffer (find-buffer-visiting diary-file))
         ;; Record current calendar buffer in case this function is
-        ;; called in a non-default calendar buffer.
+        ;; called in a calendar-mode buffer not named `calendar-buffer'.
         (calendar-buffer (calendar-get-buffer))
         ;; Dynamically bound in diary-include-files.
         (d-incp (and (boundp 'diary-including) diary-including))
