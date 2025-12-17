@@ -4320,6 +4320,18 @@ at point.  With prefix argument, prompt for ACTION-KIND."
 (defvar eglot-watch-files-outside-project-root t
   "If non-nil, allow watching files outside project root")
 
+(defun eglot--list-directories (dir)
+  (with-temp-buffer
+    (condition-case oops
+        (call-process find-program nil t nil dir "-type" "d" "-print0")
+      (error
+       (eglot--warn "Can't list directories in %s: %s" dir oops)))
+    (cl-loop initially (goto-char (point-min))
+             for start = (point) while (search-forward "\0" nil t)
+             collect (expand-file-name
+                      (buffer-substring-no-properties start (1- (point)))
+                      dir))))
+
 (defun eglot--watch-globs (server id globs &optional base-path)
   "Set up file watching for files matching GLOBS under BASE-PATH.
 GLOBS is a list of (COMPILED-GLOB . KIND) pairs, where COMPILED-GLOB
@@ -4327,10 +4339,17 @@ is a compiled glob predicate and KIND is a bitmask of change types.
 BASE-PATH is the directory to watch (nil means entire project).
 Returns success status for SERVER and registration ID."
   (let* ((project (eglot--project server))
-         (dirs (delete-dups
-                (mapcar #'file-name-directory
-                        (project-files project (and base-path
-                                                    (list base-path))))))
+         (root (project-root project))
+         (dirs (if (and base-path
+                        (not (file-in-directory-p base-path root)))
+                   ;; Outside root, use faster find-based listing
+                   (eglot--list-directories base-path)
+                 ;; Inside project or entire project: use project-files
+                 ;; which respects ignores
+                 (delete-dups
+                  (mapcar #'file-name-directory
+                          (project-files project (and base-path
+                                                      (list base-path)))))))
          (success nil))
     (cl-labels
         ((handle-event (event)
