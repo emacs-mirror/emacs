@@ -3127,14 +3127,14 @@ This function is used in `hack-local-variables-hook'."
   (set (make-local-variable 'require-final-newline) mode-require-final-newline)
   (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
   (set (make-local-variable 'outline-level) #'c-outline-level) ;TODO: define own
-  (setq comment-start "// "
- 	comment-end ""
-	comment-start-skip "/\\*+ *\\|//+ *")
+  (setq-local comment-start "// "
+              comment-end ""
+              comment-start-skip "/\\*+ *\\|//+ *")
   ;; various -----------------------------------------------------------------
-  (set (make-local-variable 'font-lock-defaults) antlr-font-lock-defaults)
-  (set (make-local-variable 'imenu-create-index-function)
-       #'antlr-imenu-create-index-function)
-  (set (make-local-variable 'imenu-generic-expression) t) ; fool stupid test
+  ;; the following vars are auto buffer-local:
+  (setq font-lock-defaults antlr-font-lock-defaults)
+  (setq imenu-create-index-function #'antlr-imenu-create-index-function)
+  (setq imenu-generic-expression t)     ; fool stupid test
   ;; FIXME: How does this hook differ from `antlr-mode-hook'?
   (run-mode-hooks 'antlr-delayed-mode-hook))
 
