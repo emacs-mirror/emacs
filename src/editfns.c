@@ -4525,7 +4525,8 @@ ring.  */)
   ptrdiff_t len1_byte, len_mid_byte, len2_byte;
   unsigned char *start1_addr, *start2_addr, *temp;
 
-  INTERVAL cur_intv, tmp_interval1, tmp_interval2, tmp_interval3;
+  INTERVAL cur_intv, tmp_interval1, tmp_interval2;
+  INTERVAL tmp_interval_mid, tmp_interval3;
   Lisp_Object buf;
 
   XSETBUFFER (buf, current_buffer);
@@ -4540,7 +4541,9 @@ ring.  */)
   end2 = XFIXNAT (endr2);
   gap = GPT;
 
-  /* Swap the regions if they're reversed.  */
+  /* Swap the regions if they're reversed.  We do not swap the
+     corresponding Lisp objects as well, since we reference these only
+     to clear text properties in both regions.  */
   if (start2 < end1)
     {
       register ptrdiff_t glumph = start1;
@@ -4560,28 +4563,6 @@ ring.  */)
   else if ((start1 == end1 || start2 == end2) && end1 == start2)
     return Qnil;
 
-  /* The possibilities are:
-     1. Adjacent (contiguous) regions, or separate but equal regions
-     (no, really equal, in this case!), or
-     2. Separate regions of unequal size.
-
-     The worst case is usually No. 2.  It means that (aside from
-     potential need for getting the gap out of the way), there also
-     needs to be a shifting of the text between the two regions.  So
-     if they are spread far apart, we are that much slower... sigh.  */
-
-  /* It must be pointed out that the really studly thing to do would
-     be not to move the gap at all, but to leave it in place and work
-     around it if necessary.  This would be extremely efficient,
-     especially considering that people are likely to do
-     transpositions near where they are working interactively, which
-     is exactly where the gap would be found.  However, such code
-     would be much harder to write and to read.  So, if you are
-     reading this comment and are feeling squirrely, by all means have
-     a go!  I just didn't feel like doing it, so I will simply move
-     the gap the minimum distance to get it out of the way, and then
-     deal with an unbroken array.  */
-
   start1_byte = CHAR_TO_BYTE (start1);
   end2_byte = CHAR_TO_BYTE (end2);
 
@@ -4596,6 +4577,22 @@ ring.  */)
 
   /* Run the before-change-functions *before* we move the gap.  */
   modify_text (start1, end2);
+
+  /* It must be pointed out that the really studly thing to do would
+     be not to move the gap at all, but to leave it in place and work
+     around it if necessary.  This would be extremely efficient,
+     especially considering that people are likely to do
+     transpositions near where they are working interactively, which
+     is exactly where the gap would be found.  However, such code
+     would be much harder to write and to read.  So, if you are
+     reading this comment and are feeling squirrely, by all means have
+     a go!  I just didn't feel like doing it, so I will simply move
+     the gap the minimum distance to get it out of the way, and then
+     deal with an unbroken array.  */
+
+  /* Hmmm... how about checking to see if the gap is large
+     enough to use as the temporary storage?  That would avoid an
+     allocation... interesting.  Later, don't fool with it now.  */
 
   /* Make sure the gap won't interfere, by moving it out of the text
      we will operate on.  */
@@ -4637,16 +4634,36 @@ ring.  */)
     }
 #endif
 
-  /* Hmmm... how about checking to see if the gap is large
-     enough to use as the temporary storage?  That would avoid an
-     allocation... interesting.  Later, don't fool with it now.  */
+  /* The possibilities are:
+     1. Regions of equal size, possibly even adjacent (contiguous).
+     2. Regions of unequal size.
+
+     In case 1. we can leave the "mid", that is, the region between the
+     two regions untouched.
+
+     The worst case is usually No. 2.  It means that (aside from
+     potential need for getting the gap out of the way), there also
+     needs to be a shifting of the text between the two regions.  So
+     if they are spread far apart, we are that much slower... sigh.  */
+
+  /* As an additional difficulty, we have to carefully consider byte vs.
+     character semantics: Maintaining undo and text properties needs to
+     be done in terms of characters, swapping text in memory needs to be
+     done in terms of bytes.
+
+     Handling case 1. mentioned above in a special way is beneficial
+     both for undo/text properties and for memory swapping, only we have
+     to consider case 1. for the character-related bits (len1 == len2)
+     and case 1. for the byte-related bits (len1_byte == len2_byte)
+     separately. */
 
   tmp_interval1 = copy_intervals (cur_intv, start1, len1);
   tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-  USE_SAFE_ALLOCA;
-  if (len1_byte == len2_byte && len1 == len2)
-    /* Regions are same size, though, how nice.  */
-    /* The char lengths also have to match, for text-properties.  */
+
+  len_mid = start2 - end1;
+  len_mid_byte = start2_byte - end1_byte;
+
+  if (len1 == len2)
     {
       if (end1 == start2)	/* Merge the two parts into a single one.  */
 	record_change (start1, (end2 - start1));
@@ -4663,7 +4680,24 @@ ring.  */)
       tmp_interval3 = validate_interval_range (buf, &startr2, &endr2, 0);
       if (tmp_interval3)
 	set_text_properties_1 (startr2, endr2, Qnil, buf, tmp_interval3);
+    }
+  else
+    /* Regions have different length, character-wise.  Handle undo and
+       text properties for both regions as one long piece of text
+       spanning both regions and the mid.  But while doing so, save the
+       intervals of the mid to later restore them in their new
+       position.  */
+    {
+      record_change (start1, (end2 - start1));
+      tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
+      tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
+      if (tmp_interval3)
+	set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
+    }
 
+  USE_SAFE_ALLOCA;
+  if (len1_byte == len2_byte)
+    {
       temp = SAFE_ALLOCA (len1_byte);
       start1_addr = BYTE_POS_ADDR (start1_byte);
       start2_addr = BYTE_POS_ADDR (start2_byte);
@@ -4671,42 +4705,37 @@ ring.  */)
       memcpy (start1_addr, start2_addr, len2_byte);
       memcpy (start2_addr, temp, len1_byte);
     }
-  else
+  else if (len1_byte < len2_byte)	/* Second region larger than first */
     {
-      len_mid = start2 - end1;
-      len_mid_byte = start2_byte - end1_byte;
-      record_change (start1, (end2 - start1));
-      INTERVAL tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
-      tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-      if (tmp_interval3)
-	set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
-      if (len1_byte < len2_byte)	/* Second region larger than first */
-	{
-	  /* holds region 2 */
-	  temp = SAFE_ALLOCA (len2_byte);
-	  start1_addr = BYTE_POS_ADDR (start1_byte);
-	  start2_addr = BYTE_POS_ADDR (start2_byte);
-	  memcpy (temp, start2_addr, len2_byte);
-	  memcpy (start1_addr + len_mid_byte + len2_byte, start1_addr, len1_byte);
-	  memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid_byte);
-	  memcpy (start1_addr, temp, len2_byte);
-	}
-      else
-	/* Second region smaller than first.  */
-	{
-	  /* holds region 1 */
-	  temp = SAFE_ALLOCA (len1_byte);
-	  start1_addr = BYTE_POS_ADDR (start1_byte);
-	  start2_addr = BYTE_POS_ADDR (start2_byte);
-	  memcpy (temp, start1_addr, len1_byte);
-	  memcpy (start1_addr, start2_addr, len2_byte);
-	  memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid_byte);
-	  memcpy (start1_addr + len2_byte + len_mid_byte, temp, len1_byte);
-	}
+      /* holds region 2 */
+      temp = SAFE_ALLOCA (len2_byte);
+      start1_addr = BYTE_POS_ADDR (start1_byte);
+      start2_addr = BYTE_POS_ADDR (start2_byte);
+      memcpy (temp, start2_addr, len2_byte);
+      memcpy (start1_addr + len_mid_byte + len2_byte, start1_addr, len1_byte);
+      memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid_byte);
+      memcpy (start1_addr, temp, len2_byte);
+    }
+  else
+    /* Second region smaller than first.  */
+    {
+      /* holds region 1 */
+      temp = SAFE_ALLOCA (len1_byte);
+      start1_addr = BYTE_POS_ADDR (start1_byte);
+      start2_addr = BYTE_POS_ADDR (start2_byte);
+      memcpy (temp, start1_addr, len1_byte);
+      memcpy (start1_addr, start2_addr, len2_byte);
+      memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid_byte);
+      memcpy (start1_addr + len2_byte + len_mid_byte, temp, len1_byte);
+    }
+  SAFE_FREE ();
+
+  if (len1 != len2)
+    /* Restore intervals of the mid.  */
+    {
       graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
                                    len_mid, current_buffer, 0);
     }
-  SAFE_FREE ();
   graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                len1, current_buffer, 0);
   graft_intervals_into_buffer (tmp_interval2, start1,
