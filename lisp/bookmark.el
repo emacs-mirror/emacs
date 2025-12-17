@@ -1764,8 +1764,8 @@ This is a helper for `bookmark-import-new-list'."
 
 
 (defcustom bookmark-after-load-file-hook nil
-  "Hook run after a bookmark file is loaded by `bookmark-load`.
-This hook can be used, for example, to reconcile 'bookmark-alist'
+  "Hook run after a bookmark file is loaded by `bookmark-load'.
+This hook can be used, for example, to reconcile `bookmark-alist'
 against bookmark state that you, or a package that you use, maintains."
   :type 'hook
   :version "31.1")
