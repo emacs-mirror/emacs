@@ -495,7 +495,8 @@ This calls `log-view-expanded-log-entry-function' to do the work."
     (let* ((opoint (point))
 	   (entry (log-view-current-entry nil t))
 	   (beg (car entry))
-	   (buffer-read-only nil))
+           (inhibit-read-only t)
+	   deactivate-mark)
       (when entry
 	(if (get-text-property beg 'log-view-entry-expanded)
 	    ;; If the entry is expanded, collapse it.
