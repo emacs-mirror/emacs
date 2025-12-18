@@ -685,7 +685,8 @@ See `project-vc-extra-root-markers' for the marker value format.")
            (backend (cadr project)))
        (when backend
          (require (intern (concat "vc-" (downcase (symbol-name backend))))))
-       (if (file-in-directory-p dir (nth 2 project))
+       (if (and backend
+                (file-in-directory-p dir (nth 2 project)))
            (condition-case nil
                (project--vc-list-files dir backend ignores)
              (vc-not-supported
