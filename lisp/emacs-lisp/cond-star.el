@@ -134,7 +134,7 @@ ATOM (meaning any other kind of non-list not described above)
 \(cdr PATTERN)  matches PATTERN with strict checking of cdrs.
   That means that `list' patterns verify that the final cdr is nil.
   Strict checking is the default.
-\(cdr-safe PATTERN)  matches PATTERN with lax checking of cdrs.
+\(cdr-ignore PATTERN)  matches PATTERN with lax checking of cdrs.
   That means that `list' patterns do not examine the final cdr.
 \(and CONJUNCTS...)  matches each of the CONJUNCTS against the same data.
   If all of them match, this pattern succeeds.
