@@ -2502,9 +2502,9 @@ You can customize 'vc-dir-allow-mass-mark-changes' to restore the old
 behavior or dispense with the prompting.
 
 +++
-*** VC Directory's 'd' command can now delete unregistered files too.
-Previously, this command could only delete registered files.
-To restore the old, more limited behavior, you can do
+*** 'C-x v x' and VC Directory's 'd' command can now delete unregistered files.
+Previously, these commands could only delete registered files.
+To restore the old, more limited behavior for VC Directory, you can do
 
     (keymap-set vc-dir-mode-map "d" #'vc-dir-clean-files)
 
