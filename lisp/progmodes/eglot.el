@@ -4677,7 +4677,7 @@ If NOERROR, return predicate, else erroring function."
 ;;; Semantic tokens
 (defmacro eglot--semtok-define-things ()
   (cl-flet ((def-it (name def)
-              `(defface ,(intern (format "eglot-semantic-%s-face" name))
+              `(defface ,(intern (format "eglot-semantic-%s" name))
                  '((t (:inherit ,def)))
                  ,(format "Face for painting a `%s' LSP semantic token" name)
                  :group 'eglot-semantic-fontification)))
@@ -4715,10 +4715,10 @@ If NOERROR, return predicate, else erroring function."
               when (cl-plusp (logand (cdr tok) (ash 1 j)))
                 collect m into names
                 and when (member m eglot-semantic-token-modifiers)
-                  collect (intern (format "eglot-semantic-%s-face" m)) into faces
+                  collect (intern (format "eglot-semantic-%s" m)) into faces
               finally
               (when (member tname eglot-semantic-token-types)
-                (push (intern (format "eglot-semantic-%s-face" tname)) faces))
+                (push (intern (format "eglot-semantic-%s" tname)) faces))
               (cl-return (cons (cons tname names) faces))))
            semtok-cache)
         probe))))
