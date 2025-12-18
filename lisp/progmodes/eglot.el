@@ -4320,73 +4320,60 @@ at point.  With prefix argument, prompt for ACTION-KIND."
 (defvar eglot-watch-files-outside-project-root t
   "If non-nil, allow watching files outside project root")
 
-(defun eglot--list-directories (dir)
-  (with-temp-buffer
-    (condition-case oops
-        (call-process find-program nil t nil dir "-type" "d" "-print0")
-      (error
-       (eglot--warn "Can't list directories in %s: %s" dir oops)))
-    (cl-loop initially (goto-char (point-min))
-             for start = (point) while (search-forward "\0" nil t)
-             collect (expand-file-name
-                      (buffer-substring-no-properties start (1- (point)))
-                      dir))))
-
-(defun eglot--watch-globs (server id globs &optional base-path)
-  "Set up file watching for files matching GLOBS under BASE-PATH.
-GLOBS is a list of (COMPILED-GLOB . KIND) pairs, where COMPILED-GLOB
-is a compiled glob predicate and KIND is a bitmask of change types.
-BASE-PATH is the directory to watch (nil means entire project).
-Returns success status for SERVER and registration ID."
-  (let* ((project (eglot--project server))
-         (root (project-root project))
-         (dirs (if (and base-path
-                        (not (file-in-directory-p base-path root)))
-                   ;; Outside root, use faster find-based listing
-                   (eglot--list-directories base-path)
-                 ;; Inside project or entire project: use project-files
-                 ;; which respects ignores
-                 (delete-dups
-                  (mapcar #'file-name-directory
-                          (project-files project (and base-path
-                                                      (list base-path)))))))
-         (success nil))
-    (cl-labels
-        ((handle-event (event)
-           (pcase-let* ((`(,desc ,action ,file ,file1) event)
-                        (action-type (cl-case action
-                                       (created 1) (changed 2) (deleted 3)))
-                        (action-bit (when action-type
-                                      (ash 1 (1- action-type))))
-                        (candidate (if base-path
-                                       (file-relative-name file base-path)
-                                     file)))
-             (cond
-              ((and (memq action '(created changed deleted))
-                    (cl-loop for (compiled . kind) in globs
-                             thereis (and (> (logand kind action-bit) 0)
-                                          (funcall compiled candidate))))
-               (jsonrpc-notify
-                server :workspace/didChangeWatchedFiles
-                `(:changes ,(vector `(:uri ,(eglot-path-to-uri file)
-                                           :type ,action-type))))
-               (when (and (eq action 'created)
-                          (file-directory-p file))
-                 (add-watch file)))
-              ((eq action 'renamed)
-               (handle-event `(,desc deleted ,file))
-               (handle-event `(,desc created ,file1))))))
-         (add-watch (dir)
-           (when (file-readable-p dir)
-             (push (file-notify-add-watch dir '(change) #'handle-event)
-                   (gethash id (eglot--file-watches server))))))
+(cl-defun eglot--watch-globs (server id globs dir in-root
+                                     &aux (project (eglot--project server))
+                                     success)
+  "Set up file watching for relative file names matching GLOBS under DIR.
+GLOBS is a list of (COMPILED-GLOB . KIND) pairs, where COMPILED-GLOB is
+a compiled glob predicate and KIND is a bitmask of change types.  DIR is
+the directory to watch (nil means entire project).  IN-ROOT says if DIR
+happens to be inside or maching the project root."
+  (cl-labels
+      ((subdirs-using-project ()
+         (mapcar #'file-name-directory
+                 (project-files project (and dir (list dir)))))
+       (subdirs-using-find ()
+         (with-temp-buffer
+           (call-process find-program nil t nil dir "-type" "d" "-print0")
+           (cl-loop initially (goto-char (point-min))
+                    for start = (point) while (search-forward "\0" nil t)
+                    collect (expand-file-name
+                             (buffer-substring-no-properties start (1- (point)))
+                             dir))))
+       (handle-event (event)
+         (pcase-let* ((`(,desc ,action ,file ,file1) event)
+                      (action-type (cl-case action
+                                     (created 1) (changed 2) (deleted 3)))
+                      (action-bit (when action-type
+                                    (ash 1 (1- action-type))))
+                      (candidate (if dir (file-relative-name file dir) file)))
+           (cond
+            ((and (memq action '(created changed deleted))
+                  (cl-loop for (compiled . kind) in globs
+                           thereis (and (> (logand kind action-bit) 0)
+                                        (funcall compiled candidate))))
+             (jsonrpc-notify
+              server :workspace/didChangeWatchedFiles
+              `(:changes ,(vector `(:uri ,(eglot-path-to-uri file)
+                                         :type ,action-type))))
+             (when (and (eq action 'created)
+                        (file-directory-p file))
+               (add-watch file)))
+            ((eq action 'renamed)
+             (handle-event `(,desc deleted ,file))
+             (handle-event `(,desc created ,file1))))))
+       (add-watch (subdir)
+         (when (file-readable-p subdir)
+           (push (file-notify-add-watch subdir '(change) #'handle-event)
+                 (gethash id (eglot--file-watches server))))))
+    (let ((subdirs (if (or (null dir) in-root)
+                       (subdirs-using-project)
+                     (condition-case _ (subdirs-using-find)
+                       (error (subdirs-using-project))))))
       (unwind-protect
-          (dolist (d dirs)
-            (add-watch d)
-            (setq success t))
+          (cl-loop for sd in subdirs do (add-watch sd) finally (setq success t))
         (unless success
-          (eglot-unregister-capability server 'workspace/didChangeWatchedFiles id))))
-    success))
+          (eglot-unregister-capability server 'workspace/didChangeWatchedFiles id))))))
 
 (cl-defmethod eglot-register-capability
   (server (method (eql workspace/didChangeWatchedFiles)) id &key watchers
@@ -4407,21 +4394,23 @@ Returns success status for SERVER and registration ID."
              (when base-uri
                (if (stringp base-uri)
                    (eglot-uri-to-path base-uri)
-                 (eglot-uri-to-path (plist-get base-uri :uri))))))
+                 (eglot-uri-to-path (plist-get base-uri :uri)))))
+            (in-root (or (null base-path)
+                         (file-in-directory-p base-path root))))
          (when (or eglot-watch-files-outside-project-root
                    (null base-path)
-                   (file-in-directory-p base-path root))
+                   in-root)
            (push (cons (eglot--glob-compile pat t t)
                        ;; the default "7" means bitwise OR of
                        ;; WatchKind.Create (1), WatchKind.Change
                        ;; (2), WatchKind.Delete (4)
                        (or kind 7))
-                 (gethash base-path groups)))))
+                 (gethash (cons base-path in-root) groups)))))
      watchers)
     ;; For each group, set up watches
     (maphash
      (lambda (base-path globs)
-       (eglot--watch-globs server id globs base-path))
+       (eglot--watch-globs server id globs (car base-path) (cdr base-path)))
      groups)))
 
 (cl-defmethod eglot-unregister-capability
