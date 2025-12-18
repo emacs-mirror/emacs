@@ -4492,10 +4492,8 @@ file names."
   (dolist (file file-or-files)
     (let ((buf (get-file-buffer file))
           (backend (vc-backend file)))
-      (unless backend
-        (error "File %s is not under version control"
-               (file-name-nondirectory file)))
-      (unless (vc-find-backend-function backend 'delete-file)
+      (unless (or (not backend)
+                  (vc-find-backend-function backend 'delete-file))
         (error "Deleting files under %s is not supported in VC" backend))
       (when (and buf (buffer-modified-p buf))
         (error "Please save or undo your changes before deleting %s" file))
@@ -4518,11 +4516,13 @@ file names."
         (with-current-buffer (or buf (find-file-noselect file))
           (let ((backup-inhibited nil))
 	    (backup-buffer))))
-      ;; Bind `default-directory' so that the command that the backend
-      ;; runs to remove the file is invoked in the correct context.
-      (let ((default-directory (file-name-directory file)))
-        (vc-call-backend backend 'delete-file file))
-      ;; If the backend hasn't deleted the file itself, let's do it for him.
+      (when backend
+        ;; Bind `default-directory' so that the command that the backend
+        ;; runs to remove the file is invoked in the correct context.
+        (let ((default-directory (file-name-directory file)))
+          (vc-call-backend backend 'delete-file file)))
+      ;; For the case of unregistered files, or if the backend didn't
+      ;; actually delete the file.
       (when (file-exists-p file) (delete-file file))
       ;; Forget what VC knew about the file.
       (vc-file-clearprops file)
