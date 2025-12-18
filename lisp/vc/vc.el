@@ -2794,18 +2794,25 @@ Return t if the buffer had changes, nil otherwise."
                      (if async 'async 1) "diff" file
                      (append (vc-switches nil 'diff) `(,(null-device)))))))
         (setq files (nreverse filtered))))
-    (set-buffer buffer)
-    ;; Make the *vc-diff* buffer read only, the diff-mode key
-    ;; bindings are nicer for read only buffers. pcl-cvs does the
-    ;; same thing.
-    (setq buffer-read-only t)
-    (diff-mode)
-    (setq-local diff-vc-backend (car vc-fileset))
-    (setq-local diff-vc-revisions (list rev1 rev2))
-    (setq-local revert-buffer-function
-                (lambda (_ignore-auto _noconfirm)
-                  (vc-diff-internal async vc-fileset rev1 rev2 verbose)))
+    (with-current-buffer buffer
+      ;; Make the *vc-diff* buffer read only, the diff-mode key
+      ;; bindings are nicer for read only buffers. pcl-cvs does the
+      ;; same thing.
+      (setq buffer-read-only t)
+      ;; Set the major mode and some local variables before calling into
+      ;; the backend.  This means that the backend can itself set local
+      ;; variables and enable minor modes in BUFFER if it wants to.
+      ;; Call into the backend with the old current buffer, though, so
+      ;; that its operation can be influenced by local variables in that
+      ;; buffer (some discussion in bug#80005).
+      (diff-mode)
+      (setq-local diff-vc-backend (car vc-fileset))
+      (setq-local diff-vc-revisions (list rev1 rev2))
+      (setq-local revert-buffer-function
+                  (lambda (_ignore-auto _noconfirm)
+                    (vc-diff-internal async vc-fileset rev1 rev2 verbose))))
     (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer async)
+    (set-buffer buffer)
     (if (and (zerop (buffer-size))
              (not (get-buffer-process (current-buffer))))
         ;; Treat this case specially so as not to pop the buffer.
