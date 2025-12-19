@@ -428,6 +428,7 @@ compile: autoloads compile-first
 # set the local variable no-byte-compile.
 compile-always:
 	find $(lisp) -name '*.elc' $(FIND_DELETE)
+	$(MAKE) -C ../src
 	$(MAKE) compile
 
 .PHONY: trampolines
