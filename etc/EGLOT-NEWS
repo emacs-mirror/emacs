@@ -28,6 +28,13 @@ requests diagnostics explicitly rather than relying on sporadic
 server is known to support the "pull" variant exclusively, while the
 'ty' server is known to support it alongside "push".
 
+** Support for watching files outside the project (bug#79809)
+
+Eglot now supports and advertises the 'relativePatternSupport'
+sub-feature of 'didChangeWatchedFiles'.  Some LSP servers use it to ask
+for file watches outside the current project's root and so be notified
+of changes to dependencies that affect the current project.
+
 ** Support for semantic tokens (bug#79374)
 
 The new minor mode 'eglot-semantic-tokens-mode' provides enhanced syntax
