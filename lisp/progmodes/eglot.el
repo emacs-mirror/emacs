@@ -4330,8 +4330,9 @@ the directory to watch (nil means entire project).  IN-ROOT says if DIR
 happens to be inside or maching the project root."
   (cl-labels
       ((subdirs-using-project ()
-         (mapcar #'file-name-directory
-                 (project-files project (and dir (list dir)))))
+         (delete-dups
+          (mapcar #'file-name-directory
+                  (project-files project (and dir (list dir))))))
        (subdirs-using-find ()
          (with-temp-buffer
            (call-process find-program nil t nil dir "-type" "d" "-print0")
