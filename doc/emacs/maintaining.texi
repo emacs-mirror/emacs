@@ -1707,9 +1707,8 @@ Branches}.
 
 @item d
 Delete the marked files, or the current file if no marks
-(@code{vc-dir-clean-delete)}.  The files will not be marked as
-deleted in the version control system, so this function is mostly
-useful for unregistered files.
+(@code{vc-dir-delete-file)}.  If the files are registered, they will be
+marked as deleted in the version control system.
 @end table
 
 @cindex stashes in version control

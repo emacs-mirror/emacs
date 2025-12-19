@@ -1611,7 +1611,7 @@ Matches a vector if the @var{eltpats} match its elements.  The first
 Matches @var{pattern} with strict checking of @code{cdr}s.  That means
 that @code{list} patterns verify that the final @code{cdr} is
 @code{nil}.  Strict checking is the default.
-@item (cdr-safe @var{pattern})
+@item (cdr-ignore @var{pattern})
 Matches @var{pattern} with lax checking of @code{cdr}s.  That means that
 @code{list} patterns do not examine the final @code{cdr}.
 @item (and @var{conjuncts}@dots{})

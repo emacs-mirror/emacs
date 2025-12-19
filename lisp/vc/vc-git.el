@@ -1891,7 +1891,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
   ;; but since Git is one of the two backends that support this operation
   ;; so far, it's hard to tell; hg doesn't need this.
   (with-temp-buffer
-    (vc-call-backend 'git 'diff (list file) "HEAD" nil (current-buffer))
+    (vc-call-backend 'Git 'diff (list file) "HEAD" nil (current-buffer))
     (goto-char (point-min))
     (let ((last-offset 0)
           (from-offset nil)
