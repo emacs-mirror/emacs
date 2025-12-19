@@ -723,31 +723,30 @@ See `project-vc-extra-root-markers' for the marker value format.")
                        (and include-untracked '("-o"))))
     (when extra-ignores
       (setq args (append args
-                         ;; Git <2.13 needs a positive pathspec first.
-                         '("--" ".")
-                         (mapcar
-                          (lambda (i)
-                            (format
-                             ":(exclude,glob,top)%s"
-                             (if (string-match "\\*\\*" i)
-                                 ;; Looks like pathspec glob
-                                 ;; format already.
-                                 i
-                               (if (string-match "\\./" i)
-                                   ;; ./abc -> abc
-                                   (setq i (substring i 2))
-                                 ;; abc -> **/abc
-                                 (setq i (concat "**/" i))
-                                 ;; FIXME: '**/abc' should also
-                                 ;; match a directory with that
-                                 ;; name, but doesn't (git 2.25.1).
-                                 ;; Maybe we should replace
-                                 ;; such entries with two.
-                                 (if (string-match "/\\'" i)
-                                     ;; abc/ -> abc/**
-                                     (setq i (concat i "**"))))
-                               i)))
-                          extra-ignores))))
+                         (cons "--"
+                               (mapcar
+                                (lambda (i)
+                                  (format
+                                   ":(exclude,glob,top)%s"
+                                   (if (string-match "\\*\\*" i)
+                                       ;; Looks like pathspec glob
+                                       ;; format already.
+                                       i
+                                     (if (string-match "\\./" i)
+                                         ;; ./abc -> abc
+                                         (setq i (substring i 2))
+                                       ;; abc -> **/abc
+                                       (setq i (concat "**/" i))
+                                       ;; FIXME: '**/abc' should also
+                                       ;; match a directory with that
+                                       ;; name, but doesn't (git 2.25.1).
+                                       ;; Maybe we should replace
+                                       ;; such entries with two.
+                                       (if (string-match "/\\'" i)
+                                           ;; abc/ -> abc/**
+                                           (setq i (concat i "**"))))
+                                     i)))
+                                extra-ignores)))))
     (setq files
           (delq nil
                 (mapcar
