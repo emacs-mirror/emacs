@@ -710,7 +710,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
   (defvar vc-git-use-literal-pathspecs)
   (or
    (not extra-ignores)
-   (version<= "1.13" (vc-git--program-version))
+   (version<= "2.13" (vc-git--program-version))
    (signal 'vc-not-supported "Need newer Git to use negative pathspec like we do"))
   (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
          (args '("-z" "-c" "--exclude-standard"))
