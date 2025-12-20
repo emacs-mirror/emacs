@@ -5927,6 +5927,40 @@ This function returns the cursor type of @var{window}, defaulting to the
 selected window.
 @end defun
 
+@defun window-cursor-info &optional window
+This function returns information about the cursor of @var{window},
+defaulting to the selected window.
+
+The value returned by the function is a vector of the form
+@w{@code{[@var{type} @var{x} @var{y} @var{width} @var{height}
+@var{ascent}]}}.  Here's the description of each components of this
+vector:
+
+@table @var
+@item type
+The type of the cursor, a symbol.  This is the same value returned by
+@code{window-cursor-type}.
+
+@item x
+@itemx y
+The pixel coordinates of the cursor's top-left corner, relative to the
+top-left corner of @var{window}'s text area.
+
+@item width
+@itemx height
+The pixel dimensions of the cursor.
+
+@item ascent
+The number of pixels the cursor extends above the baseline.
+@end table
+
+If the cursor is not currently displayed for @var{window}, this function
+returns @code{nil}.
+
+Any element except the first one in the returned vector may be
+@code{-1}, meaning the actual value is currently unavailable.
+@end defun
+
 @node Window Start and End
 @section The Window Start and End Positions
 @cindex window start position

@@ -8646,6 +8646,41 @@ WINDOW must be a live window and defaults to the selected one.  */)
   return decode_live_window (window)->cursor_type;
 }
 
+DEFUN ("window-cursor-info", Fwindow_cursor_info, Swindow_cursor_info,
+       0, 1, 0,
+       doc: /* Return information about the cursor of WINDOW.
+WINDOW must be a live window and defaults to the selected one.
+
+The returned value is a vector of 6 elements:
+  [TYPE X Y WIDTH HEIGHT ASCENT]
+where
+  TYPE is the symbol representing the type of the cursor.  See
+    `cursor-type' for the meaning of the returned value.
+  X and Y are pixel coordinates of the cursor's top-left corner, relative
+    to the top-left corner of WINDOW's text area.
+  WIDTH and HEIGHT are the pixel dimensions of the cursor.
+  ASCENT is the number of pixels the cursor extends above the baseline.
+
+If the cursor is not currently displayed for WINDOW, return nil.
+
+Note that any element except the first one in the returned vector may be
+-1 if the actual value is currently unavailable.  */)
+  (Lisp_Object window)
+{
+  struct window *w = decode_live_window (window);
+
+  if (!w->phys_cursor_on_p)
+    return Qnil;
+
+  return CALLN (Fvector,
+                w->cursor_type,
+                make_fixnum (w->phys_cursor.x),
+                make_fixnum (w->phys_cursor.y),
+                make_fixnum (w->phys_cursor_width),
+                make_fixnum (w->phys_cursor_height),
+                make_fixnum (w->phys_cursor_ascent));
+}
+
 
 /***********************************************************************
 			    Scroll bars
@@ -9617,5 +9652,6 @@ name to `'ignore'.  */);
   defsubr (&Sset_window_parameter);
   defsubr (&Swindow_discard_buffer);
   defsubr (&Swindow_cursor_type);
+  defsubr (&Swindow_cursor_info);
   defsubr (&Sset_window_cursor_type);
 }

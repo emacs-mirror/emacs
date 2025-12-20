@@ -440,6 +440,12 @@ adjacent windows and subsequently operate on that parent.
 'uncombine-window' can then be used to restore the window configuration
 to the state it had before running 'combine-windows'.
 
++++
+*** New function 'window-cursor-info'.
+This function returns a vector of pixel-level information about the
+physical cursor in a given window, including its type, coordinates,
+dimensions, and ascent.
+
 ** Frames
 
 +++
