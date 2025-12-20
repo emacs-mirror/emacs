@@ -3391,13 +3391,10 @@ all child frames of @var{frame} (and their descendants) invisible too
 Unless @var{force} is non-@code{nil}, this function refuses to make
 @var{frame} invisible if all other frames are invisible.  On a text
 terminal this will make @var{frame} invisible if and only if it is a
-child frame or at least one other non-child frame (@pxref{Child Frames})
-on that terminal exists.  In the former case, if @var{frame} is
+child frame (@pxref{Child Frames}).  In this case, if @var{frame} is
 selected, it will select the first visible ancestor of @var{frame}
-instead.  In the latter case it will make another non-child frame on
-that terminal visible and the new top frame (@pxref{Frames}) of that
-terminal.  In either case, it will remove all child frames with
-@var{frame} as their ancestor from display.
+instead.  In addition, it will remove all child frames with @var{frame}
+as their ancestor from display.
 @end deffn
 
   The visibility status of a frame is also available as a frame

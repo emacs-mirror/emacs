@@ -3366,7 +3366,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
   if (FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->frame_visible_invisible_hook)
     FRAME_TERMINAL (f)->frame_visible_invisible_hook (f, true);
 
-  if (is_tty_frame (f))
+  if (is_tty_child_frame (f))
     {
       SET_FRAME_VISIBLE (f, true);
       tty_raise_lower_frame (f, true);
@@ -3410,11 +3410,9 @@ Normally you may not make FRAME invisible if all other frames are
 invisible, but if the second optional argument FORCE is non-nil, you may
 do so.
 
-On a text terminal make FRAME invisible if and only FRAME is either a
-child frame or another non-child frame can be found.  In the former
-case, if FRAME is the selected frame, select the first visible ancestor
-of FRAME instead.  In the latter case, if FRAME is the top frame of its
-terminal, make another frame that terminal's top frame.  */)
+On a text terminal make FRAME invisible if and only if FRAME is a child
+frame.  If, in that case, FRAME is the selected frame, select the first
+visible ancestor of FRAME instead.  */)
   (Lisp_Object frame, Lisp_Object force)
 {
   struct frame *f = decode_live_frame (frame);
@@ -3427,18 +3425,14 @@ terminal, make another frame that terminal's top frame.  */)
   if (FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->frame_visible_invisible_hook)
     FRAME_TERMINAL (f)->frame_visible_invisible_hook (f, false);
 
-  SET_FRAME_VISIBLE (f, false);
-
-  if (is_tty_frame (f) && EQ (frame, selected_frame))
-  /* On a tty if FRAME is the selected frame, we have to select another
-    frame instead.  If FRAME is a child frame, use the first visible
-    ancestor as returned by 'mru_rooted_frame'.  If FRAME is a root
-    frame, use the frame returned by 'next-frame' which must exist since
-    otherwise other_frames above would have lied.  */
-    Fselect_frame (FRAME_PARENT_FRAME (f)
-		   ? mru_rooted_frame (f)
-		   : next_frame (frame, make_fixnum (0)),
-		   Qnil);
+  if (is_tty_child_frame (f) && EQ (frame, selected_frame))
+    {
+      SET_FRAME_VISIBLE (f, false);
+      /* If FRAME is a tty child frame and the selected frame, we have
+	 to select another frame instead.  Use the first visible
+	 ancestor as returned by 'mru_rooted_frame'.  */
+      Fselect_frame (mru_rooted_frame (f), Qnil);
+    }
 
   /* Make menu bar update for the Buffers and Frames menus.  */
   windows_or_buffers_changed = 16;
