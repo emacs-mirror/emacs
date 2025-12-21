@@ -2876,6 +2876,12 @@ struct it
   /* Face of the right fringe glyph.  */
   unsigned right_user_fringe_face_id : FACE_ID_BITS;
 
+  /* Target column position for margin indicators.
+     -1 means no specific column requested (use sequential filling).
+     >= 0 specifies the column (0-based) where the margin indicator
+     should be placed, with spaces padding unused columns.  */
+  int margin_column;
+
   /* True means we need to reorder bidirectional text for display
      in the visual order.  */
   bool_bf bidi_p : 1;

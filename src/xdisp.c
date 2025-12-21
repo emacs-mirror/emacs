@@ -6381,8 +6381,11 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 
   /* Prepare to handle `((margin left-margin) ...)',
      `((margin right-margin) ...)' and `((margin nil) ...)'
-     prefixes for display specifications.  */
+     prefixes for display specifications.
+     Also handle `((margin left-margin COLUMN) ...)' where COLUMN
+     specifies the column position (0-based) in the margin.  */
   location = Qunbound;
+  int margin_column = -1;  /* -1 means no specific column requested */
   if (CONSP (spec) && CONSP (XCAR (spec)))
     {
       Lisp_Object tem;
@@ -6398,7 +6401,16 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	      (NILP (tem)
 	       || EQ (tem, Qleft_margin)
 	       || EQ (tem, Qright_margin))))
-	location = tem;
+	{
+	  location = tem;
+	  /* Check a column specification after the margin type.  */
+	  tem = XCDR (XCAR (spec));
+	  if (CONSP (tem)
+	      && (tem = XCDR (tem), CONSP (tem))
+	      && (tem = XCAR (tem), FIXNUMP (tem))
+	      && XFIXNUM (tem) >= 0)
+	    margin_column = (int) XFIXNUM (tem);
+	}
     }
 
   if (BASE_EQ (location, Qunbound))
@@ -6450,11 +6462,20 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       it->from_disp_prop_p = true;
 
       if (NILP (location))
-	it->area = TEXT_AREA;
+	{
+	  it->area = TEXT_AREA;
+	  it->margin_column = -1;
+	}
       else if (EQ (location, Qleft_margin))
-	it->area = LEFT_MARGIN_AREA;
+	{
+	  it->area = LEFT_MARGIN_AREA;
+	  it->margin_column = margin_column;
+	}
       else
-	it->area = RIGHT_MARGIN_AREA;
+	{
+	  it->area = RIGHT_MARGIN_AREA;
+	  it->margin_column = margin_column;
+	}
 
       if (STRINGP (value))
 	{
@@ -31863,7 +31884,44 @@ append_glyph (struct it *it)
   eassert (it->glyph_row);
   eassert (it->char_to_display != '\n' && it->char_to_display != '\t');
 
-  glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
+  int margin_column = -1;
+  if ((area == LEFT_MARGIN_AREA || area == RIGHT_MARGIN_AREA)
+      && it->margin_column >= 0)
+    {
+      margin_column = it->margin_column;
+    }
+
+  if (margin_column >= 0
+      && margin_column < (area == LEFT_MARGIN_AREA
+			  ? WINDOW_LEFT_MARGIN_WIDTH (it->w)
+			  : WINDOW_RIGHT_MARGIN_WIDTH (it->w)))
+    {
+      /* Fill gaps between current position and target column with spaces.  */
+      int face_id = lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID);
+      while (it->glyph_row->used[area] < margin_column
+	     && it->glyph_row->glyphs[area] + it->glyph_row->used[area]
+	     < it->glyph_row->glyphs[area + 1])
+	{
+	  struct glyph *fill_glyph =
+	    it->glyph_row->glyphs[area] + it->glyph_row->used[area];
+	  *fill_glyph = space_glyph;
+	  fill_glyph->pixel_width = FRAME_COLUMN_WIDTH (it->f);
+	  fill_glyph->face_id = face_id;
+	  fill_glyph->frame = it->f;
+	  ++it->glyph_row->used[area];
+	}
+
+      glyph = it->glyph_row->glyphs[area] + margin_column;
+
+      /* Increment used counter only after filling with spaces,
+	 but not when changing existing column value.  */
+      if (margin_column >= it->glyph_row->used[area])
+	it->glyph_row->used[area] = margin_column + 1;
+    }
+  else
+    /* Fall back to the default sequential appending.  */
+    glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
+
   if (glyph < it->glyph_row->glyphs[area + 1])
     {
       /* If the glyph row is reversed, we need to prepend the glyph
@@ -31928,10 +31986,18 @@ append_glyph (struct it *it)
 	  glyph->resolved_level = 0;
 	  glyph->bidi_type = UNKNOWN_BT;
 	}
-      ++it->glyph_row->used[area];
+      /* Increment used counter if not using column-based positioning,
+	 since it already updated the counter above, but only after
+	 filling with spaces, not when changing existing column value.  */
+      if (margin_column < 0)
+	++it->glyph_row->used[area];
     }
   else
     IT_EXPAND_MATRIX_WIDTH (it, area);
+
+  /* Reset the margin column for next use.  */
+  if (margin_column >= 0)
+    it->margin_column = -1;
 }
 
 /* Store one glyph for the composition IT->cmp_it.id in IT->glyph_row.
