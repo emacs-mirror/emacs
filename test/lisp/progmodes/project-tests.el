@@ -33,6 +33,8 @@
 (require 'grep)
 (require 'xref)
 
+(declare-function vc-git--program-version "vc-git")
+
 (ert-deftest project/quoted-directory ()
   "Check that `project-files' and `project-find-regexp' deal with
 quoted directory names (Bug#47799)."
@@ -154,7 +156,9 @@ When `project-ignores' includes a name matching project dir."
     (should-not (null project))
     (should (string-match-p "/test/lisp/progmodes/project-resources/\\'" (project-root project)))
     (should (member "etc" (project-ignores project dir)))
-    (should (equal '(".dir-locals.el" "foo")
+    (should (equal `(,@(when (version<= "1.13" (vc-git--program-version))
+                         (list ".dir-locals.el"))
+                     "foo")
                    (mapcar #'file-name-nondirectory (project-files project))))))
 
 (ert-deftest project-vc-supports-files-in-subdirectory ()
