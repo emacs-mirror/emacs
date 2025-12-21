@@ -284,33 +284,37 @@ This backup prevents any accidental clearance of `hide-ifdef-env' by
 (define-minor-mode hide-ifdef-mode
   "Toggle features to hide/show #ifdef blocks (Hide-Ifdef mode).
 
-Hide-Ifdef mode is a buffer-local minor mode for use with C and
+\\<hide-ifdef-mode-map>Hide-Ifdef mode is a buffer-local minor mode for use with C and
 C-like major modes.  When enabled, code within #ifdef constructs
 that the C preprocessor would eliminate may be hidden from view.
+
+Use \\[hide-ifdefs] to hide ifdefs and \\[hide-ifdefs] to show them.
+Use  \\[hif-show-all] to show all ifdefs.
+
 Several variables affect how the hiding is done:
 
 `hide-ifdef-env'
         An association list of defined and undefined symbols for the
-        current project.  Initially, the global value of `hide-ifdef-env'
-        is used.  This variable was a buffer-local variable, which limits
-        hideif to parse only one C/C++ file at a time.  We've extended
-        hideif to support parsing a C/C++ project containing multiple C/C++
-        source files opened simultaneously in different buffers.  Therefore
-        `hide-ifdef-env' can no longer be buffer local but must be global.
+        current project.  Use \\[hide-ifdef-define] and \\[hide-ifdef-undef] to update the value of
+        this list with defined or undefined symbols.
+        We've extended hideif to support parsing a C/C++ project
+        containing multiple C/C++ source files opened simultaneously in
+        different buffers.  Therefore `hide-ifdef-env' can no longer be
+        buffer local but must be global.
+
+`hide-ifdef-initially'
+        Customize this to a non-nil value to cause ifdefs be hidden as
+        soon as `hide-ifdef-mode' is turned on.
+
+`hide-ifdef-lines'
+        Customize to non-nil to hide the #if, #ifdef, #ifndef, #else,
+        and #endif lines when hiding ifdefs.
 
 `hide-ifdef-define-alist'
         An association list of defined symbol lists.
         Use `hide-ifdef-set-define-alist' to save the current `hide-ifdef-env'
         and `hide-ifdef-use-define-alist' to set the current `hide-ifdef-env'
         from one of the lists in `hide-ifdef-define-alist'.
-
-`hide-ifdef-lines'
-        Set to non-nil to not show #if, #ifdef, #ifndef, #else, and
-        #endif lines when hiding.
-
-`hide-ifdef-initially'
-        Indicates whether `hide-ifdefs' should be called when Hide-Ifdef mode
-        is activated.
 
 `hide-ifdef-read-only'
         Set to non-nil if you want to make buffers read only while hiding.
@@ -353,9 +357,10 @@ Several variables affect how the hiding is done:
 
 (defun hif-clear-all-ifdef-defined ()
   "Clears all symbols defined in `hide-ifdef-env'.
-It will backup this variable to `hide-ifdef-env-backup' before clearing to
-prevent accidental clearance.
-When prefixed, it swaps current symbols with the backup ones."
+This command will backup this variable to `hide-ifdef-env-backup' before
+clearing, to prevent accidental clearance.
+With prefix argument, swap the current list of defined symbols with the
+backup one."
   (interactive)
   (if current-prefix-arg
       (if hide-ifdef-env-backup
@@ -375,8 +380,9 @@ When prefixed, it swaps current symbols with the backup ones."
       (message "All defined symbols cleared." ))))
 
 (defun hif-show-all (&optional start end)
-  "Show all of the text in the current buffer.
-If there is a marked region from START to END it only shows the symbols within."
+  "Show all of the text in the current buffer, unhiding ifdefs.
+If there is a marked region from START to END, only show the symbols in
+that region."
   (interactive
    (if (use-region-p)
        (list (region-beginning) (region-end))
@@ -1958,7 +1964,7 @@ Do this when cursor is at the beginning of `regexp' (i.e. #ifX)."
 
 (defun forward-ifdef (&optional arg)
   "Move point to beginning of line of the next ifdef-endif.
-With argument, do this that many times."
+With prefix argument N, do this that many times."
   (interactive "p")
   (or arg (setq arg 1))
   (if (< arg 0) (backward-ifdef (- arg))
@@ -1975,7 +1981,7 @@ With argument, do this that many times."
 
 (defun backward-ifdef (&optional arg)
   "Move point to beginning of the previous ifdef-endif.
-With argument, do this that many times."
+With prefix argument N, do this that many times."
   (interactive "p")
   (or arg (setq arg 1))
   (if (< arg 0) (forward-ifdef (- arg))
@@ -2016,7 +2022,7 @@ With argument, do this that many times."
 
 (defun next-ifdef (&optional arg)
   "Move to the beginning of the next #ifX, #else, or #endif.
-With argument, do this that many times."
+With prefix argument N, do this that many times."
   (interactive "p")
   (or arg (setq arg 1))
   (if (< arg 0) (previous-ifdef (- arg))
@@ -2029,7 +2035,7 @@ With argument, do this that many times."
 
 (defun previous-ifdef (&optional arg)
   "Move to the beginning of the previous #ifX, #else, or #endif.
-With argument, do this that many times."
+With prefix argument N, do this that many times."
   (interactive "p")
   (or arg (setq arg 1))
   (if (< arg 0) (next-ifdef (- arg))
@@ -2294,12 +2300,13 @@ Refer to `hide-ifdef-expand-reinclusion-guard' for more details."
 (defun hif-evaluate-macro (rstart rend)
   "Evaluate the macro expansion result for the active region.
 If no region is currently active, find the current #ifdef/#define and evaluate
-the result; otherwise it looks for current word at point.
-Currently it supports only math calculations, strings or argumented macros can
+the result; otherwise look for current word at point.
+Currently it supports only math calculations; strings or argumented macros can
 not be expanded.
-This function by default ignores parsing error and return `false' on evaluating
-runtime C(++) statements or tokens that normal C(++) preprocessor can't perform;
-however, when this command is prefixed, it will display the error instead."
+This function by default ignores parsing error and returns `false' on
+evaluating runtime C(++) statements or tokens that normal C(++) preprocessor
+can't perform; however, when invoked with prefix argument, it will display
+the error instead."
   (interactive
    (if (not (use-region-p))
        '(nil nil)
@@ -2450,7 +2457,8 @@ first arg will be `hif-etc'."
 (defvar hif-verbose-define-count 0)
 
 (defun hif-find-define (&optional min max)
-  "Parse texts and retrieve all defines within the region MIN and MAX."
+  "Parse texts and retrieve all defines within the region MIN and MAX.
+Interactively, MIN is position of point and MAX is the end of the buffer."
   (interactive)
   (and min (goto-char min))
   (and (re-search-forward hif-define-regexp max t)
@@ -2530,7 +2538,8 @@ first arg will be `hif-etc'."
 
 
 (defun hif-add-new-defines (&optional min max)
-  "Scan and add all #define macros between MIN and MAX."
+  "Scan and add all #define macros between MIN and MAX.
+Interactively, MIN is position of point and MAX is the end of the buffer."
   (interactive)
   (save-excursion
     (save-restriction
@@ -2628,7 +2637,7 @@ It does not do the work that's pointless to redo on a recursive entry."
 
 (defun hide-ifdef-define (var &optional val)
   "Define a VAR to VAL (default 1) in `hide-ifdef-env'.
-This allows #ifdef VAR to be hidden."
+This allows #ifndef VAR to be hidden."
   (interactive
    (let* ((default (save-excursion
                      (beginning-of-line)
@@ -2678,7 +2687,7 @@ This allows #ifdef VAR to be hidden."
 Assume that defined symbols have been added to `hide-ifdef-env'.
 The text hidden is the text that would not be included by the C
 preprocessor if it were given the file with those symbols defined.
-With prefix command presents it will also hide the #ifdefs themselves.
+With prefix argument, also hide the #ifdefs themselves.
 
 Hiding will only be performed within the marked region if there is one.
 
