@@ -1913,6 +1913,7 @@ Only works for unified diffs."
                           (eq (char-after) ?\n)
                           (> before 0) (> after 0))
                      (decf before) (decf after) t)
+                    ((looking-at "\\\\ ") t) ; See `(diffutils)Incomplete Lines'.
                     ((and (zerop before) (zerop after)) nil)
                     ((or (< before 0) (< after 0))
                      (error (if (or (zerop before) (zerop after))
