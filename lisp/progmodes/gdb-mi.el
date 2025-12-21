@@ -5359,7 +5359,7 @@ BUFFER nil or omitted means use the current buffer."
   (let* ((posns (gdb-line-posns (or line (line-number-at-pos))))
          (start (- (car posns) 1))
          (end (+ (cdr posns) 1))
-         (putstring (if enabled "B" "b"))
+         (putstring (make-string 1 (if enabled ?B ?b)))
          (source-window (get-buffer-window (current-buffer) 0)))
     (add-text-properties
      0 1 '(help-echo "mouse-1: clear bkpt, mouse-3: enable/disable bkpt")
