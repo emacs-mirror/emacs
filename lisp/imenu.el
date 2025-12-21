@@ -866,7 +866,7 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
 	(t
          (let ((subalist (imenu--flatten-index-alist
                           pos concat-names new-prefix))
-               (region (get-text-property 0 'breadcrumb-region name)))
+               (region (get-text-property 0 'imenu-region name)))
            (if region
                ;; Add non-leaf nodes with Eglot text properties.
                (append (imenu--flatten-index-alist
@@ -887,7 +887,7 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
          (list item))
         (t
          (let ((subalist (imenu--parentify-index-alist pos))
-               (region (get-text-property 0 'breadcrumb-region name)))
+               (region (get-text-property 0 'imenu-region name)))
            (when region
              (setq subalist (append (list (cons ".." (car region))) subalist)))
            (list (cons name subalist)))))))
@@ -928,7 +928,7 @@ The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
        ((when-let* ((alist (if (eq (car index-alist) imenu--rescan-item)
                                (cdr index-alist) index-alist))
                     (name (caar alist)))
-          (get-text-property 0 'breadcrumb-region name))
+          (get-text-property 0 'imenu-region name))
         ;; Change the menu structure by adding ".." to non-leaf nodes
         ;; only when the first node has Eglot text properties.
         (setq index-alist (imenu--parentify-index-alist index-alist))))

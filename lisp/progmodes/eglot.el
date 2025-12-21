@@ -3966,6 +3966,10 @@ for which LSP on-type-formatting should be requested."
                                      (plist-get location :range)))
                                (kind (alist-get kind eglot--symbol-kind-names)))
                            (cons (propertize name
+                                             'imenu-region reg
+                                             'imenu-kind kind
+                                             ;; Backward-compatible props
+                                             ;; to be removed later:
                                              'breadcrumb-region reg
                                              'breadcrumb-kind kind)
                                  (car reg))))
@@ -3981,6 +3985,10 @@ for which LSP on-type-formatting should be requested."
                 (let* ((reg (eglot-range-region range))
                        (kind (alist-get kind eglot--symbol-kind-names))
                        (name (propertize name
+                                         'imenu-region reg
+                                         'imenu-kind kind
+                                         ;; Backward-compatible props
+                                         ;; to be removed later:
                                          'breadcrumb-region reg
                                          'breadcrumb-kind kind)))
                   (if (seq-empty-p children)
