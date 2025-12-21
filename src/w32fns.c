@@ -11067,11 +11067,11 @@ triplet strings of the form \"#RRGGBB\".  */)
       COLORREF fg_rgb;
       unsigned short r, g, b;
       if (parse_color_spec (SSDATA (background), &r, &g, &b))
-	bg_rgb = RGB (r, b, b);
+	bg_rgb = RGB (r, g, b);
       else
 	return Qnil;
       if (parse_color_spec (SSDATA (foreground), &r, &g, &b))
-	fg_rgb = RGB (r, b, b);
+	fg_rgb = RGB (r, g, b);
       else
 	return Qnil;
 

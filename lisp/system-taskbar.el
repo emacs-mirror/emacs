@@ -444,10 +444,14 @@ If PROGRESS is nil, remove the progress bar."
 (declare-function w32-request-user-attention "w32fns.c")
 (declare-function w32-progress-indicator "w32fns.c")
 
-(defvar system-taskbar-w32-badge-background "#e75857" ; redish
+;; The background color should be similar to the color of the Emacs icon
+;; shown on the taskbar, as that seems to be the convention on
+;; MS-Windows.
+(defvar system-taskbar-w32-badge-background "#ab82ff" ; MediumPurple1
   "w32 badge background RGB triple string.")
 
-(defvar system-taskbar-w32-badge-foreground "#ffffff" ; white
+;; It looks like the convention is to use the black foreground.
+(defvar system-taskbar-w32-badge-foreground "#000000" ; black
   "w32 badge foreground RGB triple string.")
 
 (defun system-taskbar--w32-clear-frame-indicators (frame)
