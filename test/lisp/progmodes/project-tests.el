@@ -156,7 +156,7 @@ When `project-ignores' includes a name matching project dir."
     (should-not (null project))
     (should (string-match-p "/test/lisp/progmodes/project-resources/\\'" (project-root project)))
     (should (member "etc" (project-ignores project dir)))
-    (should (equal `(,@(when (version<= "1.13" (vc-git--program-version))
+    (should (equal `(,@(when (version<= "2.13" (vc-git--program-version))
                          (list ".dir-locals.el"))
                      "foo")
                    (mapcar #'file-name-nondirectory (project-files project))))))
