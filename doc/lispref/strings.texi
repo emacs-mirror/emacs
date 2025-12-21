@@ -1032,7 +1032,7 @@ Functions}).  Thus, strings are enclosed in @samp{"} characters, and
 Replace the specification with the base-eight representation of an
 integer.  The representation has leading @samp{-} if negative;
 for an unsigned two's complement representation of a possibly-negative
-integer @var{n}, format @code(logand @var{n} @var{mask})
+integer @var{n}, format @code{(logand @var{n} @var{mask})}
 where @var{mask} corresponds to the desired word size.
 The object can also be a floating-point number that is formatted
 as an integer, dropping any fraction.
@@ -1225,11 +1225,10 @@ family produce.
 retrieve a copy of the formatted value, use a specification that lets
 @code{read} reconstruct the value.  To format numbers in this
 reversible way you can use @samp{%s} and @samp{%S}, to format just
-integers you can also use @samp{%d}, and to format just nonnegative
-integers you can also use @samp{#x%x} and @samp{#o%o}.  Other formats
-may be problematic; for example, @samp{%d} and @samp{%g} can mishandle
-NaNs and can lose precision and type, and @samp{#x%x} and @samp{#o%o}
-can mishandle negative integers.  @xref{Input Functions}.
+integers you can also use @samp{%d}, @samp{#x%x} and @samp{#o%o}.
+Other formats do not guarantee preservation of all values; for example,
+@samp{%g} can lose precision and type and does not preserve NaN or
+infinity.  @xref{Input Functions}.
 
 The functions described in this section accept a fixed set of
 specification characters.  The next section describes a function
