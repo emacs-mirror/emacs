@@ -3176,6 +3176,14 @@ connection cleanup or on Emacs exiting.
 @subsection @option{rclone} setup
 @cindex rclone setup
 
+Check, that your @command{rclone} program is compiled with mount
+support.  Call @samp{rclone mount} and check for an error message.
+
+Sometimes, the saved configuration expires.  In this case, you must
+renew it with the command @samp{rclone config reconnect
+@var{remote}:}, with @var{remote} being the name of your configured
+system storage.
+
 The default arguments of the @command{rclone} operations
 @command{mount}, @command{copyto}, @command{moveto} and
 @command{about} are declared in the variable @code{tramp-methods} as
