@@ -1477,6 +1477,7 @@ END:VTIMEZONE
                              members
                              nonmembers
                              size
+                             (tags nil)
                              source)
 
   "Create a test which parses RECUR-STRING to an `icalendar-recur',
@@ -1507,10 +1508,12 @@ NONMEMBERS, if present, should be a list of values that are expected
 SIZE, if present, should be a positive integer representing the
   expected size of the recurrence set.  Defaults to the value of the
   COUNT clause in the recurrence rule, if any.
+TAGS is passed on to `ert-deftest'.
 SOURCE should be a symbol; it is used to name the test."
   `(ert-deftest ,(intern (concat "ict:rrule-test-" (symbol-name source))) ()
      ,(format "Parse and evaluate recur-value example from `%s':\n%s"
               source doc)
+     :tags ,tags
      (let* ((parsed (ical:parse-from-string 'ical:recur ,recur-string))
             (recvalue (ical:ast-node-value parsed))
             (until (ical:recur-until recvalue))
@@ -1713,6 +1716,7 @@ SOURCE should be a symbol; it is used to name the test."
 (ict:rrule-test
  "RRULE:FREQ=DAILY;UNTIL=19971224T000000Z\n"
  "Daily at 9AM until December 24, 1997"
+ :tags '(:expensive-test)
  :tz ict:tz-eastern
  :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
                                :hour 9 :minute 0 :second 0
@@ -1811,6 +1815,7 @@ SOURCE should be a symbol; it is used to name the test."
 (ict:rrule-test
  "RRULE:FREQ=YEARLY;UNTIL=20000131T140000Z;BYMONTH=1;BYDAY=SU,MO,TU,WE,TH,FR,SA\n"
  "Every day in January, for three years (weekdays explicit)"
+ :tags '(:expensive-test)
  :tz ict:tz-eastern
  :dtstart (ical:make-date-time :year 1998 :month 1 :day 1
                                :hour 9 :minute 0 :second 0
@@ -1839,6 +1844,7 @@ SOURCE should be a symbol; it is used to name the test."
 (ict:rrule-test
  "RRULE:FREQ=DAILY;UNTIL=20000131T140000Z;BYMONTH=1\n"
  "Every day in January, for three years (weekdays implicit)"
+ :tags '(:expensive-test)
  ;; TODO: as things are currently implemented, this way of expressing
  ;; the rule is quite expensive, since we end up computing intervals and
  ;; recurrences for every day of the year, even though the only relevant
@@ -2778,6 +2784,7 @@ Thursday, for the next 3 months"
  "RRULE:FREQ=MINUTELY;INTERVAL=20;BYHOUR=9,10,11,12,13,14,15,16\n"
  "Every 20 minutes from 9:00 AM to 4:40 PM every day
 (Alternative rule for the previous example)"
+ :tags '(:expensive-test)
  :tz ict:tz-eastern
  :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
                                :hour 9 :minute 0 :second 0

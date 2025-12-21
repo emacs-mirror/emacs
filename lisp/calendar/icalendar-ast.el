@@ -298,15 +298,13 @@ PROPS should be a plist with any of the following keywords:
 
 
 ;; A high-level API for constructing iCalendar syntax nodes in Lisp code:
-
-(declare-function ical:list-of-p "icalendar-parser")
-
 (defun ical:type-of (value &optional types)
   "Find the iCalendar type symbol for the type to which VALUE belongs.
 
 TYPES, if specified, should be a list of type symbols to check.
 TYPES defaults to all type symbols listed in `icalendar-value-types'."
   (require 'icalendar-parser) ; for ical:value-types, ical:list-of-p
+  (declare-function ical:list-of-p "icalendar-parser")
   (catch 'found
     (when (ical:ast-node-p value)
       (throw 'found (ical:ast-node-type value)))
@@ -339,7 +337,7 @@ the list is nil, VALUE will be checked against all types in
 If VALUE is nil, and `icalendar-boolean' is not (in) TYPE, nil is
 returned.  Otherwise, a \\='wrong-type-argument error is signaled if
 VALUE does not satisfy (any type in) TYPE."
-  (require 'icalendar-parser)
+  (require 'icalendar-parser) ; for `icalendar-list-of-p'
   (cond
    ((and (null value)
          (not (if (listp type) (memq 'ical:boolean type)
@@ -372,6 +370,31 @@ VALUE does not satisfy (any type in) TYPE."
                       value)))))
    (t (signal 'wrong-type-argument (list '(or symbolp listp) type)))))
 
+(defun ical:-make-param--list (type value-type raw-values)
+  "Make a param node of TYPE with list of values RAW-VALUES of type VALUE-TYPE."
+  (let ((value (if (seq-every-p #'ical:ast-node-p raw-values)
+                   raw-values
+                 (mapcar
+                  (lambda (c)
+                    (ical:make-value-node-of value-type c))
+                  raw-values))))
+    (when value
+      (ical:ast-node-valid-p
+       (ical:make-ast-node
+        type
+        (list :value value))))))
+
+(defun ical:-make-param--nonlist (type value-type raw-value)
+  "Make a param node of TYPE with value RAW-VALUE of type VALUE-TYPE."
+  (let ((value (if (ical:ast-node-p raw-value)
+                   raw-value
+                 (ical:make-value-node-of value-type raw-value))))
+    (when value
+      (ical:ast-node-valid-p
+       (ical:make-ast-node
+        type
+        (list :value value))))))
+
 (defmacro ical:make-param (type value)
   "Construct an iCalendar parameter node of TYPE with value VALUE.
 
@@ -393,28 +416,46 @@ will return an `icalendar-deltoparam' node whose value is a list of
 
 The resulting syntax node is checked for validity by
 `icalendar-ast-node-valid-p' before it is returned."
+  (declare (debug (symbolp form form)))
   ;; TODO: support `ical:otherparam'
   (unless (ical:param-type-symbol-p type)
     (error "Not an iCalendar param type: %s" type))
-  (let ((value-type (or (get type 'ical:value-type) 'plain-text))
-        (needs-list (ical:expects-list-of-values-p type)))
-    `(let* ((raw-value ,value)
-            (value-type (quote ,value-type))
-            (value
-             ,(if needs-list
-                  '(if (seq-every-p #'ical:ast-node-p raw-value)
-                       raw-value
-                     (mapcar
-                      (lambda (c) (ical:make-value-node-of value-type c))
-                      raw-value))
-                '(if (ical:ast-node-p raw-value)
-                     raw-value
-                    (ical:make-value-node-of value-type raw-value)))))
-        (when value
-          (ical:ast-node-valid-p
-           (ical:make-ast-node
-            (quote ,type)
-            (list :value value)))))))
+  (let ((value-type (or (get type 'ical:value-type) 'plain-text)))
+    (if (ical:expects-list-of-values-p type)
+        `(ical:-make-param--list ',type ',value-type ,value)
+      `(ical:-make-param--nonlist ',type ',value-type ,value))))
+
+(defun ical:-make-property--list (type value-types raw-values &optional params)
+  "Make a property node of TYPE with list of values RAW-VALUES.
+VALUE-TYPES should be a list of value types that TYPE accepts.
+PARAMS, if given, should be a list of parameter nodes."
+  (require 'icalendar-parser) ; for `ical:maybe-add-value-param'
+  (declare-function ical:maybe-add-value-param "icalendar-parser")
+
+  (let ((value (if (seq-every-p #'ical:ast-node-p raw-values)
+                   raw-values
+                 (mapcar
+                  (lambda (c) (ical:make-value-node-of value-types c))
+                  raw-values))))
+    (when value
+      (ical:ast-node-valid-p
+       (ical:maybe-add-value-param
+        (ical:make-ast-node type (list :value value) params))))))
+
+(defun ical:-make-property--nonlist (type value-types raw-value &optional params)
+  "Make a property node of TYPE with value RAW-VALUE.
+VALUE-TYPES should be a list of value types that TYPE accepts.
+PARAMS, if given, should be a list of parameter nodes."
+  (require 'icalendar-parser) ; for `ical:maybe-add-value-param'
+  (declare-function ical:maybe-add-value-param "icalendar-parser")
+
+  (let ((value (if (ical:ast-node-p raw-value)
+                   raw-value
+                 (ical:make-value-node-of value-types raw-value))))
+    (when value
+      (ical:ast-node-valid-p
+       (ical:maybe-add-value-param
+        (ical:make-ast-node type (list :value value) params))))))
 
 (defmacro ical:make-property (type value &rest param-templates)
   "Construct an iCalendar property node of TYPE with value VALUE.
@@ -422,15 +463,16 @@ The resulting syntax node is checked for validity by
 TYPE should be an iCalendar type symbol satisfying
 `icalendar-property-type-symbol-p'; it should not be quoted.
 
-VALUE should evaluate to a value appropriate for TYPE.  In particular, if
-TYPE expects a list of values (see
+VALUE should evaluate to a value appropriate for TYPE.  In particular,
+if TYPE expects a list of values (see
 `icalendar-expects-list-of-values-p'), VALUE should be such a list.  If
 necessary, the value(s) in VALUE will be wrapped in syntax nodes
 indicating their type.  If VALUE is not of the default value type for
-TYPE, an `icalendar-valuetypeparam' will automatically be added to TEMPLATES.
+TYPE, an `icalendar-valuetypeparam' will automatically be added to
+PARAM-TEMPLATES.
 
 Each element of PARAM-TEMPLATES should represent a parameter node; see
-`icalendar-make-node-from-templates' for the format of such TEMPLATES.
+`icalendar-make-node-from-templates' for the format of such templates.
 A template can also have the form (@ L), where L evaluates to a list of
 parameter nodes to be added to the component.
 
@@ -448,11 +490,11 @@ The resulting syntax node is checked for validity by
 `icalendar-ast-node-valid-p' before it is returned."
   ;; TODO: support `ical:other-property', maybe like
   ;; (ical:other-property "X-NAME" value ...)
+  (declare (debug (symbolp form form &rest form)))
   (unless (ical:property-type-symbol-p type)
     (error "Not an iCalendar property type: %s" type))
   (let ((value-types (cons (get type 'ical:default-type)
                            (get type 'ical:other-types)))
-        (needs-list (ical:expects-list-of-values-p type))
         params-expr children lists-of-children)
     (dolist (c param-templates)
       (cond ((and (listp c) (ical:type-symbol-p (car c)))
@@ -473,25 +515,9 @@ The resulting syntax node is checked for validity by
             `(seq-filter #'identity
                          (append (list ,@children) ,@lists-of-children))))
 
-    `(let* ((raw-value ,value)
-            (value-types (quote ,value-types))
-            (value
-               ,(if needs-list
-                    '(if (seq-every-p #'ical:ast-node-p raw-value)
-                         raw-value
-                       (mapcar
-                        (lambda (c) (ical:make-value-node-of value-types c))
-                        raw-value))
-                  '(if (ical:ast-node-p raw-value)
-                       raw-value
-                     (ical:make-value-node-of value-types raw-value)))))
-       (when value
-         (ical:ast-node-valid-p
-          (ical:maybe-add-value-param
-           (ical:make-ast-node
-            (quote ,type)
-            (list :value value)
-            ,params-expr)))))))
+    (if (ical:expects-list-of-values-p type)
+        `(ical:-make-property--list ',type ',value-types ,value ,params-expr)
+      `(ical:-make-property--nonlist ',type ',value-types ,value ,params-expr))))
 
 (defmacro ical:make-component (type &rest templates)
   "Construct an iCalendar component node of TYPE from TEMPLATES.
@@ -527,6 +553,7 @@ properties.
 
 The resulting syntax node is checked for validity by
 `icalendar-ast-node-valid-p' before it is returned."
+  (declare (debug (symbolp form &rest form)))
   ;; TODO: support `ical:other-component', maybe like
   ;; (ical:other-component (:x-name "X-NAME") templates ...)
   (unless (ical:component-type-symbol-p type)
@@ -633,6 +660,7 @@ For example, an iCalendar VEVENT could be written like this:
 
 Before the constructed node is returned, it is validated by
 `icalendar-ast-node-valid-p'."
+  (declare (debug (symbolp form &rest form)))
   (cond
    ((not (ical:type-symbol-p type))
     (error "Not an iCalendar type symbol: %s" type))
@@ -745,13 +773,12 @@ See `icalendar-daylight' for the permissible child types."
     (or (memq child-type (plist-get child-spec :one))
         (memq child-type (plist-get child-spec :one-or-more)))))
 
-(declare-function ical:printable-value-type-symbol-p "icalendar-parser")
-
 (defun ical:ast-node-valid-value-p (node)
   "Validate that NODE's value satisfies the requirements of its type.
 Signals an `icalendar-validation-error' if NODE's value is
 invalid, or returns NODE."
   (require 'icalendar-parser) ; for ical:printable-value-type-symbol-p
+  (declare-function ical:printable-value-type-symbol-p "icalendar-parser")
   (let* ((type (ical:ast-node-type node))
          (value (ical:ast-node-value node))
          (valtype-param (when (ical:property-type-symbol-p type)

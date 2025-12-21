@@ -676,8 +676,8 @@ other special requirements like quoting or escaping."
 
 (rx-define ical:x-name
   (seq "X-"
-      (zero-or-one (>= 3 (any "A-Za-z0-9")) "-") ; Vendor ID
-      (one-or-more (any "A-Za-z0-9" "-")))) ; Name
+       (zero-or-one (>= 3 (any "A-Za-z0-9")) "-") ; Vendor ID
+       (one-or-more (any "A-Za-z0-9" "-")))) ; Name
 
 (rx-define ical:name
   (or ical:iana-token ical:x-name))
@@ -883,12 +883,11 @@ for functions that work with this representation."
 (cl-deftype ical:numeric-minute () '(integer 0 59))
 (cl-deftype ical:numeric-second () '(integer 0 60)) ; 60 represents a leap second
 
-(declare-function ical:make-date-time "icalendar-utils")
-
 (defun ical:read-time (s)
   "Read an `icalendar-time' from a string S.
 S should be a match against rx `icalendar-time'."
   (require 'icalendar-utils) ; for ical:make-date-time; avoids circular require
+  (declare-function ical:make-date-time "icalendar-utils")
   (let ((hour (string-to-number (substring s 0 2)))
         (minute (string-to-number (substring s 2 4)))
         (second (string-to-number (substring s 4 6)))
@@ -1194,9 +1193,6 @@ When read, an Elisp integer value between -2147483648 and 2147483647."
   "Return the `icalendar-date-time' which marks the end of PERIOD, or nil."
   (cadr period))
 
-
-(declare-function ical:date/time-add-duration "icalendar-utils")
-
 (defsubst ical:period-dur-value (period)
   "Return the `icalendar-dur-value' which gives the length of PERIOD, or nil."
   (caddr period))
@@ -1207,6 +1203,7 @@ If the end is not explicitly specified, it will be computed from the
 period's start and duration.  VTIMEZONE, if given, should be the
 `icalendar-vtimezone' in which to compute the end time."
   (require 'icalendar-utils) ; for date/time-add-duration; avoids circular import
+  (declare-function ical:date/time-add-duration "icalendar-utils")
   (or (ical:period--defined-end period)
       ;; compute end from duration and cache it:
       (setf (cadr period)
@@ -1802,11 +1799,11 @@ The parsed and printed representations are the same: a URI string."
    "Type for Calendar User Address values.
 
 The parsed and printed representations are the same: a URI string.
-Typically, this should be a mailto: URI.
+Typically, this should be a \"mailto:\" URI.
 
-RFC5545 says: '*When used to address an Internet email transport
+RFC5545 says: \"*When used to address an Internet email transport
   address* for a calendar user, the value MUST be a mailto URI,
-  as defined by [RFC2368]'
+  as defined by [RFC2368]\"
 
 Since it is unclear whether there are Calendar User Address values
 which are not used to address email, this type does not enforce the use
@@ -4288,8 +4285,6 @@ VCALENDAR nodes; it is not normally necessary to call it directly."
     ;; success:
     node))
 
-(declare-function icr:tz-set-zones-in "icalendar-recur")
-
 (defun ical:contains-vcalendar-p (&optional buffer)
   "Determine whether BUFFER contains \"BEGIN:VCALENDAR\".
 
@@ -4316,6 +4311,7 @@ of a line that looks like \"BEGIN:VCALENDAR\".  After parsing, point is
 at the beginning of the next line following the calendar (or end of the
 buffer).  Returns a syntax node representing the calendar."
   (require 'icalendar-recur) ; for icr:tz-set-zones-in; avoids circular require
+  (declare-function icr:tz-set-zones-in "icalendar-recur")
   (unless (looking-at-p "^BEGIN:VCALENDAR")
     (ical:signal-parse-error "Not at start of VCALENDAR"))
   (let ((cal-node (ical:parse-component limit)))
@@ -4554,15 +4550,16 @@ which see."
       ;; Update and return the index:
       (plist-put index :bytzid tzid-index))))
 
-(declare-function icr:recurrences-to-count "icalendar-recur")
-(declare-function ical:date/time-to-local "icalendar-utils")
-(declare-function ical:date/time-to-date "icalendar-utils")
-(declare-function ical:dates-until "icalendar-utils")
 
 (defun ical:index-insert (index component)
   "Insert COMPONENT into INDEX."
   (require 'icalendar-recur) ; avoid circular imports
   (require 'icalendar-utils) ;
+  (declare-function icr:recurrences-to-count "icalendar-recur")
+  (declare-function ical:date/time-to-local "icalendar-utils")
+  (declare-function ical:date/time-to-date "icalendar-utils")
+  (declare-function ical:dates-until "icalendar-utils")
+
   (ical:with-component component
     ((ical:dtstart :first dtstart-node :value dtstart)
      (ical:dtend :first dtend-node :value dtend)
@@ -4668,13 +4665,6 @@ which see."
       (setq index (ical:index-insert index component)))
     index))
 
-(declare-function icr:find-interval "icalendar-recur")
-(declare-function icr:recurrences-in-interval "icalendar-recur")
-(declare-function ical:date/time-in-period-p "icalendar-utils")
-(declare-function ical:date/time<= "icalendar-utils")
-(declare-function ical:date/time< "icalendar-utils")
-(declare-function ical:date/time-add-duration "icalendar-utils")
-
 (cl-defun ical:index-get (index &rest args &key date uid tzid)
   "Get an iCalendar component from INDEX by date, UID, or TZID.
 
@@ -4693,6 +4683,14 @@ INDEX should be a reference to a parse tree index as returned by
 Only one keyword argument can be queried at a time."
   (require 'icalendar-recur) ; avoid circular imports
   (require 'icalendar-utils) ;
+
+  (declare-function icr:find-interval "icalendar-recur")
+  (declare-function icr:recurrences-in-interval "icalendar-recur")
+  (declare-function ical:date/time-in-period-p "icalendar-utils")
+  (declare-function ical:date/time<= "icalendar-utils")
+  (declare-function ical:date/time< "icalendar-utils")
+  (declare-function ical:date/time-add-duration "icalendar-utils")
+
   (when (length> args 2)
     (error "Only one keyword argument can be queried"))
   (cond (uid (gethash uid (plist-get index :byuid)))

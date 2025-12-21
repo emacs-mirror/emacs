@@ -73,10 +73,10 @@ asked to confirm."
 (defcustom di:after-mailcap-viewer-hook nil
   "Hook run after `diary-icalendar-mailcap-viewer'.
 
-The functions in this hook will be run after formatting the contents of
-iCalendar data as diary entries in a temporary buffer.  You can add
-functions to this hook if you want, for example, to copy these entries
-somewhere else."
+The functions in this hook will be run in a temporary buffer after
+formatting the contents of iCalendar data as diary entries in that
+buffer.  You can add functions to this hook if you want, for example, to
+copy these entries somewhere else."
   :version "31.1"
   :type '(hook))
 
@@ -108,12 +108,12 @@ start of the imported entry.) Examples:
   :version "31.1"
   :type '(string))
 
-(defcustom di:attendee-skeleton-command 'di:attendee-skeleton
+(defcustom di:attendee-format-function #'di:attendee-skeleton
   "Function to format ATTENDEE properties during diary import.
 
-This should be a symbol naming a function which inserts information
-about an `icalendar-attendee' into the current buffer.  It is convenient
-to express such a function as a skeleton; see `define-skeleton' and
+This should be a function which inserts information about an
+`icalendar-attendee' into the current buffer.  It is convenient to
+express such a function as a skeleton; see `define-skeleton' and
 `skeleton-insert' for more information.
 
 The function will be called with no arguments and should insert
@@ -150,7 +150,8 @@ sentby-full-address - like sentby-address, but nothing removed"
   :type '(radio (function-item di:attendee-skeleton)
                 (function :tag "Other function")))
 
-(defcustom di:skip-addresses-regexp user-mail-address
+(defcustom di:skip-addresses-regexp
+  (concat "\\<" (regexp-quote user-mail-address) "\\'")
   "Regular expression matching addresses to skip when importing.
 
 This regular expression should match calendar addresses (which are
@@ -159,15 +160,15 @@ ATTENDEE, ORGANIZER, and other iCalendar properties that identify a
 contact.
 
 You can make this match your own email address(es) to prevent them from
-being formatted by `diary-icalendar-attendee-skeleton-command' and
+being formatted by `diary-icalendar-attendee-format-function' and
 listed in diary entries."
   :version "31.1"
   :type '(regexp))
 
-(defcustom di:vevent-skeleton-command #'di:vevent-skeleton
+(defcustom di:vevent-format-function #'di:vevent-skeleton
   "Function to format VEVENT components for the diary.
 
-This should be a symbol naming a function which inserts information
+This function is called with no arguments and should insert information
 about an `icalendar-vevent' into the current buffer.  It is convenient
 to express such a function as a skeleton; see `define-skeleton' and
 `skeleton-insert' for more information.
@@ -179,10 +180,10 @@ alarms (list of `icalendar-valarm' nodes) - notifications in the event
 as-alarm (symbol) - non-nil when the event should be formatted for an
   alarm notification in advance of the event.  The symbol indicates the
   type of alarm: `email' means to format the event as the body of an email.
-  (Currently only used for EMAIL alarms; see `icalendar-export-alarms'.)
+  (Currently only used for EMAIL alarms; see `diary-icalendar-export-alarms'.)
 attachments (list of strings) - URLs or filenames of attachments in the event
 attendees (list of strings) - the participants of the event,
-  formatted by `diary-icalendar-attendee-skeleton-command'
+  formatted by `diary-icalendar-attendee-format-function'
 categories (list of strings) - categories specified in the event
 access - the event's access classification
 comments (list of strings) - comments specified in the event
@@ -219,9 +220,9 @@ last-modified-dt (an `icalendar-date-time' value) - the date and time the event
   was last modified
 last-modified - last-modified-dt, formatted as a local date and time string
 location - the event's location
-non-marking (a boolean) - if non-nil, the diary entry should be non-marking
+nonmarking (a boolean) - if non-nil, the diary entry should be nonmarking
 organizer - the event's organizer, formatted by
-  `diary-icalendar-attendee-skeleton-command'
+  `diary-icalendar-attendee-format-function'
 priority (a number) - the event's priority (1 = highest priority, 9 = lowest;
   0 = undefined)
 recurrence-id-dt (an `icalendar-date' or `icalendar-date-time' value) - the
@@ -246,12 +247,12 @@ url - a URL for the event"
   :type '(radio (function-item di:vevent-skeleton)
                 (function :tag "Other function")))
 
-(defcustom di:vjournal-skeleton-command #'di:vjournal-skeleton
+(defcustom di:vjournal-format-function #'di:vjournal-skeleton
   "Function to format VJOURNAL components for the diary.
 
-This should be a symbol naming a function which inserts information about
-an `icalendar-vjournal' into the current buffer.  It is convenient to
-express such a function as a skeleton; see `define-skeleton' and
+This function is called with no arguments and should insert information
+about an `icalendar-vjournal' into the current buffer.  It is convenient
+to express such a function as a skeleton; see `define-skeleton' and
 `skeleton-insert' for more information, and see
 `diary-icalendar-vjournal-skeleton' for an example.
 
@@ -262,7 +263,7 @@ alarms (list of `icalendar-valarm' nodes) - notifications in the journal entry
 attachments (list of strings) - URLs or filenames of attachments in the journal
   entry
 attendees (list of strings) - the participants of the journal entry,
-  formatted by `diary-icalendar-attendee-skeleton-command'
+  formatted by `diary-icalendar-attendee-format-function'
 categories (list of strings) - categories specified in the journal entry
 access - the journal entry's access classification
 comments (list of strings) - comments specified in the journal entry
@@ -285,9 +286,9 @@ importing (a boolean) - t if the journal entry should be formatted for import.
 last-modified-dt (an `icalendar-date-time' value) - the date and time
   the journal entry was last modified
 last-modified - last-modified-dt, formatted as a local date and time string
-non-marking (a boolean) - if non-nil, the diary entry should be non-marking
+nonmarking (a boolean) - if non-nil, the diary entry should be nonmarking
 organizer - the journal entry's organizer, formatted by
-  `diary-icalendar-attendee-skeleton-command'
+  `diary-icalendar-attendee-format-function'
 recurrence-id-dt (an `icalendar-date' or `icalendar-date-time' value) - the
   date or date-time of a particular recurrence of the journal entry
 recurrence-id - recurrence-id-dt, formatted as a local date and time string
@@ -321,11 +322,11 @@ information."
   :type '(choice (const :tag "Import as nonmarking entries" t)
                  (const :tag "Import as normal (marking) entries" nil)))
 
-(defcustom di:vtodo-skeleton-command #'di:vtodo-skeleton
+(defcustom di:vtodo-format-function #'di:vtodo-skeleton
   "Function to format VTODO components for the diary.
 
-This should be a symbol naming a function which inserts information about
-an `icalendar-vtodo' into the current buffer.  It is convenient to
+This function is called with no arguments and should insert information
+about an `icalendar-vtodo' into the current buffer.  It is convenient to
 express such a function as a skeleton; see `define-skeleton' and
 `skeleton-insert' for more information.
 
@@ -336,10 +337,10 @@ alarms (list of `icalendar-valarm' nodes) - notifications in the task
 as-alarm (symbol) - non-nil when the task should be formatted for an
   alarm notification in advance of the task.  The symbol indicates the
   type of alarm: `email' means to format the task as the body of an email.
-  (Currently only used for EMAIL alarms; see `icalendar-export-alarms'.)
+  (Currently only used for EMAIL alarms; see `diary-icalendar-export-alarms'.)
 attachments (list of strings) - URLs or filenames of attachments in the task
 attendees (list of strings) - the participants of the task,
-  formatted by `diary-icalendar-attendee-skeleton-command'
+  formatted by `diary-icalendar-attendee-format-function'
 categories (list of strings) - categories specified in the task
 access - the task's access classification
 comments (list of strings) - comments specified in the task
@@ -383,9 +384,9 @@ last-modified-dt (an `icalendar-date-time' value) - the date and time the task
   was last modified
 last-modified - last-modified-dt, formatted as a local date and time string
 location - the task's location
-non-marking (a boolean) - if non-nil, the diary entry should be non-marking
+nonmarking (a boolean) - if non-nil, the diary entry should be nonmarking
 organizer - the task's organizer, formatted by
-  `diary-icalendar-attendee-skeleton-command'
+  `diary-icalendar-attendee-format-function'
 percent-complete (a number between 0 and 100) - the percentage of the task which
   has already been completed
 priority (a number) - the task's priority (1 = highest priority, 9 = lowest;
@@ -475,7 +476,9 @@ variable if you want to export diary entries where the text to be used
 as the description should not include the full entry body.  In that case,
 the description should match group 1 of this regexp."
   :version "31.1"
-  :type '(regexp))
+  :type '(radio
+          (const :tag "Use full entry body" nil)
+          (regexp :tag "Regexp")))
 
 (defcustom di:organizer-regexp
   (rx line-start
@@ -863,25 +866,25 @@ set this to a function which parses that format to iCalendar properties
 during iCalendar export, so that other calendar applications can use
 them.
 
-The parsing function will be called with no arguments, with the current
-restriction set to the boundaries of a diary entry.  If
-`diary-icalendar-export-linewise' is true, the restriction will
-correspond to a single event in a multi-line diary entry.
+The parsing function will be called with the current restriction set to
+the boundaries of a diary entry.  If `diary-icalendar-export-linewise'
+is non-nil, the restriction will correspond to a single event in a
+multi-line diary entry.
+
+The function should accept two arguments, TYPE and PROPERTIES.  TYPE is
+the iCalendar type symbol (one of \\='icalendar-vevent,
+\\='icalendar-vjournal, or \\='icalendar-vtodo) for the component being
+generated for the entry.  PROPERTIES is the list of property nodes that
+`diary-icalendar-parse-entry' has already parsed from the entry and will
+be included in the exported component.
 
 The function should return a list of iCalendar property nodes, which
-will be incorporated into the `icalendar-vevent', `icalendar-vjournal',
-or `icalendar-vtodo' component node created from the current entry.  See
-the docstrings of those symbols for more information on the properties
-they can contain, and the `icalendar-make-property' macro for a simple
-way to create property nodes from values parsed from the entry.
-
-When the function is called, the variables `type' and `properties' will
-be dynamically bound.  `type' is bound to the iCalendar type symbol (one
-of \\='icalendar-vevent, \\='icalendar-vjournal, or \\='icalendar-vtodo)
-for the component being generated for the entry.  `properties' is bound
-to the list of property nodes that `diary-icalendar-parse-entry' has
-already parsed from the entry and will be included in the exported
-component."
+(in addition to PROPERTIES) will be incorporated into the
+`icalendar-vevent', `icalendar-vjournal', or `icalendar-vtodo' component
+node created from the current entry.  See the docstrings of those
+symbols for more information on the properties they can contain, and the
+`icalendar-make-property' macro for a simple way to create property
+nodes from values parsed from the entry."
   :version "31.1"
   :type '(radio (const :tag "Do not parse additional properties" nil)
                 (function :tag "Parsing function")))
@@ -1168,7 +1171,7 @@ Adds a message to current binding of `help-form' explaining how."
 ;; customize.  There are default skeletons for each major type of
 ;; iCalendar component (`di:vevent-skeleton', `di:vtodo-skeleton',
 ;; `di:vjournal-skeleton'), and a corresponding defcustom pointing to
-;; each of these skeletons (`di:vevent-skeleton-command', etc.).
+;; each of these skeletons (`di:vevent-format-function', etc.).
 ;; `di:format-entry' calls these skeletons, or user-provided functions,
 ;; to format individual components as diary entries.  Since properties
 ;; representing people (`icalendar-attendee', `icalendar-organizer') are
@@ -1192,18 +1195,17 @@ or
   nil
   ;; skip non-human "attendees":
   (when (or (not cutype) (equal cutype "INDIVIDUAL") (equal cutype "GROUP"))
-    (skeleton-insert
-     '(nil
-       cn
-       (format " <%s>" address)
-       (when partstat (format " (%s)" (downcase partstat)))))))
+    '(nil
+      cn
+      (format " <%s>" address)
+      (when partstat (format " (%s)" (downcase partstat))))))
 
 (defun di:format-attendee (attendee)
   "Format ATTENDEE for the diary.
 
 ATTENDEE should be an `icalendar-attendee' or `icalendar-organizer'
 property node.  Returns a string representing an entry for the attendee,
-formatted by `diary-icalendar-attendee-skeleton-command', unless the
+formatted by `diary-icalendar-attendee-format-function', unless the
 attendee's address matches the regexp in
 `diary-icalendar-skip-addresses-regexp'; in that case, nil is returned."
   (ical:with-property attendee
@@ -1243,7 +1245,7 @@ attendee's address matches the regexp in
       (unless (and di:skip-addresses-regexp
                    (string-match-p di:skip-addresses-regexp full-address))
         (with-temp-buffer
-          (funcall di:attendee-skeleton-command)
+          (funcall di:attendee-format-function)
           (buffer-string))))))
 
 (define-skeleton di:vevent-skeleton
@@ -1272,7 +1274,8 @@ attendee's address matches the regexp in
          (start (pop skeleton-positions)))
     ;; TODO: should diary define a customizable indentation level?
     ;; For now, we use 1 because that's what icalendar.el chose
-    (indent-code-rigidly start end 1))
+    (indent-code-rigidly start end 1)
+    nil) ; Don't insert return value
   (when importing "\n"))
 
 (define-skeleton di:vjournal-skeleton
@@ -1299,7 +1302,8 @@ attendee's address matches the regexp in
   @ ; end of body
   (let* ((end (pop skeleton-positions))
          (start (pop skeleton-positions)))
-    (indent-code-rigidly start end 1))
+    (indent-code-rigidly start end 1)
+    nil) ; Don't insert return value
   (when importing "\n"))
 
 (define-skeleton di:vtodo-skeleton
@@ -1328,7 +1332,8 @@ attendee's address matches the regexp in
   @ ; end of body
   (let* ((end (pop skeleton-positions))
          (start (pop skeleton-positions)))
-    (indent-code-rigidly start end 1))
+    (indent-code-rigidly start end 1)
+    nil) ; Don't insert return value
   (when importing "\n"))
 
 ;;; Further utilities for formatting/importing special kinds of values:
@@ -1338,14 +1343,14 @@ attendee's address matches the regexp in
           (abs (car geo)) (if (< 0 (car geo)) "N" "S")
           (abs (cdr geo)) (if (< 0 (cdr geo)) "E" "W")))
 
-(defun ical:save-binary-attachment (base64-data dir &optional mimetype)
+(defun di:save-binary-attachment (base64-data dir &optional mimetype)
   "Decode and save BASE64-DATA to a new file in DIR.
 
 The file will be named based on a unique prefix of BASE64-DATA with an
 extension based on MIMETYPE.  It will be saved in a subdirectory named
 DIR of `diary-icalendar-attachment-directory', which will be created if
 necessary.  Returns the (non-directory part of) the saved filename."
-  (require 'mailcap)
+  (require 'mailcap) ; for `mailcap-mime-type-to-extension'
   ;; Create the subdirectory for the attachment if necessary:
   (unless (and (directory-name-p di:attachment-directory)
                (file-writable-p di:attachment-directory))
@@ -1391,7 +1396,7 @@ URLs or filenames."
         ((ical:fmttypeparam :value fmttype))
         (when (and (eq 'ical:binary value-type)
                    di:attachment-directory)
-          (let ((filename (ical:save-binary-attachment value uid fmttype)))
+          (let ((filename (di:save-binary-attachment value uid fmttype)))
             (push filename entry-attachments)))
         (when (eq 'ical:url value-type)
           (push value entry-attachments))))
@@ -1479,7 +1484,7 @@ the iCalendar data."
 If DT is a date-time, only the date part is considered.  The date is
 formatted with `calendar-date-string' according to the pattern in
 `diary-date-insertion-form'."
-  (calendar-dlet ((calendar-date-display-form diary-date-insertion-form))
+  (dlet ((calendar-date-display-form diary-date-insertion-form))
     (cl-typecase dt
       (ical:date (calendar-date-string dt t t))
       (ical:date-time (calendar-date-string (ical:date-time-to-date dt) t t)))))
@@ -1633,7 +1638,7 @@ the event."
 ;; by the appropriate skeleton command for the component, or by
 ;; `di:-format-vevent-legacy' if the legacy format string variables from
 ;; icalendar.el are set.
-(defun di:format-entry (component index &optional non-marking)
+(defun di:format-entry (component index &optional nonmarking)
   "Format an iCalendar component for the diary.
 
 COMPONENT should be an `icalendar-vevent', `icalendar-vtodo', or
@@ -1641,14 +1646,14 @@ COMPONENT should be an `icalendar-vevent', `icalendar-vtodo', or
 COMPONENT occurs, as returned by `icalendar-parse-and-index'.
 
 Depending on the type of COMPONENT, the body will be formatted by one of:
-`diary-icalendar-vevent-skeleton-command'
-`diary-icalendar-vtodo-skeleton-command'
-`diary-icalendar-vjournal-skeleton-command'
+`diary-icalendar-vevent-format-function'
+`diary-icalendar-vtodo-format-function'
+`diary-icalendar-vjournal-format-function'
 which see.
 
-The variable `non-marking' will be bound to the value of NON-MARKING in
+The variable `nonmarking' will be bound to the value of NONMARKING in
 the relevant skeleton command.  If it is non-nil, the user requested the
-entry to be non-marking.
+entry to be nonmarking.
 
 Returns a string containing the diary entry."
   (ical:with-component component
@@ -1853,7 +1858,7 @@ Returns a string containing the diary entry."
            (last-modified-dt last-modified-dt)
            (last-modified (di:format-date/time-as-local last-modified-dt))
            (location (di:-nonempty location))
-           (non-marking non-marking)
+           (nonmarking nonmarking)
            (organizer (di:format-attendee organizer-node))
            (percent-complete percent-complete)
            (priority priority)
@@ -1893,9 +1898,9 @@ Returns a string containing the diary entry."
                                                access description location
                                                organizer-addr
                                                summary status url uid))
-                 (funcall di:vevent-skeleton-command))))
-            (ical:vtodo (funcall di:vtodo-skeleton-command))
-            (ical:vjournal (funcall di:vjournal-skeleton-command)))
+                 (funcall di:vevent-format-function))))
+            (ical:vtodo (funcall di:vtodo-format-function))
+            (ical:vjournal (funcall di:vjournal-format-function)))
           (buffer-string))))))
 
 
@@ -1951,7 +1956,7 @@ See the :lessp argument of `sort' for more information."
   :type '(radio (function-item di:sort-by-start-ascending)
                 (function :tag "Other comparison function")))
 
-(defun di:import-buffer-to-buffer (&optional all-non-marking)
+(defun di:import-buffer-to-buffer (&optional all-nonmarking)
   "Format iCalendar data in current buffer as diary entries.
 
 This function parses the first iCalendar VCALENDAR in the current buffer
@@ -1959,7 +1964,7 @@ and formats its VEVENT, VJOURNAL, and VTODO components as diary entries.
 It returns a new buffer containing those diary entries.  The caller
 should kill this buffer when it is no longer needed.
 
-If ALL-NON-MARKING is non-nil, all diary entries will be non-marking.
+If ALL-NONMARKING is non-nil, all diary entries will be non-marking.
 
 The list of components to import can be filtered by binding
 `diary-icalendar-import-predicate'.  After each component is formatted as
@@ -2005,7 +2010,7 @@ in the `diary-icalendar' group."
               (calendar-dlet ((importing t)) ; inform skeletons we're importing
                 (dolist (component to-import)
                   (setq entry-start (point))
-                  (insert (di:format-entry component index all-non-marking))
+                  (insert (di:format-entry component index all-nonmarking))
                   (with-restriction entry-start (point)
                     (save-excursion
                       (run-hooks 'di:post-entry-format-hook)))
@@ -2046,7 +2051,7 @@ in the `diary-icalendar' group."
            ;; of the main diary file:
            (diary-make-entry
             entry
-            nil ; skeleton has already interpreted non-marking
+            nil ; skeleton has already interpreted nonmarking
             nil ; use dynamic value of `diary-file'
             t   ; skeleton responsible for final spaces
             t))  ; no need to show diary file while importing
@@ -2056,7 +2061,7 @@ in the `diary-icalendar' group."
          (cl-incf di:-entry-count)))))
 
 ;;;###autoload
-(defun di:import-buffer (&optional diary-filename quietly all-non-marking)
+(defun di:import-buffer (&optional diary-filename quietly all-nonmarking)
   "Import iCalendar events from current buffer into diary.
 
 This function parses the first iCalendar VCALENDAR in the current buffer
@@ -2069,7 +2074,7 @@ if you want to save the diary file unless QUIETLY is non-nil.  When
 called interactively, you are asked if you want to confirm each entry
 individually; answer No to make QUIETLY non-nil.
 
-ALL-NON-MARKING determines whether all diary events are created as
+ALL-NONMARKING determines whether all diary events are created as
 non-marking entries.  When called interactively, you are asked whether
 you want to make all entries non-marking.
 
@@ -2099,7 +2104,7 @@ as well as variables in the customization group `diary-icalendar-import'."
                            (find-file-noselect diary-filename)))
          import-buffer)
     (unwind-protect
-        (setq import-buffer (di:import-buffer-to-buffer all-non-marking))
+        (setq import-buffer (di:import-buffer-to-buffer all-nonmarking))
       (when (bufferp import-buffer)
         (kill-buffer import-buffer)))
     (display-buffer diary-buffer)
@@ -2111,7 +2116,7 @@ as well as variables in the customization group `diary-icalendar-import'."
         (save-buffer)))))
 
 ;;;###autoload
-(defun di:import-file (filename &optional diary-filename quietly non-marking)
+(defun di:import-file (filename &optional diary-filename quietly nonmarking)
   "Import iCalendar diary entries from FILENAME into DIARY-FILENAME.
 
 This function parses the first iCalendar VCALENDAR in FILENAME and
@@ -2124,7 +2129,7 @@ if you want to save the diary file unless QUIETLY is non-nil.  When
 called interactively, you are asked if you want to confirm each entry
 individually; answer No to make QUIETLY non-nil.
 
-NON-MARKING determines whether all diary events are created as
+NONMARKING determines whether all diary events are created as
 non-marking entries.  When called interactively, you are asked whether
 you want to make all entries non-marking.
 
@@ -2153,7 +2158,7 @@ as well as variables in the customization group `diary-icalendar-import'."
     ;; Hand off to `di:import-buffer' for the actual import:
     (if parse-buf
         (with-current-buffer parse-buf
-          (di:import-buffer diary-filename quietly non-marking))
+          (di:import-buffer diary-filename quietly nonmarking))
       ;; If we get here, we weren't able to open the file for parsing:
       (warn "Unable to open file %s; see %s"
             filename (buffer-name (ical:error-buffer))))))
@@ -3583,21 +3588,18 @@ recursive calls to this function made by
 
           ;; Allow users to add to the properties parsed:
           (when (functionp di:other-properties-parser)
-            (calendar-dlet
-                ((type type)
-                 (properties all-props))
-              (let ((others (funcall di:other-properties-parser)))
-                (dolist (p others)
-                  (condition-case nil
-                      (push (ical:ast-node-valid-p p)
-                            all-props)
-                    (ical:validation-error
-                     (ical:warn
-                      (format "`%s' returned invalid `%s' property; ignoring"
-                              di:other-properties-parser
-                              (ical:ast-node-type p))
-                      :buffer (current-buffer)
-                      :position (point))))))))
+            (let ((others (funcall di:other-properties-parser type all-props)))
+              (dolist (p others)
+                (condition-case nil
+                    (push (ical:ast-node-valid-p p)
+                          all-props)
+                  (ical:validation-error
+                   (ical:warn
+                    (format "`%s' returned invalid `%s' property; ignoring"
+                            di:other-properties-parser
+                            (ical:ast-node-type p))
+                    :buffer (current-buffer)
+                    :position (point)))))))
 
           ;; Construct, validate and return a component of the appropriate type:
           (let ((component

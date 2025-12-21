@@ -432,8 +432,6 @@ ignored.  N may be a positive or negative integer."
            (new-dt (decoded-time-add dt delta)))
       (ical:date-time-to-date new-dt))))
 
-(declare-function icalendar-recur-tz-decode-time "icalendar-recur")
-
 (defun ical:date-time-add (dt delta &optional vtimezone)
   "Like `decoded-time-add', but also updates weekday and time zone slots.
 
@@ -452,6 +450,8 @@ standard time, even though this is not exactly 48 hours later.  Adding a
 DELTA of 48 hours, on the other hand, will result in a time exactly 48
 hours later, but at a different local time."
   (require 'icalendar-recur) ; for icr:tz-decode-time; avoids circular requires
+  (declare-function icalendar-recur-tz-decode-time "icalendar-recur")
+
   (if (not vtimezone)
       ;; the simple case: we have no time zone info, so just use
       ;; `decoded-time-add':
@@ -543,8 +543,6 @@ local time.  If DT is an `icalendar-date', return it unchanged."
      (ical:date-time-variant ; ensure weekday is present too
       (decode-time (encode-time dt))))))
 
-(declare-function icalendar-recur-subintervals-to-dates "icalendar-recur")
-
 (defun ical:dates-until (start end &optional locally)
   "Return a list of `icalendar-date' values between START and END.
 
@@ -556,7 +554,9 @@ after midnight, then its date will be included in the returned list.)
 If LOCALLY is non-nil and START and END are date-times, these will be
 interpreted into Emacs local time, so that the dates returned are valid
 for the local time zone."
-  (require 'icalendar-recur)
+  (require 'icalendar-recur) ; avoid circular requires
+  (declare-function icalendar-recur-subintervals-to-dates "icalendar-recur")
+
   (when locally
     (when (cl-typep start 'ical:date-time)
       (setq start (ical:date/time-to-local start)))
@@ -603,8 +603,6 @@ for the local time represented by the remaining arguments."
            ,@(when given-dst (list :dst dst))
            ,@(when zone (list :zone zone)))))
 
-(declare-function icalendar-recur-tz-set-zone "icalendar-recur")
-
 (cl-defun ical:date-time-variant (dt &key second minute hour
                                           day month year
                                           (dst -1 given-dst)
@@ -629,6 +627,8 @@ this value, but its dst slot will not be adjusted.  If it is the symbol
 \\='preserve, then both the zone and dst fields are copied from DT into
 the variant."
   (require 'icalendar-recur) ; for icr:tz-set-zone; avoids circular requires
+  (declare-function icalendar-recur-tz-set-zone "icalendar-recur")
+
   (let ((variant
          (make-decoded-time :second (or second (decoded-time-second dt))
                             :minute (or minute (decoded-time-minute dt))

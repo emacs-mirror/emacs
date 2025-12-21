@@ -1210,9 +1210,10 @@ SOURCE, if given, should be a symbol; it is used to name the test."
      (should (= 16 (decoded-time-hour start)))
      (should (ical:with-param-of start-node 'ical:tzidparam)))))
 
-(defun dit:parse-@-location ()
+(defun dit:parse-@-location (type properties)
   "Example user function for parsing additional properties.
 Parses anything following \"@\" to end of line as the entry's LOCATION."
+  (ignore type properties)
   (goto-char (point-min))
   (when (re-search-forward "@\\([^\n]+\\)" nil t)
     (list (ical:make-property ical:location

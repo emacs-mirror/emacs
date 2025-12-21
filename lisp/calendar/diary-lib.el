@@ -2319,7 +2319,10 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
   ;; Accepted formats: 10:00 10.00 10h00 10h 10am 10:00am 10.00am
   ;; Use of "." as a separator annoyingly matches numbers, eg "123.45".
   ;; Hence often prefix this with "\\(^\\|\\s-\\)."
-  ;; FIXME.
+  ;; FIXME: this regexp is too liberal to be used for parsing times from
+  ;; entries by `diary-icalendar-parse-time', hence the existence of
+  ;; `diary-icalendar-time-regexp'.  Can we tighten it up so we don't
+  ;; need both?
   (concat "[0-9]?[0-9]\\([AaPp][mM]\\|\\("
           "[Hh]\\([0-9][0-9]\\)?\\|[:.][0-9][0-9]"
           "\\)\\([AaPp][Mm]\\)?\\)")

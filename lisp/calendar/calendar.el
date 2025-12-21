@@ -944,9 +944,7 @@ including those inserted into the diary from the calendar with
   :version "31.1"
   :type 'sexp
   :risky t
-  :set-after '(calendar-date-style diary-american-date-insertion-form
-                                   diary-european-date-insertion-form
-                                   diary-iso-date-insertion-form)
+  :set-after '(calendar-date-style)
   :group 'diary)
 
 ;; Next three are provided to aid in setting calendar-date-display-form.

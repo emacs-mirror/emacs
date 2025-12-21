@@ -1612,14 +1612,14 @@ they are imported by different functions, determined by the following
 variables:
 
 @vtable @code
-@item diary-icalendar-vevent-skeleton-command
+@item diary-icalendar-vevent-format-function
 Function to format VEVENT components for the diary.
 
-@item diary-icalendar-vtodo-skeleton-command
-Function to format VTODO components for the diary.
-
-@item diary-icalendar-vjournal-skeleton-command
+@item diary-icalendar-vjournal-format-function
 Function to format VJOURNAL components for the diary.
+
+@item diary-icalendar-vtodo-format-function
+Function to format VTODO components for the diary.
 @end vtable
 
 You can customize the format of the imported diary entries by writing
@@ -1640,7 +1640,7 @@ like:
 
 @noindent
 Then you could write the import formatting function as a skeleton and
-set it to the value of @code{diary-icalendar-vevent-skeleton-command} as
+set it to the value of @code{diary-icalendar-vevent-format-function} as
 follows:
 
 @lisp
@@ -1653,14 +1653,14 @@ follows:
   start-to-end & " " & summary & " "
   (when location "@@ ") & location "\n")
 
-(setopt diary-icalendar-vevent-skeleton-command #'simple-vevent)
+(setopt diary-icalendar-vevent-format-function #'simple-vevent)
 @end group
 @end lisp
 
 The variables @code{start-to-end}, @code{summary} and @code{location} in
 this example are dynamically bound to appropriate values when the
 skeleton is called.  See the docstring of
-@code{diary-icalendar-vevent-skeleton-command} for more information.
+@code{diary-icalendar-vevent-format-function} for more information.
 
 Any errors encountered during import will be reported in a buffer named
 @file{*icalendar-errors*}.  You can review these errors with the

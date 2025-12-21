@@ -117,7 +117,7 @@ argument.  It must return a string.  See
 
 (make-obsolete-variable
  'icalendar-import-format
- "please use `diary-icalendar-vevent-skeleton-command' for import
+ "please use `diary-icalendar-vevent-format-function' for import
 formatting instead."
  "31.1")
 
@@ -131,7 +131,7 @@ by the summary."
 
 (make-obsolete-variable
  'icalendar-import-format-summary
- "please use `diary-icalendar-vevent-skeleton-command' for import
+ "please use `diary-icalendar-vevent-format-function' for import
 formatting instead."
  "31.1")
 
@@ -145,7 +145,7 @@ replaced by the description."
 
 (make-obsolete-variable
  'icalendar-import-format-description
- "please use `diary-icalendar-vevent-skeleton-command' for import
+ "please use `diary-icalendar-vevent-format-function' for import
 formatting instead."
  "31.1")
 
@@ -159,7 +159,7 @@ by the location."
 
 (make-obsolete-variable
  'icalendar-import-format-location
- "please use `diary-icalendar-vevent-skeleton-command' for import
+ "please use `diary-icalendar-vevent-format-function' for import
 formatting instead."
  "31.1")
 
@@ -173,7 +173,7 @@ replaced by the organizer."
 
 (make-obsolete-variable
  'icalendar-import-format-organizer
- "please use `diary-icalendar-vevent-skeleton-command' for import
+ "please use `diary-icalendar-vevent-format-function' for import
 formatting instead."
  "31.1")
 
@@ -187,7 +187,7 @@ the URL."
 
 (make-obsolete-variable
  'icalendar-import-format-url
- "please use `diary-icalendar-vevent-skeleton-command' for import
+ "please use `diary-icalendar-vevent-format-function' for import
 formatting instead."
  "31.1")
 
@@ -202,7 +202,7 @@ the UID."
 
 (make-obsolete-variable
  'icalendar-import-format-uid
- "please use `diary-icalendar-vevent-skeleton-command' for import
+ "please use `diary-icalendar-vevent-format-function' for import
 formatting instead."
  "31.1")
 
@@ -216,7 +216,7 @@ the status."
 
 (make-obsolete-variable
  'icalendar-import-format-status
- "please use `diary-icalendar-vevent-skeleton-command' for import
+ "please use `diary-icalendar-vevent-format-function' for import
 formatting instead."
  "31.1")
 
@@ -230,7 +230,7 @@ the class."
 
 (make-obsolete-variable
  'icalendar-import-format-class
- "please use `diary-icalendar-vevent-skeleton-command' for import
+ "please use `diary-icalendar-vevent-format-function' for import
 formatting instead."
  "31.1")
 

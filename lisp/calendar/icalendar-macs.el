@@ -108,7 +108,7 @@ The following keyword arguments are accepted:
   type to a string.  Its name does not need to be quoted.
   (default: identity)
 
-:link - a string containing an URL for further documentation of this type"
+:link - a string containing a URL for further documentation of this type"
   (declare (doc-string 2))
   (let* (;; Related functions:
          (type-dname (if print-name
@@ -592,7 +592,7 @@ of type symbols:
        ;; Group 3: incorrect values up to end-of-line (for syntax warnings)
        (rx-define ,full-value-rx-name
          (or (group-n 2 ,(or values-rx value))
-             (group-n 3 (zero-or-more any))))
+             (group-n 3 (zero-or-more not-newline))))
 
        ;; Full property regex which matches:
        ;; Group 1: the property name,
