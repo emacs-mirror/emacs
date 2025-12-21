@@ -3409,6 +3409,12 @@ separator, are also supported.
 ---
 ** The obsolete variable 'load-convert-to-unibyte' has been removed.
 
+---
+** The experimental variable 'binary-as-unsigned' has been removed.
+Instead of (let ((binary-as-unsigned t)) (format "%x" N)) you can use
+(format "%x" (logand N MASK)) where MASK is for the desired word size,
+e.g., #x3fffffffffffffff for typical Emacs fixnums.
+
 +++
 ** The 'exec-path' variable now uses same default PATH as other programs.
 That is, if the PATH environment variable is unset or empty, 'exec-path'

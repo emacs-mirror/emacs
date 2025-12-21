@@ -1030,7 +1030,11 @@ Functions}).  Thus, strings are enclosed in @samp{"} characters, and
 @item %o
 @cindex integer to octal
 Replace the specification with the base-eight representation of an
-integer.  The object can also be a floating-point number that is formatted
+integer.  The representation has leading @samp{-} if negative;
+for an unsigned two's complement representation of a possibly-negative
+integer @var{n}, format @code(logand @var{n} @var{mask})
+where @var{mask} corresponds to the desired word size.
+The object can also be a floating-point number that is formatted
 as an integer, dropping any fraction.
 
 @item %d
@@ -1043,8 +1047,9 @@ formatted as an integer, dropping any fraction.
 @itemx %X
 @cindex integer to hexadecimal
 Replace the specification with the base-sixteen representation of an
-integer.  @samp{%x} uses lower case and @samp{%X} uses upper
-case.  The object can also be a floating-point number that is
+integer.  Like @samp{%o}, the representation has leading @samp{-} if negative.
+@samp{%x} uses lower case and @samp{%X} uses upper case.
+The object can also be a floating-point number that is
 formatted as an integer, dropping any fraction.
 
 @item %c

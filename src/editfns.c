@@ -3361,8 +3361,6 @@ the next available argument, or the argument explicitly specified:
 %S means produce any object as an s-expression (using `prin1').
 
 The argument used for %d, %i, %o, %x, %e, %f, %g or %c must be a number.
-%o, %x, and %X treat arguments as unsigned if `binary-as-unsigned' is t
-  (this is experimental; email 32252@debbugs.gnu.org if you need it).
 Use %% to put a single % into the output.
 
 A %-sequence other than %% may contain optional field number, flag,
@@ -3995,17 +3993,9 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		  bool negative;
 		  if (FIXNUMP (arg))
 		    {
-		      if (binary_as_unsigned)
-			{
-			  x = XUFIXNUM (arg);
-			  negative = false;
-			}
-		      else
-			{
-			  EMACS_INT i = XFIXNUM (arg);
-			  negative = i < 0;
-			  x = negative ? -i : i;
-			}
+		      EMACS_INT i = XFIXNUM (arg);
+		      negative = i < 0;
+		      x = negative ? -i : i;
 		    }
 		  else
 		    {
@@ -4829,18 +4819,6 @@ functions if all the text being accessed has this property.  */);
 	       doc: /* The kernel version of the operating system on which Emacs is running.
 The value is a string.  It can also be nil if Emacs doesn't
 know how to get the kernel version on the underlying OS.  */);
-
-  DEFVAR_BOOL ("binary-as-unsigned",
-	       binary_as_unsigned,
-	       doc: /* Non-nil means `format' %x and %o treat integers as unsigned.
-This has machine-dependent results.  Nil means to treat integers as
-signed, which is portable and is the default; for example, if N is a
-negative integer, (read (format "#x%x" N)) returns N only when this
-variable is nil.
-
-This variable is experimental; email 32252@debbugs.gnu.org if you need
-it to be non-nil.  */);
-  binary_as_unsigned = false;
 
   DEFSYM (Qoutermost_restriction, "outermost-restriction");
   Funintern (Qoutermost_restriction, Qnil);
