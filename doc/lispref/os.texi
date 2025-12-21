@@ -3343,7 +3343,7 @@ notification sent will belong.  This category is reproduced within the
 system's notification settings menus, but is ignored under Android 7.1
 and earlier.
 
-If @var{group} is nil or not present within @var{params}, it is
+If @var{group} is @code{nil} or not present within @var{params}, it is
 replaced by the string @samp{"Desktop Notifications"}.
 
 Callers should provide one stable combination of @var{urgency} and
@@ -3437,11 +3437,11 @@ taskbar Emacs icon.
 
 It is convenient to use the built-in progress reporter functions which,
 when @code{system-taskbar-mode} is enabled, integrate with
-@code{system-taskbar-progress} by default.  @xref{Progress}
+@code{system-taskbar-progress} by default.  @xref{Progress}.
 @end defun
 
 @noindent
-Examples of system-taskbar functions:
+Examples of system taskbar functions:
 
 @lisp
 @group
@@ -3475,7 +3475,7 @@ Examples of system-taskbar functions:
 @end group
 
 @group
-;; Make sure system-taskbar is integrated with progress-reporter.
+;; Make sure system taskbar is integrated with progress-reporter.
 (setopt system-taskbar-use-progress-reporter t) ; t is the default
 (system-taskbar-mode)
 

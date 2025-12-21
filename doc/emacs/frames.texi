@@ -1667,7 +1667,7 @@ Effects are associated with the frame from which they are initiated.
 MS-Windows needs no special configuration.
 
 @findex system-taskbar-mode
-  You must initialize system-taskbar before using it.  To do that, type
+  You must initialize system taskbar before using it.  To do that, type
 @kbd{M-x system-taskbar-mode}.
 
 @vindex system-taskbar-use-progress-reporter

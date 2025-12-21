@@ -70,7 +70,7 @@
 ;; When `system-taskbar-mode' is enabled, Emacs progress reporters will
 ;; be enhanced to display taskbar GUI progress bars.  Customize
 ;; `system-taskbar-use-progress-reporter' if you want to disable this
-;; before enabling system-taskbar-mode.
+;; before enabling `system-taskbar-mode'.
 ;;
 ;; On GNU/Linux systems, taskbar effects will appear on the GUI
 ;; window-system destinations determined by your shell extension, most
@@ -143,12 +143,12 @@ to find what works for your system."
   :version "31.1")
 
 (defun system-taskbar-progress-reporter-install ()
-  "Install system-taskbar progress reporter."
+  "Install system taskbar progress reporter."
   (add-hook 'progress-reporter-update-functions
             #'system-taskbar--progress-reporter-update))
 
 (defun system-taskbar-progress-reporter-remove ()
-  "Remove system-taskbar progress reporter."
+  "Remove system taskbar progress reporter."
   (remove-hook 'progress-reporter-update-functions
                #'system-taskbar--progress-reporter-update))
 
@@ -226,10 +226,10 @@ If PROGRESS is nil, remove the progress indicator."
               (t nil))))
 
 (cl-defgeneric system-taskbar--enable ()
-  "Enable the system-taskbar back end.")
+  "Enable the system taskbar back end.")
 
 (cl-defgeneric system-taskbar--disable ()
-  "Disable the system-taskbar back end.")
+  "Disable the system taskbar back end.")
 
 (cl-defgeneric system-taskbar--badge (&optional count)
   "Display COUNT as an overlay on the system taskbar Emacs icon.
@@ -270,7 +270,7 @@ If PROGRESS is nil, remove the progress indicator.")
 ;; `progress-reporter' support.
 
 (defun system-taskbar--progress-reporter-update (_reporter state)
-  "Progress reporter system-taskbar update function.
+  "Progress reporter system taskbar update function.
 REPORTER and STATE are the same as in
 `progress-reporter-update-functions'."
   (when system-taskbar-mode
@@ -451,7 +451,7 @@ If PROGRESS is nil, remove the progress bar."
   "w32 badge foreground RGB triple string.")
 
 (defun system-taskbar--w32-clear-frame-indicators (frame)
-  ;; NOTE: Update the below if adding new w32 system-taskbar functions.
+  ;; NOTE: Update the below if adding new w32 system taskbar functions.
   (with-selected-frame frame
     (system-taskbar-badge nil)
     (system-taskbar-attention nil)
@@ -459,7 +459,7 @@ If PROGRESS is nil, remove the progress bar."
 
 (cl-defmethod system-taskbar--enable (&context
                                       (system-taskbar--back-end (eql 'w32)))
-  ;; Clear system-taskbar indicators for a frame when it is deleted.
+  ;; Clear system taskbar indicators for a frame when it is deleted.
   (add-hook 'delete-frame-functions
             #'system-taskbar--w32-clear-frame-indicators))
 
