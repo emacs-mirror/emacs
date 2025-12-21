@@ -2243,8 +2243,9 @@ using `package-compute-transaction'."
 
 (defcustom package-install-upgrade-built-in nil
   "Non-nil means that built-in packages can be upgraded via a package archive.
-If disabled, then `package-install' will not suggest to replace a
-built-in package with a (possibly newer) version from a package archive."
+If disabled, then `package-install' will raise an error when trying to
+replace a built-in package with a (possibly newer) version from a
+package archive."
   :type 'boolean
   :version "29.1")
 
@@ -2275,17 +2276,14 @@ had been enabled."
      (package--archives-initialize)
      (list (intern (completing-read
                     "Install package: "
-                    (mapcan
-                     (lambda (elt)
-                       (and (or (and (or current-prefix-arg
-                                         package-install-upgrade-built-in)
-                                     (package--active-built-in-p (car elt)))
-                                (not (package-installed-p (car elt))))
-                            (list (symbol-name (car elt)))))
-                     package-archive-contents)
+                    package-archive-contents
                     nil t))
            nil)))
   (cl-check-type pkg (or symbol package-desc))
+  (when (or (and package-install-upgrade-built-in
+                 (package--active-built-in-p pkg))
+            (package-installed-p pkg))
+    (user-error "Package is already installed"))
   (package--archives-initialize)
   (add-hook 'post-command-hook #'package-menu--post-refresh)
   (let ((name (if (package-desc-p pkg)
