@@ -647,6 +647,7 @@
 ;;   function is defined for this backend and that symbol, or a symbolic
 ;;   name involving that symbol, is passed to this function as REV, this
 ;;   function may return a symbolic name.
+;;   The implementation should respect the value of vc-use-short-revision.
 ;;
 ;;   Possible future extension: make REV an optional argument, and if
 ;;   nil, default it to FILE's working revision.
@@ -662,6 +663,7 @@
 ;;
 ;;   Return the revision number that follows REV for FILE, or nil if no such
 ;;   revision exists.
+;;   The implementation should respect the value of vc-use-short-revision.
 ;;
 ;; - log-edit-mode ()
 ;;
