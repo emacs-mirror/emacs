@@ -210,15 +210,13 @@ If PROGRESS is nil, remove the progress indicator."
 
 ;; Internal implementation.
 
-(defvar w32-initialized)
-
 (defun system-taskbar--set-back-end ()
   "Determine taskbar host system type."
   ;; Order matters to accommodate the cases where an NS or MS-Windows
   ;; build have the dbus feature.
   (setq system-taskbar--back-end
         (cond ((boundp 'ns-version-string) 'ns)
-              (w32-initialized 'w32)
+              ((bound-and-true-p w32-initialized) 'w32)
               ((and (featurep 'dbusbind)
                     (member "org.freedesktop.login1"
                             (dbus-list-activatable-names :system)))
@@ -226,7 +224,8 @@ If PROGRESS is nil, remove the progress indicator."
               (t nil))))
 
 (cl-defgeneric system-taskbar--enable ()
-  "Enable the system taskbar back end.")
+  "Enable the system taskbar back end.
+Return t if the back end is initialized, or nil.")
 
 (cl-defgeneric system-taskbar--disable ()
   "Disable the system taskbar back end.")
@@ -324,11 +323,16 @@ Return nil if no response within `system-taskbar-dbus-timeout'."
 
 (cl-defmethod system-taskbar--enable (&context
                                       (system-taskbar--back-end (eql 'dbus)))
-  (unless (system-taskbar-dbus-ping-service)
-    (error "D-Bus service `%s' unavailable" system-taskbar--dbus-service))
-  (when system-taskbar-clear-attention-on-frame-focus
-    (add-function :after after-focus-change-function
-                  #'system-taskbar--dbus-clear-attention-on-frame-focus)))
+  (if (system-taskbar-dbus-ping-service)
+      (progn
+        (when system-taskbar-clear-attention-on-frame-focus
+          (add-function :after after-focus-change-function
+                        #'system-taskbar--dbus-clear-attention-on-frame-focus))
+        t)
+    (display-warning 'system-taskbar-dbus
+                     (format-message "D-Bus service `%s' unavailable"
+                                     system-taskbar--dbus-service))
+    nil))
 
 (cl-defmethod system-taskbar--disable (&context
                                        (system-taskbar--back-end (eql 'dbus)))
@@ -395,7 +399,7 @@ If PROGRESS is nil, remove the progress bar."
 
 (cl-defmethod system-taskbar--enable (&context
                                       (system-taskbar--back-end (eql 'ns)))
-  (ignore))
+  t)
 
 (cl-defmethod system-taskbar--disable (&context
                                        (system-taskbar--back-end (eql 'ns)))
@@ -465,7 +469,8 @@ If PROGRESS is nil, remove the progress bar."
                                       (system-taskbar--back-end (eql 'w32)))
   ;; Clear system taskbar indicators for a frame when it is deleted.
   (add-hook 'delete-frame-functions
-            #'system-taskbar--w32-clear-frame-indicators))
+            #'system-taskbar--w32-clear-frame-indicators)
+  t)
 
 (cl-defmethod system-taskbar--disable (&context
                                        (system-taskbar--back-end (eql 'w32)))
