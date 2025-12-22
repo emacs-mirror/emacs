@@ -1027,13 +1027,23 @@ made with quoting (that is, using @code{prin1}---@pxref{Output
 Functions}).  Thus, strings are enclosed in @samp{"} characters, and
 @samp{\} characters appear where necessary before special characters.
 
-@item %o
-@cindex integer to octal
-Replace the specification with the base-eight representation of an
-integer.  The representation has leading @samp{-} if negative;
+@item %b
+@item %B
+@cindex integer to binary
+Replace the specification with the base-two or binary representation of
+an integer. The representation has leading @samp{-} if negative;
 for an unsigned two's complement representation of a possibly-negative
 integer @var{n}, format @code{(logand @var{n} @var{mask})}
 where @var{mask} corresponds to the desired word size.
+Although plain @samp{%b} and @samp{%B} are identical,
+@samp{%#b} prefixes with lower case @samp{0b} and @samp{%#B} with upper case.
+The object can also be a floating-point number that is
+formatted as an integer, dropping any fraction.
+
+@item %o
+@cindex integer to octal
+Replace the specification with the base-eight representation of an
+integer.  Like @samp{%b}, the representation has leading @samp{-} if negative;
 The object can also be a floating-point number that is formatted
 as an integer, dropping any fraction.
 
@@ -1047,7 +1057,7 @@ formatted as an integer, dropping any fraction.
 @itemx %X
 @cindex integer to hexadecimal
 Replace the specification with the base-sixteen representation of an
-integer.  Like @samp{%o}, the representation has leading @samp{-} if negative.
+integer.  Like @samp{%b}, the representation has leading @samp{-} if negative.
 @samp{%x} uses lower case and @samp{%X} uses upper case.
 The object can also be a floating-point number that is
 formatted as an integer, dropping any fraction.
@@ -1137,8 +1147,9 @@ both flags are used, @samp{+} takes precedence.
 
   The flag @samp{#} specifies an alternate form which depends on
 the format in use.  For @samp{%o}, it ensures that the result begins
-with a @samp{0}.  For @samp{%x} and @samp{%X}, it prefixes nonzero results
-with @samp{0x} or @samp{0X}.  For @samp{%e} and @samp{%f}, the
+with @samp{0}.  For @samp{%x}, @samp{%X}, @samp{%b} and @samp{%B},
+it prefixes nonzero results with @samp{0x}, @samp{0X}, @samp{0b}
+or @samp{0B}, respectively.  For @samp{%e} and @samp{%f}, the
 @samp{#} flag means include a decimal point even if the precision is
 zero.  For @samp{%g}, it always includes a decimal point, and also
 forces any trailing zeros after the decimal point to be left in place
@@ -1225,7 +1236,7 @@ family produce.
 retrieve a copy of the formatted value, use a specification that lets
 @code{read} reconstruct the value.  To format numbers in this
 reversible way you can use @samp{%s} and @samp{%S}, to format just
-integers you can also use @samp{%d}, @samp{#x%x} and @samp{#o%o}.
+integers you can also use @samp{%d}, @samp{#x%x}, @samp{#o%o} and @samp{#b%b}.
 Other formats do not guarantee preservation of all values; for example,
 @samp{%g} can lose precision and type and does not preserve NaN or
 infinity.  @xref{Input Functions}.

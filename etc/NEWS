@@ -3776,6 +3776,10 @@ called on progress steps, and DONE-CALLBACK, called when the progress
 reporter is done.  See the 'make-progress-reporter' docstring for a full
 specification of these new optional arguments.
 
+** Add binary format specifications '%b' and '%B'.
+These produce the binary representation of a number.
+'%#b' and '%#B' prefix the bits with '0b' and '0B', respectively.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
