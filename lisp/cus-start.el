@@ -992,7 +992,7 @@ since it could result in memory overflow and make Emacs crash."
 	  (let ((prop (car rest))
 		(propval (cadr rest)))
 	    (setq rest (nthcdr 2 rest))
-	    (cond ((memq prop '(:standard :risky :safe :set))
+	    (cond ((memq prop '(:standard :risky :safe :set :initialize))
                    nil)  ; handled above
 		  ((eq prop :tag)
 		   (put symbol 'custom-tag propval))
