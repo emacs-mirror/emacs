@@ -32234,16 +32234,87 @@ produce_image_glyph (struct it *it)
     {
       struct glyph *glyph;
       enum glyph_row_area area = it->area;
+      int margin_column = -1;
 
+
+      if ((area == LEFT_MARGIN_AREA || area == RIGHT_MARGIN_AREA)
+	  && it->margin_column >= 0)
+	{
+	  margin_column = it->margin_column;
+	}
+
+      if (margin_column >= 0
+	  && margin_column < (area == LEFT_MARGIN_AREA
+			      ? WINDOW_LEFT_MARGIN_WIDTH (it->w)
+			      : WINDOW_RIGHT_MARGIN_WIDTH (it->w)))
+	{
+	  /* Fill gaps between current position and target column with spaces.  */
+	  int face_id = lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID);
+	  while (it->glyph_row->used[area] < margin_column
+		 && it->glyph_row->glyphs[area] + it->glyph_row->used[area]
+		 < it->glyph_row->glyphs[area + 1])
+	    {
+	      struct glyph *fill_glyph =
+		it->glyph_row->glyphs[area] + it->glyph_row->used[area];
+	      *fill_glyph = space_glyph;
+	      fill_glyph->pixel_width = FRAME_COLUMN_WIDTH (it->f);
+	      fill_glyph->face_id = face_id;
+	      fill_glyph->frame = it->f;
+	      ++it->glyph_row->used[area];
+	    }
+
+	  glyph = it->glyph_row->glyphs[area] + margin_column;
+
+	  /* Increment used counter only after filling with spaces,
+	     but not when changing existing column value.  */
+	  if (margin_column >= it->glyph_row->used[area])
+	    it->glyph_row->used[area] = margin_column + 1;
+
+	  /* Reset the margin column for next use.  */
+	  it->margin_column = -1;
+
+	  /* Do the same glyph filling as below and return.  */
+	  if (glyph < it->glyph_row->glyphs[area + 1])
+	    {
+	      glyph->charpos = CHARPOS (it->position);
+	      glyph->object = it->object;
+	      glyph->pixel_width = clip_to_bounds (-1, it->pixel_width, SHRT_MAX);
+	      glyph->ascent = glyph_ascent;
+	      glyph->descent = it->descent;
+	      glyph->voffset = it->voffset;
+	      glyph->type = IMAGE_GLYPH;
+	      glyph->avoid_cursor_p = it->avoid_cursor_p;
+	      glyph->multibyte_p = it->multibyte_p;
+	      glyph->left_box_line_p = it->start_of_box_run_p;
+	      glyph->right_box_line_p = it->end_of_box_run_p;
+	      glyph->overlaps_vertically_p = false;
+	      glyph->padding_p = false;
+	      glyph->glyph_not_available_p = false;
+	      glyph->face_id = it->face_id;
+	      glyph->u.img_id = img->id;
+	      glyph->slice.img = slice;
+	      glyph->font_type = FONT_TYPE_UNKNOWN;
+	      if (it->bidi_p)
+		{
+		  glyph->resolved_level = it->bidi_it.resolved_level;
+		  eassert ((it->bidi_it.type & 7) == it->bidi_it.type);
+		  glyph->bidi_type = it->bidi_it.type;
+		}
+	    }
+
+	  return;
+	}
+
+      /* Continue with the default sequential appending.  */
       glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
       if (it->glyph_row->reversed_p)
 	{
 	  struct glyph *g;
 
 	  /* Make room for the new glyph.  */
-	  for (g = glyph - 1; g >= it->glyph_row->glyphs[it->area]; g--)
+	  for (g = glyph - 1; g >= it->glyph_row->glyphs[area]; g--)
 	    g[1] = *g;
-	  glyph = it->glyph_row->glyphs[it->area];
+	  glyph = it->glyph_row->glyphs[area];
 	}
       if (glyph < it->glyph_row->glyphs[area + 1])
 	{

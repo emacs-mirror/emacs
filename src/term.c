@@ -1543,16 +1543,85 @@ static void
 append_glyph (struct it *it)
 {
   struct glyph *glyph, *end;
+  enum glyph_row_area area = it->area;
+  int margin_column = -1;
   int i;
 
   eassert (it->glyph_row);
-  glyph = (it->glyph_row->glyphs[it->area]
-	   + it->glyph_row->used[it->area]);
-  end = it->glyph_row->glyphs[1 + it->area];
+
+  if ((area == LEFT_MARGIN_AREA || area == RIGHT_MARGIN_AREA)
+      && it->margin_column >= 0)
+    {
+      margin_column = it->margin_column;
+    }
+
+  if (margin_column >= 0
+      && margin_column < (area == LEFT_MARGIN_AREA
+			  ? WINDOW_LEFT_MARGIN_WIDTH (it->w)
+			  : WINDOW_RIGHT_MARGIN_WIDTH (it->w)))
+    {
+      /* Fill gaps between current position and target column with spaces.  */
+      int face_id = lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID);
+      while (it->glyph_row->used[area] < margin_column
+	     && it->glyph_row->glyphs[area] + it->glyph_row->used[area]
+	     < it->glyph_row->glyphs[area + 1])
+	{
+	  struct glyph *fill_glyph =
+	    it->glyph_row->glyphs[area] + it->glyph_row->used[area];
+	  *fill_glyph = space_glyph;
+	  fill_glyph->pixel_width = 1;
+	  fill_glyph->face_id = face_id;
+	  fill_glyph->frame = it->f;
+	  ++it->glyph_row->used[area];
+	}
+
+      glyph = it->glyph_row->glyphs[area] + margin_column;
+      end = it->glyph_row->glyphs[1 + area];
+
+      /* Increment used counter only after filling with spaces,
+	 but not when changing existing column value.  */
+      if (margin_column >= it->glyph_row->used[area])
+	it->glyph_row->used[area] = margin_column + 1;
+
+      /* Reset the margin column for next use.  */
+      it->margin_column = -1;
+
+      /* Do the same glyph filling as below and return.  */
+      if (glyph < end)
+	{
+	  glyph->type = CHAR_GLYPH;
+	  glyph->pixel_width = 1;
+	  glyph->u.ch = it->char_to_display;
+	  glyph->frame = it->f;
+	  glyph->face_id = it->face_id;
+	  glyph->avoid_cursor_p = it->avoid_cursor_p;
+	  glyph->multibyte_p = it->multibyte_p;
+	  glyph->padding_p = false;
+	  glyph->charpos = CHARPOS (it->position);
+	  glyph->object = it->object;
+	  if (it->bidi_p)
+	    {
+	      glyph->resolved_level = it->bidi_it.resolved_level;
+	      eassert ((it->bidi_it.type & 7) == it->bidi_it.type);
+	      glyph->bidi_type = it->bidi_it.type;
+	    }
+	  else
+	    {
+	      glyph->resolved_level = 0;
+	      glyph->bidi_type = UNKNOWN_BT;
+	    }
+	}
+      return;
+    }
+
+  /* Continue with the default sequential appending.  */
+  glyph = it->glyph_row->glyphs[area]
+	  + it->glyph_row->used[area];
+  end = it->glyph_row->glyphs[1 + area];
 
   /* If the glyph row is reversed, we need to prepend the glyph rather
      than append it.  */
-  if (it->glyph_row->reversed_p && it->area == TEXT_AREA)
+  if (it->glyph_row->reversed_p && area == TEXT_AREA)
     {
       struct glyph *g;
       int move_by = it->pixel_width;
@@ -1560,9 +1629,9 @@ append_glyph (struct it *it)
       /* Make room for the new glyphs.  */
       if (move_by > end - glyph) /* don't overstep end of this area */
 	move_by = end - glyph;
-      for (g = glyph - 1; g >= it->glyph_row->glyphs[it->area]; g--)
+      for (g = glyph - 1; g >= it->glyph_row->glyphs[area]; g--)
 	g[move_by] = *g;
-      glyph = it->glyph_row->glyphs[it->area];
+      glyph = it->glyph_row->glyphs[area];
       end = glyph + move_by;
     }
 
@@ -1596,7 +1665,7 @@ append_glyph (struct it *it)
 	  glyph->bidi_type = UNKNOWN_BT;
 	}
 
-      ++it->glyph_row->used[it->area];
+      ++it->glyph_row->used[area];
       ++glyph;
     }
 }
