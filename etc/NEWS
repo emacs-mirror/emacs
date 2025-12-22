@@ -465,6 +465,13 @@ either resize the frame and change the fullscreen status accordingly or
 keep the frame size unchanged.  The value t means to first reset the
 fullscreen status and then resize the frame.
 
+*** New commands to set frame size and position in one compound step.
+'set-frame-size-and-position' sets the new size and position of a frame
+in one compound step.  Both, size and position, can be specified as with
+the corresponding frame parameters 'width', 'height', 'left' and 'top'.
+'set-frame-size-and-position-pixelwise' is similar but has a more
+restricted set of values for specifying size and position.
+
 *** New commands 'split-frame' and 'merge-frames'.
 'split-frame' moves a specified number of windows from an existing frame
 to a newly-created frame.  'merge-frames' merges all windows from two

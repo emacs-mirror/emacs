@@ -163,6 +163,8 @@ extern void xg_frame_resized (struct frame *f,
                               int pixelwidth,
                               int pixelheight);
 extern void xg_frame_set_char_size (struct frame *f, int width, int height);
+extern void xg_frame_set_size_and_position (struct frame *f, int width,
+					    int height);
 extern GtkWidget * xg_win_to_widget (Display *dpy, Window wdesc);
 
 extern int xg_get_scale (struct frame *f);

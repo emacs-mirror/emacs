@@ -1535,6 +1535,200 @@ Functions on this hook are called with the theme name as a symbol:
 already be set to one of these values as well.")
 
 
+(defun set-frame-size-and-position (&optional frame width height left top)
+  "Set size and position of specified FRAME in one compound step.
+WIDTH and HEIGHT stand for the new width and height of FRAME.  They can
+be specified as follows where \"display area\" stands for the entire
+display area of FRAME's dominating monitor, \"work area\" stands for the
+work area (the usable space) of FRAME's display area and \"parent area\"
+stands for the area occupied by the native rectangle of FRAME's parent
+provided FRAME is a child frame.
+
+- An integer specifies the size of FRAME's text area in characters.
+
+- A cons cell with the symbol `text-pixels' in its car specifies in its
+  cdr the size of FRAME's text area in pixels.
+
+- A floating-point number between 0.0 and 1.0 specifies the ratio of
+  FRAME's outer size to the size of its work or parent area.
+
+Unless you use a plain integer value, you may have to set
+`frame-resize-pixelwise' to a non-nil value in order to get the exact
+size in pixels.  A value of nil means to leave the width or height
+unaltered.  Any other value will signal an error.
+
+LEFT and TOP stand for FRAME's outer position relative to coordinates of
+its display, work or parent area.  They can be specified as follows:
+
+- An integer where a positive value relates the left or top edge of
+  FRAME to the origin of its display or parent area.  A negative value
+  relates the right or bottom edge of FRAME to the right or bottom edge
+  of its display or parent area.
+
+- The symbol `-' means to place the right or bottom edge of FRAME at the
+  right or bottom edge of its display or parent area.
+
+- A list with `+' as its first and an integer as its second element
+  specifies the position of the left or top edge of FRAME relative to
+  the left or top edge of its display or parent area.  If the second
+  element is negative, this means a position outside FRAME's display or
+  parent area.
+
+- A list with `-' as its first and an integer as its second element
+  specifies the position of the right or bottom edge of FRAME relative
+  to the right or bottom edge of its display or parent area.  If the
+  second element is negative, this means a position outside the area of
+  its display or parent area.
+
+- A floating-point number between 0.0 and 1.0 specifies the ratio of
+  FRAME's outer position to the size of its work or parent area.  Thus,
+  a value of 0.0 flushes FRAME to the left or top, a value of 0.5
+  centers it and a ratio of 1.0 flushes it to the right or bottom of its
+  work or parent area.
+
+Calculating a position relative to the right or bottom edge of FRAME's
+display, work or parent area proceeds by calculating the new size of
+FRAME first and then relate the new prospective outer edges of FRAME to
+the respective edges of its display, work or parent area.
+
+A value of nil means to leave the position in this direction unchanged.
+Any other value will signal an error.
+
+This function calls `set-frame-size-and-position-pixelwise' to actually
+resize and move FRAME."
+  (let* ((frame (window-normalize-frame frame))
+         (parent (frame-parent frame))
+         (monitor-attributes
+          (unless parent
+            (frame-monitor-attributes frame)))
+         (geometry
+          (unless parent
+            (cdr (assq 'geometry monitor-attributes))))
+         (parent-or-display-width
+          (if parent
+              (frame-native-width parent)
+            (nth 2 geometry)))
+         (parent-or-display-height
+          (if parent
+              (frame-native-height parent)
+            (nth 3 geometry)))
+         (parent-or-workarea
+          (if parent
+              `(0 0 ,parent-or-display-width ,parent-or-display-height)
+            (cdr (assq 'workarea monitor-attributes))))
+         (outer-edges (frame-edges frame 'outer-edges))
+         (outer-left (nth 0 outer-edges))
+         (outer-top (nth 1 outer-edges))
+         (outer-width (if outer-edges
+                          (- (nth 2 outer-edges) outer-left)
+                        (frame-pixel-width frame)))
+         (outer-minus-text-width
+          (- outer-width (frame-text-width frame)))
+         (outer-height (if outer-edges
+                           (- (nth 3 outer-edges) outer-top)
+                         (frame-pixel-height frame)))
+         (outer-minus-text-height
+          (- outer-height (frame-text-height frame)))
+         (old-text-width (frame-text-width frame))
+         (old-text-height (frame-text-height frame))
+         (text-width old-text-width)
+         (text-height old-text-height)
+         (char-width (frame-char-width frame))
+         (char-height (frame-char-height frame))
+         (gravity 1)
+         negative)
+
+    (cond
+     ((and (integerp width) (> width 0))
+      (setq text-width (* width char-width)))
+     ((and (consp width) (eq (car width) 'text-pixels)
+           (integerp (cdr width)) (> (cdr width) 0))
+      (setq text-width (cdr width)))
+     ((and (floatp width) (> width 0.0) (<= width 1.0))
+      (setq text-width
+            (- (round (* width (- (nth 2 parent-or-workarea)
+                               (nth 0 parent-or-workarea))))
+               outer-minus-text-width)))
+     (width
+      (user-error "Invalid width specification")))
+
+    (cond
+     ((and (integerp height) (> height 0))
+      (setq text-height (* height char-height)))
+     ((and (consp height) (eq (car height) 'text-pixels)
+           (integerp (cdr height)) (> (cdr height) 0))
+      (setq text-height (cdr height)))
+     ((and (floatp height) (> height 0.0) (<= height 1.0))
+      (setq text-height
+            (- (round (* height (- (nth 3 parent-or-workarea)
+                                   (nth 1 parent-or-workarea))))
+               outer-minus-text-height)))
+     (width
+      (user-error "Invalid height specification")))
+
+    (cond
+     ((eq left '-)
+      (setq left 0)
+      (setq negative t))
+     ((integerp left)
+      (setq negative (< left 0)))
+     ((consp left)
+      (cond
+       ((and (eq (car left) '-) (integerp (cadr left)))
+        (setq left (- (cadr left)))
+        (setq negative t))
+       ((and (eq (car left) '+) (integerp (cadr left)))
+        (setq left (cadr left)))
+       (t
+        (user-error "Invalid position specification"))))
+     ((floatp left)
+      (setq left
+            (round (* left (- (nth 2 parent-or-workarea)
+                              (nth 0 parent-or-workarea))))))
+     (t (setq left outer-left)))
+
+    (when negative
+      (setq gravity 3)
+      (setq left (- parent-or-display-width (- left)
+                    (+ text-width
+                       (frame-scroll-bar-width frame)
+                       (frame-fringe-width frame)
+                       (* 2 (frame-internal-border-width frame))
+                       outer-minus-text-width))))
+
+    (setq negative nil)
+    (cond
+     ((eq top '-)
+      (setq top 0)
+      (setq negative t))
+     ((integerp top)
+      (setq negative (< top 0)))
+     ((consp top)
+      (cond
+       ((and (eq (car top) '-) (integerp (cadr top)))
+        (setq top (- (cadr top)))
+        (setq negative t))
+       ((and (eq (car top) '+) (integerp (cadr top)))
+        (setq top (cadr top)))
+       (t
+        (user-error "Invalid position specification"))))
+     ((floatp top)
+      (setq top
+            (round (* top (- (nth 3 parent-or-workarea)
+                             (nth 1 parent-or-workarea))))))
+     (t (setq top outer-top)))
+
+    (when negative
+      ;; This should get us 7 or 9.
+      (setq gravity (+ gravity 6))
+      (setq top (- parent-or-display-height (- top)
+                   (+ text-height
+                      (* 2 (frame-internal-border-width frame)))
+                   outer-minus-text-height)))
+
+    (set-frame-size-and-position-pixelwise
+     frame text-width text-height left top gravity)))
+
 ;;;; Frame configurations
 
 (defun current-frame-configuration ()

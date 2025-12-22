@@ -28563,6 +28563,59 @@ x_set_window_size (struct frame *f, bool change_gravity,
   do_pending_window_change (false);
 }
 
+static void
+x_set_window_size_and_position_1 (struct frame *f, int width, int height)
+{
+  int x = f->left_pos;
+  int y = f->top_pos;
+
+  x_wm_set_size_hint (f, 0, false);
+
+  XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		     x, y, width, height + FRAME_MENUBAR_HEIGHT (f));
+
+  SET_FRAME_GARBAGED (f);
+
+  if (FRAME_VISIBLE_P (f))
+    x_wait_for_event (f, ConfigureNotify);
+  else
+    /* Call adjust_frame_size right away as with GTK.  It might be
+       tempting to clear out f->new_width and f->new_height here.  */
+    adjust_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, width),
+		       FRAME_PIXEL_TO_TEXT_HEIGHT (f, height),
+		       5, 0, Qx_set_window_size_1);
+}
+
+void
+x_set_window_size_and_position (struct frame *f, int width, int height)
+{
+  block_input ();
+
+#ifdef USE_GTK
+  if (FRAME_GTK_WIDGET (f))
+    xg_frame_set_size_and_position (f, width, height);
+  else
+    x_set_window_size_and_position_1 (f, width, height);
+#else /* not USE_GTK */
+  x_set_window_size_and_position_1 (f, width, height);
+#endif /* USE_GTK */
+
+  x_clear_under_internal_border (f);
+
+  /* If cursor was outside the new size, mark it as off.  */
+  mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
+
+  /* Clear out any recollection of where the mouse highlighting was,
+     since it might be in a place that's outside the new frame size.
+     Actually checking whether it is outside is a pain in the neck,
+     so don't try--just let the highlighting be done afresh with new size.  */
+  cancel_mouse_face (f);
+
+  unblock_input ();
+
+  do_pending_window_change (false);
+}
+
 /* Move the mouse to position pixel PIX_X, PIX_Y relative to frame F.  */
 
 void
@@ -32148,6 +32201,7 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->fullscreen_hook = XTfullscreen_hook;
   terminal->iconify_frame_hook = x_iconify_frame;
   terminal->set_window_size_hook = x_set_window_size;
+  terminal->set_window_size_and_position_hook = x_set_window_size_and_position;
   terminal->set_frame_offset_hook = x_set_offset;
   terminal->set_frame_alpha_hook = x_set_frame_alpha;
   terminal->set_new_font_hook = x_new_font;

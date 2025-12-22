@@ -777,6 +777,7 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
   int old_text_width = FRAME_TEXT_WIDTH (f);
   int old_text_height = FRAME_TEXT_HEIGHT (f);
   bool inhibit_horizontal, inhibit_vertical;
+  bool size_and_position = EQ (parameter, Qsize_and_position);
   Lisp_Object frame;
 
   XSETFRAME (frame, f);
@@ -855,7 +856,8 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
       /* For inhibit == 1 call the window_size_hook only if a native
 	 size changes.  For inhibit == 0 or inhibit == 2 always call
 	 it.  */
-      && ((!inhibit_horizontal
+      && (size_and_position
+	  || (!inhibit_horizontal
 	   && (new_native_width != old_native_width
 	       || inhibit == 0 || inhibit == 2))
 	  || (!inhibit_vertical
@@ -907,7 +909,13 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 	  f->new_size_p = false;
 	}
 
-      if (FRAME_TERMINAL (f)->set_window_size_hook)
+      if (size_and_position)
+	/* The caller must have set the new position and gravity and
+	   made sure that set_window_size_and_position_hook has been
+	   defined.  */
+	FRAME_TERMINAL (f)->set_window_size_and_position_hook
+	  (f, new_native_width, new_native_height);
+      else if (FRAME_TERMINAL (f)->set_window_size_hook)
         FRAME_TERMINAL (f)->set_window_size_hook
 	  (f, 0, new_native_width, new_native_height);
       f->resized_p = true;
@@ -4545,6 +4553,69 @@ bottom edge of FRAME's display.  */)
   return Qt;
 }
 
+DEFUN ("set-frame-size-and-position-pixelwise", Fset_frame_size_and_position_pixelwise,
+       Sset_frame_size_and_position_pixelwise, 5, 6, 0,
+       doc: /* Set FRAME's size to WIDTH and HEIGHT and its position to (X, Y).
+FRAME must be a live frame and defaults to the selected one.
+
+WIDTH and HEIGHT must be positive integers and specify the new pixel
+width and height of FRAME's text area in pixels.  If WIDTH or HEIGHT do
+not secify a value that is a multiple of FRAME's character sizes, you
+may have to set `frame-resize-pixelwise' to a non-nil value in order to
+get the exact size in pixels.
+
+X and Y specify the coordinates of the left and top edge of FRAME's
+outer frame in pixels relative to an origin (0, 0) of FRAME's display or
+parent frame.  Negative values mean the top or left edge may be outside
+the display or parent frame.
+
+GRAVITY specifies the new gravity of FRAME and must be a value in the
+range 0..10.  It defaults to 1.
+
+This function uses any existing backend of the toolkit to resize and
+move FRAME in one compound step.  If the backend does not provide such a
+function, it calls `set-frame-size' followed by `set-frame-position'
+instead.  See 'set-frame-size-and-position'.  */)
+  (Lisp_Object frame, Lisp_Object width, Lisp_Object height,
+   Lisp_Object x, Lisp_Object y, Lisp_Object gravity)
+{
+  struct frame *f = decode_live_frame (frame);
+
+  if (NILP (gravity))
+    f->win_gravity = 1;
+  else
+    f->win_gravity = check_integer_range (gravity, 0, 10);
+
+  if (FRAME_WINDOW_P (f)
+      && FRAME_TERMINAL (f)->set_window_size_and_position_hook)
+    {
+      int text_width = check_integer_range (width, 1, INT_MAX);
+      int text_height = check_integer_range (height, 1, INT_MAX);
+
+      f->left_pos = check_integer_range (x, INT_MIN, INT_MAX);
+      f->top_pos = check_integer_range (y, INT_MIN, INT_MAX);
+
+      adjust_frame_size (f, text_width, text_height, 1, false,
+			 Qsize_and_position);
+    }
+  else
+    {
+      Fset_frame_size (frame, width, height, Qt);
+
+      int left_pos = check_integer_range (x, INT_MIN, INT_MAX);
+      int top_pos = check_integer_range (y, INT_MIN, INT_MAX);
+
+      Lisp_Object left
+	= Fcons (Qleft, left_pos < 0 ? list2 (Qplus, x) : x);
+      Lisp_Object top
+	= Fcons (Qtop, top_pos < 0 ? list2 (Qplus, y) : y);
+
+      Fmodify_frame_parameters (frame, list2 (left, top));
+    }
+
+  return Qnil;
+}
+
 DEFUN ("frame-window-state-change", Fframe_window_state_change,
        Sframe_window_state_change, 0, 1, 0,
        doc: /* Return t if FRAME's window state change flag is set, nil otherwise.
@@ -7113,6 +7184,7 @@ syms_of_frame (void)
   DEFSYM (Qmin_height, "min-height");
   DEFSYM (Qmouse_wheel_frame, "mouse-wheel-frame");
   DEFSYM (Qkeep_ratio, "keep-ratio");
+  DEFSYM (Qsize_and_position, "size-and-position");
   DEFSYM (Qwidth_only, "width-only");
   DEFSYM (Qheight_only, "height-only");
   DEFSYM (Qleft_only, "left-only");
@@ -7593,6 +7665,7 @@ The default is \\+`inhibit' in NS builds and nil everywhere else.  */);
   defsubr (&Sset_frame_size);
   defsubr (&Sframe_position);
   defsubr (&Sset_frame_position);
+  defsubr (&Sset_frame_size_and_position_pixelwise);
   defsubr (&Sframe_pointer_visible_p);
   defsubr (&Smouse_position_in_root_frame);
   defsubr (&Sframe__set_was_invisible);

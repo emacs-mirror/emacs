@@ -1384,6 +1384,67 @@ xg_height_or_width_changed (struct frame *f)
 }
 #endif
 
+/** Move and resize the outer window of frame F.  WIDTH and HEIGHT are
+    the new native pixel sizes of F.  */
+void
+xg_frame_set_size_and_position (struct frame *f, int width, int height)
+{
+  int outer_height
+    = height + FRAME_TOOLBAR_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f);
+  int outer_width = width + FRAME_TOOLBAR_WIDTH (f);
+  int scale = xg_get_scale (f);
+  int x = f->left_pos;
+  int y = f->top_pos;
+  GdkWindow *gwin = NULL;
+  int flags = 0;
+
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    gwin = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f));
+  else
+    gwin = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
+
+  outer_height /= scale;
+  outer_width /= scale;
+
+  /* Full force ahead.  For top-level frames the gravity will get reset
+     to NorthWestGravity anyway.  */
+  flags |= USSize;
+  if (f->win_gravity == 3 || f->win_gravity == 9)
+    flags |= XNegative;
+  if (f->win_gravity == 6 || f->win_gravity == 9)
+    flags |= YNegative;
+  flags |= USPosition;
+
+  xg_wm_set_size_hint (f, flags, true);
+
+#ifndef HAVE_PGTK
+  gdk_window_move_resize (gwin, x, y, outer_width, outer_height);
+#else
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    gdk_window_move_resize (gwin, x, y, outer_width, outer_height);
+  else
+    gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
+				 outer_width, outer_height);
+#endif
+
+  SET_FRAME_GARBAGED (f);
+  cancel_mouse_face (f);
+
+  if (FRAME_VISIBLE_P (f))
+    {
+      /* Must call this to flush out events */
+      (void)gtk_events_pending ();
+      gdk_flush ();
+#ifndef HAVE_PGTK
+      x_wait_for_event (f, ConfigureNotify);
+#endif
+    }
+  else
+    adjust_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, width),
+		       FRAME_PIXEL_TO_TEXT_HEIGHT (f, height),
+		       5, 0, Qxg_frame_set_char_size);
+}
+
 #ifndef HAVE_PGTK
 /* Convert an X Window WSESC on display DPY to its corresponding GtkWidget.
    Must be done like this, because GtkWidget:s can have "hidden"
@@ -2041,28 +2102,33 @@ xg_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
 
   /* These currently have a one to one mapping with the X values, but I
      don't think we should rely on that.  */
-  hint_flags |= GDK_HINT_WIN_GRAVITY;
-  size_hints.win_gravity = 0;
-  if (win_gravity == NorthWestGravity)
+  if (FRAME_PARENT_FRAME (f))
+    {
+      hint_flags |= GDK_HINT_WIN_GRAVITY;
+      size_hints.win_gravity = 0;
+      if (win_gravity == NorthWestGravity)
+	size_hints.win_gravity = GDK_GRAVITY_NORTH_WEST;
+      else if (win_gravity == NorthGravity)
+	size_hints.win_gravity = GDK_GRAVITY_NORTH;
+      else if (win_gravity == NorthEastGravity)
+	size_hints.win_gravity = GDK_GRAVITY_NORTH_EAST;
+      else if (win_gravity == WestGravity)
+	size_hints.win_gravity = GDK_GRAVITY_WEST;
+      else if (win_gravity == CenterGravity)
+	size_hints.win_gravity = GDK_GRAVITY_CENTER;
+      else if (win_gravity == EastGravity)
+	size_hints.win_gravity = GDK_GRAVITY_EAST;
+      else if (win_gravity == SouthWestGravity)
+	size_hints.win_gravity = GDK_GRAVITY_SOUTH_WEST;
+      else if (win_gravity == SouthGravity)
+	size_hints.win_gravity = GDK_GRAVITY_SOUTH;
+      else if (win_gravity == SouthEastGravity)
+	size_hints.win_gravity = GDK_GRAVITY_SOUTH_EAST;
+      else if (win_gravity == StaticGravity)
+	size_hints.win_gravity = GDK_GRAVITY_STATIC;
+    }
+  else
     size_hints.win_gravity = GDK_GRAVITY_NORTH_WEST;
-  else if (win_gravity == NorthGravity)
-    size_hints.win_gravity = GDK_GRAVITY_NORTH;
-  else if (win_gravity == NorthEastGravity)
-    size_hints.win_gravity = GDK_GRAVITY_NORTH_EAST;
-  else if (win_gravity == WestGravity)
-    size_hints.win_gravity = GDK_GRAVITY_WEST;
-  else if (win_gravity == CenterGravity)
-    size_hints.win_gravity = GDK_GRAVITY_CENTER;
-  else if (win_gravity == EastGravity)
-    size_hints.win_gravity = GDK_GRAVITY_EAST;
-  else if (win_gravity == SouthWestGravity)
-    size_hints.win_gravity = GDK_GRAVITY_SOUTH_WEST;
-  else if (win_gravity == SouthGravity)
-    size_hints.win_gravity = GDK_GRAVITY_SOUTH;
-  else if (win_gravity == SouthEastGravity)
-    size_hints.win_gravity = GDK_GRAVITY_SOUTH_EAST;
-  else if (win_gravity == StaticGravity)
-    size_hints.win_gravity = GDK_GRAVITY_STATIC;
 
   if (flags & PPosition)
     hint_flags |= GDK_HINT_POS;

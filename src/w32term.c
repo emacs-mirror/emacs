@@ -7237,6 +7237,85 @@ w32_set_window_size (struct frame *f, bool change_gravity,
 
   do_pending_window_change (false);
 }
+
+/* Change the size of frame F's Windows window to WIDTH and HEIGHT
+   pixels and its position to those stored in f->left_pos and
+   f->top_pos.  */
+static void
+w32_set_window_size_and_position (struct frame *f, int width, int height)
+{
+  RECT rect;
+  MENUBARINFO info;
+  int menu_bar_height;
+
+  block_input ();
+
+  /* Get the height of the menu bar here.  It's used below to detect
+     whether the menu bar is wrapped.  It's also used to specify the
+     third argument for AdjustWindowRect.  See bug#22105.  */
+  info.cbSize = sizeof (info);
+  info.rcBar.top = info.rcBar.bottom = 0;
+  GetMenuBarInfo (FRAME_W32_WINDOW (f), 0xFFFFFFFD, 0, &info);
+  menu_bar_height = info.rcBar.bottom - info.rcBar.top;
+
+  if (w32_add_wrapped_menu_bar_lines)
+    {
+      /* When the menu bar wraps sending a SetWindowPos shrinks the
+	 height of the frame then the wrapped menu bar lines are not
+	 accounted for (Bug#15174 and Bug#18720).  Here we add these
+	 extra lines to the frame height.  */
+      int default_menu_bar_height;
+
+      /* Why is (apparently) SM_CYMENUSIZE needed here instead of
+	 SM_CYMENU ??  */
+      default_menu_bar_height = GetSystemMetrics (SM_CYMENUSIZE);
+
+      if ((default_menu_bar_height > 0)
+	  && (menu_bar_height > default_menu_bar_height)
+	  && ((menu_bar_height % default_menu_bar_height) == 0))
+	height = height + menu_bar_height - default_menu_bar_height;
+    }
+
+  f->win_gravity = NorthWestGravity;
+  w32_wm_set_size_hint (f, (long) 0, false);
+
+  rect.left = f->left_pos;
+  rect.top = f->top_pos;
+  rect.right = rect.left + width;
+  rect.bottom = rect.top + height;
+
+  AdjustWindowRect (&rect, f->output_data.w32->dwStyle, menu_bar_height > 0);
+
+  if (!FRAME_PARENT_FRAME (f))
+    my_set_window_pos (FRAME_W32_WINDOW (f), NULL,
+		       f->left_pos, f->top_pos,
+		       rect.right - rect.left,
+		       rect.bottom - rect.top,
+		       SWP_NOZORDER | SWP_NOACTIVATE);
+  else
+    my_set_window_pos (FRAME_W32_WINDOW (f), HWND_TOP,
+		       f->left_pos, f->top_pos,
+		       rect.right - rect.left,
+		       rect.bottom - rect.top,
+		       SWP_NOACTIVATE);
+
+  change_frame_size (f, width, height, false, true, false);
+  SET_FRAME_GARBAGED (f);
+
+  /* If cursor was outside the new size, mark it as off.  */
+  mark_window_cursors_off (XWINDOW (f->root_window));
+
+  /* Clear out any recollection of where the mouse highlighting was,
+     since it might be in a place that's outside the new frame size.
+     Actually checking whether it is outside is a pain in the neck,
+     so don't try--just let the highlighting be done afresh with new
+     size.  */
+  cancel_mouse_face (f);
+
+  unblock_input ();
+
+  do_pending_window_change (false);
+}
 
 /* Mouse warping.  */
 
@@ -7891,6 +7970,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->fullscreen_hook = w32fullscreen_hook;
   terminal->iconify_frame_hook = w32_iconify_frame;
   terminal->set_window_size_hook = w32_set_window_size;
+  terminal->set_window_size_and_position_hook = w32_set_window_size_and_position;
   terminal->set_frame_offset_hook = w32_set_offset;
   terminal->set_frame_alpha_hook = w32_set_frame_alpha;
   terminal->set_new_font_hook = w32_new_font;

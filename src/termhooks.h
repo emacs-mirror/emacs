@@ -684,6 +684,11 @@ struct terminal
   void (*set_window_size_hook) (struct frame *f, bool change_gravity,
                                 int width, int height);
 
+  /* This hook is called to change the size and position of frame F's
+     native (underlying) window.  */
+  void (*set_window_size_and_position_hook) (struct frame *f, int width,
+					     int height);
+
   /* CHANGE_GRAVITY is 1 when calling from Fset_frame_position,
    to really change the position, and 0 when calling from
    *_make_frame_visible (in that case, XOFF and YOFF are the current
