@@ -11052,11 +11052,11 @@ triplet strings of the form \"#RRGGBB\".  */)
 
   CoInitialize (NULL);
   ITaskbarList3 *task_bar_list = NULL;
-  HRESULT r = CoCreateInstance(&CLSID_TaskbarList,
-			       NULL,
-			       CLSCTX_INPROC_SERVER,
-			       &IID_ITaskbarList3,
-			       (void **)&task_bar_list);
+  HRESULT r = CoCreateInstance (&CLSID_TaskbarList,
+				NULL,
+				CLSCTX_INPROC_SERVER,
+				&IID_ITaskbarList3,
+				(void **)&task_bar_list);
   if (r != S_OK)
     return Qnil;
 
@@ -11110,7 +11110,7 @@ triplet strings of the form \"#RRGGBB\".  */)
 					 DIB_RGB_COLORS,
 					 (void **) &bitmap_pixels,
 					 NULL, 0);
-      HGDIOBJ old_bitmap = SelectObject(dc, bitmap);
+      HGDIOBJ old_bitmap = SelectObject (dc, bitmap);
 
       /* Draw a circle filled with bg.  */
       HBRUSH bg_brush = CreateSolidBrush (bg_rgb);
@@ -11145,9 +11145,9 @@ triplet strings of the form \"#RRGGBB\".  */)
       lf.lfQuality = ANTIALIASED_QUALITY;
       /* Negative lfHeight indicates pixel units vs. positive in points.
 	 Use the LOGPIXELSY px/in of the primary monitor.  */
-      lf.lfHeight = -MulDiv(icon_height / 2, /* Fit ~3 chars.  */
-			    72,
-			    GetDeviceCaps (GetDC (NULL), LOGPIXELSY));
+      lf.lfHeight = -MulDiv (icon_height / 2, /* Fit ~3 chars.  */
+			     72,
+			     GetDeviceCaps (GetDC (NULL), LOGPIXELSY));
       /* Ensure lfHeight pixel interpretation.  */
       int old_map_mode = SetMapMode (dc, MM_TEXT);
       HFONT scaled_font = CreateFontIndirect (&lf);
@@ -11184,8 +11184,8 @@ triplet strings of the form \"#RRGGBB\".  */)
             int dy = y - circle_center_y;
             if (dx * dx + dy * dy <= circle_radius_sq)
 	      {
-		  pixel = bitmap_pixels + (y * icon_width + x);
-		  *pixel |= 0xff000000; /* Flip the 0xAARRGGBB alpha channel.  */
+		pixel = bitmap_pixels + (y * icon_width + x);
+		*pixel |= 0xff000000; /* Flip the 0xAARRGGBB alpha channel.  */
 	      }
 	  }
 
@@ -11216,7 +11216,7 @@ triplet strings of the form \"#RRGGBB\".  */)
   else
     task_bar_list->lpVtbl->SetOverlayIcon (task_bar_list, hwnd, NULL, NULL);
 
-  task_bar_list->lpVtbl->Release(task_bar_list);
+  task_bar_list->lpVtbl->Release (task_bar_list);
   return Qt;
 }
 
@@ -11825,14 +11825,14 @@ keys when IME input is received.  */);
   DEFSYM (Qkp_numlock, "kp-numlock");
   DEFSYM (Qscroll, "scroll");
 
-  #ifdef WINDOWSNT
+#ifdef WINDOWSNT
   /* Taskbar indicators support.  */
   defsubr (&Sw32_badge);
   defsubr (&Sw32_progress_indicator);
   defsubr (&Sw32_request_user_attention);
   DEFSYM (Qinformational, "informational");
   DEFSYM (Qcritical, "critical");
-  #endif
+#endif
 }
 
 
