@@ -4029,7 +4029,19 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		    }
 		  p[0] = negative ? '-' : plus_flag ? '+' : ' ';
 
-		  if (conversion == 'b' || conversion == 'B')
+
+		  /* Do %b and %B by hand unless sprintf is known to
+		     support them.  Some day (the year 2043 perhaps?),
+		     simplify this code by assuming that
+		     HAVE_PRINTF_B_CONVERSION_SPECIFIER is true.  */
+#if (202311 <= __STDC_VERSION_STDIO_H__ \
+     || 2 < __GLIBC__ + (35 <= __GLIBC_MINOR__))
+		  enum { HAVE_PRINTF_B_CONVERSION_SPECIFIER = true };
+#else
+		  enum { HAVE_PRINTF_B_CONVERSION_SPECIFIER = false };
+#endif
+		  if (!HAVE_PRINTF_B_CONVERSION_SPECIFIER
+		      && (conversion == 'b' || conversion == 'B'))
 		    {
 		      int bit_width = stdc_bit_width (x);
 		      char *bits = p + negative;
