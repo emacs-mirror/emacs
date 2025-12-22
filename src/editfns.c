@@ -3966,7 +3966,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		      sprintf_bytes = bignum_to_c_string (p, sprintf_bytes,
 							  arg, signedbase);
 		      nonzero_arg = true;
-		    preformatted_fixnum_arg:
+		    preformatted_fixnum_arg: ;
 		      bool negative = p[0] == '-';
 		      prec = min (precision, sprintf_bytes - prefixlen);
 		      prefix[prefixlen] = plus_flag ? '+' : ' ';
