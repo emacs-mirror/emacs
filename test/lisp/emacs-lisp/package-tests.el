@@ -241,10 +241,7 @@ Must called from within a `tar-mode' buffer."
     (package-initialize)
     (should (package-installed-p 'simple-single))
     ;; Check if we properly report an "already installed".
-    (package-install 'simple-single)
-    (with-current-buffer "*Messages*"
-      (should (string-match "^[`‘']simple-single[’'] is already installed\n?\\'"
-                            (buffer-string))))
+    (should-error (package-install 'simple-single) :type 'user-error)
     (should (package-installed-p 'simple-single))
     (let* ((simple-pkg-dir (file-name-as-directory
                             (expand-file-name
