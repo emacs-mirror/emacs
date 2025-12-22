@@ -4242,8 +4242,8 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map [follow-link] 'mouse-face)
     (define-key map [XF86Back] 'Info-history-back)
     (define-key map [XF86Forward] 'Info-history-forward)
-    (define-key map [tool-bar C-Back\ in\ history] 'Info-history-back-menu)
-    (define-key map [tool-bar C-Forward\ in\ history] 'Info-history-forward-menu)
+    (define-key map [tool-bar C-Back\ in\ History] 'Info-history-back-menu)
+    (define-key map [tool-bar C-Forward\ in\ History] 'Info-history-forward-menu)
     map)
   "Keymap containing Info commands.")
 
@@ -4386,12 +4386,12 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 (defun Info-history-back-menu (e)
   "Pop up the menu with a list of previously visited Info nodes."
   (interactive "e" Info-mode)
-  (Info-history-menu e "Back in history" Info-history 'Info-history-back))
+  (Info-history-menu e "Back in History" Info-history 'Info-history-back))
 
 (defun Info-history-forward-menu (e)
   "Pop up the menu with a list of Info nodes visited with `Info-history-back'."
   (interactive "e" Info-mode)
-  (Info-history-menu e "Forward in history" Info-history-forward 'Info-history-forward))
+  (Info-history-menu e "Forward in History" Info-history-forward 'Info-history-forward))
 
 (defvar Info-menu-last-node nil)
 ;; Last node the menu was created for.
