@@ -1620,11 +1620,11 @@ extra args."
       (while (and (< start len)
                   (string-match
                    (rx "%"
-                       (? (group (+ digit)) "$")         ; field
-                       (* (in "+ #0-"))                  ; flags
-                       (* digit)                         ; width
-                       (? "." (* digit))                 ; precision
-                       (? (group (in "sdioxXefgcS%"))))  ; spec
+                       (? (group (+ digit)) "$")           ; field
+                       (* (in "+ #0-"))                    ; flags
+                       (* digit)                           ; width
+                       (? "." (* digit))                   ; precision
+                       (? (group (in "sdibBoxXefgcS%"))))  ; spec
                    format-str start))
         (let ((field (if (match-beginning 1)
                          (string-to-number (match-string 1 format-str))
