@@ -241,7 +241,9 @@ Must called from within a `tar-mode' buffer."
     (package-initialize)
     (should (package-installed-p 'simple-single))
     ;; Check if we properly report an "already installed".
-    (should-error (package-install 'simple-single) :type 'user-error)
+    (should (condition-case nil
+                (progn (package-install 'simple-single) nil)
+              (user-error t)))
     (should (package-installed-p 'simple-single))
     (let* ((simple-pkg-dir (file-name-as-directory
                             (expand-file-name
