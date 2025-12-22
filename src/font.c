@@ -4023,8 +4023,10 @@ valid font property name listed below:
 
 `:family', `:weight', `:slant', `:width'
 
-They are the same as face attributes of the same name.  See
-`set-face-attribute'.
+They are the same as face attributes of the same name (see
+`set-face-attribute'), except that `:family' could also be a symbol,
+and the value of the other three properties can also be a number,
+the numerical value of the style.
 
 `:foundry'
 

@@ -4208,7 +4208,8 @@ The font name (a string), in either XLFD, Fontconfig, or GTK+ format.
 @itemx :width
 These have the same meanings as the face attributes of the same name.
 @xref{Face Attributes}.  @code{:family} and @code{:foundry} are
-strings, while the other three are symbols.  As example values,
+strings or symbols, while the other three are either symbols or numbers,
+the numerical values of the valid style symbols.  As example values,
 @code{:slant} may be @code{italic}, @code{:weight} may be @code{bold}
 and @code{:width} may be @code{normal}.
 
