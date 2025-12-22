@@ -2777,18 +2777,27 @@ so that the update is less likely to interfere with user typing."
       ;; If we got interrupted, try again the next time the user is idle.
       (completions--start-eager-display))))
 
-(defun completions--start-eager-display ()
+(defun completions--start-eager-display (&optional require-eager-update)
   "Maybe display the *Completions* buffer when the user is next idle.
 
 Only displays if `completion-eager-display' is t, or if eager display
-has been requested by the completion table."
-  (when completion-eager-display
-    (when (or (eq completion-eager-display t)
-              (completion-metadata-get
-               (completion-metadata
-                (buffer-substring-no-properties (minibuffer-prompt-end) (point))
-                minibuffer-completion-table minibuffer-completion-predicate)
-               'eager-display))
+has been requested by the completion table.
+
+When REQUIRE-EAGER-UPDATE is non-nil, also require eager-display to be
+requested by the completion table."
+  (when (and completion-eager-display
+             ;; If it's already displayed, don't display it again.
+             (not (get-buffer-window "*Completions*" 0)))
+    (when (let ((metadata
+                 (completion-metadata
+                  (buffer-substring-no-properties (minibuffer-prompt-end) (point))
+                  minibuffer-completion-table minibuffer-completion-predicate)))
+            (and
+             (or (eq completion-eager-display t)
+                 (completion-metadata-get metadata 'eager-display))
+             (or (not require-eager-update)
+                 (eq completion-eager-update t)
+                 (completion-metadata-get metadata 'eager-update))))
       (setq completion-eager-display--timer
             (run-with-idle-timer 0 nil #'completions--eager-display)))))
 
@@ -2800,13 +2809,16 @@ has been requested by the completion table."
 
 (defun completions--after-change (_start _end _old-len)
   "Update displayed *Completions* buffer after change in buffer contents."
-  (when (or completion-auto-deselect completion-eager-update)
-    (when-let* ((window (minibuffer--completions-visible)))
+  (if (not (or (minibufferp nil t) completion-in-region-mode))
+      (remove-hook 'after-change-functions #'completions--after-change t)
+    (when-let* ((window (get-buffer-window "*Completions*" 0)))
       (when completion-auto-deselect
         (with-selected-window window
           (completions--deselect)))
       (when completion-eager-update
-        (add-hook 'post-command-hook #'completions--post-command-update)))))
+        (add-hook 'post-command-hook #'completions--post-command-update)))
+    (when (minibufferp nil t)
+      (completions--start-eager-display t))))
 
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
@@ -2824,6 +2836,8 @@ has been requested by the completion table."
                        (- (point) start)
                        md)))
     (message nil)
+    (when (or completion-auto-deselect completion-eager-update)
+      (add-hook 'after-change-functions #'completions--after-change nil t))
     (if (or (null completions)
             (and (not (consp (cdr completions)))
                  (equal (car completions) string)))
@@ -2831,7 +2845,6 @@ has been requested by the completion table."
           ;; If there are no completions, or if the current input is already
           ;; the sole completion, then hide (previous&stale) completions.
           (minibuffer-hide-completions)
-          (remove-hook 'after-change-functions #'completions--after-change t)
           (if completions
               (completion--message "Sole completion")
             (unless completion-fail-discreetly
@@ -2897,8 +2910,6 @@ has been requested by the completion table."
             (body-function
              . ,#'(lambda (window)
                     (with-current-buffer mainbuf
-                      (when (or completion-auto-deselect completion-eager-update)
-                        (add-hook 'after-change-functions #'completions--after-change nil t))
                       ;; Remove the base-size tail because `sort' requires a properly
                       ;; nil-terminated list.
                       (when last (setcdr last nil))
