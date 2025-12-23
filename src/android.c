@@ -102,6 +102,7 @@ struct android_emacs_window
   jmethodID unmap_window;
   jmethodID resize_window;
   jmethodID move_window;
+  jmethodID move_resize_window;
   jmethodID make_input_focus;
   jmethodID raise;
   jmethodID lower;
@@ -1965,6 +1966,7 @@ android_init_emacs_window (void)
   FIND_METHOD (unmap_window, "unmapWindow", "()V");
   FIND_METHOD (resize_window, "resizeWindow", "(II)V");
   FIND_METHOD (move_window, "moveWindow", "(II)V");
+  FIND_METHOD (move_resize_window, "moveResizeWindow", "(IIII)V");
   FIND_METHOD (make_input_focus, "makeInputFocus", "(J)V");
   FIND_METHOD (raise, "raise", "()V");
   FIND_METHOD (lower, "lower", "()V");
@@ -5331,11 +5333,23 @@ android_get_geometry (android_window handle,
 }
 
 void
-android_move_resize_window (android_window window, int x, int y,
+android_move_resize_window (android_window handle, int x, int y,
 			    unsigned int width, unsigned int height)
 {
-  android_move_window (window, x, y);
-  android_resize_window (window, width, height);
+  jobject window;
+  jmethodID move_resize_window;
+
+  window = android_resolve_handle (handle);
+  move_resize_window = window_class.move_resize_window;
+
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 window,
+						 window_class.class,
+						 move_resize_window,
+						 (jint) x, (jint) y,
+						 (jint) width,
+						 (jint) height);
+  android_exception_check ();
 }
 
 void
