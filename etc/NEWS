@@ -2804,6 +2804,11 @@ When called from Lisp, it now only accepts a symbol.
 When invoking the command in a Dired buffer with marked files,
 the command will only copy those files.
 
+---
+*** 'package-isolate' can now also install packages.
+If a package is missing, 'package-isolate' will fetch the missing
+tarballs and prepare them to be activated in the sub-process.
+
 +++
 *** package-x.el is now obsolete.
 

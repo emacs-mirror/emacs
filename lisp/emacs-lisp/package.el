@@ -2484,14 +2484,16 @@ argument, don't ask for confirmation to install packages."
 (defun package-isolate (packages &optional temp-init)
   "Start an uncustomized Emacs and only load a set of PACKAGES.
 Interactively, prompt for PACKAGES to load, which should be specified
-separated by commas.
-If called from Lisp, PACKAGES should be a list of packages to load.
-If TEMP-INIT is non-nil, or when invoked with a prefix argument,
-the Emacs user directory is set to a temporary directory.
-This command is intended for testing Emacs and/or the packages
-in a clean environment."
+separated by commas.  If called from Lisp, PACKAGES should be a list of
+`package-desc' objects to load.  If an element of PACKAGES is not
+installed, it will be fetched, but not activated in the current session.
+If TEMP-INIT is non-nil, or when invoked with a prefix argument, the
+Emacs user directory is set to a temporary directory.  This command is
+intended for testing Emacs and/or the packages in a clean environment."
   (interactive
-   (cl-loop for p in (cl-loop for p in (package--alist) append (cdr p))
+   (cl-loop for p in (append
+                      (cl-loop for p in (package--alist) append (cdr p))
+                      (cl-loop for p in package-archive-contents append (cdr p)))
 	    unless (package-built-in-p p)
 	    collect (cons (package-desc-full-name p) p) into table
 	    finally return
@@ -2500,21 +2502,27 @@ in a clean environment."
                       (completing-read-multiple
                        "Packages to isolate: " table
                        nil t)
-		           collect (alist-get c table nil nil #'string=))
-                  current-prefix-arg)))
+		      collect (alist-get c table nil nil #'string=))
+             current-prefix-arg)))
   (let* ((name (concat "package-isolate-"
                        (mapconcat #'package-desc-full-name packages ",")))
-         (all-packages (delete-consecutive-dups
-                        (sort (append packages (mapcan #'package--dependencies packages))
-                              (lambda (p0 p1)
-                                (string< (package-desc-name p0) (package-desc-name p1))))))
-         initial-scratch-message package-load-list)
+         (all-packages (package-compute-transaction
+                        packages (mapcan #'package-desc-reqs packages)))
+         (package-alist (copy-tree package-alist t))
+         (temp-install-dir nil) initial-scratch-message load-list)
+    (when-let* ((missing (seq-remove #'package-installed-p all-packages))
+                (package-user-dir (make-temp-file "package-isolate" t)))
+      (setq temp-install-dir (list package-user-dir))
+      ;; We bind `package-activate-1' to prevent activating the package
+      ;; in `package-unpack' for this session.
+      (cl-letf (((symbol-function #'package-activate-1) #'ignore))
+        (package-download-transaction missing)))
     (with-temp-buffer
       (insert ";; This is an isolated testing environment, with these packages enabled:\n\n")
       (dolist (package all-packages)
         (push (list (package-desc-name package)
                     (package-version-join (package-desc-version package)))
-              package-load-list)
+              load-list)
         (insert ";; - " (package-desc-full-name package))
         (unless (memq package packages)
           (insert " (dependency)"))
@@ -2535,7 +2543,9 @@ in a clean environment."
                             ,@(mapcar
                                (lambda (dir)
                                  `(add-to-list 'package-directory-list ,dir))
-                               (cons package-user-dir package-directory-list))
+                               (append (list package-user-dir)
+                                       temp-install-dir
+                                       package-directory-list))
                             (setq package-load-list ',package-load-list)
                             (package-activate-all)))))))
 
