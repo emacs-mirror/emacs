@@ -89,23 +89,22 @@ By convention, this is a list of symbols where each symbol stands for the
     (let ((nextpos curpos)
           (prevpos curpos)
           (oldpos (window-parameter window 'cursor-intangible--last-point)))
-      (while (when (< nextpos (point-max))
+      (while (if (>= nextpos (point-max))
+                 (when (cursor-sensor--intangible-p nextpos) (setq nextpos nil))
                (setq nextpos
                      (if (get-char-property nextpos 'cursor-intangible)
                          (next-single-char-property-change
                           nextpos 'cursor-intangible nil (point-max))
                        (1+ nextpos)))
                (cursor-sensor--intangible-p nextpos)))
-      (while (when (> prevpos (point-min))
+      (while (if (<= prevpos (point-min))
+                 (when (cursor-sensor--intangible-p prevpos) (setq prevpos nil))
                (setq prevpos
                      (if (get-char-property (1- prevpos) 'cursor-intangible)
                          (previous-single-char-property-change
                           prevpos 'cursor-intangible nil (point-min))
                        (1- prevpos)))
                (cursor-sensor--intangible-p prevpos)))
-      ;; Make sure the positions are actually tangible.
-      (when (cursor-sensor--intangible-p nextpos) (setq nextpos nil))
-      (when (cursor-sensor--intangible-p prevpos) (setq prevpos nil))
       ;; Pick the preferred one depending on the direction of the motion.
       ;; We want to preserve the overall direction of the motion (if
       ;; applicable) and if there's still a choice we prefer shorter motions.
