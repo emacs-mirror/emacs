@@ -3433,13 +3433,14 @@ visible ancestor of FRAME instead.  */)
   if (FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->frame_visible_invisible_hook)
     FRAME_TERMINAL (f)->frame_visible_invisible_hook (f, false);
 
-  if (is_tty_child_frame (f) && EQ (frame, selected_frame))
+  if (is_tty_child_frame (f))
     {
       SET_FRAME_VISIBLE (f, false);
-      /* If FRAME is a tty child frame and the selected frame, we have
-	 to select another frame instead.  Use the first visible
-	 ancestor as returned by 'mru_rooted_frame'.  */
-      Fselect_frame (mru_rooted_frame (f), Qnil);
+      if (EQ (frame, selected_frame))
+	/* If FRAME is a tty child frame and the selected frame, we have
+	   to select another frame instead.  Use the first visible
+	   ancestor as returned by 'mru_rooted_frame'.  */
+	Fselect_frame (mru_rooted_frame (f), Qnil);
     }
 
   /* Make menu bar update for the Buffers and Frames menus.  */
