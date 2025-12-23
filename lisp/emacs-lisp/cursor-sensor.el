@@ -106,13 +106,12 @@ By convention, this is a list of symbols where each symbol stands for the
                        (1- prevpos)))
                (cursor-sensor--intangible-p prevpos)))
       ;; Pick the preferred one depending on the direction of the motion.
-      ;; We want to preserve the overall direction of the motion (if
-      ;; applicable) and if there's still a choice we prefer shorter motions.
+      ;; Goals, from most important to least important:
+      ;; - Prefer a tangible position.
+      ;; - Preserve the overall direction of the motion.
       (cond
-       ((< oldpos curpos)
-        (or (and prevpos (< oldpos prevpos) prevpos) nextpos))
-       ((> oldpos curpos)
-        (or (and nextpos (> oldpos nextpos) nextpos) prevpos))
+       ((< oldpos curpos) (or nextpos prevpos))
+       ((> oldpos curpos) (or prevpos nextpos))
        (t
         (or (and prevpos nextpos
                  (< (- nextpos curpos) (- curpos prevpos))
