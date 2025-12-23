@@ -7128,16 +7128,11 @@ The function is called with one parameter, a cons cell ..."
 			       ", "))
 	    mct (message-fetch-field "mail-copies-to")
 	    author (or (message-fetch-field "mail-reply-to")
-		       (message-fetch-field "reply-to"))
+		       (message-fetch-field "reply-to")
+		       (message-fetch-field "from")
+		       "")
 	    mft (and message-use-mail-followup-to
-		     (message-fetch-field "mail-followup-to")))
-      ;; Make sure this message goes to the author if this is a wide
-      ;; reply, since Reply-To address may be a list address a mailing
-      ;; list server added.
-      (when (and wide author)
-	(setq cc (concat author ", " cc)))
-      (when (or wide (not author))
-	(setq author (or (message-fetch-field "from") ""))))
+		     (message-fetch-field "mail-followup-to"))))
 
     ;; Handle special values of Mail-Copies-To.
     (when mct
