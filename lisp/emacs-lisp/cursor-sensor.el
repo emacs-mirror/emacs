@@ -109,9 +109,14 @@ By convention, this is a list of symbols where each symbol stands for the
       ;; Goals, from most important to least important:
       ;; - Prefer a tangible position.
       ;; - Preserve the overall direction of the motion.
+      ;; - Prefer shortening the motion over lengthening it.
       (cond
-       ((< oldpos curpos) (or nextpos prevpos))
-       ((> oldpos curpos) (or prevpos nextpos))
+       ((< oldpos curpos)
+        (or (and prevpos (< oldpos prevpos) prevpos) ;Prefer shorter motion.
+            nextpos prevpos))
+       ((> oldpos curpos)
+        (or (and nextpos (> oldpos nextpos) nextpos) ;Prefer shorter motion.
+            prevpos nextpos))
        (t
         (or (and prevpos nextpos
                  (< (- nextpos curpos) (- curpos prevpos))
