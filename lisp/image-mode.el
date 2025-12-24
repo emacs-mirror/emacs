@@ -1285,17 +1285,24 @@ If N is negative, go to the previous file."
         (cl-case (car buffer)
           (dired
            (dired-goto-file file)
-           (let (found)
+           (let ((orig-file (dired-get-filename nil t))
+                 found)
              (while (and (not found)
-                         ;; Stop if we reach the end/start of the buffer.
+                         orig-file
+                         ;; Stop if we reach the end/start of the buffer
+                         ;; (used only when 'dired-movement-style' is nil).
                          (if (> n 0)
                              (not (eobp))
                            (not (bobp))))
                (dired-next-line n)
                (let ((candidate (dired-get-filename nil t)))
-                 (when (and candidate
-                            (string-match-p regexp candidate))
-                   (setq found candidate))))
+                 (if (and candidate
+                          (string-match-p regexp candidate))
+                     (setq found candidate)
+                   ;; When after wrapping with non-nil 'dired-movement-style'
+                   ;; arrived at the original file, exit the loop.
+                   (if (equal orig-file candidate)
+                       (setq orig-file nil)))))
              (if found
                  (setq next found)
                ;; If we didn't find a next/prev file, then restore
