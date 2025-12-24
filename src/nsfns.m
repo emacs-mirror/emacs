@@ -3765,8 +3765,13 @@ If PROGRESS is nil, remove the progress indicator.  */)
 						  width, height)];
 	[level_indicator setWantsLayer: YES]; /* Performance.  */
 	[level_indicator setEnabled: NO]; /* Ignore mouse input.  */
+#ifdef NS_IMPL_GNUSTEP
+	[level_indicator setLevelIndicatorStyle:
+			   NSContinuousCapacityLevelIndicatorStyle];
+#else
 	[level_indicator setLevelIndicatorStyle:
 			   NSLevelIndicatorStyleContinuousCapacity];
+#endif
 	/* Match NSProgressIndicator color.  */
 	[level_indicator setFillColor: [NSColor controlAccentColor]];
 	[level_indicator setMinValue: 0.0];
