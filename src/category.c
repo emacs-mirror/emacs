@@ -440,11 +440,12 @@ syms_of_category (void)
   DEFSYM (Qcategory_table_p, "category-table-p");
 
   DEFVAR_LISP ("word-combining-categories", Vword_combining_categories,
-	       doc: /* List of pair (cons) of categories to determine word boundary.
+	       doc: /* List of pairs (cons cells) of categories to determine word boundary.
 
 Emacs treats a sequence of word constituent characters as a single
 word (i.e. finds no word boundary between them) only if they belong to
-the same script.  But, exceptions are allowed in the following cases.
+the same script (see `char-script-table').  Exceptions to this rule
+are allowed in the following cases.
 
 \(1) The case that characters are in different scripts is controlled
 by the variable `word-combining-categories'.
@@ -453,12 +454,18 @@ Emacs finds no word boundary between characters of different scripts
 if they have categories matching some element of this list.
 
 More precisely, if an element of this list is a cons of category CAT1
-and CAT2, and a multibyte character C1 which has CAT1 is followed by
-C2 which has CAT2, there's no word boundary between C1 and C2.
+and CAT2, and a multibyte character C1 which has CAT1 (but not CAT2)
+is followed by C2 which has CAT2 (but not CAT1), there's no word
+boundary between C1 and C2.
 
 For instance, to tell that Han characters followed by Hiragana
 characters can form a single word, the element `(?C . ?H)' should be
 in this list.
+
+CAT1 or CAT2 nil means that any character will do if it doesn't have
+the other element of the cons in its category set.  For instance, to
+tell that ASCII characters can form a single word with non-ASCII
+characters, this list should have the elements `(nil . ?a)' and `(?a)'.
 
 \(2) The case that character are in the same script is controlled by
 the variable `word-separating-categories'.
@@ -478,7 +485,7 @@ the element `(?H . ?K)' should be in this list.  */);
   Vword_combining_categories = Qnil;
 
   DEFVAR_LISP ("word-separating-categories", Vword_separating_categories,
-	       doc: /* List of pair (cons) of categories to determine word boundary.
+	       doc: /* List of pairs (cons cells) of categories to determine word boundary.
 See the documentation of the variable `word-combining-categories'.  */);
 
   Vword_separating_categories = Qnil;
