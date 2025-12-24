@@ -83,40 +83,45 @@ By convention, this is a list of symbols where each symbol stands for the
               nil p))
       p)))
 
-(defun cursor-sensor-tangible-pos (curpos window &optional second-chance)
-  (let ((newpos curpos))
-    (when (cursor-sensor--intangible-p newpos)
-      (let ((oldpos (window-parameter window 'cursor-intangible--last-point)))
-        (cond
-         ((or (and (integerp oldpos) (< oldpos newpos))
-              (eq newpos (point-min)))
-          (while
-              (when (< newpos (point-max))
-                (setq newpos
-                      (if (get-char-property newpos 'cursor-intangible)
-                          (next-single-char-property-change
-                           newpos 'cursor-intangible nil (point-max))
-                        (1+ newpos)))
-                (cursor-sensor--intangible-p newpos))))
-         (t ;; (>= oldpos newpos)
-          (while
-              (when (> newpos (point-min))
-                (setq newpos
-                      (if (get-char-property (1- newpos) 'cursor-intangible)
-                          (previous-single-char-property-change
-                           newpos 'cursor-intangible nil (point-min))
-                        (1- newpos)))
-                (cursor-sensor--intangible-p newpos)))))
-        (if (not (and (or (eq newpos (point-min)) (eq newpos (point-max)))
-                      (cursor-sensor--intangible-p newpos)))
-            ;; All clear, we're good to go.
-            newpos
-          ;; We're still on an intangible position because we bumped
-          ;; into an intangible BOB/EOB: try to move in the other direction.
-          (if second-chance
-              ;; Actually, we tried already and that failed!
-              curpos
-            (cursor-sensor-tangible-pos newpos window 'second-chance)))))))
+(defun cursor-sensor-tangible-pos (curpos window)
+  (when (cursor-sensor--intangible-p curpos)
+    ;; Find the two nearest tangible positions.
+    (let ((nextpos curpos)
+          (prevpos curpos)
+          (oldpos (window-parameter window 'cursor-intangible--last-point)))
+      (while (if (>= nextpos (point-max))
+                 (when (cursor-sensor--intangible-p nextpos) (setq nextpos nil))
+               (setq nextpos
+                     (if (get-char-property nextpos 'cursor-intangible)
+                         (next-single-char-property-change
+                          nextpos 'cursor-intangible nil (point-max))
+                       (1+ nextpos)))
+               (cursor-sensor--intangible-p nextpos)))
+      (while (if (<= prevpos (point-min))
+                 (when (cursor-sensor--intangible-p prevpos) (setq prevpos nil))
+               (setq prevpos
+                     (if (get-char-property (1- prevpos) 'cursor-intangible)
+                         (previous-single-char-property-change
+                          prevpos 'cursor-intangible nil (point-min))
+                       (1- prevpos)))
+               (cursor-sensor--intangible-p prevpos)))
+      ;; Pick the preferred one depending on the direction of the motion.
+      ;; Goals, from most important to least important:
+      ;; - Prefer a tangible position.
+      ;; - Preserve the overall direction of the motion.
+      ;; - Prefer shortening the motion over lengthening it.
+      (cond
+       ((< oldpos curpos)
+        (or (and prevpos (< oldpos prevpos) prevpos) ;Prefer shorter motion.
+            nextpos prevpos))
+       ((> oldpos curpos)
+        (or (and nextpos (> oldpos nextpos) nextpos) ;Prefer shorter motion.
+            prevpos nextpos))
+       (t
+        (or (and prevpos nextpos
+                 (< (- nextpos curpos) (- curpos prevpos))
+                 nextpos)
+            prevpos nextpos))))))
 
 (defun cursor-sensor-move-to-tangible (window)
   (let* ((curpos (window-point window))
