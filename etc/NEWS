@@ -506,6 +506,11 @@ every buffer.
 ** Tab Bars and Tab Lines
 
 ---
+*** New command 'merge-tabs'.
+'merge-tabs' merges all windows from two tabs into one of these tabs
+and closes the other tab.
+
+---
 *** New abnormal hook 'tab-bar-auto-width-functions'.
 This hook allows you to control which tab-bar tabs are auto-resized.
 

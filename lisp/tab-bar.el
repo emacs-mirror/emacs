@@ -1470,8 +1470,7 @@ be scaled for display on the current frame."
 (push '(tabs . frameset-filter-tabs) frameset-filter-alist)
 
 ;; Session filter used within same session by `frameset-to-register'
-;; should make a deep copy of tabs to prevent modification
-;; of saved data.
+;; should make a deep copy of tabs to prevent modification of saved data.
 (defun frameset-session-filter-tabs (current _filtered _parameters _saving)
   (copy-tree current))
 
@@ -1911,6 +1910,8 @@ to which to move the tab; ARG defaults to 1."
            (from-tab (nth (1- from-number) from-tabs))
            (to-tabs (funcall tab-bar-tabs-function to-frame))
            (to-index (max 0 (min (1- (or to-number 1)) (1- (length to-tabs))))))
+      ;; Delete the window configuration (wc) that has frame references,
+      ;; and leave only the window state (ws) to restore it on another frame.
       (cl-pushnew (assq-delete-all
                    'wc (if (eq (car from-tab) 'current-tab)
                            (tab-bar--tab from-frame)
@@ -1952,6 +1953,36 @@ configuration."
   (let ((ignore-window-parameters t))
     (delete-window))
   (tab-bar-switch-to-recent-tab))
+
+(defun tab-bar-merge-tabs (&optional tab1 tab2 vertical)
+  "Merge the main window of TAB2 into TAB1.
+Split the main window of TAB1 and make the new window display
+the main window of TAB2.  Both TAB1 and TAB2 must be tab numbers.
+If VERTICAL is non-nil, make the new window below the old main window
+of TAB1.  Otherwise, make the new window on the right of TAB1's main
+window.  Interactively, VERTICAL is the prefix argument, TAB1 is the
+selected tab and TAB2 is the recent tab.  Close TAB2 if the merge
+completed successfully and return TAB1."
+  (interactive "i\ni\nP")
+  (let ((tab1 (or tab1 (1+ (tab-bar--current-tab-index))))
+        (tab2 (or tab2 (1+ (or (tab-bar--tab-index-recent 1) 0))))
+        ws2)
+    (when (eq tab1 tab2)
+      (user-error "Cannot find tab to merge"))
+    (tab-bar-select-tab tab2)
+    (setq ws2 (window-state-get (window-main-window)))
+    (let ((tab-bar-close-tab-select 'recent)
+          (tab-bar-closed-tabs nil))
+      (tab-bar-close-tab))
+    (unless (eq tab1 (1+ (tab-bar--current-tab-index)))
+      (tab-bar-select-tab tab1))
+    (window-state-put
+     ws2
+     ;; Make new window on tab1.
+     (split-window (window-main-window) nil (not vertical)))
+    tab1))
+
+(defalias 'merge-tabs #'tab-bar-merge-tabs)
 
 
 (defcustom tab-bar-new-tab-to 'right
