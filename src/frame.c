@@ -4561,7 +4561,7 @@ FRAME must be a live frame and defaults to the selected one.
 
 WIDTH and HEIGHT must be positive integers and specify the new pixel
 width and height of FRAME's text area in pixels.  If WIDTH or HEIGHT do
-not secify a value that is a multiple of FRAME's character sizes, you
+not specify a value that is a multiple of FRAME's character sizes, you
 may have to set `frame-resize-pixelwise' to a non-nil value in order to
 get the exact size in pixels.
 
