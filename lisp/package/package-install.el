@@ -35,8 +35,9 @@
 
 (defcustom package-install-upgrade-built-in nil
   "Non-nil means that built-in packages can be upgraded via a package archive.
-If disabled, then `package-install' will not suggest to replace a
-built-in package with a (possibly newer) version from a package archive."
+If disabled, then `package-install' will raise an error when trying to
+replace a built-in package with a (possibly newer) version from a
+package archive."
   :type 'boolean
   :version "29.1"
   :group 'package)
@@ -181,48 +182,6 @@ These are packages which are neither contained in
                         (not (package--user-installed-p p)))
              collect p)))
 
-(defun package-desc-status (pkg-desc)
-  "Return the status of `package-desc' object PKG-DESC."
-  (let* ((name (package-desc-name pkg-desc))
-         (dir (package-desc-dir pkg-desc))
-         (lle (assq name package-load-list))
-         (held (cadr lle))
-         (version (package-desc-version pkg-desc))
-         (signed (or (not package-list-unsigned)
-                     (package-desc-signed pkg-desc))))
-    (cond
-     ((package-vc-p pkg-desc) "source")
-     ((eq dir 'builtin) "built-in")
-     ((and lle (null held)) "disabled")
-     ((stringp held)
-      (let ((hv (if (stringp held) (version-to-list held))))
-        (cond
-         ((version-list-= version hv) "held")
-         ((version-list-< version hv) "obsolete")
-         (t "disabled"))))
-     (dir                               ;One of the installed packages.
-      (cond
-       ((not (file-exists-p dir)) "deleted")
-       ;; Not inside `package-user-dir'.
-       ((not (file-in-directory-p dir package-user-dir)) "external")
-       ((eq pkg-desc (cadr (assq name package-alist)))
-        (if (not signed) "unsigned"
-          (if (package--user-selected-p name)
-              "installed" "dependency")))
-       (t "obsolete")))
-     ((package--incompatible-p pkg-desc) "incompat")
-     (t
-      (let* ((ins (cadr (assq name package-alist)))
-             (ins-v (if ins (package-desc-version ins))))
-        (cond
-         ;; Installed obsolete packages are handled in the `dir'
-         ;; clause above.  Here we handle available obsolete, which
-         ;; are displayed depending on `package-menu--hide-packages'.
-         ((and ins (version-list-<= version ins-v)) "avail-obso")
-         (t
-          (if (memq name (bound-and-true-p package-menu--new-package-list))
-              "new" "available"))))))))
-
 (defun package--used-elsewhere-p (pkg-desc &optional pkg-list all)
   "Non-nil if PKG-DESC is a dependency of a package in PKG-LIST.
 Return the first package found in PKG-LIST of which PKG is a
@@ -285,6 +244,18 @@ if all the in-between dependencies are also in PACKAGE-LIST."
 ;; installed in a variety of ways (archives, buffer, file), but
 ;; requirements (dependencies) are always satisfied by looking in
 ;; `package-archive-contents'.
+;;
+;; If Emacs installs a package from a package archive, it might create
+;; some files in addition to the package's contents.  For example:
+;;
+;; - If the package archive provides a non-trivial long description for
+;;   some package in "PACKAGE-readme.txt", Emacs stores it in a file
+;;   named "README-elpa" in the package's content directory, unless the
+;;   package itself provides such a file.
+;;
+;; - If a package archive provides package signatures, Emacs stores
+;;   information on the signatures in files named "NAME-VERSION.signed"
+;;   below directory `package-user-dir'.
 
 (defun package-archive-base (desc)
   "Return the package described by DESC."
@@ -349,7 +320,22 @@ Signal an error if the kind is none of the above."
                ;; Update the new (activated) pkg-desc as well.
                (when-let* ((pkg-descs (cdr (assq (package-desc-name pkg-desc)
                                                  package-alist))))
-                 (setf (package-desc-signed (car pkg-descs)) t))))))))))
+                 (setf (package-desc-signed (car pkg-descs)) t))))))))
+    ;; fetch a backup of the readme file from the server.  Slot `dir' is
+    ;; not yet available in PKG-DESC, so cobble that up.
+    (let* ((dirname (package-desc-full-name pkg-desc))
+           (pkg-dir (expand-file-name dirname package-user-dir))
+           (readme (expand-file-name "README-elpa" pkg-dir)))
+      (unless (file-readable-p readme)
+        (package--with-response-buffer (package-archive-base pkg-desc)
+          :file (format "%s-readme.txt" (package-desc-name pkg-desc))
+          :noerror t
+          ;; do not write empty or whitespace-only readmes to give
+          ;; `package--get-description' a chance to find another readme
+          (unless (save-excursion
+                    (goto-char (point-min))
+                    (looking-at-p "[[:space:]]*\\'"))
+            (write-region nil nil readme)))))))
 
 (defun package-download-transaction (packages)
   "Download and install all the packages in PACKAGES.
@@ -358,21 +344,6 @@ This function assumes that all package requirements in
 PACKAGES are satisfied, i.e. that PACKAGES is computed
 using `package-compute-transaction'."
   (mapc #'package-install-from-archive packages))
-
-(defun package--active-built-in-p (package)
-  "Return non-nil if the built-in version of PACKAGE is used.
-If the built-in version of PACKAGE is used and PACKAGE is
-also available for installation from an archive, it is an
-indication that PACKAGE was never upgraded to any newer
-version from the archive."
-  (and (not (assq (cond
-                   ((package-desc-p package)
-                    (package-desc-name package))
-                   ((stringp package) (intern package))
-                   ((symbolp package) package)
-                   ((error "Unknown package format: %S" package)))
-                  (package--alist)))
-       (package-built-in-p package)))
 
 ;;;###autoload
 (defun package-install (pkg &optional dont-select)
@@ -401,17 +372,14 @@ had been enabled."
      (package--archives-initialize)
      (list (intern (completing-read
                     "Install package: "
-                    (mapcan
-                     (lambda (elt)
-                       (and (or (and (or current-prefix-arg
-                                         package-install-upgrade-built-in)
-                                     (package--active-built-in-p (car elt)))
-                                (not (package-installed-p (car elt))))
-                            (list (symbol-name (car elt)))))
-                     package-archive-contents)
+                    package-archive-contents
                     nil t))
            nil)))
   (cl-check-type pkg (or symbol package-desc))
+  (when (or (and package-install-upgrade-built-in
+                 (package--active-built-in-p pkg))
+            (package-installed-p pkg))
+    (user-error "Package is already installed"))
   (package--archives-initialize)
   (when (fboundp 'package-menu--post-refresh)
     (add-hook 'post-command-hook #'package-menu--post-refresh))
@@ -500,7 +468,7 @@ from ELPA by either using `\\[package-upgrade]' or
 `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'."
   (interactive (list (not noninteractive)))
   (package-refresh-contents)
-  (let ((upgradeable (package--upgradeable-packages)))
+  (let ((upgradeable (package--upgradeable-packages package-install-upgrade-built-in)))
     (if (not upgradeable)
         (message "No packages to upgrade")
       (when (and query
@@ -532,18 +500,6 @@ the return value is a list of symbols designating packages."
                                  deps)))
                    (delete-dups (cons pkg-desc deps))))))
       (remq pkg (mapcar (if (package-desc-p pkg) #'identity #'package-desc-name) all)))))
-
-(defun package-strip-rcs-id (str)
-  "Strip RCS version ID from the version string STR.
-If the result looks like a dotted numeric version, return it.
-Otherwise return nil."
-  (when str
-    (when (string-match "\\`[ \t]*[$]Revision:[ \t]+" str)
-      (setq str (substring str (match-end 0))))
-    (let ((l (version-to-list str)))
-      ;; Don't return `str' but (package-version-join (version-to-list str))
-      ;; to make sure we use a "canonical name"!
-      (if l (package-version-join l)))))
 
 (defun package-buffer-info ()
   "Return a `package-desc' describing the package in the current buffer.
@@ -577,19 +533,6 @@ boundaries."
        (let ((maints (lm-maintainers))) (if (cdr maints) maints (car maints)))
        :authors (lm-authors)))))
 
-(defun package--read-pkg-desc (kind)
-  "Read a `define-package' form in current buffer.
-Return the pkg-desc, with desc-kind set to KIND."
-  (goto-char (point-min))
-  (let* ((pkg-def-parsed (read (current-buffer)))
-         (pkg-desc
-          (when (eq (car pkg-def-parsed) 'define-package)
-            (apply #'package-desc-from-define
-                   (append (cdr pkg-def-parsed))))))
-    (when pkg-desc
-      (setf (package-desc-kind pkg-desc) kind)
-      pkg-desc)))
-
 (defun package-dir-info ()
   "Find package information for a directory.
 The return result is a `package-desc'."
@@ -601,12 +544,12 @@ The return result is a `package-desc'."
           (package--read-pkg-desc 'dir))
       (catch 'found
         (let ((files (or (and (derived-mode-p 'dired-mode)
-                              (dired-get-marked-files))
-                         (directory-files-recursively default-directory "\\.el\\'"))))
-          ;; We sort the file names in lexicographical order, to ensure
-          ;; that we check shorter file names first (ie. those further
-          ;; up in the directory structure).
-          (dolist (file (sort files))
+                              (dired-get-marked-files nil 'marked))
+                         (directory-files default-directory t "\\.el\\'" t))))
+          ;; We sort the file names by length, to ensure that we check
+          ;; shorter file names first, as these are more likely to
+          ;; contain the package metadata.
+          (dolist (file (sort files :key #'length))
             ;; The file may be a link to a nonexistent file; e.g., a
             ;; lock file.
             (when (file-exists-p file)
@@ -689,7 +632,9 @@ directory."
       (set-visited-file-name file)
       (set-buffer-modified-p nil)
       (when (string-match "\\.tar\\'" file) (tar-mode)))
-    (package-install-from-buffer)))
+    (unwind-protect
+        (package-install-from-buffer)
+      (fundamental-mode))))
 
 
 
@@ -737,6 +682,8 @@ installed), maybe you need to \\[package-refresh-contents]")
   "Delete PKG-DESC directory DIR recursively.
 Clean-up the corresponding .eln files if Emacs is native
 compiled."
+  (setq load-path (cl-remove-if (lambda (s) (file-in-directory-p s dir))
+                                load-path))
   (when (featurep 'native-compile)
     (cl-loop
      for file in (directory-files-recursively dir
@@ -954,18 +901,22 @@ The return result is a `package-desc'."
 This uses `tar-untar-buffer' from Tar mode.  All files should
 untar into a directory named DIR; otherwise, signal an error."
   (tar-mode)
-  ;; Make sure everything extracts into DIR.
-  (let ((regexp (concat "\\`" (regexp-quote (expand-file-name dir)) "/"))
-        (case-fold-search (file-name-case-insensitive-p dir)))
-    (dolist (tar-data tar-parse-info)
-      (let ((name (expand-file-name (tar-header-name tar-data))))
-        (or (string-match regexp name)
-            ;; Tarballs created by some utilities don't list
-            ;; directories with a trailing slash (Bug#13136).
-            (and (string-equal (expand-file-name dir) name)
-                 (eq (tar-header-link-type tar-data) 5))
-            (error "Package does not untar cleanly into directory %s/" dir)))))
-  (tar-untar-buffer))
+  (unwind-protect
+      (progn
+        ;; Make sure everything extracts into DIR.
+        (let ((regexp (concat "\\`" (regexp-quote (expand-file-name dir)) "/"))
+              (case-fold-search (file-name-case-insensitive-p dir)))
+          (dolist (tar-data tar-parse-info)
+            (let ((name (expand-file-name (tar-header-name tar-data))))
+              (or (string-match regexp name)
+                  ;; Tarballs created by some utilities don't list
+                  ;; directories with a trailing slash (Bug#13136).
+                  (and (string-equal (expand-file-name dir) name)
+                       (eq (tar-header-link-type tar-data) 5))
+                  (error "Package does not untar cleanly into directory %s/"
+                         dir)))))
+        (tar-untar-buffer))
+    (fundamental-mode)))
 
 (declare-function dired-get-marked-files "dired")
 
@@ -979,7 +930,7 @@ untar into a directory named DIR; otherwise, signal an error."
        (make-directory pkg-dir t)
        (let ((file-list
               (or (and (derived-mode-p 'dired-mode)
-                       (dired-get-marked-files))
+                       (dired-get-marked-files nil 'marked))
                   (directory-files-recursively default-directory "" nil))))
          (dolist (source-file file-list)
            (let ((target (expand-file-name
@@ -1022,11 +973,6 @@ untar into a directory named DIR; otherwise, signal an error."
         ;; `activate-1', so that we use the byte-compiled definitions.
         (package--reload-previously-loaded new-desc)))
     pkg-dir))
-
-(defun package--alist-to-plist-args (alist)
-  (mapcar #'macroexp-quote
-          (apply #'nconc
-                 (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist))))
 
 (defun package-generate-description-file (pkg-desc pkg-file)
   "Create the foo-pkg.el file PKG-FILE for single-file package PKG-DESC."

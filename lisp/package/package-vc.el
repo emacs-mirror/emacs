@@ -51,7 +51,6 @@
 (require 'package-core)
 (require 'package-install)
 (require 'package-elpa)
-(require 'package-describe)
 (require 'lisp-mnt)
 (require 'vc)
 (require 'seq)
