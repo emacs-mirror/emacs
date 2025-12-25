@@ -412,8 +412,9 @@ package."
   "Download and install all the packages in PACKAGES.
 PACKAGES should be a list of `package-desc'.  This function assumes that
 all package requirements in PACKAGES are satisfied, i.e. that PACKAGES
-is computed using `package-compute-transaction'.  The function returns t
-if the installation succeeded."
+is computed using `package-compute-transaction'.  The function returns a
+list of `package-desc' objects that have been installed, or nil if the
+transaction had no effect."
   (let* ((installed '())
          (pkg-desc (catch 'review-failed
                      (dolist (pkg-desc packages nil)
@@ -424,7 +425,7 @@ if the installation succeeded."
           (message "Rejected `%s', reverting transaction." (package-desc-name pkg-desc))
           (mapc #'package-delete installed)
           nil)
-      t)))
+      installed)))
 
 (defun package--active-built-in-p (package)
   "Return non-nil if the built-in version of PACKAGE is used.
@@ -728,11 +729,20 @@ Downloads and installs required packages as needed."
          (name (package-desc-name pkg-desc)))
     ;; Download and install the dependencies.
     (let* ((requires (package-desc-reqs pkg-desc))
-           (transaction (package-compute-transaction (list pkg-desc) requires)))
-      (unless (package-download-transaction transaction)
-        (error "Installation of package `%s' aborted"
-               (package-desc-name pkg-desc))))
-    ;; Mark package as installed
+           (transaction (package-compute-transaction nil requires))
+           (installed (package-download-transaction transaction)))
+      (when (and (or (null transaction) installed)
+                 (catch 'review-failed
+                   ;; Install the package itself.
+                   (package-unpack pkg-desc)
+                   nil))
+        (mapc #'package-delete installed)
+        (when installed
+          (message "Review Uninstalled dependencies: %s"
+                   (mapconcat #'package-desc-full-name
+                              installed
+                              ", ")))
+        (user-error "Installation aborted")))
     (unless (package--user-selected-p name)
       (package--save-selected-packages
        (cons name package-selected-packages)))
