@@ -1128,7 +1128,7 @@ installed package."
                             (eq val name))))
                        (if (eq (car list) 'not) (cdr list) list))
                   (eq (car list) 'not)))
-            (t t))
+            ('t t))
       (package-review pkg-desc pkg-dir old-desc))
 
     (package--make-autoloads-and-stuff pkg-desc pkg-dir)
