@@ -1112,6 +1112,7 @@ attached."
               (recursive-edit)
               t)))))
 
+(declare-function xdg-cache-home "xdg")
 (declare-function dired-get-marked-files "dired")
 
 (defun package-unpack (pkg-desc)
@@ -1124,7 +1125,10 @@ installed package."
          (pkg-dir (expand-file-name full-name package-user-dir))
          (review-p (package-review-p pkg-desc))
          (unpack-dir (if review-p
-                         (let* ((temporary-file-directory (xdg-cache-home))
+                         (let* ((temporary-file-directory
+                                 (progn
+                                   (require 'xdg)
+                                   (xdg-cache-home)))
                                 (tmp (make-temp-file "package-review" t)))
                            (expand-file-name full-name tmp))
                        pkg-dir))
