@@ -496,9 +496,10 @@ had been enabled."
                                                   (package-desc-reqs pkg)))
                  (package-compute-transaction () (list (list pkg))))))
         (if (package-download-transaction transaction)
-            (progn (package--quickstart-maybe-refresh)
-                   (message  "Package `%s' installed." name))
-          (message  "Package `%s' not installed." name))
+            (progn
+              (package--quickstart-maybe-refresh)
+              (message  "Package `%s' installed" name))
+          (error  "Package `%s' not installed" name))
       (message "`%s' is already installed" name))))
 
 (declare-function package-vc-upgrade "package-vc" (pkg))
@@ -518,12 +519,17 @@ NAME should be a symbol."
     ;; `pkg-desc' will be nil when the package is an "active built-in".
     (if (and pkg-desc (package-vc-p pkg-desc))
         (package-vc-upgrade pkg-desc)
-      (when pkg-desc
-        (package-delete pkg-desc 'force 'dont-unselect))
-      (package-install name
-                       ;; An active built-in has never been "selected"
-                       ;; before.  Mark it as installed explicitly.
-                       (and pkg-desc 'dont-select)))))
+      (let ((new-desc (cadr (assq name package-archive-contents))))
+        (when (or (null new-desc)
+                  (version= (package-desc-version pkg-desc)
+                            (package-desc-version new-desc)))
+          (user-error "Cannot upgrade `%s'" name))
+        (package-install new-desc
+                         ;; An active built-in has never been "selected"
+                         ;; before.  Mark it as installed explicitly.
+                         (and pkg-desc 'dont-select))
+        (when pkg-desc
+          (package-delete pkg-desc 'force 'dont-unselect))))))
 
 (defun package--upgradeable-packages (&optional include-builtins)
   ;; Initialize the package system to get the list of package

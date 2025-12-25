@@ -539,6 +539,8 @@ but with a different end of line convention (bug#48137)."
     (package-menu-mark-install)
     (package-menu-execute)
     (run-hooks 'post-command-hook)
+    (let ((revert-without-query t))
+      (revert-buffer))
     (should (package-installed-p 'simple-single))
     (switch-to-buffer "*Packages*")
     (goto-char (point-min))
