@@ -1134,6 +1134,62 @@ side-effects, and the argument LIST is not modified."
   (if (memq elt list)
       (delq elt (copy-sequence list))
     list))
+
+(defun internal--effect-free-fun-arg-p (x)
+  (or (symbolp x) (closurep x) (memq (car-safe x) '(function quote))))
+
+(defun take-while (pred list)
+  "Return the longest prefix of LIST whose elements satisfy PRED."
+  (declare (compiler-macro
+            (lambda (_form)
+              (let* ((tail (make-symbol "tail"))
+                     (pred (macroexpand-all pred macroexpand-all-environment))
+                     (f (and (not (internal--effect-free-fun-arg-p pred))
+                             (make-symbol "f")))
+                     (r (make-symbol "r")))
+                `(let (,@(and f `((,f ,pred)))
+                       (,tail ,list)
+                       (,r nil))
+                   (while (and ,tail (funcall ,(or f pred) (car ,tail)))
+                     (push (car ,tail) ,r)
+                     (setq ,tail (cdr ,tail)))
+                   (nreverse ,r))))))
+  (let ((r nil))
+    (while (and list (funcall pred (car list)))
+      (push (car list) r)
+      (setq list (cdr list)))
+    (nreverse r)))
+
+(defun drop-while (pred list)
+  "Skip initial elements of LIST satisfying PRED and return the rest."
+  (declare (compiler-macro
+            (lambda (_form)
+              (let* ((tail (make-symbol "tail"))
+                     (pred (macroexpand-all pred macroexpand-all-environment))
+                     (f (and (not (internal--effect-free-fun-arg-p pred))
+                             (make-symbol "f"))))
+                `(let (,@(and f `((,f ,pred)))
+                       (,tail ,list))
+                   (while (and ,tail (funcall ,(or f pred) (car ,tail)))
+                     (setq ,tail (cdr ,tail)))
+                   ,tail)))))
+  (while (and list (funcall pred (car list)))
+    (setq list (cdr list)))
+  list)
+
+(defun all (pred list)
+  "Non-nil if PRED is true for all elements in LIST."
+  (declare (compiler-macro (lambda (_) `(not (drop-while ,pred ,list)))))
+  (not (drop-while pred list)))
+
+(defun any (pred list)
+  "Non-nil if PRED is true for at least one element in LIST.
+Returns the LIST suffix starting at the first element that satisfies PRED,
+or nil if none does."
+  (declare (compiler-macro
+            (lambda (_)
+              `(drop-while (lambda (x) (not (funcall ,pred x))) ,list))))
+  (drop-while (lambda (x) (not (funcall pred x))) list))
 
 ;;;; Keymap support.
 
@@ -2700,7 +2756,34 @@ Affects only hooks run in the current buffer."
      (let ((delay-mode-hooks t))
        ,@body)))
 
-;;; `when-let' and friends.
+;;; `if-let*' and friends.
+;;
+;; We considered adding a `cond-let*' in late 2025:
+;; <https://lists.gnu.org/archive/html/emacs-devel/2025-09/msg00058.html>.
+;; We decided to add the `bind-and*' clause type to `cond*' instead.
+;; At first it seems simple to extend `if-let*'/`when-let*'/`and-let*'
+;; to `cond', but the extension is not unambiguous: there are multiple
+;; useful, incompatible ways to do it.
+;; In particular, it quickly becomes clear that one wants clauses that
+;; only establish bindings for proceeding clauses, instead of exiting
+;; the `cond-let*'.  But then
+;; - Should these bindings be just like in `let*', or like in
+;;   `if-let*'?  In other words, should it be that if a binding
+;;   evaluates to nil we skip the remaining bindings (bind them all to
+;;   nil)?  Both ways of doing it seem useful.
+;; - The parentheses quickly pile up.  How can we avoid the programmer
+;;   having to count parentheses?  Some propose using square brackets
+;;   (i.e., vectors) for the binding-only clauses, but Emacs Lisp is a
+;;   traditional Lisp which uses exclusively parentheses for control
+;;   constructs.  Therefore, introducing square brackets here would be
+;;   jarring to read.  Another option would be to use symbols at the
+;;   beginning of clauses, like `cond*' does.
+;; Whichever way one goes, the resulting macro ends up complicated,
+;; with a substantial learning burden.  Adding `bind-and*' clauses to
+;; `cond*' gives us the desired functionality, and does not make
+;; `cond*' much more complicated.  In other words, `cond*' is already
+;; complicated, and one complicated `cond'-extending macro is better
+;; than two.  --spwhitton
 
 (defun internal--build-binding (binding prev-var)
   "Check and build a single BINDING with PREV-VAR."
@@ -2728,6 +2811,9 @@ Affects only hooks run in the current buffer."
                 binding))
             bindings)))
 
+;; FIXME: Once Emacs 29 is ancient history we can consider a
+;; byte-compiler warning.  This is because Emacs 29 and older will warn
+;; about unused variables with (_ VALUEFORM).
 (defmacro if-let* (varlist then &rest else)
   "Bind variables according to VARLIST and evaluate THEN or ELSE.
 Evaluate each binding in turn, as in `let*', stopping if a
@@ -2735,12 +2821,18 @@ binding value is nil.  If all are non-nil return the value of
 THEN, otherwise the value of the last form in ELSE, or nil if
 there are none.
 
-Each element of VARLIST is a list (SYMBOL VALUEFORM) that binds
-SYMBOL to the value of VALUEFORM.  An element can additionally be
-of the form (VALUEFORM), which is evaluated and checked for nil;
-i.e. SYMBOL can be omitted if only the test result is of
-interest.  It can also be of the form SYMBOL, then the binding of
-SYMBOL is checked for nil."
+Each element of VARLIST is a list (SYMBOL VALUEFORM) that binds SYMBOL
+to the value of VALUEFORM.  If only the test result is of interest, use
+`_' as SYMBOL, i.e. (_ VALUEFORM), in which case VALUEFORM is evaluated
+and checked for nil but the result is not bound.
+An element of VARLIST can also be of the form SYMBOL, in which case the
+binding of SYMBOL is checked for nil, only.
+
+An older form for entries of VARLIST is also supported, where SYMBOL is
+omitted, i.e. (VALUEFORM).  This means the same as (_ VALUEFORM).
+This form is not recommended because many Lisp programmers find it
+significantly less readable.  A future release of Emacs may introduce a
+byte-compiler warning for uses of (VALUEFORM) in VARLIST."
   (declare (indent 2)
            (debug ((&rest [&or symbolp (symbolp form) (form)])
                    body)))
@@ -3054,6 +3146,10 @@ though trying to avoid AVOIDED-MODES."
 					 overwrite-mode view-mode
                                          hs-minor-mode)
   "List of all minor mode functions.")
+
+(defvar global-minor-modes nil
+  "A list of the currently enabled global minor modes.
+This is a list of symbols.")
 
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
   "Register a new minor mode.
@@ -3625,7 +3721,13 @@ argument INHIBIT-KEYBOARD-QUIT is ignored.  However, if
 function is used instead (see `read-char-choice-with-read-key'),
 and INHIBIT-KEYBOARD-QUIT is passed to it."
   (if (not read-char-choice-use-read-key)
-      (read-char-from-minibuffer prompt chars)
+      ;; We are about to enter recursive-edit, which sets
+      ;; 'last-command'.  If the callers of this function have some
+      ;; logic based on 'last-command's value (example: 'kill-region'),
+      ;; that could interfere with their logic.  So we let-bind
+      ;; 'last-command' here to prevent that.
+      (let ((last-command last-command))
+        (read-char-from-minibuffer prompt chars))
     (read-char-choice-with-read-key prompt chars inhibit-keyboard-quit)))
 
 (defun read-char-choice-with-read-key (prompt chars &optional inhibit-keyboard-quit)
@@ -3670,7 +3772,16 @@ causes it to evaluate `help-form' and display the result."
 	     ((and (null esc-flag) (eq char ?\e))
 	      (setq esc-flag t))
 	     ((memq char '(?\C-g ?\e))
-	      (keyboard-quit))))))))
+	      (keyboard-quit))))
+	   (t
+	    (beep)
+	    (message "Please type %s"
+		     (substitute-command-keys
+		      (mapconcat (lambda (c)
+				   (format "\\`%s'"
+					   (single-key-description c)))
+				 chars ", ")))
+	    (sit-for 3))))))
     ;; Display the question with the answer.  But without cursor-in-echo-area.
     (message "%s%s" prompt (char-to-string char))
     char))
@@ -6863,19 +6974,33 @@ to deactivate this transient map, regardless of KEEP-PRED."
 ;; digits of precision, it doesn't really matter here.  On the other
 ;; hand, it greatly simplifies the code.
 
+(defvar progress-reporter-update-functions (list #'progress-reporter-echo-area)
+  "Special hook run on progress-reporter updates.
+Each function is called with two arguments:
+REPORTER is the result of a call to `make-progress-reporter'.
+STATE can be one of:
+- A float representing the percentage complete in the range 0.0-1.0
+for a numeric reporter.
+- An integer representing the index which cycles through the range 0-3
+for a pulsing reporter.
+- The symbol `done' to indicate that the progress reporter is complete.")
+
 (defsubst progress-reporter-update (reporter &optional value suffix)
-  "Report progress of an operation in the echo area.
+  "Report progress of an operation, by default, in the echo area.
 REPORTER should be the result of a call to `make-progress-reporter'.
 
 If REPORTER is a numerical progress reporter---i.e. if it was
- made using non-nil MIN-VALUE and MAX-VALUE arguments to
- `make-progress-reporter'---then VALUE should be a number between
- MIN-VALUE and MAX-VALUE.
+made using non-nil MIN-VALUE and MAX-VALUE arguments to
+`make-progress-reporter'---then VALUE should be a number between
+MIN-VALUE and MAX-VALUE.
 
-Optional argument SUFFIX is a string to be displayed after
-REPORTER's main message and progress text.  If REPORTER is a
-non-numerical reporter, then VALUE should be nil, or a string to
-use instead of SUFFIX.
+Optional argument SUFFIX is a string to be displayed after REPORTER's
+main message and progress text.  If REPORTER is a non-numerical
+reporter, then VALUE should be nil, or a string to use instead of
+SUFFIX.  SUFFIX is considered obsolete and may be removed in the future.
+
+See `progress-reporter-update-functions' for the list of functions
+called on each update.
 
 This function is relatively inexpensive.  If the change since
 last update is too small or insufficient time has passed, it does
@@ -6934,6 +7059,10 @@ effectively rounded up."
 
 (defalias 'progress-reporter-make #'make-progress-reporter)
 
+(defun progress-reporter-text (reporter)
+  "Return REPORTER's text."
+  (aref (cdr reporter) 3))
+
 (defun progress-reporter-force-update (reporter &optional value new-message suffix)
   "Report progress of an operation in the echo area unconditionally.
 
@@ -6949,12 +7078,29 @@ NEW-MESSAGE, if non-nil, sets a new message for the reporter."
 (defvar progress-reporter--pulse-characters ["-" "\\" "|" "/"]
   "Characters to use for pulsing progress reporters.")
 
+(defun progress-reporter-echo-area (reporter state)
+  "Progress reporter echo area update function.
+REPORTER and STATE are the same as in
+`progress-reporter-update-functions'."
+  (let ((text (progress-reporter-text reporter)))
+    (pcase state
+      ((pred floatp)
+       (if (plusp state)
+           (message "%s%d%%" text (* state 100.0))
+         (message "%s" text)))
+      ((pred integerp)
+       (let ((message-log-max nil)
+             (pulse-char (aref progress-reporter--pulse-characters
+                               state)))
+         (message "%s %s" text pulse-char)))
+      ('done
+       (message "%sdone" text)))))
+
 (defun progress-reporter-do-update (reporter value &optional suffix)
-  (let* ((parameters   (cdr reporter))
-	 (update-time  (aref parameters 0))
-	 (min-value    (aref parameters 1))
-	 (max-value    (aref parameters 2))
-	 (text         (aref parameters 3))
+  (let* ((parameters      (cdr reporter))
+	 (update-time     (aref parameters 0))
+	 (min-value       (aref parameters 1))
+	 (max-value       (aref parameters 2))
 	 (enough-time-passed
 	  ;; See if enough time has passed since the last update.
 	  (or (not update-time)
@@ -6987,9 +7133,9 @@ NEW-MESSAGE, if non-nil, sets a new message for the reporter."
                (if suffix
                    (aset parameters 6 suffix)
                  (setq suffix (or (aref parameters 6) "")))
-               (if (plusp percentage)
-                   (message "%s%d%% %s" text percentage suffix)
-                 (message "%s %s" text suffix)))))
+               (run-hook-with-args 'progress-reporter-update-functions
+                                   reporter
+                                   (/ percentage 100.0)))))
 	  ;; Pulsing indicator
 	  (enough-time-passed
            (when (and value (not suffix))
@@ -6997,16 +7143,18 @@ NEW-MESSAGE, if non-nil, sets a new message for the reporter."
            (if suffix
                (aset parameters 6 suffix)
              (setq suffix (or (aref parameters 6) "")))
-           (let* ((index (mod (1+ (car reporter)) 4))
-                  (message-log-max nil)
-                  (pulse-char (aref progress-reporter--pulse-characters
-                                    index)))
+           (let ((index (mod (1+ (car reporter)) 4)))
 	     (setcar reporter index)
-             (message "%s %s %s" text pulse-char suffix))))))
+             (run-hook-with-args 'progress-reporter-update-functions
+                                 reporter
+                                 index))))))
 
 (defun progress-reporter-done (reporter)
-  "Print reporter's message followed by word \"done\" in echo area."
-  (message "%sdone" (aref (cdr reporter) 3)))
+  "Print reporter's message followed by word \"done\" in echo area.
+Call the functions on `progress-reporter-update-functions`."
+  (run-hook-with-args 'progress-reporter-update-functions
+                      reporter
+                      'done))
 
 (defmacro dotimes-with-progress-reporter (spec reporter-or-message &rest body)
   "Loop a certain number of times and report progress in the echo area.
@@ -7191,15 +7339,15 @@ See documentation for `version-separator' and `version-regexp-alist'."
 	      (setq al (cdr al)))
 	    (cond (al
 		   (push (cdar al) lst))
-        ;; Convert 22.3a to 22.3.1, 22.3b to 22.3.2, etc., but only if
-        ;; the letter is the end of the version-string, to avoid
-        ;; 22.8X3 being valid
-        ((and (string-match "^[-._+ ]?\\([a-zA-Z]\\)$" s)
-           (= i (length ver)))
+                  ;; Convert 22.3a to 22.3.1, 22.3b to 22.3.2, etc., but only if
+                  ;; the letter is the end of the version-string, to avoid
+                  ;; 22.8X3 being valid
+                  ((and (string-match "^[-._+ ]?\\([a-zA-Z]\\)$" s)
+                        (= i (length ver)))
 		   (push (- (aref (downcase (match-string 1 s)) 0) ?a -1)
 			 lst))
 		  (t (error "Invalid version syntax: `%s'" ver))))))
-    (nreverse lst))))
+      (nreverse lst))))
 
 (defun version-list-< (l1 l2)
   "Return t if L1, a list specification of a version, is lower than L2.
@@ -7645,7 +7793,8 @@ CONDITION is either:
 - a cons-cell, where the car describes how to interpret the cdr.
   The car can be one of the following:
   * `derived-mode': the buffer matches if the buffer's major mode
-    is derived from the major mode in the cons-cell's cdr.
+    is derived from the major mode in the cons-cell's cdr, or from any
+    major mode in the list as accepted by `provided-mode-derived-p'.
   * `major-mode': the buffer matches if the buffer's major mode
     is eq to the cons-cell's cdr.  Prefer using `derived-mode'
     instead when both can work.

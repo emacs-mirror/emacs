@@ -1,5 +1,5 @@
 # time_rz.m4
-# serial 3
+# serial 4
 dnl Copyright (C) 2015-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -58,7 +58,8 @@ AC_DEFUN([gl_TIME_RZ],
   if test $ac_cv_func_tzalloc = yes; then
     HAVE_TZALLOC=1
   fi
-  dnl Assume that tzalloc, localtime_rz, mktime_z are all defined together.
+  dnl Assume that tzalloc, tzfree, localtime_rz, mktime_z
+  dnl are all defined together.
   case "$gl_cv_onwards_func_tzalloc" in
     yes)
       case "$host_os" in

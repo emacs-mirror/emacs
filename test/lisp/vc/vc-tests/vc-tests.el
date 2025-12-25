@@ -3,6 +3,7 @@
 ;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
+;; Author: Sean Whitton <spwhitton@spwhitton.name>
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -570,7 +571,15 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               (vc-register
                (list backend (list (file-name-nondirectory tmp-name))))
 
-              (vc-rename-file tmp-name new-name)
+              ;; Test that `vc-rename-file' isn't affected by
+              ;; `default-directory' except for the meaning of OLD and
+              ;; NEW if they are relative file names.
+              (let ((tmp-name (file-relative-name tmp-name
+                                                  temporary-file-directory))
+                    (new-name (file-relative-name new-name
+                                                  temporary-file-directory))
+                    (default-directory temporary-file-directory))
+                (vc-rename-file tmp-name new-name))
 
               (should (not (file-exists-p tmp-name)))
               (should (file-exists-p new-name))
@@ -595,7 +604,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
      ;; Eg if the user account has no GECOS, git commit can fail with
      ;; status 128 "fatal: empty ident name".
      (when (memq ,backend '(Bzr Git))
-       (push "EMAIL=john@doe.ee" process-environment))
+       (push "EMAIL=joh.doe@example.com" process-environment))
      (when (eq ,backend 'Git)
        (setq process-environment (append '("GIT_AUTHOR_NAME=A"
                                            "GIT_COMMITTER_NAME=C")
@@ -724,18 +733,14 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                     (log-edit-done))
 
                   ;; Set up the second working tree.
-                  ;; Stub out `vc-dir' so that it doesn't start a
-                  ;; background update process which won't like it when we
-                  ;; start moving directories around.
                   ;; For the backends which do additional prompting (as
                   ;; specified in the API for this backend function) we
                   ;; need to stub that out.
-                  (cl-letf (((symbol-function 'vc-dir) #'ignore))
-                    (cl-ecase backend
-                      (Git (cl-letf (((symbol-function 'completing-read)
-                                      (lambda (&rest _ignore) "")))
-                             (vc-add-working-tree backend second)))
-                      (Hg (vc-add-working-tree backend second)))))
+                  (cl-ecase backend
+                    (Git (cl-letf (((symbol-function 'completing-read)
+                                    (lambda (&rest _ignore) "")))
+                           (vc-add-working-tree backend second)))
+                    (Hg (vc-add-working-tree backend second))))
 
                 ;; Test `known-other-working-trees'.
                 (with-current-buffer (find-file-noselect tmp-name)
@@ -778,6 +783,223 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                   (let ((default-directory first))
                     (vc-delete-working-tree backend second)
                     (should-not (file-directory-p second))))))
+
+          ;; Save exit.
+          (ignore-errors
+            (run-hooks 'vc-test--cleanup-hook)))))))
+
+(declare-function vc-hg-command "vc-hg")
+(declare-function vc-git--out-str "vc-git")
+
+(defmacro vc-test--with-temp-change (buf &rest body)
+  (declare (indent 1) (debug (symbolp body)))
+  (cl-with-gensyms (handle)
+    `(let ((,handle (prepare-change-group ,buf)))
+       (unwind-protect
+           (with-current-buffer ,buf
+             (activate-change-group ,handle)
+             (insert "bar\n")
+             (write-region nil nil buffer-file-name nil t)
+             ,@body)
+         (cancel-change-group ,handle)
+         (with-current-buffer ,buf
+           (write-region nil nil buffer-file-name nil t))))))
+
+(defun vc-test--checkin-patch (backend)
+  "Test preparing and checking in patches."
+  (ert-with-temp-directory _tempdir
+    (let ((vc-handled-backends `(,backend))
+          (default-directory
+           (file-name-as-directory
+            (expand-file-name
+             (make-temp-name "vc-test") temporary-file-directory)))
+          (file "foo")
+          (author "VC user <vc@example.org>")
+          (date "Fri, 19 Sep 2025 15:00:00 +0100")
+          (desc1 "Make a modification")
+          (desc2 "Make a modification redux")
+          vc-test--cleanup-hook buf)
+      (vc-test--with-author-identity backend
+        (unwind-protect
+            (cl-flet
+                ((get-patch-string ()
+                   "Get patch corresponding to most recent commit to FILE."
+                   (let* ((rev (vc-symbolic-working-revision file backend))
+                          (patch (vc-call-backend backend 'prepare-patch rev)))
+                     (with-current-buffer (plist-get patch :buffer)
+                       (buffer-substring-no-properties (point-min)
+                                                       (point-max)))))
+                 (revert (msg)
+                   "Make a commit reverting the most recent change to FILE."
+                   (with-current-buffer buf
+                     (vc-checkin (list file) backend)
+                     (insert msg)
+                     (let (vc-async-checkin)
+                       (log-edit-done))))
+                 (check (author date desc)
+                   "Assert that most recent commit has AUTHOR, DATE and DESC."
+                   (should
+                    (equal
+                     (string-trim-right
+                      (cl-case backend
+                        (Git
+                         (vc-git--out-str "log" "-n1"
+                                          "--pretty=%an <%ae>%n%aD%n%B"))
+                        (Hg
+                         (with-output-to-string
+                           (vc-hg-command standard-output 0 nil "log" "--limit=1"
+                                          "--template"
+                                          "{author}\n{date|rfc822date}\n{desc}")))))
+                     (format "%s\n%s\n%s" author date desc)))))
+              ;; (1) Cleanup.
+              (add-hook 'vc-test--cleanup-hook
+                        (let ((dir default-directory))
+                          (lambda ()
+                            (delete-directory dir 'recursive))))
+
+              ;; (2) Basic setup.
+              (make-directory default-directory)
+              (vc-test--create-repo-function backend)
+              (write-region "foo\n" nil file nil 'nomessage)
+              (vc-register `(,backend (,file)))
+              (setq buf (find-file-noselect file))
+              (with-current-buffer buf
+                (vc-checkin (list file) backend)
+                (insert "Initial commit")
+                (let (vc-async-checkin)
+                  (log-edit-done)))
+
+              ;; (3) Prepare a commit with a known Author & Date.
+              (vc-test--with-temp-change buf
+                (vc-root-diff nil)
+                (vc-next-action nil)
+                (insert desc1)
+                (goto-char (point-min))
+                (insert (format "Author: %s\n" author))
+                (insert (format "Date: %s\n" date))
+                (let (vc-async-checkin)
+                  (log-edit-done)))
+
+              ;; (4) Revert it, then test applying it with
+              ;; checkin-patch, passing nil as COMMENT.  Should take the
+              ;; author, date and comment from PATCH-STRING.
+              (let ((patch-string (get-patch-string)))
+                (revert "Revert modification, first time")
+                (vc-test--with-temp-change buf
+                  (vc-call-backend backend 'checkin-patch patch-string nil)))
+              (check author date desc1)
+
+              ;; (5) Revert it again and try applying it with
+              ;; checkin-patch again, but passing non-nil COMMENT.
+              ;; Should take the author, date but not the comment from
+              ;; PATCH-STRING.
+              (let ((patch-string (get-patch-string)))
+                (revert "Revert modification, second time")
+                (vc-test--with-temp-change buf
+                  (vc-call-backend backend 'checkin-patch patch-string desc2)))
+              (check author date desc2))
+
+          ;; Save exit.
+          (ignore-errors
+            (run-hooks 'vc-test--cleanup-hook)))))))
+
+(defun vc-test--apply-to-other-working-tree (backend)
+  "Test `vc--apply-to-other-working-tree'."
+  (ert-with-temp-directory _tempdir
+    (let ((vc-handled-backends `(,backend))
+          (default-directory
+           (file-name-as-directory
+            (expand-file-name
+             (make-temp-name "vc-test") temporary-file-directory)))
+          vc-test--cleanup-hook)
+      (vc-test--with-author-identity backend
+        (unwind-protect
+            (let ((first (file-truename
+                          (file-name-as-directory
+                           (expand-file-name "first" default-directory))))
+                  (second (file-truename
+                           (file-name-as-directory
+                            (expand-file-name "second" default-directory)))))
+              ;; Cleanup.
+              (add-hook 'vc-test--cleanup-hook
+                        (let ((dir default-directory))
+                          (lambda ()
+                            (delete-directory dir 'recursive))))
+
+              ;; Set up the two working trees.
+              (make-directory first 'parents)
+              (let ((default-directory first)
+                    (names '("foo" "bar" "baz")))
+                (vc-test--create-repo-function backend)
+                (dolist (str names)
+                  (write-region (concat str "\n") nil str nil 'nomessage)
+                  (vc-register `(,backend (,str))))
+                (vc-checkin names backend "Test files"))
+              ;; For the purposes of this test just copying the tree is
+              ;; enough.  FIRST and SECOND don't have to actually share
+              ;; a backing revisions store.
+              (copy-directory first (directory-file-name second))
+
+              ;; Make modifications that we will try to move.
+              (let ((default-directory first))
+                (write-region "qux\n" nil "qux" nil 'nomessage)
+                (vc-register `(,backend ("qux")))
+                (write-region "quux\n" nil "quux" nil 'nomessage)
+                (cl-letf (((symbol-function 'y-or-n-p) #'always))
+                  (vc-delete-file "bar"))
+                (delete-file "baz")
+                (write-region "foobar\n" nil "foo" nil 'nomessage)
+                (should (eq (vc-state "foo"  backend) 'edited))
+                (should (eq (vc-state "baz"  backend) 'missing))
+                (should (eq (vc-state "bar"  backend) 'removed))
+                (should (eq (vc-state "qux"  backend) 'added))
+                (should (eq (vc-state "quux" backend) 'unregistered)))
+
+              (cl-flet ((go ()
+                          (let ((default-directory first)
+                                (vc-no-confirm-moving-changes t))
+                            (vc--apply-to-other-working-tree
+                             second second `(,backend
+                                             ("foo" "bar" "baz" "qux" "quux"))
+                             nil t))))
+                (let ((default-directory second))
+                  ;; Set up a series of incompatibilities, one-by-one, and
+                  ;; try to move.  In each case the problem should block the
+                  ;; move from proceeding.
+
+                  ;; User refuses to sync destination fileset.
+                  (with-current-buffer (find-file-noselect "bar")
+                    (set-buffer-modified-p t)
+                    (cl-letf (((symbol-function 'y-or-n-p) #'ignore))
+                      (should-error (go)))
+                    (set-buffer-modified-p nil))
+
+                  ;; New file to be copied already exists.
+                  (with-temp-file "qux")
+                  (should-error (go))
+                  (delete-file "qux")
+
+                  ;; File to be deleted has changes.
+                  (write-region "foobar\n" nil "bar" nil 'nomessage)
+                  (should-error (go))
+                  (vc-revert-file "bar")
+
+                  ;; Finally, a move that should succeed.  Check that
+                  ;; everything we expected to happen did happen.
+                  (go)
+                  (with-current-buffer (find-file-noselect "foo")
+                    (should (equal (buffer-string) "foobar\n")))
+                  (should-not (file-exists-p "bar"))
+                  (should-not (file-exists-p "baz"))
+                  (should (file-exists-p "qux"))
+                  (should (file-exists-p "quux"))
+                  (let ((default-directory first))
+                    (with-current-buffer (find-file-noselect "foo")
+                      (should (equal (buffer-string) "foo\n")))
+                    (should (file-exists-p "bar"))
+                    (should (file-exists-p "baz"))
+                    (should-not (file-exists-p "qux"))
+                    (should-not (file-exists-p "quux"))))))
 
           ;; Save exit.
           (ignore-errors
@@ -944,7 +1166,32 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                 (version< (vc-git--program-version) "2.17")))
           (let ((vc-hg-global-switches (cons "--config=extensions.share="
                                              vc-hg-global-switches)))
-            (vc-test--other-working-trees ',backend)))))))
+            (vc-test--other-working-trees ',backend)))
+
+        (ert-deftest
+            ,(intern (format "vc-test-%s08-apply-to-other-working-tree" backend-string)) ()
+          ,(format "Test `vc--apply-to-other-working-tree' with the %s backend."
+                   backend-string)
+          (skip-when
+	   (ert-test-skipped-p
+	    (ert-test-most-recent-result
+	     (ert-get-test
+	      ',(intern
+	         (format "vc-test-%s07-other-working-trees" backend-string))))))
+          (vc-test--apply-to-other-working-tree ',backend))
+
+        (ert-deftest
+            ,(intern (format "vc-test-%s09-checkin-patch" backend-string)) ()
+          ,(format "Check preparing and checking in patches with the %s backend."
+                   backend-string)
+          (skip-unless
+	   (ert-test-passed-p
+	    (ert-test-most-recent-result
+	     (ert-get-test
+	      ',(intern
+	         (format "vc-test-%s01-register" backend-string))))))
+          (skip-unless (memq ',backend '(Git Hg)))
+          (vc-test--checkin-patch ',backend))))))
 
 (provide 'vc-tests)
 ;;; vc-tests.el ends here

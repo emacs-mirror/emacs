@@ -106,8 +106,9 @@ sys_thread_yield (void)
 #include <sched.h>
 
 void
-sys_mutex_init (sys_mutex_t *mutex)
+sys_mutex_init (sys_mutex_t *sys_mutex)
 {
+  pthread_mutex_t *mutex = SYSTHREAD_ALIGN_PTR (pthread_mutex_t, sys_mutex);
   pthread_mutexattr_t *attr_ptr;
 #ifdef ENABLE_CHECKING
   pthread_mutexattr_t attr;
@@ -135,22 +136,25 @@ sys_mutex_init (sys_mutex_t *mutex)
 }
 
 void
-sys_mutex_lock (sys_mutex_t *mutex)
+sys_mutex_lock (sys_mutex_t *sys_mutex)
 {
+  pthread_mutex_t *mutex = SYSTHREAD_ALIGN_PTR (pthread_mutex_t, sys_mutex);
   int error = pthread_mutex_lock (mutex);
   eassert (error == 0);
 }
 
 void
-sys_mutex_unlock (sys_mutex_t *mutex)
+sys_mutex_unlock (sys_mutex_t *sys_mutex)
 {
+  pthread_mutex_t *mutex = SYSTHREAD_ALIGN_PTR (pthread_mutex_t, sys_mutex);
   int error = pthread_mutex_unlock (mutex);
   eassert (error == 0);
 }
 
 void
-sys_cond_init (sys_cond_t *cond)
+sys_cond_init (sys_cond_t *sys_cond)
 {
+  pthread_cond_t *cond = SYSTHREAD_ALIGN_PTR (pthread_cond_t, sys_cond);
   int error = pthread_cond_init (cond, NULL);
   /* We could get ENOMEM.  Can't do anything except aborting.  */
   if (error != 0)
@@ -161,22 +165,26 @@ sys_cond_init (sys_cond_t *cond)
 }
 
 void
-sys_cond_wait (sys_cond_t *cond, sys_mutex_t *mutex)
+sys_cond_wait (sys_cond_t *sys_cond, sys_mutex_t *sys_mutex)
 {
+  pthread_cond_t *cond = SYSTHREAD_ALIGN_PTR (pthread_cond_t, sys_cond);
+  pthread_mutex_t *mutex = SYSTHREAD_ALIGN_PTR (pthread_mutex_t, sys_mutex);
   int error = pthread_cond_wait (cond, mutex);
   eassert (error == 0);
 }
 
 void
-sys_cond_signal (sys_cond_t *cond)
+sys_cond_signal (sys_cond_t *sys_cond)
 {
+  pthread_cond_t *cond = SYSTHREAD_ALIGN_PTR (pthread_cond_t, sys_cond);
   int error = pthread_cond_signal (cond);
   eassert (error == 0);
 }
 
 void
-sys_cond_broadcast (sys_cond_t *cond)
+sys_cond_broadcast (sys_cond_t *sys_cond)
 {
+  pthread_cond_t *cond = SYSTHREAD_ALIGN_PTR (pthread_cond_t, sys_cond);
   int error = pthread_cond_broadcast (cond);
   eassert (error == 0);
 #ifdef HAVE_NS
@@ -189,8 +197,9 @@ sys_cond_broadcast (sys_cond_t *cond)
 }
 
 void
-sys_cond_destroy (sys_cond_t *cond)
+sys_cond_destroy (sys_cond_t *sys_cond)
 {
+  pthread_cond_t *cond = SYSTHREAD_ALIGN_PTR (pthread_cond_t, sys_cond);
   int error = pthread_cond_destroy (cond);
   eassert (error == 0);
 }

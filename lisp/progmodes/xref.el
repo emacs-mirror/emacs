@@ -1654,7 +1654,10 @@ Use \\[xref-go-back] to return back to where you invoked this command."
 
 ;;;###autoload
 (defun xref-find-definitions-other-window (identifier)
-  "Like `xref-find-definitions' but switch to the other window."
+  "Like `xref-find-definitions' but switch to the other window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive (list (xref--read-identifier "Find definitions of: ")))
   (xref--find-definitions identifier 'window))
 

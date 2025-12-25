@@ -426,6 +426,16 @@ public final class EmacsWindow extends EmacsHandleObject
     requestViewLayout ();
   }
 
+  public synchronized void
+  moveResizeWindow (int x, int y, int width, int height)
+  {
+    rect.left = x;
+    rect.top = y;
+    rect.right = x + width;
+    rect.bottom = y + height;
+    requestViewLayout ();
+  }
+
   /* Return WM layout parameters for an override redirect window with
      the geometry provided here.  */
 

@@ -25,24 +25,24 @@
 ;; This library provides a general-purpose EIEIO-based registry
 ;; database with persistence, initialized with these fields:
 
-;; version: a float
+;; version - a float
 
-;; max-size: an integer, default most-positive-fixnum
+;; max-size - an integer, default most-positive-fixnum
 
-;; prune-factor: a float between 0 and 1, default 0.1
+;; prune-factor - a float between 0 and 1, default 0.1
 
-;; precious: a list of symbols
+;; precious - a list of symbols
 
-;; tracked: a list of symbols
+;; tracked - a list of symbols
 
-;; tracker: a hash table tuned for 100 symbols to track (you should
+;; tracker - a hash table tuned for 100 symbols to track (you should
 ;; only access this with the :lookup2-function and the
 ;; :lookup2+-function)
 
-;; data: a hash table with default size 10K and resize threshold 2.0
+;; data - a hash table with default size 10K and resize threshold 2.0
 ;; (this reflects the expected usage so override it if you know better)
 
-;; ...plus methods to do all the work: `registry-search',
+;; ...plus methods to do all the work - `registry-search',
 ;; `registry-lookup', `registry-lookup-secondary',
 ;; `registry-lookup-secondary-value', `registry-insert',
 ;; `registry-delete', `registry-prune', `registry-size' which see

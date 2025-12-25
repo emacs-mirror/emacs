@@ -1,5 +1,5 @@
 # unlocked-io.m4
-# serial 16
+# serial 17
 dnl Copyright (C) 1998-2006, 2009-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -25,6 +25,7 @@ AC_DEFUN([gl_FUNC_GLIBC_UNLOCKED_IO],
   AC_CHECK_DECLS_ONCE([ferror_unlocked])
   AC_CHECK_DECLS_ONCE([fflush_unlocked])
   AC_CHECK_DECLS_ONCE([fgets_unlocked])
+  AC_CHECK_DECLS_ONCE([fileno_unlocked])
   AC_CHECK_DECLS_ONCE([fputc_unlocked])
   AC_CHECK_DECLS_ONCE([fputs_unlocked])
   AC_CHECK_DECLS_ONCE([fread_unlocked])

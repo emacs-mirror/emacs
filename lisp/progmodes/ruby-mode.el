@@ -847,7 +847,10 @@ This only affects the output of the command `ruby-toggle-block'."
     (`(:before . ,(or "(" "[" "{"))
      (cond
       ((and (not (eq ruby-bracketed-args-indent t))
-            (smie-rule-prev-p "," "(" "["))
+            (or (smie-rule-prev-p "," "(" "[" "=>")
+                (save-excursion
+                  (let ((tok (ruby-smie--backward-token)))
+                    (and tok (string-match ":\\'" tok))))))
        (cons 'column (current-indentation)))
       ((and (equal token "{")
             (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";" "do"))
@@ -2204,6 +2207,7 @@ A slash character after any of these should begin a regexp."))
                         (or (not
                              ;; Looks like division.
                              (or (eql (char-after) ?\s)
+                                 (eql (char-after) ?=)
                                  (not (eql (char-before (1- (point))) ?\s))))
                             (save-excursion
                               (forward-char -1)

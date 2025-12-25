@@ -67,7 +67,7 @@ public final class EmacsNoninteractive
     cacheDir = context.getCacheDir ().getCanonicalPath ();
     EmacsNative.setEmacsParams (assets, filesDir,
 				libDir, cacheDir, 0.0f,
-				0.0f, 0.0f, null, null,
+				0.0f, 0.0f, 0x0, null, null,
 				Build.VERSION.SDK_INT);
 
     /* Now find the dump file that Emacs should use, if it has already

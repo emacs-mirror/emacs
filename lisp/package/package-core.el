@@ -102,7 +102,9 @@ Slots:
         required version.
 
 `kind'	The distribution format of the package.  Currently, it is
-        either `single' or `tar'.
+        either `single', `tar', or (temporarily only) `dir'.  In
+        addition, there is distribution format `vc', which is handled
+        by package-vc.el.
 
 `archive' The name of the archive (as a string) whence this
         package came.
@@ -570,6 +572,14 @@ This is the name of the package with its version appended."
             (package-desc-name pkg-desc)
             (package-version-join (package-desc-version pkg-desc)))))
 
+(defun package--add-info-node (pkg-dir)
+  "Add info node located in PKG-DIR."
+  (when (file-exists-p (expand-file-name "dir" pkg-dir))
+    ;; FIXME: not the friendliest, but simple.
+    (require 'info)
+    (info-initialize)
+    (add-to-list 'Info-directory-list pkg-dir)))
+
 (defun package-activate-1 (pkg-desc &optional reload deps)
   "Activate package given by PKG-DESC, even if it was already active.
 If DEPS is non-nil, also activate its dependencies (unless they
@@ -601,12 +611,7 @@ correspond to previously loaded files."
 The following files have already been loaded: %S")))
         (with-demoted-errors "Error loading autoloads: %s"
           (load (package--autoloads-file-name pkg-desc) nil t)))
-      ;; Add info node.
-      (when (file-exists-p (expand-file-name "dir" pkg-dir))
-        ;; FIXME: not the friendliest, but simple.
-        (require 'info)
-        (info-initialize)
-        (add-to-list 'Info-directory-list pkg-dir))
+      (package--add-info-node pkg-dir)
       (push name package-activated-list)
       ;; Don't return nil.
       t)))

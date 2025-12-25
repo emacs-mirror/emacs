@@ -427,8 +427,7 @@ Obey `tramp-kubernetes-context'"
 ;;;###tramp-autoload
 (defun tramp-kubernetes--context-namespace (vec)
   "The kubectl options for context and namespace as string."
-  (mapconcat
-   #'identity
+  (string-join
    (delq nil
 	 `(,(when-let* ((context (tramp-kubernetes--current-context vec)))
 	      (format "--context=%s" context))
@@ -701,8 +700,8 @@ see its function help for a description of the format."
 		 (tramp-login-program ,tramp-distrobox-program)
 		 (tramp-login-args (("enter")
 				    ("-n" "%h")
-				    ("--" "%l")))
-		 ;(tramp-direct-async (,tramp-default-remote-shell "-c"))
+				    ("--") ("%l")))
+		 (tramp-direct-async (,tramp-default-remote-shell "-c"))
 		 (tramp-remote-shell ,tramp-default-remote-shell)
 		 (tramp-remote-shell-login ("-l"))
 		 (tramp-remote-shell-args ("-c"))
@@ -761,7 +760,14 @@ see its function help for a description of the format."
 				    ("--env"
 				     ,(format "TERM=%s" tramp-terminal-type))
 				    ("instance://%h")
-				    ("%h"))) ; Needed for multi-hop check.
+				    ;; Needed for multi-hop check,
+				    ;; ignored by the "shell" command.
+				    ("%h")))
+		 ;; `tramp-direct-async' must be used *instead* of `tramp-login-args'.
+		 ;; (tramp-direct-async (("exec")
+		 ;; 		      ("--env"
+		 ;; 		       ,(format "TERM=%s" tramp-terminal-type))
+		 ;; 		      ("instance://%h"))
 		 (tramp-remote-shell ,tramp-default-remote-shell)
 		 (tramp-remote-shell-login ("-l"))
 		 (tramp-remote-shell-args ("-c"))

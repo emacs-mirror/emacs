@@ -826,9 +826,15 @@ twelve @dfn{terrestrial branches} for a total of sixty names that are
 repeated in a cycle of sixty.
 
 @cindex Bah@'a'@'i calendar
-  The Bah@'a'@'i calendar system is based on a solar cycle of 19 months with
-19 days each.  The four remaining intercalary days are placed
-between the 18th and 19th months.
+  The Bah@'a'@'i calendar system is based on a solar cycle of 19 months
+with 19 days each.  The remaining intercalary days (known as
+Ayy@'am-i-H@'a) are placed between the 18th and 19th months.  Following
+a 2014 calendar reform by the Universal House of Justice, the date of
+Naw-R@'uz (New Year) is now determined by the vernal equinox as
+observed from Tehran, and the dates of the Twin Holy Birthdays (Birth
+of the B@'ab and Birth of Bah@'a'u'll@'ah) are calculated from the
+eighth new moon after Naw-R@'uz.  For dates before 172 BE (2015 CE),
+the calendar follows the pre-reform fixed calculations.
 
 @node To Other Calendar
 @subsection Converting To Other Calendars

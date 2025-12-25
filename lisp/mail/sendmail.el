@@ -29,6 +29,7 @@
 ;;; Code:
 (require 'mail-utils)
 (require 'rfc2047)
+(require 'mail-parse)
 (autoload 'message-make-date "message")
 (autoload 'message-narrow-to-headers "message")
 
@@ -934,7 +935,7 @@ the user from the mailer."
 		(error "Message contains non-ASCII characters"))))
 	;; Complain about any invalid line.
 	(goto-char (point-min))
-        ;; Search for mail-header-eeparator as whole line.
+        ;; Search for mail-header-separator as whole line.
 	(re-search-forward (concat "^" (regexp-quote mail-header-separator) "$")
                            (point-max) t)
 	(let ((header-end (or (match-beginning 0) (point-max))))
@@ -944,6 +945,24 @@ the user from the mailer."
 	      (push-mark opoint)
 	      (error "Invalid header line (maybe a continuation line lacks initial whitespace)"))
 	    (forward-line 1)))
+	;; Check for suspicious addresses and ask for confirmation if found.
+        (save-restriction
+          (goto-char (point-min))
+          (narrow-to-region (point-min) (mail-header-end))
+          (dolist (hdr '("To" "Cc" "Bcc"))
+            (let ((addr (mail-fetch-field hdr)))
+	      (when (stringp addr)
+	        (dolist (address (mail-header-parse-addresses addr t))
+	          (when-let* ((warning (textsec-suspicious-p
+                                        ;; RFC 2047 encode to escape
+                                        ;; quotes and other problematic
+                                        ;; characters.
+                                        (rfc2047-encode-string address)
+                                        'email-address-header)))
+	            (unless (y-or-n-p
+		             (format "Suspicious address: %s; send anyway?"
+                                     warning))
+		      (user-error "Suspicious \"%s\" address %s" hdr address))))))))
 	(goto-char opoint)
         (require 'mml)
 	(when (or mail-encode-mml
@@ -2049,7 +2068,10 @@ you can move to one of them and type C-c C-c to recover that one."
 
 ;;;###autoload
 (defun mail-other-window (&optional noerase to subject in-reply-to cc replybuffer sendactions)
-  "Like `mail' command, but display mail buffer in another window."
+  "Like `mail' command, but display mail buffer in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive "P")
   (switch-to-buffer-other-window "*mail*")
   (mail noerase to subject in-reply-to cc replybuffer sendactions))

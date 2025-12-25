@@ -186,15 +186,13 @@ static AAsset *
 AAssetManager_open (AAssetManager *manager, const char *c_name,
 		    int mode)
 {
-  jobject desc;
+  jobject desc = NULL;
   jstring name;
-  AAsset *asset;
+  AAsset *asset = NULL;
   const char *asset_dir;
   jlong st_size = -1;
 
   /* Push a local frame.  */
-  asset = NULL;
-
   (*(manager->env))->PushLocalFrame (manager->env, 3);
 
   if ((*(manager->env))->ExceptionCheck (manager->env))
@@ -225,8 +223,6 @@ AAssetManager_open (AAssetManager *manager, const char *c_name,
   /* If st_size has been set, it ought to be possible to open an input
      stream directly upon the first attempt to read from the asset,
      sidestepping the intermediate AssetFileDescriptor.  */
-
-  desc = NULL;
 
   if (st_size < 0)
     /* Otherwise attempt to open an ``AssetFileDescriptor''.  */

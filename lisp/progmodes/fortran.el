@@ -549,7 +549,7 @@ than ENDDO.")
           "\\|!\\|$\\)")
   "Regexp matching the end of a Fortran \"block\", from the line start.
 Note that only ENDDO is handled for the end of a DO-loop.  Used
-in the Fortran entry in `hs-special-modes-alist'.")
+in the Fortran entry in `hs-block-end-regexp'.")
 
 (defconst fortran-start-block-re
   (concat
@@ -582,11 +582,7 @@ in the Fortran entry in `hs-special-modes-alist'.")
   "Regexp matching the start of a Fortran \"block\", from the line start.
 A simple regexp cannot do this in fully correct fashion, so this
 tries to strike a compromise between complexity and flexibility.
-Used in the Fortran entry in `hs-special-modes-alist'.")
-
-(add-to-list 'hs-special-modes-alist
-             `(fortran-mode ,fortran-start-block-re ,fortran-end-block-re
-                            "^[cC*!]" fortran-end-of-block nil))
+Used in the Fortran entry in `hs-block-start-regexp'.")
 
 
 (defvar fortran-mode-syntax-table
@@ -837,7 +833,11 @@ with no args, if that value is non-nil."
               #'fortran-current-defun)
   (setq-local dabbrev-case-fold-search 'case-fold-search)
   (setq-local gud-find-expr-function 'fortran-gud-find-expr)
-  (add-hook 'hack-local-variables-hook 'fortran-hack-local-variables nil t))
+  (add-hook 'hack-local-variables-hook 'fortran-hack-local-variables nil t)
+  (setq-local hs-block-start-regexp fortran-start-block-re)
+  (setq-local hs-block-end-regexp fortran-end-block-re)
+  (setq-local hs-c-start-regexp "^[cC*!]")
+  (setq-local hs-forward-sexp-function #' fortran-end-of-block))
 
 
 (defun fortran-line-length (nchars &optional global)
@@ -1247,7 +1247,7 @@ Directive lines are treated as comments."
           (goto-char i)
           (= (line-beginning-position) p)))))
 
-;; Used in hs-special-modes-alist.
+;; Used in hs-forward-sexp-function.
 (defun fortran-end-of-block (&optional num)
   "Move point forward to the end of the current code block.
 With optional argument NUM, go forward that many balanced blocks.

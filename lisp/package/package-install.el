@@ -35,8 +35,9 @@
 
 (defcustom package-install-upgrade-built-in nil
   "Non-nil means that built-in packages can be upgraded via a package archive.
-If disabled, then `package-install' will not suggest to replace a
-built-in package with a (possibly newer) version from a package archive."
+If disabled, then `package-install' will raise an error when trying to
+replace a built-in package with a (possibly newer) version from a
+package archive."
   :type 'boolean
   :version "29.1"
   :group 'package)
@@ -243,6 +244,18 @@ if all the in-between dependencies are also in PACKAGE-LIST."
 ;; installed in a variety of ways (archives, buffer, file), but
 ;; requirements (dependencies) are always satisfied by looking in
 ;; `package-archive-contents'.
+;;
+;; If Emacs installs a package from a package archive, it might create
+;; some files in addition to the package's contents.  For example:
+;;
+;; - If the package archive provides a non-trivial long description for
+;;   some package in "PACKAGE-readme.txt", Emacs stores it in a file
+;;   named "README-elpa" in the package's content directory, unless the
+;;   package itself provides such a file.
+;;
+;; - If a package archive provides package signatures, Emacs stores
+;;   information on the signatures in files named "NAME-VERSION.signed"
+;;   below directory `package-user-dir'.
 
 (defun package-archive-base (desc)
   "Return the package described by DESC."
@@ -307,7 +320,22 @@ Signal an error if the kind is none of the above."
                ;; Update the new (activated) pkg-desc as well.
                (when-let* ((pkg-descs (cdr (assq (package-desc-name pkg-desc)
                                                  package-alist))))
-                 (setf (package-desc-signed (car pkg-descs)) t))))))))))
+                 (setf (package-desc-signed (car pkg-descs)) t))))))))
+    ;; fetch a backup of the readme file from the server.  Slot `dir' is
+    ;; not yet available in PKG-DESC, so cobble that up.
+    (let* ((dirname (package-desc-full-name pkg-desc))
+           (pkg-dir (expand-file-name dirname package-user-dir))
+           (readme (expand-file-name "README-elpa" pkg-dir)))
+      (unless (file-readable-p readme)
+        (package--with-response-buffer (package-archive-base pkg-desc)
+          :file (format "%s-readme.txt" (package-desc-name pkg-desc))
+          :noerror t
+          ;; do not write empty or whitespace-only readmes to give
+          ;; `package--get-description' a chance to find another readme
+          (unless (save-excursion
+                    (goto-char (point-min))
+                    (looking-at-p "[[:space:]]*\\'"))
+            (write-region nil nil readme)))))))
 
 (defun package-download-transaction (packages)
   "Download and install all the packages in PACKAGES.
@@ -344,17 +372,14 @@ had been enabled."
      (package--archives-initialize)
      (list (intern (completing-read
                     "Install package: "
-                    (mapcan
-                     (lambda (elt)
-                       (and (or (and (or current-prefix-arg
-                                         package-install-upgrade-built-in)
-                                     (package--active-built-in-p (car elt)))
-                                (not (package-installed-p (car elt))))
-                            (list (symbol-name (car elt)))))
-                     package-archive-contents)
+                    package-archive-contents
                     nil t))
            nil)))
   (cl-check-type pkg (or symbol package-desc))
+  (when (or (and package-install-upgrade-built-in
+                 (package--active-built-in-p pkg))
+            (package-installed-p pkg))
+    (user-error "Package is already installed"))
   (package--archives-initialize)
   (when (fboundp 'package-menu--post-refresh)
     (add-hook 'post-command-hook #'package-menu--post-refresh))
@@ -443,7 +468,7 @@ from ELPA by either using `\\[package-upgrade]' or
 `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'."
   (interactive (list (not noninteractive)))
   (package-refresh-contents)
-  (let ((upgradeable (package--upgradeable-packages)))
+  (let ((upgradeable (package--upgradeable-packages package-install-upgrade-built-in)))
     (if (not upgradeable)
         (message "No packages to upgrade")
       (when (and query
@@ -519,12 +544,12 @@ The return result is a `package-desc'."
           (package--read-pkg-desc 'dir))
       (catch 'found
         (let ((files (or (and (derived-mode-p 'dired-mode)
-                              (dired-get-marked-files))
-                         (directory-files-recursively default-directory "\\.el\\'"))))
-          ;; We sort the file names in lexicographical order, to ensure
-          ;; that we check shorter file names first (ie. those further
-          ;; up in the directory structure).
-          (dolist (file (sort files))
+                              (dired-get-marked-files nil 'marked))
+                         (directory-files default-directory t "\\.el\\'" t))))
+          ;; We sort the file names by length, to ensure that we check
+          ;; shorter file names first, as these are more likely to
+          ;; contain the package metadata.
+          (dolist (file (sort files :key #'length))
             ;; The file may be a link to a nonexistent file; e.g., a
             ;; lock file.
             (when (file-exists-p file)
@@ -657,6 +682,8 @@ installed), maybe you need to \\[package-refresh-contents]")
   "Delete PKG-DESC directory DIR recursively.
 Clean-up the corresponding .eln files if Emacs is native
 compiled."
+  (setq load-path (cl-remove-if (lambda (s) (file-in-directory-p s dir))
+                                load-path))
   (when (featurep 'native-compile)
     (cl-loop
      for file in (directory-files-recursively dir
@@ -903,7 +930,7 @@ untar into a directory named DIR; otherwise, signal an error."
        (make-directory pkg-dir t)
        (let ((file-list
               (or (and (derived-mode-p 'dired-mode)
-                       (dired-get-marked-files))
+                       (dired-get-marked-files nil 'marked))
                   (directory-files-recursively default-directory "" nil))))
          (dolist (source-file file-list)
            (let ((target (expand-file-name

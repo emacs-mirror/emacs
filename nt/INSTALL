@@ -141,9 +141,9 @@ build should run on Windows 9X and newer systems).
 
   A nice installer, called mingw-get, is available for those who don't
   like to mess with manual installations.  You can download it from
-  here:
+  the "Wayback Machine", here:
 
-    https://osdn.net/projects/mingw/releases
+    https://web.archive.org/web/20210410172202/https://osdn.net/projects/mingw/releases/
 
   (This installer only supports packages downloaded from the MinGW
   site; for the rest you will still need the manual method.)
@@ -205,9 +205,9 @@ build should run on Windows 9X and newer systems).
 
   You will need to install the MinGW port of GCC and Binutils, and the
   MinGW runtime and Windows API distributions, to compile Emacs.  You
-  can find these on the MinGW download/Base page:
+  can find these on the MinGW download page:
 
-    https://osdn.net/projects/mingw/releases
+    https://web.archive.org/web/20210410172202/https://osdn.net/projects/mingw/releases/
 
   In general, install the latest stable versions of the following
   MinGW packages from that page: gcc, binutils, mingw-rt, w32api.  You

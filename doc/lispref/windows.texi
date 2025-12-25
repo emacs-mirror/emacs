@@ -2099,6 +2099,51 @@ Deleting any of the live windows @var{W2}, @var{W3} or @var{W4} will
 distribute its space proportionally among the two remaining live
 windows.
 
+The following two functions allow to expressly make a new parent window
+for several adjacent windows and to undo that operation.
+
+@cindex combining windows
+@defun combine-windows first last
+This function combines the windows from @var{first} to @var{last}
+inclusive.  @var{first} and @var{last} must be valid windows in the same
+combination, that is, windows with the same parent window.  If neither
+@var{first} has a previous nor @var{last} has a next sibling, it returns
+that parent window.  Otherwise, it makes a new parent window whose first
+child window becomes @var{first} and whose last child window becomes
+@var{last}, inserts that parent window in the window tree in lieu of the
+windows starting with @var{first} and ending with @var{last} and returns
+the new parent window.
+
+This function is useful to operate on several siblings of the same
+parent window as a whole.  Consider three sibling windows @var{w1},
+@var{w2} and @var{w3} aligned side by side.  To create a window below
+@var{w1} and @var{w2} but not below @var{w3}, first combine @var{w1} and
+@var{w2} using this function, and then split the window it returned.  You
+can also call @code{window-state-get} (@pxref{Window Configurations}) on
+the return value of @code{combine-windows} to obtain the combined state
+of @var{w1} and @var{w2}.
+@end defun
+
+@cindex uncombining windows
+@defun uncombine-window window
+This function uncombines the specified @var{window}.  @var{window}
+should be an internal window whose parent window is an internal window
+of the same type.  This means that @var{window} and its parent should
+be either both horizontal or both vertical window combinations.  If this
+is the case, the function makes the child windows of @var{window} become
+child windows of @var{window}'s parent, and returns @code{t}.
+Otherwise, it leaves the current configuration of @var{window}'s frame
+unchanged and returns @code{nil}.
+
+This function is useful to undo the effect of @code{combine-windows}.
+For example, to calculate the state of two adjacent windows @var{w1} and
+@var{w2}, proceed as follows: first, call @code{combine-windows} with @var{w1}
+and @var{w2} as arguments, and store the result in @var{w}.  Then call
+@code{window-state-get} with the argument @var{w}.  Finally, call
+@code{uncombine-window} with @var{w} as its argument to obtain the
+window configuration that existed before the call to @code{combine-windows}.
+@end defun
+
 
 @node Resurrecting Windows
 @section Resurrecting Windows
@@ -7023,9 +7068,10 @@ not use markers for sampling positions like @code{window-point} or
 @code{window-start}.  This argument should be non-@code{nil} when the
 state will be written to disk and read back in another session.
 
-Together, the argument @var{writable} and the variable
+Together, @var{writable} and the variable
 @code{window-persistent-parameters} specify which window parameters are
-saved by this function.  @xref{Window Parameters}.
+saved by this function.  The default is to save the @code{clone-of}
+parameter if @var{writable} is @code{nil}.  @xref{Window Parameters}.
 
 @vindex window-state-normalize-buffer-name
 Bind @code{window-state-normalize-buffer-name} to non-@code{nil} to
@@ -7035,19 +7081,24 @@ sessions.  @xref{Uniquify,,, emacs, The GNU Emacs Manual}.
 @end defun
 
 The value returned by @code{window-state-get} can be used in the same
-session to make a clone of a window in another window.  It can be also
-written to disk and read back in another session.  In either case, use
-the following function to restore the state of the window.
+session to clone a window (see below).  It can be also written to disk
+and read back in another session.  In either case, use the following
+function to restore the state of the window.
 
 @defun window-state-put state &optional window ignore
-This function puts the window state @var{state} into @var{window}.
-The argument @var{state} should be the state of a window returned by
-an earlier invocation of @code{window-state-get}, see above.  The
-optional argument @var{window} can be either a live window or an
-internal window (@pxref{Windows and Frames}).  If @var{window} is not
-a live window, it is replaced by a new live window created on the same
-frame before putting @var{state} into it.  If @var{window} is @code{nil},
-it puts the window state into a new window.
+This function puts the window state @var{state} into @var{window}.  The
+argument @var{state} should be the state of a window returned by an
+earlier invocation of @code{window-state-get}, see above.  The optional
+argument @var{window} can be either a live window or an internal window
+(@pxref{Windows and Frames}).  If @var{window} is not a live window, it
+is replaced by a new live window created on the same frame before
+putting @var{state} into it.  If @var{window} is @code{nil}, it puts the
+window state into a new window.
+
+This function assigns all window parameters that have been stored in
+@var{state}.  By default, this is the @code{clone-of} parameter provided
+@var{state} was obtained from an invocation of @code{window-state-get}
+with the argument @var{writable} @code{nil}.  @xref{Window Parameters}.
 
 This function consults the variable
 @code{window-restore-killed-buffer-windows} (see below) when it tries to
@@ -7059,11 +7110,22 @@ is @code{safe}, this means windows can get as small as one line
 and/or two columns.
 @end defun
 
+@cindex window clone
+@cindex clone of window
+In the context of window states, the @dfn{clone of a window} is a window
+that has the same decorations and contents as the window whose state was
+used to produce it, but is actually represented by another window
+object.  Operating on the original or the clone of a window does not
+affect the other in any way.  Note that while @code{window-state-get}
+clones existing windows, these clones are not yet valid windows.  They
+become valid only after @code{window-state-put} has put them into a live
+frame.
+
 By default, @code{set-window-configuration} and @code{window-state-put}
-may delete a window from the restored configuration when they find out
-that its buffer was killed since the corresponding configuration or
-state has been recorded.  The variable described next can be used to
-fine-tune that behavior.
+may delete a window from the restored configuration or state when they
+find out that its buffer was killed since the corresponding
+configuration or state has been recorded.  The variable described next
+can be used to fine-tune that behavior.
 
 @cindex restoring windows whose buffers have been killed
 @defvar window-restore-killed-buffer-windows
@@ -7274,9 +7336,10 @@ specific window.
 
 @item clone-of
 @vindex clone-of@r{, a window parameter}
-This parameter specifies the window that this one has been cloned
-from.  It is installed by @code{window-state-get} (@pxref{Window
-Configurations}).
+This parameter specifies the window that this one has been cloned from.
+It is persistent by default and as such gets saved by
+@code{window-state-get} and installed by @code{window-state-put}
+(@pxref{Window Configurations}).
 
 @item window-preserved-size
 @vindex window-preserved-size@r{, a window parameter}
@@ -7415,10 +7478,35 @@ This variable specifies functions called during redisplay when window
 buffers have changed.  The value should be a list of functions that
 take one argument.
 
-Functions specified buffer-locally are called for any window showing
-the corresponding buffer if that window has been created or assigned
-that buffer since the last time window change functions were run.  In
-this case the window is passed as argument.
+Functions specified buffer-locally are called for each window showing
+the corresponding buffer if and only if that window has been added or
+changed its buffer since the last redisplay.  Note that functions may be
+run twice for such a window: Once for the buffer shown in the window at
+the time of the last redisplay (provided that buffer is still live) and
+once for the buffer currently shown in the window.  In either case the
+window is passed as argument and the respective buffer is made
+temporarily current.
+
+If you are using the buffer-local version of this hook, you may want to
+discern the case where the buffer was removed from a window from the
+case where the buffer is now shown in that window.  If @var{window}
+denotes the window argument passed to a function on this hook, then to
+detect the case where the buffer was removed from @var{window} use the
+idiom
+
+@example
+(eq (window-old-buffer @var{window}) (current-buffer))
+@end example
+
+@noindent
+while to detect whether the buffer is now shown in @var{window} use
+
+@example
+(eq (window-buffer @var{window}) (current-buffer))
+@end example
+
+@noindent
+instead.
 
 Functions specified by the default value are called for a frame if at
 least one window on that frame has been added, deleted or assigned
@@ -7436,11 +7524,11 @@ This variable specifies functions called during redisplay when a
 window size change occurred.  The value should be a list of functions
 that take one argument.
 
-Functions specified buffer-locally are called for any window showing
-the corresponding buffer if that window has been added or assigned
-another buffer or changed its total or body size since the last time
-window change functions were run.  In this case the window is passed
-as argument.
+Functions specified buffer-locally are called for any window showing the
+corresponding buffer if that window has been added or assigned another
+buffer or changed its total or body size since the last time window
+change functions were run.  In this case the window is passed as
+argument and the respective buffer is temporarily made current.
 
 Functions specified by the default value are called for a frame if at
 least one window on that frame has been added or assigned another
@@ -7458,11 +7546,12 @@ This variable specifies functions called during redisplay when the
 selected window or a frame's selected window has changed.  The value
 should be a list of functions that take one argument.
 
-Functions specified buffer-locally are called for any window showing
-the corresponding buffer if that window has been selected or
-deselected (among all windows or among all windows on its frame) since
-the last time window change functions were run.  In this case the
-window is passed as argument.
+Functions specified buffer-locally are called for any window showing the
+corresponding buffer if that window has been selected or deselected
+(among all windows or among all windows on its frame) since the last
+time window change functions were run.  In this case the window is
+passed as argument and the respective buffer is temporarily made
+current.
 
 Functions specified by the default value are called for a frame if
 that frame has been selected or deselected or the frame's selected
@@ -7481,12 +7570,13 @@ window buffer or size change occurred or the selected window or a
 frame's selected window has changed.  The value should be a list of
 functions that take one argument.
 
-Functions specified buffer-locally are called for any window showing
-the corresponding buffer if that window has been added or assigned
-another buffer, changed its total or body size or has been selected or
+Functions specified buffer-locally are called for any window showing the
+corresponding buffer if that window has been added or assigned another
+buffer, changed its total or body size or has been selected or
 deselected (among all windows or among all windows on its frame) since
-the last time window change functions were run.  In this case the
-window is passed as argument.
+the last time window change functions were run.  In this case the window
+is passed as argument and the respective buffer is temporarily made
+current.
 
 Functions specified by the default value are called for a frame if at
 least one window on that frame has been added, deleted or assigned

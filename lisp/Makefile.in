@@ -420,7 +420,7 @@ semantic:
 # date.  Some .el files don't get compiled because they set the
 # local variable no-byte-compile.
 # Calling make recursively because suffix rule cannot have prerequisites.
-compile: $(LOADDEFS) autoloads compile-first
+compile: autoloads compile-first
 	$(MAKE) compile-main
 
 # Compile all Lisp files.  This is like 'compile' but compiles files
@@ -428,6 +428,7 @@ compile: $(LOADDEFS) autoloads compile-first
 # set the local variable no-byte-compile.
 compile-always:
 	find $(lisp) -name '*.elc' $(FIND_DELETE)
+	$(MAKE) -C ../src
 	$(MAKE) compile
 
 .PHONY: trampolines
@@ -501,7 +502,7 @@ compile-after-backup: backup-compiled-files compile-always
 # There is no reason to use this rule unless you only have a single
 # core and CPU time is an issue.
 .PHONY: compile-one-process
-compile-one-process: $(LOADDEFS) compile-first
+compile-one-process: compile-first
 	$(emacs) $(BYTE_COMPILE_FLAGS) \
 	    --eval "(batch-byte-recompile-directory 0)" $(lisp)
 

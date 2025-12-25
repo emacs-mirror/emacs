@@ -6469,14 +6469,14 @@ its prefixes and suffixes removed; otherwise return BUFFER's
 WINDOW can be any window and defaults to the root window of the
 selected frame.
 
-Optional argument WRITABLE non-nil means do not use markers for
-sampling `window-point' and `window-start'.  Together, WRITABLE
-and the variable `window-persistent-parameters' specify which
-window parameters are saved by this function.  WRITABLE should be
-non-nil when the return value shall be written to a file and read
-back in another session.  Otherwise, an application may run into
-an `invalid-read-syntax' error while attempting to read back the
-value from file.
+Optional argument WRITABLE non-nil means do not use markers for sampling
+`window-point' and `window-start'.  Together, WRITABLE and the variable
+`window-persistent-parameters' specify which parameters of WINDOW to
+save.  By default, this is the `clone-of' parameter if WRITABLE is nil.
+WRITABLE should be non-nil when the return value shall be written to a
+file and read back in another session.  Otherwise, an application may
+run into an `invalid-read-syntax' error while attempting to read back
+the value from file.
 
 The return value can be used as argument for `window-state-put'
 to put the state recorded here into an arbitrary window.  The
@@ -6761,6 +6761,10 @@ invocation of `window-state-get'.  Optional argument WINDOW must
 specify a valid window.  If WINDOW is not a live window,
 replace WINDOW by a new live window created on the same frame.
 If WINDOW is nil, create a new window before putting STATE into it.
+
+Assign all window parameters that have been stored in STATE.  By
+default, this is the `clone-of’ parameter provided STATE was obtained
+from an invocation of `window-state-get’ with WRITABLE nil.
 
 Optional argument IGNORE non-nil means ignore minimum window
 sizes and fixed size restrictions.  IGNORE equal `safe' means
@@ -7528,18 +7532,19 @@ hold:
 		      (* 2 (max window-min-height
 				(if mode-line-format 2 1))))))))))
 
-(defcustom split-window-preferred-direction 'vertical
+(defcustom split-window-preferred-direction 'longest
   "The first direction tried when Emacs needs to split a window.
-This variable controls in which order `split-window-sensibly' will try to
-split the window.  That order specially matters when both dimensions of
-the frame are long enough to be split according to
-`split-width-threshold' and `split-height-threshold'.  If this is set to
-`vertical' (the default), `split-window-sensibly' tries to split
-vertically first and then horizontally.  If set to `horizontal' it does
-the opposite.  If set to `longest', the first direction tried
-depends on the frame shape: in landscape orientation it will be like
-`horizontal', but in portrait it will be like `vertical'.  Basically,
-the longest of the two dimension is split first.
+This variable controls in which order `split-window-sensibly' will try
+to split the window.  That order specially matters when both dimensions
+of the frame are long enough to be split according to
+`split-width-threshold' and `split-height-threshold'.
+If set to `vertical', `split-window-sensibly' tries to split vertically
+first and then horizontally.
+If set to `horizontal' it does the opposite.
+If set to `longest' (the default), the first direction tried depends on
+the frame shape: in landscape orientation it will be like `horizontal',
+but in portrait it will be like `vertical'.  In other words, the longest
+of the two dimension is split first.
 
 If both `split-width-threshold' and `split-height-threshold' cannot be
 satisfied, it will fallback to split vertically.
@@ -8021,9 +8026,14 @@ See `display-buffer' for details.
 This variable is not intended for user customization.  Lisp
 programs should never set this variable permanently but may bind
 it around calls of buffer display functions like `display-buffer'
-or `pop-to-buffer'.  Since such a binding will affect any nested
+or `pop-to-buffer'.
+
+Since such a binding will affect unconditionally any nested
 buffer display requests, this variable should be used with utmost
-care.")
+care, typically in response to an explicit request by the user.
+Also, any code that sets this variable needs to interact nicely with
+other code that sets this variable.
+See `other-frame-prefix' for an example of use.")
 (put 'display-buffer-overriding-action 'risky-local-variable t)
 
 (defcustom display-buffer-alist nil
@@ -8048,11 +8058,8 @@ where:
 
 `display-buffer' scans this alist until the CONDITION is satisfied
 and adds the associated ACTION to the list of actions it will try."
-  :type `(alist :key-type
-		(choice :tag "Condition"
-			regexp
-			(function :tag "Matcher function"))
-		:value-type ,display-buffer--action-custom-type)
+  :type `(alist :key-type (buffer-predicate :tag "Condition")
+                :value-type ,display-buffer--action-custom-type)
   :risky t
   :version "24.1"
   :group 'windows)
@@ -8183,11 +8190,19 @@ perform.
 Action alist entries are:
  `inhibit-same-window' -- A non-nil value prevents the same
     window from being used for display.
+ \\+`previous-window' -- The value specifies a window which may
+    have previously displayed the buffer, and that should be
+    preferred for displaying the buffer.
+ `mode' -- A major mode or a list of modes; `display-buffer' may
+    reuse a window if its current buffer is under one of those modes.
  `inhibit-switch-frame' -- A non-nil value prevents any frame
     used for showing the buffer from being raised or selected.
     Note that a window manager may still raise a new frame and
     give it focus, effectively overriding the value specified
     here.
+ `frame-predicate' -- The value should be a function of one argument,
+    a frame, and should return non-nil if the frame is a candidate
+    for displaying the buffer.
  `reusable-frames' -- The value specifies the set of frames to
     search for a window that already displays the buffer.
     Possible values are nil (the selected frame), t (any live
@@ -8197,7 +8212,11 @@ Action alist entries are:
     Takes precedence over the variable.
  `pop-up-frame-parameters' -- The value specifies an alist of
     frame parameters to give a new frame, if one is created.
- `window-height' -- The value specifies the desired height of the
+ `parent-frame' -- The value specifies the parent frame to be used
+    when the buffer is displayed on a child frame.
+ `child-frame-parameters' -- The value specifies an alist of frame
+    parameters to use when displaying a buffer on a child frame.
+ \\+`window-height' -- The value specifies the desired height of the
     window chosen and is either an integer (the total height of
     the window specified in frame lines), a floating point
     number (the fraction of its total height with respect to the
@@ -8208,7 +8227,7 @@ Action alist entries are:
     window.  That function is supposed to adjust the height of
     the window.  Suitable functions are `fit-window-to-buffer'
     and `shrink-window-if-larger-than-buffer'.
- `window-width' -- The value specifies the desired width of the
+ \\+`window-width' -- The value specifies the desired width of the
     window chosen and is either an integer (the total width of
     the window specified in frame lines), a floating point
     number (the fraction of its total width with respect to the
@@ -8217,7 +8236,7 @@ Action alist entries are:
     width of the window's body in frame columns, or a function to
     be called with one argument - the chosen window.  That
     function is supposed to adjust the width of the window.
- `window-size' -- This entry is only useful for windows appearing
+ \\+`window-size' -- This entry is only useful for windows appearing
     alone on their frame and specifies the desired size of that
     window either as a cons of integers (the total width and
     height of the window on that frame), a cons cell whose car is
@@ -8226,15 +8245,42 @@ Action alist entries are:
     its frame), or a function to be called with one argument -
     the chosen window.  That function is supposed to adjust the
     size of the frame.
+ \\+`window-min-width' -- The minimum width of the window to be
+    used, in canonical frame columns.  The value could also be
+    the symbol `full-width', which means the window to be used should
+    be a full-width window on its frame.
+ \\+`window-min-height' -- The minimum height of the window to be
+    used, in frame's canonical lines.  The value could also be the
+    symbol `full-height', which means the window to be used should
+    be a full-height window on its frame.
  `preserve-size' -- The value should be either (t . nil) to
     preserve the width of the chosen window, (nil . t) to
     preserve its height or (t . t) to preserve its height and
     width in future changes of the window configuration.
- `window-parameters' -- The value specifies an alist of window
+ \\+`window-parameters' -- The value specifies an alist of window
     parameters to give the chosen window.
+ `dedicated' -- If the value is non-nil, `display-buffer' will make
+    the window it uses dedicated (see `set-window-dedicated-p') to the
+    buffer.
+ `lru-frames' -- The value specifies the set of frames to search for
+    a window that can be used to display the buffer.
+ `lru-time' -- The value specifies the maximum window use time (see
+    `window-use-time') to consider a window as a candidate for
+    displaying the buffer.
+ `bump-use-time' -- A non-nil value means bump the use time of the
+    window to use (see `window-bump-use-time').
+ `side' -- The value specifies the side of a frame where to create a
+    new window displaying the buffer.  See `display-buffer-in-side-window'.
+ `slot' -- If non-nil, specifies the side-window slot where to display
+    the buffer, see `display-buffer-in-side-window'.
+ \\+`window' -- The value specifies the window related to the window
+    to be used for displaying the buffer.
+ `direction' -- Together with a `window' entry, the value determines
+    the location of the window (see `display-buffer-in-direction') to
+    display the buffer.
  `allow-no-window' -- A non-nil value means that `display-buffer'
     may not display the buffer and return nil immediately.
- `some-window' -- This entry defines which window
+ \\+`some-window' -- This entry defines which window
     `display-buffer-use-some-window' should choose.  The possible choices
     are `lru' or nil (the default) to select the least recently used window,
     and `mru' to select the most recently used window.  It can also be a
@@ -9605,7 +9651,10 @@ Optional second argument NORECORD non-nil means do not put this
 buffer at the front of the list of recently selected ones.
 
 This uses the function `display-buffer' as a subroutine; see its
-documentation for additional customization information."
+documentation for additional customization information.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other window: ")))
   (let ((pop-up-windows t))

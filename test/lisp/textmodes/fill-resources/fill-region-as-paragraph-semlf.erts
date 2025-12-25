@@ -1,0 +1,64 @@
+Point-Char: |
+
+Name: fill-region-as-paragraph-semlf
+Code:
+  (lambda ()
+    (setq-local fill-column 35)
+    (fill-region-as-paragraph-semlf
+     (point)
+     (progn
+       (goto-char (point-max))
+       (forward-line -1)
+       (beginning-of-line)
+       (point))))
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, s|ed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+do eiusmod tempor.
+Incididunt ut labore et dolore
+magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation
+ullamco laboris nisi ut.
+Lorem ipsum dolor sit amet,
+consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore
+magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation
+ullamco laboris nisi ut.
+Lorem ipsum dolor sit amet,
+consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore
+magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-region-as-paragraph-semlf - sentence-end-without-space (Bug#79575)
+Code:
+  (lambda ()
+    (fill-region-as-paragraph-semlf
+     (point-min)
+     (point-max)))
+
+=-=
+あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお。
+あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお。
+=-=
+あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお
+あいうえおあいうえお。
+あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお
+あいうえおあいうえお。
+=-=-=

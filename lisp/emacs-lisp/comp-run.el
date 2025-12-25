@@ -366,6 +366,7 @@ display a message."
                                                       (eq load1 'late))))
                                (comp--run-async-workers))
                              :noquery (not native-comp-async-query-on-exit))))
+              (set-process-thread process nil)
               (puthash source-file process comp-async-compilations))
          when (>= (comp--async-runnings) (comp--effective-async-max-jobs))
          do (cl-return)))

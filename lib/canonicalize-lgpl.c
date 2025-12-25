@@ -191,11 +191,6 @@ struct realpath_bufs
 static char *
 realpath_stk (const char *name, char *resolved, struct realpath_bufs *bufs)
 {
-  char *dest;
-  char const *start;
-  char const *end;
-  int num_links = 0;
-
   if (name == NULL)
     {
       /* As per Single Unix Specification V2 we must return an error if
@@ -215,12 +210,15 @@ realpath_stk (const char *name, char *resolved, struct realpath_bufs *bufs)
     }
 
   char *rname = bufs->rname.data;
-  bool end_in_extra_buffer = false;
-  bool failed = true;
 
   /* This is always zero for Posix hosts, but can be 2 for MS-Windows
      and MS-DOS X:/foo/bar file names.  */
-  idx_t prefix_len = FILE_SYSTEM_PREFIX_LEN (name);
+  idx_t prefix_len;
+
+  char *dest;
+  char const *start;
+
+  bool failed = true;
 
   if (!IS_ABSOLUTE_FILE_NAME (name))
     {
@@ -241,6 +239,7 @@ realpath_stk (const char *name, char *resolved, struct realpath_bufs *bufs)
     }
   else
     {
+      prefix_len = FILE_SYSTEM_PREFIX_LEN (name);
       dest = __mempcpy (rname, name, prefix_len);
       *dest++ = '/';
       if (DOUBLE_SLASH_IS_DISTINCT_ROOT)
@@ -253,13 +252,17 @@ realpath_stk (const char *name, char *resolved, struct realpath_bufs *bufs)
       start = name + prefix_len;
     }
 
-  for ( ; *start; start = end)
+  int num_links = 0;
+  bool end_in_extra_buffer = false;
+
+  for (; *start;)
     {
       /* Skip sequence of multiple file name separators.  */
       while (ISSLASH (*start))
         ++start;
 
       /* Find end of component.  */
+      char const *end;
       for (end = start; *end && !ISSLASH (*end); ++end)
         /* Nothing.  */;
 
@@ -378,6 +381,8 @@ realpath_stk (const char *name, char *resolved, struct realpath_bufs *bufs)
                       : errno == EINVAL))
             goto error;
         }
+
+      start = end;
     }
   if (dest > rname + prefix_len + 1 && ISSLASH (dest[-1]))
     --dest;

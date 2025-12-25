@@ -395,11 +395,28 @@ then it searches *all* buffers."
   (setq dabbrev--check-other-buffers (and arg t))
   (setq dabbrev--check-all-buffers
         (and arg (= (prefix-numeric-value arg) 16)))
+  ;; Set it so `dabbrev-capf' won't reset the vars.
+  (setq dabbrev--last-abbrev-location (point-marker))
   (let ((completion-at-point-functions '(dabbrev-capf)))
     (completion-at-point)))
 
 (defun dabbrev-capf ()
   "Dabbrev completion function for `completion-at-point-functions'."
+  ;; Don't reset the vars if we're in the "same" completion, especially since
+  ;; they may have been set to different values, e.g. if the user passes
+  ;; a non-nil ARG to `dabbrev-completion'.
+  (unless (and (markerp dabbrev--last-abbrev-location)
+               (eq (current-buffer)
+                   (marker-buffer dabbrev--last-abbrev-location))
+               (= (point) dabbrev--last-abbrev-location))
+    (dabbrev--reset-global-variables)
+    ;; FIXME: Contrary to `dabbrev-completion', the CAPF protocol doesn't
+    ;; have a way to control the scope of the search.  We just default
+    ;; to confine it to the current buffer.
+    (setq dabbrev--check-other-buffers nil)
+    (setq dabbrev--check-all-buffers nil)
+    (setq dabbrev--last-abbrev-location (point-marker)))
+
   (let* ((abbrev (dabbrev--abbrev-at-point))
          (beg (progn (search-backward abbrev) (point)))
          (end (progn (search-forward abbrev) (point)))
@@ -645,25 +662,24 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
   ;; Return abbrev at point
   (save-excursion
     ;; Record the end of the abbreviation.
-    (setq dabbrev--last-abbrev-location (point))
-    ;; If we aren't right after an abbreviation,
-    ;; move point back to just after one.
-    ;; This is so the user can get successive words
-    ;; by typing the punctuation followed by M-/.
-    (save-match-data
-      (if (save-excursion
-	    (forward-char -1)
-	    (not (looking-at (or dabbrev-abbrev-char-regexp
-                                 "\\sw\\|\\s_"))))
-	  (if (re-search-backward (or dabbrev-abbrev-char-regexp
-				      "\\sw\\|\\s_")
-				  nil t)
-	      (forward-char 1)
-	    (user-error "No possible abbreviation preceding point"))))
-    ;; Now find the beginning of that one.
-    (dabbrev--goto-start-of-abbrev)
-    (buffer-substring-no-properties
-     dabbrev--last-abbrev-location (point))))
+    (let ((end (point)))
+      ;; If we aren't right after an abbreviation,
+      ;; move point back to just after one.
+      ;; This is so the user can get successive words
+      ;; by typing the punctuation followed by M-/.
+      (save-match-data
+	(if (save-excursion
+	      (forward-char -1)
+	      (not (looking-at (or dabbrev-abbrev-char-regexp
+                                   "\\sw\\|\\s_"))))
+	    (if (re-search-backward (or dabbrev-abbrev-char-regexp
+				        "\\sw\\|\\s_")
+				    nil t)
+		(forward-char 1)
+	      (user-error "No possible abbreviation preceding point"))))
+      ;; Now find the beginning of that one.
+      (dabbrev--goto-start-of-abbrev)
+      (buffer-substring-no-properties (point) end))))
 
 (defun dabbrev--reset-global-variables ()
   "Initialize all global variables."

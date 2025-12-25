@@ -12,7 +12,7 @@
 ;;              with tons of assistance from
 ;;              Paul Du Bois <pld-lua@gelatinous.com> and
 ;;              Aaron Smith <aaron-lua@gelatinous.com>.
-;;
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, processes, tools
 
 ;; This file is part of GNU Emacs.
@@ -273,9 +273,6 @@ If the latter is nil, the keymap translates into `lua-mode-map' verbatim."
   "Regexp which matches the Lua program's prompt."
   :type  'regexp
   :version "31.1")
-
-(defvar-local lua--repl-buffer-p nil
-  "Buffer-local flag saying if this is a Lua REPL buffer.")
 
 (defcustom lua-indent-string-contents nil
   "If non-nil, contents of multiline string will be indented.
@@ -556,12 +553,9 @@ See `imenu-generic-expression'.")
   (add-hook 'flymake-diagnostic-functions #'lua-flymake nil t)
 
   ;; Hide-show setup
-  (unless (assq 'lua-mode hs-special-modes-alist)
-    (add-to-list 'hs-special-modes-alist
-                 `(lua-mode
-                   ,(regexp-opt (mapcar 'car lua-sexp-alist) 'words) ; Start
-                   ,(regexp-opt (mapcar 'cdr lua-sexp-alist) 'words) ; End
-                   nil lua-forward-sexp))))
+  (setq-local hs-block-start-regexp (regexp-opt (mapcar 'car lua-sexp-alist) 'words))
+  (setq-local hs-block-end-regexp (regexp-opt (mapcar 'cdr lua-sexp-alist) 'words))
+  (setq-local hs-forward-sexp-function #'lua-forward-sexp))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-mode))
@@ -1807,7 +1801,8 @@ This function just searches for a `end' at the beginning of a line."
      "    error(e)"
      "  end"
      "  return x()"
-     "end")
+     "end"
+     "\n")
    " "))
 
 (defun lua-make-lua-string (str)
@@ -1824,45 +1819,79 @@ This function just searches for a `end' at the beginning of a line."
            str t t)
           "'"))
 
+(defcustom lua-process-buffer-name nil
+  "Name of the inferior Lua buffer.
+The value nil means use the same name as `lua-default-application'."
+  :type '(choice (const :tag "Default" nil) string)
+  :safe 'string-or-null-p
+  :version "31.1")
+
+(defcustom lua-process-history-file nil
+  "File used to save command history of the inferior Lua process.
+The value nil means that no command history is saved."
+  :type '(choice (const :tag "None" nil) file)
+  :safe 'string-or-null-p
+  :version "31.1")
+
+(defcustom lua-process-startfile nil
+  "Start file to load into the inferior Lua process at startup."
+  :type '(choice (const :tag "None" nil) (file :must-match t))
+  :version "31.1")
+
 ;;;###autoload
 (defalias 'run-lua #'lua-start-process)
 
 ;;;###autoload
 (defun lua-start-process (&optional name program startfile &rest switches)
   "Start a Lua process named NAME, running PROGRAM.
-PROGRAM defaults to NAME, which defaults to `lua-default-application'.
 When called interactively, switch to the process buffer.
 
-STARTFILE is the name of a file, whose contents are sent to the process
-as its initial input.
+NAME is the name of the created process; default is
+`lua-process-buffer-name' or `lua-default-application'.
 
-SWITCHES is a list of strings passed as arguments to PROGRAM."
+PROGRAM is the executable to run; default is `lua-default-application'.
+
+STARTFILE is a file, whose contents are sent to the process as initial
+input; default is `lua-process-startfile'.
+
+SWITCHES is a list of strings passed as arguments to PROGRAM; default is
+`lua-default-command-switches'."
   (interactive)
-  (setq name (or name (if (consp lua-default-application)
-                          (car lua-default-application)
-                        lua-default-application)))
-  (setq program (or program lua-default-application))
-  ;; Don't re-initialize if there already is a lua process
-  (unless (comint-check-proc (format "*%s*" name))
-    (setq lua-process-buffer (apply #'make-comint name program startfile
-                                    (or switches lua-default-command-switches)))
-    (setq lua-process (get-buffer-process lua-process-buffer))
-    (set-process-query-on-exit-flag lua-process nil)
-    (with-current-buffer lua-process-buffer
-      (setq lua--repl-buffer-p t)
-      (compilation-shell-minor-mode 1)
-      (setq-local comint-prompt-regexp lua-prompt-regexp)
-
-      ;; Don't send initialization code until seeing the prompt to
-      ;; ensure that the interpreter is ready.
-      (while (not (lua-prompt-line))
-        (accept-process-output (get-buffer-process (current-buffer)))
-        (goto-char (point-max)))
-      (lua-send-string lua-process-init-code)))
-
-  ;; When called interactively, switch to process buffer
-  (when (called-interactively-p 'any)
-    (switch-to-buffer lua-process-buffer)))
+  (if (not lua-default-application)
+      (user-error "You must set `lua-default-application' to use this command")
+    (let* ((name (or name
+                     lua-process-buffer-name
+                     (if (consp lua-default-application)
+                         (car lua-default-application)
+                       lua-default-application)))
+           (program (or program lua-default-application)))
+      ;; Don't re-initialize if there already is a Lua process.
+      (unless (comint-check-proc (format "*%s*" name))
+        (setq lua-process-buffer
+              (apply #'make-comint name program
+                     (or startfile lua-process-startfile)
+                     (or (flatten-tree switches)
+                         lua-default-command-switches)))
+        (setq lua-process (get-buffer-process lua-process-buffer))
+        (set-process-query-on-exit-flag lua-process nil)
+        (with-current-buffer lua-process-buffer
+          (setq-local comint-prompt-regexp lua-prompt-regexp)
+          (setq-local comint-input-ring-file-name lua-process-history-file)
+          (comint-read-input-ring t)
+          (compilation-shell-minor-mode)
+          (add-hook 'kill-buffer-hook #'comint-write-input-ring nil t)
+          ;; Don't send initialization code until seeing the prompt to
+          ;; ensure that the interpreter is ready.
+          (while (not (lua-prompt-line))
+            (accept-process-output (get-buffer-process (current-buffer)))
+            (goto-char (point-max)))
+          (process-send-string lua-process lua-process-init-code)))
+      ;; When called interactively, switch to process buffer
+      (when (called-interactively-p 'any)
+        (pop-to-buffer lua-process-buffer
+                       '((display-buffer-pop-up-window
+                          display-buffer-reuse-window)
+                         (reusable-frames . t)))))))
 
 (defun lua-get-create-process ()
   "Return active Lua process creating one if necessary."
@@ -1983,6 +2012,13 @@ return START."
   (interactive)
   (lua-kill-process)
   (lua-send-buffer))
+
+(defun lua-send-file (file)
+  "Send contents of FILE to Lua process."
+  (interactive "f")
+  (with-temp-buffer
+    (insert-file-contents-literally file)
+    (lua-send-buffer)))
 
 (defun lua-show-process-buffer ()
   "Make sure `lua-process-buffer' is being displayed.

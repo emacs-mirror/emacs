@@ -1,0 +1,127 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (org-mode)
+    (fill-paragraph-semlf))
+
+Name: fill-paragraph-semlf - org-mode
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - org-mode - list - one single-line item
+
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.
+  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+  veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - org-mode - list - multiple single-line items
+
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+- Aliquip ex ea commodo consequat.  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+- Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.
+  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+  veniam, quis nostrud exercitation ullamco laboris nisi ut.
+- Aliquip ex ea commodo consequat.  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+- Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+=-=-=
+
+Name: fill-paragraph-semlf - org-mode - list - one multi-line item
+
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut
+  enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+  ut.
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.
+  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+  veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - org-mode - list - multiple multi-line items
+
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.  Incididunt ut labore et dolore magn a aliqua. Ut
+  enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+  ut.
+- Aliquip ex ea commodo consequat.  Duis aute irure dolor in
+  reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+  pariatur.
+- Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+  officia deserunt mollit anim id est laborum.
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.
+  Incididunt ut labore et dolore magn a aliqua. Ut enim ad minim
+  veniam, quis nostrud exercitation ullamco laboris nisi ut.
+- Aliquip ex ea commodo consequat.  Duis aute irure dolor in
+  reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+  pariatur.
+- Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+  officia deserunt mollit anim id est laborum.
+=-=-=
+
+Name: fill-paragraph-semlf - org-mode - list - short sentence in multi-line item
+
+=-=
+- Lorem ipsum dolor.  Sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.  Incididunt ut labore et dolore magn a aliqua. Ut
+  enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+  ut.
+=-=
+- Lorem ipsum dolor.
+  Sit amet, consectetur adipiscing elit, sed do eiusmod tempor.
+  Incididunt ut labore et dolore magn a aliqua. Ut enim ad minim
+  veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - org-mode - indented block
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+	|Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+	do eiusmod tempor.  Incididunt ut labore et dolore magna
+	aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+	ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+	Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+	do eiusmod tempor.
+	Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+	veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=

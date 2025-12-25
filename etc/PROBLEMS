@@ -1304,7 +1304,7 @@ Emacs will select some other font instead.
 The only workaround is not to choose such font variants as the default
 font when running Emacs on MS-Windows.
 
-** On OpenBSD, color Emoji are not supported by default.
+** On OpenBSD before version 7.8, color Emoji are not supported by default.
 
 The system's FreeType library is not built with libpng support, so it
 can't display color emoji.  This is due to the fact that, on OpenBSD,
@@ -1324,6 +1324,7 @@ following those steps:
 	5. Build and install Xenocara (also, see release(8)).
 
 Note that this support will be gone after each OpenBSD's system upgrade.
+Also note that upgrading to OpenBSD 7.8 solves this whole issue.
 
 * Internationalization problems
 
@@ -2011,6 +2012,15 @@ the user's ~/.Xdefaults and ~/.Xdefaults-* files.
 Very long popup menus cannot be shown in their entirety, and don't have
 a scroll bar to scroll them vertically.  Lucid does not support this
 feature.  A workaround is to use other toolkits (GTK, LessTif, etc.).
+
+*** In Emacs built with Lucid cannot keep context menus open.
+
+After enabling context-menu-mode, when the menu is opened by
+<down-mouse-3>, it closes right away when the right mouse button
+is released.  It's possible to keep the context menu open
+after releasing the mouse button by disabling XInput 2 support:
+
+  ./configure --with-x-toolkit=lucid --without-xinput2
 
 *** Emacs running under X Window System does not handle mouse clicks.
 *** 'emacs -geometry 80x20' finds a file named '80x20'.

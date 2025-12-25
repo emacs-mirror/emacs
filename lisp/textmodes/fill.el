@@ -50,7 +50,7 @@ A value of nil means that any change in indentation starts a new paragraph."
   :safe #'booleanp)
 
 (defcustom fill-separate-heterogeneous-words-with-space nil
-  "Non-nil means to use a space to separate words of a different kind.
+  "Non-nil means to use a space to separate words of different scripts.
 For example, when an English word at the end of a line and a CJK word
 at the beginning of the next line are joined into a single line, they
 will be separated by a space if this variable is non-nil.
@@ -656,6 +656,10 @@ margins given by the `current-left-margin' and `current-fill-column'
 functions.  (In most cases, the variable `fill-column' controls the
 width.)  It leaves point at the beginning of the line following the
 region.
+
+Note that how paragraph breaks are removed in text that includes
+characters from different scripts is affected by the value
+of `fill-separate-heterogeneous-words-with-space', which see.
 
 Normally, the command performs justification according to
 the `current-justification' function, but with a prefix arg, it
@@ -1645,8 +1649,8 @@ This function can be assigned to `fill-region-as-paragraph-function' to
 override how functions like `fill-paragraph' and `fill-region' fill
 text.
 
-For more details about semantic linefeeds, see `https://sembr.org/' and
-`https://rhodesmill.org/brandon/2012/one-sentence-per-line/'."
+For more details about semantic linefeeds, see URL `https://sembr.org/'
+and URL `https://rhodesmill.org/brandon/2012/one-sentence-per-line/'."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (region-beginning)
@@ -1657,7 +1661,7 @@ For more details about semantic linefeeds, see `https://sembr.org/' and
         (to (copy-marker (max from to) t))
         pfx)
     (goto-char from)
-    (let ((fill-column (point-max)))
+    (let ((fill-column (* 2 (point-max)))) ; Wide characters span up to two columns.
       (setq pfx (or (save-excursion
                       (fill-region-as-paragraph-default (point)
                                                         to
@@ -1666,14 +1670,18 @@ For more details about semantic linefeeds, see `https://sembr.org/' and
                                                         squeeze-after))
                     "")))
     (while (< (point) to)
-      (let ((fill-prefix pfx))
+      (let ((fill-to (copy-marker
+                      (min to
+                           (save-excursion
+                             (forward-sentence)
+                             (point)))
+                      t))
+            (fill-prefix pfx))
 	(fill-region-as-paragraph-default (point)
-				          (min to
-                                               (save-excursion
-                                                 (forward-sentence)
-                                                 (point)))
+				          fill-to
 				          justify
-                                          t))
+                                          t)
+        (goto-char fill-to))
       (when (and (> (point) (line-beginning-position))
 		 (< (point) (line-end-position))
                  (< (point) to))

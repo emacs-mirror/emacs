@@ -1108,7 +1108,11 @@ detailed description of this mode.
   ;; trigger questions about debuginfod queries.
   (if (eq gdb-debuginfod-enable 'ask)
       (setq gdb-debuginfod-enable
-            (y-or-n-p "Enable querying debuginfod servers for this session?")))
+            ;; Temporarily defer processing of GDB responses, to avoid
+            ;; confusing us, until the user responds to the query.
+            (let ((gud-filter-defer-flag t))
+              (y-or-n-p
+               "Enable querying debuginfod servers for this session?"))))
   (gdb-input (format "-gdb-set debuginfod enabled %s"
                      (if gdb-debuginfod-enable "on" "off"))
              'gdb-debuginfod-message)
@@ -5355,7 +5359,7 @@ BUFFER nil or omitted means use the current buffer."
   (let* ((posns (gdb-line-posns (or line (line-number-at-pos))))
          (start (- (car posns) 1))
          (end (+ (cdr posns) 1))
-         (putstring (if enabled "B" "b"))
+         (putstring (make-string 1 (if enabled ?B ?b)))
          (source-window (get-buffer-window (current-buffer) 0)))
     (add-text-properties
      0 1 '(help-echo "mouse-1: clear bkpt, mouse-3: enable/disable bkpt")

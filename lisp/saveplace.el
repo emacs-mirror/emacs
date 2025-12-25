@@ -237,7 +237,7 @@ If `save-place-mode' is enabled, set the timer, otherwise cancel the timer."
   "The interval between auto saves of buffer places.
 If set to nil, disables timer-based auto saving."
   :type '(choice (const :tag "Disabled" nil)
-                 (integer :tag "Seconds"))
+                 (integer :tag "Auto-save interval in seconds"))
   :version "31.1"
   :set (lambda (sym val)
          (set-default sym val)

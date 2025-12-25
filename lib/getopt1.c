@@ -73,7 +73,6 @@ _getopt_long_only_r (int argc, char **argv, const char *options,
 int
 main (int argc, char **argv)
 {
-  int c;
   int digit_optind = 0;
 
   while (1)
@@ -91,8 +90,8 @@ main (int argc, char **argv)
 	{0, 0, 0, 0}
       };
 
-      c = getopt_long (argc, argv, "abc:d:0123456789",
-		       long_options, &option_index);
+      int c = getopt_long (argc, argv, "abc:d:0123456789",
+			   long_options, &option_index);
       if (c == -1)
 	break;
 

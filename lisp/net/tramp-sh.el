@@ -303,6 +303,7 @@ The string is used in `tramp-methods'.")
               `("sg"
                 (tramp-login-program        "sg")
                 (tramp-login-args           (("-") ("%u")))
+		(tramp-direct-async         ("-c"))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-connection-timeout   10)))
@@ -522,6 +523,42 @@ The string is used in `tramp-methods'.")
   (tramp-set-completion-function "nc" tramp-completion-function-alist-telnet))
 
 ;;;###tramp-autoload
+(defun tramp-enable-surs-method ()
+  "Enable \"surs\" method."
+  (add-to-list 'tramp-methods
+               `("surs"
+                 (tramp-login-program        "su-rs")
+                 (tramp-login-args           (("-") ("%u")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-c"))
+                 (tramp-connection-timeout   10)))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "surs" eos) nil ,tramp-root-id-string))
+
+  (tramp-set-completion-function "surs" tramp-completion-function-alist-su))
+
+;;;###tramp-autoload
+(defun tramp-enable-sudors-method ()
+  "Enable \"sudors\" method."
+  (add-to-list 'tramp-methods
+               `("sudors"
+                 (tramp-login-program        "sudo-rs")
+                 (tramp-login-args           (("-u" "%u") ("-s") ("%l")))
+                 (tramp-remote-shell         ,tramp-default-remote-shell)
+                 (tramp-remote-shell-login   ("-l"))
+                 (tramp-remote-shell-args    ("-c"))
+                 (tramp-connection-timeout   10)
+                 (tramp-session-timeout      300)
+		 (tramp-password-previous-hop t)))
+
+  (add-to-list 'tramp-default-user-alist
+	       `(,(rx bos "sudors" eos) nil ,tramp-root-id-string))
+
+  (tramp-set-completion-function "sudors" tramp-completion-function-alist-su))
+
+;;;###tramp-autoload
 (defun tramp-enable-run0-method ()
   "Enable \"run0\" method."
  (add-to-list 'tramp-methods
@@ -612,7 +649,9 @@ shell from reading its init file."
 
 ;;;###tramp-autoload
 (defconst tramp-actions-before-shell
-  '((tramp-login-prompt-regexp tramp-action-login)
+  '((tramp-keyboard-interactive-authentication-prompt-regexp
+     tramp-action-ignore-message)
+    (tramp-login-prompt-regexp tramp-action-login)
     (tramp-password-prompt-regexp tramp-action-password)
     (tramp-otp-password-prompt-regexp tramp-action-otp-password)
     (tramp-fingerprint-prompt-regexp tramp-action-fingerprint)
@@ -639,7 +678,9 @@ The ACTION should also be a symbol, but a function.  When the
 corresponding PATTERN matches, the ACTION function is called.")
 
 (defconst tramp-actions-copy-out-of-band
-  '((tramp-password-prompt-regexp tramp-action-password)
+  '((tramp-keyboard-interactive-authentication-prompt-regexp
+     tramp-action-ignore-message)
+    (tramp-password-prompt-regexp tramp-action-password)
     (tramp-otp-password-prompt-regexp tramp-action-otp-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (tramp-copy-failed-regexp tramp-action-permission-denied)
@@ -651,8 +692,8 @@ This list is used for copying/renaming with out-of-band methods.
 
 See `tramp-actions-before-shell' for more info.")
 
-(defconst tramp-uudecode
-  "(echo begin 600 %t; tail -n +2) | uudecode
+(defconst tramp-uudecode "\
+(echo begin 600 %t; tail -n +2) | uudecode
 cat %t
 rm -f %t"
   "Shell function to implement `uudecode' to standard output.
@@ -662,16 +703,16 @@ we have this shell function.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
-(defconst tramp-readlink-file-truename
-  "if %m -h \"$1\"; then echo t; else echo nil; fi
+(defconst tramp-readlink-file-truename "\
+if %m -h \"$1\"; then echo t; else echo nil; fi
 %r \"$1\""
   "Shell script to produce output suitable for use with `file-truename'
 on the remote file system.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
-(defconst tramp-perl-file-truename
-  "%p -e '
+(defconst tramp-perl-file-truename "\
+%p -e '
 use File::Spec;
 use Cwd \"realpath\";
 
@@ -719,8 +760,8 @@ on the remote file system.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
-(defconst tramp-perl-file-name-all-completions
-  "%p -e '
+(defconst tramp-perl-file-name-all-completions "\
+%p -e '
 $dir = $ARGV[0];
 if ($dir ne \"/\") {
   $dir =~ s#/+$##;
@@ -742,20 +783,28 @@ print \")\\n\";
 ' \"$1\" %n"
   "Perl script to produce output suitable for use with
 `file-name-all-completions' on the remote file system.  It returns the
-same format as `tramp-bundle-read-file-names'.  Format specifiers are
-replaced by `tramp-expand-script', percent characters need to be
-doubled.")
+same format as `tramp-bundle-read-file-names'.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
-(defconst tramp-shell-file-name-all-completions
-  "cd \"$1\" 2>&1; %l -a %n | while IFS= read file; do
-    quoted=`echo \"$1/$file\" | sed -e \"s#//#/#g\"`
-    printf \"%%s\\n\" \"$quoted\"
-  done | tramp_bundle_read_file_names"
+(defconst tramp-shell-print-quoted-string "\
+quoted=`echo \"$1\" | sed -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/g\"`
+printf \"\\\"%%s\\\"\" \"$quoted\""
+  "Shell script to print a lispy string.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
+
+(defconst tramp-shell-file-name-all-completions "\
+cd \"$1\" 2>&1; %l -a %n | while IFS= read file; do
+  quoted=`echo \"$1/$file\" | sed -e \"s#//#/#g\"`
+  printf \"%%s\\n\" \"$quoted\"
+done | %b"
    "Shell script to produce output suitable for use with
 `file-name-all-completions' on the remote file system.  It returns the
-same format as `tramp-bundle-read-file-names'.  Format specifiers are
-replaced by `tramp-expand-script', percent characters need to be
-doubled.")
+same format as `tramp-bundle-read-file-names', which must be declared on
+the remote host as well.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 ;; Perl script to implement `file-attributes' in a Lisp `read'able
 ;; output.  If you are hacking on this, note that you get *no* output
@@ -763,8 +812,8 @@ doubled.")
 ;; end.
 ;; The device number is returned as "-1", because there will be a virtual
 ;; device number set in `tramp-sh-handle-file-attributes'.
-(defconst tramp-perl-file-attributes
-  "%p -e '
+(defconst tramp-perl-file-attributes "\
+%p -e '
 @stat = lstat($ARGV[0]);
 if (!@stat) {
     print \"nil\\n\";
@@ -846,12 +895,11 @@ characters need to be doubled.")
 (defconst tramp-ls-file-attributes
   "%s -ild %s \"$1\" || return\n%s -lnd%s %s \"$1\""
   "Shell function to produce output suitable for use with `file-attributes'
-on the remote file system.
-Format specifiers are replaced by `tramp-expand-script', percent
-characters need to be doubled.")
+on the remote file system.  The \"%s\" format specifiers are replaced
+when called in `tramp-do-file-attributes-with-ls'.")
 
-(defconst tramp-perl-directory-files-and-attributes
-  "%p -e '
+(defconst tramp-perl-directory-files-and-attributes "\
+%p -e '
 chdir($ARGV[0]) or printf(\"\\\"Cannot change to $ARGV[0]: $''!''\\\"\\n\"), exit();
 opendir(DIR,\".\") or printf(\"\\\"Cannot open directory $ARGV[0]: $''!''\\\"\\n\"), exit();
 @list = readdir(DIR);
@@ -955,8 +1003,8 @@ characters need to be doubled.")
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
-(defconst tramp-perl-id
-  "%p -e '
+(defconst tramp-perl-id "\
+%p -e '
 use strict;
 use warnings;
 use POSIX qw(getgroups);
@@ -971,8 +1019,8 @@ printf \"uid=%%d(%%s) gid=%%d(%%s) groups=%%s\\n\",
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
-(defconst tramp-python-id
-  "%y -c '
+(defconst tramp-python-id "\
+%y -c '
 import os, pwd, grp;
 
 def idform(id):
@@ -1007,9 +1055,9 @@ on the remote host.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
-(defconst tramp-perl-encode
-  "%p -e '
-# This script contributed by Juanma Barranquero <lektu@terra.es>.
+;; This script contributed by Juanma Barranquero <lektu@terra.es>.
+(defconst tramp-perl-encode "\
+%p -e '
 use strict;
 
 my %%trans = do {
@@ -1045,9 +1093,9 @@ while (read STDIN, $data, 54) {
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
-(defconst tramp-perl-decode
-  "%p -e '
-# This script contributed by Juanma Barranquero <lektu@terra.es>.
+;; This script contributed by Juanma Barranquero <lektu@terra.es>.
+(defconst tramp-perl-decode "\
+%p -e '
 use strict;
 
 my %%trans = do {
@@ -1105,8 +1153,8 @@ characters need to be doubled.")
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
-(defconst tramp-awk-encode
-  "%a '\\
+(defconst tramp-awk-encode "\
+%a '\\
 BEGIN {
   b64 = \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/\"
   b16 = \"0123456789abcdef\"
@@ -1156,8 +1204,8 @@ characters need to be doubled.")
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
-(defconst tramp-awk-decode
-  "%a '\\
+(defconst tramp-awk-decode "\
+%a '\\
 BEGIN {
   b64 = \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/\"
 }
@@ -1183,24 +1231,23 @@ BEGIN {
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
-(defconst tramp-bundle-read-file-names
-  "echo \"(\"
+(defconst tramp-bundle-read-file-names "\
+printf \"(\\n\"
 while IFS= read file; do
-  quoted=`echo \"$file\" | sed -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/g\"`
-  printf \"(%%s\" \"\\\"$quoted\\\"\"
+  printf \"(\"; %k \"$file\"
   if %q \"$file\"; then printf \" %%s\" t; else printf \" %%s\" nil; fi
   if %m -r \"$file\"; then printf \" %%s\" t; else printf \" %%s\" nil; fi
   if %m -d \"$file\"; then printf \" %%s\" t; else printf \" %%s\" nil; fi
   if %m -x \"$file\"; then printf \" %%s)\\n\" t; else printf \" %%s)\\n\" nil; fi
 done
-echo \")\""
+printf \")\\n\""
   "Shell script to check file attributes of a bundle of files.
 For every file, it returns a list with the absolute file name, and the
 tests for file existence, file readability, file directory, and file
 executable.  Input shall be read via here-document, otherwise the
-command could exceed maximum length of command line.  Format specifiers
-\"%s\" are replaced before the script is used, percent characters need
-to be doubled.")
+command could exceed maximum length of command line.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
 
 ;; New handlers should be added here.
 ;;;###tramp-autoload
@@ -1965,9 +2012,6 @@ ID-FORMAT valid values are `string' and `integer'."
 		   (tramp-maybe-send-script
 		    v tramp-perl-file-name-all-completions
 		    "tramp_perl_file_name_all_completions")
-		 ;; Used in `tramp-shell-file-name-all-completions'.
-		 (tramp-maybe-send-script
-		  v tramp-bundle-read-file-names "tramp_bundle_read_file_names")
 		 (tramp-maybe-send-script
 		  v tramp-shell-file-name-all-completions
 		  "tramp_shell_file_name_all_completions"))
@@ -2770,7 +2814,7 @@ The method used must be an out-of-band method."
 			 #'file-name-directory (list localname))))
       (unless (or full-directory-p (member "-d" switches))
         (setq switches (append switches '("-d"))))
-      (setq switches (delete-dups switches)
+      (setq switches (seq-uniq switches)
 	    switches (mapconcat #'tramp-shell-quote-argument switches " "))
       (when wildcard
 	(setq switches (concat switches " " wildcard)))
@@ -2898,15 +2942,15 @@ The method used must be an out-of-band method."
 	  ;; Try to insert the amount of free space.
 	  (goto-char (point-min))
 	  ;; First find the line to put it on.
-	  (when (and (search-forward-regexp
-		      (rx bol (group (* blank) "total")) nil t)
-		     ;; Emacs 29.1 or later.
-		     (not (fboundp 'dired--insert-disk-space)))
-	    (when-let* ((available (get-free-disk-space ".")))
-	      ;; Replace "total" with "total used", to avoid confusion.
-	      (replace-match "\\1 used in directory")
-	      (end-of-line)
-	      (insert " available " available))))
+	  (when-let* (((search-forward-regexp
+			(rx bol (group (* blank) "total")) nil t))
+		      ;; Emacs 29.1 or later.
+		      ((not (fboundp 'dired--insert-disk-space)))
+		      (available (get-free-disk-space ".")))
+	    ;; Replace "total" with "total used", to avoid confusion.
+	    (replace-match "\\1 used in directory")
+	    (end-of-line)
+	    (insert " available " available)))
 
 	(prog1 (goto-char end-marker)
 	  (set-marker beg-marker nil)
@@ -2964,7 +3008,10 @@ the result will be a local, non-Tramp, file name."
 	    ;; use a user name from the config file.
 	    (when (and (tramp-string-empty-or-nil-p uname)
 		       (string-match-p
-			(rx bos (| "su" "sudo" "doas" "run0" "ksu") eos) method))
+			(rx bos
+			    (| "su" "surs" "sudo" "sudors" "doas" "run0" "ksu")
+			    eos)
+			method))
 	      (setq uname user))
 	    (when (setq hname (tramp-get-home-directory v uname))
 	      (setq localname (concat hname fname)))))
@@ -3052,8 +3099,7 @@ will be used."
 	     ;; `process-environment'.
 	     env uenv
 	     (env (dolist (elt (cons prompt process-environment) env)
-		    (or (member
-			 elt (default-toplevel-value 'process-environment))
+		    (or (tramp-local-environment-variable-p elt)
 			(if (string-search "=" elt)
 			    (setq env (append env `(,elt)))
 			  (setq uenv (cons elt uenv))))))
@@ -3288,7 +3334,7 @@ will be used."
 			       (cons program args) " "))
       ;; We use as environment the difference to toplevel `process-environment'.
       (dolist (elt process-environment)
-        (or (member elt (default-toplevel-value 'process-environment))
+        (or (tramp-local-environment-variable-p elt)
             (if (string-search "=" elt)
                 (setq env (append env `(,elt)))
               (setq uenv (cons elt uenv)))))
@@ -3323,6 +3369,7 @@ will be used."
                 (insert
 		 (tramp-get-buffer-string (tramp-get-connection-buffer v))))
 	      (when (and display (get-buffer-window outbuf t)) (redisplay))))
+
 	;; When the user did interrupt, we should do it also.  We use
 	;; return code -1 as marker.
 	(quit
@@ -4014,81 +4061,94 @@ Fall back to normal file name handler if no Tramp handler exists."
 \"%a\", \"%h\", \"%l\", \"%m\", \"%o\", \"%p\", \"%q\", \"%r\", \"%s\"
 and \"%y\" format specifiers are replaced by the respective `awk',
 `hexdump', `ls', `test', od', `perl', `test -e', `readlink', `stat' and
-`python' commands.  \"%n\" is replaced by \"2>/dev/null\", and \"%t\" is
-replaced by a temporary file name.  If VEC is nil, the respective local
-commands are used.  If there is a format specifier which cannot be
-expanded, this function returns nil."
-  (if (not (string-match-p
-	    (rx (| bol (not "%")) "%" (any "ahlmnopqrsty")) script))
-      script
-    (catch 'wont-work
-      (let ((awk (when (string-match-p (rx (| bol (not "%")) "%a") script)
-		   (or
-		    (if vec (tramp-get-remote-awk vec) (executable-find "awk"))
-		    (throw 'wont-work nil))))
-	    (hdmp (when (string-match-p (rx (| bol (not "%")) "%h") script)
-		    (or
-		     (if vec (tramp-get-remote-hexdump vec)
-		       (executable-find "hexdump"))
-		     (throw 'wont-work nil))))
-	    (dev (when (string-match-p (rx (| bol (not "%")) "%n") script)
-		   (or
-		    (if vec (concat "2>" (tramp-get-remote-null-device vec))
-		      (if (eq system-type 'windows-nt) ""
-			(concat "2>" null-device)))
-		    (throw 'wont-work nil))))
-	    (ls (when (string-match-p (rx (| bol (not "%")) "%l") script)
-		  (format "%s %s"
-			  (or (tramp-get-ls-command vec)
-			      (throw 'wont-work nil))
-			  (tramp-sh--quoting-style-options vec))))
-	    (test (when (string-match-p (rx (| bol (not "%")) "%m") script)
-		    (or (tramp-get-test-command vec)
-			(throw 'wont-work nil))))
-	    (test-e (when (string-match-p (rx (| bol (not "%")) "%q") script)
-		      (or (tramp-get-file-exists-command vec)
-			  (throw 'wont-work nil))))
-	    (od (when (string-match-p (rx (| bol (not "%")) "%o") script)
-		  (or (if vec (tramp-get-remote-od vec) (executable-find "od"))
+`python' commands.
+\"%b\" is replaced by a call of \"tramp_bundle_read_file-names\", \"%k\"
+is replaced by a call of \"tramp_shell_print_quoted_string\", \"%n\" is
+replaced by \"2>/dev/null\", and \"%t\" is replaced by a temporary file
+name.
+\"%%\" is replaced by \"%\".  If one of the format specifiers cannot be
+expanded, this function returns nil.  If there are only other format
+specifiers, SCRIPT is returned unchanged.
+
+If VEC is nil, the respective local commands are used."
+  (catch 'wont-work
+    (let ((awk (when (string-match-p (rx (| bol (not "%")) "%a") script)
+		 (or
+		  (if vec (tramp-get-remote-awk vec) (executable-find "awk"))
+		  (throw 'wont-work nil))))
+	  (bundle (when (string-match-p (rx (| bol (not "%")) "%b") script)
+		    (tramp-maybe-send-script
+		     vec tramp-bundle-read-file-names
+		     "tramp_bundle_read_file_names")
+		    "tramp_bundle_read_file_names"))
+	  (hdmp (when (string-match-p (rx (| bol (not "%")) "%h") script)
+		  (or
+		   (if vec (tramp-get-remote-hexdump vec)
+		     (executable-find "hexdump"))
+		   (throw 'wont-work nil))))
+	  (dev (when (string-match-p (rx (| bol (not "%")) "%n") script)
+		 (or
+		  (if vec (concat "2>" (tramp-get-remote-null-device vec))
+		    (if (eq system-type 'windows-nt) ""
+		      (concat "2>" null-device)))
+		  (throw 'wont-work nil))))
+	  (lispy (when (string-match-p (rx (| bol (not "%")) "%k") script)
+		   (tramp-maybe-send-script
+		    vec tramp-shell-print-quoted-string
+		    "tramp_shell_print_quoted_string")
+		   "tramp_shell_print_quoted_string"))
+	  (ls (when (string-match-p (rx (| bol (not "%")) "%l") script)
+		(format "%s %s"
+			(or (tramp-get-ls-command vec)
+			    (throw 'wont-work nil))
+			(tramp-sh--quoting-style-options vec))))
+	  (test (when (string-match-p (rx (| bol (not "%")) "%m") script)
+		  (or (tramp-get-test-command vec)
 		      (throw 'wont-work nil))))
-	    (perl (when (string-match-p (rx (| bol (not "%")) "%p") script)
+	  (test-e (when (string-match-p (rx (| bol (not "%")) "%q") script)
+		    (or (tramp-get-file-exists-command vec)
+			(throw 'wont-work nil))))
+	  (od (when (string-match-p (rx (| bol (not "%")) "%o") script)
+		(or (if vec (tramp-get-remote-od vec) (executable-find "od"))
+		    (throw 'wont-work nil))))
+	  (perl (when (string-match-p (rx (| bol (not "%")) "%p") script)
+		  (or
+		   (if vec
+		       (tramp-get-remote-perl vec) (executable-find "perl"))
+		   (throw 'wont-work nil))))
+	  (python (when (string-match-p (rx (| bol (not "%")) "%y") script)
 		    (or
 		     (if vec
-			 (tramp-get-remote-perl vec) (executable-find "perl"))
+			 (tramp-get-remote-python vec)
+		       (executable-find "python"))
 		     (throw 'wont-work nil))))
-	    (python (when (string-match-p (rx (| bol (not "%")) "%y") script)
-		      (or
-		       (if vec
-			   (tramp-get-remote-python vec)
-			 (executable-find "python"))
-		       (throw 'wont-work nil))))
-	    (readlink (when (string-match-p (rx (| bol (not "%")) "%r") script)
-			(format "%s %s"
-				(or
-				 (if vec
-				     (tramp-get-remote-readlink vec)
-				   (executable-find "readlink"))
-				 (throw 'wont-work nil))
-				"--canonicalize-missing")))
-	    (stat (when (string-match-p (rx (| bol (not "%")) "%s") script)
-		    (or
-		     (if vec
-			 (tramp-get-remote-stat vec) (executable-find "stat"))
-		     (throw 'wont-work nil))))
-	    (tmp (when (string-match-p (rx (| bol (not "%")) "%t") script)
-		   (or
-		    (if vec
-			(tramp-file-local-name (tramp-make-tramp-temp-name vec))
-		      (tramp-compat-make-temp-name))
-		    (throw 'wont-work nil)))))
-	(format-spec
-	 script
-	 (format-spec-make
-	  ?a awk ?h hdmp ?l ls ?m test ?n dev ?o od ?p perl
-	  ?q test-e ?r readlink ?s stat ?t tmp ?y python))))))
+	  (readlink (when (string-match-p (rx (| bol (not "%")) "%r") script)
+		      (format "%s %s"
+			      (or
+			       (if vec
+				   (tramp-get-remote-readlink vec)
+				 (executable-find "readlink"))
+			       (throw 'wont-work nil))
+			      "--canonicalize-missing")))
+	  (stat (when (string-match-p (rx (| bol (not "%")) "%s") script)
+		  (or
+		   (if vec
+		       (tramp-get-remote-stat vec) (executable-find "stat"))
+		   (throw 'wont-work nil))))
+	  (tmp (when (string-match-p (rx (| bol (not "%")) "%t") script)
+		 (or
+		  (if vec
+		      (tramp-file-local-name (tramp-make-tramp-temp-name vec))
+		    (tramp-compat-make-temp-name))
+		  (throw 'wont-work nil)))))
+      (format-spec
+       script
+       (format-spec-make
+	?a awk ?b bundle ?h hdmp ?k lispy ?l ls ?m test ?n dev ?o od
+	?p perl ?q test-e ?r readlink ?s stat ?t tmp ?y python)))))
 
 (defun tramp-maybe-send-script (vec script name)
-  "Define in remote shell function NAME implemented as SCRIPT.
+  "Define a remote shell function NAME implemented as SCRIPT.
 Only send the definition if it has not already been done."
   ;; We cannot let-bind (tramp-get-connection-process vec) because it
   ;; might be nil.

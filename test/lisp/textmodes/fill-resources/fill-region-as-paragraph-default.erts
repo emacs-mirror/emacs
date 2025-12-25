@@ -1,0 +1,117 @@
+Point-Char: |
+
+Name: fill-region-as-paragraph-default
+Code:
+  (lambda ()
+    (setq-local fill-column 35)
+    (fill-region-as-paragraph-default
+     (point)
+     (progn
+       (goto-char (point-max))
+       (forward-line -1)
+       (beginning-of-line)
+       (point))))
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, s|ed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+do eiusmod tempor.  Incididunt ut
+labore et dolore magna aliqua. Ut
+enim ad minim veniam, quis nostrud
+exercitation ullamco laboris nisi
+ut.  Lorem ipsum dolor sit amet,
+consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut
+labore et dolore magna aliqua. Ut
+enim ad minim veniam, quis nostrud
+exercitation ullamco laboris nisi
+ut.  Lorem ipsum dolor sit amet,
+consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut
+labore et dolore magna aliqua. Ut
+enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Code:
+  (lambda ()
+    (fill-region-as-paragraph-default (point-min) (point-max)))
+
+Name: fill-region-as-paragraph-default - merge lines
+
+=-=
+abc def.
+abc def.
+=-=
+abc def.  abc def.
+=-=-=
+
+Name: fill-region-as-paragraph-default - merge lines with wide characters
+
+=-=
+あいうえお。
+あいうえお。
+=-=
+あいうえお。あいうえお。
+=-=-=
+
+Code:
+  (lambda ()
+    (setq-local sentence-end-double-space nil)
+    (fill-region-as-paragraph-default (point-min) (point-max)))
+
+Name: fill-region-as-paragraph-default - single space - merge lines
+
+=-=
+abc def.
+abc def.
+=-=
+abc def. abc def.
+=-=-=
+
+Name: fill-region-as-paragraph-default - single space - merge lines with wide characters
+
+=-=
+あいうえお。
+あいうえお。
+=-=
+あいうえお。あいうえお。
+=-=-=
+
+Name: fill-region-as-paragraph-default - fill-separate-heterogeneous-words-with-space (Bug#79575)
+Code:
+  (lambda ()
+    (setq-local fill-separate-heterogeneous-words-with-space t)
+    (fill-region-as-paragraph-default (point-min) (point-max)))
+
+=-=
+abc def.
+あいうえお。
+=-=
+abc def.  あいうえお。
+=-=-=
+
+Name: fill-region-as-paragraph-default - single space - fill-separate-heterogeneous-words-with-space
+Code:
+  (lambda ()
+    (setq-local fill-separate-heterogeneous-words-with-space t)
+    (setq-local sentence-end-double-space nil)
+    (fill-region-as-paragraph-default (point-min) (point-max)))
+
+=-=
+abc def.
+あいうえお。
+=-=
+abc def. あいうえお。
+=-=-=

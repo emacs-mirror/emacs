@@ -44,8 +44,10 @@ comments) is not performed.
 If CASE-FOLD is non-nil, the case of the keywords is ignored when fontifying.
 
 If SYNTAX-ALIST is non-nil, it should be a list of cons pairs of the form
-\(CHAR-OR-STRING . STRING) used to set the local Font Lock syntax table, for
-keyword and syntactic fontification (see `modify-syntax-entry').
+\(CHAR-OR-STRING . STRING) used to modify the syntax table used during Font
+Lock  (see `modify-syntax-entry').
+For performance reasons, if `syntax-ppss-table' is not set, make sure the
+changes described by SYNTAX-ALIST cannot affect syntactic fontification.
 
 These item elements are used by Font Lock mode to set the variables
 `font-lock-keywords', `font-lock-keywords-only',
@@ -268,9 +270,7 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
 
 (define-globalized-minor-mode global-font-lock-mode
   font-lock-mode turn-on-font-lock-if-desired
-  ;; What was this :extra-args thingy for?  --Stef
-  ;; :extra-args (dummy)
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-delay
   :init-value (not (or noninteractive emacs-basic-display))
   :group 'font-lock
   :version "22.1")

@@ -4387,12 +4387,37 @@ is inline."
 
 ;;; Buffer predicates.
 (define-widget 'buffer-predicate 'lazy
-  "A buffer predicate."
+  "A buffer predicate for the condition argument of `buffer-match-p'."
   :tag "Buffer predicate"
   :type '(choice (const :tag "All buffers" t)
                  (const :tag "No buffers" nil)
-                 ;; FIXME: This should be expanded somehow.
-                 sexp))
+                 (regexp :tag "Buffer name regexp")
+                 (function :tag "Predicate function")
+                 (cons :tag "Derived mode"
+                       (const derived-mode)
+                       (choice
+                        (symbol :tag "Single mode" derived-mode)
+                        (repeat :tag "List of modes" (symbol derived-mode))))
+                 (cons :tag "Major mode"
+                       (const major-mode)
+                       (symbol major-mode))
+                 (cons :tag "Category"
+                       (const category)
+                       (symbol category))
+                 (cons :tag "This command"
+                       (const this-command)
+                       (symbol this-command))
+                 (cons :tag "Not"
+                       (const not)
+                       (list (buffer-predicate :tag "not-condition")))
+                 (cons :tag "Or"
+                       (const or)
+                       (repeat :tag "List of or-conditions"
+                               buffer-predicate))
+                 (cons :tag "And"
+                       (const and)
+                       (repeat :tag "List of and-conditions"
+                               buffer-predicate))))
 
 (provide 'wid-edit)
 

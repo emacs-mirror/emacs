@@ -126,7 +126,8 @@ in a Emacs not built with tree-sitter library."
      (declare-function treesit-available-p "treesit.c")
 
      (defvar treesit-thing-settings)
-     (defvar treesit-major-mode-remap-alist)))
+     (defvar treesit-major-mode-remap-alist)
+     (defvar treesit-extra-load-path)))
 
 (treesit-declare-unavailable-functions)
 
@@ -573,7 +574,8 @@ separate ranges for each language detected in the query.
 
 Query NODE with QUERY, the captured nodes generates ranges.  Nodes
 captured by the `@language' capture name are converted to language
-symbols with LANGUAGE-FN.
+symbols with LANGUAGE-FN.  LANGUAGE-FN can return nil, meaning no
+valid language is detected, in which case the range is skipped.
 
 RANGE-FN, if non-nil, is a function that takes a NODE and OFFSET, and
 returns the ranges to use for that NODE.
@@ -585,16 +587,17 @@ BEG, END, OFFSET are the same as in `treesit-query-range'."
     (dolist (match-group (treesit-query-capture node query beg end nil t))
       (let* ((lang-node (alist-get 'language match-group))
              (lang (funcall language-fn lang-node)))
-        (dolist (capture match-group)
-          (let ((name (car capture))
-                (node (cdr capture)))
-            (when (and (not (equal (symbol-name name) "language"))
-                       (not (string-prefix-p "_" (symbol-name name))))
-              (push (if range-fn
-                        (funcall range-fn node offset)
-                      (list (cons (+ (treesit-node-start node) offset-left)
-                                  (+ (treesit-node-end node) offset-right))))
-                    (alist-get lang ranges-by-language)))))))
+        (when lang
+          (dolist (capture match-group)
+            (let ((name (car capture))
+                  (node (cdr capture)))
+              (when (and (not (equal (symbol-name name) "language"))
+                         (not (string-prefix-p "_" (symbol-name name))))
+                (push (if range-fn
+                          (funcall range-fn node offset)
+                        (list (cons (+ (treesit-node-start node) offset-left)
+                                    (+ (treesit-node-end node) offset-right))))
+                      (alist-get lang ranges-by-language))))))))
     (mapcar (lambda (entry)
               (cons (car entry)
                     (apply #'append (nreverse (cdr entry)))))
@@ -694,11 +697,13 @@ this way: Emacs queries QUERY in the host language's parser,
 computes the ranges spanned by the captured nodes, and applies
 these ranges to parsers for the embedded language.
 
-If the embed language is dynamic, then `:embed' can specify a
-function.  This function will by passed a node and should return
+If the embedded language is dynamic, then `:embed' can specify a function.
+This function will be passed a node as an argument, and should return
 the language symbol for the embedded code block.  The node is the one
-captured from QUERY with capture name `@language'.  Also make sure the
-code block and language capture are in the same match group.
+captured from QUERY with capture name `@language'.  Make sure the code
+block and language capture are in the same match group.  The function
+can return nil if no valid language can be found; in that case, the range
+is discarded.
 
 If there's a `:local' keyword with value t, the range computed by
 this QUERY is given a dedicated local parser.  Otherwise, the
@@ -753,9 +758,24 @@ that encompasses the region between START and END."
                  (when (null host)
                    (signal 'treesit-error (list "Value of :host option cannot be omitted")))
                  (when (treesit-available-p)
-                  (push (list (treesit-query-compile host query)
-                             embed local offset range-fn)
-                       result)))
+                   ;; Don't replace this with
+                   ;; `treesit--compile-query-with-cache'.
+                   ;; `treesit-query-compile' is lazy and don't actually
+                   ;; load the grammar until the query is
+                   ;; used. `treesit--compile-query-with-cache' compiles
+                   ;; eagerly so it's not safe to use for this function
+                   ;; which might be called when loading a package.  To
+                   ;; do it properly like font-lock, we need to not
+                   ;; compile the queries here, and compile them with
+                   ;; `treesit--compile-query-with-cache' when major
+                   ;; mode is enabled.  Let's just keep things simple
+                   ;; and keep range rules as-is.  Because for range
+                   ;; rules, the queries generally don't need to
+                   ;; computed dynamically, and queries are simple and
+                   ;; few, so recompiling isn't as much of a problem.
+                   (push (list (treesit-query-compile host query)
+                               embed local offset range-fn)
+                         result)))
                (setq host nil embed nil offset nil local nil range-fn nil))))
     (nreverse result)))
 
@@ -1279,6 +1299,46 @@ LANGUAGE's name and return the resulting string."
               "Generic tree-sitter font-lock error"
               'treesit-error)
 
+
+;; String form and sexp form will be keyed differently, but that's not a
+;; big deal.  We can't really use a weak table: it's possible that the
+;; query won't be referenced if all major modes are closed; error data
+;; isn't going to be referenced at all but we need to retend it.
+(defvar treesit--query-cache (make-hash-table :test #'equal)
+  "Cache of compiled queries for font-lock/indentation.
+
+They keys are (LANG . QUERY), where QUERY can be in string or sexp form;
+the values are either compiled queries or error data (returned by
+`treesit-query-compile').
+
+This table only stores actually (eagerly) compiled queries.  (Normally,
+compiled query objects are compiled lazily upon first use.)")
+
+(defun treesit--compile-query-with-cache (lang query)
+  "Return the cached compiled QUERY for LANG.
+
+If QUERY isn't cached, compile it and save to cache.
+
+If QUERY is invalid, signals `treesit-query-error'.  The fact that QUERY
+is invalid is also stored in cache, and the next call to this function
+with the same QUERY will signal too.
+
+QUERY is compared with `equal', so string form vs sexp form of a query,
+and the same query written differently are all considered separate
+queries."
+  (let ((value (gethash (cons lang query) treesit--query-cache)))
+    (if value
+        (if (treesit-compiled-query-p value)
+            value
+          (signal 'treesit-query-error value))
+      (condition-case err
+          (let ((compiled (treesit-query-compile lang query 'eager)))
+            (puthash (cons lang query) compiled treesit--query-cache)
+            compiled)
+        (treesit-query-error
+         (puthash (cons lang query) (cdr err) treesit--query-cache)
+         (signal 'treesit-query-error (cdr err)))))))
+
 (defvar-local treesit-font-lock-settings nil
   "A list of SETTINGs for treesit-based fontification.
 
@@ -1292,10 +1352,9 @@ debugging:
 
 Currently each SETTING has the form:
 
-    (QUERY ENABLE FEATURE OVERRIDE REVERSE)
+    (QUERY ENABLE FEATURE OVERRIDE REVERSE LANGUAGE)
 
-QUERY must be a compiled query.  See Info node `(elisp)Pattern
-Matching' for how to write a query and compile it.
+QUERY is a tree-sitter query in either string, sexp, or compiled form.
 
 For SETTING to be activated for font-lock, ENABLE must be t.  To
 disable this SETTING, set ENABLE to nil.
@@ -1309,7 +1368,9 @@ t, nil, append, prepend, keep.  See more in
 `treesit-font-lock-rules'.
 
 If REVERSED is t, enable the QUERY when FEATURE is not in the feature
-list.")
+list.
+
+LANGUAGE is the language of QUERY.")
 
 ;; Follow cl-defstruct naming conventions, in case we use cl-defstruct
 ;; in the future.
@@ -1332,6 +1393,10 @@ list.")
 (defsubst treesit-font-lock-setting-reversed (setting)
   "Return the REVERSED flag of SETTING in `treesit-font-lock-settings'."
   (nth 4 setting))
+
+(defsubst treesit-font-lock-setting-language (setting)
+  "Return the LANGUAGE of SETTING in `treesit-font-lock-settings'."
+  (nth 5 setting))
 
 (defsubst treesit--font-lock-setting-clone-enable (setting)
   "Return enabled SETTING."
@@ -1433,9 +1498,10 @@ QUERY preceded by multiple pairs of :KEYWORD and VALUE:
 
    :KEYWORD VALUE... QUERY
 
-QUERY is a tree-sitter query in either the string, s-expression
-or compiled form.  For each query, captured nodes are highlighted
-with the capture name as its face.
+QUERY is a tree-sitter query in either the string, s-expression or
+compiled form.  For each query, captured nodes are highlighted with the
+capture name as its face.  QUERY is compiled automatically when it's
+first used in a major mode.
 
 :KEYWORD and VALUE pairs preceding a QUERY add meta information
 to QUERY.  For example,
@@ -1554,14 +1620,13 @@ name, it is ignored."
                (when (null current-feature)
                  (signal 'treesit-font-lock-error
                          `("Feature unspecified, use :feature keyword to specify the feature name for this query" ,token)))
-               (if (treesit-compiled-query-p token)
-                   (push `(,lang token) result)
-                 (push `(,(treesit-query-compile lang token)
-                         t
-                         ,current-feature
-                         ,current-override
-                         ,current-reversed)
-                       result))
+               (push (list token
+                           t
+                           current-feature
+                           current-override
+                           current-reversed
+                           lang)
+                     result)
                ;; Clears any configurations set for this query.
                (setq current-language nil
                      current-override nil
@@ -1570,6 +1635,22 @@ name, it is ignored."
             (_ (signal 'treesit-font-lock-error
                        `("Unexpected value" ,token))))))
       (nreverse result))))
+
+(defun treesit-query-with-optional (language mandatory &rest queries)
+  "Return the MANDATORY query plus first valid QUERIES.
+
+MANDATORY query is always included.  Queries in QUERIES are included if
+they're valid.  MANDATORY query and queries in QUERIES must be in sexp
+form for composition.
+
+Use LANGUAGE for validating queries."
+  (declare (indent 1))
+  (let (optional)
+    (dolist (query queries)
+      (ignore-errors
+        (when (treesit--compile-query-with-cache language query)
+          (push query optional))))
+    (append mandatory optional)))
 
 ;; `font-lock-fontify-region-function' has the LOUDLY argument, but
 ;; `jit-lock-functions' doesn't pass that argument.  So even if we set
@@ -1635,8 +1716,7 @@ and leave settings for other languages unchanged."
          (additive (or add-list remove-list)))
     (cl-loop for idx = 0 then (1+ idx)
              for setting in treesit-font-lock-settings
-             for lang = (treesit-query-language
-                         (treesit-font-lock-setting-query setting))
+             for lang = (treesit-font-lock-setting-language setting)
              for feature = (treesit-font-lock-setting-feature setting)
              for current-value = (treesit-font-lock-setting-enable setting)
              for reversed = (treesit-font-lock-setting-reversed setting)
@@ -1681,12 +1761,10 @@ Return a value suitable for `treesit-font-lock-settings'"
   (let ((result nil))
     (dolist (new-setting new-settings)
       (let ((new-feature (treesit-font-lock-setting-feature new-setting))
-            (new-lang (treesit-query-language
-                       (treesit-font-lock-setting-query new-setting))))
+            (new-lang (treesit-font-lock-setting-language new-setting)))
         (dolist (setting settings)
           (let ((feature (treesit-font-lock-setting-feature setting))
-                (lang (treesit-query-language
-                       (treesit-font-lock-setting-query setting))))
+                (lang (treesit-font-lock-setting-language setting)))
             (if (and (eq new-lang lang) (eq new-feature feature))
                 (push new-setting result)
               (push setting result))))))
@@ -1729,8 +1807,11 @@ docstring of `treesit-font-lock-rules' for what is a feature."
              (append rules
                      (nthcdr feature-idx treesit-font-lock-settings)))))))
 
-(defun treesit-validate-font-lock-rules (settings)
-  "Validate font-lock rules in SETTINGS before major mode starts.
+(defun treesit-validate-and-compile-font-lock-rules (settings)
+  "Validate and resolve font-lock rules in SETTINGS before major mode starts.
+
+For each enabled setting, if query isn't compiled, compile it and
+replace the query In-PLACE.
 
 If the tree-sitter grammar currently installed on the system is
 incompatible with the major mode's font-lock rules, this procedure will
@@ -1739,17 +1820,17 @@ user."
   (let ((faulty-features ()))
     (dolist (setting settings)
       (let* ((query (treesit-font-lock-setting-query setting))
-             (lang (treesit-query-language query))
+             (lang (treesit-font-lock-setting-language setting))
              (enabled (treesit-font-lock-setting-enable setting)))
-        (when (and enabled
-                   (condition-case nil
-                       (progn
-                         (treesit-query-compile lang query 'eager)
-                         nil)
-                     (treesit-query-error t)))
-          (push (cons (treesit-font-lock-setting-feature setting)
-                      lang)
-                faulty-features))))
+        (when enabled
+          (condition-case nil
+              (let ((compiled (treesit--compile-query-with-cache lang query)))
+                ;; Here we're modifying SETTINGS in-place.
+                (setcar setting compiled))
+            (treesit-query-error
+             (push (cons (treesit-font-lock-setting-feature setting)
+                         lang)
+                   faulty-features))))))
     (when faulty-features
       (treesit-font-lock-recompute-features
        nil (mapcar #'car faulty-features))
@@ -1932,7 +2013,7 @@ If LOUDLY is non-nil, display some debugging information."
       (let* ((query (treesit-font-lock-setting-query setting))
              (enable (treesit-font-lock-setting-enable setting))
              (override (treesit-font-lock-setting-override setting))
-             (language (treesit-query-language query))
+             (language (treesit-font-lock-setting-language setting))
              (root-nodes (cl-remove-if-not
                           (lambda (node)
                             (eq (treesit-node-language node) language))
@@ -3209,6 +3290,10 @@ ARG is described in the docstring of `up-list'."
         (or (when (and (null (or treesit-sexp-thing-up-list
                                  treesit-sexp-thing))
                        default-pos
+                       ;; The default function returns wrong results
+                       ;; when crossing multi-language boundaries:
+                       (eq (treesit-language-at default-pos)
+                           (treesit-language-at (point)))
                        (or (null parent)
                            (if (> arg 0)
                                (<= default-pos (treesit-node-end parent))
@@ -4165,20 +4250,19 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 
 (defun treesit-hs-block-end ()
   "Tree-sitter implementation of `hs-block-end-regexp'."
-  (let* ((pred 'list)
+  (let* ((pred (bound-and-true-p hs-treesit-things))
          (thing (treesit-thing-at
                  (if (bobp) (point) (1- (point))) pred))
          (end (when thing (treesit-node-end thing)))
          (last (when thing (treesit-node-child thing -1)))
-         (beg (if last (treesit-node-start last)
-                (if (bobp) (point) (1- (point))))))
+         (beg (treesit-node-start (or last thing))))
     (when (and thing (eq (point) end))
       (set-match-data (list beg end))
       t)))
 
 (defun treesit-hs-find-block-beginning ()
-  "Tree-sitter implementation of `hs-find-block-beginning-func'."
-  (let* ((pred 'list)
+  "Tree-sitter implementation of `hs-find-block-beginning-function'."
+  (let* ((pred (bound-and-true-p hs-treesit-things))
          (thing (treesit-thing-at (point) pred))
          (beg (when thing (treesit-node-start thing)))
          (end (when beg (min (1+ beg) (point-max)))))
@@ -4188,26 +4272,27 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
       t)))
 
 (defun treesit-hs-find-next-block (_regexp maxp comments)
-  "Tree-sitter implementation of `hs-find-next-block-func'."
+  "Tree-sitter implementation of `hs-find-next-block-function'."
   (when (not comments)
     (forward-comment (point-max)))
   (let* ((comment-pred
           (when comments
             (if (treesit-thing-defined-p 'comment (treesit-language-at (point)))
                 'comment "\\`comment\\'")))
-         (pred (if comment-pred (append '(or list) (list comment-pred)) 'list))
+         (hs-things (bound-and-true-p hs-treesit-things))
+         (pred (append `(or ,hs-things) (when comment-pred (list comment-pred))))
          ;; `treesit-navigate-thing' can't find a thing at bobp,
          ;; so use `treesit-thing-at' to match at bobp.
          (current (treesit-thing-at (point) pred))
          (beg (or (and current (eq (point) (treesit-node-start current)) (point))
                   (treesit-navigate-thing (point) 1 'beg pred)))
-         ;; Check if we found a list or a comment
-         (list-thing (when beg (treesit-thing-at beg 'list)))
+         ;; Check if we found a block or a comment
+         (block-thing (when beg (treesit-thing-at beg hs-things)))
          (comment-thing (when beg (treesit-thing-at beg comment-pred)))
          (comment-p (and comment-thing (eq beg (treesit-node-start comment-thing))))
-         (thing (if comment-p comment-thing list-thing))
+         (thing (if comment-p comment-thing block-thing))
          (end (if thing (min (1+ (treesit-node-start thing)) (point-max)))))
-    (when (and end (< end maxp))
+    (when (and end (<= end maxp))
       (goto-char end)
       (set-match-data
        (if (and comments comment-p)
@@ -4216,8 +4301,8 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
       t)))
 
 (defun treesit-hs-looking-at-block-start-p ()
-  "Tree-sitter implementation of `hs-looking-at-block-start-p-func'."
-  (let* ((pred 'list)
+  "Tree-sitter implementation of `hs-looking-at-block-start-predicate'."
+  (let* ((pred (bound-and-true-p hs-treesit-things))
          (thing (treesit-thing-at (point) pred))
          (beg (when thing (treesit-node-start thing)))
          (end (min (1+ (point)) (point-max))))
@@ -4226,15 +4311,30 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
       t)))
 
 (defun treesit-hs-inside-comment-p ()
-  "Tree-sitter implementation of `hs-inside-comment-p-func'."
-  (let* ((comment-pred
-          (if (treesit-thing-defined-p 'comment (treesit-language-at (point)))
-              'comment "\\`comment\\'"))
-         (thing (or (treesit-thing-at (point) comment-pred)
-                    (unless (bobp)
-                      (treesit-thing-at (1- (point)) comment-pred)))))
-    (when thing
-      (list (treesit-node-start thing) (treesit-node-end thing)))))
+  "Tree-sitter implementation of `hs-inside-comment-predicate'."
+  (when-let* ((comment-pred
+               (if (treesit-thing-defined-p 'comment (treesit-language-at (point)))
+                   'comment "\\`comment\\'"))
+              (thing (or (treesit-thing-at (point) comment-pred)
+                         (unless (bobp)
+                           (treesit-thing-at (1- (point)) comment-pred))))
+              (beg (treesit-node-start thing))
+              (end (treesit-node-end thing)))
+    (unless (and (fboundp 'hs-hideable-region-p) (hs-hideable-region-p beg end))
+      (save-excursion
+        (goto-char beg)
+        (while (and (skip-chars-forward "[:blank:]")
+                    (when-let* ((c (treesit-thing-at (point) comment-pred)))
+                      (setq beg (treesit-node-start c)))
+                    (not (bobp))
+                    (forward-line -1)))
+        (goto-char beg)
+        (while (and (skip-chars-forward "[:blank:]")
+                    (when-let* ((c (treesit-thing-at (point) comment-pred)))
+                      (setq end (treesit-node-end c)))
+                    (not (eobp))
+                    (forward-line 1)))))
+    (list beg end)))
 
 ;;; Show paren mode
 
@@ -4364,6 +4464,11 @@ before calling this function."
     (setq treesit-primary-parser (treesit--guess-primary-parser)))
   ;; Font-lock.
   (when treesit-font-lock-settings
+    ;; Functions like `treesit-font-lock-recompute-features' and
+    ;; `treesit-validate-and-compile-font-lock-rules' modifies
+    ;; `treesit-font-lock-settings' in-place, so make a copy to protect
+    ;; the original variable defined in major mode code.
+    (setq treesit-font-lock-settings (copy-tree treesit-font-lock-settings))
     ;; `font-lock-mode' wouldn't set up properly if
     ;; `font-lock-defaults' is nil, see `font-lock-specified-p'.
     (setq-local font-lock-defaults
@@ -4371,8 +4476,8 @@ before calling this function."
                    (font-lock-fontify-syntactically-function
                     . treesit-font-lock-fontify-region)))
     (treesit-font-lock-recompute-features)
-    (add-hook 'pre-redisplay-functions #'treesit--pre-redisplay 0 t)
-    (treesit-validate-font-lock-rules treesit-font-lock-settings))
+    (treesit-validate-and-compile-font-lock-rules treesit-font-lock-settings)
+    (add-hook 'pre-redisplay-functions #'treesit--pre-redisplay 0 t))
   ;; Syntax
   (add-hook 'syntax-propertize-extend-region-functions
             #'treesit--pre-syntax-ppss 0 t)
@@ -4424,14 +4529,12 @@ before calling this function."
     (setq-local show-paren-data-function #'treesit-show-paren-data)
     (setq-local hs-c-start-regexp nil
                 hs-block-start-regexp nil
-                hs-block-start-mdata-select 0
                 hs-block-end-regexp #'treesit-hs-block-end
-                hs-forward-sexp-func #'forward-list
-                hs-adjust-block-beginning nil
-                hs-find-block-beginning-func #'treesit-hs-find-block-beginning
-                hs-find-next-block-func #'treesit-hs-find-next-block
-                hs-looking-at-block-start-p-func #'treesit-hs-looking-at-block-start-p
-                hs-inside-comment-p-func #'treesit-hs-inside-comment-p))
+                hs-forward-sexp-function #'forward-list
+                hs-find-block-beginning-function #'treesit-hs-find-block-beginning
+                hs-find-next-block-function #'treesit-hs-find-next-block
+                hs-looking-at-block-start-predicate #'treesit-hs-looking-at-block-start-p
+                hs-inside-comment-predicate #'treesit-hs-inside-comment-p))
 
   (when (treesit-thing-defined-p 'sentence nil)
     (setq-local forward-sentence-function #'treesit-forward-sentence))
@@ -5373,16 +5476,31 @@ The copied query files are queries/highlights.scm."
   "Whether to install tree-sitter language grammar libraries when needed.
 This controls whether Emacs will install missing grammar libraries
 when they are needed by some tree-sitter based mode.
-If `ask', ask for confirmation before installing the required grammar library.
+
 If `always', install the grammar library without asking.
-If nil or `never' or anything else, don't install the grammar library
-even while visiting a file in the mode that requires such grammar; this
-might display a warning and/or fail to turn on the mode."
+If `ask', ask for confirmation before installing the grammar library.
+If `ask-dir', ask for confirmation and also for a directory name where
+to install the grammar library.  The selected directory name is then
+added to the list in `treesit-extra-load-path', but not saved, so
+it's used only within the current session.  It's advisable to
+customize and save `treesit-extra-load-path' manually.
+
+The default directory for the above three values is the first writeable
+directory from the list in `treesit-extra-load-path'.  If it's nil, then
+the grammar is installed to the standard location, the \"tree-sitter\"
+directory under `user-emacs-directory'.
+
+If the value of this variable is nil or `never' or anything else, don't
+install the grammar library even while visiting a file in the mode that
+requires such grammar; this might display a warning and/or fail to turn
+on the mode."
   :type '(choice (const :tag "Never install grammar libraries" never)
                  (const :tag "Always automatically install grammar libraries"
                         always)
                  (const :tag "Ask whether to install missing grammar libraries"
-                        ask))
+                        ask)
+                 (const :tag "Ask where to install missing grammar libraries"
+                        ask-dir))
   :version "31.1")
 
 (defun treesit-ensure-installed (lang)
@@ -5391,14 +5509,25 @@ The option `treesit-auto-install-grammar' defines whether to install
 the grammar library if it's unavailable."
   (when (treesit-available-p)
     (or (treesit-ready-p lang t)
-        (when (or (eq treesit-auto-install-grammar 'always)
-                  (and (eq treesit-auto-install-grammar 'ask)
-                       (y-or-n-p (format "\
-Tree-sitter grammar for `%s' is missing; install it?"
-                                         lang))))
-          (treesit-install-language-grammar lang)
-          ;; Check that the grammar was installed successfully
-          (treesit-ready-p lang)))))
+        (let ((out-dir (or (seq-find #'file-writable-p
+                                     treesit-extra-load-path)
+                           (locate-user-emacs-file "tree-sitter"))))
+          (when (or (eq treesit-auto-install-grammar 'always)
+                    (and (memq treesit-auto-install-grammar '(ask ask-dir))
+                         (y-or-n-p (format "\
+Tree-sitter grammar for `%s' is missing; install it?" lang))
+                         (or (eq treesit-auto-install-grammar 'ask)
+                             (progn
+                               (setq out-dir (read-directory-name
+                                              (format-prompt "\
+Install grammar for `%s' to" nil lang)
+                                              out-dir
+                                              treesit-extra-load-path))
+                               (add-to-list 'treesit-extra-load-path out-dir)
+                               t))))
+            (treesit-install-language-grammar lang out-dir)
+            ;; Check that the grammar was installed successfully
+            (treesit-ready-p lang))))))
 
 ;;; Treesit enabled modes
 

@@ -3991,46 +3991,55 @@ window_change_record (void)
 }
 
 
-/**
- * run_window_change_functions_1:
- *
- * Run window change functions specified by SYMBOL with argument
- * WINDOW_OR_FRAME.  If BUFFER is nil, WINDOW_OR_FRAME specifies a
- * frame.  In this case, run the default value of SYMBOL.  Otherwise,
- * WINDOW_OR_FRAME denotes a window showing BUFFER.  In this case, run
- * the buffer local value of SYMBOL in BUFFER, if any.
+/** Run the buffer local value of SYMBOL in BUFFER, if any, with
+    argument WINDOW.  WINDOW must specify a live window that shows or
+    recently has shown BUFFER.
  */
 static void
-run_window_change_functions_1 (Lisp_Object symbol, Lisp_Object buffer,
-			       Lisp_Object window_or_frame)
+run_window_change_functions_locally (Lisp_Object symbol, Lisp_Object buffer,
+				     Lisp_Object window)
 {
-  Lisp_Object funs = Qnil;
 
-  if (NILP (buffer))
-    funs = Fdefault_value (symbol);
-  else if (!NILP (Fassoc (symbol, BVAR (XBUFFER (buffer), local_var_alist),
-			  Qnil)))
-    /* Don't run global value buffer-locally.  */
-    funs = buffer_local_value (symbol, buffer);
-
-  while (CONSP (funs))
+  if (!NILP (assq_no_quit (symbol, BVAR (XBUFFER (buffer), local_var_alist))))
     {
-      if (!EQ (XCAR (funs), Qt)
-	  && (NILP (buffer)
-	      ? FRAME_LIVE_P (XFRAME (window_or_frame))
-	      : WINDOW_LIVE_P (window_or_frame)))
-	{
-	  /* Any function called here may change the state of any
-	     frame.  Make sure to record changes for each live frame
-	     in window_change_record later.  */
-	  window_change_record_frames = true;
-	  safe_calln (XCAR (funs), window_or_frame);
-	}
+      Lisp_Object funs = buffer_local_value (symbol, buffer);
 
-      funs = XCDR (funs);
+      Fset_buffer (buffer);
+
+      while (CONSP (funs))
+	{
+	  if (!EQ (XCAR (funs), Qt))
+	    {
+	      window_change_record_frames = true;
+	      safe_calln (XCAR (funs), window);
+	    }
+
+	  funs = XCDR (funs);
+	}
     }
 }
 
+
+/** Run the default value of SYMBOL, if any, with argument FRAME.  */
+static void
+run_window_change_functions_globally (Lisp_Object symbol, Lisp_Object frame)
+{
+  Lisp_Object funs = Fdefault_value (symbol);
+
+  if (!NILP (funs))
+    {
+      while (CONSP (funs))
+	{
+	  if (!EQ (XCAR (funs), Qt))
+	    {
+	      window_change_record_frames = true;
+	      safe_calln (XCAR (funs), frame);
+	    }
+
+	  funs = XCDR (funs);
+	}
+    }
+}
 
 /**
  * run_window_change_functions:
@@ -4149,6 +4158,7 @@ run_window_change_functions (void)
 	  Lisp_Object window = XCAR (windows);
 	  struct window *w = XWINDOW (window);
 	  Lisp_Object buffer = WINDOW_BUFFER (w);
+	  specpdl_ref count1 = SPECPDL_INDEX ();
 
 	  /* Count this window even if it has been deleted while
 	     running a hook.  */
@@ -4188,12 +4198,22 @@ run_window_change_functions (void)
 	  frame_buffer_change = frame_buffer_change || window_buffer_change;
 	  frame_size_change = frame_size_change || window_size_change;
 
+	  /* Prepare for running local hooks in their buffers.  */
+	  record_unwind_current_buffer ();
+
 	  if (window_buffer_change)
-	    run_window_change_functions_1
-	      (Qwindow_buffer_change_functions, buffer, window);
+	    {
+	      if (BUFFERP (w->old_buffer)
+		  && BUFFER_LIVE_P (XBUFFER (w->old_buffer)))
+		run_window_change_functions_locally
+		  (Qwindow_buffer_change_functions, w->old_buffer, window);
+
+	      run_window_change_functions_locally
+		(Qwindow_buffer_change_functions, buffer, window);
+	    }
 
 	  if (window_size_change && WINDOW_LIVE_P (window))
-	    run_window_change_functions_1
+	    run_window_change_functions_locally
 	      (Qwindow_size_change_functions, buffer, window);
 
 	  /* This window's selection has changed when it was
@@ -4206,7 +4226,7 @@ run_window_change_functions (void)
 		   && (EQ (window, FRAME_OLD_SELECTED_WINDOW (f))
 		       || EQ (window, FRAME_SELECTED_WINDOW (f)))))
 	      && WINDOW_LIVE_P (window))
-	    run_window_change_functions_1
+	    run_window_change_functions_locally
 	      (Qwindow_selection_change_functions, buffer, window);
 
 	  /* This window's state has changed when its buffer or size
@@ -4221,8 +4241,11 @@ run_window_change_functions (void)
 		       && (EQ (window, FRAME_OLD_SELECTED_WINDOW (f))
 			   || EQ (window, FRAME_SELECTED_WINDOW (f))))))
 	      && WINDOW_LIVE_P (window))
-	    run_window_change_functions_1
+	    run_window_change_functions_locally
 	      (Qwindow_state_change_functions, buffer, window);
+
+	  /* Restore current buffer for running the global hooks.  */
+	  unbind_to (count1, Qnil);
 	}
 
       /* When the number of windows on a frame has decreased, at least
@@ -4236,21 +4259,21 @@ run_window_change_functions (void)
       /* A frame changed buffers when one of its windows has changed
 	 its buffer or at least one window was deleted.  */
       if ((frame_buffer_change || window_deleted) && FRAME_LIVE_P (f))
-	run_window_change_functions_1
-	  (Qwindow_buffer_change_functions, Qnil, frame);
+	run_window_change_functions_globally
+	  (Qwindow_buffer_change_functions, frame);
 
       /* A size change occurred when at least one of the frame's
 	 windows has changed size.  */
       if (frame_size_change && FRAME_LIVE_P (f))
-	run_window_change_functions_1
-	  (Qwindow_size_change_functions, Qnil, frame);
+	run_window_change_functions_globally
+	  (Qwindow_size_change_functions, frame);
 
       /* A frame has changed its window selection when its selected
 	 window has changed or when it was (de-)selected.  */
       if ((frame_selected_change || frame_selected_window_change)
 	  && FRAME_LIVE_P (f))
-	run_window_change_functions_1
-	  (Qwindow_selection_change_functions, Qnil, frame);
+	run_window_change_functions_globally
+	  (Qwindow_selection_change_functions, frame);
 
 #if defined HAVE_TEXT_CONVERSION
 
@@ -4272,8 +4295,8 @@ run_window_change_functions (void)
 	   || frame_size_change || frame_window_state_change)
 	  && FRAME_LIVE_P (f))
 	{
-	  run_window_change_functions_1
-	    (Qwindow_state_change_functions, Qnil, frame);
+	  run_window_change_functions_globally
+	    (Qwindow_state_change_functions, frame);
 	  /* Make sure to run 'window-state-change-hook' later.  */
 	  run_window_state_change_hook = true;
 	  /*  Make sure to record changes for each live frame in
@@ -5110,6 +5133,244 @@ resize_frame_windows (struct frame *f, int size, bool horflag)
 }
 
 
+/** Make parent window on FRAME and return its object.  */
+static Lisp_Object
+make_parent_window (Lisp_Object frame)
+{
+  Lisp_Object parent;
+  struct window *p = allocate_window ();
+
+  p->sequence_number = ++sequence_number;
+  wset_frame (p, frame);
+  XSETWINDOW (parent, p);
+
+  return parent;
+}
+
+
+/** Assign parent and normal sizes to all child windows of window P.
+    Normal sizes are calculated from the child windows' pixel widths and
+    heights so these must be in place already.  This function is called
+    when parent/child window relationships change without resizing as in
+    Fcombine_windows or Funcombine_window.  */
+static void
+window_set_parent_and_normal_sizes (Lisp_Object parent)
+{
+  struct window *p = XWINDOW (parent);
+  struct window *w = XWINDOW (p->contents);
+  /* Normal size left for yet unprocessed windows.  */
+  double remainder = 1.0;
+
+  if (p->horizontal)
+    {
+      while (true)
+	{
+	  wset_parent (w, parent);
+	  wset_normal_lines (w, make_float (1.0));
+
+	  if (NILP (w->next))
+	    {
+	      wset_normal_cols (w, make_float (remainder));
+	      break;
+	    }
+	  else
+	    {
+	      wset_normal_cols (w, make_float ((double) w->pixel_width
+					       / (double) p->pixel_width));
+	      remainder -= XFLOAT_DATA (w->normal_cols);
+	      w = XWINDOW (w->next);
+	    }
+	}
+    }
+  else
+    {
+      while (true)
+	{
+	  wset_parent (w, parent);
+	  wset_normal_cols (w, make_float (1.0));
+
+	  if (NILP (w->next))
+	    {
+	      wset_normal_lines (w, make_float (remainder));
+	      break;
+	    }
+	  else
+	    {
+	      wset_normal_lines (w, make_float ((double) w->pixel_height
+						/ (double) p->pixel_height));
+	      remainder -= XFLOAT_DATA (w->normal_lines);
+	      w = XWINDOW (w->next);
+	    }
+	}
+    }
+}
+
+
+DEFUN ("combine-windows", Fcombine_windows, Scombine_windows, 2, 2, 0,
+       doc: /* Combine windows from FIRST to LAST inclusive.
+FIRST and LAST must be different, valid windows in the same combination,
+that is, windows with the same parent window.  If LAST is not reachable
+from FIRST by applying `window-next-sibling' repeatedly, invert FIRST
+and LAST.
+
+If FIRST has no previous and LAST has no next sibling, return nil.
+Otherwise, make a new parent window whose first child window becomes
+FIRST and whose last child window becomes LAST, insert that parent
+window in the window tree in lieu of the windows starting with FIRST and
+ending with LAST and return the new parent window.  */)
+  (Lisp_Object first, Lisp_Object last)
+{
+  struct window *f = decode_valid_window (first);
+  struct window *l = decode_valid_window (last);
+  struct window *w = f;
+
+  if (f == l)
+    /* Don't make a matryoshka window.  */
+    error ("Cannot combine a window with itself");
+
+  while (w != l && !NILP (w->next))
+    w = XWINDOW (w->next);
+
+  if (w != l)
+    {
+      w = l;
+
+      while (w != f && !NILP (w->next))
+	w = XWINDOW (w->next);
+
+      if (w == f)
+	/* Invert FIRST and LAST.  */
+	{
+	  f = l;
+	  l = w;
+	  XSETWINDOW (first, f);
+	  XSETWINDOW (last, l);
+	}
+      else
+	error ("Windows to combine must be children of same parent");
+    }
+
+  if (NILP (f->prev) && NILP (l->next))
+    /* FIRST and LAST are already the first and last child of their
+       parent.  */
+    return Qnil;
+
+  /* Make new parent window PARENT.  */
+  Lisp_Object parent = make_parent_window (f->frame);
+  struct window *p = XWINDOW (parent);
+  bool horflag = XWINDOW (f->parent)->horizontal;
+
+  /* Splice in PARENT into the window tree.  */
+  wset_parent (p, f->parent);
+  wset_combination (p, horflag, first);
+
+  if (NILP (f->prev))
+    /* FIRST has no previous sibling.  Make PARENT the first child of
+       FIRST's old parent.  */
+    wset_combination (XWINDOW (p->parent), horflag, parent);
+  else
+    /* FIRST has a previous sibling.  Make PARENT the new next sibling
+       of FIRST's previous sibling.  */
+    {
+      wset_next (XWINDOW (f->prev), parent);
+      wset_prev (p, f->prev);
+      wset_prev (f, Qnil);
+    }
+
+  if (!NILP (l->next))
+    /* LAST has a next sibling.  Make PARENT the new previous sibling of
+       LAST's old next sibling.  */
+    {
+      wset_prev (XWINDOW (l->next), parent);
+      wset_next (p, l->next);
+      wset_next (l, Qnil);
+    }
+
+  /* Set up PARENT's positions and sizes.  */
+  p->pixel_left = f->pixel_left;
+  p->left_col = f->left_col;
+  p->pixel_top = f->pixel_top;
+  p->top_line = f->top_line;
+
+  if (horflag)
+    {
+      p->pixel_width = l->pixel_left + l->pixel_width - f->pixel_left;
+      p->total_cols = l->left_col + l->total_cols - f->left_col;
+      p->pixel_height = f->pixel_height;
+      p->total_lines = f->total_lines;
+    }
+  else
+    {
+      p->pixel_height = l->pixel_top + l->pixel_height - f->pixel_top;
+      p->total_lines = l->top_line + l->total_lines - f->top_line;
+      p->pixel_width = f->pixel_width;
+      p->total_cols = f->total_cols;
+    }
+
+  /* Fix parent slots for PARENT's children and assign them new normal
+     sizes.  */
+  window_set_parent_and_normal_sizes (parent);
+  /* Assign new normal sizes for PARENT and its siblings.  */
+  window_set_parent_and_normal_sizes (p->parent);
+
+  return parent;
+}
+
+
+DEFUN ("uncombine-window", Funcombine_window, Suncombine_window, 1, 1, 0,
+       doc: /* Uncombine specified WINDOW.
+WINDOW should be an internal window whose parent window is an internal
+window of the same type.  This means, that WINDOW and its parent should
+be either both horizontal or both vertical window combinations.  If this
+is the case, make the child windows of WINDOW become child windows of
+WINDOW's parent and return t.  Otherwise, leave the current configuration
+of WINDOW's frame unchanged and return nil.  */)
+  (Lisp_Object window)
+{
+  struct window *w = decode_valid_window (window);
+  /* PARENT is WINDOW's parent and is supposed to be a combination of
+     the same type as WINDOW.  */
+  Lisp_Object parent = w->parent;
+
+  if (MINI_WINDOW_P (w))
+    error ("Cannot uncombine a mini window");
+
+  if (WINDOW_INTERNAL_P (w) && !NILP (parent)
+      && w->horizontal == XWINDOW (parent)->horizontal)
+    {
+      struct window *p = XWINDOW (w->parent);
+      /* WINDOW's first child.  */
+      Lisp_Object first = w->contents;
+      struct window *f = XWINDOW (first);
+      /* WINDOW's last child.  */
+      Lisp_Object last = Qnil;
+      struct window *l = f;
+
+      /* Find last child window of WINDOW.  */
+      while (!NILP (l->next))
+	l = XWINDOW (l->next);
+      XSETWINDOW (last, l);
+
+      wset_prev (f, w->prev);
+      if (NILP (f->prev))
+	wset_combination (p, p->horizontal, first);
+      else
+	wset_next (XWINDOW (f->prev), first);
+
+      wset_next (l, w->next);
+      if (!NILP (l->next))
+	wset_prev (XWINDOW (w->next), last);
+
+      /* Fix parent slots for PARENT's new children and assign new normal
+	 sizes.  */
+      window_set_parent_and_normal_sizes (parent);
+
+      return Qt;
+    }
+  else
+    return Qnil;
+}
+
 DEFUN ("split-window-internal", Fsplit_window_internal, Ssplit_window_internal, 4, 5, 0,
        doc: /* Split window OLD.
 Second argument PIXEL-SIZE specifies the number of pixels of the
@@ -5279,12 +5540,9 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 	= horflag ? o->normal_cols : o->normal_lines;
 
       if (NILP (parent))
-	/* This is the crux of the old make_parent_window.  */
 	{
-	  p = allocate_window ();
-	  XSETWINDOW (parent, p);
-	  p->sequence_number = ++sequence_number;
-	  wset_frame (p, frame);
+	  parent = make_parent_window (frame);
+	  p = XWINDOW (parent);
 	}
       else
 	/* Pacify GCC.  */
@@ -8959,8 +9217,12 @@ The value should be a list of functions that take one argument.
 
 Functions specified buffer-locally are called for each window showing
 the corresponding buffer if and only if that window has been added or
-changed its buffer since the last redisplay.  In this case the window
-is passed as argument.
+changed its buffer since the last redisplay.  This means that functions
+may be run twice for such a window: Once for the buffer shown in the
+window at the time of the last redisplay (provided that buffer is still
+live) and once for the buffer currently shown in the window.  In either
+case the window is passed as argument and the respective buffer is made
+temporarily current.
 
 Functions specified by the default value are called for each frame if
 at least one window on that frame has been added, deleted or changed
@@ -8975,7 +9237,8 @@ The value should be a list of functions that take one argument.
 Functions specified buffer-locally are called for each window showing
 the corresponding buffer if and only if that window has been added or
 changed its buffer or its total or body size since the last redisplay.
-In this case the window is passed as argument.
+In this case the window is passed as argument and the respective buffer
+is temporarily made current.
 
 Functions specified by the default value are called for each frame if
 at least one window on that frame has been added or changed its buffer
@@ -8991,9 +9254,9 @@ can add `frame-hide-title-bar-when-maximized' to this variable.  */);
 The value should be a list of functions that take one argument.
 
 Functions specified buffer-locally are called for each window showing
-the corresponding buffer if and only if that window has been selected
-or deselected since the last redisplay.  In this case the window is
-passed as argument.
+the corresponding buffer if and only if that window has been selected or
+deselected since the last redisplay.  In this case the window is passed
+as argument and the respective buffer is temporarily made current.
 
 Functions specified by the default value are called for each frame if
 the frame's selected window has changed since the last redisplay.  In
@@ -9007,7 +9270,8 @@ The value should be a list of functions that take one argument.
 Functions specified buffer-locally are called for each window showing
 the corresponding buffer if and only if that window has been added,
 resized, changed its buffer or has been (de-)selected since the last
-redisplay.  In this case the window is passed as argument.
+redisplay.  In this case the window is passed as argument and the
+respective buffer is temporarily made current.
 
 Functions specified by the default value are called for each frame if
 at least one window on that frame has been added, deleted, changed its
@@ -9316,6 +9580,8 @@ name to `'ignore'.  */);
   defsubr (&Sselect_window);
   defsubr (&Sforce_window_update);
   defsubr (&Ssplit_window_internal);
+  defsubr (&Scombine_windows);
+  defsubr (&Suncombine_window);
   defsubr (&Sscroll_up);
   defsubr (&Sscroll_down);
   defsubr (&Sscroll_left);

@@ -460,8 +460,6 @@ extern bool ignore_mouse_drag_p;
 
 extern Lisp_Object parse_modifiers (Lisp_Object);
 extern Lisp_Object reorder_modifiers (Lisp_Object);
-extern Lisp_Object read_char (int, Lisp_Object, Lisp_Object,
-                              bool *, struct timespec *);
 extern int parse_solitary_modifier (Lisp_Object symbol);
 
 
@@ -491,7 +489,6 @@ extern int gobble_input (void);
 extern bool input_polling_used (void);
 extern void clear_input_pending (void);
 extern bool requeued_command_events_pending_p (void);
-extern bool requeued_events_pending_p (void);
 extern void bind_polling_period (int);
 extern int make_ctrl_char (int) ATTRIBUTE_CONST;
 extern void stuff_buffered_input (Lisp_Object);

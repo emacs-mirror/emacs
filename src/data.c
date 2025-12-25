@@ -155,9 +155,18 @@ circular_list (Lisp_Object list)
 
 /* Data type predicates.  */
 
+/* NO_INLINE to avoid excessive code growth when LTO is in use.  */
+NO_INLINE bool
+slow_eq (Lisp_Object x, Lisp_Object y)
+{
+  return BASE_EQ ((symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)
+                   ? XSYMBOL_WITH_POS_SYM (x) : x),
+                  (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (y)
+                   ? XSYMBOL_WITH_POS_SYM (y) : y));
+}
+
 DEFUN ("eq", Feq, Seq, 2, 2, 0,
-       doc: /* Return t if the two args are the same Lisp object.  */
-       attributes: const)
+       doc: /* Return t if the two args are the same Lisp object.  */)
   (Lisp_Object obj1, Lisp_Object obj2)
 {
   if (EQ (obj1, obj2))
@@ -353,7 +362,7 @@ DEFUN ("bare-symbol-p", Fbare_symbol_p, Sbare_symbol_p, 1, 1, 0,
 DEFUN ("symbol-with-pos-p", Fsymbol_with_pos_p, Ssymbol_with_pos_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a symbol together with position.
 Ignore `symbols-with-pos-enabled'.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   if (SYMBOL_WITH_POS_P (object))
@@ -363,7 +372,7 @@ Ignore `symbols-with-pos-enabled'.  */
 
 DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0,
        doc: /* Return t if OBJECT is a symbol.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   if (SYMBOLP (object))
@@ -541,7 +550,7 @@ DEFUN ("interpreted-function-p", Finterpreted_function_p,
 
 DEFUN ("module-function-p", Fmodule_function_p, Smodule_function_p, 1, 1, NULL,
        doc: /* Return t if OBJECT is a function loaded from a dynamic module.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   return MODULE_FUNCTIONP (object) ? Qt : Qnil;
@@ -559,7 +568,7 @@ DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0,
 
 DEFUN ("integerp", Fintegerp, Sintegerp, 1, 1, 0,
        doc: /* Return t if OBJECT is an integer.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   if (INTEGERP (object))
@@ -578,7 +587,7 @@ DEFUN ("integer-or-marker-p", Finteger_or_marker_p, Sinteger_or_marker_p, 1, 1, 
 
 DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
        doc: /* Return t if OBJECT is a nonnegative integer.  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   return ((FIXNUMP (object) ? 0 <= XFIXNUM (object)
@@ -588,7 +597,7 @@ DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
 
 DEFUN ("numberp", Fnumberp, Snumberp, 1, 1, 0,
        doc: /* Return t if OBJECT is a number (floating point or integer).  */
-       attributes: const)
+       attributes: pure)
   (Lisp_Object object)
 {
   if (NUMBERP (object))
@@ -3523,10 +3532,10 @@ discarding bits.  */)
   CHECK_INTEGER (value);
   CHECK_INTEGER (count);
 
-  if (BASE_EQ (value, make_fixnum (0)))
-    return value;
   if (! FIXNUMP (count))
     {
+      if (BASE_EQ (value, make_fixnum (0)))
+	return value;
       if (mpz_sgn (*xbignum_val (count)) < 0)
 	{
 	  EMACS_INT v = (FIXNUMP (value) ? XFIXNUM (value)
@@ -3554,8 +3563,9 @@ discarding bits.  */)
   else if (FIXNUMP (value))
     {
       EMACS_INT v = XFIXNUM (value);
-      if (stdc_leading_zeros ((EMACS_UINT)(v < 0 ? ~v : v)) - c
-	  >= EMACS_INT_WIDTH - FIXNUM_BITS + 1)
+      EMACS_UINT uv = v < 0 ? ~v : v;
+      EMACS_INT lz = stdc_leading_zeros (uv);
+      if (EMACS_INT_WIDTH - FIXNUM_BITS < lz - c)
 	return make_fixnum (v << c);
     }
 

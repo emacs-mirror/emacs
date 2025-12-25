@@ -148,27 +148,11 @@
 # endif
 
 
-/* On OSF/1 5.1, when _XOPEN_SOURCE_EXTENDED is not defined, the macros
-   EMULTIHOP, ENOLINK, EOVERFLOW are not defined.  */
-# if @EMULTIHOP_HIDDEN@
-#  define EMULTIHOP @EMULTIHOP_VALUE@
-#  define GNULIB_defined_EMULTIHOP 1
-# endif
-# if @ENOLINK_HIDDEN@
-#  define ENOLINK   @ENOLINK_VALUE@
-#  define GNULIB_defined_ENOLINK 1
-# endif
-# if @EOVERFLOW_HIDDEN@
-#  define EOVERFLOW @EOVERFLOW_VALUE@
-#  define GNULIB_defined_EOVERFLOW 1
-# endif
-
-
 /* On OpenBSD 4.0 and on native Windows, the macros ENOMSG, EIDRM, ENOLINK,
    EPROTO, EMULTIHOP, EBADMSG, EOVERFLOW, ENOTSUP, ECANCELED are not defined.
    Likewise, on NonStop Kernel, EDQUOT is not defined.
    Define them here.  Values >= 2000 seem safe to use: Solaris ESTALE = 151,
-   HP-UX EWOULDBLOCK = 246, IRIX EDQUOT = 1133.
+   HP-UX EWOULDBLOCK = 246.
 
    Note: When one of these systems defines some of these macros some day,
    binaries will have to be recompiled so that they recognizes the new

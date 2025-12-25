@@ -23,7 +23,9 @@
  (0.02 ":irc.foonet.org 221 tester +i"))
 
 ((join-chan 10 "JOIN #chan")
- (0.03 ":tester!~u@w9rfqveugz722.irc JOIN #chan"))
+ (0.03 ":tester!~u@w9rfqveugz722.irc JOIN #chan")
+ (0.03 ":irc.foonet.org 353 tester = #chan :@fsbot bob alice tester")
+ (0.03 ":irc.foonet.org 366 tester #chan :End of NAMES list"))
 
 ((~mode-chan 10 "MODE #chan")
  (0.01 ":irc.foonet.org 353 tester = #chan :@tester")
@@ -31,8 +33,18 @@
  (0.01 ":irc.foonet.org 324 tester #chan +nt")
  (0.03 ":irc.foonet.org 329 tester #chan 1653370308"))
 
-((~join-spam 10 "JOIN #spam")
+((join-spam 10 "JOIN #spam")
  (0.03 ":irc.foonet.org 471 tester #spam :Cannot join channel (+l)"))
 
-((~join-foo 10 "JOIN #foo")
- (0.03 ":irc.foonet.org 473 tester #foo :Cannot join channel (+i)"))
+((join-foo 10 "JOIN #foo")
+ (0.03 ":irc.foonet.org 473 tester #foo :Cannot join channel (+i)")
+ (0.01 ":bob!~u@pgq8itg3w7n3a.irc INVITE tester #foo"))
+
+((join-chan 10 "JOIN #foo")
+ (0.03 ":tester!~u@w9rfqveugz722.irc JOIN #foo"))
+
+((mode-foo 10 "MODE #foo")
+ (0.01 ":irc.foonet.org 353 tester = #foo :@tester")
+ (0.00 ":irc.foonet.org 366 tester #foo :End of NAMES list")
+ (0.01 ":irc.foonet.org 324 tester #foo +nt")
+ (0.03 ":irc.foonet.org 329 tester #foo 1653370308"))

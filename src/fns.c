@@ -242,8 +242,7 @@ counted.  */)
 
 DEFUN ("proper-list-p", Fproper_list_p, Sproper_list_p, 1, 1, 0,
        doc: /* Return OBJECT's length if it is a proper list, nil otherwise.
-A proper list is neither circular nor dotted (i.e., its last cdr is nil).  */
-       attributes: const)
+A proper list is neither circular nor dotted (i.e., its last cdr is nil).  */)
   (Lisp_Object object)
 {
   ptrdiff_t len = 0;
@@ -2703,8 +2702,8 @@ plist_put (Lisp_Object plist, Lisp_Object prop, Lisp_Object val)
 }
 
 DEFUN ("put", Fput, Sput, 3, 3, 0,
-       doc: /* Store SYMBOL's PROPNAME property with value VALUE.
-It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
+       doc: /* Store SYMBOL's PROPNAME property with value VALUE and return that value.
+It can later be retrieved with `(get SYMBOL PROPNAME)'.  */)
   (Lisp_Object symbol, Lisp_Object propname, Lisp_Object value)
 {
   CHECK_SYMBOL (symbol);

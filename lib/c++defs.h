@@ -127,6 +127,16 @@
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
+/* _GL_FUNCDECL_SYS_NAME (func) expands to plain func if C++, and to
+   parenthesized func otherwise.  Parenthesization is needed in C23 if
+   the function is like strchr and so is a qualifier-generic macro
+   that expands to something more complicated.  */
+#ifdef __cplusplus
+# define _GL_FUNCDECL_SYS_NAME(func) func
+#else
+# define _GL_FUNCDECL_SYS_NAME(func) (func)
+#endif
+
 /* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
@@ -139,7 +149,7 @@
      _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
-  _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters
+  _GL_EXTERN_C_FUNC __VA_ARGS__ rettype _GL_FUNCDECL_SYS_NAME (func) parameters
 
 /* _GL_CXXALIAS_RPL (func, rettype, parameters);
    declares a C++ alias called GNULIB_NAMESPACE::func
@@ -310,7 +320,7 @@
    _GL_CXXALIASWARN_1 (func, GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN_1(func,namespace) \
    _GL_CXXALIASWARN_2 (func, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN_2(func,namespace) \
@@ -338,7 +348,7 @@
                         GNULIB_NAMESPACE)
 # define _GL_CXXALIASWARN1_1(func,rettype,parameters_and_attributes,namespace) \
    _GL_CXXALIASWARN1_2 (func, rettype, parameters_and_attributes, namespace)
-/* To work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43881>,
+/* To work around GCC bug <https://gcc.gnu.org/PR43881>,
    we enable the warning only when not optimizing.  */
 # if !(defined __GNUC__ && !defined __clang__ && __OPTIMIZE__)
 #  define _GL_CXXALIASWARN1_2(func,rettype,parameters_and_attributes,namespace) \

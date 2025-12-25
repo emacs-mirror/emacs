@@ -6992,6 +6992,18 @@ the_larch,            @hereFn{c-lineup-topmost-intro-cont}
 @workswith @code{topmost-intro-cont}.
 @end defun
 
+@comment ------------------------------------------------------------
+
+@defun c-lineup-class-field-cont
+@findex lineup-class-field-cont (c-)
+Indent continutation lines zero or one @code{c-basic-offset} steps.
+This is intended for continuation lines within a class/struct
+etc. construct.  For a declaration following a template specification,
+zero steps are used.  Other constructs are indented one step.
+
+@workswith @code{class-field-cont}.
+@end defun
+
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Custom Line-Up
 @section Custom Line-Up Functions

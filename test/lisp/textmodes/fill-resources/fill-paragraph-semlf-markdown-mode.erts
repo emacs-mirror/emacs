@@ -1,0 +1,134 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (markdown-mode)
+    (fill-paragraph-semlf))
+
+Name: fill-paragraph-semlf - markdown-mode
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - markdown-mode - list - one single-line item
+
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.
+  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+  veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - markdown-mode - list - multiple single-line items
+
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+- Aliquip ex ea commodo consequat.  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+- Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.
+  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+  veniam, quis nostrud exercitation ullamco laboris nisi ut.
+- Aliquip ex ea commodo consequat.  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+- Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+=-=-=
+
+Name: fill-paragraph-semlf - markdown-mode - list - one multi-line item
+
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut
+  enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+  ut.
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.
+  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+  veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - markdown-mode - list - multiple multi-line items
+
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.  Incididunt ut labore et dolore magn a aliqua. Ut
+  enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+  ut.
+- Aliquip ex ea commodo consequat.  Duis aute irure dolor in
+  reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+  pariatur.
+- Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+  officia deserunt mollit anim id est laborum.
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.
+  Incididunt ut labore et dolore magn a aliqua. Ut enim ad minim
+  veniam, quis nostrud exercitation ullamco laboris nisi ut.
+- Aliquip ex ea commodo consequat.  Duis aute irure dolor in
+  reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+  pariatur.
+- Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+  officia deserunt mollit anim id est laborum.
+=-=-=
+
+Name: fill-paragraph-semlf - markdown-mode - list - short sentence in multi-line item
+
+=-=
+- Lorem ipsum dolor.  Sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.  Incididunt ut labore et dolore magn a aliqua. Ut
+  enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+  ut.
+=-=
+- Lorem ipsum dolor.
+  Sit amet, consectetur adipiscing elit, sed do eiusmod tempor.
+  Incididunt ut labore et dolore magn a aliqua. Ut enim ad minim
+  veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - markdown-mode - indented block
+Skip: t
+
+TODO - In `markdown-mode', the `fill-forward-paragraph' function
+ignores code blocks.  We should reach out to the `markdown-mode'
+maintainer(s) to understand the reason for this and possibly suggest a
+change to this behavior.  This works as expected in
+`markdown-ts-mode'.
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+	|Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+	do eiusmod tempor.  Incididunt ut labore et dolore magna
+	aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+	ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+	Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+	do eiusmod tempor.
+	Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+	veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=

@@ -90,21 +90,18 @@ DEFINE_GDB_SYMBOL_END (GCTYPEBITS)
 typedef int EMACS_INT;
 typedef unsigned int EMACS_UINT;
 enum { EMACS_INT_WIDTH = INT_WIDTH, EMACS_UINT_WIDTH = UINT_WIDTH };
-#  define ALIGNOF_EMACS_INT ALIGNOF_INT
 #  define EMACS_INT_MAX INT_MAX
 #  define pI ""
 # elif INTPTR_MAX <= LONG_MAX && !defined WIDE_EMACS_INT
 typedef long int EMACS_INT;
 typedef unsigned long EMACS_UINT;
 enum { EMACS_INT_WIDTH = LONG_WIDTH, EMACS_UINT_WIDTH = ULONG_WIDTH };
-#  define ALIGNOF_EMACS_INT ALIGNOF_LONG
 #  define EMACS_INT_MAX LONG_MAX
 #  define pI "l"
 # elif INTPTR_MAX <= LLONG_MAX
 typedef long long int EMACS_INT;
 typedef unsigned long long int EMACS_UINT;
 enum { EMACS_INT_WIDTH = LLONG_WIDTH, EMACS_UINT_WIDTH = ULLONG_WIDTH };
-#  define ALIGNOF_EMACS_INT ALIGNOF_LONG_LONG
 #  define EMACS_INT_MAX LLONG_MAX
 /* MinGW supports %lld only if __USE_MINGW_ANSI_STDIO is non-zero,
    which is arranged by config.h, and (for mingw.org) if GCC is 6.0 or
@@ -123,6 +120,7 @@ enum { EMACS_INT_WIDTH = LLONG_WIDTH, EMACS_UINT_WIDTH = ULLONG_WIDTH };
 #  error "INTPTR_MAX too large"
 # endif
 #endif
+static_assert (alignof (EMACS_INT) == ALIGNOF_EMACS_INT);
 
 /* Number of bits to put in each character in the internal representation
    of bool vectors.  This should not vary across implementations.  */
@@ -252,15 +250,13 @@ DEFINE_GDB_SYMBOL_END (INTTYPEBITS)
     b. slower, because it typically requires extra masking.
    So, USE_LSB_TAG is true only on hosts where it might be useful.  */
 DEFINE_GDB_SYMBOL_BEGIN (bool, USE_LSB_TAG)
-#if (ALIGNOF_EMACS_INT < IDEAL_GCALIGNMENT && !defined alignas	\
-     && !defined WIDE_EMACS_INT					\
-     && !defined HAVE_STRUCT_ATTRIBUTE_ALIGNED			\
-     && !defined __alignas_is_defined				\
-     && __STDC_VERSION__ < 202311 && __cplusplus < 201103)
-#define USE_LSB_TAG 0
-#else /* ALIGNOF_EMACS_INT >= IDEAL_GCALIGNMENT || defined alignas ... */
-#define USE_LSB_TAG (VAL_MAX / 2 < INTPTR_MAX)
-#endif /* ALIGNOF_EMACS_INT >= IDEAL_GCALIGNMENT || defined alignas ... */
+#if (ALIGNOF_EMACS_INT < IDEAL_GCALIGNMENT \
+     && !HAVE_C_ALIGNASOF && !defined alignas \
+     && !defined HAVE_STRUCT_ATTRIBUTE_ALIGNED)
+# define USE_LSB_TAG false
+#else
+# define USE_LSB_TAG (VAL_MAX / 2 < INTPTR_MAX)
+#endif
 DEFINE_GDB_SYMBOL_END (USE_LSB_TAG)
 
 /* Mask for the value (as opposed to the type bits) of a Lisp object.  */
@@ -269,9 +265,8 @@ DEFINE_GDB_SYMBOL_BEGIN (EMACS_INT, VALMASK)
 DEFINE_GDB_SYMBOL_END (VALMASK)
 
 /* Ignore 'alignas' on compilers lacking it.  */
-#if (!defined alignas && !defined __alignas_is_defined \
-     && __STDC_VERSION__ < 202311 && __cplusplus < 201103)
-# define alignas(a)
+#if !HAVE_C_ALIGNASOF && !defined alignas
+# define alignas(a) /* not supported */
 #endif
 
 /* The minimum alignment requirement for Lisp objects that is imposed by the
@@ -399,10 +394,7 @@ typedef EMACS_INT Lisp_Word;
 #define lisp_h_CONSP(x) TAGGEDP (x, Lisp_Cons)
 #define lisp_h_BASE_EQ(x, y) (XLI (x) == XLI (y))
 
-#define lisp_h_FIXNUMP(x) \
-   (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS)) \
-	- (unsigned) (Lisp_Int0 >> !USE_LSB_TAG)) \
-       & ((1 << INTTYPEBITS) - 1)))
+#define lisp_h_FIXNUMP(x) ((XTYPE (x) & (Lisp_Int0 | ~Lisp_Int1)) == Lisp_Int0)
 #define lisp_h_FLOATP(x) TAGGEDP (x, Lisp_Float)
 #define lisp_h_NILP(x)  BASE_EQ (x, Qnil)
 #define lisp_h_SYMBOL_CONSTANT_P(sym) \
@@ -410,10 +402,7 @@ typedef EMACS_INT Lisp_Word;
 #define lisp_h_SYMBOL_TRAPPED_WRITE_P(sym) (XSYMBOL (sym)->u.s.trapped_write)
 #define lisp_h_SYMBOL_WITH_POS_P(x) PSEUDOVECTORP (x, PVEC_SYMBOL_WITH_POS)
 #define lisp_h_BARE_SYMBOL_P(x) TAGGEDP (x, Lisp_Symbol)
-#define lisp_h_TAGGEDP(a, tag) \
-   (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
-	- (unsigned) (tag)) \
-       & ((1 << GCTYPEBITS) - 1)))
+#define lisp_h_TAGGEDP(a, tag) (XTYPE (a) == (tag))
 #define lisp_h_VECTORLIKEP(x) TAGGEDP (x, Lisp_Vectorlike)
 #define lisp_h_XCAR(c) XCONS (c)->u.s.car
 #define lisp_h_XCDR(c) XCONS (c)->u.s.u.cdr
@@ -619,13 +608,13 @@ INLINE void set_sub_char_table_contents (Lisp_Object, ptrdiff_t,
 /* Defined in bignum.c.  */
 extern int check_int_nonnegative (Lisp_Object);
 extern intmax_t check_integer_range (Lisp_Object, intmax_t, intmax_t);
-extern double bignum_to_double (Lisp_Object) ATTRIBUTE_CONST;
+extern double bignum_to_double (Lisp_Object);
 extern Lisp_Object make_bigint (intmax_t);
 extern Lisp_Object make_biguint (uintmax_t);
 extern uintmax_t check_uinteger_max (Lisp_Object, uintmax_t);
 
 /* Defined in chartab.c.  */
-extern Lisp_Object char_table_ref (Lisp_Object, int) ATTRIBUTE_PURE;
+extern Lisp_Object char_table_ref (Lisp_Object, int);
 extern void char_table_set (Lisp_Object, int, Lisp_Object);
 
 /* Defined in data.c.  */
@@ -634,6 +623,7 @@ extern AVOID wrong_type_argument (Lisp_Object, Lisp_Object);
 extern Lisp_Object default_value (Lisp_Object symbol);
 extern void defalias (Lisp_Object symbol, Lisp_Object definition);
 extern char *fixnum_to_string (EMACS_INT number, char *buffer, char *end);
+extern bool slow_eq (Lisp_Object x, Lisp_Object y);
 
 
 /* Defined in emacs.c.  */
@@ -1325,10 +1315,12 @@ INLINE bool
 INLINE bool
 EQ (Lisp_Object x, Lisp_Object y)
 {
-  return BASE_EQ ((__builtin_expect (symbols_with_pos_enabled, false)
-		   && SYMBOL_WITH_POS_P (x) ? XSYMBOL_WITH_POS_SYM (x) : x),
-		  (__builtin_expect (symbols_with_pos_enabled, false)
-		   && SYMBOL_WITH_POS_P (y) ? XSYMBOL_WITH_POS_SYM (y) : y));
+  if (BASE_EQ (x, y))
+    return true;
+  else if (!__builtin_expect (symbols_with_pos_enabled, false))
+    return false;
+  else
+    return slow_eq (x, y);
 }
 
 INLINE intmax_t
@@ -1576,6 +1568,9 @@ struct Lisp_String
       ptrdiff_t size_byte;
 
       INTERVAL intervals;	/* Text properties in this string.  */
+      /* The data is always followed by a NUL, not included in size or
+	 size_byte, for C interoperability, but may also contain NULs
+	 itself.  */
       unsigned char *data;
     } s;
     struct Lisp_String *next;
@@ -3783,7 +3778,7 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
   specpdl_ptr->bt.kind = SPECPDL_BACKTRACE;
   specpdl_ptr->bt.debug_on_exit = false;
   specpdl_ptr->bt.function = function;
-  current_thread->stack_top = specpdl_ptr->bt.args = args;
+  specpdl_ptr->bt.args = args;
   specpdl_ptr->bt.nargs = nargs;
   grow_specpdl ();
 
@@ -3825,7 +3820,7 @@ enum handlertype {
   CONDITION_CASE,               /* Entry for 'condition-case'.
                                    'tag_or_ch' holds the list of conditions.
                                    'val' holds the retval during longjmp.  */
-  CATCHER_ALL,                  /* Wildcard which catches all 'throw's.
+  CATCHER_ALL,                  /* Wildcard that catches all throws and signals.
                                    'tag_or_ch' is unused.
                                    'val' holds the retval during longjmp.  */
   HANDLER_BIND,                 /* Entry for 'handler-bind'.
@@ -4099,9 +4094,9 @@ set_sub_char_table_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
 
 /* Defined in bignum.c.  This part of bignum.c's API does not require
    the caller to access bignum internals; see bignum.h for that.  */
-extern intmax_t bignum_to_intmax (Lisp_Object) ATTRIBUTE_CONST;
-extern uintmax_t bignum_to_uintmax (Lisp_Object) ATTRIBUTE_CONST;
-extern ptrdiff_t bignum_bufsize (Lisp_Object, int) ATTRIBUTE_CONST;
+extern intmax_t bignum_to_intmax (Lisp_Object);
+extern uintmax_t bignum_to_uintmax (Lisp_Object);
+extern ptrdiff_t bignum_bufsize (Lisp_Object, int);
 extern ptrdiff_t bignum_to_c_string (char *, ptrdiff_t, Lisp_Object, int);
 extern Lisp_Object bignum_to_string (Lisp_Object, int);
 extern Lisp_Object make_bignum_str (char const *, int);
@@ -4374,8 +4369,6 @@ extern void adjust_after_insert (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				 ptrdiff_t, ptrdiff_t);
 extern void adjust_markers_for_delete (ptrdiff_t, ptrdiff_t,
 				       ptrdiff_t, ptrdiff_t);
-extern void adjust_markers_for_insert (ptrdiff_t, ptrdiff_t,
-				       ptrdiff_t, ptrdiff_t, bool);
 extern void adjust_markers_bytepos (ptrdiff_t, ptrdiff_t,
 				    ptrdiff_t, ptrdiff_t, int);
 extern void replace_range (ptrdiff_t, ptrdiff_t, Lisp_Object, bool, bool, bool);
@@ -4412,6 +4405,7 @@ extern void message3_nolog (Lisp_Object);
 extern void message_dolog (const char *, ptrdiff_t, bool, bool);
 extern void message_with_string (const char *, Lisp_Object, bool);
 extern void message_log_maybe_newline (void);
+extern void reset_message_log_need_newline (void);
 extern void update_echo_area (void);
 extern void truncate_echo_area (ptrdiff_t);
 extern void redisplay (void);
@@ -4783,7 +4777,6 @@ intern_c_string (const char *str)
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vrun_hooks;
 extern Lisp_Object Vsignaling_function;
-extern Lisp_Object inhibit_lisp_code;
 extern bool signal_quit_p (Lisp_Object);
 
 /* To run a normal hook, use the appropriate function from the list below.
@@ -4980,7 +4973,6 @@ extern void syms_of_marker (void);
 
 /* Defined in fileio.c.  */
 
-extern Lisp_Object file_name_directory (Lisp_Object);
 extern char *splice_dir_file (char *, char const *, char const *)
   ATTRIBUTE_RETURNS_NONNULL;
 extern bool file_name_absolute_p (const char *);
@@ -5109,7 +5101,6 @@ void handle_input_available_signal (int);
 #endif
 extern Lisp_Object pending_funcalls;
 extern bool detect_input_pending (void);
-extern bool detect_input_pending_ignore_squeezables (void);
 extern bool detect_input_pending_run_timers (bool);
 extern void safe_run_hooks (Lisp_Object);
 extern void safe_run_hooks_2 (Lisp_Object, Lisp_Object, Lisp_Object);
@@ -5352,7 +5343,9 @@ extern ptrdiff_t emacs_write (int, void const *, ptrdiff_t);
 extern ptrdiff_t emacs_write_sig (int, void const *, ptrdiff_t);
 extern ptrdiff_t emacs_write_quit (int, void const *, ptrdiff_t);
 extern void emacs_perror (char const *);
+#ifdef HAVE_ANDROID
 extern int renameat_noreplace (int, char const *, int, char const *);
+#endif
 extern int str_collate (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
 extern void syms_of_sysdep (void);
 
@@ -5610,7 +5603,21 @@ extern void init_system_name (void);
 #define eabs(x)         ((x) < 0 ? -(x) : (x))
 
 /* SAFE_ALLOCA normally allocates memory on the stack, but if size is
-   larger than MAX_ALLOCA, use xmalloc to avoid overflowing the stack.  */
+   larger than MAX_ALLOCA, use xmalloc to avoid overflowing the stack.
+
+   If you are thinking MAX_ALLOCA is too small given the usual C stack
+   size of programs on modern platforms, consider the following adverse
+   effects of allowing larger stack-based allocations:
+
+    . Conservative stack scanning by GC is expensive; enlarging the
+      stack will force GC to scan more, and thus GC cycles will take
+      more time.
+    . A large stack-based allocation risks to miss the guard page at
+      the end of the stack space, which is used by modern operating
+      systems to detect stack exhaustion and enlarge the stack as
+      needed; this thus risks hitting a segfault where none should
+      have happened.  (This problem is real in deeply-recursive cases,
+      but these do happen in Emacs, e.g. in regexp search or during GC.)  */
 
 enum MAX_ALLOCA { MAX_ALLOCA = 16 * 1024 };
 

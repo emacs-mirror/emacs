@@ -1234,6 +1234,37 @@ bottom corner of the frame.  The parameters @code{min-width} and
 @code{min-height} (@pxref{Size Parameters}) can be used to obtain a
 similar behavior when changing the frame size from within Emacs.
 
+When a frame is in a fullscreen state (@pxref{Size Parameters}),
+requests to change the frame size via one of these functions may be
+supported or refused either by Emacs itself or by the window manager.
+The following variable provides more control of the resulting behavior.
+
+@cindex altering the size of fullscreen frames
+@cindex resizing fullscreen frames
+@defopt alter-fullscreen-frames
+This options controls how to handle requests to alter fullscreen frames.
+Emacs consults it when asked to resize a fullscreen frame via functions
+like @code{set-frame-size} or when setting the @code{width} or
+@code{height} parameter of a frame.  The following values are provided:
+
+@table @code
+@item nil
+This will forward the resize request to the window manager and leave it
+to the latter how to proceed.
+
+@item t
+This will first reset the fullscreen status and then forward the resize
+request on to the window manager.
+
+@item inhibit
+This will reject the resize request and leave the fullscreen status
+unchanged.
+@end table
+
+The default is @code{inhibit} on NS builds and @code{nil} everywhere
+else.
+@end defopt
+
 @cindex tracking frame size changes
   The abnormal hook @code{window-size-change-functions} (@pxref{Window
 Hooks}) tracks all changes of the inner size of a frame including those
@@ -2580,7 +2611,9 @@ Sets the background transparency of the frame.  Unlike the @code{alpha}
 frame parameter, this only controls the transparency of the background
 while keeping foreground elements such as text fully opaque.  It
 should be an integer between 0 and 100, where 0 means
-completely transparent and 100 means completely opaque (default).
+completely transparent and 100 means completely opaque (default).  The
+value can also be a float between 0 and 1.0, where 1.0 means completely
+opaque.
 
 @vindex borders-respect-alpha-background@r{, a frame parameter}
 @item borders-respect-alpha-background
@@ -3358,13 +3391,10 @@ all child frames of @var{frame} (and their descendants) invisible too
 Unless @var{force} is non-@code{nil}, this function refuses to make
 @var{frame} invisible if all other frames are invisible.  On a text
 terminal this will make @var{frame} invisible if and only if it is a
-child frame or at least one other non-child frame (@pxref{Child Frames})
-on that terminal exists.  In the former case, if @var{frame} is
+child frame (@pxref{Child Frames}).  In this case, if @var{frame} is
 selected, it will select the first visible ancestor of @var{frame}
-instead.  In the latter case it will make another non-child frame on
-that terminal visible and the new top frame (@pxref{Frames}) of that
-terminal.  In either case, it will remove all child frames with
-@var{frame} as their ancestor from display.
+instead.  In addition, it will remove all child frames with @var{frame}
+as their ancestor from display.
 @end deffn
 
   The visibility status of a frame is also available as a frame

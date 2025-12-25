@@ -2609,7 +2609,9 @@ as a compiler macro.  The function will accept the argument list
 If present, @var{doc} should be the function's documentation string
 (@pxref{Function Documentation}); @var{declare}, if present, should be
 a @code{declare} form (@pxref{Declare Form}) specifying the function's
-metadata.
+metadata.  In addition to the usual declarations, @var{declare}
+can include @code{(noinline @var{NOINLINE})} when a non-@code{nil}
+@var{NOINLINE} prevents Emacs from inlining the defined function.
 @end defmac
 
 Functions defined via @code{define-inline} have several advantages

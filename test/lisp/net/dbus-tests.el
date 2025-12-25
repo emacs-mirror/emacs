@@ -529,30 +529,40 @@
 (ert-deftest dbus-test02-register-service-own-bus ()
   "Check service registration with an own bus.
 This includes initialization and closing the bus."
-  ;; Start bus.
-  (let ((output
-	 (ignore-errors
-	   (shell-command-to-string "env DISPLAY= dbus-launch --sh-syntax")))
-	bus pid)
-    (skip-unless (stringp output))
-    (when (string-match "DBUS_SESSION_BUS_ADDRESS='\\(.+\\)';" output)
-      (setq bus (match-string 1 output)))
-    (when (string-match "DBUS_SESSION_BUS_PID=\\([[:digit:]]+\\);" output)
-      (setq pid (match-string 1 output)))
-    (unwind-protect
-	(progn
-	  (skip-unless
-	   (dbus-ignore-errors
-	     (and bus pid
-		  (featurep 'dbusbind)
-		  (dbus-init-bus bus)
-		  (dbus-get-unique-name bus)
-		  (dbus-register-service bus dbus--test-service))))
-	  ;; Run the test.
-	  (dbus--test-register-service bus))
+  (ert-with-temp-file tmpfile
+    (let (bus pid)
+      (with-temp-buffer
+        (insert-file-contents (ert-resource-file "session.conf.in"))
+        (search-forward "@testdir@")
+        (replace-match (file-name-directory tmpfile))
+        (write-file tmpfile))
 
-      ;; Save exit.
-      (when pid (call-process "kill" nil nil nil pid)))))
+      ;; Start bus.
+      (with-temp-buffer
+        (skip-unless
+         (zerop
+          (call-process
+           "dbus-daemon" nil t nil "--fork"
+           "--config-file" tmpfile "--print-address" "--print-pid")))
+        (goto-char (point-min))
+        (setq bus (buffer-substring (point) (line-end-position)))
+        (forward-line)
+        (setq pid (buffer-substring (point) (line-end-position))))
+
+      ;; Run the test.
+      (unwind-protect
+	  (progn
+	    (skip-unless
+	     (dbus-ignore-errors
+	       (and bus pid
+		    (featurep 'dbusbind)
+		    (dbus-init-bus bus)
+		    (dbus-get-unique-name bus)
+		    (dbus-register-service bus dbus--test-service))))
+	    (dbus--test-register-service bus))
+
+        ;; Save exit.
+        (when pid (call-process "kill" nil nil nil pid))))))
 
 (ert-deftest dbus-test03-peer-interface ()
   "Check `dbus-interface-peer' methods."

@@ -124,7 +124,6 @@ FTOASTR (char *buf, size_t bufsize, int flags, int width, FLOAT x)
   PROMOTED_FLOAT promoted_x = x;
   char format[sizeof "%-+ 0*.*Lg"];
   FLOAT abs_x = x < 0 ? -x : x;
-  int prec;
 
   char *p = format;
   *p++ = '%';
@@ -142,7 +141,7 @@ FTOASTR (char *buf, size_t bufsize, int flags, int width, FLOAT x)
   *p++ = flags & FTOASTR_UPPER_E ? 'G' : 'g';
   *p = '\0';
 
-  for (prec = abs_x < FLOAT_MIN ? 1 : FLOAT_DIG; ; prec++)
+  for (int prec = abs_x < FLOAT_MIN ? 1 : FLOAT_DIG; ; prec++)
     {
       int n = snprintf (buf, bufsize, format, width, prec, promoted_x);
       if (n < 0

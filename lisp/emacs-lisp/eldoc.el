@@ -238,7 +238,6 @@ expression point is on." :lighter eldoc-minor-mode-string
 
 ;;;###autoload
 (define-globalized-minor-mode global-eldoc-mode eldoc-mode turn-on-eldoc-mode
-  :initialize 'custom-initialize-delay
   :init-value t
   ;; For `read--expression', the usual global mode mechanism of
   ;; `change-major-mode-hook' runs in the minibuffer before

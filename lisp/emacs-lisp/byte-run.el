@@ -75,7 +75,7 @@ This is done by destructively modifying ARG.  Return ARG."
             (setq elt (aref arg i))
             (cond
              ((symbol-with-pos-p elt)
-              (aset arg i elt))
+              (aset arg i (bare-symbol elt)))
              ((consp elt)
               (byte-run--strip-list elt))
              ((or (vectorp elt) (recordp elt))
@@ -246,6 +246,12 @@ declaration" f2 f))
       (list 'function-put (list 'quote f)
             ''function-type (list 'quote val))))
 
+(defalias 'byte-run--dont-autoload
+  #'(lambda (fn)
+      #'(lambda (&rest args)
+          (let ((code (apply fn args)))
+            (list 'progn ':autoload-end code)))))
+
 ;; Add any new entries to info node `(elisp)Declare Form'.
 (defvar defun-declarations-alist
   (list
@@ -368,16 +374,18 @@ This is used by `declare'.")
         (cons actions cl-decls))))
 
 (defvar macro-declarations-alist
-  (cons
-   (list 'debug #'byte-run--set-debug)
-   (cons
+  (nconc
+   (list
+    (list 'debug #'byte-run--set-debug)
     ;; macros can declare (autoload-macro expand) to request expansion
     ;; during autoload generation of forms calling them.  See
     ;; `loaddefs-generate--make-autoload'.
     (list 'autoload-macro #'byte-run--set-autoload-macro)
-    (cons
-     (list 'no-font-lock-keyword #'byte-run--set-no-font-lock-keyword)
-     defun-declarations-alist)))
+    ;; Override the entry from `defun-declarations-alist', because we
+    ;; prefer to autoload the macro when trying to indent it (bug#68818).
+    (list 'indent (byte-run--dont-autoload #'byte-run--set-indent))
+    (list 'no-font-lock-keyword #'byte-run--set-no-font-lock-keyword))
+   defun-declarations-alist)
   "List associating properties of macros to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is a function.
 For each (PROP . VALUES) in a macro's declaration, the FUN corresponding
@@ -683,7 +691,8 @@ enabled."
   ;; When the byte-compiler expands code, this macro is not used, so we're
   ;; either about to run `body' (plain interpretation) or we're doing eager
   ;; macroexpansion.
-  (list 'quote (eval (cons 'progn body) lexical-binding)))
+  (list 'quote (eval (cons 'progn body)
+                     (when lexical-binding (or macroexp--dynvars t)))))
 
 (defun with-no-warnings (&rest body)
   "Like `progn', but prevents compiler warnings in the body."

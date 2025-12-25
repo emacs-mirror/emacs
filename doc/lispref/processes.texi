@@ -842,7 +842,8 @@ Use the string @var{name} as the process name.  As with
 @code{make-process}, it is modified if necessary to make it unique.
 
 @item :buffer @var{buffer}
-Use @var{buffer} as the process buffer.
+Use @var{buffer} as the process buffer.  If the value is @code{nil},
+the subprocess is not associated with any buffer.
 
 @item :coding @var{coding}
 If @var{coding} is a symbol, it specifies the coding system to be
@@ -1989,7 +1990,8 @@ until output arrives from a process.
 
 @defun accept-process-output &optional process seconds millisec just-this-one
 This function allows Emacs to read pending output from processes.  The
-output is given to their filter functions.  If @var{process} is
+output is given to the filter functions set up by the processes
+(@pxref{Filter Functions}).  If @var{process} is
 non-@code{nil} then this function does not return until some output
 has been received from @var{process} or @var{process} has closed the
 connection.
@@ -2020,6 +2022,15 @@ got output from @var{process}, or from any process if @var{process} is
 corresponding connection contains buffered data.  The function returns
 @code{nil} if the timeout expired or the connection was closed before output
 arrived.
+
+Note that this function is not guaranteed to return as soon as some
+output is available from a subprocess, because the main purpose of the
+function is to let Emacs read output from subprocesses, not to wait as
+little as possible.  In particular, if @var{process} is @code{nil}, the
+function should not be expected to return before the specified timeout
+expires.  Thus, if a Lisp program needs to minimize the wait for the
+subprocess output, it should call this function with a non-@code{nil}
+value of a specific @var{process}.
 @end defun
 
 If a connection from a process contains buffered data,

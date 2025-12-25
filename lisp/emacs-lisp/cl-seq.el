@@ -134,7 +134,7 @@ the result of calling FUNCTION with zero arguments.  This is the
 only case where FUNCTION is called with fewer than two arguments.
 
 If SEQ contains exactly one element and no :INITIAL-VALUE is
-specified, then return that element and FUNCTION is not called.
+specified, then just return that element wihout calling FUNCTION.
 
 If :FROM-END is non-nil, the reduction occurs from the back of
 the SEQ moving forward, and the order of arguments to the

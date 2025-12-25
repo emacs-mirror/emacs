@@ -192,6 +192,28 @@ Returns nil when we can't find this char."
 
 ;;; Electric indentation.
 
+(defcustom electric-indent-actions nil
+  "List of actions to indent.
+
+The valid elements of this list can be:
+ - `yank': Indent the yanked text only if point is not in a string or
+         comment and yanked region is longer than 1 line.
+ - `before-save': Indent the whole buffer before saving it.
+
+The indentation will not happen when the major mode is unable to
+reindent code reliably, such as in buffers where indentation is
+significant."
+  :type '(repeat (choice (const :tag "After yanking" yank)
+                         (const :tag "Before saving" before-save)))
+  :set (lambda (var val)
+         (set-default var val)
+         (when (bound-and-true-p electric-indent-mode)
+           (electric-indent--activate-indent-actions t)))
+  :safe (lambda (v)
+          (and (proper-list-p v)
+               (null (seq-filter (lambda (e) (not (symbolp e)) ) v))))
+  :version "31.1")
+
 ;; Autoloading variables is generally undesirable, but major modes
 ;; should usually set this variable by adding elements to the default
 ;; value, which only works well if the variable is preloaded.
@@ -212,13 +234,53 @@ Python does not lend itself to fully automatic indentation.")
 
 (defvar electric-indent-functions-without-reindent
   '(indent-relative indent-to-left-margin indent-relative-maybe
-    indent-relative-first-indent-point py-indent-line coffee-indent-line
-    org-indent-line yaml-indent-line haskell-indentation-indent-line
-    haskell-indent-cycle haskell-simple-indent yaml-indent-line)
+    indent-relative-first-indent-point yaml-indent-line)
   "List of indent functions that can't reindent.
 If `indent-line-function' is one of those, then `electric-indent-mode' will
 not try to reindent lines.  It is normally better to make the major
 mode set `electric-indent-inhibit', but this can be used as a workaround.")
+
+(defun electric-indent-can-reindent-p ()
+  "Return t if `electric-indent-mode' can performs reindentation."
+  (not (or (memq indent-line-function
+                 electric-indent-functions-without-reindent)
+           electric-indent-inhibit)))
+
+(defun electric-indent--yank-advice (fn &rest r)
+  (let ((p (point))
+        (end (line-beginning-position)))
+    (apply fn r)
+    (when (and electric-indent-mode
+               (memq 'yank electric-indent-actions)
+               (electric-indent-can-reindent-p)
+               ;; Ensure yanked text is longer than 1 line
+               (> (point) p)
+               (not (= end (line-beginning-position))))
+      (undo-boundary)
+      (save-excursion
+        (with-demoted-errors "Error reindenting: %S"
+          (indent-region p (point)))))))
+
+(defun electric-indent-save-hook ()
+  (when (and electric-indent-mode
+             ;; Ensure this hook is called interactively
+             (memq real-this-command '(save-buffer basic-save-buffer))
+             (memq 'before-save electric-indent-actions)
+             (not buffer-read-only)
+             (electric-indent-can-reindent-p))
+    (save-excursion
+      (with-demoted-errors "Error reindenting: %S"
+        (indent-region (point-min) (point-max))))))
+
+(defun electric-indent--activate-indent-actions (enable)
+  "Enable the actions specified in `electric-indent-actions'."
+  (advice-remove 'yank #'electric-indent--yank-advice)
+  (remove-hook 'before-save-hook #'electric-indent-save-hook)
+  (when enable
+    (when (memq 'yank electric-indent-actions)
+      (advice-add 'yank :around #'electric-indent--yank-advice))
+    (when (memq 'before-save electric-indent-actions)
+      (add-hook 'before-save-hook #'electric-indent-save-hook))))
 
 (defun electric-indent-post-self-insert-function ()
   "Function that `electric-indent-mode' adds to `post-self-insert-hook'.
@@ -258,10 +320,7 @@ or comment."
           (when at-newline
             (let ((before (copy-marker (1- pos) t)))
               (save-excursion
-                (unless
-                    (or (memq indent-line-function
-                              electric-indent-functions-without-reindent)
-                        electric-indent-inhibit)
+                (when (electric-indent-can-reindent-p)
                   ;; Don't reindent the previous line if the
                   ;; indentation function is not a real one.
                   (goto-char before)
@@ -324,7 +383,7 @@ indent the line according to context and rules of the major mode.
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `electric-indent-local-mode'."
   :global t :group 'electricity
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-after-file-load
   :init-value t
   (if (not electric-indent-mode)
       (unless (catch 'found
@@ -333,9 +392,13 @@ use `electric-indent-local-mode'."
                     (if electric-indent-mode (throw 'found t)))))
         (remove-hook 'post-self-insert-hook
                      #'electric-indent-post-self-insert-function))
+
     (add-hook 'post-self-insert-hook
               #'electric-indent-post-self-insert-function
-              60)))
+              60))
+
+  ;; Toggle the reindentation on actions
+  (electric-indent--activate-indent-actions electric-indent-mode))
 
 ;;;###autoload
 (define-minor-mode electric-indent-local-mode
@@ -704,7 +767,7 @@ ones listed here.  Also see `electric-quote-replace-consecutive'.
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `electric-quote-local-mode'."
   :global t :group 'electricity
-  :initialize 'custom-initialize-delay
+  ;; :initialize #'custom-initialize-after-file-load
   :init-value nil
   (if (not electric-quote-mode)
       (unless (catch 'found

@@ -27,6 +27,7 @@
 
 (require 'ert)
 (require 'url-auth)
+(require 'url-http)
 
 (defvar url-auth-test-challenges nil
   "List of challenges for testing.
@@ -133,8 +134,8 @@ server's WWW-Authenticate header field.")
       (should (string= (nth 1 key) (plist-get challenge :expected-ha2)))
       )))
 
-(ert-deftest url-auth-test-digest-auth-retrieve-cache ()
-  "Check how the entry point retrieves cached authentication.
+(ert-deftest url-auth-test-auth-retrieve-cache ()
+  "Check how the basic/digest auth entry point retrieves cached authentication.
 Essential is how realms and paths are matched."
 
   (let* ((url-digest-auth-storage
@@ -150,6 +151,14 @@ Essential is how realms and paths are matched."
             ("rootless.org:80"          ; no "/" entry for this on purpose
              ("/path" "pathuser" "key")
              ("realm" "realmuser" "key"))))
+         (url-http-real-basic-auth-storage
+          (mapcar (pcase-lambda (`(,server . ,auths))
+                    (cons server
+                          (mapcar (pcase-lambda (`(,realm ,user ,secret))
+                                    (cons realm (base64-encode-string
+                                                 (format "%s:%s" user secret) t)))
+                                  auths)))
+                  url-digest-auth-storage))
          (attrs (list (cons "nonce" "servernonce")))
          auth)
 
@@ -215,12 +224,26 @@ Essential is how realms and paths are matched."
                   (list :url "http://rootless.org/path/query?q=a"
                         :realm "realm" :expected-user "realmuser")
                   ))
+      ;; Check digest auth.
       (setq auth (url-digest-auth (plist-get row :url)
                                   nil nil
                                   (plist-get row :realm) attrs))
       (if (plist-get row :expected-user)
           (progn (should auth)
                  (should (string-match ".*username=\"\\(.*?\\)\".*" auth))
+                 (should (string= (match-string 1 auth)
+                                  (plist-get row :expected-user))))
+        (should-not auth))
+      ;; Check basic auth.
+      (setq auth (url-basic-auth (plist-get row :url)
+                                  nil nil
+                                  (plist-get row :realm) attrs))
+      (if (plist-get row :expected-user)
+          (progn (should auth)
+                 (should (string-prefix-p "Basic " auth))
+                 (setq auth (base64-decode-string
+                             (string-remove-prefix "Basic " auth) t))
+                 (should (string-match "\\`\\(.*?\\):key\\'" auth))
                  (should (string= (match-string 1 auth)
                                   (plist-get row :expected-user))))
         (should-not auth)))))

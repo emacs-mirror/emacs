@@ -600,11 +600,11 @@ do							\
   }							\
 while (0)
 
-/* Work around GCC bug 109579
-   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109579
+/* Work around GCC bug 123042
+   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=123042
    which causes GCC to mistakenly complain about
    popping the mapping stack.  */
-#if __GNUC__ == 13
+#if 13 <= __GNUC__
 # pragma GCC diagnostic ignored "-Wanalyzer-out-of-bounds"
 #endif
 

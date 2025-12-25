@@ -267,10 +267,13 @@ non-nil and point is located on the heading line.")
                              ;; This is equivalent to adding ".*" in the regexp below.
                              (set-match-data
                               (list (match-beginning 0)
-                                    (save-excursion
-                                      (save-match-data
-                                        (re-search-forward
-                                         (concat ".*" outline-heading-end-regexp) nil t)))))
+                                    (or (save-excursion
+                                          (save-match-data
+                                            (re-search-forward
+                                             (concat ".*" outline-heading-end-regexp) nil t)))
+                                        ;; Fall back to eol when there is no newline
+                                        ;; at the end of outline at eob.
+                                        (pos-eol))))
                              ret)))
                       (concat "^\\(?:" outline-regexp "\\).*" outline-heading-end-regexp))
                   0 '(if outline-minor-mode
@@ -531,10 +534,13 @@ outline font-lock faces to those of major mode."
                    ;; This is equivalent to adding ".*" in the regexp above.
                    (set-match-data
                     (list (match-beginning 0)
-                          (save-excursion
-                            (save-match-data
-                              (re-search-forward
-                               (concat ".*" outline-heading-end-regexp) nil t)))))
+                          (or (save-excursion
+                                (save-match-data
+                                  (re-search-forward
+                                   (concat ".*" outline-heading-end-regexp) nil t)))
+                              ;; Fall back to eol when there is no newline
+                              ;; at the end of outline at eob.
+                              (pos-eol))))
                    ret)
                (re-search-forward regexp nil t))
         (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
@@ -564,8 +570,7 @@ See the command `outline-mode' for more information on this mode."
             (setq-local outline--use-rtl t))
           (setq-local outline--button-icons (outline--create-button-icons))
           (when (and (eq outline-minor-mode-use-buttons 'in-margins)
-                     (> 1 (if outline--use-rtl right-margin-width
-                            left-margin-width)))
+                     (null outline--margin-width))
             (setq outline--margin-width
                   (or outline-margin-width
                       (ceiling
@@ -623,6 +628,7 @@ See the command `outline-mode' for more information on this mode."
     (when outline-minor-mode-use-buttons
       (outline--remove-buttons (point-min) (point-max))
       (when (and (eq outline-minor-mode-use-buttons 'in-margins)
+                 outline--margin-width
                  (< 0 (if outline--use-rtl right-margin-width
                         left-margin-width)))
         (if outline--use-rtl
@@ -630,7 +636,8 @@ See the command `outline-mode' for more information on this mode."
                                               outline--margin-width))
           (setq-local left-margin-width (- left-margin-width
                                            outline--margin-width)))
-        (setq-local fringes-outside-margins nil)
+        (setq-local outline--margin-width nil)
+        (kill-local-variable 'fringes-outside-margins)
         ;; Force removal of margins
         (when (eq (current-buffer) (window-buffer))
           (set-window-buffer nil (window-buffer)))))))
@@ -2030,12 +2037,7 @@ With a prefix argument, show headings up to that LEVEL."
        from to)
       (restore-buffer-modified-p modified))))
 
-(defvar outline-after-change-functions nil
-  "Hook run before updating buttons in a region in outline-mode.
-Called with three arguments (BEG END DUMMY).  Don't use DUMMY.")
-
 (defun outline--fix-buttons (&optional beg end)
-  (run-hook-with-args 'outline-after-change-functions beg end 0)
   ;; Handle whole lines
   (save-excursion
     (setq beg (if (null beg) (point-min) (goto-char beg) (pos-bol)))

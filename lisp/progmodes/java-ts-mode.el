@@ -237,7 +237,11 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
        'font-lock-constant-face override
        start end))))
 
-(defvar java-ts-mode--font-lock-settings
+(defun java-ts-mode--font-lock-settings ()
+  "Return tree-sitter font-lock settings for `java-ts-mode'.
+
+Tree-sitter font-lock settings are evaluated the first time this
+function is called.  Subsequent calls return the first evaluated value."
   (treesit-font-lock-rules
    :language 'java
    :override t
@@ -303,9 +307,6 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
      (compact_constructor_declaration
       name: (identifier) @font-lock-type-face)
 
-     (field_access
-      object: (identifier) @font-lock-type-face)
-
      (method_reference (identifier) @font-lock-type-face)
 
      (scoped_identifier (identifier) @font-lock-constant-face)
@@ -314,6 +315,12 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
       (:match "\\`[A-Z]" @font-lock-type-face))
 
      (type_identifier) @font-lock-type-face
+     ;; In Java, var is not a keyword but rather a auto-determined type.
+     ;; But we want to fontify it as a keyword.  (The override query is
+     ;; below the general query because :override flag is set for this
+     ;; rule.)
+     ((type_identifier) @font-lock-keyword-face
+      (:match "\\`var\\'" @font-lock-keyword-face))
 
      [(boolean_type)
       (integral_type)
@@ -364,8 +371,7 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
 
    :language 'java
    :feature 'delimiter
-   '((["," ":" ";"]) @font-lock-delimiter-face))
-  "Tree-sitter font-lock settings for `java-ts-mode'.")
+   '((["," ":" ";"]) @font-lock-delimiter-face)))
 
 (defun java-ts-mode--defun-name (node)
   "Return the defun name of NODE.
@@ -488,7 +494,7 @@ Return nil if there is no name or if NODE is not a defun node."
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
-                java-ts-mode--font-lock-settings)
+                (java-ts-mode--font-lock-settings))
 
     ;; Inject doxygen parser for comment.
     (when (and java-ts-mode-enable-doxygen
@@ -525,8 +531,7 @@ Return nil if there is no name or if NODE is not a defun node."
 (derived-mode-add-parents 'java-ts-mode '(java-mode))
 
 ;;;###autoload
-(when (treesit-available-p)
-  (defvar treesit-major-mode-remap-alist)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(java-mode . java-ts-mode)))
 

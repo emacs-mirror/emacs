@@ -1140,7 +1140,8 @@ OPENER is non-nil if TOKEN is an opener and nil if it's a closer."
 
 (defcustom smie-indent-basic 4
   "Basic amount of indentation."
-  :type 'integer)
+  :type 'integer
+  :safe #'integerp)
 
 (defvar smie-rules-function #'ignore
   "Function providing the indentation rules.

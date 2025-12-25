@@ -61,7 +61,8 @@
     table)
   "Syntax table for `cmake-ts-mode'.")
 
-(defvar cmake-ts-mode--indent-rules
+(defun cmake-ts-mode--indent-rules ()
+  "Return tree-sitter indent rules for `cmake-ts-mode'."
   `((cmake
      ((node-is ")") parent-bol 0)
      ((node-is "else_command") parent-bol 0)
@@ -73,15 +74,14 @@
      ((parent-is "function_def") parent-bol cmake-ts-mode-indent-offset)
      ((parent-is "if_condition") parent-bol cmake-ts-mode-indent-offset)
      ((parent-is "normal_command") parent-bol cmake-ts-mode-indent-offset)
-     ;;; Release v0.4.0 wraps arguments in an argument_list node.
+     ;; Release v0.4.0 wraps arguments in an argument_list node.
      ,@(ignore-errors
          (treesit-query-capture 'cmake '((argument_list) @capture))
          `(((parent-is "argument_list") grand-parent cmake-ts-mode-indent-offset)))
-     ;;; Release v0.3.0 wraps the body of commands into a body node.
+     ;; Release v0.3.0 wraps the body of commands into a body node.
      ,@(ignore-errors
          (treesit-query-capture 'cmake '((body) @capture))
-         `(((parent-is "body") grand-parent cmake-ts-mode-indent-offset)))))
-  "Tree-sitter indent rules for `cmake-ts-mode'.")
+         `(((parent-is "body") grand-parent cmake-ts-mode-indent-offset))))))
 
 (defvar cmake-ts-mode--constants
   '("ON" "TRUE" "YES" "Y" "OFF" "FALSE" "NO" "N" "IGNORE" "NOTFOUND")
@@ -140,7 +140,8 @@ Check if a node type is available, then return the right font lock rules."
                           eol))
                   @font-lock-constant-face))))))))
 
-(defvar cmake-ts-mode--font-lock-settings
+(defun cmake-ts-mode--font-lock-settings ()
+  "Return tree-sitter font-lock settings for `cmake-ts-mode'."
   (treesit-font-lock-rules
    :language 'cmake
    :feature 'bracket
@@ -200,8 +201,7 @@ Check if a node type is available, then return the right font lock rules."
    :language 'cmake
    :feature 'error
    :override t
-   '((ERROR) @font-lock-warning-face))
-  "Tree-sitter font-lock settings for `cmake-ts-mode'.")
+   '((ERROR) @font-lock-warning-face)))
 
 (defun cmake-ts-mode--defun-name (node)
   "Return the defun name of NODE.
@@ -238,10 +238,10 @@ Return nil if there is no name or if NODE is not a defun node."
     (setq-local which-func-functions nil)
 
     ;; Indent.
-    (setq-local treesit-simple-indent-rules cmake-ts-mode--indent-rules)
+    (setq-local treesit-simple-indent-rules (cmake-ts-mode--indent-rules))
 
     ;; Font-lock.
-    (setq-local treesit-font-lock-settings cmake-ts-mode--font-lock-settings)
+    (setq-local treesit-font-lock-settings (cmake-ts-mode--font-lock-settings))
     (setq-local treesit-font-lock-feature-list
                 '((comment)
                   (keyword string)
@@ -268,11 +268,10 @@ is t or contains the mode name."
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'auto-mode-alist
                '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
-  (defvar treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(cmake-mode . cmake-ts-mode)))
 

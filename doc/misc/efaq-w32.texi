@@ -196,7 +196,7 @@ in the Emacs source distribution.
 If you need to build or run Emacs on MS Windows before Windows 7, you
 have to use the MinGW port of GCC and the MSYS suite of tools.  The
 file @file{nt/INSTALL} in Emacs source distribution contains the
-details.
+details.  @xref{MinGW}.
 
 Support for displaying images, as well as XML/HTML rendering and TLS
 networking requires external libraries, the headers and import
@@ -2245,21 +2245,27 @@ software.  This includes all the optional libraries used by Emacs
 Hunspell, Gawk, GNU Make, Groff, GDB.
 
 @node MinGW
-@section MinGW and MSYS
+@section mingw.org's MinGW and MSYS
 @cindex mingw tools
 @cindex msys environment
 @cindex subprocesses, mingw and msys
 
 @uref{https://osdn.net/projects/mingw/}
 
-MinGW is another set of development tools that produce native Windows
-executables, not dependent on Cygwin's POSIX emulation DLLs.
+MinGW from @code{mingw.org} is another set of development tools that
+produce native Windows executables, not dependent on Cygwin's POSIX
+emulation DLLs.  This is the original MinGW project, nowadays no longer
+actively developed.  Its files can currently be found only via the WWW
+archive site known as the @dfn{Wayback Machine}.  The latest MinGW
+release files can be found here:
+@uref{https://web.archive.org/web/20210410172202/https://osdn.net/projects/mingw/releases/}.
 
-MSYS is a POSIX shell and minimal set of tools that are commonly used in
-configure scripts.  Like Cygwin, this environment uses a non-native
-filesystem mapping to appear more POSIX like to the scripts that it
-runs.  This is intended to complement the MinGW tools to make it easier
-to port software to Windows.
+MSYS, which is part of @code{mingw.org}s MinGW, is a POSIX shell and
+minimal set of tools that are commonly used in configure scripts.  Like
+Cygwin, this environment uses a non-native filesystem mapping to appear
+more POSIX like to the scripts that it runs.  This is intended to
+complement the MinGW tools to make it easier to port software to
+Windows.
 
 @node GnuWin32
 @section GnuWin32

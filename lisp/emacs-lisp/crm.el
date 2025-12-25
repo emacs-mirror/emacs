@@ -285,7 +285,8 @@ with empty strings removed."
                       (unless (eq require-match t) require-match))
           (setq-local minibuffer--require-match require-match)
           (setq-local minibuffer--original-buffer buffer)
-          (setq-local crm-completion-table table))
+          (setq-local crm-completion-table table)
+          (completions--start-eager-display))
       (setq input (read-from-minibuffer
                    (format-spec
                     crm-prompt

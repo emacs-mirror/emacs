@@ -259,11 +259,12 @@ NODE and PARENT are ignored."
     css--treesit-font-lock-feature-list))
   "Settings for `treesit-font-lock-feature-list'.")
 
-(defvar mhtml-ts-mode--treesit-font-lock-settings
+(defun mhtml-ts-mode--treesit-font-lock-settings ()
+  "Return tree-sitter font-lock settings for `mhtml-ts-mode'."
   (append html-ts-mode--font-lock-settings
-          js--treesit-font-lock-settings
-          ;; Let's replace a css rule with a new one that adds color to
-          ;; the css value.
+          (js--treesit-font-lock-settings)
+          ;; Let's replace a css rule with a new one that adds
+          ;; color to the css value.
           (treesit-replace-font-lock-feature-settings
            (treesit-font-lock-rules
             :language 'css
@@ -271,8 +272,7 @@ NODE and PARENT are ignored."
             :feature 'variable
             '((plain_value) @mhtml-ts-mode--colorize-css-value
               (color_value) @mhtml-ts-mode--colorize-css-value))
-           css--treesit-settings))
-  "Settings for `treesit-font-lock-settings'.")
+           css--treesit-settings)))
 
 (defvar mhtml-ts-mode--treesit-thing-settings
   ;; In addition to putting together the various definitions, we need to
@@ -292,23 +292,18 @@ NODE and PARENT are ignored."
     `((defun ,css--treesit-defun-type-regexp))))
   "Settings for `treesit-thing-settings'.")
 
-;; We use a function instead of a variable, because
-;; `js--treesit-indent-rules' and `css--treesit-indent-rules' doesn't
-;; exist when at compile time (unless we `eval-when-compile', but that
-;; doesn't feel like the right solution to me).
 (defun mhtml-ts-mode--treesit-indent-rules ()
-  "Return intent rules for `mhtml-ts-mode'."
+  "Return tree-sitter indent rules for `mhtml-ts-mode'."
   (treesit--indent-rules-optimize
    (append html-ts-mode--indent-rules
-           ;; Extended rules for js and css, to
-           ;; indent appropriately when injected
-           ;; into html
+           ;; Extended rules for js and css, to indent
+           ;; appropriately when injected into html
            (treesit-simple-indent-modify-rules
             'javascript
             `((javascript ((parent-is "program")
                            mhtml-ts-mode--js-css-tag-bol
                            mhtml-ts-mode--js-css-indent-offset)))
-            js--treesit-indent-rules
+            (js--treesit-indent-rules)
             :replace)
            (treesit-simple-indent-modify-rules
             'css
@@ -561,7 +556,7 @@ Powered by tree-sitter."
     ;; to extend/modify the default rule or use a different set of
     ;; rules. See `php-ts-mode--custom-html-font-lock-settings' for more
     ;; advanced usage.
-    (setq-local treesit-font-lock-settings mhtml-ts-mode--treesit-font-lock-settings)
+    (setq-local treesit-font-lock-settings (mhtml-ts-mode--treesit-font-lock-settings))
 
     ;; Tells treesit the list of features to fontify.
     (setq-local treesit-font-lock-feature-list mhtml-ts-mode--treesit-font-lock-feature-list)
@@ -588,8 +583,7 @@ Powered by tree-sitter."
 (derived-mode-add-parents 'mhtml-ts-mode '(css-mode js-mode))
 
 ;;;###autoload
-(when (treesit-available-p)
-  (defvar treesit-major-mode-remap-alist)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(mhtml-mode . mhtml-ts-mode)))
 

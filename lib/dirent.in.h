@@ -101,40 +101,6 @@ static_assert (DT_UNKNOWN != DT_FIFO && DT_UNKNOWN != DT_CHR
 /* Other optional information about a directory entry.  */
 #define _GL_DT_NOTDIR 0x100   /* Not a directory */
 
-/* Conversion between S_IF* and DT_* file types.  */
-#if ! (defined IFTODT && defined DTTOIF)
-# include <sys/stat.h>
-# ifdef S_ISWHT
-#  define _GL_DIRENT_S_ISWHT(mode) S_ISWHT(mode)
-# else
-#  define _GL_DIRENT_S_ISWHT(mode) 0
-# endif
-# ifdef S_IFWHT
-#  define _GL_DIRENT_S_IFWHT S_IFWHT
-# else
-#  define _GL_DIRENT_S_IFWHT (DT_WHT << 12) /* just a guess */
-# endif
-#endif
-/* Conversion from a 'stat' mode to a DT_* value.  */
-#ifndef IFTODT
-# define IFTODT(mode) \
-   (S_ISREG (mode) ? DT_REG : S_ISDIR (mode) ? DT_DIR \
-    : S_ISLNK (mode) ? DT_LNK : S_ISBLK (mode) ? DT_BLK \
-    : S_ISCHR (mode) ? DT_CHR : S_ISFIFO (mode) ? DT_FIFO \
-    : S_ISSOCK (mode) ? DT_SOCK \
-    : _GL_DIRENT_S_ISWHT (mode) ? DT_WHT : DT_UNKNOWN)
-#endif
-/* Conversion from a DT_* value to a 'stat' mode.  */
-#ifndef DTTOIF
-# define DTTOIF(dirtype) \
-   ((dirtype) == DT_REG ? S_IFREG : (dirtype) == DT_DIR ? S_IFDIR \
-    : (dirtype) == DT_LNK ? S_IFLNK : (dirtype) == DT_BLK ? S_IFBLK \
-    : (dirtype) == DT_CHR ? S_IFCHR :  dirtype == DT_FIFO ? S_IFIFO \
-    : (dirtype) == DT_SOCK ? S_IFSOCK \
-    : (dirtype) == DT_WHT ? _GL_DIRENT_S_IFWHT \
-    : (dirtype) << 12 /* just a guess */)
-#endif
-
 #if !@DIR_HAS_FD_MEMBER@
 # if !GNULIB_defined_DIR
 /* struct gl_directory is a type with a field 'int fd_to_close'.
@@ -207,7 +173,6 @@ _GL_CXXALIAS_SYS (closedir, int, (DIR *dirp));
 # endif
 _GL_CXXALIASWARN (closedir);
 #elif defined GNULIB_POSIXCHECK
-# undef closedir
 # if HAVE_RAW_DECL_CLOSEDIR
 _GL_WARN_ON_USE (closedir, "closedir is not portable - "
                  "use gnulib module closedir for portability");
@@ -247,7 +212,6 @@ _GL_FUNCDECL_SYS (opendir, DIR *,
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC (closedir, 1));
 # endif
 # if defined GNULIB_POSIXCHECK
-#  undef opendir
 #  if HAVE_RAW_DECL_OPENDIR
 _GL_WARN_ON_USE (opendir, "opendir is not portable - "
                  "use gnulib module opendir for portability");
@@ -271,7 +235,6 @@ _GL_CXXALIAS_SYS (readdir, struct dirent *, (DIR *dirp));
 # endif
 _GL_CXXALIASWARN (readdir);
 #elif defined GNULIB_POSIXCHECK
-# undef readdir
 # if HAVE_RAW_DECL_READDIR
 _GL_WARN_ON_USE (readdir, "readdir is not portable - "
                  "use gnulib module readdir for portability");
@@ -294,7 +257,6 @@ _GL_CXXALIAS_SYS (rewinddir, void, (DIR *dirp));
 # endif
 _GL_CXXALIASWARN (rewinddir);
 #elif defined GNULIB_POSIXCHECK
-# undef rewinddir
 # if HAVE_RAW_DECL_REWINDDIR
 _GL_WARN_ON_USE (rewinddir, "rewinddir is not portable - "
                  "use gnulib module rewinddir for portability");
@@ -327,7 +289,6 @@ _GL_CXXALIAS_SYS (dirfd, int, (DIR *));
 # endif
 _GL_CXXALIASWARN (dirfd);
 #elif defined GNULIB_POSIXCHECK
-# undef dirfd
 # if HAVE_RAW_DECL_DIRFD
 _GL_WARN_ON_USE (dirfd, "dirfd is unportable - "
                  "use gnulib module dirfd for portability");
@@ -369,7 +330,6 @@ _GL_FUNCDECL_SYS (fdopendir, DIR *,
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC (closedir, 1));
 # endif
 # if defined GNULIB_POSIXCHECK
-#  undef fdopendir
 #  if HAVE_RAW_DECL_FDOPENDIR
 _GL_WARN_ON_USE (fdopendir, "fdopendir is unportable - "
                  "use gnulib module fdopendir for portability");
@@ -397,7 +357,6 @@ _GL_CXXALIAS_SYS_CAST (scandir, int,
                         int (*cmp) (const struct dirent **, const struct dirent **)));
 _GL_CXXALIASWARN (scandir);
 #elif defined GNULIB_POSIXCHECK
-# undef scandir
 # if HAVE_RAW_DECL_SCANDIR
 _GL_WARN_ON_USE (scandir, "scandir is unportable - "
                  "use gnulib module scandir for portability");
@@ -418,11 +377,49 @@ _GL_CXXALIAS_SYS_CAST (alphasort, int,
                        (const struct dirent **, const struct dirent **));
 _GL_CXXALIASWARN (alphasort);
 #elif defined GNULIB_POSIXCHECK
-# undef alphasort
 # if HAVE_RAW_DECL_ALPHASORT
 _GL_WARN_ON_USE (alphasort, "alphasort is unportable - "
                  "use gnulib module alphasort for portability");
 # endif
+#endif
+
+
+/* Includes that provide only macros that don't need to be overridden.
+   (Includes that are needed for type definitions and function declarations
+   have their place above, before the function overrides.)  */
+
+/* Conversion between S_IF* and DT_* file types.  */
+#if ! (defined IFTODT && defined DTTOIF)
+# include <sys/stat.h>
+# ifdef S_ISWHT
+#  define _GL_DIRENT_S_ISWHT(mode) S_ISWHT(mode)
+# else
+#  define _GL_DIRENT_S_ISWHT(mode) 0
+# endif
+# ifdef S_IFWHT
+#  define _GL_DIRENT_S_IFWHT S_IFWHT
+# else
+#  define _GL_DIRENT_S_IFWHT (DT_WHT << 12) /* just a guess */
+# endif
+#endif
+/* Conversion from a 'stat' mode to a DT_* value.  */
+#ifndef IFTODT
+# define IFTODT(mode) \
+   (S_ISREG (mode) ? DT_REG : S_ISDIR (mode) ? DT_DIR \
+    : S_ISLNK (mode) ? DT_LNK : S_ISBLK (mode) ? DT_BLK \
+    : S_ISCHR (mode) ? DT_CHR : S_ISFIFO (mode) ? DT_FIFO \
+    : S_ISSOCK (mode) ? DT_SOCK \
+    : _GL_DIRENT_S_ISWHT (mode) ? DT_WHT : DT_UNKNOWN)
+#endif
+/* Conversion from a DT_* value to a 'stat' mode.  */
+#ifndef DTTOIF
+# define DTTOIF(dirtype) \
+   ((dirtype) == DT_REG ? S_IFREG : (dirtype) == DT_DIR ? S_IFDIR \
+    : (dirtype) == DT_LNK ? S_IFLNK : (dirtype) == DT_BLK ? S_IFBLK \
+    : (dirtype) == DT_CHR ? S_IFCHR :  dirtype == DT_FIFO ? S_IFIFO \
+    : (dirtype) == DT_SOCK ? S_IFSOCK \
+    : (dirtype) == DT_WHT ? _GL_DIRENT_S_IFWHT \
+    : (dirtype) << 12 /* just a guess */)
 #endif
 
 

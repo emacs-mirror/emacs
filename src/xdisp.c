@@ -2363,7 +2363,7 @@ pixel_to_glyph_coords (struct frame *f, int pix_x, int pix_y, int *x, int *y,
    text, or we can't tell because W's current matrix is not up to
    date.  */
 
-struct glyph *
+static struct glyph *
 x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
 		  int *dx, int *dy, int *area)
 {
@@ -2435,6 +2435,21 @@ x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
   *hpos = glyph - row->glyphs[*area];
   return glyph;
 }
+
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
+
+/* Find the glyph under window-relative coordinates X/Y in window W.
+   Consider only glyphs from buffer text, i.e. no glyphs from overlay
+   strings.  Return in *HPOS and *VPOS the row and column number of
+   the glyph found.  */
+
+void
+x_y_to_column_row (struct window *w, int x, int y, int *column, int *row)
+{
+  int dummy;
+  x_y_to_hpos_vpos (w, x, y, column, row, NULL, NULL, &dummy);
+}
+#endif
 
 /* Convert frame-relative x/y to coordinates relative to window W.
    Takes pseudo-windows into account.  */
@@ -12165,6 +12180,15 @@ message_log_maybe_newline (void)
     message_dolog ("", 0, true, false);
 }
 
+/* Reset the message_log_need_newline flag, for when we split the
+   message into two or more parts, and don't want a newline between
+   them.  */
+
+void
+reset_message_log_need_newline (void)
+{
+  message_log_need_newline = false;
+}
 
 /* Add a string M of length NBYTES to the message log, optionally
    terminated with a newline when NLFLAG is true.  MULTIBYTE, if
@@ -17137,8 +17161,6 @@ redisplay_internal (void)
   bool polling_stopped_here = false;
   Lisp_Object tail, frame;
 
-  redisplay_counter++;
-
   /* Set a limit to the number of retries we perform due to horizontal
      scrolling, this avoids getting stuck in an uninterruptible
      infinite loop (Bug #24633).  */
@@ -17196,6 +17218,8 @@ redisplay_internal (void)
   if (popup_activated_p)
     return;
 #endif
+
+  redisplay_counter++;
 
   /* Record a function that clears redisplaying_p
      when we leave this function.  */
@@ -37681,6 +37705,8 @@ gui_intersect_rectangles (const Emacs_Rectangle *r1, const Emacs_Rectangle *r2,
   return intersection_p;
 }
 
+# if HAVE_ANDROID
+
 /* EXPORT:
    Determine the union of the rectangles A and B.  Return the smallest
    rectangle encompassing both the bounds of A and B in *RESULT.  It
@@ -37729,6 +37755,7 @@ gui_union_rectangles (const Emacs_Rectangle *a, const Emacs_Rectangle *b,
   result->width = result_box.x2 - result_box.x1;
   result->height = result_box.y2 - result_box.y1;
 }
+# endif
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

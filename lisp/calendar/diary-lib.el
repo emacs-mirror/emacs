@@ -1400,6 +1400,9 @@ marks.  This is intended to deal with deleted diary entries."
     (calendar-redraw))
   (let ((diary-marking-entries-flag t)
         (diary-buffer (find-buffer-visiting diary-file))
+        ;; Record current calendar buffer in case this function is
+        ;; called in a calendar-mode buffer not named `calendar-buffer'.
+        (calendar-buffer (calendar-get-buffer))
         ;; Dynamically bound in diary-include-files.
         (d-incp (and (boundp 'diary-including) diary-including))
         file-glob-attrs temp-buff)
@@ -1470,7 +1473,7 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
          (file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
          m y first-date last-date date mark file-glob-attrs
          sexp-start sexp entry entry-start)
-    (with-current-buffer calendar-buffer
+    (with-current-buffer (calendar-get-buffer)
       (setq m displayed-month
             y displayed-year))
     (calendar-increment-month m y -1)
@@ -1522,7 +1525,7 @@ See also `diary-include-other-diary-files'."
   "Mark all dates in the calendar window that are day DAYNAME of the week.
 0 means all Sundays, 1 means all Mondays, and so on.
 Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
-  (with-current-buffer calendar-buffer
+  (with-current-buffer (calendar-get-buffer)
     (let ((prev-month displayed-month)
           (prev-year displayed-year)
           (succ-month displayed-month)
@@ -1557,7 +1560,7 @@ Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
   "Mark all dates in the calendar window that conform to MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard.  Optional argument COLOR is
 passed to `calendar-mark-visible-date' as MARK."
-  (with-current-buffer calendar-buffer
+  (with-current-buffer (calendar-get-buffer)
     (let ((m displayed-month)
           (y displayed-year))
       (calendar-increment-month m y -1)
@@ -1601,7 +1604,7 @@ Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
 The function FROMABS converts absolute dates to the appropriate date system.
 The function TOABS carries out the inverse operation.  Optional argument
 COLOR is passed to `calendar-mark-visible-date' as MARK."
-  (with-current-buffer calendar-buffer
+  (with-current-buffer (calendar-get-buffer)
     (if (and (not (zerop month)) (not (zerop day)))
         (if (not (zerop year))
             ;; Fully specified date.

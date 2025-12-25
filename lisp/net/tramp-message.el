@@ -56,7 +56,6 @@
 (defvar tramp-repository-branch)
 (defvar tramp-repository-version)
 
-;;;###tramp-autoload
 (defcustom tramp-verbose 3
   "Verbosity level for Tramp messages.
 Any level x includes messages for all levels 1 .. x-1.  The levels are
@@ -173,6 +172,7 @@ They are completed by `M-x TAB' only in Tramp debug buffers."
   (use-local-map special-mode-map)
   (set-buffer-modified-p nil)
   ;; For debugging purposes.
+  ;(add-hook 'kill-buffer-hook #'debug nil 'local)
   (local-set-key "\M-n" 'clone-buffer)
   (add-hook 'clone-buffer-hook #'tramp-setup-debug-buffer nil 'local))
 
@@ -194,11 +194,13 @@ They are completed by `M-x TAB' only in Tramp debug buffers."
       (tramp-setup-debug-buffer))
     (current-buffer)))
 
+;; On some systems, file names starting with "*" do not work.
 (defun tramp-get-debug-file-name (vec)
   "Get the debug file name for VEC."
   (declare (tramp-suppress-trace t))
   (expand-file-name
-   (string-replace "/" " " (tramp-debug-buffer-name vec))
+   (string-replace
+    "/" " " (substring (tramp-debug-buffer-name vec) 1 -1))
    tramp-compat-temporary-file-directory))
 
 (defun tramp-trace-buffer-name (vec)
@@ -227,13 +229,12 @@ ARGUMENTS to actually emit the message (if applicable)."
 	    ";; Emacs: %s Tramp: %s -*- mode: outline; coding: utf-8; -*-"
 	    emacs-version tramp-version))
 	  (when (>= tramp-verbose 10)
-	    (let ((tramp-verbose 0))
-	      (insert
-	       (format
-		"\n;; Location: %s Git: %s/%s"
-		(locate-library "tramp")
-		(or tramp-repository-branch "")
-		(or tramp-repository-version "")))))
+	    (insert
+	     (format
+	      "\n;; Location: %s Git: %s/%s"
+	      (locate-library "tramp")
+	      (or tramp-repository-branch "")
+	      (or tramp-repository-version ""))))
 	  ;; Traces.
 	  (when (>= tramp-verbose 11)
 	    (dolist
@@ -249,7 +250,7 @@ ARGUMENTS to actually emit the message (if applicable)."
 	    (ignore-errors (delete-file (tramp-get-debug-file-name vec)))
 	    (let ((message-log-max t))
 	      (message
-	       "Tramp debug file is %s" (tramp-get-debug-file-name vec)))))
+	       "Tramp debug file is \"%s\"" (tramp-get-debug-file-name vec)))))
 	(unless (bolp)
 	  (insert "\n"))
 	;; Timestamp.

@@ -28,6 +28,10 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define DEFER_MS_W32_H
+/* We don't want to use the stdio-consolesafe redefinitions of *printf
+   functions, since (a) that pulls in stdio, which we don't want, see
+   below; and (b) we have our own implementations of *printf here.  */
+#define OMIT_CONSOLESAFE 1
 #include <config.h>
 
 #include <windows.h>

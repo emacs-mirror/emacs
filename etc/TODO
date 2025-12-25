@@ -547,6 +547,34 @@ One way of doing this is to start with fx's dynamic loading, and use it
 to implement things like auto-loaded buffer parsers and database
 access in cases which need more than Lisp.
 
+** In Info, support image files generated from @math expressions
+See this discussion on the Texinfo mailing list for the details:
+
+ https://lists.gnu.org/archive/html/bug-texinfo/2024-12/msg00061.html
+ https://lists.gnu.org/archive/html/bug-texinfo/2025-01/msg00004.html
+ https://lists.gnu.org/archive/html/bug-texinfo/2025-11/msg00002.html
+
+The job here is to figure out the image attributes that will produce
+good-looking display of math formulas in images created by LaTeX from
+Texinfo @math elements.  The above discussion concluded that just
+showing these images as any other image sometimes produces misaligned
+display and sometimes the size of the image needs tweaking to make it
+similar to the default face's font used for showing the text in Info
+buffers.  The assumption is that using some non-default attributes of
+image specs, like :ascent, :margin, and :height, and perhaps also using
+:scale with the value 'auto', should be able to improve the display.
+The conclusions should be communicated to the Texinfo developers, so
+that 'makeinfo' could embed the necessary image attributes in the Info
+output it produces from @math.
+
+The function in info.el which handles image display is
+'Info-display-images-node'.
+
+The message below in Texinfo mailing list archives includes files that
+could be used to work in this feature:
+
+  https://lists.gnu.org/archive/html/bug-texinfo/2025-11/msg00012.html
+
 ** Imenu could be extended into a file-structure browsing mechanism
 This could use code like that of customize-groups.
 

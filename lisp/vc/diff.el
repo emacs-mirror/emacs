@@ -118,13 +118,18 @@ Non-interactively, OLD and NEW may each be a file or a buffer."
   (display-buffer
    (diff-no-select old new switches no-async)))
 
+(defvar diff--coding-system-for-buffer nil
+  "Used to pass buffer text encoding from `multi-file-diff-no-select'.")
+
 (defun diff-file-local-copy (file-or-buf)
   "Like `file-local-copy' but also supports a buffer as the argument.
 When FILE-OR-BUF is a buffer, return the filename of a local
 temporary file with the buffer's contents."
   (if (bufferp file-or-buf)
       (with-current-buffer file-or-buf
-        (let ((tempfile (make-temp-file "buffer-content-")))
+        (let ((tempfile (make-temp-file "buffer-content-"))
+              (coding-system-for-write (or diff--coding-system-for-buffer
+                                           coding-system-for-write)))
           (if diff-entire-buffers
               (write-region nil nil tempfile nil 'nomessage)
             (write-region (point-min) (point-max) tempfile nil 'nomessage))

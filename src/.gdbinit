@@ -50,6 +50,9 @@ if defined_HAVE_PGTK
   handle SIGPIPE nostop noprint
 end
 
+# Helper command to get the pointer to the C struct that holds the data
+# of a Lisp object given as argument, by removing the GC and type-tag bits.
+# Stores the result in $ptr.
 # Use $bugfix so that the value isn't a constant.
 # Using a constant runs into GDB bugs sometimes.
 define xgetptr
@@ -61,6 +64,8 @@ define xgetptr
   set $ptr = (EMACS_INT) $bugfix & VALMASK
 end
 
+# Helper command to extract the C integer value of a Lisp fixnum given as argument.
+# Stores the result in $int.
 define xgetint
   if (CHECK_LISP_OBJECT_TYPE)
     set $bugfix = $arg0.i
@@ -70,6 +75,9 @@ define xgetint
   set $int = (EMACS_INT) $bugfix << (USE_LSB_TAG ? 0 : INTTYPEBITS) >> INTTYPEBITS
 end
 
+# Helper command to produce the type of a Lisp_Object, given as argument,
+# as a value from the 'Lisp_Type' enumeration.
+# Stores the result in $type.
 define xgettype
   if (CHECK_LISP_OBJECT_TYPE)
     set $bugfix = $arg0.i
@@ -79,6 +87,9 @@ define xgettype
   set $type = (enum Lisp_Type) (USE_LSB_TAG ? (EMACS_INT) $bugfix & (1 << GCTYPEBITS) - 1 : (EMACS_UINT) $bugfix >> VALBITS)
 end
 
+# Helper command to get the pointer to 'struct Lisp_Symbol'
+# corresponding to the Lisp object given as argument.
+# Stores the result in $ptr.
 define xgetsym
   xgetptr $arg0
   set $ptr = ((struct Lisp_Symbol *) ((char *) &lispsym + $ptr))
@@ -132,6 +143,10 @@ end
 # an rr session and during live debugging. Calls into lisp.
 define xfmt
   printf "%s\n", debug_format("%S", $arg0)
+end
+document xfmt
+Format the argument Lisp value using %S as format, and print it.
+Works only when an inferior emacs is executing.
 end
 
 # Print out current buffer point and boundaries
@@ -1117,6 +1132,10 @@ document xpr
 Print $ as a lisp object of any type.
 end
 
+# Helper command to print the text of a Lisp string given as argument.
+# Stores the pointer to the C string data in $data and its length in
+# characters (excluding the terminating null) in $strsize.
+# Prints "0" for empty strings and strings longer than 1000 characters.
 define xprintstr
   if (! $arg0)
     output "DEAD"

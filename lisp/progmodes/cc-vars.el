@@ -1302,7 +1302,7 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: Boi at the func decl arglist open.
        (member-init-cont      . c-lineup-multi-inher)
        ;; Anchor pos: Beg of the first member init.
-       (class-field-cont      . +)
+       (class-field-cont      . c-lineup-class-field-cont)
        ;; Anchor pos: BOI of the line containing the class keyword.
        ;; 2nd pos: At the open brace.
        (inher-intro           . +)

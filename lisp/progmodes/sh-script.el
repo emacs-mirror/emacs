@@ -1649,8 +1649,7 @@ not written in Bash or sh."
 (derived-mode-add-parents 'bash-ts-mode '(sh-mode))
 
 ;;;###autoload
-(when (treesit-available-p)
-  (defvar treesit-major-mode-remap-alist)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'treesit-major-mode-remap-alist
                '(sh-mode . bash-ts-mode)))
 
@@ -3360,7 +3359,7 @@ See `sh-mode--treesit-other-keywords' and
    :feature 'command
    :language 'bash
    `(;; function/non-builtin command calls
-     (command_name (word) @font-lock-function-name-face)
+     (command_name (word) @font-lock-function-call-face)
      ;; builtin commands
      (command_name
       ((word) @font-lock-builtin-face

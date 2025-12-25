@@ -32,7 +32,7 @@
 (require 'add-log)			; for all the ChangeLog goodies
 (require 'pcvs-util)
 (require 'ring)
-(require 'message)
+(require 'cl-lib)
 
 ;;;;
 ;;;; Global Variables
@@ -65,8 +65,7 @@
   "M-p"     #'log-edit-previous-comment
   "M-r"     #'log-edit-comment-search-backward
   "M-s"     #'log-edit-comment-search-forward
-  "C-c ?"   #'log-edit-mode-help
-  "<remap> <move-beginning-of-line>" #'log-edit-beginning-of-line)
+  "C-c ?"   #'log-edit-mode-help)
 
 (easy-menu-define log-edit-menu log-edit-mode-map
   "Menu used for `log-edit-mode'."
@@ -561,8 +560,12 @@ done.  Otherwise, this function will use the current buffer."
       (erase-buffer)
       (run-hooks 'log-edit-hook))
     (push-mark (point-max))
-    (message "%s" (substitute-command-keys
-	      "Press \\[log-edit-done] when you are done editing."))))
+    ;; `vc-start-logentry' already emits a message; avoid a duplicate,
+    ;; and ensure we don't emit one at all in the case of doing the
+    ;; action immediately.
+    (unless mode
+      (message "%s" (substitute-command-keys
+	             "Press \\[log-edit-done] when you are done editing.")))))
 
 (define-derived-mode log-edit-mode text-mode "Log-Edit"
   "Major mode for editing version-control (VC) commit log messages.
@@ -898,7 +901,7 @@ visible when the *vc-log* buffer pops up."
     (save-selected-window
       (let ((display-buffer-overriding-action '(nil
                                                 . ((inhibit-same-window . t)))))
-       (funcall log-edit-diff-function)))))
+        (funcall log-edit-diff-function)))))
 
 (defun log-edit-show-files ()
   "Show the list of files to be committed."
@@ -912,20 +915,12 @@ visible when the *vc-log* buffer pops up."
       (cvs-insert-strings files)
       (special-mode)
       (goto-char (point-min))
-      (save-selected-window
-	(cvs-pop-to-buffer-same-frame buf)
-	(shrink-window-if-larger-than-buffer)
-        (set-window-dedicated-p (selected-window) t)
-	(selected-window)))))
-
-(defun log-edit-beginning-of-line (&optional n)
-  "Move point to beginning of header value or to beginning of line.
-
-It works the same as `message-beginning-of-line', but it uses a
-different header separator appropriate for `log-edit-mode'."
-  (interactive "p")
-  (let ((mail-header-separator ""))
-    (message-beginning-of-line n)))
+      (display-buffer buf '((display-buffer-below-selected)
+                            (dedicated . t)
+                            (window-height . shrink-window-if-larger-than-buffer)
+                            (inhibit-same-window . t)
+                            (reusable-frames . nil)
+                            (inhibit-switch-frame . t))))))
 
 (defun log-edit-empty-buffer-p ()
   "Return non-nil if the buffer is \"empty\"."
@@ -1063,20 +1058,29 @@ names into a single entry where they all share the same description.
 Should you need to look at the diffs themselves, they can be found
 in the \"*vc-diff*\" buffer produced by this command."
   (interactive)
-  (change-log-insert-entries
-   (with-current-buffer
-       (let* ((diff-buf nil)
-              ;; Unfortunately, `log-edit-show-diff' doesn't have a
-              ;; NO-SHOW option, so we try to work around it via
-              ;; display-buffer machinery.
-              (display-buffer-overriding-action
-               `(,(lambda (buf alist)
-                    (setq diff-buf buf)
-                    (display-buffer-no-window buf alist))
-                 . ((allow-no-window . t)))))
-         (log-edit-show-diff)
-         diff-buf)
-     (diff-add-log-current-defuns))))
+  (let* ((entries
+          (with-current-buffer
+              (let* ((diff-buf nil)
+                     ;; Unfortunately, `log-edit-show-diff' doesn't have a
+                     ;; NO-SHOW option, so we try to work around it via
+                     ;; display-buffer machinery.
+                     (display-buffer-overriding-action
+                      `(,(lambda (buf alist)
+                           (setq diff-buf buf)
+                           (display-buffer-no-window buf alist))
+                        . ((allow-no-window . t)))))
+                (log-edit-show-diff)
+                diff-buf)
+            (diff-add-log-current-defuns)))
+         (single-line-summary
+          (and (length= entries 1)
+               (length< (cdar entries) 2)
+               (< (point) (save-excursion (rfc822-goto-eoh) (point)))
+               (save-excursion (forward-line 0) (looking-at "Summary:")))))
+    (change-log-insert-entries entries)
+    (when single-line-summary
+      (delete-char -1)
+      (insert " "))))
 
 (defun log-edit-insert-changelog (&optional use-first)
   "Insert a VC commit log message by looking at the ChangeLog.

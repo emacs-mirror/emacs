@@ -385,8 +385,7 @@ third element of SEQUENCE, etc.  FUNCTION will be called with
 INITIAL-VALUE (and then the accumulated value) as the first
 argument, and the elements from SEQUENCE as the second argument.
 
-If SEQUENCE is empty, return INITIAL-VALUE and FUNCTION is not called.
-
+If SEQUENCE is empty, return INITIAL-VALUE without calling FUNCTION.
 This does not modify SEQUENCE."
   (if (seq-empty-p sequence)
       initial-value
@@ -568,7 +567,7 @@ This does not modify SEQUENCE1 or SEQUENCE2."
 
 ;;;###autoload
 (cl-defgeneric seq-intersection (sequence1 sequence2 &optional testfn)
-  "Return a list of all the elements that appear in both SEQUENCE1 and SEQUENCE2.
+  "Return copy of SEQUENCE1 with elements that appear in SEQUENCE2 removed.
 \"Equality\" of elements is defined by the function TESTFN, which
 defaults to `equal'.
 This does not modify SEQUENCE1 or SEQUENCE2."

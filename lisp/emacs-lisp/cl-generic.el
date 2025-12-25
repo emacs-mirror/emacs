@@ -122,12 +122,25 @@ NAME is the name of the variable that will hold it.
 PRIORITY defines which generalizer takes precedence.
   The catch-all generalizer has priority 0.
   Then `eql' generalizer has priority 100.
-TAGCODE-FUNCTION takes as first argument a varname and should return
-  a chunk of code that computes the tag of the value held in that variable.
+TAGCODE-FUNCTION takes as first argument VALVAR which is a symbol
+  and it should return a chunk of code that computes the tag of the value
+  held in VALVAR.
   Further arguments are reserved for future use.
 SPECIALIZERS-FUNCTION takes as first argument a tag value TAG
   and should return a list of specializers that match TAG.
-  Further arguments are reserved for future use."
+  Further arguments are reserved for future use.
+
+When called with a single argument, TAGCODE-FUNCTION can return
+`:need-specializers', to means this generalizer needs to know the list of
+its own specializers that are applicable to the current dispatch.
+In that case, TAGCODE-FUNCTION receives as second argument SPECSVAR,
+the name of a variable that will hold the list of those specializers and
+it should return a pair (BINDINGS . TAGCODE) where BINDINGS is a list
+of (VAR FORM) that will be placed (in reverse order) in a `let*' and can
+refer to SPECSVAR to precompute any data TAGCODE may need.
+TAGCODE can refer to any of those bindings in addition to VALVAR.
+Furthermore, the value of the first VAR (or SPECSVAR, in its absence) is
+also passed as second argument to SPECIALIZERS-FUNCTION."
   (declare (indent 1) (debug (symbolp body)))
   `(defconst ,name
      (cl-generic-make-generalizer
@@ -683,6 +696,48 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
     ;; see `cl--generic-prefill-dispatchers'.
     #'byte-compile))
 
+(defun cl--generic-collect-specializers (methods dispatch-arg)
+  "Return the list of specializers used by METHODS at position DISPATCH-ARG.
+Every element of the list is of the form (SPECIALIZER .  GENERALIZERS)."
+  (let ((specializers ()))
+    (dolist (method methods)
+      (let ((specializer (cl--generic-arg-specializer method dispatch-arg)))
+        (unless (assoc specializer specializers)
+          (push (cons specializer (cl-generic-generalizers specializer))
+                specializers))))
+    specializers))
+
+(defun cl--generic-filter-specializers (specializers generalizer)
+  "Return those SPECIALIZERS which use GENERALIZER.
+SPECIALIZERS is as returned by `cl--generic-collect-specializers'."
+  (let ((res ()))
+    (dolist (spec+gens specializers)
+      (when (memq generalizer (cdr spec+gens))
+        (push (car spec+gens) res)))
+    res))
+
+(defun cl--generic--tagcode-with-specializers
+    (generalizer dispatch-arg outer-bindings)
+  (unless outer-bindings
+    (push `(specializers
+            (cl--generic-collect-specializers
+             methods ',dispatch-arg))
+          outer-bindings))
+  (let* ((our-specializers
+          (gensym "our-specializers"))
+         (binding+code
+          (funcall
+           (cl--generic-generalizer-tagcode-function
+            generalizer)
+           'arg our-specializers)))
+    (cons (append (car binding+code)
+                  (cons
+                   `(,our-specializers
+                     (cl--generic-filter-specializers
+                      specializers ',generalizer))
+                   outer-bindings))
+          (cdr binding+code))))
+
 (defun cl--generic-get-dispatcher (dispatch)
   (with-memoization
       ;; We need `copy-sequence` here because this `dispatch' object might be
@@ -708,26 +763,39 @@ You might need to add: %S"
     (let* ((dispatch-arg (car dispatch))
            (generalizers (cdr dispatch))
            (lexical-binding t)
+           (outer-bindings nil)
            (tagcodes
             (mapcar (lambda (generalizer)
-                      (funcall (cl--generic-generalizer-tagcode-function
-                                generalizer)
-                               'arg))
+                      (let ((code (funcall
+                                   (cl--generic-generalizer-tagcode-function
+                                    generalizer)
+                                   'arg))
+                            (extra-args nil))
+                        (when (eq code :need-specializers)
+                          (let* ((binding+code
+                                  (cl--generic--tagcode-with-specializers
+                                   generalizer dispatch-arg outer-bindings)))
+                            (setq outer-bindings (car binding+code))
+                            (setq code (cdr binding+code))
+                            ;; Pass the most recent binding (which defaults to
+                            ;; the list of specializers of interest) to the
+                            ;; function that recovers the types from the tag,
+                            ;; in case it helps.
+                            (setq extra-args (list (caar outer-bindings)))))
+                        `(,generalizer ,code ,@extra-args)))
                     generalizers))
            (typescodes
             (mapcar
-             (lambda (generalizer)
+             (lambda (gen+code+args)
                `(funcall ',(cl--generic-generalizer-specializers-function
-                            generalizer)
-                         ,(funcall (cl--generic-generalizer-tagcode-function
-                                    generalizer)
-                                   'arg)))
-             generalizers))
+                            (car gen+code+args))
+                         ,@(cdr gen+code+args)))
+             tagcodes))
+           (tagcodes (mapcar #'cadr tagcodes))
            (tag-exp
-            ;; Minor optimization: since this tag-exp is
-            ;; only used to lookup the method-cache, it
-            ;; doesn't matter if the default value is some
-            ;; constant or nil.
+            ;; Minor optimization: since this tag-exp is used only to
+            ;; lookup the method-cache, it doesn't matter if the default
+            ;; value is some constant or nil.
             `(or ,@(if (macroexp-const-p (car (last tagcodes)))
                        (butlast tagcodes)
                      tagcodes)))
@@ -746,7 +814,8 @@ You might need to add: %S"
       (funcall
        cl--generic-compiler
        `(lambda (generic dispatches-left methods)
-          (let ((method-cache (make-hash-table :test #'eql)))
+          (let* ((method-cache (make-hash-table :test #'eql))
+                 ,@(nreverse outer-bindings))
             (lambda (,@fixedargs &rest args)
               (let ,bindings
                 (apply (with-memoization
@@ -978,7 +1047,7 @@ those methods.")
       ('cl--generic-eql-generalizer '(eql 'x))
       ('cl--generic-struct-generalizer 'cl--generic)
       ('cl--generic-typeof-generalizer 'integer)
-      ('cl--generic-derived-generalizer '(derived-mode c-mode))
+      ('cl--generic-derived-mode-generalizer '(derived-mode c-mode))
       ('cl--generic-oclosure-generalizer 'oclosure)
       (_ x))))
 
@@ -1397,19 +1466,19 @@ This currently works for built-in types and types built on top of records."
 ;;   "&context (major-mode c-mode)" rather than
 ;;   "&context (major-mode (derived-mode c-mode))".
 
-(defun cl--generic-derived-specializers (mode &rest _)
+(defun cl--generic-derived-mode-specializers (mode &rest _)
   ;; FIXME: Handle (derived-mode <mode1> ... <modeN>)
   (mapcar (lambda (mode) `(derived-mode ,mode))
           (derived-mode-all-parents mode)))
 
-(cl-generic-define-generalizer cl--generic-derived-generalizer
-  90 (lambda (name) `(and (symbolp ,name) (functionp ,name) ,name))
-  #'cl--generic-derived-specializers)
+(cl-generic-define-generalizer cl--generic-derived-mode-generalizer
+  90 (lambda (name &rest _) `(and (symbolp ,name) (functionp ,name) ,name))
+  #'cl--generic-derived-mode-specializers)
 
 (cl-defmethod cl-generic-generalizers ((_specializer (head derived-mode)))
   "Support for (derived-mode MODE) specializers.
 Used internally for the (major-mode MODE) context specializers."
-  (list cl--generic-derived-generalizer))
+  (list cl--generic-derived-mode-generalizer))
 
 (cl-generic-define-context-rewriter major-mode (mode &rest modes)
   `(major-mode ,(if (consp mode)

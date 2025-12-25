@@ -1094,10 +1094,11 @@ the @code{\ctable} macro (from @file{ctable.sty})
 @cindex @code{\endnote}, LaTeX macro
 the @code{\endnote} macro (from @file{endnotes.sty})
 @item
-@cindex @code{floatfig}, LaTeX package
-@cindex LaTeX packages, @code{floatfig}
-@cindex @code{floatingfig}, LaTeX environment
-@code{floatingfig} (@file{floatfig.sty})
+@cindex @code{floatflt}, LaTeX package
+@cindex LaTeX packages, @code{floatflt}
+@cindex @code{floatingfigure}, LaTeX environment
+@cindex @code{floatingtable}, LaTeX environment
+@code{floatingfigure}, @code{floatingtable} (@file{floatflt.sty})
 @item
 @cindex @code{minted}, LaTeX package
 @cindex LaTeX packages, @code{minted}

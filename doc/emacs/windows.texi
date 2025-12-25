@@ -413,8 +413,9 @@ Reference Manual}.
 
   Commands with names ending in @code{-other-window} behave like
 @code{display-buffer}, except that they never display in the selected
-window.  Several of these commands are bound in the @kbd{C-x 4} prefix
-key (@pxref{Pop Up Window}).
+window, perhaps splitting the selected window to create a new one
+(@pxref{Window Choice}).  Several of these commands are bound in the
+@kbd{C-x 4} prefix key (@pxref{Pop Up Window}).
 
   Commands with names ending in @code{-other-frame} behave like
 @code{display-buffer}, except that they (i) never display in the

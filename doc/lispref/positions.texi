@@ -849,6 +849,8 @@ a defun.  The function @code{end-of-defun} calls this function instead
 of using its normal method.
 @end defvar
 
+@cindex motion using tree-sitter
+@cindex navigation by defun, using tree-sitter
 @findex treesit-beginning-of-defun
 @findex treesit-end-of-defun
 If Emacs is compiled with tree-sitter, it can use the tree-sitter
@@ -885,6 +887,7 @@ nested defuns.
 @findex backward-sentence
 @vindex forward-sentence-function
 @cindex sentence, in program source files
+@cindex navigation by sentence, using tree-sitter
 The function that is the value of the variable
 @code{forward-sentence-function} determines how to move across syntax
 constructs known as @dfn{sentences}.  Major modes can assign their own

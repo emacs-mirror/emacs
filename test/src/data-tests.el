@@ -797,6 +797,8 @@ comparing the subr with a much slower Lisp implementation."
   (should (= (ash (* 2 most-negative-fixnum) (* 2 most-negative-fixnum)) -1))
   (should (= (ash (* 2 most-negative-fixnum) -1)
 	     most-negative-fixnum))
+  (should (= (ash 1 48) #x1000000000000))
+  (should (= (ash 1 72) #x1000000000000000000))
   (with-suppressed-warnings ((suspicious lsh))
     (should (= (lsh most-negative-fixnum 1)
                (* most-negative-fixnum 2)))

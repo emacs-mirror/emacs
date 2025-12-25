@@ -124,7 +124,7 @@ buffer, Emacs displays the directory listing of the parent directory
 and places point on the line that corresponds to the directory where
 you invoked @code{dired-jump}.  Typing @kbd{C-x 4 C-j}
 (@code{dired-jump-other-window}) has the same effect, but displays the
-Dired buffer in a new window.
+Dired buffer in a new window (@pxref{Window Choice}).
 
   The variable @code{dired-listing-switches} specifies the options to
 give to @command{ls} for listing the directory; this string
@@ -136,15 +136,57 @@ options (that is, single characters) requiring no arguments, and long
 options (starting with @samp{--}) whose arguments are specified with
 @samp{=}.
 
-  Dired does not handle files that have names with embedded newline
-characters well.  If you have many such files, you may consider adding
-@samp{-b} to @code{dired-listing-switches}.  This will quote all
-special characters and allow Dired to handle them better.  (You can
-also use the @kbd{C-u C-x d} command to add @samp{-b} temporarily.)
+You can declare @code{dired-listing-switches} as a connection-local
+variable in order to adjust its value to match what a remote system
+expects (@pxref{Connection Variables}).
 
-@code{dired-listing-switches} can be declared as connection-local
-variable to adjust it to match what a remote system expects
-(@pxref{Connection Variables}).
+@cindex file names with newline character in Dired
+@cindex newline character in file names in Dired
+@anchor{File names with newline}
+  When a file name contains a newline character, Dired displays it by
+default as a literal newline, so the display of this file name occupies
+more than one line in the Dired buffer.  If you invoke a Dired operation
+on such a file listing, in many cases it will fail and signal an error.
+For this reason, when Dired displays a file name containing a literal
+newline, Emacs recognizes this and automatically pops up a buffer with
+an informative warning.  For such file names, Dired offers an
+alternative display, using the @command{ls} switch @samp{-b}, in which
+newline characters are represented by @samp{\n} and the Dired listing of
+the file occupies one line as usual, so you can execute all applicable
+Dired operations on it.@footnote{Note that with the @samp{-b} switch
+Dired displays tab characters in file names as @samp{\t} and escapes
+other control characters and also spaces in file names with @samp{\}.}
+
+  Emacs provides two different ways to make Dired use the @samp{-b}
+switch:
+
+@itemize @bullet
+@item
+You can add @samp{-b} to @code{dired-listing-switches} before invoking
+@code{dired}.  Since this variable is a user option, you can alter its
+value persistently either by using the Customization interface
+(@pxref{Saving Customizations}) or by using the @code{setopt} macro in
+your initialization file (@pxref{Examining}).@footnote{If
+@code{dired-listing-switches} contains @samp{-b} when you invoke dired
+on a directory containing a file name with a newline, the newline is
+displayed as @samp{\n}, so Emacs will not pop up a warning.}  You can
+also add @samp{-b} just for the next @code{dired} invocation by typing
+@kbd{C-u C-x d}.
+
+@item
+@vindex dired-auto-toggle-b-switch
+If you enable the user option @code{dired-auto-toggle-b-switch}, then
+when you visit a directory containing a file whose name has a newline,
+Emacs will automatically add the @samp{-b} switch and redisplay the
+directory in Dired to show @samp{\n} in the file name.  If you edit the
+file name and remove the @samp{\n} character, then on completing the
+edit Emacs automatically removes the @samp{-b} switch and redisplays the
+Dired buffer, so that file names with tab or space characters now show
+literal spaces without a backslash.  If you enable or disable
+@code{dired-auto-toggle-b-switch} after visiting a directory containing
+a file name with a newline, Emacs will add or remove the @samp{-b}
+switch as appropriate and automatically redisplay the Dired buffer.
+@end itemize
 
 @vindex dired-switches-in-mode-line
   Dired displays in the mode line an indication of what were the
@@ -182,7 +224,7 @@ peculiarities of this emulation.
   To display the Dired buffer in another window, use @kbd{C-x 4 d}
 (@code{dired-other-window}).  @kbd{C-x 5 d}
 (@code{dired-other-frame}) displays the Dired buffer in a separate
-frame.
+frame.  @xref{Window Choice}.
 
 @kindex q @r{(Dired)}
 @findex quit-window@r{, in Dired buffers}
@@ -435,7 +477,8 @@ that of an alternate file or directory (@code{dired-find-alternate-file}).
 @item o
 @kindex o @r{(Dired)}
 @findex dired-find-file-other-window
-Like @kbd{f}, but uses another window to display the file's buffer
+Like @kbd{f}, but uses another window (@pxref{Window Choice}) to display
+the file's buffer
 (@code{dired-find-file-other-window}).  The Dired buffer remains visible
 in the first window.  This is like using @kbd{C-x 4 C-f} to visit the
 file.  @xref{Windows}.

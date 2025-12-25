@@ -393,7 +393,8 @@ See also the option `recentf-auto-cleanup'.")
 (defun recentf-auto-cleanup ()
   "Automatic cleanup of the recent list."
   (when (timerp recentf-auto-cleanup-timer)
-    (cancel-timer recentf-auto-cleanup-timer))
+    (cancel-timer recentf-auto-cleanup-timer)
+    (setq recentf-auto-cleanup-timer nil))
   (when recentf-mode
     (setq recentf-auto-cleanup-timer
           (cond
@@ -1353,6 +1354,41 @@ Optional argument N must be a valid digit number.  It defaults to 1.
 
 ;;; Save/load/cleanup the recent list
 ;;
+(defvar recentf--autosave-timer nil)
+
+(defun recentf--cancel-autosave-timer ()
+  "Cancel `recentf--autosave-timer', if set."
+  (when (timerp recentf--autosave-timer)
+    (cancel-timer recentf--autosave-timer))
+  (setq recentf--autosave-timer nil))
+
+(defvar recentf-autosave-interval)
+
+(defun recentf--manage-autosave-timer ()
+  "Set or cancel an invocation of `recentf-save-list' on a timer.
+If `recentf-mode' is enabled, set the timer, otherwise cancel the timer."
+  (if (and recentf-mode
+           recentf-autosave-interval
+           (null recentf--autosave-timer))
+      (setq recentf--autosave-timer
+	    (run-with-timer
+             recentf-autosave-interval
+	     recentf-autosave-interval #'recentf-save-list))
+    (recentf--cancel-autosave-timer)))
+
+(defcustom recentf-autosave-interval nil
+  "The interval between auto saves of recently opened files.
+If set to nil, disables timer-based auto saving.
+Do not set this variable via `setq', use either `setopt' or
+`customize-option' instead."
+  :type '(choice (const :tag "Disabled" nil)
+                 (integer :tag "Auto-save interval in seconds"))
+  :version "31.1"
+  :set (lambda (sym val)
+         (set-default sym val)
+         (recentf--cancel-autosave-timer)
+         (recentf--manage-autosave-timer)))
+
 (defconst recentf-save-file-header
   ;; FIXME: This should arguably be a `lisp-data' file, but currently
   ;; it contains and is used as an executable Elisp code.
@@ -1469,6 +1505,7 @@ buffers you switch to a lot, you can say something like the following:
       (recentf-hide-menu)
       (recentf-save-list))
     (recentf-auto-cleanup)
+    (recentf--manage-autosave-timer)
     (let ((hook-setup (if recentf-mode 'add-hook 'remove-hook)))
       (dolist (hook recentf-used-hooks)
         (apply hook-setup hook)))))

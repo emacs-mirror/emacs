@@ -387,6 +387,61 @@ not just rely on the truncation effect unless @var{n} is known to be
 positive.
 @end defun
 
+@defun drop-while pred list
+This function skips leading list elements for which the predicate @var{pred}
+returns non-@code{nil}, and returns the rest.
+
+@example
+@group
+(drop-while #'numberp '(1 2 a b 3 4))
+     @result{} (a b 3 4)
+@end group
+@end example
+@end defun
+
+@defun take-while pred list
+This function returns the leading list elements for which the predicate
+@var{pred} returns non-@code{nil}, and ignores the rest.
+
+In general,
+@code{(append (take-while @var{p} @var{list}) (drop-while @var{p} @var{list}))}
+will return a list equal to @var{list}.
+
+@example
+@group
+(take-while #'numberp '(1 2 a b 3 4))
+     @result{} (1 2)
+@end group
+@end example
+@end defun
+
+@defun all pred list
+This function returns @code{t} if @var{pred} is true for all elements in
+@var{list}.
+
+@example
+@group
+(all #'numberp '(1 2 3 4))     @result{} t
+(all #'numberp '(1 2 a b 3 4)) @result{} nil
+(all #'numberp '())            @result{} t
+@end group
+@end example
+@end defun
+
+@defun any pred list
+This function returns non-@code{nil} if @var{pred} is true for at least
+one element in @var{list}.  The returned value is the longest @var{list}
+suffix whose first element satisfies @var{pred}.
+
+@example
+@group
+(any #'symbolp '(1 2 3 4))     @result{} nil
+(any #'symbolp '(1 2 a b 3 4)) @result{} (a b 3 4)
+(any #'symbolp '())            @result{} nil
+@end group
+@end example
+@end defun
+
 @defun last list &optional n
 This function returns the last link of @var{list}.  The @code{car} of
 this link is the list's last element.  If @var{list} is null,
