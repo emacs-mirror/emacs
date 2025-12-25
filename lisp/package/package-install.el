@@ -1050,6 +1050,24 @@ untar into a directory named DIR; otherwise, signal an error."
         (tar-untar-buffer))
     (fundamental-mode)))
 
+(defun package-review-p (pkg-desc)
+  "Return non-nil if upgrading PKG-DESC requires a review.
+This package consults `package-review-policy' to determine if the user
+wants to review the package prior to installation.  See `package-review'."
+  (let ((archive (package-desc-archive pkg-desc))
+        (name (package-desc-name pkg-desc)))
+    (pcase-exhaustive package-review-policy
+      ((and (pred listp) list)
+       (xor (any (lambda (ent)
+                   (pcase ent
+                     ((or `(archive . ,(pred (equal archive)))
+                          `(package . ,(pred (eq name))))
+	              t)
+                     (_ nil)))
+                 (if (eq (car list) 'not) (cdr list) list))
+            (eq (car list) 'not)))
+      ('t t))))
+
 (defun package-review (pkg-desc pkg-dir old-desc)
   "Review the installation of PKG-DESC.
 PKG-DIR is the directory where the downloaded source of PKG-DIR have
@@ -1096,12 +1114,18 @@ The argument PKG-DESC contains metadata of the yet to be installed
 package.  The function returns a `package-desc' object of the actually
 installed package."
   (let* ((name (package-desc-name pkg-desc))
-         (dirname (package-desc-full-name pkg-desc))
-         (pkg-dir (expand-file-name dirname package-user-dir))
+         (full-name (package-desc-full-name pkg-desc))
+         (pkg-dir (expand-file-name full-name package-user-dir))
+         (review-p (package-review-p pkg-desc))
+         (unpack-dir (if review-p
+                         (let* ((temporary-file-directory (xdg-cache-home))
+                                (tmp (make-temp-file "package-review" t)))
+                           (expand-file-name full-name tmp))
+                       pkg-dir))
          (old-desc (package--get-activatable-pkg name)))
+    (make-directory unpack-dir t)
     (pcase (package-desc-kind pkg-desc)
       ('dir
-       (make-directory pkg-dir t)
        (let ((file-list
               (or (and (derived-mode-p 'dired-mode)
                        (dired-get-marked-files nil 'marked))
@@ -1109,7 +1133,7 @@ installed package."
          (dolist (source-file file-list)
            (let ((target (expand-file-name
                           (file-relative-name source-file default-directory)
-                          pkg-dir)))
+                          unpack-dir)))
              (make-directory (file-name-directory target) t)
              (copy-file source-file target t)))
          ;; Now that the files have been installed, this package is
@@ -1118,28 +1142,19 @@ installed package."
          (setf (package-desc-kind pkg-desc)
                (if (length> file-list 1) 'tar 'single))))
       ('tar
-       (make-directory package-user-dir t)
-       (let* ((default-directory (file-name-as-directory package-user-dir)))
-         (package-untar-buffer dirname)))
+       (let ((default-directory (file-name-directory unpack-dir)))
+         (package-untar-buffer (file-name-nondirectory unpack-dir))))
       ('single
-       (let ((el-file (expand-file-name (format "%s.el" name) pkg-dir)))
-         (make-directory pkg-dir t)
+       (let ((el-file (expand-file-name (format "%s.el" name) unpack-dir)))
          (package--write-file-no-coding el-file)))
       (kind (error "Unknown package kind: %S" kind)))
 
     ;; check if the user wants to review this package
-    (when (pcase-exhaustive package-review-policy
-            ((and (pred listp) list)
-             (xor (any (lambda (ent)
-                         (pcase ent
-                           (`(archive . ,val)
-                            (equal val (package-desc-archive pkg-desc)))
-                           (`(package . ,val)
-                            (eq val name))))
-                       (if (eq (car list) 'not) (cdr list) list))
-                  (eq (car list) 'not)))
-            ('t t))
-      (package-review pkg-desc pkg-dir old-desc))
+    (when review-p
+      (package-review pkg-desc unpack-dir old-desc)
+      (make-directory package-user-dir t)
+      (rename-file unpack-dir pkg-dir))
+    (cl-assert (file-directory-p pkg-dir))
 
     (package--make-autoloads-and-stuff pkg-desc pkg-dir)
     ;; Update package-alist.
