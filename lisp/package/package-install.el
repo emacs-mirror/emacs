@@ -501,6 +501,18 @@ the return value is a list of symbols designating packages."
                    (delete-dups (cons pkg-desc deps))))))
       (remq pkg (mapcar (if (package-desc-p pkg) #'identity #'package-desc-name) all)))))
 
+(defun package-strip-rcs-id (str)
+  "Strip RCS version ID from the version string STR.
+If the result looks like a dotted numeric version, return it.
+Otherwise return nil."
+  (when str
+    (when (string-match "\\`[ \t]*[$]Revision:[ \t]+" str)
+      (setq str (substring str (match-end 0))))
+    (let ((l (version-to-list str)))
+      ;; Don't return `str' but (package-version-join (version-to-list str))
+      ;; to make sure we use a "canonical name"!
+      (if l (package-version-join l)))))
+
 (defun package-buffer-info ()
   "Return a `package-desc' describing the package in the current buffer.
 

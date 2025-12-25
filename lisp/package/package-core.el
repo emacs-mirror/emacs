@@ -805,18 +805,6 @@ The variable `package-load-list' controls which packages to load."
       ;; activation of further packages.
       (error (message "%s" (error-message-string err))))))
 
-(defun package-strip-rcs-id (str)
-  "Strip RCS version ID from the version string STR.
-If the result looks like a dotted numeric version, return it.
-Otherwise return nil."
-  (when str
-    (when (string-match "\\`[ \t]*[$]Revision:[ \t]+" str)
-      (setq str (substring str (match-end 0))))
-    (let ((l (version-to-list str)))
-      ;; Don't return `str' but (package-version-join (version-to-list str))
-      ;; to make sure we use a "canonical name"!
-      (if l (package-version-join l)))))
-
 (defun package--incompatible-p (pkg &optional shallow)
   "Return non-nil if PKG has no chance of being installable.
 PKG is a `package-desc' object.
