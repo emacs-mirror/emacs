@@ -141,29 +141,6 @@ BI-DESC should be a `package--bi-desc' object."
                        :summary (package--bi-desc-summary bi-desc)
                        :dir 'builtin))
 
-(defun package-desc--keywords (pkg-desc)
-  "Return keywords of package-desc object PKG-DESC.
-These keywords come from the foo-pkg.el file, and in general
-corresponds to the keywords in the \"Keywords\" header of the
-package."
-  (let ((keywords (cdr (assoc :keywords (package-desc-extras pkg-desc)))))
-    (if (eq (car-safe keywords) 'quote)
-        (nth 1 keywords)
-      keywords)))
-
-(defun package--read-pkg-desc (kind)
-  "Read a `define-package' form in current buffer.
-Return the pkg-desc, with desc-kind set to KIND."
-  (goto-char (point-min))
-  (let* ((pkg-def-parsed (read (current-buffer)))
-         (pkg-desc
-          (when (eq (car pkg-def-parsed) 'define-package)
-            (apply #'package-desc-from-define
-                   (append (cdr pkg-def-parsed))))))
-    (when pkg-desc
-      (setf (package-desc-kind pkg-desc) kind)
-      pkg-desc)))
-
 
 ;;; Customization options
 
@@ -217,28 +194,6 @@ If VERSION is nil, the package is not made available (it is \"disabled\")."
                                 (string :tag "specific version")))))
   :risky t
   :version "24.1")
-
-(defcustom package-pinned-packages nil
-  "An alist of packages that are pinned to specific archives.
-This can be useful if you have multiple package archives enabled,
-and want to control which archive a given package gets installed from.
-
-Each element of the alist has the form (PACKAGE . ARCHIVE), where:
- PACKAGE is a symbol representing a package
- ARCHIVE is a string representing an archive (it should be the car of
-an element in `package-archives', e.g. \"gnu\").
-
-Adding an entry to this variable means that only ARCHIVE will be
-considered as a source for PACKAGE.  If other archives provide PACKAGE,
-they are ignored (for this package).  If ARCHIVE does not contain PACKAGE,
-the package will be unavailable."
-  :type '(alist :key-type (symbol :tag "Package")
-                :value-type (string :tag "Archive name"))
-  ;; This could prevent you from receiving updates for a package,
-  ;; via an entry (PACKAGE . NON-EXISTING).  Which could be an issue
-  ;; if PACKAGE has a known vulnerability that is fixed in newer versions.
-  :risky t
-  :version "24.4")
 
 ;;;###autoload
 (defcustom package-user-dir (locate-user-emacs-file "elpa")
@@ -473,21 +428,6 @@ specifying the minimum acceptable version."
        (t
         (require 'finder-inf nil t) ; For `package--builtins'.
         (assq package package--builtins))))))
-
-(defun package--active-built-in-p (package)
-  "Return non-nil if the built-in version of PACKAGE is used.
-If the built-in version of PACKAGE is used and PACKAGE is
-also available for installation from an archive, it is an
-indication that PACKAGE was never upgraded to any newer
-version from the archive."
-  (and (not (assq (cond
-                   ((package-desc-p package)
-                    (package-desc-name package))
-                   ((stringp package) (intern package))
-                   ((symbolp package) package)
-                   ((error "Unknown package format: %S" package)))
-                  (package--alist)))
-       (package-built-in-p package)))
 
 (defun package--autoloads-file-name (pkg-desc)
   "Return the absolute name of the autoloads file, sans extension.
@@ -867,131 +807,6 @@ if it is still empty."
     (package--save-selected-packages (package--find-non-dependencies)))
   (memq pkg package-selected-packages))
 
-(defun package-desc-status (pkg-desc)
-  "Return the status of `package-desc' object PKG-DESC."
-  (let* ((name (package-desc-name pkg-desc))
-         (dir (package-desc-dir pkg-desc))
-         (lle (assq name package-load-list))
-         (held (cadr lle))
-         (version (package-desc-version pkg-desc))
-         (signed (or (not package-list-unsigned)
-                     (package-desc-signed pkg-desc))))
-    (cond
-     ((package-vc-p pkg-desc) "source")
-     ((eq dir 'builtin) "built-in")
-     ((and lle (null held)) "disabled")
-     ((stringp held)
-      (let ((hv (if (stringp held) (version-to-list held))))
-        (cond
-         ((version-list-= version hv) "held")
-         ((version-list-< version hv) "obsolete")
-         (t "disabled"))))
-     (dir                               ;One of the installed packages.
-      (cond
-       ((not (file-exists-p dir)) "deleted")
-       ;; Not inside `package-user-dir'.
-       ((not (file-in-directory-p dir package-user-dir)) "external")
-       ((eq pkg-desc (cadr (assq name package-alist)))
-        (if (not signed) "unsigned"
-          (if (package--user-selected-p name)
-              "installed" "dependency")))
-       (t "obsolete")))
-     ((package--incompatible-p pkg-desc) "incompat")
-     (t
-      (let* ((ins (cadr (assq name package-alist)))
-             (ins-v (if ins (package-desc-version ins))))
-        (cond
-         ;; Installed obsolete packages are handled in the `dir'
-         ;; clause above.  Here we handle available obsolete, which
-         ;; are displayed depending on `package-menu--hide-packages'.
-         ((and ins (version-list-<= version ins-v)) "avail-obso")
-         (t
-          (if (memq name (bound-and-true-p package-menu--new-package-list))
-              "new" "available"))))))))
-
-(defun package--print-email-button (recipient)
-  "Insert a button whose action will send an email to RECIPIENT.
-NAME should have the form (FULLNAME . EMAIL) where FULLNAME is
-either a full name or nil, and EMAIL is a valid email address."
-  (when (car recipient)
-    (insert (car recipient)))
-  (when (and (car recipient) (cdr recipient))
-    (insert " "))
-  (when (cdr recipient)
-    (insert "<")
-    (insert-text-button (cdr recipient)
-                        'follow-link t
-                        'action (lambda (_)
-                                  (compose-mail
-                                   (format "%s <%s>" (car recipient) (cdr recipient)))))
-    (insert ">"))
-  (insert "\n"))
-
-(defun package-maintainers (pkg-desc &optional no-error)
-  "Return an email address for the maintainers of PKG-DESC.
-The email address may contain commas, if there are multiple
-maintainers.  If no maintainers are found, an error will be
-signaled.  If the optional argument NO-ERROR is non-nil no error
-will be signaled in that case."
-  (unless (package-desc-p pkg-desc)
-    (error "Invalid package description: %S" pkg-desc))
-  (let* ((name (package-desc-name pkg-desc))
-         (extras (package-desc-extras pkg-desc))
-         (maint (alist-get :maintainer extras)))
-    (unless (listp (cdr maint))
-      (setq maint (list maint)))
-    (cond
-     ((and (null maint) (null no-error))
-      (user-error "Package `%s' has no explicit maintainer" name))
-     ((and (not (progn
-                  (require 'ietf-drums)
-                  (ietf-drums-parse-address (cdar maint))))
-           (null no-error))
-      (user-error "Package `%s' has no maintainer address" name))
-     (t
-      (with-temp-buffer
-        (mapc #'package--print-email-button maint)
-        (replace-regexp-in-string
-         "\n" ", " (string-trim
-                    (buffer-substring-no-properties
-                     (point-min) (point-max)))))))))
-
-(declare-function ietf-drums-parse-address "ietf-drums"
-                  (string &optional decode))
-
-;;;###autoload
-(defun package-report-bug (desc)
-  "Prepare a message to send to the maintainers of a package.
-DESC must be a `package-desc' object.
-
-Of interest to package maintainers: By default, the command will use
-`reporter-submit-bug-report' to generate a message buffer.  If your
-package has specific needs, you can set the symbol property
-`package-report-bug-function' of the symbol designating your package
-name.
-"
-  (interactive (list (package--query-desc package-alist))
-               package-menu-mode)
-  (let ((maint (package-maintainers desc))
-        (name (symbol-name (package-desc-name desc)))
-        (pkgdir (package-desc-dir desc))
-        vars)
-    (when pkgdir
-      (dolist-with-progress-reporter (group custom-current-group-alist)
-          "Scanning for modified user options..."
-        (when (and (car group)
-                   (file-in-directory-p (car group) pkgdir))
-          (dolist (ent (get (cdr group) 'custom-group))
-            (when (and (custom-variable-p (car ent))
-                       (boundp (car ent))
-                       (not (eq (custom--standard-value (car ent))
-                                (default-toplevel-value (car ent)))))
-              (push (car ent) vars))))))
-    (dlet ((reporter-prompt-for-summary-p t))
-      (funcall (or (get name 'package-report-bug-function)
-                   #'reporter-submit-bug-report)
-               maint name vars))))
-
 ;;;; Inferring package from current buffer
 (defun package-read-from-string (str)
   "Read a Lisp expression from STR.
@@ -1013,11 +828,6 @@ form (PKG-NAME PKG-DESC).  If not specified, it will default to
       (let ((alist (or alist package-alist)))
         (cadr (assoc (completing-read "Package: " alist nil t)
                      alist #'string=)))))
-
-(defun package--alist-to-plist-args (alist)
-  (mapcar #'macroexp-quote
-          (apply #'nconc
-                 (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist))))
 
 (declare-function lm-package-version "lisp-mnt" (&optional file))
 
