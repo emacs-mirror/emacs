@@ -1124,34 +1124,36 @@ installed package."
                        pkg-dir))
          (old-desc (package--get-activatable-pkg name)))
     (make-directory unpack-dir t)
-    (pcase (package-desc-kind pkg-desc)
-      ('dir
-       (let ((file-list
-              (or (and (derived-mode-p 'dired-mode)
-                       (dired-get-marked-files nil 'marked))
-                  (directory-files-recursively default-directory "" nil))))
-         (dolist (source-file file-list)
-           (let ((target (expand-file-name
-                          (file-relative-name source-file default-directory)
-                          unpack-dir)))
-             (make-directory (file-name-directory target) t)
-             (copy-file source-file target t)))
-         ;; Now that the files have been installed, this package is
-         ;; indistinguishable from a `tar' or a `single'. Let's make
-         ;; things simple by ensuring we're one of them.
-         (setf (package-desc-kind pkg-desc)
-               (if (length> file-list 1) 'tar 'single))))
-      ('tar
-       (let ((default-directory (file-name-directory unpack-dir)))
-         (package-untar-buffer (file-name-nondirectory unpack-dir))))
-      ('single
-       (let ((el-file (expand-file-name (format "%s.el" name) unpack-dir)))
-         (package--write-file-no-coding el-file)))
-      (kind (error "Unknown package kind: %S" kind)))
+    (save-window-excursion
+      (pcase (package-desc-kind pkg-desc)
+        ('dir
+         (let ((file-list
+                (or (and (derived-mode-p 'dired-mode)
+                         (dired-get-marked-files nil 'marked))
+                    (directory-files-recursively default-directory "" nil))))
+           (dolist (source-file file-list)
+             (let ((target (expand-file-name
+                            (file-relative-name source-file default-directory)
+                            unpack-dir)))
+               (make-directory (file-name-directory target) t)
+               (copy-file source-file target t)))
+           ;; Now that the files have been installed, this package is
+           ;; indistinguishable from a `tar' or a `single'. Let's make
+           ;; things simple by ensuring we're one of them.
+           (setf (package-desc-kind pkg-desc)
+                 (if (length> file-list 1) 'tar 'single))))
+        ('tar
+         (let ((default-directory (file-name-directory unpack-dir)))
+           (package-untar-buffer (file-name-nondirectory unpack-dir))))
+        ('single
+         (let ((el-file (expand-file-name (format "%s.el" name) unpack-dir)))
+           (package--write-file-no-coding el-file)))
+        (kind (error "Unknown package kind: %S" kind))))
 
     ;; check if the user wants to review this package
     (when review-p
-      (package-review pkg-desc unpack-dir old-desc)
+      (save-window-excursion
+        (package-review pkg-desc unpack-dir old-desc))
       (make-directory package-user-dir t)
       (rename-file unpack-dir pkg-dir))
     (cl-assert (file-directory-p pkg-dir))
