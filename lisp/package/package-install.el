@@ -181,6 +181,48 @@ These are packages which are neither contained in
                         (not (package--user-installed-p p)))
              collect p)))
 
+(defun package-desc-status (pkg-desc)
+  "Return the status of `package-desc' object PKG-DESC."
+  (let* ((name (package-desc-name pkg-desc))
+         (dir (package-desc-dir pkg-desc))
+         (lle (assq name package-load-list))
+         (held (cadr lle))
+         (version (package-desc-version pkg-desc))
+         (signed (or (not package-list-unsigned)
+                     (package-desc-signed pkg-desc))))
+    (cond
+     ((package-vc-p pkg-desc) "source")
+     ((eq dir 'builtin) "built-in")
+     ((and lle (null held)) "disabled")
+     ((stringp held)
+      (let ((hv (if (stringp held) (version-to-list held))))
+        (cond
+         ((version-list-= version hv) "held")
+         ((version-list-< version hv) "obsolete")
+         (t "disabled"))))
+     (dir                               ;One of the installed packages.
+      (cond
+       ((not (file-exists-p dir)) "deleted")
+       ;; Not inside `package-user-dir'.
+       ((not (file-in-directory-p dir package-user-dir)) "external")
+       ((eq pkg-desc (cadr (assq name package-alist)))
+        (if (not signed) "unsigned"
+          (if (package--user-selected-p name)
+              "installed" "dependency")))
+       (t "obsolete")))
+     ((package--incompatible-p pkg-desc) "incompat")
+     (t
+      (let* ((ins (cadr (assq name package-alist)))
+             (ins-v (if ins (package-desc-version ins))))
+        (cond
+         ;; Installed obsolete packages are handled in the `dir'
+         ;; clause above.  Here we handle available obsolete, which
+         ;; are displayed depending on `package-menu--hide-packages'.
+         ((and ins (version-list-<= version ins-v)) "avail-obso")
+         (t
+          (if (memq name (bound-and-true-p package-menu--new-package-list))
+              "new" "available"))))))))
+
 (defun package--used-elsewhere-p (pkg-desc &optional pkg-list all)
   "Non-nil if PKG-DESC is a dependency of a package in PKG-LIST.
 Return the first package found in PKG-LIST of which PKG is a
@@ -316,6 +358,21 @@ This function assumes that all package requirements in
 PACKAGES are satisfied, i.e. that PACKAGES is computed
 using `package-compute-transaction'."
   (mapc #'package-install-from-archive packages))
+
+(defun package--active-built-in-p (package)
+  "Return non-nil if the built-in version of PACKAGE is used.
+If the built-in version of PACKAGE is used and PACKAGE is
+also available for installation from an archive, it is an
+indication that PACKAGE was never upgraded to any newer
+version from the archive."
+  (and (not (assq (cond
+                   ((package-desc-p package)
+                    (package-desc-name package))
+                   ((stringp package) (intern package))
+                   ((symbolp package) package)
+                   ((error "Unknown package format: %S" package)))
+                  (package--alist)))
+       (package-built-in-p package)))
 
 ;;;###autoload
 (defun package-install (pkg &optional dont-select)
@@ -519,6 +576,19 @@ boundaries."
        ;; there's only one maintainer (the most common case).
        (let ((maints (lm-maintainers))) (if (cdr maints) maints (car maints)))
        :authors (lm-authors)))))
+
+(defun package--read-pkg-desc (kind)
+  "Read a `define-package' form in current buffer.
+Return the pkg-desc, with desc-kind set to KIND."
+  (goto-char (point-min))
+  (let* ((pkg-def-parsed (read (current-buffer)))
+         (pkg-desc
+          (when (eq (car pkg-def-parsed) 'define-package)
+            (apply #'package-desc-from-define
+                   (append (cdr pkg-def-parsed))))))
+    (when pkg-desc
+      (setf (package-desc-kind pkg-desc) kind)
+      pkg-desc)))
 
 (defun package-dir-info ()
   "Find package information for a directory.
@@ -952,6 +1022,11 @@ untar into a directory named DIR; otherwise, signal an error."
         ;; `activate-1', so that we use the byte-compiled definitions.
         (package--reload-previously-loaded new-desc)))
     pkg-dir))
+
+(defun package--alist-to-plist-args (alist)
+  (mapcar #'macroexp-quote
+          (apply #'nconc
+                 (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist))))
 
 (defun package-generate-description-file (pkg-desc pkg-file)
   "Create the foo-pkg.el file PKG-FILE for single-file package PKG-DESC."

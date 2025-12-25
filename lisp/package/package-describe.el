@@ -138,6 +138,16 @@ function is a convenience wrapper used by `describe-package-1'."
 
 (define-button-type 'package--finder-xref 'action #'package--finder-goto-xref)
 
+(defun package-desc--keywords (pkg-desc)
+  "Return keywords of package-desc object PKG-DESC.
+These keywords come from the foo-pkg.el file, and in general
+corresponds to the keywords in the \"Keywords\" header of the
+package."
+  (let ((keywords (cdr (assoc :keywords (package-desc-extras pkg-desc)))))
+    (if (eq (car-safe keywords) 'quote)
+        (nth 1 keywords)
+      keywords)))
+
 (defun describe-package-1 (pkg)
   "Insert the package description for PKG.
 Helper function for `describe-package'."
@@ -417,6 +427,88 @@ Helper function for `describe-package'."
       (with-current-buffer standard-output
         (describe-package-1 package)))))
 
+(defun package--print-email-button (recipient)
+  "Insert a button whose action will send an email to RECIPIENT.
+NAME should have the form (FULLNAME . EMAIL) where FULLNAME is
+either a full name or nil, and EMAIL is a valid email address."
+  (when (car recipient)
+    (insert (car recipient)))
+  (when (and (car recipient) (cdr recipient))
+    (insert " "))
+  (when (cdr recipient)
+    (insert "<")
+    (insert-text-button (cdr recipient)
+                        'follow-link t
+                        'action (lambda (_)
+                                  (compose-mail
+                                   (format "%s <%s>" (car recipient) (cdr recipient)))))
+    (insert ">"))
+  (insert "\n"))
+
+(defun package-maintainers (pkg-desc &optional no-error)
+  "Return an email address for the maintainers of PKG-DESC.
+The email address may contain commas, if there are multiple
+maintainers.  If no maintainers are found, an error will be
+signaled.  If the optional argument NO-ERROR is non-nil no error
+will be signaled in that case."
+  (unless (package-desc-p pkg-desc)
+    (error "Invalid package description: %S" pkg-desc))
+  (let* ((name (package-desc-name pkg-desc))
+         (extras (package-desc-extras pkg-desc))
+         (maint (alist-get :maintainer extras)))
+    (unless (listp (cdr maint))
+      (setq maint (list maint)))
+    (cond
+     ((and (null maint) (null no-error))
+      (user-error "Package `%s' has no explicit maintainer" name))
+     ((and (not (progn
+                  (require 'ietf-drums)
+                  (ietf-drums-parse-address (cdar maint))))
+           (null no-error))
+      (user-error "Package `%s' has no maintainer address" name))
+     (t
+      (with-temp-buffer
+        (mapc #'package--print-email-button maint)
+        (replace-regexp-in-string
+         "\n" ", " (string-trim
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))))
+
+(declare-function ietf-drums-parse-address "ietf-drums"
+                  (string &optional decode))
+
+;;;###autoload
+(defun package-report-bug (desc)
+  "Prepare a message to send to the maintainers of a package.
+DESC must be a `package-desc' object.
+
+Of interest to package maintainers: By default, the command will use
+`reporter-submit-bug-report' to generate a message buffer.  If your
+package has specific needs, you can set the symbol property
+`package-report-bug-function' of the symbol designating your package
+name.
+"
+  (interactive (list (package--query-desc package-alist))
+               package-menu-mode)
+  (let ((maint (package-maintainers desc))
+        (name (symbol-name (package-desc-name desc)))
+        (pkgdir (package-desc-dir desc))
+        vars)
+    (when pkgdir
+      (dolist-with-progress-reporter (group custom-current-group-alist)
+          "Scanning for modified user options..."
+        (when (and (car group)
+                   (file-in-directory-p (car group) pkgdir))
+          (dolist (ent (get (cdr group) 'custom-group))
+            (when (and (custom-variable-p (car ent))
+                       (boundp (car ent))
+                       (not (eq (custom--standard-value (car ent))
+                                (default-toplevel-value (car ent)))))
+              (push (car ent) vars))))))
+    (dlet ((reporter-prompt-for-summary-p t))
+      (funcall (or (get name 'package-report-bug-function)
+                   #'reporter-submit-bug-report)
+               maint name vars))))
 
 (provide 'package-describe)
 ;;; package-describe.el ends here
