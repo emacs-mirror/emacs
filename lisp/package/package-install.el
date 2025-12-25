@@ -731,11 +731,11 @@ Downloads and installs required packages as needed."
     (let* ((requires (package-desc-reqs pkg-desc))
            (transaction (package-compute-transaction nil requires))
            (installed (package-download-transaction transaction)))
-      (when (and (or (null transaction) installed)
-                 (catch 'review-failed
+      (when (and (catch 'review-failed
                    ;; Install the package itself.
                    (package-unpack pkg-desc)
-                   nil))
+                   nil)
+                 (or (null transaction) installed))
         (mapc #'package-delete installed)
         (when installed
           (message "Review Uninstalled dependencies: %s"
