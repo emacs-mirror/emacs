@@ -525,7 +525,7 @@ but with a different end of line convention (bug#48137)."
 
 (defmacro with-package-menu-test (&rest body)
   "Set up Package Menu (\"*Packages*\") buffer for testing."
-  (declare (indent 0) (debug (([&rest form]) body)))
+  (declare (indent 0) (debug (body)))
   `(with-package-test ()
      (let ((buf (package-list-packages)))
        (unwind-protect
