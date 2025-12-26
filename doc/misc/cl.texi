@@ -3985,7 +3985,7 @@ the specified slots, such as @code{:first-name}, @code{:age}, and
 @code{:sex}.  These keyword arguments specify the initial values for the
 respective slots in the new object.  If a keyword argument is not
 provided, the slot is initialized to @code{nil}.@footnote{This behavior
-differs from Common Lisp, where an unitialized slot would be left as
+differs from Common Lisp, where an uninitialized slot would be left as
 ``undefined''.}
 
 In the example below, we create a new instance of the @code{person}

@@ -551,7 +551,7 @@ MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
       ('cpp `((cpp . ,rules))))))
 
 (defun c-ts-mode--parenthesized-expression-indent-rule (_node parent &rest _)
-  "Indent rule that indents aprenthesized expression.
+  "Indent rule that indents parenthesized expression.
 
 Aligns the next line to the first sibling
 

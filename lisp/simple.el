@@ -9033,7 +9033,7 @@ A negative ARG means to kill forwards.
 Unix-words differ from Emacs words in that they are always delimited by
 whitespace, regardless of the buffer's syntax table.
 Thus, this command emulates C-w at the Unix terminal or shell.
-See also this command's nakesake in Info node
+See also this command's namesake in Info node
 `(readline)Commands For Killing'."
   (interactive "^p")
   (let ((start (point)))

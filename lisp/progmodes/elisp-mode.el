@@ -2691,7 +2691,7 @@ current buffer state and calls REPORT-FN when done."
   (unless (trusted-content-p)
     ;; FIXME: Use `bwrap' and friends to compile untrusted content.
     ;; FIXME: We emit a message *and* signal an error, because by default
-    ;; Flymake doesn't display the warning it puts into "*flmake log*".
+    ;; Flymake doesn't display the warning it puts into "*flymake log*".
     (message "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
              (buffer-name))
     (user-error "Disabling elisp-flymake-byte-compile in %s (untrusted content)"

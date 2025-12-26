@@ -980,7 +980,7 @@ No guarantee is made about the position on the marked line.
 BODY must ensure this itself if it depends on this.
 
 Search starts at the beginning of the buffer, thus the car of the
-returnede list corresponds to the line nearest to the buffer's bottom.
+returned list corresponds to the line nearest to the buffer's bottom.
 This is also true for (positive and negative) integer values of
 ARG.
 

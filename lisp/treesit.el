@@ -1260,7 +1260,7 @@ omitted, default END to BEG."
 
 ;;; Language
 
-;; Defined in tressit.c.  This is just to add some default values.
+;; Defined in treesit.c.  This is just to add some default values.
 (defvar treesit-languages-need-line-column-tracking
   '(haskell))
 
@@ -1279,7 +1279,7 @@ omitted, default END to BEG."
   "An alist mapping language symbols to their display names.
 
 Used by `treesit-language-display-name'.  If there's no mapping for a
-lamguage in this alist, `treesit-language-display-name' converts the
+language in this alist, `treesit-language-display-name' converts the
 symbol to the display name by capitalizing the first letter of the
 symbol's name.  Thus, languages like Java, Javascript, Rust don't need
 an entry in this variable.")
@@ -3326,7 +3326,7 @@ The `sexp' type uses the `sexp' thing defined in `treesit-thing-settings'.
 With this type commands use only the treesit definitions of parser nodes,
 without distinction between symbols and lists.  Since tree-sitter grammars
 could group node types in arbitrary ways, navigation by `sexp' might not
-match your expectations, and might produce different results in differnt
+match your expectations, and might produce different results in different
 treesit-based modes."
   (interactive "p")
   (if (not (treesit-thing-defined-p 'list (treesit-language-at (point))))
@@ -5538,7 +5538,7 @@ The value can be either a list of ts-modes to enable,
 or t to enable all ts-modes.  The value nil (the default)
 means not to enable any tree-sitter based modes.
 
-Enabling a tree-stter based mode means that visiting files in the
+Enabling a tree-sitter based mode means that visiting files in the
 corresponding programming language will automatically turn on that
 mode, instead of any non-tree-sitter based modes for the same
 language."
@@ -5596,7 +5596,7 @@ language."
    :eg-result c)
   (treesit-parser-tag
    :no-eval (treesit-parser-tag parser)
-   :eg-result 'embeded)
+   :eg-result 'embedded)
   (treesit-parser-changed-regions
    :no-eval (treesit-parser-changed-regions parser)
    :eg-result '((1 . 10) (24 . 58)))

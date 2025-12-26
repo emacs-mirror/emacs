@@ -748,7 +748,7 @@ Return the amount the indentation changed by."
         (pos (- (point-max) (point))))
     (back-to-indentation)
     (setq indent (if (lua-comment-or-string-p)
-                     ;; Just restore point posistion.
+                     ;; Just restore point position.
                      (lua-calculate-string-or-comment-indentation)
                    (max 0 (lua-calculate-indentation))))
 
@@ -1011,7 +1011,7 @@ DIRECTION has to be either \\='forward or \\='backward."
       maybe-found-pos)))
 
 (defun lua-goto-matching-block-token (&optional parse-start direction)
-  "Find block begion/end token matching the one at the point.
+  "Find block begin/end token matching the one at the point.
 This function moves the point to the token that matches the one at the
 current point.  Returns the point position of the first character of the
 matching token if successful, nil otherwise.
@@ -1525,7 +1525,7 @@ The argument REVERSED-INDENTATION-INFO is an indentation INFO-LIST."
   (let (indentation-info
         (type 'relative)
         (accu 0))
-    ;; Aggregate all neighbouring relative offsets, reversing the INFO list.
+    ;; Aggregate all neighboring relative offsets, reversing the INFO list.
     (dolist (elt reversed-indentation-info)
       (if (and (eq (car elt) 'relative)
                (eq (caar indentation-info) 'relative))

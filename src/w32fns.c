@@ -4277,7 +4277,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
 	 event.
 
 	 However, for layouts which deliver different characters for AltGr-x
-	 and lCtrl-lAlt-x, this scheme makes the latter character unaccessible
+	 and lCtrl-lAlt-x, this scheme makes the latter character inaccessible
 	 in Emacs.  While it is easy to access functionality of [C-M-x] in
 	 Emacs by other means (for example, by the `controlify' prefix, or
 	 using lCtrl-rCtrl-x, or rCtrl-rAlt-x [in this order]), missing

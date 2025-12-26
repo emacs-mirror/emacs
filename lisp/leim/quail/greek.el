@@ -1454,7 +1454,7 @@ Greek letters."
  ("=" ?=)
  ("[" ?\[)
  ("]" ?\])
- ;; Changed punction from greek.el
+ ;; Changed punctuation from greek.el
  ("`" ?·)
  ("~" ?:)
  ;; tonoi

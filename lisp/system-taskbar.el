@@ -366,7 +366,7 @@ Note: The Unity D-Bus protocol supports only integer badges."
                                          &optional urgency timeout)
   "Request URGENCY user attention on the system taskbar Emacs icon.
 The request will time out within the TIMEOUT seconds interval.
-The Unity D-Bus protocol does not support differentiated urgencies."
+The Unity D-Bus protocol does not support differentiated urgency levels."
   (setq system-taskbar--dbus-attention urgency)
   (system-taskbar--dbus-send-signal
    `((:dict-entry "urgent"

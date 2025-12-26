@@ -201,10 +201,10 @@ This tests the case when `eshell-highlight-prompt' is nil."
       (eshell-insert-command "echo 'high five'")
       (eshell-insert-command "echo 'up high\n\ndown low'")
       (eshell-insert-command "echo 'too slow'")
-      (insert "echo goodby")            ; A partially-entered command.
+      (insert "echo good")            ; A partially-entered command.
       (ert-info ("Go back to the last prompt")
         (eshell-backward-paragraph)
-        (should (at-prompt-for-command-p "echo goodby")))
+        (should (at-prompt-for-command-p "echo good")))
       (ert-info ("Go back to the paragraph break")
         (eshell-backward-paragraph 2)
         (should (looking-at "\ndown low\n")))

@@ -446,7 +446,7 @@ init_treesit_functions (void)
    tracking/non-tracking, it stays that way, regardless of later changes
    to treesit-languages-require-line-column-tracking.
 
-   To make calculating line/column positons fast, we store linecol
+   To make calculating line/column positions fast, we store linecol
    caches for begv, point, and zv in the buffer
    (buf->ts_linecol_cache_xxx); and in the parser object, we store
    linecol cache for visible beg/end of that parser.
@@ -1072,7 +1072,7 @@ treesit_linecol_of_pos (ptrdiff_t target_bytepos,
 
   /* When we finished searching for newlines between CACHE and
      TARGET_POS, BYTE_POS_2 is at TARGET_POS, and BYTE_POS_1 is at the
-     previous newline.  If TARGET_POS happends to be on a newline,
+     previous newline.  If TARGET_POS happens to be on a newline,
      BYTE_POS_1 will be on that position.  BYTE_POS_1 is used for
      calculating the column.  (If CACHE and TARGET_POS are in the same
      line, BYTE_POS_1 is unset and we don't use it.)  */
@@ -1245,7 +1245,7 @@ treesit_tree_edit_1 (TSTree *tree, ptrdiff_t start_byte,
 }
 
 /* Given a position at POS_LINECOL, and the linecol of a buffer change
-   (START_LINECOL, OLD_END_LINECOL, and NEW_END_LINCOL), compute the new
+   (START_LINECOL, OLD_END_LINECOL, and NEW_END_LINECOL), compute the new
    linecol for that position, then scan from this now valid linecol to
    TARGET_BYTEPOS and return the linecol at TARGET_BYTEPOS.
 
@@ -1276,7 +1276,7 @@ compute_new_linecol_by_change (struct ts_linecol pos_linecol,
     {
       new_linecol = pos_linecol;
     }
-  /* 2. When old_end (oe) is before pos, the differnce between pos and
+  /* 2. When old_end (oe) is before pos, the difference between pos and
      pos' is the difference between old_end and new_end (ne).
 
      |     |   |           |     |   |
@@ -2197,7 +2197,7 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
   return treesit_query;
 }
 
-/* Bsically treesit_ensure_query_compiled but can signal.  */
+/* Basically treesit_ensure_query_compiled but can signal.  */
 static
 void treesit_ensure_query_compiled_signal (Lisp_Object lisp_query)
 {
@@ -4507,7 +4507,7 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
   if (STRINGP (pred))
     {
       const char *type = ts_node_type (node);
-      /* ts_node_type returning NULL means something unexpected happend
+      /* ts_node_type returning NULL means something unexpected happened
          in tree-sitter, in this case the only reasonable thing is to
          not match anything.  */
       if (type == NULL) return false;
@@ -4564,8 +4564,8 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
 	  /* A bit of code duplication here, but should be fine.  */
 	  const char *type = ts_node_type (node);
 	  /* ts_node_type returning NULL means something unexpected
-             happend in tree-sitter, in this case the only reasonable
-             thing is to not match anything  */
+             happened in tree-sitter.  In this case the only reasonable
+             thing is to not match anything.  */
 	  if (type == NULL) return false;
 	  if (!(fast_c_string_match (car, type, strlen (type)) >= 0))
 	    return false;

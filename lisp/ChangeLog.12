@@ -16027,7 +16027,7 @@
 	`c-backward-subword'.
 
 	* progmodes/cc-subword.el: New functions and minor mode to handle
-	SillyCapsedStyleIndentifiers, contributed by Masatake YAMATO:
+	SillyCapsedStyleIdentifiers, contributed by Masatake YAMATO:
 
 	(c-forward-subword, c-backward-subword, c-mark-subword)
 	(c-kill-subword, c-backward-kill-subword, c-transpose-subwords)

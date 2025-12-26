@@ -3271,7 +3271,7 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
 
    Let a "root" frame be a frame that has no parent frame.  Such root
    frames are required to be the size of the terminal screen.  The
-   current glyph matrix of a root frame of a termimnal represents what
+   current glyph matrix of a root frame of a terminal represents what
    is on the screen.  The desired matrix of a root frame represents
    what should be one the screen.
 

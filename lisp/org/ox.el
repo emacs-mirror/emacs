@@ -6425,7 +6425,7 @@ them."
      ("it" :default "Riferimenti")
      ("nl" :default "Bronverwijzingen")
      ("nn" :default "Kjelder")
-     ("pl" :default "Odwołania") ; could be "Referencje" but I think its too englishy
+     ("pl" :default "Odwołania") ; could be "Referencje" but I think it's too Englishy
      ("pt_BR" :html "Refer&ecirc;ncias" :default "Referências" :ascii "Referencias")
      ("ro" :default "Bibliografie")
      ("sl" :default "Reference")

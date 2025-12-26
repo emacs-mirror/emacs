@@ -1672,7 +1672,7 @@ these characters are displayed as full-width.  This setting is most
 important for text-mode frames, because there Emacs cannot access the
 metrics of the fonts used by the console or the terminal emulator.
 You should configure the terminal emulator to behave consistently
-with the value of this option, by making sure it dispays ambiguous-width
+with the value of this option, by making sure it displays ambiguous-width
 characters as half-width or full-width, depending on the value of this
 option.
 

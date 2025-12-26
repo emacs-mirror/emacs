@@ -178,7 +178,7 @@ set other variables, see `antlr-tool-version-variables'."
 For each antlr-VAR in this list, function `antlr-set-local-variables'
 makes it buffer-local and uses the variable VERSION-VAR, i.e.,
 antlr-v2-VAR,  antlr-v3-VAR or antlr-v4-VAR to set its value,
-dependending on the value VERSION of `antlr-tool-version'.
+depending on the value VERSION of `antlr-tool-version'.
 
 If that variable VERSION-VAR does not exist, ignore antlr-VAR if it is
 listed after the symbol &optional, or issue an error otherwise.")
@@ -250,7 +250,7 @@ The value is used to set other variables, see `antlr-language-variables'.")
 For each antlr-VAR in this list, function `antlr-set-local-variables'
 makes it buffer-local and uses the variable LANGUAGE-VAR, i.e.,
 antlr-java-VAR,  antlr-cpp-VAR, and so on to set its value,
-dependending on the value LANGUAGE of `antlr-language'.
+depending on the value LANGUAGE of `antlr-language'.
 
 If that variable LANGUAGE-VAR does not exist, ignore antlr-VAR if it is
 listed after the symbol &optional, or issue an error otherwise.")
@@ -1619,7 +1619,7 @@ with value `upcase', only return alist with tokenref names."
 
 ;; --- simplified v2 grammar -------------------------------------------------
 ;; file: ("header" STRING? ACTION)? OPTIONS? ACTION? class*
-;; class: "class" ID     // moved preable action to file rule
+;; class: "class" ID     // moved preamble action to file rule
 ;;        ("extends" ("Lexer"|"Parser"|"TreeParser") ID?)?  ";"
 ;;        OPTIONS? TOKENS? ACTION? rule*
 ;; rule: ("protected"|"public"|"private")? ID "!"?
@@ -2145,7 +2145,7 @@ is undefined."
 (defun antlr-try-rule-or-grammar-option (requested bor)
   "Try whether rule or grammar option can be applied.
 Called by function `antlr-option-level' with arguments REQUESTED,
-and BOR poiting to the beginning of the current rule."
+and BOR pointing to the beginning of the current rule."
   (or (and (memq requested '(nil 3)) (elt antlr-options-alists 2)
            (progn (goto-char bor) 3))
       (and (memq requested '(nil 2)) (cadr antlr-options-alists)

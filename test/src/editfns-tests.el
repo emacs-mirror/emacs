@@ -368,7 +368,7 @@ Execute tests as described by `editfns-tests--transpose-regions-tests'."
               (should (equal (mapcar #'marker-position pmarkers) pmpos))
             ;; Meh.  This more or less blindly duplicates function
             ;; transpose_markers, since I have been too lazy to
-            ;; reproduce the arithmetics myself.
+            ;; reproduce the arithmetic myself.
             (setq pmpos
                   (mapcar
                    (lambda (pos)

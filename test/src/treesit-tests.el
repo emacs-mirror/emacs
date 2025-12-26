@@ -235,7 +235,7 @@
 ;;; Linecol
 
 (ert-deftest treesit-linecol-basic ()
-  "Tests for basic lincol synchronization."
+  "Tests for basic linecol synchronization."
   (skip-unless (fboundp 'treesit--linecol-cache))
   (with-temp-buffer
     (should (equal (treesit--linecol-cache)

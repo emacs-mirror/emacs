@@ -1160,7 +1160,7 @@ Abbreviations are defined in `org-link-abbrev-alist'."
 	  ((string-match "%(\\([^)]+\\))" rpl)
            (let ((rpl-fun-symbol (intern-soft (match-string 1 rpl))))
              ;; Using `unsafep-function' is not quite enough because
-             ;; Emacs considers functions like `genenv' safe, while
+             ;; Emacs considers functions like `getenv' safe, while
              ;; they can potentially be used to expose private system
              ;; data to attacker if abbreviated link is clicked.
              (if (or (eq t (get rpl-fun-symbol 'org-link-abbrev-safe))

@@ -246,7 +246,7 @@ another (@code{vc-log-mergebase}).
 
 @c This definition is possibly dVCS-specific -- can revisions exist on
 @c more than one branch for older VCS?  This needs thinking through if
-@c any of our centalized VCS gain support for these commands.
+@c any of our centralized VCS gain support for these commands.
 The @dfn{merge base} of two branches is the most recent revision that
 exists on both branches.  If neither of the branches was ever merged
 into the other (@pxref{Merging}), then the merge base is the revision
@@ -412,7 +412,7 @@ Ordinary VC commands like @kbd{C-x v v} (@pxref{Basic VC Editing}) and
 when there exist other working trees, except that the commits, branches
 and other VC artifacts they create will be visible from all working
 trees.  Another way to put this is that any action taken in any working
-tree which creates new artefacts in the VCS backing store will be
+tree which creates new artifacts in the VCS backing store will be
 visible from other working trees, but actions which only affect
 workfiles won't be.  So if you apply a patch to some workfiles in one
 working tree, that only affects that working tree.  But if you commit

@@ -58,8 +58,8 @@ ignored and will not be inserted.
 In both string pairs forms, the first string pair must be a regular
 expression.
 
-In comparation to character pairs, string pairs does not support
-inserting pairs in regions and can not be deleted with
+Unlike character pairs, string pairs do not support
+inserting pairs in regions and cannot be deleted with
 `electric-pair-delete-pair', thus string pairs should be used only for
 multi-character pairs.
 
@@ -97,8 +97,8 @@ ignored and will not be inserted.
 In both string pairs forms, the first string pair must be a regular
 expression.
 
-In comparation to character pairs, string pairs does not support
-inserting pairs in regions and can not be deleted with
+Unlike character pairs, string pairs do not support
+inserting pairs in regions and cannot be deleted with
 `electric-pair-delete-pair', thus string pairs should be used only for
 multi-character pairs.
 
@@ -203,7 +203,7 @@ If non-nil and point is separated from a closing delimiter only by
 whitespace, then typing a closing delimiter of the same type does not
 insert that character but instead moves point to immediately after the
 already present closing delimiter.  If the value of this variable is set
-tothe symbol `chomp', then the whitespace moved over is deleted.  If the
+to the symbol `chomp', then the whitespace moved over is deleted.  If the
 value is nil, typing a closing delimiter simply inserts it at point.
 
 The specific kind of whitespace skipped is given by the variable

@@ -988,8 +988,8 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
 
 (defun comp-cstr-= (dst op1 op2 nm-objs-h)
   "Constraint OP1 being = OP2 setting the result into DST.
-NM-OBJS-H is an hash with all the immediates generated at compile time
-which should not be rendered into compiled code."
+NM-OBJS-H is an hash with all the immediate values generated at compile
+time which should not be rendered into compiled code."
   (with-comp-cstr-accessors
     (cl-flet ((relax-cstr (cstr)
                 (setf cstr (copy-sequence cstr))

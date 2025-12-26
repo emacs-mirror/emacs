@@ -520,7 +520,7 @@ remapping from @code{c-mode} to @code{c-ts-mode} (if you enable the
 latter).  By default, this option's value is @code{nil}, so no
 tree-sitter based modes are enabled.
 
-Enabling a tree-stter based mode means that visiting files in the
+Enabling a tree-sitter based mode means that visiting files in the
 corresponding programming language will automatically turn on that mode,
 instead of any non-tree-sitter based modes for the same language.  For
 example, if you enable @code{c-ts-mode}, visiting C source files will

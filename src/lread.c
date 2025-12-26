@@ -2207,7 +2207,7 @@ readevalloop (Lisp_Object readcharfun,
 
   specbind (Qstandard_input, readcharfun);
 
-  /* In an .elc file, all shorthand expansion has alreay taken place, so
+  /* In an .elc file, all shorthand expansion has already taken place, so
      make sure we disable any read-symbol-shorthands set higher up in
      the stack of recursive 'load'. */
   if (STRINGP (sourcename) && suffix_p (sourcename, ".elc"))

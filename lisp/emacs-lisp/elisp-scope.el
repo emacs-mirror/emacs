@@ -2277,7 +2277,7 @@ ARGS bound to the analyzed arguments."
     (elisp-scope-n statements)))
 
 (elisp-scope-define-macro-analyzer go (label)
-  ;; TODO: Change to a local macro defintion induced by `cl-tagbody'.
+  ;; TODO: Change to a local macro definition induced by `cl-tagbody'.
   (when-let* ((bare (elisp-scope--sym-bare label))
               (pos (alist-get bare elisp-scope-label-alist))
               (beg (elisp-scope--sym-pos label)))
@@ -2818,12 +2818,12 @@ This function recursively analyzes Lisp forms (HEAD . TAIL), usually
 starting with a top-level form, by inspecting HEAD at each level:
 
 - If HEAD is a symbol with a non-nil `elisp-scope-analyzer' symbol
-  property, then the value of that property specifies a bespoke analzyer
+  property, then the value of that property specifies a bespoke analyzer
   function, AF, that is called as (AF HEAD . TAIL) to analyze the form.
   See more details about writing analyzer functions below.
 
 - If HEAD satisfies `functionp', which means it is a function in the
-  running Emacs session, analzye the form as a function call.
+  running Emacs session, analyze the form as a function call.
 
 - If HEAD is a safe macro (see `elisp-scope-safe-macro-p'), expand it
   and analyze the resulting form.

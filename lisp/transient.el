@@ -1945,7 +1945,7 @@ probably use this instead:
         ;; that there is a bug somewhere.
         ((length> suffixes 1)
          (error "BUG: Cannot unambiguously determine suffix object"))
-        ;; It is legimate to use this function as a predicate of sorts.
+        ;; It is legitimate to use this function as a predicate of sorts.
         ;; `transient--pre-command' and `transient-help' are examples.
         (t nil))))
     ((bind-and* (obj (transient--suffix-prototype (or command this-command)))

@@ -4029,7 +4029,8 @@ Otherwise, these types are allowed:
   :package-version '(Org . "8.3")
   :group 'org-sparse-trees)
 
-(defalias 'org-advertized-archive-subtree 'org-archive-subtree)
+(define-obsolete-function-alias 'org-advertized-archive-subtree
+  #'org-archive-subtree "9.8")
 
 ;; Declare Column View Code
 
@@ -5898,7 +5899,7 @@ needs to be inserted at a specific position in the font-lock sequence.")
           (list org-radio-target-regexp '(0 'org-target prepend))
 	  (list org-target-regexp '(0 'org-target prepend))
 	  ;; Macro
-	  '(org-fontify-macros) ; `org-fontify-macro' pepends faces
+	  '(org-fontify-macros) ; `org-fontify-macro' prepends faces
 	  ;; TODO keyword
 	  (list (format org-heading-keyword-regexp-format
 			org-todo-regexp)
@@ -6160,7 +6161,7 @@ If TAG is a number, get the corresponding match group."
 			    '(mouse-face t keymap t org-linked-text t
 					 invisible t intangible t
 					 org-emphasis t))
-    (org-fold-core-update-optimisation beg end)
+    (org-fold-core-update-optimization beg end)
     (org-remove-font-lock-display-properties beg end)))
 
 (defconst org-script-display  '(((raise -0.3) (height 0.7))
@@ -6567,10 +6568,10 @@ Return nil before first heading."
       (org-back-to-heading t)
       (let ((case-fold-search nil))
 	(looking-at org-complex-heading-regexp)
-        ;; When using `org-fold-core--optimise-for-huge-buffers',
+        ;; When using `org-fold-core--optimize-for-huge-buffers',
         ;; returned text will be invisible.  Clear it up.
         (save-match-data
-          (org-fold-core-remove-optimisation (match-beginning 0) (match-end 0)))
+          (org-fold-core-remove-optimization (match-beginning 0) (match-end 0)))
         (let ((todo (and (not no-todo) (match-string 2)))
 	      (priority (and (not no-priority) (match-string 3)))
 	      (headline (pcase (match-string 4)
@@ -6583,7 +6584,7 @@ Return nil before first heading."
 			  (h h)))
 	      (tags (and (not no-tags) (match-string 5))))
           ;; Restore cleared optimization.
-          (org-fold-core-update-optimisation (match-beginning 0) (match-end 0))
+          (org-fold-core-update-optimization (match-beginning 0) (match-end 0))
 	  (mapconcat #'identity
 		     (delq nil (list todo priority headline tags))
 		     " "))))))
@@ -6600,7 +6601,7 @@ This is a list with the following elements:
   (save-excursion
     (org-back-to-heading t)
     (when (let (case-fold-search) (looking-at org-complex-heading-regexp))
-      (org-fold-core-remove-optimisation (match-beginning 0) (match-end 0))
+      (org-fold-core-remove-optimization (match-beginning 0) (match-end 0))
       (prog1
           (list (length (match-string 1))
 	        (org-reduced-level (length (match-string 1)))
@@ -6608,7 +6609,7 @@ This is a list with the following elements:
 	        (and (match-end 3) (aref (match-string 3) 2))
 	        (match-string-no-properties 4)
 	        (match-string-no-properties 5))
-        (org-fold-core-update-optimisation (match-beginning 0) (match-end 0))))))
+        (org-fold-core-update-optimization (match-beginning 0) (match-end 0))))))
 
 (defun org-get-entry ()
   "Get the entry text, after heading, entire subtree."
@@ -10696,7 +10697,7 @@ narrowing."
 	   ;; No drawer found.  Create one, if permitted.
 	   (when create
              ;; `org-end-of-meta-data' ended up at next heading
-             ;; * Heading to insert darawer<maybe folded>
+             ;; * Heading to insert drawer<maybe folded>
              ;; * Another heading
              ;;
              ;; Unless current heading is the last heading in buffer

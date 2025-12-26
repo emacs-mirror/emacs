@@ -825,7 +825,7 @@ automatic testing."
 Calling todo-show should display the last current todo file, not
 necessarily the new file.  After deleting the new file, todo-show
 should display the previously current (or default) todo file."
-  ;; This test has been reported to fail unreproducibly (bug#58473) or
+  ;; This test has been reported to fail irreproducibly (bug#58473) or
   ;; reproducibly only on the ZFS filesystem (bug#76381).  Since the
   ;; causes are still unknown, don't run it with 'make check'.
   :tags '(:unstable)

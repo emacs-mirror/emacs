@@ -155,7 +155,7 @@ use this.
 
 ** Eglot uses an internal 'track-changes.el' library (bug#70077)
 
-This should in theory help smoothen the Eglot's handling of events that
+This should in theory help smooth the Eglot's handling of events that
 change the buffer.  The library has been problematic in the past, let's
 hope we're past that phase.
 

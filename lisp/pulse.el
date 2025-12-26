@@ -238,7 +238,7 @@ Only pulses the line if `pulse-command-advice-flag' is non-nil."
   :version "31.1")
 
 ;; FIXME: The pulse's smooth effect cannot be achieved here because
-;;        the face-remaping will not work well for that.
+;;        the face-remapping will not work well for that.
 (defun pulse-faces (faces &optional with-face)
   "Briefly pulse FACES by using attributes of face WITH-FACE (if defined).
 FACES should be a list of faces to pulse.
@@ -259,7 +259,7 @@ to `pulse-highlight-face'."
     (if (> pulse-face-duration 0.1)
         (run-with-timer pulse-face-duration 0
                         (lambda ()
-                          ;; Remove the face remaping in the buffer
+                          ;; Remove the face remapping in the buffer
                           ;; where `pulse-faces' was called.
                           (if (buffer-live-p in-buffer)
                               (with-current-buffer in-buffer

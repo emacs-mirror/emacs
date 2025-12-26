@@ -952,7 +952,7 @@ The following %-sequences are provided:
 %t Remaining time (to charge or discharge) in the form `h:min'"
   (let* ((os-name (car (split-string
                         ;; We cannot use `system-type' because some BSD
-                        ;; systems fall under the 'berkley-unix umbrella
+                        ;; systems fall under the 'berkeley-unix umbrella
                         ;; and we're trying to make the distinction
                         ;; among them here.
                         (battery--call-process-to-string "uname"))))

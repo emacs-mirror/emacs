@@ -3751,7 +3751,7 @@ skip_one_char (re_char *p)
    C is character to test (possibly after translations) and CORIG is original
    character (i.e. without any translations).  UNIBYTE denotes whether c is
    unibyte or multibyte character.
-   CANON_TABLE is the canonicalisation table for case folding or Qnil.  */
+   CANON_TABLE is the canonicalization table for case folding or Qnil.  */
 static bool
 execute_charset (re_char **pp, int c, int corig, bool unibyte,
                  Lisp_Object canon_table)

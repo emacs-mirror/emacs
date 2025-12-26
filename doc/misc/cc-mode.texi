@@ -6217,7 +6217,7 @@ to perform indentation.
 @defun c-lineup-item-after-paren-at-boi
 @findex lineup-item-after-paren-at-boi (c-)
 Line up under the first entry on the same line as an open parenthesis
-when that parenthesis is the lefmost non-space character in its line.
+when that parenthesis is the leftmost non-space character in its line.
 For example:
 
 @example
@@ -6996,7 +6996,7 @@ the_larch,            @hereFn{c-lineup-topmost-intro-cont}
 
 @defun c-lineup-class-field-cont
 @findex lineup-class-field-cont (c-)
-Indent continutation lines zero or one @code{c-basic-offset} steps.
+Indent continuation lines zero or one @code{c-basic-offset} steps.
 This is intended for continuation lines within a class/struct
 etc. construct.  For a declaration following a template specification,
 zero steps are used.  Other constructs are indented one step.

@@ -4386,7 +4386,7 @@ color that is combined with FG-FOR-BG."
           :foreground fg
           :weight
           ;; If we have `bold' specifically, we inherit the face of
-          ;; the same name.  This allows the user to customise that
+          ;; the same name.  This allows the user to customize that
           ;; face, such as to change its font family.
           (if (and weight (not (eq weight 'bold)))
               weight
@@ -4682,7 +4682,7 @@ FG and BG are the main colors."
     `(font-latex-math-face ((,c :foreground ,constant)))
     `(font-latex-script-char-face ((,c :inherit modus-themes-bold :foreground ,builtin)))
     `(font-latex-sectioning-5-face ((,c :inherit modus-themes-bold :foreground ,fg-alt)))
-    `(font-latex-sedate-face ((,c :inherit mouds-themes-bold :foreground ,keyword)))
+    `(font-latex-sedate-face ((,c :inherit modus-themes-bold :foreground ,keyword)))
     `(font-latex-slide-title-face ((,c :inherit modus-themes-heading-1)))
     `(font-latex-string-face ((,c :foreground ,string)))
     `(font-latex-subscript-face ((,c :height 0.9)))
@@ -7264,7 +7264,7 @@ are symbols of variables which define palettes commensurate with
 The optional CUSTOM-FACES and CUSTOM-VARIABLES are joined together with
 the `modus-themes-faces' and `modus-themes-custom-variables',
 respectively.  A derivative theme defining those is thus overriding what
-the Modus themess have by default.
+the Modus themes have by default.
 
 Consult the manual for details on how to build a theme on top of the
 `modus-themes': Info node `(modus-themes) Build on top of the Modus themes'."

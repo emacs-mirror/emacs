@@ -353,8 +353,8 @@ method that offers perfect forward secrecy, such as ephemeral
 Diffie-Hellman key exchange[1].
 
 There is a long history of attacks against static RSA key exchange in
-TLS, dating back to Bleichenbacher's attack in 1998, and mitigations
-that have subsequently themselves been broken.  In 2017, it was
+TLS, dating back to Bleichenbacher's attack in 1998, and mitigation
+that has subsequently itself been broken.  In 2017, it was
 discovered that an attacker can decrypt ciphertexts or sign messages
 with the server's private key[2].  The poor security of this key
 exchange protocol was confirmed by new attacks discovered in 2018[3].

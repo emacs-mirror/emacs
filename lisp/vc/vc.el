@@ -1095,7 +1095,7 @@ value other than `ask' if you have a strong grasp of the VCS in use."
                  (const :tag "Allow without prompting" t))
   :version "31.1")
 
-(defconst vc-cloneable-backends-custom-type
+(defconst vc-clonable-backends-custom-type
   `(choice :convert-widget
            ,(lambda (widget)
               (let (opts)
@@ -1106,6 +1106,9 @@ value other than `ask' if you have a strong grasp of the VCS in use."
                 (widget-put widget :args opts))
               widget))
   "The type of VC backends that support cloning VCS repositories.")
+(define-obsolete-variable-alias
+  'vc-cloneable-backends-custom-type
+  'vc-clonable-backends-custom-type "31.1")
 
 (defcustom vc-clone-heuristic-alist
   `((,(rx bos "http" (? "s") "://"
@@ -1147,7 +1150,7 @@ specifying a backend.  Each element of the alist has the form
 the first association for which the URL of the repository matches
 the URL-REGEXP of the association."
   :type `(alist :key-type (regexp :tag "Regular expression matching URLs")
-                :value-type ,vc-cloneable-backends-custom-type)
+                :value-type ,vc-clonable-backends-custom-type)
   :version "31.1")
 
 (defcustom vc-async-checkin nil
@@ -4042,7 +4045,7 @@ The command prompts for the branch whose change log to show."
   ;; else cherry-picks the very same commits that you have outstanding,
   ;; and pushes them.  Given this, we implement our own caching.
   ;;
-  ;; Do store `nil', before signalling an error, if there is no incoming
+  ;; Do store `nil', before signaling an error, if there is no incoming
   ;; revision, because that's also something that can be slow to
   ;; determine and so should be remembered.
   (if-let* ((_ (not refresh))

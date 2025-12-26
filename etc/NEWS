@@ -306,7 +306,7 @@ to extend the boundaries of the active region by dragging the mouse pointer.
 ---
 *** 'context-menu-mode' now includes a "Send to..." menu item.
 The menu item enables sending current file(s) or region text to external
-(non-Emacs) applications or services.  See send-to.el for customisations.
+(non-Emacs) applications or services.  See send-to.el for customizations.
 
 ---
 *** The mouse now drags lines in character increments again.
@@ -315,7 +315,7 @@ dividing side-by-side windows now by default happens in increments of
 the corresponding frame's character size again.  This is the behavior
 described in the manual and was the default behavior before
 'window-resize-pixelwise' was added for Emacs 24.1.  To drag in pixel
-increments as with Emcas 24 through Emacs 30 you now have to set
+increments as with Emacs 24 through Emacs 30 you now have to set
 'window-resize-pixelwise' to t.
 
 ** Windows
@@ -1539,7 +1539,7 @@ If 'page-delimiters' is set in 'whitespace-style', or the new minor mode
 'whitespace-page-delimiters-mode' is on, the page delimiter characters
 ('^L') are displayed as a pretty horizontal line that spans the entire
 width of the window.  The new 'whitespace-page-delimiter' face can be
-used to customize the appearence.
+used to customize the appearance.
 
 ** Bookmark
 
@@ -2373,7 +2373,7 @@ The hardcoded '^' shortcut gets you back to the previous menu.
 ---
 *** New user option 'tmm-shortcut-inside-entry'.
 When non-nil, highlight the character shortcut in the menu entry's
-string instead of preprending it and 'tmm-mid-prompt' to said entry.
+string instead of prepending it and 'tmm-mid-prompt' to said entry.
 
 ** Foldout
 
@@ -2827,7 +2827,7 @@ used to write notes.
 ---
 *** New handler that appends remember data in directory.
 The 'remember-append-in-data-directory' handler appends remember data in
-a file, that file being choosen by the user through the minibuffer.
+a file, that file being chosen by the user through the minibuffer.
 
 ---
 *** New prefix map for remember commands.
@@ -3438,7 +3438,7 @@ on GNU/Linux systems.
 The display optimization where the combination 'TAB' characters +
 'BACKSPACE' is used to move to a position on a TTY frame is now disabled
 by default and controlled by this variable; it can be set to non-nil
-to keep the old behavior.  This change is to accomodate screen
+to keep the old behavior.  This change is to accommodate screen
 readers.
 
 ---

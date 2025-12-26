@@ -1634,12 +1634,12 @@ switch to another theme in the collection ([[#h:d87673fe-2ce1-4c80-a4b8-be36ca9f
                       (ansi-color-magenta                  :short "ansi-magenta"        :slug "anm" :foreground ,fg-term-magenta)
                       (ansi-color-bright-yellow            :short "ansi-bright-yellow"  :slug "ANy" :foreground ,fg-term-yellow-bright)
                       (ansi-color-bright-red               :short "ansi-bright-red"     :slug "ANr" :foreground ,fg-term-red-bright)
-                      (ansi-color-bright-black             :short "ansi-bright-black"   :slug "ANb" :foregroun  ,fg-term-black-bright)
+                      (ansi-color-bright-black             :short "ansi-bright-black"   :slug "ANb" :foreground ,fg-term-black-bright)
                       (ansi-color-bright-green             :short "ansi-bright-green"   :slug "ANg" :foreground ,fg-term-green-bright)
                       (ansi-color-bright-blue              :short "ansi-bright-blue"    :slug "ANB" :foreground ,fg-term-blue-bright)
                       (ansi-color-bright-cyan              :short "ansi-bright-cyan"    :slug "ANc" :foreground ,fg-term-cyan-bright)
-                      (ansi-color-bright-white             :short "ansi-bright-white"   :slug "ANw" :foregroun  ,fg-term-white-bright)
-                      (ansi-color-bright-magenta           :short "ansi-bright-magenta" :slug "ANm" :foregroun  ,fg-term-magenta-bright)))))))
+                      (ansi-color-bright-white             :short "ansi-bright-white"   :slug "ANw" :foreground ,fg-term-white-bright)
+                      (ansi-color-bright-magenta           :short "ansi-bright-magenta" :slug "ANm" :foreground ,fg-term-magenta-bright)))))))
 
 (add-hook 'enable-theme-functions #'my-modus-themes-engraved-faces)
 #+end_src
@@ -5621,7 +5621,7 @@ more effective than trying to do the same with either red or blue (the
 latter is the least effective in that regard).
 
 When we need to work with several colors, it is always better to have
-sufficient manoeuvring space, especially since we cannot pick arbitrary
+sufficient maneuvering space, especially since we cannot pick arbitrary
 colors but only those that satisfy the accessibility objectives of the
 themes.
 

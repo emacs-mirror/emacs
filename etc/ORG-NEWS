@@ -323,7 +323,7 @@ This is no longer the case. ~display-buffer-alist~ is fully obeyed.
 
 ~org-switch-to-buffer-other-window~ and ~org-no-popups~ are now deprecated.
 
-*** Asynchronous code evaluatation in ~ob-shell~
+*** Asynchronous code evaluation in ~ob-shell~
 
 Running shell blocks with the ~:session~ header freezes Emacs until
 execution completes.  The new ~:async~ header allows users to continue

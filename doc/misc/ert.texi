@@ -52,7 +52,7 @@ just like the code under test, making it easy to write expressive and
 concise test cases.
 
 ERT has unique features that take advantage of the dynamic and
-interactive nature of Emacs.  It is unopinionated about when or how
+interactive nature of Emacs.  It has no opinion about when or how
 tests are written: you can use it to verify newly written code,
 reproduce known bugs, prevent regressions, or explore the behavior of
 complex systems.  It can be used for both unit tests and larger

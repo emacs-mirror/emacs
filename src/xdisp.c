@@ -14219,7 +14219,7 @@ prepare_menu_bars (void)
 
    W, if set, denotes the window that should be considered as selected.
    For a tty child frame using F as surrogate menu bar frame, this
-   specifes the child frame's selected window and its buffer shall be
+   specifies the child frame's selected window and its buffer shall be
    used for updating the menu bar of the root frame instead of the
    buffer of the root frame's selected window.  */
 
@@ -24770,7 +24770,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop, int from_buffer)
 {
   struct text_pos pos =
     STRINGP (it->string) ? it->current.string_pos : it->current.pos;
-  bool phoney_display_string =
+  bool phony_display_string =
     from_buffer && STRINGP (it->string) && it->string_from_display_prop_p;
 
   eassert (it->method == GET_FROM_BUFFER
@@ -24794,7 +24794,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop, int from_buffer)
      string that follows iterator position).  If we don't do that, any
      display properties on the prefix string will be ignored.  The call
      to pop_it when we are done with the prefix will restore the flag.  */
-  if (phoney_display_string)
+  if (phony_display_string)
     it->string_from_display_prop_p = false;
 
   if (STRINGP (prop))

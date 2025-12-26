@@ -66,7 +66,7 @@ struct Lisp_TS_Parser
   Lisp_Object last_set_ranges;
   /* Parsers for embedded code blocks will have a non-zero embed level.
      The primary parser has level 0, and each additional layer of parser
-     embedding increments the leve by 1.  The embed level can be either
+     embedding increments the level by 1.  The embed level can be either
      a non-negative integer or nil.  Every parser created by
      'treesit-parser-create' starts with a nil level.  If the value is
      nil, that means the range functions (treesit-update-ranges and

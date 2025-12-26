@@ -218,13 +218,13 @@ If HARD-MIN and HARD-MAX can be used to fix the ends of the axis."
 			         (mapcar #'string-to-number (cdr row))
 			         hard-min
 			         hard-max)) table))
-	 (row-normalised-ranges (mapcar (lambda (r-data)
+	 (row-normalized-ranges (mapcar (lambda (r-data)
 					  (let ((val (round (*
 							     (plist-get r-data :range-factor)
 							     (plist-get r-data :nice-range)))))
 					    (if (= (% val 10) 0) (/ val 10) val)))
 					row-data))
-	 (range-prime-decomposition (mapcar #'org--plot/prime-factors row-normalised-ranges))
+	 (range-prime-decomposition (mapcar #'org--plot/prime-factors row-normalized-ranges))
 	 (weighted-factors (sort (apply #'org--plot/merge-alists #'+ 0
 					(mapcar (lambda (factors) (org--plot/item-frequencies factors t))
 						range-prime-decomposition))
@@ -278,9 +278,9 @@ argument for the FUNCTION."
 (defun org--plot/item-frequencies (values &optional normalize)
   "Return an alist indicating the frequency of values in VALUES list.
 When NORMALIZE is non-nil, the count is divided by the number of values."
-  (let ((normaliser (if normalize (float (length values)) 1)))
+  (let ((normalizer (if normalize (float (length values)) 1)))
     (cl-loop for (n . m) in (seq-group-by #'identity values)
-	     collect (cons n (/ (length m) normaliser)))))
+	     collect (cons n (/ (length m) normalizer)))))
 
 (defun org--plot/prime-factors (value)
   "Return the prime decomposition of VALUE, e.g. for 12, (3 2 2)."

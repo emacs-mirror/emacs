@@ -1313,11 +1313,11 @@ byte-compiled.  Run with dynamic binding."
  "warn-make-process-missing-keyword-value.el"
  "missing value for keyword argument :command")
 
-;;;; NEW STOUGH, 2025-07-13
+;;;; NEW STUFF, 2025-07-13
 (bytecomp--define-warning-file-test "macro-warning-position.el" ":18:8:")
 
 (bytecomp--define-warning-file-test "macro-warning-position-2.el" ":18:8:")
-;;;; END OF NEW STOUGH
+;;;; END OF NEW STUFF
 
 ;;;; Macro expansion.
 
@@ -1412,7 +1412,7 @@ byte-compiled.  Run with dynamic binding."
 
 (defun bytecomp-tests--f (x y &optional u v) (list x y u v))
 
-(ert-deftest bytecomp-tests--warn-arity-noncompiled-callee ()
+(ert-deftest bytecomp-tests--warn-arity-non-compiled-callee ()
   "Check that calls to non-compiled functions are arity-checked (bug#78685)"
   (should (not (compiled-function-p (symbol-function 'bytecomp-tests--f))))
   (let* ((source (concat ";;; -*-lexical-binding:t-*-\n"
@@ -2081,8 +2081,8 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
      (df '((((class color grayscale) (max-colors 75) (background light))
             :foreground "cyan"))))
     (bytecomp--with-warning-test
-     (rx "Bad face display `defualt'")
-     (df '((defualt :foreground "cyan"))))
+     (rx "Bad face display `bad-default'")
+     (df '((bad-default :foreground "cyan"))))
     (bytecomp--with-warning-test
      (rx "`:inverse' is not a valid face attribute keyword")
      (df '((t :background "blue" :inverse t))))

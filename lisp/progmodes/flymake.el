@@ -2008,8 +2008,8 @@ POS can be a buffer position or a button"
 
 (defun flymake--tabulated-setup-1 (diags project-root)
   "Helper for `flymake--tabulated-setup'.
-Sets `tabulated-list-format' and `tabulated-list-entries', dinamically
-resizing columns and ommiting redudant columns."
+Sets `tabulated-list-format' and `tabulated-list-entries', dynamically
+resizing columns and omitting redundant columns."
   (cl-loop
    with fields = (copy-tree flymake--tabulated-list-format-base t)
    initially (cl-loop for y across fields do (setf (cadr y) nil))

@@ -879,7 +879,7 @@ This option controls whether key bindings of infix commands that do
 not match the respective command-line argument should be highlighted.
 For other infix commands this option has no effect.
 
-This is mostly indended for autors of transient menus and disabled
+This is mostly intended for authors of transient menus and disabled
 by default.
 
 When this option is non-@code{nil}, the key binding for an infix argument
@@ -1702,7 +1702,7 @@ should be used.
 @end defun
 
 @defun transient-get-value
-This function returns the value of the erant prefix.
+This function returns the value of the current prefix.
 
 This function is intended to be used when setting up a menu and its
 suffixes.  It is not intended to be used when a suffix command is

@@ -4078,7 +4078,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (defun byte-compile-cmp (form)
   "Compile calls to numeric comparisons such as `<', `=' etc."
   ;; Lisp-level transforms should already have reduced valid calls to 2 args,
-  ;; but optimisations may have been disabled.
+  ;; but optimizations may have been disabled.
   (let ((l (length form)))
     (cond
      ((= l 3)

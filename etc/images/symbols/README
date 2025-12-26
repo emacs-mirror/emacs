@@ -44,7 +44,7 @@ Emacsen that cannot display SVG images.
 
 
 
-The behaviour described above for setting the foreground color to match
+The behavior described above for setting the foreground color to match
 the text has changed.  It must now be set to `currentcolor', so the
 above sed commands are now:
 

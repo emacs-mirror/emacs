@@ -68,8 +68,8 @@ ERC buffers as having been read.
 ** An arguably less distracting 'erc-nicks-track-faces' variant.
 Setting this option to t tells the 'track' module to have the mode-line
 indicator stick with the most recent speaker's face, even when they're
-monologuing, instead of alternating between it and the highest ranked
-'erc-track-faces-normal-list' member in a given message.
+the only speaker, instead of alternating between it and the highest
+ranked 'erc-track-faces-normal-list' member in a given message.
 
 ** Module 'querypoll' has left 'goodies' and moved in with 'notify'.
 The 'querypoll' module was initially placed in 'erc-goodies' even though

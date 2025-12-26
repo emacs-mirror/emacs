@@ -188,9 +188,9 @@ This function consults `completion-category-overrides' and
 If no value is found in these variables, then this function goes over
 the parent categories of CAT (specified in the definition of CAT with
 `define-completion-category', which see), and chooses the first value
-any of them specify (directly or via inheriance), if any.
+any of them specify (directly or via inheritance), if any.
 
-If this fucntion finds a value VAL for PROP, it returns a cons cell with
+If this function finds a value VAL for PROP, it returns a cons cell with
 VAL at the `cdr'.  Otherwise, this function returns nil."
   (seq-some (lambda (c) (completion--category-override c prop))
             (completion--all-reachable-categories cat)))

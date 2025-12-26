@@ -235,7 +235,7 @@ VC commands are globally reachable under the prefix \\[vc-prefix-map]:
 ;;
 ;; In addition we store some whole-repository properties keyed to the
 ;; repository root.  We invalidate/update these during VC operations,
-;; but there isn't a point analagous to the killing of a buffer at which
+;; but there isn't a point analogous to the killing of a buffer at which
 ;; we clear them all out, like there is for per-file properties.
 
 (defvar vc-file-prop-obarray (obarray-make 17)

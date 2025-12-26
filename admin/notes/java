@@ -453,7 +453,7 @@ See http://docs.oracle.com/en/java/javase/19/docs/specs/jni/intro.html
 for more details.
 
 Java does not support `goto' statements, which it defines as reserved
-identifiers but does not assign any syntatic role.  If you are in a
+identifiers but does not assign any syntactic role.  If you are in a
 position where you must exercise `goto' to exit a block prematurely, you
 may define the block and exit it with a named `break' statement, thus:
 

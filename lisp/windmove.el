@@ -444,7 +444,7 @@ it is relative to the top edge (for positive ARG) or the bottom edge
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window."
   (interactive "P\np")
@@ -462,7 +462,7 @@ negative ARG) of the current window.
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window."
   (interactive "P\np")
@@ -480,7 +480,7 @@ bottom edge (for negative ARG) of the current window.
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window."
   (interactive "P\np")
@@ -498,7 +498,7 @@ it is relative to the left edge (for positive ARG) or the right edge
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window."
   (interactive "P\np")

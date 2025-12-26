@@ -378,7 +378,7 @@ customizing @code{shr-blocked-images}.
 the ``ALT'' text of images instead.
 
 @vindex shr-sliced-image-height
-  To make scrolling up/down past images more intuititve, EWW splits
+  To make scrolling up/down past images more intuitive, EWW splits
 large images into several rows.  This way, you can scroll individually
 past each slice, instead of jumping past the entire image.  EWW slices
 images that take up more than @code{shr-sliced-image-height} of the

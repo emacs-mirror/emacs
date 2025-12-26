@@ -663,7 +663,7 @@ its mode variable has a local binding in all affected buffers
 @end enumerate
 
 In keeping with this, all built-in local modules disable themselves in
-nonapplicable buffers rather than remain no-ops.  Some also take strides
+inapplicable buffers rather than remain no-ops.  Some also take strides
 to enable themselves elsewhere when needed or at least emit a helpful
 error.  For example, the @samp{nicks} module does both in server
 buffers, where it shares resources among the target buffers it primarily

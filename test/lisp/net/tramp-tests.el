@@ -3883,7 +3883,7 @@ This tests also `access-file', `file-readable-p',
 	      (delete-file tmp-name2)
 
 	      ;; A non-existent or cyclic link target makes the file
-	      ;; unaccessible.
+	      ;; inaccessible.
 	      (dolist (target
 		       `("does-not-exist" ,(file-name-nondirectory tmp-name2)))
 		(make-symbolic-link target tmp-name2)

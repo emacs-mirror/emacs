@@ -2807,7 +2807,7 @@ parsers with that tag.  Note that passing nil as tag doesn't mean return
 all parsers, but rather "all parsers with no tags".
 
 *** New variable 'treesit-primary-parser'.
-This variable should be set by multi-langauge major modes before calling
+This variable should be set by multi-language major modes before calling
 'treesit-major-mode-setup', in order for tree-sitter integration
 functionalities to operate correctly.
 

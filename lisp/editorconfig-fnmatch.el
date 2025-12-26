@@ -36,7 +36,7 @@
 
 ;; Test whether NAME match PATTERN.
 
-;; PATTERN should be a shell glob pattern, and some zsh-like wildcard matchings
+;; PATTERN should be a shell glob pattern, and some zsh-like wildcard matching
 ;; can be used:
 
 ;; *           Matches any string of characters, except path separators (/)
@@ -86,7 +86,7 @@
 
 Matching ignores case if `case-fold-search' is non-nil.
 
-PATTERN should be a shell glob pattern, and some zsh-like wildcard matchings can
+PATTERN should be a shell glob pattern, and some zsh-like wildcard matching can
 be used:
 
 *           Matches any string of characters, except path separators (/)

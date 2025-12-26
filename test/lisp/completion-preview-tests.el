@@ -378,7 +378,7 @@ instead."
       (should-not exit-fn-args))))
 
 (ert-deftest completion-preview-insert-mid-symbol ()
-  "Test `completion-preview-insert-word' when point is in a mulit-word symbol."
+  "Test `completion-preview-insert-word' when point is in a multi-word symbol."
   (with-temp-buffer
     (setq-local completion-at-point-functions
                 (list

@@ -905,7 +905,7 @@ to extract substrings.")
                           (append base
                                   (split-string (buffer-substring-no-properties
                                                  (point-min) (point-max)))))
-                  ;; Fallback for whedn the compiler is not available.
+                  ;; Fallback for when the compiler is not available.
                   (list (expand-file-name "/usr/include")
                         (expand-file-name "/usr/local/include")))))
            ;; Prefer GCC.

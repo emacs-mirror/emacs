@@ -178,7 +178,7 @@
 
 ;; *** Tree-sitter support
 ;;
-;; All the treesit based modes already have support for hidding/showing
+;; All the treesit based modes already have support for hiding/showing
 ;; using the treesit thing `list' (see `treesit-major-mode-setup').
 ;;
 ;; However, for some modes the `list' thing is not enough for detecting

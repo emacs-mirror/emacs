@@ -295,7 +295,7 @@ if they might expose privileged or secret information."
      special-mode               ;; Special/internal buffers
      image-mode                 ;; image buffers
      authinfo-mode              ;; encrypted buffers
-     zone--buffer-encrpted-p
+     zone--buffer-encrypted-p
      "\\`\\*scratch\\*\\'"      ;; zone will fallback to scratch , but
                                 ;; ignore it in the first pass
      )

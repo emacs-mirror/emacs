@@ -370,7 +370,7 @@ Throw an error if the field value is non-string and non-nil."
   "Return a list of family names from a list of full NAMES.
 NAMES can be a string or raw string object.
 
-To better accomomodate corporate names, this will only shorten
+To better accommodate corporate names, this will only shorten
 personal names of the form \"family, given\"."
   (let (names-string raw-p)
     (cond

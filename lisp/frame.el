@@ -85,7 +85,7 @@ handles the corresponding kind of display.")
     "mouse-wheel-frame" "name" "no-accept-focus" "no-focus-on-map"
     "no-other-frame" "no-special-glyphs" "ns-appearance"
     "ns-transparent-titlebar" "outer-window-id" "override-redirect"
-    "parent-frame" "right-fringe" "rigth-divider-width" "screen-gamma"
+    "parent-frame" "right-fringe" "right-divider-width" "screen-gamma"
     "scroll-bar-background" "scroll-bar-foreground" "scroll-bar-height"
     "scroll-bar-width" "shaded" "skip-taskbar" "snap-width" "sticky"
     "tab-bar-lines" "title" "tool-bar-lines" "tool-bar-position" "top"

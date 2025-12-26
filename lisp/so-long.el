@@ -69,7 +69,7 @@
 ;; the long lines.  In such circumstances you may find that `longlines-mode' is
 ;; the most helpful facility.
 ;;
-;; Note also that the mitigations are automatically triggered when visiting a
+;; Note also that the mitigation is automatically triggered when visiting a
 ;; file.  The library does not automatically detect if long lines are inserted
 ;; into an existing buffer (although the `so-long' command can be invoked
 ;; manually in such situations).
@@ -392,7 +392,7 @@
 ;; by the global mode (although the `so-long' command can be invoked manually).
 ;; To handle such buffers additional glue code will be required, and that code
 ;; should likely be specific to the particular use-case to avoid unintended
-;; behaviours.
+;; behaviors.
 ;;
 ;; An example to handle `compilation-mode' (and derivative) buffers follows:
 ;;
@@ -532,7 +532,7 @@
   "Internal use.  Non-nil when any `so-long' functionality has been used.")
 
 (defvar-local so-long--active nil ; internal use
-  "Non-nil when `so-long' mitigations are in effect.")
+  "Non-nil when `so-long' mitigation is in effect.")
 
 (defvar so-long--set-auto-mode nil ; internal use
   "Non-nil while `set-auto-mode' is executing.")
@@ -1006,7 +1006,7 @@ If nil, no mode line indicator will be displayed."
 
 (defface so-long-mode-line-active
   '((t :inherit mode-line-emphasis))
-  "Face for the mode line construct when mitigations are active.
+  "Face for the mode line construct when mitigation is active.
 
 Applied to `mode-name' in the `so-long-mode' major mode, and to
 `so-long-mode-line-label' otherwise (for non-major-mode actions).
@@ -1016,7 +1016,7 @@ See also `so-long-mode-line-info'."
 
 (defface so-long-mode-line-inactive
   '((t :inherit mode-line-inactive))
-  "Face for `so-long-mode-line-info' when mitigations have been reverted."
+  "Face for `so-long-mode-line-info' when mitigation has been reverted."
   :package-version '(so-long . "1.0"))
 
 ;; Modes that go slowly and line lengths excessive
@@ -1187,7 +1187,7 @@ Displayed as part of `mode-line-misc-info'.
 
 `so-long-mode-line-label' defines the text to be displayed (if any).
 
-Face `so-long-mode-line-active' is used while mitigations are active, and
+Face `so-long-mode-line-active' is used while mitigation is active, and
 `so-long-mode-line-inactive' is used if `so-long-revert' is called.
 
 Not displayed when `so-long-mode' is enabled, as the major mode construct
@@ -1917,7 +1917,7 @@ Equivalent to calling (global-so-long-mode 0)"
 
 ;;;###autoload
 (define-minor-mode global-so-long-mode
-  "Toggle automated performance mitigations for files with long lines.
+  "Toggle automated performance mitigation for files with long lines.
 
 Many Emacs modes struggle with buffers which contain excessively long lines,
 and may consequently cause unacceptable performance issues.
@@ -2124,7 +2124,7 @@ If it appears in `%s', you should remove it."
 ; LocalWords:  noerror selectable mapc sgml nxml hl flydiff defs arg Phil Sainty
 ; LocalWords:  defadvice nadvice whitespace ie bos eos eobp origmode un Un setq
 ; LocalWords:  docstring auf Wiedersehen longlines alist autoload Refactored Inc
-; LocalWords:  MERCHANTABILITY RET REGEXP VAR ELPA WS mitigations EmacsWiki eval
+; LocalWords:  MERCHANTABILITY RET REGEXP VAR ELPA WS EmacsWiki eval
 ; LocalWords:  rx filename filenames js defun bidi bpa FIXME globalized amongst
 
 ;; So long, farewell, auf Wiedersehen, goodbye

@@ -217,7 +217,7 @@ attributes, prototypes and signatures."
           (goto-char end-of-sub))))))
 
 (ert-deftest cperl-test-fontify-builtin-constants ()
-  "Test fontificiation of the floating point constants \"nan\" and \"inf\"."
+  "Test fontification of the floating point constants \"nan\" and \"inf\"."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((constants '("my $min=-builtin::inf;"
                      "my $unknown = builtin::nan;"

@@ -1932,7 +1932,7 @@ DEFUN ("replace-region-contents", Freplace_region_contents,
               (get-buffer (read-buffer-to-switch \"Source buffer: \")))",
        doc: /* Replace the region between BEG and END with that of SOURCE.
 SOURCE can be a buffer, a string, or a vector [SBUF SBEG SEND]
-denoting the subtring SBEG..SEND of buffer SBUF.
+denoting the substring SBEG..SEND of buffer SBUF.
 
 If optional argument INHERIT is non-nil, the inserted text will inherit
 properties from adjoining text.
@@ -1953,7 +1953,7 @@ for comparing the buffers.  If it takes longer than MAX-SECS, the
 function falls back to a plain `delete-region' and
 `insert-buffer-substring'.  (Note that the checks are not performed
 too evenly over time, so in some cases it may run a bit longer than
-allowed).  In partricular, passing zero as the value of MAX-SECS
+allowed).  In particular, passing zero as the value of MAX-SECS
 disables the comparison step, so this function immediately falls
 back to a plain delete/insert method.
 

@@ -389,7 +389,7 @@ should a regexp."
 
 (defun query-replace-read-transpose-from-to ()
   "Transpose the FROM and TO arguments of a `query-replace' operation.
-If there is an active region in the minibuffer, tranpose only those
+If there is an active region in the minibuffer, transpose only those
 parts of FROM and TO that intersect with the active region, or complete
 TO or FROM if the active region only intersects with FROM or TO,
 respectively.

@@ -4345,7 +4345,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
 GLOBS is a list of (COMPILED-GLOB . KIND) pairs, where COMPILED-GLOB is
 a compiled glob predicate and KIND is a bitmask of change types.  DIR is
 the directory to watch (nil means entire project).  IN-ROOT says if DIR
-happens to be inside or maching the project root."
+happens to be inside or matching the project root."
   (cl-labels
       ((subdirs-using-project ()
          (delete-dups
@@ -4811,8 +4811,8 @@ See `eglot--semtok-request' implementation for details.")
                 ;;               eglot--docver docver (c :orig-docver) (c :req-docver))
                 ;; This skip is different from the one below.  Comparing
                 ;; the lexical `docver' to the original request's
-                ;; `:orig-docver' allows skipping the outdated reponse
-                ;; of a dispatched request that has been overriden by
+                ;; `:orig-docver' allows skipping the outdated response
+                ;; of a dispatched request that has been overridden by
                 ;; another (perhaps not dispatched yet) request.
                 (when (eq docver (c :orig-docver))
                   (setf (c :docver) (c :req-docver)

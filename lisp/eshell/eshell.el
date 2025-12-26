@@ -288,7 +288,7 @@ information on Eshell, see Info node `(eshell)Top'."
 (declare-function eshell--save-history "em-hist" ())
 
 (defun eshell-command-mode-exit ()
-  "Exit the `eshell-commad-mode' minibuffer and save Eshell history."
+  "Exit the `eshell-command-mode' minibuffer and save Eshell history."
   (interactive)
   (when (eshell-using-module 'eshell-hist)
     (eshell-add-input-to-history

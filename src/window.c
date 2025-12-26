@@ -5450,7 +5450,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 	 REFER end up as the sole children of PARENT which replaces
 	 WINDOW in the window tree.  As a special case, if REFER's cdr
 	 is t, reuse REFER's car's old parent as new parent provided it
-	 is a deleted fromer parent window.  */
+	 is a deleted former parent window.  */
       parent = Fcdr (refer);
       refer = Fcar (refer);
       r = decode_any_window (refer);

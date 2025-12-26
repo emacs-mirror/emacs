@@ -2114,7 +2114,7 @@ If FILE-NAME is nil, use the current file instead."
             (doc-view--pdf-outline file-name)))))
     (when outline (imenu-add-to-menubar "Outline"))
     ;; When the outline could not be made due to unavailability of the
-    ;; required program, or its absency from the document, return
+    ;; required program, or its absence from the document, return
     ;; 'unavailable'.
     (or outline 'unavailable)))
 

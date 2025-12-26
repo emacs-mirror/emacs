@@ -2294,7 +2294,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	     ((and (eq 'byte-varref (car lap2))
                    (eq (cdr lap1) (cdr lap2))
                    (memq (car lap1) '(byte-varset byte-varbind))
-                   ;; Can't optimise away varref for DEFVAR_BOOL vars
+                   ;; Can't optimize away varref for DEFVAR_BOOL vars
                    ;; because what we put in might not be what we get out.
                    (let ((tmp (memq (car (cdr lap2)) byte-boolean-vars)))
                      (and
@@ -2721,7 +2721,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
                      (and
 	              (eq (car (car tmp)) 'byte-varref)
 	              (eq (cdr (car tmp)) (cdr lap1))
-                      ;; Can't optimise away varref for DEFVAR_BOOL vars
+                      ;; Can't optimize away varref for DEFVAR_BOOL vars
                       ;; because what we put in might not be what we get out.
 	              (not (memq (car (cdr lap1)) byte-boolean-vars))
 	              (let ((newtag (byte-compile-make-tag)))

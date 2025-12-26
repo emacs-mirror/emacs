@@ -293,7 +293,7 @@ the same features enabled in MODE."
     ;; FIXME: Kind of a hack here: we use this function as a hook for
     ;; loading up configs for the language for the code block on-demand.
     (let ((mode (alist-get lang markdown-ts-code-block-source-mode-map)))
-      ;; If there's no supported mode for the langauge, return nil,
+      ;; If there's no supported mode for the language, return nil,
       ;; which makes Emacs skip the code block.
       (if (not (and mode (fboundp mode)))
           nil

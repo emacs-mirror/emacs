@@ -2724,7 +2724,7 @@ will be handled."
   c '("auto"))
 
 (c-lang-defconst c-no-type-with-equals-key
-  ;; Regexp mathing an entry from `c-no-type-with-equals-kwds'.
+  ;; Regexp matching an entry from `c-no-type-with-equals-kwds'.
   t (c-make-keywords-re t (c-lang-const c-no-type-with-equals-kwds)))
 (c-lang-defvar c-no-type-with-equals-key
   (c-lang-const c-no-type-with-equals-key))

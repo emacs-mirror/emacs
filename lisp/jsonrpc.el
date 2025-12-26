@@ -379,7 +379,7 @@ a new request with identical DEFERRED and for the same buffer.
 However, in that situation, the original timeout is kept.
 
 PARAMS can also be the keyword `:jsonrpc-omit', in which case the
-JSONRPC request object is formed witout a `params' entry.
+JSONRPC request object is formed without a `params' entry.
 
 Returns a list whose first element is an integer identifying the request
 as specified in the JSONRPC 2.0 spec."
@@ -1008,7 +1008,7 @@ Do nothing if MAX-SIZE is nil."
       (delete-region
        (point-min)
        (save-excursion
-         ;; Remove 1/4, so that the cost is O(1) amortised, since each
+         ;; Remove 1/4, so that the cost is O(1) amortized, since each
          ;; call to `delete-region' will move the buffer contents twice.
          (goto-char (+ (point-min) (/ (buffer-size) 4)))
          (forward-line)

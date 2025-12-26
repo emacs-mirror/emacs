@@ -686,7 +686,7 @@ orange
           (insert patch)
           (goto-char (point-min))
           (diff-hunk-next)
-          ;; Undo hunk by dwim behaviour
+          ;; Undo hunk by dwim behavior
           (cl-letf (((symbol-function 'y-or-n-p) #'always))
             (diff-apply-hunk)))
         (with-current-buffer buf-after
@@ -734,7 +734,7 @@ plum
           (insert patch)
           (goto-char (point-min))
           (diff-hunk-next)
-          ;; Undo hunk by dwim behaviour
+          ;; Undo hunk by dwim behavior
           (cl-letf (((symbol-function 'y-or-n-p) #'always))
             (diff-apply-hunk)))
         (with-current-buffer buf-after
