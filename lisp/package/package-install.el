@@ -63,12 +63,12 @@ and read the changelog.  The default value of nil will install packages
 without any additional prompts, while t reviews all packages.  By
 setting this user option to a list you can also selectively list what
 packages and archives to review.  For the former, an entry of the
-form (archive STRING) will review all packages form the archive
+form (archive STRING) will review all packages from the archive
 STRING (see `package-archives'), and an entry of the form (package
 SYMBOL) will review package who's name matches SYMBOL.  By prefixing the
 list with a symbol `not' the rules are inverted."
   :type
-  (let ((choice '(choice :tag "Review all packages form archive"
+  (let ((choice '(choice :tag "Review all packages from archive"
                          (cons (const archive) (string :tag "Archive name"))
                          (cons (const package) (symbol :tag "Package name")))))
     `(choice
