@@ -1095,6 +1095,9 @@ value other than `ask' if you have a strong grasp of the VCS in use."
                  (const :tag "Allow without prompting" t))
   :version "31.1")
 
+(define-obsolete-variable-alias
+  'vc-cloneable-backends-custom-type
+  'vc-clonable-backends-custom-type "31.1")
 (defconst vc-clonable-backends-custom-type
   `(choice :convert-widget
            ,(lambda (widget)
@@ -1106,9 +1109,6 @@ value other than `ask' if you have a strong grasp of the VCS in use."
                 (widget-put widget :args opts))
               widget))
   "The type of VC backends that support cloning VCS repositories.")
-(define-obsolete-variable-alias
-  'vc-cloneable-backends-custom-type
-  'vc-clonable-backends-custom-type "31.1")
 
 (defcustom vc-clone-heuristic-alist
   `((,(rx bos "http" (? "s") "://"
