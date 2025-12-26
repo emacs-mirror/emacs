@@ -217,6 +217,9 @@ Return nil if there is no name or if NODE is not a defun node."
 
     (treesit-major-mode-setup)
 
+    (setq-local hs-treesit-things "block_mapping_pair")
+    (setq-local hs-adjust-block-end-function (lambda (_) (line-end-position)))
+
     ;; Use the `list' thing defined above to navigate only lists
     ;; with `C-M-n', `C-M-p', `C-M-u', `C-M-d', but not sexps
     ;; with `C-M-f', `C-M-b' neither adapt to 'show-paren-mode'
@@ -229,7 +232,10 @@ Return nil if there is no name or if NODE is not a defun node."
 
 ;;;###autoload
 (defun yaml-ts-mode-maybe ()
-  "Enable `yaml-ts-mode' when its grammar is available."
+  "Enable `yaml-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'yaml)
           (eq treesit-enabled-modes t)
           (memq 'yaml-ts-mode treesit-enabled-modes))
@@ -237,7 +243,7 @@ Return nil if there is no name or if NODE is not a defun node."
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
   (add-to-list 'treesit-major-mode-remap-alist

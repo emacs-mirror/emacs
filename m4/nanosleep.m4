@@ -1,5 +1,5 @@
 # nanosleep.m4
-# serial 47
+# serial 48
 dnl Copyright (C) 1999-2001, 2003-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -144,6 +144,25 @@ AC_DEFUN([gl_FUNC_NANOSLEEP],
        ;;
    esac
  else
+   # Replace the static inline function on mingw which requires linking to
+   # libwinpthreads.
+   AC_CACHE_CHECK([for static inline nanosleep],
+     [gl_cv_static_inline_nanosleep],
+     [AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+           [[#include <time.h>]],
+           [[
+              static struct timespec ts1;
+              static struct timespec ts2;
+              return nanosleep (&ts1, &ts2);
+           ]])
+        ],
+     [gl_cv_static_inline_nanosleep=yes],
+     [gl_cv_static_inline_nanosleep=no])
+   ])
+   if test $gl_cv_static_inline_nanosleep = yes; then
+     REPLACE_NANOSLEEP=1
+   fi
    HAVE_NANOSLEEP=0
  fi
  LIBS=$gl_saved_LIBS

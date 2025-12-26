@@ -2135,10 +2135,14 @@ minibuffer and the selected frame has no other windows)."
     (let ((guidance (quail-guidance)))
       (if (listp guidance)
 	  ;; We must replace the typed key with the specified PROMPT-KEY.
-	  (dotimes (i (length str))
-	    (let ((prompt-key (cdr (assoc (aref str i) guidance))))
-	      (if prompt-key
-		  (aset str i (aref prompt-key 0)))))))
+          (setq str (apply #'string
+                           (mapcar
+                            (lambda (c)
+	                      (let ((prompt-key (assq c guidance)))
+	                        (if prompt-key
+		                    (aref (cdr prompt-key) 0)
+                                  c)))
+                            str)))))
 
       ;; Show followable keys.
       (if (and (> (length quail-current-key) 0) (cdr map))

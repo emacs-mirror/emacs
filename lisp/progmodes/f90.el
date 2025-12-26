@@ -930,7 +930,7 @@ allowed.  This minor issue currently only affects \"(/\" and \"/)\".")
                         "block" "critical") t)
           "\\_>")
   "Regexp matching the end of an F90 \"block\", from the line start.
-Used in the F90 entry in `hs-special-modes-alist'.")
+Used in the F90 entry in `hs-block-end-regexp'.")
 
 ;; Ignore the fact that FUNCTION, SUBROUTINE, WHERE, FORALL have a
 ;; following "(".  DO, CASE, IF can have labels.
@@ -966,12 +966,7 @@ Used in the F90 entry in `hs-special-modes-alist'.")
   "Regexp matching the start of an F90 \"block\", from the line start.
 A simple regexp cannot do this in fully correct fashion, so this
 tries to strike a compromise between complexity and flexibility.
-Used in the F90 entry in `hs-special-modes-alist'.")
-
-;; hs-special-modes-alist is autoloaded.
-(add-to-list 'hs-special-modes-alist
-             `(f90-mode ,f90-start-block-re ,f90-end-block-re
-                        "!" f90-end-of-block nil))
+Used in the F90 entry in `hs-block-start-regexp'.")
 
 
 ;; Imenu support.
@@ -1188,7 +1183,11 @@ with no args, if that value is non-nil."
   (setq-local imenu-generic-expression f90-imenu-generic-expression)
   (setq-local beginning-of-defun-function #'f90-beginning-of-subprogram)
   (setq-local end-of-defun-function #'f90-end-of-subprogram)
-  (setq-local add-log-current-defun-function #'f90-current-defun))
+  (setq-local add-log-current-defun-function #'f90-current-defun)
+  (setq-local hs-block-start-regexp f90-start-block-re)
+  (setq-local hs-block-end-regexp f90-end-block-re)
+  (setq-local hs-c-start-regexp "!")
+  (setq-local hs-forward-sexp-function #'f90-end-of-block))
 
 
 ;; Inline-functions.

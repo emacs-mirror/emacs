@@ -100,4 +100,15 @@ See Bug#24641."
                    `[,(+ .a) ,(+ .a .b .b)])
                  [1 5])))
 
+(ert-deftest let-alist-numbers ()
+  "Check that .num indexes into lists."
+  (should (equal
+           (let-alist
+               '(((a . val1) (b . (nil val2)))
+                 (c . (val3)))
+             (list .0 .0.a .0.b.1 .c.0))
+           ;; .0 is interpreted as a number, so we can't use `let-alist'
+           ;; to do indexing alone.  Everything else works though.
+           '(0.0 val1 val2 val3))))
+
 ;;; let-alist-tests.el ends here

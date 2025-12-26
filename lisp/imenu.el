@@ -864,7 +864,33 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
                        (_ new-prefix))
 		     pos)))
 	(t
-	 (imenu--flatten-index-alist pos concat-names new-prefix)))))
+         (let ((subalist (imenu--flatten-index-alist
+                          pos concat-names new-prefix))
+               (region (get-text-property 0 'imenu-region name)))
+           (if region
+               ;; Add non-leaf nodes with Eglot text properties.
+               (append (imenu--flatten-index-alist
+                        (list (cons name (car region))) concat-names prefix)
+                       subalist)
+             subalist))))))
+   index-alist))
+
+(defun imenu--parentify-index-alist (index-alist)
+  ;; Add separate ".." for navigating to non-leaf nodes.
+  ;; Used only when `index-alist' has Eglot text properties.
+  (mapcan
+   (lambda (item)
+     (let* ((name (car item))
+            (pos (cdr item)))
+       (cond
+        ((not (imenu--subalist-p item))
+         (list item))
+        (t
+         (let ((subalist (imenu--parentify-index-alist pos))
+               (region (get-text-property 0 'imenu-region name)))
+           (when region
+             (setq subalist (append (list (cons ".." (car region))) subalist)))
+           (list (cons name subalist)))))))
    index-alist))
 
 (defun imenu-choose-buffer-index (&optional prompt alist)
@@ -896,8 +922,16 @@ The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
     ;; Create a list for this buffer only when needed.
     (while (eq result t)
       (setq index-alist (if alist alist (imenu--make-index-alist)))
-      (when imenu-flatten
+      (cond
+       (imenu-flatten
         (setq index-alist (imenu--flatten-index-alist index-alist t)))
+       ((when-let* ((alist (if (eq (car index-alist) imenu--rescan-item)
+                               (cdr index-alist) index-alist))
+                    (name (caar alist)))
+          (get-text-property 0 'imenu-region name))
+        ;; Change the menu structure by adding ".." to non-leaf nodes
+        ;; only when the first node has Eglot text properties.
+        (setq index-alist (imenu--parentify-index-alist index-alist))))
       (setq result
 	    (if (and imenu-use-popup-menu
 		     (or (eq imenu-use-popup-menu t) mouse-triggered))

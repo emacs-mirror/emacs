@@ -338,15 +338,16 @@ arguments to pass to the OPERATION."
           (tramp-register-file-name-handlers)
           (tramp-archive-run-real-handler operation args))
 
-      (let* ((filename (apply #'tramp-archive-file-name-for-operation
+      (let* ((tramp-methods (cons `(,tramp-archive-method) tramp-methods))
+	     (tramp-gvfs-methods tramp-archive-all-gvfs-methods)
+	     (filename (apply #'tramp-archive-file-name-for-operation
 			      operation args))
 	     (archive (tramp-archive-file-name-archive filename)))
 
         ;; `filename' could be a quoted file name.  Or the file
         ;; archive could be a directory, see Bug#30293.
         (if (or (null archive)
-                (not (tramp-archive-run-real-handler
-                      #'file-exists-p (list archive)))
+                (not (file-exists-p archive))
 	        (tramp-archive-run-real-handler
                  #'file-directory-p (list archive)))
             (tramp-archive-run-real-handler operation args)
@@ -358,9 +359,7 @@ arguments to pass to the OPERATION."
 	      (tramp-get-buffer (tramp-archive-dissect-file-name filename))
 	    (setq default-directory (file-name-as-directory archive)))
           ;; Now run the handler.
-          (let ((tramp-methods (cons `(,tramp-archive-method) tramp-methods))
-	        (tramp-gvfs-methods tramp-archive-all-gvfs-methods)
-	        ;; Set uid and gid.  gvfsd-archive could do it, but it doesn't.
+          (let (;; Set uid and gid.  gvfsd-archive could do it, but it doesn't.
 	        (tramp-unknown-id-integer (user-uid))
 	        (tramp-unknown-id-string (user-login-name))
 	        (fn (assoc operation tramp-archive-file-name-handler-alist)))

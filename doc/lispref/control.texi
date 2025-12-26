@@ -317,8 +317,8 @@ following way instead:
   (do-something result2))
 @end example
 
-There's a number of variations on this theme, and they're briefly
-described below.
+There's a number of variations on this theme, and they're described
+below.
 
 @defmac if-let* varlist then-form else-forms...
 Evaluate each binding in @var{varlist}, stopping if a binding value is
@@ -328,10 +328,12 @@ Evaluate each binding in @var{varlist}, stopping if a binding value is
 Each element of @code{varlist} has the form @w{@code{(@var{symbol}
 @var{value-form})}}: @var{value-form} is evaluated and @var{symbol} is
 locally bound to the result.  Bindings are sequential, as in @code{let*}
-(@pxref{Local Variables}).  As a special case, @var{symbol} can be
-omitted if only the test result of @var{value-form} is of interest:
-@var{value-form} is evaluated and checked for @code{nil}, but its value
-is not bound.
+(@pxref{Local Variables}).  If only the test result of @var{value-form}
+is of interest, use @code{_} for @var{symbol}.  Then @var{value-form} is
+evaluated and checked for @code{nil}, but its value is not bound.  As a
+special case, an entry of @code{varlist} may be of the form just
+@code{@var{symbol}}, which means to check the current binding of symbol
+for @code{nil}.
 @end defmac
 
 @defmac when-let* varlist then-forms...
@@ -343,9 +345,12 @@ form in @var{then-forms}.
 @code{varlist} has the form @w{@code{(@var{symbol} @var{value-form})}},
 in which @var{value-form} is evaluated and @var{symbol} is locally bound
 to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
-Variables}).  As a special case, @var{symbol} can be omitted if only the
-test result of @var{value-form} is of interest: @var{value-form} is
-evaluated and checked for @code{nil}, but its value is not bound.
+Variables}).  If only the test result of @var{value-form} is of
+interest, use @code{_} for @var{symbol}.  Then @var{value-form} is
+evaluated and checked for @code{nil}, but its value is not bound.  As a
+special case, an entry of @code{varlist} may be of the form just
+@code{@var{symbol}}, which means to check the current binding of symbol
+for @code{nil}.
 @end defmac
 
 @defmac and-let* varlist then-forms...
@@ -358,15 +363,34 @@ the value of the last binding.
 @code{varlist} has the form @w{@code{(@var{symbol} @var{value-form})}},
 in which @var{value-form} is evaluated and @var{symbol} is locally bound
 to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
-Variables}).  As a special case, @var{symbol} can be omitted if only the
-test result of @var{value-form} is of interest: @var{value-form} is
-evaluated and checked for @code{nil}, but its value is not bound.
+Variables}).  If only the test result of @var{value-form} is of
+interest, use @code{_} for @var{symbol}.  Then @var{value-form} is
+evaluated and checked for @code{nil}, but its value is not bound.  As a
+special case, an entry of @code{varlist} may be of the form just
+@code{@var{symbol}}, which means to check the current binding of symbol
+for @code{nil}.
 @end defmac
 
 Some Lisp programmers follow the convention that @code{and} and
 @code{and-let*} are for forms evaluated for return value, and
 @code{when} and @code{when-let*} are for forms evaluated for side-effect
 with returned values ignored.
+
+There is no @code{cond-let*} macro because extending the structure
+shared by @code{if-let*}, @code{when-let*} and @code{and-let*} to the
+case of @code{cond} is not simple.@footnote{The problem is that there
+are multiple ways to do it that are all useful but not compatible.  In
+addition, the resulting macro is complicated, and so tricky to learn how
+to read and write.}  However, you can use the @code{cond*} macro's
+@code{bind-and*} clauses (@pxref{cond* Macro}) to achieve something
+similar:
+
+@example
+(cond* ((bind-and* (result1 (do-computation))
+                   (result2 (do-more result1)))
+        (do-something result2))
+       ...)
+@end example
 
 A similar macro exists to run a loop until one binding evaluates to
 @code{nil}:
@@ -382,9 +406,12 @@ established anew.
 @code{varlist} has the form @w{@code{(@var{symbol} @var{value-form})}},
 in which @var{value-form} is evaluated and @var{symbol} is locally bound
 to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
-Variables}).  As a special case, @var{symbol} can be omitted if only the
-test result of @var{value-form} is of interest: @var{value-form} is
-evaluated and checked for @code{nil}, but its value is not bound.
+Variables}).  If only the test result of @var{value-form} is of
+interest, use @code{_} for @var{symbol}.  Then @var{value-form} is
+evaluated and checked for @code{nil}, but its value is not bound.  As a
+special case, an entry of @code{varlist} may be of the form just
+@code{@var{symbol}}, which means to check the current binding of symbol
+for @code{nil}.
 
 The return value of @code{while-let} is always @code{nil}.
 @end defmac
@@ -1489,8 +1516,16 @@ Each clause normally has the form @w{@code{(@var{condition}
 @findex bind*
 @code{(bind* @var{bindings}@dots{})} means to bind @var{bindings} (like
 the bindings list in @code{let*}, @pxref{Local Variables}) for the body
-of the clause.  As a condition, it counts as true if the first binding's
-value is non-@code{nil}.
+of the clause, and all subsequent clauses.  As a condition, it counts as
+true if the first binding's value is non-@code{nil}.
+
+@findex bind-and*
+@code{(bind-and* @var{bindings}@dots{})} means to bind @var{bindings}
+(like the bindings list in @code{if-let*}, @pxref{Conditionals}) for
+only the body of the clause.  As a condition, it counts as true if none
+of the bindings evaluate to @code{nil}.  In addition, if any binding
+evaluates to @code{nil}, the expressions for the values of subsequent
+bindings are not evaluated.
 
 @findex match*
 @findex pcase*
@@ -1576,7 +1611,7 @@ Matches a vector if the @var{eltpats} match its elements.  The first
 Matches @var{pattern} with strict checking of @code{cdr}s.  That means
 that @code{list} patterns verify that the final @code{cdr} is
 @code{nil}.  Strict checking is the default.
-@item (cdr-safe @var{pattern})
+@item (cdr-ignore @var{pattern})
 Matches @var{pattern} with lax checking of @code{cdr}s.  That means that
 @code{list} patterns do not examine the final @code{cdr}.
 @item (and @var{conjuncts}@dots{})
@@ -2181,7 +2216,8 @@ concept of continuable errors.
 @subsubsection How Emacs Processes Errors
 @cindex processing of errors
 
-When an error is signaled, @code{signal} searches for an active
+When a Lisp program signals an error, it calls the function
+@code{signal}, which searches for an active
 @dfn{handler} for the error.  A handler is a sequence of Lisp
 expressions designated to be executed if an error happens in part of the
 Lisp program.  If the error has an applicable handler, the handler is
@@ -2191,9 +2227,16 @@ established it; all functions called within that @code{condition-case}
 have already been exited, and the handler cannot return to them.
 
 If there is no applicable handler for the error, it terminates the
-current command and returns control to the editor command loop.  (The
-command loop has an implicit handler for all kinds of errors.)  The
-command loop's handler uses the error symbol and associated data to
+current command, flushes all pending unprocessed input events
+(@pxref{Input Events})@footnote{
+Pending input is discarded because the user could have typed something
+in advance under the assumption that execution will proceed without
+errors, so keeping these input events would cause unintended
+consequences, like inserting stray characters into an unrelated buffer
+or execution of some unintended command.
+}, and returns control to the editor command loop.
+(The command loop has an implicit handler for all kinds of errors.)  The
+command loop's handler then uses the error symbol and associated data to
 print an error message.  You can use the variable
 @code{command-error-function} to control how this is done:
 

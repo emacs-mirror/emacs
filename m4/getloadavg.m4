@@ -1,5 +1,5 @@
 # getloadavg.m4
-# serial 13
+# serial 14
 dnl Copyright (C) 1992-1996, 1999-2000, 2002-2003, 2006, 2008-2025 Free
 dnl Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
@@ -124,8 +124,7 @@ if test $gl_func_getloadavg_done = no; then
 fi
 
 # We cannot check for <dwarf.h>, because Solaris 2 does not use dwarf (it
-# uses stabs), but it is still SVR4.  We cannot check for <elf.h> because
-# Irix 4.0.5F has the header but not the library.
+# uses stabs), but it is still SVR4.
 if test $gl_func_getloadavg_done = no && test "$ac_cv_lib_elf_elf_begin" = yes \
     && test "$ac_cv_lib_kvm_kvm_open" = yes; then
   gl_func_getloadavg_done=yes

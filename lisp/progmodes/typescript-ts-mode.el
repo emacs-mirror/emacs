@@ -141,7 +141,7 @@ Check if a node type is available, then return the right indent rules."
                ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)))
     (treesit-query-error
      `(((match "<" "jsx_text") parent 0)
-       ((parent-is "jsx_text") parent typescript-ts-mode-indent-offset)))))
+       ((parent-is "jsx_text") parent-bol typescript-ts-mode-indent-offset)))))
 
 (defun typescript-ts-mode--anchor-decl (_n parent &rest _)
   "Return the position after the declaration keyword before PARENT.
@@ -724,7 +724,10 @@ This mode is intended to be inherited by concrete major modes."
 
 ;;;###autoload
 (defun typescript-ts-mode-maybe ()
-  "Enable `typescript-ts-mode' when its grammar is available."
+  "Enable `typescript-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'typescript)
           (eq treesit-enabled-modes t)
           (memq 'typescript-ts-mode treesit-enabled-modes))
@@ -732,7 +735,7 @@ This mode is intended to be inherited by concrete major modes."
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
   (add-to-list 'treesit-major-mode-remap-alist
@@ -857,7 +860,10 @@ at least 3 (which is the default value)."
 
 ;;;###autoload
 (defun tsx-ts-mode-maybe ()
-  "Enable `tsx-ts-mode' when its grammar is available."
+  "Enable `tsx-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'tsx)
           (eq treesit-enabled-modes t)
           (memq 'tsx-ts-mode treesit-enabled-modes))
@@ -865,7 +871,7 @@ at least 3 (which is the default value)."
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
   (add-to-list 'treesit-major-mode-remap-alist

@@ -35,7 +35,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <c-ctype.h>
 
 #define COBJMACROS /* Ask for C definitions for COM.  */
+#if !defined MINGW_W64 && !defined CYGWIN
+# define INITGUID
+#endif
+#include <initguid.h>
 #include <shlobj.h>
+#include <shobjidl.h>
 #include <oleidl.h>
 #include <objidl.h>
 #include <ole2.h>
@@ -180,11 +185,6 @@ struct MONITOR_INFO_EX
     char    szDevice[CCHDEVICENAME];
 };
 
-/* Reportedly, MSVC does not have this in its headers.  */
-#if defined (_MSC_VER) && _WIN32_WINNT < 0x0500
-DECLARE_HANDLE(HMONITOR);
-#endif
-
 typedef BOOL (WINAPI * TrackMouseEvent_Proc)
   (IN OUT LPTRACKMOUSEEVENT lpEventTrack);
 typedef LONG (WINAPI * ImmGetCompositionString_Proc)
@@ -237,6 +237,8 @@ typedef struct Emacs_GESTURECONFIG
 typedef BOOL (WINAPI * SetGestureConfig_proc) (HWND, DWORD, UINT,
 					       Emacs_PGESTURECONFIG, UINT);
 
+typedef BOOL (WINAPI * FlashWindowEx_Proc) (PFLASHWINFO pfwi);
+
 static TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 static ImmGetCompositionString_Proc get_composition_string_fn = NULL;
 static ImmGetContext_Proc get_ime_context_fn = NULL;
@@ -259,6 +261,7 @@ static WTSUnRegisterSessionNotification_Proc WTSUnRegisterSessionNotification_fn
 static WTSRegisterSessionNotification_Proc WTSRegisterSessionNotification_fn = NULL;
 static RegisterTouchWindow_proc RegisterTouchWindow_fn = NULL;
 static SetGestureConfig_proc SetGestureConfig_fn = NULL;
+static FlashWindowEx_Proc flash_window_ex_fn = NULL;
 
 extern AppendMenuW_Proc unicode_append_menu;
 
@@ -2440,6 +2443,8 @@ w32_applytheme (HWND hwnd)
 				    &w32_darkmode, sizeof (w32_darkmode));
 	}
     }
+  WPARAM dark_mode_p = w32_darkmode ? 1 : 0;
+  PostThreadMessage (dwMainThreadId, WM_EMACS_SET_TOOLKIT_THEME, dark_mode_p, 0);
 }
 
 static HWND
@@ -3645,6 +3650,7 @@ w32_name_of_message (UINT msg)
       M (WM_CHAR),
       M (WM_EMACS_DRAGOVER),
       M (WM_EMACS_DROP),
+      M (WM_EMACS_SET_TOOLKIT_THEME),
 #undef M
       { 0, 0 }
   };
@@ -10337,8 +10343,8 @@ typedef struct MY_NOTIFYICONDATAW {
 #endif
 
 
-#define EMACS_TRAY_NOTIFICATION_ID  42	/* arbitrary */
-#define EMACS_NOTIFICATION_MSG      (WM_APP + 1)
+#define EMACS_TRAY_NOTIFICATION_ID_INIT  42	/* arbitrary */
+#define EMACS_NOTIFICATION_MSG           (WM_APP + 1)
 
 enum NI_Severity {
   Ni_None,
@@ -10403,14 +10409,16 @@ utf8_mbslen_lim (const char *str, int lim)
   return mblen;
 }
 
+static unsigned short last_tray_notification_id;
+
 /* Low-level subroutine to show tray notifications.  All strings are
    supposed to be unibyte UTF-8 encoded by the caller.  */
-static EMACS_INT
+static int
 add_tray_notification (struct frame *f, const char *icon, const char *tip,
 		       enum NI_Severity severity, unsigned timeout,
 		       const char *title, const char *msg)
 {
-  EMACS_INT retval = EMACS_TRAY_NOTIFICATION_ID;
+  int retval = -1;
 
   if (FRAME_W32_P (f))
     {
@@ -10437,7 +10445,12 @@ add_tray_notification (struct frame *f, const char *icon, const char *tip,
       else
 	nidw.cbSize = MYNOTIFYICONDATAW_V1_SIZE;		/* < W2K */
       nidw.hWnd = FRAME_W32_WINDOW (f);
-      nidw.uID = EMACS_TRAY_NOTIFICATION_ID;
+      if (!last_tray_notification_id)
+	last_tray_notification_id = EMACS_TRAY_NOTIFICATION_ID_INIT;
+      else
+	last_tray_notification_id++;
+      retval = last_tray_notification_id;
+      nidw.uID = last_tray_notification_id;
       nidw.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_INFO;
       nidw.uCallbackMessage = EMACS_NOTIFICATION_MSG;
       if (!*icon)
@@ -10660,16 +10673,19 @@ Note that versions of Windows before W2K support only `:icon' and `:tip'.
 You can pass the other parameters, but they will be ignored on
 those old systems.
 
-There can be at most one active notification at any given time.  An
-active notification must be removed by calling `w32-notification-close'
-before a new one can be shown.
+There can be at most one active notification at any given time per each
+Emacs frame.  An active notification must be removed by calling the
+function `w32-notification-close', with the same frame selected as the
+one which was selected when the notification was created, before a new
+one can be shown for the same frame.  The caller must track which
+notification was created from which frame, using the returned ID value.
 
 usage: (w32-notification-notify &rest PARAMS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object arg_plist, lres;
-  EMACS_INT retval;
+  int retval;
   char *icon, *tip, *title, *msg;
   enum NI_Severity severity;
   unsigned timeout = 0;
@@ -10732,7 +10748,9 @@ usage: (w32-notification-notify &rest PARAMS)  */)
 DEFUN ("w32-notification-close",
        Fw32_notification_close, Sw32_notification_close,
        1, 1, 0,
-       doc: /* Remove the MS-Windows tray notification specified by its ID.  */)
+       doc: /* Remove the MS-Windows tray notification specified by its ID.
+The frame which was selected when the notification was created must
+be selected when removing the notification.  */)
   (Lisp_Object id)
 {
   struct frame *f = SELECTED_FRAME ();
@@ -10971,7 +10989,339 @@ DEFUN ("w32-set-wallpaper", Fw32_set_wallpaper, Sw32_set_wallpaper, 1, 1, 0,
 
   return Qnil;
 }
+
+/* Return time in milliseconds since the last input event.  */
+typedef BOOL (WINAPI *GetLastInputInfo_Proc) (PLASTINPUTINFO);
+static GetLastInputInfo_Proc get_last_input_info_fn = NULL;
+
+DEFUN ("w32-system-idle-time", Fw32_system_idle_time, Sw32_system_idle_time,
+       0, 0, 0,
+       doc: /* Return the time in milliseconds since last system-wide input event.
+
+Return -1 if the required system API is not available or fails.  */)
+  (void)
+{
+  LASTINPUTINFO info;
+  info.cbSize = sizeof info;
+
+  if (get_last_input_info_fn && get_last_input_info_fn (&info))
+    {
+      DWORD time_since_last_input = GetTickCount () - info.dwTime;
+      if (time_since_last_input > EMACS_INT_MAX)
+	return Vmost_positive_fixnum;
+      return make_fixnum (time_since_last_input);
+    }
+  return make_fixnum (-1);
+}
+
 #endif
+
+
+#ifdef WINDOWSNT
+
+/***********************************************************************
+		     Taskbar Indicators
+ ***********************************************************************/
+
+#ifndef MINGW_W64
+  /* mingw.org's MinGW doesn't have this stuff.  */
+  DEFINE_GUID(CLSID_TaskbarList, 0x56fdf344, 0xfd6d, 0x11d0, 0x95,0x8a, 0x00,0x60,0x97,0xc9,0xa0,0x90);
+  DEFINE_GUID(IID_ITaskbarList3, 0xea1afb91, 0x9e28, 0x4b86, 0x90,0xe9, 0x9e,0x9f,0x8a,0x5e,0xef,0xaf);
+#endif
+
+DEFUN ("w32-badge",
+       Fw32_badge,
+       Sw32_badge,
+       3, 3, 0,
+       doc: /* Display a taskbar icon overlay image on the selected frame.
+BADGE is a string.  If BADGE is nil, remove the overlay.  Do nothing if
+Windows does not support the ITaskbarList3 interface and return nil,
+otherwise return t.  Do nothing if the selected frame is not (yet)
+associated with a window handle.  BACKGROUND and FOREGROUND are RGB
+triplet strings of the form \"#RRGGBB\".  */)
+  (Lisp_Object badge, Lisp_Object background, Lisp_Object foreground)
+{
+  struct frame *sf = SELECTED_FRAME ();
+  HWND hwnd = NULL;
+
+  if (FRAME_W32_P (sf) && FRAME_LIVE_P (sf))
+    hwnd = FRAME_W32_WINDOW (sf);
+
+  if (hwnd == NULL)
+    return Qnil;
+
+  CoInitialize (NULL);
+  ITaskbarList3 *task_bar_list = NULL;
+  HRESULT r = CoCreateInstance (&CLSID_TaskbarList,
+				NULL,
+				CLSCTX_INPROC_SERVER,
+				&IID_ITaskbarList3,
+				(void **)&task_bar_list);
+  if (r != S_OK)
+    return Qnil;
+
+  if (!NILP (badge) && STRINGP (badge)
+      && STRINGP (background) && STRINGP (foreground))
+    {
+      COLORREF bg_rgb;
+      COLORREF fg_rgb;
+      unsigned short r, g, b;
+      if (parse_color_spec (SSDATA (background), &r, &g, &b))
+	bg_rgb = RGB (r, g, b);
+      else
+	return Qnil;
+      if (parse_color_spec (SSDATA (foreground), &r, &g, &b))
+	fg_rgb = RGB (r, g, b);
+      else
+	return Qnil;
+
+      /* Prepare a string for drawing and as alt-text.  */
+      Lisp_Object badge_utf8 = ENCODE_UTF_8 (badge);
+      int wide_len = pMultiByteToWideChar (CP_UTF8, 0,
+					   SSDATA (badge_utf8),
+					   -1, NULL, 0);
+      wchar_t *badge_w = alloca ((wide_len + 1) * sizeof (wchar_t));
+      pMultiByteToWideChar (CP_UTF8, 0, SSDATA (badge_utf8), -1,
+			    (LPWSTR) badge_w,
+			    wide_len);
+
+      /* Use the small icon size Windows suggests to not hard code 16x16.  */
+      int icon_width = GetSystemMetrics (SM_CXSMICON);
+      int icon_height = GetSystemMetrics (SM_CXSMICON);
+
+      HDC hwnd_dc = GetDC (hwnd);
+      HDC dc = CreateCompatibleDC (hwnd_dc);
+
+      BITMAPV5HEADER bi;
+      memset (&bi, 0, sizeof (bi));
+      bi.bV5Size = sizeof (bi);
+      bi.bV5Width = icon_width;
+      bi.bV5Height = -icon_height; /* Negative for a top-down DIB.  */
+      bi.bV5Planes = 1;
+      bi.bV5BitCount = 32;
+      bi.bV5Compression = BI_BITFIELDS;  /* Enable the masks below.  */
+      bi.bV5RedMask   =  0x00FF0000;
+      bi.bV5GreenMask =  0x0000FF00;
+      bi.bV5BlueMask  =  0x000000FF;
+      bi.bV5AlphaMask =  0xFF000000;
+
+      DWORD *bitmap_pixels;
+      HBITMAP bitmap = CreateDIBSection (dc, (BITMAPINFO *) &bi,
+					 DIB_RGB_COLORS,
+					 (void **) &bitmap_pixels,
+					 NULL, 0);
+      HGDIOBJ old_bitmap = SelectObject (dc, bitmap);
+
+      /* Draw a circle filled with bg.  */
+      HBRUSH bg_brush = CreateSolidBrush (bg_rgb);
+      HGDIOBJ old_brush = SelectObject (dc, bg_brush);
+      Ellipse (dc, 0, 0, icon_width, icon_height);
+      SelectObject (dc, old_brush);
+      DeleteObject (bg_brush);
+
+      /* Derive a font scaled to fit the icon.  First find the system's
+	 base font.  Then scale it to fit icon_height.  */
+      HFONT base_font;
+      BOOL clean_up_base_font = FALSE;
+      if (system_parameters_info_w_fn)
+	{
+	  NONCLIENTMETRICS ncm;
+	  memset (&ncm, 0, sizeof (ncm));
+	  ncm.cbSize = sizeof (ncm);
+	  SystemParametersInfo (SPI_GETNONCLIENTMETRICS, sizeof (ncm), &ncm, 0);
+	  base_font = CreateFontIndirect (&ncm.lfSmCaptionFont);
+	  clean_up_base_font = TRUE;
+	}
+      else
+	base_font = (HFONT) GetStockObject (DEFAULT_GUI_FONT);
+      if (clean_up_base_font)
+	DeleteObject (base_font);
+
+      LOGFONT lf;
+      GetObject (base_font, sizeof (lf), &lf);
+      lf.lfWeight = FW_BOLD;
+      lf.lfOutPrecision = OUT_OUTLINE_PRECIS;
+      /* ClearType quality needs opqaue, but we draw transparent.  */
+      lf.lfQuality = ANTIALIASED_QUALITY;
+      /* Negative lfHeight indicates pixel units vs. positive in points.
+	 Use the LOGPIXELSY px/in of the primary monitor.  */
+      lf.lfHeight = -MulDiv (icon_height / 2, /* Fit ~3 chars.  */
+			     72,
+			     GetDeviceCaps (GetDC (NULL), LOGPIXELSY));
+      /* Ensure lfHeight pixel interpretation.  */
+      int old_map_mode = SetMapMode (dc, MM_TEXT);
+      HFONT scaled_font = CreateFontIndirect (&lf);
+      HGDIOBJ old_font = SelectObject (dc, scaled_font);
+      SetMapMode (dc, old_map_mode);
+
+      /* Draw badge text.  */
+      SetBkMode (dc, TRANSPARENT);
+      SetTextColor (dc, fg_rgb);
+      RECT rect;
+      rect.left = rect.top = 0;
+      rect.right = icon_width;
+      rect.bottom = icon_height;
+      DrawText (dc, SSDATA (badge_utf8),
+		-1, /* Indicate null-terminated string.  */
+		&rect,
+		DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOCLIP);
+      SelectObject (dc, old_font);
+      DeleteObject (scaled_font);
+
+      /* Make the circle and its text opaque by setting the alpha
+	 channel on each pixel falling within the circle.  */
+      int circle_center_x = icon_width / 2;
+      int circle_center_y = icon_height / 2;
+      int circle_radius = (icon_width < icon_height
+			   ? icon_width
+			   : icon_height) / 2 - 2;
+      int circle_radius_sq = circle_radius * circle_radius;
+      DWORD *pixel;
+      for (int y = 0; y < icon_height; ++y)
+        for (int x = 0; x < icon_width; ++x)
+	  {
+            int dx = x - circle_center_x;
+            int dy = y - circle_center_y;
+            if (dx * dx + dy * dy <= circle_radius_sq)
+	      {
+		pixel = bitmap_pixels + (y * icon_width + x);
+		*pixel |= 0xff000000; /* Flip the 0xAARRGGBB alpha channel.  */
+	      }
+	  }
+
+      /* Dummy monochrome bitmap mask, ignored when the color bitmap has
+	 an alpha channel, but needed to satisfy CreateIconIndirect.  */
+      HBITMAP mask_bitmap = CreateBitmap (icon_width, icon_height, 1, 1, NULL);
+
+      /* https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-createiconindirect
+	 hbmMask and hbmColor members of the ICONINFO structure should
+	 not already be selected into a device context.  */
+      SelectObject (dc, old_bitmap);
+
+      ICONINFO icon_info;
+      memset (&icon_info, 0, sizeof (icon_info));
+      icon_info.fIcon = TRUE;
+      icon_info.hbmMask = mask_bitmap;
+      icon_info.hbmColor = bitmap;
+
+      HICON icon = CreateIconIndirect (&icon_info);
+      task_bar_list->lpVtbl->SetOverlayIcon (task_bar_list, hwnd, icon, badge_w);
+
+      DestroyIcon (icon);
+      DeleteObject (mask_bitmap);
+      DeleteObject (bitmap);
+      DeleteDC (dc);
+      ReleaseDC (hwnd, hwnd_dc);
+    }
+  else
+    task_bar_list->lpVtbl->SetOverlayIcon (task_bar_list, hwnd, NULL, NULL);
+
+  task_bar_list->lpVtbl->Release (task_bar_list);
+  return Qt;
+}
+
+DEFUN ("w32-request-user-attention",
+       Fw32_request_user_attention,
+       Sw32_request_user_attention,
+       1, 1, 0,
+       doc: /* Flash the selected frame's taskbar icon and/or its window.
+If URGENCY is nil, cancel the request, if any.  If URGENCY is the symbol
+`informational', flash the taskbar icon.  If URGENCY is the symbol
+`critical', flash the taskbar icon and the frame.  Windows stops
+flashing if the user focuses the frame.  Do nothing if Windows does not
+support FlashWindowEx and return nil, otherwise return t.  Do nothing if
+the frame is not (yet) associated with a window handle.  */)
+  (Lisp_Object urgency)
+{
+  if (flash_window_ex_fn == NULL)
+    return Qnil;
+
+  struct frame *sf = SELECTED_FRAME ();
+  HWND hwnd = NULL;
+
+  if (FRAME_W32_P (sf) && FRAME_LIVE_P (sf))
+    hwnd = FRAME_W32_WINDOW (sf);
+
+  if (hwnd == NULL)
+    return Qnil;
+
+  FLASHWINFO flash_info;
+  flash_info.cbSize = sizeof(flash_info);
+  flash_info.uCount = 0;
+  flash_info.dwTimeout = 0;
+  flash_info.hwnd = hwnd;
+  if (!NILP (urgency) && SYMBOLP (urgency))
+    {
+      /* The intended caller, 'system-taskbar-attention', has an
+	 optional timer to clear the attention indicator so this will
+	 flash until cleared via the timer, or the window comes to the
+	 foreground.  For informational attention, flash the tray icon.
+	 For critical attention, flash the tray icon and the window.  */
+      if (EQ (urgency, Qinformational))
+	flash_info.dwFlags = FLASHW_TRAY | FLASHW_TIMERNOFG;
+      else if (EQ (urgency, Qcritical))
+	flash_info.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;
+    }
+  else
+    flash_info.dwFlags = FLASHW_STOP;
+
+  flash_window_ex_fn (&flash_info);
+  return Qt;
+}
+
+DEFUN ("w32-progress-indicator",
+       Fw32_progress_indicator,
+       Sw32_progress_indicator,
+       1, 1, 0,
+       doc: /* Show a progress bar on the selected frame's taskbar icon.
+PROGRESS is a float in the range 0.0 to 1.0.  If PROGRESS is nil, remove
+the progress indicator.  Do nothing if Windows does not support the
+ITaskbarList3 interface and return nil, otherwise return t.  Do nothing
+if the selected frame is not (yet) associated with a window handle  */)
+  (Lisp_Object progress)
+{
+  struct frame *sf = SELECTED_FRAME ();
+  HWND hwnd = NULL;
+
+  if (FRAME_W32_P (sf) && FRAME_LIVE_P (sf))
+    hwnd = FRAME_W32_WINDOW (sf);
+
+  if (hwnd == NULL)
+    return Qnil;
+
+  CoInitialize (NULL);
+  ITaskbarList3 *task_bar_list = NULL;
+  HRESULT r = CoCreateInstance(&CLSID_TaskbarList,
+			       NULL,
+			       CLSCTX_INPROC_SERVER,
+			       &IID_ITaskbarList3,
+			       (void **)&task_bar_list);
+  if (r != S_OK)
+    return Qnil;
+
+  /* Scale task bar progress from 0.0-1.0 to 0-100.  */
+  ULONGLONG adj_progress = 0;
+  if (!NILP (progress) && FLOATP (progress))
+      adj_progress = (ULONGLONG) (100.0 *
+				  XFLOAT_DATA (progress));
+  if (adj_progress > 0)
+    {
+      task_bar_list->lpVtbl->SetProgressState (task_bar_list,
+					       hwnd, TBPF_NORMAL);
+      task_bar_list->lpVtbl->SetProgressValue (task_bar_list,
+					       hwnd, adj_progress, 100);
+    }
+  else
+    {
+      task_bar_list->lpVtbl->SetProgressState (task_bar_list,
+					       hwnd, TBPF_NOPROGRESS);
+    }
+
+  task_bar_list->lpVtbl->Release(task_bar_list);
+  return Qt;
+}
+
+#endif /* WINDOWSNT */
 
 /***********************************************************************
 			    Initialization
@@ -11455,6 +11805,7 @@ keys when IME input is received.  */);
 #ifdef WINDOWSNT
   defsubr (&Ssystem_move_file_to_trash);
   defsubr (&Sw32_set_wallpaper);
+  defsubr (&Sw32_system_idle_time);
 #endif
 
   DEFSYM (Qnot_useful, "not-useful");
@@ -11473,6 +11824,15 @@ keys when IME input is received.  */);
   DEFSYM (Qcapslock, "capslock");
   DEFSYM (Qkp_numlock, "kp-numlock");
   DEFSYM (Qscroll, "scroll");
+
+#ifdef WINDOWSNT
+  /* Taskbar indicators support.  */
+  defsubr (&Sw32_badge);
+  defsubr (&Sw32_progress_indicator);
+  defsubr (&Sw32_request_user_attention);
+  DEFSYM (Qinformational, "informational");
+  DEFSYM (Qcritical, "critical");
+#endif
 }
 
 
@@ -11752,6 +12112,8 @@ globals_of_w32fns (void)
 #ifndef CYGWIN
   system_parameters_info_w_fn = (SystemParametersInfoW_Proc)
     get_proc_addr (user32_lib, "SystemParametersInfoW");
+  get_last_input_info_fn = (GetLastInputInfo_Proc)
+    get_proc_addr (user32_lib, "GetLastInputInfo");
 #endif
   RegisterTouchWindow_fn
     = (RegisterTouchWindow_proc) get_proc_addr (user32_lib,
@@ -11759,6 +12121,9 @@ globals_of_w32fns (void)
   SetGestureConfig_fn
     = (SetGestureConfig_proc) get_proc_addr (user32_lib,
 					     "SetGestureConfig");
+  flash_window_ex_fn
+    = (FlashWindowEx_Proc) get_proc_addr (user32_lib,
+					  "FlashWindowEx");
 
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");

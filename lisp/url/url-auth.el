@@ -71,13 +71,14 @@ instead of the filename inheritance method."
 	 (user (url-user href))
 	 (pass (url-password href))
 	 (enable-recursive-minibuffers t) ; for url-handler-mode (bug#10298)
+	 (serverport (format "%s:%d" server port))
 	 byserv retval data)
     (setq file (cond
 		(realm realm)
 		((string= "" file) "/")
 		((string-match "/$" file) file)
 		(t (url-file-directory file)))
-	  byserv (cdr-safe (assoc server
+	  byserv (cdr-safe (assoc serverport
 				  (symbol-value url-basic-auth-storage))))
     (cond
      ((and user pass)
@@ -93,9 +94,8 @@ instead of the filename inheritance method."
 		  (url-do-auth-source-search server type :secret user)
                   (and (url-interactive-p)
 		       (read-passwd "Password: " nil (or pass "")))))
-      (setq server (format "%s:%d" server port))
       (set url-basic-auth-storage
-	   (cons (list server
+	   (cons (list serverport
 		       (cons file
 			     (setq retval
 				   (base64-encode-string
@@ -129,9 +129,8 @@ instead of the filename inheritance method."
 			(url-do-auth-source-search server type :secret user)
                         (and (url-interactive-p)
 			     (read-passwd "Password: ")))
-                  server (format "%s:%d" server port)
 		  retval (base64-encode-string (format "%s:%s" user pass) t)
-		  byserv (assoc server (symbol-value url-basic-auth-storage)))
+		  byserv (assoc serverport (symbol-value url-basic-auth-storage)))
 	    (setcdr byserv
 		    (cons (cons file retval) (cdr byserv))))))
      (t (setq retval nil)))

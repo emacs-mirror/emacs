@@ -1739,6 +1739,8 @@ handle_pending_conversion_events (void)
   unbind_to (count, Qnil);
 }
 
+#ifdef HAVE_ANDROID
+
 /* Return the confines of the field to which editing operations on frame
    F should be constrained in *BEG and *END.  Should no field be active,
    set *END to PTRDIFF_MAX.  */
@@ -2307,6 +2309,7 @@ get_surrounding_text (struct frame *f, ptrdiff_t left,
   unbind_to (count, Qnil);
   return buffer;
 }
+#endif /* HAVE_ANDROID */
 
 /* Return whether or not text conversion is temporarily disabled.
    `reset' should always call this to determine whether or not to

@@ -152,7 +152,7 @@ variables})
 
 @cindex next and previous diagnostic
 If the diagnostics are outside the visible region of the buffer,
-@code{flymake-goto-next-error} and @code{flymake-goto-prev-error} are
+@code{flymake-goto-next-error} and @code{flymake-goto-prev-error}
 let you navigate to the next/previous erroneous regions,
 respectively.  It might be a good idea to map them to @kbd{M-n} and
 @kbd{M-p} in @code{flymake-mode}, by adding to your init file:
@@ -231,7 +231,7 @@ can use the variables @code{flymake-mode-line-format} and
 @cindex disabled backends
 @cindex backends, disabled
 As Flymake supports multiple simultaneously active external backends,
-is becomes useful to monitor their status.  For example, some backends
+it becomes useful to monitor their status.  For example, some backends
 may take longer than others to respond or complete, and some may
 decide to @emph{disable} themselves if they are not suitable for the
 current buffer or encounter some unavoidable problem.  A disabled
@@ -316,10 +316,8 @@ reported.
 The indicator type which Flymake should use to indicate lines with
 errors or warnings.
 Depending on your preference, this can either use @code{fringes} or
-@code{margins} for indicating errors.
-If set to @code{fringes} (the default), it will automatically fall back
-to using margins in windows or frames without fringes, such as text
-terminals.
+@code{margins} for indicating errors.  On text terminals, only
+@code{margins} is available.
 
 @item flymake-error-bitmap
 A bitmap used in the fringe to mark lines for which an error has

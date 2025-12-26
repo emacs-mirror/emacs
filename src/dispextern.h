@@ -3630,6 +3630,9 @@ extern void gui_union_rectangles (const Emacs_Rectangle *,
 				  const Emacs_Rectangle *,
 				  Emacs_Rectangle *);
 extern void gui_consider_frame_title (Lisp_Object);
+# ifndef HAVE_EXT_MENU_BAR
+extern void x_y_to_column_row (struct window *, int, int, int *, int *);
+# endif
 #endif	/* HAVE_WINDOW_SYSTEM */
 
 extern void note_mouse_highlight (struct frame *, int, int);
@@ -3642,8 +3645,6 @@ extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
 					  int, int, enum draw_glyphs_face);
 extern void display_tty_menu_item (const char *, int, int, int, int, bool);
 #endif
-extern struct glyph *x_y_to_hpos_vpos (struct window *, int, int, int *, int *,
-				       int *, int *, int *);
 /* Flags passed to try_window.  */
 #define TRY_WINDOW_CHECK_MARGINS	(1 << 0)
 #define TRY_WINDOW_IGNORE_FONTS_CHANGE	(1 << 1)
@@ -3747,8 +3748,10 @@ bool parse_color_spec (const char *,
 
 Lisp_Object tty_color_name (struct frame *, int);
 void clear_face_cache (bool);
+#ifdef MSDOS
 unsigned long load_color (struct frame *, struct face *, Lisp_Object,
                           enum lface_attribute_index);
+#endif
 char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
 #ifdef HAVE_WINDOW_SYSTEM

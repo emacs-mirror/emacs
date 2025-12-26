@@ -517,13 +517,23 @@ I/O.
 
 @item r
 @cindex region argument
-Point and the mark, as two numeric arguments, smallest first.  This is
-the only code letter that specifies two successive arguments rather than
-one.  This will signal an error if the mark is not set in the buffer
-which is current when the command is invoked.  If Transient Mark mode
-is turned on (@pxref{The Mark}) --- as it is by default --- and user
-option @code{mark-even-if-inactive} is @code{nil}, Emacs will signal
-an error even if the mark @emph{is} set, but is inactive.  No I/O.
+Point and the mark, as two numeric arguments, smallest first.  This and
+the following are the only code letters that specify two successive
+arguments rather than one.  @samp{r} will signal an error if the mark is
+not set in the buffer which is current when the command is invoked.  If
+Transient Mark mode is turned on (@pxref{The Mark}) --- as it is by
+default --- and user option @code{mark-even-if-inactive} is @code{nil},
+Emacs will signal an error even if the mark @emph{is} set, but is
+inactive.  No I/O.
+
+@item R
+Point and the mark, as two numeric arguments, smallest first, but only
+if the region is active and it is appropriate to act on it, in the sense
+of @code{use-region-p} (@pxref{The Region}).  Otherwise supplies
+@code{nil} twice, for each of the successive arguments.  This code
+letter never signals an error because if the mark is not set,
+@code{use-region-p} just returns nil.  Use this code letter instead of
+@samp{r} for commands which act specially on an active region.  No I/O.
 
 @item s
 Arbitrary text, read in the minibuffer and returned as a string
@@ -3668,14 +3678,17 @@ character, or for keyboard-quit.
 @end defun
 
 @defun read-multiple-choice prompt choices &optional help-string show-help long-form
-Ask user a multiple choice question.  @var{prompt} should be a string
-that will be displayed as the prompt.
+Ask user a multiple-choice question and return user's choice.
+@var{prompt} should be a string to display as the prompt.
 
 @var{choices} is an alist where the first element in each entry is a
-character to be entered, the second element is a short name for the
+character the user can type, the second element is a short name for the
 entry to be displayed while prompting (if there's room, it might be
 shortened), and the third, optional entry is a longer explanation that
 will be displayed in a help buffer if the user requests more help.
+
+The return value is the entry from @var{choices} that matches the
+character the user types.
 
 If optional argument @var{help-string} is non-@code{nil}, it should be
 a string with a more detailed description of all choices.  It will be
@@ -3691,7 +3704,10 @@ will have to type in long-form answers (using @code{completing-read})
 instead of hitting a single key.  The answers must be among the second
 elements of the values in the @var{choices} list.
 
-The return value is the matching value from @var{choices}.
+By default, this function uses @code{read-from-minibuffer} (@pxref{Text
+from Minibuffer}) to read user input, but if the variable
+@code{read-char-choice-use-read-key} is non-@code{nil}, it uses
+@code{read-key} instead.
 
 @lisp
 (read-multiple-choice

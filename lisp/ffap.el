@@ -1044,10 +1044,16 @@ out of NAME."
                    (exec-path (buffer-local-value 'exec-path curbuf)))
                (apply #'call-process "kpsewhich" nil t nil
                       (mapcar (lambda (rule)
-                                          (concat (car rule) name (cdr rule)))
-                                        guess-rules)))
-             (when (< (point-min) (point-max))
-               (buffer-substring (goto-char (point-min)) (line-end-position))))))))
+                                (concat (car rule) name (cdr rule)))
+                              guess-rules)))
+             ;; Starting with TeXlive 2025, kpsewhich returns blank
+             ;; lines when multiple filenames are given and a given file
+             ;; is not found, so we have to go to the first non-blank
+             ;; line in order to find a file-path (bug#79397):
+             (goto-char (point-min))
+             (skip-chars-forward "\r\n")
+             (when (< (point) (line-end-position))
+               (buffer-substring (point) (line-end-position))))))))
 
 (defun ffap-tex (name)
   (ffap-tex-init)

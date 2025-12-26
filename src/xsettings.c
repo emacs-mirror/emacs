@@ -70,6 +70,8 @@ static char *current_font;
 static Display_Info *first_dpyinfo;
 static Lisp_Object current_tool_bar_style;
 
+#if defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK
+
 /* Store a config changed event in to the event queue.  */
 
 static void
@@ -100,6 +102,7 @@ dpyinfo_valid (Display_Info *dpyinfo)
     }
   return found;
 }
+#endif
 
 /* Store a monospace font change event if the monospaced font changed.  */
 
@@ -122,7 +125,7 @@ store_monospaced_changed (const char *newfont)
 
 /* Store a font name change event if the font name changed.  */
 
-#if defined USE_CAIRO || defined HAVE_XFT
+#if (defined USE_CAIRO || defined HAVE_XFT) && (defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK)
 static void
 store_font_name_changed (const char *newfont)
 {
@@ -139,6 +142,7 @@ store_font_name_changed (const char *newfont)
 }
 #endif /* USE_CAIRO || HAVE_XFT */
 
+#if defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK
 /* Map TOOL_BAR_STYLE from a string to its corresponding Lisp value.
    Return Qnil if TOOL_BAR_STYLE is not known.  */
 
@@ -160,7 +164,9 @@ map_tool_bar_style (const char *tool_bar_style)
 
   return style;
 }
+#endif
 
+#if defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK
 /* Store a tool bar style change event if the tool bar style changed.  */
 
 static void
@@ -176,6 +182,7 @@ store_tool_bar_style_changed (const char *newstyle,
     store_config_changed_event (Qtool_bar_style,
                                 XCAR (dpyinfo->name_list_element));
 }
+#endif
 
 #ifndef HAVE_PGTK
 #if defined USE_CAIRO || defined HAVE_XFT
@@ -227,13 +234,14 @@ static cairo_font_options_t *font_options;
 #define GSETTINGS_FONT_ANTIALIASING  "font-antialiasing"
 #define GSETTINGS_FONT_RGBA_ORDER    "font-rgba-order"
 #define GSETTINGS_FONT_HINTING       "font-hinting"
+#define GSETTINGS_COLOR_SCHEME       "color-scheme"
 #endif
 
 /* The single GSettings instance, or NULL if not connected to GSettings.  */
 
 static GSettings *gsettings_client;
 
-#if defined HAVE_PGTK && defined HAVE_GSETTINGS
+#ifdef HAVE_PGTK
 
 static bool
 xg_settings_key_valid_p (GSettings *settings, const char *key)
@@ -258,7 +266,7 @@ xg_settings_key_valid_p (GSettings *settings, const char *key)
 #endif
 }
 
-#endif
+#endif	/* HAVE_PGTK */
 
 #ifdef HAVE_PGTK
 /* Store an event for re-rendering of the fonts.  */
@@ -447,6 +455,25 @@ something_changed_gsettingsCB (GSettings *settings,
     {
       apply_gsettings_font_rgba_order (settings);
       store_font_options_changed ();
+    }
+  else if (!strcmp (key, GSETTINGS_COLOR_SCHEME))
+    {
+      if (xg_settings_key_valid_p (settings, GSETTINGS_COLOR_SCHEME))
+        {
+          val = g_settings_get_value (settings, GSETTINGS_COLOR_SCHEME);
+          if (val)
+            {
+              g_variant_ref_sink (val);
+              if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+                {
+                  const char *color_scheme = g_variant_get_string (val, NULL);
+                  /* Check dark mode preference and update all frames. */
+                  bool dark_mode_p = (strstr (color_scheme, "dark") != NULL);
+                  xg_update_dark_mode_for_all_displays (dark_mode_p);
+                }
+              g_variant_unref (val);
+            }
+        }
     }
 #endif /* HAVE_PGTK */
 }
@@ -1108,6 +1135,32 @@ init_gsettings (void)
 
 #endif /* HAVE_GSETTINGS */
 }
+
+/* Get current system dark mode state.  */
+
+#if defined HAVE_PGTK && defined HAVE_GSETTINGS
+bool
+xg_get_system_dark_mode (void)
+{
+  if (gsettings_client && xg_settings_key_valid_p (gsettings_client, GSETTINGS_COLOR_SCHEME))
+    {
+      GVariant *val = g_settings_get_value (gsettings_client, GSETTINGS_COLOR_SCHEME);
+      if (val)
+        {
+          g_variant_ref_sink (val);
+          if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+            {
+              const char *color_scheme = g_variant_get_string (val, NULL);
+              bool dark_mode_p = (strstr (color_scheme, "dark") != NULL);
+              g_variant_unref (val);
+              return dark_mode_p;
+            }
+          g_variant_unref (val);
+        }
+    }
+  return false;
+}
+#endif	/* HAVE_PGTK && HAVE_GSETTINGS */
 
 /* Init GConf and read startup values.  */
 

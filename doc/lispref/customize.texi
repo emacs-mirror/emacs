@@ -354,8 +354,8 @@ values are legitimate, and how to display the value
 (@pxref{Customization Types}).  Every @code{defcustom} should specify
 a value for this keyword.
 
-@item :options @var{value-list}
 @kindex options@r{, @code{defcustom} keyword}
+@item :options @var{value-list}
 Specify the list of reasonable values for use in this
 option.  The user is not restricted to using only these values, but they
 are offered as convenient alternatives.
@@ -368,8 +368,8 @@ Re-evaluating a @code{defcustom} form with a different @code{:options}
 value does not clear the values added by previous evaluations, or
 added by calls to @code{custom-add-frequent-value} (see below).
 
-@item :set @var{setfunction}
 @kindex set@r{, @code{defcustom} keyword}
+@item :set @var{setfunction}
 Specify @var{setfunction} as the way to change the value of this
 option when using the Customize interface.  The function
 @var{setfunction} should take two arguments, a symbol (the option
@@ -389,8 +389,8 @@ should describe how to do the same job in hand-written Lisp code,
 either by invoking @var{setfunction} directly or by using
 @code{setopt}.
 
-@item :get @var{getfunction}
 @kindex get@r{, @code{defcustom} keyword}
+@item :get @var{getfunction}
 Specify @var{getfunction} as the way to extract the value of this
 option.  The function @var{getfunction} should take one argument, a
 symbol, and should return whatever customize should use as the
@@ -403,8 +403,8 @@ Custom as variables but are not actually stored in Lisp variables.  It
 is almost surely a mistake to specify @var{getfunction} for a value
 that really is stored in a Lisp variable.
 
-@item :initialize @var{function}
 @kindex initialize@r{, @code{defcustom} keyword}
+@item :initialize @var{function}
 @var{function} should be a function used to initialize the variable
 when the @code{defcustom} is evaluated.  It should take two arguments,
 the option name (a symbol) and the value.  Here are some predefined
@@ -434,18 +434,24 @@ Use the @code{:set} function to initialize the variable, if it is
 already set or has been customized; otherwise, just use
 @code{set-default-toplevel-value}.
 
-@item custom-initialize-delay
+@item custom-initialize-after-file-load
 This function behaves like @code{custom-initialize-set}, but it
-delays the actual initialization to the next Emacs start.  This should
-be used in files that are preloaded (or for autoloaded variables), so
-that the initialization is done in the run-time context rather than
-the build-time context.  This also has the side-effect that the
-(delayed) initialization is performed with the @code{:set} function.
-@xref{Building Emacs}.
+delays the actual initialization until after the containing file is loaded.
+This can be useful to break the common dependency where the setter
+is (or uses) a function which needs to be defined after the variable,
+such as when a global minor mode has a non-@code{nil} @code{:init-value}.
+
+@item custom-initialize-delay
+This function behaves like @code{custom-initialize-set}, but it delays
+the actual initialization to the next Emacs start.  This should be used
+in Lisp files that are preloaded (loaded when Emacs is built), when it
+is important to ensure that the initialization is performed in the
+run-time context (which could be on a different system or programming
+environment).  @xref{Building Emacs, custom-initialize-delay}.
 @end table
 
-@item :local @var{value}
 @kindex local@r{, @code{defcustom} keyword}
+@item :local @var{value}
 If the @var{value} is @code{t}, mark @var{option} as automatically
 buffer-local; if the value is @code{permanent}, also set @var{option}s
 @code{permanent-local} property to @code{t}.  Finally, if the value is
@@ -453,18 +459,18 @@ buffer-local; if the value is @code{permanent}, also set @var{option}s
 to @code{t} without marking it as automatically buffer-local.
 @xref{Creating Buffer-Local}.
 
-@item :risky @var{value}
 @kindex risky@r{, @code{defcustom} keyword}
+@item :risky @var{value}
 Set the variable's @code{risky-local-variable} property to
 @var{value} (@pxref{File Local Variables}).
 
-@item :safe @var{function}
 @kindex safe@r{, @code{defcustom} keyword}
+@item :safe @var{function}
 Set the variable's @code{safe-local-variable} property to
 @var{function} (@pxref{File Local Variables}).
 
-@item :set-after @var{variables}
 @kindex set-after@r{, @code{defcustom} keyword}
+@item :set-after @var{variables}
 When setting variables according to saved customizations, make sure to
 set the variables @var{variables} before this one; i.e., delay
 setting this variable until after those others have been handled.  Use
@@ -654,6 +660,12 @@ the symbol name.  The widget provides completion.
 @item function
 The value must be either a lambda expression or a function name.  The
 widget provides completion for function names.
+
+@item buffer-predicate
+The value must be a form suitable for the @var{condition} argument of
+the @code{buffer-match-p} function (@pxref{Buffer List}).  This is handy
+for options whose value is submitted to @code{buffer-match-p} to select
+suitable buffers.
 
 @item variable
 The value must be a variable name.  The widget provides completion.

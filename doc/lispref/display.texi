@@ -2463,6 +2463,10 @@ you can say:
 @example
 (apply #'insert (cdr (string-glyph-split string))))
 @end example
+
+Caveat: for this function to recognize and process character
+compositions, @code{auto-composition-mode} must be enabled, and the
+current buffer must be displayed in some window.
 @end defun
 
 When a buffer is displayed with line numbers (@pxref{Display Custom,,,
@@ -4204,7 +4208,8 @@ The font name (a string), in either XLFD, Fontconfig, or GTK+ format.
 @itemx :width
 These have the same meanings as the face attributes of the same name.
 @xref{Face Attributes}.  @code{:family} and @code{:foundry} are
-strings, while the other three are symbols.  As example values,
+strings or symbols, while the other three are either symbols or numbers,
+the numerical values of the valid style symbols.  As example values,
 @code{:slant} may be @code{italic}, @code{:weight} may be @code{bold}
 and @code{:width} may be @code{normal}.
 
@@ -5812,8 +5817,7 @@ something changed since the last display cycle.
   A buffer can have blank areas called @dfn{display margins} on the
 left and on the right.  Ordinary text never appears in these areas,
 but you can put things into the display margins using the
-@code{display} property.  There is currently no way to make text or
-images in the margin mouse-sensitive.
+@code{display} property.
 
   The way to display something in the margins is to specify it in a
 margin display specification in the @code{display} property of some

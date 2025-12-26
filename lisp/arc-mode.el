@@ -1012,7 +1012,7 @@ using `make-temp-file', and the generated name is returned."
     (while again
       (setq name (directory-file-name (file-name-directory name)))
       (condition-case nil
-	  (delete-directory name)
+	  (delete-directory name t)
 	(error nil))
       (if (string= name top) (setq again nil)))))
 ;; -------------------------------------------------------------------------
@@ -1067,8 +1067,19 @@ using `make-temp-file', and the generated name is returned."
         (setq coding
               (coding-system-change-text-conversion coding 'raw-text)))
       (unless (memq coding '(nil no-conversion))
+        ;; If CODING specifies a certain EOL conversion, reset that, to
+        ;; force 'decode-coding-region' below determine EOL conversion
+        ;; from the file's data...
+        (if (numberp (coding-system-eol-type coding))
+            (setq coding (coding-system-change-eol-conversion coding nil)))
         (decode-coding-region (point-min) (point-max) coding)
-	(setq last-coding-system-used coding))
+        ;; ...then augment CODING with the actual EOL conversion
+        ;; determined from the file's data.
+        (let ((eol-type (coding-system-eol-type last-coding-system-used)))
+          (if (numberp eol-type)
+	      (setq last-coding-system-used
+                    (coding-system-change-eol-conversion coding eol-type))
+            (setq last-coding-system-used coding))))
       (set-buffer-modified-p nil)
       (kill-local-variable 'buffer-file-coding-system)
       (after-insert-file-set-coding (- (point-max) (point-min))))))
@@ -1637,6 +1648,12 @@ as a relative change like \"g+rw\" as for chmod(2)."
 (defun archive--mode-revert (orig-fun &rest args)
   (let ((no (archive-get-lineno)))
     (setq archive-files nil)
+    ;; 'orig-fun' will indirectly call 'archive-desummarize', which will
+    ;; delete the region between point-min and
+    ;; 'archive-proper-file-start'.  But the latter will be invalidated
+    ;; by 'orig-fun' (which actually reverts the buffer), so by setting
+    ;; it to 1 we prevent the damage from that deletion.
+    (setq archive-proper-file-start 1)
     (let ((coding-system-for-read 'no-conversion))
       (apply orig-fun t t (cddr args)))
     (archive-mode)
@@ -2436,7 +2453,21 @@ NAME is expected to be the 16-bytes part of an ar record."
   (unless file
     (setq file buffer-file-name))
   (let ((copy (file-local-copy file))
-        (files ()))
+        (files ())
+        to-delete)
+    ;; Similar to 'archive-maybe-copy'.
+    (unless (or (and copy (null file))
+                (file-readable-p file))
+      (setq archive-local-name
+            (archive-unique-fname (or file copy (buffer-name))
+                                  archive-tmpdir)
+            file archive-local-name
+            to-delete t)
+      (save-restriction
+        (widen)
+        (let ((coding-system-for-write 'no-conversion))
+          (write-region (point-min) (point-max)
+                        archive-local-name nil 'nomessage))))
     (with-temp-buffer
       (call-process "unsquashfs" nil t nil "-ll" (or file copy))
       (when copy
@@ -2483,6 +2514,8 @@ NAME is expected to be the 16-bytes part of an ar record."
                                       date-time :uid uid :gid gid)
                   files)))
         (goto-char (match-end 0))))
+    (if to-delete
+        (archive-delete-local archive-local-name))
     (archive--summarize-descs (nreverse files))))
 
 (defun archive-squashfs-extract-by-stdout (archive name command

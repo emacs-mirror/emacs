@@ -1,5 +1,5 @@
 # largefile.m4
-# serial 2
+# serial 4
 dnl Copyright 1992-1996, 1998-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -355,8 +355,7 @@ AC_DEFUN([gl_LARGEFILE],
     *)
       dnl Nothing to do on gnulib's side.
       dnl A 64-bit off_t is
-      dnl   - already the default on Mac OS X, FreeBSD, NetBSD, OpenBSD, IRIX,
-      dnl     OSF/1, Cygwin,
+      dnl   - already the default on Mac OS X, FreeBSD, NetBSD, OpenBSD, Cygwin,
       dnl   - enabled by _FILE_OFFSET_BITS=64 (ensured by AC_SYS_LARGEFILE) on
       dnl     glibc, HP-UX, Solaris,
       dnl   - enabled by _LARGE_FILES=1 (ensured by AC_SYS_LARGEFILE) on AIX,

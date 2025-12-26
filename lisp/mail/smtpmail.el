@@ -99,12 +99,15 @@ don't define this value."
   "Type of SMTP connections to use.
 This may be either nil (upgrade with STARTTLS if possible),
 `starttls' (refuse to send if STARTTLS isn't available),
-`plain' (never use STARTTLS), or `ssl' (to use TLS/SSL)."
+`plain' (never use STARTTLS), or `tls' (to use TLS/SSL).
+`ssl' is accepted as a backwards-compatible equivalent
+to `tls'"
   :version "24.1"
   :type '(choice (const :tag "Possibly upgrade to STARTTLS" nil)
 		 (const :tag "Always use STARTTLS" starttls)
 		 (const :tag "Never use STARTTLS" plain)
-		 (const :tag "Use TLS/SSL" ssl)))
+		 (const :tag "Use TLS/SSL" tls)
+		 (const :tag "Use TLS/SSL (old name)" ssl)))
 
 (defcustom smtpmail-sendto-domain nil
   "Local domain name without a host name.

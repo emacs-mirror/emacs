@@ -292,12 +292,17 @@ the same features enabled in MODE."
                  (intern (downcase lang-string)))))
     ;; FIXME: Kind of a hack here: we use this function as a hook for
     ;; loading up configs for the language for the code block on-demand.
-    (unless (memq lang markdown-ts--configured-languages)
-      (let ((mode (alist-get lang markdown-ts-code-block-source-mode-map)))
-        (when (fboundp mode)
+    (let ((mode (alist-get lang markdown-ts-code-block-source-mode-map)))
+      ;; If there's no supported mode for the langauge, return nil,
+      ;; which makes Emacs skip the code block.
+      (if (not (and mode (fboundp mode)))
+          nil
+        ;; If there's a major mode for the language, set up the config
+        ;; and return the language.
+        (when (not (memq lang markdown-ts--configured-languages))
           (markdown-ts--add-config-for-mode lang mode)
-          (push lang markdown-ts--configured-languages))))
-    lang))
+          (push lang markdown-ts--configured-languages))
+        lang))))
 
 (defun markdown-ts--range-settings ()
   "Return range settings for `markdown-ts-mode'."
@@ -306,25 +311,6 @@ the same features enabled in MODE."
    :host 'markdown
    :range-fn #'treesit-range-fn-exclude-children
    '((inline) @markdown-inline)
-
-   :embed 'yaml
-   :host 'markdown
-   :local t
-   '((minus_metadata) @yaml)
-
-   :embed 'toml
-   :host 'markdown
-   :local t
-   '((plus_metadata) @toml)
-
-   :embed 'html
-   :host 'markdown
-   :local t
-   '((html_block) @html)
-
-   :embed 'html
-   :host 'markdown-inline
-   '((html_tag) @html)
 
    :embed #'markdown-ts--convert-code-block-language
    :host 'markdown
@@ -350,7 +336,18 @@ the same features enabled in MODE."
     (setq-local treesit-font-lock-feature-list
                 (treesit-merge-font-lock-feature-list
                  treesit-font-lock-feature-list
-                 html-ts-mode--treesit-font-lock-feature-list)))
+                 html-ts-mode--treesit-font-lock-feature-list))
+    (setq-local treesit-range-settings
+                (append treesit-range-settings
+                        (treesit-range-rules
+                         :embed 'html
+                         :host 'markdown
+                         :local t
+                         '((html_block) @html)
+
+                         :embed 'html
+                         :host 'markdown-inline
+                         '((html_tag) @html)))))
 
   (when (treesit-ready-p 'yaml t)
     (require 'yaml-ts-mode)
@@ -362,7 +359,14 @@ the same features enabled in MODE."
     (setq-local treesit-font-lock-feature-list
                 (treesit-merge-font-lock-feature-list
                  treesit-font-lock-feature-list
-                 yaml-ts-mode--font-lock-feature-list)))
+                 yaml-ts-mode--font-lock-feature-list))
+    (setq-local treesit-range-settings
+                (append treesit-range-settings
+                        (treesit-range-rules
+                         :embed 'yaml
+                         :host 'markdown
+                         :local t
+                         '((minus_metadata) @yaml)))))
 
   (when (treesit-ready-p 'toml t)
     (require 'toml-ts-mode)
@@ -374,7 +378,14 @@ the same features enabled in MODE."
     (setq-local treesit-font-lock-feature-list
                 (treesit-merge-font-lock-feature-list
                  treesit-font-lock-feature-list
-                 toml-ts-mode--font-lock-feature-list)))
+                 toml-ts-mode--font-lock-feature-list))
+    (setq-local treesit-range-settings
+                (append treesit-range-settings
+                        (treesit-range-rules
+                         :embed 'toml
+                         :host 'markdown
+                         :local t
+                         '((plus_metadata) @toml)))))
 
   (treesit-major-mode-setup))
 
@@ -405,7 +416,10 @@ the same features enabled in MODE."
 
 ;;;###autoload
 (defun markdown-ts-mode-maybe ()
-  "Enable `markdown-ts-mode' when its grammar is available."
+  "Enable `markdown-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'markdown)
           (eq treesit-enabled-modes t)
           (memq 'markdown-ts-mode treesit-enabled-modes))
@@ -413,7 +427,7 @@ the same features enabled in MODE."
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
   (add-to-list 'treesit-major-mode-remap-alist

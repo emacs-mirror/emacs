@@ -715,6 +715,7 @@ do { \
 #define WM_EMACS_DRAGOVER              (WM_EMACS_START + 27)
 #define WM_EMACS_DROP                  (WM_EMACS_START + 28)
 #define WM_EMACS_END                   (WM_EMACS_START + 29)
+#define WM_EMACS_SET_TOOLKIT_THEME     (WM_EMACS_START + 30)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)
@@ -879,21 +880,6 @@ extern int w32_system_caret_hdr_height;
 extern int w32_system_caret_mode_height;
 
 extern Window tip_window;
-
-#ifdef _MSC_VER
-#ifndef EnumSystemLocales
-/* MSVC headers define these only for _WIN32_WINNT >= 0x0500.  */
-typedef BOOL (CALLBACK *LOCALE_ENUMPROCA)(LPSTR);
-typedef BOOL (CALLBACK *LOCALE_ENUMPROCW)(LPWSTR);
-BOOL WINAPI EnumSystemLocalesA(LOCALE_ENUMPROCA,DWORD);
-BOOL WINAPI EnumSystemLocalesW(LOCALE_ENUMPROCW,DWORD);
-#ifdef UNICODE
-#define EnumSystemLocales EnumSystemLocalesW
-#else
-#define EnumSystemLocales EnumSystemLocalesA
-#endif
-#endif
-#endif
 
 #if EMACSDEBUG
 extern const char*

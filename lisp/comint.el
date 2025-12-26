@@ -408,7 +408,8 @@ This variable is buffer-local."
       "Vault" "SSH" "BECOME"
       "Enter Auth" "enter auth" "Old" "old" "New" "new" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
-      "[sudo]" "doas" "Repeat" "Bad" "Retype" "Verify")
+      "[sudo]" "[sudo: authenticate]" "[su: authenticate]"
+      "doas" "Repeat" "Bad" "Retype" "Verify")
     t)
    ;; Allow for user name to precede password equivalent (Bug#31075).
    " +.*\\)"
@@ -425,7 +426,8 @@ This variable is buffer-local."
    ;; Default openssh format: "user@host's password:".
    "\\|^[^@ \t\n]+@[^@ \t\n]+'s password: *\\'"
    ;; openssh-8.6p1 format: "(user@host) Password:".
-   "\\|^([^)@ \t\n]+@[^)@ \t\n]+) Password: *\\'")
+   ;; "(user@host) Password for user@host:"  (Bug#79424)
+   "\\|^([^)@ \t\n]+@[^)@ \t\n]+) Password\\(?: for [^)@ \t\n]+@[^)@ \t\n]+\\)?: *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :version "31.1"
@@ -1090,8 +1092,9 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
                  (when (and (not (string-match history-ignore history))
 			    (or (null ignoredups)
 				(ring-empty-p ring)
-				(not (string-equal (ring-ref ring 0)
-						   history))))
+				(not (string-equal
+                                      (ring-ref ring (1- (ring-length ring)))
+				      history))))
 		   (when (= count ring-size)
 		     (ring-extend ring (min (- ring-max-size ring-size)
 					    ring-size))
@@ -1117,20 +1120,16 @@ See also `comint-read-input-ring'."
 	((not (file-writable-p comint-input-ring-file-name))
 	 (message "Cannot write history file %s" comint-input-ring-file-name))
 	(t
-	 (let* ((history-buf (get-buffer-create " *Temp Input History*"))
-		(ring comint-input-ring)
+	 (let* ((ring comint-input-ring)
 		(file comint-input-ring-file-name)
+                (separator comint-input-ring-separator)
 		(index (ring-length ring)))
 	   ;; Write it all out into a buffer first.  Much faster, but messier,
 	   ;; than writing it one line at a time.
-	   (with-current-buffer history-buf
-	     (erase-buffer)
+	   (with-temp-buffer
 	     (while (> index 0)
-	       (setq index (1- index))
-	       (insert (ring-ref ring index) comint-input-ring-separator))
-	     (write-region (buffer-string) nil file nil 'no-message)
-	     (kill-buffer nil))))))
-
+	       (insert (ring-ref ring (decf index)) separator))
+	     (write-region nil nil file nil 'no-message))))))
 
 (defvar comint-dynamic-list-input-ring-window-conf)
 
@@ -1197,7 +1196,7 @@ This function makes `comint-dynamic-list-input-ring' obsolete."
              (ring-elements comint-input-ring)
            (user-error "No history available")))
         (completion-in-region-mode-predicate
-         (lambda () (get-buffer-window "*Completions*" 0))))
+         (lambda () (minibuffer--completions-visible))))
     (completion-in-region
      (comint-line-beginning-position) (point-max)
      (completion-table-with-metadata
@@ -2310,14 +2309,12 @@ Make backspaces delete the previous character."
   ;; `yank' removes the field text property from the text it inserts
   ;; due to `yank-excluded-properties', so arrange for this text
   ;; property to be reapplied in the `after-change-functions'.
-  (let (fun)
-    (setq
-     fun
-     (lambda (beg1 end1 _len1)
-       (remove-hook 'after-change-functions fun t)
-       (when (and (= beg beg1)
-                  (= end end1))
-         (comint--mark-as-output beg1 end1))))
+  (letrec ((fun
+            (lambda (beg1 end1 _len1)
+              (remove-hook 'after-change-functions fun t)
+              (when (and (= beg beg1)
+                         (= end end1))
+                (comint--mark-as-output beg1 end1)))))
     (add-hook 'after-change-functions fun nil t)))
 
 (defun comint--unmark-string-as-output (string)
@@ -3521,7 +3518,7 @@ The optional argument COMMON-SUBSTRING, if non-nil, should be a string
 specifying a common substring for adding the faces
 `completions-first-difference' and `completions-common-part' to
 the completions."
-  (let ((window (get-buffer-window "*Completions*" 0)))
+  (let ((window (minibuffer--completions-visible)))
     (setq completions (sort completions #'string-lessp))
     (if (and (eq last-command this-command)
 	     window (window-live-p window) (window-buffer window)

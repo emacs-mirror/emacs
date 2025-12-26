@@ -39,6 +39,7 @@ a = sub / aslb + bsub / bslb;
 
 # Highlight the regexp after "if".
 x = toto / foo if / do bar/ =~ "dobar"
+x /= 4
 
 # Regexp options are highlighted.
 

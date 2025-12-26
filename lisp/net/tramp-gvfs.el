@@ -123,7 +123,10 @@
     (and (featurep 'dbusbind)
 	 (tramp-compat-funcall 'dbus-get-unique-name :session)
 	 (or (tramp-process-running-p "gvfs-fuse-daemon")
-	     (tramp-process-running-p "gvfsd-fuse"))))
+	     (tramp-process-running-p "gvfsd-fuse")
+             ;; Gvfs may be built without fuse
+             ;; (cf. https://lists.gnu.org/archive/html/tramp-devel/2025-10/msg00009.html).
+	     (tramp-process-running-p "gvfsd"))))
   "Non-nil when GVFS is available.")
 
 ;;;###tramp-autoload
@@ -2556,8 +2559,8 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
 	   (split-string
 	    (shell-command-to-string (format "avahi-browse -trkp %s" service))
 	    (rx (+ (any "\r\n"))) 'omit (rx bol "+;" (* nonl) eol)))))
-    (delete-dups
-     (mapcar
+    (seq-uniq
+     (tramp-compat-seq-keep
       (lambda (x)
 	(ignore-errors
 	  (let* ((list (split-string x ";"))

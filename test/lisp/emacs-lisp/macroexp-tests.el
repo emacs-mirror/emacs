@@ -66,7 +66,7 @@
     ;; Test the case where we load a file which byte-compiles another.
     (defvar macroexp--m1-tests-comp-filename)
     (makunbound 'macroexp--m1-tests-comp-filename)
-    (load (expand-file-name "m2.el" rsrc-dir))
+    (load (expand-file-name "m2.el" rsrc-dir) nil t)
     (should (equal "m1.el"
                    (file-name-nondirectory macroexp--m1-tests-comp-filename)))))
 
@@ -123,6 +123,48 @@
                      (dyn dyn dyn lex lex)
                      (dyn dyn dyn dyn)
                      (dyn dyn dyn lex))))))
+
+(ert-deftest macroexp--dynbound-eval-and-compile ()
+  (let ((code1 '(progn
+                  (eval-and-compile
+                    (defun my-foo () (bound-and-true-p my-foo))
+                    (defun my-identity (x)
+                      (defvar my-foo)
+                      (let ((my-foo x))
+                        (my-foo))))
+                  (defmacro my-toto (y)
+                    `(list ',y ',(my-identity y)))
+                  (eval-when-compile (my-toto 7))))
+        (code2 '(progn
+                  (defvar my-foo)
+                  (eval-and-compile
+                    (defun my-foo () (bound-and-true-p my-foo))
+                    (defun my-identity (x)
+                      (let ((my-foo x))
+                        (my-foo))))
+                  (defmacro my-toto (y)
+                    `(list ',y ',(my-identity y)))
+                  (eval-when-compile (my-toto 7))))
+        (code3 '(progn
+                  (eval-and-compile
+                    (defvar my-foo)
+                    (defun my-foo () (bound-and-true-p my-foo))
+                    (defun my-identity (x)
+                      (let ((my-foo x))
+                        (my-foo))))
+                  (defmacro my-toto (y)
+                    `(list ',y ',(my-identity y)))
+                  (eval-when-compile (my-toto 7)))))
+    (should (equal (eval code1 t) '(7 7)))
+    (should (equal (eval code2 t) '(7 7)))
+    (should (equal (eval code3 t) '(7 7)))
+    (should (equal (eval (let ((lexical-binding t)) (byte-compile code1)) t)
+                   '(7 7)))
+    (should (equal (eval (let ((lexical-binding t)) (byte-compile code2)) t)
+                   '(7 7)))
+    (should (equal (eval (let ((lexical-binding t)) (byte-compile code3)) t)
+                   '(7 7)))
+    ))
 
 (defmacro macroexp--test-macro1 ()
   (declare (obsolete "new-replacement" nil))

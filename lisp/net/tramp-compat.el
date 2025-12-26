@@ -29,7 +29,7 @@
 
 ;;; Code:
 
-(require 'tramp-loaddefs)
+(require 'tramp-loaddefs nil t)  ; guard against load during autoload gen
 (require 'ansi-color)
 (require 'auth-source)
 (require 'format-spec)
@@ -229,7 +229,7 @@ value is the default binding of the variable."
              (cdr result)
            ,variable)))))
 
-(dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
+(dolist (elt (all-completions "tramp-compat-" obarray #'functionp))
   (function-put (intern elt) 'tramp-suppress-trace t))
 
 (add-hook 'tramp-unload-hook
@@ -251,7 +251,7 @@ value is the default binding of the variable."
 ;;
 ;; * Use `ensure-list'.
 ;;
-;; * Starting with Emacs 29.1, use `buffer-match-p'.
+;; * Starting with Emacs 29.1, use `buffer-match-p' and `match-buffers'.
 ;;
 ;; * Starting with Emacs 29.1, use `string-split'.
 ;;
@@ -259,5 +259,8 @@ value is the default binding of the variable."
 ;;   instead of `condition-case' when the origin of an error shall be
 ;;   kept, for example when the HANDLER propagates the error with
 ;;   `(signal (car err) (cdr err)'.
+;;
+;; * Starting with Emacs 30.1, use '(_ VALUEFORM)' instead of
+;;   '(VALUEFORM)' in 'if-let*/when-let*/and-let*'.
 
 ;;; tramp-compat.el ends here

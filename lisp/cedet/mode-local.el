@@ -548,12 +548,15 @@ OVERARGS is a list of arguments passed to the override and
 `NAME-default' function, in place of those deduced from ARGS."
   (declare (doc-string 3)
            (indent defun)
-           (debug (&define name lambda-list stringp def-body)))
-  `(eval-and-compile
+           (debug (&define name lambda-list stringp def-body))
+           (autoload-macro expand))
+  `(progn
      (defun ,name ,args
        ,docstring
        ,@(mode-local--overload-body name args body))
-     (put ',name 'mode-local-overload t)))
+     :autoload-end
+     (eval-and-compile
+       (put ',name 'mode-local-overload t))))
 (put :override-with-args 'lisp-indent-function 1)
 
 (define-obsolete-function-alias 'define-overload

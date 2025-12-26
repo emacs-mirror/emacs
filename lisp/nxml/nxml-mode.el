@@ -532,6 +532,10 @@ Many aspects this mode can be customized using
   (setq-local comment-line-break-function #'nxml-newline-and-indent)
   (setq-local comment-quote-nested-function #'nxml-comment-quote-nested)
   (setq-local comment-continue "") ; avoid double-hyphens as a padding
+  (setq-local hs-block-start-regexp "<[^/>]*?")
+  (setq-local hs-block-end-regexp "</[^/>]*[^/]>")
+  (setq-local hs-c-start-regexp "<!--")
+  (setq-local hs-forward-sexp-function #'sgml-skip-tag-forward)
   (save-excursion
     (save-restriction
       (widen)
@@ -1426,6 +1430,8 @@ either nil or one of the symbols `start-tag', `end-tag', `markup',
 	 (if (memq context '(nil end-tag comment))
 	     'end-tag
 	   'mixed))
+        ((eq xmltok-type 'cdata-section)
+         (or context 'markup))
 	((eq xmltok-type 'comment)
 	 (cond ((memq context '(start-tag end-tag comment))
 		context)
@@ -1515,7 +1521,9 @@ OPEN-DELIM and CLOSE-DELIM are strings giving the opening and closing
 delimiters.  POS is the position of the first non-whitespace character
 of the line.  This expects the xmltok-* variables to be set up as by
 `xmltok-forward'."
-  (cond ((let ((end (+ pos (length close-delim))))
+  (cond ((string= open-delim "<![CDATA[")
+         (goto-char pos))
+        ((let ((end (+ pos (length close-delim))))
 	   (and (<= end (point-max))
 		(string= (buffer-substring-no-properties pos end)
 			 close-delim)))

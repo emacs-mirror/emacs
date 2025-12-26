@@ -797,6 +797,8 @@ comparing the subr with a much slower Lisp implementation."
   (should (= (ash (* 2 most-negative-fixnum) (* 2 most-negative-fixnum)) -1))
   (should (= (ash (* 2 most-negative-fixnum) -1)
 	     most-negative-fixnum))
+  (should (= (ash 1 48) #x1000000000000))
+  (should (= (ash 1 72) #x1000000000000000000))
   (with-suppressed-warnings ((suspicious lsh))
     (should (= (lsh most-negative-fixnum 1)
                (* most-negative-fixnum 2)))
@@ -928,5 +930,25 @@ comparing the subr with a much slower Lisp implementation."
             (cond
              ((eq subtype 'function) (cl-functionp val))
              (t (should-not (cl-typep val subtype))))))))))
+
+(ert-deftest data-aset-string ()
+  ;; unibyte
+  (let ((s (copy-sequence "abcdef")))
+    (cl-assert (not (multibyte-string-p s)))
+    (aset s 4 ?E)
+    (should (equal s "abcdEf"))
+    (aset s 2 255)
+    (should (equal s "ab\377dEf"))
+    (should-error (aset s 3 256))       ; not a byte value
+    (should-error (aset s 3 #x3fff80))) ; not a byte value
+  ;; multibyte
+  (let ((s (copy-sequence "abçdef")))
+    (cl-assert (multibyte-string-p s))
+    (aset s 4 ?E)
+    (should (equal s "abçdEf"))
+    (should-error (aset s 2 ?c))        ; previous char not ASCII
+    (should-error (aset s 2 #xe9))      ; new char not ASCII
+    (should-error (aset s 3 #x3fff80))) ; new char not ASCII
+  )
 
 ;;; data-tests.el ends here

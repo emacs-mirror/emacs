@@ -330,14 +330,13 @@ only in the active region if `dired-mark-region' is non-nil."
   (interactive
    (list
     (let* ((target-dir (dired-dwim-target-directory))
-	   (defaults (dired-dwim-target-defaults nil target-dir)))
+           (defaults (dired-dwim-target-defaults nil target-dir)))
       (minibuffer-with-setup-hook
 	  (lambda ()
-            (setq-local minibuffer-default-add-function nil)
-	    (setq minibuffer-default defaults))
+            (setq-local minibuffer-default-add-function nil))
 	(read-directory-name (format "Compare %s with: "
 				     (dired-current-directory))
-			     target-dir target-dir t)))
+			     target-dir defaults t)))
     (read-from-minibuffer "Mark if (lisp expr or RET): " nil nil t nil "nil"))
    dired-mode)
   (let* ((dir1 (dired-current-directory))
@@ -2668,17 +2667,12 @@ Optional arg HOW-TO determines how to treat the target.
 	   (dired-one-file	; fluid variable inside dired-create-files
 	    (and (consp fn-list) (null (cdr fn-list)) (car fn-list)))
 	   (target-dir (dired-dwim-target-directory))
-	   (default (and dired-one-file
-		         (not dired-dwim-target) ; Bug#25609
-		         (expand-file-name (file-name-nondirectory
-                                            (car fn-list))
-					   target-dir)))
 	   (defaults (dired-dwim-target-defaults fn-list target-dir))
 	   (target (expand-file-name ; fluid variable inside dired-create-files
 		    (minibuffer-with-setup-hook
 		        (lambda ()
-                          (setq-local minibuffer-default-add-function nil)
-			  (setq minibuffer-default defaults))
+                          ;; Don't run `read-file-name--defaults'
+                          (setq-local minibuffer-default-add-function nil))
 		      (dired-mark-read-file-name
                        (format "%s %%s %s: "
                                (if dired-one-file op1 operation)
@@ -2688,7 +2682,7 @@ Optional arg HOW-TO determines how to treat the target.
                                    ;; other operations copy (etc) to the
                                    ;; prompted file name.
                                    "from" "to"))
-		       target-dir op-symbol arg rfn-list default))))
+		       target-dir op-symbol arg rfn-list defaults))))
 	   (into-dir
             (progn
               (when
@@ -2813,28 +2807,26 @@ Optional arg HOW-TO determines how to treat the target.
       this-dir)))
 
 (defun dired-dwim-target-defaults (fn-list target-dir)
-  ;; Return a list of default values for file-reading functions in Dired.
-  ;; This list may contain directories from Dired buffers in other windows.
-  ;; `fn-list' is a list of file names used to build a list of defaults.
-  ;; When nil or more than one element, a list of defaults will
-  ;; contain only directory names.  `target-dir' is a directory name
-  ;; to exclude from the returned list, for the case when this
-  ;; directory name is already presented in initial input.
-  ;; For Dired operations that support `dired-dwim-target',
-  ;; the argument `target-dir' should have the value returned
-  ;; from `dired-dwim-target-directory'.
+  "Return a list of default values for file-reading functions in Dired.
+
+This list may contain directories from Dired buffers in other windows.
+FN-LIST is a list of file names used to build a list of defaults.
+When nil or more than one element, a list of defaults will
+contain only directory names.
+
+TARGET-DIR should be the initial input in the minibuffer for the
+file-reading function.  For Dired operations that support
+`dired-dwim-target', TARGET-DIR should have the value returned from
+`dired-dwim-target-directory'."
   (let ((dired-one-file
 	 (and (consp fn-list) (null (cdr fn-list)) (car fn-list)))
 	(current-dir (and (eq major-mode 'dired-mode)
 			  (dired-current-directory)))
 	;; Get a list of directories of visible buffers in dired-mode.
 	(dired-dirs (dired-dwim-target-directories)))
-    ;; Force the current dir to be the first in the list.
+    ;; Force TARGET-DIR then CURRENT-DIR to be first in the list.
     (setq dired-dirs
-	  (delete-dups (delq nil (cons current-dir dired-dirs))))
-    ;; Remove the target dir (if specified) or the current dir from
-    ;; default values, because it should be already in initial input.
-    (setq dired-dirs (delete (or target-dir current-dir) dired-dirs))
+	  (delete-dups (delq nil (cons target-dir (cons current-dir dired-dirs)))))
     ;; Return a list of default values.
     (if dired-one-file
 	;; For one file operation, provide a list that contains
@@ -2847,10 +2839,7 @@ Optional arg HOW-TO determines how to treat the target.
 		(mapcar (lambda (dir)
 			  (expand-file-name
 			   (file-name-nondirectory (car fn-list)) dir))
-			(reverse dired-dirs))
-		(list (expand-file-name
-		       (file-name-nondirectory (car fn-list))
-		       (or target-dir current-dir))))
+			(reverse dired-dirs)))
       ;; For multi-file operation, return only a list of other directories.
       dired-dirs)))
 

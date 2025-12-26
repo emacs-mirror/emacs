@@ -332,12 +332,16 @@ for a description of this minor mode."
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `%s'."))))
-	    `(defcustom ,mode ,init-value
-	       ,(format base-doc-string pretty-name mode mode)
-	       ,@set
-	       ,@initialize
-	       ,@type
-               ,@(nreverse extra-keywords)))))
+	    `(progn
+	       (defcustom ,mode ,init-value
+	         ,(format base-doc-string pretty-name mode mode)
+	         ,@set
+	         ,@initialize
+	         ,@type
+	         ,@(nreverse extra-keywords))
+	       ,(when init-value
+	          `(when (bound-and-true-p ,mode)
+                     (add-to-list 'global-minor-modes ',modefun)))))))
 
        ;; The actual function.
        ,(funcall
@@ -360,30 +364,21 @@ or call the function `%s'."))))
                            'toggle)))))
 	    (let ((,last-message (current-message)))
               (,@setter
-               (cond ((eq arg 'toggle)
-                      (not ,getter))
-                     ((and (numberp arg)
-                           (< arg 1))
-                      nil)
-                     (t
-                      t)))
+               (cond ((eq arg 'toggle) (not ,getter))
+                     (t (not (and (numberp arg) (< arg 1))))))
               ;; Keep minor modes list up to date.
-              ,@(if globalp
-                    ;; When running this byte-compiled code in earlier
-                    ;; Emacs versions, these variables may not be defined
-                    ;; there.  So check defensively, even if they're
-                    ;; always defined in Emacs 28 and up.
-                    `((when (boundp 'global-minor-modes)
-                        (setq global-minor-modes
-                              (delq ',modefun global-minor-modes))
-                        (when ,getter
-                          (push ',modefun global-minor-modes))))
-                  ;; Ditto check.
-                  `((when (boundp 'local-minor-modes)
-                      (setq local-minor-modes
-                            (delq ',modefun local-minor-modes))
-                      (when ,getter
-                        (push ',modefun local-minor-modes)))))
+              ,(let ((minor-modes-var (if globalp
+                                          'global-minor-modes
+                                        'local-minor-modes)))
+                 ;; When running this byte-compiled code in earlier
+                 ;; Emacs versions, these variables may not be defined
+                 ;; there.  So check defensively, even if they're
+                 ;; always defined in Emacs 28 and up.
+                 `(when (boundp ',minor-modes-var)
+                    (if ,getter
+                        (add-to-list ',minor-modes-var ',modefun)
+                      (setq ,minor-modes-var
+                            (delq ',modefun ,minor-modes-var)))))
               ,@body
               ;; The on/off hooks are here for backward compatibility only.
               (run-hooks ',hook (if ,getter ',hook-on ',hook-off))
@@ -504,7 +499,8 @@ on if the hook has explicitly disabled it.
 	  (intern (concat global-mode-name "-enable-in-buffer")))
 	 (minor-MODE-hook (intern (concat mode-name "-hook")))
 	 (MODE-set-explicitly (intern (concat mode-name "--set-explicitly")))
-	 (MODE-major-mode (intern (concat global-mode-name "--major-mode")))
+         (MODE-suppress-set-explicitly (intern (concat mode-name
+                                                       "--suppress-set-explicitly")))
          (MODE-predicate (intern (concat (replace-regexp-in-string
                                           "-mode\\'" "" global-mode-name)
                                          "-modes")))
@@ -526,12 +522,17 @@ on if the hook has explicitly disabled it.
                   (when (easy-mmode--globalized-predicate-p ,MODE-predicate)
                     (funcall ,turn-on-function)))))
         (_ (push keyw extra-keywords) (push (pop body) extra-keywords))))
+    (setq extra-keywords (nreverse extra-keywords))
+
+    (when (and (plist-get extra-keywords :init-value)
+               (null (plist-get extra-keywords :initialize)))
+      (setq extra-keywords `(:initialize #'custom-initialize-after-file-load
+                             . ,extra-keywords)))
 
     `(progn
        (progn
          (put ',global-mode 'globalized-minor-mode t)
          :autoload-end
-         (defvar-local ,MODE-major-mode nil)
          ,@(when predicate `((defvar ,MODE-predicate))))
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
@@ -558,7 +559,7 @@ Disable the mode if ARG is a negative number.\n\n"
                         "`%s' is used to control which modes this minor mode is used in."
                         MODE-predicate))
                     ""))
-         :global t ,@group ,@(nreverse extra-keywords)
+         :global t ,@group ,@extra-keywords
 
 	 ;; Setup hook to handle future mode changes and new buffers.
 	 (if ,global-mode
@@ -570,7 +571,7 @@ Disable the mode if ARG is a negative number.\n\n"
 	 (dolist (buf (buffer-list))
 	   (with-current-buffer buf
              (if ,global-mode (funcall ,turn-on-function)
-               (when ,mode (,mode -1)))))
+               (when (bound-and-true-p ,MODE-variable) (,mode -1)))))
          ,@body)
 
        ,(when predicate
@@ -611,8 +612,10 @@ list."
        ;; MODE-set-explicitly is set in MODE-set-explicitly and cleared by
        ;; kill-all-local-variables.
        (defvar-local ,MODE-set-explicitly nil)
+       (defvar ,MODE-suppress-set-explicitly nil)
        (defun ,MODE-set-explicitly ()
-         (setq ,MODE-set-explicitly t))
+         (unless ,MODE-suppress-set-explicitly
+           (setq ,MODE-set-explicitly t)))
        (put ',MODE-set-explicitly 'definition-name ',global-mode)
 
        ;; A function which checks whether MODE has been disabled in the major
@@ -622,13 +625,14 @@ list."
        ;; The function that calls TURN-ON in the current buffer.
        (defun ,MODE-enable-in-buffer ()
          (unless ,MODE-set-explicitly
-           (unless (eq ,MODE-major-mode major-mode)
-             (if ,MODE-variable
-                 (progn
-                   (,mode -1)
-                   (funcall ,turn-on-function))
-               (funcall ,turn-on-function))))
-         (setq ,MODE-major-mode major-mode))
+           (let (;; We are not part of the major mode hook so we don't
+                 ;; want to set MODE-set-explicitly to t.
+                 ;; In particular this is necessary when there are
+                 ;; multiple globalized versions of a single minor mode.
+                 ;; If one of them declines to turn the minor mode on,
+                 ;; that should not mean the others can't.
+                 (,MODE-suppress-set-explicitly t))
+             (funcall ,turn-on-function))))
        (put ',MODE-enable-in-buffer 'definition-name ',global-mode))))
 
 (defun easy-mmode--globalized-predicate-p (predicate)

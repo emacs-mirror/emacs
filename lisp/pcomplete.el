@@ -1150,7 +1150,7 @@ Typing SPC flushes the help buffer."
              ((or (eq event 'tab)
                   ;; Needed on a terminal
                   (eq event 9))
-              (let ((win (or (get-buffer-window "*Completions*" 0)
+              (let ((win (or (minibuffer--completions-visible)
                              (display-buffer "*Completions*"
                                              'not-this-window))))
                 (with-selected-window win

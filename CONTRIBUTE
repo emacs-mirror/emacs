@@ -142,7 +142,8 @@ the convention of leaving 2 spaces between sentences.
 
 For more specific tips on Emacs's doc style, see
 https://www.gnu.org/software/emacs/manual/html_node/elisp/Documentation-Tips.html
-Use 'checkdoc' to check for documentation errors before submitting a patch.
+and see the file admin/notes/documentation.  Use 'checkdoc' to check for
+documentation errors before submitting a patch.
 
 ** Testing your changes
 

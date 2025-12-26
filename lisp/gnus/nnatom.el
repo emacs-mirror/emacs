@@ -270,7 +270,7 @@ return the subject.  Otherwise, return nil."
            (or st (push summary parts)))
           ((setq content (or summary content))
            (push (append content '(links)) parts))
-          (t (push '((nil (Content-Type . "text/html") links)) parts)))
+          (t (push '(nil (Content-Type . "text/html") links) parts)))
     parts))
 (defvoo nnatom-read-parts-function #'nnatom--read-parts
   nil nnfeed-read-parts-function)

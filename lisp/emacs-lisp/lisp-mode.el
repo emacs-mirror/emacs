@@ -729,7 +729,9 @@ font-lock keywords will not be case sensitive."
   :group 'lisp
   (lisp-mode-variables nil t nil)
   (setq-local electric-quote-string t)
-  (setq imenu-case-fold-search nil))
+  (setq imenu-case-fold-search nil)
+  (setq-local hs-block-start-regexp "\\s(\\|\"")
+  (setq-local hs-block-end-regexp "\\s)\\|\""))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
@@ -859,7 +861,7 @@ or to switch back to an existing one."
   :type '(choice (const nil) integer)
   :safe (lambda (x) (or (null x) (integerp x))))
 
-(defcustom lisp-indent-function 'lisp-indent-function
+(defcustom lisp-indent-function #'lisp-indent-function
   "A function to be called by `calculate-lisp-indent'.
 It indents the arguments of a Lisp function call.  This function
 should accept two arguments: the indent-point, and the
@@ -1254,7 +1256,7 @@ Lisp function does not specify a special indentation."
 					(progn (forward-sexp 1) (point))))
 	    method)
 	(setq method (or (function-get (intern-soft function)
-                                       'lisp-indent-function)
+                                       'lisp-indent-function 'macro)
 			 (get (intern-soft function) 'lisp-indent-hook)))
 	(cond ((or (eq method 'defun)
                    ;; Check whether we are in flet-like form.

@@ -556,10 +556,10 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
 (defun vc-hg-diff (files &optional oldvers newvers buffer async)
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
-         (working (and firstfile (vc-working-revision firstfile))))
-    (when (and (equal oldvers working) (not newvers))
+         (working (and firstfile (vc-working-revision firstfile 'Hg))))
+    (when (and (not newvers) (member oldvers (list working ".")))
       (setq oldvers nil))
-    (when (and (not oldvers) newvers)
+    (when (and newvers (not oldvers))
       (setq oldvers working))
     (apply #'vc-hg-command
 	   (or buffer "*vc-diff*")
@@ -1137,13 +1137,22 @@ hg binary."
 ;;; Miscellaneous
 
 (defun vc-hg-previous-revision (_file rev)
-  ;; We can't simply decrement by 1, because that revision might be
-  ;; e.g. on a different branch (bug#22032).
-  (with-temp-buffer
-    (and (eq 0
-             (vc-hg-command t nil nil "id" "-n" "-r" (concat rev "^")))
-         ;; Trim the trailing newline.
-         (buffer-substring (point-min) (1- (point-max))))))
+  ;; Prefer to return values with tildes not carets because that's more
+  ;; compatible with MS-Windows (see `vc-git-previous-revision').
+  ;;
+  ;; See <https://repo.mercurial-scm.org/hg/help/revsets> for reference.
+  (cond ((string-match "\\`\\.\\(\\^*\\)\\'" rev)
+         (format ".~%d" (1+ (length (match-string 1 rev)))))
+        ((string-match "\\`\\.~\\([0-9]+\\)\\'" rev)
+         (format ".~%d" (1+ (string-to-number (match-string 1 rev)))))
+        (t
+         ;; We can't simply decrement by 1, because that revision might
+         ;; be e.g. on a different branch (bug#22032).
+         (with-temp-buffer
+           (and (zerop (vc-hg-command t nil nil "id" "-n"
+                                      "-r" (concat rev "~1")))
+                ;; Trim the trailing newline.
+                (buffer-substring (point-min) (1- (point-max))))))))
 
 (defun vc-hg-next-revision (_file rev)
   (let ((newrev (1+ (string-to-number rev)))
@@ -1213,42 +1222,84 @@ It is based on `log-edit-mode', and has Hg-specific extensions.")
 
 (defalias 'vc-hg-async-checkins #'always)
 
-(defun vc-hg-checkin (files comment &optional _rev)
-  "Hg-specific version of `vc-BACKEND-checkin'.
-REV is ignored."
-  (let* ((args (vc-hg--extract-headers comment))
-         (file1 (or (car files) default-directory))
+(defalias 'vc-hg-working-revision-symbol (cl-constantly "."))
+
+(defun vc-hg--checkin (comment &optional files patch-string)
+  "Workhorse routine for `vc-hg-checkin' and `vc-hg-checkin-patch'.
+COMMENT is the commit message; nil if it should come from PATCH-STRING.
+For a regular checkin, FILES is the list of files to check in.
+To check in a patch, PATCH-STRING is the patch text.
+It is an error to supply both or neither."
+  (unless (xor files patch-string)
+    (error "Invalid call to `vc-hg--checkin'"))
+  (let* ((args (and comment (vc-hg--extract-headers comment)))
+         (temps-dir (or (file-name-directory (or (car files)
+                                                 default-directory))
+                        default-directory))
          (msg-file
           ;; On MS-Windows, pass the commit log message through a file,
           ;; to work around the limitation that command-line arguments
           ;; must be in the system codepage, and therefore might not
           ;; support non-ASCII characters in the log message.
           ;; Also handle remote files.
-          (and (eq system-type 'windows-nt)
-               (let ((default-directory (or (file-name-directory file1)
-                                            default-directory)))
-                 (make-nearby-temp-file "hg-msg")))))
-    (when msg-file
-      (let ((coding-system-for-write 'utf-8))
-        (write-region (car args) nil msg-file)))
+          (and args (eq system-type 'windows-nt)
+               (let ((default-directory temps-dir))
+                 (make-nearby-temp-file "hg-msg"))))
+         (patch-file (and patch-string
+                          (let ((default-directory temps-dir))
+                            (make-nearby-temp-file "hg-patch")))))
+    (let ((coding-system-for-write 'utf-8))
+      (when msg-file
+        (write-region (car args) nil msg-file))
+      (when patch-file
+        (write-region patch-string nil patch-file)))
     (let ((coding-system-for-write
            ;; On MS-Windows, we must encode command-line arguments in
            ;; the system codepage.
            (if (eq system-type 'windows-nt)
                locale-coding-system
              coding-system-for-write))
-          (args (if msg-file
-                    (cl-list* "commit" "-A" "-l" (file-local-name msg-file)
-                              (cdr args))
-                  (cl-list* "commit" "-A" "-m" args)))
-          (post (lambda ()
-                  (when (and msg-file (file-exists-p msg-file))
-                    (delete-file msg-file)))))
+          (args
+           (nconc (if patch-file
+                      (list "import" "--bypass" patch-file)
+                    (list "commit" "-A"))
+                  (cond (msg-file (cl-list* "-l" (file-local-name msg-file)
+                                            (cdr args)))
+                        (args (cons "-m" args)))))
+          (post
+           (lambda ()
+             (when (and msg-file (file-exists-p msg-file))
+               (delete-file msg-file))
+             (when (and patch-file (file-exists-p patch-file))
+               (delete-file patch-file))
+             ;; If PATCH-STRING didn't come from C-x v = or C-x v D, we
+             ;; now need to update the working tree to include the
+             ;; changes from the commit we just created.
+             ;; If there are conflicts we want to favor the working
+             ;; tree's version and the version from the commit will just
+             ;; show up in the diff of uncommitted changes.
+             ;;
+             ;; When committing a patch we run two commands, 'hg import'
+             ;; and then 'hg update'.  We have 'hg update' here in the
+             ;; always-synchronous `post' function because we assume
+             ;; that 'hg import' is the one that might be slow and so
+             ;; benefits most from `vc-async-checkin'.  If in fact both
+             ;; the 'hg import' and the 'hg update' can be slow, then we
+             ;; need to make both of them part of the async command,
+             ;; possibly by writing out a tiny shell script (bug#79235).
+             (when patch-file
+               (vc-hg-command nil 0 nil "update" "--merge"
+                              "--tool" "internal:local" "tip")))))
       (if vc-async-checkin
-          (let ((buffer (vc-hg--async-buffer)))
+          (let* ((buffer (vc-hg--async-buffer))
+                 (proc (apply #'vc-hg--async-command buffer
+                              (nconc args files))))
+            (set-process-query-on-exit-flag proc t)
             (vc-wait-for-process-before-save
-             (apply #'vc-hg--async-command buffer (nconc args files))
-             "Finishing checking in files...")
+             proc
+             (if patch-file
+                 "Finishing checking in patch...."
+               "Finishing checking in files..."))
             (with-current-buffer buffer
               (vc-run-delayed
                 (vc-compilation-mode 'hg)
@@ -1258,31 +1309,14 @@ REV is ignored."
         (apply #'vc-hg-command nil 0 files args)
         (funcall post)))))
 
-;; FIXME: Needs MS-Windows encoding issues handling.
-;; Possibly we want fix this by merging this function into the preceeding one.
-;; Figure out resolution of #79235 first.
+(defun vc-hg-checkin (files comment &optional _rev)
+  "Hg-specific version of `vc-BACKEND-checkin'.
+REV is ignored."
+  (vc-hg--checkin comment files nil))
+
 (defun vc-hg-checkin-patch (patch-string comment)
-  (let ((patch-file (make-nearby-temp-file "hg-patch")))
-    (write-region patch-string nil patch-file)
-    (unwind-protect
-        (let ((args (list "update"
-                          "--merge" "--tool" "internal:local"
-                          "tip")))
-          (apply #'vc-hg-command nil 0 nil
-                 (nconc (list "import" "--bypass" patch-file "-m")
-                        (vc-hg--extract-headers comment)))
-          (if vc-async-checkin
-              (let ((buffer (vc-hg--async-buffer)))
-                (vc-wait-for-process-before-save
-                 (apply #'vc-hg--async-command buffer args)
-                 "Finishing checking in patch....")
-                (with-current-buffer buffer
-                  (vc-run-delayed
-                    (vc-compilation-mode 'hg)))
-                (vc-set-async-update buffer)
-                (list 'async (get-buffer-process buffer)))
-            (apply #'vc-hg-command nil 0 nil args)))
-      (delete-file patch-file))))
+  "Hg-specific version of `vc-BACKEND-checkin-patch'."
+  (vc-hg--checkin comment nil patch-string))
 
 (defun vc-hg--extract-headers (comment)
   (log-edit-extract-headers `(("Author" . "--user")
@@ -1466,7 +1500,7 @@ REV is the revision to check out into WORKFILE."
 
 ;; Follows vc-hg-command (or vc-do-async-command), which uses vc-do-command
 ;; from vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code &optional success proc))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional okstatus proc))
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
@@ -1487,12 +1521,12 @@ REV is the revision to check out into WORKFILE."
   ;; XXX: We can't pass DIR directly to 'hg status' because that
   ;; returns all ignored files if FILES is non-nil (bug#22481).
   (let ((default-directory dir))
-    (apply #'vc-hg-command (current-buffer) 'async files
+    (apply #'vc-hg-command '(t nil) 'async files
            "status" (concat "-mardu" (if files "i")) "-C"
            (if (version<= "4.2" (vc-hg--program-version))
                '("--config" "commands.status.relative=1")
              '("re:" "-I" "."))))
-  (vc-run-delayed
+  (vc-run-delayed-success 0
     (vc-hg-after-dir-status update-function)))
 
 (defun vc-hg-dir-extra-headers (dir)
@@ -1518,19 +1552,17 @@ This runs the command \"hg summary\"."
          (nreverse result))
        "\n"))))
 
-(defun vc-hg-incoming-revision (remote-location)
-  (let* ((remote-location (if (string-empty-p remote-location)
-                              "default"
-                            remote-location))
+(defun vc-hg-incoming-revision (&optional upstream-location _refresh)
+  (let* ((upstream-location (or upstream-location "default"))
          ;; Use 'hg identify' like this, and not 'hg incoming', because
          ;; this will give a sensible answer regardless of whether the
          ;; incoming revision has been pulled yet.
          (rev (with-output-to-string
                 (vc-hg-command standard-output 0 nil "identify" "--id"
-                               remote-location "--template={node}"))))
+                               upstream-location "--template={node}"))))
     (condition-case _ (vc-hg-command nil 0 nil "log" "-r" rev)
       ;; We don't have the revision locally.  Pull it.
-      (error (vc-hg-command nil 0 nil "pull" remote-location)))
+      (error (vc-hg-command nil 0 nil "pull" upstream-location)))
     rev))
 
 (defun vc-hg-mergebase (rev1 &optional rev2)
@@ -1554,7 +1586,8 @@ This runs the command \"hg summary\"."
 If PROMPT is non-nil, prompt for the Hg command to run.
 POST-PROCESSING is a list of commands to execute after the command.
 If OBSOLETE is non-nil, behave like the old versions of the Hg push/pull
-commands, which only operated on marked files."
+commands: when called interactively in a Log View buffer with marked
+revisions, fetch only those revisions."
   (let (marked-list)
     ;; The `vc-hg-pull' and `vc-hg-push' commands existed before the
     ;; `pull'/`push' VC actions were implemented.
@@ -1583,7 +1616,9 @@ commands, which only operated on marked files."
 	  (setq hg-program (car  args)
 		command    (cadr args)
 		args       (cddr args)))
-	(apply #'vc-do-async-command buffer root hg-program command args)
+	(set-process-query-on-exit-flag
+         (apply #'vc-do-async-command buffer root hg-program command args)
+         t)
         (with-current-buffer buffer
           (vc-run-delayed
             (dolist (cmd post-processing)
@@ -1652,21 +1687,25 @@ This runs the command \"hg merge\"."
 
 (defun vc-hg-prepare-patch (rev)
   (with-current-buffer (generate-new-buffer " *vc-hg-prepare-patch*")
-    (vc-hg-command t 0 '() "export" "--rev" rev)
-    (let (subject)
-      ;; Extract the subject line
-      (goto-char (point-min))
-      (search-forward-regexp "^[^#].*")
-      (setq subject (match-string 0))
-      ;; Return the extracted data
-      (list :subject subject :buffer (current-buffer)))))
+    (vc-hg-command t 0 nil "export" "--git" "--rev" rev)
+    (condition-case _
+        (let (subject patch-start)
+          (goto-char (point-min))
+          (re-search-forward "^[^#].*")
+          (setq subject (match-string 0))
+          (re-search-forward "\n\ndiff --git a/")
+          (setq patch-start (pos-bol))
+          (list :subject subject
+                :patch-start patch-start
+                :buffer (current-buffer)))
+      (search-failed (error "'hg export' output parse failure")))))
 
 ;;; Internal functions
 
 (defun vc-hg-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-hg.el.
 This function differs from `vc-do-command' in that
-- BUFFER may be nil
+- BUFFER nil means use a buffer called \"*vc*\"
 - it invokes `vc-hg-program' and passes `vc-hg-global-switches' to it
   before FLAGS."
   ;; Commands which pass command line arguments which might
@@ -1738,7 +1777,10 @@ Intended for use via the `vc-hg--async-command' wrapper."
     (if (file-exists-p our-sp)
         (with-temp-buffer
           (insert-file-contents-literally our-sp)
-          (setq our-store (string-trim (buffer-string)))
+          ;; On MS-Windows, ".hg/sharedpath" gives file names with
+          ;; backslashes; expand-file-name normalizes that to forward
+          ;; slashes, needed for 'equal' comparison below.
+          (setq our-store (expand-file-name (string-trim (buffer-string))))
           (push (abbreviate-file-name (file-name-directory our-store))
                 shares))
       (setq our-store (expand-file-name ".hg" our-root)))
@@ -1748,7 +1790,9 @@ Intended for use via the `vc-hg--async-command' wrapper."
                   ((file-exists-p sp)))
         (with-temp-buffer
           (insert-file-contents-literally sp)
-          (when (equal our-store (buffer-string))
+          (when (equal our-store
+                       ;; See above why we use expand-file-name
+                       (expand-file-name (string-trim (buffer-string))))
             (push root shares)))))
     shares))
 
@@ -1774,6 +1818,128 @@ Cannot delete first working tree because this would break other working trees"))
       (rename-file from (directory-file-name to) 1)
     (user-error "\
 Cannot relocate first working tree because this would break other working trees")))
+
+(defun vc-hg-cherry-pick-comment (_files rev reverse)
+  (let (short long comment)
+    (with-temp-buffer
+      (vc-hg-command t 0 nil "log" "--limit=1"
+                     (format "--rev=%s" rev)
+                     "--template={node|short}\n{node}\n{desc}")
+      (goto-char (point-min))
+      (setq short (buffer-substring-no-properties (point) (pos-eol)))
+      (forward-line 1)
+      (setq long (buffer-substring-no-properties (point) (pos-eol)))
+      (forward-line 1)
+      (setq comment (buffer-substring-no-properties (point) (point-max))))
+    (if reverse
+        (format "Summary: Backed out changeset %s\n\n" short)
+      ;; The additional line is indeed separated from the original
+      ;; comment by just one line break, for 'hg graft'.
+      (format "Summary: %s\n(grafted from %s)\n" comment long))))
+
+(defun vc-hg-revision-published-p (rev)
+  "Whether REV has been pushed such that it is public history.
+Always has to fetch, like `vc-hg-incoming-revision' does."
+  (with-temp-buffer
+    (vc-hg-command t 0 nil "log" (format "--rev=outgoing() and %s" rev))
+    (bobp)))
+
+(defun vc-hg-delete-revision (rev)
+  "Use `hg histedit' to delete REV from the history of the current branch.
+
+`hg histedit' will fail unless
+- REV is an ancestor of the working directory;
+- all commits back to REV are not yet public; and
+- there aren't any merges in the history to be edited."
+  (with-temp-buffer
+    ;; Resolve REV to a full changeset hash.
+    (vc-hg-command t 0 nil "log" "--limit=1"
+                   (format "--rev=%s" rev) "--template={node}")
+    (when (bobp)
+      ;; If REV is not found, hg exits 255, so this should never happen.
+      (error "'hg log' unexpectedly gave no output"))
+    (setq rev (buffer-string)))
+  (let ((repo default-directory)
+        (commands (make-nearby-temp-file "hg-commands")))
+    (unwind-protect
+        (let ((coding-system-for-write
+               ;; On MS-Windows, we must encode command-line arguments
+               ;; in the system codepage.
+               (if (eq system-type 'windows-nt)
+                   locale-coding-system
+                 coding-system-for-write)))
+          (with-temp-file commands
+            (let ((default-directory repo))
+              (vc-hg-command t 0 nil "log" (format "--rev=.:%s" rev)
+                             "--template=pick {node}\n"))
+            (goto-char (point-min))
+            (unless (re-search-forward (format "^pick %s\n\\'" rev) nil t)
+              (error "'hg log' output parse failure"))
+            (replace-match (format "drop %s\n" rev)))
+          (unless (zerop
+                   (vc-hg-command
+                    nil 1 nil
+                    "--config=extensions.histedit="
+
+                    ;; Without this, --commands is ignored and histedit
+                    ;; starts a curses interface.  (Actually redundant
+                    ;; with the HGPLAIN=1 set by vc-hg--command-1.)
+                    "--config=ui.interface=text"
+
+                    ;; Request validation of the commands file:
+                    ;; stop if any commits in the history back to REV
+                    ;; are missing, somehow.
+                    "--config=histedit.dropmissing=False"
+
+                    ;; Prevent Mercurial trying to open Meld or similar.
+                    ;; FIXME: According to
+                    ;; <https://repo.mercurial-scm.org/hg/help/merge-tools>,
+                    ;; this can be overridden by user's "merge-patterns"
+                    ;; settings.
+                    "--config=ui.merge=internal:fail"
+
+                    "histedit"
+                    (format "--rev=%s" rev) "--commands" commands))
+            ;; FIXME: Ideally we would leave some sort of conflict for
+            ;; the user to resolve, instead of just giving up.
+            ;; We would want C-x v v to do 'hg histedit --continue' like
+            ;; how it can currently be used to conclude a merge after
+            ;; resolving conflicts.
+            (vc-hg-command nil 0 nil "--config=extensions.histedit="
+                           "histedit" "--abort")
+            (error "Merge conflicts while trying to delete %s; aborting"
+                   rev)))
+      (delete-file commands))))
+
+(defun vc-hg--assert-rev-on-current-branch (rev)
+  "Assert that REV is on the current branch."
+  (with-temp-buffer
+    (vc-hg-command t nil nil "log" "--limit=1"
+                   (format "--rev=%s & ancestors(.)" rev)
+                   "--template={node}")
+    (when (bobp)
+      (error "Revision %s is not on the current branch" rev))))
+
+(defun vc-hg--reset-back-to (rev keep)
+  "Strip revisions up to but not including REV.
+If KEEP is non-nil, also pass --keep to `hg strip'."
+  (apply #'vc-hg-command nil 0 nil
+         "--config=extensions.strip="
+         "strip" "--force"
+         (format "--rev=descendants(%s) & !%s" rev rev)
+         (and keep '("--keep"))))
+
+(defun vc-hg-delete-revisions-from-end (rev)
+  "Strip revisions up to but not including REV.
+It is an error if REV is not on the current branch."
+  (vc-hg--assert-rev-on-current-branch rev)
+  (vc-hg--reset-back-to rev nil))
+
+(defun vc-hg-uncommit-revisions-from-end (rev)
+  "Strip revisions up to but not including REV w/o modifying working tree.
+It is an error if REV is not on the current branch."
+  (vc-hg--assert-rev-on-current-branch rev)
+  (vc-hg--reset-back-to rev t))
 
 (provide 'vc-hg)
 

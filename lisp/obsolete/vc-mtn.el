@@ -141,12 +141,13 @@ switches."
 
 ;; dir-status-files called from vc-dir, which loads vc,
 ;; which loads vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional okstatus proc))
 
 (defun vc-mtn-dir-status-files (dir _files update-function)
   (vc-mtn-command (current-buffer) 'async dir "status")
+  ;; FIXME: Consider `vc-run-delayed-success'.
   (vc-run-delayed
-   (vc-mtn-after-dir-status update-function)))
+    (vc-mtn-after-dir-status update-function)))
 
 (defun vc-mtn-working-revision (file)
   ;; If `mtn' fails or returns status>0, or if the search fails, just

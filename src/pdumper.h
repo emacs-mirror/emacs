@@ -158,7 +158,7 @@ extern struct pdumper_loaded_dump dump_public;
 /* Return whether the OBJ points somewhere into the loaded dump image.
    Works even when we have no dump loaded --- in this case, it just
    returns false.  */
-INLINE _GL_ATTRIBUTE_CONST bool
+INLINE bool
 pdumper_object_p (const void *obj)
 {
 #ifdef HAVE_PDUMPER
@@ -176,7 +176,7 @@ extern bool pdumper_cold_object_p_impl (const void *obj);
    Only bool-vectors and floats should end up there.
    pdumper_object_p() and pdumper_object_p_precise() must have
    returned true for OBJ before calling this function.  */
-INLINE _GL_ATTRIBUTE_CONST bool
+INLINE bool
 pdumper_cold_object_p (const void *obj)
 {
 #ifdef HAVE_PDUMPER
@@ -193,7 +193,7 @@ extern int pdumper_find_object_type_impl (const void *obj);
 /* Return the type of the dumped object that starts at OBJ.  It is a
    programming error to call this routine for an OBJ for which
    pdumper_object_p would return false.  */
-INLINE _GL_ATTRIBUTE_CONST int
+INLINE int
 pdumper_find_object_type (const void *obj)
 {
 #ifdef HAVE_PDUMPER
@@ -216,7 +216,7 @@ pdumper_valid_object_type_p (int type)
    the loaded dump image.  It is a programming error to call this
    routine for an OBJ for which pdumper_object_p would return
    false.  */
-INLINE _GL_ATTRIBUTE_CONST bool
+INLINE bool
 pdumper_object_p_precise (const void *obj)
 {
 #ifdef HAVE_PDUMPER

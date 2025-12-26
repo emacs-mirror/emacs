@@ -3103,7 +3103,11 @@ indicated by RESPONSE)."
                       (#x1f 'underline)
                       (#x1e '(:strike-through t))
                       (#x11 'rcirc-monospace-text)))
-    (goto-char (1+ (match-beginning 0)))))
+    (goto-char (match-beginning 0))
+    (forward-char)
+    (unless (eq (char-before (match-end 2)) ?\C-o)
+      (delete-region (match-beginning 2) (match-end 2)))
+    (delete-region (match-beginning 1) (match-end 1))))
 
 (defconst rcirc-color-codes
   ;; Taken from https://modern.ircdocs.horse/formatting.html
@@ -3130,7 +3134,7 @@ indicated by RESPONSE)."
   "Highlight IRC color-codes, indicated by ASCII control codes."
   (while (re-search-forward
           (rx #x03
-              (? (group (= 2 digit)) (? "," (group (= 2 digit))))
+              (? (group (** 1 2 digit)) (? "," (group (** 1 2 digit))))
               (*? nonl)
               (or #x03 #x0f eol))
           nil t)
@@ -3144,14 +3148,14 @@ indicated by RESPONSE)."
                   ((<= 0 bg (1- (length rcirc-color-codes)))))
         (setq background (aref rcirc-color-codes bg)))
       (rcirc-add-face (match-beginning 0) (match-end 0)
-                      `(face (,@(and foreground (list :foreground foreground))
-                              ,@(and background (list :background background))))))))
+                      (append (and foreground (list :foreground foreground))
+                              (and background (list :background background)))))))
 
 (defun rcirc-remove-markup-codes (_sender _response)
   "Remove ASCII control codes used to designate markup."
   (while (re-search-forward
           (rx (or #x02 #x1d #x1f #x1e #x11 #x0f
-                  (: #x03 (? (= 2 digit) (? "," (= 2 digit))))))
+                  (: #x03 (? (** 1 2 digit) (? "," (** 1 2 digit))))))
           nil t)
     (delete-region (match-beginning 0) (match-end 0))))
 

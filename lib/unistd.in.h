@@ -104,15 +104,12 @@
 # include <direct.h>
 #endif
 
-/* FreeBSD 14.0, NetBSD 10.0, OpenBSD 7.5, Solaris 11.4, and glibc 2.41
-   do not define O_CLOEXEC in <unistd.h>.  */
 /* Cygwin 1.7.1 and Android 4.3 declare unlinkat in <fcntl.h>, not in
    <unistd.h>.  */
 /* But avoid namespace pollution on glibc systems.  */
-#if ! defined O_CLOEXEC \
-    || ((@GNULIB_UNLINKAT@ || defined GNULIB_POSIXCHECK) \
-         && (defined __CYGWIN__ || defined __ANDROID__) \
-         && ! defined __GLIBC__)
+#if ((@GNULIB_UNLINKAT@ || defined GNULIB_POSIXCHECK) \
+      && (defined __CYGWIN__ || defined __ANDROID__) \
+      && ! defined __GLIBC__)
 # include <fcntl.h>
 #endif
 
@@ -120,10 +117,8 @@
 /* mingw, MSVC, BeOS, Haiku declare environ in <stdlib.h>, not in
    <unistd.h>.  */
 /* Solaris declares getcwd not only in <unistd.h> but also in <stdlib.h>.  */
-/* OSF Tru64 Unix cannot see gnulib rpl_strtod when system <stdlib.h> is
-   included here.  */
 /* But avoid namespace pollution on glibc systems.  */
-#if !defined __GLIBC__ && !defined __osf__
+#if !defined __GLIBC__
 # define __need_system_stdlib_h
 # include <stdlib.h>
 # undef __need_system_stdlib_h
@@ -134,10 +129,10 @@
 # include <process.h>
 #endif
 
-/* AIX and OSF/1 5.1 declare getdomainname in <netdb.h>, not in <unistd.h>.
+/* AIX declares getdomainname in <netdb.h>, not in <unistd.h>.
    NonStop Kernel declares gethostname in <netdb.h>, not in <unistd.h>.  */
 /* But avoid namespace pollution on glibc systems.  */
-#if ((@GNULIB_GETDOMAINNAME@ && (defined _AIX || defined __osf__)) \
+#if ((@GNULIB_GETDOMAINNAME@ && defined _AIX) \
      || (@GNULIB_GETHOSTNAME@ && defined __TANDEM)) \
     && !defined __GLIBC__
 # include <netdb.h>
@@ -307,7 +302,6 @@ _GL_CXXALIAS_SYS (access, int, (const char *file, int mode));
 # endif
 _GL_CXXALIASWARN (access);
 #elif defined GNULIB_POSIXCHECK
-# undef access
 # if HAVE_RAW_DECL_ACCESS
 /* The access() function is a security risk.  */
 _GL_WARN_ON_USE (access, "access does not always support X_OK - "
@@ -344,7 +338,6 @@ _GL_CXXALIAS_SYS (chdir, int, (const char *file) _GL_ARG_NONNULL ((1)));
 # endif
 _GL_CXXALIASWARN (chdir);
 #elif defined GNULIB_POSIXCHECK
-# undef chdir
 # if HAVE_RAW_DECL_CHDIR
 _GL_WARN_ON_USE (chdir, "chdir is not always in <unistd.h> - "
                  "use gnulib module chdir for portability");
@@ -389,7 +382,6 @@ _GL_CXXALIAS_SYS (chown, int, (const char *file, uid_t uid, gid_t gid));
 # endif
 _GL_CXXALIASWARN (chown);
 #elif defined GNULIB_POSIXCHECK
-# undef chown
 # if HAVE_RAW_DECL_CHOWN
 _GL_WARN_ON_USE (chown, "chown fails to follow symlinks on some systems and "
                  "doesn't treat a uid or gid of -1 on some systems - "
@@ -423,7 +415,6 @@ _GL_CXXALIASWARN (close);
 #  define close close_used_without_requesting_gnulib_module_close
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef close
 /* Assume close is always declared.  */
 _GL_WARN_ON_USE (close, "close does not portably work on sockets - "
                  "use gnulib module close for portability");
@@ -470,7 +461,6 @@ _GL_CXXALIAS_SYS (copy_file_range, ssize_t, (int ifd, off_t *ipos,
 _GL_CXXALIASWARN (copy_file_range);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef copy_file_range
 # if HAVE_RAW_DECL_COPY_FILE_RANGE
 _GL_WARN_ON_USE (copy_file_range,
                  "copy_file_range is unportable - "
@@ -497,7 +487,6 @@ _GL_CXXALIAS_SYS (dup, int, (int oldfd));
 # endif
 _GL_CXXALIASWARN (dup);
 #elif defined GNULIB_POSIXCHECK
-# undef dup
 # if HAVE_RAW_DECL_DUP
 _GL_WARN_ON_USE (dup, "dup is unportable - "
                  "use gnulib module dup for portability");
@@ -542,7 +531,6 @@ _GL_CXXALIAS_SYS (dup2, int, (int oldfd, int newfd));
 # endif
 _GL_CXXALIASWARN (dup2);
 #elif defined GNULIB_POSIXCHECK
-# undef dup2
 # if HAVE_RAW_DECL_DUP2
 _GL_WARN_ON_USE (dup2, "dup2 is unportable - "
                  "use gnulib module dup2 for portability");
@@ -590,7 +578,6 @@ _GL_CXXALIAS_SYS (dup3, int, (int oldfd, int newfd, int flags));
 _GL_CXXALIASWARN (dup3);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef dup3
 # if HAVE_RAW_DECL_DUP3
 _GL_WARN_ON_USE (dup3, "dup3 is unportable - "
                  "use gnulib module dup3 for portability");
@@ -658,7 +645,6 @@ _GL_WARN_ON_USE (euidaccess, "the euidaccess function is a security risk - "
                  "use the gnulib module faccessat instead");
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef euidaccess
 # if HAVE_RAW_DECL_EUIDACCESS
 _GL_WARN_ON_USE (euidaccess, "euidaccess is unportable - "
                  "use gnulib module euidaccess for portability");
@@ -680,7 +666,6 @@ _GL_CXXALIAS_SYS (execl, int, (const char *program, const char *arg, ...));
 # endif
 _GL_CXXALIASWARN (execl);
 #elif defined GNULIB_POSIXCHECK
-# undef execl
 # if HAVE_RAW_DECL_EXECL
 _GL_WARN_ON_USE (execl, "execl behaves very differently on mingw - "
                  "use gnulib module execl for portability");
@@ -715,7 +700,6 @@ _GL_CXXALIAS_SYS (execle, int, (const char *program, const char *arg, ...));
 # endif
 _GL_CXXALIASWARN (execle);
 #elif defined GNULIB_POSIXCHECK
-# undef execle
 # if HAVE_RAW_DECL_EXECLE
 _GL_WARN_ON_USE (execle, "execle behaves very differently on mingw - "
                  "use gnulib module execle for portability");
@@ -751,7 +735,6 @@ _GL_CXXALIAS_SYS (execlp, int, (const char *program, const char *arg, ...));
 # endif
 _GL_CXXALIASWARN (execlp);
 #elif defined GNULIB_POSIXCHECK
-# undef execlp
 # if HAVE_RAW_DECL_EXECLP
 _GL_WARN_ON_USE (execlp, "execlp behaves very differently on mingw - "
                  "use gnulib module execlp for portability");
@@ -788,7 +771,6 @@ _GL_CXXALIAS_SYS (execv, int, (const char *program, char * const *argv));
 # endif
 _GL_CXXALIASWARN (execv);
 #elif defined GNULIB_POSIXCHECK
-# undef execv
 # if HAVE_RAW_DECL_EXECV
 _GL_WARN_ON_USE (execv, "execv behaves very differently on mingw - "
                  "use gnulib module execv for portability");
@@ -827,7 +809,6 @@ _GL_CXXALIAS_SYS (execve, int,
 # endif
 _GL_CXXALIASWARN (execve);
 #elif defined GNULIB_POSIXCHECK
-# undef execve
 # if HAVE_RAW_DECL_EXECVE
 _GL_WARN_ON_USE (execve, "execve behaves very differently on mingw - "
                  "use gnulib module execve for portability");
@@ -865,7 +846,6 @@ _GL_CXXALIAS_SYS (execvp, int, (const char *program, char * const *argv));
 # endif
 _GL_CXXALIASWARN (execvp);
 #elif defined GNULIB_POSIXCHECK
-# undef execvp
 # if HAVE_RAW_DECL_EXECVP
 _GL_WARN_ON_USE (execvp, "execvp behaves very differently on mingw - "
                  "use gnulib module execvp for portability");
@@ -911,7 +891,6 @@ _GL_CXXALIAS_SYS (execvpe, int,
 _GL_CXXALIASWARN (execvpe);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef execvpe
 # if HAVE_RAW_DECL_EXECVPE
 _GL_WARN_ON_USE (execvpe, "execvpe behaves very differently on mingw - "
                  "use gnulib module execvpe for portability");
@@ -968,7 +947,6 @@ _GL_CXXALIAS_SYS (faccessat, int,
 _GL_CXXALIASWARN (faccessat);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef faccessat
 # if HAVE_RAW_DECL_FACCESSAT
 _GL_WARN_ON_USE (faccessat, "faccessat is not portable - "
                  "use gnulib module faccessat for portability");
@@ -1005,7 +983,6 @@ _GL_EXTERN_C int _gl_register_dup (int oldfd, int newfd);
 _GL_EXTERN_C const char *_gl_directory_name (int fd);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef fchdir
 # if HAVE_RAW_DECL_FCHDIR
 _GL_WARN_ON_USE (fchdir, "fchdir is unportable - "
                  "use gnulib module fchdir for portability");
@@ -1035,7 +1012,6 @@ _GL_CXXALIAS_SYS (fchownat, int, (int fd, char const *file,
 # endif
 _GL_CXXALIASWARN (fchownat);
 #elif defined GNULIB_POSIXCHECK
-# undef fchownat
 # if HAVE_RAW_DECL_FCHOWNAT
 _GL_WARN_ON_USE (fchownat, "fchownat is not portable - "
                  "use gnulib module fchownat for portability");
@@ -1065,7 +1041,6 @@ _GL_CXXALIAS_SYS (fdatasync, int, (int fd));
 _GL_CXXALIASWARN (fdatasync);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef fdatasync
 # if HAVE_RAW_DECL_FDATASYNC
 _GL_WARN_ON_USE (fdatasync, "fdatasync is unportable - "
                  "use gnulib module fdatasync for portability");
@@ -1084,7 +1059,6 @@ _GL_FUNCDECL_SYS (fsync, int, (int fd), );
 _GL_CXXALIAS_SYS (fsync, int, (int fd));
 _GL_CXXALIASWARN (fsync);
 #elif defined GNULIB_POSIXCHECK
-# undef fsync
 # if HAVE_RAW_DECL_FSYNC
 _GL_WARN_ON_USE (fsync, "fsync is unportable - "
                  "use gnulib module fsync for portability");
@@ -1118,7 +1092,6 @@ _GL_CXXALIAS_SYS (ftruncate, int,
 _GL_CXXALIASWARN (ftruncate);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef ftruncate
 # if HAVE_RAW_DECL_FTRUNCATE
 _GL_WARN_ON_USE (ftruncate, "ftruncate is unportable - "
                  "use gnulib module ftruncate for portability");
@@ -1157,7 +1130,6 @@ _GL_CXXALIAS_SYS_CAST (getcwd, char *, (char *buf, size_t size));
 # endif
 _GL_CXXALIASWARN (getcwd);
 #elif defined GNULIB_POSIXCHECK
-# undef getcwd
 # if HAVE_RAW_DECL_GETCWD
 _GL_WARN_ON_USE (getcwd, "getcwd is unportable - "
                  "use gnulib module getcwd for portability");
@@ -1215,7 +1187,6 @@ _GL_CXXALIAS_SYS (getdomainname, int,
 _GL_CXXALIASWARN (getdomainname);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getdomainname
 # if HAVE_RAW_DECL_GETDOMAINNAME
 _GL_WARN_ON_USE (getdomainname, "getdomainname is unportable - "
                  "use gnulib module getdomainname for portability");
@@ -1243,7 +1214,6 @@ _GL_CXXALIAS_SYS_CAST (getdtablesize, int, (void));
 # endif
 _GL_CXXALIASWARN (getdtablesize);
 #elif defined GNULIB_POSIXCHECK
-# undef getdtablesize
 # if HAVE_RAW_DECL_GETDTABLESIZE
 _GL_WARN_ON_USE (getdtablesize, "getdtablesize is unportable - "
                  "use gnulib module getdtablesize for portability");
@@ -1274,7 +1244,6 @@ _GL_CXXALIAS_SYS (getentropy, int,
 _GL_CXXALIASWARN (getentropy);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getentropy
 # if HAVE_RAW_DECL_GETENTROPY
 _GL_WARN_ON_USE (getentropy, "getentropy is unportable - "
                  "use gnulib module getentropy for portability");
@@ -1307,7 +1276,6 @@ _GL_CXXALIAS_SYS (getgroups, int,
 # endif
 _GL_CXXALIASWARN (getgroups);
 #elif defined GNULIB_POSIXCHECK
-# undef getgroups
 # if HAVE_RAW_DECL_GETGROUPS
 _GL_WARN_ON_USE (getgroups, "getgroups is unportable - "
                  "use gnulib module getgroups for portability");
@@ -1336,8 +1304,7 @@ _GL_CXXALIAS_RPL (gethostname, int, (char *name, size_t len));
 _GL_FUNCDECL_SYS (gethostname, int, (char *name, size_t len),
                                     _GL_ARG_NONNULL ((1)));
 #  endif
-/* Need to cast, because on Solaris 10 and OSF/1 5.1 systems, the second
-   parameter is
+/* Need to cast, because on Solaris 10 systems, the second parameter is
                                                       int len.  */
 _GL_CXXALIAS_SYS_CAST (gethostname, int, (char *name, size_t len));
 # endif
@@ -1348,7 +1315,6 @@ _GL_CXXALIASWARN (gethostname);
 #  define gethostname gethostname_used_without_requesting_gnulib_module_gethostname
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef gethostname
 # if HAVE_RAW_DECL_GETHOSTNAME
 _GL_WARN_ON_USE (gethostname, "gethostname is unportable - "
                  "use gnulib module gethostname for portability");
@@ -1383,7 +1349,6 @@ _GL_CXXALIAS_SYS (getlogin, char *, (void));
 _GL_CXXALIASWARN (getlogin);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getlogin
 # if HAVE_RAW_DECL_GETLOGIN
 _GL_WARN_ON_USE (getlogin, "getlogin is unportable - "
                  "use gnulib module getlogin for portability");
@@ -1426,7 +1391,6 @@ _GL_CXXALIAS_SYS_CAST (getlogin_r, int, (char *name, size_t size));
 _GL_CXXALIASWARN (getlogin_r);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getlogin_r
 # if HAVE_RAW_DECL_GETLOGIN_R
 _GL_WARN_ON_USE (getlogin_r, "getlogin_r is unportable - "
                  "use gnulib module getlogin_r for portability");
@@ -1513,7 +1477,6 @@ _GL_CXXALIAS_SYS_CAST (getpagesize, int, (void));
 _GL_CXXALIASWARN (getpagesize);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getpagesize
 # if HAVE_RAW_DECL_GETPAGESIZE
 _GL_WARN_ON_USE (getpagesize, "getpagesize is unportable - "
                  "use gnulib module getpagesize for portability");
@@ -1544,7 +1507,6 @@ _GL_CXXALIAS_SYS (getpass, char *, (const char *prompt));
 # endif
 _GL_CXXALIASWARN (getpass);
 #elif defined GNULIB_POSIXCHECK
-# undef getpass
 # if HAVE_RAW_DECL_GETPASS
 _GL_WARN_ON_USE (getpass, "getpass is unportable - "
                  "use gnulib module getpass or getpass-gnu for portability");
@@ -1587,7 +1549,6 @@ _GL_CXXALIAS_SYS (getusershell, char *, (void));
 # endif
 _GL_CXXALIASWARN (getusershell);
 #elif defined GNULIB_POSIXCHECK
-# undef getusershell
 # if HAVE_RAW_DECL_GETUSERSHELL
 _GL_WARN_ON_USE (getusershell, "getusershell is unportable - "
                  "use gnulib module getusershell for portability");
@@ -1611,7 +1572,6 @@ _GL_CXXALIAS_SYS (setusershell, void, (void));
 # endif
 _GL_CXXALIASWARN (setusershell);
 #elif defined GNULIB_POSIXCHECK
-# undef setusershell
 # if HAVE_RAW_DECL_SETUSERSHELL
 _GL_WARN_ON_USE (setusershell, "setusershell is unportable - "
                  "use gnulib module getusershell for portability");
@@ -1636,7 +1596,6 @@ _GL_CXXALIAS_SYS (endusershell, void, (void));
 # endif
 _GL_CXXALIASWARN (endusershell);
 #elif defined GNULIB_POSIXCHECK
-# undef endusershell
 # if HAVE_RAW_DECL_ENDUSERSHELL
 _GL_WARN_ON_USE (endusershell, "endusershell is unportable - "
                  "use gnulib module getusershell for portability");
@@ -1652,7 +1611,6 @@ _GL_FUNCDECL_SYS (group_member, int, (gid_t gid), );
 _GL_CXXALIAS_SYS (group_member, int, (gid_t gid));
 _GL_CXXALIASWARN (group_member);
 #elif defined GNULIB_POSIXCHECK
-# undef group_member
 # if HAVE_RAW_DECL_GROUP_MEMBER
 _GL_WARN_ON_USE (group_member, "group_member is unportable - "
                  "use gnulib module group-member for portability");
@@ -1680,7 +1638,6 @@ _GL_CXXALIAS_SYS (isatty, int, (int fd));
 # endif
 _GL_CXXALIASWARN (isatty);
 #elif defined GNULIB_POSIXCHECK
-# undef isatty
 # if HAVE_RAW_DECL_ISATTY
 _GL_WARN_ON_USE (isatty, "isatty has portability problems on native Windows - "
                  "use gnulib module isatty for portability");
@@ -1725,7 +1682,6 @@ _GL_CXXALIAS_SYS (lchown, int, (char const *file, uid_t owner, gid_t group));
 # endif
 _GL_CXXALIASWARN (lchown);
 #elif defined GNULIB_POSIXCHECK
-# undef lchown
 # if HAVE_RAW_DECL_LCHOWN
 _GL_WARN_ON_USE (lchown, "lchown is unportable to pre-POSIX.1-2001 systems - "
                  "use gnulib module lchown for portability");
@@ -1754,7 +1710,6 @@ _GL_CXXALIAS_SYS (link, int, (const char *path1, const char *path2));
 # endif
 _GL_CXXALIASWARN (link);
 #elif defined GNULIB_POSIXCHECK
-# undef link
 # if HAVE_RAW_DECL_LINK
 _GL_WARN_ON_USE (link, "link is unportable - "
                  "use gnulib module link for portability");
@@ -1793,7 +1748,6 @@ _GL_CXXALIAS_SYS (linkat, int,
 _GL_CXXALIASWARN (linkat);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef linkat
 # if HAVE_RAW_DECL_LINKAT
 _GL_WARN_ON_USE (linkat, "linkat is unportable - "
                  "use gnulib module linkat for portability");
@@ -1823,7 +1777,6 @@ _GL_CXXALIAS_SYS (lseek, off_t, (int fd, off_t offset, int whence));
 # endif
 _GL_CXXALIASWARN (lseek);
 #elif defined GNULIB_POSIXCHECK
-# undef lseek
 # if HAVE_RAW_DECL_LSEEK
 _GL_WARN_ON_USE (lseek, "lseek does not fail with ESPIPE on pipes on some "
                  "systems - use gnulib module lseek for portability");
@@ -1856,7 +1809,6 @@ _GL_FUNCDECL_SYS (pipe, int, (int fd[2]),
 _GL_CXXALIAS_SYS (pipe, int, (int fd[2]));
 _GL_CXXALIASWARN (pipe);
 #elif defined GNULIB_POSIXCHECK
-# undef pipe
 # if HAVE_RAW_DECL_PIPE
 _GL_WARN_ON_USE (pipe, "pipe is unportable - "
                  "use gnulib module pipe-posix for portability");
@@ -1890,7 +1842,6 @@ _GL_CXXALIAS_SYS (pipe2, int, (int fd[2], int flags));
 _GL_CXXALIASWARN (pipe2);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef pipe2
 # if HAVE_RAW_DECL_PIPE2
 _GL_WARN_ON_USE (pipe2, "pipe2 is unportable - "
                  "use gnulib module pipe2 for portability");
@@ -1927,7 +1878,6 @@ _GL_CXXALIAS_SYS (pread, ssize_t,
 _GL_CXXALIASWARN (pread);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef pread
 # if HAVE_RAW_DECL_PREAD
 _GL_WARN_ON_USE (pread, "pread is unportable - "
                  "use gnulib module pread for portability");
@@ -1964,7 +1914,6 @@ _GL_CXXALIAS_SYS (pwrite, ssize_t,
 _GL_CXXALIASWARN (pwrite);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef pwrite
 # if HAVE_RAW_DECL_PWRITE
 _GL_WARN_ON_USE (pwrite, "pwrite is unportable - "
                  "use gnulib module pwrite for portability");
@@ -2042,7 +1991,6 @@ _GL_CXXALIAS_SYS (readlink, ssize_t,
 # endif
 _GL_CXXALIASWARN (readlink);
 #elif defined GNULIB_POSIXCHECK
-# undef readlink
 # if HAVE_RAW_DECL_READLINK
 _GL_WARN_ON_USE (readlink, "readlink is unportable - "
                  "use gnulib module readlink for portability");
@@ -2077,7 +2025,6 @@ _GL_CXXALIAS_SYS (readlinkat, ssize_t,
 _GL_CXXALIASWARN (readlinkat);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef readlinkat
 # if HAVE_RAW_DECL_READLINKAT
 _GL_WARN_ON_USE (readlinkat, "readlinkat is not portable - "
                  "use gnulib module readlinkat for portability");
@@ -2104,7 +2051,6 @@ _GL_CXXALIAS_SYS (rmdir, int, (char const *name));
 # endif
 _GL_CXXALIASWARN (rmdir);
 #elif defined GNULIB_POSIXCHECK
-# undef rmdir
 # if HAVE_RAW_DECL_RMDIR
 _GL_WARN_ON_USE (rmdir, "rmdir is unportable - "
                  "use gnulib module rmdir for portability");
@@ -2151,9 +2097,9 @@ _GL_FUNCDECL_SYS (sethostname, int,
                   (const char *name, size_t len),
                   _GL_ARG_NONNULL ((1)) _GL_ATTRIBUTE_NODISCARD);
 #  endif
-/* Need to cast, because on Solaris 11 2011-10, Mac OS X 10.5, IRIX 6.5
-   and FreeBSD 6.4 the second parameter is int.  On Solaris 11
-   2011-10, the first parameter is not const.  */
+/* Need to cast, because on Solaris 11 2011-10, Mac OS X 10.5, and FreeBSD 6.4
+   the second parameter is int.  On Solaris 11 2011-10, the first parameter is
+   not const.  */
 _GL_CXXALIAS_SYS_CAST (sethostname, int,
                        (const char *name, size_t len));
 # endif
@@ -2161,7 +2107,6 @@ _GL_CXXALIAS_SYS_CAST (sethostname, int,
 _GL_CXXALIASWARN (sethostname);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef sethostname
 # if HAVE_RAW_DECL_SETHOSTNAME
 _GL_WARN_ON_USE (sethostname, "sethostname is unportable - "
                  "use gnulib module sethostname for portability");
@@ -2189,7 +2134,6 @@ _GL_CXXALIAS_SYS (sleep, unsigned int, (unsigned int n));
 # endif
 _GL_CXXALIASWARN (sleep);
 #elif defined GNULIB_POSIXCHECK
-# undef sleep
 # if HAVE_RAW_DECL_SLEEP
 _GL_WARN_ON_USE (sleep, "sleep is unportable - "
                  "use gnulib module sleep for portability");
@@ -2244,7 +2188,6 @@ _GL_CXXALIAS_SYS (symlink, int,
 # endif
 _GL_CXXALIASWARN (symlink);
 #elif defined GNULIB_POSIXCHECK
-# undef symlink
 # if HAVE_RAW_DECL_SYMLINK
 _GL_WARN_ON_USE (symlink, "symlink is not portable - "
                  "use gnulib module symlink for portability");
@@ -2276,7 +2219,6 @@ _GL_CXXALIAS_SYS (symlinkat, int,
 _GL_CXXALIASWARN (symlinkat);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef symlinkat
 # if HAVE_RAW_DECL_SYMLINKAT
 _GL_WARN_ON_USE (symlinkat, "symlinkat is not portable - "
                  "use gnulib module symlinkat for portability");
@@ -2308,7 +2250,6 @@ _GL_CXXALIAS_SYS (truncate, int, (const char *filename, off_t length));
 _GL_CXXALIASWARN (truncate);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef truncate
 # if HAVE_RAW_DECL_TRUNCATE
 _GL_WARN_ON_USE (truncate, "truncate is unportable - "
                  "use gnulib module truncate for portability");
@@ -2342,7 +2283,6 @@ _GL_CXXALIAS_SYS (ttyname_r, int,
 _GL_CXXALIASWARN (ttyname_r);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef ttyname_r
 # if HAVE_RAW_DECL_TTYNAME_R
 _GL_WARN_ON_USE (ttyname_r, "ttyname_r is not portable - "
                  "use gnulib module ttyname_r for portability");
@@ -2369,7 +2309,6 @@ _GL_CXXALIAS_SYS (unlink, int, (char const *file));
 # endif
 _GL_CXXALIASWARN (unlink);
 #elif defined GNULIB_POSIXCHECK
-# undef unlink
 # if HAVE_RAW_DECL_UNLINK
 _GL_WARN_ON_USE (unlink, "unlink is not portable - "
                  "use gnulib module unlink for portability");
@@ -2409,7 +2348,6 @@ _GL_CXXALIAS_SYS (unlinkat, int, (int fd, char const *file, int flag));
 # endif
 _GL_CXXALIASWARN (unlinkat);
 #elif defined GNULIB_POSIXCHECK
-# undef unlinkat
 # if HAVE_RAW_DECL_UNLINKAT
 _GL_WARN_ON_USE (unlinkat, "unlinkat is not portable - "
                  "use gnulib module unlinkat for portability");
@@ -2439,7 +2377,6 @@ _GL_CXXALIAS_SYS_CAST (usleep, int, (useconds_t n));
 # endif
 _GL_CXXALIASWARN (usleep);
 #elif defined GNULIB_POSIXCHECK
-# undef usleep
 # if HAVE_RAW_DECL_USLEEP
 _GL_WARN_ON_USE (usleep, "usleep is unportable - "
                  "use gnulib module usleep for portability");
@@ -2492,6 +2429,18 @@ _GL_CXXALIASWARN (write);
 #endif
 
 _GL_INLINE_HEADER_END
+
+
+/* Includes that provide only macros that don't need to be overridden.
+   (Includes that are needed for type definitions and function declarations
+   have their place above, before the function overrides.)  */
+
+/* FreeBSD 14.0, NetBSD 10.0, OpenBSD 7.5, Solaris 11.4, and glibc 2.41
+   do not define O_CLOEXEC in <unistd.h>.  */
+#if ! defined O_CLOEXEC
+# include <fcntl.h>
+#endif
+
 
 #endif /* _@GUARD_PREFIX@_UNISTD_H */
 #endif /* _GL_INCLUDING_UNISTD_H */

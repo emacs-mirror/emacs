@@ -48,7 +48,8 @@ you pick up editing the message where you left off.
   The command @kbd{C-x 4 m} (@code{compose-mail-other-window}) does
 the same as @kbd{C-x m}, except it displays the mail buffer in a
 different window.  The command @kbd{C-x 5 m}
-(@code{compose-mail-other-frame}) does it in a new frame.
+(@code{compose-mail-other-frame}) does it in a new frame.  @xref{Window
+Choice}.
 
   When you type @kbd{C-c C-c} or @kbd{C-c C-s} to send the mail, Emacs
 may ask you how it should deliver the mail---either directly via SMTP,

@@ -186,13 +186,13 @@ If NO-CREATION is non-nil, the window is not created."
                                            erc-status-sidebar--singular-p)))
     (unless (or sidebar-window no-creation)
       (with-current-buffer (erc-status-sidebar-get-buffer)
-        (setq-local vertical-scroll-bar nil))
+        (setq vertical-scroll-bar nil
+              cursor-type nil))
       (setq sidebar-window (erc-status-sidebar-display-window))
       (set-window-dedicated-p sidebar-window t)
       (set-window-parameter sidebar-window 'no-delete-other-windows t)
       ;; Don't cycle to this window with `other-window'.
       (set-window-parameter sidebar-window 'no-other-window t)
-      (setq cursor-type nil)
       (set-window-fringes sidebar-window 0 0)
       ;; Set a custom display table so the window doesn't show a
       ;; truncation symbol when a channel name is too big.

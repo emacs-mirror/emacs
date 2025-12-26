@@ -290,10 +290,10 @@ optional arg EXPOSURE \(interactively with prefix arg) changes this:-
   "Return to the ARG'th enclosing fold view.  With ARG = 0 exit all folds.
 
 Normally causes exited folds to be hidden, but with ARG < 0, -ARG folds are
-exited and text is left visible."
+exited, text is left visible, and point position is preserved."
   (interactive "p")
   (let ((hide-fold t) start-marker end-marker
-	beginning-of-heading end-of-subtree)
+        beginning-of-heading end-of-subtree (original-point (point)))
 
     ;; check there are some folds to leave
     (if (null foldout-fold-list)
@@ -369,7 +369,10 @@ exited and text is left visible."
 			    (if end-marker
 				(1- (marker-position end-marker))
 			      (point-max)))))
-    (recenter)
+
+    (if hide-fold
+        (recenter)
+      (goto-char original-point))
 
     ;; update the mode line
     (foldout-update-mode-line)))

@@ -101,13 +101,15 @@
 
 (ert-deftest dom-tests-text ()
   (let ((dom (dom-tests--tree)))
-    (should (string-empty-p (dom-text dom)))
-    (should (equal (dom-text (dom-by-tag dom "title")) "Test"))))
+    (with-suppressed-warnings ((obsolete dom-text))
+      (should (string-empty-p (dom-text dom)))
+      (should (equal (dom-text (dom-by-tag dom "title")) "Test")))))
 
 (ert-deftest dom-tests-texts ()
   (let ((dom (dom-tests--tree)))
-    (should (equal (dom-texts dom) "Test foo bar"))
-    (should (equal (dom-texts dom ", ") "Test, foo, bar"))))
+    (with-suppressed-warnings ((obsolete dom-texts))
+      (should (equal (dom-texts dom) "Test foo bar"))
+      (should (equal (dom-texts dom ", ") "Test, foo, bar")))))
 
 (ert-deftest dom-tests-child-by-tag ()
   (let ((dom (dom-tests--tree)))

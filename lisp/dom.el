@@ -75,12 +75,12 @@ A typical attribute is `href'."
 
 (defun dom-text (node)
   "Return all the text bits in the current node concatenated."
-  (declare (obsolete 'dom-inner-text "31.1"))
+  (declare (obsolete dom-inner-text "31.1"))
   (mapconcat #'identity (cl-remove-if-not #'stringp (dom-children node)) " "))
 
 (defun dom-texts (node &optional separator)
   "Return all textual data under NODE concatenated with SEPARATOR in-between."
-  (declare (obsolete 'dom-inner-text "31.1"))
+  (declare (obsolete dom-inner-text "31.1"))
   (if (eq (dom-tag node) 'script)
       ""
     (mapconcat

@@ -61,6 +61,9 @@ public final class EmacsNative
      scaledDensity is the DPI value used to translate point sizes to
      pixel sizes when loading fonts.
 
+     uiMode holds the bits of the system's UI mode specification
+     defining the active system theme.
+
      classPath must be the classpath of this app_process process, or
      NULL.
 
@@ -74,6 +77,7 @@ public final class EmacsNative
 					    float pixelDensityX,
 					    float pixelDensityY,
 					    float scaledDensity,
+					    int uiMode,
 					    String classPath,
 					    EmacsService emacsService,
 					    int apiLevel);
@@ -197,8 +201,9 @@ public final class EmacsNative
   public static native void sendNotificationAction (String tag, String action);
 
   /* Send an ANDROID_CONFIGURATION_CHANGED event.  */
-  public static native void sendConfigurationChanged (float dpiX, float dpiY,
-						      float dpiScaled);
+  public static native void sendConfigurationChanged (int detail, float dpiX,
+						      float dpiY, float dpiScaled,
+						      int ui_mode);
 
   /* Return the file name associated with the specified file
      descriptor, or NULL if there is none.  */

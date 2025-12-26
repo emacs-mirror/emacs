@@ -121,10 +121,16 @@ operating on the next file and nil otherwise."
         (kill-all-local-variables)
         (erase-buffer)
         (setq new next)
-        (condition-case nil
+        (condition-case err
             (insert-file-contents new nil)
           (file-missing
-           (fileloop-next-file novisit))))
+           (fileloop-next-file novisit))
+          (file-error
+           ;; See bug#79356 for discussion.
+           (let ((msg (error-message-string err)))
+             (unless (string-search new msg)
+               (setq msg (format "%s: %s" new msg)))
+             (delay-warning 'file-error msg :error)))))
       new)))
 
 (defun fileloop-continue ()

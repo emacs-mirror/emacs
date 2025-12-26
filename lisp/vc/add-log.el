@@ -314,7 +314,6 @@ as a list of strings."
                                ",[[:blank:]]*" t)
            finally do (skip-chars-backward "\n[:blank:]")))
 
-(declare-function log-edit-fill-entry "log-edit")
 (defun change-log-insert-entries (changelogs)
   "Format and insert CHANGELOGS into current buffer.
 CHANGELOGS is a list in the form returned by
@@ -1022,7 +1021,10 @@ non-nil, otherwise in local time."
 (defun add-change-log-entry-other-window (&optional whoami file-name)
   "Find change log file in other window and add entry and item.
 This is just like `add-change-log-entry' except that it displays
-the change log file in another window."
+the change log file in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive (if current-prefix-arg
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))

@@ -96,7 +96,7 @@ allow `git commit' to determine identities for authors and committers."
   (declare (indent 1))
   `(ert-with-temp-directory ,name
      (let ((default-directory ,name)
-           (process-environment (append '("EMAIL=john@doe.ee"
+           (process-environment (append '("EMAIL=john.doe@example.com"
                                           "GIT_AUTHOR_NAME=A"
                                           "GIT_COMMITTER_NAME=C")
                                         process-environment)))

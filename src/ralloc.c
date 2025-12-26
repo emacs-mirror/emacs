@@ -175,13 +175,11 @@ find_heap (void *address)
 {
   heap_ptr heap;
 
-  for (heap = last_heap; heap; heap = heap->prev)
+  for (heap = last_heap; ; heap = heap->prev)
     {
       if (heap->start <= address && address <= heap->end)
 	return heap;
     }
-
-  return NIL_HEAP;
 }
 
 /* Find SIZE bytes of space in a heap.
@@ -509,10 +507,8 @@ update_heap_bloc_correspondence (bloc_ptr bloc, heap_ptr heap)
     {
       /* Advance through heaps, marking them empty,
 	 till we get to the one that B is in.  */
-      while (heap)
+      while (! (heap->bloc_start <= b->data && b->data <= heap->end))
 	{
-	  if (heap->bloc_start <= b->data && b->data <= heap->end)
-	    break;
 	  heap = heap->next;
 	  /* We know HEAP is not null now,
 	     because there has to be space for bloc B.  */

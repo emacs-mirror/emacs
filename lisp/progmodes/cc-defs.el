@@ -86,6 +86,8 @@
 
 ;;; Variables also used at compile time.
 
+;; IMPORTANT NOTE!  On changing `c-version', also update the "version
+;; header" near the beginning of cc-mode.el to match.
 (defconst c-version "5.35.2"
   "CC Mode version number.")
 

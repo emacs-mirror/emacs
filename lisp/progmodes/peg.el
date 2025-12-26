@@ -837,7 +837,7 @@ input.  PATH is the list of rules that we have visited so far."
 (cl-defgeneric peg--detect-cycles (head _path &rest args)
   (error "No detect-cycle method for: %S" (cons head args)))
 
-(cl-defmethod peg--detect-cycles (path (_ (eql call)) name)
+(cl-defmethod peg--detect-cycles (path (_ (eql call)) name &rest _args)
   (if (member name path)
       (error "Possible left recursion: %s"
 	     (mapconcat (lambda (x) (format "%s" x))
@@ -885,6 +885,13 @@ input.  PATH is the list of rules that we have visited so far."
 (cl-defmethod peg--detect-cycles (_path (_ (eql guard)) _e)      t)
 (cl-defmethod peg--detect-cycles (_path (_ (eql =)) _s)          nil)
 (cl-defmethod peg--detect-cycles (_path (_ (eql syntax-class)) _n) nil)
+
+(cl-defmethod peg--detect-cycles (_path (_ (eql funcall)) &rest _args)
+  ;; There might very well be a cycle here, and we may very well match
+  ;; the empty string, but it's much too hard (and in general
+  ;; impossible) to try and figure out.
+  nil)
+
 (cl-defmethod peg--detect-cycles (_path (_ (eql action)) _form)  t)
 
 (defun peg-merge-errors (exps)
@@ -897,8 +904,8 @@ input.  PATH is the list of rules that we have visited so far."
 (defun peg-merge-error (exp merged)
   (apply #'peg--merge-error merged exp))
 
-(cl-defgeneric peg--merge-error (_merged head &rest args)
-  (error "No merge-error method for: %S" (cons head args)))
+(cl-defgeneric peg--merge-error (merged head &rest args)
+  (cl-adjoin (cons head args) merged :test #'equal))
 
 (cl-defmethod peg--merge-error (merged (_ (eql or)) e1 e2)
   (peg-merge-error e2 (peg-merge-error e1 merged)))
@@ -911,36 +918,24 @@ input.  PATH is the list of rules that we have visited so far."
   ;;(add-to-list 'merged str)
   (cl-adjoin str merged :test #'equal))
 
-(cl-defmethod peg--merge-error (merged (_ (eql call)) rule)
-  ;; (add-to-list 'merged rule)
-  (cl-adjoin rule merged :test #'equal))
+(cl-defmethod peg--merge-error (merged (_ (eql call)) rule &rest args)
+  (cl-adjoin (if args (cons rule args) rule) merged :test #'equal))
 
 (cl-defmethod peg--merge-error (merged (_ (eql char)) char)
-  ;; (add-to-list 'merged (string char))
   (cl-adjoin (string char) merged :test #'equal))
 
 (cl-defmethod peg--merge-error (merged (_ (eql set)) r c k)
-  ;; (add-to-list 'merged (peg-make-charset-regexp r c k))
   (cl-adjoin (peg-make-charset-regexp r c k) merged :test #'equal))
 
 (cl-defmethod peg--merge-error (merged (_ (eql range)) from to)
-  ;; (add-to-list 'merged (format "[%c-%c]" from to))
   (cl-adjoin (format "[%c-%c]" from to) merged :test #'equal))
 
 (cl-defmethod peg--merge-error (merged (_ (eql *)) exp)
   (peg-merge-error exp merged))
 
-(cl-defmethod peg--merge-error (merged (_ (eql any)))
-  ;; (add-to-list 'merged '(any))
-  (cl-adjoin '(any) merged :test #'equal))
-
-(cl-defmethod peg--merge-error (merged (_ (eql not)) x)
-  ;; (add-to-list 'merged `(not ,x))
-  (cl-adjoin `(not ,x) merged :test #'equal))
-
 (cl-defmethod peg--merge-error (merged (_ (eql action)) _action) merged)
 (cl-defmethod peg--merge-error (merged (_ (eql guard)) e)
-  (if (eq e t) merged (cl-adjoin `(guard ,e) merged :test #'equal)))
+  (if (eq e t) merged (cl-call-next-method)))
 
 (provide 'peg)
 (require 'peg)

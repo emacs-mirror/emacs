@@ -234,7 +234,7 @@ current buffer is on a remote machine, @samp{@@} is displayed instead.
   @var{d} appears if the window is dedicated to its current buffer.
 It appears as @samp{D} for strong dedication and @samp{d} for other
 forms of dedication.  If the window is not dedicated, @var{d} does not
-appear.  @xref{Dedicated Windows,, elisp, The Emacs Lisp Reference
+appear.  @xref{Dedicated Windows,,, elisp, The Emacs Lisp Reference
 Manual}.
 
   @var{fr} gives the selected frame name (@pxref{Frames}).  It appears

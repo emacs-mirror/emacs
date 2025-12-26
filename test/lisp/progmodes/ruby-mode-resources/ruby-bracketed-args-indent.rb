@@ -37,6 +37,24 @@ def foo
   )
 end
 
+some_method(arg, include: [
+  :value1,
+  :value2
+])
+
+some_method(arg, options: {
+  key: "value"
+})
+
+some_method(arg, :include => [
+  :value1,
+  :value2
+])
+
+some_method(arg, :options => {
+  :key => "value"
+})
+
 # Local Variables:
 # ruby-bracketed-args-indent: nil
 # End:

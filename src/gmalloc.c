@@ -21,6 +21,16 @@ License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <config.h>
 
+#ifdef HAVE_MALLOC_H
+# if GNUC_PREREQ (4, 2, 0)
+#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+# endif
+# include <malloc.h>
+#endif
+#ifndef __MALLOC_HOOK_VOLATILE
+# define __MALLOC_HOOK_VOLATILE volatile
+#endif
+
 #if defined HAVE_PTHREAD
 #define USE_PTHREAD
 #endif
@@ -36,17 +46,6 @@ License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 #include <pthread.h>
 #endif
 
-#include "lisp.h"
-
-#ifdef HAVE_MALLOC_H
-# if GNUC_PREREQ (4, 2, 0)
-#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-# endif
-# include <malloc.h>
-#endif
-#ifndef __MALLOC_HOOK_VOLATILE
-# define __MALLOC_HOOK_VOLATILE volatile
-#endif
 #if !defined HAVE_MALLOC_H						\
   || (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 34)
 extern void (*__MALLOC_HOOK_VOLATILE __after_morecore_hook) (void);
@@ -56,6 +55,8 @@ extern void *(*__morecore) (ptrdiff_t);
   || (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 24)
 extern void (*__MALLOC_HOOK_VOLATILE __malloc_initialize_hook) (void);
 #endif /* !defined HAVE_MALLOC_H || glibc >= 2.24 */
+
+#include "lisp.h"
 
 #undef malloc
 #undef realloc

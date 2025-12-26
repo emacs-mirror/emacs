@@ -91,7 +91,7 @@ follows:
 The autoload file is assumed to contain a trailer starting with a
 FormFeed character.")
 ;;;###autoload
-(put 'generated-autoload-file 'safe-local-variable 'stringp)
+(put 'generated-autoload-file 'safe-local-variable #'stringp)
 
 (defvar generated-autoload-load-name nil
   "Load name for `autoload' statements generated from autoload cookies.
@@ -100,7 +100,7 @@ Typically, you need to set this when the directory containing the file
 is not in `load-path'.
 This also affects the generated cus-load.el file.")
 ;;;###autoload
-(put 'generated-autoload-load-name 'safe-local-variable 'stringp)
+(put 'generated-autoload-load-name 'safe-local-variable #'stringp)
 
 (defun loaddefs-generate--file-load-name (file outfile)
   "Compute the name that will be used to load FILE.
@@ -154,15 +154,8 @@ scanning for autoloads and will be in the `load-path'."
 ;; they request such expansion and produce suitable output (e.g. by
 ;; employing :autoload-end to omit unneeded forms).
 (defconst loaddefs--defining-macros
-  '( define-skeleton define-derived-mode define-compilation-mode
-     define-generic-mode define-globalized-minor-mode define-minor-mode
-     cl-defun defun* cl-defmacro defmacro* define-overloadable-function
-     transient-define-prefix transient-define-suffix transient-define-infix
-     transient-define-argument transient-define-group
-     ;; Obsolete; keep until the alias is removed.
-     easy-mmode-define-global-mode
-     easy-mmode-define-minor-mode
-     define-global-minor-mode))
+  '( transient-define-prefix transient-define-suffix transient-define-infix
+     transient-define-argument transient-define-group))
 
 (defvar loaddefs--load-error-files nil)
 (defun loaddefs-generate--make-autoload (form file &optional expansion)
@@ -243,46 +236,20 @@ expand)' among their `declare' forms."
 	     (eq 'expand (function-get car 'autoload-macro))
 	     (setq expand (let ((load-true-file-name file)
 				(load-file-name file))
-			    (macroexpand form)))
-	     (or (and
-                  ;; Previously, macros defined in this list would not
-                  ;; see their expansions processed in place of
-                  ;; themselves if such an expansion did not yield a
-                  ;; `progn', `prog1' or `defalias' form.  Not
-                  ;; reproducing these conditions results in the
-                  ;; omission of minor mode variables and suchlike in
-                  ;; loaddefs.el when only the defuns in the
-                  ;; macroexpansions are autoloaded.
-                  (not (memq car '( define-globalized-minor-mode defun defmacro
-                                    define-minor-mode define-inline
-                                    cl-defun cl-defmacro cl-defgeneric
-                                    cl-defstruct pcase-defmacro iter-defun cl-iter-defun
-                                    ;; Obsolete; keep until the alias is removed.
-                                    easy-mmode-define-global-mode
-                                    easy-mmode-define-minor-mode
-                                    define-global-minor-mode)))
-                  (not (eq car (car expand))))
-                 (memq (car expand) '(progn prog1 defalias)))))
+			    (macroexpand-1 form)))
+	     (not (eq car (car expand)))))
       ;; Recurse on the expansion.
       (loaddefs-generate--make-autoload expand file 'expansion))
 
      ;; For known special macros which define functions, use `autoload'
      ;; directly.
      ((memq car loaddefs--defining-macros)
-      (let* ((macrop (memq car '(defmacro cl-defmacro defmacro*)))
-	     (name (nth 1 form))
+      (let* ((name (nth 1 form))
 	     (args (pcase car
-                     ((or 'defun 'defmacro
-                          'defun* 'defmacro* 'cl-defun 'cl-defmacro
-                          'define-overloadable-function
-                          'transient-define-prefix 'transient-define-suffix
+                     ((or 'transient-define-prefix 'transient-define-suffix
                           'transient-define-infix 'transient-define-argument
                           'transient-define-group)
                       (nth 2 form))
-                     ('define-skeleton '(&optional str arg))
-                     ((or 'define-generic-mode 'define-derived-mode
-                          'define-compilation-mode)
-                      nil)
                      (_ t)))
 	     (body (nthcdr (or (function-get car 'doc-string-elt) 3) form))
 	     (doc (if (stringp (car body)) (pop body))))
@@ -293,26 +260,17 @@ expand)' among their `declare' forms."
         (loaddefs-generate--shorten-autoload
          `(autoload ,(if (listp name) name (list 'quote name))
             ,file ,doc
-            ,(or (and (memq car '( define-skeleton define-derived-mode
-                                   define-generic-mode
-                                   define-globalized-minor-mode
-                                   define-minor-mode
-                                   transient-define-prefix
+            ,(or (and (memq car '( transient-define-prefix
                                    transient-define-suffix
                                    transient-define-infix
                                    transient-define-argument
-                                   transient-define-group
-                                   ;; Obsolete; keep until the alias is removed.
-                                   easy-mmode-define-global-mode
-                                   easy-mmode-define-minor-mode
-                                   define-global-minor-mode))
+                                   transient-define-group))
                       t)
                  (and (eq (car-safe (car body)) 'interactive)
                       ;; List of modes or just t.
                       (or (if (nthcdr 2 (car body))
                               (list 'quote (nthcdr 2 (car body)))
-                            t))))
-            ,(if macrop ''macro nil)))))
+                            t))))))))
 
      ;; For defclass forms, use `eieio-defclass-autoload'.
      ((eq car 'defclass)
@@ -424,7 +382,7 @@ expand)' among their `declare' forms."
                       nil))))
               prefixes)))
         `(register-definition-prefixes ,file ',(sort (delq nil strings)
-						     'string<))))))
+						     #'string<))))))
 
 (defun loaddefs-generate--parse-file (file main-outfile &optional package-data)
   "Examining FILE for ;;;###autoload statements.
@@ -611,18 +569,18 @@ If COMPILE, don't include a \"don't compile\" cookie."
       (buffer-string))))
 
 ;;;###autoload
-(defun loaddefs-generate (dir output-file &optional excluded-files
-                              extra-data include-package-version
-                              generate-full)
-  "Generate loaddefs files for Lisp files in one or more directories given by DIR.
-DIR can be either a single directory or a list of directories.
+(defun loaddefs-generate (dirs output-file &optional excluded-files
+                               extra-data include-package-version
+                               generate-full)
+  "Generate loaddefs files for Lisp files in directories given by DIRS.
+DIRS can be either a single directory or a list of directories.
 
 The autoloads will be written to OUTPUT-FILE.  If any Lisp file
 binds `generated-autoload-file' as a file-local variable, write
 its autoloads into the specified file instead.
 
-The function does NOT recursively descend into subdirectories of the
-directories specified by DIR.
+This function does NOT recursively descend into subdirectories of the
+directories specified by DIRS.
 
 Optional argument EXCLUDED-FILES, if non-nil, should be a list of
 files, such as preloaded files, whose autoloads should not be written
@@ -650,13 +608,18 @@ instead of just updating them with the new/changed autoloads."
 		       (mapcar (lambda (d)
 				 (directory-files (expand-file-name d)
                                                   t files-re))
-			       (if (consp dir) dir (list dir)))))
+			       (ensure-list dirs))))
          (updating (and (file-exists-p output-file) (not generate-full)))
          (defs nil))
     ;; Allow the excluded files to be relative.
-    (setq excluded-files
-          (mapcar (lambda (file) (expand-file-name file dir))
-                  excluded-files))
+    ;; We used to do (expand-file-name file dirs), which strangely enough
+    ;; doesn't signal an error when DIRS is a list but does something weird
+    ;; instead, so let's preserve the old behavior when DIRS is a string,
+    ;; even tho it's different from what we do when it's a list.
+    (let ((basedir (if (stringp dirs) dirs)))
+      (setq excluded-files
+            (mapcar (lambda (file) (expand-file-name file basedir))
+                    excluded-files)))
 
     ;; Collect all the autoload data.
     (let ((progress (make-progress-reporter
@@ -675,7 +638,7 @@ instead of just updating them with the new/changed autoloads."
                                 (file-attributes file))))
           ;; If we're scanning for package versions, we want to look
           ;; at the file even if it's excluded.
-          (let* ((excluded (member (expand-file-name file dir) excluded-files))
+          (let* ((excluded (member file excluded-files))
                  (package-data
                   (and include-package-version (if excluded 'only t))))
             (when (or package-data (not excluded))
@@ -742,7 +705,7 @@ instead of just updating them with the new/changed autoloads."
           (unless (equal (buffer-hash) hash)
             (write-region (point-min) (point-max) loaddefs-file nil 'silent)
             (byte-compile-info
-             (file-relative-name loaddefs-file (car (ensure-list dir)))
+             (file-relative-name loaddefs-file (car (ensure-list dirs)))
              t "GEN")))))
 
     ;; If processing files without any autoloads, the above loop will
@@ -794,19 +757,19 @@ instead of just updating them with the new/changed autoloads."
   ;; Exclude those files that are preloaded on ALL platforms.
   ;; These are the ones in loadup.el where "(load" is at the start
   ;; of the line (crude, but it works).
-  (let ((default-directory (file-name-directory lisp-directory))
-        (excludes nil)
-	file)
+  (let ((excludes nil))
     (with-temp-buffer
       (insert-file-contents "loadup.el")
+      (when (= (point-min) (point-max)) (error "Can't find loadup.el"))
       (while (re-search-forward "^(load \"\\([^\"]+\\)\"" nil t)
-	(setq file (match-string 1))
-	(or (string-match "\\.el\\'" file)
-	    (setq file (format "%s.el" file)))
-	(or (string-match "\\`site-" file)
-	    (push (expand-file-name file) excludes))))
+	(let ((file (match-string 1)))
+	  (unless (string-match "\\`site-" file)
+	    (push (if (string-match "\\.el\\'" file)
+	              file
+	            (format "%s.el" file))
+	          excludes)))))
     ;; Don't scan ldefs-boot.el, either.
-    (cons (expand-file-name "ldefs-boot.el") excludes)))
+    (cons "ldefs-boot.el" excludes)))
 
 ;;;###autoload
 (defun loaddefs-generate-batch ()
@@ -824,8 +787,12 @@ use."
   "Generate the loaddefs for the Emacs build.
 This is like `loaddefs-generate-batch', but has some specific
 rules for built-in packages and excluded files."
-  (let ((args command-line-args-left)
-        (output-file (expand-file-name "loaddefs.el" lisp-directory)))
+  (let* ((args (mapcar #'file-truename command-line-args-left))
+         ;; We're run from $BUILDDIR/lisp but all the .el(c) files reside
+         ;; (and are generated) in `lisp-directory' which is in $SRCDIR,
+         ;; so go there and don't look back.
+         (default-directory (file-truename lisp-directory))
+         (output-file (expand-file-name "loaddefs.el")))
     (setq command-line-args-left nil)
     (loaddefs-generate
      args output-file
@@ -835,12 +802,12 @@ rules for built-in packages and excluded files."
      ;; updated.
      (file-newer-than-file-p
       (expand-file-name "emacs-lisp/loaddefs-gen.el" lisp-directory)
-      output-file)))
-  (let ((lisp-mode-autoload-regexp
-         "^;;;###\\(\\(noexist\\)-\\)?\\(theme-autoload\\)"))
+      output-file))
+    (let ((lisp-mode-autoload-regexp
+           "^;;;###\\(\\(noexist\\)-\\)?\\(theme-autoload\\)"))
       (loaddefs-generate
-       (expand-file-name "../etc/themes/" lisp-directory)
-       (expand-file-name "theme-loaddefs.el" lisp-directory))))
+       (expand-file-name "../etc/themes/")
+       (expand-file-name "theme-loaddefs.el")))))
 
 ;;;###autoload (load "theme-loaddefs.el" t)
 

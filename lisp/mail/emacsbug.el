@@ -587,7 +587,7 @@ Message buffer where you can explain more about the patch."
   (message-goto-body)
   (insert "\n\n\n")
   (emacs-build-description)
-  (mml-attach-file file "text/patch" nil "attachment")
+  (mml-attach-file file "text/x-patch" nil "attachment")
   (message-goto-body)
   (message "Write a description of the patch and use %s to send it"
            (substitute-command-keys "\\[message-send-and-exit]"))

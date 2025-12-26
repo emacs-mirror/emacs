@@ -948,7 +948,9 @@ NATIVE_COMPILATION_AOT = @NATIVE_COMPILATION_AOT@
 endif
 
 ifneq ($(XCONFIGURE),android)
-$(lispsource)/loaddefs.el: | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
+$(lispsource)/loaddefs.el: |  		       \
+    bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp) \
+    $(lispsource)/international/charprop.el
 	$(MAKE) -C ../lisp autoloads EMACS="$(bootstrap_exe)"
 endif
 

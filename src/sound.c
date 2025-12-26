@@ -1357,6 +1357,70 @@ do_play_sound (const char *psz_file_or_data, unsigned long ui_volume, bool in_me
   return i_result;
 }
 
+DEFUN ("w32-sound-volume", Fw32_sound_volume, Sw32_sound_volume, 0, 1, 0,
+      doc: /* Get or set the MS-Windows audio volume setting.
+If VOLUME is specified, it should be the volume to set, either an integer
+in the range [0, 100], or a float in the range [0, 1.0].  Value of zero
+means mute the audio, value of 100 or 1.0 means maximum volume.
+When called with the VOLUME argument nil or omitted, just return the
+current volume setting.
+The return value is the integer volume setting before the change, if any.  */)
+  (Lisp_Object volume)
+{
+  DWORD ui_volume, ui_volume_orig;
+  MMRESULT mm_result = MMSYSERR_NOERROR;
+
+  if (FIXNUMP (volume))
+    ui_volume = XFIXNUM (volume);
+  else if (FLOATP (volume))
+    ui_volume = XFLOAT_DATA (volume) * 100;
+  else if (BIGNUMP (volume))
+    {
+      double dvolume = bignum_to_double (volume);
+      if (dvolume < 0)
+	ui_volume = 0;
+      else if (dvolume > 100.0)
+	ui_volume = 100;
+      else
+	ui_volume = dvolume + 0.5;
+    }
+  else if (!NILP (volume))
+    wrong_type_argument (Qnumberp, volume);
+
+  mm_result = waveOutGetVolume ((HWAVEOUT) WAVE_MAPPER, &ui_volume_orig);
+  if (mm_result == MMSYSERR_NOERROR)
+    {
+      /* Look only at the low 16 bits, assuming left and right channels
+         have identical volume settings.  */
+      ui_volume_orig &= 0xFFFF;
+      /* The value is between 0 and 0xFFFF, convert to our scale.  */
+      ui_volume_orig = ui_volume_orig * 100.0 / 65535.0 + 0.5;
+    }
+  else
+    {
+      SOUND_WARNING (waveOutGetErrorText, mm_result,
+		     "waveOutGetVolume: failed to obtain the original"
+                     " volume level of the WAVE_MAPPER device.");
+      ui_volume_orig = 100;
+    }
+  if (!NILP (volume))
+    {
+      if (ui_volume > 100)
+	ui_volume = 100;
+      /* Set the same volume for left and right channels.  */
+      ui_volume = ui_volume * 0xFFFF / 100;
+      ui_volume = (ui_volume << 16) + ui_volume;
+      mm_result = waveOutSetVolume ((HWAVEOUT) WAVE_MAPPER, ui_volume);
+      if (mm_result != MMSYSERR_NOERROR)
+	{
+	  SOUND_WARNING (waveOutGetErrorText, mm_result,
+			 "waveOutSetVolume: failed to set the volume level"
+			 " of the WAVE_MAPPER device.");
+	}
+    }
+  return make_fixnum (ui_volume_orig);
+}
+
 /* END: Windows specific functions */
 
 #endif /* WINDOWSNT */
@@ -1482,6 +1546,9 @@ syms_of_sound (void)
   DEFSYM (Qplay_sound_functions, "play-sound-functions");
 
   defsubr (&Splay_sound_internal);
+#ifdef WINDOWSNT
+  defsubr (&Sw32_sound_volume);
+#endif
 }
 
 #endif /* HAVE_SOUND */

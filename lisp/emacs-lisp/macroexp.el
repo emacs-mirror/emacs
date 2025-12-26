@@ -212,8 +212,8 @@ It should normally be a symbol with position and it defaults to FORM."
      (if asof (concat " (as of " asof ")") "")
      (cond ((stringp instead) (concat "; " (substitute-command-keys instead)))
            ((and instead key)
-            (format-message "; use `%s' (%s) instead." instead key))
-           (instead (format-message "; use `%s' instead." instead))
+            (format-message "; use `%S' (%s) instead." instead key))
+           (instead (format-message "; use `%S' instead." instead))
            (t ".")))))
 
 (defun macroexpand-1 (form &optional environment)
@@ -399,7 +399,6 @@ change this."
 (defun macroexp--dynamic-variable-p (var)
   "Whether the variable VAR is dynamically scoped.
 Only valid during macro-expansion."
-  (defvar byte-compile-bound-variables)
   (or (not lexical-binding)
       (special-variable-p var)
       (memq var macroexp--dynvars)

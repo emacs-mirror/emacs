@@ -15,8 +15,8 @@
    You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-#include <config.h>
-
 #define _GL_U64_INLINE _GL_EXTERN_INLINE
+#include <config.h>
 #include "u64.h"
+
 typedef int dummy;

@@ -667,7 +667,11 @@ Do \\[describe-key] on the following bindings to discover what they do.
 	   ,(concat "<[^>]+[ \t\n]+[Nn][Aa][Mm][Ee]=\\(['\"]"
 		    (if sgml-xml-mode "" "?")
 		    "\\)\\(" sgml-name-re "\\)\\1")
-	   2))))
+	   2)))
+  (setq-local hs-block-start-regexp "<[^/>]*?")
+  (setq-local hs-block-end-regexp "</[^/>]*[^/]>")
+  (setq-local hs-c-start-regexp "<!--")
+  (setq-local hs-forward-sexp-function #'sgml-skip-tag-forward))
 
 (defun sgml-comment-indent ()
   (if (looking-at "--") comment-column 0))

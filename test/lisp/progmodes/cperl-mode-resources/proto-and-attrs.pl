@@ -41,6 +41,13 @@ sub sub_6
 {
 }
 
+# Braces in initializers (Bug79269)
+sub sub_7
+    ($foo = { },
+     $bar //= "baz")
+{
+}
+
 
 # Part 2: Same constructs for anonymous subs
 # A plain named subroutine without any optional stuff

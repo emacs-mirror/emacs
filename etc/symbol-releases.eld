@@ -9,6 +9,8 @@
 ;; TYPE being `fun' or `var'.
 
 (
+ ("30.1" fun dired-click-to-select-mode)
+ ("30.1" var dired-click-to-select-mode)
  ("29.1" fun plistp)
  ("29.1" fun help-key)
  ("28.1" fun always)

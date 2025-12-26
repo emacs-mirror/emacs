@@ -1277,14 +1277,54 @@ However, return the correct mouse position list if EVENT is a
       (event-start event)))
 
 
+(defcustom tab-line-define-keys t
+  "Define specific tab-line key bindings.
+If t, the default, key mappings for switching and moving tabs
+are defined.  If nil, do not define any key mappings."
+  :type 'boolean
+  :initialize #'custom-initialize-default
+  :set (lambda (sym val)
+         (tab-line--undefine-keys)
+         (set-default sym val)
+         ;; Enable the new keybindings
+         (tab-line--define-keys))
+  :group 'tab-line
+  :version "31.1")
+
+(defun tab-line--define-keys ()
+  "Install key bindings to switch between tabs if so configured."
+  (when tab-line-define-keys
+    (when (eq (keymap-lookup ctl-x-map "<left>") 'previous-buffer)
+      (keymap-set ctl-x-map "<left>" #'tab-line-switch-to-prev-tab))
+    (when (eq (keymap-lookup ctl-x-map "C-<left>") 'previous-buffer)
+      (keymap-set ctl-x-map "C-<left>" #'tab-line-switch-to-prev-tab))
+    (unless (keymap-lookup ctl-x-map "M-<left>")
+      (keymap-set ctl-x-map "M-<left>" #'tab-line-move-tab-backward))
+    (when (eq (keymap-lookup ctl-x-map "<right>") 'next-buffer)
+      (keymap-set ctl-x-map "<right>" #'tab-line-switch-to-next-tab))
+    (when (eq (keymap-lookup ctl-x-map "C-<right>") 'next-buffer)
+      (keymap-set ctl-x-map "C-<right>" #'tab-line-switch-to-next-tab))
+    (unless (keymap-lookup ctl-x-map "M-<right>")
+      (keymap-set ctl-x-map "M-<right>" #'tab-line-move-tab-forward))))
+
+(defun tab-line--undefine-keys ()
+  "Uninstall key bindings previously bound by `tab-line--define-keys'."
+  (when tab-line-define-keys
+    (when (eq (keymap-lookup ctl-x-map "<left>") 'tab-line-switch-to-prev-tab)
+      (keymap-set ctl-x-map "<left>" #'previous-buffer))
+    (when (eq (keymap-lookup ctl-x-map "C-<left>") 'tab-line-switch-to-prev-tab)
+      (keymap-set ctl-x-map "C-<left>" #'previous-buffer))
+    (when (eq (keymap-lookup ctl-x-map "M-<left>") 'tab-line-move-tab-backward)
+      (keymap-set ctl-x-map "M-<left>" nil))
+    (when (eq (keymap-lookup ctl-x-map "<right>") 'tab-line-switch-to-next-tab)
+      (keymap-set ctl-x-map "<right>" #'next-buffer))
+    (when (eq (keymap-lookup ctl-x-map "C-<right>") 'tab-line-switch-to-next-tab)
+      (keymap-set ctl-x-map "C-<right>" #'next-buffer))
+    (when (eq (keymap-lookup ctl-x-map "M-<right>") 'tab-line-move-tab-forward)
+      (keymap-set ctl-x-map "M-<right>" nil))))
+
 (defvar-keymap tab-line-mode-map
-  :doc "Keymap for keys of `tab-line-mode'."
-  "C-x <left>"    #'tab-line-switch-to-prev-tab
-  "C-x C-<left>"  #'tab-line-switch-to-prev-tab
-  "C-x M-<left>"  #'tab-line-move-tab-backward
-  "C-x <right>"   #'tab-line-switch-to-next-tab
-  "C-x C-<right>" #'tab-line-switch-to-next-tab
-  "C-x M-<right>" #'tab-line-move-tab-forward)
+  :doc "Keymap for keys of `tab-line-mode'.")
 
 (defvar-keymap tab-line-switch-repeat-map
   :doc "Keymap to repeat tab/buffer cycling.  Used in `repeat-mode'."
@@ -1374,7 +1414,10 @@ of `tab-line-exclude', are exempt from `tab-line-mode'."
 (define-globalized-minor-mode global-tab-line-mode
   tab-line-mode tab-line-mode--turn-on
   :group 'tab-line
-  :version "27.1")
+  :version "27.1"
+  (if global-tab-line-mode
+      (tab-line--define-keys)
+    (tab-line--undefine-keys)))
 
 
 (global-set-key [tab-line down-mouse-3] 'tab-line-context-menu)

@@ -2617,7 +2617,11 @@ when edebug becomes active."
 
 (defvar edebug-eval-list nil) ;; List of expressions to evaluate.
 
-(defvar edebug-previous-result nil) ;; Last result returned.
+;; Last value seen while single-stepping or evaluating in the outside
+;; environment.
+(defvar edebug-previous-value nil)
+;; Last value seen while single-stepping, converted to a string.
+(defvar edebug-previous-result nil)
 
 (defun edebug--display (value offset-index arg-mode)
   ;; edebug--display-1 is too big, we should split it.  This function
@@ -3112,6 +3116,37 @@ before returning.  The default is one second."
                    (marker-position (mark-marker)) "<not set>"))
       (sit-for arg)
       (edebug-pop-to-buffer edebug-buffer (car edebug-window-data)))))
+
+(defun edebug-bounce-to-previous-value (arg)
+  "Bounce point to previous value in the outside current buffer.
+The previous value is what Edebug has evaluated before its last stop
+point or what you have evaluated in the context outside of Edebug, for
+example, by calling function `edebug-eval-expression', whatever comes
+later.
+If prefix argument ARG is supplied, sit for that many seconds before
+returning.  The default is one second."
+  (interactive "p")
+  (if (not edebug-active)
+      (error "Edebug is not active"))
+  (if (not (integer-or-marker-p edebug-previous-value))
+      (error "Previous value not a number or marker"))
+  (save-excursion
+    ;; If the buffer's currently displayed, avoid set-window-configuration.
+    (save-window-excursion
+      (let ((point-info ""))
+        (edebug-pop-to-buffer edebug-outside-buffer)
+        (cond
+         ((< edebug-previous-value (point-min))
+          (setq point-info (format " (< Point min: %s)" (point-min))))
+         ((> edebug-previous-value (point-max))
+          (setq point-info (format " (> Point max: %s)" (point-max))))
+         ((invisible-p edebug-previous-value)
+          (setq point-info (format " (invisible)"))))
+        (goto-char edebug-previous-value)
+        (message "Current buffer: %s Point: %s%s"
+	         (current-buffer) edebug-previous-value point-info)
+        (sit-for arg)
+        (edebug-pop-to-buffer edebug-buffer (car edebug-window-data))))))
 
 
 ;; Joe Wells, here is a start at your idea of adding a buffer to the internal
@@ -3743,7 +3778,8 @@ Return the result of the last expression."
   (if edebug-unwrap-results
       (setq previous-value
 	    (edebug-unwrap* previous-value)))
-  (setq edebug-previous-result
+  (setq edebug-previous-value previous-value
+        edebug-previous-result
 	(concat "Result: "
 		(edebug-safe-prin1-to-string previous-value)
 		(eval-expression-print-format previous-value))))
@@ -3785,6 +3821,8 @@ this is the prefix key.)"
             (values--store-value value)
             (concat (edebug-safe-prin1-to-string value)
                     (eval-expression-print-format value)))))
+    ;; Provide a defined previous value also in case of an error.
+    (setq edebug-previous-value (if errored nil value))
     (cond
      (errored
       (message "Error: %s" errored))
@@ -3901,9 +3939,9 @@ be installed in `emacs-lisp-mode-map'.")
 
   ;; views
   "w"       #'edebug-where
-  "v"       #'edebug-view-outside        ; maybe obsolete??
+  "v"       #'edebug-view-outside
   "p"       #'edebug-bounce-point
-  "P"       #'edebug-view-outside        ; same as v
+  "P"       #'edebug-bounce-to-previous-value
   "W"       #'edebug-toggle-save-windows
 
   ;; misc
@@ -4517,6 +4555,7 @@ It is removed when you hit any char."
     ("Views"
      ["Where am I?" edebug-where t]
      ["Bounce to Current Point" edebug-bounce-point t]
+     ["Bounce to Previous Value" edebug-bounce-to-previous-value t]
      ["View Outside Windows" edebug-view-outside t]
      ["Previous Result" edebug-previous-result t]
      ["Show Backtrace" edebug-pop-to-backtrace t]

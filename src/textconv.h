@@ -126,6 +126,7 @@ extern int textconv_query (struct frame *, struct textconv_callback_struct *,
 			   int);
 extern bool detect_conversion_events (void);
 extern void handle_pending_conversion_events (void);
+#ifdef HAVE_ANDROID
 extern void start_batch_edit (struct frame *, unsigned long);
 extern void end_batch_edit (struct frame *, unsigned long);
 extern void commit_text (struct frame *, Lisp_Object, ptrdiff_t,
@@ -152,10 +153,11 @@ extern char *get_surrounding_text (struct frame *, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t *,
 				   ptrdiff_t *, ptrdiff_t *,
 				   ptrdiff_t *, ptrdiff_t *);
+extern void get_conversion_field (struct frame *, ptrdiff_t *, ptrdiff_t *);
+#endif
 extern bool conversion_disabled_p (void);
 extern void check_postponed_buffers (void);
 
-extern void get_conversion_field (struct frame *, ptrdiff_t *, ptrdiff_t *);
 extern void register_textconv_interface (struct textconv_interface *);
 
 #endif /* _TEXTCONV_H_ */

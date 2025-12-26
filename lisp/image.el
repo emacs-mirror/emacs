@@ -417,7 +417,7 @@ be determined."
 	    ;; If nothing seems to be supported, return first type that matched.
 	    (or first (setq first type))))))))
 
- ;;;###autoload
+;;;###autoload
 (defun image-supported-file-p (file)
   "Return non-nil if Emacs can display the specified image FILE.
 The returned value is a symbol specifying the image type of FILE,

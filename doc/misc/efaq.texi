@@ -4016,7 +4016,7 @@ Various spell-checkers are compatible with Emacs, including:
 @uref{http://aspell.net/}
 
 @item Ispell
-@uref{http://fmg-www.cs.ucla.edu/geoff/ispell.html}
+@uref{https://www.cs.hmc.edu/~geoff/ispell.html}
 
 @item Enchant
 @uref{https://abiword.github.io/enchant/}

@@ -45,6 +45,7 @@
 (defvar-keymap bug-reference-map
   :doc "Keymap used by bug reference buttons."
   "<mouse-2>" #'bug-reference-push-button
+  "RET"       (keymap-read-only-bind #'bug-reference-push-button)
   "C-c RET"   #'bug-reference-push-button)
 
 ;; E.g., "https://gcc.gnu.org/PR%s"
@@ -186,6 +187,7 @@ subexpression 10."
                            (let ((ov (make-overlay (car bounds) (cdr bounds)
                                                    nil t nil)))
                              (overlay-put ov 'category 'bug-reference)
+                             (overlay-put ov 'button ov)
                              ov))))
             ;; Don't put a link if format is undefined.
             (when bug-reference-url-format
@@ -393,7 +395,12 @@ applicable."
                                (ignore-errors
                                  (vc-call-backend backend 'repository-url
                                                   file-or-dir remote)))
-                             '("upstream" nil))))
+                             ;; Try likely names for the remote which
+                             ;; probably hosts the bug tracker.  The nil
+                             ;; value refers to the default remote name
+                             ;; of the concrete VCS which is "origin"
+                             ;; for Git or "default" for mercurial.
+                             '("upstream" "origin" nil))))
     (seq-some (lambda (config)
                 (apply #'bug-reference-maybe-setup-from-vc url config))
               (append bug-reference-setup-from-vc-alist

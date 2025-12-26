@@ -267,7 +267,9 @@
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
+(declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-prev-sibling "treesit.c")
+(declare-function treesit-node-field-name-for-child "treesit.c")
 
 (add-to-list
  'treesit-language-source-alist
@@ -1092,36 +1094,44 @@ NODE is the string node.  Do not fontify the initial f for
 f-strings.  OVERRIDE is the override flag described in
 `treesit-font-lock-rules'.  START and END mark the region to be
 fontified."
-  (let* ((maybe-expression (treesit-node-parent node))
-         (grandparent (treesit-node-parent
-                       (treesit-node-parent
-                        maybe-expression)))
-         (maybe-defun grandparent)
-         (face (if (and (or (member (treesit-node-type maybe-defun)
-                                    '("function_definition"
-                                      "class_definition"))
-                            ;; If the grandparent is null, meaning the
-                            ;; string is top-level, and the string has
-                            ;; no node or only comment preceding it,
-                            ;; it's a BOF docstring.
-                            (and (null grandparent)
-                                 (cl-loop
-                                  for prev = (treesit-node-prev-sibling
-                                              maybe-expression)
-                                  then (treesit-node-prev-sibling prev)
-                                  while prev
-                                  if (not (equal (treesit-node-type prev)
-                                                 "comment"))
-                                  return nil
-                                  finally return t)))
-                        ;; This check filters out this case:
-                        ;; def function():
-                        ;;     return "some string"
-                        (equal (treesit-node-type maybe-expression)
-                               "expression_statement"))
-                   'font-lock-doc-face
-                 'font-lock-string-face))
+  ;; Criteria for docstring: go up the parse tree until top-level or a
+  ;; node under function/class, at each level, the node is the first
+  ;; child (excluding comments).  This condition also rules out negative
+  ;; cases like
+  ;;
+  ;;     def function():
+  ;;         return "some string"
+  ;;
+  ;; And it recognizes for BOF docstrings, and allows comments before
+  ;; the docstring.
+  ;;
+  ;; Older grammar has function_definition -> block -> expression_statement -> string
+  ;; Newer grammar has function_definition -> block -> string
+  ;; This algorithm works for both.
+  (let* ((cursor node)
+         (face (catch 'break
+                 (while t
+                   (let ((parent (treesit-node-parent cursor))
+                         (cursor-idx (treesit-node-index cursor)))
+                     (when (null parent)
+                       (throw 'break 'font-lock-doc-face))
 
+                     (when (and (member (treesit-node-type parent)
+                                        '("function_definition"
+                                          "class_definition"))
+                                (equal (treesit-node-field-name-for-child
+                                        parent cursor-idx)
+                                       "body"))
+                       (throw 'break 'font-lock-doc-face))
+
+                     ;; If there's any non-comment sibling before
+                     ;; cursor, the string isn't a docstring.
+                     (dotimes (idx cursor-idx)
+                       (unless (equal (treesit-node-type
+                                       (treesit-node-child parent idx))
+                                      "comment")
+                         (throw 'break 'font-lock-string-face)))
+                     (setq cursor parent)))))
          (ignore-interpolation
           (not (seq-some
                 (lambda (feats) (memq 'string-interpolation feats))
@@ -3761,7 +3771,7 @@ may want to re-add custom functions to it using the
 You can also add additional setup code to be run at
 initialization of the interpreter via `python-shell-setup-codes'
 variable.
-
+\\<inferior-python-mode-map>
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
   (when python-shell--parent-buffer
     (python-util-clone-local-variables python-shell--parent-buffer))
@@ -5902,6 +5912,22 @@ are also searched.  REGEXP is passed to `looking-at' to set
         (beginning-of-line)
         (looking-at regexp)))))
 
+(defun python-ts-hs-adjust-block-end-fn (block-beg)
+  "Python-ts-mode specific `hs-adjust-block-end-function' function.
+
+BLOCK-BEG is the beginning position where the hiding will be performed.
+
+This is only used to properly hide the block when there are no closing
+parens."
+  (unless (save-excursion
+            (goto-char block-beg)
+            (treesit-thing-at
+             (1- (point))
+             '(or "argument_list"
+                  (and anonymous "\\`[](),[{}]\\'")
+                  "string")))
+    (line-end-position)))
+
 
 ;;; Imenu
 
@@ -7329,21 +7355,30 @@ implementations: `python-mode' and `python-ts-mode'."
                       #'python-eldoc-function))))
   (eldoc-add-command-completions "python-indent-dedent-line-backspace")
 
-  ;; TODO: Use tree-sitter to figure out the block in `python-ts-mode'.
-  (dolist (mode '(python-mode python-ts-mode))
-    (add-to-list
-     'hs-special-modes-alist
-     `(,mode
-       ,python-nav-beginning-of-block-regexp
-       ;; Use the empty string as end regexp so it doesn't default to
-       ;; "\\s)".  This way parens at end of defun are properly hidden.
-       ""
-       "#"
-       python-hideshow-forward-sexp-function
-       nil
-       python-nav-beginning-of-block
-       python-hideshow-find-next-block
-       python-info-looking-at-beginning-of-block)))
+  (if (< emacs-major-version 31)
+      (dolist (mode '(python-mode python-ts-mode))
+        (add-to-list
+         'hs-special-modes-alist
+         `(,mode
+           ,python-nav-beginning-of-block-regexp
+           ;; Use the empty string as end regexp so it doesn't default to
+           ;; "\\s)".  This way parens at end of defun are properly hidden.
+           ""
+           "#"
+           python-hideshow-forward-sexp-function
+           nil
+           python-nav-beginning-of-block
+           python-hideshow-find-next-block
+           python-info-looking-at-beginning-of-block)))
+    (setq-local hs-block-start-regexp python-nav-beginning-of-block-regexp)
+    ;; Use the empty string as end regexp so it doesn't default to
+    ;; "\\s)".  This way parens at end of defun are properly hidden.
+    (setq-local hs-block-end-regexp "")
+    (setq-local hs-c-start-regexp "#")
+    (setq-local hs-forward-sexp-function #'python-hideshow-forward-sexp-function)
+    (setq-local hs-find-block-beginning-function #'python-nav-beginning-of-block)
+    (setq-local hs-find-next-block-function #'python-hideshow-find-next-block)
+    (setq-local hs-looking-at-block-start-predicate #'python-info-looking-at-beginning-of-block))
 
   (setq-local outline-regexp (python-rx (* space) block-start))
   (setq-local outline-level
@@ -7417,6 +7452,10 @@ implementations: `python-mode' and `python-ts-mode'."
     (setq-local forward-sexp-function #'treesit-forward-sexp
                 treesit-sexp-thing 'sexp)
 
+    (when (>= emacs-major-version 31)
+      (setq-local hs-treesit-things '(or defun sexp))
+      (setq-local hs-adjust-block-end-function #'python-ts-hs-adjust-block-end-fn))
+
     (setq-local syntax-propertize-function #'python--treesit-syntax-propertize)
 
     (python-skeleton-add-menu-items)
@@ -7424,11 +7463,17 @@ implementations: `python-mode' and `python-ts-mode'."
     (when python-indent-guess-indent-offset
       (python-indent-guess-indent-offset))
 
-    (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-ts-mode))
-    (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode))))
+    (unless (boundp 'treesit-major-mode-remap-alist) ; Emacs 31.1
+      (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-ts-mode))
+      (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode)))))
 
 (when (fboundp 'derived-mode-add-parents) ; Emacs 30.1
   (derived-mode-add-parents 'python-ts-mode '(python-mode)))
+
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist) ; Emacs 31.1
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(python-mode . python-ts-mode)))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code.

@@ -2400,36 +2400,43 @@ Leading \"Re: \" is not stripped by this function.  Use the function
 
 ;;; Suggested by Jonas Steverud  @  www.dtek.chalmers.se/~d4jonas/
 
-(defun message-change-subject (new-subject)
-  "Ask for NEW-SUBJECT header, append (was: <Old Subject>)."
-  (interactive
-   (list
-    (read-from-minibuffer "New subject: "))
-   message-mode)
-  (cond ((and (not (or (null new-subject) ; new subject not empty
-		       (zerop (string-width new-subject))
-		       (string-match "^[ \t]*$" new-subject))))
-	 (save-excursion
-	   (let ((old-subject
-		  (save-restriction
-		    (message-narrow-to-headers)
-		    (message-fetch-field "Subject"))))
-	     (cond ((not old-subject)
-		    (error "No current subject"))
-		   ((not (string-match
-			  (concat "^[ \t]*"
-				  (regexp-quote new-subject)
-				  "[ \t]*$")
-			  old-subject))  ; yes, it really is a new subject
-		    ;; delete eventual Re: prefix
-		    (setq old-subject
-			  (message-strip-subject-re old-subject))
-		    (message-goto-subject)
-		    (delete-line)
-		    (insert (concat "Subject: "
-				    new-subject
-				    " (was: "
-				    old-subject ")\n")))))))))
+(defun message-change-subject (&optional new-subject)
+  "Change subject to NEW-SUBJECT with \"(was: <Old Subject>)\" suffix.
+If NEW-SUBJECT is nil, the user is prompted for the new subject, with
+the old subject in \"future history\"."
+  (interactive nil message-mode)
+  (let ((old-subject (save-restriction
+		       (message-narrow-to-headers)
+		       (message-fetch-field "Subject"))))
+    (if (not old-subject)
+	(error "No current subject")
+      (let ((new-subject (or new-subject
+                             (read-from-minibuffer "New subject: "
+                                                   nil nil nil nil
+                                                   old-subject))))
+        (cond
+         ;; Abort on empty subject.
+         ((or (null new-subject)
+	      (zerop (string-width new-subject))
+	      (string-match "^[ \t]*$" new-subject))
+          (message "Subject empty"))
+         ;; Abort on unchanged subject.
+         ((string-match
+	   (concat "^[ \t]*"
+		   (regexp-quote new-subject)
+		   "[ \t]*$")
+	   old-subject)
+          (message "Subject unchanged"))
+         ;; Otherwise, proceed.
+         (t
+	  (save-excursion
+            (message-goto-subject)
+	    (delete-line)
+	    (insert (concat "Subject: "
+			    new-subject
+			    " (was: "
+                            (message-strip-subject-re old-subject)
+                            ")\n")))))))))
 
 (defun message-mark-inserted-region (beg end &optional verbatim)
   "Mark some region in the current article with enclosing tags.
@@ -7121,16 +7128,11 @@ The function is called with one parameter, a cons cell ..."
 			       ", "))
 	    mct (message-fetch-field "mail-copies-to")
 	    author (or (message-fetch-field "mail-reply-to")
-		       (message-fetch-field "reply-to"))
+		       (message-fetch-field "reply-to")
+		       (message-fetch-field "from")
+		       "")
 	    mft (and message-use-mail-followup-to
-		     (message-fetch-field "mail-followup-to")))
-      ;; Make sure this message goes to the author if this is a wide
-      ;; reply, since Reply-To address may be a list address a mailing
-      ;; list server added.
-      (when (and wide author)
-	(setq cc (concat author ", " cc)))
-      (when (or wide (not author))
-	(setq author (or (message-fetch-field "from") ""))))
+		     (message-fetch-field "mail-followup-to"))))
 
     ;; Handle special values of Mail-Copies-To.
     (when mct
@@ -8125,7 +8127,10 @@ you."
 
 ;;;###autoload
 (defun message-mail-other-window (&optional to subject)
-  "Like `message-mail' command, but display mail buffer in another window."
+  "Like `message-mail' command, but display mail buffer in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive)
   (unless (message-mail-user-agent)
     (message-pop-to-buffer (message-buffer-name "mail" to)
@@ -8147,7 +8152,10 @@ you."
 
 ;;;###autoload
 (defun message-news-other-window (&optional newsgroups subject)
-  "Start editing a news article to be sent."
+  "Start editing a news article to be sent.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive)
   (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups)
 			 'switch-to-buffer-other-window)

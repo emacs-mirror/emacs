@@ -881,7 +881,7 @@ help with this a plethora of predicates have been created.
 @anchor{find-class}
 Return the class that @var{symbol} represents.
 If there is no class, @code{nil} is returned if @var{errorp} is @code{nil}.
-If @var{errorp} is non-@code{nil}, @code{wrong-argument-type} is signaled.
+If @var{errorp} is non-@code{nil}, @code{wrong-type-argument} is signaled.
 @end defun
 
 @defun class-p class

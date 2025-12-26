@@ -150,23 +150,12 @@
     "max" "min" "new" "panic" "print" "println" "real" "recover")
   "Go built-in functions for tree-sitter font-locking.")
 
-(defun go-ts-mode--iota-query-supported-p ()
-  "Return t if the iota query is supported by the tree-sitter-go grammar."
-  (ignore-errors
-    (or (treesit-query-string "" '((iota) @font-lock-constant-face) 'go) t)))
-
-;; tree-sitter-go changed method_spec to method_elem in
-;; https://github.com/tree-sitter/tree-sitter-go/commit/b82ab803d887002a0af11f6ce63d72884580bf33
-(defun go-ts-mode--method-elem-supported-p ()
-  "Return t if Go grammar uses `method_elem' instead of `method_spec'."
-  (ignore-errors
-    (or (treesit-query-string "" '((method_elem) @cap) 'go) t)))
-
-(defvar go-ts-mode--font-lock-settings
+(defun go-ts-mode--font-lock-settings ()
+  "Return font-lock rules for `go-ts-mode'."
   (treesit-font-lock-rules
    :language 'go
    :feature 'bracket
-   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+   '(["(" ")" "[" "]" "{" "}"] @font-lock-bracket-face)
 
    :language 'go
    :feature 'comment
@@ -184,12 +173,13 @@
 
    :language 'go
    :feature 'constant
-   `([(false) (nil) (true)] @font-lock-constant-face
-     ,@(when (go-ts-mode--iota-query-supported-p)
-         '((iota) @font-lock-constant-face))
-     (const_declaration
-      (const_spec name: (identifier) @font-lock-constant-face
-                  ("," name: (identifier) @font-lock-constant-face)*)))
+   (treesit-query-with-optional 'go
+     '([(false) (nil) (true)] @font-lock-constant-face
+       (const_declaration
+        (const_spec name: (identifier) @font-lock-constant-face
+                    ("," name: (identifier) @font-lock-constant-face)*)))
+     ;; Optional query added in newer version.
+     '((iota) @font-lock-constant-face))
 
    :language 'go
    :feature 'delimiter
@@ -201,29 +191,32 @@
 
    :language 'go
    :feature 'definition
-   `((function_declaration
-      name: (identifier) @font-lock-function-name-face)
-     (method_declaration
-      name: (field_identifier) @font-lock-function-name-face)
-     (,(if (go-ts-mode--method-elem-supported-p)
-           'method_elem
-         'method_spec)
-      name: (field_identifier) @font-lock-function-name-face)
-     (field_declaration
-      name: (field_identifier) @font-lock-property-name-face)
-     (parameter_declaration
-      name: (identifier) @font-lock-variable-name-face)
-     (variadic_parameter_declaration
-      name: (identifier) @font-lock-variable-name-face)
-     (short_var_declaration
-      left: (expression_list
-             (identifier) @font-lock-variable-name-face
-             ("," (identifier) @font-lock-variable-name-face)*))
-     (var_spec name: (identifier) @font-lock-variable-name-face
-               ("," name: (identifier) @font-lock-variable-name-face)*)
-     (range_clause
-      left: (expression_list
-             (identifier) @font-lock-variable-name-face)))
+   (treesit-query-with-optional 'go
+     '((function_declaration
+        name: (identifier) @font-lock-function-name-face)
+       (method_declaration
+        name: (field_identifier) @font-lock-function-name-face)
+       (field_declaration
+        name: (field_identifier) @font-lock-property-name-face)
+       (parameter_declaration
+        name: (identifier) @font-lock-variable-name-face)
+       (variadic_parameter_declaration
+        name: (identifier) @font-lock-variable-name-face)
+       (short_var_declaration
+        left: (expression_list
+               (identifier) @font-lock-variable-name-face
+               ("," (identifier) @font-lock-variable-name-face)*))
+       (var_spec name: (identifier) @font-lock-variable-name-face
+                 ("," name: (identifier) @font-lock-variable-name-face)*)
+       (range_clause
+        left: (expression_list
+               (identifier) @font-lock-variable-name-face)))
+     ;; tree-sitter-go changed method_spec to method_elem in
+     ;; https://github.com/tree-sitter/tree-sitter-go/commit/b82ab803d887002a0af11f6ce63d72884580bf33
+     '((method_elem
+        name: (field_identifier) @font-lock-function-name-face))
+     '((method_spec
+        name: (field_identifier) @font-lock-function-name-face)))
 
    :language 'go
    :feature 'function
@@ -274,8 +267,7 @@
    :language 'go
    :feature 'error
    :override t
-   '((ERROR) @font-lock-warning-face))
-  "Tree-sitter font-lock settings for `go-ts-mode'.")
+   '((ERROR) @font-lock-warning-face)))
 
 (defvar-keymap go-ts-mode-map
   :doc "Keymap used in Go mode, powered by tree-sitter"
@@ -348,7 +340,7 @@
                 (append "{}()" electric-indent-chars))
 
     ;; Font-lock.
-    (setq-local treesit-font-lock-settings go-ts-mode--font-lock-settings)
+    (setq-local treesit-font-lock-settings (go-ts-mode--font-lock-settings))
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)
                   ( keyword string type)
@@ -361,7 +353,10 @@
 
 ;;;###autoload
 (defun go-ts-mode-maybe ()
-  "Enable `go-ts-mode' when its grammar is available."
+  "Enable `go-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'go)
           (eq treesit-enabled-modes t)
           (memq 'go-ts-mode treesit-enabled-modes))
@@ -369,7 +364,7 @@
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
   (add-to-list 'treesit-major-mode-remap-alist
@@ -635,7 +630,10 @@ what the parent of the node would be if it were a node."
 
 ;;;###autoload
 (defun go-mod-ts-mode-maybe ()
-  "Enable `go-mod-ts-mode' when its grammar is available."
+  "Enable `go-mod-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'gomod)
           (eq treesit-enabled-modes t)
           (memq 'go-mod-ts-mode treesit-enabled-modes))
@@ -643,7 +641,7 @@ what the parent of the node would be if it were a node."
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
   (add-to-list 'treesit-major-mode-remap-alist
@@ -736,7 +734,10 @@ what the parent of the node would be if it were a node."
 
 ;;;###autoload
 (defun go-work-ts-mode-maybe ()
-  "Enable `go-work-ts-mode' when its grammar is available."
+  "Enable `go-work-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'gowork)
           (eq treesit-enabled-modes t)
           (memq 'go-work-ts-mode treesit-enabled-modes))
@@ -744,7 +745,7 @@ what the parent of the node would be if it were a node."
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   (add-to-list 'auto-mode-alist '("/go\\.work\\'" . go-work-ts-mode-maybe))
   ;; To be able to toggle between an external package and core ts-mode:
   (add-to-list 'treesit-major-mode-remap-alist

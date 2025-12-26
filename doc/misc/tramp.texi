@@ -678,7 +678,10 @@ not auto loaded by Emacs.  All examples require @value{tramp} to be
 installed and loaded:
 
 @lisp
+@group
+(require 'tramp)
 (customize-set-variable 'tramp-verbose 6 "Enable remote command traces")
+@end group
 @end lisp
 
 For functions used to configure @value{tramp}, the following clause
@@ -852,11 +855,19 @@ as the @option{rsh} method.
 @cindex method @option{su}
 @cindex @option{su} method
 @item @option{su}
+@cindex method @option{surs}
+@cindex @option{surs} method
+@item @option{surs}
 
 Instead of connecting to a remote host, @command{su} program allows
 editing as another user.  The host can be either @samp{localhost} or
 the host returned by the function @command{(system-name)}.
 @xref{Multi-hops}, for an exception to this behavior.
+
+Method @option{surs} is the same like method @option{su}, but it uses
+the modern @command{su-rs} program.  It can be used instead wherever
+method @option{su} is mentioned in this manual.  @option{surs} is an
+optional method, @pxref{Optional methods}.
 
 @cindex method @option{androidsu}
 @cindex @option{androidsu} method
@@ -876,6 +887,9 @@ default on @code{android} systems only.
 @cindex method @option{sudo}
 @cindex @option{sudo} method
 @item @option{sudo}
+@cindex method @option{sudors}
+@cindex @option{sudors} method
+@item @option{sudors}
 
 Similar to @option{su} method, @option{sudo} uses @command{sudo}.
 @command{sudo} must have sufficient rights to start a shell.
@@ -883,6 +897,11 @@ Similar to @option{su} method, @option{sudo} uses @command{sudo}.
 For security reasons, a @option{sudo} connection is disabled after a
 predefined timeout (5 minutes by default).  This can be changed,
 @pxref{Predefined connection information}.
+
+Method @option{sudors} is the same like method @option{sudo}, but it
+uses the modern @command{sudo-rs} program.  It can be used instead
+wherever method @option{sudo} is mentioned in this manual.
+@option{sudors} is an optional method, @pxref{Optional methods}.
 
 @cindex method @option{doas}
 @cindex @option{doas} method
@@ -2170,7 +2189,7 @@ the need.
 The package @file{auth-source.el}, originally developed for No Gnus,
 reads passwords from different sources, @xref{Help for users, ,
 auth-source, auth}.  The default authentication file is
-@file{~/.authinfo.gpg}, but this can be changed via the user option
+@file{~/.authinfo}, but this can be changed via the user option
 @code{auth-sources}.
 
 @noindent
@@ -2376,9 +2395,11 @@ value is @t{"-l"}, but some shells, like @command{ksh}, prefer
 All @file{tramp-sh.el} based methods accept the property
 @t{"session-timeout"}.  This is the time (in seconds) after a
 connection is disabled for security reasons, and must be
-reestablished.  A value of @code{nil} disables this feature.  Most of
-the methods do not set this property except the @option{sudo},
-@option{doas} and @option{run0} methods, which use predefined values.
+reestablished@footnote{If there is a modified buffer, or a buffer
+under @code{auto-revert}, this is suppressed.}.  A value of @code{nil}
+disables this feature.  Most of the methods do not set this property
+except the @option{sudo}, @option{doas} and @option{run0} methods,
+which use predefined values.
 
 @item @t{"~"}@*
 @t{"~user"}
@@ -3155,6 +3176,14 @@ connection cleanup or on Emacs exiting.
 @subsection @option{rclone} setup
 @cindex rclone setup
 
+Check, that your @command{rclone} program is compiled with mount
+support.  Call @samp{rclone mount} and check for an error message.
+
+Sometimes, the saved configuration expires.  In this case, you must
+renew it with the command @samp{rclone config reconnect
+@var{remote}:}, with @var{remote} being the name of your configured
+system storage.
+
 The default arguments of the @command{rclone} operations
 @command{mount}, @command{copyto}, @command{moveto} and
 @command{about} are declared in the variable @code{tramp-methods} as
@@ -3659,6 +3688,8 @@ behavior: @file{@trampfn{method,user@@host,path/to/file}}.
 
 For specifying port numbers, affix @file{#<port>} to the host
 name.  For example: @file{@trampfn{ssh,daniel@@melancholia#42,.emacs}}.
+If the host is an IPv6 address, the port is appended like this:
+@file{@trampfn{ssh,@value{ipv6prefix}::1@value{ipv6postfix}#42,.emacs}}.
 
 All method, user name, host name, port number and local name parts are
 optional, @xref{Default Method}, @xref{Default User}, @xref{Default Host}.
@@ -4415,7 +4446,7 @@ uid=0(root) gid=0(root) groups=0(root)
 
 @anchor{Running a debugger on a remote host}
 @subsection Running a debugger on a remote host
-@cindex @file{gud.el}
+@cindex @file{gud.el} file
 @cindex @code{gdb}
 @cindex @code{perldb}
 
@@ -4466,38 +4497,77 @@ Arguments of the program to be debugged must be literal, can take
 relative or absolute paths, but not remote paths.
 
 
+@anchor{Running remote processes on MS Windows hosts}
 @subsection Running remote processes on MS Windows hosts
 @cindex @command{winexe}
 @cindex @command{powershell}
 
-@command{winexe} runs processes on a remote MS Windows host, and
-@value{tramp} can use it for @code{process-file} and
-@code{start-file-process}.
+@strong{Note}: This is an experimental feature.
 
+The program @command{winexe} from the Samba suite runs processes on a
+remote MS Windows host, and @value{tramp} uses it for
+@code{make-process}, @code{process-file} and
+@code{start-file-process}.  It does not work for remote Samba servers.
+
+@c FIXME: Verify powershell version.
+@vindex tramp-smb-winexe-program
 @code{tramp-smb-winexe-program} specifies the local @command{winexe}
-command.  Powershell V2.0 on the remote host is required to run
-processes triggered from @value{tramp}.
+program.  Powershell V2.0 on the remote MS Windows host is required to
+run processes triggered from @value{tramp}.
 
-@code{explicit-shell-file-name} and @code{explicit-*-args} have to
-be set properly so @kbd{M-x shell @key{RET}} can open a proper remote
-shell on a MS Windows host.  To open @command{cmd}, set it as follows:
+@c https://woshub.com/enable-remote-access-to-admin-shares-in-workgroup/
+The remote user on the remote MS Windows host must be member of the
+local computer Administrators group of that remote MS Windows host.
+Since @command{winexe} uses the administrative share @file{ADMIN$} of
+that remote MS Windows host, the remote MS Windows host must be either
+part of an Active Directory domain, or the Remote UAC (User Account
+Control for remote connections) must be disabled.  The latter can be
+achieved by creating the
+@samp{HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\ LocalAccountTokenFilterPolicy}
+parameter in the MS Windows registry as DWORD (32-bit) with the value 1.
+
+Check, that the default remote temporary file directory is usable.
+Otherwise, change it, for example (with adapted @t{"user"} and
+@t{"host"}):
 
 @lisp
-@group
-(setq explicit-shell-file-name "cmd"
-      explicit-cmd-args '("/q"))
-@end group
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "host")
+		   "tmpdir" "/Users/user/AppData/Local/Temp"))
 @end lisp
 
 @noindent
-To open @command{powershell} as a remote shell, use this:
+@xref{Predefined connection information}.
 
-@lisp
-@group
-(setq explicit-shell-file-name "powershell"
-      explicit-powershell-args '("-file" "-"))
-@end group
-@end lisp
+Redirection from stdin is not supported.
+
+@vindex auto-revert-remote-files
+If you use a remote asynchronous process with a separate error buffer,
+you must ensure that remote files can be auto-reverted.  Set user
+option @code{auto-revert-remote-files} to a non-@code{nil} value.
+
+@vindex tramp-smb-connection-local-powershell-profile
+@vindex tramp-smb-prompt
+@cindex @file{.emacs_powershell} file
+@code{shell} and @code{shell-command} are configured to use
+@command{powershell} on the remote MS Windows host.  If you want to
+change this, consider using another connection-local profile but
+@code{tramp-smb-connection-local-powershell-profile}.
+
+If you run a remote @code{shell}, you might consider to add the
+following line to your local @file{~/.emacs_powershell} file:
+
+@smallexample
+function prompt @{ "PS " + ((Get-Location).Path | Convert-Path) + "> " @}
+@end smallexample
+
+@noindent
+Note, that the configured prompt must match @code{tramp-smb-prompt}.
+
+If you run a remote @code{shell-command}, you must use
+@command{powershell} syntax.  For example, if you want to run a shell
+command from @code{dired}, use the command @t{"(ls * ).Name"} instead
+of @t{"ls"}.
 
 
 @subsection Remote process connection type
@@ -4714,7 +4784,9 @@ It works only for some connection methods defined in
 It does not support interactive user authentication.  With
 @option{ssh}-based methods, this can be avoided by using a password
 agent like @command{ssh-agent}, using public key authentication, or
-using @option{ControlMaster} options.
+using @option{ControlMaster} options.@*
+Other interactive authentication requests, like one-time passwords or
+security key confirmation messages, do not work either.
 
 @item
 It cannot be applied for @option{ssh}-based methods, which use the
@@ -4828,7 +4900,7 @@ for which no associated buffers exist (except for Tramp internal
 buffers).
 
 This command is helpful to prune connections after you close remote-file
-buffers without having to either cherry pick via
+buffers without having to either cherry-pick via
 @code{tramp-cleanup-connection} or clear them all via
 @code{tramp-cleanup-all-connections}.
 @end deffn
@@ -5343,7 +5415,7 @@ The package works successfully on @w{Emacs 28}, @w{Emacs 29}, @w{Emacs
 
 While Unix and Unix-like systems are the primary remote targets,
 @value{tramp} has equal success connecting to other platforms, such as
-MS Windows 7/8/10.
+MS Windows 10/11.
 
 
 @item
@@ -5358,7 +5430,8 @@ responsiveness slows down.  Some suggestions within the scope of
 @itemize @minus
 @item
 Use an external method, such as @option{scp}, which are faster than
-internal methods for large files.
+internal methods for large files.  Set
+@code{tramp-use-scp-direct-remote-copying} to non-@code{nil}.
 
 @item
 Keep the file @code{tramp-persistency-file-name}, which is where
@@ -6824,6 +6897,17 @@ they are kept.  Example:
 @end lisp
 @end defun
 
+@findex tramp-expand-script
+Shell scripts intended for the @code{tramp-sh} backend are used as a
+format string.  They must observe the restrictions for format
+specifiers, as documented in @code{tramp-expand-script}.
+
+An example implementing this mechanism is the GNU ELPA package
+@file{tramp-hlo}. It implements specialized versions of
+@code{dir-locals--all-files}, @code{locate-dominating-file} and
+@code{dir-locals-find-file} for @value{tramp}'s @code{tramp-sh}
+backend.
+
 
 @node Traces and Profiles
 @chapter How to Customize Traces
@@ -6834,7 +6918,8 @@ they are kept.  Example:
 
 @value{tramp} messages are raised with verbosity levels ranging from 0
 to 10.  @value{tramp} does not display all messages; only those with a
-verbosity level less than or equal to @code{tramp-verbose}.
+verbosity level less than or equal to 3, when @code{tramp-verbose}
+permits.
 
 @noindent
 The verbosity levels are
@@ -6921,7 +7006,7 @@ maintainers, analyzing the remote commands for performance analysis.
 
 The debug buffer can be very large, if @code{tramp-verbose} is high,
 and @value{tramp} runs for a long time.  If the buffer size exceeds
-@code{tramp-debug-buffer-limit} (3GB by default), a warning will be
+@code{tramp-debug-buffer-limit} (100MB by default), a warning will be
 raised.  This user option can be adapted to your needs; a value of 0
 means that there is no limit (no warning).
 

@@ -148,7 +148,9 @@ If nil, buffers will require manual reload, and will contain the text
 specified in `eww-restore-reload-prompt' instead of the actual Web
 page contents."
   :version "25.1"
-  :type '(choice (const :tag "Restore all automatically" t)
+  :type '(choice (choice :tag "Restore all automatically" :value t
+                         (const t)
+                         (const auto))
                  (const :tag "Require manual reload" nil)))
 
 (defcustom eww-restore-reload-prompt
@@ -1356,7 +1358,6 @@ This consults the entries in `eww-readable-urls' (which see)."
   "<mouse-9>" #'eww-forward-url
 
   :menu '("Eww"
-          ["Exit" quit-window t]
           ["Close browser" quit-window t]
           ["Reload" eww-reload t]
           ["Follow URL in new buffer" eww-open-in-new-buffer]
@@ -2421,23 +2422,23 @@ If CHARSET is nil then use UTF-8."
   "Prompt for an EWW buffer to display in the selected window.
 If no such buffer exist, fallback to calling `eww'."
   (interactive nil eww-mode)
-  (let ((list (cl-loop for buf in (nreverse (buffer-list))
-                       if (and (eww--buffer-p buf)
-                               (not (eq buf (current-buffer))))
-                       collect (buffer-name buf))))
+  (let ((list (seq-filter
+               (lambda (buf)
+                 (and (eww--buffer-p buf) (not (eq buf (current-buffer)))))
+               (buffer-list))))
     (if list
         (pop-to-buffer-same-window
          (if (length= list 1)
              (car list)
            (completing-read "Switch to EWW buffer: "
                             (completion-table-with-metadata
-                             list
+                             (mapcar #'buffer-name list)
                              `((category . buffer)
                                (annotation-function
                                 . ,(lambda (buf)
                                      (with-current-buffer buf
                                        (format " %s" (eww-current-url)))))))
-                            nil t)))
+                            nil t nil nil (car-safe list))))
       (call-interactively #'eww))))
 
 (defun eww-toggle-fonts ()

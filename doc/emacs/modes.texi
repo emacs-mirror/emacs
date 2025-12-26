@@ -507,6 +507,25 @@ predictable behavior, we recommend that you always customize
 this variable overrides any remapping that Emacs might decide to perform
 internally.
 
+@vindex treesit-enabled-modes
+  As a convenience feature for enabling major modes based on the
+tree-sitter library (@pxref{Parsing Program Source,,, elisp, The Emacs
+Lisp Reference Manual}), you can customize the user option
+@code{treesit-enabled-modes} to selectively enable or disable
+tree-sitter based modes: if the value is @code{t}, that enables all the
+available tree-sitter based modes; if it is a list of mode names, that
+enables only those modes.  Customizing this option adds the
+corresponding mappings to @code{major-mode-remap-alist} such as
+remapping from @code{c-mode} to @code{c-ts-mode} (if you enable the
+latter).  By default, this option's value is @code{nil}, so no
+tree-sitter based modes are enabled.
+
+Enabling a tree-stter based mode means that visiting files in the
+corresponding programming language will automatically turn on that mode,
+instead of any non-tree-sitter based modes for the same language.  For
+example, if you enable @code{c-ts-mode}, visiting C source files will
+turn on @code{c-ts-mode} instead of @code{c-mode}.
+
 @findex normal-mode
   If you have changed the major mode of a buffer, you can return to
 the major mode Emacs would have chosen automatically, by typing

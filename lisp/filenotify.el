@@ -500,7 +500,8 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
   (maphash
    (lambda (key _value)
      (file-notify-rm-watch key))
-   file-notify-descriptors))
+   file-notify-descriptors)
+  (setq file-notify-descriptors (clrhash file-notify-descriptors)))
 
 (defun file-notify-valid-p (descriptor)
   "Check a watch specified by its DESCRIPTOR.

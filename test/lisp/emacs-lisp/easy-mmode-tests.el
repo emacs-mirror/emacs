@@ -60,4 +60,86 @@
     (easy-mmode-test-mode 'toggle)
     (should (eq easy-mmode-test-mode t))))
 
+
+;;;; Globalized minor modes
+
+;; Globalized minor modes can either enable or decline to enable their
+;; minor mode for a given buffer.  That means you can have more than one
+;; globalized version of a single minor mode, where they enable it in
+;; different buffers.  This combination is legitimate because globalized
+;; minor modes don't ever *disable* the minor mode in a buffer, so the
+;; only possibilities are that either one or more of them enable the
+;; minor mode, or none of them do.
+;;
+;; We have had problems with a particular case of this with two
+;; globalized versions of a minor mode where the buffers in which one
+;; globalized mode enables the minor mode are a strict superset of the
+;; buffers in which the other globalized mode enables the minor mode:
+;; `magit-auto-revert-mode' enables `auto-revert-mode' for all
+;; Git-managed files and `vc-auto-revert-mode' enables it for all VCS
+;; managed files with any VC backend.  These tests are to assert that
+;; this combination still works.
+;;
+;; As an additional complication, `auto-revert-mode' is marked
+;; permanent-local, so we involve that in the test, again to assert that
+;; the combination still works.
+
+(put 'easy-mmode-test-mode 'permanent-local t)
+
+(with-suppressed-warnings ((redefine easy-mmode-test-mode--set-explicitly))
+
+ ;; More selective globalized major mode: like `magit-auto-revert-mode'.
+ (define-globalized-minor-mode easy-mmode-test-globalized-mode-1
+   easy-mmode-test-mode
+   (lambda ()
+     (when (string-search "both" (buffer-name))
+       (easy-mmode-test-mode 1)))
+   :group 'test-group)
+
+ ;; Less selective globalized major mode: like `vc-auto-revert-mode'.
+ (define-globalized-minor-mode easy-mmode-test-globalized-mode-2
+   easy-mmode-test-mode
+   (lambda ()
+     (when (string-match "both\\|only" (buffer-name))
+       (easy-mmode-test-mode 1)))
+   :group 'test-group))
+
+(defun easy-mmode--test-two-globalized-modes ()
+  (let ((only-file (expand-file-name (make-temp-name "only")
+                                     temporary-file-directory))
+        (both-file (expand-file-name (make-temp-name "both")
+                                     temporary-file-directory)))
+    (unwind-protect
+        (progn
+          (with-current-buffer (find-file-noselect only-file)
+            (should easy-mmode-test-mode))
+          (with-current-buffer (find-file-noselect both-file)
+            (should easy-mmode-test-mode)))
+      (delete-file only-file)
+      (delete-file both-file))))
+
+;; This is the case that the introduction of the
+;; MODE-suppress-set-explicitly mechanism was intended to fix.
+(ert-deftest easy-mmode--more-selective-first ()
+  "Test with the more selective globalized mode going first."
+  (easy-mmode-test-globalized-mode-1 -1)
+  (easy-mmode-test-globalized-mode-2 -1)
+  (easy-mmode-test-globalized-mode-2 1)
+  (easy-mmode-test-globalized-mode-1 1)
+  (should (memq 'easy-mmode-test-globalized-mode-2-enable-in-buffer
+                (memq 'easy-mmode-test-globalized-mode-1-enable-in-buffer
+                      after-change-major-mode-hook)))
+  (easy-mmode--test-two-globalized-modes))
+
+(ert-deftest easy-mmode--less-selective-first ()
+  "Test with the less selective globalized mode going first."
+  (easy-mmode-test-globalized-mode-1 -1)
+  (easy-mmode-test-globalized-mode-2 -1)
+  (easy-mmode-test-globalized-mode-1 1)
+  (easy-mmode-test-globalized-mode-2 1)
+  (should (memq 'easy-mmode-test-globalized-mode-1-enable-in-buffer
+                (memq 'easy-mmode-test-globalized-mode-2-enable-in-buffer
+                      after-change-major-mode-hook)))
+  (easy-mmode--test-two-globalized-modes))
+
 ;;; easy-mmode-tests.el ends here

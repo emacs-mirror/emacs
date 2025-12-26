@@ -404,6 +404,7 @@ extern void android_set_preeditarea (struct window *, int, int);
 
 extern void android_term_init (void);
 extern void android_set_window_size (struct frame *, bool, int, int);
+extern void android_set_window_size_and_position (struct frame *, int, int);
 extern void android_iconify_frame (struct frame *);
 extern void android_make_frame_visible (struct frame *);
 extern void android_make_frame_invisible (struct frame *);

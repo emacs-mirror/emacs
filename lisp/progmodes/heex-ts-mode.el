@@ -152,7 +152,8 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (_ nil)))
 
 (defvar heex-ts--thing-settings
-  `((sexp
+  `((defun ,(rx bos (or "component" "tag" "slot") eos))
+    (sexp
      (not (or (and named
                    ,(rx bos (or "fragment" "comment") eos))
               (and anonymous
@@ -209,7 +210,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
-                (rx bol (or "component" "tag" "slot") eol))
+                (rx bos (or "component" "tag" "slot") eos))
     (setq-local treesit-defun-name-function #'heex-ts--defun-name)
 
     ;; Imenu
@@ -235,7 +236,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (setq-local treesit-font-lock-feature-list
                 heex-ts--font-lock-feature-list)
 
-    (when (treesit-ready-p 'elixir)
+    (when (treesit-ensure-installed 'elixir)
       (require 'elixir-ts-mode)
       (treesit-parser-create 'elixir)
 
@@ -261,13 +262,17 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
     ;; Enable the 'sexp' navigation by default
     (setq-local forward-sexp-function #'treesit-forward-sexp
-                treesit-sexp-thing 'sexp)))
+                treesit-sexp-thing 'sexp
+                hs-treesit-things '(or defun list))))
 
 (derived-mode-add-parents 'heex-ts-mode '(heex-mode))
 
 ;;;###autoload
 (defun heex-ts-mode-maybe ()
-  "Enable `heex-ts-mode' when its grammar is available."
+  "Enable `heex-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
   (if (or (treesit-language-available-p 'heex)
           (eq treesit-enabled-modes t)
           (memq 'heex-ts-mode treesit-enabled-modes))
@@ -275,7 +280,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (fundamental-mode)))
 
 ;;;###autoload
-(when (treesit-available-p)
+(when (boundp 'treesit-major-mode-remap-alist)
   ;; Both .heex and the deprecated .leex files should work
   ;; with the tree-sitter-heex grammar.
   (add-to-list 'auto-mode-alist '("\\.[hl]?eex\\'" . heex-ts-mode-maybe))

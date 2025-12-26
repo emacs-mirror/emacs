@@ -39,18 +39,16 @@
 ;; and fallback to this library if not found.
 ;; If you always want to use this library, add following lines to your init.el:
 
-;;     (setq editorconfig-get-properties-function
-;;           'editorconfig-core-get-properties-hash)
-
-
 ;; Functions
 
-;; editorconfig-core-get-properties-hash (&optional file confname confversion)
+;; editorconfig-core-get-properties-hash (&optional file confname)
 
 ;; Get EditorConfig properties for FILE.
 
-;; This function is almost same as `editorconfig-core-get-properties', but
-;; returns hash object instead.
+;; If FILE is not given, use currently visiting file.
+;; Give CONFNAME for basename of config file other than .editorconfig.
+
+;; This functions returns hash table of properties' values.
 
 ;;; Code:
 
@@ -95,11 +93,10 @@ When the same key exists in both two hashes, values of UPDATE takes precedence."
   (maphash (lambda (key value) (puthash key value into)) update)
   into)
 
-(defun editorconfig-core-get-properties-hash (&optional file confname confversion)
+(defun editorconfig-core-get-properties-hash (&optional file confname)
   "Get EditorConfig properties for FILE.
 If FILE is not given, use currently visiting file.
 Give CONFNAME for basename of config file other than .editorconfig.
-If need to specify config format version, give CONFVERSION.
 
 This function is almost same as `editorconfig-core-get-properties', but returns
 hash object instead."
@@ -108,7 +105,6 @@ hash object instead."
                               buffer-file-name
                               (error "FILE is not given and `buffer-file-name' is nil"))))
   (setq confname (or confname ".editorconfig"))
-  (setq confversion (or confversion "0.12.0"))
   (let ((result (make-hash-table)))
     (dolist (handle (editorconfig-core--get-handles (file-name-directory file)
                                                     confname))
@@ -122,35 +118,6 @@ hash object instead."
                     trim_trailing_whitespace charset))
       (when-let* ((val (gethash key result)))
         (puthash key (downcase val) result)))
-
-    ;; Add indent_size property
-    ;; FIXME: Why?  Which part of the spec requires that?
-    ;;(let ((v-indent-size (gethash 'indent_size result))
-    ;;      (v-indent-style (gethash 'indent_style result)))
-    ;;  (when (and (not v-indent-size)
-    ;;             (string= v-indent-style "tab")
-    ;;             ;; If VERSION < 0.9.0, indent_size should have no default value
-    ;;             (version<= "0.9.0"
-    ;;                        confversion))
-    ;;    (puthash 'indent_size
-    ;;             "tab"
-    ;;             result)))
-    ;; Add tab_width property
-    ;; FIXME: Why?  Which part of the spec requires that?
-    ;;(let ((v-indent-size (gethash 'indent_size result))
-    ;;      (v-tab-width (gethash 'tab_width result)))
-    ;;  (when (and v-indent-size
-    ;;             (not v-tab-width)
-    ;;             (not (string= v-indent-size "tab")))
-    ;;    (puthash 'tab_width v-indent-size result)))
-    ;; Update indent-size property
-    ;; FIXME: Why?  Which part of the spec requires that?
-    ;;(let ((v-indent-size (gethash 'indent_size result))
-    ;;      (v-tab-width (gethash 'tab_width result)))
-    ;;  (when (and v-indent-size
-    ;;             v-tab-width
-    ;;             (string= v-indent-size "tab"))
-    ;;    (puthash 'indent_size v-tab-width result)))
 
     result))
 

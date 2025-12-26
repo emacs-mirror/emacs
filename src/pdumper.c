@@ -1241,7 +1241,7 @@ dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
      dump_tailq_length (&dump_queue->one_weight_strong_objects),
      (ptrdiff_t) XHASH_TABLE (dump_queue->link_weights)->count);
 
-  static const int nr_candidates = 3;
+  #define nr_candidates 3
   struct candidate
   {
     float score;
@@ -1286,6 +1286,7 @@ dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
 		  && candidates[i].sequence < candidates[best].sequence)))
         best = i;
     }
+  #undef nr_candidates
 
   Lisp_Object result;
   const char *src;
@@ -2071,7 +2072,7 @@ dump_interval_tree (struct dump_context *ctx,
 static dump_off
 dump_string (struct dump_context *ctx, const struct Lisp_String *string)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_String_03B2DF1C8E)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_String_B71C8876EB)
 # error "Lisp_String changed. See CHECK_STRUCTS comment in config.h."
 #endif
   /* If we have text properties, write them _after_ the string so that

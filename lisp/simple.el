@@ -157,10 +157,6 @@ messages are highlighted; this helps to see what messages were visited."
   nil
   "Overlay highlighting the current error message in the `next-error' buffer.")
 
-(defvar global-minor-modes nil
-  "A list of the currently enabled global minor modes.
-This is a list of symbols.")
-
 (defcustom next-error-hook nil
   "List of hook functions run by `next-error' after visiting source file."
   :type 'hook
@@ -3195,12 +3191,12 @@ previous element of the minibuffer history in the minibuffer."
           ;; Avoid moving point to the prompt
           (when (< (point) (minibuffer-prompt-end))
             ;; If there is minibuffer contents on the same line
-            (if (<= (minibuffer-prompt-end)
-                    (save-excursion
-                      (if (or truncate-lines (not line-move-visual))
-                          (end-of-line)
-                        (end-of-visual-line))
-                      (point)))
+            (if (< (minibuffer-prompt-end)
+                   (save-excursion
+                     (if (or truncate-lines (not line-move-visual))
+                         (end-of-line)
+                       (end-of-visual-line))
+                     (point)))
                 ;; Move to the beginning of minibuffer contents
                 (goto-char (minibuffer-prompt-end))
               ;; Otherwise, go to the previous history element
@@ -4321,9 +4317,8 @@ stdout will be intermixed in the output stream.")
 This function is used to add all related commands retrieved by
 `shell-command-guess' to the end of the list of defaults just
 after the default value."
-  (let* ((filename (if (listp minibuffer-default)
-		       (car minibuffer-default)
-		     minibuffer-default))
+  (let* ((filename (and (atom minibuffer-default)
+		        minibuffer-default))
 	 (commands (and filename (require 'dired-aux)
                         (shell-command-guess (list filename)))))
     (setq commands (mapcar (lambda (command)
@@ -4719,13 +4714,16 @@ impose the use of a shell (with its need to quote arguments)."
                           (bufferp output-buffer)
                           (stringp output-buffer)
                           (error "Asynchronous shell commands cannot output to current buffer")))
+                   ;; Remove the ampersand and test if the command is
+                   ;; not empty before creating a new buffer.
+                   (command (substring command 0 (match-beginning 0)))
+                   (_ (or (not (string= command ""))
+                          (error "Empty asynchronous command")))
                    (buffer (get-buffer-create
                             (or output-buffer shell-command-buffer-name-async)))
                    (bname (buffer-name buffer))
                    (proc (get-buffer-process buffer))
                    (directory default-directory))
-	      ;; Remove the ampersand.
-	      (setq command (substring command 0 (match-beginning 0)))
 	      ;; Ask the user what to do with already running process.
 	      (when proc
 		(cond
@@ -7163,13 +7161,15 @@ point otherwise."
 (defun use-region-beginning ()
   "Return the start of the region if `use-region-p' returns non-nil.
 This is a convenience function to use in `interactive' forms of
-commands that need to act on the region when it is active."
+commands that need to act on the region when it is active.
+See also the `R' code letter for `interactive'."
   (and (use-region-p) (region-beginning)))
 
 (defun use-region-end ()
   "Return the end of the region if `use-region-p' returns non-nil.
 This is a convenience function to use in `interactive' forms of
-commands that need to act on the region when it is active."
+commands that need to act on the region when it is active.
+See also the `R' code letter for `interactive'."
   (and (use-region-p) (region-end)))
 
 (defun use-region-noncontiguous-p ()
@@ -7186,16 +7186,17 @@ mark is active; furthermore, if `use-empty-active-region' is nil,
 the region must not be empty.  Otherwise, the return value is nil.
 
 If `use-empty-active-region' is non-nil, there is one further
-caveat: If the user has used `mouse-1' to set point, but used the
-mouse to move point to a different character yet, this function
-returns nil.
+caveat: If the user has used \\`mouse-1' to set point, but used
+the mouse to move point to a different character yet, this
+function returns nil.
 
 For some commands, it may be appropriate to ignore the value of
 `use-empty-active-region'; in that case, use `region-active-p'.
 
-Also see the convenience functions `use-region-beginning' and
-`use-region-end', which may be handy when writing `interactive'
-specs."
+You can use the `interactive' code letter `R' when writing commands that
+act specially on an active region.  For `interactive' specs that
+evaluate Lisp forms to produce a list of arguments, see the functions
+`use-region-beginning' and `use-region-end'."
   (and (region-active-p)
        (or (> (region-end) (region-beginning))
            (and use-empty-active-region
@@ -8608,7 +8609,8 @@ even beep.)"
         ;; like display or overlay strings, intangible text, etc.:
         ;; otherwise, we don't want to kill a character that's
         ;; unrelated to the place where the visual line wraps.
-        (and (= (cdr (nth 6 (posn-at-point))) orig-vlnum)
+        (and (numberp (cdr (nth 6 (posn-at-point))))
+             (= (cdr (nth 6 (posn-at-point))) orig-vlnum)
              ;; Make sure we delete the character where the line wraps
              ;; under visual-line-mode, be it whitespace or a
              ;; character whose category set permits wrapping at it.
@@ -9953,7 +9955,10 @@ To disable this warning, set `compose-mail-user-agent-warnings' to nil."
 (defun compose-mail-other-window (&optional to subject other-headers continue
 					    yank-action send-actions
 					    return-action)
-  "Like \\[compose-mail], but edit the outgoing message in another window."
+  "Like \\[compose-mail], but edit the outgoing message in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive (list nil nil nil current-prefix-arg))
   (compose-mail to subject other-headers continue
 		'switch-to-buffer-other-window yank-action send-actions
@@ -10068,8 +10073,8 @@ makes it easier to edit it."
     (define-key map [remap keyboard-quit] #'delete-completion-window)
     (define-key map [up] 'previous-line-completion)
     (define-key map [down] 'next-line-completion)
-    (define-key map [left] 'previous-completion)
-    (define-key map [right] 'next-completion)
+    (define-key map [left] 'previous-column-completion)
+    (define-key map [right] 'next-column-completion)
     (define-key map [?\t] 'next-completion)
     (define-key map [backtab] 'previous-completion)
     (define-key map [M-up] 'minibuffer-previous-completion)
@@ -10159,21 +10164,54 @@ the completions is popped up and down."
 (defun last-completion ()
   "Move to the last item in the completions buffer."
   (interactive)
+  ;; Move to the last item in horizontal or one-column format.
   (goto-char (previous-single-property-change
               (point-max) 'mouse-face nil (point-min)))
-  ;; Move to the start of last one.
+  ;; Move to the start of the item.
   (unless (get-text-property (point) 'mouse-face)
     (when-let* ((pos (previous-single-property-change (point) 'mouse-face)))
-      (goto-char pos))))
+      (goto-char pos)))
+  ;; In vertical format the last item is in the last column even if its
+  ;; line number is less than that of the last item in earlier columns.
+  (when (eq completions-format 'vertical)
+    (let ((pt (point))
+          (col (current-column))
+          (last-col (progn
+                      (first-completion)
+                      (goto-char (pos-eol))
+                      (goto-char (previous-single-property-change
+                                  (point) 'mouse-face))
+                      (current-column))))
+      (if (zerop last-col)
+          ;; If there is only one column of completions, the last
+          ;; completion in vertical format is the same as in horizontal
+          ;; format, so go there now.
+          (goto-char pt)
+        ;; Otherwise, we set `pt' to the beginning of first item in last
+        ;; column here because if the last column contains only one
+        ;; item, `pt' will not be set below.)
+        (setq pt (point))
+        ;; If all columns contain the same number of items, `col' (which
+        ;; specifies the column of the last item in horizontal format)
+        ;; equals `last-col', so the test must be with `>=', not `>'.
+        (when (>= last-col col)
+          (while (= (current-column) last-col)
+            (forward-line)
+            (unless (eobp)
+              (goto-char (pos-eol))
+              (move-to-column last-col)
+              (when (= (current-column) last-col)
+                (setq pt (point))))))
+        (goto-char pt)))))
 
-(defun previous-completion (n)
-  "Move to the previous item in the completions buffer.
-With prefix argument N, move back N items (negative N means move
+(defun previous-column-completion (n)
+  "Move to the item in the previous column of the completions buffer.
+With prefix argument N, move back N columns (negative N means move
 forward).
 
 Also see the `completion-auto-wrap' variable."
   (interactive "p")
-  (next-completion (- n)))
+  (next-column-completion (- n)))
 
 (defun completion--move-to-candidate-start ()
   "If in a completion candidate, move point to its start."
@@ -10183,21 +10221,26 @@ Also see the `completion-auto-wrap' variable."
     (goto-char (previous-single-property-change (point) 'mouse-face))))
 
 (defun completion--move-to-candidate-end ()
-  "If in a completion candidate, move point to its end."
-  (when (and (get-text-property (point) 'mouse-face)
-             (not (eobp))
-             (get-text-property (1+ (point)) 'mouse-face))
-    (goto-char (or (next-single-property-change (point) 'mouse-face) (point-max)))))
+  "If in a completion candidate, move point to its end.
+More precisely, point moves the the position immediately after the last
+character of the completion candidate."
+  (when (get-text-property (point) 'mouse-face)
+    (goto-char (or (next-single-property-change (point) 'mouse-face)
+                   (point-max)))))
 
-(defun next-completion (n)
-  "Move to the next item in the completions buffer.
-With prefix argument N, move N items (negative N means move
+(defun next-column-completion (n)
+  "Move to the item in the next column of the completions buffer.
+With prefix argument N, move N columns (negative N means move
 backward).
 
 Also see the `completion-auto-wrap' variable."
   (interactive "p")
   (let ((tabcommand (member (this-command-keys) '("\t" [backtab])))
-        pos)
+        (one-col (save-excursion
+                   (first-completion)
+                   (completion--move-to-candidate-end)
+                   (eolp)))
+        pos line last first)
     (catch 'bound
       (when (and (bobp)
                  (> n 0)
@@ -10208,32 +10251,61 @@ Also see the `completion-auto-wrap' variable."
         (setq n (1- n)))
 
       (while (> n 0)
-        (setq pos (point))
+        (setq pos (point) line (line-number-at-pos)
+              last (if one-col
+                       (save-excursion (and (forward-line) (eobp)))
+                     (save-excursion (completion--move-to-candidate-end) (eolp))))
         ;; If in a completion, move to the end of it.
         (when (get-text-property pos 'mouse-face)
           (setq pos (next-single-property-change pos 'mouse-face)))
         (when pos (setq pos (next-single-property-change pos 'mouse-face)))
-        (if pos
+        (if (and pos
+                 (if last
+                     (not (eq completions-format 'vertical))
+                   t))
             ;; Move to the start of next one.
             (goto-char pos)
           ;; If at the last completion option, wrap or skip
           ;; to the minibuffer, if requested.
-          (when completion-auto-wrap
+          (when (and completion-auto-wrap
+                     (or one-col
+                         (not (eq completions-format 'vertical))))
             (if (and (eq completion-auto-select t) tabcommand
                      (minibufferp completion-reference-buffer))
                 (throw 'bound nil)
               (first-completion))))
+        (when (and (eq completions-format 'vertical)
+                   (or last
+                       (= (point) (save-excursion (first-completion) (point)))))
+          (if (> (line-number-at-pos) line)
+              (forward-line -1)
+            (when completion-auto-wrap
+              (goto-char (pos-bol))
+              (completion--move-to-candidate-start))))
         (setq n (1- n)))
 
       (while (< n 0)
-        (setq pos (point))
+        (setq pos (point) line (line-number-at-pos)
+              first (if one-col
+                        (save-excursion
+                          (forward-line -1)
+                          (not (get-text-property (point) 'mouse-face)))
+                      (save-excursion (completion--move-to-candidate-start)
+                                      (bolp))))
         ;; If in a completion, move to the start of it.
         (when (and (get-text-property pos 'mouse-face)
                    (not (bobp))
                    (get-text-property (1- pos) 'mouse-face))
           (setq pos (previous-single-property-change pos 'mouse-face)))
         (when pos (setq pos (previous-single-property-change pos 'mouse-face)))
-        (if pos
+        (if (and pos
+                 (not (and completion-auto-wrap
+                           (eq completions-format 'vertical)
+                           (not one-col)
+                           (bolp)))
+                 (if first
+                     (not (eq completions-format 'vertical))
+                   t))
             (progn
               (goto-char pos)
               ;; Move to the start of that one.
@@ -10243,11 +10315,19 @@ Also see the `completion-auto-wrap' variable."
           ;; If at the first completion option, wrap or skip
           ;; to the minibuffer, if requested.
           (when completion-auto-wrap
-            (if (and (eq completion-auto-select t) tabcommand
-                     (minibufferp completion-reference-buffer))
-                (progn
-                  (throw 'bound nil))
-              (last-completion))))
+            (cond ((and (eq completions-format 'vertical)
+                        (not one-col)
+                        (or first (not pos)))
+                   (when (> line (line-number-at-pos))
+                     (forward-line))
+                   (goto-char (1- (pos-eol)))
+                   (completion--move-to-candidate-start))
+                  ((and (eq completion-auto-select t) tabcommand
+                        (minibufferp completion-reference-buffer))
+                   (progn
+                     (throw 'bound nil)))
+                  (t
+                   (last-completion)))))
         (setq n (1+ n))))
 
     (when (/= 0 n)
@@ -10255,7 +10335,11 @@ Also see the `completion-auto-wrap' variable."
 
 (defun previous-line-completion (&optional n)
   "Move to completion candidate on the previous line in the completions buffer.
-With prefix argument N, move back N lines (negative N means move forward).
+With prefix argument N, move back N lines (negative N means move
+forward).  In vertical format (see user option `completions-format')
+this command moves line-wise through all columns in the completions
+buffer, in horizontal format movement is confined to the current column
+of completions.
 
 Also see the `completion-auto-wrap' variable."
   (interactive "p")
@@ -10263,11 +10347,15 @@ Also see the `completion-auto-wrap' variable."
 
 (defun next-line-completion (&optional n)
   "Move to completion candidate on the next line in the completions buffer.
-With prefix argument N, move N lines forward (negative N means move backward).
+With prefix argument N, move N lines forward (negative N means move
+backward).  In vertical format (see user option `completions-format')
+this command moves line-wise through all columns in the completions
+buffer, in horizontal format movement is confined to the current column
+of completions.
 
 Also see the `completion-auto-wrap' variable."
   (interactive "p")
-  (let (line column pos found)
+  (let (line column pos found last first)
     (when (and (bobp)
                (> n 0)
                (get-text-property (point) 'mouse-face)
@@ -10292,53 +10380,108 @@ Also see the `completion-auto-wrap' variable."
               ((< n 0) (first-completion)))))
 
     (while (> n 0)
-      (setq found nil pos nil column (current-column) line (line-number-at-pos))
-      (completion--move-to-candidate-end)
-      (while (and (not found)
-                  (eq (forward-line 1) 0)
-                  (not (eobp))
-                  (move-to-column column))
-        (when (get-text-property (point) 'mouse-face)
-          (setq found t)))
-      (when (not found)
-        (if (not completion-auto-wrap)
-            (last-completion)
-          (save-excursion
-            (goto-char (point-min))
-            (when (and (eq (move-to-column column) column)
-                       (get-text-property (point) 'mouse-face))
-              (setq pos (point)))
-            (while (and (not pos) (> line (line-number-at-pos)))
-              (forward-line 1)
+      (setq found nil pos (point) column (current-column)
+            line (line-number-at-pos)
+            last (= (point) (save-excursion (last-completion) (point))))
+      (if (and (eq completions-format 'vertical)
+               completion-auto-wrap last)
+          (first-completion)            ; Wrap from last to first item.
+        (completion--move-to-candidate-end)
+        (while (and (not found)
+                    (eq (forward-line 1) 0)
+                    (not (eobp))
+                    (move-to-column column))
+          (when (get-text-property (point) 'mouse-face)
+            (setq found t)))
+        (when (not found)
+          (if (and (not completion-auto-wrap)
+                   (if (eq completions-format 'vertical)
+                       (and (or last (get-text-property (point) 'mouse-face))
+                            (last-completion))
+                     (goto-char pos)))
+              t
+            (save-excursion
+              (setq pos nil)
+              (goto-char (point-min))
               (when (and (eq (move-to-column column) column)
                          (get-text-property (point) 'mouse-face))
-                (setq pos (point)))))
-          (if pos (goto-char pos))))
+                (setq pos (point)))
+              (while (and (not pos) (> line (line-number-at-pos)))
+                (forward-line 1)
+                (when (and (eq (move-to-column column) column)
+                           (get-text-property (point) 'mouse-face))
+                  (setq pos (point)))))
+            (if pos (goto-char pos))
+            (when (eq completions-format 'vertical)
+              (next-column-completion 1)))))   ; Move to next column.
       (setq n (1- n)))
 
     (while (< n 0)
-      (setq found nil pos nil column (current-column) line (line-number-at-pos))
-      (completion--move-to-candidate-start)
-      (while (and (not found)
-                  (eq (forward-line -1) 0)
-                  (move-to-column column))
-        (when (get-text-property (point) 'mouse-face)
-          (setq found t)))
-      (when (not found)
-        (if (not completion-auto-wrap)
-            (first-completion)
-          (save-excursion
-            (goto-char (point-max))
-            (when (and (eq (move-to-column column) column)
-                       (get-text-property (point) 'mouse-face))
-              (setq pos (point)))
-            (while (and (not pos) (< line (line-number-at-pos)))
-              (forward-line -1)
+      (setq found nil pos (point) column (current-column)
+            line (line-number-at-pos)
+            first (= (point) (save-excursion (first-completion) (point))))
+      (if (and (eq completions-format 'vertical)
+               completion-auto-wrap first)
+          (last-completion)             ; Wrap from first to last item.
+        (completion--move-to-candidate-start)
+        (while (and (not found)
+                    (eq (forward-line -1) 0)
+                    (move-to-column column))
+          (when (get-text-property (point) 'mouse-face)
+            (setq found t)))
+        (when (not found)
+          (if (and (not completion-auto-wrap)
+                   (if (eq completions-format 'vertical)
+                       (and (or last first
+                                (get-text-property (point) 'mouse-face))
+                            first (first-completion))
+                     (goto-char pos)))
+              t
+            (save-excursion
+              (setq pos nil)
+              (goto-char (point-max))
               (when (and (eq (move-to-column column) column)
                          (get-text-property (point) 'mouse-face))
-                (setq pos (point)))))
-          (if pos (goto-char pos))))
+                (setq pos (point)))
+              (while (and (not pos) (< line (line-number-at-pos)))
+                (forward-line -1)
+                (when (and (eq (move-to-column column) column)
+                           (get-text-property (point) 'mouse-face))
+                  (setq pos (point)))))
+            (if pos (goto-char pos))
+            (when (eq completions-format 'vertical)
+              (previous-column-completion 1)   ; Move to previous column.
+              (setq column (current-column))
+              ;; Move to last item in this column (previous column may
+              ;; have fewer items).
+              (while (not (eobp))
+                (move-to-column column)
+                (setq pos (point))
+                (forward-line))
+              (goto-char pos)))))
       (setq n (1+ n)))))
+
+(defun next-completion (&optional n)
+  "Move according to `completions-format' to next completion item.
+In horizontal format movement is between columns within the same line,
+in vertical format between lines within the same column.  With non-nil
+`completion-auto-wrap', movement continues to the next line or column,
+respectively."
+  (interactive "p")
+  (pcase completions-format
+    ('vertical (next-line-completion n))
+    (_ (next-column-completion n))))
+
+(defun previous-completion (&optional n)
+  "Move according to `completions-format' to previous completion item.
+In horizontal format movement is between columns within the same line,
+in vertical format between lines within the same column.  With non-nil
+`completion-auto-wrap', movement continues to the next line or column,
+respectively."
+  (interactive "p")
+  (pcase completions-format
+    ('vertical (previous-line-completion n))
+    (_ (previous-column-completion n))))
 
 (defvar choose-completion-deselect-if-after nil
   "If non-nil, don't choose a completion candidate if point is right after it.
@@ -10564,44 +10707,42 @@ Called from `temp-buffer-show-hook'."
       (if base-dir (setq default-directory base-dir))
       (when completion-tab-width
         (setq tab-width completion-tab-width))
+      (add-hook 'window-scroll-functions
+                'completion--lazy-insert-strings-on-scroll nil t)
       ;; Maybe enable cursor completions-highlight.
       (when completions-highlight-face
         (cursor-face-highlight-mode 1))
       ;; Maybe insert help string.
       (when completion-show-help
 	(goto-char (point-min))
-        (if minibuffer-visible-completions
-            (let ((helps
-                   (with-current-buffer (window-buffer (active-minibuffer-window))
-                     (let ((minibuffer-visible-completions--always-bind t))
-                       (list
-                        (substitute-command-keys
-	                 (if (display-mouse-p)
-	                     "Click or type \\[minibuffer-choose-completion-or-exit] on a completion to select it.\n"
-                           "Type \\[minibuffer-choose-completion-or-exit] on a completion to select it.\n"))
+        (let ((helps
+               (with-current-buffer (window-buffer (active-minibuffer-window))
+                 (let ((minibuffer-visible-completions--always-bind t))
+                   (list
+                    (substitute-command-keys
+	             (if (display-mouse-p)
+	                 "Click or type \\[minibuffer-choose-completion] on a completion to select it.\n"
+                       "Type \\[minibuffer-choose-completion] on a completion to select it.\n"))
+                    (if minibuffer-visible-completions
                         (substitute-command-keys
 		         "Type \\[minibuffer-next-completion], \\[minibuffer-previous-completion], \
 \\[minibuffer-next-line-completion], \\[minibuffer-previous-line-completion] \
-to move point between completions.\n\n"))))))
-              (dolist (help helps)
-                (insert help)))
-          (insert (substitute-command-keys
-	           (if (display-mouse-p)
-	               "Click or type \\[minibuffer-choose-completion] on a completion to select it.\n"
-                     "Type \\[minibuffer-choose-completion] on a completion to select it.\n")))
-          (insert (substitute-command-keys
-		   "Type \\[minibuffer-next-completion] or \\[minibuffer-previous-completion] \
+to move point between completions.\n\n")
+                      (substitute-command-keys
+		       "Type \\[minibuffer-next-completion] or \\[minibuffer-previous-completion] \
 to move point between completions.\n\n")))))))
+          (dolist (help helps)
+            (insert help)))))))
 
 (add-hook 'completion-setup-hook #'completion-setup-function)
 
 (defun switch-to-completions ()
   "Select the completion list window."
   (interactive)
-  (when-let* ((window (or (get-buffer-window "*Completions*" 0)
+  (when-let* ((window (or (minibuffer--completions-visible)
 		          ;; Make sure we have a completions window.
                           (progn (minibuffer-completion-help)
-                                 (get-buffer-window "*Completions*" 0)))))
+                                 (minibuffer--completions-visible)))))
     (select-window window)
     (completion--lazy-insert-strings)
     (when (bobp)
@@ -10901,7 +11042,10 @@ Returns the newly created indirect buffer."
 
 
 (defun clone-indirect-buffer-other-window (newname display-flag &optional norecord)
-  "Like `clone-indirect-buffer' but display in another window."
+  "Like `clone-indirect-buffer' but display in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive
    (progn
      (if (get major-mode 'no-clone-indirect)

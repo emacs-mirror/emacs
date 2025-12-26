@@ -39,7 +39,7 @@
   (dolist (key keys)
     (when (or (vectorp key)
               (and (stringp key) (not (key-valid-p key))))
-      (byte-compile-warn "Invalid `kbd' syntax: %S" key))))
+      (byte-compile-warn "Invalid `key-valid-p' syntax: %S" key))))
 
 (defun keymap-set (keymap key definition)
   "Set KEY to DEFINITION in KEYMAP.
@@ -585,7 +585,7 @@ If MESSAGE (and interactively), message the result."
     (let* ((wargs args)
            (key (pop args)))
       (when (and (stringp key) (not (key-valid-p key)))
-        (byte-compile-warn-x wargs "Invalid `kbd' syntax: %S" key)))
+        (byte-compile-warn-x wargs "Invalid `key-valid-p' syntax: %S" key)))
     (when (null args)
       (byte-compile-warn-x form "Uneven number of key bindings in %S" form))
     (setq args (cdr args)))
@@ -614,9 +614,11 @@ pairs.  Available keywords are:
 :name      If non-nil, this should be a string to use as the menu for
              the keymap in case you use it as a menu with `x-popup-menu'.
 
-:prefix    If non-nil, this should be a symbol to be used as a prefix
-             command (see `define-prefix-command').  If this is the case,
-             this symbol is returned instead of the map itself.
+:prefix    If non-nil, this should be a symbol to make into a prefix command
+             using the new keymap (see `define-prefix-command').
+             That is, store the keymap as the symbol's function definition.
+             In addition, when non-nil, return the symbol instead of the
+             new keymap.
 
 KEY/DEFINITION pairs are as KEY and DEF in `keymap-set'.  KEY can
 also be the special symbol `:menu', in which case DEFINITION
@@ -689,6 +691,9 @@ In addition to the keywords accepted by `define-keymap', this
 macro also accepts a `:doc' keyword, which (if present) is used
 as the variable documentation string.
 
+The `:prefix' keyword can take an additional value, t, which is an
+abbreviation for using VARIABLE-NAME as the prefix command name.
+
 The `:repeat' keyword can also be specified; it controls the
 `repeat-mode' behavior of the bindings in the keymap.  When it is
 non-nil, all commands in the map will have the `repeat-map'
@@ -734,10 +739,17 @@ in the echo area.
         (unless defs
           (error "Uneven number of keywords"))
         (cond
-         ((eq keyword :doc) (setq doc (pop defs)))
-         ((eq keyword :repeat) (setq repeat (pop defs)))
-         (t (push keyword opts)
-            (push (pop defs) opts)))))
+         ((eq keyword :doc)
+          (setq doc (pop defs)))
+         ((eq keyword :repeat)
+          (setq repeat (pop defs)))
+         ((and (eq keyword :prefix) (eq (car defs) t))
+          (setq defs (cdr defs))
+          (push keyword opts)
+          (push `',variable-name opts))
+         (t
+          (push keyword opts)
+          (push (pop defs) opts)))))
     (unless (zerop (% (length defs) 2))
       (error "Uneven number of key/definition pairs: %s" defs))
 
@@ -786,6 +798,22 @@ in the echo area.
   "Mark SYMBOL as an event that shouldn't be returned from `where-is'."
   (put symbol 'non-key-event t)
   symbol)
+
+
+
+(defun keymap--read-only-filter (cmd)
+  "Return CMD if `browse-url' and similar button bindings should be active.
+They are considered active only in read-only buffers."
+  (when buffer-read-only cmd))
+
+(defun keymap-read-only-bind (binding)
+  "Behave like BINDING, but only when the buffer is read-only.
+BINDING should be a command to pput in a keymap.
+Return an element that can be added in a keymap with `keymap-set', such that
+it is active only when the current buffer is read-only."
+  `(menu-item
+    "" ,binding
+    :filter ,#'keymap--read-only-filter))
 
 (provide 'keymap)
 

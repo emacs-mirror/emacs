@@ -52,7 +52,6 @@
 
 (defun erc-fill-tests--wrap-populate (test)
   (let ((original-window-buffer (window-buffer (selected-window)))
-        (erc-fill--wrap-scrolltobottom-exempt-p t)
         (erc-stamp--tz t)
         (erc-fill-function 'erc-fill-wrap)
         (pre-command-hook pre-command-hook)

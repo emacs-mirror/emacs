@@ -121,6 +121,7 @@ will have no effect.")
 (defvar-keymap goto-address-highlight-keymap
   :doc "Keymap to hold goto-addr's mouse key defs under highlighted URLs."
   "<mouse-2>" #'goto-address-at-point
+  "RET"       (keymap-read-only-bind #'goto-address-at-point)
   "C-c RET"   #'goto-address-at-point)
 
 (defun goto-address-context-menu (menu click)
@@ -186,6 +187,8 @@ and `goto-address-fontify-p'."
 			 'help-echo "mouse-2, C-c RET: follow URL")
 	    (overlay-put this-overlay
 			 'keymap goto-address-highlight-keymap)
+	    (overlay-put this-overlay 'button this-overlay)
+	    (overlay-put this-overlay 'category 'goto-address)
 	    (overlay-put this-overlay 'goto-address t))))
       (goto-char (or start (point-min)))
       (while (re-search-forward goto-address-mail-regexp end t)

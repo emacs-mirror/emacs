@@ -190,8 +190,288 @@
       (should (equal-including-properties
                str1 (buffer-substring (+ (point-min) 5) (+ (point-min) 7)))))))
 
+(defconst editfns-tests--transpose-regions-tests
+  '(;; adjacent regions with one being empty
+    ("" "foo" "" "" "" [0 3 0 0 0])
+    ("" "" "" "baz" "" [0 0 0 3 0])
+
+    ;; For the following tests, assume that characters from the range
+    ;; [a-z] are 1 byte long in Emacs's internal text representation,
+    ;; while LATIN SMALL LETTER [AO] WITH DIAERESIS is 2 bytes long.
+
+    ;; (len1 == len2) && (end1 == start2) && (len1_byte == len2_byte)
+    ("" "fo(o" "" "b)az" "" [0 3 0 3 0])
+    ;; (len1 == len2) && (end1 != start2) && (len1_byte == len2_byte)
+    ("" "fo(o" "[bar]" "b)az" "" [0 3 3 3 0])
+
+    ;; (len1 != len2) && (end1 != start2) && (len1_byte  < len2_byte)
+    ("" "fo(o" "[bar]" "baaz)" "" [0 3 3 4 0])
+    ;; (len1 != len2) && (end1 != start2) && (len1_byte  > len2_byte)
+    ("" "(fooo" "[bar]" "baz)" "" [0 4 3 3 0])
+
+    ;; (len1 == len2) && (end1 == start2) && (len1_byte  < len2_byte)
+    ("" "fo(o" "" "b)äz" "" [0 3 0 4 0])
+    ;; (len1 == len2) && (end1 == start2) && (len1_byte  > len2_byte)
+    ("" "fo(ö" "" "b)az" "" [0 4 0 3 0])
+    ;; (len1 == len2) && (end1 != start2) && (len1_byte  > len2_byte)
+    ("" "fo(o" "[bar]" "b)äz" "" [0 3 3 4 0])
+    ;; (len1 == len2) && (end1 != start2) && (len1_byte  > len2_byte)
+    ("" "fo(ö" "[bar]" "b)az" "" [0 4 3 3 0])
+
+    ;; (len1 != len2) && (end1 == start2) && (len1_byte == len2_byte)
+    ("" "fo(ö" "" "baaz)" "" [0 4 0 4 0])
+    ;; (len1 != len2) && (end1 == start2) && (len1_byte == len2_byte)
+    ("" "(fooo" "" "bäz)" "" [0 4 0 4 0])
+    ;; (len1 != len2) && (end1 != start2) && (len1_byte == len2_byte)
+    ("" "fo(ö" "[bar]" "baaz)" "" [0 4 3 4 0])
+    ;; (len1 != len2) && (end1 != start2) && (len1_byte == len2_byte)
+    ("" "(fooo" "[bar]" "bäz)" "" [0 4 3 4 0])
+
+    ;; Going entirely non-ASCII.  Assume plain greek small letters are
+    ;; two bytes long in Emacs's internal text representation, GREEK
+    ;; SMALL LETTER ALPHA WITH PSILI is three bytes long.
+
+    ;; To cover the initial patch from bug#70122, define a test
+    ;; consisting of three three-letter strings REG1 MID REG2, with
+    ;; (length REG1) == (length REG2) but (byte-length REG1) !=
+    ;; (byte-length REG2) ...
+    ("ἀ(ρχή" "φ[ωω" "β){αρ" "β<ἀ]ζ}" "τέλ>ος" [9 6 6 7 10])
+    ;; ... and a test with (length REG1) == (length REG2) and
+    ;; (byte-length REG1) == (byte-length REG2).
+    ("ἀ(ρχή" "φ[ωω" "β){αρ" "β<α]ζ}" "τέλ>ος" [9 6 6 6 10])
+
+    ;; Define the moral equivalent of
+    ;; `editfns-tests--transpose-equal-but-not'.
+    (" " "(ab)" "[SPC]" "{é}" " " [1 2 3 2 1])
+
+    ;; Likewise, for the testcase from bug#70122 in
+    ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=70122#5.
+    ("" "" "(a):\n[b]: \x2113\x2080\n" "{v}: scaling" "" [0 0 13 10 0])
+
+    ;; Likewise, for the testcase from bug#70122 in
+    ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=70122#52.
+    ("(Query replace (default abc → d): )" "abc" "[ → ]" "d" "" [35 3 5 1 0]))
+  "List of test strings and their markup to test `transpose-regions'.
+Each element of this list should be a list
+
+  HEAD REG1 MID REG2 TAIL BYTE-LENGTHS
+
+where the first five elements are (possibly empty) string snippets and
+the sixth element is a five-element vector providing the lengths of the
+string snippets, counted in bytes in Emacs's internal text
+representation.
+
+Test `editfns-tests--transpose-regions' inserts the five snippets into
+its temporary buffer, adds text properties to them as described for
+variable `editfns-tests--transpose-regions-markups', transposes REG1 and
+REG2, probably undoes the change, and at each stage ensures that all
+involved entities look as expected.")
+
+(defconst editfns-tests--transpose-regions-markups
+  '("()" "[]" "{}" "<>")
+  "List of two-characters strings \"BE\" describing text property markup.
+For each element in this list, test `editfns-tests--transpose-regions'
+searches once for regular expression \"B.+E\" in its temporary buffer,
+adds a text property `markup' with value \"BE\" to the matching text,
+and then removes the markup characters B and E around the matching text.
+
+The test searches in the buffer with all test snippets already inserted,
+so characters B and E can originate from different snippets, and the
+various B's and E's of different markup items do not need to nest.")
+
+(ert-deftest editfns-tests--transpose-regions ()
+  "Test function `transpose-regions'.
+Execute tests as described by `editfns-tests--transpose-regions-tests'."
+  (dolist (test editfns-tests--transpose-regions-tests)
+    (dolist (leave-markers '(nil t))
+      (message "test: %S leave-markers: %S" test leave-markers)
+      (with-temp-buffer
+        (let ((test (take 5 test))
+              (blengthv (nth 5 test))
+              (smarkers nil) ; Separator markers.
+              (pmarkers nil) ; Property markers.
+              (pmpos nil)    ; Their positions before transposing.
+              (strings nil)  ; Net text snippets, propertized.
+              (blengths nil) ; Their lengths in bytes.
+              (tstrings nil) ; Net text snippets with REG1/2 transposed.
+              (test-undo nil)
+              p beg end beg2 end2)
+          (buffer-enable-undo)
+          ;; Insert text snippets.  While doing so, create the separator
+          ;; markers which we need later to determine the net text
+          ;; snippets.
+          (cl-assert (eq (length test) 5))
+          (setq p test)
+          (while (cdr p)
+            (insert (car p))
+            (push (point-marker) smarkers)
+            (setq p (cdr p)))
+          (insert (car p))
+          (setq smarkers (nreverse smarkers))
+          ;; Propertize them according to markup, remove markup
+          ;; characters, add property markers.
+          (dolist (markup editfns-tests--transpose-regions-markups)
+            (cl-assert (eq (length markup) 2))
+            (goto-char (point-min))
+            (when (search-forward-regexp
+                   (concat "\\("
+                           (regexp-quote (substring markup 0 1))
+                           ".+"
+                           (regexp-quote (substring markup 1 2))
+                           "\\)")
+                   nil t)
+              (setq beg (copy-marker (match-beginning 1))
+                    end (copy-marker (match-end 1)))
+              (delete-region beg (1+ beg))
+              (delete-region (1- end) end)
+              (add-text-properties beg end (list 'markup markup))
+              (push beg pmarkers)
+              (push end pmarkers)))
+          (setq pmarkers (sort pmarkers)
+                pmpos (mapcar #'marker-position pmarkers))
+          ;; Determine net text snippets, plain and with transposed REG1
+          ;; and REG2.  Determine the byte lengths of the net text
+          ;; snippets and ensure they meet our expectation.
+          (setq p smarkers
+                beg (point-min))
+          (while p
+            (push (buffer-substring beg (car p)) strings)
+            (push (- (position-bytes (car p)) (position-bytes beg))
+                  blengths)
+            (setq beg (car p) p (cdr p)))
+          (push (buffer-substring beg (point-max)) strings)
+          (push (- (position-bytes (point-max)) (position-bytes beg))
+                blengths)
+          (setq strings (nreverse strings)
+                blengths (nreverse blengths))
+          (setq tstrings (list (nth 0 strings) (nth 3 strings)
+                               (nth 2 strings) (nth 1 strings)
+                               (nth 4 strings)))
+          (should (equal blengthv (apply #'vector blengths)))
+          ;; Transpose REG1 and REG2.  Some transpositions might not
+          ;; generate undo, keep track of that in flag `test-undo'.
+          (setq beg  (+ 1    (length (nth 0 strings)))
+                end  (+ beg  (length (nth 1 strings)))
+                beg2 (+ end  (length (nth 2 strings)))
+                end2 (+ beg2 (length (nth 3 strings))))
+          (undo-boundary)
+          (transpose-regions beg end beg2 end2 leave-markers)
+          (when (car buffer-undo-list)
+            (setq test-undo t))
+          (undo-boundary)
+          ;; Check resulting buffer text and its properties.
+          (should (equal-including-properties
+                   (buffer-string)
+                   (mapconcat #'identity tstrings)))
+          ;; Check property marker positions.
+          (if leave-markers
+              (should (equal (mapcar #'marker-position pmarkers) pmpos))
+            ;; Meh.  This more or less blindly duplicates function
+            ;; transpose_markers, since I have been too lazy to
+            ;; reproduce the arithmetics myself.
+            (setq pmpos
+                  (mapcar
+                   (lambda (pos)
+                     (cond
+                      ((<  pos beg)  pos)
+                      ((>= pos end2) pos)
+                      ((<  pos end)  (+ pos (+ (- end2 beg2) (- beg2 end))))
+                      ((<  pos beg2) (+ pos (- (- end2 beg2) (- end  beg))))
+                      (t             (- pos (+ (- end  beg)  (- beg2 end))))))
+                   pmpos))
+            (should (equal (mapcar #'marker-position pmarkers) pmpos)))
+          ;; Undo the transposition and check text and properties again,
+          ;; if needed.  This does not undo any marker transpositions as
+          ;; per the comment before the call to transpose_markers in
+          ;; Ftranspose_regions, so nothing to check on the marker side
+          ;; after the undo.
+          (when test-undo
+            (undo)
+            (should (equal-including-properties
+                     (buffer-string)
+                     (mapconcat #'identity strings))))
+          ;; Be nice and clean up markers.
+          (dolist (marker smarkers) (set-marker marker nil))
+          (dolist (marker pmarkers) (set-marker marker nil)))))))
+
 (ert-deftest format-c-float ()
   (should-error (format "%c" 0.5)))
+
+(ert-deftest format-binary-zero ()
+  "Check that `%#b' and `%#B' are simplified for zero values."
+  (should (string-equal (format "%#b" 0) "0"))
+  (should (string-equal (format "%#B" 0) "0")))
+
+(ert-deftest format-binary-floats ()
+  "Check that `%b' and `%B' drop the fractional part of floats."
+  (let* ((n 5) (N 10)
+         (fracs (mapcar #'(lambda (d) (/ d N 1.0)) (number-sequence 0 (1- N)))))
+    (dolist (f fracs)
+      (should (string-equal (format "%b" (+ n f)) (format "%b" n)))
+      (should (string-equal (format "%B" (+ n f)) (format "%B" n))))))
+
+(ert-deftest format-binary-nonzero-integers ()
+  "Check `%b' and `%B' for non-zero integers.
+For numbers of both signs, check each flag (`0' padding, signs `+' &
+space, left alignment `-') with and without the alternative display
+format `#'.  Include both fixed and big numbers.  The widths are chosen
+sufficiently large to avoid truncation."
+  (dolist (nbits `((#x-5A . "1011010")
+                   (#x5A . "1011010")
+                   (#x-E97 . "111010010111")
+                   (#xE97 . "111010010111")
+                   (#xFFFFFFFFFFFFFFFFF . ,(make-string 68 ?1))
+                   (#x-FFFFFFFFFFFFFFFFF . ,(make-string 68 ?1))))
+    (let* ((n (car nbits)) (bits (cdr nbits))
+           (extra (+ 1 2 2))       ; 1 (sign) +  2 (0b prefix) + 2 (pad)
+           (w (+ (length bits) extra))
+           (Npad (- extra (if (< n 0) 1 0))) ; 0 & space padding w/ prefix
+           (Nsgn (- extra 1))                ; padding w/o sign
+           (sgn- (if (< n 0) "-" "")) (sgn (if (< n 0) "-" "+"))
+           (0pad (make-string Npad ?0)) (0padalt (make-string (- Npad 2) ?0))
+           (spad (make-string Npad ? )) (spadalt (make-string (- Npad 2) ? ))
+           (+pad (make-string Nsgn ? )) (+padalt (make-string (- Nsgn 2) ? )))
+      ;; %b
+      (should (string-equal (format "%b" n) (concat sgn- bits)))
+      (should (string-equal (format "%B" n) (concat sgn- bits)))
+      (should (string-equal (format "%#b" n) (concat sgn- "0b" bits)))
+      (should (string-equal (format "%#B" n) (concat sgn- "0B" bits)))
+      ;; %0wb
+      (should (string-equal (format (format "%%0%db" w) n)
+                            (concat sgn- 0pad bits)))
+      (should (string-equal (format (format "%%0%dB" w) n)
+                            (concat sgn- 0pad bits)))
+      (should (string-equal (format (format "%%#0%db" w) n)
+                            (concat sgn- "0b" 0padalt bits)))
+      (should (string-equal (format (format "%%#0%dB" w) n)
+                            (concat sgn- "0B" 0padalt bits)))
+      ;; %-wb
+      (should (string-equal (format (format "%%-%db" w) n)
+                            (concat sgn- bits spad)))
+      (should (string-equal (format (format "%%-%dB" w) n)
+                            (concat sgn- bits spad)))
+      (should (string-equal (format (format "%%#-%db" w) n)
+                            (concat sgn- "0b" bits spadalt)))
+      (should (string-equal (format (format "%%#-%dB" w) n)
+                            (concat sgn- "0B" bits spadalt)))
+      ;; %+wb
+      (should (string-equal (format (format "%%+%db" w) n)
+                            (concat +pad sgn bits)))
+      (should (string-equal (format (format "%%+%dB" w) n)
+                            (concat +pad sgn bits)))
+      (should (string-equal (format (format "%%#+%db" w) n)
+                            (concat +padalt sgn "0b" bits)))
+      (should (string-equal (format (format "%%#+%dB" w) n)
+                            (concat +padalt sgn "0B" bits)))
+      ;; % wb
+      (should (string-equal (format (format "%% %db" w) n)
+                            (concat spad sgn- bits)))
+      (should (string-equal (format (format "%% %dB" w) n)
+                            (concat spad sgn- bits)))
+      (should (string-equal (format (format "%%# %db" w) n)
+                            (concat spadalt sgn- "0b" bits)))
+      (should (string-equal (format (format "%%# %dB" w) n)
+                            (concat spadalt sgn- "0B" bits))))))
 
 ;;; Test for Bug#29609.
 (ert-deftest format-sharp-0-x ()
@@ -211,19 +491,22 @@
 (ert-deftest format-%x-large-float ()
   (should (string-equal (format "%x" 18446744073709551616.0)
                         "10000000000000000")))
+
 (ert-deftest read-large-integer ()
   (should (eq (type-of (read (format "%d0" most-negative-fixnum))) 'integer))
   (should (eq (type-of (read (format "%+d" (* -8.0 most-negative-fixnum))))
               'integer))
   (should (eq (type-of (read (substring (format "%d" most-negative-fixnum) 1)))
               'integer))
-  (should (eq (type-of (read (format "#x%x" most-negative-fixnum)))
+  (should (eq (type-of (read (format "#b%b" most-negative-fixnum)))
               'integer))
   (should (eq (type-of (read (format "#o%o" most-negative-fixnum)))
               'integer))
+  (should (eq (type-of (read (format "#x%x" most-negative-fixnum)))
+              'integer))
   (should (eq (type-of (read (format "#32rG%x" most-positive-fixnum)))
               'integer))
-  (dolist (fmt '("%d" "%s" "#o%o" "#x%x"))
+  (dolist (fmt '("%d" "%s" "#b%b" "#o%o" "#x%x"))
     (dolist (val (list most-negative-fixnum (1+ most-negative-fixnum)
 		       -1 0 1
 		       (1- most-positive-fixnum) most-positive-fixnum))

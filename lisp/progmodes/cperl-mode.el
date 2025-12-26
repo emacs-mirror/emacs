@@ -2726,6 +2726,7 @@ PARSE-DATA is used to save status between calls in a loop."
 	   (if (listp indent) (setq indent (car indent)))
 	   (cond ((and (looking-at (rx (sequence (eval cperl--label-rx)
                                                  (not (in ":")))))
+                       (null (get-text-property (point) 'syntax-type))
                        (not (looking-at (rx (eval cperl--false-label-rx)))))
 		  (and (> indent 0)
 		       (setq indent (max cperl-min-label-indent
@@ -2766,7 +2767,7 @@ PARSE-DATA is used to save status between calls in a loop."
 START is a good place to start parsing, or equal to
 PARSE-START if preset.
 STATE is what is returned by `parse-partial-sexp'.
-DEPTH is true is we are immediately after end of block
+DEPTH is true if we are immediately after end of block
 which contains START.
 PRESTART is the position basing on which START was found.
 START-STATE should be a good guess for the start of a function."
@@ -2775,7 +2776,7 @@ START-STATE should be a good guess for the start of a function."
       (if (and parse-start
 	       (<= parse-start start-point))
 	  (goto-char parse-start)
-	(beginning-of-defun)
+	(beginning-of-defun-raw)
         (when (cperl-declaration-header-p (point))
           (goto-char (cperl-beginning-of-property (point) 'syntax-type))
           (beginning-of-line))
@@ -5064,7 +5065,7 @@ recursive calls in starting lines of here-documents."
 				(cperl-postpone-fontification
 				 (- (point) 2) (- (point) 1) 'face
 				 (if (memq qtag
-					   (append "ghijkmoqvFHIJKMORTVY" nil))
+				           (append "gijkmoqFIJKMOTY" nil))
                                      'font-lock-warning-face
 				   my-cperl-REx-0length-face))
 				(if (and (eq (char-after b) qtag)
@@ -6374,9 +6375,7 @@ functions (which they are not).  Inherits from `default'.")
                                    (sequence (eval cperl--signature-rx)
                                              (eval cperl--ws*-rx))
                                    ;; ... or the start of a "sloppy" signature
-                                   (sequence (eval cperl--sloppy-signature-rx)
-                                             ;; arbitrarily continue "a few lines"
-                                             (repeat 0 200 (not (in "{"))))
+                                   (sequence (eval cperl--sloppy-signature-rx))
                                    ;; make sure we have a reasonably
                                    ;; short match for an incomplete sub
                                    (not (in ";{("))
@@ -6392,7 +6391,13 @@ functions (which they are not).  Inherits from `default'.")
                                    (group (eval cperl--basic-variable-rx))))
                     (progn
                       (goto-char (match-beginning 2)) ; pre-match: Back to sig
-                      (match-end 2))
+                      ;; While typing, forward-sexp might fail with a scan error.
+                      ;; If so, stop looking for declarations at (match-end 2)
+                      (condition-case nil
+                          (save-excursion
+                            (forward-sexp)
+                            (point))
+                        (error (match-end 2))))
                     nil
                     (1 font-lock-variable-name-face)))
             ;; -------- flow control

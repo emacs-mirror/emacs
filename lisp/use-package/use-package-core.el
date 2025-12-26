@@ -1700,7 +1700,10 @@ remote host, call `package-vc-install' instead."
                (spec (if opts (cons name opts) name)))
     (unless (package-installed-p name)
       (if local-path
-          (package-vc-install-from-checkout local-path (symbol-name name))
+          (with-suppressed-warnings ((obsolete package-vc-install-from-checkout))
+            (warn "Support for :vc with :load-path is obsolete.  \
+Use the User Lisp directory instead.")
+            (package-vc-install-from-checkout local-path (symbol-name name)))
         (package-vc-install spec rev)))))
 
 (defun use-package-handler/:vc (name _keyword arg rest state)
@@ -1888,7 +1891,7 @@ Usage:
 :load-path       Add to the `load-path' before attempting to load the package.
 :diminish        Support for diminish.el (if installed).
 :delight         Support for delight.el (if installed).
-:custom          Call `Custom-set' or `set-default' with each variable
+:custom          Call `customize-set-variable' on each variable
                  definition without modifying the Emacs `custom-file'.
                  (compare with `custom-set-variables').
 :custom-face     Call `face-spec-set' with each face definition.

@@ -68,9 +68,6 @@ int posix_getgroups (int, gid_t []) __asm ("_getgroups");
 int
 rpl_getgroups (int n, gid_t *group)
 {
-  int n_groups;
-  GETGROUPS_T *gbuf;
-
   if (n < 0)
     {
       errno = EINVAL;
@@ -79,19 +76,18 @@ rpl_getgroups (int n, gid_t *group)
 
   if (n != 0 || !GETGROUPS_ZERO_BUG)
     {
-      int result;
-      if (sizeof *group == sizeof *gbuf)
+      if (sizeof *group == sizeof (GETGROUPS_T))
         return getgroups (n, (GETGROUPS_T *) group);
 
-      if (SIZE_MAX / sizeof *gbuf <= n)
+      if (SIZE_MAX / sizeof (GETGROUPS_T) <= n)
         {
           errno = ENOMEM;
           return -1;
         }
-      gbuf = malloc (n * sizeof *gbuf);
+      GETGROUPS_T *gbuf = malloc (n * sizeof *gbuf);
       if (!gbuf)
         return -1;
-      result = getgroups (n, gbuf);
+      int result = getgroups (n, gbuf);
       if (0 <= result)
         {
           n = result;
@@ -108,18 +104,18 @@ rpl_getgroups (int n, gid_t *group)
       /* No need to worry about address arithmetic overflow here,
          since the ancient systems that we're running on have low
          limits on the number of secondary groups.  */
-      gbuf = malloc (n * sizeof *gbuf);
+      GETGROUPS_T *gbuf = malloc (n * sizeof *gbuf);
       if (!gbuf)
         return -1;
-      n_groups = getgroups (n, gbuf);
+      int n_groups = getgroups (n, gbuf);
       if (n_groups == -1 ? errno != EINVAL : n_groups < n)
-        break;
+        {
+          free (gbuf);
+          return n_groups;
+        }
       free (gbuf);
       n *= 2;
     }
-
-  free (gbuf);
-  return n_groups;
 }
 
 #endif /* HAVE_GETGROUPS */

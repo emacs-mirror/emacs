@@ -593,7 +593,7 @@ OBJECT can be an instance or a class."
 (defun find-class (symbol &optional errorp)
   "Return the class that SYMBOL represents.
 If there is no class, nil is returned if ERRORP is nil.
-If ERRORP is non-nil, `wrong-argument-type' is signaled."
+If ERRORP is non-nil, `wrong-type-argument' is signaled."
   (let ((class (cl--find-class symbol)))
     (cond
      ((eieio--class-p class) class)

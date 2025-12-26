@@ -97,6 +97,16 @@ Works with: topmost-intro-cont."
 			    t))))
 	  c-basic-offset))))
 
+(defun c-lineup-class-field-cont (langelem)
+  "Line up continuation lines in a class zero or one indentation steps.
+For a declaration following a template specification, zero steps are
+used.  Other constructs are indented one step."
+  (save-excursion
+    (beginning-of-line)
+    (c-backward-syntactic-ws (c-langelem-pos langelem))
+    (unless (eq (char-before) ?>)
+      c-basic-offset)))
+
 (defun c-lineup-gnu-DEFUN-intro-cont (langelem)
   "Line up the continuation lines of a DEFUN macro in the Emacs C source.
 These lines are indented `c-basic-offset' columns, usually from column 0.

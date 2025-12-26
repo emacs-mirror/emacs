@@ -2506,6 +2506,9 @@ buffer, whether or not it is currently displayed in some window.  */)
 	 an addition to the hscroll amount.  */
       if (!NILP (lcols))
 	{
+	  if (it.method == GET_FROM_STRING && !NILP (it.from_overlay))
+	    reseat_at_previous_visible_line_start(&it);
+
 	  move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);
 	  /* If we find ourselves in the middle of an overlay string
 	     which includes a newline after current string position,

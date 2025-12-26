@@ -444,6 +444,12 @@ Representations}), or if the range start is ASCII and the end is a raw
 byte (as in @samp{[a-\377]}), the range will match only ASCII
 characters and raw 8-bit bytes, but not non-ASCII characters.  This
 feature is intended for searching text in unibyte buffers and strings.
+
+@cindex raw bytes, regexps for searching
+@item
+To search for @dfn{raw bytes}, which are characters belonging to the
+@code{eight-bit} character set (@pxref{Character Sets}), you can use
+@samp{[\200-\377]} or @samp{[\x3fff80-\x3fffff]}
 @end enumerate
 
 Some kinds of bracket expressions are not the best style even

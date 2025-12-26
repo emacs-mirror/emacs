@@ -1948,6 +1948,8 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
     }
 
   conditions = Fget (real_error_symbol, Qerror_conditions);
+  if (NILP (conditions))
+    signal_error ("Invalid error symbol", error_symbol);
 
   /* Remember from where signal was called.  Skip over the frame for
      `signal' itself.  If a frame for `error' follows, skip that,
@@ -2588,6 +2590,9 @@ eval_sub (Lisp_Object form)
   /* Declare here, as this array may be accessed by call_debugger near
      the end of this function.  See Bug#21245.  */
   Lisp_Object argvals[8];
+  /* The stack overflow detection probably isn't worth the effort any more
+     but this may be the least bad spot to feed it.  */
+  current_thread->stack_top = argvals;
 
  retry:
 
@@ -3439,7 +3444,12 @@ DEFUN ("func-arity", Ffunc_arity, Sfunc_arity, 1, 1, 0,
 FUNCTION must be a function of some kind.
 The returned value is a cons cell (MIN . MAX).  MIN is the minimum number
 of args.  MAX is the maximum number, or the symbol `many', for a
-function with `&rest' args, or `unevalled' for a special form.  */)
+function with `&rest' args, or `unevalled' for a special form.
+
+Note that this function might return inaccurate results in some cases,
+such as with functions defined using `apply-partially', functions
+advised using `advice-add', and functions that determine their arg
+list dynamically.  */)
   (Lisp_Object function)
 {
   Lisp_Object original;

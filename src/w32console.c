@@ -351,10 +351,13 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
       conversion_buffer = (LPCSTR) encode_terminal_code (string, n, coding);
       if (coding->produced > 0)
 	{
+	  /* Compute the string's width on display by accounting for
+	     character's width.  FIXME: this doesn't handle character
+	     compositions.  */
+	  ptrdiff_t ncols = strwidth (coding->source, coding->src_bytes);
 	  /* Set the attribute for these characters.  */
-	  if (!FillConsoleOutputAttribute (cur_screen, char_attr,
-					   coding->produced, cursor_coords,
-					   &r))
+	  if (!FillConsoleOutputAttribute (cur_screen, char_attr, ncols,
+					   cursor_coords, &r))
 	    {
 	      printf ("Failed writing console attributes: %lu\n",
 		      GetLastError ());
@@ -371,7 +374,7 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
 	      fflush (stdout);
 	    }
 
-	  cursor_coords.X += coding->produced;
+	  cursor_coords.X += ncols;
 	  w32con_move_cursor (f, cursor_coords.Y, cursor_coords.X);
 	}
       len -= n;
@@ -407,19 +410,23 @@ w32con_write_glyphs_with_face (struct frame *f, register int x, register int y,
       /* Compute the character attributes corresponding to the face.  */
       DWORD char_attr = w32_face_attributes (f, face_id);
       COORD start_coords;
+      /* Compute the string's width on display by accounting for
+	 character's width.  FIXME: this doesn't handle character
+	 compositions.  */
+      ptrdiff_t ncols = strwidth (coding->source, coding->src_bytes);
 
       start_coords.X = x;
       start_coords.Y = y;
       /* Set the attribute for these characters.  */
-      if (!FillConsoleOutputAttribute (cur_screen, char_attr,
-				       coding->produced, start_coords,
-				       &filled))
+      if (!FillConsoleOutputAttribute (cur_screen, char_attr, ncols,
+				       start_coords, &filled))
 	DebPrint (("Failed writing console attributes: %d\n", GetLastError ()));
       else
 	{
 	  /* Write the characters.  */
 	  if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
-					    filled, start_coords, &written))
+					    coding->produced, start_coords,
+					    &written))
 	    DebPrint (("Failed writing console characters: %d\n",
 		       GetLastError ()));
 	}

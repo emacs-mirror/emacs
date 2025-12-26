@@ -792,19 +792,24 @@ MIME-Version header before proceeding."
     (mm-possibly-verify-or-decrypt (nreverse parts) ctl from)))
 
 (defun mm-copy-to-buffer ()
-  "Copy the contents of the current buffer to a fresh buffer."
+  "Copy the contents of the current buffer to a fresh unibyte buffer."
   (let ((obuf (current-buffer))
         (mb enable-multibyte-characters)
+	(nbuf (generate-new-buffer " *mm*"))
         beg)
     (goto-char (point-min))
     (search-forward-regexp "^\n" nil 'move) ;; There might be no body.
     (setq beg (point))
-    (with-current-buffer
-          (generate-new-buffer " *mm*")
-      ;; Preserve the data's unibyteness (for url-insert-file-contents).
-      (set-buffer-multibyte mb)
-      (insert-buffer-substring obuf beg)
-      (current-buffer))))
+    (with-current-buffer nbuf
+      (set-buffer-multibyte nil))
+    (if (null mb)
+	(with-current-buffer nbuf
+	  (insert-buffer-substring obuf beg)
+	  (current-buffer))
+      (encode-coding-region beg (point-max) 'utf-8-emacs-unix nbuf)
+      (with-current-buffer nbuf
+        (goto-char (point-max))
+        (current-buffer)))))
 
 (defun mm-display-parts (handle)
   (cond

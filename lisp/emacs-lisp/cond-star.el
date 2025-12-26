@@ -57,7 +57,7 @@ A `cond*' construct is a series of clauses, and a clause
 normally has the form (CONDITION BODY...).
 
 CONDITION can be a Lisp expression, as in `cond'.
-Or it can be one of`(bind* BINDINGS...)', `(match* PATTERN DATUM)',
+Or it can be one of `(bind* BINDINGS...)', `(match* PATTERN DATUM)',
 or `(pcase* PATTERN DATUM)',
 
 `(bind* BINDINGS...)' means to bind BINDINGS (as if they were in `let*')
@@ -68,6 +68,10 @@ and runs the body of the clause if the first binding's value is non-nil.
 `(match* PATTERN DATUM)' means to match DATUM against the pattern PATTERN
 For its patterns, see `match*'.
 The condition counts as true if PATTERN matches DATUM.
+
+`(bind-and* BINDINGS...)' means to bind BINDINGS (as if they were in
+`if-let*') for only the the body of the clause.  If any expression
+evaluates to nil, the condition counts as false.
 
 `(pcase* PATTERN DATUM)' means to match DATUM against the
 pattern PATTERN, using the same pattern syntax as `pcase'.
@@ -86,12 +90,17 @@ All bindings made in CONDITION for the BODY of the non-exit clause
 are passed along to the rest of the clauses in this `cond*' construct.
 
 \\[match*] for documentation of the patterns for use in `match*'."
+  ;; FIXME: Want an Edebug declaration.
   (cond*-convert clauses))
 
-(defmacro match* (pattern _datum)
+;; The following four macros are autoloaded for the sake of syntax
+;; highlighting.
+
+;;;###autoload
+(defmacro match* (_pattern _datum)
   "This specifies matching DATUM against PATTERN.
-It is not really a Lisp function, and it is meaningful
-only in the CONDITION of a `cond*' clause.
+This is not really a Lisp operator; it is meaningful only in the
+CONDITION of a `cond*' clause.
 
 `_' matches any value.
 KEYWORD matches that keyword.
@@ -111,7 +120,7 @@ ATOM (meaning any other kind of non-list not described above)
   to (match-string 0 DATUM), (match-string 1 DATUM), and so on.
   You can use as many SYMs as regexp matching supports.
 
-`OBJECT  matches any value `equal' to OBJECT.
+\\=`OBJECT  matches any value `equal' to OBJECT.
 \(cons CARPAT CDRPAT)
   matches a cons cell if CARPAT matches its car and CDRPAT matches its cdr.
 \(list ELTPATS...)
@@ -125,7 +134,7 @@ ATOM (meaning any other kind of non-list not described above)
 \(cdr PATTERN)  matches PATTERN with strict checking of cdrs.
   That means that `list' patterns verify that the final cdr is nil.
   Strict checking is the default.
-\(cdr-safe PATTERN)  matches PATTERN with lax checking of cdrs.
+\(cdr-ignore PATTERN)  matches PATTERN with lax checking of cdrs.
   That means that `list' patterns do not examine the final cdr.
 \(and CONJUNCTS...)  matches each of the CONJUNCTS against the same data.
   If all of them match, this pattern succeeds.
@@ -151,8 +160,32 @@ ATOM (meaning any other kind of non-list not described above)
 \(constrain SYMBOL EXP)
   matches datum if the form EXP is true.
   EXP can refer to symbols bound earlier in the pattern."
-  ;; FIXME: `byte-compile-warn-x' is not necessarily defined here.
-  (byte-compile-warn-x pattern "`match*' used other than as a `cond*' condition"))
+  (macroexp-warn-and-return "`match*' used other than as a `cond*' condition"
+                            nil 'suspicious))
+
+;;;###autoload
+(defmacro bind* (&rest _bindings)
+  "Evaluate BINDINGS like `let*'.
+This is not really a Lisp operator; it is meaningful only in the
+CONDITION of a `cond*' clause.  See `cond*' for details."
+  (macroexp-warn-and-return "`bind*' used other than as a `cond*' condition"
+                            nil 'suspicious))
+
+;;;###autoload
+(defmacro bind-and* (&rest _bindings)
+  "Evaluate BINDINGS like `if-let*'.
+This is not really a Lisp operator; it is meaningful only in the
+CONDITION of a `cond*' clause.  See `cond*' for details."
+  (macroexp-warn-and-return "`bind-and*' used other than as a `cond*' condition"
+                            nil 'suspicious))
+
+;;;###autoload
+(defmacro pcase* (_pattern _datum)
+  "Evaluate PATTERN and DATUM like an element of BINDINGS in `pcase-let'.
+This is not really a Lisp operator; it is meaningful only in the
+CONDITION of a `cond*' clause.  See `cond*' for details."
+  (macroexp-warn-and-return "`pcase*' used other than as a `cond*' condition"
+                            nil 'suspicious))
 
 (defun cond*-non-exit-clause-p (clause)
   "If CLAUSE, a cond* clause, is a non-exit clause, return t."
@@ -167,7 +200,9 @@ ATOM (meaning any other kind of non-list not described above)
 (defun cond*-non-exit-clause-substance (clause)
   "For a non-exit cond* clause CLAUSE, return its substance.
 This removes a final keyword if that's what makes CLAUSE non-exit."
-  (cond ((null (cdr-safe clause))   ;; clause has only one element.
+  (cond ((or (null (cdr-safe clause))   ;; either clause has only one element
+             (and (consp (car clause))  ;; or it starts with `bind*'
+                  (eq (caar clause) 'bind*)))
          clause)
         ;; Starts with t or a keyword.
         ;; Include t as the first element of the substance
@@ -279,6 +314,32 @@ This is used for conditional exit clauses."
                     (let* ,mod-bindings
                       (when ,init-gensym
                         . ,true-exps)))))))
+          ((eq pat-type 'bind-and*)
+           (let ((checks '()) (last t))
+             (dolist (bind (cdr condition))
+               (push (list (car bind) (list 'and last (cadr bind)))
+                     checks)
+               (when (eq (caar checks) '_)
+                 (setcar (car checks) (make-symbol "s")))
+               (setq last (caar checks)))
+             (cond
+              ;; For explanations on these cases, see "Ordinary
+              ;; Lisp expression is the condition." below.
+              (rest
+               (let ((quit (gensym "quit")))
+                 `(catch ',quit
+                    (let* (,@(nreverse checks))
+                      (if ,last (throw ',quit ,(macroexp-progn true-exps))))
+                    ,iffalse)))
+              (uncondit-clauses
+               `(progn
+                  (let* (,@(nreverse checks))
+                    (if ,last ,(macroexp-progn true-exps)))
+                  ,(cond*-convert uncondit-clauses)))
+              (true-exps
+               `(let* (,@(nreverse checks))
+                  (if ,last ,(macroexp-progn true-exps))))
+              (t last))))
           ((eq pat-type 'pcase*)
            (if true-exps
                (progn

@@ -1761,7 +1761,8 @@ from `browse-url-elinks-wrapper'."
 
 (defvar-keymap browse-url-button-map
   :doc "The keymap used for `browse-url' buttons."
-  "RET"       #'browse-url-button-open
+  "RET"       (keymap-read-only-bind #'browse-url-button-open)
+  "C-c RET"   #'browse-url-button-open
   "<mouse-2>" #'browse-url-button-open
   "w"         #'browse-url-button-copy)
 

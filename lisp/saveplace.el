@@ -237,7 +237,7 @@ If `save-place-mode' is enabled, set the timer, otherwise cancel the timer."
   "The interval between auto saves of buffer places.
 If set to nil, disables timer-based auto saving."
   :type '(choice (const :tag "Disabled" nil)
-                 (integer :tag "Seconds"))
+                 (integer :tag "Auto-save interval in seconds"))
   :version "31.1"
   :set (lambda (sym val)
          (set-default sym val)
@@ -406,8 +406,8 @@ may have changed) back to `save-place-alist'."
 	  (file-error (message "Saving places: can't write %s" file)))))))
 
 (defun save-places-to-alist ()
-  ;; go through buffer-list, saving places to alist if save-place-mode
-  ;; is non-nil, deleting them from alist if it is nil.
+  "Save all buffer filenames and positions to `save-place-alist'.
+See `save-place-to-alist'."
   (let ((buf-list (buffer-list)))
     (while buf-list
       ;; put this into a save-excursion in case someone is counting on
