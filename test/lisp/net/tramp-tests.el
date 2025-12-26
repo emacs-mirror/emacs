@@ -5562,9 +5562,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (delete-file tmp-name)))
 
       ;; Process filter.
+      ;; The "smb" method does not support the "cat" stdin
+      ;; redirection.  The "adb" method does not support late process
+      ;; filter setting for the "echo" command.
       (unwind-protect
 	  (with-temp-buffer
-	    (setq command '("echo" "foo")
+	    (setq command (if (tramp--test-smb-p) '("echo" "foo") '("cat"))
 		  proc
 		  (apply #'start-file-process "test3" (current-buffer) command))
 	    (should (processp proc))
@@ -5576,7 +5579,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (with-current-buffer
 		   (process-buffer p)
 		 (insert
-		  (replace-regexp-in-string (rx bol "foo" eol) "foobar" s)))))
+		  (replace-regexp-in-string
+		   (rx bol "foo" (? "\r") eol) "foobar" s)))))
+	    (unless (tramp--test-smb-p)
+	      (process-send-string proc "foo\n")
+	      (process-send-eof proc))
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (not (string-match-p "foobar" (buffer-string)))
@@ -5780,7 +5787,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 			 (process-buffer p)
 		       (insert
 			(replace-regexp-in-string
-			 (rx bol "foo" eol) "foobar" s))))
+			 (rx bol "foo" (? "\r") eol) "foobar" s))))
 		   :file-handler t))
 	    (should (processp proc))
 	    ;(should (equal (process-status proc) 'run))
