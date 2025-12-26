@@ -266,11 +266,7 @@ arguments to pass to the OPERATION."
   (with-parsed-tramp-file-name filename nil
     (tramp-convert-file-attributes v localname id-format
       (and
-       (tramp-adb-send-command-and-check
-	v (format "(%s -d -l %s; echo tramp_exit_status $?) | cat"
-		  (tramp-adb-get-ls-command v)
-		  (tramp-shell-quote-argument localname))
-        nil t)
+       (tramp-adb-do-ls v "-d -l" localname)
        (with-current-buffer (tramp-get-buffer v)
 	 (tramp-adb-sh-fix-ls-output)
 	 (cdar (tramp-do-parse-file-attributes-with-ls v)))))))
@@ -320,26 +316,21 @@ arguments to pass to the OPERATION."
   (tramp-skeleton-directory-files-and-attributes
       directory full match nosort id-format count
     (with-current-buffer (tramp-get-buffer v)
-      (when (tramp-adb-send-command-and-check
-	     v (format "(%s -a -l %s; echo tramp_exit_status $?) | cat"
-		       (tramp-adb-get-ls-command v)
-		       (tramp-shell-quote-argument localname))
-             nil t)
-	;; We insert also filename/. and filename/.., because "ls"
-	;; doesn't on some file systems, like "sdcard".
-	(unless (search-backward-regexp (rx "." eol) nil t)
-	  (narrow-to-region (point-max) (point-max))
-	  (tramp-adb-send-command
-	   v (format "%s -d -a -l %s %s | cat"
-		     (tramp-adb-get-ls-command v)
-		     (tramp-shell-quote-argument
-		      (file-name-concat localname "."))
-		     (tramp-shell-quote-argument
-		      (file-name-concat localname ".."))))
-	  (replace-regexp-in-region
-	   (rx (literal (file-name-unquote (file-name-as-directory localname))))
-	   "" (point-min))
-	  (widen)))
+      (save-restriction
+	(when (tramp-adb-do-ls v "-a -l" localname)
+	  ;; We insert also filename/. and filename/.., because "ls"
+	  ;; doesn't on some file systems, like "sdcard".
+	  (goto-char (point-max))
+	  (unless (search-backward-regexp (rx "." eol) nil t)
+	    (narrow-to-region (point-max) (point-max))
+	    (when (tramp-adb-do-ls
+		   v "-d -a -l"
+		   (file-name-concat localname ".")
+		   (file-name-concat localname ".."))
+	      (replace-regexp-in-region
+	       (rx
+		(literal (file-name-unquote (file-name-as-directory localname))))
+	       "" (point-min))))))
       (tramp-adb-sh-fix-ls-output)
       (tramp-do-parse-file-attributes-with-ls v))))
 
@@ -365,6 +356,24 @@ arguments to pass to the OPERATION."
        vec (concat "ls --color=never -al " (tramp-get-remote-null-device vec)))
       "ls --color=never")
      (t "ls"))))
+
+;; "ls" returns exit code 1 for permission problems and alike.  Ignore
+;; those messages.  (Bug#80054)
+(defun tramp-adb-do-ls (vec switches &rest filenames)
+  "Call \"ls\" on a remote adb device with SWITCHES.
+Return non-il if the call was successful.  Ignore return code 1 stderr
+output."
+  (ignore-errors
+    (and-let*
+	((ret (tramp-adb-send-command-and-check
+	       vec (format
+		    "(%s %s %s 2>%s; echo tramp_exit_status $?) | cat"
+		    (tramp-adb-get-ls-command vec) switches
+		    (mapconcat #'tramp-shell-quote-argument filenames " ")
+		    (tramp-get-remote-null-device vec))
+	       t t))
+	 ((natnump ret))
+	 ((<= ret 1))))))
 
 (defun tramp-adb-sh-fix-ls-output (&optional sort-by-time)
   "Insert dummy 0 in empty size columns.
@@ -446,22 +455,17 @@ Emacs dired can't find files."
      filename
      (with-parsed-tramp-file-name (expand-file-name directory) nil
        (with-tramp-file-property v localname "file-name-all-completions"
-	 (unless (tramp-adb-send-command-and-check
-		  v (format "(%s -a %s; echo tramp_exit_status $?) | cat"
-			    (tramp-adb-get-ls-command v)
-			    (tramp-shell-quote-argument localname))
-                  nil t)
-	   (erase-buffer))
-	 (mapcar
-	  (lambda (f)
-	    (if (file-directory-p (expand-file-name f directory))
-		(file-name-as-directory f)
-	      f))
-	  (with-current-buffer (tramp-get-buffer v)
-	    (mapcar
-	     (lambda (l)
-	       (and (not (string-match-p (rx bol (* blank) eol) l)) l))
-	     (split-string (buffer-string) "\n" 'omit)))))))))
+	 (when (tramp-adb-do-ls v "-a" localname)
+	   (mapcar
+	    (lambda (f)
+	      (if (file-directory-p (expand-file-name f directory))
+		  (file-name-as-directory f)
+	        f))
+	    (with-current-buffer (tramp-get-buffer v)
+	      (mapcar
+	       (lambda (l)
+	         (and (not (string-match-p (rx bol (* blank) eol) l)) l))
+	       (split-string (buffer-string) "\n" 'omit))))))))))
 
 (defun tramp-adb-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."

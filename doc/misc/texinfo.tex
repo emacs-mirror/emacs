@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2025-12-06.19}
+\def\texinfoversion{2025-12-23.13}
 %
 % Copyright 1985, 1986, 1988, 1990-2025 Free Software Foundation, Inc.
 %
@@ -10435,7 +10435,7 @@ directory should work if nowhere else does.}
   \gdefchar^^af{\={}}
   %
   \gdefchar^^b0{\textdegree}
-  \gdefchar^^b1{$\pm$}
+  \gdefchar^^b1{\ensuremath\pm}
   \gdefchar^^b2{$^2$}
   \gdefchar^^b3{$^3$}
   \gdefchar^^b4{\'{}}
@@ -10456,7 +10456,7 @@ directory should work if nowhere else does.}
   \gdefchar^^c2{\^A}
   \gdefchar^^c3{\~A}
   \gdefchar^^c4{\"A}
-  \gdefchar^^c5{\ringaccent A}
+  \gdefchar^^c5{\AA}
   \gdefchar^^c6{\AE}
   \gdefchar^^c7{\cedilla C}
   \gdefchar^^c8{\`E}
@@ -10475,7 +10475,7 @@ directory should work if nowhere else does.}
   \gdefchar^^d4{\^O}
   \gdefchar^^d5{\~O}
   \gdefchar^^d6{\"O}
-  \gdefchar^^d7{$\times$}
+  \gdefchar^^d7{\ensuremath\times}
   \gdefchar^^d8{\O}
   \gdefchar^^d9{\`U}
   \gdefchar^^da{\'U}
@@ -10490,7 +10490,7 @@ directory should work if nowhere else does.}
   \gdefchar^^e2{\^a}
   \gdefchar^^e3{\~a}
   \gdefchar^^e4{\"a}
-  \gdefchar^^e5{\ringaccent a}
+  \gdefchar^^e5{\aa}
   \gdefchar^^e6{\ae}
   \gdefchar^^e7{\cedilla c}
   \gdefchar^^e8{\`e}
@@ -10509,7 +10509,7 @@ directory should work if nowhere else does.}
   \gdefchar^^f4{\^o}
   \gdefchar^^f5{\~o}
   \gdefchar^^f6{\"o}
-  \gdefchar^^f7{$\div$}
+  \gdefchar^^f7{\ensuremath\div}
   \gdefchar^^f8{\o}
   \gdefchar^^f9{\`u}
   \gdefchar^^fa{\'u}
@@ -10595,7 +10595,7 @@ directory should work if nowhere else does.}
   \gdefchar^^d4{\^O}
   \gdefchar^^d5{\H O}
   \gdefchar^^d6{\"O}
-  \gdefchar^^d7{$\times$}
+  \gdefchar^^d7{\ensuremath\times}
   \gdefchar^^d8{\v R}
   \gdefchar^^d9{\ringaccent U}
   \gdefchar^^da{\'U}
@@ -10629,7 +10629,7 @@ directory should work if nowhere else does.}
   \gdefchar^^f4{\^o}
   \gdefchar^^f5{\H o}
   \gdefchar^^f6{\"o}
-  \gdefchar^^f7{$\div$}
+  \gdefchar^^f7{\ensuremath\div}
   \gdefchar^^f8{\v r}
   \gdefchar^^f9{\ringaccent u}
   \gdefchar^^fa{\'u}
