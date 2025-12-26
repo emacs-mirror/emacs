@@ -669,40 +669,201 @@ untar into a directory named DIR; otherwise, signal an error."
           (apply #'nconc
                  (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist))))
 
+(defcustom package-review-policy nil
+  "Policy to review incoming packages before installing them.
+Reviewing a package allows you to read the source code without
+installing anything, compare it to previous installations of the package
+and read the changelog.  The default value of nil will install packages
+without any additional prompts, while t reviews all packages.  By
+setting this user option to a list you can also selectively list what
+packages and archives to review.  For the former, an entry of the
+form (archive STRING) will review all packages form the archive
+STRING (see `package-archives'), and an entry of the form (package
+SYMBOL) will review package who's name matches SYMBOL.  By prefixing the
+list with a symbol `not' the rules are inverted."
+  :type
+  (let ((choice '(choice :tag "Review all packages form archive"
+                         (cons (const archive) (string :tag "Archive name"))
+                         (cons (const package) (symbol :tag "Package name")))))
+    `(choice
+      (const :tag "Review all packages" t)
+      (repeat :tag "Review these specific packages and archives" ,choice)
+      (cons :tag "Review the complement of these packages and archives"
+            (const not) (repeat ,choice))))
+  :risky t
+  :version "31.1")
+
+(defcustom package-review-directory temporary-file-directory
+  "Directory to unpack packages for review.
+The value of this user option is used to rebind the variable
+`temporary-file-directory'.  The directory doesn't have to exist.  If
+that is the case, Emacs creates the directory for you.  You can
+therefore set the option to
+
+  (setopt package-review-directory (expand-file-name \"emacs\" (xdg-cache-home)))
+
+if you wish to have Emacs unpack the packages in your home directory, in
+case you are concerned about moving files between file systems."
+  :type 'directory
+  :version "31.1")
+
+(defcustom package-review-diff-command
+  (cons diff-command
+        '("-u"                          ;unified patch formatting
+          "-N"                          ;treat absent files as empty
+          "-x" "'*.elc'"                ;ignore byte compiled files
+          "-x" "'*-autoloads.el'"       ;ignore the autoloads file
+          "-x" "'*-pkg.el'"             ;ignore the package description
+          "-x" "'*.info'"               ;ignore compiled Info files
+          ))
+  "Configuration how `package-review' should generate a Diff.
+The structure of the value must be (COMMAND . SWITCHES), where
+`diff-command' is rebound to be COMMAND and SWITCHES are passed to
+`diff' as the SWITCHES argument if the user selects a diff-related
+option during review."
+  :type '(cons (string :tag "Diff command")
+               (repeat :tag "Diff arguments" string))
+  :version "31.1")
+
+(defun package--review-p (pkg-desc)
+  "Return non-nil if upgrading PKG-DESC requires a review.
+This package consults `package-review-policy' to determine if the user
+wants to review the package prior to installation.  See `package-review'."
+  (let ((archive (package-desc-archive pkg-desc))
+        (name (package-desc-name pkg-desc)))
+    (pcase-exhaustive package-review-policy
+      ((and (pred listp) list)
+       (xor (any (lambda (ent)
+                   (pcase ent
+                     ((or `(archive . ,(pred (equal archive)))
+                          `(package . ,(pred (eq name))))
+	              t)
+                     (_ nil)))
+                 (if (eq (car list) 'not) (cdr list) list))
+            (eq (car list) 'not)))
+      ('t t))))
+
+
+(declare-function mail-text "sendmail" ())
+(declare-function message-goto-body "message" (&optional interactive))
+(declare-function diff-no-select "diff" (old new &optional switches no-async buf))
+
+(defun package-review (pkg-desc pkg-dir old-desc)
+  "Review the installation of PKG-DESC.
+PKG-DIR is the directory where the downloaded source of PKG-DIR have
+been downloaded.  OLD-DESC is either a `package-desc' object of the
+previous installation or nil, if there is no prior installation.  If the
+review fails, the function throws a symbol `review-failed' with PKG-DESC
+attached."
+  (let ((news (let* ((pkg-dir (package-desc-dir pkg-desc))
+                     (file (expand-file-name "news" pkg-dir)))
+                (and (file-regular-p file)
+                     (file-readable-p file)
+                     file)))
+        (enable-recursive-minibuffers t)
+        (diff-command (car package-review-diff-command)))
+    (while (pcase-exhaustive
+               (car (read-multiple-choice
+                     (format "Install \"%s\"?" (package-desc-name pkg-desc))
+                     `((?y "yes" "Proceed with installation")
+                       (?n "no" "Abort installation")
+                       ,@(and old-desc '((?d "diff" "Show the installation diff")
+                                         (?m "mail" "Send an email to the maintainers")))
+                       ,@(and news '((?c "changelog" "Show the changelog")))
+                       (?b "browse" "Browse the source"))))
+             (?y nil)
+             (?n
+              (delete-directory pkg-dir t)
+              (throw 'review-failed pkg-desc))
+             (?d
+              (diff (package-desc-dir old-desc) pkg-dir (cdr package-review-diff-command) t)
+              t)
+             (?m
+              (require 'diff)             ;for `diff-no-select'
+              (with-temp-buffer
+                (diff-no-select
+                 (package-desc-dir old-desc) pkg-dir
+                 (cdr package-review-diff-command)
+                 t (current-buffer))
+                ;; delete sentinel message
+                (goto-char (point-max))
+                (forward-line -2)
+                (narrow-to-region (point-min) (point))
+                ;; prepare mail buffer
+                (let ((tmp-buf (current-buffer)))
+                  (compose-mail (with-demoted-errors "Failed to find maintainers: %S"
+                                  (package-maintainers pkg-desc)))
+                  (pcase mail-user-agent
+                    ('sendmail-user-agent (mail-text))
+                    (_ (message-goto-body)))
+                  (insert-buffer-substring tmp-buf)))
+              t)
+             (?c
+              (view-file news)
+              t)
+             (?b
+              (dired pkg-dir "-R") ;FIXME: Is recursive dired portable?
+              t)))))
+
 (declare-function dired-get-marked-files "dired")
 
 (defun package-unpack (pkg-desc)
-  "Install the contents of the current buffer as a package."
+  "Install the contents of the current buffer as a package.
+The argument PKG-DESC contains metadata of the yet to be installed
+package.  The function returns a `package-desc' object of the actually
+installed package."
   (let* ((name (package-desc-name pkg-desc))
-         (dirname (package-desc-full-name pkg-desc))
-         (pkg-dir (expand-file-name dirname package-user-dir)))
-    (pcase (package-desc-kind pkg-desc)
-      ('dir
-       (make-directory pkg-dir t)
-       (let ((file-list
-              (or (and (derived-mode-p 'dired-mode)
-                       (dired-get-marked-files nil 'marked))
-                  (directory-files-recursively default-directory "" nil))))
-         (dolist (source-file file-list)
-           (let ((target (expand-file-name
-                          (file-relative-name source-file default-directory)
-                          pkg-dir)))
-             (make-directory (file-name-directory target) t)
-             (copy-file source-file target t)))
-         ;; Now that the files have been installed, this package is
-         ;; indistinguishable from a `tar' or a `single'. Let's make
-         ;; things simple by ensuring we're one of them.
-         (setf (package-desc-kind pkg-desc)
-               (if (length> file-list 1) 'tar 'single))))
-      ('tar
-       (make-directory package-user-dir t)
-       (let* ((default-directory (file-name-as-directory package-user-dir)))
-         (package-untar-buffer dirname)))
-      ('single
-       (let ((el-file (expand-file-name (format "%s.el" name) pkg-dir)))
-         (make-directory pkg-dir t)
-         (package--write-file-no-coding el-file)))
-      (kind (error "Unknown package kind: %S" kind)))
+         (full-name (package-desc-full-name pkg-desc))
+         (pkg-dir (expand-file-name full-name package-user-dir))
+         (review-p (package--review-p pkg-desc))
+         (unpack-dir (if review-p
+                         (let ((temporary-file-directory package-review-directory))
+                           (make-directory temporary-file-directory t) ;ensure existence
+                           (expand-file-name
+                            full-name
+                            (make-temp-file "emacs-package-review-" t)))
+                       pkg-dir))
+         (old-desc (package--get-activatable-pkg name)))
+    (make-directory unpack-dir t)
+    (save-window-excursion
+      (pcase (package-desc-kind pkg-desc)
+        ('dir
+         (let ((file-list
+                (or (and (derived-mode-p 'dired-mode)
+                         (dired-get-marked-files nil 'marked))
+                    (directory-files-recursively default-directory "" nil))))
+           (dolist (source-file file-list)
+             (let ((target (expand-file-name
+                            (file-relative-name source-file default-directory)
+                            unpack-dir)))
+               (make-directory (file-name-directory target) t)
+               (copy-file source-file target t)))
+           ;; Now that the files have been installed, this package is
+           ;; indistinguishable from a `tar' or a `single'. Let's make
+           ;; things simple by ensuring we're one of them.
+           (setf (package-desc-kind pkg-desc)
+                 (if (length> file-list 1) 'tar 'single))))
+        ('tar
+         (let ((default-directory (file-name-directory unpack-dir)))
+           (package-untar-buffer (file-name-nondirectory unpack-dir))))
+        ('single
+         (let ((el-file (expand-file-name (format "%s.el" name) unpack-dir)))
+           (package--write-file-no-coding el-file)))
+        (kind (error "Unknown package kind: %S" kind))))
+
+    ;; check if the user wants to review this package
+    (when review-p
+      (unwind-protect
+          (progn
+            (save-window-excursion
+              (package-review pkg-desc unpack-dir old-desc))
+            (make-directory package-user-dir t)
+            (rename-file unpack-dir pkg-dir))
+        (let ((temp-dir (file-name-directory unpack-dir)))
+          (when (file-directory-p temp-dir)
+            (delete-directory temp-dir t)))))
+    (cl-assert (file-directory-p pkg-dir))
+
     (package--make-autoloads-and-stuff pkg-desc pkg-dir)
     ;; Update package-alist.
     (let ((new-desc (package-load-descriptor pkg-dir)))
@@ -722,8 +883,9 @@ untar into a directory named DIR; otherwise, signal an error."
           (package--native-compile-async new-desc))
         ;; After compilation, load again any files loaded by
         ;; `activate-1', so that we use the byte-compiled definitions.
-        (package--reload-previously-loaded new-desc)))
-    pkg-dir))
+        (package--reload-previously-loaded new-desc))
+
+      new-desc)))
 
 (defun package-generate-description-file (pkg-desc pkg-file)
   "Create the foo-pkg.el file PKG-FILE for single-file package PKG-DESC."
@@ -1740,13 +1902,16 @@ if all the in-between dependencies are also in PACKAGE-LIST."
   (cdr (assoc (package-desc-archive desc) package-archives)))
 
 (defun package-install-from-archive (pkg-desc)
-  "Download and install a package defined by PKG-DESC."
+  "Download and install a package defined by PKG-DESC.
+The function returns the new `package-desc' object of the installed
+package."
   ;; This won't happen, unless the archive is doing something wrong.
   (when (eq (package-desc-kind pkg-desc) 'dir)
     (error "Can't install directory package from archive"))
   (let* ((location (package-archive-base pkg-desc))
          (file (concat (package-desc-full-name pkg-desc)
-                       (package-desc-suffix pkg-desc))))
+                       (package-desc-suffix pkg-desc)))
+         new-desc)
     (package--with-response-buffer location :file file
       (if (or (not (package-check-signature))
               (member (package-desc-archive pkg-desc)
@@ -1754,7 +1919,7 @@ if all the in-between dependencies are also in PACKAGE-LIST."
           ;; If we don't care about the signature, unpack and we're
           ;; done.
           (let ((save-silently t))
-            (package-unpack pkg-desc))
+            (setq new-desc (package-unpack pkg-desc)))
         ;; If we care, check it and *then* write the file.
         (let ((content (buffer-string)))
           (package--check-signature
@@ -1767,7 +1932,7 @@ if all the in-between dependencies are also in PACKAGE-LIST."
                (cl-assert (not (multibyte-string-p content)))
                (insert content)
                (let ((save-silently t))
-                 (package-unpack pkg-desc)))
+                 (setq new-desc (package-unpack pkg-desc))))
              ;; Here the package has been installed successfully, mark it as
              ;; signed if appropriate.
              (when good-sigs
@@ -1798,15 +1963,27 @@ if all the in-between dependencies are also in PACKAGE-LIST."
           (unless (save-excursion
                     (goto-char (point-min))
                     (looking-at-p "[[:space:]]*\\'"))
-            (write-region nil nil readme)))))))
+            (write-region nil nil readme)))))
+    new-desc))
 
 (defun package-download-transaction (packages)
   "Download and install all the packages in PACKAGES.
-PACKAGES should be a list of `package-desc'.
-This function assumes that all package requirements in
-PACKAGES are satisfied, i.e. that PACKAGES is computed
-using `package-compute-transaction'."
-  (mapc #'package-install-from-archive packages))
+PACKAGES should be a list of `package-desc'.  This function assumes that
+all package requirements in PACKAGES are satisfied, i.e. that PACKAGES
+is computed using `package-compute-transaction'.  The function returns a
+list of `package-desc' objects that have been installed, or nil if the
+transaction had no effect."
+  (let* ((installed '())
+         (pkg-desc (catch 'review-failed
+                     (dolist (pkg-desc packages nil)
+                       (push (package-install-from-archive pkg-desc)
+                             installed)))))
+    (if pkg-desc
+        (progn
+          (message "Rejected `%s', reverting transaction." (package-desc-name pkg-desc))
+          (mapc #'package-delete installed)
+          nil)
+      installed)))
 
 (defun package--archives-initialize ()
   "Make sure the list of installed and remote packages are initialized."
@@ -1855,6 +2032,10 @@ had been enabled."
            nil
            'interactive)))
   (cl-check-type pkg (or symbol package-desc))
+  (when (or (and package-install-upgrade-built-in
+                 (package--active-built-in-p pkg))
+            (package-installed-p pkg))
+    (user-error "Package is already installed"))
   (package--archives-initialize)
   (add-hook 'post-command-hook #'package-menu--post-refresh)
   (let ((name (if (package-desc-p pkg)
@@ -1877,11 +2058,11 @@ had been enabled."
                        (package-compute-transaction (list pkg)
                                                     (package-desc-reqs pkg)))
                    (package-compute-transaction () (list (list pkg))))))
-          (progn
-            (package-download-transaction transaction)
-            (package--quickstart-maybe-refresh)
-            (message  "Package `%s' installed." name))))))
-
+          (if (package-download-transaction transaction)
+              (progn
+                (package--quickstart-maybe-refresh)
+                (message  "Package `%s' installed" name))
+            (error  "Package `%s' not installed" name))))))
 
 (declare-function package-vc-upgrade "package-vc" (pkg))
 
@@ -1900,12 +2081,17 @@ NAME should be a symbol."
     ;; `pkg-desc' will be nil when the package is an "active built-in".
     (if (and pkg-desc (package-vc-p pkg-desc))
         (package-vc-upgrade pkg-desc)
-      (when pkg-desc
-        (package-delete pkg-desc 'force 'dont-unselect))
-      (package-install name
-                       ;; An active built-in has never been "selected"
-                       ;; before.  Mark it as installed explicitly.
-                       (and pkg-desc 'dont-select)))))
+      (let ((new-desc (cadr (assq name package-archive-contents))))
+        (when (or (null new-desc)
+                  (version-list-= (package-desc-version pkg-desc)
+                                  (package-desc-version new-desc)))
+          (user-error "Cannot upgrade `%s'" name))
+        (package-install new-desc
+                         ;; An active built-in has never been "selected"
+                         ;; before.  Mark it as installed explicitly.
+                         (and pkg-desc 'dont-select))
+        (when pkg-desc
+          (package-delete pkg-desc 'force 'dont-unselect))))))
 
 (defun package--upgradeable-packages (&optional include-builtins)
   ;; Initialize the package system to get the list of package
@@ -2040,10 +2226,20 @@ Downloads and installs required packages as needed."
          (name (package-desc-name pkg-desc)))
     ;; Download and install the dependencies.
     (let* ((requires (package-desc-reqs pkg-desc))
-           (transaction (package-compute-transaction nil requires)))
-      (package-download-transaction transaction))
-    ;; Install the package itself.
-    (package-unpack pkg-desc)
+           (transaction (package-compute-transaction nil requires))
+           (installed (package-download-transaction transaction)))
+      (when (and (catch 'review-failed
+                   ;; Install the package itself.
+                   (package-unpack pkg-desc)
+                   nil)
+                 (or (null transaction) installed))
+        (mapc #'package-delete installed)
+        (when installed
+          (message "Review uninstalled dependencies: %s"
+                   (mapconcat #'package-desc-full-name
+                              installed
+                              ", ")))
+        (user-error "Installation aborted")))
     (unless (package--user-selected-p name)
       (package--save-selected-packages
        (cons name package-selected-packages)))

@@ -2827,6 +2827,14 @@ packages.
 ---
 *** Uninstalling a package now removes its directory from 'load-path'.
 
++++
+*** Packages can be reviewed before installation or upgrade.
+The user option 'package-review-policy' can configure which packages
+the user should be allowed to review before any processing takes place.
+The package review can include reading the downloaded source code,
+presenting a diff between the downloaded code and a previous
+installation or displaying a changelog.
+
 ** Rcirc
 
 +++
