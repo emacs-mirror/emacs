@@ -307,75 +307,27 @@ omitted from the result.
 
 If the optional argument @var{trim} is non-@code{nil}, it should be a
 regular expression to match text to trim from the beginning and end of
-each substring.  If trimming makes the substring empty, it is treated
-as null.
+each substring.  Trimming may make the substring empty and omitted from
+the result if @var{omit-nulls} is @code{t} as above.
 
 If you need to split a string into a list of individual command-line
 arguments suitable for @code{call-process} or @code{start-process},
 see @ref{Shell Arguments, split-string-and-unquote}.
 
+Do not use a value for @var{separators} that matches the empty string,
+or the results will be unpredictable.  To split a string into individual
+characters, use @code{string-to-list} or @code{string-to-vector}.
+
 Examples:
 
 @example
-(split-string "  two words ")
-     @result{} ("two" "words")
-@end example
-
-The result is not @code{("" "two" "words" "")}, which would rarely be
-useful.  If you need such a result, use an explicit value for
-@var{separators}:
-
-@example
-(split-string "  two words "
-              split-string-default-separators)
-     @result{} ("" "two" "words" "")
-@end example
-
-@example
-(split-string "Soup is good food" "o")
-     @result{} ("S" "up is g" "" "d f" "" "d")
-(split-string "Soup is good food" "o" t)
-     @result{} ("S" "up is g" "d f" "d")
-(split-string "Soup is good food" "o+")
-     @result{} ("S" "up is g" "d f" "d")
-@end example
-
-Empty matches do count, except that @code{split-string} will not look
-for a final empty match when it already reached the end of the string
-using a non-empty match or when @var{string} is empty:
-
-@example
-(split-string "aooob" "o*")
-     @result{} ("" "a" "" "b" "")
-(split-string "ooaboo" "o*")
-     @result{} ("" "" "a" "b" "")
-(split-string "" "")
-     @result{} ("")
-@end example
-
-However, when @var{separators} can match the empty string,
-@var{omit-nulls} is usually @code{t}, so that the subtleties in the
-three previous examples are rarely relevant:
-
-@example
-(split-string "Soup is good food" "o*" t)
-     @result{} ("S" "u" "p" " " "i" "s" " " "g" "d" " " "f" "d")
-(split-string "Nice doggy!" "" t)
-     @result{} ("N" "i" "c" "e" " " "d" "o" "g" "g" "y" "!")
-(split-string "" "" t)
-     @result{} nil
-@end example
-
-Somewhat odd, but predictable, behavior can occur for certain
-``non-greedy'' values of @var{separators} that can prefer empty
-matches over non-empty matches.  Again, such values rarely occur in
-practice:
-
-@example
-(split-string "ooo" "o*" t)
-     @result{} nil
-(split-string "ooo" "\\|o+" t)
-     @result{} ("o" "o" "o")
+@group
+(split-string "  one  two   ")            @result{} ("one" "two")
+(split-string "one::two:" ":")            @result{} ("one" "" "two" "")
+(split-string "one::two:" ":+")           @result{} ("one" "two" "")
+(split-string "one::two:" ":" t)          @result{} ("one" "two")
+(split-string "one: : two : " ":" t " +") @result{} ("one" "two")
+@end group
 @end example
 @end defun
 

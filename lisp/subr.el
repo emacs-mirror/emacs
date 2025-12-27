@@ -5883,6 +5883,7 @@ If SEPARATORS is non-nil, it should be a regular expression matching text
 that separates, but is not part of, the substrings.  If omitted or nil,
 it defaults to `split-string-default-separators', whose value is
 normally \"[ \\f\\t\\n\\r\\v]+\", and OMIT-NULLS is then forced to t.
+SEPARATORS should never be a regexp that matches the empty string.
 
 If OMIT-NULLS is t, zero-length substrings are omitted from the list (so
 that for the default value of SEPARATORS leading and trailing whitespace
