@@ -80,6 +80,21 @@ list with a symbol `not' the rules are inverted."
   :version "31.1"
   :group 'package)
 
+(defcustom package-review-directory temporary-file-directory
+  "Directory to unpack packages for review.
+The value of this user option is used to rebind the variable
+`temporary-file-directory'.  The directory doesn't have to exist.  If
+that is the case, Emacs creates the directory for you.  You can
+therefore set the option to
+
+  (setopt package-review-directory (expand-file-name \"emacs\" (xdg-cache-home)))
+
+if you wish to have Emacs unpack the packages in your home directory, in
+case you are concerned about moving files between file systems."
+  :type 'directory
+  :version "31.1"
+  :group 'package)
+
 (defun package-compute-transaction (packages requirements &optional seen)
   "Return a list of packages to be installed, including PACKAGES.
 PACKAGES should be a list of `package-desc'.
@@ -1125,12 +1140,11 @@ installed package."
          (pkg-dir (expand-file-name full-name package-user-dir))
          (review-p (package-review-p pkg-desc))
          (unpack-dir (if review-p
-                         (let* ((temporary-file-directory
-                                 (progn
-                                   (require 'xdg)
-                                   (xdg-cache-home)))
-                                (tmp (make-temp-file "package-review" t)))
-                           (expand-file-name full-name tmp))
+                         (let ((temporary-file-directory package-review-directory))
+                           (make-directory temporary-file-directory t) ;ensure existence
+                           (expand-file-name
+                            full-name
+                            (make-temp-file "emacs-package-review-" t)))
                        pkg-dir))
          (old-desc (package--get-activatable-pkg name)))
     (make-directory unpack-dir t)
