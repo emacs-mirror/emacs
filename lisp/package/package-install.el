@@ -1115,7 +1115,7 @@ attached."
                      `((?y "yes" "Proceed with installation")
                        (?n "no" "Abort installation")
                        ,@(and old-desc '((?d "diff" "Show the installation diff")
-                                         (?m "mail" "Send an email to the mainta")))
+                                         (?m "mail" "Send an email to the maintainers")))
                        ,@(and news '((?c "changelog" "Show the changelog")))
                        (?b "browse" "Browse the source"))))
              (?y nil)
