@@ -1176,10 +1176,18 @@ installed package."
 
     ;; check if the user wants to review this package
     (when review-p
-      (save-window-excursion
-        (package-review pkg-desc unpack-dir old-desc))
-      (make-directory package-user-dir t)
-      (rename-file unpack-dir pkg-dir))
+      (unwind-protect
+          (progn
+            (save-window-excursion
+              (package-review pkg-desc unpack-dir old-desc))
+            (make-directory package-user-dir t)
+            (rename-file unpack-dir pkg-dir))
+        (letrec ((hook (lambda ()
+                         (let ((temp-dir (file-name-directory unpack-dir)))
+                           (when (file-directory-p temp-dir)
+                             (delete-directory temp-dir t)))
+                         (remove-hook 'post-command-hook hook))))
+          (add-hook 'post-command-hook hook))))
     (cl-assert (file-directory-p pkg-dir))
 
     (package--make-autoloads-and-stuff pkg-desc pkg-dir)
