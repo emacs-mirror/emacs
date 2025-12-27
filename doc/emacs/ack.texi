@@ -1424,6 +1424,10 @@ Rodney Whitby and Reto Zimmermann wrote @file{vhdl-mode.el}, a major
 mode for editing VHDL source code.
 
 @item
+Sean Whitton was the Emacs (co-)maintainer from Emacs 31.1 onwards, and
+wrote many extensions and new features for VC.
+
+@item
 John Wiegley was the Emacs (co-)maintainer from Emacs 25 to 29.1.  He
 wrote @file{align.el}, a set of commands for aligning text according
 to regular-expression based rules; @file{isearchb.el} for fast buffer
