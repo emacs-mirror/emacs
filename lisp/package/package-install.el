@@ -1097,6 +1097,11 @@ wants to review the package prior to installation.  See `package-review'."
             (eq (car list) 'not)))
       ('t t))))
 
+(declare-function mail-text "sendmail" ())
+(declare-function message-goto-body "message" (&optional interactive))
+(declare-function package-maintainers "package-describe" (pkg-desc &optional no-error))
+(declare-function diff-no-select "diff" (old new &optional switches no-async buf))
+
 (defun package-review (pkg-desc pkg-dir old-desc)
   "Review the installation of PKG-DESC.
 PKG-DIR is the directory where the downloaded source of PKG-DIR have
@@ -1127,6 +1132,8 @@ attached."
               (diff (package-desc-dir old-desc) pkg-dir package-review-diff-switches t)
               t)
              (?m
+              (require 'package-describe) ;for `package-maintainers'
+              (require 'diff)             ;for `diff-no-select'
               (with-temp-buffer
                 (diff-no-select
                  (package-desc-dir old-desc) pkg-dir
