@@ -544,8 +544,8 @@ NAME should be a symbol."
         (package-vc-upgrade pkg-desc)
       (let ((new-desc (cadr (assq name package-archive-contents))))
         (when (or (null new-desc)
-                  (version= (package-desc-version pkg-desc)
-                            (package-desc-version new-desc)))
+                  (version-list-= (package-desc-version pkg-desc)
+                                  (package-desc-version new-desc)))
           (user-error "Cannot upgrade `%s'" name))
         (package-install new-desc
                          ;; An active built-in has never been "selected"
