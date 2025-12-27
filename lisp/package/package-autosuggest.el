@@ -28,7 +28,6 @@
 ;;; Code:
 
 (require 'package-core)
-(require 'package-install)
 
 (defgroup package-autosuggest nil
   "Automatic suggestion of relevant packages."
