@@ -289,7 +289,7 @@ string to be used as a shell command, see @ref{Shell Arguments,
 combine-and-quote-strings}.
 @end defun
 
-@defun split-string string &optional separators omit-nulls trim
+@defun split-string string &optional separators omit-empty trim
 This function splits @var{string} into substrings based on the regular
 expression @var{separators} (@pxref{Regular Expressions}).  Each match
 for @var{separators} defines a splitting point; the substrings between
@@ -297,18 +297,18 @@ splitting points are made into a list, which is returned.
 
 If @var{separators} is @code{nil} (or omitted), the default is the
 value of @code{split-string-default-separators} and the function
-behaves as if @var{omit-nulls} were @code{t}.
+behaves as if @var{omit-empty} were @code{t}.
 
-If @var{omit-nulls} is @code{nil} (or omitted), the result contains
-null strings whenever there are two consecutive matches for
+If @var{omit-empty} is @code{nil} (or omitted), the result contains
+empty strings whenever there are two consecutive matches for
 @var{separators}, or a match is adjacent to the beginning or end of
-@var{string}.  If @var{omit-nulls} is @code{t}, these null strings are
+@var{string}.  If @var{omit-empty} is @code{t}, these empty strings are
 omitted from the result.
 
 If the optional argument @var{trim} is non-@code{nil}, it should be a
 regular expression to match text to trim from the beginning and end of
 each substring.  Trimming may make the substring empty and omitted from
-the result if @var{omit-nulls} is @code{t} as above.
+the result if @var{omit-empty} is @code{t} as above.
 
 If you need to split a string into a list of individual command-line
 arguments suitable for @code{call-process} or @code{start-process},
@@ -387,9 +387,9 @@ display purposes; use @code{truncate-string-to-width} or
 (@pxref{Size of Displayed Text}).
 @end defun
 
-@defun string-lines string &optional omit-nulls keep-newlines
+@defun string-lines string &optional omit-empty keep-newlines
 Split @var{string} into a list of strings on newline boundaries.  If
-the optional argument @var{omit-nulls} is non-@code{nil}, remove empty
+the optional argument @var{omit-empty} is non-@code{nil}, remove empty
 lines from the results.  If the optional argument @var{keep-newlines}
 is non-@code{nil}, don't remove the trailing newlines from the result
 strings.

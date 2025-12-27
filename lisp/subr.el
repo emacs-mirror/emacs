@@ -5867,11 +5867,7 @@ A regexp matching strings of whitespace.  May be locale-dependent
 Warning: binding this to a different value and using it as default is
 likely to have undesired semantics.")
 
-;; The specification says that if both SEPARATORS and OMIT-NULLS are
-;; defaulted, OMIT-NULLS should be treated as t.  Simplifying the logical
-;; expression leads to the equivalent implementation that if SEPARATORS
-;; is defaulted, OMIT-NULLS is treated as t.
-(defun split-string (string &optional separators omit-nulls trim)
+(defun split-string (string &optional separators omit-empty trim)
   "Split STRING into substrings bounded by matches for SEPARATORS.
 
 The beginning and end of STRING, and each match for SEPARATORS, are
@@ -5882,17 +5878,17 @@ which is returned.
 If SEPARATORS is non-nil, it should be a regular expression matching text
 that separates, but is not part of, the substrings.  If omitted or nil,
 it defaults to `split-string-default-separators', whose value is
-normally \"[ \\f\\t\\n\\r\\v]+\", and OMIT-NULLS is then forced to t.
+normally \"[ \\f\\t\\n\\r\\v]+\", and OMIT-EMPTY is then forced to t.
 SEPARATORS should never be a regexp that matches the empty string.
 
-If OMIT-NULLS is t, zero-length substrings are omitted from the list (so
+If OMIT-EMPTY is t, zero-length substrings are omitted from the list (so
 that for the default value of SEPARATORS leading and trailing whitespace
 are effectively trimmed).  If nil, all zero-length substrings are retained,
 which correctly parses CSV format, for example.
 
 If TRIM is non-nil, it should be a regular expression to match
 text to trim from the beginning and end of each substring.  If trimming
-makes the substring empty, it is treated as null.
+makes the substring empty and OMIT-EMPTY is t, it is dropped from the result.
 
 Note that the effect of `(split-string STRING)' is the same as
 `(split-string STRING split-string-default-separators t)'.  In the rare
@@ -5901,7 +5897,7 @@ whitespace, use `(split-string STRING split-string-default-separators)'.
 
 Modifies the match data; use `save-match-data' if necessary."
   (declare (important-return-value t))
-  (let* ((keep-empty (and separators (not omit-nulls)))
+  (let* ((keep-empty (and separators (not omit-empty)))
 	 (len (length string))
          (trim-left-re (and trim (concat "\\`\\(?:" trim "\\)")))
          (trim-right-re (and trim (concat "\\(?:" trim "\\)\\'")))
@@ -7751,14 +7747,14 @@ is inserted before adjusting the number of empty lines."
      ((< (- (point) start) lines)
       (insert (make-string (- lines (- (point) start)) ?\n))))))
 
-(defun string-lines (string &optional omit-nulls keep-newlines)
+(defun string-lines (string &optional omit-empty keep-newlines)
   "Split STRING into a list of lines.
-If OMIT-NULLS, empty lines will be removed from the results.
+If OMIT-EMPTY, empty lines will be removed from the results.
 If KEEP-NEWLINES, don't strip trailing newlines from the result
 lines."
   (declare (side-effect-free t))
   (if (equal string "")
-      (if omit-nulls
+      (if omit-empty
           nil
         (list ""))
     (let ((lines nil)
@@ -7767,13 +7763,13 @@ lines."
         (let ((newline (string-search "\n" string start)))
           (if newline
               (progn
-                (when (or (not omit-nulls)
+                (when (or (not omit-empty)
                           (not (= start newline)))
                   (let ((line (substring string start
                                          (if keep-newlines
                                              (1+ newline)
                                            newline))))
-                    (when (not (and keep-newlines omit-nulls
+                    (when (not (and keep-newlines omit-empty
                                     (equal line "\n")))
                       (push line lines))))
                 (setq start (1+ newline)))

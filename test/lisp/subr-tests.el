@@ -1582,7 +1582,7 @@ final or penultimate step during initialization."))
                                ",+" t "-+")
                  '("A" "B" "C---D")))
 
-  ;; default SEPARATORS forces OMIT-NULLS to `t'
+  ;; default SEPARATORS forces OMIT-EMPTY to `t'
   (should (equal (split-string " \nAB\tCDE\f\r\fF  \f\v")
                  '("AB" "CDE" "F")))
 
