@@ -95,6 +95,14 @@ case you are concerned about moving files between file systems."
   :version "31.1"
   :group 'package)
 
+(defcustom package-review-diff-switches "-Nu"
+  "A string or list of strings specifying switches.
+These are passed to `diff' as the SWITCHES argument if the user selects
+a diff-related option during review."
+  :type '(choice string (repeat string))
+  :version "31.1"
+  :group 'package)
+
 (defun package-compute-transaction (packages requirements &optional seen)
   "Return a list of packages to be installed, including PACKAGES.
 PACKAGES should be a list of `package-desc'.
@@ -1115,13 +1123,14 @@ attached."
               (delete-directory pkg-dir t)
               (throw 'review-failed pkg-desc))
              (?d
-              (diff (package-desc-dir old-desc) pkg-dir nil t)
+              (diff (package-desc-dir old-desc) pkg-dir package-review-diff-switches t)
               t)
              (?m
               (with-temp-buffer
                 (diff-no-select
                  (package-desc-dir old-desc) pkg-dir
-                 nil t (current-buffer))
+                 package-review-diff-switches
+                 t (current-buffer))
                 ;; delete sentinel message
                 (goto-char (point-max))
                 (forward-line -2)
