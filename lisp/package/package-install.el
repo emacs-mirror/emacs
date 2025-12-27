@@ -1142,7 +1142,7 @@ attached."
                 ;; delete sentinel message
                 (goto-char (point-max))
                 (forward-line -2)
-                (delete-region (point) (point-max))
+                (narrow-to-region (point-min) (point))
                 ;; prepare mail buffer
                 (let ((tmp-buf (current-buffer)))
                   (compose-mail (with-demoted-errors "Failed to find maintainers: %S"
