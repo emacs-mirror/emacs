@@ -5900,62 +5900,66 @@ whitespace, use `(split-string STRING split-string-default-separators)'.
 
 Modifies the match data; use `save-match-data' if necessary."
   (declare (important-return-value t))
-  (let* ((keep-nulls (not (if separators omit-nulls t)))
-	 (rexp (or separators split-string-default-separators))
-	 (start 0)
-	 this-start this-end
-	 notfirst
-         match-beg
-	 (list nil)
-         (strlen (length string))
-	 (push-one
-	  ;; Push the substring in range THIS-START to THIS-END
-	  ;; onto LIST, trimming it and perhaps discarding it.
-	  (lambda ()
-	    (when trim
-	      ;; Discard the trim from start of this substring.
-	      (let ((tem (string-match trim string this-start)))
-		(and (eq tem this-start)
-                     (<= (match-end 0) this-end)
-		     (setq this-start (match-end 0)))))
-
-	    (when (or keep-nulls (< this-start this-end))
-	      (let ((this (substring string this-start this-end)))
-
-		;; Discard the trim from end of this substring.
-		(when trim
-		  (let ((tem (string-match (concat trim "\\'") this 0)))
-		    (and tem (< tem (length this))
-			 (setq this (substring this 0 tem)))))
-
-		;; Trimming could make it empty; check again.
-		(when (or keep-nulls (plusp (length this)))
-		  (push this list)))))))
-
-    (while (and (string-match rexp string
-			      (if (and notfirst
-				       (= start match-beg) ; empty match
-				       (< start strlen))
-				  (1+ start) start))
-		(< start strlen))
-      (setq notfirst t
-            match-beg (match-beginning 0))
-      ;; If the separator is right at the beginning, produce an empty
-      ;; substring in the result list.
-      (if (= start match-beg)
-          (setq this-start (match-end 0)
-                this-end this-start)
-        ;; Otherwise produce a substring from start to the separator.
-        (setq this-start start this-end match-beg))
-      (setq start (match-end 0))
-
-      (funcall push-one))
-
-    ;; Handle the substring at the end of STRING.
-    (setq this-start start this-end strlen)
-    (funcall push-one)
-
-    (nreverse list)))
+  (let* ((keep-empty (and separators (not omit-nulls)))
+	 (len (length string))
+         (trim-left-re (and trim (concat "\\`\\(?:" trim "\\)")))
+         (trim-right-re (and trim (concat "\\(?:" trim "\\)\\'")))
+         (sep-re (or separators split-string-default-separators))
+         (acc nil)
+         (next 0)
+         (start 0))
+    (while
+        ;; TODO: The semantics for empty matches are just a copy of
+        ;; the original code and make no sense at all. It's just a
+        ;; consequence of the original implementation, no thought behind it.
+        ;; We should probably error on empty matches, except when
+        ;; sep is "" (which is in use by some code) but in that case
+        ;; we could provide a faster implementation.
+        (let ((sep (string-match sep-re string next)))
+          (and sep
+               (let ((sep-end (match-end 0)))
+                 (when (or keep-empty (< start sep))
+                   ;; TODO: Ideally we'd be able to trim in the
+                   ;; original string and only make a substring after
+                   ;; doing so, but there is no way to bound a regexp
+                   ;; search before a certain offset, nor to anchor it
+                   ;; at the search boundaries.
+                   (let ((item (substring string start sep)))
+                     (if trim
+                         (let* ((item-beg
+                                 (if (string-match trim-left-re item 0)
+                                     (match-end 0)
+                                   0))
+                                (item-len (length item))
+                                (item-end
+                                 (or (string-match-p trim-right-re
+                                                     item item-beg)
+                                     item-len)))
+                           (when (or (> item-beg 0) (< item-end item-len))
+                             (setq item (substring item item-beg item-end)))
+                           (when (or keep-empty (< item-beg item-end))
+                             (push item acc)))
+                       (push item acc))))
+                 ;; This ensures progress in case the match was empty.
+                 (setq next (max (1+ next) sep-end))
+                 (setq start sep-end)
+                 (< start len)))))
+    ;; field after last separator, if any
+    (let ((item (if (= start 0)
+                    string    ; optimisation when there is no separator
+                  (substring string start))))
+      (when trim
+        (let* ((item-beg (if (string-match trim-left-re item 0)
+                             (match-end 0)
+                           0))
+               (item-len (length item))
+               (item-end (or (string-match-p trim-right-re item item-beg)
+                             item-len)))
+          (when (or (> item-beg 0) (< item-end item-len))
+            (setq item (substring item item-beg item-end)))))
+      (when (or keep-empty (not (equal item "")))
+        (push item acc)))
+    (nreverse acc)))
 
 (defalias 'string-split #'split-string)
 
