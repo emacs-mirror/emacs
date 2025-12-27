@@ -1647,11 +1647,12 @@ follows:
 @group
 (require 'skeleton)
 
-(define-skeleton simple-vevent
+(defun simple-vevent (_)
   "Format a VEVENT summary and location on a single line"
-  nil
-  start-to-end & " " & summary & " "
-  (when location "@@ ") & location "\n")
+  (skeleton-insert
+    '(nil
+      ical-start-to-end & " " & ical-summary & " "
+      (when ical-location "@@ ") & ical-location "\n")))
 
 (setopt diary-icalendar-vevent-format-function #'simple-vevent)
 @end group

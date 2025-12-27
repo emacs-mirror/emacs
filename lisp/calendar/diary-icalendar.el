@@ -99,7 +99,7 @@ The value must be a valid format string for `format-time-string'; see
 its docstring for more information.  The value only needs to format clock
 times, and should format them in a way that will be recognized by
 `diary-time-regexp'.  (Date information is formatted separately at the
-start of the imported entry.) Examples:
+start of the imported entry.)  Examples:
 
   \"%H:%M\" - 24-hour, 0-padded: 09:00 or 21:00
   \"%k.%Mh\" - 24-hour, blank-padded: 9.00h or 21.00h
@@ -116,36 +116,21 @@ This should be a function which inserts information about an
 express such a function as a skeleton; see `define-skeleton' and
 `skeleton-insert' for more information.
 
-The function will be called with no arguments and should insert
-information about the attendee into the current buffer.
+The function will be called with one argument, ATTENDEE, which will be
+an `icalendar-attendee' syntax node.  It should insert information about
+the attendee into the current buffer.  See `icalendar-with-property' for
+a convenient way to bind the data in ATTENDEE.
 
-The following variables will be (dynamically) bound when the function is
-called.  All values will be strings (unless another type is noted), or
-nil:
+For convenience when writing this function as a skeleton, the following
+variables will also be (dynamically) bound when the function is called.
+All values will be strings (unless another type is noted), or nil:
 
-address - the attendee's calendar address, with \"mailto:\" removed
-full-address - the attendee's calendar address, with nothing removed
-cn - the attendee's common name (`icalendar-cnparam')
-dir - URL of attendee's directory entry (`icalendar-directoryparam')
-cutype - the attendee's user type (`icalendar-cutypeparam')
-language - a language abbreviation (`icalendar-languageparam')
-role - the attendee's role in the event (`icalendar-roleparam')
-partstat - the attendee's participation status (`icalendar-partstatparam')
-rsvp - whether an RSVP is requested (`icalendar-rsvpparam')
-member-addresses (list of strings) - any groups/lists where the attendee
-  is a member (`icalendar-memberparam'), with \"mailto:\" removed
-member-full-addresses - like member-addresses, but nothing removed
-delfrom-addresses (list of strings) - addresses of users who delegated
-  their participation to the attendee (`icalendar-delfromparam'), with
-  \"mailto:\" removed
-delfrom-full-addresses - like delfrom-addresses, but nothing removed
-delto-addresses (list of strings) - addresses of users to whom the
-  attendee delegated participation (`icalendar-deltoparam'), with
-  \"mailto:\" removed
-delto-full-addresses - like delto-addresses, but nothing removed
-sentby-address - address of user who sent the invitation on someone
-  else's behalf (`icalendar-sentbyparam'), with \"mailto:\" removed
-sentby-full-address - like sentby-address, but nothing removed"
+`attendee-address' - address, with \"mailto:\" removed
+`attendee-cn' - common name (`icalendar-cnparam')
+`attendee-cutype' - calendar user type (`icalendar-cutypeparam')
+`attendee-role' - role in the event (`icalendar-roleparam')
+`attendee-partstat' - participation status (`icalendar-partstatparam')
+`attendee-rsvp' - whether an RSVP is requested (`icalendar-rsvpparam')"
   :version "31.1"
   :type '(radio (function-item di:attendee-skeleton)
                 (function :tag "Other function")))
@@ -168,81 +153,60 @@ listed in diary entries."
 (defcustom di:vevent-format-function #'di:vevent-skeleton
   "Function to format VEVENT components for the diary.
 
-This function is called with no arguments and should insert information
-about an `icalendar-vevent' into the current buffer.  It is convenient
-to express such a function as a skeleton; see `define-skeleton' and
-`skeleton-insert' for more information.
+This function is called with one argument VEVENT, an `icalendar-vevent'.
+It should insert formatted data from this event into the current buffer.
+It is convenient to express such a function as a skeleton; see
+`define-skeleton' and `skeleton-insert' for more information.  See
+`icalendar-with-component' for a convenient way to bind the data in
+VEVENT.
 
-The following variables will be bound when the function is called.
-All values will be strings unless another type is noted, or nil:
+For convenience when writing this function as a skeleton, the following
+variables will be (dynamically) bound when the function is called.  All
+values will be strings unless another type is noted, or nil:
 
-alarms (list of `icalendar-valarm' nodes) - notifications in the event
-as-alarm (symbol) - non-nil when the event should be formatted for an
+`ical-as-alarm' (symbol) - non-nil when the event should be formatted for an
   alarm notification in advance of the event.  The symbol indicates the
   type of alarm: `email' means to format the event as the body of an email.
   (Currently only used for EMAIL alarms; see `diary-icalendar-export-alarms'.)
-attachments (list of strings) - URLs or filenames of attachments in the event
-attendees (list of strings) - the participants of the event,
+`ical-attachments' (list of strings) - URLs or filenames of attachments
+  in the event
+`ical-attendees' (list of strings) - the participants of the event,
   formatted by `diary-icalendar-attendee-format-function'
-categories (list of strings) - categories specified in the event
-access - the event's access classification
-comments (list of strings) - comments specified in the event
-created-dt (an `icalendar-date-time' value) - when the event was created
-created - created-dt, formatted as a local date-time string
-description - the event's description
-dtstart (an `icalendar-date' or `icalendar-date-time' value) - when the event
-  starts
-dtend (an `icalendar-date' or `icalendar-date-time' value) - when the
-  event ends; this is either the value of the `icalendar-dtend'
-  property, or the end time calculated by adding the event's
-  `icalendar-duration' to its `icalendar-dtstart' properties
-start - start date and time in a single string.  When importing,
+`ical-categories' (list of strings) - categories specified in the event
+`ical-access' - the event's access classification
+`ical-comments' (list of strings) - comments specified in the event
+`ical-description' - the event's description
+`ical-start' - start date and time in a single string.  When importing,
   includes the date, otherwise just the (local) time.
-end - end date and time in a single string.  When importing,
+`ical-end' - end date and time in a single string.  When importing,
   includes the date, otherwise just the (local) time.
-start-to-end - a single string containing both start and end date and
+`ical-start-to-end' - a single string containing both start and end date and
   (local) time.  If the event starts and ends on the same day, the date
   is not repeated.  When importing, dates are included, and the string
   may contain a diary s-exp; when displaying, the string contains only
-  the times for the displayed date.  If there is no end date, same as start.
-dtstamp (an `icalendar-date' or `icalendar-date-time' value) - when the event
-  was last revised
-duration (an `icalendar-dur-value') - the event's duration
-coordinates (an `icalendar-geo-coordinates' value) - the event's geographical
-  coordinates
-geo-location - coordinates, formatted as a string with degrees N/S and E/W
-importing (a boolean) - t if the event should be formatted for import.
+  the times for the displayed date.  If there is no end date, same as
+  `ical-start'.
+`ical-importing' (a boolean) - t if the event should be formatted for import.
   When nil, the event should be formatted for display rather than import.
   When importing it is important to include all information from the event
   that you want to be saved in the diary; when displaying, information like
   the date (or date-related S-expressions) and UID can be left out.
-last-modified-dt (an `icalendar-date-time' value) - the date and time the event
-  was last modified
-last-modified - last-modified-dt, formatted as a local date and time string
-location - the event's location
-nonmarking (a boolean) - if non-nil, the diary entry should be nonmarking
-organizer - the event's organizer, formatted by
+`ical-location' - the event's location, or geographical coordinates
+`ical-nonmarking' (a boolean) - if non-nil, the diary entry should be nonmarking
+`ical-organizer' - the event's organizer, formatted by
   `diary-icalendar-attendee-format-function'
-priority (a number) - the event's priority (1 = highest priority, 9 = lowest;
-  0 = undefined)
-recurrence-id-dt (an `icalendar-date' or `icalendar-date-time' value) - the
-  date or date-time of a particular recurrence of the event
-recurrence-id - recurrence-id-dt, formatted as a local date and time string
-related-tos (a list of `icalendar-related-to' property nodes) -
-  these contain the UIDs of related events and their relationship type
-request-statuses (a list of `icalendar-request-status' property nodes) -
-  these contain status information about requests made
-resources (a list of strings) - resources used or needed for the event
-rrule-sexp - a string containing a diary S-expression for a recurring event.
-  If this is non-nil, you should normally use it instead of the start-* and
-  end-* variables to form the date of the entry.
-revision (a number) - the revision number of the event; see
-  `icalendar-sequence'
-status - overall status specified by the organizer (e.g. \"confirmed\")
-summary - a summary of the event
-transparency - the event's time transparency status; see `icalendar-transp'
-uid - the unique identifier of the event
-url - a URL for the event"
+`ical-priority' (a number) - the event's priority (1 = highest priority,
+  9 = lowest; 0 = undefined)
+`ical-rrule-sexp' - a string containing a diary S-expression for a
+  recurring event.  If this is non-nil, you should normally use it
+  instead of the start-* and end-* variables to form the date of the
+  entry.
+`ical-status' - overall status specified by the organizer (e.g. \"confirmed\")
+`ical-summary' - a summary of the event
+`ical-transparency' - the event's time transparency status, either
+  \"OPAQUE\" (busy) or \"TRANSPARENT\" (free); see `icalendar-transp'
+`ical-uid' - the unique identifier of the event
+`ical-url' - a URL for the event"
   :version "31.1"
   :type '(radio (function-item di:vevent-skeleton)
                 (function :tag "Other function")))
@@ -250,61 +214,46 @@ url - a URL for the event"
 (defcustom di:vjournal-format-function #'di:vjournal-skeleton
   "Function to format VJOURNAL components for the diary.
 
-This function is called with no arguments and should insert information
-about an `icalendar-vjournal' into the current buffer.  It is convenient
-to express such a function as a skeleton; see `define-skeleton' and
-`skeleton-insert' for more information, and see
-`diary-icalendar-vjournal-skeleton' for an example.
+This function is called with one argument VJOURNAL, an
+`icalendar-vjournal'.  It should insert formatted data from this journal
+entry into the current buffer.  It is convenient to express such a
+function as a skeleton; see `define-skeleton' and `skeleton-insert' for
+more information, and see `diary-icalendar-vjournal-skeleton' for an
+example.  See `icalendar-with-component' for a convenient way to bind
+the data in VJOURNAL.
 
-The following variables will be bound when the function is called.
-All values will be strings unless another type is noted, or nil:
+For convenience when writing this function as a skeleton, the following
+variables will be (dynamically) bound when the function is called.  All
+values will be strings unless another type is noted, or nil:
 
-alarms (list of `icalendar-valarm' nodes) - notifications in the journal entry
-attachments (list of strings) - URLs or filenames of attachments in the journal
-  entry
-attendees (list of strings) - the participants of the journal entry,
+`ical-attachments' (list of strings) - URLs or filenames of attachments
+  in the journal entry
+`ical-attendees' (list of strings) - the participants of the journal entry,
   formatted by `diary-icalendar-attendee-format-function'
-categories (list of strings) - categories specified in the journal entry
-access - the journal entry's access classification
-comments (list of strings) - comments specified in the journal entry
-created-dt (an `icalendar-date-time' value) - the date and time the
-  journal entry was created
-created - created-dt, formatted as a local date-time string
-descriptions (list of strings) - the journal entry's descriptions
-  (more than one description is allowed in iCalendar VJOURNAL components)
-dtstamp (an `icalendar-date' or `icalendar-date-time' value) - when the
-  journal entry was last revised
-dtstart (an `icalendar-date' or `icalendar-date-time' value) - when the journal
-  entry starts
-start - start date and time in a single string.  When importing,
+`ical-categories' (list of strings) - categories specified in the journal entry
+`ical-access' - the journal entry's access classification
+`ical-comments' (list of strings) - comments specified in the journal entry
+`ical-description' - the journal entry's description(s) as a single
+  string, separated by newlines (more than one description is allowed in
+  VJOURNAL components)
+`ical-start' - start date and time in a single string.  When importing,
   includes the date, otherwise just the (local) time.
-importing (a boolean) - t if the journal entry should be formatted for import.
-  When nil, the entry should be formatted for display rather than import.
-  When importing it is important to include all information from the entry
-  that you want to be saved in the diary; when displaying, information like
-  the date (or date-related S-expressions) and UID can be left out.
-last-modified-dt (an `icalendar-date-time' value) - the date and time
-  the journal entry was last modified
-last-modified - last-modified-dt, formatted as a local date and time string
-nonmarking (a boolean) - if non-nil, the diary entry should be nonmarking
-organizer - the journal entry's organizer, formatted by
+`ical-importing' (a boolean) - t if the journal entry should be
+  formatted for import.  When nil, the entry should be formatted for
+  display rather than import.  When importing it is important to include
+  all information from the entry that you want to be saved in the diary;
+  when displaying, information like the date (or date-related
+  S-expressions) and UID can be left out.
+`ical-nonmarking' (a boolean) - if non-nil, the diary entry should be nonmarking
+`ical-organizer' - the journal entry's organizer, formatted by
   `diary-icalendar-attendee-format-function'
-recurrence-id-dt (an `icalendar-date' or `icalendar-date-time' value) - the
-  date or date-time of a particular recurrence of the journal entry
-recurrence-id - recurrence-id-dt, formatted as a local date and time string
-related-tos (a list of `icalendar-related-to' property nodes) -
-  these contain the UIDs of related journal entrys and their relationship type
-request-statuses (a list of `icalendar-request-status' property nodes) -
-  these contain status information about requests made
-rrule-sexp - a string containing a diary S-expression for a recurring
+`ical-rrule-sexp' - a string containing a diary S-expression for a recurring
   journal entry.  If this is non-nil, you should normally use it instead
   of the start-* variables to form the date of the entry.
-revision (a number) - the revision number of the journal entry; see
-  `icalendar-sequence'
-status - overall status specified by the organizer (e.g. \"draft\")
-summary - a summary of the journal entry
-uid - the unique identifier of the journal entry
-url - a URL for the journal entry"
+`ical-status' - overall status specified by the organizer (e.g. \"draft\")
+`ical-summary' - a summary of the journal entry
+`ical-uid' - the unique identifier of the journal entry
+`ical-url' - a URL for the journal entry"
   :version "31.1"
   :type '(radio (function-item di:vjournal-skeleton)
                 (function :tag "Other function")))
@@ -325,90 +274,69 @@ information."
 (defcustom di:vtodo-format-function #'di:vtodo-skeleton
   "Function to format VTODO components for the diary.
 
-This function is called with no arguments and should insert information
-about an `icalendar-vtodo' into the current buffer.  It is convenient to
-express such a function as a skeleton; see `define-skeleton' and
-`skeleton-insert' for more information.
+This function is called with one argument VTODO, an `icalendar-vtodo'.
+It should insert formatted data from this task into the current buffer.
+It is convenient to express such a function as a skeleton; see
+`define-skeleton' and `skeleton-insert' for more information.  See
+`icalendar-with-component' for a convenient way to bind the data in
+VTODO.
 
-The following variables will be bound when the function is called.
-All values will be strings unless another type is noted, or nil:
+For convenience when writing this function as a skeleton, the following
+variables will be (dynamically) bound when the function is called.  All
+values will be strings unless another type is noted, or nil:
 
-alarms (list of `icalendar-valarm' nodes) - notifications in the task
-as-alarm (symbol) - non-nil when the task should be formatted for an
-  alarm notification in advance of the task.  The symbol indicates the
-  type of alarm: `email' means to format the task as the body of an email.
-  (Currently only used for EMAIL alarms; see `diary-icalendar-export-alarms'.)
-attachments (list of strings) - URLs or filenames of attachments in the task
-attendees (list of strings) - the participants of the task,
+`ical-as-alarm' (symbol) - non-nil when the task should be formatted for
+  an alarm notification in advance of the task.  The symbol indicates
+  the type of alarm: `email' means to format the task as the body of an
+  email.  (Currently only used for EMAIL alarms; see
+  `diary-icalendar-export-alarms'.)
+`ical-attachments' (list of strings) - URLs or filenames of attachments
+  in the task
+`ical-attendees' (list of strings) - the participants of the task,
   formatted by `diary-icalendar-attendee-format-function'
-categories (list of strings) - categories specified in the task
-access - the task's access classification
-comments (list of strings) - comments specified in the task
-completed-dt (an `icalendar-date-time' value) - when the task was completed
-completed - completed-dt, formatted as a local date-time string
-created-dt (an `icalendar-date-time' value) - when the task was created
-created - created-dt, formatted as a local date-time string
-description - the task's description
-dtstamp (an `icalendar-date' or `icalendar-date-time' value) - when the task
-  was last revised
-dtstart (an `icalendar-date' or `icalendar-date-time' value) - when the task
-  starts
-start - start-date and time in a single string.  When importing,
+`ical-categories' (list of strings) - categories specified in the task
+`ical-access' - the task's access classification
+`ical-comments' (list of strings) - comments specified in the task
+`ical-completed' - when the task was completed, formatted as a local
+  date-time string
+`ical-description' - the task's description
+`ical-start' - start-date and time in a single string.  When importing,
   includes the date, otherwise just the (local) time
-start-to-end - a single string containing both start and due date and
-  time.  If the task starts and ends on the same day, the date is not
-  repeated.  When importing, dates are included, and the string may
+`ical-start-to-end' - a single string containing both start and due date
+  and time.  If the task starts and ends on the same day, the date is
+  not repeated.  When importing, dates are included, and the string may
   contain a diary s-exp; when displaying, the string contains only the
-  times for the displayed date.  If there is no end date, same as start.
-duration (an `icalendar-dur-value') - the task's duration
-due-dt (an `icalendar-date' or `icalendar-date-time' value) - when the
-  task is due
-dtend - same as `due-dt'
-due - due date and time in a single string
-end - same as `due'
-work-time-sexp - when the task has both a start date and a due date,
+  times for the displayed date.  If there is no end date, same as
+  `ical-start'.
+`ical-due' - due date and time in a single string
+`ical-end' - same as `ical-due'
+`ical-work-time-sexp' - when the task has both a start date and a due date,
   this is a %%(diary-time-block ...) diary S-expression representing the
   time from the start date to the due date (only non-nil when
   importing).  You can use this e.g. to make a separate entry for the
   task's work time, so that it shows up every day in the diary until it
   is due.
-coordinates (an `icalendar-geo-coordinates' value) - the task's geographical
-  coordinates
-geo-location - coordinates, formatted as a string with degrees N/S and E/W
-importing (a boolean) - t if the task should be formatted for import.
+`ical-importing' (a boolean) - t if the task should be formatted for import.
   When nil, the task should be formatted for display rather than import.
   When importing it is important to include all information from the task
   that you want to be saved in the diary; when displaying, information like
   the date (or date-related S-expressions) and UID can be left out.
-last-modified-dt (an `icalendar-date-time' value) - the date and time the task
-  was last modified
-last-modified - last-modified-dt, formatted as a local date and time string
-location - the task's location
-nonmarking (a boolean) - if non-nil, the diary entry should be nonmarking
-organizer - the task's organizer, formatted by
+`ical-location' - the task's location, or geographical coordinates
+`ical-nonmarking' (a boolean) - if non-nil, the diary entry should be nonmarking
+`ical-organizer' - the task's organizer, formatted by
   `diary-icalendar-attendee-format-function'
-percent-complete (a number between 0 and 100) - the percentage of the task which
-  has already been completed
-priority (a number) - the task's priority (1 = highest priority, 9 = lowest;
-  0 = undefined)
-recurrence-id-dt (an `icalendar-date' or `icalendar-date-time' value) - the
-  date or date-time of a particular recurrence of the task
-recurrence-id - recurrence-id-dt, formatted as a local date and time string
-related-tos (a list of `icalendar-related-to' property nodes) -
-  these contain the UIDs of related tasks and their relationship type
-request-statuses (a list of `icalendar-request-status' property nodes) -
-  these contain status information about requests made
-resources (a list of strings) - resources used or needed for the task
-rrule-sexp - a string containing a diary S-expression for a recurring task
-  (only non-nil when importing).  When this is non-nil, you should
-  normally use it instead of the start and end variables to form the
-  date of the entry.
-revision (a number) - the revision number of the task; see
-  `icalendar-sequence'
-status - overall status specified by the organizer (e.g. \"confirmed\")
-summary - a summary of the task
-uid - the unique identifier of the task
-url - a URL for the task"
+`ical-percent-complete' (a number between 0 and 100) - the percentage of
+  the task which has already been completed
+`ical-priority' (a number) - the task's priority (1 = highest priority,
+  9 = lowest; 0 = undefined)
+`ical-rrule-sexp' - a string containing a diary S-expression for a
+  recurring task (only non-nil when importing).  When this is non-nil,
+  you should normally use it instead of the start and end variables to
+  form the date of the entry.
+`ical-status' - overall status specified by the organizer (e.g. \"confirmed\")
+`ical-summary' - a summary of the task
+`ical-uid' - the unique identifier of the task
+`ical-url' - a URL for the task"
   :version "31.1"
   :type '(radio (function-item di:vjournal-skeleton)
                 (function :tag "Other function")))
@@ -1178,7 +1106,7 @@ Adds a message to current binding of `help-form' explaining how."
 ;; important and relatively complex, another skeleton
 ;; (`di:attendee-skeleton') takes care of formatting these for the
 ;; top-level component skeletons.
-(define-skeleton di:attendee-skeleton
+(defun di:attendee-skeleton (attendee)
   "Default skeleton to format an `icalendar-attendee' for the diary.
 
 Includes any data from the attendee's `icalendar-cnparam' and
@@ -1192,13 +1120,18 @@ or
   Baz Foo <foo@example.com>
 or
   Baz Foo <foo@example.com> (declined)"
-  nil
-  ;; skip non-human "attendees":
-  (when (or (not cutype) (equal cutype "INDIVIDUAL") (equal cutype "GROUP"))
-    '(nil
-      cn
-      (format " <%s>" address)
-      (when partstat (format " (%s)" (downcase partstat))))))
+  (ignore attendee) ; we only need the `attendee-' vars below
+  (with-suppressed-warnings ((free-vars attendee-cutype))
+    ;; skip non-human "attendees":
+    (when (or (not attendee-cutype)
+              (equal attendee-cutype "INDIVIDUAL")
+              (equal attendee-cutype "GROUP"))
+      (skeleton-insert
+       '(nil
+         attendee-cn
+         (format " <%s>" attendee-address)
+         (when attendee-partstat
+           (format " (%s)" (downcase attendee-partstat))))))))
 
 (defun di:format-attendee (attendee)
   "Format ATTENDEE for the diary.
@@ -1211,130 +1144,115 @@ attendee's address matches the regexp in
   (ical:with-property attendee
     ((ical:cutypeparam :value cutype)
      (ical:cnparam :value cn)
-     (ical:memberparam :values member)
      (ical:roleparam :value role)
      (ical:partstatparam :value partstat)
-     (ical:rsvpparam :value rsvp)
-     (ical:deltoparam :values delto)
-     (ical:delfromparam :values delfrom)
-     (ical:sentbyparam :value sentby)
-     (ical:dirparam :value dir)
-     (ical:languageparam :value language))
-    (calendar-dlet
-        ((full-address value)
-         (address (ical:strip-mailto value))
-         (cn (when cn (string-trim cn)))
-         (cutype cutype)
-         (dir dir)
-         (role role)
-         (partstat partstat)
-         (rsvp rsvp)
-         (delfrom-full-addresses delfrom)
-         (delfrom-addresses
-          (mapcar #'ical:strip-mailto delfrom))
-         (delto-full-addresses delto)
-         (delto-addresses
-          (mapcar #'ical:strip-mailto delto))
-         (member-full-addresses member)
-         (member-addresses
-          (mapcar #'ical:strip-mailto member))
-         (sentby-full-address sentby)
-         (sentby-address
-          (when sentby (ical:strip-mailto sentby)))
-         (language language))
-      (unless (and di:skip-addresses-regexp
-                   (string-match-p di:skip-addresses-regexp full-address))
+     (ical:rsvpparam :value rsvp))
+    (unless (and di:skip-addresses-regexp
+                 (string-match-p di:skip-addresses-regexp value))
+      (dlet ((attendee-address (ical:strip-mailto value))
+             (attendee-cn (when cn (string-trim cn)))
+             (attendee-cutype cutype)
+             (attende-role role)
+             (attendee-partstat partstat)
+             (attendee-rsvp rsvp))
         (with-temp-buffer
-          (funcall di:attendee-format-function)
+          (funcall di:attendee-format-function attendee)
           (buffer-string))))))
 
-(define-skeleton di:vevent-skeleton
+(defun di:vevent-skeleton (vevent)
   "Default skeleton to format an `icalendar-vevent' for the diary."
-  nil
-  (when (or non-marking (equal transparency "TRANSPARENT"))
-    diary-nonmarking-symbol)
-  (or rrule-sexp start-to-end start) & " "
-  summary "\n"
-  @ ; start of body (for indentation)
-  (when (or location geo-location) "Location: ") (or location geo-location)
-  & "\n" (when url "URL: ") & url
-  & "\n" (when status "Status: ") & status
-  & "\n" (when organizer "Organizer: ") & organizer
-  & "\n" (di:format-list attendees "Attendee")
-  & "\n" (di:format-list categories "Category" "Categories")
-  & "\n" (di:format-list comments "Comment")
-  & "\n" (di:format-list contacts "Contact")
-  & "\n" (di:format-list attachments "Attachment")
-  & "\n" (when (and importing access) "Access: ") & access
-  & "\n" (when (and importing uid) "UID: ") & uid
-  & "\n" (when description "Description: ") & description
-  & "\n"
-  @ ; end of body
-  (let* ((end (pop skeleton-positions))
-         (start (pop skeleton-positions)))
-    ;; TODO: should diary define a customizable indentation level?
-    ;; For now, we use 1 because that's what icalendar.el chose
-    (indent-code-rigidly start end 1)
-    nil) ; Don't insert return value
-  (when importing "\n"))
+  (ignore vevent)  ; we only need the dynamic `ical-*' variables here
+  (skeleton-insert
+   '(nil
+     (when (or ical-nonmarking (equal ical-transparency "TRANSPARENT"))
+       diary-nonmarking-symbol)
+     (or ical-rrule-sexp ical-start-to-end ical-start) & " "
+     ical-summary "\n"
+     @ ; start of body (for indentation)
+     (when ical-location "Location: ") ical-location
+     & "\n" (when ical-url "URL: ") & ical-url
+     & "\n" (when ical-status "Status: ") & ical-status
+     & "\n" (when ical-organizer "Organizer: ") & ical-organizer
+     & "\n" (di:format-list ical-attendees "Attendee")
+     & "\n" (di:format-list ical-categories "Category" "Categories")
+     & "\n" (di:format-list ical-comments "Comment")
+     & "\n" (di:format-list ical-contacts "Contact")
+     & "\n" (di:format-list ical-attachments "Attachment")
+     & "\n" (when (and ical-importing ical-access) "Access: ") & ical-access
+     & "\n" (when (and ical-importing ical-uid) "UID: ") & ical-uid
+     & "\n" (when ical-description "Description: ") & ical-description
+     & "\n"
+     @ ; end of body
+     (let* ((end (pop skeleton-positions))
+            (start (pop skeleton-positions)))
+       ;; TODO: should diary define a customizable indentation level?
+       ;; For now, we use 1 because that's what icalendar.el chose
+       (indent-code-rigidly start end 1)
+       nil) ; Don't insert return value
+     (when ical-importing "\n"))))
 
-(define-skeleton di:vjournal-skeleton
+(defun di:vjournal-skeleton (vjournal)
   "Default skeleton to format an `icalendar-vjournal' for the diary."
-  nil
-  (when (or non-marking di:import-vjournal-as-nonmarking)
-    diary-nonmarking-symbol)
-  (or rrule-sexp start) & " "
-  summary "\n"
-  @ ; start of body (for indentation)
-  & "\n" (when url "URL: ") & url
-  & "\n" (when status "Status: ") & status
-  & "\n" (when organizer "Organizer: ") & organizer
-  & "\n" (di:format-list attendees "Attendee")
-  & "\n" (di:format-list categories "Category" "Categories")
-  & "\n" (di:format-list comments "Comment")
-  & "\n" (di:format-list contacts "Contact")
-  & "\n" (di:format-list attachments "Attachment")
-  & "\n" (when (and importing access) "Access: ") & access
-  & "\n" (when (and importing uid) "UID: ") & uid
-  ;; In a vjournal, multiple `icalendar-description's are allowed:
-  & "\n" (di:format-list descriptions "Description")
-  & "\n"
-  @ ; end of body
-  (let* ((end (pop skeleton-positions))
-         (start (pop skeleton-positions)))
-    (indent-code-rigidly start end 1)
-    nil) ; Don't insert return value
-  (when importing "\n"))
+  (ignore vjournal)  ; we only need the dynamic `ical-*' variables here
+  (skeleton-insert
+   '(nil
+     (when (or ical-nonmarking di:import-vjournal-as-nonmarking)
+       diary-nonmarking-symbol)
+     (or ical-rrule-sexp ical-start) & " "
+     ical-summary "\n"
+     @ ; start of body (for indentation)
+     & "\n" (when ical-url "URL: ") & ical-url
+     & "\n" (when ical-status "Status: ") & ical-status
+     & "\n" (when ical-organizer "Organizer: ") & ical-organizer
+     & "\n" (di:format-list ical-attendees "Attendee")
+     & "\n" (di:format-list ical-categories "Category" "Categories")
+     & "\n" (di:format-list ical-comments "Comment")
+     & "\n" (di:format-list ical-contacts "Contact")
+     & "\n" (di:format-list ical-attachments "Attachment")
+     & "\n" (when (and ical-importing ical-access) "Access: ") & ical-access
+     & "\n" (when (and ical-importing ical-uid) "UID: ") & ical-uid
+     ;; In a vjournal, multiple `icalendar-description's are allowed:
+     & "\n" (di:format-list ical-descriptions "Description")
+     & "\n"
+     @ ; end of body
+     (let* ((end (pop skeleton-positions))
+            (start (pop skeleton-positions)))
+       (indent-code-rigidly start end 1)
+       nil) ; Don't insert return value
+     (when ical-importing "\n"))))
 
-(define-skeleton di:vtodo-skeleton
+(defun di:vtodo-skeleton (vtodo)
   "Default skeleton to format an `icalendar-vtodo' for the diary."
-  nil
-  (when non-marking diary-nonmarking-symbol)
-  (or rrule-sexp due) & " "
-  (when due "Due: ") summary
-  (when start (concat " (Start: " start ")"))
-  "\n"
-  @ ; start of body (for indentation)
-  & "\n" (when url "URL: ") & url
-  & "\n" (when status "Status: ") & status
-  & "\n" (when completed "Completed: ") & completed
-  & "\n" (when percent-complete (format "Progress: %d%%" percent-complete))
-  & "\n" (when organizer "Organizer: ") & organizer
-  & "\n" (di:format-list attendees "Attendee")
-  & "\n" (di:format-list categories "Category" "Categories")
-  & "\n" (di:format-list comments "Comment")
-  & "\n" (di:format-list contacts "Contact")
-  & "\n" (di:format-list attachments "Attachment")
-  & "\n" (when (and importing access) "Access: ") & access
-  & "\n" (when (and importing uid) "UID: ") & uid
-  & "\n" (when description "Description: ") & description
-  & "\n"
-  @ ; end of body
-  (let* ((end (pop skeleton-positions))
-         (start (pop skeleton-positions)))
-    (indent-code-rigidly start end 1)
-    nil) ; Don't insert return value
-  (when importing "\n"))
+  (ignore vtodo)  ; we only need the dynamic `ical-*' variables here
+  (skeleton-insert
+   '(nil
+     (when ical-nonmarking diary-nonmarking-symbol)
+     (or ical-rrule-sexp ical-due) & " "
+     (when ical-due "Due: ") summary
+     (when start (concat " (Start: " ical-start ")"))
+     "\n"
+     @ ; start of body (for indentation)
+     & "\n" (when ical-url "URL: ") & ical-url
+     & "\n" (when ical-status "Status: ") & ical-status
+     & "\n" (when ical-completed "Completed: ") & ical-completed
+     & "\n" (when ical-percent-complete
+              (format "Progress: %d%%" ical-percent-complete))
+     & "\n" (when ical-organizer "Organizer: ") & ical-organizer
+     & "\n" (di:format-list ical-attendees "Attendee")
+     & "\n" (di:format-list ical-categories "Category" "Categories")
+     & "\n" (di:format-list ical-comments "Comment")
+     & "\n" (di:format-list ical-contacts "Contact")
+     & "\n" (di:format-list ical-attachments "Attachment")
+     & "\n" (when (and ical-importing ical-access) "Access: ") & ical-access
+     & "\n" (when (and ical-importing ical-uid) "UID: ") & ical-uid
+     & "\n" (when ical-description "Description: ") & ical-description
+     & "\n"
+     @ ; end of body
+     (let* ((end (pop skeleton-positions))
+            (start (pop skeleton-positions)))
+       (indent-code-rigidly start end 1)
+       nil) ; Don't insert return value
+     (when ical-importing "\n"))))
 
 ;;; Further utilities for formatting/importing special kinds of values:
 (defun di:format-geo-coordinates (geo)
@@ -1651,7 +1569,7 @@ Depending on the type of COMPONENT, the body will be formatted by one of:
 `diary-icalendar-vjournal-format-function'
 which see.
 
-The variable `nonmarking' will be bound to the value of NONMARKING in
+The variable `ical-nonmarking' will be bound to the value of NONMARKING in
 the relevant skeleton command.  If it is non-nil, the user requested the
 entry to be nonmarking.
 
@@ -1664,36 +1582,27 @@ Returns a string containing the diary entry."
        (ical:comment :all comment-nodes)
        (ical:completed :value completed-dt)
        (ical:contact :all contact-nodes)
-       (ical:created :value created-dt)
        (ical:description :value description)
        ;; in `icalendar-vjournal', multiple `icalendar-description'
        ;; nodes are allowed:
        (ical:description :all description-nodes)
        (ical:dtend :first dtend-node :value dtend)
-       (ical:dtstamp :value dtstamp)
        (ical:dtstart :first dtstart-node :value dtstart)
        (ical:duration :value duration)
        (ical:due :first due-node :value due-dt)
        (ical:geo :value geo)
-       (ical:last-modified :value last-modified-dt)
        (ical:location :value location)
        (ical:organizer :first organizer-node  ; for skeleton formatting
                        :value organizer-addr) ; for legacy formatting
        (ical:percent-complete :value percent-complete)
        (ical:priority :value priority)
-       (ical:recurrence-id :first recurrence-id-node :value recurrence-id-dt)
-       (ical:related-to :all related-to-nodes)
-       (ical:request-status :all request-status-nodes)
-       (ical:resources :all resources-nodes)
        (ical:rrule :value rrule)
        (ical:rdate :all rdate-nodes)
-       (ical:sequence :value revision)
        (ical:status :value status)
        (ical:summary :value summary)
        (ical:transp :value transp)
        (ical:uid :value uid)
-       (ical:url :value url)
-       (ical:valarm :all alarms))
+       (ical:url :value url))
     (let* ((is-recurring (or rdate-nodes rrule))
            (start-tz (when dtstart-node
                        (ical:with-property dtstart-node
@@ -1723,66 +1632,58 @@ Returns a string containing the diary entry."
                   (duration start-tz)))
            (end-tzname (when end-tz (icr:tzname-on dtend end-tz)))
            (component-type (ical:ast-node-type component)))
-      (calendar-dlet
-          (;; TODO: interpret alarms?  Diary has its own mechanism for
-           ;; this (but no syntax).  We could theoretically use alarms to
-           ;; set up notifications.  For now we just pass them on to
-           ;; user skeletons, so users can do this if desired.
-           (alarms alarms)
-           (attachments
+      (dlet
+          ;; We use "ical-" rather than "icalendar-" as prefix for these
+          ;; vars because (a) it's shorter and (b) to avoid shadowing
+          ;; any library symbols:
+          ((ical-attachments
             (when attach-nodes
               (di:save-attachments-from attach-nodes uid)))
-           (attendees (mapcar #'di:format-attendee attendee-nodes))
-           (categories
+           (ical-attendees (mapcar #'di:format-attendee attendee-nodes))
+           (ical-categories
             (mapcan
              (lambda (node)
                (mapcar #'ical:text-to-string (ical:ast-node-value node)))
              categories-nodes))
-           (access (when access (downcase access)))
-           (comments
+           (ical-access (when access (downcase access)))
+           (ical-comments
             (mapcar
              (lambda (node) (ical:text-to-string (ical:ast-node-value node)))
              comment-nodes))
-           (contacts
+           (ical-contacts
             (mapcar
              (lambda (node) (ical:text-to-string (ical:ast-node-value node)))
              contact-nodes))
-           (completed-dt completed-dt)
-           (completed
+           (ical-completed
             (when completed-dt (di:format-date/time-as-local completed-dt)))
-           (created-dt created-dt)
-           (created
-            (when created-dt (di:format-date/time-as-local created-dt)))
-           (description (when description (di:-nonempty description)))
-           (descriptions
-            (when (eq 'icalendar-vjournal component-type)
-              (mapcar
+           (ical-description
+            (if (eq 'icalendar-vjournal component-type)
+              (mapconcat
                (lambda (node)
                  (di:-nonempty (ical:text-to-string (ical:ast-node-value node))))
-               description-nodes)))
-           (dtstart dtstart)
-           (start
+               description-nodes
+               "\n\n")
+              (di:-nonempty description)))
+           (ical-start
             (when dtstart
-              (if (bound-and-true-p importing)
+              (if (bound-and-true-p ical-importing)
                   (di:format-date/time-as-local dtstart start-tzname)
                 (di:format-time-as-local dtstart start-tzname))))
-           (dtend dtend)
-           (end
+           (ical-end
             (when dtend
-              (if (bound-and-true-p importing)
+              (if (bound-and-true-p ical-importing)
                   (di:format-date/time-as-local dtend end-tzname)
                 (di:format-time-as-local dtend end-tzname))))
-           (dtstamp dtstamp)
-           (start-to-end
+           (ical-start-to-end
             (with-suppressed-warnings ((lexical date) (free-vars date))
               (cond
                ((not dtstart) nil)
                ((or (not dtend) (equal dtstart dtend))
                 ;; without a distinct DTEND/DUE, same as start:
-                (if (bound-and-true-p importing)
+                (if (bound-and-true-p ical-importing)
                     (di:format-date/time-as-local dtstart start-tzname)
                   (di:format-time-as-local dtstart start-tzname)))
-               ((and (bound-and-true-p importing)
+               ((and (bound-and-true-p ical-importing)
                      (cl-typep dtstart 'ical:date)
                      (cl-typep dtend 'ical:date))
                 ;; Importing two dates:
@@ -1793,13 +1694,13 @@ Returns a string containing the diary entry."
                  ;; diary-block needs an inclusive bound, so
                  ;; subtract a day:
                  (ical:date-add dtend :day -1)))
-               ((and (bound-and-true-p importing)
+               ((and (bound-and-true-p ical-importing)
                      (equal (ical:date/time-to-date dtstart-local)
                             (ical:date/time-to-date dtend-local)))
                 ;; Importing, start and end times on same day:
                 ;; DATE HH:MM-HH:MM
                 (di:format-time-range dtstart-local dtend-local))
-               ((bound-and-true-p importing)
+               ((bound-and-true-p ical-importing)
                 ;; Importing at least one date-time, on different days:
                 ;; %%(diary-time-block :start ... :end ...)
                 (di:format-time-block-sexp dtstart-local dtend-local))
@@ -1836,51 +1737,31 @@ Returns a string containing the diary entry."
                (t
                 ;; That's all the cases we care about here.
                 nil))))
-           (duration duration)
-           (due-dt
-            (when (eq component-type 'ical:vtodo)
-              ;; in VTODO, DUE does the job of DTEND, so we alias them;
-              ;; see above
-              dtend))
-           (due
+           (ical-due
             (when (eq component-type 'ical:vtodo)
               (if due-node
                   (di:format-date/time-as-local due-dt due-tzname)
                 ;; here we use start-tzname because due/dtend is calculated from
                 ;; dtstart, not its own node with a tzid:
                 (di:format-date/time-as-local dtend start-tzname))))
-           (work-time-sexp
-            (when (and dtstart due-dt (bound-and-true-p importing))
+           (ical-work-time-sexp
+            (when (and dtstart due-dt (bound-and-true-p ical-importing))
               (di:format-time-block-sexp dtstart-local due-dt)))
-           (coordinates geo)
-           (geo-location (when geo (di:format-geo-coordinates geo)))
-           (importing (bound-and-true-p importing))
-           (last-modified-dt last-modified-dt)
-           (last-modified (di:format-date/time-as-local last-modified-dt))
-           (location (di:-nonempty location))
-           (nonmarking nonmarking)
-           (organizer (di:format-attendee organizer-node))
-           (percent-complete percent-complete)
-           (priority priority)
-           (recurrence-id-dt recurrence-id-dt)
-           (recurrence-id
-            (di:format-date/time-as-local recurrence-id-dt))
-           (related-tos related-to-nodes)
-           (request-statuses request-status-nodes)
-           (resources
-            (mapcan
-             (lambda (node)
-               (mapcar #'ical:text-to-string (ical:ast-node-value node)))
-             resources-nodes))
-           (rrule-sexp
-            (when (and is-recurring (bound-and-true-p importing))
+           (ical-importing (bound-and-true-p ical-importing))
+           (ical-location (or (di:-nonempty location)
+                              (when geo (di:format-geo-coordinates geo))))
+           (ical-nonmarking nonmarking)
+           (ical-organizer (di:format-attendee organizer-node))
+           (ical-percent-complete percent-complete)
+           (ical-priority priority)
+           (ical-rrule-sexp
+            (when (and is-recurring (bound-and-true-p ical-importing))
               (di:format-rrule-sexp component)))
-           (revision revision)
-           (status (when status (di:-nonempty (downcase status))))
-           (summary (di:-nonempty summary))
-           (transparency transp)
-           (uid (di:-nonempty uid))
-           (url (di:-nonempty url)))
+           (ical-status (when status (di:-nonempty (downcase status))))
+           (ical-summary (di:-nonempty summary))
+           (ical-transparency transp)
+           (ical-uid (di:-nonempty uid))
+           (ical-url (di:-nonempty url)))
         (with-temp-buffer
           (cl-case (ical:ast-node-type component)
             (ical:vevent
@@ -1894,13 +1775,16 @@ Returns a string containing the diary entry."
                    (if (functionp ical:import-format)
                        (insert (funcall ical:import-format
                                         (di:-vevent-to-legacy-alist component)))
-                     (di:-format-vevent-legacy (or rrule-sexp start-to-end start)
-                                               access description location
-                                               organizer-addr
-                                               summary status url uid))
-                 (funcall di:vevent-format-function))))
-            (ical:vtodo (funcall di:vtodo-format-function))
-            (ical:vjournal (funcall di:vjournal-format-function)))
+                     (di:-format-vevent-legacy (or ical-rrule-sexp
+                                                   ical-start-to-end
+                                                   ical-start)
+                                               ical-access ical-description
+                                               ical-location organizer-addr
+                                               ical-summary ical-status
+                                               ical-url ical-uid))
+                 (funcall di:vevent-format-function component))))
+            (ical:vtodo (funcall di:vtodo-format-function component))
+            (ical:vjournal (funcall di:vjournal-format-function component)))
           (buffer-string))))))
 
 
@@ -2007,7 +1891,7 @@ in the `diary-icalendar' group."
                  entry-start)
 
             (with-current-buffer import-buf
-              (calendar-dlet ((importing t)) ; inform skeletons we're importing
+              (dlet ((ical-importing t)) ; inform skeletons we're importing
                 (dolist (component to-import)
                   (setq entry-start (point))
                   (insert (di:format-entry component index all-nonmarking))
@@ -2962,7 +2846,7 @@ formatting alarms as mail messages.  Returns the modified COMPONENT."
                        (nth 2 opts))))
                     (index (ical:index-insert-tz (ical:make-index) vtimezone))
                     (body
-                     (calendar-dlet ((as-alarm 'email))
+                     (dlet ((ical-as-alarm 'email))
                        (di:format-entry component index)))
                     (addresses (nth 3 opts))
                     all-attendees)
