@@ -1108,7 +1108,8 @@ attached."
                      (file (expand-file-name "news" pkg-dir)))
                 (and (file-regular-p file)
                      (file-readable-p file)
-                     file))))
+                     file)))
+        (enable-recursive-minibuffers t))
     (while (pcase-exhaustive
                (car (read-multiple-choice
                      (format "Install \"%s\"?" (package-desc-name pkg-desc))
@@ -1143,20 +1144,12 @@ attached."
                     ('sendmail-user-agent (mail-text))
                     (_ (message-goto-body)))
                   (insert-buffer-substring tmp-buf)))
-              (message
-               (substitute-command-keys
-                "Recursive edit; type \\[exit-recursive-edit] to return to review"))
-              (recursive-edit)
               t)
              (?c
               (view-file news)
               t)
              (?b
               (dired pkg-dir "-R") ;FIXME: Is recursive dired portable?
-              (message
-               (substitute-command-keys
-                "Recursive edit; type \\[exit-recursive-edit] to return to review"))
-              (recursive-edit)
               t)))))
 
 (declare-function xdg-cache-home "xdg")
