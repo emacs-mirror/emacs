@@ -1106,7 +1106,8 @@ attached."
                      (format "Install \"%s\"?" (package-desc-name pkg-desc))
                      `((?y "yes" "Proceed with installation")
                        (?n "no" "Abort installation")
-                       ,@(and old-desc '((?d "diff" "Show the installation diff")))
+                       ,@(and old-desc '((?d "diff" "Show the installation diff")
+                                         (?m "mail" "Send an email to the mainta")))
                        ,@(and news '((?c "changelog" "Show the changelog")))
                        (?b "browse" "Browse the source"))))
              (?y nil)
@@ -1115,6 +1116,28 @@ attached."
               (throw 'review-failed pkg-desc))
              (?d
               (diff (package-desc-dir old-desc) pkg-dir nil t)
+              t)
+             (?m
+              (with-temp-buffer
+                (diff-no-select
+                 (package-desc-dir old-desc) pkg-dir
+                 nil t (current-buffer))
+                ;; delete sentinel message
+                (goto-char (point-max))
+                (forward-line -2)
+                (delete-region (point) (point-max))
+                ;; prepare mail buffer
+                (let ((tmp-buf (current-buffer)))
+                  (compose-mail (with-demoted-errors "Failed to find maintainers: %S"
+                                  (package-maintainers pkg-desc)))
+                  (pcase mail-user-agent
+                    ('sendmail-user-agent (mail-text))
+                    (_ (message-goto-body)))
+                  (insert-buffer-substring tmp-buf)))
+              (message
+               (substitute-command-keys
+                "Recursive edit; type \\[exit-recursive-edit] to return to review"))
+              (recursive-edit)
               t)
              (?c
               (view-file news)
