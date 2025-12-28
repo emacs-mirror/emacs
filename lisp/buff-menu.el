@@ -506,8 +506,7 @@ When called interactively prompt for MARK;  RET remove all marks."
   (forward-line -1)
   (while (and (not (tabulated-list-get-id)) (not (bobp)))
     (forward-line -1))
-  (unless (bobp)
-    (Buffer-menu--unmark)))
+  (if (tabulated-list-get-id) (Buffer-menu--unmark)))
 
 (defun Buffer-menu--unmark ()
   (tabulated-list-set-col 0 " " t)
