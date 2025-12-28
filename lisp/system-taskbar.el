@@ -162,11 +162,12 @@ to find what works for your system."
   (when noninteractive
     (warn "Batch mode does not support `system-taskbar'"))
   (cond (system-taskbar-mode
-         (if (system-taskbar--set-back-end)
-             (system-taskbar--enable)
-           (warn "System does not support `system-taskbar'"))
-         (when system-taskbar-use-progress-reporter
-           (system-taskbar-progress-reporter-install)))
+         (if (and (system-taskbar--set-back-end)
+                  (system-taskbar--enable))
+             (when system-taskbar-use-progress-reporter
+               (system-taskbar-progress-reporter-install))
+           (setq system-taskbar-mode nil)
+           (warn "`system-taskbar' could not be initialized")))
         (t
          (system-taskbar-progress-reporter-remove)
          (when system-taskbar--back-end
