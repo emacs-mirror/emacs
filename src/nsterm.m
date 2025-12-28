@@ -11379,7 +11379,11 @@ separately for ordinary keys, function keys, and mouse events.
 
 Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.
 If `none', the key is ignored by Emacs and retains its standard meaning.  */);
+#ifdef NS_IMPL_COCOA
   ns_command_modifier = Qsuper;
+#else
+  ns_command_modifier = Qmeta;
+#endif
 
   DEFVAR_LISP ("ns-right-command-modifier", ns_right_command_modifier,
     doc: /* This variable describes the behavior of the right command key.
