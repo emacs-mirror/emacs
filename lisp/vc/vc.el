@@ -4021,7 +4021,7 @@ The command prompts for the branch whose change log to show."
 ;; We plan to reuse the name `vc-print-branch-log' for the
 ;; fileset-specific command in Emacs 32.1.  --spwhitton
 (define-obsolete-function-alias
-  #'vc-print-branch-log
+  'vc-print-branch-log
   #'vc-print-root-branch-log
   "31.1")
 
