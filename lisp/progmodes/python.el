@@ -1463,7 +1463,7 @@ For NODE, OVERRIDE, START, END, and ARGS, see
   "Non-nil means to emit a warning when indentation guessing fails."
   :version "25.1"
   :type 'boolean
-  :safe' booleanp)
+  :safe 'booleanp)
 
 (defcustom python-indent-trigger-commands
   '(indent-for-tab-command yas-expand yas/expand)
