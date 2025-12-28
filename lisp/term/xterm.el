@@ -822,6 +822,16 @@ Return the pasted text as a string."
           ;;(xterm--init-activate-get-selection)
           (xterm--init-activate-set-selection))))))
 
+(defun xterm--primary-da-handler ()
+  ;; The reply should be: \e [ ? NUMBER1 ; ... ; NUMBER_N c
+  (let ((str (xterm--read-string ?c)))
+    (when (member "52" (split-string str ";" t))
+      ;; Many modern terminals include 52 in their primary DA response,
+      ;; to indicate support for *writing* to the OS clipboard. The
+      ;; specification does not guarantee the clipboard can be read. See
+      ;; https://github.com/contour-terminal/vt-extensions/blob/master/clipboard-extension.md
+      (xterm--init-activate-set-selection))))
+
 (defvar xterm-query-timeout 2
   "Seconds to wait for an answer from the terminal.
 Can be nil to mean \"no timeout\".")
@@ -948,14 +958,18 @@ We run the first FUNCTION whose STRING matches the input events."
   (tty-set-up-initial-frame-faces)
 
   (if (eq xterm-extra-capabilities 'check)
-      ;; Try to find out the type of terminal by sending a "Secondary
-      ;; Device Attributes (DA)" query.
-      (xterm--query "\e[>0c"
-                    ;; Some terminals (like macOS's Terminal.app) respond to
-                    ;; this query as if it were a "Primary Device Attributes"
-                    ;; query instead, so we should handle that too.
-                    '(("\e[?" . xterm--version-handler)
-                      ("\e[>" . xterm--version-handler)))
+      (progn
+        ;; Try to find out the type of terminal by sending a "Secondary
+        ;; Device Attributes (DA)" query.
+        (xterm--query "\e[>0c"
+                      ;; Some terminals (like macOS's Terminal.app) respond to
+                      ;; this query as if it were a "Primary Device Attributes"
+                      ;; query instead, so we should handle that too.
+                      '(("\e[?" . xterm--version-handler)
+                        ("\e[>" . xterm--version-handler)))
+        ;; Check primary DA for OSC-52 support
+        (xterm--query "\e[c"
+                      '(("\e[?" . xterm--primary-da-handler))))
 
     (when (memq 'reportBackground xterm-extra-capabilities)
       (xterm--query "\e]11;?\e\\"
