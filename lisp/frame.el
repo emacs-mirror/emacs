@@ -1612,10 +1612,15 @@ resize and move FRAME."
           (if parent
               (frame-native-height parent)
             (nth 3 geometry)))
-         (parent-or-workarea
+         (workarea (cdr (assq 'workarea monitor-attributes)))
+         (parent-or-workarea-width
           (if parent
-              `(0 0 ,parent-or-display-width ,parent-or-display-height)
-            (cdr (assq 'workarea monitor-attributes))))
+              parent-or-display-width
+            (nth 2 workarea)))
+         (parent-or-workarea-height
+          (if parent
+              parent-or-display-height
+            (nth 3 workarea)))
          (outer-edges (frame-edges frame 'outer-edges))
          (outer-left (nth 0 outer-edges))
          (outer-top (nth 1 outer-edges))
@@ -1646,8 +1651,7 @@ resize and move FRAME."
       (setq text-width (cdr width)))
      ((and (floatp width) (> width 0.0) (<= width 1.0))
       (setq text-width
-            (- (round (* width (- (nth 2 parent-or-workarea)
-                               (nth 0 parent-or-workarea))))
+            (- (round (* width parent-or-workarea-width))
                outer-minus-text-width)))
      (width
       (user-error "Invalid width specification")))
@@ -1660,8 +1664,7 @@ resize and move FRAME."
       (setq text-height (cdr height)))
      ((and (floatp height) (> height 0.0) (<= height 1.0))
       (setq text-height
-            (- (round (* height (- (nth 3 parent-or-workarea)
-                                   (nth 1 parent-or-workarea))))
+            (- (round (* height parent-or-workarea-height))
                outer-minus-text-height)))
      (width
       (user-error "Invalid height specification")))
@@ -1682,9 +1685,8 @@ resize and move FRAME."
        (t
         (user-error "Invalid position specification"))))
      ((floatp left)
-      (setq left
-            (round (* left (- (nth 2 parent-or-workarea)
-                              (nth 0 parent-or-workarea))))))
+      (setq left (+ (round (* left parent-or-workarea-width))
+                    (if parent 0 (nth 0 workarea)))))
      (t (setq left outer-left)))
 
     (when negative
@@ -1713,9 +1715,8 @@ resize and move FRAME."
        (t
         (user-error "Invalid position specification"))))
      ((floatp top)
-      (setq top
-            (round (* top (- (nth 3 parent-or-workarea)
-                             (nth 1 parent-or-workarea))))))
+      (setq top (+ (round (* left parent-or-workarea-height))
+                   (if parent 0 (nth 1 workarea)))))
      (t (setq top outer-top)))
 
     (when negative
