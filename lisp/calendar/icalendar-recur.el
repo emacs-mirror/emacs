@@ -76,6 +76,7 @@
 (require 'icalendar-utils)
 (require 'cl-lib)
 (require 'calendar)
+(require 'cal-dst)
 (require 'simple)
 (require 'seq)
 (eval-when-compile '(require 'icalendar-macs))
@@ -1478,6 +1479,14 @@ UTC offsets local to that time zone."
 (define-error 'ical:tz-no-observance "No observance found for date-time"
               'ical:error)
 
+(define-error 'ical:tz-data-insufficient
+              "Insufficient time zone data to create VTIMEZONE"
+              'ical:error)
+
+(define-error 'ical:tz-unsupported
+              "Time zone rules not expressible as iCalendar RRULE"
+              'ical:error)
+
 ;; In RFC5545 Section 3.3.10, we read: "If the computed local start time
 ;; of a recurrence instance does not exist ... the time of the
 ;; recurrence instance is interpreted in the same manner as an explicit
@@ -1983,7 +1992,153 @@ observance."
               (observance (car obs/onset)))
     (ical:with-property-of observance 'ical:tzname)))
 
+(defconst icr:-tz-warning
+  "This time zone information was inferred from incomplete system information; it should be correct for the date-times within this calendar file referencing this zone, but you should not rely on it more widely.")
 
+(defconst icr:-emacs-local-tzid
+  "Emacs_Local_")
+
+(defun icr:-tz-info-sexp-p (_ sexp)
+  "Validate that SEXP gives time zone info like from `calendar-current-time-zone'."
+  (and (listp sexp)
+       (length= sexp 8)
+       (let ((utc-diff (nth 0 sexp))
+             (dst-offset (nth 1 sexp))
+             (std-zone (nth 2 sexp))
+             (dst-zone (nth 3 sexp))
+             (dst-starts (nth 4 sexp))
+             (dst-ends (nth 5 sexp))
+             (dst-starts-time (nth 6 sexp))
+             (dst-ends-time (nth 7 sexp)))
+         (and
+          (integerp utc-diff) (< (abs utc-diff) (* 60 24))
+          (integerp dst-offset) (< (abs utc-diff) (* 60 24))
+          (stringp std-zone)
+          (stringp dst-zone)
+          (or (and (listp dst-starts) (memq 'year (flatten-list dst-starts)))
+              (and (null dst-starts) (equal std-zone dst-zone)))
+          (or (and (listp dst-ends) (memq 'year (flatten-list dst-ends)))
+              (and (null dst-ends) (equal std-zone dst-zone)))
+          (or (and (integerp dst-starts-time) (< (abs dst-starts-time) (* 60 24)))
+              (null dst-starts-time))
+          (or (and (integerp dst-ends-time) (< (abs dst-ends-time) (* 60 24)))
+              (null dst-ends-time))))))
+
+(defun icr:current-tz-to-vtimezone (&optional tz tzid start-year)
+  "Convert TZ to an `icalendar-vtimezone'.
+
+TZ defaults to the output of `calendar-current-time-zone'; if specified,
+it should be a list of the same form as that function returns.
+Depending on TZ, this function might signal the following errors:
+
+`icalendar-tz-data-insufficient' if the data in TZ is not complete
+  enough to determine time zone rules.
+`icalendar-tz-unsupported' if the data in TZ cannot be expressed as an
+  RFC5545 `icalendar-rrule' property.
+
+TZID, if specified, should be a string to identify this time zone; it
+defaults to `icalendar-recur--emacs-local-tzid' plus the name of the
+standard observance according to `calendar-current-time-zone'.
+
+START-YEAR, if specified, should be an integer giving the year in which
+to start the observances in the time zone.  It defaults to 1970."
+  (when (and tz (not (icr:-tz-info-sexp-p nil tz)))
+    (signal 'ical:tz-data-insufficient
+            (list :tz tz
+                  :level 2
+                  :message
+                  "Badly formed TZ data; see `calendar-current-time-zone'")))
+  (let* ((tzdata (or tz (calendar-current-time-zone)))
+         (std-offset (* 60 (nth 0 tzdata)))
+         (dst-offset (+ std-offset
+                        (* 60 (nth 1 tzdata))))
+         (std-name (nth 2 tzdata))
+         (dst-name (nth 3 tzdata))
+         (dst-starts (nth 4 tzdata))
+         (dst-ends (nth 5 tzdata))
+         (dst-start-minutes (nth 6 tzdata))
+         (dst-end-minutes (nth 7 tzdata)))
+
+    (unless (and std-offset
+                 (or (equal std-name dst-name)
+                     (and dst-starts dst-ends dst-start-minutes dst-end-minutes)))
+      (signal 'ical:tz-data-insufficient
+              (list :tz tz :level 2
+                    :message "Unable to create VTIMEZONE from TZ")))
+
+    (if (equal std-name dst-name)
+        ;; Local time zone doesn't use DST:
+        (ical:make-vtimezone
+         (ical:tzid (or tzid (concat icr:-emacs-local-tzid std-name)))
+         (ical:make-standard
+          (ical:tzname std-name)
+          (ical:dtstart (ical:make-date-time :year (or start-year 1970)
+                                             :month 1 :day 1
+                                             :hour 0 :minute 0 :second 0))
+          (ical:tzoffsetfrom std-offset)
+          (ical:tzoffsetto std-offset)
+          (ical:comment icr:-tz-warning)))
+
+      ;; Otherwise we can provide both STANDARD and DAYLIGHT subcomponents:
+      (let* ((std->dst-rule
+              (if (eq (car dst-starts) 'calendar-nth-named-day)
+                  `((FREQ YEARLY)
+                    (BYMONTH (,(nth 3 dst-starts)))
+                    (BYDAY (,(cons (nth 2 dst-starts)
+                                   (nth 1 dst-starts)))))
+                ;; The only other rules that `calendar-current-time-zone'
+                ;; can return are based on the Persian calendar, which we
+                ;; cannot express in an `icalendar-recur' value, at least
+                ;; pending an implementation of RFC 7529
+                (signal 'ical:tz-unsupported
+                        (list :tz tz
+                              :level 2
+                              :message
+                              (format "Unable to export DST rule for time zone: %s"
+                                      dst-starts)))))
+             (dst-start-date (calendar-dlet ((year (or start-year 1970)))
+                               (eval dst-starts)))
+             (dst-start
+              (ical:date-to-date-time dst-start-date
+                                      :hour (/ dst-start-minutes 60)
+                                      :minute (mod dst-start-minutes 60)
+                                      :second 0))
+             (dst->std-rule
+              (if (eq (car dst-ends) 'calendar-nth-named-day)
+                  `((FREQ YEARLY)
+                    (BYMONTH (,(nth 3 dst-ends)))
+                    (BYDAY (,(cons (nth 2 dst-ends)
+                                   (nth 1 dst-ends)))))
+                (signal 'ical:tz-unsupported
+                        (list :tz tz
+                              :level 2
+                              :message
+                              (format "Unable to export DST rule for time zone: %s"
+                                      dst-ends)))))
+             (std-start-date (calendar-dlet ((year (1- (or start-year 1970))))
+                               (eval dst-ends)))
+             (std-start
+              (ical:date-to-date-time std-start-date
+                                      :hour (/ dst-end-minutes 60)
+                                      :minute (mod dst-end-minutes 60)
+                                      :second 0)))
+
+      (ical:make-vtimezone
+       (ical:tzid (or tzid (concat icr:-emacs-local-tzid std-name)))
+       (ical:make-standard
+        (ical:tzname std-name)
+        (ical:dtstart std-start)
+        (ical:rrule dst->std-rule)
+        (ical:tzoffsetfrom dst-offset)
+        (ical:tzoffsetto std-offset)
+        (ical:comment icr:-tz-warning))
+       (ical:make-daylight
+        (ical:tzname dst-name)
+        (ical:dtstart dst-start)
+        (ical:rrule std->dst-rule)
+        (ical:tzoffsetfrom std-offset)
+        (ical:tzoffsetto dst-offset)
+        (ical:comment icr:-tz-warning)))))))
 
 (provide 'icalendar-recur)
 

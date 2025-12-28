@@ -405,7 +405,7 @@ ERR-BUFFER defaults to the buffer returned by `icalendar-error-buffer'."
        (group "("
               (or (group-n 3 "ERROR") (group-n 4 "WARNING") (group-n 5 "INFO"))
               ")"))
-      (group-n 1 (zero-or-more (not ":"))) ":"
+      (group-n 1 (zero-or-one " *UNFOLDED:") (zero-or-more (not ":"))) ":"
       (zero-or-one (group-n 2 (one-or-more digit)))
       ":")
   "Regexp to match iCalendar errors.
@@ -455,7 +455,9 @@ data in ERROR-PLIST, if `icalendar-debug-level' is
                        error-plist))))
     ;; Make sure buffer name doesn't take too much space:
     (when (< 8 (length name))
-      (put-text-property 9 (length name) 'display "..." name))
+      (if (equal " *UNFOLDED:" (substring name 0 11))
+          (put-text-property 0 11 'display "..." name)
+        (put-text-property 9 (length name) 'display "..." name)))
     (format "(%s)%s:%s: %s\n%s" level name pos message debug-info)))
 
 (defun ical:handle-generic-error (err-data &optional err-buffer)

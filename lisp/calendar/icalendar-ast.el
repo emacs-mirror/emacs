@@ -490,7 +490,8 @@ The resulting syntax node is checked for validity by
 `icalendar-ast-node-valid-p' before it is returned."
   ;; TODO: support `ical:other-property', maybe like
   ;; (ical:other-property "X-NAME" value ...)
-  (declare (debug (symbolp form form &rest form)))
+  (declare (debug (symbolp form form &rest form))
+           (indent 2))
   (unless (ical:property-type-symbol-p type)
     (error "Not an iCalendar property type: %s" type))
   (let ((value-types (cons (get type 'ical:default-type)
@@ -553,7 +554,8 @@ properties.
 
 The resulting syntax node is checked for validity by
 `icalendar-ast-node-valid-p' before it is returned."
-  (declare (debug (symbolp form &rest form)))
+  (declare (debug (symbolp form &rest form))
+           (indent 1))
   ;; TODO: support `ical:other-component', maybe like
   ;; (ical:other-component (:x-name "X-NAME") templates ...)
   (unless (ical:component-type-symbol-p type)
@@ -660,7 +662,8 @@ For example, an iCalendar VEVENT could be written like this:
 
 Before the constructed node is returned, it is validated by
 `icalendar-ast-node-valid-p'."
-  (declare (debug (symbolp form &rest form)))
+  (declare (debug (symbolp form &rest form))
+           (indent 1))
   (cond
    ((not (ical:type-symbol-p type))
     (error "Not an iCalendar type symbol: %s" type))

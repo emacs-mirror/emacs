@@ -830,7 +830,8 @@ Each binding in BINDINGS should be a list of one of the following forms:
      nodes), or the :value-nodes themselves (if they are not).
   It is a compile-time error to use the singular keywords with a TYPE that
   takes multiple values, or the plural keywords with a TYPE that does not."
-  (declare (indent 2))
+  (declare (debug (symbolp form form &rest form))
+           (indent 2))
   ;; Static checks on the bindings prevent various annoying bugs:
   (dolist (b bindings)
     (let ((type (car b))
@@ -1003,6 +1004,8 @@ is equivalent to
 
 BINDINGS are passed on to `icalendar-with-node-children' and will be
 available in BODY; see its docstring for their form."
+  (declare (debug (symbolp form &optional form &rest form))
+           (indent 2))
   (let ((vn (gensym "icalendar-node"))
         (val (gensym "icalendar-value"))
         (is-list (gensym "is-list")))
@@ -1066,6 +1069,8 @@ node's value.
 If PARAMETER's value is not a syntax node, then `value' is bound
 directly to PARAMETER's value, and `value-type' and `value-node' are
 bound to nil."
+  (declare (debug (symbolp form &rest form))
+           (indent 1))
   `(ical:with-node-value ,parameter nil ,@body))
 
 (defmacro ical:with-child-of (node type &optional bindings &rest body)
@@ -1084,6 +1089,8 @@ is equivalent to
   (icalendar-with-child-of some-node some-type nil value)
 
 See `icalendar-with-node-children' for the form of BINDINGS."
+  (declare (debug (symbolp form form &optional form &rest form))
+           (indent 3))
   (let ((child (gensym "icalendar-node")))
     `(let ((,child (ical:ast-node-first-child-of ,type ,node)))
        (ical:with-node-value ,child ,bindings ,@body))))
@@ -1116,6 +1123,8 @@ symbol `value'; thus
   (icalendar-with-param-of some-property some-type)
 is equivalent to
   (icalendar-with-param-of some-property some-type nil value)"
+  (declare (debug (symbolp form form &rest form))
+           (indent 2))
   `(ical:with-child-of ,node ,type nil ,@body))
 
 (provide 'icalendar-macs)

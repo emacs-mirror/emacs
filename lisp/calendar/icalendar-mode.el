@@ -1,10 +1,12 @@
 ;;; icalendar-mode.el --- Major mode for iCalendar format  -*- lexical-binding: t; -*-
 ;;;
 
-;; Copyright (C) 2024 Richard Lawrence
+;; Copyright (C) 2024 Free Software Foundation, Inc.
 
 ;; Author: Richard Lawrence <rwl@recursewithless.net>
+;; Created: October 2024
 ;; Keywords: calendar
+;; Human-Keywords: calendar, iCalendar
 
 ;; This file is part of GNU Emacs.
 
@@ -598,7 +600,6 @@ folding and syntax highlighting.  Consider using `visual-line-mode' in
   ;; TODO: mode-specific menu and context menus
   ;; TODO: eldoc integration
   ;; TODO: completion of keywords
-  ;; TODO: hook for folding in change-major-mode-hook?
   (progn
     (setq font-lock-defaults '(ical:font-lock-keywords nil t))))
 

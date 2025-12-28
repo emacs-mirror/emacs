@@ -673,32 +673,6 @@ recurring events for several years beyond the start time."
   :version "31.1"
   :type 'integer)
 
-(defun di:-tz-info-sexp-p (_ sexp)
-  "Validate that SEXP gives time zone info like from `calendar-current-time-zone'."
-  (and (listp sexp)
-       (length= sexp 8)
-       (let ((utc-diff (nth 0 sexp))
-             (dst-offset (nth 1 sexp))
-             (std-zone (nth 2 sexp))
-             (dst-zone (nth 3 sexp))
-             (dst-starts (nth 4 sexp))
-             (dst-ends (nth 5 sexp))
-             (dst-starts-time (nth 6 sexp))
-             (dst-ends-time (nth 7 sexp)))
-         (and
-          (integerp utc-diff) (< (abs utc-diff) (* 60 24))
-          (integerp dst-offset) (< (abs utc-diff) (* 60 24))
-          (stringp std-zone)
-          (stringp dst-zone)
-          (or (and (listp dst-starts) (memq 'year (flatten-list dst-starts)))
-              (and (null dst-starts) (equal std-zone dst-zone)))
-          (or (and (listp dst-ends) (memq 'year (flatten-list dst-ends)))
-              (and (null dst-ends) (equal std-zone dst-zone)))
-          (or (and (integerp dst-starts-time) (< (abs dst-starts-time) (* 60 24)))
-              (null dst-starts-time))
-          (or (and (integerp dst-ends-time) (< (abs dst-ends-time) (* 60 24)))
-              (null dst-ends-time))))))
-
 (defcustom di:time-zone-export-strategy
   'local
   "Strategy to use for exporting clock times in diary files.
@@ -741,7 +715,7 @@ the events you are exporting."
           (const :tag "Convert local times to UTC" to-utc)
           (const :tag "Use floating times" floating)
           (sexp :tag "User-provided TZ information"
-                :match di:-tz-info-sexp-p
+                :match icr:-tz-info-sexp-p
                 :type-error
                 "See `calendar-current-time-zone' for format"))
   :link '(url-link "https://www.rfc-editor.org/rfc/rfc5545#section-3.3.5"))
@@ -988,12 +962,6 @@ new code."
     `((VEVENT nil ,children))))
 
 ;;; Other utilities
-
-(defsubst di:-nonempty (s)
-  "Ensure that string S is nonempty once trimmed: return the trimmed S, or nil."
-  (when (and s (stringp s))
-    (let ((trimmed (string-trim s)))
-      (unless (equal "" trimmed) trimmed))))
 
 (defconst di:entry-regexp
   (rx line-start
@@ -1660,10 +1628,10 @@ Returns a string containing the diary entry."
             (if (eq 'icalendar-vjournal component-type)
               (mapconcat
                (lambda (node)
-                 (di:-nonempty (ical:text-to-string (ical:ast-node-value node))))
+                 (ical:trimp (ical:text-to-string (ical:ast-node-value node))))
                description-nodes
                "\n\n")
-              (di:-nonempty description)))
+              (ical:trimp description)))
            (ical-start
             (when dtstart
               (if (bound-and-true-p ical-importing)
@@ -1748,7 +1716,7 @@ Returns a string containing the diary entry."
             (when (and dtstart due-dt (bound-and-true-p ical-importing))
               (di:format-time-block-sexp dtstart-local due-dt)))
            (ical-importing (bound-and-true-p ical-importing))
-           (ical-location (or (di:-nonempty location)
+           (ical-location (or (ical:trimp location)
                               (when geo (di:format-geo-coordinates geo))))
            (ical-nonmarking nonmarking)
            (ical-organizer (di:format-attendee organizer-node))
@@ -1757,11 +1725,11 @@ Returns a string containing the diary entry."
            (ical-rrule-sexp
             (when (and is-recurring (bound-and-true-p ical-importing))
               (di:format-rrule-sexp component)))
-           (ical-status (when status (di:-nonempty (downcase status))))
-           (ical-summary (di:-nonempty summary))
+           (ical-status (when status (ical:trimp (downcase status))))
+           (ical-summary (ical:trimp summary))
            (ical-transparency transp)
-           (ical-uid (di:-nonempty uid))
-           (ical-url (di:-nonempty url)))
+           (ical-uid (ical:trimp uid))
+           (ical-url (ical:trimp url)))
         (with-temp-buffer
           (cl-case (ical:ast-node-type component)
             (ical:vevent
@@ -2108,7 +2076,7 @@ parsed as an `icalendar-organizer' node, or otherwise as an
         (unless (string-match ":" addr) ; URI scheme already present
           (setq addr (concat "mailto:" addr)))
         (when cn
-          (setq cn (di:-nonempty cn)))
+          (setq cn (ical:trimp cn)))
         (if (string-match di:organizer-regexp
                           (buffer-substring (line-beginning-position)
                                             (line-end-position)))
@@ -2130,7 +2098,7 @@ this node, or nil."
   (goto-char (point-min))
   (when (and di:location-regexp
              (re-search-forward di:location-regexp nil t))
-    (ical:make-property ical:location (di:-nonempty (match-string 1)))))
+    (ical:make-property ical:location (ical:trimp (match-string 1)))))
 
 (defun di:parse-class ()
   "Parse `icalendar-class' node from entry.
@@ -2166,7 +2134,7 @@ Searches the entry in the current restriction for an URL matching
   (goto-char (point-min))
   (when (and di:url-regexp
              (re-search-forward di:url-regexp nil t))
-    (ical:make-property ical:url (di:-nonempty (match-string 1)))))
+    (ical:make-property ical:url (ical:trimp (match-string 1)))))
 
 (defun di:parse-uid ()
   "Parse `icalendar-uid' node from entry.
@@ -2177,7 +2145,7 @@ Searches the entry in the current restriction for a UID matching
   (goto-char (point-min))
   (when (and di:uid-regexp
              (re-search-forward di:uid-regexp nil t))
-    (ical:make-property ical:uid (di:-nonempty (match-string 1)))))
+    (ical:make-property ical:uid (ical:trimp (match-string 1)))))
 
 (defun di:parse-summary-and-description ()
   "Parse summary and description nodes from current restriction.
@@ -3136,112 +3104,18 @@ times according to `diary-icalendar-time-zone-export-strategy'."
 
 ;;; Time zone handling during export:
 
-(defconst di:-tz-warning
-  "This time zone information was inferred from incomplete system information; it should be correct for the date-times within this calendar file referencing this zone, but you should not rely on it more widely.")
-
-(defconst di:-emacs-local-tzid
-  "Emacs_Local_")
-
 (defun di:current-tz-to-vtimezone (&optional tz tzid start-year)
   "Convert TZ to an `icalendar-vtimezone'.
 
-TZ defaults to the output of `calendar-current-time-zone'; if specified,
-it should be a list of the same form as that function returns.
-
-TZID, if specified, should be a string to identify this time zone; it
-defaults to `diary-icalendar--emacs-local-tzid' plus the name of the
-standard observance according to `calendar-current-time-zone'.
-
-START-YEAR, if specified, should be an integer giving the year in which
-to start the observances in the time zone.  It defaults to 1970."
-  (when (and tz (not (di:-tz-info-sexp-p nil tz)))
-    (di:signal-export-error
-     (format "Invalid time zone data: %s.\n%s." tz
-             "Check the value of `diary-icalendar-time-zone-export-strategy'")))
-  (let* ((tzdata (or tz (calendar-current-time-zone)))
-         (std-offset (* 60 (nth 0 tzdata)))
-         (dst-offset (+ std-offset
-                        (* 60 (nth 1 tzdata))))
-         (std-name (nth 2 tzdata))
-         (dst-name (nth 3 tzdata))
-         (dst-starts (nth 4 tzdata))
-         (dst-ends (nth 5 tzdata))
-         (dst-start-minutes (nth 6 tzdata))
-         (dst-end-minutes (nth 7 tzdata)))
-
-    (unless (and std-offset
-                 (or (equal std-name dst-name)
-                     (and dst-starts dst-ends dst-start-minutes dst-end-minutes)))
-      (di:signal-export-error
-       "Insufficient time zone information to create VTIMEZONE"))
-
-    (if (equal std-name dst-name)
-        ;; Local time zone doesn't use DST:
-        (ical:make-vtimezone
-         (ical:tzid (or tzid (concat di:-emacs-local-tzid std-name)))
-         (ical:make-standard
-          (ical:tzname std-name)
-          (ical:dtstart (ical:make-date-time :year (or start-year 1970)
-                                             :month 1 :day 1
-                                             :hour 0 :minute 0 :second 0))
-          (ical:tzoffsetfrom std-offset)
-          (ical:tzoffsetto std-offset)
-          (ical:comment di:-tz-warning)))
-
-      ;; Otherwise we can provide both STANDARD and DAYLIGHT subcomponents:
-      (let* ((std->dst-rule
-              (if (eq (car dst-starts) 'calendar-nth-named-day)
-                  `((FREQ YEARLY)
-                    (BYMONTH (,(nth 3 dst-starts)))
-                    (BYDAY (,(cons (nth 2 dst-starts)
-                                   (nth 1 dst-starts)))))
-                ;; The only other rules that `calendar-current-time-zone'
-                ;; can return are based on the Persian calendar, which we
-                ;; cannot express in an `icalendar-recur' value, at least
-                ;; pending an implementation of RFC 7529
-                (di:signal-export-error
-                 (format "Unable to export DST rule for current time zone: %s"
-                         dst-starts))))
-             (dst-start-date (calendar-dlet ((year (or start-year 1970)))
-                               (eval dst-starts)))
-             (dst-start
-              (ical:date-to-date-time dst-start-date
-                                      :hour (/ dst-start-minutes 60)
-                                      :minute (mod dst-start-minutes 60)
-                                      :second 0))
-             (dst->std-rule
-              (if (eq (car dst-ends) 'calendar-nth-named-day)
-                  `((FREQ YEARLY)
-                    (BYMONTH (,(nth 3 dst-ends)))
-                    (BYDAY (,(cons (nth 2 dst-ends)
-                                   (nth 1 dst-ends)))))
-                (di:signal-export-error
-                 (format "Unable to export DST rule for current time zone: %s"
-                         dst-ends))))
-             (std-start-date (calendar-dlet ((year (1- (or start-year 1970))))
-                               (eval dst-ends)))
-             (std-start
-              (ical:date-to-date-time std-start-date
-                                      :hour (/ dst-end-minutes 60)
-                                      :minute (mod dst-end-minutes 60)
-                                      :second 0)))
-
-      (ical:make-vtimezone
-       (ical:tzid (or tzid (concat di:-emacs-local-tzid std-name)))
-       (ical:make-standard
-        (ical:tzname std-name)
-        (ical:dtstart std-start)
-        (ical:rrule dst->std-rule)
-        (ical:tzoffsetfrom dst-offset)
-        (ical:tzoffsetto std-offset)
-        (ical:comment di:-tz-warning))
-       (ical:make-daylight
-        (ical:tzname dst-name)
-        (ical:dtstart dst-start)
-        (ical:rrule std->dst-rule)
-        (ical:tzoffsetfrom std-offset)
-        (ical:tzoffsetto dst-offset)
-        (ical:comment di:-tz-warning)))))))
+See `icalendar-recur-current-tz-to-vtimezone' for arguments' meanings.
+This function wraps that one, but signals `icalendar-diary-export-error'
+instead if TZ cannot be converted."
+  (condition-case err
+      (icr:current-tz-to-vtimezone tz tzid start-year)
+    ((ical:tz-insufficient-data ical:tz-unsupported)
+     (di:signal-export-error
+      (format "Unable to export time zone data: %s.\n%s." tz
+              "Check the value of `diary-icalendar-time-zone-export-strategy'")))))
 
 ;;; Parsing complete diary entries:
 

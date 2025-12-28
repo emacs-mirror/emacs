@@ -82,6 +82,11 @@ COMPONENT can be any component node."
   (ical:with-param-of property 'ical:tzidparam nil value))
 
 ;; String manipulation
+(defun ical:trimp (s &optional trim-left trim-right)
+  "Like `string-trim', but return nil if the trimmed string is empty."
+  (when (and s (stringp s))
+    (let ((trimmed (string-trim s trim-left trim-right)))
+      (unless (equal "" trimmed) trimmed))))
 
 (defun ical:strip-mailto (s)
   "Remove \"mailto:\" case-insensitively from the start of S."
