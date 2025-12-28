@@ -128,6 +128,7 @@ just toggles it when zero or omitted."
       (c-ts-mode-set-modeline))))
 
 (defun c-ts-mode-set-modeline ()
+  "Set major mode name to either C or C++ in mode-line."
   (setq mode-name
         (concat (if (eq major-mode 'c-ts-mode) "C" "C++")
                 (string-trim-right comment-start)))
@@ -827,15 +828,15 @@ MODE is either `c' or `cpp'."
    ;; expressions, see `c-ts-mode--fontify-declarator' for
    ;; inspiration.
    '((assignment_expression
-      left: (identifier) @font-lock-variable-name-face)
+      left: (identifier) @font-lock-variable-use-face)
      (assignment_expression
       left: (field_expression field: (_) @font-lock-property-use-face))
      (assignment_expression
       left: (pointer_expression
-             (identifier) @font-lock-variable-name-face))
+             (identifier) @font-lock-variable-use-face))
      (assignment_expression
       left: (subscript_expression
-             (identifier) @font-lock-variable-name-face))
+             (identifier) @font-lock-variable-use-face))
      (init_declarator declarator: (_) @c-ts-mode--fontify-declarator))
 
    :feature 'function
