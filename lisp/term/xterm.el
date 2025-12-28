@@ -89,7 +89,8 @@ capabilities, and only when that terminal understands bracketed paste."
           "WezTerm"
           ;; "XTerm"   ;Disabled because OSC52 support is opt-in only.
           "iTerm2"     ;OSC52 support has opt-in/out UI on first usage
-          "kitty")
+          "kitty"
+          "foot")
       word-end)
   "Regexp for terminals that automatically enable `xterm-mouse-mode' at startup.
 This will get matched against the terminal's XTVERSION string.
