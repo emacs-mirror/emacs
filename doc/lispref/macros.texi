@@ -645,7 +645,7 @@ lines until the end of the list.
 This variable can be used to override the indentation specification used
 for certain symbol, as specified using their @code{lisp-indent-function}
 symbol property (@xref{Symbol Properties}).  It is intended to be used
-as a file-local or directory-local variable (@xref{File Variables, ,
+as a file-local or directory-local variable (@pxref{File Variables, ,
 Local Variables in Files, emacs, The GNU Emacs Manual}).
 
 Each key is a symbol and each value is an indent specification, which
