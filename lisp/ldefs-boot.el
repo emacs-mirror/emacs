@@ -36548,8 +36548,8 @@ When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like to `vc-fileset-diff-outgoing' except that it
-includes uncommitted changes.
+This command is like to `vc-diff-outgoing' except that it includes
+uncommitted changes.
 
 (fn &optional UPSTREAM-LOCATION FILESET)" t)
 (autoload 'vc-version-ediff "vc" "\
@@ -36687,7 +36687,8 @@ Show in another window the VC change history of the current fileset.
 If WORKING-REVISION is non-nil, it should be a revision ID; position
 point in the change history buffer at that revision.
 If LIMIT is non-nil, it should be a number specifying the maximum
-number of revisions to show; the default is `vc-log-show-limit'.
+number of revisions to show; the default for interactive calls is
+`vc-log-show-limit'.
 
 When called interactively with a prefix argument, prompt for
 WORKING-REVISION and LIMIT.
@@ -36710,9 +36711,20 @@ the command prompts for the id of a REVISION, and shows that revision
 with its diffs (if the underlying VCS backend supports that).
 
 (fn &optional LIMIT REVISION)" t)
+(autoload 'vc-print-fileset-branch-log "vc" "\
+Show log of VC changes on BRANCH, limited to the current fileset.
+When called interactively, prompts for BRANCH.
+In addition to logging branches, for VCS for which it makes sense you
+can specify a revision ID instead of a branch name to produce a log
+starting at that revision.  Tags and remote references also work.
+
+(fn BRANCH)" t)
 (autoload 'vc-print-root-branch-log "vc" "\
-Show the change log for BRANCH in another window.
-The command prompts for the branch whose change log to show.
+Show root log of VC changes on BRANCH in another window.
+When called interactively, prompts for BRANCH.
+In addition to logging branches, for VCS for which it makes sense you
+can specify a revision ID instead of a branch name to produce a log
+starting at that revision.  Tags and remote references also work.
 
 (fn BRANCH)" t)
 (autoload 'vc-log-incoming "vc" "\
