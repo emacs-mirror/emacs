@@ -610,6 +610,36 @@
 ;;   does a sanity check whether there aren't any uncommitted changes at
 ;;   or below DIR, and then performs a tree walk, using the `checkout'
 ;;   function to retrieve the corresponding revisions.
+;;
+;; - working-branch ()
+;;
+;;   Return the name of the current branch, if there is one, else nil.
+;;
+;; - trunk-or-topic-p ()
+;;
+;;   For the current branch, or the closest equivalent for a VCS without
+;;   named branches, return `trunk' if it is definitely a longer-lived
+;;   trunk branch, `topic' if it is definitely a shorter-lived topic
+;;   branch, or nil if no general determination can be made.
+;;
+;;   What counts as a longer-lived or shorter-lived branch for VC is
+;;   explained in Info node `(emacs)Outstanding Changes' and in the
+;;   docstrings for the `vc-trunk-branch-regexps' and
+;;   `vc-topic-branch-regexps' user options.
+;;
+;; - topic-outgoing-base ()
+;;
+;;   Return an outgoing base for the current branch (or the closest
+;;   equivalent for a VCS without named branches) considered as a topic
+;;   branch.  That is, on the assumption that the current branch is a
+;;   shorter-lived branch which will later be merged into a longer-lived
+;;   branch, return, if possible, the upstream location to which those
+;;   changes will be merged.  See Info node `(emacs) Outstanding
+;;   Changes'.  The return value should be suitable for passing to the
+;;   incoming-revision backend function as its UPSTREAM-LOCATION
+;;   argument.  For example, for Git the value will typically be of the
+;;   form 'origin/foo' whereas Mercurial uses the unmodified name of the
+;;   longer-lived branch.
 
 ;; MISCELLANEOUS
 ;;
@@ -3126,21 +3156,189 @@ global binding."
                       (vc-symbolic-working-revision (caadr fileset) backend)
                       (called-interactively-p 'interactive))))
 
-;; For the following two commands, the default meaning for
-;; UPSTREAM-LOCATION may become dependent on whether we are on a
-;; shorter-lived or longer-lived ("trunk") branch.  If we are on the
-;; trunk then it will always be the place `vc-push' would push to.  If
-;; we are on a shorter-lived branch, it may instead become the remote
-;; trunk branch from which the shorter-lived branch was branched.  That
-;; way you can use these commands to get a summary of all unmerged work
-;; outstanding on the short-lived branch.
-;;
-;; The obstacle to doing this is that VC lacks any distinction between
-;; shorter-lived and trunk branches.  But we all work with both of
-;; these, for almost any VCS workflow.  E.g. modern workflows which
-;; eschew traditional feature branches still have a long-lived trunk
-;; plus shorter-lived local branches for merge requests or patch series.
-;; --spwhitton
+;; This is used in .dir-locals.el in the Emacs source tree.
+;;;###autoload (put 'vc-trunk-branch-regexps 'safe-local-variable
+;;;###autoload      #'vc--safe-branch-regexps-p)
+(defcustom vc-trunk-branch-regexps '("trunk" "master" "main" "default")
+  "Regular expressions matching the names of longer-lived VCS branches.
+There value can be of one of the following forms:
+- A list of regular expressions.  A trunk branch is one whose name
+  matches any of the regular expressions.  If an element of the list
+  contains no characters that are special in regular expressions, then
+  the regexp is implicitly anchored at both ends, i.e., it is the full
+  name of a branch.
+- A list whose first element is `not' and whose remaining elements are
+  regular expressions.  This is the same as the previous case except
+  that a trunk branch is one whose name does *not* match any of the
+  regular expressions.
+- The symbol t.  A trunk branch is any branch that
+  `vc-topic-branch-regexps' does not positively identify as a topic
+  branch.
+- An empty list (or, the symbol nil).  The branch name does not indicate
+  whether a branch is a trunk.  Emacs will ask the backend whether it
+  thinks the current branch is a trunk.
+
+In VC, trunk branches are those where you've finished sharing the work
+on the branch with your collaborators just as soon as you've checked it
+in, and in the case of a decentralized VCS, pushed it.  In addition,
+typically you never delete trunk branches.
+
+The specific VCS workflow you are using may only acknowledge a single
+trunk, and give other names to kinds of branches which VC would consider
+to be just further trunks.
+
+If trunk branches in your project can be identified by name, include
+regexps matching their names in the value of this variable.  This is
+more reliable than letting Emacs ask the backend.
+
+See also `vc-topic-branch-regexps'."
+  :type '(choice (repeat :tag "Regexps" string)
+                 (cons :tag "Negated regexps"
+                       (const not) (repeat :tag "Regexps" string))
+                 (const :tag "Inverse of `vc-branch-trunk-regexps'" t))
+  :safe #'vc--safe-branch-regexps-p
+  :version "31.1")
+
+;; This is used in .dir-locals.el in the Emacs source tree.
+;;;###autoload (put 'vc-topic-branch-regexps 'safe-local-variable
+;;;###autoload      #'vc--safe-branch-regexps-p)
+(defcustom vc-topic-branch-regexps nil
+  "Regular expressions matching the names of shorter-lived VCS branches.
+There value can be of one of the following forms:
+- A list of regular expressions.  A topic branch is one whose name
+  matches any of the regular expressions.  If an element of the list
+  contains no characters that are special in regular expressions, then
+  the regexp is implicitly anchored at both ends, i.e., it is the full
+  name of a branch.
+- A list whose first element is `not' and whose remaining elements are
+  regular expressions.  This is the same as the previous case except
+  that a topic branch is one whose name does *not* match any of the
+  regular expressions.
+- The symbol t.  A topic branch is any branch that
+  `vc-trunk-branch-regexps' does not positively identify as a trunk
+  branch.
+- An empty list (or, the symbol nil).  The branch name does not indicate
+  whether a branch is a topic branch.  Emacs will ask the backend
+  whether it thinks the current branch is a topic branch.
+
+In VC, topic branches are those where checking in work, and pushing it
+in the case of a decentralized VCS, is not enough to complete the
+process of sharing the changes with your collaborators.  In addition,
+it's required that you merge the topic branch into another branch.
+After this is done, typically you delete the topic branch.
+
+Topic branches are sometimes called \"feature branches\", though it is
+also common for that term to be reserved for only a certain kind of
+topic branch.
+
+If topic branches in your project can be identified by name, include
+regexps matching their names in the value of this variable.  This is
+more reliable than letting Emacs ask the backend.
+
+See also `vc-trunk-branch-regexps'."
+  :type '(choice (repeat :tag "Regexps" string)
+                 (cons :tag "Negated regexps"
+                       (const not) (repeat :tag "Regexps" string))
+                 (const :tag "Inverse of `vc-trunk-branch-regexps'" t))
+  :safe #'vc--safe-branch-regexps-p
+  :version "31.1")
+
+(defun vc--match-branch-name-regexps (branch)
+  "Match against `vc-trunk-branch-regexps' and `vc-topic-branch-regexps'.
+See the docstrings for those two variables for how this matching works.
+
+If BRANCH matches both sets of regexps we signal an error; this is to
+allow for future extension.
+If BRANCH matches neither set of regexps return nil to mean that the
+defcustoms don't decide the matter of which kind of branch this is."
+  (when (and (eq vc-trunk-branch-regexps t)
+             (eq vc-topic-branch-regexps t))
+    (user-error "\
+`vc-trunk-branch-regexps' and `vc-topic-branch-regexps' cannot both be `t'"))
+  (cl-labels ((join-regexps (regexps)
+                (mapconcat (lambda (elt)
+                             (format (if (equal (regexp-quote elt) elt)
+                                         "\\`%s\\'"
+                                       "\\(?:%s\\)")
+                                     elt))
+                           regexps "\\|"))
+              (compile-regexps (regexps)
+                (if regexps
+                    (let* ((negated (eq (car regexps) 'not))
+                           (joined (join-regexps (if negated
+                                                     (cdr regexps)
+                                                   regexps))))
+                      (if negated
+                          (lambda (s) (not (string-match-p joined s)))
+                        (lambda (s) (string-match-p joined s))))
+                  #'ignore))
+              (match-trunk (if (eq vc-trunk-branch-regexps t)
+                               (lambda (s) (not (match-topic s)))
+                             (compile-regexps vc-trunk-branch-regexps)))
+              (match-topic (if (eq vc-topic-branch-regexps t)
+                               (lambda (s) (not (match-trunk s)))
+                             (compile-regexps vc-topic-branch-regexps))))
+    (let ((trunk (match-trunk branch))
+          (topic (match-topic branch)))
+      (cond ((and trunk topic)
+             (error "Branch name `%s' matches both \
+`vc-trunk-branch-regexps' and `vc-topic-branch-regexps'"
+                    branch))
+            (trunk 'trunk)
+            (topic 'topic)))))
+
+(defun vc--outgoing-base (backend)
+  "Return an outgoing base for the current branch under VC backend BACKEND.
+The outgoing base is the upstream location for which outstanding changes
+on this branch are destined once they are no longer outstanding.
+
+There are two stages to determining the outgoing base.
+First we decide whether we think this is a shorter-lived or a
+longer-lived (\"trunk\") branch (see `vc-trunk-branch-regexps' and
+`vc-topic-branch-regexps' regarding this distinction), as follows:
+1. Ask the backend for the name of the current branch.
+   If it returns non-nil, compare that name against
+   `vc-trunk-branch-regexps' and `vc-topic-branch-regexps'.
+2. If that doesn't settle it, either because the backend returns nil for
+   the name of the current branch, or because comparing the name against
+   the two regexp defcustoms yields no decisive answer, call BACKEND's
+   `trunk-or-topic-p' VC API function.
+3. If that doesn't settle it either, assume this is a shorter-lived
+   branch.  This is based on how it's commands primarily intended for
+   working with shorter-lived branches that call this function.
+Second, if we have determined that this is a trunk, return nil, meaning
+that the outgoing base is the place to which `vc-push' would push.
+Otherwise, we have determined that this is a shorter-lived branch, and
+we return the value of calling BACKEND's `topic-outgoing-base' VC API
+function."
+  ;; For further discussion see bug#80006.
+  (let* ((branch (vc-call-backend backend 'working-branch))
+         (type (or (and branch (vc--match-branch-name-regexps branch))
+                   (vc-call-backend backend 'trunk-or-topic-p)
+                   'topic)))
+    (and (eq type 'topic)
+         (vc-call-backend backend 'topic-outgoing-base))))
+
+(defun vc--outgoing-base-mergebase (backend &optional upstream-location refresh)
+  "Return, under VC backend BACKEND, the merge base with UPSTREAM-LOCATION.
+Normally UPSTREAM-LOCATION, if non-nil, is a string.
+If UPSTREAM-LOCATION is nil, it means to call `vc--outgoing-base' and
+use its return value as UPSTREAM-LOCATION.  If `vc--outgoing-base'
+returns nil, that means to use the place to which `vc-push' would push.
+If UPSTREAM-LOCATION is the special value t, it means to use the place
+to which `vc-push' would push as UPSTREAM-LOCATION, unconditionally.
+(This is passed when the user invokes an outgoing base command with a
+ \\`C-u C-u' prefix argument; see `vc--maybe-read-outgoing-base'.)
+REFRESH is passed on to `vc--incoming-revision'."
+  (if-let* ((incoming
+             (vc--incoming-revision backend
+                                    (pcase upstream-location
+                                      ('t nil)
+                                      ('nil (vc--outgoing-base backend))
+                                      (_ upstream-location))
+                                    refresh)))
+      (vc-call-backend backend 'mergebase incoming)
+    (user-error "No incoming revision -- local-only branch?")))
 
 ;;;###autoload
 (defun vc-root-diff-outgoing-base (&optional upstream-location)
@@ -3149,17 +3347,23 @@ The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
 Uncommitted changes are included in the diff.
 
-When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
-to.  This default meaning for UPSTREAM-LOCATION may change in a future
-release of Emacs.
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like `vc-root-diff-outgoing' except that it includes
-uncommitted changes."
-  (interactive (list (vc--maybe-read-upstream-location)))
+When called interactively with a \\[universal-argument] \\[universal-argument] \
+prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.  (With a double prefix argument, this command is like
+`vc-diff-outgoing' except that it includes uncommitted changes.)"
+  (interactive (list (vc--maybe-read-outgoing-base)))
   (vc--with-backend-in-rootdir "VC root-diff"
     (vc-diff-outgoing-base upstream-location `(,backend (,rootdir)))))
 
@@ -3171,24 +3375,31 @@ The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
 Uncommitted changes are included in the diff.
 
-When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
-to.  This default meaning for UPSTREAM-LOCATION may change in a future
-release of Emacs.
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
 can be a remote branch name.
 
-When called from Lisp, optional argument FILESET overrides the fileset.
+When called interactively with a \\[universal-argument] \\[universal-argument] \
+prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.  (With a double prefix argument, this command is like
+`vc-diff-outgoing' except that it includes uncommitted changes.)
 
-This command is like to `vc-diff-outgoing' except that it includes
-uncommitted changes."
-  (interactive (list (vc--maybe-read-upstream-location) nil))
-  (let* ((fileset (or fileset (vc-deduce-fileset t)))
-         (backend (car fileset))
-         (incoming (vc--incoming-revision backend upstream-location)))
+When called from Lisp, optional argument FILESET overrides the fileset."
+  (interactive (let ((fileset (vc-deduce-fileset t)))
+                 (list (vc--maybe-read-outgoing-base (car fileset))
+                       fileset)))
+  (let ((fileset (or fileset (vc-deduce-fileset t))))
     (vc-diff-internal vc-allow-async-diff fileset
-                      (vc-call-backend backend 'mergebase incoming)
+                      (vc--outgoing-base-mergebase (car fileset)
+                                                   upstream-location)
                       nil
                       (called-interactively-p 'interactive))))
 
@@ -4113,10 +4324,35 @@ starting at that revision.  Tags and remote references also work."
   "History of upstream locations for VC incoming and outgoing commands.")
 
 (defun vc--maybe-read-upstream-location ()
+  "Read upstream location if there is a prefix argument, else return nil."
   (and current-prefix-arg
        (let ((res (read-string "Upstream location/branch (empty for default): "
                                nil 'vc-remote-location-history)))
          (and (not (string-empty-p res)) res))))
+
+(defun vc--maybe-read-outgoing-base (&optional backend)
+  "Return upstream location for interactive uses of outgoing base commands.
+If there is no prefix argument, return nil.
+If the current prefix argument is \\`C-u C-u', return t.
+Otherwise prompt for an upstream location.
+BACKEND is the VC backend."
+  (cond
+   ((equal current-prefix-arg '(16)) t)
+   (current-prefix-arg
+    (let* ((outgoing-base (vc-call-backend (or backend
+                                               (vc-deduce-backend))
+                                           'topic-outgoing-base))
+           ;; If OUTGOING-BASE is non-nil then it isn't possible to
+           ;; specify an empty string in response to the prompt, which
+           ;; normally means to treat the current branch as a trunk.
+           ;; That's okay because you can use a double prefix argument
+           ;; to force treating the current branch as a trunk.
+           (res (read-string (if outgoing-base
+                                 (format-prompt "Upstream location/branch"
+                                                outgoing-base)
+                               "Upstream location/branch (empty to treat as trunk): ")
+                             nil 'vc-remote-location-history outgoing-base)))
+      (and (not (string-empty-p res)) res)))))
 
 (defun vc--incoming-revision (backend &optional upstream-location refresh)
   ;; Some backends don't support REFRESH and so always behave as though
@@ -5623,6 +5859,9 @@ except that this command works only in file-visiting buffers."
                     (vc-responsible-backend default-directory)
                     'get-change-comment)))
       (format "Summary: %s\n" (string-trim (funcall fn files rev))))))
+
+(defalias 'vc-default-working-branch #'ignore)
+(defalias 'vc-default-trunk-or-topic-p #'ignore)
 
 
 

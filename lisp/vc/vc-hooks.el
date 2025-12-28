@@ -1187,6 +1187,14 @@ they had none before."
 (defun vc-default-extra-menu (_backend)
   nil)
 
+(defun vc--safe-branch-regexps-p (val)
+  "Return non-nil if VAL is a safe local value for \\+`vc-*-branch-regexps'."
+  (or (eq val t)
+      (and (listp val)
+           (all (lambda (elt)
+                  (or (symbolp elt) (stringp elt)))
+                val))))
+
 (provide 'vc-hooks)
 
 ;;; vc-hooks.el ends here

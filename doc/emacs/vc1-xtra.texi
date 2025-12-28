@@ -312,8 +312,8 @@ these commands provide specialized versions of @kbd{C-x v M D} (see
 @pxref{Merge Bases}) which also take into account the state of upstream
 repositories.  These commands are useful both when working on a single
 branch and when developing features on a separate branch
-(@pxref{Branches}).  These two cases involve using the commands
-differently, and so we will describe them separately.
+(@pxref{Branches}).  These two cases are conceptually distinct, and so
+we will introduce them separately.
 
 First, consider working on a single branch.  @dfn{Outstanding changes}
 are those which you haven't yet pushed upstream.  This includes both
@@ -341,12 +341,14 @@ commands, you can use a prefix argument to specify a particular upstream
 location.}
 
 Second, consider developing a feature on a separate branch.  Call this
-the @dfn{topic branch},@footnote{Topic branches are sometimes called
-``feature branches''.  It is also common for the term ``feature branch''
-to be reserved for a particular kind of topic branch, one that another
-branch or other branches are repeatedly merged into.} and call the
-branch from which the topic branch was originally created the
-@dfn{trunk} or @dfn{development trunk}.
+the @dfn{topic branch},@footnote{What we mean by a topic branch is any
+shorter-lived branch used for work which will later be merged into a
+longer-lived branch.  Topic branches are sometimes called ``feature
+branches''.  It is also common for the term ``feature branch'' to be
+reserved for a particular kind of topic branch, one that another branch
+or other branches are repeatedly merged into.} and call the branch from
+which the topic branch was originally created the @dfn{trunk} or
+@dfn{development trunk}.
 
 In this case, outstanding changes is a more specific notion than just
 unpushed and uncommitted changes on the topic branch.  You're not
@@ -357,20 +359,104 @@ upstream repository's development trunk.  That means committed changes
 on the topic branch that haven't yet been merged into the trunk, plus
 uncommitted changes.
 
-@cindex outgoing base, version control
-The @dfn{outgoing base} is the upstream location for which the changes
-are destined once they are no longer outstanding.  In this case, that's
-the upstream version of the trunk, to which you and your collaborators
-push finished work.
+When the current branch is a topic branch and you type @kbd{C-x v o D},
+Emacs displays a summary of all the changes that are outstanding against
+the trunk to which the current branch will be merged.  This summary is
+in the form of a diff of what committing and pushing all the changes,
+@emph{and} subsequently merging the topic branch, would do to the trunk.
+As above, you can use @kbd{C-x v o =} instead to limit the display of
+changes to the current VC fileset.
 
-To display a summary of outgoing changes in this multi-branch example,
-supply a prefix argument, by typing @w{@kbd{C-u C-x v o =}} or
-@w{@kbd{C-u C-x v o D}}.  When prompted, enter the outgoing base.
-Exactly what you must supply here depends on the name of your
-development trunk and the version control system in use.  For example,
-with Git, usually you will enter @kbd{origin/master}.  We hope to
-improve these commands such that no prefix argument is required in the
-multi-branch case, too.
+This functionality relies on Emacs correctly detecting whether the
+current branch is a trunk or a topic branch, and in the latter case,
+correctly determining the branch to which the topic branch will
+eventually be merged.  If the autodetection doesn't produce the right
+results, there are several options to tweak and override it.
+
+@vindex vc-trunk-branch-regexps
+@vindex vc-topic-branch-regexps
+The variables @code{vc-trunk-branch-regexps} and
+@code{vc-topic-branch-regexps} contain lists of regular expressions
+matching the names of branches that should always be considered trunk
+and topic branches, respectively.  You can also specify prefix arguments
+to @kbd{C-x v o D} and @kbd{C-x v o =}.  Here is a summary of how to use
+these controls:
+
+@enumerate
+@item
+If the problem is that Emacs thinks your topic branch is a trunk, you
+can add either its name, or a regular expression matching its name
+(@pxref{Regexps}), to the @code{vc-topic-branch-regexps} variable.
+There are a few special kinds of value to simplify common use cases:
+
+@itemize
+@item
+If an element contains no characters that are special in regular
+expressions, then the regular expression is implictly anchored at both
+ends, i.e., it matches only a branch with exactly that name.
+
+@item
+If the first element of @code{vc-topic-branch-regexps} is the symbol
+@code{not}, then the meaning of @code{vc-topic-branch-regexps} is
+inverted, in that Emacs treats all branches whose names @emph{don't}
+match any element of @code{vc-topic-branch-regexps} to be topic
+branches.
+
+@item
+If instead of a list of regular expressions the
+@code{vc-topic-branch-regexps} variable has the special value @code{t},
+then Emacs treats as a topic branch any branch that the
+@code{vc-trunk-branch-regexps} variable doesn't positively identify as a
+trunk.
+@end itemize
+
+@xref{Directory Variables}, regarding how to specify values of
+@code{vc-topic-branch-regexps} and @code{vc-trunk-branch-regexps} for a
+single VC repository.
+
+@item
+If the problem is that Emacs thinks your trunk is a topic branch, you
+can add either its name, or a regular expression matching its name, to
+the @code{vc-trunk-branch-regexps} variable.  This works just like
+@code{vc-topic-branch-regexps} with the same special values we just
+described.  E.g., if the value of @code{vc-trunk-branch-regexps} is
+@code{t}, Emacs treats as a trunk any branch that the
+@code{vc-topic-branch-regexps} variable doesn't identify as a topic
+branch.
+
+@item
+Supply a double prefix argument, i.e. @w{@kbd{C-u C-u C-x v o @dots{}}},
+and Emacs will treat the current branch as a trunk, no matter what.
+This is useful when you simply want to obtain a diff of all outgoing
+changes (@pxref{VC Change Log}) plus uncommitted changes.
+
+@item
+@cindex outgoing base, version control
+Finally, you can take full manual control by supplying a single prefix
+argument, i.e. @w{@kbd{C-u C-x v o @dots{}}}.  Emacs will prompt you for
+the @dfn{outgoing base}, which is the upstream location for which the
+changes are destined once they are no longer outstanding.
+
+To treat the current branch as a trunk specify a reference to the
+upstream version of the current branch, to which you and your
+collaborators push finished work.  To treat the current branch as a
+topic branch specify a reference to the upstream version of the trunk to
+which the topic branch will later be merged.
+
+Exactly how to specify a reference to the upstream version of a branch
+depends on the version control system in use.  For example, with Git, to
+refer to the upstream version of a branch @var{foo}, you would supply
+@kbd{origin/@var{foo}}.  So if @var{foo} is the current branch then you
+would enter an outgoing base of @kbd{origin/@var{foo}} to treat
+@var{foo} as a trunk, or an outgoing base of @kbd{origin/@var{bar}} to
+treat @var{foo} as a topic branch which will later be merged into a
+trunk named @var{bar}.
+
+If there is a default option, it is what Emacs thinks you need to enter
+in order to treat the current branch as a topic branch.  If there is no
+default, then entering nothing at the prompt means to treat the current
+branch as a trunk.
+@end enumerate
 
 @node Other Working Trees
 @subsubsection Multiple Working Trees for One Repository
