@@ -3932,13 +3932,20 @@ Each function runs in the log output buffer without args.")
    (lambda (_ignore-auto _noconfirm)
      (vc-incoming-outgoing-internal backend upstream-location buffer-name type))))
 
+(defun vc--read-limit ()
+  "Read a LIMIT argument for a VC log command."
+  (string-to-number
+   (read-from-minibuffer "Limit display (0 for unlimited): "
+                         (format "%s" vc-log-show-limit))))
+
 ;;;###autoload
 (defun vc-print-log (&optional working-revision limit)
   "Show in another window the VC change history of the current fileset.
 If WORKING-REVISION is non-nil, it should be a revision ID; position
 point in the change history buffer at that revision.
 If LIMIT is non-nil, it should be a number specifying the maximum
-number of revisions to show; the default is `vc-log-show-limit'.
+number of revisions to show; the default for interactive calls is
+`vc-log-show-limit'.
 
 When called interactively with a prefix argument, prompt for
 WORKING-REVISION and LIMIT.
@@ -3951,23 +3958,16 @@ shown log style is available via `vc-log-short-style'."
   (interactive
    (cond
     (current-prefix-arg
-     (let ((rev (read-from-minibuffer "Leave point at revision (default: last revision): " nil
-				      nil nil nil))
-	   (lim (string-to-number
-		 (read-from-minibuffer
-		  "Limit display (unlimited: 0): "
-		  (format "%s" vc-log-show-limit)
-		  nil nil nil))))
-       (when (string= rev "") (setq rev nil))
-       (when (<= lim 0) (setq lim nil))
-       (list rev lim)))
+     (let ((rev (read-from-minibuffer (format-prompt "Leave point at revision"
+                                                     "last revision")))
+	   (lim (vc--read-limit)))
+       (list (and (not (string-empty-p rev)) rev) (and (plusp lim) lim))))
     (t
-     (list nil (when (> vc-log-show-limit 0) vc-log-show-limit)))))
-  (let* ((vc-fileset (vc-deduce-fileset t))
-	 (backend (car vc-fileset))
-	 (files (cadr vc-fileset))
-	 (working-revision (or working-revision vc-buffer-revision)))
-    (vc-print-log-internal backend files working-revision nil limit)))
+     (list nil (and (plusp vc-log-show-limit) vc-log-show-limit)))))
+  (let ((fileset (vc-deduce-fileset t))
+	(working-revision (or working-revision vc-buffer-revision)))
+    (vc-print-log-internal (car fileset) (cadr fileset)
+                           working-revision nil limit)))
 
 ;;;###autoload
 (defun vc-print-root-log (&optional limit revision)
@@ -3989,11 +3989,7 @@ with its diffs (if the underlying VCS backend supports that)."
     ((numberp current-prefix-arg)
      (list current-prefix-arg))
     (current-prefix-arg
-     (let ((lim (string-to-number
-		 (read-from-minibuffer
-		  "Limit display (unlimited: 0): "
-		  (format "%s" vc-log-show-limit)
-		  nil nil nil))))
+     (let ((lim (vc--read-limit)))
        (list (and (plusp lim) lim))))
     (t
      (list (and (plusp vc-log-show-limit) vc-log-show-limit)))))
