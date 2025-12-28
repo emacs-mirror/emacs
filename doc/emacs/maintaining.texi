@@ -1056,8 +1056,12 @@ Display the change history for the current repository
 Display the log entry and changes (diffs) of a single @var{revision}
 (@code{vc-print-root-log}).
 
+@item C-x v b l
+Display the change history for the current fileset on another branch
+(@code{vc-print-fileset-branch-log}).
+
 @item C-x v b L
-Display the change history for another branch
+Display the change history for the current repository on another branch
 (@code{vc-print-root-branch-log}).
 
 @item C-x v I
@@ -1161,14 +1165,26 @@ showing only the first line of each log entry.  However, you can type
 @file{*vc-change-log*} buffer to reveal the entire log entry for the
 revision at point.  A second @key{RET} hides it again.
 
+@kindex C-x v b l
 @kindex C-x v b L
+@findex vc-print-fileset-branch-log
 @findex vc-print-root-branch-log
-  @kbd{C-x v b L @var{branch-name} @key{RET}}
-(@code{vc-print-root-branch-log}) displays a @file{*vc-change-log*}
-buffer showing the history of the version-controlled directory tree,
-like @code{vc-print-root-log} does, but it shows the history of a branch
-other than the current one; it prompts for the branch whose history to
-display.
+  @kbd{C-x v b l @var{branch-name} @key{RET}}
+(@code{vc-print-fileset-branch-log}) displays a @file{*vc-change-log*}
+buffer showing the history of changes made to the current fileset in the
+long form, like @code{vc-print-log} does, but it shows the history of a
+branch other than the current one; it prompts for the name of the branch
+whose history you would like to see.  @w{@kbd{C-x v b L
+@var{branch-name} @key{RET}}} (@code{vc-print-root-branch-log}) is
+similar except that it shows the history of the version-controlled
+directory tree, like @code{vc-print-root-log}.
+
+For a version control system for which it makes sense, you can also
+specify a revision ID instead of the name of a branch as
+@var{branch-name}, and Emacs will print a log starting from that
+revision ID.  You can also specify other names for specific revisions
+supported by the VCS, such as the names of tags (@pxref{Revision Tags}),
+or the remote branch references supported by Git.
 
 @kindex C-x v I
 @kindex C-x v O

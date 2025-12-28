@@ -3169,8 +3169,8 @@ When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like to `vc-fileset-diff-outgoing' except that it
-includes uncommitted changes."
+This command is like to `vc-diff-outgoing' except that it includes
+uncommitted changes."
   (interactive (list (vc--maybe-read-upstream-location) nil))
   (let* ((fileset (or fileset (vc-deduce-fileset t)))
          (backend (car fileset))
@@ -4002,22 +4002,44 @@ with its diffs (if the underlying VCS backend supports that)."
       ;; the mode line isn't helpful.
       (setq vc-parent-buffer-name nil))))
 
+(defun vc--read-branch-to-log (&optional files)
+  "Read the name of a branch to log.
+FILES, if supplied, should be a list of file names."
+  (let ((branch (vc-read-revision "Branch to log: " files)))
+    (when (string-empty-p branch)
+      (user-error "No branch specified"))
+    (list branch)))
+
+;;;###autoload
+(defun vc-print-fileset-branch-log (branch)
+  "Show log of VC changes on BRANCH, limited to the current fileset.
+When called interactively, prompts for BRANCH.
+In addition to logging branches, for VCS for which it makes sense you
+can specify a revision ID instead of a branch name to produce a log
+starting at that revision.  Tags and remote references also work."
+  ;; Currently the prefix argument is conserved.  Possibly it could be
+  ;; used to prompt for a LIMIT argument like \\`C-x v l' has.  Though
+  ;; now we have "Show 2X entries" and "Show unlimited entries" that
+  ;; might be a waste of the prefix argument to this command.  --spwhitton
+  (interactive (vc--read-branch-to-log (cadr (vc-deduce-fileset t))))
+  (let ((fileset (vc-deduce-fileset t)))
+    (vc-print-log-internal (car fileset) (cadr fileset) branch t
+                           (and (plusp vc-log-show-limit)
+                                vc-log-show-limit))))
+
 ;;;###autoload
 (defun vc-print-root-branch-log (branch)
-  "Show the change log for BRANCH in another window.
-The command prompts for the branch whose change log to show."
-  (interactive
-   (let* ((backend (vc-responsible-backend default-directory))
-          (rootdir (vc-call-backend backend 'root default-directory)))
-     (list
-      (vc-read-revision "Branch to log: " (list rootdir) backend))))
-  (when (equal branch "")
-    (error "No branch specified"))
-  (let* ((backend (vc-responsible-backend default-directory))
-         (rootdir (vc-call-backend backend 'root default-directory)))
-    (vc-print-log-internal backend
-                           (list rootdir) branch t
-                           (when (> vc-log-show-limit 0) vc-log-show-limit))))
+  "Show root log of VC changes on BRANCH in another window.
+When called interactively, prompts for BRANCH.
+In addition to logging branches, for VCS for which it makes sense you
+can specify a revision ID instead of a branch name to produce a log
+starting at that revision.  Tags and remote references also work."
+  ;; Prefix argument conserved; see previous command.  --spwhitton
+  (interactive (vc--read-branch-to-log))
+  (vc--with-backend-in-rootdir "VC branch log"
+    (vc-print-log-internal backend (list rootdir) branch t
+                           (and (plusp vc-log-show-limit)
+                                vc-log-show-limit))))
 ;; We plan to reuse the name `vc-print-branch-log' for the
 ;; fileset-specific command in Emacs 32.1.  --spwhitton
 (define-obsolete-function-alias

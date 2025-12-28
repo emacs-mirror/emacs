@@ -400,6 +400,7 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     (let ((branch-map (make-sparse-keymap)))
       (define-key map "b" branch-map)
       (define-key branch-map "c" #'vc-create-branch)
+      (define-key branch-map "l" #'vc-print-fileset-branch-log)
       (define-key branch-map "L" #'vc-print-root-branch-log)
       (define-key branch-map "s" #'vc-switch-branch))
 

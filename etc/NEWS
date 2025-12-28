@@ -2438,6 +2438,11 @@ To undo this change you can use
       (keymap-set vc-dir-mode-map "b l" #'vc-print-root-branch-log))
 
 +++
+*** New command 'C-x v b l' ('vc-print-fileset-branch-log').
+This command prints the log of VC changes to the current fileset on
+another branch.
+
++++
 *** New commands to handle repositories with multiple working trees.
 Some VCS support more than one working tree with the same backing
 revisions store, such as with Git's 'worktree' subcommand and
