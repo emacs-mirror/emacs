@@ -253,6 +253,7 @@ Sean Whitton
 	    test/lisp/vc/*
 
 Stephane Marks
+	lisp/system-taskbar.el
 	lisp/emacs-lisp/vtable.el
 
 ==============================================================================
