@@ -3252,7 +3252,7 @@ struct image
   int face_font_height;
   int face_font_width;
 
-  /* True if this image has a `transparent' background -- that is, is
+  /* True if this image has a `transparent' background -- that is, it
      uses an image mask.  The accessor macro for this is
      `IMAGE_BACKGROUND_TRANSPARENT'.  */
   bool_bf background_transparent : 1;
