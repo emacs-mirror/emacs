@@ -1004,7 +1004,7 @@ In the latter case, VC mode is deactivated for this buffer."
   :prefix t
   "a"   #'vc-update-change-log
   "b c" #'vc-create-branch
-  "b l" #'vc-print-branch-log
+  "b L" #'vc-print-root-branch-log
   "b s" #'vc-switch-branch
   "d"   #'vc-dir
   "g"   #'vc-annotate
@@ -1088,8 +1088,8 @@ other commands receive global bindings where they had none before."
     (define-key map [vc-create-tag]
       '(menu-item "Create Tag" vc-create-tag
 		  :help "Create version tag"))
-    (define-key map [vc-print-branch-log]
-      '(menu-item "Show Branch History..." vc-print-branch-log
+    (define-key map [vc-print-root-branch-log]
+      '(menu-item "Show Branch History..." vc-print-root-branch-log
 		  :help "List the change log for another branch"))
     (define-key map [vc-switch-branch]
       '(menu-item "Switch Branch..." vc-switch-branch

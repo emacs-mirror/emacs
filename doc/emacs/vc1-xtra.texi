@@ -609,11 +609,11 @@ arguments to VCS commands without unnecessary complications of the VC
 command set and its interfaces with the backend.
 
 For example, Git can produce logs of more than one branch, but
-@kbd{C-x v b l} (@code{vc-print-branch-log}) prompts for the name of
-just one branch.  To obtain a log of more than one branch, you can
-type @w{@kbd{C-x v ! C-x v b l}} and then append the names of
-additional branches to the end of the @samp{git log} command that VC
-is about to run.
+@w{@kbd{C-x v b L}} (@code{vc-print-root-branch-log}) prompts for the
+name of just one branch.  To obtain a log of more than one branch, you
+can type @w{@kbd{C-x v ! C-x v b L}} and then append the names of
+additional branches to the end of the @samp{git log} command that VC is
+about to run.
 
 @node Preparing Patches
 @subsubsection Preparing Patches

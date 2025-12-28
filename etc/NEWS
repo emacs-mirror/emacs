@@ -2424,6 +2424,20 @@ appearance of the list can be customized with the new faces
 ** VC
 
 +++
+*** Printing root branch logs has moved to 'C-x v b L'.
+Previously the command to print the root log for a branch was bound to
+'C-x v b l'.  It has now been renamed from 'vc-print-branch-log' to
+'vc-print-root-branch-log', and bound to 'C-x v b L'.  This is more
+consistent with the rest of the 'C-x v' keymap, and makes room for a new
+fileset-specific branch log command.
+
+To undo this change you can use
+
+    (keymap-global-set "C-x v b l" #'vc-print-root-branch-log)
+    (with-eval-after-load 'vc-dir
+      (keymap-set vc-dir-mode-map "b l" #'vc-print-root-branch-log))
+
++++
 *** New commands to handle repositories with multiple working trees.
 Some VCS support more than one working tree with the same backing
 revisions store, such as with Git's 'worktree' subcommand and

@@ -4007,7 +4007,7 @@ with its diffs (if the underlying VCS backend supports that)."
       (setq vc-parent-buffer-name nil))))
 
 ;;;###autoload
-(defun vc-print-branch-log (branch)
+(defun vc-print-root-branch-log (branch)
   "Show the change log for BRANCH in another window.
 The command prompts for the branch whose change log to show."
   (interactive
@@ -4022,6 +4022,12 @@ The command prompts for the branch whose change log to show."
     (vc-print-log-internal backend
                            (list rootdir) branch t
                            (when (> vc-log-show-limit 0) vc-log-show-limit))))
+;; We plan to reuse the name `vc-print-branch-log' for the
+;; fileset-specific command in Emacs 32.1.  --spwhitton
+(define-obsolete-function-alias
+  #'vc-print-branch-log
+  #'vc-print-root-branch-log
+  "31.1")
 
 ;; FIXME: Consider renaming to `vc-upstream-location-history'.
 (defvar vc-remote-location-history nil
