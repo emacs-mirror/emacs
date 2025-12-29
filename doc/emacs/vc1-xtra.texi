@@ -15,7 +15,7 @@
 * VC Delete/Rename::    Deleting and renaming version-controlled files.
 * Revision Tags::       Symbolic names for revisions.
 * Merge Bases::         The most recent revision existing on both branches.
-* Outgoing Base Diffs:: Diffs including all outstanding changes on a branch.
+* Outstanding Changes:: Diffs including all outstanding changes on a branch.
 * Other Working Trees:: Multiple sets of workfiles.
 * Version Headers::     Inserting version control headers into working files.
 * Editing VC Commands:: Editing the VC shell commands that Emacs will run.
@@ -293,8 +293,8 @@ on the target branch if you were to merge the source branch into it, and
 @kbd{C-x v M L} shows you a log of the changes on the source branch not
 yet merged into the target branch.
 
-@node Outgoing Base Diffs
-@subsubsection Commands for diffs including all outstanding changes
+@node Outstanding Changes
+@subsubsection Commands to see all outstanding changes
 @cindex outstanding changes
 
 @table @kbd
