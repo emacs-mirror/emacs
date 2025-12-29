@@ -102,7 +102,6 @@ Returns the list (month day year) giving the cursor position."
   (let ((today (calendar-current-date))) ; the date might have changed
     (if (not (calendar-date-is-visible-p today))
         (calendar-generate-window)
-      (calendar-update-mode-line)
       (calendar-cursor-to-visible-date today)))
   (run-hooks 'calendar-move-hook))
 
