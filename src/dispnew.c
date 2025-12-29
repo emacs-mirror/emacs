@@ -136,9 +136,6 @@ static int glyph_pool_count;
 
 #endif /* GLYPH_DEBUG and ENABLE_CHECKING */
 
-/* Convert vpos and hpos from frame to window and vice versa.
-   This may only be used for terminal frames.  */
-
 #ifdef GLYPH_DEBUG
 
 /* One element of the ring buffer containing redisplay history
