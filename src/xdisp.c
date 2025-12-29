@@ -32012,9 +32012,10 @@ append_glyph (struct it *it)
   else
     IT_EXPAND_MATRIX_WIDTH (it, area);
 
-  /* Reset the margin column for next use.  */
+  /* Increment the margin column for the next character
+     in a possibly multi-char string.  */
   if (margin_column >= 0)
-    it->margin_column = -1;
+    it->margin_column++;
 }
 
 /* Store one glyph for the composition IT->cmp_it.id in IT->glyph_row.
@@ -32287,8 +32288,9 @@ produce_image_glyph (struct it *it)
 	  if (margin_column >= it->glyph_row->used[area])
 	    it->glyph_row->used[area] = margin_column + 1;
 
-	  /* Reset the margin column for next use.  */
-	  it->margin_column = -1;
+	  /* Increment the margin column for the next character
+	     in a possibly multi-char string.  */
+	  it->margin_column++;
 
 	  /* Do the same glyph filling as below and return.  */
 	  if (glyph < it->glyph_row->glyphs[area + 1])

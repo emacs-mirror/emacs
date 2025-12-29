@@ -1583,8 +1583,9 @@ append_glyph (struct it *it)
       if (margin_column >= it->glyph_row->used[area])
 	it->glyph_row->used[area] = margin_column + 1;
 
-      /* Reset the margin column for next use.  */
-      it->margin_column = -1;
+      /* Increment the margin column for the next character
+	 in a possibly multi-char string.  */
+      it->margin_column++;
 
       /* Do the same glyph filling as below and return.  */
       if (glyph < end)
