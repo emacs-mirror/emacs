@@ -2621,7 +2621,7 @@ current VC fileset.
 
 +++
 *** New commands to report diffs of outstanding changes.
-'C-x v B =' ('vc-diff-outgoing-base') and 'C-x v B D'
+'C-x v o =' ('vc-diff-outgoing-base') and 'C-x v o D'
 ('vc-root-diff-outgoing-base') report diffs of changes since the merge
 base with the remote branch, including uncommitted changes.
 They are useful to view all outstanding (unmerged, unpushed) changes on
