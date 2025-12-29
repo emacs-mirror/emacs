@@ -4040,7 +4040,7 @@ that some users might prefer for interactive usage."
   (interactive)
   (if current-prefix-arg
       (let ((branch
-             (vc--read-branch-to-log t))
+             (vc--read-branch-to-log))
             (vc-log-show-limit
              (if (equal current-prefix-arg '(4))
                  (vc--read-limit)
