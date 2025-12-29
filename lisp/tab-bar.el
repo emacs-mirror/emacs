@@ -2935,27 +2935,39 @@ ALIST is an association list of action symbols and values.  See
 Info node `(elisp) Buffer Display Action Alists' for details of
 such alists.
 
-If ALIST contains a `tab-name' entry, it creates a new tab with that name and
-displays BUFFER in a new tab.  If a tab with this name already exists, it
-switches to that tab before displaying BUFFER.  The `tab-name' entry can be
-a function, in which case it is called with two arguments: BUFFER and ALIST,
-and should return the tab name.  When a `tab-name' entry is omitted, create
-a new tab without an explicit name.
+If ALIST contains a non-nil `reusable-frames' entry then the frames
+indicated by its value are searched for an existing tab which already
+displays BUFFER.  The possible values of `reusable-frames' are:
 
-The ALIST entry `tab-group' (string or function) defines the tab group.
-
-If ALIST contains a `reusable-frames' entry, its value determines
-which frames to search for a reusable tab:
-  nil -- do not reuse any frames;
-  a frame  -- just that frame;
+  t -- all existing frames;
   `visible' -- all visible frames;
-  0 -- all frames on the current terminal;
-  t -- all frames;
-  other non-nil values -- use the selected frame.
+  A frame -- that frame only;
+  Any other non-nil value -- the selected frame;
+  nil -- do not search any frames (equivalent to omitting the entry).
 
-If ALIST contains a non-nil `ignore-current-tab' entry, then the buffers
-of the current tab are skipped when searching for a reusable tab.
-Otherwise, prefer buffers of the current tab.
+\(Note that the meaning of nil is different to the typical meaning of
+nil for a `reusable-frames' entry in a buffer display action alist.)
+
+If ALIST contains a non-nil `ignore-current-tab' entry then skip the
+current tab when searching for a reusable tab, otherwise prefer the
+current tab if it already displays BUFFER.
+
+If a window displaying BUFFER is located in any reusable tab, select
+that tab and window.
+
+If no such window is located, display BUFFER in a new or existing tab
+based on the ALIST entry `tab-name' (string or function).  If a tab with
+this name already exists then select that tab, otherwise create a new
+tab with this name.  If `tab-name' is a function it is called with two
+arguments (BUFFER and ALIST) and should return the tab name.  If
+`tab-name' is omitted or nil, create a new tab without an explicit name.
+
+If a new tab is created and ALIST contains a non-nil `tab-group' entry
+\(string or function), this defines the tab group, overriding user
+option `tab-bar-new-tab-group'.
+
+To create a new tab unconditionally, use `display-buffer-in-new-tab'
+instead.
 
 This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
@@ -2994,16 +3006,17 @@ ALIST is an association list of action symbols and values.  See
 Info node `(elisp) Buffer Display Action Alists' for details of
 such alists.
 
-Like `display-buffer-in-tab', but always creates a new tab unconditionally,
-without checking if a suitable tab already exists.
+If ALIST contains a non-nil `tab-name' entry (string or function) then
+display BUFFER in a new tab with this name.  If `tab-name' is a function
+it is called with two arguments (BUFFER and ALIST) and should return the
+tab name.  If `tab-name' is omitted or nil, create a new tab without an
+explicit name.
 
-If ALIST contains a `tab-name' entry, it creates a new tab with that name
-and displays BUFFER in a new tab.  The `tab-name' entry can be a function,
-in which case it is called with two arguments: BUFFER and ALIST, and should
-return the tab name.  When a `tab-name' entry is omitted, create a new tab
-without an explicit name.
+If ALIST contains a non-nil `tab-group' entry (string or function), this
+defines the tab group, overriding user option `tab-bar-new-tab-group'.
 
-The ALIST entry `tab-group' (string or function) defines the tab group.
+To check for a suitable existing tab to reuse before creating a new tab,
+use `display-buffer-in-tab' instead.
 
 This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be

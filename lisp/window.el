@@ -7999,6 +7999,8 @@ See the info node `(elisp)Dedicated Windows' for more details."
 	   (const display-buffer-use-least-recent-window)
 	   (const display-buffer-use-some-window)
 	   (const display-buffer-use-some-frame)
+	   (const display-buffer-in-tab)
+	   (const display-buffer-in-new-tab)
 	   (function :tag "Other function"))
   "Custom type for `display-buffer' action functions.")
 
@@ -8147,6 +8149,8 @@ to an expression containing one of these \"action\" functions:
  `display-buffer-pop-up-frame' -- Show the buffer on a new frame.
  `display-buffer-in-child-frame' -- Show the buffer in a
     child frame.
+ `display-buffer-in-tab' -- Use an appropriate existing tab or a new tab.
+ `display-buffer-in-new-tab' -- Use a new tab.
  `display-buffer-no-window' -- Do not display the buffer and
     have `display-buffer' return nil immediately.
 
@@ -8310,6 +8314,10 @@ Action alist entries are:
    `(category . symbol)' in its action argument, then you can match
    the displayed buffer by using the same category in the condition
    part of `display-buffer-alist' entries.
+ ‘tab-name’ -- If non-nil, specifies the name of the tab in which to
+    display the buffer; see `display-buffer-in-new-tab'.
+ \\+‘tab-group’ -- If non-nil, specifies the tab group to use when creating
+    a new tab; see ‘display-buffer-in-new-tab’.
 
 The entries `window-height', `window-width', `window-size' and
 `preserve-size' are applied only when the window used for

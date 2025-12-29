@@ -3549,6 +3549,70 @@ the selected window is not used; thus if the selected frame has a
 single window, it is not used.
 @end defun
 
+@defun display-buffer-in-new-tab buffer alist
+This function tries to display @var{buffer} in a new tab.
+
+If @var{alist} contains a non-@code{nil} @code{tab-name} entry (which
+may be a string or a function), the buffer is displayed in a new tab
+with that name.  If the @code{tab-name} entry is a function, it is
+called with two arguments (@var{buffer} and @var{alist}), and should
+return the tab name.
+
+If the @code{tab-name} entry is omitted or @code{nil}, a new tab is
+created without an explicit name.
+
+If @var{alist} contains a non-@code{nil} @code{tab-group} entry, this
+defines the tab group, overriding user option
+@code{tab-bar-new-tab-group}.  This entry may again be a string or a
+function which is called in the same manner as @code{tab-name}.
+@end defun
+
+@defun display-buffer-in-tab buffer alist
+This function tries to display @var{buffer} in a new or existing tab.
+
+If @var{alist} contains a non-@code{nil} @code{reusable-frames} entry
+then the frames indicated by its value are searched for an existing tab
+which already displays the buffer.  The possible values of
+@code{reusable-frames} are:
+
+@itemize @bullet
+@item @code{t}
+means consider all existing frames.
+@item @code{visible}
+means consider all visible frames.
+@item A frame
+means consider that frame only.
+@item Any other non-@code{nil} value
+means consider the selected frame.
+@item @code{nil}
+means do not search any frames (equivalent to omitting the entry).  Note
+that this is different to the typical meaning of the value @code{nil}
+for a @code{reusable-frames} entry in a buffer display action alist.
+@end itemize
+
+If @var{alist} contains a non-@code{nil} @code{ignore-current-tab}
+entry, then the current tab is skipped when searching for a reusable
+tab.  Otherwise the current tab is used by preference if it already
+displays the buffer.
+
+If a window displaying the buffer is located in any reusable tab then
+that tab and window are selected.
+
+If no such window is located, the buffer is displayed in a new or
+existing tab based on the @var{alist} entry @code{tab-name} (which may
+be a string or a function).  If a tab with this name already exists then
+that tab is selected, otherwise a new tab with that name is created.  If
+the @code{tab-name} entry is a function, it is called with two arguments
+(@var{buffer} and @var{alist}), and should return the tab name.  If the
+@code{tab-name} entry is omitted or @code{nil}, a new tab is created
+without an explicit name.
+
+If a new tab is created and @var{alist} contains a non-@code{nil}
+@code{tab-group} entry, this defines the tab group, overriding user
+option @code{tab-bar-new-tab-group}.  This entry may again be a string
+or a function which is called in the same manner as @code{tab-name}.
+@end defun
+
 @defun display-buffer-no-window buffer alist
 If @var{alist} has a non-@code{nil} @code{allow-no-window} entry, then
 this function does not display @var{buffer} and returns the symbol
@@ -3660,6 +3724,10 @@ other action functions that try to reuse a window are affected as
 well.  @code{display-buffer-in-previous-window} consults it when
 searching for a window that previously displayed the buffer on another
 frame.
+
+Action function @code{display-buffer-in-tab} searches the tabs of the
+frame(s) identified by this entry, and also interprets the value
+@code{nil} differently.
 
 @vindex inhibit-switch-frame@r{, a buffer display action alist entry}
 @item inhibit-switch-frame
@@ -3981,6 +4049,19 @@ List, @code{buffer-match-p}}.  Thus, if a Lisp program uses a particular
 @var{symbol} as the category when calling @code{display-buffer}, users
 can customize how these buffers will be displayed by including such an
 entry in @code{display-buffer-alist}.
+
+@vindex tab-name@r{, a buffer display action alist entry}
+@item tab-name
+The value names the tab in which the buffer should be displayed.  This
+entry is used by @code{display-buffer-in-new-tab} and (conditionally) by
+@code{display-buffer-in-tab}.
+
+@vindex tab-group@r{, a buffer display action alist entry}
+@vindex tab-bar-new-tab-group@r{, override for buffer display actions}
+@item tab-group
+The value names the tab group to use when creating a new tab, overriding
+user option @code{tab-bar-new-tab-group}.  This entry is used by
+@code{display-buffer-in-new-tab} and @code{display-buffer-in-tab}.
 @end table
 
 By convention, the entries @code{window-height}, @code{window-width}
