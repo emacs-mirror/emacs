@@ -2717,6 +2717,19 @@ the log entry.  If there are marked revisions, it copies the IDs of
 those, instead.
 
 ---
+*** New commands 'vc-print-change-log' and 'vc-print-root-change-log'.
+These are just like 'vc-print-log' and 'vc-print-root-log' except that
+they have a different prefix argument that some users may prefer.
+With a prefix argument, these commands prompt for a branch, tag or other
+reference to a revision to log, and a maximum number of revisions to
+print.  If you find this prefix argument more useful, or more mnemonic,
+than the prefix arguments that 'vc-print-log' and 'vc-print-root-log'
+already have, consider replacing the default global bindings, like this:
+
+    (keymap-global-set "C-x v l" #'vc-print-change-log)
+    (keymap-global-set "C-x v L" #'vc-print-root-change-log)
+
+---
 *** New command alias 'vc-restore' for 'vc-revert'.
 
 ** Package
