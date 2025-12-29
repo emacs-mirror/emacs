@@ -341,25 +341,20 @@ commands, you can use a prefix argument to specify a particular upstream
 location.}
 
 Second, consider developing a feature on a separate branch.  Call this
-the @dfn{feature branch},@footnote{Many version control workflows
-involve developing new features on isolated branches.  However, the term
-``feature branch'' is usually reserved for a particular kind of isolated
-branch, one that other branches are repeatedly merged into.
-
-That doesn't matter to this explanation, so we use ``feature branch'' to
-refer to the separate branch used for developing the feature even though
-whether it is really a feature branch depends on other aspects of the
-branching workflow in use.} and call the branch from which the feature
-branch was originally created the @dfn{trunk} or @dfn{development
-trunk}.
+the @dfn{topic branch},@footnote{Topic branches are sometimes called
+``feature branches''.  It is also common for the term ``feature branch''
+to be reserved for a particular kind of topic branch, one that another
+branch or other branches are repeatedly merged into.} and call the
+branch from which the topic branch was originally created the
+@dfn{trunk} or @dfn{development trunk}.
 
 In this case, outstanding changes is a more specific notion than just
-unpushed and uncommitted changes on the feature branch.  You're not
+unpushed and uncommitted changes on the topic branch.  You're not
 finished sharing changes with your collaborators until they have been
 merged into the trunk, and pushed.  Therefore, in this example,
 outstanding changes are those which haven't yet been integrated into the
 upstream repository's development trunk.  That means committed changes
-on the feature branch that haven't yet been merged into the trunk, plus
+on the topic branch that haven't yet been merged into the trunk, plus
 uncommitted changes.
 
 @cindex outgoing base, version control
