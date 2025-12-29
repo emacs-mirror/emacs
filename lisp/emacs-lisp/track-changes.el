@@ -3,7 +3,7 @@
 ;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 1.4
+;; Version: 1.5
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is part of GNU Emacs.
@@ -76,6 +76,11 @@
 
 ;;; News:
 
+;; v1.5:
+;;
+;; - New variable `track-changes-undo-only' to distinguish undo changes
+;;   from others.
+;;
 ;; v1.3:
 ;;
 ;; - Fix bug#73041.
@@ -99,6 +104,19 @@
 ;;   but contrary to before-c-f it would be called only when we
 ;;   move t-c--before-beg/end so it scales better when there are
 ;;   many small changes.
+
+;;;; Distinguish undo-vs-nonundo
+
+;; In practice, it seems that this distinction matters only for those
+;; clients which make further buffer-changes in response to buffer changes,
+;; (e.g. updating diff chunk headers on the fly, line-centering on the fly,
+;; inserting criticmarkup to keep track of buffer edits, ...).
+;; If all or none of the changes occurred during undo, then it's easy.
+;; If some did and some didn't and we need to merge them into a single change,
+;; there are two options:
+;; - Do the disjoint thing.
+;; - Merge them into a single change that's considered as "nonundo".
+;; We currently don't implement "the disjoint way".
 
 (require 'cl-lib)
 
@@ -130,6 +148,7 @@ state is created."
   (beg (point-max))
   (end (point-min))
   (before nil)
+  (undo t :type boolean)                ;Non-nil until proven otherwise.
   (next nil))
 
 (defvar-local track-changes--trackers ()
@@ -189,6 +208,9 @@ Each call is recorded as a (BUFFER-NAME . BACKTRACE).")
   "If non-nil, keep track of errors in `before/after-change-functions' calls.
 The errors are kept in `track-changes--error-log'.
 If set to `trace', then we additionally keep a trace of recent calls to the API.")
+
+(defvar track-changes-undo-only nil
+  "Bound to non-nil by `track-changes-fetch' if the change was an undo.")
 
 (cl-defun track-changes-register ( signal &key nobefore disjoint immediate)
   "Register a new tracker whose change-tracking function is SIGNAL.
@@ -281,7 +303,10 @@ This reflects a bug somewhere, so please report it when it happens.
 
 If no changes occurred since the last time, it doesn't call FUNC and
 returns nil, otherwise it returns the value returned by FUNC
-and re-enable the TRACKER corresponding to ID."
+and re-enable the TRACKER corresponding to ID.
+
+During the call to FUNC, `track-changes-undo-only' indicates if the changes
+were the result of `undo'."
   (track-changes--trace)
   (cl-assert (memq id track-changes--trackers))
   (unless (equal track-changes--buffer-size (buffer-size))
@@ -289,6 +314,7 @@ and re-enable the TRACKER corresponding to ID."
      `(buffer-size ,track-changes--buffer-size ,(buffer-size))))
   (let ((beg nil)
         (end nil)
+        (is-undo t)
         (before t)
         (lenbefore 0)
         (states ()))
@@ -316,6 +342,7 @@ and re-enable the TRACKER corresponding to ID."
       (setq states nil)))
 
     (dolist (state states)
+      (when is-undo (setq is-undo (track-changes--state-undo state)))
       (let ((prevbeg (track-changes--state-beg state))
             (prevend (track-changes--state-end state))
             (prevbefore (track-changes--state-before state)))
@@ -384,7 +411,8 @@ and re-enable the TRACKER corresponding to ID."
           ;; Update the tracker's state *before* running `func' so we don't risk
           ;; mistakenly replaying the changes in case `func' exits non-locally.
           (setf (track-changes--tracker-state id) track-changes--state)
-          (funcall func beg end (or before lenbefore)))
+          (let ((track-changes-undo-only is-undo))
+            (funcall func beg end (or before lenbefore))))
       ;; Re-enable the tracker's signal only after running `func', so
       ;; as to avoid nested invocations.
       (cl-pushnew id track-changes--clean-trackers))))
@@ -629,6 +657,8 @@ Details logged to `track-changes--error-log'")
                          beg end
                          (track-changes--state-end track-changes--state)
                          track-changes--before-end)))))
+  (unless undo-in-progress
+    (setf (track-changes--state-undo track-changes--state) nil))
   (while track-changes--clean-trackers
     (let ((tracker (pop track-changes--clean-trackers)))
       (if (track-changes--tracker-immediate tracker)

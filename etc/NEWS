@@ -1119,6 +1119,10 @@ convention.  Also, the ':match?' predicate can now take the regexp as
 either the first or second argument, so it works with both tree-sitter
 convention (regexp arg second) and Emacs convention (regexp arg first).
 
++++
+** Track-changes
+*** New variable 'track-changes-undo-only' to distinguish undo changes.
+
 ** Hideshow
 
 +++

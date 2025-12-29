@@ -1615,7 +1615,8 @@ else cover the whole buffer."
       ;; it's safer not to do it on big changes, e.g. when yanking a big
       ;; diff, or when the user edits the header, since we might then
       ;; screw up perfectly correct values.  --Stef
-      (when (ignore-errors (diff-beginning-of-hunk t))
+      (when (and (not track-changes-undo-only)
+                 (ignore-errors (diff-beginning-of-hunk t)))
         (let* ((style (if (looking-at "\\*\\*\\*") 'context))
                (start (line-beginning-position (if (eq style 'context) 3 2)))
                (mid (if (eq style 'context)
