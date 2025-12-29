@@ -6382,8 +6382,9 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
   /* Prepare to handle `((margin left-margin) ...)',
      `((margin right-margin) ...)' and `((margin nil) ...)'
      prefixes for display specifications.
-     Also handle `((margin left-margin COLUMN) ...)' where COLUMN
-     specifies the column position (0-based) in the margin.  */
+     Also handle `((margin left-margin COLUMN) ...)'
+     where COLUMN specifies the column position (0-based)
+     in the margin, or a symbol.  */
   location = Qunbound;
   int margin_column = -1;  /* -1 means no specific column requested */
   if (CONSP (spec) && CONSP (XCAR (spec)))
@@ -6407,9 +6408,25 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	  tem = XCDR (XCAR (spec));
 	  if (CONSP (tem)
 	      && (tem = XCDR (tem), CONSP (tem))
-	      && (tem = XCAR (tem), FIXNUMP (tem))
-	      && XFIXNUM (tem) >= 0)
-	    margin_column = (int) XFIXNUM (tem);
+	      && (tem = XCAR (tem), !NILP (tem)))
+	    {
+	      if (FIXNUMP (tem) && XFIXNUM (tem) >= 0)
+		margin_column = (int) XFIXNUM (tem);
+	      else if (SYMBOLP (tem))
+		{
+		  Lisp_Object columns_list = Fsymbol_value
+		    (EQ (location, Qleft_margin)
+		     ? Qleft_margin_columns : Qright_margin_columns);
+		  int pos = 0;
+		  for (Lisp_Object tail = columns_list; CONSP (tail);
+		       tail = XCDR (tail), pos++)
+		    if (EQ (XCAR (tail), tem))
+		      {
+			margin_column = pos;
+			break;
+		      }
+		}
+	    }
 	}
     }
 
@@ -38995,6 +39012,29 @@ The default value is zero, which disables this feature.
 The recommended non-zero value is between 100000 and 1000000,
 depending on your patience and the speed of your system.  */);
   max_redisplay_ticks = 0;
+
+  DEFSYM (Qleft_margin_columns, "left-margin-columns");
+  DEFVAR_LISP ("left-margin-columns", Vleft_margin_columns,
+    doc: /* List of symbols for left margin columns.
+Each symbol represents a mode that displays indicators in the left margin.
+The position of a symbol in this list (0-based) determines the column
+where that mode's margin indicators appear.
+
+For example, if this variable is set to (flymake outline hideshow), then
+flymake indicators appear in column 0, outline in column 1, and hideshow
+in column 2.  Modes can use their symbol in a display spec like
+((margin left-margin flymake) \">\") instead of a numeric column.  */);
+  Vleft_margin_columns = Qnil;
+
+  DEFSYM (Qright_margin_columns, "right-margin-columns");
+  DEFVAR_LISP ("right-margin-columns", Vright_margin_columns,
+    doc: /* List of symbols for right margin columns.
+Each symbol represents a mode that displays indicators in the right margin.
+The position of a symbol in this list (0-based) determines the column
+where that mode's margin indicators appear.
+
+See `left-margin-columns' for more details.  */);
+  Vright_margin_columns = Qnil;
 
   /* Called by decode_mode_spec.  */
   DEFSYM (Qfile_remote_p, "file-remote-p");

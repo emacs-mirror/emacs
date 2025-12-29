@@ -883,7 +883,7 @@ symbol `fringes' or the symbol `margins'."
            (cons flymake-fringe-indicator-position valuelist))
           ((and (stringp indicator-car)
                 flymake-margin-indicator-position)
-           `((margin ,flymake-margin-indicator-position)
+           `((margin ,flymake-margin-indicator-position flymake)
              ,(propertize
                indicator-car
                'face `(:inherit (,(cdr valuelist) default))
@@ -897,9 +897,24 @@ symbol `fringes' or the symbol `margins'."
 
 (defun flymake--restore-margins ()
   (when flymake--original-margin-width
-    (if (eq flymake-margin-indicator-position 'left-margin)
-        (setq left-margin-width flymake--original-margin-width)
-      (setq right-margin-width flymake--original-margin-width))))
+    (if (boundp 'left-margin-columns)
+        (cond
+         ((eq flymake-margin-indicator-position 'left-margin)
+          (setq left-margin-width
+                (max 0 (- left-margin-width flymake--original-margin-width)))
+          (setq-local left-margin-columns
+                      (remq 'flymake left-margin-columns)))
+         (t
+          (setq right-margin-width
+                (max 0 (- right-margin-width flymake--original-margin-width)))
+          (setq-local right-margin-columns
+                      (remq 'flymake right-margin-columns))))
+      (if (eq flymake-margin-indicator-position 'left-margin)
+          (setq left-margin-width flymake--original-margin-width)
+        (setq right-margin-width flymake--original-margin-width)))
+    (mapc (lambda (x)
+            (set-window-buffer x (window-buffer x)))
+          (get-buffer-window-list nil nil 'visible))))
 
 (defun flymake--resize-margins ()
   (let* ((indicators
@@ -912,11 +927,22 @@ symbol `fringes' or the symbol `margins'."
                       (car ind)))
                   '(flymake-error flymake-warning flymake-note)))
          (width (apply #'max (mapcar #'string-width indicators))))
-    (if (eq flymake-margin-indicator-position 'left-margin)
-        (setq flymake--original-margin-width left-margin-width
-              left-margin-width width)
-      (setq flymake--original-margin-width right-margin-width
-            right-margin-width width)))
+    (setq flymake--original-margin-width width)
+    (if (boundp 'left-margin-columns)
+        (cond
+         ((eq flymake-margin-indicator-position 'left-margin)
+          (setq left-margin-width (+ left-margin-width width))
+          (setq-local left-margin-columns
+                      (append left-margin-columns '(flymake))))
+         (t
+          (setq right-margin-width (+ right-margin-width width))
+          (setq-local right-margin-columns
+                      (append right-margin-columns '(flymake)))))
+      (if (eq flymake-margin-indicator-position 'left-margin)
+          (setq flymake--original-margin-width left-margin-width
+                left-margin-width width)
+        (setq flymake--original-margin-width right-margin-width
+              right-margin-width width))))
   (mapc (lambda (x)
           (set-window-buffer x (window-buffer x)))
         (get-buffer-window-list nil nil 'visible)))

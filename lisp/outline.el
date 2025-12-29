@@ -582,11 +582,17 @@ See the command `outline-mode' for more information on this mode."
                                                     'outline-close-rtl-in-margins
                                                   'outline-close-in-margins)))))
                           (* (default-font-width) 1.0)))))
-            (if outline--use-rtl
-                (setq-local right-margin-width (+ right-margin-width
-                                                  outline--margin-width))
-              (setq-local left-margin-width (+ left-margin-width
-                                               outline--margin-width)))
+            (cond
+             (outline--use-rtl
+              (setq-local right-margin-width
+                          (+ right-margin-width outline--margin-width))
+              (setq-local right-margin-columns
+                          (append right-margin-columns '(outline))))
+             (t
+              (setq-local left-margin-width
+                          (+ left-margin-width outline--margin-width))
+              (setq-local left-margin-columns
+                          (append left-margin-columns '(outline)))))
             (setq-local fringes-outside-margins t)
             ;; Force display of margins
             (when (eq (current-buffer) (window-buffer))
@@ -628,14 +634,18 @@ See the command `outline-mode' for more information on this mode."
     (when outline-minor-mode-use-buttons
       (outline--remove-buttons (point-min) (point-max))
       (when (and (eq outline-minor-mode-use-buttons 'in-margins)
-                 outline--margin-width
-                 (< 0 (if outline--use-rtl right-margin-width
-                        left-margin-width)))
-        (if outline--use-rtl
-            (setq-local right-margin-width (- right-margin-width
-                                              outline--margin-width))
-          (setq-local left-margin-width (- left-margin-width
-                                           outline--margin-width)))
+                 outline--margin-width)
+        (cond
+         (outline--use-rtl
+          (setq-local right-margin-width
+                      (max 0 (- right-margin-width outline--margin-width)))
+          (setq-local right-margin-columns
+                      (remq 'outline right-margin-columns)))
+         (t
+          (setq-local left-margin-width
+                      (max 0 (- left-margin-width outline--margin-width)))
+          (setq-local left-margin-columns
+                      (remq 'outline left-margin-columns))))
         (setq-local outline--margin-width nil)
         (kill-local-variable 'fringes-outside-margins)
         ;; Force removal of margins
@@ -1963,7 +1973,8 @@ With a prefix argument, show headings up to that LEVEL."
                (string (plist-get icon 'string))
                (image  (plist-get icon 'image))
                (display `((margin ,(if outline--use-rtl
-                                       'right-margin 'left-margin))
+                                       'right-margin 'left-margin)
+                                  outline)
                           ,(or image (if face (propertize
                                                string 'face face)
                                        string))))

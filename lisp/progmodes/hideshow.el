@@ -1068,7 +1068,7 @@ the overlay: `invisible' `hs'.  Also, depending on variable
            ('margin
             (propertize
              "+" 'display
-             `((margin left-margin)
+             `((margin left-margin hideshow)
                ,(or (plist-get (icon-elements face-or-icon) 'image)
                     (propertize (icon-string face-or-icon)
                                 'keymap hs-indicators-map)))
@@ -1511,6 +1511,8 @@ Key bindings:
             (setq-local hs-indicator-type 'margin))
           (when (eq hs-indicator-type 'margin)
             (setq-local left-margin-width (1+ left-margin-width))
+            (setq-local left-margin-columns
+                        (append left-margin-columns '(hideshow)))
             (setq-local fringes-outside-margins t)
             ;; Force display of margins
             (when (eq (current-buffer) (window-buffer))
@@ -1525,6 +1527,7 @@ Key bindings:
       (when (and (eq hs-indicator-type 'margin)
                  (< 0 left-margin-width))
         (setq-local left-margin-width (1- left-margin-width))
+        (setq-local left-margin-columns (remq 'hideshow left-margin-columns))
         (kill-local-variable 'fringes-outside-margins)
         ;; Force removal of margins
         (when (eq (current-buffer) (window-buffer))
