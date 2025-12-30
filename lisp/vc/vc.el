@@ -4102,8 +4102,9 @@ starting at that revision.  Tags and remote references also work."
 
 (defun vc--maybe-read-upstream-location ()
   (and current-prefix-arg
-       (read-string "Upstream location/branch (empty for default): " nil
-                    'vc-remote-location-history)))
+       (let ((res (read-string "Upstream location/branch (empty for default): "
+                               nil 'vc-remote-location-history)))
+         (and (not (string-empty-p res)) res))))
 
 (defun vc--incoming-revision (backend &optional upstream-location refresh)
   ;; Some backends don't support REFRESH and so always behave as though
