@@ -7058,8 +7058,8 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
     [self addCursorRect: visible cursor: currentCursor];
 
 #if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MIN_REQUIRED < 101300
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101300
-  if ([currentCursor respondsToSelector: @selector(setOnMouseEntered)])
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101300
+  if ([currentCursor respondsToSelector: @selector(setOnMouseEntered:)])
 #endif
     [currentCursor setOnMouseEntered: YES];
 #endif
@@ -10539,9 +10539,9 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
     [self addCursorRect: visible cursor: [NSCursor arrowCursor]];
 
 #if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MIN_REQUIRED < 101300
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101300
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101300
   if ([[NSCursor arrowCursor] respondsToSelector:
-                                @selector(setOnMouseEntered)])
+                                @selector(setOnMouseEntered:)])
 #endif
     [[NSCursor arrowCursor] setOnMouseEntered: YES];
 #endif
