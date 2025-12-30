@@ -20356,11 +20356,16 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	    blank_row (w, row, y);
 	  goto finish_scroll_bars;
 	}
-      else if (minibuf_level >= 1)
+      else if (minibuf_level >= 1 && NILP (resize_mini_frames))
 	{
 	  /* We could have a message produced by set-minibuffer-message
 	     displayed in the mini-window as an overlay, so resize the
-	     mini-window if needed.  */
+	     mini-window if needed.
+
+	     Don't resize the mini-window when minibuffer-only frames
+	     shall be resized automatically to avoid entering an
+	     infinite loop (Bug#80017).  The cause of that looping is
+	     yet undetermined.  */
 	  resize_mini_window (w, false);
 	}
 
