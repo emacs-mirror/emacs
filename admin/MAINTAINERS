@@ -256,6 +256,9 @@ Stephane Marks
 	lisp/system-taskbar.el
 	lisp/emacs-lisp/vtable.el
 
+Elías Gabriel Pérez
+	lisp/progmodes/hideshow.el
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.
