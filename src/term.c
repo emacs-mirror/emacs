@@ -1545,6 +1545,8 @@ append_glyph (struct it *it)
   struct glyph *glyph, *end;
   enum glyph_row_area area = it->area;
   int margin_column = -1;
+  bool handled_column = false;
+  int nglyphs;
   int i;
 
   eassert (it->glyph_row);
@@ -1576,7 +1578,6 @@ append_glyph (struct it *it)
 	}
 
       glyph = it->glyph_row->glyphs[area] + margin_column;
-      end = it->glyph_row->glyphs[1 + area];
 
       /* Increment used counter only after filling with spaces,
 	 but not when changing existing column value.  */
@@ -1587,61 +1588,42 @@ append_glyph (struct it *it)
 	 in a possibly multi-char string.  */
       it->margin_column++;
 
-      /* Do the same glyph filling as below and return.  */
-      if (glyph < end)
-	{
-	  glyph->type = CHAR_GLYPH;
-	  glyph->pixel_width = 1;
-	  glyph->u.ch = it->char_to_display;
-	  glyph->frame = it->f;
-	  glyph->face_id = it->face_id;
-	  glyph->avoid_cursor_p = it->avoid_cursor_p;
-	  glyph->multibyte_p = it->multibyte_p;
-	  glyph->padding_p = false;
-	  glyph->charpos = CHARPOS (it->position);
-	  glyph->object = it->object;
-	  if (it->bidi_p)
-	    {
-	      glyph->resolved_level = it->bidi_it.resolved_level;
-	      eassert ((it->bidi_it.type & 7) == it->bidi_it.type);
-	      glyph->bidi_type = it->bidi_it.type;
-	    }
-	  else
-	    {
-	      glyph->resolved_level = 0;
-	      glyph->bidi_type = UNKNOWN_BT;
-	    }
-	}
-      return;
+      handled_column = true;
+      nglyphs = 1;
     }
 
-  /* Continue with the default sequential appending.  */
-  glyph = it->glyph_row->glyphs[area]
-	  + it->glyph_row->used[area];
-  end = it->glyph_row->glyphs[1 + area];
-
-  /* If the glyph row is reversed, we need to prepend the glyph rather
-     than append it.  */
-  if (it->glyph_row->reversed_p && area == TEXT_AREA)
+  if (!handled_column)
     {
-      struct glyph *g;
-      int move_by = it->pixel_width;
+      glyph = it->glyph_row->glyphs[area]
+	      + it->glyph_row->used[area];
+      end = it->glyph_row->glyphs[1 + area];
 
-      /* Make room for the new glyphs.  */
-      if (move_by > end - glyph) /* don't overstep end of this area */
-	move_by = end - glyph;
-      for (g = glyph - 1; g >= it->glyph_row->glyphs[area]; g--)
-	g[move_by] = *g;
-      glyph = it->glyph_row->glyphs[area];
-      end = glyph + move_by;
+      /* If the glyph row is reversed, we need to prepend the glyph rather
+	 than append it.  */
+      if (it->glyph_row->reversed_p && area == TEXT_AREA)
+	{
+	  struct glyph *g;
+	  int move_by = it->pixel_width;
+
+	  /* Make room for the new glyphs.  */
+	  if (move_by > end - glyph) /* don't overstep end of this area */
+	    move_by = end - glyph;
+	  for (g = glyph - 1; g >= it->glyph_row->glyphs[area]; g--)
+	    g[move_by] = *g;
+	  glyph = it->glyph_row->glyphs[area];
+	  end = glyph + move_by;
+	}
+      nglyphs = it->pixel_width;
     }
+  else
+    end = it->glyph_row->glyphs[1 + area];
 
   /* BIDI Note: we put the glyphs of a "multi-pixel" character left to
      right, even in the REVERSED_P case, since (a) all of its u.ch are
      identical, and (b) the PADDING_P flag needs to be set for the
      leftmost one, because we write to the terminal left-to-right.  */
   for (i = 0;
-       i < it->pixel_width && glyph < end;
+       i < nglyphs && glyph < end;
        ++i)
     {
       glyph->type = CHAR_GLYPH;
@@ -1651,7 +1633,7 @@ append_glyph (struct it *it)
       glyph->face_id = it->face_id;
       glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
-      glyph->padding_p = i > 0;
+      glyph->padding_p = !handled_column && i > 0;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
       if (it->bidi_p)
@@ -1666,7 +1648,8 @@ append_glyph (struct it *it)
 	  glyph->bidi_type = UNKNOWN_BT;
 	}
 
-      ++it->glyph_row->used[area];
+      if (!handled_column)
+	++it->glyph_row->used[area];
       ++glyph;
     }
 }
