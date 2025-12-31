@@ -678,24 +678,22 @@ See `project-vc-extra-root-markers' for the marker value format.")
      (funcall project-vc-external-roots-function)))
    (list (project-root project))))
 
+(defun project-vc--backend (project dir)
+  (if (file-in-directory-p dir (nth 2 project))
+      (cadr project)
+    ;; Don't presume other DIRs are under the same VCS as
+    ;; the project's root.
+    (vc-responsible-backend dir 'no-error)))
+
 (cl-defmethod project-files ((project (head vc)) &optional dirs)
   (mapcan
    (lambda (dir)
      (let ((ignores (project--value-in-dir 'project-vc-ignores (nth 2 project)))
-           (backend (cadr project)))
-       (when backend
-         (require (intern (concat "vc-" (downcase (symbol-name backend))))))
-       (if (and backend
-                (file-in-directory-p dir (nth 2 project)))
-           (condition-case nil
-               (project--vc-list-files dir backend ignores)
-             (vc-not-supported
-              (project--files-in-directory
-               dir
-               (project--dir-ignores project dir))))
+           (backend (project-vc--backend project dir)))
+       (if backend
+           (vc-call-backend backend 'project-list-files dir ignores)
          (project--files-in-directory
-          dir
-          (project--dir-ignores project dir)))))
+          dir (append ignores (project-ignores nil nil))))))
    (or dirs
        (list (project-root project)))))
 
@@ -703,15 +701,17 @@ See `project-vc-extra-root-markers' for the marker value format.")
 (declare-function vc-git-command "vc-git")
 (declare-function vc-hg-command "vc-hg")
 
-(defun project--vc-list-files (dir backend extra-ignores)
-  (vc-call-backend backend 'project-list-files dir extra-ignores))
+(defun vc-default-project-list-files (backend dir extra-ignores)
+  (project--files-in-directory
+   dir
+   (project--vc-ignores dir backend extra-ignores)))
 
 (defun vc-git-project-list-files (dir extra-ignores)
   (defvar vc-git-use-literal-pathspecs)
-  (or
-   (not extra-ignores)
-   (version<= "2.13" (vc-git--program-version))
-   (signal 'vc-not-supported "Need newer Git to use negative pathspec like we do"))
+  (if (not (or (not extra-ignores)
+            (version<= "2.13" (vc-git--program-version))))
+      ;; Need newer Git to use negative pathspec like we do".
+      (vc-default-project-list-files 'Git dir extra-ignores)
   (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
          (args '("-z" "-c" "--exclude-standard"))
          (vc-git-use-literal-pathspecs nil)
@@ -786,7 +786,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
               (apply #'nconc files sub-files))))
     ;; 'git ls-files' returns duplicate entries for merge conflicts.
     ;; XXX: Better solutions welcome, but this seems cheap enough.
-    (delete-consecutive-dups files)))
+    (delete-consecutive-dups files))))
 
 (defun vc-hg-project-list-files (dir extra-ignores)
   (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
@@ -830,38 +830,38 @@ See `project-vc-extra-root-markers' for the marker value format.")
     (file-missing nil)))
 
 (cl-defmethod project-ignores ((project (head vc)) dir)
-  (let* ((root (nth 2 project))
-         (backend (cadr project)))
-    (append
-     (when (and backend
-                (file-equal-p dir root))
-       (delq
-        nil
-        (mapcar
-         (lambda (entry)
-           (cond
-            ((eq ?! (aref entry 0))
-             ;; No support for whitelisting (yet).
-             nil)
-            ((string-match "\\(/\\)[^/]" entry)
-             ;; FIXME: This seems to be Git-specific.
-             ;; And / in the entry (start or even the middle) means
-             ;; the pattern is "rooted".  Or actually it is then
-             ;; relative to its respective .gitignore (of which there
-             ;; could be several), but we only support .gitignore at
-             ;; the root.
-             (if (= (match-beginning 0) 0)
-                 (replace-match "./" t t entry 1)
+  (let ((root (nth 2 project)))
+    (project--vc-ignores dir (project-vc--backend project dir)
+                         (project--value-in-dir 'project-vc-ignores root))))
+
+(defun project--vc-ignores (dir backend extra-ignores)
+  (append
+   (when backend
+     (delq
+      nil
+      (mapcar
+       (lambda (entry)
+         (cond
+          ((eq ?! (aref entry 0))
+           ;; No support for whitelisting (yet).
+           nil)
+          ((string-match "\\(/\\)[^/]" entry)
+           ;; FIXME: This seems to be Git-specific.
+           ;; And / in the entry (start or even the middle) means
+           ;; the pattern is "rooted".  Or actually it is then
+           ;; relative to its respective .gitignore (of which there
+           ;; could be several), but we only support .gitignore at
+           ;; the root.
+           (if (= (match-beginning 0) 0)
+               (replace-match "./" t t entry 1)
                (concat "./" entry)))
-            (t entry)))
-         (condition-case nil
-             (vc-call-backend backend 'ignore-completion-table root)
-           (vc-not-supported () nil)))))
-     (project--value-in-dir 'project-vc-ignores root)
-     (mapcar
-      (lambda (dir)
-        (concat dir "/"))
-      vc-directory-exclusion-list))))
+          (t entry)))
+       (vc-call-backend backend 'ignore-completion-table dir))))
+   extra-ignores
+   (mapcar
+    (lambda (dir)
+      (concat dir "/"))
+    vc-directory-exclusion-list)))
 
 (defun project-combine-directories (&rest lists-of-dirs)
   "Return a sorted and culled list of directory names.
