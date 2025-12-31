@@ -733,7 +733,8 @@ Auto-Revert mode, you might want to set
 Undo changes in the Dired buffer, such as adding or removing
 marks (@code{dired-undo}).  @emph{This command does not revert the
 actual file operations, nor recover lost files!}  It just undoes
-changes in the buffer itself.
+changes in the buffer itself.  Like with @code{undo}, a numeric prefix
+argument specifies a repeat count.
 
 In some cases, using this after commands that operate on files can
 cause trouble.  For example, after renaming one or more files,

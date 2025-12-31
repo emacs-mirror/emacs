@@ -888,6 +888,14 @@ failed.
 You can now use 'C-u C-x .' to clear the fill prefix, similarly to how
 you could already use 'C-u C-x C-n' to clear the goal column.
 
++++
+** New prefix argument for 'C-/' in Dired and Proced modes.
+The Dired and Proced major modes bind mode-specific undo commands to the
+same keys to which 'undo' is globally bound, 'C-/', 'C-_' and 'C-x u'.
+These commands did not previously accept a prefix argument.
+Now a numeric prefix argument specifies a repeat count, just like it
+already did for 'undo'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 

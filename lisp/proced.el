@@ -2311,13 +2311,13 @@ STRING is an overall summary of the failures."
       (describe-mode)
     (message (substitute-command-keys proced-help-string))))
 
-(defun proced-undo ()
+(defun proced-undo (&optional arg)
   "Undo in a Proced buffer.
+A numeric ARG serves as a repeat count.
 This doesn't recover killed processes, it just undoes changes in the Proced
 buffer.  You can use it to recover marks."
-  (interactive nil proced-mode)
-  (let (buffer-read-only)
-    (undo))
+  (interactive "P" proced-mode)
+  (undo-ignore-read-only arg)
   (message "Change in Proced buffer undone.
 Killed processes cannot be recovered by Emacs."))
 

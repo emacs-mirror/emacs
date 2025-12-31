@@ -3577,6 +3577,13 @@ as an argument limits undo to changes within the current region."
     (if message
 	(message "%s" message))))
 
+(defun undo-ignore-read-only (&optional arg)
+  "Perform `undo', ignoring the buffer's read-only status.
+A numeric ARG serves as a repeat count."
+  (interactive "P")
+  (let ((inhibit-read-only t))
+    (undo arg)))
+
 (defun buffer-disable-undo (&optional buffer)
   "Make BUFFER stop keeping undo information.
 No argument or nil as argument means do this for the current buffer."

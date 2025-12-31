@@ -217,7 +217,7 @@ See also `diff-mode-read-only-map'."
   "RET" #'diff-goto-source
   "<mouse-2>" #'diff-goto-source
   "o" #'diff-goto-source                ; other-window
-  "<remap> <undo>" #'diff-undo
+  "<remap> <undo>" #'undo-ignore-read-only
 
   ;; The foregoing commands don't affect buffers beyond this one.
   ;; The following command is the only one that has a single-letter
@@ -2814,12 +2814,6 @@ Call FUN with two args (BEG and END) for each hunk."
 
 (defun diff--overlay-auto-delete (ol _after _beg _end &optional _len)
   (delete-overlay ol))
-
-(defun diff-undo (&optional arg)
-  "Perform `undo', ignoring the buffer's read-only status."
-  (interactive "P")
-  (let ((inhibit-read-only t))
-    (undo arg)))
 
 ;;;###autoload
 (defcustom diff-add-log-use-relative-names nil

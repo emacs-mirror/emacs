@@ -2893,13 +2893,13 @@ Keybindings:
     (concat "\\`d'-elete, \\`u'-ndelete, \\`x'-punge, \\`f'-ind, "
             "\\`o'-ther window, \\`R'-ename, \\`C'-opy, \\`h'-elp"))))
 
-(defun dired-undo ()
+(defun dired-undo (&optional arg)
   "Undo in a Dired buffer.
+A numeric ARG serves as a repeat count.
 This doesn't recover lost files, it just undoes changes in the buffer itself.
 You can use it to recover marks, killed lines or subdirs."
-  (interactive nil dired-mode)
-  (let ((inhibit-read-only t))
-    (undo))
+  (interactive "P" dired-mode)
+  (undo-ignore-read-only arg)
   (dired-build-subdir-alist)
   (message "Change in Dired buffer undone.
 Actual changes in files cannot be undone by Emacs."))
