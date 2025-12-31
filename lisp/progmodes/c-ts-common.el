@@ -254,7 +254,7 @@ This function should be called at BOL.  Used by
    ;; Prefix: same.
    ((looking-at (rx (* (syntax whitespace))
                     "//"
-                    (* "/")
+                    (* (or "/" "!")) ; Support //! style comments in Rust.
                     (* (syntax whitespace))))
     (match-string 0))
    ;; (3)
