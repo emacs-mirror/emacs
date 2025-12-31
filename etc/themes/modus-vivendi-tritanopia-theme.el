@@ -87,6 +87,7 @@ standard)."
  'dark
  'modus-themes-vivendi-tritanopia-palette
  'modus-vivendi-tritanopia-palette-user
- 'modus-vivendi-tritanopia-palette-overrides)
+ 'modus-vivendi-tritanopia-palette-overrides
+ 'modus-themes-faces-tritanopia)
 
 ;;; modus-vivendi-tritanopia-theme.el ends here

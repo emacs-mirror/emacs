@@ -87,6 +87,7 @@ standard)."
  'light
  'modus-themes-operandi-tritanopia-palette
  'modus-operandi-tritanopia-palette-user
- 'modus-operandi-tritanopia-palette-overrides)
+ 'modus-operandi-tritanopia-palette-overrides
+ 'modus-themes-faces-tritanopia)
 
 ;;; modus-operandi-tritanopia-theme.el ends here

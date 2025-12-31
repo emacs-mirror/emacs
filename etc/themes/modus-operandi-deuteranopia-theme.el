@@ -87,6 +87,7 @@ standard)."
  'light
  'modus-themes-operandi-deuteranopia-palette
  'modus-operandi-deuteranopia-palette-user
- 'modus-operandi-deuteranopia-palette-overrides)
+ 'modus-operandi-deuteranopia-palette-overrides
+ 'modus-themes-faces-deuteranopia)
 
 ;;; modus-operandi-deuteranopia-theme.el ends here

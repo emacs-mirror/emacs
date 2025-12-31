@@ -87,6 +87,7 @@ standard)."
  'dark
  'modus-themes-vivendi-deuteranopia-palette
  'modus-vivendi-deuteranopia-palette-user
- 'modus-vivendi-deuteranopia-palette-overrides)
+ 'modus-vivendi-deuteranopia-palette-overrides
+ 'modus-themes-faces-deuteranopia)
 
 ;;; modus-vivendi-deuteranopia-theme.el ends here
