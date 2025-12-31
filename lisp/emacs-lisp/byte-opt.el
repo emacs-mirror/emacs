@@ -2738,48 +2738,53 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	                (setq add-depth 1)
 	                (setq keep-going t)
                         t)))))
-	     ;;
-	     ;; goto-X Y: ... X: goto-if*-Y  -->  goto-if-not-*-X+1 Y:
-	     ;; (This can pull the loop test to the end of the loop)
+             ;;
+             ;;    goto(X)          Y: ... X: goto-if*(Y)
+             ;; -> goto-if-not-*(Z) Y: ... X: goto-if*(Y) Z:
+             ;;
+             ;;    goto(X)                Y: ... X: goto-if-nil-else-pop(Y)
+             ;; -> goto-if-not-nil(Z) nil Y: ... X: goto-if-nil-else-pop(Y) Z:
+             ;;
+             ;; where in both cases the first jump may go either
+             ;; forwards or backwards.  The purpose is to move a conditional
+             ;; branch from the top to the botton of a loop, but it only works
+             ;; when other transforms have prepared the ground first.
 	     ;;
 	     ((and (eq (car lap0) 'byte-goto)
 	           (eq (car lap1) 'TAG)
-                   (let ((tmp (cdr (memq (cdr lap0) (cdr lap-head)))))
+                   (let* ((tail (cdr (memq (cdr lap0) (cdr lap-head))))
+                          (branch (car tail)))
                      (and
-	              (eq lap1 (cdar tmp))
-	              (memq (car (car tmp))
-		            '( byte-goto byte-goto-if-nil byte-goto-if-not-nil
+	              (eq lap1 (cdr branch))
+	              (memq (car branch)
+		            '( byte-goto-if-nil byte-goto-if-not-nil
 		               byte-goto-if-nil-else-pop))
-	              (let ((newtag (byte-compile-make-tag)))
+	              (let ((newtag (byte-compile-make-tag))
+                            (new-jmp (cdr (assq (car branch)
+			                        '((byte-goto-if-nil
+                                                   . byte-goto-if-not-nil)
+				                  (byte-goto-if-not-nil
+                                                   . byte-goto-if-nil)
+				                  (byte-goto-if-nil-else-pop
+                                                   . byte-goto-if-not-nil)))))
+                            ;; Rematerialise nil value if needed.
+		            ;; (We can't handle goto-if-not-nil-else-pop
+		            ;; because we wouldn't know which non-nil
+                            ;; constant to push.)
+                            (new-const
+                             (and (eq (car branch) 'byte-goto-if-nil-else-pop)
+                                  (cons 'byte-constant
+					(byte-compile-get-constant nil))))
+                            )
 	                (byte-compile-log-lap
-	                 "  %s %s ... %s %s\t-->\t%s ... %s"
-	                 lap0 lap1 (cdr lap0) (car tmp)
-	                 (cons (cdr (assq (car (car tmp))
-			                  '((byte-goto-if-nil
-                                             . byte-goto-if-not-nil)
-				            (byte-goto-if-not-nil
-                                             . byte-goto-if-nil)
-				            (byte-goto-if-nil-else-pop
-                                             . byte-goto-if-not-nil-else-pop)
-				            (byte-goto-if-not-nil-else-pop
-                                             . byte-goto-if-nil-else-pop))))
-		               newtag)
-	                 newtag)
-	                (setcdr tmp (cons (setcdr lap0 newtag) (cdr tmp)))
-	                (when (eq (car (car tmp)) 'byte-goto-if-nil-else-pop)
-		          ;; We can handle this case but not the
-		          ;; -if-not-nil case, because we won't know
-		          ;; which non-nil constant to push.
-		          (setcdr rest
-                                  (cons (cons 'byte-constant
-					      (byte-compile-get-constant nil))
-				        (cdr rest))))
-	                (setcar lap0 (nth 1 (memq (car (car tmp))
-				                  '(byte-goto-if-nil-else-pop
-					            byte-goto-if-not-nil
-					            byte-goto-if-nil
-					            byte-goto-if-not-nil
-					            byte-goto byte-goto))))
+	                 "  %s %s ... %s %s\t-->\t%s %s %s ... %s %s %s"
+	                 lap0 lap1 (cdr lap0) branch
+	                 (cons new-jmp newtag) (or new-const "") lap1
+                         (cdr lap0) branch newtag)
+	                (setcdr tail (cons (setcdr lap0 newtag) (cdr tail)))
+	                (when new-const
+		          (setcdr rest (cons new-const (cdr rest))))
+	                (setcar lap0 new-jmp)
 	                (setq keep-going t)
                         t)))))
 
