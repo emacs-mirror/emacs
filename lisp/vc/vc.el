@@ -630,10 +630,13 @@
 ;;
 ;; - ignore-completion-table (directory)
 ;;
-;;   Return the completion table for files ignored by the current
+;;   Return the list of patterns for files ignored by the current
 ;;   version control system, e.g., the entries in `.gitignore' and
 ;;   `.bzrignore'.  The default behavior is to read the contents of
 ;;   the file returned by the `find-ignore-file' function.
+;;
+;;   NOTE: The return value should be a list of strings, not a general
+;;   completion table value, despite what the name implies.
 ;;
 ;; - find-ignore-file (file)
 ;;
