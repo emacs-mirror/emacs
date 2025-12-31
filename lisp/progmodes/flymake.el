@@ -322,11 +322,6 @@ If set to nil, don't suppress any zero counters."
 (defvar-local flymake-check-start-time nil
   "Time at which syntax check was started.")
 
-(defvar-local flymake--original-margin-width nil
-  "Store original margin width.
-Used by `flymake--resize-margins' for restoring original margin width
-when flymake is turned off.")
-
 (defun flymake--log-1 (level sublog msg &rest args)
   "Do actual work for `flymake-log'."
   (let (;; never popup the log buffer
@@ -853,73 +848,6 @@ associated `flymake-category' return DEFAULT."
   "Get the severity for diagnostic TYPE."
   (flymake--lookup-type-property type 'severity
                                  (warning-numeric-level :error)))
-
-(defun flymake--suitably-fringed-p (&optional window)
-  "Tell if WINDOW is suitably fringed-up fro Flymake."
-  (cl-case flymake-fringe-indicator-position
-    (left-fringe (< 0 (nth 0 (window-fringes window))))
-    (right-fringe (< 0 (nth 1 (window-fringes window))))))
-
-(defun flymake--bs-display (type where)
-  "Return a `display' spec for an overlay's `before-string'.
-The overlay will represent a diagnostic of type TYPE.  WHERE is the
-symbol `fringes' or the symbol `margins'."
-  (let* ((indicator (flymake--lookup-type-property
-                     type
-                     (cl-case where
-                       (fringes 'flymake-bitmap)
-                       (margins 'flymake-margin-string))
-                     (alist-get 'bitmap (alist-get type ; backward compat
-                                                   flymake-diagnostic-types-alist))))
-         (value (if (symbolp indicator)
-                    (symbol-value indicator)
-                  indicator))
-         (valuelist (if (listp value)
-                        value
-                      (list value)))
-         (indicator-car (car valuelist)))
-    (cond ((and (symbolp indicator-car)
-                flymake-fringe-indicator-position)
-           (cons flymake-fringe-indicator-position valuelist))
-          ((and (stringp indicator-car)
-                flymake-margin-indicator-position)
-           `((margin ,flymake-margin-indicator-position)
-             ,(propertize
-               indicator-car
-               'face `(:inherit (,(cdr valuelist) default))
-               'mouse-face 'highlight
-               'help-echo "Open Flymake diagnostics"
-               'keymap (let ((map (make-sparse-keymap)))
-                         (define-key
-                          map `[,flymake-margin-indicator-position mouse-1]
-                          #'flymake-show-buffer-diagnostics)
-                         map)))))))
-
-(defun flymake--restore-margins ()
-  (when flymake--original-margin-width
-    (if (eq flymake-margin-indicator-position 'left-margin)
-        (setq left-margin-width flymake--original-margin-width)
-      (setq right-margin-width flymake--original-margin-width))))
-
-(defun flymake--resize-margins ()
-  (let* ((indicators
-          (mapcar (lambda (sym)
-                    (let ((ind (get sym 'flymake-margin-string)))
-                      (when (and (equal (car ind) "‼")
-                                 (not (char-displayable-p ?‼)))
-                        (setq ind (cons "!!" (cdr ind)))
-                        (put sym 'flymake-margin-string ind))
-                      (car ind)))
-                  '(flymake-error flymake-warning flymake-note)))
-         (width (apply #'max (mapcar #'string-width indicators))))
-    (if (eq flymake-margin-indicator-position 'left-margin)
-        (setq flymake--original-margin-width left-margin-width
-              left-margin-width width)
-      (setq flymake--original-margin-width right-margin-width
-            right-margin-width width)))
-  (mapc (lambda (x)
-          (set-window-buffer x (window-buffer x)))
-        (get-buffer-window-list nil nil 'visible)))
 
 (defun flymake--equal-diagnostic-p (a b)
   "Tell if A and B are equivalent `flymake--diag' objects."
@@ -2454,6 +2382,91 @@ some of this variable's contents the diagnostic listings.")
                 text-beg-col
                 text-end-col))
     (concat " \n" (buffer-string))))
+
+
+;;; Margins and fringes
+
+(defvar-local flymake--original-margin-width nil
+  "Store original margin width.
+Used by `flymake--resize-margins' for restoring original margin width
+when flymake is turned off.")
+
+(defun flymake--suitably-fringed-p (&optional window)
+  "Tell if WINDOW is suitably fringed-up fro Flymake."
+  (cl-case flymake-fringe-indicator-position
+    (left-fringe (< 0 (nth 0 (window-fringes window))))
+    (right-fringe (< 0 (nth 1 (window-fringes window))))))
+
+(defun flymake--bs-display (type where)
+  "Return a `display' spec for an overlay's `before-string'.
+The overlay will represent a diagnostic of type TYPE.  WHERE is the
+symbol `fringes' or the symbol `margins'."
+  (let* ((indicator (flymake--lookup-type-property
+                     type
+                     (cl-case where
+                       (fringes 'flymake-bitmap)
+                       (margins 'flymake-margin-string))
+                     (alist-get 'bitmap (alist-get type ; backward compat
+                                                   flymake-diagnostic-types-alist))))
+         (value (if (symbolp indicator)
+                    (symbol-value indicator)
+                  indicator))
+         (valuelist (if (listp value)
+                        value
+                      (list value)))
+         (indicator-car (car valuelist)))
+    (cond ((and (symbolp indicator-car)
+                flymake-fringe-indicator-position)
+           (cons flymake-fringe-indicator-position valuelist))
+          ((and (stringp indicator-car)
+                flymake-margin-indicator-position)
+           `((margin ,flymake-margin-indicator-position)
+             ,(propertize
+               indicator-car
+               'face `(:inherit (,(cdr valuelist) default))
+               'mouse-face 'highlight
+               'help-echo "Open Flymake diagnostics"
+               'keymap (let ((map (make-sparse-keymap)))
+                         (define-key
+                          map `[,flymake-margin-indicator-position mouse-1]
+                          #'flymake-show-buffer-diagnostics)
+                         map)))))))
+
+(defun flymake--appropriate-margin ()
+  (if (eq flymake-margin-indicator-position 'left-margin)
+      'left-margin-width 'right-margin-width))
+
+(defun flymake--restore-margins ()
+  (when flymake--original-margin-width
+    (set (flymake--appropriate-margin) flymake--original-margin-width))
+  (flymake--apply-margins))
+
+(defun flymake--suitable-margin-width ()
+  (let* ((indicators
+          (mapcar (lambda (sym)
+                    (let ((ind (get sym 'flymake-margin-string)))
+                      (when (and (equal (car ind) "‼")
+                                 (not (char-displayable-p ?‼)))
+                        (setq ind (cons "!!" (cdr ind)))
+                        (put sym 'flymake-margin-string ind))
+                      (car ind)))
+                  '(flymake-error flymake-warning flymake-note))))
+    (apply #'max (mapcar #'string-width indicators))))
+
+(defun flymake--resize-margins ()
+  (let* ((sym (flymake--appropriate-margin))
+         (width (flymake--suitable-margin-width))
+         (curr (symbol-value sym)))
+    (unless (eq curr width)
+      (setq flymake--original-margin-width (symbol-value sym))
+      (set sym width)
+      (flymake--apply-margins))))
+
+(defun flymake--apply-margins ()
+  ;; FIXME: this destroys any scroll an inactive window showing
+  (mapc (lambda (w)
+          (set-window-buffer w (window-buffer w)))
+        (get-buffer-window-list nil nil 'visible)))
 
 (provide 'flymake)
 
