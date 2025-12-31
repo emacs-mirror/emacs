@@ -199,10 +199,11 @@ The default \"-b\" means to ignore whitespace-only changes,
 ;; practical uses for `diff-minor-mode': bug#34080).
 
 (defvar-keymap diff-mode-shared-map
-  :doc "Additional bindings for read-only `diff-mode' buffers.
+  :doc "Bindings for read-only `diff-mode' buffers.
 These bindings are also available with an ESC prefix
 (i.e. a \\=`M-' prefix) in read-write `diff-mode' buffers,
-and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'."
+and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'.
+See also `diff-mode-read-only-map'."
   "n" #'diff-hunk-next
   "N" #'diff-file-next
   "p" #'diff-hunk-prev
@@ -215,12 +216,7 @@ and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'."
   "{" #'diff-file-prev
   "RET" #'diff-goto-source
   "<mouse-2>" #'diff-goto-source
-  "W" #'widen
-  "w" #'diff-kill-ring-save
   "o" #'diff-goto-source                ; other-window
-  "A" #'diff-ediff-patch
-  "r" #'diff-restrict-view
-  "R" #'diff-reverse-direction
   "<remap> <undo>" #'diff-undo
 
   ;; The foregoing commands don't affect buffers beyond this one.
@@ -230,15 +226,26 @@ and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'."
   ;; so that seems okay.  --spwhitton
   "u" #'diff-revert-and-kill-hunk)
 
+;; Not `diff-read-only-mode-map' because there is no such mode
+;; `diff-read-only-mode'; see comment above.
+(defvar-keymap diff-mode-read-only-map
+  :parent diff-mode-shared-map
+  :doc "Additional bindings for read-only `diff-mode' buffers.
+Most of the bindings for read-only `diff-mode' buffers are in
+`diff-mode-shared-map'.  This map contains additional bindings for
+read-only `diff-mode' buffers that are *not* available with an ESC
+prefix (i.e. a \\=`M-' prefix) in read-write `diff-mode' buffers."
+  ;; We don't want the following in read-write `diff-mode' buffers
+  ;; because they hide useful `M-<foo>' global bindings when editing.
+  "W" #'widen
+  "w" #'diff-kill-ring-save
+  "A" #'diff-ediff-patch
+  "r" #'diff-restrict-view
+  "R" #'diff-reverse-direction)
+
 (defvar-keymap diff-mode-map
   :doc "Keymap for `diff-mode'.  See also `diff-mode-shared-map'."
-  "ESC" (let ((map (define-keymap :parent diff-mode-shared-map)))
-          ;; We want to inherit most bindings from
-          ;; `diff-mode-shared-map', but not all since they may hide
-          ;; useful `M-<foo>' global bindings when editing.
-          (dolist (key '("A" "r" "R" "W" "w"))
-            (keymap-set map key nil))
-          map)
+  "ESC" diff-mode-shared-map
   ;; From compilation-minor-mode.
   "C-c C-c" #'diff-goto-source
   ;; By analogy with the global C-x 4 a binding.
@@ -1661,7 +1668,7 @@ else cover the whole buffer."
 
 (defvar-keymap diff-read-only-map
   :doc "Additional bindings for read-only `diff-mode' buffers."
-  :keymap (make-composed-keymap diff-mode-shared-map special-mode-map))
+  :keymap (make-composed-keymap diff-mode-read-only-map special-mode-map))
 
 ;; It should be lower than `outline-minor-mode' and `view-mode'.
 (or (assq 'diff-mode-read-only minor-mode-map-alist)
