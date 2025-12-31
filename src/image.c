@@ -13054,11 +13054,18 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
 #if defined (HAVE_WEBP)						\
   || (defined (HAVE_NATIVE_IMAGE_API)				\
-      && ((defined (HAVE_NS) && defined (NS_IMPL_COCOA))	\
-	  || defined (HAVE_HAIKU)))
+      && (defined (HAVE_NS) || defined (HAVE_HAIKU)))
   DEFSYM (Qwebp, "webp");
   DEFSYM (Qwebpdemux, "webpdemux");
+#if !defined (NS_IMPL_GNUSTEP) || defined (HAVE_WEBP)
   add_image_type (Qwebp);
+#else
+
+  /* On GNUstep, WEBP support is provided via ImageMagick only if
+     gnustep-gui is built with --enable-imagemagick.  */
+  if (image_can_use_native_api (Qwebp))
+    add_image_type (Qwebp);
+#endif /* NS_IMPL_GNUSTEP && !HAVE_WEBP */
 #endif
 
 #if defined (HAVE_IMAGEMAGICK)
@@ -13081,18 +13088,27 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (Qgobject, "gobject");
 #endif /* HAVE_NTGUI  */
 #elif defined HAVE_NATIVE_IMAGE_API			\
-  && ((defined HAVE_NS && defined NS_IMPL_COCOA)	\
-      || defined HAVE_HAIKU)
+  && (defined HAVE_NS || defined HAVE_HAIKU)
   DEFSYM (Qsvg, "svg");
 
-  /* On Haiku, the SVG translator may not be installed.  */
+  /* On Haiku, the SVG translator may not be installed.  On GNUstep, SVG
+     support is provided by ImageMagick so not guaranteed.  Furthermore,
+     some distros (e.g., Debian) ship ImageMagick's SVG module in a
+     separate binary package which may not be installed.  */
   if (image_can_use_native_api (Qsvg))
     add_image_type (Qsvg);
 #endif
 
 #ifdef HAVE_NS
   DEFSYM (Qheic, "heic");
+#ifdef NS_IMPL_COCOA
   add_image_type (Qheic);
+#else
+
+  /* HEIC support in gnustep-gui is provided by ImageMagick.  */
+  if (image_can_use_native_api (Qheic))
+    add_image_type (Qheic);
+#endif /* NS_IMPL_GNUSTEP */
 #endif
 
 #if HAVE_NATIVE_IMAGE_API
