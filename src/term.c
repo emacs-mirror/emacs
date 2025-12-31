@@ -1585,11 +1585,11 @@ append_glyph (struct it *it)
 	it->glyph_row->used[area] = margin_column + 1;
 
       /* Increment the margin column for the next character
-	 in a possibly multi-char string.  */
-      it->margin_column++;
+	 in a possibly multiple wide chars string.  */
+      it->margin_column += it->pixel_width;
 
       handled_column = true;
-      nglyphs = 1;
+      nglyphs = it->pixel_width;
     }
 
   if (!handled_column)
@@ -1633,7 +1633,7 @@ append_glyph (struct it *it)
       glyph->face_id = it->face_id;
       glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
-      glyph->padding_p = !handled_column && i > 0;
+      glyph->padding_p = i > 0;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
       if (it->bidi_p)
