@@ -1133,7 +1133,10 @@ set_state (enum igc_state state)
       break;
 
     case IGC_STATE_DEAD:
-      igc_postmortem ();
+      /* Avoid endless recursion if an assertion in
+	 mps_arena_postmortem fails.  */
+      if (old_state != IGC_STATE_DEAD)
+	igc_postmortem ();
       terminate_due_to_signal (SIGABRT, INT_MAX);
       break;
     }
