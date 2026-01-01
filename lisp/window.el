@@ -7987,20 +7987,25 @@ See the info node `(elisp)Dedicated Windows' for more details."
 (defconst display-buffer--action-function-custom-type
   '(choice :tag "Function"
 	   (const :tag "--" ignore) ; default for insertion
-	   (const display-buffer-reuse-window)
-	   (const display-buffer-pop-up-window)
 	   (const display-buffer-same-window)
+	   (const display-buffer-reuse-window)
+	   (const display-buffer-in-previous-window)
+	   (const display-buffer-reuse-mode-window)
+	   (const display-buffer-use-some-window)
+	   (const display-buffer-use-least-recent-window)
+	   (const display-buffer-pop-up-window)
 	   (const display-buffer-pop-up-frame)
 	   (const display-buffer-full-frame)
+	   (const display-buffer-use-some-frame)
 	   (const display-buffer-in-child-frame)
+	   (const display-buffer-in-side-window)
+	   (const display-buffer-in-atom-window)
 	   (const display-buffer-below-selected)
 	   (const display-buffer-at-bottom)
-	   (const display-buffer-in-previous-window)
-	   (const display-buffer-use-least-recent-window)
-	   (const display-buffer-use-some-window)
-	   (const display-buffer-use-some-frame)
+	   (const display-buffer-in-direction)
 	   (const display-buffer-in-tab)
 	   (const display-buffer-in-new-tab)
+	   (const display-buffer-no-window)
 	   (function :tag "Other function"))
   "Custom type for `display-buffer' action functions.")
 
@@ -8133,22 +8138,26 @@ To change which window is used, set `display-buffer-alist'
 to an expression containing one of these \"action\" functions:
 
  `display-buffer-same-window' -- Use the selected window.
- `display-buffer-reuse-window' -- Use a window already showing
-    the buffer.
- `display-buffer-in-previous-window' -- Use a window that did
-    show the buffer before.
+ `display-buffer-reuse-window' -- Use a window already showing the buffer.
+ `display-buffer-in-previous-window' -- Use a window that has previously
+    displayed the buffer.
+ `display-buffer-reuse-mode-window' -- Use a window currently showing a
+    buffer with the required major mode.
  `display-buffer-use-some-window' -- Use some existing window.
- `display-buffer-use-least-recent-window' -- Try to avoid reusing
-    windows that have recently been switched to.
+ `display-buffer-use-least-recent-window' -- Try to avoid reusing windows
+    that have recently been switched to.
  `display-buffer-pop-up-window' -- Pop up a new window.
+ `display-buffer-pop-up-frame' -- Use a new frame.
  `display-buffer-full-frame' -- Delete other windows and use the full frame.
- `display-buffer-below-selected' -- Use or pop up a window below
-    the selected one.
- `display-buffer-at-bottom' -- Use or pop up a window at the
-    bottom of the selected frame.
- `display-buffer-pop-up-frame' -- Show the buffer on a new frame.
- `display-buffer-in-child-frame' -- Show the buffer in a
-    child frame.
+ `display-buffer-use-some-frame' -- Use a frame meeting a predicate.
+ `display-buffer-in-child-frame' -- Use a child frame of the selected frame.
+ `display-buffer-in-side-window' -- Use a side window of the selected frame.
+ `display-buffer-in-atom-window' -- Use an atomic window.
+ `display-buffer-below-selected' -- Use or pop up a window below the
+    selected one.
+ `display-buffer-at-bottom' -- Use or pop up a window at the bottom of the
+    selected frame.
+ `display-buffer-in-direction' -- Use a window in a specified direction.
  `display-buffer-in-tab' -- Use an appropriate existing tab or a new tab.
  `display-buffer-in-new-tab' -- Use a new tab.
  `display-buffer-no-window' -- Do not display the buffer and
@@ -8212,7 +8221,7 @@ Action alist entries are:
     Possible values are nil (the selected frame), t (any live
     frame), visible (any visible frame), 0 (any visible or
     iconified frame) or an existing live frame.
- `pop-up-frames' -- Same effect as the eponymous variable.
+ \\+`pop-up-frames' -- Same effect as the eponymous variable.
     Takes precedence over the variable.
  `pop-up-frame-parameters' -- The value specifies an alist of
     frame parameters to give a new frame, if one is created.
@@ -8311,9 +8320,9 @@ Action alist entries are:
     selected regardless of which windows were selected afterwards within
     this command.
  `category' -- If the caller of `display-buffer' passes an alist entry
-   `(category . symbol)' in its action argument, then you can match
-   the displayed buffer by using the same category in the condition
-   part of `display-buffer-alist' entries.
+    `(category . symbol)' in its action argument, then you can match
+    the displayed buffer by using the same category in the condition
+    part of `display-buffer-alist' entries.
  ‘tab-name’ -- If non-nil, specifies the name of the tab in which to
     display the buffer; see `display-buffer-in-new-tab'.
  \\+‘tab-group’ -- If non-nil, specifies the tab group to use when creating
@@ -8569,7 +8578,9 @@ indirectly called by the latter."
 	  (window--maybe-raise-frame (window-frame window)))))))
 
 (defun display-buffer-reuse-mode-window (buffer alist)
-  "Return a window based on the mode of the buffer it displays.
+  "Display BUFFER in a window with a buffer of the required major mode.
+
+Return a window based on the major mode of the buffer it displays.
 Display BUFFER in the returned window.  Return nil if no usable
 window is found.
 
