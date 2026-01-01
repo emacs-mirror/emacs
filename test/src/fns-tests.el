@@ -1389,6 +1389,22 @@
     (dolist (test '(eq eql equal))
       (ft--test-weak-fixnums w test))))
 
+;; Emacs's weak hash tables work like ephemerons: if an object is only
+;; reachable through a weak hash table, then the object should be
+;; collected.
+(defun ft--test-ephemeron-table (weakness)
+  (let* ((h (make-hash-table :weakness weakness :test 'eq))
+         (n 1000))
+    (dotimes (i n)
+      (let* ((obj (cons 'a i)))
+        (puthash obj obj h)))
+    (ft--gc weakness)
+    (should (< (hash-table-count h) n))))
+
+(ert-deftest ft-ephemeron-table ()
+  (dolist (w '(key value key-and-value key-or-value))
+    (ft--test-ephemeron-table w)))
+
 
 
 (ert-deftest test-hash-function-that-mutates-hash-table ()
