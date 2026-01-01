@@ -181,6 +181,12 @@
 ;;   the following functions might be needed: `dir-extra-headers',
 ;;   `dir-printer', and `extra-dir-menu'.
 ;;
+;;   NOTE: project.el includes a similar method `project-list-files'
+;;   that has slightly different return value and performance tradeoffs.
+;;   If you want to use it in your code and it suits your needs better
+;;   than `dir-status-files', consider contacting the development list
+;;   about changes or having it promoted to the core VC.
+;;
 ;; - dir-extra-headers (dir)
 ;;
 ;;   Return a string that will be added to the *vc-dir* buffer header.
