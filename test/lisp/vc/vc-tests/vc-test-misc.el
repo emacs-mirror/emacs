@@ -1,6 +1,6 @@
 ;;; vc-test-misc.el --- backend-agnostic VC tests  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Author: Sean Whitton <spwhitton@spwhitton.name>
 

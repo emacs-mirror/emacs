@@ -1,6 +1,6 @@
 ;;; char-fold.el --- match unicode to similar ASCII -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: matching

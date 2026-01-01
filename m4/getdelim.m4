@@ -1,7 +1,7 @@
 # getdelim.m4
 # serial 21
 
-dnl Copyright (C) 2005-2007, 2009-2025 Free Software Foundation, Inc.
+dnl Copyright (C) 2005-2007, 2009-2026 Free Software Foundation, Inc.
 dnl
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,

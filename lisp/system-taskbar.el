@@ -1,6 +1,6 @@
 ;;; system-taskbar.el --- System GUI taskbar/dock/launcher status display -*- lexical-binding: t -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Author: Stephane Marks
 ;; Maintainer: emacs-devel@gnu.org

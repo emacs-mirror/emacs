@@ -1,6 +1,6 @@
 ;;; tty-tip.el --- Display help in kind of tooltips on ttys  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

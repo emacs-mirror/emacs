@@ -1,6 +1,6 @@
 ;;; ring-bell-fns.el --- Collection of functions for ring-bell  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Author: Elijah Gabe Pérez <eg642616@gmail.com>
 ;; Keywords: faces

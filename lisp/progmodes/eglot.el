@@ -1,6 +1,6 @@
 ;;; eglot.el --- The Emacs Client for LSP servers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2026 Free Software Foundation, Inc.
 
 ;; Version: 1.19
 ;; Author: João Távora <joaotavora@gmail.com>

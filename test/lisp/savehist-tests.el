@@ -1,6 +1,6 @@
 ;;; savehist-tests.el --- Tests for savehist.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Author: Stephane Marks <shipmints@gmail.com>
 

@@ -1,6 +1,6 @@
 ;;; lua-mode.el --- Major-mode for editing Lua files -*- lexical-binding: t -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Author: 2011-2013 immerrr <immerrr+lua@gmail.com>
 ;;         2010-2011 Reuben Thomas <rrt@sc3d.org>

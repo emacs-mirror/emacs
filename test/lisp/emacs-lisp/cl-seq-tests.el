@@ -1,6 +1,6 @@
 ;;; cl-seq-tests.el --- Tests for cl-seq.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2026 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Richard <youngfrog@members.fsf.org>
 

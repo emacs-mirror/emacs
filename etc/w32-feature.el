@@ -1,6 +1,6 @@
 ;;; w32-feature.el --- Check Availability of Emacs Features  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2026 Free Software Foundation, Inc.
 
 ;; Author: Phillip Lord <phillip.lord@russet.org.uk>
 

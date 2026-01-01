@@ -1,6 +1,6 @@
 ;;; window-x.el --- Extra window related commands  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Author: Pranshu Sharma <pranshu@bauherren.ovh>
 ;;         Martin Rudalics <rudalics@gmx.at>

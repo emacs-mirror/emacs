@@ -1,6 +1,6 @@
 ;;; elisp-scope.el --- Semantic analysis for Elisp symbols  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Author: Eshel Yaron <me@eshelyaron.com>
 ;; Keywords: lisp, languages

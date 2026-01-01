@@ -1,6 +1,6 @@
 ;;; hideshow.el --- Minor mode to hide/show comment or code blocks  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2026 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@gnu.org>

@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal

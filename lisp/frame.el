@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2000-2025 Free Software
+;; Copyright (C) 1993-1994, 1996-1997, 2000-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

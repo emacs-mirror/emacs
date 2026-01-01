@@ -1,6 +1,6 @@
 ;;; ox.el --- Export Framework for Org Mode          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2026 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Maintainer: Ihor Radchenko <yantar92 at posteo dot net>

@@ -1,6 +1,6 @@
 ;;; inf-lisp.el --- an inferior-lisp mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1988-2026 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes, lisp

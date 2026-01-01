@@ -1,6 +1,6 @@
 ;;; track-changes.el --- API to react to buffer modifications  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.5

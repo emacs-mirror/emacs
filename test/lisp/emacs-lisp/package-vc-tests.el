@@ -1,6 +1,6 @@
 ;;; package-vc-tests.el --- Tests for package-vc -*- lexical-binding:t -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Author: Przemsyław Kryger <pkryger@gmail.com>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>

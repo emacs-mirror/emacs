@@ -1,6 +1,6 @@
 ;;; doctor.el --- psychological help for frustrated users  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: games

@@ -1,7 +1,7 @@
 ;;; Receive and execute Lisp code submitted by a test controller.  -*- lexical-binding: t; -*-
 ;;; $Id: ats-driver.el,v 1.9 2025/03/02 12:52:57 jw Exp $
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

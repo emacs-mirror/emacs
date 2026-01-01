@@ -1,6 +1,6 @@
 ;;; burmese.el --- Quail package for inputting Burmese	-*- coding: utf-8; lexical-binding:t -*-
 
-;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2026 Free Software Foundation, Inc.
 
 ;; Author: Billy Lei <LeiYiXia29@outlook.com>
 ;; Keywords:  multilingual, input method, Burmese
