@@ -1221,7 +1221,7 @@ ns_unfocus (struct frame *f)
     {
       nestCount = 0;
       isAttached = false;
-#ifdef NS_IMPL_GNUSTEP
+#if NS_IMPL_GNUSTEP && !HAVE_DECL_NSIMAGENAMECAUTION
       // GNUstep doesn't provide named images.  This was reported in
       // 2011, see https://savannah.gnu.org/bugs/?33396
       //

@@ -2886,6 +2886,11 @@ Mac OS X 12.x or later.
        [Define to use native OS APIs for images.])
      NATIVE_IMAGE_API="yes (ns)"
   fi
+
+  if test "${NS_IMPL_GNUSTEP}" = yes; then
+    AC_CHECK_DECLS([NSImageNameCaution], [], [],
+                   [[#import <AppKit/NSImage.h>]])
+  fi
 fi
 
 AC_SUBST([LIBS_GNUSTEP])
