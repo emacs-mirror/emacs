@@ -3580,6 +3580,8 @@ which already displays the buffer.  The possible values of
 means consider all existing frames.
 @item @code{visible}
 means consider all visible frames.
+@item 0
+means consider all frames on the current terminal.
 @item A frame
 means consider that frame only.
 @item Any other non-@code{nil} value

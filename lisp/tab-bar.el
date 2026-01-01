@@ -2865,9 +2865,20 @@ with those specified by the selected window configuration."
 
 
 (defun tab-bar--reusable-frames (all-frames)
+  "Process the `reusable-frames' buffer display action alist entry.
+Return a frame list.  Used with the `display-buffer-in-tab' action."
   (cond
    ((eq all-frames t) (frame-list))
    ((eq all-frames 'visible) (visible-frame-list))
+   ;; The standard behavior for a `reusable-frames' value of 0 is implemented in
+   ;; candidate_window_p() in window.c, and we have to go via `window-list-1' to
+   ;; utilize this.  We list the selected frame first.
+   ((eq all-frames 0) (let (frames)
+                        (dolist (w (window-list-1 nil nil 0))
+                          (let ((f (window-frame w)))
+                            (unless (memq f frames)
+                              (push f frames))))
+                        (nreverse frames)))
    ((framep all-frames) (list all-frames))
    (t (list (selected-frame)))))
 
@@ -2882,6 +2893,9 @@ The optional argument ALL-FRAMES specifies the frames to consider:
 - t means consider all tabs on all existing frames.
 
 - `visible' means consider all tabs on all visible frames.
+
+- 0 (the number zero) means consider all tabs on all visible and
+  iconified frames.
 
 - A frame means consider all tabs on that frame only.
 
@@ -2941,6 +2955,7 @@ displays BUFFER.  The possible values of `reusable-frames' are:
 
   t -- all existing frames;
   `visible' -- all visible frames;
+  0 -- all frames on the current terminal;
   A frame -- that frame only;
   Any other non-nil value -- the selected frame;
   nil -- do not search any frames (equivalent to omitting the entry).
