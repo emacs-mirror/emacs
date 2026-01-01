@@ -2815,6 +2815,8 @@ Call FUN with two args (BEG and END) for each hunk."
 (defun diff--overlay-auto-delete (ol _after _beg _end &optional _len)
   (delete-overlay ol))
 
+(define-obsolete-function-alias 'diff-undo #'undo-ignore-read-only "31.1")
+
 ;;;###autoload
 (defcustom diff-add-log-use-relative-names nil
   "Use relative file names when generating ChangeLog skeletons.
