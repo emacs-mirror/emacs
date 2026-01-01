@@ -2322,7 +2322,9 @@ Using this variable you can add more ignore patterns to the project, to
 exclude more files from the project's file listing.  The value is a list
 of glob strings.  They can match both regular files and directories.  To
 anchor an entry to the project root, start it with @code{./}.  To match
-directories only, end it with @code{/}.
+directories only, end it with @code{/}.  When this variable has
+directory-local value, it will only be applied to the corresponding
+directory subtree.
 @end defopt
 
 @defopt project-vc-name

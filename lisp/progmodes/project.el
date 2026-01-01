@@ -466,7 +466,10 @@ the buffer's value of `default-directory'."
   :group 'project)
 
 (defcustom project-vc-ignores nil
-  "List of patterns to add to `project-ignores'."
+  "List of patterns to add to `project-ignores'.
+
+Only global or directory-local values are supported. And directory-local
+values will be applied to the corresponding directory subtrees."
   :type '(repeat string))
 ;; Change to `list-of-strings-p' when support for Emacs 28 is dropped.
 ;;;###autoload(put 'project-vc-ignores 'safe-local-variable (lambda (val) (and (listp val) (not (memq nil (mapcar #'stringp val))))))
@@ -688,12 +691,14 @@ See `project-vc-extra-root-markers' for the marker value format.")
 (cl-defmethod project-files ((project (head vc)) &optional dirs)
   (mapcan
    (lambda (dir)
-     (let ((ignores (project--value-in-dir 'project-vc-ignores (nth 2 project)))
+     (let ((ignores (project--value-in-dir 'project-vc-ignores dir))
            (backend (project-vc--backend project dir)))
        (if backend
            (vc-call-backend backend 'project-list-files dir ignores)
          (project--files-in-directory
-          dir (append ignores (project-ignores nil nil))))))
+          dir (append ignores (append
+                               (project-ignores nil nil)
+                               ignores))))))
    (or dirs
        (list (project-root project)))))
 
@@ -830,9 +835,9 @@ See `project-vc-extra-root-markers' for the marker value format.")
     (file-missing nil)))
 
 (cl-defmethod project-ignores ((project (head vc)) dir)
-  (let ((root (nth 2 project)))
-    (project--vc-ignores dir (project-vc--backend project dir)
-                         (project--value-in-dir 'project-vc-ignores root))))
+  (project--vc-ignores dir
+                       (project-vc--backend project dir)
+                       (project--value-in-dir 'project-vc-ignores dir)))
 
 (defun project--vc-ignores (dir backend extra-ignores)
   (append
@@ -890,7 +895,7 @@ DIRS must contain directory names."
 
 (defun project--value-in-dir (var dir)
   (with-temp-buffer
-    (setq default-directory dir)
+    (setq default-directory (file-name-as-directory dir))
     (let ((enable-local-variables :all))
       (hack-dir-local-variables))
     ;; Don't use `hack-local-variables-apply' to avoid setting modes.
