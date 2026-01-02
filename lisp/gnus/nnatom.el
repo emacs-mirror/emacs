@@ -1,6 +1,6 @@
 ;;; nnatom.el --- Atom backend for Gnus -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023, 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023, 2025-2026 Free Software Foundation, Inc.
 ;; Author: Daniel Semyonov <daniel@dsemy.com>
 
 ;; This file is part of GNU Emacs.
@@ -270,7 +270,7 @@ return the subject.  Otherwise, return nil."
            (or st (push summary parts)))
           ((setq content (or summary content))
            (push (append content '(links)) parts))
-          (t (push '((nil (Content-Type . "text/html") links)) parts)))
+          (t (push '(nil (Content-Type . "text/html") links) parts)))
     parts))
 (defvoo nnatom-read-parts-function #'nnatom--read-parts
   nil nnfeed-read-parts-function)

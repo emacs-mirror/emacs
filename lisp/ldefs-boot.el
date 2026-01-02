@@ -910,9 +910,11 @@ and is meant to be used in `compilation-filter-hook'.")
 
 ;;; Generated autoloads from progmodes/antlr-mode.el
 
-(push '(antlr-mode 2 2 3) package--builtin-versions)
+(push '(antlr-mode 3 2 0) package--builtin-versions)
 (autoload 'antlr-show-makefile-rules "antlr-mode" "\
 Show Makefile rules for all grammar files in the current directory.
+This command is for ANTLR v2 grammars only.
+
 If the `major-mode' of the current buffer has the value `makefile-mode',
 the rules are directory inserted at point.  Otherwise, a *Help* buffer
 is shown with the rules which are also put into the `kill-ring' for
@@ -935,9 +937,18 @@ this mode runs the hook `antlr-mode-hook', as the final or penultimate
 step during initialization.
 
 \\{antlr-mode-map}" t)
+(autoload 'antlr-v4-mode "antlr-mode" "\
+Major mode for editing ANTLR v4 grammar files.
+
+In addition to any hooks its parent mode `antlr-mode' might have run,
+this mode runs the hook `antlr-v4-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{antlr-v4-mode-map}" t)
 (autoload 'antlr-set-tabs "antlr-mode" "\
 Use ANTLR's convention for TABs according to `antlr-tab-offset-alist'.
-Used in `antlr-mode'.  Also a useful function in `java-mode-hook'.")
+Used in `antlr-mode' for cc-mode-based languages.
+It is probably better to automatically deduce the TAB setting.")
 (register-definition-prefixes "antlr-mode" '("antlr-"))
 
 
@@ -3589,7 +3600,7 @@ the absolute file name of the file if STYLE-NAME is nil.
 
 ;;; Generated autoloads from progmodes/cc-mode.el
 
-(push '(cc-mode 5 33 1) package--builtin-versions)
+(push '(cc-mode 5 35 2) package--builtin-versions)
 (autoload 'c-initialize-cc-mode "cc-mode" "\
 Initialize CC Mode for use in the current buffer.
 If the optional NEW-STYLE-INIT is nil or left out then all necessary
@@ -5463,8 +5474,8 @@ are passed along to the rest of the clauses in this `cond*' construct.
 (fn &rest CLAUSES)" nil t)
 (autoload 'match* "cond-star" "\
 This specifies matching DATUM against PATTERN.
-It is not really a Lisp function, and it is meaningful
-only in the CONDITION of a `cond*' clause.
+This is not really a Lisp operator; it is meaningful only in the
+CONDITION of a `cond*' clause.
 
 `_' matches any value.
 KEYWORD matches that keyword.
@@ -5498,7 +5509,7 @@ ATOM (meaning any other kind of non-list not described above)
 (cdr PATTERN)  matches PATTERN with strict checking of cdrs.
   That means that `list' patterns verify that the final cdr is nil.
   Strict checking is the default.
-(cdr-safe PATTERN)  matches PATTERN with lax checking of cdrs.
+(cdr-ignore PATTERN)  matches PATTERN with lax checking of cdrs.
   That means that `list' patterns do not examine the final cdr.
 (and CONJUNCTS...)  matches each of the CONJUNCTS against the same data.
   If all of them match, this pattern succeeds.
@@ -5527,17 +5538,23 @@ ATOM (meaning any other kind of non-list not described above)
 
 (fn PATTERN DATUM)" nil t)
 (autoload 'bind* "cond-star" "\
-This macro evaluates BINDINGS like `let*'.
-It is not really a Lisp function, and it is meaningful
-only in the CONDITION of a `cond*' clause.
+Evaluate BINDINGS like `let*'.
+This is not really a Lisp operator; it is meaningful only in the
+CONDITION of a `cond*' clause.  See `cond*' for details.
 
 (fn &rest BINDINGS)" nil t)
 (autoload 'bind-and* "cond-star" "\
-This macro evaluates BINDINGS like `if-let*'.
-It is not really a Lisp function, and it is meaningful
-only in the CONDITION of a `cond*' clause.
+Evaluate BINDINGS like `if-let*'.
+This is not really a Lisp operator; it is meaningful only in the
+CONDITION of a `cond*' clause.  See `cond*' for details.
 
 (fn &rest BINDINGS)" nil t)
+(autoload 'pcase* "cond-star" "\
+Evaluate PATTERN and DATUM like an element of BINDINGS in `pcase-let'.
+This is not really a Lisp operator; it is meaningful only in the
+CONDITION of a `cond*' clause.  See `cond*' for details.
+
+(fn PATTERN DATUM)" nil t)
 (register-definition-prefixes "cond-star" '("cond*-"))
 
 
@@ -8126,7 +8143,11 @@ The glyphs being changed by this function are `vertical-border',
 `box-vertical',`box-horizontal', `box-down-right', `box-down-left',
 `box-up-right', `box-up-left',`box-double-vertical',
 `box-double-horizontal', `box-double-down-right',
-`box-double-down-left', `box-double-up-right', `box-double-up-left'," t)
+`box-double-down-left', `box-double-up-right', `box-double-up-left'.
+
+To customize the glyphs, use `make-glyph-code' to create a glyph from a
+character code and a face, and then use `set-display-table-slot' to
+assign the glyph to a slot." t)
 (autoload 'standard-display-8bit "disp-table" "\
 Display characters representing raw bytes in the range L to H literally.
 
@@ -10164,12 +10185,12 @@ This function recursively analyzes Lisp forms (HEAD . TAIL), usually
 starting with a top-level form, by inspecting HEAD at each level:
 
 - If HEAD is a symbol with a non-nil `elisp-scope-analyzer' symbol
-  property, then the value of that property specifies a bespoke analzyer
+  property, then the value of that property specifies a bespoke analyzer
   function, AF, that is called as (AF HEAD . TAIL) to analyze the form.
   See more details about writing analyzer functions below.
 
 - If HEAD satisfies `functionp', which means it is a function in the
-  running Emacs session, analzye the form as a function call.
+  running Emacs session, analyze the form as a function call.
 
 - If HEAD is a safe macro (see `elisp-scope-safe-macro-p'), expand it
   and analyze the resulting form.
@@ -12404,6 +12425,10 @@ of face attribute/value pairs.  If more than one face is listed,
 that specifies an aggregate face, in the same way as in a `face'
 text property, except for possible priority changes noted below.
 
+If a face property list specifies `:font', the value should be
+either a font-spec object or the return value of `font-face-attributes'
+called with a font object, font spec, or font entity.
+
 The face remapping specified by SPECS takes effect alongside the
 remappings from other calls to `face-remap-add-relative' for the
 same FACE, as well as the normal definition of FACE (at lowest
@@ -12430,6 +12455,10 @@ to apply on top of the face specification given by SPECS.
 The remaining arguments, SPECS, specify the base of the remapping.
 Each one of SPECS should be either a face name or a property list
 of face attribute/value pairs, like in a `face' text property.
+
+If a face property list specifies `:font', the value should be
+either a font-spec object or the return value of `font-face-attributes'
+called with a font object, font spec, or font entity.
 
 If SPECS is empty or a single face `eq' to FACE, call `face-remap-reset-base'
 to use the normal definition of FACE as the base remapping; note that
@@ -12575,6 +12604,11 @@ one face is listed, that specifies an aggregate face, like in a
 `face' text property.  If SPECS is nil or omitted, disable
 `buffer-face-mode'.
 
+If SPECS needs to specify a font, it should be either a list
+whose car is `:font' and whose cdr is a font-spec object,
+or the return value of `font-face-attributes' called with a font
+object, font spec, or font entity corresponding to the desired font.
+
 This function makes the variable `buffer-face-mode-face' buffer
 local, and sets it to FACE.
 
@@ -12585,6 +12619,10 @@ Each argument in SPECS should be a face, i.e. either a face name
 or a property list of face attributes and values.  If more than
 one face is listed, that specifies an aggregate face, like in a
 `face' text property.
+
+If a face property list specifies `:font', the value should be
+either a font-spec object or the return value of `font-face-attributes'
+called with a font object, font spec, or font entity.
 
 If `buffer-face-mode' is already enabled, and is currently using
 the face specs SPECS, then it is disabled; if `buffer-face-mode'
@@ -16746,7 +16784,7 @@ The lines that match REGEXP will be displayed by merging
 the attributes of FACE with any other face attributes
 of text in those lines.
 
-Interactively, prompt for REGEXP using `read-regexp', then FACE.
+Interactively, prompt for REGEXP using `hi-lock-read-regexp', then FACE.
 Use the global history list for FACE.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\')
@@ -16760,7 +16798,7 @@ highlighting will not update as you type.
 (defalias 'highlight-regexp 'hi-lock-face-buffer)
 (autoload 'hi-lock-face-buffer "hi-lock" "\
 Set face of each match of REGEXP to FACE.
-Interactively, prompt for REGEXP using `read-regexp', then FACE.
+Interactively, prompt for REGEXP using `hi-lock-read-regexp', then FACE.
 Use the global history list for FACE.  Limit face setting to the
 corresponding SUBEXP (interactively, the prefix argument) of REGEXP.
 If SUBEXP is omitted or nil, the entire REGEXP is highlighted.
@@ -16783,7 +16821,7 @@ the major mode specifies support for Font Lock.
 (defalias 'highlight-phrase 'hi-lock-face-phrase-buffer)
 (autoload 'hi-lock-face-phrase-buffer "hi-lock" "\
 Set face of each match of phrase REGEXP to FACE.
-Interactively, prompt for REGEXP using `read-regexp', then FACE.
+Interactively, prompt for REGEXP using `hi-lock-read-regexp', then FACE.
 Use the global history list for FACE.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\')
@@ -16842,33 +16880,37 @@ Populate MENU with a menu item to highlight symbol at CLICK.
 (autoload 'hide-ifdef-mode "hideif" "\
 Toggle features to hide/show #ifdef blocks (Hide-Ifdef mode).
 
-Hide-Ifdef mode is a buffer-local minor mode for use with C and
+\\<hide-ifdef-mode-map>Hide-Ifdef mode is a buffer-local minor mode for use with C and
 C-like major modes.  When enabled, code within #ifdef constructs
 that the C preprocessor would eliminate may be hidden from view.
+
+Use \\[hide-ifdefs] to hide ifdefs and \\[hide-ifdefs] to show them.
+Use  \\[hif-show-all] to show all ifdefs.
+
 Several variables affect how the hiding is done:
 
 `hide-ifdef-env'
         An association list of defined and undefined symbols for the
-        current project.  Initially, the global value of `hide-ifdef-env'
-        is used.  This variable was a buffer-local variable, which limits
-        hideif to parse only one C/C++ file at a time.  We've extended
-        hideif to support parsing a C/C++ project containing multiple C/C++
-        source files opened simultaneously in different buffers.  Therefore
-        `hide-ifdef-env' can no longer be buffer local but must be global.
+        current project.  Use \\[hide-ifdef-define] and \\[hide-ifdef-undef] to update the value of
+        this list with defined or undefined symbols.
+        We've extended hideif to support parsing a C/C++ project
+        containing multiple C/C++ source files opened simultaneously in
+        different buffers.  Therefore `hide-ifdef-env' can no longer be
+        buffer local but must be global.
+
+`hide-ifdef-initially'
+        Customize this to a non-nil value to cause ifdefs be hidden as
+        soon as `hide-ifdef-mode' is turned on.
+
+`hide-ifdef-lines'
+        Customize to non-nil to hide the #if, #ifdef, #ifndef, #else,
+        and #endif lines when hiding ifdefs.
 
 `hide-ifdef-define-alist'
         An association list of defined symbol lists.
         Use `hide-ifdef-set-define-alist' to save the current `hide-ifdef-env'
         and `hide-ifdef-use-define-alist' to set the current `hide-ifdef-env'
         from one of the lists in `hide-ifdef-define-alist'.
-
-`hide-ifdef-lines'
-        Set to non-nil to not show #if, #ifdef, #ifndef, #else, and
-        #endif lines when hiding.
-
-`hide-ifdef-initially'
-        Indicates whether `hide-ifdefs' should be called when Hide-Ifdef mode
-        is activated.
 
 `hide-ifdef-read-only'
         Set to non-nil if you want to make buffers read only while hiding.
@@ -16897,16 +16939,14 @@ disabled.
 ;;; Generated autoloads from progmodes/hideshow.el
 
 (defvar hs-special-modes-alist nil)
+(autoload 'turn-off-hideshow "hideshow" "\
+Unconditionally turn off `hs-minor-mode'.")
 (autoload 'hs-minor-mode "hideshow" "\
 Minor mode to selectively hide/show code and comment blocks.
 
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.
 The value (hs . t) is added to `buffer-invisibility-spec'.
-
-The main commands are: `hs-hide-all', `hs-show-all', `hs-hide-block',
-`hs-show-block', `hs-hide-level' and `hs-toggle-hiding'.  There is also
-`hs-hide-initial-comment-block'.
 
 Turning hideshow minor mode off reverts the menu bar and the
 variables to default values and disables the hideshow commands.
@@ -16931,8 +16971,6 @@ The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
 (fn &optional ARG)" t)
-(autoload 'turn-off-hideshow "hideshow" "\
-Unconditionally turn off `hs-minor-mode'.")
 (register-definition-prefixes "hideshow" '("hs-"))
 
 
@@ -17253,7 +17291,7 @@ Do not set this variable with `setq'; instead, use `setopt'
 or `customize-option'.")
 (custom-autoload 'holiday-islamic-holidays "holidays" nil)
 (put 'holiday-islamic-holidays 'risky-local-variable t)
-(defvar holiday-bahai-holidays '((holiday-bahai-new-year) (holiday-bahai-ridvan) (holiday-fixed 5 23 "Declaration of the Báb") (holiday-fixed 5 29 "Ascension of Bahá’u’lláh") (holiday-fixed 7 9 "Martyrdom of the Báb") (holiday-fixed 10 20 "Birth of the Báb") (holiday-fixed 11 12 "Birth of Bahá’u’lláh") (if calendar-bahai-all-holidays-flag (append (holiday-fixed 11 26 "Day of the Covenant") (holiday-fixed 11 28 "Ascension of `Abdu’l-Bahá")))) "\
+(defvar holiday-bahai-holidays '((holiday-bahai-new-year) (holiday-bahai-ridvan) (holiday-bahai 4 8 "Declaration of the Báb") (holiday-bahai 4 13 "Ascension of Bahá’u’lláh") (holiday-bahai 6 17 "Martyrdom of the Báb") (holiday-bahai-twin-holy-birthdays) (if calendar-bahai-all-holidays-flag (append (holiday-bahai 14 4 "Day of the Covenant") (holiday-bahai 14 6 "Ascension of ‘Abdu’l-Bahá")))) "\
 Bahá’í holidays.
 See the documentation for `calendar-holidays' for details.")
 (custom-autoload 'holiday-bahai-holidays "holidays" nil)
@@ -19755,7 +19793,7 @@ penultimate step during initialization.
 
 ;;; Generated autoloads from jsonrpc.el
 
-(push '(jsonrpc 1 0 26) package--builtin-versions)
+(push '(jsonrpc 1 0 27) package--builtin-versions)
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
 
@@ -24840,6 +24878,7 @@ If the optional argument INTERACTIVE is non-nil (as happens
 interactively), DIR must be an absolute file name.
 
 (fn DIR &optional NAME INTERACTIVE)" t)
+(make-obsolete 'package-vc-install-from-checkout '"use the User Lisp directory instead." "31.1")
 (autoload 'package-vc-rebuild "package-vc" "\
 Rebuild the installation for package given by PKG-DESC.
 Rebuilding an installation means scraping for new autoload
@@ -25077,16 +25116,17 @@ of the elements of LIST is performed as if by `pcase-let'.
 (fn (PATTERN LIST) BODY...)" nil t)
 (autoload 'pcase-setq "pcase" "\
 Assign values to variables by destructuring with `pcase'.
-PATTERNS are normal `pcase' patterns, and VALUES are expression.
+Each PATTERN is a normal `pcase' pattern, and each VALUE an expression.
 
 Evaluation happens sequentially as in `setq' (not in parallel).
 
 An example: (pcase-setq \\=`((,a) [(,b)]) \\='((1) [(2)]))
 
-VAL is presumed to match PAT.  Failure to match may signal an error or go
-undetected, binding variables to arbitrary values, such as nil.
+Each VALUE is presumed to match its PATTERN.  Failure to match may
+signal an error or go undetected, binding variables to arbitrary values,
+such as nil.
 
-(fn PATTERNS VALUE PATTERN VALUES ...)" nil t)
+(fn PATTERN VALUE PATTERN VALUE ...)" nil t)
 (autoload 'pcase-defmacro "pcase" "\
 Define a new kind of pcase PATTERN, by macro expansion.
 Patterns of the form (NAME ...) will be expanded according
@@ -26782,7 +26822,7 @@ This feature requires the presence of the following item in
 `mode-line-format': `(project-mode-line project-mode-line-format)'; it
 is part of the default mode line beginning with Emacs 30.")
 (custom-autoload 'project-mode-line "project" t)
-(register-definition-prefixes "project" '("project-"))
+(register-definition-prefixes "project" '("project-" "vc-"))
 
 
 ;;; Generated autoloads from cedet/ede/project-am.el
@@ -30733,7 +30773,7 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-so-long-mode'.")
 (custom-autoload 'global-so-long-mode "so-long" nil)
 (autoload 'global-so-long-mode "so-long" "\
-Toggle automated performance mitigations for files with long lines.
+Toggle automated performance mitigation for files with long lines.
 
 Many Emacs modes struggle with buffers which contain excessively long lines,
 and may consequently cause unacceptable performance issues.
@@ -32141,6 +32181,37 @@ and `sc-post-hook' is run after the guts of this function.")
 ;;; Generated autoloads from cedet/semantic/symref.el
 
 (register-definition-prefixes "semantic/symref" '("semantic-symref-"))
+
+
+;;; Generated autoloads from system-taskbar.el
+
+(defvar system-taskbar-mode nil "\
+Non-nil if System-Taskbar mode is enabled.
+See the `system-taskbar-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `system-taskbar-mode'.")
+(custom-autoload 'system-taskbar-mode "system-taskbar" nil)
+(autoload 'system-taskbar-mode "system-taskbar" "\
+System GUI taskbar icon badge, progress report, alerting.
+
+This is a global minor mode.  If called interactively, toggle the
+`System-Taskbar mode' mode.  If the prefix argument is positive, enable
+the mode, and if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the mode
+if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `(default-value \\='system-taskbar-mode)'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+(fn &optional ARG)" t)
+(register-definition-prefixes "system-taskbar" '("system-taskbar-"))
 
 
 ;;; Generated autoloads from t-mouse.el
@@ -33896,19 +33967,19 @@ float less than 1.0, round to that value.
 
 ;;; Generated autoloads from time-stamp.el
 
-(put 'time-stamp-format 'safe-local-variable 'stringp)
-(put 'time-stamp-time-zone 'safe-local-variable 'time-stamp-zone-type-p)
+(put 'time-stamp-format 'safe-local-variable #'stringp)
+(put 'time-stamp-time-zone 'safe-local-variable #'time-stamp-zone-type-p)
 (autoload 'time-stamp-zone-type-p "time-stamp" "\
-Return non-nil if ZONE is of the correct type for a timezone rule.
+Return non-nil if ZONE looks like a valid timezone rule.
 Valid ZONE values are described in the documentation of `format-time-string'.
 
 (fn ZONE)")
-(put 'time-stamp-line-limit 'safe-local-variable 'integerp)
-(put 'time-stamp-start 'safe-local-variable 'stringp)
-(put 'time-stamp-end 'safe-local-variable 'stringp)
-(put 'time-stamp-inserts-lines 'safe-local-variable 'booleanp)
+(put 'time-stamp-line-limit 'safe-local-variable #'integerp)
+(put 'time-stamp-start 'safe-local-variable #'stringp)
+(put 'time-stamp-end 'safe-local-variable #'stringp)
+(put 'time-stamp-inserts-lines 'safe-local-variable #'booleanp)
 (put 'time-stamp-count 'safe-local-variable (lambda (c) (and (integerp c) (< c 100))))
-(put 'time-stamp-pattern 'safe-local-variable 'stringp)
+(put 'time-stamp-pattern 'safe-local-variable #'stringp)
 (autoload 'time-stamp "time-stamp" "\
 Update any time stamp strings (timestamps) in the buffer.
 Look for a time stamp template and update it with the current
@@ -33941,8 +34012,10 @@ this function does nothing.
 You can set `time-stamp-pattern' in a file's local variables list
 to customize the information in the time stamp and where it is written." t)
 (autoload 'time-stamp-toggle-active "time-stamp" "\
-Toggle `time-stamp-active', setting whether \\[time-stamp] updates a buffer.
-With ARG, turn time stamping on if and only if ARG is positive.
+Set `time-stamp-active' (whether \\[time-stamp] updates a buffer).
+If ARG is unset, toggle `time-stamp-active'.  With an arg, set
+`time-stamp-active' to t (turning on time stamping) if
+ARG is positive, otherwise nil.
 
 (fn &optional ARG)" t)
 (register-definition-prefixes "time-stamp" '("time-stamp-"))
@@ -34047,7 +34120,62 @@ relative only to the time worked today, and not to past time.
 ;;; Generated autoloads from emacs-lisp/timeout.el
 
 (push '(timeout 2 1) package--builtin-versions)
-(register-definition-prefixes "timeout" '("timeout-"))
+(autoload 'timeout-debounce "timeout" "\
+Debounce FUNC by making it run DELAY seconds after it is called.
+
+This advises FUNC, when called (interactively or from code), to
+run after DELAY seconds.   If FUNC is called again within this time,
+the timer is reset.
+
+DELAY defaults to 0.5 seconds.  DELAY can be a number, a symbol (whose
+value is a number), or a function (that evaluates to a number).  When
+passed a symbol or function, it is evaluated at runtime for dynamic
+duration.  Using a delay of 0 removes any debounce advice.
+
+The function returns immediately with value DEFAULT when called the
+first time.  On future invocations, the result from the previous call is
+returned.
+
+(fn FUNC &optional DELAY DEFAULT)")
+(autoload 'timeout-throttle "timeout" "\
+Make FUNC run no more frequently than once every THROTTLE seconds.
+
+THROTTLE defaults to 1 second.  THROTTLE can be a number, a symbol (whose
+value is a number), or a function (that evaluates to a number).  When
+passed a symbol or function, it is evaluated at runtime for dynamic
+duration.  Using a throttle of 0 removes any throttle advice.
+
+When FUNC does not run because of the throttle, the result from the
+previous successful call is returned.
+
+(fn FUNC &optional THROTTLE)")
+(autoload 'timeout-throttled-func "timeout" "\
+Return a throttled version of function FUNC.
+
+The throttled function runs no more frequently than once every THROTTLE
+seconds.  THROTTLE defaults to 1 second.  THROTTLE can be a number, a
+symbol (whose value is a number), or a function (that evaluates to a
+number).  When passed a symbol or function, it is evaluated at runtime
+for dynamic duration.
+
+When FUNC does not run because of the throttle, the result from the
+previous successful call is returned.
+
+(fn FUNC &optional THROTTLE)")
+(autoload 'timeout-debounced-func "timeout" "\
+Return a debounced version of function FUNC.
+
+The debounced function runs DELAY seconds after it is called.  DELAY
+defaults to 0.5 seconds.  DELAY can be a number, a symbol (whose value
+is a number), or a function (that evaluates to a number).  When passed
+a symbol or function, it is evaluated at runtime for dynamic duration.
+
+The function returns immediately with value DEFAULT when called the
+first time.  On future invocations, the result from the previous call is
+returned.
+
+(fn FUNC &optional DELAY DEFAULT)")
+(register-definition-prefixes "timeout" '("timeout--"))
 
 
 ;;; Generated autoloads from emacs-lisp/timer-list.el
@@ -34368,6 +34496,17 @@ Prevent `touchscreen-drag' and translated mouse events from being
 sent until the touch sequence currently being translated ends.
 Must be called from a command bound to a `touchscreen-hold' or
 `touchscreen-drag' event.")
+(autoload 'touch-screen-last-drag-position "touch-screen" "\
+Return the last attested position of the current touch screen tool.
+Value is a pair of integers (X . Y) representing the pixel
+position of the said tool relative to the frame where it was
+placed (not the selected frame), or nil if this function was
+not invoked after the generation of a `mouse-movement' or
+`down-mouse-1' event by touch screen event translation.
+
+This function must be consulted in preference to
+`mouse-absolute-pixel-position' if the latter is required in any
+command that handles `mouse-movement' or `down-mouse-1' events.")
 (register-definition-prefixes "touch-screen" '("touch-screen-"))
 
 
@@ -34718,7 +34857,7 @@ The value can be either a list of ts-modes to enable,
 or t to enable all ts-modes.  The value nil (the default)
 means not to enable any tree-sitter based modes.
 
-Enabling a tree-stter based mode means that visiting files in the
+Enabling a tree-sitter based mode means that visiting files in the
 corresponding programming language will automatically turn on that
 mode, instead of any non-tree-sitter based modes for the same
 language.")
@@ -36266,6 +36405,33 @@ This is the same as `vc-revert-or-delete-revision' invoked interactively
 with a prefix argument.
 
 (fn REV &optional BACKEND)" t)
+(autoload 'vc-uncommit-revisions-from-end "vc" "\
+Delete revisions newer than REV without touching the working tree.
+REV must be on the current branch.  The newer revisions are deleted from
+the revision history but the changes made by those revisions to files in
+the working tree are not undone.
+When called interactively, prompts for REV.
+BACKEND is the VC backend.
+
+To delete revisions from the revision history and also undo the changes
+in the working tree, see `vc-delete-revisions-from-end'.
+
+(fn REV &optional BACKEND)" t)
+(autoload 'vc-delete-revisions-from-end "vc" "\
+Delete revisions newer than REV.
+REV must be on the current branch.  The newer revisions are deleted from
+the revision history and the changes made by those revisions to files in
+the working tree are undone.
+When called interactively, prompts for REV.
+If the are uncommitted changes, prompts to discard them.
+With a prefix argument (when called from Lisp, with optional argument
+DISCARD non-nil), discard any uncommitted changes without prompting.
+BACKEND is the VC backend.
+
+To delete revisions from the revision history without undoing the
+changes in the working tree, see `vc-uncommit-revisions-from-end'.
+
+(fn REV &optional DISCARD BACKEND)" t)
 (autoload 'vc-version-diff "vc" "\
 Report diffs between revisions REV1 and REV2 in the repository history.
 This compares two revisions of the current fileset.
@@ -36382,8 +36548,8 @@ When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like to `vc-fileset-diff-outgoing' except that it
-includes uncommitted changes.
+This command is like to `vc-diff-outgoing' except that it includes
+uncommitted changes.
 
 (fn &optional UPSTREAM-LOCATION FILESET)" t)
 (autoload 'vc-version-ediff "vc" "\
@@ -36420,7 +36586,10 @@ saving the buffer.
 (fn HISTORIC &optional NOT-ESSENTIAL)" t)
 (autoload 'vc-root-dir "vc" "\
 Return the root directory for the current VC tree.
-Return nil if the root directory cannot be identified.")
+Return nil if the root directory cannot be identified.
+BACKEND is the VC backend.
+
+(fn &optional BACKEND)")
 (autoload 'vc-revision-other-window "vc" "\
 Visit revision REV of the current file in another window.
 If the current file is named `F', the revision is named `F.~REV~'.
@@ -36518,7 +36687,8 @@ Show in another window the VC change history of the current fileset.
 If WORKING-REVISION is non-nil, it should be a revision ID; position
 point in the change history buffer at that revision.
 If LIMIT is non-nil, it should be a number specifying the maximum
-number of revisions to show; the default is `vc-log-show-limit'.
+number of revisions to show; the default for interactive calls is
+`vc-log-show-limit'.
 
 When called interactively with a prefix argument, prompt for
 WORKING-REVISION and LIMIT.
@@ -36541,9 +36711,20 @@ the command prompts for the id of a REVISION, and shows that revision
 with its diffs (if the underlying VCS backend supports that).
 
 (fn &optional LIMIT REVISION)" t)
-(autoload 'vc-print-branch-log "vc" "\
-Show the change log for BRANCH in another window.
-The command prompts for the branch whose change log to show.
+(autoload 'vc-print-fileset-branch-log "vc" "\
+Show log of VC changes on BRANCH, limited to the current fileset.
+When called interactively, prompts for BRANCH.
+In addition to logging branches, for VCS for which it makes sense you
+can specify a revision ID instead of a branch name to produce a log
+starting at that revision.  Tags and remote references also work.
+
+(fn BRANCH)" t)
+(autoload 'vc-print-root-branch-log "vc" "\
+Show root log of VC changes on BRANCH in another window.
+When called interactively, prompts for BRANCH.
+In addition to logging branches, for VCS for which it makes sense you
+can specify a revision ID instead of a branch name to produce a log
+starting at that revision.  Tags and remote references also work.
 
 (fn BRANCH)" t)
 (autoload 'vc-log-incoming "vc" "\
@@ -36592,6 +36773,7 @@ mark.
 Revert working copies of the selected fileset to their repository contents.
 This asks for confirmation if the buffer contents are not identical
 to the working revision (except for keyword expansion)." t)
+(defalias 'vc-restore #'vc-revert)
 (autoload 'vc-pull "vc" "\
 Update the current fileset or branch.
 You must be visiting a version controlled file, or in a `vc-dir' buffer.
@@ -37828,7 +38010,7 @@ Convert Vietnamese characters of the current buffer to `VIQR' mnemonics." t)
 
 
 (fn FROM TO)")
-(register-definition-prefixes "viet-util" '("viet-viqr-alist" "viqr-regexp"))
+(register-definition-prefixes "viet-util" '("viet-viqr-alist" "viqr-"))
 
 
 ;;; Generated autoloads from view.el
@@ -39073,7 +39255,7 @@ it is relative to the top edge (for positive ARG) or the bottom edge
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window.
 
@@ -39087,7 +39269,7 @@ negative ARG) of the current window.
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window.
 
@@ -39101,7 +39283,7 @@ bottom edge (for negative ARG) of the current window.
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window.
 
@@ -39115,7 +39297,7 @@ it is relative to the left edge (for positive ARG) or the right edge
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window.
 
@@ -39389,6 +39571,36 @@ Interactively, a prefix argument says to rotate the parent window of the
 selected window.
 
 (fn &optional WINDOW REVERSE)" t)
+(autoload 'merge-frames "window-x" "\
+Merge the main window of FRAME2 into FRAME1.
+Split the main window of FRAME1 and make the new window display the main
+window of FRAME2.  Both FRAME1 and FRAME2 must be live frames.  If
+VERTICAL is non-nil, make the new window below the old main window of
+FRAME1.  Otherwise, make the new window on the right of FRAME1's main
+window.  Interactively, VERTICAL is the prefix argument, FRAME1 is the
+selected frame and FRAME2 is the frame following FRAME1 in the frame
+list.  Delete FRAME2 if the merge completed successfully and return
+FRAME1.
+
+(fn &optional FRAME1 FRAME2 VERTICAL)" t)
+(autoload 'split-frame "window-x" "\
+Split windows of specified FRAME into two separate frames.
+FRAME must be a live frame and defaults to the selected frame.  ARG
+specifies the number of windows to consider for splitting and defaults
+to 1.  Interactively, ARG is the prefix argument.
+
+First divide the child windows of FRAME's main window into two parts.
+The first part includes the first ARG child windows if ARG is positive,
+or -ARG last windows if it's negative.  The second part includes the
+remaining child windows of FRAME's main window.  Then clone into a
+newly-created frame each of the windows of the part which does not
+include FRAME's selected window and delete those windows from FRAME.
+
+Signal an error if ARG is either zero or not a number, if FRAME's main
+window is live or does not have more child windows than specified by the
+absolute value of ARG.  Return the new frame.
+
+(fn &optional FRAME ARG)" t)
 (register-definition-prefixes "window-x" '("rotate-windows-change-selected" "window-"))
 
 

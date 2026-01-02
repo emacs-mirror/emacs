@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--2025 Free Software Foundation, Inc.
+@c Copyright (C) 1985--2026 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
 @chapter Frames and Graphical Displays
@@ -58,6 +58,7 @@ for doing so on MS-DOS).  Menus are supported on all text terminals.
 * Menu Bars::           Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
 * Tab Bars::            Enabling and disabling the tab bar.
+* System Taskbar::      Using system GUI taskbar features.
 * Dialog Boxes::        Controlling use of dialog boxes.
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Preventing the mouse pointer from obscuring text.
@@ -1630,6 +1631,75 @@ This moves forward in the history of window configurations.
 
   It's possible to customize the items displayed on the tab bar
 by the user option @code{tab-bar-format}.
+
+@node System Taskbar
+@section Using System GUI Taskbar Features
+@cindex system taskbar
+@cindex mode, system taskbar
+
+  Emacs can use your GUI system taskbar to display a badge overlay on
+the Emacs taskbar icon, a progress bar report, and alert the user that
+an Emacs session needs attention.  Note: The system taskbar might be
+called the dock, the launcher, or something similar.
+
+@cindex system taskbar, GNU/Linux
+On GNU/Linux eligible GUI desktops, system taskbar effects will appear
+on the desktop destinations determined by your shell extension, most
+often the application launcher or dock panel, or the top panel.  Effects
+are global for an Emacs instance.
+
+Note: The GNU/Linux implementation sends system taskbar messages to the
+GUI using D-Bus.  You may need to install or configure shell extensions
+such as @url{https://extensions.gnome.org/extension/307/dash-to-dock/}
+that implement Ubuntu's Unity D-Bus launcher spec which you can read
+more about here @url{https://wiki.ubuntu.com/Unity/LauncherAPI}.
+@xref{Top,,, dbus, The D-Bus Manual}.
+
+@cindex system taskbar, macOS/GNUstep
+@cindex system taskbar, NS
+On macOS/GNUstep 10.5+, system taskbar effects appear on the Dock and in
+the App Switcher.  Effects are global for an Emacs instance.
+macOS/GNUstep need no special configuration.
+
+@cindex system taskbar, MS-Windows
+On MS-Windows 7+, taskbar effects appear on the Windows system taskbar.
+Effects are associated with the frame from which they are initiated.
+MS-Windows needs no special configuration.
+
+@findex system-taskbar-mode
+  You must initialize system taskbar before using it.  To do that, type
+@kbd{M-x system-taskbar-mode}.
+
+@vindex system-taskbar-use-progress-reporter
+  The user option @code{system-taskbar-use-progress-reporter} integrates
+@code{system-taskbar-mode} with Emacs progress report functions, which
+many longer-running functions use to indicate the progress of their
+work.  Progress reports will appear in the echo area and on the system
+taskbar Emacs icon.  This variable defaults to @code{t}.  Customize this
+variable before enabling @code{system-taskbar-mode}.  @xref{Progress,,,
+elisp}
+
+@vindex system-taskbar-clear-attention-on-frame-focus
+  The user option @code{system-taskbar-clear-attention-on-frame-focus}
+turns on a helper useful on GNU/Linux D-Bus platforms which
+automatically clears the system taskbar attention indicator when any
+Emacs frame is focused.  This has no effect on macOS/GNUstep or
+MS-Windows.  It defaults to @code{t}.  Customize this variable before
+enabling @code{system-taskbar-mode}.
+
+@vindex system-taskbar-dbus-desktop-file-name
+  The user option @code{system-taskbar-dbus-desktop-file-name} helps
+D-Bus on GNU/Linux identify launched instance of Emacs.  It defaults to
+@samp{emacsclient} and may need to be changed to @samp{emacs} depending
+on your GNU/Linux configuration.
+
+@vindex system-taskbar-dbus-timeout
+  The user option @code{system-taskbar-dbus-timeout} is a
+troubleshooting tool and it likely does not need to be customized.  It
+defaults to @code{nil} which uses the D-Bus default timeout which is
+25,000ms or 25s.
+
+@xref{System Taskbar,,, elisp, The Emacs Lisp Reference Manual}
 
 @node Dialog Boxes
 @section Using Dialog Boxes

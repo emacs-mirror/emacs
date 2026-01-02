@@ -1,6 +1,6 @@
 ;;; cl-indent.el --- Enhanced lisp-indent mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Created: July 1987
@@ -169,7 +169,10 @@ the standard Lisp indent package."
            (get symbol 'common-lisp-indent-function-for-elisp))
       (get symbol 'common-lisp-indent-function)
       (and (not no-compat)
-           (get symbol 'lisp-indent-function))))
+           (let ((local (assq symbol lisp-indent-local-overrides)))
+             (if local
+                 (cdr local)
+               (get symbol 'lisp-indent-function))))))
 
 (defun common-lisp-loop-part-indentation (indent-point state)
   "Compute the indentation of loop form constituents."

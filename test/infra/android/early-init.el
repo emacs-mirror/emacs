@@ -1,7 +1,7 @@
 ;;; Suppress deletion of the initial frame by `frame-initialize'.  -*- lexical-binding:t -*-
 ;; $Id: early-init.el,v 1.2 2025/03/02 11:18:42 jw Exp $
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

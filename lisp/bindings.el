@@ -1,6 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -383,6 +383,7 @@ the symbol `mode-line-format-right-align' is processed by
                                          (window-right-divider-width)
                                          (* (or (car (window-margins)) 0)
                                             (frame-char-width))
+                                         (car (window-fringes))
                                          ;; Manually account for value of
                                          ;; `mode-line-right-align-edge' even
                                          ;; when display is non-graphical

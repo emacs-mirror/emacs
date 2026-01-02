@@ -1,6 +1,6 @@
 ;;; pcmpl-rpm.el --- functions for dealing with rpm completions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2026 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -404,7 +404,7 @@ STATUS should be one of --available or --installed."
       (while (pcase subcmd
                ((guard (pcomplete-match "\\`-" 0))
                 (if-let* (((pcomplete-match (rx bos "--what" (* (not "=")) "="
-                                                (group (* any)) eos)
+                                                (group (* anychar)) eos)
                                             0))
                           (stub (pcomplete-match-string 1 0)))
                     (pcomplete-here (pcmpl-rpm--dnf-packages "--available") stub)

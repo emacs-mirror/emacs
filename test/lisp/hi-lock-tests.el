@@ -1,6 +1,6 @@
 ;;; hi-lock-tests.el --- Tests for hi-lock.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2026 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 ;; Keywords:

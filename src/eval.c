@@ -1,6 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1999-2025 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1999-2026 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -3488,7 +3488,12 @@ DEFUN ("func-arity", Ffunc_arity, Sfunc_arity, 1, 1, 0,
 FUNCTION must be a function of some kind.
 The returned value is a cons cell (MIN . MAX).  MIN is the minimum number
 of args.  MAX is the maximum number, or the symbol `many', for a
-function with `&rest' args, or `unevalled' for a special form.  */)
+function with `&rest' args, or `unevalled' for a special form.
+
+Note that this function might return inaccurate results in some cases,
+such as with functions defined using `apply-partially', functions
+advised using `advice-add', and functions that determine their arg
+list dynamically.  */)
   (Lisp_Object function)
 {
   Lisp_Object original;

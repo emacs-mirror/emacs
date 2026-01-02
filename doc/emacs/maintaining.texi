@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2026 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
@@ -573,7 +573,7 @@ after popping up the @file{*vc-log*} buffer to allow you to type a
 suitable commit log message.
 
 Once you type @kbd{C-x v v}, the fileset or patches cannot be changed
-without first cancelling the commit by typing @kbd{C-c C-k} in the
+without first canceling the commit by typing @kbd{C-c C-k} in the
 @file{*vc-log*} buffer.  For example, if you change which files are
 marked in the @file{*vc-dir*} buffer after Emacs has already popped up
 the @file{*vc-log*} buffer, the old fileset will remain in effect for
@@ -1057,8 +1057,12 @@ Display the log entry and changes (diffs) of a single @var{revision}
 (@code{vc-print-root-log}).
 
 @item C-x v b l
-Display the change history for another branch
-(@code{vc-print-branch-log}).
+Display the change history for the current fileset on another branch
+(@code{vc-print-fileset-branch-log}).
+
+@item C-x v b L
+Display the change history for the current repository on another branch
+(@code{vc-print-root-branch-log}).
 
 @item C-x v I
 Display log entries for the changes that a ``pull'' operation will
@@ -1162,12 +1166,25 @@ showing only the first line of each log entry.  However, you can type
 revision at point.  A second @key{RET} hides it again.
 
 @kindex C-x v b l
-@findex vc-print-branch-log
-  @kbd{C-x v b l @var{branch-name} @key{RET}} (@code{vc-print-branch-log})
-displays a @file{*vc-change-log*} buffer showing the history of the
-version-controlled directory tree, like @code{vc-print-root-log} does,
-but it shows the history of a branch other than the current one; it
-prompts for the branch whose history to display.
+@kindex C-x v b L
+@findex vc-print-fileset-branch-log
+@findex vc-print-root-branch-log
+  @kbd{C-x v b l @var{branch-name} @key{RET}}
+(@code{vc-print-fileset-branch-log}) displays a @file{*vc-change-log*}
+buffer showing the history of changes made to the current fileset in the
+long form, like @code{vc-print-log} does, but it shows the history of a
+branch other than the current one; it prompts for the name of the branch
+whose history you would like to see.  @w{@kbd{C-x v b L
+@var{branch-name} @key{RET}}} (@code{vc-print-root-branch-log}) is
+similar except that it shows the history of the version-controlled
+directory tree, like @code{vc-print-root-log}.
+
+For a version control system for which it makes sense, you can also
+specify a revision ID instead of the name of a branch as
+@var{branch-name}, and Emacs will print a log starting from that
+revision ID.  You can also specify other names for specific revisions
+supported by the VCS, such as the names of tags (@pxref{Revision Tags}),
+or the remote branch references supported by Git.
 
 @kindex C-x v I
 @kindex C-x v O
@@ -1255,6 +1272,26 @@ separated by spaces.
 In a compact-style log buffer (e.g., the one created by @kbd{C-x v L}),
 toggle between showing and hiding the full log entry for the revision at
 point (@code{log-view-toggle-entry-display}).
+
+@item M-@key{RET}
+Show the full log entry like @kbd{RET} does, if relevant, and also
+display the diff like @kbd{D} does, but without selecting the window
+showing the diff (@code{log-view-display-entry-and-diff}).  Never hides
+the full log entry text if it is already shown.
+
+@item M-p
+Like @kbd{p} followed by @kbd{M-@key{RET}}: move to the previous entry,
+display it in full if relevant, and display its diff
+(@code{log-view-msg-and-diff-prev}).  A numeric prefix argument is a
+repeat count for the movement part; at most one entry is displayed in
+full.
+
+@item M-n
+Like @kbd{n} followed by @kbd{M-@key{RET}}: move to the previous entry,
+display it in full if relevant, and display its diff
+(@code{log-view-msg-and-diff-next}).  A numeric prefix argument is a
+repeat count for the movement part; at most one entry is displayed in
+full.
 
 @item m
 Mark the entry at point (@code{log-view-mark-entry}).
@@ -1499,11 +1536,11 @@ the current VC fileset
 @end ifnottex
 
   The above example is typical for a decentralized version control
-system like Bazaar, Git, or Mercurial.  Other systems can show other
-statuses.  For instance, CVS shows the @samp{needs-update} status if
-the repository has changes that have not been applied to the work
-file.  RCS and SCCS show the name of the user locking a file as its
-status.
+system like Bazaar, Git, or Mercurial (@pxref{VCS Repositories}).  Other
+systems can show other statuses.  For instance, CVS shows the
+@samp{needs-update} status if the repository has changes that have not
+been applied to the work file.  RCS and SCCS show the name of the user
+locking a file as its status.
 
 @ifnottex
   On CVS, the @code{vc-dir} command normally contacts the repository,
@@ -1519,6 +1556,25 @@ are working offline or the network is slow.
   The VC Directory buffer omits subdirectories listed in the variable
 @code{vc-directory-exclusion-list}.  Its default value contains
 directories that are used internally by version control systems.
+
+  At the top of the buffer Emacs displays some information about the
+repository, such as the name of the backend in use and the working
+directory.  In addition, for decentralized VCS, if you have outgoing
+commits (@pxref{VC Change Log}), Emacs displays a line @w{"Outgoing : N
+unpushed revisions"} where @var{N} is a number.  You can click on this
+text to execute the @code{vc-log-outgoing} command (@pxref{VC Change
+Log}).
+
+@vindex vc-dir-show-outgoing-count
+  Emacs tries to use cached information to determine the number of
+unpushed revisions, but for some backends this isn't possible.  In these
+cases Emacs must occasionally fetch from the remote repository in order
+to determine the count.  If your connection to the remote repository is
+slow then this may cause unacceptable slowdowns in refreshing the VC
+Directory buffer.  If this affects you, you can customize
+@code{vc-dir-show-outgoing-count} to nil to disable the unpushed
+revisions count altogether.  You can also set this on a per-repository
+basis using directory local variables (@pxref{Directory Variables}).
 
 @node VC Directory Commands
 @subsubsection VC Directory Commands
@@ -1658,9 +1714,9 @@ commands starting with the prefix @kbd{b}:
 Create a new branch (@code{vc-create-branch}).  @xref{Creating
 Branches}.
 
-@item b l
+@item b L
 Prompt for the name of a branch and display the change history of that
-branch (@code{vc-print-branch-log}).
+branch (@code{vc-print-root-branch-log}).
 
 @item b s
 Switch to a branch (@code{vc-switch-branch}).  @xref{Switching
@@ -1668,9 +1724,8 @@ Branches}.
 
 @item d
 Delete the marked files, or the current file if no marks
-(@code{vc-dir-clean-delete)}.  The files will not be marked as
-deleted in the version control system, so this function is mostly
-useful for unregistered files.
+(@code{vc-dir-delete-file)}.  If the files are registered, they will be
+marked as deleted in the version control system.
 @end table
 
 @cindex stashes in version control
@@ -2267,7 +2322,9 @@ Using this variable you can add more ignore patterns to the project, to
 exclude more files from the project's file listing.  The value is a list
 of glob strings.  They can match both regular files and directories.  To
 anchor an entry to the project root, start it with @code{./}.  To match
-directories only, end it with @code{/}.
+directories only, end it with @code{/}.  When this variable has
+directory-local value, it will only be applied to the corresponding
+directory subtree.
 @end defopt
 
 @defopt project-vc-name
@@ -2431,7 +2488,7 @@ between them.
 end of the change log file.  Here is an example:
 
 @smallexample
-Copyright 1997--1998, 2025 Free Software Foundation, Inc.
+Copyright 1997--1998, 2025--2026 Free Software Foundation, Inc.
 Copying and distribution of this file, with or without modification, are
 permitted provided the copyright notice and this notice are preserved.
 @end smallexample

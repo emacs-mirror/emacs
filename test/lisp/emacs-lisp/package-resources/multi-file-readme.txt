@@ -1,1 +1,1 @@
-This is a bare-bones readme file for the multi-file package.
+This is a bare-bones server readme file for the multi-file package.

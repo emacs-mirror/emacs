@@ -1,6 +1,6 @@
 /* Add two struct timespec values.
 
-   Copyright (C) 2011-2025 Free Software Foundation, Inc.
+   Copyright (C) 2011-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,8 +32,8 @@ timespec_add (struct timespec a, struct timespec b)
   int nssum = a.tv_nsec + b.tv_nsec;
   int carry = TIMESPEC_HZ <= nssum;
   time_t rs;
-  int rns;
   bool v = ckd_add (&rs, a.tv_sec, b.tv_sec);
+  int rns;
   if (v == ckd_add (&rs, rs, carry))
     rns = nssum - TIMESPEC_HZ * carry;
   else

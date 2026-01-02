@@ -1,5 +1,5 @@
 /* Test whether a file is a symbolic link.
-   Copyright (C) 2025 Free Software Foundation, Inc.
+   Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -14,7 +14,6 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-#include <config.h>
-
 #define _GL_ISSYMLINKAT_INLINE _GL_EXTERN_INLINE
-#include "issymlink.h"
+#include <config.h>
+#include "issymlinkat.h"

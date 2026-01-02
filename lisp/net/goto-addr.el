@@ -1,6 +1,6 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -187,6 +187,8 @@ and `goto-address-fontify-p'."
 			 'help-echo "mouse-2, C-c RET: follow URL")
 	    (overlay-put this-overlay
 			 'keymap goto-address-highlight-keymap)
+	    (overlay-put this-overlay 'button this-overlay)
+	    (overlay-put this-overlay 'category 'goto-address)
 	    (overlay-put this-overlay 'goto-address t))))
       (goto-char (or start (point-min)))
       (while (re-search-forward goto-address-mail-regexp end t)

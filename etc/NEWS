@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2022-2025 Free Software Foundation, Inc.
+Copyright (C) 2022-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -67,6 +67,17 @@ Previously, the order was early-init.el, site-start.el and then the
 user's regular init file, but now site-start.el comes first.  This
 allows site administrators to customize things that can normally only be
 done from early-init.el, such as adding to 'package-directory-list'.
+
++++
+** Emacs prepares a User Lisp directory by default.
+If you have a directory named "user-lisp" in your Emacs configuration
+directory, then the recursive contents will now be byte-compiled,
+scraped for autoload cookies and ensured to be in 'load-path' by
+default.  You can disable the feature by setting 'user-lisp-auto-scrape'
+to nil, or set the 'user-lisp-directory' user option to process any
+other directory on your system.  You can also invoke the
+'prepare-user-lisp' command manually at any time.  See the Info node
+"(emacs) User Lisp Directory" for more details.
 
 
 * Changes in Emacs 31.1
@@ -295,7 +306,7 @@ to extend the boundaries of the active region by dragging the mouse pointer.
 ---
 *** 'context-menu-mode' now includes a "Send to..." menu item.
 The menu item enables sending current file(s) or region text to external
-(non-Emacs) applications or services.  See send-to.el for customisations.
+(non-Emacs) applications or services.  See send-to.el for customizations.
 
 ---
 *** The mouse now drags lines in character increments again.
@@ -304,7 +315,7 @@ dividing side-by-side windows now by default happens in increments of
 the corresponding frame's character size again.  This is the behavior
 described in the manual and was the default behavior before
 'window-resize-pixelwise' was added for Emacs 24.1.  To drag in pixel
-increments as with Emcas 24 through Emacs 30 you now have to set
+increments as with Emacs 24 through Emacs 30 you now have to set
 'window-resize-pixelwise' to t.
 
 ** Windows
@@ -454,6 +465,18 @@ either resize the frame and change the fullscreen status accordingly or
 keep the frame size unchanged.  The value t means to first reset the
 fullscreen status and then resize the frame.
 
+*** New commands to set frame size and position in one compound step.
+'set-frame-size-and-position' sets the new size and position of a frame
+in one compound step.  Both, size and position, can be specified as with
+the corresponding frame parameters 'width', 'height', 'left' and 'top'.
+'set-frame-size-and-position-pixelwise' is similar but has a more
+restricted set of values for specifying size and position.
+
+*** New commands 'split-frame' and 'merge-frames'.
+'split-frame' moves a specified number of windows from an existing frame
+to a newly-created frame.  'merge-frames' merges all windows from two
+frames into one of these frames and deletes the other one.
+
 ---
 *** Frames can now be renamed to "F<number>" on text terminals.
 Unlike with other frame names, an attempt to rename to "F<number>" throws
@@ -481,6 +504,11 @@ current-buffer's mode line.  The default is to show the mode line of
 every buffer.
 
 ** Tab Bars and Tab Lines
+
+---
+*** New command 'merge-tabs'.
+'merge-tabs' merges all windows from two tabs into one of these tabs
+and closes the other tab.
 
 ---
 *** New abnormal hook 'tab-bar-auto-width-functions'.
@@ -830,6 +858,12 @@ The default value is t, which retains the old behavior.
 This variable has no effect when Transient Mark mode is off.
 
 ---
+** You can now use 'M-s t' to swap FROM and TO during 'query-replace'.
+Likewise during 'query-replace-regexp'.  The original binding of 'M-s'
+('next-matching-history-element') is now available on 'M-s M-s' or 'M-s
+s' for query replace minibuffer input.
+
+---
 ** New commands for filling text using semantic linefeeds.
 The new command 'fill-paragraph-semlf' fills a paragraph of text using
 "semantic linefeeds", whereby a newline is inserted after every
@@ -853,6 +887,14 @@ failed.
 ** 'C-u C-x .' clears the fill prefix.
 You can now use 'C-u C-x .' to clear the fill prefix, similarly to how
 you could already use 'C-u C-x C-n' to clear the goal column.
+
++++
+** New prefix argument for 'C-/' in Dired and Proced modes.
+The Dired and Proced major modes bind mode-specific undo commands to the
+same keys to which 'undo' is globally bound, 'C-/', 'C-_' and 'C-x u'.
+These commands did not previously accept a prefix argument.
+Now a numeric prefix argument specifies a repeat count, just like it
+already did for 'undo'.
 
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
@@ -918,6 +960,11 @@ packages.
 It controls the automatic installation of tree-sitter grammar libraries
 needed for tree-sitter based modes, if these grammar libraries are not
 available when such modes are turned on.
+
+*** 'treesit-extra-load-path' now is a customizable user option.
+The first directory in the list is used as the default directory
+to install the language grammar when 'treesit-auto-install-grammar'
+is 'ask', 'ask-dir' or 'always'.
 
 *** 'treesit-language-source-alist' supports keywords.
 The language and URL are mandatory, but remaining data can use keywords:
@@ -990,6 +1037,14 @@ defined by the new tree-sitter thing 'list'.
 *** New tree-sitter thing 'comment'.
 The new variable 'forward-comment-function' is set to the new function
 'treesit-forward-comment' if a major mode defines the thing 'comment'.
+
++++
+*** New function 'treesit-query-eagerly-compiled-p'
+This function returns non-nil if a query was eagerly compiled.
+
++++
+*** New function 'treesit-query-source'
+This function returns the string or sexp source query of a compiled query.
 
 +++
 *** New function 'treesit-language-display-name'.
@@ -1080,7 +1135,27 @@ convention.  Also, the ':match?' predicate can now take the regexp as
 either the first or second argument, so it works with both tree-sitter
 convention (regexp arg second) and Emacs convention (regexp arg first).
 
++++
+** Track-changes
+*** New variable 'track-changes-undo-only' to distinguish undo changes.
+
 ** Hideshow
+
++++
+*** New command 'hs-cycle'.
+This command cycles the visibility state of the current block between
+hide the parent block, hide the nested blocks only and show all the
+blocks.
+
++++
+*** New command 'hs-toggle-all'.
+This command hides or shows all the blocks in the current buffer.
+
+---
+*** 'hs-hide-level' no longer hide all the blocks in the current buffer.
+If 'hs-hide-level' was not inside a code block it would hide all the
+blocks in the buffer like 'hs-hide-all'.  Now it should only hide all
+the second level blocks.
 
 +++
 *** New user option 'hs-display-lines-hidden'.
@@ -1124,13 +1199,18 @@ after cursor position.  By default this is set to 'after-bol'.
 This user option controls the positions on the headline of hideable blocks
 where the 'TAB' key cycles the blocks' visibility.
 
-+++
+---
 *** The variable 'hs-special-modes-alist' is now obsolete.
 Instead of customizing Hideshow for a mode by setting the elements of
 'hs-special-modes-alist', such as START, COMMENT-START,
 FORWARD-SEXP-FUNC, etc., major mode authors should set the corresponding
 buffer-local variables 'hs-block-start-regexp', 'hs-c-start-regexp',
 'hs-forward-sexp-function', etc.
+
++++
+*** 'hs-hide-level' and 'hs-cycle' can now hide comments too.
+This is controlled by 'hs-hide-comments-when-hiding-all'.
+
 
 ** C-ts mode
 
@@ -1479,7 +1559,7 @@ If 'page-delimiters' is set in 'whitespace-style', or the new minor mode
 'whitespace-page-delimiters-mode' is on, the page delimiter characters
 ('^L') are displayed as a pretty horizontal line that spans the entire
 width of the window.  The new 'whitespace-page-delimiter' face can be
-used to customize the appearence.
+used to customize the appearance.
 
 ** Bookmark
 
@@ -1496,7 +1576,26 @@ This user option controls the width of the type column on the bookmark
 menu 'bookmark-bmenu-list'.  The default value is 8 which is backwards
 compatible.
 
+---
+*** New hook 'bookmark-after-load-file-hook'.
+This hook is run by 'bookmark-load' after loading a bookmark file.  This
+hook can be used, for example, to reconcile 'bookmark-alist' against
+bookmark state that you, or a package that you use, maintains.
+
 ** Recentf
+
+---
+*** You can now regularly auto-save recently opened files.
+Customize user option 'recentf-autosave-interval' to the number of
+seconds between auto saving recently opened files.  For example,
+customize this variable to 300 to save recently opened files every 5
+minutes.  From Lisp, use 'setopt' not 'setq'.
+
+If 'recentf-autosave-interval' is nil, auto saving is disabled; this is
+the default.
+
+This user option is in sympathy with save-place, and savehist autosave
+timers.
 
 ---
 *** New user option 'recentf-show-messages'.
@@ -1517,18 +1616,16 @@ option is nil.
 ---
 *** You can now regularly auto-save places.
 Customize user option 'save-place-autosave-interval' to the number of
-seconds between auto saving places.  For example, to save places every 5
-minutes:
-
-    M-x customize-option RET save-place-autosave-interval RET 300
-
-Or in Elisp:
-
-    (setopt save-place-autosave-interval (* 60 5))
+seconds between auto saving places.  For example, customize this
+variable to 300 to save places every 5 minutes.  From Lisp, use 'setopt'
+not 'setq'.
 
 If 'save-place-autosave-interval' is nil, auto saving is disabled; this
-is the default.  As before, saved places are scheduled to be saved at
-Emacs exit.
+is the default.
+
+This user option is in sympathy with recentf, and savehist autosave
+timers.
+
 
 ** Savehist
 
@@ -1563,6 +1660,18 @@ only the originating message's id, conforming to RFC 5322.  The previous
 behavior included additional information about the originating message.
 The new variable 'message-header-use-obsolete-in-reply-to', nil by
 default, can be set to a non-nil value to restore the previous behavior.
+
++++
+*** 'message-subject-re-regexp' default value is derived from 'mail-re-regexps'.
+'mail-re-regexps' is a new user option that is easier to customize than
+'message-subject-re-regexp'.  'message-subject-re-regexp' is still
+honored if it was already set.
+
++++
+*** 'message-strip-subject-re' now matches case-insensitively.
+
+---
+*** 'message-change-subject' inserts current subject into "future history".
 
 +++
 *** Hashcash support has been removed.
@@ -1714,6 +1823,11 @@ This contains the list of regular expressions used to match "Re:" and
 international variants of it when modifying the Subject field in
 replies.
 
+** Mairix
+
+---
+*** 'mairix-search' now keeps its own minibuffer history.
+
 ** Imap
 
 ---
@@ -1747,17 +1861,6 @@ suspicious email addresses is determined by the function
 'textsec-suspicious-p', which see.)  This is controlled by the new user
 option 'rmail-detect-suspicious-headers', whose default value is
 non-nil; customize to nil to disable the check.
-
-** Message
-
-+++
-*** 'message-subject-re-regexp' default value is now derived from 'mail-re-regexps'.
-'mail-re-regexps' is a new user option that is easier to customize than
-'message-subject-re-regexp'.  'message-subject-re-regexp' is still
-honored if it was already set.
-
-+++
-*** 'message-strip-subject-re' now matches case-insensitively.
 
 ** Sendmail
 
@@ -1893,6 +1996,10 @@ for docstrings where symbols 'nil' and 't' are in quotes.
 In most cases, having it enabled leads to a large amount of false
 positives.
 
+*** New file-local variable 'lisp-indent-local-overrides'
+This variable can be used to locally override the indent specification
+of symbols.
+
 ** IELM
 
 ---
@@ -2000,6 +2107,11 @@ This feature is experimental.
 *** Implementation of filesystem notifications for connection method "smb".
 
 +++
+*** Remote process support has been rewritten for the "smb" connection method.
+For more information, see "(tramp) Running remote processes on MS
+Windows hosts" in the Tramp manual.
+
++++
 *** New functions to extend the set of operations with a remote implementation.
 The new functions 'tramp-add-external-operation' and
 'tramp-remove-external-operation' allow to add an implementation for
@@ -2031,6 +2143,8 @@ This command reverts the hunk at point (i.e., applies the reverse of the
 hunk), and then removes the hunk from the diffs.
 This is useful to undo or revert changes, committed and uncommitted, when
 you are in buffers generated by 'C-x v =' and 'C-x v D'.
+When the region is active, the command reverse-applies and kills hunks
+that the region overlaps.
 
 ---
 *** 'diff-file-prev' and 'diff-hunk-prev' always move to start of header.
@@ -2283,7 +2397,7 @@ The hardcoded '^' shortcut gets you back to the previous menu.
 ---
 *** New user option 'tmm-shortcut-inside-entry'.
 When non-nil, highlight the character shortcut in the menu entry's
-string instead of preprending it and 'tmm-mid-prompt' to said entry.
+string instead of prepending it and 'tmm-mid-prompt' to said entry.
 
 ** Foldout
 
@@ -2328,6 +2442,25 @@ appearance of the list can be customized with the new faces
 'mpc-table-key' and 'mpc-table-value'.
 
 ** VC
+
++++
+*** Printing root branch logs has moved to 'C-x v b L'.
+Previously the command to print the root log for a branch was bound to
+'C-x v b l'.  It has now been renamed from 'vc-print-branch-log' to
+'vc-print-root-branch-log', and bound to 'C-x v b L'.  This is more
+consistent with the rest of the 'C-x v' keymap, and makes room for a new
+fileset-specific branch log command.
+
+To undo this change you can use
+
+    (keymap-global-set "C-x v b l" #'vc-print-root-branch-log)
+    (with-eval-after-load 'vc-dir
+      (keymap-set vc-dir-mode-map "b l" #'vc-print-root-branch-log))
+
++++
+*** New command 'C-x v b l' ('vc-print-fileset-branch-log').
+This command prints the log of VC changes to the current fileset on
+another branch.
 
 +++
 *** New commands to handle repositories with multiple working trees.
@@ -2434,6 +2567,13 @@ Previously, Emacs would simply refuse to make any changes.
 You can customize 'vc-dir-allow-mass-mark-changes' to restore the old
 behavior or dispense with the prompting.
 
++++
+*** 'C-x v x' and VC Directory's 'd' command can now delete unregistered files.
+Previously, these commands could only delete registered files.
+To restore the old, more limited behavior for VC Directory, you can do
+
+    (keymap-set vc-dir-mode-map "d" #'vc-dir-clean-files)
+
 ---
 *** New VC Directory bindings 'z d' and 'D' to delete Git stashes.
 These correspond to the existing 'z p' to pop a stash and 'P' to pop the
@@ -2497,7 +2637,7 @@ current VC fileset.
 
 +++
 *** New commands to report diffs of outstanding changes.
-'C-x v B =' ('vc-diff-outgoing-base') and 'C-x v B D'
+'C-x v o =' ('vc-diff-outgoing-base') and 'C-x v o D'
 ('vc-root-diff-outgoing-base') report diffs of changes since the merge
 base with the remote branch, including uncommitted changes.
 They are useful to view all outstanding (unmerged, unpushed) changes on
@@ -2513,6 +2653,12 @@ bindings:
 - 'C-x v I D' is bound to 'vc-root-diff-incoming'
 - 'C-x v O L' is bound to 'vc-log-outgoing'
 - 'C-x v O D' is bound to 'vc-root-diff-outgoing'.
+
++++
+*** New display of outgoing revisions count in VC Directory.
+If there are outgoing revisions, VC Directory now includes a count of
+how many in its headers, to remind you to push them.
+You can disable this by customizing vc-dir-show-outgoing-count to nil.
 
 +++
 *** New user option 'vc-async-checkin' to enable async checkin operations.
@@ -2570,11 +2716,34 @@ You can get back the old behavior with something like this:
 In addition, a new command 'U' removes all marks.
 
 +++
+*** New commands 'M-RET', 'M-p' and 'M-n' in Log View mode.
+'M-RET' expands the current entry, if relevant, and displays its diff in
+another window.  'M-p' and 'M-n' move to the previous and next entries,
+respectively, expand them if relevant, and display their diffs.
+
+You can use these three commands together to more easily view all the
+log entries and diffs of a series of revisions: use 'M-RET' on the first
+revision, then either 'M-n' or 'M-p' repeatedly to view the others.
+
++++
 *** New command 'w' in Log View mode.
 The new command 'log-view-copy-revision-as-kill', bound to 'w' in Log
 View mode, copies to the kill ring the ID of the revision at point in
 the log entry.  If there are marked revisions, it copies the IDs of
 those, instead.
+
+---
+*** New commands 'vc-print-change-log' and 'vc-print-root-change-log'.
+These are just like 'vc-print-log' and 'vc-print-root-log' except that
+they have a different prefix argument that some users may prefer.
+With a prefix argument, these commands prompt for a branch, tag or other
+reference to a revision to log, and a maximum number of revisions to
+print.  If you find this prefix argument more useful, or more mnemonic,
+than the prefix arguments that 'vc-print-log' and 'vc-print-root-log'
+already have, consider replacing the default global bindings, like this:
+
+    (keymap-global-set "C-x v l" #'vc-print-change-log)
+    (keymap-global-set "C-x v L" #'vc-print-root-change-log)
 
 ---
 *** New command alias 'vc-restore' for 'vc-revert'.
@@ -2714,7 +2883,7 @@ used to write notes.
 ---
 *** New handler that appends remember data in directory.
 The 'remember-append-in-data-directory' handler appends remember data in
-a file, that file being choosen by the user through the minibuffer.
+a file, that file being chosen by the user through the minibuffer.
 
 ---
 *** New prefix map for remember commands.
@@ -3100,6 +3269,55 @@ contains an encrypted file, is an empty buffer, is a hidden buffer, or
 is the "*scratch*" buffer.  If it cannot locate any acceptable buffers,
 it will begrudgingly use the scratch buffer.
 
+** Abbrev mode
+
++++
+*** You can now enable Abbrev mode by default using Easy Customization.
+Customize the variable 'abbrev-mode' to non-nil to enable Abbrev mode by
+default in all buffers.
+
+** Antlr mode
+
+*** Variable 'antlr-tool-version' is no user option anymore.
+If becomes buffer-local and has the symbol 'antlr-v2', 'antlr-v3' or
+'antlr-v4' as value.  The value determines which of the tool-version
+dependent customization options are used.  For example, the command
+'antlr-run-tool' uses the option 'antlr-v3-tool-command' (with default
+value "java org.antlr.Tool") when 'antlr-tool-version' has the value
+'antlr-v3'.
+
+*** Command 'antlr-mode' now also works on ANTLR v3 or v4 grammars.
+If the variable 'antlr-tool-version' is not set locally, e.g. by the
+file’s local variables specs, the command sets its local value to
+'antlr-v2' if a keyword "class" or "header" appears at the beginning of
+the source, or to 'antlr-v3' otherwise.
+
+*** New command 'antlr-v4-mode' is a derived mode of 'antlr-mode'.
+It sets 'antlr-tool-version' to value 'antlr-v4', and is automatically
+used for files with extension "g4".
+
+*** The variable 'antlr-language' is now used more generally.
+The variable has a symbol as value which determines which of the
+language-dependent customization options are used.  These options
+influence font-locking and indentation commands.  Its value is usually
+set according to the grammar option "language", see the default values
+of 'antlr-v2-language-list', 'antlr-v3-language-list' and
+'antlr-v4-language-list'.  This mode now supports C, Delphi, JavaScript,
+ObjC, Python and Ruby, additional to Java and Cpp.
+
+*** New user option 'antlr-run-tool-on-buffer-file'.
+Command 'antlr-run-tool' now usually runs on the file for the current
+buffer.  Customize this user option to have value ' nil' to get the
+previous behavior back.
+
+** Hi Lock
+
+---
+*** Use active region for default values in more functions.
+If an active region exists, the commands 'hi-lock-line-face-buffer' and
+'hi-lock-face-phrase-buffer' now use its contents as their default
+value.  Previously, only 'hi-lock-face-buffer' supported this.
+
 
 * New Modes and Packages in Emacs 31.1
 
@@ -3133,6 +3351,21 @@ The 'lua-mode' package from NonGNU ELPA is now included in Emacs.
 This library provides functions to throttle or debounce Emacs Lisp
 functions.  This is useful for corralling overeager code that is slow
 and blocks Emacs, or does not provide ways to limit how often it runs.
+
++++
+** New mode 'system-taskbar-mode'.
+This is a global minor mode and companion functions that integrate Emacs
+with system GUI taskbars (also called docks or launchers or something
+similar) to display a taskbar icon "badge" overlay, a progress bar
+report overlay, alert the user that an Emacs session needs attention,
+often by flashing or bouncing the Emacs application icon.  Supported
+capable systems are GNU/Linux via D-Bus, macOS/GNUstep 10.5+, MS-Windows
+7+.
+
+On GNU/Linux systems, shell extensions or similar helpers such as
+"dash-to-dock" may be required.  See
+<https://extensions.gnome.org/extension/307/dash-to-dock/> and
+<https://wiki.ubuntu.com/Unity/LauncherAPI>.
 
 
 * Incompatible Lisp Changes in Emacs 31.1
@@ -3244,6 +3477,12 @@ separator, are also supported.
 ---
 ** The obsolete variable 'load-convert-to-unibyte' has been removed.
 
+---
+** The experimental variable 'binary-as-unsigned' has been removed.
+Instead of (let ((binary-as-unsigned t)) (format "%x" N)) you can use
+(format "%x" (logand N MASK)) where MASK is for the desired word size,
+e.g., #x3fffffffffffffff for typical Emacs fixnums.
+
 +++
 ** The 'exec-path' variable now uses same default PATH as other programs.
 That is, if the PATH environment variable is unset or empty, 'exec-path'
@@ -3255,7 +3494,7 @@ on GNU/Linux systems.
 The display optimization where the combination 'TAB' characters +
 'BACKSPACE' is used to move to a position on a TTY frame is now disabled
 by default and controlled by this variable; it can be set to non-nil
-to keep the old behavior.  This change is to accomodate screen
+to keep the old behavior.  This change is to accommodate screen
 readers.
 
 ---
@@ -3364,6 +3603,12 @@ satisfy a given predicate.
 ** The 'defvar-local' macro second argument is now optional.
 This means that you can now call it with just one argument, like
 'defvar', to declare a variable both special, and buffer-local.
+
+---
+** The rx atom 'any' is obsolete and will cause warning when used.
+When used as an atom, 'any' is an old alias for 'not-newline' but is
+often mistakenly used where 'anychar' was intended.  Note that the
+construct '(any ...)' is unrelated and not obsolete.
 
 ** ERT
 
@@ -3566,6 +3811,17 @@ This is an abbreviation for using the name of the keymap as the prefix
 command name.  E.g., '(defvar-keymap foo-map :prefix t)' is equivalent
 to '(defvar-keymap foo-map :prefix 'foo-map)'.
 
++++
+** New 'R' code letter for 'interactive' forms.
+This specifies the beginning and end of an active region, and nil twice
+if the region is inactive.  The interactive specification
+
+    (interactive "R")
+
+is equivalent to
+
+    (interactive (list (use-region-beginning) (use-region-end)))
+
 ** Toolkit
 
 ---
@@ -3580,6 +3836,17 @@ When the theme is set on PGTK, Android, or MS-Windows systems,
 'toolkit-theme-set-functions' is called.  The result is stored in the
 variable 'toolkit-theme' as either symbol 'dark' or 'light', but may be
 extended to encompass other toolkit-specific symbols in the future.
+
++++
+** Progress reporter callbacks.
+'make-progress-reporter' now accepts optional arguments UPDATE-CALLBACK,
+called on progress steps, and DONE-CALLBACK, called when the progress
+reporter is done.  See the 'make-progress-reporter' docstring for a full
+specification of these new optional arguments.
+
+** Add binary format specifications '%b' and '%B'.
+These produce the binary representation of a number.
+'%#b' and '%#B' prefix the bits with '0b' and '0B', respectively.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
@@ -3672,6 +3939,12 @@ means of the GDI+ library.
 ** Emacs on MS-Windows now supports the ':data' keyword for 'play-sound'.
 In addition to ':file FILE' for playing a sound from a file, ':data
 DATA' can now be used to play a sound from memory.
+
+---
+** New primitive 'w32-sound-volume'.
+This primitive allows getting and setting the volume of the system's
+default audio device (or the "optimal device", if there are several
+devices).
 
 ---
 ** The MS-DOS port of Emacs now supports more recent releases of GCC and Binutils.

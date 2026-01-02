@@ -1,6 +1,6 @@
 ;;; treesit-x.el --- tree-sitter extensions -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: treesit, tree-sitter, languages, generic, font-lock

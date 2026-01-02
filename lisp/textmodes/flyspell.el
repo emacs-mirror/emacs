@@ -1,6 +1,6 @@
 ;;; flyspell.el --- On-the-fly spell checker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1748,17 +1748,11 @@ FLYSPELL-BUFFER."
       (setq pos (point)))
     ;; Seek the next error.
     (while (and (/= pos max)
-		(let ((ovs (overlays-at pos))
-		      (r '()))
-		  (while (and (not r) (consp ovs))
-		    (if (flyspell-overlay-p (car ovs))
-			(setq r t)
-		      (setq ovs (cdr ovs))))
-		  (not r)))
-      (setq pos (if previous (1- pos) (1+ pos))))
+                (setq pos (if previous
+                              (previous-overlay-change pos)
+                            (next-overlay-change pos)))
+                (not (any #'flyspell-overlay-p (overlays-at pos)))))
     (goto-char pos)
-    (when previous
-      (forward-word -1))
     ;; Save the current location for next invocation.
     (setq flyspell-old-pos-error (point))
     (setq flyspell-old-buffer-error (current-buffer))

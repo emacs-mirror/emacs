@@ -1,6 +1,6 @@
 /* Functions for the X Window System.
 
-Copyright (C) 1989, 1992-2025 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -214,7 +214,7 @@ check_x_display_info (Lisp_Object object)
    Store the screen positions of frame F into XPTR and YPTR.
    These are the positions of the containing window manager window,
    not Emacs's own window.  */
-void
+static void
 x_real_pos_and_offsets (struct frame *f,
                         int *left_offset_x,
                         int *right_offset_x,

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 2001-2025 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 2001-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -43,12 +43,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef FD_ZERO
 #endif
 
-/* Avoid duplicate definition of timeval.  MinGW uses _TIMEVAL_DEFINED
-   in sys/time.h to avoid that.  */
-#if defined (HAVE_TIMEVAL) && defined (_MSC_VER)
-#define timeval ws_timeval
-#endif
-
 #if defined __MINGW32_VERSION && __MINGW32_VERSION >= 5000002L
 /* Need winerror.h before winsock2.h with mingw.org's MinGW 5.x,
    otherwise some error codes are not defined.  */
@@ -81,10 +75,6 @@ typedef unsigned short uint16_t;
 #define fd_set ws_fd_set
 #include "w32.h"
 #endif	/* EMACS_CONFIG_H */
-
-#if defined (HAVE_TIMEVAL) && defined (_MSC_VER)
-#undef timeval
-#endif
 
 /* shadow functions where we provide our own wrapper */
 #define socket         sys_socket

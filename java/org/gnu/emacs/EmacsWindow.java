@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023-2025 Free Software Foundation, Inc.
+Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -423,6 +423,16 @@ public final class EmacsWindow extends EmacsHandleObject
     rect.right = x + width;
     rect.bottom = y + height;
 
+    requestViewLayout ();
+  }
+
+  public synchronized void
+  moveResizeWindow (int x, int y, int width, int height)
+  {
+    rect.left = x;
+    rect.top = y;
+    rect.right = x + width;
+    rect.bottom = y + height;
     requestViewLayout ();
   }
 

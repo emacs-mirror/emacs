@@ -1,6 +1,6 @@
 ;;; saveplace.el --- automatically save place in files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -237,7 +237,7 @@ If `save-place-mode' is enabled, set the timer, otherwise cancel the timer."
   "The interval between auto saves of buffer places.
 If set to nil, disables timer-based auto saving."
   :type '(choice (const :tag "Disabled" nil)
-                 (integer :tag "Seconds"))
+                 (integer :tag "Auto-save interval in seconds"))
   :version "31.1"
   :set (lambda (sym val)
          (set-default sym val)

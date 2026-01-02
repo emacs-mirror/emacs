@@ -1,6 +1,6 @@
 /* Time zone functions such as tzalloc and localtime_rz
 
-   Copyright 2015-2025 Free Software Foundation, Inc.
+   Copyright 2015-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -57,9 +57,9 @@ void
 tzfree (timezone_t tz)
 # undef tzfree
 {
-  int err = errno;
+  int saved_errno = errno;
   tzfree (tz);
-  errno = err;
+  errno = saved_errno;
 }
 
 #else

@@ -1,6 +1,6 @@
 ;;; nxml-mode.el --- a new XML mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2004, 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2026 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: text, hypermedia, languages, XML
@@ -1451,8 +1451,7 @@ This expects the xmltok-* variables to be set up as by `xmltok-forward'."
 	 (nxml-compute-indent-in-start-tag pos))
 	((eq xmltok-type 'comment)
 	 (nxml-compute-indent-in-delimited-token pos "<!--" "-->"))
-	((eq xmltok-type 'cdata-section)
-	 (nxml-compute-indent-in-delimited-token pos "<![CDATA[" "]]>"))
+	((eq xmltok-type 'cdata-section) 'noindent)
 	((eq xmltok-type 'processing-instruction)
 	 (nxml-compute-indent-in-delimited-token pos "<?" "?>"))
 	(t
@@ -1521,9 +1520,7 @@ OPEN-DELIM and CLOSE-DELIM are strings giving the opening and closing
 delimiters.  POS is the position of the first non-whitespace character
 of the line.  This expects the xmltok-* variables to be set up as by
 `xmltok-forward'."
-  (cond ((string= open-delim "<![CDATA[")
-         (goto-char pos))
-        ((let ((end (+ pos (length close-delim))))
+  (cond ((let ((end (+ pos (length close-delim))))
 	   (and (<= end (point-max))
 		(string= (buffer-substring-no-properties pos end)
 			 close-delim)))

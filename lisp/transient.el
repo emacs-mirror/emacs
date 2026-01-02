@@ -1,6 +1,6 @@
 ;;; transient.el --- Transient commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2026 Free Software Foundation, Inc.
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; URL: https://github.com/magit/transient
@@ -1945,7 +1945,7 @@ probably use this instead:
         ;; that there is a bug somewhere.
         ((length> suffixes 1)
          (error "BUG: Cannot unambiguously determine suffix object"))
-        ;; It is legimate to use this function as a predicate of sorts.
+        ;; It is legitimate to use this function as a predicate of sorts.
         ;; `transient--pre-command' and `transient-help' are examples.
         (t nil))))
     ((bind-and* (obj (transient--suffix-prototype (or command this-command)))

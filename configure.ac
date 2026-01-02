@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2025 Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2026 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -1593,9 +1593,6 @@ fi
 
 #### Choose a compiler.
 
-dnl Don't bother to test for C89.
-AC_DEFUN([_AC_PROG_CC_C89], [$2])
-
 dnl Sets GCC=yes if using gcc.
 AC_PROG_CC([gcc cc cl clang "$XCRUN gcc" "$XCRUN clang"])
 
@@ -1603,11 +1600,6 @@ if test -n "$XCRUN"; then
   AC_CHECK_PROGS([AR], [ar "$XCRUN ar"])
   test -n "$AR" && export AR
 fi
-
-dnl Emacs needs C99 or later.
-gl_PROG_CC_C99
-
-AC_PROG_CC_C_O
 
 if test x$GCC = xyes; then
   test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
@@ -1821,7 +1813,6 @@ AS_IF([test $gl_gcc_warnings = no],
   nw="$nw -Wformat-overflow=2"      # False alarms due to GCC bug 110333
   nw="$nw -Woverlength-strings"     # Not a problem these days
   nw="$nw -Wvla"                    # Emacs uses <vla.h>.
-  nw="$nw -Wunused-const-variable=2" # lisp.h declares const objects.
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wstrict-overflow"        # OK to optimize assuming that
                                     # signed overflow has undefined behavior
@@ -2972,16 +2963,24 @@ if test "${HAVE_NS}" = yes; then
   fi
 
   AC_CACHE_CHECK(
-    [if the Objective C compiler defaults to C99],
-    [emacs_cv_objc_c99],
-    [AC_COMPILE_IFELSE(
-       [AC_LANG_PROGRAM([], [[for (int i = 0;;);]])],
-       [emacs_cv_objc_c99=yes],
-       [emacs_cv_objc_c99=no])])
+    [for C99-or-better flag for Objective C compiler],
+    [emacs_cv_objc_c99_or_better],
+    [save_OBJCFLAGS=$OBJCFLAGS
+     for emacs_cv_objc_c99_or_better in \
+	'none needed' -std=gnu23 -std=gnu17 -std=gnu11 -std=gnu99 ''
+     do
+       AS_CASE([$emacs_cv_objc_c99_or_better],
+	 ['none needed'], [],
+	 [-*], [OBJCFLAGS="$save_OBJCFLAGS $emacs_cv_objc_c99_or_better"],
+	 [continue])
+       AC_COMPILE_IFELSE(
+	 [AC_LANG_PROGRAM([], [[for (int i = 0;;);]])],
+	 [break])
+     done
+     OBJCFLAGS=$save_OBJCFLAGS])
+  AS_CASE([$emacs_cv_objc_c99_or_better],
+    [-*], [GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS $emacs_cv_objc_c99_or_better"])
 
-  if test x$emacs_cv_objc_c99 = xno ; then
-    GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -std=c99"
-  fi
   AC_LANG_POP([Objective C])
 fi
 
@@ -3261,9 +3260,19 @@ AC_CACHE_CHECK(
    fi])
 doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
-AC_CHECK_ALIGNOF([int])
-AC_CHECK_ALIGNOF([long])
-AC_CHECK_ALIGNOF([long long])
+AC_CHECK_ALIGNOF([EMACS_INT],
+  [[#include <limits.h>
+    #include <stddef.h>
+    #include <stdint.h>
+    #if INTPTR_MAX <= INT_MAX && !defined WIDE_EMACS_INT
+    typedef int EMACS_INT;
+    #elif INTPTR_MAX <= LONG_MAX && !defined WIDE_EMACS_INT
+    typedef long int EMACS_INT;
+    #elif INTPTR_MAX <= LLONG_MAX
+    typedef long long int EMACS_INT;
+    #endif
+  ]])
+
 AC_CHECK_SIZEOF([long])
 
 AC_CACHE_CHECK([for struct alignment],
@@ -3282,46 +3291,50 @@ if test "$emacs_cv_struct_alignment" = yes; then
      structure to an N-byte boundary.])
 fi
 
+dnl Work around a glitch if aclocal is invoked outside of autogen.sh.
+dnl Such an invocation generates an aclocal.m4 that lacks m4/stdalign.m4.
+dnl The following hack checks the otherwise-uninvolved macro gl_STDALIGN_H
+dnl so that the hack itself does not generate a diagnostic.
+m4_divert_push([KILL])
+m4_ifdef([gl_STDALIGN_H], [], [m4_include([m4/stdalign.m4])])
+m4_divert_pop([KILL])
+
+dnl Check for alignas now rather than waiting for gl_INIT to do it,
+dnl as the system_malloc=no test below needs $gl_cv_header_working_stdalign_h.
+dnl Do not simply call gl_INIT here, as the ac_cv_func_pthread_sigmask=yes
+dnl assignment below affects how gl_INIT works.
+dnl Instead, call gl_ALIGNASOF, the only part of gl_INIT needed here.
+dnl Then make gl_ALIGNASOF a no-op so gl_INIT does not duplicate its code.
+gl_ALIGNASOF
+AC_DEFUN([gl_ALIGNASOF])
+
 system_malloc=yes
 
 # If it appears as if the system malloc can't be trusted to return
 # adequately positioned memory, enable the GNU malloc, which more
 # consistently provides allocations at low addresses, as is required for
 # the pdumper to load dump files at a representable location.
-AS_IF([test "$with_pdumper" = "yes" && test "$with_wide_int" != "yes"],
-  AC_CHECK_HEADERS([stdalign.h])
-  [AC_CACHE_CHECK([whether alignas is required yet unavailable],
-    [emacs_cv_alignas_unavailable],
-    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#ifdef HAVE_STDALIGN_H
-#include <stdalign.h>
-#endif
-      #include <limits.h>
-     ]], [[
-#define IDEAL_GCALIGNMENT 8
-#if INTPTR_MAX <= INT_MAX && !defined WIDE_EMACS_INT
-#  define ALIGNOF_EMACS_INT ALIGNOF_INT
-# elif INTPTR_MAX <= LONG_MAX && !defined WIDE_EMACS_INT
-#  define ALIGNOF_EMACS_INT ALIGNOF_LONG
-# elif INTPTR_MAX <= LLONG_MAX
-#  define ALIGNOF_EMACS_INT ALIGNOF_LONG_LONG
-# else
-# error "INTPTR_MAX too large"
-#endif
+AS_CASE([$emacs_cv_struct_alignment%$gl_cv_header_working_stdalign_h%$with_wide_int%$ac_cv_alignof_EMACS_INT%$with_pdumper],
+  [*%*%*%*%*%*],
+    [AC_MSG_ERROR([configuration values cannot contain '%'])],
 
-#if (ALIGNOF_EMACS_INT < IDEAL_GCALIGNMENT && !defined alignas	\
-     && !defined HAVE_STRUCT_ATTRIBUTE_ALIGNED	       		\
-     && !defined __alignas_is_defined				\
-     && __STDC_VERSION__ < 202311 && __cplusplus < 201103)
-#error "!USE_LSB_TAG required"
-#endif
-   ]])], [emacs_cv_alignas_unavailable=no],
-        [emacs_cv_alignas_unavailable=yes])])
-   AS_IF([test "$emacs_cv_alignas_unavailable" = "yes"],
-     [system_malloc=no
-       AC_MSG_WARN([The GNU memory manager will be enabled as your system
-does not guarantee that the portable dumper can allocate memory at a suitably
-low address.])])])
+  dnl There is no problem in most situations, i.e.:
+  [dnl if emacs_cv_struct_alignment
+   yes%* \
+   dnl or if gl_cv_header_working_stdalign_h
+   | *%yes*%*%*%* \
+   dnl or if with_wide_int (as in practice tag bits are high-order)
+   | *%*%yes%*%* \
+   dnl or if EMACS_INT's alignment is at least 8.
+   | *%*%*%8%* | *%*%*%[1-9]?*%*],
+    [],
+
+  dnl Otherwise, if using the portable dumper, enable GNU malloc.
+  [*%yes],
+    [system_malloc=no
+     AC_MSG_WARN([The GNU memory manager will be enabled as your system
+       does not guarantee that the portable dumper can allocate memory
+       at a suitably low address.])])
 
 dnl This must be before the test of $ac_cv_func_sbrk below.
 AC_CHECK_FUNCS_ONCE([sbrk])
@@ -3432,6 +3445,12 @@ if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
      done])
   if test "$emacs_cv_pthread_lib" != no; then
     AC_DEFINE([HAVE_PTHREAD], [1], [Define to 1 if you have POSIX threads.])
+    m4_foreach([emacs_type],
+      [[max_align_t], [pthread_cond_t], [pthread_mutex_t]],
+      [AC_CHECK_ALIGNOF(emacs_type,
+	 [[#include <stddef.h>
+	   #include <pthread.h>
+	 ]])])
     case $emacs_cv_pthread_lib in
       -*) LIB_PTHREAD=$emacs_cv_pthread_lib;;
     esac
@@ -4473,7 +4492,16 @@ if test "$with_xwidgets" != "no"; then
     dnl FIXME: Check framework WebKit2
     dnl WEBKIT_REQUIRED=M.m.p
     WEBKIT_LIBS="-Wl,-framework -Wl,WebKit"
-    WEBKIT_CFLAGS="-I/System/Library/Frameworks/WebKit.framework/Headers"
+    WEBKIT_HEADERS="/System/Library/Frameworks/WebKit.framework/Headers"
+    if test -z "$xcsdkdir" -a -n "$XCRUN" -a ! -d "${WEBKIT_HEADERS}"; then
+      dnl WebKit headers not found.  Try Xcode SDK dir if it is sane.
+      xcsdkdir=`$XCRUN --show-sdk-path 2>/dev/null`
+      case $xcsdkdir in
+	*[[\\\"\#\$\&\'\`$am_lf\ \	]]*)
+	xcsdkdir="" ;;
+      esac
+    fi
+    WEBKIT_CFLAGS="-I${xcsdkdir}${WEBKIT_HEADERS}"
     HAVE_WEBKIT="yes"
     HAVE_XWIDGETS=$HAVE_WEBKIT
     XWIDGETS_OBJ="xwidget.o"
@@ -7156,7 +7184,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2025 Free Software Foundation, Inc."
+copyright="Copyright (C) 2026 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED([COPYRIGHT], ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST([copyright])
@@ -7388,7 +7416,7 @@ if test "$with_features" = no && test "$enable_acl" != yes; then
   enable_acl=no
 fi
 
-# Configure gnulib.  Although this does not affect CFLAGS or LIBS permanently.
+# Configure gnulib.  Although this does not affect CFLAGS or LIBS permanently,
 # it temporarily reverts them to their pre-pkg-config values,
 # because gnulib needs to work with both src (which uses the
 # pkg-config stuff) and lib-src (which does not).  For example, gnulib
@@ -7402,7 +7430,6 @@ CFLAGS=$pre_PKG_CONFIG_CFLAGS
 LIBS="$LIB_PTHREAD $pre_PKG_CONFIG_LIBS"
 gl_ASSERT_NO_GNULIB_POSIXCHECK
 gl_ASSERT_NO_GNULIB_TESTS
-gl_EEMALLOC
 gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
@@ -7537,7 +7564,7 @@ AC_SUBST([WINDOW_SYSTEM_OBJ])
 
 AH_TOP([/* GNU Emacs site configuration template file.
 
-Copyright (C) 1988-2025 Free Software Foundation, Inc.
+Copyright (C) 1988-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

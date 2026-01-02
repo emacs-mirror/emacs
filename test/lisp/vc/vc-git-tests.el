@@ -1,6 +1,6 @@
 ;;; vc-git-tests.el --- tests for vc/vc-git.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2026 Free Software Foundation, Inc.
 
 ;; Author: Justin Schell <justinmschell@gmail.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -96,7 +96,7 @@ allow `git commit' to determine identities for authors and committers."
   (declare (indent 1))
   `(ert-with-temp-directory ,name
      (let ((default-directory ,name)
-           (process-environment (append '("EMAIL=john@doe.ee"
+           (process-environment (append '("EMAIL=john.doe@example.com"
                                           "GIT_AUTHOR_NAME=A"
                                           "GIT_COMMITTER_NAME=C")
                                         process-environment)))

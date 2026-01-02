@@ -1,5 +1,5 @@
 /* Change the protections of file relative to an open directory.
-   Copyright (C) 2006, 2009-2025 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ orig_fchmodat (int dir, char const *file, mode_t mode, int flags)
 
 #include <intprops.h>
 
-#include "issymlink.h"
+#include "issymlinkat.h"
 
 /* Invoke chmod or lchmod on FILE, using mode MODE, in the directory
    open on descriptor FD.  If possible, do it without changing the

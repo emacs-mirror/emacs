@@ -1,6 +1,6 @@
 ;;; diff.el --- run `diff'  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2025 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2001-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Frank Bresz
@@ -118,7 +118,8 @@ Non-interactively, OLD and NEW may each be a file or a buffer."
   (display-buffer
    (diff-no-select old new switches no-async)))
 
-(defvar coding-system--for-buffer-diff) ; from misearch.el
+(defvar diff--coding-system-for-buffer nil
+  "Used to pass buffer text encoding from `multi-file-diff-no-select'.")
 
 (defun diff-file-local-copy (file-or-buf)
   "Like `file-local-copy' but also supports a buffer as the argument.
@@ -127,7 +128,7 @@ temporary file with the buffer's contents."
   (if (bufferp file-or-buf)
       (with-current-buffer file-or-buf
         (let ((tempfile (make-temp-file "buffer-content-"))
-              (coding-system-for-write (or coding-system--for-buffer-diff
+              (coding-system-for-write (or diff--coding-system-for-buffer
                                            coding-system-for-write)))
           (if diff-entire-buffers
               (write-region nil nil tempfile nil 'nomessage)

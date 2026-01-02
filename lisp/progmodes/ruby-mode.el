@@ -1,6 +1,6 @@
 ;;; ruby-mode.el --- Major mode for editing Ruby files -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2026 Free Software Foundation, Inc.
 
 ;; Authors: Yukihiro Matsumoto
 ;;	Nobuyoshi Nakada
@@ -847,7 +847,10 @@ This only affects the output of the command `ruby-toggle-block'."
     (`(:before . ,(or "(" "[" "{"))
      (cond
       ((and (not (eq ruby-bracketed-args-indent t))
-            (smie-rule-prev-p "," "(" "["))
+            (or (smie-rule-prev-p "," "(" "[" "=>")
+                (save-excursion
+                  (let ((tok (ruby-smie--backward-token)))
+                    (and tok (string-match ":\\'" tok))))))
        (cons 'column (current-indentation)))
       ((and (equal token "{")
             (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";" "do"))

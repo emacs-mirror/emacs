@@ -1,6 +1,6 @@
 ;;; rx-tests.el --- tests for rx.el              -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -296,7 +296,8 @@
                  "[^z-a][^z-a]"))
   (should (equal (rx unmatchable)
                  "\\`a\\`"))
-  (should (equal (rx line-start not-newline nonl any line-end)
+  (should (equal (with-suppressed-warnings ((obsolete any))
+                   (rx line-start not-newline nonl any line-end))
                  "^...$"))
   (should (equal (rx bol string-start string-end buffer-start buffer-end
                      bos eos bot eot eol)

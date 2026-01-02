@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2025 Free
+;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2026 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -314,7 +314,6 @@ as a list of strings."
                                ",[[:blank:]]*" t)
            finally do (skip-chars-backward "\n[:blank:]")))
 
-(declare-function log-edit-fill-entry "log-edit")
 (defun change-log-insert-entries (changelogs)
   "Format and insert CHANGELOGS into current buffer.
 CHANGELOGS is a list in the form returned by

@@ -1,6 +1,6 @@
 ;;; gud.el --- Grand Unified Debugger mode for running GDB and other debuggers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1996, 1998, 2000-2025 Free Software Foundation,
+;; Copyright (C) 1992-1996, 1998, 2000-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@thyrsus.com>
@@ -584,7 +584,7 @@ required by the caller."
 	  (while var-list
 	    (let* (char (depth 0) (start 0) (var (car var-list))
 			(varnum (car var)) (expr (nth 1 var))
-			(type (if (nth 3 var) (nth 3 var) " "))
+			(type (copy-sequence (or (nth 3 var) " ")))
 			(value (nth 4 var)) (status (nth 5 var))
 			(has-more (nth 6 var)))
 	      (put-text-property

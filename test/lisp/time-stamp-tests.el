@@ -1,6 +1,6 @@
 ;;; time-stamp-tests.el --- tests for time-stamp.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -34,11 +34,16 @@
          (ref-time1 '(17337 16613))    ;Monday, Jan 2, 2006, 3:04:05 PM
          (ref-time2 '(22574 61591))    ;Friday, Nov 18, 2016, 12:14:15 PM
          (ref-time3 '(21377 34956))    ;Sunday, May 25, 2014, 06:07:08 AM
+         (time-stamp-active t)         ;default, but user may have changed it
+         (time-stamp-warn-inactive t)  ;default, but user may have changed it
          (time-stamp-time-zone t))     ;use UTC
      (cl-letf (((symbol-function 'time-stamp-conv-warn)
                 (lambda (old-format _new &optional _newer)
                   (ert-fail
-                   (format "Unexpected format warning for '%s'" old-format)))))
+                   (format "Unexpected format warning for '%s'" old-format))))
+               ((symbol-function 'time-stamp--message)
+                (lambda (msg)
+                  (ert-fail (format "Unexpected message: %s" msg)))))
        ;; Not all reference times are used in all tests;
        ;; suppress the byte compiler's "unused" warning.
        (list ref-time1 ref-time2 ref-time3)
@@ -56,23 +61,39 @@
        ,@body)))
 
 (defmacro with-time-stamp-system-name (name &rest body)
-  "Force function `system-name' to return NAME while evaluating BODY."
+  "Force `time-stamp--system-name' to return NAME while evaluating BODY."
   (declare (indent 1) (debug t))
-  `(cl-letf (((symbol-function 'system-name)
-              (lambda () ,name)))
+  `(cl-letf (((symbol-function 'time-stamp--system-name)
+              (lambda (type)
+                (time-stamp--system-name-1 ,name type))))
      ,@body))
+
+
+(defmacro time-stamp-test--count-function-calls (fn errmsg &rest forms)
+  "Return a form verifying that FN is called while FORMS are evaluated."
+  (declare (debug t) (indent 2))
+  (cl-with-gensyms (g-warning-count)
+    `(let ((,g-warning-count 0))
+       (cl-letf (((symbol-function ',fn)
+                  (lambda (&rest _args)
+                    (incf ,g-warning-count))))
+         ,@forms
+         (unless (= ,g-warning-count 1)
+           (ert-fail (format "Should have warned about %s" ,errmsg)))))))
 
 (defmacro time-stamp-should-warn (form)
   "Similar to `should' and also verify that FORM generates a format warning."
   (declare (debug t))
-  (cl-with-gensyms (g-warning-count)
-    `(let ((,g-warning-count 0))
-       (cl-letf (((symbol-function 'time-stamp-conv-warn)
-                  (lambda (_old _new &optional _newer)
-                    (incf ,g-warning-count))))
-         (should ,form)
-         (unless (= ,g-warning-count 1)
-           (ert-fail (format "Should have warned about format: %S" ',form)))))))
+  `(time-stamp-test--count-function-calls
+       time-stamp-conv-warn (format "format: %S" ',form)
+     (should ,form)))
+
+(defmacro time-stamp-should-message (variable &rest body)
+  "Fail test about VARIABLE if BODY does not call `time-stamp--message'."
+  (declare (indent 1) (debug t))
+  `(time-stamp-test--count-function-calls
+       time-stamp--message (format "variable %s" ',variable)
+     ,@body))
 
 ;;; Tests:
 
@@ -140,7 +161,7 @@
   (iter-yield-from (time-stamp-test-pattern-sequential))
   (iter-yield-from (time-stamp-test-pattern-multiply)))
 
-(ert-deftest time-stamp-custom-start ()
+(ert-deftest time-stamp-custom-start-0 ()
   "Test that `time-stamp' isn't stuck by a start matching 0 characters."
   (with-time-stamp-test-env
     (with-time-stamp-test-time ref-time1
@@ -165,49 +186,72 @@
           (time-stamp)
           (should (equal (buffer-string) "::05::05")))))))
 
+(ert-deftest time-stamp-custom-start-multiline ()
+  "Test `time-stamp-start' matching across multiple lines."
+  (with-time-stamp-test-env
+    (with-time-stamp-test-time ref-time1
+      (let ((time-stamp-pattern "l.1\n%Y-%m-%d<-TS")) ;start includes newline
+        (with-temp-buffer
+          (insert "l.1\n<-TS\n")
+          ;; we should look for the end on the line where the start ends,
+          ;; not the line where the start starts
+          (time-stamp)
+          (should (equal (buffer-string) "l.1\n2006-01-02<-TS\n")))))))
+
 (ert-deftest time-stamp-custom-pattern ()
   "Test that `time-stamp-pattern' is parsed correctly."
-  (iter-do (pattern-parts (time-stamp-test-pattern-all))
-    (cl-destructuring-bind (line-limit1 start1 whole-format end1) pattern-parts
-      (cl-letf
-          (((symbol-function 'time-stamp-once)
-            (lambda (start search-limit ts-start ts-end
-                           ts-format _format-lines _end-lines)
-              ;; Verify that time-stamp parsed time-stamp-pattern and
-              ;; called us with the correct pieces.
-              (let ((limit-number (if (equal line-limit1 "")
-                                      time-stamp-line-limit
-                                    (string-to-number line-limit1))))
-                (goto-char (point-min))
-                (if (> limit-number 0)
-                    (should (= search-limit (pos-bol (1+ limit-number))))
-                  (should (= search-limit (point-max))))
-                (goto-char (point-max))
-                (if (< limit-number 0)
-                    (should (= start (pos-bol (1+ limit-number))))
-                  (should (= start (point-min)))))
-              (if (equal start1 "")
-                  (should (equal ts-start time-stamp-start))
-                (should (equal ts-start start1)))
-              (if (or (equal whole-format "")
-                      (equal whole-format "%%"))
-                  (should (equal ts-format time-stamp-format))
-                (should (equal ts-format whole-format)))
-              (if (equal end1 "")
-                  (should (equal ts-end time-stamp-end))
-                (should (equal ts-end end1)))
-              ;; return nil to stop time-stamp from calling us again
-              nil)))
-        (let ((time-stamp-pattern (concat
-                                   line-limit1 start1 whole-format end1))
-              (case-fold-search nil))
-          (with-temp-buffer
-            ;; prep the buffer with more than the
-            ;; largest line-limit1 number of lines
-            (insert "\n\n\n\n\n\n\n\n\n\n\n\n")
-            ;; Call time-stamp, which will call time-stamp-once,
-            ;; triggering the tests above.
-            (time-stamp)))))))
+  (with-time-stamp-test-env
+    (let ((expected-calls 0)
+          (actual-calls 0)
+          (case-fold-search nil)
+          ;; more than the largest line-limit1 number of lines
+          (initial-buffer-contents "\n\n\n\n\n\n\n\n\n\n\n\n")
+          time-stamp-pattern)
+      (with-temp-buffer
+        (insert initial-buffer-contents)
+        (iter-do (pattern-parts (time-stamp-test-pattern-all))
+          (cl-destructuring-bind
+              (line-limit1 start1 whole-format end1) pattern-parts
+            (cl-letf
+                (((symbol-function 'time-stamp-once)
+                  (lambda (start search-limit ts-start ts-end
+                                 ts-format _format-lines _end-lines)
+                    (incf actual-calls)
+                    ;; Verify that time-stamp parsed time-stamp-pattern and
+                    ;; called us with the correct pieces.
+                    (let ((limit-number (if (equal line-limit1 "")
+                                            time-stamp-line-limit
+                                          (string-to-number line-limit1))))
+                      (goto-char (point-min))
+                      (should (= search-limit (if (> limit-number 0)
+                                                  (pos-bol (1+ limit-number))
+                                                (point-max))))
+                      (goto-char (point-max))
+                      (should (= start (if (< limit-number 0)
+                                           (pos-bol (1+ limit-number))
+                                         (point-min)))))
+                    (should (equal ts-start (if (equal start1 "")
+                                                time-stamp-start
+                                              start1)))
+                    (should (equal ts-format (if (or (equal whole-format "")
+                                                     (equal whole-format "%%"))
+                                                 time-stamp-format
+                                               whole-format)))
+                    (should (equal ts-end (if (equal end1 "")
+                                              time-stamp-end
+                                            end1)))
+                    ;; return nil to stop time-stamp from calling us again
+                    nil)))
+              (setq time-stamp-pattern
+                    (concat line-limit1 start1 whole-format end1))
+              (incf expected-calls)
+              ;; Call time-stamp, which should call time-stamp-once,
+              ;; triggering the tests above.
+              (time-stamp)
+              )))
+        (should (equal (buffer-string) initial-buffer-contents))
+        (should (= actual-calls expected-calls))
+        ))))
 
 (ert-deftest time-stamp-custom-format-tabs-expand ()
   "Test that Tab characters expand in the format but not elsewhere."
@@ -331,6 +375,31 @@
           (time-stamp)
           (should (equal (buffer-string) expected-2)))))))
 
+(ert-deftest time-stamp-custom-messages ()
+  "Test that various incorrect variable values warn and do not crash."
+  (with-time-stamp-test-env
+    (let ((time-stamp-line-limit 8.5))
+      (time-stamp-should-message time-stamp-line-limit
+        (time-stamp)))
+    (let ((time-stamp-count 1.5))
+      (time-stamp-should-message time-stamp-count
+        (time-stamp)))
+    (let ((time-stamp-start 17))
+      (time-stamp-should-message time-stamp-start
+        (time-stamp)))
+    (let ((time-stamp-end 17))
+      (time-stamp-should-message time-stamp-end
+        (time-stamp)))
+    (let ((time-stamp-active nil)
+          (buffer-original-contents "Time-stamp: <>"))
+      (with-temp-buffer
+        (time-stamp)                    ;with no template, no message
+        (insert buffer-original-contents)
+        (time-stamp-should-message time-stamp-active
+          (time-stamp))
+        (should (equal (buffer-string) buffer-original-contents))))
+    ))
+
 ;;; Tests of time-stamp-string formatting
 
 (eval-and-compile                       ;utility functions used by macros
@@ -443,9 +512,9 @@ This is a separate function so it can have an `ert-explainer' property."
   "Return STRING padded on the left to 4 characters."
   (time-stamp-test--pad-left-to-string-width string 4))
 
-(defun formatz-mod-pad-l10 (string)
-  "Return STRING padded on the left to 10 characters."
-  (time-stamp-test--pad-left-to-string-width string 10))
+(defun formatz-mod-pad-l15 (string)
+  "Return STRING padded on the left to 15 characters."
+  (time-stamp-test--pad-left-to-string-width string 15))
 
 (defun time-stamp-test--pad-left-to-string-width (string width)
   "Return STRING padded on the left to string-width WIDTH."
@@ -460,23 +529,24 @@ This is a separate function so it can have an `ert-explainer' property."
   (with-time-stamp-test-env
       ;; implemented and recommended since 1997
       (time-stamp-test-AB "%#A" "%^A")
-      (time-stamp-test-AB "%#10A" "%^A" #'formatz-mod-pad-l10)
+      (time-stamp-test-AB "%#15A" "%^A" #'formatz-mod-pad-l15)
       ;; implemented since 1997, recommended 1997-2024
       (time-stamp-test-AB "%3a" "%a")
       ;; recommended 1997-2019
       (time-stamp-test-AB "%:a" "%A")
       ;; recommended 1997-2019, warned since 2024, will change
       (time-stamp-test-AB "%3A" "%^a" :warn)
-      (time-stamp-test-AB "%10A" "%^A" #'formatz-mod-pad-l10 :warn)
+      (time-stamp-test-AB "%15A" "%^A" #'formatz-mod-pad-l15 :warn)
       ;; implemented since 2001, recommended since 2019
       (time-stamp-test-AB ("%#a" "%#3a") "%^a")
       (time-stamp-test-AB "%#4a" "%^a" #'formatz-mod-pad-l4)
       ;; implemented since 2001, recommended 2019-2024
       (time-stamp-test-AB "%:A" "%A")
       ;; broken 2019-2024
-      (time-stamp-test-AB "%:10A" "%A" #'formatz-mod-pad-l10)
+      (time-stamp-test-AB "%:15A" "%A" #'formatz-mod-pad-l15)
       ;; broken in 2019, changed in 2024
       (time-stamp-test-AB ("%-A" "%_A") "%A")
+      (time-stamp-test-AB ("%-a" "%_a") "%a")
       ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
       (time-stamp-test-AB "%a" "%a")
       (time-stamp-test-AB ("%4a" "%04a") "%a" #'formatz-mod-pad-l4)
@@ -1212,6 +1282,7 @@ Return non-nil if the definition is found."
 ;; eval: (put 'with-time-stamp-test-env 'lisp-indent-function 0)
 ;; eval: (put 'with-time-stamp-test-time 'lisp-indent-function 1)
 ;; eval: (put 'with-time-stamp-system-name 'lisp-indent-function 1)
+;; eval: (put 'time-stamp-should-message 'lisp-indent-function 1)
 ;; eval: (put 'define-formatz-tests 'lisp-indent-function 1)
 ;; End:
 

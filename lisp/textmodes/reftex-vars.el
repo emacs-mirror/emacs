@@ -1,6 +1,6 @@
 ;;; reftex-vars.el --- configuration variables for RefTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1999, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Maintainer: auctex-devel@gnu.org
@@ -360,11 +360,11 @@ more than `reftex-idle-time' seconds.
 Value t means, turn on immediately when RefTeX gets started.  Then,
 recentering will work for any TOC window created during the session.
 
-Value `frame' (the default) means, turn automatic recentering on only while the
-dedicated TOC frame does exist, and do the recentering only in that frame.  So
-when creating that frame (with `d' key in an ordinary TOC window), the
-automatic recentering is turned on.  When the frame gets destroyed, automatic
-recentering is turned off again.
+Value \\+`frame' (the default) means, turn automatic recentering on only
+while the dedicated TOC frame does exist, and do the recentering only in
+that frame.  So when creating that frame (with `d' key in an ordinary
+TOC window), the automatic recentering is turned on.  When the frame
+gets destroyed, automatic recentering is turned off again.
 
 This feature can be turned on and off from the menu
 \(Ref->Options)."
@@ -489,7 +489,7 @@ examples in the manual.  Looking at the builtin defaults in the constant
 
 Set this variable to define additions and changes to the default.  The only
 things you MUST NOT change is that `?s' is the type indicator for section
-labels, and SPC for the `any' label type.  These are hard-coded at other
+labels, and SPC for the \\+`any' label type.  These are hard-coded at other
 places in the code.
 
 The value of the variable must be a list of items.  Each item is a list
@@ -509,7 +509,7 @@ ENV-OR-MACRO
     a star to mark the label argument, if any.  The macro does not have to
     have a label argument - you could also use \\label{..} inside one of
     its arguments.
-    Special names: `section' for section labels, `any' to define a group
+    Special names: `section' for section labels, \\+`any' to define a group
     which contains all labels.
 
     This may also be a function to do local parsing and identify point to
@@ -535,7 +535,7 @@ TYPE-KEY
 LABEL-PREFIX
     Label prefix string, like \"tab:\".
     The prefix is a short string used as the start of a label.  It may be the
-    empty string.  The prefix may contain the following `%' escapes:
+    empty string.  The prefix may contain the following \\+`%' escapes:
        %f   Current file name with directory and extension stripped.
        %F   Current file name relative to directory of master file.
        %m   Master file name, directory and extension stripped.
@@ -1534,27 +1534,27 @@ This extension will be added to the base name of the master file."
   :type 'string)
 
 (defcustom reftex-index-phrases-logical-and-regexp " *&& *"
-  "Regexp matching the `and' operator for index arguments in phrases file.
+  "Regexp matching the \\+`and' operator for index arguments in phrases file.
 When several index arguments in a phrase line are separated by this
 operator, each part will generate an index macro.  So each match of
 the search phrase will produce *several* different index entries.
 
 Note: make sure this does no match things which are not separators.
-This logical `and' has higher priority than the logical `or' specified in
+This logical \\+`and' has higher priority than the logical \\+`or' specified in
 `reftex-index-phrases-logical-or-regexp'."
   :group 'reftex-index-support
   :type 'regexp)
 
 (defcustom reftex-index-phrases-logical-or-regexp " *|| *"
-  "Regexp matching the `or' operator for index arguments in phrases file.
+  "Regexp matching the \\+`or' operator for index arguments in phrases file.
 When several index arguments in a phrase line are separated by this
 operator, the user will be asked to select one of them at each match
 of the search phrase.  The first index arg will be the default - a
 number key 1-9 must be pressed to switch to another.
 
 Note: make sure this does no match things which are not separators.
-The logical `and' specified in `reftex-index-phrases-logical-or-regexp'
-has higher priority than this logical `or'."
+The logical \\+`and' specified in `reftex-index-phrases-logical-or-regexp'
+has higher priority than this logical \\+`or'."
   :group 'reftex-index-support
   :type 'regexp)
 

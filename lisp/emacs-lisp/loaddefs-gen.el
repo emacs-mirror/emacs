@@ -1,6 +1,6 @@
 ;;; loaddefs-gen.el --- generate loaddefs.el files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: maint
@@ -236,7 +236,7 @@ expand)' among their `declare' forms."
 	     (eq 'expand (function-get car 'autoload-macro))
 	     (setq expand (let ((load-true-file-name file)
 				(load-file-name file))
-			    (macroexpand form)))
+			    (macroexpand-1 form)))
 	     (not (eq car (car expand)))))
       ;; Recurse on the expansion.
       (loaddefs-generate--make-autoload expand file 'expansion))

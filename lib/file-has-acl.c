@@ -1,6 +1,6 @@
 /* Test whether a file has a nontrivial ACL.  -*- coding: utf-8 -*-
 
-   Copyright (C) 2002-2003, 2005-2025 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2005-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -79,16 +79,15 @@ smack_smackfs_path (void)
   return NULL;
 }
 static ssize_t
-smack_new_label_from_path (MAYBE_UNUSED const char *path,
-                           MAYBE_UNUSED const char *xattr,
-                           MAYBE_UNUSED int follow, MAYBE_UNUSED char **label)
+smack_new_label_from_path (const char *UNNAMED (path),
+                           const char *UNNAMED (xattr),
+                           int UNNAMED (follow), char **UNNAMED (label))
 {
   return -1;
 }
 static ssize_t
-smack_new_label_from_file (MAYBE_UNUSED int fd,
-                           MAYBE_UNUSED const char *xattr,
-                           MAYBE_UNUSED char **label)
+smack_new_label_from_file (int UNNAMED (fd), const char *UNNAMED (xattr),
+                           char **UNNAMED (label))
 {
   return -1;
 }
@@ -161,7 +160,6 @@ aclinfo_has_xattr (struct aclinfo const *ai, char const *xattr)
 static void
 get_aclinfo (int fd, char const *name, struct aclinfo *ai, int flags)
 {
-  int scontext_err = ENOTSUP;
   ai->buf = ai->u.__gl_acl_ch;
   ssize_t acl_alloc = sizeof ai->u.__gl_acl_ch;
 
@@ -221,6 +219,7 @@ get_aclinfo (int fd, char const *name, struct aclinfo *ai, int flags)
     }
 
   /* A security context can exist only if extended attributes do.  */
+  int scontext_err = ENOTSUP;
   if (flags & ACL_GET_SCONTEXT
       && (0 < ai->size || aclinfo_may_indicate_xattr (ai)))
     {
@@ -399,9 +398,9 @@ acl_get_link_np (char const *name, acl_type_t type)
   if (fd < 0)
     return NULL;
   acl_t r = acl_get_fd (fd);
-  int err = errno;
+  int saved_errno = errno;
   close (fd);
-  errno = err;
+  errno = saved_errno;
   return r;
 }
 #   define HAVE_ACL_GET_LINK_NP 1
@@ -781,11 +780,9 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
 
       {
         struct acl_entry entries[NACLENTRIES];
-        int count;
-
-        count = (fd < 0
-                 ? getacl (name, NACLENTRIES, entries)
-                 : fgetacl (fd, NACLENTRIES, entries));
+        int count = (fd < 0
+                     ? getacl (name, NACLENTRIES, entries)
+                     : fgetacl (fd, NACLENTRIES, entries));
 
         if (count < 0)
           {
@@ -827,10 +824,9 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
 
       {
         struct acl entries[NACLVENTRIES];
-        int count;
 
         /* Ignore FD, unfortunately.  */
-        count = acl ((char *) name, ACL_GET, NACLVENTRIES, entries);
+        int count = acl ((char *) name, ACL_GET, NACLVENTRIES, entries);
 
         if (count < 0)
           {
@@ -867,13 +863,13 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
       char aclbuf[1024];
       void *acl = aclbuf;
       size_t aclsize = sizeof (aclbuf);
-      mode_t mode;
 
       for (;;)
         {
           /* The docs say that type being 0 is equivalent to ACL_ANY, but it
              is not true, in AIX 5.3.  */
           type.u64 = ACL_ANY;
+          mode_t mode;
           if (0 <= (fd < 0
                     ? aclx_get (name, 0, &type, aclbuf, &aclsize, &mode)
                     : aclx_fget (fd, 0, &type, aclbuf, &aclsize, &mode)))
@@ -934,10 +930,9 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
 
       {
         struct acl entries[NACLENTRIES];
-        int count;
 
         /* Ignore FD, unfortunately.  */
-        count = acl ((char *) name, ACL_GET, NACLENTRIES, entries);
+        int count = acl ((char *) name, ACL_GET, NACLENTRIES, entries);
 
         if (count < 0)
           {

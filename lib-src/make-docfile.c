@@ -1,6 +1,6 @@
 /* Generate doc-string file for GNU Emacs from source files.
 
-Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2025 Free Software
+Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2026 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -150,7 +150,7 @@ main (int argc, char **argv)
 
   /* If first two args are -o FILE, output to FILE.  */
   i = 1;
-  if (argc > i + 1 && !strcmp (argv[i], "-o"))
+  if (argc > i + 1 && streq (argv[i], "-o"))
     {
       if (! freopen (argv[i + 1], "w", stdout))
 	{
@@ -159,7 +159,7 @@ main (int argc, char **argv)
 	}
       i += 2;
     }
-  if (argc > i + 1 && !strcmp (argv[i], "-a"))
+  if (argc > i + 1 && streq (argv[i], "-a"))
     {
       if (! freopen (argv[i + 1], "a", stdout))
 	{
@@ -168,7 +168,7 @@ main (int argc, char **argv)
 	}
       i += 2;
     }
-  if (argc > i + 1 && !strcmp (argv[i], "-d"))
+  if (argc > i + 1 && streq (argv[i], "-d"))
     {
       if (chdir (argv[i + 1]) != 0)
 	{
@@ -177,7 +177,7 @@ main (int argc, char **argv)
 	}
       i += 2;
     }
-  if (argc > i && !strcmp (argv[i], "-g"))
+  if (argc > i && streq (argv[i], "-g"))
     {
       generate_globals = true;
       ++i;
@@ -198,7 +198,7 @@ main (int argc, char **argv)
 	  int j;
 	  /* Don't process one file twice.  */
 	  for (j = first_infile; j < i; j++)
-	    if (strcmp (argv[i], argv[j]) == 0)
+	    if (streq (argv[i], argv[j]))
 	      break;
 	  if (j == i)
 	    scan_file (argv[i]);
@@ -261,6 +261,8 @@ struct rcsoc_state
 
   /* If non-zero, a buffer into which to copy characters.  */
   char *buf_ptr;
+  /* If non-zero, one past the buffer's last byte.  */
+  char *buf_lim;
   /* If non-zero, a file into which to copy characters.  */
   FILE *out_file;
 
@@ -299,7 +301,11 @@ put_char (char ch, struct rcsoc_state *state)
       if (state->out_file)
 	putc (out_ch, state->out_file);
       if (state->buf_ptr)
-	*state->buf_ptr++ = out_ch;
+	{
+	  *state->buf_ptr++ = out_ch;
+	  if (state->buf_lim <= state->buf_ptr)
+	    fatal ("state buffer exhausted");
+	}
     }
   while (out_ch != ch);
 }
@@ -397,8 +403,9 @@ read_c_string_or_comment (FILE *infile, int printflag, bool comment,
   struct rcsoc_state state;
 
   state.in_file = infile;
-  state.buf_ptr = (printflag < 0 ? input_buffer : 0);
-  state.out_file = (printflag > 0 ? stdout : 0);
+  state.buf_ptr = printflag < 0 ? input_buffer : NULL;
+  state.buf_lim = printflag < 0 ? input_buffer + sizeof input_buffer : NULL;
+  state.out_file = printflag <= 0 ? NULL : stdout;
   state.pending_spaces = 0;
   state.pending_newlines = 0;
   state.keyword = (saw_usage ? "usage:" : 0);
@@ -478,7 +485,7 @@ read_c_string_or_comment (FILE *infile, int printflag, bool comment,
    MINARGS and MAXARGS are the minimum and maximum number of arguments.  */
 
 static void
-write_c_args (char *func, char *buf, int minargs, int maxargs)
+write_c_args (char *buf, int minargs, int maxargs)
 {
   char *p;
   bool in_ident = false;
@@ -515,12 +522,9 @@ write_c_args (char *func, char *buf, int minargs, int maxargs)
       if (c == ',' || c == ')')
 	{
 	  if (ident_length == 0)
-	    {
-	      error ("empty arg list for '%s' should be (void), not ()", func);
-	      continue;
-	    }
+	    continue;
 
-	  if (strncmp (ident_start, "void", ident_length) == 0)
+	  if (ident_length == 4 && memeq (ident_start, "void", 4))
 	    continue;
 
 	  putchar (' ');
@@ -544,6 +548,8 @@ write_c_args (char *func, char *buf, int minargs, int maxargs)
 		  c = '-';
 		putchar (c);
 	      }
+
+	  ident_length = 0;
 	}
     }
 
@@ -596,7 +602,7 @@ add_global (enum global_type type, char const *name, int value,
 	    char const *svalue)
 {
   /* Ignore the one non-symbol that can occur.  */
-  if (strcmp (name, "..."))
+  if (!streq (name, "..."))
     {
       if (num_globals == num_globals_allocated)
 	{
@@ -648,9 +654,9 @@ compare_globals (const void *a, const void *b)
       int ai = ncommonsym, bi = ncommonsym;
       for (int i = 0; i < ncommonsym; i++)
 	{
-	  if (ga->name[0] == 'Q' && strcmp (ga->name + 1, commonsym[i]) == 0)
+	  if (ga->name[0] == 'Q' && streq (ga->name + 1, commonsym[i]))
 	    ai = i;
-	  if (gb->name[0] == 'Q' && strcmp (gb->name + 1, commonsym[i]) == 0)
+	  if (gb->name[0] == 'Q' && streq (gb->name + 1, commonsym[i]))
 	    bi = i;
 	}
       if (! (ai == ncommonsym && bi == ncommonsym))
@@ -686,7 +692,7 @@ write_globals (void)
   for (i = 0; i < num_globals; i++)
     {
       while (i + 1 < num_globals
-	     && strcmp (globals[i].name, globals[i + 1].name) == 0)
+	     && streq (globals[i].name, globals[i + 1].name))
 	{
 	  if (globals[i].type == FUNCTION
 	      && globals[i].v.value != globals[i + 1].v.value)
@@ -1109,8 +1115,8 @@ scan_c_stream (FILE *infile)
 		    goto eof;
 		  if (c == ')')
 		    break;
-		  if (p - input_buffer > sizeof (input_buffer))
-		    abort ();
+		  if (input_buffer + sizeof input_buffer <= p)
+		    fatal ("attribute buffer exhausted");
 		  *p++ = c;
 		}
 	      *p = 0;
@@ -1199,20 +1205,22 @@ scan_c_stream (FILE *infile)
 		  c = getc (infile);
 		}
 	      /* Copy arguments into ARGBUF.  */
-	      *p++ = c;
-	      do
+	      for (ptrdiff_t nested = 0; ; )
 		{
+		  *p++ = c;
+		  if (argbuf + sizeof argbuf <= p)
+		    fatal ("argument buffer exhausted");
+		  nested += (c == '(') - (c == ')');
+		  if (c == ')' && !nested)
+		    break;
 		  c = getc (infile);
 		  if (c < 0)
 		    goto eof;
-		  *p++ = c;
 		}
-	      while (c != ')');
-
 	      *p = '\0';
 	      /* Output them.  */
 	      fputs ("\n\n", stdout);
-	      write_c_args (input_buffer, argbuf, minargs, maxargs);
+	      write_c_args (argbuf, minargs, maxargs);
 	    }
 	  else if (defunflag && maxargs == -1 && !saw_usage)
 	    /* The DOC should provide the usage form.  */

@@ -1,0 +1,4 @@
+.PHONY: build-test-package-SUFFIX
+
+build-test-package-SUFFIX:
+	@touch test-package-SUFFIX.make-build

@@ -1,6 +1,6 @@
 ;;; send-to.el --- send files to applications or services  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: send, applications

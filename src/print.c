@@ -1,6 +1,6 @@
 /* Lisp object printing and output streams.
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1132,7 +1132,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
 	 we throw any information away.  */
       && !NILP (XCAR (tail)) && NILP (XCDR (tail)))
     {
-      /* Prevent message3 from outputting a newline aftere "user-error:".  */
+      /* Prevent message3 from outputting a newline after "user-error:".  */
       reset_message_log_need_newline ();
       message3 (XCAR (tail));
       return;
@@ -1327,17 +1327,28 @@ print (Lisp_Object obj, bool escapeflag, struct print_context *pc)
   print_object (obj, escapeflag, pc);
 }
 
-#define PRINT_CIRCLE_CANDIDATE_P(obj)			   \
-  (STRINGP (obj)                                           \
-   || CONSP (obj)					   \
-   || (VECTORLIKEP (obj)				   \
-       && (VECTORP (obj) || CLOSUREP (obj)		   \
-	   || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj) \
-	   || HASH_TABLE_P (obj) || FONTP (obj)		   \
-	   || RECORDP (obj)))				   \
-   || (! NILP (Vprint_gensym)				   \
-       && SYMBOLP (obj)					   \
-       && !SYMBOL_INTERNED_P (obj)))
+static inline bool
+print_circle_candidate_p (Lisp_Object obj)
+{
+  if (CONSP (obj))
+    return true;
+  else if (STRINGP (obj))
+    return SCHARS (obj) > 0;
+  else if (SYMBOLP (obj))
+    return !NILP (Vprint_gensym) && !SYMBOL_INTERNED_P (obj);
+  else if (VECTORLIKEP (obj))
+    {
+      if (VECTORP (obj))
+	return ASIZE (obj) > 0;
+      else
+	return (CLOSUREP (obj)
+		|| CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
+		|| HASH_TABLE_P (obj) || FONTP (obj)
+		|| RECORDP (obj));
+    }
+  else
+    return false;
+}
 
 /* The print preprocess stack, used to traverse data structures.  */
 
@@ -1515,12 +1526,12 @@ print_preprocess (Lisp_Object obj)
   eassert (!NILP (Vprint_circle));
   /* The ppstack may contain HASH_UNUSED_ENTRY_KEY which is an invalid
      Lisp value.  Make sure that our filter stops us from traversing it.  */
-  eassert (!PRINT_CIRCLE_CANDIDATE_P (HASH_UNUSED_ENTRY_KEY));
+  eassert (!print_circle_candidate_p (HASH_UNUSED_ENTRY_KEY));
   ptrdiff_t base_sp = ppstack.sp;
 
   for (;;)
     {
-      if (PRINT_CIRCLE_CANDIDATE_P (obj))
+      if (print_circle_candidate_p (obj))
 	{
 	  if (!HASH_TABLE_P (Vprint_number_table))
 	    Vprint_number_table = CALLN (Fmake_hash_table, QCtest, Qeq);
@@ -2452,7 +2463,7 @@ print_object (Lisp_Object obj, bool escapeflag, struct print_context *pc)
 	  }
       pc->being_printed[print_depth] = obj;
     }
-  else if (PRINT_CIRCLE_CANDIDATE_P (obj))
+  else if (print_circle_candidate_p (obj))
     {
       /* With the print-circle feature.  */
       Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);

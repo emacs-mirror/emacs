@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools, vc
@@ -130,6 +130,7 @@
 
 (defvar-keymap log-view-mode-map
   "RET" #'log-view-toggle-entry-display
+  "M-<return>" #'log-view-display-entry-and-diff
   "m" #'log-view-mark-entry
   "u" #'log-view-unmark-entry
   "U" #'log-view-unmark-all-entries
@@ -141,6 +142,8 @@
   "f" #'log-view-find-revision
   "n" #'log-view-msg-next
   "p" #'log-view-msg-prev
+  "M-n" #'log-view-msg-and-diff-next
+  "M-p" #'log-view-msg-and-diff-prev
   "w" #'log-view-copy-revision-as-kill
   "TAB" #'log-view-msg-next
   "<backtab>" #'log-view-msg-prev
@@ -298,6 +301,20 @@ The match group number 1 should match the revision number itself.")
       (log-view-msg-next))
     t))
 
+(defun log-view-msg-and-diff-next (count)
+  "Go to next COUNT'th entry, expand it if possible, and show its diff.
+Interactively, COUNT is the numeric prefix argument, and defaults to 1."
+  (interactive "p")
+  (log-view-msg-next count)
+  (log-view-display-entry-and-diff))
+
+(defun log-view-msg-and-diff-prev (count)
+  "Go to previous COUNT'th entry, expand it if possible, and show its diff.
+Interactively, COUNT is the numeric prefix argument, and defaults to 1."
+  (interactive "p")
+  (log-view-msg-next (- count))
+  (log-view-display-entry-and-diff))
+
 ;;;;
 ;;;; Linkage to PCL-CVS (mostly copied from cvs-status.el)
 ;;;;
@@ -414,9 +431,7 @@ Use \\[log-view-unmark-entry] to unmark an entry.
 
 Lisp programs can use `log-view-get-marked' to obtain a list of all
 marked revisions."
-  (interactive (list (prefix-numeric-value current-prefix-arg)
-                     (use-region-beginning)
-                     (use-region-end)))
+  (interactive "p\nR")
   (log-view--mark-unmark #'log-view--mark-entry arg beg end))
 
 (defun log-view--mark-entry ()
@@ -445,9 +460,7 @@ When called from Lisp, mark ARG entries or all entries lying between BEG
 and END.  If BEG and END are supplied, ARG is ignored.
 
 See `log-view-mark-entry'."
-  (interactive (list (prefix-numeric-value current-prefix-arg)
-                     (use-region-beginning)
-                     (use-region-end)))
+  (interactive "p\nR")
   (log-view--mark-unmark #'log-view--unmark-entry arg beg end))
 
 (defun log-view--unmark-entry ()
@@ -491,7 +504,8 @@ Added to `revert-buffer-restore-functions' by Log View mode."
 
 (defun log-view-toggle-entry-display ()
   "If possible, expand the current Log View entry.
-This calls `log-view-expanded-log-entry-function' to do the work."
+This calls `log-view-expanded-log-entry-function' to do the work.
+See also `log-view-display-entry-and-diff'."
   (interactive)
   ;; Don't do anything unless `log-view-expanded-log-entry-function'
   ;; is defined in this mode.
@@ -499,7 +513,8 @@ This calls `log-view-expanded-log-entry-function' to do the work."
     (let* ((opoint (point))
 	   (entry (log-view-current-entry nil t))
 	   (beg (car entry))
-	   (buffer-read-only nil))
+           (inhibit-read-only t)
+	   deactivate-mark)
       (when entry
 	(if (get-text-property beg 'log-view-entry-expanded)
 	    ;; If the entry is expanded, collapse it.
@@ -526,6 +541,20 @@ This calls `log-view-expanded-log-entry-function' to do the work."
 	       '(font-lock-face log-view-commit-body log-view-comment t))
 	      (goto-char opoint))))))))
 
+(defun log-view-display-entry-and-diff ()
+  "Expand current Log View entry, if possible, and also display its diff.
+If the current Log View entry is already expanded, only display its
+diff; this command never collapses entries.
+In contrast with `log-view-diff-changeset', the window displaying the
+diff is not selected.
+See also `log-view-toggle-entry-display'."
+  (interactive)
+  (when-let* ((beg (car (log-view-current-entry))))
+    (unless (get-text-property beg 'log-view-entry-expanded)
+      (log-view-toggle-entry-display)))
+  (save-selected-window
+    (log-view-diff (point) (point))))
+
 (defun log-view-beginning-of-defun (&optional arg)
   "Move backward to the beginning of a Log View entry.
 With ARG, do it that many times.  Negative ARG means move forward
@@ -534,28 +563,27 @@ to the beginning of the ARGth following entry.
 This is Log View mode's default `beginning-of-defun-function'.
 It assumes that a log entry starts with a line matching
 `log-view-message-re'."
-  (when (null arg) (setf arg 1))
-  (if (< arg 0)
+  (when (null arg) (setq arg 1))
+  (if (minusp arg)
       ;; In log view, the end of one defun is the beginning of the
       ;; next, so punting to log-view-end-of-defun is safe in this
       ;; context.
       (log-view-end-of-defun (- arg))
     (let ((found t))
-      (while (> arg 0)
-        (setf arg (1- arg))
+      (while (plusp arg)
+        (decf arg)
         (let ((cur-start (log-view-current-entry)))
-          (setf found
-                (cond ((null cur-start)
-                       (goto-char (point-min))
-                       nil)
-                      ((>= (car cur-start) (point))
-                       (unless (bobp)
-                         (forward-line -1)
-                         (setf arg (1+ arg)))
-                       nil)
-                      (t
-                       (goto-char (car cur-start))
-                       t)))))
+          (setq found (cond ((null cur-start)
+                             (goto-char (point-min))
+                             nil)
+                            ((>= (car cur-start) (point))
+                             (unless (bobp)
+                               (forward-line -1)
+                               (incf arg))
+                             nil)
+                            (t
+                             (goto-char (car cur-start))
+                             t)))))
       found)))
 
 (defun log-view-end-of-defun-1 ()
@@ -582,12 +610,11 @@ It assumes that a log entry starts with a line matching
 (defun log-view-end-of-defun (&optional arg)
   "Move forward to the next Log View entry.
 Works like `end-of-defun'."
-  (when (null arg) (setf arg 1))
-  (if (< arg 0)
+  (when (null arg) (setq arg 1))
+  (if (minusp arg)
       (log-view-beginning-of-defun (- arg))
     (dotimes (_n arg)
-      (log-view-end-of-defun-1)
-      t)))
+      (log-view-end-of-defun-1))))
 
 (defvar cvs-minor-current-files)
 (defvar cvs-branch-prefix)

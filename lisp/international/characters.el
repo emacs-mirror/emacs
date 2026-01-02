@@ -1,6 +1,6 @@
 ;;; characters.el --- set syntax and category for multibyte characters  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2026 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1672,7 +1672,7 @@ these characters are displayed as full-width.  This setting is most
 important for text-mode frames, because there Emacs cannot access the
 metrics of the fonts used by the console or the terminal emulator.
 You should configure the terminal emulator to behave consistently
-with the value of this option, by making sure it dispays ambiguous-width
+with the value of this option, by making sure it displays ambiguous-width
 characters as half-width or full-width, depending on the value of this
 option.
 

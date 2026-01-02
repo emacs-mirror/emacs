@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1997, 1999, 2001-2025 Free Software Foundation,
+;; Copyright (C) 1993-1997, 1999, 2001-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -3359,7 +3359,7 @@ See `sh-mode--treesit-other-keywords' and
    :feature 'command
    :language 'bash
    `(;; function/non-builtin command calls
-     (command_name (word) @font-lock-function-name-face)
+     (command_name (word) @font-lock-function-call-face)
      ;; builtin commands
      (command_name
       ((word) @font-lock-builtin-face

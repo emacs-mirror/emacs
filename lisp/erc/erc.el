@@ -1,6 +1,6 @@
 ;;; erc.el --- An Emacs Internet Relay Chat client  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2026 Free Software Foundation, Inc.
 
 ;; Author: Alexander L. Belikoff <alexander@belikoff.net>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -685,7 +685,7 @@ Also remove members from the server table if this was their only buffer."
     (erc-remove-channel-users)))
 
 (defvar erc-channel-user-signal-if-status-unknown nil
-  "If non-nil ERC signals before setting an unadvertized status prefix.
+  "If non-nil ERC signals before setting an unadvertised status prefix.
 But only in ERC buffers.  Otherwise, if nil, accessors like
 `erc-channel-user-halfop' ignore such attempts and return nil.")
 

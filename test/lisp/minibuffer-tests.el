@@ -1,6 +1,6 @@
 ;;; minibuffer-tests.el --- Tests for completion functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -374,6 +374,15 @@
   (should (equal (completion-pcm--pattern->regex
                   '(any "A" any-delim "B" any-delim "C" any))
                  "\\`[^z-a]*?A[-_./:| *]*?B[-_./:| *]*?C[^z-a]*?")))
+
+(ert-deftest completion-pcm--test-zerowidth-delim ()
+  (let ((completion-pcm--delim-wild-regex ; Let "u8" complete to "utf-8".
+         (concat "\\(?:" completion-pcm--delim-wild-regex
+                 "\\|\\([[:alpha:]]\\)[[:digit:]]\\)")))
+    (should (equal (car (completion-try-completion
+                         "u8-d" '("utf-8-dos" "utf-8-foo-dos" "utf-8-unix")
+                         nil 4))
+                   "utf-8-dos"))))
 
 (ert-deftest completion-pcm-bug4219 ()
   ;; With `completion-ignore-case', try-completion should change the

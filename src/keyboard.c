@@ -1,6 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
 
-Copyright (C) 1985-1989, 1993-1997, 1999-2025 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1997, 1999-2026 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -224,7 +224,7 @@ EMACS_INT command_loop_level;
    read_key_sequence uses this to delay switch-frame events until the
    end of the key sequence; Fread_char uses it to put off switch-frame
    events until a non-ASCII event is acceptable as input.  */
-Lisp_Object unread_switch_frame;
+static Lisp_Object unread_switch_frame;
 
 /* Last size recorded for a current buffer which is not a minibuffer.  */
 static ptrdiff_t last_non_minibuf_size;
@@ -2547,7 +2547,7 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 
    Value is t if we showed a menu and the user rejected it.  */
 
-Lisp_Object
+static Lisp_Object
 read_char (int commandflag, Lisp_Object map,
 	   Lisp_Object prev_event,
 	   bool *used_mouse_menu, struct timespec *end_time)
@@ -6467,13 +6467,11 @@ make_lispy_event (struct input_event *event)
 		if (FRAME_WINDOW_P (f))
 		  {
 		    struct window *menu_w = XWINDOW (f->menu_bar_window);
-		    int x, y, dummy;
-
-		    x = FRAME_TO_WINDOW_PIXEL_X (menu_w, XFIXNUM (event->x));
-		    y = FRAME_TO_WINDOW_PIXEL_Y (menu_w, XFIXNUM (event->y));
-
-		    x_y_to_hpos_vpos (XWINDOW (f->menu_bar_window), x, y, &column, &row,
-				      NULL, NULL, &dummy);
+		    x_y_to_column_row
+		      (XWINDOW (f->menu_bar_window),
+		       FRAME_TO_WINDOW_PIXEL_X (menu_w, XFIXNUM (event->x)),
+		       FRAME_TO_WINDOW_PIXEL_Y (menu_w, XFIXNUM (event->y)),
+		       &column, &row);
 		  }
 		else
 #endif
@@ -6948,7 +6946,7 @@ make_lispy_event (struct input_event *event)
 	Lisp_Object x, y, id, position;
 	struct frame *f = XFRAME (event->frame_or_window);
 #if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
-	int column, row, dummy;
+	int column, row;
 #endif /* defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR */
 #ifdef HAVE_WINDOW_SYSTEM
 	int tab_bar_item;
@@ -6971,9 +6969,8 @@ make_lispy_event (struct input_event *event)
 
 	    if (!NILP (f->menu_bar_window))
 	      {
-		x_y_to_hpos_vpos (XWINDOW (f->menu_bar_window), XFIXNUM (x),
-				  XFIXNUM (y), &column, &row, NULL, NULL,
-				  &dummy);
+		x_y_to_column_row (XWINDOW (f->menu_bar_window), XFIXNUM (x),
+				  XFIXNUM (y), &column, &row);
 
 		if (row >= 0 && row < FRAME_MENU_BAR_LINES (f))
 		  {
@@ -10854,6 +10851,18 @@ restore_reading_key_sequence (int old_reading_key_sequence)
 
 #endif /* HAVE_TEXT_CONVERSION */
 
+/* Return true if there are any pending requeued events (command events
+   or events to be processed by other levels of the input processing
+   stages).  */
+
+static bool
+requeued_events_pending_p (void)
+{
+  return (requeued_command_events_pending_p ()
+	  || !NILP (Vunread_post_input_method_events)
+	  || !NILP (Vunread_input_method_events));
+}
+
 /* Read a sequence of keys that ends with a non prefix character,
    storing it in KEYBUF, a buffer of size READ_KEY_ELTS.
    Prompt with PROMPT.
@@ -12039,15 +12048,6 @@ detect_input_pending (void)
   return input_pending || get_input_pending (0);
 }
 
-/* Return true if input events other than mouse movements are
-   pending.  */
-
-bool
-detect_input_pending_ignore_squeezables (void)
-{
-  return input_pending || get_input_pending (READABLE_EVENTS_IGNORE_SQUEEZABLES);
-}
-
 /* Return true if input events are pending, and run any pending timers.  */
 
 bool
@@ -12080,18 +12080,6 @@ bool
 requeued_command_events_pending_p (void)
 {
   return (CONSP (Vunread_command_events));
-}
-
-/* Return true if there are any pending requeued events (command events
-   or events to be processed by other levels of the input processing
-   stages).  */
-
-bool
-requeued_events_pending_p (void)
-{
-  return (requeued_command_events_pending_p ()
-	  || !NILP (Vunread_post_input_method_events)
-	  || !NILP (Vunread_input_method_events));
 }
 
 DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 1, 0,
@@ -13369,7 +13357,8 @@ init_while_no_input_ignore_events (void)
   Lisp_Object events = list (Qselect_window, Qhelp_echo, Qmove_frame,
 			     Qiconify_frame, Qmake_frame_visible,
 			     Qfocus_in, Qfocus_out, Qconfig_changed_event,
-			     Qselection_request);
+			     Qselection_request, Qmonitors_changed,
+			     Qtoolkit_theme_changed);
 
 #ifdef HAVE_DBUS
   events = Fcons (Qdbus_event, events);
@@ -13388,24 +13377,49 @@ init_while_no_input_ignore_events (void)
 static bool
 is_ignored_event (union buffered_input_event *event)
 {
-  Lisp_Object ignore_event;
+  Lisp_Object ignore_event = Qnil;
 
   switch (event->kind)
     {
-    case FOCUS_IN_EVENT: ignore_event = Qfocus_in; break;
-    case FOCUS_OUT_EVENT: ignore_event = Qfocus_out; break;
-    case HELP_EVENT: ignore_event = Qhelp_echo; break;
-    case ICONIFY_EVENT: ignore_event = Qiconify_frame; break;
-    case DEICONIFY_EVENT: ignore_event = Qmake_frame_visible; break;
-    case SELECTION_REQUEST_EVENT: ignore_event = Qselection_request; break;
+    case FOCUS_IN_EVENT:
+      ignore_event = Qfocus_in;
+      break;
+    case FOCUS_OUT_EVENT:
+      ignore_event = Qfocus_out;
+      break;
+    case HELP_EVENT:
+      ignore_event = Qhelp_echo;
+      break;
+    case ICONIFY_EVENT:
+      ignore_event = Qiconify_frame;
+      break;
+    case DEICONIFY_EVENT:
+      ignore_event = Qmake_frame_visible;
+      break;
+    case SELECTION_REQUEST_EVENT:
+      ignore_event = Qselection_request;
+      break;
 #ifdef USE_FILE_NOTIFY
-    case FILE_NOTIFY_EVENT: ignore_event = Qfile_notify; break;
+    case FILE_NOTIFY_EVENT:
+      ignore_event = Qfile_notify;
+      break;
 #endif
 #ifdef HAVE_DBUS
-    case DBUS_EVENT: ignore_event = Qdbus_event; break;
+    case DBUS_EVENT:
+      ignore_event = Qdbus_event;
+      break;
 #endif
-    case SLEEP_EVENT: ignore_event = Qsleep_event; break;
-    default: ignore_event = Qnil; break;
+    case SLEEP_EVENT:
+      ignore_event = Qsleep_event;
+      break;
+    case MONITORS_CHANGED_EVENT:
+      ignore_event = Qmonitors_changed;
+      break;
+    case TOOLKIT_THEME_CHANGED_EVENT:
+      ignore_event = Qtoolkit_theme_changed;
+      break;
+    default:
+      break;
     }
 
   return !NILP (Fmemq (ignore_event, Vwhile_no_input_ignore_events));
@@ -13563,6 +13577,8 @@ syms_of_keyboard (void)
 
   DEFSYM (Qtouch_end, "touch-end");
   DEFSYM (Qsleep_event, "sleep-event");
+  DEFSYM (Qmonitors_changed, "monitors-changed");
+  DEFSYM (Qtoolkit_theme_changed, "toolkit-theme-changed");
 
   /* Menu and tool bar item parts.  */
   DEFSYM (QCenable, ":enable");

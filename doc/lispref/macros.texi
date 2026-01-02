@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998, 2001--2025 Free Software Foundation,
+@c Copyright (C) 1990--1995, 1998, 2001--2026 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Macros
@@ -640,3 +640,25 @@ indentation is being computed by @kbd{C-M-q}; if the value is a
 number, @kbd{C-M-q} need not recalculate indentation for the following
 lines until the end of the list.
 @end table
+
+@defvar lisp-indent-local-overrides
+This variable can be used to override the indentation specification used
+for certain symbol, as specified using their @code{lisp-indent-function}
+symbol property (@pxref{Symbol Properties}).  It is intended to be used
+as a file-local or directory-local variable; @xref{File Variables, ,
+Local Variables in Files, emacs, The GNU Emacs Manual}.
+
+Each key is a symbol and each value is an indent specification, which
+overrides the value of the symbol's @code{lisp-indent-function}
+property.  The value can take the same forms as the value of the symbol
+property, documented above.  Note that using a function is not safe and
+should be avoided, else all users, who visit the file, would have to
+explicitly approve or decline their use.
+
+This variable is used by the functions @code{lisp-indent-function}
+and @code{common-lisp-indent-function}.  In case of the latter, the
+symbol properties @code{common-lisp-indent-function-for-elisp} and
+@code{common-lisp-indent-function} take precedence not only over the
+@code{lisp-indent-function} property but also over this variable.
+
+@end defvar

@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.
 
-Copyright (C) 2023-2025 Free Software Foundation, Inc.
+Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -404,6 +404,7 @@ extern void android_set_preeditarea (struct window *, int, int);
 
 extern void android_term_init (void);
 extern void android_set_window_size (struct frame *, bool, int, int);
+extern void android_set_window_size_and_position (struct frame *, int, int);
 extern void android_iconify_frame (struct frame *);
 extern void android_make_frame_visible (struct frame *);
 extern void android_make_frame_invisible (struct frame *);

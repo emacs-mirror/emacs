@@ -1,6 +1,6 @@
 ;;; package-vc.el --- Manage packages from VC checkouts     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
@@ -31,8 +31,7 @@
 ;; aren't interested in activating a package, you can use
 ;; `package-vc-checkout' instead, which will prompt you for a target
 ;; directory.  If you wish to reuse an existing checkout, the command
-;; `package-vc-install-from-checkout' will create a symbolic link and
-;; prepare the package.
+;; `package-vc-install-from-checkout' will prepare the package.
 ;;
 ;; If you make local changes that you wish to share with an upstream
 ;; maintainer, the command `package-vc-prepare-patch' can prepare
@@ -75,7 +74,7 @@ the backend nor a repository URL that's recognized via
 
 The value must be a member of `vc-handled-backends' that supports
 the `clone' VC function."
-  :type vc-cloneable-backends-custom-type
+  :type vc-clonable-backends-custom-type
   :version "29.1")
 
 (defcustom package-vc-register-as-project t
@@ -173,6 +172,44 @@ name for PKG-DESC."
                            (mapcar #'cdr package-vc--archive-spec-alists))))
    '() nil #'string=))
 
+(defun package-vc--checkout-dir (pkg-desc &optional lisp-dir)
+  "Return the directory of the actual VC checkout for PKG-DESC.
+For most packages this is the same as `package-desc-dir', unless the
+package has been installed via `package-vc-install-from-checkout'.  In
+that case the package redirects to the actual VC checkout.  If the
+optional LISP-DIR argument is non-nil, then check if a related package
+specification has a `:lisp-dir' field to indicate that Lisp files are
+located in a sub directory of the checkout, or the checkout has a sub
+directory named \"lisp\" or \"src\" that contains .el files and return
+that instead."
+  (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
+         (pkg-dir (or (alist-get :vc-dir (package-desc-extras pkg-desc))
+                      (package-desc-dir pkg-desc))))
+    (expand-file-name
+     (or (and lisp-dir
+              (or (plist-get pkg-spec :lisp-dir)
+                  ;; When nothing is specified about a `lisp-dir', then
+                  ;; should heuristically check if there is a
+                  ;; sub-directory with lisp files.  These are
+                  ;; conventionally just called "lisp" or "src".  If
+                  ;; this directory exists and contains non-zero number
+                  ;; of lisp files, we will use that instead of
+                  ;; `pkg-dir'.
+                  (catch 'done
+                    (dolist (name '("lisp" "src"))
+                      (when-let* ((dir (expand-file-name name pkg-dir))
+                                  ((file-directory-p dir))
+                                  ((directory-files
+                                    dir nil "\\`[^.].+\\.el\\'" t 1)))
+                        ;; We won't use `dir', since dir is an absolute
+                        ;; path and we don't want `lisp-dir' to depend
+                        ;; on the current location of the package
+                        ;; installation, ie. to break if moved around
+                        ;; the file system or between installations.
+                        (throw 'done name))))))
+         ".")
+     pkg-dir)))
+
 (defun package-vc--read-archive-data (archive)
   "Update `package-vc--archive-spec-alists' for ARCHIVE.
 This function is meant to be used as a hook for `package-read-archive-hook'."
@@ -219,9 +256,7 @@ asynchronously."
   ;; FIXME: vc should be extended to allow querying the commit of a
   ;; directory (as is possible when dealing with git repositories).
   ;; This should be a fallback option.
-  (cl-loop with dir = (let ((pkg-spec (package-vc--desc->spec pkg-desc)))
-                        (or (plist-get pkg-spec :lisp-dir)
-                            (package-desc-dir pkg-desc)))
+  (cl-loop with dir = (package-vc--checkout-dir pkg-desc 'lisp-dir)
            for file in (directory-files dir t "\\.el\\'" t)
            when (vc-working-revision file) return it
            finally return "unknown"))
@@ -243,10 +278,7 @@ asynchronously."
   (cl-assert (package-vc-p pkg-desc))
   (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
          (name (symbol-name (package-desc-name pkg-desc)))
-         (directory (expand-file-name
-                     (or (plist-get pkg-spec :lisp-dir) ".")
-                     (or (package-desc-dir pkg-desc)
-                         (expand-file-name name package-user-dir))))
+         (directory (package-vc--checkout-dir pkg-desc 'lisp-dir))
          (file (expand-file-name
                 (or (plist-get pkg-spec :main-file)
                     (concat name ".el"))
@@ -272,7 +304,9 @@ asynchronously."
 
 (defun package-vc--generate-description-file (pkg-desc pkg-file)
   "Generate a package description file for PKG-DESC and write it to PKG-FILE."
-  (let ((name (package-desc-name pkg-desc)))
+  (let ((name (package-desc-name pkg-desc))
+        (main-file (let ((file (package-vc--main-file pkg-desc)))
+                     (and (file-exists-p file) file))))
     (when (equal (package-desc-summary pkg-desc) package--default-summary)
       ;; We unset the package description if it is just the default
       ;; summary, so that the following heuristic can take effect.
@@ -280,13 +314,12 @@ asynchronously."
     ;; Infer the package description if missing.
     (unless (package-desc-summary pkg-desc)
       (setf (package-desc-summary pkg-desc)
-            (let ((main-file (package-vc--main-file pkg-desc)))
-              (or (package-desc-summary pkg-desc)
-                  (and-let* ((pkg (cadr (assq name package-archive-contents))))
-                    (package-desc-summary pkg))
-                  (and main-file (file-exists-p main-file)
-                       (lm-summary main-file))
-                  package--default-summary))))
+            (or (package-desc-summary pkg-desc)
+                (and-let* ((pkg (cadr (assq name package-archive-contents))))
+                  (package-desc-summary pkg))
+                (and main-file
+                     (lm-summary main-file))
+                package--default-summary)))
     (let ((print-level nil)
           (print-quoted t)
           (print-length nil))
@@ -296,7 +329,7 @@ asynchronously."
         (replace-regexp-in-string
          "-pkg\\.el\\'" ".el"
          (file-name-nondirectory pkg-file))
-        "  -*- no-byte-compile: t -*-\n"
+        "  -*- no-byte-compile: t; lexical-binding: t -*-\n"
         (prin1-to-string
          (nconc
           (list 'define-package
@@ -316,10 +349,30 @@ asynchronously."
            (let ((extras (copy-alist (package-desc-extras pkg-desc))))
              (setf (alist-get :commit extras)
                    (package-vc-commit pkg-desc))
+             (when-let* (((null (alist-get :maintainer extras)))
+                         (main-file)
+                         (maintainers (lm-maintainers main-file)))
+               ;; Like in `package-buffer-info', for backward
+               ;; compatibility, use a single cons-cell if there's
+               ;; only one maintainer.
+               (setf (alist-get :maintainer extras)
+                     (if (cdr maintainers)
+                         maintainers
+                       (car maintainers))))
              extras)
            )))
         "\n")
        nil pkg-file nil 'silent))))
+
+(defcustom package-vc-make-program nil
+  "Name of the GNU \"make\" executable on the system.
+
+If the name of the GNU \"make\" executable on the current system is
+neither \"make\" nor \"gmake\" then you will need to customize this
+variable in order to build some VC packages."
+  :type '(choice (const :tag "Auto-detect" nil)
+                 (string :tag "Name of GNU 'make' on current system"))
+  :version "31.1")
 
 (defcustom package-vc-allow-build-commands nil
   "Whether to run extra build commands when installing VC packages.
@@ -351,15 +404,18 @@ to `package-vc-install' directly."
   "Process :make and :shell-command in PKG-SPEC.
 PKG-DESC is the package descriptor for the package that is being
 prepared."
-  (let ((target (plist-get pkg-spec :make))
+  (let ((default-directory (package-vc--checkout-dir pkg-desc))
+        (target (plist-get pkg-spec :make))
         (cmd (plist-get pkg-spec :shell-command))
-        (buf (format " *package-vc make %s*" (package-desc-name pkg-desc))))
+        (buf (format " *package-vc make: %s*" (package-desc-name pkg-desc)))
+        (makexe (or package-vc-make-program
+                    (seq-find #'executable-find '("gmake" "make")))))
     (when (or cmd target)
       (with-current-buffer (get-buffer-create buf)
         (erase-buffer)
         (when (and cmd (/= 0 (call-process shell-file-name nil t nil shell-command-switch cmd)))
           (warn "Failed to run %s, see buffer %S" cmd (buffer-name)))
-        (when (and target (/= 0 (apply #'call-process "make" nil t nil (if (consp target) target (list target)))))
+        (when (and target (/= 0 (apply #'call-process makexe nil t nil (ensure-list target))))
           (warn "Failed to make %s, see buffer %S" target (buffer-name)))))))
 
 (declare-function org-export-to-file "ox" (backend file))
@@ -369,7 +425,7 @@ prepared."
 FILE can be an Org file, indicated by its \".org\" extension,
 otherwise it's assumed to be an Info file."
   (let* ((pkg-name (package-desc-name pkg-desc))
-         (default-directory (package-desc-dir pkg-desc))
+         (default-directory (package-vc--checkout-dir pkg-desc))
          (docs-directory (file-name-directory (expand-file-name file)))
          (output (expand-file-name (format "%s.info" (file-name-base file))))
          (log-buffer (get-buffer-create (format " *package-vc doc: %s*" pkg-name)))
@@ -455,15 +511,25 @@ this function successfully installs all given dependencies)."
     (mapc #'package-install-from-archive to-install)
     missing))
 
-(defun package-vc--unpack-1 (pkg-desc pkg-dir)
-  "Prepare PKG-DESC that is already checked-out in PKG-DIR.
-This includes downloading missing dependencies, generating
-autoloads, generating a package description file (used to
-identify a package as a VC package later on), building
-documentation and marking the package as installed."
-  (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
-         (lisp-dir (plist-get pkg-spec :lisp-dir))
-         (lisp-path (expand-file-name (or lisp-dir ".") pkg-dir))
+(defun package-vc--unpack-1 (pkg-desc)
+  "Prepare PKG-DESC that is already checked-out.
+When there's a relevant pkg-spec it is used for checkout directory.
+Otherwise `dir' slot of PKG-SPEC is used.  This includes downloading
+missing dependencies, generating autoloads, generating a package
+description file (used to identify a package as a VC package later on),
+building documentation and marking the package as installed."
+  (let* (;; Main package directory, under `package-user-dir'.  This is
+         ;; the same `checkout-dir' when package has been installed with
+         ;; `package-vc-install'.
+         (pkg-dir (package-desc-dir pkg-desc))
+         (pkg-spec (package-vc--desc->spec pkg-desc))
+         ;; Directory where the package repository has been checked out.
+         ;; This is the `dir' argument of
+         ;; `package-vc-install-from-checkout'.
+         (checkout-dir (package-vc--checkout-dir pkg-desc))
+         ;; Directory where package's Lisp code resides.  It may be
+         ;; equal to `checkout-dir' or be a subdirectory of it.
+         (lisp-dir (package-vc--checkout-dir pkg-desc 'lisp-dir))
          missing)
 
     ;; In case the package was installed directly from source, the
@@ -475,13 +541,13 @@ documentation and marking the package as installed."
                 (lambda (ignore)
                   (wildcard-to-regexp
                    (if (string-match-p "\\`/" ignore)
-                       (concat pkg-dir ignore)
+                       (concat checkout-dir ignore)
                      (concat "*/" ignore))))
                 (plist-get pkg-spec :ignored-files)
                 "\\|")
              regexp-unmatchable))
           (deps '()))
-      (dolist (file (directory-files lisp-path t "\\.el\\'" t))
+      (dolist (file (directory-files lisp-dir t "\\.el\\'" t))
         (unless (string-match-p ignored-files file)
           (with-temp-buffer
             (insert-file-contents file)
@@ -500,59 +566,111 @@ documentation and marking the package as installed."
                                 missing)
                           missing)))
 
-    (let ((default-directory (file-name-as-directory pkg-dir))
-          (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
-      ;; Generate autoloads
-      (let* ((name (package-desc-name pkg-desc))
-             (auto-name (format "%s-autoloads.el" name)))
-        (package-generate-autoloads name lisp-path)
-        (when lisp-dir
-          (write-region
-           (with-temp-buffer
-             (insert ";; Autoload indirection for package-vc\n\n")
-             (prin1 `(load (expand-file-name
-                            ,(expand-file-name auto-name lisp-dir)
-                            (or (and load-file-name
-                                     (file-name-directory load-file-name))
-                                (car load-path))))
-                    (current-buffer))
-             (buffer-string))
-           nil (expand-file-name auto-name pkg-dir))))
+    ;; Generate autoloads
+    (let* ((name (package-desc-name pkg-desc))
+           (auto-name (format "%s-autoloads.el" name)))
+      (package-generate-autoloads name lisp-dir)
+      ;; There are two cases when we wish to "indirect" the loading of
+      ;; autoload files:
+      ;;
+      ;; 1. a package specification has a `:lisp-dir' entry listing
+      ;; indicting that the actual Lisp code is located in a
+      ;; subdirectory of the checkout,
+      ;;
+      ;; 2. the package has been installed using
+      ;; `package-vc-install-from-checkout' and we want to load the
+      ;; other directory instead -- which is outside of the checkout.
+      ;; We can therefore take file inequality as a sign that we have to
+      ;; set up an indirection.
+      (unless (file-equal-p lisp-dir pkg-dir)
+        (write-region
+         (concat
+          ";; Autoload indirection for package-vc -*- lexical-binding: t -*-\n\n"
+          (prin1-to-string
+           ;; The indirection is just a single load statement to the
+           ;; actual file (we don't want to use symbolic links due to
+           ;; portability reasons).  Detecting which of the two cases
+           ;; mentioned above we are setting up can be done by checking
+           ;; if the directory with the lisp code is a subdirectory of
+           ;; the package directory.
+           `(load ,(if (file-in-directory-p lisp-dir pkg-dir)
+                       `(expand-file-name
+                         ,(file-relative-name
+                           (expand-file-name auto-name lisp-dir)
+                           pkg-dir)
+                         (or (and load-file-name
+                                  (file-name-directory load-file-name))
+                             (car load-path)))
+                     (expand-file-name auto-name lisp-dir)))))
+         nil (expand-file-name auto-name pkg-dir))))
 
-      ;; Generate package file
-      (package-vc--generate-description-file pkg-desc pkg-file)
+    ;; Generate package file
+    (let ((pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
+      (package-vc--generate-description-file pkg-desc pkg-file))
 
-      ;; Process :make and :shell-command arguments before building documentation
-      (when (or (eq package-vc-allow-build-commands t)
-                (memq (package-desc-name pkg-desc)
-                      package-vc-allow-build-commands))
-        (package-vc--make pkg-spec pkg-desc))
+    ;; Process :make and :shell-command arguments before building documentation
+    (when (or (eq package-vc-allow-build-commands t)
+              (memq (package-desc-name pkg-desc)
+                    package-vc-allow-build-commands))
+      (package-vc--make pkg-spec pkg-desc))
 
-      ;; Detect a manual
-      (when (executable-find "install-info")
-        (dolist (doc-file (ensure-list (plist-get pkg-spec :doc)))
-          (package-vc--build-documentation pkg-desc doc-file))))
+    ;; Detect a manual
+    (when (executable-find "install-info")
+      (dolist (doc-file (ensure-list (plist-get pkg-spec :doc)))
+        (package-vc--build-documentation pkg-desc doc-file)))
 
     ;; Remove any previous instance of PKG-DESC from `package-alist'
     (let ((pkgs (assq (package-desc-name pkg-desc) package-alist)))
       (when pkgs
         (setf (cdr pkgs) (seq-remove #'package-vc-p (cdr pkgs)))))
 
+    ;; Remove all compiled files to allow for macros to be used from
+    ;; source files, regardless of order of source files compilation and
+    ;; load ordering.  As a side effect there are no compiled files for
+    ;; source files that no longer exist.
+    (dolist (elc-file (directory-files-recursively
+                       lisp-dir
+                       (rx string-start
+                           (not ".") (zero-or-more anychar) ".elc"
+                           string-end)
+                       nil
+                       (lambda (dir)
+                         (and (file-accessible-directory-p dir)
+                              (not (string-prefix-p "." dir))))))
+        (delete-file elc-file))
+
     ;; Update package-alist.
-    (let ((new-desc (package-load-descriptor pkg-dir)))
+    (let* ((new-desc (package-load-descriptor pkg-dir))
+           (compile-desc (package-desc-create :name (package-desc-name new-desc)
+                                              :dir lisp-dir)))
       ;; Activation has to be done before compilation, so that if we're
       ;; upgrading and macros have changed we load the new definitions
       ;; before compiling.
       (when (package-activate-1 new-desc :reload :deps)
+        ;; `package-activate-1' will reload all necessary package files
+        ;; as long as their stems are relative to of `pkg-dir'.  If
+        ;; that's not the case (for example for packages with different
+        ;; `checkout-dir' or with source files in a sub directory of
+        ;; `pkg-dir'), we want to reload package files  from the
+        ;; `lisp-dir' before compilation.
+        (unless (file-equal-p lisp-dir pkg-dir)
+          (package--reload-previously-loaded compile-desc))
+        ;; `package-activate-1' will add info node as long as dir file
+        ;; exists in `pkg-dir'.  We need to manually add it when
+        ;; `checkout-dir' is in different location.
+        (unless (file-equal-p checkout-dir pkg-dir)
+          (package--add-info-node checkout-dir))
         ;; FIXME: Compilation should be done as a separate, optional, step.
         ;; E.g. for multi-package installs, we should first install all packages
         ;; and then compile them.
-        (package--compile new-desc)
+        (package--compile compile-desc)
         (when package-native-compile
-          (package--native-compile-async new-desc))
+          (package--native-compile-async compile-desc))
         ;; After compilation, load again any files loaded by
-        ;; `activate-1', so that we use the byte-compiled definitions.
-        (package--reload-previously-loaded new-desc)))
+        ;; `package-activate-1', so that we use the byte-compiled
+        ;; definitions.  This time we'll use `compile-desc' straight
+        ;; away.
+        (package--reload-previously-loaded compile-desc)))
 
     ;; Mark package as selected
     (let ((name (package-desc-name pkg-desc)))
@@ -572,12 +690,12 @@ documentation and marking the package as installed."
                       (lm-header "version"))))
                (vc-working-revision main-file)
                (if missing
-                    (format
-                     " Failed to install the following dependencies: %s"
-                     (mapconcat
-                      (lambda (p)
-                        (format "%s (%s)" (car p) (cadr p)))
-                      missing ", "))
+                   (format
+                    " Failed to install the following dependencies: %s"
+                    (mapconcat
+                     (lambda (p)
+                       (format "%s (%s)" (car p) (cadr p)))
+                     missing ", "))
                  "")))
     t))
 
@@ -632,10 +750,9 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
     (let ((copy (copy-package-desc pkg-desc)))
       (setf (package-desc-kind copy) 'vc
             pkg-desc copy)))
-  (pcase-let* (((map :lisp-dir) pkg-spec)
-               (name (package-desc-name pkg-desc))
-               (dirname (package-desc-full-name pkg-desc))
-               (pkg-dir (file-name-as-directory (expand-file-name dirname package-user-dir))))
+  (let* ((name (package-desc-name pkg-desc))
+         (dirname (package-desc-full-name pkg-desc))
+         (pkg-dir (file-name-as-directory (expand-file-name dirname package-user-dir))))
     (when (string-empty-p name)
       (user-error "Empty package name"))
     (setf (package-desc-dir pkg-desc) pkg-dir)
@@ -656,33 +773,15 @@ abort installation?" name))
         (delete-directory pkg-dir t)
         (user-error "Installation aborted")))
 
-    ;; When nothing is specified about a `lisp-dir', then should
-    ;; heuristically check if there is a sub-directory with lisp
-    ;; files.  These are conventionally just called "lisp" or "src".
-    ;; If this directory exists and contains non-zero number of lisp
-    ;; files, we will use that instead of `pkg-dir'.
-    (catch 'done
-      (dolist (name '("lisp" "src"))
-        (when-let* (((null lisp-dir))
-                    (dir (expand-file-name name pkg-dir))
-                    ((file-directory-p dir))
-                    ((directory-files dir nil "\\`[^.].+\\.el\\'" t 1)))
-          ;; We won't use `dir', since dir is an absolute path and we
-          ;; don't want `lisp-dir' to depend on the current location of
-          ;; the package installation, ie. to break if moved around the
-          ;; file system or between installations.
-          (throw 'done (setq lisp-dir name)))))
-
     ;; Ensure we have a copy of the package specification
-    (unless (seq-some (lambda (alist) (equal (alist-get name (cdr alist)) pkg-spec))
-                      package-vc--archive-spec-alists)
+    (when (null (package-vc--desc->spec pkg-desc name))
       (customize-save-variable
        'package-vc-selected-packages
        (cons (cons name pkg-spec)
              (seq-remove (lambda (spec) (string= name (car spec)))
                          package-vc-selected-packages))))
 
-    (package-vc--unpack-1 pkg-desc pkg-dir)))
+    (package-vc--unpack-1 pkg-desc)))
 
 (defun package-vc--read-package-name (prompt &optional allow-url installed)
   "Query the user for a VC package and return a name with PROMPT.
@@ -750,7 +849,7 @@ with the remote repository state."
   ;;
   ;; If there is a better way to do this, it should be done.
   (cl-assert (package-vc-p pkg-desc))
-  (letrec ((pkg-dir (package-desc-dir pkg-desc))
+  (letrec ((checkout-dir (package-vc--checkout-dir pkg-desc))
            (vc-flags)
            (vc-filter-command-function
             (lambda (command file-or-list flags)
@@ -758,18 +857,19 @@ with the remote repository state."
               (list command file-or-list flags)))
            (post-upgrade
             (lambda (_command _file-or-list flags)
-              (when (and (file-equal-p pkg-dir default-directory)
+              (when (and (file-equal-p checkout-dir default-directory)
                          (eq flags vc-flags))
                 (unwind-protect
                     (with-demoted-errors "Failed to activate: %S"
-                      (package-vc--unpack-1 pkg-desc pkg-dir))
+                      (package-vc--unpack-1 pkg-desc))
                   (remove-hook 'vc-post-command-functions post-upgrade))))))
     (add-hook 'vc-post-command-functions post-upgrade)
     (with-demoted-errors "Failed to fetch: %S"
       (require 'vc-dir)
       (with-current-buffer (vc-dir-prepare-status-buffer
-                            (format " *package-vc-dir: %s*" pkg-dir)
-                            pkg-dir (vc-responsible-backend pkg-dir))
+                            (format " *package-vc-dir: %s*" checkout-dir)
+                            checkout-dir
+                            (vc-responsible-backend checkout-dir))
         (vc-pull)))))
 
 (defun package-vc--archives-initialize ()
@@ -922,6 +1022,7 @@ one created by `package-vc-checkout'.  If invoked interactively with a
 prefix argument, prompt the user for the NAME of the package to set up.
 If the optional argument INTERACTIVE is non-nil (as happens
 interactively), DIR must be an absolute file name."
+  (declare (obsolete "use the User Lisp directory instead." "31.1"))
   (interactive (let ((dir (expand-file-name (read-directory-name "Directory: "))))
                  (list dir (and current-prefix-arg
                                 (let ((base (file-name-base
@@ -934,21 +1035,22 @@ interactively), DIR must be an absolute file name."
   (package-vc--archives-initialize)
   (let* ((dir (if interactive dir (expand-file-name dir))) ;avoid double expansion
          (name (or name (file-name-base (directory-file-name dir))))
-         (pkg-dir (file-name-concat package-user-dir name))
-         (package-vc-selected-packages
-          (cons (list name :lisp-dir dir)
-                package-vc-selected-packages)))
+         (pkg-dir (file-name-concat package-user-dir name)))
     (when (file-exists-p pkg-dir)
       (if (yes-or-no-p (format "Overwrite previous checkout for package `%s'?" name))
           (package--delete-directory pkg-dir)
         (error "There already exists a checkout for %s" name)))
     (make-directory pkg-dir t)
+    ;; We store a custom package specification so that it is available
+    ;; for `package-vc--unpack-1' as well as `package-vc--checkout-dir'
+    ;; can later retrieve the actual checkout.
     (package-vc--unpack-1
      (package-desc-create
       :name (intern name)
+      :extras (and (not (file-equal-p pkg-dir dir))
+                   `((:vc-dir . ,dir)))
       :dir pkg-dir
-      :kind 'vc)
-     (file-name-as-directory pkg-dir))))
+      :kind 'vc))))
 
 ;;;###autoload
 (defun package-vc-rebuild (pkg-desc)
@@ -960,7 +1062,7 @@ command does not fetch new revisions from a remote server.  That
 is the responsibility of `package-vc-upgrade'.  Interactively,
 prompt for the name of the package to rebuild."
   (interactive (list (package-vc--read-package-desc "Rebuild package: " t)))
-  (package-vc--unpack-1 pkg-desc (package-desc-dir pkg-desc)))
+  (package-vc--unpack-1 pkg-desc))
 
 ;;;###autoload
 (defun package-vc-prepare-patch (pkg-desc subject revisions)
@@ -980,7 +1082,7 @@ See also `vc-prepare-patch'."
          (and (not vc-prepare-patches-separately)
               (read-string "Subject: " "[PATCH] " nil nil t))
          (vc-prepare-patch-prompt-revisions)))
-  (let ((default-directory (package-desc-dir pkg-desc)))
+  (let ((default-directory (package-vc--checkout-dir pkg-desc)))
     (vc-prepare-patch (package-maintainers pkg-desc t)
                       subject revisions)))
 
@@ -988,7 +1090,8 @@ See also `vc-prepare-patch'."
   "Call `vc-log-incoming' for the package PKG-DESC."
   (interactive
    (list (package-vc--read-package-desc "Incoming log for package: " t)))
-  (let ((default-directory (package-desc-dir pkg-desc)))
+  (let ((default-directory (package-vc--checkout-dir pkg-desc))
+        (vc-deduce-backend-nonvc-modes t))
     (call-interactively #'vc-log-incoming)))
 
 (provide 'package-vc)

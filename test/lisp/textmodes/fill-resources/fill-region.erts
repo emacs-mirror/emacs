@@ -1,6 +1,15 @@
 Point-Char: |
 
-Name: fill region
+Name: fill-region
+Code:
+  (lambda ()
+    (fill-region
+     (point)
+     (progn
+       (goto-char (point-max))
+       (forward-line -1)
+       (beginning-of-line)
+       (point))))
 
 =-=
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
@@ -18,6 +27,41 @@ eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
 eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
+=-=-=
+
+Name: fill-region - fill-region-as-paragraph-function
+Code:
+  (lambda ()
+    (setq-local fill-region-as-paragraph-function
+                #'fill-region-as-paragraph-semlf)
+    (fill-region
+     (point)
+     (progn
+       (goto-char (point-max))
+       (forward-line -1)
+       (beginning-of-line)
+       (point))))
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
+
+|Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore magna aliqua.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore magna aliqua.
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua.
 =-=-=

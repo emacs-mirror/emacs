@@ -1,6 +1,6 @@
 ;;; misearch.el --- isearch extensions for multi-buffer search  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2026 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Keywords: matching
@@ -406,8 +406,7 @@ modified buffer to be able to use unsaved changes."
 (declare-function diff-setup-whitespace "diff-mode" ())
 (declare-function diff-setup-buffer-type "diff-mode" ())
 
-(defvar coding-system--for-buffer-diff nil
-  "Used to pass encoding down to callees of `multi-file-diff-no-select'.")
+(defvar diff--coding-system-for-buffer) ; from diff.el
 
 ;;;###autoload
 (defun multi-file-replace-as-diff (files from-string replacements regexp-flag delimited-flag)
@@ -446,7 +445,7 @@ as in `perform-replace'."
              ;; Make sure any supported characters can be written to a
              ;; file without asking the user to select a safe
              ;; coding-system.
-             (coding-system--for-buffer-diff 'utf-8-emacs))
+             (diff--coding-system-for-buffer 'utf-8-emacs))
         (when non-file-buffer (setq file-name (buffer-name file-name)))
         (when (or file-exists file-buffer)
           (with-temp-buffer
@@ -519,6 +518,7 @@ variable `diff-switches' are passed to the diff command,
 otherwise SWITCHES is used.  SWITCHES can be a string or a list
 of strings.  BUF should be non-nil.  LABEL-OLD and LABEL-NEW
 specify labels to use for file names."
+  (require 'diff)
   (unless (bufferp new) (setq new (expand-file-name new)))
   (unless (bufferp old) (setq old (expand-file-name old)))
   (or switches (setq switches diff-switches)) ; If not specified, use default.
@@ -548,7 +548,7 @@ specify labels to use for file names."
                      " ")))
     (with-current-buffer buf
       (let ((inhibit-read-only t)
-            (coding-system-for-read (or coding-system--for-buffer-diff
+            (coding-system-for-read (or diff--coding-system-for-buffer
                                         coding-system-for-read)))
         (insert command "\n")
         (call-process shell-file-name nil buf nil

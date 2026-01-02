@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2025 Free Software Foundation, Inc.
+# Copyright (C) 2002-2026 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1383,6 +1383,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/issymlink.c
   lib/issymlink.h
   lib/issymlinkat.c
+  lib/issymlinkat.h
   lib/lchmod.c
   lib/libc-config.h
   lib/limits.in.h

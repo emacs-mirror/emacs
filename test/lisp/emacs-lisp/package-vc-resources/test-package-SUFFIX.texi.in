@@ -1,0 +1,11 @@
+\input texinfo    @c -*- texinfo -*-
+@settitle Info for test-package-SUFFIX
+@direntry
+* Test-package-SUFFIX: (test-package-SUFFIX). test-package-SUFFIX.
+@end direntry
+
+@chapter First chapter for test-package-SUFFIX
+  First test text.
+
+@include test-package-SUFFIX-inc.texi
+@bye

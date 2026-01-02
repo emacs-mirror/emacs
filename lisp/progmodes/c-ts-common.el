@@ -1,6 +1,6 @@
 ;;; c-ts-common.el --- Utilities for C like Languages  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; Maintainer : 付禹安 (Yuan Fu) <casouri@gmail.com>
 ;; Package    : emacs
@@ -254,7 +254,7 @@ This function should be called at BOL.  Used by
    ;; Prefix: same.
    ((looking-at (rx (* (syntax whitespace))
                     "//"
-                    (* "/")
+                    (* (or "/" "!")) ; Support //! style comments in Rust.
                     (* (syntax whitespace))))
     (match-string 0))
    ;; (3)
@@ -691,8 +691,8 @@ This rule works for a wide range of scenarios including complex
 situations.  Major modes should use this as the fallback rule, and add
 exception rules before it to cover the cases it doesn't apply.
 
-This rule tries to be smart and ignore proprocessor node in some
-situations.  By default, any node that has \"proproc\" in its type are
+This rule tries to be smart and ignore preprocessor node in some
+situations.  By default, any node that has \"preproc\" in its type are
 considered a preprocessor node.  If that heuristic is inaccurate, define
 a `preproc' thing in `treesit-thing-settings', and this rule will use
 the thing definition instead.

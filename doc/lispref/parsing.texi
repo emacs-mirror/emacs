@@ -1,6 +1,6 @@
 @c -*- mode: texinfo -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2021--2025 Free Software Foundation, Inc.
+@c Copyright (C) 2021--2026 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Parsing Program Source
 @chapter Parsing Program Source
@@ -1599,7 +1599,7 @@ loops, it is important to compile that query, because a compiled query
 is much faster than an uncompiled one.  A compiled query can be used
 anywhere a query is accepted.
 
-@defun treesit-query-compile language query
+@defun treesit-query-compile language query &optional eager
 This function compiles @var{query} for @var{language} into a compiled
 query object and returns it.
 
@@ -1607,17 +1607,33 @@ This function raises the @code{treesit-query-error} error if
 @var{query} is malformed.  The signal data contains a description of
 the specific error.  You can use @code{treesit-query-validate} to
 validate and debug the query.
+
+By default, Emacs lazily compiles @var{query}, meaning @var{query} isn't
+actually compiled until it's used.  To compile @var{query} immediately,
+pass non-@code{nil} for @var{eager}.
+
+@findex treesit-query-eagerly-compiled-p
+To tell an actually compiled query apart from one that hasn't been
+compiled, use @code{treesit-query-eagerly-compiled-p}.
+
+If @var{query} is malformed or language can't be loaded, this function
+signals @code{treesit-query-error}.  Obviously this will only happen
+when @var{eager} is non-@code{nil}, since otherwise Emacs doesn't
+actually compile @var{query}.
 @end defun
 
 @findex treesit-query-language
+@findex treesit-query-source
 @findex treesit-query-expand
 @findex treesit-pattern-expand
 @findex treesit-query-valid-p
 There are some additional functions for queries:
 @code{treesit-query-language} returns the language of a query;
-@code{treesit-query-valid-p} checks whether a query is valid;
-@code{treesit-query-expand} converts a s-expression query into the
-string format; and @code{treesit-pattern-expand} converts a pattern.
+@code{treesit-query-source} returns the original string or sexp source
+query of a compiled query; @code{treesit-query-valid-p} checks whether a
+query is valid; @code{treesit-query-expand} converts a s-expression
+query into the string format; and @code{treesit-pattern-expand} converts
+a pattern.
 
 @findex treesit-query-first-valid
 Tree-sitter grammars change overtime.  To support multiple possible

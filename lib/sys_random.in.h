@@ -1,5 +1,5 @@
 /* Substitute for <sys/random.h>.
-   Copyright (C) 2020-2025 Free Software Foundation, Inc.
+   Copyright (C) 2020-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -94,7 +94,6 @@ _GL_CXXALIAS_SYS (getrandom, ssize_t,
 _GL_CXXALIASWARN (getrandom);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef getrandom
 # if HAVE_RAW_DECL_GETRANDOM
 _GL_WARN_ON_USE (getrandom, "getrandom is unportable - "
                  "use gnulib module getrandom for portability");

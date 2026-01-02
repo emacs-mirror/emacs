@@ -1,6 +1,6 @@
 /* NeXT/Open/GNUstep / macOS communication module.      -*- coding: utf-8 -*-
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2025 Free Software
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2026 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1683,27 +1683,17 @@ ns_destroy_window (struct frame *f)
   ns_window_num--;
 }
 
-
-void
-ns_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
-/* --------------------------------------------------------------------------
-     External: Position the window
-   -------------------------------------------------------------------------- */
+static NSPoint
+compute_offset (struct frame *f, NSView *view, int xoff, int yoff)
 {
-  NSView *view = FRAME_NS_VIEW (f);
-  NSRect windowFrame = [[view window] frame];
-  NSPoint topLeft;
-
-  NSTRACE ("ns_set_offset");
-
-  block_input ();
-
   /* If there is no parent frame then just convert to screen
      coordinates, UNLESS we have negative values, in which case I
      think it's best to position from the bottom and right of the
      current screen rather than the main screen or whole display.  */
 
   NSRect parentRect = ns_parent_window_rect (f);
+  NSRect windowFrame = [[view window] frame];
+  NSPoint topLeft;
 
   if (f->size_hint_flags & XNegative)
     topLeft.x = NSMaxX (parentRect) - NSWidth (windowFrame) + xoff;
@@ -1728,13 +1718,31 @@ ns_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
     topLeft.x = 100;
 #endif
 
+  return topLeft;
+}
+
+void
+ns_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
+/* --------------------------------------------------------------------------
+     External: Position the window
+   -------------------------------------------------------------------------- */
+{
+  NSView *view = FRAME_NS_VIEW (f);
+
+  NSTRACE ("ns_set_offset");
+
+  if (view == nil)
+    return;
+
+  block_input ();
+
+  NSPoint topLeft = compute_offset (f, view, xoff, yoff);
   NSTRACE_POINT ("setFrameTopLeftPoint", topLeft);
   [[view window] setFrameTopLeftPoint:topLeft];
   f->size_hint_flags &= ~(XNegative|YNegative);
 
   unblock_input ();
 }
-
 
 static void
 ns_set_window_size (struct frame *f, bool change_gravity,
@@ -1775,6 +1783,47 @@ ns_set_window_size (struct frame *f, bool change_gravity,
   change_frame_size (f, width, height, false, NO, false);
 
   [window setFrame:frameRect display:NO];
+
+  unblock_input ();
+}
+
+static void
+ns_set_window_size_and_position (struct frame *f,
+				 int width, int height)
+/* --------------------------------------------------------------------------
+   Adjust window pixelwise size and position in one operation.
+   -------------------------------------------------------------------------- */
+{
+  EmacsView *view = FRAME_NS_VIEW (f);
+  NSWindow *window = [view window];
+
+  NSTRACE ("ns_set_window_size_and_position");
+
+  if (view == nil)
+    return;
+
+  block_input ();
+
+  /* Both window frame origin, and the rect that setFrame accepts are
+     anchored to the bottom-left corner of the window.  */
+  NSPoint topLeft = compute_offset (f, view, f->left_pos, f->top_pos);
+  NSPoint bottomLeft = NSMakePoint(topLeft.x,
+				   /* text-area pixels + decorations. */
+				   topLeft.y - (height
+						+ FRAME_NS_TITLEBAR_HEIGHT(f)
+						+ FRAME_TOOLBAR_HEIGHT(f)));
+  NSRect frameRect = [window frameRectForContentRect:NSMakeRect (bottomLeft.x,
+								 bottomLeft.y,
+								 width,
+								 height)];
+  if (f->output_data.ns->zooming)
+    f->output_data.ns->zooming = 0;
+  /* Usually it seems safe to delay changing the frame size, but when a
+     series of actions are taken with no redisplay between them then we
+     can end up using old values so don't delay here.  */
+  change_frame_size (f, width, height, false, NO, false);
+  [window setFrame:frameRect display:NO];
+  f->size_hint_flags &= ~(XNegative|YNegative);
 
   unblock_input ();
 }
@@ -3914,7 +3963,7 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
 	  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
 #ifdef NS_IMPL_COCOA
 	  /* On cocoa emacs the stipple is stored as a mask CGImage.
-	     First we want to clear the background with the bg colour */
+	     First we want to clear the background with the bg color.  */
 	  [[NSColor colorWithUnsignedLong:face->background] set];
 	  r = NSMakeRect (s->x, s->y + box_line_width,
 			  s->background_width,
@@ -3935,7 +3984,7 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
 	  CGContextClipToRect (context, r);
 	  CGContextScaleCTM (context, 1, -1);
 
-	  /* Stamp the foreground colour using the stipple mask */
+	  /* Stamp the foreground color using the stipple mask */
 	  [[NSColor colorWithUnsignedLong:face->foreground] set];
 	  CGRect imageSize = CGRectMake (0, 0, CGImageGetWidth (mask),
 					 CGImageGetHeight (mask));
@@ -5727,6 +5776,7 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->fullscreen_hook = ns_fullscreen_hook;
   terminal->iconify_frame_hook = ns_iconify_frame;
   terminal->set_window_size_hook = ns_set_window_size;
+  terminal->set_window_size_and_position_hook = ns_set_window_size_and_position;
   terminal->set_frame_offset_hook = ns_set_offset;
   terminal->set_frame_alpha_hook = ns_set_frame_alpha;
   terminal->set_new_font_hook = ns_new_font;
@@ -9583,6 +9633,14 @@ ns_in_echo_area (void)
 #ifdef NS_IMPL_COCOA
       if ([self respondsToSelector:@selector(setTabbingMode:)])
         [self setTabbingMode:NSWindowTabbingModeDisallowed];
+#endif
+      /* Always show the toolbar below the window title.  This is needed
+	 on Mac OS 11+ where the toolbar style is decided by the system
+	 (which is unpredictable) and the newfangled "compact" toolbar
+	 may be chosen (which is undesirable).  */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 110000
+      if ([self respondsToSelector:@selector(setToolbarStyle:)])
+	[self setToolbarStyle: NSWindowToolbarStyleExpanded];
 #endif
     }
 

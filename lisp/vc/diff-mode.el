@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -199,10 +199,11 @@ The default \"-b\" means to ignore whitespace-only changes,
 ;; practical uses for `diff-minor-mode': bug#34080).
 
 (defvar-keymap diff-mode-shared-map
-  :doc "Additional bindings for read-only `diff-mode' buffers.
+  :doc "Bindings for read-only `diff-mode' buffers.
 These bindings are also available with an ESC prefix
 (i.e. a \\=`M-' prefix) in read-write `diff-mode' buffers,
-and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'."
+and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'.
+See also `diff-mode-read-only-map'."
   "n" #'diff-hunk-next
   "N" #'diff-file-next
   "p" #'diff-hunk-prev
@@ -215,13 +216,8 @@ and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'."
   "{" #'diff-file-prev
   "RET" #'diff-goto-source
   "<mouse-2>" #'diff-goto-source
-  "W" #'widen
-  "w" #'diff-kill-ring-save
   "o" #'diff-goto-source                ; other-window
-  "A" #'diff-ediff-patch
-  "r" #'diff-restrict-view
-  "R" #'diff-reverse-direction
-  "<remap> <undo>" #'diff-undo
+  "<remap> <undo>" #'undo-ignore-read-only
 
   ;; The foregoing commands don't affect buffers beyond this one.
   ;; The following command is the only one that has a single-letter
@@ -230,15 +226,26 @@ and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'."
   ;; so that seems okay.  --spwhitton
   "u" #'diff-revert-and-kill-hunk)
 
+;; Not `diff-read-only-mode-map' because there is no such mode
+;; `diff-read-only-mode'; see comment above.
+(defvar-keymap diff-mode-read-only-map
+  :parent diff-mode-shared-map
+  :doc "Additional bindings for read-only `diff-mode' buffers.
+Most of the bindings for read-only `diff-mode' buffers are in
+`diff-mode-shared-map'.  This map contains additional bindings for
+read-only `diff-mode' buffers that are *not* available with an ESC
+prefix (i.e. a \\=`M-' prefix) in read-write `diff-mode' buffers."
+  ;; We don't want the following in read-write `diff-mode' buffers
+  ;; because they hide useful `M-<foo>' global bindings when editing.
+  "W" #'widen
+  "w" #'diff-kill-ring-save
+  "A" #'diff-ediff-patch
+  "r" #'diff-restrict-view
+  "R" #'diff-reverse-direction)
+
 (defvar-keymap diff-mode-map
   :doc "Keymap for `diff-mode'.  See also `diff-mode-shared-map'."
-  "ESC" (let ((map (define-keymap :parent diff-mode-shared-map)))
-          ;; We want to inherit most bindings from
-          ;; `diff-mode-shared-map', but not all since they may hide
-          ;; useful `M-<foo>' global bindings when editing.
-          (dolist (key '("A" "r" "R" "W" "w"))
-            (keymap-set map key nil))
-          map)
+  "ESC" diff-mode-shared-map
   ;; From compilation-minor-mode.
   "C-c C-c" #'diff-goto-source
   ;; By analogy with the global C-x 4 a binding.
@@ -911,7 +918,7 @@ overlaps; otherwise delete all hunks except the current one.
 When calling from Lisp, pass BEG and END as the bounds of the region in
 which to delete hunks; BEG and END omitted or nil means to delete all
 the hunks but the one which contains point."
-  (interactive (list (use-region-beginning) (use-region-end)))
+  (interactive "R")
   (when (buffer-narrowed-p)
     (user-error "Command is not safe in a narrowed buffer"))
   (let ((inhibit-read-only t))
@@ -980,14 +987,17 @@ data such as \"Index: ...\" and such."
       (goto-char orig)
       (signal (car err) (cdr err)))))
 
-(defun diff-file-kill ()
-  "Kill current file's hunks."
+(defun diff-file-kill (&optional delete)
+  "Kill current file's hunks.
+When called from Lisp with optional argument DELETE non-nil, delete
+them, instead."
   (interactive)
   (if (not (diff--some-hunks-p))
       (error "No hunks")
     (diff-beginning-of-hunk t)
     (let ((inhibit-read-only t))
-      (apply #'kill-region (diff-bounds-of-file)))
+      (apply (if delete #'delete-region #'kill-region)
+             (diff-bounds-of-file)))
     (ignore-errors (diff-beginning-of-hunk t))))
 
 (defun diff-kill-junk ()
@@ -1052,7 +1062,7 @@ data such as \"Index: ...\" and such."
 (defvar diff-remembered-defdir nil)
 
 (defun diff-filename-drop-dir (file)
-  (when (string-match "/" file) (substring file (match-end 0))))
+  (and (string-match "[/\\]" file) (substring file (match-end 0))))
 
 (defun diff-merge-strings (ancestor from to)
   "Merge the diff between ANCESTOR and FROM into TO.
@@ -1209,6 +1219,21 @@ Optional arguments OLD and NOPROMPT are passed on to
                          (ignore-errors (diff-file-next)))
                        (point)))))
 
+(defun diff-kill-creations-deletions (&optional delete)
+  "Kill all hunks for file creations and deletions.
+Optional argument DELETE is passed on to `diff-file-kill'."
+  (save-excursion
+    (cl-loop initially
+             (goto-char (point-min))
+             (ignore-errors (diff-file-next))
+             for (name1 name2) = (diff-hunk-file-names)
+             if (or (equal name1 null-device)
+                    (equal name2 null-device))
+             do (diff-file-kill delete)
+             else if (eq (prog1 (point)
+                           (ignore-errors (diff-file-next)))
+                         (point))
+             do (cl-return))))
 
 (defun diff-ediff-patch ()
   "Call `ediff-patch-file' on the current buffer."
@@ -1597,7 +1622,8 @@ else cover the whole buffer."
       ;; it's safer not to do it on big changes, e.g. when yanking a big
       ;; diff, or when the user edits the header, since we might then
       ;; screw up perfectly correct values.  --Stef
-      (when (ignore-errors (diff-beginning-of-hunk t))
+      (when (and (not track-changes-undo-only)
+                 (ignore-errors (diff-beginning-of-hunk t)))
         (let* ((style (if (looking-at "\\*\\*\\*") 'context))
                (start (line-beginning-position (if (eq style 'context) 3 2)))
                (mid (if (eq style 'context)
@@ -1642,7 +1668,7 @@ else cover the whole buffer."
 
 (defvar-keymap diff-read-only-map
   :doc "Additional bindings for read-only `diff-mode' buffers."
-  :keymap (make-composed-keymap diff-mode-shared-map special-mode-map))
+  :keymap (make-composed-keymap diff-mode-read-only-map special-mode-map))
 
 ;; It should be lower than `outline-minor-mode' and `view-mode'.
 (or (assq 'diff-mode-read-only minor-mode-map-alist)
@@ -1895,6 +1921,7 @@ Only works for unified diffs."
                           (eq (char-after) ?\n)
                           (> before 0) (> after 0))
                      (decf before) (decf after) t)
+                    ((looking-at "\\\\ ") t) ; See `(diffutils)Incomplete Lines'.
                     ((and (zerop before) (zerop after)) nil)
                     ((or (< before 0) (< after 0))
                      (error (if (or (zerop before) (zerop after))
@@ -2160,9 +2187,7 @@ When called from Lisp with optional arguments BEG and END non-nil,
 apply all hunks overlapped by the region from BEG to END as though
 called interactively with an active region delimited by BEG and
 END."
-  (interactive (list current-prefix-arg
-                     (use-region-beginning)
-                     (use-region-end)))
+  (interactive "P\nR")
   (cond*
    ((xor beg end)
     (error "Invalid call to `diff-apply-hunk'"))
@@ -2256,8 +2281,10 @@ With a prefix argument, try to REVERSE the hunk."
   :type 'boolean
   :version "31.1")
 
-(defun diff-revert-and-kill-hunk ()
+(defun diff-revert-and-kill-hunk (&optional beg end)
   "Reverse-apply and then kill the hunk at point.  Save changed buffer.
+Interactively, if the region is active, reverse-apply and kill all
+hunks that the region overlaps.
 
 This command is useful in buffers generated by \\[vc-diff] and \\[vc-root-diff],
 especially when preparing to commit the patch with \\[vc-next-action].
@@ -2268,13 +2295,38 @@ to permanently drop changes you didn't intend, or no longer want.
 
 This is a destructive operation, so by default, this command asks you to
 confirm you really want to reverse-apply and kill the hunk.  You can
-customize `diff-ask-before-revert-and-kill-hunk' to control that."
-  (interactive)
+customize `diff-ask-before-revert-and-kill-hunk' to control that.
+
+When called from Lisp with optional arguments BEG and END non-nil,
+reverse-apply and kill all hunks overlapped by the region from BEG to
+END as though called interactively with an active region delimited by
+BEG and END."
+  (interactive "R")
+  (when (xor beg end)
+    (error "Invalid call to `diff-revert-and-kill-hunk'"))
   (when (or (not diff-ask-before-revert-and-kill-hunk)
-            (yes-or-no-p "Really reverse-apply and kill this hunk?"))
-    (cl-destructuring-bind (beg end) (diff-bounds-of-hunk)
-      (when (null (diff-apply-buffer beg end t))
-        (diff-hunk-kill)))))
+            (y-or-n-p "Really reverse-apply and kill hunk(s)?"))
+    (if beg
+        (save-excursion
+          (goto-char beg)
+          (setq beg (car (diff-bounds-of-hunk)))
+          (goto-char end)
+          (unless (looking-at diff-hunk-header-re)
+            (setq end (cadr (diff-bounds-of-hunk)))))
+      (pcase-setq `(,beg ,end) (diff-bounds-of-hunk)))
+    (when (null (diff-apply-buffer beg end t))
+      ;; Use `diff-hunk-kill' because it properly handles file headers.
+      (goto-char end)
+      (when-let* ((pos (diff--at-diff-header-p)))
+        (goto-char pos))
+      (setq beg (copy-marker beg) end (point-marker))
+      (unwind-protect
+          (cl-loop initially (goto-char beg)
+                   do (diff-hunk-kill)
+                   until (or (< (point) (marker-position beg))
+                             (eql (point) (marker-position end))))
+        (set-marker beg nil)
+        (set-marker end nil)))))
 
 (defun diff-apply-buffer (&optional beg end reverse test-or-no-save)
   "Apply the diff in the entire diff buffer.
@@ -2295,9 +2347,7 @@ changed buffers, `test' or t means to not actually apply or
 reverse-apply any hunks, but return the same information: nil if
 all hunks can be applied, or the number of hunks that can't be
 applied.  Other non-nil values are reserved."
-  (interactive (list (use-region-beginning)
-                     (use-region-end)
-                     current-prefix-arg))
+  (interactive "R\nP")
   (let ((buffer-edits nil)
         (failures 0)
         (diff-refine nil)
@@ -2765,11 +2815,7 @@ Call FUN with two args (BEG and END) for each hunk."
 (defun diff--overlay-auto-delete (ol _after _beg _end &optional _len)
   (delete-overlay ol))
 
-(defun diff-undo (&optional arg)
-  "Perform `undo', ignoring the buffer's read-only status."
-  (interactive "P")
-  (let ((inhibit-read-only t))
-    (undo arg)))
+(define-obsolete-function-alias 'diff-undo #'undo-ignore-read-only "31.1")
 
 ;;;###autoload
 (defcustom diff-add-log-use-relative-names nil
@@ -3060,7 +3106,7 @@ fixed, visit it in a buffer."
 (defun diff--font-lock-prettify (limit)
   (when diff-font-lock-prettify
     ;; FIXME: `window-fringes` uselessly allocates 4 cons cells,
-    ;; but the previous use of `frame-paramter' ended up internally
+    ;; but the previous use of `frame-parameter' ended up internally
     ;; calling `frame-parameters' making it even worse!
     (when (> (car (window-fringes)) 0)
       (save-excursion

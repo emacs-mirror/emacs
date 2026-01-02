@@ -1,0 +1,128 @@
+Point-Char: |
+
+Name: fill-paragraph
+Code:
+  (lambda ()
+    (setq-local fill-column 35)
+    (fill-paragraph))
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+|Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet,
+consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut
+labore et dolore magna aliqua. Ut
+enim ad minim veniam, quis nostrud
+exercitation ullamco laboris nisi
+ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Code:
+  (lambda ()
+    (setq-local sentence-end-double-space t)
+    (fill-paragraph))
+
+Name: fill-paragraph - merge lines
+
+=-=
+abc def.
+abc def.
+=-=
+abc def.  abc def.
+=-=-=
+
+Name: fill-paragraph - merge lines with wide characters
+
+=-=
+あいうえお。
+あいうえお。
+=-=
+あいうえお。あいうえお。
+=-=-=
+
+Code:
+  (lambda ()
+    (setq-local sentence-end-double-space nil)
+    (fill-paragraph))
+
+Name: fill-paragraph - single space - merge lines
+
+=-=
+abc def.
+abc def.
+=-=
+abc def. abc def.
+=-=-=
+
+Name: fill-paragraph - single space - merge lines with wide characters
+
+=-=
+あいうえお。
+あいうえお。
+=-=
+あいうえお。あいうえお。
+=-=-=
+
+Name: fill-paragraph - fill-separate-heterogeneous-words-with-space (Bug#79575)
+Code:
+  (lambda ()
+    (setq-local fill-separate-heterogeneous-words-with-space t)
+    (fill-paragraph))
+
+=-=
+abc def.
+あいうえお。
+=-=
+abc def.  あいうえお。
+=-=-=
+
+Name: fill-paragraph - single space - fill-separate-heterogeneous-words-with-space
+Code:
+  (lambda ()
+    (setq-local fill-separate-heterogeneous-words-with-space t)
+    (setq-local sentence-end-double-space nil)
+    (fill-paragraph))
+
+=-=
+abc def.
+あいうえお。
+=-=
+abc def. あいうえお。
+=-=-=
+
+Name: fill-paragraph - fill-region-as-paragraph-function
+Code:
+  (lambda ()
+    (setq-local fill-region-as-paragraph-function
+                #'fill-region-as-paragraph-semlf)
+    (fill-paragraph))
+
+=-=
+|Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=

@@ -1,6 +1,6 @@
 ;;; subr-tests.el --- Tests for subr.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2026 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -762,6 +762,28 @@ cf. Bug#25477."
     (should-error (eval '(dolist "foo") lb)
                   :type 'wrong-type-argument)))
 
+(ert-deftest subr-tests--dolist--every-element-is-handled ()
+  "Test that `dolist' processes each element of a list in order."
+  (let ((expected-elements '(1 2 3 4)))
+    (dolist (x '(1 2 3 4))
+      (should (equal x (pop expected-elements))))))
+
+(ert-deftest subr-tests--dolist--returns-spec-result ()
+  "Test that `dolist' returns result specified in SPEC."
+  (let ((dolist-result (dolist (x '(1 2 3 4) t)
+                         x))
+        (dolist-no-result (dolist (x '(1 2 3 4))
+                            x)))
+    (should (equal dolist-result t))
+    (should (equal dolist-no-result nil))))
+
+(ert-deftest subr-tests--dolist--does-not-shadow-tail-binding ()
+  "Test that `dolist` does not shadow bindings named `tail'"
+  (let ((tail 0))
+    (dolist (x '(1 2 3 4))
+      (setq tail (+ tail x)))
+    (should (equal tail 10))))
+
 (ert-deftest subr-tests-bug22027 ()
   "Test for https://debbugs.gnu.org/22027 ."
   (let ((default "foo") res)
@@ -1517,7 +1539,75 @@ final or penultimate step during initialization."))
     (should (equal (split-string text seps t trim)
                    '("lexical-binding: t;")))
     (should (equal (split-string text "[ \t\n\r-]*-\\*-[ \t\n\r-]*")
-                   '("" "lexical-binding: t;" "")))))
+                   '("" "lexical-binding: t;" ""))))
+
+  ;; splitting the empty string
+  (should (equal (split-string "" ",") '("")))
+  (should (equal (split-string "" "," t) '()))
+  (should (equal (split-string "," ",") '("" "")))
+  (should (equal (split-string "," "," t) '()))
+  (should (equal (split-string ",," ",") '("" "" "")))
+  (should (equal (split-string ",," "," t) '()))
+  (should (equal (split-string ",," ",+") '("" "")))
+  (should (equal (split-string ",," ",+" t) '()))
+
+  ;; simple
+  (should (equal (split-string "A" ",") '("A")))
+  (should (equal (split-string "A," ",") '("A" "")))
+  (should (equal (split-string "A," "," t) '("A")))
+  (should (equal (split-string "A,B" ",") '("A" "B")))
+
+  (should (equal (split-string ",A,B,,CD" ",") '("" "A" "B" "" "CD")))
+  (should (equal (split-string ",A,B,,CD" "," t) '("A" "B" "CD")))
+  (should (equal (split-string ",A,B,,CD" ",+") '("" "A" "B" "CD")))
+  (should (equal (split-string ",A,B,,CD" ",+" t) '("A" "B" "CD")))
+
+  ;; TRIM
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---"
+                               ",+" nil "-")
+                 '("-" "--A--" "--B--" "-" "--C---D--")))
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---"
+                               ",+" nil "-+")
+                 '("" "A" "B" "" "C---D")))
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---"
+                               ",+" t "-+")
+                 '("A" "B" "C---D")))
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---,"
+                               ",+" nil "-")
+                 '("-" "--A--" "--B--" "-" "--C---D--" "")))
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---,"
+                               ",+" nil "-+")
+                 '("" "A" "B" "" "C---D" "")))
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---,"
+                               ",+" t "-+")
+                 '("A" "B" "C---D")))
+
+  ;; default SEPARATORS forces OMIT-EMPTY to `t'
+  (should (equal (split-string " \nAB\tCDE\f\r\fF  \f\v")
+                 '("AB" "CDE" "F")))
+
+  ;; complex TRIM
+  (should (equal (split-string "A--,--B,//C,D//,E//F,G--H,//I--//J--,//--//--"
+                               "," nil "--\\|//")
+                 '("A" "B" "C" "D" "E//F" "G--H" "I--//J" "--//")))
+
+  ;; TRIM that also matches part of SEPARATORS
+  (should (equal (split-string "-/-A-B-/-C--/--D--" "-/-" nil nil)
+                 '("" "A-B" "C-" "-D--")))
+  (should (equal (split-string "-/-A-B-/-C--/--D--" "-/-" nil "-")
+                 '("" "A-B" "C" "D-")))
+  (should (equal (split-string "-/-A-B-/-C--/--D--" "-/-" nil "-+")
+                 '("" "A-B" "C" "D")))
+
+  ;; When SEPARATORS is the empty string, split on characters and add
+  ;; empty strings first and last because that's how the original
+  ;; implementation worked.  Some code actually uses this on purpose (!) so
+  ;; we probably need to retain that behaviour for a while.
+  (should (equal (split-string "ABC" "")
+                 '("" "A" "B" "C" "")))
+  (should (equal (split-string "ABC" "" t)
+                 '("A" "B" "C")))
+  )
 
 (defun subr--identity (x) x)
 

@@ -1,6 +1,6 @@
 /* Random utility Lisp functions.
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2705,8 +2705,8 @@ plist_put (Lisp_Object plist, Lisp_Object prop, Lisp_Object val)
 }
 
 DEFUN ("put", Fput, Sput, 3, 3, 0,
-       doc: /* Store SYMBOL's PROPNAME property with value VALUE.
-It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
+       doc: /* Store SYMBOL's PROPNAME property with value VALUE and return that value.
+It can later be retrieved with `(get SYMBOL PROPNAME)'.  */)
   (Lisp_Object symbol, Lisp_Object propname, Lisp_Object value)
 {
   CHECK_SYMBOL (symbol);

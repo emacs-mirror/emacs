@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992-1997, 2000-2025 Free Software
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -980,7 +980,7 @@ No guarantee is made about the position on the marked line.
 BODY must ensure this itself if it depends on this.
 
 Search starts at the beginning of the buffer, thus the car of the
-returnede list corresponds to the line nearest to the buffer's bottom.
+returned list corresponds to the line nearest to the buffer's bottom.
 This is also true for (positive and negative) integer values of
 ARG.
 
@@ -2893,13 +2893,13 @@ Keybindings:
     (concat "\\`d'-elete, \\`u'-ndelete, \\`x'-punge, \\`f'-ind, "
             "\\`o'-ther window, \\`R'-ename, \\`C'-opy, \\`h'-elp"))))
 
-(defun dired-undo ()
+(defun dired-undo (&optional arg)
   "Undo in a Dired buffer.
+A numeric ARG serves as a repeat count.
 This doesn't recover lost files, it just undoes changes in the buffer itself.
 You can use it to recover marks, killed lines or subdirs."
-  (interactive nil dired-mode)
-  (let ((inhibit-read-only t))
-    (undo))
+  (interactive "P" dired-mode)
+  (undo-ignore-read-only arg)
   (dired-build-subdir-alist)
   (message "Change in Dired buffer undone.
 Actual changes in files cannot be undone by Emacs."))

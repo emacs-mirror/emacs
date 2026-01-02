@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 1998, 2001--2025 Free Software Foundation,
+@c Copyright (C) 1990--1994, 1998, 2001--2026 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Evaluation
@@ -704,8 +704,7 @@ Here are some examples:
 @end group
 @end example
 
-If a subexpression of a backquote construct has no substitutions or
-splices, it acts like @code{quote} in that it yields conses,
+A backquote construct acts like @code{quote} in that it yields conses,
 vectors and strings that might be shared and should not be modified.
 @xref{Self-Evaluating Forms}.
 

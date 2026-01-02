@@ -1,7 +1,7 @@
 /* Functions to compute MD5 message digest of files or memory blocks.
    according to the definition of MD5 in RFC 1321 from April 1992.
-   Copyright (C) 1995-1997, 1999-2001, 2005-2006, 2008-2025 Free Software
-   Foundation, Inc.
+   Copyright (C) 1995-1997, 1999-2001, 2005-2006, 2008-2026 Free
+   Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This file is free software: you can redistribute it and/or modify
@@ -69,15 +69,14 @@ md5_stream (FILE *stream, void *resblock)
 
   struct md5_ctx ctx;
   md5_init_ctx (&ctx);
-  size_t sum;
 
   /* Iterate over full file contents.  */
+  size_t sum;
   while (1)
     {
       /* We read the file in blocks of BLOCKSIZE bytes.  One call of the
          computation function processes the whole buffer so that with the
          next round of the loop another block can be read.  */
-      size_t n;
       sum = 0;
 
       /* Read block.  Take care for partial reads.  */
@@ -91,7 +90,7 @@ md5_stream (FILE *stream, void *resblock)
           if (feof (stream))
             goto process_partial_block;
 
-          n = fread (buffer + sum, 1, BLOCKSIZE - sum, stream);
+          size_t n = fread (buffer + sum, 1, BLOCKSIZE - sum, stream);
 
           sum += n;
 

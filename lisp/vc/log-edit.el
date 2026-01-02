@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -915,11 +915,12 @@ visible when the *vc-log* buffer pops up."
       (cvs-insert-strings files)
       (special-mode)
       (goto-char (point-min))
-      (save-selected-window
-	(cvs-pop-to-buffer-same-frame buf)
-	(shrink-window-if-larger-than-buffer)
-        (set-window-dedicated-p (selected-window) t)
-	(selected-window)))))
+      (display-buffer buf '((display-buffer-below-selected)
+                            (dedicated . t)
+                            (window-height . shrink-window-if-larger-than-buffer)
+                            (inhibit-same-window . t)
+                            (reusable-frames . nil)
+                            (inhibit-switch-frame . t))))))
 
 (defun log-edit-empty-buffer-p ()
   "Return non-nil if the buffer is \"empty\"."
@@ -1057,20 +1058,29 @@ names into a single entry where they all share the same description.
 Should you need to look at the diffs themselves, they can be found
 in the \"*vc-diff*\" buffer produced by this command."
   (interactive)
-  (change-log-insert-entries
-   (with-current-buffer
-       (let* ((diff-buf nil)
-              ;; Unfortunately, `log-edit-show-diff' doesn't have a
-              ;; NO-SHOW option, so we try to work around it via
-              ;; display-buffer machinery.
-              (display-buffer-overriding-action
-               `(,(lambda (buf alist)
-                    (setq diff-buf buf)
-                    (display-buffer-no-window buf alist))
-                 . ((allow-no-window . t)))))
-         (log-edit-show-diff)
-         diff-buf)
-     (diff-add-log-current-defuns))))
+  (let* ((entries
+          (with-current-buffer
+              (let* ((diff-buf nil)
+                     ;; Unfortunately, `log-edit-show-diff' doesn't have a
+                     ;; NO-SHOW option, so we try to work around it via
+                     ;; display-buffer machinery.
+                     (display-buffer-overriding-action
+                      `(,(lambda (buf alist)
+                           (setq diff-buf buf)
+                           (display-buffer-no-window buf alist))
+                        . ((allow-no-window . t)))))
+                (log-edit-show-diff)
+                diff-buf)
+            (diff-add-log-current-defuns)))
+         (single-line-summary
+          (and (length= entries 1)
+               (length< (cdar entries) 2)
+               (< (point) (save-excursion (rfc822-goto-eoh) (point)))
+               (save-excursion (forward-line 0) (looking-at "Summary:")))))
+    (change-log-insert-entries entries)
+    (when single-line-summary
+      (delete-char -1)
+      (insert " "))))
 
 (defun log-edit-insert-changelog (&optional use-first)
   "Insert a VC commit log message by looking at the ChangeLog.

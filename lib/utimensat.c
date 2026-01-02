@@ -1,5 +1,5 @@
 /* Set the access and modification time of a file relative to directory fd.
-   Copyright (C) 2009-2025 Free Software Foundation, Inc.
+   Copyright (C) 2009-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -85,7 +85,6 @@ rpl_utimensat (int fd, char const *file, struct timespec const times[2],
   static int utimensat_works_really; /* 0 = unknown, 1 = yes, -1 = no.  */
   if (0 <= utimensat_works_really)
     {
-      int result;
 #  if defined __linux__ || defined __sun || defined __NetBSD__
       struct stat st;
       /* As recently as Linux kernel 2.6.32 (Dec 2009), several file
@@ -167,7 +166,7 @@ rpl_utimensat (int fd, char const *file, struct timespec const times[2],
         }
 #   endif
 #  endif
-      result = utimensat (fd, file, times, flag);
+      int result = utimensat (fd, file, times, flag);
       /* Linux kernel 2.6.25 has a bug where it returns EINVAL for
          UTIME_NOW or UTIME_OMIT with non-zero tv_sec, which
          local_utimensat works around.  Meanwhile, EINVAL for a bad

@@ -1,6 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2026 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -311,7 +311,7 @@ Only the value `maybe' can be trusted :-(."
 
 ;; dir-status-files called from vc-dir, which loads vc,
 ;; which loads vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional okstatus proc))
 
 (defun vc-arch-dir-status-files (dir _files callback)
   "Run `tla inventory' for DIR and pass results to CALLBACK.
@@ -320,8 +320,9 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
   (let ((default-directory dir))
     (vc-arch-command t 'async nil "changes"))
   ;; The updating could be done asynchronously.
+  ;; FIXME: Consider `vc-run-delayed-success'.
   (vc-run-delayed
-   (vc-arch-after-dir-status callback)))
+    (vc-arch-after-dir-status callback)))
 
 (defun vc-arch-after-dir-status (callback)
   (let* ((state-map '(("M " . edited)

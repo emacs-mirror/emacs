@@ -1,6 +1,6 @@
 ;;; srecode/expandproto.el --- Expanding prototypes.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007, 2009-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2009-2026 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

@@ -1,6 +1,6 @@
 ;;; tramp-container.el --- Tramp integration for Docker-like containers  -*- lexical-binding: t; -*-
 
-;; Copyright © 2022-2025 Free Software Foundation, Inc.
+;; Copyright © 2022-2026 Free Software Foundation, Inc.
 
 ;; Author: Brian Cully <bjc@kublai.com>
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
@@ -427,8 +427,7 @@ Obey `tramp-kubernetes-context'"
 ;;;###tramp-autoload
 (defun tramp-kubernetes--context-namespace (vec)
   "The kubectl options for context and namespace as string."
-  (mapconcat
-   #'identity
+  (string-join
    (delq nil
 	 `(,(when-let* ((context (tramp-kubernetes--current-context vec)))
 	      (format "--context=%s" context))

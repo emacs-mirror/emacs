@@ -1,6 +1,6 @@
 ;;; use-package-core.el --- A configuration macro for simplifying your .emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2026 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
@@ -1700,7 +1700,10 @@ remote host, call `package-vc-install' instead."
                (spec (if opts (cons name opts) name)))
     (unless (package-installed-p name)
       (if local-path
-          (package-vc-install-from-checkout local-path (symbol-name name))
+          (with-suppressed-warnings ((obsolete package-vc-install-from-checkout))
+            (warn "Support for :vc with :load-path is obsolete.  \
+Use the User Lisp directory instead.")
+            (package-vc-install-from-checkout local-path (symbol-name name)))
         (package-vc-install spec rev)))))
 
 (defun use-package-handler/:vc (name _keyword arg rest state)

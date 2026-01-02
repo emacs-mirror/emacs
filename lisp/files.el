@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -722,12 +722,14 @@ code contained within those files and directories without an explicit
 request by the user.
 One important case when this might happen is when `flymake-mode' is
 enabled (for example, when it is added to a mode hook).
-Each element of the list should be a string:
+
+Each element of the list should be a string naming a file or a directory
+by their abbreviated file names:
 - If it ends in \"/\", it is considered as a directory name and means that
   Emacs should trust all the files whose name has this directory as a prefix.
 - Otherwise, it is considered a file name.
-Use abbreviated file names.  For example, an entry \"~/mycode/\" means
-that Emacs will trust all the files in your directory \"mycode\".
+For example, an entry \"~/mycode/\" means that Emacs will trust all the
+files in the directory \"mycode\" under your home directory.
 This variable can also be set to `:all', in which case Emacs will trust
 all files, which opens a gaping security hole.  Emacs Lisp authors
 should note that this value must never be set by a major or minor mode."
@@ -3213,6 +3215,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
     ("\\.ebrowse\\'" . ebrowse-tree-mode)
     ("#\\*mail\\*" . mail-mode)
     ("\\.g\\'" . antlr-mode)
+    ("\\.g4\\'" . antlr-v4-mode)
     ("\\.mod\\'" . m2-mode)
     ("\\.ses\\'" . ses-mode)
     ("\\.docbook\\'" . sgml-mode)

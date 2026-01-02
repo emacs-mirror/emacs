@@ -1,6 +1,6 @@
 ;;; calendar-tests.el --- tests for calendar/calendar.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; Author: Richard Lawrence <rwl@recursewithless.net>
 
@@ -29,6 +29,37 @@
   (should (eq (calendar-date-is-valid-p "invalid") nil))
   (should (eq (calendar-date-is-valid-p (list 1 2)) nil))
   (should (eq (calendar-date-is-valid-p (list 5 1 2025)) t)))
+
+(ert-deftest calendar-test-date-in-calendar-mode-line ()
+  "Test whether the calendar mode line displays `date' correctly."
+  (save-window-excursion
+    (unwind-protect
+        (let* ((calendar-mode-line-format (list '(calendar-date-string date)))
+               (calendar-move-hook '(calendar-update-mode-line))
+               (today (calendar-current-date))
+               (month (calendar-extract-month today))
+               (year (calendar-extract-year today))
+               (cursor-date (calendar-gregorian-from-absolute
+                             (1+ (calendar-absolute-from-gregorian today)))))
+          (calendar)
+          (should (equal (string-trim mode-line-format)
+                         (calendar-date-string today)))
+          (calendar-forward-day 1)
+          (should (equal (string-trim mode-line-format)
+                         (calendar-date-string cursor-date)))
+          (calendar-goto-today)
+          (should (equal (string-trim mode-line-format)
+                         (calendar-date-string today)))
+          (calendar-cursor-to-visible-date cursor-date)
+          (calendar-redraw)
+          (should (equal (string-trim mode-line-format)
+                         (calendar-date-string cursor-date)))
+          (calendar-cursor-to-visible-date cursor-date)
+          (calendar-scroll-left)
+          (calendar-other-month month year)
+          (should (equal (string-trim mode-line-format)
+                         (calendar-date-string cursor-date))))
+      (kill-buffer calendar-buffer))))
 
 (provide 'calendar-tests)
 ;;; calendar-tests.el ends here

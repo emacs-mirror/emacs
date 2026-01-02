@@ -1,6 +1,6 @@
 ;;; editorconfig.el --- EditorConfig Plugin  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2026 Free Software Foundation, Inc.
 
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 ;; Version: 0.11.0
@@ -146,7 +146,6 @@ This hook will be run even when there are no matching sections in
     (d-mode c-basic-offset)
     (elixir-ts-mode elixir-ts-indent-offset)
     (emacs-lisp-mode . editorconfig--get-indentation-lisp-mode)
-    (ess-mode ess-indent-offset)
     (f90-mode f90-associate-indent
               f90-continuation-indent
               f90-critical-indent
@@ -211,7 +210,6 @@ This hook will be run even when there are no matching sections in
     (scala-mode scala-indent:step)
     (scss-mode css-indent-offset)
     (swift-mode swift-mode:basic-offset)
-    (terra-mode terra-indent-level)
     (tcl-mode tcl-indent-level
               tcl-continued-indent-level)
     (toml-ts-mode toml-ts-mode-indent-offset)

@@ -1,6 +1,6 @@
 ;;; disp-table.el --- functions for dealing with char tables  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1987, 1994-1995, 1999, 2001-2025 Free Software
+;; Copyright (C) 1987, 1994-1995, 1999, 2001-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
@@ -182,7 +182,11 @@ The glyphs being changed by this function are `vertical-border',
 `box-vertical',`box-horizontal', `box-down-right', `box-down-left',
 `box-up-right', `box-up-left',`box-double-vertical',
 `box-double-horizontal', `box-double-down-right',
-`box-double-down-left', `box-double-up-right', `box-double-up-left',"
+`box-double-down-left', `box-double-up-right', `box-double-up-left'.
+
+To customize the glyphs, use `make-glyph-code' to create a glyph from a
+character code and a face, and then use `set-display-table-slot' to
+assign the glyph to a slot."
   (interactive)
   (set-display-table-slot standard-display-table
 			  'vertical-border (make-glyph-code #x2502))

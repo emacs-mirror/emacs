@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2025 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -880,21 +880,6 @@ extern int w32_system_caret_hdr_height;
 extern int w32_system_caret_mode_height;
 
 extern Window tip_window;
-
-#ifdef _MSC_VER
-#ifndef EnumSystemLocales
-/* MSVC headers define these only for _WIN32_WINNT >= 0x0500.  */
-typedef BOOL (CALLBACK *LOCALE_ENUMPROCA)(LPSTR);
-typedef BOOL (CALLBACK *LOCALE_ENUMPROCW)(LPWSTR);
-BOOL WINAPI EnumSystemLocalesA(LOCALE_ENUMPROCA,DWORD);
-BOOL WINAPI EnumSystemLocalesW(LOCALE_ENUMPROCW,DWORD);
-#ifdef UNICODE
-#define EnumSystemLocales EnumSystemLocalesW
-#else
-#define EnumSystemLocales EnumSystemLocalesA
-#endif
-#endif
-#endif
 
 #if EMACSDEBUG
 extern const char*

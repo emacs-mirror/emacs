@@ -1,6 +1,6 @@
 ;;; page.el --- page motion commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: text convenience

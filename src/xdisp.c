@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2367,7 +2367,7 @@ pixel_to_glyph_coords (struct frame *f, int pix_x, int pix_y, int *x, int *y,
    text, or we can't tell because W's current matrix is not up to
    date.  */
 
-struct glyph *
+static struct glyph *
 x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
 		  int *dx, int *dy, int *area)
 {
@@ -2439,6 +2439,21 @@ x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
   *hpos = glyph - row->glyphs[*area];
   return glyph;
 }
+
+#if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
+
+/* Find the glyph under window-relative coordinates X/Y in window W.
+   Consider only glyphs from buffer text, i.e. no glyphs from overlay
+   strings.  Return in *HPOS and *VPOS the row and column number of
+   the glyph found.  */
+
+void
+x_y_to_column_row (struct window *w, int x, int y, int *column, int *row)
+{
+  int dummy;
+  x_y_to_hpos_vpos (w, x, y, column, row, NULL, NULL, &dummy);
+}
+#endif
 
 /* Convert frame-relative x/y to coordinates relative to window W.
    Takes pseudo-windows into account.  */
@@ -14212,7 +14227,7 @@ prepare_menu_bars (void)
 
    W, if set, denotes the window that should be considered as selected.
    For a tty child frame using F as surrogate menu bar frame, this
-   specifes the child frame's selected window and its buffer shall be
+   specifies the child frame's selected window and its buffer shall be
    used for updating the menu bar of the root frame instead of the
    buffer of the root frame's selected window.  */
 
@@ -20349,11 +20364,16 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	    blank_row (w, row, y);
 	  goto finish_scroll_bars;
 	}
-      else if (minibuf_level >= 1)
+      else if (minibuf_level >= 1 && NILP (resize_mini_frames))
 	{
 	  /* We could have a message produced by set-minibuffer-message
 	     displayed in the mini-window as an overlay, so resize the
-	     mini-window if needed.  */
+	     mini-window if needed.
+
+	     Don't resize the mini-window when minibuffer-only frames
+	     shall be resized automatically to avoid entering an
+	     infinite loop (Bug#80017).  The cause of that looping is
+	     yet undetermined.  */
 	  resize_mini_window (w, false);
 	}
 
@@ -24763,7 +24783,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop, int from_buffer)
 {
   struct text_pos pos =
     STRINGP (it->string) ? it->current.string_pos : it->current.pos;
-  bool phoney_display_string =
+  bool phony_display_string =
     from_buffer && STRINGP (it->string) && it->string_from_display_prop_p;
 
   eassert (it->method == GET_FROM_BUFFER
@@ -24787,7 +24807,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop, int from_buffer)
      string that follows iterator position).  If we don't do that, any
      display properties on the prefix string will be ignored.  The call
      to pop_it when we are done with the prefix will restore the flag.  */
-  if (phoney_display_string)
+  if (phony_display_string)
     it->string_from_display_prop_p = false;
 
   if (STRINGP (prop))
@@ -37702,6 +37722,8 @@ gui_intersect_rectangles (const Emacs_Rectangle *r1, const Emacs_Rectangle *r2,
   return intersection_p;
 }
 
+# if HAVE_ANDROID
+
 /* EXPORT:
    Determine the union of the rectangles A and B.  Return the smallest
    rectangle encompassing both the bounds of A and B in *RESULT.  It
@@ -37750,6 +37772,7 @@ gui_union_rectangles (const Emacs_Rectangle *a, const Emacs_Rectangle *b,
   result->width = result_box.x2 - result_box.x1;
   result->height = result_box.y2 - result_box.y1;
 }
+# endif
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

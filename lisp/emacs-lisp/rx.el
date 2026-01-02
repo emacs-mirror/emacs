@@ -1,6 +1,6 @@
 ;;; rx.el --- S-exp notation for regexps            -*- lexical-binding: t -*-
 
-;; Copyright (C) 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -48,7 +48,7 @@
 ;; (not-syntax X)               (not (syntax X))
 ;; not-wordchar                 (not wordchar)
 ;; (not-char ...)               (not (any ...))
-;; any                          nonl, not-newline
+;; any                          nonl, not-newline    -- warning since Emacs 31
 ;; (repeat N FORM)              (= N FORM)
 ;; (syntax CHARACTER)           (syntax NAME)
 ;; (syntax CHAR-SYM)      [1]   (syntax NAME)
@@ -66,7 +66,7 @@
 ;; minimal-match, maximal-match   lazy ops: ??, *?, +?
 
 ;; FIXME: Prepare a phase-out by emitting compile-time warnings about
-;; at least some of the legacy constructs above.
+;; more of the legacy constructs above.
 
 ;;; Code:
 
@@ -190,7 +190,7 @@ Each entry is:
   (pcase sym
     ;; Use `list' instead of a quoted list to wrap the strings here,
     ;; since the return value may be mutated.
-    ((or 'nonl 'not-newline 'any) (cons (list ".") t))
+    ((or 'nonl 'not-newline)      (cons (list ".") t))
     ((or 'anychar 'anything)      (cons (list "[^z-a]") t))
     ('unmatchable                 (rx--empty))
     ((or 'bol 'line-start)        (cons (list "^") 'lseq))
@@ -205,6 +205,13 @@ Each entry is:
     ('symbol-start                (cons (list "\\_<") t))
     ('symbol-end                  (cons (list "\\_>") t))
     ('not-wordchar                (rx--translate '(not wordchar)))
+    ('any
+     (when (and (macroexp-compiling-p)
+                (byte-compile-warning-enabled-p 'obsolete 'any))
+       (byte-compile-warn-x
+        sym (concat "`any' in rx is obsolete and means `not-newline';"
+                    " did you mean `anychar'?")))
+     (rx--translate-symbol 'nonl))
     (_
      (cond
       ((let ((class (cdr (assq sym rx--char-classes))))
@@ -282,23 +289,23 @@ Left-fold the list L, starting with X, by the binary function F."
 ;;   (or "a" space (or "b" (+ nonl) word) "c")
 ;;   -> (or (in "ab" space) (+ nonl) (in "c" word))
 
-;; FIXME: normalise `seq', both the construct and implicit sequences,
+;; FIXME: normalize `seq', both the construct and implicit sequences,
 ;; so that they are flattened, adjacent strings concatenated, and
 ;; empty strings removed. That would give more opportunities for regexp-opt:
 ;;  (or "a" (seq "ab" (seq "c" "d") "")) -> (or "a" "abcd")
 
-;; FIXME: Since `rx--normalise-char-pattern' recurses through `or', `not' and
+;; FIXME: Since `rx--normalize-char-pattern' recurses through `or', `not' and
 ;; `intersection', we may end up normalising subtrees multiple times
 ;; which wastes time (but should be idempotent).
-;; One way to avoid this is to aggressively normalise the entire tree
+;; One way to avoid this is to aggressively normalize the entire tree
 ;; before translating anything at all, but we must then recurse through
 ;; all constructs and probably copy them.
-;; Such normalisation could normalise synonyms, eliminate `minimal-match'
+;; Such normalization could normalize synonyms, eliminate `minimal-match'
 ;; and `maximal-match' and convert affected `1+' to either `+' or `+?' etc.
 ;; We would also consolidate the user-def lookup, both modern and legacy,
 ;; in one place.
 
-(defun rx--normalise-char-pattern (form)
+(defun rx--normalize-char-pattern (form)
   "Normalize FORM as a pattern matching a single-character.
 Characters become strings, `any' forms and character classes become
 `rx--char-alt' forms, user-definitions and `eval' forms are expanded,
@@ -307,27 +314,27 @@ and `or', `not' and `intersection' forms are normalized recursively.
 A `rx--char-alt' form is shaped (rx--char-alt INTERVALS . CLASSES)
 where INTERVALS is a sorted list of disjoint nonadjacent intervals,
 each a cons of characters, and CLASSES an unordered list of unique
-name-normalised character classes."
+name-normalized character classes."
   (defvar rx--builtin-forms)
   (defvar rx--builtin-symbols)
   (cond ((consp form)
          (let ((op (car form))
                (body (cdr form)))
            (cond ((memq op '(or |))
-                  ;; Normalise the constructor to `or' and the args recursively.
-                  (cons 'or (mapcar #'rx--normalise-char-pattern body)))
+                  ;; Normalize the constructor to `or' and the args recursively.
+                  (cons 'or (mapcar #'rx--normalize-char-pattern body)))
                  ;; Convert `any' forms and char classes now so that we
                  ;; don't need to do it later on.
                  ((memq op '(any in char))
                   (cons 'rx--char-alt (rx--parse-any body)))
                  ((memq op '(not intersection))
-                  (cons op (mapcar #'rx--normalise-char-pattern body)))
+                  (cons op (mapcar #'rx--normalize-char-pattern body)))
                  ((eq op 'eval)
-                  (rx--normalise-char-pattern (rx--expand-eval body)))
+                  (rx--normalize-char-pattern (rx--expand-eval body)))
                  ((memq op rx--builtin-forms) form)
                  ((let ((expanded (rx--expand-def-form form)))
                     (and expanded
-                         (rx--normalise-char-pattern expanded))))
+                         (rx--normalize-char-pattern expanded))))
                  (t form))))
         ;; FIXME: Should we expand legacy definitions from
         ;; `rx-constituents' here as well?
@@ -338,7 +345,7 @@ name-normalised character classes."
                ((memq form rx--builtin-symbols) form)
                ((let ((expanded (rx--expand-def-symbol form)))
                   (and expanded
-                       (rx--normalise-char-pattern expanded))))
+                       (rx--normalize-char-pattern expanded))))
                (t form)))
         ((characterp form)
          (char-to-string form))
@@ -358,7 +365,7 @@ name-normalised character classes."
     (cons (rx--interval-set-union (car a) (car b)) classes)))
 
 (defun rx--intersection-intervals (forms)
-  "Intersection of the normalised FORMS, as an interval set."
+  "Intersection of the normalized FORMS, as an interval set."
   (rx--foldl #'rx--interval-set-intersection '((0 . #x3fffff))
              (mapcar (lambda (x)
                        (let ((char (rx--reduce-to-char-alt x)))
@@ -371,7 +378,7 @@ name-normalised character classes."
 (defun rx--reduce-to-char-alt (form)
   "Transform FORM into (INTERVALS . CLASSES) or nil if not possible.
 Process `or', `intersection' and `not'.
-FORM must be normalised (from `rx--normalise-char-pattern')."
+FORM must be normalized (from `rx--normalize-char-pattern')."
   (cond
    ((stringp form)
     (and (= (length form) 1)
@@ -415,10 +422,10 @@ FORM must be normalised (from `rx--normalise-char-pattern')."
     '(nil))
    ))
 
-(defun rx--optimise-or-args (args)
-  "Optimise `or' arguments.  Return a new rx form.
-Each element of ARGS should have been normalised using
-`rx--normalise-char-pattern'."
+(defun rx--optimize-or-args (args)
+  "Optimize `or' arguments.  Return a new rx form.
+Each element of ARGS should have been normalized using
+`rx--normalize-char-pattern'."
   (if (null args)
       ;; No arguments.
       '(rx--char-alt nil . nil)         ; FIXME: not `unmatchable'?
@@ -480,12 +487,12 @@ Return (REGEXP . PRECEDENCE)."
    ((null (cdr body))              ; Single item.
     (rx--translate (car body)))
    (t
-    (let ((args (mapcar #'rx--normalise-char-pattern body)))
+    (let ((args (mapcar #'rx--normalize-char-pattern body)))
       (if (rx--all-string-branches-p args)
           ;; All branches are strings: use `regexp-opt'.
           (cons (list (regexp-opt (rx--collect-or-strings args) nil))
                 t)
-        (let ((form (rx--optimise-or-args args)))
+        (let ((form (rx--optimize-or-args args)))
           (if (eq (car-safe form) 'or)
               (let ((branches (cdr form)))
                 (cons (append (car (rx--translate (car branches)))
@@ -709,7 +716,7 @@ If NEGATED, negate the sense."
 If NEGATED, negate the sense (thus making it positive)."
   (unless (and body (null (cdr body)))
     (error "rx `not' form takes exactly one argument"))
-  (let ((arg (rx--normalise-char-pattern (car body))))
+  (let ((arg (rx--normalize-char-pattern (car body))))
     (pcase arg
       (`(not . ,args)
        (rx--translate-not      (not negated) args))
@@ -843,7 +850,7 @@ If NEGATED, negate the sense (thus making it positive)."
   "Translate an (intersection ...) construct.  Return (REGEXP . PRECEDENCE).
 If NEGATED, negate the sense."
   (rx--generate-alt negated (rx--intersection-intervals
-                             (mapcar #'rx--normalise-char-pattern body))
+                             (mapcar #'rx--normalize-char-pattern body))
                     nil))
 
 (defun rx--atomic-regexp (item)

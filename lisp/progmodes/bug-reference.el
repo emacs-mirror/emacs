@@ -1,6 +1,6 @@
 ;;; bug-reference.el --- buttonize bug references  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2026 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 21 Mar 2007
@@ -187,6 +187,7 @@ subexpression 10."
                            (let ((ov (make-overlay (car bounds) (cdr bounds)
                                                    nil t nil)))
                              (overlay-put ov 'category 'bug-reference)
+                             (overlay-put ov 'button ov)
                              ov))))
             ;; Don't put a link if format is undefined.
             (when bug-reference-url-format

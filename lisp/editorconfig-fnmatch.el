@@ -1,6 +1,6 @@
 ;;; editorconfig-fnmatch.el --- Glob pattern matching  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2026 Free Software Foundation, Inc.
 
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 ;; Package: editorconfig
@@ -36,7 +36,7 @@
 
 ;; Test whether NAME match PATTERN.
 
-;; PATTERN should be a shell glob pattern, and some zsh-like wildcard matchings
+;; PATTERN should be a shell glob pattern, and some zsh-like wildcard matching
 ;; can be used:
 
 ;; *           Matches any string of characters, except path separators (/)
@@ -55,13 +55,9 @@
 
 (require 'cl-lib)
 
-(defvar editorconfig-fnmatch--cache-hashtable
-  nil
+(defconst editorconfig-fnmatch--cache-hashtable ;; Clear cache on file reload.
+  (make-hash-table :test 'equal)
   "Cache of shell pattern and its translation.")
-;; Clear cache on file reload
-(setq editorconfig-fnmatch--cache-hashtable
-      (make-hash-table :test 'equal))
-
 
 (defconst editorconfig-fnmatch--left-brace-regexp
   "\\(^\\|[^\\]\\){"
@@ -90,7 +86,7 @@
 
 Matching ignores case if `case-fold-search' is non-nil.
 
-PATTERN should be a shell glob pattern, and some zsh-like wildcard matchings can
+PATTERN should be a shell glob pattern, and some zsh-like wildcard matching can
 be used:
 
 *           Matches any string of characters, except path separators (/)
@@ -147,7 +143,7 @@ translation is found for PATTERN."
 
     (while (< index length)
       (if (and (not is-escaped)
-               (string-match "[^]\\*?[{},/-]+"
+               (string-match "[^]\\*?[{},/]+"
                              ;;(string-match "[^]\\*?[{},/\\-]+" "?.a")
                              pattern
                              index)
@@ -166,7 +162,9 @@ translation is found for PATTERN."
             (setq pos index)
             (if (and (< pos length)
                      (= (aref pattern pos) ?*))
-                ".*"
+                (progn
+                  (setq index (1+ index))
+                  ".*")
               "[^/]*"))
 
            (?? "[^/]")
@@ -200,8 +198,6 @@ translation is found for PATTERN."
                         (setq index (1+ index))
                         "[^")
                     "[")))))
-
-           (?- (if in-brackets "-" "\\-"))
 
            (?\] (setq in-brackets nil) "]")
 
@@ -247,7 +243,7 @@ translation is found for PATTERN."
            (?,
             (if (and (> brace-level 0)
                      (not is-escaped))
-                "\\|" "\\,"))
+                "\\|" ","))
 
            (?\}
             (if (and (> brace-level 0)

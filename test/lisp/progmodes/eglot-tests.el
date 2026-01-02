@@ -1,6 +1,6 @@
 ;;; eglot-tests.el --- Tests for eglot.el            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2026 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: tests
@@ -1530,9 +1530,9 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
       (eglot--semtok-wait (point-min))
       (goto-char (point-min))
         (search-forward "main")
-        (should (memq 'eglot-semantic-function-face (eglot--semtok-faces)))
+        (should (memq 'eglot-semantic-function (eglot--semtok-faces)))
         (search-forward "int x")
-        (should (memq 'eglot-semantic-variable-face (eglot--semtok-faces))))))
+        (should (memq 'eglot-semantic-variable (eglot--semtok-faces))))))
 
 (ert-deftest eglot-test-semtok-refontify ()
   "Test semantic tokens refontification after edits."
@@ -1551,9 +1551,9 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
       (eglot--signal-textDocument/didChange) ; a bit unrealistic
       (eglot--semtok-wait (point))
       (search-forward "bar")
-      (should (memq 'eglot-semantic-function-face (eglot--semtok-faces)))
+      (should (memq 'eglot-semantic-function (eglot--semtok-faces)))
       (search-forward "int y")
-      (should (memq 'eglot-semantic-variable-face (eglot--semtok-faces))))))
+      (should (memq 'eglot-semantic-variable (eglot--semtok-faces))))))
 
 (provide 'eglot-tests)
 

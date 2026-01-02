@@ -1,6 +1,6 @@
 /* realloc() function that is glibc compatible.
 
-   Copyright (C) 1997, 2003-2004, 2006-2007, 2009-2025 Free Software
+   Copyright (C) 1997, 2003-2004, 2006-2007, 2009-2026 Free Software
    Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
@@ -20,9 +20,9 @@
 
 /* Ensure that we call the system's realloc() below.  */
 #define _GL_USE_STDLIB_ALLOC 1
-#include <config.h>
 
 #define _GL_REALLOC_INLINE _GL_EXTERN_INLINE
+#include <config.h>
 #include <stdlib.h>
 
 #include <errno.h>
@@ -94,7 +94,7 @@ rpl_realloc (void *p, size_t n)
 
   void *result = realloc (p, n1);
 
-# if !HAVE_MALLOC_POSIX
+# if !HAVE_REALLOC_POSIX
   if (result == NULL)
     errno = ENOMEM;
 # endif

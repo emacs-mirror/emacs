@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.                 -*- coding: utf-8 -*-
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1932,7 +1932,7 @@ DEFUN ("replace-region-contents", Freplace_region_contents,
               (get-buffer (read-buffer-to-switch \"Source buffer: \")))",
        doc: /* Replace the region between BEG and END with that of SOURCE.
 SOURCE can be a buffer, a string, or a vector [SBUF SBEG SEND]
-denoting the subtring SBEG..SEND of buffer SBUF.
+denoting the substring SBEG..SEND of buffer SBUF.
 
 If optional argument INHERIT is non-nil, the inserted text will inherit
 properties from adjoining text.
@@ -1953,7 +1953,7 @@ for comparing the buffers.  If it takes longer than MAX-SECS, the
 function falls back to a plain `delete-region' and
 `insert-buffer-substring'.  (Note that the checks are not performed
 too evenly over time, so in some cases it may run a bit longer than
-allowed).  In partricular, passing zero as the value of MAX-SECS
+allowed).  In particular, passing zero as the value of MAX-SECS
 disables the comparison step, so this function immediately falls
 back to a plain delete/insert method.
 
@@ -3351,6 +3351,8 @@ the next available argument, or the argument explicitly specified:
 
 %s means produce a string argument.  Actually, produces any object with `princ'.
 %d or %i means produce a signed number in decimal.
+%b means produce a number in binary.
+%B is like %b, but %#B uses upper case.
 %o means produce a number in octal.
 %x means produce a number in hex.
 %X is like %x, but uses upper case.
@@ -3363,8 +3365,6 @@ the next available argument, or the argument explicitly specified:
 %S means produce any object as an s-expression (using `prin1').
 
 The argument used for %d, %i, %o, %x, %e, %f, %g or %c must be a number.
-%o, %x, and %X treat arguments as unsigned if `binary-as-unsigned' is t
-  (this is experimental; email 32252@debbugs.gnu.org if you need it).
 Use %% to put a single % into the output.
 
 A %-sequence other than %% may contain optional field number, flag,
@@ -3386,8 +3386,9 @@ space inserts a space before any nonnegative number; these flags
 affect only numeric %-sequences, and the + flag takes precedence.
 The - and 0 flags affect the width specifier, as described below.
 
-The # flag means to use an alternate display form for %o, %x, %X, %e,
-%f, and %g sequences: for %o, it ensures that the result begins with
+The # flag means to use an alternate display form for %b, %B, %o, %x,
+%X, %e, %f, and %g sequences: for %b and %B, it prefixes nonzero results
+with \"0b\" or \"0B\"; for %o, it ensures that the result begins with
 \"0\"; for %x and %X, it prefixes nonzero results with \"0x\" or \"0X\";
 for %e and %f, it causes a decimal point to be included even if the
 precision is zero; for %g, it causes a decimal point to be
@@ -3399,7 +3400,7 @@ produced representation.  The padding, if any, normally goes on the
 left, but it goes on the right if the - flag is present.  The padding
 character is normally a space, but it is 0 if the 0 flag is present.
 The 0 flag is ignored if the - flag is present, or the format sequence
-is something other than %d, %o, %x, %e, %f, and %g.
+is something other than %d, %b, %o, %x, %e, %f, and %g.
 
 For %e and %f sequences, the number after the "." in the precision
 specifier says how many decimal places to show; if zero, the decimal
@@ -3817,8 +3818,9 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	    }
 	  else if (! (conversion == 'c' || conversion == 'd'
 		      || float_conversion || conversion == 'i'
-		      || conversion == 'o' || conversion == 'x'
-		      || conversion == 'X'))
+		      || conversion == 'o'
+		      || conversion == 'x' || conversion == 'X'
+		      || conversion == 'b' || conversion == 'B'))
 	    {
 	      unsigned char *p = (unsigned char *) format - 1;
 	      if (multibyte_format)
@@ -3869,7 +3871,9 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 
 	      /* Characters to be inserted after spaces and before
 		 leading zeros.  This can occur with bignums, since
-		 bignum_to_string does only leading '-'.  */
+		 bignum_to_string does only leading '-'.
+		 It can also occur with the conversion specs %b and %B,
+		 which sprintf might not support.  */
 	      char prefix[sizeof "-0x" - 1];
 	      int prefixlen = 0;
 
@@ -3886,6 +3890,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		 conversions; for example, the min and max macros are
 		 not suitable here.  */
 	      ptrdiff_t sprintf_bytes;
+	      bool nonzero_arg;
 	      if (float_conversion)
 		{
 		  /* Format as a long double if the arg is an integer
@@ -3953,20 +3958,28 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      bignum_arg:
 		{
 		  int base = ((conversion == 'd' || conversion == 'i') ? 10
-			      : conversion == 'o' ? 8 : 16);
+			      : conversion == 'o' ? 8
+			      : conversion == 'x' || conversion == 'X' ? 16
+			      : 2);
 		  sprintf_bytes = bignum_bufsize (arg, base);
 		  if (sprintf_bytes <= buf + bufsize - p)
 		    {
 		      int signedbase = conversion == 'X' ? -base : base;
 		      sprintf_bytes = bignum_to_c_string (p, sprintf_bytes,
 							  arg, signedbase);
+		      nonzero_arg = true;
+		    preformatted_fixnum_arg: ;
 		      bool negative = p[0] == '-';
 		      prec = min (precision, sprintf_bytes - prefixlen);
 		      prefix[prefixlen] = plus_flag ? '+' : ' ';
 		      prefixlen += (plus_flag | space_flag) & !negative;
 		      prefix[prefixlen] = '0';
 		      prefix[prefixlen + 1] = conversion;
-		      prefixlen += sharp_flag && base == 16 ? 2 : 0;
+		      prefixlen += ((sharp_flag & nonzero_arg
+				     && ! (conversion == 'd'
+					   || conversion == 'i'
+					   || conversion == 'o'))
+				    ? 2 : 0);
 		    }
 		}
 	      else if (conversion == 'd' || conversion == 'i')
@@ -3997,17 +4010,9 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		  bool negative;
 		  if (FIXNUMP (arg))
 		    {
-		      if (binary_as_unsigned)
-			{
-			  x = XUFIXNUM (arg);
-			  negative = false;
-			}
-		      else
-			{
-			  EMACS_INT i = XFIXNUM (arg);
-			  negative = i < 0;
-			  x = negative ? -i : i;
-			}
+		      EMACS_INT i = XFIXNUM (arg);
+		      negative = i < 0;
+		      x = negative ? -i : i;
 		    }
 		  else
 		    {
@@ -4025,6 +4030,32 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 			}
 		    }
 		  p[0] = negative ? '-' : plus_flag ? '+' : ' ';
+
+
+		  /* Do %b and %B by hand unless sprintf is known to
+		     support them.  Some day (the year 2043 perhaps?),
+		     simplify this code by assuming that
+		     HAVE_PRINTF_B_CONVERSION_SPECIFIER is true.  */
+#if (202311 <= __STDC_VERSION_STDIO_H__ \
+     || 2 < __GLIBC__ + (35 <= __GLIBC_MINOR__))
+		  enum { HAVE_PRINTF_B_CONVERSION_SPECIFIER = true };
+#else
+		  enum { HAVE_PRINTF_B_CONVERSION_SPECIFIER = false };
+#endif
+		  if (!HAVE_PRINTF_B_CONVERSION_SPECIFIER
+		      && (conversion == 'b' || conversion == 'B'))
+		    {
+		      int bit_width = stdc_bit_width (x);
+		      char *bits = p + negative;
+		      int nbits = bit_width ? bit_width : prec < 0;
+		      for (int i = 0; i < nbits; i++)
+			bits[i] = ((x >> (nbits - (i + 1))) & 1) + '0';
+		      bits[nbits] = '\0';
+		      sprintf_bytes = negative + nbits;
+		      nonzero_arg = x != 0;
+		      goto preformatted_fixnum_arg;
+		    }
+
 		  bool signedp = negative | plus_flag | space_flag;
 		  sprintf_bytes = sprintf (p + signedp, convspec, prec, x);
 		  sprintf_bytes += signedp;
@@ -4065,12 +4096,13 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 
 	      if (convbytes <= buf + bufsize - p)
 		{
+		  /* Skip any sign and 0[bBxX] prefixes.  */
 		  bool signedp = p[0] == '-' || p[0] == '+' || p[0] == ' ';
 		  int beglen = (signedp
-				   + ((p[signedp] == '0'
-				       && (p[signedp + 1] == 'x'
-					   || p[signedp + 1] == 'X'))
-				      ? 2 : 0));
+				+ ((!float_conversion
+				    && p[signedp] == '0'
+				    && p[signedp + 1] == conversion)
+				   ? 2 : 0));
 		  eassert (prefixlen == 0 || beglen == 0
 			   || (beglen == 1 && p[0] == '-'
 			       && ! (prefix[0] == '-' || prefix[0] == '+'
@@ -4522,11 +4554,13 @@ ring.  */)
   (Lisp_Object startr1, Lisp_Object endr1, Lisp_Object startr2, Lisp_Object endr2, Lisp_Object leave_markers)
 {
   register ptrdiff_t start1, end1, start2, end2;
-  ptrdiff_t start1_byte, start2_byte, len1_byte, len2_byte, end2_byte;
+  ptrdiff_t start1_byte, end1_byte, start2_byte, end2_byte;
   ptrdiff_t gap, len1, len_mid, len2;
+  ptrdiff_t len1_byte, len_mid_byte, len2_byte;
   unsigned char *start1_addr, *start2_addr, *temp;
 
-  INTERVAL cur_intv, tmp_interval1, tmp_interval2, tmp_interval3;
+  INTERVAL cur_intv, tmp_interval1, tmp_interval2;
+  INTERVAL tmp_interval_mid, tmp_interval3;
   Lisp_Object buf;
 
   XSETBUFFER (buf, current_buffer);
@@ -4541,7 +4575,9 @@ ring.  */)
   end2 = XFIXNAT (endr2);
   gap = GPT;
 
-  /* Swap the regions if they're reversed.  */
+  /* Swap the regions if they're reversed.  We do not swap the
+     corresponding Lisp objects as well, since we reference these only
+     to clear text properties in both regions.  */
   if (start2 < end1)
     {
       register ptrdiff_t glumph = start1;
@@ -4561,28 +4597,6 @@ ring.  */)
   else if ((start1 == end1 || start2 == end2) && end1 == start2)
     return Qnil;
 
-  /* The possibilities are:
-     1. Adjacent (contiguous) regions, or separate but equal regions
-     (no, really equal, in this case!), or
-     2. Separate regions of unequal size.
-
-     The worst case is usually No. 2.  It means that (aside from
-     potential need for getting the gap out of the way), there also
-     needs to be a shifting of the text between the two regions.  So
-     if they are spread far apart, we are that much slower... sigh.  */
-
-  /* It must be pointed out that the really studly thing to do would
-     be not to move the gap at all, but to leave it in place and work
-     around it if necessary.  This would be extremely efficient,
-     especially considering that people are likely to do
-     transpositions near where they are working interactively, which
-     is exactly where the gap would be found.  However, such code
-     would be much harder to write and to read.  So, if you are
-     reading this comment and are feeling squirrely, by all means have
-     a go!  I just didn't feel like doing it, so I will simply move
-     the gap the minimum distance to get it out of the way, and then
-     deal with an unbroken array.  */
-
   start1_byte = CHAR_TO_BYTE (start1);
   end2_byte = CHAR_TO_BYTE (end2);
 
@@ -4598,6 +4612,22 @@ ring.  */)
   /* Run the before-change-functions *before* we move the gap.  */
   modify_text (start1, end2);
 
+  /* It must be pointed out that the really studly thing to do would
+     be not to move the gap at all, but to leave it in place and work
+     around it if necessary.  This would be extremely efficient,
+     especially considering that people are likely to do
+     transpositions near where they are working interactively, which
+     is exactly where the gap would be found.  However, such code
+     would be much harder to write and to read.  So, if you are
+     reading this comment and are feeling squirrely, by all means have
+     a go!  I just didn't feel like doing it, so I will simply move
+     the gap the minimum distance to get it out of the way, and then
+     deal with an unbroken array.  */
+
+  /* Hmmm... how about checking to see if the gap is large
+     enough to use as the temporary storage?  That would avoid an
+     allocation... interesting.  Later, don't fool with it now.  */
+
   /* Make sure the gap won't interfere, by moving it out of the text
      we will operate on.  */
   if (start1 < gap && gap < end2)
@@ -4609,7 +4639,7 @@ ring.  */)
     }
 
   start2_byte = CHAR_TO_BYTE (start2);
-  ptrdiff_t end1_byte = CHAR_TO_BYTE (end1);
+  end1_byte = CHAR_TO_BYTE (end1);
   len1_byte = end1_byte - start1_byte;
   len2_byte = end2_byte - start2_byte;
 
@@ -4638,16 +4668,36 @@ ring.  */)
     }
 #endif
 
-  /* Hmmm... how about checking to see if the gap is large
-     enough to use as the temporary storage?  That would avoid an
-     allocation... interesting.  Later, don't fool with it now.  */
+  /* The possibilities are:
+     1. Regions of equal size, possibly even adjacent (contiguous).
+     2. Regions of unequal size.
+
+     In case 1. we can leave the "mid", that is, the region between the
+     two regions untouched.
+
+     The worst case is usually No. 2.  It means that (aside from
+     potential need for getting the gap out of the way), there also
+     needs to be a shifting of the text between the two regions.  So
+     if they are spread far apart, we are that much slower... sigh.  */
+
+  /* As an additional difficulty, we have to carefully consider byte vs.
+     character semantics: Maintaining undo and text properties needs to
+     be done in terms of characters, swapping text in memory needs to be
+     done in terms of bytes.
+
+     Handling case 1. mentioned above in a special way is beneficial
+     both for undo/text properties and for memory swapping, only we have
+     to consider case 1. for the character-related bits (len1 == len2)
+     and case 1. for the byte-related bits (len1_byte == len2_byte)
+     separately. */
 
   tmp_interval1 = copy_intervals (cur_intv, start1, len1);
   tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-  USE_SAFE_ALLOCA;
-  if (len1_byte == len2_byte && len1 == len2)
-    /* Regions are same size, though, how nice.  */
-    /* The char lengths also have to match, for text-properties.  */
+
+  len_mid = start2 - end1;
+  len_mid_byte = start2_byte - end1_byte;
+
+  if (len1 == len2)
     {
       if (end1 == start2)	/* Merge the two parts into a single one.  */
 	record_change (start1, (end2 - start1));
@@ -4664,7 +4714,24 @@ ring.  */)
       tmp_interval3 = validate_interval_range (buf, &startr2, &endr2, 0);
       if (tmp_interval3)
 	set_text_properties_1 (startr2, endr2, Qnil, buf, tmp_interval3);
+    }
+  else
+    /* Regions have different length, character-wise.  Handle undo and
+       text properties for both regions as one long piece of text
+       spanning both regions and the mid.  But while doing so, save the
+       intervals of the mid to later restore them in their new
+       position.  */
+    {
+      record_change (start1, (end2 - start1));
+      tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
+      tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
+      if (tmp_interval3)
+	set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
+    }
 
+  USE_SAFE_ALLOCA;
+  if (len1_byte == len2_byte)
+    {
       temp = SAFE_ALLOCA (len1_byte);
       start1_addr = BYTE_POS_ADDR (start1_byte);
       start2_addr = BYTE_POS_ADDR (start2_byte);
@@ -4672,41 +4739,37 @@ ring.  */)
       memcpy (start1_addr, start2_addr, len2_byte);
       memcpy (start2_addr, temp, len1_byte);
     }
-  else
+  else if (len1_byte < len2_byte)	/* Second region larger than first */
     {
-      len_mid = start2_byte - end1_byte;
-      record_change (start1, (end2 - start1));
-      INTERVAL tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
-      tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-      if (tmp_interval3)
-	set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
-      if (len1_byte < len2_byte)	/* Second region larger than first */
-	{
-	  /* holds region 2 */
-	  temp = SAFE_ALLOCA (len2_byte);
-	  start1_addr = BYTE_POS_ADDR (start1_byte);
-	  start2_addr = BYTE_POS_ADDR (start2_byte);
-	  memcpy (temp, start2_addr, len2_byte);
-	  memcpy (start1_addr + len_mid + len2_byte, start1_addr, len1_byte);
-	  memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid);
-	  memcpy (start1_addr, temp, len2_byte);
-	}
-      else
-	/* Second region smaller than first.  */
-	{
-	  /* holds region 1 */
-	  temp = SAFE_ALLOCA (len1_byte);
-	  start1_addr = BYTE_POS_ADDR (start1_byte);
-	  start2_addr = BYTE_POS_ADDR (start2_byte);
-	  memcpy (temp, start1_addr, len1_byte);
-	  memcpy (start1_addr, start2_addr, len2_byte);
-	  memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid);
-	  memcpy (start1_addr + len2_byte + len_mid, temp, len1_byte);
-	}
+      /* holds region 2 */
+      temp = SAFE_ALLOCA (len2_byte);
+      start1_addr = BYTE_POS_ADDR (start1_byte);
+      start2_addr = BYTE_POS_ADDR (start2_byte);
+      memcpy (temp, start2_addr, len2_byte);
+      memcpy (start1_addr + len_mid_byte + len2_byte, start1_addr, len1_byte);
+      memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid_byte);
+      memcpy (start1_addr, temp, len2_byte);
+    }
+  else
+    /* Second region smaller than first.  */
+    {
+      /* holds region 1 */
+      temp = SAFE_ALLOCA (len1_byte);
+      start1_addr = BYTE_POS_ADDR (start1_byte);
+      start2_addr = BYTE_POS_ADDR (start2_byte);
+      memcpy (temp, start1_addr, len1_byte);
+      memcpy (start1_addr, start2_addr, len2_byte);
+      memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid_byte);
+      memcpy (start1_addr + len2_byte + len_mid_byte, temp, len1_byte);
+    }
+  SAFE_FREE ();
+
+  if (len1 != len2)
+    /* Restore intervals of the mid.  */
+    {
       graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
                                    len_mid, current_buffer, 0);
     }
-  SAFE_FREE ();
   graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                len1, current_buffer, 0);
   graft_intervals_into_buffer (tmp_interval2, start1,
@@ -4805,18 +4868,6 @@ functions if all the text being accessed has this property.  */);
 	       doc: /* The kernel version of the operating system on which Emacs is running.
 The value is a string.  It can also be nil if Emacs doesn't
 know how to get the kernel version on the underlying OS.  */);
-
-  DEFVAR_BOOL ("binary-as-unsigned",
-	       binary_as_unsigned,
-	       doc: /* Non-nil means `format' %x and %o treat integers as unsigned.
-This has machine-dependent results.  Nil means to treat integers as
-signed, which is portable and is the default; for example, if N is a
-negative integer, (read (format "#x%x" N)) returns N only when this
-variable is nil.
-
-This variable is experimental; email 32252@debbugs.gnu.org if you need
-it to be non-nil.  */);
-  binary_as_unsigned = false;
 
   DEFSYM (Qoutermost_restriction, "outermost-restriction");
   Funintern (Qoutermost_restriction, Qnil);
