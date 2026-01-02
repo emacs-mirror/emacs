@@ -638,6 +638,8 @@ See `project-vc-extra-root-markers' for the marker value format.")
       (let* ((parent (file-name-directory (directory-file-name root))))
         (setq root (vc-call-backend 'Git 'root parent))))
     (when root
+      (when backend
+        (require (intern (concat "vc-" (downcase (symbol-name backend))))))
       (when (not backend)
         (let* ((project-vc-extra-root-markers nil)
                ;; Avoid submodules scan.
