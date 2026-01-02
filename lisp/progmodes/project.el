@@ -716,84 +716,84 @@ See `project-vc-extra-root-markers' for the marker value format.")
 (defun vc-git-project-list-files (dir extra-ignores)
   (defvar vc-git-use-literal-pathspecs)
   (if (not (or (not extra-ignores)
-            (version<= "2.13" (vc-git--program-version))))
+               (version<= "2.13" (vc-git--program-version))))
       ;; Need newer Git to use negative pathspec like we do".
       (vc-default-project-list-files 'Git dir extra-ignores)
-  (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
-         (args '("-z" "-c" "--exclude-standard"))
-         (vc-git-use-literal-pathspecs nil)
-         (include-untracked (project--value-in-dir
-                             'project-vc-include-untracked
-                             dir))
-         (submodules (project--git-submodules))
-         files)
-    (setq args (append args
-                       (and (<= 31 emacs-major-version)
-                            (version<= "2.35" (vc-git--program-version))
-                            '("--sparse"))
-                       (and include-untracked '("-o"))))
-    (when extra-ignores
+    (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
+           (args '("-z" "-c" "--exclude-standard"))
+           (vc-git-use-literal-pathspecs nil)
+           (include-untracked (project--value-in-dir
+                               'project-vc-include-untracked
+                               dir))
+           (submodules (project--git-submodules))
+           files)
       (setq args (append args
-                         (cons "--"
-                               (mapcar
-                                (lambda (i)
-                                  (format
-                                   ":(exclude,glob,top)%s"
-                                   (if (string-match "\\*\\*" i)
-                                       ;; Looks like pathspec glob
-                                       ;; format already.
-                                       i
-                                     (if (string-match "\\./" i)
-                                         ;; ./abc -> abc
-                                         (setq i (substring i 2))
-                                       ;; abc -> **/abc
-                                       (setq i (concat "**/" i))
-                                       ;; FIXME: '**/abc' should also
-                                       ;; match a directory with that
-                                       ;; name, but doesn't (git 2.25.1).
-                                       ;; Maybe we should replace
-                                       ;; such entries with two.
-                                       (if (string-match "/\\'" i)
-                                           ;; abc/ -> abc/**
-                                           (setq i (concat i "**"))))
-                                     i)))
-                                extra-ignores)))))
-    (setq files
-          (delq nil
-                (mapcar
-                 (lambda (file)
-                   (unless (or (member file submodules)
-                               ;; Should occur for sparse directories
-                               ;; only, when sparse index is enabled.
-                               (directory-name-p file))
-                     (if project-files-relative-names
-                         file
-                       (concat default-directory file))))
-                 (split-string
-                  (with-output-to-string
-                    (apply #'vc-git-command standard-output 0 nil "ls-files" args))
-                  "\0" t))))
-    (when (project--vc-merge-submodules-p default-directory)
-      ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
-      (let ((sub-files
-             (mapcar
-              (lambda (module)
-                (when (file-directory-p module)
-                  (let ((sub-files
-                         (vc-git-project-list-files
-                          (concat default-directory module)
-                          extra-ignores)))
-                    (if project-files-relative-names
-                        (mapcar (lambda (file)
-                                  (concat (file-name-as-directory module) file))
-                                sub-files)
-                      sub-files))))
-              submodules)))
-        (setq files
-              (apply #'nconc files sub-files))))
-    ;; 'git ls-files' returns duplicate entries for merge conflicts.
-    ;; XXX: Better solutions welcome, but this seems cheap enough.
-    (delete-consecutive-dups files))))
+                         (and (<= 31 emacs-major-version)
+                              (version<= "2.35" (vc-git--program-version))
+                              '("--sparse"))
+                         (and include-untracked '("-o"))))
+      (when extra-ignores
+        (setq args (append args
+                           (cons "--"
+                                 (mapcar
+                                  (lambda (i)
+                                    (format
+                                     ":(exclude,glob,top)%s"
+                                     (if (string-match "\\*\\*" i)
+                                         ;; Looks like pathspec glob
+                                         ;; format already.
+                                         i
+                                       (if (string-match "\\./" i)
+                                           ;; ./abc -> abc
+                                           (setq i (substring i 2))
+                                         ;; abc -> **/abc
+                                         (setq i (concat "**/" i))
+                                         ;; FIXME: '**/abc' should also
+                                         ;; match a directory with that
+                                         ;; name, but doesn't (git 2.25.1).
+                                         ;; Maybe we should replace
+                                         ;; such entries with two.
+                                         (if (string-match "/\\'" i)
+                                             ;; abc/ -> abc/**
+                                             (setq i (concat i "**"))))
+                                       i)))
+                                  extra-ignores)))))
+      (setq files
+            (delq nil
+                  (mapcar
+                   (lambda (file)
+                     (unless (or (member file submodules)
+                                 ;; Should occur for sparse directories
+                                 ;; only, when sparse index is enabled.
+                                 (directory-name-p file))
+                       (if project-files-relative-names
+                           file
+                         (concat default-directory file))))
+                   (split-string
+                    (with-output-to-string
+                      (apply #'vc-git-command standard-output 0 nil "ls-files" args))
+                    "\0" t))))
+      (when (project--vc-merge-submodules-p default-directory)
+        ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
+        (let ((sub-files
+               (mapcar
+                (lambda (module)
+                  (when (file-directory-p module)
+                    (let ((sub-files
+                           (vc-git-project-list-files
+                            (concat default-directory module)
+                            extra-ignores)))
+                      (if project-files-relative-names
+                          (mapcar (lambda (file)
+                                    (concat (file-name-as-directory module) file))
+                                  sub-files)
+                        sub-files))))
+                submodules)))
+          (setq files
+                (apply #'nconc files sub-files))))
+      ;; 'git ls-files' returns duplicate entries for merge conflicts.
+      ;; XXX: Better solutions welcome, but this seems cheap enough.
+      (delete-consecutive-dups files))))
 
 (defun vc-hg-project-list-files (dir extra-ignores)
   (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
@@ -861,7 +861,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
            ;; the root.
            (if (= (match-beginning 0) 0)
                (replace-match "./" t t entry 1)
-               (concat "./" entry)))
+             (concat "./" entry)))
           (t entry)))
        (vc-call-backend backend 'ignore-completion-table dir))))
    extra-ignores
@@ -2243,17 +2243,17 @@ If ALLOW-EMPTY is non-nil, it is possible to exit with no input."
          pr-dir)
     (cl-loop
      do (setq pr-dir
-            (let (history-add-new-input)
-              (completing-read (if prompt
-                                   ;; TODO: Use `format-prompt' (Emacs 28.1+)
-                                   (format "%s: " (substitute-command-keys prompt))
-                                 "Select project: ")
-                               choices
-                               (and predicate
-                                    (lambda (choice)
-                                      (or (equal choice dir-choice)
-                                          (funcall predicate choice))))
-                               t nil 'project--dir-history)))
+              (let (history-add-new-input)
+                (completing-read (if prompt
+                                     ;; TODO: Use `format-prompt' (Emacs 28.1+)
+                                     (format "%s: " (substitute-command-keys prompt))
+                                   "Select project: ")
+                                 choices
+                                 (and predicate
+                                      (lambda (choice)
+                                        (or (equal choice dir-choice)
+                                            (funcall predicate choice))))
+                                 t nil 'project--dir-history)))
      ;; If the user simply pressed RET, do this again until they don't.
      while (and (not allow-empty) (equal pr-dir "")))
     (if (equal pr-dir dir-choice)
