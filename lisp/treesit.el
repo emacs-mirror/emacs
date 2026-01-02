@@ -1317,7 +1317,14 @@ compiled query objects are compiled lazily upon first use.)")
 (defun treesit--compile-query-with-cache (lang query)
   "Return the cached compiled QUERY for LANG.
 
-If QUERY isn't cached, compile it and save to cache.
+If QUERY is eagerly compiled, return it as-is.
+
+If QUERY is lazily compiled (i.e., not actually compiled) or not
+compiled, return the cached compiled version of QUERY (either by finding
+the cached version or compile and cache QUERY and return it).  Note that
+if QUERY is lazily compiled and there is a cache hit, the cached
+compiled query will be returned and QUERY is simply discarded (rather
+than eagerly compiled and returned).
 
 If QUERY is invalid, signals `treesit-query-error'.  The fact that QUERY
 is invalid is also stored in cache, and the next call to this function
@@ -1326,18 +1333,27 @@ with the same QUERY will signal too.
 QUERY is compared with `equal', so string form vs sexp form of a query,
 and the same query written differently are all considered separate
 queries."
-  (let ((value (gethash (cons lang query) treesit--query-cache)))
-    (if value
-        (if (treesit-compiled-query-p value)
-            value
-          (signal 'treesit-query-error value))
-      (condition-case err
-          (let ((compiled (treesit-query-compile lang query 'eager)))
-            (puthash (cons lang query) compiled treesit--query-cache)
-            compiled)
-        (treesit-query-error
-         (puthash (cons lang query) (cdr err) treesit--query-cache)
-         (signal 'treesit-query-error (cdr err)))))))
+  (cl-assert (treesit-query-p query))
+  ;; No need to asset LANG matches the language of QUERY if QUERY is
+  ;; compiled, if LANG is wrong, compilation will error anyway.
+  (if (and (treesit-compiled-query-p query)
+           (treesit-query-eagerly-compiled-p query))
+      query
+    (let* ((query-source (if (treesit-compiled-query-p query)
+                             (treesit-query-source query)
+                           query))
+           (value (gethash (cons lang query-source) treesit--query-cache)))
+      (if value
+          (if (treesit-compiled-query-p value)
+              value
+            (signal 'treesit-query-error value))
+        (condition-case err
+            (let ((compiled (treesit-query-compile lang query 'eager)))
+              (puthash (cons lang query) compiled treesit--query-cache)
+              compiled)
+          (treesit-query-error
+           (puthash (cons lang query) (cdr err) treesit--query-cache)
+           (signal 'treesit-query-error (cdr err))))))))
 
 (defvar-local treesit-font-lock-settings nil
   "A list of SETTINGs for treesit-based fontification.
@@ -1620,7 +1636,7 @@ name, it is ignored."
                (when (null current-feature)
                  (signal 'treesit-font-lock-error
                          `("Feature unspecified, use :feature keyword to specify the feature name for this query" ,token)))
-               (push (list token
+               (push (list (treesit-query-compile lang token)
                            t
                            current-feature
                            current-override
@@ -1678,7 +1694,7 @@ no match, return 3."
 
 (defun treesit-font-lock-recompute-features
     (&optional add-list remove-list language)
-  "Enable/disable font-lock features.
+  "Enable/disable font-lock features and validate and compile queries.
 
 Enable each feature in ADD-LIST, disable each feature in
 REMOVE-LIST.
@@ -1732,7 +1748,9 @@ and leave settings for other languages unchanged."
                           (if (memq feature features) nil t)))
                        ((memq feature add-list) t)
                        ((memq feature remove-list) nil)
-                       (t current-value))))))
+                       (t current-value))))
+    ;; Validate and compile newly enabled queries.
+    (treesit-validate-and-compile-font-lock-rules treesit-font-lock-settings)))
 
 (defun treesit-merge-font-lock-feature-list (features-list-1 features-list-2)
   "Merge two tree-sitter font lock feature lists.
@@ -4476,7 +4494,6 @@ before calling this function."
                    (font-lock-fontify-syntactically-function
                     . treesit-font-lock-fontify-region)))
     (treesit-font-lock-recompute-features)
-    (treesit-validate-and-compile-font-lock-rules treesit-font-lock-settings)
     (add-hook 'pre-redisplay-functions #'treesit--pre-redisplay 0 t))
   ;; Syntax
   (add-hook 'syntax-propertize-extend-region-functions
@@ -5759,7 +5776,11 @@ language."
   (treesit-query-language
    :no-eval (treesit-query-language compiled-query)
    :eg-result c)
+  (treesit-query-source
+   :no-eval (treesit-query-source compiled-query)
+   :eg-result "(function_definition) @defun")
   (treesit-query-valid-p)
+  (treesit-query-eagerly-compiled-p)
   (treesit-query-first-valid)
   (treesit-query-expand
    :eval (treesit-query-expand '((identifier) @id "return" @ret)))

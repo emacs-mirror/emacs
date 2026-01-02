@@ -2259,6 +2259,21 @@ DEFUN ("treesit-query-p",
     return Qnil;
 }
 
+DEFUN ("treesit-query-eagerly-compiled-p",
+       Ftreesit_query_eagerly_compiled_p, Streesit_query_eagerly_compiled_p, 1, 1, 0,
+       doc: /* Return non-nil if QUERY is eagerly compiled.
+
+QUERY has to be a compiled query.  Compiled queries are lazily compiled
+by default, meaning they are not actually compiled until first used.
+Return non-nil if QUERY is actually compiled (either by passing the
+EAGER flag to `treesit-query-compile` or by using the compiled query
+once).  */)
+  (Lisp_Object query)
+{
+  CHECK_TS_COMPILED_QUERY (query);
+  return XTS_COMPILED_QUERY (query)->query == NULL ? Qnil : Qt;
+}
+
 DEFUN ("treesit-query-language",
        Ftreesit_query_language, Streesit_query_language, 1, 1, 0,
        doc: /* Return the language of QUERY.
@@ -2267,6 +2282,16 @@ QUERY has to be a compiled query.  */)
 {
   CHECK_TS_COMPILED_QUERY (query);
   return XTS_COMPILED_QUERY (query)->language;
+}
+
+DEFUN ("treesit-query-source",
+       Ftreesit_query_source, Streesit_query_source, 1, 1, 0,
+       doc: /* Return the (string or sexp) source of QUERY.
+QUERY has to be a compiled query.  */)
+  (Lisp_Object query)
+{
+  CHECK_TS_COMPILED_QUERY (query);
+  return XTS_COMPILED_QUERY (query)->source;
 }
 
 DEFUN ("treesit-node-parser",
@@ -5402,7 +5427,9 @@ depending on customization of `treesit-enabled-modes'.  */);
   defsubr (&Streesit_node_p);
   defsubr (&Streesit_compiled_query_p);
   defsubr (&Streesit_query_p);
+  defsubr (&Streesit_query_eagerly_compiled_p);
   defsubr (&Streesit_query_language);
+  defsubr (&Streesit_query_source);
 
   defsubr (&Streesit_node_parser);
 

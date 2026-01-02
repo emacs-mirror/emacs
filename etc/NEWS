@@ -1039,6 +1039,14 @@ The new variable 'forward-comment-function' is set to the new function
 'treesit-forward-comment' if a major mode defines the thing 'comment'.
 
 +++
+*** New function 'treesit-query-eagerly-compiled-p'
+This function lets user determine if a compiled query is eagerly compiled.
+
++++
+*** New function 'treesit-query-source'
+This function returns the string or sexp source query of a compiled query.
+
++++
 *** New function 'treesit-language-display-name'.
 This new function returns the display name of a language given the
 language symbol.  For example, 'cpp' is translated to "C++".  A new
