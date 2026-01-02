@@ -1,6 +1,7 @@
 /* Provide a replacement for the POSIX nanosleep function.
 
-   Copyright (C) 1999-2000, 2002, 2004-2025 Free Software Foundation, Inc.
+   Copyright (C) 1999-2000, 2002, 2004-2026 Free Software Foundation,
+   Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -64,9 +65,8 @@ nanosleep (const struct timespec *requested_delay,
 
     while (limit < seconds)
       {
-        int result;
         intermediate.tv_sec = limit;
-        result = nanosleep (&intermediate, remaining_delay);
+        int result = nanosleep (&intermediate, remaining_delay);
         seconds -= limit;
         if (result)
           {

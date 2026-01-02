@@ -1,6 +1,6 @@
 /* Work around an fstatat bug on Solaris 9.
 
-   Copyright (C) 2006, 2009-2025 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -71,11 +71,10 @@ int
 rpl_fstatat (int fd, char const *file, struct stat *st, int flag)
 {
   int result = normal_fstatat (fd, file, st, flag);
-  size_t len;
-
   if (LSTAT_FOLLOWS_SLASHED_SYMLINK || result != 0)
     return result;
-  len = strlen (file);
+
+  size_t len = strlen (file);
   if (flag & AT_SYMLINK_NOFOLLOW)
     {
       /* Fix lstat behavior.  */

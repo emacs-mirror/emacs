@@ -1,0 +1,344 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (fill-paragraph-semlf))
+
+Name: fill-paragraph-semlf - beginning of buffer
+
+=-=
+|Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - second paragraph
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+|Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - end of buffer
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.|
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - punctuation marks
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua!  Ut enim
+ad minim veniam?  Quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore magna aliqua!
+Ut enim ad minim veniam?
+Quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - fill-prefix - marker
+
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+- Aliquip ex ea commodo consequat.  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+- Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+- eiusmod tempor.
+- Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+- veniam, quis nostrud exercitation ullamco laboris nisi ut.
+- Aliquip ex ea commodo consequat.
+- Duis aute irure dolor in reprehenderit in voluptate velit esse
+- cillum dolore eu fugiat nulla pariatur.
+- Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+- officia deserunt mollit anim id est laborum.
+=-=-=
+
+Name: fill-paragraph-semlf - fill-prefix - whitespace
+
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+  Aliquip ex ea commodo consequat.  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+=-=
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+  eiusmod tempor.
+  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+  veniam, quis nostrud exercitation ullamco laboris nisi ut.
+  Aliquip ex ea commodo consequat.
+  Duis aute irure dolor in reprehenderit in voluptate velit esse
+  cillum dolore eu fugiat nulla pariatur.
+  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+  officia deserunt mollit anim id est laborum.
+=-=-=
+
+Name: fill-paragraph-semlf - indented block
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+	|Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+	do eiusmod tempor.  Incididunt ut labore et dolore magna
+	aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+	ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+	Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+	do eiusmod tempor.
+	Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+	veniam, quis nostrud exercitation ullamco laboris nisi ut.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - sentence-end-without-space (Bug#79575)
+
+=-=
+あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお。
+あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお。
+=-=
+あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお
+あいうえおあいうえお。
+あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお
+あいうえおあいうえお。
+=-=-=
+
+Name: fill-paragraph-semlf - do not merge lines
+
+=-=
+abc def.
+abc def.
+=-=
+abc def.
+abc def.
+=-=-=
+
+Name: fill-paragraph-semlf - do not merge lines with wide characters
+
+=-=
+あいうえお。
+あいうえお。
+=-=
+あいうえお。
+あいうえお。
+=-=-=
+
+Code:
+  (lambda ()
+    (setq-local sentence-end-double-space nil)
+    (fill-paragraph-semlf))
+
+Name: fill-paragraph-semlf - single space
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore magna aliqua.
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - single space - do not merge lines
+
+=-=
+abc def.
+abc def.
+=-=
+abc def.
+abc def.
+=-=-=
+
+Name: fill-paragraph-semlf - single space - do not merge lines with wide characters
+
+=-=
+あいうえお。
+あいうえお。
+=-=
+あいうえお。
+あいうえお。
+=-=-=
+
+Name: fill-paragraph-semlf - fill-separate-heterogeneous-words-with-space (Bug#79575)
+Code:
+  (lambda ()
+    (setq-local fill-separate-heterogeneous-words-with-space t)
+    (fill-paragraph-semlf))
+
+=-=
+abc def.
+あいうえお。
+=-=
+abc def.
+あいうえお。
+=-=-=
+
+Name: fill-paragraph-semlf - single space - fill-separate-heterogeneous-words-with-space
+Code:
+  (lambda ()
+    (setq-local fill-separate-heterogeneous-words-with-space t)
+    (setq-local sentence-end-double-space nil)
+    (fill-paragraph-semlf))
+
+=-=
+abc def.
+あいうえお。
+=-=
+abc def.
+あいうえお。
+=-=-=
+
+Name: fill-paragraph-semlf - justify
+Code:
+  (lambda ()
+    (fill-paragraph-semlf 'justify))
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem  ipsum  dolor sit  amet,  consectetur  adipiscing elit,  sed  do
+eiusmod tempor.
+Incididunt ut labore et dolore magna  aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - fill-column
+Code:
+  (lambda ()
+    (setq-local fill-column 35)
+    (fill-paragraph-semlf))
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet,
+consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore
+magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation
+ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - twice
+Code:
+  (lambda ()
+    (goto-char (point-min))
+    (fill-paragraph-semlf)
+    (goto-char (point-min))
+    (fill-paragraph-semlf))
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.
+Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - revert
+Code:
+  (lambda ()
+    (fill-paragraph)
+    (fill-paragraph-semlf)
+    (fill-paragraph))
+
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=

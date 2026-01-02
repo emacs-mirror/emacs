@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2025 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2026 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Text
 @chapter Text
@@ -6581,6 +6581,19 @@ a description: it lets you process the change without worrying about the
 risk that the @var{signal} function gets triggered in the middle of it,
 because the @var{signal} is re-enabled only after @var{func} finishes.
 @end defun
+
+@defvar track-changes-undo-only
+If your code uses @code{track-changes} to perform further modifications
+to the buffer (for example, to mark the parts of the buffer that have
+been edited), then you may want to refrain from making those
+modifications when the changes are the result of an undo (which
+presumably also undoes the modifications you had applied back when the
+corresponding edit was made).
+To that end @code{track-changes-fetch} binds
+@code{track-changes-undo-only} to non-@code{nil} during calls to
+@var{func} if the changes were the result of undo.
+@end defvar
+
 
 @defun track-changes-unregister id
 This function tells the library that the tracker @var{id} does not need

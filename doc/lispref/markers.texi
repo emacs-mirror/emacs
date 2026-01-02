@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Markers
@@ -721,8 +721,8 @@ larger.
 @c FIXME: Mention it in tips.texi?
   Instead of using @code{region-beginning} and @code{region-end}, a
 command designed to operate on a region should normally use
-@code{interactive} with the @samp{r} specification to find the
-beginning and end of the region.  This lets other Lisp programs
+@code{interactive} with either a @samp{r} or @samp{R} code letter to
+find the beginning and end of the region.  This lets other Lisp programs
 specify the bounds explicitly as arguments.  @xref{Interactive Codes}.
 
 @defun use-region-p

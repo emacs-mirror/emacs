@@ -1,6 +1,6 @@
 ;;; comp-runtime.el --- runtime Lisp native compiler code  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <acorallo@gnu.org>
 ;; Keywords: lisp
@@ -454,6 +454,7 @@ bytecode definition was not changed in the meantime)."
   (unless (listp files)
     (setf files (list files)))
   (let ((added-something nil)
+        (old-comp-files-queue comp-files-queue)
         file-list)
     (dolist (file-or-dir files)
       (cond ((file-directory-p file-or-dir)
@@ -472,6 +473,8 @@ bytecode definition was not changed in the meantime)."
           ;; compilation, so update `comp-files-queue' to reflect that.
           (unless (or (null load)
                       (eq load (cdr entry)))
+            ;; IIUC, this is a non-destructive version of
+            ;; (setcdr entry load)?
             (setf comp-files-queue
                   (cl-loop for i in comp-files-queue
                            with old = (car entry)
@@ -494,6 +497,9 @@ bytecode definition was not changed in the meantime)."
                                        out-filename)))))))
     ;; Perhaps nothing passed `native--compile-async-skip-p'?
     (when (and added-something
+               ;; If the queue was already non-empty, then we already
+               ;; in the middle of processing the queue.
+               (null old-comp-files-queue)
                ;; Don't start if there's one already running.
                (zerop (comp--async-runnings)))
       (comp--run-async-workers))))

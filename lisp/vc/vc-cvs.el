@@ -1,6 +1,6 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998-2026 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Package: vc
@@ -546,7 +546,7 @@ Will fail unless you have administrative privileges on the repo."
 ;;;
 
 ;; Follows vc-cvs-command, which uses vc-do-command from vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional okstatus proc))
 
 (defun vc-cvs-print-log (files buffer &optional _shortlog _start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
@@ -1086,6 +1086,7 @@ Query all files in DIR if files is nil."
     (vc-cvs-command (current-buffer) 'async
                     files
                     "-f" "-n" "-q" "update")
+    ;; FIXME: Consider `vc-run-delayed-success'.
     (vc-run-delayed
       (vc-cvs-after-dir-status update-function))))
 

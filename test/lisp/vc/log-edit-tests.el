@@ -1,6 +1,6 @@
 ;;; log-edit-tests.el --- Unit tests for log-edit.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -407,7 +407,7 @@ CVS: Abort checkin if you answer no.
   "Strip lines that contain solely \"CVS:\" when using CVS as VC backend."
   ;; This test verifies that lines consisting only of "CVS:" (no blank
   ;; after the colon) are stripped from the commit message.
-  ;; CVS does this to accomodate editors that delete trailing whitespace.
+  ;; CVS does this to accommodate editors that delete trailing whitespace.
   (let (string wanted)
     (setq string "CVS:\n"
           wanted "")

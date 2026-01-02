@@ -1,6 +1,6 @@
 ;;; ol.el --- Org links library                      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2026 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, text
@@ -1160,7 +1160,7 @@ Abbreviations are defined in `org-link-abbrev-alist'."
 	  ((string-match "%(\\([^)]+\\))" rpl)
            (let ((rpl-fun-symbol (intern-soft (match-string 1 rpl))))
              ;; Using `unsafep-function' is not quite enough because
-             ;; Emacs considers functions like `genenv' safe, while
+             ;; Emacs considers functions like `getenv' safe, while
              ;; they can potentially be used to expose private system
              ;; data to attacker if abbreviated link is clicked.
              (if (or (eq t (get rpl-fun-symbol 'org-link-abbrev-safe))

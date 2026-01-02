@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2025 Free Software
+;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -494,6 +494,9 @@ Filled in `cconv-analyze-form' but initialized and consulted here.")
 (defvar byte-compile-free-assignments)
 
 (defvar byte-compiler-error-flag)
+
+(defvar bytecomp--code-strings nil
+  "List of unique bytecode strings in this top-level form, for deduplication.")
 
 (defun byte-compile-recurse-toplevel (form non-toplevel-case)
   "Implement `eval-when-compile' and `eval-and-compile'.
@@ -1618,11 +1621,11 @@ extra args."
       (while (and (< start len)
                   (string-match
                    (rx "%"
-                       (? (group (+ digit)) "$")         ; field
-                       (* (in "+ #0-"))                  ; flags
-                       (* digit)                         ; width
-                       (? "." (* digit))                 ; precision
-                       (? (group (in "sdioxXefgcS%"))))  ; spec
+                       (? (group (+ digit)) "$")           ; field
+                       (* (in "+ #0-"))                    ; flags
+                       (* digit)                           ; width
+                       (? "." (* digit))                   ; precision
+                       (? (group (in "sdibBoxXefgcS%"))))  ; spec
                    format-str start))
         (let ((field (if (match-beginning 1)
                          (string-to-number (match-string 1 format-str))
@@ -2418,6 +2421,7 @@ With argument ARG, insert value in current buffer after the form."
 	(byte-compile-depth 0)
 	(byte-compile-maxdepth 0)
 	(byte-compile-output nil)
+        (bytecomp--code-strings nil)
 	;;	  #### This is bound in b-c-close-variables.
 	;;	  (byte-compile-warnings byte-compile-warnings)
         (symbols-with-pos-enabled t))
@@ -2581,6 +2585,7 @@ Call from the source buffer."
 	      byte-compile-depth 0
 	      byte-compile-maxdepth 0
 	      byte-compile-output nil
+              bytecomp--code-strings nil
               byte-compile-jump-tables nil))))
 
 (defun byte-compile-preprocess (form &optional _for-effect)
@@ -3163,9 +3168,16 @@ lambda-expression."
 		    (if lexical-binding
 			(byte-compile-make-args-desc arglist)
 		      bare-arglist)
+                    ;; code string, deduplicated
+                    (let* ((code (cadr compiled))
+                           (prev (member code bytecomp--code-strings)))
+                      (if prev
+                          (car prev)
+                        (push code bytecomp--code-strings)
+                        code))
 		    (append
-		     ;; byte-string, constants-vector, stack depth
-		     (cdr compiled)
+		     ;; constants-vector and stack depth
+		     (drop 2 compiled)
 		     ;; optionally, the doc string.
 		     (when (or doc int) (list doc))
 		     ;; optionally, the interactive spec (and the modes the
@@ -3595,7 +3607,7 @@ This assumes the function has the `important-return-value' property."
 (dolist (f '( funcall apply mapcar mapatoms mapconcat mapc maphash
               mapcan map-char-table map-keymap map-keymap-internal
               functionp
-              seq-do seq-do-indexed seq-sort seq-sort-by seq-group-by
+              seq-do seq-do-indexed seq-sort seq-group-by
               seq-find seq-count
               seq-filter seq-reduce seq-remove seq-keep
               seq-map seq-map-indexed seq-mapn seq-mapcat
@@ -3605,7 +3617,7 @@ This assumes the function has the `important-return-value' property."
               cl-mapcar cl-mapcan cl-mapcon cl-mapc cl-mapl cl-maplist
               ))
   (put f 'funarg-positions '(1)))
-(dolist (f '( defalias fset sort
+(dolist (f '( defalias fset
               replace-regexp-in-string
               add-hook remove-hook advice-remove advice--remove-function
               global-set-key local-set-key keymap-global-set keymap-local-set
@@ -3655,9 +3667,10 @@ This assumes the function has the `important-return-value' property."
               (make-network-process :filter :sentinel)
               (all-completions 2 3) (try-completion 2 3) (test-completion 2 3)
               (completing-read 2 3)
+              (sort 2 :key :lessp)
+              (seq-sort-by 1 2)
               ))
   (put (car fa) 'funarg-positions (cdr fa)))
-
 
 (defun byte-compile-normal-call (form)
   (when (and (symbolp (car form))
@@ -4066,7 +4079,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (defun byte-compile-cmp (form)
   "Compile calls to numeric comparisons such as `<', `=' etc."
   ;; Lisp-level transforms should already have reduced valid calls to 2 args,
-  ;; but optimisations may have been disabled.
+  ;; but optimizations may have been disabled.
   (let ((l (length form)))
     (cond
      ((= l 3)

@@ -1,6 +1,6 @@
 ;;; bib-mode.el --- major mode for editing bib files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz
 ;; (according to authors.el)

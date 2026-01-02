@@ -7,7 +7,7 @@
 
    Written by Richard W.M. Jones <rjones.at.redhat.com>
 
-   Copyright (C) 2008-2025 Free Software Foundation, Inc.
+   Copyright (C) 2008-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -44,7 +44,6 @@ int
 fsync (int fd)
 {
   HANDLE h = (HANDLE) _get_osfhandle (fd);
-  DWORD err;
 
   if (h == INVALID_HANDLE_VALUE)
     {
@@ -58,7 +57,7 @@ fsync (int fd)
        * errors.  MSDN is useless as usual - in this case it doesn't
        * document the full range of errors.
        */
-      err = GetLastError ();
+      DWORD err = GetLastError ();
       switch (err)
         {
         case ERROR_ACCESS_DENIED:

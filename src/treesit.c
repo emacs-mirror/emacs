@@ -1,6 +1,6 @@
 /* Tree-sitter integration for GNU Emacs.
 
-Copyright (C) 2021-2025 Free Software Foundation, Inc.
+Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 Maintainer: Yuan Fu <casouri@gmail.com>
 
@@ -446,7 +446,7 @@ init_treesit_functions (void)
    tracking/non-tracking, it stays that way, regardless of later changes
    to treesit-languages-require-line-column-tracking.
 
-   To make calculating line/column positons fast, we store linecol
+   To make calculating line/column positions fast, we store linecol
    caches for begv, point, and zv in the buffer
    (buf->ts_linecol_cache_xxx); and in the parser object, we store
    linecol cache for visible beg/end of that parser.
@@ -472,10 +472,10 @@ init_treesit_functions (void)
 /*** Constants */
 
 /* A linecol_cache that points to BOB, this is always valid.  */
-const struct ts_linecol TREESIT_BOB_LINECOL = { 1, 1, 0 };
+static struct ts_linecol const TREESIT_BOB_LINECOL = { 1, 1, 0 };
 /* An uninitialized linecol.  */
 const struct ts_linecol TREESIT_EMPTY_LINECOL = { 0, 0, 0 };
-const TSPoint TREESIT_TS_POINT_1_0 = { 1, 0 };
+static TSPoint const TREESIT_TS_POINT_1_0 = { 1, 0 };
 
 
 
@@ -563,7 +563,7 @@ treesit_initialize (void)
 
 /*** Debugging */
 
-void treesit_debug_print_parser_list (char *, Lisp_Object);
+void treesit_debug_print_parser_list (char *, Lisp_Object) EXTERNALLY_VISIBLE;
 
 void
 treesit_debug_print_parser_list (char *msg, Lisp_Object parser)
@@ -980,7 +980,7 @@ loaded or the file name couldn't be determined, return nil.  */)
 
 #define TREESIT_DEBUG_LINECOL false
 
-void treesit_debug_print_linecol (struct ts_linecol);
+void treesit_debug_print_linecol (struct ts_linecol) EXTERNALLY_VISIBLE;
 
 void
 treesit_debug_print_linecol (struct ts_linecol linecol)
@@ -988,8 +988,9 @@ treesit_debug_print_linecol (struct ts_linecol linecol)
   printf ("{ line=%td col=%td bytepos=%td }\n", linecol.line, linecol.col, linecol.bytepos);
 }
 
-/* Returns true if BUF tracks linecol.  */
-bool treesit_buf_tracks_linecol_p (struct buffer *buf)
+/* Return true if BUF tracks linecol.  */
+static bool
+treesit_buf_tracks_linecol_p (struct buffer *buf)
 {
   return BUF_TS_LINECOL_BEGV (buf).bytepos != 0;
 }
@@ -1071,7 +1072,7 @@ treesit_linecol_of_pos (ptrdiff_t target_bytepos,
 
   /* When we finished searching for newlines between CACHE and
      TARGET_POS, BYTE_POS_2 is at TARGET_POS, and BYTE_POS_1 is at the
-     previous newline.  If TARGET_POS happends to be on a newline,
+     previous newline.  If TARGET_POS happens to be on a newline,
      BYTE_POS_1 will be on that position.  BYTE_POS_1 is used for
      calculating the column.  (If CACHE and TARGET_POS are in the same
      line, BYTE_POS_1 is unset and we don't use it.)  */
@@ -1244,7 +1245,7 @@ treesit_tree_edit_1 (TSTree *tree, ptrdiff_t start_byte,
 }
 
 /* Given a position at POS_LINECOL, and the linecol of a buffer change
-   (START_LINECOL, OLD_END_LINECOL, and NEW_END_LINCOL), compute the new
+   (START_LINECOL, OLD_END_LINECOL, and NEW_END_LINECOL), compute the new
    linecol for that position, then scan from this now valid linecol to
    TARGET_BYTEPOS and return the linecol at TARGET_BYTEPOS.
 
@@ -1275,7 +1276,7 @@ compute_new_linecol_by_change (struct ts_linecol pos_linecol,
     {
       new_linecol = pos_linecol;
     }
-  /* 2. When old_end (oe) is before pos, the differnce between pos and
+  /* 2. When old_end (oe) is before pos, the difference between pos and
      pos' is the difference between old_end and new_end (ne).
 
      |     |   |           |     |   |
@@ -1990,7 +1991,7 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
 
 /* Wrap the parser in a Lisp_Object to be used in the Lisp
    machine.  */
-Lisp_Object
+static Lisp_Object
 make_treesit_parser (Lisp_Object buffer, TSParser *parser,
 		     TSTree *tree, Lisp_Object language_symbol,
 		     Lisp_Object tag, bool tracks_linecol)
@@ -2043,7 +2044,7 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
 }
 
 /* Wrap the node in a Lisp_Object to be used in the Lisp machine.  */
-Lisp_Object
+static Lisp_Object
 make_treesit_node (Lisp_Object parser, TSNode node)
 {
   struct Lisp_TS_Node *lisp_node;
@@ -2196,7 +2197,7 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
   return treesit_query;
 }
 
-/* Bsically treesit_ensure_query_compiled but can signal.  */
+/* Basically treesit_ensure_query_compiled but can signal.  */
 static
 void treesit_ensure_query_compiled_signal (Lisp_Object lisp_query)
 {
@@ -2258,6 +2259,21 @@ DEFUN ("treesit-query-p",
     return Qnil;
 }
 
+DEFUN ("treesit-query-eagerly-compiled-p",
+       Ftreesit_query_eagerly_compiled_p, Streesit_query_eagerly_compiled_p, 1, 1, 0,
+       doc: /* Return non-nil if QUERY is eagerly compiled.
+
+QUERY has to be a compiled query.  Compiled queries are lazily compiled
+by default, meaning they are not actually compiled until first used.
+Return non-nil if QUERY is actually compiled (either by passing the
+EAGER flag to `treesit-query-compile' or due to the fact that it was
+already used).  */)
+  (Lisp_Object query)
+{
+  CHECK_TS_COMPILED_QUERY (query);
+  return XTS_COMPILED_QUERY (query)->query == NULL ? Qnil : Qt;
+}
+
 DEFUN ("treesit-query-language",
        Ftreesit_query_language, Streesit_query_language, 1, 1, 0,
        doc: /* Return the language of QUERY.
@@ -2266,6 +2282,16 @@ QUERY has to be a compiled query.  */)
 {
   CHECK_TS_COMPILED_QUERY (query);
   return XTS_COMPILED_QUERY (query)->language;
+}
+
+DEFUN ("treesit-query-source",
+       Ftreesit_query_source, Streesit_query_source, 1, 1, 0,
+       doc: /* Return the (string or sexp) source of QUERY.
+QUERY has to be a compiled query.  */)
+  (Lisp_Object query)
+{
+  CHECK_TS_COMPILED_QUERY (query);
+  return XTS_COMPILED_QUERY (query)->source;
 }
 
 DEFUN ("treesit-node-parser",
@@ -4506,7 +4532,7 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
   if (STRINGP (pred))
     {
       const char *type = ts_node_type (node);
-      /* ts_node_type returning NULL means something unexpected happend
+      /* ts_node_type returning NULL means something unexpected happened
          in tree-sitter, in this case the only reasonable thing is to
          not match anything.  */
       if (type == NULL) return false;
@@ -4563,8 +4589,8 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
 	  /* A bit of code duplication here, but should be fine.  */
 	  const char *type = ts_node_type (node);
 	  /* ts_node_type returning NULL means something unexpected
-             happend in tree-sitter, in this case the only reasonable
-             thing is to not match anything  */
+             happened in tree-sitter.  In this case the only reasonable
+             thing is to not match anything.  */
 	  if (type == NULL) return false;
 	  if (!(fast_c_string_match (car, type, strlen (type)) >= 0))
 	    return false;
@@ -5273,7 +5299,10 @@ The value should be a list of directories.
 When trying to load a tree-sitter language definition,
 Emacs first looks in the directories mentioned in this variable,
 then in the `tree-sitter' subdirectory of `user-emacs-directory', and
-then in the system default locations for dynamic libraries, in that order.  */);
+then in the system default locations for dynamic libraries, in that order.
+The first writeable directory in the list is special: it's used as the
+default directory when automatically installing the language grammar
+using `treesit-ensure-installed'.  */);
   Vtreesit_extra_load_path = Qnil;
 
   DEFVAR_LISP ("treesit-thing-settings",
@@ -5398,7 +5427,9 @@ depending on customization of `treesit-enabled-modes'.  */);
   defsubr (&Streesit_node_p);
   defsubr (&Streesit_compiled_query_p);
   defsubr (&Streesit_query_p);
+  defsubr (&Streesit_query_eagerly_compiled_p);
   defsubr (&Streesit_query_language);
+  defsubr (&Streesit_query_source);
 
   defsubr (&Streesit_node_parser);
 

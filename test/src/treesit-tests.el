@@ -1,6 +1,6 @@
 ;;; treesit-tests.el --- tests for src/treesit.c         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -235,7 +235,7 @@
 ;;; Linecol
 
 (ert-deftest treesit-linecol-basic ()
-  "Tests for basic lincol synchronization."
+  "Tests for basic linecol synchronization."
   (skip-unless (fboundp 'treesit--linecol-cache))
   (with-temp-buffer
     (should (equal (treesit--linecol-cache)

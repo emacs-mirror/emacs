@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2025 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1488,7 +1488,6 @@ window_system_available (struct frame *f)
 }
 
 extern WINDOW_SYSTEM_RETURN void check_window_system (struct frame *);
-void check_tty (struct frame *f);
 struct frame *decode_tty_frame (Lisp_Object frame);
 extern void frame_make_pointer_invisible (struct frame *);
 extern void frame_make_pointer_visible (struct frame *);

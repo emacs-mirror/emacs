@@ -12,7 +12,7 @@
 @footnotestyle end
 
 @copying
-Copyright @copyright{} 1999--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -3176,6 +3176,14 @@ connection cleanup or on Emacs exiting.
 @subsection @option{rclone} setup
 @cindex rclone setup
 
+Check, that your @command{rclone} program is compiled with mount
+support.  Call @samp{rclone mount} and check for an error message.
+
+Sometimes, the saved configuration expires.  In this case, you must
+renew it with the command @samp{rclone config reconnect
+@var{remote}:}, with @var{remote} being the name of your configured
+system storage.
+
 The default arguments of the @command{rclone} operations
 @command{mount}, @command{copyto}, @command{moveto} and
 @command{about} are declared in the variable @code{tramp-methods} as
@@ -4438,7 +4446,7 @@ uid=0(root) gid=0(root) groups=0(root)
 
 @anchor{Running a debugger on a remote host}
 @subsection Running a debugger on a remote host
-@cindex @file{gud.el}
+@cindex @file{gud.el} file
 @cindex @code{gdb}
 @cindex @code{perldb}
 
@@ -4489,38 +4497,77 @@ Arguments of the program to be debugged must be literal, can take
 relative or absolute paths, but not remote paths.
 
 
+@anchor{Running remote processes on MS Windows hosts}
 @subsection Running remote processes on MS Windows hosts
 @cindex @command{winexe}
 @cindex @command{powershell}
 
-@command{winexe} runs processes on a remote MS Windows host, and
-@value{tramp} can use it for @code{process-file} and
-@code{start-file-process}.
+@strong{Note}: This is an experimental feature.
 
+The program @command{winexe} from the Samba suite runs processes on a
+remote MS Windows host, and @value{tramp} uses it for
+@code{make-process}, @code{process-file} and
+@code{start-file-process}.  It does not work for remote Samba servers.
+
+@c FIXME: Verify powershell version.
+@vindex tramp-smb-winexe-program
 @code{tramp-smb-winexe-program} specifies the local @command{winexe}
-command.  Powershell V2.0 on the remote host is required to run
-processes triggered from @value{tramp}.
+program.  Powershell V2.0 on the remote MS Windows host is required to
+run processes triggered from @value{tramp}.
 
-@code{explicit-shell-file-name} and @code{explicit-*-args} have to
-be set properly so @kbd{M-x shell @key{RET}} can open a proper remote
-shell on a MS Windows host.  To open @command{cmd}, set it as follows:
+@c https://woshub.com/enable-remote-access-to-admin-shares-in-workgroup/
+The remote user on the remote MS Windows host must be member of the
+local computer Administrators group of that remote MS Windows host.
+Since @command{winexe} uses the administrative share @file{ADMIN$} of
+that remote MS Windows host, the remote MS Windows host must be either
+part of an Active Directory domain, or the Remote UAC (User Account
+Control for remote connections) must be disabled.  The latter can be
+achieved by creating the
+@samp{HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\ LocalAccountTokenFilterPolicy}
+parameter in the MS Windows registry as DWORD (32-bit) with the value 1.
+
+Check, that the default remote temporary file directory is usable.
+Otherwise, change it, for example (with adapted @t{"user"} and
+@t{"host"}):
 
 @lisp
-@group
-(setq explicit-shell-file-name "cmd"
-      explicit-cmd-args '("/q"))
-@end group
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "host")
+		   "tmpdir" "/Users/user/AppData/Local/Temp"))
 @end lisp
 
 @noindent
-To open @command{powershell} as a remote shell, use this:
+@xref{Predefined connection information}.
 
-@lisp
-@group
-(setq explicit-shell-file-name "powershell"
-      explicit-powershell-args '("-file" "-"))
-@end group
-@end lisp
+Redirection from stdin is not supported.
+
+@vindex auto-revert-remote-files
+If you use a remote asynchronous process with a separate error buffer,
+you must ensure that remote files can be auto-reverted.  Set user
+option @code{auto-revert-remote-files} to a non-@code{nil} value.
+
+@vindex tramp-smb-connection-local-powershell-profile
+@vindex tramp-smb-prompt
+@cindex @file{.emacs_powershell} file
+@code{shell} and @code{shell-command} are configured to use
+@command{powershell} on the remote MS Windows host.  If you want to
+change this, consider using another connection-local profile but
+@code{tramp-smb-connection-local-powershell-profile}.
+
+If you run a remote @code{shell}, you might consider to add the
+following line to your local @file{~/.emacs_powershell} file:
+
+@smallexample
+function prompt @{ "PS " + ((Get-Location).Path | Convert-Path) + "> " @}
+@end smallexample
+
+@noindent
+Note, that the configured prompt must match @code{tramp-smb-prompt}.
+
+If you run a remote @code{shell-command}, you must use
+@command{powershell} syntax.  For example, if you want to run a shell
+command from @code{dired}, use the command @t{"(ls * ).Name"} instead
+of @t{"ls"}.
 
 
 @subsection Remote process connection type
@@ -4737,7 +4784,9 @@ It works only for some connection methods defined in
 It does not support interactive user authentication.  With
 @option{ssh}-based methods, this can be avoided by using a password
 agent like @command{ssh-agent}, using public key authentication, or
-using @option{ControlMaster} options.
+using @option{ControlMaster} options.@*
+Other interactive authentication requests, like one-time passwords or
+security key confirmation messages, do not work either.
 
 @item
 It cannot be applied for @option{ssh}-based methods, which use the
@@ -5498,12 +5547,12 @@ Disable excessive traces.  Set @code{tramp-verbose} to 3 or lower,
 default being 3.  Increase trace levels temporarily when hunting for
 bugs.
 
-@c @item
-@c Use a package with @value{tramp} specific implementation of high-level
-@c operations.  For example, the GNU ELPA package @file{tramp-hlo}
-@c implements specialized versions of @code{dir-locals--all-files},
-@c @code{locate-dominating-file} and @code{dir-locals-find-file} for
-@c @value{tramp}'s @code{tramp-sh} backend (@pxref{New operations}).
+@item
+Use a package with @value{tramp} specific implementation of high-level
+operations.  For example, the GNU ELPA package @file{tramp-hlo}
+implements specialized versions of @code{dir-locals--all-files},
+@code{locate-dominating-file} and @code{dir-locals-find-file} for
+@value{tramp}'s @code{tramp-sh} backend (@pxref{New operations}).
 @end itemize
 
 
@@ -6852,6 +6901,12 @@ they are kept.  Example:
 Shell scripts intended for the @code{tramp-sh} backend are used as a
 format string.  They must observe the restrictions for format
 specifiers, as documented in @code{tramp-expand-script}.
+
+An example implementing this mechanism is the GNU ELPA package
+@file{tramp-hlo}. It implements specialized versions of
+@code{dir-locals--all-files}, @code{locate-dominating-file} and
+@code{dir-locals-find-file} for @value{tramp}'s @code{tramp-sh}
+backend.
 
 
 @node Traces and Profiles

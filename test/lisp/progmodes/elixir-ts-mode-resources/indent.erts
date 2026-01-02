@@ -79,7 +79,7 @@ def foo() do
 end
 =-=-=
 
-Name: Bitstring mulitline
+Name: Bitstring multiline
 
 =-=
 <<12, 22,

@@ -1,6 +1,6 @@
 ;;; em-ls-tests.el --- em-ls test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2026 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 

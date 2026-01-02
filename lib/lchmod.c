@@ -1,6 +1,6 @@
 /* Implement lchmod on platforms where it does not work correctly.
 
-   Copyright 2020-2025 Free Software Foundation, Inc.
+   Copyright 2020-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 
 #include <intprops.h>
 #include "issymlink.h"
+#include "issymlinkat.h"
 
 /* Work like chmod, except when FILE is a symbolic link.
    In that case, on systems where permissions on symbolic links are unsupported

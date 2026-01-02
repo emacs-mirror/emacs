@@ -1,6 +1,6 @@
 ;;; burmese.el --- Quail package for inputting Burmese	-*- coding: utf-8; lexical-binding:t -*-
 
-;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2026 Free Software Foundation, Inc.
 
 ;; Author: Billy Lei <LeiYiXia29@outlook.com>
 ;; Keywords:  multilingual, input method, Burmese
@@ -124,7 +124,7 @@
 (quail-define-package
  "burmese-visual" "Burmese" "MYV" nil "Burmese input method (in visual order).
 
-A more common way to input Burmese, which allows inputing the vowel ေ in visual order.
+A more common way to input Burmese, which allows inputting the vowel ေ in visual order.
 " nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules

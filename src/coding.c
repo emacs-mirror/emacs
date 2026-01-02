@@ -1,5 +1,5 @@
 /* Coding system handler (conversion, detection, etc).
-   Copyright (C) 2001-2025 Free Software Foundation, Inc.
+   Copyright (C) 2001-2026 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -6328,27 +6328,6 @@ check_utf_8 (struct coding_system *coding)
     }
   coding->eol_seen = eol_seen;
   return nchars;
-}
-
-
-/* Return whether STRING is a valid UTF-8 string.  STRING must be a
-   unibyte string.  */
-
-bool
-utf8_string_p (Lisp_Object string)
-{
-  eassert (!STRING_MULTIBYTE (string));
-  struct coding_system coding;
-  setup_coding_system (Qutf_8_unix, &coding);
-  /* We initialize only the fields that check_utf_8 accesses.  */
-  coding.head_ascii = -1;
-  coding.src_pos = 0;
-  coding.src_pos_byte = 0;
-  coding.src_chars = SCHARS (string);
-  coding.src_bytes = SBYTES (string);
-  coding.src_object = string;
-  coding.eol_seen = EOL_SEEN_NONE;
-  return check_utf_8 (&coding) != -1;
 }
 
 /* Like make_string, but always returns a multibyte Lisp string, and

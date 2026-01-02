@@ -1,6 +1,11 @@
 Point-Char: |
 
-Name: emacs-lisp-mode
+Code:
+  (lambda ()
+    (emacs-lisp-mode)
+    (fill-paragraph-semlf))
+
+Name: fill-paragraph-semlf - emacs-lisp-mode
 
 =-=
 ;; Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
@@ -13,7 +18,7 @@ Name: emacs-lisp-mode
 ;; veniam, quis nostrud exercitation ullamco laboris nisi ut.
 =-=-=
 
-Name: emacs-lisp-mode - fill-prefix - marker
+Name: fill-paragraph-semlf - emacs-lisp-mode - fill-prefix - marker
 
 =-=
 ;; - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
@@ -31,7 +36,7 @@ Name: emacs-lisp-mode - fill-prefix - marker
 ;; - officia deserunt mollit anim id est laborum.
 =-=-=
 
-Name: emacs-lisp-mode - fill-prefix - whitespace
+Name: fill-paragraph-semlf - emacs-lisp-mode - fill-prefix - whitespace
 
 =-=
 ;; - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
@@ -49,7 +54,7 @@ Name: emacs-lisp-mode - fill-prefix - whitespace
 ;;   officia deserunt mollit anim id est laborum.
 =-=-=
 
-Name: emacs-lisp-mode - indented block
+Name: fill-paragraph-semlf - emacs-lisp-mode - indented block
 
 The `fill-forward-paragraph' function jumps to the beginning/end of
 the comment.

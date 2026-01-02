@@ -1,6 +1,6 @@
 /* conf_post.h --- configure.ac includes this via AH_BOTTOM
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2025 Free Software
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2026 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -144,8 +144,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 /* Needed by lib/lchmod.c.  */
 #define EOPNOTSUPP EINVAL
-
-#define MALLOC_0_IS_NONNULL 1
 
 /* We must intercept 'opendir' calls to stash away the directory name,
    so we could reuse it in readlinkat; see msdos.c.  */

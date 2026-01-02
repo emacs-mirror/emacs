@@ -1,6 +1,6 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2025 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -1986,6 +1986,8 @@ current buffer and the selected frame, respectively."
                                  (cons name (buffer-string))))
                              describe-symbol-backends))))
              (single (null (cdr docs))))
+        (when (null docs)               ; Don't silently do nothing.
+          (user-error "Unknown symbol: %S" symbol))
         (while (cdr docs)
           (goto-char (point-min))
           (let ((inhibit-read-only t)

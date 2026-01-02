@@ -135,7 +135,7 @@ Give `ispell-program-name' a real spellchecker."
   "Check that `ispell-call-process' works.
 This test fails, because HOME is not defined.
 This should not be the case, because `ispell-call-process'
-whould be making sure that the directory for running
+would be making sure that the directory for running
 the backend's process exists."
   :expected-result :failed
   (should
@@ -175,7 +175,7 @@ makes it useless."
          (equal (buffer-string) string-to-send))))))
 
 (ert-deftest ispell/ispell-call-process-region/cat-random ()
-  "Check `ispell-call-process-region' works with unrelad process.
+  "Check `ispell-call-process-region' works with unrelated process.
 This test is expected to fail, because at the moment, there is
 a construction (let ((default-directory `default-directory'))...) in
 the `ispell-with-safe-default-directory' function, which effectively
@@ -212,7 +212,7 @@ makes it useless."
 This function only works for aspell and ispell, for hunspell and
 enchant-2 it always returns either default or everything.
 I think this is an issue in itself, but this test is added to verify
-that changes to third-party code do not break existing behaviour."
+that changes to third-party code do not break existing behavior."
   (skip-unless (executable-find "hunspell"))
   (skip-unless (equal 0 (call-process "hunspell" nil nil nil)))
   (ispell-tests--letopt
@@ -233,7 +233,7 @@ that changes to third-party code do not break existing behaviour."
 This function only works for aspell and ispell, for hunspell and
 enchant-2 it always returns either default or everything.
 I think this is an issue in itself, but this test is added to verify
-that changes to third-party code do not break existing behaviour."
+that changes to third-party code do not break existing behavior."
   (skip-unless (executable-find "hunspell"))
   (skip-unless (equal 0 (call-process "hunspell" nil nil nil)))
   (ispell-tests--letopt
@@ -254,7 +254,7 @@ that changes to third-party code do not break existing behaviour."
 This function only works for aspell and ispell, for hunspell and
 enchant-2 it always returns either default or everything.
 I think this is an issue in itself, but this test is added to verify
-that changes to third-party code do not break existing behaviour."
+that changes to third-party code do not break existing behavior."
   (skip-unless (executable-find "enchant-2"))
   (ispell-tests--letopt
           ((ispell-program-name "enchant-2")
@@ -274,7 +274,7 @@ that changes to third-party code do not break existing behaviour."
 This function only works for aspell and ispell, for hunspell and
 enchant-2 it always returns either default or everything.
 I think this is an issue in itself, but this test is added to verify
-that changes to third-party code do not break existing behaviour."
+that changes to third-party code do not break existing behavior."
   (skip-unless (executable-find "enchant-2"))
   (ispell-tests--letopt
             ((ispell-program-name "enchant-2")
@@ -525,8 +525,8 @@ presumably nobody will have `ispell-tests--constants/english/wrong'
                                   (expand-file-name
                                    (format "%s" (random))
                                    temporary-file-directory))))
-  (ert-deftest ispell/ispell-buffer-local-dict/no-reload+no-overriden ()
-    "ispell.el can recognise keyword-defined dictionary and keyword-defined
+  (ert-deftest ispell/ispell-buffer-local-dict/no-reload+no-overridden ()
+    "ispell.el can recognize keyword-defined dictionary and keyword-defined
 personal-dictionary."
     (with-temp-buffer
       (nxml-mode)
@@ -541,8 +541,8 @@ personal-dictionary."
                    (should (equal ispell-local-pdict test-pdict)))
                  possible-pdict-paths))))
 
-  (ert-deftest ispell/ispell-buffer-local-dict/reload+no-overriden ()
-    "ispell.el can recognise keyword-defined dictionary and keyword-defined
+  (ert-deftest ispell/ispell-buffer-local-dict/reload+no-overridden ()
+    "ispell.el can recognize keyword-defined dictionary and keyword-defined
 personal-dictionary."
     :expected-result :failed
     (with-temp-buffer
@@ -559,8 +559,8 @@ personal-dictionary."
                      (should (equal ispell-current-personal-dictionary test-pdict))))
                  possible-pdict-paths))))
 
-  (ert-deftest ispell/ispell-buffer-local-dict/no-reload+overriden ()
-    "ispell.el can recognise keyword-defined dictionary and keyword-defined
+  (ert-deftest ispell/ispell-buffer-local-dict/no-reload+overridden ()
+    "ispell.el can recognize keyword-defined dictionary and keyword-defined
 personal-dictionary.  With no-reload it needs no backend at all."
     (with-temp-buffer
       (nxml-mode)
@@ -577,8 +577,8 @@ personal-dictionary.  With no-reload it needs no backend at all."
                      (should (equal ispell-local-pdict test-pdict))))
                  possible-pdict-paths))))
 
-  (ert-deftest ispell/ispell-buffer-local-dict/reload+overriden ()
-    "ispell.el can recognise keyword-defined dictionary and keyword-defined
+  (ert-deftest ispell/ispell-buffer-local-dict/reload+overridden ()
+    "ispell.el can recognize keyword-defined dictionary and keyword-defined
 personal-dictionary.  With no-reload it needs no backend at all."
     :expected-result :failed
     (with-temp-buffer
@@ -601,7 +601,7 @@ personal-dictionary.  With no-reload it needs no backend at all."
 ;; parsing
 
 (ert-deftest ispell/ispell-buffer-local-parsing/local-keyword ()
-  "Check that ispell.el can suscessfully pick up a tex parser from a buffer-local keyword."
+  "Check that ispell.el can successfully pick up a tex parser from a buffer-local keyword."
   ;; FIXME: what if default dictionary sets
   ;; (ispell-get-extended-character-mode) ?
   (with-temp-buffer
@@ -640,7 +640,7 @@ personal-dictionary.  With no-reload it needs no backend at all."
   )
 
 (ert-deftest ispell/ispell-buffer-local-parsing/local-keyword/hunspell-bug ()
-  "Check that ispell.el can suscessfully pick up a tex parser from a buffer-local keyword."
+  "Check that ispell.el can successfully pick up a tex parser from a buffer-local keyword."
   ;; FIXME: what if default dictionary sets
   ;; (ispell-get-extended-character-mode) ?
   :expected-result :failed
@@ -679,7 +679,7 @@ personal-dictionary.  With no-reload it needs no backend at all."
   )
 
 (ert-deftest ispell/ispell-buffer-local-parsing/mode-tex ()
-  "Check that ispell.el can suscessfully pick up a tex parser from tex-based mode-name.
+  "Check that ispell.el can successfully pick up a tex parser from tex-based mode-name.
 There is another implicit check here: explicit-character-mode
 \(argument 7 from the ispell.el dictionary structure) is nil."
   (with-temp-buffer
@@ -716,7 +716,7 @@ There is another implicit check here: explicit-character-mode
   )
 
 (ert-deftest ispell/ispell-buffer-local-parsing/extended-character-mode ()
-  "Check that ispell.el can suscessfully pick up an extended character mode from the dictionary."
+  "Check that ispell.el can successfully pick up an extended character mode from the dictionary."
   (with-temp-buffer
     (insert
      ispell-tests--constants/english/correct-one "\n\n\n")

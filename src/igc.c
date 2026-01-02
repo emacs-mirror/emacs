@@ -172,10 +172,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_coding_system_77D58F21B9
 #  error "struct coding_system changed"
 # endif
-# ifndef HASH_terminal_4E8E555B40
+# ifndef HASH_terminal_19777CD1E0
 #  error "struct terminal changed"
 # endif
-# ifndef HASH_Lisp_Native_Comp_Unit_876BE72D27
+# ifndef HASH_Lisp_Native_Comp_Unit_0BDAB1A94D
 #  error "struct Lisp_Native_Comp_Unit changed"
 # endif
 # ifndef HASH_pvec_type_1C9DBCD69F
@@ -208,7 +208,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_module_global_reference_DC69127EC6
 #  error "struct module_global_reference changed"
 # endif
-# ifndef HASH_Lisp_TS_Parser_66A8E2974E
+# ifndef HASH_Lisp_TS_Parser_96CBB02569
 #  error "struct Lisp_TS_Parser changed"
 # endif
 # ifndef HASH_Lisp_TS_Query_31B815035A

@@ -1,6 +1,6 @@
 /* ATTRIBUTE_* macros for using attributes in GCC and similar compilers
 
-   Copyright 2020-2025 Free Software Foundation, Inc.
+   Copyright 2020-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -89,7 +89,7 @@
    _GL_ATTRIBUTE_NONNULL_IF_NONZERO, _GL_ATTRIBUTE_NONSTRING,
    _GL_ATTRIBUTE_NOTHROW, _GL_ATTRIBUTE_PACKED, _GL_ATTRIBUTE_PURE,
    _GL_ATTRIBUTE_REPRODUCIBLE, _GL_ATTRIBUTE_RETURNS_NONNULL,
-   _GL_ATTRIBUTE_SENTINEL, _GL_ATTRIBUTE_UNSEQUENCED.  */
+   _GL_ATTRIBUTE_SENTINEL, _GL_ATTRIBUTE_UNSEQUENCED, _GL_UNNAMED.  */
 #if !_GL_CONFIG_H_INCLUDED
  #error "Please include config.h first."
 #endif
@@ -240,62 +240,68 @@
 /* Applies to: functions.  */
 #define ATTRIBUTE_ALWAYS_INLINE _GL_ATTRIBUTE_ALWAYS_INLINE
 
-/* It is OK for a compiler to move calls to the function and to omit
-   calls to the function if another call has the same arguments or the
-   result is not used.
-   This attribute is safe for a function that neither depends on
-   nor affects state, and always returns exactly once -
+/* It is OK for a compiler to move a call, or omit a duplicate call
+   and reuse a cached return value, even if the state changes between calls.
+   It is also OK to omit a call if the result is not used.
+   This attribute is safe if the function does not change observable state,
+   returns a value determined solely by its arguments' values
+   without examining state, and always returns exactly once -
    e.g., does not raise an exception, call longjmp, or loop forever.
-   (This attribute is stricter than ATTRIBUTE_PURE because the
-   function cannot observe state.  It is stricter than UNSEQUENCED
-   because the function must return exactly once and cannot depend on
-   state addressed by its arguments.)  */
+   (This attribute is stricter than _GL_ATTRIBUTE_PURE because the
+   function cannot observe state.  Unlike _GL_ATTRIBUTE_UNSEQUENCED
+   the function must return exactly once and cannot access state
+   addressed by its pointer arguments or that happens to have the same
+   value for all calls to the function, but the function is allowed to
+   return a pointer to storage that can be modified later.  */
 /* Applies to: functions.  */
 #define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
 
-/* It is OK for a compiler to move calls to the function and to omit duplicate
-   calls to the function with the same arguments, so long as the state
-   addressed by its arguments is the same.
+/* It is OK for a compiler to move a call, or omit a duplicate call
+   and reuse a cached value returned either directly or indirectly via
+   a pointer, if the state addressed by its pointer arguments is the same;
+   however, pointer arguments cannot alias.
    This attribute is safe for a function that is effectless, idempotent,
-   stateless, and independent; see ISO C 23 § 6.7.12.7 for a definition of
+   stateless, and independent; see ISO C 23 § 6.7.13.8 for a definition of
    these terms.
-   (This attribute is stricter than REPRODUCIBLE because the function
-   must be stateless and independent.  It is looser than ATTRIBUTE_CONST
-   because the function need not return exactly once and can depend
-   on state addressed by its arguments.)
+   (This attribute is stricter than _GL_ATTRIBUTE_REPRODUCIBLE because
+   the function must be stateless and independent.  Unlike
+   _GL_ATTRIBUTE_CONST the function need not return exactly once, and
+   can depend on state accessed via its pointer arguments or that
+   happens to have the same value for all calls to the function, but
+   the function cannot return a pointer to storage whose contents
+   change later.)
    See also <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2956.htm> and
-   <https://stackoverflow.com/questions/76847905/>.
-   ATTENTION! Efforts are underway to change the meaning of this attribute.
-   See <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3424.htm>.  */
+   <https://stackoverflow.com/questions/76847905/>.  */
 /* Applies to: functions, pointer to functions, function type.  */
 #define UNSEQUENCED _GL_ATTRIBUTE_UNSEQUENCED
 
-/* It is OK for a compiler to move calls to the function and to omit
-   calls to the function if another call has the same arguments or the
-   result is not used, and if observable state is the same.
-   This attribute is safe for a function that does not affect observable state
-   and always returns exactly once.
-   (This attribute is looser than ATTRIBUTE_CONST because the function
-   can depend on observable state.  It is stricter than REPRODUCIBLE
-   because the function must return exactly once and cannot affect
-   state addressed by its arguments.)  */
+/* It is OK for a compiler to move a call, or omit a duplicate call
+   and reuse a cached return value, if observable state is the same.
+   It is also OK to omit a call if the return value is not used.
+   This attribute is safe if the function does not change observable state,
+   returns a value determined solely by its arguments's values
+   together with observable state, and always returns exactly once.
+   (This attribute is looser than _GL_ATTRIBUTE_CONST because the function
+   can depend on observable state.
+   Unlike _GL_ATTRIBUTE_REPRODUCIBLE the function must return exactly
+   once and cannot change state addressed by its arguments, but the
+   function can return a pointer to storage whose contents change later.)  */
 /* Applies to: functions.  */
 #define ATTRIBUTE_PURE _GL_ATTRIBUTE_PURE
 
-/* It is OK for a compiler to move calls to the function and to omit duplicate
-   calls to the function with the same arguments, so long as the state
-   addressed by its arguments is the same and is updated in time for
-   the rest of the program.
-   This attribute is safe for a function that is effectless and idempotent; see
-   ISO C 23 § 6.7.12.7 for a definition of these terms.
-   (This attribute is looser than UNSEQUENCED because the function need
-   not be stateless and idempotent.  It is looser than ATTRIBUTE_PURE
-   because the function need not return exactly once and can affect
-   state addressed by its arguments.)
+/* It is OK for a compiler to move a call, or omit a duplicate call
+   and reuse a cached value returned either directly or indirectly via
+   a pointer, if other observable state is the same;
+   however, pointer arguments cannot alias.
+   This attribute is safe for a function that is effectless and idempotent;
+   see ISO C 23 § 6.7.13.8 for a definition of these terms.
+   (This attribute is looser than _GL_ATTRIBUTE_UNSEQUENCED because
+   the function need not be stateless or independent.
+   Unlike _GL_ATTRIBUTE_PURE the function need not return exactly once
+   and can change state addressed by its pointer arguments, but the
+   function cannot return a pointer to storage whose contents change later.)
    See also <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2956.htm> and
-   <https://stackoverflow.com/questions/76847905/>.
-   ATTENTION! Efforts are underway to change the meaning of this attribute.
-   See <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3424.htm>.  */
+   <https://stackoverflow.com/questions/76847905/>.  */
 /* Applies to: functions, pointer to functions, function type.  */
 #define REPRODUCIBLE _GL_ATTRIBUTE_REPRODUCIBLE
 
@@ -326,6 +332,20 @@
    other types, thus disabling strict aliasing optimization.  */
 /* Applies to: types.  */
 #define ATTRIBUTE_MAY_ALIAS _GL_ATTRIBUTE_MAY_ALIAS
+
+
+/* ==================== Unnamed function parameters ======================== */
+
+/* Although UNNAMED is not an attribute, it is related to MAYBE_UNUSED
+   and so is defined here for convenience.  */
+
+/* UNNAMED (ID) is the "name" of an unnamed function parameter.
+   Each of the function's unnamed parameters should have a unique "name".
+   The "name" cannot be used.  This ports both to C17 and earlier, which
+   lack unnamed parameters, and to C++ and later C, which have them.  */
+/* Applies to:
+     - function parameters.  */
+#define UNNAMED(id) _GL_UNNAMED (id)
 
 
 #endif /* _GL_ATTRIBUTE_H */

@@ -1,7 +1,7 @@
 /* group-member.c -- determine whether group id is in calling user's group list
 
-   Copyright (C) 1994, 1997-1998, 2003, 2005-2006, 2009-2025 Free Software
-   Foundation, Inc.
+   Copyright (C) 1994, 1997-1998, 2003, 2005-2006, 2009-2026 Free
+   Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -73,12 +73,11 @@ get_group_info (struct group_info *gi)
 int
 group_member (gid_t gid)
 {
-  int found;
   struct group_info gi;
   int n_groups = get_group_info (&gi);
 
   /* Search through the list looking for GID. */
-  found = 0;
+  int found = 0;
   for (int i = 0; i < n_groups; i++)
     {
       if (gid == gi.group[i])
@@ -100,9 +99,7 @@ main (int argc, char **argv)
 {
   for (int i = 1; i < argc; i++)
     {
-      gid_t gid;
-
-      gid = atoi (argv[i]);
+      gid_t gid = atoi (argv[i]);
       printf ("%d: %s\n", gid, group_member (gid) ? "yes" : "no");
     }
   exit (0);

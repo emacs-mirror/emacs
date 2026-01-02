@@ -1,6 +1,6 @@
 /* Provide a more complete sys/time.h.
 
-   Copyright (C) 2007-2025 Free Software Foundation, Inc.
+   Copyright (C) 2007-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -133,7 +133,6 @@ namespace GNULIB_NAMESPACE {
 }
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef gettimeofday
 # if HAVE_RAW_DECL_GETTIMEOFDAY
 _GL_WARN_ON_USE (gettimeofday, "gettimeofday is unportable - "
                  "use gnulib module gettimeofday for portability");

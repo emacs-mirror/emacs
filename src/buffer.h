@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1362,7 +1362,6 @@ extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
 extern void compact_buffer (struct buffer *);
 extern ptrdiff_t overlays_at (ptrdiff_t, bool, Lisp_Object **, ptrdiff_t *, ptrdiff_t *);
-extern ptrdiff_t previous_overlay_change (ptrdiff_t);
 extern ptrdiff_t next_overlay_change (ptrdiff_t);
 extern ptrdiff_t sort_overlays (Lisp_Object *, ptrdiff_t, struct window *);
 extern void recenter_overlay_lists (struct buffer *, ptrdiff_t);

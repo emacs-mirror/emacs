@@ -1,6 +1,6 @@
 /* Header file for the tree-sitter integration.
 
-Copyright (C) 2021-2025 Free Software Foundation, Inc.
+Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -66,7 +66,7 @@ struct Lisp_TS_Parser
   Lisp_Object last_set_ranges;
   /* Parsers for embedded code blocks will have a non-zero embed level.
      The primary parser has level 0, and each additional layer of parser
-     embedding increments the leve by 1.  The embed level can be either
+     embedding increments the level by 1.  The embed level can be either
      a non-negative integer or nil.  Every parser created by
      'treesit-parser-create' starts with a nil level.  If the value is
      nil, that means the range functions (treesit-update-ranges and
@@ -231,12 +231,9 @@ CHECK_TS_COMPILED_QUERY (Lisp_Object query)
 
 INLINE_HEADER_END
 
-extern const struct ts_linecol TREESIT_BOB_LINECOL;
 /* An uninitialized linecol.  */
 extern const struct ts_linecol TREESIT_EMPTY_LINECOL;
-extern const TSPoint TREESIT_TS_POINT_1_0;
 
-extern bool treesit_buf_tracks_linecol_p (struct buffer *);
 extern struct ts_linecol linecol_offset (struct ts_linecol,
 					 struct ts_linecol);
 extern struct ts_linecol treesit_linecol_maybe (ptrdiff_t, ptrdiff_t,
@@ -244,9 +241,6 @@ extern struct ts_linecol treesit_linecol_maybe (ptrdiff_t, ptrdiff_t,
 extern void treesit_record_change (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				   struct ts_linecol, struct ts_linecol,
 				   ptrdiff_t);
-extern Lisp_Object make_treesit_parser (Lisp_Object, TSParser *, TSTree *,
-					Lisp_Object, Lisp_Object, bool);
-extern Lisp_Object make_treesit_node (Lisp_Object, TSNode);
 
 extern bool treesit_node_uptodate_p (Lisp_Object);
 extern bool treesit_node_buffer_live_p (Lisp_Object);

@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2025 Free Software Foundation,
+   Copyright (C) 1989, 1993-1994, 1998-2026 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -1733,9 +1733,6 @@ SELECTION_EVENT_DISPLAY (struct selection_input_event *ev)
 extern frame_parm_handler x_frame_parm_handlers[];
 extern void x_free_gcs (struct frame *);
 extern void x_relative_mouse_position (struct frame *, int *, int *);
-extern void x_real_pos_and_offsets (struct frame *, int *, int *, int *,
-                                    int *, int *, int *, int *, int *,
-				    int *);
 extern void x_default_font_parameter (struct frame *, Lisp_Object);
 
 /* From xrdb.c.  */
@@ -1769,6 +1766,7 @@ extern void x_ignore_errors_for_next_request (struct x_display_info *,
 extern void x_stop_ignoring_errors (struct x_display_info *);
 extern void x_clear_errors (Display *);
 extern void x_set_window_size (struct frame *, bool, int, int);
+extern void x_set_window_size_and_position (struct frame *, int, int);
 extern void x_set_last_user_time_from_lisp (struct x_display_info *, Time);
 extern void x_make_frame_visible (struct frame *);
 extern void x_make_frame_invisible (struct frame *);
@@ -1860,10 +1858,6 @@ extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom,
 					      Lisp_Object, Atom *, const char **,
 					      size_t, bool, Atom *, int,
 					      Lisp_Object, bool);
-extern void x_dnd_do_unsupported_drop (struct x_display_info *, Lisp_Object,
-				       Lisp_Object, Lisp_Object, Window, int,
-				       int, Time);
-
 extern int x_display_pixel_height (struct x_display_info *);
 extern int x_display_pixel_width (struct x_display_info *);
 
@@ -2024,10 +2018,12 @@ extern int x_error_message_count;
 
 #ifdef HAVE_XINPUT2
 extern struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
+# if defined USE_X_TOOLKIT || !(defined USE_GTK && defined HAVE_GTK3)
 extern bool xi_frame_selected_for (struct frame *, unsigned long);
-#ifndef USE_GTK
+# endif
+# ifndef USE_GTK
 extern unsigned int xi_convert_event_state (XIDeviceEvent *);
-#endif
+# endif
 #endif
 
 extern void mark_xterm (void);

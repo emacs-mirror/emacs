@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs. -*- coding: utf-8 -*-
-   Copyright (C) 1985-1986, 1993-1995, 1997-2025 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997-2026 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -284,7 +284,7 @@ adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
    we advance it if either its insertion-type is t
    or BEFORE_MARKERS is true.  */
 
-void
+static void
 adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 			   ptrdiff_t to, ptrdiff_t to_byte, bool before_markers)
 {

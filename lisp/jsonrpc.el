@@ -1,10 +1,10 @@
 ;;; jsonrpc.el --- JSON-RPC library                  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2026 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.26
+;; Version: 1.0.27
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -379,7 +379,7 @@ a new request with identical DEFERRED and for the same buffer.
 However, in that situation, the original timeout is kept.
 
 PARAMS can also be the keyword `:jsonrpc-omit', in which case the
-JSONRPC request object is formed witout a `params' entry.
+JSONRPC request object is formed without a `params' entry.
 
 Returns a list whose first element is an integer identifying the request
 as specified in the JSONRPC 2.0 spec."
@@ -1008,7 +1008,7 @@ Do nothing if MAX-SIZE is nil."
       (delete-region
        (point-min)
        (save-excursion
-         ;; Remove 1/4, so that the cost is O(1) amortised, since each
+         ;; Remove 1/4, so that the cost is O(1) amortized, since each
          ;; call to `delete-region' will move the buffer contents twice.
          (goto-char (+ (point-min) (/ (buffer-size) 4)))
          (forward-line)
@@ -1109,7 +1109,7 @@ PREFIX to CONN's events buffer."
            (unless (eql max 0)
              (cl-loop initially (goto-char beg)
                       do (forward-line)
-                      when (bolp)
+                      while (bolp)
                       for line = (buffer-substring
                                   (line-beginning-position 0)
                                   (line-end-position 0))

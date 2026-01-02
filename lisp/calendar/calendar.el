@@ -1,6 +1,6 @@
 ;;; calendar.el --- calendar functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988-1995, 1997, 2000-2025 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 2000-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -1029,8 +1029,7 @@ The valid styles are described in the documentation of `calendar-date-style'."
         (symbol-value (intern-soft (format "calendar-%s-month-header" style)))
         diary-date-forms
         (symbol-value (intern-soft (format "diary-%s-date-forms" style))))
-  (calendar-redraw)
-  (calendar-update-mode-line))
+  (calendar-redraw))
 
 (defcustom diary-show-holidays-flag t
   "Non-nil means include holidays in the diary display.
@@ -1101,6 +1100,12 @@ Otherwise, use symbolic time zones like \"CET\"."
 
 (defconst calendar-buffer "*Calendar*"
   "Name of the buffer used for the calendar.")
+
+(defun calendar-get-buffer ()
+  "Return current usable calendar-mode buffer."
+  (if (derived-mode-p 'calendar-mode)
+      (current-buffer)
+    (get-buffer calendar-buffer)))
 
 (defconst holiday-buffer "*Holidays*"
   "Name of the buffer used for the displaying the holidays.")
@@ -1350,8 +1355,8 @@ display the generated calendar."
            ;; behavior as before in the non-wide case (see below).
            (split-height-threshold 1000)
            (split-width-threshold calendar-split-width-threshold)
-           (date (if arg (calendar-read-date t)
-                   (calendar-current-date)))
+           (today (calendar-current-date))
+           (date (if arg (calendar-read-date t) today))
            (month (calendar-extract-month date))
            (year (calendar-extract-year date)))
       (calendar-increment-month month year (- calendar-offset))
@@ -1400,6 +1405,9 @@ display the generated calendar."
             ;; Switch to the lower window with the calendar buffer.
             (select-window win))))
       (calendar-generate-window month year)
+      (calendar-cursor-to-visible-date
+       (if (calendar-date-is-visible-p today) today (list month 1 year)))
+      (calendar-update-mode-line)
       (if (and calendar-view-diary-initially-flag
                (calendar-date-is-visible-p date))
           ;; Do not clobber the calendar with the diary, if the diary
@@ -1424,14 +1432,9 @@ Optional integers MON and YR are used instead of today's date."
          (month (calendar-extract-month today))
          ;; (day (calendar-extract-day today))
          (year (calendar-extract-year today))
-         (today-visible (or (not mon)
-                            (<= (abs (calendar-interval mon yr month year)) 1)))
-         (in-calendar-window (eq (window-buffer)
-                                 (get-buffer calendar-buffer))))
+         (in-calendar-window (with-current-buffer (window-buffer)
+                               (derived-mode-p 'calendar-mode))))
     (calendar-generate (or mon month) (or yr year))
-    (calendar-update-mode-line)
-    (calendar-cursor-to-visible-date
-     (if today-visible today (list displayed-month 1 displayed-year)))
     (set-buffer-modified-p nil)
     ;; Don't do any window-related stuff if we weren't called from a
     ;; window displaying the calendar.
@@ -1447,7 +1450,7 @@ Optional integers MON and YR are used instead of today's date."
          (calendar-mark-holidays))
     (unwind-protect
         (if calendar-mark-diary-entries (diary-mark-entries))
-      (run-hooks (if today-visible
+      (run-hooks (if (calendar-date-is-visible-p today)
                      'calendar-today-visible-hook
                    'calendar-today-invisible-hook)))))
 
@@ -1567,11 +1570,12 @@ first INDENT characters on the line."
 (defun calendar-redraw ()
   "Redraw the calendar display, if `calendar-buffer' is live."
   (interactive)
-  (when (get-buffer calendar-buffer)
-    (with-current-buffer calendar-buffer
+  (when-let* ((buf (calendar-get-buffer)))
+    (with-current-buffer buf
       (let ((cursor-date (calendar-cursor-to-nearest-date)))
         (calendar-generate-window displayed-month displayed-year)
-        (calendar-cursor-to-visible-date cursor-date))
+        (calendar-cursor-to-visible-date cursor-date)
+        (calendar-update-mode-line))
       (when (window-live-p (get-buffer-window))
         (set-window-point (get-buffer-window) (point))))))
 
@@ -1774,7 +1778,7 @@ is COMMAND's keybinding, STRING describes the binding."
 (defcustom calendar-mode-line-format
   (list
    (calendar-mode-line-entry 'calendar-scroll-right "previous month" "<")
-   "Calendar"
+   '(string-trim (buffer-name) "\\*" "\\*")
    (concat
     (calendar-mode-line-entry 'calendar-goto-info-node "read Info on Calendar"
                               nil "info")
@@ -1876,9 +1880,9 @@ concatenated and the result truncated."
 
 (defun calendar-update-mode-line ()
   "Update the calendar mode line with the current date and date style."
-  (if (and calendar-mode-line-format
-           (bufferp (get-buffer calendar-buffer)))
-      (with-current-buffer calendar-buffer
+  (if-let* ((calendar-mode-line-format)
+            (buf (calendar-get-buffer)))
+      (with-current-buffer buf
         (let ((start (- calendar-left-margin 2)))
           (calendar-dlet ((date (condition-case nil
                                      (calendar-cursor-to-nearest-date)
@@ -1909,29 +1913,36 @@ concatenated and the result truncated."
 If KILL (interactively, the prefix), kill the buffers instead of
 hiding them."
   (interactive "P")
-  (let ((diary-buffer (get-file-buffer diary-file))
-        (calendar-buffers (calendar-buffer-list)))
-    (when (or (not diary-buffer)
-              (not (buffer-modified-p diary-buffer))
-              (yes-or-no-p
-               "Diary modified; do you really want to exit the calendar? "))
-      (if (and calendar-setup (display-multi-frame-p))
-          ;; FIXME: replace this cruft with the `quit-restore' window property
-          (dolist (w (window-list-1 nil nil t))
-            (if (and (memq (window-buffer w) calendar-buffers)
-                     (window-dedicated-p w))
-                (if (eq (window-deletable-p w) 'frame)
-		    (if calendar-remove-frame-by-deleting
-			(delete-frame (window-frame w))
-		      (iconify-frame (window-frame w)))
-		  (quit-window kill w))))
-        (dolist (b calendar-buffers)
-          (quit-windows-on b kill)))
-      ;; Finally, kill non-displayed buffers (if requested).
-      (when kill
-        (dolist (b calendar-buffers)
-          (when (buffer-live-p b)
-            (kill-buffer b)))))))
+  ;; FIXME: We need to record the associations between each
+  ;; calendar-mode buffer and its auxiliary buffers explicitly.  For the
+  ;; moment, don't handle buffers from `calendar-buffer-list' when
+  ;; exiting a calendar-mode buffer not named `calendar-buffer'.
+  (if (and (derived-mode-p 'calendar-mode)
+           (not (equal (current-buffer) (get-buffer calendar-buffer))))
+      (quit-windows-on nil kill)
+    (let ((diary-buffer (get-file-buffer diary-file))
+          (calendar-buffers (calendar-buffer-list)))
+      (when (or (not diary-buffer)
+                (not (buffer-modified-p diary-buffer))
+                (yes-or-no-p
+                 "Diary modified; do you really want to exit the calendar? "))
+        (if (and calendar-setup (display-multi-frame-p))
+            ;; FIXME: replace this cruft with the `quit-restore' window property
+            (dolist (w (window-list-1 nil nil t))
+              (if (and (memq (window-buffer w) calendar-buffers)
+                       (window-dedicated-p w))
+                  (if (eq (window-deletable-p w) 'frame)
+		      (if calendar-remove-frame-by-deleting
+			  (delete-frame (window-frame w))
+		        (iconify-frame (window-frame w)))
+		    (quit-window kill w))))
+          (dolist (b calendar-buffers)
+            (quit-windows-on b kill)))
+        ;; Finally, kill non-displayed buffers (if requested).
+        (when kill
+          (dolist (b calendar-buffers)
+            (when (buffer-live-p b)
+              (kill-buffer b))))))))
 
 (defun calendar-current-date (&optional offset)
   "Return the current date in a list (month day year).
@@ -2060,7 +2071,8 @@ EVENT is an event like `last-nonmenu-event'."
          (cond
           ((calendar-date-is-visible-p old-date) old-date)
           ((calendar-date-is-visible-p today) today)
-          (t (list month 1 year))))))))
+          (t (list month 1 year))))
+        (calendar-update-mode-line)))))
 
 (defun calendar-set-mark (arg &optional event)
   "Mark the date under the cursor, or jump to marked date.
@@ -2442,7 +2454,7 @@ interpreted as BC; -1 being 1 BC, and so on."
   (interactive)
   (setq calendar-mark-holidays nil
         calendar-mark-diary-entries nil)
-  (with-current-buffer calendar-buffer
+  (with-current-buffer (calendar-get-buffer)
     (mapc #'delete-overlay (overlays-in (point-min) (point-max)))))
 
 (defun calendar-date-is-visible-p (date)
@@ -2559,7 +2571,7 @@ ATTRLIST is a list with elements of the form :face face :foreground color."
 MARK is a single-character string, a list of face attributes/values,
 or a face.  MARK defaults to `diary-entry-marker'."
   (if (calendar-date-is-valid-p date)
-      (with-current-buffer calendar-buffer
+      (with-current-buffer (calendar-get-buffer)
         (save-excursion
           (calendar-cursor-to-visible-date date)
           (setq mark

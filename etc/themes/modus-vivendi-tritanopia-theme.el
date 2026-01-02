@@ -1,6 +1,6 @@
 ;;; modus-vivendi-tritanopia-theme.el --- Tritanopia-optimized theme with a black background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2025  Free Software Foundation, Inc.
+;; Copyright (C) 2019-2026 Free Software Foundation, Inc.
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
@@ -87,6 +87,7 @@ standard)."
  'dark
  'modus-themes-vivendi-tritanopia-palette
  'modus-vivendi-tritanopia-palette-user
- 'modus-vivendi-tritanopia-palette-overrides)
+ 'modus-vivendi-tritanopia-palette-overrides
+ 'modus-themes-faces-tritanopia)
 
 ;;; modus-vivendi-tritanopia-theme.el ends here

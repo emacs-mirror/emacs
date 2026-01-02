@@ -1,6 +1,6 @@
 ;;; package.el --- Simple package system for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2026 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;         Daniel Hackney <dan@haxney.org>
@@ -516,7 +516,9 @@ Slots:
         required version.
 
 `kind'	The distribution format of the package.  Currently, it is
-        either `single' or `tar'.
+        either `single', `tar', or (temporarily only) `dir'.  In
+        addition, there is distribution format `vc', which is handled
+        by package-vc.el.
 
 `archive' The name of the archive (as a string) whence this
         package came.
@@ -903,6 +905,14 @@ sexps)."
       (mapc (lambda (c) (load (car c) nil t))
             (sort result (lambda (x y) (< (cdr x) (cdr y))))))))
 
+(defun package--add-info-node (pkg-dir)
+  "Add info node located in PKG-DIR."
+  (when (file-exists-p (expand-file-name "dir" pkg-dir))
+    ;; FIXME: not the friendliest, but simple.
+    (require 'info)
+    (info-initialize)
+    (add-to-list 'Info-directory-list pkg-dir)))
+
 (defun package-activate-1 (pkg-desc &optional reload deps)
   "Activate package given by PKG-DESC, even if it was already active.
 If DEPS is non-nil, also activate its dependencies (unless they
@@ -934,12 +944,7 @@ correspond to previously loaded files."
 The following files have already been loaded: %S")))
         (with-demoted-errors "Error loading autoloads: %s"
           (load (package--autoloads-file-name pkg-desc) nil t)))
-      ;; Add info node.
-      (when (file-exists-p (expand-file-name "dir" pkg-dir))
-        ;; FIXME: not the friendliest, but simple.
-        (require 'info)
-        (info-initialize)
-        (add-to-list 'Info-directory-list pkg-dir))
+      (package--add-info-node pkg-dir)
       (push name package-activated-list)
       ;; Don't return nil.
       t)))
@@ -1280,10 +1285,10 @@ The return result is a `package-desc'."
         (let ((files (or (and (derived-mode-p 'dired-mode)
                               (dired-get-marked-files nil 'marked))
                          (directory-files default-directory t "\\.el\\'" t))))
-          ;; We sort the file names in lexicographical order, to ensure
-          ;; that we check shorter file names first (ie. those further
-          ;; up in the directory structure).
-          (dolist (file (sort files))
+          ;; We sort the file names by length, to ensure that we check
+          ;; shorter file names first, as these are more likely to
+          ;; contain the package metadata.
+          (dolist (file (sort files :key #'length))
             ;; The file may be a link to a nonexistent file; e.g., a
             ;; lock file.
             (when (file-exists-p file)
@@ -2113,6 +2118,18 @@ if all the in-between dependencies are also in PACKAGE-LIST."
 ;; installed in a variety of ways (archives, buffer, file), but
 ;; requirements (dependencies) are always satisfied by looking in
 ;; `package-archive-contents'.
+;;
+;; If Emacs installs a package from a package archive, it might create
+;; some files in addition to the package's contents.  For example:
+;;
+;; - If the package archive provides a non-trivial long description for
+;;   some package in "PACKAGE-readme.txt", Emacs stores it in a file
+;;   named "README-elpa" in the package's content directory, unless the
+;;   package itself provides such a file.
+;;
+;; - If a package archive provides package signatures, Emacs stores
+;;   information on the signatures in files named "NAME-VERSION.signed"
+;;   below directory `package-user-dir'.
 
 (defun package-archive-base (desc)
   "Return the package described by DESC."
@@ -2162,7 +2179,22 @@ if all the in-between dependencies are also in PACKAGE-LIST."
                ;; Update the new (activated) pkg-desc as well.
                (when-let* ((pkg-descs (cdr (assq (package-desc-name pkg-desc)
                                                  package-alist))))
-                 (setf (package-desc-signed (car pkg-descs)) t))))))))))
+                 (setf (package-desc-signed (car pkg-descs)) t))))))))
+    ;; fetch a backup of the readme file from the server.  Slot `dir' is
+    ;; not yet available in PKG-DESC, so cobble that up.
+    (let* ((dirname (package-desc-full-name pkg-desc))
+           (pkg-dir (expand-file-name dirname package-user-dir))
+           (readme (expand-file-name "README-elpa" pkg-dir)))
+      (unless (file-readable-p readme)
+        (package--with-response-buffer (package-archive-base pkg-desc)
+          :file (format "%s-readme.txt" (package-desc-name pkg-desc))
+          :noerror t
+          ;; do not write empty or whitespace-only readmes to give
+          ;; `package--get-description' a chance to find another readme
+          (unless (save-excursion
+                    (goto-char (point-min))
+                    (looking-at-p "[[:space:]]*\\'"))
+            (write-region nil nil readme)))))))
 
 ;;;###autoload
 (defun package-installed-p (package &optional min-version)
@@ -2211,8 +2243,9 @@ using `package-compute-transaction'."
 
 (defcustom package-install-upgrade-built-in nil
   "Non-nil means that built-in packages can be upgraded via a package archive.
-If disabled, then `package-install' will not suggest to replace a
-built-in package with a (possibly newer) version from a package archive."
+If disabled, then `package-install' will raise an error when trying to
+replace a built-in package with a (possibly newer) version from a
+package archive."
   :type 'boolean
   :version "29.1")
 
@@ -2243,14 +2276,7 @@ had been enabled."
      (package--archives-initialize)
      (list (intern (completing-read
                     "Install package: "
-                    (mapcan
-                     (lambda (elt)
-                       (and (or (and (or current-prefix-arg
-                                         package-install-upgrade-built-in)
-                                     (package--active-built-in-p (car elt)))
-                                (not (package-installed-p (car elt))))
-                            (list (symbol-name (car elt)))))
-                     package-archive-contents)
+                    package-archive-contents
                     nil t))
            nil)))
   (cl-check-type pkg (or symbol package-desc))
@@ -2259,6 +2285,10 @@ had been enabled."
   (let ((name (if (package-desc-p pkg)
                   (package-desc-name pkg)
                 pkg)))
+    (when (or (and package-install-upgrade-built-in
+                   (package--active-built-in-p pkg))
+              (package-installed-p pkg))
+      (user-error "`%s' is already installed" name))
     (unless (or dont-select (package--user-selected-p name))
       (package--save-selected-packages
        (cons name package-selected-packages)))
@@ -2274,8 +2304,8 @@ had been enabled."
         (progn
           (package-download-transaction transaction)
           (package--quickstart-maybe-refresh)
-          (message  "Package `%s' installed." name))
-      (message "`%s' is already installed" name))))
+          (message  "Package `%s' installed." name)))))
+
 
 (declare-function package-vc-upgrade "package-vc" (pkg))
 

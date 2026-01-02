@@ -9,7 +9,7 @@
 @copying
 This file describes the Emacs auth-source library.
 
-Copyright @copyright{} 2008--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 2008--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -215,7 +215,8 @@ Here's a mixed example using two sources:
 
 If you don't customize @code{auth-sources}, you'll have to live with
 the defaults: the unencrypted netrc file @file{~/.authinfo} will be
-used for any host and any port.
+used for any host and any port (if it exists).  This is not recommended,
+as it exposes all your secrets in clear text.
 
 If that fails, any host and any port are looked up in the netrc file
 @file{~/.authinfo.gpg}, which is a GnuPG encrypted file (@pxref{GnuPG
@@ -288,12 +289,14 @@ with name extension @file{.plist}.  Its format is described in the
 @end example
 
 @vindex auth-source-ignore-non-existing-file
-File-based data stores are ignored in @code{auth-sources}, if the
-underlying data file does not exist.  This is relevant, if a new secret
-is stored in such a file; the first usable entry of @code{auth-sources}
-is selected as target.  If you want also not existing files to be
-selected, set the user option
-@code{auth-source-ignore-non-existing-file} to @code{nil}.
+Entries in @code{auth-sources} that point to file-based data stores are
+ignored if the underlying data file does not exist.  This matters if a
+new secret needs to be stored in a file; the first usable entry of
+@code{auth-sources} is selected as the target.  If you want an entry
+pointing at a non-existing file to be selected instead, set the user
+option @code{auth-source-ignore-non-existing-file} to @code{nil}.  Note
+that with the default value of @code{auth-sources}, this will cause new
+secrets to be stored in cleartext in @file{~/.authinfo}.
 
 @node Multiple GMail accounts with Gnus
 @chapter Multiple GMail accounts with Gnus

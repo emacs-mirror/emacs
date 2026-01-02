@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985-1987, 1993-1998, 2000-2025 Free Software
+   Copyright (C) 1985-1987, 1993-1998, 2000-2026 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -5469,7 +5469,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 	 REFER end up as the sole children of PARENT which replaces
 	 WINDOW in the window tree.  As a special case, if REFER's cdr
 	 is t, reuse REFER's car's old parent as new parent provided it
-	 is a deleted fromer parent window.  */
+	 is a deleted former parent window.  */
       parent = Fcdr (refer);
       refer = Fcar (refer);
       r = decode_any_window (refer);

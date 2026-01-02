@@ -34,7 +34,7 @@
 
 ((mode 10 "MODE dummy` +i"))
 ((privmsg 10 "PRIVMSG NickServ :GHOST dummy")
- (0.00 ":irc.example.net 501 dummy` x :is not a recognised user mode.")
+ (0.00 ":irc.example.net 501 dummy` x :is not a recognized user mode.")
  (0.00 ":irc.example.net NOTICE dummy` :*** You are connected to irc.example.net using TLS (SSL) cipher 'TLS1.3-ECDHE-RSA-AES-256-GCM-AEAD'")
  (0.03 ":dummy`!dummy@10.0.2.100 MODE dummy` :+i")
  (0.02 ":NickServ!NickServ@services.int NOTICE dummy` :\2dummy\2 has been ghosted."))

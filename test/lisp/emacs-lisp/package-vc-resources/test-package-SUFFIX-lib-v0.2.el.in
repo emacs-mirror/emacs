@@ -1,0 +1,16 @@
+;;; test-package-SUFFIX-lib.el --- Test package lib -*- lexical-binding: t -*-
+
+;;; Commentary:
+;;
+;; Test package SUFFIX library.
+
+;;; Code:
+
+(defmacro test-package-SUFFIX-mac (arg)
+  ;; checkdoc-params: (arg)
+  "Test macro for `test-package-SUFFIX'."
+  `(format "New macro %s" ,arg))
+
+(provide 'test-package-SUFFIX-lib)
+
+;;; test-package-SUFFIX-lib.el ends here
