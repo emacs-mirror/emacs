@@ -7607,7 +7607,18 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
 
 TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
   (declare (important-return-value t))
-  (string-trim-left (string-trim-right string trim-right) trim-left))
+  (let* ((beg (and (string-match (if trim-left
+                                     (concat "\\`\\(?:" trim-left "\\)")
+                                   "\\`[ \t\n\r]+")
+                                 string)
+                   (match-end 0)))
+         (end (string-match-p (if trim-right
+                                  (concat "\\(?:" trim-right "\\)\\'")
+                                "[ \t\n\r]+\\'")
+                              string beg)))
+    (if (or beg end)
+        (substring string beg end)
+      string)))
 
 (let ((missing (make-symbol "missing")))
   (defsubst hash-table-contains-p (key table)
