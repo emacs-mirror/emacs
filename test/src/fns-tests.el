@@ -1389,9 +1389,6 @@
     (dolist (test '(eq eql equal))
       (ft--test-weak-fixnums w test))))
 
-;; Emacs's weak hash tables work like ephemerons: if an object is only
-;; reachable through a weak hash table, then the object should be
-;; collected.
 (defun ft--test-ephemeron-table (weakness)
   (let* ((h (make-hash-table :weakness weakness :test 'eq))
          (n 1000))
