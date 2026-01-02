@@ -3044,14 +3044,7 @@ BODY is the backend specific code."
 	      tramp--last-hop-directory
 	      (tramp-make-tramp-file-name (tramp-dissect-hop-name hop))))
 
-      (let (;; When `tramp-syntax' is `simplified', we need a default method.
-	    (tramp-default-method
-	     (and (string-empty-p tramp-postfix-method-format)
-		  tramp-default-method))
-	    (tramp-default-method-alist
-	     (and (string-empty-p tramp-postfix-method-format)
-		  tramp-default-method-alist))
-	    tramp-default-user tramp-default-user-alist
+      (let (tramp-default-user tramp-default-user-alist
 	    tramp-default-host tramp-default-host-alist)
 
 	;; Possible completion structures.
