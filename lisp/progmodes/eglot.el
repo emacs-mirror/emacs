@@ -2359,9 +2359,7 @@ LSP Document version reported for DIAGNOSTICS (comparable to
   (when revert-buffer-preserve-modes
     (eglot--signal-textDocument/didOpen)
     (when eglot-semantic-tokens-mode
-      (trace-values "OH YEAH!?")
-      (eglot-semantic-tokens-mode))
-    ))
+      (eglot-semantic-tokens-mode))))
 
 (defun eglot--maybe-activate-editing-mode ()
   "Maybe activate `eglot--managed-mode'.
