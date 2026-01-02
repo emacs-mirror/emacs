@@ -4967,12 +4967,11 @@ If COLOR is unspecified, then return :box unspecified."
     `(compilation-warning ((,c :inherit modus-themes-bold :foreground ,warning)))
 ;;;;; completion-preview
     `(completion-preview ((,c :foreground ,fg-dim)))
+    ;; We set the following faces to inherit from `completion-preview',
+    ;; as they do by default.  If we ever want them not to inherit from
+    ;; `completion-preview', then we should remember to customize
+    ;; `completion-preview-adapt-background-color' accordingly.
     `(completion-preview-common ((,c :inherit completion-preview :underline t)))
-    ;; NOTE 2025-11-18: We have to inherit `completion-preview'
-    ;; otherwise the `hl-line-mode' line loses its background where
-    ;; the `completion-preview-mode' overlay is.  This is not
-    ;; intuitive, given that we do not set a background for
-    ;; `completion-preview'.
     `(completion-preview-exact ((,c :inherit (modus-themes-completion-match-0 completion-preview))))
 ;;;;; completions
     `(completions-annotations ((,c :inherit modus-themes-slant :foreground ,docstring)))
