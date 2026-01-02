@@ -13342,7 +13342,6 @@ is_ignored_event (union buffered_input_event *event)
       ignore_event = Qtoolkit_theme_changed;
       break;
     default:
-      ignore_event = Qnil;
       break;
     }
 
