@@ -1,6 +1,6 @@
 # stdalign.m4
 # serial 3
-dnl Copyright 2011-2025 Free Software Foundation, Inc.
+dnl Copyright 2011-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -82,8 +82,8 @@ AC_DEFUN([gl_ALIGNASOF],
 
    References:
    ISO C23 (latest free draft
-   <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3096.pdf>)
-   sections 6.5.3.4, 6.7.5, 7.15.
+   <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf>)
+   sections 6.2.8, 6.7.6.
    C++11 (latest free draft
    <https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3242.pdf>)
    section 18.10. */

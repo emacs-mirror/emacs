@@ -1,6 +1,6 @@
 # extern-inline.m4
 # serial 2
-dnl Copyright 2012-2025 Free Software Foundation, Inc.
+dnl Copyright 2012-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -44,7 +44,7 @@ AC_DEFUN([gl_EXTERN_INLINE],
    if isdigit is mistakenly implemented via a static inline function,
    a program containing an extern inline function that calls isdigit
    may not work since C99 through C23 prohibit extern inline functions
-   from calling static functions (ISO C 23 section 6.7.5.(2)).
+   from calling static functions (ISO C 23 § 6.7.5 ¶ 3)).
    Although a future C standard will likely relax this restriction
    <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3622.txt>,
    respect it for now.  This bug is known to occur on:

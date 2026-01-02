@@ -1,6 +1,6 @@
 ;;; tramp-androidsu.el --- Tramp method for Android superuser shells  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; Author: Po Lu
 ;; Keywords: comm, processes

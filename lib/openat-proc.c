@@ -1,6 +1,6 @@
 /* Create /proc/self/fd-related names for subfiles of open directories.
 
-   Copyright (C) 2006, 2009-2025 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -46,15 +46,15 @@
 char *
 openat_proc_name (char buf[OPENAT_BUFFER_SIZE], int fd, char const *file)
 {
-  char *result = buf;
-  int dirlen;
-
   /* Make sure the caller gets ENOENT when appropriate.  */
   if (!*file)
     {
       buf[0] = '\0';
       return buf;
     }
+
+  char *result = buf;
+  int dirlen;
 
 #if !(defined __KLIBC__ || defined __MVS__)
   /* Generic code for Linux, Solaris, and similar platforms.  */

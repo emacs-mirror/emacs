@@ -1,6 +1,6 @@
 ;;; zone.el --- idle display hacks  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Victor Zandy <zandy@cs.wisc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -295,7 +295,7 @@ if they might expose privileged or secret information."
      special-mode               ;; Special/internal buffers
      image-mode                 ;; image buffers
      authinfo-mode              ;; encrypted buffers
-     zone--buffer-encrpted-p
+     zone--buffer-encrypted-p
      "\\`\\*scratch\\*\\'"      ;; zone will fallback to scratch , but
                                 ;; ignore it in the first pass
      )

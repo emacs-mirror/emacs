@@ -1,6 +1,6 @@
 Eglot NEWS                                                     -*- outline -*-
 
-Copyright (C) 2018-2025 Free Software Foundation, Inc.
+Copyright (C) 2018-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Eglot bug reports to 'bug-gnu-emacs@gnu.org', and Cc (or
@@ -19,6 +19,21 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 
 * Changes to upcoming Eglot
+
+** Support for pull diagnostics (github#1559, github#1290)
+
+For servers supporting the 'diagnosticProvider' capability, Eglot
+requests diagnostics explicitly rather than relying on sporadic
+'publishDiagnostics' notifications, aka. "push diagnostics".  The 'tsgo'
+server is known to support the "pull" variant exclusively, while the
+'ty' server is known to support it alongside "push".
+
+** Support for watching files outside the project (bug#79809)
+
+Eglot now supports and advertises the 'relativePatternSupport'
+sub-feature of 'didChangeWatchedFiles'.  Some LSP servers use it to ask
+for file watches outside the current project's root and so be notified
+of changes to dependencies that affect the current project.
 
 ** Support for semantic tokens (bug#79374)
 
@@ -140,7 +155,7 @@ use this.
 
 ** Eglot uses an internal 'track-changes.el' library (bug#70077)
 
-This should in theory help smoothen the Eglot's handling of events that
+This should in theory help smooth the Eglot's handling of events that
 change the buffer.  The library has been problematic in the past, let's
 hope we're past that phase.
 

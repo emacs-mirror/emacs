@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -3576,6 +3576,13 @@ as an argument limits undo to changes within the current region."
     ;; Display a message announcing success.
     (if message
 	(message "%s" message))))
+
+(defun undo-ignore-read-only (&optional arg)
+  "Perform `undo', ignoring the buffer's read-only status.
+A numeric ARG serves as a repeat count."
+  (interactive "P")
+  (let ((inhibit-read-only t))
+    (undo arg)))
 
 (defun buffer-disable-undo (&optional buffer)
   "Make BUFFER stop keeping undo information.
@@ -7161,13 +7168,15 @@ point otherwise."
 (defun use-region-beginning ()
   "Return the start of the region if `use-region-p' returns non-nil.
 This is a convenience function to use in `interactive' forms of
-commands that need to act on the region when it is active."
+commands that need to act on the region when it is active.
+See also the `R' code letter for `interactive'."
   (and (use-region-p) (region-beginning)))
 
 (defun use-region-end ()
   "Return the end of the region if `use-region-p' returns non-nil.
 This is a convenience function to use in `interactive' forms of
-commands that need to act on the region when it is active."
+commands that need to act on the region when it is active.
+See also the `R' code letter for `interactive'."
   (and (use-region-p) (region-end)))
 
 (defun use-region-noncontiguous-p ()
@@ -7184,16 +7193,17 @@ mark is active; furthermore, if `use-empty-active-region' is nil,
 the region must not be empty.  Otherwise, the return value is nil.
 
 If `use-empty-active-region' is non-nil, there is one further
-caveat: If the user has used `mouse-1' to set point, but used the
-mouse to move point to a different character yet, this function
-returns nil.
+caveat: If the user has used \\`mouse-1' to set point, but used
+the mouse to move point to a different character yet, this
+function returns nil.
 
 For some commands, it may be appropriate to ignore the value of
 `use-empty-active-region'; in that case, use `region-active-p'.
 
-Also see the convenience functions `use-region-beginning' and
-`use-region-end', which may be handy when writing `interactive'
-specs."
+You can use the `interactive' code letter `R' when writing commands that
+act specially on an active region.  For `interactive' specs that
+evaluate Lisp forms to produce a list of arguments, see the functions
+`use-region-beginning' and `use-region-end'."
   (and (region-active-p)
        (or (> (region-end) (region-beginning))
            (and use-empty-active-region
@@ -8606,7 +8616,8 @@ even beep.)"
         ;; like display or overlay strings, intangible text, etc.:
         ;; otherwise, we don't want to kill a character that's
         ;; unrelated to the place where the visual line wraps.
-        (and (= (cdr (nth 6 (posn-at-point))) orig-vlnum)
+        (and (numberp (cdr (nth 6 (posn-at-point))))
+             (= (cdr (nth 6 (posn-at-point))) orig-vlnum)
              ;; Make sure we delete the character where the line wraps
              ;; under visual-line-mode, be it whitespace or a
              ;; character whose category set permits wrapping at it.
@@ -9029,7 +9040,7 @@ A negative ARG means to kill forwards.
 Unix-words differ from Emacs words in that they are always delimited by
 whitespace, regardless of the buffer's syntax table.
 Thus, this command emulates C-w at the Unix terminal or shell.
-See also this command's nakesake in Info node
+See also this command's namesake in Info node
 `(readline)Commands For Killing'."
   (interactive "^p")
   (let ((start (point)))

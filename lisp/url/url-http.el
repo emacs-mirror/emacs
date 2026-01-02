@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999, 2001, 2004-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2026 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1349,7 +1349,7 @@ The return value of this function is the retrieval buffer."
   ;; The async processes operate on a buffer created in this function,
   ;; so the way to accomplish this goal is to set buffer local copies of
   ;; the relevant variables to the dynamic values in scope as we create
-  ;; the buffer.  When new variables are added that influence behaviour
+  ;; the buffer.  When new variables are added that influence behavior
   ;; of requests, they should be added to the handling in this function
   ;; to make them work reliably without changing their global values.
   (let* (;; (host (url-host (or url-using-proxy url)))

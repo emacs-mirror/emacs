@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2025 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1992, 1994-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -1202,9 +1202,12 @@ The following commands are accepted by the client:
 
 (cl-defun server--process-filter-1 (proc string)
   (server-log (concat "Received " string) proc)
-  ;; First things first: let's check the authentication
+  ;; First things first: let's check the authentication.
+  ;; It is important that we strip the trailing space or newline
+  ;; character in order that it does not appear, to the code below,
+  ;; that there is a zero-length argument there (bug#79889).
   (unless (process-get proc :authenticated)
-    (if (and (string-match "-auth \\([!-~]+\\)\n?" string)
+    (if (and (string-match "-auth \\([!-~]+\\)[ \n]?" string)
 	     (equal (match-string 1 string) (process-get proc :auth-key)))
 	(progn
 	  (setq string (substring string (match-end 0)))

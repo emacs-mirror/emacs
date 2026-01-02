@@ -1,6 +1,6 @@
 ;;; hideshow-tests.el --- Test suite for hideshow.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -246,7 +246,7 @@ sub()
      (should (string= (hideshow-tests-visible-string) contents)))))
 
 (ert-deftest hideshow-hide-level-1 ()
-  "Should hide 1st level blocks."
+  "Should hide 2st level blocks."
   (hideshow-tests-with-temp-buffer
    c-mode
    "
@@ -276,43 +276,58 @@ main(int argc, char **argv)
 
 int
 main(int argc, char **argv)
-{}
-"))))
-
-(ert-deftest hideshow-hide-level-2 ()
-  "Should hide 2nd level blocks."
-  (hideshow-tests-with-temp-buffer
-   c-mode
-   "
-/*
-   Comments
-*/
-
-\"String\"
-
-int
-main(int argc, char **argv)
-{
-  if (argc > 1) {
-    printf(\"Hello\\n\");
-  }
-}
-"
-   (hs-hide-level 2)
-   (should (string=
-            (hideshow-tests-visible-string)
-            "
-/*
-   Comments
-*/
-
-\"String\"
-
-int
-main(int argc, char **argv)
 {
   if (argc > 1) {}
 }
+"))))
+
+(ert-deftest hideshow-hide-levels-with-comments-1 ()
+  "Should hide 2nd and then 3rd level blocks including comment blocks."
+  (hideshow-tests-with-temp-buffer
+      lisp-data-mode
+    ;; 2nd
+   "
+;; comment
+;; comment
+;; comment
+
+(list
+ ;; comment2
+ ;; comment2
+ (list
+  ;; comment3
+  ;; comment3
+  '(lv3
+    lv3)))
+"
+   (hs-hide-level-recursive 2 (point-min) (point-max) :comments)
+   (should (string=
+            (hideshow-tests-visible-string)
+            "
+;; comment
+;; comment
+;; comment
+
+(list
+ ;; comment2
+ (list))
+"))
+   ;; 3rd
+   (hs-show-all)
+   (hs-hide-level-recursive 3 (point-min) (point-max) :comments)
+   (should (string=
+            (hideshow-tests-visible-string)
+            "
+;; comment
+;; comment
+;; comment
+
+(list
+ ;; comment2
+ ;; comment2
+ (list
+  ;; comment3
+  '(lv3)))
 "))))
 
 (ert-deftest hideshow-toggle-hiding-1 ()
@@ -375,6 +390,90 @@ main()
      (goto-char (point-min))
      (funcall call-at "}")
      (should (string= (hideshow-tests-visible-string) contents)))))
+
+(ert-deftest hideshow-cycle-with-delimiters ()
+  "Should cycle the visibility of a block with delimiters."
+  (let ((contents "
+int
+main ()
+{
+  {
+    {
+    }
+  }
+}
+"))
+    (hideshow-tests-with-temp-buffer
+     c-mode
+     contents
+     (hideshow-tests-look-at "{")
+     (hs-cycle 1)
+     (should (string=
+              (hideshow-tests-visible-string)
+              "
+int
+main ()
+{}
+"))
+     (hs-cycle 1)
+     (should (string=
+              (hideshow-tests-visible-string)
+              "
+int
+main ()
+{
+  {}
+}
+"))
+     (hs-cycle 1)
+     (should (string=
+              (hideshow-tests-visible-string)
+              contents)))))
+
+(ert-deftest hideshow-cycle-without-delimiters ()
+  "Should cycle the visibility of a block without delimiters."
+  (let ((contents "
+def test1 ():
+    def test2 ():
+        def test3():
+"))
+    (hideshow-tests-with-temp-buffer
+      python-mode
+      contents
+      (hideshow-tests-look-at "test1")
+      (hs-cycle 1)
+      (should (string=
+               (hideshow-tests-visible-string)
+               "
+def test1 ():
+"))
+      (hs-cycle 1)
+      (should (string=
+               (hideshow-tests-visible-string)
+               "
+def test1 ():
+    def test2 ():
+"))
+      (hs-cycle 1)
+      (should (string=
+               (hideshow-tests-visible-string)
+               contents)))))
+
+(ert-deftest hideshow-check-unbalanced-parens ()
+  (let ((contents "
+(defun test1 ())
+
+(defun test2
+"))
+    (hideshow-tests-with-temp-buffer
+     c-mode
+     contents
+     (hideshow-tests-look-at "test1")
+     (beginning-of-line)
+     (should (hs-block-positions))
+     (hideshow-tests-look-at "test2")
+     (beginning-of-line)
+     (should-not (hs-block-positions)))))
 
 (provide 'hideshow-tests)
 

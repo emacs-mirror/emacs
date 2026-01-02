@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2026 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Maintainer: emacs-devel@gnu.org
@@ -1291,9 +1291,12 @@ It is an error to supply both or neither."
                (vc-hg-command nil 0 nil "update" "--merge"
                               "--tool" "internal:local" "tip")))))
       (if vc-async-checkin
-          (let ((buffer (vc-hg--async-buffer)))
+          (let* ((buffer (vc-hg--async-buffer))
+                 (proc (apply #'vc-hg--async-command buffer
+                              (nconc args files))))
+            (set-process-query-on-exit-flag proc t)
             (vc-wait-for-process-before-save
-             (apply #'vc-hg--async-command buffer (nconc args files))
+             proc
              (if patch-file
                  "Finishing checking in patch...."
                "Finishing checking in files..."))
@@ -1497,7 +1500,7 @@ REV is the revision to check out into WORKFILE."
 
 ;; Follows vc-hg-command (or vc-do-async-command), which uses vc-do-command
 ;; from vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code &optional success proc))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional okstatus proc))
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
@@ -1523,7 +1526,7 @@ REV is the revision to check out into WORKFILE."
            (if (version<= "4.2" (vc-hg--program-version))
                '("--config" "commands.status.relative=1")
              '("re:" "-I" "."))))
-  (vc-run-delayed
+  (vc-run-delayed-success 0
     (vc-hg-after-dir-status update-function)))
 
 (defun vc-hg-dir-extra-headers (dir)
@@ -1613,7 +1616,9 @@ revisions, fetch only those revisions."
 	  (setq hg-program (car  args)
 		command    (cadr args)
 		args       (cddr args)))
-	(apply #'vc-do-async-command buffer root hg-program command args)
+	(set-process-query-on-exit-flag
+         (apply #'vc-do-async-command buffer root hg-program command args)
+         t)
         (with-current-buffer buffer
           (vc-run-delayed
             (dolist (cmd post-processing)

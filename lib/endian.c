@@ -1,6 +1,6 @@
 /* Inline functions for <endian.h>.
 
-   Copyright 2024-2025 Free Software Foundation, Inc.
+   Copyright 2024-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -19,5 +19,4 @@
 
 #define _GL_ENDIAN_INLINE _GL_EXTERN_INLINE
 #include <config.h>
-
 #include <endian.h>

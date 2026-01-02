@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--2025 Free Software Foundation, Inc.
+@c Copyright (C) 1990--2026 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Control Structures
 @chapter Control Structures
@@ -1611,7 +1611,7 @@ Matches a vector if the @var{eltpats} match its elements.  The first
 Matches @var{pattern} with strict checking of @code{cdr}s.  That means
 that @code{list} patterns verify that the final @code{cdr} is
 @code{nil}.  Strict checking is the default.
-@item (cdr-safe @var{pattern})
+@item (cdr-ignore @var{pattern})
 Matches @var{pattern} with lax checking of @code{cdr}s.  That means that
 @code{list} patterns do not examine the final @code{cdr}.
 @item (and @var{conjuncts}@dots{})

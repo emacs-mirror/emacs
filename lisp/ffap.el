@@ -1,6 +1,6 @@
 ;;; ffap.el --- find file (or url) at point  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2026 Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -905,7 +905,7 @@ to extract substrings.")
                           (append base
                                   (split-string (buffer-substring-no-properties
                                                  (point-min) (point-max)))))
-                  ;; Fallback for whedn the compiler is not available.
+                  ;; Fallback for when the compiler is not available.
                   (list (expand-file-name "/usr/include")
                         (expand-file-name "/usr/local/include")))))
            ;; Prefer GCC.

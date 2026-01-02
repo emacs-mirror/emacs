@@ -1,6 +1,6 @@
 ;;; ox.el --- Export Framework for Org Mode          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2026 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Maintainer: Ihor Radchenko <yantar92 at posteo dot net>
@@ -6425,7 +6425,7 @@ them."
      ("it" :default "Riferimenti")
      ("nl" :default "Bronverwijzingen")
      ("nn" :default "Kjelder")
-     ("pl" :default "Odwołania") ; could be "Referencje" but I think its too englishy
+     ("pl" :default "Odwołania") ; could be "Referencje" but I think it's too Englishy
      ("pt_BR" :html "Refer&ecirc;ncias" :default "Referências" :ascii "Referencias")
      ("ro" :default "Bibliografie")
      ("sl" :default "Reference")

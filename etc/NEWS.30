@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2022-2025 Free Software Foundation, Inc.
+Copyright (C) 2022-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -2807,7 +2807,7 @@ parsers with that tag.  Note that passing nil as tag doesn't mean return
 all parsers, but rather "all parsers with no tags".
 
 *** New variable 'treesit-primary-parser'.
-This variable should be set by multi-langauge major modes before calling
+This variable should be set by multi-language major modes before calling
 'treesit-major-mode-setup', in order for tree-sitter integration
 functionalities to operate correctly.
 

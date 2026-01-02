@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,6 +18,10 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+
+#ifdef HAVE_MALLOC_H
+# include <malloc.h>
+#endif
 
 #include <errno.h>
 #include <stdint.h>
@@ -68,10 +72,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef MSDOS
 #include "dosfns.h"		/* For dos_memory_info.  */
-#endif
-
-#ifdef HAVE_MALLOC_H
-# include <malloc.h>
 #endif
 
 #if (defined ENABLE_CHECKING \

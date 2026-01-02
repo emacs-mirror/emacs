@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@ralph-schleicher.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -952,7 +952,7 @@ The following %-sequences are provided:
 %t Remaining time (to charge or discharge) in the form `h:min'"
   (let* ((os-name (car (split-string
                         ;; We cannot use `system-type' because some BSD
-                        ;; systems fall under the 'berkley-unix umbrella
+                        ;; systems fall under the 'berkeley-unix umbrella
                         ;; and we're trying to make the distinction
                         ;; among them here.
                         (battery--call-process-to-string "uname"))))

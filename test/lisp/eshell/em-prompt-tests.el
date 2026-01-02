@@ -1,6 +1,6 @@
 ;;; em-prompt-tests.el --- em-prompt test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -201,10 +201,10 @@ This tests the case when `eshell-highlight-prompt' is nil."
       (eshell-insert-command "echo 'high five'")
       (eshell-insert-command "echo 'up high\n\ndown low'")
       (eshell-insert-command "echo 'too slow'")
-      (insert "echo goodby")            ; A partially-entered command.
+      (insert "echo good")            ; A partially-entered command.
       (ert-info ("Go back to the last prompt")
         (eshell-backward-paragraph)
-        (should (at-prompt-for-command-p "echo goodby")))
+        (should (at-prompt-for-command-p "echo good")))
       (ert-info ("Go back to the paragraph break")
         (eshell-backward-paragraph 2)
         (should (looking-at "\ndown low\n")))

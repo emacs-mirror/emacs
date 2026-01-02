@@ -1,12 +1,12 @@
-;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks  -*- lexical-binding:t -*-
+;;; hideshow.el --- Minor mode to hide/show comment or code blocks  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2026 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@gnu.org>
-;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: 5.65.2.2
-;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
+;; Maintainer: emacs-devel@gnu.org
+;; Keywords: c tools outlines
+;; Maintainer-Version: 6.0
 
 ;; This file is part of GNU Emacs.
 
@@ -27,36 +27,37 @@
 
 ;; * Commands provided
 ;;
-;; This file provides the Hideshow minor mode.  When active, nine commands
-;; are available, implementing block hiding and showing.  They (and their
-;; keybindings) are:
+;; This file provides the Hideshow minor mode, it includes the
+;; following commands (and their keybindings) to hiding and showing
+;; code and comment blocks:
 ;;
-;;   `hs-hide-block'                      C-c @ C-h
+;;   `hs-hide-block'                      C-c @ C-h/C-d
 ;;   `hs-show-block'                      C-c @ C-s
-;;   `hs-hide-all'                        C-c @ C-M-h
-;;   `hs-show-all'                        C-c @ C-M-s
+;;   `hs-hide-all'                        C-c @ C-M-h/C-t
+;;   `hs-show-all'                        C-c @ C-M-s/C-a
 ;;   `hs-hide-level'                      C-c @ C-l
-;;   `hs-toggle-hiding'                   C-c @ C-c
-;;   `hs-toggle-hiding'                   S-<mouse-2>
+;;   `hs-toggle-hiding'                   C-c @ C-c/C-e or S-<mouse-2>
 ;;   `hs-hide-initial-comment-block'
+;;   `hs-cycle'                           C-c @ TAB
+;;   `hs-toggle-all'                      C-c @ <backtab>
 ;;
 ;; All these commands are defined in `hs-prefix-map',
 ;; `hs-minor-mode-map' and `hs-indicators-map'.
 ;;
-;; Blocks are defined per mode.  In c-mode, c++-mode and java-mode, they
-;; are simply text between curly braces, while in Lisp-ish modes parens
-;; are used.  Multi-line comment blocks can also be hidden.  Read-only
-;; buffers are not a problem, since hideshow doesn't modify the text.
+;; Blocks are defined per mode.  For example, in c-mode and similar,
+;; they are simply text between curly braces, while in Lisp-ish modes
+;; parens are used.  Multi-line comment blocks can also be hidden.
+;; Read-only buffers are not a problem, since hideshow doesn't modify
+;; the text.
 ;;
 ;; The command `M-x hs-minor-mode' toggles the minor mode or sets it
-;; (similar to other minor modes).
+;; buffer-local.
 
 ;; * Suggested usage
 ;;
 ;; Add the following to your init file:
 ;;
-;;     (require 'hideshow)
-;;     (add-hook 'X-mode-hook #'hs-minor-mode)       ; other modes similarly
+;;     (add-hook 'X-mode-hook #'hs-minor-mode) ; other modes similarly
 ;;
 ;; where X = {emacs-lisp,c,c++,perl,...}.  You can also manually toggle
 ;; hideshow minor mode by typing `M-x hs-minor-mode'.  After hideshow is
@@ -76,40 +77,48 @@
 ;;       (if my-hs-hide
 ;;           (hs-hide-all)
 ;;         (hs-show-all)))
-;;
-;; [Your hideshow hacks here!]
 
 ;; * Customization
 ;;
-;; You can use `M-x customize-variable' on the following variables:
+;; Hideshow provides the following user options:
 ;;
-;; - `hs-hide-comments-when-hiding-all' -- self-explanatory!
-;; - `hs-hide-all-non-comment-function' -- if non-nil, when doing a
-;;                                         `hs-hide-all', this function
-;;                                         is called with no arguments
-;; - `hs-isearch-open'                  -- what kind of hidden blocks to
-;;                                         open when doing isearch
-;; - `hs-display-lines-hidden'          -- displays the number of hidden
-;;                                         lines next to the ellipsis.
-;; - `hs-show-indicators'               -- display indicators to show
-;;                                         and toggle the block hiding.
-;; - `hs-indicator-type'                -- which indicator type should be
-;;                                         used for the block indicators.
-;; - `hs-indicator-maximum-buffer-size' -- max buffer size in bytes where
-;;                                         the indicators should be enabled.
+;; - `hs-hide-comments-when-hiding-all'
+;;   If non-nil, `hs-hide-all', `hs-cycle' and `hs-hide-level' will hide
+;;   comments too.
+;; - `hs-hide-all-non-comment-function'
+;;   If non-nil, after calling `hs-hide-all', this function is called
+;;   with no arguments.
+;; - `hs-isearch-open'
+;;   What kind of hidden blocks to open when doing isearch.
+;; - `hs-set-up-overlay'
+;;   Function called with one arg (an overlay), intended to customize
+;;   the block hiding appearance.
+;; - `hs-display-lines-hidden'
+;;   Displays the number of hidden lines next to the ellipsis.
+;; - `hs-show-indicators'
+;;   Display indicators to show and toggle the block hiding.
+;; - `hs-indicator-type'
+;;   Which indicator type should be used for the block indicators.
+;; - `hs-indicator-maximum-buffer-size'
+;;   Max buffer size in bytes where the indicators should be enabled.
+;; - `hs-allow-nesting'
+;;   If non-nil, hiding remembers internal blocks.
+;; - `hs-cycle-filter'
+;;   Control where typing a `TAB' cycles the visibility.
 ;;
-;; Some languages (e.g., Java) are deeply nested, so the normal behavior
-;; of `hs-hide-all' (hiding all but top-level blocks) results in very
-;; little information shown, which is not very useful.  You can use the
-;; variable `hs-hide-all-non-comment-function' to implement your idea of
-;; what is more useful.  For example, the following code shows the next
-;; nested level in addition to the top-level:
+;; The variable `hs-hide-all-non-comment-function' may be useful if you
+;; only want to hide some N levels blocks for some languages/files or
+;; implement your idea of what is more useful.  For example, the
+;; following code shows the next nested level in addition to the
+;; top-level for java:
 ;;
-;;     (defun ttn-hs-hide-level-1 ()
+;;     (defun ttn-hs-hide-level-2 ()
 ;;       (when (funcall hs-looking-at-block-start-predicate)
-;;         (hs-hide-level 1))
-;;       (forward-sexp 1))
-;;     (setq hs-hide-all-non-comment-function 'ttn-hs-hide-level-1)
+;;         (hs-hide-level 2)))
+;;     (add-hook 'java-mode-hook
+;;               (lambda ()
+;;                 (setq-local hs-hide-all-non-comment-function
+;;                             #'ttn-hs-hide-level-2)))
 ;;
 ;; Hideshow works with incremental search (isearch) by setting the variable
 ;; `hs-headline', which is the line of text at the beginning of a hidden
@@ -121,30 +130,25 @@
 ;;       (setq mode-line-format
 ;;             (append '("-" hs-headline) mode-line-format)))
 ;;
-;; See documentation for `mode-line-format' for more info.
 ;;
-;; Hooks are run after some commands:
+;; The following hooks are run after some commands:
 ;;
-;;   hs-hide-hook     in      hs-hide-block, hs-hide-all, hs-hide-level
-;;   hs-show-hook             hs-show-block, hs-show-all
+;;   hs-hide-hook  =>  hs-hide-block hs-hide-all hs-hide-level hs-cycle
+;;   hs-show-hook  =>  hs-show-block hs-show-all hs-cycle
 ;;
-;; One of `hs-hide-hook' or `hs-show-hook' is run for the toggling
-;; commands when the result of the toggle is to hide or show blocks,
-;; respectively.  All hooks are run with `run-hooks'.  See the
-;; documentation for each variable or hook for more information.
+;; The variable `hs-set-up-overlay' allow customize the appearance of
+;; the hidden block and other effects associated with overlays.  For
+;; example:
 ;;
-;; See also variable `hs-set-up-overlay' for per-block customization of
-;; appearance or other effects associated with overlays.  For example:
-;;
-;; (setq hs-set-up-overlay
-;;       (defun my-display-code-line-counts (ov)
-;;         (when (eq 'code (overlay-get ov 'hs))
-;;           (overlay-put ov 'display
-;;                        (propertize
-;;                         (format " ... <%d>"
-;;                                 (count-lines (overlay-start ov)
-;;                                              (overlay-end ov)))
-;;                         'face 'font-lock-type-face)))))
+;;     (setopt hs-set-up-overlay
+;;             (defun my-display-code-line-counts (ov)
+;;               (when (eq 'code (overlay-get ov 'hs))
+;;                 (overlay-put ov 'display
+;;                              (propertize
+;;                               (format " [... <%d>] "
+;;                                       (count-lines (overlay-start ov)
+;;                                                    (overlay-end ov)))
+;;                               'face 'font-lock-type-face)))))
 
 ;; * Extending hideshow
 
@@ -174,7 +178,7 @@
 
 ;; *** Tree-sitter support
 ;;
-;; All the treesit based modes already have support for hidding/showing
+;; All the treesit based modes already have support for hiding/showing
 ;; using the treesit thing `list' (see `treesit-major-mode-setup').
 ;;
 ;; However, for some modes the `list' thing is not enough for detecting
@@ -205,45 +209,39 @@
 
 ;; * Bugs
 ;;
-;; (1) Sometimes `hs-headline' can become out of sync.  To reset, type
-;;     `M-x hs-minor-mode' twice (that is, deactivate then re-activate
-;;     hideshow).
+;; 1) Sometimes `hs-headline' can become out of sync.  To reset, type
+;;    `M-x hs-minor-mode' twice (that is, deactivate then re-activate
+;;    hideshow).
 ;;
-;; (2) Some buffers can't be `byte-compile-file'd properly.  This is because
-;;     `byte-compile-file' inserts the file to be compiled in a temporary
-;;     buffer and switches `normal-mode' on.  In the case where you have
-;;     `hs-hide-initial-comment-block' in `hs-minor-mode-hook', the hiding of
-;;     the initial comment sometimes hides parts of the first statement (seems
-;;     to be only in `normal-mode'), so there are unbalanced "(" and ")".
+;; 2) Some buffers can't be `byte-compile-file'd properly.  This is because
+;;    `byte-compile-file' inserts the file to be compiled in a temporary
+;;    buffer and switches `normal-mode' on.  In the case where you have
+;;    `hs-hide-initial-comment-block' in `hs-minor-mode-hook', the hiding of
+;;    the initial comment sometimes hides parts of the first statement (seems
+;;    to be only in `normal-mode'), so there are unbalanced parenthesis.
 ;;
-;;     The workaround is to clear `hs-minor-mode-hook' when byte-compiling:
+;;    The workaround is to clear `hs-minor-mode-hook' when byte-compiling:
 ;;
-;;     (defadvice byte-compile-file (around
-;;                                   byte-compile-file-hideshow-off
-;;                                   act)
-;;       (let ((hs-minor-mode-hook nil))
-;;         ad-do-it))
+;;    (define-advice byte-compile-file (:around
+;;                                      (fn &rest rest)
+;;                                      byte-compile-file-hideshow-off)
+;;      (let (hs-minor-mode-hook)
+;;        (apply #'fn rest)))
 ;;
-;; (3) Hideshow interacts badly with Ediff and `vc-diff'.  At the moment, the
-;;     suggested workaround is to turn off hideshow entirely, for example:
+;; 3) Hideshow interacts badly with Ediff and `vc-diff'.  At the moment, the
+;;    suggested workaround is to turn off hideshow entirely, for example:
 ;;
-;;     (add-hook 'ediff-prepare-buffer-hook #'turn-off-hideshow)
-;;     (add-hook 'vc-before-checkin-hook #'turn-off-hideshow)
+;;    (add-hook 'ediff-prepare-buffer-hook #'turn-off-hideshow)
+;;    (add-hook 'vc-before-checkin-hook #'turn-off-hideshow)
 ;;
-;;     In the case of `vc-diff', here is a less invasive workaround:
+;;    In the case of `vc-diff', here is a less invasive workaround:
 ;;
-;;     (add-hook 'vc-before-checkin-hook
-;;               (lambda ()
-;;                 (goto-char (point-min))
-;;                 (hs-show-block)))
+;;    (add-hook 'vc-before-checkin-hook
+;;              (lambda ()
+;;                (goto-char (point-min))
+;;                (hs-show-block)))
 ;;
-;;     Unfortunately, these workarounds do not restore hideshow state.
-;;     If someone figures out a better way, please let me know.
-
-;; * Correspondence
-;;
-;; Correspondence welcome; please indicate version number.  Send bug
-;; reports and inquiries to <ttn@gnu.org>.
+;;    Unfortunately, these workarounds do not restore hideshow state.
 
 ;; * Thanks
 ;;
@@ -262,7 +260,7 @@
 ;; mouse support, and maintained the code in general.  Version 4.0 is
 ;; largely due to his efforts.
 
-;; * History
+;; * History (author commentary)
 ;;
 ;; Hideshow was inspired when I learned about selective display.  It was
 ;; reimplemented to use overlays for 4.0 (see above).  WRT older history,
@@ -274,18 +272,22 @@
 ;; unbundles state save and restore, and includes more isearch support.
 
 ;;; Code:
+
+
+;;;; Libraries
+
 (require 'mule-util) ; For `truncate-string-ellipsis'
 ;; For indicators
 (require 'icons)
 (require 'fringe)
 
-;;---------------------------------------------------------------------------
-;; user-configurable variables
-
+
 (defgroup hideshow nil
   "Minor mode for hiding and showing program and comment blocks."
   :prefix "hs-"
   :group 'languages)
+
+;;;; Faces
 
 (defface hs-ellipsis
   '((t :height 0.80 :box (:line-width -1) :inherit (shadow default)))
@@ -304,8 +306,26 @@ use that face for the ellipsis instead."
   "Face used in hideshow indicator to indicate a shown block."
   :version "31.1")
 
+;;;; Options
+
+(defcustom hs-hide-hook nil
+  "Hook called (with `run-hooks') at the end of commands to hide text.
+These commands include the toggling commands (when the result is to hide
+a block), `hs-hide-all', `hs-hide-block' and `hs-hide-level'."
+  :type 'hook
+  :version "31.1")
+
+(defcustom hs-show-hook nil
+  "Hook called (with `run-hooks') at the end of commands to show text.
+These commands include the toggling commands (when the result is to show
+a block), `hs-show-all' and `hs-show-block'."
+  :type 'hook
+  :version "31.1")
+
 (defcustom hs-hide-comments-when-hiding-all t
-  "Hide the comments too when you do an `hs-hide-all'."
+  "Whether the comments should be hidden.
+If non-nil, `hs-hide-all', `hs-cycle' and `hs-hide-level' will hide
+comments too."
   :type 'boolean)
 
 (defcustom hs-hide-block-behavior 'after-bol
@@ -383,70 +403,12 @@ size."
   :type '(choice natnum (const :tag "No limit" nil))
   :version "31.1")
 
-(define-fringe-bitmap
-  'hs-hide
-  [#b0000000
-   #b1000001
-   #b1100011
-   #b0110110
-   #b0011100
-   #b0001000
-   #b0000000])
-
-(define-fringe-bitmap
-  'hs-show
-  [#b0110000
-   #b0011000
-   #b0001100
-   #b0000110
-   #b0001100
-   #b0011000
-   #b0110000])
-
-(define-icon hs-indicator-hide nil
-  `((image "outline-open.svg" "outline-open.pbm"
-           :face hs-indicator-hide
-           :height (0.6 . em)
-           :ascent center)
-    (symbol "▾" "▼" :face hs-indicator-hide)
-    (text "-" :face hs-indicator-hide))
-  "Icon used for hide block at point.
-This is only used if `hs-indicator-type' is set to `margin' or nil."
-  :version "31.1")
-
-(define-icon hs-indicator-show nil
-  `((image "outline-close.svg" "outline-close.pbm"
-           :face hs-indicator-show
-           :height (0.6 . em)
-           :ascent center)
-    (symbol "▸" "▶" :face hs-indicator-show)
-    (text "+" :face hs-indicator-show))
-  "Icon used for show block at point.
-This is only used if `hs-indicator-type' is set to `margin' or nil."
-  :version "31.1")
-
-;;;###autoload
-(defvar hs-special-modes-alist nil)
-(make-obsolete-variable 'hs-special-modes-alist
-                        "use the buffer-local variables instead"
-                        "31.1")
-
 (defcustom hs-allow-nesting nil
   "If non-nil, hiding remembers internal blocks.
 This means that when the outer block is shown again,
 any previously hidden internal blocks remain hidden."
   :type 'boolean
   :version "31.1")
-
-(defvar hs-hide-hook nil
-  "Hook called (with `run-hooks') at the end of commands to hide text.
-These commands include the toggling commands (when the result is to hide
-a block), `hs-hide-all', `hs-hide-block' and `hs-hide-level'.")
-
-(defvar hs-show-hook nil
-  "Hook called (with `run-hooks') at the end of commands to show text.
-These commands include the toggling commands (when the result is to show
-a block), `hs-show-all' and `hs-show-block'.")
 
 (defcustom hs-set-up-overlay #'ignore
   "Function called with one arg, OV, a newly initialized overlay.
@@ -479,7 +441,9 @@ then \\`TAB' will invoke the visibility-cycling commands where that
 function returns non-nil.  For example, if the value is `bolp',
 those commands will be invoked at the headline's beginning.
 This allows to preserve the usual bindings, as determined by the
-major mode, elsewhere on the headlines."
+major mode, elsewhere on the headlines.
+Currently it affects only the command `hs-toggle-hiding' by default,
+but it can be easily replaced with the command `hs-cycle'."
   :type `(choice (const :tag "Nowhere" nil)
                  (const :tag "Everywhere on the headline" t)
                  (const :tag "At block beginning"
@@ -493,27 +457,69 @@ major mode, elsewhere on the headlines."
                  (function :tag "Custom filter function"))
   :version "31.1")
 
-;;---------------------------------------------------------------------------
-;; internal variables
+;;;; Icons
 
-(defvar hs-minor-mode nil
-  "Non-nil if using hideshow mode as a minor mode of some other mode.
-Use the command `hs-minor-mode' to toggle or set this variable.")
+(define-icon hs-indicator-hide nil
+  `((image "outline-open.svg" "outline-open.pbm"
+           :face hs-indicator-hide
+           :height (0.6 . em)
+           :ascent center)
+    (symbol "▾" "▼" :face hs-indicator-hide)
+    (text "-" :face hs-indicator-hide))
+  "Icon used for hide block at point.
+This is only used if `hs-indicator-type' is set to `margin' or nil."
+  :version "31.1")
+
+(define-icon hs-indicator-show nil
+  `((image "outline-close.svg" "outline-close.pbm"
+           :face hs-indicator-show
+           :height (0.6 . em)
+           :ascent center)
+    (symbol "▸" "▶" :face hs-indicator-show)
+    (text "+" :face hs-indicator-show))
+  "Icon used for show block at point.
+This is only used if `hs-indicator-type' is set to `margin' or nil."
+  :version "31.1")
+
+(define-fringe-bitmap
+  'hs-hide
+  [#b0000000
+   #b1000001
+   #b1100011
+   #b0110110
+   #b0011100
+   #b0001000
+   #b0000000])
+
+(define-fringe-bitmap
+  'hs-show
+  [#b0110000
+   #b0011000
+   #b0001100
+   #b0000110
+   #b0001100
+   #b0011000
+   #b0110000])
+
+
+;;;; Keymaps
 
 (defvar-keymap hs-prefix-map
   :doc "Keymap for hideshow commands."
   :prefix t
   ;; These bindings roughly imitate those used by Outline mode.
-  "C-h"   #'hs-hide-block
-  "C-s"   #'hs-show-block
-  "C-M-h" #'hs-hide-all
-  "C-M-s" #'hs-show-all
-  "C-l"   #'hs-hide-level
-  "C-c"   #'hs-toggle-hiding
-  "C-a"   #'hs-show-all
-  "C-t"   #'hs-hide-all
-  "C-d"   #'hs-hide-block
-  "C-e"   #'hs-toggle-hiding)
+  "C-h"       #'hs-hide-block
+  "C-d"       #'hs-hide-block
+  "C-s"       #'hs-show-block
+  "C-M-h"     #'hs-hide-all
+  "C-t"       #'hs-hide-all
+  "C-M-s"     #'hs-show-all
+  "C-a"       #'hs-show-all
+  "C-l"       #'hs-hide-level
+  "C-c"       #'hs-toggle-hiding
+  "C-e"       #'hs-toggle-hiding
+  "TAB"       #'hs-cycle
+  "<backtab>" #'hs-toggle-all)
 
 (defvar-keymap hs-minor-mode-map
   :doc "Keymap for hideshow minor mode."
@@ -526,8 +532,8 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
              (when (and hs-cycle-filter
                         ;; On the headline with hideable blocks
                         (save-excursion
-                          (goto-char (line-beginning-position))
-                          (hs-get-first-block))
+                          (forward-line 0)
+                          (hs-get-first-block-on-line))
                         (or (not (functionp hs-cycle-filter))
                             (funcall hs-cycle-filter)))
                cmd)))
@@ -557,9 +563,10 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
     ["Hide comments when hiding all"
      (setq hs-hide-comments-when-hiding-all
     	   (not hs-hide-comments-when-hiding-all))
-     :help "If t also hide comment blocks when doing `hs-hide-all'"
+     :help "\
+If t also hide comment blocks when doing `hs-hide-all', `hs-cycle' or `hs-hide-level'"
      :style toggle :selected hs-hide-comments-when-hiding-all]
-   ("Reveal on isearch"
+    ("Reveal on isearch"
      ["Code blocks" (setq hs-isearch-open 'code)
       :help "Show hidden code blocks when isearch matches inside them"
       :active t :style radio   :selected (eq hs-isearch-open 'code)]
@@ -575,13 +582,18 @@ Show both hidden code and comment blocks when isearch matches inside them"
 Do not show hidden code or comment blocks when isearch matches inside them"
       :active t :style radio :selected (eq hs-isearch-open nil)])))
 
+
+;;;; Internal variables
+
+(defvar hs-minor-mode)
+
 (defvar hs-hide-all-non-comment-function nil
   "Function called if non-nil when doing `hs-hide-all' for non-comments.")
 
 (defvar hs-headline nil
   "Text of the line where a hidden block begins, set during isearch.
 You can display this in the mode line by adding the symbol `hs-headline'
-to the variable `mode-line-format'.  For example,
+to the variable `mode-line-format'.  For example:
 
   (unless (memq \\='hs-headline mode-line-format)
     (setq mode-line-format
@@ -589,19 +601,32 @@ to the variable `mode-line-format'.  For example,
 
 Note that `mode-line-format' is buffer-local.")
 
-;;---------------------------------------------------------------------------
-;; API variables
+;; Used in `hs-toggle-all'
+(defvar-local hs--toggle-all-state)
+
+
+;;;; API variables
+
+;;;###autoload
+(defvar hs-special-modes-alist nil)
+(make-obsolete-variable
+ 'hs-special-modes-alist
+ "use the buffer-local variables instead" "31.1")
 
 (defvar-local hs-block-start-regexp "\\s("
   "Regexp for beginning of block.")
 
+;; This is useless, so probably should be deprecated.
 (defvar-local hs-block-start-mdata-select 0
   "Element in `hs-block-start-regexp' match data to consider as block start.
 The internal function `hs-forward-sexp' moves point to the beginning of this
 element (using `match-beginning') before calling `hs-forward-sexp-function'.")
 
 (defvar-local hs-block-end-regexp "\\s)"
-  "Regexp for end of block.")
+  "Regexp for end of block.
+As a special case, the value can be also a function without arguments to
+determine if point is looking at the end of the block, and return
+non-nil and set `match-data' to that block end positions.")
 
 (defvar-local hs-c-start-regexp nil
   "Regexp for beginning of comments.
@@ -613,46 +638,35 @@ any trailing whitespace.")
 
 (define-obsolete-variable-alias
   'hs-forward-sexp-func
-  'hs-forward-sexp-function
-  "31.1")
+  'hs-forward-sexp-function "31.1")
 
 (defvar-local hs-forward-sexp-function #'forward-sexp
   "Function used to do a `forward-sexp'.
+It is called with 1 argument (like `forward-sexp').
+
 Should change for Algol-ish modes.  For single-character block
-delimiters -- ie, the syntax table regexp for the character is
-either `(' or `)' -- `hs-forward-sexp-function' would just be
+delimiters such as `(' and `)' `hs-forward-sexp-function' would just be
 `forward-sexp'.  For other modes such as simula, a more specialized
 function is necessary.")
 
 (define-obsolete-variable-alias
   'hs-adjust-block-beginning
-  'hs-adjust-block-beginning-function
-  "31.1")
+  'hs-adjust-block-beginning-function "31.1")
 
 (defvar-local hs-adjust-block-beginning-function nil
   "Function used to tweak the block beginning.
-The block is hidden from the position returned by this function,
-as opposed to hiding it from the position returned when searching
-for `hs-block-start-regexp'.
-
-For example, in c-like modes, if we wish to also hide the curly braces
-\(if you think they occupy too much space on the screen), this function
-should return the starting point (at the end of line) of the hidden
-region.
+It should return the position from where we should start hiding, as
+opposed to hiding it from the position returned when searching for
+`hs-block-start-regexp'.
 
 It is called with a single argument ARG which is the position in
-buffer after the block beginning.
-
-It should return the position from where we should start hiding.
-
-It should not move the point.
-
-See `hs-c-like-adjust-block-beginning' for an example of using this.")
+buffer after the block beginning.")
 
 (defvar-local hs-adjust-block-end-function nil
   "Function used to tweak the block end.
 This is useful to ensure some characters such as parenthesis or curly
-braces get properly hidden in python-like modes.
+braces get properly hidden in modes without parenthesis pairs
+delimiters (such as python).
 
 It is called with one argument, which is the start position where the
 overlay will be created, and should return either the last position to
@@ -663,7 +677,8 @@ hide or nil.  If it returns nil, hideshow will guess the end position.")
   'hs-find-block-beginning-function
   "31.1")
 
-(defvar-local hs-find-block-beginning-function #'hs-find-block-beginning
+(defvar-local hs-find-block-beginning-function
+  #'hs-find-block-beg-fn--default
   "Function used to do `hs-find-block-beginning'.
 It should reposition point at the beginning of the current block
 and return point, or nil if original point was not in a block.
@@ -677,30 +692,33 @@ to find the beginning of the current block.")
   'hs-find-next-block-function
   "31.1")
 
-(defvar-local hs-find-next-block-function #'hs-find-next-block
+(defvar-local hs-find-next-block-function
+  #'hs-find-next-block-fn--default
   "Function used to do `hs-find-next-block'.
 It should reposition point at next block start.
 
-It is called with three arguments REGEXP, MAXP, and COMMENTS.
-REGEXP is a regexp representing block start.  When block start is
-found, `match-data' should be set using REGEXP.  MAXP is a buffer
-position that limits the search.  When COMMENTS is nil, comments
-should be skipped.  When COMMENTS is not nil, REGEXP matches not
-only beginning of a block but also beginning of a comment.  In
-this case, the function should find nearest block or comment.
+It is called with three arguments REGEXP, BOUND, and COMMENTS.  REGEXP
+is a regexp representing block start.  When block start is found,
+`match-data' should be set using REGEXP.  BOUND is a buffer position
+that limits the search.  When COMMENTS is non-nil, REGEXP matches not
+only beginning of a block but also beginning of a comment.  In this
+case, the function should find nearest block or comment and return
+non-nil.
 
-Specifying this function is necessary for languages such as
-Python, where regexp search is not enough to find the beginning
-of the next block.")
+Specifying this function is necessary for languages such as Python,
+where regexp search is not enough to find the beginning of the next
+block.")
 
 (define-obsolete-variable-alias
   'hs-looking-at-block-start-p-func
   'hs-looking-at-block-start-predicate
   "31.1")
 
-(defvar-local hs-looking-at-block-start-predicate #'hs-looking-at-block-start-p
+(defvar-local hs-looking-at-block-start-predicate
+  #'hs-looking-at-block-start-p--default
   "Function used to do `hs-looking-at-block-start-p'.
-It should return non-nil if the point is at the block start.
+It should return non-nil if the point is at the block start and set
+match data with the beginning and end of that position.
 
 Specifying this function is necessary for languages such as
 Python, where `looking-at' and `syntax-ppss' check is not enough
@@ -710,47 +728,234 @@ to check if the point is at the block start.")
   "Function used to check if point is inside a comment.
 If point is inside a comment, the function should return a list
 containing the buffer position of the start and the end of the
-comment, otherwise it should return nil.
-
-A comment block can be hidden only if on its starting line there is only
-whitespace preceding the actual comment beginning.  If point is inside
-a comment but this condition is not met, the function can return a list
-having nil as its `car' and the end of comment position as its `cdr'.")
+comment, otherwise it should return nil.")
 
 (defvar-local hs-treesit-things 'list
   "Treesit things to check if point is at a valid block.
 The value should be a thing defined in `treesit-thing-settings' for the
 current buffer's major mode.")
 
-;;---------------------------------------------------------------------------
-;; support functions
+
+;;;; API functions
 
-(defun hs-discard-overlays (from to)
-  "Delete hideshow overlays in region defined by FROM and TO.
+(defmacro hs-life-goes-on (&rest body)
+  "Evaluate BODY forms if variable `hs-minor-mode' is non-nil.
+In the dynamic context of this macro, `case-fold-search' is t.
+
+This macro encloses BODY in `save-match-data' and `save-excursion'.
+
+Intended to be used for commands."
+  (declare (debug t))
+  `(when hs-minor-mode
+     (let ((case-fold-search t))
+       (save-match-data
+         (save-excursion ,@body)))))
+
+(defun hs-discard-overlays (beg end)
+  "Delete hideshow overlays in region defined by BEG and END.
 Skip \"internal\" overlays if `hs-allow-nesting' is non-nil."
-  (when (< to from)
-    (setq from (prog1 to (setq to from))))
+  (when (< end beg)
+    (setq beg (prog1 end (setq end beg))))
   (if hs-allow-nesting
-      (let ((from from) ov)
-        (while (> to (setq from (next-overlay-change from)))
-          (when (setq ov (hs-overlay-at from))
-            (setq from (overlay-end ov))
+      (let ((beg beg))
+        (while (> end (setq beg (next-overlay-change beg)))
+          (when-let* ((ov (hs-overlay-at beg)))
+            ;; Reposition point to the end of the overlay, so we avoid
+            ;; removing the nested overlays too.
+            (setq beg (overlay-end ov))
             (delete-overlay ov))))
-    (dolist (ov (overlays-in from to))
-      (when (overlay-get ov 'hs)
-        (delete-overlay ov))))
-  (hs--refresh-indicators from to))
+    (remove-overlays beg end 'invisible 'hs))
+  (hs--refresh-indicators beg end))
 
-(defun hs-hideable-region-p (&optional beg end)
-  "Return t if region between BEG and END can be hidden.
-If BEG and END are not specified, try to check the current
-block at point."
+(defun hs-overlay-at (position)
+  "Return hideshow overlay at POSITION, or nil if none to be found."
+  (seq-find
+   (lambda (ov) (overlay-get ov 'hs))
+   (overlays-at position)))
+
+(defun hs-hideable-region-p (beg end)
+  "Return t if region between BEG and END can be hidden."
   ;; Check if BEG and END are not in the same line number,
   ;; since using `count-lines' is slow.
-  (if (and beg end)
-      (< beg (save-excursion (goto-char end) (line-beginning-position)))
-    (when-let* ((block (hs-block-positions)))
-      (apply #'hs-hideable-region-p block))))
+  (and beg end
+       (< beg (save-excursion (goto-char end) (pos-bol)))))
+
+(defun hs-already-hidden-p ()
+  "Return non-nil if point is in an already-hidden block, otherwise nil."
+  (save-excursion
+    ;; Reposition point if it is inside a comment, and if that comment
+    ;; is hideable
+    (when-let* ((c-reg (funcall hs-inside-comment-predicate)))
+      (goto-char (car c-reg)))
+    ;; Search for a hidden block at EOL ...
+    (eq 'hs
+        (or (get-char-property (pos-eol) 'invisible)
+            ;; ... or behind the current cursor position
+            (get-char-property (if (bobp) (point) (1- (point)))
+                               'invisible)))))
+
+(defun hs-block-positions (&optional adjust-beg adjust-end)
+  "Return the current code block positions.
+This returns a list with the current code block beginning and end
+positions.  This does nothing if there is not a code block at current
+point.
+
+If either ADJUST-BEG or ADJUST-END are non-nil, adjust block positions
+according to `hs-adjust-block-beginning', `hs-adjust-block-end-function'
+and `hs-block-end-regexp'."
+  ;; `catch' is used here if the search fails due unbalanced parentheses
+  ;; or any other unknown error caused in `hs-forward-sexp-function'.
+  (catch 'hs--block-exit
+    (save-match-data
+      (save-excursion
+        (when (funcall hs-looking-at-block-start-predicate)
+          (let ((beg (match-end 0)) end)
+            ;; `beg' is the point at the end of the block
+            ;; beginning, which may need to be adjusted
+            (when adjust-beg
+              (save-excursion
+                (when hs-adjust-block-beginning-function
+                  (goto-char (funcall hs-adjust-block-beginning-function beg)))
+                (setq beg (pos-eol))))
+
+            (goto-char (match-beginning hs-block-start-mdata-select))
+            (condition-case _
+                (funcall hs-forward-sexp-function 1)
+              (scan-error (throw 'hs--block-exit nil)))
+            ;; `end' is the point at the end of the block
+            (setq end (cond ((not adjust-end) (point))
+                            ((and (stringp hs-block-end-regexp)
+                                  (looking-back hs-block-end-regexp nil))
+                             (match-beginning 0))
+                            ((functionp hs-block-end-regexp)
+                             (funcall hs-block-end-regexp)
+                             (match-beginning 0))
+                            (t (point))))
+            ;; adjust block end (if needed)
+            (when (and adjust-end hs-adjust-block-end-function)
+              (setq end (or (funcall hs-adjust-block-end-function beg)
+                            end)))
+            (list beg end)))))))
+
+(defun hs-hide-comment-region (beg end &optional _repos-end)
+  "Hide a region from BEG to END, marking it as a comment.
+Optional arg REPOS-END means reposition at end."
+  (declare (obsolete "Use `hs-hide-block-at-point' instead." "31.1"))
+  (hs-hide-block-at-point (list beg end)))
+
+(defun hs-hide-block-at-point (&optional comment-reg)
+  "Hide block if on block beginning.
+Optional arg COMMENT-REG is a list of the form (BEGIN END) and
+specifies the limits of the comment, or nil if the block is not
+a comment.
+
+If hiding the block is successful, return non-nil.
+Otherwise, return nil."
+  (when-let* ((block (or comment-reg (hs-block-positions :a-beg :a-end))))
+    (let ((beg (if comment-reg (save-excursion (goto-char (car block)) (pos-eol))
+                 (car block)))
+          (end (cadr block))
+          ov)
+      (if (hs-hideable-region-p beg end)
+          (progn
+            (cond (comment-reg (let (hs-allow-nesting)
+                                 (hs-discard-overlays beg end)))
+                  ((and hs-allow-nesting (setq ov (hs-overlay-at beg)))
+                   (delete-overlay ov))
+                  ((not hs-allow-nesting)
+                   (hs-discard-overlays beg end)))
+            (goto-char end)
+            (hs-make-overlay beg end (if comment-reg 'comment 'code)))
+        (when comment-reg (goto-char end))
+        nil))))
+
+(defun hs-get-first-block-on-line (&optional include-comments)
+  "Reposition point to the first valid block found on the current line.
+This searches for a valid block from current point to the end of current
+line and returns the start position of the first block found.
+Otherwise, if no block is found, it returns nil.
+
+If INCLUDE-COMMENTS is non-nil, also search for a comment block."
+  (let ((bk-point (point))
+        (regexp (if include-comments
+                    (concat "\\(" hs-block-start-regexp "\\)"
+                            "\\|\\(" hs-c-start-regexp "\\)")
+                  hs-block-start-regexp))
+        exit)
+    (while (and (not exit)
+                (funcall hs-find-next-block-function regexp (pos-eol) include-comments)
+                (save-excursion
+                  (goto-char (match-beginning 0))
+                  (pcase-let ((`(,beg ,end)
+                               (or (and include-comments
+                                        (funcall hs-inside-comment-predicate))
+                                   (hs-block-positions))))
+                    (if (and beg (hs-hideable-region-p beg end))
+                        (setq exit (point))
+                      t)))))
+    (unless exit (goto-char bk-point))
+    exit))
+
+(defun hs-get-near-block (&optional include-comment)
+  "Reposition point to a near block around point.
+It search for a valid block before and after point and return t if one
+is found.
+
+If INCLUDE-COMMENT is non-nil, it also searches for a comment block,
+returning `comment' if one is found.
+
+Intended to be used in commands."
+  (let ((c-reg (when include-comment (funcall hs-inside-comment-predicate)))
+        pos)
+    (cond
+     ((and c-reg (apply #'hs-hideable-region-p c-reg))
+      (goto-char (car c-reg))
+      'comment)
+
+     ((and (eq hs-hide-block-behavior 'after-bol)
+           (save-excursion
+             (forward-line 0)
+             (setq pos (hs-get-first-block-on-line))))
+      (goto-char pos)
+      t)
+
+     ((and (or (funcall hs-looking-at-block-start-predicate)
+               (and (forward-line 0)
+                    (funcall hs-find-block-beginning-function)))
+           (apply #'hs-hideable-region-p (hs-block-positions)))
+      t))))
+
+(defun hs-hide-level-recursive (arg beg end &optional include-comments func progress)
+  "Recursively hide blocks between BEG and END that are ARG levels below point.
+If INCLUDE-COMMENTS is non-nil, also hide recursive comment blocks.  If
+FUNC is non-nil, call this function to hide the block instead.  If
+PROGRESS is non-nil, also update a progress object, intended for
+commands."
+  ;; Show all blocks in that region
+  (unless hs-allow-nesting (hs-discard-overlays beg end))
+  (goto-char beg)
+  (while (not (>= (point) end))
+    (when-let* ((_ (not (invisible-p (point)))) ; Skip invisible lines
+                (b-start (hs-get-first-block-on-line include-comments)))
+      (goto-char b-start)
+      (let ((comment (and include-comments (funcall hs-inside-comment-predicate)))
+            (code (hs-block-positions)))
+        ;; Find a block recursively according to ARG.
+        (if (> arg 1)
+            ;; Nested comment blocks in a comment block are impossible,
+            ;; so skip them.
+            (if comment
+                (goto-char (cadr comment))
+              (pcase-let ((`(,beg ,end) code))
+                (hs-hide-level-recursive (1- arg) beg end include-comments)))
+          ;; Now hide the block we found.
+          (if func (funcall func) (hs-hide-block-at-point comment))
+          (when progress (progress-reporter-update progress (point))))))
+    (forward-line 1))
+  (goto-char end))
+
+
+;;;; Internal functions
 
 (defun hs--discard-overlay-before-changes (o &rest _r)
   "Remove overlay O before changes.
@@ -761,19 +966,49 @@ Intended to be used in `modification-hooks', `insert-in-front-hooks' and
     (delete-overlay o)
     (hs--refresh-indicators beg end)))
 
-(defun hs-make-overlay (b e kind &optional b-offset e-offset)
+(defun hs--get-ellipsis (b e)
+  "Helper function for `hs-make-overlay'.
+This returns the ellipsis string to use and its face."
+  (let* ((standard-display-table
+          (or standard-display-table (make-display-table)))
+         (d-t-ellipsis
+          (display-table-slot standard-display-table 'selective-display))
+         ;; Convert ellipsis vector to a propertized string
+         (ellipsis
+          (and (vectorp d-t-ellipsis) ; Ensure the vector is not empty
+               (not (length= d-t-ellipsis 0))
+               (mapconcat
+                (lambda (g)
+                  (apply #'propertize (char-to-string (glyph-char g))
+                         (and (glyph-face g) (list 'face (glyph-face g)))))
+                d-t-ellipsis)))
+         (ellipsis-face (and ellipsis (get-text-property 0 'face ellipsis)))
+         (apply-face (lambda (str)
+                       (apply #'propertize str
+                              (and ellipsis-face (list 'face ellipsis-face)))))
+         (lines (when-let* (hs-display-lines-hidden
+                            (l (1- (count-lines b e)))
+                            (l-str (format "%d %s" l
+                                           (if (= l 1) "line" "lines"))))
+                  (funcall apply-face l-str)))
+         (tty-strings (and hs-display-lines-hidden (not (display-graphic-p))))
+         (string
+          (concat (and tty-strings (funcall apply-face "["))
+                  lines
+                  (or ellipsis (truncate-string-ellipsis))
+                  (and tty-strings (funcall apply-face "]")))))
+    (if ellipsis-face
+        ;; Return ELLIPSIS and LINES if ELLIPSIS has no face
+        string
+      ;; Otherwise propertize both with `hs-ellipsis'
+      (propertize string 'face 'hs-ellipsis))))
+
+(defun hs-make-overlay (b e kind)
   "Return a new overlay in region defined by B and E with type KIND.
-KIND is either `code' or `comment'.  Optional fourth arg B-OFFSET
-when added to B specifies the actual buffer position where the block
-begins.  Likewise for optional fifth arg E-OFFSET.  If unspecified
-they are taken to be 0 (zero).  The following properties are set
-in the overlay: `invisible' `hs' `hs-b-offset' `hs-e-offset'.  Also,
-depending on variable `hs-isearch-open', the following properties may
-be present: `isearch-open-invisible' `isearch-open-invisible-temporary'.
-If variable `hs-set-up-overlay' is non-nil it should specify a function
-to call with the newly initialized overlay."
-  (unless b-offset (setq b-offset 0))
-  (unless e-offset (setq e-offset 0))
+KIND is either `code' or `comment'.  The following properties are set in
+the overlay: `invisible' `hs'.  Also, depending on variable
+`hs-isearch-open', the following properties may be present:
+`isearch-open-invisible' `isearch-open-invisible-temporary'."
   (let ((ov (make-overlay b e))
         (io (if (eq 'block hs-isearch-open)
                 ;; backward compatibility -- `block'<=>`code'
@@ -789,8 +1024,6 @@ to call with the newly initialized overlay."
                   'keymap '(keymap (mouse-1 . hs-toggle-hiding))))
     ;; Internal properties
     (overlay-put ov 'hs kind)
-    (overlay-put ov 'hs-b-offset b-offset)
-    (overlay-put ov 'hs-e-offset e-offset)
     ;; Isearch integration
     (when (or (eq io t) (eq io kind))
       (overlay-put ov 'isearch-open-invisible 'hs-isearch-show)
@@ -802,47 +1035,8 @@ to call with the newly initialized overlay."
     (overlay-put ov 'insert-behind-hooks   '(hs--discard-overlay-before-changes))
 
     (when hs-set-up-overlay (funcall hs-set-up-overlay ov))
-    (hs--refresh-indicators b e)
+    (hs--refresh-indicators b (1+ b))
     ov))
-
-(defun hs-block-positions ()
-  "Return the current code block positions.
-This returns a list with the current code block beginning and end
-positions.  This does nothing if there is not a code block at current
-point."
-  ;; `catch' is used here if the search fails due unbalanced parentheses
-  ;; or any other unknown error caused in `hs-forward-sexp'.
-  (catch 'hs-sexp-error
-    (save-match-data
-      (save-excursion
-        (when (funcall hs-looking-at-block-start-predicate)
-          (let ((mdata (match-data t))
-                (header-end (match-end 0))
-                block-beg block-end)
-            ;; `block-start' is the point at the end of the block
-            ;; beginning, which may need to be adjusted
-            (save-excursion
-              (when hs-adjust-block-beginning-function
-                (goto-char (funcall hs-adjust-block-beginning-function header-end)))
-              (setq block-beg (line-end-position)))
-            ;; `block-end' is the point at the end of the block
-            (condition-case _
-                (hs-forward-sexp mdata 1)
-              (scan-error (throw 'hs-sexp-error nil)))
-            (setq block-end
-                  (cond ((and (stringp hs-block-end-regexp)
-                              (looking-back hs-block-end-regexp nil))
-                         (match-beginning 0))
-                        ((functionp hs-block-end-regexp)
-                         (funcall hs-block-end-regexp)
-                         (match-beginning 0))
-                        (t (point))))
-            ;; adjust block end (if needed)
-            (when hs-adjust-block-end-function
-              (setq block-end
-                    (or (funcall hs-adjust-block-end-function block-beg)
-                        block-end)))
-            (list block-beg block-end)))))))
 
 (defun hs--make-indicators-overlays (beg)
   "Helper function to make the indicators overlays."
@@ -891,16 +1085,17 @@ point."
 
 (defun hs--add-indicators (&optional beg end)
   "Add hideable indicators from BEG to END."
-  (save-excursion
-    (setq beg (if (null beg) (window-start) (goto-char beg) (pos-bol))
-          end (if (null end) (window-end) (goto-char end) (pos-bol))))
+  (setq beg (progn (goto-char beg) (pos-bol))
+        end (progn (goto-char end)
+                   ;; Include the EOL indicator positions
+                   (min (1+ (pos-eol)) (point-max))))
   (goto-char beg)
   (remove-overlays beg end 'hs-indicator t)
 
   (while (not (>= (point) end))
-    (save-excursion
-      (when-let* ((b-beg (hs-get-first-block)))
-        (hs--make-indicators-overlays b-beg)))
+    (when-let* ((_ (not (invisible-p (point)))) ; Skip invisible lines
+                (b-beg (hs-get-first-block-on-line)))
+      (hs--make-indicators-overlays b-beg))
     ;; Only 1 indicator per line
     (forward-line))
   `(jit-lock-bounds ,beg . ,end))
@@ -911,43 +1106,6 @@ point."
     (save-match-data
       (save-excursion
         (hs--add-indicators from to)))))
-
-(defun hs--get-ellipsis (b e)
-  "Helper function for `hs-make-overlay'.
-This returns the ellipsis string to use and its face."
-  (let* ((standard-display-table
-          (or standard-display-table (make-display-table)))
-         (d-t-ellipsis
-          (display-table-slot standard-display-table 'selective-display))
-         ;; Convert ellipsis vector to a propertized string
-         (ellipsis
-          (and (vectorp d-t-ellipsis) ; Ensure the vector is not empty
-               (not (length= d-t-ellipsis 0))
-               (mapconcat
-                (lambda (g)
-                  (apply #'propertize (char-to-string (glyph-char g))
-                         (and (glyph-face g) (list 'face (glyph-face g)))))
-                d-t-ellipsis)))
-         (ellipsis-face (and ellipsis (get-text-property 0 'face ellipsis)))
-         (apply-face (lambda (str)
-                       (apply #'propertize str
-                              (and ellipsis-face (list 'face ellipsis-face)))))
-         (lines (when-let* (hs-display-lines-hidden
-                            (l (1- (count-lines b e)))
-                            (l-str (format "%d %s" l
-                                           (if (= l 1) "line" "lines"))))
-                  (funcall apply-face l-str)))
-         (tty-strings (and hs-display-lines-hidden (not (display-graphic-p))))
-         (string
-          (concat (and tty-strings (funcall apply-face "["))
-                  lines
-                  (or ellipsis (truncate-string-ellipsis))
-                  (and tty-strings (funcall apply-face "]")))))
-    (if ellipsis-face
-        ;; Return ELLIPSIS and LINES if ELLIPSIS has no face
-        string
-      ;; Otherwise propertize both with `hs-ellipsis'
-      (propertize string 'face 'hs-ellipsis))))
 
 (defun hs-isearch-show (ov)
   "Delete overlay OV, and set `hs-headline' to nil.
@@ -966,8 +1124,7 @@ OV is shown.
 This function is meant to be used as the `isearch-open-invisible-temporary'
 property of an overlay."
   (setq hs-headline
-        (if hide-p
-            nil
+        (unless hide-p
           (or hs-headline
               (let ((start (overlay-start ov)))
                 (buffer-substring
@@ -984,78 +1141,14 @@ property of an overlay."
           (overlay-put ov 'display value)
           (overlay-put ov 'hs-isearch-display nil))
       (when (setq value (overlay-get ov 'display))
-        (overlay-put ov 'hs-isearch-display value)
-        (overlay-put ov 'display nil))))
+        (overlay-put ov 'display nil)
+        (overlay-put ov 'hs-isearch-display value))))
   (overlay-put ov 'invisible (and hide-p 'hs)))
 
-(defun hs-looking-at-block-start-p ()
+(defun hs-looking-at-block-start-p--default ()
   "Return non-nil if the point is at the block start."
   (and (looking-at hs-block-start-regexp)
        (save-match-data (not (nth 8 (syntax-ppss))))))
-
-(defun hs-forward-sexp (match-data arg)
-  "Adjust point based on MATCH-DATA and call `hs-forward-sexp-function' with ARG.
-Original match data is restored upon return."
-  (save-match-data
-    (set-match-data match-data)
-    (goto-char (match-beginning hs-block-start-mdata-select))
-    (funcall hs-forward-sexp-function arg)))
-
-(defun hs-hide-comment-region (beg end &optional repos-end)
-  "Hide a region from BEG to END, marking it as a comment.
-Optional arg REPOS-END means reposition at end."
-  (let ((goal-col (current-column))
-        (beg-bol (progn (goto-char beg) (line-beginning-position)))
-        (beg-eol (line-end-position))
-        (end-eol (progn (goto-char end) (line-end-position))))
-    (hs-discard-overlays beg-eol end-eol)
-    (hs-make-overlay beg-eol end-eol 'comment beg end)
-    (goto-char (if repos-end end (min end (+ beg-bol goal-col))))))
-
-(defun hs-hide-block-at-point (&optional end comment-reg)
-  "Hide block if on block beginning.
-Optional arg END means reposition at end.
-Optional arg COMMENT-REG is a list of the form (BEGIN END) and
-specifies the limits of the comment, or nil if the block is not
-a comment.
-
-The block beginning is adjusted by `hs-adjust-block-beginning-function'
-and then further adjusted to be at the end of the line.
-
-If hiding the block is successful, return non-nil.
-Otherwise, return nil."
-  (if comment-reg
-      (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
-    (when-let* ((block (hs-block-positions)))
-      (let ((p (car block))
-            (q (cadr block))
-            ov)
-        (if (hs-hideable-region-p p q)
-            (progn
-              (cond ((and hs-allow-nesting (setq ov (hs-overlay-at p)))
-                     (delete-overlay ov))
-                    ((not hs-allow-nesting)
-                     (hs-discard-overlays p q)))
-              (goto-char q)
-              (hs-make-overlay p q 'code (- (match-end 0) p)))
-          (goto-char (if end q (min p (match-end 0))))
-          nil)))))
-
-(defun hs-get-first-block ()
-  "Return the position of the first valid block found on the current line.
-This searches for a valid block on the current line and returns the
-first block found.  Otherwise, if no block is found, it returns nil."
-  (let (exit)
-    (while (and (not exit)
-                (funcall hs-find-next-block-function
-                         hs-block-start-regexp
-                         (line-end-position) nil)
-                (save-excursion
-                  (goto-char (match-beginning 0))
-                  (if (hs-hideable-region-p)
-                      (setq exit (match-beginning 0))
-                    t))))
-    exit))
 
 (defun hs-inside-comment-p ()
   (declare (obsolete "Call `hs-inside-comment-predicate' instead." "31.1"))
@@ -1066,51 +1159,32 @@ first block found.  Otherwise, if no block is found, it returns nil."
     ;; the idea is to look backwards for a comment start regexp, do a
     ;; forward comment, and see if we are inside, then extend
     ;; forward and backward as long as we have comments
-    (let ((q (point)))
-      (skip-chars-forward "[:blank:]")
-      (when (or (looking-at hs-c-start-regexp)
-                (re-search-backward hs-c-start-regexp (point-min) t))
-        ;; first get to the beginning of this comment...
-        (while (and (not (bobp))
-                    (= (point) (progn (forward-comment -1) (point))))
-          (forward-char -1))
-        ;; ...then extend backwards
-        (forward-comment (- (buffer-size)))
-        (skip-chars-forward " \t\n\f")
-        (let ((p (point))
-              (hideable t))
-          (beginning-of-line)
-          (unless (looking-at (concat "[ \t]*" hs-c-start-regexp))
-            ;; we are in this situation: (example)
-            ;; (defun bar ()
-            ;;      (foo)
-            ;;                ) ; comment
-            ;;                 ^
-            ;;   the point was here before doing (beginning-of-line)
-            ;; here we should advance till the next comment which
-            ;; eventually has only white spaces preceding it on the same
-            ;; line
-            (goto-char p)
-            (forward-comment 1)
-            (skip-chars-forward " \t\n\f")
-            (setq p (point))
-            (while (and (< (point) q)
-                        (> (point) p)
-                        (not (looking-at hs-c-start-regexp)))
-              ;; avoid an infinite cycle
-              (setq p (point))
-              (forward-comment 1)
-              (skip-chars-forward " \t\n\f"))
-            (when (or (not (looking-at hs-c-start-regexp))
-                      (> (point) q))
-              ;; we cannot hide this comment block
-              (setq hideable nil)))
-          ;; goto the end of the comment
-          (forward-comment (buffer-size))
-          (skip-chars-backward " \t\n\f")
-          (end-of-line)
-          (when (>= (point) q)
-            (list (and hideable p) (point))))))))
+    (let ((amount (buffer-size))
+          (rx (concat "^[[:blank:]]*\\(" hs-c-start-regexp "\\)"))
+          beg end)
+      (when (or (and (skip-chars-forward "[:blank:]")
+                     (looking-at-p hs-c-start-regexp)
+                     ;; Check if there are not whitespaces before the comment
+                     (if (save-excursion
+                           (forward-line 0) (not (looking-at-p rx)))
+                         (setq amount 1)
+                       t))
+                (and (re-search-backward rx (pos-bol) t)
+                     (goto-char (match-beginning 1))))
+
+        (setq beg (if (= amount 1)
+                      (pos-eol)
+                    (forward-comment (- amount))
+                    (skip-chars-forward " \t\n\f")
+                    (unless (save-excursion
+                              (forward-line 0) (looking-at-p rx))
+                      (forward-comment 1)
+                      (skip-chars-forward " \t\n\f"))
+                    (pos-eol))
+              end (progn (forward-comment amount)
+                         (skip-chars-backward " \t\n\f")
+                         (point)))
+        (list beg end)))))
 
 (defun hs--set-variable (var nth &optional default)
   "Set Hideshow VAR if already not set.
@@ -1154,94 +1228,46 @@ adjust-block-beginning function."
   (hs--set-variable 'hs-find-next-block-function 7)
   (hs--set-variable 'hs-looking-at-block-start-predicate 8))
 
-(defun hs-find-block-beginning ()
-  "Reposition point at block-start.
-Return point, or nil if original point was not in a block."
-  (let ((done nil)
-        (here (point)))
-    ;; look if current line is block start
-    (if (funcall hs-looking-at-block-start-predicate)
-        (point)
-      ;; look backward for the start of a block that contains the cursor
-      (while (and (re-search-backward hs-block-start-regexp nil t)
-		  ;; go again if in a comment or a string
-		  (or (save-match-data (nth 8 (syntax-ppss)))
-		      (not (setq done
-				 (< here (save-excursion
-					   (hs-forward-sexp (match-data t) 1)
-					   (point))))))))
-      (if done
-          (point)
-        (goto-char here)
-        nil))))
+(defun hs-forward-sexp (match-data _arg)
+  "Adjust point based on MATCH-DATA and call `hs-forward-sexp-function' with ARG.
+Original match data is restored upon return."
+  (declare (obsolete "Use `hs-block-positions' instead." "31.1"))
+  (save-match-data
+    (set-match-data match-data)
+    (goto-char (match-beginning hs-block-start-mdata-select))
+    (funcall hs-forward-sexp-function 1)))
 
-(defun hs-find-next-block (regexp maxp comments)
+(define-obsolete-function-alias
+  'hs-find-next-block 'hs-find-next-block-fn--default "31.1")
+
+(defun hs-find-next-block-fn--default (regexp bound comments)
   "Reposition point at next block-start.
 Skip comments if COMMENTS is nil, and search for REGEXP in
-region (point MAXP)."
+region (point BOUND)."
   (when (not comments)
     (forward-comment (point-max)))
-  (and (< (point) maxp)
-       (re-search-forward regexp maxp t)))
+  (and (< (point) bound)
+       (re-search-forward regexp bound t)))
 
-(defun hs-hide-level-recursive (arg minp maxp)
-  "Recursively hide blocks ARG levels below point in region (MINP MAXP)."
-  (when (funcall hs-find-block-beginning-function)
-    (setq minp (1+ (point)))
-    (funcall hs-forward-sexp-function 1)
-    (setq maxp (1- (point))))
-  (unless hs-allow-nesting
-    (hs-discard-overlays minp maxp))
-  (goto-char minp)
-  (while (funcall hs-find-next-block-function hs-block-start-regexp maxp nil)
-    (when (save-match-data
-	    (not (nth 8 (syntax-ppss)))) ; not inside comments or strings
-      (if (> arg 1)
-	  (hs-hide-level-recursive (1- arg) minp maxp)
-        ;; `hs-hide-block-at-point' already moves the cursor, but if it
-        ;; fails, return to the previous position where we were.
-	(unless (and (goto-char (match-beginning hs-block-start-mdata-select))
-	             (hs-hide-block-at-point t))
-            (goto-char (match-end hs-block-start-mdata-select))))))
-  (goto-char maxp))
+(define-obsolete-function-alias
+  'hs-find-block-beginning 'hs-find-block-beg-fn--default "31.1")
 
-(defmacro hs-life-goes-on (&rest body)
-  "Evaluate BODY forms if variable `hs-minor-mode' is non-nil.
-In the dynamic context of this macro, `case-fold-search' is t."
-  (declare (debug t))
-  `(when hs-minor-mode
-     (let ((case-fold-search t))
-       (save-match-data
-         (save-excursion ,@body)))))
-
-(defun hs-find-block-beginning-match ()
-  "Reposition point at the end of match of the block-start regexp.
+(defun hs-find-block-beg-fn--default ()
+  "Reposition point at block-start.
 Return point, or nil if original point was not in a block."
-  (when (and (funcall hs-find-block-beginning-function)
-	     (funcall hs-looking-at-block-start-predicate))
-    ;; point is inside a block
-    (goto-char (match-end 0))))
-
-(defun hs-overlay-at (position)
-  "Return hideshow overlay at POSITION, or nil if none to be found."
-  (let ((overlays (overlays-at position))
-        ov found)
-    (while (and (not found) (setq ov (car overlays)))
-      (setq found (and (overlay-get ov 'hs) ov)
-            overlays (cdr overlays)))
-    found))
-
-(defun hs-already-hidden-p ()
-  "Return non-nil if point is in an already-hidden block, otherwise nil."
-  (save-excursion
-    (let ((c-reg (funcall hs-inside-comment-predicate)))
-      (when (and c-reg (nth 0 c-reg))
-        ;; point is inside a comment, and that comment is hideable
-        (goto-char (nth 0 c-reg))))
-    ;; Search for a hidden block at EOL ...
-    (or (eq 'hs (get-char-property (line-end-position) 'invisible))
-        ;; ... or behind the current cursor position
-        (eq 'hs (get-char-property (if (bobp) (point) (1- (point))) 'invisible)))))
+  (let ((here (point)) done)
+    ;; look if current line is block start
+    (if (funcall hs-looking-at-block-start-predicate)
+        here
+      ;; look backward for the start of a block that contains the cursor
+      (save-excursion
+        (while (and (re-search-backward hs-block-start-regexp nil t)
+                    (goto-char (match-beginning hs-block-start-mdata-select))
+		    ;; go again if in a comment or a string
+		    (or (save-match-data (nth 8 (syntax-ppss)))
+		        (not (setq done (and (<= here (cadr (hs-block-positions)))
+                                             (point))))))))
+      (when done (goto-char done)))))
 
 ;; This function is not used anymore (Bug#700).
 (defun hs-c-like-adjust-block-beginning (initial)
@@ -1249,62 +1275,35 @@ Return point, or nil if original point was not in a block."
 Actually, point is never moved; a new position is returned that is
 the end of the C-function header.  This adjustment function is meant
 to be assigned to `hs-adjust-block-beginning-function' for C-like modes."
+  (declare (obsolete "Use `hs-adjust-block-beginning-function' instead." "31.1"))
   (save-excursion
     (goto-char (1- initial))
     (forward-comment (- (buffer-size)))
     (point)))
 
-;;---------------------------------------------------------------------------
-;; commands
+;;;###autoload
+(defun turn-off-hideshow ()
+  "Unconditionally turn off `hs-minor-mode'."
+  (hs-minor-mode -1))
+
+
+;;;; Commands
 
 (defun hs-hide-all ()
-  "Hide all top level blocks, displaying only first and last lines.
-Move point to the beginning of the line, and run the normal hook
-`hs-hide-hook'.  See documentation for `run-hooks'.
-If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
+  "Hide all top level blocks.
+This command runs `hs-hide-hook'.
+If `hs-hide-comments-when-hiding-all' is non-nil, also hide the
+comments."
   (interactive)
   (hs-life-goes-on
-   (save-excursion
-     (unless hs-allow-nesting
-       (hs-discard-overlays (point-min) (point-max)))
-     (goto-char (point-min))
-     (syntax-propertize (point-max))
-     (let ((spew (make-progress-reporter "Hiding all blocks..."
-                                         (point-min) (point-max)))
-           (re (when (stringp hs-block-start-regexp)
-                 (concat "\\("
-                         hs-block-start-regexp
-                         "\\)"
-                         (if (and hs-hide-comments-when-hiding-all
-                                  (stringp hs-c-start-regexp))
-                             (concat "\\|\\("
-                                     hs-c-start-regexp
-                                     "\\)")
-                           "")))))
-       (while (funcall hs-find-next-block-function re (point-max)
-                       hs-hide-comments-when-hiding-all)
-         (if (match-beginning 1)
-             ;; We have found a block beginning.
-             (progn
-               (goto-char (match-beginning 1))
-	       (unless (if hs-hide-all-non-comment-function
-			   (funcall hs-hide-all-non-comment-function)
-			 (hs-hide-block-at-point t))
-		 ;; Go to end of matched data to prevent from getting stuck
-		 ;; with an endless loop.
-                 (when (if (stringp hs-block-start-regexp)
-                           (looking-at hs-block-start-regexp)
-                         (eq (point) (match-beginning 0)))
-		   (goto-char (match-end 0)))))
-           ;; found a comment, probably
-           (let ((c-reg (funcall hs-inside-comment-predicate)))
-             (when (and c-reg (car c-reg))
-               (if (hs-hideable-region-p (car c-reg) (nth 1 c-reg))
-                   (hs-hide-block-at-point t c-reg)
-                 (goto-char (nth 1 c-reg))))))
-         (progress-reporter-update spew (point)))
-       (progress-reporter-done spew)))
-   (beginning-of-line)
+   (let ((spew (make-progress-reporter
+                "Hiding all blocks..." (point-min) (point-max))))
+     (hs-hide-level-recursive
+      1 (point-min) (point-max)
+      hs-hide-comments-when-hiding-all
+      hs-hide-all-non-comment-function
+      spew)
+     (progress-reporter-done spew))
    (run-hooks 'hs-hide-hook)))
 
 (defun hs-show-all ()
@@ -1312,86 +1311,63 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
   (interactive)
   (hs-life-goes-on
    (message "Showing all blocks ...")
-   (let ((hs-allow-nesting nil))
+   (let (hs-allow-nesting)
      (hs-discard-overlays (point-min) (point-max)))
    (message "Showing all blocks ... done")
    (run-hooks 'hs-show-hook)))
 
-(defun hs-hide-block (&optional end)
-  "Select a block and hide it.  With prefix arg, reposition at END.
-Upon completion, point is repositioned and the normal hook
-`hs-hide-hook' is run.  See documentation for `run-hooks'."
-  (interactive "P")
+(defun hs-hide-block ()
+  "Select a block and hide it.
+This command runs `hs-hide-hook'."
+  (interactive)
   (hs-life-goes-on
    (let ((c-reg (funcall hs-inside-comment-predicate)))
      (cond
-      ((and c-reg (or (null (nth 0 c-reg))
-                      (not (hs-hideable-region-p (car c-reg) (nth 1 c-reg)))))
+      ((and c-reg (not (apply #'hs-hideable-region-p c-reg)))
        (user-error "(not enough comment lines to hide)"))
-
-      (c-reg (hs-hide-block-at-point end c-reg))
-
-      ((save-excursion
-         (and-let* ((_ (eq hs-hide-block-behavior 'after-bol))
-                    (_ (goto-char (line-beginning-position)))
-                    (pos (hs-get-first-block))
-                    (_ (goto-char pos))
-                    (_ (hs-hide-block-at-point end))))))
-
-      ((or (funcall hs-looking-at-block-start-predicate)
-           (and (goto-char (line-beginning-position))
-                (funcall hs-find-block-beginning-function)))
-       (hs-hide-block-at-point end)))
-
+      ((or c-reg (hs-get-near-block))
+       (hs-hide-block-at-point c-reg)))
      (run-hooks 'hs-hide-hook))))
 
-(defun hs-show-block (&optional end)
+(defun hs-show-block ()
   "Select a block and show it.
-With prefix arg, reposition at END.  Upon completion, point is
-repositioned and the normal hook `hs-show-hook' is run.
-See documentation for functions `hs-hide-block' and `run-hooks'."
-  (interactive "P")
+This command runs `hs-show-hook'.  See documentation for functions
+`hs-hide-block' and `run-hooks'."
+  (interactive)
   (hs-life-goes-on
-   (or
-    ;; first see if we have something at the end of the line
-    (let ((ov (hs-overlay-at (line-end-position)))
-          (here (point))
-          ov-start ov-end)
-      (when ov
-        (goto-char
-         (cond (end (overlay-end ov))
-               ((eq 'comment (overlay-get ov 'hs)) here)
-               (t (+ (overlay-start ov) (overlay-get ov 'hs-b-offset)))))
-        (setq ov-start (overlay-start ov))
-        (setq ov-end   (overlay-end ov))
-        (delete-overlay ov)
-        (hs--refresh-indicators ov-start ov-end)
-        t))
-    ;; not immediately obvious, look for a suitable block
-    (let ((c-reg (funcall hs-inside-comment-predicate))
-          p q)
-      (cond (c-reg
-             (when (car c-reg)
-               (setq p (car c-reg)
-                     q (cadr c-reg))))
-            ((and (funcall hs-find-block-beginning-function)
-                  ;; ugh, fresh match-data
-                  (funcall hs-looking-at-block-start-predicate))
-             (setq p (point)
-                   q (progn (hs-forward-sexp (match-data t) 1) (point)))))
-      (when (and p q)
-        (hs-discard-overlays p q)
-        (goto-char (if end q (1+ p))))))
+   (if-let* ((ov (hs-overlay-at (pos-eol)))
+             (ov-start (overlay-start ov))
+             (ov-end (overlay-end ov)))
+       (progn
+         (hs-discard-overlays (1- ov-start) ov-end)
+         (hs--refresh-indicators ov-start ov-end))
+     (when-let* ((block
+                  (or (funcall hs-inside-comment-predicate)
+                      (and (funcall hs-find-block-beginning-function)
+                           (hs-block-positions)))))
+       (hs-discard-overlays (car block) (cadr block))))
    (run-hooks 'hs-show-hook)))
 
 (defun hs-hide-level (arg)
   "Hide all blocks ARG levels below this block.
+If point is not in a block, hide all the ARG levels blocks in the whole
+buffer.
+
 The hook `hs-hide-hook' is run; see `run-hooks'."
   (interactive "p")
   (hs-life-goes-on
    (save-excursion
      (message "Hiding blocks ...")
-     (hs-hide-level-recursive arg (point-min) (point-max))
+     (if (hs-get-near-block)
+         ;; Hide block if we are looking at one.
+         (pcase-let ((`(,beg ,end) (hs-block-positions)))
+           (hs-hide-level-recursive arg beg end hs-hide-comments-when-hiding-all))
+       ;; Otherwise hide all the blocks in the current buffer
+       (hs-hide-level-recursive
+        ;; Increment ARG by 1, avoiding it acts like
+        ;; `hs-hide-all'
+        (1+ arg) (point-min) (point-max)
+        hs-hide-comments-when-hiding-all))
      (message "Hiding blocks ... done"))
    (run-hooks 'hs-hide-hook)))
 
@@ -1432,15 +1408,64 @@ Argument E should be the event that triggered this action."
 This can be useful if you have huge RCS logs in those comments."
   (interactive)
   (hs-life-goes-on
-   (let ((c-reg (save-excursion
-                  (goto-char (point-min))
-                  (skip-chars-forward " \t\n\f")
-                  (funcall hs-inside-comment-predicate))))
-     (when c-reg
-       (let ((beg (car c-reg)) (end (cadr c-reg)))
-         ;; see if we have enough comment lines to hide
-         (when (hs-hideable-region-p beg end)
-           (hs-hide-comment-region beg end)))))))
+   (goto-char (point-min))
+   (skip-chars-forward " \t\n\f")
+   (when-let* ((c-reg (funcall hs-inside-comment-predicate)))
+     (hs-hide-block-at-point c-reg))))
+
+(defun hs-cycle (&optional level)
+  "Cycle the visibility state of the current block.
+This cycles the visibility of the current block between hide the parent
+block, hide the nested blocks only, and show the parent and nested
+blocks.
+
+If LEVEL is specified (interactively, the prefix numeric argument), hide
+only blocks which are that many levels below the level of point."
+  (interactive "p")
+  (hs-life-goes-on
+   (when-let* ((ret (hs-get-near-block :include-comments)))
+     (cond ((eq ret 'comment)
+            (hs-toggle-hiding)
+            (message "Toggle visibility"))
+           ((> level 1)
+            (pcase-let ((`(,beg ,end) (hs-block-positions)))
+              (hs-hide-level-recursive
+               level beg end hs-hide-comments-when-hiding-all))
+            (message "Hide %d level" level))
+           (t
+            (let* (hs-allow-nesting
+                   (block (hs-block-positions :ad-beg :ad-end))
+                   (ov (seq-find
+                        (lambda (o)
+                          (and (eq (overlay-get o 'invisible) 'hs)))
+                        (overlays-in (car block) (cadr block)))))
+              (cond
+               ;; Hide all if there are no hidden blocks
+               ((not ov)
+                (hs-hide-block)
+                (message "Hide block and nested blocks"))
+               ;; Hide the children blocks if the parent block is hidden
+               ((and (= (overlay-start ov) (car block))
+                     (= (overlay-end ov) (cadr block)))
+                (hs-hide-level-recursive
+                 1 (car block) (cadr block)
+                 hs-hide-comments-when-hiding-all)
+                (message "Hide first nested blocks"))
+               ;; Otherwise show all in the parent block, we cannot use
+               ;; `hs-show-block' here because we already know the
+               ;; positions.
+               (ov (hs-discard-overlays (car block) (cadr block))
+                   (message "Show block and nested blocks")
+                   (run-hooks 'hs-show-hook)))))))))
+
+(defun hs-toggle-all ()
+  "Hide or show all the blocks in the current buffer."
+  (interactive)
+  (if hs--toggle-all-state
+      (let (hs-allow-nesting)
+        (hs-discard-overlays (point-min) (point-max)))
+    (hs-hide-all))
+  (setq-local hs--toggle-all-state (not hs--toggle-all-state)))
 
 ;;;###autoload
 (define-minor-mode hs-minor-mode
@@ -1449,10 +1474,6 @@ This can be useful if you have huge RCS logs in those comments."
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.
 The value (hs . t) is added to `buffer-invisibility-spec'.
-
-The main commands are: `hs-hide-all', `hs-show-all', `hs-hide-block',
-`hs-show-block', `hs-hide-level' and `hs-toggle-hiding'.  There is also
-`hs-hide-initial-comment-block'.
 
 Turning hideshow minor mode off reverts the menu bar and the
 variables to default values and disables the hideshow commands.
@@ -1473,12 +1494,11 @@ Key bindings:
           (user-error "%S doesn't support the Hideshow minor mode"
                       major-mode))
 
-        ;; Set the variables
+        ;; Set the old variables
         (hs-grok-mode-type)
         ;; Turn off this mode if we change major modes.
         (add-hook 'change-major-mode-hook
-                  #'turn-off-hideshow
-                  nil t)
+                  #'turn-off-hideshow nil t)
         (setq-local line-move-ignore-invisible t)
         (add-to-invisibility-spec '(hs . t))
         ;; Add block indicators
@@ -1489,24 +1509,28 @@ Key bindings:
           (when (and (not (display-graphic-p))
                      (eq hs-indicator-type 'fringe))
             (setq-local hs-indicator-type 'margin))
+          (when (eq hs-indicator-type 'margin)
+            (setq-local left-margin-width (1+ left-margin-width))
+            (setq-local fringes-outside-margins t)
+            ;; Force display of margins
+            (when (eq (current-buffer) (window-buffer))
+              (set-window-buffer nil (window-buffer))))
           (jit-lock-register #'hs--add-indicators)))
 
     (remove-from-invisibility-spec '(hs . t))
-    ;; hs-show-all does nothing unless h-m-m is non-nil.
-    (let ((hs-minor-mode t))
-      (hs-show-all))
+    (remove-overlays nil nil 'hs-indicator t)
+    (remove-overlays nil nil 'invisible 'hs)
     (when hs-show-indicators
       (jit-lock-unregister #'hs--add-indicators)
-      (remove-overlays nil nil 'hs-indicator t))))
+      (when (and (eq hs-indicator-type 'margin)
+                 (< 0 left-margin-width))
+        (setq-local left-margin-width (1- left-margin-width))
+        (kill-local-variable 'fringes-outside-margins)
+        ;; Force removal of margins
+        (when (eq (current-buffer) (window-buffer))
+          (set-window-buffer nil (window-buffer)))))))
 
-;;;###autoload
-(defun turn-off-hideshow ()
-  "Unconditionally turn off `hs-minor-mode'."
-  (hs-minor-mode -1))
-
-;;---------------------------------------------------------------------------
-;; that's it
-
+
+;;;; that's it
 (provide 'hideshow)
-
 ;;; hideshow.el ends here

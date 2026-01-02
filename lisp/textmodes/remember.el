@@ -1,6 +1,6 @@
 ;;; remember.el --- a mode for quickly jotting down things to remember  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2001, 2003-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2001, 2003-2026 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -605,7 +605,7 @@ the data away for latter retrieval, and possible indexing.
   (setq header-line-format
         (substitute-command-keys
          "Edit, then exit with `\\[remember-finalize]' or abort with \
-  `\\[remember-destroy]'")))
+`\\[remember-destroy]'")))
 
 ;; Notes buffer showing the notes:
 

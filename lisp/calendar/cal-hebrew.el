@@ -1,6 +1,6 @@
 ;;; cal-hebrew.el --- calendar functions for the Hebrew calendar  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 1997, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Nachum Dershowitz <nachum@cs.uiuc.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -614,7 +614,7 @@ A value of 0 in any position is a wildcard.  Optional argument COLOR is
 passed to `calendar-mark-visible-date' as MARK."
   ;; FIXME not the same as the Bahá’í and Islamic cases, so can't use
   ;; calendar-mark-1.
-  (with-current-buffer calendar-buffer
+  (with-current-buffer (calendar-get-buffer)
     (if (and (not (zerop month)) (not (zerop day)))
         (if (not (zerop year))
             ;; Fully specified Hebrew date.
@@ -679,7 +679,7 @@ When called interactively from the calendar window, the date of death is taken
 from the cursor position."
   (interactive
    (let* ((death-date
-           (if (equal (current-buffer) (get-buffer calendar-buffer))
+           (if (derived-mode-p 'calendar-mode)
                (calendar-cursor-to-date t)
              (let* ((today (calendar-current-date))
                     (year (calendar-read-sexp

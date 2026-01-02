@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -41,34 +41,20 @@
     ;; else as well, so let's just not bother.
     ))
 
-;; Elements of this list have the form:
-;; SYMBOL GROUP TYPE VERSION REST...
-;; SYMBOL is the name of the variable.
-;; GROUP is the custom group to which it belongs (may also be a list
-;; of groups)
-;; TYPE is the defcustom :type.
-;; VERSION is the defcustom :version (or nil).
-;; REST is a set of :KEYWORD VALUE pairs.  Accepted :KEYWORDs are:
-;; :standard - standard value for SYMBOL (else use current value)
-;; :set - custom-set property
-;; :risky - risky-local-variable property
-;; :safe - safe-local-variable property
-;; :tag - custom-tag property
-(let (standard
-      native-p prop propval
-      ;; This function turns a value
-      ;; into an expression which produces that value.
-      (quoter (lambda (sexp)
-                ;; FIXME: We'd like to use macroexp-quote here, but cus-start
-                ;; is loaded too early in loadup.el for that.
-		(if (or (memq sexp '(t nil))
-			(keywordp sexp)
-			(and (listp sexp)
-			     (memq (car sexp) '(lambda)))
-			(stringp sexp)
-			(numberp sexp))
-		    sexp
-		  (list 'quote sexp))))
+(let* ((quoter
+       ;; This function turns a value
+       ;; into an expression which produces that value.
+       (lambda (sexp)
+         ;; FIXME: We'd like to use macroexp-quote here, but cus-start
+         ;; is loaded too early in loadup.el for that.
+	 (if (or (memq sexp '(t nil))
+		 (keywordp sexp)
+		 (and (listp sexp)
+		      (memq (car sexp) '(lambda)))
+		 (stringp sexp)
+		 (numberp sexp))
+	     sexp
+	   (list 'quote sexp))))
       (cursor-type-types
        '(choice
          (const :tag "Frame default" t)
@@ -82,9 +68,21 @@
          (const :tag "Horizontal bar" hbar)
          (cons  :tag "Horizontal bar with specified height"
                 (const hbar) integer)
-         (const :tag "None "nil))))
-  (pcase-dolist
-      (`(,symbol ,group ,type ,version . ,rest)
+         (const :tag "None "nil)))
+      (builtin-cus-vars
+       ;; Elements of this list have the form:
+       ;; SYMBOL GROUP TYPE VERSION REST...
+       ;; SYMBOL is the name of the variable.
+       ;; GROUP is the custom group to which it belongs (may also be a list
+       ;; of groups)
+       ;; TYPE is the defcustom :type.
+       ;; VERSION is the defcustom :version (or nil).
+       ;; REST is a set of :KEYWORD VALUE pairs.  Accepted :KEYWORDs are:
+       ;; :standard - standard value for SYMBOL (else use current value)
+       ;; :set - custom-set property
+       ;; :risky - risky-local-variable property
+       ;; :safe - safe-local-variable property
+       ;; :tag - custom-tag property
            `(;; alloc.c
 	     (gc-cons-threshold alloc integer)
 	     (gc-cons-percentage alloc float)
@@ -173,6 +171,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	      "24.1")
              (delete-auto-save-files auto-save boolean)
              (kill-buffer-delete-auto-save-files auto-save boolean "28.1")
+             (abbrev-mode abbrev boolean nil
+                          ;; Not `custom-set-minor-mode' because it is a
+                          ;; buffer-local minor mode.  Customizing it to
+                          ;; non-nil means enabling the mode in all
+                          ;; buffers which don't locally disable it.
+                          :initialize custom-initialize-default
+                          :set custom-set-default)
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
@@ -614,6 +619,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                (const :tag "Default" nil)
                (const :tag "Silent" ignore)
                function))
+             ;; treesit.c
+             (treesit-extra-load-path
+              treesit (repeat (directory :format "%v")))
 	     ;; undo.c
 	     (undo-limit undo integer "27.1")
 	     (undo-strong-limit undo integer "27.1")
@@ -875,81 +883,87 @@ since it could result in memory overflow and make Emacs crash."
              (haiku-debug-on-fatal-error debug boolean "29.1")
              ;; haikufns.c
              (haiku-use-system-tooltips tooltip boolean "29.1")))
-    (setq ;; If we did not specify any standard value expression above,
-	  ;; use the current value as the standard value.
-	  standard (if (setq prop (memq :standard rest))
-		       (cadr prop)
-		     (if (default-boundp symbol)
-			 (funcall quoter (default-value symbol))))
-	  ;; Don't complain about missing variables which are
-	  ;; irrelevant to this platform.
-	  native-p (save-match-data
-		     (cond
-		      ((string-match "\\`dos-" (symbol-name symbol))
-		       (eq system-type 'ms-dos))
-		      ((string-match "\\`w32-" (symbol-name symbol))
-		       (eq system-type 'windows-nt))
-		      ((string-match "\\`ns-" (symbol-name symbol))
-		       (featurep 'ns))
-                      ((string-match "\\`haiku-" (symbol-name symbol))
-                       (featurep 'haiku))
-                      ((eq symbol 'process-error-pause-time)
-                       (not (eq system-type 'ms-dos)))
-                      ((eq symbol 'x-gtk-use-native-input)
-                       (and (featurep 'x)
-                            (featurep 'gtk)))
-		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
-		       (featurep 'gtk))
-		      ((string-match "clipboard-manager" (symbol-name symbol))
-		       (boundp 'x-select-enable-clipboard-manager))
-                      ((or (equal "scroll-bar-adjust-thumb-portion"
-			          (symbol-name symbol))
-                           (equal "x-scroll-event-delta-factor"
-                                  (symbol-name symbol))
-                           (equal "x-dnd-disable-motif-drag"
-                                  (symbol-name symbol))
-                           (equal "x-auto-preserve-selections"
-                                  (symbol-name symbol)))
-		       (featurep 'x))
-		      ((string-match "\\`x-" (symbol-name symbol))
-		       (fboundp 'x-create-frame))
-		      ((string-match "selection" (symbol-name symbol))
-		       (fboundp 'x-selection-exists-p))
-		      ((string-match "fringe" (symbol-name symbol))
-		       (boundp 'fringe-bitmaps))
-		      ((string-match "\\`imagemagick" (symbol-name symbol))
-		       (fboundp 'imagemagick-types))
-		      ((equal "font-use-system-font" (symbol-name symbol))
-		       (featurep 'system-font-setting))
-		      ;; Conditioned on x-create-frame, because that's
-		      ;; the condition for loadup.el to preload tool-bar.el.
-		      ((string-match "tool-bar-" (symbol-name symbol))
-		       (fboundp 'x-create-frame))
-		      ((string-match "tab-bar-" (symbol-name symbol))
-		       (fboundp 'x-create-frame))
-                      ((string-match "image-" (symbol-name symbol))
-                       (fboundp 'x-create-frame))
-		      ((equal "vertical-centering-font-regexp"
-			      (symbol-name symbol))
-		       ;; Any function from fontset.c will do.
-		       (fboundp 'new-fontset))
-                      ((string-match "xwidget-" (symbol-name symbol))
-                       (boundp 'xwidget-internal))
-		      (t t))))
+      )
+  (pcase-dolist (`(,symbol ,group ,type ,version . ,rest) builtin-cus-vars)
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
-	(and native-p
-	     (message "Note, built-in variable `%S' not bound" symbol))
+        (let ((native-p
+	       ;; Don't complain about missing variables which are
+	       ;; irrelevant to this platform.
+               (let ((sym-name (symbol-name symbol)))
+		 (cond
+		  ((string-prefix-p "dos-" sym-name)
+                   (eq system-type 'ms-dos))
+		  ((string-prefix-p "w32-" sym-name)
+                   (eq system-type 'windows-nt))
+		  ((string-prefix-p "ns-" sym-name)
+		   (featurep 'ns))
+                  ((string-prefix-p "haiku-" sym-name)
+                   (featurep 'haiku))
+                  ((eq symbol 'process-error-pause-time)
+                   (not (eq system-type 'ms-dos)))
+                  ((eq symbol 'x-gtk-use-native-input)
+                   (and (featurep 'x)
+                        (featurep 'gtk)))
+		  ((string-match-p "\\`x-.*gtk" sym-name)
+		   (featurep 'gtk))
+		  ((string-search "clipboard-manager" sym-name)
+		   (boundp 'x-select-enable-clipboard-manager))
+                  ((memq symbol
+                         '(scroll-bar-adjust-thumb-portion
+                           x-scroll-event-delta-factor
+                           x-dnd-disable-motif-drag
+                           x-auto-preserve-selections))
+		   (featurep 'x))
+		  ((string-prefix-p "x-" sym-name)
+		   (fboundp 'x-create-frame))
+		  ((string-search "selection" sym-name)
+		   (fboundp 'x-selection-exists-p))
+		  ((string-search "fringe" sym-name)
+		   (boundp 'fringe-bitmaps))
+		  ((string-prefix-p "imagemagick" sym-name)
+		   (fboundp 'imagemagick-types))
+		  ((eq symbol 'font-use-system-font)
+		   (featurep 'system-font-setting))
+		  ;; Conditioned on x-create-frame, because that's
+		  ;; the condition for loadup.el to preload tool-bar.el.
+		  ((string-prefix-p "tool-bar-" sym-name)
+		   (fboundp 'x-create-frame))
+		  ((string-prefix-p "tab-bar-" sym-name)
+		   (fboundp 'x-create-frame))
+                  ((string-prefix-p "image-" sym-name)
+                   (fboundp 'x-create-frame))
+		  ((eq symbol 'vertical-centering-font-regexp)
+		   ;; Any function from fontset.c will do.
+		   (fboundp 'new-fontset))
+                  ((string-prefix-p "xwidget-" sym-name)
+                   (boundp 'xwidget-internal))
+                  ((string-prefix-p "treesit-" sym-name)
+                   ;; Any function from treesit.c will do.
+                   (fboundp 'treesit-language-available-p))
+		  (t t)))))
+	  (when native-p
+	    (error "built-in variable `%S' not bound" symbol)))
+
       ;; Save the standard value, unless we already did.
-      (or (get symbol 'standard-value)
-	  (put symbol 'standard-value (list standard)))
+      (unless (get symbol 'standard-value)
+        (let* ((prop (memq :standard rest))
+               (standard
+                ;; If we did not specify any standard value expression above,
+	        ;; use the current value as the standard value.
+	        (cond (prop (cadr prop))
+	              ((default-boundp symbol)
+		       (funcall quoter (default-value symbol))))))
+	  (put symbol 'standard-value (list standard))))
+
       ;; We need these properties independent of whether cus-start is loaded.
-      (if (setq prop (memq :safe rest))
-	  (put symbol 'safe-local-variable (cadr prop)))
-      (if (setq prop (memq :risky rest))
-	  (put symbol 'risky-local-variable (cadr prop)))
-      (if (setq prop (memq :set rest))
-	  (put symbol 'custom-set (cadr prop)))
+      (let ((safe  (memq :safe  rest))
+            (risky (memq :risky rest))
+            (set   (memq :set   rest)))
+        (when safe  (put symbol 'safe-local-variable  (cadr safe)))
+        (when risky (put symbol 'risky-local-variable (cadr risky)))
+        (when set   (put symbol 'custom-set           (cadr set))))
+
       ;; This is used by describe-variable.
       (if version (put symbol 'custom-version version))
       ;; `cus-start' can be loaded twice: it's preloaded by `loadup.el'
@@ -975,12 +989,14 @@ since it could result in memory overflow and make Emacs crash."
 	;; Set the type.
 	(put symbol 'custom-type type)
 	(while rest
-	  (setq prop (car rest)
-		propval (cadr rest)
-		rest (nthcdr 2 rest))
-	  (cond ((memq prop '(:standard :risky :safe :set))) ; handled above
-		((eq prop :tag)
-		 (put symbol 'custom-tag propval))))))))
+	  (let ((prop (car rest))
+		(propval (cadr rest)))
+	    (setq rest (nthcdr 2 rest))
+	    (cond ((memq prop '(:standard :risky :safe :set :initialize))
+                   nil)  ; handled above
+		  ((eq prop :tag)
+		   (put symbol 'custom-tag propval))
+                  (t (error "bad keyword in cus-start.el: %S" prop)))))))))
 
 (custom-add-to-group 'font-lock 'open-paren-in-column-0-is-defun-start
 		     'custom-variable)

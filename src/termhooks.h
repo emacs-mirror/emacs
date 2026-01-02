@@ -1,6 +1,6 @@
 /* Parameters and display hooks for terminal devices.
 
-Copyright (C) 1985-1986, 1993-1994, 2001-2025 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1994, 2001-2026 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -683,6 +683,11 @@ struct terminal
    Otherwise we leave the window gravity unchanged.  */
   void (*set_window_size_hook) (struct frame *f, bool change_gravity,
                                 int width, int height);
+
+  /* This hook is called to change the size and position of frame F's
+     native (underlying) window.  */
+  void (*set_window_size_and_position_hook) (struct frame *f, int width,
+					     int height);
 
   /* CHANGE_GRAVITY is 1 when calling from Fset_frame_position,
    to really change the position, and 0 when calling from

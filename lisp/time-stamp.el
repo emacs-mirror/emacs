@@ -1,6 +1,6 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1993-1995, 1997, 2000-2025 Free Software
+;; Copyright (C) 1989, 1993-1995, 1997, 2000-2026 Free Software
 ;; Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -117,7 +117,7 @@ limit yourself to the formats recommended by that older version."
 (defcustom time-stamp-active t
   "Non-nil enables time-stamping of buffers by \\[time-stamp].
 Can be toggled by \\[time-stamp-toggle-active] as an easy way to
-temporarily disable time-stamp while saving a file.
+temporarily disable `time-stamp' while saving a file.
 
 This option does not affect when `time-stamp' is run, only what it
 does when it runs.  To activate automatic time-stamping of buffers
@@ -377,46 +377,45 @@ to customize the information in the time stamp and where it is written."
 	       (setq ts-end (match-string 6 time-stamp-pattern)))))
     (cond ((not (integerp line-limit))
 	   (setq line-limit 8)
-	   (message "time-stamp-line-limit is not an integer")
-	   (sit-for 1)))
+           (time-stamp--message "time-stamp-line-limit is not an integer")))
     (cond ((not (integerp ts-count))
 	   (setq ts-count 1)
-	   (message "time-stamp-count is not an integer")
-	   (sit-for 1))
+           (time-stamp--message "time-stamp-count is not an integer"))
 	  ((< ts-count 1)
 	   ;; We need to call time-stamp-once at least once
 	   ;; to output any warnings about time-stamp not being active.
 	   (setq ts-count 1)))
     ;; Figure out what lines the end should be on.
     (if (stringp ts-format)
-	(let ((nl-start 0))
-	  (while (string-match "\n" ts-format nl-start)
-	    (setq format-lines (1+ format-lines) nl-start (match-end 0)))))
-    (let ((nl-start 0))
-      (while (string-match "\n" ts-end nl-start)
-	(setq end-lines (1+ end-lines) nl-start (match-end 0))))
-    ;; Find overall what lines to look at
-    (save-excursion
-      (save-restriction
-	(widen)
-	(cond ((> line-limit 0)
-	       (goto-char (setq start (point-min)))
-	       (forward-line line-limit)
-               (setq search-limit (point-marker)))
-	      ((< line-limit 0)
-               (goto-char (setq search-limit (point-max-marker)))
-	       (forward-line line-limit)
-	       (setq start (point)))
-	      (t			;0 => no limit (use with care!)
-	       (setq start (point-min))
-               (setq search-limit (point-max-marker))))))
-    (while (and start
-		(< start search-limit)
-		(> ts-count 0))
-      (setq start (time-stamp-once start search-limit ts-start ts-end
-				   ts-format format-lines end-lines))
-      (setq ts-count (1- ts-count)))
-    (set-marker search-limit nil))
+        (setq format-lines (time-stamp--count-newlines ts-format)))
+    (cond
+     ((not (and (stringp ts-start)
+                (stringp ts-end)))
+      (time-stamp--message "time-stamp-start or time-stamp-end is not a string"))
+     (t
+      (setq end-lines (1+ (time-stamp--count-newlines ts-end)))
+      ;; Find overall what lines to look at
+      (save-excursion
+        (save-restriction
+          (widen)
+          (cond ((> line-limit 0)
+                 (goto-char (setq start (point-min)))
+                 (forward-line line-limit)
+                 (setq search-limit (point-marker)))
+                ((< line-limit 0)
+                 (goto-char (setq search-limit (point-max-marker)))
+                 (forward-line line-limit)
+                 (setq start (point)))
+                (t                      ;0 => no limit (use with care!)
+                 (setq start (point-min))
+                 (setq search-limit (point-max-marker))))))
+      (while (and start
+                  (< start search-limit)
+                  (> ts-count 0))
+        (setq start (time-stamp-once start search-limit ts-start ts-end
+                                     ts-format format-lines end-lines))
+        (setq ts-count (1- ts-count)))
+      (set-marker search-limit nil))))
   nil)
 
 (defun time-stamp-once (start search-limit ts-start ts-end
@@ -460,14 +459,9 @@ Returns the end point, which is where `time-stamp' begins the next search."
 	  (cond
 	   ((not time-stamp-active)
 	    (if time-stamp-warn-inactive
-		;; don't signal an error in a hook
-		(progn
-		  (message "Warning: time-stamp-active is off; did not time-stamp buffer.")
-		  (sit-for 1))))
-	   ((not (and (stringp ts-start)
-		      (stringp ts-end)))
-	    (message "time-stamp-start or time-stamp-end is not a string")
-	    (sit-for 1))
+                (time-stamp--message
+                 "Warning: time-stamp-active is off; did not time-stamp buffer."))
+            nil)
 	   (t
 	    (let ((new-time-stamp (time-stamp-string ts-format)))
 	      (if (and (stringp new-time-stamp)
@@ -484,10 +478,9 @@ Returns the end point, which is where `time-stamp' begins the next search."
 		      (if (search-backward "\t" start t)
 			  (progn
 			    (untabify start end)
-			    (setq end (point))))))))))))
-    ;; return the location after this time stamp, if there was one
-    (and end end-length
-         (+ end (max advance-nudge end-length)))))
+                            (setq end (point))))))))
+            ;; return the location after this time stamp
+            (+ end (max advance-nudge end-length))))))))
 
 
 ;;;###autoload
@@ -751,7 +744,7 @@ and all `time-stamp-format' compatibility."
                       time-stamp-no-file))
 	           ((eq cur-char ?s)    ;system name, legacy
 		    (time-stamp-conv-warn "%s" "%Q")
-	            (system-name))
+                    (time-stamp--system-name :full))
 	           ((eq cur-char ?u)    ;user name, legacy
 		    (time-stamp-conv-warn "%u" "%l")
 	            (user-login-name))
@@ -763,16 +756,13 @@ and all `time-stamp-format' compatibility."
 	           ((eq cur-char ?L)    ;full name of logged-in user
 	            (user-full-name))
 	           ((eq cur-char ?h)    ;mail host name
-	            (or mail-host-address (system-name)))
+                    (or mail-host-address (time-stamp--system-name :full)))
                    ((or (eq cur-char ?q)  ;unqualified host name
                         (eq cur-char ?x)) ;short system name, experimental
-                    (let ((shortname (system-name)))
-                      (if (string-match "\\." shortname)
-                          (substring shortname 0 (match-beginning 0))
-                        shortname)))
+                    (time-stamp--system-name :short))
                    ((or (eq cur-char ?Q)  ;fully-qualified host name
                         (eq cur-char ?X)) ;full system name, experimental
-	            (system-name))
+                    (time-stamp--system-name :full))
 	           ))
             (if (numberp field-result)
                 (progn
@@ -836,7 +826,7 @@ This is an internal helper for `time-stamp-string-preprocess'."
 
 (defun time-stamp-filtered-buffer-file-name (type)
   "Return a printable string representing the buffer file name.
-Non-graphic characters are replaced by ?. TYPE is :absolute
+Non-graphic characters are replaced by ?.  TYPE is :absolute
 for the full name or :nondirectory for base name only."
   (declare (ftype (function ((member :absolute :nondirectory)) string)))
   (let ((file-name buffer-file-name)
@@ -855,6 +845,34 @@ for the full name or :nondirectory for base name only."
       (setq file-name (file-name-nondirectory file-name)))
     (apply #'string (mapcar safe-character-filter file-name))))
 
+(defun time-stamp--count-newlines (str)
+  "Return the number of newlines in STR."
+  (declare (pure t))
+  (let ((nl-count 0)
+        (nl-start 0))
+    (while (setq nl-start (string-match-p "\n" str nl-start))
+      (setq nl-count (1+ nl-count)
+            nl-start (1+ nl-start)))
+    nl-count))
+
+(defun time-stamp--message (warning-string)
+  "Display WARNING-STRING for one second."
+  (message "%s" warning-string)
+  (sit-for 1))
+
+(defun time-stamp--system-name (type)
+  "Return the host name of this system.
+TYPE is :short for the unqualified name, :full for the full name."
+  (time-stamp--system-name-1 (system-name) type))
+
+(defun time-stamp--system-name-1 (sysname type)
+  "Return SYSNAME, shortened if TYPE is :short."
+  (declare (pure t))
+  (let (first-dot)
+    (if (and (eq type :short)
+             (setq first-dot (string-match-p "\\." sysname)))
+        (substring sysname 0 first-dot)
+      sysname)))
 
 (defvar time-stamp-conversion-warn t
   "Enable warnings for old formats in `time-stamp-format'.
