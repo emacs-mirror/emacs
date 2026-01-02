@@ -1618,8 +1618,8 @@ compiled, use @code{treesit-query-eagerly-compiled-p}.
 
 If @var{query} is malformed or language can't be loaded, this function
 signals @code{treesit-query-error}.  Obviously this will only happen
-when @var{eager} is non-@code{nil}, lest Emacs doesn't actually compile
-@var{query}.
+when @var{eager} is non-@code{nil}, since otherwise Emacs doesn't
+actually compile @var{query}.
 @end defun
 
 @findex treesit-query-language

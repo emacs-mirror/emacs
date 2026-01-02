@@ -1040,7 +1040,7 @@ The new variable 'forward-comment-function' is set to the new function
 
 +++
 *** New function 'treesit-query-eagerly-compiled-p'
-This function lets user determine if a compiled query is eagerly compiled.
+This function returns non-nil if a query was eagerly compiled.
 
 +++
 *** New function 'treesit-query-source'

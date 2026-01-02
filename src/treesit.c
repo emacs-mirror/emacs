@@ -2266,8 +2266,8 @@ DEFUN ("treesit-query-eagerly-compiled-p",
 QUERY has to be a compiled query.  Compiled queries are lazily compiled
 by default, meaning they are not actually compiled until first used.
 Return non-nil if QUERY is actually compiled (either by passing the
-EAGER flag to `treesit-query-compile` or by using the compiled query
-once).  */)
+EAGER flag to `treesit-query-compile' or due to the fact that it was
+already used).  */)
   (Lisp_Object query)
 {
   CHECK_TS_COMPILED_QUERY (query);
