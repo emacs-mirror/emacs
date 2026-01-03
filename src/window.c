@@ -8674,9 +8674,9 @@ Note that any element except the first one in the returned vector may be
 
   /* Default values for TTY frames.  */
   int phys_cursor_width = 1, phys_cursor_height = 1, phys_cursor_ascent = 1;
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
 
 #ifdef HAVE_WINDOW_SYSTEM
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
   if (FRAME_WINDOW_P (f))
     {
       phys_cursor_width = w->phys_cursor_width;
