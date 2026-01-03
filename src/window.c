@@ -8655,7 +8655,7 @@ The returned value is a vector of 6 elements:
   [TYPE X Y WIDTH HEIGHT ASCENT]
 where
   TYPE is the symbol representing the type of the cursor.  See
-    `cursor-type' for the meaning of the returned value.
+    `cursor-type' for the meaning of the value.
   X and Y are pixel coordinates of the cursor's top-left corner, relative
     to the top-left corner of WINDOW's text area.
   WIDTH and HEIGHT are the pixel dimensions of the cursor.
