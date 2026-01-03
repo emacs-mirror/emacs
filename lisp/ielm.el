@@ -274,7 +274,8 @@ simply inserts a newline."
             (ielm-send-input for-effect)
           (when (and ielm-dynamic-multiline-inputs
                      (save-excursion
-                       (beginning-of-line)
+                       (let ((inhibit-field-text-motion t))
+                         (beginning-of-line))
                        (looking-at-p comint-prompt-regexp)))
             (save-excursion
               (goto-char (ielm-pm))
