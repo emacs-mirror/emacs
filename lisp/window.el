@@ -8323,10 +8323,10 @@ Action alist entries are:
     `(category . symbol)' in its action argument, then you can match
     the displayed buffer by using the same category in the condition
     part of `display-buffer-alist' entries.
- ‘tab-name’ -- If non-nil, specifies the name of the tab in which to
+ `tab-name' -- If non-nil, specifies the name of the tab in which to
     display the buffer; see `display-buffer-in-new-tab'.
- \\+‘tab-group’ -- If non-nil, specifies the tab group to use when creating
-    a new tab; see ‘display-buffer-in-new-tab’.
+ \\+`tab-group' -- If non-nil, specifies the tab group to use when creating
+    a new tab; see `display-buffer-in-new-tab'.
 
 The entries `window-height', `window-width', `window-size' and
 `preserve-size' are applied only when the window used for
