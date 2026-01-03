@@ -4287,11 +4287,9 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
   "Tree-sitter implementation of `hs-find-block-beginning-function'."
   (let* ((pred (bound-and-true-p hs-treesit-things))
          (thing (treesit-thing-at (point) pred))
-         (beg (when thing (treesit-node-start thing)))
-         (end (when beg (min (1+ beg) (point-max)))))
+         (beg (when thing (treesit-node-start thing))))
     (when thing
       (goto-char beg)
-      (set-match-data (list beg end))
       t)))
 
 (defun treesit-hs-find-next-block (_regexp maxp comments)

@@ -169,13 +169,25 @@
 ;; These variables help hideshow know what is considered a block, which
 ;; function to use to get the block positions, etc.
 ;;
-;; A block is defined as text surrounded by `hs-block-start-regexp' and
-;; `hs-block-end-regexp'.
+;; A (code) block is defined as text surrounded by
+;; `hs-block-start-regexp' and `hs-block-end-regexp'.
 ;;
 ;; For some major modes, forward-sexp does not work properly.  In those
 ;; cases, `hs-forward-sexp-function' specifies another function to use
 ;; instead.
 
+;; *** Non-regexp matching
+;;
+;; By default, Hideshow uses regular expressions to match blocks.  For
+;; something more advanced than regexp is necessary to modify these
+;; variables (see their docstring):
+;; - `hs-forward-sexp-function'
+;; - `hs-find-block-beginning-function'
+;; - `hs-find-next-block-function'
+;; - `hs-looking-at-block-start-predicate'
+;; - `hs-inside-comment-predicate' (For comments)
+;; - `hs-block-end-regexp' (Preferably, this should be set to nil)
+;;
 ;; *** Tree-sitter support
 ;;
 ;; All the treesit based modes already have support for hiding/showing
@@ -616,24 +628,26 @@ Note that `mode-line-format' is buffer-local.")
 (defvar-local hs-block-start-regexp "\\s("
   "Regexp for beginning of block.")
 
-;; This is useless, so probably should be deprecated.
 (defvar-local hs-block-start-mdata-select 0
   "Element in `hs-block-start-regexp' match data to consider as block start.
-The internal function `hs-forward-sexp' moves point to the beginning of this
-element (using `match-beginning') before calling `hs-forward-sexp-function'.")
+This is used by `hs-block-positions' to move point to the beginning of
+this element (using `match-beginning') before calling
+`hs-forward-sexp-function'.
+
+This is used for regexp matching.")
 
 (defvar-local hs-block-end-regexp "\\s)"
   "Regexp for end of block.
-As a special case, the value can be also a function without arguments to
-determine if point is looking at the end of the block, and return
-non-nil and set `match-data' to that block end positions.")
+This is mostly used to determine if point is at the end of the block.
+
+As a special case, it can be nil (to use the position from
+`hs-forward-sexp-function'), or a function without arguments.  If it's a
+function, it should return non-nil if point is at end of a block, and
+set `match-data' to that position.")
 
 (defvar-local hs-c-start-regexp nil
   "Regexp for beginning of comments.
-Differs from mode-specific comment regexps in that surrounding
-whitespace is stripped.
-
-If not bound, hideshow will use current `comment-start' value without
+If not bound, Hideshow will use current `comment-start' value without
 any trailing whitespace.")
 
 (define-obsolete-variable-alias
@@ -641,13 +655,13 @@ any trailing whitespace.")
   'hs-forward-sexp-function "31.1")
 
 (defvar-local hs-forward-sexp-function #'forward-sexp
-  "Function used to do a `forward-sexp'.
-It is called with 1 argument (like `forward-sexp').
+  "Function used to reposition point to the end of the region to hide.
+For backward compatibility, the function is called with one argument,
+which can be ignored.
 
-Should change for Algol-ish modes.  For single-character block
-delimiters such as `(' and `)' `hs-forward-sexp-function' would just be
-`forward-sexp'.  For other modes such as simula, a more specialized
-function is necessary.")
+The function is called in front of the beginning of the block (usually the
+current value of `hs-block-start-regexp' in the buffer) and should
+reposition point to the end of the block.")
 
 (define-obsolete-variable-alias
   'hs-adjust-block-beginning
@@ -655,22 +669,23 @@ function is necessary.")
 
 (defvar-local hs-adjust-block-beginning-function nil
   "Function used to tweak the block beginning.
-It should return the position from where we should start hiding, as
-opposed to hiding it from the position returned when searching for
-`hs-block-start-regexp'.
+It is called at the beginning of the block (usually the current value of
+`hs-block-start-regexp' in the buffer) and should return the start
+position of the region in the buffer that will be hidden.
 
 It is called with a single argument ARG which is the position in
 buffer after the block beginning.")
 
 (defvar-local hs-adjust-block-end-function nil
   "Function used to tweak the block end.
+It is called at the end of the block with one argument, the start
+position of the region in the buffer that will be hidden.  It should
+return either the last position to hide or nil.  If it returns nil,
+Hideshow will guess the end position.
+
 This is useful to ensure some characters such as parenthesis or curly
 braces get properly hidden in modes without parenthesis pairs
-delimiters (such as python).
-
-It is called with one argument, which is the start position where the
-overlay will be created, and should return either the last position to
-hide or nil.  If it returns nil, hideshow will guess the end position.")
+delimiters (such as python).")
 
 (define-obsolete-variable-alias
   'hs-find-block-beginning-func
@@ -679,13 +694,9 @@ hide or nil.  If it returns nil, hideshow will guess the end position.")
 
 (defvar-local hs-find-block-beginning-function
   #'hs-find-block-beg-fn--default
-  "Function used to do `hs-find-block-beginning'.
-It should reposition point at the beginning of the current block
-and return point, or nil if original point was not in a block.
-
-Specifying this function is necessary for languages such as
-Python, where regexp search and `syntax-ppss' check is not enough
-to find the beginning of the current block.")
+  "Function used to reposition point at the beginning of current block.
+If it finds the block beginning, it should reposition point there and
+return non-nil, otherwise it should return nil.")
 
 (define-obsolete-variable-alias
   'hs-find-next-block-func
@@ -694,20 +705,20 @@ to find the beginning of the current block.")
 
 (defvar-local hs-find-next-block-function
   #'hs-find-next-block-fn--default
-  "Function used to do `hs-find-next-block'.
+  "Function to find the start of the next block.
 It should reposition point at next block start.
 
-It is called with three arguments REGEXP, BOUND, and COMMENTS.  REGEXP
-is a regexp representing block start.  When block start is found,
-`match-data' should be set using REGEXP.  BOUND is a buffer position
-that limits the search.  When COMMENTS is non-nil, REGEXP matches not
-only beginning of a block but also beginning of a comment.  In this
-case, the function should find nearest block or comment and return
-non-nil.
+It is called with three arguments REGEXP, BOUND, and COMMENTS.
 
-Specifying this function is necessary for languages such as Python,
-where regexp search is not enough to find the beginning of the next
-block.")
+REGEXP is a regexp representing block start.  When block start is found,
+should set the match data according to the beginning position of the
+matched REGEXP or block start position.
+
+BOUND is a buffer position that limits the search.
+
+When COMMENTS is non-nil, REGEXP matches not only beginning of a block
+but also beginning of a comment.  In this case, the function should find
+the nearest block or comment and return non-nil.")
 
 (define-obsolete-variable-alias
   'hs-looking-at-block-start-p-func
@@ -716,16 +727,13 @@ block.")
 
 (defvar-local hs-looking-at-block-start-predicate
   #'hs-looking-at-block-start-p--default
-  "Function used to do `hs-looking-at-block-start-p'.
-It should return non-nil if the point is at the block start and set
-match data with the beginning and end of that position.
-
-Specifying this function is necessary for languages such as
-Python, where `looking-at' and `syntax-ppss' check is not enough
-to check if the point is at the block start.")
+  "Function used to check if point is at the block start.
+It should return non-nil if point is at the block start and modify the
+match data to the block beginning start and end positions (specifically,
+for `match-end').")
 
 (defvar-local hs-inside-comment-predicate #'hs-inside-comment-p--default
-  "Function used to check if point is inside a comment.
+  "Function used to get comment positions.
 If point is inside a comment, the function should return a list
 containing the buffer position of the start and the end of the
 comment, otherwise it should return nil.")
@@ -802,21 +810,24 @@ point.
 
 If either ADJUST-BEG or ADJUST-END are non-nil, adjust block positions
 according to `hs-adjust-block-beginning', `hs-adjust-block-end-function'
-and `hs-block-end-regexp'."
+and `hs-block-end-regexp'.
+
+This is for code block positions only, for comments use
+`hs-inside-comment-predicate'."
   ;; `catch' is used here if the search fails due unbalanced parentheses
   ;; or any other unknown error caused in `hs-forward-sexp-function'.
   (catch 'hs--block-exit
     (save-match-data
       (save-excursion
         (when (funcall hs-looking-at-block-start-predicate)
-          (let ((beg (match-end 0)) end)
-            ;; `beg' is the point at the end of the block
-            ;; beginning, which may need to be adjusted
+          (let* ((beg (match-end 0)) end)
+            ;; `beg' is the point at the block beginning, which may need
+            ;; to be adjusted
             (when adjust-beg
+              (setq beg (pos-eol))
               (save-excursion
                 (when hs-adjust-block-beginning-function
-                  (goto-char (funcall hs-adjust-block-beginning-function beg)))
-                (setq beg (pos-eol))))
+                  (goto-char (funcall hs-adjust-block-beginning-function beg)))))
 
             (goto-char (match-beginning hs-block-start-mdata-select))
             (condition-case _
@@ -1146,7 +1157,7 @@ property of an overlay."
   (overlay-put ov 'invisible (and hide-p 'hs)))
 
 (defun hs-looking-at-block-start-p--default ()
-  "Return non-nil if the point is at the block start."
+  "Return non-nil if point is at the block start."
   (and (looking-at hs-block-start-regexp)
        (save-match-data (not (nth 8 (syntax-ppss))))))
 
@@ -1262,7 +1273,7 @@ Return point, or nil if original point was not in a block."
       ;; look backward for the start of a block that contains the cursor
       (save-excursion
         (while (and (re-search-backward hs-block-start-regexp nil t)
-                    (goto-char (match-beginning hs-block-start-mdata-select))
+                    (goto-char (match-beginning 0))
 		    ;; go again if in a comment or a string
 		    (or (save-match-data (nth 8 (syntax-ppss)))
 		        (not (setq done (and (<= here (cadr (hs-block-positions)))
