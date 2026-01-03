@@ -683,6 +683,8 @@ Return t unless files were locked; then return nil."
       (when shadow-info-file
 	(set-buffer (setq shadow-info-buffer
 			  (find-file-noselect shadow-info-file 'nowarn)))
+        (lisp-data-mode)
+        (setq-local lexical-binding t)
 	(when (and (not (buffer-modified-p))
 		   (file-newer-than-file-p (make-auto-save-file-name)
 					   shadow-info-file))
@@ -694,6 +696,8 @@ Return t unless files were locked; then return nil."
       (when shadow-todo-file
 	(set-buffer (setq shadow-todo-buffer
 			  (find-file-noselect shadow-todo-file 'nowarn)))
+        (lisp-data-mode)
+        (setq-local lexical-binding t)
 	(when (and (not (buffer-modified-p))
 		   (file-newer-than-file-p (make-auto-save-file-name)
 					   shadow-todo-file))
