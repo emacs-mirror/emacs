@@ -2381,7 +2381,7 @@ variable and any
   -*- lexical-binding: t -*-
 settings in the buffer; if there is no such setting, and the
 buffer-local value of the variable is nil, the buffer will be
-evaluated with the value of `lexical binding' equal to its
+evaluated with the value of `lexical-binding' equal to its
 top-level default value, as returned by `default-toplevel-value'.
 
 This function preserves the position of point.  */)
