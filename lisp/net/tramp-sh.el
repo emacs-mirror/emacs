@@ -5823,9 +5823,10 @@ Nonexistent directories are removed from spec."
     (or
      (catch 'ls-found
        (dolist (cmd
-		;; Prefer GNU ls on *BSD and macOS.
+		;; Prefer GNU ls on *BSD and macOS.  See also
+		;; Bug#80075 for Linux.
                 (if (tramp-check-remote-uname vec tramp-bsd-unames)
-		    '("gls" "ls" "gnuls") '("ls" "gnuls" "gls")))
+		    '("gls" "ls" "gnuls") '("gnuls" "ls"   "gls")))
 	 (let ((dl (tramp-get-remote-path vec))
 	       result)
 	   (while (and dl (setq result (tramp-find-executable vec cmd dl t t)))
@@ -5966,11 +5967,14 @@ Nonexistent directories are removed from spec."
   "Determine remote `readlink' command."
   (with-tramp-connection-property vec "readlink"
     (tramp-message vec 5 "Finding a suitable `readlink' command")
-    (when-let* ((result (tramp-find-executable
-			 vec "readlink" (tramp-get-remote-path vec)))
-		((tramp-send-command-and-check
-		  vec (format "%s --canonicalize-missing /" result))))
-	result)))
+    ;; See Bug#80075.
+    (catch 'readlink-found
+      (dolist (cmd '("gnureadlink" "readlink"))
+	(when-let* ((result (tramp-find-executable
+			     vec cmd (tramp-get-remote-path vec)))
+		    ((tramp-send-command-and-check
+		      vec (format "%s --canonicalize-missing /" result))))
+	  (throw 'readlink-found result))))))
 
 (defun tramp-get-remote-touch (vec)
   "Determine remote `touch' command."
