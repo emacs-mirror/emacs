@@ -8672,13 +8672,25 @@ Note that any element except the first one in the returned vector may be
   if (!w->phys_cursor_on_p)
     return Qnil;
 
+  /* Default values for TTY frames.  */
+  int phys_cursor_width = 1, phys_cursor_height = 1, phys_cursor_ascent = 1;
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
+    {
+      phys_cursor_width = w->phys_cursor_width;
+      phys_cursor_height = w->phys_cursor_height;
+      phys_cursor_ascent = w->phys_cursor_ascent;
+    }
+#endif
   return CALLN (Fvector,
                 w->cursor_type,
                 make_fixnum (w->phys_cursor.x),
                 make_fixnum (w->phys_cursor.y),
-                make_fixnum (w->phys_cursor_width),
-                make_fixnum (w->phys_cursor_height),
-                make_fixnum (w->phys_cursor_ascent));
+                make_fixnum (phys_cursor_width),
+                make_fixnum (phys_cursor_height),
+                make_fixnum (phys_cursor_ascent));
 }
 
 
