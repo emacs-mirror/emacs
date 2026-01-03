@@ -198,6 +198,11 @@ A normal hook run by @code{make-frame} before it creates the frame.
 An abnormal hook run by @code{make-frame} after it created the frame.
 Each function in @code{after-make-frame-functions} receives one
 argument, the frame just created.
+
+You can consult the frame parameters @code{cloned-from} and
+@code{undeleted} in your function to determine if a frame was cloned
+using @command{clone-frame}, or if it was undeleted using
+@command{undelete-frame}.  @xref{Frame Parameters}.
 @end defvar
 
 Note that any functions added to these hooks by your initial file are
@@ -2206,8 +2211,18 @@ left position ratio is preserved if the @sc{cdr} of the cell is either
 @code{t} or @code{left-only}.  The top position ratio is preserved if
 the @sc{cdr} of the cell is either @code{t} or @code{top-only}.  This
 parameter has not been yet implemented on text terminals.
-@end table
 
+@vindex cloned-from@r{, a frame parameter}
+@item cloned-from
+The original frame if this frame was made via @code{clone-frame}
+(@pxref{Creating Frames,,,emacs, the Emacs Manual}).
+
+@vindex undeleted@r{, a frame parameter}
+@item undeleted
+This is non-@code{nil} if this frame was undeleted using the command
+@command{undelete-frame} (@pxref{Frame Commands,,,emacs, the Emacs
+Manual}).
+@end table
 
 @node Mouse Dragging Parameters
 @subsubsection Mouse Dragging Parameters

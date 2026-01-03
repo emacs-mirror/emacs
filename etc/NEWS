@@ -482,6 +482,18 @@ frames into one of these frames and deletes the other one.
 Unlike with other frame names, an attempt to rename to "F<number>" throws
 an error when a frame of that name already exists.
 
++++
+*** New frame parameters 'cloned-from' and 'undeleted'.
+The frame parameter 'cloned-from' is set to the frame from which the new
+frame is cloned using the command 'clone-frame'.
+
+The frame parameter 'undeleted is set to t when a frame is undeleted
+using the command 'undelete-frame'.
+
+These are useful if you need to detect a cloned frame or undeleted frame
+in hooks like 'after-make-frame-functions' and
+'server-after-make-frame-hook'.
+
 ** Mode Line
 
 +++

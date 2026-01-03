@@ -957,9 +957,10 @@ also select the new frame."
          (windows (unless no-windows
                     (window-state-get (frame-root-window frame))))
          (default-frame-alist
-          (seq-remove (lambda (elem)
-                        (memq (car elem) frame-internal-parameters))
-                      (frame-parameters frame)))
+          (append `((cloned-from . ,frame))
+                  (seq-remove (lambda (elem)
+                                (memq (car elem) frame-internal-parameters))
+                              (frame-parameters frame))))
          new-frame)
     (when (and frame-resize-pixelwise
                (display-graphic-p frame))
@@ -3169,7 +3170,9 @@ When called from Lisp, returns the new frame."
                  (if graphic "graphic" "non-graphic"))
               (setq undelete-frame--deleted-frames
                     (delq frame-data undelete-frame--deleted-frames))
-              (let* ((default-frame-alist (nth 1 frame-data))
+              (let* ((default-frame-alist
+                      (append `((undeleted . t))
+                              (nth 1 frame-data)))
                      (frame (make-frame)))
                 (window-state-put (nth 2 frame-data) (frame-root-window frame) 'safe)
                 (select-frame-set-input-focus frame)

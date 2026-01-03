@@ -7196,6 +7196,8 @@ syms_of_frame (void)
   DEFSYM (Qfont_parameter, "font-parameter");
   DEFSYM (Qforce, "force");
   DEFSYM (Qinhibit, "inhibit");
+  DEFSYM (Qcloned_from, "cloned-from");
+  DEFSYM (Qundeleted, "undeleted");
 
   for (int i = 0; i < ARRAYELTS (frame_parms); i++)
     {
@@ -7580,6 +7582,8 @@ allow `make-frame' to show the current buffer even if its hidden.  */);
 #else
   frame_internal_parameters = list3 (Qname, Qparent_id, Qwindow_id);
 #endif
+  frame_internal_parameters = Fcons (Qcloned_from, frame_internal_parameters);
+  frame_internal_parameters = Fcons (Qundeleted, frame_internal_parameters);
 
   DEFVAR_LISP ("alter-fullscreen-frames", alter_fullscreen_frames,
 	       doc: /* How to handle requests to resize fullscreen frames.
