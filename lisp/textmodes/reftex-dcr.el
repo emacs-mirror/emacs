@@ -24,8 +24,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (declare-function bibtex-beginning-of-entry "bibtex" ())
 
 (require 'reftex)

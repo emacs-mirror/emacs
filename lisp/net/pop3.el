@@ -34,8 +34,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (require 'mail-utils)
 
 (defgroup pop3 nil

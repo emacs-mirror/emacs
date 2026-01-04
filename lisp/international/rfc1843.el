@@ -30,8 +30,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (defvar rfc1843-word-regexp
   "~\\({\\([\041-\167][\041-\176]\\| \\)+\\)\\(~}\\|$\\)")
 
