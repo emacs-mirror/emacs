@@ -23,7 +23,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (require 'mail-parse)
 (autoload 'mailcap-extension-to-mime "mailcap")
 (autoload 'mm-body-7-or-8 "mm-bodies")

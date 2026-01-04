@@ -32,7 +32,6 @@
 (require 'rmail)
 (require 'nnmail)
 (require 'nnoo)
-(eval-when-compile (require 'cl-lib))
 
 (nnoo-declare nnbabyl)
 
