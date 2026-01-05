@@ -1469,7 +1469,10 @@ done via `customize-variable'.
 
 To see which syntactical categories are fontified by each level
 in a particular major mode, examine the buffer-local value of the
-variable `treesit-font-lock-feature-list'."
+variable `treesit-font-lock-feature-list'.
+
+Setting this variable directly with `setq' or `let' doesn't work;
+use `setopt' or \\[customize-option] instead."
   :type 'integer
   :set #'treesit--font-lock-level-setter
   :version "29.1")
