@@ -1309,7 +1309,7 @@ If optional MARKERS, make markers instead."
 (cl-defmethod initialize-instance :before ((_server eglot-lsp-server) &optional args)
   (cl-remf args :initializationOptions))
 
-(defvar-local eglot--docver 0
+(defvar-local eglot--docver -1
   "LSP document version.  Bumped on `eglot--after-change'.")
 
 (defvar eglot--servers-by-project (make-hash-table :test #'equal)
@@ -2286,6 +2286,7 @@ LSP Document version reported for DIAGNOSTICS (comparable to
       (eldoc-mode 1))
     (cl-pushnew (current-buffer) (eglot--managed-buffers (eglot-current-server))))
    (t
+    (setq eglot--docver -1)
     (eglot-inlay-hints-mode -1)
     (eglot-semantic-tokens-mode -1)
     (eglot--delete-overlays 'eglot--overlay)
@@ -2952,7 +2953,7 @@ buffer."
 
 (cl-defmethod jsonrpc-connection-ready-p ((_server eglot-lsp-server) _what)
   "Tell if SERVER is ready for WHAT in current buffer."
-  (and (cl-call-next-method) (not eglot--recent-changes)))
+  (and (cl-call-next-method) (not (cl-minusp eglot--docver)) (not eglot--recent-changes)))
 
 (defvar-local eglot--change-idle-timer nil "Idle timer for didChange signals.")
 
@@ -3158,6 +3159,7 @@ When called interactively, use the currently active server"
 
 (defun eglot--signal-textDocument/didClose ()
   "Send textDocument/didClose to server."
+  (setq eglot--docver -1)
   (with-demoted-errors
       "[eglot] error sending textDocument/didClose: %s"
     (jsonrpc-notify
