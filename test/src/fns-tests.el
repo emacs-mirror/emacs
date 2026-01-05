@@ -1399,8 +1399,25 @@
     (should (< (hash-table-count h) n))))
 
 (ert-deftest ft-ephemeron-table ()
+  :expected-result (if (fboundp 'igc--collect) :failed :passed)
   (dolist (w '(key value key-and-value key-or-value))
     (ft--test-ephemeron-table w)))
+
+(ert-deftest ft-weak-equal-table ()
+  :expected-result (if (fboundp 'igc--collect) :failed :passed)
+  (let* ((h (make-hash-table :weakness 'key-or-value :test #'equal))
+         (n 10)
+         (root nil))
+    (dotimes (i n)
+      (let* ((key (list 'key i))
+             (val (list 'val i)))
+        (puthash key val h)))
+    (should (= (hash-table-count h) n))
+    (ft--gc 'key)
+    (setq root (gethash '(key 0) h))
+    (ft--gc 'key-or-value)
+    (should (< (hash-table-count h) n))
+    (should (equal root (gethash '(key 0) h)))))
 
 
 
