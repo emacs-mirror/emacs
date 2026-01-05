@@ -1667,7 +1667,7 @@ resize and move FRAME."
       (setq text-height
             (- (round (* height parent-or-workarea-height))
                outer-minus-text-height)))
-     (width
+     (height
       (user-error "Invalid height specification")))
 
     (cond
