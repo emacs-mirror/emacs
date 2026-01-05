@@ -684,6 +684,11 @@ project, during completion.  That makes some items shorter.
 The category defaults are the same as for 'buffer' but any user
 customizations would need to be re-added.
 
+** Help
+
++++
+*** New keybinding 'C-h u' for 'apropos-user-option'.
+
 ** IDLWAVE has been moved to GNU ELPA.
 The version bundled with Emacs is out-of-date, and is now marked as
 obsolete.  Use 'M-x list-packages' to install the 'idlwave' package from
