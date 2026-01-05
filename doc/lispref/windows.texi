@@ -5872,6 +5872,18 @@ the other windows are stored in those windows.
 @item
 As long as the selected window displays the current buffer, the window's
 point and the buffer's point always move together; they remain equal.
+
+@item
+Many Emacs functions temporarily select a window in order to operate on
+its contents.  This will move the buffer point (@pxref{Point}) of that
+window's buffer to the position of the window point of that window and
+not restore the buffer point to its previous position when terminating
+the temporary selection.  This means that when one and the same buffer
+is simultaneously displayed in more than one window, its buffer point
+may change in unpredictable ways to the position of window point of any
+of these windows as a side-effect of things like redisplay, calling
+@code{with-selected-window} (@pxref{Selecting Windows}) or running
+@code{window-configuration-change-hook} (@pxref{Window Hooks}).
 @end itemize
 
 @cindex cursor
