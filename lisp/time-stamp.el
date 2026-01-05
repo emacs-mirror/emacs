@@ -236,27 +236,43 @@ your init file, you would be incompatible with other people's files.")
 
 (defvar time-stamp-inserts-lines nil    ;Do not change!
   "Whether \\[time-stamp] can change the number of lines in a file.
-If nil, \\[time-stamp] skips as many lines as there are newlines in
-`time-stamp-format' before looking for the `time-stamp-end' pattern,
-thus it tries not to change the number of lines in the buffer.
-If non-nil, \\[time-stamp] starts looking for the end pattern
-immediately after the start pattern.  This behavior can cause
-unexpected changes in the buffer if used carelessly, but it is useful
-for generating repeated time stamps.
+When `time-stamp-format' contains newline characters, the intent
+is ambiguous: does the author want to update a single multi-line
+time stamp, or create a repeated time stamp by inserting new lines?
+This variable controls the interpretation.
+
+If nil, `time-stamp' tries not to change the number of lines in the
+buffer and treats the format as one single, multi-line time stamp.
+The `time-stamp-end' must start N lines after the end of
+`time-stamp-start', where N is the number of newlines in
+`time-stamp-format'.
+
+If this variable is non-nil, `time-stamp' is willing to add lines
+to the buffer.  The end pattern must start somewhere in the
+remainder of the same line where the start pattern ends.
+This behavior lets a file accumulate repeated time stamps.
+
+In the most common case that `time-stamp-format' contains no
+newlines, this variable has no effect; the end of the start
+and the start of the end are always on the same line.
 
 These variables are best changed with file-local variables.
-If you were to change `time-stamp-end' or `time-stamp-inserts-lines' in
-your init file, you would be incompatible with other people's files.")
+If you were to change `time-stamp-start', `time-stamp-end' or
+`time-stamp-inserts-lines' in your init file, you would be
+incompatible with other people's files.")
 ;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable #'booleanp)
 
 
 (defvar time-stamp-count 1		;Do not change!
   "How many templates \\[time-stamp] will look for in a buffer.
 
-If the value is greater than 1, the same time stamp will be written in
-each case.  If you want to insert different text on different lines,
+If the value is greater than 1, the same time stamp will be
+written in each case.
+
+If you want to insert different text on different lines,
 then instead of changing this variable, include a newline (written as
 \"\\n\") in `time-stamp-format' or the format part of `time-stamp-pattern'.
+See the variable `time-stamp-inserts-lines'.
 
 `time-stamp-count' is best changed with a file-local variable.
 If you were to change it in your init file, you would be incompatible
@@ -279,8 +295,8 @@ value of `time-stamp-line-limit' as the number.
 The second part is a regexp identifying the pattern preceding the time stamp.
 This part may be omitted to use the value of `time-stamp-start'.
 
-The third part specifies the format of the time stamp inserted.  Specify
-this part as \"%%\" to use the value of `time-stamp-format'.
+The third part specifies the format of the time stamp inserted.
+This part may be \"%%\" to use the value of `time-stamp-format'.
 
 The fourth part is a regexp identifying the pattern following the time stamp.
 This part may be omitted to use the value of `time-stamp-end'.
@@ -331,9 +347,9 @@ of the file before running this function, by default can look like
 one of the following (your choice):
       Time-stamp: <>
       Time-stamp: \" \"
-This function writes the current time between the brackets or quotes,
-by default formatted like this:
-      Time-stamp: <2024-08-07 17:10:21 gildea>
+This function writes the current time between the angle brackets
+or quotes, by default formatted like this:
+      Time-stamp: <2025-08-07 17:10:21 gildea>
 
 Although you can run this function manually to update a time stamp
 once, usually you want automatic time stamp updating.
@@ -351,7 +367,8 @@ If the file has no time stamp template or if `time-stamp-active' is nil,
 this function does nothing.
 
 You can set `time-stamp-pattern' in a file's local variables list
-to customize the information in the time stamp and where it is written."
+to customize the information in the time stamp, the surrounding
+template, and where in the file it can occur."
   (interactive)
   (let ((line-limit time-stamp-line-limit)
 	(ts-start time-stamp-start)
@@ -528,7 +545,7 @@ time is used.  The time zone is determined by `time-stamp-time-zone'."
 ;;; ambiguous formats--formats that are changing (over time) incompatibly.
 
 (defun time-stamp-string-preprocess (format &optional time)
-  "Use a FORMAT to format date, time, file, and user information.
+  "Use FORMAT to format date, time, and user information.
 Optional second argument TIME is only for testing.
 This is an internal routine implementing extensions to `format-time-string'
 and all `time-stamp-format' compatibility."
@@ -879,7 +896,7 @@ TYPE is :short for the unqualified name, :full for the full name."
 When non-nil, `time-stamp' warns about unstable and
 soon-to-be-changing conversions found in that buffer's
 `time-stamp-format' value.  The warning is displayed only
-when a buffer's time-stamp is updated; merely viewing a file
+when a buffer's time stamp is updated; merely viewing a file
 does not warn.
 
 If nil, these warnings are disabled, which would be a bad idea.
