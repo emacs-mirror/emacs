@@ -434,15 +434,15 @@ say EXPECTED should not be run through `format-time-string'."
          (do-one (lambda (conv expected reftime)
                    `(,should-fn
                      (time-stamp-test--string-equal
-                         (time-stamp-string ,conv ,reftime)
-                         ,(let ((fmt-form
+                      (time-stamp-string ,conv ,reftime)
+                      ,(let ((fmt-form
                               (if literal
                                   expected
                                 `(format-time-string
                                   ,expected ,reftime time-stamp-time-zone))))
-                            (dolist (fn filter-list fmt-form)
-                              (setq fmt-form `(funcall ',fn ,fmt-form))))
-                         ))))
+                         (dolist (fn filter-list fmt-form)
+                           (setq fmt-form `(funcall ',fn ,fmt-form))))
+                      ))))
          (result (list 'progn)))
     (when (memq :literal filter-list)
       (setq literal t)
@@ -784,7 +784,7 @@ This is a separate function so it can have an `ert-explainer' property."
 (ert-deftest time-stamp-format-letter-case ()
   "Test `time-stamp' upcase and downcase modifiers not tested elsewhere."
   (with-time-stamp-test-env
-    (time-stamp-test ("%*^A" "%*#A") "%^A")
+    (time-stamp-test-AB ("%*^A" "%*#A") "%^A")
     ))
 
 ;;; Tests of helper functions
@@ -795,6 +795,30 @@ This is a separate function so it can have an `ert-explainer' property."
     (should (equal (time-stamp-string nil ref-time1)
                    (time-stamp-string time-stamp-format ref-time1)))
     (should (equal (time-stamp-string 'not-a-string ref-time1) nil))))
+
+(ert-deftest time-stamp-helper-string-used ()
+  "Test that `time-stamp' uses `time-stamp-string'."
+  ;; Because the formatting tests use only time-stamp-string, we
+  ;; test that time-stamp-string is actually used by time-stamp.
+  (with-time-stamp-test-env
+    (let ((time-stamp-format "not the default string used %Y%%")
+          (ts-string-calls 0))
+      (cl-letf (((symbol-function 'time-stamp-string)
+                 (lambda (&optional ts-format _time)
+                   (should (equal ts-format time-stamp-format))
+                   (incf ts-string-calls)
+                   "tss-res")))
+        (with-temp-buffer
+          ;; no template, no call to time-stamp-string expected
+          (time-stamp)
+          (should (= ts-string-calls 0))
+          (should (equal (buffer-string) ""))
+          ;; with template, expect one call
+          (insert "Time-stamp: <>")
+          (time-stamp)
+          (should (= ts-string-calls 1))
+          (should (equal (buffer-string) "Time-stamp: <tss-res>"))
+          )))))
 
 (ert-deftest time-stamp-helper-zone-type-p ()
   "Test `time-stamp-zone-type-p'."
