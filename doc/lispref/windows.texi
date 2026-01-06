@@ -4909,8 +4909,8 @@ Each list element has the form @code{(@var{buffer} @var{window-start}
 @var{window-pos})}, where @var{buffer} is a buffer previously shown in
 the window, @var{window-start} is the window start position
 (@pxref{Window Start and End}) when that buffer was last shown, and
-@var{window-pos} is the point position (@pxref{Window Point}) when
-that buffer was last shown in @var{window}.
+@var{window-pos} is the window point position (@pxref{Window Point})
+when that buffer was last shown in @var{window}.
 
 The list is ordered so that earlier elements correspond to more
 recently-shown buffers, and the first element usually corresponds to the
@@ -5857,8 +5857,8 @@ makes it useful to have multiple windows showing one buffer.
 
 @itemize @bullet
 @item
-The window point is established when a window is first created; it is
-initialized from the buffer's point, or from the window point of another
+Window point is established when a window is first created; it is
+initialized from the buffer's point, or from window point of another
 window opened on the buffer if such a window exists.
 
 @item
@@ -5875,9 +5875,9 @@ point and the buffer's point always move together; they remain equal.
 
 @item
 Many Emacs functions temporarily select a window in order to operate on
-its contents.  This will move the buffer point (@pxref{Point}) of that
-window's buffer to the position of the window point of that window and
-not restore the buffer point to its previous position when terminating
+its contents.  This will move point (@pxref{Point}) of that
+window's buffer to the position of window point of that window and
+not restore buffer point to its previous position when terminating
 the temporary selection.  This means that when one and the same buffer
 is simultaneously displayed in more than one window, its buffer point
 may change in unpredictable ways to the position of window point of any
@@ -7314,8 +7314,8 @@ function may also delete windows which were found live by
 
 Each entry in the list that is passed as the second argument to the
 function is itself a list of six values: the window whose buffer was
-found dead, the dead buffer or its name, the positions of window-start
-(@pxref{Window Start and End}) and window-point (@pxref{Window Point})
+found dead, the dead buffer or its name, the positions of window start
+(@pxref{Window Start and End}) and window point (@pxref{Window Point})
 of the buffer in that window, the dedicated state of the window as
 previously reported by @code{window-dedicated-p} and a flag that is
 @code{t} if the window has been found to be alive by
