@@ -78,7 +78,9 @@ in a Emacs not built with tree-sitter library."
      (declare-function treesit-node-p "treesit.c")
      (declare-function treesit-compiled-query-p "treesit.c")
      (declare-function treesit-query-p "treesit.c")
+     (declare-function treesit-query-eagerly-compiled-p "treesit.c")
      (declare-function treesit-query-language "treesit.c")
+     (declare-function treesit-query-source "treesit.c")
 
      (declare-function treesit-node-parser "treesit.c")
 
@@ -88,8 +90,12 @@ in a Emacs not built with tree-sitter library."
      (declare-function treesit-parser-buffer "treesit.c")
      (declare-function treesit-parser-language "treesit.c")
      (declare-function treesit-parser-tag "treesit.c")
+     (declare-function treesit-parser-embed-level "treesit.c")
+     (declare-function treesit-parser-set-embed-level "treesit.c")
+     (declare-function treesit-parser-changed-regions "treesit.c")
 
      (declare-function treesit-parser-root-node "treesit.c")
+     (declare-function treesit-parse-string "treesit.c")
 
      (declare-function treesit-parser-set-included-ranges "treesit.c")
      (declare-function treesit-parser-included-ranges "treesit.c")
@@ -993,9 +999,6 @@ is nil."
                     (and include-null
                          (null (treesit-parser-embed-level parser)))))
               parsers))
-
-(declare-function treesit-parser-set-embed-level "treesit.c")
-(declare-function treesit-parser-embed-level "treesit.c")
 
 (defun treesit--update-ranges-non-local
     ( host-parser query embed-lang modified-tick embed-level
@@ -2177,8 +2180,6 @@ parser."
           (or (car (treesit-parser-list))
               (signal 'treesit-no-parser nil))))
     (car (treesit-parser-list))))
-
-(declare-function treesit-parser-changed-regions "treesit.c")
 
 (defun treesit--pre-redisplay (&rest _)
   "Force a reparse on primary parser and mark regions to be fontified."
