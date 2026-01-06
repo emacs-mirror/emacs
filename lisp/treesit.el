@@ -1699,15 +1699,16 @@ no match, return 3."
     (&optional add-list remove-list language)
   "Enable/disable font-lock features and validate and compile queries.
 
-Enable each feature in ADD-LIST, disable each feature in
-REMOVE-LIST.
+When either ADD-LIST or REMOVE-LIST is non-nil, enable/disable features
+according to ADD-LIST and REMOVE-LIST, on top of the currently enabled
+features in the buffer.
 
-If both ADD-LIST and REMOVE-LIST are omitted, recompute each
-feature according to `treesit-font-lock-feature-list' and
+If (and only if) both ADD-LIST and REMOVE-LIST are omitted, recompute
+each feature according to `treesit-font-lock-feature-list' and
 `treesit-font-lock-level'.  If the value of `treesit-font-lock-level',
 is N, then the features in the first N sublists of
-`treesit-font-lock-feature-list' are enabled, and the rest of
-the features are disabled.
+`treesit-font-lock-feature-list' are enabled, and the rest of the
+features are disabled.
 
 ADD-LIST and REMOVE-LIST are lists of feature symbols.  The
 same feature symbol cannot appear in both lists; the function
