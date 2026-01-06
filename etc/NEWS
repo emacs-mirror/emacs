@@ -471,7 +471,7 @@ either resize the frame and change the fullscreen status accordingly or
 keep the frame size unchanged.  The value t means to first reset the
 fullscreen status and then resize the frame.
 
-*** New commands to set frame size and position in one compound step.
+*** New functions to set frame size and position in one compound step.
 'set-frame-size-and-position' sets the new size and position of a frame
 in one compound step.  Both, size and position, can be specified as with
 the corresponding frame parameters 'width', 'height', 'left' and 'top'.
@@ -493,7 +493,7 @@ an error when a frame of that name already exists.
 The frame parameter 'cloned-from' is set to the frame from which the new
 frame is cloned using the command 'clone-frame'.
 
-The frame parameter 'undeleted is set to t when a frame is undeleted
+The frame parameter 'undeleted' is set to t when a frame is undeleted
 using the command 'undelete-frame'.
 
 These are useful if you need to detect a cloned frame or undeleted frame
@@ -1057,11 +1057,11 @@ The new variable 'forward-comment-function' is set to the new function
 'treesit-forward-comment' if a major mode defines the thing 'comment'.
 
 +++
-*** New function 'treesit-query-eagerly-compiled-p'
+*** New function 'treesit-query-eagerly-compiled-p'.
 This function returns non-nil if a query was eagerly compiled.
 
 +++
-*** New function 'treesit-query-source'
+*** New function 'treesit-query-source'.
 This function returns the string or sexp source query of a compiled query.
 
 +++
@@ -1153,8 +1153,9 @@ convention.  Also, the ':match?' predicate can now take the regexp as
 either the first or second argument, so it works with both tree-sitter
 convention (regexp arg second) and Emacs convention (regexp arg first).
 
+** Track changes
+
 +++
-** Track-changes
 *** New variable 'track-changes-undo-only' to distinguish undo changes.
 
 ** Hideshow
@@ -1170,7 +1171,7 @@ blocks.
 This command hides or shows all the blocks in the current buffer.
 
 ---
-*** 'hs-hide-level' no longer hide all the blocks in the current buffer.
+*** 'hs-hide-level' no longer hides all the blocks in the current buffer.
 If 'hs-hide-level' was not inside a code block it would hide all the
 blocks in the buffer like 'hs-hide-all'.  Now it should only hide all
 the second level blocks.
@@ -1228,7 +1229,6 @@ buffer-local variables 'hs-block-start-regexp', 'hs-c-start-regexp',
 +++
 *** 'hs-hide-level' and 'hs-cycle' can now hide comments too.
 This is controlled by 'hs-hide-comments-when-hiding-all'.
-
 
 ** C-ts mode
 
@@ -1644,7 +1644,6 @@ is the default.
 This user option is in sympathy with recentf, and savehist autosave
 timers.
 
-
 ** Savehist
 
 ---
@@ -2014,7 +2013,7 @@ for docstrings where symbols 'nil' and 't' are in quotes.
 In most cases, having it enabled leads to a large amount of false
 positives.
 
-*** New file-local variable 'lisp-indent-local-overrides'
+*** New file-local variable 'lisp-indent-local-overrides'.
 This variable can be used to locally override the indent specification
 of symbols.
 
@@ -2082,6 +2081,10 @@ for Tramp internal buffers, are flushed.  This is helpful to prune
 connections after you close remote-file buffers without having to either
 cherry-pick via 'tramp-cleanup-connection' or clear them all via
 'tramp-cleanup-all-connections'.
+
++++
+*** External methods can now be used in multi-hop connections.
+This is implemented for 'tramp-sh' methods, like "/scp:user@host|sudo::".
 
 +++
 *** New command 'tramp-dired-find-file-with-sudo'.
@@ -2463,7 +2466,7 @@ appearance of the list can be customized with the new faces
 
 +++
 *** Printing root branch logs has moved to 'C-x v b L'.
-Previously the command to print the root log for a branch was bound to
+Previously, the command to print the root log for a branch was bound to
 'C-x v b l'.  It has now been renamed from 'vc-print-branch-log' to
 'vc-print-root-branch-log', and bound to 'C-x v b L'.  This is more
 consistent with the rest of the 'C-x v' keymap, and makes room for a new
@@ -2676,7 +2679,7 @@ bindings:
 *** New display of outgoing revisions count in VC Directory.
 If there are outgoing revisions, VC Directory now includes a count of
 how many in its headers, to remind you to push them.
-You can disable this by customizing vc-dir-show-outgoing-count to nil.
+You can disable this by customizing 'vc-dir-show-outgoing-count' to nil.
 
 +++
 *** New user option 'vc-async-checkin' to enable async checkin operations.
@@ -3312,7 +3315,7 @@ the source, or to 'antlr-v3' otherwise.
 
 *** New command 'antlr-v4-mode' is a derived mode of 'antlr-mode'.
 It sets 'antlr-tool-version' to value 'antlr-v4', and is automatically
-used for files with extension "g4".
+used for files with extension ".g4".
 
 *** The variable 'antlr-language' is now used more generally.
 The variable has a symbol as value which determines which of the
@@ -3325,8 +3328,8 @@ ObjC, Python and Ruby, additional to Java and Cpp.
 
 *** New user option 'antlr-run-tool-on-buffer-file'.
 Command 'antlr-run-tool' now usually runs on the file for the current
-buffer.  Customize this user option to have value ' nil' to get the
-previous behavior back.
+buffer.  Customize this user option to nil to get the previous behavior
+back.
 
 ** Hi Lock
 
@@ -3497,8 +3500,8 @@ separator, are also supported.
 
 ---
 ** The experimental variable 'binary-as-unsigned' has been removed.
-Instead of (let ((binary-as-unsigned t)) (format "%x" N)) you can use
-(format "%x" (logand N MASK)) where MASK is for the desired word size,
+Instead of '(let ((binary-as-unsigned t)) (format "%x" N))' you can use
+'(format "%x" (logand N MASK))' where MASK is for the desired word size,
 e.g., #x3fffffffffffffff for typical Emacs fixnums.
 
 +++
@@ -3862,7 +3865,7 @@ called on progress steps, and DONE-CALLBACK, called when the progress
 reporter is done.  See the 'make-progress-reporter' docstring for a full
 specification of these new optional arguments.
 
-** Add binary format specifications '%b' and '%B'.
+** Binary format specifications '%b' and '%B' added.
 These produce the binary representation of a number.
 '%#b' and '%#B' prefix the bits with '0b' and '0B', respectively.
 

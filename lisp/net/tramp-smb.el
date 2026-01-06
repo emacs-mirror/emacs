@@ -577,12 +577,7 @@ arguments to pass to the OPERATION."
 
 		;; Set the mode.
 		(unless keep-date
-		  (set-file-modes newname (tramp-default-file-modes dirname)))
-
-		;; When newname did exist, we have wrong cached values.
-		(when t2
-		  (with-parsed-tramp-file-name newname nil
-		    (tramp-flush-file-properties v localname))))
+		  (set-file-modes newname (tramp-default-file-modes dirname))))
 
 	       ;; We must do it file-wise.
 	       (t

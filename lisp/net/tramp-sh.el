@@ -2098,66 +2098,67 @@ ID-FORMAT valid values are `string' and `integer'."
   "Like `copy-directory' for Tramp files."
   (tramp-skeleton-copy-directory
       dirname newname keep-date parents copy-contents
-    (let ((t1 (tramp-tramp-file-p dirname))
-	  (t2 (tramp-tramp-file-p newname))
-	  target)
-      (with-parsed-tramp-file-name (if t1 dirname newname) nil
-	(cond
-	 ((and copy-directory-create-symlink
-	       (setq target (file-symlink-p dirname))
-	       (tramp-equal-remote dirname newname))
-	  (make-symbolic-link
-	   target
-	   (if (directory-name-p newname)
-	       (concat newname (file-name-nondirectory dirname)) newname)
-	   t))
+    (let* ((v1 (and (tramp-tramp-file-p dirname)
+		    (tramp-dissect-file-name dirname)))
+	   (v2 (and (tramp-tramp-file-p newname)
+		    (tramp-dissect-file-name newname)))
+	   (v (or v1 v2))
+	   target)
+      (cond
+       ((and copy-directory-create-symlink
+	     (setq target (file-symlink-p dirname))
+	     (tramp-equal-remote dirname newname))
+	(make-symbolic-link
+	 target
+	 (if (directory-name-p newname)
+	     (concat newname (file-name-nondirectory dirname)) newname)
+	 t))
 
-	 ;; Shortcut: if method, host, user are the same for both
-	 ;; files, we invoke `cp' on the remote host directly.
-	 ((and (not copy-contents)
-	       (tramp-equal-remote dirname newname))
-	  (when (and (file-directory-p newname)
-		     (not (directory-name-p newname)))
-	    (tramp-error v 'file-already-exists newname))
-	  (setq dirname (directory-file-name (expand-file-name dirname))
-		newname (directory-file-name (expand-file-name newname)))
-	  (tramp-do-copy-or-rename-file-directly
-	   'copy dirname newname
-	   'ok-if-already-exists keep-date 'preserve-uid-gid))
+       ;; Shortcut: if method, host, user are the same for both files,
+       ;; we invoke `cp' on the remote host directly.
+       ((and (not copy-contents)
+	     (tramp-equal-remote dirname newname))
+	(when (and (file-directory-p newname)
+		   (not (directory-name-p newname)))
+	  (tramp-error v 'file-already-exists newname))
+	(setq dirname (directory-file-name (expand-file-name dirname))
+	      newname (directory-file-name (expand-file-name newname)))
+	(tramp-do-copy-or-rename-file-directly
+	 'copy dirname newname
+	 'ok-if-already-exists keep-date 'preserve-uid-gid))
 
-	 ;; scp or rsync DTRT.
-	 ((and (not copy-contents)
-	       (tramp-get-method-parameter v 'tramp-copy-recursive)
-	       ;; When DIRNAME and NEWNAME are remote, they must have
-	       ;; the same method.
-	       (or (null t1) (null t2)
-		   (string-equal
-		    (tramp-file-name-method (tramp-dissect-file-name dirname))
-		    (tramp-file-name-method (tramp-dissect-file-name newname)))))
-	  (when (and (file-directory-p newname)
-		     (not (directory-name-p newname)))
-	    (tramp-error v 'file-already-exists newname))
-	  (setq dirname (directory-file-name (expand-file-name dirname))
-		newname (directory-file-name (expand-file-name newname)))
-	  (when (and (file-directory-p newname)
-		     (not (string-equal (file-name-nondirectory dirname)
-					(file-name-nondirectory newname))))
-	    (setq newname
-		  (expand-file-name (file-name-nondirectory dirname) newname)))
-	  (unless (file-directory-p (file-name-directory newname))
-	    (make-directory (file-name-directory newname) parents))
-	  (tramp-do-copy-or-rename-file-out-of-band
-	   'copy dirname newname 'ok-if-already-exists keep-date))
+       ;; scp or rsync DTRT.
+       ((and (not copy-contents)
+	     (tramp-get-method-parameter v 'tramp-copy-recursive)
+	     ;; When DIRNAME and NEWNAME are remote, they must have
+	     ;; the same method.  None of them must be multi-hop.
+	     (or (and (null v1) (tramp-method-out-of-band-p v2 0))
+		 (and (null v2) (tramp-method-out-of-band-p v1 0))
+		 (and v1 v2
+		      (tramp-method-out-of-band-p v1 0)
+		      (tramp-method-out-of-band-p v2 0)
+		      (string-equal
+		       (tramp-file-name-method v1)
+		       (tramp-file-name-method v2)))))
+	(when (and (file-directory-p newname)
+		   (not (directory-name-p newname)))
+	  (tramp-error v 'file-already-exists newname))
+	(setq dirname (directory-file-name (expand-file-name dirname))
+	      newname (directory-file-name (expand-file-name newname)))
+	(when (and (file-directory-p newname)
+		   (not (string-equal (file-name-nondirectory dirname)
+				      (file-name-nondirectory newname))))
+	  (setq newname
+		(expand-file-name (file-name-nondirectory dirname) newname)))
+	(unless (file-directory-p (file-name-directory newname))
+	  (make-directory (file-name-directory newname) parents))
+	(tramp-do-copy-or-rename-file-out-of-band
+	 'copy dirname newname 'ok-if-already-exists keep-date))
 
-	 ;; We must do it file-wise.
-	 (t (tramp-run-real-handler
-	     #'copy-directory
-	     (list dirname newname keep-date parents copy-contents))))
-
-	;; NEWNAME has wrong cached values.
-	(when t2
-	  (with-parsed-tramp-file-name (expand-file-name newname) nil
-	    (tramp-flush-file-properties v localname)))))))
+       ;; We must do it file-wise.
+       (t (tramp-run-real-handler
+	   #'copy-directory
+	   (list dirname newname keep-date parents copy-contents)))))))
 
 (defun tramp-sh-handle-rename-file
   (filename newname &optional ok-if-already-exists)
@@ -5679,7 +5680,11 @@ raises an error."
   (and
    ;; It shall be an out-of-band method.
    (tramp-get-method-parameter vec 'tramp-copy-program)
-   ;; There must be a size, otherwise the file doesn't exist.
+   ;; There shouldn't be a multi-hop.
+   (or (not (tramp-multi-hop-p vec))
+       (null (cdr (tramp-compute-multi-hops vec))))
+   ;; There must be a SIZE, otherwise the file doesn't exist.  A zero
+   ;; SIZE is used for directories.
    (numberp size)
    ;; Either the file size is large enough, or (in rare cases) there
    ;; does not exist a remote encoding.

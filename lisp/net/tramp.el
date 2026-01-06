@@ -296,9 +296,8 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     - \"%a\" adds the pseudo-terminal allocation argument \"-t\" in
        asynchronous processes, if the connection type is not `pipe'.
 
-    The existence of `tramp-login-args', combined with the
-    absence of `tramp-copy-args', is an indication that the
-    method is capable of multi-hops.
+    The existence of `tramp-login-args' is an indication that the method
+    is capable of multi-hops.
 
   * `tramp-async-args'
     When an asynchronous process is started, we know already that
@@ -2137,7 +2136,7 @@ of `current-buffer'."
   "Execute BODY and return the result.
 In case of an error, raise a `file-missing' error if FILENAME
 does not exist, otherwise propagate the error."
-  (declare (indent 2) (debug (tramp-file-name-p form &rest body)))
+  (declare (indent 2) (debug t))
   (let ((err (make-symbol "err")))
     `(condition-case ,err
 	 (let (signal-hook-function) ,@body)
@@ -2176,7 +2175,7 @@ Remaining args are Lisp expressions to be evaluated (inside an implicit
 
 If VAR is nil, then we bind `v' to the structure and `method', `user',
 `domain', `host', `port', `localname', `hop' to the components."
-  (declare (indent 2) (debug (form symbolp &rest body)))
+  (declare (indent 2) (debug t))
   (let ((bindings
          (mapcar
 	  (lambda (elem)
@@ -3585,7 +3584,7 @@ User is always nil."
 ;;; Skeleton macros for file name handler functions.
 
 (defmacro tramp-skeleton-copy-directory
-  (directory _newname &optional _keep-date _parents _copy-contents &rest body)
+  (directory newname &optional _keep-date _parents _copy-contents &rest body)
   "Skeleton for `tramp-*-handle-copy-directory'.
 BODY is the backend specific code."
   (declare (indent 5) (debug t))
@@ -3596,7 +3595,12 @@ BODY is the backend specific code."
      (unless (file-exists-p ,directory)
        (tramp-error
 	(tramp-dissect-file-name ,directory) 'file-missing ,directory))
-     ,@body))
+     ,@body
+
+     ;; NEWNAME has wrong cached values.
+     (when (tramp-tramp-file-p ,newname)
+       (with-parsed-tramp-file-name (expand-file-name ,newname) nil
+	 (tramp-flush-file-properties v localname)))))
 
 (defmacro tramp-skeleton-delete-directory (directory recursive trash &rest body)
   "Skeleton for `tramp-*-handle-delete-directory'.
@@ -5148,7 +5152,7 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
   "Whether the method of VEC is capable of multi-hops."
   (let ((tramp-verbose 0))
     (and (tramp-sh-file-name-handler-p vec)
-	 (not (tramp-get-method-parameter vec 'tramp-copy-program)))))
+	 (tramp-get-method-parameter vec 'tramp-login-args))))
 
 (defun tramp-add-hops (vec)
   "Add ad-hoc proxy definitions to `tramp-default-proxies-alist'."
