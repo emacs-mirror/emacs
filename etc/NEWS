@@ -3341,7 +3341,7 @@ value.  Previously, only 'hi-lock-face-buffer' supported this.
 
 ** Shadowfile
 
-*** 'shadow-info-buffer' and 'shadow-todo-buffer' use eqhemeral buffer names now.
+*** 'shadow-info-buffer' and 'shadow-todo-buffer' use ephemeral buffer names now.
 This excludes the buffers from save buffer predicates.
 
 
