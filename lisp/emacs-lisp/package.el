@@ -2250,7 +2250,7 @@ package archive."
   :version "29.1")
 
 ;;;###autoload
-(defun package-install (pkg &optional dont-select)
+(defun package-install (pkg &optional dont-select interactive)
   "Install the package PKG.
 
 PKG can be a `package-desc', or a symbol naming one of the available
@@ -2278,33 +2278,35 @@ had been enabled."
                     "Install package: "
                     package-archive-contents
                     nil t))
-           nil)))
+           nil
+           'interactive)))
   (cl-check-type pkg (or symbol package-desc))
   (package--archives-initialize)
   (add-hook 'post-command-hook #'package-menu--post-refresh)
   (let ((name (if (package-desc-p pkg)
                   (package-desc-name pkg)
                 pkg)))
-    (when (or (and package-install-upgrade-built-in
-                   (package--active-built-in-p pkg))
-              (package-installed-p pkg))
-      (user-error "`%s' is already installed" name))
-    (unless (or dont-select (package--user-selected-p name))
-      (package--save-selected-packages
-       (cons name package-selected-packages)))
-    (when (and (or current-prefix-arg package-install-upgrade-built-in)
-               (package--active-built-in-p pkg))
-      (setq pkg (or (cadr (assq name package-archive-contents)) pkg)))
-    (if-let* ((transaction
-               (if (package-desc-p pkg)
-                   (unless (package-installed-p pkg)
-                     (package-compute-transaction (list pkg)
-                                                  (package-desc-reqs pkg)))
-                 (package-compute-transaction () (list (list pkg))))))
-        (progn
-          (package-download-transaction transaction)
-          (package--quickstart-maybe-refresh)
-          (message  "Package `%s' installed." name)))))
+    (if (or (and package-install-upgrade-built-in
+                 (package--active-built-in-p pkg))
+            (package-installed-p pkg))
+        (funcall (if interactive #'user-error #'message)
+                 "`%s' is already installed" name)
+      (unless (or dont-select (package--user-selected-p name))
+        (package--save-selected-packages
+         (cons name package-selected-packages)))
+      (when (and (or current-prefix-arg package-install-upgrade-built-in)
+                 (package--active-built-in-p pkg))
+        (setq pkg (or (cadr (assq name package-archive-contents)) pkg)))
+      (if-let* ((transaction
+                 (if (package-desc-p pkg)
+                     (unless (package-installed-p pkg)
+                       (package-compute-transaction (list pkg)
+                                                    (package-desc-reqs pkg)))
+                   (package-compute-transaction () (list (list pkg))))))
+          (progn
+            (package-download-transaction transaction)
+            (package--quickstart-maybe-refresh)
+            (message  "Package `%s' installed." name))))))
 
 
 (declare-function package-vc-upgrade "package-vc" (pkg))
