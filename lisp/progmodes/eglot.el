@@ -2402,9 +2402,8 @@ If it is activated, also signal textDocument/didOpen."
                                            (when update-mode-line
                                              (force-mode-line-update t)))))))
 
-(defun eglot-manual () "Read Eglot's manual."
-       (declare (obsolete info "1.10"))
-       (interactive) (info "(eglot)"))
+;;;###autoload
+(defun eglot-manual () "Read Eglot's manual." (interactive) (info "(eglot)"))
 
 ;;;###autoload
 (defun eglot-upgrade-eglot (&rest _) "Update Eglot to latest version."

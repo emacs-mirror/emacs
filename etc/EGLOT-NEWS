@@ -45,6 +45,11 @@ controlling which token types and modifiers to consider, as well as
 faces for customizing their appearance.  The minor mode is on by
 default: consult the manual on how to turn it off.
 
+** Reading the Eglot manual in Emacs is easy again
+
+The command 'M-x eglot-manual' is now easier to reach and directly drops
+the user into the manual.
+
 
 * Changes in Eglot 1.19 (23/10/2025)
 

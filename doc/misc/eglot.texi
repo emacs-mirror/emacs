@@ -87,7 +87,9 @@ Eglot itself is completely language-agnostic, but it can support any
 programming language for which there is a language server and an Emacs
 major mode.
 
-This manual documents how to configure, use, and customize Eglot.
+This manual documents how to configure, use, and customize Eglot.  To
+read this manual from within Emacs, type @kbd{M-x eglot-manual
+@key{RET}}.
 
 @insertcopying
 
