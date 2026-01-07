@@ -2111,7 +2111,7 @@ node.  Return this node, or nil."
   (when (and di:class-regexp
              (re-search-forward di:class-regexp nil t))
     (ical:make-property ical:class
-                        (upcase (string-trim (match-string 1))))))
+        (upcase (string-trim (match-string 1))))))
 
 (defun di:parse-status ()
   "Parse `icalendar-status' node from entry.
@@ -2123,7 +2123,7 @@ as an `icalendar-status' node.  Return this node, or nil."
   (when (and di:status-regexp
              (re-search-forward di:status-regexp nil t))
     (ical:make-property ical:status
-                        (upcase (string-trim (match-string 1))))))
+        (upcase (string-trim (match-string 1))))))
 
 (defun di:parse-url ()
   "Parse `icalendar-url' node from entry.
@@ -2635,7 +2635,7 @@ Returns a pair of nodes (START RRULE)."
         "`diary-float' with large N=%d may not be supported on other systems" n)))
 
     (list (ical:make-property ical:dtstart dtstart
-                              (ical:valuetypeparam 'ical:date))
+            (ical:valuetypeparam 'ical:date))
           (ical:make-property ical:rrule rrule))))
 
 (defun di:offset-sexp-to-nodes (sexp)
@@ -2824,7 +2824,7 @@ formatting alarms as mail messages.  Returns the modified COMPONENT."
                    (setq all-attendees (append entry-attendees all-attendees)))
                   ((stringp address)
                    (push (ical:make-property ical:attendee
-                                             (concat "mailto:" address))
+                             (concat "mailto:" address))
                          all-attendees))))
                (push (ical:make-valarm
                       (ical:action "EMAIL")
@@ -2968,7 +2968,7 @@ nil, if MONTHS, DAYS and YEARS are all integers)."
            (rrule-node (when freq (ical:make-property ical:rrule recur-value)))
            (rdate-node (when rdates
                          (ical:make-property ical:rdate rdates
-                                             (ical:valuetypeparam rdate-type))))
+                           (ical:valuetypeparam rdate-type))))
            (dtstart-node (ical:make-property ical:dtstart dtstart)))
         (list dtstart-node (or rrule-node rdate-node))))))
 
@@ -3050,16 +3050,16 @@ property and must be present even if the recurrence set is empty.)"
     (append
      (list
       (ical:make-property ical:dtstart dtstart
-                          (ical:valuetypeparam 'ical:date))
+        (ical:valuetypeparam 'ical:date))
       ;; TODO: should we maybe use an X-name property for this?
       (ical:make-property ical:comment (format "%s" sexp)))
      (if rdates
          (list
           (ical:make-property ical:rdate rdates
-                              (ical:valuetypeparam 'ical:date)))
+            (ical:valuetypeparam 'ical:date)))
        (list
         (ical:make-property ical:exdate exdates
-                            (ical:valuetypeparam 'ical:date)))))))
+          (ical:valuetypeparam 'ical:date)))))))
 
 (defun di:sexp-to-nodes (sexp &optional vtimezone)
   "Convert a diary S-expression SEXP to a list of iCalendar property nodes.
@@ -3110,7 +3110,7 @@ times according to `diary-icalendar-time-zone-export-strategy'."
 See `icalendar-recur-current-tz-to-vtimezone' for arguments' meanings.
 This function wraps that one, but signals `icalendar-diary-export-error'
 instead if TZ cannot be converted."
-  (condition-case err
+  (condition-case _
       (icr:current-tz-to-vtimezone tz tzid start-year)
     ((ical:tz-insufficient-data ical:tz-unsupported)
      (di:signal-export-error
@@ -3270,7 +3270,7 @@ recursive calls to this function made by
                                  :buffer (current-buffer)
                                  :position (point)))
                               (push (ical:make-property ical:duration
-                                      (ical:duration-between dtstart dtend))
+                                        (ical:duration-between dtstart dtend))
                                     all-props))
                           ;; Otherwise we make a normal DTEND:
                           (push (ical:make-property ical:dtend dtend)
@@ -3309,7 +3309,7 @@ recursive calls to this function made by
                                vtimezone)))
                           values)))
                     (push (ical:make-property ical:rdate rdates
-                                              (ical:tzidparam tzid))
+                            (ical:tzidparam tzid))
                           all-props)))
 
                    ;; preserve any other node read from date, e.g. RRULE, as is:
@@ -3341,7 +3341,7 @@ recursive calls to this function made by
             (when url (push url all-props)))
           (push (or (di:parse-uid)
                      (ical:make-property ical:uid
-                      (ical:make-uid all-props)))
+                         (ical:make-uid all-props)))
                 all-props)
 
           ;; Allow users to add to the properties parsed:

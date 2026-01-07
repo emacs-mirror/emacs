@@ -2123,22 +2123,22 @@ to start the observances in the time zone.  It defaults to 1970."
                                       :minute (mod dst-end-minutes 60)
                                       :second 0)))
 
-      (ical:make-vtimezone
-       (ical:tzid (or tzid (concat icr:-emacs-local-tzid std-name)))
-       (ical:make-standard
-        (ical:tzname std-name)
-        (ical:dtstart std-start)
-        (ical:rrule dst->std-rule)
-        (ical:tzoffsetfrom dst-offset)
-        (ical:tzoffsetto std-offset)
-        (ical:comment icr:-tz-warning))
-       (ical:make-daylight
-        (ical:tzname dst-name)
-        (ical:dtstart dst-start)
-        (ical:rrule std->dst-rule)
-        (ical:tzoffsetfrom std-offset)
-        (ical:tzoffsetto dst-offset)
-        (ical:comment icr:-tz-warning)))))))
+        (ical:make-vtimezone
+         (ical:tzid (or tzid (concat icr:-emacs-local-tzid std-name)))
+         (ical:make-standard
+          (ical:tzname std-name)
+          (ical:dtstart std-start)
+          (ical:rrule dst->std-rule)
+          (ical:tzoffsetfrom dst-offset)
+          (ical:tzoffsetto std-offset)
+          (ical:comment icr:-tz-warning))
+         (ical:make-daylight
+          (ical:tzname dst-name)
+          (ical:dtstart dst-start)
+          (ical:rrule std->dst-rule)
+          (ical:tzoffsetfrom std-offset)
+          (ical:tzoffsetto dst-offset)
+          (ical:comment icr:-tz-warning)))))))
 
 (provide 'icalendar-recur)
 

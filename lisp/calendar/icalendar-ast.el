@@ -358,7 +358,7 @@ VALUE does not satisfy (any type in) TYPE."
           (signal 'wrong-type-argument (list `(list-of ,type) value)))
       (unless (cl-typep value type)
         (signal 'wrong-type-argument (list type value)))
-    (ical:make-ast-node type (list :value value))))
+      (ical:make-ast-node type (list :value value))))
    ((listp type)
     ;; N.B. nil is allowed; in that case, `ical:type-of' will check all
     ;; types in `ical:value-types':
@@ -416,7 +416,7 @@ will return an `icalendar-deltoparam' node whose value is a list of
 
 The resulting syntax node is checked for validity by
 `icalendar-ast-node-valid-p' before it is returned."
-  (declare (debug (symbolp form form)))
+  (declare (debug (symbolp form)))
   ;; TODO: support `ical:otherparam'
   (unless (ical:param-type-symbol-p type)
     (error "Not an iCalendar param type: %s" type))
@@ -490,7 +490,7 @@ The resulting syntax node is checked for validity by
 `icalendar-ast-node-valid-p' before it is returned."
   ;; TODO: support `ical:other-property', maybe like
   ;; (ical:other-property "X-NAME" value ...)
-  (declare (debug (symbolp form form &rest form))
+  (declare (debug (symbolp form &rest form))
            (indent 2))
   (unless (ical:property-type-symbol-p type)
     (error "Not an iCalendar property type: %s" type))
@@ -554,7 +554,7 @@ properties.
 
 The resulting syntax node is checked for validity by
 `icalendar-ast-node-valid-p' before it is returned."
-  (declare (debug (symbolp form &rest form))
+  (declare (debug (symbolp &rest form))
            (indent 1))
   ;; TODO: support `ical:other-component', maybe like
   ;; (ical:other-component (:x-name "X-NAME") templates ...)
@@ -662,7 +662,7 @@ For example, an iCalendar VEVENT could be written like this:
 
 Before the constructed node is returned, it is validated by
 `icalendar-ast-node-valid-p'."
-  (declare (debug (symbolp form &rest form))
+  (declare (debug (symbolp &rest form))
            (indent 1))
   (cond
    ((not (ical:type-symbol-p type))
