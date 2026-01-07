@@ -3316,13 +3316,50 @@ init_iterator (struct it *it, struct window *w,
   if (base_face_id == DEFAULT_FACE_ID
       && FRAME_WINDOW_P (it->f))
     {
+      Lisp_Object line_space_above;
+      Lisp_Object line_space_below;
+
       if (FIXNATP (BVAR (current_buffer, extra_line_spacing)))
-	it->extra_line_spacing = XFIXNAT (BVAR (current_buffer, extra_line_spacing));
+	{
+	  it->extra_line_spacing = XFIXNAT (BVAR (current_buffer, extra_line_spacing));
+	  it->extra_line_spacing_above = 0;
+	}
       else if (FLOATP (BVAR (current_buffer, extra_line_spacing)))
-	it->extra_line_spacing = (XFLOAT_DATA (BVAR (current_buffer, extra_line_spacing))
-				  * FRAME_LINE_HEIGHT (it->f));
+	{
+	  it->extra_line_spacing = (XFLOAT_DATA (BVAR (current_buffer, extra_line_spacing))
+				    * FRAME_LINE_HEIGHT (it->f));
+	  it->extra_line_spacing_above = 0;
+	}
+      else if (CONSP (BVAR (current_buffer, extra_line_spacing)))
+	{
+	  line_space_above = XCAR (BVAR (current_buffer, extra_line_spacing));
+	  line_space_below = XCDR (BVAR (current_buffer, extra_line_spacing));
+	  /* Integer pair case.	 */
+	  if (FIXNATP (line_space_above) && FIXNATP (line_space_below))
+	    {
+	      int line_space_total = XFIXNAT (line_space_below) + XFIXNAT (line_space_above);
+	      it->extra_line_spacing = line_space_total;
+	      it->extra_line_spacing_above = XFIXNAT (line_space_above);
+	    }
+	  /* Float pair case.  */
+	  else if (FLOATP (line_space_above) && FLOATP (line_space_below))
+	    {
+	      double line_space_total = XFLOAT_DATA (line_space_above) + XFLOAT_DATA (line_space_below);
+	      it->extra_line_spacing = (line_space_total * FRAME_LINE_HEIGHT (it->f));
+	      it->extra_line_spacing_above = (XFLOAT_DATA (line_space_above) * FRAME_LINE_HEIGHT (it->f));
+	    }
+	  /* Invalid cons. */
+	  else
+	    {
+	      it->extra_line_spacing = 0;
+	      it->extra_line_spacing_above = 0;
+	    }
+	}
       else if (it->f->extra_line_spacing > 0)
-	it->extra_line_spacing = it->f->extra_line_spacing;
+	{
+	  it->extra_line_spacing       = it->f->extra_line_spacing;
+	  it->extra_line_spacing_above = it->f->extra_line_spacing_above;
+	}
     }
 
   /* If realized faces have been removed, e.g. because of face
@@ -13157,7 +13194,7 @@ resize_mini_window (struct window *w, bool exact_p)
   else
     {
       struct it it;
-      int unit = FRAME_LINE_HEIGHT (f);
+      int unit;
       int height, max_height;
       struct text_pos start;
       struct buffer *old_current_buffer = NULL;
@@ -13170,6 +13207,10 @@ resize_mini_window (struct window *w, bool exact_p)
 	}
 
       init_iterator (&it, w, BEGV, BEGV_BYTE, NULL, DEFAULT_FACE_ID);
+
+      /* Unit includes line spacing if line spacing is added above */
+      unit = FRAME_LINE_HEIGHT (f) +
+	  (it.extra_line_spacing_above ? it.extra_line_spacing : 0);
 
       /* Compute the max. number of lines specified by the user.  */
       if (FLOATP (Vmax_mini_window_height))
@@ -13203,7 +13244,10 @@ resize_mini_window (struct window *w, bool exact_p)
 	}
       else
 	height = it.current_y + it.max_ascent + it.max_descent;
-      height -= min (it.extra_line_spacing, it.max_extra_line_spacing);
+
+      /* Remove final line spacing in the mini-window */
+      if (!it.extra_line_spacing_above)
+        height -= min (it.extra_line_spacing, it.max_extra_line_spacing);
 
       /* Compute a suitable window start.  */
       if (height > max_height)
@@ -13241,13 +13285,13 @@ resize_mini_window (struct window *w, bool exact_p)
 	  /* Let it grow only, until we display an empty message, in which
 	     case the window shrinks again.  */
 	  if (height > old_height)
-	    grow_mini_window (w, height - old_height);
+	    grow_mini_window (w, height - old_height, unit);
 	  else if (height < old_height && (exact_p || BEGV == ZV))
-	    shrink_mini_window (w);
+	    shrink_mini_window (w, unit);
 	}
       else if (height != old_height)
 	/* Always resize to exact size needed.  */
-	grow_mini_window (w, height - old_height);
+	grow_mini_window (w, height - old_height, unit);
 
       if (old_current_buffer)
 	set_buffer_internal (old_current_buffer);
@@ -24068,6 +24112,7 @@ append_space_for_newline (struct it *it, bool default_face_p)
 	    {
 	      Lisp_Object height, total_height;
 	      int extra_line_spacing = it->extra_line_spacing;
+	      int extra_line_spacing_above = it->extra_line_spacing_above;
 	      int boff = font->baseline_offset;
 
 	      if (font->vertical_centering)
@@ -24109,7 +24154,7 @@ append_space_for_newline (struct it *it, bool default_face_p)
 
 		  if (!NILP (total_height))
 		    spacing = calc_line_height_property (it, total_height, font,
-		                                         boff, false);
+							 boff, false);
 		  else
 		    {
 		      spacing = get_it_property (it, Qline_spacing);
@@ -24121,11 +24166,13 @@ append_space_for_newline (struct it *it, bool default_face_p)
 		      extra_line_spacing = XFIXNUM (spacing);
 		      if (!NILP (total_height))
 			extra_line_spacing -= (it->phys_ascent + it->phys_descent);
+
 		    }
 		}
 	      if (extra_line_spacing > 0)
 		{
-		  it->descent += extra_line_spacing;
+		  it->descent += (extra_line_spacing - extra_line_spacing_above);
+		  it->ascent  += extra_line_spacing_above;
 		  if (extra_line_spacing > it->max_extra_line_spacing)
 		    it->max_extra_line_spacing = extra_line_spacing;
 		}
@@ -33138,6 +33185,7 @@ void
 gui_produce_glyphs (struct it *it)
 {
   int extra_line_spacing = it->extra_line_spacing;
+  int extra_line_spacing_above = it->extra_line_spacing_above;
 
   it->glyph_not_available_p = false;
 
@@ -33891,7 +33939,8 @@ gui_produce_glyphs (struct it *it)
 
   if (extra_line_spacing > 0)
     {
-      it->descent += extra_line_spacing;
+      it->descent += extra_line_spacing - extra_line_spacing_above;
+      it->ascent  += extra_line_spacing_above;
       if (extra_line_spacing > it->max_extra_line_spacing)
 	it->max_extra_line_spacing = extra_line_spacing;
     }

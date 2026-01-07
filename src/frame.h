@@ -718,8 +718,15 @@ struct frame
      frame parameter.  0 means don't do gamma correction.  */
   double gamma;
 
-  /* Additional space to put between text lines on this frame.  */
+  /* Additional space to put below text lines on this frame.
+     Also takes part in line height calculation.  */
   int extra_line_spacing;
+
+  /* Amount of space (included in extra_line_spacing) that goes ABOVE
+     line line.
+     IMPORTANT: Don't use this for line height calculations.
+                (5 . 20) means that extra_line_spacing is 25 with 5 above.  */
+  int extra_line_spacing_above;
 
   /* All display backends seem to need these two pixel values.  */
   unsigned long background_pixel;

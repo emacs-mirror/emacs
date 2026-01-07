@@ -2351,6 +2351,16 @@ of lines which are a multiple of certain numbers.  Customize
 @code{display-line-numbers-minor-tick} respectively to set those
 numbers.
 
+@vindex line-spacing
+  The variable @code{line-spacing} controls the vertical spacing between
+lines.  It can be set to an integer (specifying pixels) or a float
+(specifying spacing relative to the default frame font height).  You can
+also set this variable to a cons cell of integers or floats, such as
+@code{(@var{top} . @var{bottom})}.  When set to a cons cell, the spacing
+is distributed above and below the line, allowing for text to be
+vertically centered within the line height. See also @ref{Line Height,,,
+elisp, The Emacs Lisp Reference Manual}.
+
 @vindex visible-bell
   If the variable @code{visible-bell} is non-@code{nil}, Emacs attempts
 to make the whole screen blink when it would normally make an audible bell

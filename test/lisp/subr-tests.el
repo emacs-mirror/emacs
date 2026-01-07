@@ -1694,5 +1694,20 @@ final or penultimate step during initialization."))
     (should (equal (funcall (subr--identity #'any) #'minusp ls) '(-1 -2 -3)))
     (should (equal (funcall (subr--identity #'any) #'stringp ls) nil))))
 
+(ert-deftest total-line-spacing ()
+  (progn
+    (let ((line-spacing 10))
+      (should (equal (total-line-spacing) line-spacing) ))
+    (let ((line-spacing 0.8))
+      (should (equal (total-line-spacing) 0.8)))
+    (let ((line-spacing '(10 . 5)))
+      (should (equal (total-line-spacing) 15)))
+    (let ((line-spacing '(0.3 . 0.4)))
+      (should (equal (total-line-spacing) 0.7)))
+    (should (equal (total-line-spacing 10) 10))
+    (should (equal (total-line-spacing 0.3) 0.3))
+    (should (equal (total-line-spacing '(1 . 3)) 4))
+    (should (equal (total-line-spacing '(0.1 . 0.1 )) 0.2))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

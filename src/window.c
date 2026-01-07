@@ -5894,11 +5894,11 @@ resize_mini_window_apply (struct window *w, int delta)
  * line of text.
  */
 void
-grow_mini_window (struct window *w, int delta)
+grow_mini_window (struct window *w, int delta, int unit)
 {
   struct frame *f = XFRAME (w->frame);
   int old_height = window_body_height (w, WINDOW_BODY_IN_PIXELS);
-  int min_height = FRAME_LINE_HEIGHT (f);
+  int min_height = unit;
 
   eassert (MINI_WINDOW_P (w));
 
@@ -5926,7 +5926,7 @@ grow_mini_window (struct window *w, int delta)
 	resize_mini_window_apply (w, -XFIXNUM (grow));
     }
   FRAME_WINDOWS_FROZEN (f)
-    = window_body_height (w, WINDOW_BODY_IN_PIXELS) > FRAME_LINE_HEIGHT (f);
+    = window_body_height (w, WINDOW_BODY_IN_PIXELS) > unit;
 }
 
 /**
@@ -5936,11 +5936,10 @@ grow_mini_window (struct window *w, int delta)
  * line of text.
  */
 void
-shrink_mini_window (struct window *w)
+shrink_mini_window (struct window *w, int unit)
 {
   struct frame *f = XFRAME (w->frame);
-  int delta = (window_body_height (w, WINDOW_BODY_IN_PIXELS)
-	       - FRAME_LINE_HEIGHT (f));
+  int delta = (window_body_height (w, WINDOW_BODY_IN_PIXELS) - unit);
 
   eassert (MINI_WINDOW_P (w));
 
@@ -5959,10 +5958,10 @@ shrink_mini_window (struct window *w)
   else if (delta < 0)
     /* delta can be less than zero after adding horizontal scroll
        bar.  */
-    grow_mini_window (w, -delta);
+    grow_mini_window (w, -delta, unit);
 
   FRAME_WINDOWS_FROZEN (f)
-    = window_body_height (w, WINDOW_BODY_IN_PIXELS) > FRAME_LINE_HEIGHT (f);
+    = window_body_height (w, WINDOW_BODY_IN_PIXELS) > unit;
 }
 
 DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal,

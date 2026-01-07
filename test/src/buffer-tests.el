@@ -8650,4 +8650,22 @@ Finally, kill the buffer and its temporary file."
     (should (= (point-min) 1))
     (should (= (point-max) 5001))))
 
+(ert-deftest test-line-spacing ()
+  "Test `line-spacing' impact on text size"
+  (skip-unless (display-graphic-p))
+  (let*
+      ((size-with-text (lambda (ls)
+                         (with-temp-buffer
+                           (setq-local line-spacing ls)
+                           (insert "X\nX")
+                           (cdr (buffer-text-pixel-size))))))
+    (cl-loop for x from 0 to 50
+             for y from 0 to 50
+             do
+             (ert-info ((format "((linespacing '(%d . %d)) == (linespacing %d)" x y (+ x y))
+                        :prefix "Linespace check: ")
+               (should (=
+                        (funcall size-with-text (+ x y))
+                        (funcall size-with-text (cons x y))))))))
+
 ;;; buffer-tests.el ends here

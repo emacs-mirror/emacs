@@ -575,7 +575,10 @@ struct buffer
   Lisp_Object cursor_type_;
 
   /* An integer > 0 means put that number of pixels below text lines
-     in the display of this buffer.  */
+     in the display of this buffer.
+     A float ~ 1.0 means add extra number of pixels below text lines
+     relative to the line height.
+     A cons means put car spacing above and cdr spacing below the line.  */
   Lisp_Object extra_line_spacing_;
 
 #ifdef HAVE_TREE_SITTER

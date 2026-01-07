@@ -2582,10 +2582,13 @@ the spacing relative to the frame's default line height.
 
 @vindex line-spacing
   You can specify the line spacing for all lines in a buffer via the
-buffer-local @code{line-spacing} variable.  An integer specifies
-the number of pixels put below lines.  A floating-point number
-specifies the spacing relative to the default frame line height.  This
-overrides line spacings specified for the frame.
+buffer-local @code{line-spacing} variable.  An integer specifies the
+number of pixels put below lines.  A floating-point number specifies the
+spacing relative to the default frame line height.  A cons cell of
+integers or floating-point numbers specifies the spacing put above and
+below the line, allowing for vertically centering text.  This overrides
+line spacings specified for the frame.
+
 
 @kindex line-spacing @r{(text property)}
   Finally, a newline can have a @code{line-spacing} text or overlay

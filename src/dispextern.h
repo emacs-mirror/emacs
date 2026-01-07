@@ -960,6 +960,9 @@ struct glyph_row
      in last row when checking if row is fully visible.  */
   int extra_line_spacing;
 
+  /* Part of extra_line_spacing that should go above the line.  */
+  int extra_line_spacing_above;
+
   /* First position in this row.  This is the text position, including
      overlay position information etc, where the display of this row
      started, and can thus be less than the position of the first
@@ -2771,6 +2774,10 @@ struct it
   /* Default amount of additional space in pixels between lines (for
      window systems only.)  */
   int extra_line_spacing;
+
+  /* Default amount of additional space in pixels above lines (for
+     window systems only).  */
+  int extra_line_spacing_above;
 
   /* Max extra line spacing added in this row.  */
   int max_extra_line_spacing;

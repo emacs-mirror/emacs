@@ -2027,8 +2027,9 @@ and `event-end' functions."
         (let* ((spacing (when (display-graphic-p frame)
                           (or (with-current-buffer
                                   (window-buffer (frame-selected-window frame))
-                                line-spacing)
-                              (frame-parameter frame 'line-spacing)))))
+                                (total-line-spacing))
+                              (total-line-spacing
+                               (frame-parameter frame 'line-spacing))))))
 	  (cond ((floatp spacing)
 	         (setq spacing (truncate (* spacing
 					    (frame-char-height frame)))))
@@ -7935,5 +7936,13 @@ and return the value found in PLACE instead."
             `(progn
                ,(funcall setter val)
                ,val)))))
+
+(defun total-line-spacing (&optional line-spacing-param)
+  "Return numeric value of line-spacing, summing it if it's a cons.
+   When LINE-SPACING-PARAM is provided, calculate from it instead."
+  (let ((v (or line-spacing-param line-spacing)))
+    (pcase v
+      ((pred numberp) v)
+      (`(,above . ,below) (+ above below)))))
 
 ;;; subr.el ends here

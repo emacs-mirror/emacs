@@ -2850,9 +2850,15 @@ as small) as possible, but don't signal an error."
     (let* ((frame (window-frame window))
 	   (root (frame-root-window frame))
 	   (height (window-pixel-height window))
-           (min-height (+ (frame-char-height frame)
-                          (- (window-pixel-height window)
-                             (window-body-height window t))))
+           ;; Take line-spacing into account if the line-spacing is
+           ;; configured as a cons cell with above > 0 to prevent
+           ;; mini-window jiggling.
+           (ls (or (buffer-local-value 'line-spacing (window-buffer window))
+		   (frame-parameter frame 'line-spacing)))
+           (min-height (+ (if (and (consp ls) (> (car ls) 0))
+                              (window-default-line-height window)
+                            (frame-char-height frame))
+                          (- height (window-body-height window t))))
            (max-delta (- (window-pixel-height root)
 	                 (window-min-size root nil nil t))))
       ;; Don't make mini window too small.
@@ -9906,8 +9912,8 @@ face on WINDOW's frame."
 	 (buffer (window-buffer window))
 	 (space-height
 	  (or (and (display-graphic-p frame)
-		   (or (buffer-local-value 'line-spacing buffer)
-		       (frame-parameter frame 'line-spacing)))
+		   (total-line-spacing (or (buffer-local-value 'line-spacing buffer)
+		                           (frame-parameter frame 'line-spacing))))
 	      0)))
     (+ font-height
        (if (floatp space-height)

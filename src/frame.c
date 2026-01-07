@@ -5454,17 +5454,59 @@ void
 gui_set_line_spacing (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
   if (NILP (new_value))
-    f->extra_line_spacing = 0;
+    {
+      f->extra_line_spacing = 0;
+      f->extra_line_spacing_above = 0;
+    }
   else if (RANGED_FIXNUMP (0, new_value, INT_MAX))
-    f->extra_line_spacing = XFIXNAT (new_value);
+    {
+      f->extra_line_spacing = XFIXNAT (new_value);
+      f->extra_line_spacing_above = 0;
+    }
   else if (FLOATP (new_value))
     {
-      int new_spacing = XFLOAT_DATA (new_value) * FRAME_LINE_HEIGHT (f) + 0.5;
+      int new_spacing = XFLOAT_DATA (new_value) * FRAME_LINE_HEIGHT (f);
 
-      if (new_spacing >= 0)
+      if (new_spacing >= 0) {
 	f->extra_line_spacing = new_spacing;
+        f->extra_line_spacing_above = 0;
+      }
       else
 	signal_error ("Invalid line-spacing", new_value);
+    }
+  else if (CONSP (new_value))
+    {
+      Lisp_Object above = XCAR (new_value);
+      Lisp_Object below = XCDR (new_value);
+
+      /* Integer pair case.  */
+      if (RANGED_FIXNUMP (0, above, INT_MAX)
+	  && RANGED_FIXNUMP (0, below, INT_MAX))
+	{
+	  f->extra_line_spacing = XFIXNAT (above) + XFIXNAT (below);
+	  f->extra_line_spacing_above = XFIXNAT (above);
+	}
+
+      /* Float pair case.  */
+      else if (FLOATP (XCAR (new_value))
+	       && FLOATP (XCDR (new_value)))
+	{
+	  int new_spacing = (XFLOAT_DATA (above) + XFLOAT_DATA (below)) * FRAME_LINE_HEIGHT (f);
+	  int spacing_above = XFLOAT_DATA (above) * FRAME_LINE_HEIGHT (f);
+	  if(new_spacing >= 0 && spacing_above >= 0)
+	    {
+	      f->extra_line_spacing = new_spacing;
+	      f->extra_line_spacing_above = spacing_above;
+	    }
+	  else
+	    signal_error ("Invalid line-spacing", new_value);
+	}
+
+      /* Unmatched pair case.  */
+      else
+	{
+	  signal_error ("Invalid line-spacing", new_value);
+	}
     }
   else
     signal_error ("Invalid line-spacing", new_value);
