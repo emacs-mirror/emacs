@@ -1151,7 +1151,8 @@ object."
                                        :tagSupport
                                        `(:valueSet
                                          [,@(mapcar
-                                             #'car eglot--tag-faces)])))
+                                             #'car eglot--tag-faces)]))
+             :$streamingDiagnostics `(:dynamicRegistration :json-false))
             :window `(:showDocument (:support t)
                       :showMessage (:messageActionItem
                                     (:additionalPropertiesSupport t))
@@ -2238,6 +2239,14 @@ DIAGNOSTICS is a sequence of LSP or Flymake diagnostics objects.
 VERSION is the LSP Document version reported for DIAGNOSTICS (comparable
 to `eglot--docver') or nil if server didn't bother.")
 
+(defvar-local eglot--streamed-diagnostics nil
+  "A (VERSION MAP PREV-MAP) description of \"streamed\" diagnostics.
+MAP and PREV-MAP are alists of (TOKEN . DIAGS) entries.  DIAGS is a
+sequence of LSP/Flymake diagnostics objects.  TOKEN identifies the
+source of a partial report.  VERSION is the LSP Document version
+reported for diagnostics in MAP.  PREV-MAP contains the diagnostics of
+the previous reports for TOKEN.")
+
 (defvar-local eglot--suggestion-overlay (make-overlay 0 0)
   "Overlay for `eglot-code-action-suggestion'.")
 
@@ -3179,6 +3188,59 @@ version the diagnostics pertain to."
        ;; starts on idle-timer (github#957)
        (eglot--flymake-report-push+pulled)))))
 
+(cl-defmethod eglot-handle-notification
+  (server (_method (eql $/streamDiagnostics))
+          &key uri diagnostics version token kind
+          &allow-other-keys)
+  "Handle notification $/streamDiagnostics."
+  (cl-macrolet ((report (what mode)
+                  `(eglot--flymake-report-1 ,what ,mode)))
+    (eglot--flymake-handle-push
+     server uri diagnostics version
+     (lambda (lsp-diags)
+       (cl-symbol-macrolet ((map (cadr eglot--streamed-diagnostics)))
+         (let* ((doc-v eglot--docver)
+                (known-v (car eglot--streamed-diagnostics))
+                (prev-map (caddr eglot--streamed-diagnostics))
+                (diags (if (equal kind "unchanged")
+                           (cdr (assoc token (if (eq known-v doc-v)
+                                                 map prev-map)))
+                         lsp-diags))
+                probe)
+           ;; (trace-values (buffer-name) "lsp-diags" (length lsp-diags)
+           ;;               "diags" (length diags) "kind" kind
+           ;;               "known-v" known-v "doc-v" doc-v)
+           (cond ((and known-v (< doc-v known-v))
+                  ;; Ignore out of date (shouldn't happen)
+                  (report nil :stay))
+                 ((or (null known-v) (> doc-v known-v))
+                  ;; `doc-v' is greater than (potentially nil)
+                  ;; recorded `known-v'.  Save old known-v and map,
+                  ;; "inaugurate" new doc-v, report this initial subset,
+                  ;; clearing all existing diagnostics.
+                  (cl-loop for (tk . diags) in map
+                           do (setf (alist-get tk prev-map nil nil #'equal) diags))
+                  (let ((entry (cons token diags)))
+                    (setq eglot--streamed-diagnostics
+                          `(,doc-v (,entry) ,prev-map))
+                    (report (cdr entry) :clear)))
+                 ((setq probe (assoc token map))
+                  ;; `diags' are an update to an existing report for
+                  ;; this token, for this `doc-v'  Record and report
+                  ;; all to Flymake, clearing all existing diagnostics.
+                  (setcdr probe diags)
+                  (cl-loop for e in map
+                           for m = :clear then :stay
+                           do (report (cdr e) m)))
+                 (t
+                  ;; It's the first time we hear about `token' for this
+                  ;; already inaugurated `doc-v' add its diagnostics to
+                  ;; the map, and report only this subset, not clearing
+                  ;; any old diagnostics.
+                  (let ((entry (cons token diags)))
+                    (push entry map)
+                    (report (cdr entry) :stay))))))))))
+
 (defun eglot--flymake-diag-type (severity)
   "Convert LSP diagnostic SEVERITY to Eglot/Flymake diagnostic type."
   (cond ((null severity) 'eglot-error)
@@ -3188,8 +3250,8 @@ version the diagnostics pertain to."
 
 (defun eglot--flymake-make-diag (diag-spec version region)
   "Convert LSP diagnostic DIAG-SPEC to Flymake diagnostic.
-REGION is the (BEG . END) region the diagnostics pertina to.  VERSION is
-the document version number."
+VERSION is the document version number.  REGION is the (BEG . END)
+pertaining to DIAG-SPEC."
   (eglot--dbind ((Diagnostic) range code message severity source tags)
       diag-spec
     (pcase-let
@@ -3234,6 +3296,14 @@ may be called multiple times (respecting the protocol of
           ;; Use pull diagnostics if server supports it
           ((eglot-server-capable :diagnosticProvider)
            (eglot--flymake-pull))
+          ((eglot-server-capable :$streamingDiagnosticsProvider)
+           (let ((v (car eglot--streamed-diagnostics))
+                 (map (cadr eglot--streamed-diagnostics)))
+             (if (and v (< v eglot--docver))
+                 (eglot--flymake-report-2 nil :stay)
+               (cl-loop for e in map
+                        for m = :clear then :stay
+                        do (eglot--flymake-report-1 (cdr e) m)))))
           ;; Otherwise push whatever we might have, and wait for
           ;; further `textDocument/publishDiagnostics'.
           (t (eglot--flymake-report-push+pulled :force t))))
@@ -3318,7 +3388,8 @@ When response arrives call registered `eglot--flymake-report-fn'."
 
 (defun eglot--flymake-reset ()
   (setq eglot--pulled-diagnostics nil
-        eglot--pushed-diagnostics nil)
+        eglot--pushed-diagnostics nil
+        eglot--streamed-diagnostics nil)
   (when eglot--flymake-report-fn
     (eglot--flymake-report-1 nil :clear :force t)))
 
