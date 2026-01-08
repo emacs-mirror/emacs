@@ -208,6 +208,34 @@ JSONRPC message."
                     "jsonrpc-lambda-elem")))
     `(lambda (,e) (apply (cl-function (lambda ,cl-lambda-list ,@body)) ,e))))
 
+(defun jsonrpc-events-jq-at-point ()
+  "Find first { in line, use forward-sexp to grab JSON, pipe through jq."
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (when (search-forward "{" (line-end-position) t)
+      (backward-char)
+      (let ((start (point)))
+        (forward-sexp)
+        (shell-command-on-region start (point) "jq" "*jq output*")))))
+
+(defun jsonrpc-events-occur-at-point ()
+  "Run occur on thing at point."
+  (interactive)
+  (occur (thing-at-point 'symbol)))
+
+(defvar jsonrpc-events-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") 'jsonrpc-events-jq-at-point)
+    (define-key map (kbd "C-c C-o") 'jsonrpc-events-occur-at-point)
+    map)
+  "Keymap for `jsonrpc-events-mode'.")
+
+(define-derived-mode jsonrpc-events-mode special-mode "JSONRPC-Events"
+  "Major mode for JSONRPC events buffers."
+  (buffer-disable-undo)
+  (setq buffer-read-only t))
+
 (defun jsonrpc-events-buffer (connection)
   "Get or create JSONRPC events buffer for CONNECTION."
   (let ((probe (jsonrpc--events-buffer connection)))
@@ -215,8 +243,7 @@ JSONRPC message."
         probe
       (with-current-buffer
           (get-buffer-create (format "*%s events*" (jsonrpc-name connection)))
-        (buffer-disable-undo)
-        (setq buffer-read-only t)
+        (jsonrpc-events-mode)
         (setf (jsonrpc--events-buffer connection)
               (current-buffer))))))
 
