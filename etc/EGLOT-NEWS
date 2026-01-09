@@ -20,6 +20,13 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes to upcoming Eglot
 
+** Dramatically faster handling of files with many diagnostics
+
+Diagnostic conversion between LSP and Flymake versions is now much
+faster.  Previously, editing, e.g. a Python file with thousands of
+diagnostics was next to impossible to to periodic interruptions of
+diagnostic reports.  Now it's practically unnoticeable.
+
 ** Support for LSP server multiplexers via Rassumfrassum
 
 Eglot can now leverage LSP server multiplexer programs like Rassumfrassum

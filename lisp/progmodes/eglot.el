@@ -1280,6 +1280,61 @@ If optional MARKERS, make markers instead."
   (list :start (eglot--pos-to-lsp-position from)
         :end (eglot--pos-to-lsp-position to)))
 
+(defvar eglot-move-to-linepos-function)
+(cl-defun eglot--call-with-ranged (objs key fn &aux (curline 0))
+  (unless key
+    (setq key (lambda (o) (plist-get o :range))))
+  (cl-flet ((moveit (line col)
+              (forward-line (- line curline))
+              (setq curline line)
+              (unless (eobp)
+                (unless (wholenump col) (setq col 0))
+                (funcall eglot-move-to-linepos-function col))
+              (point)))
+    (eglot--widening
+     (goto-char (point-min))
+     (cl-loop
+      with pairs = (if key
+                       (mapcar (lambda (obj) (cons obj (funcall key obj)))
+                               objs)
+                     (mapcar (lambda (range) (cons range range))
+                             objs))
+      with sorted =
+      (sort pairs
+            (lambda (p1 p2)
+              (< (plist-get (plist-get (cdr p1) :start) :line)
+                 (plist-get (plist-get (cdr p2) :start) :line))))
+      for (object . range) in sorted
+      for spos = (plist-get range :start)
+      for epos = (plist-get range :end)
+      for sline = (plist-get spos :line)
+      for scol = (plist-get spos :character)
+      for eline = (plist-get epos :line)
+      for ecol = (plist-get epos :character)
+      collect (funcall fn object (cons (moveit sline scol)
+                                        (moveit eline ecol)))))))
+
+(cl-defmacro eglot--collecting-ranged ((object-sym region-sym
+                                                          objects
+                                                          &optional key)
+                                              &rest body)
+  "Iterate over OBJECTS, binding each element and its region.
+For each element in OBJECTS, bind OBJECT-SYM to the element and
+REGION-SYM to its computed Emacs region (a cons of buffer positions).
+Evaluate BODY and collect the result into a list.  Return that list.
+
+KEY, if non-nil, should be a function to extract the LSP range from each
+element.  If nil, elements are assumed to be plists with `:range' keys.
+
+This macro uses optimized incremental navigation instead of repeatedly
+calling `eglot-range-region', providing significant performance benefits
+when processing many ranges."
+  (declare (indent 1) (debug t))
+  `(eglot--call-with-ranged
+    ,objects
+    ,key
+    (lambda (,object-sym ,region-sym) ,@body)))
+
 (defun eglot-server-capable (&rest feats)
   "Determine if current server is capable of FEATS."
   (unless (cl-some (lambda (feat)
@@ -3167,11 +3222,8 @@ version the diagnostics pertain to."
               eglot--flymake-report-fn)
      (when (and ,diags (vectorp ,diags))
        (setf ,diags
-             (cl-loop
-              for d across ,diags
-              collect (eglot--flymake-make-diag
-                       d
-                       ,version (eglot-range-region (plist-get d :range))))))
+             (eglot--collecting-ranged (o r ,diags)
+               (eglot--flymake-make-diag o ,version r))))
      (eglot--flymake-report-2 ,diags ,mode)))
 
 (cl-defmethod eglot-handle-notification
@@ -4090,20 +4142,20 @@ for which LSP on-type-formatting should be requested."
       (alist-get kind eglot--symbol-kind-names "Unknown")
       (mapcan
        (pcase-lambda (`(,container . ,objs))
-         (let ((elems (mapcar
-                       (eglot--lambda ((SymbolInformation) kind name location)
-                         (let ((reg (eglot-range-region
-                                     (plist-get location :range)))
-                               (kind (alist-get kind eglot--symbol-kind-names)))
-                           (cons (propertize name
-                                             'imenu-region reg
-                                             'imenu-kind kind
-                                             ;; Backward-compatible props
-                                             ;; to be removed later:
-                                             'breadcrumb-region reg
-                                             'breadcrumb-kind kind)
-                                 (car reg))))
-                       objs)))
+         (let ((elems
+                (eglot--collecting-ranged
+                    (s reg objs (lambda (o)
+                                  (plist-get :range (plist-get o :location))))
+                  (eglot--dbind ((SymbolInformation) kind name) s
+                    (let ((kind (alist-get kind eglot--symbol-kind-names)))
+                      (cons (propertize name
+                                        'imenu-region reg
+                                        'imenu-kind kind
+                                        ;; Backward-compatible props
+                                        ;; to be removed later:
+                                        'breadcrumb-region reg
+                                        'breadcrumb-kind kind)
+                            (car reg)))))))
            (if container (list (cons container elems)) elems)))
        (seq-group-by
         (eglot--lambda ((SymbolInformation) containerName) containerName) objs))))
@@ -4123,6 +4175,7 @@ for which LSP on-type-formatting should be requested."
                                          'breadcrumb-kind kind)))
                   (if (seq-empty-p children)
                       (cons name (car reg))
+                    ;; FIXME: leverage eglot--collecting-ranged
                     (cons name
                             (mapcar (lambda (c) (apply #'dfs c)) children))))))
     (mapcar (lambda (s) (apply #'dfs s)) res)))
