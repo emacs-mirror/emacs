@@ -4708,7 +4708,8 @@ If NOERROR, return predicate, else erroring function."
 \\{eglot-list-connections-mode-map}"
   :interactive nil
   (setq-local tabulated-list-format
-              `[("Language server" 16) ("Project name" 16) ("Modes handled" 16)])
+              `[("Language server" 16) ("Project name" 20) ("Buffers" 7)
+                ("Modes" 20) ("Invocation" 32)])
   (tabulated-list-init-header))
 
 (defun eglot-list-connections ()
@@ -4726,9 +4727,14 @@ If NOERROR, return predicate, else erroring function."
                            `[,(or (plist-get (eglot--server-info server) :name)
                                   (jsonrpc-name server))
                              ,(eglot-project-nickname server)
+                             ,(format "%s" (length (eglot--managed-buffers server)))
                              ,(mapconcat #'symbol-name
                                          (eglot--major-modes server)
-                                         ", ")]))
+                                         ", ")
+                             ,(let ((c (process-command
+                                        (jsonrpc--process server))))
+                                (if (consp c) (mapconcat #'identity c " ")
+                                  "network"))]))
                    (cl-reduce #'append
                               (hash-table-values eglot--servers-by-project))))
       (revert-buffer)
