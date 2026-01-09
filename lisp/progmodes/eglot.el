@@ -2392,7 +2392,7 @@ the previous reports for TOKEN.")
         (when (and eglot-autoshutdown
                    (null (eglot--managed-buffers server))
                    ;; Don't shutdown if up again soon.
-                   (with-no-warnings (not revert-buffer-in-progress-p)))
+                   (not (eglot--revert-in-progress-p)))
           (eglot-shutdown server)))))))
 
 (defun eglot--managed-mode-off ()
@@ -2426,6 +2426,9 @@ the previous reports for TOKEN.")
     (eglot--signal-textDocument/didOpen)
     (when eglot-semantic-tokens-mode
       (eglot-semantic-tokens-mode))))
+
+(defun eglot--revert-in-progress-p ()
+  (with-no-warnings revert-buffer-in-progress-p))
 
 (defun eglot--maybe-activate-editing-mode ()
   "Maybe activate `eglot--managed-mode'.
@@ -4546,6 +4549,7 @@ happens to be inside or matching the project root."
                       (candidate (if dir (file-relative-name file dir) file)))
            (cond
             ((and (memq action '(created changed deleted))
+                  (not (eglot--find-buffer-visiting server file))
                   (cl-loop for (compiled . kind) in globs
                            thereis (and (> (logand kind action-bit) 0)
                                         (funcall compiled candidate))))
