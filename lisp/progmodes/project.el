@@ -698,9 +698,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
        (if backend
            (vc-call-backend backend 'project-list-files dir ignores)
          (project--files-in-directory
-          dir (append ignores (append
-                               (project-ignores nil nil)
-                               ignores))))))
+          dir (append ignores (project-ignores nil nil))))))
    (or dirs
        (list (project-root project)))))
 
