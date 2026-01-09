@@ -285,11 +285,10 @@ call_debugger (Lisp_Object arg)
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object val;
 
-  /* The previous value of 40 is too small now that the debugger
-     prints using cl-prin1 instead of prin1.  Printing lists nested 8
-     deep (which is the value of print-level used in the debugger)
-     currently requires 77 additional frames.  See bug#31919.  */
-  max_ensure_room (100);
+  /* The debugger currently requires 77 additional frames to print lists
+     nested 8 deep (the value of print-level used in the debugger) using
+     cl-prin1 (bug#31919), with a margin to be on the safe side.  */
+  max_ensure_room (200);
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -1982,7 +1981,9 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
 	    if (!NILP (find_handler_clause (h->tag_or_ch, conditions)))
 	      {
 	        specpdl_ref count = SPECPDL_INDEX ();
-	        max_ensure_room (20);
+		/* Add some room in case this is for debugging, as in
+		   call_debugger.  */
+	        max_ensure_room (200);
 	        push_handler (make_fixnum (skip + h->bytecode_dest),
 	                      SKIP_CONDITIONS);
 	        calln (h->val, error);
