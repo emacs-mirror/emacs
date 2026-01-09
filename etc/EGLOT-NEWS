@@ -20,6 +20,20 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes to upcoming Eglot
 
+** Support for LSP server multiplexers via Rassumfrassum
+
+Eglot can now leverage LSP server multiplexer programs like Rassumfrassum
+(invoked via the 'rass' command) to use multiple language servers in a
+single buffer.  This enables combining spell-checkers with language
+servers, using multiple servers for the same language (e.g., 'ty' for
+type checking and 'ruff' for linting in Python), or handling
+multi-language files like Vue.
+
+Some invocations of 'rass' are offered as alternatives in the built-in
+'eglot-server-programs' variable.  The manual (readable with 'M-x
+eglot-manual') contains a comprehensive discussion of how to set up and
+use multiplexers in the new "Multi-server support" chapter.
+
 ** Support for pull diagnostics (github#1559, github#1290)
 
 For servers supporting the 'diagnosticProvider' capability, Eglot

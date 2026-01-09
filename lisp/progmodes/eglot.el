@@ -238,7 +238,7 @@ automatically)."
 (defvar eglot-server-programs
   ;; FIXME: Maybe this info should be distributed into the major modes
   ;; themselves where they could set a buffer-local `eglot-server-program'
-  ;; instead of keeping this database centralized.
+  ;; which would allow deprecating this database.
   ;; FIXME: With `derived-mode-add-parents' in Emacs≥30, some of
   ;; those entries can be simplified, but we keep them for when
   ;; `eglot.el' is installed via GNU ELPA in an older Emacs.
@@ -248,7 +248,8 @@ automatically)."
     (vimrc-mode . ("vim-language-server" "--stdio"))
     ((python-mode python-ts-mode)
      . ,(eglot-alternatives
-         '("pylsp" "pyls" ("basedpyright-langserver" "--stdio")
+         '(("rass" "python")
+           "pylsp" "pyls" ("basedpyright-langserver" "--stdio")
            ("pyright-langserver" "--stdio")
            ("pyrefly" "lsp")
            ("ty" "server")
@@ -262,7 +263,9 @@ automatically)."
       (tsx-ts-mode :language-id "typescriptreact")
       (typescript-ts-mode :language-id "typescript")
       (typescript-mode :language-id "typescript"))
-     . ("typescript-language-server" "--stdio"))
+     . ,(eglot-alternatives
+         '(("rass ts")
+           ("typescript-language-server" "--stdio"))))
     ((bash-ts-mode sh-mode) . ("bash-language-server" "start"))
     ((php-mode phps-mode php-ts-mode)
      . ,(eglot-alternatives
