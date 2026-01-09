@@ -855,33 +855,32 @@ This is particularly useful when many different tags select the same set
 of methods, since this table then allows us to share a single combined-method
 for all those different tags in the method-cache.")
 
-(define-error 'cl--generic-cyclic-definition "Cyclic definition")
-
 (defun cl--generic-build-combined-method (generic methods)
-  (if (null methods)
-      ;; Special case needed to fix a circularity during bootstrap.
-      (cl--generic-standard-method-combination generic methods)
-    (let ((f
-           (with-memoization
-               ;; FIXME: Since the fields of `generic' are modified, this
-               ;; hash-table won't work right, because the hashes will change!
-               ;; It's not terribly serious, but reduces the effectiveness of
-               ;; the table.
-               (gethash (cons generic methods)
-                        cl--generic-combined-method-memoization)
-             (puthash (cons generic methods) :cl--generic--under-construction
-                      cl--generic-combined-method-memoization)
-             (condition-case nil
-                 (cl-generic-combine-methods generic methods)
-               ;; Special case needed to fix a circularity during bootstrap.
-               (cl--generic-cyclic-definition
-                (cl--generic-standard-method-combination generic methods))))))
-      (if (eq f :cl--generic--under-construction)
-          (signal 'cl--generic-cyclic-definition
-                  (list (cl--generic-name generic)))
-        f))))
+  ;; Since `cl-generic-combine-methods' is itself a generic function,
+  ;; there is a chicken and egg problem when computing a combined
+  ;; method for `cl-generic-combine-methods'.
+  ;; We break such infinite recursion by detecting it and falling
+  ;; back to `cl--generic-standard-method-combination' when it happens.
+  ;; FIXME: Since the fields of `generic' are modified, the
+  ;; `cl--generic-combined-method-memoization' hash-table won't work
+  ;; right, because the hashes will change!  It's not terribly serious,
+  ;; but reduces the effectiveness of the table.
+  (let ((key (cons generic methods)))
+    (pcase (gethash key cl--generic-combined-method-memoization)
+      (:cl--generic--under-construction
+       ;; Fallback to the standard method combination.
+       (setf (gethash key cl--generic-combined-method-memoization)
+             (cl--generic-standard-method-combination generic methods)))
+      ('nil
+       (setf (gethash key cl--generic-combined-method-memoization)
+             :cl--generic--under-construction)
+       (let ((f nil))
+         (unwind-protect
+             (setq f (cl-generic-combine-methods generic methods))
+           (setf (gethash key cl--generic-combined-method-memoization) f))))
+      (f f))))
 
-(oclosure-define (cl--generic-nnm)
+(oclosure-define cl--generic-nnm
   "Special type for `call-next-method's that just call `no-next-method'.")
 
 (defun cl-generic-call-method (generic method &optional fun)
@@ -986,6 +985,10 @@ FUN is the function that should be called when METHOD calls
     (setq methods (nreverse (mapcar #'cdr (sort methods #'car-less-than-car))))
     (cl--generic-make-next-function generic dispatches-left methods)))
 
+(unless (ignore-errors (cl-generic-generalizers t))
+  ;; Temporary definition to let the next defgenerics succeed.
+  (fset 'cl-generic-combine-methods #'cl--generic-standard-method-combination))
+
 (cl-defgeneric cl-generic-generalizers (specializer)
   "Return a list of generalizers for a given SPECIALIZER.
 To each kind of `specializer', corresponds a `generalizer' which describes
@@ -1002,11 +1005,11 @@ The code which extracts the tag should be as fast as possible.
 The tags should be chosen according to the following rules:
 - The tags should not be too specific: similar objects which match the
   same list of specializers should ideally use the same (`eql') tag.
-  This insures that the cached computation of the applicable
+  This ensures that the cached computation of the applicable
   methods for one object can be reused for other objects.
 - Corollary: objects which don't match any of the relevant specializers
   should ideally all use the same tag (typically nil).
-  This insures that this cache does not grow unnecessarily large.
+  This ensures that this cache does not grow unnecessarily large.
 - Two different generalizers G1 and G2 should not use the same tag
   unless they use it for the same set of objects.  IOW, if G1.tag(X1) =
   G2.tag(X2) then G1.tag(X1) = G2.tag(X1) = G1.tag(X2) = G2.tag(X2).
