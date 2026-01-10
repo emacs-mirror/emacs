@@ -797,7 +797,10 @@ attached."
                   (pcase mail-user-agent
                     ('sendmail-user-agent (mail-text))
                     (_ (message-goto-body)))
-                  (insert-buffer-substring tmp-buf)))
+                  (let ((start (point)))
+                    (save-excursion
+                      (insert-buffer-substring tmp-buf)
+                      (comment-region start (point))))))
               t)
              (?c
               (view-file news)
