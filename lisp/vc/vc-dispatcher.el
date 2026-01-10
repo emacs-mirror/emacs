@@ -384,6 +384,9 @@ the man pages for \"torsocks\" for more details about Tor."
   :version "27.1"
   :group 'vc)
 
+(defvar vc-user-edit-command-history nil
+  "Minibuffer history for `vc-user-edit-command'.")
+
 (defun vc-user-edit-command (command file-or-list flags)
   "Prompt the user to edit VC command COMMAND and FLAGS.
 Intended to be used as the value of `vc-filter-command-function'."
@@ -398,7 +401,8 @@ Intended to be used as the value of `vc-filter-command-function'."
                             (cons command (remq nil (if files-separator-p
                                                         (butlast flags)
                                                       flags))))
-                           " ")))))
+                           " ")
+                   'vc-user-edit-command-history))))
     (list (car edited) file-or-list
           (nconc (cdr edited) (and files-separator-p '("--"))))))
 

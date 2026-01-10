@@ -2885,6 +2885,11 @@ This command is Diff mode's specialized 'narrow-to-region'.
 consistency, 'diff-restrict-view' is now too.
 To enable it again, use 'M-x enable-command'.
 
+---
+*** 'C-x v !' has its own input history.
+This is shared with the input history of 'C-x v P' for certain backends
+which use the same mechanism as 'C-x v !'.
+
 ** Package
 
 +++
