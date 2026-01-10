@@ -673,22 +673,22 @@ untar into a directory named DIR; otherwise, signal an error."
   "Policy to review incoming packages before installing them.
 Reviewing a package allows you to read the source code without
 installing anything, compare it to previous installations of the package
-and read the changelog.  The default value of nil will install packages
+and read the change log.  The default value of nil will install packages
 without any additional prompts, while t reviews all packages.  By
 setting this user option to a list you can also selectively list what
 packages and archives to review.  For the former, an entry of the
-form (archive STRING) will review all packages form the archive
+form (archive STRING) will review all packages from the archive
 STRING (see `package-archives'), and an entry of the form (package
-SYMBOL) will review package who's name matches SYMBOL.  By prefixing the
-list with a symbol `not' the rules are inverted."
+SYMBOL) will review packages whose names match SYMBOL.  If you prefix
+the list with a symbol `not', the rules are inverted."
   :type
-  (let ((choice '(choice :tag "Review all packages form archive"
+  (let ((choice '(choice :tag "Review specific packages or archives"
                          (cons (const archive) (string :tag "Archive name"))
                          (cons (const package) (symbol :tag "Package name")))))
     `(choice
       (const :tag "Review all packages" t)
       (repeat :tag "Review these specific packages and archives" ,choice)
-      (cons :tag "Review the complement of these packages and archives"
+      (cons :tag "Review packages and archives except these"
             (const not) (repeat ,choice))))
   :risky t
   :version "31.1")
@@ -696,11 +696,12 @@ list with a symbol `not' the rules are inverted."
 (defcustom package-review-directory temporary-file-directory
   "Directory to unpack packages for review.
 The value of this user option is used to rebind the variable
-`temporary-file-directory'.  The directory doesn't have to exist.  If
-that is the case, Emacs creates the directory for you.  You can
+`temporary-file-directory'.  The directory doesn't have to exist; if
+it doesn't, Emacs will create the directory for you.  You can
 therefore set the option to
 
-  (setopt package-review-directory (expand-file-name \"emacs\" (xdg-cache-home)))
+  (setopt package-review-directory
+         (expand-file-name \"emacs\" (xdg-cache-home)))
 
 if you wish to have Emacs unpack the packages in your home directory, in
 case you are concerned about moving files between file systems."
@@ -716,18 +717,18 @@ case you are concerned about moving files between file systems."
           "-x" "'*-pkg.el'"             ;ignore the package description
           "-x" "'*.info'"               ;ignore compiled Info files
           ))
-  "Configuration how `package-review' should generate a Diff.
-The structure of the value must be (COMMAND . SWITCHES), where
-`diff-command' is rebound to be COMMAND and SWITCHES are passed to
-`diff' as the SWITCHES argument if the user selects a diff-related
-option during review."
-  :type '(cons (string :tag "Diff command")
-               (repeat :tag "Diff arguments" string))
+  "Configuration of how `package-review' should generate a Diff.
+The structure of the value must be (COMMAND . OPTIONS), where
+`diff-command' is rebound to be COMMAND and OPTIONS are command-line
+switches and arguments passed to `diff-no-select' as the SWITCHES argument
+if the user selects a diff-related option during review."
+  :type '(cons (string :tag "Diff command name")
+               (repeat :tag "Diff command-line arguments" string))
   :version "31.1")
 
 (defun package--review-p (pkg-desc)
   "Return non-nil if upgrading PKG-DESC requires a review.
-This package consults `package-review-policy' to determine if the user
+This function consults `package-review-policy' to determine if the user
 wants to review the package prior to installation.  See `package-review'."
   (let ((archive (package-desc-archive pkg-desc))
         (name (package-desc-name pkg-desc)))
@@ -749,10 +750,10 @@ wants to review the package prior to installation.  See `package-review'."
 (declare-function diff-no-select "diff" (old new &optional switches no-async buf))
 
 (defun package-review (pkg-desc pkg-dir old-desc)
-  "Review the installation of PKG-DESC.
-PKG-DIR is the directory where the downloaded source of PKG-DIR have
+  "Review the package specified PKG-DESC which is about to be installed.
+PKG-DIR is the directory where the downloaded source of PKG-DESC have
 been downloaded.  OLD-DESC is either a `package-desc' object of the
-previous installation or nil, if there is no prior installation.  If the
+previous installation or nil, if there was no prior installation.  If the
 review fails, the function throws a symbol `review-failed' with PKG-DESC
 attached."
   (let ((news (let* ((pkg-dir (package-desc-dir pkg-desc))
