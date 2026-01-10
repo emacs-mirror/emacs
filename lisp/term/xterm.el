@@ -81,7 +81,8 @@ capabilities, and only when that terminal understands bracketed paste."
   :type 'boolean)
 
 (defcustom xterm-update-cursor nil
-  "If non-nil, try to update the cursor's appearance on XTerm terminals.
+  "Whether to try to update cursor appearance on text terminals.
+This works only for Xterm-compatible text terminals.
 
 If set to t all supported attributes of the cursor are updated.
 If set to `type' only the cursor type is updated.  This uses the CSI
@@ -1043,7 +1044,6 @@ We run the first FUNCTION whose STRING matches the input events."
 
 (defun xterm--post-command-hook ()
   "Hook for xterm features that need to be frequently updated."
-
   (unless (display-graphic-p)
     (when xterm-set-window-title
       (xterm-set-window-title))
@@ -1329,25 +1329,22 @@ versions of xterm."
 
 (defun xterm--init-update-cursor ()
   "Register hooks to run `xterm--update-cursor-type' appropriately."
-
   (when (memq xterm-update-cursor '(color t))
     (xterm--query
      "\e]12;?\e\\"
-     '(("\e]12;" . (lambda ()
-                     (let ((str (xterm--read-string ?\e ?\\)))
-                       ;; The response is specifically formated to set the
-                       ;; color
-                       (push
-                        (concat "\e]12;" str "\e\\")
-                        (terminal-parameter nil 'tty-mode-reset-strings)))))))
-    ;; No need to set tty-mode-set-strings because
-    ;; xterm--post-command-hook handles restoring the cursor color.
+     `(("\e]12;" . ,(lambda ()
+                      (let ((str (xterm--read-string ?\e ?\\)))
+                        ;; The response is specifically formated to set the
+                        ;; color
+                        (push
+                         (concat "\e]12;" str "\e\\")
+                         (terminal-parameter nil 'tty-mode-reset-strings)))))))
+    ;; No need to set `tty-mode-set-strings' because
+    ;; `xterm--post-command-hook' handles restoring the cursor color.
 
     (xterm--update-cursor-color))
-
   (when (memq xterm-update-cursor '(type t))
     (xterm--update-cursor-type))
-
   (add-hook 'post-command-hook 'xterm--post-command-hook))
 
 (defconst xterm--cursor-type-to-int
@@ -1357,13 +1354,11 @@ versions of xterm."
     bar 5
     hbar 3)
   "Mapping of cursor type symbols to control sequence integers.
-
 Cursor type symbols are the same as for `cursor-type'.")
 
 (defun xterm--set-cursor-type (terminal type)
   (let ((type-int (or (plist-get xterm--cursor-type-to-int type) 1))
         (old (terminal-parameter terminal 'xterm--cursor-style)))
-
     (when old
       (set-terminal-parameter
        terminal
@@ -1376,7 +1371,6 @@ Cursor type symbols are the same as for `cursor-type'.")
     (unless old
       ;; Assume that the default cursor is appropriate when exiting Emacs.
       (push "\e[0 q" (terminal-parameter terminal 'tty-mode-reset-strings)))
-
     (set-terminal-parameter terminal 'xterm--cursor-type type-int)))
 
 (defun xterm--update-cursor-type ()
@@ -1390,14 +1384,12 @@ This updates the selected frame's terminal based on `cursor-type'."
     (when (consp buffer-cursor) (setf buffer-cursor (car buffer-cursor)))
     (when (consp window-cursor) (setf window-cursor (car window-cursor)))
     (when (consp frame-cursor) (setf frame-cursor (car frame-cursor)))
-
-    (cond
-     ((not (eq window-cursor t))
-      (setf type window-cursor))
-     ((not (eq buffer-cursor t))
-      (setf type buffer-cursor))
-     (t
-      (setf type frame-cursor)))
+    (cond ((not (eq window-cursor t))
+           (setf type window-cursor))
+          ((not (eq buffer-cursor t))
+           (setf type buffer-cursor))
+          (t
+           (setf type frame-cursor)))
     (xterm--set-cursor-type nil type)))
 
 (defun xterm--update-cursor-color ()
