@@ -5471,7 +5471,8 @@ MOVE non-nil means to move instead of copy."
     (with-temp-buffer
       (cond* (patch-string
               (diff-mode)
-              (insert patch-string))
+              (let ((inhibit-read-only t)) ; `diff-default-read-only'.
+                (insert patch-string)))
              ;; Some backends don't tolerate unregistered files
              ;; appearing in the fileset for a diff operation.
              ((bind* (diff-fileset
