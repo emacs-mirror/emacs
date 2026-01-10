@@ -154,17 +154,22 @@ also passed as second argument to SPECIALIZERS-FUNCTION."
                (:constructor cl--generic-make-method
                 (specializers qualifiers call-con function))
                (:predicate nil))
+ "Type of `cl-generic' method objects.
+FUNCTION holds a function containing the actual code of the method.
+SPECIALIZERS holds the list of specializers (as long as the number of
+mandatory arguments of the method).
+QUALIFIERS holds the list of qualifiers.
+CALL-CON indicates the calling convention expected by FUNCTION:
+- nil: FUNCTION is just a normal function with no extra arguments for
+  `call-next-method' or `next-method-p' (which it hence can't use).
+- `curried': FUNCTION is a curried function that first takes the
+  \"next combined method\" and returns the resulting combined method.
+  It can distinguish `next-method-p' by checking if that next method
+  is `cl--generic-isnot-nnm-p'.
+- t: FUNCTION takes the `call-next-method' function as an extra first
+  argument."
   (specializers nil :read-only t :type list)
   (qualifiers   nil :read-only t :type (list-of atom))
-  ;; CALL-CON indicates the calling convention expected by FUNCTION:
-  ;; - nil: FUNCTION is just a normal function with no extra arguments for
-  ;;   `call-next-method' or `next-method-p' (which it hence can't use).
-  ;; - `curried': FUNCTION is a curried function that first takes the
-  ;;   "next combined method" and return the resulting combined method.
-  ;;   It can distinguish `next-method-p' by checking if that next method
-  ;;   is `cl--generic-isnot-nnm-p'.
-  ;; - t: FUNCTION takes the `call-next-method' function as its first (extra)
-  ;;      argument.
   (call-con     nil :read-only t :type symbol)
   (function     nil :read-only t :type function))
 
@@ -181,7 +186,10 @@ also passed as second argument to SPECIALIZERS-FUNCTION."
   ;; The most important dispatch is last in the list (and the least is first).
   (dispatches nil :type (list-of (cons natnum (list-of generalizers))))
   (method-table nil :type (list-of cl--generic-method))
-  (options nil :type list))
+  (options nil :type list)
+  ;; This slot holds the function we put into `symbol-function' before
+  ;; the actual dispatch function has been computed.
+  (lazy-function nil))
 
 (defun cl-generic-function-options (generic)
   "Return the options of the generic function GENERIC."
@@ -658,8 +666,6 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
             ;; Keep the ordering; important for methods with :extra qualifiers.
             (mapcar (lambda (x) (if (eq x (car me)) method x)) mt)))
     (let ((sym (cl--generic-name generic)) ; Actual name (for aliases).
-          ;; FIXME: Try to avoid re-constructing a new function if the old one
-          ;; is still valid (e.g. still empty method cache)?
           (gfun (cl--generic-make-function generic)))
       (cl-pushnew `(cl-defmethod . ,(cl--generic-load-hist-format
                                      (cl--generic-name generic)
@@ -827,9 +833,24 @@ You might need to add: %S"
                        ,@fixedargs args)))))))))
 
 (defun cl--generic-make-function (generic)
-  (cl--generic-make-next-function generic
-                                  (cl--generic-dispatches generic)
-                                  (cl--generic-method-table generic)))
+  "Return the function to put into the `symbol-function' of GENERIC."
+  ;; The function we want is the one that performs the dispatch,
+  ;; but that function depends on the set of methods and needs to be
+  ;; flushed/recomputed when the set of methods changes.
+  ;; To avoid reconstructing such a method N times for N `cl-defmethod',
+  ;; we construct the dispatch function lazily:
+  ;; we first return a "lazy" function, which waits until the
+  ;; first call to the method to really compute the dispatch function,
+  ;; at which point we replace the dummy with the real one.
+  (with-memoization (cl--generic-lazy-function generic)
+    (lambda (&rest args)
+      (let ((real
+             (cl--generic-make-next-function generic
+                                             (cl--generic-dispatches generic)
+                                             (cl--generic-method-table generic))))
+        (let ((current-load-list nil))
+          (defalias (cl--generic-name generic) real))
+        (apply real args)))))
 
 (defun cl--generic-make-next-function (generic dispatches methods)
   (let* ((dispatch
@@ -985,10 +1006,6 @@ FUN is the function that should be called when METHOD calls
     (setq methods (nreverse (mapcar #'cdr (sort methods #'car-less-than-car))))
     (cl--generic-make-next-function generic dispatches-left methods)))
 
-(unless (ignore-errors (cl-generic-generalizers t))
-  ;; Temporary definition to let the next defgenerics succeed.
-  (fset 'cl-generic-combine-methods #'cl--generic-standard-method-combination))
-
 (cl-defgeneric cl-generic-generalizers (specializer)
   "Return a list of generalizers for a given SPECIALIZER.
 To each kind of `specializer', corresponds a `generalizer' which describes
@@ -1031,8 +1048,7 @@ those methods.")
 (unless (ignore-errors (cl-generic-generalizers t))
   ;; Temporary definition to let the next defmethod succeed.
   (fset 'cl-generic-generalizers
-        (lambda (specializer)
-          (if (eq t specializer) (list cl--generic-t-generalizer))))
+        (lambda (_specializer) (list cl--generic-t-generalizer)))
   (fset 'cl-generic-combine-methods #'cl--generic-standard-method-combination))
 
 (cl-defmethod cl-generic-generalizers (specializer)
