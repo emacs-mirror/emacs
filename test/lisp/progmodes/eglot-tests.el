@@ -442,14 +442,68 @@ directory hierarchy."
     (with-current-buffer
         (eglot--find-file-noselect "diag-project/main.c")
       (eglot--sniffing (:server-notifications s-notifs)
-        (eglot--tests-connect)
-        (eglot--wait-for (s-notifs 10)
-            (&key _id method &allow-other-keys)
-          (string= method "textDocument/publishDiagnostics"))
+        (eglot--tests-connect :server "clangd")
         (flymake-start)
+        (eglot--wait-for (s-notifs 10)
+            (&key method &allow-other-keys)
+          (string= method "textDocument/publishDiagnostics"))
         (goto-char (point-min))
         (flymake-goto-next-error 1 '() t)
         (should (eq 'flymake-error (face-at-point)))))))
+
+(ert-deftest eglot-test-basic-pull-diagnostics ()
+  "Test basic diagnostics."
+  (skip-unless (executable-find "ty"))
+  (eglot--with-fixture
+      `(("diag-project" .
+         (("main.py" . "def main:\npuss"))))
+    (with-current-buffer
+        (eglot--find-file-noselect "diag-project/main.py")
+      (eglot--sniffing (:server-replies s-replies)
+        (eglot--tests-connect :server "ty server")
+        (flymake-start)
+        (eglot--wait-for (s-replies 5)
+            (&key _id method &allow-other-keys)
+          (string= method "textDocument/diagnostic"))
+        (goto-char (point-min))
+        (flymake-goto-next-error 1 '() t)
+        (should (eq 'flymake-error (face-at-point)))))))
+
+(ert-deftest eglot-test-basic-stream-diagnostics ()
+  "Test basic diagnostics."
+  (skip-unless (executable-find "rass"))
+  (skip-unless (executable-find "ruff"))
+  (skip-unless (executable-find "ty"))
+  (eglot--with-fixture
+      `(("diag-project" .
+         (("main.py" . "from lib import greet\ndef main():\n    greet()")
+          ("lib.py" . "def geet():\n    print('hello')"))))
+    (set-buffer (eglot--find-file-noselect "diag-project/main.py"))
+    (eglot--sniffing (:server-notifications s-notifs)
+      (eglot--tests-connect :server "rass -- ty server -- ruff server")
+      (flymake-start)
+      (cl-loop repeat 2 ;; 2 stream notifs for 2 rass servers
+               do (eglot--wait-for (s-notifs 5)
+                      (&key method &allow-other-keys)
+                    (string= method "$/streamDiagnostics")))
+      (goto-char (point-min))
+      (flymake-goto-next-error 1 '() t)
+      (should (eq 'flymake-error (face-at-point))))
+
+    ;; Now fix it
+    (set-buffer (eglot--find-file-noselect "lib.py"))
+    (search-forward "geet")
+    (replace-match "greet")
+    (eglot--sniffing (:server-notifications s-notifs)
+      (eglot--signal-textDocument/didChange)
+      (set-buffer (eglot--find-file-noselect "main.py"))
+      (flymake-start)
+      (cl-loop repeat 2
+               do (eglot--wait-for (s-notifs 5)
+                      (&key method &allow-other-keys)
+                    (string= method "$/streamDiagnostics")))
+      (goto-char (point-min))
+      (should-error (flymake-goto-next-error 1 '() t)))))
 
 (ert-deftest eglot-test-basic-symlink ()
   "Test basic symlink support."
