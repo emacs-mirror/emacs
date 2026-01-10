@@ -2777,8 +2777,10 @@ sessions.
 @vindex filesets-commands
   You can use the command @kbd{M-x filesets-open} to visit all the
 files in a fileset, and @kbd{M-x filesets-close} to close them.  Use
-@kbd{M-x filesets-run-cmd} to run a command (such as @code{multi-isearch-files} or @command{grep}) on all the files in
-a fileset.  These commands, which are specified in @code{filesets-commands}, are also available from the @samp{Filesets}
+@kbd{M-x filesets-run-cmd} to run a command (such as
+@code{multi-isearch-files} or @command{grep}) on all the files in
+a fileset.  These commands, which are specified in
+@code{filesets-commands}, are also available from the @samp{Filesets}
 menu, where each existing fileset is represented by a submenu.
 
    @xref{Version Control}, for a different concept of filesets:
