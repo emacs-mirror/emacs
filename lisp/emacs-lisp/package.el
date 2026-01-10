@@ -793,7 +793,9 @@ attached."
                 ;; prepare mail buffer
                 (let ((tmp-buf (current-buffer)))
                   (compose-mail (with-demoted-errors "Failed to find maintainers: %S"
-                                  (package-maintainers pkg-desc)))
+                                  (package-maintainers pkg-desc))
+                                (concat "Emacs Package Review: "
+                                        (package-desc-full-name pkg-desc)))
                   (pcase mail-user-agent
                     ('sendmail-user-agent (mail-text))
                     (_ (message-goto-body)))
