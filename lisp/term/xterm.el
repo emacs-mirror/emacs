@@ -1334,8 +1334,8 @@ versions of xterm."
      "\e]12;?\e\\"
      `(("\e]12;" . ,(lambda ()
                       (let ((str (xterm--read-string ?\e ?\\)))
-                        ;; The response is specifically formated to set the
-                        ;; color
+                        ;; The response is specifically formatted to set
+                        ;; the color.
                         (push
                          (concat "\e]12;" str "\e\\")
                          (terminal-parameter nil 'tty-mode-reset-strings)))))))
