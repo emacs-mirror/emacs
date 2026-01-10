@@ -238,39 +238,47 @@ directory hierarchy."
                ,@body)
            (remove-hook 'jsonrpc-event-hook #',log-event-hook-sym))))))
 
-(cl-defmacro eglot--wait-for ((events-sym &optional (timeout 1) message) args &body body)
+(cl-defmacro eglot--wait-for ((events-sym &optional (timeout 1) message)
+                              args &body body)
   (declare (indent 2) (debug (sexp sexp sexp &rest form)))
-  `(eglot--with-timeout '(,timeout ,(or message
-                                        (format "waiting for:\n%s" (pp-to-string body))))
+  `(eglot--with-timeout '(,timeout
+                          ,(or message
+                               (format "waiting for:\n%s" (pp-to-string body))))
      (eglot--test-message "waiting for `%s'" (with-output-to-string
                                                (mapc #'princ ',body)))
-     (let ((events
-            (cl-loop thereis (cl-loop for json in ,events-sym
-                                      for method = (plist-get json :method)
-                                      when (keywordp method)
-                                      do (plist-put json :method
-                                                    (substring
-                                                     (symbol-name method)
-                                                     1))
-                                      when (funcall
-                                            (jsonrpc-lambda ,args ,@body) json)
-                                      return (cons json before)
-                                      collect json into before)
-                     for i from 0
-                     when (zerop (mod i 5))
-                     ;; do (eglot--test-message "still struggling to find in %s"
-                     ;;                         ,events-sym)
-                     do
-                     ;; `read-event' is essential to have the file
-                     ;; watchers come through.
-                     (cond ((fboundp 'flush-standard-output)
-                            (read-event nil nil 0.1) (princ ".")
-                            (flush-standard-output))
-                           (t
-                            (read-event "." nil 0.1)))
-                     (accept-process-output nil 0.1))))
-       (setq ,events-sym (cdr events))
-       (cl-destructuring-bind (&key method id &allow-other-keys) (car events)
+     (let ((probe
+            (cl-loop
+             thereis
+             (cl-loop for (json . tail) on ,events-sym
+                      for method = (plist-get json :method)
+                      when (keywordp method)
+                      do (plist-put
+                          json :method (substring (symbol-name method) 1))
+                      when (funcall (jsonrpc-lambda ,args ,@body) json)
+                      return json
+                      do
+                      (unless
+                          ;; $/progress is *truly* uninteresting and spammy
+                          (and (string-match "$/progress" (format "%s" method)))
+                        (eglot--test-message
+                         "skip uninteresting event %s[%s]"
+                         (plist-get json :method)
+                         (plist-get json :id)))
+                      finally (setq ,events-sym tail))
+             for i from 0
+             when (zerop (mod i 5))
+             ;; do (eglot--test-message "still struggling to find in %s"
+             ;;                         ,events-sym)
+             do
+             ;; `read-event' is essential to have the file
+             ;; watchers come through.
+             (cond ((fboundp 'flush-standard-output)
+                    (read-event nil nil 0.1) (princ ".")
+                    (flush-standard-output))
+                   (t
+                    (read-event "." nil 0.1)))
+             (accept-process-output nil 0.1))))
+       (cl-destructuring-bind (&key method id &allow-other-keys) probe
          (eglot--test-message "detected: %s"
                               (or method (and id (format "id=%s" id))))))))
 
@@ -286,10 +294,13 @@ directory hierarchy."
   (define-derived-mode typescript-mode prog-mode "TypeScript")
   (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode)))
 
-(defun eglot--tests-connect (&optional timeout)
+(cl-defun eglot--tests-connect (&key timeout server)
   (let* ((timeout (or timeout 10))
          (eglot-sync-connect t)
-         (eglot-connect-timeout timeout))
+         (eglot-connect-timeout timeout)
+         (eglot-server-programs
+          (if server `((,major-mode . ,(string-split server)))
+            eglot-server-programs)))
     (apply #'eglot--connect (eglot--guess-contact))))
 
 (defun eglot--simulate-key-event (char)
@@ -317,7 +328,7 @@ directory hierarchy."
     (with-current-buffer
         (eglot--find-file-noselect "project/src/main/java/foo/Main.java")
       (eglot--sniffing (:server-notifications s-notifs)
-        (should (eglot--tests-connect 20))
+        (should (eglot--tests-connect :timeout 20))
         (eglot--wait-for (s-notifs 10)
             (&key _id method &allow-other-keys)
           (string= method "language/status"))))))
@@ -1069,7 +1080,7 @@ int main() {
       (let ((eglot-sync-connect t)
             (eglot-server-programs
              `((c-mode . ("sh" "-c" "sleep 1 && clangd")))))
-        (should (eglot--tests-connect 3))))))
+        (should (eglot--tests-connect :timeout 3))))))
 
 (ert-deftest eglot-test-slow-sync-connection-intime ()
   "Connect synchronously with `eglot-sync-connect' set to 2."
@@ -1081,7 +1092,7 @@ int main() {
       (let ((eglot-sync-connect 2)
             (eglot-server-programs
              `((c-mode . ("sh" "-c" "sleep 1 && clangd")))))
-        (should (eglot--tests-connect 3))))))
+        (should (eglot--tests-connect :timeout 3))))))
 
 (ert-deftest eglot-test-slow-async-connection ()
   "Connect asynchronously with `eglot-sync-connect' set to 2."
