@@ -875,6 +875,7 @@ If the prefix ARG is given, restrict the view to the current file instead."
   (apply #'narrow-to-region
 	 (if arg (diff-bounds-of-file) (diff-bounds-of-hunk)))
   (setq-local diff-narrowed-to (if arg 'file 'hunk)))
+(put 'diff-restrict-view 'disabled t)
 
 (defun diff--some-hunks-p ()
   (save-excursion

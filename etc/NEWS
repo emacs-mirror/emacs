@@ -2825,6 +2825,13 @@ already have, consider replacing the default global bindings, like this:
 ---
 *** New command alias 'vc-restore' for 'vc-revert'.
 
+---
+*** The 'diff-restrict-view' command is disabled by default.
+This command is Diff mode's specialized 'narrow-to-region'.
+'narrow-to-region' has long been disabled by default, so for
+consistency, 'diff-restrict-view' is now too.
+To enable it again, use 'M-x enable-command'.
+
 ** Package
 
 +++
