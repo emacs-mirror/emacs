@@ -2667,14 +2667,16 @@ still unanswered LSP requests to the server\n"))))
       (cl-loop
        for pr hash-values of (eglot--progress-reporters server)
        when (eq (car pr) 'eglot--mode-line-reporter)
-       collect (eglot--mode-line-props
-                (format "%s%%%%" (or (nth 4 pr) "?"))
-                'eglot-mode-line
-                nil
-                (format "(%s) %s %s" (nth 1 pr)
-                        (nth 2 pr) (nth 3 pr)))
-       into reports
-       finally (return (mapconcat #'identity reports " /")))))
+       for v = (nth 4 pr)
+       when v sum 1 into n and sum v into acc
+       collect (format "(%s) %s %s" (nth 1 pr) (nth 2 pr) (nth 3 pr))
+       into blurbs finally return
+       (unless (zerop n)
+         (eglot--mode-line-props
+          (format "%d%%%%" (/ acc n 1.0))
+          'eglot-mode-line
+          nil
+          (mapconcat #'identity blurbs "\n"))))))
   "Eglot mode line construct for LSP progress reports.")
 
 (defconst eglot-mode-line-action-suggestion
