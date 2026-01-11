@@ -2172,21 +2172,22 @@ MARKUP is either an LSP MarkedString or MarkupContent object."
       (setq-local markdown-fontify-code-blocks-natively t)
       (insert string)
       (let ((inhibit-message t)
-            (message-log-max nil)
-            match)
+            (message-log-max nil))
         (ignore-errors (delay-mode-hooks (funcall render-mode)))
         (font-lock-ensure)
         (goto-char (point-min))
         (let ((inhibit-read-only t))
-          (when (fboundp 'text-property-search-forward)
-            ;; If `render-mode' is `gfm-view-mode', the `invisible'
-            ;; regions are set to `markdown-markup'.  Set them to 't'
-            ;; instead, since this has actual meaning in the "*eldoc*"
-            ;; buffer where we're taking this string (#bug79552).
-            (while (setq match (text-property-search-forward 'invisible))
-              (put-text-property (prop-match-beginning match)
-                                 (prop-match-end match)
-                                 'invisible t))))
+          ;; If `render-mode' is `gfm-view-mode', the `invisible'
+          ;; regions are set to `markdown-markup'.  Set them to 't'
+          ;; instead, since this has actual meaning in the "*eldoc*"
+          ;; buffer where we're taking this string (#bug79552).
+          (cl-loop for from = (point) then to
+                   while (< from (point-max))
+                   for inv = (get-text-property from 'invisible)
+                   for to = (or (next-single-property-change from 'invisible)
+                                (point-max))
+                   when inv
+                   do (put-text-property from to 'invisible t)))
         (string-trim (buffer-string))))))
 
 (defun eglot--read-server (prompt &optional dont-if-just-the-one)
@@ -5125,12 +5126,12 @@ lock machinery calls us again."
    (with-silent-modifications
      (save-excursion
        (cl-loop
-        initially (goto-char beg)
-        for match = (text-property-search-forward 'eglot--semtok-faces)
-        while (and match (< (point) end))
-        do (dolist (f (prop-match-value match))
-             (add-face-text-property
-              (prop-match-beginning match) (prop-match-end match) f)))))))
+        for from = beg then to
+        while (< from end)
+        for faces = (get-text-property from 'eglot--semtok-faces)
+        for to = (or (next-single-property-change from 'eglot--semtok-faces nil end) end)
+        when faces
+        do (dolist (f faces) (add-face-text-property from to f)))))))
 
 
 ;;; Call and type hierarchies

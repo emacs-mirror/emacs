@@ -1576,7 +1576,14 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
       '(3 "Timeout waiting for semantic tokens")
     (while (not (save-excursion
                   (goto-char pos)
-                  (text-property-search-forward 'eglot--semtok-faces)))
+                  (cl-loop
+                   for from = (point) then to
+                   while (< from (point-max))
+                   for faces = (get-text-property from 'eglot--semtok-faces)
+                   for to = (or (next-single-property-change
+                                 from 'eglot--semtok-faces)
+                                (point-max))
+                   when faces return t)))
       (accept-process-output nil 0.1)
       (font-lock-ensure))))
 
