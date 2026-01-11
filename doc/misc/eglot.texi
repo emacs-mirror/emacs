@@ -766,6 +766,22 @@ serve hints about positional parameter names in function calls and a
 variable's automatically deduced type.  Inlay hints help the user not
 have to remember these things by heart.
 
+@cindex momentary inlay hints
+@item eglot-momentary-inlay-hints
+When bound to a single key in @code{eglot-mode-map}
+(@pxref{Customization Variables}), this will arrange for inlay hints to
+be displayed as long as the key is held down, and then hidden shortly
+after it is released.  The best way to set it up is something like this:
+
+@lisp
+(define-key eglot-mode-map [f7] 'eglot-momentary-inlay-hints)
+@end lisp
+
+@noindent
+Note that Emacs doesn't support binding to \"key up\" events, so this
+command offers an approximation by estimating your system keyboard delay
+and repeat rate.
+
 @cindex semantic tokens
 @item M-x eglot-semantic-tokens-mode
 This command toggles LSP @dfn{semantic tokens} fontification on and off
@@ -978,6 +994,7 @@ For example:
   (define-key eglot-mode-map (kbd "C-c o") 'eglot-code-action-organize-imports)
   (define-key eglot-mode-map (kbd "C-c h") 'eldoc)
   (define-key eglot-mode-map (kbd "<f6>") 'xref-find-definitions)
+  (define-key eglot-mode-map (kbd "<f7>") 'eglot-momentary-inlay-hints)
 @end lisp
 
 @cindex progress

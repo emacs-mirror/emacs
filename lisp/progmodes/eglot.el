@@ -4882,6 +4882,45 @@ If NOERROR, return predicate, else erroring function."
          (jit-lock-unregister #'eglot--update-hints)
          (eglot--delete-overlays 'eglot--inlay-hint))))
 
+(defvar eglot--momentary-hints-data (list nil nil nil 0 nil))
+
+(defun eglot-momentary-inlay-hints ()
+  "Display inlay hints while holding down a key.
+Emacs doesn't support binding to \"key up\" events, but this function
+offers an approximation.  When bound to a key it will arrange for inlay
+hints to be displayed as long as the key is held down, and then hidden
+shortly after it is released.  This relies on measuring your keyboard
+initial delay and repeat rate, and may not be 100% accurate."
+  (interactive)
+  (when eglot-inlay-hints-mode
+    (eglot-inlay-hints-mode -1))
+  (cl-symbol-macrolet
+      ((timer (nth 0 eglot--momentary-hints-data))
+       (initial-delay (nth 1 eglot--momentary-hints-data))
+       (repeat-delay (nth 2 eglot--momentary-hints-data))
+       (calls (nth 3 eglot--momentary-hints-data))
+       (last-call-time (nth 4 eglot--momentary-hints-data)))
+    (cl-incf calls)
+    (cl-flet ((runit (delay)
+                (setf timer
+                      (run-at-time (+ 0.1 delay)
+                                   nil (lambda ()
+                                         (dolist (o (overlays-in (point-min) (point-max)))
+                                           (when (overlay-get o 'eglot--inlay-hint)
+                                             (delete-overlay o)))
+                                         (setf timer nil calls 0)))
+                      last-call-time (float-time))))
+      (cond ((timerp timer)
+             (when (and (not initial-delay) (= calls 2))
+               (setf initial-delay (- (float-time) last-call-time)))
+             (when (and (not repeat-delay) (= calls 3))
+               (setf repeat-delay (- (float-time) last-call-time)))
+             (cancel-timer timer)
+             (runit (or repeat-delay 0.5)))
+          (t
+           (eglot--update-hints-1 (window-start) (window-end))
+           (runit (or initial-delay 1.0)))))))
+
 
 ;;; Semantic tokens
 (defmacro eglot--semtok-define-things ()

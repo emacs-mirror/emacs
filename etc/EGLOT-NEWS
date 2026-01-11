@@ -49,6 +49,15 @@ requests diagnostics explicitly rather than relying on sporadic
 server is known to support the "pull" variant exclusively, while the
 'ty' server is known to support it alongside "push".
 
+** New command 'eglot-momentary-inlay-hints'
+
+When bound to a single key in 'eglot-mode-map' this will arrange for
+inlay hints to be displayed as long as the key is held down, and then
+hidden shortly after it is released.  Emacs doesn't support binding to
+\"key up\" events, but this function offers an approximation.  It relies
+on measuring your keyboard initial delay and repeat rate, and may not be
+100% accurate.
+
 ** Support for watching files outside the project (bug#79809)
 
 Eglot now supports and advertises the 'relativePatternSupport'
