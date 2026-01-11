@@ -18,7 +18,7 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
-* Changes to upcoming Eglot
+* Changes in Eglot 1.20 (11/1/2026)
 
 ** Dramatically faster handling of files with many diagnostics
 
