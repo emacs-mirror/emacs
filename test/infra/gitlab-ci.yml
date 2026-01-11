@@ -90,7 +90,6 @@ default:
      -e EMACS_TEST_JUNIT_REPORT=${EMACS_TEST_JUNIT_REPORT}
      -e EMACS_TEST_TIMEOUT=${EMACS_TEST_TIMEOUT}
      -e EMACS_TEST_VERBOSE=${EMACS_TEST_VERBOSE}
-     -e NPROC=`nproc`
      -e http_proxy=${http_proxy}
      -e https_proxy=${https_proxy}
      -e no_proxy=${no_proxy}
@@ -104,8 +103,8 @@ default:
         git diff --name-only FETCH_HEAD &&
         ( git diff --name-only FETCH_HEAD |
           xargs git checkout -f FETCH_HEAD ) &&
-        make -j \$NPROC &&
-        make -k -j \$NPROC ${make_params}"'
+        make &&
+        make -k ${make_params}"'
   after_script:
     # - docker ps -a
     # - pwd; printenv

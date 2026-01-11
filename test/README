@@ -33,6 +33,10 @@ The following examples expect this directory as the current working
 directory.  If you call make from Emacs' root directory, use "make -C
 test" instead.
 
+Running several tests in parallel could result in unexpected side
+effects with ephemeral test errors.  Therefore, it is recommend not to
+use "make -j".
+
 The Makefile sets the environment variable $EMACS_TEST_DIRECTORY,
 which points to this directory.  This environment variable does not
 exist when the tests are run outside make.  The Makefile supports the
