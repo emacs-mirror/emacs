@@ -4341,14 +4341,24 @@ edit proposed by the server."
            (t
             (apply))))))))
 
+(cl-defun eglot--rename-interactive (&aux region)
+  (eglot-server-capable-or-lose :renameProvider)
+  (let* ((probe (eglot--request (eglot--current-server-or-lose)
+                                :textDocument/prepareRename
+                                (eglot--TextDocumentPositionParams)))
+         (def
+          (cond ((null probe) (user-error "[eglot] Can't rename here"))
+                ((plist-get probe :placeholder))
+                ((plist-get probe :defaultBehavior) (thing-at-point 'symbol t))
+                ((setq region (eglot-range-region probe))
+                 (buffer-substring-no-properties (car region) (cdr region))))))
+    (list (read-from-minibuffer
+           (format "Rename `%s' to: " (or def "unknown symbol"))
+           nil nil nil nil def))))
+
 (defun eglot-rename (newname)
   "Rename the current symbol to NEWNAME."
-  (interactive
-   (let ((tap (thing-at-point 'symbol t)))
-     (list (read-from-minibuffer
-            (format "Rename `%s' to: " (or tap "unknown symbol"))
-            nil nil nil nil tap))))
-  (eglot-server-capable-or-lose :renameProvider)
+  (interactive (eglot--rename-interactive))
   (eglot--apply-workspace-edit
    (eglot--request (eglot--current-server-or-lose)
                    :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
