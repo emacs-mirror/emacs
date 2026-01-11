@@ -62,8 +62,12 @@ is selected."
 
 (defface tab-line-tab
   '((default :inherit tab-line)
-    (((class color) (min-colors 88))
+    (((class color) (min-colors 88) (background light))
      :box (:line-width 1 :style released-button))
+    (((class color) (min-colors 88) (background dark))
+     :box (:line-width 1 :style released-button)
+     :background "grey40"
+     :foreground "white")
     (t :inverse-video nil))
   "Tab line face for selected tab."
   :version "27.1"
@@ -71,8 +75,10 @@ is selected."
 
 (defface tab-line-tab-inactive
   '((default :inherit tab-line-tab)
-    (((class color) (min-colors 88))
+    (((class color) (min-colors 88) (background light))
      :background "grey75")
+    (((class color) (min-colors 88) (background dark))
+     :background "grey20")
     (t :inverse-video t))
   "Tab line face for non-selected tab."
   :version "27.1"
@@ -115,17 +121,23 @@ function `tab-line-tab-face-group'."
 
 (defface tab-line-tab-current
   '((default :inherit tab-line-tab)
-    (((class color) (min-colors 88))
-     :background "grey85"))
+    (((class color) (min-colors 88) (background light))
+     :background "grey85")
+    (((class color) (min-colors 88) (background dark))
+     :background "grey40"))
   "Tab line face for tab with current buffer in selected window."
   :version "27.1"
   :group 'tab-line-faces)
 
 (defface tab-line-highlight
-  '((((class color) (min-colors 88))
+  '((((class color) (min-colors 88) (background light))
      :box (:line-width 1 :style released-button)
      :background "grey85"
      :foreground "black")
+    (((class color) (min-colors 88) (background dark))
+     :box (:line-width 1 :style released-button)
+     :background "grey40"
+     :foreground "white")
     (t :inverse-video nil))
   "Tab line face for highlighting."
   :version "27.1"
