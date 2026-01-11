@@ -5018,11 +5018,11 @@ See `eglot--semtok-request' implementation for details.")
 
 (defun eglot--semtok-after-send-changes ()
   ;; (trace-values "Dispatching")
-  (setf (plist-get eglot--semtok-state :dispatched) t))
+  (setf (cl-getf eglot--semtok-state :dispatched) t))
 
 (cl-defun eglot--semtok-request (beg end &aux (docver eglot--docver))
   "Ask for tokens.  Arrange for BEG..END to be font-lock flushed."
-  (cl-macrolet ((c (tag) `(plist-get eglot--semtok-state ,tag)))
+  (cl-macrolet ((c (tag) `(cl-getf eglot--semtok-state ,tag)))
     (cl-labels
         ((req (method &optional params cont
                       &aux (buf (current-buffer)))
