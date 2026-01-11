@@ -4514,6 +4514,13 @@ def __PYTHON_EL_get_completions(text):
   "Code used to setup completion in inferior Python processes."
   :type 'string)
 
+(defun python-shell-completion-send-setup-code ()
+  "Send `python-shell-completion-setup-code' to inferior Python process."
+  (python-shell-send-string-no-output python-shell-completion-setup-code))
+
+(add-hook 'python-shell-first-prompt-hook
+          #'python-shell-completion-send-setup-code)
+
 (define-obsolete-variable-alias
   'python-shell-completion-module-string-code
   'python-shell-completion-string-code
@@ -4844,8 +4851,7 @@ With argument MSG show activation/deactivation message."
   (with-current-buffer (process-buffer process)
     (let ((completions
            (python-shell-send-string-no-output
-            (format "%s\nprint(__PYTHON_EL_get_completions(%s))"
-                    python-shell-completion-setup-code
+            (format "print(__PYTHON_EL_get_completions(%s))"
                     (python-shell--encode-string input))
             process)))
       (condition-case nil
