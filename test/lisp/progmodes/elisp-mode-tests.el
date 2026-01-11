@@ -407,7 +407,7 @@ to (xref-elisp-test-descr-to-target xref)."
   ;; cl-defstruct location.
   (list
    (cons
-    (xref-make "(cl-defstruct (xref-elisp-location (:constructor xref-make-elisp-location)))"
+    (xref-make "(cl-defstruct xref-elisp-location (:constructor xref-make-elisp-location))"
                (xref-make-elisp-location
                 'xref-elisp-location 'define-type
                 (expand-file-name "../../../lisp/progmodes/elisp-mode.el" emacs-test-dir)))

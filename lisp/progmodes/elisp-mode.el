@@ -1249,17 +1249,13 @@ functions are annotated with \"<f>\" via the
 
 (defun elisp--xref-backend () 'elisp)
 
-;; WORKAROUND: This is nominally a constant, but the text properties
-;; are not preserved thru dump if use defconst.  See bug#21237.
-(defvar elisp--xref-format
-  #("(%s %s)"
+(defconst elisp--xref-format
+  #("(%S %S)"
     1 3 (face font-lock-keyword-face)
     4 6 (face font-lock-function-name-face)))
 
-;; WORKAROUND: This is nominally a constant, but the text properties
-;; are not preserved thru dump if use defconst.  See bug#21237.
-(defvar elisp--xref-format-extra
-  #("(%s %s %s)"
+(defconst elisp--xref-format-extra
+  #("(%S %S %S)"
     1 3 (face font-lock-keyword-face)
     4 6 (face font-lock-function-name-face)))
 
@@ -1539,22 +1535,28 @@ namespace but with lower confidence."
               ;; defined in C; the doc strings from the C source have
               ;; not been loaded yet.  Second call will return "src/*.c"
               ;; in file; handled by t case below.
-              (push (elisp--xref-make-xref nil symbol (help-C-file-name (symbol-function symbol) 'subr)) xrefs))
+              (push (elisp--xref-make-xref
+                     nil symbol (help-C-file-name (symbol-function symbol)
+                                                  'subr))
+                    xrefs))
 
              ((and (setq doc (documentation symbol t))
                    ;; This doc string is defined in cl-macs.el cl-defstruct
-                   (string-match "Constructor for objects of type `\\(.*\\)'" doc))
+                   ;; FIXME: This is hideously brittle!
+                   (string-match "Constructor for objects of type `\\(.*\\)'"
+                                 doc))
               ;; `symbol' is a name for the default constructor created by
               ;; cl-defstruct, so return the location of the cl-defstruct.
               (let* ((type-name (match-string 1 doc))
                      (type-symbol (intern type-name))
-                     (file (find-lisp-object-file-name type-symbol 'define-type))
+                     (file (find-lisp-object-file-name
+                            type-symbol 'define-type))
                      (summary (format elisp--xref-format-extra
-                                      'cl-defstruct
-                                      (concat "(" type-name)
-                                      (concat "(:constructor " (symbol-name symbol) "))"))))
-                (push (elisp--xref-make-xref 'define-type type-symbol file summary) xrefs)
-                ))
+                                      'cl-defstruct type-symbol
+                                      `(:constructor ,symbol))))
+                (push (elisp--xref-make-xref 'define-type type-symbol
+                                             file summary)
+                      xrefs)))
 
              ((setq generic (cl--generic symbol))
               ;; FIXME: move this to elisp-xref-find-def-functions, in cl-generic.el
@@ -1585,22 +1587,28 @@ namespace but with lower confidence."
                     ;; Default method has all t in specializers.
                     (setq non-default (or non-default (not (equal t item)))))
 
-                  (when (and file
-                             (or non-default
-                                 (nth 2 info))) ;; assuming only co-located default has null doc string
+                  ;; Assuming only co-located default has null doc string
+                  (when (and file (or non-default (nth 2 info)))
                     (if specializers
-                        (let ((summary (format elisp--xref-format-extra 'cl-defmethod symbol (nth 1 info))))
-                          (push (elisp--xref-make-xref 'cl-defmethod met-name file summary) xrefs))
+                        (let ((summary (format elisp--xref-format-extra
+                                               'cl-defmethod symbol
+                                               (nth 1 info))))
+                          (push (elisp--xref-make-xref 'cl-defmethod met-name
+                                                       file summary)
+                                xrefs))
 
-                      (let ((summary (format elisp--xref-format-extra 'cl-defmethod symbol "()")))
-                        (push (elisp--xref-make-xref 'cl-defmethod met-name file summary) xrefs))))
+                      (let ((summary (format elisp--xref-format-extra
+                                             'cl-defmethod symbol ())))
+                        (push (elisp--xref-make-xref 'cl-defmethod met-name
+                                                     file summary)
+                              xrefs))))
                   ))
 
-              (if (and (setq doc (documentation symbol t))
-                       ;; This doc string is created somewhere in
-                       ;; cl--generic-make-function for an implicit
-                       ;; defgeneric.
-                       (string-match "\n\n(fn ARG &rest ARGS)" doc))
+              ;; FIXME: We rely on the fact that `cl-defgeneric' sets
+              ;; a `function-documentation' property (via the third arg of
+              ;; `defalias'), whereas implicit declaration of a generic via
+              ;; `cl-defmethod' doesn't.
+              (if (null (get symbol 'function-documentation))
                   ;; This symbol is an implicitly defined defgeneric, so
                   ;; don't return it.
                   nil
@@ -2238,7 +2246,6 @@ Intended for `eldoc-documentation-functions' (which see)."
 (defcustom elisp-eldoc-docstring-length-limit 1000
   "Maximum length of doc strings displayed by elisp ElDoc functions."
   :type 'natnum
-  :group 'elisp
   :version "31.1")
 
 (defcustom elisp-eldoc-funcall-with-docstring-length 'short
@@ -2248,7 +2255,6 @@ Otherwise if set to `full', display full doc string."
   :type '(choice
           (const :tag "Short" short)
           (const :tag "Full" full))
-  :group 'elisp
   :version "31.1")
 
 (defun elisp-eldoc-funcall-with-docstring (callback &rest _ignored)

@@ -80,6 +80,7 @@
 (ert-deftest pcase-tests-quote-optimization ()
   ;; FIXME: We could/should also test that we get a corresponding
   ;; "shadowed branch" warning.
+  (require 'byte-opt) ;; FIXME: Needed for pcase to see that `consp' is `pure'.
   (should-not (pcase-tests-grep
                'FOO (macroexpand '(pcase EXP
                                     (`(,_ . ,_) (BAR))

@@ -324,6 +324,9 @@ DEFAULT-BODY, if present, is used as the body of a default method.
            ,@warnings
            (defalias ',name
              (cl-generic-define ',name ',args ',(nreverse options))
+             ;; FIXME: This docstring argument is used as circumstantial
+             ;; evidence that this generic function was defined via
+             ;; `cl-defgeneric' rather than only `cl-defmethod's.
              ,(if (consp doc)           ;An expression rather than a constant.
                   `(help-add-fundoc-usage ,doc ',args)
                 (help-add-fundoc-usage doc args)))
@@ -844,12 +847,18 @@ You might need to add: %S"
   ;; at which point we replace the dummy with the real one.
   (with-memoization (cl--generic-lazy-function generic)
     (lambda (&rest args)
-      (let ((real
-             (cl--generic-make-next-function generic
-                                             (cl--generic-dispatches generic)
-                                             (cl--generic-method-table generic))))
-        (let ((current-load-list nil))
-          (defalias (cl--generic-name generic) real))
+      (let* ((real
+              (cl--generic-make-next-function generic
+                                              (cl--generic-dispatches generic)
+                                              (cl--generic-method-table generic)))
+             (sym (cl--generic-name generic))
+             (old-adv-cc (get-advertised-calling-convention
+                          (symbol-function sym))))
+        (when (listp old-adv-cc)
+          (set-advertised-calling-convention real old-adv-cc nil))
+        (when (symbol-function sym)
+          (let ((current-load-list nil))
+            (defalias sym real)))
         (apply real args)))))
 
 (defun cl--generic-make-next-function (generic dispatches methods)
