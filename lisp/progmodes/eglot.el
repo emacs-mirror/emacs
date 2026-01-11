@@ -1132,7 +1132,7 @@ object."
              :rangeFormatting    `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
              :semanticTokens     `(:dynamicRegistration :json-false
-                                   :requests '(:full (:delta t))
+                                   :requests (:full (:delta t))
                                    :overlappingTokenSupport t
                                    :multilineTokenSupport t
                                    :tokenTypes [,@eglot-semantic-token-types]
