@@ -4836,8 +4836,6 @@ It also runs the string through `yank-transform-functions'."
 		       (get-text-property 0 'yank-handler string)))
 	 (param (or (nth 1 handler) string))
 	 (opoint (point))
-	 (inhibit-read-only inhibit-read-only)
-         (inhibit-modification-hooks inhibit-modification-hooks)
 	 end)
 
     ;; FIXME: This throws away any yank-undo-function set by previous calls
@@ -4848,18 +4846,14 @@ It also runs the string through `yank-transform-functions'."
       (insert param))
     (setq end (point))
 
-    ;; Prevent read-only properties from interfering with the following
-    ;; text property changes, and inhibit further modification hook
-    ;; calls.
-    (setq inhibit-read-only t inhibit-modification-hooks t)
+    (with-silent-modifications
+      (unless (nth 2 handler)           ; NOEXCLUDE
+        (remove-yank-excluded-properties opoint end))
 
-    (unless (nth 2 handler) ; NOEXCLUDE
-      (remove-yank-excluded-properties opoint end))
-
-    ;; If last inserted char has properties, mark them as rear-nonsticky.
-    (if (and (> end opoint)
-	     (text-properties-at (1- end)))
-	(put-text-property (1- end) end 'rear-nonsticky t))
+      ;; If last inserted char has properties, mark them as rear-nonsticky.
+      (if (and (> end opoint)
+	       (text-properties-at (1- end)))
+	  (put-text-property (1- end) end 'rear-nonsticky t)))
 
     (if (eq yank-undo-function t)		   ; not set by FUNCTION
 	(setq yank-undo-function (nth 3 handler))) ; UNDO
