@@ -2104,6 +2104,31 @@ argument.  */)
   return list;
 }
 
+/* Like Fdelq but do not report errors and neither quit nor process
+   signals.  Use only on objects known to be non-circular lists.  */
+Lisp_Object
+delq_no_quit (Lisp_Object elt, Lisp_Object list)
+{
+  Lisp_Object prev = Qnil, tail = list;
+
+  for (; !NILP (tail); tail = XCDR (tail))
+    {
+      Lisp_Object tem = XCAR (tail);
+
+      if (EQ (elt, tem))
+	{
+	  if (NILP (prev))
+	    list = XCDR (tail);
+	  else
+	    Fsetcdr (prev, XCDR (tail));
+	}
+      else
+	prev = tail;
+    }
+
+  return list;
+}
+
 DEFUN ("delete", Fdelete, Sdelete, 2, 2, 0,
        doc: /* Delete members of SEQ which are `equal' to ELT, and return the result.
 SEQ must be a sequence (i.e. a list, a vector, or a string).
