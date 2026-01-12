@@ -70,7 +70,7 @@ is selected."
      :foreground "white")
     (t :inverse-video nil))
   "Tab line face for selected tab."
-  :version "27.1"
+  :version "31.1"
   :group 'tab-line-faces)
 
 (defface tab-line-tab-inactive
@@ -81,7 +81,7 @@ is selected."
      :background "grey20")
     (t :inverse-video t))
   "Tab line face for non-selected tab."
-  :version "27.1"
+  :version "31.1"
   :group 'tab-line-faces)
 
 (defface tab-line-tab-inactive-alternate
@@ -126,7 +126,7 @@ function `tab-line-tab-face-group'."
     (((class color) (min-colors 88) (background dark))
      :background "grey40"))
   "Tab line face for tab with current buffer in selected window."
-  :version "27.1"
+  :version "31.1"
   :group 'tab-line-faces)
 
 (defface tab-line-highlight
@@ -140,7 +140,7 @@ function `tab-line-tab-face-group'."
      :foreground "white")
     (t :inverse-video nil))
   "Tab line face for highlighting."
-  :version "27.1"
+  :version "31.1"
   :group 'tab-line-faces)
 
 (defface tab-line-close-highlight

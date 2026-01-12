@@ -57,7 +57,7 @@
     (t
      :inverse-video nil))
   "Tab bar face for selected tab."
-  :version "27.1"
+  :version "31.1"
   :group 'tab-bar-faces)
 
 (defface tab-bar-tab-inactive
@@ -70,7 +70,7 @@
     (t
      :inverse-video t))
   "Tab bar face for non-selected tab."
-  :version "27.1"
+  :version "31.1"
   :group 'tab-bar-faces)
 
 (defface tab-bar-tab-group-current

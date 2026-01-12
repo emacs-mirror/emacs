@@ -2976,7 +2976,7 @@ Note: Other faces cannot inherit from the cursor face."
     (t
      :inverse-video t))
   "Tab bar face."
-  :version "27.1"
+  :version "31.1"
   :group 'basic-faces)
 
 (defface tab-line
@@ -2995,7 +2995,7 @@ Note: Other faces cannot inherit from the cursor face."
     (t
      :inverse-video t))
   "Tab line face."
-  :version "27.1"
+  :version "31.1"
   :group 'basic-faces)
 
 (defface menu
