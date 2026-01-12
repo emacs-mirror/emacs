@@ -7200,6 +7200,9 @@ AC_SUBST([ns_appsrc])
 AC_SUBST([GNU_OBJC_CFLAGS])
 AC_SUBST([OTHER_FILES])
 
+AS_IF([test $prefix = "NONE"], [_prefix=/usr/local], [_prefix=$prefix])
+AC_DEFINE_UNQUOTED([BINDIR], ["${_prefix}/bin/"], [Executables directory.])
+
 if test -n "${term_header}"; then
     AC_DEFINE_UNQUOTED([TERM_HEADER], ["${term_header}"],
         [Define to the header for the built-in window system.])
