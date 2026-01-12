@@ -7007,7 +7007,8 @@ nothing."
     (progress-reporter-do-update reporter value suffix)))
 
 (defun make-progress-reporter (message &optional min-value max-value
-				       current-value min-change min-time)
+				       current-value min-change min-time
+                                       context)
   "Return progress reporter object for use with `progress-reporter-update'.
 
 MESSAGE is shown in the echo area, with a status indicator
@@ -7034,7 +7035,11 @@ and/or MAX-VALUE are nil.
 Optional MIN-TIME specifies the minimum interval time between
 echo area updates (default is 0.2 seconds.)  If the OS is not
 capable of measuring fractions of seconds, this parameter is
-effectively rounded up."
+effectively rounded up.
+
+Optional CONTEXT is consulted by back ends before showing progress
+updates.  If the symbol `async', echo area progress reports may be
+inhibited if the echo area is busy."
   (when (string-match "[[:alnum:]]\\'" message)
     (setq message (concat message "...")))
   (unless min-time
@@ -7049,7 +7054,9 @@ effectively rounded up."
 		       (if min-change (max (min min-change 50) 1) 1)
                        min-time
                        ;; SUFFIX
-                       nil))))
+                       nil
+                       ;;
+                       context))))
     ;; Force a call to `message' now.
     (progress-reporter-update reporter (or current-value min-value))
     reporter))
@@ -7059,6 +7066,10 @@ effectively rounded up."
 (defun progress-reporter-text (reporter)
   "Return REPORTER's text."
   (aref (cdr reporter) 3))
+
+(defun progress-reporter-context (reporter)
+  "Return REPORTER's context."
+  (aref (cdr reporter) 7))
 
 (defun progress-reporter-force-update (reporter &optional value new-message suffix)
   "Report progress of an operation in the echo area unconditionally.
@@ -7078,20 +7089,26 @@ NEW-MESSAGE, if non-nil, sets a new message for the reporter."
 (defun progress-reporter-echo-area (reporter state)
   "Progress reporter echo area update function.
 REPORTER and STATE are the same as in
-`progress-reporter-update-functions'."
+`progress-reporter-update-functions'.
+
+Do not emit a message if the reporter context is `async' and the echo
+area is busy with something else."
   (let ((text (progress-reporter-text reporter)))
-    (pcase state
-      ((pred floatp)
-       (if (plusp state)
-           (message "%s%d%%" text (* state 100.0))
-         (message "%s" text)))
-      ((pred integerp)
-       (let ((message-log-max nil)
-             (pulse-char (aref progress-reporter--pulse-characters
-                               state)))
-         (message "%s %s" text pulse-char)))
-      ('done
-       (message "%sdone" text)))))
+    (unless (and (eq (progress-reporter-context reporter) 'async)
+                 (current-message)
+                 (not (string-prefix-p text (current-message))))
+      (pcase state
+        ((pred floatp)
+         (if (plusp state)
+             (message "%s%d%%" text (* state 100.0))
+           (message "%s" text)))
+        ((pred integerp)
+         (let ((message-log-max nil)
+               (pulse-char (aref progress-reporter--pulse-characters
+                                 state)))
+           (message "%s %s" text pulse-char)))
+        ('done
+         (message "%sdone" text))))))
 
 (defun progress-reporter-do-update (reporter value &optional suffix)
   (let* ((parameters      (cdr reporter))

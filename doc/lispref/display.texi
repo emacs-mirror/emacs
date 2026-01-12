@@ -486,7 +486,7 @@ A convenient way to do this is to use a @dfn{progress reporter}.
   (progress-reporter-done progress-reporter))
 @end smallexample
 
-@defun make-progress-reporter message &optional min-value max-value current-value min-change min-time
+@defun make-progress-reporter message &optional min-value max-value current-value min-change min-time context
 This function creates and returns a progress reporter object, which
 you will use as an argument for the other functions listed below.  The
 idea is to precompute as much data as possible to make progress
@@ -513,13 +513,17 @@ If @var{min-value} and @var{max-value} are numbers, you can give the
 argument @var{current-value} a numerical value specifying the initial
 progress; if omitted, this defaults to @var{min-value}.
 
-The remaining arguments control the rate of echo area updates.  The
-progress reporter will wait for at least @var{min-change} more
-percents of the operation to be completed before printing next
-message; the default is one percent.  @var{min-time} specifies the
-minimum time in seconds to pass between successive prints; the default
-is 0.2 seconds.  (On some operating systems, the progress reporter may
-handle fractions of seconds with varying precision).
+The arguments @var{min-change} and @var{min-time} control the rate of
+echo area updates.  The progress reporter will wait for at least
+@var{min-change} more percents of the operation to be completed before
+printing next message; the default is one percent.  @var{min-time}
+specifies the minimum time in seconds to pass between successive prints;
+the default is 0.2 seconds.  (On some operating systems, the progress
+reporter may handle fractions of seconds with varying precision).
+
+If @var{context} is the symbol @code{async}, updates in the echo area
+are inhibited when it is busy, i.e., if the function 'current-message'
+returns non-nil.
 
 This function calls @code{progress-reporter-update}, so the first
 message is printed immediately.
