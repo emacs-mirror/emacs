@@ -10730,7 +10730,7 @@ Called from `temp-buffer-show-hook'."
 	             (if (display-mouse-p)
 	                 "Click or type \\[minibuffer-choose-completion] on a completion to select it.\n"
                        "Type \\[minibuffer-choose-completion] on a completion to select it.\n"))
-                    (if minibuffer-visible-completions
+                    (if (eq minibuffer-visible-completions t)
                         (substitute-command-keys
 		         "Type \\[minibuffer-next-completion], \\[minibuffer-previous-completion], \
 \\[minibuffer-next-line-completion], \\[minibuffer-previous-line-completion] \
