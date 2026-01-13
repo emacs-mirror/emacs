@@ -452,9 +452,6 @@ When more these are fontified together with `sgml-font-lock-keywords'.")
 (defvar sgml-display-text ()
   "Tag names as lowercase symbols, and display string when invisible.")
 
-;; internal
-(defvar sgml-tags-invisible nil)
-
 (defcustom sgml-tag-alist
   '(("![" ("ignore" t) ("include" t))
     ("!attlist")
@@ -987,8 +984,7 @@ Return non-nil if we skipped over matched tags."
                 (if endp
                     (when (sgml-skip-tag-backward 1) (forward-char 1) t)
                   (with-syntax-table sgml-tag-syntax-table
-                    (let ((forward-sexp-function nil)
-                          (forward-list-function nil))
+                    (let ((forward-sexp-function nil))
                       (up-list -1)
                       (when (sgml-skip-tag-forward 1)
                         (backward-sexp 1)
@@ -1060,7 +1056,7 @@ Return t if after a closing tag."
 			      ;; Ignore empty tags like <foo/>.
 			      "\\([^>]*[^/>]\\)?>"))
 		  point close)
-	      (forward-list 1)
+	      (forward-sexp 1)
 	      (setq point (point))
 	      ;; FIXME: This re-search-forward will mistakenly match
 	      ;; tag-like text inside attributes.
@@ -1073,7 +1069,7 @@ Return t if after a closing tag."
 	      (unless close
 		(goto-char point)
 		(setq return nil)))
-	  (forward-list 1))
+	  (forward-sexp 1))
 	(setq arg (1- arg)))
       return)))
 
@@ -1091,7 +1087,6 @@ With prefix argument ARG, repeat this ARG times."
   (while (>= arg 1)
     (save-excursion
       (let* ((forward-sexp-function nil)
-	     (forward-list-function nil)
 	     close open)
 	(if (looking-at "[ \t\n]*<")
 	    ;; just before tag
@@ -1110,7 +1105,7 @@ With prefix argument ARG, repeat this ARG times."
 		(sgml-skip-tag-backward 1)
 		(if (or (not (eq (following-char) ?<))
 			(save-excursion
-			  (forward-list 1)
+			  (forward-sexp 1)
 			  (<= (point) point)))
 		    (error "Not on or before tag")))))
 	(if close
@@ -1143,22 +1138,17 @@ With prefix argument ARG, repeat this ARG times."
 			read-only t)
 		      (symbol-plist 'sgml-tag))))
 
-(defun sgml-tags-invisible (arg)
+(define-minor-mode sgml-tags-invisible
   "Toggle visibility of existing tags."
-  (interactive "P")
-  (let ((inhibit-read-only t)
-	string)
-    (with-silent-modifications
-      (save-excursion
-        (goto-char (point-min))
-        (if (setq-local sgml-tags-invisible
-                        (if arg
-                            (>= (prefix-numeric-value arg) 0)
-                          (not sgml-tags-invisible)))
-            (while (re-search-forward sgml-tag-name-re nil t)
-              (setq string
-                    (cdr (assq (intern-soft (downcase (match-string 1)))
-                               sgml-display-text)))
+  :global nil
+  (with-silent-modifications
+    (save-excursion
+      (goto-char (point-min))
+      (if sgml-tags-invisible
+          (while (re-search-forward sgml-tag-name-re nil t)
+            (let ((string
+                   (cdr (assq (intern-soft (downcase (match-string 1)))
+                              sgml-display-text))))
               (goto-char (match-beginning 0))
               (and (stringp string)
                    (not (overlays-at (point)))
@@ -1166,19 +1156,18 @@ With prefix argument ARG, repeat this ARG times."
                      (overlay-put ol 'before-string string)
                      (overlay-put ol 'sgml-tag t)))
               (put-text-property (point)
-                                 (let ((forward-list-function nil))
-                                   (forward-list)
+                                 (let ((forward-sexp-function nil))
+                                   (forward-sexp 1)
                                    (point))
-                                 'category 'sgml-tag))
-          (let ((pos (point-min)))
-            (while (< (setq pos (next-overlay-change pos)) (point-max))
-              (dolist (ol (overlays-at pos))
-                (if (overlay-get ol 'sgml-tag)
-                    (delete-overlay ol)))))
-          (remove-text-properties (point-min) (point-max) '(category nil)))))
-    (cursor-sensor-mode (if sgml-tags-invisible 1 -1))
-    (run-hooks 'sgml-tags-invisible-hook)
-    (message "")))
+                                 'category 'sgml-tag)))
+        (let ((pos (point-min)))
+          (while (< (setq pos (next-overlay-change pos)) (point-max))
+            (dolist (ol (overlays-at pos))
+              (if (overlay-get ol 'sgml-tag)
+                  (delete-overlay ol)))))
+        (remove-text-properties (point-min) (point-max) '(category nil)))))
+  (when sgml-tags-invisible
+    (cursor-sensor-mode 1)))
 
 (defun sgml-cursor-sensor (window x dir)
   ;; Show preceding or following hidden tag, depending of cursor direction (and
