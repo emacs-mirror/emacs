@@ -309,6 +309,7 @@ automatically)."
     ((latex-mode plain-tex-mode context-mode texinfo-mode bibtex-mode tex-mode)
      . ,(eglot-alternatives '("digestif" "texlab")))
     (erlang-mode . ("erlang_ls" "--transport" "stdio"))
+    (wat-mode . ("wat_server"))
     ((yaml-ts-mode yaml-mode) . ("yaml-language-server" "--stdio"))
     ((toml-ts-mode conf-toml-mode) . ("tombi" "lsp"))
     (nix-mode . ,(eglot-alternatives '("nil" "rnix-lsp" "nixd")))
