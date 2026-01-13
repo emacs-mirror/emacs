@@ -987,7 +987,8 @@ Return non-nil if we skipped over matched tags."
                 (if endp
                     (when (sgml-skip-tag-backward 1) (forward-char 1) t)
                   (with-syntax-table sgml-tag-syntax-table
-                    (let ((forward-sexp-function nil))
+                    (let ((forward-sexp-function nil)
+                          (forward-list-function nil))
                       (up-list -1)
                       (when (sgml-skip-tag-forward 1)
                         (backward-sexp 1)
@@ -1089,7 +1090,9 @@ With prefix argument ARG, repeat this ARG times."
   (interactive "p")
   (while (>= arg 1)
     (save-excursion
-      (let* (close open)
+      (let* ((forward-sexp-function nil)
+	     (forward-list-function nil)
+	     close open)
 	(if (looking-at "[ \t\n]*<")
 	    ;; just before tag
 	    (if (eq (char-after (match-end 0)) ?/)
@@ -1163,7 +1166,9 @@ With prefix argument ARG, repeat this ARG times."
                      (overlay-put ol 'before-string string)
                      (overlay-put ol 'sgml-tag t)))
               (put-text-property (point)
-                                 (progn (forward-list) (point))
+                                 (let ((forward-list-function nil))
+                                   (forward-list)
+                                   (point))
                                  'category 'sgml-tag))
           (let ((pos (point-min)))
             (while (< (setq pos (next-overlay-change pos)) (point-max))
