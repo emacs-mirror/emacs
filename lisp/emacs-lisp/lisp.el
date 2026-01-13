@@ -50,7 +50,7 @@ This affects `insert-parentheses' and `insert-pair'."
   (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
   (if (< arg 0) (backward-prefix-chars)))
 
-(defvar forward-sexp-function nil
+(defvar forward-sexp-function #'forward-sexp-default-function
   ;; FIXME:
   ;; - for some uses, we may want a "sexp-only" version, which only
   ;;   jumps over a well-formed sexp, rather than some dwimish thing
@@ -79,9 +79,9 @@ report errors as appropriate for this kind of usage."
                                     "No next sexp"
                                   "No previous sexp"))))
     (or arg (setq arg 1))
-    (if forward-sexp-function
-        (funcall forward-sexp-function arg)
-      (forward-sexp-default-function arg))))
+    (funcall (or forward-sexp-function
+                 #'forward-sexp-default-function)
+             arg)))
 
 (defun backward-sexp (&optional arg interactive)
   "Move backward across one balanced expression (sexp).
@@ -289,7 +289,9 @@ On error, location of point is unspecified."
                            (scan-error (point-max)))
                        (forward-comment 1)
                        (point)))))))
-            (if (null forward-sexp-function)
+            ;; FIXME: Comparing functions is a code smell.
+            (if (memq forward-sexp-function
+                      '(nil forward-sexp-default-function))
                 (goto-char (or (scan-lists (point) inc 1)
                                (buffer-end arg)))
               (condition-case err
