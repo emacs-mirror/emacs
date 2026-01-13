@@ -5020,6 +5020,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   XSETFRAME (frame, f);
 
+  frame_set_id_from_params (f, parms);
+
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_x_window;

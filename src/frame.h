@@ -292,6 +292,9 @@ struct frame
   struct image_cache *image_cache;
 #endif /* HAVE_WINDOW_SYSTEM */
 
+  /* Unique frame id.  */
+  EMACS_UINT id;
+
   /* Tab-bar item index of the item on which a mouse button was pressed.  */
   int last_tab_bar_item;
 
@@ -1414,6 +1417,10 @@ FRAME_PARENT_FRAME (struct frame *f)
 /* Handy macro to construct an argument to Fmodify_frame_parameters.  */
 #define AUTO_FRAME_ARG(name, parameter, value)		\
   AUTO_LIST1 (name, AUTO_CONS_EXPR (parameter, value))
+
+extern EMACS_UINT frame_next_id;
+extern EMACS_UINT frame_set_id (struct frame *f, EMACS_UINT id);
+extern EMACS_UINT frame_set_id_from_params (struct frame *f, Lisp_Object params);
 
 /* False means there are no visible garbaged frames.  */
 extern bool frame_garbaged;

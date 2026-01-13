@@ -109,6 +109,24 @@ must be a root frame, which means it cannot be a child frame itself
 descending from it.
 @end defun
 
+@defun frame-id &optional frame
+This function returns the unique identifier of a frame, an integer,
+assigned to @var{frame}.  If @var{frame} is @code{nil} or unspecified,
+it defaults to the selected frame (@pxref{Input Focus}).  This can be
+used to unambiguously identify a frame in a context where you do not or
+cannot use a frame object.
+
+A frame undeleted using @command{undelete-frame} will retain its
+identifier.  A frame cloned using @command{clone-frame} will not retain
+its original identifier.  @xref{Frame Commands,,,emacs, the Emacs
+Manual}.
+
+Frame identifiers are not persisted using the desktop library
+(@pxref{Desktop Save Mode}), @command{frameset-to-register}, or
+@code{frameset-save}, and each of their restored frames will bear a new
+unique id.
+@end defun
+
 @menu
 * Creating Frames::             Creating additional frames.
 * Multiple Terminals::          Displaying on several different devices.

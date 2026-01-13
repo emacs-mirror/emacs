@@ -750,6 +750,8 @@ haiku_create_frame (Lisp_Object parms)
 
   XSETFRAME (frame, f);
 
+  frame_set_id_from_params (f, parms);
+
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_haiku;

@@ -1283,6 +1283,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame, 1, 1, 0,
 
   XSETFRAME (frame, f);
 
+  frame_set_id_from_params (f, parms);
+
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_pgtk;

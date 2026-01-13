@@ -1262,6 +1262,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   XSETFRAME (frame, f);
 
+  frame_set_id_from_params (f, parms);
+
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_ns;
