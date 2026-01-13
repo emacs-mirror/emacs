@@ -147,7 +147,7 @@ This command assumes point is not in a string or comment."
   "Default function for `forward-list-function'."
   (goto-char (or (scan-lists (point) arg 0) (buffer-end arg))))
 
-(defvar forward-list-function nil
+(defvar forward-list-function #'forward-list-default-function
   "If non-nil, `forward-list' delegates to this function.
 Should take the same arguments and behave similarly to `forward-list'.")
 
@@ -169,9 +169,9 @@ report errors as appropriate for this kind of usage."
                                     "No next group"
                                   "No previous group"))))
     (or arg (setq arg 1))
-    (if forward-list-function
-        (funcall forward-list-function arg)
-      (forward-list-default-function arg))))
+    (funcall (or forward-list-function
+                 #'forward-list-default-function)
+             arg)))
 
 (defun backward-list (&optional arg interactive)
   "Move backward across one balanced group of parentheses.
