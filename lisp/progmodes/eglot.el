@@ -2757,12 +2757,11 @@ return it back to the server.  :null is returned if the list was empty."
   (let* ((actions (mapcar (lambda (a) (cons (plist-get a :title) a)) actions))
          (label (completing-read
                  (concat
-                  (format (propertize "[eglot] Server reports (type=%s): %s"
-                                      'face (if (or (not type) (<= type 1)) 'error))
-                          type message)
-                  "\nChoose an option: ")
-                 (or actions '("OK"))
-                 nil t (caar actions))))
+                  (propertize "[eglot]"
+                              'face (if (or (not type) (<= type 1)) 'error))
+                  " " message)
+                 (or (mapcar #'car actions) '("OK"))
+                 nil t)))
     (if (and actions label) (cdr (assoc label actions)) :null)))
 
 (cl-defmethod eglot-handle-notification
