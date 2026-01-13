@@ -3633,6 +3633,11 @@ and other similar functions.
 * Lisp Changes in Emacs 31.1
 
 +++
+** New function 'garbage-collect-heapsize'.
+Same as 'garbage-collect' but just returns the info from the last GC
+without performing a collection.
+
++++
 ** Improve 'replace-region-contents' to accept more forms of sources.
 It has been promoted from 'subr-x' to the C code.
 You can now directly pass it a string or a buffer rather than a function.

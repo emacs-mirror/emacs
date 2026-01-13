@@ -286,13 +286,9 @@ program does not use so much space as to force a second garbage
 collection).
 @end quotation
 
-@deffn Command garbage-collect
-This command runs a garbage collection, and returns information on
-the amount of space in use.  (Garbage collection can also occur
-spontaneously if you use more than @code{gc-cons-threshold} bytes of
-Lisp data since the previous garbage collection.)
-
-@code{garbage-collect} returns a list with information on amount of space in
+@defun garbage-collect-heapsize
+This function returns information on the current memory usage.
+The return value is a list with information on amount of space in
 use, where each entry has the form @samp{(@var{name} @var{size} @var{used})}
 or @samp{(@var{name} @var{size} @var{used} @var{free})}.  In the entry,
 @var{name} is a symbol describing the kind of objects this entry represents,
@@ -422,7 +418,17 @@ Total heap size, in @var{unit-size} units.
 @item free-size
 Heap space which is not currently used, in @var{unit-size} units.
 @end table
-@end deffn
+@end defun
+
+@deffn Command garbage-collect
+This command runs a garbage collection, and returns information on
+the amount of space in use.  (Garbage collection can also occur
+spontaneously if you use more than @code{gc-cons-threshold} bytes of
+Lisp data since the previous garbage collection.)
+
+@code{garbage-collect} returns the same list as shown above for
+@code{garbage-collect-heapsize}.
+@deffn
 
 @defopt garbage-collection-messages
 If this variable is non-@code{nil}, Emacs displays a message at the
