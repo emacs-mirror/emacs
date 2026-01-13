@@ -329,7 +329,6 @@ PKG-DESC is a `package-desc' object."
    (format "%s-autoloads" (package-desc-name pkg-desc))
    (package-desc-dir pkg-desc)))
 
-(defvar Info-directory-list)
 (declare-function info-initialize "info" ())
 
 (defvar package--quickstart-pkgs t
@@ -340,6 +339,7 @@ PKG-DESC is a `package-desc' object."
   (when (file-exists-p (expand-file-name "dir" pkg-dir))
     ;; FIXME: not the friendliest, but simple.
     (require 'info)
+    (defvar Info-directory-list)
     (info-initialize)
     (add-to-list 'Info-directory-list pkg-dir)))
 

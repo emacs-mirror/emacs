@@ -4524,6 +4524,8 @@ The list is displayed in a buffer named `*Packages*'."
 
 ;;;; Quickstart: precompute activation actions for faster start up.
 
+(defvar Info-directory-list)
+
 ;; Activating packages via `package-initialize' is costly: for N installed
 ;; packages, it needs to read all N <pkg>-pkg.el files first to decide
 ;; which packages to activate, and then again N <pkg>-autoloads.el files.
