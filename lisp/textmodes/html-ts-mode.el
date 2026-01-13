@@ -145,6 +145,21 @@ Return nil if there is no name or if NODE is not a defun node."
          (skip-chars-backward " \t\n")
          (pos-bol)))))
 
+(defun html-ts-mode--show-paren-data ()
+  ;; Exclude unbalanced tags when the closing tag is missing.
+  (let ((default (treesit-show-paren-data)))
+    (when (= (length default) 4)
+      (let ((pos1 (min (nth 0 default) (nth 2 default)))
+            (pos2 (max (nth 0 default) (nth 2 default))))
+        (when (and (equal (treesit-node-type
+                           (treesit-node-at pos1))
+                          "<")
+                   (not (equal (treesit-node-type
+                                (treesit-node-at pos2))
+                               "</")))
+          (setq default nil))))
+    default))
+
 ;;;###autoload
 (define-derived-mode html-ts-mode html-mode "HTML"
   "Major mode for editing Html, powered by tree-sitter."
@@ -182,7 +197,9 @@ Return nil if there is no name or if NODE is not a defun node."
   (kill-local-variable 'outline-heading-end-regexp)
   (kill-local-variable 'outline-level)
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+
+  (setq-local show-paren-data-function #'html-ts-mode--show-paren-data))
 
 (derived-mode-add-parents 'html-ts-mode '(html-mode))
 
