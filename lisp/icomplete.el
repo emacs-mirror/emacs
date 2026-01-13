@@ -1025,7 +1025,9 @@ away from the bottom.  Counts wrapped lines as real lines."
      collect (concat prefix
                      (make-string (max 0 (- max-prefix-len (length prefix))) ? )
                      (completion-lazy-hilit comp)
-                     (make-string (max 0 (- max-comp-len (length comp))) ? )
+                     (and suffix
+                          (make-string (max 0 (- max-comp-len (length comp)))
+                                       ? ))
                      suffix)
      into lines-aux
      finally (setq lines lines-aux
