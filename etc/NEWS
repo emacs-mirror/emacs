@@ -1329,6 +1329,12 @@ available.
 Now method chaining is indented by 8 spaces rather than 4, and this
 option controls how much is indented for method chaining.
 
+** JSON-ts mode
+
+*** New command 'json-ts-jq-path-at-point'.
+This command copies the path of the JSON element at point to the
+kill-ring, formatted for use with the 'jq' utility.
+
 ** PHP-ts mode
 
 ---
