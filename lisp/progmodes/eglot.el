@@ -1010,7 +1010,8 @@ treated as in `eglot--dbind'."
   (:method
    (server command arguments)
    (eglot--request server :workspace/executeCommand
-                   `(:command ,(format "%s" command) :arguments ,arguments))))
+                   `(:command ,(format "%s" command) :arguments ,arguments)
+                   :timeout nil)))
 
 (cl-defgeneric eglot-execute (server action)
   "Ask SERVER to execute ACTION.
@@ -1024,7 +1025,7 @@ object."
       (cl-remf action :title)
       (eglot-execute server action))
      (((ExecuteCommandParams))
-      (eglot--request server :workspace/executeCommand action))
+      (eglot--request server :workspace/executeCommand action :timeout nil))
      (((CodeAction) edit command data)
       (if (and (null edit) (null command) data
                (eglot-server-capable :codeActionProvider :resolveProvider))
