@@ -1842,7 +1842,7 @@ functions like `ispell-complete-word'.")
   "Non-nil means save the current correction as an abbrev.
 Dynamically bound to the value of `ispell-save-corrections-as-abbrevs'
 around calls to `ispell-command-loop'.  The command loop can toggle
-this, via `C-u', to control abbrev saving for the immediately following
+this, via `C-u', to control abbrev saving for an immediately subsequent
 replacement command (a selection from the suggestion list, or
 \\`r'/\\`R').")
 
@@ -2527,7 +2527,7 @@ Selections are:
 \\`m'   Place typed-in value in personal dictionary, then recheck current word.
 \\`C-l' Redraw screen.
 \\`C-r' Recursive edit.
-\\`C-u' Toggle abbrev saving for the immediately following replacement command.
+\\`C-u' Toggle abbrev saving for an immediately subsequent replacement command.
 \\`C-z' Suspend Emacs or iconify frame."
 
   (if (equal ispell-help-in-bufferp 'electric)
@@ -2562,7 +2562,7 @@ Selections are:
 \\`m'     Place typed-in value in personal dictionary, then recheck current word.
 \\`C-l'   Redraw screen.
 \\`C-r'   Recursive edit.
-\\`C-u'   Toggle abbrev saving for the immediately following replacement command.
+\\`C-u'   Toggle abbrev saving for an immediately subsequent replacement command.
 \\`C-z'   Suspend Emacs or iconify frame."))
            nil)))
 
