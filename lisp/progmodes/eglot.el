@@ -583,7 +583,7 @@ under cursor."
           (const :tag "Call hierarchies" :callHierarchyProvider)
           (const :tag "On-demand \"pull\" diagnostics" :diagnosticProvider)))
 
-(defcustom eglot-advertise-cancellation nil
+(defcustom eglot-advertise-cancellation t
   "If non-nil, Eglot attempts to inform server of canceled requests.
 This is done by sending an additional '$/cancelRequest' notification
 every time Eglot decides to forget a request.  The effect of this

@@ -18,6 +18,17 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
+* Changes to upcoming Eglot
+
+** 'eglot-advertise-cancellation' now defaults to t
+
+The variable 'eglot-advertise-cancellation' now defaults to t, which
+means Eglot will send '$/cancelRequest' notifications to servers when it
+thinks responses to inflight requests are no longer useful.  The current
+2026 LSP landscape (especially gopls and ocamllsp) suggests this is
+beneficial and helps servers avoid costly useless work.
+
+
 * Changes in Eglot 1.21 (11/1/2026)
 
 This is a bugfix release with small fixes for semantic tokens and Emacs
