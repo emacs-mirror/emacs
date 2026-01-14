@@ -4150,7 +4150,7 @@ starting at that revision.  Tags and remote references also work."
           (user-error "No incoming revision -- local-only branch?")))))
 
 ;;;###autoload
-(defun vc-log-incoming (&optional upstream-location)
+(defun vc-root-log-incoming (&optional upstream-location)
   "Show log of changes that will be received with pull from UPSTREAM-LOCATION.
 When unspecified UPSTREAM-LOCATION is the place \\[vc-update] would pull
 from.  When called interactively with a prefix argument, prompt for
@@ -4160,6 +4160,10 @@ can be a remote branch name."
   (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend upstream-location
                                    "*vc-incoming*" 'log-incoming)))
+;; We plan to reuse the name `vc-log-incoming' for the fileset-specific
+;; command in Emacs 32.1.  --spwhitton
+(define-obsolete-function-alias 'vc-log-incoming #'vc-root-log-incoming
+  "31.1")
 
 (defun vc-default-log-incoming (backend buffer upstream-location)
   (let ((incoming (vc--incoming-revision backend upstream-location
@@ -4170,7 +4174,7 @@ can be a remote branch name."
                      (vc-call-backend backend 'mergebase incoming))))
 
 ;;;###autoload
-(defun vc-log-outgoing (&optional upstream-location)
+(defun vc-root-log-outgoing (&optional upstream-location)
   "Show log of changes that will be sent with a push to UPSTREAM-LOCATION.
 When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
 to.  When called interactively with a prefix argument, prompt for
@@ -4180,6 +4184,10 @@ can be a remote branch name."
   (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend upstream-location
                                    "*vc-outgoing*" 'log-outgoing)))
+;; We plan to reuse the name `vc-log-outgoing' for the fileset-specific
+;; command in Emacs 32.1.  --spwhitton
+(define-obsolete-function-alias 'vc-log-outgoing #'vc-root-log-outgoing
+  "31.1")
 
 (defun vc-default-log-outgoing (backend buffer upstream-location)
   (let ((incoming (vc--incoming-revision backend upstream-location))

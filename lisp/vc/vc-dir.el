@@ -294,10 +294,10 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
       '(menu-item "Compare with Base Version" vc-diff
 		  :help "Compare file set with the base version"))
     (define-key map [logo]
-      '(menu-item "Show Outgoing Log" vc-log-outgoing
+      '(menu-item "Show Outgoing Log" vc-root-log-outgoing
 		  :help "Show a log of changes that will be sent with a push operation"))
     (define-key map [logi]
-      '(menu-item "Show Incoming Log" vc-log-incoming
+      '(menu-item "Show Incoming Log" vc-root-log-incoming
 		  :help "Show a log of changes that will be received with a pull operation"))
     (define-key map [log]
       '(menu-item "Show History" vc-print-log
@@ -354,8 +354,8 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     (define-key map "P" #'vc-push)	   ;; C-x v P
     (define-key map "l" #'vc-print-log)	   ;; C-x v l
     (define-key map "L" #'vc-print-root-log) ;; C-x v L
-    (define-key map "I" #'vc-log-incoming)   ;; C-x v I
-    (define-key map "O" #'vc-log-outgoing)   ;; C-x v O
+    (define-key map "I" #'vc-root-log-incoming)   ;; C-x v I
+    (define-key map "O" #'vc-root-log-outgoing)   ;; C-x v O
     ;; More confusing than helpful, probably
     ;;(define-key map "R" #'vc-revert) ;; u is taken by vc-dir-unmark.
     ;;(define-key map "A" #'vc-annotate) ;; g is taken by revert-buffer
@@ -1335,7 +1335,7 @@ the *vc-dir* buffer.
 
 (defvar-keymap vc-dir-outgoing-revisions-map
   :doc "Local keymap for viewing outgoing revisions."
-  "<down-mouse-1>" #'vc-log-outgoing)
+  "<down-mouse-1>" #'vc-root-log-outgoing)
 
 (defcustom vc-dir-show-outgoing-count t
   "Whether to display the number of unpushed revisions in VC-Dir.
@@ -1386,7 +1386,7 @@ specific headers."
                          'mouse-face 'highlight
                          'keymap vc-dir-outgoing-revisions-map
                          'help-echo "\\<vc-dir-outgoing-revisions-map>\
-\\[vc-log-outgoing]: List outgoing revisions")
+\\[vc-root-log-outgoing]: List outgoing revisions")
              "\n"))))
 
 (defun vc-dir-refresh-files (files)

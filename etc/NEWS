@@ -2668,8 +2668,8 @@ relevant buffers before generating the contents of a VC Directory buffer
 *** New commands to report incoming and outgoing diffs.
 'vc-root-diff-incoming' and 'vc-root-diff-outgoing' report diffs of all
 the changes that would be pulled and would be pushed, respectively.
-They are the diff analogues of the existing commands 'vc-log-incoming'
-and 'vc-log-outgoing'.
+They are the diff analogues of the existing commands
+'vc-root-log-incoming' and 'vc-root-log-outgoing'.
 
 In particular, 'vc-root-diff-outgoing' is useful as a way to preview
 your push and ensure that all and only the changes you intended to
@@ -2692,9 +2692,9 @@ If this is customized to non-nil, 'C-x v I' and 'C-x v O' become prefix
 commands, such that the new incoming and outgoing commands have global
 bindings:
 
-- 'C-x v I L' is bound to 'vc-log-incoming'
+- 'C-x v I L' is bound to 'vc-root-log-incoming'
 - 'C-x v I D' is bound to 'vc-root-diff-incoming'
-- 'C-x v O L' is bound to 'vc-log-outgoing'
+- 'C-x v O L' is bound to 'vc-root-log-outgoing'
 - 'C-x v O D' is bound to 'vc-root-diff-outgoing'.
 
 +++

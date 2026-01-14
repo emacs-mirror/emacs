@@ -1014,8 +1014,8 @@ In the latter case, VC mode is deactivated for this buffer."
   "i"   #'vc-register
   "l"   #'vc-print-log
   "L"   #'vc-print-root-log
-  "I"   #'vc-log-incoming
-  "O"   #'vc-log-outgoing
+  "I"   #'vc-root-log-incoming
+  "O"   #'vc-root-log-outgoing
   "M L" #'vc-log-mergebase
   "M D" #'vc-diff-mergebase
   "o =" #'vc-diff-outgoing-base
@@ -1044,11 +1044,11 @@ In the latter case, VC mode is deactivated for this buffer."
 (define-key ctl-x-map "v" 'vc-prefix-map)
 
 (defvar-keymap vc-incoming-prefix-map
-  "L" #'vc-log-incoming
+  "L" #'vc-root-log-incoming
   "=" #'vc-diff-incoming
   "D" #'vc-root-diff-incoming)
 (defvar-keymap vc-outgoing-prefix-map
-  "L" #'vc-log-outgoing
+  "L" #'vc-root-log-outgoing
   "=" #'vc-diff-outgoing
   "D" #'vc-root-diff-outgoing)
 
@@ -1056,9 +1056,10 @@ In the latter case, VC mode is deactivated for this buffer."
   "Whether \\`C-x v I' and \\`C-x v O' are prefix commands.
 Historically Emacs bound \\`C-x v I' and \\`C-x v O' directly to
 commands.  That is still the default.  If this option is customized to
-non-nil, these key sequences becomes prefix commands.  `vc-log-incoming'
-moves to \\`C-x v I L', `vc-log-outgoing' moves to \\`C-x v O L', and
-other commands receive global bindings where they had none before."
+non-nil, these key sequences becomes prefix commands.
+`vc-root-log-incoming' moves to \\`C-x v I L', `vc-root-log-outgoing'
+moves to \\`C-x v O L', and other commands receive global bindings where
+they had none before."
   :type 'boolean
   :version "31.1"
   :set (lambda (symbol value)
@@ -1070,8 +1071,8 @@ other commands receive global bindings where they had none before."
                  (keymap-set map "I" vc-incoming-prefix-map)
                  (keymap-set map "O" vc-outgoing-prefix-map))
              (dolist (map maps)
-               (keymap-set map "I" #'vc-log-incoming)
-               (keymap-set map "O" #'vc-log-outgoing))))
+               (keymap-set map "I" #'vc-root-log-incoming)
+               (keymap-set map "O" #'vc-root-log-outgoing))))
          (set-default symbol value)))
 
 (defvar vc-menu-map
@@ -1122,10 +1123,10 @@ other commands receive global bindings where they had none before."
       '(menu-item "Update ChangeLog" vc-update-change-log
 		  :help "Find change log file and add entries from recent version control logs"))
     (define-key map [vc-log-out]
-      '(menu-item "Show Outgoing Log" vc-log-outgoing
+      '(menu-item "Show Outgoing Log" vc-root-log-outgoing
 		  :help "Show a log of changes that will be sent with a push operation"))
     (define-key map [vc-log-in]
-      '(menu-item "Show Incoming Log" vc-log-incoming
+      '(menu-item "Show Incoming Log" vc-root-log-incoming
 		  :help "Show a log of changes that will be received with a pull operation"))
     (define-key map [vc-print-log]
       '(menu-item "Show History" vc-print-log

@@ -984,7 +984,7 @@ contains key `:tags' use its value as tests tags."
   (should
    (package-vc-tests-package-vc-async-wait
        5 1 '("log" "--decorate")
-     (package-vc-log-incoming (package-vc-tests-package-desc pkg t))
+     (package-vc-root-log-incoming (package-vc-tests-package-desc pkg t))
      t))
   (let ((incoming-buffer (get-buffer "*vc-incoming*"))
         (pattern (rx (literal

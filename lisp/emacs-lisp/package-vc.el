@@ -1086,13 +1086,17 @@ See also `vc-prepare-patch'."
     (vc-prepare-patch (package-maintainers pkg-desc t)
                       subject revisions)))
 
-(defun package-vc-log-incoming (pkg-desc)
-  "Call `vc-log-incoming' for the package PKG-DESC."
+(defun package-vc-root-log-incoming (pkg-desc)
+  "Call `vc-root-log-incoming' for the package PKG-DESC."
   (interactive
    (list (package-vc--read-package-desc "Incoming log for package: " t)))
   (let ((default-directory (package-vc--checkout-dir pkg-desc))
         (vc-deduce-backend-nonvc-modes t))
-    (call-interactively #'vc-log-incoming)))
+    (call-interactively #'vc-root-log-incoming)))
+(define-obsolete-function-alias
+  'package-vc-log-incoming
+  #'package-vc-root-log-incoming
+  "31.1")
 
 (provide 'package-vc)
 ;;; package-vc.el ends here
