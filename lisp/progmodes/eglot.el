@@ -1959,21 +1959,22 @@ in project `%s'."
   "Like `jsonrpc-request', but for Eglot LSP requests.
 Unless IMMEDIATE, send pending changes before making request."
   (unless immediate (eglot--signal-textDocument/didChange))
-  (condition-case oops
-      (jsonrpc-request
-       server method params
-       :timeout timeout
-       :cancel-on-input
-       (cond ((and cancel-on-input
-                   eglot-advertise-cancellation)
-              (lambda (id)
-                (jsonrpc-notify server '$/cancelRequest `(:id ,id))))
-             (cancel-on-input))
-       :cancel-on-input-retval cancel-on-input-retval)
-    (jsonrpc-error
-     (let* ((data (cddr oops)) (code (alist-get 'jsonrpc-error-code data)))
-       (if (zerop code) (eglot--message (alist-get 'jsonrpc-error-message data))
-         (signal 'jsonrpc-error (cdr oops)))))))
+  (cl-flet ((cancel (id)
+              (jsonrpc-notify server '$/cancelRequest `(:id ,id))))
+    (condition-case oops
+        (jsonrpc-request server method params
+                         :timeout timeout
+                         :cancel-on-input
+                         (if (and cancel-on-input eglot-advertise-cancellation)
+                             #'cancel
+                           cancel-on-input)
+                         :cancel-on-quit
+                         (and eglot-advertise-cancellation #'cancel)
+                         :cancel-on-input-retval cancel-on-input-retval)
+      (jsonrpc-error
+       (let* ((data (cddr oops)) (ec (alist-get 'jsonrpc-error-code data)))
+         (if (zerop ec) (eglot--message (alist-get 'jsonrpc-error-message data))
+           (signal 'jsonrpc-error (cdr oops))))))))
 
 (defvar-local eglot--inflight-async-requests nil
   "An plist of symbols to lists of JSONRPC ids.
