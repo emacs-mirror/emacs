@@ -327,22 +327,29 @@ dispatcher in CONN."
               (and method id)
               (let* ((debug-on-error (and debug-on-error
                                           (not jsonrpc-inhibit-debug-on-error)))
-                     (reply
-                      (condition-case-unless-debug _ignore
-                          (condition-case oops
-                              `(:result ,(funcall rdispatcher conn (intern method)
-                                                  params))
-                            (jsonrpc-error
-                             `(:error
-                               (:code
-                                ,(or (alist-get 'jsonrpc-error-code (cdr oops))
-                                     -32603)
-                                :message ,(or (alist-get 'jsonrpc-error-message
-                                                         (cdr oops))
-                                              "Internal error")))))
-                        (error
-                         '(:error (:code -32603 :message "Internal error"))))))
-                (apply #'jsonrpc--reply conn id method reply)))
+                     reply)
+                (unwind-protect
+                    (setq
+                     reply
+                     (condition-case oops
+                         `(:result
+                           ,(funcall rdispatcher conn (intern method) params))
+                       (jsonrpc-error
+                        (let* ((data (cdr oops))
+                               (code (alist-get 'jsonrpc-error-code data))
+                               (msg (alist-get 'jsonrpc-error-message
+                                               (cdr oops))))
+                          (if (eq code 32000) ;; This means 'no error'
+                              (when-let* ((d (alist-get 'jsonrpc-error-data
+                                                        data)))
+                                `(:result ,d))
+                            `(:error
+                              (:code ,(or code -32603)
+                                     :message ,(or msg "Internal error"))))))))
+                  (unless reply
+                    (setq reply
+                          `(:error (:code -32603 :message "Internal error"))))
+                  (apply #'jsonrpc--reply conn id method reply))))
              (;; A remote notification
               method
               (funcall ndispatcher conn (intern method) params))
