@@ -259,7 +259,7 @@ directory hierarchy."
                       do
                       (unless
                           ;; $/progress is *truly* uninteresting and spammy
-                          (and (string-match "$/progress" (format "%s" method)))
+                          (string-match "\\$/progress" (format "%s" method))
                         (eglot--test-message
                          "skip uninteresting event %s[%s]"
                          (plist-get json :method)
