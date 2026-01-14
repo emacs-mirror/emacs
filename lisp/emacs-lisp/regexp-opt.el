@@ -209,10 +209,7 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
      ;;
      ;; If there are several one-char strings, use charsets
      ((and (= (length (car strings)) 1)
-	   (let ((strs (cdr strings)))
-	     (while (and strs (/= (length (car strs)) 1))
-	       (pop strs))
-	     strs))
+           (any (lambda (s) (= (length s) 1)) (cdr strings)))
       (let (letters rest)
 	;; Collect one-char strings
 	(dolist (s strings)
