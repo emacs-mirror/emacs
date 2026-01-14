@@ -591,7 +591,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
   ;; FIXME: Learn to invalidate when the value changes:
   ;; `project-vc-merge-submodules' or `project-vc-extra-root-markers'.
   (or (vc-file-getprop dir 'project-vc)
-      ;; FIXME: Cache for a shorter time.
+      ;; FIXME: Cache for a shorter time (bug#78545).
       (let ((res (project-try-vc--search dir)))
         (and res (vc-file-setprop dir 'project-vc res))
         res)))
@@ -2627,13 +2627,37 @@ would otherwise have the same name."
 
 ;;; Project mode-line
 
+(defvar project-name-cache-timeout 300
+  "Number of seconds to cache the project name.
+Used by `project-name-cached'.")
+
+(defun project-name-cached (dir)
+  "Return the cached project name for the directory DIR.
+Until it's cached, retrieve the project name using `project-current'
+and `project-name', then put the name to the cache for the time defined
+by the variable `project-name-cache-timeout'.  This function is useful
+for project indicators such as on the mode line."
+  (let ((cached (vc-file-getprop dir 'project-name))
+        (current-time (float-time)))
+    (if (and cached (< (- current-time (cdr cached))
+                       project-name-cache-timeout))
+        (let ((value (car cached)))
+          (if (eq value 'none) nil value))
+      (let ((res (when-let* ((project (project-current nil dir)))
+                   (project-name project))))
+        (vc-file-setprop dir 'project-name (cons (or res 'none) current-time))
+        res))))
+
 ;;;###autoload
 (defcustom project-mode-line nil
   "Whether to show current project name and Project menu on the mode line.
 This feature requires the presence of the following item in
 `mode-line-format': `(project-mode-line project-mode-line-format)'; it
-is part of the default mode line beginning with Emacs 30."
-  :type 'boolean
+is part of the default mode line beginning with Emacs 30.  When the
+value is `non-remote', show the project name only for local files."
+  :type '(choice (const :tag "Don't show" nil)
+                 (const :tag "Show only on non-remote files" non-remote)
+                 (const :tag "Show always" t))
   :group 'project
   :version "30.1")
 
@@ -2651,18 +2675,20 @@ is part of the default mode line beginning with Emacs 30."
 
 (defun project-mode-line-format ()
   "Compose the project mode-line."
-  (when-let* ((project (project-current)))
+  (unless (and (eq project-mode-line 'non-remote)
+               (file-remote-p default-directory))
     ;; Preserve the global value of 'last-coding-system-used'
     ;; that 'write-region' needs to set for 'basic-save-buffer',
     ;; but updating the mode line might occur at the same time
     ;; during saving the buffer and 'project-name' can change
     ;; 'last-coding-system-used' when reading the project name
     ;; from .dir-locals.el also enables flyspell-mode (bug#66825).
-    (let ((last-coding-system-used last-coding-system-used))
+    (when-let* ((last-coding-system-used last-coding-system-used)
+                (project-name (project-name-cached default-directory)))
       (concat
        " "
        (propertize
-        (project-name project)
+        project-name
         'face project-mode-line-face
         'mouse-face 'mode-line-highlight
         'help-echo "mouse-1: Project menu"
