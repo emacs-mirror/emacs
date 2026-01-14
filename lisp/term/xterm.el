@@ -88,12 +88,17 @@ If set to t all supported attributes of the cursor are updated.
 If set to `type' only the cursor type is updated.  This uses the CSI
 DECSCUSR escape sequence.
 If set to `color' only the cursor color is updated.  This uses the OSC
-12 escape sequence."
+12 and OSC 112 escape sequences."
   :version "31.1"
   :type '(radio (const :tag "Do not update" nil)
                 (const :tag "Update" t)
                 (const :tag "Update type only" type)
                 (const :tag "Update color only" color)))
+
+;; MacOS Terminal.app does not handle OSC 112 if it is terminated with
+;; \e\\.  It only handles OSC 112 if it is terminated by \a.
+(defconst xterm--reset-cursor-color-escape-sequence "\e]112\a"
+  "OSC 112 escape sequence to reset cursor color to terminal default.")
 
 (defconst xterm-paste-ending-sequence "\e[201~"
   "Characters sent by the terminal to end a bracketed paste.")
@@ -1330,15 +1335,8 @@ versions of xterm."
 (defun xterm--init-update-cursor ()
   "Register hooks to run `xterm--update-cursor-type' appropriately."
   (when (memq xterm-update-cursor '(color t))
-    (xterm--query
-     "\e]12;?\e\\"
-     `(("\e]12;" . ,(lambda ()
-                      (let ((str (xterm--read-string ?\e ?\\)))
-                        ;; The response is specifically formatted to set
-                        ;; the color.
-                        (push
-                         (concat "\e]12;" str "\e\\")
-                         (terminal-parameter nil 'tty-mode-reset-strings)))))))
+    (push xterm--reset-cursor-color-escape-sequence
+          (terminal-parameter nil 'tty-mode-reset-strings))
     ;; No need to set `tty-mode-set-strings' because
     ;; `xterm--post-command-hook' handles restoring the cursor color.
 
@@ -1395,11 +1393,15 @@ This updates the selected frame's terminal based on `cursor-type'."
 (defun xterm--update-cursor-color ()
   "Update the cursor color for Xterm-compatible terminals.
 This updates the selected frame's terminal based on the face `cursor'."
-  (let* ((color (color-values (face-background 'cursor)))
-         (r (nth 0 color))
-         (g (nth 1 color))
-         (b (nth 2 color)))
-    (send-string-to-terminal (format "\e]12;rgb:%04x/%04x/%04x\e\\" r g b))))
+  (if-let* ((color (color-values (face-background 'cursor)))
+            (r (nth 0 color))
+            (g (nth 1 color))
+            (b (nth 2 color)))
+      (send-string-to-terminal (format "\e]12;rgb:%04x/%04x/%04x\e\\" r g b))
+    ;; The background is `unspecified' or one of its variants.  We don't
+    ;; know the right cursor color to use, so fall back to the terminal
+    ;; default.
+    (send-string-to-terminal xterm--reset-cursor-color-escape-sequence)))
 
 (provide 'xterm)                        ;Backward compatibility.
 (provide 'term/xterm)
