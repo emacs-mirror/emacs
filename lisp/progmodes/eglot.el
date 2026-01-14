@@ -2838,8 +2838,18 @@ THINGS are either registrations or unregisterations (sic)."
 (cl-defmethod eglot-handle-request
   (_server (_method (eql workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit."
-  (eglot--apply-workspace-edit edit last-command)
-  `(:applied t))
+  (condition-case-unless-debug oops
+      `(:applied ,(eglot--apply-workspace-edit edit last-command))
+    (quit
+     (jsonrpc-error
+      :code 32000 :data
+      (list :applied :json-false
+            :failureReason
+            (format "'%s'%s." (car oops)
+                    (if (cdr oops) (format " (%s)" (cdr oops)) "")))))
+    (t
+     ;; resignal (unfortunately like this)
+     (signal (car oops) (cdr oops)))))
 
 (cl-defmethod eglot-handle-request
   (server (_method (eql workspace/workspaceFolders)))
