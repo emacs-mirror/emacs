@@ -1240,6 +1240,8 @@ running):
  "org.freedesktop.systemd1.Manager" "RestartUnit"
  :authorizable t
  "bluetooth.service" "replace")
+
+@result{} "/org/freedesktop/systemd1/job/17508"
 @end lisp
 
 The remaining arguments @var{args} are passed to @var{method} as
@@ -1752,6 +1754,8 @@ arguments.  They are converted into D-Bus types as described in
  :session nil dbus-path-emacs
  (concat dbus-interface-emacs ".FileManager") "FileModified"
  "/home/albinus/.emacs")
+
+@result{} nil
 @end lisp
 @end defun
 
@@ -1779,7 +1783,10 @@ argument.
 
 @var{handler} is a Lisp function to be called when the @var{signal} is
 received.  It must accept as arguments the output parameters
-@var{signal} is sending.
+@var{signal} is sending.@footnote{It is possible to register different
+handlers for the same signal.  All registered handlers will be called
+when the signal arrives.  This is useful for example if different Lisp
+packages are interested in the same signal.}
 
 The remaining arguments @var{args} can be keywords or keyword string
 pairs.@footnote{For backward compatibility, the arguments @var{args}
@@ -2178,12 +2185,16 @@ The following form shows all D-Bus events on the session bus in buffer
 
 @lisp
 (dbus-register-monitor :session)
+
+@result{} ((:monitor :session-private) (nil nil dbus-monitor-handler))
 @end lisp
 
 And this form restricts the monitoring on D-Bus errors:
 
 @lisp
 (dbus-register-monitor :session nil :type "error")
+
+@result{} ((:monitor :session-private) (nil nil dbus-monitor-handler))
 @end lisp
 @end defun
 

@@ -1617,14 +1617,32 @@ usage: (dbus-message-internal &rest REST)  */)
   return result;
 }
 
+/* Construct a D-Bus event, and store it into the input event queue.  */
+static void
+xd_store_event (Lisp_Object handler, Lisp_Object handler_args,
+		Lisp_Object event_args)
+{
+  struct input_event event;
+  EVENT_INIT (event);
+  event.kind = DBUS_EVENT;
+  event.frame_or_window = Qnil;
+  /* Handler and handler args.  */
+  event.arg = Fcons (handler, handler_args);
+  /* Event args.  */
+  event.arg = CALLN (Fappend, event_args, event.arg);
+  /* Store it into the input event queue.  */
+  kbd_buffer_store_event (&event);
+
+  XD_DEBUG_MESSAGE ("Event stored: %s", XD_OBJECT_TO_STRING (event.arg));
+}
+
 /* Read one queued incoming message of the D-Bus BUS.
    BUS is either a Lisp symbol, :system, :session, :system-private or
    :session-private, or a string denoting the bus address.  */
 static void
 xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 {
-  Lisp_Object args, key, value;
-  struct input_event event;
+  Lisp_Object args, event_args, key, value;
   DBusMessage *dmessage;
   DBusMessageIter iter;
   int dtype;
@@ -1676,6 +1694,27 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 		    mtype == DBUS_MESSAGE_TYPE_ERROR ? error_name : member,
 		    XD_OBJECT_TO_STRING (args));
 
+  /* Add type, serial, uname, destination, path, interface and member
+     or error_name to the event_args.  */
+  event_args
+    = Fcons (mtype == DBUS_MESSAGE_TYPE_ERROR
+	     ? error_name == NULL ? Qnil : build_string (error_name)
+	     : member == NULL ? Qnil : build_string (member),
+	     Qnil);
+  event_args = Fcons ((interface == NULL ? Qnil : build_string (interface)),
+		      event_args);
+  event_args = Fcons ((path == NULL ? Qnil : build_string (path)),
+		     event_args);
+  event_args = Fcons ((destination == NULL ? Qnil : build_string (destination)),
+		     event_args);
+  event_args = Fcons ((uname == NULL ? Qnil : build_string (uname)),
+		     event_args);
+  event_args = Fcons (INT_TO_INTEGER (serial), event_args);
+  event_args = Fcons (make_fixnum (mtype), event_args);
+
+  /* Add the bus symbol to the event.  */
+  event_args = Fcons (bus, event_args);
+
   if (mtype == DBUS_MESSAGE_TYPE_INVALID)
     goto cleanup;
 
@@ -1693,12 +1732,8 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       /* Remove the entry.  */
       Fremhash (key, Vdbus_registered_objects_table);
 
-      /* Construct an event.  */
-      EVENT_INIT (event);
-      event.kind = DBUS_EVENT;
-      event.frame_or_window = Qnil;
-      /* Handler.  */
-      event.arg = Fcons (value, args);
+      /* Store the event.  */
+      xd_store_event (value, args, event_args);
     }
 
   else /* DBUS_MESSAGE_TYPE_METHOD_CALL, DBUS_MESSAGE_TYPE_SIGNAL.  */
@@ -1729,6 +1764,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 			 Fgethash (key, Vdbus_registered_objects_table, Qnil));
 	}
 
+      Lisp_Object called_handlers = Qnil;
       /* Loop over the registered functions.  Construct an event.  */
       for (; !NILP (value); value = CDR_SAFE (value))
 	{
@@ -1747,44 +1783,14 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 	  Lisp_Object handler = CAR_SAFE (CDR_SAFE (key_path_etc));
 	  if (NILP (handler))
 	    continue;
+	  if (!NILP (memq_no_quit (handler, called_handlers)))
+	    continue;
+	  called_handlers = Fcons (handler, called_handlers);
 
-	  /* Construct an event and exit the loop.  */
-	  EVENT_INIT (event);
-	  event.kind = DBUS_EVENT;
-	  event.frame_or_window = Qnil;
-	  event.arg = Fcons (handler, args);
-	  break;
+	  /* Store the event.  */
+	  xd_store_event (handler, args, event_args);
 	}
-
-      if (NILP (value))
-	goto monitor;
     }
-
-  /* Add type, serial, uname, destination, path, interface and member
-     or error_name to the event.  */
-  event.arg
-    = Fcons (mtype == DBUS_MESSAGE_TYPE_ERROR
-	     ? error_name == NULL ? Qnil : build_string (error_name)
-	     : member == NULL ? Qnil : build_string (member),
-	     event.arg);
-  event.arg = Fcons ((interface == NULL ? Qnil : build_string (interface)),
-		     event.arg);
-  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
-		     event.arg);
-  event.arg = Fcons ((destination == NULL ? Qnil : build_string (destination)),
-		     event.arg);
-  event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
-		     event.arg);
-  event.arg = Fcons (INT_TO_INTEGER (serial), event.arg);
-  event.arg = Fcons (make_fixnum (mtype), event.arg);
-
-  /* Add the bus symbol to the event.  */
-  event.arg = Fcons (bus, event.arg);
-
-  /* Store it into the input event queue.  */
-  kbd_buffer_store_event (&event);
-
-  XD_DEBUG_MESSAGE ("Event stored: %s", XD_OBJECT_TO_STRING (event.arg));
 
   /* Monitor.  */
  monitor:
@@ -1796,39 +1802,9 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   if (NILP (value))
     goto cleanup;
 
-  /* Construct an event.  */
-  EVENT_INIT (event);
-  event.kind = DBUS_EVENT;
-  event.frame_or_window = Qnil;
-
-  /* Add type, serial, uname, destination, path, interface, member
-     or error_name and handler to the event.  */
-  event.arg
-    = Fcons (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (CAR_SAFE (value))))),
-	     args);
-  event.arg
-    = Fcons (mtype == DBUS_MESSAGE_TYPE_ERROR
-	     ? error_name == NULL ? Qnil : build_string (error_name)
-	     : member == NULL ? Qnil : build_string (member),
-	     event.arg);
-  event.arg = Fcons ((interface == NULL ? Qnil : build_string (interface)),
-		     event.arg);
-  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
-		     event.arg);
-  event.arg = Fcons ((destination == NULL ? Qnil : build_string (destination)),
-		     event.arg);
-  event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
-		     event.arg);
-  event.arg = Fcons (INT_TO_INTEGER (serial), event.arg);
-  event.arg = Fcons (make_fixnum (mtype), event.arg);
-
-  /* Add the bus symbol to the event.  */
-  event.arg = Fcons (bus, event.arg);
-
-  /* Store it into the input event queue.  */
-  kbd_buffer_store_event (&event);
-
-  XD_DEBUG_MESSAGE ("Monitor event stored: %s", XD_OBJECT_TO_STRING (event.arg));
+  /* Store the event.  */
+  xd_store_event (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (CAR_SAFE (value))))),
+		  args, event_args);
 
   /* Cleanup.  */
  cleanup:

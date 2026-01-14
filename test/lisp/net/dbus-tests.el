@@ -607,6 +607,7 @@ This includes initialization and closing the bus."
       (let ((method1 "Method1")
             (method2 "Method2")
             (handler #'dbus--test-method-handler)
+            dbus-debug ; There would be errors otherwise.
             registered)
 
         ;; The service is not registered yet.
@@ -759,6 +760,7 @@ Returns the respective error."
   (unwind-protect
       (let ((method "Method")
             (handler #'dbus--test-method-authorizable-handler)
+            dbus-debug ; There would be errors otherwise.
             registered)
 
         ;; Register.
@@ -850,7 +852,7 @@ Returns the respective error."
                             (dbus-event-path-name dbus--test-event-expected))
                      (equal (dbus-event-member-name last-input-event)
                             (dbus-event-member-name dbus--test-event-expected))))
-        (setq dbus--test-signal-received args)))))
+        (push args dbus--test-signal-received)))))
 
 (defun dbus--test-timeout-handler (&rest _ignore)
   "Timeout handler, reporting a failed test."
@@ -885,7 +887,7 @@ Returns the respective error."
 	(with-timeout (1 (dbus--test-timeout-handler))
           (while (null dbus--test-signal-received)
             (read-event nil nil 0.1)))
-        (should (equal dbus--test-signal-received '("foo")))
+        (should (equal dbus--test-signal-received '(("foo"))))
 
         ;; Send two arguments, compound types.
         (setq dbus--test-signal-received nil)
@@ -896,11 +898,91 @@ Returns the respective error."
 	(with-timeout (1 (dbus--test-timeout-handler))
           (while (null dbus--test-signal-received)
             (read-event nil nil 0.1)))
-        (should (equal dbus--test-signal-received '((1 2 3) ("bar"))))
+        (should (equal dbus--test-signal-received '(((1 2 3) ("bar")))))
 
         ;; Unregister signal.
         (should (dbus-unregister-object registered))
         (should-not (dbus-unregister-object registered)))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(defun dbus--test-signal-handler1 (&rest args)
+  "Signal handler for `dbus-test05-register-signal-several-handlers'."
+  ;; (message "dbus--test-signal-handler1 %S" last-input-event)
+  (dbus--test-signal-handler (cons "dbus--test-signal-handler1" args)))
+
+(defun dbus--test-signal-handler2 (&rest args)
+  "Signal handler for `dbus-test05-register-signal-several-handlers'."
+  ;; (message "dbus--test-signal-handler2 %S" last-input-event)
+  (dbus--test-signal-handler (cons "dbus--test-signal-handler2" args)))
+
+(ert-deftest dbus-test05-register-signal-several-handlers ()
+  "Check signal registration for an own service.
+It shall call several handlers per received signal."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+
+  (unwind-protect
+      (let ((member "Member")
+            (handler1 #'dbus--test-signal-handler1)
+            (handler2 #'dbus--test-signal-handler2)
+            registered1 registered2)
+
+        ;; Register signal handlers.
+        (should
+         (equal
+          (setq
+           registered1
+           (dbus-register-signal
+            :session dbus--test-service dbus--test-path
+            dbus--test-interface member handler1))
+          `((:signal :session ,dbus--test-interface ,member)
+            (,dbus--test-service ,dbus--test-path ,handler1))))
+        (should
+         (equal
+          (setq
+           registered2
+           (dbus-register-signal
+            :session dbus--test-service dbus--test-path
+            dbus--test-interface member handler2))
+          `((:signal :session ,dbus--test-interface ,member)
+            (,dbus--test-service ,dbus--test-path ,handler2))))
+
+        ;; Send one argument, basic type.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface member "foo")
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (length< dbus--test-signal-received 2)
+            (read-event nil nil 0.1)))
+        (should
+         (member
+          '(("dbus--test-signal-handler1" "foo")) dbus--test-signal-received))
+        (should
+         (member
+          '(("dbus--test-signal-handler2" "foo")) dbus--test-signal-received))
+
+        ;; Unregister one signal.
+        (should (dbus-unregister-object registered1))
+        (should-not (dbus-unregister-object registered1))
+
+        ;; Send one argument, basic type.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface member "foo")
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
+        (should
+         (equal
+          dbus--test-signal-received '((("dbus--test-signal-handler2" "foo")))))
+
+        ;; Unregister the other signal.
+        (should (dbus-unregister-object registered2))
+        (should-not (dbus-unregister-object registered2)))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
@@ -956,7 +1038,7 @@ wildcard for the respective argument."
 	(with-timeout (1 (dbus--test-timeout-handler))
           (while (null dbus--test-signal-received)
             (read-event nil nil 0.1)))
-        (should (equal dbus--test-signal-received '("foo")))
+        (should (equal dbus--test-signal-received '(("foo"))))
 
         ;; Unregister signal.
         (should (dbus-unregister-object registered))
@@ -1317,7 +1399,7 @@ wildcard for the respective argument."
         ;; "invalidated_properties" (an array of strings).
         (should
          (equal dbus--test-signal-received
-                `(,dbus--test-interface ((,property ("foo"))) ())))
+                `((,dbus--test-interface ((,property ("foo"))) ()))))
 
         (should
          (equal
@@ -1341,7 +1423,7 @@ wildcard for the respective argument."
         (should
          (equal
           dbus--test-signal-received
-          `(,dbus--test-interface ((,property ((1 2 3)))) ())))
+          `((,dbus--test-interface ((,property ((1 2 3)))) ()))))
 
         (should
          (equal
