@@ -3916,8 +3916,7 @@ specification of these new optional arguments.
 ** Progress reporter context.
 'make-progress-reporter' now accepts the optional argument CONTEXT,
 which if it is the symbol 'async', inhibits updates in the echo area
-when it is busy, i.e., if the function 'current-message' returns
-non-nil.  This is useful, for example, if you want to monitor progress
+when it is busy.  This is useful, for example, if you want to monitor progress
 of an inherently asynchronous command such as 'compile'.
 
 ** Binary format specifications '%b' and '%B' added.

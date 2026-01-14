@@ -7037,15 +7037,16 @@ echo area updates (default is 0.2 seconds.)  If the OS is not
 capable of measuring fractions of seconds, this parameter is
 effectively rounded up.
 
-Optional CONTEXT is consulted by back ends before showing progress
-updates.  If the symbol `async', echo area progress reports may be
-inhibited if the echo area is busy."
+Optional CONTEXT can be nil or `async'.  It is consulted by back ends before
+showing progress updates.  For example, when CONTEXT is `async',
+the echo area progress reports may be muted if the echo area is busy."
   (when (string-match "[[:alnum:]]\\'" message)
     (setq message (concat message "...")))
   (unless min-time
     (setq min-time 0.2))
   (let ((reporter
 	 (cons (or min-value 0)
+	       ;; FIXME: Use defstruct.
 	       (vector (if (>= min-time 0.02)
 			   (float-time) nil)
 		       min-value

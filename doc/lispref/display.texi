@@ -521,9 +521,11 @@ specifies the minimum time in seconds to pass between successive prints;
 the default is 0.2 seconds.  (On some operating systems, the progress
 reporter may handle fractions of seconds with varying precision).
 
-If @var{context} is the symbol @code{async}, updates in the echo area
-are inhibited when it is busy, i.e., if the function 'current-message'
-returns non-nil.
+If @var{context} is the symbol @code{async}, it announces that the updates
+will occur asynchronously.  Backends can use that info to prevent the
+progress updates from interfering with other data.  For example the
+backend that displays the progress in the echo area will not display
+those async updates when the echo area is in use.
 
 This function calls @code{progress-reporter-update}, so the first
 message is printed immediately.
