@@ -3179,6 +3179,8 @@ When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
 can be a remote branch name.
 
+When called from Lisp, optional argument FILESET overrides the fileset.
+
 This command is like to `vc-diff-outgoing' except that it includes
 uncommitted changes."
   (interactive (list (vc--maybe-read-upstream-location) nil))
