@@ -1959,15 +1959,21 @@ in project `%s'."
   "Like `jsonrpc-request', but for Eglot LSP requests.
 Unless IMMEDIATE, send pending changes before making request."
   (unless immediate (eglot--signal-textDocument/didChange))
-  (jsonrpc-request server method params
-                   :timeout timeout
-                   :cancel-on-input
-                   (cond ((and cancel-on-input
-                               eglot-advertise-cancellation)
-                          (lambda (id)
-                            (jsonrpc-notify server '$/cancelRequest `(:id ,id))))
-                         (cancel-on-input))
-                   :cancel-on-input-retval cancel-on-input-retval))
+  (condition-case oops
+      (jsonrpc-request
+       server method params
+       :timeout timeout
+       :cancel-on-input
+       (cond ((and cancel-on-input
+                   eglot-advertise-cancellation)
+              (lambda (id)
+                (jsonrpc-notify server '$/cancelRequest `(:id ,id))))
+             (cancel-on-input))
+       :cancel-on-input-retval cancel-on-input-retval)
+    (jsonrpc-error
+     (let* ((data (cddr oops)) (code (alist-get 'jsonrpc-error-code data)))
+       (if (zerop code) (eglot--message (alist-get 'jsonrpc-error-message data))
+         (signal 'jsonrpc-error (cdr oops)))))))
 
 (defvar-local eglot--inflight-async-requests nil
   "An plist of symbols to lists of JSONRPC ids.
@@ -2643,12 +2649,14 @@ Uses THING, FACE, DEFS and PREPEND."
 
 (defconst eglot-mode-line-error
   '(:eval (when-let* ((server (eglot-current-server))
-                      (last-error (and server (jsonrpc-last-error server))))
-            (eglot--mode-line-props
-             "error" 'compilation-mode-line-fail
-             '((mouse-3 eglot-clear-status  "Clear this status"))
-             (format "An error occurred: %s\n" (plist-get last-error
-                                                          :message)))))
+                      (last-error (and server (jsonrpc-last-error server)))
+                      (code (plist-get last-error :code)))
+            (unless (zerop code)
+              (eglot--mode-line-props
+               "error" 'compilation-mode-line-fail
+               '((mouse-3 eglot-clear-status  "Clear this status"))
+               (format "An error occurred: %s\n" (plist-get last-error
+                                                            :message))))))
   "Eglot mode line construct for LSP errors.")
 
 (defconst eglot-mode-line-pending-requests
