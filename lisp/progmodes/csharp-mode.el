@@ -719,7 +719,9 @@ compilation and evaluation time conflicts."
      ((parent-is "using_statement") parent-bol 0)
      ((parent-is "lambda_expression") parent-bol 0)
      ((parent-is "try_statement") parent-bol 0)
-     ((parent-is "catch_filter_clause") parent-bol 0))))
+     ((parent-is "catch_filter_clause") parent-bol 0)
+     ((parent-is "preproc_if") parent-bol 0)
+     ((parent-is "preproc_region") parent-bol 0))))
 
 (defvar csharp-ts-mode--keywords
   '("using" "namespace" "class" "if" "else" "throw" "new" "for"
