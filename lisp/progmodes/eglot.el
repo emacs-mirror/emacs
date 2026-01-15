@@ -496,25 +496,26 @@ the LSP connection.  That can be done by `eglot-reconnect'."
                             (const :tag "Pretty-printed lisp" lisp)))))
   :package-version '(Eglot . "1.17.30"))
 
-(defcustom eglot-confirm-server-edits '((eglot-rename . nil)
-                                        (t . maybe-summary))
+(defcustom eglot-confirm-server-edits '((t . maybe-summary))
   "Control if changes proposed by LSP should be confirmed with user.
 
-If this variable's value is the symbol `diff', a diff buffer is
-pops up, allowing the user to apply each change individually.  If
-the symbol `summary' or any other non-nil value, the user is
-prompted in the minibuffer with aa short summary of changes.  The
-symbols `maybe-diff' and `maybe-summary' mean that the
-confirmation is offered to the user only if the changes target
-files visited in buffers.  Finally, a nil value means all changes
-are applied directly without any confirmation.
+If this variable's value is the symbol `diff', a diff buffer pops
+up, allowing the user to apply each change individually.  If the
+symbol `summary' or any other non-nil value, the user is prompted
+in the minibuffer with a short summary of changes.  The symbols
+`maybe-diff' and `maybe-summary' mean that the confirmation is
+offered to the user only if the changes target files not visited
+in buffers.  Finally, a nil value means all changes are applied
+directly without any confirmation.
 
-If this variable's value can also be an alist ((COMMAND . ACTION)
-...) where COMMAND is a symbol designating a command, such as
-`eglot-rename', `eglot-code-actions',
-`eglot-code-action-quickfix', etc.  ACTION is one of the symbols
-described above.  The value t for COMMAND is accepted and its
-ACTION is the default value for commands not in the alist."
+This variable's value can also be an alist ((KEY . ACTION) ...)
+where KEY is either a symbol designating the invoked Emacs command
+(such as `eglot-rename', `eglot-code-actions',
+`eglot-code-action-quickfix', etc.), or a list of file operation
+kinds (`create', `rename', `delete') contained in the edit.
+ACTION is one of the symbols described above.  The value t for
+KEY is accepted and its ACTION is the default value for commands
+or file operation kinds not in the alist."
   :type (let ((basic-choices
                '((const :tag "Use diff" diff)
                  (const :tag "Summarize and prompt" summary)
@@ -522,8 +523,9 @@ ACTION is the default value for commands not in the alist."
                  (const :tag "Maybe summarize and prompt" maybe-summary)
                  (const :tag "Don't confirm" nil))))
           `(choice ,@basic-choices
-                   (alist :tag "Per-command alist"
+                   (alist :tag "Per-command or per-kind alist"
                           :key-type (choice (function :tag "Command")
+                                            (repeat :tag "File operation kinds" symbol)
                                             (const :tag "Default" t))
                           :value-type (choice . ,basic-choices))))
   :package-version '(Eglot . "1.17.30"))
@@ -4271,14 +4273,25 @@ If SILENT, don't echo progress in mode-line."
       (when reporter
         (progress-reporter-done reporter)))))
 
-(defun eglot--confirm-server-edits (origin _prepared)
+(defun eglot--confirm-server-edits (origin prepared)
   "Helper for `eglot--apply-workspace-edit.
-ORIGIN is a symbol designating a command.  Reads the
-`eglot-confirm-server-edits' user option and returns a symbol
-like `diff', `summary' or nil."
-  (let (v)
+ORIGIN is a symbol designating a command.  PREPARED is a list of
+operations to apply.  Reads the `eglot-confirm-server-edits' user
+option and returns a symbol like `diff', `summary' or nil."
+  (let (v op-kinds)
     (cond ((symbolp eglot-confirm-server-edits) eglot-confirm-server-edits)
+          ;; Check for command-based entry
           ((setq v (assoc origin eglot-confirm-server-edits)) (cdr v))
+          ;; Check for operation-kind-based entry
+          ((and (setq op-kinds (mapcar #'car prepared))
+                (setq v (cl-find-if (lambda (entry)
+                                      (and (listp (car entry))
+                                           (cl-some (lambda (kind)
+                                                      (memq kind (car entry)))
+                                                    op-kinds)))
+                                    eglot-confirm-server-edits)))
+           (cdr v))
+          ;; Default entry
           ((setq v (assoc t eglot-confirm-server-edits)) (cdr v)))))
 
 (defun eglot--propose-changes-as-diff (prepared)
