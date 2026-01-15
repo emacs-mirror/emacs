@@ -4911,7 +4911,7 @@ either a string or a vector of integers, where each element (an
 integer) corresponds to one row of the bitmap.  Each bit of an integer
 corresponds to one pixel of the bitmap, where the low bit corresponds
 to the rightmost pixel of the bitmap.  (Note that this order of bits
-is opposite of the order in XBM images; @pxref{XBM Images}.)
+is the opposite of the order in XBM images; @pxref{XBM Images}.)
 
 The height is normally the length of @var{bits}.  However, you
 can specify a different height with non-@code{nil} @var{height}.  The width
@@ -6367,8 +6367,8 @@ used for each pixel in the XBM that is 0.  The default is the frame's
 background color.
 @end table
 
-  If you specify an XBM image using data within Emacs instead of an
-external file, use the following three properties:
+  To specify an XBM image using data within Emacs instead of an
+external file, use the following properties:
 
 @table @code
 @item :data @var{data}
@@ -6999,6 +6999,7 @@ Supports the @code{:index} property.  @xref{Multi-Frame Images}.
 
 @item WebP
 Image type @code{webp}.
+Supports the @code{:index} property.  @xref{Multi-Frame Images}.
 @end table
 
 @node Defining Images
@@ -7320,8 +7321,8 @@ about these image-specific key bindings.
 @cindex image frames
 Some image files can contain more than one image.  We say that there
 are multiple ``frames'' in the image.  At present, Emacs supports
-multiple frames for GIF, TIFF, and certain ImageMagick formats such as
-DJVM@.
+multiple frames for GIF, TIFF, WebP, and certain ImageMagick formats
+such as DJVM@.
 
 The frames can be used either to represent multiple pages (this is
 usually the case with multi-frame TIFF files, for example), or to
