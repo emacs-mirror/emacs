@@ -699,6 +699,12 @@ project, during completion.  That makes some items shorter.
 The category defaults are the same as for 'buffer' but any user
 customizations would need to be re-added.
 
++++
+*** 'project-mode-line' can now show project name only for local files.
+If the value of 'project-mode-line' is 'non-remote', project name and
+the Project menu will be shown on the mode line only for projects with
+local files.
+
 ** Help
 
 +++

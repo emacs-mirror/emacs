@@ -2049,7 +2049,10 @@ project.  See its entry below for description and related options.
 If this user option is non-@code{nil}, Emacs displays the name of the
 current project (if any) on the mode line; clicking @kbd{mouse-1} on
 the project name pops up the menu with the project-related commands.
-The default value is @code{nil}.
+The default value is @code{nil}.  If the value is @code{non-remote},
+Emacs will show the name of the project only for local files; this comes
+in handy when updating the mode line for projects on remote systems is
+slow due to network latencies.
 @end defopt
 
 @menu

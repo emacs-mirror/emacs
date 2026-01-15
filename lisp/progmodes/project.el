@@ -2655,9 +2655,9 @@ This feature requires the presence of the following item in
 `mode-line-format': `(project-mode-line project-mode-line-format)'; it
 is part of the default mode line beginning with Emacs 30.  When the
 value is `non-remote', show the project name only for local files."
-  :type '(choice (const :tag "Don't show" nil)
-                 (const :tag "Show only on non-remote files" non-remote)
-                 (const :tag "Show always" t))
+  :type '(choice (const :tag "Don't show project on mode line" nil)
+                 (const :tag "Show project only for local files" non-remote)
+                 (const :tag "Always show project on mode line" t))
   :group 'project
   :version "30.1")
 
