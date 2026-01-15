@@ -1386,6 +1386,13 @@ associated to a remote PHP file, show the remote PHP ini files.
 Rust number literals may have an optional type suffix.  When this option
 is non-nil, this suffix is fontified using 'font-lock-type-face'.
 
+** YAML-ts mode
+
+---
+*** New user option 'yaml-ts-mode-yamllint-options'.
+Additional options for 'yamllint' the command used for Flymake's YAML
+support.
+
 ** EIEIO
 
 ---
