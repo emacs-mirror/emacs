@@ -20,6 +20,16 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes to upcoming Eglot
 
+** Support for complex workspace edits (create/rename/delete files)
+
+Eglot now advertises support for file resource operations in workspace
+edits and can handle create, rename, and delete file operations.  The
+confirmation UI has been reworked to handle mixed operation types.
+
+The 'eglot-confirm-server-edits' defcustom has been overhauled and now
+also accepts file operation kinds as keys in the alist form, providing
+more fine-grained control over what confirmation mechanism to use.
+
 ** 'eglot-advertise-cancellation' now defaults to t
 
 The variable 'eglot-advertise-cancellation' now defaults to t, which

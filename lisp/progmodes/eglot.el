@@ -784,7 +784,10 @@ This can be useful when using docker to run a language server.")
       (HierarchyItem (:name :kind)
                      (:tags :detail :uri :range :selectionRange :data))
       (CallHierarchyIncomingCall (:from :fromRanges) ())
-      (CallHierarchyOutgoingCall (:to :fromRanges) ()))
+      (CallHierarchyOutgoingCall (:to :fromRanges) ())
+      (CreateFile (:kind :uri) (:options))
+      (RenameFile (:kind :oldUri :newUri) (:options))
+      (DeleteFile (:kind :uri) (:options)))
     "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
 
 INTERFACE-NAME is a symbol designated by the spec as
@@ -1066,7 +1069,9 @@ object."
             :workspace (list
                         :applyEdit t
                         :executeCommand `(:dynamicRegistration :json-false)
-                        :workspaceEdit `(:documentChanges t)
+                        :workspaceEdit `(:documentChanges t
+                                        :resourceOperations ["create" "delete" "rename"]
+                                        :failureHandling "abort")
                         :didChangeWatchedFiles
                         `(:dynamicRegistration
                           ,(if (eglot--trampish-p s) :json-false t)
@@ -2841,7 +2846,8 @@ THINGS are either registrations or unregisterations (sic)."
   (_server (_method (eql workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit."
   (condition-case-unless-debug oops
-      `(:applied ,(eglot--apply-workspace-edit edit last-command))
+      (pcase-let ((`(,retval ,reason) (eglot--apply-workspace-edit edit last-command)))
+        `(:applied ,retval ,@(and reason `(:failureReason ,reason))))
     (quit
      (jsonrpc-error
       :code 32000 :data
@@ -4236,7 +4242,7 @@ Returns a list as described in docstring of `imenu--index-alist'."
 If SILENT, don't echo progress in mode-line."
   (unless edits (cl-return-from eglot--apply-text-edits))
   (unless (or (not version) (equal version eglot--docver))
-    (jsonrpc-error "Edits on `%s' require version %d, you have %d"
+    (jsonrpc-error "Edits on `%s' require version %d, have %d"
                    (current-buffer) version eglot--docver))
   (atomic-change-group
     (let* ((change-group (prepare-change-group))
@@ -4305,7 +4311,7 @@ list ((FILENAME EDITS VERSION)...)."
           (target (current-buffer)))
       (diff-mode)
       (erase-buffer)
-      (pcase-dolist (`(,path ,edits ,_) prepared)
+      (pcase-dolist (`(_ _ _ ,path ,edits ,_) prepared)
         (with-temp-buffer
           (let* ((diff (current-buffer))
                  (existing-buf (find-buffer-visiting path))
@@ -4331,53 +4337,159 @@ list ((FILENAME EDITS VERSION)...)."
     (buffer-enable-undo (current-buffer))
     (goto-char (point-min))
     (pop-to-buffer (current-buffer))
-    (font-lock-ensure)))
+    (font-lock-ensure)
+    (current-buffer)))
 
-(defun eglot--apply-workspace-edit (wedit origin)
+(cl-defun eglot--apply-workspace-edit (wedit origin &aux prepared)
   "Apply (or offer to apply) the workspace edit WEDIT.
-ORIGIN is a symbol designating the command that originated this
-edit proposed by the server."
-  (eglot--dbind ((WorkspaceEdit) changes documentChanges) wedit
-    (let ((prepared
-           (mapcar (eglot--lambda ((TextDocumentEdit) textDocument edits)
-                     (eglot--dbind ((VersionedTextDocumentIdentifier) uri version)
-                         textDocument
-                       (list (eglot-uri-to-path uri) edits version)))
-                   documentChanges)))
+ORIGIN is a symbol designating the command that originated this edit
+proposed by the server.  Returns a list (APPLIED REASON) indicating if
+the edit was attempted and optionally why not."
+  ;; JT@2026-01-11: Note to future (self?).  Most if this big function
+  ;; is preparing with the `prepared' (OP ...) list , where each OP is
+  ;; (KIND DESC APPLY-FN . MORE).  KIND is a symbol, DESC is a string.
+  ;; APPLY-FN is a unary function of OP that applies the change.
+  ;; Sometimes there is MORE data, such as when KIND is eg. 'text-edit'
+  ;; and needs extra info for the diff rendering.
+  (cl-labels
+      ((pathify (x) (eglot-uri-to-path x))
+       (do-create (path &key overwrite ignoreIfExists
+                     &allow-other-keys)
+         (let ((exists (file-exists-p path)))
+           (when (and exists (not ignoreIfExists) (not overwrite))
+             (eglot--error "File %s already exists" path))
+           (when (or (not exists) overwrite)
+             (let ((dir (file-name-directory path)))
+               (unless (file-directory-p dir)
+                 (make-directory dir t)))
+             (write-region "" nil path nil 'nomessage))))
+       (do-rename (old-path new-path &key overwrite ignoreIfExists
+                            &allow-other-keys)
+         (let ((new-exists (file-exists-p new-path)))
+           (when (and new-exists (not ignoreIfExists) (not overwrite))
+             (eglot--error "File %s already exists" new-path))
+           (let ((dir (file-name-directory new-path)))
+             (unless (file-directory-p dir)
+               (make-directory dir t)))
+           ;; If the old file is visited, rename the buffer too
+           (let ((buf (find-buffer-visiting old-path)))
+             (when buf
+               (with-current-buffer buf
+                 (set-visited-file-name new-path t t))))
+           (rename-file old-path new-path overwrite)))
+       (do-delete (path &key recursive ignoreIfNotExists &allow-other-keys)
+         (let ((exists (file-exists-p path)))
+           (when (and (not exists) (not ignoreIfNotExists))
+             (eglot--error "File %s does not exist" path))
+           (when exists
+             ;; Kill buffer if the file is visited
+             (let ((buf (find-buffer-visiting path)))
+               (when buf (kill-buffer buf)))
+             (delete-file path recursive))))
+       (text-edit-op (path edits version)
+         `(text-edit
+           ,(format "Change %s (%d change%s)" path (length edits)
+                    (if (> (length edits) 1) "s" ""))
+           ,(lambda (_op)
+              (with-current-buffer (find-file-noselect path)
+                (eglot--apply-text-edits edits version)))
+           ,path ,edits ,version))
+       (mkfn (doit-fn &rest things)
+         (lambda (op)
+           (apply doit-fn things)
+           (eglot--message
+            "%s" (replace-regexp-in-string "^\\([^ ]+\\) " "\\1d " (cadr op)))))
+       (prepare (ch)
+         (pcase (plist-get ch :kind)
+           ("create"
+            (eglot--dbind ((CreateFile) uri ((:options o))) ch
+              (let ((p (pathify uri)))
+                `(create ,(format "Create `%s'" p) ,(mkfn #'do-create p o)))))
+           ("rename"
+            (eglot--dbind ((RenameFile) oldUri newUri ((:options o))) ch
+              (let ((ol (pathify oldUri)) (nw (pathify newUri)))
+                `(rename ,(format "Rename `%s' to `%s'" ol nw)
+                         ,(mkfn #'do-rename ol nw o)))))
+           ("delete"
+            (eglot--dbind ((DeleteFile) uri ((:options o))) ch
+              (let ((p (pathify uri)))
+                `(delete ,(format "Delete `%s'" p) ,(mkfn #'do-delete p o)))))
+           (_
+            ;; It's a TextDocumentEdit (no kind field)
+            (eglot--dbind ((TextDocumentEdit) textDocument edits) ch
+              (eglot--dbind ((VersionedTextDocumentIdentifier) uri version)
+                  textDocument (text-edit-op (pathify uri) edits version))))))
+       (user-accepts-p ()
+         (y-or-n-p
+          (format "[eglot] Server wants to:\n%s\nProceed? "
+                  (mapconcat (lambda (op) (concat "  " (cadr op)))
+                             prepared "\n"))))
+       (apply-all ()
+         (cl-loop
+          for op in prepared
+          for (_kind _desc fn) = op
+          do (funcall fn op)
+          finally (eldoc) (eglot--message "Workspace edit successful"))
+         `(t nil)))
+    (eglot--dbind ((WorkspaceEdit) changes documentChanges) wedit
+      (setq prepared (mapcar #'prepare documentChanges))
       (unless (and changes documentChanges)
-        ;; We don't want double edits, and some servers send both
-        ;; changes and documentChanges.  This unless ensures that we
-        ;; prefer documentChanges over changes.
+        ;; Prefer `documentChanges' over sort-of-deprecated `changes'.
         (cl-loop for (uri edits) on changes by #'cddr
-                 do (push (list (eglot-uri-to-path uri) edits) prepared)))
-      (cl-flet ((notevery-visited-p ()
-                  (cl-notevery #'find-buffer-visiting
-                               (mapcar #'car prepared)))
-                (accept-p ()
-                  (y-or-n-p
-                   (format "[eglot] Server wants to edit:\n%sProceed? "
-                           (cl-loop
-                            for (f eds _) in prepared
-                            concat (format
-                                    "  %s (%d change%s)\n"
-                                    f (length eds)
-                                    (if (> (length eds) 1) "s" ""))))))
-                (apply ()
-                  (cl-loop for edit in prepared
-                   for (path edits version) = edit
-                   do (with-current-buffer (find-file-noselect path)
-                        (eglot--apply-text-edits edits version))
-                   finally (eldoc) (eglot--message "Edit successful!"))))
-        (let ((decision (eglot--confirm-server-edits origin prepared)))
-          (cond
-           ((or (eq decision 'diff)
-                (and (eq decision 'maybe-diff) (notevery-visited-p)))
-            (eglot--propose-changes-as-diff prepared))
-           ((or (memq decision '(t summary))
-                (and (eq decision 'maybe-summary) (notevery-visited-p)))
-            (when (accept-p) (apply)))
-           (t
-            (apply))))))))
+                 do (push (text-edit-op (pathify uri) edits nil) prepared)))
+      (let* ((decision (eglot--confirm-server-edits origin prepared))
+             (all-text-edits (cl-loop for (kind . _) in prepared
+                                      always (eq kind 'text-edit)))
+             (peaceful
+              (and
+               all-text-edits
+               (cl-loop for op in prepared
+                        always (find-buffer-visiting (cadddr op))))))
+        (cond
+         ((and (and (memq decision '(maybe-diff maybe-summary)) peaceful))
+          (apply-all))
+         ((memq decision '(diff maybe-diff))
+          (cond (all-text-edits
+                 (pop-to-buffer
+                  (eglot--propose-changes-as-diff prepared))
+                 `(nil "decision to apply manually"))
+                (t
+                 ;; `map-y-or-n-p' heroics.  Iterate over prepared
+                 ;; operations with individual prompts, showing diffs
+                 ;; for text-edit operations.
+                 (let* ((wconf (current-window-configuration))
+                        (applied 0)
+                        (total (length prepared)))
+                   (unwind-protect
+                       (progn
+                         (map-y-or-n-p
+                          (lambda (op)
+                            (when (eq (car op) 'text-edit)
+                              (display-buffer
+                               (eglot--propose-changes-as-diff (list op))))
+                            (format "[eglot] %s? " (cadr op)))
+                          (lambda (op)
+                            (set-window-configuration wconf)
+                            (funcall (caddr op) op)
+                            (cl-incf applied))
+                          (lambda ()
+                            ;; Skip text-edits for files that don't exist
+                            ;; (e.g. user skipped the create operation).
+                            (cl-loop for op = (pop prepared) while op
+                                     when (or (not (eq (car op) 'text-edit))
+                                              (file-exists-p (cadddr op)))
+                                     return op))
+                          '("change" "changes" "apply"))
+                         (if (= applied total)
+                             (progn
+                               (eldoc)
+                               (eglot--message "Workspace edit successful")
+                               `(t nil))
+                           `(nil "decision to abort")))
+                     (set-window-configuration wconf))))))
+         ((memq decision '(t summary maybe-summary))
+          (if (user-accepts-p) (apply-all) `(nil "decision to decline")))
+         ((apply-all)))))))
 
 (cl-defun eglot--rename-interactive (&aux region)
   (eglot-server-capable-or-lose :renameProvider)
