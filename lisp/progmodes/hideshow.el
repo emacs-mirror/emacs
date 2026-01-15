@@ -1498,36 +1498,38 @@ Key bindings:
   :keymap hs-minor-mode-map
   (setq hs-headline nil)
 
-  (if hs-minor-mode
-      (progn
-        (unless (and comment-start comment-end)
-          (setq hs-minor-mode nil)
-          (user-error "%S doesn't support the Hideshow minor mode"
-                      major-mode))
+  (cond
+   ((and hs-minor-mode
+         (not (and comment-start comment-end)))
+    (setq hs-minor-mode nil)
+    (message "%S doesn't support the Hideshow minor mode"
+             major-mode))
 
-        ;; Set the old variables
-        (hs-grok-mode-type)
-        ;; Turn off this mode if we change major modes.
-        (add-hook 'change-major-mode-hook
-                  #'turn-off-hideshow nil t)
-        (setq-local line-move-ignore-invisible t)
-        (add-to-invisibility-spec '(hs . t))
-        ;; Add block indicators
-        (when (and hs-show-indicators
-                   (or (and (integerp hs-indicator-maximum-buffer-size)
-                            (< (buffer-size) hs-indicator-maximum-buffer-size))
-                       (not hs-indicator-maximum-buffer-size)))
-          (when (and (not (display-graphic-p))
-                     (eq hs-indicator-type 'fringe))
-            (setq-local hs-indicator-type 'margin))
-          (when (eq hs-indicator-type 'margin)
-            (setq-local left-margin-width (1+ left-margin-width))
-            (setq-local fringes-outside-margins t)
-            ;; Force display of margins
-            (when (eq (current-buffer) (window-buffer))
-              (set-window-buffer nil (window-buffer))))
-          (jit-lock-register #'hs--add-indicators)))
+   (hs-minor-mode
+    ;; Set the old variables
+    (hs-grok-mode-type)
+    ;; Turn off this mode if we change major modes.
+    (add-hook 'change-major-mode-hook
+              #'turn-off-hideshow nil t)
+    (setq-local line-move-ignore-invisible t)
+    (add-to-invisibility-spec '(hs . t))
+    ;; Add block indicators
+    (when (and hs-show-indicators
+               (or (and (integerp hs-indicator-maximum-buffer-size)
+                        (< (buffer-size) hs-indicator-maximum-buffer-size))
+                   (not hs-indicator-maximum-buffer-size)))
+      (when (and (not (display-graphic-p))
+                 (eq hs-indicator-type 'fringe))
+        (setq-local hs-indicator-type 'margin))
+      (when (eq hs-indicator-type 'margin)
+        (setq-local left-margin-width (1+ left-margin-width))
+        (setq-local fringes-outside-margins t)
+        ;; Force display of margins
+        (when (eq (current-buffer) (window-buffer))
+          (set-window-buffer nil (window-buffer))))
+      (jit-lock-register #'hs--add-indicators)))
 
+   (t
     (remove-from-invisibility-spec '(hs . t))
     (remove-overlays nil nil 'hs-indicator t)
     (remove-overlays nil nil 'invisible 'hs)
@@ -1539,7 +1541,7 @@ Key bindings:
         (kill-local-variable 'fringes-outside-margins)
         ;; Force removal of margins
         (when (eq (current-buffer) (window-buffer))
-          (set-window-buffer nil (window-buffer)))))))
+          (set-window-buffer nil (window-buffer))))))))
 
 
 ;;;; that's it
