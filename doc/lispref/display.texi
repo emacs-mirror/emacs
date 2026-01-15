@@ -525,8 +525,7 @@ If @var{context} is the symbol @code{async}, it announces that the updates
 will occur asynchronously.  Backends can use that info to prevent the
 progress updates from interfering with other data.  For example, the
 backend that displays the progress in the echo area will not display
-those async updates when the echo area or the minibuffer window are in
-use.
+those async updates when the echo area is in use.
 
 This function calls @code{progress-reporter-update}, so the first
 message is printed immediately.
