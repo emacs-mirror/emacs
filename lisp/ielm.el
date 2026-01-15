@@ -102,7 +102,7 @@ If nil, always insert newlines.
 
 If `point', insert newline if the point is in the middle of an sexp,
 otherwise evaluate input.  This is useful if you have
-`electric-pair-mode' enabled.
+`electric-pair-mode', or a similar mode, enabled.
 
 If any other non-nil value, insert newline for incomplete sexp input and
 evaluate input for complete sexps.  This is similar to the behavior in
