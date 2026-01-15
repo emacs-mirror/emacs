@@ -3446,17 +3446,25 @@ the mode hook of this mode."
     (setq-local minibuffer-completion-auto-choose nil)))
 
 (defcustom minibuffer-visible-completions nil
-  "Whether candidates shown in *Completions* can be navigated from minibuffer.
+  "Whether to enable navigation of candidates in *Completions* from minibuffer.
 When non-nil, if the *Completions* buffer is displayed in a window,
-you can use the arrow keys in the minibuffer to move the cursor in
+you can use the arrow keys in the minibuffer to move point in
 the window showing the *Completions* buffer.  Typing `RET' selects
 the highlighted completion candidate.
 If the *Completions* buffer is not displayed on the screen, or this
 variable is nil, the arrow keys move point in the minibuffer as usual,
-and `RET' accepts the input typed into the minibuffer."
-  :type '(choice (const :tag "Disable completions navigation" nil)
-                 (const :tag "Enable up/down/left/right" t)
-                 (const :tag "Enable only up/down" up-down))
+and `RET' accepts the input typed into the minibuffer.
+If the value is t, both up/down and right/left arrow keys move point
+in *Completions*; if the value is \\+`up-down', only up/down arrow
+keys move point in *Completions*, while left/right arrows move point
+in the minibuffer window."
+  :type '(choice (const :tag
+                        "Disable completions navigation with arrow keys" nil)
+                 (const :tag
+                        "Enable completions navigation with arrow keys" t)
+                 (const :tag
+                        "Enable completions navigation with up/down arrows"
+                        up-down))
   :version "30.1")
 
 (defvar minibuffer-visible-completions--always-bind nil

@@ -199,6 +199,13 @@ different completion categories by customizing
 be updated as you type, or nil to suppress this always.  Note that for
 large or inefficient completion tables this can slow down typing.
 
++++
+*** New optional value of 'minibuffer-visible-completions'.
+If the value of this option is 'up-down', only the <UP> and <DOWN> arrow
+keys move point between candidates shown in the *Completions* buffer
+display, while <RIGHT> and <LEFT> arrows move point in the minibuffer
+window.
+
 ---
 *** 'RET' chooses the completion selected with 'M-<up>/M-<down>'.
 If a completion candidate is selected with 'M-<up>' or 'M-<down>',
