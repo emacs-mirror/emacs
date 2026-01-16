@@ -1568,7 +1568,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  /* Unlike the other integer-related cases, this one does not
 	     verify that VALUE fits in 'int'.  This is because callers
 	     want EMACS_INT.  */
-	  if (!FIXNUMP (value) || XFIXNUM (value) < 0)
+	  if (!FIXNATP (value))
 	    return false;
 	  break;
 
@@ -2268,8 +2268,7 @@ filter_image_spec (Lisp_Object spec)
 	     breaks the image cache.  Filter those out.  */
 	  if (!(EQ (key, QCanimate_buffer)
 		|| EQ (key, QCanimate_tardiness)
-		|| EQ (key, QCanimate_position)
-		|| EQ (key, QCanimate_multi_frame_data)))
+		|| EQ (key, QCanimate_position)))
 	    {
 	      out = Fcons (value, out);
 	      out = Fcons (key, out);
@@ -3682,6 +3681,27 @@ cache_image (struct frame *f, struct image *img)
 
 #if defined (HAVE_WEBP) || defined (HAVE_GIF)
 
+# ifdef HAVE_GIF
+struct gif_anim_handle
+{
+  struct GifFileType *gif;
+  unsigned long *pixmap;
+};
+# endif /* HAVE_GIF */
+
+# ifdef HAVE_WEBP
+struct webp_anim_handle
+{
+  /* Decoder iterator+compositor.  */
+  struct WebPAnimDecoder *dec;
+  /* Owned copy of input WebP bitstream data consumed by decoder,
+     which it must outlive unchanged.  */
+  uint8_t *contents;
+  /* Timestamp in milliseconds of last decoded frame.  */
+  int timestamp;
+};
+# endif /* HAVE_WEBP */
+
 /* To speed animations up, we keep a cache (based on EQ-ness of the
    image spec/object) where we put the animator iterator.  */
 
@@ -3690,12 +3710,20 @@ struct anim_cache
   /* 'Key' of this cache entry.
      Typically the cdr (plist) of an image spec.  */
   Lisp_Object spec;
-  /* For webp, this will be an iterator, and for libgif, a gif handle.  */
-  void *handle;
-  /* If we need to maintain temporary data of some sort.  */
-  void *temp;
+  /* Image type dependent animation handle (e.g., WebP iterator), freed
+     by 'destructor'.  The union allows maintaining multiple fields per
+     image type and image frame without further heap allocations.  */
+  union anim_handle
+  {
+# ifdef HAVE_GIF
+    struct gif_anim_handle gif;
+# endif /* HAVE_GIF */
+# ifdef HAVE_WEBP
+    struct webp_anim_handle webp;
+# endif /* HAVE_WEBP */
+  } handle;
   /* A function to call to free the handle.  */
-  void (*destructor) (void *);
+  void (*destructor) (union anim_handle *);
   /* Current frame index, and total number of frames.  Note that
      different image formats may start at different indices.  */
   int index, frames;
@@ -3716,17 +3744,15 @@ static struct anim_cache *anim_cache = NULL;
 /* Return a new animation cache entry for image SPEC (which need not be
    an image specification, and is typically its cdr/plist).
    Freed only by pruning the cache.  */
-static struct anim_cache *
+static ATTRIBUTE_MALLOC struct anim_cache *
 anim_create_cache (Lisp_Object spec)
 {
-  struct anim_cache *cache = xmalloc (sizeof (struct anim_cache));
-  cache->handle = NULL;
-  cache->temp = NULL;
-
-  cache->index = -1;
-  cache->next = NULL;
+  struct anim_cache *cache = xzalloc (sizeof *cache);
   cache->spec = spec;
-  cache->byte_size = 0;
+  cache->index = -1;
+  cache->frames = -1;
+  cache->width = -1;
+  cache->height = -1;
   return cache;
 }
 
@@ -3748,10 +3774,8 @@ anim_prune_animation_cache (Lisp_Object clear)
 	  || (NILP (clear) && timespec_cmp (old, cache->update_time) > 0)
 	  || EQ (clear, cache->spec))
 	{
-	  if (cache->handle)
-	    cache->destructor (cache);
-	  if (cache->temp)
-	    xfree (cache->temp);
+	  if (cache->destructor)
+	    cache->destructor (&cache->handle);
 	  *pcache = cache->next;
 	  xfree (cache);
 	}
@@ -9629,7 +9653,8 @@ static const struct image_keyword gif_format[GIF_LAST] =
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
-/* Free X resources of GIF image IMG which is used on frame F.  */
+/* Free X resources of GIF image IMG which is used on frame F.
+   Also used by other image types.  */
 
 static void
 gif_clear_image (struct frame *f, struct image *img)
@@ -9821,11 +9846,15 @@ static const int interlace_increment[] = {8, 8, 4, 2};
 
 #define GIF_LOCAL_DESCRIPTOR_EXTENSION 249
 
+/* Release gif_anim_handle resources.  */
 static void
-gif_destroy (struct anim_cache* cache)
+gif_destroy (union anim_handle *handle)
 {
-  int gif_err;
-  gif_close (cache->handle, &gif_err);
+  struct gif_anim_handle *h = &handle->gif;
+  gif_close (h->gif, NULL);
+  h->gif = NULL;
+  xfree (h->pixmap);
+  h->pixmap = NULL;
 }
 
 static bool
@@ -9842,6 +9871,7 @@ gif_load (struct frame *f, struct image *img)
   EMACS_INT idx = -1;
   int gif_err;
   struct anim_cache* cache = NULL;
+  struct gif_anim_handle *anim_handle = NULL;
   /* Which sub-image are we to display?  */
   Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
   intmax_t byte_size = 0;
@@ -9852,12 +9882,15 @@ gif_load (struct frame *f, struct image *img)
     {
       /* If this is an animated image, create a cache for it.  */
       cache = anim_get_animation_cache (XCDR (img->spec));
+      anim_handle = &cache->handle.gif;
       /* We have an old cache entry, so use it.  */
-      if (cache->handle)
+      if (anim_handle->gif)
 	{
-	  gif = cache->handle;
-	  pixmap = cache->temp;
-	  /* We're out of sync, so start from the beginning.  */
+	  gif = anim_handle->gif;
+	  pixmap = anim_handle->pixmap;
+	  /* We're out of sync, so start from the beginning.
+	     FIXME: Can't we fast-forward like webp_load does when
+	     idx > cache->index, instead of restarting?  */
 	  if (cache->index != idx - 1)
 	    cache->index = -1;
 	}
@@ -10014,10 +10047,10 @@ gif_load (struct frame *f, struct image *img)
     }
 
   /* It's an animated image, so initialize the cache.  */
-  if (cache && !cache->handle)
+  if (cache && !anim_handle->gif)
     {
-      cache->handle = gif;
-      cache->destructor = (void (*)(void *)) &gif_destroy;
+      anim_handle->gif = gif;
+      cache->destructor = gif_destroy;
       cache->width = width;
       cache->height = height;
       cache->byte_size = byte_size;
@@ -10046,8 +10079,8 @@ gif_load (struct frame *f, struct image *img)
   if (!pixmap)
     {
       pixmap = xmalloc (width * height * sizeof (unsigned long));
-      if (cache)
-	cache->temp = pixmap;
+      if (anim_handle)
+	anim_handle->pixmap = pixmap;
     }
 
   /* Clear the part of the screen image not covered by the image.
@@ -10100,7 +10133,7 @@ gif_load (struct frame *f, struct image *img)
   int start_frame = 0;
 
   /* We have animation data in the cache.  */
-  if (cache && cache->temp)
+  if (cache && anim_handle->pixmap)
     {
       start_frame = cache->index + 1;
       if (start_frame > idx)
@@ -10260,11 +10293,16 @@ gif_load (struct frame *f, struct image *img)
 	      delay |= ext->Bytes[1];
 	    }
 	}
+      /* FIXME: Expose this via a nicer interface (bug#66221#122).  */
       img->lisp_data = list2 (Qextension_data, img->lisp_data);
+      /* We used to return a default delay of 1/15th of a second.
+	 Meanwhile browsers have settled on 1/10th of a second.
+	 For consistency across image types and to afford user
+	 configuration, we now return a non-nil nonnumeric value that
+	 image-multi-frame-p turns into image-default-frame-delay.  */
       img->lisp_data
 	= Fcons (Qdelay,
-		 /* Default GIF delay is 1/15th of a second.  */
-		 Fcons (make_float (delay? delay / 100.0: 1.0 / 15),
+		 Fcons (delay ? make_float (delay / 100.0) : Qt,
 			img->lisp_data));
     }
 
@@ -10275,8 +10313,7 @@ gif_load (struct frame *f, struct image *img)
 
   if (!cache)
     {
-      if (pixmap)
-	xfree (pixmap);
+      xfree (pixmap);
       if (gif_close (gif, &gif_err) == GIF_ERROR)
 	{
 #if HAVE_GIFERRORSTRING
@@ -10302,13 +10339,12 @@ gif_load (struct frame *f, struct image *img)
   return true;
 
  gif_error:
-  if (pixmap)
-    xfree (pixmap);
+  xfree (pixmap);
   gif_close (gif, NULL);
-  if (cache)
+  if (anim_handle)
     {
-      cache->handle = NULL;
-      cache->temp = NULL;
+      anim_handle->gif = NULL;
+      anim_handle->pixmap = NULL;
     }
   return false;
 }
@@ -10381,7 +10417,6 @@ webp_image_p (Lisp_Object object)
 
 /* WebP library details.  */
 
-DEF_DLL_FN (int, WebPGetInfo, (const uint8_t *, size_t, int *, int *));
 /* WebPGetFeatures is a static inline function defined in WebP's
    decode.h.  Since we cannot use that with dynamically-loaded libwebp
    DLL, we instead load the internal function it calls and redirect to
@@ -10392,16 +10427,16 @@ DEF_DLL_FN (uint8_t *, WebPDecodeRGBA, (const uint8_t *, size_t, int *, int *));
 DEF_DLL_FN (uint8_t *, WebPDecodeRGB, (const uint8_t *, size_t, int *, int *));
 DEF_DLL_FN (void, WebPFree, (void *));
 DEF_DLL_FN (uint32_t, WebPDemuxGetI, (const WebPDemuxer *, WebPFormatFeature));
-DEF_DLL_FN (WebPDemuxer *, WebPDemuxInternal,
-	    (const WebPData *, int, WebPDemuxState *, int));
-DEF_DLL_FN (void, WebPDemuxDelete, (WebPDemuxer *));
+DEF_DLL_FN (int, WebPAnimDecoderGetInfo,
+	    (const WebPAnimDecoder* dec, WebPAnimInfo* info));
 DEF_DLL_FN (int, WebPAnimDecoderGetNext,
 	    (WebPAnimDecoder *, uint8_t **, int *));
 DEF_DLL_FN (WebPAnimDecoder *, WebPAnimDecoderNewInternal,
 	    (const WebPData *, const WebPAnimDecoderOptions *, int));
-DEF_DLL_FN (int, WebPAnimDecoderOptionsInitInternal,
-	    (WebPAnimDecoderOptions *, int));
 DEF_DLL_FN (int, WebPAnimDecoderHasMoreFrames, (const WebPAnimDecoder *));
+DEF_DLL_FN (void, WebPAnimDecoderReset, (WebPAnimDecoder *));
+DEF_DLL_FN (const WebPDemuxer *, WebPAnimDecoderGetDemuxer,
+	    (const WebPAnimDecoder *));
 DEF_DLL_FN (void, WebPAnimDecoderDelete, (WebPAnimDecoder *));
 
 static bool
@@ -10413,60 +10448,61 @@ init_webp_functions (void)
 	&& (library2 = w32_delayed_load (Qwebpdemux))))
     return false;
 
-  LOAD_DLL_FN (library1, WebPGetInfo);
   LOAD_DLL_FN (library1, WebPGetFeaturesInternal);
   LOAD_DLL_FN (library1, WebPDecodeRGBA);
   LOAD_DLL_FN (library1, WebPDecodeRGB);
   LOAD_DLL_FN (library1, WebPFree);
   LOAD_DLL_FN (library2, WebPDemuxGetI);
-  LOAD_DLL_FN (library2, WebPDemuxInternal);
-  LOAD_DLL_FN (library2, WebPDemuxDelete);
+  LOAD_DLL_FN (library2, WebPAnimDecoderGetInfo);
   LOAD_DLL_FN (library2, WebPAnimDecoderGetNext);
   LOAD_DLL_FN (library2, WebPAnimDecoderNewInternal);
-  LOAD_DLL_FN (library2, WebPAnimDecoderOptionsInitInternal);
   LOAD_DLL_FN (library2, WebPAnimDecoderHasMoreFrames);
+  LOAD_DLL_FN (library2, WebPAnimDecoderReset);
+  LOAD_DLL_FN (library2, WebPAnimDecoderGetDemuxer);
   LOAD_DLL_FN (library2, WebPAnimDecoderDelete);
   return true;
 }
 
-#undef WebPGetInfo
 #undef WebPGetFeatures
 #undef WebPDecodeRGBA
 #undef WebPDecodeRGB
 #undef WebPFree
 #undef WebPDemuxGetI
-#undef WebPDemux
-#undef WebPDemuxDelete
+#undef WebPAnimDecoderGetInfo
 #undef WebPAnimDecoderGetNext
 #undef WebPAnimDecoderNew
-#undef WebPAnimDecoderOptionsInit
 #undef WebPAnimDecoderHasMoreFrames
+#undef WebPAnimDecoderReset
+#undef WebPAnimDecoderGetDemuxer
 #undef WebPAnimDecoderDelete
 
-#define WebPGetInfo fn_WebPGetInfo
 #define WebPGetFeatures(d,s,f)					\
   fn_WebPGetFeaturesInternal(d,s,f,WEBP_DECODER_ABI_VERSION)
 #define WebPDecodeRGBA fn_WebPDecodeRGBA
 #define WebPDecodeRGB fn_WebPDecodeRGB
 #define WebPFree fn_WebPFree
 #define WebPDemuxGetI fn_WebPDemuxGetI
-#define WebPDemux(d)						\
-  fn_WebPDemuxInternal(d,0,NULL,WEBP_DEMUX_ABI_VERSION)
-#define WebPDemuxDelete fn_WebPDemuxDelete
+#define WebPAnimDecoderGetInfo fn_WebPAnimDecoderGetInfo
 #define WebPAnimDecoderGetNext fn_WebPAnimDecoderGetNext
 #define WebPAnimDecoderNew(d,o)					\
   fn_WebPAnimDecoderNewInternal(d,o,WEBP_DEMUX_ABI_VERSION)
-#define WebPAnimDecoderOptionsInit(o)				\
-  fn_WebPAnimDecoderOptionsInitInternal(o,WEBP_DEMUX_ABI_VERSION)
 #define WebPAnimDecoderHasMoreFrames fn_WebPAnimDecoderHasMoreFrames
+#define WebPAnimDecoderReset fn_WebPAnimDecoderReset
+#define WebPAnimDecoderGetDemuxer fn_WebPAnimDecoderGetDemuxer
 #define WebPAnimDecoderDelete fn_WebPAnimDecoderDelete
 
 #endif /* WINDOWSNT */
 
+/* Release webp_anim_handle resources.  */
 static void
-webp_destroy (struct anim_cache* cache)
+webp_destroy (union anim_handle *handle)
 {
-  WebPAnimDecoderDelete (cache->handle);
+  struct webp_anim_handle *h = &handle->webp;
+  WebPAnimDecoderDelete (h->dec);
+  h->dec = NULL;
+  xfree (h->contents);
+  h->contents = NULL;
+  h->timestamp = 0;
 }
 
 /* Load WebP image IMG for use on frame F.  Value is true if
@@ -10475,171 +10511,228 @@ webp_destroy (struct anim_cache* cache)
 static bool
 webp_load (struct frame *f, struct image *img)
 {
+  /* Return value.  */
+  bool success = false;
+  /* Owned copies and borrowed views of input WebP bitstream data and
+     decoded image/frame, respectively.  IOW, contents_cpy and
+     decoded_cpy must always be freed, and contents and decoded must
+     never be freed.  */
+  uint8_t *contents_cpy = NULL;
+  uint8_t const *contents = NULL;
+  uint8_t *decoded_cpy = NULL;
+  uint8_t *decoded = NULL;
+
+  /* Non-nil :index suggests the image is animated; check the cache.  */
+  Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
+  struct anim_cache *cache = (NILP (image_number) ? NULL
+			      : anim_get_animation_cache (XCDR (img->spec)));
+  struct webp_anim_handle *anim_handle = cache ? &cache->handle.webp : NULL;
+
+  /* Image spec inputs.  */
+  Lisp_Object specified_data = Qnil;
+  Lisp_Object specified_file = Qnil;
+  /* Size of WebP contents.  */
   ptrdiff_t size = 0;
-  uint8_t *contents;
-  Lisp_Object file = Qnil;
-  int frames = 0;
-  double delay = 0;
-  WebPAnimDecoder* anim = NULL;
+  /* WebP features parsed from bitstream headers.  */
+  WebPBitstreamFeatures features = { 0 };
 
-  /* Open the WebP file.  */
-  Lisp_Object specified_file = image_spec_value (img->spec, QCfile, NULL);
-  Lisp_Object specified_data = image_spec_value (img->spec, QCdata, NULL);
-
-  if (NILP (specified_data))
+  if (! (anim_handle && anim_handle->dec))
+    /* If there is no cache entry, read in image contents.  */
     {
-      contents = (uint8_t *) slurp_image (specified_file, &size, "WebP");
-      if (contents == NULL)
-	return false;
-    }
-  else
-    {
-      if (!STRINGP (specified_data))
+      specified_data = image_spec_value (img->spec, QCdata, NULL);
+      if (NILP (specified_data))
+	{
+	  /* Open the WebP file.  */
+	  specified_file = image_spec_value (img->spec, QCfile, NULL);
+	  contents_cpy = (uint8_t *) slurp_image (specified_file,
+						  &size, "WebP");
+	  if (!contents_cpy)
+	    goto cleanup;
+	  contents = contents_cpy;
+	}
+      else if (STRINGP (specified_data))
+	{
+	  contents = SDATA (specified_data);
+	  size = SBYTES (specified_data);
+	}
+      else
 	{
 	  image_invalid_data_error (specified_data);
-	  return false;
+	  goto cleanup;
 	}
-      contents = SDATA (specified_data);
-      size = SBYTES (specified_data);
-    }
 
-  /* Validate the WebP image header.  */
-  if (!WebPGetInfo (contents, size, NULL, NULL))
-    {
-      if (!NILP (file))
-	image_error ("Not a WebP file: `%s'", file);
-      else
-	image_error ("Invalid header in WebP image data");
-      goto webp_error1;
-    }
-
-  Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
-  ptrdiff_t idx = FIXNUMP (image_number) ? XFIXNAT (image_number) : 0;
-
-  /* Get WebP features.  */
-  WebPBitstreamFeatures features;
-  VP8StatusCode result = WebPGetFeatures (contents, size, &features);
-  switch (result)
-    {
-    case VP8_STATUS_OK:
-      break;
-    case VP8_STATUS_NOT_ENOUGH_DATA:
-    case VP8_STATUS_OUT_OF_MEMORY:
-    case VP8_STATUS_INVALID_PARAM:
-    case VP8_STATUS_BITSTREAM_ERROR:
-    case VP8_STATUS_UNSUPPORTED_FEATURE:
-    case VP8_STATUS_SUSPENDED:
-    case VP8_STATUS_USER_ABORT:
-    default:
-      /* Error out in all other cases.  */
-      if (!NILP (file))
-	image_error ("Error when interpreting WebP image data: `%s'", file);
-      else
-	image_error ("Error when interpreting WebP image data");
-      goto webp_error1;
-    }
-
-  uint8_t *decoded = NULL;
-  int width, height;
-
-  if (features.has_animation)
-    {
-      /* Animated image.  */
-      int timestamp;
-
-      struct anim_cache* cache = anim_get_animation_cache (XCDR (img->spec));
-      /* Get the next frame from the animation cache.  */
-      if (cache->handle && cache->index == idx - 1)
+      /* Get WebP features.  This can return various error codes while
+	 validating WebP headers, but we (currently) only distinguish
+	 success.  */
+      if (WebPGetFeatures (contents, size, &features) != VP8_STATUS_OK)
 	{
-	  WebPAnimDecoderGetNext (cache->handle, &decoded, &timestamp);
-	  delay = timestamp;
-	  cache->index++;
-	  anim = cache->handle;
-	  width = cache->width;
-	  height = cache->height;
-	  frames = cache->frames;
+	  image_error (NILP (specified_data)
+		       ? "Error parsing WebP headers from file: `%s'"
+		       : "Error parsing WebP headers from image data",
+		       specified_file);
+	  goto cleanup;
+	}
+    }
+
+  /* Dimensions of still image or animation frame.  */
+  int width = -1;
+  int height = -1;
+  /* Number of animation frames.  */
+  int frames = -1;
+  /* Current animation frame's duration in ms.  */
+  int duration = -1;
+
+  if ((anim_handle && anim_handle->dec) || features.has_animation)
+    /* Animated image.  */
+    {
+      if (!cache)
+	/* If the lookup was initially skipped due to the absence of an
+	   :index, do it now.  */
+	{
+	  cache = anim_get_animation_cache (XCDR (img->spec));
+	  anim_handle = &cache->handle.webp;
+	}
+
+      if (anim_handle->dec)
+	/* If WebPGetFeatures was skipped, get the already parsed
+	   features from the cached decoder.  */
+	{
+	  WebPDemuxer const *dmux
+	    = WebPAnimDecoderGetDemuxer (anim_handle->dec);
+	  uint32_t const flags = WebPDemuxGetI (dmux, WEBP_FF_FORMAT_FLAGS);
+	  features.has_alpha = !!(flags & ALPHA_FLAG);
+	  features.has_animation = !!(flags & ANIMATION_FLAG);
 	}
       else
+	/* If there was no decoder in the cache, create one now.  */
 	{
-	  /* Start a new cache entry.  */
-	  if (cache->handle)
-	    WebPAnimDecoderDelete (cache->handle);
+	  /* If the data is from a Lisp string, copy it over so that it
+	     doesn't get garbage-collected.  If it's fresh from a file,
+	     then another copy isn't needed to keep it alive.  Either
+	     way, ownership transfers to the anim cache which frees
+	     memory during pruning.  */
+	  anim_handle->contents = (STRINGP (specified_data)
+				   ? (uint8_t *) xlispstrdup (specified_data)
+				   : contents_cpy);
+	  contents_cpy = NULL;
+	  contents = anim_handle->contents;
+	  cache->destructor = webp_destroy;
 
-	  WebPData webp_data;
-	  if (NILP (specified_data))
-	    /* If we got the data from a file, then we don't need to
-	       copy the data. */
-	    webp_data.bytes = cache->temp = contents;
-	  else
-	    /* We got the data from a string, so copy it over so that
-	       it doesn't get garbage-collected.  */
+	  /* The WebPData docs can be interpreted as requiring it be
+	     allocated, initialized, and cleared via its dedicated API.
+	     However that seems to apply mostly to the mux API that we
+	     don't use; the demux API we use treats WebPData as
+	     read-only POD, so this should be fine.  */
+	  WebPData const webp_data = { .bytes = contents, .size = size };
+	  /* We could ask for multithreaded decoding here.  */
+	  anim_handle->dec = WebPAnimDecoderNew (&webp_data, NULL);
+	  if (!anim_handle->dec)
 	    {
-	      webp_data.bytes = xmalloc (size);
-	      memcpy ((void*) webp_data.bytes, contents, size);
+	      image_error (NILP (specified_data)
+			   ? "Error parsing WebP file: `%s'"
+			   : "Error parsing WebP image data",
+			   specified_file);
+	      goto cleanup;
 	    }
-	  /* In any case, we release the allocated memory when we
-	     purge the anim cache.  */
-	  webp_data.size = size;
-
-	  /* This is used just for reporting by `image-cache-size'.  */
-	  cache->byte_size = size;
 
 	  /* Get the width/height of the total image.  */
-	  WebPDemuxer* demux = WebPDemux (&webp_data);
-	  cache->width = width = WebPDemuxGetI (demux, WEBP_FF_CANVAS_WIDTH);
-	  cache->height = height = WebPDemuxGetI (demux,
-						  WEBP_FF_CANVAS_HEIGHT);
-	  cache->frames = frames = WebPDemuxGetI (demux, WEBP_FF_FRAME_COUNT);
-	  cache->destructor = (void (*)(void *)) webp_destroy;
-	  WebPDemuxDelete (demux);
+	  WebPAnimInfo info;
+	  if (!WebPAnimDecoderGetInfo (anim_handle->dec, &info))
+	    {
+	      image_error (NILP (specified_data)
+			   ? ("Error getting global animation info "
+			      "from WebP file: `%s'")
+			   : ("Error getting global animation info "
+			      "from WebP image data"),
+			   specified_file);
+	      goto cleanup;
+	    }
 
-	  WebPAnimDecoderOptions dec_options;
-	  WebPAnimDecoderOptionsInit (&dec_options);
-	  anim = WebPAnimDecoderNew (&webp_data, &dec_options);
+	  /* Other libwebp[demux] APIs (and WebPAnimInfo internally)
+	     store these values as int, so this should be safe.  */
+	  cache->width = info.canvas_width;
+	  cache->height = info.canvas_height;
+	  cache->frames = info.frame_count;
+	  /* This is used just for reporting by `image-cache-size'.  */
+	  cache->byte_size = size;
+	}
 
-	  cache->handle = anim;
-	  cache->index = idx;
+      width = cache->width;
+      height = cache->height;
+      frames = cache->frames;
 
-	  while (WebPAnimDecoderHasMoreFrames (anim)) {
-	    WebPAnimDecoderGetNext (anim, &decoded, &timestamp);
-	    /* Each frame has its own delay, but we don't really support
-	       that.  So just use the delay from the first frame.  */
-	    if (delay == 0)
-	      delay = timestamp;
-	    /* Stop when we get to the desired index.  */
-	    if (idx-- == 0)
-	      break;
-	  }
+      /* Desired frame number.  */
+      EMACS_INT idx = (FIXNUMP (image_number)
+		       ? min (XFIXNAT (image_number), frames) : 0);
+      if (cache->index >= idx)
+	/* The decoder cannot rewind (nor be queried for the last
+	   frame's decoded pixels and timestamp), so restart from
+	   the first frame.  We could avoid restarting when
+	   cache->index == idx by adding more fields to
+	   webp_anim_handle, but it may not be worth it.  */
+	{
+	  WebPAnimDecoderReset (anim_handle->dec);
+	  anim_handle->timestamp = 0;
+	  cache->index = -1;
+	}
+
+      /* Decode until desired frame number.  */
+      for (;
+	   (cache->index < idx
+	    && WebPAnimDecoderHasMoreFrames (anim_handle->dec));
+	   cache->index++)
+	{
+	  int timestamp;
+	  if (!WebPAnimDecoderGetNext (anim_handle->dec, &decoded, &timestamp))
+	    {
+	      image_error (NILP (specified_data)
+			   ? "Error decoding frame #%d from WebP file: `%s'"
+			   : "Error decoding frame #%d from WebP image data",
+			   cache->index + 1, specified_file);
+	      goto cleanup;
+	    }
+	  eassert (anim_handle->timestamp >= 0);
+	  eassert (timestamp >= anim_handle->timestamp);
+	  duration = timestamp - anim_handle->timestamp;
+	  anim_handle->timestamp = timestamp;
 	}
     }
   else
+    /* Non-animated image.  */
     {
-      /* Non-animated image.  */
+      /* Could performance be improved by using the 'advanced'
+	 WebPDecoderConfig API to request scaling/cropping as
+	 appropriate for Emacs frame and image dimensions,
+	 similarly to the SVG code?  */
       if (features.has_alpha)
 	/* Linear [r0, g0, b0, a0, r1, g1, b1, a1, ...] order.  */
-	decoded = WebPDecodeRGBA (contents, size, &width, &height);
+	decoded_cpy = WebPDecodeRGBA (contents, size, &width, &height);
       else
 	/* Linear [r0, g0, b0, r1, g1, b1, ...] order.  */
-	decoded = WebPDecodeRGB (contents, size, &width, &height);
+	decoded_cpy = WebPDecodeRGB (contents, size, &width, &height);
+      decoded = decoded_cpy;
     }
 
   if (!decoded)
     {
-      image_error ("Error when decoding WebP image data");
-      goto webp_error1;
+      image_error (NILP (specified_data)
+		   ? "Error decoding WebP file: `%s'"
+		   : "Error decoding WebP image data",
+		   specified_file);
+      goto cleanup;
     }
 
   if (!(width <= INT_MAX && height <= INT_MAX
 	&& check_image_size (f, width, height)))
     {
       image_size_error ();
-      goto webp_error2;
+      goto cleanup;
     }
 
   /* Create the x image and pixmap.  */
   Emacs_Pix_Container ximg;
   if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, false))
-    goto webp_error2;
+    goto cleanup;
 
   /* Find the background to use if the WebP image contains an alpha
      channel.  */
@@ -10676,7 +10769,7 @@ webp_load (struct frame *f, struct image *img)
   img->corners[RIGHT_CORNER]
     = img->corners[LEFT_CORNER] + width;
 
-  uint8_t *p = decoded;
+  uint8_t const *p = decoded;
   for (int y = 0; y < height; ++y)
     {
       for (int x = 0; x < width; ++x)
@@ -10684,7 +10777,7 @@ webp_load (struct frame *f, struct image *img)
 	  int r, g, b;
 	  /* The WebP alpha channel allows 256 levels of partial
 	     transparency.  Blend it with the background manually.  */
-	  if (features.has_alpha || anim)
+	  if (features.has_alpha || features.has_animation)
 	    {
 	      float a = (float) p[3] / UINT8_MAX;
 	      r = (int)(a * p[0] + (1 - a) * bg_color.red)   << 8;
@@ -10714,29 +10807,31 @@ webp_load (struct frame *f, struct image *img)
   img->width = width;
   img->height = height;
 
-  /* Return animation data.  */
-  img->lisp_data = Fcons (Qcount,
-			  Fcons (make_fixnum (frames),
-				 img->lisp_data));
-  img->lisp_data = Fcons (Qdelay,
-			  Fcons (make_float (delay / 1000),
-				 img->lisp_data));
+  if (features.has_animation)
+    /* Return animation metadata.  */
+    {
+      eassert (frames > 0);
+      eassert (duration >= 0);
+      img->lisp_data = Fcons (Qcount,
+			      Fcons (make_fixnum (frames),
+				     img->lisp_data));
+      /* WebP spec: interpretation of no/small frame duration is
+	 implementation-defined.  In practice browsers and libwebp tools
+	 map small durations to 100ms to protect against annoying
+	 images.  For consistency across image types and user
+	 configurability, we return a non-nil nonnumeric value that
+	 image-multi-frame-p turns into image-default-frame-delay.  */
+      img->lisp_data
+	= Fcons (Qdelay,
+		 Fcons (duration ? make_float (duration / 1000.0) : Qt,
+			img->lisp_data));
+    }
 
-  /* Clean up.  */
-  if (!anim)
-    WebPFree (decoded);
-  if (NILP (specified_data) && !anim)
-    xfree (contents);
-  return true;
-
- webp_error2:
-  if (!anim)
-    WebPFree (decoded);
-
- webp_error1:
-  if (NILP (specified_data))
-    xfree (contents);
-  return false;
+  success = true;
+ cleanup:
+  WebPFree (decoded_cpy);
+  xfree (contents_cpy);
+  return success;
 }
 
 #endif /* HAVE_WEBP */
@@ -12879,7 +12974,7 @@ static struct image_type const image_types[] =
    IMAGE_TYPE_INIT (init_xpm_functions) },
 #endif
 #if defined HAVE_WEBP
- { SYMBOL_INDEX (Qwebp), webp_image_p, webp_load, image_clear_image,
+ { SYMBOL_INDEX (Qwebp), webp_image_p, webp_load, gif_clear_image,
    IMAGE_TYPE_INIT (init_webp_functions) },
 #endif
  { SYMBOL_INDEX (Qxbm), xbm_image_p, xbm_load, image_clear_image },
@@ -13159,7 +13254,6 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (QCanimate_buffer, ":animate-buffer");
   DEFSYM (QCanimate_tardiness, ":animate-tardiness");
   DEFSYM (QCanimate_position, ":animate-position");
-  DEFSYM (QCanimate_multi_frame_data, ":animate-multi-frame-data");
 
   defsubr (&Simage_transforms_p);
 
