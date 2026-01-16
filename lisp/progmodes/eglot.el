@@ -4680,11 +4680,28 @@ at point.  With prefix argument, prompt for ACTION-KIND."
 ;;; File watchers (aka didChangeWatchedFiles)
 ;;;
 (defvar eglot-watch-files-outside-project-root t
-  "If non-nil, allow watching files outside project root")
+  "If non-nil, allow watching files outside project root.")
+
+(defvar eglot-max-file-watches 10000
+  "Maximum number of file watches across all Eglot servers.
+If this limit is reached, a warning is issued and further watches
+are not added.  Set to nil for unlimited watches.")
+
+(defun eglot--count-file-watches ()
+  "Count total file watches across all Eglot servers."
+  (let ((count 0))
+    (maphash (lambda (_proj servers)
+               (dolist (server servers)
+                 (maphash (lambda (_id descs)
+                            (cl-incf count (length descs)))
+                          (eglot--file-watches server))))
+             eglot--servers-by-project)
+    count))
 
 (cl-defun eglot--watch-globs (server id globs dir in-root
                                      &aux (project (eglot--project server))
-                                     success)
+                                     success
+                                     (watch-count (eglot--count-file-watches)))
   "Set up file watching for relative file names matching GLOBS under DIR.
 GLOBS is a list of (COMPILED-GLOB . KIND) pairs, where COMPILED-GLOB is
 a compiled glob predicate and KIND is a bitmask of change types.  DIR is
@@ -4727,9 +4744,18 @@ happens to be inside or matching the project root."
              (handle-event `(,desc deleted ,file))
              (handle-event `(,desc created ,file1))))))
        (add-watch (subdir)
-         (when (file-readable-p subdir)
-           (push (file-notify-add-watch subdir '(change) #'handle-event)
-                 (gethash id (eglot--file-watches server))))))
+         (cond ((not (file-readable-p subdir)))
+               ((and eglot-max-file-watches
+                     (>= watch-count eglot-max-file-watches))
+                (eglot--warn "Reached `eglot-max-file-watches' limit of %d, \
+not watching some directories" eglot-max-file-watches)
+                ;; Could `(setq success t)' here to keep partial watches.
+                (jsonrpc-error "Reached `eglot-max-file-watches' limit of %d"
+                               eglot-max-file-watches))
+               (t
+                (push (file-notify-add-watch subdir '(change) #'handle-event)
+                      (gethash id (eglot--file-watches server)))
+                (cl-incf watch-count)))))
     (let ((subdirs (if (or (null dir) in-root)
                        (subdirs-using-project)
                      (condition-case _ (subdirs-using-find)

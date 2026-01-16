@@ -20,6 +20,13 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes to upcoming Eglot
 
+** File watch limits to prevent resource exhaustion (github#1568)
+
+The new variable 'eglot-max-file-watches' limits the number of file
+watches that can be created.  Some language servers request watching
+for a very large number of directories (e.g. Python virtualenvs), which
+can exhaust system resources and cause slow startup.
+
 ** Support for complex workspace edits (create/rename/delete files)
 
 Eglot now advertises support for file resource operations in workspace
