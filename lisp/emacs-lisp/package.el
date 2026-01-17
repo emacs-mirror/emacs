@@ -4684,8 +4684,7 @@ form (PKG-NAME PKG-DESC).  If not specified, it will default to
 SECONDARY (interactively, the prefix), use the secondary browser.
 DESC must be a `package-desc' object."
   (interactive (list (package--query-desc)
-                     current-prefix-arg)
-               package-menu-mode)
+                     current-prefix-arg))
   (unless desc
     (user-error "No package here"))
   (let ((url (cdr (assoc :url (package-desc-extras desc)))))
@@ -4731,8 +4730,7 @@ will be signaled in that case."
 (defun package-report-bug (desc)
   "Prepare a message to send to the maintainers of a package.
 DESC must be a `package-desc' object."
-  (interactive (list (package--query-desc package-alist))
-               package-menu-mode)
+  (interactive (list (package--query-desc package-alist)))
   (let ((maint (package-maintainers desc))
         (name (symbol-name (package-desc-name desc)))
         (pkgdir (package-desc-dir desc))
