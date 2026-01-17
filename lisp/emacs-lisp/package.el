@@ -4678,6 +4678,7 @@ form (PKG-NAME PKG-DESC).  If not specified, it will default to
         (cadr (assoc (completing-read "Package: " alist nil t)
                      alist #'string=)))))
 
+;;;###autoload
 (defun package-browse-url (desc &optional secondary)
   "Open the website of the package under point in a browser.
 `browse-url' is used to determine the browser to be used.  If
