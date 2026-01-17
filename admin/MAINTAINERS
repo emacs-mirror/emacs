@@ -235,7 +235,6 @@ Philip Kaludercic
        lisp/emacs-lisp/package.el
        lisp/emacs-lisp/package-vc.el
        lisp/emacs-lisp/compat.el
-       lisp/net/rcirc.el
 
 Yuan Fu
        src/treesit.c
@@ -390,6 +389,7 @@ Juri Linkov
 	    lisp/repeat.el
 
 Philip Kaludercic
+	lisp/net/rcirc.el
 	lisp/epa-ks.el
 
 Harald Jörg
