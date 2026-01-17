@@ -1660,6 +1660,7 @@ point to an array of at least @var{count} elements specifying the
 little-endian magnitude of the return value.
 @end deftypefn
 
+@cindex GMP, the GNU Multiprecision Library
 The following example uses the GNU Multiprecision Library (GMP) to
 calculate the next probable prime after a given integer.
 @xref{Top,,,gmp}, for a general overview of GMP, and @pxref{Integer
@@ -1752,7 +1753,11 @@ next_prime (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   mpz_t p;
   mpz_init (p);
   extract_big_integer (env, args[0], p);
+
+  /* Assume Emacs is linked to the full GMP library,
+     not to its mini-gmp subset that lacks mpz_nextprime.  */
   mpz_nextprime (p, p);
+
   emacs_value result = make_big_integer (env, p);
   mpz_clear (p);
   return result;
@@ -2844,11 +2849,23 @@ Avoid arbitrary limits.  For example, avoid @code{int len = strlen
 fit in @code{int} range.
 
 @item
+@cindex overflow in integers
+@cindex integer overflow
 Do not assume that signed integer arithmetic wraps around on overflow.
 This is no longer true of Emacs porting targets: signed integer
 overflow has undefined behavior in practice, and can dump core or
 even cause earlier or later code to behave illogically.  Unsigned
-overflow does wrap around reliably, modulo a power of two.
+overflow does wrap around reliably, modulo a power of two,
+if all operand types are unsigned and are @code{unsigned int} or wider.
+
+@item
+Use the macros of @code{<stdckdint.h>} to check for integer overflow
+or to implement wraparound arithmetic reliably with integer types
+that are signed or are narrower than @code{unsigned int}.
+Although @code{<stdckdint.h>} was not standardized until C23,
+on non-C23 platforms Emacs internally provides a fallback substitute.
+Avoid complex arguments to its macros @code{ckd_add}, @code{ckd_sub} and
+@code{ckd_mul}, as the fallback macros might evaluate arguments more than once.
 
 @item
 Prefer signed types to unsigned, as code gets confusing when signed
@@ -2907,9 +2924,16 @@ although @code{off_t} is always signed, @code{time_t} need not be.
 
 @item
 Prefer @code{intmax_t} for representing values that might be any
-signed integer value.
+signed integer value in machine range.
 A @code{printf}-family function can print such a value
 via a format like @code{"%"PRIdMAX}.
+
+@item
+Prefer Emacs integers, which are either fixnums or bignums,
+for representing values that might be outside machine range.
+Although low level code uses GMP directly for efficiency,
+Emacs integers are typically more convenient at higher levels of
+abstraction.
 
 @item
 Prefer @code{bool}, @code{false} and @code{true} for booleans.
