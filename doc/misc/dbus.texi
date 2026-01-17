@@ -64,6 +64,7 @@ another.  An overview of D-Bus can be found at
 * Alternative Buses::           Alternative buses and environments.
 * Errors and Events::           Errors and events.
 * Monitoring Messages::         Monitoring messages.
+* Inhibitor Locks::             Inhibit system shutdowns and sleep states.
 * Index::                       Index including concepts, functions, variables.
 
 * GNU Free Documentation License:: The license for this documentation.
@@ -124,7 +125,7 @@ name could be @samp{org.gnu.Emacs.TextEditor} or
 
 
 @node Inspection
-@chapter Inspection of D-Bus services.
+@chapter Inspection of D-Bus services
 @cindex inspection
 
 @menu
@@ -139,7 +140,7 @@ name could be @samp{org.gnu.Emacs.TextEditor} or
 
 
 @node Version
-@section D-Bus version.
+@section D-Bus version
 
 D-Bus has evolved over the years.  New features have been added with
 new D-Bus versions.  There are two variables, which allow the determination
@@ -158,7 +159,7 @@ It is also @code{nil}, if it cannot be determined at runtime.
 
 
 @node Bus names
-@section Bus names.
+@section Bus names
 
 There are several basic functions which inspect the buses for
 registered names.  Internally they use the basic interface
@@ -267,7 +268,7 @@ at D-Bus @var{bus}, as a string.
 
 
 @node Introspection
-@section Knowing the details of D-Bus services.
+@section Knowing the details of D-Bus services
 
 D-Bus services publish their interfaces.  This can be retrieved and
 analyzed during runtime, in order to understand the used
@@ -483,7 +484,7 @@ If @var{object} has no @var{attribute}, the function returns
 
 
 @node Nodes and Interfaces
-@section Detecting object paths and interfaces.
+@section Detecting object paths and interfaces
 
 The first elements, to be introspected for a D-Bus object, are further
 object paths and interfaces.
@@ -593,7 +594,7 @@ data from a running system:
 
 
 @node Methods and Signal
-@section Applying the functionality.
+@section Applying the functionality
 
 Methods and signals are the communication means to D-Bus.  The
 following functions return their specifications.
@@ -673,7 +674,7 @@ Example:
 
 
 @node Properties and Annotations
-@section What else to know about interfaces.
+@section What else to know about interfaces
 
 Interfaces can have properties.  These can be exposed via the
 @samp{org.freedesktop.DBus.Properties} interface@footnote{See
@@ -894,7 +895,7 @@ An attribute value can be retrieved by
 
 
 @node Arguments and Signatures
-@section The final details.
+@section The final details
 
 Methods and signals have arguments.  They are described in the
 @code{arg} XML elements.
@@ -962,7 +963,7 @@ non-@code{nil}, @var{direction} must be @samp{out}.  Example:
 
 
 @node Type Conversion
-@chapter Mapping Lisp types and D-Bus types.
+@chapter Mapping Lisp types and D-Bus types
 @cindex type conversion
 
 D-Bus method calls and signals accept usually several arguments as
@@ -975,7 +976,7 @@ applied Lisp object @expansion{} D-Bus type for input parameters, and
 D-Bus type @expansion{} Lisp object for output parameters.
 
 
-@section Input parameters.
+@section Input parameters
 
 Input parameters for D-Bus methods and signals occur as arguments of a
 Lisp function call.  The following mapping to D-Bus types is
@@ -1116,7 +1117,7 @@ lower-case hex digits.  As a special case, "" is escaped to
 @end defun
 
 
-@section Output parameters.
+@section Output parameters
 
 Output parameters of D-Bus methods and signals are mapped to Lisp
 objects.
@@ -1199,7 +1200,7 @@ that string:
 
 
 @node Synchronous Methods
-@chapter Calling methods in a blocking way.
+@chapter Calling methods in a blocking way
 @cindex method calls, synchronous
 @cindex synchronous method calls
 
@@ -1319,7 +1320,7 @@ emulate the @code{lshal} command on GNU/Linux systems:
 
 
 @node Asynchronous Methods
-@chapter Calling methods non-blocking.
+@chapter Calling methods non-blocking
 @cindex method calls, asynchronous
 @cindex asynchronous method calls
 
@@ -1371,7 +1372,7 @@ message arrives, and @var{handler} is called.  Example:
 
 
 @node Register Objects
-@chapter Offering own services.
+@chapter Offering own services
 @cindex method calls, returning
 @cindex returning method calls
 
@@ -1722,7 +1723,7 @@ to the service from D-Bus.
 
 
 @node Signals
-@chapter Sending and receiving signals.
+@chapter Sending and receiving signals
 @cindex signals
 
 Signals are one way messages.  They carry input parameters, which are
@@ -1859,7 +1860,7 @@ for a dummy signal, and check the result:
 
 
 @node Alternative Buses
-@chapter Alternative buses and environments.
+@chapter Alternative buses and environments
 @cindex bus names
 @cindex UNIX domain socket
 @cindex TCP/IP socket
@@ -1986,7 +1987,7 @@ running.  This could be achieved by
 
 
 @node Errors and Events
-@chapter Errors and events.
+@chapter Errors and events
 @cindex debugging
 @cindex errors
 @cindex events
@@ -2145,7 +2146,7 @@ whether a given D-Bus error is related to them.
 
 
 @node Monitoring Messages
-@chapter Monitoring messages.
+@chapter Monitoring messages
 @cindex monitoring
 
 @defun dbus-register-monitor bus &optional handler &key type sender destination path interface member
@@ -2202,6 +2203,111 @@ And this form restricts the monitoring on D-Bus errors:
 This command invokes @code{dbus-register-monitor} interactively, and
 switches to the monitor buffer.
 @end deffn
+
+
+@node Inhibitor Locks
+@chapter Inhibit system shutdowns and sleep states
+
+@uref{https://systemd.io/INHIBITOR_LOCKS/, Systemd} includes a logic to
+inhibit system shutdowns and sleep states.  It can be controlled by a
+D-Bus API@footnote{@uref{https://www.freedesktop.org/software/systemd/man/latest/org.freedesktop.login1.html}}.
+Because this API includes handling of file descriptors, not all
+functions can be implemented by simple D-Bus method calls.  Therefore,
+the following functions are provided.
+
+@defun dbus-make-inhibitor-lock what why &optional block
+This function creates an inhibitor for system shutdowns and sleep states.
+
+@var{what} is a colon-separated string of lock types: @samp{shutdown},
+@samp{sleep}, @samp{idle}, @samp{handle-power-key},
+@samp{handle-suspend-key}, @samp{handle-hibernate-key},
+@samp{handle-lid-switch}. Example: @samp{shutdown:idle}.
+
+@c@var{who} is a descriptive string of who is taking the lock.  If it is
+@c@code{nil}, it defaults to @samp{Emacs}.
+
+@var{why} is a descriptive string of why the lock is taken. Example:
+@samp{Package Update in Progress}.
+
+The optional @var{block} is the mode of the inhibitor lock, either
+@samp{block} (@var{block} is non-@code{nil}), or @samp{delay}.
+
+Note, that the @code{who} argument of the inhibitor lock object of the
+systemd manager is always set to the string @samp{Emacs}.
+
+It returns a file descriptor or @code{nil}, if the lock cannot be
+acquired.  If there is already an inhibitor lock for the triple
+@code{(WHAT WHY BLOCK)}, this lock is returned.  Example:
+
+@lisp
+(dbus-make-inhibitor-lock "sleep" "Test")
+
+@result{} 25
+@end lisp
+@end defun
+
+@defun dbus-registered-inhibitor-locks
+Return registered inhibitor locks, an alist.
+This allows to check, whether other packages of the running Emacs
+instance have acquired an inhibitor lock as well.
+
+An entry in this list is a list @code{(@var{fd} @var{what} @var{why}
+@var{block})}.  The car of the list is the file descriptor retrieved
+from a @code{dbus-make-inhibitor-lock} call.  The cdr of the list
+represents the three arguments @code{dbus-make-inhibitor-lock} was
+called with.  Example:
+
+@lisp
+(dbus-registered-inhibitor-locks)
+
+@result{} ((25 "sleep" "Test" nil))
+@end lisp
+@end defun
+
+@defun dbus-close-inhibitor-lock lock
+Close inhibitor lock file descriptor.
+
+@var{lock}, a file descriptor, must be the result of a
+@code{dbus-make-inhibitor-lock} call.  It returns @code{t} in case of
+success, or @code{nil} if it isn't be possible to close the lock, or if
+the lock is closed already.  Example:
+
+@lisp
+(dbus-close-inhibitor-lock 25)
+
+@result{} t
+
+@end lisp
+@end defun
+
+A typical scenario for these functions is to register for the
+D-Bus signal @samp{org.freedesktop.login1.Manager.PrepareForSleep}:
+
+@lisp
+(defvar my-inhibitor-lock
+        (dbus-make-inhibitor-lock "sleep" "Test"))
+
+(defun my-dbus-PrepareForSleep-handler (start)
+  (if start ;; The system goes down for sleep
+      (progn
+        @dots{}
+        ;; Release inhibitor lock.
+        (when (natnump my-inhibitor-lock)
+          (dbus-close-inhibitor-lock my-inhibitor-lock)
+          (setq my-inhibitor-lock nil)))
+    ;; Reacquire inhibitor lock.
+    (setq my-inhibitor-lock
+          (dbus-make-inhibitor-lock "sleep" "Test"))))
+
+(dbus-register-signal
+ :system "org.freedesktop.login1" "/org/freedesktop/login1/Manager"
+ "org.freedesktop.login1.Manager" "PrepareForSleep"
+ #'my-dbus-PrepareForSleep-handler)
+
+@result{} ((:signal :system "org.freedesktop.login1.Manager" "PrepareForSleep")
+    ("org.freedesktop.login1" "/org/freedesktop/login1/Manager"
+      my-dbus-PrepareForSleep-handler))
+@end lisp
 
 
 @node Index

@@ -201,10 +201,10 @@ large or inefficient completion tables this can slow down typing.
 
 +++
 *** New optional value of 'minibuffer-visible-completions'.
-If the value of this option is 'up-down', only the <UP> and <DOWN> arrow
-keys move point between candidates shown in the *Completions* buffer
-display, while <RIGHT> and <LEFT> arrows move point in the minibuffer
-window.
+If the value of this option is 'up-down', only the '<up>' and '<down>'
+arrow keys move point between candidates shown in the "*Completions*"
+buffer display, while '<right>' and '<left>' arrows move point in the
+minibuffer window.
 
 ---
 *** 'RET' chooses the completion selected with 'M-<up>/M-<down>'.
@@ -513,7 +513,7 @@ Each non-tooltip frame is assigned a unique integer id.  This allows you
 to unambiguously identify frames even if they share the same name or
 title.  When 'undelete-frame-mode' is enabled, each deleted frame's id
 is stored for resurrection.  The function 'frame-id' returns a frame's
-id (in C, use the frame struct member id).
+id (in C, use the frame struct member 'id').
 
 ** Mode Line
 
@@ -2062,9 +2062,9 @@ you exit the Emacs session or kill the IELM buffer.
 
 ---
 *** New value 'point' for user option 'ielm-dynamic-return'.
-When 'ielm-dynamic-return' is set to 'point', typing RET has dynamic
+When 'ielm-dynamic-return' is set to 'point', typing 'RET' has dynamic
 behavior based on whether point is inside an sexp.  While point is
-inside an sexp typing RET inserts a newline, and otherwise Emacs
+inside an sexp typing 'RET' inserts a newline, and otherwise Emacs
 proceeds with evaluating the expression.  This is useful when
 'electric-pair-mode', or a similar automatic pairing mode, is enabled.
 
@@ -2889,7 +2889,7 @@ The user option 'package-review-policy' can configure which packages
 the user should be allowed to review before any processing takes place.
 The package review can include reading the downloaded source code,
 presenting a diff between the downloaded code and a previous
-installation or displaying a changelog.
+installation or displaying a ChangeLog.
 
 ** Rcirc
 
@@ -3750,11 +3750,20 @@ without marking it as automatically buffer-local.
 ** The obsolete face attribute ':reverse-video' has been removed.
 Use ':inverse-video' instead.
 
+** D-Bus
+
 +++
-** Support interactive D-Bus authorization.
+*** Support interactive D-Bus authorization.
 A new ':authorizable t' parameter has been added to 'dbus-call-method'
 and 'dbus-call-method-asynchronously' to allow the user to interactively
 authorize the invoked D-Bus method (for example via polkit).
+
++++
+*** New D-Bus functions to support systemd inhibitor locks.
+The functions 'dbus-make-inhibitor-lock', 'dbus-close-inhibitor-lock'
+and 'dbus-registered-inhibitor-locks' implement acquiring and releasing
+systemd inhibitor locks.  See the Info node "(dbus) Inhibitor Locks" for
+details.
 
 ** The customization group 'wp' has been removed.
 It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
@@ -3926,15 +3935,17 @@ When the theme is set on PGTK, Android, or MS-Windows systems,
 variable 'toolkit-theme' as either symbol 'dark' or 'light', but may be
 extended to encompass other toolkit-specific symbols in the future.
 
+** Progress reporter
+
 +++
-** Progress reporter callbacks.
+*** Progress reporter callbacks.
 'make-progress-reporter' now accepts optional arguments UPDATE-CALLBACK,
 called on progress steps, and DONE-CALLBACK, called when the progress
 reporter is done.  See the 'make-progress-reporter' docstring for a full
 specification of these new optional arguments.
 
 +++
-** Progress reporter context.
+*** Progress reporter context.
 'make-progress-reporter' now accepts the optional argument CONTEXT,
 which if it is the symbol 'async', inhibits updates in the echo area
 when it is busy.  This is useful, for example, if you want to monitor progress

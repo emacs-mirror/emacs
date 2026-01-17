@@ -1617,6 +1617,109 @@ usage: (dbus-message-internal &rest REST)  */)
   return result;
 }
 
+/* Alist of registered inhibitor locks for D-Bus.
+   An entry in this list is a list (FD WHAT WHY BLOCK).
+   The car of the list is a file descriptor retrieved from a
+   'dbus-make-inhibitor-lock` call.  The cdr of the list represents the
+   three arguments 'dbus-make-inhibitor-lock` was called with.  */
+static Lisp_Object xd_registered_inhibitor_locks;
+
+DEFUN ("dbus-make-inhibitor-lock", Fdbus_make_inhibitor_lock,
+       Sdbus_make_inhibitor_lock,
+       2, 3, 0,
+       doc: /* Inhibit system shutdowns and sleep states.
+
+WHAT is a colon-separated string of lock types, i.e. "shutdown",
+"sleep", "idle", "handle-power-key", "handle-suspend-key",
+"handle-hibernate-key", "handle-lid-switch". Example: "shutdown:idle".
+
+WHY is a descriptive string of why the lock is taken. Example: "Package
+Update in Progress".
+
+The optional BLOCK is the mode of the inhibitor lock, either "block"
+(BLOCK is non-nil), or "delay".
+
+It returns a file descriptor or nil, if the lock cannot be acquired.  If
+there is already an inhibitor lock for the triple (WHAT WHY BLOCK), this
+lock is returned.
+
+For details of the arguments, see Info node `(dbus)Inhibitor Locks'.  */)
+  (Lisp_Object what, Lisp_Object why, Lisp_Object block)
+{
+  CHECK_STRING (what);
+  CHECK_STRING (why);
+  if (!NILP (block))
+    block = Qt;
+  Lisp_Object who = build_string ("Emacs");
+  Lisp_Object mode =
+    (NILP (block)) ? build_string ("delay") : build_string ("block");
+
+  /* Check, whether it is registered already.  */
+  Lisp_Object triple = list3 (what, why, block);
+  Lisp_Object registered = Frassoc (triple, xd_registered_inhibitor_locks);
+  if (!NILP (registered))
+    return CAR_SAFE (registered);
+
+  /* Register lock.  */
+  Lisp_Object lock =
+    calln (Qdbus_call_method, QCsystem,
+	   build_string ("org.freedesktop.login1"),
+	   build_string ("/org/freedesktop/login1"),
+	   build_string ("org.freedesktop.login1.Manager"),
+	   build_string ("Inhibit"), what, who, why, mode);
+
+  xd_registered_inhibitor_locks =
+    Fcons (Fcons (lock, triple), xd_registered_inhibitor_locks);
+  return lock;
+}
+
+DEFUN ("dbus-close-inhibitor-lock", Fdbus_close_inhibitor_lock,
+       Sdbus_close_inhibitor_lock,
+       1, 1, 0,
+       doc: /* Close inhibitor lock file descriptor.
+
+LOCK, a file descriptor, must be the result of a `dbus-make-inhibitor-lock'
+call.  It returns t in case of success, or nil if it isn't be possible
+to close the lock, or if the lock is closed already.
+
+For details, see Info node `(dbus)Inhibitor Locks'.  */)
+  (Lisp_Object lock)
+{
+  CHECK_FIXNUM (lock);
+
+  /* Check, whether it is registered.  */
+  Lisp_Object registered =  assoc_no_quit (lock, xd_registered_inhibitor_locks);
+  if (NILP (registered))
+    return Qnil;
+  else
+    {
+      xd_registered_inhibitor_locks =
+	Fdelete (registered, xd_registered_inhibitor_locks);
+      return (emacs_close (XFIXNAT (lock)) == 0) ? Qt : Qnil;
+    }
+}
+
+DEFUN ("dbus-registered-inhibitor-locks", Fdbus_registered_inhibitor_locks,
+       Sdbus_registered_inhibitor_locks,
+       0, 0, 0,
+       doc: /* Return registered inhibitor locks, an alist.
+This allows to check, whether other packages of the running Emacs
+instance have acquired an inhibitor lock as well.
+An entry in this list is a list (FD WHAT WHY BLOCK).
+The car of the list is the file descriptor retrieved from a
+'dbus-make-inhibitor-lock` call.  The cdr of the list represents the
+three arguments 'dbus-make-inhibitor-lock` was called with.  */)
+  ()
+{
+  /* We return a copy of xd_registered_inhibitor_locks, in order to
+     protect it against malicious manipulation.  */
+  Lisp_Object registered = xd_registered_inhibitor_locks;
+  Lisp_Object result = Qnil;
+  for (; !NILP (registered); registered = CDR_SAFE (registered))
+    result = Fcons (Fcopy_sequence (CAR_SAFE (registered)), result);
+  return Fnreverse (result);
+}
+
 /* Construct a D-Bus event, and store it into the input event queue.  */
 static void
 xd_store_event (Lisp_Object handler, Lisp_Object handler_args,
@@ -1869,6 +1972,7 @@ static void
 syms_of_dbusbind_for_pdumper (void)
 {
   xd_registered_buses = Qnil;
+  xd_registered_inhibitor_locks = Qnil;
 }
 
 void
@@ -1876,6 +1980,9 @@ syms_of_dbusbind (void)
 {
   defsubr (&Sdbus__init_bus);
   defsubr (&Sdbus_get_unique_name);
+  defsubr (&Sdbus_make_inhibitor_lock);
+  defsubr (&Sdbus_close_inhibitor_lock);
+  defsubr (&Sdbus_registered_inhibitor_locks);
 
   DEFSYM (Qdbus_message_internal, "dbus-message-internal");
   defsubr (&Sdbus_message_internal);
@@ -1930,6 +2037,7 @@ syms_of_dbusbind (void)
 
   /* Miscellaneous Lisp symbols.  */
   DEFSYM (Qdbus_get_name_owner, "dbus-get-name-owner");
+  DEFSYM (Qdbus_call_method, "dbus-call-method");
 
   DEFVAR_LISP ("dbus-compiled-version",
 	       Vdbus_compiled_version,
@@ -2035,6 +2143,7 @@ be called when the D-Bus reply message arrives.  */);
   /* Initialize internal objects.  */
   pdumper_do_now_and_after_load (syms_of_dbusbind_for_pdumper);
   staticpro (&xd_registered_buses);
+  staticpro (&xd_registered_inhibitor_locks);
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);
 }

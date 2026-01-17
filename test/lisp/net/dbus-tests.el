@@ -48,6 +48,15 @@
 (defconst dbus--test-interface "org.gnu.Emacs.TestDBus.Interface"
   "Test interface.")
 
+(defconst dbus--test-systemd-service "org.freedesktop.login1"
+  "Systemd service.")
+
+(defconst dbus--test-systemd-path "/org/freedesktop/login1"
+  "Systemd object path.")
+
+(defconst dbus--test-systemd-manager-interface "org.freedesktop.login1.Manager"
+  "Systemd Manager interface.")
+
 (defun dbus--test-availability (bus)
   "Test availability of D-Bus BUS."
   (should (dbus-list-names bus))
@@ -2294,6 +2303,90 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test10-inhibitor-locks ()
+  "Check `dbus-*-inhibitor-locks'."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-system-bus)
+  (skip-unless (dbus-ping :system dbus--test-systemd-service 1000))
+
+  (let (lock1 lock2)
+    ;; Create inhibitor lock.
+    (setq lock1 (dbus-make-inhibitor-lock "sleep" "Test delay"))
+    (should (natnump lock1))
+    ;; The lock is reported by systemd.
+    (should
+     (member
+      (list "sleep" "Emacs" "Test delay" "delay" (user-uid) (emacs-pid))
+      (dbus-call-method
+       :system dbus--test-systemd-service dbus--test-systemd-path
+       dbus--test-systemd-manager-interface "ListInhibitors")))
+    ;; The lock is registered internally.
+    (should
+     (member
+      (list lock1 "sleep" "Test delay" nil)
+      (dbus-registered-inhibitor-locks)))
+    ;; There exist a file descriptor.
+    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
+      (should (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock1))))
+
+    ;; It is not possible to modify registered inhibitor locks on Lisp level.
+    (setcar (assoc lock1 (dbus-registered-inhibitor-locks)) 'malicious)
+    (should (assoc lock1 (dbus-registered-inhibitor-locks)))
+    (should-not (assoc 'malicious (dbus-registered-inhibitor-locks)))
+
+    ;; Creating it again returns the same inhibitor lock.
+    (should (= lock1 (dbus-make-inhibitor-lock "sleep" "Test delay")))
+
+    ;; Create another inhibitor lock.
+    (setq lock2 (dbus-make-inhibitor-lock "sleep" "Test block" 'block))
+    (should (natnump lock2))
+    (should-not (= lock1 lock2))
+    ;; The lock is reported by systemd.
+    (should
+     (member
+      (list "sleep" "Emacs" "Test block" "block" (user-uid) (emacs-pid))
+      (dbus-call-method
+       :system dbus--test-systemd-service dbus--test-systemd-path
+       dbus--test-systemd-manager-interface "ListInhibitors")))
+    ;; The lock is registered internally.
+    (should
+     (member
+      (list lock2 "sleep" "Test block" t)
+      (dbus-registered-inhibitor-locks)))
+    ;; There exist a file descriptor.
+    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
+      (should (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock2))))
+
+    ;; Close the first inhibitor lock.
+    (should (dbus-close-inhibitor-lock lock1))
+    ;; The internal registration has gone.
+    (should-not
+     (member
+      (list lock1 "sleep" "Test delay" nil)
+      (dbus-registered-inhibitor-locks)))
+    ;; The file descriptor has been deleted.
+    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
+      (should-not (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock1))))
+
+    ;; Closing it again is a noop.
+    (should-not (dbus-close-inhibitor-lock lock1))
+
+    ;; Creating it again returns (another?) inhibitor lock.
+    (setq lock1 (dbus-make-inhibitor-lock "sleep" "Test delay"))
+    (should (natnump lock1))
+    ;; The lock is registered internally.
+    (should
+     (member
+      (list lock1 "sleep" "Test delay" nil)
+      (dbus-registered-inhibitor-locks)))
+    ;; There exist a file descriptor.
+    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
+      (should (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock1))))
+
+    ;; Close the inhibitor locks.
+    (should (dbus-close-inhibitor-lock lock1))
+    (should (dbus-close-inhibitor-lock lock2))))
 
 (defun dbus-test-all (&optional interactive)
   "Run all tests for \\[dbus]."
