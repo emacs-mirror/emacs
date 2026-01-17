@@ -3596,21 +3596,25 @@ if test "${with_webp}" != "no"; then
    || test "${HAVE_BE_APP}" = "yes" || test "${HAVE_PGTK}" = "yes" \
    || test "${REALLY_ANDROID}" = "yes"; then
       WEBP_REQUIRED=0.6.0
-      WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED"
+      # Definitions from webp/decode.h are in libwebp, and those from
+      # webp/demux.h in libwebpdemux, which depends on libwebp.
+      WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED libwebp >= $WEBP_REQUIRED"
 
       EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])
 
-      # WebPGetInfo is sometimes not present inside libwebpdemux, so
-      # if it does not link, also check for libwebpdecoder.
+      # If for some reason we still don't have functions from
+      # webp/decode.h, try libwebpdecoder as well, which is the
+      # decoder-only subset of libwebp (bug#61988, bug#66221).
 
       OLD_CFLAGS=$CFLAGS
       OLD_LIBS=$LIBS
       CFLAGS="$CFLAGS $WEBP_CFLAGS"
-      LIBS="$LIBS $WEBP_LIBS"
+      LIBS="$WEBP_LIBS $LIBS"
 
       AS_IF([test "$REALLY_ANDROID" != "yes"], [
-	AC_CHECK_FUNC([WebPGetInfo], [],
-	  [WEBP_MODULE="$WEBP_MODULE libwebpdecoder >= $WEBP_REQUIRED"
+        AC_CHECK_FUNC([WebPDecodeRGBA], [],
+          [WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED"
+           WEBP_MODULE="$WEBP_MODULE libwebpdecoder >= $WEBP_REQUIRED"
 	   HAVE_WEBP=no
 	   AS_UNSET([WEBP_LIBS])
 	   AS_UNSET([WEBP_CFLAGS])
