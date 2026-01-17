@@ -1693,11 +1693,18 @@ time `erc-mode-hook' runs for any connection."
   (declare (indent 1))
   (cl-assert (stringp (car args)))
   (if (derived-mode-p 'erc-mode)
-      (unless (or (erc-with-server-buffer ; needs `erc-server-process'
-                    (apply #'erc-button--display-error-notice-with-keys
-                           (current-buffer) args)
-                    t)
-                  erc--target) ; unlikely
+      (unless
+          (or (erc-with-server-buffer ; needs `erc-server-process'
+                (let ((fn
+                       (lambda (buffer)
+                         (erc-with-buffer (buffer)
+                           (apply #'erc-button--display-error-notice-with-keys
+                                  buffer args)))))
+                  (if erc--msg-props
+                      (run-at-time nil nil fn (current-buffer))
+                    (funcall fn (current-buffer))))
+                t)
+              erc--target) ; unlikely
         (let (hook)
           (setq hook
                 (lambda (_)
