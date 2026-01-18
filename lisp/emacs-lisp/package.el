@@ -2640,7 +2640,9 @@ The description is read from the installed package files."
 (defun package-find-news-file (pkg-desc)
   "Return the file name of a news file of PKG-DESC.
 If no such file exists, the function returns nil."
-  (let ((default-directory (package-desc-dir pkg-desc)))
+  (and-let* ((pkg-dir (package-desc-dir pkg-desc))
+             (_ (not (eq pkg-dir 'builtin)))
+             (default-directory pkg-dir))
     (catch 'success
       (dolist (file '("NEWS-elpa" "news") nil) ;TODO: add user option?
         (when (and (file-readable-p file) (file-regular-p file))
@@ -2675,7 +2677,7 @@ Helper function for `describe-package'."
          (maintainers (or (cdr (assoc :maintainer extras))
                           (cdr (assoc :maintainers extras))))
          (authors (cdr (assoc :authors extras)))
-         (news (package-find-news-file desc)))
+         (news (and desc (package-find-news-file desc))))
     (when (string= status "avail-obso")
       (setq status "available obsolete"))
     (when incompatible-reason
