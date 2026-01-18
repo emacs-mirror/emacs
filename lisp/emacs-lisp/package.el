@@ -683,8 +683,8 @@ SYMBOL) will review packages whose names match SYMBOL.  If you prefix
 the list with a symbol `not', the rules are inverted."
   :type
   (let ((choice '(choice :tag "Review specific packages or archives"
-                         (cons (const archive) (string :tag "Archive name"))
-                         (cons (const package) (symbol :tag "Package name")))))
+                         (cons :tag "Archive name" (const archive) string)
+                         (cons :tag "Package name" (const package) symbol))))
     `(choice
       (const :tag "Review all packages" t)
       (repeat :tag "Review these specific packages and archives" ,choice)
