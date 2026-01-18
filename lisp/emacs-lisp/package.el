@@ -756,11 +756,7 @@ been downloaded.  OLD-DESC is either a `package-desc' object of the
 previous installation or nil, if there was no prior installation.  If the
 review fails, the function throws a symbol `review-failed' with PKG-DESC
 attached."
-  (let ((news (let* ((pkg-dir (package-desc-dir pkg-desc))
-                     (file (expand-file-name "news" pkg-dir)))
-                (and (file-regular-p file)
-                     (file-readable-p file)
-                     file)))
+  (let ((news (package-find-news-file pkg-desc))
         (enable-recursive-minibuffers t)
         (diff-command (car package-review-diff-command)))
     (while (pcase-exhaustive
@@ -2640,6 +2636,15 @@ The description is read from the installed package files."
                           'help-echo "Read this file's commentary"
                           :type 'package--finder-xref))))
 
+(defun package-find-news-file (pkg-desc)
+  "Return the file name of a news file of PKG-DESC.
+If no such file exists, the function returns nil."
+  (let ((default-directory (package-desc-dir pkg-desc)))
+    (catch 'success
+      (dolist (file '("NEWS-elpa" "news") nil) ;TODO: add user option?
+        (when (and (file-readable-p file) (file-regular-p file))
+          (throw 'success (expand-file-name file)))))))
+
 (defun describe-package-1 (pkg)
   "Insert the package description for PKG.
 Helper function for `describe-package'."
@@ -2669,12 +2674,7 @@ Helper function for `describe-package'."
          (maintainers (or (cdr (assoc :maintainer extras))
                           (cdr (assoc :maintainers extras))))
          (authors (cdr (assoc :authors extras)))
-         (news (and-let* (pkg-dir
-                          ((not built-in))
-                          (file (expand-file-name "news" pkg-dir))
-                          ((file-regular-p file))
-                          ((file-readable-p file)))
-                 file)))
+         (news (package-find-news-file pkg)))
     (when (string= status "avail-obso")
       (setq status "available obsolete"))
     (when incompatible-reason
