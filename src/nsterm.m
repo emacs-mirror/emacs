@@ -5066,18 +5066,14 @@ ns_select_1 (int nfds, fd_set *readfds, fd_set *writefds,
       if (writefds && FD_ISSET(k, writefds)) ++nr;
     }
 
-  /* emacs -nw doesn't have an NSApp, so we're done.  */
-  if (NSApp == nil)
-    return thread_select (pselect, nfds, readfds, writefds, exceptfds,
-			  timeout, sigmask);
-
-  if (![NSThread isMainThread]
+  if (NSApp == nil
+      || ![NSThread isMainThread]
       || (timeout && timeout->tv_sec == 0 && timeout->tv_nsec == 0))
-    thread_select (pselect, nfds, readfds, writefds,
-		   exceptfds, timeout, sigmask);
+    return thread_select (pselect, nfds, readfds, writefds,
+			  exceptfds, timeout, sigmask);
   else
     {
-      struct timespec t = {0, 0};
+      struct timespec t = {0, 1};
       thread_select (pselect, 0, NULL, NULL, NULL, &t, sigmask);
     }
 
