@@ -8677,13 +8677,25 @@ Note that any element except the first one in the returned vector may be
 
 #ifdef HAVE_WINDOW_SYSTEM
   struct frame *f = XFRAME (WINDOW_FRAME (w));
+  struct glyph *phys_cursor_glyph = get_phys_cursor_glyph (w);
+
   if (FRAME_WINDOW_P (f))
     {
       phys_cursor_width = w->phys_cursor_width;
       phys_cursor_height = w->phys_cursor_height;
       phys_cursor_ascent = w->phys_cursor_ascent;
     }
+
+  /* If on a stretch glyph, and `x-stretch-cursor' is nil, use the
+     canonical character width instead, except for (H)BAR cursors.  */
+  if (phys_cursor_glyph
+      && phys_cursor_glyph->type == STRETCH_GLYPH
+      && !(w->phys_cursor_type == BAR_CURSOR
+	  || w->phys_cursor_type == HBAR_CURSOR)
+      && !x_stretch_cursor_p)
+    phys_cursor_width = min (FRAME_COLUMN_WIDTH (f), phys_cursor_width);
 #endif
+
   return CALLN (Fvector,
                 w->cursor_type,
                 make_fixnum (w->phys_cursor.x),
