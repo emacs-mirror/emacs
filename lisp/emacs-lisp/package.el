@@ -710,13 +710,14 @@ case you are concerned about moving files between file systems."
 
 (defcustom package-review-diff-command
   (cons diff-command
-        '("-u"                          ;unified patch formatting
-          "-N"                          ;treat absent files as empty
-          "-x" "'*.elc'"                ;ignore byte compiled files
-          "-x" "'*-autoloads.el'"       ;ignore the autoloads file
-          "-x" "'*-pkg.el'"             ;ignore the package description
-          "-x" "'*.info'"               ;ignore compiled Info files
-          ))
+        (mapcar #'shell-quote-argument
+                '("-u"                  ;unified patch formatting
+                  "-N"                  ;treat absent files as empty
+                  "-x" "*.elc"          ;ignore byte compiled files
+                  "-x" "*-autoloads.el" ;ignore the autoloads file
+                  "-x" "*-pkg.el"       ;ignore the package description
+                  "-x" "*.info"         ;ignore compiled Info files
+                  )))
   "Configuration of how `package-review' should generate a Diff.
 The structure of the value must be (COMMAND . OPTIONS), where
 `diff-command' is rebound to be COMMAND and OPTIONS are command-line
