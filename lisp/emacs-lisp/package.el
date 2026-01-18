@@ -2326,7 +2326,7 @@ compiled, and remove the DIR from `load-path'."
       (delete-file (directory-file-name dir))
     (delete-directory dir t)))
 
-
+;;;###autoload
 (defun package-delete (pkg-desc &optional force nosave)
   "Delete package PKG-DESC.
 
