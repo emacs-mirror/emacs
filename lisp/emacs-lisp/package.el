@@ -2675,7 +2675,7 @@ Helper function for `describe-package'."
          (maintainers (or (cdr (assoc :maintainer extras))
                           (cdr (assoc :maintainers extras))))
          (authors (cdr (assoc :authors extras)))
-         (news (package-find-news-file pkg)))
+         (news (package-find-news-file desc)))
     (when (string= status "avail-obso")
       (setq status "available obsolete"))
     (when incompatible-reason
