@@ -1224,7 +1224,11 @@ Return the buffer in which the manpage will appear."
 	 (buffer (get-buffer bufname)))
     (if buffer
 	(Man-notify-when-ready buffer)
-      (message "Invoking %s %s in the background" manual-program man-args)
+      (message "Invoking %s %s %s"
+               manual-program man-args
+               (if Man-prefer-synchronous-call
+                   "and formatting..."
+                 "in the background"))
       (setq buffer (generate-new-buffer bufname))
       (Man-notify-when-ready buffer)
       (with-current-buffer buffer
