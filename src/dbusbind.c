@@ -1709,7 +1709,7 @@ An entry in this list is a list (FD WHAT WHY BLOCK).
 The car of the list is the file descriptor retrieved from a
 'dbus-make-inhibitor-lock` call.  The cdr of the list represents the
 three arguments 'dbus-make-inhibitor-lock` was called with.  */)
-  ()
+  (void)
 {
   /* We return a copy of xd_registered_inhibitor_locks, in order to
      protect it against malicious manipulation.  */
