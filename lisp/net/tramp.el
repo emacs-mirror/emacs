@@ -584,18 +584,20 @@ host runs a restricted shell, it shall be added to this list, too."
   :link '(info-link :tag "Tramp manual" "(tramp) Multi-hops"))
 
 ;;;###tramp-autoload
+(defvar tramp-local-host-names
+  (list tramp-system-name "localhost" "127.0.0.1" "::1"
+	;; Fedora.
+	"localhost4" "localhost6"
+	;; Ubuntu.
+	"ip6-localhost" "ip6-loopback"
+	;; OpenSUSE.
+	"ipv6-localhost" "ipv6-loopback")
+  "List of host names which are regarded as local host.")
+
+;;;###tramp-autoload
 (defcustom tramp-local-host-regexp
-  (rx bos
-      (| (literal tramp-system-name)
-	 (| "localhost" "127.0.0.1" "::1"
-	    ;; Fedora.
-	    "localhost4" "localhost6"
-	    ;; Ubuntu.
-	    "ip6-localhost" "ip6-loopback"
-	    ;; OpenSUSE.
-	    "ipv6-localhost" "ipv6-loopback"))
-      eos)
-  "Host names which are regarded as local host.
+  (rx-to-string `(: bos (| . ,tramp-local-host-names) eos))
+  "Regexp of host names which are regarded as local host.
 If the local host runs a chrooted environment, set this to nil."
   :version "30.1"
   :type '(choice (const :tag "Chrooted environment" nil)

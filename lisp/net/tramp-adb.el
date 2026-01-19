@@ -1227,11 +1227,10 @@ connection if a previous connection has died for some reason."
  'tramp-adb-connection-local-default-ps-profile
  tramp-adb-connection-local-default-ps-variables)
 
-(with-eval-after-load 'shell
-  (connection-local-set-profiles
-   `(:application tramp :protocol ,tramp-adb-method)
-   'tramp-adb-connection-local-default-shell-profile
-   'tramp-adb-connection-local-default-ps-profile))
+(connection-local-set-profiles
+ `(:application tramp :protocol ,tramp-adb-method)
+ 'tramp-adb-connection-local-default-shell-profile
+ 'tramp-adb-connection-local-default-ps-profile)
 
 ;; `shell-mode' tries to open remote files like "/adb::~/.history".
 ;; This fails, because the tilde cannot be expanded.  Tell

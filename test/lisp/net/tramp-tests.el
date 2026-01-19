@@ -2158,9 +2158,8 @@ being the result.")
        (string-equal (file-remote-p (format "/-:%s@:" u) 'method) "ftp"))))
   ;; Default values in tramp-sh.el and tramp-sudoedit.el.
   (when (assoc "su" tramp-methods)
-    (dolist
-	(h `("127.0.0.1" "[::1]" "localhost" "localhost4" "localhost6"
-	     "ip6-localhost" "ip6-loopback" ,(system-name)))
+    ;; "::1" is used as "[::1]" in remote file names.
+    (dolist (h (cons "[::1]" (delete "::1" tramp-local-host-names)))
       (should
        (string-equal (file-remote-p (format "/-:root@%s:" h) 'method) "su"))))
   (dolist (m '("su" "sudo" "ksu" "doas" "sudoedit"))
