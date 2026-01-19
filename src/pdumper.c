@@ -5650,7 +5650,7 @@ pdumper_set_emacs_execdir (char *emacs_executable)
   eassert (p > emacs_executable);
 
 #if HAVE_NS && !NS_SELF_CONTAINED
-  if (strcmp (basename (emacs_executable), "Emacs") == 0)
+  if (strcmp (p, "Emacs") == 0)
     {
       /* This is the Emacs executable from the non-self-contained app
 	 bundle which can be anywhere on the system.  Fortunately, the
