@@ -1638,7 +1638,7 @@ Note that on changing from non-nil to nil, the former contents of
                          'goto-line-history)
             buffer))))
 
-(defun goto-line (line &optional buffer relative)
+(defun goto-line (line &optional buffer relative interactive)
   "Go to LINE, counting from line 1 at beginning of buffer.
 If called interactively, a numeric prefix argument specifies
 LINE; without a numeric prefix argument, read LINE from the
@@ -1659,21 +1659,23 @@ Prior to moving point, this function sets the mark (without
 activating it), unless Transient Mark mode is enabled and the
 mark is already active.
 
+A non-nil INTERACTIVE argument means to push the mark.
+
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want instead is something like:
   (goto-char (point-min))
   (forward-line (1- N))
 If at all possible, an even better solution is to use char counts
 rather than line counts."
-  (declare (interactive-only forward-line))
-  (interactive (goto-line-read-args))
+  (interactive (append (goto-line-read-args) '(nil t)))
   ;; Switch to the desired buffer, one way or another.
   (if buffer
       (let ((window (get-buffer-window buffer)))
 	(if window (select-window window)
 	  (switch-to-buffer-other-window buffer))))
   ;; Leave mark at previous position
-  (or (region-active-p) (push-mark))
+  (when interactive
+    (or (region-active-p) (push-mark)))
   ;; Move to the specified line number in that buffer.
   (let ((pos (save-restriction
                (unless relative (widen))
@@ -1690,14 +1692,13 @@ rather than line counts."
       (widen))
     (goto-char pos)))
 
-(defun goto-line-relative (line &optional buffer)
+(defun goto-line-relative (line &optional buffer interactive)
   "Go to LINE, counting from line at (point-min).
 The line number is relative to the accessible portion of the narrowed
-buffer.  The argument BUFFER is the same as in the function `goto-line'."
-  (declare (interactive-only forward-line))
-  (interactive (goto-line-read-args t))
-  (with-suppressed-warnings ((interactive-only goto-line))
-    (goto-line line buffer t)))
+buffer.  The argument BUFFER is the same as in the function `goto-line'.
+A non-nil INTERACTIVE argument means to push the mark."
+  (interactive (append (goto-line-read-args t) t))
+  (goto-line line buffer t interactive))
 
 (defun count-words-region (start end &optional arg)
   "Count the number of words in the region.
