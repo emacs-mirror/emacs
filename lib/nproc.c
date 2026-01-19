@@ -405,7 +405,7 @@ get_cgroup2_cpu_quota (void)
   if (! fp)
     return cpu_quota;
 
-  /* Get our cgroupv2 (unififed) hierarchy.  */
+  /* Get our cgroupv2 (unified) hierarchy.  */
   char *cgroup = NULL;
   char *cgroup_str = NULL;
   size_t cgroup_size = 0;
