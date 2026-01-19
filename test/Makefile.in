@@ -217,6 +217,10 @@ LOGFILES := $(patsubst %.el,%.log, \
 		$(patsubst $(srcdir)/%,%,$(ELFILES)))
 TESTS := $(LOGFILES:.log=)
 
+## Some tests show problems when run in parallel with other tests.
+## Suppress parallelism for them.
+.NOTPARALLEL: lisp/filenotify-tests.log lisp/net/tramp-tests.log
+
 ## If we have to interrupt a hanging test, preserve the log so we can
 ## see what the problem was.
 .PRECIOUS: %.log
