@@ -3473,13 +3473,16 @@ in the minibuffer window."
 (defun minibuffer--completions-visible ()
   "Return the window where the current *Completions* buffer is visible, if any."
   (when-let* ((window (get-buffer-window "*Completions*" 0)))
-    (when (eq (buffer-local-value 'completion-reference-buffer
-                                  (window-buffer window))
-              ;; If there's no active minibuffer, we call
-              ;; `window-buffer' on nil, assuming that completion is
-              ;; happening in the selected window.
-              (window-buffer (active-minibuffer-window)))
-      window)))
+    (let ((reference-buffer
+           (buffer-local-value 'completion-reference-buffer
+                               (window-buffer window))))
+      (when (or (null reference-buffer)
+                (eq reference-buffer
+                    ;; If there's no active minibuffer, we call
+                    ;; `window-buffer' on nil, assuming that completion is
+                    ;; happening in the selected window.
+                    (window-buffer (active-minibuffer-window))))
+        window))))
 
 (defun completion--selected-candidate ()
   "Return the selected completion candidate if any."
