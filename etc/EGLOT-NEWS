@@ -45,6 +45,11 @@ thinks responses to inflight requests are no longer useful.  The current
 2026 LSP landscape (especially gopls and ocamllsp) suggests this is
 beneficial and helps servers avoid costly useless work.
 
+** Imenu setup no longer uses advice (github#1569)
+
+Eglot now sets 'imenu-create-index-function' directly without using
+advice, making the integration cleaner and more predictable.
+
 
 * Changes in Eglot 1.21 (11/1/2026)
 

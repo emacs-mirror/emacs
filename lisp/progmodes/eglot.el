@@ -2364,9 +2364,9 @@ the previous reports for TOKEN.")
     (eglot--setq-saving company-tooltip-align-annotations t)
     (eglot--setq-saving eldoc-documentation-strategy
                         #'eldoc-documentation-compose)
-    (unless (eglot--stay-out-of-p 'imenu)
-      (add-function :before-until (local 'imenu-create-index-function)
-                    #'eglot-imenu))
+    (unless (or (eglot--stay-out-of-p 'imenu)
+                (not (eglot-server-capable :documentSymbolProvider)))
+      (eglot--setq-saving imenu-create-index-function #'eglot-imenu))
     (unless (eglot--stay-out-of-p 'flymake) (flymake-mode 1))
     (unless (eglot--stay-out-of-p 'eldoc)
       (dolist (f (list #'eglot-signature-eldoc-function
@@ -4222,8 +4222,6 @@ for which LSP on-type-formatting should be requested."
 (cl-defun eglot-imenu ()
   "Eglot's `imenu-create-index-function'.
 Returns a list as described in docstring of `imenu--index-alist'."
-  (unless (eglot-server-capable :documentSymbolProvider)
-    (cl-return-from eglot-imenu))
   (let* ((res (eglot--request (eglot--current-server-or-lose)
                               :textDocument/documentSymbol
                               `(:textDocument
