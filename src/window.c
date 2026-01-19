@@ -8687,7 +8687,9 @@ Note that any element except the first one in the returned vector may be
     }
 
   /* If on a stretch glyph, and `x-stretch-cursor' is nil, use the
-     canonical character width instead, except for (H)BAR cursors.  */
+     canonical character width instead, except for (H)BAR cursors.
+     This mimics what the various *term.c backends do in their
+     *_draw_stretch_glyph methods.  */
   if (phys_cursor_glyph
       && phys_cursor_glyph->type == STRETCH_GLYPH
       && !(w->phys_cursor_type == BAR_CURSOR
