@@ -2509,6 +2509,7 @@ buffer, whether or not it is currently displayed in some window.  */)
 	  /* Start at beginning of line if inside an overlay string, to
              avoid becoming stuck at the beginning of the overlay string.  */
 	  if (it.continuation_lines_width <= 0 /* not in continuation line */
+	      && it.hpos > 0		       /* and not at BOL */
 	      && it.method == GET_FROM_STRING && !NILP (it.from_overlay))
 	    reseat_at_previous_visible_line_start(&it);
 
