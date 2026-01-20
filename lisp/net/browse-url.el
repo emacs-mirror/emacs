@@ -1003,7 +1003,7 @@ opposite of the browser kind of `browse-url-browser-function'."
     (let ((browse-url-browser-function function)
           (browse-url-handlers nil)
           (browse-url-default-handlers nil))
-      (browse-url url))))
+      (browse-url url arg))))
 
 ;;;###autoload
 (defun browse-url-at-mouse (event)
