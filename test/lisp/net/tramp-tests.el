@@ -2145,6 +2145,7 @@ being the result.")
 
 (ert-deftest tramp-test03-file-name-defaults ()
   "Check default values for some methods."
+  :tags '(:expensive-test)
   (skip-unless (eq tramp-syntax 'default))
 
   ;; Default values in tramp-adb.el.
@@ -2801,6 +2802,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 ;; The following test is inspired by Bug#35497.
 (ert-deftest tramp-test10-write-region-file-precious-flag ()
   "Check that `file-precious-flag' is respected with Tramp in use."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
 
@@ -2834,6 +2836,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 ;; The following test is inspired by Bug#55166.
 (ert-deftest tramp-test10-write-region-other-file-name-handler ()
   "Check that another file name handler in VISIT is acknowledged."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-ange-ftp-p)))
   (skip-unless (executable-find "gzip"))
@@ -3444,6 +3447,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 ;; advice for older Emacs versions, so we check that this has been fixed.
 (ert-deftest tramp-test16-file-expand-wildcards ()
   "Check `file-expand-wildcards'."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
 
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
@@ -3591,6 +3595,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 
 (ert-deftest tramp-test17-dired-with-wildcards ()
   "Check `dired' with wildcards."
+  :tags '(:expensive-test)
   ;; `separate' syntax and IPv6 host name syntax do not work.
   (skip-unless
    (not (string-match-p (rx "[") ert-remote-temporary-file-directory)))
@@ -3708,6 +3713,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 ;; The following test is inspired by Bug#45691.
 (ert-deftest tramp-test17-insert-directory-one-file ()
   "Check `insert-directory' inside directory listing."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   ;; Relative file names in dired are not supported in tramp-crypt.el.
   (skip-unless (not (tramp--test-crypt-p)))
@@ -6498,6 +6504,7 @@ INPUT, if non-nil, is a string sent to the process."
 ;; This test is inspired by Bug#27009.
 (ert-deftest tramp-test33-environment-variables-and-port-numbers ()
   "Check that two connections with separate ports are different."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   ;; We test it only for the mock-up connection; otherwise there might
   ;; be problems with the used ports.
@@ -6707,6 +6714,7 @@ INPUT, if non-nil, is a string sent to the process."
 ;; This test is inspired by Bug#33781.
 (ert-deftest tramp-test35-remote-path ()
   "Check loooong `tramp-remote-path'."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
@@ -7134,6 +7142,7 @@ INPUT, if non-nil, is a string sent to the process."
 
 (ert-deftest tramp-test39-make-lock-file-name ()
   "Check `make-lock-file-name', `lock-file', `unlock-file' and `file-locked-p'."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-ange-ftp-p)))
 
@@ -7295,6 +7304,7 @@ INPUT, if non-nil, is a string sent to the process."
 
 (ert-deftest tramp-test39-detect-external-change ()
   "Check that an external file modification is reported."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-ange-ftp-p)))
 
@@ -7935,6 +7945,7 @@ This requires restrictions of file name syntax."
 
 (ert-deftest tramp-test42-utf8 ()
   "Check UTF8 encoding in file names and file contents."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-container-p)))
   (skip-unless (not (tramp--test-rsync-p)))
@@ -8005,6 +8016,7 @@ This requires restrictions of file name syntax."
 
 (ert-deftest tramp-test43-file-system-info ()
   "Check that `file-system-info' returns proper values."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
 
   (when-let* ((fsi (file-system-info ert-remote-temporary-file-directory)))
@@ -8018,6 +8030,7 @@ This requires restrictions of file name syntax."
   "Check results of user/group functions.
 `file-user-uid', `file-group-gid', and `tramp-get-remote-*'
 should all return proper values."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
 
   (let ((default-directory ert-remote-temporary-file-directory))
@@ -8622,6 +8635,7 @@ process sentinels.  They shall not disturb each other."
 ;; This test is inspired by Bug#78572.
 (ert-deftest tramp-test48-session-timeout ()
   "Check that Tramp handles a session timeout properly."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
 
@@ -8702,6 +8716,7 @@ process sentinels.  They shall not disturb each other."
 
 (ert-deftest tramp-test49-external-backend-function ()
   "Check that Tramp handles external functions for a given backend."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-ange-ftp-p)))
 
@@ -8846,6 +8861,7 @@ process sentinels.  They shall not disturb each other."
 
 (ert-deftest tramp-test50-recursive-load ()
   "Check that Tramp does not fail due to recursive load."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
 
   (let ((default-directory (expand-file-name temporary-file-directory)))
