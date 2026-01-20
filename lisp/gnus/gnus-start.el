@@ -31,7 +31,6 @@
 (require 'gnus-range)
 (require 'gnus-util)
 (require 'gnus-cloud)
-(require 'gnus-dbus)
 (autoload 'message-make-date "message")
 (autoload 'gnus-agent-read-servers-validate "gnus-agent")
 (autoload 'gnus-agent-save-local "gnus-agent")
@@ -733,6 +732,22 @@ the first newsgroup."
   ;; Remove Gnus frames.
   (gnus-kill-gnus-frames))
 
+(defcustom gnus-close-on-sleep nil
+  "When non-nil, close Gnus servers on system sleep."
+  :type 'boolean
+  :group 'gnus-start)
+
+(defun gnus-sleep-handler (sleep-event)
+  "Close connection to servers before system sleep.
+See `gnus-close-on-sleep' to enable this functionality.
+
+SLEEP-EVENT is checked to ensure this is only run before sleep."
+  (when (and (eq 'pre-sleep (sleep-event-state sleep-event))
+             (gnus-alive-p))
+    (condition-case nil
+        (gnus-close-all-servers)
+      (error nil))))
+
 (defun gnus-no-server-1 (&optional arg child)
   "Read network news.
 If ARG is a positive number, Gnus will use that as the startup
@@ -800,8 +815,9 @@ prompt the user for the name of an NNTP server to use."
 	  (gnus-run-hooks 'gnus-setup-news-hook)
 	  (when gnus-agent
 	    (gnus-request-create-group "queue" '(nndraft "")))
-	  (when gnus-dbus-close-on-sleep
-	    (gnus-dbus-register-sleep-signal))
+	  (when gnus-close-on-sleep
+            (add-hook 'system-sleep-event-functions
+                      #'gnus-sleep-handler))
 	  (gnus-start-draft-setup)
 	  ;; Generate the group buffer.
 	  (gnus-group-list-groups level)

@@ -849,7 +849,7 @@ Various
 * Spam Package::                A package for filtering and processing spam.
 * The Gnus Registry::           A package for tracking messages by Message-ID.
 * The Gnus Cloud::              A package for synchronizing Gnus marks.
-* D-Bus Integration::           Closing Gnus servers on system sleep.
+* System Sleep Integration::    Closing Gnus servers on system sleep.
 * Other modes::                 Interaction with other modes.
 * Various Various::             Things that are really various.
 
@@ -22712,7 +22712,7 @@ For instance, @code{nnir-notmuch-program} is now
 * Spam Package::                A package for filtering and processing spam.
 * The Gnus Registry::           A package for tracking messages by Message-ID.
 * The Gnus Cloud::              A package for synchronizing Gnus marks.
-* D-Bus Integration::           Closing Gnus servers on system sleep.
+* System Sleep Integration::    Closing Gnus servers on system sleep.
 * Other modes::                 Interaction with other modes.
 * Various Various::             Things that are really various.
 @end menu
@@ -26680,11 +26680,11 @@ CloudSynchronizationDataPack(TM)s.  It's easiest to set this from the
 Server buffer (@pxref{Gnus Cloud Setup}).
 @end defvar
 
-@node D-Bus Integration
-@section D-Bus Integration
-@cindex dbus
-@cindex D-Bus
-@cindex gnus-dbus
+@node System Sleep Integration
+@section System Sleep Integration
+@c Section name changed from this in Emacs 31. @c
+@c This anchor allows old links to continue working. @c
+@anchor{D-Bus Integration}
 @cindex system sleep
 @cindex closing servers automatically
 @cindex hung connections
@@ -26692,13 +26692,10 @@ Server buffer (@pxref{Gnus Cloud Setup}).
 When using laptops or other systems that have a sleep or hibernate
 functionality, it's possible for long-running server connections to
 become ``hung'', requiring the user to manually close and re-open the
-connections after the system resumes.  On systems compiled with D-Bus
-support (check the value of @code{(featurep 'dbusbind)}), Gnus can
-register a D-Bus signal to automatically close all server connections
-before the system goes to sleep.  To enable this, set
-@code{gnus-dbus-close-on-sleep} to a non-@code{nil} value.
-
-For more information about D-Bus and Emacs, @pxref{Top,,, dbus, D-Bus integration in Emacs}.
+connections after the system resumes.  Using the system sleep library,
+Gnus can automatically close all server connections before the system
+goes to sleep.  To enable this, set @code{gnus-close-on-sleep} to a
+non-@code{nil} value.
 
 @node Other modes
 @section Interaction with other modes

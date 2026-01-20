@@ -1967,6 +1967,14 @@ Gnus, see "(gnus) Symbolic Prefixes" in the Gnus manual.
 ---
 *** Sorting selected groups is now possible with 'gnus-topic-mode'.
 
++++
+*** System sleep integration is now independent of D-Bus.
+The system sleep integration previously provided by customizing the
+variable 'gnus-dbus-close-on-sleep' is now deprecated.  A new system
+using the builtin sleep library is now available by customizing
+'gnus-close-on-sleep'.  This will work on all systems that the sleep
+library supports.
+
 ** Sieve
 
 +++
