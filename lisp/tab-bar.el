@@ -1964,6 +1964,42 @@ configuration."
     (delete-window))
   (tab-bar-switch-to-recent-tab))
 
+(defun tab-bar-split-tab (&optional tab arg)
+  "Split windows of specified TAB into two separate tabs.
+TAB defaults to the selected tab.  ARG specifies the number
+of windows to consider for splitting and defaults to 1.
+Interactively, ARG is the prefix argument.
+
+First divide the child windows of TAB's main window into two parts.
+The first part includes the first ARG child windows if ARG is positive,
+or -ARG last windows if it's negative.  The second part includes the
+remaining child windows of TAB's main window.  Then clone into a
+newly-created tab each of the windows of the part which does not
+include TAB's selected window and delete those windows from TAB."
+  (interactive "i\nP")
+  (let* ((tab (or tab (1+ (tab-bar--current-tab-index))))
+         (_ (unless (eq tab (1+ (tab-bar--current-tab-index)))
+              (tab-bar-select-tab tab)))
+         (main (window-main-window))
+         (total-window-count (window-child-count main))
+         (arg (or arg 1)))
+    (cond
+     ((window-live-p main)
+      (user-error "Cannot split tab with only one window"))
+     ((or (not (numberp arg)) (zerop arg))
+      (user-error "Invalid ARG %s for splitting tab" arg))
+     ((>= (abs arg) total-window-count)
+      (user-error "ARG %s exceeds number of windows %s that can be split off"
+                  (abs arg) (1- total-window-count)))
+     (t
+      (let* ((comb (window--get-split-combination main arg))
+             (ws (window-state-get comb)))
+        (delete-window comb)
+        (tab-bar-new-tab)
+        (window-state-put ws (window-main-window)))))))
+
+(defalias 'split-tab #'tab-bar-split-tab)
+
 (defun tab-bar-merge-tabs (&optional tab1 tab2 vertical)
   "Merge the main window of TAB2 into TAB1.
 Split the main window of TAB1 and make the new window display
