@@ -820,6 +820,11 @@ writing in the orthographies of the six languages simultaneously.
 These include: Burmese, Burmese (visual order), Shan, and Mon.
 
 ---
+*** New input methods for Syriac languages.
+Language environment and input methods are implemented now for languages
+using the Syriac script: Syriac and Syriac (phonetic)
+
+---
 ** 'visual-wrap-prefix-mode' now supports variable-pitch fonts.
 When using 'visual-wrap-prefix-mode' in buffers with variable-pitch
 fonts, the wrapped text will now be lined up correctly so that it is

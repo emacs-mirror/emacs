@@ -135,6 +135,9 @@ thin (i.e. 1-dot width) space."
     (error (push err arabic-shape-log)))
   gstring)
 
+;;; `arabic-shape-gstring' is used for shaping of Arabic (range
+;;; #x600–#x6ff) and Syriac (range #x700–#x74f) on account of their
+;;; identical shaping requirements.
 (set-char-table-range
  composition-function-table
  '(#x600 . #x74F)
@@ -145,6 +148,20 @@ thin (i.e. 1-dot width) space."
  '(#x200C . #x200D)
   (list (vector "[\u200C\u200D][\u0600-\u074F\u200C\u200D]+"
                 0 #'arabic-shape-gstring)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Syriac
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-language-info-alist
+ "Syriac" '((charset unicode)
+            (coding-system utf-8)
+            (coding-priority utf-8)
+            (input-method . "syriac")
+            (sample-text . "Syriac	ܫܠܡܐ")
+            (documentation . "\
+Language environment for Classical Syriac, Aramaic, and other languages
+using the Syriac script.")))
 
 ;; The Egyptian Hieroglyph Format Controls were introduced in Unicode
 ;; Standard v12.0.  Apparently, they are not yet well supported in
