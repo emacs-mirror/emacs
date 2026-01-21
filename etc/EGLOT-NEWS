@@ -50,6 +50,11 @@ beneficial and helps servers avoid costly useless work.
 Eglot now sets 'imenu-create-index-function' directly without using
 advice, making the integration cleaner and more predictable.
 
+** Fixed textDocument/prepareRename support (github#1554)
+
+Eglot now properly checks server capabilities before sending
+prepareRename requests.
+
 
 * Changes in Eglot 1.21 (11/1/2026)
 

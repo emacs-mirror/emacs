@@ -1139,7 +1139,8 @@ object."
                                   :isPreferredSupport t)
              :formatting         `(:dynamicRegistration :json-false)
              :rangeFormatting    `(:dynamicRegistration :json-false)
-             :rename             `(:dynamicRegistration :json-false)
+             :rename             `(:dynamicRegistration :json-false
+                                   :prepareSupport t)
              :semanticTokens     `(:dynamicRegistration :json-false
                                    :requests (:full (:delta t))
                                    :overlappingTokenSupport t
@@ -4489,20 +4490,27 @@ the edit was attempted and optionally why not."
           (if (user-accepts-p) (apply-all) `(nil "decision to decline")))
          ((apply-all)))))))
 
-(cl-defun eglot--rename-interactive (&aux region)
-  (eglot-server-capable-or-lose :renameProvider)
-  (let* ((probe (eglot--request (eglot--current-server-or-lose)
-                                :textDocument/prepareRename
-                                (eglot--TextDocumentPositionParams)))
-         (def
-          (cond ((null probe) (user-error "[eglot] Can't rename here"))
-                ((plist-get probe :placeholder))
-                ((plist-get probe :defaultBehavior) (thing-at-point 'symbol t))
-                ((setq region (eglot-range-region probe))
-                 (buffer-substring-no-properties (car region) (cdr region))))))
-    (list (read-from-minibuffer
-           (format "Rename `%s' to: " (or def "unknown symbol"))
-           nil nil nil nil def))))
+(cl-defun eglot--rename-interactive
+    (&aux
+     def region
+     (rename-support (eglot-server-capable-or-lose :renameProvider))
+     (prepare-support (and (listp rename-support)
+                           (plist-get rename-support :prepareProvider))))
+  (setq
+   def
+   (cond (prepare-support
+          (let ((x (eglot--request (eglot--current-server-or-lose)
+                                   :textDocument/prepareRename
+                                   (eglot--TextDocumentPositionParams))))
+            (cond ((null x) (user-error "[eglot] Can't rename here"))
+                  ((plist-get x :placeholder))
+                  ((plist-get x :defaultBehavior) (thing-at-point 'symbol t))
+                  ((setq region (eglot-range-region x))
+                   (buffer-substring-no-properties (car region) (cdr region))))))
+         (t (thing-at-point 'symbol t))))
+  (list (read-from-minibuffer
+         (format "Rename `%s' to: " (or def "unknown symbol"))
+         nil nil nil nil def)))
 
 (defun eglot-rename (newname)
   "Rename the current symbol to NEWNAME."
