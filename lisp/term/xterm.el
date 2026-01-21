@@ -983,11 +983,7 @@ We run the first FUNCTION whose STRING matches the input events."
         ;; Try to find out the type of terminal by sending a "Secondary
         ;; Device Attributes (DA)" query.
         (xterm--query "\e[>0c"
-                      ;; Some terminals (like macOS's Terminal.app) respond to
-                      ;; this query as if it were a "Primary Device Attributes"
-                      ;; query instead, so we should handle that too.
-                      '(("\e[?" . xterm--version-handler)
-                        ("\e[>" . xterm--version-handler)))
+                      '(("\e[>" . xterm--version-handler)))
         ;; Check primary DA for OSC-52 support
         (xterm--query "\e[c"
                       '(("\e[?" . xterm--primary-da-handler))))
