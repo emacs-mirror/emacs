@@ -1940,6 +1940,14 @@ in project `%s'."
   "Message out with FORMAT with ARGS."
   (message "[eglot] %s" (apply #'eglot--format format args)))
 
+(defun eglot--format-server-message (_server type format &rest args)
+  "Format SERVER-originated message with FORMAT with ARGS.
+TYPE is a number indicating the message severity."
+  (concat
+   (propertize "[eglot] "
+               'face (if (or (not type) (<= type 1)) 'error))
+   (apply #'eglot--format format args)))
+
 (defun eglot--warn (format &rest args)
   "Warning message with FORMAT and ARGS."
   (apply #'eglot--message (concat "(warning) " format) args)
@@ -2751,24 +2759,19 @@ still unanswered LSP requests to the server\n"))))
     (jsonrpc-error "Unknown request method `%s'" method)))
 
 (cl-defmethod eglot-handle-notification
-  (_server (_method (eql window/showMessage)) &key type message)
+  (server (_method (eql window/showMessage)) &key type message)
   "Handle notification window/showMessage."
-  (eglot--message (propertize "Server reports (type=%s): %s"
-                              'face (if (<= type 1) 'error))
-                  type message))
+  (message (eglot--format-server-message server type message)))
 
 (cl-defmethod eglot-handle-request
-  (_server (_method (eql window/showMessageRequest))
+  (server (_method (eql window/showMessageRequest))
            &key type message actions &allow-other-keys)
   "Handle server request window/showMessageRequest.
 ACTIONS is a list of MessageActionItem, this has the user choose one and
 return it back to the server.  :null is returned if the list was empty."
   (let* ((actions (mapcar (lambda (a) (cons (plist-get a :title) a)) actions))
          (label (completing-read
-                 (concat
-                  (propertize "[eglot]"
-                              'face (if (or (not type) (<= type 1)) 'error))
-                  " " message)
+                 (eglot--format-server-message server type message)
                  (or (mapcar #'car actions) '("OK"))
                  nil t)))
     (if (and actions label) (cdr (assoc label actions)) :null)))
