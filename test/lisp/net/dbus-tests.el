@@ -28,6 +28,10 @@
 (defvar dbus-debug)
 (defvar dbus-message-type-signal)
 (declare-function dbus-get-unique-name "dbusbind.c" (bus))
+(declare-function dbus-close-inhibitor-lock "dbusbind.c" (lock))
+(declare-function dbus-registered-inhibitor-locks' "dbusbind.c" ())
+(declare-function dbus-make-inhibitor-lock' "dbusbind.c"
+                  (what why &optional block))
 
 (defconst dbus--test-enabled-session-bus
   (and (featurep 'dbusbind)
