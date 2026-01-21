@@ -1098,7 +1098,7 @@ Otherwise, use symbolic time zones like \"CET\"."
 (defconst calendar-first-date-row 3
   "First row in the calendar with actual dates.")
 
-(defconst calendar-buffer "*Calendar*"
+(defvar calendar-buffer "*Calendar*"
   "Name of the buffer used for the calendar.")
 
 (defun calendar-get-buffer ()
