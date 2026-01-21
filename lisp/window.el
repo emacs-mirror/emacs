@@ -5502,8 +5502,13 @@ elsewhere.  This value is used by `quit-windows-on'."
 	;; If quit-restore-prev was not used, reset the quit-restore
 	;; parameter
 	(set-window-parameter window 'quit-restore nil))
-      ;; If the previously selected window is still alive, select it.
-      (window--quit-restore-select-window quit-restore-2))
+      ;; If WINDOW is the selected window and the previously selected
+      ;; window is still alive, try to select that window.  But do that
+      ;; only if WINDOW is either the selected window or we are neither
+      ;; "burying" nor "killing".
+      (unless (and (not (eq window (selected-window)))
+                   (memq bury-or-kill '(killing burying)))
+        (window--quit-restore-select-window quit-restore-2)))
      (t
       ;; Show some other buffer in WINDOW and leave the
       ;; quit-restore(-prev) parameters alone (Juri's idea).
