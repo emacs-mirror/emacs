@@ -2006,31 +2006,37 @@ according to `eglot-advertise-cancellation'.")
                                 (timeout-fn nil timeout-fn-supplied-p)
                                 (timeout nil timeout-supplied-p)
                                 hint
-                                &aux moreargs)
+                                &aux moreargs
+                                id (buf (current-buffer)))
   "Like `jsonrpc-async-request', but for Eglot LSP requests.
+SUCCESS-FN, ERROR-FN and TIMEOUT-FN run in buffer of call site.
 HINT argument is a symbol passed as DEFERRED to `jsonrpc-async-request'
 and also used as a hint of the request cancellation mechanism (see
 `eglot-advertise-cancellation')."
-  (cl-labels ((clearing-fn (fn)
-                (lambda (&rest args)
-                  (when fn (apply fn args))
-                  (cl-remf eglot--inflight-async-requests hint))))
+  (cl-labels
+      ((clearing-fn (fn)
+         (lambda (&rest args)
+           (eglot--when-live-buffer buf
+             (when (and
+                    fn (memq id (cl-getf eglot--inflight-async-requests hint)))
+               (apply fn args))
+             (cl-remf eglot--inflight-async-requests hint)))))
     (eglot--cancel-inflight-async-requests (list hint))
     (when timeout-supplied-p
       (setq moreargs (nconc `(:timeout ,timeout) moreargs)))
     (when hint
       (setq moreargs (nconc `(:deferred ,hint) moreargs)))
-    (let ((id
-           (car (apply #'jsonrpc-async-request
-                       server method params
-                       :success-fn (clearing-fn success-fn)
-                       :error-fn (clearing-fn error-fn)
-                       :timeout-fn (clearing-fn timeout-fn)
-                       moreargs))))
-      (when (and hint eglot-advertise-cancellation)
-        (push id
-              (plist-get eglot--inflight-async-requests hint)))
-      id)))
+    (setq id
+          (car (apply #'jsonrpc-async-request
+                      server method params
+                      :success-fn (clearing-fn success-fn)
+                      :error-fn (clearing-fn error-fn)
+                      :timeout-fn (clearing-fn timeout-fn)
+                      moreargs)))
+    (when (and hint eglot-advertise-cancellation)
+      (push id
+            (plist-get eglot--inflight-async-requests hint)))
+    id))
 
 (cl-defun eglot--delete-overlays (&optional (prop 'eglot--overlays))
   (eglot--widening
@@ -3432,15 +3438,14 @@ When response arrives call registered `eglot--flymake-report-fn'."
                                    `(:previousResultId ,prev-result-id))))
               :success-fn
               (eglot--lambda ((DocumentDiagnosticReport) kind items resultId)
-                (eglot--when-live-buffer buf
-                  (pcase kind
-                    ("full"
-                     (setq eglot--pulled-diagnostics
-                           (list items version resultId))
-                     (eglot--flymake-report-push+pulled :force t))
-                    ("unchanged"
-                     (when (eq buf origin)
-                       (eglot--flymake-report-1 nil :stay :force t)))))
+                (pcase kind
+                  ("full"
+                   (setq eglot--pulled-diagnostics
+                         (list items version resultId))
+                   (eglot--flymake-report-push+pulled :force t))
+                  ("unchanged"
+                   (when (eq buf origin)
+                     (eglot--flymake-report-1 nil :stay :force t))))
                 (when then (funcall then)))
               :hint :textDocument/diagnostic)))))
     ;; JT@2025-12-15: No known server yet supports "relatedDocuments" so
@@ -5043,8 +5048,7 @@ See `eglot--semtok-request' implementation for details.")
   "Ask for tokens.  Arrange for BEG..END to be font-lock flushed."
   (cl-macrolet ((c (tag) `(cl-getf eglot--semtok-state ,tag)))
     (cl-labels
-        ((req (method &optional params cont
-                      &aux (buf (current-buffer)))
+        ((req (method &optional params cont)
            (setf (c :req-docver) docver
                  (c :orig-docver) docver
                  (c :dispatched) (not eglot--recent-changes)
@@ -5055,22 +5059,21 @@ See `eglot--semtok-request' implementation for details.")
             (append (nconc params `(:textDocument ,(eglot--TextDocumentIdentifier))))
             :success-fn
             (lambda (response)
-              (eglot--when-live-buffer buf
-                ;; (trace-values "Response"
-                ;;               eglot--docver docver (c :orig-docver) (c :req-docver))
-                ;; This skip is different from the one below.  Comparing
-                ;; the lexical `docver' to the original request's
-                ;; `:orig-docver' allows skipping the outdated response
-                ;; of a dispatched request that has been overridden by
-                ;; another (perhaps not dispatched yet) request.
-                (when (eq docver (c :orig-docver))
-                  (setf (c :docver) (c :req-docver)
-                        (c :data) (if cont (funcall cont response)
-                                    (plist-get response :data))
-                        (c :resultId) (plist-get response :resultId))
-                  ;; (trace-values "Flushing" (length (c :regions)) "regions")
-                  (cl-loop for (a . b) in (c :regions) do (font-lock-flush a b))
-                  (setf (c :regions) nil))))
+              ;; (trace-values "Response"
+              ;;               eglot--docver docver (c :orig-docver) (c :req-docver))
+              ;; This skip is different from the one below.  Comparing
+              ;; the lexical `docver' to the original request's
+              ;; `:orig-docver' allows skipping the outdated response
+              ;; of a dispatched request that has been overridden by
+              ;; another (perhaps not dispatched yet) request.
+              (when (eq docver (c :orig-docver))
+                (setf (c :docver) (c :req-docver)
+                      (c :data) (if cont (funcall cont response)
+                                  (plist-get response :data))
+                      (c :resultId) (plist-get response :resultId))
+                ;; (trace-values "Flushing" (length (c :regions)) "regions")
+                (cl-loop for (a . b) in (c :regions) do (font-lock-flush a b))
+                (setf (c :regions) nil)))
             :hint 'semtok)))
       ;; Skip actually making the request if there's an undispatched
       ;; waiting for a eglot--send-changes-hook flush.  Just update the
