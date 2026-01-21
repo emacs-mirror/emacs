@@ -250,6 +250,8 @@ defined by the current language mode.  With ARG, do this that
 many times.  A negative argument means move backward but still to
 a less deep spot.
 
+Calls `up-list-function' to do the work, if that is non-nil.
+
 If ESCAPE-STRINGS is non-nil (as it is interactively), move out
 of enclosing strings as well.
 
