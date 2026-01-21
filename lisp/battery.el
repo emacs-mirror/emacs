@@ -782,7 +782,8 @@ See URL `https://upower.freedesktop.org/docs/Device.html'.")
 (defun battery--upower-props-changed (_interface changed _invalidated)
   "Update status when system starts/stops running on battery.
 Intended as a UPower PropertiesChanged signal handler."
-  (when (assoc "OnBattery" changed)
+  (when (or (assoc "OnBattery" changed)
+            (assoc "State" changed))
     (battery--upower-signal-handler)))
 
 (defun battery--upower-unsubscribe ()
@@ -792,8 +793,18 @@ Intended as a UPower PropertiesChanged signal handler."
 
 (defun battery--upower-subscribe ()
   "Subscribe to UPower device change signals."
+  ;; Listen for OnBattery signals
   (push (dbus-register-signal :system battery-upower-service
                               battery-upower-path
+                              dbus-interface-properties
+                              "PropertiesChanged"
+                              #'battery--upower-props-changed)
+        battery--upower-signals)
+  ;; Listen for state changes of DisplayDevice
+  (push (dbus-register-signal :system battery-upower-service
+                              (concat
+                               battery-upower-device-path
+                               "/DisplayDevice")
                               dbus-interface-properties
                               "PropertiesChanged"
                               #'battery--upower-props-changed)
