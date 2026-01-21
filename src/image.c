@@ -2427,23 +2427,27 @@ clear_image_caches (Lisp_Object filter)
 
 DEFUN ("clear-image-cache", Fclear_image_cache, Sclear_image_cache,
        0, 2, 0,
-       doc: /* Clear the image cache.
+       doc: /* Clear the image and animation caches.
 FILTER nil or a frame means clear all images in the selected frame.
 FILTER t means clear the image caches of all frames.
 Anything else means clear only those images that refer to FILTER,
 which is then usually a filename.
 
-This function also clears the image animation cache.  If
-ANIMATION-CACHE is non-nil, only the image spec `eq' with
-ANIMATION-CACHE is removed, and other image cache entries are not
-evicted.  */)
-  (Lisp_Object filter, Lisp_Object animation_cache)
+This function also clears the image animation cache.
+ANIMATION-FILTER nil means clear all animation cache entries.
+Otherwise, clear the image spec `eq' to ANIMATION-FILTER only
+from the animation cache, and do not clear any image caches.
+This can help reduce memory usage after an animation is stopped
+but the image is still displayed.  */)
+  (Lisp_Object filter, Lisp_Object animation_filter)
 {
-  if (!NILP (animation_cache))
+  if (!NILP (animation_filter))
     {
-      CHECK_CONS (animation_cache);
+      /* IMAGEP?  */
+      CHECK_CONS (animation_filter);
 #if defined (HAVE_WEBP) || defined (HAVE_GIF)
-      anim_prune_animation_cache (XCDR (animation_cache));
+      /* FIXME: Implement the ImageMagick case.  */
+      anim_prune_animation_cache (XCDR (animation_filter));
 #endif
       return Qnil;
     }
@@ -3683,6 +3687,8 @@ cache_image (struct frame *f, struct image *img)
 
 struct anim_cache
 {
+  /* 'Key' of this cache entry.
+     Typically the cdr (plist) of an image spec.  */
   Lisp_Object spec;
   /* For webp, this will be an iterator, and for libgif, a gif handle.  */
   void *handle;
@@ -3690,18 +3696,26 @@ struct anim_cache
   void *temp;
   /* A function to call to free the handle.  */
   void (*destructor) (void *);
-  int index, width, height, frames;
+  /* Current frame index, and total number of frames.  Note that
+     different image formats may start at different indices.  */
+  int index, frames;
+  /* Animation frame dimensions.  */
+  int width, height;
   /* This is used to be able to say something about the cache size.
-     We don't actually know how much memory the different libraries
-     actually use here (since these cache structures are opaque), so
-     this is mostly just the size of the original image file.  */
+     We don't know how much memory the different libraries actually
+     use here (since these cache structures are opaque), so this is
+     mostly just the size of the original image file.  */
   intmax_t byte_size;
+  /* Last time this cache entry was updated.  */
   struct timespec update_time;
   struct anim_cache *next;
 };
 
 static struct anim_cache *anim_cache = NULL;
 
+/* Return a new animation cache entry for image SPEC (which need not be
+   an image specification, and is typically its cdr/plist).
+   Freed only by pruning the cache.  */
 static struct anim_cache *
 anim_create_cache (Lisp_Object spec)
 {
@@ -3773,11 +3787,7 @@ anim_get_animation_cache (Lisp_Object spec)
 
 #endif  /* HAVE_WEBP || HAVE_GIF */
 
-/* Call FN on every image in the image cache of frame F.  Used to mark
-   Lisp Objects in the image cache.  */
-
 /* Mark Lisp objects in image IMG.  */
-
 static void
 mark_image (struct image *img)
 {
@@ -3788,7 +3798,8 @@ mark_image (struct image *img)
     mark_object (img->lisp_data);
 }
 
-
+/* Mark every image in image cache C, as well as the global animation
+   cache.  */
 void
 mark_image_cache (struct image_cache *c)
 {
@@ -10884,7 +10895,7 @@ imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
 }
 
 /* Animated images (e.g., GIF89a) are composed from one "master image"
-   (which is the first one, and then there's a number of images that
+   (which is the first one), and then there's a number of images that
    follow.  If following images have non-transparent colors, these are
    composed "on top" of the master image.  So, in general, one has to
    compute all the preceding images to be able to display a particular
@@ -10893,7 +10904,10 @@ imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
    Computing all the preceding images is too slow, so we maintain a
    cache of previously computed images.  We have to maintain a cache
    separate from the image cache, because the images may be scaled
-   before display. */
+   before display.
+
+   FIXME: Consolidate this with the GIF and WebP anim_cache.
+   Not just for DRY, but for Fclear_image_cache too.  */
 
 struct animation_cache
 {
@@ -12898,11 +12912,12 @@ lookup_image_type (Lisp_Object type)
   return NULL;
 }
 
-/* Prune the animation caches.  If CLEAR, remove all animation cache
-   entries.  */
+/* Prune old entries from the animation cache.
+   If CLEAR, remove all animation cache entries.  */
 void
 image_prune_animation_caches (bool clear)
 {
+  /* FIXME: Consolidate these animation cache implementations.  */
 #if defined (HAVE_WEBP) || defined (HAVE_GIF)
   anim_prune_animation_cache (clear? Qt: Qnil);
 #endif

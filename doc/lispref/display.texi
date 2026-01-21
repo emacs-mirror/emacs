@@ -7415,7 +7415,7 @@ period much shorter than @code{image-cache-eviction-delay} (see
 below), you can opt to flush unused images yourself, instead of
 waiting for Emacs to do it automatically.
 
-@defun clear-image-cache &optional filter
+@defun clear-image-cache &optional filter animation-filter
 This function clears an image cache, removing all the images stored in
 it.  If @var{filter} is omitted or @code{nil}, it clears the cache for
 the selected frame.  If @var{filter} is a frame, it clears the cache
@@ -7423,6 +7423,16 @@ for that frame.  If @var{filter} is @code{t}, all image caches are
 cleared.  Otherwise, @var{filter} is taken to be a file name, and all
 images associated with that file name are removed from all image
 caches.
+
+This function also clears the image animation cache, which is a separate
+cache that Emacs maintains for animated multi-frame images
+(@pxref{Multi-Frame Images}).  If @var{animation-filter} is omitted or
+@code{nil}, it clears the animation cache in addition to the image
+caches selected by @var{filter}.  Otherwise, this function removes the
+image with specification @code{eq} to @var{animation-filter} only from
+the animation cache, and does not clear any image caches.  This can help
+reduce memory usage after an animation is stopped but the image is still
+displayed.
 @end defun
 
 If an image in the image cache has not been displayed for a specified

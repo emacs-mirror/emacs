@@ -33,7 +33,7 @@
 
 (declare-function image-flush "image.c" (spec &optional frame))
 (declare-function clear-image-cache "image.c"
-                  (&optional filter animation-cache))
+                  (&optional filter animation-filter))
 
 (defconst image-type-header-regexps
   `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
@@ -1053,6 +1053,7 @@ for the animation speed.  A negative value means to animate in reverse."
         ;; keep updating it.  This helps stop unbounded RAM usage when
         ;; doing, for instance, `g' in an eww buffer with animated
         ;; images.
+        ;; FIXME: This doesn't currently support ImageMagick.
         (clear-image-cache nil image)
       (let* ((time (prog1 (current-time)
 		     (image-show-frame image n t)))
