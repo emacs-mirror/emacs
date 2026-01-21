@@ -47,7 +47,7 @@
   :group 'languages)
 
 (defcustom yaml-ts-mode-yamllint-options nil
-  "Additional options to pass to the yamllint command, which is used for Flymake support."
+  "Additional options to pass to yamllint command used for Flymake support."
   :group 'yaml-ts-mode
   :version "31.1"
   :type 'string)
