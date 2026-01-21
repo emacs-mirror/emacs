@@ -428,7 +428,7 @@ Lisp data since the previous garbage collection.)
 
 @code{garbage-collect} returns the same list as shown above for
 @code{garbage-collect-heapsize}.
-@deffn
+@end deffn
 
 @defopt garbage-collection-messages
 If this variable is non-@code{nil}, Emacs displays a message at the
