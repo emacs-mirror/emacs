@@ -6028,7 +6028,7 @@ Each entry has the form (NAME SIZE USED FREE), where:
 - FREE is the number of those objects that are not live but that Emacs
   keeps around for future allocations (maybe because it does not know how
   to return them to the OS).  */)
-  ()
+  (void)
 {
   struct gcstat gcst = gcstat;
 
