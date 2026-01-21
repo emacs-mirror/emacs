@@ -2300,12 +2300,12 @@ D-Bus signal @samp{org.freedesktop.login1.Manager.PrepareForSleep}:
           (dbus-make-inhibitor-lock "sleep" "Test"))))
 
 (dbus-register-signal
- :system "org.freedesktop.login1" "/org/freedesktop/login1/Manager"
+ :system "org.freedesktop.login1" "/org/freedesktop/login1"
  "org.freedesktop.login1.Manager" "PrepareForSleep"
  #'my-dbus-PrepareForSleep-handler)
 
 @result{} ((:signal :system "org.freedesktop.login1.Manager" "PrepareForSleep")
-    ("org.freedesktop.login1" "/org/freedesktop/login1/Manager"
+    ("org.freedesktop.login1" "/org/freedesktop/login1"
       my-dbus-PrepareForSleep-handler))
 @end lisp
 
