@@ -47,10 +47,13 @@
   :group 'languages)
 
 (defcustom yaml-ts-mode-yamllint-options nil
-  "Additional options to pass to yamllint command used for Flymake support."
+  "Additional options to pass to yamllint command used for Flymake support.
+If non-nil, this should be a single string with command-line options
+for the yamllint command, with individual options separated by whitespace."
   :group 'yaml-ts-mode
   :version "31.1"
-  :type 'string)
+  :type '(choice (const :tag "None" nil)
+                 (string :tag "Options as a single string")))
 
 (defvar yaml-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
