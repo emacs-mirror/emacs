@@ -341,7 +341,7 @@ FRAME1."
     frame1))
 
 ;;;###autoload
-(defun window--get-split-combination (window arg)
+(defun window-get-split-combination (window arg)
   "Return window combination suitable for `split-frame'.
 
 WINDOW is the main window in which the combination should be derived.
@@ -417,7 +417,7 @@ absolute value of ARG.  Return the new frame."
       (user-error "ARG %s exceeds number of windows %s that can be split off"
 		  (abs arg) (1- total-window-count)))
      (t
-      (let ((comb (window--get-split-combination main arg)))
+      (let ((comb (window-get-split-combination main arg)))
         (window-state-put (window-state-get comb)
 			  (window-main-window (make-frame)))
         (delete-window comb))

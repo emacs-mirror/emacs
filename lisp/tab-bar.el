@@ -1992,7 +1992,7 @@ include TAB's selected window and delete those windows from TAB."
       (user-error "ARG %s exceeds number of windows %s that can be split off"
                   (abs arg) (1- total-window-count)))
      (t
-      (let* ((comb (window--get-split-combination main arg))
+      (let* ((comb (window-get-split-combination main arg))
              (ws (window-state-get comb)))
         (delete-window comb)
         (tab-bar-new-tab)
