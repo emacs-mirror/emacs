@@ -1644,9 +1644,8 @@ If called interactively, a numeric prefix argument specifies
 LINE; without a numeric prefix argument, read LINE from the
 minibuffer.
 
-If optional argument BUFFER is non-nil, switch to that buffer and
-move to line LINE there.  If called interactively with \\[universal-argument]
-as argument, BUFFER is the most recently selected other buffer.
+If called interactively with \\[universal-argument], switch to the
+most recently selected other buffer and move to line LINE there.
 
 If optional argument RELATIVE is non-nil, counting starts at the beginning
 of the accessible portion of the (potentially narrowed) buffer.
@@ -1659,7 +1658,8 @@ Prior to moving point, this function sets the mark (without
 activating it), unless Transient Mark mode is enabled and the
 mark is already active.
 
-A non-nil INTERACTIVE argument means to push the mark.
+A non-nil INTERACTIVE argument pushes the mark and switches the buffer
+if optional argument BUFFER is non-nil.
 
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want instead is something like:
@@ -1669,7 +1669,7 @@ If at all possible, an even better solution is to use char counts
 rather than line counts."
   (interactive (append (goto-line-read-args) '(nil t)))
   ;; Switch to the desired buffer, one way or another.
-  (if buffer
+  (if (and buffer interactive)
       (let ((window (get-buffer-window buffer)))
 	(if window (select-window window)
 	  (switch-to-buffer-other-window buffer))))
