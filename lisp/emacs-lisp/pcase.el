@@ -523,7 +523,17 @@ how many time this CODEGEN is called."
     (cond
      ((null head)
       (if (pcase--self-quoting-p pat) `',pat pat))
-     ((memq head '(pred guard quote)) pat)
+     ((memq head '(guard quote)) pat)
+     ((eq head 'pred)
+      ;; Ad-hoc expansion of some predicates that are the complement of another.
+      ;; Not required for correctness but results in better code.
+      (let* ((expr (cadr pat))
+             (compl (assq expr '((atom . consp)
+                                 (nlistp . listp)
+                                 (identity . null)))))
+        (cond (compl `(,head (not ,(cdr compl))))
+              ((eq expr 'not) `(,head null))    ; normalise
+              (t pat))))
      ((memq head '(or and)) `(,head ,@(mapcar #'pcase--macroexpand (cdr pat))))
      ((eq head 'app) `(app ,(nth 1 pat) ,(pcase--macroexpand (nth 2 pat))))
      (t
