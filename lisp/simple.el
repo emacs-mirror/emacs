@@ -1669,12 +1669,12 @@ If at all possible, an even better solution is to use char counts
 rather than line counts."
   (interactive (append (goto-line-read-args) '(nil t)))
   ;; Switch to the desired buffer, one way or another.
-  (if (and buffer interactive)
+  (when interactive
+    (when buffer
       (let ((window (get-buffer-window buffer)))
 	(if window (select-window window)
 	  (switch-to-buffer-other-window buffer))))
-  ;; Leave mark at previous position
-  (when interactive
+    ;; Leave mark at previous position
     (or (region-active-p) (push-mark)))
   ;; Move to the specified line number in that buffer.
   (let ((pos (save-restriction
@@ -1695,8 +1695,8 @@ rather than line counts."
 (defun goto-line-relative (line &optional buffer interactive)
   "Go to LINE, counting from line at (point-min).
 The line number is relative to the accessible portion of the narrowed
-buffer.  The argument BUFFER is the same as in the function `goto-line'.
-A non-nil INTERACTIVE argument means to push the mark."
+buffer.  The arguments BUFFER and INTERACTIVE are the same as in the
+function `goto-line'."
   (interactive (append (goto-line-read-args t) t))
   (goto-line line buffer t interactive))
 
