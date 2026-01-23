@@ -853,10 +853,10 @@ Northern Iroquoian language family: 'mohawk-postfix' (Mohawk
 [Kanien’kéha / Kanyen’kéha / Onkwehonwehnéha]), 'oneida-postfix' (Oneida
 [Onʌyote’a·ká· / Onyota’a:ká: / Ukwehuwehnéha]), 'cayuga-postfix'
 (Cayuga [Gayogo̱ho:nǫhnéha:ˀ]), 'onondaga-postfix' (Onondaga
-[Onųdaʔgegáʔ]), and 'seneca-postfix' (Seneca [Onödowá’ga:’]).
-Additionally, there is a general-purpose 'haudenosaunee-postfix' input
-method to facilitate writing in the orthographies of the five languages
-simultaneously.
+[Onųdaʔgegáʔ]), 'seneca-postfix' (Seneca [Onödowá’ga:’]), and
+'tuscarora-postfix' (Tuscarora [Skarù·ręʔ]).  Additionally, there is a
+general-purpose 'haudenosaunee-postfix' input method to facilitate
+writing in the orthographies of the six languages simultaneously.
 
 ---
 *** New input methods for languages based on Burmese.
