@@ -232,6 +232,9 @@ typedef struct SegStruct {      /* segment structure */
   TraceSet nailed : TraceLIMIT; /* traces for which seg has nailed objects */
   RankSet rankSet : RankLIMIT;  /* ranks of references in this seg */
   unsigned defer : WB_DEFER_BITS; /* defer write barrier for this many scans */
+  TraceSet propagationNeeded : TraceLIMIT; /* used for ephemerons */
+  TraceSet marksChanged : TraceLIMIT;	   /* propagation made progress */
+  TraceSet propagationFinished : TraceLIMIT; /* propagation converged */
 } SegStruct;
 
 

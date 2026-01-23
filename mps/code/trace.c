@@ -267,6 +267,47 @@ Bool traceBandAdvance(Trace trace)
   return TRUE;
 }
 
+static void traceBandRetreat(Trace trace)
+{
+  AVER(trace->state == TraceFLIPPED);
+  AVER(trace->band > RankMIN);
+
+  --trace->band;
+  trace->firstStretch = TRUE;
+}
+
+static void tracePropagateToLowerRanks (Trace trace, Arena arena)
+{
+  Bool marksChanged = FALSE;
+  Ring node, nextNode;
+  Rank rank = trace->band;
+
+  AVER(trace->state == TraceFLIPPED);
+  AVER(trace->band == RankEPHEMERON);
+
+  RING_FOR(node, ArenaGreyRing(arena, rank), nextNode)
+  {
+    Seg seg = SegOfGreyRing(node);
+    AVER(TraceSetIsMember(seg->propagationNeeded, trace));
+    if (TraceSetIsMember(seg->marksChanged, trace))
+      marksChanged = TRUE;
+    seg->propagationNeeded =
+      TraceSetDel(seg->propagationNeeded, trace);
+    seg->marksChanged = TraceSetDel(seg->marksChanged, trace);
+  }
+
+  if (marksChanged) {
+    traceBandRetreat(trace);
+  } else {
+    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode)
+    {
+      Seg seg = SegOfGreyRing(node);
+      seg->propagationFinished =
+        TraceSetAdd(seg->propagationFinished, trace);
+    }
+  }
+}
+
 /* traceBandFirstStretch - whether in first stretch or not.
  *
  * For a band R (see traceBand) the first stretch is defined as all the
@@ -288,6 +329,16 @@ Bool traceBandFirstStretch(Trace trace)
 void traceBandFirstStretchDone(Trace trace)
 {
   trace->firstStretch = FALSE;
+}
+
+static void moveSegToEndOfGreyRing(Seg seg, Arena arena, TraceId ti)
+{
+  Trace trace = ArenaTrace(arena, ti);
+  Rank band = traceBand(trace);
+  Ring greyRing = ArenaGreyRing(arena, band);
+  GCSeg gcSeg = MustBeA(GCSeg, seg);
+  RingRemove(&gcSeg->greyRing);
+  RingAppend(greyRing, &gcSeg->greyRing);
 }
 
 /* traceUpdateCounts - dumps the counts from a ScanState into the Trace */
@@ -997,6 +1048,12 @@ Rank TraceRankForAccess(Arena arena, Seg seg)
     /* It's safe to scan at exact in the final band so do so if there are
      * any non-final references. */
     return RankEXACT;
+  case RankEPHEMERON:
+    AVER(rankSet == RankSetSingle(RankEPHEMERON));
+    /* The segment must be black after scanning; we can't guarantee that
+     * in the ephemeron band.  Scanning at exact is safe, but it may
+     * retain some logically unreachable objects. */
+    return RankEXACT;
   case RankWEAK:
     AVER(rankSet == RankSetSingle(RankWEAK));
     return RankWEAK;
@@ -1075,6 +1132,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
     /* then successively earlier ones.  Slight hack: We never    */
     /* expect to find any segments of RankAMBIG, so we use      */
     /* this as a terminating condition for the loop.            */
+  bandstart:
     for(rank = band; rank > RankAMBIG; --rank) {
       RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
         Seg seg = SegOfGreyRing(node);
@@ -1084,6 +1142,14 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
         AVER(RankSetIsMember(SegRankSet(seg), rank));
 
         if(TraceSetIsMember(SegGrey(seg), trace)) {
+
+	  if (TraceSetIsMember(seg->propagationNeeded,
+			       trace)) {
+	    tracePropagateToLowerRanks (trace, arena);
+	    band = trace->band;
+	    goto bandstart;
+	  }
+
           /* .check.band.weak */
           AVER(band != RankWEAK || rank == band);
           if(rank != band) {
@@ -1244,10 +1310,24 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     ScanStateFinish(ss);
   }
 
-  if(res == ResOK) {
-    /* The segment is now black only if scan was successful. */
-    /* Remove the greyness from it. */
-    SegSetGrey(seg, TraceSetDiff(SegGrey(seg), ts));
+  if (res == ResOK) {
+    if (seg->propagationNeeded == TraceSetEMPTY) {
+      /* The segment is now black only if scan was successful. */
+      /* Remove the greyness from it. */
+      SegSetGrey(seg, TraceSetDiff(SegGrey(seg), ts));
+    } else {
+      TraceId ti;
+      Trace trace;
+      TRACE_SET_ITER(ti, trace, ts, arena)
+      {
+        if (TraceSetIsMember(seg->propagationNeeded, trace))
+	  /* The segment remains grey until propagation converges. */
+          moveSegToEndOfGreyRing(seg, arena, ti);
+        else
+          SegSetGrey(seg, TraceSetDel(SegGrey(seg), trace));
+      }
+      TRACE_SET_ITER_END(ti, trace, ts, arena);
+    }
   }
 
   return res;
