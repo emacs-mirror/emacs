@@ -1335,7 +1335,6 @@ static Bool AWL0SegCheck(AWL0Seg awl0seg)
     return FALSE;
 
   CHECKS(AWL0Seg, awl0seg);
-  CHECKL(Method(Seg, awl0seg, access) == awl0SegAccess);
   return TRUE;
 }
 
@@ -1423,6 +1422,8 @@ static Bool AWL0PoolCheck(AWL0Pool awl0)
   return TRUE;
 }
 
+#define AWL0Check AWL0PoolCheck
+
 static Res AWL0Init(Pool pool, Arena arena, PoolClass klass,
                     ArgList args)
 {
@@ -1452,6 +1453,531 @@ DEFINE_CLASS(Pool, AWL0Pool, klass)
 mps_pool_class_t mps_class_awl0(void)
 {
   return (mps_pool_class_t)CLASS(AWL0Pool);
+}
+
+
+/* AEPH POOL
+ *
+ * The AEPH (Automatic Ephemeron) pool is used to manage weak key-value
+ * pairs (aka. ephemerons).  In contrast to the AWL pool, AEPH solves
+ * the "key-in-value" problem.
+ *
+ * The current implementation has O(n^2) time complexity, where n is the
+ * number of weak pairs.  See [1] for an O(n) approach.
+ *
+ * [1]
+ * https://www.haible.de/bruno/papers/cs/weak/WeakDatastructures-writeup.html
+ *
+ */
+
+#define AEPHSegSig ((Sig)0x519AEB85) /* SIGnature AEPH Seg */
+
+typedef struct AEPHSegStruct {
+  struct AWL0SegStruct awl0SegStruct;
+  Sig sig;
+} *AEPHSeg;
+
+DECLARE_CLASS(Seg, AEPHSeg, AWL0Seg);
+
+#define AEPHSig ((Sig)0x519BAEB8) /* SIGnature Pool AEPH */
+
+typedef struct AEPHPoolStruct {
+  AWL0PoolStruct awl0Struct;
+  Sig sig;
+} AEPHPoolStruct, *AEPHPool;
+
+DECLARE_CLASS(Pool, AEPHPool, AWL0Pool);
+
+ATTRIBUTE_UNUSED
+static Bool AEPHSegCheck(AEPHSeg aephSeg)
+{
+  if (!AWL0SegCheck(&aephSeg->awl0SegStruct))
+    return FALSE;
+
+  CHECKS(AEPHSeg, aephSeg);
+  return TRUE;
+}
+
+static Res aephSegScanSinglePass(Bool *anyScannedReturn, ScanState ss,
+                                Seg seg, Bool scanAllObjects)
+{
+  AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Pool pool = SegPool(seg);
+  AWL awl = MustBeA(AWLPool, pool);
+  Arena arena = PoolArena(pool);
+  Buffer buffer;
+  Format format = pool->format;
+  Addr base = SegBase(seg);
+  Addr limit = SegLimit(seg);
+  Addr bufferScanLimit;
+  Addr p;
+  Addr hp;
+
+  AVERT(ScanState, ss);
+  AVERT(Bool, scanAllObjects);
+
+  *anyScannedReturn = FALSE;
+  p = base;
+  if (SegBuffer(&buffer, seg) && BufferScanLimit(buffer) != BufferLimit(buffer))
+    bufferScanLimit = BufferScanLimit(buffer);
+  else
+    bufferScanLimit = limit;
+
+  while(p < limit) {
+    Index i;        /* the index into the bit tables corresponding to p */
+    Addr objectLimit;
+
+    /* <design/poolawl#.fun.scan.pass.buffer> */
+    if (p == bufferScanLimit) {
+      p = BufferLimit(buffer);
+      continue;
+    }
+
+    i = PoolIndexOfAddr(base, pool, p);
+    if (!BTGet(awlseg->alloc, i)) {
+      p = AddrAdd(p, PoolAlignment(pool));
+      continue;
+    }
+    hp = AddrAdd(p, format->headerSize);
+    objectLimit = (format->skip)(hp);
+    /* <design/poolawl#.fun.scan.pass.object> */
+    if (scanAllObjects
+        || (BTGet(awlseg->mark, i) && !BTGet(awlseg->scanned, i))) {
+      Res res = awlScanObject(arena, awl, ss,
+                              hp, objectLimit);
+      if (res != ResOK)
+        return res;
+      *anyScannedReturn = TRUE;
+      {
+        TraceId ti;
+        Trace trace;
+	AVER(TraceSetIsSingle (ss->traces));
+        TRACE_SET_ITER(ti, trace, ss->traces, arena)
+        {
+          if (!TraceSetIsMember(seg->propagationNeeded, trace))
+            BTSet(awlseg->scanned, i);
+        }
+        TRACE_SET_ITER_END(ti, trace, ss->traces, arena);
+      }
+    }
+    objectLimit = AddrSub(objectLimit, format->headerSize);
+    AVER(p < objectLimit);
+    AVER(AddrIsAligned(objectLimit, PoolAlignment(pool)));
+    p = objectLimit;
+  }
+  AVER(p == limit);
+
+  return ResOK;
+}
+
+/* This overrides awlSegScan.  Always scan all objects, because we
+ * aren't sure which keys are logically reachable until
+ * ss->propagationFinished is set.  This is not great, but it seems to
+ * work.
+ */
+static Res aephSegScan(Bool* totalReturn, Seg seg, ScanState ss)
+{
+  Bool anyScanned;
+  Bool scanAllObjects;
+  Res res;
+
+  AVER(totalReturn != NULL);
+  AVERT(ScanState, ss);
+  AVERT(Seg, seg);
+
+  scanAllObjects = TRUE;
+
+  do {
+    res = aephSegScanSinglePass(&anyScanned, ss, seg, scanAllObjects);
+    if (res != ResOK) {
+      *totalReturn = FALSE;
+      return res;
+    }
+    /* we are done if we scanned all the objects or if we did a pass */
+    /* and didn't scan any objects (since then, no new object can have */
+    /* gotten fixed) */
+  } while (!scanAllObjects && anyScanned);
+
+  *totalReturn = scanAllObjects;
+  AWLNoteScan(seg, ss);
+  return ResOK;
+}
+
+/* aephBufferFill -- BufferFill method for AEPH */
+/* TODO: Share common code with awlBufferFill and awl0BufferFill. */
+static Res aephBufferFill(Addr* baseReturn,
+                          Addr* limitReturn,
+                          Pool pool,
+                          Buffer buffer,
+                          Size size)
+{
+  AEPHPool aeph = MustBeA(AEPHPool, pool);
+  Res res;
+  Ring node, nextNode;
+  RankSet rankSet;
+  Seg seg;
+  Bool b;
+
+  AVER(baseReturn != NULL);
+  AVER(limitReturn != NULL);
+  AVERC(Buffer, buffer);
+  AVER(BufferIsReset(buffer));
+  AVER(size > 0);
+  AVER(SizeIsAligned(size, PoolAlignment(pool)));
+
+  rankSet = BufferRankSet(buffer);
+  RING_FOR(node, &pool->segRing, nextNode)
+  {
+    seg = SegOfPoolRing(node);
+    if (SegBufferFill(baseReturn, limitReturn, seg, size, rankSet))
+      return ResOK;
+  }
+
+  /* No segment had enough space, so make a new one. */
+  MPS_ARGS_BEGIN(args)
+  {
+    MPS_ARGS_ADD_FIELD(args,
+                       awlKeySegRankSet,
+                       u,
+                       BufferRankSet(buffer));
+    res = PoolGenAlloc(&seg,
+                       aeph->awl0Struct.awlStruct.pgen,
+                       CLASS(AEPHSeg),
+                       SizeArenaGrains(size, PoolArena(pool)),
+                       args);
+  }
+  MPS_ARGS_END(args);
+  if (res != ResOK)
+    return res;
+  b = SegBufferFill(baseReturn, limitReturn, seg, size, rankSet);
+  AVER(b);
+  return ResOK;
+}
+
+static Res AEPHSegInit(Seg seg,
+                       Pool pool,
+                       Addr base,
+                       Size size,
+                       ArgList args)
+{
+  Res res;
+  ArgStruct arg;
+  AEPHSeg aephSeg;
+  RankSet rankSet;
+
+  ArgRequire(&arg, args, awlKeySegRankSet);
+  rankSet = arg.val.u;
+  AVERT(RankSet, rankSet);
+  AVER(rankSet == RankSetSingle(RankEPHEMERON));
+
+  MPS_ARGS_BEGIN(args2)
+  {
+    MPS_ARGS_ADD_FIELD(args2,
+                       awlKeySegRankSet,
+                       u,
+                       RankSetSingle(mps_rank_weak()));
+    res = NextMethod(Seg, AEPHSeg, init)(seg, pool, base, size, args2);
+  }
+  MPS_ARGS_END(args2);
+
+  if (res != ResOK)
+    return res;
+
+  SegSetRankAndSummary(seg, rankSet, RefSetUNIV);
+
+  aephSeg = CouldBeA(AEPHSeg, seg);
+
+  SetClassOfPoly(seg, CLASS(AEPHSeg));
+  aephSeg->sig = AEPHSegSig;
+  AVERC(AEPHSeg, aephSeg);
+
+  return ResOK;
+}
+
+static Res aephSegAccess(Seg seg,
+                         Arena arena,
+                         Addr addr,
+                         AccessSet mode,
+                         MutatorContext context)
+{
+  seg->propagationNeeded = TraceSetEMPTY;
+  return NextMethod(Seg,
+                    AEPHSeg,
+                    access)(seg, arena, addr, mode, context);
+}
+
+static void aephSegReclaim(Seg seg, Trace trace)
+{
+  NextMethod(Seg, AEPHSeg, reclaim)(seg, trace);
+  seg->propagationNeeded = TraceSetDel(seg->propagationNeeded, trace);
+  seg->marksChanged = TraceSetDel(seg->marksChanged, trace);
+  seg->propagationFinished =
+    TraceSetDel(seg->propagationFinished, trace);
+}
+
+DEFINE_CLASS(Seg, AEPHSeg, klass)
+{
+  INHERIT_CLASS(klass, AEPHSeg, AWL0Seg);
+  klass->size = sizeof(struct AEPHSegStruct);
+  klass->init = AEPHSegInit;
+  klass->scan = aephSegScan;
+  klass->access = aephSegAccess;
+  klass->reclaim = aephSegReclaim;
+  AVERT(SegClass, klass);
+}
+
+ATTRIBUTE_UNUSED
+static Bool AEPHPoolCheck(AEPHPool aeph)
+{
+  if (!AWL0PoolCheck(&aeph->awl0Struct))
+    return FALSE;
+  CHECKS(AEPH, aeph);
+  CHECKC(AEPHPool, aeph);
+  CHECKD(AWL0, CouldBeA(AWL0Pool, aeph));
+  return TRUE;
+}
+
+static Res AEPHInit(Pool pool,
+                    Arena arena,
+                    PoolClass klass,
+                    ArgList args)
+{
+  AEPHPool aeph;
+  Res res = NextMethod(Pool, AEPHPool, init)(pool, arena, klass, args);
+  if (res != ResOK)
+    return res;
+
+  aeph = CouldBeA(AEPHPool, pool);
+  SetClassOfPoly(pool, CLASS(AEPHPool));
+  aeph->sig = AEPHSig;
+  AVERC(AEPHPool, aeph);
+
+  return ResOK;
+}
+
+DEFINE_CLASS(Pool, AEPHPool, klass)
+{
+  INHERIT_CLASS(klass, AEPHPool, AWL0Pool);
+  klass->size = sizeof(AEPHPoolStruct);
+  klass->init = AEPHInit;
+  klass->bufferFill = aephBufferFill;
+  AVERT(PoolClass, klass);
+}
+
+mps_pool_class_t mps_class_aeph(void)
+{
+  return (mps_pool_class_t)CLASS(AEPHPool);
+}
+
+static Res aephIsWhite(mps_ss_t mps_ss, mps_addr_t ref, Bool* isWhiteO)
+{
+  ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
+  Rank savedRank = ss->rank;
+  Res res;
+  ss->rank = RankWEAK;
+  MPS_SCAN_BEGIN(mps_ss)
+  {
+    UNUSED(_mps_wt);
+    UNUSED(_mps_w);
+    UNUSED(_mps_zs);
+    res = MPS_FIX2(mps_ss, &ref);
+  }
+  MPS_SCAN_END(mps_ss);
+  ss->rank = savedRank;
+  *isWhiteO = (ref == NULL);
+  return res;
+}
+
+static Seg aephSegOfAddr(Arena arena, mps_addr_t base)
+{
+  Tract tract;
+  Seg seg = NULL;
+  if (!TractOfAddr(&tract, arena, base))
+    NOTREACHED;
+  if (!TRACT_SEG(&seg, tract))
+    NOTREACHED;
+  AVER(seg);
+  return seg;
+}
+
+static void aephDeferSeg(mps_ss_t mps_ss,
+                         mps_addr_t base,
+                         Bool marksChanged)
+{
+  ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
+  Seg seg = aephSegOfAddr(ss->arena, base);
+
+  AVER(ss->rank == RankEPHEMERON);
+  seg->propagationNeeded =
+    TraceSetUnion(seg->propagationNeeded, ss->traces);
+  if (marksChanged)
+    seg->marksChanged = TraceSetUnion(seg->marksChanged, ss->traces);
+}
+
+static Res aephFixKey(mps_ss_t mps_ss,
+                      mps_addr_t base,
+                      mps_addr_t* keyIO,
+                      Bool* isKeyWhite)
+{
+  mps_res_t res = MPS_RES_OK;
+  MPS_SCAN_BEGIN(mps_ss)
+  {
+    mps_addr_t key = *keyIO;
+    if (MPS_FIX1(mps_ss, key)) {
+      MPS_FIX_CALL(mps_ss, res = aephIsWhite(mps_ss, key, isKeyWhite));
+      if (res != MPS_RES_OK)
+        return res;
+      if (*isKeyWhite) {
+        ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
+        Seg seg = aephSegOfAddr(ss->arena, base);
+        if (seg->propagationFinished) {
+          *keyIO = NULL;
+        } else
+          aephDeferSeg(mps_ss, base, FALSE);
+      } else {
+        res = MPS_FIX2(mps_ss, &key);
+        if (res != MPS_RES_OK)
+          return res;
+        *keyIO = key;
+      }
+    } else
+      *isKeyWhite = FALSE;
+  }
+  MPS_SCAN_END(mps_ss);
+  return res;
+}
+
+static Res aephFixValue(mps_ss_t mps_ss,
+                        Bool isKeyWhite,
+                        mps_addr_t base,
+                        mps_addr_t* valIO)
+{
+  mps_res_t res = MPS_RES_OK;
+  if (!isKeyWhite) {
+    MPS_SCAN_BEGIN(mps_ss)
+    {
+      mps_addr_t val = *valIO;
+      if (MPS_FIX1(mps_ss, val)) {
+        ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
+        ss->wasMarked = TRUE;
+        res = MPS_FIX2(mps_ss, valIO);
+        if (res != MPS_RES_OK)
+          return res;
+        if (ss->wasMarked == FALSE)
+          aephDeferSeg(mps_ss, base, TRUE);
+      }
+    }
+    MPS_SCAN_END(mps_ss);
+  } else {
+    ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
+    Seg seg = aephSegOfAddr(ss->arena, base);
+    if (seg->propagationFinished)
+      *valIO = NULL;
+  }
+  return res;
+}
+
+static Res aephFixPairExact(mps_ss_t mps_ss,
+                            mps_addr_t* keyIO,
+                            mps_addr_t* valIO)
+{
+  Res res;
+  MPS_SCAN_BEGIN(mps_ss)
+  {
+    res = MPS_FIX12(mps_ss, keyIO);
+    if (res != MPS_RES_OK)
+      return res;
+    res = MPS_FIX12(mps_ss, valIO);
+    if (res != MPS_RES_OK)
+      return res;
+  }
+  MPS_SCAN_END(mps_ss);
+  return res;
+}
+
+mps_res_t mps_fix_weak_pair(mps_ss_t mps_ss,
+                            mps_addr_t base,
+                            mps_addr_t* keyIO,
+                            mps_addr_t* valIO)
+{
+  mps_res_t res = MPS_RES_OK;
+  Bool isKeyWhite = TRUE;
+  ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
+  Seg seg = aephSegOfAddr(ss->arena, base);
+  switch (ss->rank) {
+    case RankEPHEMERON: {
+      res = aephFixKey(mps_ss, base, keyIO, &isKeyWhite);
+      if (res != MPS_RES_OK)
+        return res;
+      res = aephFixValue(mps_ss, isKeyWhite, base, valIO);
+      return res;
+    }
+    case RankEXACT: {
+      AVER(seg->propagationNeeded == TraceSetEMPTY);
+      return aephFixPairExact(mps_ss, keyIO, valIO);
+    }
+    default:
+      NOTREACHED;
+  }
+  NOTREACHED;
+  return res;
+}
+
+static mps_res_t mps_fix_weak_pair_2(mps_ss_t mps_ss,
+                                     mps_addr_t base,
+                                     mps_addr_t* keyIO,
+                                     mps_addr_t* valIO,
+                                     Bool and)
+{
+  mps_res_t res = MPS_RES_OK;
+  ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
+  Seg seg = aephSegOfAddr(ss->arena, base);
+  switch (ss->rank) {
+    case RankEPHEMERON: {
+      Bool isKeyWhite, isValWhite;
+      res = aephFixKey(mps_ss, base, keyIO, &isKeyWhite);
+      if (res != MPS_RES_OK)
+        return res;
+      res = aephFixKey(mps_ss, base, valIO, &isValWhite);
+      if (res != MPS_RES_OK)
+        return res;
+      {
+        Bool isWhite =
+          (and? isKeyWhite || isValWhite : isKeyWhite && isValWhite);
+        res = aephFixValue(mps_ss, isWhite, base, keyIO);
+        if (res != MPS_RES_OK)
+          return res;
+        res = aephFixValue(mps_ss, isWhite, base, valIO);
+        if (res != MPS_RES_OK)
+          return res;
+        return res;
+      }
+    }
+    case RankEXACT: {
+      AVER(seg->propagationNeeded == TraceSetEMPTY);
+      return aephFixPairExact(mps_ss, keyIO, valIO);
+    }
+    default:
+      NOTREACHED;
+  }
+  NOTREACHED;
+  return res;
+}
+
+mps_res_t mps_fix_weak_or_pair(mps_ss_t mps_ss,
+                               mps_addr_t base,
+                               mps_addr_t* keyIO,
+                               mps_addr_t* valIO)
+{
+  return mps_fix_weak_pair_2(mps_ss, base, keyIO, valIO, FALSE);
+}
+
+mps_res_t mps_fix_weak_and_pair(mps_ss_t mps_ss,
+                                mps_addr_t base,
+                                mps_addr_t* keyIO,
+                                mps_addr_t* valIO)
+{
+  return mps_fix_weak_pair_2(mps_ss, base, keyIO, valIO, TRUE);
 }
 
 /* C. COPYRIGHT AND LICENSE
