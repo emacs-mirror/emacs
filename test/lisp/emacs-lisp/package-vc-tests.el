@@ -70,20 +70,21 @@ preserve all temporary directories.")
 (defvar package-vc-tests-repository)
 
 (eval-and-compile
-  (defun package-vc-tests-packages ()
+  (defun package-vc-tests-packages (&optional full)
     "Return a list of package definitions to test.
 When variable `package-vc-tests-packages' is bound then return its
-value.  If `package-vc-tests-dir' is bound then each entry is in a form
-of (PKG CHECKOUT-DIR LISP-DIR INSTALL-FUN), where PKG is a package
-name (a symbol), CHECKOUT-DIR is an expected checkout directory,
-LISP-DIR is a directory with package's sources (relative to
+value.  If `package-vc-tests-dir' is bound or FULL is non nil then each
+entry is in a form of (PKG CHECKOUT-DIR LISP-DIR INSTALL-FUN), where PKG
+is a package name (a symbol), CHECKOUT-DIR either is nil when
+`package-vc-tests-dir' is not bound or is an expected checkout
+directory, LISP-DIR is a directory with package's sources (relative to
 CHECKOUT-DIR), and INSTALL-FUN is a function that checkouts and install
 the package.  Otherwise each entry is in a form of PKG."
     (if (boundp 'package-vc-tests-packages)
         package-vc-tests-packages
       (cl-macrolet ((test-package-def
                       (pkg checkout-dir-exp lisp-dir install-fun)
-                      `(if (boundp 'package-vc-tests-dir)
+                      `(if (or (boundp 'package-vc-tests-dir) full)
                            (list
                             ',pkg
                             (expand-file-name (symbol-name ',pkg)
@@ -91,51 +92,54 @@ the package.  Otherwise each entry is in a form of PKG."
                             ,lisp-dir
                             #',install-fun)
                          ',pkg)))
-        (list
-         ;; checkout and install with `package-vc-install' (on ELPA)
-         (test-package-def
-          test-package-one package-user-dir nil
-          package-vc-tests-install-from-elpa)
-         ;; checkout and install with `package-vc-install' (not on ELPA)
-         (test-package-def
-          test-package-two package-user-dir nil
-          package-vc-tests-install-from-spec)
-         ;; checkout with `package-vc-checktout' and install with
-         ;; `package-vc-install-from-checkout' (on ELPA)
-         (test-package-def
-          test-package-three package-vc-tests-dir nil
-          package-vc-tests-checkout-from-elpa-install-from-checkout)
-         ;; checkout with git and install with
-         ;; `package-vc-install-from-checkout'
-         (test-package-def
-          test-package-four package-vc-tests-dir nil
-          package-vc-tests-checkout-with-git-install-from-checkout)
-         ;; sources in "lisp" sub directory, checkout and install with
-         ;; `package-vc-install' (not on ELPA)
-         (test-package-def
-          test-package-five package-user-dir "lisp"
-          package-vc-tests-install-from-spec)
-         ;; sources in "lisp" sub directory, checkout with git and
-         ;; install with `package-vc-install-from-checkout'
-         (test-package-def
-          test-package-six package-vc-tests-dir "lisp"
-          package-vc-tests-checkout-with-git-install-from-checkout)
-         ;; sources in "src" sub directory, checkout and install with
-         ;; `package-vc-install' (on ELPA)
-         (test-package-def
-          test-package-seven package-user-dir "src"
-          package-vc-tests-install-from-elpa)
-         ;; sources in "src" sub directory, checkout with
-         ;; `package-vc-checktout' and install with
-         ;; `package-vc-install-from-checkout' (on ELPA)
-         (test-package-def
-          test-package-eight package-vc-tests-dir nil
-          package-vc-tests-checkout-from-elpa-install-from-checkout)
-         ;; sources in "custom-dir" sub directory, checkout and install
-         ;; with `package-vc-install' (on ELPA)
-         (test-package-def
-          test-package-nine package-user-dir "custom-dir"
-          package-vc-tests-install-from-elpa))))))
+        (let* ((tests-dir (bound-and-true-p package-vc-tests-dir))
+               (user-dir (and tests-dir package-user-dir)))
+          (list
+           ;; checkout and install with `package-vc-install' (on ELPA)
+           (test-package-def
+            test-package-one user-dir nil
+            package-vc-tests-install-from-elpa)
+           ;; checkout and install with `package-vc-install' (not on
+           ;; ELPA)
+           (test-package-def
+            test-package-two user-dir nil
+            package-vc-tests-install-from-spec)
+           ;; checkout with `package-vc-checktout' and install with
+           ;; `package-vc-install-from-checkout' (on ELPA)
+           (test-package-def
+            test-package-three tests-dir nil
+            package-vc-tests-checkout-from-elpa-install-from-checkout)
+           ;; checkout with git and install with
+           ;; `package-vc-install-from-checkout'
+           (test-package-def
+            test-package-four tests-dir nil
+            package-vc-tests-checkout-with-git-install-from-checkout)
+           ;; sources in "lisp" sub directory, checkout and install with
+           ;; `package-vc-install' (not on ELPA)
+           (test-package-def
+            test-package-five user-dir "lisp"
+            package-vc-tests-install-from-spec)
+           ;; sources in "lisp" sub directory, checkout with git and
+           ;; install with `package-vc-install-from-checkout'
+           (test-package-def
+            test-package-six tests-dir "lisp"
+            package-vc-tests-checkout-with-git-install-from-checkout)
+           ;; sources in "src" sub directory, checkout and install with
+           ;; `package-vc-install' (on ELPA)
+           (test-package-def
+            test-package-seven user-dir "src"
+            package-vc-tests-install-from-elpa)
+           ;; sources in "src" sub directory, checkout with
+           ;; `package-vc-checktout' and install with
+           ;; `package-vc-install-from-checkout' (on ELPA)
+           (test-package-def
+            test-package-eight tests-dir nil
+            package-vc-tests-checkout-from-elpa-install-from-checkout)
+           ;; sources in "custom-dir" sub directory, checkout and
+           ;; install with `package-vc-install' (on ELPA)
+           (test-package-def
+            test-package-nine user-dir "custom-dir"
+            package-vc-tests-install-from-elpa)))))))
 
 ;; TODO: add test for deleting packages, with asserting
 ;; `package-vc-selected-packages'
@@ -678,27 +682,33 @@ contains key `:tags' use its value as tests tags."
     (error "`package-vc' tests first argument has to be a symbol"))
   (let ((file (or (macroexp-file-name) buffer-file-name))
         (tests '()) (fn (gensym))
+        (pkg-arg (car args))
+        (skip-forms (take-while (lambda (form)
+                                  (memq (car-safe form) '(skip-when
+                                                          skip-unless)))
+                                body))
         (tags (plist-get (cdr-safe args) :tags)))
+    (setq body (nthcdr (length skip-forms) body))
     (dolist (pkg (package-vc-tests-packages))
       (let ((name (intern (format "package-vc-tests-%s/%s" name pkg))))
         (push
-         `(ert-set-test
-             ',name
-             (make-ert-test
-              :name ',name
-              :tags (cons 'package-vc ',tags)
-              :file-name ,file
-              :body
-              (lambda ()
-                (package-vc-tests-with-installed
-                 ',pkg (funcall ,fn ',pkg))
-                nil)))
+         `(ert-set-test ',name
+                        (make-ert-test
+                         :name ',name
+                         :tags (cons 'package-vc ',tags)
+                         :file-name ,file
+                         :body
+                         (lambda ()
+                           (funcall ,fn ',pkg)
+                           nil)))
          tests)))
-    `(let ((,fn (lambda (,(car args))
-                  (cl-macrolet ((skip-when (form) `(ert--skip-when ,form))
-                                (skip-unless (form) `(ert--skip-unless ,form)))
-                    (lambda () ,@body)))))
-       ,@tests)))
+    `(cl-macrolet ((skip-when (form) `(ert--skip-when ,form))
+                   (skip-unless (form) `(ert--skip-unless ,form)))
+       (let ((,fn (lambda (,pkg-arg)
+                    ,@skip-forms
+                    (package-vc-tests-with-installed ,pkg-arg
+                                                     (lambda () ,@body)))))
+         ,@tests))))
 
 (package-vc-test-deftest install-post-conditions (pkg)
   (let ((install-begin
@@ -1006,7 +1016,7 @@ contains key `:tags' use its value as tests tags."
 
 (package-vc-test-deftest pkg-spec-make-shell-command (pkg)
   ;; Only `package-vc-install' runs make and shell command
-  (skip-unless (memq (caddr (alist-get pkg package-vc-tests-packages))
+  (skip-unless (memq (caddr (alist-get pkg (package-vc-tests-packages t)))
                      '(package-vc-tests-install-from-elpa
                        package-vc-tests-install-from-spec)))
   (let* ((desc (package-vc-tests-package-desc pkg t))
@@ -1024,7 +1034,7 @@ contains key `:tags' use its value as tests tags."
   ;; Only `package-vc-install' builds info manuals, but only when
   ;; executable install-info is available.
   (skip-unless (and (executable-find "install-info")
-                    (memq (caddr (alist-get pkg package-vc-tests-packages))
+                    (memq (caddr (alist-get pkg (package-vc-tests-packages t)))
                           '(package-vc-tests-install-from-elpa
                             package-vc-tests-install-from-spec))))
   (should-not (package-vc-tests-log-buffer-exists 'doc pkg))
