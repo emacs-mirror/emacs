@@ -1360,6 +1360,7 @@ also prompt for a specific VCS shell command to run for this purpose.
 
 @table @kbd
 @item C-x v u
+@item C-x v @@
 Revert the work file(s) in the current VC fileset to the last revision
 (@code{vc-revert}).
 
@@ -1374,24 +1375,25 @@ Delete an unpushed commit from the revision history.
 @end table
 
 @kindex C-x v u
+@kindex C-x v @@
 @findex vc-revert
 @vindex vc-revert-show-diff
-  If you want to discard all the changes you have made to the current
-VC fileset, type @kbd{C-x v u} (@code{vc-revert}).  This will ask you
-for confirmation before discarding the changes.  If you agree, the
-fileset is reverted.
+  If you want to discard all the changes you have made to the current VC
+fileset, type @kbd{C-x v u} or @kbd{C-x v @@} (@code{vc-revert}).  This
+will ask you for confirmation before discarding the changes.  If you
+agree, the fileset is reverted.
 
   If @code{vc-revert-show-diff} is non-@code{nil}, this command will
-show you a diff between the work file(s) and the revision from which
-you started editing.  Afterwards, the diff buffer will either be
-killed (if this variable is @code{kill}), or the buffer will be buried
-(any other non-@code{nil} value).  If you don't want @kbd{C-x v u} to
-show a diff, set this variable to @code{nil} (you can still view the
-diff directly with @kbd{C-x v =}; @pxref{Old Revisions}).
+show you a diff between the work file(s) and the revision from which you
+started editing.  Afterwards, the diff buffer will either be killed (if
+this variable is @code{kill}), or the buffer will be buried (any other
+non-@code{nil} value).  If you don't want @code{vc-revert} to show you
+diffs, set this variable to @code{nil} (you can still view the diff
+directly with @kbd{C-x v =}; @pxref{Old Revisions}).
 
-  On locking-based version control systems, @kbd{C-x v u} leaves files
-unlocked; you must lock again to resume editing.  You can also use
-@kbd{C-x v u} to unlock a file if you lock it and then decide not to
+  On locking-based version control systems, @code{vc-revert} leaves
+files unlocked; you must lock again to resume editing.  You can also use
+@code{vc-revert} to unlock a file if you lock it and then decide not to
 change it.
 
 @findex vc-revert-or-delete-revision
@@ -1640,6 +1642,10 @@ Add the file under point to the list of files that the VC should
 ignore (@code{vc-dir-ignore}).  For instance, if the VC is Git, it
 will append this file to the @file{.gitignore} file.  If given a
 prefix, do this with all the marked files.
+
+@item @@
+Discard all the changes you have made to the current fileset
+(@code{vc-revert}).
 
 @item q
 Quit the VC Directory buffer, and bury it (@code{quit-window}).

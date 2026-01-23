@@ -396,6 +396,7 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     (define-key map (kbd "M-s a C-s")   #'vc-dir-isearch)
     (define-key map (kbd "M-s a M-C-s") #'vc-dir-isearch-regexp)
     (define-key map "G" #'vc-dir-ignore)
+    (define-key map "@" #'vc-revert)
 
     (let ((branch-map (make-sparse-keymap)))
       (define-key map "b" branch-map)
