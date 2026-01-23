@@ -200,7 +200,8 @@ EXCLUDE_TESTS =
 
 ## To speed up parallel builds, put these slow test files (which can
 ## take longer than all the rest combined) at the start of the list.
-SLOW_TESTS = ${srcdir}/lisp/net/tramp-tests.el
+SLOW_TESTS = ${srcdir}/lisp/emacs-lisp/package-vc-tests.el \
+             ${srcdir}/lisp/net/tramp-tests.el
 
 ELFILES := $(sort $(shell find ${srcdir} -name manual -prune -o \
 		-name data -prune -o -name infra -prune -o \
