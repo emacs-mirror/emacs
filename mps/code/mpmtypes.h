@@ -305,7 +305,7 @@ enum {
 /* These definitions must match <code/mps.h#rank>. */
 /* This is checked by <code/mpsi.c#check>. */
 
-#define RANK_LIST(X) X(AMBIG) X(EXACT) X(FINAL) X(WEAK)
+#define RANK_LIST(X) X(AMBIG) X(EXACT) X(FINAL) X(EPHEMERON) X(WEAK)
 
 enum {
 #define X(RANK) Rank ## RANK,

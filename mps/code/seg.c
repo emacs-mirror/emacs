@@ -127,6 +127,9 @@ static Res segAbsInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   seg->white = TraceSetEMPTY;
   seg->nailed = TraceSetEMPTY;
   seg->grey = TraceSetEMPTY;
+  seg->propagationNeeded = TraceSetEMPTY;
+  seg->marksChanged = TraceSetEMPTY;
+  seg->propagationFinished = TraceSetEMPTY;
   seg->pm = AccessSetEMPTY;
   seg->sm = AccessSetEMPTY;
   seg->defer = WB_DEFER_INIT;

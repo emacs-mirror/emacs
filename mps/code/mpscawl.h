@@ -15,8 +15,25 @@ extern const struct mps_key_s _mps_key_AWL_FIND_DEPENDENT;
 
 extern mps_pool_class_t mps_class_awl(void);
 extern mps_pool_class_t mps_class_awl0(void);
+extern mps_pool_class_t mps_class_aeph(void);
 
 typedef mps_addr_t (*mps_awl_find_dependent_t)(mps_addr_t addr);
+
+/* Weak pair interface */
+mps_res_t mps_fix_weak_pair(mps_ss_t,
+                            mps_addr_t,
+                            mps_addr_t*,
+                            mps_addr_t*);
+
+mps_res_t mps_fix_weak_or_pair(mps_ss_t,
+			       mps_addr_t,
+			       mps_addr_t*,
+			       mps_addr_t*);
+
+mps_res_t mps_fix_weak_and_pair(mps_ss_t,
+				mps_addr_t,
+				mps_addr_t*,
+				mps_addr_t*);
 
 #endif /* mpscawl_h */
 

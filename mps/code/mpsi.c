@@ -129,6 +129,10 @@ mps_rank_t mps_rank_weak(void)
   return RankWEAK;
 }
 
+mps_rank_t mps_rank_ephemeron(void)
+{
+  return RankEPHEMERON;
+}
 
 mps_res_t mps_arena_extend(mps_arena_t arena,
                            mps_addr_t base, size_t size)

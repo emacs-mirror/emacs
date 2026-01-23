@@ -321,6 +321,7 @@ enum {
 extern mps_rank_t mps_rank_ambig(void);
 extern mps_rank_t mps_rank_exact(void);
 extern mps_rank_t mps_rank_weak(void);
+extern mps_rank_t mps_rank_ephemeron(void);
 
 
 /* Root Modes */
