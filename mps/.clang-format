@@ -1,0 +1,12 @@
+# Configure clang-format to follow the conventions described in
+# design/guide.impl.c.format.txt.  This is work in progress and not
+# everything is covered yet.  I'm using clang-format version 19.
+
+BasedOnStyle: Mozilla
+ColumnLimit: 72
+AllowAllArgumentsOnNextLine: false
+BreakAfterReturnType: Automatic
+
+# Local Variables:
+# mode: yaml
+# End:
