@@ -3847,6 +3847,14 @@ It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
 If supplied, 'string-pixel-width' will use any face remappings from
 BUFFER when computing the string's width.
 
++++
+** New function 'truncate-string-pixelwise'.
+This function truncates a string to the specified maximum number of
+pixels rather than by characters, as in 'truncate-string-to-width', and
+respects face remappings if BUFFER is specified.  You can also specify
+an optional ellipsis string to append, similar to
+'truncate-string-to-width'.
+
 ---
 ** New macro 'with-work-buffer'.
 This macro is similar to the already existing macro 'with-temp-buffer',
