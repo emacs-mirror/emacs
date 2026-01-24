@@ -82,6 +82,7 @@ other directory on your system.  You can also invoke the
 
 * Changes in Emacs 31.1
 
++++
 ** 'line-spacing' now supports specifying spacing above the line.
 Previously, only spacing below the line could be specified.  The variable
 can now be set to a cons cell to specify spacing both above and below
