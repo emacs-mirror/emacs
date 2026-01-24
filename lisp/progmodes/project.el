@@ -179,7 +179,8 @@
 (require 'seq)
 (require 'generator)
 (eval-when-compile (require 'subr-x))
- (defgroup project nil
+
+(defgroup project nil
   "Operations on the current project."
   :version "28.1"
   :group 'tools)
