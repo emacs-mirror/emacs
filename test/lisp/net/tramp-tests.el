@@ -5060,7 +5060,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
       (dolist
 	  (elt
 	   (append
-	    (mapcar #'intern (all-completions "tramp-" obarray #'functionp))
+	    (apropos-internal (rx bos "tramp-") #'functionp)
 	    '(completion-file-name-table read-file-name)))
 	(unless (get elt 'tramp-suppress-trace)
 	  (trace-function-background elt))))
