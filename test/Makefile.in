@@ -219,8 +219,13 @@ LOGFILES := $(patsubst %.el,%.log, \
 TESTS := $(LOGFILES:.log=)
 
 ## Some tests show problems when run in parallel with other tests.
-## Suppress parallelism for them.
-.NOTPARALLEL: lisp/filenotify-tests.log lisp/net/tramp-tests.log
+## Suppress parallelism for them when SELECTOR is equal to
+## SELECTOR_EXPENSIVE or SELECTOR_ALL.
+PARALLEL_TESTS := $(LOGFILES)
+ifeq ($(subst $(SELECTOR_ALL),yes,$(subst $(SELECTOR_EXPENSIVE),yes,$(SELECTOR_ACTUAL))), yes)
+$(eval NOT_PARALLEL_TESTS := $(filter lisp/autorevert-tests.log lisp/filenotify-tests.log lisp/net/tramp-tests.log, $(LOGFILES)))
+$(eval PARALLEL_TESTS := $(filter-out $(NOT_PARALLEL_TESTS), ${LOGFILES}))
+endif
 
 ## If we have to interrupt a hanging test, preserve the log so we can
 ## see what the problem was.
@@ -352,7 +357,12 @@ ifeq ($(TEST_INTERACTIVE), yes)
 	  $(patsubst %,-l %,$(if $(findstring $(TEST_LOAD_EL),yes),$ELFILES,$(ELFILES:.el=))) \
 	  $(TEST_RUN_ERT)
 else
-	-@${MAKE} -k ${LOGFILES}
+ifdef NOT_PARALLEL_TESTS
+	-@${MAKE} -k -j1 ${NOT_PARALLEL_TESTS}
+endif
+ifdef PARALLEL_TESTS
+	-@${MAKE} -k ${PARALLEL_TESTS}
+endif
 	@$(emacs) --batch -l ert --eval \
 	"(ert-summarize-tests-batch-and-exit ${SUMMARIZE_TESTS})" ${LOGFILES}
 endif
