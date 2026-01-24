@@ -177,9 +177,9 @@
 (require 'cl-generic)
 (require 'cl-lib)
 (require 'seq)
+(require 'generator)
 (eval-when-compile (require 'subr-x))
-
-(defgroup project nil
+ (defgroup project nil
   "Operations on the current project."
   :version "28.1"
   :group 'tools)
@@ -1593,6 +1593,11 @@ create it if it doesn't already exist."
 
 (declare-function fileloop-continue "fileloop" ())
 
+(iter-defun project--files-safe ()
+  (dolist (file (project-files (project-current t)))
+    (when (file-regular-p file)
+      (iter-yield file))))
+
 ;;;###autoload
 (defun project-search (regexp)
   "Search for REGEXP in all the files of the project.
@@ -1602,7 +1607,7 @@ command \\[fileloop-continue]."
   (interactive "sSearch (regexp): ")
   (fileloop-initialize-search
    regexp
-   (project-files (project-current t))
+   (project--files-safe)
    'default)
   (fileloop-continue))
 
@@ -1623,7 +1628,7 @@ If you exit the `query-replace', you can later continue the
        (list from to))))
   (fileloop-initialize-replace
    from to
-   (project-files (project-current t))
+   (project--files-safe)
    'default)
   (fileloop-continue))
 
