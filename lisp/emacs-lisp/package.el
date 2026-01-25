@@ -4591,15 +4591,13 @@ SUG should be an element of `package-autosuggest-database'."
      (and (string-match-p ext (buffer-name)) t))
     ((or `(,_ magic-mode-alist ,mag ,_)
          `(,_ magic-mode-alist ,mag))
-     (save-restriction
-       (widen)
+     (without-restriction
        (save-excursion
          (goto-char (point-min))
          (looking-at-p mag))))
     ((or `(,_ interpreter-mode-alist ,magic ,_)
          `(,_ interpreter-mode-alist ,magic))
-     (save-restriction
-       (widen)
+     (without-restriction
        (save-excursion
          (goto-char (point-min))
          (and (looking-at auto-mode-interpreter-regexp)
