@@ -39,10 +39,10 @@ Please review the results before updating the autosuggest database!"
       (find-file (expand-file-name "package-autosuggest.eld" data-directory))
     (erase-buffer)
     (lisp-data-mode)
-    (insert ";; The contents of this file are loaded into `package--autosuggest-database'
-;; and were automatically generate by scraping ELPA for auto-loaded
-;; code using the `scrape-elpa' command.  Please avoid updating this
-;; file manually!
+    (insert ";; The contents of this file are loaded into `package--autosuggest-database'.
+;; were automatically generate by scraping ELPA for auto-loaded
+;; code using the `scrape-elpa' command from admin/scrape-elpa.el.  Please do not
+;; update this file manually!
 
 ")
     (fill-paragraph)
