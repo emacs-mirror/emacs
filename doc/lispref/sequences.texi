@@ -1125,10 +1125,11 @@ two arguments to use to compare elements instead of the default
 
 
 @defun seq-difference sequence1 sequence2 &optional function
-  This function returns a list of the elements that appear in
-@var{sequence1} but not in @var{sequence2}.  If the optional argument
-@var{function} is non-@code{nil}, it is a function of two arguments to
-use to compare elements instead of the default @code{equal}.
+  This function returns a copy of @var{sequence1} from which the
+elements that appear in @var{sequence2} were removed.  If the optional
+argument @var{function} is non-@code{nil}, it is a function of two
+arguments to use to compare elements instead of the default
+@code{equal}.
 
 @example
 @group
