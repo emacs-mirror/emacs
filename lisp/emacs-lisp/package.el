@@ -774,7 +774,11 @@ attached."
               (delete-directory pkg-dir t)
               (throw 'review-failed pkg-desc))
              (?d
-              (diff (package-desc-dir old-desc) pkg-dir (cdr package-review-diff-command) t)
+              (display-buffer
+               (diff-no-select
+                (package-desc-dir old-desc) pkg-dir (cdr package-review-diff-command) t
+                (get-buffer-create (format "*Package Review Diff: %s*"
+                                           (package-desc-full-name pkg-desc)))))
               t)
              (?m
               (require 'diff)             ;for `diff-no-select'
