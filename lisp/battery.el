@@ -914,8 +914,10 @@ The following %-sequences are provided:
        ((and (eq type 1) (not (eq line-status 'online)))
         ;; It's a line power device: `online' if currently providing
         ;; power, any other non-nil value if simply present.
-        (setq line-status (if (cdr (assoc "Online" props)) 'online t)))
-       ((and (eq type 2) (cdr (assoc "IsPresent" props)))
+        (setq line-status (or (not (cdr (assoc "Online" props))) 'online)))
+       ((and (eq type 2)
+             (cdr (assoc "PowerSupply" props))
+             (cdr (assoc "IsPresent" props)))
         ;; It's a battery.
         (setq count (1+ count))
         (setq state (battery--upower-state props state))
