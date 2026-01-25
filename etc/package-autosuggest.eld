@@ -1,4 +1,4 @@
-;; The contents of this file are loaded into `package-autosuggest-database'
+;; The contents of this file are loaded into `package--autosuggest-database'
 ;; and were automatically generate by scraping ELPA for auto-loaded
 ;; code using the `scrape-elpa' command.  Please avoid updating this
 ;; file manually!

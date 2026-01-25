@@ -4532,7 +4532,7 @@ The list is displayed in a buffer named `*Packages*'."
 
 ;;;; Autosuggest
 
-(defconst package-autosuggest-database
+(defconst package--autosuggest-database
   (eval-when-compile
     (with-temp-buffer
       (insert-file-contents
@@ -4573,14 +4573,14 @@ the existence of a suggestion."
 (defvar package--autosuggest-suggested '()
   "List of packages that have already been suggested.
 The elements of this list should be a subset of elements from
-`package-autosuggest-database'.  Suggestions found in this list will not
+`package--autosuggest-database'.  Suggestions found in this list will not
 count as suggestions (e.g. if `package-autosuggest-style' is set to
 `mode-line', a suggestion found in here will inhibit
 `package-autosuggest-mode' from displaying a hint in the mode line).")
 
 (defun package--suggestion-applies-p (sug)
   "Check if a suggestion SUG is applicable to the current buffer.
-SUG should be an element of `package-autosuggest-database'."
+SUG should be an element of `package--autosuggest-database'."
   (pcase sug
     (`(,(or (pred (lambda (e) (assq e package--autosuggest-suggested)))
             (pred package-installed-p))
@@ -4611,14 +4611,14 @@ The elements of the returned list will be a subset of the elements of
 `package--autosuggest-suggested'."
   (and package-autosuggest-mode (eq major-mode 'fundamental-mode)
        (let (suggetions)
-         (dolist (sug package-autosuggest-database)
+         (dolist (sug package--autosuggest-database)
            (when (package--suggestion-applies-p sug)
              (push sug suggetions)))
          suggetions)))
 
 (defun package--autosuggest-install-and-enable (sug)
   "Install and enable a package suggestion PKG-ENT.
-SUG should be an element of `package-autosuggest-database'."
+SUG should be an element of `package--autosuggest-database'."
   (let ((buffers-to-update '()))
     (dolist (buf (buffer-list))
       (with-current-buffer buf
