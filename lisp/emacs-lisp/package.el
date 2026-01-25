@@ -4554,7 +4554,7 @@ enable the package.")
 You can set this value to `mode-line' (default) to indicate the
 availability of a package suggestion in the minor mode, `always' to
 prompt the user in the minibuffer every time a suggestion is available
-in a `fundamenta-mode' buffer, `once' to do only prompt the user once
+in a `fundamental-mode' buffer, `once' to do only prompt the user once
 for each suggestion or `message' to just display a message hinting at
 the existence of a suggestion."
   :type '(choice (const :tag "Indicate in mode line" mode-line)
