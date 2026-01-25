@@ -150,7 +150,10 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (scroll-down-aggressively windows
 				       (choice (const :tag "off" nil) float)
 				       "21.1")
-	     (line-spacing display (choice (const :tag "none" nil) number)
+	     (line-spacing display
+                           (choice (const :tag "none" nil)
+                                   number
+                                   (cons number number))
 			   "22.1")
 	     (cursor-in-non-selected-windows
 	      cursor ,cursor-type-types nil
