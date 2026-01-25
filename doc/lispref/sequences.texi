@@ -1110,9 +1110,9 @@ instead of the default @code{equal}.
 @cindex sequences, intersection of
 @cindex intersection of sequences
   This function returns a copy of @var{sequence1} from which the
-elements that appear in @var{sequence2} where removed.  If the optional
-argument @var{function} is non-@code{nil}, it is a function of two
-arguments to use to compare elements instead of the default
+elements that do not appear in @var{sequence2} were removed.  If the
+optional argument @var{function} is non-@code{nil}, it is a function of
+two arguments to use to compare elements instead of the default
 @code{equal}.
 
 @example
