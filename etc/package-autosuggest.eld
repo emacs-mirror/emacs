@@ -1,9 +1,10 @@
-;; The contents of this file are loaded into `package--autosuggest-database'
-;; and were automatically generate by scraping ELPA for auto-loaded
-;; code using the `scrape-elpa' command.  Please avoid updating this
-;; file manually!
+;; The contents of this file are loaded into `package--autosuggest-database'.
+;; were automatically generate by scraping ELPA for auto-loaded
+;; code using the `scrape-elpa' command from admin/scrape-elpa.el.  Please do not
+;; update this file manually!
 
 (
+(a68-mode auto-mode-alist "\\.a68\\'")
 (ada-mode auto-mode-alist "\\.ad[abs]\\'")
 (arbitools auto-mode-alist "\\.trf?\\'" arbitools-mode)
 (auctex auto-mode-alist "\\.hva\\'" LaTeX-mode)
@@ -14,6 +15,8 @@
 (csharp-mode auto-mode-alist "\\.cs\\'")
 (csv-mode auto-mode-alist "\\.[Cc][Ss][Vv]\\'")
 (csv-mode auto-mode-alist "\\.tsv\\'" tsv-mode)
+(dicom auto-mode-alist "\\.\\(?:dcm\\|ima\\)\\'" dicom-auto-mode)
+(dicom auto-mode-alist "DICOMDIR" dicom-auto-mode)
 (dismal auto-mode-alist "\\.dis\\'" dismal-mode)
 (djvu auto-mode-alist "\\.djvu\\'" djvu-init-mode)
 (dts-mode auto-mode-alist "\\.dtsi?\\'")
@@ -42,7 +45,6 @@
 (json-mode auto-mode-alist "\\.json\\'")
 (lmc auto-mode-alist "\\.elmc\\'" lmc-asm-mode)
 (matlab-mode auto-mode-alist "\\.tlc\\'" tlc-mode)
-(matlab auto-mode-alist "\\.tlc\\'" tlc-mode)
 (muse auto-mode-alist "\\.muse\\'" muse-mode-choose-mode)
 (auctex auto-mode-alist "\\.drv\\'" latex-mode)
 (auctex auto-mode-alist "\\.dtx\\'" doctex-mode)
@@ -53,6 +55,7 @@
 (omn-mode auto-mode-alist "\\.omn\\'")
 (poke-mode auto-mode-alist "\\.pk\\'")
 (pspp-mode auto-mode-alist "\\.sps\\'")
+(python interpreter-mode-alist "python[0-9.]*" python-mode)
 (python auto-mode-alist "/\\(?:Pipfile\\|\\.?flake8\\)\\'" conf-mode)
 (rec-mode auto-mode-alist "\\.rec\\'")
 (rnc-mode auto-mode-alist "\\.rnc\\'")
