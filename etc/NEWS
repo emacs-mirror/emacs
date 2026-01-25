@@ -514,13 +514,17 @@ These are useful if you need to detect a cloned frame or undeleted frame
 in hooks like 'after-make-frame-functions' and
 'server-after-make-frame-hook'.
 
----
 *** Frames now have unique ids and the new function 'frame-id'.
 Each non-tooltip frame is assigned a unique integer id.  This allows you
 to unambiguously identify frames even if they share the same name or
 title.  When 'undelete-frame-mode' is enabled, each deleted frame's id
 is stored for resurrection.  The function 'frame-id' returns a frame's
 id (in C, use the frame struct member 'id').
+
+*** New commands 'select-frame-by-id', 'undelete-frame-by-id'.
+The command 'select-frame-by-id' selects a frame by ID and undeletes it
+if deleted.  The command 'undelete-frame-by-id' undeletes a frame by its
+ID.  When called interactively, both functions prompt for an ID.
 
 ** Mode Line
 
