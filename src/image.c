@@ -9653,6 +9653,8 @@ static const struct image_keyword gif_format[GIF_LAST] =
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
+#endif
+
 /* Free X resources of GIF image IMG which is used on frame F.
    Also used by other image types.  */
 
@@ -9662,6 +9664,8 @@ gif_clear_image (struct frame *f, struct image *img)
   img->lisp_data = Qnil;
   image_clear_image (f, img);
 }
+
+#if defined (HAVE_GIF)
 
 /* Return true if OBJECT is a valid GIF image specification.  */
 
