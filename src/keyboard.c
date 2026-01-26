@@ -1789,7 +1789,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 		     TEXT_PROP_MEANS_INVISIBLE (val))
 #endif
 		 && !NILP (val = get_char_property_and_overlay
-		           (make_fixnum (end), Qinvisible, Qnil, &overlay))
+				   (make_fixnum (end), Qinvisible,
+				    selected_window, &overlay))
 		 && (inv = TEXT_PROP_MEANS_INVISIBLE (val)))
 	    {
 	      ellipsis = ellipsis || inv > 1
@@ -1807,7 +1808,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 		     TEXT_PROP_MEANS_INVISIBLE (val))
 #endif
 		 && !NILP (val = get_char_property_and_overlay
-		           (make_fixnum (beg - 1), Qinvisible, Qnil, &overlay))
+				   (make_fixnum (beg - 1), Qinvisible,
+				    selected_window, &overlay))
 		 && (inv = TEXT_PROP_MEANS_INVISIBLE (val)))
 	    {
 	      ellipsis = ellipsis || inv > 1
@@ -1874,11 +1876,11 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 		   could lead to an infinite loop.  */
 		;
 	      else if (val = Fget_pos_property (make_fixnum (PT),
-						Qinvisible, Qnil),
+						Qinvisible, selected_window),
 		       TEXT_PROP_MEANS_INVISIBLE (val)
 		       && (val = (Fget_pos_property
 				  (make_fixnum (PT == beg ? end : beg),
-				   Qinvisible, Qnil)),
+				   Qinvisible, selected_window)),
 			   !TEXT_PROP_MEANS_INVISIBLE (val)))
 		(check_composition = check_display = true,
 		 SET_PT (PT == beg ? end : beg));
