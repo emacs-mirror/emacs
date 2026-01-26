@@ -3338,6 +3338,11 @@ each refresh.  The sort direction can be controlled by using a cons cell
 of a format string and a boolean.  Alternatively, a sorting function can
 be provided directly.
 
+---
+*** New user option 'display-time-help-echo-format'.
+This option controls the format of the help echo when hovering over the
+time.
+
 ** Fill
 
 +++
