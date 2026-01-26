@@ -51,9 +51,6 @@
 ;;
 ;;     (define-key global-map [M-S-down-mouse-3] #'imenu)
 
-;; This version supports the syntax added by the MooseX::Declare CPAN
-;; module, as well as Perl 5.10 keywords.
-
 ;;; Code:
 
 ;;; Compatibility with older versions (for publishing on ELPA)
@@ -1373,13 +1370,16 @@ prototypes from signatures.")
                (optional
                 (sequence
                  (0+ (sequence ,cperl--ws*-rx
-                               (or ,cperl--basic-scalar-rx "$")
+                               (or (sequence (optional ":")
+                                             ,cperl--basic-scalar-rx)
+                                   "$")
                                ,cperl--ws*-rx
                                ","))
                  ,cperl--ws*-rx
-                 (or ,cperl--basic-scalar-rx
-                     ,cperl--basic-array-rx
-                     ,cperl--basic-hash-rx
+                 (or (sequence (optional ":")
+                               (or ,cperl--basic-scalar-rx
+                                   ,cperl--basic-array-rx
+                                   ,cperl--basic-hash-rx))
                      "$" "%" "@")))
                (optional (sequence ,cperl--ws*-rx) "," )
                ,cperl--ws*-rx
@@ -1392,9 +1392,10 @@ place.")
   (defconst cperl--sloppy-signature-rx
     `(sequence "("
                ,cperl--ws*-rx
-               (or ,cperl--basic-scalar-rx
-                   ,cperl--basic-array-rx
-                   ,cperl--basic-hash-rx)
+               (sequence (optional ":")
+                         (or ,cperl--basic-scalar-rx
+                             ,cperl--basic-array-rx
+                             ,cperl--basic-hash-rx))
                ,cperl--ws*-rx
                (or "," "=" "||=" "//=" ")"))
     "A rx sequence for the begin of a signature with initializers.
@@ -6385,6 +6386,7 @@ functions (which they are not).  Inherits from `default'.")
                   ;; -------- anchored: Signature
                   `(,(rx (sequence (in "(,")
                                    (eval cperl--ws*-rx)
+                                   (optional ":")
                                    (group (eval cperl--basic-variable-rx))))
                     (progn
                       (goto-char (match-beginning 2)) ; pre-match: Back to sig

@@ -233,6 +233,14 @@ as well as the default nil and arbitrary user functions.
 It allows users to navigate the current buffer's outline using Xref.
 It is bound to 'M-o'.
 
+** CPerl mode
+
+*** Perl 5.44 support: Signatures with named parameters
+
+Perl 5.44 allows to declare a signature like "sub subname (:$par)", see
+https://perldoc.perl.org/5.44.0/perldelta#Named-Parameters-in-Signatures
+CPerl mode now recognizes this as a variable declaration
+
 ** Newsticker
 
 ---

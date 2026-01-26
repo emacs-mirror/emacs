@@ -12,6 +12,14 @@ no warnings 'experimental::signatures';
 # are somewhat frowned upon most of the times, but they are required
 # for some Perl magic
 
+# The tests make assumptions about variable names like this:
+# + Subroutine names are "sub_" followed by a number and checked for
+#   font-lock-function-name-face
+# + Prototype content, if present, is fontified as font-lock-string-face
+# + Subroutine attributes, if present, are fontified as
+#   font-lock-constant-face, their paramters as font-lock-string-face
+# + A variable named "$bar" is tested for font-lock-variable-name-face
+
 # Part 1: Named subroutines
 # A plain named subroutine without any optional stuff
 sub sub_0 { ...; }
@@ -45,6 +53,14 @@ sub sub_6
 sub sub_7
     ($foo = { },
      $bar //= "baz")
+{
+}
+
+# Named parameters (since Perl 5.44): A trivial one
+sub sub_8 (:$bar) { ...; }
+
+# Named parameters (since Perl 5.44): Sloppy, both positional and named
+sub sub_9 ($version //=5.044, :$bar)
 {
 }
 
