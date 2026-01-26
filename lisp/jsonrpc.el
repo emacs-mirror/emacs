@@ -488,7 +488,8 @@ to the original request (normal or error) are ignored."
               ,@(when (plist-member args :timeout) `(:timeout  ,timeout)))))
           (cond (cancel-on-input
                  (unwind-protect
-                     (let ((inhibit-quit t)) (while (sit-for 30)))
+                     (let ((inhibit-quit t) (inhibit-redisplay t))
+                       (while (sit-for 30 t)))
                    (setq canceled t))
                  (when (functionp cancel-on-input)
                    (funcall cancel-on-input (car id-and-timer)))
