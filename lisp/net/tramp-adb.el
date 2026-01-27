@@ -882,8 +882,8 @@ will be used."
 			;; is deleted.  The temporary file will exist
 			;; until the process is deleted.
 			(when (bufferp stderr)
+			  (tramp-taint-remote-process-buffer stderr)
 			  (ignore-errors
-			    (tramp-taint-remote-process-buffer stderr)
 			    (with-current-buffer stderr
 			      (insert-file-contents-literally
 			       remote-tmpstderr 'visit)))
