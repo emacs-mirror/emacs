@@ -65,6 +65,8 @@ of symbols, then preserve temporary directories and buffers for each
 package that matches a symbol in the list.  When this variable is t then
 preserve all temporary directories.")
 
+(defvar package-vc-tests-repos (make-hash-table))
+
 (defvar package-vc-tests-dir)
 (defvar package-vc-tests-packages)
 (defvar package-vc-tests-repository)
@@ -169,12 +171,11 @@ When LISP-DIR is non-nil place the NAME file under LISP-DIR."
       (error "Failed to invoke sed on %s" in-file))
     (vc-git-command nil 0 nil "add" ".")))
 
-(defun package-vc-tests-create-repository (suffix &optional lisp-dir)
-  "Create a test package repository with SUFFIX.
+(defun package-vc-tests-create-repository (suffix repos-dir &optional lisp-dir)
+  "Create a test package repository with SUFFIX in REPOS-DIR.
 If LISP-DIR is non-nil place sources of the package in LISP-DIR."
   (let* ((name (format "test-package-%s" suffix))
-         (repo-dir (expand-file-name (file-name-concat "repo" name)
-                                     package-vc-tests-dir)))
+         (repo-dir (expand-file-name name repos-dir)))
     (make-directory (expand-file-name (or lisp-dir ".") repo-dir) t)
     (let ((default-directory repo-dir)
           (process-environment
@@ -399,6 +400,11 @@ names."
           (not (member lisp-dir '("lisp" "src")))
           (list :lisp-dir lisp-dir)))))
 
+(defun package-vc-tests-make-temp-dir (prefix)
+  "Create temp directory with PREFIX."
+  (expand-file-name
+   (make-temp-file prefix t (format-time-string "-%Y%m%d.%H%M%S.%3N"))))
+
 (defun package-vc-with-tests-environment (pkg function)
   "Call FUNCTION with no arguments within a test environment set up for PKG."
   ;; Create a test package sources repository, based on skeleton files
@@ -406,10 +412,7 @@ names."
   ;; that:
   ;;
   (let* ((package-vc-tests-dir
-          (expand-file-name
-           (make-temp-file "package-vc-tests-"
-                           t
-                           (format-time-string "-%Y%m%d.%H%M%S.%3N"))))
+          (package-vc-tests-make-temp-dir "package-vc-tests-"))
          ;; - packages are installed into test directory
          (package-user-dir (expand-file-name "elpa"
                                              package-vc-tests-dir))
@@ -428,13 +431,25 @@ names."
          (package-vc-tests-packages (package-vc-tests-packages))
          ;; - create a test package bundle
          (package-vc-tests-repository
-          (let* ((pkg-name (symbol-name pkg))
-                 (suffix (and (string-match
-                               (rx ?- (group (1+ (not ?-))) eos)
-                               pkg-name)
-                              (match-string 1 pkg-name))))
-            (package-vc-tests-create-repository
-             suffix (cadr (alist-get pkg package-vc-tests-packages)))))
+          (or
+           (gethash pkg package-vc-tests-repos)
+           (let* ((pkg-name (symbol-name pkg))
+                  (suffix (and (string-match
+                                (rx ?- (group (1+ (not ?-))) eos)
+                                pkg-name)
+                               (match-string 1 pkg-name)))
+                  (repos-dir
+                   (or (gethash 'repos-dir package-vc-tests-repos)
+                       (puthash 'repos-dir
+                                (package-vc-tests-make-temp-dir
+                                 "package-vc-tests-repos-")
+                                package-vc-tests-repos))))
+             (puthash pkg
+                      (package-vc-tests-create-repository
+                       suffix
+                       repos-dir
+                       (cadr (alist-get pkg package-vc-tests-packages)))
+                      package-vc-tests-repos))))
          ;; - find all packages that are present in a test ELPA
          (package-vc-tests-elpa-packages
           (cl-loop
@@ -495,6 +510,12 @@ names."
          (package-vc-allow-build-commands t))
     (funcall function)))
 
+(defun package-vc-tests-preserve-pkg-artifacts-p (pkg)
+  "Return non nil if files and buffers for PKG should be preserved."
+  (or (memq package-vc-tests-preserve-artifacts `(t ,pkg))
+      (and (listp package-vc-tests-preserve-artifacts)
+           (memq pkg package-vc-tests-preserve-artifacts))))
+
 (defun package-vc-tests-environment-tear-down (pkg)
   "Tear down test environment for PKG.
 Unbind package defined symbols, and remove package defined features and
@@ -538,26 +559,73 @@ when PKG matches `package-vc-tests-preserve-artifacts'."
                           (package-vc-tests-log-buffer-name pkg
                                                             type)))
                        '(doc make)))))
-    (if (or (memq package-vc-tests-preserve-artifacts `(t ,pkg))
-            (and (listp package-vc-tests-preserve-artifacts)
-                 (memq pkg package-vc-tests-preserve-artifacts)))
+    (if (package-vc-tests-preserve-pkg-artifacts-p pkg)
         (let ((buffers
-               (mapconcat (lambda (buffer)
-                            (with-current-buffer buffer
-                              (let* ((old-name (buffer-name))
-                                     (new-name (make-temp-name
-                                                (string-trim old-name))))
-                                (rename-buffer new-name)
-                                (concat old-name " -> " new-name))))
-                          buffers
-                          ", ")))
+               (if buffers
+                   (format " and %s: %s"
+                           (if (cdr buffers) "buffers" "buffer")
+                           (mapconcat
+                            (lambda (buffer)
+                              (with-current-buffer buffer
+                                (let* ((old-name (buffer-name))
+                                       (new-name (make-temp-name
+                                                  (string-trim old-name))))
+                                  (rename-buffer new-name)
+                                  (format "`%s' -> `%s'"
+                                          old-name new-name))))
+                            buffers
+                            ", "))
+                 ""))
+              (repo-dir (car (gethash pkg package-vc-tests-repos))))
           (message
-           "package-vc-tests: preserving temporary directory: %s%s"
+           "package-vc-tests: preserving temporary %s: %s%s%s"
+           (if repo-dir "directories" "directory")
            package-vc-tests-dir
-           (and buffers (format " and buffers: %s" buffers))))
+           (if repo-dir (format " and %s" repo-dir) "")
+           buffers))
       (delete-directory package-vc-tests-dir t)
       (dolist (buffer buffers)
         (kill-buffer buffer)))))
+
+;; Tests create a repository for a package only once per a tests run.
+;; The repository location is cached in `package-vc-tests-repos'.  To
+;; support development, clear the cache on start of each tests run, such
+;; that the package repository contains files from the source code.
+;; When tests run completes delete repositories accounting for
+;; `package-vc-tests-preserve-artifacts', which see.
+
+(defun package-vc-tests-add-ert-run-tests-listener (args)
+  "Add `package-vc-tests' repositories cleanup to listener in ARGS."
+  (if-let* ((listener (cadr args))
+            ((functionp listener)))
+      (cl-list*
+       (car args)
+       (lambda (event-type &rest event-args)
+         (cl-case event-type
+           (run-started
+            (clrhash package-vc-tests-repos))
+           (run-ended
+            (when-let* ((repos-dir (gethash 'repos-dir
+                                            package-vc-tests-repos))
+                        ((file-directory-p repos-dir)))
+              (if package-vc-tests-preserve-artifacts
+                  (progn
+                    (dolist (pkg (package-vc-tests-packages))
+                      (unless
+                          (package-vc-tests-preserve-pkg-artifacts-p pkg)
+                        (when-let* ((repo-dir
+                                     (car (gethash pkg package-vc-tests-repos)))
+                                    ((file-directory-p repo-dir)))
+                          (delete-directory repo-dir t))))
+                    (when (directory-empty-p repos-dir)
+                      (delete-directory repos-dir)))
+                (delete-directory repos-dir t)))))
+         (apply listener (cons event-type event-args)))
+       (drop 2 args))
+    args))
+
+(advice-add #'ert-run-tests
+            :filter-args #'package-vc-tests-add-ert-run-tests-listener)
 
 (defun package-vc-tests-with-installed (pkg function)
   "Call FUNCTION with PKG installed in a test environment.
