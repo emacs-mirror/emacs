@@ -662,13 +662,22 @@ recording whether the var has been referenced by earlier parts of the match."
                                (lambda (x y)
                                  (> (length (nth 2 x)) (length (nth 2 y))))))
 
+    ;; We presume that the "fundamental types" (i.e. the built-in types
+    ;; that have no subtypes) are all mutually exclusive and give them
+    ;; one bit each in bitsets.
+    ;; The "non-abstract-supertypes" also get their own bit.
+    ;; All other built-in types are abstract, so they don't need their
+    ;; own bits (they are faithfully modeled by the set of bits
+    ;; corresponding to their subtypes).
     (let ((bitsets (make-hash-table))
           (i 1))
       (dolist (x built-in-types)
         ;; Don't dedicate any bit to those predicates which already
         ;; have a bitset, since it means they're already represented
         ;; by their subtypes.
-        (unless (and (nth 1 x) (gethash (nth 1 x) bitsets))
+        (unless (and (nth 1 x) (gethash (nth 1 x) bitsets)
+                     (not (built-in-class--non-abstract-supertype
+                           (get (nth 0 x) 'cl--class))))
           (dolist (parent (nth 2 x))
             (let ((pred (nth 1 (assq parent built-in-types))))
               (unless (or (eq parent t) (null pred))
@@ -676,24 +685,35 @@ recording whether the var has been referenced by earlier parts of the match."
                          bitsets))))
           (setq i (+ i i))))
 
+      ;; (cl-assert (= (1- i) (apply #'logior (map-values bitsets))))
+
       ;; Extra predicates that don't have matching types.
-      (dolist (pred-types '((functionp cl-functionp consp symbolp)
-                            (keywordp symbolp)
-                            (characterp fixnump)
-                            (natnump integerp)
-                            (facep symbolp stringp)
-                            (plistp listp)
-                            (cl-struct-p recordp)
-                            ;; ;; FIXME: These aren't quite in the same
-                            ;; ;; category since they'll signal errors.
-                            (fboundp symbolp)
-                            ))
-        (puthash (car pred-types)
-                 (apply #'logior
-                        (mapcar (lambda (pred)
-                                  (gethash pred bitsets))
-                                (cdr pred-types)))
-                 bitsets))
+      ;; Beware: For these predicates, the bitsets are conservative
+      ;; approximations (so, e.g., it wouldn't be correct to use one of
+      ;; them after a `!' since the negation would be an unsound
+      ;; under-approximation).
+      (let ((all (1- i)))
+        (dolist (pred-types '((functionp cl-functionp consp symbolp)
+                              (keywordp symbolp)
+                              (nlistp ! listp)
+                              (characterp fixnump)
+                              (natnump integerp)
+                              (facep symbolp stringp)
+                              (plistp listp)
+                              (cl-struct-p recordp)
+                              ;; ;; FIXME: These aren't quite in the same
+                              ;; ;; category since they'll signal errors.
+                              (fboundp symbolp)
+                              ))
+          (let* ((types (cdr pred-types))
+                 (neg (when (eq '! (car types)) (setq types (cdr types))))
+                 (bitset (apply #'logior
+                                (mapcar (lambda (pred)
+                                          (gethash pred bitsets))
+                                        types))))
+            (puthash (car pred-types)
+                     (if neg (- all bitset) bitset)
+                     bitsets))))
       bitsets)))
 
 (defconst pcase--subtype-bitsets
