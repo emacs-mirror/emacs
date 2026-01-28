@@ -1894,22 +1894,9 @@ If DELIMITED is `symbol', only select matches that span full symbols."
       (setq default-directory dir)
       (setq status
             (process-file-shell-command command nil t))
-      (goto-char (point-min))
-      ;; Can't use the exit status: Grep exits with 1 to mean "no
-      ;; matches found".  Find exits with 1 if any of the invocations
-      ;; exit with non-zero. "No matches" and "Grep program not found"
-      ;; are all the same to it.
-      (when (and (/= (point-min) (point-max))
-                 (not (looking-at grep-re))
-                 ;; See also this check in `xref-matches-in-files'.
-                 (not (looking-at ".*[bB]inary file.* matches")))
-        (user-error "Search failed with status %d: %s" status (buffer-string)))
-      (while (re-search-forward grep-re nil t)
-        (push (list (string-to-number (match-string line-group))
-                    (concat local-dir (substring (match-string file-group) 1))
-                    (buffer-substring-no-properties (point) (line-end-position)))
-              hits)))
-    (xref--convert-hits (nreverse hits) hits-regexp)))
+      (setq hits (xref--parse-hits grep-re line-group file-group status
+                                   local-dir)))
+    (xref--convert-hits (xref--sort-hits hits) hits-regexp)))
 
 (define-obsolete-function-alias
   'xref-collect-matches
@@ -2035,29 +2022,42 @@ to control which program to use when looking for matches."
                                           nil
                                           shell-command-switch
                                           command))))
-      (goto-char (point-min))
-      (when (and (/= (point-min) (point-max))
-                 (not (looking-at grep-re))
-                 ;; TODO: Show these matches as well somehow?
-                 ;; Matching both Grep's and Ripgrep 13's messages.
-                 (not (looking-at ".*[bB]inary file.* matches")))
-        (user-error "Search failed with status %d: %s" status
-                    (buffer-substring (point-min) (line-end-position))))
-      (while (re-search-forward grep-re nil t)
-        (push (list (string-to-number (match-string line-group))
-                    (match-string file-group)
-                    (buffer-substring-no-properties (point) (line-end-position)))
-              hits)))
-    ;; By default, ripgrep's output order is non-deterministic
-    ;; (https://github.com/BurntSushi/ripgrep/issues/152)
-    ;; because it does the search in parallel.
-    ;; Grep's output also comes out in seemingly arbitrary order,
-    ;; though stable one. Let's sort both for better UI.
-    (setq hits
-          (sort (nreverse hits)
-                (lambda (h1 h2)
-                  (string< (cadr h1) (cadr h2)))))
-    (xref--convert-hits hits regexp)))
+      (setq hits (xref--parse-hits grep-re line-group file-group status)))
+    (xref--convert-hits (xref--sort-hits hits) regexp)))
+
+(defun xref--parse-hits ( grep-re line-group file-group status
+                          &optional parent-dir)
+  (let (hits)
+    (goto-char (point-min))
+    ;; Can't use the exit status: Grep exits with 1 to mean "no
+    ;; matches found".  Find exits with 1 if any of the invocations
+    ;; exit with non-zero. "No matches" and "Grep program not found"
+    ;; are all the same to it.
+    (when (and (/= (point-min) (point-max))
+               (not (looking-at grep-re))
+               ;; TODO: Show these matches as well somehow?
+               ;; Matching both Grep's and Ripgrep 13's messages.
+               (not (looking-at ".*[bB]inary file.* matches")))
+      (user-error "Search failed with status %d: %s" status
+                  (buffer-substring (point-min) (line-end-position))))
+    (while (re-search-forward grep-re nil t)
+      (push (list (string-to-number (match-string line-group))
+                  (if parent-dir
+                      (concat parent-dir (substring (match-string file-group) 1))
+                    (match-string file-group))
+                  (buffer-substring-no-properties (point) (line-end-position)))
+            hits))
+    (nreverse hits)))
+
+(defun xref--sort-hits (hits)
+  ;; By default, ripgrep's output order is non-deterministic
+  ;; (https://github.com/BurntSushi/ripgrep/issues/152)
+  ;; because it does the search in parallel.
+  ;; Grep's output also comes out in seemingly arbitrary order,
+  ;; though stable one. Let's sort both for better UI.
+  (sort hits
+        (lambda (h1 h2)
+          (string< (cadr h1) (cadr h2)))))
 
 (defun xref--process-file-region ( start end program
                                    &optional buffer display
