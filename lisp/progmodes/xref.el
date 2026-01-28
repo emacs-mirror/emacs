@@ -1900,7 +1900,9 @@ If DELIMITED is `symbol', only select matches that span full symbols."
       ;; exit with non-zero. "No matches" and "Grep program not found"
       ;; are all the same to it.
       (when (and (/= (point-min) (point-max))
-                 (not (looking-at grep-re)))
+                 (not (looking-at grep-re))
+                 ;; See also this check in `xref-matches-in-files'.
+                 (not (looking-at ".*[bB]inary file.* matches")))
         (user-error "Search failed with status %d: %s" status (buffer-string)))
       (while (re-search-forward grep-re nil t)
         (push (list (string-to-number (match-string line-group))
