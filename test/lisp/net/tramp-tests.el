@@ -8259,6 +8259,42 @@ process sentinels.  They shall not disturb each other."
 ;; (tramp--test-deftest-direct-async-process tramp-test45-asynchronous-requests
 ;;   'unstable)
 
+;; This test is inspired by Bug#49954 and Bug#60534.
+(ert-deftest tramp-test45-force-remote-file-error ()
+  "Force `remote-file-error'."
+  :tags '(:expensive-test :tramp-asynchronous-processes :unstable)
+  ;; It shall run only if selected explicitly.
+  (skip-unless
+   (eq (ert--stats-selector ert--current-run-stats)
+       (ert-test-name (ert--stats-current-test ert--current-run-stats))))
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-sh-p))
+
+  (let ((default-directory ert-remote-temporary-file-directory)
+        ;; Do not cache Tramp properties.
+        (remote-file-name-inhibit-cache t)
+	(p (start-file-process-shell-command
+	    "test" (generate-new-buffer "test" 'inhibit-buffer-hooks)
+	    "while true; do echo test; sleep 0.2; done")))
+
+    (set-process-filter
+     p (lambda (&rest _)
+	 (message "filter %s" default-directory)
+	 (directory-files default-directory)
+	 (dired-uncache default-directory)))
+
+    (run-at-time
+     0 0.2 (lambda ()
+	     (message "timer %s" default-directory)
+	     (directory-files default-directory)
+	     (dired-uncache default-directory)))
+
+    (while t
+      (accept-process-output)
+      (message "main %s" default-directory)
+      (directory-files default-directory)
+      (dired-uncache default-directory))))
+
 (ert-deftest tramp-test46-dired-compress-file ()
   "Check that Tramp (un)compresses normal files."
   (skip-unless (tramp--test-enabled))
