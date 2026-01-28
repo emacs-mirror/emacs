@@ -2746,11 +2746,12 @@ current VC fileset.
 
 +++
 *** New commands to report diffs of outstanding changes.
-'C-x v o =' ('vc-diff-outgoing-base') and 'C-x v o D'
+'C-x v T =' ('vc-diff-outgoing-base') and 'C-x v T D'
 ('vc-root-diff-outgoing-base') report diffs of changes since the merge
 base with the remote branch, including uncommitted changes.
 They are useful to view all outstanding (unmerged, unpushed) changes on
 the current branch.
+They are also available as 'T =' and 'T D' in VC-Dir buffers.
 
 +++
 *** New user option 'vc-use-incoming-outgoing-prefixes'.
