@@ -269,9 +269,7 @@ To create an xref object, call `xref-make'.")
 The result must be a list of xref objects.  If no references can
 be found, return nil.
 
-The default implementation uses `semantic-symref-tool-alist' to
-find a search tool; by default, this uses \"find | grep\" in the
-current project's main and external roots."
+The default implementation uses `xref-references-in-directory'."
   (mapcan
    (lambda (dir)
      (message "Searching %s..." dir)
@@ -1793,15 +1791,43 @@ and just use etags."
 (declare-function grep-expand-template "grep")
 (defvar ede-minor-mode) ;; ede.el
 
+(defcustom xref-references-in-directory-function
+  #'xref-references-in-directory-semantic
+  "Function to find all references to a symbol in a directory.
+It should take two string arguments: SYMBOL and DIR.
+And return a list of xref values representing all code references to
+SYMBOL in files under DIR."
+  :type '(choice
+          (const :tag "Using Grep via Find" xref-references-in-directory-grep)
+          (const :tag "Using Semantic Symbol Reference API"
+                 xref-references-in-directory-semantic)
+          function)
+  :version "31.1")
+
 ;;;###autoload
 (defun xref-references-in-directory (symbol dir)
+  "Find all references to SYMBOL in directory DIR.
+See `xref-references-in-directory-function' for the implementation.
+Return a list of xref values."
+  (cl-assert (directory-name-p dir))
+  (funcall xref-references-in-directory-function symbol dir))
+
+(defun xref-references-in-directory-grep (symbol dir)
+  "Find all references to SYMBOL in directory DIR using find and grep.
+Return a list of xref values.  The files in DIR are filtered according
+to its project's list of ignore patterns (as returned by
+`project-ignores'), or the default ignores if there is no project."
+  (let ((ignores (project-ignores (project-current nil dir) dir)))
+    (xref-matches-in-directory (regexp-quote symbol) "*" dir ignores
+                               'symbol)))
+
+(defun xref-references-in-directory-semantic (symbol dir)
   "Find all references to SYMBOL in directory DIR.
 Return a list of xref values.
 
 This function uses the Semantic Symbol Reference API, see
 `semantic-symref-tool-alist' for details on which tools are used,
 and when."
-  (cl-assert (directory-name-p dir))
   (require 'semantic/symref)
   (defvar semantic-symref-tool)
 
@@ -1831,12 +1857,13 @@ and when."
   "27.1")
 
 ;;;###autoload
-(defun xref-matches-in-directory (regexp files dir ignores)
+(defun xref-matches-in-directory (regexp files dir ignores &optional delimited)
   "Find all matches for REGEXP in directory DIR.
 Return a list of xref values.
 Only files matching some of FILES and none of IGNORES are searched.
 FILES is a string with glob patterns separated by spaces.
-IGNORES is a list of glob patterns for files to ignore."
+IGNORES is a list of glob patterns for files to ignore.
+If DELIMITED is `symbol', only select matches that span full symbols."
   ;; DIR can also be a regular file for now; let's not advertise that.
   (grep-compute-defaults)
   (defvar grep-find-template)
@@ -1855,6 +1882,9 @@ IGNORES is a list of glob patterns for files to ignore."
        (local-dir (directory-file-name
                    (file-name-unquote
                     (file-local-name (expand-file-name dir)))))
+       (hits-regexp (if (eq delimited 'symbol)
+                        (format "\\_<%s\\_>" regexp)
+                      regexp))
        (buf (get-buffer-create " *xref-grep*"))
        (`(,grep-re ,file-group ,line-group . ,_) (car grep-regexp-alist))
        (status nil)
@@ -1877,7 +1907,7 @@ IGNORES is a list of glob patterns for files to ignore."
                     (concat local-dir (substring (match-string file-group) 1))
                     (buffer-substring-no-properties (point) (line-end-position)))
               hits)))
-    (xref--convert-hits (nreverse hits) regexp)))
+    (xref--convert-hits (nreverse hits) hits-regexp)))
 
 (define-obsolete-function-alias
   'xref-collect-matches

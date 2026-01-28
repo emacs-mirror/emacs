@@ -841,6 +841,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
                        (project--value-in-dir 'project-vc-ignores dir)))
 
 (defun project--vc-ignores (dir backend extra-ignores)
+  (require 'vc)
   (append
    (when backend
      (delq

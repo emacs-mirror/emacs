@@ -108,7 +108,7 @@ process to complete."
 	      (goto-char (point-min))
               ;; Instrument for bug#80166.
               (when (getenv "EMACS_EMBA_CI")
-                (message "stderr\n%s" (buffer-string))
+                (message "stderr\n%s" (buffer-string)))
 	      (looking-at "hello stderr!"))))))
 
 (ert-deftest process-test-stderr-filter ()
