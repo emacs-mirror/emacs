@@ -4342,11 +4342,19 @@ BACKEND is the VC backend."
     (let* ((outgoing-base (vc-call-backend (or backend
                                                (vc-deduce-backend))
                                            'topic-outgoing-base))
-           ;; If OUTGOING-BASE is non-nil then it isn't possible to
-           ;; specify an empty string in response to the prompt, which
-           ;; normally means to treat the current branch as a trunk.
-           ;; That's okay because you can use a double prefix argument
-           ;; to force treating the current branch as a trunk.
+           ;; If OUTGOING-BASE is non-nil then 'C-u C-x v T ... RET' is
+           ;; how the user can force Emacs to treat the current branch
+           ;; as a topic while having Emacs automatically determine the
+           ;; outgoing base with which to do so (otherwise, forcing
+           ;; Emacs to treat the current branch as a topic if it thinks
+           ;; it's a trunk requires specifying an outgoing base which
+           ;; will have that effect).
+           ;;
+           ;; In this case that OUTGOING-BASE is non-nil, it isn't
+           ;; possible to specify an empty string as the outgoing base,
+           ;; which normally means that Emacs should treat the current
+           ;; branch as a trunk.  That's okay because you can use a
+           ;; double prefix argument to achieve that.
            (res (read-string (if outgoing-base
                                  (format-prompt "Upstream location/branch"
                                                 outgoing-base)

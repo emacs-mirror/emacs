@@ -2359,7 +2359,7 @@ applied.  Other non-nil values are reserved."
       (while (pcase-let ((`(,buf ,line-offset ,pos ,_src ,dst ,switched)
                           (diff-find-source-location nil reverse test)))
                ;; FIXME: Should respect `diff-apply-hunk-to-backup-file'
-               ;; similarly to how `diff-apply-buffer' does.
+               ;; similarly to how `diff-apply-hunk' does.
                ;; Prompt for each relevant file.
                (cond ((and line-offset (not switched))
                       (push (cons pos dst)
