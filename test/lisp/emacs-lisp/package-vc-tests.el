@@ -184,7 +184,8 @@ If LISP-DIR is non-nil place sources of the package in LISP-DIR."
                     (format "GIT_AUTHOR_NAME=%s" name)
                     (format "GIT_COMMITTER_NAME=%s" name))
                    process-environment)))
-      (vc-git-command nil 0 nil "init" "-b" "master")
+      (vc-git-command nil 0 nil "init")
+      (vc-git-command nil 0 nil "checkout" "-b" "master")
       (package-vc-tests-add
        suffix "test-package-SUFFIX-lib-v0.1.el.in" lisp-dir)
       (package-vc-tests-add
