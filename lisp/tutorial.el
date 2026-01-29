@@ -153,7 +153,7 @@ options:
                       " you can use "
                       (if (string-match-p "^the .*menus?$" where)
                           ""
-                        "the key")
+                        "the key ")
                       where
                       (format-message " to get the function `%s'." db))))
           (fill-region (point-min) (point)))))
