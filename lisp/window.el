@@ -7586,8 +7586,9 @@ strategy."
 
 (defun window--frame-landscape-p (&optional frame)
   "Non-nil if FRAME is wider than it is tall.
-
-On text frames, uses a heuristic for character height and width."
+This means actually wider on the screen, not character-wise.
+On text frames, use the heuristic that characters are roughtly twice as
+tall as they are wide."
   (if (display-graphic-p frame)
       (> (frame-pixel-width frame) (frame-pixel-height frame))
     ;; On a terminal, displayed characters are usually roughly twice as
