@@ -4122,16 +4122,19 @@ window.  If @var{window} cannot be split, it returns @code{nil}.  If
 @var{window} is omitted or @code{nil}, it defaults to the selected
 window.
 
-This function obeys the usual rules that determine when a window may
-be split (@pxref{Splitting Windows}).  It first tries to split by
-placing the new window below, subject to the restriction imposed by
-@code{split-height-threshold} (see below), in addition to any other
-restrictions.  If that fails, it tries to split by placing the new
-window to the right, subject to @code{split-width-threshold} (see
-below).  If that also fails, and the window is the only window on its
-frame, this function again tries to split and place the new window
-below, disregarding @code{split-height-threshold}.  If this fails as
-well, this function gives up and returns @code{nil}.
+This function obeys the usual rules that determine when a window may be
+split (@pxref{Splitting Windows}).  It first tries either a vertical
+split by placing the new window below, subject to the restriction
+imposed by @code{split-height-threshold} (see below), or a horizontal
+split that places the new window to the right, subject to
+@code{split-width-threshold}, in addition to any other restrictions.
+Whether it tries first to split vertically or horizontally depends on
+the value of the user option @code{split-window-preferred-direction}.
+If splitting along the first dimension fails, it tries to split along
+the other dimension.  If that also fails, and the window is the only
+window on its frame, this function again tries to split and place the
+new window below, disregarding @code{split-height-threshold}.  If this
+fails as well, this function gives up and returns @code{nil}.
 @end defun
 
 @defopt split-height-threshold
@@ -4148,6 +4151,18 @@ allowed to split the window placing the new window to the right.  If
 the value is an integer, that means to split only if the original
 window has at least that many columns.  If the value is @code{nil},
 that means not to split this way.
+@end defopt
+
+@defopt split-window-preferred-direction
+This variable determines the first dimension along which
+@code{split-window-sensibly} tries to split the window, if the window
+could be split both vertically and horizontally, as determined by the
+values of @code{split-height-threshold} and
+@code{split-width-threshold}.  The default value is @code{longest},
+which means to split vertically if the height of the window's frame is
+greater or equal to its width, and horizontally otherwise.  The values
+@code{vertical} and @code{horizontal} specify the direction in which to
+attempt the first split.
 @end defopt
 
 @defopt even-window-sizes

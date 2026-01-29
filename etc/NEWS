@@ -416,11 +416,20 @@ for which you can use '(category . tex-shell)'.
 
 +++
 *** New user option 'split-window-preferred-direction'.
-Users can now choose in which direction Emacs tries to split first:
-vertically or horizontally.  The new default is to prefer to split
-horizontally if the frame is landscape and vertically if it is portrait.
-You can customize this option to 'vertical' to restore Emacs's old
-behavior of always preferring vertical splits.
+Functions called by 'display-buffer' split the selected window when they
+need to create a new window.  A window can be split either vertically,
+one below the other, or horizontally, side by side.  This new option
+determines which direction will be tried first, when both directions are
+possible according to the values of 'split-width-threshold' and
+'split-height-threshold'.  The default value is 'longest', which means
+to prefer to split horizontally if the window's frame is a "landscape"
+frame, and vertically if it is a "portrait" frame.  (A frame is
+considered to be "portrait" if its vertical dimension in pixels is
+greater or equal to its horizontal dimension, otherwise it's considered
+to be "landscape".)  Previous versions of Emacs always tried to split
+vertically first, so to get previous behavior, you can customize this
+option to 'vertical'.  The value 'horizontal' always prefers the
+horizontal split.
 
 +++
 *** New argument INDIRECT for 'get-buffer-window-list'.
