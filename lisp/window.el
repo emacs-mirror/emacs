@@ -7584,6 +7584,16 @@ strategy."
     (with-selected-window window
       (split-window-right))))
 
+(defun window--frame-landscape-p (&optional frame)
+  "Non-nil if FRAME is wider than it is tall.
+
+On text frames, uses a heuristic for character height and width."
+  (if (display-graphic-p frame)
+      (> (frame-pixel-width frame) (frame-pixel-height frame))
+    ;; On a terminal, displayed characters are usually roughly twice as
+    ;; tall as they are wide.
+    (> (frame-width frame) (* 2 (frame-height frame)))))
+
 (defun split-window-sensibly (&optional window)
   "Split WINDOW in a way suitable for `display-buffer'.
 The variable `split-window-preferred-direction' prescribes an order of
@@ -7624,7 +7634,7 @@ split."
     (or (if (or
              (eql split-window-preferred-direction 'horizontal)
              (and (eql split-window-preferred-direction 'longest)
-                  (> (frame-width) (frame-height))))
+                  (window--frame-landscape-p (window-frame window))))
             (or (window--try-horizontal-split window)
                 (window--try-vertical-split window))
           (or (window--try-vertical-split window)
