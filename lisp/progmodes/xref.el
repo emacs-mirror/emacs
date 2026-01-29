@@ -247,7 +247,9 @@ generic functions.")
 
 ;;;###autoload
 (defun xref-find-backend ()
-  (run-hook-with-args-until-success 'xref-backend-functions))
+  (or
+   (run-hook-with-args-until-success 'xref-backend-functions)
+   (user-error "No Xref backend available")))
 
 (cl-defgeneric xref-backend-definitions (backend identifier)
   "Find definitions of IDENTIFIER.
