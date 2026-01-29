@@ -2699,10 +2699,10 @@ from `browse-url-elinks-wrapper'.
 (fn URL &optional NEW-WINDOW)" t)
 (autoload 'browse-url-button-open "browse-url" "\
 Follow the link under point using `browse-url'.
-If EXTERNAL (the prefix if used interactively), open with the
-external browser instead of the default one.
+If SECONDARY (the prefix if used interactively), open with the
+secondary browser instead of the default one.
 
-(fn &optional EXTERNAL MOUSE-EVENT)" t)
+(fn &optional SECONDARY MOUSE-EVENT)" t)
 (autoload 'browse-url-button-open-url "browse-url" "\
 Open URL using `browse-url'.
 If `current-prefix-arg' is non-nil, use
@@ -5133,7 +5133,7 @@ List of directories to search for source files named in error messages.
 Elements should be directory names, not file names of directories.
 The value nil as an element means to try the default directory.")
 (custom-autoload 'compilation-search-path "compile" t)
-(defvar compile-command "make -k " "\
+(defvar compile-command (format "make -k -j%d " (ceiling (num-processors) 1.5)) "\
 Last shell command used to do a compilation; default for next compilation.
 
 Sometimes it is useful for files to supply local values for this variable.
@@ -13690,8 +13690,6 @@ evaluate the variable `flymake-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
-
-\\{flymake-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'flymake-mode-on "flymake" "\
@@ -24735,6 +24733,21 @@ If optional argument NOCONFIRM is non-nil, or when invoked with a prefix
 argument, don't ask for confirmation to install packages.
 
 (fn &optional NOCONFIRM)" t)
+(autoload 'package-delete "package" "\
+Delete package PKG-DESC.
+
+Argument PKG-DESC is the full description of the package, for example as
+obtained by `package-get-descriptor'.  Interactively, prompt the user
+for the package name and version.
+
+When package is used elsewhere as dependency of another package,
+refuse deleting it and return an error.
+If prefix argument FORCE is non-nil, package will be deleted even
+if it is used elsewhere.
+If NOSAVE is non-nil, the package is not removed from
+`package-selected-packages'.
+
+(fn PKG-DESC &optional FORCE NOSAVE)" t)
 (autoload 'package-reinstall "package" "\
 Reinstall package PKG.
 PKG should be either a symbol, the package name, or a `package-desc'
@@ -24779,11 +24792,18 @@ short description.
 (defcustom package-quickstart-file (locate-user-emacs-file "package-quickstart.el") "\
 Location of the file used to speed up activation of packages at startup." :type 'file :group 'applications :initialize #'custom-initialize-delay :version "27.1")
 (custom-autoload 'package-quickstart-file "package" t)
+(autoload 'package-browse-url "package" "\
+Open the website of the package under point in a browser.
+`browse-url' is used to determine the browser to be used.  If
+SECONDARY (interactively, the prefix), use the secondary browser.
+DESC must be a `package-desc' object.
+
+(fn DESC &optional SECONDARY)" t)
 (autoload 'package-report-bug "package" "\
 Prepare a message to send to the maintainers of a package.
 DESC must be a `package-desc' object.
 
-(fn DESC)" '(package-menu-mode))
+(fn DESC)" t)
 (register-definition-prefixes "package" '("bad-signature" "define-package" "describe-package-1" "package-"))
 
 
@@ -25815,6 +25835,10 @@ Note that this function doesn't work if DELTA is larger than
 the height of the current window.
 
 (fn DELTA)")
+(autoload 'pixel-scroll-interpolate-down "pixel-scroll" "\
+Interpolate a scroll downwards by one page." t)
+(autoload 'pixel-scroll-interpolate-up "pixel-scroll" "\
+Interpolate a scroll upwards by one page." t)
 (defvar pixel-scroll-precision-mode nil "\
 Non-nil if Pixel-Scroll-Precision mode is enabled.
 See the `pixel-scroll-precision-mode' command
@@ -27748,8 +27772,6 @@ evaluate the variable `rectangle-mark-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
-
-\\{rectangle-mark-mode-map}
 
 (fn &optional ARG)" t)
 (register-definition-prefixes "rect" '("apply-on-rectangle" "clear-rectangle-line" "delete-" "extract-rectangle-" "killed-rectangle" "ope" "rectangle-" "spaces-string" "string-rectangle-"))
@@ -36590,6 +36612,50 @@ topic branch.  (With a double prefix argument, this command is like
 When called from Lisp, optional argument FILESET overrides the fileset.
 
 (fn &optional UPSTREAM-LOCATION FILESET)" t)
+(autoload 'vc-log-outgoing-base "vc" "\
+Show log for the VC fileset since the merge base with UPSTREAM-LOCATION.
+The merge base with UPSTREAM-LOCATION means the common ancestor of the
+working revision and UPSTREAM-LOCATION.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
+can be a remote branch name.
+
+When called interactively with a \\[universal-argument] \\[universal-argument] prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.
+
+When called from Lisp, optional argument FILESET overrides the fileset.
+
+(fn &optional UPSTREAM-LOCATION FILESET)" t)
+(autoload 'vc-root-log-outgoing-base "vc" "\
+Show log of revisions since the merge base with UPSTREAM-LOCATION.
+The merge base with UPSTREAM-LOCATION means the common ancestor of the
+working revision and UPSTREAM-LOCATION.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
+can be a remote branch name.
+
+When called interactively with a \\[universal-argument] \\[universal-argument] prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.
+
+(fn &optional UPSTREAM-LOCATION)" t)
 (autoload 'vc-version-ediff "vc" "\
 Show differences between REV1 and REV2 of FILES using ediff.
 This compares two revisions of the files in FILES.  Currently,
@@ -37320,7 +37386,7 @@ step during initialization." t)
 
 ;;; Generated autoloads from progmodes/verilog-mode.el
 
-(push '(verilog-mode 2025 11 8 248496848) package--builtin-versions)
+(push '(verilog-mode 2026 1 18 88738971) package--builtin-versions)
 (autoload 'verilog-mode "verilog-mode" "\
 Major mode for editing Verilog code.
 \\<verilog-mode-map>
@@ -39641,6 +39707,14 @@ list.  Delete FRAME2 if the merge completed successfully and return
 FRAME1.
 
 (fn &optional FRAME1 FRAME2 VERTICAL)" t)
+(autoload 'window-get-split-combination "window-x" "\
+Return window combination suitable for `split-frame'.
+
+WINDOW is the main window in which the combination should be derived.
+ARG is the argument passed to `split-frame'.  Return a
+combination of windows `split-frame' is considered to split off.
+
+(fn WINDOW ARG)")
 (autoload 'split-frame "window-x" "\
 Split windows of specified FRAME into two separate frames.
 FRAME must be a live frame and defaults to the selected frame.  ARG
@@ -39975,11 +40049,8 @@ output of this command when the backend is etags.
  (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 (autoload 'xref-references-in-directory "xref" "\
 Find all references to SYMBOL in directory DIR.
+See `xref-references-in-directory-function' for the implementation.
 Return a list of xref values.
-
-This function uses the Semantic Symbol Reference API, see
-`semantic-symref-tool-alist' for details on which tools are used,
-and when.
 
 (fn SYMBOL DIR)")
 (autoload 'xref-matches-in-directory "xref" "\
@@ -39988,8 +40059,9 @@ Return a list of xref values.
 Only files matching some of FILES and none of IGNORES are searched.
 FILES is a string with glob patterns separated by spaces.
 IGNORES is a list of glob patterns for files to ignore.
+If DELIMITED is `symbol', only select matches that span full symbols.
 
-(fn REGEXP FILES DIR IGNORES)")
+(fn REGEXP FILES DIR IGNORES &optional DELIMITED)")
 (autoload 'xref-matches-in-files "xref" "\
 Find all matches for REGEXP in FILES.
 Return a list of xref values.
@@ -40087,7 +40159,7 @@ Enable `yaml-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(yaml-mode . yaml-ts-mode)))
-(register-definition-prefixes "yaml-ts-mode" '("yaml-ts-mode--"))
+(register-definition-prefixes "yaml-ts-mode" '("yaml-ts-mode-"))
 
 
 ;;; Generated autoloads from yank-media.el
