@@ -3403,6 +3403,63 @@ When called from Lisp, optional argument FILESET overrides the fileset."
                       nil
                       (called-interactively-p 'interactive))))
 
+;;;###autoload
+(defun vc-log-outgoing-base (&optional upstream-location fileset)
+  "Show log for the VC fileset since the merge base with UPSTREAM-LOCATION.
+The merge base with UPSTREAM-LOCATION means the common ancestor of the
+working revision and UPSTREAM-LOCATION.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
+can be a remote branch name.
+
+When called interactively with a \\[universal-argument] \\[universal-argument] \
+prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.
+
+When called from Lisp, optional argument FILESET overrides the fileset."
+  (interactive (let ((fileset (vc-deduce-fileset t)))
+                 (list (vc--maybe-read-outgoing-base (car fileset))
+                       fileset)))
+  (let* ((fileset (or fileset (vc-deduce-fileset t)))
+         (backend (car fileset)))
+    (vc-print-log-internal backend (cadr fileset) nil nil
+                           (vc--outgoing-base-mergebase backend
+                                                        upstream-location))))
+
+;;;###autoload
+(defun vc-root-log-outgoing-base (&optional upstream-location)
+  "Show log of revisions since the merge base with UPSTREAM-LOCATION.
+The merge base with UPSTREAM-LOCATION means the common ancestor of the
+working revision and UPSTREAM-LOCATION.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
+can be a remote branch name.
+
+When called interactively with a \\[universal-argument] \\[universal-argument] \
+prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch."
+  (interactive (list (vc--maybe-read-outgoing-base)))
+  (vc--with-backend-in-rootdir "VC revision log"
+    (vc-log-outgoing-base upstream-location `(,backend (,rootdir)))))
+
 (declare-function ediff-load-version-control "ediff" (&optional silent))
 (declare-function ediff-vc-internal "ediff-vers"
                   (rev1 rev2 &optional startup-hooks))

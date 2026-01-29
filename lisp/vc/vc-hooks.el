@@ -1018,6 +1018,8 @@ In the latter case, VC mode is deactivated for this buffer."
   "O"   #'vc-root-log-outgoing
   "M L" #'vc-log-mergebase
   "M D" #'vc-diff-mergebase
+  "T l" #'vc-log-outgoing-base
+  "T L" #'vc-root-log-outgoing-base
   "T =" #'vc-diff-outgoing-base
   "T D" #'vc-root-diff-outgoing-base
   "m"   #'vc-merge

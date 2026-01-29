@@ -303,17 +303,26 @@ Display diffs of changes to the VC fileset since the merge base of this
 branch and its upstream counterpart (@code{vc-diff-outgoing-base}).
 
 @item C-x v T D
-Display all changes since the merge base of this branch and its upstream
-counterpart (@code{vc-root-diff-outgoing-base}).
+Display a diff of all changes since the merge base of this branch and
+its upstream counterpart (@code{vc-root-diff-outgoing-base}).
+
+@item C-x v T l
+Display log messages for changes to the VC fileset since the merge base
+of this branch and its upstream counterpart
+(@code{vc-log-outgoing-base}).
+
+@item C-x v T L
+Display log messages for all changes since the merge base of this branch
+and its upstream counterpart (@code{vc-root-log-outgoing-base}).
 @end table
 
 For decentralized version control systems (@pxref{VCS Repositories}),
-these commands provide specialized versions of @kbd{C-x v M D} (see
-@pxref{Merge Bases}) which also take into account the state of upstream
-repositories.  These commands are useful both when working on a single
-branch and when developing features on a separate branch
-(@pxref{Branches}).  These two cases are conceptually distinct, and so
-we will introduce them separately.
+these commands provide specialized versions of @kbd{C-x v M L} and
+@w{@kbd{C-x v M D}} (see @pxref{Merge Bases}) which also take into
+account the state of upstream repositories.  These commands are useful
+both when working on a single branch and when developing features on a
+separate branch (@pxref{Branches}).  These two cases are conceptually
+distinct, and so we will introduce them separately.
 
 First, consider working on a single branch.  @dfn{Outstanding changes}
 are those which you haven't yet pushed upstream.  This includes both
@@ -340,6 +349,16 @@ include uncommitted changes in the reported diffs.  Like those other
 commands, you can use a prefix argument to specify a particular upstream
 location.}
 
+@kindex C-x v T l
+@findex vc-log-outgoing-base
+@kindex C-x v T L
+@findex vc-root-log-outgoing-base
+Type @kbd{C-x v T L} (@code{vc-root-log-outgoing-base}) to display a
+summary of the same changes in the form of a revision log; this does not
+include uncommitted changes.  You can use @kbd{C-x v T l}
+(@code{vc-log-outgoing-base}) instead to limit the display of changes to
+the current VC fileset.
+
 Second, consider developing a feature on a separate branch.  Call this
 the @dfn{topic branch},@footnote{What we mean by a topic branch is any
 shorter-lived branch used for work which will later be merged into a
@@ -365,7 +384,9 @@ the trunk to which the current branch will be merged.  This summary is
 in the form of a diff of what committing and pushing all the changes,
 @emph{and} subsequently merging the topic branch, would do to the trunk.
 As above, you can use @kbd{C-x v T =} instead to limit the display of
-changes to the current VC fileset.
+changes to the current VC fileset.  @kbd{C-x v T L} and @kbd{C-x v T l}
+show the corresponding revision logs, excluding uncommitted changes as
+above.
 
 This functionality relies on Emacs correctly detecting whether the
 current branch is a trunk or a topic branch, and in the latter case,
@@ -379,8 +400,8 @@ The variables @code{vc-trunk-branch-regexps} and
 @code{vc-topic-branch-regexps} contain lists of regular expressions
 matching the names of branches that should always be considered trunk
 and topic branches, respectively.  You can also specify prefix arguments
-to @kbd{C-x v T D} and @kbd{C-x v T =}.  Here is a summary of how to use
-these controls:
+to @kbd{C-x v T @dots{}}.  Here is a summary of how to use these
+controls:
 
 @enumerate
 @item
