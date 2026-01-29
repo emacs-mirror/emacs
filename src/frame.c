@@ -2887,6 +2887,15 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      promise that the terminal of the frame must be valid until we
      have called the window-system-dependent frame destruction
      routine.  */
+  /* Remember if this was a GUI child frame, so we can
+     process pending window system events after destruction.  */
+  bool was_gui_child_frame = FRAME_WINDOW_P (f) && FRAME_PARENT_FRAME (f);
+#ifdef HAVE_X_WINDOWS
+  /* Save the X display before the frame is destroyed, so we can
+     sync with the X server afterwards.  */
+  Display *child_frame_display = (was_gui_child_frame && FRAME_X_P (f)
+				  ? FRAME_X_DISPLAY (f) : NULL);
+#endif
   {
     struct terminal *terminal;
     block_input ();
@@ -2895,6 +2904,24 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
     terminal = FRAME_TERMINAL (f);
     f->terminal = 0;             /* Now the frame is dead.  */
     unblock_input ();
+
+    /* When a GUI child frame is deleted, the window system may
+       generate events that affect the parent frame (e.g.
+       ConfigureNotify, Expose, etc.).  We need to sync with the
+       X server to ensure all events from the frame destruction
+       have been received, then process them to ensure subsequent
+       operations like `recenter' see up-to-date window state.
+       (Bug#76186)  */
+#ifdef HAVE_X_WINDOWS
+    if (child_frame_display)
+      {
+	block_input ();
+	XSync (child_frame_display, False);
+	unblock_input ();
+      }
+#endif
+    if (was_gui_child_frame)
+      swallow_events (false);
 
     /* Clear markers and overlays set by F on behalf of an input
        method.  */
