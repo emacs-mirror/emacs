@@ -3918,6 +3918,13 @@ Binding 'inhibit-message' to a non-nil value will now suppress both
 the display of messages and the clearing of the echo area, such as
 caused by calling 'message' with a nil argument.
 
+---
+** 'minibuffer-message' no longer blocks while displaying message
+'minibuffer-message' now uses a timer to clear the message printed to
+the minibuffer, instead of waiting with 'sit-for' and then clearing it.
+This makes 'minibuffer-message' usable in Lisp programs which want to
+print a message and then continue to perform work.
+
 ** Special Events
 
 +++

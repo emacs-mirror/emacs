@@ -797,6 +797,19 @@ for use at QPOS."
 (defvar minibuffer-message-properties nil
   "Text properties added to the text shown by `minibuffer-message'.")
 
+(defvar minibuffer--message-overlay nil)
+
+(defvar minibuffer--message-timer nil)
+
+(defun minibuffer--delete-message-overlay ()
+  (when (overlayp minibuffer--message-overlay)
+    (delete-overlay minibuffer--message-overlay)
+    (setq minibuffer--message-overlay nil))
+  (when (timerp minibuffer--message-timer)
+    (cancel-timer minibuffer--message-timer)
+    (setq minibuffer--message-timer nil))
+  (remove-hook 'pre-command-hook #'minibuffer--delete-message-overlay))
+
 (defun minibuffer-message (message &rest args)
   "Temporarily display MESSAGE at the end of minibuffer text.
 This function is designed to be called from the minibuffer, i.e.,
@@ -814,13 +827,9 @@ through `format-message'.
 If some of the minibuffer text has the `minibuffer-message' text
 property, MESSAGE is shown at that position instead of EOB."
   (if (not (minibufferp (current-buffer) t))
-      (progn
-        (if args
-            (apply #'message message args)
-          (message "%s" message))
-        (prog1 (sit-for (or minibuffer-message-timeout 1000000))
-          (message nil)))
+      (apply #'message message args)
     ;; Clear out any old echo-area message to make way for our new thing.
+    (minibuffer--delete-message-overlay)
     (message nil)
     (setq message (if (and (null args)
                            (string-match-p "\\` *\\[.+\\]\\'" message))
@@ -834,30 +843,24 @@ property, MESSAGE is shown at that position instead of EOB."
       (setq message (apply #'propertize message minibuffer-message-properties)))
     ;; Put overlay either on `minibuffer-message' property, or at EOB.
     (let* ((ovpos (minibuffer--message-overlay-pos))
-           (ol (make-overlay ovpos ovpos nil t t))
-           ;; A quit during sit-for normally only interrupts the sit-for,
-           ;; but since minibuffer-message is used at the end of a command,
-           ;; at a time when the command has virtually finished already, a C-g
-           ;; should really cause an abort-recursive-edit instead (i.e. as if
-           ;; the C-g had been typed at top-level).  Binding inhibit-quit here
-           ;; is an attempt to get that behavior.
-           (inhibit-quit t))
-      (unwind-protect
-          (progn
-            (unless (zerop (length message))
-              ;; The current C cursor code doesn't know to use the overlay's
-              ;; marker's stickiness to figure out whether to place the cursor
-              ;; before or after the string, so let's spoon-feed it the pos.
-              (put-text-property 0 1 'cursor t message))
-            (overlay-put ol 'after-string message)
-            ;; Make sure the overlay with the message is displayed before
-            ;; any other overlays in that position, in case they have
-            ;; resize-mini-windows set to nil and the other overlay strings
-            ;; are too long for the mini-window width.  This makes sure the
-            ;; temporary message will always be visible.
-            (overlay-put ol 'priority 1100)
-            (sit-for (or minibuffer-message-timeout 1000000)))
-        (delete-overlay ol)))))
+           (ol (make-overlay ovpos ovpos nil t t)))
+      (unless (zerop (length message))
+        ;; The current C cursor code doesn't know to use the overlay's
+        ;; marker's stickiness to figure out whether to place the cursor
+        ;; before or after the string, so let's spoon-feed it the pos.
+        (put-text-property 0 1 'cursor t message))
+      (overlay-put ol 'after-string message)
+      ;; Make sure the overlay with the message is displayed before
+      ;; any other overlays in that position, in case they have
+      ;; resize-mini-windows set to nil and the other overlay strings
+      ;; are too long for the mini-window width.  This makes sure the
+      ;; temporary message will always be visible.
+      (overlay-put ol 'priority 1100)
+      (setq minibuffer--message-overlay ol
+            minibuffer--message-timer
+            (run-at-time (or minibuffer-message-timeout 1000000) nil
+                         #'minibuffer--delete-message-overlay))
+      (add-hook 'pre-command-hook #'minibuffer--delete-message-overlay))))
 
 (defcustom minibuffer-message-clear-timeout nil
   "How long to display an echo-area message when the minibuffer is active.
