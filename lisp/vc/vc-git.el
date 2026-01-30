@@ -811,7 +811,7 @@ This works by considering the current branch as a topic branch
 (whether or not it actually is).
 
 If there is a distinct push remote for this branch, assume the target
-for outstanding changes is the tracking branch, so return that.
+for outstanding changes is the tracking branch, and return that.
 
 Otherwise, fall back to the following algorithm, which requires that the
 corresponding trunk exists as a local branch.  Find all merge bases

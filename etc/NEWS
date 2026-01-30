@@ -2284,9 +2284,10 @@ one as before.  This makes them different from 'vc-diff' and
 *** 'diff-apply-hunk' now supports creating and deleting files.
 
 +++
-*** 'diff-apply-hunk' and 'diff-apply-buffer' now consider the region.
-If the region is active, these commands now apply all hunks that the
-region overlaps.  Otherwise, they have their existing behavior.
+*** Diff mode's application and killing commands now consider the region.
+If the region is active, 'diff-apply-hunk', 'diff-apply-buffer' and
+'diff-hunk-kill' now apply or kill all hunks that the region overlaps.
+Otherwise, they have their existing behavior.
 
 +++
 *** 'diff-apply-buffer' can reverse-apply.
