@@ -772,24 +772,36 @@ or an empty string if none."
   (vc-git--out-match '("symbolic-ref" "HEAD")
                      "^\\(refs/heads/\\)?\\(.+\\)$" 2))
 
+(defun vc-git--branch-remotes ()
+  "Return alist of configured remote branches for current branch.
+If there is a configured upstream, return the remote-tracking branch
+with key `upstream'.  If there is a distinct configured push remote,
+return the remote-tracking branch there with key `push'.
+A configured push remote that's just the same as the upstream remote is
+ignored because that means we're not actually in a triangular workflow."
+  ;; Possibly we could simplify this using @{push}, but that may involve
+  ;; an unwanted dependency on the setting of push.default.
+  (cl-flet ((get (key)
+              (string-trim-right (vc-git--out-str "config" key))))
+    (let* ((branch (vc-git-working-branch))
+           (pull (get (format "branch.%s.remote" branch)))
+           (merge (get (format "branch.%s.merge" branch)))
+           (push (get (format "branch.%s.pushRemote" branch)))
+           (push (if (string-empty-p push)
+                     (get "remote.pushDefault")
+                   push))
+           (alist (and (not (string-empty-p pull))
+                       (not (string-empty-p merge))
+                       `((upstream . ,(format "%s/%s" pull merge))))))
+      (if (or (string-empty-p push) (equal push pull))
+          alist
+        (cl-acons 'push (format "%s/%s" push branch) alist)))))
+
 (defun vc-git-trunk-or-topic-p ()
   "Return `topic' if branch has distinct pull and push remotes, else nil.
 This is able to identify topic branches for certain forge workflows."
-  (let* ((branch (vc-git-working-branch))
-         (merge (string-trim-right
-                 (vc-git--out-str "config" (format "branch.%s.remote"
-                                                   branch))))
-         (push (string-trim-right
-                (vc-git--out-str "config" (format "branch.%s.pushRemote"
-                                                  branch))))
-         (push (if (string-empty-p push)
-                   (string-trim-right
-                    (vc-git--out-str "config" "remote.pushDefault"))
-                 push)))
-    (and (plusp (length merge))
-         (plusp (length push))
-         (not (equal merge push))
-         'topic)))
+  (let ((remotes (vc-git--branch-remotes)))
+    (and (assq 'upstream remotes) (assq 'push remotes) 'topic)))
 
 (defun vc-git-topic-outgoing-base ()
   "Return the outgoing base for the current branch as a string.
