@@ -1438,6 +1438,12 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
   (maphash (lambda (f s)
              (when (eq s server) (remhash f eglot--servers-by-xrefed-file)))
            eglot--servers-by-xrefed-file)
+  ;; Cleanup entries in 'flymake-list-only-diagnostics'
+  (setq flymake-list-only-diagnostics
+        (cl-delete-if
+         (lambda (x) (eq server
+                         (get-text-property 0 'eglot--server (car x))))
+         flymake-list-only-diagnostics))
   (cond ((eglot--shutdown-requested server)
          t)
         ((not (eglot--inhibit-autoreconnect server))
@@ -3422,11 +3428,8 @@ object.  The originator of this \"push\" is usually either regular
       (with-current-buffer buffer
         (if (and version (/= version eglot--docver))
             (cl-return-from eglot--flymake-handle-push))
-        (setq
-         ;; if no explicit version received, assume it's current.
-         version eglot--docver
-         flymake-list-only-diagnostics
-         (assoc-delete-all path flymake-list-only-diagnostics))
+        ;; if no explicit version received, assume it's current.
+        (setq version eglot--docver)
         (funcall then diagnostics))
     (cl-loop
      for diag-spec across diagnostics
@@ -3437,12 +3440,13 @@ object.  The originator of this \"push\" is usually either regular
                  (flymake-make-diagnostic
                   path (cons line char) nil
                   (eglot--flymake-diag-type severity)
-                  (list source code message))))
+                  (list source code message)
+                  `((eglot-lsp-diag . ,diag-spec)))))
      into diags
      finally
-     (setq flymake-list-only-diagnostics
-           (assoc-delete-all path flymake-list-only-diagnostics))
-     (push (cons path diags) flymake-list-only-diagnostics))))
+     (setf (alist-get (propertize path 'eglot--server server)
+                      flymake-list-only-diagnostics nil nil #'equal)
+           diags))))
 
 (cl-defun eglot--flymake-pull (&aux (server (eglot--current-server-or-lose))
                                     (origin (current-buffer)))
@@ -3506,6 +3510,17 @@ MODE is like `eglot--flymake-report-1'."
      (pushed-outdated-p (and pushed-docver (< pushed-docver eglot--docver))))
   "Push previously collected diagnostics to `eglot--flymake-report-fn'.
 If KEEP, knowingly push a dummy do-nothing update."
+  ;; Maybe hack in diagnostics we previously may have saved in
+  ;; `flymake-list-only-diagnostics', pushed for this file before it was
+  ;; visited (github#1531).
+  (when-let* ((hack (and (<= eglot--docver 0)
+                         (null eglot--pushed-diagnostics)
+                         (cdr (assoc (buffer-file-name)
+                                     flymake-list-only-diagnostics)))))
+    (cl-loop
+     for x in hack
+     collect (alist-get 'eglot-lsp-diag (flymake-diagnostic-data x)) into res
+     finally (setq eglot--pushed-diagnostics `(,(vconcat res) ,eglot--docver))))
   (eglot--widening
    (if (and (null eglot--pulled-diagnostics) pushed-outdated-p)
        ;; Here, we don't have anything interesting to give to Flymake.
