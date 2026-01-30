@@ -641,25 +641,6 @@ Otherwise, return LIST-OR-ATOM."
          (car ,list-or-atom)
        ,list-or-atom))))
 
-(defmacro erc--doarray (spec &rest body)
-  "Map over ARRAY, running BODY with VAR bound to iteration element.
-Behave more or less like `seq-doseq', but tailor operations for
-arrays.
-
-\(fn (VAR ARRAY [RESULT]) BODY...)"
-  (declare (indent 1) (debug ((symbolp form &optional form) body)))
-  (let ((array (make-symbol "array"))
-        (len (make-symbol "len"))
-        (i (make-symbol "i")))
-    `(let* ((,array ,(nth 1 spec))
-            (,len (length ,array))
-            (,i 0))
-       (while-let (((< ,i ,len))
-                   (,(car spec) (aref ,array ,i)))
-         ,@body
-         (cl-incf ,i))
-       ,(nth 2 spec))))
-
 (provide 'erc-common)
 
 ;;; erc-common.el ends here

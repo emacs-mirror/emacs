@@ -519,6 +519,8 @@ selected frame, and display the buffer in that new window.
 @vindex split-height-threshold
 @vindex split-width-threshold
 @vindex split-window-preferred-direction
+@cindex portrait frame
+@cindex landscape frame
 The split can be either vertical or horizontal, depending on the
 variables @code{split-height-threshold} and
 @code{split-width-threshold}.  These variables should have integer
@@ -528,8 +530,14 @@ window's height, the split puts the new window below.  Otherwise, if
 split puts the new window on the right.  If neither condition holds,
 Emacs tries to split so that the new window is below---but only if the
 window was not split before (to avoid excessive splitting).  Whether
-Emacs tries first to split vertically or horizontally, is
-determined by the value of @code{split-window-preferred-direction}.
+Emacs tries first to split vertically or horizontally when both
+conditions hold is determined by the value of
+@code{split-window-preferred-direction}.  Its default is @code{longest},
+which means to split vertically if the window's frame is taller than it
+is wide (a @dfn{portrait} frame), and split horizontally if its wider
+than it's tall (a @dfn{landscape} frame).  The values @code{vertical}
+and @code{horizontal} always prefer, respectively, the vertical or the
+horizontal split.
 
 @item
 Otherwise, display the buffer in a window previously showing it.

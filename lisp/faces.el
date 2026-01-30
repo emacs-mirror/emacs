@@ -2963,30 +2963,39 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'basic-faces)
 
 (defface tab-bar
-  '((((class color) (min-colors 88))
+  '((((class color) (min-colors 88) (background light))
      :inherit variable-pitch
      :background "grey85"
      :foreground "black")
+    (((class color) (min-colors 88) (background dark))
+     :inherit variable-pitch
+     :background "grey20"
+     :foreground "white")
     (((class mono))
      :background "grey")
     (t
      :inverse-video t))
   "Tab bar face."
-  :version "27.1"
+  :version "31.1"
   :group 'basic-faces)
 
 (defface tab-line
-  '((((class color) (min-colors 88))
+  '((((class color) (min-colors 88) (background light))
      :inherit variable-pitch
      :height 0.9
      :background "grey85"
      :foreground "black")
+    (((class color) (min-colors 88) (background dark))
+     :inherit variable-pitch
+     :height 0.9
+     :background "grey20"
+     :foreground "white")
     (((class mono))
      :background "grey")
     (t
      :inverse-video t))
   "Tab line face."
-  :version "27.1"
+  :version "31.1"
   :group 'basic-faces)
 
 (defface menu

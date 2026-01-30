@@ -48,23 +48,29 @@
 (defface tab-bar-tab
   '((default
       :inherit tab-bar)
-    (((class color) (min-colors 88))
+    (((class color) (min-colors 88) (background light))
      :box (:line-width 1 :style released-button))
+    (((class color) (min-colors 88) (background dark))
+     :box (:line-width 1 :style released-button)
+     :background "grey40"
+     :foreground "white")
     (t
      :inverse-video nil))
   "Tab bar face for selected tab."
-  :version "27.1"
+  :version "31.1"
   :group 'tab-bar-faces)
 
 (defface tab-bar-tab-inactive
   '((default
       :inherit tab-bar-tab)
-    (((class color) (min-colors 88))
+    (((class color) (min-colors 88) (background light))
      :background "grey75")
+    (((class color) (min-colors 88) (background dark))
+     :background "grey20")
     (t
      :inverse-video t))
   "Tab bar face for non-selected tab."
-  :version "27.1"
+  :version "31.1"
   :group 'tab-bar-faces)
 
 (defface tab-bar-tab-group-current
@@ -86,10 +92,14 @@
   :group 'tab-bar-faces)
 
 (defface tab-bar-tab-highlight
-  '((((class color) (min-colors 88))
+  '((((class color) (min-colors 88) (background light))
      :box (:line-width 1 :style released-button)
      :background "grey85"
      :foreground "black")
+    (((class color) (min-colors 88) (background dark))
+     :box (:line-width 1 :style released-button)
+     :background "grey40"
+     :foreground "white")
     (t :inverse-video nil))
   "Tab bar face for highlighting."
   :version "31.1"
@@ -1954,6 +1964,42 @@ configuration."
     (delete-window))
   (tab-bar-switch-to-recent-tab))
 
+(defun tab-bar-split-tab (&optional tab arg)
+  "Split windows of specified TAB into two separate tabs.
+TAB defaults to the selected tab.  ARG specifies the number
+of windows to consider for splitting and defaults to 1.
+Interactively, ARG is the prefix argument.
+
+First divide the child windows of TAB's main window into two parts.
+The first part includes the first ARG child windows if ARG is positive,
+or -ARG last windows if it's negative.  The second part includes the
+remaining child windows of TAB's main window.  Then clone into a
+newly-created tab each of the windows of the part which does not
+include TAB's selected window and delete those windows from TAB."
+  (interactive "i\nP")
+  (let* ((tab (or tab (1+ (tab-bar--current-tab-index))))
+         (_ (unless (eq tab (1+ (tab-bar--current-tab-index)))
+              (tab-bar-select-tab tab)))
+         (main (window-main-window))
+         (total-window-count (window-child-count main))
+         (arg (or arg 1)))
+    (cond
+     ((window-live-p main)
+      (user-error "Cannot split tab with only one window"))
+     ((or (not (numberp arg)) (zerop arg))
+      (user-error "Invalid ARG %s for splitting tab" arg))
+     ((>= (abs arg) total-window-count)
+      (user-error "ARG %s exceeds number of windows %s that can be split off"
+                  (abs arg) (1- total-window-count)))
+     (t
+      (let* ((comb (window-get-split-combination main arg))
+             (ws (window-state-get comb)))
+        (delete-window comb)
+        (tab-bar-new-tab)
+        (window-state-put ws (window-main-window)))))))
+
+(defalias 'split-tab #'tab-bar-split-tab)
+
 (defun tab-bar-merge-tabs (&optional tab1 tab2 vertical)
   "Merge the main window of TAB2 into TAB1.
 Split the main window of TAB1 and make the new window display
@@ -2865,9 +2911,20 @@ with those specified by the selected window configuration."
 
 
 (defun tab-bar--reusable-frames (all-frames)
+  "Process the `reusable-frames' buffer display action alist entry.
+Return a frame list.  Used with the `display-buffer-in-tab' action."
   (cond
    ((eq all-frames t) (frame-list))
    ((eq all-frames 'visible) (visible-frame-list))
+   ;; The standard behavior for a `reusable-frames' value of 0 is implemented in
+   ;; candidate_window_p() in window.c, and we have to go via `window-list-1' to
+   ;; utilize this.  We list the selected frame first.
+   ((eq all-frames 0) (let (frames)
+                        (dolist (w (window-list-1 nil nil 0))
+                          (let ((f (window-frame w)))
+                            (unless (memq f frames)
+                              (push f frames))))
+                        (nreverse frames)))
    ((framep all-frames) (list all-frames))
    (t (list (selected-frame)))))
 
@@ -2882,6 +2939,9 @@ The optional argument ALL-FRAMES specifies the frames to consider:
 - t means consider all tabs on all existing frames.
 
 - `visible' means consider all tabs on all visible frames.
+
+- 0 (the number zero) means consider all tabs on all visible and
+  iconified frames.
 
 - A frame means consider all tabs on that frame only.
 
@@ -2935,27 +2995,40 @@ ALIST is an association list of action symbols and values.  See
 Info node `(elisp) Buffer Display Action Alists' for details of
 such alists.
 
-If ALIST contains a `tab-name' entry, it creates a new tab with that name and
-displays BUFFER in a new tab.  If a tab with this name already exists, it
-switches to that tab before displaying BUFFER.  The `tab-name' entry can be
-a function, in which case it is called with two arguments: BUFFER and ALIST,
-and should return the tab name.  When a `tab-name' entry is omitted, create
-a new tab without an explicit name.
+If ALIST contains a non-nil `reusable-frames' entry then the frames
+indicated by its value are searched for an existing tab which already
+displays BUFFER.  The possible values of `reusable-frames' are:
 
-The ALIST entry `tab-group' (string or function) defines the tab group.
-
-If ALIST contains a `reusable-frames' entry, its value determines
-which frames to search for a reusable tab:
-  nil -- do not reuse any frames;
-  a frame  -- just that frame;
+  t -- all existing frames;
   `visible' -- all visible frames;
   0 -- all frames on the current terminal;
-  t -- all frames;
-  other non-nil values -- use the selected frame.
+  A frame -- that frame only;
+  Any other non-nil value -- the selected frame;
+  nil -- do not search any frames (equivalent to omitting the entry).
 
-If ALIST contains a non-nil `ignore-current-tab' entry, then the buffers
-of the current tab are skipped when searching for a reusable tab.
-Otherwise, prefer buffers of the current tab.
+\(Note that the meaning of nil is different to the typical meaning of
+nil for a `reusable-frames' entry in a buffer display action alist.)
+
+If ALIST contains a non-nil `ignore-current-tab' entry then skip the
+current tab when searching for a reusable tab, otherwise prefer the
+current tab if it already displays BUFFER.
+
+If a window displaying BUFFER is located in any reusable tab, select
+that tab and window.
+
+If no such window is located, display BUFFER in a new or existing tab
+based on the ALIST entry `tab-name' (string or function).  If a tab with
+this name already exists then select that tab, otherwise create a new
+tab with this name.  If `tab-name' is a function it is called with two
+arguments (BUFFER and ALIST) and should return the tab name.  If
+`tab-name' is omitted or nil, create a new tab without an explicit name.
+
+If a new tab is created and ALIST contains a non-nil `tab-group' entry
+\(string or function), this defines the tab group, overriding user
+option `tab-bar-new-tab-group'.
+
+To create a new tab unconditionally, use `display-buffer-in-new-tab'
+instead.
 
 This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
@@ -2994,16 +3067,17 @@ ALIST is an association list of action symbols and values.  See
 Info node `(elisp) Buffer Display Action Alists' for details of
 such alists.
 
-Like `display-buffer-in-tab', but always creates a new tab unconditionally,
-without checking if a suitable tab already exists.
+If ALIST contains a non-nil `tab-name' entry (string or function) then
+display BUFFER in a new tab with this name.  If `tab-name' is a function
+it is called with two arguments (BUFFER and ALIST) and should return the
+tab name.  If `tab-name' is omitted or nil, create a new tab without an
+explicit name.
 
-If ALIST contains a `tab-name' entry, it creates a new tab with that name
-and displays BUFFER in a new tab.  The `tab-name' entry can be a function,
-in which case it is called with two arguments: BUFFER and ALIST, and should
-return the tab name.  When a `tab-name' entry is omitted, create a new tab
-without an explicit name.
+If ALIST contains a non-nil `tab-group' entry (string or function), this
+defines the tab group, overriding user option `tab-bar-new-tab-group'.
 
-The ALIST entry `tab-group' (string or function) defines the tab group.
+To check for a suitable existing tab to reuse before creating a new tab,
+use `display-buffer-in-tab' instead.
 
 This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be

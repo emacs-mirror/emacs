@@ -1878,6 +1878,9 @@ is not modified."
          (bound-and-true-p ido-everywhere))
      (substitute-command-keys
       "(\\<ido-completion-map>\\[ido-select-text] to end): "))
+    ((bound-and-true-p icomplete-mode)
+     (substitute-command-keys
+      "(\\<icomplete-minibuffer-map>\\[icomplete-exit] to end): "))
     ((bound-and-true-p fido-mode)
      (substitute-command-keys
       "(\\<icomplete-fido-mode-map>\\[icomplete-fido-exit] to end): "))

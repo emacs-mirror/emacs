@@ -1201,6 +1201,7 @@ a negative argument means to delete and move forward."
   (or (eobp)
       (not (overlay-get rmail-summary-overlay 'face))
       (let ((buffer-read-only nil))
+	(beginning-of-line)
 	(skip-chars-forward " ")
 	(skip-chars-forward "0-9")
 	(if undel

@@ -467,11 +467,17 @@ Gcc: header for archiving purposes.
 If Gnus isn't running, a plain `message-mail' setup is used
 instead."
   (interactive)
-  (if (not (gnus-alive-p))
-      (progn
-	(message "Gnus not running; using plain Message mode")
-	(message-mail to subject other-headers continue
-                      switch-action yank-action send-actions return-action))
+  (if (and (not (gnus-alive-p))
+           (condition-case err
+               (progn
+                 (message "Gnus not running. Starting Gnus...")
+                 (save-window-excursion (gnus))
+                 nil)
+             (error
+              (message "Gnus failed with %s. Using plain Message mode"
+                       (error-message-string err)))))
+      (message-mail to subject other-headers continue
+                    switch-action yank-action send-actions return-action)
     (let ((buf (current-buffer))
 	  ;; Don't use posting styles corresponding to any existing group.
 	  ;; (group-name gnus-newsgroup-name)

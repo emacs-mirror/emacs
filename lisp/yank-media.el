@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'seq)
 
 (defvar yank-media--registered-handlers nil)

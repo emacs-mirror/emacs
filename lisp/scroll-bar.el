@@ -29,7 +29,6 @@
 ;;; Code:
 
 (require 'mouse)
-(eval-when-compile (require 'cl-lib))
 
 
 ;;;; Utilities.

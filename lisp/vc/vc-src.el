@@ -82,7 +82,6 @@
 ;;;
 
 (eval-when-compile
-  (require 'cl-lib)
   (require 'vc))
 
 (declare-function vc-setup-buffer "vc-dispatcher" (buf))

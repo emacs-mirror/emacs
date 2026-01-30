@@ -25,8 +25,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (require 'mailcap)
 (require 'nnheader)
 (require 'nnmail)

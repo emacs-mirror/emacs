@@ -28,7 +28,6 @@
 ;;; Code:
 (require 'files)
 (require 'mule)
-(eval-when-compile (require 'cl-lib))
 
 (defun hack-read-symbol-shorthands ()
   "Compute `read-symbol-shorthands' from Local Variables section."

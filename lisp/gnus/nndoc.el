@@ -33,7 +33,6 @@
 (require 'nnoo)
 (require 'gnus-util)
 (require 'mm-util)
-(eval-when-compile (require 'cl-lib))
 
 (nnoo-declare nndoc)
 

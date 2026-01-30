@@ -155,7 +155,10 @@ scanning for autoloads and will be in the `load-path'."
 ;; employing :autoload-end to omit unneeded forms).
 (defconst loaddefs--defining-macros
   '( transient-define-prefix transient-define-suffix transient-define-infix
-     transient-define-argument transient-define-group))
+     transient-define-argument
+     ;; FIXME: How can this one make sense?  It doesn't put anything
+     ;; into `symbol-function'!
+     transient-define-group))
 
 (defvar loaddefs--load-error-files nil)
 (defun loaddefs-generate--make-autoload (form file &optional expansion)
@@ -228,12 +231,16 @@ expand)' among their `declare' forms."
                     (member file loaddefs--load-error-files))
           (let ((load-path (cons (file-name-directory file) load-path)))
             (message "loaddefs-gen: loading file %s (for %s)" file car)
-            (condition-case e (load file)
+            (condition-case e
+                ;; Don't load the `.elc' file, in case the file wraps
+                ;; the macro-definition in `eval-when-compile' (bug#80180).
+                (let ((load-suffixes '(".el")))
+                  (load file))
               (error
                (push file loaddefs--load-error-files) ; do not attempt again
                (warn "loaddefs-gen: load error\n\t%s" e)))))
         (and (macrop car)
-	     (eq 'expand (function-get car 'autoload-macro))
+	     (eq 'expand (function-get car 'autoload-macro 'macro))
 	     (setq expand (let ((load-true-file-name file)
 				(load-file-name file))
 			    (macroexpand-1 form)))
@@ -245,12 +252,7 @@ expand)' among their `declare' forms."
      ;; directly.
      ((memq car loaddefs--defining-macros)
       (let* ((name (nth 1 form))
-	     (args (pcase car
-                     ((or 'transient-define-prefix 'transient-define-suffix
-                          'transient-define-infix 'transient-define-argument
-                          'transient-define-group)
-                      (nth 2 form))
-                     (_ t)))
+	     (args (nth 2 form))
 	     (body (nthcdr (or (function-get car 'doc-string-elt) 3) form))
 	     (doc (if (stringp (car body)) (pop body))))
         ;; Add the usage form at the end where describe-function-1
@@ -259,18 +261,7 @@ expand)' among their `declare' forms."
         ;; `define-generic-mode' quotes the name, so take care of that
         (loaddefs-generate--shorten-autoload
          `(autoload ,(if (listp name) name (list 'quote name))
-            ,file ,doc
-            ,(or (and (memq car '( transient-define-prefix
-                                   transient-define-suffix
-                                   transient-define-infix
-                                   transient-define-argument
-                                   transient-define-group))
-                      t)
-                 (and (eq (car-safe (car body)) 'interactive)
-                      ;; List of modes or just t.
-                      (or (if (nthcdr 2 (car body))
-                              (list 'quote (nthcdr 2 (car body)))
-                            t))))))))
+            ,file ,doc t))))
 
      ;; For defclass forms, use `eieio-defclass-autoload'.
      ((eq car 'defclass)

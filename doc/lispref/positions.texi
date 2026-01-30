@@ -57,14 +57,18 @@ buffer size plus 1.  If narrowing is in effect (@pxref{Narrowing}), then
 point is constrained to fall within the accessible portion of the buffer
 (possibly at one end of it).
 
+@cindex buffer point
   Each buffer has its own value of point, which is independent of the
 value of point in other buffers.  Each window also has a value of point,
-which is independent of the value of point in other windows on the same
-buffer.  This is why point can have different values in various windows
-that display the same buffer.  When a buffer appears in only one window,
-the buffer's point and the window's point normally have the same value,
-so the distinction is rarely important.  @xref{Window Point}, for more
-details.
+which is independent of the value of point in other windows showing the
+same buffer.  This is why the cursor may appear at different positions
+in various windows that display the same buffer.  Wherever necessary, we
+use the terms @dfn{buffer point} for the unique position of point of a
+specific buffer and the term @dfn{window point} for the position of
+point in a specific window showing that buffer.  When a buffer appears
+in only one window, its buffer's point and that window's point normally
+have the same value, so the distinction is rarely important.
+@xref{Window Point}, for more details.
 
 @defun point
 @cindex current buffer position

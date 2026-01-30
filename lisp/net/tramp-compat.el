@@ -229,8 +229,8 @@ value is the default binding of the variable."
              (cdr result)
            ,variable)))))
 
-(dolist (elt (all-completions "tramp-compat-" obarray #'functionp))
-  (function-put (intern elt) 'tramp-suppress-trace t))
+(dolist (elt (apropos-internal (rx bos "tramp-compat-") #'functionp))
+  (function-put elt 'tramp-suppress-trace t))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

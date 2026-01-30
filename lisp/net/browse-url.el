@@ -1000,7 +1000,10 @@ opposite of the browser kind of `browse-url-browser-function'."
                    browse-url-secondary-browser-function
                    #'browse-url-default-browser
                    #'eww))))
-    (funcall function url arg)))
+    (let ((browse-url-browser-function function)
+          (browse-url-handlers nil)
+          (browse-url-default-handlers nil))
+      (browse-url url arg))))
 
 ;;;###autoload
 (defun browse-url-at-mouse (event)
@@ -1788,17 +1791,19 @@ clickable and will use `browse-url' to open the URLs in question."
                                          browse-url-data ,(match-string 0)))))))
 
 ;;;###autoload
-(defun browse-url-button-open (&optional external mouse-event)
+(defun browse-url-button-open (&optional secondary mouse-event)
   "Follow the link under point using `browse-url'.
-If EXTERNAL (the prefix if used interactively), open with the
-external browser instead of the default one."
+If SECONDARY (the prefix if used interactively), open with the
+secondary browser instead of the default one."
   (interactive (list current-prefix-arg last-nonmenu-event))
   (mouse-set-point mouse-event)
   (let ((url (get-text-property (point) 'browse-url-data)))
     (unless url
       (error "No URL under point"))
-    (if external
-        (funcall browse-url-secondary-browser-function url)
+    (let ((browse-url-browser-function
+           (if secondary
+               browse-url-secondary-browser-function
+             browse-url-browser-function)))
       (browse-url url))))
 
 ;;;###autoload
@@ -1806,8 +1811,10 @@ external browser instead of the default one."
   "Open URL using `browse-url'.
 If `current-prefix-arg' is non-nil, use
 `browse-url-secondary-browser-function' instead."
-  (if current-prefix-arg
-      (funcall browse-url-secondary-browser-function url)
+  (let ((browse-url-browser-function
+         (if current-prefix-arg
+             browse-url-secondary-browser-function
+           browse-url-browser-function)))
     (browse-url url)))
 
 (defun browse-url-button-copy ()

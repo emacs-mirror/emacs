@@ -1638,15 +1638,14 @@ Note that on changing from non-nil to nil, the former contents of
                          'goto-line-history)
             buffer))))
 
-(defun goto-line (line &optional buffer relative)
+(defun goto-line (line &optional buffer relative interactive)
   "Go to LINE, counting from line 1 at beginning of buffer.
 If called interactively, a numeric prefix argument specifies
 LINE; without a numeric prefix argument, read LINE from the
 minibuffer.
 
-If optional argument BUFFER is non-nil, switch to that buffer and
-move to line LINE there.  If called interactively with \\[universal-argument]
-as argument, BUFFER is the most recently selected other buffer.
+If called interactively with \\[universal-argument], switch to the
+most recently selected other buffer and move to line LINE there.
 
 If optional argument RELATIVE is non-nil, counting starts at the beginning
 of the accessible portion of the (potentially narrowed) buffer.
@@ -1659,21 +1658,24 @@ Prior to moving point, this function sets the mark (without
 activating it), unless Transient Mark mode is enabled and the
 mark is already active.
 
+A non-nil INTERACTIVE argument pushes the mark and switches the buffer
+if optional argument BUFFER is non-nil.
+
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want instead is something like:
   (goto-char (point-min))
   (forward-line (1- N))
 If at all possible, an even better solution is to use char counts
 rather than line counts."
-  (declare (interactive-only forward-line))
-  (interactive (goto-line-read-args))
+  (interactive (append (goto-line-read-args) '(nil t)))
   ;; Switch to the desired buffer, one way or another.
-  (if buffer
+  (when interactive
+    (when buffer
       (let ((window (get-buffer-window buffer)))
 	(if window (select-window window)
 	  (switch-to-buffer-other-window buffer))))
-  ;; Leave mark at previous position
-  (or (region-active-p) (push-mark))
+    ;; Leave mark at previous position
+    (or (region-active-p) (push-mark)))
   ;; Move to the specified line number in that buffer.
   (let ((pos (save-restriction
                (unless relative (widen))
@@ -1690,14 +1692,13 @@ rather than line counts."
       (widen))
     (goto-char pos)))
 
-(defun goto-line-relative (line &optional buffer)
+(defun goto-line-relative (line &optional buffer interactive)
   "Go to LINE, counting from line at (point-min).
 The line number is relative to the accessible portion of the narrowed
-buffer.  The argument BUFFER is the same as in the function `goto-line'."
-  (declare (interactive-only forward-line))
-  (interactive (goto-line-read-args t))
-  (with-suppressed-warnings ((interactive-only goto-line))
-    (goto-line line buffer t)))
+buffer.  The arguments BUFFER and INTERACTIVE are the same as in the
+function `goto-line'."
+  (interactive (append (goto-line-read-args t) t))
+  (goto-line line buffer t interactive))
 
 (defun count-words-region (start end &optional arg)
   "Count the number of words in the region.
@@ -7874,10 +7875,10 @@ This function uses the definition of the default face for the currently
 selected frame."
   (let ((dfh (default-font-height))
 	(lsp (if (display-graphic-p)
-		 (or line-spacing
-		     (default-value 'line-spacing)
-		     (frame-parameter nil 'line-spacing)
-		     0)
+		 (total-line-spacing (or line-spacing
+		                         (default-value 'line-spacing)
+		                         (frame-parameter nil 'line-spacing)
+		                         0))
 	       0)))
     (if (floatp lsp)
 	(setq lsp (truncate (* (frame-char-height) lsp))))
@@ -10730,7 +10731,7 @@ Called from `temp-buffer-show-hook'."
 	             (if (display-mouse-p)
 	                 "Click or type \\[minibuffer-choose-completion] on a completion to select it.\n"
                        "Type \\[minibuffer-choose-completion] on a completion to select it.\n"))
-                    (if minibuffer-visible-completions
+                    (if (eq minibuffer-visible-completions t)
                         (substitute-command-keys
 		         "Type \\[minibuffer-next-completion], \\[minibuffer-previous-completion], \
 \\[minibuffer-next-line-completion], \\[minibuffer-previous-line-completion] \

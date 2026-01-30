@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (defvar gnus-newsrc-file-version)
 
 (require 'gnus)

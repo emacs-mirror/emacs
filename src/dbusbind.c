@@ -1640,14 +1640,135 @@ usage: (dbus-message-internal &rest REST)  */)
   return result;
 }
 
+/* Alist of registered inhibitor locks for D-Bus.
+   An entry in this list is a list (FD WHAT WHY BLOCK).
+   The car of the list is a file descriptor retrieved from a
+   'dbus-make-inhibitor-lock` call.  The cdr of the list represents the
+   three arguments 'dbus-make-inhibitor-lock` was called with.  */
+static Lisp_Object xd_registered_inhibitor_locks;
+
+DEFUN ("dbus-make-inhibitor-lock", Fdbus_make_inhibitor_lock,
+       Sdbus_make_inhibitor_lock,
+       2, 3, 0,
+       doc: /* Inhibit system shutdowns and sleep states.
+
+WHAT is a colon-separated string of lock types, i.e. "shutdown",
+"sleep", "idle", "handle-power-key", "handle-suspend-key",
+"handle-hibernate-key", "handle-lid-switch". Example: "shutdown:idle".
+
+WHY is a descriptive string of why the lock is taken. Example: "Package
+Update in Progress".
+
+The optional BLOCK is the mode of the inhibitor lock, either "block"
+(BLOCK is non-nil), or "delay".
+
+It returns a file descriptor or nil, if the lock cannot be acquired.  If
+there is already an inhibitor lock for the triple (WHAT WHY BLOCK), this
+lock is returned.
+
+For details of the arguments, see Info node `(dbus)Inhibitor Locks'.  */)
+  (Lisp_Object what, Lisp_Object why, Lisp_Object block)
+{
+  CHECK_STRING (what);
+  CHECK_STRING (why);
+  if (!NILP (block))
+    block = Qt;
+  Lisp_Object who = build_string ("Emacs");
+  Lisp_Object mode =
+    (NILP (block)) ? build_string ("delay") : build_string ("block");
+
+  /* Check, whether it is registered already.  */
+  Lisp_Object triple = list3 (what, why, block);
+  Lisp_Object registered = Frassoc (triple, xd_registered_inhibitor_locks);
+  if (!NILP (registered))
+    return CAR_SAFE (registered);
+
+  /* Register lock.  */
+  Lisp_Object lock =
+    calln (Qdbus_call_method, QCsystem,
+	   build_string ("org.freedesktop.login1"),
+	   build_string ("/org/freedesktop/login1"),
+	   build_string ("org.freedesktop.login1.Manager"),
+	   build_string ("Inhibit"), what, who, why, mode);
+
+  xd_registered_inhibitor_locks =
+    Fcons (Fcons (lock, triple), xd_registered_inhibitor_locks);
+  return lock;
+}
+
+DEFUN ("dbus-close-inhibitor-lock", Fdbus_close_inhibitor_lock,
+       Sdbus_close_inhibitor_lock,
+       1, 1, 0,
+       doc: /* Close inhibitor lock file descriptor.
+
+LOCK, a file descriptor, must be the result of a `dbus-make-inhibitor-lock'
+call.  It returns t in case of success, or nil if it isn't be possible
+to close the lock, or if the lock is closed already.
+
+For details, see Info node `(dbus)Inhibitor Locks'.  */)
+  (Lisp_Object lock)
+{
+  CHECK_FIXNUM (lock);
+
+  /* Check, whether it is registered.  */
+  Lisp_Object registered =  assoc_no_quit (lock, xd_registered_inhibitor_locks);
+  if (NILP (registered))
+    return Qnil;
+  else
+    {
+      xd_registered_inhibitor_locks =
+	Fdelete (registered, xd_registered_inhibitor_locks);
+      return (emacs_close (XFIXNAT (lock)) == 0) ? Qt : Qnil;
+    }
+}
+
+DEFUN ("dbus-registered-inhibitor-locks", Fdbus_registered_inhibitor_locks,
+       Sdbus_registered_inhibitor_locks,
+       0, 0, 0,
+       doc: /* Return registered inhibitor locks, an alist.
+This allows to check, whether other packages of the running Emacs
+instance have acquired an inhibitor lock as well.
+An entry in this list is a list (FD WHAT WHY BLOCK).
+The car of the list is the file descriptor retrieved from a
+'dbus-make-inhibitor-lock` call.  The cdr of the list represents the
+three arguments 'dbus-make-inhibitor-lock` was called with.  */)
+  (void)
+{
+  /* We return a copy of xd_registered_inhibitor_locks, in order to
+     protect it against malicious manipulation.  */
+  Lisp_Object registered = xd_registered_inhibitor_locks;
+  Lisp_Object result = Qnil;
+  for (; !NILP (registered); registered = CDR_SAFE (registered))
+    result = Fcons (Fcopy_sequence (CAR_SAFE (registered)), result);
+  return Fnreverse (result);
+}
+
+/* Construct a D-Bus event, and store it into the input event queue.  */
+static void
+xd_store_event (Lisp_Object handler, Lisp_Object handler_args,
+		Lisp_Object event_args)
+{
+  struct input_event event;
+  EVENT_INIT (event);
+  event.kind = DBUS_EVENT;
+  event.frame_or_window = Qnil;
+  /* Handler and handler args.  */
+  event.arg = Fcons (handler, handler_args);
+  /* Event args.  */
+  event.arg = CALLN (Fappend, event_args, event.arg);
+  /* Store it into the input event queue.  */
+  kbd_buffer_store_event (&event);
+
+  XD_DEBUG_MESSAGE ("Event stored: %s", XD_OBJECT_TO_STRING (event.arg));
+}
+
 /* Read one queued incoming message of the D-Bus BUS.
    BUS is either a Lisp symbol, :system, :session, :system-private or
    :session-private, or a string denoting the bus address.  */
 static void
 xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 {
-  Lisp_Object args, key, value;
-  struct input_event event;
+  Lisp_Object args, event_args, key, value;
   DBusMessage *dmessage;
   DBusMessageIter iter;
   int dtype;
@@ -1699,6 +1820,27 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 		    mtype == DBUS_MESSAGE_TYPE_ERROR ? error_name : member,
 		    XD_OBJECT_TO_STRING (args));
 
+  /* Add type, serial, uname, destination, path, interface and member
+     or error_name to the event_args.  */
+  event_args
+    = Fcons (mtype == DBUS_MESSAGE_TYPE_ERROR
+	     ? error_name == NULL ? Qnil : build_string (error_name)
+	     : member == NULL ? Qnil : build_string (member),
+	     Qnil);
+  event_args = Fcons ((interface == NULL ? Qnil : build_string (interface)),
+		      event_args);
+  event_args = Fcons ((path == NULL ? Qnil : build_string (path)),
+		     event_args);
+  event_args = Fcons ((destination == NULL ? Qnil : build_string (destination)),
+		     event_args);
+  event_args = Fcons ((uname == NULL ? Qnil : build_string (uname)),
+		     event_args);
+  event_args = Fcons (INT_TO_INTEGER (serial), event_args);
+  event_args = Fcons (make_fixnum (mtype), event_args);
+
+  /* Add the bus symbol to the event.  */
+  event_args = Fcons (bus, event_args);
+
   if (mtype == DBUS_MESSAGE_TYPE_INVALID)
     goto cleanup;
 
@@ -1716,12 +1858,8 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       /* Remove the entry.  */
       Fremhash (key, Vdbus_registered_objects_table);
 
-      /* Construct an event.  */
-      EVENT_INIT (event);
-      event.kind = DBUS_EVENT;
-      event.frame_or_window = Qnil;
-      /* Handler.  */
-      event.arg = Fcons (value, args);
+      /* Store the event.  */
+      xd_store_event (value, args, event_args);
     }
 
   else /* DBUS_MESSAGE_TYPE_METHOD_CALL, DBUS_MESSAGE_TYPE_SIGNAL.  */
@@ -1752,6 +1890,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 			 Fgethash (key, Vdbus_registered_objects_table, Qnil));
 	}
 
+      Lisp_Object called_handlers = Qnil;
       /* Loop over the registered functions.  Construct an event.  */
       for (; !NILP (value); value = CDR_SAFE (value))
 	{
@@ -1770,44 +1909,14 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 	  Lisp_Object handler = CAR_SAFE (CDR_SAFE (key_path_etc));
 	  if (NILP (handler))
 	    continue;
+	  if (!NILP (memq_no_quit (handler, called_handlers)))
+	    continue;
+	  called_handlers = Fcons (handler, called_handlers);
 
-	  /* Construct an event and exit the loop.  */
-	  EVENT_INIT (event);
-	  event.kind = DBUS_EVENT;
-	  event.frame_or_window = Qnil;
-	  event.arg = Fcons (handler, args);
-	  break;
+	  /* Store the event.  */
+	  xd_store_event (handler, args, event_args);
 	}
-
-      if (NILP (value))
-	goto monitor;
     }
-
-  /* Add type, serial, uname, destination, path, interface and member
-     or error_name to the event.  */
-  event.arg
-    = Fcons (mtype == DBUS_MESSAGE_TYPE_ERROR
-	     ? error_name == NULL ? Qnil : build_string (error_name)
-	     : member == NULL ? Qnil : build_string (member),
-	     event.arg);
-  event.arg = Fcons ((interface == NULL ? Qnil : build_string (interface)),
-		     event.arg);
-  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
-		     event.arg);
-  event.arg = Fcons ((destination == NULL ? Qnil : build_string (destination)),
-		     event.arg);
-  event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
-		     event.arg);
-  event.arg = Fcons (INT_TO_INTEGER (serial), event.arg);
-  event.arg = Fcons (make_fixnum (mtype), event.arg);
-
-  /* Add the bus symbol to the event.  */
-  event.arg = Fcons (bus, event.arg);
-
-  /* Store it into the input event queue.  */
-  kbd_buffer_store_event (&event);
-
-  XD_DEBUG_MESSAGE ("Event stored: %s", XD_OBJECT_TO_STRING (event.arg));
 
   /* Monitor.  */
  monitor:
@@ -1819,39 +1928,9 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   if (NILP (value))
     goto cleanup;
 
-  /* Construct an event.  */
-  EVENT_INIT (event);
-  event.kind = DBUS_EVENT;
-  event.frame_or_window = Qnil;
-
-  /* Add type, serial, uname, destination, path, interface, member
-     or error_name and handler to the event.  */
-  event.arg
-    = Fcons (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (CAR_SAFE (value))))),
-	     args);
-  event.arg
-    = Fcons (mtype == DBUS_MESSAGE_TYPE_ERROR
-	     ? error_name == NULL ? Qnil : build_string (error_name)
-	     : member == NULL ? Qnil : build_string (member),
-	     event.arg);
-  event.arg = Fcons ((interface == NULL ? Qnil : build_string (interface)),
-		     event.arg);
-  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
-		     event.arg);
-  event.arg = Fcons ((destination == NULL ? Qnil : build_string (destination)),
-		     event.arg);
-  event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
-		     event.arg);
-  event.arg = Fcons (INT_TO_INTEGER (serial), event.arg);
-  event.arg = Fcons (make_fixnum (mtype), event.arg);
-
-  /* Add the bus symbol to the event.  */
-  event.arg = Fcons (bus, event.arg);
-
-  /* Store it into the input event queue.  */
-  kbd_buffer_store_event (&event);
-
-  XD_DEBUG_MESSAGE ("Monitor event stored: %s", XD_OBJECT_TO_STRING (event.arg));
+  /* Store the event.  */
+  xd_store_event (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (CAR_SAFE (value))))),
+		  args, event_args);
 
   /* Cleanup.  */
  cleanup:
@@ -1916,6 +1995,7 @@ static void
 syms_of_dbusbind_for_pdumper (void)
 {
   xd_registered_buses = Qnil;
+  xd_registered_inhibitor_locks = Qnil;
 }
 
 void
@@ -1923,6 +2003,9 @@ syms_of_dbusbind (void)
 {
   defsubr (&Sdbus__init_bus);
   defsubr (&Sdbus_get_unique_name);
+  defsubr (&Sdbus_make_inhibitor_lock);
+  defsubr (&Sdbus_close_inhibitor_lock);
+  defsubr (&Sdbus_registered_inhibitor_locks);
 
   DEFSYM (Qdbus_message_internal, "dbus-message-internal");
   defsubr (&Sdbus_message_internal);
@@ -1977,6 +2060,7 @@ syms_of_dbusbind (void)
 
   /* Miscellaneous Lisp symbols.  */
   DEFSYM (Qdbus_get_name_owner, "dbus-get-name-owner");
+  DEFSYM (Qdbus_call_method, "dbus-call-method");
 
   DEFVAR_LISP ("dbus-compiled-version",
 	       Vdbus_compiled_version,
@@ -2082,6 +2166,7 @@ be called when the D-Bus reply message arrives.  */);
   /* Initialize internal objects.  */
   pdumper_do_now_and_after_load (syms_of_dbusbind_for_pdumper);
   staticpro (&xd_registered_buses);
+  staticpro (&xd_registered_inhibitor_locks);
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);
 }

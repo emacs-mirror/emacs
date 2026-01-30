@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (require 'xml)
 (require 'url-util)
 (require 'url-handlers)

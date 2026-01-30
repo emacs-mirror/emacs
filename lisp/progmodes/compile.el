@@ -954,7 +954,11 @@ The value nil as an element means to try the default directory."
 			 (string :tag "Directory"))))
 
 ;;;###autoload
-(defcustom compile-command "make -k "
+(defcustom compile-command
+  ;; Divide by less than 2 and round up to avoid using all processors on
+  ;; multi-core systems, but use at least one processor on a single-core
+  ;; system.
+  (format "make -k -j%d " (ceiling (num-processors) 1.5))
   "Last shell command used to do a compilation; default for next compilation.
 
 Sometimes it is useful for files to supply local values for this variable.

@@ -316,7 +316,7 @@ typedef sbyte_count_t retval_t;
          else if (to_uppcase)                                                 \
            for (byte_count_t _i = 0; _i < _n; _i++)                           \
              FPUTC (TOUPPER ((UCHAR_T) _s[_i], loc), p);                      \
-         else if (fwrite (_s, _n, 1, p) == 0)                                 \
+         else if (_n && fwrite (_s, _n, 1, p) == 0)                           \
            return FAILURE;                                                    \
        }                                                                      \
      while (0)                                                                \

@@ -767,13 +767,79 @@ or an empty string if none."
                                  :files files
                                  :update-function update-function)))
 
-(defun vc-git--current-branch ()
+(defun vc-git-working-branch ()
+  "Return the name of the current branch, or nil if HEAD is detached."
   (vc-git--out-match '("symbolic-ref" "HEAD")
                      "^\\(refs/heads/\\)?\\(.+\\)$" 2))
 
+(defun vc-git-trunk-or-topic-p ()
+  "Return `topic' if branch has distinct pull and push remotes, else nil.
+This is able to identify topic branches for certain forge workflows."
+  (let* ((branch (vc-git-working-branch))
+         (merge (string-trim-right
+                 (vc-git--out-str "config" (format "branch.%s.remote"
+                                                   branch))))
+         (push (string-trim-right
+                (vc-git--out-str "config" (format "branch.%s.pushRemote"
+                                                  branch))))
+         (push (if (string-empty-p push)
+                   (string-trim-right
+                    (vc-git--out-str "config" "remote.pushDefault"))
+                 push)))
+    (and (plusp (length merge))
+         (plusp (length push))
+         (not (equal merge push))
+         'topic)))
+
+(defun vc-git-topic-outgoing-base ()
+  "Return the outgoing base for the current branch as a string.
+This works by considering the current branch as a topic branch
+(whether or not it actually is).
+Requires that the corresponding trunk exists as a local branch.
+
+The algorithm employed is as follows.  Find all merge bases between the
+current branch and other local branches.  Each of these is a commit on
+the current branch.  Use `git merge-base --independent' on them all to
+find the topologically most recent.  Take the branch for which that
+commit is a merge base with the current branch to be the branch into
+which the current branch will eventually be merged.  Find its upstream.
+(If there is more than one branch whose merge base with the current
+branch is that same topologically most recent commit, try them
+one-by-one, accepting the first that has an upstream.)"
+  (cl-flet ((get-line () (buffer-substring (point) (pos-eol))))
+    (let* ((branches (vc-git-branches))
+           (current (pop branches))
+           merge-bases)
+      (with-temp-buffer
+        (dolist (branch branches)
+          (erase-buffer)
+          (when (vc-git--out-ok "merge-base" "--all" branch current)
+            (goto-char (point-min))
+            (while (not (eobp))
+              (push branch
+                    (alist-get (get-line) merge-bases nil nil #'equal))
+              (forward-line 1))))
+        (erase-buffer)
+        (unless (apply #'vc-git--out-ok "merge-base" "--independent"
+                       (mapcar #'car merge-bases))
+          (error "`git merge-base --independent' failed"))
+        ;; If 'git merge-base --independent' printed more than one line,
+        ;; just pick the first.
+        (goto-char (point-min))
+        (catch 'ret
+          (dolist (target (cdr (assoc (get-line) merge-bases)))
+            (erase-buffer)
+            (when (vc-git--out-ok "for-each-ref"
+                                  "--format=%(upstream:short)"
+                                  (concat "refs/heads/" target))
+              (goto-char (point-min))
+              (let ((outgoing-base (get-line)))
+                (unless (string-empty-p outgoing-base)
+                  (throw 'ret outgoing-base))))))))))
+
 (defun vc-git-dir--branch-headers ()
   "Return headers for branch-related information."
-  (let ((branch (vc-git--current-branch))
+  (let ((branch (vc-git-working-branch))
         tracking remote-url)
     (if branch
         (when-let* ((branch-merge
@@ -1758,7 +1824,7 @@ If LIMIT is a non-empty string, use it as a base revision."
                ;; If the branch has no upstream, and we weren't supplied
                ;; with one, then fetching is always useless (bug#79952).
                (or upstream-location
-                   (and-let* ((branch (vc-git--current-branch)))
+                   (and-let* ((branch (vc-git-working-branch)))
                      (with-temp-buffer
                        (vc-git--out-ok "config" "--get"
                                        (format "branch.%s.remote"
@@ -2235,7 +2301,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (defun vc-git-revision-published-p (rev)
   "Whether we think REV has been pushed such that it is public history.
 Considers only the current branch.  Does not fetch."
-  (let ((branch (vc-git--current-branch))
+  (let ((branch (vc-git-working-branch))
         (rev (vc-git--rev-parse rev)))
     (vc-git--assert-revision-on-branch rev branch)
     (and
@@ -2334,7 +2400,7 @@ Rebase may --autosquash your other squash!/fixup!/amend!; proceed?")))
 
 (defun vc-git-delete-revision (rev)
   "Rebase current branch to remove REV."
-  (vc-git--assert-revision-on-branch rev (vc-git--current-branch))
+  (vc-git--assert-revision-on-branch rev (vc-git-working-branch))
   (with-temp-buffer
     (vc-git-command t 0 nil "log" "--merges" (format "%s~1.." rev))
     (unless (bobp)
@@ -2352,13 +2418,13 @@ Rebase may --autosquash your other squash!/fixup!/amend!; proceed?")))
 (defun vc-git-delete-revisions-from-end (rev)
   "Hard reset back to REV.
 It is an error if REV is not on the current branch."
-  (vc-git--assert-revision-on-branch rev (vc-git--current-branch))
+  (vc-git--assert-revision-on-branch rev (vc-git-working-branch))
   (vc-git-command nil 0 nil "reset" "--hard" rev))
 
 (defun vc-git-uncommit-revisions-from-end (rev)
   "Mixed reset back to REV.
 It is an error if REV is not on the current branch."
-  (vc-git--assert-revision-on-branch rev (vc-git--current-branch))
+  (vc-git--assert-revision-on-branch rev (vc-git-working-branch))
   (vc-git-command nil 0 nil "reset" "--mixed" rev))
 
 (defvar vc-git-extra-menu-map

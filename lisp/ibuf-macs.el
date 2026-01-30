@@ -72,7 +72,8 @@ During evaluation of body, bind `it' to the value returned by TEST."
 
 ;;;###autoload
 (cl-defmacro define-ibuffer-column (symbol (&key name inline props summarizer
-					       header-mouse-map) &rest body)
+					         header-mouse-map)
+					   &rest body)
   "Define a column SYMBOL for use with `ibuffer-formats'.
 
 BODY will be called with `buffer' bound to the buffer object, and
@@ -112,19 +113,18 @@ change its definition, you should explicitly call
 	  `(defun ,sym (buffer mark)
              (ignore mark)            ;Silence byte-compiler if mark is unused.
 	     ,bod))
-       (put (quote ,sym) 'ibuffer-column-name
+       (put ',sym 'ibuffer-column-name
 	    ,(if (stringp name)
 		 name
 	       (capitalize (symbol-name symbol))))
-       ,(if header-mouse-map `(put (quote ,sym) 'header-mouse-map ,header-mouse-map))
+       ,(if header-mouse-map `(put ',sym 'header-mouse-map ,header-mouse-map))
        ,(if summarizer
 	    ;; Store the name of the summarizing function.
-	    `(put (quote ,sym) 'ibuffer-column-summarizer
-		  (quote ,summarizer)))
+	    `(put ',sym 'ibuffer-column-summarizer #',summarizer))
        ,(if summarizer
 	    ;; This will store the actual values of the column
 	    ;; summary.
-	    `(put (quote ,sym) 'ibuffer-column-summary nil))
+	    `(put ',sym 'ibuffer-column-summary nil))
        :autoload-end)))
 
 ;;;###autoload

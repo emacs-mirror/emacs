@@ -97,9 +97,27 @@ customizes `ielm-prompt'.")
 
 (defcustom ielm-dynamic-return t
   "Controls whether \\<ielm-map>\\[ielm-return] has intelligent behavior in IELM.
-If non-nil, \\[ielm-return] evaluates input for complete sexps, or inserts a newline
-and indents for incomplete sexps.  If nil, always inserts newlines."
-  :type 'boolean)
+
+If nil, always insert newlines.
+
+If `point', insert newline if the point is in the middle of an sexp,
+otherwise evaluate input.  This is useful if you have
+`electric-pair-mode', or a similar mode, enabled.
+
+If any other non-nil value, insert newline for incomplete sexp input and
+evaluate input for complete sexps.  This is similar to the behavior in
+text shells."
+  :type
+  '(radio
+    (const :tag "Always insert newline" nil)
+    (const
+     :tag
+     "Insert newline if point is in middle of sexp, otherwise evaluate input"
+     point)
+    (const
+     :tag
+     "Insert newline for incomplete sexp, otherwise evaluate input"
+     t)))
 
 (defcustom ielm-dynamic-multiline-inputs t
   "Force multiline inputs to start from column zero?
@@ -248,14 +266,16 @@ simply inserts a newline."
   (if ielm-dynamic-return
       (let ((state
              (save-excursion
-               (end-of-line)
+               (unless (eq ielm-dynamic-return 'point)
+                 (end-of-line))
                (parse-partial-sexp (ielm-pm)
                                    (point)))))
         (if (and (< (car state) 1) (not (nth 3 state)))
             (ielm-send-input for-effect)
           (when (and ielm-dynamic-multiline-inputs
                      (save-excursion
-                       (beginning-of-line)
+                       (let ((inhibit-field-text-motion t))
+                         (beginning-of-line))
                        (looking-at-p comint-prompt-regexp)))
             (save-excursion
               (goto-char (ielm-pm))

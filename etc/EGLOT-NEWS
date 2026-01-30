@@ -20,6 +20,71 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes to upcoming Eglot
 
+** File watch limits to prevent resource exhaustion (github#1568)
+
+The new variable 'eglot-max-file-watches' limits the number of file
+watches that can be created.  Some language servers request watching
+for a very large number of directories (e.g. Python virtualenvs), which
+can exhaust system resources and cause slow startup.
+
+** Support for complex workspace edits (create/rename/delete files)
+
+Eglot now advertises support for file resource operations in workspace
+edits and can handle create, rename, and delete file operations.  The
+confirmation UI has been reworked to handle mixed operation types.
+
+The 'eglot-confirm-server-edits' defcustom has been overhauled and now
+also accepts file operation kinds as keys in the alist form, providing
+more fine-grained control over what confirmation mechanism to use.
+
+** 'eglot-advertise-cancellation' now defaults to t
+
+The variable 'eglot-advertise-cancellation' now defaults to t, which
+means Eglot will send '$/cancelRequest' notifications to servers when it
+thinks responses to inflight requests are no longer useful.  The current
+2026 LSP landscape (especially gopls and ocamllsp) suggests this is
+beneficial and helps servers avoid costly useless work.
+
+** Imenu setup is more predictable (github#1569)
+
+Eglot now sets 'imenu-create-index-function' using ':override' advice,
+making the integration cleaner and more predictable.
+
+** Fixed textDocument/prepareRename support (github#1554)
+
+Eglot now properly checks server capabilities before sending
+prepareRename requests.
+
+
+* Changes in Eglot 1.21 (11/1/2026)
+
+This is a bugfix release with small fixes for semantic tokens and Emacs
+26.3 compatibility.
+
+
+* Changes in Eglot 1.20 (11/1/2026)
+
+** Dramatically faster handling of files with many diagnostics
+
+Diagnostic conversion between LSP and Flymake versions is now much
+faster.  Previously, editing, e.g. a Python file with thousands of
+diagnostics was next to impossible to to periodic interruptions of
+diagnostic reports.  Now it's practically unnoticeable.
+
+** Support for LSP server multiplexers via Rassumfrassum
+
+Eglot can now leverage LSP server multiplexer programs like Rassumfrassum
+(invoked via the 'rass' command) to use multiple language servers in a
+single buffer.  This enables combining spell-checkers with language
+servers, using multiple servers for the same language (e.g., 'ty' for
+type checking and 'ruff' for linting in Python), or handling
+multi-language files like Vue.
+
+Some invocations of 'rass' are offered as alternatives in the built-in
+'eglot-server-programs' variable.  The manual (readable with 'M-x
+eglot-manual') contains a comprehensive discussion of how to set up and
+use multiplexers in the new "Multi-server support" chapter.
+
 ** Support for pull diagnostics (github#1559, github#1290)
 
 For servers supporting the 'diagnosticProvider' capability, Eglot
@@ -27,6 +92,15 @@ requests diagnostics explicitly rather than relying on sporadic
 'publishDiagnostics' notifications, aka. "push diagnostics".  The 'tsgo'
 server is known to support the "pull" variant exclusively, while the
 'ty' server is known to support it alongside "push".
+
+** New command 'eglot-momentary-inlay-hints'
+
+When bound to a single key in 'eglot-mode-map' this will arrange for
+inlay hints to be displayed as long as the key is held down, and then
+hidden shortly after it is released.  Emacs doesn't support binding to
+\"key up\" events, but this function offers an approximation.  It relies
+on measuring your keyboard initial delay and repeat rate, and may not be
+100% accurate.
 
 ** Support for watching files outside the project (bug#79809)
 
@@ -44,6 +118,11 @@ traditional regular-expression-based fontification.  The
 controlling which token types and modifiers to consider, as well as
 faces for customizing their appearance.  The minor mode is on by
 default: consult the manual on how to turn it off.
+
+** Reading the Eglot manual in Emacs is easy again
+
+The command 'M-x eglot-manual' is now easier to reach and directly drops
+the user into the manual.
 
 
 * Changes in Eglot 1.19 (23/10/2025)

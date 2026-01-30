@@ -1098,7 +1098,7 @@ Otherwise, use symbolic time zones like \"CET\"."
 (defconst calendar-first-date-row 3
   "First row in the calendar with actual dates.")
 
-(defconst calendar-buffer "*Calendar*"
+(defvar calendar-buffer "*Calendar*"
   "Name of the buffer used for the calendar.")
 
 (defun calendar-get-buffer ()
@@ -1450,9 +1450,12 @@ Optional integers MON and YR are used instead of today's date."
          (calendar-mark-holidays))
     (unwind-protect
         (if calendar-mark-diary-entries (diary-mark-entries))
-      (run-hooks (if (calendar-date-is-visible-p today)
-                     'calendar-today-visible-hook
-                   'calendar-today-invisible-hook)))))
+      (if (not (calendar-date-is-visible-p today))
+          (run-hooks 'calendar-today-invisible-hook)
+        ;; Functions in calendar-today-visible-hook may rely on the cursor
+        ;; being on today's date.
+        (calendar-cursor-to-visible-date today)
+        (run-hooks 'calendar-today-visible-hook)))))
 
 (defun calendar-generate (month year)
   "Generate a three-month Gregorian calendar centered around MONTH, YEAR."

@@ -48,6 +48,13 @@
   "Sieve."
   :group 'languages)
 
+(defcustom sieve-indent-offset 2
+  "Indentation offset for Sieve mode."
+  :type 'integer
+  :group 'sieve
+  :safe #'integerp
+  :version "31.1")
+
 (defcustom sieve-mode-hook nil
   "Hook run in sieve mode buffers."
   :type 'hook)
@@ -180,7 +187,7 @@ Turning on Sieve mode runs `sieve-mode-hook'."
     (let ((depth (car (syntax-ppss))))
       (when (looking-at "[ \t]*}")
         (setq depth (1- depth)))
-      (indent-line-to (* 2 depth))))
+      (indent-line-to (* sieve-indent-offset depth))))
   ;; Skip to the end of the indentation if at the beginning of the
   ;; line.
   (when (save-excursion

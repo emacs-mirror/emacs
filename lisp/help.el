@@ -99,6 +99,7 @@ buffer.")
   "f"    #'describe-function
   "g"    #'describe-gnu-project
   "h"    #'view-hello-file
+  "u"    #'apropos-user-option
 
   "i"    #'info
   "4 i"  #'info-other-window

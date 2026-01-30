@@ -31,11 +31,8 @@
 
 ;;; Code:
 
-(require 'cl-lib)
-
 (eval-when-compile
   (require 'subr-x))
-
 
 (require 'editorconfig)
 

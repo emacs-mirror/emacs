@@ -577,12 +577,7 @@ arguments to pass to the OPERATION."
 
 		;; Set the mode.
 		(unless keep-date
-		  (set-file-modes newname (tramp-default-file-modes dirname)))
-
-		;; When newname did exist, we have wrong cached values.
-		(when t2
-		  (with-parsed-tramp-file-name newname nil
-		    (tramp-flush-file-properties v localname))))
+		  (set-file-modes newname (tramp-default-file-modes dirname))))
 
 	       ;; We must do it file-wise.
 	       (t
@@ -2235,10 +2230,6 @@ SHARE will be passed to the call of `tramp-smb-get-localname'."
  'tramp-smb-connection-local-default-system-profile
  tramp-smb-connection-local-default-system-variables)
 
-(connection-local-set-profiles
- `(:application tramp :protocol ,tramp-smb-method)
- 'tramp-smb-connection-local-default-system-profile)
-
 ;; (defconst tramp-smb-connection-local-bash-variables
 ;;   '((explicit-shell-file-name . "bash")
 ;;     (explicit-bash-args . ("--norc" "--noediting" "-i"))
@@ -2262,12 +2253,6 @@ SHARE will be passed to the call of `tramp-smb-get-localname'."
  'tramp-smb-connection-local-powershell-profile
  tramp-smb-connection-local-powershell-variables)
 
-(defun tramp-smb-shell-prompt ()
-  "Set `comint-prompt-regexp' to a proper value."
-  ;; Used for remote `shell-mode' buffers.
-  (when (tramp-smb-file-name-p default-directory)
-    (setq-local comint-prompt-regexp tramp-smb-prompt)))
-
 ;; (defconst tramp-smb-connection-local-cmd-variables
 ;;   '((explicit-shell-file-name . "cmd")
 ;;     (explicit-cmd-args . ("/Q"))
@@ -2279,10 +2264,18 @@ SHARE will be passed to the call of `tramp-smb-get-localname'."
 ;;  'tramp-smb-connection-local-cmd-profile
 ;;  tramp-smb-connection-local-cmd-variables)
 
+(connection-local-set-profiles
+ `(:application tramp :protocol ,tramp-smb-method)
+ 'tramp-smb-connection-local-default-system-profile
+ 'tramp-smb-connection-local-powershell-profile)
+
+(defun tramp-smb-shell-prompt ()
+  "Set `comint-prompt-regexp' to a proper value."
+  ;; Used for remote `shell-mode' buffers.
+  (when (tramp-smb-file-name-p default-directory)
+    (setq-local comint-prompt-regexp tramp-smb-prompt)))
+
 (with-eval-after-load 'shell
-  (connection-local-set-profiles
-   `(:application tramp :protocol ,tramp-smb-method)
-   'tramp-smb-connection-local-powershell-profile)
   (add-hook 'shell-mode-hook
 	    #'tramp-smb-shell-prompt)
   (add-hook 'tramp-smb-unload-hook

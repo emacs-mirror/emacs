@@ -367,10 +367,6 @@ It's value must be a Tramp user option, indexed in the Tramp manual via
  'tramp-connection-local-default-system-profile
  tramp-connection-local-default-system-variables)
 
-(connection-local-set-profiles
- '(:application tramp)
- 'tramp-connection-local-default-system-profile)
-
 (defconst tramp-connection-local-default-shell-variables
   '((shell-file-name . "/bin/sh")
     (shell-command-switch . "-c"))
@@ -380,10 +376,10 @@ It's value must be a Tramp user option, indexed in the Tramp manual via
  'tramp-connection-local-default-shell-profile
  tramp-connection-local-default-shell-variables)
 
-(with-eval-after-load 'shell
-  (connection-local-set-profiles
-   '(:application tramp)
-   'tramp-connection-local-default-shell-profile))
+(connection-local-set-profiles
+ '(:application tramp)
+ 'tramp-connection-local-default-system-profile
+ 'tramp-connection-local-default-shell-profile)
 
 ;; Tested with FreeBSD 12.2.
 (defconst tramp-bsd-process-attributes-ps-args
@@ -586,12 +582,10 @@ See `tramp-process-attributes-ps-format'.")
 		    'tramp-connection-local-darwin-ps-profile)
 		   ;; ... Add other system types here.
 		   )))
-  (connection-local-set-profiles
-   `(:application tramp :machine ,(system-name))
-   local-profile)
-  (connection-local-set-profiles
-   '(:application tramp :machine "localhost")
-   local-profile))
+  (dolist (local-host tramp-local-host-names)
+    (connection-local-set-profiles
+     `(:application tramp :machine ,local-host)
+     local-profile)))
 
 ;; Set connection-local variables for buffers visiting a file.
 

@@ -31,7 +31,6 @@
 ;; And is pointless when we do, since it's in C and so preloaded.
 ;;(require 'xwidget-internal)
 
-(require 'cl-lib)
 (require 'bookmark)
 (require 'format-spec)
 

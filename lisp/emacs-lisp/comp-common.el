@@ -272,7 +272,7 @@ Used to modify the compiler environment."
     (member (function (t list) list))
     (memq (function (t list) list))
     (memql (function (t list) list))
-    (message (function (string &rest t) string))
+    (message (function ((or string null) &rest t) (or string null)))
     (min (function ((or number marker) &rest (or number marker)) number))
     (minibuffer-selected-window (function () (or window null)))
     (minibuffer-window (function (&optional frame) window))

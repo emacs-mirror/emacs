@@ -77,7 +77,7 @@ AS_CASE(["$ndk_ABI"],
 # This is a map between pkg-config style package names and Android
 # ones.
 
-ndk_package_map="libwebpdemux:webpdemux libxml-2.0:libxml2"
+ndk_package_map="libwebpdemux:webpdemux libwebp:webp libxml-2.0:libxml2"
 ndk_package_map="$ndk_package_map sqlite3:libsqlite_static_minimal"
 ndk_package_map="$ndk_package_map MagickWand:libmagickwand-7 lcms2:liblcms2"
 

@@ -500,7 +500,7 @@ completion buffer and delete the window showing it
 
 @vindex minibuffer-visible-completions
   If the variable @code{minibuffer-visible-completions} is customized to
-a non-@code{nil} value, it changes the commands bound to the arrow keys:
+the value @code{t}, it changes the commands bound to the arrow keys:
 instead of moving in the minibuffer, they move between completion
 candidates, like meta-arrow keys do by default (but note that, just as
 when the window showing the completion list is selected, here too,
@@ -509,7 +509,11 @@ when the window showing the completion list is selected, here too,
 regardless of the completion list format).  Similarly, @kbd{@key{RET}}
 selects the current candidate, like @kbd{M-@key{RET}} does normally.
 @code{C-g} hides the completion window, but leaves the minibuffer
-active, so you can continue typing at the prompt.
+active, so you can continue typing at the prompt.  If the value of this
+variable is @code{up-down}, only the @kbd{@key{UP}} and @kbd{@key{DOWN}}
+arrow keys move point between completion candidates, while
+@kbd{@key{RIGHT}} and @kbd{@key{LEFT}} move point in the minibuffer
+window.
 
 @node Completion Exit
 @subsection Completion Exit

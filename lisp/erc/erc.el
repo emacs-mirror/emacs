@@ -7607,7 +7607,7 @@ Use the getter of the same name to retrieve the current value.")
           (ct (make-char-table 'erc--channel-mode-types))
           (type ?a))
       (dolist (cs types)
-        (erc--doarray (c cs)
+        (seq-doseq (c cs)
           (aset ct c type))
         (cl-incf type))
       (make-erc--channel-mode-types :key key
@@ -7626,7 +7626,7 @@ complement relevant letters in STRING."
          (table (erc--channel-mode-types-table obj))
          (fallbackp (erc--channel-mode-types-fallbackp obj))
          (+p t))
-    (erc--doarray (c string)
+    (seq-doseq (c string)
       (cond ((= ?+ c) (setq +p t))
             ((= ?- c) (setq +p nil))
             ((and status-letters (string-search (string c) status-letters))
@@ -7719,7 +7719,7 @@ dropped were they not already absent."
   (let ((addp t)
         ;;
         redundant-add redundant-drop adding dropping)
-    (erc--doarray (c string)
+    (seq-doseq (c string)
       (pcase c
         (?+ (setq addp t))
         (?- (setq addp nil))

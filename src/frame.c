@@ -338,6 +338,83 @@ return values.  */)
 	  : Qnil);
 }
 
+
+/*                         Frame id.                             */
+
+EMACS_UINT frame_next_id = 1; /* 0 indicates no id (yet) set.  */
+
+DEFUN ("frame-id", Fframe_id, Sframe_id, 0, 1, 0,
+       doc: /* Return FRAME's id.
+If FRAME is nil, use the selected frame.
+Return nil if the id has not been set.  */)
+  (Lisp_Object frame)
+{
+  if (NILP (frame))
+    frame = selected_frame;
+  struct frame *f = decode_live_frame (frame);
+  if (f->id == 0)
+    return Qnil;
+  else
+    return make_fixnum (f->id);
+}
+
+/** frame_set_id: Set frame F's id to ID.
+
+    If ID is 0 and F's ID is 0, use frame_next_id and increment it,
+    otherwise, use ID.
+
+    Signal an error if ID >= frame_next_id.
+    Signal an error if ID is in use on another live frame.
+
+    Return ID if it was used, 0 otherwise.  */
+EMACS_UINT
+frame_set_id (struct frame *f, EMACS_UINT id)
+{
+  if (id >= frame_next_id)
+    error ("Specified frame ID unassigned");
+
+  if (id > 0)
+    {
+      eassume (CONSP (Vframe_list));
+      Lisp_Object frame, tail = Qnil;
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  if (id == XFRAME (frame)->id)
+	    error ("Specified frame ID already in use");
+	}
+    }
+
+  if (id == 0)
+    if (f->id != 0)
+      return 0;
+    else
+      f->id = frame_next_id++;
+  else
+    f->id = id;
+  return f->id;
+}
+
+/** frame_set_id_from_params: Set frame F's id from params, if present.
+
+    Call frame_set_id to using the frame parameter 'frame-id, if present
+    and a valid positive integer greater than 0, otherwise use 0.
+
+    Return frame_set_id's return value.  */
+EMACS_UINT
+frame_set_id_from_params (struct frame *f, Lisp_Object params)
+{
+  EMACS_UINT id = 0;
+  Lisp_Object param_id = Fcdr (Fassq (Qframe_id, params));
+  if (TYPE_RANGED_FIXNUMP (int, param_id))
+    {
+      EMACS_INT id_1 = XFIXNUM (param_id);
+      if (id_1 > 0)
+	id = (EMACS_UINT) id_1;
+    }
+  return frame_set_id (f, id);
+}
+
+
 DEFUN ("window-system", Fwindow_system, Swindow_system, 0, 1, 0,
        doc: /* The name of the window system that FRAME is displaying through.
 The value is a symbol:
@@ -1359,6 +1436,7 @@ make_initial_frame (void)
 
   f = make_frame (true);
   XSETFRAME (frame, f);
+  frame_set_id (f, 0);
 
   Vframe_list = Fcons (frame, Vframe_list);
 
@@ -1743,6 +1821,7 @@ affects all frames on the same terminal device.  */)
      frames don't obscure other frames.  */
   Lisp_Object parent = Fcdr (Fassq (Qparent_frame, parms));
   struct frame *f = make_terminal_frame (t, parent, parms);
+  frame_set_id_from_params (f, parms);
 
   if (!noninteractive)
     init_frame_faces (f);
@@ -2779,9 +2858,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   delete_all_child_windows (f->root_window);
   fset_root_window (f, Qnil);
 
-  block_input ();
-  Vframe_list = Fdelq (frame, Vframe_list);
-  unblock_input ();
+  Vframe_list = delq_no_quit (frame, Vframe_list);
   SET_FRAME_VISIBLE (f, false);
 
   /* Allow the vector of menu bar contents to be freed in the next
@@ -2811,6 +2888,15 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      promise that the terminal of the frame must be valid until we
      have called the window-system-dependent frame destruction
      routine.  */
+  /* Remember if this was a GUI child frame, so we can
+     process pending window system events after destruction.  */
+  bool was_gui_child_frame = FRAME_WINDOW_P (f) && FRAME_PARENT_FRAME (f);
+#ifdef HAVE_X_WINDOWS
+  /* Save the X display before the frame is destroyed, so we can
+     sync with the X server afterwards.  */
+  Display *child_frame_display = (was_gui_child_frame && FRAME_X_P (f)
+				  ? FRAME_X_DISPLAY (f) : NULL);
+#endif
   {
     struct terminal *terminal;
     block_input ();
@@ -2819,6 +2905,24 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
     terminal = FRAME_TERMINAL (f);
     f->terminal = 0;             /* Now the frame is dead.  */
     unblock_input ();
+
+    /* When a GUI child frame is deleted, the window system may
+       generate events that affect the parent frame (e.g.
+       ConfigureNotify, Expose, etc.).  We need to sync with the
+       X server to ensure all events from the frame destruction
+       have been received, then process them to ensure subsequent
+       operations like `recenter' see up-to-date window state.
+       (Bug#76186)  */
+#ifdef HAVE_X_WINDOWS
+    if (child_frame_display)
+      {
+	block_input ();
+	XSync (child_frame_display, False);
+	unblock_input ();
+      }
+#endif
+    if (was_gui_child_frame)
+      swallow_events (false);
 
     /* Clear markers and overlays set by F on behalf of an input
        method.  */
@@ -4526,10 +4630,11 @@ DEFUN ("set-frame-position", Fset_frame_position,
        doc: /* Set position of FRAME to (X, Y).
 FRAME must be a live frame and defaults to the selected one.  X and Y,
 if positive, specify the coordinate of the left and top edge of FRAME's
-outer frame in pixels relative to an origin (0, 0) of FRAME's display.
-If any of X or Y is negative, it specifies the coordinates of the right
-or bottom edge of the outer frame of FRAME relative to the right or
-bottom edge of FRAME's display.  */)
+outer frame in pixels relative to an origin (0, 0) of FRAME's display
+or, if FRAME is a child frame, its parent frame.  If any of X or Y is
+negative, it specifies the coordinates of the right or bottom edge of
+the outer frame of FRAME relative to the right or bottom edge of FRAME's
+display or parent frame.  */)
   (Lisp_Object frame, Lisp_Object x, Lisp_Object y)
 {
   struct frame *f = decode_live_frame (frame);
@@ -5377,17 +5482,59 @@ void
 gui_set_line_spacing (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
   if (NILP (new_value))
-    f->extra_line_spacing = 0;
+    {
+      f->extra_line_spacing = 0;
+      f->extra_line_spacing_above = 0;
+    }
   else if (RANGED_FIXNUMP (0, new_value, INT_MAX))
-    f->extra_line_spacing = XFIXNAT (new_value);
+    {
+      f->extra_line_spacing = XFIXNAT (new_value);
+      f->extra_line_spacing_above = 0;
+    }
   else if (FLOATP (new_value))
     {
-      int new_spacing = XFLOAT_DATA (new_value) * FRAME_LINE_HEIGHT (f) + 0.5;
+      int new_spacing = XFLOAT_DATA (new_value) * FRAME_LINE_HEIGHT (f);
 
-      if (new_spacing >= 0)
+      if (new_spacing >= 0) {
 	f->extra_line_spacing = new_spacing;
+        f->extra_line_spacing_above = 0;
+      }
       else
 	signal_error ("Invalid line-spacing", new_value);
+    }
+  else if (CONSP (new_value))
+    {
+      Lisp_Object above = XCAR (new_value);
+      Lisp_Object below = XCDR (new_value);
+
+      /* Integer pair case.  */
+      if (RANGED_FIXNUMP (0, above, INT_MAX)
+	  && RANGED_FIXNUMP (0, below, INT_MAX))
+	{
+	  f->extra_line_spacing = XFIXNAT (above) + XFIXNAT (below);
+	  f->extra_line_spacing_above = XFIXNAT (above);
+	}
+
+      /* Float pair case.  */
+      else if (FLOATP (XCAR (new_value))
+	       && FLOATP (XCDR (new_value)))
+	{
+	  int new_spacing = (XFLOAT_DATA (above) + XFLOAT_DATA (below)) * FRAME_LINE_HEIGHT (f);
+	  int spacing_above = XFLOAT_DATA (above) * FRAME_LINE_HEIGHT (f);
+	  if(new_spacing >= 0 && spacing_above >= 0)
+	    {
+	      f->extra_line_spacing = new_spacing;
+	      f->extra_line_spacing_above = spacing_above;
+	    }
+	  else
+	    signal_error ("Invalid line-spacing", new_value);
+	}
+
+      /* Unmatched pair case.  */
+      else
+	{
+	  signal_error ("Invalid line-spacing", new_value);
+	}
     }
   else
     signal_error ("Invalid line-spacing", new_value);
@@ -7205,6 +7352,9 @@ syms_of_frame (void)
   DEFSYM (Qfont_parameter, "font-parameter");
   DEFSYM (Qforce, "force");
   DEFSYM (Qinhibit, "inhibit");
+  DEFSYM (Qframe_id, "frame-id");
+  DEFSYM (Qcloned_from, "cloned-from");
+  DEFSYM (Qundeleted, "undeleted");
 
   for (int i = 0; i < ARRAYELTS (frame_parms); i++)
     {
@@ -7589,6 +7739,9 @@ allow `make-frame' to show the current buffer even if its hidden.  */);
 #else
   frame_internal_parameters = list3 (Qname, Qparent_id, Qwindow_id);
 #endif
+  frame_internal_parameters = Fcons (Qframe_id, frame_internal_parameters);
+  frame_internal_parameters = Fcons (Qcloned_from, frame_internal_parameters);
+  frame_internal_parameters = Fcons (Qundeleted, frame_internal_parameters);
 
   DEFVAR_LISP ("alter-fullscreen-frames", alter_fullscreen_frames,
 	       doc: /* How to handle requests to resize fullscreen frames.
@@ -7613,6 +7766,7 @@ The default is \\+`inhibit' in NS builds and nil everywhere else.  */);
   alter_fullscreen_frames = Qnil;
 #endif
 
+  defsubr (&Sframe_id);
   defsubr (&Sframep);
   defsubr (&Sframe_live_p);
   defsubr (&Swindow_system);

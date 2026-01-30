@@ -82,6 +82,13 @@ other directory on your system.  You can also invoke the
 
 * Changes in Emacs 31.1
 
++++
+** 'line-spacing' now supports specifying spacing above the line.
+Previously, only spacing below the line could be specified.  The variable
+can now be set to a cons cell to specify spacing both above and below
+the line, which allows for vertically centering text.
+
++++
 ** 'prettify-symbols-mode' attempts to ignore undisplayable characters.
 Previously, such characters would be rendered as, e.g., white boxes.
 
@@ -198,6 +205,13 @@ different completion categories by customizing
 'completion-eager-update can be set to t to make "*Completions*" always
 be updated as you type, or nil to suppress this always.  Note that for
 large or inefficient completion tables this can slow down typing.
+
++++
+*** New optional value of 'minibuffer-visible-completions'.
+If the value of this option is 'up-down', only the '<up>' and '<down>'
+arrow keys move point between candidates shown in the "*Completions*"
+buffer display, while '<right>' and '<left>' arrows move point in the
+minibuffer window.
 
 ---
 *** 'RET' chooses the completion selected with 'M-<up>/M-<down>'.
@@ -402,11 +416,20 @@ for which you can use '(category . tex-shell)'.
 
 +++
 *** New user option 'split-window-preferred-direction'.
-Users can now choose in which direction Emacs tries to split first:
-vertically or horizontally.  The new default is to prefer to split
-horizontally if the frame is landscape and vertically if it is portrait.
-You can customize this option to 'vertical' to restore Emacs's old
-behavior of always preferring vertical splits.
+Functions called by 'display-buffer' split the selected window when they
+need to create a new window.  A window can be split either vertically,
+one below the other, or horizontally, side by side.  This new option
+determines which direction will be tried first, when both directions are
+possible according to the values of 'split-width-threshold' and
+'split-height-threshold'.  The default value is 'longest', which means
+to prefer to split horizontally if the window's frame is a "landscape"
+frame, and vertically if it is a "portrait" frame.  (A frame is
+considered to be "portrait" if its vertical dimension in pixels is
+greater or equal to its horizontal dimension, otherwise it's considered
+to be "landscape".)  Previous versions of Emacs always tried to split
+vertically first, so to get previous behavior, you can customize this
+option to 'vertical'.  The value 'horizontal' always prefers the
+horizontal split.
 
 +++
 *** New argument INDIRECT for 'get-buffer-window-list'.
@@ -440,6 +463,12 @@ adjacent windows and subsequently operate on that parent.
 'uncombine-window' can then be used to restore the window configuration
 to the state it had before running 'combine-windows'.
 
++++
+*** New function 'window-cursor-info'.
+This function returns a vector of pixel-level information about the
+physical cursor in a given window, including its type, coordinates,
+dimensions, and ascent.
+
 ** Frames
 
 +++
@@ -465,7 +494,7 @@ either resize the frame and change the fullscreen status accordingly or
 keep the frame size unchanged.  The value t means to first reset the
 fullscreen status and then resize the frame.
 
-*** New commands to set frame size and position in one compound step.
+*** New functions to set frame size and position in one compound step.
 'set-frame-size-and-position' sets the new size and position of a frame
 in one compound step.  Both, size and position, can be specified as with
 the corresponding frame parameters 'width', 'height', 'left' and 'top'.
@@ -481,6 +510,30 @@ frames into one of these frames and deletes the other one.
 *** Frames can now be renamed to "F<number>" on text terminals.
 Unlike with other frame names, an attempt to rename to "F<number>" throws
 an error when a frame of that name already exists.
+
++++
+*** New frame parameters 'cloned-from' and 'undeleted'.
+The frame parameter 'cloned-from' is set to the frame from which the new
+frame is cloned using the command 'clone-frame'.
+
+The frame parameter 'undeleted' is set to t when a frame is undeleted
+using the command 'undelete-frame'.
+
+These are useful if you need to detect a cloned frame or undeleted frame
+in hooks like 'after-make-frame-functions' and
+'server-after-make-frame-hook'.
+
+*** Frames now have unique ids and the new function 'frame-id'.
+Each non-tooltip frame is assigned a unique integer id.  This allows you
+to unambiguously identify frames even if they share the same name or
+title.  When 'undelete-frame-mode' is enabled, each deleted frame's id
+is stored for resurrection.  The function 'frame-id' returns a frame's
+id (in C, use the frame struct member 'id').
+
+*** New commands 'select-frame-by-id', 'undelete-frame-by-id'.
+The command 'select-frame-by-id' selects a frame by ID and undeletes it
+if deleted.  The command 'undelete-frame-by-id' undeletes a frame by its
+ID.  When called interactively, both functions prompt for an ID.
 
 ** Mode Line
 
@@ -506,9 +559,10 @@ every buffer.
 ** Tab Bars and Tab Lines
 
 ---
-*** New command 'merge-tabs'.
-'merge-tabs' merges all windows from two tabs into one of these tabs
-and closes the other tab.
+*** New commands 'split-tab' and 'merge-tabs'.
+'split-tab' moves a specified number of windows from an existing tab
+to a newly-created tab.  'merge-tabs' merges all windows from two tabs
+into one of these tabs and closes the other tab.
 
 ---
 *** New abnormal hook 'tab-bar-auto-width-functions'.
@@ -666,6 +720,17 @@ project, during completion.  That makes some items shorter.
 The category defaults are the same as for 'buffer' but any user
 customizations would need to be re-added.
 
++++
+*** 'project-mode-line' can now show project name only for local files.
+If the value of 'project-mode-line' is 'non-remote', project name and
+the Project menu will be shown on the mode line only for projects with
+local files.
+
+** Help
+
++++
+*** New keybinding 'C-h u' for 'apropos-user-option'.
+
 ** IDLWAVE has been moved to GNU ELPA.
 The version bundled with Emacs is out-of-date, and is now marked as
 obsolete.  Use 'M-x list-packages' to install the 'idlwave' package from
@@ -748,6 +813,15 @@ on the terminal from which 'emacsclient' was invoked.
 Emacs previously discarded arguments to emacsclient of zero length, such
 as in 'emacsclient --eval "(length (pop server-eval-args-left))" ""'.
 These are no longer discarded.
+
++++
+** New user option 'xterm-update-cursor' to update cursor display on TTYs.
+When enabled, Emacs sends Xterm escape sequences on Xterm-compatible
+terminals to update the cursor's appearacse.  Emacs can update the
+cursor's shape and color.  For example, if you use a purple bar cursor
+on graphical displays then when this option is enabled Emacs will use a
+purple bar cursor on compatible terminals as well.  See the Info node
+"(emacs) Cursor Display" for more information.
 
 
 * Editing Changes in Emacs 31.1
@@ -896,6 +970,11 @@ These commands did not previously accept a prefix argument.
 Now a numeric prefix argument specifies a repeat count, just like it
 already did for 'undo'.
 
+** New minor mode 'center-line-mode'.
+This mode keeps modified lines centered horizontally according to the
+value of 'fill-column', by calling 'center-line' on each non-empty line
+of the modified region.
+
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
@@ -1039,11 +1118,11 @@ The new variable 'forward-comment-function' is set to the new function
 'treesit-forward-comment' if a major mode defines the thing 'comment'.
 
 +++
-*** New function 'treesit-query-eagerly-compiled-p'
+*** New function 'treesit-query-eagerly-compiled-p'.
 This function returns non-nil if a query was eagerly compiled.
 
 +++
-*** New function 'treesit-query-source'
+*** New function 'treesit-query-source'.
 This function returns the string or sexp source query of a compiled query.
 
 +++
@@ -1135,8 +1214,9 @@ convention.  Also, the ':match?' predicate can now take the regexp as
 either the first or second argument, so it works with both tree-sitter
 convention (regexp arg second) and Emacs convention (regexp arg first).
 
+** Track changes
+
 +++
-** Track-changes
 *** New variable 'track-changes-undo-only' to distinguish undo changes.
 
 ** Hideshow
@@ -1152,7 +1232,7 @@ blocks.
 This command hides or shows all the blocks in the current buffer.
 
 ---
-*** 'hs-hide-level' no longer hide all the blocks in the current buffer.
+*** 'hs-hide-level' no longer hides all the blocks in the current buffer.
 If 'hs-hide-level' was not inside a code block it would hide all the
 blocks in the buffer like 'hs-hide-all'.  Now it should only hide all
 the second level blocks.
@@ -1208,9 +1288,8 @@ buffer-local variables 'hs-block-start-regexp', 'hs-c-start-regexp',
 'hs-forward-sexp-function', etc.
 
 +++
-*** 'hs-hide-level' and 'hs-cycle' can now hide comments too.
+*** 'hs-hide-level' can now hide comments too.
 This is controlled by 'hs-hide-comments-when-hiding-all'.
-
 
 ** C-ts mode
 
@@ -1270,6 +1349,12 @@ available.
 Now method chaining is indented by 8 spaces rather than 4, and this
 option controls how much is indented for method chaining.
 
+** JSON-ts mode
+
+*** New command 'json-ts-jq-path-at-point'.
+This command copies the path of the JSON element at point to the
+kill-ring, formatted for use with the 'jq' utility.
+
 ** PHP-ts mode
 
 ---
@@ -1320,6 +1405,13 @@ associated to a remote PHP file, show the remote PHP ini files.
 *** New user option 'rust-ts-mode-fontify-number-suffix-as-type'.
 Rust number literals may have an optional type suffix.  When this option
 is non-nil, this suffix is fontified using 'font-lock-type-face'.
+
+** YAML-ts mode
+
+---
+*** New user option 'yaml-ts-mode-yamllint-options'.
+Additional options for 'yamllint' the command used for Flymake's YAML
+support.
 
 ** EIEIO
 
@@ -1625,7 +1717,6 @@ is the default.
 
 This user option is in sympathy with recentf, and savehist autosave
 timers.
-
 
 ** Savehist
 
@@ -1996,7 +2087,7 @@ for docstrings where symbols 'nil' and 't' are in quotes.
 In most cases, having it enabled leads to a large amount of false
 positives.
 
-*** New file-local variable 'lisp-indent-local-overrides'
+*** New file-local variable 'lisp-indent-local-overrides'.
 This variable can be used to locally override the indent specification
 of symbols.
 
@@ -2007,6 +2098,14 @@ of symbols.
 When you kill the IELM process with 'C-c C-c', the input history is now
 saved to the file specified by 'ielm-history-file-name', just like when
 you exit the Emacs session or kill the IELM buffer.
+
+---
+*** New value 'point' for user option 'ielm-dynamic-return'.
+When 'ielm-dynamic-return' is set to 'point', typing 'RET' has dynamic
+behavior based on whether point is inside an sexp.  While point is
+inside an sexp typing 'RET' inserts a newline, and otherwise Emacs
+proceeds with evaluating the expression.  This is useful when
+'electric-pair-mode', or a similar automatic pairing mode, is enabled.
 
 ** DocView
 
@@ -2038,6 +2137,14 @@ option 'doc-view-djvused-program'.
 The default value is now 30 seconds, as the old value was too short to
 allow reading the help text.
 
++++
+*** Ispell can now save spelling corrections as abbrevs.
+In the Ispell command loop, type 'C-u' immediately before selecting a
+replacement to toggle whether that correction will be saved as a global
+abbrev expansion for its misspelling.  The new user option
+'ispell-save-corrections-as-abbrevs' determines whether abbrev saving
+is enabled by default.
+
 ** Flyspell
 
 ---
@@ -2064,6 +2171,10 @@ for Tramp internal buffers, are flushed.  This is helpful to prune
 connections after you close remote-file buffers without having to either
 cherry-pick via 'tramp-cleanup-connection' or clear them all via
 'tramp-cleanup-all-connections'.
+
++++
+*** External methods can now be used in multi-hop connections.
+This is implemented for 'tramp-sh' methods, like "/scp:user@host|sudo::".
 
 +++
 *** New command 'tramp-dired-find-file-with-sudo'.
@@ -2445,7 +2556,7 @@ appearance of the list can be customized with the new faces
 
 +++
 *** Printing root branch logs has moved to 'C-x v b L'.
-Previously the command to print the root log for a branch was bound to
+Previously, the command to print the root log for a branch was bound to
 'C-x v b l'.  It has now been renamed from 'vc-print-branch-log' to
 'vc-print-root-branch-log', and bound to 'C-x v b L'.  This is more
 consistent with the rest of the 'C-x v' keymap, and makes room for a new
@@ -2508,8 +2619,15 @@ cloning, or prompts for that, too.
 When the argument is non-nil, the function switches to a buffer visiting
 the directory into which the repository was cloned.
 
++++
+*** 'vc-revert' is now bound to '@' in VC-Dir.
+
++++
+*** 'vc-revert' is now additionally bound to 'C-x v @'.
+This is in addition to 'C-x v u'.
+
 ---
-*** 'C-x v u' ('vc-revert') now works on directories listed in VC Directory.
+*** 'vc-revert' now works on directories listed in VC Directory.
 Reverting a directory means reverting changes to all files inside it.
 
 +++
@@ -2625,8 +2743,8 @@ relevant buffers before generating the contents of a VC Directory buffer
 *** New commands to report incoming and outgoing diffs.
 'vc-root-diff-incoming' and 'vc-root-diff-outgoing' report diffs of all
 the changes that would be pulled and would be pushed, respectively.
-They are the diff analogues of the existing commands 'vc-log-incoming'
-and 'vc-log-outgoing'.
+They are the diff analogues of the existing commands
+'vc-root-log-incoming' and 'vc-root-log-outgoing'.
 
 In particular, 'vc-root-diff-outgoing' is useful as a way to preview
 your push and ensure that all and only the changes you intended to
@@ -2636,12 +2754,15 @@ include were committed and will be pushed.
 current VC fileset.
 
 +++
-*** New commands to report diffs of outstanding changes.
-'C-x v o =' ('vc-diff-outgoing-base') and 'C-x v o D'
+*** New commands to report information about outstanding changes.
+'C-x v T =' ('vc-diff-outgoing-base') and 'C-x v T D'
 ('vc-root-diff-outgoing-base') report diffs of changes since the merge
 base with the remote branch, including uncommitted changes.
-They are useful to view all outstanding (unmerged, unpushed) changes on
-the current branch.
+'C-x v T l' ('vc-log-outgoing-base') and 'C-x v T L'
+('vc-root-log-outgoing-base') show the corresponding revision logs.
+These are useful to view all outstanding (unmerged, unpushed) changes on
+the current branch.  They are also available as 'T =', 'T D', 'T l' and
+'T L' in VC-Dir buffers.
 
 +++
 *** New user option 'vc-use-incoming-outgoing-prefixes'.
@@ -2649,16 +2770,16 @@ If this is customized to non-nil, 'C-x v I' and 'C-x v O' become prefix
 commands, such that the new incoming and outgoing commands have global
 bindings:
 
-- 'C-x v I L' is bound to 'vc-log-incoming'
+- 'C-x v I L' is bound to 'vc-root-log-incoming'
 - 'C-x v I D' is bound to 'vc-root-diff-incoming'
-- 'C-x v O L' is bound to 'vc-log-outgoing'
+- 'C-x v O L' is bound to 'vc-root-log-outgoing'
 - 'C-x v O D' is bound to 'vc-root-diff-outgoing'.
 
 +++
 *** New display of outgoing revisions count in VC Directory.
 If there are outgoing revisions, VC Directory now includes a count of
 how many in its headers, to remind you to push them.
-You can disable this by customizing vc-dir-show-outgoing-count to nil.
+You can disable this by customizing 'vc-dir-show-outgoing-count' to nil.
 
 +++
 *** New user option 'vc-async-checkin' to enable async checkin operations.
@@ -2748,6 +2869,13 @@ already have, consider replacing the default global bindings, like this:
 ---
 *** New command alias 'vc-restore' for 'vc-revert'.
 
+---
+*** The 'diff-restrict-view' command is disabled by default.
+This command is Diff mode's specialized 'narrow-to-region'.
+'narrow-to-region' has long been disabled by default, so for
+consistency, 'diff-restrict-view' is now too.
+To enable it again, use 'M-x enable-command'.
+
 ** Package
 
 +++
@@ -2783,6 +2911,11 @@ When called from Lisp, it now only accepts a symbol.
 When invoking the command in a Dired buffer with marked files,
 the command will only copy those files.
 
+---
+*** 'package-isolate' can now also install packages.
+If a package is missing, 'package-isolate' will fetch the missing
+tarballs and prepare them to be activated in the sub-process.
+
 +++
 *** package-x.el is now obsolete.
 
@@ -2805,6 +2938,14 @@ packages.
 
 ---
 *** Uninstalling a package now removes its directory from 'load-path'.
+
++++
+*** Packages can be reviewed before installation or upgrade.
+The user option 'package-review-policy' can configure which packages
+the user should be allowed to review before any processing takes place.
+The package review can include reading the downloaded source code,
+presenting a diff between the downloaded code and a previous
+installation or displaying a ChangeLog.
 
 ** Rcirc
 
@@ -2915,6 +3056,10 @@ Meant to be given a global binding convenient to the user.  Example:
 *** 'speedbar-easymenu-definition-trailer' is now a function.
 
 ** Icomplete
+
+*** New key 'M-j' for 'icomplete-mode' and 'icomplete-vertical-mode'.
+Like 'M-j' in 'fido-mode', it can exit the minibuffer with a selected
+candidate even when 'icomplete-show-matches-on-no-input' is non-nil.
 
 *** New user options for 'icomplete-vertical-mode'.
 New user options have been added to enhance 'icomplete-vertical-mode':
@@ -3294,7 +3439,7 @@ the source, or to 'antlr-v3' otherwise.
 
 *** New command 'antlr-v4-mode' is a derived mode of 'antlr-mode'.
 It sets 'antlr-tool-version' to value 'antlr-v4', and is automatically
-used for files with extension "g4".
+used for files with extension ".g4".
 
 *** The variable 'antlr-language' is now used more generally.
 The variable has a symbol as value which determines which of the
@@ -3307,8 +3452,8 @@ ObjC, Python and Ruby, additional to Java and Cpp.
 
 *** New user option 'antlr-run-tool-on-buffer-file'.
 Command 'antlr-run-tool' now usually runs on the file for the current
-buffer.  Customize this user option to have value ' nil' to get the
-previous behavior back.
+buffer.  Customize this user option to nil to get the previous behavior
+back.
 
 ** Hi Lock
 
@@ -3317,6 +3462,10 @@ previous behavior back.
 If an active region exists, the commands 'hi-lock-line-face-buffer' and
 'hi-lock-face-phrase-buffer' now use its contents as their default
 value.  Previously, only 'hi-lock-face-buffer' supported this.
+
+** Shadowfile
+
+*** 'shadow-info-buffer' and 'shadow-todo-buffer' use ephemeral buffer names now.
 
 
 * New Modes and Packages in Emacs 31.1
@@ -3479,8 +3628,8 @@ separator, are also supported.
 
 ---
 ** The experimental variable 'binary-as-unsigned' has been removed.
-Instead of (let ((binary-as-unsigned t)) (format "%x" N)) you can use
-(format "%x" (logand N MASK)) where MASK is for the desired word size,
+Instead of '(let ((binary-as-unsigned t)) (format "%x" N))' you can use
+'(format "%x" (logand N MASK))' where MASK is for the desired word size,
 e.g., #x3fffffffffffffff for typical Emacs fixnums.
 
 +++
@@ -3529,6 +3678,11 @@ and other similar functions.
 
 
 * Lisp Changes in Emacs 31.1
+
++++
+** New function 'garbage-collect-heapsize'.
+Same as 'garbage-collect' but just returns the info from the last GC
+without performing a collection.
 
 +++
 ** Improve 'replace-region-contents' to accept more forms of sources.
@@ -3661,11 +3815,20 @@ without marking it as automatically buffer-local.
 ** The obsolete face attribute ':reverse-video' has been removed.
 Use ':inverse-video' instead.
 
+** D-Bus
+
 +++
-** Support interactive D-Bus authorization.
+*** Support interactive D-Bus authorization.
 A new ':authorizable t' parameter has been added to 'dbus-call-method'
 and 'dbus-call-method-asynchronously' to allow the user to interactively
 authorize the invoked D-Bus method (for example via polkit).
+
++++
+*** New D-Bus functions to support systemd inhibitor locks.
+The functions 'dbus-make-inhibitor-lock', 'dbus-close-inhibitor-lock'
+and 'dbus-registered-inhibitor-locks' implement acquiring and releasing
+systemd inhibitor locks.  See the Info node "(dbus) Inhibitor Locks" for
+details.
 
 ** The customization group 'wp' has been removed.
 It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
@@ -3770,6 +3933,13 @@ Binding 'inhibit-message' to a non-nil value will now suppress both
 the display of messages and the clearing of the echo area, such as
 caused by calling 'message' with a nil argument.
 
+---
+** 'minibuffer-message' no longer blocks while displaying message.
+'minibuffer-message' now uses a timer to clear the message printed to
+the minibuffer, instead of waiting with 'sit-for' and then clearing it.
+This makes 'minibuffer-message' usable in Lisp programs which want to
+print a message and then continue to perform work.
+
 ** Special Events
 
 +++
@@ -3837,14 +4007,23 @@ When the theme is set on PGTK, Android, or MS-Windows systems,
 variable 'toolkit-theme' as either symbol 'dark' or 'light', but may be
 extended to encompass other toolkit-specific symbols in the future.
 
+** Progress reporter
+
 +++
-** Progress reporter callbacks.
+*** Progress reporter callbacks.
 'make-progress-reporter' now accepts optional arguments UPDATE-CALLBACK,
 called on progress steps, and DONE-CALLBACK, called when the progress
 reporter is done.  See the 'make-progress-reporter' docstring for a full
 specification of these new optional arguments.
 
-** Add binary format specifications '%b' and '%B'.
++++
+*** Progress reporter context.
+'make-progress-reporter' now accepts the optional argument CONTEXT,
+which if it is the symbol 'async', inhibits updates in the echo area
+when it is busy.  This is useful, for example, if you want to monitor progress
+of an inherently asynchronous command such as 'compile'.
+
+** Binary format specifications '%b' and '%B' added.
 These produce the binary representation of a number.
 '%#b' and '%#B' prefix the bits with '0b' and '0B', respectively.
 

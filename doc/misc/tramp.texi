@@ -1132,9 +1132,11 @@ an external transfer program.
 External methods save on the overhead of encoding and decoding of
 inline methods.
 
+@vindex tramp-copy-size-limit
 Since external methods have the overhead of opening a new channel,
 files smaller than @code{tramp-copy-size-limit} still use inline
-methods.
+methods.  If an external method is used inside a multi-hop connection
+(@pxref{Multi-hops}), its inherent inline method is used as well.
 
 @table @asis
 @cindex method @option{rcp}
@@ -3891,7 +3893,7 @@ proxy @samp{bird@@bastion} to a remote file on @samp{you@@remotehost}:
 ssh@value{postfixhop}you@@remotehost@value{postfix}/path @key{RET}}
 @end example
 
-Each involved method must be an inline method (@pxref{Inline methods}).
+Each involved method must be handled by @value{tramp}'s @code{tramp-sh} backend.
 
 @value{tramp} adds the ad-hoc definitions as an ephemeral record to
 @code{tramp-default-proxies-alist}, which are available for reuse

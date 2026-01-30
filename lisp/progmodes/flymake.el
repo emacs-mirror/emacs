@@ -695,12 +695,12 @@ region is invalid.  This function saves match data."
 (defvar flymake-diagnostic-functions nil
   "Special hook of Flymake backends that check a buffer.
 
-The functions in this hook diagnose problems in a buffer's
-contents and provide information to the Flymake user interface
-about where and how to annotate problems diagnosed in a buffer.
+The functions in this hook diagnose problems in a buffer's contents and
+provide information to the Flymake user interface about where and how to
+annotate problems diagnosed in a buffer.
 
-Each backend function must be prepared to accept an arbitrary
-number of arguments:
+Each backend function must be prepared to accept an arbitrary number of
+arguments:
 
 * the first argument is always REPORT-FN, a callback function
   detailed below;
@@ -710,74 +710,72 @@ number of arguments:
 
 Currently, Flymake may provide these keyword-value pairs:
 
-* `:recent-changes', a list of recent changes since the last time
-  the backend function was called for the buffer.  An empty list
-  indicates that no changes have been recorded.  If it is the
-  first time that this backend function is called for this
-  activation of `flymake-mode', then this argument isn't provided
-  at all (i.e. it's not merely nil).
+* `:recent-changes', a list of recent changes since the last time the
+  backend function was called for the buffer.  An empty list indicates
+  that no changes have been recorded.  If it is the first time that this
+  backend function is called for this activation of `flymake-mode', then
+  this argument isn't provided at all (i.e. it's not merely nil).
 
-  Each element is in the form (BEG END TEXT) where BEG and END
-  are buffer positions, and TEXT is a string containing the text
-  contained between those positions (if any) after the change was
-  performed.
+  Each element is in the form (BEG END TEXT) where BEG and END are
+  buffer positions, and TEXT is a string containing the text contained
+  between those positions (if any) after the change was performed.
 
-* `:changes-start' and `:changes-end', the minimum and maximum
-  buffer positions touched by the recent changes.  These are only
-  provided if `:recent-changes' is also provided.
+* `:changes-start' and `:changes-end', the minimum and maximum buffer
+  positions touched by the recent changes.  These are only provided if
+  `:recent-changes' is also provided.
 
-Whenever Flymake or the user decides to re-check the buffer,
-backend functions are called as detailed above and are expected
-to initiate this check, but aren't required to complete it before
-exiting: if the computation involved is expensive, especially for
-large buffers, that task can be scheduled for the future using
-asynchronous processes or other asynchronous mechanisms.
+Whenever Flymake or the user decides to re-check the buffer, backend
+functions are called as detailed above and are expected to initiate this
+check, but aren't required to complete it before exiting: if the
+computation involved is expensive, especially for large buffers, that
+task can be scheduled for the future using asynchronous processes or
+other asynchronous mechanisms.
 
-In any case, backend functions are expected to return quickly or
-signal an error, in which case the backend is disabled.  Flymake
-will not try disabled backends again for any future checks of
-this buffer.  To reset the list of disabled backends, turn
-`flymake-mode' off and on again, or interactively call
-`flymake-start' with a prefix argument.
+In any case, backend functions are expected to return quickly or signal
+an error, in which case the backend is disabled.  Flymake will not try
+disabled backends again for any future checks of this buffer.  To reset
+the list of disabled backends, turn `flymake-mode' off and on again, or
+interactively call `flymake-start' with a prefix argument.
 
 If the function returns, Flymake considers the backend to be
-\"running\".  If it has not done so already, the backend is
-expected to call the function REPORT-FN with a single argument
-REPORT-ACTION also followed by an optional list of keyword-value
-pairs in the form (:REPORT-KEY VALUE :REPORT-KEY2 VALUE2...).
+\"running\".  If it has not done so already, the backend is expected to
+call the function REPORT-FN with a single argument REPORT-ACTION also
+followed by an optional list of keyword-value pairs in the
+form (:REPORT-KEY VALUE :REPORT-KEY2 VALUE2...).
 
 Currently accepted values for REPORT-ACTION are:
 
 * A (possibly empty) list of diagnostic objects created with
-  `flymake-make-diagnostic', causing Flymake to delete all
-  previous diagnostic annotations in the buffer and create new
-  ones from this list.
+  `flymake-make-diagnostic', causing Flymake to delete all previous
+  diagnostic annotations in the buffer and create new ones from this
+  list.
 
-  A backend may call REPORT-FN repeatedly in this manner, but
-  only until Flymake considers that the most recently requested
-  buffer check is now obsolete because, say, buffer contents have
-  changed in the meantime.  The backend is only given notice of
-  this via a renewed call to the backend function.  Thus, to
-  prevent making obsolete reports and wasting resources, backend
-  functions should first cancel any ongoing processing from
-  previous calls.
+  A backend may call REPORT-FN repeatedly in this manner, but only until
+  Flymake considers that the most recently requested buffer check is now
+  obsolete because, say, buffer contents have changed in the meantime.
+  The backend is only given notice of this via a renewed call to the
+  backend function.  Thus, to prevent making obsolete reports and
+  wasting resources, backend functions should first cancel any ongoing
+  processing from previous calls.
 
-* The symbol `:panic', signaling that the backend has encountered
-  an exceptional situation and should be disabled.
+* The symbol `:panic', signaling that the backend has encountered an
+  exceptional situation and should be disabled.
 
 Currently accepted REPORT-KEY arguments are:
 
-* `:explanation' value should give user-readable details of
-  the situation encountered, if any.
+* `:explanation' value should give user-readable details of the
+  situation encountered, if any.
 
-* `:force': value should be a boolean suggesting that Flymake
-  consider the report even if it was somehow unexpected.
+* `:force': value should be a boolean suggesting that Flymake consider
+  the report even if it was somehow unexpected.
 
-* `:region': a cons (BEG . END) of buffer positions indicating
-  that the report applies to that region only.  Specifically,
-  this means that Flymake will only delete diagnostic annotations
-  of past reports if they intersect the region by at least one
-  character.")
+* `:region': a cons (BEG . END) of buffer positions specifying that
+  Flymake should only delete diagnostic annotations of past reports if
+  they intersect the region by at least one character.  The list of
+  diagnostics objects in the report need not be contained in the region.
+  This makes it allows backends to choose between accumulating or
+  completely replacing diagnostics across different invocations of
+  REPORT-FN, by specifying a either 0-length region or the full buffer.")
 
 (put 'flymake-diagnostic-functions 'safe-local-variable #'null)
 

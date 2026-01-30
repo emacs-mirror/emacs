@@ -951,23 +951,24 @@ and lines for the clone.
 
 FRAME defaults to the selected frame.  The frame is created on the
 same terminal as FRAME.  If the terminal is a text-only terminal then
-also select the new frame."
+also select the new frame.
+
+A cloned frame is assigned a new frame ID.  See `frame-id'."
   (interactive (list (selected-frame) current-prefix-arg))
   (let* ((frame (or frame (selected-frame)))
          (windows (unless no-windows
                     (window-state-get (frame-root-window frame))))
-         (default-frame-alist
-          (seq-remove (lambda (elem)
-                        (memq (car elem) frame-internal-parameters))
-                      (frame-parameters frame)))
+         (parameters
+          (append `((cloned-from . ,frame))
+                  (frame--purify-parameters (frame-parameters frame))))
          new-frame)
     (when (and frame-resize-pixelwise
                (display-graphic-p frame))
       (push (cons 'width (cons 'text-pixels (frame-text-width frame)))
-            default-frame-alist)
+            parameters)
       (push (cons 'height (cons 'text-pixels (frame-text-height frame)))
-            default-frame-alist))
-    (setq new-frame (make-frame))
+            parameters))
+    (setq new-frame (make-frame parameters))
     (when windows
       (window-state-put windows (frame-root-window new-frame) 'safe))
     (unless (display-graphic-p frame)
@@ -993,6 +994,24 @@ frame, unless you add them to the hook in your early-init file.")
   "Parameters `make-frame' copies from the selected to the new frame.")
 
 (defvar x-display-name)
+
+(defun frame--purify-parameters (parameters)
+  "Return PARAMETERS without internals and ignoring unset parameters.
+Use this helper function so that `make-frame' does not override any
+parameters.
+
+In the return value, assign nil to each parameter in
+`default-frame-alist', `window-system-default-frame-alist',
+`frame-inherited-parameters', which is not in PARAMETERS, and remove all
+parameters in `frame-internal-parameters' from PARAMETERS."
+  (dolist (p (append default-frame-alist
+                     window-system-default-frame-alist
+                     frame-inherited-parameters))
+    (unless (assq (car p) parameters)
+      (push (cons (car p) nil) parameters)))
+  (seq-remove (lambda (elem)
+                (memq (car elem) frame-internal-parameters))
+              parameters))
 
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
@@ -1093,6 +1112,12 @@ current buffer even if it is hidden."
       (setq params (cons '(minibuffer)
                          (delq (assq 'minibuffer params) params))))
 
+    ;; Let the `frame-creation-function' apparatus assign a new frame id
+    ;; for a new or cloned frame.  For an undeleted frame, send the old
+    ;; id via a frame parameter.
+    (when-let* ((id (cdr (assq 'undeleted params))))
+      (push (cons 'frame-id id) params))
+
     ;; Now make the frame.
     (run-hooks 'before-make-frame-hook)
 
@@ -1124,7 +1149,7 @@ current buffer even if it is hidden."
       ;; buffers for these windows were set (Bug#79606).
       (let* ((root (frame-root-window frame))
 	     (buffer (window-buffer root)))
-	(with-current-buffer buffer
+        (with-current-buffer buffer
 	  (set-window-fringes
 	   root left-fringe-width right-fringe-width fringes-outside-margins)
 	  (set-window-scroll-bars
@@ -1134,7 +1159,7 @@ current buffer even if it is hidden."
 	   root left-margin-width right-margin-width)))
       (let* ((mini (minibuffer-window frame))
 	     (buffer (window-buffer mini)))
-	(when (eq (window-frame mini) frame)
+        (when (eq (window-frame mini) frame)
 	  (with-current-buffer buffer
 	    (set-window-fringes
 	     mini left-fringe-width right-fringe-width fringes-outside-margins)
@@ -1360,10 +1385,30 @@ defaults to the selected frame."
 	(push (cons (frame-parameter frame 'name) frame) alist)))
     (nreverse alist)))
 
+(defun frame--make-frame-ids-alist (&optional frame)
+  "Return alist of frame identifiers and frames starting with FRAME.
+Visible or iconified frames on the same terminal as FRAME are listed
+along with frames that are undeletable.  Frames with a non-nil
+`no-other-frame' parameter are not listed.  The optional argument FRAME
+must specify a live frame and defaults to the selected frame."
+  (let ((frames (frame-list-1 frame))
+        (terminal (frame-parameter frame 'terminal))
+        alist)
+    (dolist (frame frames)
+      (when (and (frame-visible-p frame)
+		 (eq (frame-parameter frame 'terminal) terminal)
+		 (not (frame-parameter frame 'no-other-frame)))
+	(push (cons (number-to-string (frame-id frame)) frame) alist)))
+    (dolist (elt undelete-frame--deleted-frames)
+      (push (cons (number-to-string (nth 3 elt)) nil) alist))
+    (nreverse alist)))
+
 (defvar frame-name-history nil)
 (defun select-frame-by-name (name)
   "Select the frame whose name is NAME and raise it.
 Frames on the current terminal are checked first.
+Raise the frame and give it input focus.  On a text terminal, the frame
+will occupy the entire terminal screen after the next redisplay.
 If there is no frame by that name, signal an error."
   (interactive
    (let* ((frame-names-alist (make-frame-names-alist))
@@ -1371,9 +1416,7 @@ If there is no frame by that name, signal an error."
 	   (input (completing-read
 		   (format-prompt "Select Frame" default)
 		   frame-names-alist nil t nil 'frame-name-history)))
-     (if (= (length input) 0)
-	 (list default)
-       (list input))))
+     (list (if (zerop (length input)) default input))))
   (select-frame-set-input-focus
    ;; Prefer frames on the current display.
    (or (cdr (assoc name (make-frame-names-alist)))
@@ -1382,6 +1425,50 @@ If there is no frame by that name, signal an error."
            (when (equal (frame-parameter frame 'name) name)
              (throw 'done frame))))
        (error "There is no frame named `%s'" name))))
+
+(defun frame-by-id (id)
+  "Return the live frame object associated with ID.
+Return nil if ID is not found."
+  (seq-find
+   (lambda (frame)
+     (eq id (frame-id frame)))
+   (frame-list)))
+
+(defun frame-id-live-p (id)
+  "Return non-nil if ID is associated with a live frame object.
+This is useful when you have a frame ID and a potentially dead frame
+reference that may have been resurrected.  Also see `frame-live-p'."
+  (frame-live-p (frame-by-id id)))
+
+(defun select-frame-by-id (id &optional noerror)
+  "Select the frame whose identifier is ID and raise it.
+If the frame is undeletable, undelete it.
+Frames on the current terminal are checked first.
+Raise the frame and give it input focus.  On a text terminal, the frame
+will occupy the entire terminal screen after the next redisplay.
+Return the selected frame or signal an error if no frame matching ID
+was found.  If NOERROR is non-nil, return nil instead."
+  (interactive
+   (let* ((frame-ids-alist (frame--make-frame-ids-alist))
+	  (default (car (car frame-ids-alist)))
+	  (input (completing-read
+		  (format-prompt "Select Frame by ID" default)
+		  frame-ids-alist nil t)))
+     (list (string-to-number
+            (if (zerop (length input)) default input)))))
+  ;; `undelete-frame-by-id' returns the undeleted frame, or nil.
+  (unless (undelete-frame-by-id id 'noerror)
+    ;; Prefer frames on the current display.
+    (if-let* ((found (or (cdr (assq id (frame--make-frame-ids-alist)))
+                         (catch 'done
+                           (dolist (frame (frame-list))
+                             (when (eq (frame-id frame) id)
+                           (throw 'done frame)))))))
+        (progn
+          (select-frame-set-input-focus found)
+          found)
+      (unless noerror
+        (error "There is no frame with identifier `%S'" id)))))
 
 
 ;;;; Background mode.
@@ -1666,7 +1753,7 @@ resize and move FRAME."
       (setq text-height
             (- (round (* height parent-or-workarea-height))
                outer-minus-text-height)))
-     (width
+     (height
       (user-error "Invalid height specification")))
 
     (cond
@@ -3125,7 +3212,8 @@ Only the 16 most recently deleted frames are saved."
                    ;; to restore a graphical frame.
                    (and (eq (car elem) 'display) (not (display-graphic-p)))))
              (frame-parameters frame))
-            (window-state-get (frame-root-window frame)))
+            (window-state-get (frame-root-window frame))
+            (frame-id frame))
            undelete-frame--deleted-frames))
     (if (> (length undelete-frame--deleted-frames) 16)
         (setq undelete-frame--deleted-frames
@@ -3148,7 +3236,9 @@ Without a prefix argument, undelete the most recently deleted
 frame.
 With a numerical prefix argument ARG between 1 and 16, where 1 is
 most recently deleted frame, undelete the ARGth deleted frame.
-When called from Lisp, returns the new frame."
+When called from Lisp, returns the new frame.
+Return the undeleted frame, or nil if a frame was not undeleted.
+An undeleted frame retains its original frame ID.  See `frame-id'."
   (interactive "P")
   (if (not undelete-frame-mode)
       (user-error "Undelete-Frame mode is disabled")
@@ -3169,11 +3259,46 @@ When called from Lisp, returns the new frame."
                  (if graphic "graphic" "non-graphic"))
               (setq undelete-frame--deleted-frames
                     (delq frame-data undelete-frame--deleted-frames))
-              (let* ((default-frame-alist (nth 1 frame-data))
-                     (frame (make-frame)))
+              (let* ((parameters
+                      ;; `undeleted' signals to `make-frame' to reuse its id.
+                      (append `((undeleted . ,(nth 3 frame-data)))
+                              (frame--purify-parameters (nth 1 frame-data))))
+                     (frame (make-frame parameters)))
                 (window-state-put (nth 2 frame-data) (frame-root-window frame) 'safe)
                 (select-frame-set-input-focus frame)
                 frame))))))))
+
+(defun undelete-frame-id-index (id)
+  "Return an `undelete-frame' index, if ID is that of an undeletable frame.
+Return nil if ID is not associated with an undeletable frame."
+  (catch :found
+    (seq-do-indexed
+     (lambda (frame-data index)
+       (when (eq id (nth 3 frame-data))
+         (throw :found (1+ index))))
+     undelete-frame--deleted-frames)))
+
+(defun undelete-frame-by-id (id &optional noerror)
+  "Undelete the frame with the matching ID.
+Return the undeleted frame if the ID is that of an undeletable frame,
+otherwise, signal an error.
+If NOERROR is non-nil, do not signal an error, and return nil.
+Also see `undelete-frame'."
+  (interactive
+   (let* ((candidates
+           (mapcar (lambda (elt)
+                     (number-to-string (nth 3 elt)))
+                   undelete-frame--deleted-frames))
+	  (default (car candidates))
+	  (input (completing-read
+		  (format-prompt "Undelete Frame by ID" default)
+		  candidates nil t)))
+     (list (string-to-number
+            (if (zerop (length input)) default input)))))
+  (if-let* ((index (undelete-frame-id-index id)))
+      (undelete-frame index)
+    (unless noerror
+      (error "There is no frame with identifier `%S'" id))))
 
 ;;; Window dividers.
 (defgroup window-divider nil

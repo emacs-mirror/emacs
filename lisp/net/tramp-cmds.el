@@ -78,8 +78,7 @@ SYNTAX can be one of the symbols `default' (default),
 		    ((not (assoc method tramp-methods))))
 	  method))
       ;; All method enabling functions.
-      (mapcar
-       #'intern (all-completions "tramp-enable-" obarray #'functionp))))))
+      (apropos-internal (rx bos "tramp-enable-") #'functionp)))))
 
   (when-let* (((not (assoc method tramp-methods)))
 	      (fn (intern (format "tramp-enable-%s-method" method)))
@@ -839,7 +838,7 @@ This is needed if there are compatibility problems."
 	 (and x (boundp x) (not (get x 'tramp-suppress-trace))
 	      (cons x 'tramp-reporter-dump-variable)))
        (append
-	(mapcar #'intern (all-completions "tramp-" obarray #'boundp))
+	(apropos-internal (rx bos "tramp-") #'boundp)
 	;; Non-Tramp variables of interest.
 	'(shell-prompt-pattern
 	  backup-by-copying

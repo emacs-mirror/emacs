@@ -240,7 +240,7 @@ de M-v.
 
 Si vous utilisez un environnement graphique, comme X11 ou MS-Windows,
 il devrait y avoir une zone rectangulaire appelée barre de défilement,
-ou « scrollbar » sur le bord gauche de la fenêtre d'Emacs. Vous pouvez
+ou « scrollbar » sur le bord droit de la fenêtre d'Emacs. Vous pouvez
 faire défiler le texte en cliquant avec la souris dans cette barre de
 défilement.
 

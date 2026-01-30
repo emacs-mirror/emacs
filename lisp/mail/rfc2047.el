@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (defvar message-posting-charset)
 
 (require 'mm-util)

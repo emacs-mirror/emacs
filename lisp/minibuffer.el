@@ -797,6 +797,19 @@ for use at QPOS."
 (defvar minibuffer-message-properties nil
   "Text properties added to the text shown by `minibuffer-message'.")
 
+(defvar minibuffer--message-overlay nil)
+
+(defvar minibuffer--message-timer nil)
+
+(defun minibuffer--delete-message-overlay ()
+  (when (overlayp minibuffer--message-overlay)
+    (delete-overlay minibuffer--message-overlay)
+    (setq minibuffer--message-overlay nil))
+  (when (timerp minibuffer--message-timer)
+    (cancel-timer minibuffer--message-timer)
+    (setq minibuffer--message-timer nil))
+  (remove-hook 'pre-command-hook #'minibuffer--delete-message-overlay))
+
 (defun minibuffer-message (message &rest args)
   "Temporarily display MESSAGE at the end of minibuffer text.
 This function is designed to be called from the minibuffer, i.e.,
@@ -814,13 +827,9 @@ through `format-message'.
 If some of the minibuffer text has the `minibuffer-message' text
 property, MESSAGE is shown at that position instead of EOB."
   (if (not (minibufferp (current-buffer) t))
-      (progn
-        (if args
-            (apply #'message message args)
-          (message "%s" message))
-        (prog1 (sit-for (or minibuffer-message-timeout 1000000))
-          (message nil)))
+      (apply #'message message args)
     ;; Clear out any old echo-area message to make way for our new thing.
+    (minibuffer--delete-message-overlay)
     (message nil)
     (setq message (if (and (null args)
                            (string-match-p "\\` *\\[.+\\]\\'" message))
@@ -834,30 +843,24 @@ property, MESSAGE is shown at that position instead of EOB."
       (setq message (apply #'propertize message minibuffer-message-properties)))
     ;; Put overlay either on `minibuffer-message' property, or at EOB.
     (let* ((ovpos (minibuffer--message-overlay-pos))
-           (ol (make-overlay ovpos ovpos nil t t))
-           ;; A quit during sit-for normally only interrupts the sit-for,
-           ;; but since minibuffer-message is used at the end of a command,
-           ;; at a time when the command has virtually finished already, a C-g
-           ;; should really cause an abort-recursive-edit instead (i.e. as if
-           ;; the C-g had been typed at top-level).  Binding inhibit-quit here
-           ;; is an attempt to get that behavior.
-           (inhibit-quit t))
-      (unwind-protect
-          (progn
-            (unless (zerop (length message))
-              ;; The current C cursor code doesn't know to use the overlay's
-              ;; marker's stickiness to figure out whether to place the cursor
-              ;; before or after the string, so let's spoon-feed it the pos.
-              (put-text-property 0 1 'cursor t message))
-            (overlay-put ol 'after-string message)
-            ;; Make sure the overlay with the message is displayed before
-            ;; any other overlays in that position, in case they have
-            ;; resize-mini-windows set to nil and the other overlay strings
-            ;; are too long for the mini-window width.  This makes sure the
-            ;; temporary message will always be visible.
-            (overlay-put ol 'priority 1100)
-            (sit-for (or minibuffer-message-timeout 1000000)))
-        (delete-overlay ol)))))
+           (ol (make-overlay ovpos ovpos nil t t)))
+      (unless (zerop (length message))
+        ;; The current C cursor code doesn't know to use the overlay's
+        ;; marker's stickiness to figure out whether to place the cursor
+        ;; before or after the string, so let's spoon-feed it the pos.
+        (put-text-property 0 1 'cursor t message))
+      (overlay-put ol 'after-string message)
+      ;; Make sure the overlay with the message is displayed before
+      ;; any other overlays in that position, in case they have
+      ;; resize-mini-windows set to nil and the other overlay strings
+      ;; are too long for the mini-window width.  This makes sure the
+      ;; temporary message will always be visible.
+      (overlay-put ol 'priority 1100)
+      (setq minibuffer--message-overlay ol
+            minibuffer--message-timer
+            (run-at-time (or minibuffer-message-timeout 1000000) nil
+                         #'minibuffer--delete-message-overlay))
+      (add-hook 'pre-command-hook #'minibuffer--delete-message-overlay))))
 
 (defcustom minibuffer-message-clear-timeout nil
   "How long to display an echo-area message when the minibuffer is active.
@@ -2774,18 +2777,27 @@ so that the update is less likely to interfere with user typing."
       ;; If we got interrupted, try again the next time the user is idle.
       (completions--start-eager-display))))
 
-(defun completions--start-eager-display ()
+(defun completions--start-eager-display (&optional require-eager-update)
   "Maybe display the *Completions* buffer when the user is next idle.
 
 Only displays if `completion-eager-display' is t, or if eager display
-has been requested by the completion table."
-  (when completion-eager-display
-    (when (or (eq completion-eager-display t)
-              (completion-metadata-get
-               (completion-metadata
-                (buffer-substring-no-properties (minibuffer-prompt-end) (point))
-                minibuffer-completion-table minibuffer-completion-predicate)
-               'eager-display))
+has been requested by the completion table.
+
+When REQUIRE-EAGER-UPDATE is non-nil, also require eager-display to be
+requested by the completion table."
+  (when (and completion-eager-display
+             ;; If it's already displayed, don't display it again.
+             (not (get-buffer-window "*Completions*" 0)))
+    (when (let ((metadata
+                 (completion-metadata
+                  (buffer-substring-no-properties (minibuffer-prompt-end) (point))
+                  minibuffer-completion-table minibuffer-completion-predicate)))
+            (and
+             (or (eq completion-eager-display t)
+                 (completion-metadata-get metadata 'eager-display))
+             (or (not require-eager-update)
+                 (eq completion-eager-update t)
+                 (completion-metadata-get metadata 'eager-update))))
       (setq completion-eager-display--timer
             (run-with-idle-timer 0 nil #'completions--eager-display)))))
 
@@ -2797,13 +2809,16 @@ has been requested by the completion table."
 
 (defun completions--after-change (_start _end _old-len)
   "Update displayed *Completions* buffer after change in buffer contents."
-  (when (or completion-auto-deselect completion-eager-update)
-    (when-let* ((window (minibuffer--completions-visible)))
+  (if (not (or (minibufferp nil t) completion-in-region-mode))
+      (remove-hook 'after-change-functions #'completions--after-change t)
+    (when-let* ((window (get-buffer-window "*Completions*" 0)))
       (when completion-auto-deselect
         (with-selected-window window
           (completions--deselect)))
       (when completion-eager-update
-        (add-hook 'post-command-hook #'completions--post-command-update)))))
+        (add-hook 'post-command-hook #'completions--post-command-update)))
+    (when (minibufferp nil t)
+      (completions--start-eager-display t))))
 
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
@@ -2821,6 +2836,8 @@ has been requested by the completion table."
                        (- (point) start)
                        md)))
     (message nil)
+    (when (or completion-auto-deselect completion-eager-update)
+      (add-hook 'after-change-functions #'completions--after-change nil t))
     (if (or (null completions)
             (and (not (consp (cdr completions)))
                  (equal (car completions) string)))
@@ -2828,7 +2845,6 @@ has been requested by the completion table."
           ;; If there are no completions, or if the current input is already
           ;; the sole completion, then hide (previous&stale) completions.
           (minibuffer-hide-completions)
-          (remove-hook 'after-change-functions #'completions--after-change t)
           (if completions
               (completion--message "Sole completion")
             (unless completion-fail-discreetly
@@ -2894,8 +2910,6 @@ has been requested by the completion table."
             (body-function
              . ,#'(lambda (window)
                     (with-current-buffer mainbuf
-                      (when (or completion-auto-deselect completion-eager-update)
-                        (add-hook 'after-change-functions #'completions--after-change nil t))
                       ;; Remove the base-size tail because `sort' requires a properly
                       ;; nil-terminated list.
                       (when last (setcdr last nil))
@@ -3181,11 +3195,7 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
     (setq-local minibuffer-completion-auto-choose nil)
     (add-hook 'post-command-hook #'completion-in-region--postch)
     (let* ((keymap completion-in-region-mode-map)
-           (keymap (if minibuffer-visible-completions
-                       (make-composed-keymap
-                        (list minibuffer-visible-completions-map
-                              keymap))
-                     keymap)))
+           (keymap (minibuffer-visible-completions--maybe-compose-map keymap)))
       (push `(completion-in-region-mode . ,keymap)
             minor-mode-overriding-map-alist))))
 
@@ -3450,15 +3460,25 @@ the mode hook of this mode."
     (setq-local minibuffer-completion-auto-choose nil)))
 
 (defcustom minibuffer-visible-completions nil
-  "Whether candidates shown in *Completions* can be navigated from minibuffer.
+  "Whether to enable navigation of candidates in *Completions* from minibuffer.
 When non-nil, if the *Completions* buffer is displayed in a window,
-you can use the arrow keys in the minibuffer to move the cursor in
+you can use the arrow keys in the minibuffer to move point in
 the window showing the *Completions* buffer.  Typing `RET' selects
 the highlighted completion candidate.
 If the *Completions* buffer is not displayed on the screen, or this
 variable is nil, the arrow keys move point in the minibuffer as usual,
-and `RET' accepts the input typed into the minibuffer."
-  :type 'boolean
+and `RET' accepts the input typed into the minibuffer.
+If the value is t, both up/down and right/left arrow keys move point
+in *Completions*; if the value is \\+`up-down', only up/down arrow
+keys move point in *Completions*, while left/right arrows move point
+in the minibuffer window."
+  :type '(choice (const :tag
+                        "Disable completions navigation with arrow keys" nil)
+                 (const :tag
+                        "Enable completions navigation with arrow keys" t)
+                 (const :tag
+                        "Enable completions navigation with up/down arrows"
+                        up-down))
   :version "30.1")
 
 (defvar minibuffer-visible-completions--always-bind nil
@@ -3467,13 +3487,16 @@ and `RET' accepts the input typed into the minibuffer."
 (defun minibuffer--completions-visible ()
   "Return the window where the current *Completions* buffer is visible, if any."
   (when-let* ((window (get-buffer-window "*Completions*" 0)))
-    (when (eq (buffer-local-value 'completion-reference-buffer
-                                  (window-buffer window))
-              ;; If there's no active minibuffer, we call
-              ;; `window-buffer' on nil, assuming that completion is
-              ;; happening in the selected window.
-              (window-buffer (active-minibuffer-window)))
-      window)))
+    (let ((reference-buffer
+           (buffer-local-value 'completion-reference-buffer
+                               (window-buffer window))))
+      (when (or (null reference-buffer)
+                (eq reference-buffer
+                    ;; If there's no active minibuffer, we call
+                    ;; `window-buffer' on nil, assuming that completion is
+                    ;; happening in the selected window.
+                    (window-buffer (active-minibuffer-window))))
+        window))))
 
 (defun completion--selected-candidate ()
   "Return the selected completion candidate if any."
@@ -3503,6 +3526,20 @@ displaying the *Completions* buffer exists."
   "<up>"    (minibuffer-visible-completions--bind #'minibuffer-previous-line-completion)
   "<down>"  (minibuffer-visible-completions--bind #'minibuffer-next-line-completion)
   "C-g"     (minibuffer-visible-completions--bind #'minibuffer-hide-completions))
+
+(defvar-keymap minibuffer-visible-completions-up-down-map
+  :doc "Local keymap for minibuffer input with visible completions, only for up/down."
+  "<up>"    (minibuffer-visible-completions--bind #'minibuffer-previous-completion)
+  "<down>"  (minibuffer-visible-completions--bind #'minibuffer-next-completion))
+
+(defun minibuffer-visible-completions--maybe-compose-map (map)
+  (cond
+   ((eq minibuffer-visible-completions 'up-down)
+    (make-composed-keymap (list minibuffer-visible-completions-up-down-map map)))
+   ((eq minibuffer-visible-completions t)
+    (make-composed-keymap (list minibuffer-visible-completions-map map)))
+   (t map)))
+
 
 ;;; Completion tables.
 
@@ -5158,11 +5195,7 @@ See `completing-read' for the meaning of the arguments."
                     ;; in minibuffer-local-filename-completion-map can
                     ;; override bindings in base-keymap.
                     base-keymap)))
-         (keymap (if minibuffer-visible-completions
-                     (make-composed-keymap
-                      (list minibuffer-visible-completions-map
-                            keymap))
-                   keymap))
+         (keymap (minibuffer-visible-completions--maybe-compose-map keymap))
          (buffer (current-buffer))
          (c-i-c completion-ignore-case)
          (result

@@ -24,8 +24,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (require 'reftex)
 
 ;; Common bindings in reftex-select-label-mode-map

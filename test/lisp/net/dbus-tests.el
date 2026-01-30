@@ -28,6 +28,10 @@
 (defvar dbus-debug)
 (defvar dbus-message-type-signal)
 (declare-function dbus-get-unique-name "dbusbind.c" (bus))
+(declare-function dbus-close-inhibitor-lock "dbusbind.c" (lock))
+(declare-function dbus-registered-inhibitor-locks "dbusbind.c" ())
+(declare-function dbus-make-inhibitor-lock "dbusbind.c"
+                  (what why &optional block))
 
 (defconst dbus--test-enabled-session-bus
   (and (featurep 'dbusbind)
@@ -47,6 +51,15 @@
 
 (defconst dbus--test-interface "org.gnu.Emacs.TestDBus.Interface"
   "Test interface.")
+
+(defconst dbus--test-systemd-service "org.freedesktop.login1"
+  "Systemd service.")
+
+(defconst dbus--test-systemd-path "/org/freedesktop/login1"
+  "Systemd object path.")
+
+(defconst dbus--test-systemd-manager-interface "org.freedesktop.login1.Manager"
+  "Systemd Manager interface.")
 
 (defun dbus--test-availability (bus)
   "Test availability of D-Bus BUS."
@@ -607,6 +620,7 @@ This includes initialization and closing the bus."
       (let ((method1 "Method1")
             (method2 "Method2")
             (handler #'dbus--test-method-handler)
+            dbus-debug ; There would be errors otherwise.
             registered)
 
         ;; The service is not registered yet.
@@ -759,6 +773,7 @@ Returns the respective error."
   (unwind-protect
       (let ((method "Method")
             (handler #'dbus--test-method-authorizable-handler)
+            dbus-debug ; There would be errors otherwise.
             registered)
 
         ;; Register.
@@ -850,7 +865,7 @@ Returns the respective error."
                             (dbus-event-path-name dbus--test-event-expected))
                      (equal (dbus-event-member-name last-input-event)
                             (dbus-event-member-name dbus--test-event-expected))))
-        (setq dbus--test-signal-received args)))))
+        (push args dbus--test-signal-received)))))
 
 (defun dbus--test-timeout-handler (&rest _ignore)
   "Timeout handler, reporting a failed test."
@@ -885,7 +900,7 @@ Returns the respective error."
 	(with-timeout (1 (dbus--test-timeout-handler))
           (while (null dbus--test-signal-received)
             (read-event nil nil 0.1)))
-        (should (equal dbus--test-signal-received '("foo")))
+        (should (equal dbus--test-signal-received '(("foo"))))
 
         ;; Send two arguments, compound types.
         (setq dbus--test-signal-received nil)
@@ -896,11 +911,91 @@ Returns the respective error."
 	(with-timeout (1 (dbus--test-timeout-handler))
           (while (null dbus--test-signal-received)
             (read-event nil nil 0.1)))
-        (should (equal dbus--test-signal-received '((1 2 3) ("bar"))))
+        (should (equal dbus--test-signal-received '(((1 2 3) ("bar")))))
 
         ;; Unregister signal.
         (should (dbus-unregister-object registered))
         (should-not (dbus-unregister-object registered)))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(defun dbus--test-signal-handler1 (&rest args)
+  "Signal handler for `dbus-test05-register-signal-several-handlers'."
+  ;; (message "dbus--test-signal-handler1 %S" last-input-event)
+  (dbus--test-signal-handler (cons "dbus--test-signal-handler1" args)))
+
+(defun dbus--test-signal-handler2 (&rest args)
+  "Signal handler for `dbus-test05-register-signal-several-handlers'."
+  ;; (message "dbus--test-signal-handler2 %S" last-input-event)
+  (dbus--test-signal-handler (cons "dbus--test-signal-handler2" args)))
+
+(ert-deftest dbus-test05-register-signal-several-handlers ()
+  "Check signal registration for an own service.
+It shall call several handlers per received signal."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+
+  (unwind-protect
+      (let ((member "Member")
+            (handler1 #'dbus--test-signal-handler1)
+            (handler2 #'dbus--test-signal-handler2)
+            registered1 registered2)
+
+        ;; Register signal handlers.
+        (should
+         (equal
+          (setq
+           registered1
+           (dbus-register-signal
+            :session dbus--test-service dbus--test-path
+            dbus--test-interface member handler1))
+          `((:signal :session ,dbus--test-interface ,member)
+            (,dbus--test-service ,dbus--test-path ,handler1))))
+        (should
+         (equal
+          (setq
+           registered2
+           (dbus-register-signal
+            :session dbus--test-service dbus--test-path
+            dbus--test-interface member handler2))
+          `((:signal :session ,dbus--test-interface ,member)
+            (,dbus--test-service ,dbus--test-path ,handler2))))
+
+        ;; Send one argument, basic type.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface member "foo")
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (length< dbus--test-signal-received 2)
+            (read-event nil nil 0.1)))
+        (should
+         (member
+          '(("dbus--test-signal-handler1" "foo")) dbus--test-signal-received))
+        (should
+         (member
+          '(("dbus--test-signal-handler2" "foo")) dbus--test-signal-received))
+
+        ;; Unregister one signal.
+        (should (dbus-unregister-object registered1))
+        (should-not (dbus-unregister-object registered1))
+
+        ;; Send one argument, basic type.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface member "foo")
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
+        (should
+         (equal
+          dbus--test-signal-received '((("dbus--test-signal-handler2" "foo")))))
+
+        ;; Unregister the other signal.
+        (should (dbus-unregister-object registered2))
+        (should-not (dbus-unregister-object registered2)))
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
@@ -956,7 +1051,7 @@ wildcard for the respective argument."
 	(with-timeout (1 (dbus--test-timeout-handler))
           (while (null dbus--test-signal-received)
             (read-event nil nil 0.1)))
-        (should (equal dbus--test-signal-received '("foo")))
+        (should (equal dbus--test-signal-received '(("foo"))))
 
         ;; Unregister signal.
         (should (dbus-unregister-object registered))
@@ -1317,7 +1412,7 @@ wildcard for the respective argument."
         ;; "invalidated_properties" (an array of strings).
         (should
          (equal dbus--test-signal-received
-                `(,dbus--test-interface ((,property ("foo"))) ())))
+                `((,dbus--test-interface ((,property ("foo"))) ()))))
 
         (should
          (equal
@@ -1341,7 +1436,7 @@ wildcard for the respective argument."
         (should
          (equal
           dbus--test-signal-received
-          `(,dbus--test-interface ((,property ((1 2 3)))) ())))
+          `((,dbus--test-interface ((,property ((1 2 3)))) ()))))
 
         (should
          (equal
@@ -2212,6 +2307,90 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
 
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test10-inhibitor-locks ()
+  "Check `dbus-*-inhibitor-locks'."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-system-bus)
+  (skip-unless (dbus-ping :system dbus--test-systemd-service 1000))
+
+  (let (lock1 lock2)
+    ;; Create inhibitor lock.
+    (setq lock1 (dbus-make-inhibitor-lock "sleep" "Test delay"))
+    (should (natnump lock1))
+    ;; The lock is reported by systemd.
+    (should
+     (member
+      (list "sleep" "Emacs" "Test delay" "delay" (user-uid) (emacs-pid))
+      (dbus-call-method
+       :system dbus--test-systemd-service dbus--test-systemd-path
+       dbus--test-systemd-manager-interface "ListInhibitors")))
+    ;; The lock is registered internally.
+    (should
+     (member
+      (list lock1 "sleep" "Test delay" nil)
+      (dbus-registered-inhibitor-locks)))
+    ;; There exist a file descriptor.
+    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
+      (should (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock1))))
+
+    ;; It is not possible to modify registered inhibitor locks on Lisp level.
+    (setcar (assoc lock1 (dbus-registered-inhibitor-locks)) 'malicious)
+    (should (assoc lock1 (dbus-registered-inhibitor-locks)))
+    (should-not (assoc 'malicious (dbus-registered-inhibitor-locks)))
+
+    ;; Creating it again returns the same inhibitor lock.
+    (should (= lock1 (dbus-make-inhibitor-lock "sleep" "Test delay")))
+
+    ;; Create another inhibitor lock.
+    (setq lock2 (dbus-make-inhibitor-lock "sleep" "Test block" 'block))
+    (should (natnump lock2))
+    (should-not (= lock1 lock2))
+    ;; The lock is reported by systemd.
+    (should
+     (member
+      (list "sleep" "Emacs" "Test block" "block" (user-uid) (emacs-pid))
+      (dbus-call-method
+       :system dbus--test-systemd-service dbus--test-systemd-path
+       dbus--test-systemd-manager-interface "ListInhibitors")))
+    ;; The lock is registered internally.
+    (should
+     (member
+      (list lock2 "sleep" "Test block" t)
+      (dbus-registered-inhibitor-locks)))
+    ;; There exist a file descriptor.
+    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
+      (should (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock2))))
+
+    ;; Close the first inhibitor lock.
+    (should (dbus-close-inhibitor-lock lock1))
+    ;; The internal registration has gone.
+    (should-not
+     (member
+      (list lock1 "sleep" "Test delay" nil)
+      (dbus-registered-inhibitor-locks)))
+    ;; The file descriptor has been deleted.
+    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
+      (should-not (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock1))))
+
+    ;; Closing it again is a noop.
+    (should-not (dbus-close-inhibitor-lock lock1))
+
+    ;; Creating it again returns (another?) inhibitor lock.
+    (setq lock1 (dbus-make-inhibitor-lock "sleep" "Test delay"))
+    (should (natnump lock1))
+    ;; The lock is registered internally.
+    (should
+     (member
+      (list lock1 "sleep" "Test delay" nil)
+      (dbus-registered-inhibitor-locks)))
+    ;; There exist a file descriptor.
+    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
+      (should (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock1))))
+
+    ;; Close the inhibitor locks.
+    (should (dbus-close-inhibitor-lock lock1))
+    (should (dbus-close-inhibitor-lock lock2))))
 
 (defun dbus-test-all (&optional interactive)
   "Run all tests for \\[dbus]."

@@ -5038,12 +5038,16 @@ format, use `\\[universal-argument] \\[dired]'.")
 	  ;; `dired-ls-sorting-switches' after -t overrides -t.
 	  "[^ " dired-ls-sorting-switches "]*"
 	  "\\(\\(\\`\\| +\\)\\(--[^ ]+\\|-[^- t"
-	  dired-ls-sorting-switches "]+\\)\\)* *$")
+	  dired-ls-sorting-switches "]+\\|"
+          ;; Allow quoted strings
+          "\"[^\"]*\"\\)\\)* *$")
   "Regexp recognized by Dired to set `by date' mode.")
 
 (defvar dired-sort-by-name-regexp
   (concat "\\`\\(\\(\\`\\| +\\)\\(--[^ ]+\\|"
-	  "-[^- t" dired-ls-sorting-switches "]+\\)\\)* *$")
+	  "-[^- t" dired-ls-sorting-switches "]+[^- tSXU]+\\|"
+          ;; Allow quoted strings
+          "\"[^\"]*\"\\)\\)* *$")
   "Regexp recognized by Dired to set `by name' mode.")
 
 (defvar dired-sort-inhibit nil

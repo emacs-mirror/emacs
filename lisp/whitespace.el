@@ -887,7 +887,7 @@ This variable is used when `whitespace-style' includes `tab-mark',
 
 
 (defcustom whitespace-global-modes t
-  "Modes for which global `whitespace-mode' is automagically turned on.
+  "Modes for which global `whitespace-mode' is automatically turned on.
 
 Global `whitespace-mode' is controlled by the command
 `global-whitespace-mode'.

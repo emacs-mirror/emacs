@@ -26,7 +26,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl-lib)
   (require 'subr-x))
 
 (require 'nnfeed)

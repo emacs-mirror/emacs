@@ -6326,6 +6326,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   XSETFRAME (frame, f);
 
+  frame_set_id_from_params (f, parameters);
+
   parent_frame = gui_display_get_arg (dpyinfo, parameters, Qparent_frame,
                                       NULL, NULL,
                                       RES_TYPE_SYMBOL);

@@ -2902,9 +2902,13 @@ dump_obarray (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_text_07D802E2D4
+#if CHECK_STRUCTS && !defined HASH_buffer_46DA92A241
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
+#if CHECK_STRUCTS && !defined HASH_buffer_text_07D802E2D4
+# error "buffer_text changed. See CHECK_STRUCTS comment in config.h."
+#endif
+
   struct buffer munged_buffer = *in_buffer;
   struct buffer *buffer = &munged_buffer;
 
@@ -6041,11 +6045,25 @@ pdumper_set_emacs_execdir (char *emacs_executable)
 	 && !IS_DIRECTORY_SEP (p[-1]))
     --p;
   eassert (p > emacs_executable);
-  emacs_execdir = xpalloc (emacs_execdir, &execdir_size,
-			   p - emacs_executable + 1 - execdir_size, -1, 1);
-  memcpy (emacs_execdir, emacs_executable, p - emacs_executable);
-  execdir_len = p - emacs_executable;
-  emacs_execdir[execdir_len] = '\0';
+
+#if HAVE_NS && !NS_SELF_CONTAINED
+  if (strcmp (p, "Emacs") == 0)
+    {
+      /* This is the Emacs executable from the non-self-contained app
+	 bundle which can be anywhere on the system.  Fortunately, the
+	 location of the Lisp resources is known.  */
+      emacs_execdir = (char *) BINDIR;
+      execdir_len = strlen (BINDIR);
+    }
+  else
+#endif
+    {
+      emacs_execdir = xpalloc (emacs_execdir, &execdir_size,
+			       p - emacs_executable + 1 - execdir_size, -1, 1);
+      memcpy (emacs_execdir, emacs_executable, p - emacs_executable);
+      execdir_len = p - emacs_executable;
+      emacs_execdir[execdir_len] = '\0';
+    }
 }
 #endif
 

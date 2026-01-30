@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (defvar ietf-drums-no-ws-ctl-token "\001-\010\013\014\016-\037\177"
   "US-ASCII control characters excluding CR, LF and white space.")
 (defvar ietf-drums-text-token "\001-\011\013\014\016-\177"

@@ -59,7 +59,7 @@ value associated with ?b in SPECIFICATION, either padding it with
 leading zeros or truncating leading characters until it's ten
 characters wide\".
 
-the substitution for a specification character can also be a
+The substitution for a specification character can also be a
 function, taking no arguments and returning a string to be used
 for the replacement.  It will only be called if FORMAT uses that
 character.  For example:
@@ -73,6 +73,9 @@ like above, so that it is compiled by the byte-compiler.
 
 Any text properties of FORMAT are copied to the result, with any
 text properties of a %-spec itself copied to its substitution.
+However, note that face properties from the two sources are not
+merged; the face properties of %-spec override the face properties
+of substitutions, if any, in the result.
 
 IGNORE-MISSING indicates how to handle %-spec characters not
 present in SPECIFICATION.  If it is nil or omitted, emit an

@@ -32,8 +32,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (defconst yenc-begin-line
   "^=ybegin.*$")
 

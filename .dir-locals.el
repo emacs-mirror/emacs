@@ -15,7 +15,12 @@
              "/[ \t]*DEFVAR_[A-Z_ \t(]+\"[^\"]+\",[ \t]\\([A-Za-z0-9_]+\\)/\\1/"))))
          (etags-regen-ignores . ("test/manual/etags/"))
          (vc-prepare-patches-separately . nil)
-         (vc-default-patch-addressee . "bug-gnu-emacs@gnu.org")))
+         (vc-default-patch-addressee . "bug-gnu-emacs@gnu.org")
+         ;; Uncomment these later once people's builds are likely to know
+         ;; they're safe local variable values.
+         ;; (vc-trunk-branch-regexps . ("master" "\\`emacs-[0-9]+\\'"))
+         ;; (vc-topic-branch-regexps . ("\\`feature/"))
+         ))
  (c-mode . ((c-file-style . "GNU")
             (c-noise-macro-names . ("INLINE" "NO_INLINE" "ATTRIBUTE_NO_SANITIZE_UNDEFINED"
                                     "ATTRIBUTE_NO_SANITIZE_ADDRESS"

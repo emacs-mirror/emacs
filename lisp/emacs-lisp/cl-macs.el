@@ -327,15 +327,16 @@ FORM is of the form (ARGS . BODY)."
               ;; "manual" parsing.
               (let ((slen (length simple-args))
                     (usage-str
-                      ;; Macro expansion can take place in the middle of
-                      ;; apparently harmless computation, so it should not
-                      ;; touch the match-data.
-                      (save-match-data
-                        (help--docstring-quote
-                         (let ((print-gensym nil) (print-quoted t)
-                               (print-escape-newlines t))
-                           (format "%S" (cons 'fn (cl--make-usage-args
-                                                   orig-args))))))))
+                     ;; Macro expansion can take place in the middle of
+                     ;; apparently harmless computation, so it should not
+                     ;; touch the match-data.
+                     (save-match-data
+                       (require 'help)
+                       (help--docstring-quote
+                        (let ((print-gensym nil) (print-quoted t)
+                              (print-escape-newlines t))
+                          (format "%S" (cons 'fn (cl--make-usage-args
+                                                  orig-args))))))))
                 (when (memq '&optional simple-args)
                   (decf slen))
                 (setq header

@@ -154,17 +154,22 @@ also passed as second argument to SPECIALIZERS-FUNCTION."
                (:constructor cl--generic-make-method
                 (specializers qualifiers call-con function))
                (:predicate nil))
+ "Type of `cl-generic' method objects.
+FUNCTION holds a function containing the actual code of the method.
+SPECIALIZERS holds the list of specializers (as long as the number of
+mandatory arguments of the method).
+QUALIFIERS holds the list of qualifiers.
+CALL-CON indicates the calling convention expected by FUNCTION:
+- nil: FUNCTION is just a normal function with no extra arguments for
+  `call-next-method' or `next-method-p' (which it hence can't use).
+- `curried': FUNCTION is a curried function that first takes the
+  \"next combined method\" and returns the resulting combined method.
+  It can distinguish `next-method-p' by checking if that next method
+  is `cl--generic-isnot-nnm-p'.
+- t: FUNCTION takes the `call-next-method' function as an extra first
+  argument."
   (specializers nil :read-only t :type list)
   (qualifiers   nil :read-only t :type (list-of atom))
-  ;; CALL-CON indicates the calling convention expected by FUNCTION:
-  ;; - nil: FUNCTION is just a normal function with no extra arguments for
-  ;;   `call-next-method' or `next-method-p' (which it hence can't use).
-  ;; - `curried': FUNCTION is a curried function that first takes the
-  ;;   "next combined method" and return the resulting combined method.
-  ;;   It can distinguish `next-method-p' by checking if that next method
-  ;;   is `cl--generic-isnot-nnm-p'.
-  ;; - t: FUNCTION takes the `call-next-method' function as its first (extra)
-  ;;      argument.
   (call-con     nil :read-only t :type symbol)
   (function     nil :read-only t :type function))
 
@@ -181,7 +186,10 @@ also passed as second argument to SPECIALIZERS-FUNCTION."
   ;; The most important dispatch is last in the list (and the least is first).
   (dispatches nil :type (list-of (cons natnum (list-of generalizers))))
   (method-table nil :type (list-of cl--generic-method))
-  (options nil :type list))
+  (options nil :type list)
+  ;; This slot holds the function we put into `symbol-function' before
+  ;; the actual dispatch function has been computed.
+  (lazy-function nil))
 
 (defun cl-generic-function-options (generic)
   "Return the options of the generic function GENERIC."
@@ -316,6 +324,9 @@ DEFAULT-BODY, if present, is used as the body of a default method.
            ,@warnings
            (defalias ',name
              (cl-generic-define ',name ',args ',(nreverse options))
+             ;; FIXME: This docstring argument is used as circumstantial
+             ;; evidence that this generic function was defined via
+             ;; `cl-defgeneric' rather than only `cl-defmethod's.
              ,(if (consp doc)           ;An expression rather than a constant.
                   `(help-add-fundoc-usage ,doc ',args)
                 (help-add-fundoc-usage doc args)))
@@ -658,8 +669,6 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
             ;; Keep the ordering; important for methods with :extra qualifiers.
             (mapcar (lambda (x) (if (eq x (car me)) method x)) mt)))
     (let ((sym (cl--generic-name generic)) ; Actual name (for aliases).
-          ;; FIXME: Try to avoid re-constructing a new function if the old one
-          ;; is still valid (e.g. still empty method cache)?
           (gfun (cl--generic-make-function generic)))
       (cl-pushnew `(cl-defmethod . ,(cl--generic-load-hist-format
                                      (cl--generic-name generic)
@@ -827,9 +836,30 @@ You might need to add: %S"
                        ,@fixedargs args)))))))))
 
 (defun cl--generic-make-function (generic)
-  (cl--generic-make-next-function generic
-                                  (cl--generic-dispatches generic)
-                                  (cl--generic-method-table generic)))
+  "Return the function to put into the `symbol-function' of GENERIC."
+  ;; The function we want is the one that performs the dispatch,
+  ;; but that function depends on the set of methods and needs to be
+  ;; flushed/recomputed when the set of methods changes.
+  ;; To avoid reconstructing such a method N times for N `cl-defmethod',
+  ;; we construct the dispatch function lazily:
+  ;; we first return a "lazy" function, which waits until the
+  ;; first call to the method to really compute the dispatch function,
+  ;; at which point we replace the dummy with the real one.
+  (with-memoization (cl--generic-lazy-function generic)
+    (lambda (&rest args)
+      (let* ((real
+              (cl--generic-make-next-function generic
+                                              (cl--generic-dispatches generic)
+                                              (cl--generic-method-table generic)))
+             (sym (cl--generic-name generic))
+             (old-adv-cc (get-advertised-calling-convention
+                          (symbol-function sym))))
+        (when (listp old-adv-cc)
+          (set-advertised-calling-convention real old-adv-cc nil))
+        (when (symbol-function sym)
+          (let ((current-load-list nil))
+            (defalias sym real)))
+        (apply real args)))))
 
 (defun cl--generic-make-next-function (generic dispatches methods)
   (let* ((dispatch
@@ -855,33 +885,32 @@ This is particularly useful when many different tags select the same set
 of methods, since this table then allows us to share a single combined-method
 for all those different tags in the method-cache.")
 
-(define-error 'cl--generic-cyclic-definition "Cyclic definition")
-
 (defun cl--generic-build-combined-method (generic methods)
-  (if (null methods)
-      ;; Special case needed to fix a circularity during bootstrap.
-      (cl--generic-standard-method-combination generic methods)
-    (let ((f
-           (with-memoization
-               ;; FIXME: Since the fields of `generic' are modified, this
-               ;; hash-table won't work right, because the hashes will change!
-               ;; It's not terribly serious, but reduces the effectiveness of
-               ;; the table.
-               (gethash (cons generic methods)
-                        cl--generic-combined-method-memoization)
-             (puthash (cons generic methods) :cl--generic--under-construction
-                      cl--generic-combined-method-memoization)
-             (condition-case nil
-                 (cl-generic-combine-methods generic methods)
-               ;; Special case needed to fix a circularity during bootstrap.
-               (cl--generic-cyclic-definition
-                (cl--generic-standard-method-combination generic methods))))))
-      (if (eq f :cl--generic--under-construction)
-          (signal 'cl--generic-cyclic-definition
-                  (list (cl--generic-name generic)))
-        f))))
+  ;; Since `cl-generic-combine-methods' is itself a generic function,
+  ;; there is a chicken and egg problem when computing a combined
+  ;; method for `cl-generic-combine-methods'.
+  ;; We break such infinite recursion by detecting it and falling
+  ;; back to `cl--generic-standard-method-combination' when it happens.
+  ;; FIXME: Since the fields of `generic' are modified, the
+  ;; `cl--generic-combined-method-memoization' hash-table won't work
+  ;; right, because the hashes will change!  It's not terribly serious,
+  ;; but reduces the effectiveness of the table.
+  (let ((key (cons generic methods)))
+    (pcase (gethash key cl--generic-combined-method-memoization)
+      (:cl--generic--under-construction
+       ;; Fallback to the standard method combination.
+       (setf (gethash key cl--generic-combined-method-memoization)
+             (cl--generic-standard-method-combination generic methods)))
+      ('nil
+       (setf (gethash key cl--generic-combined-method-memoization)
+             :cl--generic--under-construction)
+       (let ((f nil))
+         (unwind-protect
+             (setq f (cl-generic-combine-methods generic methods))
+           (setf (gethash key cl--generic-combined-method-memoization) f))))
+      (f f))))
 
-(oclosure-define (cl--generic-nnm)
+(oclosure-define cl--generic-nnm
   "Special type for `call-next-method's that just call `no-next-method'.")
 
 (defun cl-generic-call-method (generic method &optional fun)
@@ -1002,11 +1031,11 @@ The code which extracts the tag should be as fast as possible.
 The tags should be chosen according to the following rules:
 - The tags should not be too specific: similar objects which match the
   same list of specializers should ideally use the same (`eql') tag.
-  This insures that the cached computation of the applicable
+  This ensures that the cached computation of the applicable
   methods for one object can be reused for other objects.
 - Corollary: objects which don't match any of the relevant specializers
   should ideally all use the same tag (typically nil).
-  This insures that this cache does not grow unnecessarily large.
+  This ensures that this cache does not grow unnecessarily large.
 - Two different generalizers G1 and G2 should not use the same tag
   unless they use it for the same set of objects.  IOW, if G1.tag(X1) =
   G2.tag(X2) then G1.tag(X1) = G2.tag(X1) = G1.tag(X2) = G2.tag(X2).
@@ -1028,8 +1057,7 @@ those methods.")
 (unless (ignore-errors (cl-generic-generalizers t))
   ;; Temporary definition to let the next defmethod succeed.
   (fset 'cl-generic-generalizers
-        (lambda (specializer)
-          (if (eq t specializer) (list cl--generic-t-generalizer))))
+        (lambda (_specializer) (list cl--generic-t-generalizer)))
   (fset 'cl-generic-combine-methods #'cl--generic-standard-method-combination))
 
 (cl-defmethod cl-generic-generalizers (specializer)

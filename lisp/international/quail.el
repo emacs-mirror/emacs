@@ -53,7 +53,6 @@
 ;;; Code:
 
 (require 'help-mode)
-(eval-when-compile (require 'cl-lib))
 
 (defgroup quail nil
   "Quail: multilingual input method."

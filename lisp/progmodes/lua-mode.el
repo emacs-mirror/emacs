@@ -354,8 +354,8 @@ traceback location."
               ("string" . ("byte" "char" "dump" "find" "format" "gmatch" "gsub"
                            "len" "lower" "match" "pack" "packsize" "rep" "reverse"
                            "sub" "unpack" "upper"))
-              ("table" . ("concat" "insert" "maxn" "move" "pack" "remove" "sort"
-                          "unpack"))
+              ("table" . ("concat" "create" "insert" "maxn" "move" "pack" "remove"
+                          "sort" "unpack"))
               ("utf8" . ("char" "charpattern" "codepoint" "codes" "len"
                          "offset")))))
 

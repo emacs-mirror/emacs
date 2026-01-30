@@ -35694,10 +35694,9 @@ The variable @code{calc-string-maximum-character} is the maximum value
 of a vector's elements for @code{calc-display-strings}, @code{string},
 and @code{bstring} to display the vector as a string.  This maximum
 @emph{must} represent a character, i.e. it's a non-negative integer less
-than or equal to @code{(max-char)} or @code{0x3FFFFF}.  Any negative
-value effectively disables the display of strings, and for values larger
-than @code{0x3FFFFF} the display acts as if the maximum were
-@code{0x3FFFFF}.  Some natural choices (and their resulting ranges) are:
+than or equal to @code{(max-char)} or @code{0x3FFFFF}.  Any value not
+representing a character effectively disables the display of strings.
+Some natural choices (and their resulting ranges) are:
 
 @itemize
 @item
