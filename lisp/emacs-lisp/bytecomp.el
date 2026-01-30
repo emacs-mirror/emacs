@@ -5141,7 +5141,8 @@ binding slots have been popped."
          (when (stringp doc)
            (setq rest (byte-compile--list-with-n
                        rest 0
-                       (byte-compile--docstring doc (nth 0 form) name)))))
+                       (byte-compile--docstring doc (nth 0 form) name)))
+           (setq form (nconc (take 3 form) rest))))
        (pcase-let*
            ;; `macro' is non-nil if it defines a macro.
            ;; `fun' is the function part of `arg' (defaults to `arg').
