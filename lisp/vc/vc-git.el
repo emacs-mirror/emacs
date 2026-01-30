@@ -823,40 +823,40 @@ branch into which the current branch will eventually be merged.  Find
 its upstream.  (If there is more than one branch whose merge base with
 the current branch is that same topologically most recent commit, try
 them one-by-one, accepting the first that has an upstream.)"
-  (let ((remotes (vc-git--branch-remotes)))
-    (if-let* ((_ (assq 'push remotes))
-              (upstream (assq 'upstream remotes)))
-        (cdr upstream)
-      (cl-flet ((get-line () (buffer-substring (point) (pos-eol))))
-        (let* ((branches (vc-git-branches))
-               (current (pop branches))
-               merge-bases)
-          (with-temp-buffer
-            (dolist (branch branches)
-              (erase-buffer)
-              (when (vc-git--out-ok "merge-base" "--all" branch current)
-                (goto-char (point-min))
-                (while (not (eobp))
-                  (push branch (alist-get (get-line) merge-bases
-                                          nil nil #'equal))
-                  (forward-line 1))))
+  (if-let* ((remotes (vc-git--branch-remotes))
+            (_ (assq 'push remotes))
+            (upstream (assq 'upstream remotes)))
+      (cdr upstream)
+    (cl-flet ((get-line () (buffer-substring (point) (pos-eol))))
+      (let* ((branches (vc-git-branches))
+             (current (pop branches))
+             merge-bases)
+        (with-temp-buffer
+          (dolist (branch branches)
             (erase-buffer)
-            (unless (apply #'vc-git--out-ok "merge-base" "--independent"
-                           (mapcar #'car merge-bases))
-              (error "`git merge-base --independent' failed"))
-            ;; If 'git merge-base --independent' printed more than one
-            ;; line, just pick the first.
-            (goto-char (point-min))
-            (catch 'ret
-              (dolist (target (cdr (assoc (get-line) merge-bases)))
-                (erase-buffer)
-                (when (vc-git--out-ok "for-each-ref"
-                                      "--format=%(upstream:short)"
-                                      (concat "refs/heads/" target))
-                  (goto-char (point-min))
-                  (let ((outgoing-base (get-line)))
-                    (unless (string-empty-p outgoing-base)
-                      (throw 'ret outgoing-base))))))))))))
+            (when (vc-git--out-ok "merge-base" "--all" branch current)
+              (goto-char (point-min))
+              (while (not (eobp))
+                (push branch (alist-get (get-line) merge-bases
+                                        nil nil #'equal))
+                (forward-line 1))))
+          (erase-buffer)
+          (unless (apply #'vc-git--out-ok "merge-base" "--independent"
+                         (mapcar #'car merge-bases))
+            (error "`git merge-base --independent' failed"))
+          ;; If 'git merge-base --independent' printed more than one
+          ;; line, just pick the first.
+          (goto-char (point-min))
+          (catch 'ret
+            (dolist (target (cdr (assoc (get-line) merge-bases)))
+              (erase-buffer)
+              (when (vc-git--out-ok "for-each-ref"
+                                    "--format=%(upstream:short)"
+                                    (concat "refs/heads/" target))
+                (goto-char (point-min))
+                (let ((outgoing-base (get-line)))
+                  (unless (string-empty-p outgoing-base)
+                    (throw 'ret outgoing-base)))))))))))
 
 (defun vc-git-dir--branch-headers ()
   "Return headers for branch-related information."
