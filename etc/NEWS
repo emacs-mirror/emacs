@@ -2591,6 +2591,11 @@ To allow for finer-grained adjustment of timeout for
 'python-eldoc-function', 'python-eldoc-function-timeout' now accepts
 floating-point numbers as well as integers.
 
+---
+*** The default value of 'python-shell-completion-setup-code' is changed.
+A new function is added to the setup code.  Users who modify this option
+may need to update the value for the Python shell completion to work.
+
 ** Tmm Menubar
 
 ---

@@ -3736,11 +3736,18 @@ It is used when sending file names to remote Python processes.")
                       (format "exec(%s)\n" (python-shell--encode-string string))))))
           ;; Bootstrap: the normal definition of `python-shell-send-string'
           ;; depends on the Python code sent here.
-          (python-shell-send-string-no-output python-shell-setup-code)
           (python-shell-send-string-no-output python-shell-eval-setup-code)
           (python-shell-send-string-no-output python-shell-eval-file-setup-code))
         (with-current-buffer (current-buffer)
           (let ((inhibit-quit nil))
+            (python-shell-send-string
+             (mapconcat #'symbol-value '(python-shell-setup-code
+                                         python-shell-completion-setup-code
+                                         python-shell-pdb-setup-code
+                                         python-ffap-setup-code
+                                         python-eldoc-setup-code)
+                        "\n"))
+            (python-shell-accept-process-output (python-shell-get-process))
             (python-shell-readline-detect)
             (run-hooks 'python-shell-first-prompt-hook))))))
   output)
@@ -4432,7 +4439,8 @@ This function takes the list of setup code to send from the
                           ((symbolp elt) (symbol-value elt))
                           (t "")))
                   python-shell-setup-codes
-                  "\n\nprint ('python.el: sent setup code')"))))
+                  "\n")
+                 "\nprint ('python.el: sent setup code')")))
       (python-shell-send-string code process)
       (python-shell-accept-process-output process))))
 
@@ -4506,16 +4514,82 @@ def __PYTHON_EL_get_completions(text):
     finally:
         if getattr(completer, 'PYTHON_EL_WRAPPED', False):
             completer.print_mode = True
-    return json.dumps(completions)"
+    return json.dumps(completions)
+
+def __PYTHON_EL_wrap_completer():
+    import readline
+    completer = readline.get_completer()
+
+    if not completer:
+        # Used as last resort to avoid breaking customizations.
+        import rlcompleter
+        completer = readline.get_completer()
+
+    if completer and not getattr(completer, 'PYTHON_EL_WRAPPED', False):
+        class __PYTHON_EL_Completer:
+            '''Completer wrapper that prints candidates to stdout.
+
+            It wraps an existing completer function and changes its behavior so
+            that the user input is unchanged and real candidates are printed to
+            stdout.
+
+            Returned candidates are '0__dummy_completion__' and
+            '1__dummy_completion__' in that order ('0__dummy_completion__' is
+            returned repeatedly until all possible candidates are consumed).
+
+            The real candidates are printed to stdout so that they can be
+            easily retrieved through comint output redirect trickery.
+            '''
+
+            PYTHON_EL_WRAPPED = True
+
+            def __init__(self, completer):
+                self.completer = completer
+                self.last_completion = None
+                self.print_mode = True
+
+            def __call__(self, text, state):
+                if state == 0:
+                    # Set the first dummy completion.
+                    self.last_completion = None
+                    completion = '0__dummy_completion__'
+                else:
+                    completion = self.completer(text, state - 1)
+
+                if not completion:
+                    if self.last_completion != '1__dummy_completion__':
+                        # When no more completions are available, returning a
+                        # dummy with non-sharing prefix allow ensuring output
+                        # while preventing changes to current input.
+                        # Coincidentally it's also the end of output.
+                        completion = '1__dummy_completion__'
+                elif completion.endswith('('):
+                    # Remove parens on callables as it breaks completion on
+                    # arguments (e.g. str(Ari<tab>)).
+                    completion = completion[:-1]
+                self.last_completion = completion
+
+                if completion in (
+                        '0__dummy_completion__', '1__dummy_completion__'):
+                    return completion
+                elif completion:
+                    # For every non-dummy completion, return a repeated dummy
+                    # one and print the real candidate so it can be retrieved
+                    # by comint output filters.
+                    if self.print_mode:
+                        print (completion)
+                        return '0__dummy_completion__'
+                    else:
+                        return completion
+                else:
+                    return completion
+
+        # Wrap the existing completer function only once.
+        new_completer = __PYTHON_EL_Completer(completer)
+        readline.set_completer(new_completer)"
   "Code used to setup completion in inferior Python processes."
-  :type 'string)
-
-(defun python-shell-completion-send-setup-code ()
-  "Send `python-shell-completion-setup-code' to inferior Python process."
-  (python-shell-send-string-no-output python-shell-completion-setup-code))
-
-(add-hook 'python-shell-first-prompt-hook
-          #'python-shell-completion-send-setup-code)
+  :type 'string
+  :version "31.1")
 
 (define-obsolete-variable-alias
   'python-shell-completion-module-string-code
@@ -4601,103 +4675,16 @@ except:
 def __PYTHON_EL_native_completion_setup():
     try:
         import readline
+        __PYTHON_EL_wrap_completer()
 
+        # Ensure that rlcompleter.__main__ and __main__ are identical.
+        # (Bug#76205)
+        import sys
         try:
-            import __builtin__
-        except ImportError:
-            # Python 3
-            import builtins as __builtin__
-
-        builtins = dir(__builtin__)
-        is_ipython = ('__IPYTHON__' in builtins or
-                      '__IPYTHON__active' in builtins)
-
-        class __PYTHON_EL_Completer:
-            '''Completer wrapper that prints candidates to stdout.
-
-            It wraps an existing completer function and changes its behavior so
-            that the user input is unchanged and real candidates are printed to
-            stdout.
-
-            Returned candidates are '0__dummy_completion__' and
-            '1__dummy_completion__' in that order ('0__dummy_completion__' is
-            returned repeatedly until all possible candidates are consumed).
-
-            The real candidates are printed to stdout so that they can be
-            easily retrieved through comint output redirect trickery.
-            '''
-
-            PYTHON_EL_WRAPPED = True
-
-            def __init__(self, completer):
-                self.completer = completer
-                self.last_completion = None
-                self.print_mode = True
-
-            def __call__(self, text, state):
-                if state == 0:
-                    # Set the first dummy completion.
-                    self.last_completion = None
-                    completion = '0__dummy_completion__'
-                else:
-                    completion = self.completer(text, state - 1)
-
-                if not completion:
-                    if self.last_completion != '1__dummy_completion__':
-                        # When no more completions are available, returning a
-                        # dummy with non-sharing prefix allow ensuring output
-                        # while preventing changes to current input.
-                        # Coincidentally it's also the end of output.
-                        completion = '1__dummy_completion__'
-                elif completion.endswith('('):
-                    # Remove parens on callables as it breaks completion on
-                    # arguments (e.g. str(Ari<tab>)).
-                    completion = completion[:-1]
-                self.last_completion = completion
-
-                if completion in (
-                        '0__dummy_completion__', '1__dummy_completion__'):
-                    return completion
-                elif completion:
-                    # For every non-dummy completion, return a repeated dummy
-                    # one and print the real candidate so it can be retrieved
-                    # by comint output filters.
-                    if self.print_mode:
-                        print (completion)
-                        return '0__dummy_completion__'
-                    else:
-                        return completion
-                else:
-                    return completion
-
-        completer = readline.get_completer()
-
-        if not completer:
-            # Used as last resort to avoid breaking customizations.
-            import rlcompleter
-            completer = readline.get_completer()
-
-        if completer and not getattr(completer, 'PYTHON_EL_WRAPPED', False):
-            # Wrap the existing completer function only once.
-            new_completer = __PYTHON_EL_Completer(completer)
-            if not is_ipython:
-                readline.set_completer(new_completer)
-            else:
-                # Ensure that rlcompleter.__main__ and __main__ are identical.
-                # (Bug#76205)
-                import sys
-                try:
-                    sys.modules['rlcompleter'].__main__ = sys.modules['__main__']
-                except KeyError:
-                    pass
-                # Try both initializations to cope with all IPython versions.
-                # This works fine for IPython 3.x but not for earlier:
-                readline.set_completer(new_completer)
-                # IPython<3 hacks readline such that `readline.set_completer`
-                # won't work.  This workaround injects the new completer
-                # function into the existing instance directly:
-                instance = getattr(completer, 'im_self', completer.__self__)
-                instance.rlcomplete = new_completer
+            __IPYTHON__
+            sys.modules['rlcompleter'].__main__ = sys.modules['__main__']
+        except (NameError, KeyError):
+            pass
 
         if readline.__doc__ and 'libedit' in readline.__doc__:
             raise Exception('''libedit based readline is known not to work,
@@ -4921,8 +4908,17 @@ using that one instead of current buffer's process."
                          ;; Working on a shell buffer: use prompt end.
                          (cdr (python-util-comint-last-prompt))
                        (line-beginning-position)))
+         (prompt-boundaries
+          (with-current-buffer (process-buffer process)
+            (python-util-comint-last-prompt)))
+         (prompt
+          (with-current-buffer (process-buffer process)
+            (when prompt-boundaries
+              (buffer-substring-no-properties
+               (car prompt-boundaries) (cdr prompt-boundaries)))))
          (no-delims
-          (and (not (if is-shell-buffer
+          (and (not (string-match-p python-shell-prompt-pdb-regexp prompt))
+               (not (if is-shell-buffer
                         (eq 'font-lock-comment-face
                             (get-text-property (1- (point)) 'face))
                       (python-syntax-context 'comment)))
@@ -4946,14 +4942,6 @@ using that one instead of current buffer's process."
                 (forward-char (length (match-string-no-properties 0)))
                 (point)))))
          (end (point))
-         (prompt-boundaries
-          (with-current-buffer (process-buffer process)
-            (python-util-comint-last-prompt)))
-         (prompt
-          (with-current-buffer (process-buffer process)
-            (when prompt-boundaries
-              (buffer-substring-no-properties
-               (car prompt-boundaries) (cdr prompt-boundaries)))))
          (completion-fn
           (with-current-buffer (process-buffer process)
             (cond ((or (null prompt)
@@ -4963,13 +4951,7 @@ using that one instead of current buffer's process."
                             (string-match-p
                              python-shell-prompt-pdb-regexp prompt)))
                    #'ignore)
-                  ((or (not python-shell-completion-native-enable)
-                       ;; Even if native completion is enabled, for
-                       ;; pdb interaction always use the fallback
-                       ;; mechanism since the completer is changed.
-                       ;; Also, since pdb interaction is single-line
-                       ;; based, this is enough.
-                       (string-match-p python-shell-prompt-pdb-regexp prompt))
+                  ((not python-shell-completion-native-enable)
                    (if (or (equal python-shell--block-prompt prompt)
                            (string-match-p
                             python-shell-prompt-block-regexp prompt))
@@ -5050,6 +5032,55 @@ If not try to complete."
 
 
 ;;; PDB Track integration
+
+(defconst python-shell-pdb-setup-code
+  "\
+def __PYTHON_EL_Pdb_setup():
+    import pdb
+
+    class _PYTHON_EL_Pdb(pdb.Pdb, object):
+        def __init__(self, *args, **kw):
+            super(_PYTHON_EL_Pdb, self).__init__(*args, **kw)
+            import re
+            self._python_el_def_pattern = re.compile('__(PYTHON_EL|FFAP|PYDOC)_')
+            self._python_el_defs = {}
+            for k, v in globals().items():
+                if self._python_el_def_pattern.match(k):
+                    self._python_el_defs[k] = v
+
+        def _python_el_setup(self):
+            if not hasattr(self, 'curframe') or self.curframe is None:
+                return
+            frame_globals = self.curframe.f_globals
+            if '__PYTHON_EL_eval' not in frame_globals:
+                for k, v in self._python_el_defs.items():
+                    frame_globals[k] = v
+            try:
+                frame_globals['__PYTHON_EL_wrap_completer']()
+            except Exception as e:
+                print('failed to setup completer: {}'.format(str(e)))
+
+        def preloop(self):
+            super(_PYTHON_EL_Pdb, self).preloop()
+            # Trigger precmd/postcmd when entering pdb.
+            self.cmdqueue.append('pass  # __PYTHON_EL_')
+
+        def precmd(self, line):
+            if self._python_el_def_pattern.search(line):
+                self._real_lastcmd = self.lastcmd
+            return super(_PYTHON_EL_Pdb, self).precmd(line)
+
+        def postcmd(self, stop, line):
+            self._python_el_setup()
+            if self._python_el_def_pattern.search(line):
+                self.lastcmd = self._real_lastcmd
+            return super(_PYTHON_EL_Pdb, self).postcmd(stop, line)
+
+    pdb.Pdb = _PYTHON_EL_Pdb
+
+__PYTHON_EL_Pdb_setup()
+del __PYTHON_EL_Pdb_setup"
+  "Code used to setup the debugger in inferior Python processes.")
 
 (defcustom python-pdbtrack-activate t
   "Non-nil makes Python shell enable pdbtracking.
@@ -5691,8 +5722,7 @@ def __FFAP_get_module_path(objstr):
                       (python-util-comint-end-of-output-p)))
               (module-file
                (python-shell-send-string-no-output
-                (format "%s\nprint(__FFAP_get_module_path(%s))"
-                        python-ffap-setup-code
+                (format "print(__FFAP_get_module_path(%s))"
                         (python-shell--encode-string module)))))
     (unless (string-empty-p module-file)
       (python-util-strip-string module-file))))
@@ -5815,10 +5845,8 @@ returns will be used.  If not FORCE-PROCESS is passed what
                 ;; enabled.  Bug#18794.
                 (python-util-strip-string
                  (python-shell-send-string-no-output
-                  (format
-                   "%s\nprint(__PYDOC_get_help(%s))"
-                   python-eldoc-setup-code
-                   (python-shell--encode-string input))
+                  (format "print(__PYDOC_get_help(%s))"
+                          (python-shell--encode-string input))
                   process)))))
         (unless (string-empty-p docstring)
           docstring)))))
