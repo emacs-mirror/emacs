@@ -3330,15 +3330,13 @@ to which `vc-push' would push as UPSTREAM-LOCATION, unconditionally.
 (This is passed when the user invokes an outgoing base command with a
  \\`C-u C-u' prefix argument; see `vc--maybe-read-outgoing-base'.)
 REFRESH is passed on to `vc--incoming-revision'."
-  (if-let* ((incoming
-             (vc--incoming-revision backend
-                                    (pcase upstream-location
-                                      ('t nil)
-                                      ('nil (vc--outgoing-base backend))
-                                      (_ upstream-location))
-                                    refresh)))
-      (vc-call-backend backend 'mergebase incoming)
-    (user-error "No incoming revision -- local-only branch?")))
+  (vc-call-backend backend 'mergebase
+                   (vc--incoming-revision backend
+                                          (pcase upstream-location
+                                            ('t nil)
+                                            ('nil (vc--outgoing-base backend))
+                                            (_ upstream-location))
+                                          refresh)))
 
 ;;;###autoload
 (defun vc-root-diff-outgoing-base (&optional upstream-location)
@@ -4435,20 +4433,23 @@ BACKEND is the VC backend."
   ;; Do store `nil', before signaling an error, if there is no incoming
   ;; revision, because that's also something that can be slow to
   ;; determine and so should be remembered.
-  (if-let* ((_ (not refresh))
-            (record (assoc upstream-location
-                           (vc--repo-getprop backend 'vc-incoming-revision))))
-      (cdr record)
-    (let ((res (vc-call-backend backend 'incoming-revision
-                                upstream-location refresh)))
-      (if-let* ((alist (vc--repo-getprop backend 'vc-incoming-revision)))
-          (setf (alist-get upstream-location alist nil nil #'equal)
-                res)
-        (vc--repo-setprop backend
-                          'vc-incoming-revision
-                          `((,upstream-location . ,res))))
-      (or res
-          (user-error "No incoming revision -- local-only branch?")))))
+  (or (if-let* ((_ (not refresh))
+                (record (assoc upstream-location
+                               (vc--repo-getprop backend
+                                                 'vc-incoming-revision))))
+          (cdr record)
+        (let ((res (vc-call-backend backend 'incoming-revision
+                                    upstream-location refresh)))
+          (if-let* ((alist (vc--repo-getprop backend
+                                             'vc-incoming-revision)))
+              (setf (alist-get upstream-location alist
+                               nil nil #'equal)
+                    res)
+            (vc--repo-setprop backend
+                              'vc-incoming-revision
+                              `((,upstream-location . ,res))))
+          res))
+      (user-error "No incoming revision -- local-only branch?")))
 
 ;;;###autoload
 (defun vc-root-log-incoming (&optional upstream-location)
