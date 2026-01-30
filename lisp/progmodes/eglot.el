@@ -308,7 +308,7 @@ automatically)."
     (racket-mode . ("racket" "-l" "racket-langserver"))
     ((latex-mode plain-tex-mode context-mode texinfo-mode bibtex-mode tex-mode)
      . ,(eglot-alternatives '("digestif" "texlab")))
-    (erlang-mode . ("erlang_ls" "--transport" "stdio"))
+    (erlang-mode . ("elp" "server"))
     (wat-mode . ("wat_server"))
     ((yaml-ts-mode yaml-mode) . ("yaml-language-server" "--stdio"))
     ((toml-ts-mode conf-toml-mode) . ("tombi" "lsp"))
