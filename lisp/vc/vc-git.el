@@ -785,7 +785,9 @@ ignored because that means we're not actually in a triangular workflow."
               (string-trim-right (vc-git--out-str "config" key))))
     (let* ((branch (vc-git-working-branch))
            (pull (get (format "branch.%s.remote" branch)))
-           (merge (get (format "branch.%s.merge" branch)))
+           (merge (string-remove-prefix "refs/heads/"
+                                        (get (format "branch.%s.merge"
+                                                     branch))))
            (push (get (format "branch.%s.pushRemote" branch)))
            (push (if (string-empty-p push)
                      (get "remote.pushDefault")
