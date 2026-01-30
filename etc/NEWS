@@ -2293,6 +2293,9 @@ region overlaps.  Otherwise, they have their existing behavior.
 With a prefix argument, it now reverse-applies hunks.
 This matches the existing prefix argument to 'diff-apply-hunk'.
 
+---
+*** 's' is now bound to 'diff-split-hunk' in read-only Diff mode buffers.
+
 ** Ediff
 
 +++
