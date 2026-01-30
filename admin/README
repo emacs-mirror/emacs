@@ -53,6 +53,10 @@ be used to debug Emacs with dense colormaps (PseudoColor).
 
 Check doc strings against documentation.
 
+** cl-lib-deps-report.el
+
+Audit Lisp files for cl-lib usage and missing requires.
+
 ** cus-test.el
 
 Tests for custom types and load problems.

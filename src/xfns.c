@@ -5029,6 +5029,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   XSETFRAME (frame, f);
 
+  frame_set_id_from_params (f, parms);
+
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_x_window;
@@ -6655,7 +6657,8 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #else
 	  i = gdk_screen_get_monitor_at_window (gscreen, gwin);
 #endif
-	  ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
+	  if (0 <= i && i < n_monitors)
+	    ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
 	}
     }
 

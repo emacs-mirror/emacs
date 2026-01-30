@@ -1283,18 +1283,18 @@ which is based on `image-mode'."
   (setq file (expand-file-name file))
   (when (not (file-exists-p file))
     (error "No such file: %s" file))
-  (let ((buf (get-buffer image-dired-display-image-buffer))
+  (let ((buf (get-buffer-create image-dired-display-image-buffer))
         (cur-win (selected-window)))
-    (when buf
-      (kill-buffer buf))
-    (when-let* ((buf (find-file-noselect file nil t)))
-      (pop-to-buffer buf)
-      (rename-buffer image-dired-display-image-buffer)
-      (if (string-match (image-file-name-regexp) file)
-          (image-dired-image-mode)
-        ;; Support visiting PDF files.
-        (normal-mode))
-      (select-window cur-win))))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert-file-contents file)
+        (if (string-match (image-file-name-regexp) file)
+            (image-dired-image-mode)
+          ;; Support visiting PDF files.
+          (normal-mode))))
+    (when buf (pop-to-buffer buf))
+    (select-window cur-win)))
 
 (defun image-dired-display-this (&optional arg)
   "Display current thumbnail's original image in display buffer.

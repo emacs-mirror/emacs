@@ -779,6 +779,11 @@ hunspell.  Hence skipping."
       (ispell-tests--letopt
           ((ispell-program-name (ispell-tests--some-backend)))
 
+        (ispell-check-version)
+        (if (and ispell-really-aspell
+                 (equal ispell-program-name "ispell"))
+            ;; Don't let Aspell hide its true nature.
+            (setq ispell-program-name "aspell"))
         (let ((test-dictname (ispell-tests--some-valid-dictionary ispell-program-name))
               (test-extcharmode "~latin3")
               (test-parser "~testparser")

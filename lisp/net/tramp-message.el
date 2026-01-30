@@ -240,8 +240,10 @@ ARGUMENTS to actually emit the message (if applicable)."
 	    (dolist
 		(elt
 		 (append
-		  (mapcar
-		   #'intern (all-completions "tramp-" obarray #'functionp))
+		  (apropos-internal (rx bos "tramp-") #'functionp)
+		  (apropos-internal (rx bos "tramp-") #'macrop)
+		  (apropos-internal
+		   (rx bos "with-" (? "parsed-") "tramp-") #'macrop)
 		  tramp-trace-functions))
 	      (unless (get elt 'tramp-suppress-trace)
 		(trace-function-background elt (tramp-trace-buffer-name vec)))))

@@ -3694,13 +3694,18 @@ def __PYTHON_EL_eval(source, filename):
 (defconst python-shell-eval-file-setup-code
   "\
 def __PYTHON_EL_eval_file(filename, tempname, delete):
-    import codecs, os, re
+    import os, re, sys
+    if sys.version_info.major < 3:
+        import codecs
+        _open = codecs.open
+    else:
+        _open = open
     pattern = r'^[ \t\f]*#.*?coding[:=][ \t]*([-_.a-zA-Z0-9]+)'
-    with codecs.open(tempname or filename, encoding='latin-1') as file:
+    with _open(tempname or filename, encoding='latin-1') as file:
         match = re.match(pattern, file.readline())
         match = match or re.match(pattern, file.readline())
         encoding = match.group(1) if match else 'utf-8'
-    with codecs.open(tempname or filename, encoding=encoding) as file:
+    with _open(tempname or filename, encoding=encoding) as file:
         source = file.read().encode(encoding)
     if delete and tempname:
         os.remove(tempname)
@@ -3811,6 +3816,16 @@ variable.
   (compilation-shell-minor-mode 1)
   (python-pdbtrack-setup-tracking))
 
+(defvar-local python-shell--process-cache)
+(defvar-local python-shell--process-cache-valid)
+
+(defun python-shell--invalidate-process-cache ()
+  "Invalidate process cache."
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (setq python-shell--process-cache nil
+            python-shell--process-cache-valid nil))))
+
 (defun python-shell-make-comint (cmd proc-name &optional show internal)
   "Create a Python shell comint buffer.
 CMD is the Python command to be executed and PROC-NAME is the
@@ -3827,6 +3842,7 @@ killed."
       (let* ((proc-buffer-name
               (format (if (not internal) "*%s*" " *%s*") proc-name)))
         (when (not (comint-check-proc proc-buffer-name))
+          (python-shell--invalidate-process-cache)
           (let* ((cmdlist (split-string-and-unquote cmd))
                  (interpreter (car cmdlist))
                  (args (cdr cmdlist))
@@ -3950,7 +3966,15 @@ If current buffer is in `inferior-python-mode', return it."
 
 (defun python-shell-get-process ()
   "Return inferior Python process for current buffer."
-  (get-buffer-process (python-shell-get-buffer)))
+  (unless (and python-shell--process-cache-valid
+               (or (not python-shell--process-cache)
+                   (and (process-live-p python-shell--process-cache)
+                        (buffer-live-p
+                         (process-buffer python-shell--process-cache)))))
+    (setq python-shell--process-cache
+          (get-buffer-process (python-shell-get-buffer))
+          python-shell--process-cache-valid t))
+  python-shell--process-cache)
 
 (defun python-shell-get-process-or-error (&optional interactivep)
   "Return inferior Python process for current buffer or signal error.
@@ -4509,6 +4533,13 @@ def __PYTHON_EL_get_completions(text):
   "Code used to setup completion in inferior Python processes."
   :type 'string)
 
+(defun python-shell-completion-send-setup-code ()
+  "Send `python-shell-completion-setup-code' to inferior Python process."
+  (python-shell-send-string-no-output python-shell-completion-setup-code))
+
+(add-hook 'python-shell-first-prompt-hook
+          #'python-shell-completion-send-setup-code)
+
 (define-obsolete-variable-alias
   'python-shell-completion-module-string-code
   'python-shell-completion-string-code
@@ -4837,12 +4868,16 @@ With argument MSG show activation/deactivation message."
 (defun python-shell-completion-get-completions (process input)
   "Get completions of INPUT using PROCESS."
   (with-current-buffer (process-buffer process)
-    (python--parse-json-array
-     (python-shell-send-string-no-output
-      (format "%s\nprint(__PYTHON_EL_get_completions(%s))"
-              python-shell-completion-setup-code
-              (python-shell--encode-string input))
-      process))))
+    (let ((completions
+           (python-shell-send-string-no-output
+            (format "print(__PYTHON_EL_get_completions(%s))"
+                    (python-shell--encode-string input))
+            process)))
+      (condition-case nil
+          (python--parse-json-array completions)
+        (json-parse-error
+         (python--parse-json-array
+          (car (last (split-string completions "[\n\r]+" t)))))))))
 
 (defun python-shell--get-multiline-input ()
   "Return lines at a multi-line input in Python shell."
@@ -7450,7 +7485,8 @@ implementations: `python-mode' and `python-ts-mode'."
     (treesit-major-mode-setup)
     ;; Enable the `sexp' navigation by default
     (setq-local forward-sexp-function #'treesit-forward-sexp
-                treesit-sexp-thing 'sexp)
+                treesit-sexp-thing 'sexp
+                treesit-sexp-thing-down-list 'list)
 
     (when (>= emacs-major-version 31)
       (setq-local hs-treesit-things '(or defun sexp))

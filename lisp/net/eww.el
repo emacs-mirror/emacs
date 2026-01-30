@@ -2257,7 +2257,8 @@ external browser."
   (setq url (or url (plist-get eww-data :url)))
   (if (eq 'external (browse-url--browser-kind
                      browse-url-secondary-browser-function url))
-      (funcall browse-url-secondary-browser-function url)
+      (let ((browse-url-browser-function browse-url-secondary-browser-function))
+        (browse-url url))
     (browse-url-with-browser-kind 'external url)))
 
 (defun eww-remove-tracking (url)

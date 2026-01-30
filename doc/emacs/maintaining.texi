@@ -1066,12 +1066,12 @@ Display the change history for the current repository on another branch
 
 @item C-x v I
 Display log entries for the changes that a ``pull'' operation will
-retrieve (@code{vc-log-incoming}).
+retrieve (@code{vc-root-log-incoming}).
 
 @vindex vc-use-incoming-outgoing-prefixes
 If you customize @code{vc-use-incoming-outgoing-prefixes} to
 non-@code{nil}, @kbd{C-x v I} becomes a prefix key, and
-@code{vc-log-incoming} becomes bound to @kbd{C-x v I L}.
+@code{vc-root-log-incoming} becomes bound to @kbd{C-x v I L}.
 
 @item M-x vc-root-diff-incoming
 Display a diff of all changes that a pull operation will retrieve.
@@ -1088,11 +1088,11 @@ non-@code{nil}, this command becomes available on @kbd{C-x v I =}.
 
 @item C-x v O
 Display log entries for the changes that will be sent by the next
-``push'' operation (@code{vc-log-outgoing}).
+``push'' operation (@code{vc-root-log-outgoing}).
 
 If you customize @code{vc-use-incoming-outgoing-prefixes} to
 non-@code{nil}, @kbd{C-x v O} becomes a prefix key, and
-@code{vc-log-outgoing} becomes bound to @kbd{C-x v O L}.
+@code{vc-root-log-outgoing} becomes bound to @kbd{C-x v O L}.
 
 @item M-x vc-root-diff-outgoing
 Display a diff of all changes that will be sent by the next push
@@ -1188,31 +1188,31 @@ or the remote branch references supported by Git.
 
 @kindex C-x v I
 @kindex C-x v O
-@findex vc-log-incoming
-@findex vc-log-outgoing
+@findex vc-root-log-incoming
+@findex vc-root-log-outgoing
   On a decentralized version control system, the @kbd{C-x v I}
-(@code{vc-log-incoming}) command displays a log buffer showing the
+(@code{vc-root-log-incoming}) command displays a log buffer showing the
 changes that will be applied the next time you run the version control
 system's pull command to get new revisions from another remote location
 (@pxref{Pulling / Pushing}).  This other remote location is the default
 one from which changes are pulled, as defined by the version control
-system; with a prefix argument, @code{vc-log-incoming} prompts for a
-particular remote location.  Similarly, @kbd{C-x v O}
-(@code{vc-log-outgoing}) shows the changes that will be sent to another
-remote location, the next time you run the push command; with a prefix
-argument, it prompts for a particular destination that in case of some
-version control system can be a branch name.
+system; with a prefix argument, @code{vc-root-log-incoming} prompts for
+a particular remote location.  Similarly, @kbd{C-x v O}
+(@code{vc-root-log-outgoing}) shows the changes that will be sent to
+another remote location, the next time you run the push command; with a
+prefix argument, it prompts for a particular destination that in case of
+some version control system can be a branch name.
 
 @findex vc-root-diff-incoming
 @findex vc-root-diff-outgoing
   The closely related commands @code{vc-root-diff-incoming} and
 @code{vc-root-diff-outgoing} are the diff analogues of
-@code{vc-log-incoming} and @code{vc-log-outgoing}.  These display diff
-buffers reporting the changes that would be pulled or pushed.  You can
-use a prefix argument here too to specify a particular remote location.
-@code{vc-root-diff-outgoing} is useful as a way to preview your push and
-quickly check that all and only the changes you intended to include were
-committed and will be pushed.
+@code{vc-root-log-incoming} and @code{vc-root-log-outgoing}.  These
+display diff buffers reporting the changes that would be pulled or
+pushed.  You can use a prefix argument here too to specify a particular
+remote location.  @code{vc-root-diff-outgoing} is useful as a way to
+preview your push and quickly check that all and only the changes you
+intended to include were committed and will be pushed.
 
 @findex vc-diff-incoming
 @findex vc-diff-outgoing
@@ -1360,6 +1360,7 @@ also prompt for a specific VCS shell command to run for this purpose.
 
 @table @kbd
 @item C-x v u
+@item C-x v @@
 Revert the work file(s) in the current VC fileset to the last revision
 (@code{vc-revert}).
 
@@ -1374,24 +1375,25 @@ Delete an unpushed commit from the revision history.
 @end table
 
 @kindex C-x v u
+@kindex C-x v @@
 @findex vc-revert
 @vindex vc-revert-show-diff
-  If you want to discard all the changes you have made to the current
-VC fileset, type @kbd{C-x v u} (@code{vc-revert}).  This will ask you
-for confirmation before discarding the changes.  If you agree, the
-fileset is reverted.
+  If you want to discard all the changes you have made to the current VC
+fileset, type @kbd{C-x v u} or @kbd{C-x v @@} (@code{vc-revert}).  This
+will ask you for confirmation before discarding the changes.  If you
+agree, the fileset is reverted.
 
   If @code{vc-revert-show-diff} is non-@code{nil}, this command will
-show you a diff between the work file(s) and the revision from which
-you started editing.  Afterwards, the diff buffer will either be
-killed (if this variable is @code{kill}), or the buffer will be buried
-(any other non-@code{nil} value).  If you don't want @kbd{C-x v u} to
-show a diff, set this variable to @code{nil} (you can still view the
-diff directly with @kbd{C-x v =}; @pxref{Old Revisions}).
+show you a diff between the work file(s) and the revision from which you
+started editing.  Afterwards, the diff buffer will either be killed (if
+this variable is @code{kill}), or the buffer will be buried (any other
+non-@code{nil} value).  If you don't want @code{vc-revert} to show you
+diffs, set this variable to @code{nil} (you can still view the diff
+directly with @kbd{C-x v =}; @pxref{Old Revisions}).
 
-  On locking-based version control systems, @kbd{C-x v u} leaves files
-unlocked; you must lock again to resume editing.  You can also use
-@kbd{C-x v u} to unlock a file if you lock it and then decide not to
+  On locking-based version control systems, @code{vc-revert} leaves
+files unlocked; you must lock again to resume editing.  You can also use
+@code{vc-revert} to unlock a file if you lock it and then decide not to
 change it.
 
 @findex vc-revert-or-delete-revision
@@ -1562,8 +1564,8 @@ repository, such as the name of the backend in use and the working
 directory.  In addition, for decentralized VCS, if you have outgoing
 commits (@pxref{VC Change Log}), Emacs displays a line @w{"Outgoing : N
 unpushed revisions"} where @var{N} is a number.  You can click on this
-text to execute the @code{vc-log-outgoing} command (@pxref{VC Change
-Log}).
+text to execute the @code{vc-root-log-outgoing} command (@pxref{VC
+Change Log}).
 
 @vindex vc-dir-show-outgoing-count
   Emacs tries to use cached information to determine the number of
@@ -1641,6 +1643,10 @@ ignore (@code{vc-dir-ignore}).  For instance, if the VC is Git, it
 will append this file to the @file{.gitignore} file.  If given a
 prefix, do this with all the marked files.
 
+@item @@
+Discard all the changes you have made to the current fileset
+(@code{vc-revert}).
+
 @item q
 Quit the VC Directory buffer, and bury it (@code{quit-window}).
 
@@ -1705,6 +1711,9 @@ Do an incremental regular expression search on the fileset
 @noindent
 Apart from acting on multiple files, these commands behave much like
 their single-buffer counterparts (@pxref{Search}).
+
+@c Outstanding changes commands under 'T' are not mentioned because
+@c these are an advanced feature documented only in vc1-xtra.texi.
 
   The VC Directory buffer additionally defines some branch-related
 commands starting with the prefix @kbd{b}:
@@ -1840,9 +1849,9 @@ with Git, and @kbd{hg push} with Mercurial.  The default commands
 always push to the repository in the default location determined by
 the version control system from your branch configuration.
 
-Prior to pushing, you can use @kbd{C-x v O} (@code{vc-log-outgoing})
-to view a log buffer of the changes to be sent upstream.  @xref{VC
-Change Log}.
+Prior to pushing, you can use @kbd{C-x v O}
+(@code{vc-root-log-outgoing}) to view a log buffer of the changes to be
+sent upstream.  @xref{VC Change Log}.
 
 @cindex bound branch (Bazaar VCS)
 This command is currently supported only by Bazaar, Git, and Mercurial.
@@ -1876,9 +1885,9 @@ it into the current branch.  With Mercurial, it calls @kbd{hg pull
 -u} to fetch changesets from the default remote repository and update
 the working directory.
 
-  Prior to pulling, you can use @kbd{C-x v I} (@code{vc-log-incoming})
-to view a log buffer of the changes to be applied.  @xref{VC Change
-Log}.
+  Prior to pulling, you can use @kbd{C-x v I}
+(@code{vc-root-log-incoming}) to view a log buffer of the changes to be
+applied.  @xref{VC Change Log}.
 
   With a centralized version control system like CVS, @kbd{C-x v +}
 updates the current VC fileset from the repository.
@@ -2049,7 +2058,10 @@ project.  See its entry below for description and related options.
 If this user option is non-@code{nil}, Emacs displays the name of the
 current project (if any) on the mode line; clicking @kbd{mouse-1} on
 the project name pops up the menu with the project-related commands.
-The default value is @code{nil}.
+The default value is @code{nil}.  If the value is @code{non-remote},
+Emacs will show the name of the project only for local files; this comes
+in handy when updating the mode line for projects on remote systems is
+slow due to network latencies.
 @end defopt
 
 @menu

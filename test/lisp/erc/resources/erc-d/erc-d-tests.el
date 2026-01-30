@@ -1221,7 +1221,7 @@ DIALOGS are symbols representing the base names of dialog files in
          (proc (apply #'start-process args)))
     (set-process-query-on-exit-flag proc nil)
     (with-current-buffer buffer
-      (erc-d-t-search-for 5 "Starting")
+      (erc-d-t-search-for 10 "Starting")
       (search-forward " (")
       (backward-char))
     (let ((pair (read buffer)))

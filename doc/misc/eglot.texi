@@ -87,7 +87,9 @@ Eglot itself is completely language-agnostic, but it can support any
 programming language for which there is a language server and an Emacs
 major mode.
 
-This manual documents how to configure, use, and customize Eglot.
+This manual documents how to configure, use, and customize Eglot.  To
+read this manual from within Emacs, type @kbd{M-x eglot-manual
+@key{RET}}.
 
 @insertcopying
 
@@ -97,6 +99,7 @@ This manual documents how to configure, use, and customize Eglot.
 * Using Eglot::                 Important Eglot commands and variables.
 * Customizing Eglot::           Eglot customization and advanced features.
 * Advanced server configuration::  Fine-tune a specific language server
+* Multi-server support:: Use more than one server in a buffer
 * Extending Eglot::             Writing Eglot extensions in Elisp
 * Troubleshooting Eglot::       Troubleshooting and reporting bugs.
 * GNU Free Documentation License::  The license for this manual.
@@ -763,6 +766,22 @@ serve hints about positional parameter names in function calls and a
 variable's automatically deduced type.  Inlay hints help the user not
 have to remember these things by heart.
 
+@cindex momentary inlay hints
+@item eglot-momentary-inlay-hints
+When bound to a single key in @code{eglot-mode-map}
+(@pxref{Customization Variables}), this will arrange for inlay hints to
+be displayed as long as the key is held down, and then hidden shortly
+after it is released.  The best way to set it up is something like this:
+
+@lisp
+(define-key eglot-mode-map [f7] 'eglot-momentary-inlay-hints)
+@end lisp
+
+@noindent
+Note that Emacs doesn't support binding to \"key up\" events, so this
+command offers an approximation by estimating your system keyboard delay
+and repeat rate.
+
 @cindex semantic tokens
 @item M-x eglot-semantic-tokens-mode
 This command toggles LSP @dfn{semantic tokens} fontification on and off
@@ -975,6 +994,7 @@ For example:
   (define-key eglot-mode-map (kbd "C-c o") 'eglot-code-action-organize-imports)
   (define-key eglot-mode-map (kbd "C-c h") 'eldoc)
   (define-key eglot-mode-map (kbd "<f6>") 'xref-find-definitions)
+  (define-key eglot-mode-map (kbd "<f7>") 'eglot-momentary-inlay-hints)
 @end lisp
 
 @cindex progress
@@ -1509,6 +1529,152 @@ is serialized by Eglot to the following JSON text:
 @}
 @end example
 
+@node Multi-server support
+@chapter Multi-server support
+@cindex multiple servers per buffer
+@cindex LSP server multiplexer
+@cindex per-buffer multiple servers
+
+One of the most frequently requested features for Eglot in close to a
+decade of existence is the ability to use more than one LSP server in a
+single buffer.  This is distinct from using multiple servers in a
+project, where each server manages a disjoint set of files written in
+different languages.
+
+The latter case---multiple servers for different files---is
+intrinsically supported by Eglot.  For example, in a web project with
+JavaScript, CSS, and Python files, Eglot can seamlessly manage separate
+language servers for each file type within the same project
+(@pxref{Starting Eglot}).  Each buffer communicates with its appropriate
+server, and this works out-of-the-box.
+
+However, there are several scenarios where multiple servers per buffer
+are useful:
+
+@itemize @bullet
+@item
+Combining a spell-checking language server like @command{codebook-lsp}
+with language-specific servers for C++, Go, or Python files.  The
+spell-checker provides diagnostics for comments and strings, while the
+language server handles syntax and semantics.
+
+@item
+One might want multiple servers to cover different aspects of the same
+language.  For Python, you might combine @command{ty} for type checking
+with @command{ruff} for linting and formatting.  For JavaScript, you
+might use @command{typescript-language-server} for language features
+together with @command{eslint} for linting.
+
+@item
+When working on multi-language files like Vue @file{.vue} files, which
+contain JavaScript, CSS, and HTML embedded in a single file, multiple
+servers can manage the different areas of the buffer.
+@end itemize
+
+These use cases are not directly supported by Eglot's architecture,
+however, you can use a language-agnostic @dfn{LSP server multiplexer}
+that sits between Eglot and the actual language servers.  Eglot still
+communicates with a single LSP server process in each buffer, but that
+process mediates communication to multiple language-specific servers,
+meaning that for practical purposes, it's @emph{as if} Eglot was
+connected to them directly.
+
+This approach is more powerful and user-friendly than current
+workarounds that combine one LSP server in a buffer with additional
+non-LSP mechanisms such as extra Flymake backends (@pxref{Top,,,
+Flymake, GNU Flymake manual}) for the same buffer.
+
+@menu
+* Using Rassumfrassum::   Setup the @code{rass} LSP multiplexer
+* Design rationale::      Benefits and drawbacks of LSP multiplexers
+@end menu
+
+@node Using Rassumfrassum
+@section Using Rassumfrassum
+
+@uref{https://github.com/joaotavora/rassumfrassum, Rassumfrassum} is an
+LSP server multiplexer program that fits the bill.  Like most language
+servers, it must be installed separately since it is not bundled with
+Emacs (at time of writing).  The installation is similar to installing
+any other language server, and usually amounts to making sure the
+program executable is somewhere in @code{PATH} or @code{exec-path}.
+
+The Rassumfrassum program, invoked via the @command{rass} command, works
+by spawning multiple LSP server subprocesses and aggregating their
+capabilities, requests, and responses into a single unified LSP
+interface.  From Eglot's perspective, it appears to be communicating with
+a single server.
+
+To use Rassumfrassum with Eglot, you can start it interactively with a
+prefix argument to @code{eglot} and specify the @command{rass} command
+followed by the actual servers you want to use, separated by @code{--}:
+
+@example
+C-u M-x eglot RET rass -- clangd -- codebook-lsp serve RET
+@end example
+
+@noindent
+This starts @command{clangd} for C++ language support and
+@command{codebook-lsp} for spell-checking in the same buffer.
+
+For Python, you might use:
+
+@example
+C-u M-x eglot RET rass -- ty server -- ruff server RET
+@end example
+
+@noindent
+or simply @kbd{C-u M-x eglot RET rass python}, using the ``preset''
+feature. This combines @command{ty} for type checking with
+@command{ruff} for linting and formatting.
+
+These configurations can be integrated into the
+@code{eglot-server-programs} variable (@pxref{Setting Up LSP Servers})
+for automatic use:
+
+@lisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(c-ts-base-mode . ("rass" "--" "clangd" "--"
+                                   "codebook-lsp" "serve")))
+  (add-to-list 'eglot-server-programs
+               '(python-mode . ("rass" "--" "ty" "server" "--"
+                                "ruff" "server"))))
+@end lisp
+
+@node Design rationale
+@section Design rationale
+
+Using an LSP server multiplexer like @command{rass} relieves Eglot from
+knowing about the specific characteristics of individual servers and the
+complexity of managing multiple simultaneous server connections per
+buffer.  This helps preserve the essential features that distinguish
+Eglot's code base from other LSP offers for Emacs: simple, performant
+and mindful of the core tenet of LSP, which is for a client to be
+language-agnostic.
+
+This approach has an additional benefit: because the multiplexer
+mediates all communication between Eglot and the servers, it can take
+advantage of different optimization opportunities.  For instance, at the
+system level it may be multi-threaded to process different JSONRPC
+streams in with true parallelism, something which is currently
+impossible to do in plain Elisp.  At the LSP-level it can merge server
+responses intelligently, truncate unnecessarily large objects, and cache
+significant amounts of information in efficient ways.  In many cases,
+this can reduce the amount of JSONRPC traffic exchanged with Emacs to
+levels well below what would occur if a client connected to multiple
+servers separately.  Some of these optimizations may apply even when a
+program like @command{rass} is mediating communication to a single
+server.
+
+The multiplexer approach is not without drawbacks.  Since LSP is a
+relatively large protocol with a decade of existence and many backward
+compatibility concerns, combining the responses of servers using completely
+different mechanisms of the protocol to respond to the same request
+sometimes leads to complexity in covering the corner cases.  However,
+offloading this complexity to a completely separate layer has proven
+very effective in practice.
+
 @node Extending Eglot
 @chapter Extending Eglot
 
@@ -1685,9 +1851,13 @@ slowly, try to customize the variable @code{eglot-events-buffer-config}
 0.  This will disable recording any events and may speed things up.
 
 In other situations, the cause of poor performance lies in the language
-server itself.  Servers use aggressive caching and other techniques to
-improve their performance.  Often, this can be tweaked by changing the
-server configuration (@pxref{Advanced server configuration}).
+server itself.  Some servers use aggressive caching and other techniques
+to improve their performance.  Often, this can be tweaked by changing
+the server configuration (@pxref{Advanced server configuration}).
+
+Another aspect that may cause performance degradation is the amount of
+JSONRPC information exchanged with Emacs.  Using an LSP program like
+@ref{Using Rassumfrassum,Rassumfrassum} may alleviate such problems.
 
 @node Getting the latest version
 @section Getting the latest version
@@ -1749,10 +1919,17 @@ may be using.  If possible, try to replicate the problem with the
 C/C@t{++} or Python servers, as these are very easy to install.
 
 @item
-Describe how to setup a @emph{minimal} project directory where Eglot
+If using an LSP multiplexer server like @ref{Using Rassumfrassum,
+Rassumfrassum}, first verify if the program replicates by using one of
+the multiplexed servers directly.  If it doesn't the problem lies in the
+LSP multiplexer program and should be reported there.
+
+@item
+Include a description of a @emph{minimal} project directory where Eglot
 should be started for the problem to happen.  Describe each file's name
-and its contents.  Alternatively, you can supply the address of a public
-Git repository.
+and its contents, or---sometimes better--- zip that project directory
+completely and attach it.  Alternatively, you can supply the address of
+a public Git repository.
 
 @item
 Include versions of the software used.  The Emacs version can be
@@ -1765,12 +1942,13 @@ first check if the problem isn't already fixed in the latest version
 It's also essential to include the version of ELPA packages that are
 explicitly or implicitly loaded.  The optional but popular Company or
 Markdown packages are distributed as GNU ELPA packages, not to mention
-Eglot itself in some situations.  Some major modes (Go, Rust, etc.)  are
-provided by ELPA packages.  It's sometimes easy to miss these, since
-they are usually implicitly loaded when visiting a file in that
-language.
+Eglot itself in some situations.  Prefer reproducing the problem with
+built-in Treesit major modes like @code{go-ts-mode} or
+@code{rust-ts-mode} since the non-ts modes for such languages are
+usually provided by ELPA packages, and it's often easy to miss them.
 
-ELPA packages usually live in @code{~/.emacs.d/elpa} (or what is in
+If you can't reproduce your bug without ELPA packages, you may find the
+ones you're using in @code{~/.emacs.d/elpa} (or what is in
 @code{package-user-dir}).  Including a listing of files in that
 directory is a way to tell the maintainers about ELPA package versions.
 

@@ -92,54 +92,56 @@ getdelim (char **lineptr, size_t *n, int delimiter, FILE *fp)
       *lineptr = new_lineptr;
     }
 
-  size_t cur_len = 0;
-  for (;;)
-    {
-      int i;
+  {
+    size_t cur_len = 0;
+    for (;;)
+      {
+        int i;
 
-      i = getc_maybe_unlocked (fp);
-      if (i == EOF)
-        {
-          result = -1;
+        i = getc_maybe_unlocked (fp);
+        if (i == EOF)
+          {
+            result = -1;
+            break;
+          }
+
+        /* Make enough space for len+1 (for final NUL) bytes.  */
+        if (cur_len + 1 >= *n)
+          {
+            size_t needed_max =
+              SSIZE_MAX < SIZE_MAX ? (size_t) SSIZE_MAX + 1 : SIZE_MAX;
+            size_t needed = 2 * *n + 1;   /* Be generous. */
+
+            if (needed_max < needed)
+              needed = needed_max;
+            if (cur_len + 1 >= needed)
+              {
+                result = -1;
+                errno = EOVERFLOW;
+                goto unlock_return;
+              }
+
+            char *new_lineptr = (char *) realloc (*lineptr, needed);
+            if (new_lineptr == NULL)
+              {
+                alloc_failed ();
+                result = -1;
+                goto unlock_return;
+              }
+
+            *lineptr = new_lineptr;
+            *n = needed;
+          }
+
+        (*lineptr)[cur_len] = i;
+        cur_len++;
+
+        if (i == delimiter)
           break;
-        }
-
-      /* Make enough space for len+1 (for final NUL) bytes.  */
-      if (cur_len + 1 >= *n)
-        {
-          size_t needed_max =
-            SSIZE_MAX < SIZE_MAX ? (size_t) SSIZE_MAX + 1 : SIZE_MAX;
-          size_t needed = 2 * *n + 1;   /* Be generous. */
-
-          if (needed_max < needed)
-            needed = needed_max;
-          if (cur_len + 1 >= needed)
-            {
-              result = -1;
-              errno = EOVERFLOW;
-              goto unlock_return;
-            }
-
-          char *new_lineptr = (char *) realloc (*lineptr, needed);
-          if (new_lineptr == NULL)
-            {
-              alloc_failed ();
-              result = -1;
-              goto unlock_return;
-            }
-
-          *lineptr = new_lineptr;
-          *n = needed;
-        }
-
-      (*lineptr)[cur_len] = i;
-      cur_len++;
-
-      if (i == delimiter)
-        break;
-    }
-  (*lineptr)[cur_len] = '\0';
-  result = cur_len ? cur_len : result;
+      }
+    (*lineptr)[cur_len] = '\0';
+    result = cur_len ? cur_len : result;
+  }
 
  unlock_return:
   funlockfile (fp); /* doesn't set errno */

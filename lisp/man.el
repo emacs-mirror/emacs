@@ -559,9 +559,12 @@ Otherwise, the value is whatever the function
 
 (defun Man-shell-file-name ()
   "Return a proper shell file name, respecting remote directories."
+  ;; It must be a Bourne-shell.  (Bug#75308, Bug#80212)
   (if (connection-local-p shell-file-name)
       (connection-local-value shell-file-name)
-    "/bin/sh"))
+    (if (memq system-type '(windows-nt ms-dos))
+        shell-file-name
+      "/bin/sh")))
 
 (defun Man-header-file-path ()
   "Return the C header file search path that Man should use.
@@ -1221,7 +1224,11 @@ Return the buffer in which the manpage will appear."
 	 (buffer (get-buffer bufname)))
     (if buffer
 	(Man-notify-when-ready buffer)
-      (message "Invoking %s %s in the background" manual-program man-args)
+      (message "Invoking %s %s %s"
+               manual-program man-args
+               (if Man-prefer-synchronous-call
+                   "and formatting..."
+                 "in the background"))
       (setq buffer (generate-new-buffer bufname))
       (Man-notify-when-ready buffer)
       (with-current-buffer buffer

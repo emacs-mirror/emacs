@@ -5943,12 +5943,15 @@ cursor's appearance is instead controlled by the variable
 `cursor-in-non-selected-windows'.  */);
 
   DEFVAR_PER_BUFFER ("line-spacing",
-		     extra_line_spacing, Qnumberp,
+		     extra_line_spacing, Qnil,
 		     doc: /* Additional space to put between lines when displaying a buffer.
 The space is measured in pixels, and put below lines on graphic displays,
 see `display-graphic-p'.
 If value is a floating point number, it specifies the spacing relative
-to the default frame line height.  A value of nil means add no extra space.  */);
+to the default frame line height.
+If value is a cons cell containing a pair of floats or integers,
+it is interpreted as space above and below the line, respectively.
+A value of nil means add no extra space.  */);
 
   DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
 		     cursor_in_non_selected_windows, Qnil,

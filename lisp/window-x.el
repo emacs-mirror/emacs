@@ -341,6 +341,51 @@ FRAME1."
     frame1))
 
 ;;;###autoload
+(defun window-get-split-combination (window arg)
+  "Return window combination suitable for `split-frame'.
+
+WINDOW is the main window in which the combination should be derived.
+ARG is the argument passed to `split-frame'.  Return a
+combination of windows `split-frame' is considered to split off."
+  (let* ((reverse (< arg 0))
+	 ;; This is where the pivot window is.
+         (total-window-count (window-child-count window))
+	 (pivot-window-pos (- (if reverse
+				  (+ total-window-count arg)
+				arg)
+                              1))
+	 (pivot-window (window-child window))
+	 (active-window (frame-selected-window window))
+         ;; If FRAME's selected window is on the left side of the
+         ;; pivot window.
+	 (active-window-on-left (eq pivot-window active-window)))
+    ;; We want the 2nd level window that the active window is a
+    ;; part of.
+    (while (not (eq (window-parent active-window) window))
+      (setq active-window (window-parent active-window)))
+
+    ;; Now we need to find the pivot window
+    (dotimes (_ pivot-window-pos)
+      (setq pivot-window (window-next-sibling pivot-window))
+      (when (eq active-window pivot-window)
+	(setq active-window-on-left t)))
+
+    ;; Now we have pivot-window set, and we just need to
+    ;; combine.  We want to split away all windows from the
+    ;; side of the pivot that doesn't contain the active
+    ;; window.
+    (let* ((first (window-child window))
+	   (last (window-last-child window))
+	   (next-pivot-sib (window-next-sibling pivot-window))
+	   (right-comb (if (eq next-pivot-sib last)
+			   last
+			 (combine-windows next-pivot-sib last)))
+	   (left-comb (if (eq first pivot-window)
+			  first
+			(combine-windows first pivot-window))))
+      (if active-window-on-left right-comb left-comb))))
+
+;;;###autoload
 (defun split-frame (&optional frame arg)
   "Split windows of specified FRAME into two separate frames.
 FRAME must be a live frame and defaults to the selected frame.  ARG
@@ -371,47 +416,12 @@ absolute value of ARG.  Return the new frame."
      ((>= (abs arg) total-window-count)
       (user-error "ARG %s exceeds number of windows %s that can be split off"
 		  (abs arg) (1- total-window-count)))
-     (t (let* ((reverse (< arg 0))
-	       ;; This is where the pivot window is.
-	       (pivot-window-pos (- (if reverse
-					(+ total-window-count arg)
-				      arg)
-                                    1))
-	       (pivot-window (window-child main))
-	       (active-window (frame-selected-window frame))
-               ;; If FRAME's selected window is on the left side of the
-               ;; pivot window.
-	       (active-window-on-left (eq pivot-window active-window)))
-	  ;; We want the 2nd level window that the active window is a
-	  ;; part of.
-	  (while (not (eq (window-parent active-window) main))
-	    (setq active-window (window-parent active-window)))
-
-	  ;; Now we need to find the pivot window
-	  (dotimes (_ pivot-window-pos)
-	    (setq pivot-window (window-next-sibling pivot-window))
-	    (when (eq active-window pivot-window)
-	      (setq active-window-on-left t)))
-
-	  ;; Now we have pivot-window set, and we just need to
-	  ;; combine.  We want to split away all windows from the
-	  ;; side of the pivot that doesn't contain the active
-	  ;; window.
-	  (let* ((first (window-child main))
-		 (last (window-last-child main))
-		 (next-pivot-sib (window-next-sibling pivot-window))
-		 (right-comb (if (eq next-pivot-sib last)
-				 last
-			       (combine-windows next-pivot-sib last)))
-		 (left-comb (if (eq first pivot-window)
-				first
-			      (combine-windows first pivot-window)))
-		 ;; comb-win is the combination that will be
-		 ;; split off.
-		 (comb-win (if active-window-on-left right-comb left-comb)))
-	    (window-state-put (window-state-get comb-win)
-			      (window-main-window (make-frame)))
-	    (delete-window comb-win)))))))
+     (t
+      (let ((comb (window-get-split-combination main arg)))
+        (window-state-put (window-state-get comb)
+			  (window-main-window (make-frame)))
+        (delete-window comb))
+      ))))
 
 (provide 'window-x)
 ;;; window-x.el ends here

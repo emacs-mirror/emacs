@@ -81,11 +81,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef ts_query_predicates_for_pattern
 #undef ts_query_string_value_for_id
 #undef ts_set_allocator
-#undef ts_tree_cursor_copy
 #undef ts_tree_cursor_current_node
 #undef ts_tree_cursor_delete
 #undef ts_tree_cursor_goto_first_child
 #undef ts_tree_cursor_goto_first_child_for_byte
+#undef ts_tree_cursor_goto_previous_sibling
 #undef ts_tree_cursor_goto_next_sibling
 #undef ts_tree_cursor_goto_parent
 #undef ts_tree_cursor_new
@@ -153,12 +153,12 @@ DEF_DLL_FN (const char *, ts_query_string_value_for_id,
 	    (const TSQuery *, uint32_t, uint32_t *));
 DEF_DLL_FN (void, ts_set_allocator,
 	    (void *(*)(size_t), void *(*)(size_t, size_t), void *(*)(void *, size_t), void (*)(void *)));
-DEF_DLL_FN (TSTreeCursor, ts_tree_cursor_copy, (const TSTreeCursor *));
 DEF_DLL_FN (TSNode, ts_tree_cursor_current_node, (const TSTreeCursor *));
 DEF_DLL_FN (void, ts_tree_cursor_delete, (const TSTreeCursor *));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_first_child, (TSTreeCursor *));
 DEF_DLL_FN (int64_t, ts_tree_cursor_goto_first_child_for_byte, (TSTreeCursor *, uint32_t));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_next_sibling, (TSTreeCursor *));
+DEF_DLL_FN (bool, ts_tree_cursor_goto_previous_sibling, (TSTreeCursor *));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_parent, (TSTreeCursor *));
 DEF_DLL_FN (TSTreeCursor, ts_tree_cursor_new, (TSNode));
 DEF_DLL_FN (void, ts_tree_delete, (TSTree *));
@@ -221,12 +221,12 @@ init_treesit_functions (void)
   LOAD_DLL_FN (library, ts_query_predicates_for_pattern);
   LOAD_DLL_FN (library, ts_query_string_value_for_id);
   LOAD_DLL_FN (library, ts_set_allocator);
-  LOAD_DLL_FN (library, ts_tree_cursor_copy);
   LOAD_DLL_FN (library, ts_tree_cursor_current_node);
   LOAD_DLL_FN (library, ts_tree_cursor_delete);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_first_child);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_first_child_for_byte);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_next_sibling);
+  LOAD_DLL_FN (library, ts_tree_cursor_goto_previous_sibling);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_parent);
   LOAD_DLL_FN (library, ts_tree_cursor_new);
   LOAD_DLL_FN (library, ts_tree_delete);
@@ -283,12 +283,12 @@ init_treesit_functions (void)
 #define ts_query_predicates_for_pattern fn_ts_query_predicates_for_pattern
 #define ts_query_string_value_for_id fn_ts_query_string_value_for_id
 #define ts_set_allocator fn_ts_set_allocator
-#define ts_tree_cursor_copy fn_ts_tree_cursor_copy
 #define ts_tree_cursor_current_node fn_ts_tree_cursor_current_node
 #define ts_tree_cursor_delete fn_ts_tree_cursor_delete
 #define ts_tree_cursor_goto_first_child fn_ts_tree_cursor_goto_first_child
 #define ts_tree_cursor_goto_first_child_for_byte fn_ts_tree_cursor_goto_first_child_for_byte
 #define ts_tree_cursor_goto_next_sibling fn_ts_tree_cursor_goto_next_sibling
+#define ts_tree_cursor_goto_previous_sibling fn_ts_tree_cursor_goto_previous_sibling
 #define ts_tree_cursor_goto_parent fn_ts_tree_cursor_goto_parent
 #define ts_tree_cursor_new fn_ts_tree_cursor_new
 #define ts_tree_delete fn_ts_tree_delete
@@ -4278,50 +4278,14 @@ treesit_traverse_sibling_helper (TSTreeCursor *cursor,
     }
   else /* Backward.  */
     {
-      /* Go to first child and go through each sibling, until we find
-	 the one just before the starting node.  */
-      TSNode start = ts_tree_cursor_current_node (cursor);
-      if (!ts_tree_cursor_goto_parent (cursor))
-	return false;
-      treesit_assume_true (ts_tree_cursor_goto_first_child (cursor));
-
-      /* Now CURSOR is at the first child.  If we started at the first
-	 child, then there is no further siblings.  */
-      TSNode first_child = ts_tree_cursor_current_node (cursor);
-      if (ts_node_eq (first_child, start))
-	return false;
-
-      /* PROBE is always DELTA siblings ahead of CURSOR.  */
-      TSTreeCursor probe = ts_tree_cursor_copy (cursor);
-      /* This is position of PROBE minus position of CURSOR.  */
-      ptrdiff_t delta = 0;
-      TSNode probe_node;
-      TSNode cursor_node;
-      while (ts_tree_cursor_goto_next_sibling (&probe))
+      if (!named)
+	return ts_tree_cursor_goto_previous_sibling (cursor);
+      /* Else named...  */
+      while (ts_tree_cursor_goto_previous_sibling (cursor))
 	{
-	  /* Move PROBE forward, if it equals to the starting node,
-	     CURSOR points to the node we want (prev valid sibling of
-	     the starting node).  */
-	  delta++;
-	  probe_node = ts_tree_cursor_current_node (&probe);
-
-	  /* PROBE matched, depending on NAMED, return true/false.  */
-	  if (ts_node_eq (probe_node, start))
-	    {
-	      ts_tree_cursor_delete (&probe);
-	      cursor_node = ts_tree_cursor_current_node (cursor);
-	      ts_tree_cursor_delete (&probe);
-	      return (!named || (named && ts_node_is_named (cursor_node)));
-	    }
-
-	  /* PROBE didn't match, move CURSOR forward to PROBE's
-	     position, but if we are looking for named nodes, only
-	     move CURSOR to PROBE if PROBE is at a named node.  */
-	  if (!named || (named && ts_node_is_named (probe_node)))
-	    for (; delta > 0; delta--)
-	      treesit_assume_true (ts_tree_cursor_goto_next_sibling (cursor));
+	  if (ts_node_is_named (ts_tree_cursor_current_node (cursor)))
+	    return true;
 	}
-      ts_tree_cursor_delete (&probe);
       return false;
     }
 }

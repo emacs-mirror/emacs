@@ -820,6 +820,7 @@ It is a vector of the form [ VELOCITY TIME SIGN ]."
           (end-of-buffer
            (message (error-message-string '(end-of-buffer)))))))))
 
+;;;###autoload
 (defun pixel-scroll-interpolate-down ()
   "Interpolate a scroll downwards by one page."
   (interactive)
@@ -832,6 +833,7 @@ It is a vector of the form [ VELOCITY TIME SIGN ]."
                                           nil 1)
     (cua-scroll-up)))
 
+;;;###autoload
 (defun pixel-scroll-interpolate-up ()
   "Interpolate a scroll upwards by one page."
   (interactive)
@@ -850,6 +852,8 @@ precisely, according to the turning of the mouse wheel."
   :keymap pixel-scroll-precision-mode-map
   (setq mwheel-coalesce-scroll-events
         (not pixel-scroll-precision-mode))
+  ;; This works around some issues described in bug#65214.
+  ;; Ideally this would not be needed because it breaks some other things.
   (setq-default make-cursor-line-fully-visible
                 (not pixel-scroll-precision-mode)))
 

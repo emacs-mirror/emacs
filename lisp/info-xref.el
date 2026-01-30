@@ -45,7 +45,6 @@
 ;;; Code:
 
 (require 'info)
-(eval-when-compile (require 'cl-lib))   ; for `cl-incf'
 
 (defgroup info-xref nil
   "Check external cross-references in Info documents."

@@ -529,13 +529,9 @@ arguments to pass to the OPERATION."
 
 (connection-local-set-profiles
  `(:application tramp :protocol ,tramp-androidsu-method)
- 'tramp-androidsu-connection-local-default-profile)
-
-(with-eval-after-load 'shell
-  (connection-local-set-profiles
-   `(:application tramp :protocol ,tramp-androidsu-method)
-   'tramp-adb-connection-local-default-shell-profile
-   'tramp-adb-connection-local-default-ps-profile))
+ 'tramp-androidsu-connection-local-default-profile
+ 'tramp-adb-connection-local-default-shell-profile
+ 'tramp-adb-connection-local-default-ps-profile)
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

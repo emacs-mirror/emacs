@@ -24,8 +24,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (require 'reftex)
 
 (declare-function TeX-argument-prompt "ext:tex"

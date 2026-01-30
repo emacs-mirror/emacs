@@ -1009,9 +1009,11 @@ For custom keybindings purposes please note there is also
     ["Paging" term-pager-toggle :style toggle :selected term-pager-count
      :help "Toggle paging feature"]))
 
+(defvar term--buffers-changed nil)
+
 (defun term--update-term-menu (&optional force)
   (when (and (lookup-key term-mode-map [menu-bar terminal])
-             (or force (frame-or-buffer-changed-p)))
+             (or force (frame-or-buffer-changed-p 'term--buffers-changed)))
     (let ((buffer-list (match-buffers '(derived-mode . term-mode))))
       (easy-menu-change
        nil
