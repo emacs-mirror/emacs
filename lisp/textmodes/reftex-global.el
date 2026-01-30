@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (provide 'reftex-global)
 (require 'reftex)
 

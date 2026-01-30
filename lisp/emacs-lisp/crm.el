@@ -254,11 +254,7 @@ with empty strings removed."
   (let* ((map (if require-match
                   crm-local-must-match-map
                 crm-local-completion-map))
-         (map (if minibuffer-visible-completions
-                  (make-composed-keymap
-                   (list minibuffer-visible-completions-map
-                         map))
-                map))
+         (map (minibuffer-visible-completions--maybe-compose-map map))
          (buffer (current-buffer))
          input)
     (minibuffer-with-setup-hook

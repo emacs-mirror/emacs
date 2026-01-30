@@ -1000,17 +1000,17 @@ File Shadowing is not available on MS Windows.
 @cindex modification dates
 @cindex last modified time
 
-You can arrange to have a time stamp in a file be updated
-automatically each time you save the file.
-(A time stamp may also be called a date stamp or a last modified time.)
 Having a time stamp in the text of a file ensures that the time the file
 was written will be preserved even if the file is copied or transformed
 in a way that loses the file system's modification time.
+A time stamp may also be called a date stamp or a last modified time.
+You can arrange to have a time stamp in a file update
+automatically each time you save the file.
 
 There are two steps to setting up automatic time stamping.
-First, the file needs a time stamp template
-somewhere in the first eight lines.
-The template looks like this:
+First, the file needs a time stamp template.
+By default, the template occurs somewhere in the first eight lines
+and looks like this:
 
 @example
 Time-stamp: <>
@@ -1026,10 +1026,9 @@ Time-stamp: " "
 @findex time-stamp
 With that template in place, you can update the current buffer's time
 stamp once immediately with the command @kbd{M-x time-stamp}.
-Emacs will check for a template; if a template is found,
+The Emacs editor will check for a template; if a template is found,
 Emacs will write the current date, time, author, and/or
-other info between the brackets or quotes.
-(If the buffer has no template, @code{time-stamp} does nothing.)
+other info between the angle brackets or quotes.
 After the first time stamp, the line might look like this:
 
 @example
@@ -1039,13 +1038,25 @@ Time-stamp: <1993-07-06 11:05:14 terryg>
 Second, configure your Emacs to run @code{time-stamp} whenever it saves a
 file, by adding @code{time-stamp}
 to @code{before-save-hook} (@pxref{Hooks}).
-You can either use @kbd{M-x customize-option} (@pxref{Specific
-Customization}) to customize the option @code{before-save-hook},
-or you can edit your init file adding this line:
+There are two ways to do this: you can
 
+@itemize
+@item
+use @kbd{M-x customize-option} (@pxref{Specific Customization})
+to customize the option @code{before-save-hook}, or
+
+@item
+edit your initialization file (@pxref{Init File}),
+adding this line:
 @example
 (add-hook 'before-save-hook 'time-stamp)
 @end example
+@end itemize
+
+Now every time you save a file, Emacs will look for a time stamp.
+If the buffer has no template, @code{time-stamp} does nothing;
+any file that does have a time stamp will have it kept up to date
+automatically.
 
 @menu
 * Time Stamp Customization::   How to customize with time-stamp-pattern.
@@ -1064,14 +1075,17 @@ identify a template and where in the file to look for the pattern using
 @code{time-stamp-pattern}; for details, see the variable's built-in
 documentation (with @kbd{C-h v}, @pxref{Name Help}).
 
-As a simple example, if this line occurs near the top of a file:
+As a simple example, suppose you want a manuscript to say the year
+and city of publication.
+You would like the year updated as you make revisions.
+You could have this line near the top of a file:
 
 @example
 publishing_year_and_city = "Published nnnn in Boston, Mass.";
 @end example
 
 @noindent
-then the following comment at the end of the same file tells
+and the following comment at the end of the same file to tell
 @code{time-stamp} how to identify and update that custom template:
 
 @example
@@ -1084,12 +1098,24 @@ then the following comment at the end of the same file tells
 
 This pattern says that the text before the start of the time stamp is
 ``Published '', and the text after the end is `` in Boston''.
-If @code{time-stamp} finds both in one of the first eight lines,
-what is between will be replaced by the current year, as requested by
-the @code{%Y} format.
+If @code{time-stamp} finds both the start and the end in one of the
+first eight lines,
+what is between will be updated as specified by the format, @code{%Y} in
+this example.  Since @code{%Y} requests the year, the result might look
+like this:
 
-After any change to file-local variables,
-type @kbd{M-x normal-mode} to re-read them.
+@example
+publishing_year_and_city = "Published 2025 in Boston, Mass.";
+@end example
+
+By specifying a format of @code{%Y}, we get exactly the year
+substituted; other parts of the default format (day, time and
+author) are not part of this example pattern and so do not appear in the
+result.
+
+After changing the value of @code{time-stamp-pattern}
+(or any file-local variable),
+type @kbd{M-x normal-mode} so that Emacs notices.
 
 Here is another example, with the time stamp inserted into
 the last paragraph of an HTML document.
@@ -1126,7 +1152,7 @@ for specifics on formatting and other variables that affect it.
 
 If you are working on a file with multiple authors, and you cannot
 be sure the other authors have enabled time-stamping globally in
-their Emacs init files, you can force it to be enabled for a
+their Emacs initialization files, you can force it to be enabled for a
 particular file by adding @code{time-stamp} to that buffer's
 @code{before-save-hook} in that file's local variables list.
 To extend one of the previous examples:
@@ -1140,10 +1166,12 @@ To extend one of the previous examples:
 @end group
 @end example
 
-@noindent
 Although this example shows them both set together,
 you can use @code{eval} without also setting @code{time-stamp-pattern}
 if you like the default pattern.
+
+The extra arguments to @code{add-hook} used here, @code{nil} and @code{t},
+are necessary to have the added hook affect only this buffer.
 
 @node Reverting
 @section Reverting a Buffer
@@ -2743,10 +2771,16 @@ are shown in the Customize buffer.  Remember to select @samp{Save for
 future sessions} if you want to use the same filesets in future Emacs
 sessions.
 
+@findex filesets-open
+@findex filesets-close
+@findex filesets-run-cmd
+@vindex filesets-commands
   You can use the command @kbd{M-x filesets-open} to visit all the
 files in a fileset, and @kbd{M-x filesets-close} to close them.  Use
-@kbd{M-x filesets-run-cmd} to run a shell command on all the files in
-a fileset.  These commands are also available from the @samp{Filesets}
+@kbd{M-x filesets-run-cmd} to run a command (such as
+@code{multi-isearch-files} or @command{grep}) on all the files in
+a fileset.  These commands, which are specified in
+@code{filesets-commands}, are also available from the @samp{Filesets}
 menu, where each existing fileset is represented by a submenu.
 
    @xref{Version Control}, for a different concept of filesets:

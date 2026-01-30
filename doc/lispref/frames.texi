@@ -109,6 +109,25 @@ must be a root frame, which means it cannot be a child frame itself
 descending from it.
 @end defun
 
+@cindex frame identifier
+@defun frame-id &optional frame
+This function returns the unique identifier of a frame, an integer,
+assigned to @var{frame}.  If @var{frame} is @code{nil} or unspecified,
+it defaults to the selected frame (@pxref{Input Focus}).  This can be
+used to unambiguously identify a frame in a context where you do not or
+cannot use a frame object.
+
+A frame undeleted using @command{undelete-frame} will retain its
+identifier.  A frame cloned using @command{clone-frame} will not retain
+its original identifier.  @xref{Frame Commands,,,emacs, the Emacs
+Manual}.
+
+Frame identifiers are not persisted using the desktop library
+(@pxref{Desktop Save Mode}), @command{frameset-to-register}, or
+@code{frameset-save}, and each of their restored frames will bear a new
+unique id.
+@end defun
+
 @menu
 * Creating Frames::             Creating additional frames.
 * Multiple Terminals::          Displaying on several different devices.
@@ -198,6 +217,11 @@ A normal hook run by @code{make-frame} before it creates the frame.
 An abnormal hook run by @code{make-frame} after it created the frame.
 Each function in @code{after-make-frame-functions} receives one
 argument, the frame just created.
+
+You can consult the frame parameters @code{cloned-from} and
+@code{undeleted} in your function to determine if a frame was cloned
+using @command{clone-frame}, or if it was undeleted using
+@command{undelete-frame}.  @xref{Frame Parameters}.
 @end defvar
 
 Note that any functions added to these hooks by your initial file are
@@ -2206,8 +2230,18 @@ left position ratio is preserved if the @sc{cdr} of the cell is either
 @code{t} or @code{left-only}.  The top position ratio is preserved if
 the @sc{cdr} of the cell is either @code{t} or @code{top-only}.  This
 parameter has not been yet implemented on text terminals.
-@end table
 
+@vindex cloned-from@r{, a frame parameter}
+@item cloned-from
+The original frame if this frame was made via @code{clone-frame}
+(@pxref{Creating Frames,,,emacs, the Emacs Manual}).
+
+@vindex undeleted@r{, a frame parameter}
+@item undeleted
+This is non-@code{nil} if this frame was undeleted using the command
+@command{undelete-frame} (@pxref{Frame Commands,,,emacs, the Emacs
+Manual}).
+@end table
 
 @node Mouse Dragging Parameters
 @subsubsection Mouse Dragging Parameters
@@ -3152,6 +3186,29 @@ been deleted.
 In general, you should never use @code{select-frame} in a way that
 could switch to a different terminal without switching back when
 you're done.
+@end deffn
+
+@deffn Command select-frame-by-id id &optional noerror
+This function searches open and undeletable frames for a matching frame
+identifier @var{id} (@pxref{Frames}).  If found, its frame is undeleted,
+if necessary, then raised, given focus, and made the selected frame.  On
+a text terminal, raising a frame causes it to occupy the entire terminal
+display.
+
+This function returns the selected frame or signals an error if @var{id}
+is not found, unless @var{noerror} is non-@code{nil}, in which case it
+returns @code{nil}.
+@end deffn
+
+@deffn Command undelete-frame-by-id id &optional noerror
+This function searches undeletable frames for a matching frame
+identifier @var{id} (@pxref{Frames}).  If found, its frame is undeleted,
+raised, given focus, and made the selected frame.  On a text terminal,
+raising a frame causes it to occupy the entire terminal display.
+
+This function returns the undeleted frame or signals an error if
+@var{id} is not found, unless @var{noerror} is non-@code{nil}, in which
+case it returns @code{nil}.
 @end deffn
 
 @cindex text-terminal focus notification

@@ -80,6 +80,7 @@
 (ert-deftest pcase-tests-quote-optimization ()
   ;; FIXME: We could/should also test that we get a corresponding
   ;; "shadowed branch" warning.
+  (require 'byte-opt) ;; FIXME: Needed for pcase to see that `consp' is `pure'.
   (should-not (pcase-tests-grep
                'FOO (macroexpand '(pcase EXP
                                     (`(,_ . ,_) (BAR))
@@ -190,5 +191,23 @@
     (if (nth 2 x)
         (should (pcase--mutually-exclusive-p (nth 1 x) (nth 0 x)))
       (should-not (pcase--mutually-exclusive-p (nth 1 x) (nth 0 x))))))
+
+(ert-deftest pcase-pred-equiv ()
+  (cl-flet ((f1 (x) (pcase x ((pred atom) 1) (_ 2))))
+    (should (equal (f1 'a) 1))
+    (should (equal (f1 nil) 1))
+    (should (equal (f1 '(a)) 2)))
+  (cl-flet ((f2 (x) (pcase x ((pred nlistp) 1) (_ 2))))
+    (should (equal (f2 'a) 1))
+    (should (equal (f2 nil) 2))
+    (should (equal (f2 '(a)) 2)))
+  (cl-flet ((f3 (x) (pcase x ((pred identity) 1) (_ 2))))
+    (should (equal (f3 'a) 1))
+    (should (equal (f3 nil) 2))
+    (should (equal (f3 '(a)) 1)))
+  (cl-flet ((f4 (x) (pcase x ((pred not) 1) (_ 2))))
+    (should (equal (f4 'a) 2))
+    (should (equal (f4 nil) 1))
+    (should (equal (f4 '(a)) 2))))
 
 ;;; pcase-tests.el ends here.

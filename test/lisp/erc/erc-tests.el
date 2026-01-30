@@ -165,19 +165,6 @@
 
     (advice-remove 'buffer-local-value 'erc-with-server-buffer)))
 
-(ert-deftest erc--doarray ()
-  (let ((array "abcdefg")
-        out)
-    ;; No return form.
-    (should-not (erc--doarray (c array) (push c out)))
-    (should (equal out '(?g ?f ?e ?d ?c ?b ?a)))
-
-    ;; Return form evaluated upon completion.
-    (setq out nil)
-    (should (= 42 (erc--doarray (c array (+ 39 (length out)))
-                    (when (cl-evenp c) (push c out)))))
-    (should (equal out '(?f ?d ?b)))))
-
 (ert-deftest erc-hide-prompt ()
   (let ((erc-hide-prompt erc-hide-prompt)
         (inhibit-message noninteractive)
@@ -1000,87 +987,88 @@
   (setq erc-channel-users (make-hash-table :test #'equal)
         erc--target (erc--target-from-string "#test"))
 
-  (let ((orig-handle-fn (symbol-function 'erc--handle-channel-mode))
-        calls)
-    (cl-letf (((symbol-function 'erc--handle-channel-mode)
-               (lambda (&rest r) (push r calls) (apply orig-handle-fn r)))
-              ((symbol-function 'erc-update-mode-line) #'ignore))
+  (cl-letf ((calls ())
+            ((symbol-function 'erc-update-mode-line) #'ignore))
+    (advice-add 'erc--handle-channel-mode
+                :before (lambda (&rest r) (push r calls))
+                '((name . erc-tests-spy)))
 
-      (ert-info ("Unknown user not created")
-        (erc--update-channel-modes "+o" "bob")
-        (should-not (erc-get-channel-user "bob")))
+    (ert-info ("Unknown user not created")
+      (erc--update-channel-modes "+o" "bob")
+      (should-not (erc-get-channel-user "bob")))
 
-      (ert-info ("Status updated when user known")
-        (puthash "bob" (cons (erc-add-server-user
-                              "bob" (make-erc-server-user
-                                     :nickname "bob"
-                                     :buffers (list (current-buffer))))
-                             (make-erc-channel-user))
-                 erc-channel-users)
-        ;; Also asserts fallback behavior for traditional prefixes.
-        (should-not (erc-channel-user-op-p "bob"))
-        (erc--update-channel-modes "+o" "bob")
-        (should (erc-channel-user-op-p "bob"))
-        (erc--update-channel-modes "-o" "bob") ; status revoked
-        (should-not (erc-channel-user-op-p "bob")))
+    (ert-info ("Status updated when user known")
+      (puthash "bob" (cons (erc-add-server-user
+                            "bob" (make-erc-server-user
+                                   :nickname "bob"
+                                   :buffers (list (current-buffer))))
+                           (make-erc-channel-user))
+               erc-channel-users)
+      ;; Also asserts fallback behavior for traditional prefixes.
+      (should-not (erc-channel-user-op-p "bob"))
+      (erc--update-channel-modes "+o" "bob")
+      (should (erc-channel-user-op-p "bob"))
+      (erc--update-channel-modes "-o" "bob") ; status revoked
+      (should-not (erc-channel-user-op-p "bob")))
 
-      (ert-info ("Unknown nullary added and removed")
-        (should-not erc--channel-modes)
-        (should-not erc-channel-modes)
-        (erc--update-channel-modes "+u")
-        (should (equal erc-channel-modes '("u")))
-        (should (eq t (gethash ?u erc--channel-modes)))
-        (should (equal (pop calls) '(?d ?u t nil)))
-        (erc--update-channel-modes "-u")
-        (should (equal (pop calls) '(?d ?u nil nil)))
-        (should-not (gethash ?u erc--channel-modes))
-        (should-not erc-channel-modes)
-        (should-not calls))
+    (ert-info ("Unknown nullary added and removed")
+      (should-not erc--channel-modes)
+      (should-not erc-channel-modes)
+      (erc--update-channel-modes "+u")
+      (should (equal erc-channel-modes '("u")))
+      (should (eq t (gethash ?u erc--channel-modes)))
+      (should (equal (pop calls) '(?d ?u t nil)))
+      (erc--update-channel-modes "-u")
+      (should (equal (pop calls) '(?d ?u nil nil)))
+      (should-not (gethash ?u erc--channel-modes))
+      (should-not erc-channel-modes)
+      (should-not calls))
 
-      (ert-info ("Fallback for Type B includes mode letter k")
-        (erc--update-channel-modes "+k" "h2")
-        (should (equal (pop calls) '(?b ?k t "h2")))
-        (should-not erc-channel-modes)
-        (should (equal "h2" (gethash ?k erc--channel-modes)))
-        (erc--update-channel-modes "-k" "*")
-        (should (equal (pop calls) '(?b ?k nil "*")))
-        (should-not calls)
-        (should-not (gethash ?k erc--channel-modes))
-        (should-not erc-channel-modes))
+    (ert-info ("Fallback for Type B includes mode letter k")
+      (erc--update-channel-modes "+k" "h2")
+      (should (equal (pop calls) '(?b ?k t "h2")))
+      (should-not erc-channel-modes)
+      (should (equal "h2" (gethash ?k erc--channel-modes)))
+      (erc--update-channel-modes "-k" "*")
+      (should (equal (pop calls) '(?b ?k nil "*")))
+      (should-not calls)
+      (should-not (gethash ?k erc--channel-modes))
+      (should-not erc-channel-modes))
 
-      (ert-info ("Fallback for Type C includes mode letter l")
-        (erc--update-channel-modes "+l" "3")
-        (should (equal (pop calls) '(?c ?l t "3")))
-        (should-not erc-channel-modes)
-        (should (equal "3" (gethash ?l erc--channel-modes)))
-        (erc--update-channel-modes "-l" nil)
-        (should (equal (pop calls) '(?c ?l nil nil)))
-        (should-not (gethash ?l erc--channel-modes))
-        (should-not erc-channel-modes))
+    (ert-info ("Fallback for Type C includes mode letter l")
+      (erc--update-channel-modes "+l" "3")
+      (should (equal (pop calls) '(?c ?l t "3")))
+      (should-not erc-channel-modes)
+      (should (equal "3" (gethash ?l erc--channel-modes)))
+      (erc--update-channel-modes "-l" nil)
+      (should (equal (pop calls) '(?c ?l nil nil)))
+      (should-not (gethash ?l erc--channel-modes))
+      (should-not erc-channel-modes))
 
-      (ert-info ("Advertised supersedes heuristics")
-        (setq erc-server-parameters
-              '(("PREFIX" . "(ov)@+")
-                ;; Add phony 5th type for this CHANMODES value for
-                ;; robustness in case some server gets creative.
-                ("CHANMODES" . "eIbq,k,flj,CFLMPQRSTcgimnprstuz,FAKE")))
-        (erc--update-channel-modes "+qu" "fool!*@*")
-        (should (equal (pop calls) '(?d ?u t nil)))
-        (should (equal (pop calls) '(?a ?q t "fool!*@*")))
-        (should (equal 1 (gethash ?q erc--channel-modes)))
-        (should (eq t (gethash ?u erc--channel-modes)))
-        (should (equal erc-channel-modes '("u")))
-        (should-not (erc-channel-user-owner-p "bob"))
+    (ert-info ("Advertised supersedes heuristics")
+      (setq erc-server-parameters
+            '(("PREFIX" . "(ov)@+")
+              ;; Add phony 5th type for this CHANMODES value for
+              ;; robustness in case some server gets creative.
+              ("CHANMODES" . "eIbq,k,flj,CFLMPQRSTcgimnprstuz,FAKE")))
+      (erc--update-channel-modes "+qu" "fool!*@*")
+      (should (equal (pop calls) '(?d ?u t nil)))
+      (should (equal (pop calls) '(?a ?q t "fool!*@*")))
+      (should (equal 1 (gethash ?q erc--channel-modes)))
+      (should (eq t (gethash ?u erc--channel-modes)))
+      (should (equal erc-channel-modes '("u")))
+      (should-not (erc-channel-user-owner-p "bob"))
 
-        ;; Remove fool!*@* from list mode "q".
-        (erc--update-channel-modes "-uq" "fool!*@*")
-        (should (equal (pop calls) '(?a ?q nil "fool!*@*")))
-        (should (equal (pop calls) '(?d ?u nil nil)))
-        (should-not (gethash ?u erc--channel-modes))
-        (should-not erc-channel-modes)
-        (should (equal 0 (gethash ?q erc--channel-modes))))
+      ;; Remove fool!*@* from list mode "q".
+      (erc--update-channel-modes "-uq" "fool!*@*")
+      (should (equal (pop calls) '(?a ?q nil "fool!*@*")))
+      (should (equal (pop calls) '(?d ?u nil nil)))
+      (should-not (gethash ?u erc--channel-modes))
+      (should-not erc-channel-modes)
+      (should (equal 0 (gethash ?q erc--channel-modes))))
 
-      (should-not calls))))
+    (should-not calls)
+    (advice-remove 'erc--handle-channel-mode 'erc-tests-spy)))
 
 (ert-deftest erc--channel-modes ()
   ;; Only mark :unstable when running locally.

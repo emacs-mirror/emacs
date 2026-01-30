@@ -591,14 +591,17 @@ This function can be used to force exit of repetition while it's active."
                     (if-let* ((hint (and (symbolp cmd)
                                          (get cmd 'repeat-hint)))
                               (last (aref key (1- (length key)))))
-                        ;; Reuse `read-multiple-choice' formatting.
-                        (if (= (length key) 1)
+                        ;; Possibly reuse `read-multiple-choice' formatting.
+                        (if (and (= (length key) 1) (characterp last))
                             (cdr (rmc--add-key-description (list last hint)))
                           (format "%s (%s)"
                                   (propertize (key-description key)
                                               'face 'read-multiple-choice-face)
-                                  (cdr (rmc--add-key-description
-                                        (list (event-basic-type last) hint)))))
+                                  (if (characterp (event-basic-type last))
+                                      (cdr (rmc--add-key-description
+                                            (list (event-basic-type last) hint)))
+                                    hint)))
+                      ;; No hint
                       (propertize (key-description key)
                                   'face 'read-multiple-choice-face))))
                 keys ", ")

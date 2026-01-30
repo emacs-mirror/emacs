@@ -128,6 +128,60 @@ Return nil if there is no name or if NODE is not a defun node."
                    t)
                   "\"" "\""))))
 
+(defun json-ts--get-path-at-node (node)
+  "Get the path from the root of the JSON tree to NODE.
+Return a list of keys (strings) and indices (numbers).
+NODE is a tree-sitter node."
+  (let ((path nil)
+        (parent nil))
+    (while (setq parent (treesit-node-parent node))
+      (let ((type (treesit-node-type parent)))
+        (cond
+         ((equal type "array")
+          (push (treesit-node-index node t) path))
+         ((equal type "pair")
+          (let ((key (treesit-node-child-by-field-name parent "key")))
+             (push (treesit-node-text key t) path)))))
+      (setq node parent))
+    path))
+
+(defun json-ts--path-to-jq (path)
+  "Convert PATH list to a jq-style path string.
+PATH is a list of keys (strings) and indices (numbers)."
+  (mapconcat
+   (lambda (x)
+     (cond
+      ((numberp x) (format "[%d]" x))
+      ((stringp x)
+       (let ((key (string-trim x "\"" "\"")))
+         (if (string-match-p (rx bos (any alpha "_") (* (any alnum "_")) eos) key)
+             (format ".%s" key)
+           (format "[%S]" key))))
+      (t "")))
+   path
+   ""))
+
+(defun json-ts--path-to-python (path)
+  "Convert PATH list to a Python-style path string.
+PATH is a list of keys (strings) and indices (numbers)."
+  (mapconcat
+   (lambda (x)
+     (cond
+      ((numberp x) (format "[%d]" x))
+      ((stringp x) (format "[\"%s\"]" x))
+      (t "")))
+   path
+   ""))
+
+(defun json-ts-jq-path-at-point ()
+  "Show the JSON path at point in jq format."
+  (interactive)
+  (if-let* ((node (treesit-node-at (point))))
+      (let ((path (json-ts--path-to-jq (json-ts--get-path-at-node node))))
+        (kill-new path)
+        (message "%s" path))
+    (user-error "No JSON node at point")))
+
 ;;;###autoload
 (define-derived-mode json-ts-mode prog-mode "JSON"
   "Major mode for editing JSON, powered by tree-sitter."

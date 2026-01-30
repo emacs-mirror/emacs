@@ -33,7 +33,7 @@
 
 (declare-function image-flush "image.c" (spec &optional frame))
 (declare-function clear-image-cache "image.c"
-                  (&optional filter animation-cache))
+                  (&optional filter animation-filter))
 
 (defconst image-type-header-regexps
   `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
@@ -953,9 +953,6 @@ displayed."
       (when position
         (plist-put (cdr image) :animate-position
                    (set-marker (make-marker) position (current-buffer))))
-      ;; Stash the data about the animation here so that we don't
-      ;; trigger image recomputation unnecessarily later.
-      (plist-put (cdr image) :animate-multi-frame-data animation)
       (run-with-timer 0.2 nil #'image-animate-timeout
 		      image (or index 0) (car animation)
 		      0 limit (+ (float-time) 0.2)))))
@@ -986,9 +983,7 @@ Frames are indexed from 0.  Optional argument NOCHECK non-nil means
 do not check N is within the range of frames present in the image."
   (unless nocheck
     (if (< n 0) (setq n 0)
-      (setq n (min n (1- (car (or (plist-get (cdr image)
-                                             :animate-multi-frame-data)
-                                  (image-multi-frame-p image))))))))
+      (setq n (min n (1- (car (image-multi-frame-p image)))))))
   (plist-put (cdr image) :index n)
   (force-window-update (plist-get (cdr image) :animate-buffer)))
 
@@ -1005,10 +1000,8 @@ multiplication factor for the current value."
 		 (* value (image-animate-get-speed image))
 	       value)))
 
-;; FIXME? The delay may not be the same for different sub-images,
-;; hence we need to call image-multi-frame-p to return it.
-;; But it also returns count, so why do we bother passing that as an
-;; argument?
+;; FIXME: The count argument is redundant; the value is also given by
+;; the call to `image-multi-frame-p'.
 (defun image-animate-timeout (image n count time-elapsed limit target-time)
   "Display animation frame N of IMAGE.
 N=0 refers to the initial animation frame.
@@ -1053,15 +1046,20 @@ for the animation speed.  A negative value means to animate in reverse."
         ;; keep updating it.  This helps stop unbounded RAM usage when
         ;; doing, for instance, `g' in an eww buffer with animated
         ;; images.
+        ;; FIXME: This doesn't currently support ImageMagick.
         (clear-image-cache nil image)
-      (let* ((time (prog1 (current-time)
-		     (image-show-frame image n t)))
+      (let* ((time (current-time))
+             ;; Each animation frame can have its own duration, so
+             ;; (re)fetch its `image-metadata'.  Do so before
+             ;; `image-show-frame' to avoid an image cache miss per
+             ;; animation frame (bug#47895, bug#66221).
+             (multi (prog1 (image-multi-frame-p image)
+                      (image-show-frame image n t)))
 	     (speed (image-animate-get-speed image))
-	     (time-to-load-image (time-since time))
 	     (stated-delay-time
-              (/ (or (cdr (plist-get (cdr image) :animate-multi-frame-data))
-		     image-default-frame-delay)
+              (/ (or (cdr multi) image-default-frame-delay)
 	         (float (abs speed))))
+             (time-to-load-image (time-since time))
 	     ;; Subtract off the time we took to load the image from the
 	     ;; stated delay time.
 	     (delay (max (float-time (time-subtract stated-delay-time

@@ -1382,6 +1382,19 @@ these problems by disabling XIM in your X resources:
 
   Emacs.useXIM: false
 
+** When the compose key is pressed, a small window appears that won't go away
+
+In some circumstances, pressing the compose key under X pops up a small
+character-selection window next to the cursor, which can be moved but
+not closed; it disappears when some window manager operation is
+performed, like creating or deleting a window.  You can prevent this
+window from appearing by completely disabling the X input method (XIM).
+If this is acceptable to you, you should set the 'XMODIFIERS'
+environment variable to the value '@im=none', and export it before
+calling Emacs, for example by invoking Emacs like so:
+
+  env XMODIFIERS=@im=none emacs
+
 ** On Haiku, BeCJK doesn't work properly with Emacs
 
 Some popular Haiku input methods such BeCJK are known to behave badly

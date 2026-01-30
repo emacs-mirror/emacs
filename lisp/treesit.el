@@ -78,7 +78,9 @@ in a Emacs not built with tree-sitter library."
      (declare-function treesit-node-p "treesit.c")
      (declare-function treesit-compiled-query-p "treesit.c")
      (declare-function treesit-query-p "treesit.c")
+     (declare-function treesit-query-eagerly-compiled-p "treesit.c")
      (declare-function treesit-query-language "treesit.c")
+     (declare-function treesit-query-source "treesit.c")
 
      (declare-function treesit-node-parser "treesit.c")
 
@@ -88,8 +90,12 @@ in a Emacs not built with tree-sitter library."
      (declare-function treesit-parser-buffer "treesit.c")
      (declare-function treesit-parser-language "treesit.c")
      (declare-function treesit-parser-tag "treesit.c")
+     (declare-function treesit-parser-embed-level "treesit.c")
+     (declare-function treesit-parser-set-embed-level "treesit.c")
+     (declare-function treesit-parser-changed-regions "treesit.c")
 
      (declare-function treesit-parser-root-node "treesit.c")
+     (declare-function treesit-parse-string "treesit.c")
 
      (declare-function treesit-parser-set-included-ranges "treesit.c")
      (declare-function treesit-parser-included-ranges "treesit.c")
@@ -994,9 +1000,6 @@ is nil."
                          (null (treesit-parser-embed-level parser)))))
               parsers))
 
-(declare-function treesit-parser-set-embed-level "treesit.c")
-(declare-function treesit-parser-embed-level "treesit.c")
-
 (defun treesit--update-ranges-non-local
     ( host-parser query embed-lang modified-tick embed-level
       &optional beg end offset range-fn)
@@ -1469,7 +1472,10 @@ done via `customize-variable'.
 
 To see which syntactical categories are fontified by each level
 in a particular major mode, examine the buffer-local value of the
-variable `treesit-font-lock-feature-list'."
+variable `treesit-font-lock-feature-list'.
+
+Setting this variable directly with `setq' or `let' doesn't work;
+use `setopt' or \\[customize-option] instead."
   :type 'integer
   :set #'treesit--font-lock-level-setter
   :version "29.1")
@@ -1696,15 +1702,16 @@ no match, return 3."
     (&optional add-list remove-list language)
   "Enable/disable font-lock features and validate and compile queries.
 
-Enable each feature in ADD-LIST, disable each feature in
-REMOVE-LIST.
+When either ADD-LIST or REMOVE-LIST is non-nil, enable/disable features
+according to ADD-LIST and REMOVE-LIST, on top of the currently enabled
+features in the buffer.
 
-If both ADD-LIST and REMOVE-LIST are omitted, recompute each
-feature according to `treesit-font-lock-feature-list' and
+If (and only if) both ADD-LIST and REMOVE-LIST are omitted, recompute
+each feature according to `treesit-font-lock-feature-list' and
 `treesit-font-lock-level'.  If the value of `treesit-font-lock-level',
 is N, then the features in the first N sublists of
-`treesit-font-lock-feature-list' are enabled, and the rest of
-the features are disabled.
+`treesit-font-lock-feature-list' are enabled, and the rest of the
+features are disabled.
 
 ADD-LIST and REMOVE-LIST are lists of feature symbols.  The
 same feature symbol cannot appear in both lists; the function
@@ -2173,8 +2180,6 @@ parser."
           (or (car (treesit-parser-list))
               (signal 'treesit-no-parser nil))))
     (car (treesit-parser-list))))
-
-(declare-function treesit-parser-changed-regions "treesit.c")
 
 (defun treesit--pre-redisplay (&rest _)
   "Force a reparse on primary parser and mark regions to be fontified."
@@ -4282,11 +4287,9 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
   "Tree-sitter implementation of `hs-find-block-beginning-function'."
   (let* ((pred (bound-and-true-p hs-treesit-things))
          (thing (treesit-thing-at (point) pred))
-         (beg (when thing (treesit-node-start thing)))
-         (end (when beg (min (1+ beg) (point-max)))))
+         (beg (when thing (treesit-node-start thing))))
     (when thing
       (goto-char beg)
-      (set-match-data (list beg end))
       t)))
 
 (defun treesit-hs-find-next-block (_regexp maxp comments)

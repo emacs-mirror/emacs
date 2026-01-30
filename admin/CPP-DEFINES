@@ -34,7 +34,9 @@ __ANDROID_API__ A numerical "API level" indicating the version of
 HAVE_NTGUI	Use the native W32 GUI for windows, frames, menus&scrollbars.
 HAVE_NS		Use the NeXT/OpenStep/Cocoa UI under macOS or GNUstep.
 NS_IMPL_GNUSTEP	Compile support for GNUstep implementation of NS GUI API.
+		Only true on systems other than macOS.
 NS_IMPL_COCOA	Compile support for Cocoa (Apple) implementation of NS GUI API.
+		Only true on macOS.
 HAVE_X11	Compile support for the X11 GUI.
 HAVE_PGTK	Compile support for using GTK itself without directly using X Windows APIs.
 HAVE_HAIKU	Compile support for the Haiku window system.

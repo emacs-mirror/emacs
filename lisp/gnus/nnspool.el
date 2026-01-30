@@ -29,7 +29,6 @@
 (require 'nnheader)
 (require 'nntp)
 (require 'nnoo)
-(eval-when-compile (require 'cl-lib))
 
 ;; Probably this entire thing should be obsolete.
 ;; It's only used to init nnspool-spool-directory, so why not just

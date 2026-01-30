@@ -9410,7 +9410,7 @@ See `gnus-collect-urls'."
                            (concat "#" target)))))
       (concat host (string-truncate-left rest (- max (length host)))))))
 
-(defun gnus-summary-browse-url (&optional external)
+(defun gnus-summary-browse-url (&optional secondary)
   "Scan the current article body for links, and offer to browse them.
 
 Links are opened using `browse-url' unless a prefix argument is
@@ -9431,9 +9431,11 @@ default."
 				 (gnus-shorten-url (car urls) 40))
 		  urls nil t nil nil (car urls))))))
     (if target
-	(if external
-	    (funcall browse-url-secondary-browser-function target)
-	  (browse-url target))
+        (let ((browse-url-browser-function
+               (if secondary
+                   browse-url-secondary-browser-function
+                 browse-url-browser-function)))
+          (browse-url target))
       (message "No URLs found."))))
 
 (defun gnus-summary-isearch-article (&optional regexp-p)

@@ -2506,7 +2506,11 @@ buffer, whether or not it is currently displayed in some window.  */)
 	 an addition to the hscroll amount.  */
       if (!NILP (lcols))
 	{
-	  if (it.method == GET_FROM_STRING && !NILP (it.from_overlay))
+	  /* Start at beginning of line if inside an overlay string, to
+             avoid becoming stuck at the beginning of the overlay string.  */
+	  if (it.continuation_lines_width <= 0 /* not in continuation line */
+	      && it.hpos > 0		       /* and not at BOL */
+	      && it.method == GET_FROM_STRING && !NILP (it.from_overlay))
 	    reseat_at_previous_visible_line_start(&it);
 
 	  move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);

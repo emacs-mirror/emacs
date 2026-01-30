@@ -579,7 +579,10 @@ struct buffer
   Lisp_Object cursor_type_;
 
   /* An integer > 0 means put that number of pixels below text lines
-     in the display of this buffer.  */
+     in the display of this buffer.
+     A float ~ 1.0 means add extra number of pixels below text lines
+     relative to the line height.
+     A cons means put car spacing above and cdr spacing below the line.  */
   Lisp_Object extra_line_spacing_;
 
 #ifdef HAVE_TREE_SITTER
@@ -1566,7 +1569,9 @@ BUF_FETCH_CHAR_AS_MULTIBYTE (struct buffer *buf, ptrdiff_t pos)
 	  : UNIBYTE_TO_CHAR (BUF_FETCH_BYTE (buf, pos)));
 }
 
-/* Return number of windows showing B.  */
+/* Return number of windows showing B or a buffer that has B as its base
+   buffer.  If B is an indirect buffer, this returns buffer_window_count
+   of its base buffer.  */
 
 INLINE int
 buffer_window_count (struct buffer *b)

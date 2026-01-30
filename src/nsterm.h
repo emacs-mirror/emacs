@@ -279,7 +279,7 @@ char const * nstrace_fullscreen_type_name (int);
 
 #define NSTRACE_WHEN(cond, ...)                                         \
   __attribute__ ((cleanup (nstrace_restore_global_trace_state)))        \
-  int nstrace_saved_enabled_global = nstrace_enabled_global;            \
+  int __attribute__ ((unused)) nstrace_saved_enabled_global = nstrace_enabled_global;\
   __attribute__ ((cleanup (nstrace_leave)))                             \
   int nstrace_enabled = nstrace_enabled_global && (cond);               \
   if (nstrace_enabled) { ++nstrace_depth; }                             \

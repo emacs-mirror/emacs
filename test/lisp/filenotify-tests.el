@@ -1256,6 +1256,10 @@ delivered."
   :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
 
+  (let ((file-notify-debug ;; Temporarily.
+         (or file-notify-debug
+             (getenv "EMACS_EMBA_CI"))))
+
   (with-file-notify-test
    (write-region "any text" nil file-notify--test-tmpfile nil 'no-message)
    (should
@@ -1334,7 +1338,7 @@ delivered."
      (file-notify--rm-descriptor file-notify--test-desc)
 
      ;; The environment shall be cleaned up.
-     (file-notify--test-cleanup-p))))
+     (file-notify--test-cleanup-p)))))
 
 (file-notify--deftest-remote file-notify-test08-backup
   "Check that backup keeps file notification for remote files.")

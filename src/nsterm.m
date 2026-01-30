@@ -1227,7 +1227,7 @@ ns_unfocus (struct frame *f)
     {
       nestCount = 0;
       isAttached = false;
-#ifdef NS_IMPL_GNUSTEP
+#if NS_IMPL_GNUSTEP && !HAVE_DECL_NSIMAGENAMECAUTION
       // GNUstep doesn't provide named images.  This was reported in
       // 2011, see https://savannah.gnu.org/bugs/?33396
       //
@@ -5072,18 +5072,14 @@ ns_select_1 (int nfds, fd_set *readfds, fd_set *writefds,
       if (writefds && FD_ISSET(k, writefds)) ++nr;
     }
 
-  /* emacs -nw doesn't have an NSApp, so we're done.  */
-  if (NSApp == nil)
-    return thread_select (pselect, nfds, readfds, writefds, exceptfds,
-			  timeout, sigmask);
-
-  if (![NSThread isMainThread]
+  if (NSApp == nil
+      || ![NSThread isMainThread]
       || (timeout && timeout->tv_sec == 0 && timeout->tv_nsec == 0))
-    thread_select (pselect, nfds, readfds, writefds,
-		   exceptfds, timeout, sigmask);
+    return thread_select (pselect, nfds, readfds, writefds,
+			  exceptfds, timeout, sigmask);
   else
     {
-      struct timespec t = {0, 0};
+      struct timespec t = {0, 1};
       thread_select (pselect, 0, NULL, NULL, NULL, &t, sigmask);
     }
 
@@ -7070,8 +7066,8 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
     [self addCursorRect: visible cursor: currentCursor];
 
 #if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MIN_REQUIRED < 101300
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101300
-  if ([currentCursor respondsToSelector: @selector(setOnMouseEntered)])
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101300
+  if ([currentCursor respondsToSelector: @selector(setOnMouseEntered:)])
 #endif
     [currentCursor setOnMouseEntered: YES];
 #endif
@@ -10585,9 +10581,9 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
     [self addCursorRect: visible cursor: [NSCursor arrowCursor]];
 
 #if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MIN_REQUIRED < 101300
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101300
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101300
   if ([[NSCursor arrowCursor] respondsToSelector:
-                                @selector(setOnMouseEntered)])
+                                @selector(setOnMouseEntered:)])
 #endif
     [[NSCursor arrowCursor] setOnMouseEntered: YES];
 #endif
@@ -11425,7 +11421,11 @@ separately for ordinary keys, function keys, and mouse events.
 
 Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.
 If `none', the key is ignored by Emacs and retains its standard meaning.  */);
+#ifdef NS_IMPL_COCOA
   ns_command_modifier = Qsuper;
+#else
+  ns_command_modifier = Qmeta;
+#endif
 
   DEFVAR_LISP ("ns-right-command-modifier", ns_right_command_modifier,
     doc: /* This variable describes the behavior of the right command key.

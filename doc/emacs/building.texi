@@ -64,6 +64,12 @@ named @file{*compilation*}.  The current buffer's default directory is
 used as the working directory for the execution of the command, so by
 default compilation takes place in that directory.
 
+  When invoked with a prefix argument, the @file{*compilation*} buffer
+is using Comint mode as its major mode (@pxref{Shell Mode}).  By default
+Comint mode has the nice property of looking for any credential prompts
+in its contents and make Emacs asks for a password if this happens.
+This is useful should the compilation command need such a credential.
+
 @vindex compile-command
   The default compilation command is @samp{make -k}, which is usually
 correct for programs compiled using the @command{make} utility (the

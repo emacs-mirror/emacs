@@ -51,7 +51,9 @@ corresponding "good" files, one by one.  Like this:
   $ cp ETAGS ETAGS.good_7
   $ make check
   $ cp CTAGS CTAGS.good
-  $ make check
+  $ head -n 100 CTAGS.good_update > CTAGS
+  $ tail -n 100 CTAGS.good_update >> CTAGS
+  $ ../../../lib-src/etags --ctags -o CTAGS -u - < srclist
   $ cp CTAGS CTAGS.good_update
   $ make check
   $ cp CTAGS CTAGS.good_crlf

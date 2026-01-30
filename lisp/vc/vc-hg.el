@@ -1941,6 +1941,42 @@ It is an error if REV is not on the current branch."
   (vc-hg--assert-rev-on-current-branch rev)
   (vc-hg--reset-back-to rev t))
 
+(defun vc-hg--working-branch ()
+  "Return alist with currently active bookmark, if any, and current branch.
+Keys into the alist are `branch' and `bookmark', values are the name of
+the currently active bookmark (or nil) and the name of the current
+branch, as strings."
+  (with-temp-buffer
+    (vc-hg-command t nil nil "summary")
+    (goto-char (point-min))
+    (re-search-forward "^branch: \\(.+\\)$")
+    (let ((alist `((branch . ,(match-string 1)))))
+      (goto-char (point-min))
+      (if (re-search-forward "^bookmarks: \\*\\(\\S-+\\)" nil t)
+          (cl-acons 'bookmark (match-string 1) alist)
+        alist))))
+
+(defun vc-hg-working-branch ()
+  "Return currently active bookmark if one exists, else current branch.
+The return value is always a string."
+  (let ((alist (vc-hg--working-branch)))
+    (cdr (or (assq 'bookmark alist) (assq 'branch alist)))))
+
+(defun vc-hg-trunk-or-topic-p ()
+  "Return `topic' if there is a currently active bookmark, else nil."
+  (and (assq 'bookmark (vc-hg--working-branch)) 'topic))
+
+(defun vc-hg-topic-outgoing-base ()
+  "Return outgoing base for current commit considered as a topic branch.
+The current implementation always returns the name of the current
+branch, meaning to query the remote head for the current branch
+(and not any active bookmark if it also exists remotely).
+This is based on the following assumptions:
+(i) if there is an active bookmark, it will eventually be merged into
+    whatever the remote head is
+(ii) there is only one remote head for the current branch."
+  (assq 'branch (vc-hg--working-branch)))
+
 (provide 'vc-hg)
 
 ;;; vc-hg.el ends here

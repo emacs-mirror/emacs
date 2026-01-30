@@ -23,7 +23,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (require 'outline)
 (require 'subr-x)    ; `emacs-etc--hide-local-variables'
 

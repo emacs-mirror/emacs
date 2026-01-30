@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'sasl)
 (require 'hex-util)
 (require 'rfc2104)

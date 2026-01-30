@@ -102,6 +102,16 @@ ns_can_use_native_image_api (Lisp_Object type)
     imageType = @"gif";
   else if (EQ (type, Qtiff))
     imageType = @"tiff";
+#ifndef HAVE_RSVG
+  else if (EQ (type, Qsvg))
+    imageType = @"svg";
+#endif
+#ifndef HAVE_WEBP
+  else if (EQ (type, Qwebp))
+    imageType = @"webp";
+#endif
+  else if (EQ (type, Qheic))
+    imageType = @"heic";
 
   types = [NSImage imageFileTypes];
 #endif
