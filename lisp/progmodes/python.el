@@ -3366,6 +3366,16 @@ from `python-shell-prompt-regexp',
             python-shell--prompt-calculated-output-regexp
             (funcall build-regexp output-prompts)))))
 
+(defun python-shell-get-project-name ()
+  "Return the project name for the current buffer.
+Use `project-name-cached' if available."
+  (when (featurep 'project)
+    (if (fboundp 'project-name-cached)
+        (project-name-cached default-directory)
+      (when-let* ((proj (project-current)))
+        (file-name-nondirectory
+         (directory-file-name (project-root proj)))))))
+
 (defun python-shell-get-process-name (dedicated)
   "Calculate the appropriate process name for inferior Python process.
 If DEDICATED is nil, this is simply `python-shell-buffer-name'.
@@ -3374,11 +3384,8 @@ name respectively the current project name."
   (pcase dedicated
     ('nil python-shell-buffer-name)
     ('project
-     (if-let* ((proj (and (featurep 'project)
-                          (project-current))))
-         (format "%s[%s]" python-shell-buffer-name (file-name-nondirectory
-                                                    (directory-file-name
-                                                     (project-root proj))))
+     (if-let* ((proj-name (python-shell-get-project-name)))
+         (format "%s[%s]" python-shell-buffer-name proj-name)
        python-shell-buffer-name))
     (_ (format "%s[%s]" python-shell-buffer-name (buffer-name)))))
 
