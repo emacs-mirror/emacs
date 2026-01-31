@@ -438,18 +438,15 @@ This also updates the displayed table."
                 (setcar cache (nconc lines (list line)))
                 (vtable-end-of-table)))
             (let* ((start (point))
-                   (ellipsis (if (vtable-ellipsis table)
-                                 (propertize (truncate-string-ellipsis)
-                                             'face (vtable-face table))
-                               ""))
-                   (ellipsis-width (string-pixel-width ellipsis (current-buffer)))
                    (keymap (get-text-property (point) 'keymap)))
               ;; FIXME: We have to adjust colors in lines below this if we
               ;; have :row-colors.
               (vtable--insert-line table line 0
                                    (vtable--cache-widths cache)
                                    (vtable--spacer table)
-                                   ellipsis ellipsis-width)
+                                   (vtable--ellipsis table)
+                                   (string-pixel-width
+                                    (vtable--ellipsis table) (current-buffer)))
               (add-text-properties start (point) (list 'keymap keymap
                                                        'vtable table)))
             ;; We may have inserted a non-numerical value into a previously
@@ -518,6 +515,13 @@ recompute the column specs when the table data has changed."
        column)
      (vtable-columns table))))
 
+(defun vtable--ellipsis (table)
+  (let ((ellipsis (vtable-ellipsis table)))
+    (pcase ellipsis
+      ((pred (stringp)) ellipsis)
+      ('nil "")
+      (_ (truncate-string-ellipsis)))))
+
 (defun vtable--spacer (table)
   (vtable--compute-width table (vtable-separator-width table)))
 
@@ -530,10 +534,8 @@ recompute the column specs when the table data has changed."
 (defun vtable--insert (table)
   (let* ((spacer (vtable--spacer table))
          (start (point))
-         (ellipsis (if (vtable-ellipsis table)
-                       (propertize (truncate-string-ellipsis)
-                                   'face (vtable-face table))
-                     ""))
+         (ellipsis (propertize (vtable--ellipsis table)
+                               'face (vtable-face table)))
          (ellipsis-width (string-pixel-width ellipsis (vtable-buffer table)))
          ;; We maintain a cache per screen/window width, so that we render
          ;; correctly if Emacs is open on two different screens (or the
@@ -632,23 +634,16 @@ itself in the new buffer."
                   ;; If we don't have a displayer, use the pre-made
                   ;; (cached) string value.
                   (if (> (nth 1 elem) (elt widths index))
-                      (concat
-                       (vtable--limit-string
-                        pre-computed (- (elt widths index)
-                                        (or ellipsis-width 0))
-                        buffer)
-                       ellipsis)
+                      (truncate-string-pixelwise pre-computed
+                                                 (elt widths index)
+                                                 buffer
+                                                 ellipsis ellipsis-width)
                     pre-computed))
-                 ;; Recompute widths.
                  (t
-                  (if (> (string-pixel-width value buffer) (elt widths index))
-                      (concat
-                       (vtable--limit-string
-                        value (- (elt widths index)
-                                 (or ellipsis-width 0))
-                        buffer)
-                       ellipsis)
-                    value))))
+                  (truncate-string-pixelwise value
+                                             (elt widths index)
+                                             buffer
+                                             ellipsis ellipsis-width))))
                (start (point))
                ;; Don't insert the separator after the final column.
                (last (= index (- (length line) 2))))
@@ -761,14 +756,10 @@ itself in the new buffer."
               (indicator (vtable--indicator table index))
               (indicator-width (string-pixel-width indicator buffer))
               (last (= index (1- (length (vtable-columns table)))))
-              displayed)
-         (setq displayed
-               (if (> (string-pixel-width name buffer)
-                      (- (elt widths index) indicator-width))
-                   (vtable--limit-string
-                    name (- (elt widths index) indicator-width)
-                    buffer)
-                 name))
+              (displayed (truncate-string-pixelwise
+                          name
+                          (- (elt widths index) indicator-width)
+                          buffer)))
          (let* ((indicator-lead-width
                  (if (display-graphic-p)
                      ;; On a graphical frame, we want the indicator to
@@ -881,12 +872,6 @@ If NEXT, do the next column."
            (buffer-substring (point-min) (1- (point-max))))))
   (vtable-header-mode 1))
 
-
-(defun vtable--limit-string (string pixels buffer)
-  (while (and (length> string 0)
-              (> (string-pixel-width string buffer) pixels))
-    (setq string (substring string 0 (1- (length string)))))
-  string)
 
 (defun vtable--char-width (table)
   (string-pixel-width (propertize "x" 'face (vtable-face table))
