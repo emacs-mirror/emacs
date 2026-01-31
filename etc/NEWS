@@ -2508,6 +2508,12 @@ When point is between indentation, the command
 deletes the text in the region and deactivates the mark if Transient
 Mark mode is enabled, the mark is active, and prefix argument is 1.
 
+---
+*** 'python-eldoc-function-timeout' now accepts floating-point numbers.
+To allow for finer-grained adjustment of timeout for
+'python-eldoc-function', 'python-eldoc-function-timeout' now accepts
+floating-point numbers as well as integers.
+
 ** Tmm Menubar
 
 ---

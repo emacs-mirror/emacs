@@ -5842,7 +5842,7 @@ Set to nil by `python-eldoc-function' if
 
 (defcustom python-eldoc-function-timeout 1
   "Timeout for `python-eldoc-function' in seconds."
-  :type 'integer
+  :type 'number
   :version "25.1")
 
 (defcustom python-eldoc-function-timeout-permanent t
