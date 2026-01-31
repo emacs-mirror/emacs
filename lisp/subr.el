@@ -5445,9 +5445,11 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
             (t val)))))))
 
 (defmacro condition-case-unless-debug (var bodyform &rest handlers)
-  "Like `condition-case' except that it does not prevent debugging.
-More specifically if `debug-on-error' is set then the debugger will be invoked
-even if this catches the signal."
+  "Like `condition-case', except that it does not prevent debugging.
+More specifically, if `debug-on-error' is set, then the debugger will
+be invoked even if some handler catches the signal.
+Note that this doesn't prevent the handler from executing, it just
+causes the debugger to be called before running the handler."
   (declare (debug condition-case) (indent 2))
   `(condition-case ,var
        ,bodyform
