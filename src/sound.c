@@ -1367,7 +1367,8 @@ current volume setting.
 The return value is the integer volume setting before the change, if any.  */)
   (Lisp_Object volume)
 {
-  DWORD ui_volume, ui_volume_orig;
+  DWORD ui_volume UNINIT;
+  DWORD ui_volume_orig;
   MMRESULT mm_result = MMSYSERR_NOERROR;
 
   if (FIXNUMP (volume))
