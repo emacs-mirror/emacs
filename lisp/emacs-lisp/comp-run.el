@@ -159,6 +159,11 @@ if `confirm-kill-processes' is non-nil."
   "Return non-nil if FILE's compilation should be skipped.
 
 LOAD and SELECTOR work as described in `native--compile-async'."
+  ;; Reduce the FILE extension .el.gz to .el
+  (when (equal (file-name-extension file) "gz")
+    (let ((filenogz (file-name-sans-extension file)))
+      (when (string-match-p "\\.el\\'" filenogz)
+        (setq file filenogz))))
   ;; Make sure we are not already compiling `file' (bug#40838).
   (or (gethash file comp-async-compilations)
       (gethash (file-name-with-extension file "elc") comp--no-native-compile)
