@@ -4548,7 +4548,7 @@ the existence of a suggestion."
 ;;;###autoload
 (define-minor-mode package-autosuggest-mode
   "Enable the automatic suggestion and installation of packages."
-  :global t
+  :global t :init-value t
   (funcall (if package-autosuggest-mode #'add-hook #'remove-hook)
            'after-change-major-mode-hook
            #'package--autosuggest-after-change-mode))
