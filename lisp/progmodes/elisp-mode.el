@@ -2447,12 +2447,15 @@ ARGS is the argument list of function SYM."
       (insert args)
       (goto-char (1+ (point-min)))
       (while (and index (>= index 1))
+        (skip-chars-forward "[:blank:]")
         (let ((origin (point)))
+          (skip-chars-forward "[")
           (if (condition-case nil
 	          (forward-sexp)
 	        (:success t)
 	        (scan-error nil))
 	      (progn
+	        (skip-chars-forward "].")
 	        (setq start (- origin (point-min))
 		      end   (- (point) (point-min)))
 	        (let ((argument (substring args start end)))
