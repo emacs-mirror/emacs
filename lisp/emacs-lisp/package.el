@@ -4680,7 +4680,10 @@ Emacs can provide the editor support for these kinds of files:" nl)
 so you have to select which to install!)" nl))
 
       (pcase-dolist ((and sug `(,pkg . ,_)) packages)
-        (insert nl "* " (buttonize "Install" #'package--autosuggest-install-and-enable sug)
+        (insert nl "* " (buttonize "Install"
+                                   (lambda (_)
+                                     (package--autosuggest-install-and-enable sug)
+                                     (quit-window)))
                 " \"" (buttonize (symbol-name pkg) #'describe-package pkg) "\".")
         (add-to-list 'package--autosuggest-suggested pkg))
 
