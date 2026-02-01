@@ -2448,11 +2448,14 @@ ARGS is the argument list of function SYM."
       (goto-char (1+ (point-min)))
       (while (and index (>= index 1))
         (let ((origin (point)))
-          (if (string-match "[^ ()]+" args end)
+          (if (condition-case nil
+	          (forward-sexp)
+	        (:success t)
+	        (scan-error nil))
 	      (progn
-	        (setq start (match-beginning 0)
-		      end   (match-end 0))
-	        (let ((argument (match-string 0 args)))
+	        (setq start (- origin (point-min))
+		      end   (- (point) (point-min)))
+	        (let ((argument (substring args start end)))
 	          (cond ((string= argument "&rest")
 		         ;; All the rest arguments are the same.
 		         (setq index 1))
