@@ -4532,23 +4532,6 @@ The list is displayed in a buffer named `*Packages*'."
 
 ;;;; Autosuggest
 
-(defconst package--autosuggest-database
-  (eval-when-compile
-    (with-temp-buffer
-      (insert-file-contents
-       (expand-file-name "package-autosuggest.eld" data-directory))
-      (read (current-buffer))))
-  "List of hints for packages to suggest installing.
-Each hint has the form (PACKAGE TYPE DATA), where PACKAGE is a symbol
-denoting the package and major-mode the hint applies to, TYPE is one of
-`auto-mode-alist', `magic-mode-alist' or `interpreter-mode-alist'
-indicating the type of check to be made and DATA is the value to check
-against TYPE in the intuitive way (e.g. for `auto-mode-alist' DATA is a
-regular expression matching a file name that PACKAGE should be suggested
-for).  If the package name and the major mode name differ, then an
-optional forth element MAJOR-MODE can indicate what command to invoke to
-enable the package.")
-
 (defcustom package-autosuggest-style 'mode-line
   "How to draw attention to `package-autosuggest-mode' suggestions.
 You can set this value to `mode-line' (default) to indicate the
@@ -4572,19 +4555,25 @@ the existence of a suggestion."
 
 (defvar package--autosuggest-suggested '()
   "List of packages that have already been suggested.
-The elements of this list should be a subset of elements from
-`package--autosuggest-database'.  Suggestions found in this list will not
-count as suggestions (e.g. if `package-autosuggest-style' is set to
-`mode-line', a suggestion found in here will inhibit
-`package-autosuggest-mode' from displaying a hint in the mode line).")
+Suggestions found in this list will not count as suggestions (e.g. if
+`package-autosuggest-style' is set to `mode-line', a suggestion found in
+here will inhibit `package-autosuggest-mode' from displaying a hint in
+the mode line).")
 
 (defun package--suggestion-applies-p (sug)
   "Check if a suggestion SUG is applicable to the current buffer.
-SUG should be an element of `package--autosuggest-database'."
+Each suggestion has the form (PACKAGE TYPE DATA), where PACKAGE is a
+symbol denoting the package and major-mode the suggestion applies to,
+TYPE is one of `auto-mode-alist', `magic-mode-alist' or
+`interpreter-mode-alist' indicating the type of check to be made and
+DATA is the value to check against TYPE in the intuitive way (e.g. for
+`auto-mode-alist' DATA is a regular expression matching a file name that
+PACKAGE should be suggested for).  If the package name and the major
+mode name differ, then an optional forth element MAJOR-MODE can indicate
+what command to invoke to enable the package."
   (pcase sug
-    (`(,(or (pred (lambda (e) (assq e package--autosuggest-suggested)))
-            (pred package-installed-p))
-       . ,_)
+    ((or (guard (not (eq major-mode 'fundamental-mode)))
+         `(,(pred package-installed-p) . ,_))
      nil)
     ((or `(,_ auto-mode-alist ,ext ,_)
          `(,_ auto-mode-alist ,ext))
@@ -4606,19 +4595,27 @@ SUG should be an element of `package--autosuggest-database'."
                magic)))))))
 
 (defun package--autosuggest-find-candidates ()
-  "Return a list of suggestions that might be interesting the current buffer.
-The elements of the returned list will be a subset of the elements of
-`package--autosuggest-suggested'."
-  (and package-autosuggest-mode (eq major-mode 'fundamental-mode)
-       (let (suggetions)
-         (dolist (sug package--autosuggest-database)
-           (when (package--suggestion-applies-p sug)
-             (push sug suggetions)))
-         suggetions)))
+    "Return a list of suggestions that might be interesting the current buffer.
+The elements of the returned list will have the form described in
+`package--suggestion-applies-p'."
+    (and (eq major-mode 'fundamental-mode)
+         (let ((suggetions '()))
+           (dolist (sug (eval-when-compile
+                          (with-temp-buffer
+                            (insert-file-contents
+                             (expand-file-name "package-autosuggest.eld"
+                                               data-directory))
+                            (read (current-buffer)))))
+             (when (and (package--suggestion-applies-p sug)
+                        (if (eq package-autosuggest-style 'once)
+                            (not (memq (car sug) package--autosuggest-suggested))
+                          t))
+               (push sug suggetions)))
+           suggetions)))
 
 (defun package--autosuggest-install-and-enable (sug)
   "Install and enable a package suggestion PKG-ENT.
-SUG should be an element of `package--autosuggest-database'."
+SUG should be of the form as described in `package--suggestion-applies-p'."
   (let ((buffers-to-update '()))
     (dolist (buf (buffer-list))
       (with-current-buffer buf
