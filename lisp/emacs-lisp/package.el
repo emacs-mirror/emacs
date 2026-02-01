@@ -4644,7 +4644,7 @@ SUG should be of the form as described in `package--suggestion-applies-p'."
                  ((eq package-autosuggest-style 'mode-line))
                  (avail (package--autosuggest-find-candidates)))
         (propertize
-         (format "Install %s?"
+         (format " Install %s?"
                  (mapconcat
                   #'symbol-name
                   (delete-dups (mapcar #'car avail))
@@ -4656,10 +4656,6 @@ SUG should be of the form as described in `package--suggestion-applies-p'."
                    (define-key map [mode-line down-mouse-1] #'package-autosuggest)
                    map)))))
 
-(add-to-list
- 'mode-line-misc-info
- '(package-autosuggest-mode ("" package--autosugest-line-format)))
-
 (defun package--autosuggest-after-change-mode ()
   "Display package suggestions for the current buffer.
 This function should be added to `after-change-major-mode-hook'."
@@ -4669,6 +4665,9 @@ This function should be added to `after-change-major-mode-hook'."
                                ", ")))
     (pcase-exhaustive package-autosuggest-style
       ('mode-line
+       (setq mode-name (append (ensure-list mode-name)
+                               '((package-autosuggest-mode
+                                  package--autosugest-line-format))))
        (force-mode-line-update t))
       ('always
        (when (yes-or-no-p (format "Install suggested packages (%s)?" pkgs))
