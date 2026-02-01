@@ -4584,15 +4584,15 @@ what command to invoke to enable the package."
        (save-excursion
          (goto-char (point-min))
          (looking-at-p mag))))
-    ((or `(,_ interpreter-mode-alist ,magic ,_)
-         `(,_ interpreter-mode-alist ,magic))
+    ((or `(,_ interpreter-mode-alist ,intr ,_)
+         `(,_ interpreter-mode-alist ,intr))
      (without-restriction
        (save-excursion
          (goto-char (point-min))
          (and (looking-at auto-mode-interpreter-regexp)
               (string-match-p
                (concat "\\`" (file-name-nondirectory (match-string 2)) "\\'")
-               magic)))))))
+               intr)))))))
 
 (defun package--autosuggest-find-candidates ()
     "Return a list of suggestions that might be interesting the current buffer.
