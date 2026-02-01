@@ -3330,15 +3330,13 @@ to which `vc-push' would push as UPSTREAM-LOCATION, unconditionally.
 (This is passed when the user invokes an outgoing base command with a
  \\`C-u C-u' prefix argument; see `vc--maybe-read-outgoing-base'.)
 REFRESH is passed on to `vc--incoming-revision'."
-  (if-let* ((incoming
-             (vc--incoming-revision backend
-                                    (pcase upstream-location
-                                      ('t nil)
-                                      ('nil (vc--outgoing-base backend))
-                                      (_ upstream-location))
-                                    refresh)))
-      (vc-call-backend backend 'mergebase incoming)
-    (user-error "No incoming revision -- local-only branch?")))
+  (vc-call-backend backend 'mergebase
+                   (vc--incoming-revision backend
+                                          (pcase upstream-location
+                                            ('t nil)
+                                            ('nil (vc--outgoing-base backend))
+                                            (_ upstream-location))
+                                          refresh)))
 
 ;;;###autoload
 (defun vc-root-diff-outgoing-base (&optional upstream-location)
@@ -3402,6 +3400,63 @@ When called from Lisp, optional argument FILESET overrides the fileset."
                                                    upstream-location)
                       nil
                       (called-interactively-p 'interactive))))
+
+;;;###autoload
+(defun vc-log-outgoing-base (&optional upstream-location fileset)
+  "Show log for the VC fileset since the merge base with UPSTREAM-LOCATION.
+The merge base with UPSTREAM-LOCATION means the common ancestor of the
+working revision and UPSTREAM-LOCATION.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
+can be a remote branch name.
+
+When called interactively with a \\[universal-argument] \\[universal-argument] \
+prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.
+
+When called from Lisp, optional argument FILESET overrides the fileset."
+  (interactive (let ((fileset (vc-deduce-fileset t)))
+                 (list (vc--maybe-read-outgoing-base (car fileset))
+                       fileset)))
+  (let* ((fileset (or fileset (vc-deduce-fileset t)))
+         (backend (car fileset)))
+    (vc-print-log-internal backend (cadr fileset) nil nil
+                           (vc--outgoing-base-mergebase backend
+                                                        upstream-location))))
+
+;;;###autoload
+(defun vc-root-log-outgoing-base (&optional upstream-location)
+  "Show log of revisions since the merge base with UPSTREAM-LOCATION.
+The merge base with UPSTREAM-LOCATION means the common ancestor of the
+working revision and UPSTREAM-LOCATION.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
+can be a remote branch name.
+
+When called interactively with a \\[universal-argument] \\[universal-argument] \
+prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch."
+  (interactive (list (vc--maybe-read-outgoing-base)))
+  (vc--with-backend-in-rootdir "VC revision log"
+    (vc-log-outgoing-base upstream-location `(,backend (,rootdir)))))
 
 (declare-function ediff-load-version-control "ediff" (&optional silent))
 (declare-function ediff-vc-internal "ediff-vers"
@@ -4342,11 +4397,19 @@ BACKEND is the VC backend."
     (let* ((outgoing-base (vc-call-backend (or backend
                                                (vc-deduce-backend))
                                            'topic-outgoing-base))
-           ;; If OUTGOING-BASE is non-nil then it isn't possible to
-           ;; specify an empty string in response to the prompt, which
-           ;; normally means to treat the current branch as a trunk.
-           ;; That's okay because you can use a double prefix argument
-           ;; to force treating the current branch as a trunk.
+           ;; If OUTGOING-BASE is non-nil then 'C-u C-x v T ... RET' is
+           ;; how the user can force Emacs to treat the current branch
+           ;; as a topic while having Emacs automatically determine the
+           ;; outgoing base with which to do so (otherwise, forcing
+           ;; Emacs to treat the current branch as a topic if it thinks
+           ;; it's a trunk requires specifying an outgoing base which
+           ;; will have that effect).
+           ;;
+           ;; In this case that OUTGOING-BASE is non-nil, it isn't
+           ;; possible to specify an empty string as the outgoing base,
+           ;; which normally means that Emacs should treat the current
+           ;; branch as a trunk.  That's okay because you can use a
+           ;; double prefix argument to achieve that.
            (res (read-string (if outgoing-base
                                  (format-prompt "Upstream location/branch"
                                                 outgoing-base)
@@ -4370,20 +4433,23 @@ BACKEND is the VC backend."
   ;; Do store `nil', before signaling an error, if there is no incoming
   ;; revision, because that's also something that can be slow to
   ;; determine and so should be remembered.
-  (if-let* ((_ (not refresh))
-            (record (assoc upstream-location
-                           (vc--repo-getprop backend 'vc-incoming-revision))))
-      (cdr record)
-    (let ((res (vc-call-backend backend 'incoming-revision
-                                upstream-location refresh)))
-      (if-let* ((alist (vc--repo-getprop backend 'vc-incoming-revision)))
-          (setf (alist-get upstream-location alist nil nil #'equal)
-                res)
-        (vc--repo-setprop backend
-                          'vc-incoming-revision
-                          `((,upstream-location . ,res))))
-      (or res
-          (user-error "No incoming revision -- local-only branch?")))))
+  (or (if-let* ((_ (not refresh))
+                (record (assoc upstream-location
+                               (vc--repo-getprop backend
+                                                 'vc-incoming-revision))))
+          (cdr record)
+        (let ((res (vc-call-backend backend 'incoming-revision
+                                    upstream-location refresh)))
+          (if-let* ((alist (vc--repo-getprop backend
+                                             'vc-incoming-revision)))
+              (setf (alist-get upstream-location alist
+                               nil nil #'equal)
+                    res)
+            (vc--repo-setprop backend
+                              'vc-incoming-revision
+                              `((,upstream-location . ,res))))
+          res))
+      (user-error "No incoming revision -- local-only branch?")))
 
 ;;;###autoload
 (defun vc-root-log-incoming (&optional upstream-location)

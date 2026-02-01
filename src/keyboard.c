@@ -1789,7 +1789,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 		     TEXT_PROP_MEANS_INVISIBLE (val))
 #endif
 		 && !NILP (val = get_char_property_and_overlay
-		           (make_fixnum (end), Qinvisible, Qnil, &overlay))
+				   (make_fixnum (end), Qinvisible,
+				    selected_window, &overlay))
 		 && (inv = TEXT_PROP_MEANS_INVISIBLE (val)))
 	    {
 	      ellipsis = ellipsis || inv > 1
@@ -1807,7 +1808,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 		     TEXT_PROP_MEANS_INVISIBLE (val))
 #endif
 		 && !NILP (val = get_char_property_and_overlay
-		           (make_fixnum (beg - 1), Qinvisible, Qnil, &overlay))
+				   (make_fixnum (beg - 1), Qinvisible,
+				    selected_window, &overlay))
 		 && (inv = TEXT_PROP_MEANS_INVISIBLE (val)))
 	    {
 	      ellipsis = ellipsis || inv > 1
@@ -1874,11 +1876,11 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 		   could lead to an infinite loop.  */
 		;
 	      else if (val = Fget_pos_property (make_fixnum (PT),
-						Qinvisible, Qnil),
+						Qinvisible, selected_window),
 		       TEXT_PROP_MEANS_INVISIBLE (val)
 		       && (val = (Fget_pos_property
 				  (make_fixnum (PT == beg ? end : beg),
-				   Qinvisible, Qnil)),
+				   Qinvisible, selected_window)),
 			   !TEXT_PROP_MEANS_INVISIBLE (val)))
 		(check_composition = check_display = true,
 		 SET_PT (PT == beg ? end : beg));
@@ -10117,6 +10119,13 @@ read_char_x_menu_prompt (Lisp_Object map,
 }
 
 static Lisp_Object
+follow_key (Lisp_Object keymap, Lisp_Object key)
+{
+  return access_keymap (get_keymap (keymap, 0, 1),
+			key, 1, 0, 1);
+}
+
+static Lisp_Object
 read_char_minibuf_menu_prompt (int commandflag,
 			       Lisp_Object map)
 {
@@ -10327,7 +10336,10 @@ read_char_minibuf_menu_prompt (int commandflag,
       if (!FIXNUMP (obj) || XFIXNUM (obj) == -2
 	  || (! EQ (obj, menu_prompt_more_char)
 	      && (!FIXNUMP (menu_prompt_more_char)
-		  || ! BASE_EQ (obj, make_fixnum (Ctl (XFIXNUM (menu_prompt_more_char)))))))
+		  || ! BASE_EQ (obj, make_fixnum (Ctl (XFIXNUM (menu_prompt_more_char))))))
+	  /* If 'menu_prompt_more_char' collides with a binding in the
+	     map, gives precedence to the map's binding (bug#80146).  */
+	  || !NILP (follow_key (map, obj)))
 	{
 	  if (!NILP (KVAR (current_kboard, defining_kbd_macro)))
 	    store_kbd_macro_char (obj);
@@ -10338,13 +10350,6 @@ read_char_minibuf_menu_prompt (int commandflag,
 }
 
 /* Reading key sequences.  */
-
-static Lisp_Object
-follow_key (Lisp_Object keymap, Lisp_Object key)
-{
-  return access_keymap (get_keymap (keymap, 0, 1),
-			key, 1, 0, 1);
-}
 
 static Lisp_Object
 active_maps (Lisp_Object first_event, Lisp_Object second_event)

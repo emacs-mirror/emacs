@@ -2131,6 +2131,7 @@ image_clear_image_1 (struct frame *f, struct image *img, int flags)
 static void
 image_clear_image (struct frame *f, struct image *img)
 {
+  img->lisp_data = Qnil;
   block_input ();
   image_clear_image_1 (f, img,
 		       (CLEAR_IMAGE_PIXMAP
@@ -9653,16 +9654,6 @@ static const struct image_keyword gif_format[GIF_LAST] =
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
-/* Free X resources of GIF image IMG which is used on frame F.
-   Also used by other image types.  */
-
-static void
-gif_clear_image (struct frame *f, struct image *img)
-{
-  img->lisp_data = Qnil;
-  image_clear_image (f, img);
-}
-
 /* Return true if OBJECT is a valid GIF image specification.  */
 
 static bool
@@ -10891,15 +10882,6 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
     {":rotation",	IMAGE_NUMBER_VALUE,     		0},
     {":crop",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
   };
-
-/* Free X resources of imagemagick image IMG which is used on frame F.  */
-
-static void
-imagemagick_clear_image (struct frame *f,
-                         struct image *img)
-{
-  image_clear_image (f, img);
-}
 
 /* Return true if OBJECT is a valid IMAGEMAGICK image specification.  Do
    this by calling parse_image_spec and supplying the keywords that
@@ -12946,7 +12928,7 @@ static struct image_type const image_types[] =
 #endif
 #ifdef HAVE_IMAGEMAGICK
  { SYMBOL_INDEX (Qimagemagick), imagemagick_image_p, imagemagick_load,
-   imagemagick_clear_image },
+   image_clear_image },
 #endif
 #ifdef HAVE_RSVG
  { SYMBOL_INDEX (Qsvg), svg_image_p, svg_load, image_clear_image,
@@ -12957,7 +12939,7 @@ static struct image_type const image_types[] =
    IMAGE_TYPE_INIT (init_png_functions) },
 #endif
 #if defined HAVE_GIF
- { SYMBOL_INDEX (Qgif), gif_image_p, gif_load, gif_clear_image,
+ { SYMBOL_INDEX (Qgif), gif_image_p, gif_load, image_clear_image,
    IMAGE_TYPE_INIT (init_gif_functions) },
 #endif
 #if defined HAVE_TIFF
@@ -12974,7 +12956,7 @@ static struct image_type const image_types[] =
    IMAGE_TYPE_INIT (init_xpm_functions) },
 #endif
 #if defined HAVE_WEBP
- { SYMBOL_INDEX (Qwebp), webp_image_p, webp_load, gif_clear_image,
+ { SYMBOL_INDEX (Qwebp), webp_image_p, webp_load, image_clear_image,
    IMAGE_TYPE_INIT (init_webp_functions) },
 #endif
  { SYMBOL_INDEX (Qxbm), xbm_image_p, xbm_load, image_clear_image },

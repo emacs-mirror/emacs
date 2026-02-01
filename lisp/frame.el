@@ -1440,13 +1440,14 @@ This is useful when you have a frame ID and a potentially dead frame
 reference that may have been resurrected.  Also see `frame-live-p'."
   (frame-live-p (frame-by-id id)))
 
-(defun select-frame-by-id (id)
+(defun select-frame-by-id (id &optional noerror)
   "Select the frame whose identifier is ID and raise it.
 If the frame is undeletable, undelete it.
 Frames on the current terminal are checked first.
 Raise the frame and give it input focus.  On a text terminal, the frame
 will occupy the entire terminal screen after the next redisplay.
-If there is no frame with that ID, signal an error."
+Return the selected frame or signal an error if no frame matching ID
+was found.  If NOERROR is non-nil, return nil instead."
   (interactive
    (let* ((frame-ids-alist (frame--make-frame-ids-alist))
 	  (default (car (car frame-ids-alist)))
@@ -1455,15 +1456,19 @@ If there is no frame with that ID, signal an error."
 		  frame-ids-alist nil t)))
      (list (string-to-number
             (if (zerop (length input)) default input)))))
+  ;; `undelete-frame-by-id' returns the undeleted frame, or nil.
   (unless (undelete-frame-by-id id 'noerror)
-    (select-frame-set-input-focus
-     ;; Prefer frames on the current display.
-     (or (cdr (assq id (frame--make-frame-ids-alist)))
-       (catch 'done
-         (dolist (frame (frame-list))
-           (when (eq (frame-id frame) id)
-             (throw 'done frame))))
-       (error "There is no frame with identifier `%S'" id)))))
+    ;; Prefer frames on the current display.
+    (if-let* ((found (or (cdr (assq id (frame--make-frame-ids-alist)))
+                         (catch 'done
+                           (dolist (frame (frame-list))
+                             (when (eq (frame-id frame) id)
+                           (throw 'done frame)))))))
+        (progn
+          (select-frame-set-input-focus found)
+          found)
+      (unless noerror
+        (error "There is no frame with identifier `%S'" id)))))
 
 
 ;;;; Background mode.

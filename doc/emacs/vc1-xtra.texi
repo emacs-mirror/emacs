@@ -298,22 +298,31 @@ yet merged into the target branch.
 @cindex outstanding changes
 
 @table @kbd
-@item C-x v o =
+@item C-x v T =
 Display diffs of changes to the VC fileset since the merge base of this
 branch and its upstream counterpart (@code{vc-diff-outgoing-base}).
 
-@item C-x v o D
-Display all changes since the merge base of this branch and its upstream
-counterpart (@code{vc-root-diff-outgoing-base}).
+@item C-x v T D
+Display a diff of all changes since the merge base of this branch and
+its upstream counterpart (@code{vc-root-diff-outgoing-base}).
+
+@item C-x v T l
+Display log messages for changes to the VC fileset since the merge base
+of this branch and its upstream counterpart
+(@code{vc-log-outgoing-base}).
+
+@item C-x v T L
+Display log messages for all changes since the merge base of this branch
+and its upstream counterpart (@code{vc-root-log-outgoing-base}).
 @end table
 
 For decentralized version control systems (@pxref{VCS Repositories}),
-these commands provide specialized versions of @kbd{C-x v M D} (see
-@pxref{Merge Bases}) which also take into account the state of upstream
-repositories.  These commands are useful both when working on a single
-branch and when developing features on a separate branch
-(@pxref{Branches}).  These two cases are conceptually distinct, and so
-we will introduce them separately.
+these commands provide specialized versions of @kbd{C-x v M L} and
+@w{@kbd{C-x v M D}} (see @pxref{Merge Bases}) which also take into
+account the state of upstream repositories.  These commands are useful
+both when working on a single branch and when developing features on a
+separate branch (@pxref{Branches}).  These two cases are conceptually
+distinct, and so we will introduce them separately.
 
 First, consider working on a single branch.  @dfn{Outstanding changes}
 are those which you haven't yet pushed upstream.  This includes both
@@ -321,17 +330,17 @@ unpushed commits and uncommitted changes in your working tree.  In many
 cases the reason these changes are not pushed yet is that they are not
 finished: the changes committed so far don't make sense in isolation.
 
-@kindex C-x v o =
+@kindex C-x v T =
 @findex vc-diff-outgoing-base
-@kindex C-x v o D
+@kindex C-x v T D
 @findex vc-root-diff-outgoing-base
-Type @kbd{C-x v o D} (@code{vc-root-diff-outgoing-base}) to display a
+Type @kbd{C-x v T D} (@code{vc-root-diff-outgoing-base}) to display a
 summary of all these changes, committed and uncommitted.  This summary
 is in the form of a diff of what committing and pushing (@pxref{Pulling
 / Pushing}) all these changes would do to the upstream repository.  You
-can use @kbd{C-x v o =} (@code{vc-diff-outgoing-base}) instead to limit
+can use @kbd{C-x v T =} (@code{vc-diff-outgoing-base}) instead to limit
 the display of changes to the current VC fileset.  (The difference
-between @w{@kbd{C-x v o D}} and @w{@kbd{C-x v o =}} is like the
+between @w{@kbd{C-x v T D}} and @w{@kbd{C-x v T =}} is like the
 difference between @kbd{C-x v D} and @kbd{C-x v =} (@pxref{Old
 Revisions}).)@footnote{Another point of comparison is that these
 commands are like @w{@kbd{C-x v O =}} (@code{vc-fileset-diff-outgoing})
@@ -339,6 +348,16 @@ and @kbd{C-x v O D} (@code{vc-root-diff-outgoing}) except that they
 include uncommitted changes in the reported diffs.  Like those other
 commands, you can use a prefix argument to specify a particular upstream
 location.}
+
+@kindex C-x v T l
+@findex vc-log-outgoing-base
+@kindex C-x v T L
+@findex vc-root-log-outgoing-base
+Type @kbd{C-x v T L} (@code{vc-root-log-outgoing-base}) to display a
+summary of the same changes in the form of a revision log; this does not
+include uncommitted changes.  You can use @kbd{C-x v T l}
+(@code{vc-log-outgoing-base}) instead to limit the display of changes to
+the current VC fileset.
 
 Second, consider developing a feature on a separate branch.  Call this
 the @dfn{topic branch},@footnote{What we mean by a topic branch is any
@@ -359,13 +378,15 @@ upstream repository's development trunk.  That means committed changes
 on the topic branch that haven't yet been merged into the trunk, plus
 uncommitted changes.
 
-When the current branch is a topic branch and you type @kbd{C-x v o D},
+When the current branch is a topic branch and you type @kbd{C-x v T D},
 Emacs displays a summary of all the changes that are outstanding against
 the trunk to which the current branch will be merged.  This summary is
 in the form of a diff of what committing and pushing all the changes,
 @emph{and} subsequently merging the topic branch, would do to the trunk.
-As above, you can use @kbd{C-x v o =} instead to limit the display of
-changes to the current VC fileset.
+As above, you can use @kbd{C-x v T =} instead to limit the display of
+changes to the current VC fileset.  @kbd{C-x v T L} and @kbd{C-x v T l}
+show the corresponding revision logs, excluding uncommitted changes as
+above.
 
 This functionality relies on Emacs correctly detecting whether the
 current branch is a trunk or a topic branch, and in the latter case,
@@ -379,8 +400,8 @@ The variables @code{vc-trunk-branch-regexps} and
 @code{vc-topic-branch-regexps} contain lists of regular expressions
 matching the names of branches that should always be considered trunk
 and topic branches, respectively.  You can also specify prefix arguments
-to @kbd{C-x v o D} and @kbd{C-x v o =}.  Here is a summary of how to use
-these controls:
+to @kbd{C-x v T @dots{}}.  Here is a summary of how to use these
+controls:
 
 @enumerate
 @item
@@ -425,7 +446,7 @@ described.  E.g., if the value of @code{vc-trunk-branch-regexps} is
 branch.
 
 @item
-Supply a double prefix argument, i.e. @w{@kbd{C-u C-u C-x v o @dots{}}},
+Supply a double prefix argument, i.e. @w{@kbd{C-u C-u C-x v T @dots{}}},
 and Emacs will treat the current branch as a trunk, no matter what.
 This is useful when you simply want to obtain a diff of all outgoing
 changes (@pxref{VC Change Log}) plus uncommitted changes.
@@ -433,7 +454,7 @@ changes (@pxref{VC Change Log}) plus uncommitted changes.
 @item
 @cindex outgoing base, version control
 Finally, you can take full manual control by supplying a single prefix
-argument, i.e. @w{@kbd{C-u C-x v o @dots{}}}.  Emacs will prompt you for
+argument, i.e. @w{@kbd{C-u C-x v T @dots{}}}.  Emacs will prompt you for
 the @dfn{outgoing base}, which is the upstream location for which the
 changes are destined once they are no longer outstanding.
 

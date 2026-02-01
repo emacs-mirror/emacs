@@ -153,60 +153,17 @@ options:
                       " you can use "
                       (if (string-match-p "^the .*menus?$" where)
                           ""
-                        "the key")
+                        "the key ")
                       where
                       (format-message " to get the function `%s'." db))))
           (fill-region (point-min) (point)))))
       (help-print-return-message))))
 
-(defun tutorial--sort-keys (left right)
-  "Sort predicate for use with `tutorial--default-keys'.
-This is a predicate function to `sort'.
-
-The sorting is for presentation purpose only and is done on the
-key sequence.
-
-LEFT and RIGHT are the elements to compare."
-  (let ((x (append (cadr left)  nil))
-        (y (append (cadr right) nil)))
-    ;; Skip the front part of the key sequences if they are equal:
-    (while (and x y
-                (listp x) (listp y)
-                (equal (car x) (car y)))
-      (setq x (cdr x))
-      (setq y (cdr y)))
-    ;; Try to make a comparison that is useful for presentation (this
-    ;; could be made nicer perhaps):
-    (let ((cx (car x))
-          (cy (car y)))
-      ;;(message "x=%s, y=%s;;;; cx=%s, cy=%s" x y cx cy)
-      (cond
-       ;; Lists? Then call this again
-       ((and cx cy
-             (listp cx)
-             (listp cy))
-        (tutorial--sort-keys cx cy))
-       ;; Are both numbers? Then just compare them
-       ((and (wholenump cx)
-             (wholenump cy))
-        (> cx cy))
-       ;; Is one of them a number? Let that be bigger then.
-       ((wholenump cx)
-        t)
-       ((wholenump cy)
-        nil)
-       ;; Are both symbols? Compare the names then.
-       ((and (symbolp cx)
-             (symbolp cy))
-        (string< (symbol-name cy)
-                 (symbol-name cx)))))))
-
 (defconst tutorial--default-keys
-  ;; On window system, `suspend-emacs' is replaced in the default keymap.
-  (let* ((suspend-emacs 'suspend-frame)
-         (default-keys
+  (eval-when-compile
+    (let ((default-keys
            ;; The first few are not mentioned but are basic:
-           `((ESC-prefix [27])
+           '((ESC-prefix [27])
              (Control-X-prefix [?\C-x])
              (mode-specific-command-prefix [?\C-c])
              (save-buffers-kill-terminal [?\C-x ?\C-c])
@@ -227,7 +184,7 @@ LEFT and RIGHT are the elements to compare."
              (move-end-of-line [?\C-e])
              (backward-sentence [?\M-a])
              (forward-sentence [?\M-e])
-             (newline "\r")
+             (newline [?\C-m])
              (beginning-of-buffer [?\M-<])
              (end-of-buffer [?\M->])
              (universal-argument [?\C-u])
@@ -245,7 +202,7 @@ LEFT and RIGHT are the elements to compare."
 
              ;; * INSERTING AND DELETING
              ;; C-u 8 * to insert ********.
-             (delete-backward-char "\d")
+             (delete-backward-char [?\C-?])
              (delete-char [?\C-d])
              (backward-kill-word [?\M-\d])
              (kill-word [?\M-d])
@@ -309,8 +266,8 @@ LEFT and RIGHT are the elements to compare."
 
              ;; * CONCLUSION
              ;;(iconify-or-deiconify-frame [?\C-z])
-             (,suspend-emacs [?\C-z]))))
-    (sort default-keys 'tutorial--sort-keys))
+             (suspend-frame [?\C-z]))))
+    (sort default-keys :key #'cadr)))
   "Default Emacs key bindings that the tutorial depends on.")
 
 (defun tutorial--detailed-help (button)

@@ -1783,7 +1783,9 @@ and `eval-expression-print-level'.
   (funcall
    (syntax-propertize-rules
     (emacs-lisp-byte-code-comment-re
-     (1 (prog1 "< b" (elisp--byte-code-comment end (point))))))
+     (1 (prog1 "< b"
+          (goto-char (match-end 2))
+          (elisp--byte-code-comment end (point))))))
    start end))
 
 ;;;###autoload

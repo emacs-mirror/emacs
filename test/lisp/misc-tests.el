@@ -25,6 +25,7 @@
 
 (require 'ert)
 (require 'misc)
+(require 'mule-util)
 
 (defmacro with-misc-test (original result &rest body)
   (declare (indent 2))
@@ -242,6 +243,85 @@
           (setq w1 (string-pixel-width text)))
       (setq-default display-line-numbers dln))
     (should (= w0 w1))))
+
+;; Exercise `truncate-string-pixelwise' with strings of the same
+;; characters of differing widths, with and without ellipses, in varying
+;; faces, and varying face heights and compare results to each
+;; character's measured width.
+(ert-deftest misc-test-truncate-string-pixelwise ()
+  (dolist (c '(?W ?X ?y ?1))
+    (dolist (ellipsis `(nil "..." ,(truncate-string-ellipsis)))
+      (dolist (face '(fixed-pitch variable-pitch))
+        (dolist (height '(1.0 0.5 1.5))
+          (with-temp-buffer
+            (setq-local face-remapping-alist `((,face . default)))
+            (face-remap-add-relative 'default :height height)
+            (let ((char-pixels (string-pixel-width
+                                (make-string 1 c) (current-buffer))))
+              (dotimes (i 20)
+                (setq i (1+ i))
+                (should (eq i (length
+                               (truncate-string-pixelwise
+                                (make-string (* i 2) c)
+                                (* i char-pixels)
+                                (current-buffer)
+                                ellipsis))))))))))))
+
+;; Exercise `truncate-string-pixelwise' with varying unicode strings, in
+;; varying faces, and varying face heights and compare results to a
+;; naive `string-pixel-width' based string truncate function.
+(ert-deftest misc-test-truncate-string-pixelwise-unicode ()
+  :tags '(:expensive-test)
+  (skip-when noninteractive)
+  (let ((max-pixels 500)
+        (truncate-string-naive (lambda (string pixels buffer)
+                                 (while (and (length> string 0)
+                                             (> (string-pixel-width string buffer) pixels))
+                                   (setq string (substring string 0 (1- (length string)))))
+                                 string))
+        (strings (list
+                  "foo bar baz foo bar baz foo bar baz foo bar baz foo bar baz foo bar baz"
+                  (concat "話說天下大勢，分久必合，合久必分：周末七國分爭，并入於秦。"
+                          "及秦滅之後，楚、漢分爭，又并入於漢。漢朝自高祖斬白蛇而起義，"
+                          "一統天下。後來光武中興，傳至獻帝，遂分為三國。推其致亂之由，"
+                          "殆始於桓、靈二帝。桓帝禁錮善類，崇信宦官。及桓帝崩，靈帝即位，"
+                          "大將軍竇武、太傅陳蕃，共相輔佐。時有宦官曹節等弄權，竇武、陳蕃謀誅之，"
+                          "作事不密，反為所害。中涓自此愈橫")
+                  (concat "короче теперь если по русски написать все четко или все равно"
+                          " короче теперь если по русски написать все четко или все равно"
+                          " короче теперь если по русски написать все четко или все равно"
+                          " короче теперь если по русски написать все четко или все равно")
+                  "будет разрыв строки непонятно где🏁🚩🎌🏴🏳️ 🏳️ <200d>🌈🏳️ <200d>⚧️🏴<200d>☠️"
+                  (apply #'concat (make-list 200 "\u0065\u0301 ")) ; composed é \u00E9
+                  (let ((woman-loves-man ; 👩‍❤️‍👨
+                         (concat "\N{WOMAN}"
+                                 "\N{ZERO WIDTH JOINER}"
+                                 "\N{HEAVY BLACK HEART}"
+                                 "\N{VARIATION SELECTOR-16}"
+                                 "\N{ZERO WIDTH JOINER}"
+                                 "\N{MAN}"
+                                 " ")))
+                    (apply #'concat (make-list 200 woman-loves-man)))
+                  (propertize (let ((varying-height-string
+                                     (mapconcat
+                                      #'identity
+                                      (list "AWi!"
+                                            (propertize "foo" 'face '(:height 2.5))
+                                            (propertize "bar" 'face '(:height 0.5))
+                                            (propertize "baz" 'face '(:height 1.0)))
+                                      " ")))
+                                (apply #'concat (make-list 100 varying-height-string)))
+                              'face 'variable-pitch))))
+    (dolist (face '(fixed-pitch variable-pitch))
+      (dolist (height '(1.0 0.5 1.5))
+        (with-temp-buffer
+          (setq-local face-remapping-alist `((,face . default)))
+          (face-remap-add-relative 'default :height height)
+          (dolist (string strings)
+            (should (eq (length (funcall truncate-string-naive
+                                         string max-pixels (current-buffer)))
+                        (length (truncate-string-pixelwise
+                                 string max-pixels (current-buffer)))))))))))
 
 (provide 'misc-tests)
 ;;; misc-tests.el ends here

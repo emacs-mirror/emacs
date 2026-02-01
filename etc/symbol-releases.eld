@@ -9,6 +9,8 @@
 ;; TYPE being `fun' or `var'.
 
 (
+ ("31.1" fun any)
+ ("31.1" fun all)
  ("30.1" fun dired-click-to-select-mode)
  ("30.1" var dired-click-to-select-mode)
  ("29.1" fun plistp)

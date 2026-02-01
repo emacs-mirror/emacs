@@ -416,11 +416,20 @@ for which you can use '(category . tex-shell)'.
 
 +++
 *** New user option 'split-window-preferred-direction'.
-Users can now choose in which direction Emacs tries to split first:
-vertically or horizontally.  The new default is to prefer to split
-horizontally if the frame is landscape and vertically if it is portrait.
-You can customize this option to 'vertical' to restore Emacs's old
-behavior of always preferring vertical splits.
+Functions called by 'display-buffer' split the selected window when they
+need to create a new window.  A window can be split either vertically,
+one below the other, or horizontally, side by side.  This new option
+determines which direction will be tried first, when both directions are
+possible according to the values of 'split-width-threshold' and
+'split-height-threshold'.  The default value is 'longest', which means
+to prefer to split horizontally if the window's frame is a "landscape"
+frame, and vertically if it is a "portrait" frame.  (A frame is
+considered to be "portrait" if its vertical dimension in pixels is
+greater or equal to its horizontal dimension, otherwise it's considered
+to be "landscape".)  Previous versions of Emacs always tried to split
+vertically first, so to get previous behavior, you can customize this
+option to 'vertical'.  The value 'horizontal' always prefers the
+horizontal split.
 
 +++
 *** New argument INDIRECT for 'get-buffer-window-list'.
@@ -844,10 +853,10 @@ Northern Iroquoian language family: 'mohawk-postfix' (Mohawk
 [Kanien’kéha / Kanyen’kéha / Onkwehonwehnéha]), 'oneida-postfix' (Oneida
 [Onʌyote’a·ká· / Onyota’a:ká: / Ukwehuwehnéha]), 'cayuga-postfix'
 (Cayuga [Gayogo̱ho:nǫhnéha:ˀ]), 'onondaga-postfix' (Onondaga
-[Onųdaʔgegáʔ]), and 'seneca-postfix' (Seneca [Onödowá’ga:’]).
-Additionally, there is a general-purpose 'haudenosaunee-postfix' input
-method to facilitate writing in the orthographies of the five languages
-simultaneously.
+[Onųdaʔgegáʔ]), 'seneca-postfix' (Seneca [Onödowá’ga:’]), and
+'tuscarora-postfix' (Tuscarora [Skarù·ręʔ]).  Additionally, there is a
+general-purpose 'haudenosaunee-postfix' input method to facilitate
+writing in the orthographies of the six languages simultaneously.
 
 ---
 *** New input methods for languages based on Burmese.
@@ -2078,6 +2087,11 @@ for docstrings where symbols 'nil' and 't' are in quotes.
 In most cases, having it enabled leads to a large amount of false
 positives.
 
+---
+*** New function 'checkdoc-batch'.
+It checks the buffer in batch mode, prints all found errors
+and signals the first found error.
+
 *** New file-local variable 'lisp-indent-local-overrides'.
 This variable can be used to locally override the indent specification
 of symbols.
@@ -2270,14 +2284,18 @@ one as before.  This makes them different from 'vc-diff' and
 *** 'diff-apply-hunk' now supports creating and deleting files.
 
 +++
-*** 'diff-apply-hunk' and 'diff-apply-buffer' now consider the region.
-If the region is active, these commands now apply all hunks that the
-region overlaps.  Otherwise, they have their existing behavior.
+*** Diff mode's application and killing commands now consider the region.
+If the region is active, 'diff-apply-hunk', 'diff-apply-buffer' and
+'diff-hunk-kill' now apply or kill all hunks that the region overlaps.
+Otherwise, they have their existing behavior.
 
 +++
 *** 'diff-apply-buffer' can reverse-apply.
 With a prefix argument, it now reverse-applies hunks.
 This matches the existing prefix argument to 'diff-apply-hunk'.
+
+---
+*** 's' is now bound to 'diff-split-hunk' in read-only Diff mode buffers.
 
 ** Ediff
 
@@ -2745,12 +2763,15 @@ include were committed and will be pushed.
 current VC fileset.
 
 +++
-*** New commands to report diffs of outstanding changes.
-'C-x v o =' ('vc-diff-outgoing-base') and 'C-x v o D'
+*** New commands to report information about outstanding changes.
+'C-x v T =' ('vc-diff-outgoing-base') and 'C-x v T D'
 ('vc-root-diff-outgoing-base') report diffs of changes since the merge
 base with the remote branch, including uncommitted changes.
-They are useful to view all outstanding (unmerged, unpushed) changes on
-the current branch.
+'C-x v T l' ('vc-log-outgoing-base') and 'C-x v T L'
+('vc-root-log-outgoing-base') show the corresponding revision logs.
+These are useful to view all outstanding (unmerged, unpushed) changes on
+the current branch.  They are also available as 'T =', 'T D', 'T l' and
+'T L' in VC-Dir buffers.
 
 +++
 *** New user option 'vc-use-incoming-outgoing-prefixes'.
@@ -3056,6 +3077,10 @@ Meant to be given a global binding convenient to the user.  Example:
 
 ** Icomplete
 
+*** New key 'M-j' for 'icomplete-mode' and 'icomplete-vertical-mode'.
+Like 'M-j' in 'fido-mode', it can exit the minibuffer with a selected
+candidate even when 'icomplete-show-matches-on-no-input' is non-nil.
+
 *** New user options for 'icomplete-vertical-mode'.
 New user options have been added to enhance 'icomplete-vertical-mode':
 
@@ -3323,6 +3348,11 @@ can be used to specify a key for the sort order, which is updated upon
 each refresh.  The sort direction can be controlled by using a cons cell
 of a format string and a boolean.  Alternatively, a sorting function can
 be provided directly.
+
+---
+*** New user option 'display-time-help-echo-format'.
+This option controls the format of the help echo when hovering over the
+time.
 
 ** Fill
 
@@ -3833,6 +3863,14 @@ It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
 If supplied, 'string-pixel-width' will use any face remappings from
 BUFFER when computing the string's width.
 
++++
+** New function 'truncate-string-pixelwise'.
+This function truncates a string to the specified maximum number of
+pixels rather than by characters, as in 'truncate-string-to-width', and
+respects face remappings if BUFFER is specified.  You can also specify
+an optional ellipsis string to append, similar to
+'truncate-string-to-width'.
+
 ---
 ** New macro 'with-work-buffer'.
 This macro is similar to the already existing macro 'with-temp-buffer',
@@ -3927,6 +3965,13 @@ depending on the language under point.
 Binding 'inhibit-message' to a non-nil value will now suppress both
 the display of messages and the clearing of the echo area, such as
 caused by calling 'message' with a nil argument.
+
+---
+** 'minibuffer-message' no longer blocks while displaying message.
+'minibuffer-message' now uses a timer to clear the message printed to
+the minibuffer, instead of waiting with 'sit-for' and then clearing it.
+This makes 'minibuffer-message' usable in Lisp programs which want to
+print a message and then continue to perform work.
 
 ** Special Events
 

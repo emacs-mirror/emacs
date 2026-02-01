@@ -65,25 +65,28 @@ of symbols, then preserve temporary directories and buffers for each
 package that matches a symbol in the list.  When this variable is t then
 preserve all temporary directories.")
 
+(defvar package-vc-tests-repos (make-hash-table))
+
 (defvar package-vc-tests-dir)
 (defvar package-vc-tests-packages)
 (defvar package-vc-tests-repository)
 
 (eval-and-compile
-  (defun package-vc-tests-packages ()
+  (defun package-vc-tests-packages (&optional full)
     "Return a list of package definitions to test.
 When variable `package-vc-tests-packages' is bound then return its
-value.  If `package-vc-tests-dir' is bound then each entry is in a form
-of (PKG CHECKOUT-DIR LISP-DIR INSTALL-FUN), where PKG is a package
-name (a symbol), CHECKOUT-DIR is an expected checkout directory,
-LISP-DIR is a directory with package's sources (relative to
+value.  If `package-vc-tests-dir' is bound or FULL is non nil then each
+entry is in a form of (PKG CHECKOUT-DIR LISP-DIR INSTALL-FUN), where PKG
+is a package name (a symbol), CHECKOUT-DIR either is nil when
+`package-vc-tests-dir' is not bound or is an expected checkout
+directory, LISP-DIR is a directory with package's sources (relative to
 CHECKOUT-DIR), and INSTALL-FUN is a function that checkouts and install
 the package.  Otherwise each entry is in a form of PKG."
     (if (boundp 'package-vc-tests-packages)
         package-vc-tests-packages
       (cl-macrolet ((test-package-def
                       (pkg checkout-dir-exp lisp-dir install-fun)
-                      `(if (boundp 'package-vc-tests-dir)
+                      `(if (or (boundp 'package-vc-tests-dir) full)
                            (list
                             ',pkg
                             (expand-file-name (symbol-name ',pkg)
@@ -91,51 +94,54 @@ the package.  Otherwise each entry is in a form of PKG."
                             ,lisp-dir
                             #',install-fun)
                          ',pkg)))
-        (list
-         ;; checkout and install with `package-vc-install' (on ELPA)
-         (test-package-def
-          test-package-one package-user-dir nil
-          package-vc-tests-install-from-elpa)
-         ;; checkout and install with `package-vc-install' (not on ELPA)
-         (test-package-def
-          test-package-two package-user-dir nil
-          package-vc-tests-install-from-spec)
-         ;; checkout with `package-vc-checktout' and install with
-         ;; `package-vc-install-from-checkout' (on ELPA)
-         (test-package-def
-          test-package-three package-vc-tests-dir nil
-          package-vc-tests-checkout-from-elpa-install-from-checkout)
-         ;; checkout with git and install with
-         ;; `package-vc-install-from-checkout'
-         (test-package-def
-          test-package-four package-vc-tests-dir nil
-          package-vc-tests-checkout-with-git-install-from-checkout)
-         ;; sources in "lisp" sub directory, checkout and install with
-         ;; `package-vc-install' (not on ELPA)
-         (test-package-def
-          test-package-five package-user-dir "lisp"
-          package-vc-tests-install-from-spec)
-         ;; sources in "lisp" sub directory, checkout with git and
-         ;; install with `package-vc-install-from-checkout'
-         (test-package-def
-          test-package-six package-vc-tests-dir "lisp"
-          package-vc-tests-checkout-with-git-install-from-checkout)
-         ;; sources in "src" sub directory, checkout and install with
-         ;; `package-vc-install' (on ELPA)
-         (test-package-def
-          test-package-seven package-user-dir "src"
-          package-vc-tests-install-from-elpa)
-         ;; sources in "src" sub directory, checkout with
-         ;; `package-vc-checktout' and install with
-         ;; `package-vc-install-from-checkout' (on ELPA)
-         (test-package-def
-          test-package-eight package-vc-tests-dir nil
-          package-vc-tests-checkout-from-elpa-install-from-checkout)
-         ;; sources in "custom-dir" sub directory, checkout and install
-         ;; with `package-vc-install' (on ELPA)
-         (test-package-def
-          test-package-nine package-user-dir "custom-dir"
-          package-vc-tests-install-from-elpa))))))
+        (let* ((tests-dir (bound-and-true-p package-vc-tests-dir))
+               (user-dir (and tests-dir package-user-dir)))
+          (list
+           ;; checkout and install with `package-vc-install' (on ELPA)
+           (test-package-def
+            test-package-one user-dir nil
+            package-vc-tests-install-from-elpa)
+           ;; checkout and install with `package-vc-install' (not on
+           ;; ELPA)
+           (test-package-def
+            test-package-two user-dir nil
+            package-vc-tests-install-from-spec)
+           ;; checkout with `package-vc-checktout' and install with
+           ;; `package-vc-install-from-checkout' (on ELPA)
+           (test-package-def
+            test-package-three tests-dir nil
+            package-vc-tests-checkout-from-elpa-install-from-checkout)
+           ;; checkout with git and install with
+           ;; `package-vc-install-from-checkout'
+           (test-package-def
+            test-package-four tests-dir nil
+            package-vc-tests-checkout-with-git-install-from-checkout)
+           ;; sources in "lisp" sub directory, checkout and install with
+           ;; `package-vc-install' (not on ELPA)
+           (test-package-def
+            test-package-five user-dir "lisp"
+            package-vc-tests-install-from-spec)
+           ;; sources in "lisp" sub directory, checkout with git and
+           ;; install with `package-vc-install-from-checkout'
+           (test-package-def
+            test-package-six tests-dir "lisp"
+            package-vc-tests-checkout-with-git-install-from-checkout)
+           ;; sources in "src" sub directory, checkout and install with
+           ;; `package-vc-install' (on ELPA)
+           (test-package-def
+            test-package-seven user-dir "src"
+            package-vc-tests-install-from-elpa)
+           ;; sources in "src" sub directory, checkout with
+           ;; `package-vc-checktout' and install with
+           ;; `package-vc-install-from-checkout' (on ELPA)
+           (test-package-def
+            test-package-eight tests-dir nil
+            package-vc-tests-checkout-from-elpa-install-from-checkout)
+           ;; sources in "custom-dir" sub directory, checkout and
+           ;; install with `package-vc-install' (on ELPA)
+           (test-package-def
+            test-package-nine user-dir "custom-dir"
+            package-vc-tests-install-from-elpa)))))))
 
 ;; TODO: add test for deleting packages, with asserting
 ;; `package-vc-selected-packages'
@@ -165,12 +171,11 @@ When LISP-DIR is non-nil place the NAME file under LISP-DIR."
       (error "Failed to invoke sed on %s" in-file))
     (vc-git-command nil 0 nil "add" ".")))
 
-(defun package-vc-tests-create-repository (suffix &optional lisp-dir)
-  "Create a test package repository with SUFFIX.
+(defun package-vc-tests-create-repository (suffix repos-dir &optional lisp-dir)
+  "Create a test package repository with SUFFIX in REPOS-DIR.
 If LISP-DIR is non-nil place sources of the package in LISP-DIR."
   (let* ((name (format "test-package-%s" suffix))
-         (repo-dir (expand-file-name (file-name-concat "repo" name)
-                                     package-vc-tests-dir)))
+         (repo-dir (expand-file-name name repos-dir)))
     (make-directory (expand-file-name (or lisp-dir ".") repo-dir) t)
     (let ((default-directory repo-dir)
           (process-environment
@@ -179,7 +184,8 @@ If LISP-DIR is non-nil place sources of the package in LISP-DIR."
                     (format "GIT_AUTHOR_NAME=%s" name)
                     (format "GIT_COMMITTER_NAME=%s" name))
                    process-environment)))
-      (vc-git-command nil 0 nil "init" "-b" "master")
+      (vc-git-command nil 0 nil "init")
+      (vc-git-command nil 0 nil "checkout" "-b" "master")
       (package-vc-tests-add
        suffix "test-package-SUFFIX-lib-v0.1.el.in" lisp-dir)
       (package-vc-tests-add
@@ -395,6 +401,11 @@ names."
           (not (member lisp-dir '("lisp" "src")))
           (list :lisp-dir lisp-dir)))))
 
+(defun package-vc-tests-make-temp-dir (prefix)
+  "Create temp directory with PREFIX."
+  (expand-file-name
+   (make-temp-file prefix t (format-time-string "-%Y%m%d.%H%M%S.%3N"))))
+
 (defun package-vc-with-tests-environment (pkg function)
   "Call FUNCTION with no arguments within a test environment set up for PKG."
   ;; Create a test package sources repository, based on skeleton files
@@ -402,10 +413,7 @@ names."
   ;; that:
   ;;
   (let* ((package-vc-tests-dir
-          (expand-file-name
-           (make-temp-file "package-vc-tests-"
-                           t
-                           (format-time-string "-%Y%m%d.%H%M%S.%3N"))))
+          (package-vc-tests-make-temp-dir "package-vc-tests-"))
          ;; - packages are installed into test directory
          (package-user-dir (expand-file-name "elpa"
                                              package-vc-tests-dir))
@@ -424,13 +432,25 @@ names."
          (package-vc-tests-packages (package-vc-tests-packages))
          ;; - create a test package bundle
          (package-vc-tests-repository
-          (let* ((pkg-name (symbol-name pkg))
-                 (suffix (and (string-match
-                               (rx ?- (group (1+ (not ?-))) eos)
-                               pkg-name)
-                              (match-string 1 pkg-name))))
-            (package-vc-tests-create-repository
-             suffix (cadr (alist-get pkg package-vc-tests-packages)))))
+          (or
+           (gethash pkg package-vc-tests-repos)
+           (let* ((pkg-name (symbol-name pkg))
+                  (suffix (and (string-match
+                                (rx ?- (group (1+ (not ?-))) eos)
+                                pkg-name)
+                               (match-string 1 pkg-name)))
+                  (repos-dir
+                   (or (gethash 'repos-dir package-vc-tests-repos)
+                       (puthash 'repos-dir
+                                (package-vc-tests-make-temp-dir
+                                 "package-vc-tests-repos-")
+                                package-vc-tests-repos))))
+             (puthash pkg
+                      (package-vc-tests-create-repository
+                       suffix
+                       repos-dir
+                       (cadr (alist-get pkg package-vc-tests-packages)))
+                      package-vc-tests-repos))))
          ;; - find all packages that are present in a test ELPA
          (package-vc-tests-elpa-packages
           (cl-loop
@@ -491,6 +511,12 @@ names."
          (package-vc-allow-build-commands t))
     (funcall function)))
 
+(defun package-vc-tests-preserve-pkg-artifacts-p (pkg)
+  "Return non nil if files and buffers for PKG should be preserved."
+  (or (memq package-vc-tests-preserve-artifacts `(t ,pkg))
+      (and (listp package-vc-tests-preserve-artifacts)
+           (memq pkg package-vc-tests-preserve-artifacts))))
+
 (defun package-vc-tests-environment-tear-down (pkg)
   "Tear down test environment for PKG.
 Unbind package defined symbols, and remove package defined features and
@@ -534,26 +560,73 @@ when PKG matches `package-vc-tests-preserve-artifacts'."
                           (package-vc-tests-log-buffer-name pkg
                                                             type)))
                        '(doc make)))))
-    (if (or (memq package-vc-tests-preserve-artifacts `(t ,pkg))
-            (and (listp package-vc-tests-preserve-artifacts)
-                 (memq pkg package-vc-tests-preserve-artifacts)))
+    (if (package-vc-tests-preserve-pkg-artifacts-p pkg)
         (let ((buffers
-               (mapconcat (lambda (buffer)
-                            (with-current-buffer buffer
-                              (let* ((old-name (buffer-name))
-                                     (new-name (make-temp-name
-                                                (string-trim old-name))))
-                                (rename-buffer new-name)
-                                (concat old-name " -> " new-name))))
-                          buffers
-                          ", ")))
+               (if buffers
+                   (format " and %s: %s"
+                           (if (cdr buffers) "buffers" "buffer")
+                           (mapconcat
+                            (lambda (buffer)
+                              (with-current-buffer buffer
+                                (let* ((old-name (buffer-name))
+                                       (new-name (make-temp-name
+                                                  (string-trim old-name))))
+                                  (rename-buffer new-name)
+                                  (format "`%s' -> `%s'"
+                                          old-name new-name))))
+                            buffers
+                            ", "))
+                 ""))
+              (repo-dir (car (gethash pkg package-vc-tests-repos))))
           (message
-           "package-vc-tests: preserving temporary directory: %s%s"
+           "package-vc-tests: preserving temporary %s: %s%s%s"
+           (if repo-dir "directories" "directory")
            package-vc-tests-dir
-           (and buffers (format " and buffers: %s" buffers))))
+           (if repo-dir (format " and %s" repo-dir) "")
+           buffers))
       (delete-directory package-vc-tests-dir t)
       (dolist (buffer buffers)
         (kill-buffer buffer)))))
+
+;; Tests create a repository for a package only once per a tests run.
+;; The repository location is cached in `package-vc-tests-repos'.  To
+;; support development, clear the cache on start of each tests run, such
+;; that the package repository contains files from the source code.
+;; When tests run completes delete repositories accounting for
+;; `package-vc-tests-preserve-artifacts', which see.
+
+(defun package-vc-tests-add-ert-run-tests-listener (args)
+  "Add `package-vc-tests' repositories cleanup to listener in ARGS."
+  (if-let* ((listener (cadr args))
+            ((functionp listener)))
+      (cl-list*
+       (car args)
+       (lambda (event-type &rest event-args)
+         (cl-case event-type
+           (run-started
+            (clrhash package-vc-tests-repos))
+           (run-ended
+            (when-let* ((repos-dir (gethash 'repos-dir
+                                            package-vc-tests-repos))
+                        ((file-directory-p repos-dir)))
+              (if package-vc-tests-preserve-artifacts
+                  (progn
+                    (dolist (pkg (package-vc-tests-packages))
+                      (unless
+                          (package-vc-tests-preserve-pkg-artifacts-p pkg)
+                        (when-let* ((repo-dir
+                                     (car (gethash pkg package-vc-tests-repos)))
+                                    ((file-directory-p repo-dir)))
+                          (delete-directory repo-dir t))))
+                    (when (directory-empty-p repos-dir)
+                      (delete-directory repos-dir)))
+                (delete-directory repos-dir t)))))
+         (apply listener (cons event-type event-args)))
+       (drop 2 args))
+    args))
+
+(advice-add #'ert-run-tests
+            :filter-args #'package-vc-tests-add-ert-run-tests-listener)
 
 (defun package-vc-tests-with-installed (pkg function)
   "Call FUNCTION with PKG installed in a test environment.
@@ -678,27 +751,33 @@ contains key `:tags' use its value as tests tags."
     (error "`package-vc' tests first argument has to be a symbol"))
   (let ((file (or (macroexp-file-name) buffer-file-name))
         (tests '()) (fn (gensym))
+        (pkg-arg (car args))
+        (skip-forms (take-while (lambda (form)
+                                  (memq (car-safe form) '(skip-when
+                                                          skip-unless)))
+                                body))
         (tags (plist-get (cdr-safe args) :tags)))
+    (setq body (nthcdr (length skip-forms) body))
     (dolist (pkg (package-vc-tests-packages))
       (let ((name (intern (format "package-vc-tests-%s/%s" name pkg))))
         (push
-         `(ert-set-test
-             ',name
-             (make-ert-test
-              :name ',name
-              :tags (cons 'package-vc ',tags)
-              :file-name ,file
-              :body
-              (lambda ()
-                (package-vc-tests-with-installed
-                 ',pkg (funcall ,fn ',pkg))
-                nil)))
+         `(ert-set-test ',name
+                        (make-ert-test
+                         :name ',name
+                         :tags (cons 'package-vc ',tags)
+                         :file-name ,file
+                         :body
+                         (lambda ()
+                           (funcall ,fn ',pkg)
+                           nil)))
          tests)))
-    `(let ((,fn (lambda (,(car args))
-                  (cl-macrolet ((skip-when (form) `(ert--skip-when ,form))
-                                (skip-unless (form) `(ert--skip-unless ,form)))
-                    (lambda () ,@body)))))
-       ,@tests)))
+    `(cl-macrolet ((skip-when (form) `(ert--skip-when ,form))
+                   (skip-unless (form) `(ert--skip-unless ,form)))
+       (let ((,fn (lambda (,pkg-arg)
+                    ,@skip-forms
+                    (package-vc-tests-with-installed ,pkg-arg
+                                                     (lambda () ,@body)))))
+         ,@tests))))
 
 (package-vc-test-deftest install-post-conditions (pkg)
   (let ((install-begin
@@ -1006,7 +1085,7 @@ contains key `:tags' use its value as tests tags."
 
 (package-vc-test-deftest pkg-spec-make-shell-command (pkg)
   ;; Only `package-vc-install' runs make and shell command
-  (skip-unless (memq (caddr (alist-get pkg package-vc-tests-packages))
+  (skip-unless (memq (caddr (alist-get pkg (package-vc-tests-packages t)))
                      '(package-vc-tests-install-from-elpa
                        package-vc-tests-install-from-spec)))
   (let* ((desc (package-vc-tests-package-desc pkg t))
@@ -1024,7 +1103,7 @@ contains key `:tags' use its value as tests tags."
   ;; Only `package-vc-install' builds info manuals, but only when
   ;; executable install-info is available.
   (skip-unless (and (executable-find "install-info")
-                    (memq (caddr (alist-get pkg package-vc-tests-packages))
+                    (memq (caddr (alist-get pkg (package-vc-tests-packages t)))
                           '(package-vc-tests-install-from-elpa
                             package-vc-tests-install-from-spec))))
   (should-not (package-vc-tests-log-buffer-exists 'doc pkg))

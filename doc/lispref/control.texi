@@ -2344,7 +2344,9 @@ the other usual filtering mechanisms say it should.  @xref{Error Debugging}.
 The macro @code{condition-case-unless-debug} provides another way to
 handle debugging of such forms.  It behaves exactly like
 @code{condition-case}, unless the variable @code{debug-on-error} is
-non-@code{nil}, in which case it does not handle any errors at all.
+non-@code{nil}, in which case it causes Emacs to enter the debugger
+before executing any applicable handler.  (The applicable handler, if
+any, will still run when the debugger exits.)
 @end defmac
 
   Once Emacs decides that a certain handler handles the error, it

@@ -5838,6 +5838,15 @@ ns_term_init (Lisp_Object display_name)
   ns_pending_service_names = [[NSMutableArray alloc] init];
   ns_pending_service_args = [[NSMutableArray alloc] init];
 
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 260000
+  /* Disable problematic event processing on macOS 26 (Tahoe) to avoid
+     scrolling lag and input handling issues.  These are undocumented
+     options as of macOS 26.0.  */
+  [NSUserDefaults.standardUserDefaults
+      registerDefaults:@{@"NSEventConcurrentProcessingEnabled" : @"NO",
+        @"NSApplicationUpdateCycleEnabled" : @"NO"}];
+#endif
+
   /* Start app and create the main menu, window, view.
      Needs to be here because ns_initialize_display_info () uses AppKit classes.
      The view will then ask the NSApp to stop and return to Emacs.  */

@@ -1712,6 +1712,9 @@ Do an incremental regular expression search on the fileset
 Apart from acting on multiple files, these commands behave much like
 their single-buffer counterparts (@pxref{Search}).
 
+@c Outstanding changes commands under 'T' are not mentioned because
+@c these are an advanced feature documented only in vc1-xtra.texi.
+
   The VC Directory buffer additionally defines some branch-related
 commands starting with the prefix @kbd{b}:
 

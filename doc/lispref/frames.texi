@@ -109,6 +109,7 @@ must be a root frame, which means it cannot be a child frame itself
 descending from it.
 @end defun
 
+@cindex frame identifier
 @defun frame-id &optional frame
 This function returns the unique identifier of a frame, an integer,
 assigned to @var{frame}.  If @var{frame} is @code{nil} or unspecified,
@@ -3185,6 +3186,29 @@ been deleted.
 In general, you should never use @code{select-frame} in a way that
 could switch to a different terminal without switching back when
 you're done.
+@end deffn
+
+@deffn Command select-frame-by-id id &optional noerror
+This function searches open and undeletable frames for a matching frame
+identifier @var{id} (@pxref{Frames}).  If found, its frame is undeleted,
+if necessary, then raised, given focus, and made the selected frame.  On
+a text terminal, raising a frame causes it to occupy the entire terminal
+display.
+
+This function returns the selected frame or signals an error if @var{id}
+is not found, unless @var{noerror} is non-@code{nil}, in which case it
+returns @code{nil}.
+@end deffn
+
+@deffn Command undelete-frame-by-id id &optional noerror
+This function searches undeletable frames for a matching frame
+identifier @var{id} (@pxref{Frames}).  If found, its frame is undeleted,
+raised, given focus, and made the selected frame.  On a text terminal,
+raising a frame causes it to occupy the entire terminal display.
+
+This function returns the undeleted frame or signals an error if
+@var{id} is not found, unless @var{noerror} is non-@code{nil}, in which
+case it returns @code{nil}.
 @end deffn
 
 @cindex text-terminal focus notification

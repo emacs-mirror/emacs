@@ -187,6 +187,8 @@ store_tool_bar_style_changed (const char *newstyle,
 #ifndef HAVE_PGTK
 #if defined USE_CAIRO || defined HAVE_XFT
 #define XSETTINGS_FONT_NAME       "Gtk/FontName"
+#define XSETTINGS_GDK_DPI_NAME    "Gdk/UnscaledDPI"
+#define XSETTINGS_GDK_WSCALE_NAME "Gdk/WindowScalingFactor"
 #endif
 #define XSETTINGS_TOOL_BAR_STYLE  "Gtk/ToolbarStyle"
 #endif
@@ -626,6 +628,15 @@ parse_settings (unsigned char *prop,
   int bytes_parsed = 0;
   int settings_seen = 0;
   int i = 0;
+#if defined USE_CAIRO || defined HAVE_XFT
+  /* Some X environments, e.g. XWayland, communicate DPI changes only
+     through the GDK xsettings values and not the regular Xft one, so
+     recognize both schemes.  We want to see both the GDK window scaling
+     factor and the post-scaling DPI so we can compute our desired
+     actual DPI.  */
+  int gdk_unscaled_dpi = 0;
+  int gdk_window_scale = 0;
+#endif
 
   /* First 4 bytes is a serial number, skip that.  */
 
@@ -668,7 +679,9 @@ parse_settings (unsigned char *prop,
       want_this = strcmp (XSETTINGS_TOOL_BAR_STYLE, name) == 0;
 #if defined USE_CAIRO || defined HAVE_XFT
       if ((nlen > 6 && memcmp (name, "Xft/", 4) == 0)
-	  || strcmp (XSETTINGS_FONT_NAME, name) == 0)
+	  || strcmp (XSETTINGS_FONT_NAME, name) == 0
+	  || strcmp (XSETTINGS_GDK_DPI_NAME, name) == 0
+	  || strcmp (XSETTINGS_GDK_WSCALE_NAME, name) == 0)
 	want_this = true;
 #endif
 
@@ -769,6 +782,10 @@ parse_settings (unsigned char *prop,
               settings->seen |= SEEN_DPI;
               settings->dpi = ival / 1024.0;
             }
+	  else if (strcmp (name, XSETTINGS_GDK_DPI_NAME) == 0)
+	    gdk_unscaled_dpi = ival;
+	  else if (strcmp (name, XSETTINGS_GDK_WSCALE_NAME) == 0)
+	    gdk_window_scale = ival;
           else if (strcmp (name, "Xft/lcdfilter") == 0)
             {
               settings->seen |= SEEN_LCDFILTER;
@@ -785,6 +802,19 @@ parse_settings (unsigned char *prop,
 	  settings_seen += want_this;
         }
     }
+
+#if defined USE_CAIRO || defined HAVE_XFT
+  if (gdk_unscaled_dpi > 0 && gdk_window_scale > 0)
+    {
+      /* Override any previous DPI settings.  GDK ones are intended to
+	 be authoritative.
+	 See
+	 https://mail.gnome.org/archives/commits-list/2013-June/msg06726.html
+       */
+      settings->seen |= SEEN_DPI;
+      settings->dpi = gdk_window_scale * gdk_unscaled_dpi / 1024.0;
+    }
+#endif
 
   return settings_seen;
 }
