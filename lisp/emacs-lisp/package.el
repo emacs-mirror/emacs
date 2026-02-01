@@ -4656,6 +4656,59 @@ SUG should be of the form as described in `package--suggestion-applies-p'."
                    (define-key map [mode-line down-mouse-1] #'package-autosuggest)
                    map)))))
 
+(defun package--autosugest-prompt (packages)
+  "Query the user whether to install PACKAGES or not.
+PACKAGES is a list of package suggestions in the form as described in
+`package--suggestion-applies-p'.  The function returns a non-nil value
+if affirmative, otherwise nil"
+  (let* ((inhibit-read-only t) (use-hard-newlines t)
+         (nl (propertize "\n" 'hard t)) (nlnl (concat nl nl))
+         (buf (current-buffer)))
+    (with-current-buffer (get-buffer-create
+                          (format "*package suggestion: %s*"
+                                  (buffer-name buf)))
+      (erase-buffer)
+      (insert
+       "The buffer \""
+       (buffer-name buf)
+       "\" currently lacks any language-specific support.
+The package manager has detected that by installing a third-party package,
+Emacs can provide the editor support for these kinds of files:" nl)
+
+      (when (length> packages 1)
+        (insert nl "(Note that there are multiple candidate packages,
+so you have to select which to install!)" nl))
+
+      (pcase-dolist ((and sug `(,pkg . ,_)) packages)
+        (insert nl "* " (buttonize "Install" #'package--autosuggest-install-and-enable sug)
+                " \"" (buttonize (symbol-name pkg) #'describe-package pkg) "\".")
+        (add-to-list 'package--autosuggest-suggested pkg))
+
+      (insert nl "* " (buttonize "Do not install anything" (lambda (_) (quit-window))) "."
+              nl "* " (buttonize "Permanently disable package suggestions"
+                            (lambda (_)
+                              (customize-save-variable
+                               'package-autosuggest-mode nil
+                               "Disabled at user's request")
+                              (quit-window)))
+              "."
+
+              nlnl "To learn more about package management, read "
+              (buttonize "(emacs) Packages" (lambda (_) (info "(emacs) Packages")))
+              ".")
+
+      (fill-region (point-min) (point-max))
+      (special-mode)
+      (button-mode t)
+      (enriched-mode t)
+      (variable-pitch-mode t)
+
+      (let ((win (display-buffer-below-selected (current-buffer) '())))
+        (fit-window-to-buffer win)
+        (select-window win)
+        (set-window-dedicated-p win t)
+        (set-window-point win (point-min))))))
+
 (defun package--autosuggest-after-change-mode ()
   "Display package suggestions for the current buffer.
 This function should be added to `after-change-major-mode-hook'."
@@ -4669,13 +4722,8 @@ This function should be added to `after-change-major-mode-hook'."
                                '((package-autosuggest-mode
                                   package--autosugest-line-format))))
        (force-mode-line-update t))
-      ('always
-       (when (yes-or-no-p (format "Install suggested packages (%s)?" pkgs))
-         (mapc #'package--autosuggest-install-and-enable avail)))
-      ('once
-       (when (yes-or-no-p (format "Install suggested packages (%s)?" pkgs))
-         (mapc #'package--autosuggest-install-and-enable avail))
-       (setq package--autosuggest-suggested (append avail package--autosuggest-suggested)))
+      ((or 'once 'always)
+       (package--autosugest-prompt avail))
       ('message
        (message
         (substitute-command-keys
@@ -4685,21 +4733,9 @@ This function should be added to `after-change-major-mode-hook'."
 (defun package-autosuggest ()
   "Prompt the user to install the suggested packages."
   (interactive)
-  (let* ((avail (or (package--autosuggest-find-candidates)
-                    (user-error "No suggestions found")))
-         (use-dialog-box t)
-         (prompt (concat
-                  "Install "
-                  (mapconcat
-                   #'symbol-name
-                   (delete-dups (mapcar #'car avail))
-                   ", ")
-                  "?")))
-    (if (yes-or-no-p prompt)
-        (mapc #'package--autosuggest-install-and-enable avail)
-      (setq package--autosuggest-suggested (append avail package--autosuggest-suggested))
-      (when (eq package-autosuggest-style 'mode-line)
-        (force-mode-line-update t)))))
+  (let ((avail (or (package--autosuggest-find-candidates)
+                   (user-error "No package suggestions found"))))
+    (package--autosugest-prompt avail)))
 
 (defun package-reset-suggestions ()
   "Forget previous package suggestions.
