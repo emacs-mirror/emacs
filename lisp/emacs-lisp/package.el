@@ -4680,23 +4680,25 @@ of files by installing a third-party package:" nl)
 so you have to select which to install!)" nl))
 
       (pcase-dolist (`(,pkg . ,sugs) (seq-group-by #'car packages))
-        (insert nl "* " (buttonize "Install"
-                                   (lambda (_)
-                                     (package--autosuggest-install-and-enable
-                                      (car sugs))
-                                     (quit-window)))
-                " \"" (buttonize (symbol-name pkg) #'describe-package pkg) "\" (")
+        (insert nl "* "
+                (buttonize (concat "Install " (symbol-name pkg))
+                           (lambda (_)
+                             (package--autosuggest-install-and-enable
+                              (car sugs))
+                             (quit-window)))
+                " (" (buttonize "about" #'describe-package pkg)
+                ", matches ")
         (dolist (sug sugs)
-          (unless (eq (char-before) ?\()
+          (unless (eq (char-before) ?\s)
             (insert ", "))
           (pcase sug
             (`(,_ auto-mode-alist . ,_)
-             (insert "matches file extension "))
+             (insert "file extension "))
             (`(,_ magic-mode-alist . ,_)
-             (insert "matches magic bytes"))
+             (insert "magic bytes"))
             (`(,_ interpreter-mode-alist . ,_)
-             (insert "matches interpreter "))))
-        (delete-horizontal-space) (insert ")")
+             (insert "interpreter "))))
+        (delete-horizontal-space) (insert ").")
 
         (add-to-list 'package--autosuggest-suggested pkg))
 
