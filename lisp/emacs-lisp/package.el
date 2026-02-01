@@ -4679,12 +4679,25 @@ Emacs can provide the editor support for these kinds of files:" nl)
         (insert nl "(Note that there are multiple candidate packages,
 so you have to select which to install!)" nl))
 
-      (pcase-dolist ((and sug `(,pkg . ,_)) packages)
+      (pcase-dolist (`(,pkg . ,sugs) (seq-group-by #'car packages))
         (insert nl "* " (buttonize "Install"
                                    (lambda (_)
-                                     (package--autosuggest-install-and-enable sug)
+                                     (package--autosuggest-install-and-enable
+                                      (car sugs))
                                      (quit-window)))
-                " \"" (buttonize (symbol-name pkg) #'describe-package pkg) "\".")
+                " \"" (buttonize (symbol-name pkg) #'describe-package pkg) "\" (")
+        (dolist (sug sugs)
+          (unless (eq (char-before) ?\()
+            (insert ", "))
+          (pcase sug
+            (`(,_ auto-mode-alist . ,_)
+             (insert "matches file extension "))
+            (`(,_ magic-mode-alist . ,_)
+             (insert "matches magic bytes"))
+            (`(,_ interpreter-mode-alist . ,_)
+             (insert "matches interpreter "))))
+        (delete-horizontal-space) (insert ")")
+
         (add-to-list 'package--autosuggest-suggested pkg))
 
       (insert nl "* " (buttonize "Do not install anything" (lambda (_) (quit-window))) "."
