@@ -419,44 +419,45 @@ can be used to avoid the cost of recomputing this for multiple calls to
 this function using the same ELLIPSIS."
   (declare (important-return-value t))
   (if (zerop (length string))
-      0
+      string
     ;; Keeping a work buffer around is more efficient than creating a
     ;; new temporary buffer.
-    (with-work-buffer
-      (work-buffer--prepare-pixelwise string buffer)
-      (set-window-buffer nil (current-buffer) 'keep-margins)
-      ;; Use a binary search to prune the number of calls to
-      ;; `window-text-pixel-size'.
-      ;; These are 1-based buffer indexes.
-      (let* ((low 1)
-             (high (1+ (length string)))
-             mid)
-        (when (> (car (window-text-pixel-size nil 1 high)) max-pixels)
-          (when (and ellipsis (not (stringp ellipsis)))
-            (setq ellipsis (truncate-string-ellipsis)))
-          (setq ellipsis-pixels (if ellipsis
-                                    (if ellipsis-pixels
-                                        ellipsis-pixels
-                                      (string-pixel-width ellipsis buffer))
-                                  0))
-          (let ((adjusted-pixels
-                 (if (> max-pixels ellipsis-pixels)
-                     (- max-pixels ellipsis-pixels)
-                   max-pixels)))
-            (while (<= low high)
-              (setq mid (floor (+ low high) 2))
-              (if (<= (car (window-text-pixel-size nil 1 mid))
-                      adjusted-pixels)
-                  (setq low (1+ mid))
-                (setq high (1- mid))))))
-        (set-window-buffer nil buffer 'keep-margins)
-        (if mid
-            ;; Binary search ran.
-            (if (and ellipsis (> max-pixels ellipsis-pixels))
-                (concat (substring string 0 (1- high)) ellipsis)
-              (substring string 0 (1- high)))
-          ;; Fast path.
-          string)))))
+    (let ((original-buffer (or buffer (current-buffer))))
+      (with-work-buffer
+       (work-buffer--prepare-pixelwise string buffer)
+       (set-window-buffer nil (current-buffer) 'keep-margins)
+       ;; Use a binary search to prune the number of calls to
+       ;; `window-text-pixel-size'.
+       ;; These are 1-based buffer indexes.
+       (let* ((low 1)
+              (high (1+ (length string)))
+              mid)
+         (when (> (car (window-text-pixel-size nil 1 high)) max-pixels)
+           (when (and ellipsis (not (stringp ellipsis)))
+             (setq ellipsis (truncate-string-ellipsis)))
+           (setq ellipsis-pixels (if ellipsis
+                                     (if ellipsis-pixels
+                                         ellipsis-pixels
+                                       (string-pixel-width ellipsis buffer))
+                                   0))
+           (let ((adjusted-pixels
+                  (if (> max-pixels ellipsis-pixels)
+                      (- max-pixels ellipsis-pixels)
+                    max-pixels)))
+             (while (<= low high)
+               (setq mid (floor (+ low high) 2))
+               (if (<= (car (window-text-pixel-size nil 1 mid))
+                       adjusted-pixels)
+                   (setq low (1+ mid))
+                 (setq high (1- mid))))))
+         (set-window-buffer nil original-buffer 'keep-margins)
+         (if mid
+             ;; Binary search ran.
+             (if (and ellipsis (> max-pixels ellipsis-pixels))
+                 (concat (substring string 0 (1- high)) ellipsis)
+               (substring string 0 (1- high)))
+           ;; Fast path.
+           string))))))
 
 ;;;###autoload
 (defun string-glyph-split (string)

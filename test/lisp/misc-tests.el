@@ -249,6 +249,16 @@
 ;; faces, and varying face heights and compare results to each
 ;; character's measured width.
 (ert-deftest misc-test-truncate-string-pixelwise ()
+  ;; Test empty string without an explicit buffer.
+  (should (equal (truncate-string-pixelwise "" 123) ""))
+  ;; Test fast path without an explicit buffer.
+  (should (equal (truncate-string-pixelwise "123" 123) "123"))
+  (with-temp-buffer
+    ;; Test empty string with an explicit buffer.
+    (should (equal (truncate-string-pixelwise "" 123 (current-buffer)) ""))
+    ;; Test fast path with an explicit buffer.
+    (should (equal (truncate-string-pixelwise "123" 123 (current-buffer)) "123")))
+
   (dolist (c '(?W ?X ?y ?1))
     (dolist (ellipsis `(nil "..." ,(truncate-string-ellipsis)))
       (dolist (face '(fixed-pitch variable-pitch))
