@@ -1307,7 +1307,8 @@
     (cl-loop for (k1 . v1) in expected
              for (k2 . v2) in actual
              do (ft--check-entry w k1 v1 k2 v2))
-    (should (= (length expected) (length actual)))))
+    (should (= (length expected) (length actual)))
+    (should (= (hash-table-count table) (length expected)))))
 
 (defun ft--gc (weakness)
   (cond ((fboundp 'igc--collect)
@@ -1388,6 +1389,23 @@
     (dolist (test '(eq eql equal))
       (ft--test-weak-fixnums w test))))
 
+(defun ft--test-weak-fixnums2 (weakness test)
+  (let ((h (make-hash-table :weakness weakness :test test)))
+    (dotimes (i 3)
+      (cl-ecase i
+        (#b00 (dotimes (i 10)
+                (puthash i (lognot i) h)))
+        (#b01 (dotimes (i 10)
+                (puthash i (cons nil nil) h)))
+        (#b10 (dotimes (i 10)
+                (puthash (cons nil nil) i h)))))
+    (ft--gc weakness)))
+
+(ert-deftest ft-weak-fixnums2 ()
+  (dolist (w '(key value key-and-value key-or-value))
+    (dolist (test '(eq eql equal))
+      (ft--test-weak-fixnums2 w test))))
+
 (defun ft--test-ephemeron-table (weakness)
   (let* ((h (make-hash-table :weakness weakness :test 'eq))
          (n 1000))
@@ -1395,6 +1413,7 @@
       (let* ((obj (cons 'a i)))
         (puthash obj obj h)))
     (ft--gc weakness)
+    (should (< (length (ft--hash-table-entries h)) n))
     (should (< (hash-table-count h) n))))
 
 (ert-deftest ft-ephemeron-table ()

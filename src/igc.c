@@ -483,8 +483,17 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_DUMPED_BUFFER_TEXT",
   "IGC_OBJ_DUMPED_BIGNUM_DATA",
   "IGC_OBJ_DUMPED_BYTES",
+#ifndef USE_EPHEMERON_POOL
   "IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART",
   "IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART",
+#endif
+#ifdef USE_EPHEMERON_POOL
+  "IGC_OBJ_PAIR_VECTOR",
+  "IGC_OBJ_WEAK_KEY_PAIR_VECTOR",
+  "IGC_OBJ_WEAK_VALUE_PAIR_VECTOR",
+  "IGC_OBJ_WEAK_OR_PAIR_VECTOR",
+  "IGC_OBJ_WEAK_AND_PAIR_VECTOR",
+#endif
 };
 
 static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_NUM_TYPES);
@@ -512,7 +521,9 @@ static const char *pvec_type_names[] = {
   "PVEC_BOOL_VECTOR",
   "PVEC_BUFFER",
   "PVEC_HASH_TABLE",
+#ifndef USE_EPHEMERON_POOL
   "PVEC_WEAK_HASH_TABLE",
+#endif
 #ifndef IN_MY_FORK
   "PVEC_OBARRAY",
 #endif
@@ -850,8 +861,17 @@ void gc_init_header (union gc_header *header, enum igc_obj_type type)
     case IGC_OBJ_DUMPED_BUFFER_TEXT:
     case IGC_OBJ_DUMPED_BIGNUM_DATA:
     case IGC_OBJ_DUMPED_BYTES:
+#ifndef USE_EPHEMERON_POOL
     case IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART:
     case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
+#endif
+#ifdef USE_EPHEMERON_POOL
+    case IGC_OBJ_PAIR_VECTOR:
+    case IGC_OBJ_WEAK_KEY_PAIR_VECTOR:
+    case IGC_OBJ_WEAK_VALUE_PAIR_VECTOR:
+    case IGC_OBJ_WEAK_OR_PAIR_VECTOR:
+    case IGC_OBJ_WEAK_AND_PAIR_VECTOR:
+#endif
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
     }
@@ -943,8 +963,13 @@ struct igc_thread
   mps_ap_t leaf_ap;
   mps_ap_t weak_strong_ap;
   mps_ap_t weak_weak_ap;
+#ifndef USE_EPHEMERON_POOL
   mps_ap_t weak_hash_strong_ap;
   mps_ap_t weak_hash_weak_ap;
+#endif
+#ifdef USE_EPHEMERON_POOL
+  mps_ap_t ephemeron_ap;
+#endif
   mps_ap_t immovable_ap;
 
   /* Quick access to the roots used for specpdl, bytecode stack and
@@ -999,8 +1024,14 @@ struct igc
   mps_pool_t leaf_pool;
   mps_fmt_t weak_fmt;
   mps_pool_t weak_pool;
+#ifndef USE_EPHEMERON_POOL
   mps_fmt_t weak_hash_fmt;
   mps_pool_t weak_hash_pool;
+#endif
+#ifdef USE_EPHEMERON_POOL
+  mps_fmt_t ephemeron_fmt;
+  mps_pool_t ephemeron_pool;
+#endif
   mps_fmt_t immovable_fmt;
   mps_pool_t immovable_pool;
 
@@ -2090,10 +2121,342 @@ fix_handler (mps_ss_t ss, struct handler *h)
   return MPS_RES_OK;
 }
 
+#ifdef USE_EPHEMERON_POOL
+static struct igc_header *
+as_igc_header (union gc_header *h) {
+  return (struct igc_header *)h;
+}
+
+static mps_res_t
+fix_pair_vector (mps_ss_t ss, struct pair_vector *pv)
+{
+  size_t nbytes = obj_size (as_igc_header (&pv->gc_header));
+  size_t header_size = offsetof (struct pair_vector, pairs);
+  size_t npairs = (nbytes - header_size) / sizeof pv->pairs[0];
+  MPS_SCAN_BEGIN (ss)
+  {
+    for (size_t i = 0; i < npairs; i++)
+      {
+	IGC_FIX12_OBJ (ss, &pv->pairs[i].key);
+	IGC_FIX12_OBJ (ss, &pv->pairs[i].value);
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static void*
+decode_ptr (Lisp_Object o)
+{
+  enum Lisp_Type tag = XTYPE (o);
+  switch (tag)
+    {
+    case Lisp_Cons:
+      return XCONS (o);
+
+    case Lisp_Symbol:
+      return NILP (o) ? NULL : XSYMBOL (o);
+
+    case Lisp_Int0:
+    case Lisp_Int1:
+      return NULL;
+
+    case Lisp_String:
+      return XSTRING (o);
+
+    case Lisp_Vectorlike:
+      return XVECTOR (o);
+
+    case Lisp_Float:
+      return XFLOAT (o);
+
+    case Lisp_Type_Unused0:
+      emacs_abort ();
+    }
+  emacs_abort ();
+}
+
+static Lisp_Object
+encode_ptr (void *ptr, Lisp_Object orig)
+{
+  enum Lisp_Type tag = XTYPE (orig);
+  switch (tag)
+    {
+    case Lisp_String:
+    case Lisp_Cons:
+    case Lisp_Float:
+    case Lisp_Vectorlike:
+      return make_lisp_ptr (ptr, tag);
+
+    case Lisp_Symbol:
+      return make_lisp_symbol (ptr);
+
+    case Lisp_Int0:
+    case Lisp_Int1:
+    case Lisp_Type_Unused0:
+      emacs_abort ();
+    }
+  emacs_abort ();
+}
+
+static void
+increment_ndeleted (struct pair_vector *pv)
+{
+  EMACS_INT n = NILP (pv->ndeleted) ? 0 : XFIXNUM (pv->ndeleted);
+  pv->ndeleted = make_fixnum (n + 1);
+}
+
+static void
+splat_pair (struct pair_vector *pv, Lisp_Object *keyptr,
+	    Lisp_Object *valptr)
+{
+  *keyptr = HASH_UNUSED_ENTRY_KEY;
+  *valptr = Qnil;
+  increment_ndeleted (pv);
+}
+
+static mps_res_t
+fix_weak_key_pair (mps_ss_t ss, struct pair_vector *pv,
+		   Lisp_Object *keyptr, Lisp_Object *valptr)
+{
+  Lisp_Object key = *keyptr;
+  Lisp_Object val = *valptr;
+  void *k = decode_ptr (key);
+  void *v = decode_ptr (val);
+  mps_res_t res;
+  if (k != NULL && v != NULL)
+    {
+      res = mps_fix_weak_pair (ss, pv, &k, &v);
+      if (res != MPS_RES_OK)
+	return res;
+      if (k == NULL)
+	splat_pair (pv, keyptr, valptr);
+      else
+	{
+	  igc_assert (v != NULL);
+	  *keyptr = encode_ptr (k, key);
+	  *valptr = encode_ptr (v, val);
+	}
+      return MPS_RES_OK;
+    }
+  else if (k != NULL && v == NULL)
+    {
+      res = mps_fix_weak_pair (ss, pv, &k, &v);
+      if (res != MPS_RES_OK)
+	return res;
+      if (k == NULL)
+	splat_pair (pv, keyptr, valptr);
+      else
+	*keyptr = encode_ptr (k, key);
+      return MPS_RES_OK;
+    }
+  else if (k == NULL && v != NULL)
+    {
+      MPS_SCAN_BEGIN (ss) { IGC_FIX12_OBJ (ss, valptr); }
+      MPS_SCAN_END (ss);
+      return MPS_RES_OK;
+    }
+  else
+    return MPS_RES_OK;
+}
+
+static mps_res_t
+fix_weak_value_pair (mps_ss_t ss, struct pair_vector *pv,
+		     Lisp_Object *keyptr, Lisp_Object *valptr)
+{
+  Lisp_Object key = *keyptr;
+  Lisp_Object val = *valptr;
+  void *k = decode_ptr (key);
+  void *v = decode_ptr (val);
+  mps_res_t res;
+  if (k != NULL && v != NULL)
+    {
+      res = mps_fix_weak_pair (ss, pv, &v, &k);
+      if (res != MPS_RES_OK)
+	return res;
+      if (v == NULL)
+	splat_pair (pv, keyptr, valptr);
+      else
+	{
+	  igc_assert (k != NULL);
+	  *keyptr = encode_ptr (k, key);
+	  *valptr = encode_ptr (v, val);
+	}
+      return MPS_RES_OK;
+    }
+  else if (k != NULL && v == NULL)
+    {
+      MPS_SCAN_BEGIN (ss) { IGC_FIX12_OBJ (ss, keyptr); }
+      MPS_SCAN_END (ss);
+      return MPS_RES_OK;
+    }
+  else if (k == NULL && v != NULL)
+    {
+      res = mps_fix_weak_pair (ss, pv, &v, &k);
+      if (res != MPS_RES_OK)
+	return res;
+      if (v == NULL)
+	splat_pair (pv, keyptr, valptr);
+      else
+	{
+	  igc_assert (k == NULL);
+	  *valptr = encode_ptr (v, val);
+	}
+      return MPS_RES_OK;
+    }
+  else
+    return MPS_RES_OK;
+}
+
+static mps_res_t
+fix_weak_or_pair (mps_ss_t ss, struct pair_vector *pv,
+		  Lisp_Object *keyptr, Lisp_Object *valptr)
+{
+  Lisp_Object key = *keyptr;
+  Lisp_Object val = *valptr;
+  void *k = decode_ptr (key);
+  void *v = decode_ptr (val);
+  mps_res_t res;
+  if (k != NULL && v != NULL)
+    {
+      res = mps_fix_weak_or_pair (ss, pv, &k, &v);
+      if (res != MPS_RES_OK)
+	return res;
+      if (k == NULL)
+	splat_pair (pv, keyptr, valptr);
+      else
+	{
+	  igc_assert (k != NULL);
+	  *keyptr = encode_ptr (k, key);
+	  *valptr = encode_ptr (v, val);
+	}
+      return MPS_RES_OK;
+    }
+  else if (k != NULL && v == NULL)
+    {
+      MPS_SCAN_BEGIN (ss) { IGC_FIX12_OBJ (ss, keyptr); }
+      MPS_SCAN_END (ss);
+      return MPS_RES_OK;
+    }
+  else if (k == NULL && v != NULL)
+    {
+      MPS_SCAN_BEGIN (ss) { IGC_FIX12_OBJ (ss, valptr); }
+      MPS_SCAN_END (ss);
+      return MPS_RES_OK;
+    }
+  else
+    return MPS_RES_OK;
+}
+
+static mps_res_t
+fix_weak_and_pair (mps_ss_t ss, struct pair_vector *pv,
+		   Lisp_Object *keyptr, Lisp_Object *valptr)
+{
+  Lisp_Object key = *keyptr;
+  Lisp_Object val = *valptr;
+  void *k = decode_ptr (key);
+  void *v = decode_ptr (val);
+  mps_res_t res;
+  if (k != NULL && v != NULL)
+    {
+      res = mps_fix_weak_and_pair (ss, pv, &k, &v);
+      if (res != MPS_RES_OK)
+	return res;
+      if (k == NULL)
+	splat_pair (pv, keyptr, valptr);
+      else
+	{
+	  igc_assert (k != NULL);
+	  *keyptr = encode_ptr (k, key);
+	  *valptr = encode_ptr (v, val);
+	}
+      return MPS_RES_OK;
+    }
+  else if (k != NULL && v == NULL)
+    {
+      res = mps_fix_weak_and_pair (ss, pv, &v, &k);
+      if (res != MPS_RES_OK)
+	return res;
+      if (k == NULL)
+	splat_pair (pv, keyptr, valptr);
+      else
+	{
+	  igc_assert (v == NULL);
+	  *keyptr = encode_ptr (k, key);
+	}
+      return MPS_RES_OK;
+    }
+  else if (k == NULL && v != NULL)
+    {
+      res = mps_fix_weak_and_pair (ss, pv, &v, &k);
+      if (res != MPS_RES_OK)
+	return res;
+      if (v == NULL)
+	splat_pair (pv, keyptr, valptr);
+      else
+	{
+	  igc_assert (k == NULL);
+	  *valptr = encode_ptr (v, val);
+	}
+      return MPS_RES_OK;
+    }
+  else
+    return MPS_RES_OK;
+}
+
+typedef mps_res_t (*fix_weak_pair) (mps_ss_t ss, struct pair_vector *,
+				    Lisp_Object *keyptr,
+				    Lisp_Object *valptr);
+
+static mps_res_t
+scan_pair_vector (mps_ss_t ss, struct pair_vector *pv, fix_weak_pair f)
+{
+  size_t nbytes = obj_size (as_igc_header (&pv->gc_header));
+  size_t header_size = offsetof (struct pair_vector, pairs);
+  size_t npairs = (nbytes - header_size) / sizeof pv->pairs[0];
+  for (size_t i = 0; i < npairs; i++)
+    {
+      Lisp_Object *k = &pv->pairs[i].key;
+      Lisp_Object *v = &pv->pairs[i].value;
+      mps_res_t res = f (ss, pv, k, v);
+      if (res != MPS_RES_OK)
+	return res;
+    }
+  return MPS_RES_OK;
+}
+
+static mps_res_t
+fix_weak_key_pair_vector (mps_ss_t ss, struct pair_vector *pv)
+{
+  return scan_pair_vector (ss, pv, fix_weak_key_pair);
+}
+
+static mps_res_t
+fix_weak_value_pair_vector (mps_ss_t ss, struct pair_vector *pv)
+{
+  return scan_pair_vector (ss, pv, fix_weak_value_pair);
+}
+
+static mps_res_t
+fix_weak_or_pair_vector (mps_ss_t ss, struct pair_vector *pv)
+{
+  return scan_pair_vector (ss, pv, fix_weak_or_pair);
+}
+
+static mps_res_t
+fix_weak_and_pair_vector (mps_ss_t ss, struct pair_vector *pv)
+{
+  return scan_pair_vector (ss, pv, fix_weak_and_pair);
+}
+
+#endif
+
 static mps_res_t fix_vector (mps_ss_t ss, struct Lisp_Vector *v);
 static mps_res_t fix_marker_vector (mps_ss_t ss, struct Lisp_Vector *v);
+#ifndef USE_EPHEMERON_POOL
 static mps_res_t fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong_Part *t);
 static mps_res_t fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Part *w);
+#endif
 
 static void
 collect_stats_1 (struct igc_stat *s, size_t nbytes)
@@ -2214,7 +2577,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t start)
 	IGC_FIX_CALL_FN (ss, struct Lisp_Buffer_Local_Value, addr,
 			 fix_blv);
 	break;
-
+#ifndef USE_EPHEMERON_POOL
       case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Hash_Table_Strong_Part, addr,
 			 fix_weak_hash_table_strong_part);
@@ -2223,6 +2586,32 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t start)
 	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Hash_Table_Weak_Part, addr,
 			 fix_weak_hash_table_weak_part);
 	break;
+#endif
+#ifdef USE_EPHEMERON_POOL
+      case IGC_OBJ_PAIR_VECTOR:
+	IGC_FIX_CALL_FN (ss, struct pair_vector, addr, fix_pair_vector);
+	break;
+
+      case IGC_OBJ_WEAK_KEY_PAIR_VECTOR:
+	IGC_FIX_CALL_FN (ss, struct pair_vector, addr,
+			 fix_weak_key_pair_vector);
+	break;
+
+      case IGC_OBJ_WEAK_VALUE_PAIR_VECTOR:
+	IGC_FIX_CALL_FN (ss, struct pair_vector, addr,
+			 fix_weak_value_pair_vector);
+	break;
+
+      case IGC_OBJ_WEAK_OR_PAIR_VECTOR:
+	IGC_FIX_CALL_FN (ss, struct pair_vector, addr,
+			 fix_weak_or_pair_vector);
+	break;
+
+      case IGC_OBJ_WEAK_AND_PAIR_VECTOR:
+	IGC_FIX_CALL_FN (ss, struct pair_vector, addr,
+			 fix_weak_and_pair_vector);
+	break;
+#endif
       }
   }
   MPS_SCAN_END (ss);
@@ -2448,8 +2837,12 @@ fix_hash_table (mps_ss_t ss, struct Lisp_Hash_Table *h)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_PVEC (ss, &h->key);
-    IGC_FIX12_PVEC (ss, &h->value);
+#ifndef USE_EPHEMERON_POOL
+    IGC_FIX12_PVEC (ss, &h->kv.keys);
+    IGC_FIX12_PVEC (ss, &h->kv.values);
+#else
+    IGC_FIX12_RAW (ss, &h->kv);
+#endif
     IGC_FIX12_WRAPPED_BYTES (ss, &h->hash);
     IGC_FIX12_WRAPPED_BYTES (ss, &h->next);
     /* If h->table_size == 0, h->index is empty_hash_index_vector which
@@ -2461,6 +2854,7 @@ fix_hash_table (mps_ss_t ss, struct Lisp_Hash_Table *h)
   return MPS_RES_OK;
 }
 
+#ifndef USE_EPHEMERON_POOL
 static mps_res_t
 fix_weak_hash_table (mps_ss_t ss, struct Lisp_Weak_Hash_Table *h)
 {
@@ -2502,10 +2896,10 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
 	for (ssize_t i = 0; i < t->h.table_size; i++)
 	  {
 	    if (scan_key)
-	      IGC_FIX12_OBJ (ss, &t->h.key->contents[i]);
+	      IGC_FIX12_OBJ (ss, &t->h.kv.keys->contents[i]);
 
 	    if (scan_value)
-	      IGC_FIX12_OBJ (ss, &t->h.value->contents[i]);
+	      IGC_FIX12_OBJ (ss, &t->h.kv.values->contents[i]);
 	  }
       }
   }
@@ -2545,9 +2939,9 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 	  {
 	    if (scan_key)
 	      {
-		bool was_nil = NILP (t->h.key->contents[i]);
-		IGC_FIX12_OBJ (ss, &t->h.key->contents[i]);
-		bool is_now_nil = NILP (t->h.key->contents[i]);
+		bool was_nil = NILP (t->h.kv.keys->contents[i]);
+		IGC_FIX12_OBJ (ss, &t->h.kv.keys->contents[i]);
+		bool is_now_nil = NILP (t->h.kv.keys->contents[i]);
 
 		if (is_now_nil && !was_nil)
 		  {
@@ -2562,9 +2956,9 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 
 	    if (scan_value)
 	      {
-		bool was_nil = NILP (t->h.value->contents[i]);
-		IGC_FIX12_OBJ (ss, &t->h.value->contents[i]);
-		bool is_now_nil = NILP (t->h.value->contents[i]);
+		bool was_nil = NILP (t->h.kv.values->contents[i]);
+		IGC_FIX12_OBJ (ss, &t->h.kv.values->contents[i]);
+		bool is_now_nil = NILP (t->h.kv.values->contents[i]);
 
 		if (is_now_nil && !was_nil)
 		  {
@@ -2582,6 +2976,7 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
 }
+#endif
 
 static mps_res_t
 fix_char_table (mps_ss_t ss, struct Lisp_Vector *v)
@@ -2885,9 +3280,11 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 	IGC_FIX_CALL_FN (ss, struct Lisp_Hash_Table, v, fix_hash_table);
 	break;
 
+#ifndef USE_EPHEMERON_POOL
       case PVEC_WEAK_HASH_TABLE:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Hash_Table, v, fix_weak_hash_table);
 	break;
+#endif
 
       case PVEC_CHAR_TABLE:
       case PVEC_SUB_CHAR_TABLE:
@@ -3312,6 +3709,7 @@ create_weak_ap (mps_ap_t *ap, struct igc_thread *t, bool weak)
   return res;
 }
 
+#ifndef USE_EPHEMERON_POOL
 static mps_res_t
 create_weak_hash_ap (mps_ap_t *ap, struct igc_thread *t, bool weak)
 {
@@ -3328,6 +3726,7 @@ create_weak_hash_ap (mps_ap_t *ap, struct igc_thread *t, bool weak)
   IGC_CHECK_RES (res);
   return res;
 }
+#endif
 
 static mps_res_t
 create_oldgen_ap (mps_ap_t *ap,  mps_pool_t pool, size_t gen_count)
@@ -3343,6 +3742,23 @@ create_oldgen_ap (mps_ap_t *ap,  mps_pool_t pool, size_t gen_count)
   return res;
 }
 
+#ifdef USE_EPHEMERON_POOL
+static mps_res_t
+create_ephemeron_ap (mps_ap_t *ap,  mps_pool_t pool)
+{
+  mps_res_t res;
+  MPS_ARGS_BEGIN (args)
+  {
+    MPS_ARGS_ADD (args, MPS_KEY_RANK, mps_rank_ephemeron ());
+    res = mps_ap_create_k (ap, pool, args);
+  }
+  MPS_ARGS_END (args);
+  IGC_CHECK_RES (res);
+  return res;
+}
+
+#endif
+
 static void
 create_thread_aps (struct igc_thread *t)
 {
@@ -3356,12 +3772,18 @@ create_thread_aps (struct igc_thread *t)
   IGC_CHECK_RES (res);
   res = create_weak_ap (&t->weak_strong_ap, t, false);
   IGC_CHECK_RES (res);
-  res = create_weak_hash_ap (&t->weak_hash_strong_ap, t, false);
-  IGC_CHECK_RES (res);
   res = create_weak_ap (&t->weak_weak_ap, t, true);
+  IGC_CHECK_RES (res);
+#ifndef USE_EPHEMERON_POOL
+  res = create_weak_hash_ap (&t->weak_hash_strong_ap, t, false);
   IGC_CHECK_RES (res);
   res = create_weak_hash_ap (&t->weak_hash_weak_ap, t, true);
   IGC_CHECK_RES (res);
+#endif
+#ifdef USE_EPHEMERON_POOL
+  res = create_ephemeron_ap (&t->ephemeron_ap, gc->ephemeron_pool);
+  IGC_CHECK_RES (res);
+#endif
 }
 
 static struct igc_thread_list *
@@ -3421,8 +3843,13 @@ igc_thread_remove (void **pinfo)
   mps_ap_destroy (t->d.leaf_ap);
   mps_ap_destroy (t->d.weak_strong_ap);
   mps_ap_destroy (t->d.weak_weak_ap);
+#ifndef USE_EPHEMERON_POOL
   mps_ap_destroy (t->d.weak_hash_strong_ap);
   mps_ap_destroy (t->d.weak_hash_weak_ap);
+#endif
+#ifdef USE_EPHEMERON_POOL
+  mps_ap_destroy (t->d.ephemeron_ap);
+#endif
   mps_ap_destroy (t->d.immovable_ap);
   mps_thread_dereg (deregister_thread (t));
 }
@@ -3914,7 +4341,9 @@ finalize_vector (mps_addr_t v)
     case PVEC_OBARRAY:
 #endif
     case PVEC_HASH_TABLE:
+#ifndef USE_EPHEMERON_POOL
     case PVEC_WEAK_HASH_TABLE:
+#endif
     case PVEC_SYMBOL_WITH_POS:
     case PVEC_PROCESS:
     case PVEC_RECORD:
@@ -4023,7 +4452,9 @@ maybe_finalize (mps_addr_t ref, enum pvec_type tag)
     case PVEC_OBARRAY:
 #endif
     case PVEC_HASH_TABLE:
+#ifndef USE_EPHEMERON_POOL
     case PVEC_WEAK_HASH_TABLE:
+#endif
     case PVEC_NORMAL_VECTOR:
     case PVEC_FREE:
     case PVEC_MARKER:
@@ -4324,11 +4755,24 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_MARKER_VECTOR:
       return t->d.weak_weak_ap;
 
+#ifndef USE_EPHEMERON_POOL
     case IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART:
       return t->d.weak_hash_weak_ap;
 
     case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
       return t->d.weak_hash_strong_ap;
+#endif
+
+#ifdef USE_EPHEMERON_POOL
+    case IGC_OBJ_PAIR_VECTOR:
+      return t->d.dflt_ap;
+
+    case IGC_OBJ_WEAK_KEY_PAIR_VECTOR:
+    case IGC_OBJ_WEAK_VALUE_PAIR_VECTOR:
+    case IGC_OBJ_WEAK_OR_PAIR_VECTOR:
+    case IGC_OBJ_WEAK_AND_PAIR_VECTOR:
+      return t->d.ephemeron_ap;
+#endif
 
     case IGC_OBJ_VECTOR:
     case IGC_OBJ_CONS:
@@ -4441,6 +4885,7 @@ igc_hash (Lisp_Object key)
   return igc_header_hash (h);
 }
 
+#ifndef USE_EPHEMERON_POOL
 /* Allocate a number of (Emacs) objects in one contiguous MPS object.
    This is necessary for weak hash tables because only a single
    dependent object is allowed for each MPS object.  */
@@ -4500,6 +4945,7 @@ alloc_multi (ptrdiff_t count, mps_addr_t ret[count],
       off += sizes[i];
     }
 }
+#endif
 
 /* Allocate an object of client size SIZE and of type TYPE from
    allocation point AP.  Value is a pointer to the new object.  */
@@ -4733,6 +5179,7 @@ igc_alloc_lisp_obj_vec (size_t n)
   return XVECTOR (v)->contents;
 }
 
+#ifndef USE_EPHEMERON_POOL
 static mps_addr_t
 weak_hash_find_dependent (mps_addr_t addr)
 {
@@ -4755,6 +5202,7 @@ weak_hash_find_dependent (mps_addr_t addr)
 
   return 0;
 }
+#endif
 
 struct Lisp_Vector *
 igc_make_hash_table_vec (size_t n)
@@ -4762,6 +5210,7 @@ igc_make_hash_table_vec (size_t n)
   return XVECTOR (make_vector (n, Qnil));
 }
 
+#ifndef USE_EPHEMERON_POOL
 void
 igc_alloc_weak_hash_table_strong_part (hash_table_weakness_t weak,
 				       void *pointers[5],
@@ -4825,6 +5274,42 @@ igc_alloc_weak_hash_table_weak_part (hash_table_weakness_t weak,
   alloc_multi (sizes[2] ? 3 : 2, pointers, sizes, types,
 	       thread_ap (types[0]));
 }
+#endif
+
+#ifdef USE_EPHEMERON_POOL
+struct pair_vector *
+igc_alloc_pair_vector (size_t len, hash_table_weakness_t w)
+{
+  struct pair_vector *r;
+  size_t header_size = offsetof (struct pair_vector, pairs);
+  size_t nbytes = header_size + len * sizeof r->pairs[0];
+  switch (w)
+    {
+    case Weak_None:
+      r = alloc (nbytes, IGC_OBJ_PAIR_VECTOR);
+      return r;
+
+    case Weak_Key:
+      r = alloc (nbytes, IGC_OBJ_WEAK_KEY_PAIR_VECTOR);
+      return r;
+
+    case Weak_Value:
+      r = alloc (nbytes, IGC_OBJ_WEAK_VALUE_PAIR_VECTOR);
+      return r;
+
+    case Weak_Key_Or_Value:
+      r = alloc (nbytes, IGC_OBJ_WEAK_OR_PAIR_VECTOR);
+      return r;
+
+    case Weak_Key_And_Value:
+      r = alloc (nbytes, IGC_OBJ_WEAK_AND_PAIR_VECTOR);
+      return r;
+    }
+  emacs_abort ();
+}
+
+
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
 struct image_cache *
@@ -5059,7 +5544,12 @@ IGC statistics:
   walk_pool (gc, gc->dflt_pool, &st);
   walk_pool (gc, gc->leaf_pool, &st);
   walk_pool (gc, gc->weak_pool, &st);
+#ifndef USE_EPHEMERON_POOL
   walk_pool (gc, gc->weak_hash_pool, &st);
+#endif
+#ifdef USE_EPHEMERON_POOL
+  walk_pool (gc, gc->ephemeron_pool, &st);
+#endif
   walk_pool (gc, gc->immovable_pool, &st);
 
   Lisp_Object result = Qnil;
@@ -5351,6 +5841,12 @@ make_pool_awl0 (struct igc *gc, mps_fmt_t fmt,
 }
 
 static mps_pool_t
+make_pool_aeph (struct igc *gc, mps_fmt_t fmt)
+{
+  return make_pool_with_class (gc, fmt, mps_class_aeph (), NULL);
+}
+
+static mps_pool_t
 make_pool_amcz (struct igc *gc, mps_fmt_t fmt)
 {
   return make_pool_with_class (gc, fmt, mps_class_amcz (), NULL);
@@ -5374,8 +5870,14 @@ make_igc (void)
   gc->leaf_pool = make_pool_amcz (gc, gc->leaf_fmt);
   gc->weak_fmt = make_dflt_fmt (gc);
   gc->weak_pool = make_pool_awl0 (gc, gc->weak_fmt, NULL);
+#ifndef USE_EPHEMERON_POOL
   gc->weak_hash_fmt = make_dflt_fmt (gc);
   gc->weak_hash_pool = make_pool_awl0 (gc, gc->weak_hash_fmt, weak_hash_find_dependent);
+#endif
+#ifdef USE_EPHEMERON_POOL
+  gc->ephemeron_fmt = make_dflt_fmt (gc);
+  gc->ephemeron_pool = make_pool_aeph (gc, gc->ephemeron_fmt);
+#endif
   gc->immovable_fmt = make_dflt_fmt (gc);
   gc->immovable_pool = make_pool_amc (gc, gc->immovable_fmt);
 
@@ -5717,9 +6219,11 @@ KEY is the key to associate with DEPENDENCY in a hash table.  */)
   struct igc_header *h = addr;
   struct igc_exthdr *exthdr = igc_external_header (h, is_builtin_obj (obj));
   Lisp_Object hash = exthdr->extra_dependency;
+#ifndef USE_EPHEMERON_POOL
   if (!WEAK_HASH_TABLE_P (hash))
     exthdr->extra_dependency = hash =
       CALLN (Fmake_hash_table, QCtest, Qeq, QCweakness, Qkey);
+#endif
 
   Lisp_Object hash2 = Fgethash (key, hash, Qnil);
   if (NILP (hash2))
@@ -5747,8 +6251,10 @@ KEY is the key associated with DEPENDENCY in a hash table.  */)
   struct igc_header *h = addr;
   struct igc_exthdr *exthdr = igc_external_header (h, is_builtin_obj (repl));
   Lisp_Object hash = exthdr->extra_dependency;
+#ifndef USE_EPHEMERON_POOL
   if (!WEAK_HASH_TABLE_P (hash))
     return Qnil;
+#endif
 
   Lisp_Object hash2 = Fgethash (key, hash, Qnil);
   if (NILP (hash2))

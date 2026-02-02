@@ -1037,7 +1037,7 @@ enum pvec_type
   PVEC_BOOL_VECTOR,
   PVEC_BUFFER,
   PVEC_HASH_TABLE,
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   PVEC_WEAK_HASH_TABLE,
 #endif
   PVEC_OBARRAY,
@@ -2611,7 +2611,10 @@ obarray_iter_symbol (obarray_iter_t *it)
 
 /* The structure of a Lisp hash table.  */
 
+#ifndef USE_EPHEMERON_POOL
 struct Lisp_Weak_Hash_Table;
+#endif
+
 struct Lisp_Hash_Table;
 struct hash_impl;
 
@@ -2669,6 +2672,7 @@ typedef enum hash_table_weakness_t {
    (hash) indices.  It's signed and a subtype of ptrdiff_t.  */
 typedef int32_t hash_idx_t;
 
+#ifndef USE_EPHEMERON_POOL
 struct Lisp_Weak_Hash_Table_Strong_Part;
 
 struct Lisp_Weak_Hash_Table_Weak_Part
@@ -2685,6 +2689,86 @@ struct Lisp_Weak_Hash_Table
   struct Lisp_Weak_Hash_Table_Weak_Part *weak;
   Lisp_Object dump_replacement;
 };
+
+struct vector_pair
+{
+  Lisp_KV_Vector keys, values;
+};
+#endif
+
+#ifdef USE_EPHEMERON_POOL
+struct pair_vector
+{
+  GC_HEADER
+  /* nil or a positive fixnum.  If non-nil, it's the number of (weak)
+     entries "splatted" by the GC.  */
+  Lisp_Object ndeleted;
+  struct
+  {
+    Lisp_Object key, value;
+  } pairs[FLEXIBLE_ARRAY_MEMBER];
+};
+
+#endif
+
+#ifndef USE_EPHEMERON_POOL
+typedef struct vector_pair hash_table_kv;
+#else
+typedef struct pair_vector *hash_table_kv;
+#endif
+
+hash_table_kv hash_table_kv_create (size_t size, hash_table_weakness_t);
+void hash_table_kv_free (hash_table_kv, size_t size);
+
+INLINE Lisp_Object
+hash_table_kv_key (hash_table_kv kv, size_t i)
+{
+#ifndef USE_EPHEMERON_POOL
+  return kv_vector_data (kv.keys)[i];
+#else
+  return kv->pairs[i].key;
+#endif
+}
+
+INLINE Lisp_Object
+hash_table_kv_value (hash_table_kv kv, size_t i)
+{
+#ifndef USE_EPHEMERON_POOL
+  return kv_vector_data (kv.values)[i];
+#else
+  return kv->pairs[i].value;
+#endif
+}
+
+INLINE void
+hash_table_kv_set_key (hash_table_kv kv, size_t i, Lisp_Object val)
+{
+#ifndef USE_EPHEMERON_POOL
+  kv_vector_data (kv.keys)[i] = val;
+#else
+  kv->pairs[i].key = val;
+#endif
+}
+
+INLINE void
+hash_table_kv_set_value (hash_table_kv kv, size_t i, Lisp_Object val)
+{
+#ifndef USE_EPHEMERON_POOL
+  kv_vector_data (kv.values)[i] = val;
+#else
+  kv->pairs[i].value = val;
+#endif
+}
+
+INLINE hash_table_kv
+hash_table_kv_null (void)
+{
+#ifndef USE_EPHEMERON_POOL
+  return (struct vector_pair) { NULL, NULL };
+#else
+  return NULL;
+#endif
+}
 
 struct Lisp_Hash_Table
 {
@@ -2731,8 +2815,7 @@ struct Lisp_Hash_Table
   /* Vectors of keys and values.  If the key is HASH_UNUSED_ENTRY_KEY,
      then this slot is unused.  This is gc_marked specially if the table
      is weak.  */
-  Lisp_KV_Vector key;
-  Lisp_KV_Vector value;
+  hash_table_kv kv;
 
   /* The comparison and hash functions.  */
   const struct hash_table_test *test;
@@ -2809,7 +2892,7 @@ XHASH_TABLE (Lisp_Object a)
   return h;
 }
 
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 INLINE bool
 WEAK_HASH_TABLE_P (Lisp_Object a)
 {
@@ -2839,7 +2922,7 @@ INLINE Lisp_Object
 HASH_KEY (const struct Lisp_Hash_Table *h, ptrdiff_t idx)
 {
   eassert (idx >= 0 && idx < h->table_size);
-  return kv_vector_data (h->key)[idx];
+  return hash_table_kv_key (h->kv, idx);
 }
 
 /* Value is the value part of entry IDX in hash table H.  */
@@ -2847,7 +2930,7 @@ INLINE Lisp_Object
 HASH_VALUE (const struct Lisp_Hash_Table *h, ptrdiff_t idx)
 {
   eassert (idx >= 0 && idx < h->table_size);
-  return kv_vector_data (h->value)[idx];
+  return hash_table_kv_value (h->kv, idx);
 }
 
 /* Value is the hash code computed for entry IDX in hash table H.  */
@@ -2879,7 +2962,7 @@ hash_from_key (struct Lisp_Hash_Table *h, Lisp_Object key)
   return h->test->hashfn (key, h);
 }
 
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 INLINE Lisp_Object
 make_lisp_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
 {
@@ -2892,13 +2975,13 @@ INLINE Lisp_Object
 WEAK_HASH_KEY (const struct Lisp_Weak_Hash_Table *wh, ptrdiff_t idx)
 {
   eassert (idx >= 0 && idx < wh->strong->h.table_size);
-  return wh->strong->h.key->contents[idx];
+  return wh->strong->h.kv.keys->contents[idx];
 }
 
 INLINE Lisp_Object
 WEAK_HASH_VALUE (const struct Lisp_Weak_Hash_Table *wh, ptrdiff_t idx)
 {
-  return wh->strong->h.value->contents[idx];
+  return wh->strong->h.kv.values->contents[idx];
 }
 
 /* Value is the hash code computed for entry IDX in hash table H.  */
@@ -2926,12 +3009,13 @@ weak_hash_table_index_size (const struct Lisp_Weak_Hash_Table *h)
 extern hash_hash_t weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Object key);
 #endif
 
+#ifndef USE_EPHEMERON_POOL
 /* Iterate K and V as key and value of valid entries in hash table H.
    The body may remove the current entry or alter its value slot, but not
    mutate TABLE in any other way.  */
 # define DOHASH(h, k, v)						\
-  for (Lisp_Object *dohash_##k##_##v##_k = kv_vector_data ((h)->key),	\
-	           *dohash_##k##_##v##_v = kv_vector_data ((h)->value), \
+  for (Lisp_Object *dohash_##k##_##v##_k = kv_vector_data ((h)->kv.keys),	\
+	           *dohash_##k##_##v##_v = kv_vector_data ((h)->kv.values), \
                    *dohash_##k##_##v##_end = dohash_##k##_##v##_k	\
                                              + HASH_TABLE_SIZE (h),	\
 	           *dohash_##k##_##v##_base = dohash_##k##_##v##_k,	\
@@ -2940,7 +3024,7 @@ extern hash_hash_t weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Obje
 	 && (k = dohash_##k##_##v##_k[0],				\
 	     v = dohash_##k##_##v##_v[0], /*maybe unused*/ (void)v,	\
            true);			                                \
-       eassert (dohash_##k##_##v##_base == kv_vector_data ((h)->key)	\
+       eassert (dohash_##k##_##v##_base == kv_vector_data ((h)->kv.keys)	\
 		&& dohash_##k##_##v##_end				\
 		   == dohash_##k##_##v##_base				\
 		+ HASH_TABLE_SIZE (h)),					\
@@ -2948,13 +3032,29 @@ extern hash_hash_t weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Obje
     if (hash_unused_entry_key_p (k))					\
       ;									\
     else
+#endif
 
+#ifdef USE_EPHEMERON_POOL
+# define DOHASH(h, k, v)                                            \
+  for (Lisp_Object _dohash_i = make_fixnum (0),                     \
+		   _dohash_end = make_fixnum (HASH_TABLE_SIZE (h)), \
+		   k, v;                                            \
+       XFIXNUM (_dohash_i) < XFIXNUM (_dohash_end)                  \
+       && (k = HASH_KEY (h, XFIXNUM (_dohash_i)),                   \
+	  v = HASH_VALUE (h, XFIXNUM (_dohash_i)), true);           \
+       _dohash_i = make_fixnum (XFIXNUM (_dohash_i) + 1))	    \
+    if (hash_unused_entry_key_p (k))                                \
+      continue;                                                     \
+    else
+#endif
+
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 /* Iterate K and V as key and value of valid entries in weak hash table H.
    The body may remove the current entry or alter its value slot, but not
    mutate TABLE in any other way.  */
 # define DOHASH_WEAK(ht, k, v)						\
-  for (Lisp_Object *dohash_##k##_##v##_k = (ht)->strong->h.key->contents, \
-	 *dohash_##k##_##v##_v = (ht)->strong->h.value->contents,	\
+  for (Lisp_Object *dohash_##k##_##v##_k = (ht)->strong->h.kv.keys->contents, \
+	 *dohash_##k##_##v##_v = (ht)->strong->h.kv.values->contents,	\
 	 *dohash_##k##_##v##_end = dohash_##k##_##v##_k			\
 	 + WEAK_HASH_TABLE_SIZE (ht),					\
 	 *dohash_##k##_##v##_base = dohash_##k##_##v##_k;		\
@@ -2962,7 +3062,7 @@ extern hash_hash_t weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Obje
 	 && (k = dohash_##k##_##v##_k[0],				\
 	     v = dohash_##k##_##v##_v[0],				\
 	     true);			                                \
-       eassert (dohash_##k##_##v##_base == (ht)->strong->h.key->contents \
+       eassert (dohash_##k##_##v##_base == (ht)->strong->h.kv.keys->contents \
 		&& dohash_##k##_##v##_end				\
 		== dohash_##k##_##v##_base				\
 		+ WEAK_HASH_TABLE_SIZE (ht)),				\
@@ -2972,6 +3072,7 @@ extern hash_hash_t weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Obje
     else if (PSEUDOVECTORP (k, PVEC_FREE) || PSEUDOVECTORP (v, PVEC_FREE)) \
       ;									\
     else
+#endif
 
 /* Iterate I as index of valid entries in hash table H.
    Unlike DOHASH, this construct copes with arbitrary table mutations
@@ -2985,6 +3086,7 @@ extern hash_hash_t weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Obje
       ;								\
     else
 
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 /* Iterate I as index of valid entries in weak hash table H.
    Unlike DOHASH, this construct copes with arbitrary table mutations
    in the body.  The consequences of such mutations are limited to
@@ -2996,6 +3098,7 @@ extern hash_hash_t weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Obje
     if (hash_unused_entry_key_p (WEAK_HASH_KEY (h, i)))		\
       ;								\
     else
+#endif
 
 void hash_table_thaw (Lisp_Object hash_table);
 void hash_table_rehash (struct Lisp_Hash_Table *h);
@@ -4253,17 +4356,25 @@ INLINE void
 set_hash_key_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (idx >= 0 && idx < h->table_size);
-  kv_vector_data (h->key)[idx] = val;
+#ifndef USE_EPHEMERON_POOL
+  kv_vector_data (h->kv.keys)[idx] = val;
+#else
+  h->kv->pairs[idx].key = val;
+#endif
 }
 
 INLINE void
 set_hash_value_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (idx >= 0 && idx < h->table_size);
-  kv_vector_data (h->value)[idx] = val;
+#ifndef USE_EPHEMERON_POOL
+  kv_vector_data (h->kv.values)[idx] = val;
+#else
+  h->kv->pairs[idx].value = val;
+#endif
 }
 
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 void weak_hash_table_thaw (Lisp_Object hash_table);
 
 INLINE void
@@ -4271,7 +4382,7 @@ set_weak_hash_key_slot (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx,
 			Lisp_Object val)
 {
   eassert (idx >= 0 && idx < h->strong->h.table_size);
-  h->strong->h.key->contents[idx] = val;
+  h->strong->h.kv.keys->contents[idx] = val;
 }
 
 INLINE void
@@ -4279,7 +4390,7 @@ set_weak_hash_value_slot (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx,
 			  Lisp_Object val)
 {
   eassert (idx >= 0 && idx < h->strong->h.table_size);
-  h->strong->h.value->contents[idx] = val;
+  h->strong->h.kv.values->contents[idx] = val;
 }
 #endif
 
