@@ -2706,21 +2706,24 @@ dump_vectorlike_generic (struct dump_context *ctx,
 
 /* Return a vector of KEY, VALUE pairs in the given hash table H.
    No room for growth is included.  */
-static void
-hash_table_contents (struct Lisp_Hash_Table *h, Lisp_KV_Vector *key,
-		     Lisp_KV_Vector *value)
+static hash_table_kv
+hash_table_contents (struct Lisp_Hash_Table *h, hash_idx_t *count)
 {
-  ptrdiff_t size = h->count;
-  *key = hash_table_alloc_kv (h, size);
-  *value = hash_table_alloc_kv (h, size);
+  Lisp_Object lh = make_lisp_ptr (h, Lisp_Vectorlike);
+  ptrdiff_t size = XFIXNUM (Fhash_table_count (lh));
+  hash_table_kv kv = hash_table_kv_create (size, Weak_None);
   ptrdiff_t n = 0;
 
   DOHASH (h, k, v)
   {
-    kv_vector_data (*key)[n] = k;
-    kv_vector_data (*value)[n] = v;
+    hash_table_kv_set_key (kv, n, k);
+    hash_table_kv_set_value (kv, n, v);
     ++n;
   }
+
+  eassert (size == n);
+  *count = n;
+  return kv;
 }
 
 static dump_off
@@ -2756,10 +2759,7 @@ hash_table_std_test (const struct hash_table_test *t)
 static void
 hash_table_freeze (struct Lisp_Hash_Table *h)
 {
-  Lisp_KV_Vector key, value;
-  hash_table_contents (h, &key, &value);
-  h->key = key;
-  h->value = value;
+  h->kv = hash_table_contents (h, &h->count);
   h->next = NULL;
   h->hash = NULL;
   h->index = NULL;
@@ -2796,16 +2796,88 @@ dump_hash_vec (struct dump_context *ctx,
   return start_offset;
 }
 
+#ifdef USE_EPHEMERON_POOL
+static void
+dump_hash_table_kv_slot (struct dump_context *ctx, Lisp_Object *slot)
+{
+  eassert (!hash_unused_entry_key_p (*slot));
+  Lisp_Object out;
+  dump_object_start_1 (ctx, &out, sizeof out);
+  dump_field_lv (ctx, &out, slot, slot, WEIGHT_STRONG);
+  dump_object_finish_1 (ctx, &out, sizeof out);
+}
+
+static dump_off
+dump_hash_table_kv (struct dump_context *ctx,
+		    const hash_table_kv kv, size_t len)
+{
+  dump_align_output (ctx, DUMP_ALIGNMENT);
+  struct pair_vector out;
+  dump_off kv_start = dump_object_start (ctx, kv, IGC_OBJ_PAIR_VECTOR,
+					 &out, sizeof (out));
+  DUMP_FIELD_COPY (&out, kv, gc_header);
+  eassert (NILP (kv->ndeleted));
+  DUMP_FIELD_COPY (&out, kv, ndeleted);
+  dump_object_finish_1 (ctx, &out, sizeof (out));
+
+  struct dump_flags old_flags = ctx->flags;
+  ctx->flags.pack_objects = true;
+
+  for (size_t i = 0; i < len; i++)
+    {
+      dump_hash_table_kv_slot (ctx, &kv->pairs[i].key);
+      dump_hash_table_kv_slot (ctx, &kv->pairs[i].value);
+    }
+
+  ctx->flags = old_flags;
+
+  dump_align_output (ctx, DUMP_ALIGNMENT);
+#ifdef HAVE_MPS
+  dump_igc_finish_obj (ctx);
+#endif
+
+  return kv_start;
+}
+
+#endif
+
+#if 0
 static dump_off
 dump_hash_table_key (struct dump_context *ctx, struct Lisp_Hash_Table *h)
 {
-  return dump_hash_vec (ctx, h->key, h->count);
+  return dump_hash_vec (ctx, h->kv.s.key, h->count);
 }
 
 static dump_off
 dump_hash_table_value (struct dump_context *ctx, struct Lisp_Hash_Table *h)
 {
-  return dump_hash_vec (ctx, h->value, h->count);
+  return dump_hash_vec (ctx, h->kv.s.value, h->count);
+}
+#endif
+
+static void
+dump_hash_table_kv_part (struct dump_context *ctx,
+			 dump_off h_start,
+			 struct Lisp_Hash_Table *h)
+{
+#ifndef USE_EPHEMERON_POOL
+  if (h->kv.keys)
+    {
+      dump_off k = dump_hash_vec (ctx, h->kv.keys, h->count);
+      dump_off v = dump_hash_vec (ctx, h->kv.values, h->count);
+      dump_off k_off = dump_offsetof (struct Lisp_Hash_Table, kv.keys);
+      dump_off v_off = dump_offsetof (struct Lisp_Hash_Table, kv.values);
+      dump_remember_fixup_ptr_raw (ctx, h_start + k_off, k);
+      dump_remember_fixup_ptr_raw (ctx, h_start + v_off, v);
+    }
+#else
+  if (h->kv)
+    {
+      dump_off kv = dump_hash_table_kv (ctx, h->kv, h->count);
+      dump_off kv_off = dump_offsetof (struct Lisp_Hash_Table, kv);
+      dump_remember_fixup_ptr_raw (ctx, h_start + kv_off, kv);
+    }
+#endif
 }
 
 static dump_off
@@ -2834,26 +2906,14 @@ dump_hash_table (struct dump_context *ctx, Lisp_Object object)
   DUMP_FIELD_COPY (out, hash, weakness);
   DUMP_FIELD_COPY (out, hash, mutable);
   DUMP_FIELD_COPY (out, hash, frozen_test);
-  if (hash->key)
-    dump_field_fixup_later (ctx, out, hash, &hash->key);
-  if (hash->value)
-    dump_field_fixup_later (ctx, out, hash, &hash->value);
+  dump_field_fixup_later (ctx, out, hash, &hash->kv);
   eassert (hash->next_weak == NULL);
   dump_off offset = finish_dump_pvec (ctx, &out->header);
-  if (hash->key)
-    dump_remember_fixup_ptr_raw
-      (ctx,
-       offset + dump_offsetof (struct Lisp_Hash_Table, key),
-       dump_hash_table_key (ctx, hash));
-  if (hash->value)
-    dump_remember_fixup_ptr_raw
-      (ctx,
-       offset + dump_offsetof (struct Lisp_Hash_Table, value),
-       dump_hash_table_value (ctx, hash));
+  dump_hash_table_kv_part (ctx, offset, hash);
   return offset;
 }
 
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 static dump_off
 dump_weak_hash_table (struct dump_context *ctx, Lisp_Object object)
 {
@@ -3202,7 +3262,7 @@ dump_vectorlike (struct dump_context *ctx,
       return dump_vectorlike_generic (ctx, &v->header);
     case PVEC_BOOL_VECTOR:
       return dump_bool_vector(ctx, v);
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
     case PVEC_WEAK_HASH_TABLE:
       return dump_weak_hash_table (ctx, lv);
 #endif
@@ -6364,7 +6424,7 @@ thaw_hash_tables (void)
       Lisp_Object table = AREF (hash_tables, i);
       if (HASH_TABLE_P (table))
 	hash_table_thaw (table);
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
       else if (WEAK_HASH_TABLE_P (table))
 	weak_hash_table_thaw (table);
 #endif

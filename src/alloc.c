@@ -3327,12 +3327,10 @@ cleanup_vector (struct Lisp_Vector *vector)
 	  {
 	    eassert (h->index_bits > 0);
 	    xfree (h->index);
-	    xfree (h->key);
-	    xfree (h->value);
+	    hash_table_kv_free (h->kv, h->table_size);
 	    xfree (h->next);
 	    xfree (h->hash);
-	    ptrdiff_t bytes = (h->table_size * (2 * sizeof *h->key
-						+ sizeof *h->hash
+	    ptrdiff_t bytes = (h->table_size * (sizeof *h->hash
 						+ sizeof *h->next)
 			       + hash_table_index_size (h) * sizeof *h->index);
 	    hash_table_allocated_bytes -= bytes;
@@ -6846,8 +6844,8 @@ process_mark_stack (ptrdiff_t base_sp)
 		      /* The values pushed here may include
 			 HASH_UNUSED_ENTRY_KEY, which this function must
 			 cope with.  */
-		      mark_stack_push_values (h->key, h->table_size);
-		      mark_stack_push_values (h->value, h->table_size);
+		      mark_stack_push_values (h->kv.keys, h->table_size);
+		      mark_stack_push_values (h->kv.values, h->table_size);
 		    }
 		  else
 		    {

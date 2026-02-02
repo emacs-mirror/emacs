@@ -52,8 +52,17 @@ enum igc_obj_type
   IGC_OBJ_DUMPED_BUFFER_TEXT,
   IGC_OBJ_DUMPED_BIGNUM_DATA,
   IGC_OBJ_DUMPED_BYTES,
+#ifndef USE_EPHEMERON_POOL
   IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART,
   IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART,
+#endif
+#ifdef USE_EPHEMERON_POOL
+  IGC_OBJ_PAIR_VECTOR,
+  IGC_OBJ_WEAK_KEY_PAIR_VECTOR,
+  IGC_OBJ_WEAK_VALUE_PAIR_VECTOR,
+  IGC_OBJ_WEAK_OR_PAIR_VECTOR,
+  IGC_OBJ_WEAK_AND_PAIR_VECTOR,
+#endif
   IGC_OBJ_NUM_TYPES
 };
 
@@ -138,6 +147,8 @@ void igc_grow_rdstack (struct read_stack *rs);
 struct Lisp_Vector *igc_make_hash_table_vec (size_t n);
 void igc_alloc_weak_hash_table_strong_part(hash_table_weakness_t, void *ptrs[5], size_t, size_t);
 void igc_alloc_weak_hash_table_weak_part(hash_table_weakness_t, void *ptrs[3], size_t, size_t);
+struct pair_vector *igc_alloc_pair_vector (size_t,
+					   hash_table_weakness_t);
 void *igc_alloc_bytes (size_t nbytes);
 struct image_cache *igc_make_image_cache (void);
 struct interval *igc_make_interval (void);

@@ -254,7 +254,7 @@ a fixed set of types.  */)
         case PVEC_BOOL_VECTOR: return Qbool_vector;
         case PVEC_FRAME: return Qframe;
         case PVEC_HASH_TABLE: return Qhash_table;
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
         case PVEC_WEAK_HASH_TABLE: return Qhash_table;
 #endif
         case PVEC_OBARRAY: return Qobarray;
