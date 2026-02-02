@@ -221,11 +221,12 @@ See also `diff-mode-read-only-map'."
   "s" #'diff-split-hunk
 
   ;; The foregoing commands don't affect buffers beyond this one.
-  ;; The following command is the only one that has a single-letter
+  ;; The following command is the only one that has a single-character
   ;; binding and which affects buffers beyond this one.
   ;; However, the following command asks for confirmation by default,
   ;; so that seems okay.  --spwhitton
-  "u" #'diff-revert-and-kill-hunk)
+  "u" #'diff-revert-and-kill-hunk
+  "@" #'diff-revert-and-kill-hunk)
 
 ;; Not `diff-read-only-mode-map' because there is no such mode
 ;; `diff-read-only-mode'; see comment above.
