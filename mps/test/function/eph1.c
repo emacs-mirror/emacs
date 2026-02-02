@@ -66,7 +66,7 @@ static void test_value_unreachable(mmp mm, oop s[ROOT_COUNT])
   asserts(s[3]->weak_pair.key != NULL, "key reachable");
   asserts(s[3]->weak_pair.value != NULL, "value reachable");
   check_string(s[3]->weak_pair.key, "a");
-  asserts(s[3]->weak_pair.value->header.type == TYPE_PAIR,
+  asserts(s[3]->weak_pair.value->header.s.type == TYPE_PAIR,
           "val->header.type == TYPE_PAIR");
   asserts(s[3]->weak_pair.value->pair.car == s[0],
           "s[3]->weak_pair.value->pair.car == s[0]");
@@ -114,7 +114,7 @@ static void test_chain(mmp mm, oop s[ROOT_COUNT])
       char key[10];
       sprintf(val, "val%u", i);
       sprintf(key, "key%u", (i + 1) % n);
-      asserts(eph->weak_pair.value->header.type == TYPE_PAIR,
+      asserts(eph->weak_pair.value->header.s.type == TYPE_PAIR,
               "TYPE_PAIR");
       check_string(eph->weak_pair.value->pair.car, val);
       check_string(eph->weak_pair.value->pair.cdr, key);
