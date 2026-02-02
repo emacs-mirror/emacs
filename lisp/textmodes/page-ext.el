@@ -464,6 +464,15 @@ contain matches to the regexp.)")
 (defvar-local pages-buffer nil
   "The buffer for which the pages-directory function creates the directory.")
 
+(defvar-local pages-directory-list-all-headers-p nil
+  "Value of argument list-all-headers-p in last call of `pages-directory'.")
+
+(defvar-local pages-directory-count-lines-p nil
+  "Value of argument count-lines-p in last call of `pages-directory'.")
+
+(defvar-local pages-directory-regexp nil
+    "Value of argument regexp in last call of `pages-directory'.")
+
 (defvar pages-directory-prefix "*Directory for:"
   "Prefix of name of temporary buffer for pages-directory.")
 
@@ -586,6 +595,9 @@ directory for only the accessible portion of the buffer."
           "==== Pages Directory: use \\<pages-directory-mode-map>\
 \\[pages-directory-goto] to go to page under cursor. ====") "\n")
         (setq pages-buffer pages-target-buffer)
+        (setq pages-directory-list-all-headers-p pages-list-all-headers-p)
+        (setq pages-directory-count-lines-p count-lines-p)
+        (setq pages-directory-regexp regexp)
         (setq pages-pos-list nil))
 
       (if pages-list-all-headers-p
@@ -691,12 +703,20 @@ Used by `pages-directory' function."
       (terpri))
     (end-of-line 1)))
 
+(defun pages-directory-revert-function (_ignore _ignore)
+  "Recreate pages-directory afresh using the arguments from the last creation."
+  (let ((list-all-headers-p pages-directory-list-all-headers-p)
+        (count-lines-p pages-directory-count-lines-p)
+        (regexp pages-directory-regexp))
+    (with-current-buffer pages-buffer
+      (pages-directory list-all-headers-p count-lines-p regexp))))
+
 (define-derived-mode pages-directory-mode special-mode "Pages-Directory"
   "Mode for handling the pages-directory buffer.
 
 Move point to one of the lines in this buffer, then use \\[pages-directory-goto] to go
 to the same line in the pages buffer."
-  )
+  (setq-local revert-buffer-function #'pages-directory-revert-function))
 
 (defun pages-directory-goto (&optional event)
   "Go to the corresponding line in the pages buffer."
