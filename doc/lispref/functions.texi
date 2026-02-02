@@ -674,6 +674,7 @@ variable; these two uses of a symbol are independent and do not
 conflict.  (This is not the case in some dialects of Lisp, like
 Scheme.)
 
+@cindex internal functions, naming conventions
   By convention, if a function's symbol consists of two names
 separated by @samp{--}, the function is intended for internal use and
 the first part names the file defining the function.  For example, a

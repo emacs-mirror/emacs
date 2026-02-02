@@ -617,6 +617,8 @@ float-pi
 
 @node Tips for Defining
 @section Tips for Defining Variables Robustly
+@cindex variables, naming conventions
+@cindex naming conventions, variables
 
   When you define a variable whose value is a function, or a list of
 functions, use a name that ends in @samp{-function} or
@@ -659,6 +661,7 @@ The value is a whole shell command.
 @item @dots{}-switches
 The value specifies options for a command.
 
+@cindex internal variables, naming conventions
 @item @var{prefix}--@dots{}
 The variable is intended for internal use and is defined in the file
 @file{@var{prefix}.el}.  (Emacs code contributed before 2018 may
