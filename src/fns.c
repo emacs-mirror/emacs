@@ -4823,7 +4823,7 @@ compute_hash_index_bits (hash_idx_t size)
    This avoids allocating it from the heap.  */
 static const hash_idx_t empty_hash_index_vector[] = {-1};
 
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 static struct Lisp_Weak_Hash_Table *allocate_weak_hash_table
 (hash_table_weakness_t weak, ssize_t size, ssize_t index_bits);
 
@@ -4831,6 +4831,63 @@ static Lisp_Object make_weak_hash_table (const struct hash_table_test *test,
 					 EMACS_INT size,
 					 hash_table_weakness_t weak);
 #endif
+
+static void
+hash_table_kv_init (hash_table_kv kv, size_t start, size_t end)
+{
+  for (size_t i = start; i < end; i++)
+    {
+      hash_table_kv_set_key (kv, i, HASH_UNUSED_ENTRY_KEY);
+      hash_table_kv_set_value (kv, i, Qnil);
+    }
+}
+
+hash_table_kv
+hash_table_kv_create (size_t size, hash_table_weakness_t w)
+{
+#ifndef USE_EPHEMERON_POOL
+  hash_table_kv kv2 = {
+    .keys = hash_table_alloc_kv (NULL, size),
+    .values = hash_table_alloc_kv (NULL, size),
+  };
+#else
+  hash_table_kv kv2 = igc_alloc_pair_vector (size, w);
+#endif
+  hash_table_kv_init (kv2, 0, size);
+  return kv2;
+}
+
+static hash_table_kv
+hash_table_kv_resize (hash_table_kv kv, hash_table_weakness_t w,
+		      size_t old_size, size_t new_size)
+{
+#ifndef USE_EPHEMERON_POOL
+  hash_table_kv kv2 = {
+    .keys = hash_table_alloc_kv (NULL, new_size),
+    .values = hash_table_alloc_kv (NULL, new_size),
+  };
+#else
+  hash_table_kv kv2 =  igc_alloc_pair_vector (new_size, w);
+  eassert (kv == NULL || NILP (kv->ndeleted));
+#endif
+  for (size_t i = 0; i < old_size; i++)
+    {
+      hash_table_kv_set_key (kv2, i, hash_table_kv_key (kv, i));
+      hash_table_kv_set_value (kv2, i, hash_table_kv_value (kv, i));
+    }
+  hash_table_kv_init (kv2, old_size, new_size);
+  return kv2;
+}
+
+void
+hash_table_kv_free (hash_table_kv kv, size_t old_size)
+{
+#ifndef USE_EPHEMERON_POOL
+  hash_table_free_kv (NULL, kv.keys, old_size);
+  hash_table_free_kv (NULL, kv.values, old_size);
+#else
+#endif
+}
 
 /* Create and initialize a new hash table.
 
@@ -4850,7 +4907,7 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
   eassert (SYMBOLP (test->name));
   eassert (0 <= size && size <= min (MOST_POSITIVE_FIXNUM, PTRDIFF_MAX));
 
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   if (weak != Weak_None)
     {
       return make_weak_hash_table (test, size, weak);
@@ -4865,8 +4922,7 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
 
   if (size == 0)
     {
-      h->key = NULL;
-      h->value = NULL;
+      h->kv = hash_table_kv_null ();
       h->hash = NULL;
       h->next = NULL;
       h->index_bits = 0;
@@ -4875,17 +4931,7 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
     }
   else
     {
-      Lisp_KV_Vector key = hash_table_alloc_kv (h, size);
-      Lisp_KV_Vector value = hash_table_alloc_kv (h, size);
-      for (ptrdiff_t i = 0; i < size; i++)
-	{
-	  kv_vector_data (key)[i] = HASH_UNUSED_ENTRY_KEY;
-	  kv_vector_data (value)[i] = Qnil;
-	}
-
-      /* Initialize, then set. */
-      h->key = key;
-      h->value = value;
+      h->kv = hash_table_kv_create (size, weak);
 
       h->hash = hash_table_alloc_bytes (size * sizeof *h->hash);
 
@@ -4897,7 +4943,8 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
       int index_bits = compute_hash_index_bits (size);
       h->index_bits = index_bits;
       ptrdiff_t index_size = hash_table_index_size (h);
-      h->index = hash_table_alloc_bytes (index_size * sizeof *h->index);
+      h->index
+	= hash_table_alloc_bytes (index_size * sizeof *h->index);
       for (ptrdiff_t i = 0; i < index_size; i++)
 	h->index[i] = -1;
 
@@ -4924,19 +4971,14 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 
   if (h1->table_size > 0)
     {
-      ptrdiff_t kv_bytes = h1->table_size * word_size;
-      Lisp_KV_Vector key = hash_table_alloc_kv (h2, h1->table_size);
-      Lisp_KV_Vector value = hash_table_alloc_kv (h2, h1->table_size);
-      memcpy (kv_vector_data(key), kv_vector_data (h1->key), kv_bytes);
-      memcpy (kv_vector_data(value), kv_vector_data (h1->value), kv_bytes);
-      h2->key = key;
-      h2->value = value;
-
-      ptrdiff_t hash_bytes = h1->table_size * sizeof *h1->hash;
+      ptrdiff_t size = h1->table_size;
+      h2->kv
+	= hash_table_kv_resize (h1->kv, h1->weakness, size, size);
+      ptrdiff_t hash_bytes = size * sizeof *h1->hash;
       h2->hash = hash_table_alloc_bytes (hash_bytes);
       memcpy (h2->hash, h1->hash, hash_bytes);
 
-      ptrdiff_t next_bytes = h1->table_size * sizeof *h1->next;
+      ptrdiff_t next_bytes = size * sizeof *h1->next;
       h2->next = hash_table_alloc_bytes (next_bytes);
       memcpy (h2->next, h1->next, next_bytes);
 
@@ -4954,12 +4996,99 @@ hash_index_index (struct Lisp_Hash_Table *h, hash_hash_t hash)
   return knuth_hash (hash, h->index_bits);
 }
 
+#ifdef USE_EPHEMERON_POOL
+static size_t
+hash_table_kv_ndeleted (hash_table_kv kv)
+{
+  return NILP (kv->ndeleted) ? 0 : XFIXNUM (kv->ndeleted);
+}
+
+static size_t
+hash_table_ndeleted (struct Lisp_Hash_Table *h)
+{
+  return (h->kv == NULL) ? 0 : hash_table_kv_ndeleted (h->kv);
+}
+#endif
+
+static size_t
+hash_table_count (struct Lisp_Hash_Table *h)
+{
+#ifndef USE_EPHEMERON_POOL
+  return h->count;
+#else
+  size_t ndel = (h->kv == NULL) ? 0 : hash_table_kv_ndeleted (h->kv);
+  return h->count - ndel;
+#endif
+}
+
+#ifdef USE_EPHEMERON_POOL
+/* Reclaim those entries that the GC has marked as unused.  */
+static void
+reclaim_deleted_entries (struct Lisp_Hash_Table *h)
+{
+  eassert (h->count > 0);
+  size_t ndeleted = hash_table_kv_ndeleted (h->kv);
+  size_t reclaimed = 0;
+  /* For each collision chain, ...  */
+  for (ptrdiff_t bucket = 0, index_size = hash_table_index_size (h);
+       bucket < index_size; bucket++)
+    /* ... follow the collision chain, reclaiming unused entries.  */
+    for (ptrdiff_t prev = -1, i = HASH_INDEX (h, bucket), next;
+	 i != -1; i = next)
+      {
+	next = HASH_NEXT (h, i);
+	if (hash_unused_entry_key_p (HASH_KEY (h, i)))
+	  {
+	    /* Take out of collision chain.  */
+	    if (prev == -1)
+	      set_hash_index_slot (h, bucket, next);
+	    else
+	      set_hash_next_slot (h, prev, next);
+
+	    /* Add to free list.  */
+	    set_hash_next_slot (h, i, h->next_free);
+	    h->next_free = i;
+
+	    reclaimed++;
+	    eassert (
+	      BASE_EQ (HASH_KEY (h, i), HASH_UNUSED_ENTRY_KEY));
+	    eassert (BASE_EQ (HASH_VALUE (h, i), Qnil));
+	  }
+	else
+	  prev = i;
+      }
+
+  /* FIXME/igc: use atomic_compare_exchange  */
+  eassert (ndeleted == hash_table_kv_ndeleted (h->kv));
+  eassert (ndeleted == reclaimed);
+  h->kv->ndeleted = Qnil;
+  h->count -= ndeleted;
+}
+#endif
+
+static bool
+maybe_reclaim_deleted_entries (struct Lisp_Hash_Table *h)
+{
+#ifdef USE_EPHEMERON_POOL
+  if (hash_table_ndeleted (h) > 0)
+    {
+      reclaim_deleted_entries (h);
+      return true;
+    }
+  else
+    return false;
+#else
+  return false;
+#endif
+}
+
 /* Resize hash table H if it's too full.  If H cannot be resized
    because it's already too large, throw an error.  */
 
 static void
 maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 {
+  maybe_reclaim_deleted_entries (h);
   if (h->next_free < 0)
     {
       ptrdiff_t old_size = HASH_TABLE_SIZE (h);
@@ -4978,16 +5107,8 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	next[i] = i + 1;
       next[new_size - 1] = -1;
 
-      size_t kv_bytes = old_size * word_size;
-      Lisp_KV_Vector key = hash_table_alloc_kv (h, new_size);
-      Lisp_KV_Vector value = hash_table_alloc_kv (h, new_size);
-      memcpy (kv_vector_data (key), kv_vector_data (h->key), kv_bytes);
-      memcpy (kv_vector_data (value), kv_vector_data (h->value), kv_bytes);
-      for (ptrdiff_t i = old_size; i < new_size; i++)
-	{
-	  kv_vector_data (key)[i] = HASH_UNUSED_ENTRY_KEY;
-	  kv_vector_data (value)[i] = Qnil;
-	}
+      hash_table_kv kv2 = hash_table_kv_resize (h->kv, h->weakness,
+						old_size, new_size);
 
       hash_hash_t *hash = hash_table_alloc_bytes (new_size * sizeof *hash);
       memcpy (hash, h->hash, old_size * sizeof *hash);
@@ -5007,12 +5128,9 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	hash_table_free_bytes (h->index, old_index_size * sizeof *h->index);
       h->index = index;
 
-      Lisp_KV_Vector old = h->key;
-      h->key = key;
-      hash_table_free_kv (h, old, old_size);
-      old = h->value;
-      h->value = value;
-      hash_table_free_kv (h, old, old_size);
+      hash_table_kv old = h->kv;
+      h->kv = kv2;
+      hash_table_kv_free (old, old_size);
 
       hash_table_free_bytes (h->hash, old_size * sizeof *h->hash);
       h->hash = hash;
@@ -5059,8 +5177,7 @@ hash_table_thaw (Lisp_Object hash_table)
 
   if (size == 0)
     {
-      h->key = NULL;
-      h->value = NULL;
+      h->kv = hash_table_kv_null ();
       h->hash = NULL;
       h->next = NULL;
       h->index_bits = 0;
@@ -5072,8 +5189,12 @@ hash_table_thaw (Lisp_Object hash_table)
       h->index_bits = index_bits;
 
 #ifdef HAVE_MPS
-      eassert (pdumper_object_p (h->key));
-      eassert (pdumper_object_p (h->value));
+# ifndef USE_EPHEMERON_POOL
+      eassert (pdumper_object_p (h->kv.keys));
+      eassert (pdumper_object_p (h->kv.values));
+# else
+      eassert (pdumper_object_p (h->kv));
+# endif
 #endif
 
       h->hash = hash_table_alloc_bytes (size * sizeof *h->hash);
@@ -5097,7 +5218,7 @@ hash_table_thaw (Lisp_Object hash_table)
     }
 }
 
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 void
 weak_hash_table_thaw (Lisp_Object weak_hash_table)
 {
@@ -5127,19 +5248,15 @@ hash_table_rehash (struct Lisp_Hash_Table *h)
 
   ptrdiff_t j = 0;
   for (ptrdiff_t i = 0; i < h->table_size; ++i)
-    if (!hash_unused_entry_key_p (kv_vector_data (h->key)[i]))
+    if (!hash_unused_entry_key_p (HASH_KEY (h, i)))
       {
-	h->key[j] = h->key[i];
-	h->value[j] = h->value[i];
+	set_hash_key_slot (h, j, HASH_KEY (h, i));
+	set_hash_value_slot (h, j, HASH_VALUE (h, i));
 	h->hash[j] = h->hash[i];
 	++j;
       }
 
-  for (; j < h->table_size; ++j)
-    {
-      kv_vector_data (h->key)[j] = HASH_UNUSED_ENTRY_KEY;
-      kv_vector_data (h->value)[j] = Qnil;
-    }
+  hash_table_kv_init (h->kv, j, h->table_size);
 
   if (h->count < h->table_size)
     {
@@ -5409,7 +5526,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 
 #endif // not HAVE_MPS
 
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 /* Hash value for KEY in hash table H.  */
 hash_hash_t
 weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Object key)
@@ -5486,17 +5603,17 @@ allocate_weak_hash_table_parts (struct Lisp_Weak_Hash_Table *h,
   switch (weak)
     {
     case Weak_Key:
-      h->strong->h.key = weak_pointers[1];
-      h->strong->h.value = strong_pointers[4];
+      h->strong->h.kv.keys = weak_pointers[1];
+      h->strong->h.kv.values = strong_pointers[4];
       break;
     case Weak_Value:
-      h->strong->h.key = strong_pointers[4];
-      h->strong->h.value = weak_pointers[1];
+      h->strong->h.kv.keys = strong_pointers[4];
+      h->strong->h.kv.values = weak_pointers[1];
       break;
     case Weak_Key_And_Value:
     case Weak_Key_Or_Value:
-      h->strong->h.key = weak_pointers[1];
-      h->strong->h.value = weak_pointers[2];
+      h->strong->h.kv.keys = weak_pointers[1];
+      h->strong->h.kv.values = weak_pointers[2];
       break;
     default:
       emacs_abort ();
@@ -5611,8 +5728,8 @@ make_weak_hash_table (const struct hash_table_test *test,
     {
       for (ptrdiff_t i = 0; i < size; i++)
 	{
-	  h->strong->h.key->contents[i] = HASH_UNUSED_ENTRY_KEY;
-	  h->strong->h.value->contents[i] = Qnil;
+	  h->strong->h.kv.keys->contents[i] = HASH_UNUSED_ENTRY_KEY;
+	  h->strong->h.kv.values->contents[i] = Qnil;
 	}
 
       for (ptrdiff_t i = 0; i < size - 1; i++)
@@ -5675,8 +5792,8 @@ maybe_resize_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
 
       for (ptrdiff_t i = 0; i < new_size; i++)
 	{
-	  h->strong->h.key->contents[i] = HASH_UNUSED_ENTRY_KEY;
-	  h->strong->h.value->contents[i] = Qnil;
+	  h->strong->h.kv.keys->contents[i] = HASH_UNUSED_ENTRY_KEY;
+	  h->strong->h.kv.values->contents[i] = Qnil;
 	}
 
       ptrdiff_t index_size = (ptrdiff_t) 1 << index_bits;
@@ -6344,7 +6461,7 @@ DEFUN ("copy-hash-table", Fcopy_hash_table, Scopy_hash_table, 1, 1, 0,
        doc: /* Return a copy of hash table TABLE.  */)
   (Lisp_Object table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   struct Lisp_Weak_Hash_Table *wh = check_maybe_weak_hash_table (table);
   if (wh)
     {
@@ -6354,20 +6471,20 @@ DEFUN ("copy-hash-table", Fcopy_hash_table, Scopy_hash_table, 1, 1, 0,
   return copy_hash_table (check_hash_table (table));
 }
 
-
 DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
        doc: /* Return the number of elements in TABLE.  */)
   (Lisp_Object table)
 {
-#ifdef HAVE_MPS
-  struct Lisp_Weak_Hash_Table *wh = check_maybe_weak_hash_table (table);
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
+  struct Lisp_Weak_Hash_Table *wh
+    = check_maybe_weak_hash_table (table);
   if (wh)
     {
       table = strong_copy_hash_table (table);
     }
 #endif
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  return make_fixnum (h->count);
+  return make_fixnum (hash_table_count (h));
 }
 
 
@@ -6378,7 +6495,7 @@ This function is for compatibility only; it returns a nominal value
 without current significance.  */)
   (Lisp_Object table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   if (!WEAK_HASH_TABLE_P (table))
 #endif
     CHECK_HASH_TABLE (table);
@@ -6393,7 +6510,7 @@ This function is for compatibility only; it returns a nominal value
 without current significance.  */)
   (Lisp_Object table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   if (!WEAK_HASH_TABLE_P (table))
 #endif
     CHECK_HASH_TABLE (table);
@@ -6412,7 +6529,7 @@ hold without growing, but since hash tables grow automatically, this
 number is rarely of interest.  */)
   (Lisp_Object table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   if (WEAK_HASH_TABLE_P (table))
     {
       struct Lisp_Weak_Hash_Table *h = XWEAK_HASH_TABLE (table);
@@ -6428,7 +6545,7 @@ DEFUN ("hash-table-test", Fhash_table_test, Shash_table_test, 1, 1, 0,
        doc: /* Return the test TABLE uses.  */)
   (Lisp_Object table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   if (WEAK_HASH_TABLE_P (table))
     {
       struct Lisp_Weak_Hash_Table *h = XWEAK_HASH_TABLE (table);
@@ -6457,7 +6574,7 @@ DEFUN ("hash-table-weakness", Fhash_table_weakness, Shash_table_weakness,
        doc: /* Return the weakness of TABLE.  */)
   (Lisp_Object table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   if (WEAK_HASH_TABLE_P (table))
     {
       struct Lisp_Weak_Hash_Table *ht = XWEAK_HASH_TABLE (table);
@@ -6472,7 +6589,7 @@ DEFUN ("hash-table-p", Fhash_table_p, Shash_table_p, 1, 1, 0,
        doc: /* Return t if OBJ is a Lisp hash table object.  */)
   (Lisp_Object obj)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   return (HASH_TABLE_P (obj) || WEAK_HASH_TABLE_P (obj)) ? Qt : Qnil;
 #else
   return HASH_TABLE_P (obj) ? Qt : Qnil;
@@ -6484,7 +6601,7 @@ DEFUN ("clrhash", Fclrhash, Sclrhash, 1, 1, 0,
        doc: /* Clear hash table TABLE and return it.  */)
   (Lisp_Object table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   struct Lisp_Weak_Hash_Table *wh = check_maybe_weak_hash_table (table);
   if (wh)
     {
@@ -6508,7 +6625,7 @@ provided.
 usage: (gethash KEY TABLE &optional DEFAULT)  */)
   (Lisp_Object key, Lisp_Object table, Lisp_Object dflt)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   struct Lisp_Weak_Hash_Table *wh = check_maybe_weak_hash_table (table);
   if (wh)
     {
@@ -6518,6 +6635,7 @@ usage: (gethash KEY TABLE &optional DEFAULT)  */)
 #endif
   struct Lisp_Hash_Table *h = check_hash_table (table);
   ptrdiff_t i = hash_find (h, key);
+  eassert (!(i >= 0 && hash_unused_entry_key_p (HASH_VALUE (h, i))));
   return i >= 0 ? HASH_VALUE (h, i) : dflt;
 }
 
@@ -6528,7 +6646,7 @@ If KEY is already present in table, replace its current value with
 VALUE.  In any case, return VALUE.  */)
   (Lisp_Object key, Lisp_Object value, Lisp_Object table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   struct Lisp_Weak_Hash_Table *wh = check_maybe_weak_hash_table (table);
   if (wh)
     {
@@ -6575,7 +6693,7 @@ DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
        doc: /* Remove KEY from TABLE.  */)
   (Lisp_Object key, Lisp_Object table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   struct Lisp_Weak_Hash_Table *wh = check_maybe_weak_hash_table (table);
   if (wh)
     {
@@ -6611,7 +6729,7 @@ set a new value for KEY, or `remhash' to remove KEY.
 `maphash' always returns nil.  */)
   (Lisp_Object function, Lisp_Object table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   if (WEAK_HASH_TABLE_P (table))
     table = strong_copy_hash_table (table);
 #endif
@@ -6649,7 +6767,7 @@ DEFUN ("internal--hash-table-histogram",
        doc: /* Bucket size histogram of HASH-TABLE.  Internal use only. */)
   (Lisp_Object hash_table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   if (WEAK_HASH_TABLE_P (hash_table))
     return Qnil;
 #endif
@@ -6682,7 +6800,7 @@ DEFUN ("internal--hash-table-buckets",
 Internal use only. */)
   (Lisp_Object hash_table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   if (WEAK_HASH_TABLE_P (hash_table))
     return Qnil;
 #endif
@@ -6708,7 +6826,7 @@ DEFUN ("internal--hash-table-index-size",
        doc: /* Index size of HASH-TABLE.  Internal use only. */)
   (Lisp_Object hash_table)
 {
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   if (WEAK_HASH_TABLE_P (hash_table))
     return make_int
       (weak_hash_table_index_size (XWEAK_HASH_TABLE (hash_table)));

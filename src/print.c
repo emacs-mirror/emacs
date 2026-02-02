@@ -2237,7 +2237,7 @@ print_vectorlike_unreadable (Lisp_Object obj, bool escapeflag, char *buf,
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_HASH_TABLE:
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
     case PVEC_WEAK_HASH_TABLE:
 #endif
     case PVEC_BIGNUM:
@@ -2814,22 +2814,27 @@ print_object (Lisp_Object obj, bool escapeflag, struct print_context *pc)
 	      }
 
 	  hash_table_data:
-	    if (h->count > 0)
+	    EMACS_INT count = XFIXNAT (Fhash_table_count (obj));
+	    if (count > 0)
 	      {
-		ptrdiff_t size = h->count;
+		ptrdiff_t size = count;
 		print_c_string (" data (", printcharfun);
 
 		/* Don't print more elements than the specified maximum.  */
 		if (FIXNATP (Vprint_length) && XFIXNAT (Vprint_length) < size)
 		  size = XFIXNAT (Vprint_length);
 
+		/* FIXME: For weak hash tables, the GC can delete
+		   entries.  This can lead to an out-of-bounds access
+		   before the test .u.hash.printed >= .u.hash.nobjs
+		   becomes true. */
 		print_stack_push ((struct print_stack_entry){
 		    .type = PE_hash,
 		    .u.hash.obj = obj,
 		    .u.hash.nobjs = size * 2,
 		    .u.hash.idx = 0,
 		    .u.hash.printed = 0,
-		    .u.hash.truncated = (size < h->count),
+		    .u.hash.truncated = (size < count),
 		  });
 	      }
 	    else
@@ -2839,14 +2844,14 @@ print_object (Lisp_Object obj, bool escapeflag, struct print_context *pc)
 		--print_depth;   /* Done with this.  */
 	      }
 	    goto next_obj;
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 	  strong_hash_table:
 #endif
 	    h = XHASH_TABLE (obj);
 	    goto hash_table_data;
 	  }
 
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 	case PVEC_WEAK_HASH_TABLE:
 	  {
 	    struct Lisp_Weak_Hash_Table *h = XWEAK_HASH_TABLE (obj);
