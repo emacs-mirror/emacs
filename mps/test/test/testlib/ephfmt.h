@@ -20,16 +20,24 @@ enum type
   TYPE_PAD
 };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+
 union header
 {
-  enum type type;
+  struct
+  {
+    enum type type : CHAR_BIT;
+    size_t size : sizeof(size_t) * CHAR_BIT - CHAR_BIT;
+  } s;
   size_t padding;
 };
+
+#pragma GCC diagnostic pop
 
 struct pad
 {
   union header header;
-  size_t size; /* size (including header) of this object */
 };
 
 typedef union object* oop;
@@ -38,7 +46,6 @@ typedef struct memory_manager* mmp;
 struct fwd
 {
   union header header;
-  size_t size; /* size (including header) of this object */
   oop fwd;
 };
 

@@ -1049,10 +1049,12 @@ Rank TraceRankForAccess(Arena arena, Seg seg)
      * any non-final references. */
     return RankEXACT;
   case RankEPHEMERON:
-    AVER(rankSet == RankSetSingle(RankEPHEMERON));
+    if(rankSet == RankSetSingle(RankFINAL)) {
+      return RankFINAL;
+    }
     /* The segment must be black after scanning; we can't guarantee that
-     * in the ephemeron band.  Scanning at exact is safe, but it may
-     * retain some logically unreachable objects. */
+     * for segments in the ephemeron pool.  Scanning at exact is safe,
+     * but it may retain some logically unreachable objects. */
     return RankEXACT;
   case RankWEAK:
     AVER(rankSet == RankSetSingle(RankWEAK));

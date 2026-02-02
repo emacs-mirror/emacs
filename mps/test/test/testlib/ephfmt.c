@@ -25,7 +25,8 @@ oop make_pair(mps_ap_t ap, oop car, oop cdr)
     if (res != MPS_RES_OK)
       error("out of memory in make_pair");
     obj = addr;
-    obj->pair.header.type = TYPE_PAIR;
+    obj->pair.header.s.type = TYPE_PAIR;
+    obj->pair.header.s.size = sizeof(struct pair);
     obj->pair.car = car;
     obj->pair.cdr = cdr;
   } while (!mps_commit(ap, addr, size));
@@ -45,7 +46,8 @@ static oop make_weak_pair_2(mps_ap_t ap,
     if (res != MPS_RES_OK)
       error("out of memory in make_weak_pair");
     obj = addr;
-    obj->weak_pair.header.type = type;
+    obj->weak_pair.header.s.type = type;
+    obj->weak_pair.header.s.size = sizeof(struct weak_pair);
     obj->weak_pair.key = key;
     obj->weak_pair.value = value;
   } while (!mps_commit(ap, addr, size));
@@ -78,12 +80,12 @@ oop make_string(mps_ap_t ap, size_t length, const char string[])
     if (res != MPS_RES_OK)
       error("out of memory in make_string");
     obj = addr;
-    obj->string.header.type = TYPE_STRING;
+    obj->string.header.s.type = TYPE_STRING;
+    obj->string.header.s.size = size;
     obj->string.length = length;
     if (string)
-      memcpy(obj->string.data, string, length + 1);
-    else
-      memset(obj->string.data, 0, length + 1);
+      memcpy(obj->string.data, string, length);
+    obj->string.data[length] = '\0';
   } while (!mps_commit(ap, addr, size));
   return obj;
 }
@@ -110,7 +112,7 @@ static mps_res_t eph_scan(mps_ss_t ss,
   {
     while (base < limit) {
       oop obj = base;
-      switch (obj->header.type) {
+      switch (obj->header.s.type) {
         case TYPE_PAIR:
           FIX(obj->pair.car);
           FIX(obj->pair.cdr);
@@ -154,10 +156,10 @@ static mps_res_t eph_scan(mps_ss_t ss,
                                        obj->string.length + 1);
           break;
         case TYPE_FWD:
-          base = (char*)base + aligned(obj->fwd.size);
+          base = (char*)base + aligned(obj->fwd.header.s.size);
           break;
         case TYPE_PAD:
-          base = (char*)base + aligned(obj->pad.size);
+          base = (char*)base + aligned(obj->pad.header.s.size);
           break;
         default:
           error("Unexpected object on the heap\n");
@@ -172,7 +174,7 @@ static mps_res_t eph_scan(mps_ss_t ss,
 static mps_addr_t eph_skip(mps_addr_t base)
 {
   oop obj = base;
-  switch (obj->header.type) {
+  switch (obj->header.s.type) {
     case TYPE_PAIR:
       base = (char*)base + aligned(sizeof(struct pair));
       break;
@@ -186,10 +188,10 @@ static mps_addr_t eph_skip(mps_addr_t base)
                                    obj->string.length + 1);
       break;
     case TYPE_FWD:
-      base = (char*)base + aligned(obj->fwd.size);
+      base = (char*)base + aligned(obj->fwd.header.s.size);
       break;
     case TYPE_PAD:
-      base = (char*)base + aligned(obj->pad.size);
+      base = (char*)base + aligned(obj->pad.header.s.size);
       break;
     default:
       error("Unexpected object on the heap\n");
@@ -201,7 +203,7 @@ static mps_addr_t eph_skip(mps_addr_t base)
 static mps_addr_t eph_isfwd(mps_addr_t addr)
 {
   oop obj = addr;
-  switch (obj->header.type) {
+  switch (obj->header.s.type) {
     case TYPE_FWD:
       return obj->fwd.fwd;
     default:
@@ -216,9 +218,9 @@ static void eph_fwd(mps_addr_t old, mps_addr_t new)
   size_t size = (size_t)((char*)limit - (char*)old);
   asserts(size >= aligned(sizeof(struct fwd)),
           "size >= sizeof(struct fwd)");
-  obj->fwd.header.type = TYPE_FWD;
+  obj->fwd.header.s.type = TYPE_FWD;
+  obj->fwd.header.s.size = size;
   obj->fwd.fwd = new;
-  obj->fwd.size = size;
 }
 
 static void eph_pad(mps_addr_t addr, size_t size)
@@ -226,8 +228,8 @@ static void eph_pad(mps_addr_t addr, size_t size)
   oop obj = addr;
   asserts(size >= aligned(sizeof(struct pad)),
           "size >= sizeof(struct pad)");
-  obj->pad.header.type = TYPE_PAD;
-  obj->pad.size = size;
+  obj->pad.header.s.type = TYPE_PAD;
+  obj->pad.header.s.size = size;
 }
 
 mps_fmt_t eph_fmt(mps_arena_t arena)
@@ -253,7 +255,7 @@ mps_fmt_t eph_fmt(mps_arena_t arena)
 void check_string(oop s, const char* data)
 {
   asserts(s != NULL, "s != NULL");
-  asserts(s->header.type == TYPE_STRING,
+  asserts(s->header.s.type == TYPE_STRING,
           "s->header.type = TYPE_STRING");
   asserts(s->string.length == strlen(data),
           "s->string.length == strlen(data");
