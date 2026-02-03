@@ -2279,6 +2279,188 @@ init_minibuf_once_for_pdumper (void)
   last_minibuf_string = Qnil;
 }
 
+/* FLEX/GOTOH algorithm for the 'flex' completion-style.  Adapted from
+   GOTOH, Osamu. An improved algorithm for matching biological
+   sequences. Journal of molecular biology, 1982, 162.3: 705-708.
+
+   This algorithm matches patterns to candidate strings, or needles to
+   haystacks.  It works with cost matrices: imagine rows of these
+   matrices as pattern characters, and columns as the candidate string
+   characters.  There is a -1 row, and a -1 column.  The values there
+   hold real costs used for situations "before the first ever" match of
+   a pattern character to a string character.
+
+   M and D are cost matrices.  At the end of the algorithm, M will have
+   non-infinite values only for the spots where a pattern character
+   matches a string character.  So a non-infinite M[i,j] means the i-th
+   character of the pattern matches the j-th character of the string.
+   The value stored is the lowest possible cost the algorithm had to
+   "pay" to be able to make that match there, given everything that may
+   have happened before/to the left.  An infinite value simply means no
+   match at this pattern/string position.  Note that both row and column
+   of M may have more than one match at multiple indices.  But this
+   particular implementation of the algorithm assumes they have at least
+   one match.
+
+   D (originally stands for 'Deletion' in the Gotoh paper) has "running
+   costs".  Each value D[i,j] represents what the algorithm has to pay
+   to make or extend a gap when a match is found at i+1, j+1.  By that
+   time, that cost may or may not be lower than continuing from a match
+   that had also been found at i,j.  We always pick the lowest cost, and
+   by the time we reach the final column, we know we have picked the
+   cheapest possible path choosing when to gap, and when to follow up.
+
+   Here's an illustration of the final state of M and D when matching
+   "goto" to "eglot--goto".  Notice how the algorithm detects but
+   ultimately discards the scattered match at indexes 1,3,4,8, which
+   would have total cost 27, and ultimately settles on the match at
+   positions 7,8,9,10 which has cost 5:
+
+             -1  0  1  2  3  4  5  6  7  8  9 10
+              -  e  g  l  o  t  -  -  g  o  t  o
+   M:  -1  -  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞
+        0  g  ∞  ∞  5  ∞  ∞  ∞  ∞  ∞  5  ∞  ∞  ∞
+        1  o  ∞  ∞  ∞  ∞ 15  ∞  ∞  ∞  ∞  5  ∞ 16
+        2  t  ∞  ∞  ∞  ∞  ∞ 15  ∞  ∞  ∞  ∞  5  ∞
+        3  o  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞ 27  ∞  5
+
+   D:  -1  -  0  5  5  5  5  5  5  5  5  5  5  5
+        0  g  ∞  ∞  ∞ 15 16 17 18 19 20 15 16 17
+        1  o  ∞  ∞  ∞  ∞  ∞ 25 26 27 28 29 15 16
+        2  t  ∞  ∞  ∞  ∞  ∞  ∞ 25 26 27 28 29 15
+        3  o  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞ 37 38
+ **/
+DEFUN ("completion--flex-cost-gotoh", Fcompletion__flex_cost_gotoh,
+       Scompletion__flex_cost_gotoh, 2, 2, 0,
+       doc: /* Compute cost of PAT matching STR using modified Gotoh algorithm.
+Return nil if no match found, else return (COST . MATCHES)
+where COST is a fixnum (lower is better) and MATCHES is a list of match
+positions in STR.  */)
+  (Lisp_Object pat, Lisp_Object str)
+  {
+    /* Pre-allocated matrices for flex completion scoring.  */
+#define FLEX_MAX_STR_SIZE 512
+#define FLEX_MAX_PAT_SIZE 128
+#define FLEX_MAX_MATRIX_SIZE FLEX_MAX_PAT_SIZE * FLEX_MAX_STR_SIZE
+    /* Macro for 2D indexing into "flat" arrays.  */
+#define MAT(matrix, i, j) ((matrix)[((i) + 1) * width + ((j) + 1)])
+
+    CHECK_STRING (pat);
+    CHECK_STRING (str);
+
+    size_t patlen = SCHARS (pat);
+    size_t strlen = SCHARS (str);
+    size_t width = strlen + 1;
+    size_t size = (patlen + 1) * width;
+    const int gap_open_cost = 10;
+    const int gap_extend_cost = 1;
+    const int pos_inf = INT_MAX / 2;
+    static int M[FLEX_MAX_MATRIX_SIZE];
+    static int D[FLEX_MAX_MATRIX_SIZE];
+
+    /* Bail if strings are empty or matrix too large.  */
+    if (patlen == 0 || strlen == 0 || size > FLEX_MAX_MATRIX_SIZE)
+      return Qnil;
+
+    /* Initialize M and D with positive infinity... */
+    for (int j = 0; j < size; j++)
+      M[j] = D[j] = pos_inf;
+    /* ...except for D[-1,-1], which is 0 to promote matches at the
+       beginning.  Rest of first row has gap_open_cost/2 for cheaper
+       leading gaps. */
+    for (int j = 0; j < width; j++)
+      D[j] = gap_open_cost / 2;
+    D[0] = 0;
+
+    /* Poor man's iterator type. */
+    typedef struct iter { int x; ptrdiff_t c; ptrdiff_t b; } iter_t;
+
+    /* Position of first match found in the previous row, to save
+       iterations. */
+    iter_t prev_match = { 0, 0, 0 };
+
+    /* Forward pass.  */
+    for (iter_t i = { 0, 0, 0 }; i.x < patlen; i.x++)
+      {
+	int pat_char = fetch_string_char_advance (pat, &i.c, &i.b);
+	bool match_seen = false;
+
+	for (iter_t j = prev_match; j.x < strlen; j.x++)
+	  {
+	    iter_t jcopy = j; /* else advance function destroys it... */
+	    int str_char = fetch_string_char_advance (str, &j.c, &j.b);
+
+	    /* Check if characters match (case-insensitive if needed).  */
+	    bool cmatch;
+	    if (completion_ignore_case)
+	      cmatch = (downcase (pat_char) == downcase (str_char));
+	    else
+	      cmatch = (pat_char == str_char);
+
+	    if (cmatch)
+	      {
+		/* There is a match here, so compute match cost
+		   M[i][j], i.e. replace its infinite value with
+		   something finite. */
+		if (!match_seen)
+		  {
+		    match_seen = true;
+		    prev_match = jcopy;
+		  }
+		/* Compute M[i,j]. If we pick M[i-1,j-1] it means that
+		   not only did the previous char also match (else
+		   M[i-1,j-1] would have been infinite) but following
+		   it up with this match is best overall.  If we pick
+		   D[i-1, j-1] it means that gapping is best,
+		   regardless of whether the previous char also
+		   matched.  That is, it's better to arrive at this
+		   match from a gap.  */
+		MAT (M, i.x, j.x) = min (MAT (M, i.x - 1, j.x - 1),
+					 MAT (D, i.x - 1, j.x - 1));
+	      }
+	    /* Regardless of a match here, compute D[i,j], the best
+	       accumulated gapping cost at this point, considering
+	       whether it's more advantageous to open from a previous
+	       match on this row (a cost which may well be infinite if
+	       no such match ever existed) or extend a gap started
+	       sometime before.  The next iteration will take this
+	       into account, and so will the next row when analyzing a
+	       possible match for the j+1-th string character.  */
+	    MAT (D, i.x, j.x)
+	      = min (MAT (M, i.x, j.x - 1) + gap_open_cost,
+		     MAT (D, i.x, j.x - 1) + gap_extend_cost);
+	  }
+      }
+    /* Find lowest cost in last row.  */
+    int best_cost = pos_inf;
+    int lastcol = -1;
+    for (int j = 0; j < strlen; j++)
+      {
+	int cost = MAT (M, patlen - 1, j);
+	if (cost < best_cost)
+	  {
+	    best_cost = cost;
+	    lastcol = j;
+	  }
+      }
+
+    /* Return early if no match. */
+    if (lastcol < 0 || best_cost >= pos_inf)
+      return Qnil;
+
+    /* Go backwards to build match positions list. */
+    Lisp_Object matches = Fcons (make_fixnum (lastcol), Qnil);
+    for (int i = patlen - 2, l = lastcol - 1; i >= 0; --i)
+      {
+	while (l >= 0 && MAT (M, i, l) > MAT (D, i, l))
+	  --l;
+	matches = Fcons (make_fixnum (l), matches);
+      }
+
+    return Fcons (make_fixnum (best_cost), matches);
+#undef MAT
+  }
+
 void
 syms_of_minibuf (void)
 {
@@ -2541,6 +2723,7 @@ showing the *Completions* buffer, if any.  */);
   defsubr (&Stest_completion);
   defsubr (&Sassoc_string);
   defsubr (&Scompleting_read);
+  defsubr (&Scompletion__flex_cost_gotoh);
   DEFSYM (Qminibuffer_quit_recursive_edit, "minibuffer-quit-recursive-edit");
   DEFSYM (Qinternal_complete_buffer, "internal-complete-buffer");
   DEFSYM (Qcompleting_read_function, "completing-read-function");
