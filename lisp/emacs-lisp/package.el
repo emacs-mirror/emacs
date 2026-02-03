@@ -4594,18 +4594,27 @@ what command to invoke to enable the package."
                (concat "\\`" (file-name-nondirectory (match-string 2)) "\\'")
                intr)))))))
 
+(defvar package--autosuggest-database 'unset
+  "A list of package suggestions.
+Each entry in the list is of a form suitable to for
+`package--suggestion-applies-p', which see.  The special value `unset'
+is used to indicate that `package--autosuggest-find-candidates' should
+load the database into memory.")
+
 (defun package--autosuggest-find-candidates ()
     "Return a list of suggestions that might be interesting the current buffer.
 The elements of the returned list will have the form described in
 `package--suggestion-applies-p'."
     (and (eq major-mode 'fundamental-mode)
          (let ((suggetions '()))
-           (dolist (sug (eval-when-compile
-                          (with-temp-buffer
-                            (insert-file-contents
-                             (expand-file-name "package-autosuggest.eld"
-                                               data-directory))
-                            (read (current-buffer)))))
+           (when (eq package--autosuggest-database 'unset)
+             (setq package--autosuggest-database
+                   (with-temp-buffer
+                     (insert-file-contents
+                      (expand-file-name "package-autosuggest.eld"
+                                        data-directory))
+                     (read (current-buffer)))))
+           (dolist (sug package--autosuggest-database)
              (when (and (package--suggestion-applies-p sug)
                         (if (eq package-autosuggest-style 'once)
                             (not (memq (car sug) package--autosuggest-suggested))
