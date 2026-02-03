@@ -205,11 +205,6 @@
                   '("some/alpha" "base/epsilon" "base/delta"))
                  `("epsilon" "delta" "beta" "alpha" "gamma"  . 5))))
 
-(defun completion--pcm-score (comp)
-  "Get `completion-score' from COMP."
-  ;; FIXME, uses minibuffer.el implementation details
-  (completion--flex-score comp completion-pcm--regexp))
-
 (defun completion--pcm-first-difference-pos (comp)
   "Get `completions-first-difference' from COMP."
   (cl-loop for pos = (next-single-property-change 0 'face comp)
@@ -244,20 +239,11 @@
            "barfoobar")))
 
 (ert-deftest completion-pcm-test-3 ()
-  ;; Full match!
-  (should (eql
-           (completion--pcm-score
-            (car (completion-pcm-all-completions
-                  "R" '("R" "hello") nil 1)))
-           1.0)))
+  (should (car (completion-pcm-all-completions
+                "R" '("R" "hello") nil 1))))
 
 (ert-deftest completion-pcm-test-4 ()
-  ;; One fourth of a match and no match due to point being at the end
-  (should (eql
-           (completion--pcm-score
-            (car (completion-pcm-all-completions
-                  "RO" '("RaOb") nil 1)))
-           (/ 1.0 4.0)))
+  ;; No match due to point being at the end
   (should (null
            (completion-pcm-all-completions
             "RO" '("RaOb") nil 2))))
@@ -420,24 +406,14 @@
            "a")))
 
 (ert-deftest completion-substring-test-1 ()
-  ;; One third of a match!
   (should (equal
            (car (completion-substring-all-completions
                  "foo" '("hello" "world" "barfoobar") nil 3))
-           "barfoobar"))
-  (should (eql
-           (completion--pcm-score
-            (car (completion-substring-all-completions
-                  "foo" '("hello" "world" "barfoobar") nil 3)))
-           (/ 1.0 3.0))))
+           "barfoobar")))
 
 (ert-deftest completion-substring-test-2 ()
-  ;; Full match!
-  (should (eql
-           (completion--pcm-score
-            (car (completion-substring-all-completions
-                  "R" '("R" "hello") nil 1)))
-           1.0)))
+  (should (car (completion-substring-all-completions
+                "R" '("R" "hello") nil 1))))
 
 (ert-deftest completion-substring-test-3 ()
   ;; Substring match
@@ -495,38 +471,69 @@
            (completion-substring-try-completion "b" '("ab" "ab") nil 0)
            '("ab" . 2))))
 
+(defun completion--sorted-flex-completions (pat list &optional point)
+  "Flex test helper"
+  (let ((all (completion-flex-all-completions pat list nil point)))
+    (setcdr (last all) nil)
+    (sort all
+          (lambda (a b)
+            (< (car (completion--flex-score pat a))
+               (car (completion--flex-score pat b)))))))
+
 (ert-deftest completion-flex-test-1 ()
-  ;; Fuzzy match
   (should (equal
            (car (completion-flex-all-completions
                  "foo" '("hello" "world" "fabrobazo") nil 3))
            "fabrobazo")))
 
 (ert-deftest completion-flex-test-2 ()
-  ;; Full match!
-  (should (eql
-           (completion--pcm-score
-            (car (completion-flex-all-completions
-                  "R" '("R" "hello") nil 1)))
-           1.0)))
+  (should (car (completion--sorted-flex-completions
+                "R" '("R" "hello") 1))))
 
 (ert-deftest completion-flex-test-3 ()
-  ;; Another fuzzy match, but more of a "substring" one
   (should (equal
-           (car (completion-flex-all-completions
-                 "custgroup" '("customize-group-other-window") nil 4))
+           (car (completion--sorted-flex-completions
+                 "custgroup" '("customize-group-other-window") 4))
            "customize-group-other-window"))
   ;; `completions-first-difference' should be at the right place
   (should (equal
            (completion--pcm-first-difference-pos
-            (car (completion-flex-all-completions
-                  "custgroup" '("customize-group-other-window") nil 4)))
+            (car (completion--sorted-flex-completions
+                  "custgroup" '("customize-group-other-window") 4)))
            4))
   (should (equal
            (completion--pcm-first-difference-pos
-            (car (completion-flex-all-completions
-                  "custgroup" '("customize-group-other-window") nil 9)))
+            (car (completion--sorted-flex-completions
+                  "custgroup" '("customize-group-other-window") 9)))
            15)))
+
+(ert-deftest completion-flex-test-non-ascii ()
+  "Test flex completion with variable-width UTF-8 characters."
+  ;; Uses Japanese Kanji to test multi-byte character handling.
+
+  ;; 日本 = "nihon" (Japan), 東京 = "tōkyō" (Tokyo)
+  (should (equal
+           (car (completion--sorted-flex-completions
+                 "日本" '("日本語" "日本" "中国") 2))
+           "日本"))
+
+  ;; 図書館 = "toshokan" (library)
+  (should (equal
+           (car (completion--sorted-flex-completions
+                 "tsk" '("図書館-toshokan" "task" "desk") 3))
+           "task"))
+
+  ;; Mixed pattern (Kanji + ASCII) matching mixed string
+  ;; 学校 = "gakkō" (school)
+  (should (equal
+           (car (completion--sorted-flex-completions
+                 "学s" '("学校-school" "school" "学生") 2))
+           "学校-school"))
+
+  ;; Pattern "東" should match "東京" better than "関東"
+  (let ((results (completion--sorted-flex-completions
+                  "東" '("東京" "関東") 1)))
+    (should (equal (car results) "東京"))))
 
 
 (defmacro with-minibuffer-setup (completing-read &rest body)
