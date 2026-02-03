@@ -5840,11 +5840,13 @@ make_pool_awl0 (struct igc *gc, mps_fmt_t fmt,
 			       find_dependent);
 }
 
+#ifdef USE_EPHEMERON_POOL
 static mps_pool_t
 make_pool_aeph (struct igc *gc, mps_fmt_t fmt)
 {
   return make_pool_with_class (gc, fmt, mps_class_aeph (), NULL);
 }
+#endif
 
 static mps_pool_t
 make_pool_amcz (struct igc *gc, mps_fmt_t fmt)
