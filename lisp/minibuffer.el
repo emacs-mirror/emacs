@@ -770,7 +770,7 @@ for use at QPOS."
                    (add-text-properties 0 1 (text-properties-at 0 completion)
                                         qcompletion)
                    ;; Attach unquoted completion string, which is needed
-                   ;; to score the completion in `completion--flex-score'.
+                   ;; to score the completion in other styles
                    (put-text-property 0 1 'completion--unquoted
                                       completion qcompletion)
 		   ;; FIXME: Similarly here, Cygwin's mapping trips this
@@ -4450,19 +4450,6 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 	    (when (string-match-p regex c) (push c poss)))
 	  (nreverse poss))))))
 
-(defvar flex-score-match-tightness 3
-  "Controls how the `flex' completion style scores its matches.
-
-Value is a positive number.  A number smaller than 1 makes the
-scoring formula reward matches scattered along the string, while
-a number greater than one make the formula reward matches that
-are clumped together.  I.e \"foo\" matches both strings
-\"fbarbazoo\" and \"fabrobazo\", which are of equal length, but
-only a value greater than one will score the former (which has
-one large \"hole\" and a clumped-together \"oo\" match) higher
-than the latter (which has two \"holes\" and three
-one-letter-long matches).")
-
 (defvar completion-lazy-hilit nil
   "If non-nil, request lazy highlighting of completion candidates.
 
@@ -4524,108 +4511,6 @@ from which REGEXP was generated."
     (unless (or (not me) (= from me))
       (add-face-text-property from me 'completions-common-part nil string))
     string))
-
-(defun completion--flex-score-1 (md-groups match-end len)
-  "Compute matching score of completion.
-The score lies in the range between 0 and 1, where 1 corresponds to
-the full match.
-MD-GROUPS is the \"group\"  part of the match data.
-MATCH-END is the end of the match.
-LEN is the length of the completion string."
-  (let* ((from 0)
-         ;; To understand how this works, consider these simple
-         ;; ascii diagrams showing how the pattern "foo"
-         ;; flex-matches "fabrobazo", "fbarbazoo" and
-         ;; "barfoobaz":
-
-         ;;      f abr o baz o
-         ;;      + --- + --- +
-
-         ;;      f barbaz oo
-         ;;      + ------ ++
-
-         ;;      bar foo baz
-         ;;          +++
-
-         ;; "+" indicates parts where the pattern matched.  A
-         ;; "hole" in the middle of the string is indicated by
-         ;; "-".  Note that there are no "holes" near the edges
-         ;; of the string.  The completion score is a number
-         ;; bound by (0..1] (i.e., larger than (but not equal
-         ;; to) zero, and smaller or equal to one): the higher
-         ;; the better and only a perfect match (pattern equals
-         ;; string) will have score 1.  The formula takes the
-         ;; form of a quotient.  For the numerator, we use the
-         ;; number of +, i.e. the length of the pattern.  For
-         ;; the denominator, it first computes
-         ;;
-         ;;     hole_i_contrib = 1 + (Li-1)^(1/tightness)
-         ;;
-         ;; , for each hole "i" of length "Li", where tightness
-         ;; is given by `flex-score-match-tightness'.  The
-         ;; final value for the denominator is then given by:
-         ;;
-         ;;    (SUM_across_i(hole_i_contrib) + 1) * len
-         ;;
-         ;; , where "len" is the string's length.
-         (score-numerator 0)
-         (score-denominator 0)
-         (last-b 0))
-    (while (and md-groups (car md-groups))
-      (let ((a from)
-            (b (pop md-groups)))
-        (setq
-         score-numerator   (+ score-numerator (- b a)))
-        (unless (or (= a last-b)
-                    (zerop last-b)
-                    (= a len))
-          (setq
-           score-denominator (+ score-denominator
-                                1
-                                (expt (- a last-b 1)
-                                      (/ 1.0
-                                         flex-score-match-tightness)))))
-        (setq
-         last-b              b))
-      (setq from (pop md-groups)))
-    ;; If `pattern' doesn't have an explicit trailing any, the
-    ;; regex `re' won't produce match data representing the
-    ;; region after the match.  We need to account to account
-    ;; for that extra bit of match (bug#42149).
-    (unless (= from match-end)
-      (let ((a from)
-            (b match-end))
-        (setq
-         score-numerator   (+ score-numerator (- b a)))
-        (unless (or (= a last-b)
-                    (zerop last-b)
-                    (= a len))
-          (setq
-           score-denominator (+ score-denominator
-                                1
-                                (expt (- a last-b 1)
-                                      (/ 1.0
-                                         flex-score-match-tightness)))))
-        (setq
-         last-b              b)))
-    (/ score-numerator (* len (1+ score-denominator)) 1.0)))
-
-(defvar completion--flex-score-last-md nil
-  "Helper variable for `completion--flex-score'.")
-
-(defun completion--flex-score (str re &optional dont-error)
-  "Compute flex score of completion STR based on RE.
-If DONT-ERROR, just return nil if RE doesn't match STR."
-  (let ((case-fold-search completion-ignore-case))
-    (cond ((string-match re str)
-           (let* ((match-end (match-end 0))
-                  (md (cddr
-                       (setq
-                        completion--flex-score-last-md
-                        (match-data t completion--flex-score-last-md)))))
-             (completion--flex-score-1 md match-end (length str))))
-          ((not dont-error)
-           (error "Internal error: %s does not match %s" re str)))))
 
 (defvar completion-pcm--regexp nil
   "Regexp from PCM pattern in `completion-pcm--hilit-commonality'.")
@@ -4959,7 +4844,7 @@ the same set of elements."
 ;; Mostly derived from the code of `basic' completion.
 
 (defun completion-substring--all-completions
-    (string table pred point &optional transform-pattern-fn)
+    (string table pred point)
   "Match the presumed substring STRING to the entries in TABLE.
 Respect PRED and POINT.  The pattern used is a PCM-style
 substring pattern, but it be massaged by TRANSFORM-PATTERN-FN, if
@@ -4975,9 +4860,7 @@ that is non-nil."
                       basic-pattern
                     (cons 'prefix basic-pattern)))
          (pattern (completion-pcm--optimize-pattern
-                   (if transform-pattern-fn
-                       (funcall transform-pattern-fn pattern)
-                     pattern)))
+                   pattern))
          (all (completion-pcm--all-completions prefix pattern table pred)))
     (list all pattern prefix suffix (car bounds))))
 
@@ -4996,7 +4879,7 @@ that is non-nil."
     (when all
       (nconc (completion-pcm--hilit-commonality pattern all)
              (length prefix)))))
-
+
 ;;; "flex" completion, also known as flx/fuzzy/scatter completion
 ;; Completes "foo" to "frodo" and "farfromsober"
 
@@ -5005,11 +4888,34 @@ that is non-nil."
   :version "27.1"
   :type 'boolean)
 
-(put 'flex 'completion--adjust-metadata 'completion--flex-adjust-metadata)
+(defvar completion-flex--pattern-str nil
+  "Pattern string for flex completion scoring.
+This is the concatenated string parts from the PCM pattern,
+used by `completion--flex-cost' for Gotoh algorithm matching.")
+
+(defvar flex-score-match-tightness nil)
+
+(make-obsolete-variable
+ 'flex-score-match-tightness
+ "It never did anything very useful anyway."
+ "31.0")
+
+(cl-defun completion--flex-cost (pat str &optional dont-error)
+  "Compute flex cost of STR matching PAT using Gotoh algorithm.
+If DONT-ERROR, return nil if PAT cannot match STR.
+Return (NORMALIZED-COST . MATCHES) where NORMALIZED-COST is a
+number (lower = better) and MATCHES is a list of match positions in STR."
+  (pcase-let ((`(,cost . ,matches)
+               (completion--flex-cost-gotoh pat str)))
+    (unless cost
+      (if dont-error (cl-return-from completion--flex-cost nil)
+        (error "Pattern %s does not match %s" pat str)))
+    (cons (* (1+ cost) (- (length str) (length pat))) matches)))
 
 (defun completion--flex-adjust-metadata (metadata)
   "If `flex' is actually doing filtering, adjust sorting."
-  (let ((flex-is-filtering-p completion-pcm--regexp)
+  (let ((flex-is-filtering-p
+         (not (zerop (length completion-flex--pattern-str))))
         (existing-dsf
          (completion-metadata-get metadata 'display-sort-function))
         (existing-csf
@@ -5021,11 +4927,8 @@ that is non-nil."
                              (mapcar
                               (lambda (str)
                                 (cons
-                                 (- (completion--flex-score
-                                     (or (get-text-property
-                                          0 'completion--unquoted str)
-                                         str)
-                                     completion-pcm--regexp))
+                                 ;; Use pre-recorded flex-cost property
+                                 (get-text-property 0 'flex-cost str)
                                  str))
                               (if existing-sort-fn
                                   (funcall existing-sort-fn completions)
@@ -5044,51 +4947,85 @@ that is non-nil."
                `((cycle-sort-function . ,(compose-flex-sort-fn existing-csf))))
         ,@(cdr metadata)))))
 
-(defun completion-flex--make-flex-pattern (pattern)
-  "Convert PCM-style PATTERN into PCM-style flex pattern.
+(put 'flex 'completion--adjust-metadata 'completion--flex-adjust-metadata)
 
-This turns
-    (prefix \"foo\" point)
-into
-    (prefix \"f\" any \"o\" any \"o\" any point)
-which is at the core of flex logic.  The extra
-`any' is optimized away later on."
-  (mapcan (lambda (elem)
-            (if (stringp elem)
-                (mapcan (lambda (char)
-                          (list (string char) 'any))
-                        elem)
-              (list elem)))
-          pattern))
+(defun completion--flex-all-completions-1 (pat table pred point)
+  "Filters completions TABLE by PAT, \"flex\" string. PRED and POINT as
+usual. Returns (ALL PAT PREFIX SUFFIX)."
+  (let* ((beforepoint (substring pat 0 point))
+         (afterpoint (substring pat point))
+         (bounds (completion-boundaries beforepoint table pred afterpoint))
+         (prefix (substring beforepoint 0 (car bounds)))
+         (suffix (substring afterpoint (cdr bounds)))
+         (pat2 (substring pat (car bounds) (+ point (cdr bounds))))
+         (completion-regexp-list
+          (cons (mapconcat (lambda (c) (regexp-quote (char-to-string c)))
+                           pat2
+                           ".*")
+                completion-regexp-list))
+         (all (all-completions prefix table pred))
+         (all
+          (if (zerop (length pat2)) all
+            (cl-loop
+             for c in all
+             for c2 = (or (get-text-property 0 'completion--unquoted c) c)
+             for (cost . matches) = (completion--flex-cost pat2 c2 t)
+             when cost
+             collect (propertize
+                      c2 'flex-cost cost 'flex-matches matches)))))
+    (list all pat2 prefix suffix)))
 
-(defun completion-flex-try-completion (string table pred point)
+(cl-defun completion-flex-try-completion (string table pred point)
   "Try to flex-complete STRING in TABLE given PRED and POINT."
-  (unless (and completion-flex-nospace (string-search " " string))
-    (pcase-let ((`(,all ,pattern ,prefix ,suffix ,_carbounds)
-                 (completion-substring--all-completions
-                  string table pred point
-                  #'completion-flex--make-flex-pattern)))
-      (if minibuffer-completing-file-name
-          (setq all (completion-pcm--filename-try-filter all)))
-      ;; Try some "merging", meaning add as much as possible to the
-      ;; user's pattern without losing any possible matches in `all'.
-      ;; i.e this will augment "cfi" to "config" if all candidates
-      ;; contain the substring "config".  FIXME: this still won't
-      ;; augment "foo" to "froo" when matching "frodo" and
-      ;; "farfromsober".
-      (completion-pcm--merge-try pattern all prefix suffix))))
+  (when (and completion-flex-nospace (string-search " " string))
+    (cl-return-from completion-flex-try-completion))
+  (pcase-let* ((`(,all ,pattern-str ,prefix ,suffix)
+                (completion--flex-all-completions-1 string table pred point))
+               (pcm-pattern
+                (cons
+                 'prefix
+                 (cl-loop with point-idx = (1- (- point (length prefix)))
+                          for x across pattern-str for i from 0
+                          collect (char-to-string x)
+                          collect (if (eq i point-idx)
+                                      'point 'any)))))
+    (if minibuffer-completing-file-name
+        (setq all (completion-pcm--filename-try-filter all)))
+    ;; Try some "merging", meaning add as much as possible to the
+    ;; user's pattern without losing any possible matches in `all'.
+    ;; i.e this will augment "cfi" to "config" if all candidates
+    ;; contain the substring "config".  FIXME: this still won't
+    ;; augment "foo" to "froo" when matching "frodo" and
+    ;; "farfromsober".
+    (completion-pcm--merge-try pcm-pattern all prefix suffix)))
 
-(defun completion-flex-all-completions (string table pred point)
+(cl-defun completion-flex-all-completions (string table pred point)
   "Get flex-completions of STRING in TABLE, given PRED and POINT."
-  (unless (and completion-flex-nospace (string-search " " string))
-    (pcase-let ((`(,all ,pattern ,prefix ,_suffix ,_carbounds)
-                 (completion-substring--all-completions
-                  string table pred point
-                  #'completion-flex--make-flex-pattern)))
-      (when all
-        (nconc (completion-pcm--hilit-commonality pattern all)
-               (length prefix))))))
+  (when (and completion-flex-nospace (string-search " " string))
+    (cl-return-from completion-flex-all-completions))
+  (pcase-let ((`(,all ,pattern-str ,prefix ,_suffix)
+               (completion--flex-all-completions-1 string table pred point)))
+    (setq completion-lazy-hilit-fn
+          (lambda (str)
+            (when-let* ((matches (get-text-property 0 'flex-matches str)))
+              (dolist (pos matches)
+                (add-face-text-property pos (1+ pos)
+                                        'completions-common-part
+                                        nil str))
+              (let ((special-match (nth (1- (- point (length prefix))) matches)))
+                (when (and special-match (> (length str) (1+ special-match)))
+                  (add-face-text-property
+                   (1+ special-match) (+ 2 special-match)
+                   'completions-first-difference nil str))))
+            str))
+    (unless completion-lazy-hilit
+      (setq all (mapcar completion-lazy-hilit-fn all)))
+    ;; Store pattern for adjust-metadata to use
+    (setq completion-flex--pattern-str pattern-str)
+    ;; Return completions with base-size
+    (and all (if (string= prefix "") all (nconc all (length prefix))))))
 
+
 ;; Initials completion
 ;; Complete /ums to /usr/monnier/src or lch to list-command-history.
 

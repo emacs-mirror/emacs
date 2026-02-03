@@ -311,6 +311,12 @@ It still can use 'read-key' when the variable
 It still can use 'read-key' when the variable
 'y-or-n-p-use-read-key' is non-nil.
 
+*** 'flex' completion style rewritten to be faster and more accurate.
+Completion and highlighting use a new superior algorithm.  For example,
+pattern "scope" now ranks 'elisp-scope-*' functions well above
+'dos-codepage' and 'test-completion'.  Pattern "botwin" finds
+'menu-bar-bottom-window-divider' before 'ibuffer-other-window'.
+
 ** Mouse
 
 *** New mode 'mouse-shift-adjust-mode' extends selection with 'S-<mouse-1>'.
