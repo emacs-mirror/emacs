@@ -8249,6 +8249,7 @@ w32_initialize (void)
   }
 
   w32_get_mouse_wheel_vertical_delta ();
+  w32_register_for_sleep_notifications ();
 }
 
 void

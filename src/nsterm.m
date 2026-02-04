@@ -5838,15 +5838,6 @@ ns_term_init (Lisp_Object display_name)
   ns_pending_service_names = [[NSMutableArray alloc] init];
   ns_pending_service_args = [[NSMutableArray alloc] init];
 
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 260000
-  /* Disable problematic event processing on macOS 26 (Tahoe) to avoid
-     scrolling lag and input handling issues.  These are undocumented
-     options as of macOS 26.0.  */
-  [NSUserDefaults.standardUserDefaults
-      registerDefaults:@{@"NSEventConcurrentProcessingEnabled" : @"NO",
-        @"NSApplicationUpdateCycleEnabled" : @"NO"}];
-#endif
-
   /* Start app and create the main menu, window, view.
      Needs to be here because ns_initialize_display_info () uses AppKit classes.
      The view will then ask the NSApp to stop and return to Emacs.  */
@@ -6384,6 +6375,20 @@ ns_term_shutdown (int sig)
 #endif
 
 #ifdef NS_IMPL_COCOA
+  /* Sleep event notification.  */
+  [[[NSWorkspace sharedWorkspace] notificationCenter]
+    addObserver: self
+       selector:@selector(systemWillSleep:)
+	   name: NSWorkspaceWillSleepNotification
+	 object: nil];
+  [[[NSWorkspace sharedWorkspace] notificationCenter]
+    addObserver: self
+       selector: @selector(systemDidWake:)
+	   name: NSWorkspaceDidWakeNotification
+	 object: nil];
+#endif
+
+#ifdef NS_IMPL_COCOA
   /* Some functions/methods in CoreFoundation/Foundation increase the
      maximum number of open files for the process in their first call.
      We make dummy calls to them and then reduce the resource limit
@@ -6421,6 +6426,31 @@ ns_term_shutdown (int sig)
 #endif
 }
 
+/* Sleep event notification.  */
+
+- (void) systemWillSleep:(NSNotification *)notification
+{
+#ifdef NS_IMPL_COCOA
+  NSTRACE ("[EmacsApp systemWillSleep:]");
+  struct input_event ie;
+  EVENT_INIT (ie);
+  ie.kind = SLEEP_EVENT;
+  ie.arg = list1 (Qpre_sleep);
+  kbd_buffer_store_event (&ie);
+#endif
+}
+
+- (void) systemDidWake:(NSNotification *)notification
+{
+#ifdef NS_IMPL_COCOA
+  NSTRACE ("[EmacsApp systemDidWake:]");
+  struct input_event ie;
+  EVENT_INIT (ie);
+  ie.kind = SLEEP_EVENT;
+  ie.arg = list1 (Qpost_wake);
+  kbd_buffer_store_event (&ie);
+#endif
+}
 
 /* Termination sequences:
     C-x C-c:

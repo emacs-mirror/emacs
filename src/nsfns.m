@@ -3805,6 +3805,88 @@ If PROGRESS is nil, remove the progress indicator.  */)
   return Qnil;
 }
 
+/* A unique integer sleep block id and a hash map of its id to opaque
+   NSObject sleep block activity tokens.  */
+static unsigned int sleep_block_id = 0;
+static NSMutableDictionary *sleep_block_map = NULL;
+
+DEFUN ("ns-block-system-sleep",
+       Fns_block_system_sleep,
+       Sns_block_system_sleep,
+       2, 2, 0,
+       doc: /* Block system idle sleep.
+WHY is a string reason for the block.
+If ALLOW-DISPLAY-SLEEP is non-nil, block the screen from sleeping.
+Return a token to unblock this block using `ns-unblock-system-sleep',
+or nil if the block fails.  */)
+  (Lisp_Object why, Lisp_Object allow_display_sleep)
+{
+  block_input ();
+
+  NSString *reason = @"Emacs";
+  if (!NILP (why))
+    {
+      CHECK_STRING (why);
+      reason = [NSString stringWithLispString: why];
+    }
+
+  unsigned long activity_options =
+    NSActivityUserInitiated | NSActivityIdleSystemSleepDisabled;
+  if (NILP (allow_display_sleep))
+    activity_options |= NSActivityIdleDisplaySleepDisabled;
+
+  NSProcessInfo *processInfo = [NSProcessInfo processInfo];
+  NSObject *activity_id = nil;
+  if ([processInfo respondsToSelector:@selector(beginActivityWithOptions:reason:)])
+    activity_id = [[NSProcessInfo processInfo]
+			     beginActivityWithOptions: activity_options
+					       reason: reason];
+  unblock_input ();
+
+  if (!sleep_block_map)
+    sleep_block_map = [[NSMutableDictionary alloc] initWithCapacity: 25];
+
+  if (activity_id)
+    {
+      [sleep_block_map setObject: activity_id
+			  forKey: [NSNumber numberWithInt: ++sleep_block_id]];
+      return make_fixnum (sleep_block_id);
+    }
+  else
+    return Qnil;
+}
+
+DEFUN ("ns-unblock-system-sleep",
+       Fns_unblock_system_sleep,
+       Sns_unblock_system_sleep,
+       1, 1, 0,
+       doc: /* Unblock system idle sleep.
+TOKEN is an object returned by `ns-block-system-sleep'.
+Return non-nil if the TOKEN block was unblocked.  */)
+  (Lisp_Object token)
+{
+  block_input ();
+  Lisp_Object res = Qnil;
+  CHECK_FIXNAT (token);
+  if (sleep_block_map)
+    {
+      NSNumber *key = [NSNumber numberWithInt: XFIXNAT (token)];
+      NSObject *activity_id = [sleep_block_map objectForKey: key];
+      if (activity_id)
+	{
+	  NSProcessInfo *processInfo = [NSProcessInfo processInfo];
+	  if ([processInfo respondsToSelector:@selector(endActivity:)])
+	    {
+	      [[NSProcessInfo processInfo] endActivity: activity_id];
+	      res = Qt;
+	    }
+	  [sleep_block_map removeObjectForKey: key];
+	}
+    }
+  unblock_input ();
+  return res;
+}
+
 #ifdef NS_IMPL_COCOA
 
 DEFUN ("ns-send-items",
@@ -4091,6 +4173,8 @@ The default value is t.  */);
   defsubr (&Sns_badge);
   defsubr (&Sns_request_user_attention);
   defsubr (&Sns_progress_indicator);
+  defsubr (&Sns_block_system_sleep);
+  defsubr (&Sns_unblock_system_sleep);
 #ifdef NS_IMPL_COCOA
   defsubr (&Sns_send_items);
 #endif
