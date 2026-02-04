@@ -217,7 +217,7 @@ is absent."
         (should (assq 'upstream alist))
         (should (equal (cdr (assq 'push alist))
                        (concat "fork/" main-branch))))
-      (vc-git--out-ok "config" "unset"
+      (vc-git--out-ok "config" "--unset"
                       (format "branch.%s.pushRemote" main-branch))
       (vc-git--out-ok "config" "remote.pushDefault" "fork")
       (let ((alist (vc-git--branch-remotes)))

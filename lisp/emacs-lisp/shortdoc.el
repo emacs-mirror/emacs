@@ -1707,7 +1707,9 @@ function's documentation in the Info manual"))
     ;; Doc string.
     (insert "  "
             (or (plist-get data :doc)
-                (car (split-string (documentation function) "\n"))))
+                (car (split-string (or (documentation function)
+                                       "Error: missing docstring.")
+                                   "\n"))))
     (insert "\n")
     (add-face-text-property start-section (point) 'shortdoc-section t)
     (let ((print-escape-newlines t)

@@ -1044,7 +1044,7 @@ Entries are as with rules in `quail-define-rules'.")
 (defconst iroquoian-haudenosaunee-exception-alist
   '(("_" ?\N{COMBINING LOW LINE})
     ("__" ?_))
-  "Rules' alist for phonological exception markers in Haudenosaunee input methods.
+  "Rules alist for phonological exception markers in Haudenosaunee input methods.
 Entries are as with rules in `quail-define-rules'.")
 
 (defconst iroquoian-haudenosaunee-nasal-alist iroquoian-onondaga-nasal-alist

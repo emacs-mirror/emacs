@@ -274,8 +274,6 @@ It is nil if none yet.")
 Default value, nil, means edit the string instead."
   :type 'boolean)
 
-(autoload 'char-fold-to-regexp "char-fold")
-
 (defcustom search-default-mode nil
   "Default mode to use when starting isearch.
 Value is nil, t, or a function.
@@ -2827,7 +2825,6 @@ With argument, add COUNT copies of the character."
 					   (mapconcat 'isearch-text-char-description
 						      string ""))))))))
 
-(autoload 'emoji--read-emoji "emoji")
 (defun isearch-emoji-by-name (&optional count)
   "Read an Emoji name and add it to the search string COUNT times.
 COUNT (interactively, the prefix argument) defaults to 1.
@@ -2835,6 +2832,7 @@ The command accepts Unicode names like \"smiling face\" or
 \"heart with arrow\", and completion is available."
   (interactive "p")
   (emoji--init)
+  (declare-function emoji--read-emoji "emoji" ())
   (with-isearch-suspended
    (pcase-let* ((`(,glyph . ,derived) (emoji--read-emoji))
                 (emoji (if derived
