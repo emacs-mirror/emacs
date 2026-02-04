@@ -4681,8 +4681,8 @@ if affirmative, otherwise nil"
        "The buffer \""
        (buffer-name buf)
        "\" currently lacks any language-specific support.
-The Emacs package manager can provide the editor support for these kinds
-of files by installing a third-party package:" nl)
+The package manager can provide the editor support for these kinds of
+files by downloading a package from Emacs's package archive:" nl)
 
       (when (length> packages 1)
         (insert nl "(Note that there are multiple candidate packages,
