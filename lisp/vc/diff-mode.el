@@ -218,15 +218,7 @@ See also `diff-mode-read-only-map'."
   "RET" #'diff-goto-source
   "<mouse-2>" #'diff-goto-source
   "o" #'diff-goto-source                ; other-window
-  "<remap> <undo>" #'undo-ignore-read-only
-
-  ;; The foregoing commands don't affect buffers beyond this one.
-  ;; The following command is the only one that has a single-character
-  ;; binding and which affects buffers beyond this one.
-  ;; However, the following command asks for confirmation by default,
-  ;; so that seems okay.  --spwhitton
-  "u" #'diff-revert-and-kill-hunk
-  "@" #'diff-revert-and-kill-hunk)
+  "<remap> <undo>" #'undo-ignore-read-only)
 
 ;; Not `diff-read-only-mode-map' because there is no such mode
 ;; `diff-read-only-mode'; see comment above.
@@ -245,7 +237,18 @@ buffers."
   "A" #'diff-ediff-patch
   "r" #'diff-restrict-view
   "R" #'diff-reverse-direction
-  "s" #'diff-split-hunk)
+  "s" #'diff-split-hunk
+
+  ;; The foregoing commands in `diff-mode-shared-map' and
+  ;; `diff-mode-read-only-map' don't affect buffers beyond this one.
+  ;; The following command is the only one that has a single-character
+  ;; binding and which affects buffers beyond this one.  However, the
+  ;; following command asks for confirmation by default, so that seems
+  ;; okay.  --spwhitton
+  "u" #'diff-revert-and-kill-hunk
+  ;; `diff-revert-and-kill-hunk' is the `diff-mode' analogue of what '@'
+  ;; does in VC-Dir, so give it the same short binding.
+  "@" #'diff-revert-and-kill-hunk)
 
 (defvar-keymap diff-mode-map
   :doc "Keymap for `diff-mode'.  See also `diff-mode-shared-map'."
