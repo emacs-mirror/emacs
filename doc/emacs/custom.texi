@@ -3138,30 +3138,33 @@ elisp, The Emacs Lisp Reference Manual}.
   If the directory specified by @code{user-lisp-directory}, defaulting
 to @file{~/.config/emacs/user-lisp/} or @file{~/.emacs.d/user-lisp/},
 exists, then at startup Emacs will prepare Lisp files within that
-directory for use in the session.  Emacs does the following things:
+directory for use in the session.  Specifically, Emacs does the
+following:
 
 @itemize
 @item
 Gather and activate autoload cookies.  This means that you can use
 autoloaded commands and other entry points for the files in your
 @code{user-lisp-directory} without explicitly loading any of the
-files in your initialization file. (@pxref{Autoload,,, elisp, The
-Emacs Lisp Reference Manual}.)
+files in your initialization file.  @xref{Autoload,,, elisp, The
+Emacs Lisp Reference Manual}.
 @item
-Byte-compile all files, and if supported on your system, natively
-compile them too.  This speeds up the execution of the code in the
-files when they are loaded.  (@pxref{Byte Compilation,,, elisp, The
-Emacs Lisp Reference Manual}.)
+Byte-compile all the files (@pxref{Byte Compilation,,, elisp, The Emacs
+Lisp Reference Manual}), and if supported by your build of Emacs,
+compile them to native code as well (@pxref{Native Compilation,,, elisp,
+The Emacs Lisp Reference Manual}).  This speeds up the execution of the
+code in those files when they are loaded and when they are executed
+later.
 @item
 Adjust @code{load-path} such that all the files can be loaded and
-autoloaded in the usual ways.  (@pxref{Library Search,,, elisp, The
-Emacs Lisp Reference Manual}.)
+autoloaded in the usual ways.  @xref{Library Search,,, elisp, The
+Emacs Lisp Reference Manual}.
 @end itemize
 
-  The User Lisp directory is processed before loading the @ref{Init
-File} file.  Therefore any customizations to the user options discussed
-below must be made in your early init file (@pxref{Early Init File}) in
-order to have any effect.
+  The User Lisp directory is processed before loading your init file
+(@pxref{Init File}).  Therefore any customizations to the user
+options discussed below must be made in your early init file
+(@pxref{Early Init File}) in order to have any effect.
 
 @vindex user-lisp-ignored-directories
 @vindex user-lisp-auto-scrape
