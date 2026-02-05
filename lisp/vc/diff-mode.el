@@ -2332,10 +2332,10 @@ If REVERTP is non-nil, reverse-apply hunks before killing them."
     (setq beg (copy-marker beg) end (point-marker))
     (unwind-protect
         (cl-loop initially (goto-char beg)
+                 with inhibit-read-only = t
                  for (hunk-beg hunk-end) = (diff-bounds-of-hunk)
                  for file-bounds = (ignore-errors (diff-bounds-of-file))
                  for (file-beg file-end) = file-bounds
-                 for inhibit-read-only = t
                  if (and file-bounds
                          (progn
                            (goto-char file-beg)
