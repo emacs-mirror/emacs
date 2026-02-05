@@ -3347,7 +3347,9 @@ Uncommitted changes are included in the diff.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, query the backend for an appropriate outgoing base.
+For a topic branch, see whether the branch matches one of
+`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
+the backend for an appropriate outgoing base.
 See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
 the difference between trunk and topic branches.
 
@@ -3375,7 +3377,9 @@ Uncommitted changes are included in the diff.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, query the backend for an appropriate outgoing base.
+For a topic branch, see whether the branch matches one of
+`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
+the backend for an appropriate outgoing base.
 See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
 the difference between trunk and topic branches.
 
@@ -3409,7 +3413,9 @@ working revision and UPSTREAM-LOCATION.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, query the backend for an appropriate outgoing base.
+For a topic branch, see whether the branch matches one of
+`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
+the backend for an appropriate outgoing base.
 See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
 the difference between trunk and topic branches.
 
@@ -3441,7 +3447,9 @@ working revision and UPSTREAM-LOCATION.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, query the backend for an appropriate outgoing base.
+For a topic branch, see whether the branch matches one of
+`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
+the backend for an appropriate outgoing base.
 See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
 the difference between trunk and topic branches.
 
