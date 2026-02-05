@@ -201,8 +201,9 @@ The default \"-b\" means to ignore whitespace-only changes,
 (defvar-keymap diff-mode-shared-map
   :doc "Bindings for read-only `diff-mode' buffers.
 These bindings are also available with an ESC prefix
-(i.e. a \\=`M-' prefix) in read-write `diff-mode' buffers,
-and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'.
+(i.e. a \\=`M-' prefix) in all `diff-mode' buffers, including in
+particular read-write `diff-mode' buffers, and with a
+`diff-minor-mode-prefix' prefix in `diff-minor-mode'.
 See also `diff-mode-read-only-map'."
   "n" #'diff-hunk-next
   "N" #'diff-file-next
@@ -218,7 +219,6 @@ See also `diff-mode-read-only-map'."
   "<mouse-2>" #'diff-goto-source
   "o" #'diff-goto-source                ; other-window
   "<remap> <undo>" #'undo-ignore-read-only
-  "s" #'diff-split-hunk
 
   ;; The foregoing commands don't affect buffers beyond this one.
   ;; The following command is the only one that has a single-character
@@ -235,15 +235,17 @@ See also `diff-mode-read-only-map'."
   :doc "Additional bindings for read-only `diff-mode' buffers.
 Most of the bindings for read-only `diff-mode' buffers are in
 `diff-mode-shared-map'.  This map contains additional bindings for
-read-only `diff-mode' buffers that are *not* available with an ESC
-prefix (i.e. a \\=`M-' prefix) in read-write `diff-mode' buffers."
+read-only `diff-mode' buffers that are *not* also available with an ESC
+prefix (i.e. a \\=`M-' prefix) in read-write (nor read-only) `diff-mode'
+buffers."
   ;; We don't want the following in read-write `diff-mode' buffers
   ;; because they hide useful `M-<foo>' global bindings when editing.
   "W" #'widen
   "w" #'diff-kill-ring-save
   "A" #'diff-ediff-patch
   "r" #'diff-restrict-view
-  "R" #'diff-reverse-direction)
+  "R" #'diff-reverse-direction
+  "s" #'diff-split-hunk)
 
 (defvar-keymap diff-mode-map
   :doc "Keymap for `diff-mode'.  See also `diff-mode-shared-map'."
