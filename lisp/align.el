@@ -1475,7 +1475,7 @@ aligner would have dealt with are."
                     (align--set-marker rule-beg (match-beginning first) t)
                     (setq save-match-data (match-data))
 
-                    (or rule-beg
+                    (or (marker-position rule-beg)
                         (error "No match for subexpression %s" first))
 
                     ;; unless the `valid' attribute is set, and tells
