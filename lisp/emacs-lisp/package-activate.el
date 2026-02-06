@@ -542,13 +542,18 @@ the `Version:' header."
 You can set this value to `mode-line' (default) to indicate the
 availability of a package suggestion in the minor mode, `always' to
 prompt the user in the minibuffer every time a suggestion is available
-in a `fundamental-mode' buffer, `once' to do only prompt the user once
-for each suggestion or `message' to just display a message hinting at
-the existence of a suggestion."
+in a `fundamental-mode' buffer, or `message' to just display a message
+hinting at the existence of a suggestion.  If you only wish to be
+reminded of package suggestions once every session, consider customizing
+the `package-autosuggest-once' user option."
   :type '(choice (const :tag "Indicate in mode line" mode-line)
                  (const :tag "Always prompt" always)
-                 (const :tag "Prompt only once" once)
                  (const :tag "Indicate with message" message))
+  :group 'package)
+
+(defcustom package-autosuggest-once nil
+  "Non-nil means not to repeat package suggestions."
+  :type 'boolean
   :group 'package)
 
 (defvar package--autosuggest-database 'unset
@@ -578,7 +583,7 @@ mode name differ, then an optional forth element MAJOR-MODE can indicate
 what command to invoke to enable the package."
   (pcase sug
     ((or (guard (not (eq major-mode 'fundamental-mode)))
-         (guard (and (memq package-autosuggest-style '(once mode-line))
+         (guard (and package-autosuggest-once
                      (not (memq (car sug) package--autosuggest-suggested))))
          `(,(pred package-installed-p) . ,_))
      nil)
@@ -653,13 +658,15 @@ This function should be added to `after-change-major-mode-hook'."
                                '((package-autosuggest-mode
                                   package--autosugest-line-format))))
        (force-mode-line-update t))
-      ((or 'once 'always)
+      ('always
        (package-autosuggest avail))
       ('message
        (message
         (substitute-command-keys
          (format "Found suggested packages: %s.  Install using  \\[package-autosuggest]"
-                 pkgs)))))))
+                 pkgs)))
+       (dolist (rec avail)
+         (add-to-list 'package--autosuggest-suggested (car rec)))))))
 
 (define-minor-mode package-autosuggest-mode
   "Enable the automatic suggestion and installation of packages."
