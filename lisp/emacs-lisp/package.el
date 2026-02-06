@@ -4605,6 +4605,8 @@ so you have to select which to install!)" nl))
 
               nlnl "To learn more about package management, read "
               (buttonize "(emacs) Packages" (lambda (_) (info "(emacs) Packages")))
+              ", and to learn more about how Emacs supports specific languages, read "
+              (buttonize "(emacs) Major modes" (lambda (_) (info "(emacs) Major modes")))
               ".")
 
       (fill-region (point-min) (point-max))
