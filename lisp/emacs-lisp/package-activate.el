@@ -588,7 +588,7 @@ what command to invoke to enable the package."
          `(,(pred package-installed-p) . ,_))
      nil)
     (`(,_ auto-mode-alist ,ext . ,_)
-     (and (string-match-p ext (buffer-name)) t))
+     (and (buffer-file-name) (string-match-p ext (buffer-file-name)) t))
     (`(,_ magic-mode-alist ,mag . ,_)
      (without-restriction
        (save-excursion
