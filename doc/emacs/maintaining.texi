@@ -2569,12 +2569,13 @@ files, and build a database of these references.  A backend can then
 access this database whenever it needs to list or look up references.
 The Emacs distribution includes @command{etags}, a command for tagging
 identifier definitions in programs, which supports many programming
-languages and other major modes, such as HTML, by extracting
-references into @dfn{tags tables}.  @xref{Create Tags Table}.  Major
-modes for languages supported by @command{etags} can use tags tables
-as basis for their backend.  (One disadvantage of this kind of backend
-is that tags tables need to be kept reasonably up to date, by
-rebuilding them from time to time.)
+languages and other major modes, such as HTML, by extracting references
+into @dfn{tags tables}.  Major modes for languages supported by
+@command{etags} can use tags tables as basis for their backend.  Enable
+@code{etags-regen-mode} to have tags generated across the current
+project for supported file types and updated automatically on edit.  Or
+build the table manually to control the set of files and when it is
+updated, see @xref{Create Tags Table}.
 @end enumerate
 
 @menu
@@ -2647,6 +2648,9 @@ to always prompt, customize @code{xref-prompt-for-identifier} to
   When entering the identifier argument to @kbd{M-.}, you can use the
 usual minibuffer completion commands (@pxref{Completion}), with the
 known identifier names being the completion candidates.
+
+  It uses the current Xref backend, and will signal an error when there
+is none configured, with some recommendations.
 
 @kindex C-x 4 .
 @findex xref-find-definitions-other-window

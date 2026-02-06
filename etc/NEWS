@@ -3704,6 +3704,7 @@ This should not cause any trouble as long as the actual buffer
 modification takes place inside 'with-help-window' or
 'with-output-to-temp-buffer' after the call to 'help-setup-xref'.
 
+---
 ** Xref commands don't automatically suggest to visit a tags table anymore.
 When no tags file is loaded, symbol completion just won't provide any
 suggestions.  So the 'M-?' command now works without a tags table.  And
