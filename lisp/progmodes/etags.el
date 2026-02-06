@@ -2115,7 +2115,9 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
   :version "28.1")
 
 ;;;###autoload
-(defun etags--xref-backend () 'etags)
+(defun etags--xref-backend ()
+  (when (or tags-table-list tags-file-name)
+    'etags))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql 'etags)))
   (find-tag--default))

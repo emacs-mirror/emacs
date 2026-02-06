@@ -3701,6 +3701,11 @@ So now it is even more important that any calls to 'with-help-window'
 (recommended) to 'with-output-to-temp-buffer' are done after. It was the
 recommended way to use it previously as well, but less critically so.
 
+** Xref commands don't automatically suggest to visit a tags table anymore.
+When no tags file is loaded, symbol completion just won't provide any
+suggestions.  So the 'M-?' command now works without a tags table.  And
+the 'M-.' will show a message describing the several built-in options
+that will provide an Xref backend when used.
 
 * Lisp Changes in Emacs 31.1
 
