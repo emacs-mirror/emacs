@@ -207,8 +207,14 @@ The full `format-spec' formatting syntax is supported."
   :type '(choice string (const nil)))
 
 (defcustom battery-update-interval 60
-  "Seconds after which the battery status will be updated."
-  :type 'integer)
+  "Seconds after which the battery status will be updated.
+A value of nil means do not poll for battery status changes.
+This can be useful when `battery-status-function' is set to
+`battery-upower' and `battery-upower-subscribe' is non-nil, in
+which case D-Bus automatically signals battery status changes."
+  :version "31.1"
+  :type '(choice (const :tag "Never" nil)
+                 (integer :tag "Number of seconds")))
 
 (defcustom battery-load-low 25
   "Upper bound of low battery load percentage.
@@ -305,8 +311,9 @@ trigger actions based on battery-related events."
         (and (eq battery-status-function #'battery-upower)
              battery-upower-subscribe
              (battery--upower-subscribe))
-	(setq battery-update-timer (run-at-time nil battery-update-interval
-                                                #'battery-update-handler))
+        (when battery-update-interval
+          (setq battery-update-timer (run-at-time nil battery-update-interval
+                                                  #'battery-update-handler)))
 	(battery-update))
     (message "Battery status not available")
     (setq display-battery-mode nil)))
@@ -772,18 +779,37 @@ See URL `https://upower.freedesktop.org/docs/Device.html'.")
 (defconst battery-upower-device-path "/org/freedesktop/UPower/devices"
   "D-Bus object providing `battery-upower-device-interface'.")
 
+(defconst battery-upower-display-device-path
+  "/org/freedesktop/UPower/devices/DisplayDevice"
+  "D-Bus object providing a subset of `battery-upower-device-interface'.
+This is a composite device for displaying a digest of overall state.
+In particular, it is not listed by the EnumerateDevices method.")
+
+(defvar battery-upower-subscribe-properties
+  '(;; `battery-upower-path' properties.
+    "OnBattery"
+    ;; `battery-upower-display-device-path' properties.
+    "State" "Percentage" "IsPresent")
+  "List of UPower device properties to listen for.
+Each value is a string property of `battery-upower-path'
+or `battery-upower-display-device-path'.
+A D-Bus signal that any of them changed results in a `battery-update'.")
+
 (defvar battery--upower-signals nil
   "Handles for UPower signal subscriptions.")
 
 (defun battery--upower-signal-handler (&rest _)
   "Update battery status on receiving a UPower D-Bus signal."
-  (timer-event-handler battery-update-timer))
+  (if battery-update-timer
+      (timer-event-handler battery-update-timer)
+    (battery-update-handler)))
 
 (defun battery--upower-props-changed (_interface changed _invalidated)
-  "Update status when system starts/stops running on battery.
+  "Update status when UPower device properties change.
+Respond only to those in `battery-upower-subscribe-properties'.
 Intended as a UPower PropertiesChanged signal handler."
-  (when (or (assoc "OnBattery" changed)
-            (assoc "State" changed))
+  (when (any (lambda (prop) (assoc prop changed))
+             battery-upower-subscribe-properties)
     (battery--upower-signal-handler)))
 
 (defun battery--upower-unsubscribe ()
@@ -793,18 +819,16 @@ Intended as a UPower PropertiesChanged signal handler."
 
 (defun battery--upower-subscribe ()
   "Subscribe to UPower device change signals."
-  ;; Listen for OnBattery signals
+  ;; Listen for OnBattery changes.
   (push (dbus-register-signal :system battery-upower-service
                               battery-upower-path
                               dbus-interface-properties
                               "PropertiesChanged"
                               #'battery--upower-props-changed)
         battery--upower-signals)
-  ;; Listen for state changes of DisplayDevice
+  ;; Listen for DisplayDevice property changes.
   (push (dbus-register-signal :system battery-upower-service
-                              (concat
-                               battery-upower-device-path
-                               "/DisplayDevice")
+                              battery-upower-display-device-path
                               dbus-interface-properties
                               "PropertiesChanged"
                               #'battery--upower-props-changed)
