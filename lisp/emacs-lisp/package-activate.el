@@ -30,6 +30,8 @@
 ;; activate packages at startup, as well as other functions that are
 ;; useful without having to load the entirety of package.el.
 
+;; Note that the contents of this file are preloaded!
+
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
