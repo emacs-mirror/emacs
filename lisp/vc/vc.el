@@ -5026,6 +5026,9 @@ log entries should be gathered."
 
 (defvar vc-filter-command-function)
 
+(defvar vc-edit-next-command-history nil
+  "Minibuffer history for `vc-edit-next-command'.")
+
 ;;;###autoload
 (defun vc-edit-next-command ()
   "Request editing the next VC shell command before execution.
@@ -5049,7 +5052,8 @@ immediately after this one."
     (add-hook 'prefix-command-echo-keystrokes-functions echofun)
     (setq vc-filter-command-function
           (lambda (&rest args)
-            (apply #'vc-user-edit-command (apply old args))))))
+            (let ((vc-user-edit-command-history 'vc-edit-next-command-history))
+              (apply #'vc-user-edit-command (apply old args)))))))
 
 ;; This is used in .dir-locals.el in the Emacs source tree.
 ;;;###autoload (put 'vc-prepare-patches-separately 'safe-local-variable 'booleanp)

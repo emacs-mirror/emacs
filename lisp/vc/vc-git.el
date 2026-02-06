@@ -1614,7 +1614,9 @@ If PROMPT is non-nil, prompt for the Git command to run."
          (vc-filter-command-function
           (if prompt
               (lambda (&rest args)
-                (cl-destructuring-bind (&whole args git _ flags)
+                (cl-destructuring-bind
+                    (&whole args git _ flags
+                            &aux (vc-user-edit-command-history 'vc-git-history))
                     (apply #'vc-user-edit-command args)
                   (setq git-program git
                         command (car flags)
