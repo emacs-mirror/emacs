@@ -1782,6 +1782,11 @@ response.
 It is believed to no longer be useful as a method to fight spam.  The
 'spam-use-hashcash' hook is now obsolete and has no effect.
 
+---
+*** Add 'M-i' keybinding as the symbolic prefix in the group keymap.
+The symbolic prefix is another kind of universal prefix that is used in
+Gnus, see "(gnus) Symbolic Prefixes" in the Gnus manual.
+
 ** Sieve
 
 +++
