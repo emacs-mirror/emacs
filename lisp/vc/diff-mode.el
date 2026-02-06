@@ -201,8 +201,9 @@ The default \"-b\" means to ignore whitespace-only changes,
 (defvar-keymap diff-mode-shared-map
   :doc "Bindings for read-only `diff-mode' buffers.
 These bindings are also available with an ESC prefix
-(i.e. a \\=`M-' prefix) in read-write `diff-mode' buffers,
-and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'.
+(i.e. a \\=`M-' prefix) in all `diff-mode' buffers, including in
+particular read-write `diff-mode' buffers, and with a
+`diff-minor-mode-prefix' prefix in `diff-minor-mode'.
 See also `diff-mode-read-only-map'."
   "n" #'diff-hunk-next
   "N" #'diff-file-next
@@ -217,16 +218,7 @@ See also `diff-mode-read-only-map'."
   "RET" #'diff-goto-source
   "<mouse-2>" #'diff-goto-source
   "o" #'diff-goto-source                ; other-window
-  "<remap> <undo>" #'undo-ignore-read-only
-  "s" #'diff-split-hunk
-
-  ;; The foregoing commands don't affect buffers beyond this one.
-  ;; The following command is the only one that has a single-character
-  ;; binding and which affects buffers beyond this one.
-  ;; However, the following command asks for confirmation by default,
-  ;; so that seems okay.  --spwhitton
-  "u" #'diff-revert-and-kill-hunk
-  "@" #'diff-revert-and-kill-hunk)
+  "<remap> <undo>" #'undo-ignore-read-only)
 
 ;; Not `diff-read-only-mode-map' because there is no such mode
 ;; `diff-read-only-mode'; see comment above.
@@ -235,15 +227,28 @@ See also `diff-mode-read-only-map'."
   :doc "Additional bindings for read-only `diff-mode' buffers.
 Most of the bindings for read-only `diff-mode' buffers are in
 `diff-mode-shared-map'.  This map contains additional bindings for
-read-only `diff-mode' buffers that are *not* available with an ESC
-prefix (i.e. a \\=`M-' prefix) in read-write `diff-mode' buffers."
+read-only `diff-mode' buffers that are *not* also available with an ESC
+prefix (i.e. a \\=`M-' prefix) in read-write (nor read-only) `diff-mode'
+buffers."
   ;; We don't want the following in read-write `diff-mode' buffers
   ;; because they hide useful `M-<foo>' global bindings when editing.
   "W" #'widen
   "w" #'diff-kill-ring-save
   "A" #'diff-ediff-patch
   "r" #'diff-restrict-view
-  "R" #'diff-reverse-direction)
+  "R" #'diff-reverse-direction
+  "s" #'diff-split-hunk
+
+  ;; The foregoing commands in `diff-mode-shared-map' and
+  ;; `diff-mode-read-only-map' don't affect buffers beyond this one.
+  ;; The following command is the only one that has a single-character
+  ;; binding and which affects buffers beyond this one.  However, the
+  ;; following command asks for confirmation by default, so that seems
+  ;; okay.  --spwhitton
+  "u" #'diff-revert-and-kill-hunk
+  ;; `diff-revert-and-kill-hunk' is the `diff-mode' analogue of what '@'
+  ;; does in VC-Dir, so give it the same short binding.
+  "@" #'diff-revert-and-kill-hunk)
 
 (defvar-keymap diff-mode-map
   :doc "Keymap for `diff-mode'.  See also `diff-mode-shared-map'."
@@ -2327,10 +2332,10 @@ If REVERTP is non-nil, reverse-apply hunks before killing them."
     (setq beg (copy-marker beg) end (point-marker))
     (unwind-protect
         (cl-loop initially (goto-char beg)
+                 with inhibit-read-only = t
                  for (hunk-beg hunk-end) = (diff-bounds-of-hunk)
                  for file-bounds = (ignore-errors (diff-bounds-of-file))
                  for (file-beg file-end) = file-bounds
-                 for inhibit-read-only = t
                  if (and file-bounds
                          (progn
                            (goto-char file-beg)

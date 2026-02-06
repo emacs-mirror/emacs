@@ -2030,21 +2030,25 @@ according to `eglot-advertise-cancellation'.")
                                 (timeout-fn nil timeout-fn-supplied-p)
                                 (timeout nil timeout-supplied-p)
                                 hint
-                                &aux moreargs
-                                id (buf (current-buffer)))
+                                &aux moreargs id
+                                (buf (current-buffer))
+                                (inflight eglot--inflight-async-requests))
   "Like `jsonrpc-async-request', but for Eglot LSP requests.
 SUCCESS-FN, ERROR-FN and TIMEOUT-FN run in buffer of call site.
 HINT argument is a symbol passed as DEFERRED to `jsonrpc-async-request'
 and also used as a hint of the request cancellation mechanism (see
 `eglot-advertise-cancellation')."
   (cl-labels
-      ((clearing-fn (fn)
+      ((wrapfn (fn)
          (lambda (&rest args)
            (eglot--when-live-buffer buf
-             (when (and
-                    fn (memq id (cl-getf eglot--inflight-async-requests hint)))
-               (apply fn args))
-             (cl-remf eglot--inflight-async-requests hint)))))
+             (cond (eglot-advertise-cancellation
+                    (when-let* ((tail (and fn (plist-member inflight hint))))
+                      (when (memq id (cadr tail))
+                        (apply fn args))
+                      (setf (cadr tail) (delete id (cadr tail)))))
+                   (t
+                    (apply fn args)))))))
     (eglot--cancel-inflight-async-requests (list hint))
     (when timeout-supplied-p
       (setq moreargs (nconc `(:timeout ,timeout) moreargs)))
@@ -2053,13 +2057,12 @@ and also used as a hint of the request cancellation mechanism (see
     (setq id
           (car (apply #'jsonrpc-async-request
                       server method params
-                      :success-fn (clearing-fn success-fn)
-                      :error-fn (clearing-fn error-fn)
-                      :timeout-fn (clearing-fn timeout-fn)
+                      :success-fn (wrapfn success-fn)
+                      :error-fn (wrapfn error-fn)
+                      :timeout-fn (wrapfn timeout-fn)
                       moreargs)))
     (when (and hint eglot-advertise-cancellation)
-      (push id
-            (plist-get eglot--inflight-async-requests hint)))
+      (push id (plist-get inflight hint)))
     id))
 
 (cl-defun eglot--delete-overlays (&optional (prop 'eglot--overlays))

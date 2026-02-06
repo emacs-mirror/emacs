@@ -20,38 +20,34 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'ediff-mult)
 
 (ert-deftest ediff-test-bug3348 ()
   "After saving `ediff-meta-diff-buffer' to a file, we should not reuse it."
-  (let ((test-dir
-         (expand-file-name "bug-3348-testdir" temporary-file-directory)))
-    (make-directory test-dir t)
-    (unwind-protect
-        (progn
-          (cd test-dir)
+  (ert-with-temp-directory test-dir
+    (cd test-dir)
 
-          (make-directory "dir-a" t)
-          (make-directory "dir-b" t)
+    (make-directory "dir-a" t)
+    (make-directory "dir-b" t)
 
-          (with-temp-file "dir-a/file"
-            (insert "aaa\n"))
-          (with-temp-file "dir-b/file"
-            (insert "bbb\n"))
+    (with-temp-file "dir-a/file"
+      (insert "aaa\n"))
+    (with-temp-file "dir-b/file"
+      (insert "bbb\n"))
 
-          (ediff-directories "dir-a" "dir-b" nil)
-          (switch-to-buffer "*Ediff Session Group Panel*")
+    (ediff-directories "dir-a" "dir-b" nil)
+    (switch-to-buffer "*Ediff Session Group Panel*")
 
-          (ediff-next-meta-item 1)
-          (ediff-mark-for-operation-at-pos nil)
-          (ediff-collect-custom-diffs)
+    (ediff-next-meta-item 1)
+    (ediff-mark-for-operation-at-pos nil)
+    (ediff-collect-custom-diffs)
 
-          (with-current-buffer "*Ediff Multifile Diffs*"
-            (write-file "foo.patch"))
+    (with-current-buffer "*Ediff Multifile Diffs*"
+      (write-file "foo.patch"))
 
-          (with-temp-file "dir-b/file"
-            (insert "BBB\n"))
-          (ediff-collect-custom-diffs)
+    (with-temp-file "dir-b/file"
+      (insert "BBB\n"))
+    (ediff-collect-custom-diffs)
 
-          (should-not (equal ediff-meta-diff-buffer (get-buffer "foo.patch"))))
-      (delete-directory test-dir t))))
+    (should-not (equal ediff-meta-diff-buffer (get-buffer "foo.patch")))))
