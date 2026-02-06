@@ -1787,6 +1787,9 @@ It is believed to no longer be useful as a method to fight spam.  The
 The symbolic prefix is another kind of universal prefix that is used in
 Gnus, see "(gnus) Symbolic Prefixes" in the Gnus manual.
 
+---
+*** Sorting selected groups is now possible with 'gnus-topic-mode'.
+
 ** Sieve
 
 +++
