@@ -631,7 +631,7 @@ The elements of the returned list will have the form described in
                   #'symbol-name
                   (delete-dups (mapcar #'car avail))
                   ", "))
-         'face 'mode-line-emphasismode-line-
+         'face 'mode-line-emphasis
          'mouse-face 'mode-line-highlight
          'help-echo "Click to install suggested package."
          'keymap (let ((map (make-sparse-keymap)))
