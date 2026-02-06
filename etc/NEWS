@@ -3697,11 +3697,12 @@ display time or even cause Emacs to hang trying to display such a face.
 Affected APIs include 'defface', 'set-face-attribute', their callers,
 and other similar functions.
 
-** 'help-setup-xref' re-enables the major mode of the Help buffer.
+---
+** 'help-setup-xref' now re-enables the major mode of the Help buffer.
 As a result, in many cases the buffer will be read-only afterwards.
-So now it is even more important that any calls to 'with-help-window'
-(recommended) to 'with-output-to-temp-buffer' are done after. It was the
-recommended way to use it previously as well, but less critically so.
+This should not cause any trouble as long as the actual buffer
+modification takes place inside 'with-help-window' or
+'with-output-to-temp-buffer' after the call to 'help-setup-xref'.
 
 ** Xref commands don't automatically suggest to visit a tags table anymore.
 When no tags file is loaded, symbol completion just won't provide any
