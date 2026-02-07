@@ -4909,10 +4909,11 @@ SIMPLE-RE is means to pass a simpler faster regular expression to
                        (funcall transform-pattern-fn pattern)
                      pattern)))
          (override-re (and simple-re
-                           (mapconcat #'identity
+                           (mapconcat #'regexp-quote
                                       (split-string
                                        (substring string (car bounds)
-                                                  (+ point (cdr bounds))) "" t)
+                                                  (+ point (cdr bounds)))
+                                       "" t)
                                       ".*")))
          (all (completion-pcm--all-completions prefix pattern table pred override-re)))
     (list all pattern prefix suffix (car bounds))))
