@@ -2572,10 +2572,10 @@ identifier definitions in programs, which supports many programming
 languages and other major modes, such as HTML, by extracting references
 into @dfn{tags tables}.  Major modes for languages supported by
 @command{etags} can use tags tables as basis for their backend.  Enable
-@code{etags-regen-mode} to have tags generated across the current
-project for supported file types and updated automatically on edit.  Or
-build the table manually to control the set of files and when it is
-updated, see @xref{Create Tags Table}.
+@code{etags-regen-mode} to have tags tables generated across the current
+project for supported file types and updated automatically upon edit.
+Alternatively, you can build the table manually to control the set of
+files and when it is updated, see @ref{Create Tags Table}.
 @end enumerate
 
 @menu
@@ -3032,7 +3032,9 @@ writes the tags to a @dfn{tags table file}, or @dfn{tags file} in
 short.  The conventional name for a tags file is @file{TAGS}@.
 @xref{Create Tags Table}.  (It is also possible to create a tags table
 by using one of the commands from other packages that can produce such
-tables in the same format.)
+tables in the same format.)  If you enable the @code{etags-regen-mode}
+global minor mode, Emacs will generate and update the tags tables
+automatically as needed.
 
   Emacs uses the tags tables via the @code{etags} package as one of
 the supported backends for @code{xref}.  Because tags tables are
@@ -3314,6 +3316,10 @@ You should update a tags table when you define new tags that you want
 to have listed, or when you move tag definitions from one file to
 another, or when changes become substantial.
 
+  If the @code{etags-regen-mode} minor mode, described below, is
+enabled, Emacs will automatically keep the tags tables up-to-date as
+needed.
+
   You can make a tags table @dfn{include} another tags table, by
 passing the @samp{--include=@var{file}} option to @command{etags}.  It
 then covers all the files covered by the included tags file, as well
@@ -3422,11 +3428,11 @@ Command-line options to pass to the program which regenerates tags
 tables.
 
 @item etags-regen-ignores
-List of glob patterns which specify files to ignore when regenerating
-tags tables.
+List of glob wildcard patterns which specify files to ignore when
+regenerating tags tables.
 @end vtable
 
-@cindex tags-reset-tags-tables
+@findex tags-reset-tags-tables
   If you select a tags table manually, with @kbd{M-x visit-tags-table}
 (@pxref{Select Tags Table}), @code{etags-regen-mode} effectively
 disables itself: it will no longer automatically create and update
@@ -3610,6 +3616,12 @@ the tags table file name as an argument, with @file{TAGS} defaulting
 to the first directory that contains a file named @file{TAGS}
 encountered when recursively searching upward from the default
 directory.
+
+  If you enable the @code{etags-regen-mode} global minor mode, it will
+automatically find and visit the tags table file when needed.  If you
+then invoke @code{visit-tags-table} manually to select a tags table,
+@code{etags-regen-mode} will disable automatic regeneration of the tags
+table.  @xref{Create Tags Table}.
 
 @vindex tags-file-name
   Emacs does not actually read in the tags table contents until you
