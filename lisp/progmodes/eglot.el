@@ -282,7 +282,8 @@ automatically)."
      . ,(eglot-alternatives
          '(("solargraph" "socket" "--port" :autoport) "ruby-lsp")))
     (haskell-mode
-     . ("haskell-language-server-wrapper" "--lsp"))
+     . ,(eglot-alternatives
+         '(("haskell-language-server-wrapper" "--lsp") "static-ls")))
     (elm-mode . ("elm-language-server"))
     (mint-mode . ("mint" "ls"))
     ((kotlin-mode kotlin-ts-mode) . ("kotlin-language-server"))
