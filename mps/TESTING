@@ -30,8 +30,8 @@ Here:
        <platform>   is as used in the build above, but without the .gmk
                     extension (e.g., lii6gc for 64-bit GNU/Linux+GCC,
                     w3i6gc for 64-bit MinGW build on Windows, etc.)
-       <test-suite> is the part of the test suite to run, see below
        <variety>    is either "cool" or "hot"; we suggest running both
+       <test-suite> is the part of the test suite to run, see below
 
 The important test suites to use are:
 
