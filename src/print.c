@@ -2796,6 +2796,7 @@ print_object (Lisp_Object obj, bool escapeflag, struct print_context *pc)
 	case PVEC_HASH_TABLE:
 	  {
 	    struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
+	    EMACS_INT count;
 	    /* Implement a readable output, e.g.:
 	       #s(hash-table test equal data (k1 v1 k2 v2)) */
 	    print_c_string ("#s(hash-table", printcharfun);
@@ -2814,7 +2815,7 @@ print_object (Lisp_Object obj, bool escapeflag, struct print_context *pc)
 	      }
 
 	  hash_table_data:
-	    EMACS_INT count = XFIXNAT (Fhash_table_count (obj));
+	    count = XFIXNAT (Fhash_table_count (obj));
 	    if (count > 0)
 	      {
 		ptrdiff_t size = count;
