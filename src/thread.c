@@ -855,7 +855,9 @@ run_thread (void *state)
 #ifndef HAVE_MPS
        xfree (c);
 #else
+#if !(defined DARWIN_OS && defined __arm64__)
        igc_xfree (c);
+#endif
 #endif
      }
 
