@@ -2114,7 +2114,11 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
   :type 'boolean
   :version "28.1")
 
-;;;###autoload
+;;;###autoload (defun etags--xref-backend ()
+;;;###autoload   (when (or tags-table-list tags-file-name)
+;;;###autoload     (load "etags")
+;;;###autoload     'etags))
+
 (defun etags--xref-backend ()
   (when (or tags-table-list tags-file-name)
     'etags))
