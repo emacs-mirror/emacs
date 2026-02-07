@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <errno.h>
-#include <math.h>
 
 #include <binary-io.h>
 
@@ -2311,169 +2310,156 @@ init_minibuf_once_for_pdumper (void)
    by the time we reach the final column, we know we have picked the
    cheapest possible path choosing when to gap, and when to follow up.
 
-   Along the way, we construct P, a matrix used just for backtracking,
-   to reconstruct that path.  Maybe P isn't needed, and all the
-   information can be cleverly derived from the final state of M and D.
-   But I couldn't make it work.  */
+   Here's an illustration of the final state of M and D when matching
+   "goto" to "eglot--goto".  Notice how the algorithm detects but
+   ultimately discards the scattered match at indexes 1,3,4,8, which
+   would have total cost 27, and ultimately settles on the match at
+   positions 7,8,9,10 which has cost 5:
+
+             -1  0  1  2  3  4  5  6  7  8  9 10
+              -  e  g  l  o  t  -  -  g  o  t  o
+   M:  -1  -  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞
+        0  g  ∞  ∞  5  ∞  ∞  ∞  ∞  ∞  5  ∞  ∞  ∞
+        1  o  ∞  ∞  ∞  ∞ 15  ∞  ∞  ∞  ∞  5  ∞ 16
+        2  t  ∞  ∞  ∞  ∞  ∞ 15  ∞  ∞  ∞  ∞  5  ∞
+        3  o  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞ 27  ∞  5
+
+   D:  -1  -  0  5  5  5  5  5  5  5  5  5  5  5
+        0  g  ∞  ∞  ∞ 15 16 17 18 19 20 15 16 17
+        1  o  ∞  ∞  ∞  ∞  ∞ 25 26 27 28 29 15 16
+        2  t  ∞  ∞  ∞  ∞  ∞  ∞ 25 26 27 28 29 15
+        3  o  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞  ∞ 37 38
+ **/
 DEFUN ("completion--flex-score-gotoh", Fcompletion__flex_score_gotoh,
        Scompletion__flex_score_gotoh, 2, 2, 0,
-       doc: /* Compute flex score of STR matching PAT using Gotoh
-algorithm.  Return nil if no match found, else return (COST . MATCHES)
+       doc: /* Compute cost of PAT matching STR using modified Gotoh algorithm.
+Return nil if no match found, else return (COST . MATCHES)
 where COST is a fixnum (lower is better) and MATCHES is a list of match
 positions in STR.  */)
   (Lisp_Object pat, Lisp_Object str)
-{
-  /* Pre-allocated matrices for flex completion scoring.  */
+  {
+    /* Pre-allocated matrices for flex completion scoring.  */
 #define FLEX_MAX_STR_SIZE 512
 #define FLEX_MAX_PAT_SIZE 128
 #define FLEX_MAX_MATRIX_SIZE FLEX_MAX_PAT_SIZE * FLEX_MAX_STR_SIZE
-  /* Macro for 2D indexing into "flat" arrays.  */
+    /* Macro for 2D indexing into "flat" arrays.  */
 #define MAT(matrix, i, j) ((matrix)[((i) + 1) * width + ((j) + 1)])
 
-  CHECK_STRING (pat);
-  CHECK_STRING (str);
+    CHECK_STRING (pat);
+    CHECK_STRING (str);
 
-  size_t patlen = SCHARS (pat);
-  size_t strlen = SCHARS (str);
-  size_t width = strlen + 1;
-  size_t size = (patlen + 1) * width;
+    size_t patlen = SCHARS (pat);
+    size_t strlen = SCHARS (str);
+    size_t width = strlen + 1;
+    size_t size = (patlen + 1) * width;
+    const int gap_open_cost = 10;
+    const int gap_extend_cost = 1;
+    const int pos_inf = INT_MAX / 2;
+    static int M[FLEX_MAX_MATRIX_SIZE];
+    static int D[FLEX_MAX_MATRIX_SIZE];
 
-  /* Bail if strings are empty or matrix too large.  */
-  if (patlen == 0 || strlen == 0)
-    return Qnil;
+    /* Bail if strings are empty or matrix too large.  */
+    if (patlen == 0 || strlen == 0 || size > FLEX_MAX_MATRIX_SIZE)
+      return Qnil;
 
-  if (size > FLEX_MAX_MATRIX_SIZE)
-    return Qnil;
+    /* Initialize M and D with positive infinity... */
+    for (int j = 0; j < size; j++)
+      M[j] = D[j] = pos_inf;
+    /* ...except for D[-1,-1], which is 0 to promote matches at the
+       beginning.  Rest of first row has gap_open_cost/2 for cheaper
+       leading gaps. */
+    for (int j = 0; j < width; j++)
+      D[j] = gap_open_cost / 2;
+    D[0] = 0;
 
-  /* Cost constants (lower is better).  Maybe these could be
-     defcustom's?*/
-  const int gap_open_cost = 10;
-  const int gap_extend_cost = 1;
-  const int pos_inf = INT_MAX / 2;
+    /* Poor man's iterator type. */
+    typedef struct iter { int x; ptrdiff_t c; ptrdiff_t b; } iter_t;
 
-  static int M[FLEX_MAX_MATRIX_SIZE];
-  static int D[FLEX_MAX_MATRIX_SIZE];
-  static size_t P[FLEX_MAX_MATRIX_SIZE];
+    /* Position of first match found in the previous row, to save
+       iterations. */
+    iter_t prev_match = { 0, 0, 0 };
 
-  /* Initialize costs.  Fill both matrices with positive infinity.  */
-  for (int j = 0; j < size; j++) M[j] = pos_inf;
-  for (int j = 0; j < size; j++) D[j] = pos_inf;
-  /* Except for D[0,0], which is 0, for prioritizing matches at the
-     beginning.  Remaining elements on the first row are gap_open_cost/2
-     to represent cheaper leading gaps. */
-  for (int j = 0; j < width; j++) D[j] = gap_open_cost/2;
-  D[0] = 0;
+    /* Forward pass.  */
+    for (iter_t i = { 0, 0, 0 }; i.x < patlen; i.x++)
+      {
+	int pat_char = fetch_string_char_advance (pat, &i.c, &i.b);
+	bool match_seen = false;
 
-  /* Index of last match before gap started, as computed in the previous
-     row.  Used to build P.  */
-  int prev_gap_origin = -1;
+	for (iter_t j = prev_match; j.x < strlen; j.x++)
+	  {
+	    iter_t jcopy = j; /* else advance function destroys it... */
+	    int str_char = fetch_string_char_advance (str, &j.c, &j.b);
 
-  /* Poor man's iterator type. */
-  typedef struct iter { int x; ptrdiff_t c; ptrdiff_t b; } iter_t;
+	    /* Check if characters match (case-insensitive if needed).  */
+	    bool cmatch;
+	    if (completion_ignore_case)
+	      cmatch = (downcase (pat_char) == downcase (str_char));
+	    else
+	      cmatch = (pat_char == str_char);
 
-  /* Info about first match computed in the previous row. */
-  iter_t prev_match = {0,0,0};
-  /* Forward pass.  */
-  for (iter_t i = {0,0,0}; i.x < patlen; i.x++)
-    {
-      int pat_char = fetch_string_char_advance(pat, &i.c, &i.b);
-      int gap_origin = -1;
-      bool match_seen = false;
+	    if (cmatch)
+	      {
+		/* There is a match here, so compute match cost
+		   M[i][j], i.e. replace its infinite value with
+		   something finite. */
+		if (!match_seen)
+		  {
+		    match_seen = true;
+		    prev_match = jcopy;
+		  }
+		/* Compute M[i,j]. If we pick M[i-1,j-1] it means that
+		   not only did the previous char also match (else
+		   M[i-1,j-1] would have been infinite) but following
+		   it up with this match is best overall.  If we pick
+		   D[i-1, j-1] it means that gapping is best,
+		   regardless of whether the previous char also
+		   matched.  That is, it's better to arrive at this
+		   match from a gap.  */
+		MAT (M, i.x, j.x) = min (MAT (M, i.x - 1, j.x - 1),
+					 MAT (D, i.x - 1, j.x - 1));
+	      }
+	    /* Regardless of a match here, compute D[i,j], the best
+	       accumulated gapping cost at this point, considering
+	       whether it's more advantageous to open from a previous
+	       match on this row (a cost which may well be infinite if
+	       no such match ever existed) or extend a gap started
+	       sometime before.  The next iteration will take this
+	       into account, and so will the next row when analyzing a
+	       possible match for the j+1-th string character.  */
+	    MAT (D, i.x, j.x)
+	      = min (MAT (M, i.x, j.x - 1) + gap_open_cost,
+		     MAT (D, i.x, j.x - 1) + gap_extend_cost);
+	  }
+      }
+    /* Find lowest cost in last row.  */
+    int best_cost = pos_inf;
+    int lastcol = -1;
+    for (int j = 0; j < strlen; j++)
+      {
+	int cost = MAT (M, patlen - 1, j);
+	if (cost < best_cost)
+	  {
+	    best_cost = cost;
+	    lastcol = j;
+	  }
+      }
 
-      for (iter_t j = prev_match; j.x < strlen; j.x++)
-	{
-	  iter_t jcopy = j; /* else advance function destroys it... */
-	  int str_char
-	    = fetch_string_char_advance (str, &j.c, &j.b);
+    /* Return early if no match. */
+    if (lastcol < 0 || best_cost >= pos_inf)
+      return Qnil;
 
-	  /* Check if characters match (case-insensitive if needed).  */
-	  bool cmatch;
-	  if (completion_ignore_case)
-	    cmatch = (downcase (pat_char) == downcase (str_char));
-	  else
-	    cmatch = (pat_char == str_char);
+    /* Go backwards to build match positions list. */
+    Lisp_Object matches = Fcons (make_fixnum (lastcol), Qnil);
+    for (int i = patlen - 2, l = lastcol - 1; i >= 0; --i)
+      {
+	while (l >= 0 && MAT (M, i, l) > MAT (D, i, l))
+	  --l;
+	matches = Fcons (make_fixnum (l), matches);
+      }
 
-	  /* Compute match cost M[i][j], i.e. replace its infinite
-	     value with something finite. */
-	  if (cmatch)
-	    {
-	      if (!match_seen)
-		{
-		  match_seen = true;
-		  prev_match = jcopy;
-		}
-	      int pmatch_cost = MAT (M, i.x - 1, j.x - 1);
-	      int pgap_cost = MAT (D, i.x - 1, j.x - 1);
-
-	      if (pmatch_cost <= pgap_cost)
-		{
-		  /* Not only did the previous char also match (else
-		     pmatch_cost would have been infinite) but following
-		     it up with this match is best overall.  */
-		  MAT (M, i.x, j.x) = pmatch_cost;
-		  MAT (P, i.x, j.x) = j.x - 1;
-		}
-	      else
-		{
-		  /* Gapping is best, regardless of whether the previous
-		     char also matched.  That is, it's better to arrive at
-		     this match from a gap.  */
-		  MAT (M, i.x, j.x) = pgap_cost;
-		  MAT (P, i.x, j.x) = prev_gap_origin;
-		}
-	    }
-
-	  /* Regardless of a match here, compute D[i,j], the best
-	     accumulated gapping cost at this point, considering whether
-	     it's more advantageous to open from a previous match on
-	     this row (a cost which may well be infinite if no such
-	     match ever existed) or extend a gap started sometime
-	     before.  The next iteration will take this into account,
-	     and so will the next row when analyzing a possible match
-	     for the j+1-th string character.  */
-	  int open_cost = MAT (M, i.x, j.x - 1) + gap_open_cost;
-	  int extend_cost = MAT (D, i.x, j.x - 1) + gap_extend_cost;
-
-	  if (open_cost < extend_cost)
-	    {
-	      MAT (D, i.x, j.x) = open_cost;
-	      gap_origin = j.x - 1; /* New gap. */
-	    }
-	  else
-	    MAT (D, i.x, j.x) = extend_cost; /* Extend gap.  */
-	}
-      prev_gap_origin = gap_origin;
-    }
-
-  /* Find best (lowest) cost in last row.  */
-  int best_cost = pos_inf;
-  int lastcol = -1;
-
-  for (int j = 0; j < strlen; j++)
-    {
-      int cost = MAT (M, patlen - 1, j);
-      if (cost < best_cost)
-        {
-          best_cost = cost;
-          lastcol = j;
-        }
-    }
-
-  if (lastcol < 0 || best_cost >= pos_inf)
-    return Qnil;
-
-  /* Build match positions list by tracing back through P matrix.  */
-  Lisp_Object matches = Qnil;
-  for (int i = patlen - 1, l = lastcol; i >= 0 && l >= 0; i--)
-    {
-      matches = Fcons (make_fixnum (l), matches);
-      l = MAT (P, i, l);
-    }
-
-  return Fcons (make_fixnum (best_cost), matches);
+    return Fcons (make_fixnum (best_cost), matches);
 #undef MAT
-
-}
+  }
 
 void
 syms_of_minibuf (void)
