@@ -854,10 +854,8 @@ run_thread (void *state)
        c_next = c->nextfree;
 #ifndef HAVE_MPS
        xfree (c);
-#else
-#if !(defined DARWIN_OS && defined __arm64__)
+#elif !(defined DARWIN_OS && defined __arm64__)
        igc_xfree (c);
-#endif
 #endif
      }
 
