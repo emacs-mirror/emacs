@@ -4313,6 +4313,8 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
          (comment-p (and comment-thing (eq beg (treesit-node-start comment-thing))))
          (thing (if comment-p comment-thing block-thing))
          (end (if thing (min (1+ (treesit-node-start thing)) (point-max)))))
+    (when (<= end (point))
+      (setq end (treesit-node-end thing)))
     (when (and end (<= end maxp))
       (goto-char end)
       (set-match-data
