@@ -785,13 +785,19 @@ The following navigation commands are available:
 
 @table @kbd
 @item @key{TAB}
-@deffn Command widget-forward &optional count
-Move point @var{count} buttons or editing fields forward.
+@deffn Command widget-forward count &optional suppress-echo
+Move point @var{count} buttons or editing fields forward.  The optional
+@var{suppress-echo} argument suppresses showing in the echo-area the
+help-echo text, if any, for the final position after the move; it is
+always @code{nil} in interactive invocations.
 @end deffn
 @item M-@key{TAB}
 @itemx S-@key{TAB}
-@deffn Command widget-backward &optional count
-Move point @var{count} buttons or editing fields backward.
+@deffn Command widget-backward count &optional suppress-echo
+Move point @var{count} buttons or editing fields backward.  The optional
+@var{suppress-echo} argument suppresses showing in the echo-area the
+help-echo text, if any, for the final position after the move; it is
+always @code{nil} in interactive invocations.
 @end deffn
 @end table
 
