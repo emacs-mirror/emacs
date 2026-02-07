@@ -84,9 +84,9 @@ other directory on your system.  You can also invoke the
 
 +++
 ** 'line-spacing' now supports specifying spacing above the line.
-Previously, only spacing below the line could be specified.  The variable
-can now be set to a cons cell to specify spacing both above and below
-the line, which allows for vertically centering text.
+Previously, only spacing below the line could be specified.  The user
+option can now be set to a cons cell to specify spacing both above and
+below the line, which allows for vertically centering text.
 
 +++
 ** 'prettify-symbols-mode' attempts to ignore undisplayable characters.
@@ -1410,7 +1410,7 @@ is non-nil, this suffix is fontified using 'font-lock-type-face'.
 
 ---
 *** New user option 'yaml-ts-mode-yamllint-options'.
-Additional options for 'yamllint' the command used for Flymake's YAML
+Additional options for 'yamllint', the command used for Flymake's YAML
 support.
 
 ** EIEIO
@@ -2629,7 +2629,7 @@ When the argument is non-nil, the function switches to a buffer visiting
 the directory into which the repository was cloned.
 
 +++
-*** 'vc-revert' is now bound to '@' in VC-Dir.
+*** 'vc-revert' is now bound to '@' in VC Directory.
 
 +++
 *** 'vc-revert' is now additionally bound to 'C-x v @'.
@@ -2771,7 +2771,7 @@ base with the remote branch, including uncommitted changes.
 ('vc-root-log-outgoing-base') show the corresponding revision logs.
 These are useful to view all outstanding (unmerged, unpushed) changes on
 the current branch.  They are also available as 'T =', 'T D', 'T l' and
-'T L' in VC-Dir buffers.
+'T L' in VC Directory buffers.
 
 +++
 *** New user option 'vc-use-incoming-outgoing-prefixes'.
@@ -3858,11 +3858,13 @@ and 'dbus-call-method-asynchronously' to allow the user to interactively
 authorize the invoked D-Bus method (for example via polkit).
 
 +++
-*** New D-Bus functions to support systemd inhibitor locks.
-The functions 'dbus-make-inhibitor-lock', 'dbus-close-inhibitor-lock'
-and 'dbus-registered-inhibitor-locks' implement acquiring and releasing
-systemd inhibitor locks.  See the Info node "(dbus) Inhibitor Locks" for
-details.
+*** Support D-Bus file descriptor manipulation.
+A new ':keep-fd' parameter has been added to 'dbus-call-method' and
+'dbus-call-method-asynchronously' to instruct D-Bus to keep a file
+descriptor, which has been returned by a method call, internally.  The
+functions 'dbus--fd-open', 'dbus--fd-close' and 'dbus--registered-fds'
+implement managing these file descriptors.  See the Info node "(dbus)
+File Descriptors" for details.
 
 ** The customization group 'wp' has been removed.
 It has been obsolete since Emacs 26.1.  Use the group 'text' instead.

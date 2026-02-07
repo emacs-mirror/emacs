@@ -2308,89 +2308,156 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
-(ert-deftest dbus-test10-inhibitor-locks ()
-  "Check `dbus-*-inhibitor-locks'."
+(ert-deftest dbus-test10-keep-fd ()
+  "Check D-Bus `:keep-fd' argument."
   :tags '(:expensive-test)
   (skip-unless dbus--test-enabled-system-bus)
   (skip-unless (dbus-ping :system dbus--test-systemd-service 1000))
 
-  (let (lock1 lock2)
+  (let ((what "sleep")
+        (who "Emacs test user")
+        (why "Test delay")
+        (mode "delay")
+        (fd-directory (format "/proc/%d/fd" (emacs-pid)))
+        lock1 lock2)
     ;; Create inhibitor lock.
-    (setq lock1 (dbus-make-inhibitor-lock "sleep" "Test delay"))
+    (setq lock1
+          (dbus-call-method
+           :system dbus--test-systemd-service dbus--test-systemd-path
+           dbus--test-systemd-manager-interface "Inhibit"
+           what who why mode))
     (should (natnump lock1))
     ;; The lock is reported by systemd.
     (should
      (member
-      (list "sleep" "Emacs" "Test delay" "delay" (user-uid) (emacs-pid))
+      (list what who why mode (user-uid) (emacs-pid))
       (dbus-call-method
        :system dbus--test-systemd-service dbus--test-systemd-path
        dbus--test-systemd-manager-interface "ListInhibitors")))
-    ;; The lock is registered internally.
-    (should
-     (member
-      (list lock1 "sleep" "Test delay" nil)
-      (dbus-registered-inhibitor-locks)))
+    ;; The lock is not registered internally.
+    (should-not (assoc lock1 (dbus--registered-fds)))
     ;; There exist a file descriptor.
-    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
-      (should (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock1))))
+    (when (file-directory-p fd-directory)
+      (should
+       (file-symlink-p
+        (expand-file-name (number-to-string lock1) fd-directory))))
 
-    ;; It is not possible to modify registered inhibitor locks on Lisp level.
-    (setcar (assoc lock1 (dbus-registered-inhibitor-locks)) 'malicious)
-    (should (assoc lock1 (dbus-registered-inhibitor-locks)))
-    (should-not (assoc 'malicious (dbus-registered-inhibitor-locks)))
-
-    ;; Creating it again returns the same inhibitor lock.
-    (should (= lock1 (dbus-make-inhibitor-lock "sleep" "Test delay")))
-
-    ;; Create another inhibitor lock.
-    (setq lock2 (dbus-make-inhibitor-lock "sleep" "Test block" 'block))
+    ;; Create another inhibitor lock.  Keep the file descriptor.
+    (setq lock2
+          (dbus-call-method
+           :system dbus--test-systemd-service dbus--test-systemd-path
+           dbus--test-systemd-manager-interface "Inhibit" :keep-fd
+           what who why mode))
     (should (natnump lock2))
     (should-not (= lock1 lock2))
     ;; The lock is reported by systemd.
     (should
      (member
-      (list "sleep" "Emacs" "Test block" "block" (user-uid) (emacs-pid))
+      (list what who why mode (user-uid) (emacs-pid))
       (dbus-call-method
        :system dbus--test-systemd-service dbus--test-systemd-path
        dbus--test-systemd-manager-interface "ListInhibitors")))
     ;; The lock is registered internally.
     (should
      (member
-      (list lock2 "sleep" "Test block" t)
-      (dbus-registered-inhibitor-locks)))
+      (cons lock2 dbus--test-systemd-path)
+      (dbus--registered-fds)))
     ;; There exist a file descriptor.
-    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
-      (should (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock2))))
+    (when (file-directory-p fd-directory)
+      (should
+       (file-symlink-p
+        (expand-file-name (number-to-string lock2) fd-directory))))
 
-    ;; Close the first inhibitor lock.
-    (should (dbus-close-inhibitor-lock lock1))
-    ;; The internal registration has gone.
-    (should-not
-     (member
-      (list lock1 "sleep" "Test delay" nil)
-      (dbus-registered-inhibitor-locks)))
-    ;; The file descriptor has been deleted.
-    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
-      (should-not (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock1))))
-
-    ;; Closing it again is a noop.
-    (should-not (dbus-close-inhibitor-lock lock1))
-
-    ;; Creating it again returns (another?) inhibitor lock.
-    (setq lock1 (dbus-make-inhibitor-lock "sleep" "Test delay"))
+    ;; Create another inhibitor lock via
+    ;; `dbus-call-method-asynchronously'.  Keep the file descriptor.
+    (setq lock1 nil)
+    (dbus-call-method-asynchronously
+     :system dbus--test-systemd-service dbus--test-systemd-path
+     dbus--test-systemd-manager-interface "Inhibit"
+     (lambda (lock) (setq lock1 lock)) :keep-fd
+     what who why mode)
+    (with-timeout (1 (dbus--test-timeout-handler))
+      (while (null lock1) (read-event nil nil 0.1)))
     (should (natnump lock1))
+    (should-not (= lock1 lock2))
     ;; The lock is registered internally.
     (should
      (member
-      (list lock1 "sleep" "Test delay" nil)
-      (dbus-registered-inhibitor-locks)))
+      (cons lock1 dbus--test-systemd-path)
+      (dbus--registered-fds)))
     ;; There exist a file descriptor.
-    (when (file-directory-p (format "/proc/%d/fd" (emacs-pid)))
-      (should (file-symlink-p (format "/proc/%d/fd/%d" (emacs-pid) lock1))))
+    (when (file-directory-p fd-directory)
+      (should
+       (file-symlink-p
+        (expand-file-name (number-to-string lock1) fd-directory))))
+
+    ;; It is not possible to modify registered inhibitor locks on Lisp level.
+    (setcar (assoc lock1 (dbus--registered-fds)) 'malicious)
+    (should (assoc lock1 (dbus--registered-fds)))
+    (should-not (assoc 'malicious (dbus--registered-fds)))
 
     ;; Close the inhibitor locks.
-    (should (dbus-close-inhibitor-lock lock1))
-    (should (dbus-close-inhibitor-lock lock2))))
+    (should (dbus--fd-close lock1))
+    (should (dbus--fd-close lock2))
+    ;; The internal registration has gone.
+    (should-not
+     (member
+      (cons lock1 dbus--test-systemd-path)
+      (dbus--registered-fds)))
+    (should-not
+     (member
+      (cons lock2 dbus--test-systemd-path)
+      (dbus--registered-fds)))
+    ;; The file descriptors have been deleted.
+    (when (file-directory-p fd-directory)
+      (should-not
+       (file-exists-p (expand-file-name (number-to-string lock1) fd-directory)))
+      (should-not
+       (file-exists-p (expand-file-name (number-to-string lock2) fd-directory))))
+
+    ;; Closing them again is a noop.
+    (should-not (dbus--fd-close lock1))
+    (should-not (dbus--fd-close lock2))))
+
+(ert-deftest dbus-test10-open-close-fd ()
+  "Check D-Bus open/close a file descriptor."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-system-bus)
+  (skip-unless (dbus-ping :system dbus--test-systemd-service 1000))
+
+  (ert-with-temp-file tmpfile
+    (let ((fd-directory (format "/proc/%d/fd" (emacs-pid)))
+          fd)
+      ;; Create file descriptor.
+      (setq fd (dbus--fd-open tmpfile))
+      (should (natnump fd))
+      ;; The file descriptor is registered internally.
+      (should (member (cons fd tmpfile) (dbus--registered-fds)))
+      ;; There exist a file descriptor file.
+      (when (file-directory-p fd-directory)
+        (should
+         (file-symlink-p (expand-file-name (number-to-string fd) fd-directory)))
+        (should
+         (string-equal
+          (file-truename (expand-file-name (number-to-string fd) fd-directory))
+          tmpfile)))
+
+      ;; It is not possible to modify registered file descriptors on Lisp level.
+      (setcar (assoc fd (dbus--registered-fds)) 'malicious)
+      (should (assoc fd (dbus--registered-fds)))
+      (should-not (assoc 'malicious (dbus--registered-fds)))
+
+      ;; Close the file descriptor.
+      (should (dbus--fd-close fd))
+      ;; The internal registration has gone.
+      (should-not (member (cons fd tmpfile) (dbus--registered-fds)))
+      ;; The file descriptor file has been deleted.
+      (when (file-directory-p fd-directory)
+        (should-not
+         (file-exists-p (expand-file-name (number-to-string fd) fd-directory))))
+
+      ;; Closing it again is a noop.
+      (should-not (dbus--fd-close fd)))))
 
 (defun dbus-test-all (&optional interactive)
   "Run all tests for \\[dbus]."
