@@ -383,7 +383,6 @@
 (load "uniquify")
 (load "electric")
 (load "paren")
-(load "emacs-lisp/package-activate")
 
 (load "emacs-lisp/shorthands")
 

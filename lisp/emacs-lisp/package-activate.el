@@ -211,6 +211,7 @@ loaded and/or activated, customize `package-load-list'.")
 
 ;;;; Public interfaces for accessing built-in package info
 
+;;;###autoload
 (defvar package-activated-list nil
   ;; FIXME: This should implicitly include all builtin packages.
   "List of the names of currently activated packages.")
@@ -426,9 +427,12 @@ Newer versions are always activated, regardless of FORCE."
 
 ;;;; Unpacking
 
+;;;###autoload
 (defvar package--activated nil
   "Non-nil if `package-activate-all' has been run.")
 
+;;;###autoload
+(progn ;; Make the function usable without loading `package.el'.
 (defun package-activate-all ()
   "Activate all installed packages.
 The variable `package-load-list' controls which packages to load."
@@ -457,7 +461,7 @@ The variable `package-load-list' controls which packages to load."
           ;; `declare-function' is currently not scoped, so if we use
           ;; it here, we end up with a redefinition warning instead :-)
           (with-no-warnings
-            (package--activate-all))))))
+            (package--activate-all)))))))
 
 (defun package--activate-all ()
   (dolist (elt (package--alist))
@@ -471,6 +475,7 @@ The variable `package-load-list' controls which packages to load."
 
 (declare-function lm-package-version "lisp-mnt" (&optional file))
 
+;;;###autoload
 (defun package-installed-p (package &optional min-version)
   "Return non-nil if PACKAGE, of MIN-VERSION or newer, is installed.
 If PACKAGE is a symbol, it is the package name and MIN-VERSION
@@ -500,6 +505,7 @@ If PACKAGE is a `package-desc' object, MIN-VERSION is ignored."
      ;; Also check built-in packages.
      (package-built-in-p package min-version)))))
 
+;;;###autoload
 (defun package-get-version ()
   "Return the version number of the package in which this is used.
 Assumes it is used from an Elisp file placed inside the top-level directory
@@ -668,6 +674,7 @@ This function should be added to `after-change-major-mode-hook'."
        (dolist (rec avail)
          (add-to-list 'package--autosuggest-suggested (car rec)))))))
 
+;;;###autoload
 (define-minor-mode package-autosuggest-mode
   "Enable the automatic suggestion and installation of packages."
   :global t :init-value t :group 'package

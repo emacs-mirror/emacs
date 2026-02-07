@@ -4530,7 +4530,97 @@ The list is displayed in a buffer named `*Packages*'."
   (list-packages t))
 
 
-;;;; Package Suggestions
+;;;; Autosuggest
+
+(defcustom package-autosuggest-style 'mode-line
+  "How to draw attention to `package-autosuggest-mode' suggestions.
+You can set this value to `mode-line' (default) to indicate the
+availability of a package suggestion in the minor mode, `always' to
+prompt the user in the minibuffer every time a suggestion is available
+in a `fundamental-mode' buffer, `once' to do only prompt the user once
+for each suggestion or `message' to just display a message hinting at
+the existence of a suggestion."
+  :type '(choice (const :tag "Indicate in mode line" mode-line)
+                 (const :tag "Always prompt" always)
+                 (const :tag "Prompt only once" once)
+                 (const :tag "Indicate with message" message)))
+
+;;;###autoload
+(define-minor-mode package-autosuggest-mode
+  "Enable the automatic suggestion and installation of packages."
+  :global t :init-value t
+  (funcall (if package-autosuggest-mode #'add-hook #'remove-hook)
+           'after-change-major-mode-hook
+           #'package--autosuggest-after-change-mode))
+
+(defvar package--autosuggest-suggested '()
+  "List of packages that have already been suggested.
+Suggestions found in this list will not count as suggestions (e.g. if
+`package-autosuggest-style' is set to `mode-line', a suggestion found in
+here will inhibit `package-autosuggest-mode' from displaying a hint in
+the mode line).")
+
+(defun package--suggestion-applies-p (sug)
+  "Check if a suggestion SUG is applicable to the current buffer.
+Each suggestion has the form (PACKAGE TYPE DATA), where PACKAGE is a
+symbol denoting the package and major-mode the suggestion applies to,
+TYPE is one of `auto-mode-alist', `magic-mode-alist' or
+`interpreter-mode-alist' indicating the type of check to be made and
+DATA is the value to check against TYPE in the intuitive way (e.g. for
+`auto-mode-alist' DATA is a regular expression matching a file name that
+PACKAGE should be suggested for).  If the package name and the major
+mode name differ, then an optional forth element MAJOR-MODE can indicate
+what command to invoke to enable the package."
+  (pcase sug
+    ((or (guard (not (eq major-mode 'fundamental-mode)))
+         `(,(pred package-installed-p) . ,_))
+     nil)
+    ((or `(,_ auto-mode-alist ,ext ,_)
+         `(,_ auto-mode-alist ,ext))
+     (and (string-match-p ext (buffer-name)) t))
+    ((or `(,_ magic-mode-alist ,mag ,_)
+         `(,_ magic-mode-alist ,mag))
+     (without-restriction
+       (save-excursion
+         (goto-char (point-min))
+         (looking-at-p mag))))
+    ((or `(,_ interpreter-mode-alist ,intr ,_)
+         `(,_ interpreter-mode-alist ,intr))
+     (without-restriction
+       (save-excursion
+         (goto-char (point-min))
+         (and (looking-at auto-mode-interpreter-regexp)
+              (string-match-p
+               (concat "\\`" (file-name-nondirectory (match-string 2)) "\\'")
+               intr)))))))
+
+(defvar package--autosuggest-database 'unset
+  "A list of package suggestions.
+Each entry in the list is of a form suitable to for
+`package--suggestion-applies-p', which see.  The special value `unset'
+is used to indicate that `package--autosuggest-find-candidates' should
+load the database into memory.")
+
+(defun package--autosuggest-find-candidates ()
+    "Return a list of suggestions that might be interesting the current buffer.
+The elements of the returned list will have the form described in
+`package--suggestion-applies-p'."
+    (and (eq major-mode 'fundamental-mode)
+         (let ((suggetions '()))
+           (when (eq package--autosuggest-database 'unset)
+             (setq package--autosuggest-database
+                   (with-temp-buffer
+                     (insert-file-contents
+                      (expand-file-name "package-autosuggest.eld"
+                                        data-directory))
+                     (read (current-buffer)))))
+           (dolist (sug package--autosuggest-database)
+             (when (and (package--suggestion-applies-p sug)
+                        (if (eq package-autosuggest-style 'once)
+                            (not (memq (car sug) package--autosuggest-suggested))
+                          t))
+               (push sug suggetions)))
+           suggetions)))
 
 (defun package--autosuggest-install-and-enable (sug)
   "Install and enable a package suggestion PKG-ENT.
@@ -4547,6 +4637,33 @@ SUG should be of the form as described in `package--suggestion-applies-p'."
         (with-demoted-errors "Failed to enable major mode: %S"
           (with-current-buffer buf
             (funcall-interactively (or (cadddr sug) (car sug)))))))))
+
+(defvar package--autosugest-line-format
+  '(:eval (package--autosugest-line-format)))
+(put 'package--autosugest-line-format 'risky-local-variable t)
+
+(defface package-autosuggest-face
+  '((t :inherit (success)))
+  "Face to use in the mode line to highlight suggested packages."
+  :version "30.1")
+
+(defun package--autosugest-line-format ()
+  "Generate a mode-line string to indicate a suggested package."
+  `(,@(and-let* (((not (null package-autosuggest-mode)))
+                 ((eq package-autosuggest-style 'mode-line))
+                 (avail (package--autosuggest-find-candidates)))
+        (propertize
+         (format " Install %s?"
+                 (mapconcat
+                  #'symbol-name
+                  (delete-dups (mapcar #'car avail))
+                  ", "))
+         'face 'package-autosuggest-face
+         'mouse-face 'mode-line-highlight
+         'help-echo "Click to install suggested package."
+         'keymap (let ((map (make-sparse-keymap)))
+                   (define-key map [mode-line down-mouse-1] #'package-autosuggest)
+                   map)))))
 
 (defun package--autosugest-prompt (packages)
   "Query the user whether to install PACKAGES or not.
@@ -4621,17 +4738,34 @@ so you have to select which to install!)" nl))
         (set-window-dedicated-p win t)
         (set-window-point win (point-min))))))
 
+(defun package--autosuggest-after-change-mode ()
+  "Display package suggestions for the current buffer.
+This function should be added to `after-change-major-mode-hook'."
+  (when-let* ((avail (package--autosuggest-find-candidates))
+              (pkgs (mapconcat #'symbol-name
+                               (delete-dups (mapcar #'car avail))
+                               ", ")))
+    (pcase-exhaustive package-autosuggest-style
+      ('mode-line
+       (setq mode-name (append (ensure-list mode-name)
+                               '((package-autosuggest-mode
+                                  package--autosugest-line-format))))
+       (force-mode-line-update t))
+      ((or 'once 'always)
+       (package--autosugest-prompt avail))
+      ('message
+       (message
+        (substitute-command-keys
+         (format "Found suggested packages: %s.  Install using  \\[package-autosuggest]"
+                 pkgs)))))))
+
 ;;;###autoload
-(defun package-autosuggest (&optional candidates)
-  "Prompt the user to install the suggested packages.
-The optional argument CANDIDATES may be a list of packages that match
-for form described in `package--suggestion-applies-p'.  If omitted, the
-list of candidates will be computed from the database."
+(defun package-autosuggest ()
+  "Prompt the user to install the suggested packages."
   (interactive)
-  (package--autosugest-prompt
-   (or candidates
-       (package--autosuggest-find-candidates)
-       (user-error "No package suggestions found"))))
+  (let ((avail (or (package--autosuggest-find-candidates)
+                   (user-error "No package suggestions found"))))
+    (package--autosugest-prompt avail)))
 
 (defun package-reset-suggestions ()
   "Forget previous package suggestions.
