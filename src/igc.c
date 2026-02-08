@@ -1932,7 +1932,8 @@ static mps_addr_t
 is_dflt_fwd (mps_addr_t addr)
 {
   struct igc_fwd *f = addr;
-  if (header_type (&f->header) == IGC_OBJ_FWD)
+  if (header_type (&f->header) == IGC_OBJ_FWD
+      && header_tag (&f->header) == IGC_TAG_OBJ)
     return f->new_addr;
   return NULL;
 }
