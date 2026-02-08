@@ -2450,10 +2450,9 @@ positions in STR.  */)
 
     /* Go backwards to build match positions list. */
     Lisp_Object matches = Fcons (make_fixnum (lastcol), Qnil);
-    for (int i = patlen - 2, l = lastcol - 1; i >= 0; --i)
+    for (int i = patlen - 2, l = lastcol; i >= 0; --i)
       {
-	while (l >= 0 && MAT (M, i, l) > MAT (D, i, l))
-	  --l;
+	do --l; while (l >= 0 && MAT (M, i, l) >= MAT (D, i, l));
 	matches = Fcons (make_fixnum (l), matches);
       }
 
