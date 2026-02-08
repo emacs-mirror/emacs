@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2026 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Packages
@@ -401,6 +401,17 @@ any required package that is not already installed.  (If a required
 package is somehow unavailable, Emacs signals an error and stops
 installation.)  A package's requirements list is shown in its help
 buffer.
+
+@cindex review
+@vindex package-review-policy
+  If you are cautious when it comes to installing and upgrading packages
+from package archives, you can configure @code{package-review-policy} to
+give you a chance to review packages before installing them.  By setting
+the user option to @code{t}, you get to review all packages (including
+dependencies), during which you can browse the source code, examine a
+diff between the downloaded package and a previous installation or read
+a changelog.  You can also configure @code{package-review-policy} to
+selectively trust or distrust specific packages or archives.
 
 @cindex GNU ELPA
 @cindex NonGNU ELPA

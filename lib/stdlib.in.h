@@ -1,6 +1,6 @@
 /* A GNU-like <stdlib.h>.
 
-   Copyright (C) 1995, 2001-2004, 2006-2025 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2004, 2006-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -68,6 +68,11 @@
    <sys/loadavg.h>.  */
 # include <sys/time.h>
 # include <sys/loadavg.h>
+#endif
+
+/* QNX declares getprogname() in <sys/process.h>.  */
+#if (@GNULIB_GETPROGNAME@ || defined GNULIB_POSIXCHECK) && @HAVE_SYS_PROCESS_H@
+# include <sys/process.h>
 #endif
 
 /* Native Windows platforms declare _mktemp() in <io.h>.  */

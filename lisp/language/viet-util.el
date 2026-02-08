@@ -1,6 +1,6 @@
 ;;; viet-util.el --- utilities for Vietnamese  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2026 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -220,10 +220,13 @@
     )
   "Alist of Vietnamese characters vs corresponding `VIQR' string.")
 
-;; Regular expression matching single Vietnamese character represented
-;; by VIQR.
 (defconst viqr-regexp
-  "[aeiouyAEIOUY]\\([(^+]?['`?~.]\\|[(^+]\\)\\|[Dd][Dd]")
+  "[aeiouyAEIOUY]\\([(^+]?['`?~.]\\|[(^+]\\)\\|[Dd][Dd]\\|\\\\[(^+'`?~.d\\]"
+  "Regular expression matching VIQR representation of a single character.")
+
+(defconst viqr-punctuation-regexp
+  "[(^+]?['`?~.]"
+  "Regular expression matching punctuation chars that must be escaped in VIQR.")
 
 ;;;###autoload
 (defun viet-decode-viqr-region (from to)
@@ -257,6 +260,7 @@ positions (integers or markers) specifying the stretch of the region."
   (save-restriction
     (narrow-to-region from to)
     (goto-char (point-min))
+    (replace-regexp-in-region viqr-punctuation-regexp "\\\\\\&")
     (while (re-search-forward "\\cv" nil t)
       (let* ((ch (preceding-char))
 	     (viqr (cdr (assq ch viet-viqr-alist))))

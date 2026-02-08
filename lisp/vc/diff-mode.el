@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -199,10 +199,12 @@ The default \"-b\" means to ignore whitespace-only changes,
 ;; practical uses for `diff-minor-mode': bug#34080).
 
 (defvar-keymap diff-mode-shared-map
-  :doc "Additional bindings for read-only `diff-mode' buffers.
+  :doc "Bindings for read-only `diff-mode' buffers.
 These bindings are also available with an ESC prefix
-(i.e. a \\=`M-' prefix) in read-write `diff-mode' buffers,
-and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'."
+(i.e. a \\=`M-' prefix) in all `diff-mode' buffers, including in
+particular read-write `diff-mode' buffers, and with a
+`diff-minor-mode-prefix' prefix in `diff-minor-mode'.
+See also `diff-mode-read-only-map'."
   "n" #'diff-hunk-next
   "N" #'diff-file-next
   "p" #'diff-hunk-prev
@@ -215,30 +217,42 @@ and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'."
   "{" #'diff-file-prev
   "RET" #'diff-goto-source
   "<mouse-2>" #'diff-goto-source
+  "o" #'diff-goto-source                ; other-window
+  "<remap> <undo>" #'undo-ignore-read-only)
+
+;; Not `diff-read-only-mode-map' because there is no such mode
+;; `diff-read-only-mode'; see comment above.
+(defvar-keymap diff-mode-read-only-map
+  :parent diff-mode-shared-map
+  :doc "Additional bindings for read-only `diff-mode' buffers.
+Most of the bindings for read-only `diff-mode' buffers are in
+`diff-mode-shared-map'.  This map contains additional bindings for
+read-only `diff-mode' buffers that are *not* also available with an ESC
+prefix (i.e. a \\=`M-' prefix) in read-write (nor read-only) `diff-mode'
+buffers."
+  ;; We don't want the following in read-write `diff-mode' buffers
+  ;; because they hide useful `M-<foo>' global bindings when editing.
   "W" #'widen
   "w" #'diff-kill-ring-save
-  "o" #'diff-goto-source                ; other-window
   "A" #'diff-ediff-patch
   "r" #'diff-restrict-view
   "R" #'diff-reverse-direction
-  "<remap> <undo>" #'diff-undo
+  "s" #'diff-split-hunk
 
-  ;; The foregoing commands don't affect buffers beyond this one.
-  ;; The following command is the only one that has a single-letter
-  ;; binding and which affects buffers beyond this one.
-  ;; However, the following command asks for confirmation by default,
-  ;; so that seems okay.  --spwhitton
-  "u" #'diff-revert-and-kill-hunk)
+  ;; The foregoing commands in `diff-mode-shared-map' and
+  ;; `diff-mode-read-only-map' don't affect buffers beyond this one.
+  ;; The following command is the only one that has a single-character
+  ;; binding and which affects buffers beyond this one.  However, the
+  ;; following command asks for confirmation by default, so that seems
+  ;; okay.  --spwhitton
+  "u" #'diff-revert-and-kill-hunk
+  ;; `diff-revert-and-kill-hunk' is the `diff-mode' analogue of what '@'
+  ;; does in VC-Dir, so give it the same short binding.
+  "@" #'diff-revert-and-kill-hunk)
 
 (defvar-keymap diff-mode-map
   :doc "Keymap for `diff-mode'.  See also `diff-mode-shared-map'."
-  "ESC" (let ((map (define-keymap :parent diff-mode-shared-map)))
-          ;; We want to inherit most bindings from
-          ;; `diff-mode-shared-map', but not all since they may hide
-          ;; useful `M-<foo>' global bindings when editing.
-          (dolist (key '("A" "r" "R" "W" "w"))
-            (keymap-set map key nil))
-          map)
+  "ESC" diff-mode-shared-map
   ;; From compilation-minor-mode.
   "C-c C-c" #'diff-goto-source
   ;; By analogy with the global C-x 4 a binding.
@@ -868,37 +882,26 @@ If the prefix ARG is given, restrict the view to the current file instead."
   (apply #'narrow-to-region
 	 (if arg (diff-bounds-of-file) (diff-bounds-of-hunk)))
   (setq-local diff-narrowed-to (if arg 'file 'hunk)))
+(put 'diff-restrict-view 'disabled t)
 
 (defun diff--some-hunks-p ()
   (save-excursion
     (goto-char (point-min))
     (re-search-forward diff-hunk-header-re nil t)))
 
-(defun diff-hunk-kill ()
-  "Kill the hunk at point."
-  (interactive)
-  (if (not (diff--some-hunks-p))
-      (error "No hunks")
-    (diff-beginning-of-hunk t)
-    (let* ((hunk-bounds (diff-bounds-of-hunk))
-           (file-bounds (ignore-errors (diff-bounds-of-file)))
-           ;; If the current hunk is the only one for its file, kill the
-           ;; file header too.
-           (bounds (if (and file-bounds
-                            (progn (goto-char (car file-bounds))
-                                   (= (progn (diff-hunk-next) (point))
-                                      (car hunk-bounds)))
-                            (progn (goto-char (cadr hunk-bounds))
-                                   ;; bzr puts a newline after the last hunk.
-                                   (while (looking-at "^\n")
-                                     (forward-char 1))
-                                   (= (point) (cadr file-bounds))))
-                       file-bounds
-                     hunk-bounds))
-           (inhibit-read-only t))
-      (apply #'kill-region bounds)
-      (goto-char (car bounds))
-      (ignore-errors (diff-beginning-of-hunk t)))))
+(defun diff-hunk-kill (&optional beg end)
+  "Kill the hunk at point.
+When killing the last hunk left for a file, kill the file header too.
+Interactively, if the region is active, kill all hunks that the region
+overlaps.
+
+When called from Lisp with optional arguments BEG and END non-nil, kill
+all hunks overlapped by the region from BEG to END as though called
+interactively with an active region delimited by BEG and END."
+  (interactive "R")
+  (when (xor beg end)
+    (error "Invalid call to `diff-hunk-kill'"))
+  (diff--revert-kill-hunks beg end nil))
 
 ;; This is not `diff-kill-other-hunks' because we might need to make
 ;; copies of file headers in order to ensure the new kill ring entry
@@ -1615,7 +1618,8 @@ else cover the whole buffer."
       ;; it's safer not to do it on big changes, e.g. when yanking a big
       ;; diff, or when the user edits the header, since we might then
       ;; screw up perfectly correct values.  --Stef
-      (when (ignore-errors (diff-beginning-of-hunk t))
+      (when (and (not track-changes-undo-only)
+                 (ignore-errors (diff-beginning-of-hunk t)))
         (let* ((style (if (looking-at "\\*\\*\\*") 'context))
                (start (line-beginning-position (if (eq style 'context) 3 2)))
                (mid (if (eq style 'context)
@@ -1660,7 +1664,7 @@ else cover the whole buffer."
 
 (defvar-keymap diff-read-only-map
   :doc "Additional bindings for read-only `diff-mode' buffers."
-  :keymap (make-composed-keymap diff-mode-shared-map special-mode-map))
+  :keymap (make-composed-keymap diff-mode-read-only-map special-mode-map))
 
 ;; It should be lower than `outline-minor-mode' and `view-mode'.
 (or (assq 'diff-mode-read-only minor-mode-map-alist)
@@ -1913,6 +1917,7 @@ Only works for unified diffs."
                           (eq (char-after) ?\n)
                           (> before 0) (> after 0))
                      (decf before) (decf after) t)
+                    ((looking-at "\\\\ ") t) ; See `(diffutils)Incomplete Lines'.
                     ((and (zerop before) (zerop after)) nil)
                     ((or (< before 0) (< after 0))
                      (error (if (or (zerop before) (zerop after))
@@ -2272,6 +2277,83 @@ With a prefix argument, try to REVERSE the hunk."
   :type 'boolean
   :version "31.1")
 
+(defun diff--revert-kill-hunks (beg end revertp)
+  "Workhorse routine for killing hunks, after possibly reverting them.
+If BEG and END are nil, kill the hunk at point.
+Otherwise kill all hunks overlapped by region delimited by BEG and END.
+When killing a hunk that's the only one remaining for its file, kill the
+file header too.
+If REVERTP is non-nil, reverse-apply hunks before killing them."
+  ;; With BEG and END non-nil, we push each hunk to the kill ring
+  ;; separately.  If we want to push to the kill ring just once, we have
+  ;; to decide how to handle file headers such that the meanings of the
+  ;; hunks in the kill ring entry, considered as a whole patch, do not
+  ;; deviate too far from the meanings the hunks had in this buffer.
+  ;;
+  ;; For example, if we have a single hunk for one file followed by
+  ;; multiple hunks for another file, and we naïvely kill the single
+  ;; hunk and the first of the multiple hunks, our kill ring entry will
+  ;; be a patch applying those two hunks to the first file.  This is
+  ;; because killing the single hunk will have brought its file header
+  ;; with it, but not so killing the second hunk.  So we will have put
+  ;; together hunks that were previously for two different files.
+  ;;
+  ;; One option is to *copy* every file header that the region overlaps
+  ;; (and that we will not kill, because we are leaving other hunks for
+  ;; that file behind).  But then the text this command pushes to the
+  ;; kill ring would be different from the text it removes from the
+  ;; buffer, which would be unintuitive for an Emacs kill command.
+  ;;
+  ;; An alternative might be to have restrictions as follows:
+  ;;
+  ;;   Interactively, if the region is active, try to kill all hunks that the
+  ;;   region overlaps.  This works when either
+  ;;   - all the hunks the region overlaps are for the same file; or
+  ;;   - the last hunk the region overlaps is the last hunk for its file.
+  ;;   These restrictions are so that the text added to the kill ring does not
+  ;;   merge together hunks for different files under a single file header.
+  ;;
+  ;; We would error out if neither property is met.  When either holds,
+  ;; any file headers the region overlaps are ones we should kill.
+  (unless (diff--some-hunks-p)
+    (error "No hunks"))
+  (if beg
+      (save-excursion
+        (goto-char beg)
+        (setq beg (car (diff-bounds-of-hunk)))
+        (goto-char end)
+        (unless (looking-at diff-hunk-header-re)
+          (setq end (cadr (diff-bounds-of-hunk)))))
+    (pcase-setq `(,beg ,end) (diff-bounds-of-hunk)))
+  (when (or (not revertp) (null (diff-apply-buffer beg end t)))
+    (goto-char end)
+    (when-let* ((pos (diff--at-diff-header-p)))
+      (goto-char pos))
+    (setq beg (copy-marker beg) end (point-marker))
+    (unwind-protect
+        (cl-loop initially (goto-char beg)
+                 with inhibit-read-only = t
+                 for (hunk-beg hunk-end) = (diff-bounds-of-hunk)
+                 for file-bounds = (ignore-errors (diff-bounds-of-file))
+                 for (file-beg file-end) = file-bounds
+                 if (and file-bounds
+                         (progn
+                           (goto-char file-beg)
+                           (diff-hunk-next)
+                           (eq (point) hunk-beg))
+                         (progn
+                           (goto-char hunk-end)
+                           ;; bzr puts a newline after the last hunk.
+                           (while (looking-at "^\n") (forward-char 1))
+                           (eq (point) file-end)))
+                 do (kill-region file-beg file-end) (goto-char file-beg)
+                 else do (kill-region hunk-beg hunk-end) (goto-char hunk-beg)
+                 do (ignore-errors (diff-beginning-of-hunk t))
+                 until (or (< (point) (marker-position beg))
+                           (eql (point) (marker-position end))))
+      (set-marker beg nil)
+      (set-marker end nil))))
+
 (defun diff-revert-and-kill-hunk (&optional beg end)
   "Reverse-apply and then kill the hunk at point.  Save changed buffer.
 Interactively, if the region is active, reverse-apply and kill all
@@ -2297,27 +2379,7 @@ BEG and END."
     (error "Invalid call to `diff-revert-and-kill-hunk'"))
   (when (or (not diff-ask-before-revert-and-kill-hunk)
             (y-or-n-p "Really reverse-apply and kill hunk(s)?"))
-    (if beg
-        (save-excursion
-          (goto-char beg)
-          (setq beg (car (diff-bounds-of-hunk)))
-          (goto-char end)
-          (unless (looking-at diff-hunk-header-re)
-            (setq end (cadr (diff-bounds-of-hunk)))))
-      (pcase-setq `(,beg ,end) (diff-bounds-of-hunk)))
-    (when (null (diff-apply-buffer beg end t))
-      ;; Use `diff-hunk-kill' because it properly handles file headers.
-      (goto-char end)
-      (when-let* ((pos (diff--at-diff-header-p)))
-        (goto-char pos))
-      (setq beg (copy-marker beg) end (point-marker))
-      (unwind-protect
-          (cl-loop initially (goto-char beg)
-                   do (diff-hunk-kill)
-                   until (or (< (point) (marker-position beg))
-                             (eql (point) (marker-position end))))
-        (set-marker beg nil)
-        (set-marker end nil)))))
+    (diff--revert-kill-hunks beg end t)))
 
 (defun diff-apply-buffer (&optional beg end reverse test-or-no-save)
   "Apply the diff in the entire diff buffer.
@@ -2349,7 +2411,7 @@ applied.  Other non-nil values are reserved."
       (while (pcase-let ((`(,buf ,line-offset ,pos ,_src ,dst ,switched)
                           (diff-find-source-location nil reverse test)))
                ;; FIXME: Should respect `diff-apply-hunk-to-backup-file'
-               ;; similarly to how `diff-apply-buffer' does.
+               ;; similarly to how `diff-apply-hunk' does.
                ;; Prompt for each relevant file.
                (cond ((and line-offset (not switched))
                       (push (cons pos dst)
@@ -2806,11 +2868,7 @@ Call FUN with two args (BEG and END) for each hunk."
 (defun diff--overlay-auto-delete (ol _after _beg _end &optional _len)
   (delete-overlay ol))
 
-(defun diff-undo (&optional arg)
-  "Perform `undo', ignoring the buffer's read-only status."
-  (interactive "P")
-  (let ((inhibit-read-only t))
-    (undo arg)))
+(define-obsolete-function-alias 'diff-undo #'undo-ignore-read-only "31.1")
 
 ;;;###autoload
 (defcustom diff-add-log-use-relative-names nil
@@ -3101,7 +3159,7 @@ fixed, visit it in a buffer."
 (defun diff--font-lock-prettify (limit)
   (when diff-font-lock-prettify
     ;; FIXME: `window-fringes` uselessly allocates 4 cons cells,
-    ;; but the previous use of `frame-paramter' ended up internally
+    ;; but the previous use of `frame-parameter' ended up internally
     ;; calling `frame-parameters' making it even worse!
     (when (> (car (window-fringes)) 0)
       (save-excursion

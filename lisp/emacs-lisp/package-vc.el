@@ -1,6 +1,6 @@
 ;;; package-vc.el --- Manage packages from VC checkouts     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
 ;; Maintainer: Philip Kaludercic <philipk@posteo.net>
@@ -74,7 +74,7 @@ the backend nor a repository URL that's recognized via
 
 The value must be a member of `vc-handled-backends' that supports
 the `clone' VC function."
-  :type vc-cloneable-backends-custom-type
+  :type vc-clonable-backends-custom-type
   :version "29.1")
 
 (defcustom package-vc-register-as-project t
@@ -352,7 +352,7 @@ asynchronously."
              (when-let* (((null (alist-get :maintainer extras)))
                          (main-file)
                          (maintainers (lm-maintainers main-file)))
-               ;; Like in `pakcage-buffer-info', for backward
+               ;; Like in `package-buffer-info', for backward
                ;; compatibility, use a single cons-cell if there's
                ;; only one maintainer.
                (setf (alist-get :maintainer extras)
@@ -1086,13 +1086,17 @@ See also `vc-prepare-patch'."
     (vc-prepare-patch (package-maintainers pkg-desc t)
                       subject revisions)))
 
-(defun package-vc-log-incoming (pkg-desc)
-  "Call `vc-log-incoming' for the package PKG-DESC."
+(defun package-vc-root-log-incoming (pkg-desc)
+  "Call `vc-root-log-incoming' for the package PKG-DESC."
   (interactive
    (list (package-vc--read-package-desc "Incoming log for package: " t)))
   (let ((default-directory (package-vc--checkout-dir pkg-desc))
         (vc-deduce-backend-nonvc-modes t))
-    (call-interactively #'vc-log-incoming)))
+    (call-interactively #'vc-root-log-incoming)))
+(define-obsolete-function-alias
+  'package-vc-log-incoming
+  #'package-vc-root-log-incoming
+  "31.1")
 
 (provide 'package-vc)
 ;;; package-vc.el ends here

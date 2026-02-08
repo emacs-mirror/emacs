@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -2850,9 +2850,15 @@ as small) as possible, but don't signal an error."
     (let* ((frame (window-frame window))
 	   (root (frame-root-window frame))
 	   (height (window-pixel-height window))
-           (min-height (+ (frame-char-height frame)
-                          (- (window-pixel-height window)
-                             (window-body-height window t))))
+           ;; Take line-spacing into account if the line-spacing is
+           ;; configured as a cons cell with above > 0 to prevent
+           ;; mini-window jiggling.
+           (ls (or (buffer-local-value 'line-spacing (window-buffer window))
+		   (frame-parameter frame 'line-spacing)))
+           (min-height (+ (if (and (consp ls) (> (car ls) 0))
+                              (window-default-line-height window)
+                            (frame-char-height frame))
+                          (- height (window-body-height window t))))
            (max-delta (- (window-pixel-height root)
 	                 (window-min-size root nil nil t))))
       ;; Don't make mini window too small.
@@ -5502,8 +5508,13 @@ elsewhere.  This value is used by `quit-windows-on'."
 	;; If quit-restore-prev was not used, reset the quit-restore
 	;; parameter
 	(set-window-parameter window 'quit-restore nil))
-      ;; If the previously selected window is still alive, select it.
-      (window--quit-restore-select-window quit-restore-2))
+      ;; If WINDOW is the selected window and the previously selected
+      ;; window is still alive, try to select that window.  But do that
+      ;; only if WINDOW is either the selected window or we are neither
+      ;; "burying" nor "killing".
+      (unless (and (not (eq window (selected-window)))
+                   (memq bury-or-kill '(killing burying)))
+        (window--quit-restore-select-window quit-restore-2)))
      (t
       ;; Show some other buffer in WINDOW and leave the
       ;; quit-restore(-prev) parameters alone (Juri's idea).
@@ -7573,6 +7584,17 @@ strategy."
     (with-selected-window window
       (split-window-right))))
 
+(defun window--frame-landscape-p (&optional frame)
+  "Non-nil if FRAME is wider than it is tall.
+This means actually wider on the screen, not wider character-wise.
+On text frames, use the heuristic that characters are roughtly twice as
+tall as they are wide."
+  (if (display-graphic-p frame)
+      (> (frame-pixel-width frame) (frame-pixel-height frame))
+    ;; On a terminal, displayed characters are usually roughly twice as
+    ;; tall as they are wide.
+    (> (frame-width frame) (* 2 (frame-height frame)))))
+
 (defun split-window-sensibly (&optional window)
   "Split WINDOW in a way suitable for `display-buffer'.
 The variable `split-window-preferred-direction' prescribes an order of
@@ -7613,7 +7635,7 @@ split."
     (or (if (or
              (eql split-window-preferred-direction 'horizontal)
              (and (eql split-window-preferred-direction 'longest)
-                  (> (frame-width) (frame-height))))
+                  (window--frame-landscape-p (window-frame window))))
             (or (window--try-horizontal-split window)
                 (window--try-vertical-split window))
           (or (window--try-vertical-split window)
@@ -7987,18 +8009,25 @@ See the info node `(elisp)Dedicated Windows' for more details."
 (defconst display-buffer--action-function-custom-type
   '(choice :tag "Function"
 	   (const :tag "--" ignore) ; default for insertion
-	   (const display-buffer-reuse-window)
-	   (const display-buffer-pop-up-window)
 	   (const display-buffer-same-window)
+	   (const display-buffer-reuse-window)
+	   (const display-buffer-in-previous-window)
+	   (const display-buffer-reuse-mode-window)
+	   (const display-buffer-use-some-window)
+	   (const display-buffer-use-least-recent-window)
+	   (const display-buffer-pop-up-window)
 	   (const display-buffer-pop-up-frame)
 	   (const display-buffer-full-frame)
+	   (const display-buffer-use-some-frame)
 	   (const display-buffer-in-child-frame)
+	   (const display-buffer-in-side-window)
+	   (const display-buffer-in-atom-window)
 	   (const display-buffer-below-selected)
 	   (const display-buffer-at-bottom)
-	   (const display-buffer-in-previous-window)
-	   (const display-buffer-use-least-recent-window)
-	   (const display-buffer-use-some-window)
-	   (const display-buffer-use-some-frame)
+	   (const display-buffer-in-direction)
+	   (const display-buffer-in-tab)
+	   (const display-buffer-in-new-tab)
+	   (const display-buffer-no-window)
 	   (function :tag "Other function"))
   "Custom type for `display-buffer' action functions.")
 
@@ -8131,22 +8160,28 @@ To change which window is used, set `display-buffer-alist'
 to an expression containing one of these \"action\" functions:
 
  `display-buffer-same-window' -- Use the selected window.
- `display-buffer-reuse-window' -- Use a window already showing
-    the buffer.
- `display-buffer-in-previous-window' -- Use a window that did
-    show the buffer before.
+ `display-buffer-reuse-window' -- Use a window already showing the buffer.
+ `display-buffer-in-previous-window' -- Use a window that has previously
+    displayed the buffer.
+ `display-buffer-reuse-mode-window' -- Use a window currently showing a
+    buffer with the required major mode.
  `display-buffer-use-some-window' -- Use some existing window.
- `display-buffer-use-least-recent-window' -- Try to avoid reusing
-    windows that have recently been switched to.
+ `display-buffer-use-least-recent-window' -- Try to avoid reusing windows
+    that have recently been switched to.
  `display-buffer-pop-up-window' -- Pop up a new window.
+ `display-buffer-pop-up-frame' -- Use a new frame.
  `display-buffer-full-frame' -- Delete other windows and use the full frame.
- `display-buffer-below-selected' -- Use or pop up a window below
-    the selected one.
- `display-buffer-at-bottom' -- Use or pop up a window at the
-    bottom of the selected frame.
- `display-buffer-pop-up-frame' -- Show the buffer on a new frame.
- `display-buffer-in-child-frame' -- Show the buffer in a
-    child frame.
+ `display-buffer-use-some-frame' -- Use a frame meeting a predicate.
+ `display-buffer-in-child-frame' -- Use a child frame of the selected frame.
+ `display-buffer-in-side-window' -- Use a side window of the selected frame.
+ `display-buffer-in-atom-window' -- Use an atomic window.
+ `display-buffer-below-selected' -- Use or pop up a window below the
+    selected one.
+ `display-buffer-at-bottom' -- Use or pop up a window at the bottom of the
+    selected frame.
+ `display-buffer-in-direction' -- Use a window in a specified direction.
+ `display-buffer-in-tab' -- Use an appropriate existing tab or a new tab.
+ `display-buffer-in-new-tab' -- Use a new tab.
  `display-buffer-no-window' -- Do not display the buffer and
     have `display-buffer' return nil immediately.
 
@@ -8208,7 +8243,7 @@ Action alist entries are:
     Possible values are nil (the selected frame), t (any live
     frame), visible (any visible frame), 0 (any visible or
     iconified frame) or an existing live frame.
- `pop-up-frames' -- Same effect as the eponymous variable.
+ \\+`pop-up-frames' -- Same effect as the eponymous variable.
     Takes precedence over the variable.
  `pop-up-frame-parameters' -- The value specifies an alist of
     frame parameters to give a new frame, if one is created.
@@ -8307,9 +8342,13 @@ Action alist entries are:
     selected regardless of which windows were selected afterwards within
     this command.
  `category' -- If the caller of `display-buffer' passes an alist entry
-   `(category . symbol)' in its action argument, then you can match
-   the displayed buffer by using the same category in the condition
-   part of `display-buffer-alist' entries.
+    `(category . symbol)' in its action argument, then you can match
+    the displayed buffer by using the same category in the condition
+    part of `display-buffer-alist' entries.
+ `tab-name' -- If non-nil, specifies the name of the tab in which to
+    display the buffer; see `display-buffer-in-new-tab'.
+ \\+`tab-group' -- If non-nil, specifies the tab group to use when creating
+    a new tab; see `display-buffer-in-new-tab'.
 
 The entries `window-height', `window-width', `window-size' and
 `preserve-size' are applied only when the window used for
@@ -8561,7 +8600,9 @@ indirectly called by the latter."
 	  (window--maybe-raise-frame (window-frame window)))))))
 
 (defun display-buffer-reuse-mode-window (buffer alist)
-  "Return a window based on the mode of the buffer it displays.
+  "Display BUFFER in a window with a buffer of the required major mode.
+
+Return a window based on the major mode of the buffer it displays.
 Display BUFFER in the returned window.  Return nil if no usable
 window is found.
 
@@ -9882,8 +9923,8 @@ face on WINDOW's frame."
 	 (buffer (window-buffer window))
 	 (space-height
 	  (or (and (display-graphic-p frame)
-		   (or (buffer-local-value 'line-spacing buffer)
-		       (frame-parameter frame 'line-spacing)))
+		   (total-line-spacing (or (buffer-local-value 'line-spacing buffer)
+		                           (frame-parameter frame 'line-spacing))))
 	      0)))
     (+ font-height
        (if (floatp space-height)

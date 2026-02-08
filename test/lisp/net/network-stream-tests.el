@@ -1,6 +1,6 @@
 ;;; network-stream-tests.el --- tests for network processes       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 

@@ -1,6 +1,6 @@
 ;;; vc-test-misc.el --- backend-agnostic VC tests  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Author: Sean Whitton <spwhitton@spwhitton.name>
 
@@ -216,6 +216,31 @@
           (with-current-buffer buf
             (should (equal (buffer-string) "foo\n"))))
       (kill-buffer buf))))
+
+(ert-deftest vc-test-match-branch-name-regexps ()
+  "Test `vc--match-branch-name-regexps'."
+  (let ((vc-trunk-branch-regexps '("master" "main")))
+    (let ((vc-topic-branch-regexps '("m.*")))
+      (should-error (vc--match-branch-name-regexps "master")))
+    (let ((vc-topic-branch-regexps '("f" "o")))
+      (should (eq (vc--match-branch-name-regexps "master") 'trunk))
+      (should (null (vc--match-branch-name-regexps "foo"))))
+    (let ((vc-topic-branch-regexps '("f.*" "o")))
+      (should (eq (vc--match-branch-name-regexps "master") 'trunk))
+      (should (eq (vc--match-branch-name-regexps "foo") 'topic)))
+    (let (vc-topic-branch-regexps)
+      (should (eq (vc--match-branch-name-regexps "master") 'trunk))
+      (should (null (vc--match-branch-name-regexps "foo"))))
+    (let ((vc-topic-branch-regexps t))
+      (should (eq (vc--match-branch-name-regexps "master") 'trunk))
+      (should (eq (vc--match-branch-name-regexps "foo") 'topic))))
+  (let ((vc-trunk-branch-regexps '(not "master")))
+    (let (vc-topic-branch-regexps)
+      (should (null (vc--match-branch-name-regexps "master")))
+      (should (eq (vc--match-branch-name-regexps "foo") 'trunk)))
+    (let ((vc-topic-branch-regexps t))
+      (should (eq (vc--match-branch-name-regexps "master") 'topic))
+      (should (eq (vc--match-branch-name-regexps "foo") 'trunk)))))
 
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here

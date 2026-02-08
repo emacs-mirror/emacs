@@ -1,6 +1,6 @@
 ;;; treesit.el --- tree-sitter utilities -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: 付禹安 (Yuan Fu) <casouri@gmail.com>
 ;; Keywords: treesit, tree-sitter, languages
@@ -78,7 +78,9 @@ in a Emacs not built with tree-sitter library."
      (declare-function treesit-node-p "treesit.c")
      (declare-function treesit-compiled-query-p "treesit.c")
      (declare-function treesit-query-p "treesit.c")
+     (declare-function treesit-query-eagerly-compiled-p "treesit.c")
      (declare-function treesit-query-language "treesit.c")
+     (declare-function treesit-query-source "treesit.c")
 
      (declare-function treesit-node-parser "treesit.c")
 
@@ -88,8 +90,12 @@ in a Emacs not built with tree-sitter library."
      (declare-function treesit-parser-buffer "treesit.c")
      (declare-function treesit-parser-language "treesit.c")
      (declare-function treesit-parser-tag "treesit.c")
+     (declare-function treesit-parser-embed-level "treesit.c")
+     (declare-function treesit-parser-set-embed-level "treesit.c")
+     (declare-function treesit-parser-changed-regions "treesit.c")
 
      (declare-function treesit-parser-root-node "treesit.c")
+     (declare-function treesit-parse-string "treesit.c")
 
      (declare-function treesit-parser-set-included-ranges "treesit.c")
      (declare-function treesit-parser-included-ranges "treesit.c")
@@ -994,9 +1000,6 @@ is nil."
                          (null (treesit-parser-embed-level parser)))))
               parsers))
 
-(declare-function treesit-parser-set-embed-level "treesit.c")
-(declare-function treesit-parser-embed-level "treesit.c")
-
 (defun treesit--update-ranges-non-local
     ( host-parser query embed-lang modified-tick embed-level
       &optional beg end offset range-fn)
@@ -1260,7 +1263,7 @@ omitted, default END to BEG."
 
 ;;; Language
 
-;; Defined in tressit.c.  This is just to add some default values.
+;; Defined in treesit.c.  This is just to add some default values.
 (defvar treesit-languages-need-line-column-tracking
   '(haskell))
 
@@ -1279,7 +1282,7 @@ omitted, default END to BEG."
   "An alist mapping language symbols to their display names.
 
 Used by `treesit-language-display-name'.  If there's no mapping for a
-lamguage in this alist, `treesit-language-display-name' converts the
+language in this alist, `treesit-language-display-name' converts the
 symbol to the display name by capitalizing the first letter of the
 symbol's name.  Thus, languages like Java, Javascript, Rust don't need
 an entry in this variable.")
@@ -1317,7 +1320,14 @@ compiled query objects are compiled lazily upon first use.)")
 (defun treesit--compile-query-with-cache (lang query)
   "Return the cached compiled QUERY for LANG.
 
-If QUERY isn't cached, compile it and save to cache.
+If QUERY is eagerly compiled, return it as-is.
+
+If QUERY is lazily compiled (i.e., not actually compiled) or not
+compiled, return the cached compiled version of QUERY (either by finding
+the cached version or compile and cache QUERY and return it).  Note that
+if QUERY is lazily compiled and there is a cache hit, the cached
+compiled query will be returned and QUERY is simply discarded (rather
+than eagerly compiled and returned).
 
 If QUERY is invalid, signals `treesit-query-error'.  The fact that QUERY
 is invalid is also stored in cache, and the next call to this function
@@ -1326,18 +1336,27 @@ with the same QUERY will signal too.
 QUERY is compared with `equal', so string form vs sexp form of a query,
 and the same query written differently are all considered separate
 queries."
-  (let ((value (gethash (cons lang query) treesit--query-cache)))
-    (if value
-        (if (treesit-compiled-query-p value)
-            value
-          (signal 'treesit-query-error value))
-      (condition-case err
-          (let ((compiled (treesit-query-compile lang query 'eager)))
-            (puthash (cons lang query) compiled treesit--query-cache)
-            compiled)
-        (treesit-query-error
-         (puthash (cons lang query) (cdr err) treesit--query-cache)
-         (signal 'treesit-query-error (cdr err)))))))
+  (cl-assert (treesit-query-p query))
+  ;; No need to asset LANG matches the language of QUERY if QUERY is
+  ;; compiled, if LANG is wrong, compilation will error anyway.
+  (if (and (treesit-compiled-query-p query)
+           (treesit-query-eagerly-compiled-p query))
+      query
+    (let* ((query-source (if (treesit-compiled-query-p query)
+                             (treesit-query-source query)
+                           query))
+           (value (gethash (cons lang query-source) treesit--query-cache)))
+      (if value
+          (if (treesit-compiled-query-p value)
+              value
+            (signal 'treesit-query-error value))
+        (condition-case err
+            (let ((compiled (treesit-query-compile lang query 'eager)))
+              (puthash (cons lang query) compiled treesit--query-cache)
+              compiled)
+          (treesit-query-error
+           (puthash (cons lang query) (cdr err) treesit--query-cache)
+           (signal 'treesit-query-error (cdr err))))))))
 
 (defvar-local treesit-font-lock-settings nil
   "A list of SETTINGs for treesit-based fontification.
@@ -1453,7 +1472,10 @@ done via `customize-variable'.
 
 To see which syntactical categories are fontified by each level
 in a particular major mode, examine the buffer-local value of the
-variable `treesit-font-lock-feature-list'."
+variable `treesit-font-lock-feature-list'.
+
+Setting this variable directly with `setq' or `let' doesn't work;
+use `setopt' or \\[customize-option] instead."
   :type 'integer
   :set #'treesit--font-lock-level-setter
   :version "29.1")
@@ -1620,7 +1642,7 @@ name, it is ignored."
                (when (null current-feature)
                  (signal 'treesit-font-lock-error
                          `("Feature unspecified, use :feature keyword to specify the feature name for this query" ,token)))
-               (push (list token
+               (push (list (treesit-query-compile lang token)
                            t
                            current-feature
                            current-override
@@ -1678,17 +1700,18 @@ no match, return 3."
 
 (defun treesit-font-lock-recompute-features
     (&optional add-list remove-list language)
-  "Enable/disable font-lock features.
+  "Enable/disable font-lock features and validate and compile queries.
 
-Enable each feature in ADD-LIST, disable each feature in
-REMOVE-LIST.
+When either ADD-LIST or REMOVE-LIST is non-nil, enable/disable features
+according to ADD-LIST and REMOVE-LIST, on top of the currently enabled
+features in the buffer.
 
-If both ADD-LIST and REMOVE-LIST are omitted, recompute each
-feature according to `treesit-font-lock-feature-list' and
+If (and only if) both ADD-LIST and REMOVE-LIST are omitted, recompute
+each feature according to `treesit-font-lock-feature-list' and
 `treesit-font-lock-level'.  If the value of `treesit-font-lock-level',
 is N, then the features in the first N sublists of
-`treesit-font-lock-feature-list' are enabled, and the rest of
-the features are disabled.
+`treesit-font-lock-feature-list' are enabled, and the rest of the
+features are disabled.
 
 ADD-LIST and REMOVE-LIST are lists of feature symbols.  The
 same feature symbol cannot appear in both lists; the function
@@ -1732,7 +1755,9 @@ and leave settings for other languages unchanged."
                           (if (memq feature features) nil t)))
                        ((memq feature add-list) t)
                        ((memq feature remove-list) nil)
-                       (t current-value))))))
+                       (t current-value))))
+    ;; Validate and compile newly enabled queries.
+    (treesit-validate-and-compile-font-lock-rules treesit-font-lock-settings)))
 
 (defun treesit-merge-font-lock-feature-list (features-list-1 features-list-2)
   "Merge two tree-sitter font lock feature lists.
@@ -2155,8 +2180,6 @@ parser."
           (or (car (treesit-parser-list))
               (signal 'treesit-no-parser nil))))
     (car (treesit-parser-list))))
-
-(declare-function treesit-parser-changed-regions "treesit.c")
 
 (defun treesit--pre-redisplay (&rest _)
   "Force a reparse on primary parser and mark regions to be fontified."
@@ -3326,7 +3349,7 @@ The `sexp' type uses the `sexp' thing defined in `treesit-thing-settings'.
 With this type commands use only the treesit definitions of parser nodes,
 without distinction between symbols and lists.  Since tree-sitter grammars
 could group node types in arbitrary ways, navigation by `sexp' might not
-match your expectations, and might produce different results in differnt
+match your expectations, and might produce different results in different
 treesit-based modes."
   (interactive "p")
   (if (not (treesit-thing-defined-p 'list (treesit-language-at (point))))
@@ -4264,11 +4287,9 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
   "Tree-sitter implementation of `hs-find-block-beginning-function'."
   (let* ((pred (bound-and-true-p hs-treesit-things))
          (thing (treesit-thing-at (point) pred))
-         (beg (when thing (treesit-node-start thing)))
-         (end (when beg (min (1+ beg) (point-max)))))
+         (beg (when thing (treesit-node-start thing))))
     (when thing
       (goto-char beg)
-      (set-match-data (list beg end))
       t)))
 
 (defun treesit-hs-find-next-block (_regexp maxp comments)
@@ -4476,7 +4497,6 @@ before calling this function."
                    (font-lock-fontify-syntactically-function
                     . treesit-font-lock-fontify-region)))
     (treesit-font-lock-recompute-features)
-    (treesit-validate-and-compile-font-lock-rules treesit-font-lock-settings)
     (add-hook 'pre-redisplay-functions #'treesit--pre-redisplay 0 t))
   ;; Syntax
   (add-hook 'syntax-propertize-extend-region-functions
@@ -5538,7 +5558,7 @@ The value can be either a list of ts-modes to enable,
 or t to enable all ts-modes.  The value nil (the default)
 means not to enable any tree-sitter based modes.
 
-Enabling a tree-stter based mode means that visiting files in the
+Enabling a tree-sitter based mode means that visiting files in the
 corresponding programming language will automatically turn on that
 mode, instead of any non-tree-sitter based modes for the same
 language."
@@ -5596,7 +5616,7 @@ language."
    :eg-result c)
   (treesit-parser-tag
    :no-eval (treesit-parser-tag parser)
-   :eg-result 'embeded)
+   :eg-result 'embedded)
   (treesit-parser-changed-regions
    :no-eval (treesit-parser-changed-regions parser)
    :eg-result '((1 . 10) (24 . 58)))
@@ -5759,7 +5779,11 @@ language."
   (treesit-query-language
    :no-eval (treesit-query-language compiled-query)
    :eg-result c)
+  (treesit-query-source
+   :no-eval (treesit-query-source compiled-query)
+   :eg-result "(function_definition) @defun")
   (treesit-query-valid-p)
+  (treesit-query-eagerly-compiled-p)
   (treesit-query-first-valid)
   (treesit-query-expand
    :eval (treesit-query-expand '((identifier) @id "return" @ret)))

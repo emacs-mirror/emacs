@@ -1,6 +1,6 @@
 ;;; reftex-dcr.el --- viewing cross references and citations with RefTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2026 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Maintainer: auctex-devel@gnu.org
@@ -23,8 +23,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl-lib))
 
 (declare-function bibtex-beginning-of-entry "bibtex" ())
 

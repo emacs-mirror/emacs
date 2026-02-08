@@ -2699,10 +2699,10 @@ from `browse-url-elinks-wrapper'.
 (fn URL &optional NEW-WINDOW)" t)
 (autoload 'browse-url-button-open "browse-url" "\
 Follow the link under point using `browse-url'.
-If EXTERNAL (the prefix if used interactively), open with the
-external browser instead of the default one.
+If SECONDARY (the prefix if used interactively), open with the
+secondary browser instead of the default one.
 
-(fn &optional EXTERNAL MOUSE-EVENT)" t)
+(fn &optional SECONDARY MOUSE-EVENT)" t)
 (autoload 'browse-url-button-open-url "browse-url" "\
 Open URL using `browse-url'.
 If `current-prefix-arg' is non-nil, use
@@ -5133,7 +5133,7 @@ List of directories to search for source files named in error messages.
 Elements should be directory names, not file names of directories.
 The value nil as an element means to try the default directory.")
 (custom-autoload 'compilation-search-path "compile" t)
-(defvar compile-command "make -k " "\
+(defvar compile-command (format "make -k -j%d " (ceiling (num-processors) 1.5)) "\
 Last shell command used to do a compilation; default for next compilation.
 
 Sometimes it is useful for files to supply local values for this variable.
@@ -5259,6 +5259,8 @@ evaluate the variable `compilation-shell-minor-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
+\\{compilation-shell-minor-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'compilation-minor-mode "compile" "\
 Toggle Compilation minor mode.
@@ -5280,6 +5282,8 @@ evaluate the variable `compilation-minor-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
+
+\\{compilation-minor-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'compilation-next-error-function "compile" "\
@@ -8143,7 +8147,11 @@ The glyphs being changed by this function are `vertical-border',
 `box-vertical',`box-horizontal', `box-down-right', `box-down-left',
 `box-up-right', `box-up-left',`box-double-vertical',
 `box-double-horizontal', `box-double-down-right',
-`box-double-down-left', `box-double-up-right', `box-double-up-left'," t)
+`box-double-down-left', `box-double-up-right', `box-double-up-left'.
+
+To customize the glyphs, use `make-glyph-code' to create a glyph from a
+character code and a face, and then use `set-display-table-slot' to
+assign the glyph to a slot." t)
 (autoload 'standard-display-8bit "disp-table" "\
 Display characters representing raw bytes in the range L to H literally.
 
@@ -9801,7 +9809,7 @@ Turn on EDT Emulation." t)
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push '(eglot 1 19) package--builtin-versions)
+(push '(eglot 1 21) package--builtin-versions)
 (define-obsolete-function-alias 'eglot-update #'eglot-upgrade-eglot "29.1")
 (autoload 'eglot "eglot" "\
 Start LSP server for PROJECT's buffers under MANAGED-MAJOR-MODES.
@@ -9857,6 +9865,8 @@ command only needs to be invoked once per project, as all other
 files of a given major mode visited within the same project will
 automatically become managed with no further user intervention
 needed.")
+(autoload 'eglot-manual "eglot" "\
+Read Eglot's manual." t)
 (autoload 'eglot-upgrade-eglot "eglot" "\
 Update Eglot to latest version.
 
@@ -10181,12 +10191,12 @@ This function recursively analyzes Lisp forms (HEAD . TAIL), usually
 starting with a top-level form, by inspecting HEAD at each level:
 
 - If HEAD is a symbol with a non-nil `elisp-scope-analyzer' symbol
-  property, then the value of that property specifies a bespoke analzyer
+  property, then the value of that property specifies a bespoke analyzer
   function, AF, that is called as (AF HEAD . TAIL) to analyze the form.
   See more details about writing analyzer functions below.
 
 - If HEAD satisfies `functionp', which means it is a function in the
-  running Emacs session, analzye the form as a function call.
+  running Emacs session, analyze the form as a function call.
 
 - If HEAD is a safe macro (see `elisp-scope-safe-macro-p'), expand it
   and analyze the resulting form.
@@ -13978,7 +13988,7 @@ value associated with ?b in SPECIFICATION, either padding it with
 leading zeros or truncating leading characters until it's ten
 characters wide\".
 
-the substitution for a specification character can also be a
+The substitution for a specification character can also be a
 function, taking no arguments and returning a string to be used
 for the replacement.  It will only be called if FORMAT uses that
 character.  For example:
@@ -13992,6 +14002,9 @@ like above, so that it is compiled by the byte-compiler.
 
 Any text properties of FORMAT are copied to the result, with any
 text properties of a %-spec itself copied to its substitution.
+However, note that face properties from the two sources are not
+merged; the face properties of %-spec override the face properties
+of substitutions, if any, in the result.
 
 IGNORE-MISSING indicates how to handle %-spec characters not
 present in SPECIFICATION.  If it is nil or omitted, emit an
@@ -16876,33 +16889,37 @@ Populate MENU with a menu item to highlight symbol at CLICK.
 (autoload 'hide-ifdef-mode "hideif" "\
 Toggle features to hide/show #ifdef blocks (Hide-Ifdef mode).
 
-Hide-Ifdef mode is a buffer-local minor mode for use with C and
+\\<hide-ifdef-mode-map>Hide-Ifdef mode is a buffer-local minor mode for use with C and
 C-like major modes.  When enabled, code within #ifdef constructs
 that the C preprocessor would eliminate may be hidden from view.
+
+Use \\[hide-ifdefs] to hide ifdefs and \\[hide-ifdefs] to show them.
+Use  \\[hif-show-all] to show all ifdefs.
+
 Several variables affect how the hiding is done:
 
 `hide-ifdef-env'
         An association list of defined and undefined symbols for the
-        current project.  Initially, the global value of `hide-ifdef-env'
-        is used.  This variable was a buffer-local variable, which limits
-        hideif to parse only one C/C++ file at a time.  We've extended
-        hideif to support parsing a C/C++ project containing multiple C/C++
-        source files opened simultaneously in different buffers.  Therefore
-        `hide-ifdef-env' can no longer be buffer local but must be global.
+        current project.  Use \\[hide-ifdef-define] and \\[hide-ifdef-undef] to update the value of
+        this list with defined or undefined symbols.
+        We've extended hideif to support parsing a C/C++ project
+        containing multiple C/C++ source files opened simultaneously in
+        different buffers.  Therefore `hide-ifdef-env' can no longer be
+        buffer local but must be global.
+
+`hide-ifdef-initially'
+        Customize this to a non-nil value to cause ifdefs be hidden as
+        soon as `hide-ifdef-mode' is turned on.
+
+`hide-ifdef-lines'
+        Customize to non-nil to hide the #if, #ifdef, #ifndef, #else,
+        and #endif lines when hiding ifdefs.
 
 `hide-ifdef-define-alist'
         An association list of defined symbol lists.
         Use `hide-ifdef-set-define-alist' to save the current `hide-ifdef-env'
         and `hide-ifdef-use-define-alist' to set the current `hide-ifdef-env'
         from one of the lists in `hide-ifdef-define-alist'.
-
-`hide-ifdef-lines'
-        Set to non-nil to not show #if, #ifdef, #ifndef, #else, and
-        #endif lines when hiding.
-
-`hide-ifdef-initially'
-        Indicates whether `hide-ifdefs' should be called when Hide-Ifdef mode
-        is activated.
 
 `hide-ifdef-read-only'
         Set to non-nil if you want to make buffers read only while hiding.
@@ -19208,7 +19225,7 @@ Define an inline function NAME with arguments ARGS and body in BODY.
 This is halfway between `defmacro' and `defun'.  BODY is used as a blueprint
 both for the body of the function and for the body of the compiler-macro
 used to generate the code inlined at each call site.
-See Info node `(elisp)Inline Functions for more details.
+See Info node `(elisp)Inline Functions' for more details.
 
 A (noinline t) in the `declare' form prevents the definition of the
 compiler macro.  This is for the rare case in which you want to use this
@@ -19445,6 +19462,7 @@ Selections are:
 \\`m'   Place typed-in value in personal dictionary, then recheck current word.
 \\`C-l' Redraw screen.
 \\`C-r' Recursive edit.
+\\`C-u' Toggle abbrev saving for an immediately subsequent replacement command.
 \\`C-z' Suspend Emacs or iconify frame.")
 (autoload 'ispell-kill-ispell "ispell" "\
 Kill current Ispell process (so that you may start a fresh one).
@@ -24619,10 +24637,6 @@ Each directory name should be absolute.
 These directories contain packages intended for system-wide; in
 contrast, `package-user-dir' contains packages for personal use." :type '(repeat directory) :initialize #'custom-initialize-delay :group 'applications :risky t :version "24.1")
 (custom-autoload 'package-directory-list "package" t)
-(defvar package-activated-list nil "\
-List of the names of currently activated packages.")
-(defvar package--activated nil "\
-Non-nil if `package-activate-all' has been run.")
 (autoload 'package-initialize "package" "\
 Load Emacs Lisp packages, and activate them.
 The variable `package-load-list' controls which packages to load.
@@ -24640,9 +24654,6 @@ you have code which must run before `package-initialize', put
 that code in the early init-file.
 
 (fn &optional NO-ACTIVATE)" t)
-(defun package-activate-all nil "\
-Activate all installed packages.
-The variable `package-load-list' controls which packages to load." (setq package--activated t) (let* ((elc (concat package-quickstart-file "c")) (qs (if (file-readable-p elc) elc (if (file-readable-p package-quickstart-file) package-quickstart-file)))) (or (and qs (not (bound-and-true-p package-activated-list)) (with-demoted-errors "Error during quickstart: %S" (let ((load-source-file-function nil)) (unless (boundp 'package-activated-list) (setq package-activated-list nil)) (load qs nil 'nomessage) t))) (progn (require 'package) (with-no-warnings (package--activate-all))))))
 (autoload 'package-import-keyring "package" "\
 Import keys from FILE.
 
@@ -24657,14 +24668,6 @@ downloads in the background.  This is always the case when the command
 is invoked interactively.
 
 (fn &optional ASYNC)" t)
-(autoload 'package-installed-p "package" "\
-Return non-nil if PACKAGE, of MIN-VERSION or newer, is installed.
-If PACKAGE is a symbol, it is the package name and MIN-VERSION
-should be a version list.
-
-If PACKAGE is a `package-desc' object, MIN-VERSION is ignored.
-
-(fn PACKAGE &optional MIN-VERSION)")
 (autoload 'package-install "package" "\
 Install the package PKG.
 
@@ -24685,7 +24688,7 @@ If the command is invoked with a prefix argument, it will allow
 upgrading of built-in packages, as if `package-install-upgrade-built-in'
 had been enabled.
 
-(fn PKG &optional DONT-SELECT)" t)
+(fn PKG &optional DONT-SELECT INTERACTIVE)" t)
 (autoload 'package-upgrade "package" "\
 Upgrade package NAME if a newer version exists.
 
@@ -24730,6 +24733,21 @@ If optional argument NOCONFIRM is non-nil, or when invoked with a prefix
 argument, don't ask for confirmation to install packages.
 
 (fn &optional NOCONFIRM)" t)
+(autoload 'package-delete "package" "\
+Delete package PKG-DESC.
+
+Argument PKG-DESC is the full description of the package, for example as
+obtained by `package-get-descriptor'.  Interactively, prompt the user
+for the package name and version.
+
+When package is used elsewhere as dependency of another package,
+refuse deleting it and return an error.
+If prefix argument FORCE is non-nil, package will be deleted even
+if it is used elsewhere.
+If NOSAVE is non-nil, the package is not removed from
+`package-selected-packages'.
+
+(fn PKG-DESC &optional FORCE NOSAVE)" t)
 (autoload 'package-reinstall "package" "\
 Reinstall package PKG.
 PKG should be either a symbol, the package name, or a `package-desc'
@@ -24771,7 +24789,43 @@ short description.
 
 (fn &optional NO-FETCH)" t)
 (defalias 'package-list-packages 'list-packages)
-(autoload 'package-get-version "package" "\
+(defcustom package-quickstart-file (locate-user-emacs-file "package-quickstart.el") "\
+Location of the file used to speed up activation of packages at startup." :type 'file :group 'applications :initialize #'custom-initialize-delay :version "27.1")
+(custom-autoload 'package-quickstart-file "package" t)
+(autoload 'package-browse-url "package" "\
+Open the website of the package under point in a browser.
+`browse-url' is used to determine the browser to be used.  If
+SECONDARY (interactively, the prefix), use the secondary browser.
+DESC must be a `package-desc' object.
+
+(fn DESC &optional SECONDARY)" t)
+(autoload 'package-report-bug "package" "\
+Prepare a message to send to the maintainers of a package.
+DESC must be a `package-desc' object.
+
+(fn DESC)" t)
+(register-definition-prefixes "package" '("bad-signature" "define-package" "describe-package-1" "package-"))
+
+
+;;; Generated autoloads from emacs-lisp/package-activate.el
+
+(push '(package-activate 1 1 0) package--builtin-versions)
+(defvar package-activated-list nil "\
+List of the names of currently activated packages.")
+(defvar package--activated nil "\
+Non-nil if `package-activate-all' has been run.")
+(defun package-activate-all nil "\
+Activate all installed packages.
+The variable `package-load-list' controls which packages to load." (setq package--activated t) (let* ((elc (concat package-quickstart-file "c")) (qs (if (file-readable-p elc) elc (if (file-readable-p package-quickstart-file) package-quickstart-file)))) (or (and qs (not (bound-and-true-p package-activated-list)) (with-demoted-errors "Error during quickstart: %S" (let ((load-source-file-function nil)) (unless (boundp 'package-activated-list) (setq package-activated-list nil)) (load qs nil 'nomessage) t))) (progn (require 'package) (with-no-warnings (package--activate-all))))))
+(autoload 'package-installed-p "package-activate" "\
+Return non-nil if PACKAGE, of MIN-VERSION or newer, is installed.
+If PACKAGE is a symbol, it is the package name and MIN-VERSION
+should be a version list.
+
+If PACKAGE is a `package-desc' object, MIN-VERSION is ignored.
+
+(fn PACKAGE &optional MIN-VERSION)")
+(autoload 'package-get-version "package-activate" "\
 Return the version number of the package in which this is used.
 Assumes it is used from an Elisp file placed inside the top-level directory
 of an installed ELPA package.
@@ -24779,15 +24833,7 @@ The return value is a string (or nil in case we can't find it).
 It works in more cases if the call is in the file which contains
 the `Version:' header.")
 (function-put 'package-get-version 'pure 't)
-(defcustom package-quickstart-file (locate-user-emacs-file "package-quickstart.el") "\
-Location of the file used to speed up activation of packages at startup." :type 'file :group 'applications :initialize #'custom-initialize-delay :version "27.1")
-(custom-autoload 'package-quickstart-file "package" t)
-(autoload 'package-report-bug "package" "\
-Prepare a message to send to the maintainers of a package.
-DESC must be a `package-desc' object.
-
-(fn DESC)" '(package-menu-mode))
-(register-definition-prefixes "package" '("bad-signature" "define-package" "describe-package-1" "package-"))
+(register-definition-prefixes "package-activate" '("package-"))
 
 
 ;;; Generated autoloads from emacs-lisp/package-vc.el
@@ -25789,6 +25835,10 @@ Note that this function doesn't work if DELTA is larger than
 the height of the current window.
 
 (fn DELTA)")
+(autoload 'pixel-scroll-interpolate-down "pixel-scroll" "\
+Interpolate a scroll downwards by one page." t)
+(autoload 'pixel-scroll-interpolate-up "pixel-scroll" "\
+Interpolate a scroll upwards by one page." t)
 (defvar pixel-scroll-precision-mode nil "\
 Non-nil if Pixel-Scroll-Precision mode is enabled.
 See the `pixel-scroll-precision-mode' command
@@ -26519,7 +26569,7 @@ Open profile FILENAME.
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push '(project 0 11 1) package--builtin-versions)
+(push '(project 0 11 2) package--builtin-versions)
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -26812,7 +26862,8 @@ would otherwise have the same name.
 Whether to show current project name and Project menu on the mode line.
 This feature requires the presence of the following item in
 `mode-line-format': `(project-mode-line project-mode-line-format)'; it
-is part of the default mode line beginning with Emacs 30.")
+is part of the default mode line beginning with Emacs 30.  When the
+value is `non-remote', show the project name only for local files.")
 (custom-autoload 'project-mode-line "project" t)
 (register-definition-prefixes "project" '("project-" "vc-"))
 
@@ -30765,7 +30816,7 @@ either customize it (see the info node `Easy Customization')
 or call the function `global-so-long-mode'.")
 (custom-autoload 'global-so-long-mode "so-long" nil)
 (autoload 'global-so-long-mode "so-long" "\
-Toggle automated performance mitigations for files with long lines.
+Toggle automated performance mitigation for files with long lines.
 
 Many Emacs modes struggle with buffers which contain excessively long lines,
 and may consequently cause unacceptable performance issues.
@@ -32173,6 +32224,37 @@ and `sc-post-hook' is run after the guts of this function.")
 ;;; Generated autoloads from cedet/semantic/symref.el
 
 (register-definition-prefixes "semantic/symref" '("semantic-symref-"))
+
+
+;;; Generated autoloads from system-taskbar.el
+
+(defvar system-taskbar-mode nil "\
+Non-nil if System-Taskbar mode is enabled.
+See the `system-taskbar-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `system-taskbar-mode'.")
+(custom-autoload 'system-taskbar-mode "system-taskbar" nil)
+(autoload 'system-taskbar-mode "system-taskbar" "\
+System GUI taskbar icon badge, progress report, alerting.
+
+This is a global minor mode.  If called interactively, toggle the
+`System-Taskbar mode' mode.  If the prefix argument is positive, enable
+the mode, and if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the mode
+if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `(default-value \\='system-taskbar-mode)'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+(fn &optional ARG)" t)
+(register-definition-prefixes "system-taskbar" '("system-taskbar-"))
 
 
 ;;; Generated autoloads from t-mouse.el
@@ -33951,9 +34033,9 @@ of the file before running this function, by default can look like
 one of the following (your choice):
       Time-stamp: <>
       Time-stamp: \" \"
-This function writes the current time between the brackets or quotes,
-by default formatted like this:
-      Time-stamp: <2024-08-07 17:10:21 gildea>
+This function writes the current time between the angle brackets
+or quotes, by default formatted like this:
+      Time-stamp: <2025-08-07 17:10:21 gildea>
 
 Although you can run this function manually to update a time stamp
 once, usually you want automatic time stamp updating.
@@ -33971,7 +34053,8 @@ If the file has no time stamp template or if `time-stamp-active' is nil,
 this function does nothing.
 
 You can set `time-stamp-pattern' in a file's local variables list
-to customize the information in the time stamp and where it is written." t)
+to customize the information in the time stamp, the surrounding
+template, and where in the file it can occur." t)
 (autoload 'time-stamp-toggle-active "time-stamp" "\
 Set `time-stamp-active' (whether \\[time-stamp] updates a buffer).
 If ARG is unset, toggle `time-stamp-active'.  With an arg, set
@@ -34520,13 +34603,13 @@ This is like `trace-function-foreground', but without popping up
 the output buffer or changing the window configuration.
 
 (fn FUNCTION &optional BUFFER CONTEXT)" t)
-(defalias 'trace-function 'trace-function-foreground)
+(defalias 'trace-function #'trace-function-foreground)
 (register-definition-prefixes "trace" '("inhibit-trace" "trace-" "untrace-"))
 
 
 ;;; Generated autoloads from emacs-lisp/track-changes.el
 
-(push '(track-changes 1 4) package--builtin-versions)
+(push '(track-changes 1 5) package--builtin-versions)
 (register-definition-prefixes "track-changes" '("track-changes-" "with--track-changes"))
 
 
@@ -34712,13 +34795,13 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from net/trampver.el
 
-(push '(tramp 2 8 1 -1) package--builtin-versions)
+(push '(tramp 2 8 2 -1) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
 ;;; Generated autoloads from transient.el
 
-(push '(transient 0 11 0) package--builtin-versions)
+(push '(transient 0 12 0) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient" "\
 Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -34818,7 +34901,7 @@ The value can be either a list of ts-modes to enable,
 or t to enable all ts-modes.  The value nil (the default)
 means not to enable any tree-sitter based modes.
 
-Enabling a tree-stter based mode means that visiting files in the
+Enabling a tree-sitter based mode means that visiting files in the
 corresponding programming language will automatically turn on that
 mode, instead of any non-tree-sitter based modes for the same
 language.")
@@ -36476,22 +36559,31 @@ See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
 global binding.
 
 (fn &optional UPSTREAM-LOCATION FILESET)" t)
+ (put 'vc-trunk-branch-regexps 'safe-local-variable
+     #'vc--safe-branch-regexps-p)
+ (put 'vc-topic-branch-regexps 'safe-local-variable
+     #'vc--safe-branch-regexps-p)
 (autoload 'vc-root-diff-outgoing-base "vc" "\
 Report diff of all changes since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
 Uncommitted changes are included in the diff.
 
-When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
-to.  This default meaning for UPSTREAM-LOCATION may change in a future
-release of Emacs.
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like `vc-root-diff-outgoing' except that it includes
-uncommitted changes.
+When called interactively with a \\[universal-argument] \\[universal-argument] prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.  (With a double prefix argument, this command is like
+`vc-diff-outgoing' except that it includes uncommitted changes.)
 
 (fn &optional UPSTREAM-LOCATION)" t)
 (autoload 'vc-diff-outgoing-base "vc" "\
@@ -36501,18 +36593,69 @@ The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
 Uncommitted changes are included in the diff.
 
-When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
-to.  This default meaning for UPSTREAM-LOCATION may change in a future
-release of Emacs.
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like to `vc-fileset-diff-outgoing' except that it
-includes uncommitted changes.
+When called interactively with a \\[universal-argument] \\[universal-argument] prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.  (With a double prefix argument, this command is like
+`vc-diff-outgoing' except that it includes uncommitted changes.)
+
+When called from Lisp, optional argument FILESET overrides the fileset.
 
 (fn &optional UPSTREAM-LOCATION FILESET)" t)
+(autoload 'vc-log-outgoing-base "vc" "\
+Show log for the VC fileset since the merge base with UPSTREAM-LOCATION.
+The merge base with UPSTREAM-LOCATION means the common ancestor of the
+working revision and UPSTREAM-LOCATION.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
+can be a remote branch name.
+
+When called interactively with a \\[universal-argument] \\[universal-argument] prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.
+
+When called from Lisp, optional argument FILESET overrides the fileset.
+
+(fn &optional UPSTREAM-LOCATION FILESET)" t)
+(autoload 'vc-root-log-outgoing-base "vc" "\
+Show log of revisions since the merge base with UPSTREAM-LOCATION.
+The merge base with UPSTREAM-LOCATION means the common ancestor of the
+working revision and UPSTREAM-LOCATION.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, query the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
+can be a remote branch name.
+
+When called interactively with a \\[universal-argument] \\[universal-argument] prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.
+
+(fn &optional UPSTREAM-LOCATION)" t)
 (autoload 'vc-version-ediff "vc" "\
 Show differences between REV1 and REV2 of FILES using ediff.
 This compares two revisions of the files in FILES.  Currently,
@@ -36648,7 +36791,8 @@ Show in another window the VC change history of the current fileset.
 If WORKING-REVISION is non-nil, it should be a revision ID; position
 point in the change history buffer at that revision.
 If LIMIT is non-nil, it should be a number specifying the maximum
-number of revisions to show; the default is `vc-log-show-limit'.
+number of revisions to show; the default for interactive calls is
+`vc-log-show-limit'.
 
 When called interactively with a prefix argument, prompt for
 WORKING-REVISION and LIMIT.
@@ -36660,6 +36804,16 @@ the full log message and the author.  Additional control of the
 shown log style is available via `vc-log-short-style'.
 
 (fn &optional WORKING-REVISION LIMIT)" t)
+(autoload 'vc-print-change-log "vc" "\
+Show in another window the VC change history of the current fileset.
+With a \\[universal-argument] prefix argument, prompt for a branch or revision to log
+instead of the working revision, and a number specifying the maximum
+number of revisions to show; the default is `vc-log-show-limit'.
+You can also use a numeric prefix argument to specify this.
+
+This is like `vc-print-log' but with an alternative prefix argument that
+some users might prefer for interactive usage." t)
+(function-put 'vc-print-change-log 'interactive-only 'vc-print-log)
 (autoload 'vc-print-root-log "vc" "\
 Show in another window VC change history of the current VC controlled tree.
 If LIMIT is non-nil, it should be a number specifying the maximum
@@ -36671,12 +36825,33 @@ the command prompts for the id of a REVISION, and shows that revision
 with its diffs (if the underlying VCS backend supports that).
 
 (fn &optional LIMIT REVISION)" t)
-(autoload 'vc-print-branch-log "vc" "\
-Show the change log for BRANCH in another window.
-The command prompts for the branch whose change log to show.
+(autoload 'vc-print-root-change-log "vc" "\
+Show in another window the VC change history of the whole tree.
+With a \\[universal-argument] prefix argument, prompt for a branch or revision to log
+instead of the working revision, and a number specifying the maximum
+number of revisions to show; the default is `vc-log-show-limit'.
+You can also use a numeric prefix argument to specify this.
+
+This is like `vc-root-print-log' but with an alternative prefix argument
+that some users might prefer for interactive usage." t)
+(function-put 'vc-print-root-change-log 'interactive-only 'vc-print-root-log)
+(autoload 'vc-print-fileset-branch-log "vc" "\
+Show log of VC changes on BRANCH, limited to the current fileset.
+When called interactively, prompts for BRANCH.
+In addition to logging branches, for VCS for which it makes sense you
+can specify a revision ID instead of a branch name to produce a log
+starting at that revision.  Tags and remote references also work.
 
 (fn BRANCH)" t)
-(autoload 'vc-log-incoming "vc" "\
+(autoload 'vc-print-root-branch-log "vc" "\
+Show root log of VC changes on BRANCH in another window.
+When called interactively, prompts for BRANCH.
+In addition to logging branches, for VCS for which it makes sense you
+can specify a revision ID instead of a branch name to produce a log
+starting at that revision.  Tags and remote references also work.
+
+(fn BRANCH)" t)
+(autoload 'vc-root-log-incoming "vc" "\
 Show log of changes that will be received with pull from UPSTREAM-LOCATION.
 When unspecified UPSTREAM-LOCATION is the place \\[vc-update] would pull
 from.  When called interactively with a prefix argument, prompt for
@@ -36684,7 +36859,7 @@ UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
 can be a remote branch name.
 
 (fn &optional UPSTREAM-LOCATION)" t)
-(autoload 'vc-log-outgoing "vc" "\
+(autoload 'vc-root-log-outgoing "vc" "\
 Show log of changes that will be sent with a push to UPSTREAM-LOCATION.
 When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
 to.  When called interactively with a prefix argument, prompt for
@@ -37211,7 +37386,7 @@ step during initialization." t)
 
 ;;; Generated autoloads from progmodes/verilog-mode.el
 
-(push '(verilog-mode 2025 11 8 248496848) package--builtin-versions)
+(push '(verilog-mode 2026 1 18 88738971) package--builtin-versions)
 (autoload 'verilog-mode "verilog-mode" "\
 Major mode for editing Verilog code.
 \\<verilog-mode-map>
@@ -37959,7 +38134,7 @@ Convert Vietnamese characters of the current buffer to `VIQR' mnemonics." t)
 
 
 (fn FROM TO)")
-(register-definition-prefixes "viet-util" '("viet-viqr-alist" "viqr-regexp"))
+(register-definition-prefixes "viet-util" '("viet-viqr-alist" "viqr-"))
 
 
 ;;; Generated autoloads from view.el
@@ -39204,7 +39379,7 @@ it is relative to the top edge (for positive ARG) or the bottom edge
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window.
 
@@ -39218,7 +39393,7 @@ negative ARG) of the current window.
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window.
 
@@ -39232,7 +39407,7 @@ bottom edge (for negative ARG) of the current window.
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window.
 
@@ -39246,7 +39421,7 @@ it is relative to the left edge (for positive ARG) or the right edge
 If no window is at the desired location, an error is signaled
 unless `windmove-create-window' is non-nil and a new window is created.
 
-If `windmove-allow-repeated-command-override' is true and this commnad
+If `windmove-allow-repeated-command-override' is true and this command
 stopped because it wouldn't move into a window marked with
 `no-other-window', repeating the command will move into that window.
 
@@ -39532,6 +39707,14 @@ list.  Delete FRAME2 if the merge completed successfully and return
 FRAME1.
 
 (fn &optional FRAME1 FRAME2 VERTICAL)" t)
+(autoload 'window-get-split-combination "window-x" "\
+Return window combination suitable for `split-frame'.
+
+WINDOW is the main window in which the combination should be derived.
+ARG is the argument passed to `split-frame'.  Return a
+combination of windows `split-frame' is considered to split off.
+
+(fn WINDOW ARG)")
 (autoload 'split-frame "window-x" "\
 Split windows of specified FRAME into two separate frames.
 FRAME must be a live frame and defaults to the selected frame.  ARG
@@ -39866,11 +40049,8 @@ output of this command when the backend is etags.
  (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 (autoload 'xref-references-in-directory "xref" "\
 Find all references to SYMBOL in directory DIR.
+See `xref-references-in-directory-function' for the implementation.
 Return a list of xref values.
-
-This function uses the Semantic Symbol Reference API, see
-`semantic-symref-tool-alist' for details on which tools are used,
-and when.
 
 (fn SYMBOL DIR)")
 (autoload 'xref-matches-in-directory "xref" "\
@@ -39879,8 +40059,9 @@ Return a list of xref values.
 Only files matching some of FILES and none of IGNORES are searched.
 FILES is a string with glob patterns separated by spaces.
 IGNORES is a list of glob patterns for files to ignore.
+If DELIMITED is `symbol', only select matches that span full symbols.
 
-(fn REGEXP FILES DIR IGNORES)")
+(fn REGEXP FILES DIR IGNORES &optional DELIMITED)")
 (autoload 'xref-matches-in-files "xref" "\
 Find all matches for REGEXP in FILES.
 Return a list of xref values.
@@ -39978,7 +40159,7 @@ Enable `yaml-ts-mode' when its grammar is available.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(yaml-mode . yaml-ts-mode)))
-(register-definition-prefixes "yaml-ts-mode" '("yaml-ts-mode--"))
+(register-definition-prefixes "yaml-ts-mode" '("yaml-ts-mode-"))
 
 
 ;;; Generated autoloads from yank-media.el

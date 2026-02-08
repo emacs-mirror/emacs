@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2025 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2026 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -486,7 +486,7 @@ A convenient way to do this is to use a @dfn{progress reporter}.
   (progress-reporter-done progress-reporter))
 @end smallexample
 
-@defun make-progress-reporter message &optional min-value max-value current-value min-change min-time
+@defun make-progress-reporter message &optional min-value max-value current-value min-change min-time context
 This function creates and returns a progress reporter object, which
 you will use as an argument for the other functions listed below.  The
 idea is to precompute as much data as possible to make progress
@@ -513,13 +513,19 @@ If @var{min-value} and @var{max-value} are numbers, you can give the
 argument @var{current-value} a numerical value specifying the initial
 progress; if omitted, this defaults to @var{min-value}.
 
-The remaining arguments control the rate of echo area updates.  The
-progress reporter will wait for at least @var{min-change} more
-percents of the operation to be completed before printing next
-message; the default is one percent.  @var{min-time} specifies the
-minimum time in seconds to pass between successive prints; the default
-is 0.2 seconds.  (On some operating systems, the progress reporter may
-handle fractions of seconds with varying precision).
+The arguments @var{min-change} and @var{min-time} control the rate of
+echo area updates.  The progress reporter will wait for at least
+@var{min-change} more percents of the operation to be completed before
+printing next message; the default is one percent.  @var{min-time}
+specifies the minimum time in seconds to pass between successive prints;
+the default is 0.2 seconds.  (On some operating systems, the progress
+reporter may handle fractions of seconds with varying precision).
+
+If @var{context} is the symbol @code{async}, it announces that the updates
+will occur asynchronously.  Backends can use that info to prevent the
+progress updates from interfering with other data.  For example, the
+backend that displays the progress in the echo area will not display
+those async updates when the echo area is in use.
 
 This function calls @code{progress-reporter-update}, so the first
 message is printed immediately.
@@ -2237,6 +2243,9 @@ means hide the excess parts of @var{string} with a @code{display} text
 property (@pxref{Display Property}) showing the ellipsis, instead of
 actually truncating the string.
 
+See also the function @code{truncate-string-pixelwise} for pixel-level
+resolution.
+
 @example
 @group
 (truncate-string-to-width "\tab\t" 12 4)
@@ -2434,6 +2443,37 @@ non-@code{nil}, use any face remappings (@pxref{Face Remapping}) from
 that buffer when computing the width of @var{string}.
 @end defun
 
+@defun truncate-string-pixelwise string max-pixels &optional buffer ellipsis ellipsis-pixels
+This is a convenience function that uses @code{window-text-pixel-size}
+to truncate @var{string} to @var{max-pixels} pixels.  Caveat: if you
+call this function to measure the width of a string with embedded
+newlines, it will then return the width of the widest substring that
+does not include newlines.  The meaning of this result is the widest
+line taken by the string if inserted into a buffer.  If @var{buffer} is
+non-@code{nil}, use any face remappings (@pxref{Face Remapping}) from
+that buffer when computing the width of @var{string}.
+
+If @var{ellipsis} is non-@code{nil}, it should be a string which will
+replace the end of @var{string} when it is truncated.  In this case,
+more characters will be removed from @var{string} to free enough space
+for @var{ellipsis} to fit within @var{max-pixels} pixels.  However, if
+the pixel width of @var{string} is less than the pixel width of
+@var{ellipsis}, @var{ellipsis} will not be appended to the result.  If
+@var{ellipsis} is non-@code{nil} and not a string, it stands for the
+value returned by the function @code{truncate-string-ellipsis},
+described above.
+
+If @var{ellipsis-pixels} is non-@code{nil} and @var{ellipsis} is
+non-@code{nil}, it should be the number of pixels of @var{ellipsis} that
+you should precompute using @code{string-pixel-width}, specifying the
+same buffer.  This is useful to avoid the cost of recomputing this value
+repeatedly when you have many strings to truncate using the same
+ellipsis string.
+
+See also the function @code{truncate-string-to-width} for
+character-level resolution.
+@end defun
+
 @defun line-pixel-height
 This function returns the height in pixels of the line at point in the
 selected window.  The value includes the line spacing of the line
@@ -2576,10 +2616,13 @@ the spacing relative to the frame's default line height.
 
 @vindex line-spacing
   You can specify the line spacing for all lines in a buffer via the
-buffer-local @code{line-spacing} variable.  An integer specifies
-the number of pixels put below lines.  A floating-point number
-specifies the spacing relative to the default frame line height.  This
-overrides line spacings specified for the frame.
+buffer-local @code{line-spacing} variable.  An integer specifies the
+number of pixels put below lines.  A floating-point number specifies the
+spacing relative to the default frame line height.  A cons cell of
+integers or floating-point numbers specifies the spacing put above and
+below the line, allowing for vertically centering text.  This overrides
+line spacings specified for the frame.
+
 
 @kindex line-spacing @r{(text property)}
   Finally, a newline can have a @code{line-spacing} text or overlay
@@ -4208,7 +4251,8 @@ The font name (a string), in either XLFD, Fontconfig, or GTK+ format.
 @itemx :width
 These have the same meanings as the face attributes of the same name.
 @xref{Face Attributes}.  @code{:family} and @code{:foundry} are
-strings, while the other three are symbols.  As example values,
+strings or symbols, while the other three are either symbols or numbers,
+the numerical values of the valid style symbols.  As example values,
 @code{:slant} may be @code{italic}, @code{:weight} may be @code{bold}
 and @code{:width} may be @code{normal}.
 
@@ -4904,7 +4948,7 @@ either a string or a vector of integers, where each element (an
 integer) corresponds to one row of the bitmap.  Each bit of an integer
 corresponds to one pixel of the bitmap, where the low bit corresponds
 to the rightmost pixel of the bitmap.  (Note that this order of bits
-is opposite of the order in XBM images; @pxref{XBM Images}.)
+is the opposite of the order in XBM images; @pxref{XBM Images}.)
 
 The height is normally the length of @var{bits}.  However, you
 can specify a different height with non-@code{nil} @var{height}.  The width
@@ -6360,8 +6404,8 @@ used for each pixel in the XBM that is 0.  The default is the frame's
 background color.
 @end table
 
-  If you specify an XBM image using data within Emacs instead of an
-external file, use the following three properties:
+  To specify an XBM image using data within Emacs instead of an
+external file, use the following properties:
 
 @table @code
 @item :data @var{data}
@@ -6992,6 +7036,7 @@ Supports the @code{:index} property.  @xref{Multi-Frame Images}.
 
 @item WebP
 Image type @code{webp}.
+Supports the @code{:index} property.  @xref{Multi-Frame Images}.
 @end table
 
 @node Defining Images
@@ -7313,8 +7358,8 @@ about these image-specific key bindings.
 @cindex image frames
 Some image files can contain more than one image.  We say that there
 are multiple ``frames'' in the image.  At present, Emacs supports
-multiple frames for GIF, TIFF, and certain ImageMagick formats such as
-DJVM@.
+multiple frames for GIF, TIFF, WebP, and certain ImageMagick formats
+such as DJVM@.
 
 The frames can be used either to represent multiple pages (this is
 usually the case with multi-frame TIFF files, for example), or to
@@ -7404,7 +7449,7 @@ period much shorter than @code{image-cache-eviction-delay} (see
 below), you can opt to flush unused images yourself, instead of
 waiting for Emacs to do it automatically.
 
-@defun clear-image-cache &optional filter
+@defun clear-image-cache &optional filter animation-filter
 This function clears an image cache, removing all the images stored in
 it.  If @var{filter} is omitted or @code{nil}, it clears the cache for
 the selected frame.  If @var{filter} is a frame, it clears the cache
@@ -7412,6 +7457,16 @@ for that frame.  If @var{filter} is @code{t}, all image caches are
 cleared.  Otherwise, @var{filter} is taken to be a file name, and all
 images associated with that file name are removed from all image
 caches.
+
+This function also clears the image animation cache, which is a separate
+cache that Emacs maintains for animated multi-frame images
+(@pxref{Multi-Frame Images}).  If @var{animation-filter} is omitted or
+@code{nil}, it clears the animation cache in addition to the image
+caches selected by @var{filter}.  Otherwise, this function removes the
+image with specification @code{eq} to @var{animation-filter} only from
+the animation cache, and does not clear any image caches.  This can help
+reduce memory usage after an animation is stopped but the image is still
+displayed.
 @end defun
 
 If an image in the image cache has not been displayed for a specified

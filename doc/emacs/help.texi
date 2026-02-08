@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2026 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Help
@@ -422,8 +422,9 @@ search for noninteractive functions too.
 Search for functions and variables.  Both interactive functions
 (commands) and noninteractive functions can be found by this.
 
-@item M-x apropos-user-option
+@kindex C-h u
 @findex apropos-user-option
+@item C-h u
 Search for user-customizable variables.  With a prefix argument,
 search for non-customizable variables too.
 

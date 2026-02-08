@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--2025 Free Software Foundation, Inc.
+@c Copyright (C) 1990--2026 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Variables
 @chapter Variables
@@ -617,6 +617,8 @@ float-pi
 
 @node Tips for Defining
 @section Tips for Defining Variables Robustly
+@cindex variables, naming conventions
+@cindex naming conventions, variables
 
   When you define a variable whose value is a function, or a list of
 functions, use a name that ends in @samp{-function} or
@@ -659,6 +661,7 @@ The value is a whole shell command.
 @item @dots{}-switches
 The value specifies options for a command.
 
+@cindex internal variables, naming conventions
 @item @var{prefix}--@dots{}
 The variable is intended for internal use and is defined in the file
 @file{@var{prefix}.el}.  (Emacs code contributed before 2018 may
@@ -2653,6 +2656,19 @@ This macro returns the connection-local value of @var{symbol} for
 
 If @var{symbol} does not have a connection-local
 binding, the value is the default binding of the variable.
+
+The difference to @code{with-connection-local@{-application@}-variables}
+is, that @code{symbol} is not set buffer-local.  A typical usage pattern
+is to use only the the connection value of a variable if it exists, and
+not to use its default value otherwise (using @code{my-app-variable}
+initialized above):
+
+@lisp
+(if (connection-local-p my-app-variable 'my-app)
+    (connection-local-value my-app-variable 'my-app)
+  ;; Something else.
+  )
+@end lisp
 @end defmac
 
 @defvar enable-connection-local-variables

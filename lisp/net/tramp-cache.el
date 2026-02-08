@@ -1,6 +1,6 @@
 ;;; tramp-cache.el --- file information caching for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000, 2005-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005-2026 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -202,11 +202,6 @@ Return DEFAULT if not set."
 	  (set var (1+ val))))
       value)))
 
-(add-hook 'tramp-cache-unload-hook
-	  (lambda ()
-	    (dolist (var (all-completions "tramp-cache-get-count-" obarray))
-	      (unintern var obarray))))
-
 ;;;###tramp-autoload
 (defun tramp-set-file-property (key file property value)
   "Set the PROPERTY of FILE to VALUE, in the cache context of KEY.
@@ -229,8 +224,9 @@ Return VALUE."
 
 (add-hook 'tramp-cache-unload-hook
 	  (lambda ()
-	    (dolist (var (all-completions "tramp-cache-set-count-" obarray))
-	      (unintern var obarray))))
+	    (dolist (var (apropos-internal
+			  (rx bos "tramp-cache-" (| "get" "set") "-count-")))
+	      (unintern var nil))))
 
 ;;;###tramp-autoload
 (defun tramp-file-property-p (key file property)

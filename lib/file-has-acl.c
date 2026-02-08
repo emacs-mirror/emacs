@@ -1,6 +1,6 @@
 /* Test whether a file has a nontrivial ACL.  -*- coding: utf-8 -*-
 
-   Copyright (C) 2002-2003, 2005-2025 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2005-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -79,16 +79,15 @@ smack_smackfs_path (void)
   return NULL;
 }
 static ssize_t
-smack_new_label_from_path (MAYBE_UNUSED const char *path,
-                           MAYBE_UNUSED const char *xattr,
-                           MAYBE_UNUSED int follow, MAYBE_UNUSED char **label)
+smack_new_label_from_path (const char *UNNAMED (path),
+                           const char *UNNAMED (xattr),
+                           int UNNAMED (follow), char **UNNAMED (label))
 {
   return -1;
 }
 static ssize_t
-smack_new_label_from_file (MAYBE_UNUSED int fd,
-                           MAYBE_UNUSED const char *xattr,
-                           MAYBE_UNUSED char **label)
+smack_new_label_from_file (int UNNAMED (fd), const char *UNNAMED (xattr),
+                           char **UNNAMED (label))
 {
   return -1;
 }

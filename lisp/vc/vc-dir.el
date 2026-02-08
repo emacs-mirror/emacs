@@ -1,6 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2026 Free Software Foundation, Inc.
 
 ;; Author: Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools
@@ -294,10 +294,10 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
       '(menu-item "Compare with Base Version" vc-diff
 		  :help "Compare file set with the base version"))
     (define-key map [logo]
-      '(menu-item "Show Outgoing Log" vc-log-outgoing
+      '(menu-item "Show Outgoing Log" vc-root-log-outgoing
 		  :help "Show a log of changes that will be sent with a push operation"))
     (define-key map [logi]
-      '(menu-item "Show Incoming Log" vc-log-incoming
+      '(menu-item "Show Incoming Log" vc-root-log-incoming
 		  :help "Show a log of changes that will be received with a pull operation"))
     (define-key map [log]
       '(menu-item "Show History" vc-print-log
@@ -354,8 +354,8 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     (define-key map "P" #'vc-push)	   ;; C-x v P
     (define-key map "l" #'vc-print-log)	   ;; C-x v l
     (define-key map "L" #'vc-print-root-log) ;; C-x v L
-    (define-key map "I" #'vc-log-incoming)   ;; C-x v I
-    (define-key map "O" #'vc-log-outgoing)   ;; C-x v O
+    (define-key map "I" #'vc-root-log-incoming)   ;; C-x v I
+    (define-key map "O" #'vc-root-log-outgoing)   ;; C-x v O
     ;; More confusing than helpful, probably
     ;;(define-key map "R" #'vc-revert) ;; u is taken by vc-dir-unmark.
     ;;(define-key map "A" #'vc-annotate) ;; g is taken by revert-buffer
@@ -396,11 +396,17 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     (define-key map (kbd "M-s a C-s")   #'vc-dir-isearch)
     (define-key map (kbd "M-s a M-C-s") #'vc-dir-isearch-regexp)
     (define-key map "G" #'vc-dir-ignore)
+    (define-key map "@" #'vc-revert)
+    (define-key map "Tl" #'vc-log-outgoing-base)
+    (define-key map "TL" #'vc-root-log-outgoing-base)
+    (define-key map "T=" #'vc-diff-outgoing-base)
+    (define-key map "TD" #'vc-root-diff-outgoing-base)
 
     (let ((branch-map (make-sparse-keymap)))
       (define-key map "b" branch-map)
       (define-key branch-map "c" #'vc-create-branch)
-      (define-key branch-map "l" #'vc-print-branch-log)
+      (define-key branch-map "l" #'vc-print-fileset-branch-log)
+      (define-key branch-map "L" #'vc-print-root-branch-log)
       (define-key branch-map "s" #'vc-switch-branch))
 
     (let ((regexp-map (make-sparse-keymap)))
@@ -1334,7 +1340,7 @@ the *vc-dir* buffer.
 
 (defvar-keymap vc-dir-outgoing-revisions-map
   :doc "Local keymap for viewing outgoing revisions."
-  "<down-mouse-1>" #'vc-log-outgoing)
+  "<down-mouse-1>" #'vc-root-log-outgoing)
 
 (defcustom vc-dir-show-outgoing-count t
   "Whether to display the number of unpushed revisions in VC-Dir.
@@ -1385,7 +1391,7 @@ specific headers."
                          'mouse-face 'highlight
                          'keymap vc-dir-outgoing-revisions-map
                          'help-echo "\\<vc-dir-outgoing-revisions-map>\
-\\[vc-log-outgoing]: List outgoing revisions")
+\\[vc-root-log-outgoing]: List outgoing revisions")
              "\n"))))
 
 (defun vc-dir-refresh-files (files)

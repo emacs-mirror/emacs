@@ -1,6 +1,6 @@
 /* Tree-sitter integration for GNU Emacs.
 
-Copyright (C) 2021-2025 Free Software Foundation, Inc.
+Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 Maintainer: Yuan Fu <casouri@gmail.com>
 
@@ -81,11 +81,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef ts_query_predicates_for_pattern
 #undef ts_query_string_value_for_id
 #undef ts_set_allocator
-#undef ts_tree_cursor_copy
 #undef ts_tree_cursor_current_node
 #undef ts_tree_cursor_delete
 #undef ts_tree_cursor_goto_first_child
 #undef ts_tree_cursor_goto_first_child_for_byte
+#undef ts_tree_cursor_goto_previous_sibling
 #undef ts_tree_cursor_goto_next_sibling
 #undef ts_tree_cursor_goto_parent
 #undef ts_tree_cursor_new
@@ -153,12 +153,12 @@ DEF_DLL_FN (const char *, ts_query_string_value_for_id,
 	    (const TSQuery *, uint32_t, uint32_t *));
 DEF_DLL_FN (void, ts_set_allocator,
 	    (void *(*)(size_t), void *(*)(size_t, size_t), void *(*)(void *, size_t), void (*)(void *)));
-DEF_DLL_FN (TSTreeCursor, ts_tree_cursor_copy, (const TSTreeCursor *));
 DEF_DLL_FN (TSNode, ts_tree_cursor_current_node, (const TSTreeCursor *));
 DEF_DLL_FN (void, ts_tree_cursor_delete, (const TSTreeCursor *));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_first_child, (TSTreeCursor *));
 DEF_DLL_FN (int64_t, ts_tree_cursor_goto_first_child_for_byte, (TSTreeCursor *, uint32_t));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_next_sibling, (TSTreeCursor *));
+DEF_DLL_FN (bool, ts_tree_cursor_goto_previous_sibling, (TSTreeCursor *));
 DEF_DLL_FN (bool, ts_tree_cursor_goto_parent, (TSTreeCursor *));
 DEF_DLL_FN (TSTreeCursor, ts_tree_cursor_new, (TSNode));
 DEF_DLL_FN (void, ts_tree_delete, (TSTree *));
@@ -221,12 +221,12 @@ init_treesit_functions (void)
   LOAD_DLL_FN (library, ts_query_predicates_for_pattern);
   LOAD_DLL_FN (library, ts_query_string_value_for_id);
   LOAD_DLL_FN (library, ts_set_allocator);
-  LOAD_DLL_FN (library, ts_tree_cursor_copy);
   LOAD_DLL_FN (library, ts_tree_cursor_current_node);
   LOAD_DLL_FN (library, ts_tree_cursor_delete);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_first_child);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_first_child_for_byte);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_next_sibling);
+  LOAD_DLL_FN (library, ts_tree_cursor_goto_previous_sibling);
   LOAD_DLL_FN (library, ts_tree_cursor_goto_parent);
   LOAD_DLL_FN (library, ts_tree_cursor_new);
   LOAD_DLL_FN (library, ts_tree_delete);
@@ -283,12 +283,12 @@ init_treesit_functions (void)
 #define ts_query_predicates_for_pattern fn_ts_query_predicates_for_pattern
 #define ts_query_string_value_for_id fn_ts_query_string_value_for_id
 #define ts_set_allocator fn_ts_set_allocator
-#define ts_tree_cursor_copy fn_ts_tree_cursor_copy
 #define ts_tree_cursor_current_node fn_ts_tree_cursor_current_node
 #define ts_tree_cursor_delete fn_ts_tree_cursor_delete
 #define ts_tree_cursor_goto_first_child fn_ts_tree_cursor_goto_first_child
 #define ts_tree_cursor_goto_first_child_for_byte fn_ts_tree_cursor_goto_first_child_for_byte
 #define ts_tree_cursor_goto_next_sibling fn_ts_tree_cursor_goto_next_sibling
+#define ts_tree_cursor_goto_previous_sibling fn_ts_tree_cursor_goto_previous_sibling
 #define ts_tree_cursor_goto_parent fn_ts_tree_cursor_goto_parent
 #define ts_tree_cursor_new fn_ts_tree_cursor_new
 #define ts_tree_delete fn_ts_tree_delete
@@ -446,7 +446,7 @@ init_treesit_functions (void)
    tracking/non-tracking, it stays that way, regardless of later changes
    to treesit-languages-require-line-column-tracking.
 
-   To make calculating line/column positons fast, we store linecol
+   To make calculating line/column positions fast, we store linecol
    caches for begv, point, and zv in the buffer
    (buf->ts_linecol_cache_xxx); and in the parser object, we store
    linecol cache for visible beg/end of that parser.
@@ -1072,7 +1072,7 @@ treesit_linecol_of_pos (ptrdiff_t target_bytepos,
 
   /* When we finished searching for newlines between CACHE and
      TARGET_POS, BYTE_POS_2 is at TARGET_POS, and BYTE_POS_1 is at the
-     previous newline.  If TARGET_POS happends to be on a newline,
+     previous newline.  If TARGET_POS happens to be on a newline,
      BYTE_POS_1 will be on that position.  BYTE_POS_1 is used for
      calculating the column.  (If CACHE and TARGET_POS are in the same
      line, BYTE_POS_1 is unset and we don't use it.)  */
@@ -1245,7 +1245,7 @@ treesit_tree_edit_1 (TSTree *tree, ptrdiff_t start_byte,
 }
 
 /* Given a position at POS_LINECOL, and the linecol of a buffer change
-   (START_LINECOL, OLD_END_LINECOL, and NEW_END_LINCOL), compute the new
+   (START_LINECOL, OLD_END_LINECOL, and NEW_END_LINECOL), compute the new
    linecol for that position, then scan from this now valid linecol to
    TARGET_BYTEPOS and return the linecol at TARGET_BYTEPOS.
 
@@ -1276,7 +1276,7 @@ compute_new_linecol_by_change (struct ts_linecol pos_linecol,
     {
       new_linecol = pos_linecol;
     }
-  /* 2. When old_end (oe) is before pos, the differnce between pos and
+  /* 2. When old_end (oe) is before pos, the difference between pos and
      pos' is the difference between old_end and new_end (ne).
 
      |     |   |           |     |   |
@@ -2197,7 +2197,7 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
   return treesit_query;
 }
 
-/* Bsically treesit_ensure_query_compiled but can signal.  */
+/* Basically treesit_ensure_query_compiled but can signal.  */
 static
 void treesit_ensure_query_compiled_signal (Lisp_Object lisp_query)
 {
@@ -2259,6 +2259,21 @@ DEFUN ("treesit-query-p",
     return Qnil;
 }
 
+DEFUN ("treesit-query-eagerly-compiled-p",
+       Ftreesit_query_eagerly_compiled_p, Streesit_query_eagerly_compiled_p, 1, 1, 0,
+       doc: /* Return non-nil if QUERY is eagerly compiled.
+
+QUERY has to be a compiled query.  Compiled queries are lazily compiled
+by default, meaning they are not actually compiled until first used.
+Return non-nil if QUERY is actually compiled (either by passing the
+EAGER flag to `treesit-query-compile' or due to the fact that it was
+already used).  */)
+  (Lisp_Object query)
+{
+  CHECK_TS_COMPILED_QUERY (query);
+  return XTS_COMPILED_QUERY (query)->query == NULL ? Qnil : Qt;
+}
+
 DEFUN ("treesit-query-language",
        Ftreesit_query_language, Streesit_query_language, 1, 1, 0,
        doc: /* Return the language of QUERY.
@@ -2267,6 +2282,16 @@ QUERY has to be a compiled query.  */)
 {
   CHECK_TS_COMPILED_QUERY (query);
   return XTS_COMPILED_QUERY (query)->language;
+}
+
+DEFUN ("treesit-query-source",
+       Ftreesit_query_source, Streesit_query_source, 1, 1, 0,
+       doc: /* Return the (string or sexp) source of QUERY.
+QUERY has to be a compiled query.  */)
+  (Lisp_Object query)
+{
+  CHECK_TS_COMPILED_QUERY (query);
+  return XTS_COMPILED_QUERY (query)->source;
 }
 
 DEFUN ("treesit-node-parser",
@@ -4253,50 +4278,14 @@ treesit_traverse_sibling_helper (TSTreeCursor *cursor,
     }
   else /* Backward.  */
     {
-      /* Go to first child and go through each sibling, until we find
-	 the one just before the starting node.  */
-      TSNode start = ts_tree_cursor_current_node (cursor);
-      if (!ts_tree_cursor_goto_parent (cursor))
-	return false;
-      treesit_assume_true (ts_tree_cursor_goto_first_child (cursor));
-
-      /* Now CURSOR is at the first child.  If we started at the first
-	 child, then there is no further siblings.  */
-      TSNode first_child = ts_tree_cursor_current_node (cursor);
-      if (ts_node_eq (first_child, start))
-	return false;
-
-      /* PROBE is always DELTA siblings ahead of CURSOR.  */
-      TSTreeCursor probe = ts_tree_cursor_copy (cursor);
-      /* This is position of PROBE minus position of CURSOR.  */
-      ptrdiff_t delta = 0;
-      TSNode probe_node;
-      TSNode cursor_node;
-      while (ts_tree_cursor_goto_next_sibling (&probe))
+      if (!named)
+	return ts_tree_cursor_goto_previous_sibling (cursor);
+      /* Else named...  */
+      while (ts_tree_cursor_goto_previous_sibling (cursor))
 	{
-	  /* Move PROBE forward, if it equals to the starting node,
-	     CURSOR points to the node we want (prev valid sibling of
-	     the starting node).  */
-	  delta++;
-	  probe_node = ts_tree_cursor_current_node (&probe);
-
-	  /* PROBE matched, depending on NAMED, return true/false.  */
-	  if (ts_node_eq (probe_node, start))
-	    {
-	      ts_tree_cursor_delete (&probe);
-	      cursor_node = ts_tree_cursor_current_node (cursor);
-	      ts_tree_cursor_delete (&probe);
-	      return (!named || (named && ts_node_is_named (cursor_node)));
-	    }
-
-	  /* PROBE didn't match, move CURSOR forward to PROBE's
-	     position, but if we are looking for named nodes, only
-	     move CURSOR to PROBE if PROBE is at a named node.  */
-	  if (!named || (named && ts_node_is_named (probe_node)))
-	    for (; delta > 0; delta--)
-	      treesit_assume_true (ts_tree_cursor_goto_next_sibling (cursor));
+	  if (ts_node_is_named (ts_tree_cursor_current_node (cursor)))
+	    return true;
 	}
-      ts_tree_cursor_delete (&probe);
       return false;
     }
 }
@@ -4507,7 +4496,7 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
   if (STRINGP (pred))
     {
       const char *type = ts_node_type (node);
-      /* ts_node_type returning NULL means something unexpected happend
+      /* ts_node_type returning NULL means something unexpected happened
          in tree-sitter, in this case the only reasonable thing is to
          not match anything.  */
       if (type == NULL) return false;
@@ -4564,8 +4553,8 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
 	  /* A bit of code duplication here, but should be fine.  */
 	  const char *type = ts_node_type (node);
 	  /* ts_node_type returning NULL means something unexpected
-             happend in tree-sitter, in this case the only reasonable
-             thing is to not match anything  */
+             happened in tree-sitter.  In this case the only reasonable
+             thing is to not match anything.  */
 	  if (type == NULL) return false;
 	  if (!(fast_c_string_match (car, type, strlen (type)) >= 0))
 	    return false;
@@ -5402,7 +5391,9 @@ depending on customization of `treesit-enabled-modes'.  */);
   defsubr (&Streesit_node_p);
   defsubr (&Streesit_compiled_query_p);
   defsubr (&Streesit_query_p);
+  defsubr (&Streesit_query_eagerly_compiled_p);
   defsubr (&Streesit_query_language);
+  defsubr (&Streesit_query_source);
 
   defsubr (&Streesit_node_parser);
 

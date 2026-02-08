@@ -1,6 +1,6 @@
 ;;; rfc1843.el --- HZ (RFC 1843) decoding  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2026 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: news HZ HZ+ mail i18n
@@ -29,8 +29,6 @@
 ;; (rfc1843-decode-string  "~{<:Ky2;S{#,NpJ)l6HK!#~}")
 
 ;;; Code:
-
-(eval-when-compile (require 'cl-lib))
 
 (defvar rfc1843-word-regexp
   "~\\({\\([\041-\167][\041-\176]\\| \\)+\\)\\(~}\\|$\\)")

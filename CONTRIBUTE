@@ -1,4 +1,4 @@
-Copyright (C) 2006-2025 Free Software Foundation, Inc.
+Copyright (C) 2006-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 * How developers contribute to GNU Emacs
@@ -136,9 +136,10 @@ command to index them; for instance, use @vindex for variables and
 https://www.gnu.org/software/texinfo/manual/texinfo/html_node/Predefined-Indices.html
 or run the shell command 'info "(texinfo)Predefined Indices"'.
 
-We prefer American English both in doc strings and in the manuals.
-That includes both spelling (e.g., "behavior", not "behaviour") and
-the convention of leaving 2 spaces between sentences.
+We prefer American English in doc strings, manuals, NEWS entries, text
+of messages, and identifier names.  That includes both spelling (e.g.,
+"behavior", not "behaviour") and the convention of leaving 2 spaces
+between sentences.
 
 For more specific tips on Emacs's doc style, see
 https://www.gnu.org/software/emacs/manual/html_node/elisp/Documentation-Tips.html

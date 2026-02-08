@@ -1,6 +1,6 @@
 ;;; treesit-admin.el --- Tree-sitter related admin scripts  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: 付禹安 (Yuan Fu) <casouri@gmail.com>
 ;; Keywords: maint
@@ -138,14 +138,12 @@ This is done by `require'ing all of the features that extend it."
    (lambda (source)
      (cond ((or (memq :revision source)
                 (memq :commit source))
-            (when (memq :revision source)
-              (let ((unversioned-source (copy-sequence source)))
-                (setcar (cdr (memq :revision unversioned-source)) nil)
-                unversioned-source))
-            (when (memq :commit source)
-              (let ((unversioned-source (copy-sequence source)))
-                (setcar (cdr (memq :commit unversioned-source)) nil)
-                unversioned-source)))
+            (let ((unversioned-source (copy-sequence source)))
+              (when (memq :revision source)
+                (setcar (cdr (memq :revision unversioned-source)) nil))
+              (when (memq :commit source)
+                (setcar (cdr (memq :commit unversioned-source)) nil))
+              unversioned-source))
            ((nthcdr 2 source)
             (let ((unversioned-source (copy-sequence source)))
               (setcar (nthcdr 2 unversioned-source) nil)

@@ -1,6 +1,6 @@
 ;;; vc-git-tests.el --- tests for vc/vc-git.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2026 Free Software Foundation, Inc.
 
 ;; Author: Justin Schell <justinmschell@gmail.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -193,5 +193,40 @@ is absent."
             `(("Branch"   . "feature/bar")
               ("Tracking" . ,main-branch)
               ("Remote"   . "none (tracking local branch)")))))))))
+
+(ert-deftest vc-git-test-branch-remotes ()
+  "Test behavior of `vc-git--branch-remotes'."
+  (skip-unless (executable-find vc-git-program))
+  (vc-git-test--with-repo repo
+    (let ((main-branch (vc-git-test--start-branch)))
+      (should (null (vc-git--branch-remotes)))
+      (vc-git--out-ok "config"
+                      (format "branch.%s.remote" main-branch)
+                      "origin")
+      (should (null (vc-git--branch-remotes)))
+      (vc-git--out-ok "config"
+                      (format "branch.%s.merge" main-branch)
+                      main-branch)
+      (let ((alist (vc-git--branch-remotes)))
+        (should (assq 'upstream alist))
+        (should (null (assq 'push alist))))
+      (vc-git--out-ok "config"
+                      (format "branch.%s.pushRemote" main-branch)
+                      "fork")
+      (let ((alist (vc-git--branch-remotes)))
+        (should (assq 'upstream alist))
+        (should (equal (cdr (assq 'push alist))
+                       (concat "fork/" main-branch))))
+      (vc-git--out-ok "config" "--unset"
+                      (format "branch.%s.pushRemote" main-branch))
+      (vc-git--out-ok "config" "remote.pushDefault" "fork")
+      (let ((alist (vc-git--branch-remotes)))
+        (should (assq 'upstream alist))
+        (should (equal (cdr (assq 'push alist))
+                       (concat "fork/" main-branch))))
+      (vc-git--out-ok "config" "remote.pushDefault" "origin")
+      (let ((alist (vc-git--branch-remotes)))
+        (should (assq 'upstream alist))
+        (should (null (assq 'push alist)))))))
 
 ;;; vc-git-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; gnus-salt.el --- alternate summary mode interfaces for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -23,8 +23,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-sum)

@@ -1,6 +1,6 @@
 ;;; comp-common.el --- common code -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <acorallo@gnu.org>
 ;; Keywords: lisp
@@ -272,7 +272,7 @@ Used to modify the compiler environment."
     (member (function (t list) list))
     (memq (function (t list) list))
     (memql (function (t list) list))
-    (message (function (string &rest t) string))
+    (message (function ((or string null) &rest t) (or string null)))
     (min (function ((or number marker) &rest (or number marker)) number))
     (minibuffer-selected-window (function () (or window null)))
     (minibuffer-window (function (&optional frame) window))

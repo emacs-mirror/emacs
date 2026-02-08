@@ -1,6 +1,6 @@
 /* Random utility Lisp functions.
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2101,6 +2101,31 @@ argument.  */)
 	prev = tail;
     }
   CHECK_LIST_END (tail, list);
+  return list;
+}
+
+/* Like Fdelq but do not report errors and neither quit nor process
+   signals.  Use only on objects known to be non-circular lists.  */
+Lisp_Object
+delq_no_quit (Lisp_Object elt, Lisp_Object list)
+{
+  Lisp_Object prev = Qnil, tail = list;
+
+  for (; !NILP (tail); tail = XCDR (tail))
+    {
+      Lisp_Object tem = XCAR (tail);
+
+      if (EQ (elt, tem))
+	{
+	  if (NILP (prev))
+	    list = XCDR (tail);
+	  else
+	    Fsetcdr (prev, XCDR (tail));
+	}
+      else
+	prev = tail;
+    }
+
   return list;
 }
 

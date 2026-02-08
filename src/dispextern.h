@@ -1,6 +1,6 @@
 /* Interface definitions for display code.
 
-Copyright (C) 1985, 1993-1994, 1997-2025 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1994, 1997-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -959,6 +959,9 @@ struct glyph_row
   /* Extra line spacing added after this row.  Do not consider this
      in last row when checking if row is fully visible.  */
   int extra_line_spacing;
+
+  /* Part of extra_line_spacing that should go above the line.  */
+  int extra_line_spacing_above;
 
   /* First position in this row.  This is the text position, including
      overlay position information etc, where the display of this row
@@ -2771,6 +2774,10 @@ struct it
   /* Default amount of additional space in pixels between lines (for
      window systems only.)  */
   int extra_line_spacing;
+
+  /* Default amount of additional space in pixels above lines (for
+     window systems only).  */
+  int extra_line_spacing_above;
 
   /* Max extra line spacing added in this row.  */
   int max_extra_line_spacing;

@@ -1,6 +1,6 @@
 /* System description file for Windows NT.
 
-Copyright (C) 1993-1995, 2001-2025 Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -227,7 +227,6 @@ extern void w32_reset_stack_overflow_guard (void);
 #define select  sys_select
 #define pselect sys_select
 #define sleep   sys_sleep
-#define strerror sys_strerror
 #undef unlink
 #define unlink  sys_unlink
 #undef opendir
@@ -267,6 +266,13 @@ extern int sys_umask (int);
 #define cmgoto       sys_cmgoto
 #define cmputc       sys_cmputc
 #define Wcm_clear    sys_Wcm_clear
+
+/* MinGW64 system headers include string.h too early, causing the
+   compiler to emit a warning about sys_strerror having no
+   prototype, or the linker fail to link.  */
+#include <string.h>
+#define strerror sys_strerror
+char *sys_strerror (int);
 
 #endif /* emacs */
 

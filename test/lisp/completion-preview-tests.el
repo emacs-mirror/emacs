@@ -1,6 +1,6 @@
 ;;; completion-preview-tests.el --- tests for completion-preview.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -378,7 +378,7 @@ instead."
       (should-not exit-fn-args))))
 
 (ert-deftest completion-preview-insert-mid-symbol ()
-  "Test `completion-preview-insert-word' when point is in a mulit-word symbol."
+  "Test `completion-preview-insert-word' when point is in a multi-word symbol."
   (with-temp-buffer
     (setq-local completion-at-point-functions
                 (list

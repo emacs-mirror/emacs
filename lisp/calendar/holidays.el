@@ -1,6 +1,6 @@
 ;;; holidays.el --- holiday functions for the calendar package  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2025 Free Software
+;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -654,10 +654,17 @@ STRING)).  Returns nil if it is not visible in the current calendar window."
 
 (defun holiday-float (month dayname n string &optional day)
   "Holiday called STRING on the Nth DAYNAME after/before MONTH DAY.
-DAYNAME=0 means Sunday, DAYNAME=1 means Monday, and so on.
-If N>0, use the Nth DAYNAME after MONTH DAY.
-If N<0, use the Nth DAYNAME before MONTH DAY.
-DAY defaults to 1 if N>0, and MONTH's last day otherwise.
+DAYNAME = 0 means Sunday, DAYNAME = 1 means Monday, and so on.  DAY
+defaults to 1 if N > 0, and MONTH's last day otherwise.
+
+If N > 0, use the Nth DAYNAME after MONTH DAY.
+If N < 0, use the Nth DAYNAME before MONTH DAY.
+
+When MONTH DAY falls on DAYNAME, the holiday will be |N|-1 weeks before
+or after MONTH DAY.  For example, with N = +1 (-1) the holiday falls on
+MONTH DAY, and with N = +2 (-2) the holiday falls 1 week after (before)
+MONTH DAY.
+
 If the holiday is visible in the calendar window, returns a
 list (((month day year) STRING)).  Otherwise returns nil."
   ;; This is messy because the holiday may be visible, while the date

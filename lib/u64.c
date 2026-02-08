@@ -1,6 +1,6 @@
 /* uint64_t-like operations that work even on hosts lacking uint64_t
 
-   Copyright (C) 2012-2025 Free Software Foundation, Inc.
+   Copyright (C) 2012-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as

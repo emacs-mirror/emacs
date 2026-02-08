@@ -1,6 +1,6 @@
 ;;; time-stamp-tests.el --- tests for time-stamp.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -35,6 +35,7 @@
          (ref-time2 '(22574 61591))    ;Friday, Nov 18, 2016, 12:14:15 PM
          (ref-time3 '(21377 34956))    ;Sunday, May 25, 2014, 06:07:08 AM
          (time-stamp-active t)         ;default, but user may have changed it
+         (time-stamp-warn-inactive t)  ;default, but user may have changed it
          (time-stamp-time-zone t))     ;use UTC
      (cl-letf (((symbol-function 'time-stamp-conv-warn)
                 (lambda (old-format _new &optional _newer)
@@ -199,47 +200,58 @@
 
 (ert-deftest time-stamp-custom-pattern ()
   "Test that `time-stamp-pattern' is parsed correctly."
-  (iter-do (pattern-parts (time-stamp-test-pattern-all))
-    (cl-destructuring-bind (line-limit1 start1 whole-format end1) pattern-parts
-      (cl-letf
-          (((symbol-function 'time-stamp-once)
-            (lambda (start search-limit ts-start ts-end
-                           ts-format _format-lines _end-lines)
-              ;; Verify that time-stamp parsed time-stamp-pattern and
-              ;; called us with the correct pieces.
-              (let ((limit-number (if (equal line-limit1 "")
-                                      time-stamp-line-limit
-                                    (string-to-number line-limit1))))
-                (goto-char (point-min))
-                (if (> limit-number 0)
-                    (should (= search-limit (pos-bol (1+ limit-number))))
-                  (should (= search-limit (point-max))))
-                (goto-char (point-max))
-                (if (< limit-number 0)
-                    (should (= start (pos-bol (1+ limit-number))))
-                  (should (= start (point-min)))))
-              (if (equal start1 "")
-                  (should (equal ts-start time-stamp-start))
-                (should (equal ts-start start1)))
-              (if (or (equal whole-format "")
-                      (equal whole-format "%%"))
-                  (should (equal ts-format time-stamp-format))
-                (should (equal ts-format whole-format)))
-              (if (equal end1 "")
-                  (should (equal ts-end time-stamp-end))
-                (should (equal ts-end end1)))
-              ;; return nil to stop time-stamp from calling us again
-              nil)))
-        (let ((time-stamp-pattern (concat
-                                   line-limit1 start1 whole-format end1))
-              (case-fold-search nil))
-          (with-temp-buffer
-            ;; prep the buffer with more than the
-            ;; largest line-limit1 number of lines
-            (insert "\n\n\n\n\n\n\n\n\n\n\n\n")
-            ;; Call time-stamp, which will call time-stamp-once,
-            ;; triggering the tests above.
-            (time-stamp)))))))
+  (with-time-stamp-test-env
+    (let ((expected-calls 0)
+          (actual-calls 0)
+          (case-fold-search nil)
+          ;; more than the largest line-limit1 number of lines
+          (initial-buffer-contents "\n\n\n\n\n\n\n\n\n\n\n\n")
+          time-stamp-pattern)
+      (with-temp-buffer
+        (insert initial-buffer-contents)
+        (iter-do (pattern-parts (time-stamp-test-pattern-all))
+          (cl-destructuring-bind
+              (line-limit1 start1 whole-format end1) pattern-parts
+            (cl-letf
+                (((symbol-function 'time-stamp-once)
+                  (lambda (start search-limit ts-start ts-end
+                                 ts-format _format-lines _end-lines)
+                    (incf actual-calls)
+                    ;; Verify that time-stamp parsed time-stamp-pattern and
+                    ;; called us with the correct pieces.
+                    (let ((limit-number (if (equal line-limit1 "")
+                                            time-stamp-line-limit
+                                          (string-to-number line-limit1))))
+                      (goto-char (point-min))
+                      (should (= search-limit (if (> limit-number 0)
+                                                  (pos-bol (1+ limit-number))
+                                                (point-max))))
+                      (goto-char (point-max))
+                      (should (= start (if (< limit-number 0)
+                                           (pos-bol (1+ limit-number))
+                                         (point-min)))))
+                    (should (equal ts-start (if (equal start1 "")
+                                                time-stamp-start
+                                              start1)))
+                    (should (equal ts-format (if (or (equal whole-format "")
+                                                     (equal whole-format "%%"))
+                                                 time-stamp-format
+                                               whole-format)))
+                    (should (equal ts-end (if (equal end1 "")
+                                              time-stamp-end
+                                            end1)))
+                    ;; return nil to stop time-stamp from calling us again
+                    nil)))
+              (setq time-stamp-pattern
+                    (concat line-limit1 start1 whole-format end1))
+              (incf expected-calls)
+              ;; Call time-stamp, which should call time-stamp-once,
+              ;; triggering the tests above.
+              (time-stamp)
+              )))
+        (should (equal (buffer-string) initial-buffer-contents))
+        (should (= actual-calls expected-calls))
+        ))))
 
 (ert-deftest time-stamp-custom-format-tabs-expand ()
   "Test that Tab characters expand in the format but not elsewhere."
@@ -422,15 +434,15 @@ say EXPECTED should not be run through `format-time-string'."
          (do-one (lambda (conv expected reftime)
                    `(,should-fn
                      (time-stamp-test--string-equal
-                         (time-stamp-string ,conv ,reftime)
-                         ,(let ((fmt-form
+                      (time-stamp-string ,conv ,reftime)
+                      ,(let ((fmt-form
                               (if literal
                                   expected
                                 `(format-time-string
                                   ,expected ,reftime time-stamp-time-zone))))
-                            (dolist (fn filter-list fmt-form)
-                              (setq fmt-form `(funcall ',fn ,fmt-form))))
-                         ))))
+                         (dolist (fn filter-list fmt-form)
+                           (setq fmt-form `(funcall ',fn ,fmt-form))))
+                      ))))
          (result (list 'progn)))
     (when (memq :literal filter-list)
       (setq literal t)
@@ -772,7 +784,7 @@ This is a separate function so it can have an `ert-explainer' property."
 (ert-deftest time-stamp-format-letter-case ()
   "Test `time-stamp' upcase and downcase modifiers not tested elsewhere."
   (with-time-stamp-test-env
-    (time-stamp-test ("%*^A" "%*#A") "%^A")
+    (time-stamp-test-AB ("%*^A" "%*#A") "%^A")
     ))
 
 ;;; Tests of helper functions
@@ -783,6 +795,30 @@ This is a separate function so it can have an `ert-explainer' property."
     (should (equal (time-stamp-string nil ref-time1)
                    (time-stamp-string time-stamp-format ref-time1)))
     (should (equal (time-stamp-string 'not-a-string ref-time1) nil))))
+
+(ert-deftest time-stamp-helper-string-used ()
+  "Test that `time-stamp' uses `time-stamp-string'."
+  ;; Because the formatting tests use only time-stamp-string, we
+  ;; test that time-stamp-string is actually used by time-stamp.
+  (with-time-stamp-test-env
+    (let ((time-stamp-format "not the default string used %Y%%")
+          (ts-string-calls 0))
+      (cl-letf (((symbol-function 'time-stamp-string)
+                 (lambda (&optional ts-format _time)
+                   (should (equal ts-format time-stamp-format))
+                   (incf ts-string-calls)
+                   "tss-res")))
+        (with-temp-buffer
+          ;; no template, no call to time-stamp-string expected
+          (time-stamp)
+          (should (= ts-string-calls 0))
+          (should (equal (buffer-string) ""))
+          ;; with template, expect one call
+          (insert "Time-stamp: <>")
+          (time-stamp)
+          (should (= ts-string-calls 1))
+          (should (equal (buffer-string) "Time-stamp: <tss-res>"))
+          )))))
 
 (ert-deftest time-stamp-helper-zone-type-p ()
   "Test `time-stamp-zone-type-p'."

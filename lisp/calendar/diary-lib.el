@@ -1,6 +1,6 @@
 ;;; diary-lib.el --- diary functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1989-2026 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1402,7 +1402,7 @@ marks.  This is intended to deal with deleted diary entries."
         (diary-buffer (find-buffer-visiting diary-file))
         ;; Record current calendar buffer in case this function is
         ;; called in a calendar-mode buffer not named `calendar-buffer'.
-        (calendar-buffer (calendar-get-buffer))
+        (calendar-buffer (buffer-name (calendar-get-buffer)))
         ;; Dynamically bound in diary-include-files.
         (d-incp (and (boundp 'diary-including) diary-including))
         file-glob-attrs temp-buff)

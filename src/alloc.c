@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -5996,14 +5996,7 @@ DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
        doc: /* Reclaim storage for Lisp objects no longer needed.
 Garbage collection happens automatically if you cons more than
 `gc-cons-threshold' bytes of Lisp data since previous garbage collection.
-`garbage-collect' normally returns a list with info on amount of space in use,
-where each entry has the form (NAME SIZE USED FREE), where:
-- NAME is a symbol describing the kind of objects this entry represents,
-- SIZE is the number of bytes used by each one,
-- USED is the number of those objects that were found live in the heap,
-- FREE is the number of those objects that are not live but that Emacs
-  keeps around for future allocations (maybe because it does not know how
-  to return them to the OS).
+It returns the same info as `garbage-collect-heapsize'.
 
 Note that calling this function does not guarantee that absolutely all
 unreachable objects will be garbage-collected.  Emacs uses a
@@ -6020,7 +6013,28 @@ For further details, see Info node `(elisp)Garbage Collection'.  */)
   specbind (Qsymbols_with_pos_enabled, Qnil);
   garbage_collect ();
   unbind_to (count, Qnil);
+  return Fgarbage_collect_heapsize ();
+}
+
+DEFUN ("garbage-collect-heapsize", Fgarbage_collect_heapsize,
+       Sgarbage_collect_heapsize, 0, 0, 0,
+       doc: /* Return a list with info on amount of space in use.
+This info may not be fully up to date unless it is called right after
+a full garbage collection cycle.
+Each entry has the form (NAME SIZE USED FREE), where:
+- NAME is a symbol describing the kind of objects this entry represents,
+- SIZE is the number of bytes used by each one,
+- USED is the number of those objects that were found live in the heap,
+- FREE is the number of those objects that are not live but that Emacs
+  keeps around for future allocations (maybe because it does not know how
+  to return them to the OS).  */)
+  (void)
+{
   struct gcstat gcst = gcstat;
+
+  /* FIXME: Maybe we could/should add a field countaing the approximate
+     amount of memory allocated since the last GC, such as
+     'gc_threshold - consing_until_gc'.   */
 
   Lisp_Object total[] = {
     list4 (Qconses, make_fixnum (sizeof (struct Lisp_Cons)),
@@ -7512,6 +7526,7 @@ N should be nonnegative.  */);
   defsubr (&Smake_finalizer);
   defsubr (&Sgarbage_collect);
   defsubr (&Sgarbage_collect_maybe);
+  defsubr (&Sgarbage_collect_heapsize);
   defsubr (&Smemory_info);
   defsubr (&Smemory_use_counts);
 #if defined GNU_LINUX && defined __GLIBC__ && \

@@ -1,6 +1,6 @@
 ;;; xwidget.el --- api functions for xwidgets  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2026 Free Software Foundation, Inc.
 
 ;; Author: Joakim Verona <joakim@verona.se>
 
@@ -31,7 +31,6 @@
 ;; And is pointless when we do, since it's in C and so preloaded.
 ;;(require 'xwidget-internal)
 
-(require 'cl-lib)
 (require 'bookmark)
 (require 'format-spec)
 

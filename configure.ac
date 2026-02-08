@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2025 Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2026 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -1804,6 +1804,7 @@ AS_IF([test $gl_gcc_warnings = no],
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
   nw="$nw -Wbad-function-cast"      # These casts are no worse than others.
+  nw="$nw -Wzero-as-null-pointer-constant" # Emacs is not yet C2y-safe.
 
   # Emacs doesn't care about shadowing; see
   # <https://lists.gnu.org/r/emacs-diffs/2011-11/msg00265.html>.
@@ -2886,6 +2887,11 @@ Mac OS X 12.x or later.
        [Define to use native OS APIs for images.])
      NATIVE_IMAGE_API="yes (ns)"
   fi
+
+  if test "${NS_IMPL_GNUSTEP}" = yes; then
+    AC_CHECK_DECLS([NSImageNameCaution], [], [],
+                   [[#import <AppKit/NSImage.h>]])
+  fi
 fi
 
 AC_SUBST([LIBS_GNUSTEP])
@@ -3590,21 +3596,25 @@ if test "${with_webp}" != "no"; then
    || test "${HAVE_BE_APP}" = "yes" || test "${HAVE_PGTK}" = "yes" \
    || test "${REALLY_ANDROID}" = "yes"; then
       WEBP_REQUIRED=0.6.0
-      WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED"
+      # Definitions from webp/decode.h are in libwebp, and those from
+      # webp/demux.h in libwebpdemux, which depends on libwebp.
+      WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED libwebp >= $WEBP_REQUIRED"
 
       EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])
 
-      # WebPGetInfo is sometimes not present inside libwebpdemux, so
-      # if it does not link, also check for libwebpdecoder.
+      # If for some reason we still don't have functions from
+      # webp/decode.h, try libwebpdecoder as well, which is the
+      # decoder-only subset of libwebp (bug#61988, bug#66221).
 
       OLD_CFLAGS=$CFLAGS
       OLD_LIBS=$LIBS
       CFLAGS="$CFLAGS $WEBP_CFLAGS"
-      LIBS="$LIBS $WEBP_LIBS"
+      LIBS="$WEBP_LIBS $LIBS"
 
       AS_IF([test "$REALLY_ANDROID" != "yes"], [
-	AC_CHECK_FUNC([WebPGetInfo], [],
-	  [WEBP_MODULE="$WEBP_MODULE libwebpdecoder >= $WEBP_REQUIRED"
+        AC_CHECK_FUNC([WebPDecodeRGBA], [],
+          [WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED"
+           WEBP_MODULE="$WEBP_MODULE libwebpdecoder >= $WEBP_REQUIRED"
 	   HAVE_WEBP=no
 	   AS_UNSET([WEBP_LIBS])
 	   AS_UNSET([WEBP_CFLAGS])
@@ -4059,39 +4069,15 @@ TREE_SITTER_OBJ=
 NEED_DYNLIB=no
 
 if test "${with_tree_sitter}" != "no"; then
-   dnl Tree-sitter 0.20.2 added support to change the malloc it uses
-   dnl at runtime, we need that feature.  However, tree-sitter's
-   dnl Makefile has problems, until that's fixed, all tree-sitter
-   dnl libraries distributed are versioned 0.6.3.  We try to
-   dnl accept a tree-sitter library that has incorrect version as long
-   dnl as it supports changing malloc.
-  EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.20.2],
+   dnl Tree-sitter 0.20.10 added ts_tree_cursor_goto_previous_sibling, we
+   dnl need it for a more efficient implementation for traversing the
+   dnl parse tree backwards (bug#80108).
+  EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.20.10],
     [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
   if test "${HAVE_TREE_SITTER}" = yes; then
     AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
     NEED_DYNLIB=yes
-  else
-    EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.6.3],
-      [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
-    if test "${HAVE_TREE_SITTER}" = yes; then
-      OLD_CFLAGS=$CFLAGS
-      OLD_LIBS=$LIBS
-      CFLAGS="$CFLAGS $TREE_SITTER_CFLAGS"
-      LIBS="$TREE_SITTER_LIBS $LIBS"
-      AC_CHECK_FUNCS([ts_set_allocator])
-      CFLAGS=$OLD_CFLAGS
-      LIBS=$OLD_LIBS
-      if test "$ac_cv_func_ts_set_allocator" = yes; then
-        AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
-	NEED_DYNLIB=yes
-      else
-        AC_MSG_ERROR([Tree-sitter library exists but its version is too old]);
-        TREE_SITTER_CFLAGS=
-        TREE_SITTER_LIBS=
-      fi
-    fi
   fi
-
   # Windows loads tree-sitter dynamically
   if test "${opsys}" = "mingw32"; then
     TREE_SITTER_LIBS=
@@ -7143,7 +7129,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2025 Free Software Foundation, Inc."
+copyright="Copyright (C) 2026 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED([COPYRIGHT], ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST([copyright])
@@ -7194,6 +7180,9 @@ AC_SUBST([ns_appresdir])
 AC_SUBST([ns_appsrc])
 AC_SUBST([GNU_OBJC_CFLAGS])
 AC_SUBST([OTHER_FILES])
+
+AS_IF([test $prefix = "NONE"], [_prefix=/usr/local], [_prefix=$prefix])
+AC_DEFINE_UNQUOTED([BINDIR], ["${_prefix}/bin/"], [Executables directory.])
 
 if test -n "${term_header}"; then
     AC_DEFINE_UNQUOTED([TERM_HEADER], ["${term_header}"],
@@ -7523,7 +7512,7 @@ AC_SUBST([WINDOW_SYSTEM_OBJ])
 
 AH_TOP([/* GNU Emacs site configuration template file.
 
-Copyright (C) 1988-2025 Free Software Foundation, Inc.
+Copyright (C) 1988-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

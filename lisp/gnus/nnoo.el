@@ -1,6 +1,6 @@
 ;;; nnoo.el --- OO Gnus Backends  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -25,7 +25,6 @@
 ;;; Code:
 
 (require 'nnheader)
-(eval-when-compile (require 'cl-lib))
 
 (defvar nnoo-definition-alist nil)
 (defvar nnoo-state-alist nil)

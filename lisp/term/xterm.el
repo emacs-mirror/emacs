@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -80,6 +80,26 @@ capabilities, and only when that terminal understands bracketed paste."
   :version "28.1"
   :type 'boolean)
 
+(defcustom xterm-update-cursor nil
+  "Whether to try to update cursor appearance on text terminals.
+This works only for Xterm-compatible text terminals.
+
+If set to t all supported attributes of the cursor are updated.
+If set to `type' only the cursor type is updated.  This uses the CSI
+DECSCUSR escape sequence.
+If set to `color' only the cursor color is updated.  This uses the OSC
+12 and OSC 112 escape sequences."
+  :version "31.1"
+  :type '(radio (const :tag "Do not update" nil)
+                (const :tag "Update" t)
+                (const :tag "Update type only" type)
+                (const :tag "Update color only" color)))
+
+;; MacOS Terminal.app does not handle OSC 112 if it is terminated with
+;; \e\\.  It only handles OSC 112 if it is terminated by \a.
+(defconst xterm--reset-cursor-color-escape-sequence "\e]112\a"
+  "OSC 112 escape sequence to reset cursor color to terminal default.")
+
 (defconst xterm-paste-ending-sequence "\e[201~"
   "Characters sent by the terminal to end a bracketed paste.")
 
@@ -89,7 +109,8 @@ capabilities, and only when that terminal understands bracketed paste."
           "WezTerm"
           ;; "XTerm"   ;Disabled because OSC52 support is opt-in only.
           "iTerm2"     ;OSC52 support has opt-in/out UI on first usage
-          "kitty")
+          "kitty"
+          "foot")
       word-end)
   "Regexp for terminals that automatically enable `xterm-mouse-mode' at startup.
 This will get matched against the terminal's XTVERSION string.
@@ -746,20 +767,22 @@ Return the pasted text as a string."
   (let ((str (xterm--read-string ?\e ?\\)))
     (when (string-match
            "rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
-      (let ((recompute-faces
-             (xterm-maybe-set-dark-background-mode
-              (string-to-number (match-string 1 str) 16)
-              (string-to-number (match-string 2 str) 16)
-              (string-to-number (match-string 3 str) 16))))
+      (set-terminal-parameter
+       nil 'xterm--background-color
+       (list (string-to-number (match-string 1 str) 16)
+             (string-to-number (match-string 2 str) 16)
+             (string-to-number (match-string 3 str) 16))))))
 
-        ;; Recompute faces here in case the background mode was
-        ;; set to dark.  We used to call
-        ;; `tty-set-up-initial-frame-faces' only once, but that
-        ;; caused the light background faces to be computed
-        ;; incorrectly.  See:
-        ;; https://lists.gnu.org/r/emacs-devel/2010-01/msg00439.html
-        (when recompute-faces
-          (tty-set-up-initial-frame-faces))))))
+(defun xterm--report-foreground-handler ()
+  ;; The reply is similar to in `xterm--report-background-handler'.
+  (let ((str (xterm--read-string ?\e ?\\)))
+    (when (string-match
+           "rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
+      (set-terminal-parameter
+       nil 'xterm--foreground-color
+       (list (string-to-number (match-string 1 str) 16)
+             (string-to-number (match-string 2 str) 16)
+             (string-to-number (match-string 3 str) 16))))))
 
 (defun xterm--version-handler ()
   ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
@@ -784,7 +807,9 @@ Return the pasted text as a string."
           ;; Gnome terminal 3.38.0 reports 65;6200;1.
           (when (> version 4000)
             (xterm--query "\e]11;?\e\\"
-                          '(("\e]11;" .  xterm--report-background-handler))))
+                          '(("\e]11;" . xterm--report-background-handler)))
+            (xterm--query "\e]10;?\e\\"
+                          '(("\e]10;" . xterm--report-foreground-handler))))
           (setq version 200))
         (when (equal (match-string 1 str) "83")
           ;; `screen' (which returns 83;40003;0) seems to also lack support for
@@ -798,7 +823,9 @@ Return the pasted text as a string."
         ;; versions do too...)
         (when (>= version 242)
           (xterm--query "\e]11;?\e\\"
-                        '(("\e]11;" .  xterm--report-background-handler))))
+                        '(("\e]11;" . xterm--report-background-handler)))
+          (xterm--query "\e]10;?\e\\"
+                        '(("\e]10;" . xterm--report-foreground-handler))))
 
         ;; If version is 216 (the version when modifyOtherKeys was
         ;; introduced) or higher, initialize the
@@ -815,6 +842,16 @@ Return the pasted text as a string."
           ;; explicitly requests it.
           ;;(xterm--init-activate-get-selection)
           (xterm--init-activate-set-selection))))))
+
+(defun xterm--primary-da-handler ()
+  ;; The reply should be: \e [ ? NUMBER1 ; ... ; NUMBER_N c
+  (let ((str (xterm--read-string ?c)))
+    (when (member "52" (split-string str ";" t))
+      ;; Many modern terminals include 52 in their primary DA response,
+      ;; to indicate support for *writing* to the OS clipboard. The
+      ;; specification does not guarantee the clipboard can be read. See
+      ;; https://github.com/contour-terminal/vt-extensions/blob/master/clipboard-extension.md
+      (xterm--init-activate-set-selection))))
 
 (defvar xterm-query-timeout 2
   "Seconds to wait for an answer from the terminal.
@@ -942,18 +979,20 @@ We run the first FUNCTION whose STRING matches the input events."
   (tty-set-up-initial-frame-faces)
 
   (if (eq xterm-extra-capabilities 'check)
-      ;; Try to find out the type of terminal by sending a "Secondary
-      ;; Device Attributes (DA)" query.
-      (xterm--query "\e[>0c"
-                    ;; Some terminals (like macOS's Terminal.app) respond to
-                    ;; this query as if it were a "Primary Device Attributes"
-                    ;; query instead, so we should handle that too.
-                    '(("\e[?" . xterm--version-handler)
-                      ("\e[>" . xterm--version-handler)))
+      (progn
+        ;; Try to find out the type of terminal by sending a "Secondary
+        ;; Device Attributes (DA)" query.
+        (xterm--query "\e[>0c"
+                      '(("\e[>" . xterm--version-handler)))
+        ;; Check primary DA for OSC-52 support
+        (xterm--query "\e[c"
+                      '(("\e[?" . xterm--primary-da-handler))))
 
     (when (memq 'reportBackground xterm-extra-capabilities)
       (xterm--query "\e]11;?\e\\"
-                    '(("\e]11;" .  xterm--report-background-handler))))
+                    '(("\e]11;" . xterm--report-background-handler)))
+      (xterm--query "\e]10;?\e\\"
+                    '(("\e]10;" . xterm--report-foreground-handler))))
 
     (when (memq 'modifyOtherKeys xterm-extra-capabilities)
       (xterm--init-modify-other-keys))
@@ -965,6 +1004,29 @@ We run the first FUNCTION whose STRING matches the input events."
 
   (when xterm-set-window-title
     (xterm--init-frame-title))
+  (when xterm-update-cursor
+    (xterm--init-update-cursor))
+
+  (let ((bg-color (terminal-parameter nil 'xterm--background-color))
+        (fg-color (terminal-parameter nil 'xterm--foreground-color)))
+    (when bg-color
+      (let ((recompute-faces
+             (apply #'xterm--set-background-mode bg-color)))
+
+        ;; Recompute faces here in case the background mode was
+        ;; set to dark.  We used to call
+        ;; `tty-set-up-initial-frame-faces' only once, but that
+        ;; caused the light background faces to be computed
+        ;; incorrectly.  See:
+        ;; https://lists.gnu.org/r/emacs-devel/2010-01/msg00439.html
+        (when recompute-faces
+          (tty-set-up-initial-frame-faces))))
+    (when (or bg-color fg-color)
+      (add-hook 'after-make-frame-functions 'xterm--maybe-update-default-face)
+      ;; Manually update, after-make-frame-functions was already called
+      ;; for initial frame.
+      (xterm--maybe-update-default-face (selected-frame))))
+
   (when (and (not xterm-mouse-mode-called)
              ;; Only automatically enable xterm mouse on terminals
              ;; confirmed to still support all critical editing
@@ -980,6 +1042,16 @@ We run the first FUNCTION whose STRING matches the input events."
   (xterm--init-bracketed-paste-mode)
   ;; We likewise unconditionally enable support for focus tracking.
   (xterm--init-focus-tracking))
+
+(defun xterm--post-command-hook ()
+  "Hook for xterm features that need to be frequently updated."
+  (unless (display-graphic-p)
+    (when xterm-set-window-title
+      (xterm-set-window-title))
+    (when (memq xterm-update-cursor '(t type))
+      (xterm--update-cursor-type))
+    (when (memq xterm-update-cursor '(t color))
+      (xterm--update-cursor-color))))
 
 (defun terminal-init-xterm ()
   "Terminal initialization function for xterm."
@@ -1023,7 +1095,7 @@ We run the first FUNCTION whose STRING matches the input events."
   (xterm-set-window-title)
   (add-hook 'after-make-frame-functions 'xterm-set-window-title-flag)
   (add-hook 'window-configuration-change-hook 'xterm-unset-window-title-flag)
-  (add-hook 'post-command-hook 'xterm-set-window-title)
+  (add-hook 'post-command-hook 'xterm--post-command-hook)
   (add-hook 'minibuffer-exit-hook 'xterm-set-window-title))
 
 (defvar xterm-window-title-flag nil
@@ -1229,12 +1301,103 @@ versions of xterm."
     ;; right colors, so clear them.
     (clear-face-cache)))
 
-(defun xterm-maybe-set-dark-background-mode (redc greenc bluec)
+(defun xterm--set-background-mode (redc greenc bluec)
   ;; Use the heuristic in `frame-set-background-mode' to decide if a
   ;; frame is dark.
-  (when (< (+ redc greenc bluec) (* .6 (+ 65535 65535 65535)))
-    (set-terminal-parameter nil 'background-mode 'dark)
-    t))
+  (set-terminal-parameter
+   nil 'background-mode
+   (if (< (+ redc greenc bluec) (* .6 (+ 65535 65535 65535)))
+       'dark
+     'light)))
+
+(defun xterm--maybe-update-default-face (frame)
+  (let ((bg-color (terminal-parameter (frame-terminal frame)
+                                      'xterm--background-color))
+        (fg-color (terminal-parameter (frame-terminal frame)
+                                      'xterm--foreground-color))
+        (default-bg (face-attribute 'default :background frame))
+        (default-fg (face-attribute 'default :foreground frame)))
+    (when (and bg-color (string-equal default-bg "unspecified-bg"))
+      (let ((r (car bg-color))
+            (g (cadr bg-color))
+            (b (caddr bg-color)))
+        (set-face-background 'default (format "#%04x%04x%04x" r g b) frame)))
+    (when (and fg-color (string-equal default-fg "unspecified-fg"))
+      (let ((r (car fg-color))
+            (g (cadr fg-color))
+            (b (caddr fg-color)))
+        (set-face-foreground 'default (format "#%04x%04x%04x" r g b) frame)))))
+
+(defun xterm--init-update-cursor ()
+  "Register hooks to run `xterm--update-cursor-type' appropriately."
+  (when (memq xterm-update-cursor '(color t))
+    (push xterm--reset-cursor-color-escape-sequence
+          (terminal-parameter nil 'tty-mode-reset-strings))
+    ;; No need to set `tty-mode-set-strings' because
+    ;; `xterm--post-command-hook' handles restoring the cursor color.
+
+    (xterm--update-cursor-color))
+  (when (memq xterm-update-cursor '(type t))
+    (xterm--update-cursor-type))
+  (add-hook 'post-command-hook 'xterm--post-command-hook))
+
+(defconst xterm--cursor-type-to-int
+  '(nil 0
+    box 1
+    hollow 1
+    bar 5
+    hbar 3)
+  "Mapping of cursor type symbols to control sequence integers.
+Cursor type symbols are the same as for `cursor-type'.")
+
+(defun xterm--set-cursor-type (terminal type)
+  (let ((type-int (or (plist-get xterm--cursor-type-to-int type) 1))
+        (old (terminal-parameter terminal 'xterm--cursor-style)))
+    (when old
+      (set-terminal-parameter
+       terminal
+       'tty-mode-set-strings
+       (delete (format "\e[%d q" old)
+               (terminal-parameter terminal 'tty-mode-set-strings))))
+    (let ((set-string (format "\e[%d q" type-int)))
+      (push set-string (terminal-parameter terminal 'tty-mode-set-strings))
+      (send-string-to-terminal set-string terminal))
+    (unless old
+      ;; Assume that the default cursor is appropriate when exiting Emacs.
+      (push "\e[0 q" (terminal-parameter terminal 'tty-mode-reset-strings)))
+    (set-terminal-parameter terminal 'xterm--cursor-type type-int)))
+
+(defun xterm--update-cursor-type ()
+  "Update the cursor type for Xterm-compatible terminals.
+This updates the selected frame's terminal based on `cursor-type'."
+  (let ((buffer-cursor cursor-type)
+        (window-cursor (window-cursor-type))
+        (frame-cursor (frame-parameter nil 'cursor-type))
+        type)
+    ;; All of them can be conses, in which case the type symbol is the car.
+    (when (consp buffer-cursor) (setf buffer-cursor (car buffer-cursor)))
+    (when (consp window-cursor) (setf window-cursor (car window-cursor)))
+    (when (consp frame-cursor) (setf frame-cursor (car frame-cursor)))
+    (cond ((not (eq window-cursor t))
+           (setf type window-cursor))
+          ((not (eq buffer-cursor t))
+           (setf type buffer-cursor))
+          (t
+           (setf type frame-cursor)))
+    (xterm--set-cursor-type nil type)))
+
+(defun xterm--update-cursor-color ()
+  "Update the cursor color for Xterm-compatible terminals.
+This updates the selected frame's terminal based on the face `cursor'."
+  (if-let* ((color (color-values (face-background 'cursor)))
+            (r (nth 0 color))
+            (g (nth 1 color))
+            (b (nth 2 color)))
+      (send-string-to-terminal (format "\e]12;rgb:%04x/%04x/%04x\e\\" r g b))
+    ;; The background is `unspecified' or one of its variants.  We don't
+    ;; know the right cursor color to use, so fall back to the terminal
+    ;; default.
+    (send-string-to-terminal xterm--reset-cursor-color-escape-sequence)))
 
 (provide 'xterm)                        ;Backward compatibility.
 (provide 'term/xterm)

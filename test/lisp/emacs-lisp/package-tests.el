@@ -1,6 +1,6 @@
 ;;; package-tests.el --- Tests for the Emacs package system  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2026 Free Software Foundation, Inc.
 
 ;; Author: Daniel Hackney <dan@haxney.org>
 ;; Version: 1.0
@@ -241,10 +241,9 @@ Must called from within a `tar-mode' buffer."
     (package-initialize)
     (should (package-installed-p 'simple-single))
     ;; Check if we properly report an "already installed".
-    (package-install 'simple-single)
-    (with-current-buffer "*Messages*"
-      (should (string-match "^[`‘']simple-single[’'] is already installed\n?\\'"
-                            (buffer-string))))
+    (should (condition-case nil
+                (progn (package-install 'simple-single nil 'interactive) nil)
+              (user-error t)))
     (should (package-installed-p 'simple-single))
     (let* ((simple-pkg-dir (file-name-as-directory
                             (expand-file-name

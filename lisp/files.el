@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -5478,7 +5478,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 
 (defvar file-name-version-regexp
   "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+\\(?:~[[:digit:]]+\\)?~\\)"
-  ;; The last ~[[:digit]]+ matches relative versions in git,
+  ;; The last ~[[:digit:]]+ matches relative versions in git,
   ;; e.g. `foo.js.~HEAD~1~'.
   "Regular expression matching the backup/version part of a file name.
 Used by `file-name-sans-versions'.")

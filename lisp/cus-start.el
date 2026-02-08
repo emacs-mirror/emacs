@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -150,7 +150,11 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (scroll-down-aggressively windows
 				       (choice (const :tag "off" nil) float)
 				       "21.1")
-	     (line-spacing display (choice (const :tag "none" nil) number)
+	     (line-spacing display
+                           (choice (const :tag "No spacing" nil)
+                                   (number :tag "Spacing below")
+                                   (cons :tag "Spacing above and below"
+                                         number number))
 			   "22.1")
 	     (cursor-in-non-selected-windows
 	      cursor ,cursor-type-types nil
@@ -992,7 +996,7 @@ since it could result in memory overflow and make Emacs crash."
 	  (let ((prop (car rest))
 		(propval (cadr rest)))
 	    (setq rest (nthcdr 2 rest))
-	    (cond ((memq prop '(:standard :risky :safe :set))
+	    (cond ((memq prop '(:standard :risky :safe :set :initialize))
                    nil)  ; handled above
 		  ((eq prop :tag)
 		   (put symbol 'custom-tag propval))

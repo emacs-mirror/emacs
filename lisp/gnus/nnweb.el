@@ -1,6 +1,6 @@
 ;;; nnweb.el --- retrieving articles via web search engines  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -23,8 +23,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl-lib))
 
 (require 'nnoo)
 (require 'message)

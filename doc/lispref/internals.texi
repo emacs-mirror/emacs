@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1993, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1993, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node GNU Emacs Internals
@@ -286,13 +286,9 @@ program does not use so much space as to force a second garbage
 collection).
 @end quotation
 
-@deffn Command garbage-collect
-This command runs a garbage collection, and returns information on
-the amount of space in use.  (Garbage collection can also occur
-spontaneously if you use more than @code{gc-cons-threshold} bytes of
-Lisp data since the previous garbage collection.)
-
-@code{garbage-collect} returns a list with information on amount of space in
+@defun garbage-collect-heapsize
+This function returns information on the current memory usage.
+The return value is a list with information on amount of space in
 use, where each entry has the form @samp{(@var{name} @var{size} @var{used})}
 or @samp{(@var{name} @var{size} @var{used} @var{free})}.  In the entry,
 @var{name} is a symbol describing the kind of objects this entry represents,
@@ -422,6 +418,16 @@ Total heap size, in @var{unit-size} units.
 @item free-size
 Heap space which is not currently used, in @var{unit-size} units.
 @end table
+@end defun
+
+@deffn Command garbage-collect
+This command runs a garbage collection, and returns information on
+the amount of space in use.  (Garbage collection can also occur
+spontaneously if you use more than @code{gc-cons-threshold} bytes of
+Lisp data since the previous garbage collection.)
+
+@code{garbage-collect} returns the same list as shown above for
+@code{garbage-collect-heapsize}.
 @end deffn
 
 @defopt garbage-collection-messages
@@ -1660,6 +1666,7 @@ point to an array of at least @var{count} elements specifying the
 little-endian magnitude of the return value.
 @end deftypefn
 
+@cindex GMP, the GNU Multiprecision Library
 The following example uses the GNU Multiprecision Library (GMP) to
 calculate the next probable prime after a given integer.
 @xref{Top,,,gmp}, for a general overview of GMP, and @pxref{Integer
@@ -1752,7 +1759,11 @@ next_prime (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   mpz_t p;
   mpz_init (p);
   extract_big_integer (env, args[0], p);
+
+  /* Assume Emacs is linked to the full GMP library,
+     not to its mini-gmp subset that lacks mpz_nextprime.  */
   mpz_nextprime (p, p);
+
   emacs_value result = make_big_integer (env, p);
   mpz_clear (p);
   return result;
@@ -2844,11 +2855,23 @@ Avoid arbitrary limits.  For example, avoid @code{int len = strlen
 fit in @code{int} range.
 
 @item
+@cindex overflow in integers
+@cindex integer overflow
 Do not assume that signed integer arithmetic wraps around on overflow.
 This is no longer true of Emacs porting targets: signed integer
 overflow has undefined behavior in practice, and can dump core or
 even cause earlier or later code to behave illogically.  Unsigned
-overflow does wrap around reliably, modulo a power of two.
+overflow does wrap around reliably, modulo a power of two,
+if all operand types are unsigned and are @code{unsigned int} or wider.
+
+@item
+Use the macros of @code{<stdckdint.h>} to check for integer overflow
+or to implement wraparound arithmetic reliably with integer types
+that are signed or are narrower than @code{unsigned int}.
+Although @code{<stdckdint.h>} was not standardized until C23,
+on non-C23 platforms Emacs internally provides a fallback substitute.
+Avoid complex arguments to its macros @code{ckd_add}, @code{ckd_sub} and
+@code{ckd_mul}, as the fallback macros might evaluate arguments more than once.
 
 @item
 Prefer signed types to unsigned, as code gets confusing when signed
@@ -2907,9 +2930,16 @@ although @code{off_t} is always signed, @code{time_t} need not be.
 
 @item
 Prefer @code{intmax_t} for representing values that might be any
-signed integer value.
+signed integer value in machine range.
 A @code{printf}-family function can print such a value
 via a format like @code{"%"PRIdMAX}.
+
+@item
+Prefer Emacs integers, which are either fixnums or bignums,
+for representing values that might be outside machine range.
+Although low level code uses GMP directly for efficiency,
+Emacs integers are typically more convenient at higher levels of
+abstraction.
 
 @item
 Prefer @code{bool}, @code{false} and @code{true} for booleans.

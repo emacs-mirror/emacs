@@ -1,6 +1,6 @@
 ;;; mm-encode.el --- Functions for encoding MIME things  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -23,7 +23,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (require 'mail-parse)
 (autoload 'mailcap-extension-to-mime "mailcap")
 (autoload 'mm-body-7-or-8 "mm-bodies")

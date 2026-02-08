@@ -12,7 +12,7 @@
 @footnotestyle end
 
 @copying
-Copyright @copyright{} 1999--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1132,9 +1132,11 @@ an external transfer program.
 External methods save on the overhead of encoding and decoding of
 inline methods.
 
+@vindex tramp-copy-size-limit
 Since external methods have the overhead of opening a new channel,
 files smaller than @code{tramp-copy-size-limit} still use inline
-methods.
+methods.  If an external method is used inside a multi-hop connection
+(@pxref{Multi-hops}), its inherent inline method is used as well.
 
 @table @asis
 @cindex method @option{rcp}
@@ -3176,6 +3178,14 @@ connection cleanup or on Emacs exiting.
 @subsection @option{rclone} setup
 @cindex rclone setup
 
+Check, that your @command{rclone} program is compiled with mount
+support.  Call @samp{rclone mount} and check for an error message.
+
+Sometimes, the saved configuration expires.  In this case, you must
+renew it with the command @samp{rclone config reconnect
+@var{remote}:}, with @var{remote} being the name of your configured
+system storage.
+
 The default arguments of the @command{rclone} operations
 @command{mount}, @command{copyto}, @command{moveto} and
 @command{about} are declared in the variable @code{tramp-methods} as
@@ -3883,7 +3893,7 @@ proxy @samp{bird@@bastion} to a remote file on @samp{you@@remotehost}:
 ssh@value{postfixhop}you@@remotehost@value{postfix}/path @key{RET}}
 @end example
 
-Each involved method must be an inline method (@pxref{Inline methods}).
+Each involved method must be handled by @value{tramp}'s @code{tramp-sh} backend.
 
 @value{tramp} adds the ad-hoc definitions as an ephemeral record to
 @code{tramp-default-proxies-alist}, which are available for reuse

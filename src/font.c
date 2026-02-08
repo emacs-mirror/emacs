@@ -1,6 +1,6 @@
 /* font.c -- "Font" primitives.
 
-Copyright (C) 2006-2025 Free Software Foundation, Inc.
+Copyright (C) 2006-2026 Free Software Foundation, Inc.
 Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
   Registration Number H13PRO009
@@ -4023,8 +4023,10 @@ valid font property name listed below:
 
 `:family', `:weight', `:slant', `:width'
 
-They are the same as face attributes of the same name.  See
-`set-face-attribute'.
+They are the same as face attributes of the same name (see
+`set-face-attribute'), except that `:family' could also be a symbol,
+and the value of the other three properties can also be a number,
+the numerical value of the style.
 
 `:foundry'
 

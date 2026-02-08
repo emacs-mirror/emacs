@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1994, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Read and Print
@@ -713,11 +713,11 @@ would have printed for the same argument.
 (prin1-to-string (mark-marker))
      @result{} "#<marker at 2773 in strings.texi>"
 @end group
+@end example
 
 If @var{overrides} is non-@code{nil}, it should either be @code{t}
 (which tells @code{prin1} to use the defaults for all printer related
 variables), or a list of settings.  @xref{Output Overrides}, for details.
-@end example
 
 If @var{noescape} is non-@code{nil}, that inhibits use of quoting
 characters in the output.  (This argument is supported in Emacs versions

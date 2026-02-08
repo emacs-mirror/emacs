@@ -1,6 +1,6 @@
 ;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2026 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1463,7 +1463,7 @@ For NODE, OVERRIDE, START, END, and ARGS, see
   "Non-nil means to emit a warning when indentation guessing fails."
   :version "25.1"
   :type 'boolean
-  :safe' booleanp)
+  :safe 'booleanp)
 
 (defcustom python-indent-trigger-commands
   '(indent-for-tab-command yas-expand yas/expand)
@@ -3366,6 +3366,16 @@ from `python-shell-prompt-regexp',
             python-shell--prompt-calculated-output-regexp
             (funcall build-regexp output-prompts)))))
 
+(defun python-shell-get-project-name ()
+  "Return the project name for the current buffer.
+Use `project-name-cached' if available."
+  (when (featurep 'project)
+    (if (fboundp 'project-name-cached)
+        (project-name-cached default-directory)
+      (when-let* ((proj (project-current)))
+        (file-name-nondirectory
+         (directory-file-name (project-root proj)))))))
+
 (defun python-shell-get-process-name (dedicated)
   "Calculate the appropriate process name for inferior Python process.
 If DEDICATED is nil, this is simply `python-shell-buffer-name'.
@@ -3374,11 +3384,8 @@ name respectively the current project name."
   (pcase dedicated
     ('nil python-shell-buffer-name)
     ('project
-     (if-let* ((proj (and (featurep 'project)
-                          (project-current))))
-         (format "%s[%s]" python-shell-buffer-name (file-name-nondirectory
-                                                    (directory-file-name
-                                                     (project-root proj))))
+     (if-let* ((proj-name (python-shell-get-project-name)))
+         (format "%s[%s]" python-shell-buffer-name proj-name)
        python-shell-buffer-name))
     (_ (format "%s[%s]" python-shell-buffer-name (buffer-name)))))
 
@@ -3694,13 +3701,18 @@ def __PYTHON_EL_eval(source, filename):
 (defconst python-shell-eval-file-setup-code
   "\
 def __PYTHON_EL_eval_file(filename, tempname, delete):
-    import codecs, os, re
+    import os, re, sys
+    if sys.version_info.major < 3:
+        import codecs
+        _open = codecs.open
+    else:
+        _open = open
     pattern = r'^[ \t\f]*#.*?coding[:=][ \t]*([-_.a-zA-Z0-9]+)'
-    with codecs.open(tempname or filename, encoding='latin-1') as file:
+    with _open(tempname or filename, encoding='latin-1') as file:
         match = re.match(pattern, file.readline())
         match = match or re.match(pattern, file.readline())
         encoding = match.group(1) if match else 'utf-8'
-    with codecs.open(tempname or filename, encoding=encoding) as file:
+    with _open(tempname or filename, encoding=encoding) as file:
         source = file.read().encode(encoding)
     if delete and tempname:
         os.remove(tempname)
@@ -4509,6 +4521,13 @@ def __PYTHON_EL_get_completions(text):
   "Code used to setup completion in inferior Python processes."
   :type 'string)
 
+(defun python-shell-completion-send-setup-code ()
+  "Send `python-shell-completion-setup-code' to inferior Python process."
+  (python-shell-send-string-no-output python-shell-completion-setup-code))
+
+(add-hook 'python-shell-first-prompt-hook
+          #'python-shell-completion-send-setup-code)
+
 (define-obsolete-variable-alias
   'python-shell-completion-module-string-code
   'python-shell-completion-string-code
@@ -4837,12 +4856,16 @@ With argument MSG show activation/deactivation message."
 (defun python-shell-completion-get-completions (process input)
   "Get completions of INPUT using PROCESS."
   (with-current-buffer (process-buffer process)
-    (python--parse-json-array
-     (python-shell-send-string-no-output
-      (format "%s\nprint(__PYTHON_EL_get_completions(%s))"
-              python-shell-completion-setup-code
-              (python-shell--encode-string input))
-      process))))
+    (let ((completions
+           (python-shell-send-string-no-output
+            (format "print(__PYTHON_EL_get_completions(%s))"
+                    (python-shell--encode-string input))
+            process)))
+      (condition-case nil
+          (python--parse-json-array completions)
+        (json-parse-error
+         (python--parse-json-array
+          (car (last (split-string completions "[\n\r]+" t)))))))))
 
 (defun python-shell--get-multiline-input ()
   "Return lines at a multi-line input in Python shell."
@@ -5819,7 +5842,7 @@ Set to nil by `python-eldoc-function' if
 
 (defcustom python-eldoc-function-timeout 1
   "Timeout for `python-eldoc-function' in seconds."
-  :type 'integer
+  :type 'number
   :version "25.1")
 
 (defcustom python-eldoc-function-timeout-permanent t
@@ -7450,7 +7473,8 @@ implementations: `python-mode' and `python-ts-mode'."
     (treesit-major-mode-setup)
     ;; Enable the `sexp' navigation by default
     (setq-local forward-sexp-function #'treesit-forward-sexp
-                treesit-sexp-thing 'sexp)
+                treesit-sexp-thing 'sexp
+                treesit-sexp-thing-down-list 'list)
 
     (when (>= emacs-major-version 31)
       (setq-local hs-treesit-things '(or defun sexp))

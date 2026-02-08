@@ -1,6 +1,6 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2025 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -501,9 +501,13 @@ buffer after following a reference.  INTERACTIVE-P is non-nil if the
 calling command was invoked interactively.  In this case the stack of
 items for help buffer \"back\" buttons is cleared.
 
-This should be called very early, before the output buffer is cleared,
-because we want to record the \"previous\" position of point so we can
-restore it properly when going back."
+This function also re-enables the major mode of the buffer, thus
+resetting local variables to the values set by the mode and running the
+mode hooks.
+
+So this should be called very early, before the output buffer is
+cleared, also because we want to record the \"previous\" position of
+point so we can restore it properly when going back."
   (with-current-buffer (help-buffer)
     ;; Re-enable major mode, killing all unrelated local vars.
     (funcall major-mode)

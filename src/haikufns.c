@@ -1,5 +1,5 @@
 /* Haiku window system support
-   Copyright (C) 2021-2025 Free Software Foundation, Inc.
+   Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -749,6 +749,8 @@ haiku_create_frame (Lisp_Object parms)
       f = make_frame (1);
 
   XSETFRAME (frame, f);
+
+  frame_set_id_from_params (f, parms);
 
   f->terminal = dpyinfo->terminal;
 

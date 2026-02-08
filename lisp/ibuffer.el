@@ -1,6 +1,6 @@
 ;;; ibuffer.el --- operate on buffers like dired  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -166,9 +166,7 @@ elisp byte-compiler."
 			   buffer-file-name))
 	font-lock-doc-face)
     (20 (string-match "^\\*" (buffer-name)) font-lock-keyword-face)
-    (25 (and (string-match "^ " (buffer-name))
-	     (null buffer-file-name))
-	italic)
+    (25 (ibuffer-hidden-buffer-p) italic)
     (30 (memq major-mode ibuffer-help-buffer-modes) font-lock-comment-face)
     (35 (derived-mode-p 'dired-mode) font-lock-function-name-face)
     (40 (and (boundp 'emacs-lock-mode) emacs-lock-mode) ibuffer-locked-buffer))
@@ -236,9 +234,7 @@ view of the buffers."
   "The string to use for eliding long columns."
   :type 'string)
 
-(defcustom ibuffer-maybe-show-predicates `(,(lambda (buf)
-					      (and (string-match "^ " (buffer-name buf))
-						   (null buffer-file-name))))
+(defcustom ibuffer-maybe-show-predicates '(ibuffer-hidden-buffer-p)
   "A list of predicates for buffers to display conditionally.
 
 A predicate can be a regexp or a function.
@@ -2034,6 +2030,13 @@ the value of point at the beginning of the line for that buffer."
 				buf all ibuffer-buf))
 		 e)))
 	   bmarklist))))
+
+(defun ibuffer-hidden-buffer-p (&optional buf)
+  "The default member of `ibuffer-maybe-show-predicates'.
+Non-nil if BUF is not visiting a file and its name begins with a space.
+BUF defaults to the current buffer."
+  (and (string-match "^ " (buffer-name buf))
+       (null (buffer-file-name buf))))
 
 (defun ibuffer-visible-p (buf all &optional ibuffer-buf)
   (and (or all

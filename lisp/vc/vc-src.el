@@ -1,6 +1,6 @@
 ;;; vc-src.el --- support for SRC version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2026 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -82,7 +82,6 @@
 ;;;
 
 (eval-when-compile
-  (require 'cl-lib)
   (require 'vc))
 
 (declare-function vc-setup-buffer "vc-dispatcher" (buf))

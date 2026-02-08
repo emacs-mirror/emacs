@@ -1,6 +1,6 @@
 ;;; mode-local.el --- Support for mode local facilities  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2004-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2026 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 27 Apr 2004
@@ -723,19 +723,23 @@ SYMBOL is a function that can be overridden."
 	                         override (symbol-function override)))))
 
 	  (when (and override override-file)
-	    (let ((meta-name (cons override major-mode))
-		  ;; For the declaration:
-		  ;;
-		  ;;(define-mode-local-override xref-elisp-foo c-mode
-		  ;;
-		  ;; The override symbol name is
-		  ;; "xref-elisp-foo-c-mode". The summary should match
-		  ;; the declaration, so strip the mode from the
-		  ;; symbol name.
-		  (summary (format elisp--xref-format-extra
-				   'define-mode-local-override
-				   (substring (symbol-name override) 0 (- (1+ (length (symbol-name major-mode)))))
-				   major-mode)))
+	    (let* ((meta-name (cons override major-mode))
+		   ;; For the declaration:
+		   ;;
+		   ;;(define-mode-local-override xref-elisp-foo c-mode
+		   ;;
+		   ;; The override symbol name is
+		   ;; "xref-elisp-foo-c-mode". The summary should match
+		   ;; the declaration, so strip the mode from the
+		   ;; symbol name.
+		   (overridesymbol
+		    (intern
+		     (substring (symbol-name override)
+				0 (- (1+ (length (symbol-name major-mode)))))))
+		   (summary (format elisp--xref-format-extra
+				    'define-mode-local-override
+				    overridesymbol
+				    major-mode)))
 
 	      (unless (xref-mode-local--override-present override xrefs)
 		(push (elisp--xref-make-xref

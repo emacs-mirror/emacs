@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1998, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1998, 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: FSF (see below for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -180,6 +180,13 @@
 ;;   To provide more backend specific functionality for `vc-dir'
 ;;   the following functions might be needed: `dir-extra-headers',
 ;;   `dir-printer', and `extra-dir-menu'.
+;;
+;;   NOTE: project.el includes a similar method `project-list-files'
+;;   that has a slightly different return value and performance
+;;   trade-offs.  If you want to use it in your code and it suits your
+;;   needs better than `dir-status-files', consider contacting the
+;;   development list about changes or having it promoted to the core
+;;   VC.  See also `vc-dir-status-files'.
 ;;
 ;; - dir-extra-headers (dir)
 ;;
@@ -603,6 +610,36 @@
 ;;   does a sanity check whether there aren't any uncommitted changes at
 ;;   or below DIR, and then performs a tree walk, using the `checkout'
 ;;   function to retrieve the corresponding revisions.
+;;
+;; - working-branch ()
+;;
+;;   Return the name of the current branch, if there is one, else nil.
+;;
+;; - trunk-or-topic-p ()
+;;
+;;   For the current branch, or the closest equivalent for a VCS without
+;;   named branches, return `trunk' if it is definitely a longer-lived
+;;   trunk branch, `topic' if it is definitely a shorter-lived topic
+;;   branch, or nil if no general determination can be made.
+;;
+;;   What counts as a longer-lived or shorter-lived branch for VC is
+;;   explained in Info node `(emacs)Outstanding Changes' and in the
+;;   docstrings for the `vc-trunk-branch-regexps' and
+;;   `vc-topic-branch-regexps' user options.
+;;
+;; - topic-outgoing-base ()
+;;
+;;   Return an outgoing base for the current branch (or the closest
+;;   equivalent for a VCS without named branches) considered as a topic
+;;   branch.  That is, on the assumption that the current branch is a
+;;   shorter-lived branch which will later be merged into a longer-lived
+;;   branch, return, if possible, the upstream location to which those
+;;   changes will be merged.  See Info node `(emacs) Outstanding
+;;   Changes'.  The return value should be suitable for passing to the
+;;   incoming-revision backend function as its UPSTREAM-LOCATION
+;;   argument.  For example, for Git the value will typically be of the
+;;   form 'origin/foo' whereas Mercurial uses the unmodified name of the
+;;   longer-lived branch.
 
 ;; MISCELLANEOUS
 ;;
@@ -630,10 +667,13 @@
 ;;
 ;; - ignore-completion-table (directory)
 ;;
-;;   Return the completion table for files ignored by the current
+;;   Return the list of patterns for files ignored by the current
 ;;   version control system, e.g., the entries in `.gitignore' and
 ;;   `.bzrignore'.  The default behavior is to read the contents of
 ;;   the file returned by the `find-ignore-file' function.
+;;
+;;   NOTE: The return value should be a list of strings, not a general
+;;   completion table value, despite what the name implies.
 ;;
 ;; - find-ignore-file (file)
 ;;
@@ -647,6 +687,7 @@
 ;;   function is defined for this backend and that symbol, or a symbolic
 ;;   name involving that symbol, is passed to this function as REV, this
 ;;   function may return a symbolic name.
+;;   The implementation should respect the value of vc-use-short-revision.
 ;;
 ;;   Possible future extension: make REV an optional argument, and if
 ;;   nil, default it to FILE's working revision.
@@ -662,6 +703,7 @@
 ;;
 ;;   Return the revision number that follows REV for FILE, or nil if no such
 ;;   revision exists.
+;;   The implementation should respect the value of vc-use-short-revision.
 ;;
 ;; - log-edit-mode ()
 ;;
@@ -1093,7 +1135,10 @@ value other than `ask' if you have a strong grasp of the VCS in use."
                  (const :tag "Allow without prompting" t))
   :version "31.1")
 
-(defconst vc-cloneable-backends-custom-type
+(define-obsolete-variable-alias
+  'vc-cloneable-backends-custom-type
+  'vc-clonable-backends-custom-type "31.1")
+(defconst vc-clonable-backends-custom-type
   `(choice :convert-widget
            ,(lambda (widget)
               (let (opts)
@@ -1145,7 +1190,7 @@ specifying a backend.  Each element of the alist has the form
 the first association for which the URL of the repository matches
 the URL-REGEXP of the association."
   :type `(alist :key-type (regexp :tag "Regular expression matching URLs")
-                :value-type ,vc-cloneable-backends-custom-type)
+                :value-type ,vc-clonable-backends-custom-type)
   :version "31.1")
 
 (defcustom vc-async-checkin nil
@@ -1459,7 +1504,7 @@ BEWARE: this function may change the current buffer."
         (vc-deduce-fileset not-state-changing allow-unregistered state-model-only-files)))
      ((and (not buffer-file-name)
 	   (setq backend (vc-responsible-backend default-directory)))
-      (list backend nil))
+      (list backend (list default-directory)))
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
       (if state-model-only-files
 	  (list (vc-backend-for-registration (buffer-file-name))
@@ -3111,21 +3156,187 @@ global binding."
                       (vc-symbolic-working-revision (caadr fileset) backend)
                       (called-interactively-p 'interactive))))
 
-;; For the following two commands, the default meaning for
-;; UPSTREAM-LOCATION may become dependent on whether we are on a
-;; shorter-lived or longer-lived ("trunk") branch.  If we are on the
-;; trunk then it will always be the place `vc-push' would push to.  If
-;; we are on a shorter-lived branch, it may instead become the remote
-;; trunk branch from which the shorter-lived branch was branched.  That
-;; way you can use these commands to get a summary of all unmerged work
-;; outstanding on the short-lived branch.
-;;
-;; The obstacle to doing this is that VC lacks any distinction between
-;; shorter-lived and trunk branches.  But we all work with both of
-;; these, for almost any VCS workflow.  E.g. modern workflows which
-;; eschew traditional feature branches still have a long-lived trunk
-;; plus shorter-lived local branches for merge requests or patch series.
-;; --spwhitton
+;; This is used in .dir-locals.el in the Emacs source tree.
+;;;###autoload (put 'vc-trunk-branch-regexps 'safe-local-variable
+;;;###autoload      #'vc--safe-branch-regexps-p)
+(defcustom vc-trunk-branch-regexps '("trunk" "master" "main" "default")
+  "Regular expressions matching the names of longer-lived VCS branches.
+There value can be of one of the following forms:
+- A list of regular expressions.  A trunk branch is one whose name
+  matches any of the regular expressions.  If an element of the list
+  contains no characters that are special in regular expressions, then
+  the regexp is implicitly anchored at both ends, i.e., it is the full
+  name of a branch.
+- A list whose first element is `not' and whose remaining elements are
+  regular expressions.  This is the same as the previous case except
+  that a trunk branch is one whose name does *not* match any of the
+  regular expressions.
+- The symbol t.  A trunk branch is any branch that
+  `vc-topic-branch-regexps' does not positively identify as a topic
+  branch.
+- An empty list (or, the symbol nil).  The branch name does not indicate
+  whether a branch is a trunk.  Emacs will ask the backend whether it
+  thinks the current branch is a trunk.
+
+In VC, trunk branches are those where you've finished sharing the work
+on the branch with your collaborators just as soon as you've checked it
+in, and in the case of a decentralized VCS, pushed it.  In addition,
+typically you never delete trunk branches.
+
+The specific VCS workflow you are using may only acknowledge a single
+trunk, and give other names to kinds of branches which VC would consider
+to be just further trunks.
+
+If trunk branches in your project can be identified by name, include
+regexps matching their names in the value of this variable.  This is
+more reliable than letting Emacs ask the backend.
+
+See also `vc-topic-branch-regexps'."
+  :type '(choice (repeat :tag "Regexps" string)
+                 (cons :tag "Negated regexps"
+                       (const not) (repeat :tag "Regexps" string))
+                 (const :tag "Inverse of `vc-branch-trunk-regexps'" t))
+  :safe #'vc--safe-branch-regexps-p
+  :version "31.1")
+
+;; This is used in .dir-locals.el in the Emacs source tree.
+;;;###autoload (put 'vc-topic-branch-regexps 'safe-local-variable
+;;;###autoload      #'vc--safe-branch-regexps-p)
+(defcustom vc-topic-branch-regexps nil
+  "Regular expressions matching the names of shorter-lived VCS branches.
+There value can be of one of the following forms:
+- A list of regular expressions.  A topic branch is one whose name
+  matches any of the regular expressions.  If an element of the list
+  contains no characters that are special in regular expressions, then
+  the regexp is implicitly anchored at both ends, i.e., it is the full
+  name of a branch.
+- A list whose first element is `not' and whose remaining elements are
+  regular expressions.  This is the same as the previous case except
+  that a topic branch is one whose name does *not* match any of the
+  regular expressions.
+- The symbol t.  A topic branch is any branch that
+  `vc-trunk-branch-regexps' does not positively identify as a trunk
+  branch.
+- An empty list (or, the symbol nil).  The branch name does not indicate
+  whether a branch is a topic branch.  Emacs will ask the backend
+  whether it thinks the current branch is a topic branch.
+
+In VC, topic branches are those where checking in work, and pushing it
+in the case of a decentralized VCS, is not enough to complete the
+process of sharing the changes with your collaborators.  In addition,
+it's required that you merge the topic branch into another branch.
+After this is done, typically you delete the topic branch.
+
+Topic branches are sometimes called \"feature branches\", though it is
+also common for that term to be reserved for only a certain kind of
+topic branch.
+
+If topic branches in your project can be identified by name, include
+regexps matching their names in the value of this variable.  This is
+more reliable than letting Emacs ask the backend.
+
+See also `vc-trunk-branch-regexps'."
+  :type '(choice (repeat :tag "Regexps" string)
+                 (cons :tag "Negated regexps"
+                       (const not) (repeat :tag "Regexps" string))
+                 (const :tag "Inverse of `vc-trunk-branch-regexps'" t))
+  :safe #'vc--safe-branch-regexps-p
+  :version "31.1")
+
+(defun vc--match-branch-name-regexps (branch)
+  "Match against `vc-trunk-branch-regexps' and `vc-topic-branch-regexps'.
+See the docstrings for those two variables for how this matching works.
+
+If BRANCH matches both sets of regexps we signal an error; this is to
+allow for future extension.
+If BRANCH matches neither set of regexps return nil to mean that the
+defcustoms don't decide the matter of which kind of branch this is."
+  (when (and (eq vc-trunk-branch-regexps t)
+             (eq vc-topic-branch-regexps t))
+    (user-error "\
+`vc-trunk-branch-regexps' and `vc-topic-branch-regexps' cannot both be `t'"))
+  (cl-labels ((join-regexps (regexps)
+                (mapconcat (lambda (elt)
+                             (format (if (equal (regexp-quote elt) elt)
+                                         "\\`%s\\'"
+                                       "\\(?:%s\\)")
+                                     elt))
+                           regexps "\\|"))
+              (compile-regexps (regexps)
+                (if regexps
+                    (let* ((negated (eq (car regexps) 'not))
+                           (joined (join-regexps (if negated
+                                                     (cdr regexps)
+                                                   regexps))))
+                      (if negated
+                          (lambda (s) (not (string-match-p joined s)))
+                        (lambda (s) (string-match-p joined s))))
+                  #'ignore))
+              (match-trunk (if (eq vc-trunk-branch-regexps t)
+                               (lambda (s) (not (match-topic s)))
+                             (compile-regexps vc-trunk-branch-regexps)))
+              (match-topic (if (eq vc-topic-branch-regexps t)
+                               (lambda (s) (not (match-trunk s)))
+                             (compile-regexps vc-topic-branch-regexps))))
+    (let ((trunk (match-trunk branch))
+          (topic (match-topic branch)))
+      (cond ((and trunk topic)
+             (error "Branch name `%s' matches both \
+`vc-trunk-branch-regexps' and `vc-topic-branch-regexps'"
+                    branch))
+            (trunk 'trunk)
+            (topic 'topic)))))
+
+(defun vc--outgoing-base (backend)
+  "Return an outgoing base for the current branch under VC backend BACKEND.
+The outgoing base is the upstream location for which outstanding changes
+on this branch are destined once they are no longer outstanding.
+
+There are two stages to determining the outgoing base.
+First we decide whether we think this is a shorter-lived or a
+longer-lived (\"trunk\") branch (see `vc-trunk-branch-regexps' and
+`vc-topic-branch-regexps' regarding this distinction), as follows:
+1. Ask the backend for the name of the current branch.
+   If it returns non-nil, compare that name against
+   `vc-trunk-branch-regexps' and `vc-topic-branch-regexps'.
+2. If that doesn't settle it, either because the backend returns nil for
+   the name of the current branch, or because comparing the name against
+   the two regexp defcustoms yields no decisive answer, call BACKEND's
+   `trunk-or-topic-p' VC API function.
+3. If that doesn't settle it either, assume this is a shorter-lived
+   branch.  This is based on how it's commands primarily intended for
+   working with shorter-lived branches that call this function.
+Second, if we have determined that this is a trunk, return nil, meaning
+that the outgoing base is the place to which `vc-push' would push.
+Otherwise, we have determined that this is a shorter-lived branch, and
+we return the value of calling BACKEND's `topic-outgoing-base' VC API
+function."
+  ;; For further discussion see bug#80006.
+  (let* ((branch (vc-call-backend backend 'working-branch))
+         (type (or (and branch (vc--match-branch-name-regexps branch))
+                   (vc-call-backend backend 'trunk-or-topic-p)
+                   'topic)))
+    (and (eq type 'topic)
+         (vc-call-backend backend 'topic-outgoing-base))))
+
+(defun vc--outgoing-base-mergebase (backend &optional upstream-location refresh)
+  "Return, under VC backend BACKEND, the merge base with UPSTREAM-LOCATION.
+Normally UPSTREAM-LOCATION, if non-nil, is a string.
+If UPSTREAM-LOCATION is nil, it means to call `vc--outgoing-base' and
+use its return value as UPSTREAM-LOCATION.  If `vc--outgoing-base'
+returns nil, that means to use the place to which `vc-push' would push.
+If UPSTREAM-LOCATION is the special value t, it means to use the place
+to which `vc-push' would push as UPSTREAM-LOCATION, unconditionally.
+(This is passed when the user invokes an outgoing base command with a
+ \\`C-u C-u' prefix argument; see `vc--maybe-read-outgoing-base'.)
+REFRESH is passed on to `vc--incoming-revision'."
+  (vc-call-backend backend 'mergebase
+                   (vc--incoming-revision backend
+                                          (pcase upstream-location
+                                            ('t nil)
+                                            ('nil (vc--outgoing-base backend))
+                                            (_ upstream-location))
+                                          refresh)))
 
 ;;;###autoload
 (defun vc-root-diff-outgoing-base (&optional upstream-location)
@@ -3134,17 +3345,25 @@ The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
 Uncommitted changes are included in the diff.
 
-When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
-to.  This default meaning for UPSTREAM-LOCATION may change in a future
-release of Emacs.
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, see whether the branch matches one of
+`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
+the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like `vc-root-diff-outgoing' except that it includes
-uncommitted changes."
-  (interactive (list (vc--maybe-read-upstream-location)))
+When called interactively with a \\[universal-argument] \\[universal-argument] \
+prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.  (With a double prefix argument, this command is like
+`vc-diff-outgoing' except that it includes uncommitted changes.)"
+  (interactive (list (vc--maybe-read-outgoing-base)))
   (vc--with-backend-in-rootdir "VC root-diff"
     (vc-diff-outgoing-base upstream-location `(,backend (,rootdir)))))
 
@@ -3156,24 +3375,96 @@ The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
 Uncommitted changes are included in the diff.
 
-When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
-to.  This default meaning for UPSTREAM-LOCATION may change in a future
-release of Emacs.
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, see whether the branch matches one of
+`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
+the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like to `vc-fileset-diff-outgoing' except that it
-includes uncommitted changes."
-  (interactive (list (vc--maybe-read-upstream-location) nil))
-  (let* ((fileset (or fileset (vc-deduce-fileset t)))
-         (backend (car fileset))
-         (incoming (vc--incoming-revision backend upstream-location)))
+When called interactively with a \\[universal-argument] \\[universal-argument] \
+prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.  (With a double prefix argument, this command is like
+`vc-diff-outgoing' except that it includes uncommitted changes.)
+
+When called from Lisp, optional argument FILESET overrides the fileset."
+  (interactive (let ((fileset (vc-deduce-fileset t)))
+                 (list (vc--maybe-read-outgoing-base (car fileset))
+                       fileset)))
+  (let ((fileset (or fileset (vc-deduce-fileset t))))
     (vc-diff-internal vc-allow-async-diff fileset
-                      (vc-call-backend backend 'mergebase incoming)
+                      (vc--outgoing-base-mergebase (car fileset)
+                                                   upstream-location)
                       nil
                       (called-interactively-p 'interactive))))
+
+;;;###autoload
+(defun vc-log-outgoing-base (&optional upstream-location fileset)
+  "Show log for the VC fileset since the merge base with UPSTREAM-LOCATION.
+The merge base with UPSTREAM-LOCATION means the common ancestor of the
+working revision and UPSTREAM-LOCATION.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, see whether the branch matches one of
+`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
+the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
+can be a remote branch name.
+
+When called interactively with a \\[universal-argument] \\[universal-argument] \
+prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch.
+
+When called from Lisp, optional argument FILESET overrides the fileset."
+  (interactive (let ((fileset (vc-deduce-fileset t)))
+                 (list (vc--maybe-read-outgoing-base (car fileset))
+                       fileset)))
+  (let* ((fileset (or fileset (vc-deduce-fileset t)))
+         (backend (car fileset)))
+    (vc-print-log-internal backend (cadr fileset) nil nil
+                           (vc--outgoing-base-mergebase backend
+                                                        upstream-location))))
+
+;;;###autoload
+(defun vc-root-log-outgoing-base (&optional upstream-location)
+  "Show log of revisions since the merge base with UPSTREAM-LOCATION.
+The merge base with UPSTREAM-LOCATION means the common ancestor of the
+working revision and UPSTREAM-LOCATION.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base.
+For a trunk branch this is always the place \\[vc-push] would push to.
+For a topic branch, see whether the branch matches one of
+`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
+the backend for an appropriate outgoing base.
+See `vc-trunk-branch-regexps' and `vc-topic-branch-regexps' regarding
+the difference between trunk and topic branches.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
+can be a remote branch name.
+
+When called interactively with a \\[universal-argument] \\[universal-argument] \
+prefix argument, always
+use the place to which \\[vc-push] would push to as the outgoing base,
+i.e., treat this branch as a trunk branch even if Emacs thinks it is a
+topic branch."
+  (interactive (list (vc--maybe-read-outgoing-base)))
+  (vc--with-backend-in-rootdir "VC revision log"
+    (vc-log-outgoing-base upstream-location `(,backend (,rootdir)))))
 
 (declare-function ediff-load-version-control "ediff" (&optional silent))
 (declare-function ediff-vc-internal "ediff-vers"
@@ -3927,13 +4218,20 @@ Each function runs in the log output buffer without args.")
    (lambda (_ignore-auto _noconfirm)
      (vc-incoming-outgoing-internal backend upstream-location buffer-name type))))
 
+(defun vc--read-limit ()
+  "Read a LIMIT argument for a VC log command."
+  (string-to-number
+   (read-from-minibuffer "Limit display (0 for unlimited): "
+                         (format "%s" vc-log-show-limit))))
+
 ;;;###autoload
 (defun vc-print-log (&optional working-revision limit)
   "Show in another window the VC change history of the current fileset.
 If WORKING-REVISION is non-nil, it should be a revision ID; position
 point in the change history buffer at that revision.
 If LIMIT is non-nil, it should be a number specifying the maximum
-number of revisions to show; the default is `vc-log-show-limit'.
+number of revisions to show; the default for interactive calls is
+`vc-log-show-limit'.
 
 When called interactively with a prefix argument, prompt for
 WORKING-REVISION and LIMIT.
@@ -3946,23 +4244,39 @@ shown log style is available via `vc-log-short-style'."
   (interactive
    (cond
     (current-prefix-arg
-     (let ((rev (read-from-minibuffer "Leave point at revision (default: last revision): " nil
-				      nil nil nil))
-	   (lim (string-to-number
-		 (read-from-minibuffer
-		  "Limit display (unlimited: 0): "
-		  (format "%s" vc-log-show-limit)
-		  nil nil nil))))
-       (when (string= rev "") (setq rev nil))
-       (when (<= lim 0) (setq lim nil))
-       (list rev lim)))
+     (let ((rev (read-from-minibuffer (format-prompt "Leave point at revision"
+                                                     "last revision")))
+	   (lim (vc--read-limit)))
+       (list (and (not (string-empty-p rev)) rev) (and (plusp lim) lim))))
     (t
-     (list nil (when (> vc-log-show-limit 0) vc-log-show-limit)))))
-  (let* ((vc-fileset (vc-deduce-fileset t))
-	 (backend (car vc-fileset))
-	 (files (cadr vc-fileset))
-	 (working-revision (or working-revision vc-buffer-revision)))
-    (vc-print-log-internal backend files working-revision nil limit)))
+     (list nil (and (plusp vc-log-show-limit) vc-log-show-limit)))))
+  (let ((fileset (vc-deduce-fileset t))
+	(working-revision (or working-revision vc-buffer-revision)))
+    (vc-print-log-internal (car fileset) (cadr fileset)
+                           working-revision nil limit)))
+
+;;;###autoload
+(defun vc-print-change-log ()
+  "Show in another window the VC change history of the current fileset.
+With a \\[universal-argument] prefix argument, prompt for a branch \
+or revision to log
+instead of the working revision, and a number specifying the maximum
+number of revisions to show; the default is `vc-log-show-limit'.
+You can also use a numeric prefix argument to specify this.
+
+This is like `vc-print-log' but with an alternative prefix argument that
+some users might prefer for interactive usage."
+  (declare (interactive-only vc-print-log))
+  (interactive)
+  (if current-prefix-arg
+      (let ((branch
+             (vc--read-branch-to-log t))
+            (vc-log-show-limit
+             (if (equal current-prefix-arg '(4))
+                 (vc--read-limit)
+               (prefix-numeric-value current-prefix-arg))))
+        (vc-print-fileset-branch-log branch))
+    (vc-print-log)))
 
 ;;;###autoload
 (defun vc-print-root-log (&optional limit revision)
@@ -3984,11 +4298,7 @@ with its diffs (if the underlying VCS backend supports that)."
     ((numberp current-prefix-arg)
      (list current-prefix-arg))
     (current-prefix-arg
-     (let ((lim (string-to-number
-		 (read-from-minibuffer
-		  "Limit display (unlimited: 0): "
-		  (format "%s" vc-log-show-limit)
-		  nil nil nil))))
+     (let ((lim (vc--read-limit)))
        (list (and (plusp lim) lim))))
     (t
      (list (and (plusp vc-log-show-limit) vc-log-show-limit)))))
@@ -4002,30 +4312,118 @@ with its diffs (if the underlying VCS backend supports that)."
       (setq vc-parent-buffer-name nil))))
 
 ;;;###autoload
-(defun vc-print-branch-log (branch)
-  "Show the change log for BRANCH in another window.
-The command prompts for the branch whose change log to show."
-  (interactive
-   (let* ((backend (vc-responsible-backend default-directory))
-          (rootdir (vc-call-backend backend 'root default-directory)))
-     (list
-      (vc-read-revision "Branch to log: " (list rootdir) backend))))
-  (when (equal branch "")
-    (error "No branch specified"))
-  (let* ((backend (vc-responsible-backend default-directory))
-         (rootdir (vc-call-backend backend 'root default-directory)))
-    (vc-print-log-internal backend
-                           (list rootdir) branch t
-                           (when (> vc-log-show-limit 0) vc-log-show-limit))))
+(defun vc-print-root-change-log ()
+  "Show in another window the VC change history of the whole tree.
+With a \\[universal-argument] prefix argument, prompt for a branch \
+or revision to log
+instead of the working revision, and a number specifying the maximum
+number of revisions to show; the default is `vc-log-show-limit'.
+You can also use a numeric prefix argument to specify this.
+
+This is like `vc-root-print-log' but with an alternative prefix argument
+that some users might prefer for interactive usage."
+  (declare (interactive-only vc-print-root-log))
+  (interactive)
+  (if current-prefix-arg
+      (let ((branch
+             (vc--read-branch-to-log))
+            (vc-log-show-limit
+             (if (equal current-prefix-arg '(4))
+                 (vc--read-limit)
+               (prefix-numeric-value current-prefix-arg))))
+        (vc-print-root-branch-log branch))
+    (vc-print-root-log)))
+
+(defun vc--read-branch-to-log (&optional fileset)
+  "Read the name of a branch to log.
+FILESET, if non-nil, means to pass the current VC fileset to
+`vc-read-revision'."
+  (let* ((fileset (and fileset (vc-deduce-fileset t)))
+         (branch (vc-read-revision "Branch to log: "
+                                   (cadr fileset) (car fileset))))
+    (when (string-empty-p branch)
+      (user-error "No branch specified"))
+    branch))
+
+;;;###autoload
+(defun vc-print-fileset-branch-log (branch)
+  "Show log of VC changes on BRANCH, limited to the current fileset.
+When called interactively, prompts for BRANCH.
+In addition to logging branches, for VCS for which it makes sense you
+can specify a revision ID instead of a branch name to produce a log
+starting at that revision.  Tags and remote references also work."
+  ;; Currently the prefix argument is conserved.  Possibly it could be
+  ;; used to prompt for a LIMIT argument like \\`C-x v l' has.  Though
+  ;; now we have "Show 2X entries" and "Show unlimited entries" that
+  ;; might be a waste of the prefix argument to this command.  --spwhitton
+  (interactive (list (vc--read-branch-to-log t)))
+  (let ((fileset (vc-deduce-fileset t)))
+    (vc-print-log-internal (car fileset) (cadr fileset) branch t
+                           (and (plusp vc-log-show-limit)
+                                vc-log-show-limit))))
+
+;;;###autoload
+(defun vc-print-root-branch-log (branch)
+  "Show root log of VC changes on BRANCH in another window.
+When called interactively, prompts for BRANCH.
+In addition to logging branches, for VCS for which it makes sense you
+can specify a revision ID instead of a branch name to produce a log
+starting at that revision.  Tags and remote references also work."
+  ;; Prefix argument conserved; see previous command.  --spwhitton
+  (interactive (list (vc--read-branch-to-log)))
+  (vc--with-backend-in-rootdir "VC branch log"
+    (vc-print-log-internal backend (list rootdir) branch t
+                           (and (plusp vc-log-show-limit)
+                                vc-log-show-limit))))
+;; We plan to reuse the name `vc-print-branch-log' for the
+;; fileset-specific command in Emacs 32.1.  --spwhitton
+(define-obsolete-function-alias
+  'vc-print-branch-log
+  #'vc-print-root-branch-log
+  "31.1")
 
 ;; FIXME: Consider renaming to `vc-upstream-location-history'.
 (defvar vc-remote-location-history nil
   "History of upstream locations for VC incoming and outgoing commands.")
 
 (defun vc--maybe-read-upstream-location ()
+  "Read upstream location if there is a prefix argument, else return nil."
   (and current-prefix-arg
-       (read-string "Upstream location/branch (empty for default): " nil
-                    'vc-remote-location-history)))
+       (let ((res (read-string "Upstream location/branch (empty for default): "
+                               nil 'vc-remote-location-history)))
+         (and (not (string-empty-p res)) res))))
+
+(defun vc--maybe-read-outgoing-base (&optional backend)
+  "Return upstream location for interactive uses of outgoing base commands.
+If there is no prefix argument, return nil.
+If the current prefix argument is \\`C-u C-u', return t.
+Otherwise prompt for an upstream location.
+BACKEND is the VC backend."
+  (cond
+   ((equal current-prefix-arg '(16)) t)
+   (current-prefix-arg
+    (let* ((outgoing-base (vc-call-backend (or backend
+                                               (vc-deduce-backend))
+                                           'topic-outgoing-base))
+           ;; If OUTGOING-BASE is non-nil then 'C-u C-x v T ... RET' is
+           ;; how the user can force Emacs to treat the current branch
+           ;; as a topic while having Emacs automatically determine the
+           ;; outgoing base with which to do so (otherwise, forcing
+           ;; Emacs to treat the current branch as a topic if it thinks
+           ;; it's a trunk requires specifying an outgoing base which
+           ;; will have that effect).
+           ;;
+           ;; In this case that OUTGOING-BASE is non-nil, it isn't
+           ;; possible to specify an empty string as the outgoing base,
+           ;; which normally means that Emacs should treat the current
+           ;; branch as a trunk.  That's okay because you can use a
+           ;; double prefix argument to achieve that.
+           (res (read-string (if outgoing-base
+                                 (format-prompt "Upstream location/branch"
+                                                outgoing-base)
+                               "Upstream location/branch (empty to treat as trunk): ")
+                             nil 'vc-remote-location-history outgoing-base)))
+      (and (not (string-empty-p res)) res)))))
 
 (defun vc--incoming-revision (backend &optional upstream-location refresh)
   ;; Some backends don't support REFRESH and so always behave as though
@@ -4040,26 +4438,29 @@ The command prompts for the branch whose change log to show."
   ;; else cherry-picks the very same commits that you have outstanding,
   ;; and pushes them.  Given this, we implement our own caching.
   ;;
-  ;; Do store `nil', before signalling an error, if there is no incoming
+  ;; Do store `nil', before signaling an error, if there is no incoming
   ;; revision, because that's also something that can be slow to
   ;; determine and so should be remembered.
-  (if-let* ((_ (not refresh))
-            (record (assoc upstream-location
-                           (vc--repo-getprop backend 'vc-incoming-revision))))
-      (cdr record)
-    (let ((res (vc-call-backend backend 'incoming-revision
-                                upstream-location refresh)))
-      (if-let* ((alist (vc--repo-getprop backend 'vc-incoming-revision)))
-          (setf (alist-get upstream-location alist nil nil #'equal)
-                res)
-        (vc--repo-setprop backend
-                          'vc-incoming-revision
-                          `((,upstream-location . ,res))))
-      (or res
-          (user-error "No incoming revision -- local-only branch?")))))
+  (or (if-let* ((_ (not refresh))
+                (record (assoc upstream-location
+                               (vc--repo-getprop backend
+                                                 'vc-incoming-revision))))
+          (cdr record)
+        (let ((res (vc-call-backend backend 'incoming-revision
+                                    upstream-location refresh)))
+          (if-let* ((alist (vc--repo-getprop backend
+                                             'vc-incoming-revision)))
+              (setf (alist-get upstream-location alist
+                               nil nil #'equal)
+                    res)
+            (vc--repo-setprop backend
+                              'vc-incoming-revision
+                              `((,upstream-location . ,res))))
+          res))
+      (user-error "No incoming revision -- local-only branch?")))
 
 ;;;###autoload
-(defun vc-log-incoming (&optional upstream-location)
+(defun vc-root-log-incoming (&optional upstream-location)
   "Show log of changes that will be received with pull from UPSTREAM-LOCATION.
 When unspecified UPSTREAM-LOCATION is the place \\[vc-update] would pull
 from.  When called interactively with a prefix argument, prompt for
@@ -4069,6 +4470,10 @@ can be a remote branch name."
   (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend upstream-location
                                    "*vc-incoming*" 'log-incoming)))
+;; We plan to reuse the name `vc-log-incoming' for the fileset-specific
+;; command in Emacs 32.1.  --spwhitton
+(define-obsolete-function-alias 'vc-log-incoming #'vc-root-log-incoming
+  "31.1")
 
 (defun vc-default-log-incoming (backend buffer upstream-location)
   (let ((incoming (vc--incoming-revision backend upstream-location
@@ -4079,7 +4484,7 @@ can be a remote branch name."
                      (vc-call-backend backend 'mergebase incoming))))
 
 ;;;###autoload
-(defun vc-log-outgoing (&optional upstream-location)
+(defun vc-root-log-outgoing (&optional upstream-location)
   "Show log of changes that will be sent with a push to UPSTREAM-LOCATION.
 When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
 to.  When called interactively with a prefix argument, prompt for
@@ -4089,6 +4494,10 @@ can be a remote branch name."
   (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend upstream-location
                                    "*vc-outgoing*" 'log-outgoing)))
+;; We plan to reuse the name `vc-log-outgoing' for the fileset-specific
+;; command in Emacs 32.1.  --spwhitton
+(define-obsolete-function-alias 'vc-log-outgoing #'vc-root-log-outgoing
+  "31.1")
 
 (defun vc-default-log-outgoing (backend buffer upstream-location)
   (let ((incoming (vc--incoming-revision backend upstream-location))
@@ -4617,6 +5026,9 @@ log entries should be gathered."
 
 (defvar vc-filter-command-function)
 
+(defvar vc-edit-next-command-history nil
+  "Minibuffer history for `vc-edit-next-command'.")
+
 ;;;###autoload
 (defun vc-edit-next-command ()
   "Request editing the next VC shell command before execution.
@@ -4640,7 +5052,8 @@ immediately after this one."
     (add-hook 'prefix-command-echo-keystrokes-functions echofun)
     (setq vc-filter-command-function
           (lambda (&rest args)
-            (apply #'vc-user-edit-command (apply old args))))))
+            (let ((vc-user-edit-command-history 'vc-edit-next-command-history))
+              (apply #'vc-user-edit-command (apply old args)))))))
 
 ;; This is used in .dir-locals.el in the Emacs source tree.
 ;;;###autoload (put 'vc-prepare-patches-separately 'safe-local-variable 'booleanp)
@@ -5382,7 +5795,8 @@ MOVE non-nil means to move instead of copy."
     (with-temp-buffer
       (cond* (patch-string
               (diff-mode)
-              (insert patch-string))
+              (let ((inhibit-read-only t)) ; `diff-default-read-only'.
+                (insert patch-string)))
              ;; Some backends don't tolerate unregistered files
              ;; appearing in the fileset for a diff operation.
              ((bind* (diff-fileset
@@ -5523,6 +5937,9 @@ except that this command works only in file-visiting buffers."
                     (vc-responsible-backend default-directory)
                     'get-change-comment)))
       (format "Summary: %s\n" (string-trim (funcall fn files rev))))))
+
+(defalias 'vc-default-working-branch #'ignore)
+(defalias 'vc-default-trunk-or-topic-p #'ignore)
 
 
 

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2026 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
@@ -573,7 +573,7 @@ after popping up the @file{*vc-log*} buffer to allow you to type a
 suitable commit log message.
 
 Once you type @kbd{C-x v v}, the fileset or patches cannot be changed
-without first cancelling the commit by typing @kbd{C-c C-k} in the
+without first canceling the commit by typing @kbd{C-c C-k} in the
 @file{*vc-log*} buffer.  For example, if you change which files are
 marked in the @file{*vc-dir*} buffer after Emacs has already popped up
 the @file{*vc-log*} buffer, the old fileset will remain in effect for
@@ -1057,17 +1057,21 @@ Display the log entry and changes (diffs) of a single @var{revision}
 (@code{vc-print-root-log}).
 
 @item C-x v b l
-Display the change history for another branch
-(@code{vc-print-branch-log}).
+Display the change history for the current fileset on another branch
+(@code{vc-print-fileset-branch-log}).
+
+@item C-x v b L
+Display the change history for the current repository on another branch
+(@code{vc-print-root-branch-log}).
 
 @item C-x v I
 Display log entries for the changes that a ``pull'' operation will
-retrieve (@code{vc-log-incoming}).
+retrieve (@code{vc-root-log-incoming}).
 
 @vindex vc-use-incoming-outgoing-prefixes
 If you customize @code{vc-use-incoming-outgoing-prefixes} to
 non-@code{nil}, @kbd{C-x v I} becomes a prefix key, and
-@code{vc-log-incoming} becomes bound to @kbd{C-x v I L}.
+@code{vc-root-log-incoming} becomes bound to @kbd{C-x v I L}.
 
 @item M-x vc-root-diff-incoming
 Display a diff of all changes that a pull operation will retrieve.
@@ -1084,11 +1088,11 @@ non-@code{nil}, this command becomes available on @kbd{C-x v I =}.
 
 @item C-x v O
 Display log entries for the changes that will be sent by the next
-``push'' operation (@code{vc-log-outgoing}).
+``push'' operation (@code{vc-root-log-outgoing}).
 
 If you customize @code{vc-use-incoming-outgoing-prefixes} to
 non-@code{nil}, @kbd{C-x v O} becomes a prefix key, and
-@code{vc-log-outgoing} becomes bound to @kbd{C-x v O L}.
+@code{vc-root-log-outgoing} becomes bound to @kbd{C-x v O L}.
 
 @item M-x vc-root-diff-outgoing
 Display a diff of all changes that will be sent by the next push
@@ -1162,40 +1166,53 @@ showing only the first line of each log entry.  However, you can type
 revision at point.  A second @key{RET} hides it again.
 
 @kindex C-x v b l
-@findex vc-print-branch-log
-  @kbd{C-x v b l @var{branch-name} @key{RET}} (@code{vc-print-branch-log})
-displays a @file{*vc-change-log*} buffer showing the history of the
-version-controlled directory tree, like @code{vc-print-root-log} does,
-but it shows the history of a branch other than the current one; it
-prompts for the branch whose history to display.
+@kindex C-x v b L
+@findex vc-print-fileset-branch-log
+@findex vc-print-root-branch-log
+  @kbd{C-x v b l @var{branch-name} @key{RET}}
+(@code{vc-print-fileset-branch-log}) displays a @file{*vc-change-log*}
+buffer showing the history of changes made to the current fileset in the
+long form, like @code{vc-print-log} does, but it shows the history of a
+branch other than the current one; it prompts for the name of the branch
+whose history you would like to see.  @w{@kbd{C-x v b L
+@var{branch-name} @key{RET}}} (@code{vc-print-root-branch-log}) is
+similar except that it shows the history of the version-controlled
+directory tree, like @code{vc-print-root-log}.
+
+For a version control system for which it makes sense, you can also
+specify a revision ID instead of the name of a branch as
+@var{branch-name}, and Emacs will print a log starting from that
+revision ID.  You can also specify other names for specific revisions
+supported by the VCS, such as the names of tags (@pxref{Revision Tags}),
+or the remote branch references supported by Git.
 
 @kindex C-x v I
 @kindex C-x v O
-@findex vc-log-incoming
-@findex vc-log-outgoing
+@findex vc-root-log-incoming
+@findex vc-root-log-outgoing
   On a decentralized version control system, the @kbd{C-x v I}
-(@code{vc-log-incoming}) command displays a log buffer showing the
+(@code{vc-root-log-incoming}) command displays a log buffer showing the
 changes that will be applied the next time you run the version control
 system's pull command to get new revisions from another remote location
 (@pxref{Pulling / Pushing}).  This other remote location is the default
 one from which changes are pulled, as defined by the version control
-system; with a prefix argument, @code{vc-log-incoming} prompts for a
-particular remote location.  Similarly, @kbd{C-x v O}
-(@code{vc-log-outgoing}) shows the changes that will be sent to another
-remote location, the next time you run the push command; with a prefix
-argument, it prompts for a particular destination that in case of some
-version control system can be a branch name.
+system; with a prefix argument, @code{vc-root-log-incoming} prompts for
+a particular remote location.  Similarly, @kbd{C-x v O}
+(@code{vc-root-log-outgoing}) shows the changes that will be sent to
+another remote location, the next time you run the push command; with a
+prefix argument, it prompts for a particular destination that in case of
+some version control system can be a branch name.
 
 @findex vc-root-diff-incoming
 @findex vc-root-diff-outgoing
   The closely related commands @code{vc-root-diff-incoming} and
 @code{vc-root-diff-outgoing} are the diff analogues of
-@code{vc-log-incoming} and @code{vc-log-outgoing}.  These display diff
-buffers reporting the changes that would be pulled or pushed.  You can
-use a prefix argument here too to specify a particular remote location.
-@code{vc-root-diff-outgoing} is useful as a way to preview your push and
-quickly check that all and only the changes you intended to include were
-committed and will be pushed.
+@code{vc-root-log-incoming} and @code{vc-root-log-outgoing}.  These
+display diff buffers reporting the changes that would be pulled or
+pushed.  You can use a prefix argument here too to specify a particular
+remote location.  @code{vc-root-diff-outgoing} is useful as a way to
+preview your push and quickly check that all and only the changes you
+intended to include were committed and will be pushed.
 
 @findex vc-diff-incoming
 @findex vc-diff-outgoing
@@ -1343,6 +1360,7 @@ also prompt for a specific VCS shell command to run for this purpose.
 
 @table @kbd
 @item C-x v u
+@item C-x v @@
 Revert the work file(s) in the current VC fileset to the last revision
 (@code{vc-revert}).
 
@@ -1357,24 +1375,25 @@ Delete an unpushed commit from the revision history.
 @end table
 
 @kindex C-x v u
+@kindex C-x v @@
 @findex vc-revert
 @vindex vc-revert-show-diff
-  If you want to discard all the changes you have made to the current
-VC fileset, type @kbd{C-x v u} (@code{vc-revert}).  This will ask you
-for confirmation before discarding the changes.  If you agree, the
-fileset is reverted.
+  If you want to discard all the changes you have made to the current VC
+fileset, type @kbd{C-x v u} or @kbd{C-x v @@} (@code{vc-revert}).  This
+will ask you for confirmation before discarding the changes.  If you
+agree, the fileset is reverted.
 
   If @code{vc-revert-show-diff} is non-@code{nil}, this command will
-show you a diff between the work file(s) and the revision from which
-you started editing.  Afterwards, the diff buffer will either be
-killed (if this variable is @code{kill}), or the buffer will be buried
-(any other non-@code{nil} value).  If you don't want @kbd{C-x v u} to
-show a diff, set this variable to @code{nil} (you can still view the
-diff directly with @kbd{C-x v =}; @pxref{Old Revisions}).
+show you a diff between the work file(s) and the revision from which you
+started editing.  Afterwards, the diff buffer will either be killed (if
+this variable is @code{kill}), or the buffer will be buried (any other
+non-@code{nil} value).  If you don't want @code{vc-revert} to show you
+diffs, set this variable to @code{nil} (you can still view the diff
+directly with @kbd{C-x v =}; @pxref{Old Revisions}).
 
-  On locking-based version control systems, @kbd{C-x v u} leaves files
-unlocked; you must lock again to resume editing.  You can also use
-@kbd{C-x v u} to unlock a file if you lock it and then decide not to
+  On locking-based version control systems, @code{vc-revert} leaves
+files unlocked; you must lock again to resume editing.  You can also use
+@code{vc-revert} to unlock a file if you lock it and then decide not to
 change it.
 
 @findex vc-revert-or-delete-revision
@@ -1545,8 +1564,8 @@ repository, such as the name of the backend in use and the working
 directory.  In addition, for decentralized VCS, if you have outgoing
 commits (@pxref{VC Change Log}), Emacs displays a line @w{"Outgoing : N
 unpushed revisions"} where @var{N} is a number.  You can click on this
-text to execute the @code{vc-log-outgoing} command (@pxref{VC Change
-Log}).
+text to execute the @code{vc-root-log-outgoing} command (@pxref{VC
+Change Log}).
 
 @vindex vc-dir-show-outgoing-count
   Emacs tries to use cached information to determine the number of
@@ -1624,6 +1643,10 @@ ignore (@code{vc-dir-ignore}).  For instance, if the VC is Git, it
 will append this file to the @file{.gitignore} file.  If given a
 prefix, do this with all the marked files.
 
+@item @@
+Discard all the changes you have made to the current fileset
+(@code{vc-revert}).
+
 @item q
 Quit the VC Directory buffer, and bury it (@code{quit-window}).
 
@@ -1689,6 +1712,9 @@ Do an incremental regular expression search on the fileset
 Apart from acting on multiple files, these commands behave much like
 their single-buffer counterparts (@pxref{Search}).
 
+@c Outstanding changes commands under 'T' are not mentioned because
+@c these are an advanced feature documented only in vc1-xtra.texi.
+
   The VC Directory buffer additionally defines some branch-related
 commands starting with the prefix @kbd{b}:
 
@@ -1697,9 +1723,9 @@ commands starting with the prefix @kbd{b}:
 Create a new branch (@code{vc-create-branch}).  @xref{Creating
 Branches}.
 
-@item b l
+@item b L
 Prompt for the name of a branch and display the change history of that
-branch (@code{vc-print-branch-log}).
+branch (@code{vc-print-root-branch-log}).
 
 @item b s
 Switch to a branch (@code{vc-switch-branch}).  @xref{Switching
@@ -1823,9 +1849,9 @@ with Git, and @kbd{hg push} with Mercurial.  The default commands
 always push to the repository in the default location determined by
 the version control system from your branch configuration.
 
-Prior to pushing, you can use @kbd{C-x v O} (@code{vc-log-outgoing})
-to view a log buffer of the changes to be sent upstream.  @xref{VC
-Change Log}.
+Prior to pushing, you can use @kbd{C-x v O}
+(@code{vc-root-log-outgoing}) to view a log buffer of the changes to be
+sent upstream.  @xref{VC Change Log}.
 
 @cindex bound branch (Bazaar VCS)
 This command is currently supported only by Bazaar, Git, and Mercurial.
@@ -1859,9 +1885,9 @@ it into the current branch.  With Mercurial, it calls @kbd{hg pull
 -u} to fetch changesets from the default remote repository and update
 the working directory.
 
-  Prior to pulling, you can use @kbd{C-x v I} (@code{vc-log-incoming})
-to view a log buffer of the changes to be applied.  @xref{VC Change
-Log}.
+  Prior to pulling, you can use @kbd{C-x v I}
+(@code{vc-root-log-incoming}) to view a log buffer of the changes to be
+applied.  @xref{VC Change Log}.
 
   With a centralized version control system like CVS, @kbd{C-x v +}
 updates the current VC fileset from the repository.
@@ -2032,7 +2058,10 @@ project.  See its entry below for description and related options.
 If this user option is non-@code{nil}, Emacs displays the name of the
 current project (if any) on the mode line; clicking @kbd{mouse-1} on
 the project name pops up the menu with the project-related commands.
-The default value is @code{nil}.
+The default value is @code{nil}.  If the value is @code{non-remote},
+Emacs will show the name of the project only for local files; this comes
+in handy when updating the mode line for projects on remote systems is
+slow due to network latencies.
 @end defopt
 
 @menu
@@ -2305,7 +2334,9 @@ Using this variable you can add more ignore patterns to the project, to
 exclude more files from the project's file listing.  The value is a list
 of glob strings.  They can match both regular files and directories.  To
 anchor an entry to the project root, start it with @code{./}.  To match
-directories only, end it with @code{/}.
+directories only, end it with @code{/}.  When this variable has
+directory-local value, it will only be applied to the corresponding
+directory subtree.
 @end defopt
 
 @defopt project-vc-name
@@ -2469,7 +2500,7 @@ between them.
 end of the change log file.  Here is an example:
 
 @smallexample
-Copyright 1997--1998, 2025 Free Software Foundation, Inc.
+Copyright 1997--1998, 2025--2026 Free Software Foundation, Inc.
 Copying and distribution of this file, with or without modification, are
 permitted provided the copyright notice and this notice are preserved.
 @end smallexample
@@ -2538,12 +2569,13 @@ files, and build a database of these references.  A backend can then
 access this database whenever it needs to list or look up references.
 The Emacs distribution includes @command{etags}, a command for tagging
 identifier definitions in programs, which supports many programming
-languages and other major modes, such as HTML, by extracting
-references into @dfn{tags tables}.  @xref{Create Tags Table}.  Major
-modes for languages supported by @command{etags} can use tags tables
-as basis for their backend.  (One disadvantage of this kind of backend
-is that tags tables need to be kept reasonably up to date, by
-rebuilding them from time to time.)
+languages and other major modes, such as HTML, by extracting references
+into @dfn{tags tables}.  Major modes for languages supported by
+@command{etags} can use tags tables as basis for their backend.  Enable
+@code{etags-regen-mode} to have tags tables generated across the current
+project for supported file types and updated automatically upon edit.
+Alternatively, you can build the table manually to control the set of
+files and when it is updated, see @ref{Create Tags Table}.
 @end enumerate
 
 @menu
@@ -2616,6 +2648,9 @@ to always prompt, customize @code{xref-prompt-for-identifier} to
   When entering the identifier argument to @kbd{M-.}, you can use the
 usual minibuffer completion commands (@pxref{Completion}), with the
 known identifier names being the completion candidates.
+
+  It uses the current Xref backend, and will signal an error when there
+is none configured, with some recommendations.
 
 @kindex C-x 4 .
 @findex xref-find-definitions-other-window
@@ -2997,7 +3032,9 @@ writes the tags to a @dfn{tags table file}, or @dfn{tags file} in
 short.  The conventional name for a tags file is @file{TAGS}@.
 @xref{Create Tags Table}.  (It is also possible to create a tags table
 by using one of the commands from other packages that can produce such
-tables in the same format.)
+tables in the same format.)  If you enable the @code{etags-regen-mode}
+global minor mode, Emacs will generate and update the tags tables
+automatically as needed.
 
   Emacs uses the tags tables via the @code{etags} package as one of
 the supported backends for @code{xref}.  Because tags tables are
@@ -3279,6 +3316,10 @@ You should update a tags table when you define new tags that you want
 to have listed, or when you move tag definitions from one file to
 another, or when changes become substantial.
 
+  If the @code{etags-regen-mode} minor mode, described below, is
+enabled, Emacs will automatically keep the tags tables up-to-date as
+needed.
+
   You can make a tags table @dfn{include} another tags table, by
 passing the @samp{--include=@var{file}} option to @command{etags}.  It
 then covers all the files covered by the included tags file, as well
@@ -3387,11 +3428,11 @@ Command-line options to pass to the program which regenerates tags
 tables.
 
 @item etags-regen-ignores
-List of glob patterns which specify files to ignore when regenerating
-tags tables.
+List of glob wildcard patterns which specify files to ignore when
+regenerating tags tables.
 @end vtable
 
-@cindex tags-reset-tags-tables
+@findex tags-reset-tags-tables
   If you select a tags table manually, with @kbd{M-x visit-tags-table}
 (@pxref{Select Tags Table}), @code{etags-regen-mode} effectively
 disables itself: it will no longer automatically create and update
@@ -3575,6 +3616,12 @@ the tags table file name as an argument, with @file{TAGS} defaulting
 to the first directory that contains a file named @file{TAGS}
 encountered when recursively searching upward from the default
 directory.
+
+  If you enable the @code{etags-regen-mode} global minor mode, it will
+automatically find and visit the tags table file when needed.  If you
+then invoke @code{visit-tags-table} manually to select a tags table,
+@code{etags-regen-mode} will disable automatic regeneration of the tags
+table.  @xref{Create Tags Table}.
 
 @vindex tags-file-name
   Emacs does not actually read in the tags table contents until you

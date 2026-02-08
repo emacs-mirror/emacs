@@ -1,6 +1,6 @@
 /* Detect the number of processors.
 
-   Copyright (C) 2009-2025 Free Software Foundation, Inc.
+   Copyright (C) 2009-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -405,7 +405,7 @@ get_cgroup2_cpu_quota (void)
   if (! fp)
     return cpu_quota;
 
-  /* Get our cgroupv2 (unififed) hierarchy.  */
+  /* Get our cgroupv2 (unified) hierarchy.  */
   char *cgroup = NULL;
   char *cgroup_str = NULL;
   size_t cgroup_size = 0;

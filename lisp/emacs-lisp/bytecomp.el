@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2025 Free Software
+;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -1620,11 +1620,11 @@ extra args."
       (while (and (< start len)
                   (string-match
                    (rx "%"
-                       (? (group (+ digit)) "$")         ; field
-                       (* (in "+ #0-"))                  ; flags
-                       (* digit)                         ; width
-                       (? "." (* digit))                 ; precision
-                       (? (group (in "sdioxXefgcS%"))))  ; spec
+                       (? (group (+ digit)) "$")           ; field
+                       (* (in "+ #0-"))                    ; flags
+                       (* digit)                           ; width
+                       (? "." (* digit))                   ; precision
+                       (? (group (in "sdibBoxXefgcS%"))))  ; spec
                    format-str start))
         (let ((field (if (match-beginning 1)
                          (string-to-number (match-string 1 format-str))
@@ -1856,7 +1856,8 @@ It is too wide if it has any lines longer than the largest of
          ;; The native compiler doesn't use those dynamic docstrings.
          (not byte-native-compiling)
          ;; Docstrings can only be dynamic when compiling a file.
-         byte-compile--\#$)
+         byte-compile--\#$
+         (not (equal doc "")))        ; empty lazy strings are pointless
     (let* ((byte-pos (with-memoization
                          ;; Reuse a previously written identical docstring.
                          ;; This is not done out of thriftiness but to try and
@@ -4078,7 +4079,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (defun byte-compile-cmp (form)
   "Compile calls to numeric comparisons such as `<', `=' etc."
   ;; Lisp-level transforms should already have reduced valid calls to 2 args,
-  ;; but optimisations may have been disabled.
+  ;; but optimizations may have been disabled.
   (let ((l (length form)))
     (cond
      ((= l 3)
@@ -5141,7 +5142,8 @@ binding slots have been popped."
          (when (stringp doc)
            (setq rest (byte-compile--list-with-n
                        rest 0
-                       (byte-compile--docstring doc (nth 0 form) name)))))
+                       (byte-compile--docstring doc (nth 0 form) name)))
+           (setq form (nconc (take 3 form) rest))))
        (pcase-let*
            ;; `macro' is non-nil if it defines a macro.
            ;; `fun' is the function part of `arg' (defaults to `arg').

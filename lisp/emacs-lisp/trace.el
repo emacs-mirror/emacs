@@ -1,6 +1,6 @@
 ;;; trace.el --- tracing facility for Emacs Lisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2026 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -163,36 +163,38 @@ You can call this function to add internal values in the trace buffer."
   "Generate a string that describes that FUNCTION has been entered.
 LEVEL is the trace level, ARGS is the list of arguments passed to FUNCTION."
   (unless inhibit-trace
-    (trace--insert
-     (let ((ctx (funcall context))
-           (print-circle t)
-           (print-escape-newlines t))
-       (format "%s%s%d -> %s%s\n"
-               (mapconcat #'char-to-string
-                          (make-string (max 0 (1- level)) ?|) " ")
-               (if (> level 1) " " "")
-               level
-               ;; FIXME: Make it so we can click the function name to
-               ;; jump to its definition and/or untrace it.
-               (cl-prin1-to-string (cons function args))
-               ctx)))))
+    (let ((inhibit-trace t))
+      (trace--insert
+       (let ((ctx (funcall context))
+             (print-circle t)
+             (print-escape-newlines t))
+         (format "%s%s%d -> %s%s\n"
+                 (mapconcat #'char-to-string
+                            (make-string (max 0 (1- level)) ?|) " ")
+                 (if (> level 1) " " "")
+                 level
+                 ;; FIXME: Make it so we can click the function name to
+                 ;; jump to its definition and/or untrace it.
+                 (cl-prin1-to-string (cons function args))
+                 ctx))))))
 
 (defun trace--exit-message (function level value context)
   "Generate a string that describes that FUNCTION has exited.
 LEVEL is the trace level, VALUE value returned by FUNCTION."
   (unless inhibit-trace
-    (trace--insert
-     (let ((ctx (funcall context))
-           (print-circle t)
-           (print-escape-newlines t))
-       (format "%s%s%d <- %s: %s%s\n"
-               (mapconcat 'char-to-string (make-string (1- level) ?|) " ")
-               (if (> level 1) " " "")
-               level
-               function
-               ;; Do this so we'll see strings:
-               (cl-prin1-to-string value)
-               ctx)))))
+    (let ((inhibit-trace t))
+      (trace--insert
+       (let ((ctx (funcall context))
+             (print-circle t)
+             (print-escape-newlines t))
+         (format "%s%s%d <- %s: %s%s\n"
+                 (mapconcat #'char-to-string (make-string (1- level) ?|) " ")
+                 (if (> level 1) " " "")
+                 level
+                 function
+                 ;; Do this so we'll see strings:
+                 (cl-prin1-to-string value)
+                 ctx))))))
 
 (defvar trace--timer nil)
 
@@ -261,7 +263,7 @@ If `current-prefix-arg' is non-nil, also read a buffer and a \"context\"
   (cons
    (let ((default (function-called-at-point)))
      (intern (completing-read (format-prompt prompt default)
-                              obarray 'fboundp t nil nil
+                              obarray #'fboundp t nil nil
                               (if default (symbol-name default)))))
    (when current-prefix-arg
      (list
@@ -307,7 +309,7 @@ the output buffer or changing the window configuration."
   (trace-function-internal function buffer t context))
 
 ;;;###autoload
-(defalias 'trace-function 'trace-function-foreground)
+(defalias 'trace-function #'trace-function-foreground)
 
 (defun untrace-function (function)
   "Untraces FUNCTION and possibly activates all remaining advice.

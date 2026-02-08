@@ -1,6 +1,6 @@
 ;;; nndoc.el --- single file access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -33,7 +33,6 @@
 (require 'nnoo)
 (require 'gnus-util)
 (require 'mm-util)
-(eval-when-compile (require 'cl-lib))
 
 (nnoo-declare nndoc)
 

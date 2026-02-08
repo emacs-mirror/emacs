@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2025 Free Software Foundation,
+   Copyright (C) 1989, 1993-1994, 1998-2026 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -1766,6 +1766,7 @@ extern void x_ignore_errors_for_next_request (struct x_display_info *,
 extern void x_stop_ignoring_errors (struct x_display_info *);
 extern void x_clear_errors (Display *);
 extern void x_set_window_size (struct frame *, bool, int, int);
+extern void x_set_window_size_and_position (struct frame *, int, int);
 extern void x_set_last_user_time_from_lisp (struct x_display_info *, Time);
 extern void x_make_frame_visible (struct frame *);
 extern void x_make_frame_invisible (struct frame *);

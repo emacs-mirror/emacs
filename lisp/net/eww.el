@@ -1,6 +1,6 @@
 ;;; eww.el --- Emacs Web Wowser  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -2257,7 +2257,8 @@ external browser."
   (setq url (or url (plist-get eww-data :url)))
   (if (eq 'external (browse-url--browser-kind
                      browse-url-secondary-browser-function url))
-      (funcall browse-url-secondary-browser-function url)
+      (let ((browse-url-browser-function browse-url-secondary-browser-function))
+        (browse-url url))
     (browse-url-with-browser-kind 'external url)))
 
 (defun eww-remove-tracking (url)

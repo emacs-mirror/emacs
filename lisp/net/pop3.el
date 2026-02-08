@@ -1,6 +1,6 @@
 ;;; pop3.el --- Post Office Protocol (RFC 1460) interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 
 ;; Author: Richard L. Pieri <ratinox@peorth.gweep.net>
 ;; Maintainer: emacs-devel@gnu.org
@@ -33,8 +33,6 @@
 ;; This program was inspired by Kyle E. Jones's vm-pop program.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl-lib))
 
 (require 'mail-utils)
 

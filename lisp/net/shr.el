@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -1097,9 +1097,9 @@ When `shr-fill-text' is nil, only indent."
   (mouse-set-point ev)
   (shr-browse-url nil nil t))
 
-(defun shr-browse-url (&optional external mouse-event new-window)
+(defun shr-browse-url (&optional secondary mouse-event new-window)
   "Browse the URL at point using `browse-url'.
-If EXTERNAL is non-nil (interactively, the prefix argument), browse
+If SECONDARY is non-nil (interactively, the prefix argument), browse
 the URL using `browse-url-secondary-browser-function'.
 If this function is invoked by a mouse click, it will browse the URL
 at the position of the click.  Optional argument MOUSE-EVENT describes
@@ -1110,8 +1110,9 @@ the mouse click event."
     (cond
      ((not url)
       (message "No link under point"))
-     (external
-      (funcall browse-url-secondary-browser-function url)
+     (secondary
+      (let ((browse-url-browser-function browse-url-secondary-browser-function))
+        (browse-url url))
       (shr--blink-link))
      (t
       (browse-url url (xor new-window browse-url-new-window-flag))))))

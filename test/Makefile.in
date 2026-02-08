@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2010-2025 Free Software Foundation, Inc.
+# Copyright (C) 2010-2026 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -200,7 +200,8 @@ EXCLUDE_TESTS =
 
 ## To speed up parallel builds, put these slow test files (which can
 ## take longer than all the rest combined) at the start of the list.
-SLOW_TESTS = ${srcdir}/lisp/net/tramp-tests.el
+SLOW_TESTS = ${srcdir}/lisp/emacs-lisp/package-vc-tests.el \
+             ${srcdir}/lisp/net/tramp-tests.el
 
 ELFILES := $(sort $(shell find ${srcdir} -name manual -prune -o \
 		-name data -prune -o -name infra -prune -o \
@@ -216,6 +217,15 @@ $(foreach exclude,${EXCLUDE_TESTS},$(eval ELFILES:= $(filter-out ${exclude},${EL
 LOGFILES := $(patsubst %.el,%.log, \
 		$(patsubst $(srcdir)/%,%,$(ELFILES)))
 TESTS := $(LOGFILES:.log=)
+
+## Some tests show problems when run in parallel with other tests.
+## Suppress parallelism for them when SELECTOR is equal to
+## SELECTOR_EXPENSIVE or SELECTOR_ALL.
+PARALLEL_TESTS := $(LOGFILES)
+ifeq ($(subst $(SELECTOR_ALL),yes,$(subst $(SELECTOR_EXPENSIVE),yes,$(SELECTOR_ACTUAL))), yes)
+$(eval NOT_PARALLEL_TESTS := $(filter lisp/autorevert-tests.log lisp/filenotify-tests.log lisp/net/tramp-tests.log, $(LOGFILES)))
+$(eval PARALLEL_TESTS := $(filter-out $(NOT_PARALLEL_TESTS), ${LOGFILES}))
+endif
 
 ## If we have to interrupt a hanging test, preserve the log so we can
 ## see what the problem was.
@@ -347,7 +357,12 @@ ifeq ($(TEST_INTERACTIVE), yes)
 	  $(patsubst %,-l %,$(if $(findstring $(TEST_LOAD_EL),yes),$ELFILES,$(ELFILES:.el=))) \
 	  $(TEST_RUN_ERT)
 else
-	-@${MAKE} -k ${LOGFILES}
+ifdef NOT_PARALLEL_TESTS
+	-@${MAKE} -k -j1 ${NOT_PARALLEL_TESTS}
+endif
+ifdef PARALLEL_TESTS
+	-@${MAKE} -k ${PARALLEL_TESTS}
+endif
 	@$(emacs) --batch -l ert --eval \
 	"(ert-summarize-tests-batch-and-exit ${SUMMARIZE_TESTS})" ${LOGFILES}
 endif

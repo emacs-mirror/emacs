@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Sequences Arrays Vectors
@@ -1110,9 +1110,9 @@ instead of the default @code{equal}.
 @cindex sequences, intersection of
 @cindex intersection of sequences
   This function returns a copy of @var{sequence1} from which the
-elements that appear in @var{sequence2} where removed.  If the optional
-argument @var{function} is non-@code{nil}, it is a function of two
-arguments to use to compare elements instead of the default
+elements that do not appear in @var{sequence2} were removed.  If the
+optional argument @var{function} is non-@code{nil}, it is a function of
+two arguments to use to compare elements instead of the default
 @code{equal}.
 
 @example
@@ -1125,10 +1125,11 @@ arguments to use to compare elements instead of the default
 
 
 @defun seq-difference sequence1 sequence2 &optional function
-  This function returns a list of the elements that appear in
-@var{sequence1} but not in @var{sequence2}.  If the optional argument
-@var{function} is non-@code{nil}, it is a function of two arguments to
-use to compare elements instead of the default @code{equal}.
+  This function returns a copy of @var{sequence1} from which the
+elements that appear in @var{sequence2} were removed.  If the optional
+argument @var{function} is non-@code{nil}, it is a function of two
+arguments to use to compare elements instead of the default
+@code{equal}.
 
 @example
 @group

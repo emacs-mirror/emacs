@@ -1,6 +1,6 @@
 ;;; calc-tests.el --- tests for calc                 -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2026 Free Software Foundation, Inc.
 
 ;; Author: Leo Liu <sdl.web@gmail.com>
 ;; Keywords: maint
@@ -882,18 +882,8 @@ An existing calc stack is reused, otherwise a new one is created."
 
 (ert-deftest calc-math-vector-is-string ()
   "Test `math-vector-is-string' with varying `calc-string-maximum-character'.
-
-All tests operate on both an integer vector and the corresponding
-complex vector.  The sets covered are:
-
-1. `calc-string-maximum-character' is a valid character. The last case
-with `0x3FFFFF' is borderline, as integers above it will not make it
-past the `characterp' test.
-2. `calc-string-maximum-character' is negative, so the test always fails.
-3. `calc-string-maximum-character' is above `(max-char)', so only the
-first `characterp' test is active.
-4. `calc-string-maximum-character' has an invalid type, which triggers
-an error in the comparison."
+When `calc-string-maximum-character' isn’t a valid character,
+`math-vector-is-string' should return nil for all vectors."
   (cl-flet* ((make-vec (lambda (contents) (append (list 'vec) contents)))
              (make-cplx (lambda (x) (list 'cplx x 0)))
              (make-cplx-vec (lambda (contents)
@@ -902,50 +892,20 @@ an error in the comparison."
     (dolist (maxchar '(#x7F #xFF #x10FFFF #x3FFFFD #x3FFFFF))
       (let* ((calc-string-maximum-character maxchar)
              (small-chars (number-sequence (- maxchar 2) maxchar))
-             (large-chars (number-sequence maxchar (+ maxchar 2)))
-             (small-real-vec (make-vec small-chars))
-             (large-real-vec (make-vec large-chars))
-             (small-cplx-vec (make-cplx-vec small-chars))
-             (large-cplx-vec (make-cplx-vec large-chars)))
-        (should (math-vector-is-string small-real-vec))
-        (should-not (math-vector-is-string large-real-vec))
-        (should (math-vector-is-string small-cplx-vec))
-        (should-not (math-vector-is-string large-cplx-vec))))
-    ;; 2: calc-string-maximum-character is negative
-    (let* ((maxchar -1)
-           (calc-string-maximum-character maxchar)
-           (valid-contents (number-sequence 0 2))
-           (invalid-contents (number-sequence (- maxchar 2) maxchar))
-           (valid-real-vec (make-vec valid-contents))
-           (invalid-real-vec (make-vec invalid-contents))
-           (valid-cplx-vec (make-cplx-vec valid-contents))
-           (invalid-cplx-vec (make-cplx-vec invalid-contents)))
-      (should-not (math-vector-is-string valid-real-vec))
-      (should-not (math-vector-is-string invalid-real-vec))
-      (should-not (math-vector-is-string valid-cplx-vec))
-      (should-not (math-vector-is-string invalid-cplx-vec)))
-    ;; 3: calc-string-maximum-character is larger than (max-char)
-    (let* ((maxchar (+ (max-char) 3))
-           (calc-string-maximum-character maxchar)
-           (valid-chars (number-sequence (- (max-char) 2) (max-char)))
-           (invalid-chars (number-sequence (1+ (max-char)) maxchar))
-           (valid-real-vec (make-vec valid-chars))
-           (invalid-real-vec (make-vec invalid-chars))
-           (valid-cplx-vec (make-cplx-vec valid-chars))
-           (invalid-cplx-vec (make-cplx-vec invalid-chars)))
-      (should (math-vector-is-string valid-real-vec))
-      (should-not (math-vector-is-string invalid-real-vec))
-      (should (math-vector-is-string valid-cplx-vec))
-      (should-not (math-vector-is-string invalid-cplx-vec)))
-    ;; 4: calc-string-maximum-character has the wrong type
-    (let* ((calc-string-maximum-character "wrong type")
-           (contents (number-sequence 0 2))
-           (real-vec (make-vec contents))
-           (cplx-vec (make-cplx-vec contents)))
-      (should-error (math-vector-is-string real-vec)
-                    :type 'wrong-type-argument)
-      (should-error (math-vector-is-string cplx-vec)
-                    :type 'wrong-type-argument))))
+             (large-chars (number-sequence maxchar (+ maxchar 2))))
+        (should (math-vector-is-string (make-vec small-chars)))
+        (should-not (math-vector-is-string (make-vec large-chars)))
+        (should (math-vector-is-string (make-cplx-vec small-chars)))
+        (should-not (math-vector-is-string (make-cplx-vec large-chars)))))
+    ;; 2: calc-string-maximum-character is not a valid character
+    (dolist (maxchar (list -1 (1+ (max-char)) "wrong type"))
+      (let ((calc-string-maximum-character maxchar)
+            (valid-chars (number-sequence 0 2))
+            (invalid-chars (number-sequence -2 -1)))
+        (should-not (math-vector-is-string (make-vec valid-chars)))
+        (should-not (math-vector-is-string (make-vec invalid-chars)))
+        (should-not (math-vector-is-string (make-cplx-vec valid-chars)))
+        (should-not (math-vector-is-string (make-cplx-vec invalid-chars)))))))
 
 (ert-deftest calc-inhibit-startup-message ()
   "Test user option `calc-inhibit-startup-message'."

@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs's AUTHORS file  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -69,6 +69,7 @@ files.")
     (nil "BlaCk_Void" "alstjr7375@daum\\.net")
     (nil "bug-gnu-emacs@gnu\\.org")  ; mistake
     ("Björn Torkelsson" "Bjorn Torkelsson")
+    ("Boris Buliga" "boris@d12frosted\\.io")
     (nil "brandon\\.irizarry@gmail\\.com")
     ("Brian Fox" "Brian J\\. Fox")
     ("Brian P Templeton" "BT Templeton")

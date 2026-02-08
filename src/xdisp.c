@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3316,13 +3316,50 @@ init_iterator (struct it *it, struct window *w,
   if (base_face_id == DEFAULT_FACE_ID
       && FRAME_WINDOW_P (it->f))
     {
+      Lisp_Object line_space_above;
+      Lisp_Object line_space_below;
+
       if (FIXNATP (BVAR (current_buffer, extra_line_spacing)))
-	it->extra_line_spacing = XFIXNAT (BVAR (current_buffer, extra_line_spacing));
+	{
+	  it->extra_line_spacing = XFIXNAT (BVAR (current_buffer, extra_line_spacing));
+	  it->extra_line_spacing_above = 0;
+	}
       else if (FLOATP (BVAR (current_buffer, extra_line_spacing)))
-	it->extra_line_spacing = (XFLOAT_DATA (BVAR (current_buffer, extra_line_spacing))
-				  * FRAME_LINE_HEIGHT (it->f));
+	{
+	  it->extra_line_spacing = (XFLOAT_DATA (BVAR (current_buffer, extra_line_spacing))
+				    * FRAME_LINE_HEIGHT (it->f));
+	  it->extra_line_spacing_above = 0;
+	}
+      else if (CONSP (BVAR (current_buffer, extra_line_spacing)))
+	{
+	  line_space_above = XCAR (BVAR (current_buffer, extra_line_spacing));
+	  line_space_below = XCDR (BVAR (current_buffer, extra_line_spacing));
+	  /* Integer pair case.	 */
+	  if (FIXNATP (line_space_above) && FIXNATP (line_space_below))
+	    {
+	      int line_space_total = XFIXNAT (line_space_below) + XFIXNAT (line_space_above);
+	      it->extra_line_spacing = line_space_total;
+	      it->extra_line_spacing_above = XFIXNAT (line_space_above);
+	    }
+	  /* Float pair case.  */
+	  else if (FLOATP (line_space_above) && FLOATP (line_space_below))
+	    {
+	      double line_space_total = XFLOAT_DATA (line_space_above) + XFLOAT_DATA (line_space_below);
+	      it->extra_line_spacing = (line_space_total * FRAME_LINE_HEIGHT (it->f));
+	      it->extra_line_spacing_above = (XFLOAT_DATA (line_space_above) * FRAME_LINE_HEIGHT (it->f));
+	    }
+	  /* Invalid cons. */
+	  else
+	    {
+	      it->extra_line_spacing = 0;
+	      it->extra_line_spacing_above = 0;
+	    }
+	}
       else if (it->f->extra_line_spacing > 0)
-	it->extra_line_spacing = it->f->extra_line_spacing;
+	{
+	  it->extra_line_spacing       = it->f->extra_line_spacing;
+	  it->extra_line_spacing_above = it->f->extra_line_spacing_above;
+	}
     }
 
   /* If realized faces have been removed, e.g. because of face
@@ -11263,6 +11300,7 @@ move_it_vertically_backward (struct it *it, int dy)
       int line_height;
 
       RESTORE_IT (&it3, &it3, it3data);
+      last_height = 0;
       y1 = line_bottom_y (&it3);
       line_height = y1 - y0;
       RESTORE_IT (it, it, it2data);
@@ -13157,7 +13195,7 @@ resize_mini_window (struct window *w, bool exact_p)
   else
     {
       struct it it;
-      int unit = FRAME_LINE_HEIGHT (f);
+      int unit;
       int height, max_height;
       struct text_pos start;
       struct buffer *old_current_buffer = NULL;
@@ -13170,6 +13208,10 @@ resize_mini_window (struct window *w, bool exact_p)
 	}
 
       init_iterator (&it, w, BEGV, BEGV_BYTE, NULL, DEFAULT_FACE_ID);
+
+      /* Unit includes line spacing if line spacing is added above */
+      unit = FRAME_LINE_HEIGHT (f) +
+	  (it.extra_line_spacing_above ? it.extra_line_spacing : 0);
 
       /* Compute the max. number of lines specified by the user.  */
       if (FLOATP (Vmax_mini_window_height))
@@ -13203,7 +13245,10 @@ resize_mini_window (struct window *w, bool exact_p)
 	}
       else
 	height = it.current_y + it.max_ascent + it.max_descent;
-      height -= min (it.extra_line_spacing, it.max_extra_line_spacing);
+
+      /* Remove final line spacing in the mini-window */
+      if (!it.extra_line_spacing_above)
+        height -= min (it.extra_line_spacing, it.max_extra_line_spacing);
 
       /* Compute a suitable window start.  */
       if (height > max_height)
@@ -13241,13 +13286,13 @@ resize_mini_window (struct window *w, bool exact_p)
 	  /* Let it grow only, until we display an empty message, in which
 	     case the window shrinks again.  */
 	  if (height > old_height)
-	    grow_mini_window (w, height - old_height);
+	    grow_mini_window (w, height - old_height, unit);
 	  else if (height < old_height && (exact_p || BEGV == ZV))
-	    shrink_mini_window (w);
+	    shrink_mini_window (w, unit);
 	}
       else if (height != old_height)
 	/* Always resize to exact size needed.  */
-	grow_mini_window (w, height - old_height);
+	grow_mini_window (w, height - old_height, unit);
 
       if (old_current_buffer)
 	set_buffer_internal (old_current_buffer);
@@ -14219,7 +14264,7 @@ prepare_menu_bars (void)
 
    W, if set, denotes the window that should be considered as selected.
    For a tty child frame using F as surrogate menu bar frame, this
-   specifes the child frame's selected window and its buffer shall be
+   specifies the child frame's selected window and its buffer shall be
    used for updating the menu bar of the root frame instead of the
    buffer of the root frame's selected window.  */
 
@@ -20356,11 +20401,16 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	    blank_row (w, row, y);
 	  goto finish_scroll_bars;
 	}
-      else if (minibuf_level >= 1)
+      else if (minibuf_level >= 1 && NILP (resize_mini_frames))
 	{
 	  /* We could have a message produced by set-minibuffer-message
 	     displayed in the mini-window as an overlay, so resize the
-	     mini-window if needed.  */
+	     mini-window if needed.
+
+	     Don't resize the mini-window when minibuffer-only frames
+	     shall be resized automatically to avoid entering an
+	     infinite loop (Bug#80017).  The cause of that looping is
+	     yet undetermined.  */
 	  resize_mini_window (w, false);
 	}
 
@@ -21624,8 +21674,9 @@ try_window_reusing_current_matrix (struct window *w)
     return false;
 
   /* If top-line visibility has changed, give up.  */
-  if (window_wants_tab_line (w)
-      != MATRIX_TAB_LINE_ROW (w->current_matrix)->mode_line_p)
+  if (!w->current_matrix->header_line_p
+      && (window_wants_tab_line (w)
+	  != MATRIX_TAB_LINE_ROW (w->current_matrix)->mode_line_p))
     return false;
 
   /* If top-line visibility has changed, give up.  */
@@ -24063,6 +24114,7 @@ append_space_for_newline (struct it *it, bool default_face_p)
 	    {
 	      Lisp_Object height, total_height;
 	      int extra_line_spacing = it->extra_line_spacing;
+	      int extra_line_spacing_above = it->extra_line_spacing_above;
 	      int boff = font->baseline_offset;
 
 	      if (font->vertical_centering)
@@ -24104,7 +24156,7 @@ append_space_for_newline (struct it *it, bool default_face_p)
 
 		  if (!NILP (total_height))
 		    spacing = calc_line_height_property (it, total_height, font,
-		                                         boff, false);
+							 boff, false);
 		  else
 		    {
 		      spacing = get_it_property (it, Qline_spacing);
@@ -24116,11 +24168,13 @@ append_space_for_newline (struct it *it, bool default_face_p)
 		      extra_line_spacing = XFIXNUM (spacing);
 		      if (!NILP (total_height))
 			extra_line_spacing -= (it->phys_ascent + it->phys_descent);
+
 		    }
 		}
 	      if (extra_line_spacing > 0)
 		{
-		  it->descent += extra_line_spacing;
+		  it->descent += (extra_line_spacing - extra_line_spacing_above);
+		  it->ascent  += extra_line_spacing_above;
 		  if (extra_line_spacing > it->max_extra_line_spacing)
 		    it->max_extra_line_spacing = extra_line_spacing;
 		}
@@ -24770,7 +24824,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop, int from_buffer)
 {
   struct text_pos pos =
     STRINGP (it->string) ? it->current.string_pos : it->current.pos;
-  bool phoney_display_string =
+  bool phony_display_string =
     from_buffer && STRINGP (it->string) && it->string_from_display_prop_p;
 
   eassert (it->method == GET_FROM_BUFFER
@@ -24794,7 +24848,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop, int from_buffer)
      string that follows iterator position).  If we don't do that, any
      display properties on the prefix string will be ignored.  The call
      to pop_it when we are done with the prefix will restore the flag.  */
-  if (phoney_display_string)
+  if (phony_display_string)
     it->string_from_display_prop_p = false;
 
   if (STRINGP (prop))
@@ -33133,6 +33187,7 @@ void
 gui_produce_glyphs (struct it *it)
 {
   int extra_line_spacing = it->extra_line_spacing;
+  int extra_line_spacing_above = it->extra_line_spacing_above;
 
   it->glyph_not_available_p = false;
 
@@ -33886,7 +33941,8 @@ gui_produce_glyphs (struct it *it)
 
   if (extra_line_spacing > 0)
     {
-      it->descent += extra_line_spacing;
+      it->descent += extra_line_spacing - extra_line_spacing_above;
+      it->ascent  += extra_line_spacing_above;
       if (extra_line_spacing > it->max_extra_line_spacing)
 	it->max_extra_line_spacing = extra_line_spacing;
     }

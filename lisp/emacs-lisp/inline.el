@@ -1,6 +1,6 @@
 ;;; inline.el --- Define functions by their inliner  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -134,7 +134,7 @@ After VARS is handled, BODY is evaluated in the new environment."
 This is halfway between `defmacro' and `defun'.  BODY is used as a blueprint
 both for the body of the function and for the body of the compiler-macro
 used to generate the code inlined at each call site.
-See Info node `(elisp)Inline Functions for more details.
+See Info node `(elisp)Inline Functions' for more details.
 
 A (noinline t) in the `declare' form prevents the definition of the
 compiler macro.  This is for the rare case in which you want to use this

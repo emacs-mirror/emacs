@@ -1,6 +1,6 @@
 ;;; project-tests.el --- tests for project.el -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; Keywords:
 
@@ -32,6 +32,8 @@
 (require 'ert-x) ; ert-with-temp-directory
 (require 'grep)
 (require 'xref)
+
+(declare-function vc-git--program-version "vc-git")
 
 (ert-deftest project/quoted-directory ()
   "Check that `project-files' and `project-find-regexp' deal with
@@ -154,11 +156,13 @@ When `project-ignores' includes a name matching project dir."
     (should-not (null project))
     (should (string-match-p "/test/lisp/progmodes/project-resources/\\'" (project-root project)))
     (should (member "etc" (project-ignores project dir)))
-    (should (equal '(".dir-locals.el" "foo")
+    (should (equal `(,@(when (version<= "2.13" (vc-git--program-version))
+                         (list ".dir-locals.el"))
+                     "foo")
                    (mapcar #'file-name-nondirectory (project-files project))))))
 
 (ert-deftest project-vc-supports-files-in-subdirectory ()
-  "Check that it lists only files from subdirectory."
+  "Check that it lists only files from a repo's subdirectory."
   (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
   (let* ((dir (ert-resource-directory))
          (_ (vc-file-clearprops dir))
@@ -166,7 +170,27 @@ When `project-ignores' includes a name matching project dir."
          (project (project-current nil dir)))
     (should-not (null project))
     (should (string-match-p "/test/lisp/progmodes/\\'" (project-root project)))
-    (should (equal '(".dir-locals.el" "etc" "foo")
+    (should (equal `(,@(when (version<= "2.13" (vc-git--program-version))
+                         (list ".dir-locals.el"))
+                     "foo")
+                   (mapcar #'file-name-nondirectory
+                           (project-files project
+                                          (list dir)))))))
+
+(ert-deftest project-vc-ignores-in-external-directory ()
+  "Check that it applies project-vc-ignores when DIR is external to root."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  (let* ((dir (ert-resource-directory))
+         (_ (vc-file-clearprops dir))
+         ;; Do not detect VC backend.
+         (project-vc-backend-markers-alist nil)
+         (project-vc-extra-root-markers '("configure.ac"))
+         (project (project-current nil (expand-file-name "../autoconf-resources/" dir))))
+    (should-not (null project))
+    (should (string-match-p "/test/lisp/progmodes/autoconf-resources/\\'" (project-root project)))
+    (should (equal `(,@(when (version<= "2.13" (vc-git--program-version))
+                         (list ".dir-locals.el"))
+                     "foo")
                    (mapcar #'file-name-nondirectory
                            (project-files project
                                           (list dir)))))))

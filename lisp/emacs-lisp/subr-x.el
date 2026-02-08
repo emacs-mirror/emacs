@@ -1,6 +1,6 @@
 ;;; subr-x.el --- extra Lisp functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -37,6 +37,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'mule-util)
 
 (defmacro internal--thread-argument (first? &rest forms)
   "Internal implementation for `thread-first' and `thread-last'.
@@ -357,6 +358,29 @@ buffer when possible, instead of creating a new one on each call."
              (progn ,@body)
            (work-buffer--release ,work-buffer))))))
 
+(defun work-buffer--prepare-pixelwise (string buffer)
+  "Set up the current buffer to correctly compute STRING's pixel width.
+Call this with a work buffer as the current buffer.
+BUFFER is the originating buffer and if non-nil, make the current
+buffer's (work buffer) face remappings match it."
+  (when buffer
+    (dolist (v '(face-remapping-alist
+                 char-property-alias-alist
+                 default-text-properties))
+      (if (local-variable-p v buffer)
+          (set (make-local-variable v)
+               (buffer-local-value v buffer)))))
+  ;; Avoid deactivating the region as side effect.
+  (let (deactivate-mark)
+    (insert string))
+  ;; If `display-line-numbers' is enabled in internal
+  ;; buffers (e.g. globally), it breaks width calculation
+  ;; (bug#59311).  Disable `line-prefix' and `wrap-prefix',
+  ;; for the same reason.
+  (add-text-properties
+   (point-min) (point-max)
+   '(display-line-numbers-disable t line-prefix "" wrap-prefix "")))
+
 ;;;###autoload
 (defun string-pixel-width (string &optional buffer)
   "Return the width of STRING in pixels.
@@ -371,25 +395,69 @@ substring that does not include newlines."
     ;; Keeping a work buffer around is more efficient than creating a
     ;; new temporary buffer.
     (with-work-buffer
-      ;; Setup current buffer to correctly compute pixel width.
-      (when buffer
-        (dolist (v '(face-remapping-alist
-                     char-property-alias-alist
-                     default-text-properties))
-          (if (local-variable-p v buffer)
-              (set (make-local-variable v)
-                   (buffer-local-value v buffer)))))
-      ;; Avoid deactivating the region as side effect.
-      (let (deactivate-mark)
-        (insert string))
-      ;; If `display-line-numbers' is enabled in internal
-      ;; buffers (e.g. globally), it breaks width calculation
-      ;; (bug#59311).  Disable `line-prefix' and `wrap-prefix',
-      ;; for the same reason.
-      (add-text-properties
-       (point-min) (point-max)
-       '(display-line-numbers-disable t line-prefix "" wrap-prefix ""))
+     (work-buffer--prepare-pixelwise string buffer)
       (car (buffer-text-pixel-size nil nil t)))))
+
+;;;###autoload
+(defun truncate-string-pixelwise (string max-pixels &optional buffer
+                                  ellipsis ellipsis-pixels)
+  "Return STRING truncated to fit within MAX-PIXELS.
+If BUFFER is non-nil, use the face remappings, alternative and default
+properties from that buffer when determining the width.
+If you call this function to measure pixel width of a string
+with embedded newlines, it returns the width of the widest
+substring that does not include newlines.
+
+If ELLIPSIS is non-nil, it should be a string which will replace the end
+of STRING if it extends beyond MAX-PIXELS, unless the pixel width of
+STRING is equal to or less than the pixel width of ELLIPSIS.  If it is
+non-nil and not a string, then ELLIPSIS defaults to
+`truncate-string-ellipsis', or to three dots when it's nil.
+
+If ELLIPSIS-PIXELS is non-nil, it is the pixel width of ELLIPSIS, and
+can be used to avoid the cost of recomputing this for multiple calls to
+this function using the same ELLIPSIS."
+  (declare (important-return-value t))
+  (if (zerop (length string))
+      string
+    ;; Keeping a work buffer around is more efficient than creating a
+    ;; new temporary buffer.
+    (let ((original-buffer (or buffer (current-buffer))))
+      (with-work-buffer
+       (work-buffer--prepare-pixelwise string buffer)
+       (set-window-buffer nil (current-buffer) 'keep-margins)
+       ;; Use a binary search to prune the number of calls to
+       ;; `window-text-pixel-size'.
+       ;; These are 1-based buffer indexes.
+       (let* ((low 1)
+              (high (1+ (length string)))
+              mid)
+         (when (> (car (window-text-pixel-size nil 1 high)) max-pixels)
+           (when (and ellipsis (not (stringp ellipsis)))
+             (setq ellipsis (truncate-string-ellipsis)))
+           (setq ellipsis-pixels (if ellipsis
+                                     (if ellipsis-pixels
+                                         ellipsis-pixels
+                                       (string-pixel-width ellipsis buffer))
+                                   0))
+           (let ((adjusted-pixels
+                  (if (> max-pixels ellipsis-pixels)
+                      (- max-pixels ellipsis-pixels)
+                    max-pixels)))
+             (while (<= low high)
+               (setq mid (floor (+ low high) 2))
+               (if (<= (car (window-text-pixel-size nil 1 mid))
+                       adjusted-pixels)
+                   (setq low (1+ mid))
+                 (setq high (1- mid))))))
+         (set-window-buffer nil original-buffer 'keep-margins)
+         (if mid
+             ;; Binary search ran.
+             (if (and ellipsis (> max-pixels ellipsis-pixels))
+                 (concat (substring string 0 (1- high)) ellipsis)
+               (substring string 0 (1- high)))
+           ;; Fast path.
+           string))))))
 
 ;;;###autoload
 (defun string-glyph-split (string)

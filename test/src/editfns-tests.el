@@ -1,6 +1,6 @@
 ;;; editfns-tests.el --- tests for editfns.c  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -368,7 +368,7 @@ Execute tests as described by `editfns-tests--transpose-regions-tests'."
               (should (equal (mapcar #'marker-position pmarkers) pmpos))
             ;; Meh.  This more or less blindly duplicates function
             ;; transpose_markers, since I have been too lazy to
-            ;; reproduce the arithmetics myself.
+            ;; reproduce the arithmetic myself.
             (setq pmpos
                   (mapcar
                    (lambda (pos)
@@ -397,6 +397,82 @@ Execute tests as described by `editfns-tests--transpose-regions-tests'."
 (ert-deftest format-c-float ()
   (should-error (format "%c" 0.5)))
 
+(ert-deftest format-binary-zero ()
+  "Check that `%#b' and `%#B' are simplified for zero values."
+  (should (string-equal (format "%#b" 0) "0"))
+  (should (string-equal (format "%#B" 0) "0")))
+
+(ert-deftest format-binary-floats ()
+  "Check that `%b' and `%B' drop the fractional part of floats."
+  (let* ((n 5) (N 10)
+         (fracs (mapcar #'(lambda (d) (/ d N 1.0)) (number-sequence 0 (1- N)))))
+    (dolist (f fracs)
+      (should (string-equal (format "%b" (+ n f)) (format "%b" n)))
+      (should (string-equal (format "%B" (+ n f)) (format "%B" n))))))
+
+(ert-deftest format-binary-nonzero-integers ()
+  "Check `%b' and `%B' for non-zero integers.
+For numbers of both signs, check each flag (`0' padding, signs `+' &
+space, left alignment `-') with and without the alternative display
+format `#'.  Include both fixed and big numbers.  The widths are chosen
+sufficiently large to avoid truncation."
+  (dolist (nbits `((#x-5A . "1011010")
+                   (#x5A . "1011010")
+                   (#x-E97 . "111010010111")
+                   (#xE97 . "111010010111")
+                   (#xFFFFFFFFFFFFFFFFF . ,(make-string 68 ?1))
+                   (#x-FFFFFFFFFFFFFFFFF . ,(make-string 68 ?1))))
+    (let* ((n (car nbits)) (bits (cdr nbits))
+           (extra (+ 1 2 2))       ; 1 (sign) +  2 (0b prefix) + 2 (pad)
+           (w (+ (length bits) extra))
+           (Npad (- extra (if (< n 0) 1 0))) ; 0 & space padding w/ prefix
+           (Nsgn (- extra 1))                ; padding w/o sign
+           (sgn- (if (< n 0) "-" "")) (sgn (if (< n 0) "-" "+"))
+           (0pad (make-string Npad ?0)) (0padalt (make-string (- Npad 2) ?0))
+           (spad (make-string Npad ? )) (spadalt (make-string (- Npad 2) ? ))
+           (+pad (make-string Nsgn ? )) (+padalt (make-string (- Nsgn 2) ? )))
+      ;; %b
+      (should (string-equal (format "%b" n) (concat sgn- bits)))
+      (should (string-equal (format "%B" n) (concat sgn- bits)))
+      (should (string-equal (format "%#b" n) (concat sgn- "0b" bits)))
+      (should (string-equal (format "%#B" n) (concat sgn- "0B" bits)))
+      ;; %0wb
+      (should (string-equal (format (format "%%0%db" w) n)
+                            (concat sgn- 0pad bits)))
+      (should (string-equal (format (format "%%0%dB" w) n)
+                            (concat sgn- 0pad bits)))
+      (should (string-equal (format (format "%%#0%db" w) n)
+                            (concat sgn- "0b" 0padalt bits)))
+      (should (string-equal (format (format "%%#0%dB" w) n)
+                            (concat sgn- "0B" 0padalt bits)))
+      ;; %-wb
+      (should (string-equal (format (format "%%-%db" w) n)
+                            (concat sgn- bits spad)))
+      (should (string-equal (format (format "%%-%dB" w) n)
+                            (concat sgn- bits spad)))
+      (should (string-equal (format (format "%%#-%db" w) n)
+                            (concat sgn- "0b" bits spadalt)))
+      (should (string-equal (format (format "%%#-%dB" w) n)
+                            (concat sgn- "0B" bits spadalt)))
+      ;; %+wb
+      (should (string-equal (format (format "%%+%db" w) n)
+                            (concat +pad sgn bits)))
+      (should (string-equal (format (format "%%+%dB" w) n)
+                            (concat +pad sgn bits)))
+      (should (string-equal (format (format "%%#+%db" w) n)
+                            (concat +padalt sgn "0b" bits)))
+      (should (string-equal (format (format "%%#+%dB" w) n)
+                            (concat +padalt sgn "0B" bits)))
+      ;; % wb
+      (should (string-equal (format (format "%% %db" w) n)
+                            (concat spad sgn- bits)))
+      (should (string-equal (format (format "%% %dB" w) n)
+                            (concat spad sgn- bits)))
+      (should (string-equal (format (format "%%# %db" w) n)
+                            (concat spadalt sgn- "0b" bits)))
+      (should (string-equal (format (format "%%# %dB" w) n)
+                            (concat spadalt sgn- "0B" bits))))))
+
 ;;; Test for Bug#29609.
 (ert-deftest format-sharp-0-x ()
   (should (string-equal (format "%#08x" #x10) "0x000010"))
@@ -415,19 +491,22 @@ Execute tests as described by `editfns-tests--transpose-regions-tests'."
 (ert-deftest format-%x-large-float ()
   (should (string-equal (format "%x" 18446744073709551616.0)
                         "10000000000000000")))
+
 (ert-deftest read-large-integer ()
   (should (eq (type-of (read (format "%d0" most-negative-fixnum))) 'integer))
   (should (eq (type-of (read (format "%+d" (* -8.0 most-negative-fixnum))))
               'integer))
   (should (eq (type-of (read (substring (format "%d" most-negative-fixnum) 1)))
               'integer))
-  (should (eq (type-of (read (format "#x%x" most-negative-fixnum)))
+  (should (eq (type-of (read (format "#b%b" most-negative-fixnum)))
               'integer))
   (should (eq (type-of (read (format "#o%o" most-negative-fixnum)))
               'integer))
+  (should (eq (type-of (read (format "#x%x" most-negative-fixnum)))
+              'integer))
   (should (eq (type-of (read (format "#32rG%x" most-positive-fixnum)))
               'integer))
-  (dolist (fmt '("%d" "%s" "#o%o" "#x%x"))
+  (dolist (fmt '("%d" "%s" "#b%b" "#o%o" "#x%x"))
     (dolist (val (list most-negative-fixnum (1+ most-negative-fixnum)
 		       -1 0 1
 		       (1- most-positive-fixnum) most-positive-fixnum))

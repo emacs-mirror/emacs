@@ -1,6 +1,6 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (defvar message-posting-charset)
 
 (require 'mm-util)

@@ -1,6 +1,6 @@
 ;;; nneething.el --- arbitrary file access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -24,8 +24,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl-lib))
 
 (require 'mailcap)
 (require 'nnheader)

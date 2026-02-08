@@ -1,6 +1,6 @@
 ;;; eshell.el --- the Emacs command shell  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -288,7 +288,7 @@ information on Eshell, see Info node `(eshell)Top'."
 (declare-function eshell--save-history "em-hist" ())
 
 (defun eshell-command-mode-exit ()
-  "Exit the `eshell-commad-mode' minibuffer and save Eshell history."
+  "Exit the `eshell-command-mode' minibuffer and save Eshell history."
   (interactive)
   (when (eshell-using-module 'eshell-hist)
     (eshell-add-input-to-history

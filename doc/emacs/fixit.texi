@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Fixit
@@ -417,6 +417,20 @@ Suspend Emacs or iconify the selected frame.
 @item ?
 Show the list of options.
 @end table
+
+@vindex ispell-save-corrections-as-abbrevs
+  You can have Ispell remember your spelling corrections so that they
+are applied automatically when Abbrev mode is enabled (@pxref{Abbrevs}).
+If you customize @code{ispell-save-corrections-as-abbrevs} to a non-nil
+value, then each time you correct a misspelled word, Emacs saves the
+correction as a global abbrev.  Then, whenever you type the misspelling
+and then a word-separator (@key{SPC}, comma, etc.) in a buffer with
+Abbrev mode enabled, Emacs expands the misspelling to its correction.
+You can override this and disable saving a particular correction by
+supplying a @kbd{C-u} prefix argument when selecting a replacement.  If
+@code{ispell-save-corrections-as-abbrevs} has its default value of nil,
+the meaning of a prefix argument is inverted, in that typing @kbd{C-u}
+before selecting a replacement @emph{does} save a global abbrev.
 
   Use the command @kbd{M-@key{TAB}} (@code{completion-at-point}) to
 complete the word at point.  Insert the beginning of a word, and then

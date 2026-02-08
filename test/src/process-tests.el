@@ -1,6 +1,6 @@
 ;;; process-tests.el --- Testing the process facilities -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -106,6 +106,9 @@ process to complete."
 	      (looking-at "hello stdout!")))
     (should (with-current-buffer stderr-buffer
 	      (goto-char (point-min))
+              ;; Instrument for bug#80166.
+              (when (getenv "EMACS_EMBA_CI")
+                (message "stderr\n%s" (buffer-string)))
 	      (looking-at "hello stderr!"))))))
 
 (ert-deftest process-test-stderr-filter ()

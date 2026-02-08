@@ -1,6 +1,6 @@
 ;;; shorthands.el --- Read code considering Elisp shorthands  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: lisp
@@ -28,7 +28,6 @@
 ;;; Code:
 (require 'files)
 (require 'mule)
-(eval-when-compile (require 'cl-lib))
 
 (defun hack-read-symbol-shorthands ()
   "Compute `read-symbol-shorthands' from Local Variables section."

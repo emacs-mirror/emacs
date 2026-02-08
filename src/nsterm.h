@@ -1,6 +1,6 @@
 /* -*- objc -*- */
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008-2025 Free Software Foundation,
+   Copyright (C) 1989, 1993, 2005, 2008-2026 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -279,7 +279,7 @@ char const * nstrace_fullscreen_type_name (int);
 
 #define NSTRACE_WHEN(cond, ...)                                         \
   __attribute__ ((cleanup (nstrace_restore_global_trace_state)))        \
-  int nstrace_saved_enabled_global = nstrace_enabled_global;            \
+  int __attribute__ ((unused)) nstrace_saved_enabled_global = nstrace_enabled_global;\
   __attribute__ ((cleanup (nstrace_leave)))                             \
   int nstrace_enabled = nstrace_enabled_global && (cond);               \
   if (nstrace_enabled) { ++nstrace_depth; }                             \

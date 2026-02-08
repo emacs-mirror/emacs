@@ -1,6 +1,6 @@
 # selinux-selinux-h.m4
 # serial 10   -*- Autoconf -*-
-dnl Copyright (C) 2006-2007, 2009-2025 Free Software Foundation, Inc.
+dnl Copyright (C) 2006-2007, 2009-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -88,10 +88,13 @@ AC_DEFUN([gl_LIBSELINUX],
 
   # Warn if SELinux is found but libselinux is absent;
   if test "$ac_cv_search_setfilecon" = no; then
-    if test "$host" = "$build" && test -d /selinux; then
+    if test "$host" = "$build" \
+       && { test -d /sys/fs/selinux || test -d /selinux; }; then
       AC_MSG_WARN([This system supports SELinux but libselinux is missing.])
       AC_MSG_WARN([AC_PACKAGE_NAME will be compiled without SELinux support.])
     fi
-    with_selinux=no
+    if test "$with_selinux" = maybe; then
+      with_selinux=no
+    fi
   fi
 ])

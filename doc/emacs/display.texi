@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2026 Free Software
 @c Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -2048,19 +2048,40 @@ variable @code{visible-cursor} is @code{nil} when Emacs starts or
 resumes, it uses the normal cursor.
 
 @vindex cursor-type
-  On a graphical display, many more properties of the text cursor can
-be altered.  To customize its color, change the @code{:background}
-attribute of the face named @code{cursor} (@pxref{Face
-Customization}).  (The other attributes of this face have no effect;
-the text shown under the cursor is drawn using the frame's background
-color.)  To change its shape, customize the buffer-local variable
-@code{cursor-type}; possible values are @code{box} (the default),
-@code{(box . @var{size})} (box cursor becoming a hollow box under
-masked images larger than @var{size} pixels in either dimension),
-@code{hollow} (a hollow box), @code{bar} (a vertical bar), @code{(bar
-. @var{n})} (a vertical bar @var{n} pixels wide), @code{hbar} (a
-horizontal bar), @code{(hbar . @var{n})} (a horizontal bar @var{n}
+  On a graphical display and many Xterm-compatible text terminals, the
+color and shape of the text cursor can be altered.  To customize its
+color, change the @code{:background} attribute of the face named
+@code{cursor} (@pxref{Face Customization}).  (The other attributes of
+this face have no effect; the text shown under the cursor is drawn using
+the frame's background color.)  To change its shape, customize the
+buffer-local variable @code{cursor-type}; possible values are @code{box}
+(the default), @code{(box . @var{size})} (box cursor becoming a hollow
+box under masked images larger than @var{size} pixels in either
+dimension), @code{hollow} (a hollow box), @code{bar} (a vertical bar),
+@code{(bar . @var{n})} (a vertical bar @var{n} pixels wide), @code{hbar}
+(a horizontal bar), @code{(hbar . @var{n})} (a horizontal bar @var{n}
 pixels tall), or @code{nil} (no cursor at all).
+
+@vindex xterm-update-cursor
+  On Xterm-compatible text terminals cursor customization is controlled
+by the user option @code{xterm-update-cursor}.  Valid values are
+@code{t} to update the cursor's color and shape, @code{type} to update
+the cursor's shape only, @code{color} to update the cursor's color only,
+and @code{nil} to not update the cursor's appearance.  Text terminals
+can not display a hollow box and instead use a filled box.  Similarly,
+all text terminals ignore the pixel sizes for @code{bar} and
+@code{hbar}.
+
+@findex hl-line-mode
+@findex global-hl-line-mode
+@cindex highlight current line
+  To make the cursor even more visible, you can use HL Line mode, a
+minor mode that highlights the line containing point.  Use @kbd{M-x
+hl-line-mode} to enable or disable it in the current buffer.  @kbd{M-x
+global-hl-line-mode} enables or disables the same mode globally.
+
+  The remaining controls only work on graphical displays where Emacs can
+fully control the way the cursor appears.
 
 @findex blink-cursor-mode
 @cindex cursor, blinking
@@ -2104,14 +2125,6 @@ cover wide characters, by changing the variable
 non-blinking hollow box.  (For a bar cursor, it instead appears as a
 thinner bar.)  To turn off cursors in non-selected windows, change the
 variable @code{cursor-in-non-selected-windows} to @code{nil}.
-
-@findex hl-line-mode
-@findex global-hl-line-mode
-@cindex highlight current line
-  To make the cursor even more visible, you can use HL Line mode, a
-minor mode that highlights the line containing point.  Use @kbd{M-x
-hl-line-mode} to enable or disable it in the current buffer.  @kbd{M-x
-global-hl-line-mode} enables or disables the same mode globally.
 
 @node Line Truncation
 @section Line Truncation
@@ -2337,6 +2350,16 @@ of lines which are a multiple of certain numbers.  Customize
 @code{display-line-numbers-major-tick} and
 @code{display-line-numbers-minor-tick} respectively to set those
 numbers.
+
+@vindex line-spacing
+  The variable @code{line-spacing} controls the vertical spacing between
+lines.  It can be set to an integer (specifying pixels) or a float
+(specifying spacing relative to the default frame font height).  You can
+also set this variable to a cons cell of integers or floats, such as
+@code{(@var{top} . @var{bottom})}.  When set to a cons cell, the spacing
+is distributed above and below the line, allowing for text to be
+vertically centered within the line height. See also @ref{Line Height,,,
+elisp, The Emacs Lisp Reference Manual}.
 
 @vindex visible-bell
   If the variable @code{visible-bell} is non-@code{nil}, Emacs attempts

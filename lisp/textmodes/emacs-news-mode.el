@@ -1,6 +1,6 @@
 ;;; emacs-news-mode.el --- major mode to edit and view the NEWS file -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Keywords: tools
 
@@ -23,7 +23,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (require 'outline)
 (require 'subr-x)    ; `emacs-etc--hide-local-variables'
 

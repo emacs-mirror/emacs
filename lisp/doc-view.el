@@ -1,6 +1,6 @@
 ;;; doc-view.el --- Document viewer for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2026 Free Software Foundation, Inc.
 ;;
 ;; Author: Tassilo Horn <tsdh@gnu.org>
 ;; Keywords: files, pdf, ps, dvi, djvu, epub, cbz, fb2, xps, openxps
@@ -955,7 +955,7 @@ It's a subdirectory of `doc-view-cache-directory'."
 (defun doc-view-mode-p (type)
   "Return non-nil if document type TYPE is available for `doc-view'.
 Document types are symbols like `dvi', `ps', `pdf', `epub',
-`cbz', `fb2', `xps', `oxps', or`odf' (any OpenDocument format)."
+`cbz', `fb2', `xps', `oxps', or `odf' (any OpenDocument format)."
   (and (display-graphic-p)
        (image-type-available-p 'png)
        (cond
@@ -2114,7 +2114,7 @@ If FILE-NAME is nil, use the current file instead."
             (doc-view--pdf-outline file-name)))))
     (when outline (imenu-add-to-menubar "Outline"))
     ;; When the outline could not be made due to unavailability of the
-    ;; required program, or its absency from the document, return
+    ;; required program, or its absence from the document, return
     ;; 'unavailable'.
     (or outline 'unavailable)))
 

@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2000-2025 Free Software
+;; Copyright (C) 1993-1994, 1996-1997, 2000-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -85,7 +85,7 @@ handles the corresponding kind of display.")
     "mouse-wheel-frame" "name" "no-accept-focus" "no-focus-on-map"
     "no-other-frame" "no-special-glyphs" "ns-appearance"
     "ns-transparent-titlebar" "outer-window-id" "override-redirect"
-    "parent-frame" "right-fringe" "rigth-divider-width" "screen-gamma"
+    "parent-frame" "right-fringe" "right-divider-width" "screen-gamma"
     "scroll-bar-background" "scroll-bar-foreground" "scroll-bar-height"
     "scroll-bar-width" "shaded" "skip-taskbar" "snap-width" "sticky"
     "tab-bar-lines" "title" "tool-bar-lines" "tool-bar-position" "top"
@@ -951,23 +951,24 @@ and lines for the clone.
 
 FRAME defaults to the selected frame.  The frame is created on the
 same terminal as FRAME.  If the terminal is a text-only terminal then
-also select the new frame."
+also select the new frame.
+
+A cloned frame is assigned a new frame ID.  See `frame-id'."
   (interactive (list (selected-frame) current-prefix-arg))
   (let* ((frame (or frame (selected-frame)))
          (windows (unless no-windows
                     (window-state-get (frame-root-window frame))))
-         (default-frame-alist
-          (seq-remove (lambda (elem)
-                        (memq (car elem) frame-internal-parameters))
-                      (frame-parameters frame)))
+         (parameters
+          (append `((cloned-from . ,frame))
+                  (frame--purify-parameters (frame-parameters frame))))
          new-frame)
     (when (and frame-resize-pixelwise
                (display-graphic-p frame))
       (push (cons 'width (cons 'text-pixels (frame-text-width frame)))
-            default-frame-alist)
+            parameters)
       (push (cons 'height (cons 'text-pixels (frame-text-height frame)))
-            default-frame-alist))
-    (setq new-frame (make-frame))
+            parameters))
+    (setq new-frame (make-frame parameters))
     (when windows
       (window-state-put windows (frame-root-window new-frame) 'safe))
     (unless (display-graphic-p frame)
@@ -993,6 +994,24 @@ frame, unless you add them to the hook in your early-init file.")
   "Parameters `make-frame' copies from the selected to the new frame.")
 
 (defvar x-display-name)
+
+(defun frame--purify-parameters (parameters)
+  "Return PARAMETERS without internals and ignoring unset parameters.
+Use this helper function so that `make-frame' does not override any
+parameters.
+
+In the return value, assign nil to each parameter in
+`default-frame-alist', `window-system-default-frame-alist',
+`frame-inherited-parameters', which is not in PARAMETERS, and remove all
+parameters in `frame-internal-parameters' from PARAMETERS."
+  (dolist (p (append default-frame-alist
+                     window-system-default-frame-alist
+                     frame-inherited-parameters))
+    (unless (assq (car p) parameters)
+      (push (cons (car p) nil) parameters)))
+  (seq-remove (lambda (elem)
+                (memq (car elem) frame-internal-parameters))
+              parameters))
 
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
@@ -1093,6 +1112,12 @@ current buffer even if it is hidden."
       (setq params (cons '(minibuffer)
                          (delq (assq 'minibuffer params) params))))
 
+    ;; Let the `frame-creation-function' apparatus assign a new frame id
+    ;; for a new or cloned frame.  For an undeleted frame, send the old
+    ;; id via a frame parameter.
+    (when-let* ((id (cdr (assq 'undeleted params))))
+      (push (cons 'frame-id id) params))
+
     ;; Now make the frame.
     (run-hooks 'before-make-frame-hook)
 
@@ -1124,7 +1149,7 @@ current buffer even if it is hidden."
       ;; buffers for these windows were set (Bug#79606).
       (let* ((root (frame-root-window frame))
 	     (buffer (window-buffer root)))
-	(with-current-buffer buffer
+        (with-current-buffer buffer
 	  (set-window-fringes
 	   root left-fringe-width right-fringe-width fringes-outside-margins)
 	  (set-window-scroll-bars
@@ -1134,7 +1159,7 @@ current buffer even if it is hidden."
 	   root left-margin-width right-margin-width)))
       (let* ((mini (minibuffer-window frame))
 	     (buffer (window-buffer mini)))
-	(when (eq (window-frame mini) frame)
+        (when (eq (window-frame mini) frame)
 	  (with-current-buffer buffer
 	    (set-window-fringes
 	     mini left-fringe-width right-fringe-width fringes-outside-margins)
@@ -1360,10 +1385,30 @@ defaults to the selected frame."
 	(push (cons (frame-parameter frame 'name) frame) alist)))
     (nreverse alist)))
 
+(defun frame--make-frame-ids-alist (&optional frame)
+  "Return alist of frame identifiers and frames starting with FRAME.
+Visible or iconified frames on the same terminal as FRAME are listed
+along with frames that are undeletable.  Frames with a non-nil
+`no-other-frame' parameter are not listed.  The optional argument FRAME
+must specify a live frame and defaults to the selected frame."
+  (let ((frames (frame-list-1 frame))
+        (terminal (frame-parameter frame 'terminal))
+        alist)
+    (dolist (frame frames)
+      (when (and (frame-visible-p frame)
+		 (eq (frame-parameter frame 'terminal) terminal)
+		 (not (frame-parameter frame 'no-other-frame)))
+	(push (cons (number-to-string (frame-id frame)) frame) alist)))
+    (dolist (elt undelete-frame--deleted-frames)
+      (push (cons (number-to-string (nth 3 elt)) nil) alist))
+    (nreverse alist)))
+
 (defvar frame-name-history nil)
 (defun select-frame-by-name (name)
   "Select the frame whose name is NAME and raise it.
 Frames on the current terminal are checked first.
+Raise the frame and give it input focus.  On a text terminal, the frame
+will occupy the entire terminal screen after the next redisplay.
 If there is no frame by that name, signal an error."
   (interactive
    (let* ((frame-names-alist (make-frame-names-alist))
@@ -1371,9 +1416,7 @@ If there is no frame by that name, signal an error."
 	   (input (completing-read
 		   (format-prompt "Select Frame" default)
 		   frame-names-alist nil t nil 'frame-name-history)))
-     (if (= (length input) 0)
-	 (list default)
-       (list input))))
+     (list (if (zerop (length input)) default input))))
   (select-frame-set-input-focus
    ;; Prefer frames on the current display.
    (or (cdr (assoc name (make-frame-names-alist)))
@@ -1382,6 +1425,50 @@ If there is no frame by that name, signal an error."
            (when (equal (frame-parameter frame 'name) name)
              (throw 'done frame))))
        (error "There is no frame named `%s'" name))))
+
+(defun frame-by-id (id)
+  "Return the live frame object associated with ID.
+Return nil if ID is not found."
+  (seq-find
+   (lambda (frame)
+     (eq id (frame-id frame)))
+   (frame-list)))
+
+(defun frame-id-live-p (id)
+  "Return non-nil if ID is associated with a live frame object.
+This is useful when you have a frame ID and a potentially dead frame
+reference that may have been resurrected.  Also see `frame-live-p'."
+  (frame-live-p (frame-by-id id)))
+
+(defun select-frame-by-id (id &optional noerror)
+  "Select the frame whose identifier is ID and raise it.
+If the frame is undeletable, undelete it.
+Frames on the current terminal are checked first.
+Raise the frame and give it input focus.  On a text terminal, the frame
+will occupy the entire terminal screen after the next redisplay.
+Return the selected frame or signal an error if no frame matching ID
+was found.  If NOERROR is non-nil, return nil instead."
+  (interactive
+   (let* ((frame-ids-alist (frame--make-frame-ids-alist))
+	  (default (car (car frame-ids-alist)))
+	  (input (completing-read
+		  (format-prompt "Select Frame by ID" default)
+		  frame-ids-alist nil t)))
+     (list (string-to-number
+            (if (zerop (length input)) default input)))))
+  ;; `undelete-frame-by-id' returns the undeleted frame, or nil.
+  (unless (undelete-frame-by-id id 'noerror)
+    ;; Prefer frames on the current display.
+    (if-let* ((found (or (cdr (assq id (frame--make-frame-ids-alist)))
+                         (catch 'done
+                           (dolist (frame (frame-list))
+                             (when (eq (frame-id frame) id)
+                           (throw 'done frame)))))))
+        (progn
+          (select-frame-set-input-focus found)
+          found)
+      (unless noerror
+        (error "There is no frame with identifier `%S'" id)))))
 
 
 ;;;; Background mode.
@@ -1534,6 +1621,201 @@ Functions on this hook are called with the theme name as a symbol:
 `light' or `dark'.  By the time the hook is called, `toolkit-theme' will
 already be set to one of these values as well.")
 
+
+(defun set-frame-size-and-position (&optional frame width height left top)
+  "Set size and position of specified FRAME in one compound step.
+WIDTH and HEIGHT stand for the new width and height of FRAME.  They can
+be specified as follows where \"display area\" stands for the entire
+display area of FRAME's dominating monitor, \"work area\" stands for the
+work area (the usable space) of FRAME's display area and \"parent area\"
+stands for the area occupied by the native rectangle of FRAME's parent
+provided FRAME is a child frame.
+
+- An integer specifies the size of FRAME's text area in characters.
+
+- A cons cell with the symbol `text-pixels' in its car specifies in its
+  cdr the size of FRAME's text area in pixels.
+
+- A floating-point number between 0.0 and 1.0 specifies the ratio of
+  FRAME's outer size to the size of its work or parent area.
+
+Unless you use a plain integer value, you may have to set
+`frame-resize-pixelwise' to a non-nil value in order to get the exact
+size in pixels.  A value of nil means to leave the width or height
+unaltered.  Any other value will signal an error.
+
+LEFT and TOP stand for FRAME's outer position relative to coordinates of
+its display, work or parent area.  They can be specified as follows:
+
+- An integer where a positive value relates the left or top edge of
+  FRAME to the origin of its display or parent area.  A negative value
+  relates the right or bottom edge of FRAME to the right or bottom edge
+  of its display or parent area.
+
+- The symbol `-' means to place the right or bottom edge of FRAME at the
+  right or bottom edge of its display or parent area.
+
+- A list with `+' as its first and an integer as its second element
+  specifies the position of the left or top edge of FRAME relative to
+  the left or top edge of its display or parent area.  If the second
+  element is negative, this means a position outside FRAME's display or
+  parent area.
+
+- A list with `-' as its first and an integer as its second element
+  specifies the position of the right or bottom edge of FRAME relative
+  to the right or bottom edge of its display or parent area.  If the
+  second element is negative, this means a position outside the area of
+  its display or parent area.
+
+- A floating-point number between 0.0 and 1.0 specifies the ratio of
+  FRAME's outer position to the size of its work or parent area.  Thus,
+  a value of 0.0 flushes FRAME to the left or top, a value of 0.5
+  centers it and a ratio of 1.0 flushes it to the right or bottom of its
+  work or parent area.
+
+Calculating a position relative to the right or bottom edge of FRAME's
+display, work or parent area proceeds by calculating the new size of
+FRAME first and then relate the new prospective outer edges of FRAME to
+the respective edges of its display, work or parent area.
+
+A value of nil means to leave the position in this direction unchanged.
+Any other value will signal an error.
+
+This function calls `set-frame-size-and-position-pixelwise' to actually
+resize and move FRAME."
+  (let* ((frame (window-normalize-frame frame))
+         (parent (frame-parent frame))
+         (monitor-attributes
+          (unless parent
+            (frame-monitor-attributes frame)))
+         (geometry
+          (unless parent
+            (cdr (assq 'geometry monitor-attributes))))
+         (parent-or-display-width
+          (if parent
+              (frame-native-width parent)
+            (nth 2 geometry)))
+         (parent-or-display-height
+          (if parent
+              (frame-native-height parent)
+            (nth 3 geometry)))
+         (workarea (cdr (assq 'workarea monitor-attributes)))
+         (parent-or-workarea-width
+          (if parent
+              parent-or-display-width
+            (nth 2 workarea)))
+         (parent-or-workarea-height
+          (if parent
+              parent-or-display-height
+            (nth 3 workarea)))
+         (outer-edges (frame-edges frame 'outer-edges))
+         (outer-left (nth 0 outer-edges))
+         (outer-top (nth 1 outer-edges))
+         (outer-width (if outer-edges
+                          (- (nth 2 outer-edges) outer-left)
+                        (frame-pixel-width frame)))
+         (outer-minus-text-width
+          (- outer-width (frame-text-width frame)))
+         (outer-height (if outer-edges
+                           (- (nth 3 outer-edges) outer-top)
+                         (frame-pixel-height frame)))
+         (outer-minus-text-height
+          (- outer-height (frame-text-height frame)))
+         (old-text-width (frame-text-width frame))
+         (old-text-height (frame-text-height frame))
+         (text-width old-text-width)
+         (text-height old-text-height)
+         (char-width (frame-char-width frame))
+         (char-height (frame-char-height frame))
+         (gravity 1)
+         negative)
+
+    (cond
+     ((and (integerp width) (> width 0))
+      (setq text-width (* width char-width)))
+     ((and (consp width) (eq (car width) 'text-pixels)
+           (integerp (cdr width)) (> (cdr width) 0))
+      (setq text-width (cdr width)))
+     ((and (floatp width) (> width 0.0) (<= width 1.0))
+      (setq text-width
+            (- (round (* width parent-or-workarea-width))
+               outer-minus-text-width)))
+     (width
+      (user-error "Invalid width specification")))
+
+    (cond
+     ((and (integerp height) (> height 0))
+      (setq text-height (* height char-height)))
+     ((and (consp height) (eq (car height) 'text-pixels)
+           (integerp (cdr height)) (> (cdr height) 0))
+      (setq text-height (cdr height)))
+     ((and (floatp height) (> height 0.0) (<= height 1.0))
+      (setq text-height
+            (- (round (* height parent-or-workarea-height))
+               outer-minus-text-height)))
+     (height
+      (user-error "Invalid height specification")))
+
+    (cond
+     ((eq left '-)
+      (setq left 0)
+      (setq negative t))
+     ((integerp left)
+      (setq negative (< left 0)))
+     ((consp left)
+      (cond
+       ((and (eq (car left) '-) (integerp (cadr left)))
+        (setq left (- (cadr left)))
+        (setq negative t))
+       ((and (eq (car left) '+) (integerp (cadr left)))
+        (setq left (cadr left)))
+       (t
+        (user-error "Invalid position specification"))))
+     ((floatp left)
+      (setq left (+ (round (* left parent-or-workarea-width))
+                    (if parent 0 (nth 0 workarea)))))
+     (t (setq left outer-left)))
+
+    (when negative
+      (setq gravity 3)
+      (setq left (- parent-or-display-width (- left)
+                    (+ text-width
+                       (frame-scroll-bar-width frame)
+                       (frame-fringe-width frame)
+                       (* 2 (frame-internal-border-width frame))
+                       outer-minus-text-width))))
+
+    (setq negative nil)
+    (cond
+     ((eq top '-)
+      (setq top 0)
+      (setq negative t))
+     ((integerp top)
+      (setq negative (< top 0)))
+     ((consp top)
+      (cond
+       ((and (eq (car top) '-) (integerp (cadr top)))
+        (setq top (- (cadr top)))
+        (setq negative t))
+       ((and (eq (car top) '+) (integerp (cadr top)))
+        (setq top (cadr top)))
+       (t
+        (user-error "Invalid position specification"))))
+     ((floatp top)
+      (setq top (+ (round (* left parent-or-workarea-height))
+                   (if parent 0 (nth 1 workarea)))))
+     (t (setq top outer-top)))
+
+    (when negative
+      ;; This should get us 7 or 9.
+      (setq gravity (+ gravity 6))
+      (setq top (- parent-or-display-height (- top)
+                   (+ text-height
+                      (* 2 (frame-internal-border-width frame)))
+                   outer-minus-text-height)))
+
+    (set-frame-size-and-position-pixelwise
+     frame text-width text-height left top gravity)))
 
 ;;;; Frame configurations
 
@@ -2930,7 +3212,8 @@ Only the 16 most recently deleted frames are saved."
                    ;; to restore a graphical frame.
                    (and (eq (car elem) 'display) (not (display-graphic-p)))))
              (frame-parameters frame))
-            (window-state-get (frame-root-window frame)))
+            (window-state-get (frame-root-window frame))
+            (frame-id frame))
            undelete-frame--deleted-frames))
     (if (> (length undelete-frame--deleted-frames) 16)
         (setq undelete-frame--deleted-frames
@@ -2953,7 +3236,9 @@ Without a prefix argument, undelete the most recently deleted
 frame.
 With a numerical prefix argument ARG between 1 and 16, where 1 is
 most recently deleted frame, undelete the ARGth deleted frame.
-When called from Lisp, returns the new frame."
+When called from Lisp, returns the new frame.
+Return the undeleted frame, or nil if a frame was not undeleted.
+An undeleted frame retains its original frame ID.  See `frame-id'."
   (interactive "P")
   (if (not undelete-frame-mode)
       (user-error "Undelete-Frame mode is disabled")
@@ -2974,11 +3259,46 @@ When called from Lisp, returns the new frame."
                  (if graphic "graphic" "non-graphic"))
               (setq undelete-frame--deleted-frames
                     (delq frame-data undelete-frame--deleted-frames))
-              (let* ((default-frame-alist (nth 1 frame-data))
-                     (frame (make-frame)))
+              (let* ((parameters
+                      ;; `undeleted' signals to `make-frame' to reuse its id.
+                      (append `((undeleted . ,(nth 3 frame-data)))
+                              (frame--purify-parameters (nth 1 frame-data))))
+                     (frame (make-frame parameters)))
                 (window-state-put (nth 2 frame-data) (frame-root-window frame) 'safe)
                 (select-frame-set-input-focus frame)
                 frame))))))))
+
+(defun undelete-frame-id-index (id)
+  "Return an `undelete-frame' index, if ID is that of an undeletable frame.
+Return nil if ID is not associated with an undeletable frame."
+  (catch :found
+    (seq-do-indexed
+     (lambda (frame-data index)
+       (when (eq id (nth 3 frame-data))
+         (throw :found (1+ index))))
+     undelete-frame--deleted-frames)))
+
+(defun undelete-frame-by-id (id &optional noerror)
+  "Undelete the frame with the matching ID.
+Return the undeleted frame if the ID is that of an undeletable frame,
+otherwise, signal an error.
+If NOERROR is non-nil, do not signal an error, and return nil.
+Also see `undelete-frame'."
+  (interactive
+   (let* ((candidates
+           (mapcar (lambda (elt)
+                     (number-to-string (nth 3 elt)))
+                   undelete-frame--deleted-frames))
+	  (default (car candidates))
+	  (input (completing-read
+		  (format-prompt "Undelete Frame by ID" default)
+		  candidates nil t)))
+     (list (string-to-number
+            (if (zerop (length input)) default input)))))
+  (if-let* ((index (undelete-frame-id-index id)))
+      (undelete-frame index)
+    (unless noerror
+      (error "There is no frame with identifier `%S'" id))))
 
 ;;; Window dividers.
 (defgroup window-divider nil

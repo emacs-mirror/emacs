@@ -1,6 +1,6 @@
 ;;; verilog-mode.el --- major mode for editing verilog source in Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 
 ;; Author: Michael McNamara <mac@verilog.com>
 ;;    Wilson Snyder <wsnyder@wsnyder.org>
@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2025.11.08.248496848
+;; Version: 2026.01.18.088738971
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2025-11-08-ecfc2d0-vpo-GNU"
+(defconst verilog-mode-version "2026-01-18-54a0c9b-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -12283,9 +12283,10 @@ If PAR-VALUES replace final strings with these parameter values."
          auto-inst-vector
          auto-inst-vector-tpl
          tpl-net dflt-bits)
-    ;; Replace parameters in bit-width
+    ;; Replace parameters in vl-bits & vl-widths
     (when (and check-values
-	       (not (equal vl-bits "")))
+                          (or (not (equal vl-bits  ""))
+                                  (not (equal vl-width ""))))
       (while check-values
 	(setq vl-bits (verilog-string-replace-matches
 		       (concat "\\<" (nth 0 (car check-values)) "\\>")

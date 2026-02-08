@@ -1,6 +1,6 @@
 ;;; vtable-tests.el --- Tests for vtable.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -135,7 +135,8 @@
     (let ((text (propertize "XXXXX"
                             'face 'variable-pitch)))
       (face-remap-add-relative 'default :height 1.5)
-      (cond ((< emacs-major-version 31) ; TODO: Remove the pre-31 test, eventually.
+      ;; TODO: Remove the pre-31 test, eventually.
+      (cond ((eval-when-compile (< emacs-major-version 31))
              (let* ((x-width (string-pixel-width (substring text 0 1)))
                     (char-limit 2)
                     (pixel-limit (* char-limit x-width)))

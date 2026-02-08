@@ -1,6 +1,6 @@
 ;;; cond-star.el --- Extended form of `cond' construct  -*-lexical-binding: t; -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: Richard Stallman <rms@gnu.org>
 ;; Package: cond-star
@@ -58,7 +58,7 @@ normally has the form (CONDITION BODY...).
 
 CONDITION can be a Lisp expression, as in `cond'.
 Or it can be one of `(bind* BINDINGS...)', `(match* PATTERN DATUM)',
-or `(pcase* PATTERN DATUM)',
+`(bind-and* BINDINGS...)' or `(pcase* PATTERN DATUM)',
 
 `(bind* BINDINGS...)' means to bind BINDINGS (as if they were in `let*')
 for the body of the clause, and all subsequent clauses, since the `bind*'
@@ -70,8 +70,9 @@ For its patterns, see `match*'.
 The condition counts as true if PATTERN matches DATUM.
 
 `(bind-and* BINDINGS...)' means to bind BINDINGS (as if they were in
-`if-let*') for only the the body of the clause.  If any expression
-evaluates to nil, the condition counts as false.
+`if-let*') for only the the body of the clause.  It is always a non-exit
+clause.  If any expression evaluates to nil, the condition counts as
+false.
 
 `(pcase* PATTERN DATUM)' means to match DATUM against the
 pattern PATTERN, using the same pattern syntax as `pcase'.
@@ -81,15 +82,18 @@ When a clause's condition is true, and it exits the `cond*'
 or is the last clause, the value of the last expression
 in its body becomes the return value of the `cond*' construct.
 
-Non-exit clause:
+Non-exit clauses:
 
-If a clause has only one element, or if its first element is
-t or a `bind*' clause, this clause never exits the `cond*' construct.
+If a clause has only one element, or if its first element is t, a
+`bind*' form or a `bind-and*' form, or if it ends with the keyword
+`:non-exit', then this clause never exits the `cond*' construct.
 Instead, control always falls through to the next clause (if any).
-All bindings made in CONDITION for the BODY of the non-exit clause
-are passed along to the rest of the clauses in this `cond*' construct.
+Except for `bind-and*', all bindings made in CONDITION for the BODY of
+the non-exit clause are passed along to the rest of the clauses in this
+`cond*' construct.
 
-\\[match*] for documentation of the patterns for use in `match*'."
+See `match*' for documentation of the patterns for use in `match*'
+conditions."
   ;; FIXME: Want an Edebug declaration.
   (cond*-convert clauses))
 
@@ -193,16 +197,18 @@ CONDITION of a `cond*' clause.  See `cond*' for details."
       (and (cdr-safe clause)
            ;; Starts with t.
            (or (eq (car clause) t)
-               ;; Starts with a `bind*' pseudo-form.
+               ;; Starts with a `bind*' or `bind-and*' pseudo-form.
                (and (consp (car clause))
-                    (eq (caar clause) 'bind*))))))
+                    (memq (caar clause) '(bind* bind-and*)))))
+      ;; Ends with keyword.
+      (eq (car (last clause)) :non-exit)))
 
 (defun cond*-non-exit-clause-substance (clause)
   "For a non-exit cond* clause CLAUSE, return its substance.
 This removes a final keyword if that's what makes CLAUSE non-exit."
   (cond ((or (null (cdr-safe clause))   ;; either clause has only one element
-             (and (consp (car clause))  ;; or it starts with `bind*'
-                  (eq (caar clause) 'bind*)))
+             (and (consp (car clause))  ;; or it starts with `bind*'/`bind-and*'
+                  (memq (caar clause) '(bind* bind-and*))))
          clause)
         ;; Starts with t or a keyword.
         ;; Include t as the first element of the substance
@@ -214,7 +220,7 @@ This removes a final keyword if that's what makes CLAUSE non-exit."
          (cons t (cdr clause)))
 
         ;; Ends with keyword.
-        ((keywordp (car (last clause)))
+        ((eq (car (last clause)) :non-exit)
          ;; Do NOT include the final keyword.
          (butlast clause))))
 

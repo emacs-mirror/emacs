@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2026 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization
@@ -1615,24 +1615,30 @@ your preference, such as @code{ws-butler-mode}.
 @cindex per-connection local variables
 
   Most of the variables reflect the situation on the local machine.
-Often, they must use a different value when you operate in buffers
-with a remote default directory.  Think about the behavior when
-calling @code{shell} -- on your local machine, you might use
-@file{/bin/bash} and rely on termcap, but on a remote machine, it may
-be @file{/bin/ksh} and terminfo.
+Often, they must use a different value when you operate in buffers with
+a remote default directory.  Think about the behavior when calling
+@code{shell} --- on your local machine, you might use @file{/bin/bash}
+and rely on termcap, but on a remote machine, it may be @file{/bin/ksh}
+and terminfo.
 
-  This can be accomplished with @dfn{connection-local variables}.
-Directory and file local variables override connection-local
-variables.  Unsafe connection-local variables are handled in the same
-way as unsafe file-local variables (@pxref{Safe File Variables}).
+  This can be accomplished with @dfn{connection-local variables}.  Such
+variables are declared depending on the value of
+@code{default-directory} of the current buffer.  When a buffer has a
+remote @code{default-directory}, and there exist a connection-local
+variable which matches @code{default-directory}, this alternative value
+of the variable is used.  Directory and file local variables override
+connection-local variables.  Unsafe connection-local variables are
+handled in the same way as unsafe file-local variables (@pxref{Safe File
+Variables}).
 
 @findex connection-local-set-profile-variables
 @findex connection-local-set-profiles
-  Connection-local variables are declared as a group of
-variables/value pairs in a @dfn{profile}, using the
+  Connection-local variables are declared as a group of variables/value
+pairs in a @dfn{profile}, using the
 @code{connection-local-set-profile-variables} function.  The function
-@code{connection-local-set-profiles} activates profiles for a given
-criteria, identifying a remote machine:
+@code{connection-local-set-profiles} declares profiles for a given
+criteria (the first argument), identifying a remote machine with respect
+to @code{default-directory} of the current buffer:
 
 @example
 (connection-local-set-profile-variables 'remote-terminfo
@@ -1654,12 +1660,46 @@ criteria, identifying a remote machine:
 
   This code declares three different profiles, @code{remote-terminfo},
 @code{remote-ksh}, and @code{remote-bash}.  The profiles
-@code{remote-terminfo} and @code{remote-ksh} are applied to all
-buffers which have a remote default directory matching the regexp
-@code{"remotemachine"} as host name.  Such a criteria can also
-discriminate for the properties @code{:protocol} (this is the Tramp
-method) or @code{:user} (a remote user name).  The @code{nil} criteria
-matches all buffers with a remote default directory.
+@code{remote-terminfo} and @code{remote-ksh} are applied to all buffers
+which have a remote @code{default-directory} matching the string
+@code{"remotemachine"} as host name.
+
+  Criteria, the first argument of @code{connection-local-set-profiles},
+specifies, how the profiles match @code{default-directory}.  It is a
+plist identifying a connection and the application using this
+connection.  Property names might be @code{:application},
+@code{:protocol}, @code{:user} and @code{:machine}.  The property value
+of @code{:application} is a symbol, all other property values are
+strings.  In general the symbol @code{tramp} should be used as
+@code{:application} value.  Some packages use a different
+@code{:application} (for example @code{eshell} or @code{vc-git}); they
+say it in their documentation then.  All properties are optional.
+
+  The other properties are used for checking @code{default-directory}.
+The propertiy @code{:protocol} is used for the method a remote
+@code{default-directory} uses, the property
+@code{:user} is the remote user name, and the property @code{:machine}
+is the remote host name.  All checks are performed via
+@code{string-equal}.  The @code{nil} criteria matches all buffers
+with a remote default directory.
+
+  Connection-local variables are not activated by default.  A package
+which uses connection-local variables must activate them for a given
+buffer, specifying for which @code{:application} it uses them.
+@xref{Applying Connection Local Variables,,, elisp, The Emacs Lisp
+Reference Manual}, for details.
+
+  After the above definition of profiles and their activation, any
+connection made by Tramp to the @samp{remotemachine} system will use
+
+@itemize
+@item @code{t} as the connection-specific value of @code{system-uses-terminfo},
+@item @samp{dumb-emacs-ansi} as the connection-specific value of
+@code{comint-terminfo-terminal},
+@item @samp{/bin/ksh} as the connection-specific value of as
+@code{shell-file-name},
+@item @samp{-c} as the connection-specific value of @code{shell-command-switch}.
+@end itemize
 
   Be careful when declaring different profiles with the same variable,
 and setting these profiles to criteria which could match in parallel.
@@ -3098,30 +3138,33 @@ elisp, The Emacs Lisp Reference Manual}.
   If the directory specified by @code{user-lisp-directory}, defaulting
 to @file{~/.config/emacs/user-lisp/} or @file{~/.emacs.d/user-lisp/},
 exists, then at startup Emacs will prepare Lisp files within that
-directory for use in the session.  Emacs does the following things:
+directory for use in the session.  Specifically, Emacs does the
+following:
 
 @itemize
 @item
 Gather and activate autoload cookies.  This means that you can use
 autoloaded commands and other entry points for the files in your
 @code{user-lisp-directory} without explicitly loading any of the
-files in your initialization file. (@pxref{Autoload,,, elisp, The
-Emacs Lisp Reference Manual}.)
+files in your initialization file.  @xref{Autoload,,, elisp, The
+Emacs Lisp Reference Manual}.
 @item
-Byte-compile all files, and if supported on your system, natively
-compile them too.  This speeds up the execution of the code in the
-files when they are loaded.  (@pxref{Byte Compilation,,, elisp, The
-Emacs Lisp Reference Manual}.)
+Byte-compile all the files (@pxref{Byte Compilation,,, elisp, The Emacs
+Lisp Reference Manual}), and if supported by your build of Emacs,
+compile them to native code as well (@pxref{Native Compilation,,, elisp,
+The Emacs Lisp Reference Manual}).  This speeds up the execution of the
+code in those files when they are loaded and when they are executed
+later.
 @item
 Adjust @code{load-path} such that all the files can be loaded and
-autoloaded in the usual ways.  (@pxref{Library Search,,, elisp, The
-Emacs Lisp Reference Manual}.)
+autoloaded in the usual ways.  @xref{Library Search,,, elisp, The
+Emacs Lisp Reference Manual}.
 @end itemize
 
-  The User Lisp directory is processed before loading the @ref{Init
-File} file.  Therefore any customizations to the user options discussed
-below must be made in your early init file (@pxref{Early Init File}) in
-order to have any effect.
+  The User Lisp directory is processed before loading your init file
+(@pxref{Init File}).  Therefore any customizations to the user
+options discussed below must be made in your early init file
+(@pxref{Early Init File}) in order to have any effect.
 
 @vindex user-lisp-ignored-directories
 @vindex user-lisp-auto-scrape

@@ -1,6 +1,6 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2025 Free Software
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -177,6 +177,18 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
   :type '(choice (const :tag "Default" nil)
 		 string))
 
+(defcustom display-time-help-echo-format "%a %b %e, %Y"
+  "Format for the help echo when hovering over the time in the mode line.
+Use the function `customize-variable' to choose a common format, and/or
+see the function `format-time-string' for an explanation of the syntax."
+  :version "31.1"
+  :type `(choice
+          ,@(mapcar #'(lambda (fmt)
+                        (list 'const
+                              ':tag (format-time-string fmt 0 "UTC") fmt))
+                    '("%a %b %e, %Y" "%F (%a)" "%a %D"))
+          (string :tag "Format string")))
+
 (defcustom display-time-string-forms
   '((if (and (not display-time-format) display-time-day-and-date)
 	(format-time-string "%a %b %e " now)
@@ -186,7 +198,9 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
 			     (if display-time-24hr-format "%H:%M" "%-I:%M%p"))
 			 now)
      'face 'display-time-date-and-time
-     'help-echo (format-time-string "%a %b %e, %Y" now))
+     'help-echo (format-time-string (if (stringp display-time-help-echo-format)
+                                        display-time-help-echo-format
+                                      "%a %b %e, %Y") now))
     load
     (if mail
 	;; Build the string every time to act on customization.

@@ -1,6 +1,6 @@
 ;;; sasl-scram-sha256.el --- SCRAM-SHA-256 module for the SASL client framework  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2026 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Package: sasl
@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'sasl)
 (require 'hex-util)
 (require 'rfc2104)

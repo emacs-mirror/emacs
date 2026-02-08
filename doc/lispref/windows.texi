@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Windows
@@ -3549,6 +3549,72 @@ the selected window is not used; thus if the selected frame has a
 single window, it is not used.
 @end defun
 
+@defun display-buffer-in-new-tab buffer alist
+This function tries to display @var{buffer} in a new tab.
+
+If @var{alist} contains a non-@code{nil} @code{tab-name} entry (which
+may be a string or a function), the buffer is displayed in a new tab
+with that name.  If the @code{tab-name} entry is a function, it is
+called with two arguments (@var{buffer} and @var{alist}), and should
+return the tab name.
+
+If the @code{tab-name} entry is omitted or @code{nil}, a new tab is
+created without an explicit name.
+
+If @var{alist} contains a non-@code{nil} @code{tab-group} entry, this
+defines the tab group, overriding user option
+@code{tab-bar-new-tab-group}.  This entry may again be a string or a
+function which is called in the same manner as @code{tab-name}.
+@end defun
+
+@defun display-buffer-in-tab buffer alist
+This function tries to display @var{buffer} in a new or existing tab.
+
+If @var{alist} contains a non-@code{nil} @code{reusable-frames} entry
+then the frames indicated by its value are searched for an existing tab
+which already displays the buffer.  The possible values of
+@code{reusable-frames} are:
+
+@itemize @bullet
+@item @code{t}
+means consider all existing frames.
+@item @code{visible}
+means consider all visible frames.
+@item 0
+means consider all frames on the current terminal.
+@item A frame
+means consider that frame only.
+@item Any other non-@code{nil} value
+means consider the selected frame.
+@item @code{nil}
+means do not search any frames (equivalent to omitting the entry).  Note
+that this is different to the typical meaning of the value @code{nil}
+for a @code{reusable-frames} entry in a buffer display action alist.
+@end itemize
+
+If @var{alist} contains a non-@code{nil} @code{ignore-current-tab}
+entry, then the current tab is skipped when searching for a reusable
+tab.  Otherwise the current tab is used by preference if it already
+displays the buffer.
+
+If a window displaying the buffer is located in any reusable tab then
+that tab and window are selected.
+
+If no such window is located, the buffer is displayed in a new or
+existing tab based on the @var{alist} entry @code{tab-name} (which may
+be a string or a function).  If a tab with this name already exists then
+that tab is selected, otherwise a new tab with that name is created.  If
+the @code{tab-name} entry is a function, it is called with two arguments
+(@var{buffer} and @var{alist}), and should return the tab name.  If the
+@code{tab-name} entry is omitted or @code{nil}, a new tab is created
+without an explicit name.
+
+If a new tab is created and @var{alist} contains a non-@code{nil}
+@code{tab-group} entry, this defines the tab group, overriding user
+option @code{tab-bar-new-tab-group}.  This entry may again be a string
+or a function which is called in the same manner as @code{tab-name}.
+@end defun
+
 @defun display-buffer-no-window buffer alist
 If @var{alist} has a non-@code{nil} @code{allow-no-window} entry, then
 this function does not display @var{buffer} and returns the symbol
@@ -3660,6 +3726,10 @@ other action functions that try to reuse a window are affected as
 well.  @code{display-buffer-in-previous-window} consults it when
 searching for a window that previously displayed the buffer on another
 frame.
+
+Action function @code{display-buffer-in-tab} searches the tabs of the
+frame(s) identified by this entry, and also interprets the value
+@code{nil} differently.
 
 @vindex inhibit-switch-frame@r{, a buffer display action alist entry}
 @item inhibit-switch-frame
@@ -3981,6 +4051,19 @@ List, @code{buffer-match-p}}.  Thus, if a Lisp program uses a particular
 @var{symbol} as the category when calling @code{display-buffer}, users
 can customize how these buffers will be displayed by including such an
 entry in @code{display-buffer-alist}.
+
+@vindex tab-name@r{, a buffer display action alist entry}
+@item tab-name
+The value names the tab in which the buffer should be displayed.  This
+entry is used by @code{display-buffer-in-new-tab} and (conditionally) by
+@code{display-buffer-in-tab}.
+
+@vindex tab-group@r{, a buffer display action alist entry}
+@vindex tab-bar-new-tab-group@r{, override for buffer display actions}
+@item tab-group
+The value names the tab group to use when creating a new tab, overriding
+user option @code{tab-bar-new-tab-group}.  This entry is used by
+@code{display-buffer-in-new-tab} and @code{display-buffer-in-tab}.
 @end table
 
 By convention, the entries @code{window-height}, @code{window-width}
@@ -4039,16 +4122,19 @@ window.  If @var{window} cannot be split, it returns @code{nil}.  If
 @var{window} is omitted or @code{nil}, it defaults to the selected
 window.
 
-This function obeys the usual rules that determine when a window may
-be split (@pxref{Splitting Windows}).  It first tries to split by
-placing the new window below, subject to the restriction imposed by
-@code{split-height-threshold} (see below), in addition to any other
-restrictions.  If that fails, it tries to split by placing the new
-window to the right, subject to @code{split-width-threshold} (see
-below).  If that also fails, and the window is the only window on its
-frame, this function again tries to split and place the new window
-below, disregarding @code{split-height-threshold}.  If this fails as
-well, this function gives up and returns @code{nil}.
+This function obeys the usual rules that determine when a window may be
+split (@pxref{Splitting Windows}).  It first tries either a vertical
+split by placing the new window below, subject to the restriction
+imposed by @code{split-height-threshold} (see below), or a horizontal
+split that places the new window to the right, subject to
+@code{split-width-threshold}, in addition to any other restrictions.
+Whether it tries first to split vertically or horizontally depends on
+the value of the user option @code{split-window-preferred-direction}.
+If splitting along the first dimension fails, it tries to split along
+the other dimension.  If that also fails, and the window is the only
+window on its frame, this function again tries to split and place the
+new window below, disregarding @code{split-height-threshold}.  If this
+fails as well, this function gives up and returns @code{nil}.
 @end defun
 
 @defopt split-height-threshold
@@ -4065,6 +4151,18 @@ allowed to split the window placing the new window to the right.  If
 the value is an integer, that means to split only if the original
 window has at least that many columns.  If the value is @code{nil},
 that means not to split this way.
+@end defopt
+
+@defopt split-window-preferred-direction
+This variable determines the first dimension along which
+@code{split-window-sensibly} tries to split the window, if the window
+could be split both vertically and horizontally, as determined by the
+values of @code{split-height-threshold} and
+@code{split-width-threshold}.  The default value is @code{longest},
+which means to split vertically if the height of the window's frame is
+greater or equal to its width, and horizontally otherwise.  The values
+@code{vertical} and @code{horizontal} specify the direction in which to
+attempt the first split.
 @end defopt
 
 @defopt even-window-sizes
@@ -4826,8 +4924,8 @@ Each list element has the form @code{(@var{buffer} @var{window-start}
 @var{window-pos})}, where @var{buffer} is a buffer previously shown in
 the window, @var{window-start} is the window start position
 (@pxref{Window Start and End}) when that buffer was last shown, and
-@var{window-pos} is the point position (@pxref{Window Point}) when
-that buffer was last shown in @var{window}.
+@var{window-pos} is the window point position (@pxref{Window Point})
+when that buffer was last shown in @var{window}.
 
 The list is ordered so that earlier elements correspond to more
 recently-shown buffers, and the first element usually corresponds to the
@@ -5774,8 +5872,8 @@ makes it useful to have multiple windows showing one buffer.
 
 @itemize @bullet
 @item
-The window point is established when a window is first created; it is
-initialized from the buffer's point, or from the window point of another
+Window point is established when a window is first created; it is
+initialized from the buffer's point, or from window point of another
 window opened on the buffer if such a window exists.
 
 @item
@@ -5789,6 +5887,18 @@ the other windows are stored in those windows.
 @item
 As long as the selected window displays the current buffer, the window's
 point and the buffer's point always move together; they remain equal.
+
+@item
+Many Emacs functions temporarily select a window in order to operate on
+its contents.  This will move point (@pxref{Point}) of that
+window's buffer to the position of window point of that window and
+not restore buffer point to its previous position when terminating
+the temporary selection.  This means that when one and the same buffer
+is simultaneously displayed in more than one window, its buffer point
+may change in unpredictable ways to the position of window point of any
+of these windows as a side-effect of things like redisplay, calling
+@code{with-selected-window} (@pxref{Selecting Windows}) or running
+@code{window-configuration-change-hook} (@pxref{Window Hooks}).
 @end itemize
 
 @cindex cursor
@@ -5842,6 +5952,40 @@ function persists across buffers shown in @var{window}, so
 @defun window-cursor-type &optional window
 This function returns the cursor type of @var{window}, defaulting to the
 selected window.
+@end defun
+
+@defun window-cursor-info &optional window
+This function returns information about the cursor of @var{window},
+defaulting to the selected window.
+
+The value returned by the function is a vector of the form
+@w{@code{[@var{type} @var{x} @var{y} @var{width} @var{height}
+@var{ascent}]}}.  Here's the description of each components of this
+vector:
+
+@table @var
+@item type
+The type of the cursor, a symbol.  This is the same value returned by
+@code{window-cursor-type}.
+
+@item x
+@itemx y
+The pixel coordinates of the cursor's top-left corner, relative to the
+top-left corner of @var{window}'s text area.
+
+@item width
+@itemx height
+The pixel dimensions of the cursor.
+
+@item ascent
+The number of pixels the cursor extends above the baseline.
+@end table
+
+If the cursor is not currently displayed for @var{window}, this function
+returns @code{nil}.
+
+Any element except the first one in the returned vector may be
+@code{-1}, meaning the actual value is currently unavailable.
 @end defun
 
 @node Window Start and End
@@ -7185,8 +7329,8 @@ function may also delete windows which were found live by
 
 Each entry in the list that is passed as the second argument to the
 function is itself a list of six values: the window whose buffer was
-found dead, the dead buffer or its name, the positions of window-start
-(@pxref{Window Start and End}) and window-point (@pxref{Window Point})
+found dead, the dead buffer or its name, the positions of window start
+(@pxref{Window Start and End}) and window point (@pxref{Window Point})
 of the buffer in that window, the dedicated state of the window as
 previously reported by @code{window-dedicated-p} and a flag that is
 @code{t} if the window has been found to be alive by

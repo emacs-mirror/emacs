@@ -1,6 +1,6 @@
 ;;; tramp-container.el --- Tramp integration for Docker-like containers  -*- lexical-binding: t; -*-
 
-;; Copyright © 2022-2025 Free Software Foundation, Inc.
+;; Copyright © 2022-2026 Free Software Foundation, Inc.
 
 ;; Author: Brian Cully <bjc@kublai.com>
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>

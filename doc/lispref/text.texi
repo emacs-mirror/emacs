@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2025 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2026 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Text
 @chapter Text
@@ -6014,12 +6014,21 @@ must be a Lisp object that can be serialized as JSON (@pxref{Parsing
 JSON}).  The result is forwarded to the server as the JSONRPC
 @code{result} object.  A non-local return, achieved by calling the
 function @code{jsonrpc-error}, causes an error response to be sent to
-the server.  The details of the accompanying JSONRPC @code{error}
-object are filled out with whatever was passed to
-@code{jsonrpc-error}.  A non-local return triggered by an unexpected
-error of any other type also causes an error response to be sent
-(unless you have set @code{debug-on-error}, in which case this calls
-the Lisp debugger, @pxref{Error Debugging}).
+the server.  A non-local return triggered by an unexpected error of any
+other type also causes a response to be sent.  The debugger is never
+called (unless you have set @code{debug-on-error}, in which case the
+Lisp debugger may be called, @pxref{Error Debugging}).
+
+The details of the accompanying JSONRPC @code{error} object are filled
+out automatically (in the case of unexpected errors) or with whatever
+was passed to @code{jsonrpc-error} (in the case of explicit calls).
+
+Exceptionally, an explicit call to @code{jsonrpc-error} which sets
+@code{:code} to 32000 and @code{:data} to any JSON object has the
+meaning of ``no error'' and triggers a normal response to the remote
+endpoint with @code{result} being set to @code{:data}.  This is useful
+if the application wants to treat some non-local exits such as user
+quits as benign.
 
 @findex jsonrpc-convert-to-endpoint
 @findex jsonrpc-convert-from-endpoint
@@ -6581,6 +6590,19 @@ a description: it lets you process the change without worrying about the
 risk that the @var{signal} function gets triggered in the middle of it,
 because the @var{signal} is re-enabled only after @var{func} finishes.
 @end defun
+
+@defvar track-changes-undo-only
+If your code uses @code{track-changes} to perform further modifications
+to the buffer (for example, to mark the parts of the buffer that have
+been edited), then you may want to refrain from making those
+modifications when the changes are the result of an undo (which
+presumably also undoes the modifications you had applied back when the
+corresponding edit was made).
+To that end @code{track-changes-fetch} binds
+@code{track-changes-undo-only} to non-@code{nil} during calls to
+@var{func} if the changes were the result of undo.
+@end defvar
+
 
 @defun track-changes-unregister id
 This function tells the library that the tracker @var{id} does not need

@@ -1,6 +1,6 @@
 ;;; mhtml-ts-mode.el --- Major mode for HTML using tree-sitter -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; Author: Vincenzo Pupillo <v.pupillo@gmail.com>
 ;; Maintainer: Vincenzo Pupillo <v.pupillo@gmail.com>

@@ -1,6 +1,6 @@
 ;;; vc-dispatcher.el --- generic command-dispatcher facility.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2026 Free Software Foundation, Inc.
 
 ;; Author: FSF (see below for full credits)
 ;; Keywords: vc tools
@@ -122,7 +122,7 @@ dispatcher client mode imposes itself."
 ;; This hook was undeclared and undocumented until declared obsolete.
 ;; I believe it can be replaced with `vc-log-after-operation-hook'; if
 ;; someone can demonstrate a case where this is wanted too, we can
-;; unobsolete it.  --spwhitton
+;; bring it back.  --spwhitton
 (defvar vc-finish-logentry-hook nil
   "Additional hook run at the end of `vc-finish-logentry'.")
 (make-obsolete-variable 'vc-finish-logentry-hook 'vc-log-after-operation-hook
@@ -384,6 +384,9 @@ the man pages for \"torsocks\" for more details about Tor."
   :version "27.1"
   :group 'vc)
 
+(defvar vc-user-edit-command-history nil
+  "Name of minibuffer history variable for `vc-user-edit-command'.")
+
 (defun vc-user-edit-command (command file-or-list flags)
   "Prompt the user to edit VC command COMMAND and FLAGS.
 Intended to be used as the value of `vc-filter-command-function'."
@@ -398,7 +401,8 @@ Intended to be used as the value of `vc-filter-command-function'."
                             (cons command (remq nil (if files-separator-p
                                                         (butlast flags)
                                                       flags))))
-                           " ")))))
+                           " ")
+                   vc-user-edit-command-history))))
     (list (car edited) file-or-list
           (nconc (cdr edited) (and files-separator-p '("--"))))))
 

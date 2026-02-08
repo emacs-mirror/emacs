@@ -1,6 +1,6 @@
 ;;; scroll-bar.el --- window system-independent scroll bar support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1995, 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware
@@ -29,7 +29,6 @@
 ;;; Code:
 
 (require 'mouse)
-(eval-when-compile (require 'cl-lib))
 
 
 ;;;; Utilities.

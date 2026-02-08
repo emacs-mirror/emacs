@@ -1,6 +1,6 @@
 ;;; desktop.el --- save partial status of Emacs when killed -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1995, 1997, 2000-2025 Free Software Foundation,
+;; Copyright (C) 1993-1995, 1997, 2000-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -1064,13 +1064,19 @@ DIRNAME must be the directory in which the desktop file will be saved."
 
 ;; ----------------------------------------------------------------------------
 (defun desktop--check-dont-save (frame)
-  (not (frame-parameter frame 'desktop-dont-save)))
+  (and (not (frame-parameter frame 'desktop-dont-save))
+       ;; Don't save daemon initial frames, since we cannot (and don't
+       ;; need to) restore them.
+       (not (and (daemonp)
+                 (equal (terminal-name (frame-terminal frame))
+                        "initial_terminal")))))
 
 (defconst desktop--app-id `(desktop . ,desktop-file-version))
 
 (defun desktop-save-frameset ()
   "Save the state of existing frames in `desktop-saved-frameset'.
-Frames with a non-nil `desktop-dont-save' parameter are not saved."
+Frames with a non-nil `desktop-dont-save' parameter are not saved.
+Likewise the initial frame of a daemon sesion."
   (setq desktop-saved-frameset
 	(and desktop-restore-frames
 	     (frameset-save nil

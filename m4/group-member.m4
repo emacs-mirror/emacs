@@ -1,6 +1,6 @@
 # group-member.m4
 # serial 14
-dnl Copyright (C) 1999-2001, 2003-2007, 2009-2025 Free Software Foundation,
+dnl Copyright (C) 1999-2001, 2003-2007, 2009-2026 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,

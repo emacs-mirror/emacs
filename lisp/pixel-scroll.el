@@ -1,6 +1,6 @@
 ;;; pixel-scroll.el --- Scroll a line smoothly  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2026 Free Software Foundation, Inc.
 ;; Author: Tak Kunihiro <tkk@misasa.okayama-u.ac.jp>
 ;; Keywords: mouse
 ;; Package: emacs
@@ -90,7 +90,6 @@
 (require 'mwheel)
 (require 'subr-x)
 (require 'ring)
-(require 'cua-base)
 
 (defvar pixel-wait 0
   "Idle time on each step of pixel scroll specified in second.
@@ -820,6 +819,7 @@ It is a vector of the form [ VELOCITY TIME SIGN ]."
           (end-of-buffer
            (message (error-message-string '(end-of-buffer)))))))))
 
+;;;###autoload
 (defun pixel-scroll-interpolate-down ()
   "Interpolate a scroll downwards by one page."
   (interactive)
@@ -830,15 +830,28 @@ It is a vector of the form [ VELOCITY TIME SIGN ]."
                                           ;; since we want exactly 1
                                           ;; page to be scrolled.
                                           nil 1)
-    (cua-scroll-up)))
+    (cond
+     ((eobp)
+      (scroll-up))  ; signal error
+     (t
+      (condition-case nil
+	  (scroll-up)
+        (end-of-buffer (goto-char (point-max))))))))
 
+;;;###autoload
 (defun pixel-scroll-interpolate-up ()
   "Interpolate a scroll upwards by one page."
   (interactive)
   (if pixel-scroll-precision-interpolate-page
       (pixel-scroll-precision-interpolate (window-text-height nil t)
                                           nil 1)
-    (cua-scroll-down)))
+    (cond
+     ((bobp)
+      (scroll-down))  ; signal error
+     (t
+      (condition-case nil
+	  (scroll-down)
+        (beginning-of-buffer (goto-char (point-min))))))))
 
 ;;;###autoload
 (define-minor-mode pixel-scroll-precision-mode
@@ -850,6 +863,8 @@ precisely, according to the turning of the mouse wheel."
   :keymap pixel-scroll-precision-mode-map
   (setq mwheel-coalesce-scroll-events
         (not pixel-scroll-precision-mode))
+  ;; This works around some issues described in bug#65214.
+  ;; Ideally this would not be needed because it breaks some other things.
   (setq-default make-cursor-line-fully-visible
                 (not pixel-scroll-precision-mode)))
 

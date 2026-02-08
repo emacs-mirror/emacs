@@ -1,6 +1,6 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
-;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2026 Free Software Foundation, Inc.
 ;; Version: 1.7.0
 ;; Package-Requires: ((emacs "26.1"))
 
@@ -249,7 +249,7 @@ generic functions.")
 (defun xref-find-backend ()
   (run-hook-with-args-until-success 'xref-backend-functions))
 
-(cl-defgeneric xref-backend-definitions (backend identifier)
+(cl-defgeneric xref-backend-definitions (_backend _identifier)
   "Find definitions of IDENTIFIER.
 
 The result must be a list of xref objects.  If IDENTIFIER
@@ -262,16 +262,15 @@ IDENTIFIER can be any string returned by
 `xref-backend-identifier-at-point', or from the table returned by
 `xref-backend-identifier-completion-table'.
 
-To create an xref object, call `xref-make'.")
+To create an xref object, call `xref-make'."
+  (xref--no-backend-available))
 
 (cl-defgeneric xref-backend-references (_backend identifier)
   "Find references of IDENTIFIER.
 The result must be a list of xref objects.  If no references can
 be found, return nil.
 
-The default implementation uses `semantic-symref-tool-alist' to
-find a search tool; by default, this uses \"find | grep\" in the
-current project's main and external roots."
+The default implementation uses `xref-references-in-directory'."
   (mapcan
    (lambda (dir)
      (message "Searching %s..." dir)
@@ -285,12 +284,13 @@ current project's main and external roots."
        (xref--project-root pr)
        (project-external-roots pr))))))
 
-(cl-defgeneric xref-backend-apropos (backend pattern)
+(cl-defgeneric xref-backend-apropos (_backend _pattern)
   "Find all symbols that match PATTERN string.
 The second argument has the same meaning as in `apropos'.
 
 If BACKEND is implemented in Lisp, it can use
-`xref-apropos-regexp' to convert the pattern to regexp.")
+`xref-apropos-regexp' to convert the pattern to regexp."
+  (xref--no-backend-available))
 
 (cl-defgeneric xref-backend-identifier-at-point (_backend)
   "Return the relevant identifier at point.
@@ -306,8 +306,9 @@ recognize and then delegate the work to an external process."
   (let ((thing (thing-at-point 'symbol)))
     (and thing (substring-no-properties thing))))
 
-(cl-defgeneric xref-backend-identifier-completion-table (backend)
-  "Return the completion table for identifiers.")
+(cl-defgeneric xref-backend-identifier-completion-table (_backend)
+  "Return the completion table for identifiers."
+  nil)
 
 (cl-defgeneric xref-backend-identifier-completion-ignore-case (_backend)
   "Return t if case is not significant in identifier completion."
@@ -328,6 +329,10 @@ KEY extracts the key from an element."
     ;; Put them back in order.
     (cl-loop for key being hash-keys of table using (hash-values value)
              collect (cons key (nreverse value)))))
+
+(defun xref--no-backend-available ()
+  (user-error
+   "No Xref backend.  Try `M-x eglot', `M-x visit-tags-table', or `M-x etags-regen-mode'."))
 
 (defun xref--insert-propertized (props &rest strings)
   "Insert STRINGS with text properties PROPS."
@@ -1793,15 +1798,43 @@ and just use etags."
 (declare-function grep-expand-template "grep")
 (defvar ede-minor-mode) ;; ede.el
 
+(defcustom xref-references-in-directory-function
+  #'xref-references-in-directory-semantic
+  "Function to find all references to a symbol in a directory.
+It should take two string arguments: SYMBOL and DIR.
+And return a list of xref values representing all code references to
+SYMBOL in files under DIR."
+  :type '(choice
+          (const :tag "Using Grep via Find" xref-references-in-directory-grep)
+          (const :tag "Using Semantic Symbol Reference API"
+                 xref-references-in-directory-semantic)
+          function)
+  :version "31.1")
+
 ;;;###autoload
 (defun xref-references-in-directory (symbol dir)
+  "Find all references to SYMBOL in directory DIR.
+See `xref-references-in-directory-function' for the implementation.
+Return a list of xref values."
+  (cl-assert (directory-name-p dir))
+  (funcall xref-references-in-directory-function symbol dir))
+
+(defun xref-references-in-directory-grep (symbol dir)
+  "Find all references to SYMBOL in directory DIR using find and grep.
+Return a list of xref values.  The files in DIR are filtered according
+to its project's list of ignore patterns (as returned by
+`project-ignores'), or the default ignores if there is no project."
+  (let ((ignores (project-ignores (project-current nil dir) dir)))
+    (xref-matches-in-directory (regexp-quote symbol) "*" dir ignores
+                               'symbol)))
+
+(defun xref-references-in-directory-semantic (symbol dir)
   "Find all references to SYMBOL in directory DIR.
 Return a list of xref values.
 
 This function uses the Semantic Symbol Reference API, see
 `semantic-symref-tool-alist' for details on which tools are used,
 and when."
-  (cl-assert (directory-name-p dir))
   (require 'semantic/symref)
   (defvar semantic-symref-tool)
 
@@ -1831,12 +1864,13 @@ and when."
   "27.1")
 
 ;;;###autoload
-(defun xref-matches-in-directory (regexp files dir ignores)
+(defun xref-matches-in-directory (regexp files dir ignores &optional delimited)
   "Find all matches for REGEXP in directory DIR.
 Return a list of xref values.
 Only files matching some of FILES and none of IGNORES are searched.
 FILES is a string with glob patterns separated by spaces.
-IGNORES is a list of glob patterns for files to ignore."
+IGNORES is a list of glob patterns for files to ignore.
+If DELIMITED is `symbol', only select matches that span full symbols."
   ;; DIR can also be a regular file for now; let's not advertise that.
   (grep-compute-defaults)
   (defvar grep-find-template)
@@ -1855,6 +1889,9 @@ IGNORES is a list of glob patterns for files to ignore."
        (local-dir (directory-file-name
                    (file-name-unquote
                     (file-local-name (expand-file-name dir)))))
+       (hits-regexp (if (eq delimited 'symbol)
+                        (format "\\_<%s\\_>" regexp)
+                      regexp))
        (buf (get-buffer-create " *xref-grep*"))
        (`(,grep-re ,file-group ,line-group . ,_) (car grep-regexp-alist))
        (status nil)
@@ -1864,20 +1901,9 @@ IGNORES is a list of glob patterns for files to ignore."
       (setq default-directory dir)
       (setq status
             (process-file-shell-command command nil t))
-      (goto-char (point-min))
-      ;; Can't use the exit status: Grep exits with 1 to mean "no
-      ;; matches found".  Find exits with 1 if any of the invocations
-      ;; exit with non-zero. "No matches" and "Grep program not found"
-      ;; are all the same to it.
-      (when (and (/= (point-min) (point-max))
-                 (not (looking-at grep-re)))
-        (user-error "Search failed with status %d: %s" status (buffer-string)))
-      (while (re-search-forward grep-re nil t)
-        (push (list (string-to-number (match-string line-group))
-                    (concat local-dir (substring (match-string file-group) 1))
-                    (buffer-substring-no-properties (point) (line-end-position)))
-              hits)))
-    (xref--convert-hits (nreverse hits) regexp)))
+      (setq hits (xref--parse-hits grep-re line-group file-group status
+                                   local-dir)))
+    (xref--convert-hits (xref--sort-hits hits) hits-regexp)))
 
 (define-obsolete-function-alias
   'xref-collect-matches
@@ -2003,29 +2029,42 @@ to control which program to use when looking for matches."
                                           nil
                                           shell-command-switch
                                           command))))
-      (goto-char (point-min))
-      (when (and (/= (point-min) (point-max))
-                 (not (looking-at grep-re))
-                 ;; TODO: Show these matches as well somehow?
-                 ;; Matching both Grep's and Ripgrep 13's messages.
-                 (not (looking-at ".*[bB]inary file.* matches")))
-        (user-error "Search failed with status %d: %s" status
-                    (buffer-substring (point-min) (line-end-position))))
-      (while (re-search-forward grep-re nil t)
-        (push (list (string-to-number (match-string line-group))
-                    (match-string file-group)
-                    (buffer-substring-no-properties (point) (line-end-position)))
-              hits)))
-    ;; By default, ripgrep's output order is non-deterministic
-    ;; (https://github.com/BurntSushi/ripgrep/issues/152)
-    ;; because it does the search in parallel.
-    ;; Grep's output also comes out in seemingly arbitrary order,
-    ;; though stable one. Let's sort both for better UI.
-    (setq hits
-          (sort (nreverse hits)
-                (lambda (h1 h2)
-                  (string< (cadr h1) (cadr h2)))))
-    (xref--convert-hits hits regexp)))
+      (setq hits (xref--parse-hits grep-re line-group file-group status)))
+    (xref--convert-hits (xref--sort-hits hits) regexp)))
+
+(defun xref--parse-hits ( grep-re line-group file-group status
+                          &optional parent-dir)
+  (let (hits)
+    (goto-char (point-min))
+    ;; Can't use the exit status: Grep exits with 1 to mean "no
+    ;; matches found".  Find exits with 1 if any of the invocations
+    ;; exit with non-zero. "No matches" and "Grep program not found"
+    ;; are all the same to it.
+    (when (and (/= (point-min) (point-max))
+               (not (looking-at grep-re))
+               ;; TODO: Show these matches as well somehow?
+               ;; Matching both Grep's and Ripgrep 13's messages.
+               (not (looking-at ".*[bB]inary file.* matches")))
+      (user-error "Search failed with status %d: %s" status
+                  (buffer-substring (point-min) (line-end-position))))
+    (while (re-search-forward grep-re nil t)
+      (push (list (string-to-number (match-string line-group))
+                  (if parent-dir
+                      (concat parent-dir (substring (match-string file-group) 1))
+                    (match-string file-group))
+                  (buffer-substring-no-properties (point) (line-end-position)))
+            hits))
+    (nreverse hits)))
+
+(defun xref--sort-hits (hits)
+  ;; By default, ripgrep's output order is non-deterministic
+  ;; (https://github.com/BurntSushi/ripgrep/issues/152)
+  ;; because it does the search in parallel.
+  ;; Grep's output also comes out in seemingly arbitrary order,
+  ;; though stable one. Let's sort both for better UI.
+  (sort hits
+        (lambda (h1 h2)
+          (string< (cadr h1) (cadr h2)))))
 
 (defun xref--process-file-region ( start end program
                                    &optional buffer display

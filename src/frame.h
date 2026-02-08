@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2025 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -291,6 +291,9 @@ struct frame
      frames.  */
   struct image_cache *image_cache;
 #endif /* HAVE_WINDOW_SYSTEM */
+
+  /* Unique frame id.  */
+  EMACS_UINT id;
 
   /* Tab-bar item index of the item on which a mouse button was pressed.  */
   int last_tab_bar_item;
@@ -715,8 +718,15 @@ struct frame
      frame parameter.  0 means don't do gamma correction.  */
   double gamma;
 
-  /* Additional space to put between text lines on this frame.  */
+  /* Additional space to put below text lines on this frame.
+     Also takes part in line height calculation.  */
   int extra_line_spacing;
+
+  /* Amount of space (included in extra_line_spacing) that goes ABOVE
+     line line.
+     IMPORTANT: Don't use this for line height calculations.
+                (5 . 20) means that extra_line_spacing is 25 with 5 above.  */
+  int extra_line_spacing_above;
 
   /* All display backends seem to need these two pixel values.  */
   unsigned long background_pixel;
@@ -1414,6 +1424,10 @@ FRAME_PARENT_FRAME (struct frame *f)
 /* Handy macro to construct an argument to Fmodify_frame_parameters.  */
 #define AUTO_FRAME_ARG(name, parameter, value)		\
   AUTO_LIST1 (name, AUTO_CONS_EXPR (parameter, value))
+
+extern EMACS_UINT frame_next_id;
+extern EMACS_UINT frame_set_id (struct frame *f, EMACS_UINT id);
+extern EMACS_UINT frame_set_id_from_params (struct frame *f, Lisp_Object params);
 
 /* False means there are no visible garbaged frames.  */
 extern bool frame_garbaged;

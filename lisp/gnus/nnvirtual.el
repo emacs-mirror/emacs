@@ -1,6 +1,6 @@
 ;;; nnvirtual.el --- virtual newsgroups access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2026 Free Software Foundation, Inc.
 
 ;; Author: David Moore <dmoore@ucsd.edu>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -38,7 +38,6 @@
 (require 'gnus-start)
 (require 'gnus-sum)
 (require 'gnus-msg)
-(eval-when-compile (require 'cl-lib))
 
 (nnoo-declare nnvirtual)
 

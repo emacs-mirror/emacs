@@ -1,6 +1,6 @@
 ;;; editorconfig-fnmatch.el --- Glob pattern matching  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2025  Free Software Foundation, Inc.
+;; Copyright (C) 2011-2026 Free Software Foundation, Inc.
 
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 ;; Package: editorconfig
@@ -36,7 +36,7 @@
 
 ;; Test whether NAME match PATTERN.
 
-;; PATTERN should be a shell glob pattern, and some zsh-like wildcard matchings
+;; PATTERN should be a shell glob pattern, and some zsh-like wildcard matching
 ;; can be used:
 
 ;; *           Matches any string of characters, except path separators (/)
@@ -86,7 +86,7 @@
 
 Matching ignores case if `case-fold-search' is non-nil.
 
-PATTERN should be a shell glob pattern, and some zsh-like wildcard matchings can
+PATTERN should be a shell glob pattern, and some zsh-like wildcard matching can
 be used:
 
 *           Matches any string of characters, except path separators (/)

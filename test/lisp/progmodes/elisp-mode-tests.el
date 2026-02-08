@@ -1,6 +1,6 @@
 ;;; elisp-mode-tests.el --- Tests for emacs-lisp-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2026 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
@@ -407,7 +407,7 @@ to (xref-elisp-test-descr-to-target xref)."
   ;; cl-defstruct location.
   (list
    (cons
-    (xref-make "(cl-defstruct (xref-elisp-location (:constructor xref-make-elisp-location)))"
+    (xref-make "(cl-defstruct xref-elisp-location (:constructor xref-make-elisp-location))"
                (xref-make-elisp-location
                 'xref-elisp-location 'define-type
                 (expand-file-name "../../../lisp/progmodes/elisp-mode.el" emacs-test-dir)))

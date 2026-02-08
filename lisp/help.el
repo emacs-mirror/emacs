@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2025 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -99,6 +99,7 @@ buffer.")
   "f"    #'describe-function
   "g"    #'describe-gnu-project
   "h"    #'view-hello-file
+  "u"    #'apropos-user-option
 
   "i"    #'info
   "4 i"  #'info-other-window

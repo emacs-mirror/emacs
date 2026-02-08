@@ -1,4 +1,4 @@
-Copyright (C) 2008-2025 Free Software Foundation, Inc.
+Copyright (C) 2008-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 This directory contains files intended to test various aspects of
@@ -28,6 +28,16 @@ following tags are recognized:
 
 * :unstable
   The test is under development.  It shall run on demand only.
+
+The following examples expect this directory as the current working
+directory.  If you call make from Emacs' root directory, use "make -C
+test" instead.
+
+Running several tests in parallel could result in unexpected side
+effects with ephemeral test errors.  Therefore, it is recommend not to
+use "make -j".  Nonetheless, when expensive tests are activated, some of
+the tests do not run parallel anyway.  See make variable
+$NOT_PARALLEL_TESTS.
 
 The Makefile sets the environment variable $EMACS_TEST_DIRECTORY,
 which points to this directory.  This environment variable does not
@@ -88,6 +98,9 @@ In case you want to use the symbol name of a test as selector, you can
 use it directly:
 
     make <filename> SELECTOR='test-foo-remote'
+
+Setting $SELECTOR in combination with the check-expensive or check-all
+make targets is ignored.
 
 Note that although the test files are always compiled (unless they set
 no-byte-compile), the source files will be run when expensive or

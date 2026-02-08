@@ -1,6 +1,6 @@
 # gnulib-common.m4
 # serial 115
-dnl Copyright (C) 2007-2025 Free Software Foundation, Inc.
+dnl Copyright (C) 2007-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -422,15 +422,17 @@ AC_DEFUN([gl_COMMON_BODY], [
    without examining state, and always returns exactly once -
    e.g., does not raise an exception, call longjmp, or loop forever.
    (This attribute is stricter than _GL_ATTRIBUTE_PURE because the
-   function cannot observe state.  It is stricter than
-   _GL_ATTRIBUTE_UNSEQUENCED because the function must return exactly
-   once and cannot access state addressed by its arguments.)  */
+   function cannot observe state.  Unlike _GL_ATTRIBUTE_UNSEQUENCED
+   the function must return exactly once and cannot access state
+   addressed by its pointer arguments or that happens to have the same
+   value for all calls to the function, but the function is allowed to
+   return a pointer to storage that can be modified later.  */
 /* Applies to: functions.  */
 #ifndef _GL_ATTRIBUTE_CONST
 # if _GL_HAS_ATTRIBUTE (const)
 #  define _GL_ATTRIBUTE_CONST __attribute__ ((__const__))
 # else
-#  define _GL_ATTRIBUTE_CONST _GL_ATTRIBUTE_UNSEQUENCED
+#  define _GL_ATTRIBUTE_CONST
 # endif
 #endif
 
@@ -591,7 +593,9 @@ AC_DEFUN([gl_COMMON_BODY], [
 
 /* _GL_ATTRIBUTE_MAYBE_UNUSED declares that it is not a programming mistake if
    the entity is not used.  The compiler should not warn if the entity is not
-   used.  */
+   used.  However, 'int _GL_UNNAMED (i)' is preferable to
+   '_GL_ATTRIBUTE_MAYBE_UNUSED int i' when parameter I is unused
+   regardless of preprocessor macro settings.  */
 /* Applies to:
      - function, variable,
      - struct, union, struct/union member,
@@ -752,34 +756,33 @@ AC_DEFUN([gl_COMMON_BODY], [
    returns a value determined solely by its arguments's values
    together with observable state, and always returns exactly once.
    (This attribute is looser than _GL_ATTRIBUTE_CONST because the function
-   can depend on observable state.  It is stricter than
-   _GL_ATTRIBUTE_REPRODUCIBLE because the function must return exactly
-   once and cannot change state addressed by its arguments.)  */
+   can depend on observable state.
+   Unlike _GL_ATTRIBUTE_REPRODUCIBLE the function must return exactly
+   once and cannot change state addressed by its arguments, but the
+   function can return a pointer to storage whose contents change later.)  */
 /* Applies to: functions.  */
 #ifndef _GL_ATTRIBUTE_PURE
 # if _GL_HAS_ATTRIBUTE (pure)
 #  define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
 # else
-#  define _GL_ATTRIBUTE_PURE _GL_ATTRIBUTE_REPRODUCIBLE
+#  define _GL_ATTRIBUTE_PURE
 # endif
 #endif
 
 /* _GL_ATTRIBUTE_REPRODUCIBLE declares:
    It is OK for a compiler to move a call, or omit a duplicate call
-   and reuse a cached value returned either directly or indirectly
-   via a pointer argument, if other observable state is the same;
-   however, these pointer arguments cannot alias.
+   and reuse a cached value returned either directly or indirectly via
+   a pointer, if other observable state is the same;
+   however, pointer arguments cannot alias.
    This attribute is safe for a function that is effectless and idempotent;
    see ISO C 23 § 6.7.13.8 for a definition of these terms.
    (This attribute is looser than _GL_ATTRIBUTE_UNSEQUENCED because
-   the function need not be stateless or independent.  It is looser
-   from _GL_ATTRIBUTE_PURE because the function need not return
-   exactly once, and it can change state addressed by its pointer arguments
-   that do not alias.)
+   the function need not be stateless or independent.
+   Unlike _GL_ATTRIBUTE_PURE the function need not return exactly once
+   and can change state addressed by its pointer arguments, but the
+   function cannot return a pointer to storage whose contents change later.)
    See also <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2956.htm> and
-   <https://stackoverflow.com/questions/76847905/>.
-   ATTENTION! Efforts are underway to change the meaning of this attribute.
-   See <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3494.htm>.  */
+   <https://stackoverflow.com/questions/76847905/>.  */
 /* Applies to: functions, pointer to functions, function types.  */
 #ifndef _GL_ATTRIBUTE_REPRODUCIBLE
 /* This may be revisited when gcc and clang support [[reproducible]] or possibly
@@ -820,20 +823,21 @@ AC_DEFUN([gl_COMMON_BODY], [
 
 /* _GL_ATTRIBUTE_UNSEQUENCED declares:
    It is OK for a compiler to move a call, or omit a duplicate call
-   and reuse a cached return value, addressed by its arguments is the same.
+   and reuse a cached value returned either directly or indirectly via
+   a pointer, if the state addressed by its pointer arguments is the same;
+   however, pointer arguments cannot alias.
    This attribute is safe for a function that is effectless, idempotent,
    stateless, and independent; see ISO C 23 § 6.7.13.8 for a definition of
    these terms.
    (This attribute is stricter than _GL_ATTRIBUTE_REPRODUCIBLE because
-   the function must be stateless and independent.  It differs from
-   _GL_ATTRIBUTE_CONST because the function need not return exactly
-   once and can depend on state accessed via its pointer arguments
-   that do not alias, or on other state that happens to have the
-   same value for all calls to the function.)
+   the function must be stateless and independent.  Unlike
+   _GL_ATTRIBUTE_CONST the function need not return exactly once, and
+   can depend on state accessed via its pointer arguments or that
+   happens to have the same value for all calls to the function, but
+   the function cannot return a pointer to storage whose contents
+   change later.)
    See also <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2956.htm> and
-   <https://stackoverflow.com/questions/76847905/>.
-   ATTENTION! Efforts are underway to change the meaning of this attribute.
-   See <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3494.htm>.  */
+   <https://stackoverflow.com/questions/76847905/>.  */
 /* Applies to: functions, pointer to functions, function types.  */
 #ifndef _GL_ATTRIBUTE_UNSEQUENCED
 /* This may be revisited when gcc and clang support [[unsequenced]] or possibly
@@ -870,6 +874,21 @@ AC_DEFUN([gl_COMMON_BODY], [
 #  define _GL_UNUSED_LABEL _GL_ATTRIBUTE_UNUSED
 # else
 #  define _GL_UNUSED_LABEL
+# endif
+#endif
+
+/* _GL_UNNAMED (ID) is the "name" of an unnamed function parameter.
+   Each of the function's unnamed parameters should have a unique "name".
+   The "name" cannot be used.  This ports both to C17 and earlier, which
+   lack unnamed parameters, and to C++ and later C, which have them.  */
+/* Applies to:
+     - function parameters.  */
+#ifndef _GL_UNNAMED
+# if ((defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) < 202311 \
+      && !defined __cplusplus)
+#  define _GL_UNNAMED(id) unnamed_##id _GL_ATTRIBUTE_UNUSED
+# else
+#  define _GL_UNNAMED(id)
 # endif
 #endif
 

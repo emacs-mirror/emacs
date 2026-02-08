@@ -1,6 +1,6 @@
 /* Functions for the NeXT/Open/GNUstep and macOS window system.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2025 Free Software
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2026 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1261,6 +1261,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
       f = make_frame (1);
 
   XSETFRAME (frame, f);
+
+  frame_set_id_from_params (f, parms);
 
   f->terminal = dpyinfo->terminal;
 
@@ -3479,16 +3481,17 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 		     || EQ (fullscreen_symbol, Qfullscreen));
   int border = fullscreen ? 0 : f->border_width;
   int title_height = fullscreen ? 0 : FRAME_NS_TITLEBAR_HEIGHT (f);
+  int tool_bar_height = FRAME_TOOLBAR_HEIGHT (f);
   int native_width = FRAME_PIXEL_WIDTH (f);
   int native_height = FRAME_PIXEL_HEIGHT (f);
   int outer_width = native_width + 2 * border;
-  int outer_height = native_height + 2 * border + title_height;
+  int outer_height
+    = native_height + 2 * border + title_height + tool_bar_height;
   int native_left = f->left_pos + border;
   int native_top = f->top_pos + border + title_height;
   int native_right = f->left_pos + outer_width - border;
   int native_bottom = f->top_pos + outer_height - border;
   int internal_border_width = FRAME_INTERNAL_BORDER_WIDTH (f);
-  int tool_bar_height = FRAME_TOOLBAR_HEIGHT (f);
   int tool_bar_width = (tool_bar_height
 			? outer_width - 2 * internal_border_width
 			: 0);
@@ -3671,6 +3674,134 @@ DEFUN ("ns-show-character-palette",
   EmacsView *view = FRAME_NS_VIEW (f);
   [NSApp orderFrontCharacterPalette:view];
 
+  return Qnil;
+}
+
+DEFUN ("ns-badge", Fns_badge, Sns_badge, 1, 1, 0,
+       doc: /* Set the app icon badge to BADGE.
+BADGE should be a string short enough to display nicely in the short
+space intended for badges.
+If BADGE is nil, clear the app badge.  */)
+  (Lisp_Object badge)
+{
+  block_input ();
+  if (NILP (badge))
+    [[NSApp dockTile] setBadgeLabel: nil];
+  else
+    {
+      CHECK_STRING (badge);
+      [[NSApp dockTile] setBadgeLabel:
+			  [NSString stringWithUTF8String: SSDATA (badge)]];
+    }
+  unblock_input ();
+  return Qnil;
+}
+
+/* Use -1 to indicate no active request.  */
+static NSInteger ns_request_user_attention_id = -1;
+
+DEFUN ("ns-request-user-attention",
+       Fns_request_user_attention,
+       Sns_request_user_attention,
+       1, 1, 0,
+       doc: /* Bounce the app dock icon to request user attention.
+If URGENCY nil, cancel the outstanding request, if any.
+If URGENCY is the symbol `informational', bouncing lasts a few seconds.
+If URGENCY is the symbol `critical', bouncing lasts until Emacs is
+focused.  */)
+  (Lisp_Object urgency)
+{
+  block_input ();
+  if (ns_request_user_attention_id != -1)
+    {
+      [NSApp cancelUserAttentionRequest: ns_request_user_attention_id];
+      ns_request_user_attention_id = -1;
+    }
+  if (!NILP (urgency) && SYMBOLP (urgency))
+    {
+      if (EQ (urgency, Qinformational))
+	ns_request_user_attention_id = [NSApp requestUserAttention:
+						NSInformationalRequest];
+      else if (EQ (urgency, Qcritical))
+	ns_request_user_attention_id = [NSApp requestUserAttention:
+						NSCriticalRequest];
+    }
+  unblock_input ();
+  return Qnil;
+}
+
+DEFUN ("ns-progress-indicator",
+       Fns_progress_indicator,
+       Sns_progress_indicator,
+       1, 1, 0,
+       doc: /* Bounce the app dock icon to request user attention.
+PROGRESS is a float between 0.0 and 1.0.
+If PROGRESS is nil, remove the progress indicator.  */)
+  (Lisp_Object progress)
+{
+  block_input ();
+  NSDockTile *dock_tile = [NSApp dockTile];
+  /* Use NSLevelIndicator with reliable redraws, not NSProgressIndicator.  */
+  NSLevelIndicator *level_indicator;
+  /* Reuse the indicator subview or create one. */
+  if (dock_tile.contentView
+      && [[dock_tile.contentView subviews] count] > 0
+      && [[[dock_tile.contentView subviews] lastObject]
+                        isKindOfClass:[NSLevelIndicator class]])
+    level_indicator =
+      (NSLevelIndicator *)[[[dock_tile contentView] subviews] lastObject];
+    else
+      {
+	if (!dock_tile.contentView)
+	  {
+	    NSImageView* image_view = [[NSImageView alloc] init];
+	    [image_view setImage: [NSApp applicationIconImage]];
+	    [dock_tile setContentView: image_view];
+	  }
+	/* Set width to the width of the application icon, and height to
+	   % of the icon height to respect scaled icons.  */
+	float width = [[NSApp applicationIconImage] size].width;
+	float height = 0.10 * [[NSApp applicationIconImage] size].height;
+	level_indicator =
+	  [[NSLevelIndicator alloc] initWithFrame:
+				      NSMakeRect (0.0, 0.0,
+						  width, height)];
+	[level_indicator setWantsLayer: YES]; /* Performance.  */
+	[level_indicator setEnabled: NO]; /* Ignore mouse input.  */
+#ifdef NS_IMPL_GNUSTEP
+	[level_indicator setLevelIndicatorStyle:
+			   NSContinuousCapacityLevelIndicatorStyle];
+#else
+	[level_indicator setLevelIndicatorStyle:
+			   NSLevelIndicatorStyleContinuousCapacity];
+#endif
+	/* Match NSProgressIndicator color.  */
+	[level_indicator setFillColor: [NSColor controlAccentColor]];
+	[level_indicator setMinValue: 0.0];
+	[level_indicator setMaxValue: 1.0];
+	/* The contentView takes ownership.  */
+	[dock_tile.contentView addSubview: level_indicator];
+      }
+  double progress_value;
+  BOOL hide = (NILP (progress)
+	       || (!NILP (progress) && !(FLOATP (progress))));
+  if (!hide)
+    {
+      progress_value = XFLOAT_DATA (progress);
+      hide = (progress_value < 0.0 || progress_value > 1.0);
+    }
+  if (hide)
+    {
+      [level_indicator setDoubleValue: 0.0];
+      [level_indicator setHidden: YES];
+    }
+  else
+    {
+      [level_indicator setDoubleValue: progress_value];
+      [level_indicator setHidden: NO];
+    }
+  [dock_tile display];
+  unblock_input ();
   return Qnil;
 }
 
@@ -3957,6 +4088,9 @@ The default value is t.  */);
   defsubr (&Sns_set_mouse_absolute_pixel_position);
   defsubr (&Sns_mouse_absolute_pixel_position);
   defsubr (&Sns_show_character_palette);
+  defsubr (&Sns_badge);
+  defsubr (&Sns_request_user_attention);
+  defsubr (&Sns_progress_indicator);
 #ifdef NS_IMPL_COCOA
   defsubr (&Sns_send_items);
 #endif
@@ -4023,4 +4157,6 @@ The default value is t.  */);
   DEFSYM (Qassq_delete_all, "assq-delete-all");
   DEFSYM (Qrun_at_time, "run-at-time");
   DEFSYM (Qx_hide_tip, "x-hide-tip");
+  DEFSYM (Qinformational, "informational");
+  DEFSYM (Qcritical, "critical");
 }

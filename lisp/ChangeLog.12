@@ -16027,7 +16027,7 @@
 	`c-backward-subword'.
 
 	* progmodes/cc-subword.el: New functions and minor mode to handle
-	SillyCapsedStyleIndentifiers, contributed by Masatake YAMATO:
+	SillyCapsedStyleIdentifiers, contributed by Masatake YAMATO:
 
 	(c-forward-subword, c-backward-subword, c-mark-subword)
 	(c-kill-subword, c-backward-kill-subword, c-transpose-subwords)
@@ -33335,7 +33335,7 @@ See ChangeLog.11 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2005-2025 Free Software Foundation, Inc.
+    Copyright (C) 2005-2026 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

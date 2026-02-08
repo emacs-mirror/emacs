@@ -10,6 +10,7 @@ The (co-)maintainers of Emacs are:
 	Eli Zaretskii <eliz@gnu.org>
 	Stefan Kangas <stefankangas@gmail.com>
 	Andrea Corallo <acorallo@gnu.org>
+	Sean Whitton <spwhitton@spwhitton.name>
 	Richard Stallman <rms@gnu.org>
 
 (Richard Stallman is one of the Emacs maintainers,
@@ -234,7 +235,6 @@ Philip Kaludercic
        lisp/emacs-lisp/package.el
        lisp/emacs-lisp/package-vc.el
        lisp/emacs-lisp/compat.el
-       lisp/net/rcirc.el
 
 Yuan Fu
        src/treesit.c
@@ -252,7 +252,11 @@ Sean Whitton
 	    test/lisp/vc/*
 
 Stephane Marks
+	lisp/system-taskbar.el
 	lisp/emacs-lisp/vtable.el
+
+Elías Gabriel Pérez
+	lisp/progmodes/hideshow.el
 
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
@@ -385,6 +389,7 @@ Juri Linkov
 	    lisp/repeat.el
 
 Philip Kaludercic
+	lisp/net/rcirc.el
 	lisp/epa-ks.el
 
 Harald Jörg

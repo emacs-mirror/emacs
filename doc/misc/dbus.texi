@@ -10,7 +10,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -64,6 +64,7 @@ another.  An overview of D-Bus can be found at
 * Alternative Buses::           Alternative buses and environments.
 * Errors and Events::           Errors and events.
 * Monitoring Messages::         Monitoring messages.
+* File Descriptors::            Handle file descriptors.
 * Index::                       Index including concepts, functions, variables.
 
 * GNU Free Documentation License:: The license for this documentation.
@@ -124,7 +125,7 @@ name could be @samp{org.gnu.Emacs.TextEditor} or
 
 
 @node Inspection
-@chapter Inspection of D-Bus services.
+@chapter Inspection of D-Bus services
 @cindex inspection
 
 @menu
@@ -139,7 +140,7 @@ name could be @samp{org.gnu.Emacs.TextEditor} or
 
 
 @node Version
-@section D-Bus version.
+@section D-Bus version
 
 D-Bus has evolved over the years.  New features have been added with
 new D-Bus versions.  There are two variables, which allow the determination
@@ -158,7 +159,7 @@ It is also @code{nil}, if it cannot be determined at runtime.
 
 
 @node Bus names
-@section Bus names.
+@section Bus names
 
 There are several basic functions which inspect the buses for
 registered names.  Internally they use the basic interface
@@ -267,7 +268,7 @@ at D-Bus @var{bus}, as a string.
 
 
 @node Introspection
-@section Knowing the details of D-Bus services.
+@section Knowing the details of D-Bus services
 
 D-Bus services publish their interfaces.  This can be retrieved and
 analyzed during runtime, in order to understand the used
@@ -483,7 +484,7 @@ If @var{object} has no @var{attribute}, the function returns
 
 
 @node Nodes and Interfaces
-@section Detecting object paths and interfaces.
+@section Detecting object paths and interfaces
 
 The first elements, to be introspected for a D-Bus object, are further
 object paths and interfaces.
@@ -593,7 +594,7 @@ data from a running system:
 
 
 @node Methods and Signal
-@section Applying the functionality.
+@section Applying the functionality
 
 Methods and signals are the communication means to D-Bus.  The
 following functions return their specifications.
@@ -673,7 +674,7 @@ Example:
 
 
 @node Properties and Annotations
-@section What else to know about interfaces.
+@section What else to know about interfaces
 
 Interfaces can have properties.  These can be exposed via the
 @samp{org.freedesktop.DBus.Properties} interface@footnote{See
@@ -894,7 +895,7 @@ An attribute value can be retrieved by
 
 
 @node Arguments and Signatures
-@section The final details.
+@section The final details
 
 Methods and signals have arguments.  They are described in the
 @code{arg} XML elements.
@@ -962,7 +963,7 @@ non-@code{nil}, @var{direction} must be @samp{out}.  Example:
 
 
 @node Type Conversion
-@chapter Mapping Lisp types and D-Bus types.
+@chapter Mapping Lisp types and D-Bus types
 @cindex type conversion
 
 D-Bus method calls and signals accept usually several arguments as
@@ -975,7 +976,7 @@ applied Lisp object @expansion{} D-Bus type for input parameters, and
 D-Bus type @expansion{} Lisp object for output parameters.
 
 
-@section Input parameters.
+@section Input parameters
 
 Input parameters for D-Bus methods and signals occur as arguments of a
 Lisp function call.  The following mapping to D-Bus types is
@@ -1116,7 +1117,7 @@ lower-case hex digits.  As a special case, "" is escaped to
 @end defun
 
 
-@section Output parameters.
+@section Output parameters
 
 Output parameters of D-Bus methods and signals are mapped to Lisp
 objects.
@@ -1199,7 +1200,7 @@ that string:
 
 
 @node Synchronous Methods
-@chapter Calling methods in a blocking way.
+@chapter Calling methods in a blocking way
 @cindex method calls, synchronous
 @cindex synchronous method calls
 
@@ -1211,7 +1212,7 @@ which carries the input parameters to the object owning the method to
 be called, and a reply message returning the resulting output
 parameters from the object.
 
-@defun dbus-call-method bus service path interface method &optional :timeout timeout :authorizable auth &rest args
+@defun dbus-call-method bus service path interface method &optional :timeout timeout :authorizable auth :keep-fd &rest args
 @anchor{dbus-call-method}
 This function calls @var{method} on the D-Bus @var{bus}.  @var{bus} is
 either the keyword @code{:system} or the keyword @code{:session}.
@@ -1240,7 +1241,14 @@ running):
  "org.freedesktop.systemd1.Manager" "RestartUnit"
  :authorizable t
  "bluetooth.service" "replace")
+
+@result{} "/org/freedesktop/systemd1/job/17508"
 @end lisp
+
+If the parameter @code{:keep-fd} is given, and the return message has a
+first argument with a D-Bus type @code{:unix-fd}, the returned file
+descriptor is kept internally, and can be used in a later call of
+@code{dbus--close-fd} (@pxref{File Descriptors}).
 
 The remaining arguments @var{args} are passed to @var{method} as
 arguments.  They are converted into D-Bus types as described in
@@ -1317,11 +1325,11 @@ emulate the @code{lshal} command on GNU/Linux systems:
 
 
 @node Asynchronous Methods
-@chapter Calling methods non-blocking.
+@chapter Calling methods non-blocking
 @cindex method calls, asynchronous
 @cindex asynchronous method calls
 
-@defun dbus-call-method-asynchronously bus service path interface method handler &optional :timeout timeout :authorizable auth &rest args
+@defun dbus-call-method-asynchronously bus service path interface method handler &optional :timeout timeout :authorizable auth :keep-fd &rest args
 This function calls @var{method} on the D-Bus @var{bus}
 asynchronously.  @var{bus} is either the keyword @code{:system} or the
 keyword @code{:session}.
@@ -1343,6 +1351,11 @@ Events}).
 If the parameter @code{:authorizable} is given and the following
 @var{auth} is non-@code{nil}, the invoked method may interactively
 prompt the user for authorization.  The default is @code{nil}.
+
+If the parameter @code{:keep-fd} is given, and the return message has a
+first argument with a D-Bus type @code{:unix-fd}, the returned file
+descriptor is kept internally, and can be used in a later call of
+@code{dbus--close-fd} (@pxref{File Descriptors}).
 
 The remaining arguments @var{args} are passed to @var{method} as
 arguments.  They are converted into D-Bus types as described in
@@ -1369,7 +1382,7 @@ message arrives, and @var{handler} is called.  Example:
 
 
 @node Register Objects
-@chapter Offering own services.
+@chapter Offering own services
 @cindex method calls, returning
 @cindex returning method calls
 
@@ -1720,7 +1733,7 @@ to the service from D-Bus.
 
 
 @node Signals
-@chapter Sending and receiving signals.
+@chapter Sending and receiving signals
 @cindex signals
 
 Signals are one way messages.  They carry input parameters, which are
@@ -1752,6 +1765,8 @@ arguments.  They are converted into D-Bus types as described in
  :session nil dbus-path-emacs
  (concat dbus-interface-emacs ".FileManager") "FileModified"
  "/home/albinus/.emacs")
+
+@result{} nil
 @end lisp
 @end defun
 
@@ -1779,7 +1794,10 @@ argument.
 
 @var{handler} is a Lisp function to be called when the @var{signal} is
 received.  It must accept as arguments the output parameters
-@var{signal} is sending.
+@var{signal} is sending.@footnote{It is possible to register different
+handlers for the same signal.  All registered handlers will be called
+when the signal arrives.  This is useful for example if different Lisp
+packages are interested in the same signal.}
 
 The remaining arguments @var{args} can be keywords or keyword string
 pairs.@footnote{For backward compatibility, the arguments @var{args}
@@ -1852,7 +1870,7 @@ for a dummy signal, and check the result:
 
 
 @node Alternative Buses
-@chapter Alternative buses and environments.
+@chapter Alternative buses and environments
 @cindex bus names
 @cindex UNIX domain socket
 @cindex TCP/IP socket
@@ -1979,7 +1997,7 @@ running.  This could be achieved by
 
 
 @node Errors and Events
-@chapter Errors and events.
+@chapter Errors and events
 @cindex debugging
 @cindex errors
 @cindex events
@@ -2138,7 +2156,7 @@ whether a given D-Bus error is related to them.
 
 
 @node Monitoring Messages
-@chapter Monitoring messages.
+@chapter Monitoring messages
 @cindex monitoring
 
 @defun dbus-register-monitor bus &optional handler &key type sender destination path interface member
@@ -2178,12 +2196,16 @@ The following form shows all D-Bus events on the session bus in buffer
 
 @lisp
 (dbus-register-monitor :session)
+
+@result{} ((:monitor :session-private) (nil nil dbus-monitor-handler))
 @end lisp
 
 And this form restricts the monitoring on D-Bus errors:
 
 @lisp
 (dbus-register-monitor :session nil :type "error")
+
+@result{} ((:monitor :session-private) (nil nil dbus-monitor-handler))
 @end lisp
 @end defun
 
@@ -2191,6 +2213,92 @@ And this form restricts the monitoring on D-Bus errors:
 This command invokes @code{dbus-register-monitor} interactively, and
 switches to the monitor buffer.
 @end deffn
+
+
+@node File Descriptors
+@chapter Handle file descriptors
+
+Methods offered by the D-Bus API could return a file descriptor, which
+must be handled further.  This is indicated by the @code{:keep-fd}
+parameter when calling the method (@pxref{dbus-call-method}).
+
+For example, @uref{https://systemd.io/INHIBITOR_LOCKS/, Systemd}
+includes a logic to inhibit system shutdowns and sleep states.  It can
+be controlled by a the method @samp{Inhibit} of interface
+@samp{org.freedesktop.login1.Manager}@footnote{@uref{https://www.freedesktop.org/software/systemd/man/latest/org.freedesktop.login1.html}}.
+This function returns a file descriptor, which must be used to unlock
+the locked resource, some of which lock the system.  In order to keep
+this file descriptor internally, the respective D-Bus method call looks
+like (@var{what}, @var{who}, @var{why} and @var{mode} are
+method-specific string arguments)
+
+@lisp
+(dbus-call-method
+ :system
+ "org.freedesktop.login1" "/org/freedesktop/login1"
+ "org.freedesktop.login1.Manager" "Inhibit"
+ :keep-fd WHAT WHO WHY MODE)
+
+@result{} 25
+@end lisp
+
+The inhibition lock is unlocked, when the returned file descriptor is
+removed from the file system.  This cannot be achieved on Lisp level.
+Therefore, there is the function @code{dbus--fd-close} to performs this
+task (see below).
+
+@strong{Note}: When the Emacs process itself dies, all such locks are
+released.
+
+@strong{Note}: The following functions are internal to the D-Bus
+implementation of Emacs.  Use them with care.
+
+@defun dbus--fd-open filename
+Open @var{filename} and return the respective read-only file descriptor.
+This is another function to keep a file descriptor internally.  The
+returned file descriptor can be closed by @code{dbus--fd-close}.
+Example:
+
+@lisp
+(dbus--fd-open "~/.emacs")
+
+@result{} 20
+@end lisp
+@end defun
+
+@defun dbus--fd-close fd
+Close file descriptor @var{fd}.
+@var{fd} must be the result of a @code{dbus-call-method} or
+@code{dbus--fd-open} call, see @code{dbus--registered-fds}.  It returns
+@code{t} in case of success, or @code{nil} if it isn’t be possible to
+close the file descriptor, or if the file descriptor is closed already.
+Example:
+
+@lisp
+(dbus--fd-close 25)
+
+@result{} t
+@end lisp
+@end defun
+
+@defun dbus--registered-fds
+Return registered file descriptors, an alist.
+The key is an open file descriptor, retrieved via
+@code{dbus-call-method} or @code{dbus--open-fd}.  The value is a string
+@var{object-path} or @var{filename}, which represents the arguments the
+function was called with.  Those values are not needed for further
+operations; they are just shown for information.
+
+This alist allows to check, whether other packages of the running Emacs
+instance have acquired a file descriptor as well.  Example:
+
+@lisp
+(dbus--registered-fds)
+
+@result{} ((20 . "/home/user/.emacs")
+   (25 . "/org/freedesktop/login1"))
+@end lisp
+@end defun
 
 
 @node Index

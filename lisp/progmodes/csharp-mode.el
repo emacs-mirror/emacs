@@ -1,6 +1,6 @@
 ;;; csharp-mode.el --- Support for editing C#  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;;              Jostein Kjønigsen <jostein@kjonigsen.net>
@@ -717,7 +717,11 @@ compilation and evaluation time conflicts."
      ((parent-is "arrow_function") parent-bol csharp-ts-mode-indent-offset)
      ((parent-is "parenthesized_expression") parent-bol csharp-ts-mode-indent-offset)
      ((parent-is "using_statement") parent-bol 0)
-     ((parent-is "lambda_expression") parent-bol 0))))
+     ((parent-is "lambda_expression") parent-bol 0)
+     ((parent-is "try_statement") parent-bol 0)
+     ((parent-is "catch_filter_clause") parent-bol 0)
+     ((parent-is "preproc_if") parent-bol 0)
+     ((parent-is "preproc_region") parent-bol 0))))
 
 (defvar csharp-ts-mode--keywords
   '("using" "namespace" "class" "if" "else" "throw" "new" "for"
@@ -732,7 +736,7 @@ compilation and evaluation time conflicts."
 
 (defgroup csharp-ts-mode-faces nil
   "Font faces."
-  :group 'cshap)
+  :group 'csharp)
 
 (defface csharp-ts-mode-attribute-face
   '((t . (:inherit font-lock-property-use-face)))
@@ -885,7 +889,7 @@ compilation and evaluation time conflicts."
            '((this_expression) @font-lock-keyword-face)
          '("this" @font-lock-keyword-face))
 
-     ;; avoid fontifying indentifiers with a keyword-values as identifiers.
+     ;; Avoid fontifying identifiers with a keyword-values as identifiers.
      ((identifier) @font-lock-keyword-face
       (:match ,(concat "\\`" (regexp-opt csharp-ts-mode--keywords t) "\\'") @font-lock-keyword-face)))
 

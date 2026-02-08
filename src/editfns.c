@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.                 -*- coding: utf-8 -*-
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1932,7 +1932,7 @@ DEFUN ("replace-region-contents", Freplace_region_contents,
               (get-buffer (read-buffer-to-switch \"Source buffer: \")))",
        doc: /* Replace the region between BEG and END with that of SOURCE.
 SOURCE can be a buffer, a string, or a vector [SBUF SBEG SEND]
-denoting the subtring SBEG..SEND of buffer SBUF.
+denoting the substring SBEG..SEND of buffer SBUF.
 
 If optional argument INHERIT is non-nil, the inserted text will inherit
 properties from adjoining text.
@@ -1953,7 +1953,7 @@ for comparing the buffers.  If it takes longer than MAX-SECS, the
 function falls back to a plain `delete-region' and
 `insert-buffer-substring'.  (Note that the checks are not performed
 too evenly over time, so in some cases it may run a bit longer than
-allowed).  In partricular, passing zero as the value of MAX-SECS
+allowed).  In particular, passing zero as the value of MAX-SECS
 disables the comparison step, so this function immediately falls
 back to a plain delete/insert method.
 
@@ -3349,6 +3349,8 @@ the next available argument, or the argument explicitly specified:
 
 %s means produce a string argument.  Actually, produces any object with `princ'.
 %d or %i means produce a signed number in decimal.
+%b means produce a number in binary.
+%B is like %b, but %#B uses upper case.
 %o means produce a number in octal.
 %x means produce a number in hex.
 %X is like %x, but uses upper case.
@@ -3361,8 +3363,6 @@ the next available argument, or the argument explicitly specified:
 %S means produce any object as an s-expression (using `prin1').
 
 The argument used for %d, %i, %o, %x, %e, %f, %g or %c must be a number.
-%o, %x, and %X treat arguments as unsigned if `binary-as-unsigned' is t
-  (this is experimental; email 32252@debbugs.gnu.org if you need it).
 Use %% to put a single % into the output.
 
 A %-sequence other than %% may contain optional field number, flag,
@@ -3384,8 +3384,9 @@ space inserts a space before any nonnegative number; these flags
 affect only numeric %-sequences, and the + flag takes precedence.
 The - and 0 flags affect the width specifier, as described below.
 
-The # flag means to use an alternate display form for %o, %x, %X, %e,
-%f, and %g sequences: for %o, it ensures that the result begins with
+The # flag means to use an alternate display form for %b, %B, %o, %x,
+%X, %e, %f, and %g sequences: for %b and %B, it prefixes nonzero results
+with \"0b\" or \"0B\"; for %o, it ensures that the result begins with
 \"0\"; for %x and %X, it prefixes nonzero results with \"0x\" or \"0X\";
 for %e and %f, it causes a decimal point to be included even if the
 precision is zero; for %g, it causes a decimal point to be
@@ -3397,7 +3398,7 @@ produced representation.  The padding, if any, normally goes on the
 left, but it goes on the right if the - flag is present.  The padding
 character is normally a space, but it is 0 if the 0 flag is present.
 The 0 flag is ignored if the - flag is present, or the format sequence
-is something other than %d, %o, %x, %e, %f, and %g.
+is something other than %d, %b, %o, %x, %e, %f, and %g.
 
 For %e and %f sequences, the number after the "." in the precision
 specifier says how many decimal places to show; if zero, the decimal
@@ -3815,8 +3816,9 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	    }
 	  else if (! (conversion == 'c' || conversion == 'd'
 		      || float_conversion || conversion == 'i'
-		      || conversion == 'o' || conversion == 'x'
-		      || conversion == 'X'))
+		      || conversion == 'o'
+		      || conversion == 'x' || conversion == 'X'
+		      || conversion == 'b' || conversion == 'B'))
 	    {
 	      unsigned char *p = (unsigned char *) format - 1;
 	      if (multibyte_format)
@@ -3867,7 +3869,9 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 
 	      /* Characters to be inserted after spaces and before
 		 leading zeros.  This can occur with bignums, since
-		 bignum_to_string does only leading '-'.  */
+		 bignum_to_string does only leading '-'.
+		 It can also occur with the conversion specs %b and %B,
+		 which sprintf might not support.  */
 	      char prefix[sizeof "-0x" - 1];
 	      int prefixlen = 0;
 
@@ -3884,6 +3888,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		 conversions; for example, the min and max macros are
 		 not suitable here.  */
 	      ptrdiff_t sprintf_bytes;
+	      bool nonzero_arg;
 	      if (float_conversion)
 		{
 		  /* Format as a long double if the arg is an integer
@@ -3951,20 +3956,28 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      bignum_arg:
 		{
 		  int base = ((conversion == 'd' || conversion == 'i') ? 10
-			      : conversion == 'o' ? 8 : 16);
+			      : conversion == 'o' ? 8
+			      : conversion == 'x' || conversion == 'X' ? 16
+			      : 2);
 		  sprintf_bytes = bignum_bufsize (arg, base);
 		  if (sprintf_bytes <= buf + bufsize - p)
 		    {
 		      int signedbase = conversion == 'X' ? -base : base;
 		      sprintf_bytes = bignum_to_c_string (p, sprintf_bytes,
 							  arg, signedbase);
+		      nonzero_arg = true;
+		    preformatted_fixnum_arg: ;
 		      bool negative = p[0] == '-';
 		      prec = min (precision, sprintf_bytes - prefixlen);
 		      prefix[prefixlen] = plus_flag ? '+' : ' ';
 		      prefixlen += (plus_flag | space_flag) & !negative;
 		      prefix[prefixlen] = '0';
 		      prefix[prefixlen + 1] = conversion;
-		      prefixlen += sharp_flag && base == 16 ? 2 : 0;
+		      prefixlen += ((sharp_flag & nonzero_arg
+				     && ! (conversion == 'd'
+					   || conversion == 'i'
+					   || conversion == 'o'))
+				    ? 2 : 0);
 		    }
 		}
 	      else if (conversion == 'd' || conversion == 'i')
@@ -3995,17 +4008,9 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		  bool negative;
 		  if (FIXNUMP (arg))
 		    {
-		      if (binary_as_unsigned)
-			{
-			  x = XUFIXNUM (arg);
-			  negative = false;
-			}
-		      else
-			{
-			  EMACS_INT i = XFIXNUM (arg);
-			  negative = i < 0;
-			  x = negative ? -i : i;
-			}
+		      EMACS_INT i = XFIXNUM (arg);
+		      negative = i < 0;
+		      x = negative ? -i : i;
 		    }
 		  else
 		    {
@@ -4023,6 +4028,32 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 			}
 		    }
 		  p[0] = negative ? '-' : plus_flag ? '+' : ' ';
+
+
+		  /* Do %b and %B by hand unless sprintf is known to
+		     support them.  Some day (the year 2043 perhaps?),
+		     simplify this code by assuming that
+		     HAVE_PRINTF_B_CONVERSION_SPECIFIER is true.  */
+#if (202311 <= __STDC_VERSION_STDIO_H__ \
+     || 2 < __GLIBC__ + (35 <= __GLIBC_MINOR__))
+		  enum { HAVE_PRINTF_B_CONVERSION_SPECIFIER = true };
+#else
+		  enum { HAVE_PRINTF_B_CONVERSION_SPECIFIER = false };
+#endif
+		  if (!HAVE_PRINTF_B_CONVERSION_SPECIFIER
+		      && (conversion == 'b' || conversion == 'B'))
+		    {
+		      int bit_width = stdc_bit_width (x);
+		      char *bits = p + negative;
+		      int nbits = bit_width ? bit_width : prec < 0;
+		      for (int i = 0; i < nbits; i++)
+			bits[i] = ((x >> (nbits - (i + 1))) & 1) + '0';
+		      bits[nbits] = '\0';
+		      sprintf_bytes = negative + nbits;
+		      nonzero_arg = x != 0;
+		      goto preformatted_fixnum_arg;
+		    }
+
 		  bool signedp = negative | plus_flag | space_flag;
 		  sprintf_bytes = sprintf (p + signedp, convspec, prec, x);
 		  sprintf_bytes += signedp;
@@ -4063,12 +4094,13 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 
 	      if (convbytes <= buf + bufsize - p)
 		{
+		  /* Skip any sign and 0[bBxX] prefixes.  */
 		  bool signedp = p[0] == '-' || p[0] == '+' || p[0] == ' ';
 		  int beglen = (signedp
-				   + ((p[signedp] == '0'
-				       && (p[signedp + 1] == 'x'
-					   || p[signedp + 1] == 'X'))
-				      ? 2 : 0));
+				+ ((!float_conversion
+				    && p[signedp] == '0'
+				    && p[signedp + 1] == conversion)
+				   ? 2 : 0));
 		  eassert (prefixlen == 0 || beglen == 0
 			   || (beglen == 1 && p[0] == '-'
 			       && ! (prefix[0] == '-' || prefix[0] == '+'
@@ -4829,18 +4861,6 @@ functions if all the text being accessed has this property.  */);
 	       doc: /* The kernel version of the operating system on which Emacs is running.
 The value is a string.  It can also be nil if Emacs doesn't
 know how to get the kernel version on the underlying OS.  */);
-
-  DEFVAR_BOOL ("binary-as-unsigned",
-	       binary_as_unsigned,
-	       doc: /* Non-nil means `format' %x and %o treat integers as unsigned.
-This has machine-dependent results.  Nil means to treat integers as
-signed, which is portable and is the default; for example, if N is a
-negative integer, (read (format "#x%x" N)) returns N only when this
-variable is nil.
-
-This variable is experimental; email 32252@debbugs.gnu.org if you need
-it to be non-nil.  */);
-  binary_as_unsigned = false;
 
   DEFSYM (Qoutermost_restriction, "outermost-restriction");
   Funintern (Qoutermost_restriction, Qnil);

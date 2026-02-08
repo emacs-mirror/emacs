@@ -1,6 +1,6 @@
 /* Functions for the pure Gtk+-3.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020, 2022-2025 Free
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020, 2022-2026 Free
 Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1282,6 +1282,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame, 1, 1, 0,
   store_frame_param (f, Qoverride_redirect, override_redirect ? Qt : Qnil);
 
   XSETFRAME (frame, f);
+
+  frame_set_id_from_params (f, parms);
 
   f->terminal = dpyinfo->terminal;
 

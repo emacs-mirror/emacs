@@ -1,6 +1,6 @@
 ;;; text-mode.el --- text mode, and its idiosyncratic commands  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1992, 1994, 2001-2025 Free Software Foundation,
+;; Copyright (C) 1985, 1992, 1994, 2001-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -268,6 +268,56 @@ The argument NLINES says how many lines to center."
 	  ((< nlines 0)
 	   (setq nlines (1+ nlines))
 	   (forward-line -1)))))
+
+;; Actually defined in track-changes.el.
+(defvar track-changes-undo-only)
+(declare-function track-changes-register "track-changes"
+                  ( signal &optional &key nobefore disjoint immediate))
+(declare-function track-changes-unregister "track-changes" (id))
+(declare-function track-changes-fetch "track-changes" (id func))
+
+(defvar-local center-line-mode--track-changes nil)
+
+(defun center-line-mode--track-changes-signal (tracker)
+  (track-changes-fetch
+   tracker
+   #'center-line-mode--track-changes-function))
+
+(defun center-line-mode--track-changes-function (beg end _before)
+  (unless track-changes-undo-only
+    (save-excursion
+      (let ((beg-line (line-number-at-pos beg))
+            (end-line (line-number-at-pos end))
+            (should-center-last-line-p
+             (progn
+               (goto-char end)
+               (null
+                (or (bolp)
+                    (and (eolp)
+                         (looking-back "[\r\n\t ]" (1- (point)))))))))
+        (goto-char beg)
+        (dotimes (_ (- end-line beg-line)) ; all but last line
+          (unless (and (bolp) (eolp))
+            (center-line))
+          (forward-line 1))
+        (when should-center-last-line-p
+          (center-line)))))
+  ;; Disregard our own changes.
+  (track-changes-fetch center-line-mode--track-changes #'ignore))
+
+(define-minor-mode center-line-mode
+  "Minor mode for keeping modified lines centered horizontally.
+Calls `center-line' on each line of the modified region to center the
+text within the width specified by `fill-column'."
+  :lighter " Center-Line"
+  (require 'track-changes)
+  (if center-line-mode
+      (setq center-line-mode--track-changes
+            (track-changes-register
+             #'center-line-mode--track-changes-signal
+             :nobefore t))
+    (when center-line-mode--track-changes
+      (track-changes-unregister center-line-mode--track-changes))))
 
 (define-obsolete-function-alias 'indented-text-mode #'text-mode "29.1")
 

@@ -1,6 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4284,6 +4284,7 @@ extern Lisp_Object nconc2 (Lisp_Object, Lisp_Object);
 extern Lisp_Object assq_no_quit (Lisp_Object, Lisp_Object);
 extern Lisp_Object assq_no_signal (Lisp_Object, Lisp_Object);
 extern Lisp_Object assoc_no_quit (Lisp_Object, Lisp_Object);
+extern Lisp_Object delq_no_quit (Lisp_Object, Lisp_Object);
 extern ptrdiff_t string_char_to_byte (Lisp_Object, ptrdiff_t);
 extern ptrdiff_t string_byte_to_char (Lisp_Object, ptrdiff_t);
 extern Lisp_Object string_to_multibyte (Lisp_Object);

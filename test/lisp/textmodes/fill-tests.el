@@ -1,6 +1,6 @@
 ;;; fill-tests.el --- ERT tests for fill.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2026 Free Software Foundation, Inc.
 
 ;; Author:     Marcin Borkowski <mbork@mbork.pl>
 ;; Keywords:   text

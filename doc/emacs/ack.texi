@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1994--1997, 1999--2025 Free Software Foundation, Inc.
+@c Copyright (C) 1994--1997, 1999--2026 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @node Acknowledgments
@@ -1422,6 +1422,10 @@ from Jamie Zawinski.
 @item
 Rodney Whitby and Reto Zimmermann wrote @file{vhdl-mode.el}, a major
 mode for editing VHDL source code.
+
+@item
+Sean Whitton was the Emacs (co-)maintainer from Emacs 31.1 onwards, and
+wrote many extensions and new features for VC.
 
 @item
 John Wiegley was the Emacs (co-)maintainer from Emacs 25 to 29.1.  He

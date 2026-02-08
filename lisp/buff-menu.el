@@ -1,6 +1,6 @@
 ;;; buff-menu.el --- Interface for viewing and manipulating buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -465,7 +465,7 @@ When `outline-minor-mode' is enabled and point is on the outline
 heading line, this command will unmark all entries in the outline."
   (interactive "P" Buffer-menu-mode)
   (cond ((tabulated-list-get-id)
-         (Buffer-menu--unmark)
+         (Buffer-menu--unmark ?\r)
          (forward-line (if backup -1 1)))
         ((and (bound-and-true-p outline-minor-mode) (outline-on-heading-p))
          (let ((old-pos (point))
@@ -488,11 +488,7 @@ When called interactively prompt for MARK;  RET remove all marks."
   (save-excursion
     (goto-char (point-min))
     (while (not (eobp))
-      (when-let* ((entry (tabulated-list-get-entry)))
-        (let ((xmarks (list (aref entry 0) (aref entry 2))))
-          (when (or (char-equal mark ?\r)
-                    (member (char-to-string mark) xmarks))
-            (Buffer-menu--unmark))))
+      (Buffer-menu--unmark mark)
       (forward-line))))
 
 (defun Buffer-menu-unmark-all ()
@@ -506,16 +502,22 @@ When called interactively prompt for MARK;  RET remove all marks."
   (forward-line -1)
   (while (and (not (tabulated-list-get-id)) (not (bobp)))
     (forward-line -1))
-  (unless (bobp)
-    (Buffer-menu--unmark)))
+  (if (tabulated-list-get-id) (Buffer-menu--unmark ?\r)))
 
-(defun Buffer-menu--unmark ()
-  (tabulated-list-set-col 0 " " t)
-  (let ((buf (Buffer-menu-buffer)))
-    (when buf
-      (if (buffer-modified-p buf)
-          (tabulated-list-set-col 2 "*" t)
-        (tabulated-list-set-col 2 " " t)))))
+(defun Buffer-menu--unmark (mark)
+  "Remove MARK in current entry.
+If MARK is \\`RET' remove all marks."
+  (when-let* ((entry (tabulated-list-get-entry)))
+    ;; A mark could appear in column 0 or 2.
+    (dolist (col '(0 2))
+      (when (or (char-equal mark ?\r)
+                (char-equal mark (string-to-char (aref entry col))))
+        (tabulated-list-set-col col " " t)))
+    ;; Reset modified mark in column 2.
+    (let ((buf (Buffer-menu-buffer)))
+      (when (and buf (buffer-modified-p buf)
+                 (string-equal (aref entry 2) " "))
+        (tabulated-list-set-col 2 "*" t)))))
 
 (defun Buffer-menu-delete (&optional arg)
   "Mark the buffer on this Buffer Menu buffer line for deletion.

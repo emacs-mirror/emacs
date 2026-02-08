@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Strings and Characters
@@ -281,6 +281,17 @@ another string, alter a constant string in the program, or even raise
 an error.  To obtain a string that you can safely mutate, use
 @code{copy-sequence} on the result.
 
+If you need to create a string made from @var{n} copies of a given
+source string @var{source}, you can use @code{concat} as follows:
+
+@lisp
+  (apply #'concat (make-list @var{n} @var{source}))
+@end lisp
+
+@noindent
+This uses the fact that @code{concat} can take any kind of sequence as
+its arguments.
+
 For information about other concatenation functions, see the
 description of @code{mapconcat} in @ref{Mapping Functions},
 @code{vconcat} in @ref{Vector Functions}, and @code{append} in @ref{Building
@@ -289,7 +300,7 @@ string to be used as a shell command, see @ref{Shell Arguments,
 combine-and-quote-strings}.
 @end defun
 
-@defun split-string string &optional separators omit-nulls trim
+@defun split-string string &optional separators omit-empty trim
 This function splits @var{string} into substrings based on the regular
 expression @var{separators} (@pxref{Regular Expressions}).  Each match
 for @var{separators} defines a splitting point; the substrings between
@@ -297,85 +308,37 @@ splitting points are made into a list, which is returned.
 
 If @var{separators} is @code{nil} (or omitted), the default is the
 value of @code{split-string-default-separators} and the function
-behaves as if @var{omit-nulls} were @code{t}.
+behaves as if @var{omit-empty} were @code{t}.
 
-If @var{omit-nulls} is @code{nil} (or omitted), the result contains
-null strings whenever there are two consecutive matches for
+If @var{omit-empty} is @code{nil} (or omitted), the result contains
+empty strings whenever there are two consecutive matches for
 @var{separators}, or a match is adjacent to the beginning or end of
-@var{string}.  If @var{omit-nulls} is @code{t}, these null strings are
+@var{string}.  If @var{omit-empty} is @code{t}, these empty strings are
 omitted from the result.
 
 If the optional argument @var{trim} is non-@code{nil}, it should be a
 regular expression to match text to trim from the beginning and end of
-each substring.  If trimming makes the substring empty, it is treated
-as null.
+each substring.  Trimming may make the substring empty and omitted from
+the result if @var{omit-empty} is @code{t} as above.
 
 If you need to split a string into a list of individual command-line
 arguments suitable for @code{call-process} or @code{start-process},
 see @ref{Shell Arguments, split-string-and-unquote}.
 
+Do not use a value for @var{separators} that matches the empty string,
+or the results will be unpredictable.  To split a string into individual
+characters, use @code{string-to-list} or @code{string-to-vector}.
+
 Examples:
 
 @example
-(split-string "  two words ")
-     @result{} ("two" "words")
-@end example
-
-The result is not @code{("" "two" "words" "")}, which would rarely be
-useful.  If you need such a result, use an explicit value for
-@var{separators}:
-
-@example
-(split-string "  two words "
-              split-string-default-separators)
-     @result{} ("" "two" "words" "")
-@end example
-
-@example
-(split-string "Soup is good food" "o")
-     @result{} ("S" "up is g" "" "d f" "" "d")
-(split-string "Soup is good food" "o" t)
-     @result{} ("S" "up is g" "d f" "d")
-(split-string "Soup is good food" "o+")
-     @result{} ("S" "up is g" "d f" "d")
-@end example
-
-Empty matches do count, except that @code{split-string} will not look
-for a final empty match when it already reached the end of the string
-using a non-empty match or when @var{string} is empty:
-
-@example
-(split-string "aooob" "o*")
-     @result{} ("" "a" "" "b" "")
-(split-string "ooaboo" "o*")
-     @result{} ("" "" "a" "b" "")
-(split-string "" "")
-     @result{} ("")
-@end example
-
-However, when @var{separators} can match the empty string,
-@var{omit-nulls} is usually @code{t}, so that the subtleties in the
-three previous examples are rarely relevant:
-
-@example
-(split-string "Soup is good food" "o*" t)
-     @result{} ("S" "u" "p" " " "i" "s" " " "g" "d" " " "f" "d")
-(split-string "Nice doggy!" "" t)
-     @result{} ("N" "i" "c" "e" " " "d" "o" "g" "g" "y" "!")
-(split-string "" "" t)
-     @result{} nil
-@end example
-
-Somewhat odd, but predictable, behavior can occur for certain
-``non-greedy'' values of @var{separators} that can prefer empty
-matches over non-empty matches.  Again, such values rarely occur in
-practice:
-
-@example
-(split-string "ooo" "o*" t)
-     @result{} nil
-(split-string "ooo" "\\|o+" t)
-     @result{} ("o" "o" "o")
+@group
+(split-string "  one  two   ")            @result{} ("one" "two")
+(split-string "one::two:" ":")            @result{} ("one" "" "two" "")
+(split-string "one::two:" ":+")           @result{} ("one" "two" "")
+(split-string "one::two:" ":" t)          @result{} ("one" "two")
+(split-string "one: : two : " ":" t " +") @result{} ("one" "two")
+@end group
 @end example
 @end defun
 
@@ -435,9 +398,9 @@ display purposes; use @code{truncate-string-to-width} or
 (@pxref{Size of Displayed Text}).
 @end defun
 
-@defun string-lines string &optional omit-nulls keep-newlines
+@defun string-lines string &optional omit-empty keep-newlines
 Split @var{string} into a list of strings on newline boundaries.  If
-the optional argument @var{omit-nulls} is non-@code{nil}, remove empty
+the optional argument @var{omit-empty} is non-@code{nil}, remove empty
 lines from the results.  If the optional argument @var{keep-newlines}
 is non-@code{nil}, don't remove the trailing newlines from the result
 strings.
@@ -1027,10 +990,24 @@ made with quoting (that is, using @code{prin1}---@pxref{Output
 Functions}).  Thus, strings are enclosed in @samp{"} characters, and
 @samp{\} characters appear where necessary before special characters.
 
+@item %b
+@item %B
+@cindex integer to binary
+Replace the specification with the base-two or binary representation of
+an integer. The representation has leading @samp{-} if negative;
+for an unsigned two's complement representation of a possibly-negative
+integer @var{n}, format @code{(logand @var{n} @var{mask})}
+where @var{mask} corresponds to the desired word size.
+Although plain @samp{%b} and @samp{%B} are identical,
+@samp{%#b} prefixes with lower case @samp{0b} and @samp{%#B} with upper case.
+The object can also be a floating-point number that is
+formatted as an integer, dropping any fraction.
+
 @item %o
 @cindex integer to octal
 Replace the specification with the base-eight representation of an
-integer.  The object can also be a floating-point number that is formatted
+integer.  Like @samp{%b}, the representation has leading @samp{-} if negative;
+The object can also be a floating-point number that is formatted
 as an integer, dropping any fraction.
 
 @item %d
@@ -1043,8 +1020,9 @@ formatted as an integer, dropping any fraction.
 @itemx %X
 @cindex integer to hexadecimal
 Replace the specification with the base-sixteen representation of an
-integer.  @samp{%x} uses lower case and @samp{%X} uses upper
-case.  The object can also be a floating-point number that is
+integer.  Like @samp{%b}, the representation has leading @samp{-} if negative.
+@samp{%x} uses lower case and @samp{%X} uses upper case.
+The object can also be a floating-point number that is
 formatted as an integer, dropping any fraction.
 
 @item %c
@@ -1132,8 +1110,9 @@ both flags are used, @samp{+} takes precedence.
 
   The flag @samp{#} specifies an alternate form which depends on
 the format in use.  For @samp{%o}, it ensures that the result begins
-with a @samp{0}.  For @samp{%x} and @samp{%X}, it prefixes nonzero results
-with @samp{0x} or @samp{0X}.  For @samp{%e} and @samp{%f}, the
+with @samp{0}.  For @samp{%x}, @samp{%X}, @samp{%b} and @samp{%B},
+it prefixes nonzero results with @samp{0x}, @samp{0X}, @samp{0b}
+or @samp{0B}, respectively.  For @samp{%e} and @samp{%f}, the
 @samp{#} flag means include a decimal point even if the precision is
 zero.  For @samp{%g}, it always includes a decimal point, and also
 forces any trailing zeros after the decimal point to be left in place
@@ -1220,11 +1199,10 @@ family produce.
 retrieve a copy of the formatted value, use a specification that lets
 @code{read} reconstruct the value.  To format numbers in this
 reversible way you can use @samp{%s} and @samp{%S}, to format just
-integers you can also use @samp{%d}, and to format just nonnegative
-integers you can also use @samp{#x%x} and @samp{#o%o}.  Other formats
-may be problematic; for example, @samp{%d} and @samp{%g} can mishandle
-NaNs and can lose precision and type, and @samp{#x%x} and @samp{#o%o}
-can mishandle negative integers.  @xref{Input Functions}.
+integers you can also use @samp{%d}, @samp{#x%x}, @samp{#o%o} and @samp{#b%b}.
+Other formats do not guarantee preservation of all values; for example,
+@samp{%g} can lose precision and type and does not preserve NaN or
+infinity.  @xref{Input Functions}.
 
 The functions described in this section accept a fixed set of
 specification characters.  The next section describes a function

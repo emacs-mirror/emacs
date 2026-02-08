@@ -1,6 +1,6 @@
 ;;; compat.el --- Stub of the Compatibility Library -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>,
 ;;	   Daniel Mendler <mail@daniel-mendler.de>

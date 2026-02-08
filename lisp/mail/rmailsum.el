@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1993-1996, 2000-2025 Free Software Foundation,
+;; Copyright (C) 1985, 1993-1996, 2000-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -1201,6 +1201,7 @@ a negative argument means to delete and move forward."
   (or (eobp)
       (not (overlay-get rmail-summary-overlay 'face))
       (let ((buffer-read-only nil))
+	(beginning-of-line)
 	(skip-chars-forward " ")
 	(skip-chars-forward "0-9")
 	(if undel

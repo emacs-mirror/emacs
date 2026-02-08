@@ -1,6 +1,6 @@
 ;;; subr-x-tests.el --- Testing the extended lisp routines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2026 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; Keywords:
@@ -536,31 +536,6 @@
 
 
 ;; Substring tests
-
-(ert-deftest subr-x-test-string-trim-left ()
-  "Test `string-trim-left' behavior."
-  (should (equal (string-trim-left "") ""))
-  (should (equal (string-trim-left " \t\n\r") ""))
-  (should (equal (string-trim-left " \t\n\ra") "a"))
-  (should (equal (string-trim-left "a \t\n\r") "a \t\n\r"))
-  (should (equal (string-trim-left "" "") ""))
-  (should (equal (string-trim-left "a" "") "a"))
-  (should (equal (string-trim-left "aa" "a*") ""))
-  (should (equal (string-trim-left "ba" "a*") "ba"))
-  (should (equal (string-trim-left "aa" "a*?") "aa"))
-  (should (equal (string-trim-left "aa" "a+?") "a")))
-
-(ert-deftest subr-x-test-string-trim-right ()
-  "Test `string-trim-right' behavior."
-  (should (equal (string-trim-right "") ""))
-  (should (equal (string-trim-right " \t\n\r") ""))
-  (should (equal (string-trim-right " \t\n\ra") " \t\n\ra"))
-  (should (equal (string-trim-right "a \t\n\r") "a"))
-  (should (equal (string-trim-right "" "") ""))
-  (should (equal (string-trim-right "a" "") "a"))
-  (should (equal (string-trim-right "aa" "a*") ""))
-  (should (equal (string-trim-right "ab" "a*") "ab"))
-  (should (equal (string-trim-right "aa" "a*?") "")))
 
 (ert-deftest subr-x-test-string-remove-prefix ()
   "Test `string-remove-prefix' behavior."

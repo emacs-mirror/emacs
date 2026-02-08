@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992-2026 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -3714,6 +3714,9 @@ last function is the text that is actually inserted in the redirection buffer.
 
 You can use `add-hook' to add functions to this list
 either globally or locally.")
+
+(defvar comint-redirect-hook nil
+  "Normal hook run after completing a comint-redirect.")
 
 ;; Internal variables
 

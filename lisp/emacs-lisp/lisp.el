@@ -1,6 +1,6 @@
 ;;; lisp.el --- Lisp editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2000-2025 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2000-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -50,7 +50,7 @@ This affects `insert-parentheses' and `insert-pair'."
   (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
   (if (< arg 0) (backward-prefix-chars)))
 
-(defvar forward-sexp-function nil
+(defvar forward-sexp-function #'forward-sexp-default-function
   ;; FIXME:
   ;; - for some uses, we may want a "sexp-only" version, which only
   ;;   jumps over a well-formed sexp, rather than some dwimish thing
@@ -79,9 +79,9 @@ report errors as appropriate for this kind of usage."
                                     "No next sexp"
                                   "No previous sexp"))))
     (or arg (setq arg 1))
-    (if forward-sexp-function
-        (funcall forward-sexp-function arg)
-      (forward-sexp-default-function arg))))
+    (funcall (or forward-sexp-function
+                 #'forward-sexp-default-function)
+             arg)))
 
 (defun backward-sexp (&optional arg interactive)
   "Move backward across one balanced expression (sexp).
@@ -147,7 +147,7 @@ This command assumes point is not in a string or comment."
   "Default function for `forward-list-function'."
   (goto-char (or (scan-lists (point) arg 0) (buffer-end arg))))
 
-(defvar forward-list-function nil
+(defvar forward-list-function #'forward-list-default-function
   "If non-nil, `forward-list' delegates to this function.
 Should take the same arguments and behave similarly to `forward-list'.")
 
@@ -169,9 +169,9 @@ report errors as appropriate for this kind of usage."
                                     "No next group"
                                   "No previous group"))))
     (or arg (setq arg 1))
-    (if forward-list-function
-        (funcall forward-list-function arg)
-      (forward-list-default-function arg))))
+    (funcall (or forward-list-function
+                 #'forward-list-default-function)
+             arg)))
 
 (defun backward-list (&optional arg interactive)
   "Move backward across one balanced group of parentheses.
@@ -250,6 +250,8 @@ defined by the current language mode.  With ARG, do this that
 many times.  A negative argument means move backward but still to
 a less deep spot.
 
+Calls `up-list-function' to do the work, if that is non-nil.
+
 If ESCAPE-STRINGS is non-nil (as it is interactively), move out
 of enclosing strings as well.
 
@@ -289,7 +291,9 @@ On error, location of point is unspecified."
                            (scan-error (point-max)))
                        (forward-comment 1)
                        (point)))))))
-            (if (null forward-sexp-function)
+            ;; FIXME: Comparing functions is a code smell.
+            (if (memq forward-sexp-function
+                      '(nil forward-sexp-default-function))
                 (goto-char (or (scan-lists (point) inc 1)
                                (buffer-end arg)))
               (condition-case err

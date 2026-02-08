@@ -1,6 +1,6 @@
 ;;; gnus-topic.el --- a folding minor mode for Gnus group buffers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2026 Free Software Foundation, Inc.
 
 ;; Author: Ilja Weis <kult@uni-paderborn.de>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -24,8 +24,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-group)

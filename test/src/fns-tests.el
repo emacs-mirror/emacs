@@ -1,6 +1,6 @@
 ;;; fns-tests.el --- tests for src/fns.c  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -38,10 +38,9 @@
         (should (= (random 1) 0))
         (should (>= (random 10) 0))
         (should (< (random 10) 10))
-        ;; On OpenBSD random is non-deterministic.
-        (if (and (eq system-type 'berkeley-unix)
-                 (string-match-p "openbsd" system-configuration))
-            (should (not (equal (random "seed") (random "seed"))))
+        ;; On OpenBSD random is always non-deterministic.
+        (unless (and (eq system-type 'berkeley-unix)
+                     (string-match-p "openbsd" system-configuration))
           (should (equal (random "seed") (random "seed"))))
         ;; The probability of four calls being the same is low.
         ;; This makes sure that the value isn't constant.

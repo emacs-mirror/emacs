@@ -1,9 +1,9 @@
 ;;; vc-tests.el --- Tests of different backends of vc.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2026 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
-;; Author: Sean Whitton <spwhitton@spwhitton.name>
+;;         Sean Whitton <spwhitton@spwhitton.name>
 
 ;; This file is part of GNU Emacs.
 ;;

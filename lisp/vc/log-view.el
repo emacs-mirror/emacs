@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools, vc
@@ -130,7 +130,7 @@
 
 (defvar-keymap log-view-mode-map
   "RET" #'log-view-toggle-entry-display
-  "M-<return>" #'log-view-display-entry-and-diff
+  "M-RET" #'log-view-display-entry-and-diff
   "m" #'log-view-mark-entry
   "u" #'log-view-unmark-entry
   "U" #'log-view-unmark-all-entries

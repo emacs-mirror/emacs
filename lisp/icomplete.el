@@ -1,6 +1,6 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2026 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Created: Mar 1993 Ken Manheimer, klm@nist.gov - first release to usenet
@@ -242,6 +242,7 @@ Used to implement the option `icomplete-show-matches-on-no-input'.")
   :doc "Keymap used by `icomplete-mode' in the minibuffer."
   "C-M-i" #'icomplete-force-complete
   "C-j"   #'icomplete-force-complete-and-exit
+  "M-j"   #'icomplete-exit
   "C-."   #'icomplete-forward-completions
   "C-,"   #'icomplete-backward-completions
   "<remap> <minibuffer-complete-and-exit>" #'icomplete-ret)
@@ -454,6 +455,8 @@ if that doesn't produce a completion match."
   (if (and (not force) minibuffer--require-match)
       (minibuffer-complete-and-exit)
     (exit-minibuffer)))
+
+(defalias 'icomplete-exit #'icomplete-fido-exit)
 
 (defun icomplete-fido-backward-updir ()
   "Delete char before or go up directory, like `ido-mode'."
@@ -1025,7 +1028,9 @@ away from the bottom.  Counts wrapped lines as real lines."
      collect (concat prefix
                      (make-string (max 0 (- max-prefix-len (length prefix))) ? )
                      (completion-lazy-hilit comp)
-                     (make-string (max 0 (- max-comp-len (length comp))) ? )
+                     (and suffix
+                          (make-string (max 0 (- max-comp-len (length comp)))
+                                       ? ))
                      suffix)
      into lines-aux
      finally (setq lines lines-aux

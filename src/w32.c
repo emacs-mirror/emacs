@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1994-1995, 2000-2025 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 2000-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -84,10 +84,6 @@ int sys_dup2 (int, int);
 int sys_read (int, char *, unsigned int);
 int sys_write (int, const void *, unsigned int);
 struct tm *sys_localtime (const time_t *);
-/* MinGW64 system headers include string.h too early, causing the
-   compiler to emit a warning about sys_strerror having no
-   prototype.  */
-char *sys_strerror (int);
 clock_t sys_clock (void);
 
 #ifdef HAVE_MODULES

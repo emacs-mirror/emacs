@@ -1,6 +1,6 @@
 /* stdbit.h - C23 bit and byte utilities for non-C23 platforms
 
-   Copyright 2024-2025 Free Software Foundation, Inc.
+   Copyright 2024-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as

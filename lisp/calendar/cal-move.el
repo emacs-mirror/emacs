@@ -1,6 +1,6 @@
 ;;; cal-move.el --- calendar functions for movement in the calendar  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -102,7 +102,6 @@ Returns the list (month day year) giving the cursor position."
   (let ((today (calendar-current-date))) ; the date might have changed
     (if (not (calendar-date-is-visible-p today))
         (calendar-generate-window)
-      (calendar-update-mode-line)
       (calendar-cursor-to-visible-date today)))
   (run-hooks 'calendar-move-hook))
 

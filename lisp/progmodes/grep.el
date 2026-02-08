@@ -1,6 +1,6 @@
 ;;; grep.el --- run `grep' and display the results  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2025 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -29,7 +29,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (require 'compile)
 
 (defgroup grep nil
