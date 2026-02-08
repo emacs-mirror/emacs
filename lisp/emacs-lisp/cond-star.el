@@ -85,11 +85,12 @@ in its body becomes the return value of the `cond*' construct.
 Non-exit clauses:
 
 If a clause has only one element, or if its first element is t, a
-`bind*' clause or a `bind-and*' clause, then this clause never exits the
-`cond*' construct.  Instead, control always falls through to the next
-clause (if any).  Except for `bind-and*', all bindings made in CONDITION
-for the BODY of the non-exit clause are passed along to the rest of the
-clauses in this `cond*' construct.
+`bind*' form or a `bind-and*' form, or if it ends with the keyword
+`:non-exit', then this clause never exits the `cond*' construct.
+Instead, control always falls through to the next clause (if any).
+Except for `bind-and*', all bindings made in CONDITION for the BODY of
+the non-exit clause are passed along to the rest of the clauses in this
+`cond*' construct.
 
 See `match*' for documentation of the patterns for use in `match*'
 conditions."
