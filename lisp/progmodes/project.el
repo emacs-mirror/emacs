@@ -2417,7 +2417,12 @@ PREDICATE can be a function with 1 argument which determines which
 projects should be deleted."
   (dolist (proj (project-known-project-roots))
     (when (and (funcall (or predicate #'identity) proj)
-               (not (file-exists-p proj)))
+               (condition-case-unless-debug nil
+                   (not (file-exists-p proj))
+                 (file-error
+                  (yes-or-no-p
+                   (format "Forget unreachable project `%s'? "
+                           proj)))))
       (project-forget-project proj))))
 
 (defun project-forget-zombie-projects (&optional interactive)
