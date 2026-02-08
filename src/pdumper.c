@@ -2883,7 +2883,7 @@ dump_hash_table_kv_part (struct dump_context *ctx,
 static dump_off
 dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_4D998522EC
+#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_825D844598
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);
@@ -3237,7 +3237,7 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_pvec_type_1C9DBCD69F
+#if CHECK_STRUCTS && !defined HASH_pvec_type_25F765A72F
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);
