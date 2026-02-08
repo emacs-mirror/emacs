@@ -6351,9 +6351,6 @@ Before and after saving the buffer, this function runs
 	      (setq buffer-backed-up nil)))))))
     setmodes))
 
-(declare-function diff-no-select "diff"
-		  (old new &optional switches no-async buf))
-
 (defvar save-some-buffers--switch-window-callback nil)
 
 (defvar save-some-buffers-action-alist
@@ -6384,7 +6381,6 @@ Before and after saving the buffer, this function runs
     (?d ,(lambda (buf)
            (if (null (buffer-file-name buf))
                (message "Not applicable: no file")
-             (require 'diff)            ;for diff-no-select.
              (let ((diffbuf (diff-no-select (buffer-file-name buf) buf
                                             nil 'noasync)))
                (if (not enable-recursive-minibuffers)

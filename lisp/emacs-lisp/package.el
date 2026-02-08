@@ -748,7 +748,6 @@ wants to review the package prior to installation.  See `package-review'."
 
 (declare-function mail-text "sendmail" ())
 (declare-function message-goto-body "message" (&optional interactive))
-(declare-function diff-no-select "diff" (old new &optional switches no-async buf))
 
 (defun package-review (pkg-desc pkg-dir old-desc)
   "Review the package specified PKG-DESC which is about to be installed.
@@ -781,7 +780,6 @@ attached."
                                            (package-desc-full-name pkg-desc)))))
               t)
              (?m
-              (require 'diff)             ;for `diff-no-select'
               (with-temp-buffer
                 (diff-no-select
                  (package-desc-dir old-desc) pkg-dir
