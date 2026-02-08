@@ -199,7 +199,9 @@ CONDITION of a `cond*' clause.  See `cond*' for details."
            (or (eq (car clause) t)
                ;; Starts with a `bind*' or `bind-and*' pseudo-form.
                (and (consp (car clause))
-                    (memq (caar clause) '(bind* bind-and*)))))))
+                    (memq (caar clause) '(bind* bind-and*)))))
+      ;; Ends with keyword.
+      (eq (car (last clause)) :non-exit)))
 
 (defun cond*-non-exit-clause-substance (clause)
   "For a non-exit cond* clause CLAUSE, return its substance.
@@ -218,7 +220,7 @@ This removes a final keyword if that's what makes CLAUSE non-exit."
          (cons t (cdr clause)))
 
         ;; Ends with keyword.
-        ((keywordp (car (last clause)))
+        ((eq (car (last clause)) :non-exit)
          ;; Do NOT include the final keyword.
          (butlast clause))))
 
