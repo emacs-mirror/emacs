@@ -124,7 +124,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_vectorlike_header_AF1B22D957
 #  error "struct vectorlike_header changed"
 # endif
-# ifndef HASH_Lisp_Hash_Table_4D998522EC
+# ifndef HASH_Lisp_Hash_Table_825D844598
 #  error "struct Lisp_Hash_Table changed"
 # endif
 # ifndef HASH_Lisp_Weak_Hash_Table_7C5D3EDAD7
@@ -178,7 +178,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Native_Comp_Unit_B617D9AE7C
 #  error "struct Lisp_Native_Comp_Unit changed"
 # endif
-# ifndef HASH_pvec_type_1C9DBCD69F
+# ifndef HASH_pvec_type_25F765A72F
 #  error "enum pvec_type changed"
 # endif
 # ifndef HASH_Lisp_Type_45F0582FD7
