@@ -4062,7 +4062,8 @@ definition to find the actual event.
 user signals like @code{sigusr1} are normally handled in this way.
 The keymap which defines how to handle special events---and which
 events are special---is in the variable @code{special-event-map}
-(@pxref{Controlling Active Maps}).
+(@pxref{Controlling Active Maps}).  @xref{Misc Events}, for more details
+about these and other special events.
 
 @defun insert-special-event
 @cindex inserting special events
