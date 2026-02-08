@@ -1549,8 +1549,9 @@ becomes the return value of the @code{cond*} construct.
 
 @subheading Non-exit clauses
 
-If a clause has only one element, or if its first element is @code{t} or
-a @code{bind*} form, or if it ends with the keyword @code{:non-exit},
+If the first element of a clause is @code{t} or a @code{bind*} form, or
+if it has only one element and that element is a @code{match*} or
+@code{pcase*} form, or if it ends with the keyword @code{:non-exit},
 then this clause never exits the @code{cond*} construct.  Instead,
 control falls through to the next clause (if any).  Except for a
 @code{bind-and*} clause, the bindings made in @var{condition} for the
