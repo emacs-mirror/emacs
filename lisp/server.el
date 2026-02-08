@@ -531,7 +531,6 @@ See `server-quote-arg' and `server-process-filter'."
 	    (?& "&")
 	    (?- "-")
 	    (?n "\n")
-	    (?0 "")
 	    (_ " ")))
    arg t t))
 
@@ -539,19 +538,16 @@ See `server-quote-arg' and `server-process-filter'."
   "In ARG, insert a & before each &, each space, each newline, and -.
 Change spaces to underscores, too, so that the return value never
 contains a space.
-An empty ARG is represented by &0.
 
 See `server-unquote-arg' and `server-process-filter'."
-  (if (equal arg "")
-      "&0"
-    (replace-regexp-in-string
-     "[-&\n ]" (lambda (s)
-	         (pcase (aref s 0)
-		   (?& "&&")
-		   (?- "&-")
-		   (?\n "&n")
-		   (?\s "&_")))
-     arg t t)))
+  (replace-regexp-in-string
+   "[-&\n ]" (lambda (s)
+	       (pcase (aref s 0)
+		 (?& "&&")
+		 (?- "&-")
+		 (?\n "&n")
+		 (?\s "&_")))
+   arg t t))
 
 (defun server-send-string (proc string)
   "A wrapper around `process-send-string' for logging."

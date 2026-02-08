@@ -867,10 +867,8 @@ send_to_emacs (HSOCKET s, const char *data)
 static void
 quote_argument (HSOCKET s, const char *str)
 {
-  char *copy = xmalloc (strlen (str) * 2 + 3);
+  char *copy = xmalloc (strlen (str) * 2 + 1);
   char *q = copy;
-  if (*str == '\0')
-    *q++ = '&', *q++ = '0';
   if (*str == '-')
     *q++ = '&', *q++ = *str++;
   for (; *str; str++)
@@ -912,8 +910,6 @@ unquote_argument (char *str)
 	    c = ' ';
 	  else if (c == 'n')
 	    c = '\n';
-	  else if (c == '0')
-	    continue;
 	}
       *q++ = c;
     }
