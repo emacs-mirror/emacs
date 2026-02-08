@@ -197,16 +197,16 @@ CONDITION of a `cond*' clause.  See `cond*' for details."
       (and (cdr-safe clause)
            ;; Starts with t.
            (or (eq (car clause) t)
-               ;; Starts with a `bind*' pseudo-form.
+               ;; Starts with a `bind*' or `bind-and*' pseudo-form.
                (and (consp (car clause))
-                    (eq (caar clause) 'bind*))))))
+                    (memq (caar clause) '(bind* bind-and*)))))))
 
 (defun cond*-non-exit-clause-substance (clause)
   "For a non-exit cond* clause CLAUSE, return its substance.
 This removes a final keyword if that's what makes CLAUSE non-exit."
   (cond ((or (null (cdr-safe clause))   ;; either clause has only one element
-             (and (consp (car clause))  ;; or it starts with `bind*'
-                  (eq (caar clause) 'bind*)))
+             (and (consp (car clause))  ;; or it starts with `bind*'/`bind-and*'
+                  (memq (caar clause) '(bind* bind-and*))))
          clause)
         ;; Starts with t or a keyword.
         ;; Include t as the first element of the substance
