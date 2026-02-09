@@ -56,8 +56,6 @@ be comprehensive, but just to handle the kinds of expressions that
      (let ((ent (assq exp vars)))
        (if ent (cdr ent) (signal 'void-variable exp))))))
 
-(scrape-elpa--safe-eval '(cons "\\.go\\'" 'go-mode))
-
 (defun scrape-elpa (&rest directories)
   "Scrape autoload files in DIRECTORIES for package suggestions.
 This file will automatically update \"package-autosuggest.eld\", but not
