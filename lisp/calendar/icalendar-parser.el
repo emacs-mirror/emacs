@@ -737,7 +737,7 @@ other special requirements like quoting or escaping."
 ;; standard) because a few of them are already required for property
 ;; parameter definitions (section 3.2) below.
 
-(defconst ical:value-types nil ;; populated by define-type
+(defvar ical:value-types nil ;; populated by define-type
   "Alist mapping value type strings to type symbols.
 Value type strings are those which can appear in `icalendar-valuetypeparam'
 parameters and specify the type of a property's value.")
@@ -1855,7 +1855,7 @@ with `decode-time' and related functions."
 
 ;;; Section 3.2: Property Parameters
 
-(defconst ical:param-types nil ;; populated by ical:define-param
+(defvar ical:param-types nil ;; populated by ical:define-param
   "Alist mapping printed parameter names to type symbols.")
 
 (defun ical:maybe-quote-param-value (s &optional always)
@@ -2369,7 +2369,7 @@ interpreted."
 
 ;;; Properties:
 
-(defconst ical:property-types nil ;; populated by ical:define-property
+(defvar ical:property-types nil ;; populated by ical:define-property
   "Alist mapping printed property names to type symbols.")
 
 (defun ical:read-property-value (type s &optional params)
@@ -3515,7 +3515,7 @@ facilitate parsing the `icalendar-request-status' property."
 
 ;;; Section 3.6: Calendar Components
 
-(defconst ical:component-types nil ;; populated by ical:define-component
+(defvar ical:component-types nil ;; populated by ical:define-component
   "Alist mapping printed component names to type symbols.")
 
 (defun ical:parse-component (limit)

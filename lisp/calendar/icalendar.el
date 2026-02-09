@@ -112,8 +112,7 @@ argument.  It must return a string.  See
 `icalendar-import-format-sample' for an example."
   :type '(choice
           (string :tag "String")
-          (function :tag "Function"))
-  :group 'icalendar)
+          (function :tag "Function")))
 
 (make-obsolete-variable
  'icalendar-import-format
@@ -126,8 +125,7 @@ formatting instead."
   "Format string defining how the summary element is formatted.
 This applies only if the summary is not empty! `%s' is replaced
 by the summary."
-  :type 'string
-  :group 'icalendar)
+  :type 'string)
 
 (make-obsolete-variable
  'icalendar-import-format-summary
@@ -140,8 +138,7 @@ formatting instead."
   "Format string defining how the description element is formatted.
 This applies only if the description is not empty! `%s' is
 replaced by the description."
-  :type 'string
-  :group 'icalendar)
+  :type 'string)
 
 (make-obsolete-variable
  'icalendar-import-format-description
@@ -154,8 +151,7 @@ formatting instead."
   "Format string defining how the location element is formatted.
 This applies only if the location is not empty! `%s' is replaced
 by the location."
-  :type 'string
-  :group 'icalendar)
+  :type 'string)
 
 (make-obsolete-variable
  'icalendar-import-format-location
@@ -168,8 +164,7 @@ formatting instead."
   "Format string defining how the organizer element is formatted.
 This applies only if the organizer is not empty! `%s' is
 replaced by the organizer."
-  :type 'string
-  :group 'icalendar)
+  :type 'string)
 
 (make-obsolete-variable
  'icalendar-import-format-organizer
@@ -182,8 +177,7 @@ formatting instead."
   "Format string defining how the URL element is formatted.
 This applies only if the URL is not empty! `%s' is replaced by
 the URL."
-  :type 'string
-  :group 'icalendar)
+  :type 'string)
 
 (make-obsolete-variable
  'icalendar-import-format-url
@@ -197,8 +191,7 @@ formatting instead."
 This applies only if the UID is not empty! `%s' is replaced by
 the UID."
   :type 'string
-  :version "24.3"
-  :group 'icalendar)
+  :version "24.3")
 
 (make-obsolete-variable
  'icalendar-import-format-uid
@@ -211,8 +204,7 @@ formatting instead."
   "Format string defining how the status element is formatted.
 This applies only if the status is not empty! `%s' is replaced by
 the status."
-  :type 'string
-  :group 'icalendar)
+  :type 'string)
 
 (make-obsolete-variable
  'icalendar-import-format-status
@@ -225,8 +217,7 @@ formatting instead."
   "Format string defining how the class element is formatted.
 This applies only if the class is not empty! `%s' is replaced by
 the class."
-  :type 'string
-  :group 'icalendar)
+  :type 'string)
 
 (make-obsolete-variable
  'icalendar-import-format-class
@@ -263,15 +254,13 @@ The following specifiers are available:
 For example, a value of \"%h%t@mydomain.com\" will generate a UID code
 for each entry composed of a hash of the event data, a creation
 timestamp, and your personal domain name."
-  :type 'string
-  :group 'icalendar)
+  :type 'string)
 
 (defcustom ical:vcalendar-prodid
   (format "-//gnu.org//GNU Emacs %s//EN" emacs-version)
   "The value of the `icalendar-prodid' property for VCALENDAR objects
 produced by this Emacs."
-  :type 'string
-  :group 'icalendar)
+  :type 'string)
 
 (defconst ical:vcalendar-version "2.0"
   "The current version of the VCALENDAR object, used in the
@@ -305,8 +294,7 @@ RFC5545.")
                             (list :tag "Email"
                                   (const email)
                                   (repeat :tag "Attendees"
-                                          (string :tag "Email"))))))
-  :group 'icalendar)
+                                          (string :tag "Email")))))))
 
 (make-obsolete-variable
  'icalendar-export-alarms
@@ -318,8 +306,7 @@ RFC5545.")
 A value of 2 only logs errors.
 A value of 1 also logs warnings.
 A value of 0 also logs debugging information."
-  :type 'integer
-  :group 'icalendar)
+  :type 'integer)
 
 (defvar icalendar-debug nil
   "Enable icalendar debug messages.")
@@ -523,7 +510,6 @@ see `compilation-error-regexp-alist'.")
 
 (define-compilation-mode ical:errors-mode "iCalendar Errors"
   "Mode for listing and visiting errors when processing iCalendar data."
-  :group 'icalendar
   (setq-local compilation-error-regexp-alist ical:error-regexp-alist))
 
 ;; ======================================================================
@@ -687,7 +673,7 @@ mix of different line endings."
       (replace-match "\n" nil nil))))
 
 (define-obsolete-function-alias 'icalendar--rris
-  'replace-regexp-in-string "27.1")
+  #'replace-regexp-in-string "27.1")
 
 (defun icalendar--read-element (invalue inparams)
   "Recursively read the next iCalendar element in the current buffer.
@@ -946,7 +932,7 @@ ALIST is a VTIMEZONE potentially containing historical records."
                                                      (and (memq (car p) '(DTSTART RDATE))
                                                           (car (cddr p))))
                                                    n))
-                                     'string-greaterp))))
+                                     #'string-greaterp))))
                      (a-recent (funcall get-recent (car (cddr a))))
                      (b-recent (funcall get-recent (car (cddr b)))))
                 (string-greaterp a-recent b-recent))))))))
@@ -1597,7 +1583,7 @@ Returns an alist."
              (p-sta (or (string-match "%t" icalendar-import-format) -1))
              (p-url (or (string-match "%u" icalendar-import-format) -1))
              (p-uid (or (string-match "%U" icalendar-import-format) -1))
-             (p-list (sort (list p-cla p-des p-loc p-org p-sta p-sum p-url p-uid) '<))
+             (p-list (sort (list p-cla p-des p-loc p-org p-sta p-sum p-url p-uid) #'<))
 	     (ct 0)
              pos-cla pos-des pos-loc pos-org pos-sta pos-url pos-uid) ;pos-sum
         (dotimes (i (length p-list))

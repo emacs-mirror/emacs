@@ -305,7 +305,7 @@ The following keyword arguments are accepted:
                           "must be " (unless list-sep "a ") (when quoted "quoted ")
                           (if (ical:value-type-symbol-p value)
                               (format "`%s' value%s" (symbol-name value) s)
-                            (format "string%s matching rx `%s'" s value))))
+                            (format "string%s matching rx `%S'" s value))))
          (syntax-doc (format "Syntax: %s=%s\n%s"
                              (or param-name "(NAME)") val-list val-doc))
          (full-doc (concat header "\n\n" doc "\n\n" syntax-doc)))

@@ -38,15 +38,13 @@
 (defcustom diary-include-string "#include"
   "The string indicating inclusion of another file of diary entries.
 See the documentation for the function `diary-include-other-diary-files'."
-  :type 'string
-  :group 'diary)
+  :type 'string)
 
 (defcustom diary-list-include-blanks nil
   "If nil, do not include days with no diary entry in the list of diary entries.
 Such days will then not be shown in the fancy diary buffer, even if they
 are holidays."
-  :type 'boolean
-  :group 'diary)
+  :type 'boolean)
 
 (defface diary-anniversary '((t :inherit font-lock-keyword-face))
   "Face used for anniversaries in the fancy diary display."
@@ -105,29 +103,24 @@ are: `string', `symbol', `int', `tnil', `stringtnil'."
                                (const :value int    :tag "An integer")
                                (const :value tnil   :tag "t or nil")
                                (const :value stringtnil
-                                      :tag "A string, t, or nil"))))
-  :group 'diary)
+                                      :tag "A string, t, or nil")))))
 
 (defcustom diary-glob-file-regexp-prefix "^#"
   "Regular expression prepended to `diary-face-attrs' for file-wide specifiers."
-  :type 'regexp
-  :group 'diary)
+  :type 'regexp)
 
 (defcustom diary-file-name-prefix nil
   "Non-nil means prefix each diary entry with the name of the file defining it."
-  :type 'boolean
-  :group 'diary)
+  :type 'boolean)
 
 (defcustom diary-file-name-prefix-function #'identity
   "The function that will take a diary file name and return the desired prefix."
-  :type 'function
-  :group 'diary)
+  :type 'function)
 
 (defcustom diary-sexp-entry-symbol "%%"
   "The string used to indicate a sexp diary entry in `diary-file'.
 See the documentation for the function `diary-list-sexp-entries'."
-  :type 'string
-  :group 'diary)
+  :type 'string)
 
 (defcustom diary-comment-start nil
   "String marking the start of a comment in the diary, or nil.
@@ -138,24 +131,21 @@ for whatever you like, e.g. for meta-data that packages such as
 can be only one comment on any line.
 See also `diary-comment-end'."
   :version "24.1"
-  :type '(choice (const :tag "No comment" nil) string)
-  :group 'diary)
+  :type '(choice (const :tag "No comment" nil) string))
 
 (defcustom diary-comment-end ""
   "String marking the end of a comment in the diary.
 The empty string means comments finish at the end of a line.
 See also `diary-comment-start'."
   :version "24.1"
-  :type 'string
-  :group 'diary)
+  :type 'string)
 
 (defcustom diary-hook nil
   "Hook run after displaying the diary.
 Used for example by the appointment package - see `appt-activate'.
 The variables `number' and `original-date' are dynamically bound around
 the call."
-  :type 'hook
-  :group 'diary)
+  :type 'hook)
 
 (defcustom diary-display-function #'diary-fancy-display
   "Function used to display the diary.
@@ -171,10 +161,9 @@ holidays), or hard copy output."
                  (const :tag "Basic display" diary-simple-display)
                  (const :tag "No display" ignore)
                  (function :tag "User-specified function"))
-  :initialize 'custom-initialize-default
-  :set 'diary-set-maybe-redraw
-  :version "23.2"                       ; simple->fancy
-  :group 'diary)
+  :initialize #'custom-initialize-default
+  :set #'diary-set-maybe-redraw
+  :version "23.2")                       ; simple->fancy
 
 (defcustom diary-list-entries-hook nil
   "Hook run after diary file is culled for relevant entries.
@@ -201,8 +190,7 @@ So for example, to sort the complete list of diary entries you would
 use the list-entries hook, whereas to process e.g. Islamic entries in
 the main file and all included files, you would use the nongregorian hook."
   :type 'hook
-  :options '(diary-include-other-diary-files diary-sort-entries)
-  :group 'diary)
+  :options '(diary-include-other-diary-files diary-sort-entries))
 
 (defcustom diary-mark-entries-hook nil
   "List of functions called after marking diary entries in the calendar.
@@ -218,8 +206,7 @@ differ only if you are using included diary files.  In that case,
 `displayed-year' and `displayed-month' are dynamically bound when
 this hook is called."
   :type 'hook
-  :options '(diary-mark-included-diary-files)
-  :group 'diary)
+  :options '(diary-mark-included-diary-files))
 
 (defcustom diary-nongregorian-listing-hook nil
   "List of functions called for listing diary file and included files.
@@ -236,8 +223,7 @@ use `diary-list-entries-hook', which runs only for the main diary file."
   :options '(diary-bahai-list-entries
              diary-hebrew-list-entries
              diary-islamic-list-entries
-             diary-chinese-list-entries)
-  :group 'diary)
+             diary-chinese-list-entries))
 
 (defcustom diary-nongregorian-marking-hook nil
   "List of functions called for marking diary file and included files.
@@ -254,8 +240,7 @@ use `diary-mark-entries-hook', which runs only for the main diary file."
   :options '(diary-bahai-mark-entries
              diary-hebrew-mark-entries
              diary-islamic-mark-entries
-             diary-chinese-mark-entries)
-  :group 'diary)
+             diary-chinese-mark-entries))
 
 (defcustom diary-print-entries-hook #'lpr-buffer
   "Run by `diary-print-entries' after preparing a temporary diary buffer.
@@ -264,8 +249,7 @@ diary buffer.  The default just does the printing.  Other uses
 might include, for example, rearranging the lines into order by
 day and time, saving the buffer instead of deleting it, or
 changing the function used to do the printing."
-  :type 'hook
-  :group 'diary)
+  :type 'hook)
 
 (defcustom diary-unknown-time -9999
   "Value returned by `diary-entry-time' when no time is found.
@@ -273,19 +257,16 @@ The default value -9999 causes entries with no recognizable time
 to be placed before those with times; 9999 would place entries
 with no recognizable time after those with times."
   :type 'integer
-  :group 'diary
   :version "20.3")
 
 (defcustom diary-mail-addr
   (or (bound-and-true-p user-mail-address) "")
   "Email address that `diary-mail-entries' will send email to."
-  :group 'diary
   :type  'string
   :version "20.3")
 
 (defcustom diary-mail-days 7
   "Default number of days for `diary-mail-entries' to check."
-  :group 'diary
   :type 'integer
   :version "20.3")
 
@@ -302,8 +283,7 @@ Used by the function `diary-remind', a pseudo-pattern is a list of
 expressions that can involve the keywords `days' (a number), `date'
 \(a list of month, day, year), and `diary-entry' (a string)."
   :type 'sexp
-  :risky t
-  :group 'diary)
+  :risky t)
 
 (defcustom diary-abbreviated-year-flag t
   "Interpret a two-digit year DD in a diary entry as either 19DD or 20DD.
@@ -312,8 +292,7 @@ When the current century is added to a two-digit year, if the result
 is more than 50 years in the future, the previous century is assumed.
 If the result is more than 50 years in the past, the next century is assumed.
 If this variable is nil, years must be written in full."
-  :type 'boolean
-  :group 'diary)
+  :type 'boolean)
 
 (defun diary-outlook-format-1 (body)
   "Return a replace-match template for an element of `diary-outlook-formats'.
@@ -378,8 +357,7 @@ template following the rules above."
                              (string :tag "Template for entry")
                              (function :tag
                                        "Unary function providing template")))
-  :version "22.1"
-  :group 'diary)
+  :version "22.1")
 
 (defvar diary-header-line-flag)
 (defvar diary-header-line-format)
@@ -401,10 +379,9 @@ template following the rules above."
 (defcustom diary-header-line-flag t
   "Non-nil means `diary-simple-display' will show a header line.
 The format of the header is specified by `diary-header-line-format'."
-  :group   'diary
   :type    'boolean
-  :initialize 'custom-initialize-default
-  :set 'diary-set-header
+  :initialize #'custom-initialize-default
+  :set #'diary-set-header
   :version "22.1")
 
 (defvar diary-selective-display nil
@@ -418,11 +395,10 @@ The format of the header is specified by `diary-header-line-format'."
            ?\s (window-width)))
   "Format of the header line displayed by `diary-simple-display'.
 Only used if `diary-header-line-flag' is non-nil."
-  :group 'diary
   :type 'sexp
   :risky t
-  :initialize 'custom-initialize-default
-  :set 'diary-set-header
+  :initialize #'custom-initialize-default
+  :set #'diary-set-header
   :version "23.3")                      ; frame-width -> window-width
 
 ;; The first version of this also checked for diary-selective-display
@@ -480,9 +456,8 @@ of days of diary entries displayed."
                          (integer :tag "Thursday")
                          (integer :tag "Friday")
                          (integer :tag "Saturday")))
-  :initialize 'custom-initialize-default
-  :set 'diary-set-maybe-redraw
-  :group 'diary)
+  :initialize #'custom-initialize-default
+  :set #'diary-set-maybe-redraw)
 
 ;;; More user options in calendar.el, holidays.el.
 
@@ -1443,9 +1418,9 @@ marks.  This is intended to deal with deleted diary entries."
                           (entry entry))
            (if calendar-debug-sexp
                (let ((debug-on-error t))
-                 (eval (car (read-from-string sexp))))
+                 (eval (car (read-from-string sexp)) t))
              (condition-case err
-                 (eval (car (read-from-string sexp)))
+                 (eval (car (read-from-string sexp)) t)
                (error
                 (display-warning
                  'diary
@@ -1671,7 +1646,7 @@ be used instead of a colon (:) to separate the hour and minute parts."
 If you add this function to `diary-list-entries-hook', it should
 be the last item in the hook, in case earlier items add diary
 entries, or change the order."
-  (setq diary-entries-list (sort diary-entries-list 'diary-entry-compare)))
+  (setq diary-entries-list (sort diary-entries-list #'diary-entry-compare)))
 
 
 (defun diary-list-sexp-entries (date)
@@ -2027,7 +2002,7 @@ Entry applies if the date is DAYS days after another diary-sexp SEXP."
     (user-error "Days must be an integer"))
   (let ((date (calendar-gregorian-from-absolute
 	       (- (calendar-absolute-from-gregorian date) days))))
-    (eval sexp)))
+    (eval sexp t)))
 
 (defun diary-day-of-year ()
   "Day of year and number of days remaining in the year of date diary entry."
@@ -2058,7 +2033,7 @@ calendar."
   (and (integerp days)
        (< days 0)
        (setq days (number-sequence 1 (- days))))
-  (calendar-dlet ((diary-entry (eval sexp)))
+  (calendar-dlet ((diary-entry (eval sexp t)))
     (cond
      ;; Diary entry applies on date.
      ((and diary-entry
@@ -2071,7 +2046,7 @@ calendar."
       ;; Adjust date, and re-evaluate.
       (let ((date (calendar-gregorian-from-absolute
                    (+ (calendar-absolute-from-gregorian date) days))))
-        (when (setq diary-entry (eval sexp))
+        (when (setq diary-entry (eval sexp t))
           ;; Discard any mark portion from diary-anniversary, etc.
           (if (consp diary-entry) (setq diary-entry (cdr diary-entry)))
           (calendar-dlet ((days days))
@@ -2300,7 +2275,7 @@ full month names."
                                   "")
                        ;; With backup, last item is not part of date.
                        (if (equal (car x) 'backup)
-                           (concat "\\)" (eval (car (reverse x))))
+                           (concat "\\)" (eval (car (reverse x)) t))
                          "\\)"))
                '(1 'diary)))
             diary-date-forms)))

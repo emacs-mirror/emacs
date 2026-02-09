@@ -107,7 +107,7 @@ Driven by the variable `calendar-date-display-form'."
           (month (cdr (assoc-string
                        (completing-read
                         "Julian calendar month name: "
-                        (mapcar 'list (append month-array nil))
+                        (append month-array nil)
                         nil t)
                        (calendar-make-alist month-array 1) t)))
           (last

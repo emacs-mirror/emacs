@@ -2097,7 +2097,7 @@ to start the observances in the time zone.  It defaults to 1970."
                               (format "Unable to export DST rule for time zone: %s"
                                       dst-starts)))))
              (dst-start-date (calendar-dlet ((year (or start-year 1970)))
-                               (eval dst-starts)))
+                               (eval dst-starts t)))
              (dst-start
               (ical:date-to-date-time dst-start-date
                                       :hour (/ dst-start-minutes 60)
@@ -2116,7 +2116,7 @@ to start the observances in the time zone.  It defaults to 1970."
                               (format "Unable to export DST rule for time zone: %s"
                                       dst-ends)))))
              (std-start-date (calendar-dlet ((year (1- (or start-year 1970))))
-                               (eval dst-ends)))
+                               (eval dst-ends t)))
              (std-start
               (ical:date-to-date-time std-start-date
                                       :hour (/ dst-end-minutes 60)

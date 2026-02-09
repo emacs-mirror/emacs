@@ -2860,7 +2860,7 @@ times according to `diary-icalendar-time-zone-export-strategy'."
          (exdates (mapcar
                    (lambda (dt) (di:convert-time-via-strategy dt vtimezone))
                    (if (eq 'quote (car excluded)) (eval excluded nil) excluded)))
-         (duration (eval (plist-get args :duration)))
+         (duration (eval (plist-get args :duration) t))
          (dur-value
           (if (eq 'quote (car duration)) (eval duration nil) duration))
          (tzid
@@ -3030,7 +3030,7 @@ property and must be present even if the recurrence set is empty.)"
         dtstart rdates exdates)
     (dolist (absdate (number-sequence today end))
       (calendar-dlet ((date (calendar-gregorian-from-absolute absdate)))
-        (when (eval sexp)
+        (when (eval sexp t)
           (push date rdates))))
     (if rdates
         (progn
