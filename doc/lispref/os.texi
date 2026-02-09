@@ -2285,7 +2285,7 @@ be protected by wrapping the timer function body with
 
 @lisp
 @group
-(ignore-error 'remote-file-error
+(ignore-error remote-file-error
   @dots{})
 @end group
 @end lisp
