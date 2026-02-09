@@ -4612,8 +4612,6 @@ so you have to select which to install!)" nl))
       (fill-region (point-min) (point-max))
       (special-mode)
       (button-mode t)
-      (enriched-mode t)
-      (variable-pitch-mode t)
 
       (let ((win (display-buffer-below-selected (current-buffer) '())))
         (fit-window-to-buffer win)
