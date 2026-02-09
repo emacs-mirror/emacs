@@ -2302,7 +2302,7 @@ init_minibuf_once_for_pdumper (void)
    particular implementation of the algorithm assumes they have at least
    one match.
 
-   D (originally stands for 'Deletion' in the Gotoh paper) has "running
+   D (originally stands for 'Distance' in the Gotoh paper) has "running
    costs".  Each value D[i,j] represents what the algorithm has to pay
    to make or extend a gap when a match is found at i+1, j+1.  By that
    time, that cost may or may not be lower than continuing from a match
