@@ -598,15 +598,17 @@ See `project-vc-extra-root-markers' for the marker value format.")
   "Number of seconds to cache a value in VC-aware project methods.
 It can be nil, a number, or an alist where
 the key is a predicate, and the value is a number.
+A predicate function should take a directory string and if it returns
+non-nil, the corresponding value will be used as the timeout.
 Set to nil to disable time-based expiration.")
 
 (defvar project-vc-non-essential-cache-timeout '((file-remote-p . nil)
                                                  (always . 300))
   "Number of seconds to cache non-essential information.
-Unlike `project-vc-cache-timeout' intended for interactive
-commands, this variable has much more aggressive caching,
-and is intended for \"background\" things like `project-mode-line'
-indicators and `project-uniquify-dirname-transform'.
+The format of the value is same as `project-vc-cache-timeout', but while
+the former is intended for interactive commands, this variable uses
+higher numbers, intended for \"background\" things like
+`project-mode-line' indicators and `project-uniquify-dirname-transform'.
 It is used when `non-essential' is non-nil.")
 
 (defun project--get-cached (dir key)
