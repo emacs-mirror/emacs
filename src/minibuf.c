@@ -2280,7 +2280,7 @@ init_minibuf_once_for_pdumper (void)
 }
 
 /* FLEX/GOTOH algorithm for the 'flex' completion-style.  Adapted from
-   GOTOH, Osamu. An improved algorithm for matching biological
+   GOTOH, Osamu.  An improved algorithm for matching biological
    sequences. Journal of molecular biology, 1982, 162.3: 705-708.
 
    This algorithm matches patterns to candidate strings, or needles to
@@ -2297,10 +2297,10 @@ init_minibuf_once_for_pdumper (void)
    The value stored is the lowest possible cost the algorithm had to
    "pay" to be able to make that match there, given everything that may
    have happened before/to the left.  An infinite value simply means no
-   match at this pattern/string position.  Note that both row and column
-   of M may have more than one match at multiple indices.  But this
-   particular implementation of the algorithm assumes they have at least
-   one match.
+   match at this pattern/string position.  Note that both rows and
+   columns of M may have more than one match at multiple indices.  If
+   some row or column of M has no match at all, the final cost will be
+   infinite, and the funtion will return nil.
 
    D (originally stands for 'Distance' in the Gotoh paper) has "running
    costs".  Each value D[i,j] represents what the algorithm has to pay
@@ -2348,10 +2348,10 @@ positions in STR.  */)
     CHECK_STRING (pat);
     CHECK_STRING (str);
 
-    size_t patlen = SCHARS (pat);
-    size_t strlen = SCHARS (str);
-    size_t width = strlen + 1;
-    size_t size = (patlen + 1) * width;
+    ptrdiff_t patlen = SCHARS (pat);
+    ptrdiff_t strlen = SCHARS (str);
+    ptrdiff_t width = strlen + 1;
+    ptrdiff_t size = (patlen + 1) * width;
     const int gap_open_cost = 10;
     const int gap_extend_cost = 1;
     const int pos_inf = INT_MAX / 2;
@@ -2362,33 +2362,33 @@ positions in STR.  */)
     if (patlen == 0 || strlen == 0 || size > FLEX_MAX_MATRIX_SIZE)
       return Qnil;
 
-    /* Initialize M and D with positive infinity... */
+    /* Initialize M and D with positive infinity...  */
     for (int j = 0; j < size; j++)
       M[j] = D[j] = pos_inf;
     /* ...except for D[-1,-1], which is 0 to promote matches at the
        beginning.  Rest of first row has gap_open_cost/2 for cheaper
-       leading gaps. */
+       leading gaps.  */
     for (int j = 0; j < width; j++)
       D[j] = gap_open_cost / 2;
     D[0] = 0;
 
-    /* Poor man's iterator type. */
-    typedef struct iter { int x; ptrdiff_t c; ptrdiff_t b; } iter_t;
+    /* Poor man's iterator type.  */
+    typedef struct iter { int idx; ptrdiff_t pchar; ptrdiff_t pbyte; } iter_t;
 
     /* Position of first match found in the previous row, to save
-       iterations. */
+       iterations.  */
     iter_t prev_match = { 0, 0, 0 };
 
     /* Forward pass.  */
-    for (iter_t i = { 0, 0, 0 }; i.x < patlen; i.x++)
+    for (iter_t i = { 0, 0, 0 }; i.idx < patlen; i.idx++)
       {
-	int pat_char = fetch_string_char_advance (pat, &i.c, &i.b);
+	int pat_char = fetch_string_char_advance (pat, &i.pchar, &i.pbyte);
 	bool match_seen = false;
 
-	for (iter_t j = prev_match; j.x < strlen; j.x++)
+	for (iter_t j = prev_match; j.idx < strlen; j.idx++)
 	  {
-	    iter_t jcopy = j; /* else advance function destroys it... */
-	    int str_char = fetch_string_char_advance (str, &j.c, &j.b);
+	    iter_t jcopy = j; /* else advance function destroys it...  */
+	    int str_char = fetch_string_char_advance (str, &j.pchar, &j.pbyte);
 
 	    /* Check if characters match (case-insensitive if needed).  */
 	    bool cmatch;
@@ -2401,7 +2401,7 @@ positions in STR.  */)
 	      {
 		/* There is a match here, so compute match cost
 		   M[i][j], i.e. replace its infinite value with
-		   something finite. */
+		   something finite.  */
 		if (!match_seen)
 		  {
 		    match_seen = true;
@@ -2415,8 +2415,8 @@ positions in STR.  */)
 		   regardless of whether the previous char also
 		   matched.  That is, it's better to arrive at this
 		   match from a gap.  */
-		MAT (M, i.x, j.x) = min (MAT (M, i.x - 1, j.x - 1),
-					 MAT (D, i.x - 1, j.x - 1));
+		MAT (M, i.idx, j.idx) = min (MAT (M, i.idx - 1, j.idx - 1),
+					 MAT (D, i.idx - 1, j.idx - 1));
 	      }
 	    /* Regardless of a match here, compute D[i,j], the best
 	       accumulated gapping cost at this point, considering
@@ -2426,9 +2426,9 @@ positions in STR.  */)
 	       sometime before.  The next iteration will take this
 	       into account, and so will the next row when analyzing a
 	       possible match for the j+1-th string character.  */
-	    MAT (D, i.x, j.x)
-	      = min (MAT (M, i.x, j.x - 1) + gap_open_cost,
-		     MAT (D, i.x, j.x - 1) + gap_extend_cost);
+	    MAT (D, i.idx, j.idx)
+	      = min (MAT (M, i.idx, j.idx - 1) + gap_open_cost,
+		     MAT (D, i.idx, j.idx - 1) + gap_extend_cost);
 	  }
       }
     /* Find lowest cost in last row.  */
@@ -2444,11 +2444,11 @@ positions in STR.  */)
 	  }
       }
 
-    /* Return early if no match. */
+    /* Return early if no match.  */
     if (lastcol < 0 || best_cost >= pos_inf)
       return Qnil;
 
-    /* Go backwards to build match positions list. */
+    /* Go backwards to build match positions list.  */
     Lisp_Object matches = Fcons (make_fixnum (lastcol), Qnil);
     for (int i = patlen - 2, l = lastcol; i >= 0; --i)
       {

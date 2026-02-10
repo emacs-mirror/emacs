@@ -312,7 +312,7 @@ It still can use 'read-key' when the variable
 'y-or-n-p-use-read-key' is non-nil.
 
 *** The 'flex' style is more accurate
-Completion and highlighting style use a new superior algorithm.  Pattern
+Completion and highlighting use a new superior algorithm.  Pattern
 "scope" now ranks 'elisp-scope-*' functions well above 'dos-codepage'
 and 'test-completion'.  Pattern "botwin" finds
 'menu-bar-bottom-window-divider' before 'ibuffer-other-window'.  Pattern
