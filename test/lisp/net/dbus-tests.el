@@ -32,6 +32,9 @@
 (declare-function dbus-registered-inhibitor-locks "dbusbind.c" ())
 (declare-function dbus-make-inhibitor-lock "dbusbind.c"
                   (what why &optional block))
+(declare-function dbus--fd-open "dbusbind.c" (filename))
+(declare-function dbus--fd-close "dbusbind.c" (fd))
+(declare-function dbus--registered-fds "dbusbind.c" ())
 
 (defconst dbus--test-enabled-session-bus
   (and (featurep 'dbusbind)
