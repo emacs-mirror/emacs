@@ -2592,9 +2592,9 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   ;; In *vc-dir*, if nothing is marked, act on the whole working tree
   ;; regardless of the position of point.  This preserves historical
   ;; behavior and is also probably more useful.
-  (if (derived-mode-p 'vc-dir-mode)
-      (vc-dir-marked-files)
-    (cadr (vc-deduce-fileset))))
+  (mapcar #'file-relative-name (if (derived-mode-p 'vc-dir-mode)
+                                   (vc-dir-marked-files)
+                                 (cadr (vc-deduce-fileset)))))
 
 (defun vc-git-stash (name)
   "Create a stash named NAME.
