@@ -726,6 +726,11 @@ If the value of 'project-mode-line' is 'non-remote', project name and
 the Project menu will be shown on the mode line only for projects with
 local files.
 
+*** The "VC-aware" project backend caches the current project and its name.
+The duration for which the values are cached depends on whether it's
+called from 'non-essential' context, and it determined by variables
+'project-vc-cache-timeout' and 'project-vc-non-essential-cache-timeout'.
+
 ** Help
 
 +++
