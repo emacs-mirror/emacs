@@ -275,7 +275,8 @@ of the project instance object."
       (if pr
           (project-remember-project pr)
         (project--remove-from-project-list
-         directory "Project `%s' not found; removed from list")
+         (abbreviate-file-name directory)
+         "Project `%s' not found; removed from list")
         (setq pr (cons 'transient directory))))
     pr))
 
@@ -2206,7 +2207,7 @@ result in `project-list-file'.  Announce the project's removal
 from the list using REPORT-MESSAGE, which is a format string
 passed to `message' as its first argument."
   (project--ensure-read-project-list)
-  (when-let* ((ent (assoc (abbreviate-file-name project-root) project--list)))
+  (when-let* ((ent (assoc project-root project--list)))
     (setq project--list (delq ent project--list))
     (message report-message project-root)
     (project--write-project-list)))
