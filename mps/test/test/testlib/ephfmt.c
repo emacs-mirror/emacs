@@ -26,7 +26,7 @@ oop make_pair(mps_ap_t ap, oop car, oop cdr)
       error("out of memory in make_pair");
     obj = addr;
     obj->pair.header.s.type = TYPE_PAIR;
-    obj->pair.header.s.size = sizeof(struct pair);
+    obj->pair.header.s.size = size;
     obj->pair.car = car;
     obj->pair.cdr = cdr;
   } while (!mps_commit(ap, addr, size));
@@ -47,7 +47,7 @@ static oop make_weak_pair_2(mps_ap_t ap,
       error("out of memory in make_weak_pair");
     obj = addr;
     obj->weak_pair.header.s.type = type;
-    obj->weak_pair.header.s.size = sizeof(struct weak_pair);
+    obj->weak_pair.header.s.size = size;
     obj->weak_pair.key = key;
     obj->weak_pair.value = value;
   } while (!mps_commit(ap, addr, size));
@@ -116,7 +116,6 @@ static mps_res_t eph_scan(mps_ss_t ss,
         case TYPE_PAIR:
           FIX(obj->pair.car);
           FIX(obj->pair.cdr);
-          base = (char*)base + aligned(sizeof(struct pair));
           break;
         case TYPE_WEAK_PAIR: {
           mps_res_t res;
@@ -127,7 +126,6 @@ static mps_res_t eph_scan(mps_ss_t ss,
             res = mps_fix_weak_pair(ss, base, key_ref, value_ref));
           if (res != MPS_RES_OK)
             return res;
-          base = (char*)base + aligned(sizeof(struct weak_pair));
         } break;
         case TYPE_WEAK_OR_PAIR: {
           mps_res_t res;
@@ -138,7 +136,6 @@ static mps_res_t eph_scan(mps_ss_t ss,
             res = mps_fix_weak_or_pair(ss, base, key_ref, value_ref));
           if (res != MPS_RES_OK)
             return res;
-          base = (char*)base + aligned(sizeof(struct weak_pair));
         } break;
         case TYPE_WEAK_AND_PAIR: {
           mps_res_t res;
@@ -149,22 +146,16 @@ static mps_res_t eph_scan(mps_ss_t ss,
             res = mps_fix_weak_and_pair(ss, base, key_ref, value_ref));
           if (res != MPS_RES_OK)
             return res;
-          base = (char*)base + aligned(sizeof(struct weak_pair));
         } break;
         case TYPE_STRING:
-          base = (char*)base + aligned(offsetof(struct string, data) +
-                                       obj->string.length + 1);
+        case TYPE_PAD:
           break;
         case TYPE_FWD:
-          base = (char*)base + aligned(obj->fwd.header.s.size);
-          break;
-        case TYPE_PAD:
-          base = (char*)base + aligned(obj->pad.header.s.size);
-          break;
         default:
           error("Unexpected object on the heap\n");
           return MPS_RES_FAIL;
       }
+      base = (char*)base + obj->header.s.size;
     }
   }
   MPS_SCAN_END(ss);
@@ -174,30 +165,7 @@ static mps_res_t eph_scan(mps_ss_t ss,
 static mps_addr_t eph_skip(mps_addr_t base)
 {
   oop obj = base;
-  switch (obj->header.s.type) {
-    case TYPE_PAIR:
-      base = (char*)base + aligned(sizeof(struct pair));
-      break;
-    case TYPE_WEAK_PAIR:
-    case TYPE_WEAK_OR_PAIR:
-    case TYPE_WEAK_AND_PAIR:
-      base = (char*)base + aligned(sizeof(struct weak_pair));
-      break;
-    case TYPE_STRING:
-      base = (char*)base + aligned(offsetof(struct string, data) +
-                                   obj->string.length + 1);
-      break;
-    case TYPE_FWD:
-      base = (char*)base + aligned(obj->fwd.header.s.size);
-      break;
-    case TYPE_PAD:
-      base = (char*)base + aligned(obj->pad.header.s.size);
-      break;
-    default:
-      error("Unexpected object on the heap\n");
-      return NULL;
-  }
-  return base;
+  return (char*)base + obj->header.s.size;
 }
 
 static mps_addr_t eph_isfwd(mps_addr_t addr)
@@ -274,7 +242,7 @@ static void setup(void* stack_bottom, eph_test_fun fun, void* closure)
   static struct memory_manager mm;
 
   static mps_gen_param_s gen_params[] = {
-    { 150, 0.85 },
+    { 150, 0.5 },
   };
 
   die(
