@@ -1143,18 +1143,27 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
         AVER(SegGrey(seg) != TraceSetEMPTY);
         AVER(RankSetIsMember(SegRankSet(seg), rank));
 
-        if(TraceSetIsMember(SegGrey(seg), trace)) {
+        if (TraceSetIsMember(SegGrey(seg), trace)) {
 
-	  if (TraceSetIsMember(seg->propagationNeeded,
-			       trace)) {
-	    tracePropagateToLowerRanks (trace, arena);
-	    band = trace->band;
-	    goto bandstart;
-	  }
-
+          if (TraceSetIsMember(seg->propagationNeeded, trace)) {
+            tracePropagateToLowerRanks(trace, arena);
+            AVER(!TraceSetIsMember(seg->propagationNeeded, trace));
+	    /* HACK: traceScanSegRes skips segments for which the
+	       summary doesn't intersect with the white set.  Including
+	       the white set in the summary here, forces as rescan of
+	       the segment. */
+            if (ZoneSetInter(trace->white, SegSummary(seg)) ==
+                ZoneSetEMPTY)
+              SegSetSummary(seg,
+                            RefSetUnion(SegSummary(seg), trace->white));
+            AVER(ZoneSetInter(trace->white, SegSummary(seg)) !=
+                 ZoneSetEMPTY);
+            band = trace->band;
+            goto bandstart;
+          }
           /* .check.band.weak */
           AVER(band != RankWEAK || rank == band);
-          if(rank != band) {
+          if (rank != band) {
             traceBandFirstStretchDone(trace);
           } else {
             /* .check.final.one-pass */
@@ -1260,6 +1269,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
   /* Only scan a segment if it refers to the white set. */
   if(ZoneSetInter(white, SegSummary(seg)) == ZoneSetEMPTY) {
+    AVER(seg->propagationNeeded == TraceSetEMPTY);
     SegBlacken(seg, ts);
     /* Setup result code to return later. */
     res = ResOK;
