@@ -1769,7 +1769,7 @@ mps_pool_class_t mps_class_aeph(void)
   return (mps_pool_class_t)CLASS(AEPHPool);
 }
 
-static Res aephIsWhite(mps_ss_t mps_ss, mps_addr_t ref, Bool* isWhiteO)
+static Res aephIsWhite(mps_ss_t mps_ss, mps_addr_t *refIO, Bool* isWhiteO)
 {
   ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
   Rank savedRank = ss->rank;
@@ -1780,11 +1780,11 @@ static Res aephIsWhite(mps_ss_t mps_ss, mps_addr_t ref, Bool* isWhiteO)
     UNUSED(_mps_wt);
     UNUSED(_mps_w);
     UNUSED(_mps_zs);
-    res = MPS_FIX2(mps_ss, &ref);
+    res = MPS_FIX2(mps_ss, refIO);
   }
   MPS_SCAN_END(mps_ss);
   ss->rank = savedRank;
-  *isWhiteO = (ref == NULL);
+  *isWhiteO = (*refIO == NULL);
   return res;
 }
 
@@ -1823,23 +1823,20 @@ static Res aephFixKey(mps_ss_t mps_ss,
   MPS_SCAN_BEGIN(mps_ss)
   {
     mps_addr_t key = *keyIO;
+    ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
+    Seg seg = aephSegOfAddr(ss->arena, base);
     if (MPS_FIX1(mps_ss, key)) {
-      MPS_FIX_CALL(mps_ss, res = aephIsWhite(mps_ss, key, isKeyWhite));
+      SegSetSummary(seg, RefSetAdd(ss->arena, SegSummary(seg), key));
+      MPS_FIX_CALL(mps_ss, res = aephIsWhite(mps_ss, &key, isKeyWhite));
       if (res != MPS_RES_OK)
         return res;
       if (*isKeyWhite) {
-        ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
-        Seg seg = aephSegOfAddr(ss->arena, base);
-        if (seg->propagationFinished) {
+        if (seg->propagationFinished)
           *keyIO = NULL;
-        } else
+        else
           aephDeferSeg(mps_ss, base, FALSE);
-      } else {
-        res = MPS_FIX2(mps_ss, &key);
-        if (res != MPS_RES_OK)
-          return res;
+      } else
         *keyIO = key;
-      }
     } else
       *isKeyWhite = FALSE;
   }
@@ -1910,6 +1907,7 @@ mps_res_t mps_fix_weak_pair(mps_ss_t mps_ss,
       if (res != MPS_RES_OK)
         return res;
       res = aephFixValue(mps_ss, isKeyWhite, base, valIO);
+      AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
       return res;
     }
     case RankEXACT: {
