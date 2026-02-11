@@ -3092,10 +3092,6 @@ Meant to be given a global binding convenient to the user.  Example:
 
 ** Icomplete
 
-*** New key 'M-j' for 'icomplete-mode' and 'icomplete-vertical-mode'.
-Like 'M-j' in 'fido-mode', it can exit the minibuffer with a selected
-candidate even when 'icomplete-show-matches-on-no-input' is non-nil.
-
 *** New user options for 'icomplete-vertical-mode'.
 New user options have been added to enhance 'icomplete-vertical-mode':
 
