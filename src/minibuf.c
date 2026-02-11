@@ -2372,23 +2372,23 @@ positions in STR.  */)
       D[j] = gap_open_cost / 2;
     D[0] = 0;
 
-    /* Poor man's iterator type.  */
-    typedef struct iter { int idx; ptrdiff_t pchar; ptrdiff_t pbyte; } iter_t;
+    /* Poor man's iterator type: cur char idx, next char idx, next byte idx.  */
+    typedef struct iter { int x; ptrdiff_t n; ptrdiff_t b; } iter_t;
 
     /* Position of first match found in the previous row, to save
        iterations.  */
     iter_t prev_match = { 0, 0, 0 };
 
     /* Forward pass.  */
-    for (iter_t i = { 0, 0, 0 }; i.idx < patlen; i.idx++)
+    for (iter_t i = { 0, 0, 0 }; i.x < patlen; i.x++)
       {
-	int pat_char = fetch_string_char_advance (pat, &i.pchar, &i.pbyte);
+	int pat_char = fetch_string_char_advance (pat, &i.n, &i.b);
 	bool match_seen = false;
 
-	for (iter_t j = prev_match; j.idx < strlen; j.idx++)
+	for (iter_t j = prev_match; j.x < strlen; j.x++)
 	  {
 	    iter_t jcopy = j; /* else advance function destroys it...  */
-	    int str_char = fetch_string_char_advance (str, &j.pchar, &j.pbyte);
+	    int str_char = fetch_string_char_advance (str, &j.n, &j.b);
 
 	    /* Check if characters match (case-insensitive if needed).  */
 	    bool cmatch;
@@ -2415,8 +2415,8 @@ positions in STR.  */)
 		   regardless of whether the previous char also
 		   matched.  That is, it's better to arrive at this
 		   match from a gap.  */
-		MAT (M, i.idx, j.idx) = min (MAT (M, i.idx - 1, j.idx - 1),
-					 MAT (D, i.idx - 1, j.idx - 1));
+		MAT (M, i.x, j.x) = min (MAT (M, i.x - 1, j.x - 1),
+					 MAT (D, i.x - 1, j.x - 1));
 	      }
 	    /* Regardless of a match here, compute D[i,j], the best
 	       accumulated gapping cost at this point, considering
@@ -2426,9 +2426,9 @@ positions in STR.  */)
 	       sometime before.  The next iteration will take this
 	       into account, and so will the next row when analyzing a
 	       possible match for the j+1-th string character.  */
-	    MAT (D, i.idx, j.idx)
-	      = min (MAT (M, i.idx, j.idx - 1) + gap_open_cost,
-		     MAT (D, i.idx, j.idx - 1) + gap_extend_cost);
+	    MAT (D, i.x, j.x)
+	      = min (MAT (M, i.x, j.x - 1) + gap_open_cost,
+		     MAT (D, i.x, j.x - 1) + gap_extend_cost);
 	  }
       }
     /* Find lowest cost in last row.  */
