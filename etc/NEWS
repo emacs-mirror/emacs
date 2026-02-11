@@ -3092,6 +3092,18 @@ Meant to be given a global binding convenient to the user.  Example:
 
 ** Icomplete
 
+*** Change in meaning of 'icomplete-show-matches-on-no-input' (again).
+Previously, choosing a different completion with commands like 'C-.'
+and then hitting 'RET' would choose the completion under point
+when 'icomplete-show-matches-on-no-input' is customized to non-nil.
+Doing this will now choose the default value instead.  There is
+still 'C-j' to choose the completion under point in 'icomplete-mode'.
+You can get back the old behavior of the 'RET' key with
+
+    (keymap-set
+      icomplete-minibuffer-map "<remap> <minibuffer-complete-and-exit>"
+      #'icomplete-ret)
+
 *** New user options for 'icomplete-vertical-mode'.
 New user options have been added to enhance 'icomplete-vertical-mode':
 
