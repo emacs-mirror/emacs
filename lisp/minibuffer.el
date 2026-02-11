@@ -4984,8 +4984,10 @@ usual. Returns (ALL PAT PREFIX SUFFIX)."
               (probe))
     (cond ((null all) nil)
           ((and (equal string (car all)) (null (cdr all))) t)
-          ((setq probe (try-completion string table pred))
-           (cons probe (length probe))))))
+          ((and (setq probe (try-completion "" all pred))
+                (cl-plusp (length probe)))
+           (cons (substring-no-properties probe) (length probe)))
+          ((cons string point)))))
 
 (cl-defun completion-flex-all-completions (string table pred point)
   "Get flex-completions of STRING in TABLE, given PRED and POINT."
