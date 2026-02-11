@@ -1423,6 +1423,8 @@
 
 (ert-deftest ft-weak-equal-table ()
   :expected-result (if (fboundp 'igc--collect) :failed :passed)
+  (unless (featurep 'threads)
+    (ert-skip '(not (featurep 'threads))))
   (let* ((h (make-hash-table :weakness 'key-or-value :test #'equal))
          (n 10)
          (root nil))
@@ -1432,7 +1434,8 @@
         (puthash key val h)))
     (should (= (hash-table-count h) n))
     (ft--gc 'key)
-    (setq root (gethash '(key 0) h))
+    (setq root (thread-join (make-thread (lambda ()
+                                           (gethash '(key 0) h)))))
     (ft--gc 'key-or-value)
     (should (< (hash-table-count h) n))
     (should (equal root (gethash '(key 0) h)))))
