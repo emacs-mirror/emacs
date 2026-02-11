@@ -4986,7 +4986,7 @@ usual. Returns (ALL PAT PREFIX SUFFIX)."
           ((and (equal string (car all)) (null (cdr all))) t)
           ((and (setq probe (try-completion "" all pred))
                 (cl-plusp (length probe)))
-           (cons (substring-no-properties probe) (length probe)))
+           (cons probe (length probe)))
           ((cons string point)))))
 
 (cl-defun completion-flex-all-completions (string table pred point)
