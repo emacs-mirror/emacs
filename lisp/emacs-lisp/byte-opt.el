@@ -345,9 +345,9 @@ There can be multiple entries for the same NAME if it has several aliases.")
        (let ((exp-opt (byte-optimize-form exp for-effect)))
          (if exps
              (let ((exps-opt (byte-optimize-body exps t)))
-               (if (macroexp-const-p exp-opt)
-                   `(progn ,@exps-opt ,exp-opt)
-	         `(,fn ,exp-opt ,@exps-opt)))
+               (cond ((null exps-opt) exp-opt)
+                     ((macroexp-const-p exp-opt) `(progn ,@exps-opt ,exp-opt))
+	             (t `(,fn ,exp-opt ,@exps-opt))))
 	   exp-opt)))
 
       (`(,(or `save-excursion `save-restriction `save-current-buffer) . ,exps)
