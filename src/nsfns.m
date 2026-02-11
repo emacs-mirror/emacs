@@ -1995,9 +1995,20 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
+  double px_to_mm;
   struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
 
-  return make_fixnum (ns_display_pixel_height (dpyinfo) / (92.0/25.4));
+#ifdef NS_IMPL_COCOA
+  CGDirectDisplayID did = CGMainDisplayID ();
+  CGSize size_mm = CGDisplayScreenSize (did);
+  CGRect bounds = CGDisplayBounds (did);
+
+  px_to_mm = size_mm.height / bounds.size.height;
+#else
+  dpi = 25.4 / dpyinfo->resx;
+#endif
+
+  return make_fixnum (ns_display_pixel_height (dpyinfo) * px_to_mm);
 }
 
 
@@ -2005,9 +2016,20 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
+  double px_to_mm;
   struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
 
-  return make_fixnum (ns_display_pixel_width (dpyinfo) / (92.0/25.4));
+#ifdef NS_IMPL_COCOA
+  CGDirectDisplayID did = CGMainDisplayID ();
+  CGSize size_mm = CGDisplayScreenSize (did);
+  CGRect bounds = CGDisplayBounds (did);
+
+  px_to_mm = size_mm.width / bounds.size.width;
+#else
+  px_to_mm = 25.4 / dpyinfo->resy;
+#endif
+
+  return make_fixnum (ns_display_pixel_width (dpyinfo) * px_to_mm);
 }
 
 
