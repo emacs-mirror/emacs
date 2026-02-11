@@ -437,9 +437,7 @@ When FULL is t, upload everything, not just a difference from the last full."
   ;; deleted.
   (when headers
     (gnus-request-expire-articles
-     (mapcar (lambda (h)
-               (mail-header-number h))
-             (nreverse headers))
+     (mapcar #'mail-header-number (nreverse headers))
      (gnus-group-full-name gnus-cloud-group-name gnus-cloud-method)))))
 
 (defun gnus-cloud-download-all-data ()

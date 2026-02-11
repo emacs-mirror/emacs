@@ -5093,9 +5093,7 @@ Unscored articles will be counted as having a score of zero."
 
 (defun gnus-thread-highest-number (thread)
   "Return the highest article number in THREAD."
-  (apply #'max (mapcar (lambda (header)
-			(mail-header-number header))
-		      (flatten-tree thread))))
+  (apply #'max (mapcar #'mail-header-number (flatten-tree thread))))
 
 (defun gnus-article-sort-by-most-recent-date (h1 h2)
   "Sort articles by number."
