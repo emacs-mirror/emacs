@@ -79,11 +79,12 @@ selection process starts again from the user's $HOME."
 (defcustom icomplete-show-matches-on-no-input nil
   "When non-nil, show completions when first prompting for input.
 This means to show completions even when the current minibuffer contents
-is the same as was the initial input after minibuffer activation.
+is the same as the initial input after minibuffer activation.
 This also means that if you just hit \\`C-j' without typing any
-characters, the match under point will be chosen instead of the
-default.  But \\`RET' will still choose the default value exactly
-as when this option is nil."
+characters, this chooses the first completion candidate instead of the
+minibuffer's default value.
+
+See also `icomplete-ret'."
   :type 'boolean
   :version "24.4")
 
@@ -246,14 +247,21 @@ Used to implement the option `icomplete-show-matches-on-no-input'.")
   "C-,"   #'icomplete-backward-completions)
 
 (defun icomplete-ret ()
-  "Exit minibuffer for icomplete.
-You can bind this command to \\`RET' in `icomplete-minibuffer-map',
-or remap from `minibuffer-complete-and-exit', to be able to choose
-the completion under point with \\`RET' instead of choosing the
-default value."
+  "Alternative minibuffer exit for Icomplete.
+If there is a completion candidate and the minibuffer contents is the
+same as it was right after minibuffer activation, exit selecting that
+candidate.  Otherwise do as `minibuffer-complete-and-exit'.
+
+You may wish to consider binding this command to \\`RET' (or to
+`<remap> <minibuffer-complete-and-exit>') in `icomplete-minibuffer-map'.
+If you do that, then when Emacs first prompts for input such that the
+current minibuffer contents is equal to the initial input right after
+minibuffer activation, \\`RET' chooses the first completion candidate
+instead of the minibuffer's default value.
+This rebinding is especially useful if you have customized
+`icomplete-show-matches-on-no-input' to a non-nil value."
   (interactive)
-  (if (and icomplete-show-matches-on-no-input
-           (car completion-all-sorted-completions)
+  (if (and (car completion-all-sorted-completions)
            (equal (icomplete--field-string) icomplete--initial-input))
       (icomplete-force-complete-and-exit)
     (minibuffer-complete-and-exit)))

@@ -3093,12 +3093,14 @@ Meant to be given a global binding convenient to the user.  Example:
 ** Icomplete
 
 *** Change in meaning of 'icomplete-show-matches-on-no-input' (again).
-Previously, choosing a different completion with commands like 'C-.'
-and then hitting 'RET' would choose the completion under point
-when 'icomplete-show-matches-on-no-input' is customized to non-nil.
-Doing this will now choose the default value instead.  There is
-still 'C-j' to choose the completion under point in 'icomplete-mode'.
-You can get back the old behavior of the 'RET' key with
+For Emacs 28 to Emacs 30, when 'icomplete-show-matches-on-no-input' was
+non-nil, 'RET' had special behavior when the minibuffer's contents was
+equal to the initial input it had right after minibuffer activation.
+In that case, 'RET' would choose the first completion candidate, if
+there was one, instead of the minibuffer's default value.
+'RET' has now returned to selecting the default value in this case; you
+can use 'C-j' to choose the completion under point instead.
+You can opt back in to the special behavior of 'RET' like this:
 
     (keymap-set
       icomplete-minibuffer-map "<remap> <minibuffer-complete-and-exit>"
