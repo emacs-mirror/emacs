@@ -3507,12 +3507,12 @@ It returns a token that must be passed to
 sleep blocks may be simultaneously in force for other purposes).
 Otherwise, it returns @code{nil} if the sleep blocking fails.
 
-@var{why} is a string and, when non-nil, is used to identify the sleep
-block as it may appear on the system's inspectable block lists.  It
-defaults to @samp{Emacs}.
+@var{why} is a string and, when non-@code{nil}, is used to identify the
+sleep block as it may appear on the system's inspectable block lists.
+It defaults to @samp{Emacs}.
 
-If @var{allow-display-sleep} is non-nil, allow the display to sleep.  By
-default, the display is kept active.
+If @var{allow-display-sleep} is non-@code{nil}, allow the display to
+sleep.  By default, the display is kept active.
 
 Note that when the Emacs process terminates, blocks are released on all
 platforms.
