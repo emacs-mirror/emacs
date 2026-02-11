@@ -41,7 +41,7 @@
 ;; The function `system-sleep-sleep-blocked-p' will tell you if
 ;; `system-sleep' has any active system sleep blocks.
 ;;
-;; Note: ​When the Emacs process dies, blocks are released on all
+;; Note: When the Emacs process dies, blocks are released on all
 ;; platforms.
 ;;
 ;; You can register functions on the abnormal hook

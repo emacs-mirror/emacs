@@ -3608,11 +3608,11 @@ connections or serial ports before sleeping, and reestablish them when
 the system wakes up.
 
 Supported capable systems are GNU/Linux via D-Bus (sleep blocking and
-events require the org.freedesktop.login1 service, display sleep
+sleep events require the org.freedesktop.login1 service, display sleep
 blocking requires org.freedesktop.Screensaver service), macOS
-(sleep/display blocking requires 10.9+, sleep events are supported on
-all versions), MS-Windows (sleep blocking is supported on all versions,
-sleep events require 8+).
+(sleep/display blocking requires version 10.9 or later, sleep events are
+supported on all versions), MS-Windows (sleep blocking is supported on
+all versions, sleep events require Windows 8 or later).
 
 * Incompatible Lisp Changes in Emacs 31.1
 

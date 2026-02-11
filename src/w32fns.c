@@ -11329,8 +11329,7 @@ if the selected frame is not (yet) associated with a window handle  */)
 		     System Sleep Support
  ***********************************************************************/
 
-typedef ULONG (WINAPI * SetThreadExecutionState_Proc)
-  (IN ULONG);
+typedef ULONG (WINAPI * SetThreadExecutionState_Proc) (IN ULONG);
 static SetThreadExecutionState_Proc SetThreadExecutionState_fn = NULL;
 
 static unsigned int sleep_block_id = 0;
@@ -11403,8 +11402,8 @@ DEFUN ("w32-system-sleep-block-count",
 typedef ULONG (CALLBACK *PMY_DEVICE_NOTIFY_CALLBACK_ROUTINE)
   (PVOID Context,  ULONG Type,  PVOID Setting);
 
-static ULONG ALIGN_STACK
-sleep_notification_callback(PVOID _Context, ULONG Type, PVOID _Setting)
+static ULONG CALLBACK ALIGN_STACK
+sleep_notification_callback (PVOID _Context, ULONG Type, PVOID _Setting)
 {
   struct input_event ie;
   EVENT_INIT (ie);
@@ -11439,7 +11438,7 @@ typedef struct _MY_DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS {
 } MY_DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS, *PMY_DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS;
 
 void
-w32_register_for_sleep_notifications()
+w32_register_for_sleep_notifications (void)
 {
   /* PowerRegisterSuspendResumeNotification is not a user-space call so
      we use RegisterSuspendResumeNotification.  */
@@ -12258,12 +12257,10 @@ globals_of_w32fns (void)
   /* For system sleep support.  */
   SetThreadExecutionState_fn
     = (SetThreadExecutionState_Proc)
-    get_proc_addr (kernel32_lib,
-		   "SetThreadExecutionState");
+    get_proc_addr (kernel32_lib, "SetThreadExecutionState");
   RegisterSuspendResumeNotification_fn
     = (RegisterSuspendResumeNotification_Proc)
-    get_proc_addr (user32_lib,
-		   "RegisterSuspendResumeNotification");
+    get_proc_addr (user32_lib, "RegisterSuspendResumeNotification");
 
   SetGestureConfig_fn
     = (SetGestureConfig_proc) get_proc_addr (user32_lib,

@@ -274,7 +274,7 @@ extern const char *w32_get_string_resource (void *v_rdb,
 extern frame_parm_handler w32_frame_parm_handlers[];
 extern void w32_default_font_parameter (struct frame* f, Lisp_Object parms);
 extern Lisp_Object w32_process_dnd_data (int format, void *pDataObj);
-extern void w32_register_for_sleep_notifications();
+extern void w32_register_for_sleep_notifications (void);
 
 
 #define PIX_TYPE COLORREF

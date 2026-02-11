@@ -3509,29 +3509,31 @@ Otherwise, it returns @code{nil} if the sleep blocking fails.
 
 @var{why} is a string and, when non-nil, is used to identify the sleep
 block as it may appear on the system's inspectable block lists.  It
-defaults to ``Emacs''.
+defaults to @samp{Emacs}.
 
 If @var{allow-display-sleep} is non-nil, allow the display to sleep.  By
 default, the display is kept active.
 
-Note: ​When the Emacs process dies, blocks are released on all platforms.
+Note that when the Emacs process terminates, blocks are released on all
+platforms.
 @end defun
 
 @defun system-sleep-unblock-sleep token
 This function unblocks the sleep block associated with @var{token}.  It
-returns non-@code{nil} on success, otherwise returns @code{nil}.
+returns non-@code{nil} on success, otherwise it returns @code{nil}.
 @end defun
 
 @defmac with-system-sleep-block (&optional why allow-display-sleep) body@dots{}
 This is a convenience macro that lets you wrap the forms in @var{body}
 with a sleep block that is unblocked for you when @var{body} completes.
-The arguments have the same meaning as in
+This guarantees that the system will never go to sleep while @var{body}
+executes.  The arguments have the same meaning as in
 @code{system-sleep-block-sleep}, above.
 @end defmac
 
 @defun system-sleep-sleep-blocked-p
-This predicate function returns non-@code{nil} on if there are any
-active @code{system-sleep} blocks, otherwise returns @code{nil}.
+This predicate function returns non-@code{nil} if there are any
+active @code{system-sleep} blocks, otherwise it returns @code{nil}.
 @end defun
 
 @defun system-sleep-unblock-all-sleep-blocks
