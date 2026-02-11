@@ -1524,10 +1524,10 @@ true if the first binding's value is non-@code{nil}.
 @findex bind-and*
 @code{(bind-and* @var{bindings}@dots{})} means to bind @var{bindings}
 (like the bindings list in @code{if-let*}, @pxref{Conditionals}) for
-only the body of the clause.  It is always a non-exit clause.  As a
-condition, it counts as true if none of the bindings evaluate to
-@code{nil}.  In addition, if any binding evaluates to @code{nil}, the
-expressions for the values of subsequent bindings are not evaluated.
+only the body of the clause.  As a condition, it counts as true if none
+of the bindings evaluate to @code{nil}.  In addition, if any binding
+evaluates to @code{nil}, the expressions for the values of subsequent
+bindings are not evaluated.
 
 @findex match*
 @findex pcase*
@@ -1549,13 +1549,13 @@ becomes the return value of the @code{cond*} construct.
 
 @subheading Non-exit clauses
 
-If a clause has only one element, or if its first element is @code{t}, a
-@code{bind*} form or a @code{bind-and*} form, or if it ends with the
-keyword @code{:non-exit}, then this clause never exits the @code{cond*}
-construct.  Instead, control falls through to the next clause (if any).
-Except for @code{bind-and*}, the bindings made in @var{condition} for
-the @var{body} of the non-exit clause are passed along to the rest of
-the clauses in this @code{cond*} construct.
+If a clause has only one element, or if its first element is @code{t} or
+a @code{bind*} form, or if it ends with the keyword @code{:non-exit},
+then this clause never exits the @code{cond*} construct.  Instead,
+control falls through to the next clause (if any).  Except for a
+@code{bind-and*} clause, the bindings made in @var{condition} for the
+@var{body} of the non-exit clause are passed along to the rest of the
+clauses in this @code{cond*} construct.
 
 Note: @code{pcase*} does not support @code{:non-exit}, and when used in
 a non-exit clause, it follows the semantics of @code{pcase-let}, see

@@ -70,9 +70,8 @@ For its patterns, see `match*'.
 The condition counts as true if PATTERN matches DATUM.
 
 `(bind-and* BINDINGS...)' means to bind BINDINGS (as if they were in
-`if-let*') for only the the body of the clause.  It is always a non-exit
-clause.  If any expression evaluates to nil, the condition counts as
-false.
+`if-let*') for only the the body of the clause.  If any expression
+evaluates to nil, the condition counts as false.
 
 `(pcase* PATTERN DATUM)' means to match DATUM against the
 pattern PATTERN, using the same pattern syntax as `pcase'.
@@ -84,13 +83,12 @@ in its body becomes the return value of the `cond*' construct.
 
 Non-exit clauses:
 
-If a clause has only one element, or if its first element is t, a
-`bind*' form or a `bind-and*' form, or if it ends with the keyword
-`:non-exit', then this clause never exits the `cond*' construct.
-Instead, control always falls through to the next clause (if any).
-Except for `bind-and*', all bindings made in CONDITION for the BODY of
-the non-exit clause are passed along to the rest of the clauses in this
-`cond*' construct.
+If a clause has only one element, or if its first element is t or a
+`bind*' form, or if it ends with the keyword `:non-exit', then this
+clause never exits the `cond*' construct.  Instead, control always falls
+through to the next clause (if any).  Except for a `bind-and*' clause,
+all bindings made in CONDITION for the BODY of the non-exit clause are
+passed along to the rest of the clauses in this `cond*' construct.
 
 See `match*' for documentation of the patterns for use in `match*'
 conditions."
@@ -197,9 +195,9 @@ CONDITION of a `cond*' clause.  See `cond*' for details."
       (and (cdr-safe clause)
            ;; Starts with t.
            (or (eq (car clause) t)
-               ;; Starts with a `bind*' or `bind-and*' pseudo-form.
+               ;; Starts with a `bind*' pseudo-form.
                (and (consp (car clause))
-                    (memq (caar clause) '(bind* bind-and*)))))
+                    (eq (caar clause) 'bind*))))
       ;; Ends with keyword.
       (eq (car (last clause)) :non-exit)))
 
@@ -207,8 +205,8 @@ CONDITION of a `cond*' clause.  See `cond*' for details."
   "For a non-exit cond* clause CLAUSE, return its substance.
 This removes a final keyword if that's what makes CLAUSE non-exit."
   (cond ((or (null (cdr-safe clause))   ;; either clause has only one element
-             (and (consp (car clause))  ;; or it starts with `bind*'/`bind-and*'
-                  (memq (caar clause) '(bind* bind-and*))))
+             (and (consp (car clause))  ;; or it starts with `bind*'
+                  (eq (caar clause) 'bind*)))
          clause)
         ;; Starts with t or a keyword.
         ;; Include t as the first element of the substance
