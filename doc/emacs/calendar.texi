@@ -1658,9 +1658,9 @@ follows:
 @end group
 @end lisp
 
-The variables @code{start-to-end}, @code{summary} and @code{location} in
-this example are dynamically bound to appropriate values when the
-skeleton is called.  See the docstring of
+The variables @code{ical-start-to-end}, @code{ical-summary} and
+@code{ical-location} in this example are dynamically bound to
+appropriate values when the skeleton is called.  See the docstring of
 @code{diary-icalendar-vevent-format-function} for more information.
 
 Any errors encountered during import will be reported in a buffer named
