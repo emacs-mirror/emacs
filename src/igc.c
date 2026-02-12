@@ -2153,23 +2153,30 @@ decode_ptr (Lisp_Object o)
   switch (tag)
     {
     case Lisp_Cons:
-      return XCONS (o);
+      return XUNTAG (o, Lisp_Cons, struct Lisp_Cons);
 
     case Lisp_Symbol:
-      return NILP (o) ? NULL : XSYMBOL (o);
+      if (NILP (o))
+	return NULL;
+      else
+	{
+	  intptr_t i
+	    = (intptr_t) XUNTAG (o, Lisp_Symbol, struct Lisp_Symbol);
+	  return (char *) lispsym + i;
+	}
 
     case Lisp_Int0:
     case Lisp_Int1:
       return NULL;
 
     case Lisp_String:
-      return XSTRING (o);
+      return XUNTAG (o, Lisp_String, struct Lisp_String);
 
     case Lisp_Vectorlike:
-      return XVECTOR (o);
+      return XUNTAG (o, Lisp_Vectorlike, struct Lisp_Vector);
 
     case Lisp_Float:
-      return XFLOAT (o);
+      return XUNTAG (o, Lisp_Float, struct Lisp_Float);
 
     case Lisp_Type_Unused0:
       emacs_abort ();
