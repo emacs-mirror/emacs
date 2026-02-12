@@ -3551,6 +3551,17 @@ value.  Previously, only 'hi-lock-face-buffer' supported this.
 
 *** 'shadow-info-buffer' and 'shadow-todo-buffer' use ephemeral buffer names now.
 
+** Display Battery mode
+
+---
+*** UPower battery status can update automatically without polling.
+On systems where the user option 'battery-status-function' is set to
+'battery-upower', it is now possible to get battery status updates on
+the mode line without polling for changes every
+'battery-update-interval' seconds.  Setting this user option to nil
+means the mode line will update only when the battery power state,
+percentage, or presence in the bay changes.
+
 
 * New Modes and Packages in Emacs 31.1
 
