@@ -2610,6 +2610,60 @@ for FRAME."
     (or (/= (window-old-pixel-width root) (window-pixel-width root))
         (/= (+ (window-old-pixel-height root) mini-old-height)
             (+ (window-pixel-height root) mini-height)))))
+
+(defun frame-use-time (&optional frame)
+  "Return FRAME's last use time.
+The result is the `window-use-time' of FRAME's most recently used window
+computed by `get-mru-window'.  If optional FRAME is nil, use the
+selected frame."
+  (window-use-time
+   ;; Arguments to `get-mru-window' consider all windows.
+   (get-mru-window (window-normalize-frame frame) t t t)))
+
+(defun get-mru-frame (&optional all-frames exclude)
+  "Return the most recently used frame on frames specified by ALL-FRAMES.
+Compute the result from each frame's most recently used window computed
+by `get-mru-window', which see.  Return nil if no candidate frames are
+found, for example, if there is only one frame.  Tooltip, minibuffer
+only, and child frames are never candidates.  Optional argument EXCLUDE,
+when non-nil, is a frame to exclude, for example, the selected frame.
+
+The following non-nil values of the optional argument ALL-FRAMES
+have special meanings:
+
+- `visible' means consider all visible frames on the current terminal
+  or EXCLUDE's terminal if non-nil.
+
+- 0 (the number zero) means consider all all visible and iconified
+  frames on the current terminal or EXCLUDE's terminal if non-nil.
+
+Any other value of ALL-FRAMES means consider all frames."
+  (setq all-frames (or all-frames t))
+  (let* ((mru-frame)
+         (time)
+         (best-time 0)
+         (terminal (frame-terminal (or exclude (selected-frame))))
+         (frame-list
+          (seq-remove (lambda (frame)
+                        (or (eq frame exclude)
+                            (eq (frame-parameter frame 'minibuffer) 'only)
+                            (frame-parent frame)))
+                      (cond
+                       ((eq all-frames 'visible)
+                        (seq-filter (lambda (frame)
+                                      (eq (frame-terminal frame) terminal))
+                                    (visible-frame-list)))
+                       ((eq all-frames 0)
+                        (seq-filter (lambda (frame)
+                                      (eq (frame-terminal frame) terminal))
+                                    (frame-list)))
+                       (t (frame-list))))))
+    (dolist (frame frame-list)
+      (setq time (frame-use-time frame))
+      (when (> time best-time)
+        (setq best-time time)
+        (setq mru-frame frame)))
+    mru-frame))
 
 ;;;; Frame/display capabilities.
 

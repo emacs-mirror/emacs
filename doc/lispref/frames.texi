@@ -3188,6 +3188,55 @@ could switch to a different terminal without switching back when
 you're done.
 @end deffn
 
+@cindex most recently used frame
+@defun get-mru-frame &optional all-frames exclude
+
+This function is like @code{get-mru-window}, but it returns the most
+recently used frame.  The @dfn{most recently used frame} is the frame
+with the most recently selected window as computed by
+@code{get-mru-window}.  (@pxref{Selecting Windows})
+
+This function will return @code{nil} if no candidate frames are found,
+for example, if there is only one frame.  Tooltip, minibuffer only, and
+child frames are never candidates.
+
+Since in practice the most recently used frame is always the selected
+one, it usually makes sense to call this function with a non-@code{nil}
+@var{exclude} argument with, for example, the selected frame.
+
+The optional argument @var{all-frames} specifies which frames to
+consider:
+
+@itemize @bullet
+@item @code{visible}
+means to consider all visible frames on the current terminal or
+@var{exclude}'s terminal.
+
+@item 0
+means to consider all visible or iconified frames on the current
+terminal or @var{exclude}'s terminal.
+
+@item Anything else
+means to consider all frames.
+@end itemize
+
+If @code{get-mru-frame} is called from within the body of
+@code{with-selected-frame}, it may yield unexpected results as the most
+recently used window will not necessarily match the selected one in the
+temporarily selected frame.  (@pxref{Selecting Windows})
+@end defun
+
+@cindex frame use time
+@cindex use time of frame
+@cindex frame order by time of last use
+@defun frame-use-time &optional frame
+
+This function returns the use time of frame @var{frame}.  @var{frame}
+must be a live frame and defaults to the selected one.  The result is
+the @code{window-use-time} of @var{frame}'s most recently used window
+computed by @code{get-mru-window}.  (@pxref{Selecting Windows})
+@end defun
+
 @deffn Command select-frame-by-id id &optional noerror
 This function searches open and undeletable frames for a matching frame
 identifier @var{id} (@pxref{Frames}).  If found, its frame is undeleted,

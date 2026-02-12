@@ -495,6 +495,27 @@ therefore advisable to use this function as part of a condition that
 determines whether to call 'delete-frame'.
 
 +++
+*** New function 'frame-use-time'.
+This function is the frame equivalent of the function 'window-use-time'
+for a window.  The result is the `window-use-time' of a frame's most
+recently used window.
+
++++
+*** New function 'get-mru-frame'.
+This function returns the most recently used frame from among all
+frames, or those visible or iconified on the same terminal as the
+selected frame.  A frame can be excluded, for example, the selected
+frame, as it will always be the most recently used frame on the current
+terminal.
+
+---
+*** After deleting, 'delete-frame' now selects the most recently used frame.
+Previously, after deleting a specified frame, 'delete-frame' would
+select the next eligible frame in the order of the frame list.  This is
+often unrelated to frames' recent use and can appear somewhat random to
+users.
+
++++
 *** New value 'force' for user option 'frame-inhibit-implied-resize'.
 This will inhibit implied resizing while a new frame is made and can be
 useful on tiling window managers where the initial frame size should be
