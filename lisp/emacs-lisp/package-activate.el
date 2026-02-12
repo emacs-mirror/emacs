@@ -637,11 +637,7 @@ The elements of the returned list will have the form described in
                  ((eq package-autosuggest-style 'mode-line))
                  (avail (package--autosuggest-find-candidates)))
         (propertize
-         (format " Install %s?"
-                 (mapconcat
-                  #'symbol-name
-                  (delete-dups (mapcar #'car avail))
-                  ", "))
+         "[Upgrade?]"
          'face 'mode-line-emphasis
          'mouse-face 'mode-line-highlight
          'help-echo "Click to install suggested package."
