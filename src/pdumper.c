@@ -2813,12 +2813,14 @@ dump_hash_table_kv (struct dump_context *ctx,
 {
   dump_align_output (ctx, DUMP_ALIGNMENT);
   struct pair_vector out;
+  size_t hdr_size = offsetof (struct pair_vector, pairs);
   dump_off kv_start = dump_object_start (ctx, kv, IGC_OBJ_PAIR_VECTOR,
-					 &out, sizeof (out));
+					 &out, hdr_size);
   DUMP_FIELD_COPY (&out, kv, gc_header);
   eassert (NILP (kv->ndeleted));
   DUMP_FIELD_COPY (&out, kv, ndeleted);
-  dump_object_finish_1 (ctx, &out, sizeof (out));
+  dump_object_finish_1 (ctx, &out, hdr_size);
+  eassert (ctx->offset - kv_start == hdr_size);
 
   struct dump_flags old_flags = ctx->flags;
   ctx->flags.pack_objects = true;
