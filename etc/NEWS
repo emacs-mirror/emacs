@@ -2988,6 +2988,17 @@ The package review can include reading the downloaded source code,
 presenting a diff between the downloaded code and a previous
 installation or displaying a ChangeLog.
 
++++
+*** New command 'package-autosuggest'
+Using a built-in database of package suggestions from ELPA, this command
+will install viable packages if no specific major mode is available.
+
++++
+*** New minor mode 'package-autosuggest-mode'
+When enabled, this displays a hint in the mode line indicating the
+availability of a suggested package.  You can customise the presentation
+of these hints using 'package-autosuggest-style'.
+
 ** Rcirc
 
 +++
