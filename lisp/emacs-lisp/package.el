@@ -4578,7 +4578,12 @@ so you have to select which to install!)" nl))
                              (package--autosuggest-install-and-enable
                               (car sugs))
                              (quit-window)))
-                " (" (buttonize "about" #'describe-package pkg)
+                " ("
+                (buttonize "about"
+                           (lambda (_)
+                             (unless (assq pkg package-archive-contents)
+                               (package-read-all-archive-contents))
+                             (describe-package pkg)))
                 ", matches ")
         (dolist (sug sugs)
           (unless (eq (char-before) ?\s)
