@@ -1,6 +1,6 @@
 ;;; diary-icalendar.el --- Display iCalendar data in diary  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026  Free Software Foundation, Inc.
 
 ;; Author: Richard Lawrence <rwl@recursewithless.net>
 ;; Created: January 2025
@@ -493,7 +493,7 @@ this variable if you want to export diary entries where the text to be
 used as the summary does not appear on the first line of the entry.  In
 that case, the summary should match group 1 of this regexp."
   :version "31.1"
-  :type '(regexp))
+  :type '(choice (const nil) regexp))
 
 (defcustom di:todo-regexp nil
   "Regular expression that identifies an entry as a task (VTODO).
