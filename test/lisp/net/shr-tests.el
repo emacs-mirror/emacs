@@ -183,6 +183,21 @@ settings, then once more for each (OPTION . VALUE) pair.")
                                (point-max))))
               (should (equal image-zooms '(original))))))))))
 
+(ert-deftest dom-print-escape ()
+  ;; This is a DOM as parsed by `libxml-parse-xml-region'.
+  (let ((svg-string (concat "<svg width=\"100\" height=\"100\""
+                            " version=\"1.1\" "
+                            "xmlns=\"http://www.w3.org/2000/svg\" "
+                            "xmlns:xlink=\"http://www.w3.org/1999/xlink\"> "
+                            "<text>&amp; &gt;.&lt;</text>"
+                            "</svg>"))
+        (dom '(svg ((width . "100") (height . "100") (version . "1.1") (xmlns . "http://www.w3.org/2000/svg")
+                    (xmlns:xlink . "http://www.w3.org/1999/xlink"))
+                   (text nil "& >.<"))))
+    (with-temp-buffer
+      (shr-dom-print dom)
+      (should (equal svg-string (buffer-string))))))
+
 (require 'shr)
 
 ;;; shr-tests.el ends here
