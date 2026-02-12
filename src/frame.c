@@ -2603,7 +2603,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   struct frame *f = decode_any_frame (frame);
   struct frame *sf;
   struct kboard *kb;
-  Lisp_Object frames, frame1;
+  Lisp_Object frames, frame1 UNINIT;
   int is_tooltip_frame;
   bool nochild = !FRAME_PARENT_FRAME (f);
   Lisp_Object minibuffer_child_frame = Qnil;
