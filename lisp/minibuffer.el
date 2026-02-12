@@ -4979,15 +4979,25 @@ usual. Returns (ALL PAT PREFIX SUFFIX)."
   "Try to flex-complete STRING in TABLE given PRED and POINT."
   (when (and completion-flex-nospace (string-search " " string))
     (cl-return-from completion-flex-try-completion))
-  (pcase-let ((`(,all ,_pattern-str ,_prefix ,_suffix)
-               (completion--flex-all-completions-1 string table pred point))
-              (probe))
-    (cond ((null all) nil)
-          ((and (equal string (car all)) (null (cdr all))) t)
-          ((and (setq probe (try-completion "" all pred))
-                (cl-plusp (length probe)))
-           (cons probe (length probe)))
-          ((cons string point)))))
+  (pcase-let* ((`(,all ,pattern-str ,prefix ,suffix)
+                (completion--flex-all-completions-1 string table pred point))
+               (pcm-pattern
+                (cons
+                 'prefix
+                 (cl-loop with point-idx = (1- (- point (length prefix)))
+                          for x across pattern-str for i from 0
+                          collect (char-to-string x)
+                          collect (if (eq i point-idx)
+                                      'point 'any)))))
+    (if minibuffer-completing-file-name
+        (setq all (completion-pcm--filename-try-filter all)))
+    ;; Try some "merging", meaning add as much as possible to the
+    ;; user's pattern without losing any possible matches in `all'.
+    ;; i.e this will augment "cfi" to "config" if all candidates
+    ;; contain the substring "config".  FIXME: this still won't
+    ;; augment "foo" to "froo" when matching "frodo" and
+    ;; "farfromsober".
+    (completion-pcm--merge-try pcm-pattern all prefix suffix)))
 
 (cl-defun completion-flex-all-completions (string table pred point)
   "Get flex-completions of STRING in TABLE, given PRED and POINT."
