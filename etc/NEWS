@@ -62,7 +62,7 @@ You can keep the old behavior by putting '(xterm-mouse-mode -1)' in your
 init file.
 
 +++
-** 'site-start.el' is now loaded before the user's early init file.
+** site-start.el is now loaded before the user's early init file.
 Previously, the order was early-init.el, site-start.el and then the
 user's regular init file, but now site-start.el comes first.  This
 allows site administrators to customize things that can normally only be
@@ -2183,6 +2183,12 @@ To unconditionally enable 'flyspell-mode' from a hook, use this instead:
 ** Tramp
 
 +++
+*** Tramp signals 'remote-file-error' in case of connection problems.
+This is a subcategory of 'file-error'.  Therefore, all checks for
+'file-error' in 'condition-case', 'ignore-error', 'error-conditions' and
+alike still work.
+
++++
 *** New command 'tramp-cleanup-bufferless-connections'.
 Connection-related objects for which no associated buffers exist, except
 for Tramp internal buffers, are flushed.  This is helpful to prune
@@ -3352,7 +3358,7 @@ changing the marking state in the calendar buffer.
 A new library has been added to the calendar for handling iCalendar
 (RFC5545) data.  The library is designed for reuse in other parts of
 Emacs and in third-party packages.  Package authors can find the new
-library in the Emacs distribution under lisp/calendar/icalendar-*.el.
+library in the Emacs distribution under "lisp/calendar/icalendar-*.el".
 
 Most of the functions and variables in the older icalendar.el have been
 marked obsolete and now suggest appropriate replacements from the new
@@ -3605,7 +3611,7 @@ This package provides platform-neutral interfaces to block your system
 from entering idle sleep and a hook to process pre-sleep and post-wake
 events.  You can use this to avoid the system entering an idle sleep
 state and interrupting a long-running process due to lack of user
-activity.  The sleep event hook lets you, for example close external
+activity.  The sleep event hook lets you, for example, close external
 connections or serial ports before sleeping, and reestablish them when
 the system wakes up.
 
@@ -3615,6 +3621,7 @@ blocking requires org.freedesktop.Screensaver service), macOS
 (sleep/display blocking requires version 10.9 or later, sleep events are
 supported on all versions), MS-Windows (sleep blocking is supported on
 all versions, sleep events require Windows 8 or later).
+
 
 * Incompatible Lisp Changes in Emacs 31.1
 
@@ -3788,6 +3795,7 @@ When no tags file is loaded, symbol completion just won't provide any
 suggestions.  So the 'M-?' command now works without a tags table.  And
 the 'M-.' will show a message describing the several built-in options
 that will provide an Xref backend when used.
+
 
 * Lisp Changes in Emacs 31.1
 
