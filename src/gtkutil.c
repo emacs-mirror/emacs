@@ -1405,6 +1405,8 @@ xg_frame_set_size_and_position (struct frame *f, int width, int height)
 
   outer_height /= scale;
   outer_width /= scale;
+  x /= scale;
+  y /= scale;
 
   /* Full force ahead.  For top-level frames the gravity will get reset
      to NorthWestGravity anyway.  */
