@@ -2323,9 +2323,10 @@ configuration (if any), excluding the ``ignored'' files from the output.
 It has some performance optimizations for listing the files with some of
 the popular VCS systems (currently Git and Mercurial).
 
-It also uses a cache for some of the computations, for shorter or longer
-periods of time, depending on whether it's being used from an
-interactive command, or from non-essential code running in background.
+@findex project-remember-projects-under
+It also uses a time-based cache.  If the mode line shows stale project
+information, you can type @kbd{M-x project-remember-projects-under RET}
+to refresh the stale cached info.
 
 @defopt project-vc-include-untracked
 By default, files which are neither registered with nor ignored by the
