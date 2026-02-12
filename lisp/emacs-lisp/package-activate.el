@@ -674,7 +674,7 @@ This function should be added to `after-change-major-mode-hook'."
 (define-minor-mode package-autosuggest-mode
   "Enable the automatic suggestion and installation of packages."
   :global t :group 'package
-  :initialize #'custom-initialize-delay
+  ;; :initialize #'custom-initialize-delay
   (funcall (if package-autosuggest-mode #'add-hook #'remove-hook)
            'after-change-major-mode-hook
            #'package--autosuggest-after-change-mode))
