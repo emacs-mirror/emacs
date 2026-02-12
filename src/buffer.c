@@ -3082,14 +3082,13 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
 {
   ptrdiff_t idx = 0;
   ptrdiff_t len = *len_ptr;
-  ptrdiff_t next = ZV;
+  ptrdiff_t next = Z;
   Lisp_Object *vec = *vec_ptr;
   struct itree_node *node;
 
-  /* Extend the search range if overlays beginning at ZV are
-     wanted.  */
-  ptrdiff_t search_end = ZV;
-  if (end >= ZV && (empty || trailing))
+  /* Extend the search range if overlays beginning at Z are wanted.  */
+  ptrdiff_t search_end = Z;
+  if (end >= Z && (empty || trailing))
     ++search_end;
 
   ITREE_FOREACH (node, current_buffer->overlays, beg, search_end,
@@ -3103,7 +3102,7 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
       else if (node->begin == end)
         {
           next = node->begin;
-          if ((! empty || end < ZV) && beg < end)
+          if ((! empty || end < Z) && beg < end)
             break;
           if (empty && node->begin != node->end)
             continue;
@@ -3125,7 +3124,7 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
       idx++;
     }
   if (next_ptr)
-    *next_ptr = next ? next : ZV;
+    *next_ptr = next ? next : Z;
 
   return idx;
 }
