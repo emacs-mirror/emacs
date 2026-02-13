@@ -639,40 +639,27 @@ in `package--suggestion-applies-p'."
                (push sug suggetions)))
            suggetions)))
 
-(defvar package--autosugest-line-format
-  '(:eval (package--autosugest-line-format)))
-(put 'package--autosugest-line-format 'risky-local-variable t)
-
-(defun package--autosugest-line-format ()
-  "Generate a mode-line button to indicate a suggested package."
-  `(,@(and-let* (((not (null package-autosuggest-mode)))
-                 ((eq package-autosuggest-style 'mode-line))
-                 (avail (package--autosuggest-find-candidates)))
-        (propertize
-         "[Upgrade?]"
-         'face 'mode-line-emphasis
-         'mouse-face 'mode-line-highlight
-         'help-echo "Click to install suggested package."
-         'keymap (let ((map (make-sparse-keymap)))
-                   (define-key map
-                               [mode-line down-mouse-1]
-                               #'package-autosuggest)
-                   map)))))
-
 (declare-function package-autosuggest "package" (&optional candidates))
 
 (defun package--autosuggest-after-change-mode ()
   "Display package suggestions for the current buffer.
 This function is intended for addition to `after-change-major-mode-hook'."
-  (when-let* ((avail (package--autosuggest-find-candidates))
-              (pkgs (mapconcat #'symbol-name
-                               (delete-dups (mapcar #'car avail))
-                               ", ")))
+  (when-let* ((avail (package--autosuggest-find-candidates)))
     (pcase-exhaustive package-autosuggest-style
       ('mode-line
-       (setq mode-name (append (ensure-list mode-name)
-                               '((package-autosuggest-mode
-                                  package--autosugest-line-format))))
+       (setq mode-name
+             (append
+              (ensure-list mode-name)
+              `((:propertize
+                 "[Upgrade?]"
+                 face mode-line-emphasis
+                 mouse-face mode-line-highlight
+                 help-echo "Click to see suggested packages for this file."
+                 keymap ,(let ((map (make-sparse-keymap)))
+                           (define-key map
+                                       [mode-line down-mouse-1]
+                                       #'package-autosuggest)
+                           map)))))
        (force-mode-line-update t))
       ('always
        (package-autosuggest avail))
@@ -680,7 +667,9 @@ This function is intended for addition to `after-change-major-mode-hook'."
        (message
         (substitute-command-keys
          (format "Found suggested packages: %s.  Install using  \\[package-autosuggest]"
-                 pkgs)))
+                 (mapconcat #'symbol-name
+                            (delete-dups (mapcar #'car avail))
+                            ", "))))
        (dolist (rec avail)
          (add-to-list 'package--autosuggest-suggested (car rec)))))))
 
