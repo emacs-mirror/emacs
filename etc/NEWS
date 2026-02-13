@@ -2989,13 +2989,13 @@ presenting a diff between the downloaded code and a previous
 installation or displaying a ChangeLog.
 
 +++
-*** New command 'package-autosuggest'
+*** New command 'package-autosuggest'.
 Using a built-in database of ELPA package suggestions, this command will
 install viable packages if no specific major mode is available for the
 contents of the current buffer.
 
 +++
-*** New minor mode 'package-autosuggest-mode'
+*** New minor mode 'package-autosuggest-mode'.
 When enabled, this displays indications about the availability of add-on
 ELPA packages for the current buffer and suggestions for installing
 those packages.  The default is to show a button on the mode line that
