@@ -342,11 +342,7 @@ DEFINE_GDB_SYMBOL_END (VALMASK)
 #define GCALIGNED(type) (alignof (type) % GCALIGNMENT == 0)
 
 #ifdef HAVE_MPS
-union gc_header
-{
-  uint64_t v;
-  GCALIGNED_UNION_MEMBER
-};
+# include "igc-types.h"
 #endif
 
 /* Lisp_Word is a scalar word suitable for holding a tagged pointer or
