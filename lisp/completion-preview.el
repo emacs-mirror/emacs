@@ -98,6 +98,14 @@
 ;; when you pause typing for a short duration rather than after every
 ;; key.  Try setting it to 0.2 seconds and see how that works for you.
 ;;
+;; The user option `completion-preview-inhibit-functions' lets you
+;; specify additional arbitrary conditions for inhibiting the preview.
+;; For example, if you'd like to inhibit Completion Preview mode during
+;; keyboard macro execution, you could use something like this:
+;;
+;;   (add-hook 'completion-preview-inhibit-functions
+;;             (lambda () executing-kbd-macro))
+;;
 ;; By default, Completion Preview mode automatically adapts the
 ;; background color of the preview overlay to match the background color
 ;; of the buffer text it's completing.  If you prefer a distinct
@@ -606,6 +614,13 @@ point, otherwise hide it."
                                  (selected-window) (current-buffer)))
     (completion-preview--try-update)))
 
+(defcustom completion-preview-inhibit-functions nil
+  "Abnormal hook for inhibiting Completion Preview mode operation.
+Completion Preview mode calls the functions on this hook without
+arguments during `post-command-hook'.  If any of these functions returns
+non-nil, it inhibits the preview display."
+  :type 'hook)
+
 (defun completion-preview--post-command ()
   "Create, update or delete completion preview post last command."
   (let ((internal-p (or completion-preview--inhibit-update-p
@@ -623,7 +638,8 @@ point, otherwise hide it."
       )
      ((and (completion-preview-require-certain-commands)
            (completion-preview-require-minimum-symbol-length)
-           (not buffer-read-only))
+           (not buffer-read-only)
+           (not (run-hook-with-args-until-success 'completion-preview-inhibit-functions)))
       ;; All conditions met.  Show or update the preview.
       (completion-preview--show))
      (completion-preview-active-mode

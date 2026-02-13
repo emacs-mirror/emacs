@@ -296,6 +296,12 @@ that your popup interface uses for a more integrated experience.
 but as a plain Lisp variable, not a user option.)
 
 ---
+*** New user option 'completion-preview-inhibit-functions'.
+This option provides fine-grained control over Completion Preview mode
+activation.  You can use it to specify arbitrary conditions in which to
+inhibit the mode's operation.
+
+---
 *** New mode 'minibuffer-nonselected-mode'.
 This mode, enabled by default, directs the attention to the active
 minibuffer window using the 'minibuffer-nonselected' face in case
