@@ -800,12 +800,8 @@ attached."
                       (insert-buffer-substring tmp-buf)
                       (comment-region start (point))))))
               t)
-             (?c
-              (view-file news)
-              t)
-             (?b
-              (dired pkg-dir "-R") ;FIXME: Is recursive dired portable?
-              t)))))
+             (?c (view-file news) t)
+             (?b (dired pkg-dir) t)))))
 
 (declare-function dired-get-marked-files "dired")
 
