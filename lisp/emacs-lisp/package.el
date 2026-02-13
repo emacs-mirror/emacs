@@ -2065,8 +2065,6 @@ had been enabled."
                 (message  "Package `%s' installed" name))
             (error  "Package `%s' not installed" name))))))
 
-(declare-function package-vc-upgrade "package-vc" (pkg))
-
 ;;;###autoload
 (defun package-upgrade (name)
   "Upgrade package NAME if a newer version exists.
@@ -2081,7 +2079,7 @@ NAME should be a symbol."
          (package-install-upgrade-built-in (not pkg-desc)))
     ;; `pkg-desc' will be nil when the package is an "active built-in".
     (if (and pkg-desc (package-vc-p pkg-desc))
-        (package-vc-upgrade pkg-desc)
+        (error "Use `package-vc-upgrade' for VC packages")
       (let ((new-desc (cadr (assq name package-archive-contents))))
         (when (or (null new-desc)
                   (version-list-= (package-desc-version pkg-desc)
@@ -2102,16 +2100,16 @@ NAME should be a symbol."
    #'car
    (seq-filter
     (lambda (elt)
-      (or (let ((available
-                 (assq (car elt) package-archive-contents)))
-            (and available
-                 (or (and
-                      include-builtins
-                      (not (package-desc-version (cadr elt))))
-                     (version-list-<
-                      (package-desc-version (cadr elt))
-                      (package-desc-version (cadr available))))))
-          (package-vc-p (cadr elt))))
+      (let ((available
+             (assq (car elt) package-archive-contents)))
+        (and available
+             (or (and
+                  include-builtins
+                  (not (package-desc-version (cadr elt))))
+                 (version-list-<
+                  (package-desc-version (cadr elt))
+                  (package-desc-version (cadr available))))
+             (not (package-vc-p (cadr elt))))))
     (if include-builtins
         (append package-alist
                 (mapcan
