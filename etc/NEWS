@@ -2990,14 +2990,18 @@ installation or displaying a ChangeLog.
 
 +++
 *** New command 'package-autosuggest'
-Using a built-in database of package suggestions from ELPA, this command
-will install viable packages if no specific major mode is available.
+Using a built-in database of ELPA package suggestions, this command will
+install viable packages if no specific major mode is available for the
+contents of the current buffer.
 
 +++
 *** New minor mode 'package-autosuggest-mode'
-When enabled, this displays a hint in the mode line indicating the
-availability of a suggested package.  You can customise the presentation
-of these hints using 'package-autosuggest-style'.
+When enabled, this displays indications about the availability of add-on
+ELPA packages for the current buffer and suggestions for installing
+those packages.  The default is to show a button on the mode line that
+can be used to install such packages, but you can customise the
+presentation style of these suggestions using
+'package-autosuggest-style'.
 
 ** Rcirc
 

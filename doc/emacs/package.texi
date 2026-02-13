@@ -454,16 +454,22 @@ case, Emacs retrieves packages from this archive via ordinary file
 access.  Such local archives are mainly useful for testing.
 @end defopt
 
-@cindex suggestions
+@cindex automatic suggestions for installing Emacs packages
+@cindex packages, automatic suggestions for installing
 @findex package-autosuggest
 @findex package-autosuggest-mode
-  Emacs has a built-in database of suggested packages for certain file
-types.  If Emacs opens a file with no specific mode, you can use the
-@code{package-autosuggest} command to install the recommended packages
-from ELPA.  After enabling @code{package-autosuggest-mode}, Emacs will
-display a clickable hint in the mode-line if it there is a suggested
-package.  Using the @code{package-autosuggest-style} user option, you
-can adjust how Emacs presents the hint to install a package.
+@vindex package-autosuggest-style
+  Emacs can suggest installing packages when you visit certain kinds of
+files.  When you visit a file with no specific mode available, you can
+use the @code{package-autosuggest} command to find and install add-on
+ELPA packages recommended for this file type.  If you enable
+@code{package-autosuggest-mode}, Emacs will automatically notify you if
+it there is a suggested add-on package for the file visited by the
+buffer.  The default is for these notifications to display a button in
+the buffer window's mode-line suggesting you to upgrade the major mode
+by installing add-on packages, but you can control how Emacs presents
+these notifications by customizing the @code{package-autosuggest-style}
+user option.
 
 @anchor{Package Signing}
 @cindex package security
