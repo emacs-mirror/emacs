@@ -507,8 +507,6 @@ package."
 ;; `package-load-all-descriptors', which ultimately populates the
 ;; `package-alist' variable.
 
-(declare-function package-vc-version "package-vc" (pkg))
-
 (defun package-process-define-package (exp)
   "Process define-package expression EXP and push it to `package-alist'.
 EXP should be a form read from a foo-pkg.el file.
