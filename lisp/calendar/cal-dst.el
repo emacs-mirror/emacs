@@ -46,8 +46,7 @@ current date apply to all years.  This is faster, but not always
 correct, since the dates of daylight saving transitions sometimes
 change."
   :type 'boolean
-  :version "22.1"
-  :group 'calendar-dst)
+  :version "22.1")
 
 ;;;###autoload
 (put 'calendar-daylight-savings-starts 'risky-local-variable t)
@@ -68,8 +67,7 @@ If it starts on the first Sunday in April, you would set it to
       (calendar-nth-named-day 1 0 4 year)
 
 If the locale never uses daylight saving time, set this to nil."
-  :type 'sexp
-  :group 'calendar-dst)
+  :type 'sexp)
 
 ;;;###autoload
 (put 'calendar-daylight-savings-ends 'risky-local-variable t)
@@ -85,8 +83,7 @@ For example, if daylight saving time ends on the last Sunday in October:
       (calendar-nth-named-day -1 0 10 year)
 
 If the locale never uses daylight saving time, set this to nil."
-  :type 'sexp
-  :group 'calendar-dst)
+  :type 'sexp)
 
 ;;; More defcustoms below.
 
@@ -208,10 +205,12 @@ The result has the proper form for `calendar-daylight-savings-starts'."
           ;; we require an absolute date.  The following is for efficiency.
           (setq date (cond ((eq (car rule) #'calendar-nth-named-day)
                             (eval (cons #'calendar-nth-named-absday
-                                        (cdr rule))))
+                                        (cdr rule))
+                                  t))
                            ((eq (car rule) #'calendar-gregorian-from-absolute)
-                            (eval (cadr rule)))
-                           (t (calendar-absolute-from-gregorian (eval rule)))))
+                            (eval (cadr rule) t))
+                           (t (calendar-absolute-from-gregorian
+                               (eval rule t)))))
           (or (equal (current-time-zone
                       (calendar-time-from-absolute date prevday-sec))
                      (current-time-zone
@@ -226,7 +225,7 @@ The result has the proper form for `calendar-daylight-savings-starts'."
     (car candidate-rules)))
 
 ;; TODO it might be better to extract this information directly from
-;; the system timezone database. But cross-platform...?
+;; the system timezone database.  But cross-platform...?
 ;; See thread
 ;; https://lists.gnu.org/r/emacs-pretest-bug/2006-11/msg00060.html
 (defun calendar-dst-find-data (&optional time)
@@ -309,7 +308,9 @@ system knows:
 UTC-DIFF is an integer specifying the number of minutes difference between
     standard time in the current time zone and Coordinated Universal Time
     (Greenwich Mean Time).  A negative value means west of Greenwich.
-DST-OFFSET is an integer giving the daylight saving time offset in minutes.
+DST-OFFSET is an integer giving the daylight saving time offset in minutes
+    relative to UTC-DIFF.  (That is, the total UTC offset during daylight saving
+    time is UTC-DIFF + DST-OFFSET minutes.)
 STD-ZONE is a string giving the name of the time zone when no seasonal time
     adjustment is in effect.
 DST-ZONE is a string giving the name of the time zone when there is a seasonal
@@ -339,15 +340,13 @@ it can't find."
 (defcustom calendar-time-zone (or (car calendar-current-time-zone-cache) -300)
   "Number of minutes difference between local standard time and UTC.
 For example, -300 for New York City, -480 for Los Angeles."
-  :type 'integer
-  :group 'calendar-dst)
+  :type 'integer)
 
 (defcustom calendar-daylight-time-offset
   (or (cadr calendar-current-time-zone-cache) 60)
   "Number of minutes difference between daylight saving and standard time.
 If the locale never uses daylight saving time, set this to 0."
-  :type 'integer
-  :group 'calendar-dst)
+  :type 'integer)
 
 (defcustom calendar-standard-time-zone-name
   (if (eq calendar-time-zone-style 'numeric)
@@ -360,8 +359,7 @@ If the locale never uses daylight saving time, set this to 0."
 For example, \"-0500\" or \"EST\" in New York City."
   :type 'string
   :version "28.1"
-  :set-after '(calendar-time-zone-style)
-  :group 'calendar-dst)
+  :set-after '(calendar-time-zone-style))
 
 (defcustom calendar-daylight-time-zone-name
   (if (eq calendar-time-zone-style 'numeric)
@@ -374,21 +372,18 @@ For example, \"-0500\" or \"EST\" in New York City."
 For example, \"-0400\" or \"EDT\" in New York City."
   :type 'string
   :version "28.1"
-  :set-after '(calendar-time-zone-style)
-  :group 'calendar-dst)
+  :set-after '(calendar-time-zone-style))
 
 (defcustom calendar-daylight-savings-starts-time
   (or (nth 6 calendar-current-time-zone-cache) 120)
   "Number of minutes after midnight that daylight saving time starts."
-  :type 'integer
-  :group 'calendar-dst)
+  :type 'integer)
 
 (defcustom calendar-daylight-savings-ends-time
   (or (nth 7 calendar-current-time-zone-cache)
       calendar-daylight-savings-starts-time)
   "Number of minutes after midnight that daylight saving time ends."
-  :type 'integer
-  :group 'calendar-dst)
+  :type 'integer)
 
 
 (defun calendar-dst-starts (year)
@@ -398,7 +393,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
                       (cadr (calendar-dst-find-startend year))
                     (nth 4 calendar-current-time-zone-cache))))
         (calendar-dlet ((year year))
-          (if expr (eval expr))))
+          (if expr (eval expr t))))
       ;; New US rules commencing 2007.  https://www.iana.org/time-zones
       (and (not (zerop calendar-daylight-time-offset))
            (calendar-nth-named-day 2 0 3 year))))
@@ -410,7 +405,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
                       (nth 2 (calendar-dst-find-startend year))
                     (nth 5 calendar-current-time-zone-cache))))
         (calendar-dlet ((year year))
-          (if expr (eval expr))))
+          (if expr (eval expr t))))
       ;; New US rules commencing 2007.  https://www.iana.org/time-zones
       (and (not (zerop calendar-daylight-time-offset))
            (calendar-nth-named-day 1 0 11 year))))
@@ -421,8 +416,8 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
 Fractional part of DATE is local standard time of day."
   (calendar-dlet ((year (calendar-extract-year
                           (calendar-gregorian-from-absolute (floor date)))))
-    (let* ((dst-starts-gregorian (eval calendar-daylight-savings-starts))
-           (dst-ends-gregorian (eval calendar-daylight-savings-ends))
+    (let* ((dst-starts-gregorian (eval calendar-daylight-savings-starts t))
+           (dst-ends-gregorian (eval calendar-daylight-savings-ends t))
            (dst-starts (and dst-starts-gregorian
                             (+ (calendar-absolute-from-gregorian
                                 dst-starts-gregorian)

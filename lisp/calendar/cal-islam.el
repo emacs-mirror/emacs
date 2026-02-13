@@ -154,7 +154,7 @@ Reads a year, month, and day."
          (month (cdr (assoc-string
                       (completing-read
                        "Islamic calendar month name: "
-                       (mapcar 'list (append month-array nil))
+                       (append month-array nil)
                        nil t)
                       (calendar-make-alist month-array 1) t)))
          (last (calendar-islamic-last-day-of-month month year))

@@ -169,8 +169,7 @@ Reads a year, month, and day."
          (month (cdr (assoc
                       (completing-read
                        "Persian calendar month name: "
-                       (mapcar 'list
-                               (append calendar-persian-month-name-array nil))
+                       (append calendar-persian-month-name-array nil)
                        nil t)
                       (calendar-make-alist calendar-persian-month-name-array
                                            1))))

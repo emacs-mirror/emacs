@@ -2243,6 +2243,9 @@ means hide the excess parts of @var{string} with a @code{display} text
 property (@pxref{Display Property}) showing the ellipsis, instead of
 actually truncating the string.
 
+See also the function @code{truncate-string-pixelwise} for pixel-level
+resolution.
+
 @example
 @group
 (truncate-string-to-width "\tab\t" 12 4)
@@ -2438,6 +2441,37 @@ include newlines.  The meaning of this result is the widest line taken
 by the string if inserted into a buffer.  If @var{buffer} is
 non-@code{nil}, use any face remappings (@pxref{Face Remapping}) from
 that buffer when computing the width of @var{string}.
+@end defun
+
+@defun truncate-string-pixelwise string max-pixels &optional buffer ellipsis ellipsis-pixels
+This is a convenience function that uses @code{window-text-pixel-size}
+to truncate @var{string} to @var{max-pixels} pixels.  Caveat: if you
+call this function to measure the width of a string with embedded
+newlines, it will then return the width of the widest substring that
+does not include newlines.  The meaning of this result is the widest
+line taken by the string if inserted into a buffer.  If @var{buffer} is
+non-@code{nil}, use any face remappings (@pxref{Face Remapping}) from
+that buffer when computing the width of @var{string}.
+
+If @var{ellipsis} is non-@code{nil}, it should be a string which will
+replace the end of @var{string} when it is truncated.  In this case,
+more characters will be removed from @var{string} to free enough space
+for @var{ellipsis} to fit within @var{max-pixels} pixels.  However, if
+the pixel width of @var{string} is less than the pixel width of
+@var{ellipsis}, @var{ellipsis} will not be appended to the result.  If
+@var{ellipsis} is non-@code{nil} and not a string, it stands for the
+value returned by the function @code{truncate-string-ellipsis},
+described above.
+
+If @var{ellipsis-pixels} is non-@code{nil} and @var{ellipsis} is
+non-@code{nil}, it should be the number of pixels of @var{ellipsis} that
+you should precompute using @code{string-pixel-width}, specifying the
+same buffer.  This is useful to avoid the cost of recomputing this value
+repeatedly when you have many strings to truncate using the same
+ellipsis string.
+
+See also the function @code{truncate-string-to-width} for
+character-level resolution.
 @end defun
 
 @defun line-pixel-height

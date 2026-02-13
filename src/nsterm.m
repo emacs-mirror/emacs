@@ -597,7 +597,6 @@ ns_init_locale (void)
   setenv ("LANG", lang, 1);
 }
 
-
 void
 ns_release_object (void *obj)
 /* --------------------------------------------------------------------------
@@ -5901,53 +5900,6 @@ ns_term_init (Lisp_Object display_name)
       ns_antialias_threshold = NILP (tmp) ? 10.0 : extract_float (tmp);
     }
 
-  NSTRACE_MSG ("Colors");
-
-  {
-    NSColorList *cl = [NSColorList colorListNamed: @"Emacs"];
-
-    /* There are 752 colors defined in rgb.txt.  */
-    if ( cl == nil || [[cl allKeys] count] < 752)
-      {
-        Lisp_Object color_file, color_map, color, name;
-        unsigned long c;
-
-        color_file = Fexpand_file_name (build_string ("rgb.txt"),
-                         Fsymbol_value (intern ("data-directory")));
-
-        color_map = Fx_load_color_file (color_file);
-        if (NILP (color_map))
-          fatal ("Could not read %s.\n", SDATA (color_file));
-
-        cl = [[NSColorList alloc] initWithName: @"Emacs"];
-        for ( ; CONSP (color_map); color_map = XCDR (color_map))
-          {
-            color = XCAR (color_map);
-            name = XCAR (color);
-            c = XFIXNUM (XCDR (color));
-            c |= 0xFF000000;
-            [cl setColor:
-                  [NSColor colorWithUnsignedLong:c]
-                  forKey: [NSString stringWithLispString: name]];
-          }
-
-        /* FIXME: Report any errors writing the color file below.  */
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101100
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101100
-        if ([cl respondsToSelector:@selector(writeToURL:error:)])
-#endif
-          [cl writeToURL:nil error:nil];
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101100
-        else
-#endif
-#endif /* MAC_OS_X_VERSION_MAX_ALLOWED >= 101100 */
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101100 \
-  || defined (NS_IMPL_GNUSTEP)
-          [cl writeToFile: nil];
-#endif
-      }
-  }
-
   NSTRACE_MSG ("Versions");
 
   delete_keyboard_wait_descriptor (0);
@@ -6382,6 +6334,20 @@ ns_term_shutdown (int sig)
 #endif
 
 #ifdef NS_IMPL_COCOA
+  /* Sleep event notification.  */
+  [[[NSWorkspace sharedWorkspace] notificationCenter]
+    addObserver: self
+       selector:@selector(systemWillSleep:)
+	   name: NSWorkspaceWillSleepNotification
+	 object: nil];
+  [[[NSWorkspace sharedWorkspace] notificationCenter]
+    addObserver: self
+       selector: @selector(systemDidWake:)
+	   name: NSWorkspaceDidWakeNotification
+	 object: nil];
+#endif
+
+#ifdef NS_IMPL_COCOA
   /* Some functions/methods in CoreFoundation/Foundation increase the
      maximum number of open files for the process in their first call.
      We make dummy calls to them and then reduce the resource limit
@@ -6419,6 +6385,31 @@ ns_term_shutdown (int sig)
 #endif
 }
 
+/* Sleep event notification.  */
+
+- (void) systemWillSleep:(NSNotification *)notification
+{
+#ifdef NS_IMPL_COCOA
+  NSTRACE ("[EmacsApp systemWillSleep:]");
+  struct input_event ie;
+  EVENT_INIT (ie);
+  ie.kind = SLEEP_EVENT;
+  ie.arg = list1 (Qpre_sleep);
+  kbd_buffer_store_event (&ie);
+#endif
+}
+
+- (void) systemDidWake:(NSNotification *)notification
+{
+#ifdef NS_IMPL_COCOA
+  NSTRACE ("[EmacsApp systemDidWake:]");
+  struct input_event ie;
+  EVENT_INIT (ie);
+  ie.kind = SLEEP_EVENT;
+  ie.arg = list1 (Qpost_wake);
+  kbd_buffer_store_event (&ie);
+#endif
+}
 
 /* Termination sequences:
     C-x C-c:

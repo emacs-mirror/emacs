@@ -487,7 +487,7 @@ static XtActionsRec button_actions[] =
     { "my_reset", command_reset },
     { "my_press", command_press },
   };
-char buttonTrans[] =
+static char buttonTrans[] =
   "<Leave>: reset() my_reset()\n"
   "<Btn1Down>: set() my_press()\n"
   "<Btn1Up>:  my_reset() notify() unset()\n";

@@ -1153,7 +1153,7 @@ METHOD can be:
 - :before, in which case ARG is a token and the function should return the
   OFFSET to use to indent ARG itself.
 - :elem, in which case the function should return either:
-  - the offset to use to indent function arguments (ARG = `arg')
+  - the offset to use to indent function arguments (ARG = `args')
   - the basic indentation step (ARG = `basic').
   - the token to use (when ARG = `empty-line-token') when we don't know how
     to indent an empty line.

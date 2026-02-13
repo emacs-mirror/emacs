@@ -40,8 +40,8 @@
 
 (defvar help-fns-describe-function-functions nil
   "List of functions to run in help buffer in `describe-function'.
-Those functions will be run after the header line and argument
-list was inserted, and before the documentation is inserted.
+Those functions will be run after the header line, the argument
+list, and the function's documentation are inserted.
 The functions will be called with one argument: the function's symbol.
 They can assume that a newline was output just before they were called,
 and they should terminate any of their own output with a newline.
@@ -2242,7 +2242,7 @@ is enabled in the Help buffer."
             (insert (format "Minor mode%s enabled in this buffer:"
                             (if (length> local-minors 1)
                                 "s" ""))))
-          (describe-mode--minor-modes local-minors))
+          (describe-mode--minor-modes local-minors nil buffer))
 
         ;; Document the major mode.
         (let ((major (buffer-local-value 'major-mode buffer)))
@@ -2269,7 +2269,9 @@ is enabled in the Help buffer."
                                (help-function-def--button-function
                                 major file-name))))))
           (insert ":\n\n"
-                  (help-split-fundoc (documentation major) nil 'doc)
+                  (help-split-fundoc (with-current-buffer buffer
+                                       (documentation major))
+                                     nil 'doc)
                   (with-current-buffer buffer
                     (help-fns--list-local-commands)))
           (ensure-empty-lines 1)
@@ -2280,7 +2282,7 @@ is enabled in the Help buffer."
               (insert (format "Global minor mode%s enabled:"
                               (if (length> global-minor-modes 1)
                                   "s" ""))))
-            (describe-mode--minor-modes global-minor-modes t)
+            (describe-mode--minor-modes global-minor-modes t buffer)
             (unless describe-mode-outline
               (when (re-search-forward "^\f")
                 (beginning-of-line)
@@ -2297,7 +2299,7 @@ is enabled in the Help buffer."
           ;; For the sake of IELM and maybe others
           nil)))))
 
-(defun describe-mode--minor-modes (modes &optional global)
+(defun describe-mode--minor-modes (modes &optional global buffer)
   (dolist (mode (seq-sort #'string< modes))
     (let ((pretty-minor-mode
            (capitalize
@@ -2338,7 +2340,10 @@ is enabled in the Help buffer."
 			      "no indicator"
 			    (format "indicator%s"
 				    indicator)))))
-	(insert (or (help-split-fundoc (documentation mode) nil 'doc)
+	(insert (or (help-split-fundoc
+	             (with-current-buffer (or buffer (current-buffer))
+	               (documentation mode))
+	             nil 'doc)
 	            "No docstring"))
         (when describe-mode-outline
           (insert "\n\n")))))

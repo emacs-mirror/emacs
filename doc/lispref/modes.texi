@@ -5026,7 +5026,7 @@ should return the @var{offset} to use to indent @var{arg} itself.
 @item
 @code{:elem}, in which case the function should return either the offset
 to use to indent function arguments (if @var{arg} is the symbol
-@code{arg}) or the basic indentation step (if @var{arg} is the symbol
+@code{args}) or the basic indentation step (if @var{arg} is the symbol
 @code{basic}).
 @item
 @code{:list-intro}, in which case @var{arg} is a token and the function

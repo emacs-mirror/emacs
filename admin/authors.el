@@ -69,6 +69,7 @@ files.")
     (nil "BlaCk_Void" "alstjr7375@daum\\.net")
     (nil "bug-gnu-emacs@gnu\\.org")  ; mistake
     ("Björn Torkelsson" "Bjorn Torkelsson")
+    ("Boris Buliga" "boris@d12frosted\\.io")
     (nil "brandon\\.irizarry@gmail\\.com")
     ("Brian Fox" "Brian J\\. Fox")
     ("Brian P Templeton" "BT Templeton")

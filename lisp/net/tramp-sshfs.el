@@ -359,7 +359,7 @@ connection if a previous connection has died for some reason."
 		 vec 'tramp-mount-args nil
 		 ?p (or (tramp-file-name-port vec) ""))))))
       (tramp-error
-       vec 'file-error "Error mounting %s" (tramp-fuse-mount-spec vec)))
+       vec 'remote-file-error "Error mounting %s" (tramp-fuse-mount-spec vec)))
 
     ;; Mark it as connected.
     (add-to-list 'tramp-fuse-mount-points (tramp-file-name-unify vec))

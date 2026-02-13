@@ -381,53 +381,53 @@ connection if a previous connection has died for some reason."
 
   (with-tramp-debug-message vec "Opening connection"
     (let ((host (tramp-file-name-host vec)))
-      (when (rassoc `(,host) (tramp-rclone-parse-device-names nil))
-	(if (tramp-string-empty-or-nil-p host)
-	    (tramp-error vec 'file-error "Storage %s not connected" host))
-	;; We need a process bound to the connection buffer.
-	;; Therefore, we create a dummy process.  Maybe there is a
-	;; better solution?
-	(unless (get-buffer-process (tramp-get-connection-buffer vec))
-	  (let ((p (make-network-process
-		    :name (tramp-get-connection-name vec)
-		    :buffer (tramp-get-connection-buffer vec)
-		    :server t :host 'local :service t :noquery t)))
-	    (tramp-post-process-creation p vec)
+      (when (or (tramp-string-empty-or-nil-p host)
+		(not (rassoc `(,host) (tramp-rclone-parse-device-names nil))))
+	(tramp-error vec 'remote-file-error "Storage %s not connected" host))
 
-	    ;; Set connection-local variables.
-	    (tramp-set-connection-local-variables vec)))
+      ;; We need a process bound to the connection buffer.  Therefore,
+      ;; we create a dummy process.  Maybe there is a better solution?
+      (unless (get-buffer-process (tramp-get-connection-buffer vec))
+	(let ((p (make-network-process
+		  :name (tramp-get-connection-name vec)
+		  :buffer (tramp-get-connection-buffer vec)
+		  :server t :host 'local :service t :noquery t)))
+	  (tramp-post-process-creation p vec)
 
-	;; Create directory.
-	(unless (file-directory-p (tramp-fuse-mount-point vec))
-	  (make-directory (tramp-fuse-mount-point vec) 'parents))
+	  ;; Set connection-local variables.
+	  (tramp-set-connection-local-variables vec)))
 
-	;; Mount.  This command does not return, so we use 0 as
-	;; DESTINATION of `tramp-call-process'.
-	(unless (tramp-fuse-mounted-p vec)
-	  (apply
-	   #'tramp-call-process
-	   vec tramp-rclone-program nil 0 nil
-	   "mount" (tramp-fuse-mount-spec vec)
-	   (tramp-fuse-mount-point vec)
-	   (tramp-get-method-parameter vec 'tramp-mount-args))
-	  (while (not (file-exists-p (tramp-make-tramp-file-name vec 'noloc)))
-	    (tramp-cleanup-connection vec 'keep-debug 'keep-password))
-	  (add-to-list 'tramp-fuse-mount-points (tramp-file-name-unify vec)))
+      ;; Create directory.
+      (unless (file-directory-p (tramp-fuse-mount-point vec))
+	(make-directory (tramp-fuse-mount-point vec) 'parents))
 
-	;; Mark it as connected.
-	(tramp-set-connection-property
-	 (tramp-get-connection-process vec) "connected" t)))
+      ;; Mount.  This command does not return, so we use 0 as
+      ;; DESTINATION of `tramp-call-process'.
+      (unless (tramp-fuse-mounted-p vec)
+	(apply
+	 #'tramp-call-process
+	 vec tramp-rclone-program nil 0 nil
+	 "mount" (tramp-fuse-mount-spec vec)
+	 (tramp-fuse-mount-point vec)
+	 (tramp-get-method-parameter vec 'tramp-mount-args))
+	(while (not (file-exists-p (tramp-make-tramp-file-name vec 'noloc)))
+	  (tramp-cleanup-connection vec 'keep-debug 'keep-password))
+	(add-to-list 'tramp-fuse-mount-points (tramp-file-name-unify vec)))
 
-    ;; In `tramp-check-cached-permissions', the connection properties
-    ;; "{uid,gid}-{integer,string}" are used.  We set them to proper values.
-    (with-tramp-connection-property
-	vec "uid-integer" (tramp-get-local-uid 'integer))
-    (with-tramp-connection-property
-	vec "gid-integer" (tramp-get-local-gid 'integer))
-    (with-tramp-connection-property
-	vec "uid-string" (tramp-get-local-uid 'string))
-    (with-tramp-connection-property
-	vec "gid-string" (tramp-get-local-gid 'string))))
+      ;; Mark it as connected.
+      (tramp-set-connection-property
+       (tramp-get-connection-process vec) "connected" t)))
+
+  ;; In `tramp-check-cached-permissions', the connection properties
+  ;; "{uid,gid}-{integer,string}" are used.  We set them to proper values.
+  (with-tramp-connection-property
+      vec "uid-integer" (tramp-get-local-uid 'integer))
+  (with-tramp-connection-property
+      vec "gid-integer" (tramp-get-local-gid 'integer))
+  (with-tramp-connection-property
+      vec "uid-string" (tramp-get-local-uid 'string))
+  (with-tramp-connection-property
+      vec "gid-string" (tramp-get-local-gid 'string)))
 
 (defun tramp-rclone-send-command (vec &rest args)
   "Send a command to connection VEC.
