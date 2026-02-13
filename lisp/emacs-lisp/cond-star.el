@@ -92,7 +92,13 @@ passed along to the rest of the clauses in this `cond*' construct.
 
 See `match*' for documentation of the patterns for use in `match*'
 conditions."
-  ;; FIXME: Want an Edebug declaration.
+  (declare
+   (debug (&rest ([&or ("bind*" &rest &or symbolp (symbolp &optional form))
+                       ("bind-and*" &rest &or symbolp (symbolp form) (form))
+                       ("match*" sexp form)
+                       ("pcase*" pcase-PAT form)
+                       form]
+                  body))))
   (cond*-convert clauses))
 
 ;; The following four macros are autoloaded for the sake of syntax
