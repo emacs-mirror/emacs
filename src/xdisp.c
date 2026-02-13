@@ -11304,6 +11304,7 @@ move_it_vertically_backward (struct it *it, int dy)
       int line_height;
 
       RESTORE_IT (&it3, &it3, it3data);
+      last_height = 0;
       y1 = line_bottom_y (&it3);
       line_height = y1 - y0;
       RESTORE_IT (it, it, it2data);
@@ -21681,8 +21682,9 @@ try_window_reusing_current_matrix (struct window *w)
     return false;
 
   /* If top-line visibility has changed, give up.  */
-  if (window_wants_tab_line (w)
-      != MATRIX_TAB_LINE_ROW (w->current_matrix)->mode_line_p)
+  if (!w->current_matrix->header_line_p
+      && (window_wants_tab_line (w)
+	  != MATRIX_TAB_LINE_ROW (w->current_matrix)->mode_line_p))
     return false;
 
   /* If top-line visibility has changed, give up.  */

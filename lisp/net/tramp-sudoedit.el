@@ -52,6 +52,10 @@
 	      `(,(rx bos (literal tramp-sudoedit-method) eos)
 		nil ,tramp-root-id-string))
 
+ (add-to-list 'tramp-default-host-alist
+	      `(,(rx bos (literal tramp-sudoedit-method) eos)
+		nil ,(system-name)))
+
  (tramp-set-completion-function
   tramp-sudoedit-method tramp-completion-function-alist-su))
 
@@ -742,6 +746,10 @@ connection if a previous connection has died for some reason."
   (unless (tramp-connectable-p vec)
     (throw 'non-essential 'non-essential))
 
+  (unless (string-match-p tramp-local-host-regexp (tramp-file-name-host vec))
+    (tramp-error
+     vec 'remote-file-error "%s is not a local host" (tramp-file-name-host vec)))
+
   (with-tramp-debug-message vec "Opening connection"
     ;; We need a process bound to the connection buffer.  Therefore,
     ;; we create a dummy process.  Maybe there is a better solution?
@@ -775,7 +783,6 @@ in case of error, t otherwise."
 	       (append
 		(tramp-expand-args
 		 vec 'tramp-sudo-login nil
-		 ?h (or (tramp-file-name-host vec) "")
 		 ?u (or (tramp-file-name-user vec) ""))
 		(flatten-tree args))))
 	   ;; We suppress the messages `Waiting for prompts from remote shell'.
@@ -817,7 +824,7 @@ In case there is no valid Lisp expression, it raises an error."
 	    (when (search-forward-regexp (rx (not blank)) (line-end-position) t)
 	      (error nil)))
 	(error (tramp-error
-		vec 'file-error
+		vec 'remote-file-error
 		"`%s' does not return a valid Lisp expression: `%s'"
 		(car args) (buffer-string)))))))
 

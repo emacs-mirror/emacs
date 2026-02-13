@@ -271,10 +271,9 @@ If TAG is not specified, use the tag at point."
   (interactive)
   (let ((buff (current-buffer))
 	)
-
-    (with-output-to-temp-buffer (help-buffer)
-      (help-setup-xref (list #'semantic-describe-buffer)
-		       (called-interactively-p 'interactive))
+    (help-setup-xref (list #'semantic-describe-buffer)
+		     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
       (with-current-buffer standard-output
 	(princ "Semantic Configuration in ")
 	(princ (buffer-name buff))

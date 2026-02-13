@@ -668,7 +668,7 @@ Optional NOLOCATION non-nil means do not print the location."
          (concat "sunset " (apply #'solar-time-string (cadr l)))
        "no sunset")
      (if nolocation ""
-       (format " at %s" (eval calendar-location-name)))
+       (format " at %s" (eval calendar-location-name t)))
      (nth 2 l))))
 
 (defconst solar-data-list
@@ -881,7 +881,7 @@ Accurate to a few seconds."
          (last (calendar-last-day-of-month month year))
          (title (format "Sunrise/sunset times for %s %d at %s"
                         (calendar-month-name month) year
-                        (eval calendar-location-name))))
+                        (eval calendar-location-name t))))
     (calendar-in-read-only-buffer solar-sunrises-buffer
       (calendar-set-mode-line title)
       (insert title ":\n\n")

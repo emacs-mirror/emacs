@@ -381,6 +381,9 @@ large number of libraries means it is impractical to fix all
 of these warnings masse.  In almost any other case, setting
 this to anything but t is likely to be counter-productive.")
 
+(defvar checkdoc--batch-flag nil
+  "Non-nil in batch mode.")
+
 (defun checkdoc-list-of-strings-p (obj)
   "Return t when OBJ is a list of strings."
   (declare (obsolete list-of-strings-p "29.1"))
@@ -1063,12 +1066,13 @@ Optional argument INTERACT permits more interactive fixing."
 	 (e (checkdoc-rogue-space-check-engine nil nil interact))
          (checkdoc-generate-compile-warnings-flag
           (or take-notes checkdoc-generate-compile-warnings-flag)))
-    (if (not (called-interactively-p 'interactive))
+    (if (not (or (called-interactively-p 'interactive) checkdoc--batch-flag))
 	e
       (if e
 	  (message "%s" (checkdoc-error-text e))
 	(checkdoc-show-diagnostics)
-	(message "Space Check: done.")))))
+	(if (called-interactively-p 'interactive)
+	    (message "Space Check: done."))))))
 
 ;;;###autoload
 (defun checkdoc-message-text (&optional take-notes)
@@ -1081,7 +1085,7 @@ Optional argument TAKE-NOTES causes all errors to be logged."
 	 (checkdoc-generate-compile-warnings-flag
 	  (or take-notes checkdoc-generate-compile-warnings-flag)))
     (setq e (checkdoc-message-text-search))
-    (if (not (called-interactively-p 'interactive))
+    (if (not (or (called-interactively-p 'interactive) checkdoc--batch-flag))
 	e
       (if e
 	  (user-error "%s" (checkdoc-error-text e))
@@ -2819,7 +2823,7 @@ function called to create the messages."
 
 (defun checkdoc-show-diagnostics ()
   "Display the checkdoc diagnostic buffer in a temporary window."
-  (if checkdoc-pending-errors
+  (if (and checkdoc-pending-errors (not checkdoc--batch-flag))
       (let* ((b (get-buffer checkdoc-diagnostic-buffer))
              (win (if b (display-buffer b))))
 	(when win
@@ -2832,6 +2836,23 @@ function called to create the messages."
 	(setq checkdoc-pending-errors nil)
 	nil)))
 
+
+;;;###autoload
+(defun checkdoc-batch ()
+  "Check current buffer in batch mode.
+Report any errors and signal the first found error."
+  (when noninteractive
+    (let ((checkdoc-autofix-flag nil)
+          (checkdoc--batch-flag t))
+      (checkdoc-current-buffer t)
+      (when checkdoc-pending-errors
+        (when-let* ((b (get-buffer checkdoc-diagnostic-buffer)))
+          (with-current-buffer b
+            (princ (buffer-string)))
+          (terpri))
+        (checkdoc-current-buffer)))))
+
+
 (defun checkdoc-get-keywords ()
   "Return a list of package keywords for the current file."
   (save-excursion

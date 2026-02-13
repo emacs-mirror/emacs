@@ -1,0 +1,5 @@
+&%%(diary-rrule :rule
+	     '((FREQ DAILY) (UNTIL (12 29 2001)) (INTERVAL 1) (WKST 0))
+	     :start '(12 21 2001)) Urlaub
+ Access: public
+ UID: 20041127T183329Z-18215-1001-4536-49109@andromeda

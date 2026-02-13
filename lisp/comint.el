@@ -3715,6 +3715,9 @@ last function is the text that is actually inserted in the redirection buffer.
 You can use `add-hook' to add functions to this list
 either globally or locally.")
 
+(defvar comint-redirect-hook nil
+  "Normal hook run after completing a comint-redirect.")
+
 ;; Internal variables
 
 (defvar comint-redirect-output-buffer nil

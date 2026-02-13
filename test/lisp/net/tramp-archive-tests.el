@@ -757,7 +757,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	  ;; `set-file-modes' is not implemented.
 	  (should-error
 	   (set-file-modes tmp-name1 #o777)
-	   :type 'file-error)
+	   :type 'remote-file-error)
 	  (should (= (file-modes tmp-name1) #o400))
 	  (should-not (file-executable-p tmp-name1))
 	  (should-not (file-writable-p tmp-name1))
@@ -766,7 +766,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	  ;; `set-file-modes' is not implemented.
 	  (should-error
 	   (set-file-modes tmp-name2 #o777)
-	   :type 'file-error)
+	   :type 'remote-file-error)
 	  (should (= (file-modes tmp-name2) #o500))
 	  (should (file-executable-p tmp-name2))
 	  (should-not (file-writable-p tmp-name2)))
@@ -796,7 +796,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	  ;; `make-symbolic-link' is not implemented.
 	  (should-error
 	   (make-symbolic-link tmp-name1 tmp-name2)
-	   :type 'file-error)
+	   :type 'remote-file-error)
 	  (should (file-symlink-p tmp-name2))
 	  (should (file-regular-p tmp-name2))
 	  (should

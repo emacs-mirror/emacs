@@ -247,11 +247,9 @@ generic functions.")
 
 ;;;###autoload
 (defun xref-find-backend ()
-  (or
-   (run-hook-with-args-until-success 'xref-backend-functions)
-   (user-error "No Xref backend available")))
+  (run-hook-with-args-until-success 'xref-backend-functions))
 
-(cl-defgeneric xref-backend-definitions (backend identifier)
+(cl-defgeneric xref-backend-definitions (_backend _identifier)
   "Find definitions of IDENTIFIER.
 
 The result must be a list of xref objects.  If IDENTIFIER
@@ -264,7 +262,8 @@ IDENTIFIER can be any string returned by
 `xref-backend-identifier-at-point', or from the table returned by
 `xref-backend-identifier-completion-table'.
 
-To create an xref object, call `xref-make'.")
+To create an xref object, call `xref-make'."
+  (xref--no-backend-available))
 
 (cl-defgeneric xref-backend-references (_backend identifier)
   "Find references of IDENTIFIER.
@@ -285,12 +284,13 @@ The default implementation uses `xref-references-in-directory'."
        (xref--project-root pr)
        (project-external-roots pr))))))
 
-(cl-defgeneric xref-backend-apropos (backend pattern)
+(cl-defgeneric xref-backend-apropos (_backend _pattern)
   "Find all symbols that match PATTERN string.
 The second argument has the same meaning as in `apropos'.
 
 If BACKEND is implemented in Lisp, it can use
-`xref-apropos-regexp' to convert the pattern to regexp.")
+`xref-apropos-regexp' to convert the pattern to regexp."
+  (xref--no-backend-available))
 
 (cl-defgeneric xref-backend-identifier-at-point (_backend)
   "Return the relevant identifier at point.
@@ -306,8 +306,9 @@ recognize and then delegate the work to an external process."
   (let ((thing (thing-at-point 'symbol)))
     (and thing (substring-no-properties thing))))
 
-(cl-defgeneric xref-backend-identifier-completion-table (backend)
-  "Return the completion table for identifiers.")
+(cl-defgeneric xref-backend-identifier-completion-table (_backend)
+  "Return the completion table for identifiers."
+  nil)
 
 (cl-defgeneric xref-backend-identifier-completion-ignore-case (_backend)
   "Return t if case is not significant in identifier completion."
@@ -328,6 +329,10 @@ KEY extracts the key from an element."
     ;; Put them back in order.
     (cl-loop for key being hash-keys of table using (hash-values value)
              collect (cons key (nreverse value)))))
+
+(defun xref--no-backend-available ()
+  (user-error
+   "No Xref backend.  Try `M-x eglot', `M-x visit-tags-table', or `M-x etags-regen-mode'."))
 
 (defun xref--insert-propertized (props &rest strings)
   "Insert STRINGS with text properties PROPS."

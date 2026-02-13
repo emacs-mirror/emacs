@@ -148,8 +148,7 @@ Reads a year, month, and day."
          (month (cdr (assoc-string
                       (completing-read
                        (format "%s calendar month name: " calendar-coptic-name)
-                       (mapcar 'list
-                               (append calendar-coptic-month-name-array nil))
+                       (append calendar-coptic-month-name-array nil)
                        nil t)
                       (calendar-make-alist calendar-coptic-month-name-array
                                            1)

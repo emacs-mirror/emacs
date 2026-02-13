@@ -821,7 +821,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (setq filename (directory-file-name (expand-file-name filename)))
   (with-parsed-tramp-file-name filename nil
     (tramp-convert-file-attributes v localname id-format
-      (ignore-errors
+      (condition-case err
 	(if (tramp-smb-get-stat-capability v)
 	    (tramp-smb-do-file-attributes-with-stat v)
 	  ;; Reading just the filename entry via "dir localname" is
@@ -851,7 +851,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		    (nth 1 entry)        ;8 mode
 		    nil                  ;9 gid weird
 		    inode                ;10 inode number
-		    device))))))))       ;11 file system number
+		    device))))           ;11 file system number
+	(remote-file-error (signal (car err) (cdr err)))
+	(error)))))
 
 (defun tramp-smb-do-file-attributes-with-stat (vec)
   "Implement `file-attributes' for Tramp files using `stat' command."
@@ -1382,7 +1384,7 @@ will be used."
   "Like `make-symbolic-link' for Tramp files."
   (let ((v (tramp-dissect-file-name (expand-file-name linkname))))
     (unless (tramp-smb-get-cifs-capabilities v)
-      (tramp-error v 'file-error "make-symbolic-link not supported")))
+      (tramp-error v 'remote-file-error "make-symbolic-link not supported")))
 
   (tramp-skeleton-make-symbolic-link target linkname ok-if-already-exists
     (unless (tramp-smb-send-command
@@ -1571,8 +1573,7 @@ will be used."
 		    (tramp-search-regexp (rx "tramp_exit_status " (+ digit)))
 		  (tramp-error
 		   v 'file-error
-		   "Couldn't find exit status of `%s'"
-		   tramp-smb-acl-program))
+		   "Couldn't find exit status of `%s'" tramp-smb-acl-program))
 		(skip-chars-forward "^ ")
 		(when (zerop (read (current-buffer)))
 		  ;; Success.
@@ -1705,7 +1706,7 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
       (when (string-match-p (rx blank eol) localname)
 	(tramp-error
 	 vec 'file-error
-	 "Invalid file name %s" (tramp-make-tramp-file-name vec localname)))
+	 "Invalid file name `%s'" (tramp-make-tramp-file-name vec localname)))
 
       localname)))
 
@@ -1988,7 +1989,7 @@ If ARGUMENT is non-nil, use it as argument for
 	  (unless tramp-smb-version
 	    (unless (executable-find tramp-smb-program)
 	      (tramp-error
-	       vec 'file-error
+	       vec 'remote-file-error
 	       "Cannot find command %s in %s" tramp-smb-program exec-path))
 	    (setq tramp-smb-version (shell-command-to-string command))
 	    (tramp-message vec 6 command)
@@ -2165,11 +2166,12 @@ Removes smb prompt.  Returns nil if an error message has appeared."
   ;; Check for program.
   (unless (executable-find tramp-smb-winexe-program)
     (tramp-error
-     vec 'file-error "Cannot find program: %s" tramp-smb-winexe-program))
+     vec 'remote-file-error "Cannot find program: %s" tramp-smb-winexe-program))
 
   ;; winexe does not supports ports.
   (when (tramp-file-name-port vec)
-    (tramp-error vec 'file-error "Port not supported for remote processes"))
+    (tramp-error
+     vec 'remote-file-error "Port not supported for remote processes"))
 
   ;; Check share.
   (unless (tramp-smb-get-share vec)

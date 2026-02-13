@@ -58,7 +58,7 @@ normally has the form (CONDITION BODY...).
 
 CONDITION can be a Lisp expression, as in `cond'.
 Or it can be one of `(bind* BINDINGS...)', `(match* PATTERN DATUM)',
-or `(pcase* PATTERN DATUM)',
+`(bind-and* BINDINGS...)' or `(pcase* PATTERN DATUM)',
 
 `(bind* BINDINGS...)' means to bind BINDINGS (as if they were in `let*')
 for the body of the clause, and all subsequent clauses, since the `bind*'
@@ -81,15 +81,17 @@ When a clause's condition is true, and it exits the `cond*'
 or is the last clause, the value of the last expression
 in its body becomes the return value of the `cond*' construct.
 
-Non-exit clause:
+Non-exit clauses:
 
-If a clause has only one element, or if its first element is
-t or a `bind*' clause, this clause never exits the `cond*' construct.
-Instead, control always falls through to the next clause (if any).
-All bindings made in CONDITION for the BODY of the non-exit clause
-are passed along to the rest of the clauses in this `cond*' construct.
+If a clause has only one element, or if its first element is t or a
+`bind*' form, or if it ends with the keyword `:non-exit', then this
+clause never exits the `cond*' construct.  Instead, control always falls
+through to the next clause (if any).  Except for a `bind-and*' clause,
+all bindings made in CONDITION for the BODY of the non-exit clause are
+passed along to the rest of the clauses in this `cond*' construct.
 
-\\[match*] for documentation of the patterns for use in `match*'."
+See `match*' for documentation of the patterns for use in `match*'
+conditions."
   ;; FIXME: Want an Edebug declaration.
   (cond*-convert clauses))
 
@@ -195,7 +197,9 @@ CONDITION of a `cond*' clause.  See `cond*' for details."
            (or (eq (car clause) t)
                ;; Starts with a `bind*' pseudo-form.
                (and (consp (car clause))
-                    (eq (caar clause) 'bind*))))))
+                    (eq (caar clause) 'bind*))))
+      ;; Ends with keyword.
+      (eq (car (last clause)) :non-exit)))
 
 (defun cond*-non-exit-clause-substance (clause)
   "For a non-exit cond* clause CLAUSE, return its substance.
@@ -214,7 +218,7 @@ This removes a final keyword if that's what makes CLAUSE non-exit."
          (cons t (cdr clause)))
 
         ;; Ends with keyword.
-        ((keywordp (car (last clause)))
+        ((eq (car (last clause)) :non-exit)
          ;; Do NOT include the final keyword.
          (butlast clause))))
 

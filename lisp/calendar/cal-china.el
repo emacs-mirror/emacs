@@ -65,8 +65,7 @@
   "Minutes difference between local standard time for Chinese calendar and UTC.
 Default is for Beijing.  This is an expression in `year' since it changed at
 1928-01-01 00:00:00 from UT+7:45:40 to UT+8."
-  :type 'sexp
-  :group 'calendar-chinese)
+  :type 'sexp)
 
 ;; It gets eval'd.
 ;;;###autoload
@@ -75,8 +74,7 @@ Default is for Beijing.  This is an expression in `year' since it changed at
 ;; FIXME unused.
 (defcustom calendar-chinese-location-name "Beijing"
   "Name of location used for calculation of Chinese calendar."
-  :type 'string
-  :group 'calendar-chinese)
+  :type 'string)
 
 (defcustom calendar-chinese-daylight-time-offset 0
 ;; The correct value is as follows, but the Chinese calendrical
@@ -84,8 +82,7 @@ Default is for Beijing.  This is an expression in `year' since it changed at
 ;;  60
   "Minutes difference between daylight saving and standard time.
 Default is for no daylight saving time."
-  :type 'integer
-  :group 'calendar-chinese)
+  :type 'integer)
 
 (defcustom calendar-chinese-standard-time-zone-name
   '(if (< year 1928)
@@ -95,13 +92,11 @@ Default is for no daylight saving time."
 This is an expression depending on `year' because it changed
 at 1928-01-01 00:00:00 from `PMT' to `CST'."
   :type 'sexp
-  :risky t
-  :group 'calendar-chinese)
+  :risky t)
 
 (defcustom calendar-chinese-daylight-time-zone-name "CDT"
   "Abbreviated name of daylight saving time zone used for Chinese calendar."
-  :type 'string
-  :group 'calendar-chinese)
+  :type 'string)
 
 (defcustom calendar-chinese-daylight-saving-start nil
 ;; The correct value is as follows, but the Chinese calendrical
@@ -113,8 +108,7 @@ at 1928-01-01 00:00:00 from `PMT' to `CST'."
 Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-starts'."
   :type 'sexp
-  :risky t
-  :group 'calendar-chinese)
+  :risky t)
 
 (defcustom calendar-chinese-daylight-saving-end nil
 ;; The correct value is as follows, but the Chinese calendrical
@@ -124,25 +118,21 @@ Default is for no daylight saving time.  See documentation of
 Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-ends'."
   :type 'sexp
-  :risky t
-  :group 'calendar-chinese)
+  :risky t)
 
 (defcustom calendar-chinese-daylight-saving-start-time 0
   "Number of minutes after midnight that daylight saving time starts.
 Default is for no daylight saving time."
-  :type 'integer
-  :group 'calendar-chinese)
+  :type 'integer)
 
 (defcustom calendar-chinese-daylight-saving-end-time 0
   "Number of minutes after midnight that daylight saving time ends.
 Default is for no daylight saving time."
-  :type 'integer
-  :group 'calendar-chinese)
+  :type 'integer)
 
 (defcustom calendar-chinese-celestial-stem
   ["Jia" "Yi" "Bing" "Ding" "Wu" "Ji" "Geng" "Xin" "Ren" "Gui"]
   "Prefixes used by `calendar-chinese-sexagesimal-name'."
-  :group 'calendar-chinese
   :type '(vector (string :tag "Jia")
                  (string :tag "Yi")
                  (string :tag "Bing")
@@ -157,7 +147,6 @@ Default is for no daylight saving time."
 (defcustom calendar-chinese-terrestrial-branch
   ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"]
   "Suffixes used by `calendar-chinese-sexagesimal-name'."
-  :group 'calendar-chinese
   :type '(vector (string :tag "Zi")
                  (string :tag "Chou")
                  (string :tag "Yin")
@@ -188,7 +177,7 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
   (with-suppressed-warnings ((lexical year))
     (defvar year))
   (let* ((year (calendar-extract-year (calendar-gregorian-from-absolute d)))
-         (calendar-time-zone (eval calendar-chinese-time-zone)) ; uses year
+         (calendar-time-zone (eval calendar-chinese-time-zone t)) ; uses year
          (calendar-daylight-time-offset
           calendar-chinese-daylight-time-offset)
          (calendar-standard-time-zone-name
@@ -212,7 +201,7 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
   (with-suppressed-warnings ((lexical year))
     (defvar year))
   (let* ((year (calendar-extract-year (calendar-gregorian-from-absolute d)))
-         (calendar-time-zone (eval calendar-chinese-time-zone))
+         (calendar-time-zone (eval calendar-chinese-time-zone t))
          (calendar-daylight-time-offset
           calendar-chinese-daylight-time-offset)
          (calendar-standard-time-zone-name

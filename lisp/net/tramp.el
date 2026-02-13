@@ -3931,7 +3931,7 @@ BODY is the backend specific code."
      ;; The implementation is not complete yet.
      (when (and (numberp ,destination) (zerop ,destination))
        (tramp-error
-	v 'file-error "Implementation does not handle immediate return"))
+	v 'remote-file-error "Implementation does not handle immediate return"))
 
      (let (command input tmpinput stderr tmpstderr outbuf ret)
        ;; Determine input.
@@ -5239,6 +5239,9 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 		    ?u (or (tramp-file-name-user (car target-alist)) "")
 		    ?h (or (tramp-file-name-host (car target-alist)) ""))))
 	    (with-parsed-tramp-file-name proxy l
+	      (when (member l target-alist)
+		(tramp-user-error
+		 vec "Cycle proxy definition `%s' in multi-hop" proxy))
 	      ;; Add the hop.
 	      (push l target-alist)
 	      ;; Start next search.
@@ -5505,7 +5508,7 @@ processes."
 This is the fallback implementation for backends which do not
 support symbolic links."
   (tramp-error
-   (tramp-dissect-file-name (expand-file-name linkname)) 'file-error
+   (tramp-dissect-file-name (expand-file-name linkname)) 'remote-file-error
    "make-symbolic-link not supported"))
 
 (defun tramp-handle-memory-info ()
@@ -6255,7 +6258,7 @@ performed successfully.  Any other value means an error."
 	  (tramp-clear-passwd vec)
 	  (delete-process proc)
 	  (tramp-error-with-buffer
-	   (tramp-get-connection-buffer vec) vec 'file-error
+	   (tramp-get-connection-buffer vec) vec 'remote-file-error
 	   (cond
 	    ((eq exit 'permission-denied) "Permission denied")
 	    ((eq exit 'out-of-band-failed)
@@ -6402,7 +6405,7 @@ nil."
 	(tramp-accept-process-output proc)
 	(unless (process-live-p proc)
 	  (tramp-error-with-buffer
-	   nil proc 'file-error "Process has died"))
+	   nil proc 'remote-file-error "Process has died"))
 	(setq found (tramp-check-for-regexp proc regexp))))
     ;; The process could have timed out, for example due to session
     ;; timeout of sudo.  The process buffer does not exist any longer then.
@@ -6412,9 +6415,10 @@ nil."
     (unless found
       (if timeout
 	  (tramp-error
-	   proc 'file-error "[[Regexp `%s' not found in %d secs]]"
+	   proc 'remote-file-error "[[Regexp `%s' not found in %d secs]]"
 	   regexp timeout)
-	(tramp-error proc 'file-error "[[Regexp `%s' not found]]" regexp)))
+	(tramp-error
+	 proc 'remote-file-error "[[Regexp `%s' not found]]" regexp)))
     found))
 
 ;; It seems that Tru64 Unix does not like it if long strings are sent
@@ -6431,7 +6435,8 @@ the remote host use line-endings as defined in the variable
 	 (chunksize (tramp-get-connection-property p "chunksize")))
     (unless p
       (tramp-error
-       vec 'file-error "Can't send string to remote host -- not logged in"))
+       vec 'remote-file-error
+       "Can't send string to remote host -- not logged in"))
     (tramp-set-connection-property p "last-cmd-time" (current-time))
     (tramp-message vec 10 "%s" string)
     (with-current-buffer (tramp-get-connection-buffer vec)

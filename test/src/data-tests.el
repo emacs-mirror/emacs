@@ -951,4 +951,38 @@ comparing the subr with a much slower Lisp implementation."
     (should-error (aset s 3 #x3fff80))) ; new char not ASCII
   )
 
+(ert-deftest data-tests-per-buffer-var-predicates ()
+  (with-temp-buffer
+    ;; per buffer variable without predicate
+    (progn
+      (setq line-spacing 2.3)
+      (should (= line-spacing 2.3))
+      (setq line-spacing "2.3")
+      (should (equal line-spacing "2.3"))
+      (setq line-spacing nil)
+      (should (equal line-spacing nil)))
+    ;; per buffer variable with 'fraction predicate
+    (progn
+      (dolist (v '(nil 0.7))
+        (setq scroll-up-aggressively v)
+        (should (equal scroll-up-aggressively v)))
+      (should-error (setq scroll-up-aggressively 'abc)
+                    :type 'wrong-type-argument)
+      (should-error (setq scroll-up-aggressively 2.7))
+      (should (equal scroll-up-aggressively 0.7)))
+    ;; per buffer variable with 'vertical-scroll-bar predicate
+    (progn
+      (dolist (v (get 'vertical-scroll-bar 'choice))
+        (setq vertical-scroll-bar v)
+        (should (equal vertical-scroll-bar v)))
+      (should-error (setq vertical-scroll-bar 'foo))
+      (should (equal vertical-scroll-bar 'right)))
+    ;; per buffer variable with 'overwrite-mode predicate
+    (progn
+      (dolist (v (get 'overwrite-mode 'choice))
+        (setq overwrite-mode v)
+        (should (equal overwrite-mode v)))
+      (should-error (setq overwrite-mode 'foo))
+      (should (equal overwrite-mode 'overwrite-mode-binary)))))
+
 ;;; data-tests.el ends here

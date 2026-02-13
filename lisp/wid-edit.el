@@ -1334,10 +1334,10 @@ POS defaults to the value of (point).  If user option
 This is much faster.")
 
 (defun widget-move (arg &optional suppress-echo)
-  "Move point to the ARG next field or button.
+  "Move point to the ARGth next field or button.
 ARG may be negative to move backward.
-When the second optional argument is non-nil,
-nothing is shown in the echo area."
+If the optional argument SUPPRESS-ECHO is non-nil, suppress showing
+in the echo area the help-echo, if any, for the final position."
   (let* ((wrapped 0)
 	 (number arg)
          (fwd (> arg 0))                ; widget-forward is caller.
@@ -1384,19 +1384,19 @@ nothing is shown in the echo area."
   (run-hooks 'widget-move-hook))
 
 (defun widget-forward (arg &optional suppress-echo)
-  "Move point to the next field or button.
-With optional ARG, move across that many fields.
-When the second optional argument is non-nil,
-nothing is shown in the echo area."
+  "Move point forward across ARG fields or buttons.
+Interactively, ARG is the prefix numeric argument and defaults to 1.
+If the optional argument SUPPRESS-ECHO is non-nil, suppress showing
+in the echo area the help-echo, if any, for the final position."
   (interactive "p")
   (run-hooks 'widget-forward-hook)
   (widget-move arg suppress-echo))
 
 (defun widget-backward (arg &optional suppress-echo)
-  "Move point to the previous field or button.
-With optional ARG, move across that many fields.
-When the second optional argument is non-nil,
-nothing is shown in the echo area."
+  "Move point back across ARG fields or buttons.
+Interactively, ARG is the prefix numeric argument and defaults to 1.
+If the optional argument SUPPRESS-ECHO is non-nil, suppress showing
+in the echo area the help-echo, if any, for the final position."
   (interactive "p")
   (run-hooks 'widget-backward-hook)
   (widget-move (- arg) suppress-echo))

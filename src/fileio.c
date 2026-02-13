@@ -4520,7 +4520,7 @@ by calling `format-decode', which see.  */)
       /* Find the end position, which is end_offset if given,
 	 the file's end otherwise.  */
 
-      off_t endpos;
+      off_t endpos UNINIT;
       if (!giveup_match_end)
 	{
 	  endpos = end_offset;

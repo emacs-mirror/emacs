@@ -206,7 +206,7 @@ is non-nil."
                       (if holidays
                           (list "--shadow-etched-in" "--shadow-etched-in"))
                       (if diary-entries
-                          (mapcar 'list (apply 'append diary-entries))
+                          (mapcar #'list (apply #'append diary-entries))
                         '("None")))))
     (and selection (call-interactively selection))))
 

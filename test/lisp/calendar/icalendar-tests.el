@@ -30,10 +30,33 @@
 ;; Note: Watch the trailing blank that is added on import.
 
 ;;; Code:
-
 (require 'ert)
 (require 'ert-x)
 (require 'icalendar)
+
+;; Some variables in the icalendar-* namespace have now been aliased to
+;; diary-icalendar-*:
+(require 'diary-icalendar)
+
+(defmacro ical:deftest-obsolete (name _ &rest args-and-body)
+  "Define NAME as an obsolete icalendar.el test."
+  (let (args body)
+    (while (not body)
+      (cond ((stringp (car args-and-body))
+             (push (pop args-and-body) args)) ; docstring
+            ((keywordp (car args-and-body))
+             (push (pop args-and-body) args)  ; keyword
+             (push (pop args-and-body) args)) ; value
+            (t
+             (setq body args-and-body)
+             (setq args (nreverse args)))))
+    `(ert-deftest ,name () ,@args
+        ;; These values were used by icalendar.el when tests were written:
+        (let ((icalendar-recurring-start-year 2005)
+              (icalendar-vcalendar-prodid "-//Emacs//NONSGML icalendar.el//EN")
+              (icalendar-uid-format "emacs%t%c")
+              (icalendar-export-hidden-diary-entries t))
+          ,@body))))
 
 ;; ======================================================================
 ;; Helpers
@@ -75,7 +98,7 @@
 ;; Tests of functions
 ;; ======================================================================
 
-(ert-deftest icalendar--create-uid ()
+(ical:deftest-obsolete icalendar--create-uid ()
   "Test for `icalendar--create-uid'."
   (let* ((icalendar-uid-format "xxx-%c-%h-%u-%s")
          (icalendar--uid-count 77)
@@ -92,7 +115,7 @@
     (should (string=  (concat "yyyDTSTARTyyy")
                       (icalendar--create-uid entry-full contents)))))
 
-(ert-deftest icalendar-convert-anniversary-to-ical ()
+(ical:deftest-obsolete icalendar-convert-anniversary-to-ical ()
   "Test method for `icalendar--convert-anniversary-to-ical'."
   (let* ((calendar-date-style 'iso)
          result)
@@ -106,7 +129,7 @@
                      (car result)))
     (should (string= "g" (cdr result)))))
 
-(ert-deftest icalendar--convert-cyclic-to-ical ()
+(ical:deftest-obsolete icalendar--convert-cyclic-to-ical ()
   "Test method for `icalendar--convert-cyclic-to-ical'."
   (let* ((calendar-date-style 'iso)
          result)
@@ -119,7 +142,7 @@
                      (car result)))
     (should (string= "Sommerferien" (cdr result)))))
 
-(ert-deftest icalendar--convert-block-to-ical ()
+(ical:deftest-obsolete icalendar--convert-block-to-ical ()
   "Test method for `icalendar--convert-block-to-ical'."
   (let* ((calendar-date-style 'iso)
          result)
@@ -132,7 +155,7 @@
                      (car result)))
     (should (string= "Sommerferien" (cdr result)))))
 
-(ert-deftest icalendar--convert-float-to-ical ()
+(ical:deftest-obsolete icalendar--convert-float-to-ical ()
   "Test method for `icalendar--convert-float-to-ical'."
   ;; See Bug#78085
   (let* ((calendar-date-style 'iso)
@@ -148,7 +171,7 @@
                      (car result)))
     (should (string= "1st Sat/month" (cdr result)))))
 
-(ert-deftest icalendar--convert-yearly-to-ical ()
+(ical:deftest-obsolete icalendar--convert-yearly-to-ical ()
   "Test method for `icalendar--convert-yearly-to-ical'."
   (let* ((calendar-date-style 'iso)
          result
@@ -164,7 +187,7 @@
                      (car result)))
     (should (string= "Tag der Arbeit" (cdr result)))))
 
-(ert-deftest icalendar--convert-weekly-to-ical ()
+(ical:deftest-obsolete icalendar--convert-weekly-to-ical ()
   "Test method for `icalendar--convert-weekly-to-ical'."
   (let* ((calendar-date-style 'iso)
          result
@@ -179,7 +202,7 @@
                      (car result)))
     (should (string= "subject" (cdr result)))))
 
-(ert-deftest icalendar--convert-sexp-to-ical ()
+(ical:deftest-obsolete icalendar--convert-sexp-to-ical ()
   "Test method for `icalendar--convert-sexp-to-ical'."
   (let* (result
          (icalendar-export-sexp-enumeration-days 3))
@@ -192,7 +215,7 @@
             (should (string-match "Hebrew date (until sunset): .*" (cdr i))))
           result)))
 
-(ert-deftest icalendar--convert-to-ical ()
+(ical:deftest-obsolete icalendar--convert-to-ical ()
   "Test method for `icalendar--convert-to-ical'."
   (let* (result
          (icalendar-export-sexp-enumerate-all t)
@@ -216,7 +239,7 @@
              (car (car result))))
     (should (string-match "Newton's birthday" (cdr (car result))))))
 
-(ert-deftest icalendar--parse-vtimezone ()
+(ical:deftest-obsolete icalendar--parse-vtimezone ()
   "Test method for `icalendar--parse-vtimezone'."
   (let (vtimezone result)
     ;; testcase: valid timezone with rrule
@@ -290,7 +313,7 @@ END:VTIMEZONE
     ;; FIXME: add testcase that covers changes for fix of bug#34315
     ))
 
-(ert-deftest icalendar--convert-ordinary-to-ical ()
+(ical:deftest-obsolete icalendar--convert-ordinary-to-ical ()
   "Test method for `icalendar--convert-ordinary-to-ical'."
   (let* ((calendar-date-style 'iso)
          result)
@@ -328,7 +351,7 @@ END:VTIMEZONE
                       (car result)))
     (should (string= "s" (cdr result)))))
 
-(ert-deftest icalendar--diarytime-to-isotime ()
+(ical:deftest-obsolete icalendar--diarytime-to-isotime ()
   "Test method for `icalendar--diarytime-to-isotime'."
   (should (string= "T011500"
 		   (icalendar--diarytime-to-isotime "01:15" "")))
@@ -361,7 +384,7 @@ END:VTIMEZONE
   (should (string= "T150000"
 		   (icalendar--diarytime-to-isotime "3" "pm"))))
 
-(ert-deftest icalendar--datetime-to-diary-date ()
+(ical:deftest-obsolete icalendar--datetime-to-diary-date ()
   "Test method for `icalendar--datetime-to-diary-date'."
   (let* ((datetime '(59 59 23 31 12 2008))
          (calendar-date-style 'iso))
@@ -374,7 +397,7 @@ END:VTIMEZONE
     (should (string= "12 31 2008"
 		     (icalendar--datetime-to-diary-date datetime)))))
 
-(ert-deftest icalendar--datestring-to-isodate ()
+(ical:deftest-obsolete icalendar--datestring-to-isodate ()
   "Test method for `icalendar--datestring-to-isodate'."
   (let ((calendar-date-style 'iso))
     ;; numeric iso
@@ -427,7 +450,7 @@ END:VTIMEZONE
 		     (icalendar--datestring-to-isodate "2021 Feb 11" nil 80)))
     ))
 
-(ert-deftest icalendar--first-weekday-of-year ()
+(ical:deftest-obsolete icalendar--first-weekday-of-year ()
   "Test method for `icalendar-first-weekday-of-year'."
   (should (eq 1 (icalendar-first-weekday-of-year "TU" 2008)))
   (should (eq 3 (icalendar-first-weekday-of-year "WE" 2007)))
@@ -439,7 +462,7 @@ END:VTIMEZONE
   (should (eq 3 (icalendar-first-weekday-of-year "MO" 2000)))
   (should (eq 1 (icalendar-first-weekday-of-year "TH" 1970))))
 
-(ert-deftest icalendar--import-format-sample ()
+(ical:deftest-obsolete icalendar--import-format-sample ()
   "Test method for `icalendar-import-format-sample'."
   (should (string= (concat "SUMMARY='a' DESCRIPTION='b' LOCATION='c' "
                            "ORGANIZER='d' STATUS='' URL='' CLASS=''")
@@ -455,7 +478,7 @@ DESCRIPTION:b
 END:VEVENT
 ")))))
 
-(ert-deftest icalendar--format-ical-event ()
+(ical:deftest-obsolete icalendar--format-ical-event ()
   "Test `icalendar--format-ical-event'."
   (let ((icalendar-import-format "%s%d%l%o%t%u%c")
         (icalendar-import-format-summary "SUM %s")
@@ -493,7 +516,7 @@ END:VEVENT
     (should (string= "-sum-des-loc-org-nil-nil-nil-"
 		     (icalendar--format-ical-event event)))))
 
-(ert-deftest icalendar--parse-summary-and-rest ()
+(ical:deftest-obsolete icalendar--parse-summary-and-rest ()
   "Test `icalendar--parse-summary-and-rest'."
   (let ((icalendar-import-format "%s%d%l%o%t%u%c")
         (icalendar-import-format-summary "SUM %s")
@@ -521,7 +544,7 @@ END:VEVENT
     (should (not result))
     ))
 
-(ert-deftest icalendar--decode-isodatetime ()
+(ical:deftest-obsolete icalendar--decode-isodatetime ()
   "Test `icalendar--decode-isodatetime'."
   (let ((tz (getenv "TZ")))
     (unwind-protect
@@ -571,7 +594,7 @@ END:VEVENT
       ;; restore time-zone even if something went terribly wrong
       (setenv "TZ" tz))))
 
-(ert-deftest icalendar--convert-tz-offset ()
+(ical:deftest-obsolete icalendar--convert-tz-offset ()
   "Test `icalendar--convert-tz-offset'."
   (let ((tz (getenv "TZ")))
     (unwind-protect
@@ -634,7 +657,7 @@ END:VEVENT
       ;; restore time-zone even if something went terribly wrong
       (setenv "TZ" tz))))
 
-(ert-deftest icalendar--decode-isoduration ()
+(ical:deftest-obsolete icalendar--decode-isoduration ()
   "Test `icalendar--decode-isoduration'."
 
   ;; testcase: 7 days
@@ -764,7 +787,7 @@ END:VCALENDAR
       ;; cleanup!!
       (kill-buffer (find-buffer-visiting temp-file)))))
 
-(ert-deftest icalendar-export-ordinary-no-time ()
+(ical:deftest-obsolete icalendar-export-ordinary-no-time ()
   "Perform export test."
 
   (let ((icalendar-export-hidden-diary-entries nil))
@@ -783,7 +806,7 @@ DTEND;VALUE=DATE:20001004
 SUMMARY:ordinary no time
 "))
 
-(ert-deftest icalendar-export-ordinary ()
+(ical:deftest-obsolete icalendar-export-ordinary ()
   "Perform export test."
 
   (icalendar-tests--test-export
@@ -812,7 +835,7 @@ DTEND;VALUE=DATE-TIME:20001003T173000
 SUMMARY:ordinary with time 3
 "))
 
-(ert-deftest icalendar-export-multiline ()
+(ical:deftest-obsolete icalendar-export-multiline ()
   "Perform export test."
 
   ;; multiline -- FIXME!!!
@@ -830,7 +853,7 @@ DESCRIPTION:
   17:30 multiline continued FIXME
 "))
 
-(ert-deftest icalendar-export-weekly-by-day ()
+(ical:deftest-obsolete icalendar-export-weekly-by-day ()
   "Perform export test."
 
   ;; weekly by day
@@ -854,7 +877,7 @@ RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=MO
 SUMMARY:weekly by day with start and end time
 "))
 
-(ert-deftest icalendar-export-yearly ()
+(ical:deftest-obsolete icalendar-export-yearly ()
   "Perform export test."
   ;; yearly
   (icalendar-tests--test-export
@@ -867,7 +890,7 @@ RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=5;BYMONTHDAY=1
 SUMMARY:yearly no time
 "))
 
-(ert-deftest icalendar-export-anniversary ()
+(ical:deftest-obsolete icalendar-export-anniversary ()
   "Perform export test."
   ;; anniversaries
   (icalendar-tests--test-export
@@ -889,7 +912,7 @@ RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=10;BYMONTHDAY=03
 SUMMARY:anniversary with time
 "))
 
-(ert-deftest icalendar-export-block ()
+(ical:deftest-obsolete icalendar-export-block ()
   "Perform export test."
   ;; block
   (icalendar-tests--test-export
@@ -919,7 +942,7 @@ RRULE:FREQ=DAILY;INTERVAL=1;UNTIL=20010706
 SUMMARY:block no end time
 "))
 
-(ert-deftest icalendar-export-alarms ()
+(ical:deftest-obsolete icalendar-export-alarms ()
   "Perform export test with different settings for exporting alarms."
   ;; no alarm
   (icalendar-tests--test-export
@@ -1016,7 +1039,7 @@ END:VALARM
 (defun icalendar-tests--diary-float (&rest args)
   (apply #'diary-float args))
 
-(ert-deftest icalendar-export-bug-56241-dotted-pair ()
+(ical:deftest-obsolete icalendar-export-bug-56241-dotted-pair ()
   "See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=56241#5"
   ;; This test started failing early July 2023 without any apparent change
   ;; to the underlying code, so is probably sensitive to the current date.
@@ -1029,7 +1052,7 @@ END:VALARM
             "%%(icalendar-tests--diary-float 7 0 1) First Sunday in July 2"))))
 
 
-;; (ert-deftest icalendar-export-bug-56241-sexp-does-not-match ()
+;; (ical:deftest-obsolete icalendar-export-bug-56241-sexp-does-not-match ()
 ;;   "Reported in #bug56241 -- needs to be fixed!"
 ;;   (let ((icalendar-export-sexp-enumeration-days 0))
 ;;     (mapc (lambda (diary-string)
@@ -1038,7 +1061,7 @@ END:VALARM
 ;;           '("%%(diary-float 7 0 1) First Sunday in July 1"
 ;;             "%%(icalendar-tests--diary-float 7 0 1) First Sunday in July 2"))))
 
-(ert-deftest icalendar-export-bug-56241-nested-sexps ()
+(ical:deftest-obsolete icalendar-export-bug-56241-nested-sexps ()
   "Reported in #bug56241 -- needs to be fixed!"
   (let ((icalendar-export-sexp-enumeration-days 366))
     (mapc (lambda (diary-string)
@@ -1130,7 +1153,7 @@ Argument EXPECTED-OUTPUT file containing expected diary string."
         (should (string= expected-output result)))
       (kill-buffer (find-buffer-visiting temp-file)))))
 
-(ert-deftest icalendar-import-non-recurring ()
+(ical:deftest-obsolete icalendar-import-non-recurring ()
   "Perform standard import tests."
   (icalendar-tests--test-import "import-non-recurring-1.ics"
                                 "import-non-recurring-1.diary-iso"
@@ -1158,7 +1181,7 @@ Argument EXPECTED-OUTPUT file containing expected diary string."
                                 "import-non-recurring-another-example.diary-american"))
 
 
-(ert-deftest icalendar-import-rrule ()
+(ical:deftest-obsolete icalendar-import-rrule ()
   (icalendar-tests--test-import "import-rrule-daily.ics"
                                 "import-rrule-daily.diary-iso"
                                 "import-rrule-daily.diary-european"
@@ -1217,7 +1240,7 @@ Argument EXPECTED-OUTPUT file containing expected diary string."
                                 "import-rrule-count-every-second-year.diary-american")
   )
 
-(ert-deftest icalendar-import-duration ()
+(ical:deftest-obsolete icalendar-import-duration ()
   (icalendar-tests--test-import "import-duration.ics"
                                 "import-duration.diary-iso"
                                 "import-duration.diary-european"
@@ -1228,41 +1251,41 @@ Argument EXPECTED-OUTPUT file containing expected diary string."
                                 "import-duration-2.diary-european"
                                 "import-duration-2.diary-american"))
 
-(ert-deftest icalendar-import-bug-6766 ()
+(ical:deftest-obsolete icalendar-import-bug-6766 ()
   ;;bug#6766 -- multiple byday values in a weekly rrule
   (icalendar-tests--test-import "import-bug-6766.ics"
                                 "import-bug-6766.diary-iso"
                                 "import-bug-6766.diary-european"
                                 "import-bug-6766.diary-american"))
 
-(ert-deftest icalendar-import-bug-24199 ()
+(ical:deftest-obsolete icalendar-import-bug-24199 ()
   ;;bug#24199 -- monthly rule with byday-clause
   (icalendar-tests--test-import "import-bug-24199.ics"
                                 "import-bug-24199.diary-iso"
                                 "import-bug-24199.diary-european"
                                 "import-bug-24199.diary-american"))
 
-(ert-deftest icalendar-import-bug-33277 ()
+(ical:deftest-obsolete icalendar-import-bug-33277 ()
   ;;bug#33277 -- start time equals end time
   (icalendar-tests--test-import "import-bug-33277.ics"
                                 "import-bug-33277.diary-iso"
                                 "import-bug-33277.diary-european"
                                 "import-bug-33277.diary-american"))
 
-(ert-deftest icalendar-import-multiple-vcalendars ()
+(ical:deftest-obsolete icalendar-import-multiple-vcalendars ()
   (icalendar-tests--test-import "import-multiple-vcalendars.ics"
                                 "import-multiple-vcalendars.diary-iso"
                                 "import-multiple-vcalendars.diary-european"
                                 "import-multiple-vcalendars.diary-american"))
 
-(ert-deftest icalendar-import-with-uid ()
+(ical:deftest-obsolete icalendar-import-with-uid ()
   "Perform import test with uid."
   (icalendar-tests--test-import "import-with-uid.ics"
                                 "import-with-uid.diary-iso"
                                 "import-with-uid.diary-european"
                                 "import-with-uid.diary-american"))
 
-(ert-deftest icalendar-import-with-timezone ()
+(ical:deftest-obsolete icalendar-import-with-timezone ()
   ;; This is known to fail on MS-Windows, because the test assumes
   ;; Posix features of specifying DST rules.
   :expected-result (if (memq system-type '(windows-nt ms-dos))
@@ -1334,7 +1357,7 @@ Argument INPUT icalendar event string."
             (set-buffer-modified-p nil)
             (kill-buffer (current-buffer))))))))
 
-(ert-deftest icalendar-cycle ()
+(ical:deftest-obsolete icalendar-cycle ()
   "Perform cycling tests.
 Take care to avoid auto-generated UIDs here."
   (icalendar-tests--test-cycle
@@ -1363,7 +1386,7 @@ SUMMARY:and diary-anniversary
 ;; ======================================================================
 ;; Real world
 ;; ======================================================================
-(ert-deftest icalendar-real-world ()
+(ical:deftest-obsolete icalendar-real-world ()
   "Perform real-world tests, as gathered from problem reports."
   ;; This is known to fail on MS-Windows, since it doesn't support DST
   ;; specification with month and day.
@@ -1506,7 +1529,7 @@ RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=09;BYMONTHDAY=21
 SUMMARY:ff birthday (%d years old)")
 
   ;; FIXME: this testcase verifies that icalendar-export fails to
-  ;; export the nested sexp. After repairing bug56241 icalendar-export
+  ;; export the nested sexp.  After repairing bug56241 icalendar-export
   ;; works correctly for this sexp but now the testcase fails.
   ;; Therefore this testcase is disabled for the time being.
   ;;  (icalendar-tests--test-export
@@ -1702,7 +1725,7 @@ SUMMARY:NNN Wwwwwwww Wwwww - Aaaaaa Pppppppp rrrrrr ddd oo Nnnnnnnn 30
   (let ((time (icalendar--decode-isodatetime string day zone)))
     (format-time-string "%FT%T%z" (encode-time time) 0)))
 
-(ert-deftest icalendar-tests--decode-isodatetime ()
+(ical:deftest-obsolete icalendar-tests--decode-isodatetime ()
   "Test `icalendar--decode-isodatetime'."
   (should (equal (icalendar-test--format "20040917T050910-02:00")
                  "2004-09-17T03:09:10+0000"))
@@ -1728,4 +1751,8 @@ SUMMARY:NNN Wwwwwwww Wwwww - Aaaaaa Pppppppp rrrrrr ddd oo Nnnnnnnn 30
                  "2004-09-17T06:09:10+0000")))
 
 (provide 'icalendar-tests)
+;; Local Variables:
+;; read-symbol-shorthands: (("ical:" . "icalendar-"))
+;; byte-compile-warnings: (not obsolete)
+;; End:
 ;;; icalendar-tests.el ends here

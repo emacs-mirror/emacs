@@ -2731,7 +2731,7 @@ flags that control whether to collect or render objects."
 			(aref widths width-column)
 		      (* 10 shr-table-separator-pixel-width)))
 	      (when (setq colspan (dom-attr column 'colspan))
-		(setq colspan (min (string-to-number colspan)
+		(setq colspan (min (truncate (string-to-number colspan))
 				   ;; The colspan may be wrong, so
 				   ;; truncate it to the length of the
 				   ;; remaining columns.

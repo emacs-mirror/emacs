@@ -308,6 +308,7 @@ environment."))
 	   ("H" . "\u094D")		; HALANT
 	   ("s" . "[\u0951\u0952]")	; stress sign
 	   ("t" . "[\u0953\u0954]")	; accent
+           ("D" . "[\u0964\u0965]")     ; punctuation sign
            ("1" . "\u0967")             ; numeral 1
            ("3" . "\u0969")             ; numeral 3
 	   ("N" . "\u200C")		; ZWNJ
@@ -316,15 +317,15 @@ environment."))
     (indian-compose-regexp
      (concat
       ;; syllables with an independent vowel, or
-      "\\(?:RH\\)?Vn?\\(?:J?HR\\)?v*n?a?s?t?A?\\|"
+      "\\(?:RH\\)?Vn?\\(?:J?HR\\)?v*n?a?s?t?A?D?\\|"
       ;; consonant-based syllables, or
-      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?\\|v*n?a?s?t?A?\\)\\|"
+      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?D?\\|v*n?a?s?t?A?D?\\)\\|"
       ;; special consonant form, or
-      "JHR\\|"
+      "JHRD?\\|"
       ;; vedic accents with numerals, or
       "1ss?\\|3ss\\|s3ss\\|"
       ;; any other singleton characters
-      "X")
+      "XD?")
      table))
   "Regexp matching a composable sequence of Devanagari characters.")
 

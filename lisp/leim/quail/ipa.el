@@ -74,6 +74,7 @@ Upside-down characters are obtained by a preceding slash (/)."
  ("A~" ["ɑ̃"])
  ("oe~" ["œ̃"])
  ("/c~" ["ɔ̃"])
+ ("/E" ?ɜ)
  ("p" ?p)
  ("b" ?b)
  ("t" ?t)

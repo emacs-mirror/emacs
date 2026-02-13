@@ -4530,6 +4530,122 @@ The list is displayed in a buffer named `*Packages*'."
   (list-packages t))
 
 
+;;;; Package Suggestions
+
+(defun package--autosuggest-install-and-enable (sug)
+  "Install and enable a package suggestion PKG-ENT.
+SUG should be of the form as described in `package--suggestion-applies-p'."
+  (let ((buffers-to-update '()))
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+        (when (and (eq major-mode 'fundamental-mode) (buffer-file-name)
+                   (package--suggestion-applies-p sug))
+          (push buf buffers-to-update))))
+    (with-demoted-errors "Failed to install package: %S"
+      (package-install (car sug))
+      (dolist (buf buffers-to-update)
+        (with-demoted-errors "Failed to enable major mode: %S"
+          (with-current-buffer buf
+            (funcall-interactively (or (cadddr sug) (car sug)))))))))
+
+(defun package--autosugest-prompt (packages)
+  "Query the user whether to install PACKAGES or not.
+PACKAGES is a list of package suggestions in the form as described in
+`package--suggestion-applies-p'.  The function returns a non-nil value
+if affirmative, otherwise nil"
+  (let* ((inhibit-read-only t) (use-hard-newlines t)
+         (nl (propertize "\n" 'hard t)) (nlnl (concat nl nl))
+         (buf (current-buffer)))
+    (with-current-buffer (get-buffer-create
+                          (format "*package suggestion: %s*"
+                                  (buffer-name buf)))
+      (erase-buffer)
+      (insert
+       "The buffer \""
+       (buffer-name buf)
+       "\" currently lacks any language-specific support.
+The package manager can provide the editor support for these kinds of
+files by downloading a package from Emacs's package archive:" nl)
+
+      (when (length> packages 1)
+        (insert nl "(Note that there are multiple candidate packages,
+so you have to select which to install!)" nl))
+
+      (pcase-dolist (`(,pkg . ,sugs) (seq-group-by #'car packages))
+        (insert nl "* "
+                (buttonize (concat "Install " (symbol-name pkg))
+                           (lambda (_)
+                             (package--autosuggest-install-and-enable
+                              (car sugs))
+                             (quit-window)))
+                " ("
+                (buttonize "about"
+                           (lambda (_)
+                             (unless (assq pkg package-archive-contents)
+                               (package-read-all-archive-contents))
+                             (describe-package pkg)))
+                ", matches ")
+        (dolist (sug sugs)
+          (unless (eq (char-before) ?\s)
+            (insert ", "))
+          (pcase sug
+            (`(,_ auto-mode-alist . ,_)
+             (insert "file extension "))
+            (`(,_ magic-mode-alist . ,_)
+             (insert "magic bytes"))
+            (`(,_ interpreter-mode-alist . ,_)
+             (insert "interpreter "))))
+        (delete-horizontal-space) (insert ").")
+
+        (add-to-list 'package--autosuggest-suggested pkg))
+
+      (insert nl "* " (buttonize "Do not install anything" (lambda (_) (quit-window))) "."
+              nl "* " (buttonize "Permanently disable package suggestions"
+                            (lambda (_)
+                              (customize-save-variable
+                               'package-autosuggest-mode nil
+                               "Disabled at user's request")
+                              (quit-window)))
+              "."
+
+              nlnl "To learn more about package management, read "
+              (buttonize "(emacs) Packages" (lambda (_) (info "(emacs) Packages")))
+              ", and to learn more about how Emacs supports specific languages, read "
+              (buttonize "(emacs) Major modes" (lambda (_) (info "(emacs) Major modes")))
+              ".")
+
+      (fill-region (point-min) (point-max))
+      (special-mode)
+      (button-mode t)
+
+      (let ((win (display-buffer-below-selected (current-buffer) '())))
+        (fit-window-to-buffer win)
+        (select-window win)
+        (set-window-dedicated-p win t)
+        (set-window-point win (point-min))))))
+
+;;;###autoload
+(defun package-autosuggest (&optional candidates)
+  "Prompt the user to install the suggested packages.
+The optional argument CANDIDATES may be a list of packages that match
+for form described in `package--suggestion-applies-p'.  If omitted, the
+list of candidates will be computed from the database."
+  (interactive)
+  (package--autosugest-prompt
+   (or candidates
+       (package--autosuggest-find-candidates)
+       (user-error "No package suggestions found"))))
+
+(defun package-reset-suggestions ()
+  "Forget previous package suggestions.
+Emacs will remember if you have previously rejected a suggestion during
+a session and won't mention it afterwards.  If you have made a mistake
+or would like to reconsider this, use this command to want to reset the
+suggestions."
+  (interactive)
+  (setq package--autosuggest-suggested nil))
+
+
 ;;;; Quickstart: precompute activation actions for faster start up.
 
 (defvar Info-directory-list)

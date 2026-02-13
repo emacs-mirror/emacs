@@ -430,11 +430,7 @@ Interactively, prompt for YEAR and DAY number."
                 (calendar-day-number (calendar-current-date))
                 last)))
      (list year day)))
-  (calendar-goto-date
-   (calendar-gregorian-from-absolute
-    (if (< 0 day)
-        (+ -1 day (calendar-absolute-from-gregorian (list 1 1 year)))
-      (+ 1 day (calendar-absolute-from-gregorian (list 12 31 year))))))
+  (calendar-goto-date (calendar-date-from-day-of-year year day))
   (or noecho (calendar-print-day-of-year)))
 
 (provide 'cal-move)

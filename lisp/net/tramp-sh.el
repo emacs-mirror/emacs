@@ -1969,7 +1969,7 @@ ID-FORMAT valid values are `string' and `integer'."
 	 (tramp-send-command-and-read
 	  vec (format "tramp_perl_directory_files_and_attributes %s"
 		      (tramp-shell-quote-argument localname)))))
-    (when (stringp object) (tramp-error vec 'file-error object))
+    (when (stringp object) (tramp-error vec 'remote-file-error object))
     object))
 
 ;; FIXME: Fix function to work with count parameter.
@@ -2378,7 +2378,7 @@ the uid and gid from FILENAME."
 			((eq op 'copy) "cp -f")
 			((eq op 'rename) "mv -f")
 			(t (tramp-error
-			    v 'file-error
+			    v 'remote-file-error
 			    "Unknown operation `%s', must be `copy' or `rename'"
 			    op))))
 	     (localname1 (tramp-file-local-name filename))
@@ -2608,7 +2608,7 @@ The method used must be an out-of-band method."
       ;; Check for local copy program.
       (unless (executable-find copy-program)
 	(tramp-error
-	 v 'file-error "Cannot find local copy program: %s" copy-program))
+	 v 'remote-file-error "Cannot find local copy program: %s" copy-program))
 
       ;; Install listener on the remote side.  The prompt must be
       ;; consumed later on, when the process does not listen anymore.
@@ -2618,7 +2618,7 @@ The method used must be an out-of-band method."
 		  (tramp-find-executable
 		   v remote-copy-program (tramp-get-remote-path v)))
 	  (tramp-error
-	   v 'file-error
+	   v 'remote-file-error
 	   "Cannot find remote listener: %s" remote-copy-program))
 	(setq remote-copy-program
 	      (string-join
@@ -2629,7 +2629,7 @@ The method used must be an out-of-band method."
 	(tramp-send-command v remote-copy-program)
 	(with-timeout
 	    (60 (tramp-error
-		 v 'file-error
+		 v 'remote-file-error
 		 "Listener process not running on remote host: `%s'"
 		 remote-copy-program))
 	  (tramp-send-command v (format "netstat -l | grep -q :%s" listener))
@@ -3468,7 +3468,8 @@ will be used."
 
 	       ;; Oops, I don't know what to do.
 	       (t (tramp-error
-		   v 'file-error "Wrong method specification for `%s'" method)))
+		   v 'remote-file-error
+		   "Wrong method specification for `%s'" method)))
 
 	    ;; Error handling.
 	    ((error quit)
@@ -3663,7 +3664,7 @@ will be used."
 	     ;; That's not expected.
 	     (t
 	      (tramp-error
-	       v 'file-error
+	       v 'remote-file-error
 	       (concat "Method `%s' should specify both encoding and "
 		       "decoding command or an scp program")
 	       method)))))))))
@@ -3689,7 +3690,7 @@ are \"file-exists-p\", \"file-readable-p\", \"file-directory-p\" and
 		     tramp-end-of-heredoc
 		     (mapconcat #'tramp-shell-quote-argument files "\n")
 		     tramp-end-of-heredoc))
-	     (tramp-error vec 'file-error "%s" (tramp-get-buffer-string)))
+	     (tramp-error vec 'remote-file-error "%s" (tramp-get-buffer-string)))
 	   ;; Read the expression.
 	   (goto-char (point-min))
 	   (read (current-buffer))))
@@ -4165,7 +4166,7 @@ Only send the definition if it has not already been done."
 	;; Expand format specifiers.
 	(unless (setq script (tramp-expand-script vec script))
 	  (tramp-error
-	   vec 'file-error
+	   vec 'remote-file-error
 	   (format "Script %s is not applicable on remote host" name)))
 	;; Send it.
 	(tramp-barf-unless-okay
@@ -4325,13 +4326,15 @@ file exists and nonzero exit status otherwise."
 	     ;; We cannot use `tramp-get-ls-command', this results in an infloop.
 	     ;; (Bug#65321)
 	     (ignore-errors
-	       (and (setq result (format "ls -d >%s" (tramp-get-remote-null-device vec)))
+	       (and (setq
+		     result
+		     (format "ls -d >%s" (tramp-get-remote-null-device vec)))
 		    (tramp-send-command-and-check
 		     vec (format "%s %s" result existing))
 		    (not (tramp-send-command-and-check
 			  vec (format "%s %s" result nonexistent))))))
       (tramp-error
-       vec 'file-error "Couldn't find command to check if file exists"))
+       vec 'remote-file-error "Couldn't find command to check if file exists"))
     (tramp-set-file-property vec existing "file-exists-p" t)
     result))
 
@@ -4484,7 +4487,8 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
       (error
        (delete-process proc)
        (apply #'tramp-error-with-buffer
-	      (tramp-get-connection-buffer vec) vec 'file-error error-args)))))
+	      (tramp-get-connection-buffer vec) vec
+	      'remote-file-error error-args)))))
 
 (defvar tramp-config-check nil
   "A function to be called with one argument, VEC.
@@ -5293,8 +5297,8 @@ connection if a previous connection has died for some reason."
 	    (unless (and (process-live-p p)
 			 (tramp-wait-for-output p 10))
 	      ;; The error will be caught locally.
-	      (tramp-error vec 'file-error "Awake did fail")))
-	(file-error
+	      (tramp-error vec 'remote-file-error "Awake did fail")))
+	(remote-file-error
 	 (tramp-cleanup-connection vec t)
 	 (setq p nil)))
 
@@ -5314,7 +5318,8 @@ connection if a previous connection has died for some reason."
 		      (setenv "HISTFILESIZE" "0")
 		      (setenv "HISTSIZE" "0"))))
 	      (unless (stringp tramp-encoding-shell)
-                (tramp-error vec 'file-error "`tramp-encoding-shell' not set"))
+                (tramp-error
+		 vec 'remote-file-error "`tramp-encoding-shell' not set"))
 	      (let* ((current-host tramp-system-name)
 		     (target-alist (tramp-compute-multi-hops vec))
 		     (previous-hop tramp-null-hop)
@@ -5520,7 +5525,8 @@ function waits for output unless NOOUTPUT is set."
   "Wait for output from remote command."
   (unless (buffer-live-p (process-buffer proc))
     (delete-process proc)
-    (tramp-error proc 'file-error "Process `%s' not available, try again" proc))
+    (tramp-error
+     proc 'remote-file-error "Process `%s' not available, try again" proc))
   (with-current-buffer (process-buffer proc)
     (let* (;; Initially, `tramp-end-of-output' is "#$ ".  There might
 	   ;; be leading ANSI control escape sequences, which must be
@@ -5551,11 +5557,11 @@ function waits for output unless NOOUTPUT is set."
 	      (delete-region (point) (point-max))))
 	(if timeout
 	    (tramp-error
-	     proc 'file-error
+	     proc 'remote-file-error
 	     "[[Remote prompt `%s' not found in %d secs]]"
 	     tramp-end-of-output timeout)
 	  (tramp-error
-	   proc 'file-error
+	   proc 'remote-file-error
 	   "[[Remote prompt `%s' not found]]" tramp-end-of-output)))
       ;; Return value is whether end-of-output sentinel was found.
       found)))
@@ -5594,7 +5600,7 @@ the exit status."
   (with-current-buffer (tramp-get-connection-buffer vec)
     (unless (tramp-search-regexp (rx "tramp_exit_status " (+ digit)))
       (tramp-error
-       vec 'file-error "Couldn't find exit status of `%s'" command))
+       vec 'remote-file-error "Couldn't find exit status of `%s'" command))
     (skip-chars-forward "^ ")
     (prog1
 	(if exit-status
@@ -5608,7 +5614,7 @@ the exit status."
 Similar to `tramp-send-command-and-check' but accepts two more arguments
 FMT and ARGS which are passed to `error'."
   (or (tramp-send-command-and-check vec command)
-      (apply #'tramp-error vec 'file-error fmt args)))
+      (apply #'tramp-error vec 'remote-file-error fmt args)))
 
 (defun tramp-send-command-and-read (vec command &optional noerror marker)
   "Run COMMAND and return the output, which must be a Lisp expression.
@@ -5627,7 +5633,7 @@ raises an error."
 	    (search-forward-regexp marker)
 	  (error (unless noerror
 		   (tramp-error
-		    vec 'file-error
+		    vec 'remote-file-error
 		    "`%s' does not return the marker `%s': `%s'"
 		    command marker (buffer-string))))))
       ;; Read the expression.
@@ -5641,7 +5647,7 @@ raises an error."
 	      (error nil)))
 	(error (unless noerror
 		 (tramp-error
-		  vec 'file-error
+		  vec 'remote-file-error
 		  "`%s' does not return a valid Lisp expression: `%s'"
 		  command (buffer-string))))))))
 
@@ -5854,7 +5860,8 @@ Nonexistent directories are removed from spec."
 		 (setq result (concat result " --color=never")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))
-     (tramp-error vec 'file-error "Couldn't find a proper `ls' command"))))
+     (tramp-error
+      vec 'remote-file-error "Couldn't find a proper `ls' command"))))
 
 (defun tramp-get-ls-command-with (vec option)
   "Return OPTION, if the remote `ls' command supports the OPTION option."

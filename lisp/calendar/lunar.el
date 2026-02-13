@@ -150,7 +150,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
          (time (* 24 (- date (truncate date))))
          (date (calendar-gregorian-from-absolute (truncate date)))
          (adj (dst-adjust-time date time)))
-    (list (car adj) (apply 'solar-time-string (cdr adj)) phase eclipse)))
+    (list (car adj) (apply #'solar-time-string (cdr adj)) phase eclipse)))
 
 ;; from "Astronomy with your Personal Computer", Subroutine Eclipse
 ;; Line 7000 Peter Duffett-Smith Cambridge University Press 1990

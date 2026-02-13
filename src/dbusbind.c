@@ -129,6 +129,8 @@ static bool xd_in_read_queued_messages = 0;
 #endif
 
 /* Check whether TYPE is a basic DBusType.  */
+/* TODO: Shouldn't we assume, that recent D-Bus implementations carry
+   HAVE_DBUS_TYPE_IS_VALID and DBUS_TYPE_UNIX_FD?  See configure.ac.  */
 #ifdef HAVE_DBUS_TYPE_IS_VALID
 #define XD_BASIC_DBUS_TYPE(type)					\
   (dbus_type_is_valid (type) && dbus_type_is_basic (type))
@@ -310,6 +312,8 @@ XD_OBJECT_TO_STRING (Lisp_Object object)
       }									\
   } while (0)
 
+/* TODO: Shouldn't we assume, that recent D-Bus implementations carry
+   HAVE_DBUS_VALIDATE_*?  See configure.ac.  */
 #if (HAVE_DBUS_VALIDATE_BUS_NAME || HAVE_DBUS_VALIDATE_PATH		\
      || HAVE_DBUS_VALIDATE_INTERFACE || HAVE_DBUS_VALIDATE_MEMBER)
 #define XD_DBUS_VALIDATE_OBJECT(object, func)				\
@@ -1044,6 +1048,8 @@ xd_get_connection_address (Lisp_Object bus)
 }
 
 /* Return the file descriptor for WATCH, -1 if not found.  */
+/* TODO: Shouldn't we assume, that recent D-Bus implementations carry
+   HAVE_DBUS_WATCH_GET_UNIX_FD?  See configure.ac.  */
 static int
 xd_find_watch_fd (DBusWatch *watch)
 {
@@ -1372,6 +1378,7 @@ usage: (dbus-message-internal &rest REST)  */)
   dbus_uint32_t serial = 0;
   unsigned int ui_serial;
   int timeout = -1;
+  dbus_bool_t keepfd = FALSE;
   ptrdiff_t count, count0;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
@@ -1548,6 +1555,7 @@ usage: (dbus-message-internal &rest REST)  */)
           timeout = min (XFIXNAT (args[count+1]), INT_MAX);
           count = count + 2;
 	}
+
       /* Check for authorizable parameter.  */
       else if (EQ (args[count], QCauthorizable))
         {
@@ -1565,6 +1573,24 @@ usage: (dbus-message-internal &rest REST)  */)
 
           count = count + 2;
 	}
+
+      /* Check for keepfd parameter.  */
+      else if (EQ (args[count], QCkeep_fd))
+        {
+	  if (mtype != DBUS_MESSAGE_TYPE_METHOD_CALL)
+	    XD_SIGNAL1
+	      (build_string (":keep-fd is only supported on method calls"));
+
+	  /* Ignore this keyword if unsupported.  */
+#ifdef DBUS_TYPE_UNIX_FD
+          keepfd = TRUE;
+#else
+	  XD_DEBUG_MESSAGE (":keep-fd not supported");
+#endif
+
+	  ++count;
+	}
+
       else break;
 
     }
@@ -1618,7 +1644,8 @@ usage: (dbus-message-internal &rest REST)  */)
       result = list3 (QCserial, bus, INT_TO_INTEGER (serial));
 
       /* Create a hash table entry.  */
-      Fputhash (result, handler, Vdbus_registered_objects_table);
+      Fputhash (result, keepfd ? Fcons (handler, path) : handler,
+		Vdbus_registered_objects_table);
     }
   else
     {
@@ -1640,106 +1667,81 @@ usage: (dbus-message-internal &rest REST)  */)
   return result;
 }
 
-/* Alist of registered inhibitor locks for D-Bus.
-   An entry in this list is a list (FD WHAT WHY BLOCK).
-   The car of the list is a file descriptor retrieved from a
-   'dbus-make-inhibitor-lock` call.  The cdr of the list represents the
-   three arguments 'dbus-make-inhibitor-lock` was called with.  */
-static Lisp_Object xd_registered_inhibitor_locks;
+/* Alist of registered file descriptors for D-Bus.
+   The key is an open file descriptor, retrieved via `dbus-call-method'
+   or `dbus--open-fd'.  The value is a string OBJECT-PATH or FILENAME,
+   which represents the arguments the function was called with.  Those
+   values are not needed for further operations; they are just shown for
+   information.  */
+static Lisp_Object xd_registered_fds;
 
-DEFUN ("dbus-make-inhibitor-lock", Fdbus_make_inhibitor_lock,
-       Sdbus_make_inhibitor_lock,
-       2, 3, 0,
-       doc: /* Inhibit system shutdowns and sleep states.
-
-WHAT is a colon-separated string of lock types, i.e. "shutdown",
-"sleep", "idle", "handle-power-key", "handle-suspend-key",
-"handle-hibernate-key", "handle-lid-switch". Example: "shutdown:idle".
-
-WHY is a descriptive string of why the lock is taken. Example: "Package
-Update in Progress".
-
-The optional BLOCK is the mode of the inhibitor lock, either "block"
-(BLOCK is non-nil), or "delay".
-
-It returns a file descriptor or nil, if the lock cannot be acquired.  If
-there is already an inhibitor lock for the triple (WHAT WHY BLOCK), this
-lock is returned.
-
-For details of the arguments, see Info node `(dbus)Inhibitor Locks'.  */)
-  (Lisp_Object what, Lisp_Object why, Lisp_Object block)
+DEFUN ("dbus--fd-open", Fdbus__fd_open, Sdbus__fd_open, 1, 1, 0,
+       doc: /* Open FILENAME and return the respective read-only file descriptor.  */)
+  (Lisp_Object filename)
 {
-  CHECK_STRING (what);
-  CHECK_STRING (why);
-  if (!NILP (block))
-    block = Qt;
-  Lisp_Object who = build_string ("Emacs");
-  Lisp_Object mode =
-    (NILP (block)) ? build_string ("delay") : build_string ("block");
+  CHECK_STRING (filename);
+  filename = Fexpand_file_name (filename, Qnil);
+  filename = ENCODE_FILE (filename);
 
   /* Check, whether it is registered already.  */
-  Lisp_Object triple = list3 (what, why, block);
-  Lisp_Object registered = Frassoc (triple, xd_registered_inhibitor_locks);
+  Lisp_Object registered = Frassoc (filename, xd_registered_fds);
   if (!NILP (registered))
     return CAR_SAFE (registered);
 
-  /* Register lock.  */
-  Lisp_Object lock =
-    calln (Qdbus_call_method, QCsystem,
-	   build_string ("org.freedesktop.login1"),
-	   build_string ("/org/freedesktop/login1"),
-	   build_string ("org.freedesktop.login1.Manager"),
-	   build_string ("Inhibit"), what, who, why, mode);
+  /* Open file descriptor.  */
+  int fd = emacs_open (SSDATA (filename), O_RDONLY, 0);
 
-  xd_registered_inhibitor_locks =
-    Fcons (Fcons (lock, triple), xd_registered_inhibitor_locks);
-  return lock;
+  if (fd <= 0)
+    XD_SIGNAL2 (build_string ("Cannot open file"), filename);
+
+  /* Register file descriptor.  */
+  xd_registered_fds =
+    Fcons (Fcons (INT_TO_INTEGER (fd), filename), xd_registered_fds);
+  return INT_TO_INTEGER (fd);
 }
 
-DEFUN ("dbus-close-inhibitor-lock", Fdbus_close_inhibitor_lock,
-       Sdbus_close_inhibitor_lock,
-       1, 1, 0,
-       doc: /* Close inhibitor lock file descriptor.
-
-LOCK, a file descriptor, must be the result of a `dbus-make-inhibitor-lock'
-call.  It returns t in case of success, or nil if it isn't be possible
-to close the lock, or if the lock is closed already.
-
-For details, see Info node `(dbus)Inhibitor Locks'.  */)
-  (Lisp_Object lock)
+DEFUN ("dbus--fd-close", Fdbus__fd_close, Sdbus__fd_close, 1, 1, 0,
+       doc: /* Close file descriptor FD.
+FD must be the result of a `dbus-call-method' or `dbus--fd-open' call,
+see `dbus--registered-fds'.  It returns t in case of success, or nil if
+it isn't be possible to close the file descriptor, or if the file
+descriptor is closed already.  */)
+  (Lisp_Object fd)
 {
-  CHECK_FIXNUM (lock);
+  CHECK_FIXNUM (fd);
 
   /* Check, whether it is registered.  */
-  Lisp_Object registered =  assoc_no_quit (lock, xd_registered_inhibitor_locks);
+  Lisp_Object registered =  assoc_no_quit (fd, xd_registered_fds);
   if (NILP (registered))
     return Qnil;
   else
     {
-      xd_registered_inhibitor_locks =
-	Fdelete (registered, xd_registered_inhibitor_locks);
-      return (emacs_close (XFIXNAT (lock)) == 0) ? Qt : Qnil;
+      xd_registered_fds = Fdelete (registered, xd_registered_fds);
+      return (emacs_close (XFIXNAT (fd)) == 0) ? Qt : Qnil;
     }
 }
 
-DEFUN ("dbus-registered-inhibitor-locks", Fdbus_registered_inhibitor_locks,
-       Sdbus_registered_inhibitor_locks,
+DEFUN ("dbus--registered-fds", Fdbus__registered_fds, Sdbus__registered_fds,
        0, 0, 0,
-       doc: /* Return registered inhibitor locks, an alist.
-This allows to check, whether other packages of the running Emacs
-instance have acquired an inhibitor lock as well.
-An entry in this list is a list (FD WHAT WHY BLOCK).
-The car of the list is the file descriptor retrieved from a
-'dbus-make-inhibitor-lock` call.  The cdr of the list represents the
-three arguments 'dbus-make-inhibitor-lock` was called with.  */)
+       doc: /* Return registered file descriptors, an alist.
+The key is an open file descriptor, retrieved via `dbus-call-method' or
+`dbus--open-fd'.  The value is a string OBJECT-PATH or FILENAME, which
+represents the arguments the function was called with.  Those values are
+not needed for further operations; they are just shown for information.
+
+This alist allows to check, whether other packages of the running Emacs
+instance have acquired a file descriptor as well.  */)
   (void)
 {
-  /* We return a copy of xd_registered_inhibitor_locks, in order to
-     protect it against malicious manipulation.  */
-  Lisp_Object registered = xd_registered_inhibitor_locks;
+  /* We return a copy of xd_registered_fds, in order to protect it
+     against malicious manipulation.  */
+  Lisp_Object registered = xd_registered_fds;
   Lisp_Object result = Qnil;
   for (; !NILP (registered); registered = CDR_SAFE (registered))
-    result = Fcons (Fcopy_sequence (CAR_SAFE (registered)), result);
+    {
+      Lisp_Object tem = CAR_SAFE (registered);
+      result = Fcons (Fcons (CAR_SAFE (tem), CDR_SAFE (tem)), result);
+    }
   return Fnreverse (result);
 }
 
@@ -1859,7 +1861,22 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       Fremhash (key, Vdbus_registered_objects_table);
 
       /* Store the event.  */
-      xd_store_event (value, args, event_args);
+      xd_store_event (CONSP (value) ? CAR_SAFE (value) : value, args, event_args);
+
+#ifdef DBUS_TYPE_UNIX_FD
+      /* Check, whether there is a file descriptor to be kept.
+	 value is (handler . path)
+	 args is ((:unix-fd NN) ...)  */
+      if (CONSP (value)
+	  && CONSP (CAR_SAFE (args))
+	  && EQ (CAR_SAFE (CAR_SAFE (args)), QCunix_fd))
+	{
+	  xd_registered_fds =
+	    Fcons (Fcons (CAR_SAFE (CDR_SAFE (CAR_SAFE (args))),
+			  CDR_SAFE (value)),
+		   xd_registered_fds);
+	}
+#endif
     }
 
   else /* DBUS_MESSAGE_TYPE_METHOD_CALL, DBUS_MESSAGE_TYPE_SIGNAL.  */
@@ -1995,7 +2012,7 @@ static void
 syms_of_dbusbind_for_pdumper (void)
 {
   xd_registered_buses = Qnil;
-  xd_registered_inhibitor_locks = Qnil;
+  xd_registered_fds = Qnil;
 }
 
 void
@@ -2003,9 +2020,9 @@ syms_of_dbusbind (void)
 {
   defsubr (&Sdbus__init_bus);
   defsubr (&Sdbus_get_unique_name);
-  defsubr (&Sdbus_make_inhibitor_lock);
-  defsubr (&Sdbus_close_inhibitor_lock);
-  defsubr (&Sdbus_registered_inhibitor_locks);
+  defsubr (&Sdbus__fd_open);
+  defsubr (&Sdbus__fd_close);
+  defsubr (&Sdbus__registered_fds);
 
   DEFSYM (Qdbus_message_internal, "dbus-message-internal");
   defsubr (&Sdbus_message_internal);
@@ -2029,6 +2046,11 @@ syms_of_dbusbind (void)
 
   /* Lisp symbol for method interactive authorization.  */
   DEFSYM (QCauthorizable, ":authorizable");
+
+  /* Lisp symbol for file descriptor kept.  */
+#ifdef DBUS_TYPE_UNIX_FD
+  DEFSYM (QCkeep_fd, ":keep-fd");
+#endif
 
   /* Lisp symbols of D-Bus types.  */
   DEFSYM (QCbyte, ":byte");
@@ -2166,7 +2188,7 @@ be called when the D-Bus reply message arrives.  */);
   /* Initialize internal objects.  */
   pdumper_do_now_and_after_load (syms_of_dbusbind_for_pdumper);
   staticpro (&xd_registered_buses);
-  staticpro (&xd_registered_inhibitor_locks);
+  staticpro (&xd_registered_fds);
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);
 }

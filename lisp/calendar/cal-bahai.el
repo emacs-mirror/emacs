@@ -368,8 +368,7 @@ Reads a year, month and day."
          (month (cdr (assoc
                       (completing-read
                        "Bahá’í calendar month name: "
-                       (mapcar 'list
-                               (append calendar-bahai-month-name-array nil))
+                       (append calendar-bahai-month-name-array nil)
                        nil t)
                       (calendar-make-alist calendar-bahai-month-name-array
                                            1))))

@@ -609,12 +609,11 @@ transforms an unsortable MAP into a sortable alist."
   "Insert a JSON representation of ALIST at point.
 Sort ALIST first if `json-encoding-object-sort-predicate' is
 non-nil.  Sorting can optionally be DESTRUCTIVE for speed."
-  (json--print-map (if (and json-encoding-object-sort-predicate alist)
-                       (sort (if destructive alist (copy-sequence alist))
-                             (lambda (a b)
-                               (funcall json-encoding-object-sort-predicate
-                                        (car a) (car b))))
-                     alist)))
+  (json--print-map (let ((pred json-encoding-object-sort-predicate))
+                     (if (and pred alist)
+                         (sort alist :key #'car :lessp pred
+                               :in-place destructive)
+                       alist))))
 
 ;; The following two are unused but useful to keep around due to the
 ;; inherent ambiguity of lists.

@@ -737,7 +737,7 @@ offered."
 	      (apply #'tramp-archive-file-name-for-operation operation args)))))
     (tramp-message v 10 "%s" (cons operation args))
     (tramp-error
-     v 'file-error
+     v 'remote-file-error
      "Operation `%s' not implemented for file archives" operation)))
 
 (add-hook 'tramp-unload-hook

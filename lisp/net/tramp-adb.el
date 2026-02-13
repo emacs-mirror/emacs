@@ -974,7 +974,7 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
 	      (sleep-for 0.1)
 	      host)
 	     (t (tramp-error
-		 vec 'file-error "Could not find device %s" host)))))))
+		 vec 'remote-file-error "Could not find device %s" host)))))))
 
 (defun tramp-adb-execute-adb-command (vec &rest args)
   "Execute an adb command.
@@ -1047,7 +1047,7 @@ the exit status."
   (with-current-buffer (tramp-get-connection-buffer vec)
     (unless (tramp-search-regexp (rx "tramp_exit_status " (+ digit)))
       (tramp-error
-       vec 'file-error "Couldn't find exit status of `%s'" command))
+       vec 'remote-file-error "Couldn't find exit status of `%s'" command))
     (skip-chars-forward "^ ")
     (prog1
 	(if exit-status
@@ -1060,13 +1060,14 @@ the exit status."
   "Run COMMAND, check exit status, throw error if exit status not okay.
 FMT and ARGS are passed to `error'."
   (unless (tramp-adb-send-command-and-check vec command)
-    (apply #'tramp-error vec 'file-error fmt args)))
+    (apply #'tramp-error vec 'remote-file-error fmt args)))
 
 (defun tramp-adb-wait-for-output (proc &optional timeout)
   "Wait for output from remote command."
   (unless (buffer-live-p (process-buffer proc))
     (delete-process proc)
-    (tramp-error proc 'file-error "Process `%s' not available, try again" proc))
+    (tramp-error
+     proc 'remote-file-error "Process `%s' not available, try again" proc))
   (let ((prompt (tramp-get-connection-property proc "prompt" tramp-adb-prompt)))
     (with-current-buffer (process-buffer proc)
       (if (tramp-wait-for-regexp proc timeout prompt)
@@ -1085,10 +1086,11 @@ FMT and ARGS are passed to `error'."
 	      (delete-region (point) (point-max))))
 	(if timeout
 	    (tramp-error
-	     proc 'file-error
+	     proc 'remote-file-error
 	     "[[Remote prompt `%s' not found in %d secs]]" prompt timeout)
 	  (tramp-error
-	   proc 'file-error "[[Remote prompt `%s' not found]]" prompt))))))
+	   proc 'remote-file-error
+	   "[[Remote prompt `%s' not found]]" prompt))))))
 
 (defun tramp-adb-maybe-open-connection (vec)
   "Maybe open a connection VEC.
@@ -1110,13 +1112,14 @@ connection if a previous connection has died for some reason."
       ;; whether it is still the same device.
       (when
 	  (and user (not (tramp-get-connection-property vec " su-command-p" t)))
-	(tramp-error vec 'file-error "Cannot switch to user `%s'" user))
+	(tramp-error vec 'remote-file-error "Cannot switch to user `%s'" user))
 
       (unless (process-live-p p)
 	(save-match-data
 	  (when (and p (processp p)) (delete-process p))
 	  (if (tramp-string-empty-or-nil-p device)
-	      (tramp-error vec 'file-error "Device %s not connected" host))
+	      (tramp-error
+	       vec 'remote-file-error "Device %s not connected" host))
 	  (with-tramp-progress-reporter vec 3 "Opening adb shell connection"
 	    (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?
 		   (process-connection-type tramp-process-connection-type)
@@ -1137,7 +1140,7 @@ connection if a previous connection has died for some reason."
 	      (tramp-send-string vec tramp-rsh-end-of-line)
 	      (tramp-adb-wait-for-output p 30)
 	      (unless (process-live-p p)
-		(tramp-error vec 'file-error "Terminated!"))
+		(tramp-error vec 'remote-file-error "Terminated!"))
 
 	      ;; Set connection-local variables.
 	      (tramp-set-connection-local-variables vec)
@@ -1193,7 +1196,7 @@ connection if a previous connection has died for some reason."
 		  ;; Do not flush, we need the nil value.
 		  (tramp-set-connection-property vec " su-command-p" nil)
 		  (tramp-error
-		   vec 'file-error "Cannot switch to user `%s'" user)))
+		   vec 'remote-file-error "Cannot switch to user `%s'" user)))
 
 	      ;; Mark it as connected.
 	      (tramp-set-connection-property p "connected" t))))))))

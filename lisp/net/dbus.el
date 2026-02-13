@@ -319,6 +319,10 @@ If the parameter `:authorizable' is given and the following AUTH
 is non-nil, the invoked method may interactively prompt the user
 for authorization.  The default is nil.
 
+If the parameter `:keep-fd' is given, and the return message has a first
+argument with a D-Bus type `:unix-fd', the returned file desriptor is
+kept internally, and can be used in a later `dbus--close-fd' call.
+
 All other arguments ARGS are passed to METHOD as arguments.  They are
 converted into D-Bus types via the following rules:
 
@@ -452,6 +456,10 @@ method call doesn't return in time, a D-Bus error is raised.
 If the parameter `:authorizable' is given and the following AUTH
 is non-nil, the invoked method may interactively prompt the user
 for authorization.  The default is nil.
+
+If the parameter `:keep-fd' is given, and the return message has a first
+argument with a D-Bus type `:unix-fd', the returned file desriptor is
+kept internally, and can be used in a later `dbus--close-fd' call.
 
 All other arguments ARGS are passed to METHOD as arguments.  They are
 converted into D-Bus types via the following rules:
@@ -604,6 +612,7 @@ This is an internal function, it shall not be used outside dbus.el."
 
 ;;; Hash table of registered functions.
 
+;; Seems to be unused.  Dow we want to keep it?
 (defun dbus-list-hash-table ()
   "Return all registered member registrations to D-Bus.
 The return value is a list, with elements of kind (KEY . VALUE).
@@ -613,7 +622,7 @@ hash table."
     (maphash
      (lambda (key value) (push (cons key value) result))
      dbus-registered-objects-table)
-    result))
+    (nreverse result)))
 
 (defun dbus-setenv (bus variable value)
   "Set the value of the BUS environment variable named VARIABLE to VALUE.
@@ -2098,6 +2107,7 @@ either a method name, a signal name, or an error name."
 
 (defun dbus-monitor-goto-serial ()
   "Goto D-Bus message with the same serial number."
+  (declare (completion ignore))
   (interactive)
   (when (mouse-event-p last-input-event) (mouse-set-point last-input-event))
   (when-let* ((point (get-text-property (point) 'dbus-serial)))

@@ -72,26 +72,22 @@
   "The days of the week that are displayed on the portrait monthly calendar.
 Sunday is 0, Monday is 1, and so on.  The default is to print from Sunday to
 Saturday.  For example, (1 3 5) prints only Monday, Wednesday, Friday."
-  :type '(repeat integer)
-  :group 'calendar-tex)
+  :type '(repeat integer))
 
 (defcustom cal-tex-holidays t
   "Non-nil means holidays are printed in the LaTeX calendars that support it.
 Setting this to nil may speed up calendar generation."
-  :type 'boolean
-  :group 'calendar-tex)
+  :type 'boolean)
 
 (defcustom cal-tex-diary nil
   "Non-nil means diary entries are printed in LaTeX calendars that support it.
 Setting this to nil may speed up calendar generation."
-  :type 'boolean
-  :group 'calendar-tex)
+  :type 'boolean)
 
 (defcustom cal-tex-rules nil
   "Non-nil means pages will be ruled in some LaTeX calendar styles.
 At present, this only affects the daily filofax calendar."
-  :type 'boolean
-  :group 'calendar-tex)
+  :type 'boolean)
 
 (defcustom cal-tex-daily-string
   '(let* ((year (calendar-extract-year date))
@@ -112,30 +108,25 @@ days remaining.  As an example, setting this to
     (calendar-hebrew-date-string date)
 
 will put the Hebrew date at the bottom of each day."
-  :type 'sexp
-  :group 'calendar-tex)
+  :type 'sexp)
 
 (defcustom cal-tex-buffer "calendar.tex"
   "The name for the output LaTeX calendar buffer."
-  :type 'string
-  :group 'calendar-tex)
+  :type 'string)
 
 (defcustom cal-tex-24 nil
   "Non-nil means use a 24 hour clock in the daily calendar."
-  :type 'boolean
-  :group 'calendar-tex)
+  :type 'boolean)
 
 (defcustom cal-tex-daily-start 8
   "The first hour of the daily LaTeX calendar page.
 At present, this only affects `cal-tex-cursor-day'."
-  :type 'integer
-  :group 'calendar-tex)
+  :type 'integer)
 
 (defcustom cal-tex-daily-end 20
   "The last hour of the daily LaTeX calendar page.
 At present, this only affects `cal-tex-cursor-day'."
-  :type 'integer
-  :group 'calendar-tex)
+  :type 'integer)
 
 (defcustom cal-tex-preamble-extra nil
   "A string giving extra LaTeX commands to insert in the calendar preamble.
@@ -144,7 +135,6 @@ For example, to include extra packages:
   :type '(choice (const nil)
                  ;; An example to help people format things in custom.
                  (string :value "\\usepackage{foo}\n\\usepackage{bar}\n"))
-  :group 'calendar-tex
   :version "22.1")
 
 (defcustom cal-tex-hook nil
@@ -153,28 +143,23 @@ You can use this to do post-processing on the buffer.  For example, to change
 characters with diacritical marks to their LaTeX equivalents, use
     (add-hook \\='cal-tex-hook
               (lambda () (iso-iso2tex (point-min) (point-max))))"
-  :type 'hook
-  :group 'calendar-tex)
+  :type 'hook)
 
 (defcustom cal-tex-year-hook nil
   "List of functions called after a LaTeX year calendar buffer is generated."
-  :type 'hook
-  :group 'calendar-tex)
+  :type 'hook)
 
 (defcustom cal-tex-month-hook nil
   "List of functions called after a LaTeX month calendar buffer is generated."
-  :type 'hook
-  :group 'calendar-tex)
+  :type 'hook)
 
 (defcustom cal-tex-week-hook nil
   "List of functions called after a LaTeX week calendar buffer is generated."
-  :type 'hook
-  :group 'calendar-tex)
+  :type 'hook)
 
 (defcustom cal-tex-daily-hook nil
   "List of functions called after a LaTeX daily calendar buffer is generated."
-  :type 'hook
-  :group 'calendar-tex)
+  :type 'hook)
 
 ;;;
 ;;; Definitions for LaTeX code
@@ -1227,7 +1212,7 @@ shown are hard-coded to 8-12, 13-17."
         (cal-tex-arg (number-to-string (calendar-extract-day date)))
         (cal-tex-arg (cal-tex-latexify-list diary-list date))
         (cal-tex-arg (cal-tex-latexify-list holidays date))
-        (cal-tex-arg (eval cal-tex-daily-string))
+        (cal-tex-arg (eval cal-tex-daily-string t))
         (insert "%\n")
         (setq date (cal-tex-incr-date date)))
       (dotimes (_jdummy 2)
@@ -1236,7 +1221,7 @@ shown are hard-coded to 8-12, 13-17."
         (cal-tex-arg (number-to-string (calendar-extract-day date)))
         (cal-tex-arg (cal-tex-latexify-list diary-list date))
         (cal-tex-arg (cal-tex-latexify-list holidays date))
-        (cal-tex-arg (eval cal-tex-daily-string))
+        (cal-tex-arg (eval cal-tex-daily-string t))
         (insert "%\n")
         (setq date (cal-tex-incr-date date)))
       (unless (= i (1- n))

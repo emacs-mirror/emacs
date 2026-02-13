@@ -20,13 +20,12 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'ediff-mult)
 
 (ert-deftest ediff-test-bug3348 ()
   "After saving `ediff-meta-diff-buffer' to a file, we should not reuse it."
-  (let ((test-dir
-         (expand-file-name "bug-3348-testdir" temporary-file-directory)))
-    (make-directory test-dir t)
+  (ert-with-temp-directory test-dir
     (cd test-dir)
 
     (make-directory "dir-a" t)

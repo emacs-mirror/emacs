@@ -36,6 +36,53 @@
   (ert-test-erts-file (ert-resource-file "c-mode.erts")
                       (test-align-transform-fun #'c-mode)))
 
+(ert-deftest align-c-multi-section ()
+  "Test alignment of multiple sections in C code.
+Regression test for bug where positions become stale after earlier
+sections are aligned, causing incorrect alignment in later sections."
+  (let ((input "int main(void)
+{
+  long signed int foo = 5;
+  int bar = 7;
+  {
+    int a1 = 4;
+    int b1 = 2;
+    long signed int junk1 = 2;
+  }
+  {
+    int a2 = 4; /* comment */
+    int b2 = 2;
+    long signed int junk2 = 2; /* another comment */
+  }
+
+  return 0;
+}
+")
+        (expected "int main(void)
+{
+  long signed int foo = 5;
+  int             bar = 7;
+  {
+    int             a1    = 4;
+    int             b1    = 2;
+    long signed int junk1 = 2;
+  }
+  {
+    int             a2    = 4;  /* comment */
+    int             b2    = 2;
+    long signed int junk2 = 2;  /* another comment */
+  }
+
+  return 0;
+}
+"))
+    (with-temp-buffer
+      (c-mode)
+      (setq indent-tabs-mode nil)
+      (insert input)
+      (align (point-min) (point-max))
+      (should (equal (buffer-string) expected)))))
+
 (ert-deftest align-css ()
   (let ((indent-tabs-mode nil))
     (ert-test-erts-file (ert-resource-file "css-mode.erts")

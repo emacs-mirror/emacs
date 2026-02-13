@@ -281,6 +281,17 @@ another string, alter a constant string in the program, or even raise
 an error.  To obtain a string that you can safely mutate, use
 @code{copy-sequence} on the result.
 
+If you need to create a string made from @var{n} copies of a given
+source string @var{source}, you can use @code{concat} as follows:
+
+@lisp
+  (apply #'concat (make-list @var{n} @var{source}))
+@end lisp
+
+@noindent
+This uses the fact that @code{concat} can take any kind of sequence as
+its arguments.
+
 For information about other concatenation functions, see the
 description of @code{mapconcat} in @ref{Mapping Functions},
 @code{vconcat} in @ref{Vector Functions}, and @code{append} in @ref{Building

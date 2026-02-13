@@ -5138,11 +5138,15 @@ server_accept_connection (Lisp_Object server, int channel)
   /* If the server process is locked to this thread, lock the client
      process to the same thread, otherwise clear the thread of its I/O
      descriptors.  */
-  eassert (!fd_callback_info[p->infd].thread);
   if (NILP (ps->thread))
-    set_proc_thread (p, NULL);
+    {
+      eassert (!fd_callback_info[p->infd].thread);
+      set_proc_thread (p, NULL);
+    }
   else
     {
+      eassert (!fd_callback_info[p->infd].thread
+	       || fd_callback_info[p->infd].thread == XTHREAD (ps->thread));
       eassert (XTHREAD (ps->thread) == current_thread);
       set_proc_thread (p, XTHREAD (ps->thread));
     }

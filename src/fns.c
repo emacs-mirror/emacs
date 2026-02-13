@@ -7713,4 +7713,8 @@ For best results this should end in a space.  */);
   DEFSYM (QCin_place, ":in-place");
   DEFSYM (QCreverse, ":reverse");
   DEFSYM (Qvaluelt, "value<");
+
+  /* sleep-event states.  */
+  DEFSYM (Qpre_sleep, "pre-sleep");
+  DEFSYM (Qpost_wake, "post-wake");
 }

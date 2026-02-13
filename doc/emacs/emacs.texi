@@ -1020,7 +1020,14 @@ The Diary
 * Adding to Diary::        Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 * Appointments::           Reminders when it's time to do something.
-* Importing Diary::        Converting diary events to/from other formats.
+* Diary Conversion::       Converting diary events to/from other formats.
+
+Diary Conversion
+
+* Diary iCalendar Import::      Importing iCalendar data to the Diary.
+* Diary iCalendar Display::     Displaying iCalendar data without importing.
+* Diary iCalendar Export::      Exporting Diary entries to iCalendar.
+* Diary Outlook Import::        Importing Outlook appointments to the Diary.
 
 @ifnottex
 More advanced features of the Calendar and Diary

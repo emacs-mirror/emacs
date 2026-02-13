@@ -1,0 +1,10 @@
+ SUMMARY: Testing legacy `icalendar-import-format' function
+ DESCRIPTION: described
+ CLASS: private
+ LOCATION: somewhere
+ ORGANIZER: mailto:baz@example.com
+ STATUS: CONFIRMED
+ URL: http://example.com/foo/baz
+ UID: some-unique-id-here
+ DTSTART: 20250919T090000
+ DTEND: 20250919T113000

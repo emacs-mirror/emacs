@@ -2778,12 +2778,12 @@ To test the signal handler, you can make Emacs send a signal to itself:
 @end smallexample
 
 @cindex @code{sleep-event} event
-@item (sleep-event @var{sleep-wake})
-This event is injected when the device Emacs is running on enters or
-leaves the sleep state.  A non-@code{nil} @var{sleep-wake} indicates
-entering the sleep state.
+@item (sleep-event @var{state})
+This event is injected when the device Emacs is running on is about to
+enter a sleep state, or has just awoken from one.  @var{state} will be
+the symbol @code{pre-sleep} or @code{post-wake}.
 
-This is implemented only on GNU/Linux.
+This is implemented on GNU/Linux, macOS, and MS-Windows.
 
 @cindex @code{language-change} event
 @item language-change
@@ -4062,7 +4062,8 @@ definition to find the actual event.
 user signals like @code{sigusr1} are normally handled in this way.
 The keymap which defines how to handle special events---and which
 events are special---is in the variable @code{special-event-map}
-(@pxref{Controlling Active Maps}).
+(@pxref{Controlling Active Maps}).  @xref{Misc Events}, for more details
+about these and other special events.
 
 @defun insert-special-event
 @cindex inserting special events

@@ -331,7 +331,7 @@ not be enclosed in { } or ( )."
 					     &rest fl-keywords)
   `(;; Do macro assignments.  These get the "variable-name" face.
     (,makefile-macroassign-regex
-     (1 font-lock-variable-name-face)
+     (1 'font-lock-variable-name-face)
      ;; This is for after !=
      (2 'makefile-shell prepend t)
      ;; This is for after normal assignment
@@ -340,10 +340,10 @@ not be enclosed in { } or ( )."
     ;; Rule actions.
     ;; FIXME: When this spans multiple lines we need font-lock-multiline.
     (makefile-match-action
-     (1 font-lock-type-face nil t)
+     (1 'font-lock-type-face nil t)
      (2 'makefile-shell prepend)
      ;; Only makepp has builtin commands.
-     (3 font-lock-builtin-face prepend t))
+     (3 'font-lock-builtin-face prepend t))
 
     ;; Variable references even in targets/strings/comments.
     (,var 2 font-lock-variable-name-face prepend)
@@ -364,11 +364,11 @@ not be enclosed in { } or ( )."
 		   (string-replace "-" "[_-]" (regexp-opt (cdr keywords) t))
 		 (regexp-opt keywords t)))
 	      "\\>[ \t]*\\([^: \t\n#]*\\)")
-             (1 font-lock-keyword-face) (2 font-lock-variable-name-face))))
+             (1 'font-lock-keyword-face) (2 'font-lock-variable-name-face))))
 
     ,@(if negation
-	  `((,negation (1 font-lock-negation-char-face prepend)
-		       (2 font-lock-negation-char-face prepend t))))
+	  `((,negation (1 'font-lock-negation-char-face prepend)
+		       (2 'font-lock-negation-char-face prepend t))))
 
     ,@(if space
 	  '(;; Highlight lines that contain just whitespace.
@@ -436,9 +436,9 @@ not be enclosed in { } or ( )."
 
    ;; Colon modifier keywords.
    '("\\(:\\s *\\)\\(build_c\\(?:ache\\|heck\\)\\|env\\(?:ironment\\)?\\|foreach\\|signature\\|scanner\\|quickscan\\|smartscan\\)\\>\\([^:\n]*\\)"
-     (1 font-lock-type-face t)
-     (2 font-lock-keyword-face t)
-     (3 font-lock-variable-name-face t))
+     (1 'font-lock-type-face t)
+     (2 'font-lock-keyword-face t)
+     (3 'font-lock-variable-name-face t))
 
    ;; $(function ...) $((function ...)) ${...} ${{...}} $[...] $[[...]]
    '("[^$]\\$\\(?:((?\\|{{?\\|\\[\\[?\\)\\([-a-zA-Z0-9_.]+\\s \\)"

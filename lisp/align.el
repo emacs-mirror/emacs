@@ -1407,11 +1407,18 @@ aligner would have dealt with are."
                     (align-region
                      beg end 'entire
                      exclude-rules nil
+                     ;; Use markers for exclusion area bounds so
+                     ;; they remain accurate after subsequent
+                     ;; alignment sections modify the buffer.
                      (lambda (b e mode)
                        (or (and mode (listp mode))
+                           (let ((bm (copy-marker b))
+                                 (em (copy-marker e t)))
+                             (push bm markers)
+                             (push em markers)
                            (setq exclude-areas
-                                 (cons (cons b e)
-                                       exclude-areas)))))
+                                   (cons (cons bm em)
+                                         exclude-areas))))))
                     (setq exclude-areas
                           (nreverse
                            (sort exclude-areas #'car-less-than-car))))
@@ -1458,14 +1465,17 @@ aligner would have dealt with are."
                       (setq same nil)
                       (align--set-marker eol (line-end-position)))
 
-                    ;; remember the beginning position of this rule
-                    ;; match, and save the match-data, since either
-                    ;; the `valid' form, or the code that searches for
-                    ;; section separation, might alter it
-                    (setq rule-beg (match-beginning first)
-                          save-match-data (match-data))
+                    ;; Remember the beginning position of this rule
+                    ;; match as a marker so it remains accurate after
+                    ;; `align-regions' modifies the buffer for a
+                    ;; previous alignment section.  Also save the
+                    ;; match-data, since either the `valid' form, or
+                    ;; the code that searches for section separation,
+                    ;; might alter it.
+                    (align--set-marker rule-beg (match-beginning first) t)
+                    (setq save-match-data (match-data))
 
-                    (or rule-beg
+                    (or (marker-position rule-beg)
                         (error "No match for subexpression %s" first))
 
                     ;; unless the `valid' attribute is set, and tells
@@ -1480,6 +1490,18 @@ aligner would have dealt with are."
                       (when (and last-point
                                  (align-new-section-p last-point rule-beg
                                                       thissep))
+                        ;; Convert saved match-data positions to
+                        ;; markers before `align-regions' modifies
+                        ;; the buffer, so the restored match-data
+                        ;; reflects the updated buffer state.
+                        (setq save-match-data
+                              (mapcar (lambda (pos)
+                                        (if (integerp pos)
+                                            (let ((m (copy-marker pos)))
+                                              (push m markers)
+                                              m)
+                                          pos))
+                                      save-match-data))
                         (align-regions regions align-props rule func)
                         (setq regions nil)
                         (setq align-props nil))

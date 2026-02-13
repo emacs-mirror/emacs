@@ -1006,7 +1006,7 @@ The global value will always be nil; it is bound where needed.")
   "Called when a D-Bus error message arrives, see `dbus-event-error-functions'."
   (when tramp-gvfs-dbus-event-vector
     (tramp-message tramp-gvfs-dbus-event-vector 6 "%S" event)
-    (tramp-error tramp-gvfs-dbus-event-vector 'file-error (cadr err))))
+    (tramp-error tramp-gvfs-dbus-event-vector 'remote-file-error (cadr err))))
 
 (add-hook 'dbus-event-error-functions #'tramp-gvfs-dbus-event-error)
 (add-hook 'tramp-gvfs-unload-hook
@@ -2234,7 +2234,7 @@ connection if a previous connection has died for some reason."
 		   method)
 	       tramp-gvfs-mounttypes)
 	(tramp-error
-	 vec 'file-error "Method `%s' not supported by GVFS" method)))
+	 vec 'remote-file-error "Method `%s' not supported by GVFS" method)))
 
     ;; For password handling, we need a process bound to the
     ;; connection buffer.  Therefore, we create a dummy process.
@@ -2332,10 +2332,10 @@ connection if a previous connection has died for some reason."
 		vec 'tramp-connection-timeout tramp-connection-timeout)
 	       (if (tramp-string-empty-or-nil-p user-domain)
 		   (tramp-error
-		    vec 'file-error
+		    vec 'remote-file-error
 		    "Timeout reached mounting %s using %s" host-port method)
 		 (tramp-error
-		  vec 'file-error
+		  vec 'remote-file-error
 		  "Timeout reached mounting %s@%s using %s"
 		  user-domain host-port method)))
 	    (while (not (tramp-get-file-property vec "/" "fuse-mountpoint"))
@@ -2345,7 +2345,7 @@ connection if a previous connection has died for some reason."
 	  ;; is marked with the fuse-mountpoint "/".  We shall react.
 	  (when (string-equal
 		 (tramp-get-file-property vec "/" "fuse-mountpoint" "") "/")
-	    (tramp-error vec 'file-error "FUSE mount denied"))
+	    (tramp-error vec 'remote-file-error "FUSE mount denied"))
 
 	  ;; Save the password.
 	  (ignore-errors

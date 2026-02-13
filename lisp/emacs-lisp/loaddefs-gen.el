@@ -732,11 +732,8 @@ instead of just updating them with the new/changed autoloads."
              '(t (escape-newlines . t)
                  (escape-control-characters . t)))
       (insert " "))
-    (let ((start (point)))
-      (prin1 (pop def) (current-buffer) t)
-      (save-excursion
-        (goto-char (1+ start))
-        (insert "\\\n")))
+    (delete-char -1) (insert "\n")
+    (prin1 (pop def) (current-buffer) t)
     (while def
       (insert " ")
       (prin1 (pop def) (current-buffer)

@@ -341,14 +341,13 @@ There can be multiple entries for the same NAME if it has several aliases.")
        (if (cdr exps)
            (macroexp-progn (byte-optimize-body exps for-effect))
 	 (byte-optimize-form (car exps) for-effect)))
+
       (`(prog1 ,exp . ,exps)
-       (let ((exp-opt (byte-optimize-form exp for-effect)))
-         (if exps
-             (let ((exps-opt (byte-optimize-body exps t)))
-               (if (macroexp-const-p exp-opt)
-                   `(progn ,@exps-opt ,exp-opt)
-	         `(,fn ,exp-opt ,@exps-opt)))
-	   exp-opt)))
+       (let ((exp-opt (byte-optimize-form exp for-effect))
+             (exps-opt (byte-optimize-body exps t)))
+         (cond ((null exps-opt) exp-opt)
+               ((macroexp-const-p exp-opt) `(progn ,@exps-opt ,exp-opt))
+	       (t `(,fn ,exp-opt ,@exps-opt)))))
 
       (`(,(or `save-excursion `save-restriction `save-current-buffer) . ,exps)
        ;; Those subrs which have an implicit progn; it's not quite good

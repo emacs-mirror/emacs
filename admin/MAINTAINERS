@@ -405,6 +405,11 @@ Spencer Baugh
 Yuan Fu
        lisp/progmodes/c-ts-mode.el
 
+Basil L. Contovounesios
+	lisp/battery.el (UPower support)
+	lisp/json.el
+	src/image.c (WebP support)
+
 ==============================================================================
 3. Externally maintained packages.
 ==============================================================================

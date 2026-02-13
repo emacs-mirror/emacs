@@ -1835,7 +1835,8 @@ the start of the @var{n}th previous file.
 
 @findex diff-hunk-kill
 @item M-k
-Kill the hunk at point (@code{diff-hunk-kill}).
+Kill the hunk at point (@code{diff-hunk-kill}).  If the region is
+active, kills all hunks the region overlaps.
 
 @findex diff-file-kill
 @item M-K

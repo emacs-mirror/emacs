@@ -1,0 +1,4 @@
+&%%(diary-rrule :rule '((FREQ DAILY) (INTERVAL 2)) :exclude
+	     '((9 21 2003) (9 25 2003)) :start
+	     '(0 0 9 19 9 2003 5 -1 nil) :duration
+	     '(0 30 2 0 nil nil nil -1 nil)) rrule daily with exceptions

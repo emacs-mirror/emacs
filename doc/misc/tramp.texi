@@ -6658,7 +6658,7 @@ root directory, it is most likely sufficient to make the
 @code{default-directory} of the process buffer as the root directory.
 
 
-@subsection Timers, process filters, process sentinels, redisplay
+@subsection Timers, process filters, process sentinels, special events, redisplay
 
 @vindex remote-file-error
 Timers run asynchronously at any time when Emacs is waiting for
@@ -6678,7 +6678,13 @@ wrapping the timer function body as follows:
 @end lisp
 
 A similar problem could happen with process filters, process
-sentinels, and redisplay (updating the mode line).
+sentinels, special event handlers, and redisplay (updating the mode
+line).
+
+@strong{Note} that @value{tramp} raises a @code{remote-file-error}
+error for any connection-related problem.  You can protect against all
+such problems with the code snippet above (or with a
+@code{condition-case} form with a @code{remote-file-error} handler).
 
 
 @node Extension packages

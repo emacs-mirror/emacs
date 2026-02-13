@@ -30,6 +30,8 @@
 ;; activate packages at startup, as well as other functions that are
 ;; useful without having to load the entirety of package.el.
 
+;; Note that the contents of this file are preloaded!
+
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
@@ -533,6 +535,149 @@ the `Version:' header."
         (when (file-readable-p mainfile)
           (require 'lisp-mnt)
           (lm-package-version mainfile)))))))
+
+
+;;;; Package suggestions system
+
+;; Note that only the definitions necessary to recognise package
+;; suggestions are defined here.  The user interface to select and act
+;; on package suggestions is to be found in package.el.
+
+(defcustom package-autosuggest-style 'mode-line
+  "How to draw attention to `package-autosuggest-mode' suggestions.
+You can set this value to `mode-line' (default) to indicate the
+availability of a package suggestion in the minor mode, `always' to
+prompt the user in the minibuffer every time a suggestion is available
+in a `fundamental-mode' buffer, or `message' to just display a message
+hinting at the existence of a suggestion.  If you only wish to be
+reminded of package suggestions once every session, consider customizing
+the `package-autosuggest-once' user option."
+  :type '(choice (const :tag "Indicate in mode line" mode-line)
+                 (const :tag "Always prompt" always)
+                 (const :tag "Indicate with message" message))
+  :group 'package)
+
+(defcustom package-autosuggest-once nil
+  "Non-nil means not to repeat package suggestions."
+  :type 'boolean
+  :group 'package)
+
+(defvar package--autosuggest-database 'unset
+  "A list of package suggestions.
+Each entry in the list is of a form suitable to for
+`package--suggestion-applies-p', which see.  The special value `unset'
+is used to indicate that `package--autosuggest-find-candidates' should
+load the database into memory.")
+
+(defvar package--autosuggest-suggested '()
+  "List of packages that have already been suggested.
+Suggestions found in this list will not count as suggestions (e.g. if
+`package-autosuggest-style' is set to `mode-line', a suggestion found in
+here will inhibit `package-autosuggest-mode' from displaying a hint in
+the mode line).")
+
+(defun package--suggestion-applies-p (sug)
+  "Check if a suggestion SUG is applicable to the current buffer.
+Each suggestion has the form (PACKAGE TYPE DATA), where PACKAGE is a
+symbol denoting the package and major-mode the suggestion applies to,
+TYPE is one of `auto-mode-alist', `magic-mode-alist' or
+`interpreter-mode-alist' indicating the type of check to be made and
+DATA is the value to check against TYPE in the intuitive way (e.g. for
+`auto-mode-alist' DATA is a regular expression matching a file name that
+PACKAGE should be suggested for).  If the package name and the major
+mode name differ, then an optional forth element MAJOR-MODE can indicate
+what command to invoke to enable the package."
+  (pcase sug
+    ((or (guard (not (eq major-mode 'fundamental-mode)))
+         (guard (and package-autosuggest-once
+                     (not (memq (car sug) package--autosuggest-suggested))))
+         `(,(pred package-installed-p) . ,_))
+     nil)
+    (`(,_ auto-mode-alist ,ext . ,_)
+     (and (buffer-file-name) (string-match-p ext (buffer-file-name)) t))
+    (`(,_ magic-mode-alist ,mag . ,_)
+     (without-restriction
+       (save-excursion
+         (goto-char (point-min))
+         (looking-at-p mag))))
+    (`(,_ interpreter-mode-alist ,intr . ,_)
+     (without-restriction
+       (save-excursion
+         (goto-char (point-min))
+         (and (looking-at auto-mode-interpreter-regexp)
+              (string-match-p
+               (concat "\\`" (file-name-nondirectory (match-string 2)) "\\'")
+               intr)))))))
+
+(defun package--autosuggest-find-candidates ()
+    "Return a list of suggestions that might be interesting the current buffer.
+The elements of the returned list will have the form described in
+`package--suggestion-applies-p'."
+    (and (eq major-mode 'fundamental-mode)
+         (let ((suggetions '()))
+           (when (eq package--autosuggest-database 'unset)
+             (setq package--autosuggest-database
+                   (with-temp-buffer
+                     (insert-file-contents
+                      (expand-file-name "package-autosuggest.eld"
+                                        data-directory))
+                     (read (current-buffer)))))
+           (dolist (sug package--autosuggest-database)
+             (when (package--suggestion-applies-p sug)
+               (push sug suggetions)))
+           suggetions)))
+
+(defvar package--autosugest-line-format
+  '(:eval (package--autosugest-line-format)))
+(put 'package--autosugest-line-format 'risky-local-variable t)
+
+(defun package--autosugest-line-format ()
+  "Generate a mode-line string to indicate a suggested package."
+  `(,@(and-let* (((not (null package-autosuggest-mode)))
+                 ((eq package-autosuggest-style 'mode-line))
+                 (avail (package--autosuggest-find-candidates)))
+        (propertize
+         "[Upgrade?]"
+         'face 'mode-line-emphasis
+         'mouse-face 'mode-line-highlight
+         'help-echo "Click to install suggested package."
+         'keymap (let ((map (make-sparse-keymap)))
+                   (define-key map [mode-line down-mouse-1] #'package-autosuggest)
+                   map)))))
+
+(declare-function package-autosuggest "package" (&optional candidates))
+
+(defun package--autosuggest-after-change-mode ()
+  "Display package suggestions for the current buffer.
+This function should be added to `after-change-major-mode-hook'."
+  (when-let* ((avail (package--autosuggest-find-candidates))
+              (pkgs (mapconcat #'symbol-name
+                               (delete-dups (mapcar #'car avail))
+                               ", ")))
+    (pcase-exhaustive package-autosuggest-style
+      ('mode-line
+       (setq mode-name (append (ensure-list mode-name)
+                               '((package-autosuggest-mode
+                                  package--autosugest-line-format))))
+       (force-mode-line-update t))
+      ('always
+       (package-autosuggest avail))
+      ('message
+       (message
+        (substitute-command-keys
+         (format "Found suggested packages: %s.  Install using  \\[package-autosuggest]"
+                 pkgs)))
+       (dolist (rec avail)
+         (add-to-list 'package--autosuggest-suggested (car rec)))))))
+
+;;;###autoload
+(define-minor-mode package-autosuggest-mode
+  "Enable the automatic suggestion and installation of packages."
+  :global t :group 'package
+  ;; :initialize #'custom-initialize-delay
+  (funcall (if package-autosuggest-mode #'add-hook #'remove-hook)
+           'after-change-major-mode-hook
+           #'package--autosuggest-after-change-mode))
 
 (provide 'package-activate)
 ;;; package-activate.el ends here
