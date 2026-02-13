@@ -2144,7 +2144,9 @@ from ELPA by either using `\\[package-upgrade]' or
                          (format "%s packages to upgrade.  Do it?"
                                  (length upgradeable))))))
         (user-error "Upgrade aborted"))
-      (mapc #'package-upgrade upgradeable))))
+      (dolist (pkg upgradeable)
+        (with-demoted-errors "Error while upgrading: %S"
+          (package-upgrade pkg))))))
 
 (defun package--dependencies (pkg)
   "Return a list of all transitive dependencies of PKG.
