@@ -1105,7 +1105,7 @@ The return result is a `package-desc'."
           (dolist (file (sort files :key #'length))
             ;; The file may be a link to a nonexistent file; e.g., a
             ;; lock file.
-            (when (file-exists-p file)
+            (when (and (file-readable-p file) (file-regular-p file))
               (with-temp-buffer
                 (insert-file-contents file)
                 ;; When we find the file with the data,
