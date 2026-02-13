@@ -1,0 +1,16 @@
+BEGIN:VCALENDAR
+PRODID:-//Emacs//NONSGML icalendar.el//EN
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:Testing legacy `icalendar-import-format' function
+DESCRIPTION:described
+CLASS:private
+LOCATION:somewhere
+ORGANIZER;CN="Baz Foo":mailto:baz@example.com
+STATUS:CONFIRMED
+URL:http://example.com/foo/baz
+UID:some-unique-id-here
+DTSTART;VALUE=DATE-TIME:20250919T090000
+DTEND;VALUE=DATE-TIME:20250919T113000
+END:VEVENT
+END:VCALENDAR

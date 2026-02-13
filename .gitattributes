@@ -25,6 +25,7 @@ admin/charsets/mapfiles/PTCP154 whitespace=cr-at-eol
 test/manual/etags/c-src/dostorture.c whitespace=cr-at-eol
 test/manual/etags/cp-src/c.C whitespace=cr-at-eol
 test/manual/etags/html-src/algrthms.html whitespace=cr-at-eol
+test/lisp/calendar/icalendar-resources/*.ics whitespace=cr-at-eol
 
 # The todo-mode file format includes trailing whitespace.
 *.tod[aorty] -whitespace=blank-at-eol

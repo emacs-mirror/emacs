@@ -446,7 +446,7 @@ Otherwise, return NAME."
 		     crypt-vec (if (eq op 'encrypt) "encode" "decode")
 		     tramp-compat-temporary-file-directory localname)
 	      (tramp-error
-	       crypt-vec 'file-error "%s of file name %s failed"
+	       crypt-vec 'remote-file-error "%s of file name %s failed"
 	       (if (eq op 'encrypt) "Encoding" "Decoding") name))
 	    (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	      (goto-char (point-min))
@@ -481,7 +481,7 @@ Raise an error if this fails."
 	       (file-name-directory infile)
 	       (concat "/" (file-name-nondirectory infile)))
 	(tramp-error
-	 crypt-vec 'file-error "%s of file %s failed"
+	 crypt-vec 'remote-file-error "%s of file %s failed"
 	 (if (eq op 'encrypt) "Encrypting" "Decrypting") infile))
       (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	(write-region nil nil outfile)))))

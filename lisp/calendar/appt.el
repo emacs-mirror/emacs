@@ -81,8 +81,7 @@
 (defcustom appt-message-warning-time 12
   "Default time in minutes before an appointment that the warning begins.
 You probably want to make `appt-display-interval' a factor of this."
-  :type 'integer
-  :group 'appt)
+  :type 'integer)
 
 (defcustom appt-warning-time-regexp "warntime \\([0-9]+\\)"
   "Regexp matching a string giving the warning time for an appointment.
@@ -92,13 +91,11 @@ You may want to put this inside a diary comment (see `diary-comment-start').
 For example, to be warned 30 minutes in advance of an appointment:
    2011/06/01 12:00 Do something ## warntime 30"
   :version "24.1"
-  :type 'regexp
-  :group 'appt)
+  :type 'regexp)
 
 (defcustom appt-audible t
   "Non-nil means beep to indicate appointment."
-  :type 'boolean
-  :group 'appt)
+  :type 'boolean)
 
 ;; TODO - add popup.
 (defcustom appt-display-format 'window
@@ -112,7 +109,6 @@ See also `appt-audible' and `appt-display-mode-line'."
           (const :tag "Separate window" window)
           (const :tag "Echo-area" echo)
           (const :tag "No visible display" nil))
-  :group 'appt
   :version "24.1") ; no longer inherit from deleted obsolete variables
 
 (defcustom appt-display-mode-line t
@@ -120,21 +116,18 @@ See also `appt-audible' and `appt-display-mode-line'."
 This is in addition to any other display of appointment messages.
 The mode line updates every minute, independent of the value of
 `appt-display-interval'."
-  :type 'boolean
-  :group 'appt)
+  :type 'boolean)
 
 (defcustom appt-display-duration 10
   "The number of seconds an appointment message is displayed.
 Only relevant if reminders are to be displayed in their own window."
-  :type 'integer
-  :group 'appt)
+  :type 'integer)
 
 (defcustom appt-display-diary t
   "Non-nil displays the diary when the appointment list is first initialized.
 This occurs when this package is first activated, and then at
 midnight when the appointment list updates."
-  :type 'boolean
-  :group 'appt)
+  :type 'boolean)
 
 (defcustom appt-display-interval 3
   "Interval in minutes at which to display appointment reminders.
@@ -146,8 +139,7 @@ a final message displayed precisely when the appointment is due.
 Note that this variable controls the interval at which
 `appt-display-message' is called.  The mode line display (if active)
 always updates every minute."
-  :type 'integer
-  :group 'appt)
+  :type 'integer)
 
 (defcustom appt-disp-window-function #'appt-disp-window
   "Function called to display appointment window.
@@ -156,14 +148,12 @@ It should take three string arguments: the number of minutes till
 the appointment, the current time, and the text of the appointment.
 Each argument may also be a list, if multiple appointments are
 relevant at any one time."
-  :type 'function
-  :group 'appt)
+  :type 'function)
 
 (defcustom appt-delete-window-function #'appt-delete-window
   "Function called to remove appointment window and buffer.
 Only relevant if reminders are being displayed in a window."
-  :type 'function
-  :group 'appt)
+  :type 'function)
 
 (defface appt-notification
   '((t :inherit mode-line-emphasis))
@@ -602,7 +592,7 @@ Any appointments made with `appt-add' are not affected by this function."
                    (not (eq diary-number-of-entries 1))
                    (not (memq (car (last diary-list-entries-hook))
                               '(diary-sort-entries sort-diary-entries)))
-                   (setq entry-list (sort entry-list 'diary-entry-compare)))
+                   (setq entry-list (sort entry-list #'diary-entry-compare)))
               ;; Skip diary entries for dates before today.
               (while (and entry-list
                           (calendar-date-compare

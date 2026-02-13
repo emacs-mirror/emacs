@@ -955,7 +955,7 @@ It's a subdirectory of `doc-view-cache-directory'."
 (defun doc-view-mode-p (type)
   "Return non-nil if document type TYPE is available for `doc-view'.
 Document types are symbols like `dvi', `ps', `pdf', `epub',
-`cbz', `fb2', `xps', `oxps', or`odf' (any OpenDocument format)."
+`cbz', `fb2', `xps', `oxps', or `odf' (any OpenDocument format)."
   (and (display-graphic-p)
        (image-type-available-p 'png)
        (cond

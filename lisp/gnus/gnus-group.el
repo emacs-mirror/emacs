@@ -640,6 +640,7 @@ simple manner."
   "M-&" #'gnus-group-universal-argument
   "#" #'gnus-group-mark-group
   "M-#" #'gnus-group-unmark-group
+  "M-i" #'gnus-symbolic-argument
 
   "~" (define-keymap :prefix 'gnus-group-cloud-map
         "u" #'gnus-cloud-upload-all-data

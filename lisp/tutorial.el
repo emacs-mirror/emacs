@@ -69,18 +69,17 @@ Where
   WHERE       is a text describing the key sequences to which DEF-FUN is
               bound now (or, if it is remapped, a key sequence
               for the function it is remapped to)"
-  (with-output-to-temp-buffer (help-buffer)
-    (help-setup-xref (list #'tutorial--describe-nonstandard-key value)
-                     (called-interactively-p 'interactive))
-    (with-current-buffer (help-buffer)
-      (insert
-       "Your Emacs customizations override the default binding for this key:"
-       "\n\n")
-      (let ((inhibit-read-only t))
-        (cond
-         ((eq (car value) 'cua-mode)
-          (insert
-           "CUA mode is enabled.
+  (help-setup-xref (list #'tutorial--describe-nonstandard-key value)
+                   (called-interactively-p 'interactive))
+  (with-help-window (help-buffer)
+    (insert
+     "Your Emacs customizations override the default binding for this key:"
+     "\n\n")
+    (let ((inhibit-read-only t))
+      (cond
+       ((eq (car value) 'cua-mode)
+        (insert
+         "CUA mode is enabled.
 
 When CUA mode is enabled, you can use C-z, C-x, C-c, and C-v to
 undo, cut, copy, and paste in addition to the normal Emacs
@@ -94,70 +93,70 @@ options:
 - press the prefix key twice very quickly (within 0.2 seconds),
 - press the prefix key and the following key within 0.2 seconds, or
 - use the SHIFT key with the prefix key, i.e. C-S-x or C-S-c."))
-         ((eq (car value) 'current-binding)
-          (let ((cb    (nth 1 value))
-                (db    (nth 2 value))
-                (key   (nth 3 value))
-                (where (nth 4 value))
-                map
-                (maps (current-active-maps))
-                mapsym)
-            ;; Look at the currently active keymaps and try to find
-            ;; first the keymap where the current binding occurs:
-            (while maps
-              (let* ((m (car maps))
-                     (mb (lookup-key m key t)))
-                (setq maps (cdr maps))
-                (when (eq mb cb)
-                  (setq map m)
-                  (setq maps nil))))
-            ;; Now, if a keymap was found we must found the symbol
-            ;; name for it to display to the user.  This can not
-            ;; always be found since all keymaps does not have a
-            ;; symbol pointing to them, but here they should have
-            ;; that:
-            (when map
-              (mapatoms (lambda (s)
-                          (and
-                           ;; If not already found
-                           (not mapsym)
-                           ;; and if s is a keymap
-                           (and (boundp s)
-                                (keymapp (symbol-value s)))
-                           ;; and not the local symbol map
-                           (not (eq s 'map))
-                           ;; and the value of s is map
-                           (eq map (symbol-value s))
-                           ;; then save this value in mapsym
-                           (setq mapsym s)))))
-            (insert
-             (format-message
-              "The default Emacs binding for the key %s is the command `%s'.  "
-              (key-description key)
-              db))
-            (insert "However, your customizations have "
-                    (if cb
-                        (format-message "rebound it to the command `%s'" cb)
-                      "unbound it"))
-            (insert ".")
-            (when mapsym
-              (insert "  (For the more advanced user:"
-                      (format-message
-                       " This binding is in the keymap `%s'.)" mapsym)))
-            (if (string= where "")
-                (unless (keymapp db)
-                  (insert "\n\nYou can use M-x "
-                          (format "%s" db)
-                          " RET instead."))
-              (insert "\n\nWith your current key bindings"
-                      " you can use "
-                      (if (string-match-p "^the .*menus?$" where)
-                          ""
-                        "the key ")
-                      where
-                      (format-message " to get the function `%s'." db))))
-          (fill-region (point-min) (point)))))
-      (help-print-return-message))))
+       ((eq (car value) 'current-binding)
+        (let ((cb    (nth 1 value))
+              (db    (nth 2 value))
+              (key   (nth 3 value))
+              (where (nth 4 value))
+              map
+              (maps (current-active-maps))
+              mapsym)
+          ;; Look at the currently active keymaps and try to find
+          ;; first the keymap where the current binding occurs:
+          (while maps
+            (let* ((m (car maps))
+                   (mb (lookup-key m key t)))
+              (setq maps (cdr maps))
+              (when (eq mb cb)
+                (setq map m)
+                (setq maps nil))))
+          ;; Now, if a keymap was found we must found the symbol
+          ;; name for it to display to the user.  This can not
+          ;; always be found since all keymaps does not have a
+          ;; symbol pointing to them, but here they should have
+          ;; that:
+          (when map
+            (mapatoms (lambda (s)
+                        (and
+                         ;; If not already found
+                         (not mapsym)
+                         ;; and if s is a keymap
+                         (and (boundp s)
+                              (keymapp (symbol-value s)))
+                         ;; and not the local symbol map
+                         (not (eq s 'map))
+                         ;; and the value of s is map
+                         (eq map (symbol-value s))
+                         ;; then save this value in mapsym
+                         (setq mapsym s)))))
+          (insert
+           (format-message
+            "The default Emacs binding for the key %s is the command `%s'.  "
+            (key-description key)
+            db))
+          (insert "However, your customizations have "
+                  (if cb
+                      (format-message "rebound it to the command `%s'" cb)
+                    "unbound it"))
+          (insert ".")
+          (when mapsym
+            (insert "  (For the more advanced user:"
+                    (format-message
+                     " This binding is in the keymap `%s'.)" mapsym)))
+          (if (string= where "")
+              (unless (keymapp db)
+                (insert "\n\nYou can use M-x "
+                        (format "%s" db)
+                        " RET instead."))
+            (insert "\n\nWith your current key bindings"
+                    " you can use "
+                    (if (string-match-p "^the .*menus?$" where)
+                        ""
+                      "the key ")
+                    where
+                    (format-message " to get the function `%s'." db))))
+        (fill-region (point-min) (point)))))
+    (help-print-return-message)))
 
 (defconst tutorial--default-keys
   (eval-when-compile
@@ -272,71 +271,70 @@ options:
 
 (defun tutorial--detailed-help (button)
   "Give detailed help about changed keys."
-  (with-output-to-temp-buffer (help-buffer)
-    (help-setup-xref (list #'tutorial--detailed-help button)
-                     (called-interactively-p 'interactive))
-    (with-current-buffer (help-buffer)
-      (let* ((tutorial-buffer  (button-get button 'tutorial-buffer))
-             (explain-key-desc (button-get button 'explain-key-desc))
-             (changed-keys (with-current-buffer tutorial-buffer
-                             (save-excursion
-                               (goto-char (point-min))
-                               (tutorial--find-changed-keys
-				tutorial--default-keys)))))
-        (when changed-keys
-          (insert
-           "The following key bindings used in the tutorial have been changed
+  (help-setup-xref (list #'tutorial--detailed-help button)
+                   (called-interactively-p 'interactive))
+  (with-help-window (help-buffer)
+    (let* ((tutorial-buffer  (button-get button 'tutorial-buffer))
+           (explain-key-desc (button-get button 'explain-key-desc))
+           (changed-keys (with-current-buffer tutorial-buffer
+                           (save-excursion
+                             (goto-char (point-min))
+                             (tutorial--find-changed-keys
+			      tutorial--default-keys)))))
+      (when changed-keys
+        (insert
+         "The following key bindings used in the tutorial have been changed
 from the Emacs default:\n\n" )
-          (let ((frm "   %-14s %-27s %-16s\n"))
-            (insert (format frm
-			    "Standard Key" "Command" "In Your Emacs")))
-          (dolist (tk changed-keys)
-            (let* ((def-fun     (nth 1 tk))
-                   (key         (nth 0 tk))
-                   (def-fun-txt (nth 2 tk))
-                   (where       (nth 3 tk))
-                   (remark      (nth 4 tk))
-                   (key-txt (key-description key))
-                   (key-fun (with-current-buffer tutorial-buffer (key-binding key))))
-              (unless (eq def-fun key-fun)
-                ;; Insert key binding description:
-                (when (string= key-txt explain-key-desc)
-                  (put-text-property 0 (length key-txt)
-				     'face 'tutorial-warning-face key-txt))
-                (insert "   " key-txt " ")
-		(indent-to 18)
-                ;; Insert a link describing the old binding:
-                (insert-button def-fun-txt
-                               'value def-fun
-                               'action
-                               (lambda (button) (interactive)
-                                 (describe-function
-                                  (button-get button 'value)))
-                               'follow-link t)
-		(indent-to 45)
-                (when (listp where)
-                  (setq where "list"))
-                ;; Tell where the old binding is now:
-                (insert (format " %-16s "
-                                (if (string= "" where)
-                                    (format "M-x %s" def-fun-txt)
-                                  where)))
-                ;; Insert a link with more information, for example
-                ;; current binding and keymap or information about
-                ;; cua-mode replacements:
-                (insert-button (car remark)
-                               'action
-                               (lambda (b) (interactive)
-                                 (let ((value (button-get b 'value)))
-                                   (tutorial--describe-nonstandard-key value)))
-                               'value (cdr remark)
-                               'follow-link t)
-                (insert "\n")))))
+        (let ((frm "   %-14s %-27s %-16s\n"))
+          (insert (format frm
+			  "Standard Key" "Command" "In Your Emacs")))
+        (dolist (tk changed-keys)
+          (let* ((def-fun     (nth 1 tk))
+                 (key         (nth 0 tk))
+                 (def-fun-txt (nth 2 tk))
+                 (where       (nth 3 tk))
+                 (remark      (nth 4 tk))
+                 (key-txt (key-description key))
+                 (key-fun (with-current-buffer tutorial-buffer (key-binding key))))
+            (unless (eq def-fun key-fun)
+              ;; Insert key binding description:
+              (when (string= key-txt explain-key-desc)
+                (put-text-property 0 (length key-txt)
+				   'face 'tutorial-warning-face key-txt))
+              (insert "   " key-txt " ")
+	      (indent-to 18)
+              ;; Insert a link describing the old binding:
+              (insert-button def-fun-txt
+                             'value def-fun
+                             'action
+                             (lambda (button) (interactive)
+                               (describe-function
+                                (button-get button 'value)))
+                             'follow-link t)
+	      (indent-to 45)
+              (when (listp where)
+                (setq where "list"))
+              ;; Tell where the old binding is now:
+              (insert (format " %-16s "
+                              (if (string= "" where)
+                                  (format "M-x %s" def-fun-txt)
+                                where)))
+              ;; Insert a link with more information, for example
+              ;; current binding and keymap or information about
+              ;; cua-mode replacements:
+              (insert-button (car remark)
+                             'action
+                             (lambda (b) (interactive)
+                               (let ((value (button-get b 'value)))
+                                 (tutorial--describe-nonstandard-key value)))
+                             'value (cdr remark)
+                             'follow-link t)
+              (insert "\n")))))
 
-        (insert "
+      (insert "
 It is OK to change key bindings, but changed bindings do not
 correspond to what the tutorial says.\n\n")
-        (help-print-return-message)))))
+      (help-print-return-message))))
 
 (defun tutorial--find-changed-keys (default-keys)
   "Find the key bindings used in the tutorial that have changed.

@@ -48,12 +48,11 @@
 
 (defcustom yaml-ts-mode-yamllint-options nil
   "Additional options to pass to yamllint command used for Flymake support.
-If non-nil, this should be a single string with command-line options
-for the yamllint command, with individual options separated by whitespace."
+This should be a list of strings, each one passed as a separate argument
+to the yamllint command."
   :group 'yaml-ts-mode
   :version "31.1"
-  :type '(choice (const :tag "None" nil)
-                 (string :tag "Options as a single string")))
+  :type '(repeat string))
 
 (defvar yaml-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
@@ -199,10 +198,7 @@ Calls REPORT-FN directly."
   (when (process-live-p yaml-ts-mode--flymake-process)
     (kill-process yaml-ts-mode--flymake-process))
   (let ((yamllint (executable-find "yamllint"))
-        (params (if yaml-ts-mode-yamllint-options
-                    (append (split-string yaml-ts-mode-yamllint-options) '("-f" "parsable" "-"))
-                  '("-f" "parsable" "-")))
-
+        (params (append yaml-ts-mode-yamllint-options '("-f" "parsable" "-")))
         (source (current-buffer))
         (diagnostics-pattern (eval-when-compile
                                (rx bol (+? nonl) ":" ; every diagnostic line start with the filename

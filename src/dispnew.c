@@ -3677,7 +3677,7 @@ box_from_display_table (struct frame *f, enum box box, GLYPH *g)
 static void
 box_default (struct frame *f, enum box box, GLYPH *g)
 {
-  int dflt;
+  int dflt UNINIT;
   switch (box)
     {
     case BOX_VERTICAL:

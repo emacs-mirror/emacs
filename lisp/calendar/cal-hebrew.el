@@ -238,7 +238,7 @@ Reads a year, month, and day."
          (month (cdr (assoc-string
                       (completing-read
                        "Hebrew calendar month name: "
-                       (mapcar 'list (append month-array nil))
+                       (append month-array nil)
                        (if (= year 3761)
                            (lambda (x)
                              (let ((m (cdr
@@ -691,7 +691,7 @@ from the cursor position."
                     (month (cdr (assoc-string
                                  (completing-read
                                   "Month of death (name): "
-                                  (mapcar 'list (append month-array nil))
+                                  (append month-array nil)
                                   nil t)
                                  (calendar-make-alist month-array 1) t)))
                     (last (calendar-last-day-of-month month year))
@@ -1123,6 +1123,7 @@ use when highlighting the day in the calendar."
 
 (declare-function solar-setup "solar" ())
 (declare-function solar-sunrise-sunset "solar" (date))
+(declare-function solar-time-string "solar" (time time-zone))
 (defvar calendar-latitude)
 (defvar calendar-longitude)
 (defvar calendar-time-zone)
@@ -1145,7 +1146,7 @@ use when highlighting the day in the calendar."
         (if sunset
             (cons mark (format
                         "%s Sabbath candle lighting"
-                        (apply 'solar-time-string
+                        (apply #'solar-time-string
                                (cons (- (car sunset)
                                         (/ diary-hebrew-sabbath-candles-minutes
                                            60.0))

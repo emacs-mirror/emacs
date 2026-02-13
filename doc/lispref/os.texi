@@ -35,6 +35,7 @@ terminal and the screen.
 * Session Management::  Saving and restoring state with X Session Management.
 * Desktop Notifications:: Desktop notifications.
 * System Taskbar::      Controlling system GUI taskbar features.
+* System Sleep::        Block system sleep and process sleep events.
 * File Notifications::  File notifications.
 * Dynamic Libraries::   On-demand loading of support libraries.
 * Security Considerations:: Running Emacs in an unfriendly environment.
@@ -2285,7 +2286,7 @@ be protected by wrapping the timer function body with
 
 @lisp
 @group
-(ignore-error 'remote-file-error
+(ignore-error remote-file-error
   @dots{})
 @end group
 @end lisp
@@ -3492,6 +3493,75 @@ Examples of system taskbar functions:
   (sleep-for 1))
 @end group
 @end lisp
+
+@node System Sleep
+@section Block System Sleep and Process Sleep Events
+@cindex system sleep
+@cindex mode, system sleep
+
+@defun system-sleep-block-sleep &optional why allow-display-sleep
+This function blocks the system from entering its idle sleep state.
+
+It returns a token that must be passed to
+@code{system-sleep-unblock-sleep} to unblock this specific block (other
+sleep blocks may be simultaneously in force for other purposes).
+Otherwise, it returns @code{nil} if the sleep blocking fails.
+
+@var{why} is a string and, when non-@code{nil}, is used to identify the
+sleep block as it may appear on the system's inspectable block lists.
+It defaults to @samp{Emacs}.
+
+If @var{allow-display-sleep} is non-@code{nil}, allow the display to
+sleep.  By default, the display is kept active.
+
+Note that when the Emacs process terminates, blocks are released on all
+platforms.
+@end defun
+
+@defun system-sleep-unblock-sleep token
+This function unblocks the sleep block associated with @var{token}.  It
+returns non-@code{nil} on success, otherwise it returns @code{nil}.
+@end defun
+
+@defmac with-system-sleep-block (&optional why allow-display-sleep) body@dots{}
+This is a convenience macro that lets you wrap the forms in @var{body}
+with a sleep block that is unblocked for you when @var{body} completes.
+This guarantees that the system will never go to sleep while @var{body}
+executes.  The arguments have the same meaning as in
+@code{system-sleep-block-sleep}, above.
+@end defmac
+
+@defun system-sleep-sleep-blocked-p
+This predicate function returns non-@code{nil} if there are any
+active @code{system-sleep} blocks, otherwise it returns @code{nil}.
+@end defun
+
+@defun system-sleep-unblock-all-sleep-blocks
+This function unblocks all active sleep blocks.  It is unlikely that you
+will need to call this function.
+@end defun
+
+@defopt system-sleep-event-functions
+When the system is about to enter a sleep state or after it wakes from
+one, each function on this abnormal hook is called with one argument,
+@var{event}, a sleep event.  Its state can be retrieved via
+@samp{@code{(sleep-event-state event)}}.  State will be one of the
+symbols @code{pre-sleep} or @code{post-wake}.
+
+Handling @code{pre-sleep} events should be done as fast as possible and
+avoid user prompting.  Systems often grant a very short pre-sleep
+processing interval, typically ranging between 2 and 5 seconds.  The
+system may sleep even if your processing is not complete, so be sure you
+do as little as possible.  For example, your function could close active
+connections or serial ports.
+
+Handling @code{post-wake} events offers more leeway.  Use this, for
+example, to reestablish connections.
+
+Note: Your code, or the functions it calls, should not raise any signals
+or all hooks will be halted.  You can wrap your code in a
+@code{condition-case} block (@pxref{Errors}).
+@end defopt
 
 @node File Notifications
 @section Notifications on File Changes

@@ -2466,7 +2466,10 @@ dump_blv (struct dump_context *ctx,
   DUMP_FIELD_COPY (&out, blv, local_if_set);
   DUMP_FIELD_COPY (&out, blv, found);
   if (blv->fwd)
-    dump_field_fwd (ctx, &out, blv, &blv->fwd);
+    {
+      eassert (XFWDTYPE (blv->fwd) != Lisp_Fwd_Buffer_Obj);
+      dump_field_fwd (ctx, &out, blv, &blv->fwd);
+    }
   dump_field_lv (ctx, &out, blv, &blv->where, WEIGHT_NORMAL);
   dump_field_lv (ctx, &out, blv, &blv->defcell, WEIGHT_STRONG);
   dump_field_lv (ctx, &out, blv, &blv->valcell, WEIGHT_STRONG);

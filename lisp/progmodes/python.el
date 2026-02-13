@@ -3366,6 +3366,16 @@ from `python-shell-prompt-regexp',
             python-shell--prompt-calculated-output-regexp
             (funcall build-regexp output-prompts)))))
 
+(defun python-shell-get-project-name ()
+  "Return the project name for the current buffer.
+Use `project-name-cached' if available."
+  (when (featurep 'project)
+    (if (fboundp 'project-name-cached)
+        (project-name-cached default-directory)
+      (when-let* ((proj (project-current)))
+        (file-name-nondirectory
+         (directory-file-name (project-root proj)))))))
+
 (defun python-shell-get-process-name (dedicated)
   "Calculate the appropriate process name for inferior Python process.
 If DEDICATED is nil, this is simply `python-shell-buffer-name'.
@@ -3374,11 +3384,8 @@ name respectively the current project name."
   (pcase dedicated
     ('nil python-shell-buffer-name)
     ('project
-     (if-let* ((proj (and (featurep 'project)
-                          (project-current))))
-         (format "%s[%s]" python-shell-buffer-name (file-name-nondirectory
-                                                    (directory-file-name
-                                                     (project-root proj))))
+     (if-let* ((proj-name (python-shell-get-project-name)))
+         (format "%s[%s]" python-shell-buffer-name proj-name)
        python-shell-buffer-name))
     (_ (format "%s[%s]" python-shell-buffer-name (buffer-name)))))
 
@@ -3816,16 +3823,6 @@ variable.
   (compilation-shell-minor-mode 1)
   (python-pdbtrack-setup-tracking))
 
-(defvar-local python-shell--process-cache)
-(defvar-local python-shell--process-cache-valid)
-
-(defun python-shell--invalidate-process-cache ()
-  "Invalidate process cache."
-  (dolist (buffer (buffer-list))
-    (with-current-buffer buffer
-      (setq python-shell--process-cache nil
-            python-shell--process-cache-valid nil))))
-
 (defun python-shell-make-comint (cmd proc-name &optional show internal)
   "Create a Python shell comint buffer.
 CMD is the Python command to be executed and PROC-NAME is the
@@ -3842,7 +3839,6 @@ killed."
       (let* ((proc-buffer-name
               (format (if (not internal) "*%s*" " *%s*") proc-name)))
         (when (not (comint-check-proc proc-buffer-name))
-          (python-shell--invalidate-process-cache)
           (let* ((cmdlist (split-string-and-unquote cmd))
                  (interpreter (car cmdlist))
                  (args (cdr cmdlist))
@@ -3966,15 +3962,7 @@ If current buffer is in `inferior-python-mode', return it."
 
 (defun python-shell-get-process ()
   "Return inferior Python process for current buffer."
-  (unless (and python-shell--process-cache-valid
-               (or (not python-shell--process-cache)
-                   (and (process-live-p python-shell--process-cache)
-                        (buffer-live-p
-                         (process-buffer python-shell--process-cache)))))
-    (setq python-shell--process-cache
-          (get-buffer-process (python-shell-get-buffer))
-          python-shell--process-cache-valid t))
-  python-shell--process-cache)
+  (get-buffer-process (python-shell-get-buffer)))
 
 (defun python-shell-get-process-or-error (&optional interactivep)
   "Return inferior Python process for current buffer or signal error.
@@ -5854,7 +5842,7 @@ Set to nil by `python-eldoc-function' if
 
 (defcustom python-eldoc-function-timeout 1
   "Timeout for `python-eldoc-function' in seconds."
-  :type 'integer
+  :type 'number
   :version "25.1")
 
 (defcustom python-eldoc-function-timeout-permanent t

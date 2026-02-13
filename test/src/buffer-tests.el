@@ -1060,7 +1060,9 @@ should evaporate overlays in both."
       (should-length 2 (overlays-in 1 (point-max)))
       (should-length 1 (overlays-in (point-max) (point-max)))
       (narrow-to-region 1 50)
-      (should-length 1 (overlays-in 1 (point-max)))
+      ;; We only count empty overlays in narrowed buffers excluding the
+      ;; real EOB when the region is confined to `point-max'.
+      (should-length 0 (overlays-in 1 (point-max)))
       (should-length 1 (overlays-in (point-max) (point-max))))))
 
 
@@ -8375,8 +8377,11 @@ dicta sunt, explicabo.  "))
     (should (= (length (overlays-in 1 2)) 0))
     (narrow-to-region 1 2)
     ;; We've now narrowed, so the zero-length overlay is at the end of
-    ;; the (accessible part of the) buffer.
-    (should (= (length (overlays-in 1 2)) 1))
+    ;; the (accessible part of the) buffer, but we only count it when
+    ;; the region is confined to `point-max'.
+    (should (= (length (overlays-in 1 2)) 0))
+    (should (= (length (overlays-in 2 2)) 1))
+    (should (= (length (overlays-in (point-max) (point-max))) 1))
     (remove-overlays)
     (should (= (length (overlays-in (point-min) (point-max))) 0))))
 

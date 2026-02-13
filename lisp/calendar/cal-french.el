@@ -344,7 +344,7 @@ Echo French Revolutionary date unless NOECHO is non-nil."
                      (calendar-absolute-from-gregorian
                       (calendar-current-date)))))))
           (month-list
-           (mapcar 'list
+           (mapcar #'list
                    (append months
                            (if (calendar-french-leap-year-p year)
                                (mapcar #'calendar-french-trim-feast feasts)

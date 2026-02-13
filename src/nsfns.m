@@ -2210,6 +2210,62 @@ font descriptor.  If string contains `fontset' and not
   return build_string (ns_xlfd_to_fontname (SSDATA (name)));
 }
 
+static void
+ns_init_colors (void)
+{
+  NSTRACE ("ns_init_colors");
+
+  NSColorList *cl = [NSColorList colorListNamed: @"Emacs"];
+
+  /* There are 752 colors defined in rgb.txt.  */
+  if ( cl == nil || [[cl allKeys] count] < 752)
+    {
+      Lisp_Object color_file, color_map, color, name;
+      unsigned long c;
+
+      color_file = Fexpand_file_name (build_string ("rgb.txt"),
+				      Fsymbol_value (intern ("data-directory")));
+
+      color_map = Fx_load_color_file (color_file);
+      if (NILP (color_map))
+	fatal ("Could not read %s.\n", SDATA (color_file));
+
+      cl = [[NSColorList alloc] initWithName: @"Emacs"];
+      for ( ; CONSP (color_map); color_map = XCDR (color_map))
+	{
+	  color = XCAR (color_map);
+	  name = XCAR (color);
+	  c = XFIXNUM (XCDR (color));
+	  c |= 0xFF000000;
+	  [cl setColor:
+		[NSColor colorWithUnsignedLong:c]
+		forKey: [NSString stringWithLispString: name]];
+	}
+      @try
+	{
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101100
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101100
+	  if ([cl respondsToSelector:@selector(writeToURL:error:)])
+#endif
+	    if ([cl writeToURL:nil error:nil] == false)
+	      fprintf (stderr, "ns_init_colors: could not write Emacs.clr\n");
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101100
+	    else
+#endif
+#endif /* MAC_OS_X_VERSION_MAX_ALLOWED >= 101100 */
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101100 || defined (NS_IMPL_GNUSTEP)
+	      if ([cl writeToFile: nil] == false)
+		fprintf (stderr, "ns_init_colors: could not write Emacs.clr\n");
+#endif
+	}
+      @catch (NSException *e)
+	{
+	  NSLog(@"ns_init_colors: could not write Emacs.clr: %@", e.reason);
+	}
+    }
+}
+
+static BOOL ns_init_colors_done = NO;
 
 DEFUN ("ns-list-colors", Fns_list_colors, Sns_list_colors, 0, 1, 0,
        doc: /* Return a list of all available colors.
@@ -2220,6 +2276,12 @@ The optional argument FRAME is currently ignored.  */)
   NSEnumerator *colorlists;
   NSColorList *clist;
   NSAutoreleasePool *pool;
+
+  if (ns_init_colors_done == NO)
+    {
+      ns_init_colors ();
+      ns_init_colors_done = YES;
+    }
 
   if (!NILP (frame))
     {
@@ -3806,6 +3868,88 @@ If PROGRESS is nil, remove the progress indicator.  */)
   return Qnil;
 }
 
+/* A unique integer sleep block id and a hash map of its id to opaque
+   NSObject sleep block activity tokens.  */
+static unsigned int sleep_block_id = 0;
+static NSMutableDictionary *sleep_block_map = NULL;
+
+DEFUN ("ns-block-system-sleep",
+       Fns_block_system_sleep,
+       Sns_block_system_sleep,
+       2, 2, 0,
+       doc: /* Block system idle sleep.
+WHY is a string reason for the block.
+If ALLOW-DISPLAY-SLEEP is non-nil, block the screen from sleeping.
+Return a token to unblock this block using `ns-unblock-system-sleep',
+or nil if the block fails.  */)
+  (Lisp_Object why, Lisp_Object allow_display_sleep)
+{
+  block_input ();
+
+  NSString *reason = @"Emacs";
+  if (!NILP (why))
+    {
+      CHECK_STRING (why);
+      reason = [NSString stringWithLispString: why];
+    }
+
+  unsigned long activity_options =
+    NSActivityUserInitiated | NSActivityIdleSystemSleepDisabled;
+  if (NILP (allow_display_sleep))
+    activity_options |= NSActivityIdleDisplaySleepDisabled;
+
+  NSProcessInfo *processInfo = [NSProcessInfo processInfo];
+  NSObject *activity_id = nil;
+  if ([processInfo respondsToSelector:@selector(beginActivityWithOptions:reason:)])
+    activity_id = [[NSProcessInfo processInfo]
+			     beginActivityWithOptions: activity_options
+					       reason: reason];
+  unblock_input ();
+
+  if (!sleep_block_map)
+    sleep_block_map = [[NSMutableDictionary alloc] initWithCapacity: 25];
+
+  if (activity_id)
+    {
+      [sleep_block_map setObject: activity_id
+			  forKey: [NSNumber numberWithInt: ++sleep_block_id]];
+      return make_fixnum (sleep_block_id);
+    }
+  else
+    return Qnil;
+}
+
+DEFUN ("ns-unblock-system-sleep",
+       Fns_unblock_system_sleep,
+       Sns_unblock_system_sleep,
+       1, 1, 0,
+       doc: /* Unblock system idle sleep.
+TOKEN is an object returned by `ns-block-system-sleep'.
+Return non-nil if the TOKEN block was unblocked.  */)
+  (Lisp_Object token)
+{
+  block_input ();
+  Lisp_Object res = Qnil;
+  CHECK_FIXNAT (token);
+  if (sleep_block_map)
+    {
+      NSNumber *key = [NSNumber numberWithInt: XFIXNAT (token)];
+      NSObject *activity_id = [sleep_block_map objectForKey: key];
+      if (activity_id)
+	{
+	  NSProcessInfo *processInfo = [NSProcessInfo processInfo];
+	  if ([processInfo respondsToSelector:@selector(endActivity:)])
+	    {
+	      [[NSProcessInfo processInfo] endActivity: activity_id];
+	      res = Qt;
+	    }
+	  [sleep_block_map removeObjectForKey: key];
+	}
+    }
+  unblock_input ();
+  return res;
+}
+
 #ifdef NS_IMPL_COCOA
 
 DEFUN ("ns-send-items",
@@ -4092,6 +4236,8 @@ The default value is t.  */);
   defsubr (&Sns_badge);
   defsubr (&Sns_request_user_attention);
   defsubr (&Sns_progress_indicator);
+  defsubr (&Sns_block_system_sleep);
+  defsubr (&Sns_unblock_system_sleep);
 #ifdef NS_IMPL_COCOA
   defsubr (&Sns_send_items);
 #endif

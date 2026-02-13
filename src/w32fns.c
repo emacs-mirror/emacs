@@ -11337,6 +11337,135 @@ if the selected frame is not (yet) associated with a window handle  */)
 #endif /* WINDOWSNT */
 
 /***********************************************************************
+		     System Sleep Support
+ ***********************************************************************/
+
+typedef ULONG (WINAPI * SetThreadExecutionState_Proc) (IN ULONG);
+static SetThreadExecutionState_Proc SetThreadExecutionState_fn = NULL;
+
+static unsigned int sleep_block_id = 0;
+static unsigned int sleep_block_count = 0;
+
+DEFUN ("w32-block-system-sleep",
+       Fw32_block_system_sleep,
+       Sw32_block_system_sleep,
+       1, 1, 0,
+       doc: /* Block system idle sleep.
+If ALLOW-DISPLAY-SLEEP is non-nil, block the screen from sleeping.
+Return a token to unblock this block using `w32-unblock-system-sleep',
+or nil if the block fails.  */)
+  (Lisp_Object allow_display_sleep)
+{
+  if (SetThreadExecutionState_fn == NULL)
+    return Qnil;
+
+  /* ES_CONTINUOUS keeps the state until cleared.  */
+  EXECUTION_STATE new_state = ES_SYSTEM_REQUIRED | ES_CONTINUOUS;
+  if (NILP (allow_display_sleep))
+    new_state |= ES_DISPLAY_REQUIRED;
+
+  if (SetThreadExecutionState (new_state) == 0)
+    return Qnil;
+  else
+    {
+      /* One more block and next id.  */
+      ++sleep_block_count;
+      ++sleep_block_id;
+
+      /* Synthesize a token.  */
+      return make_fixnum (sleep_block_id);
+    }
+}
+
+DEFUN ("w32-unblock-system-sleep",
+       Fw32_unblock_system_sleep,
+       Sw32_unblock_system_sleep,
+       0, 0, 0,
+       doc: /* Unblock system idle sleep.
+Return non-nil if the TOKEN block was unblocked.  */)
+  (void)
+{
+  if (SetThreadExecutionState_fn == NULL)
+    return Qnil;
+
+  /* No blocks to unblock.  */
+  if (sleep_block_count == 0)
+    return Qnil;
+
+  /* One fewer block.  */
+  if (--sleep_block_count == 0
+      && SetThreadExecutionState (ES_CONTINUOUS) == 0)
+      return Qnil;
+  else
+    return Qt;
+}
+
+DEFUN ("w32-system-sleep-block-count",
+       Fw32_system_sleep_block_count,
+       Sw32_system_sleep_block_count,
+       0, 0, 0,
+       doc: /* Return the w32 sleep block count.  */)
+  (void)
+{
+  return make_fixnum (sleep_block_count);
+}
+
+typedef ULONG (CALLBACK *PMY_DEVICE_NOTIFY_CALLBACK_ROUTINE)
+  (PVOID Context,  ULONG Type,  PVOID Setting);
+
+static ULONG CALLBACK ALIGN_STACK
+sleep_notification_callback (PVOID _Context, ULONG Type, PVOID _Setting)
+{
+  struct input_event ie;
+  EVENT_INIT (ie);
+  ie.kind = SLEEP_EVENT;
+
+  switch (Type)
+    {
+    case PBT_APMRESUMEAUTOMATIC:
+      /* Ignore this event.  No user is present.  */
+      break;
+    case PBT_APMSUSPEND:
+      ie.arg = list1 (Qpre_sleep);
+      kbd_buffer_store_event (&ie);
+      break;
+    case PBT_APMRESUMESUSPEND:
+      ie.arg = list1 (Qpost_wake);
+      kbd_buffer_store_event (&ie);
+      break;
+    }
+  return 0;
+}
+
+typedef HPOWERNOTIFY (WINAPI * RegisterSuspendResumeNotification_Proc)
+  (IN HANDLE, IN DWORD);
+static RegisterSuspendResumeNotification_Proc RegisterSuspendResumeNotification_fn = NULL;
+
+static HPOWERNOTIFY sleep_notification_handle = 0;
+
+typedef struct _MY_DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS {
+  PMY_DEVICE_NOTIFY_CALLBACK_ROUTINE Callback;
+  PVOID Context;
+} MY_DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS, *PMY_DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS;
+
+void
+w32_register_for_sleep_notifications (void)
+{
+  /* PowerRegisterSuspendResumeNotification is not a user-space call so
+     we use RegisterSuspendResumeNotification.  */
+  if (RegisterSuspendResumeNotification_fn)
+    {
+      MY_DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS params;
+      params.Callback = sleep_notification_callback;
+      params.Context = NULL;
+
+      /* DEVICE_NOTIFY_CALLBACK = 2  */
+      sleep_notification_handle =
+	RegisterSuspendResumeNotification_fn (&params, 2);
+    }
+}
+
+/***********************************************************************
 			    Initialization
  ***********************************************************************/
 
@@ -11845,6 +11974,10 @@ keys when IME input is received.  */);
   defsubr (&Sw32_request_user_attention);
   DEFSYM (Qinformational, "informational");
   DEFSYM (Qcritical, "critical");
+  /* System sleep support.  */
+  defsubr (&Sw32_unblock_system_sleep);
+  defsubr (&Sw32_block_system_sleep);
+  defsubr (&Sw32_system_sleep_block_count);
 #endif
 }
 
@@ -12105,6 +12238,7 @@ void
 globals_of_w32fns (void)
 {
   HMODULE user32_lib = GetModuleHandle ("user32.dll");
+  HMODULE kernel32_lib = GetModuleHandle ("kernel32.dll");
   /*
     TrackMouseEvent not available in all versions of Windows, so must load
     it dynamically.  Do it once, here, instead of every time it is used.
@@ -12131,6 +12265,14 @@ globals_of_w32fns (void)
   RegisterTouchWindow_fn
     = (RegisterTouchWindow_proc) get_proc_addr (user32_lib,
 						"RegisterTouchWindow");
+  /* For system sleep support.  */
+  SetThreadExecutionState_fn
+    = (SetThreadExecutionState_Proc)
+    get_proc_addr (kernel32_lib, "SetThreadExecutionState");
+  RegisterSuspendResumeNotification_fn
+    = (RegisterSuspendResumeNotification_Proc)
+    get_proc_addr (user32_lib, "RegisterSuspendResumeNotification");
+
   SetGestureConfig_fn
     = (SetGestureConfig_proc) get_proc_addr (user32_lib,
 					     "SetGestureConfig");

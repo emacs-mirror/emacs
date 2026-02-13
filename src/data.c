@@ -1789,16 +1789,9 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	set_blv_value (blv, newval);
 
 	if (blv->fwd)
-	  {
-	    if (unbinding_p)
-	      /* If storing void (making the symbol void), forward only through
-		 buffer-local indicator, not through Lisp_Objfwd, etc.  */
-	      blv->fwd = NULL;
-	    else
-	      store_symval_forwarding (blv->fwd, newval,
-				       BUFFERP (where)
-				       ? XBUFFER (where) : current_buffer);
-	  }
+	  store_symval_forwarding (blv->fwd, newval, (BUFFERP (where)
+						      ? XBUFFER (where)
+						      : current_buffer));
 	break;
       }
     case SYMBOL_FORWARDED:

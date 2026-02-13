@@ -348,7 +348,7 @@ File extensions to generate the tags for."
 
 (defun etags-regen--build-program-options (ctags-p)
   (when (and etags-regen-regexp-alist ctags-p)
-    (user-error "etags-regen-regexp-alist is not supported with Ctags"))
+    (user-error "etags-regen-regexp-alist not supported with Ctags; to use this option, customize `etags-regen-program'"))
   (nconc
    (mapcan
     (lambda (group)
