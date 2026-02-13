@@ -586,41 +586,12 @@ struct igc_stats
    two unaligned 32-bit words.  It's easiest to implement that for all
    objects.  */
 
-enum
-{
-  IGC_HEADER_TAG_BITS = 2,
-  IGC_HEADER_TYPE_BITS = 6,
-  IGC_HEADER_HASH_BITS = 24,
-#if INTPTR_MAX <= INT_MAX
-  IGC_HEADER_NWORDS_BITS = 31,
-#else
-  IGC_HEADER_NWORDS_BITS = 32,
-#endif
-  IGC_HEADER_TAG_MASK = (1 << IGC_HEADER_TAG_BITS) - 1,
-  IGC_HEADER_TYPE_MASK = (1 << IGC_HEADER_TYPE_BITS) - 1,
-  IGC_HEADER_HASH_MASK = (1 << IGC_HEADER_HASH_BITS) - 1,
-
-  IGC_HEADER_TAG_SHIFT = 0,
-  IGC_HEADER_TYPE_SHIFT = IGC_HEADER_TAG_SHIFT + IGC_HEADER_TAG_BITS,
-  IGC_HEADER_HASH_SHIFT = IGC_HEADER_TYPE_SHIFT + IGC_HEADER_TYPE_BITS,
-  IGC_HEADER_NWORDS_SHIFT = 64 - IGC_HEADER_NWORDS_BITS,
-};
-
-static_assert (IGC_OBJ_NUM_TYPES - 1 < (1 << IGC_HEADER_TYPE_BITS));
-
 struct igc_exthdr
 {
   EMACS_UINT nwords;
   EMACS_UINT hash;
   enum igc_obj_type obj_type;
   Lisp_Object extra_dependency;
-};
-
-enum igc_tag
-{
-  IGC_TAG_NULL = 0, /* entire value must be 0 to avoid MPS issues */
-  IGC_TAG_OBJ = 1, /* IGC object */
-  IGC_TAG_EXTHDR = 2, /* pointer to aligned external header */
 };
 
 #ifdef IN_MY_FORK
