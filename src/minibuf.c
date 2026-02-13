@@ -2332,10 +2332,11 @@ init_minibuf_once_for_pdumper (void)
  **/
 DEFUN ("completion--flex-cost-gotoh", Fcompletion__flex_cost_gotoh,
        Scompletion__flex_cost_gotoh, 2, 2, 0,
-       doc: /* Compute cost of PAT matching STR using modified Gotoh algorithm.
-Return nil if no match found, else return (COST . MATCHES)
-where COST is a fixnum (lower is better) and MATCHES is a list of match
-positions in STR.  */)
+       doc: /* Compute cost of PAT matching STR using modified Gotoh
+algorithm.  Return nil if no match found, else return (COST . MATCHES)
+where COST is a fixnum (lower is better) and MATCHES is a list of the
+same length as PAT.  Each i-th element is a FIXNUM indicating where in
+STR the i-th character of PAT matched.  */)
   (Lisp_Object pat, Lisp_Object str)
   {
     /* Pre-allocated matrices for flex completion scoring.  */
