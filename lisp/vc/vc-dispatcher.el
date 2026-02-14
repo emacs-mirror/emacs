@@ -385,7 +385,9 @@ the man pages for \"torsocks\" for more details about Tor."
   :group 'vc)
 
 (defvar vc-user-edit-command-history nil
-  "Name of minibuffer history variable for `vc-user-edit-command'.")
+  "Name of minibuffer history variable for `vc-user-edit-command'.
+Bound to the name of the variable holding a command's minibuffer
+history, by that command, around its call to `vc-user-edit-command'.")
 
 (defun vc-user-edit-command (command file-or-list flags)
   "Prompt the user to edit VC command COMMAND and FLAGS.
