@@ -3805,10 +3805,11 @@ Emacs core.
 
 +++
 ** A thread's current buffer can now be killed.
-We introduce a new attribute for threads called 'buffer-disposition'.
-See the new argument in 'make-thread'.  The default value allows the
-thread's current buffer to be killed by another thread.  This does not
-apply to the main thread's buffer.
+We introduce a new attribute for threads called "buffer disposition".
+See the new argument in 'make-thread' as well as the
+'thread-buffer-disposition' and 'thread-set-buffer-disposition' functions.
+The default value allows the thread's current buffer to be killed by another
+thread.  This does not apply to the main thread's buffer.
 
 ---
 ** Defining or modifying a face so that it inherits from itself signals error.
