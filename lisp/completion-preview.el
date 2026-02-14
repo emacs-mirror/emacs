@@ -98,6 +98,14 @@
 ;; when you pause typing for a short duration rather than after every
 ;; key.  Try setting it to 0.2 seconds and see how that works for you.
 ;;
+;; The user option `completion-preview-inhibit-functions' lets you
+;; specify additional arbitrary conditions for inhibiting the preview.
+;; For example, if you'd like to inhibit Completion Preview mode during
+;; keyboard macro execution, you could use something like this:
+;;
+;;   (add-hook 'completion-preview-inhibit-functions
+;;             (lambda () executing-kbd-macro))
+;;
 ;; By default, Completion Preview mode automatically adapts the
 ;; background color of the preview overlay to match the background color
 ;; of the buffer text it's completing.  If you prefer a distinct
@@ -151,8 +159,12 @@ first candidate, and you can cycle between the candidates with
                                          completion-preview-complete
                                          completion-preview-insert-word
                                          completion-preview-insert-sexp)
-  "List of commands that should trigger completion preview."
-  :type '(repeat (function :tag "Command" :value self-insert-command))
+  "List of commands that should trigger completion preview.
+This can also be t instead of a list of commands, which says that any
+command can trigger completion preview."
+  :type '(choice (repeat :tag "Specific commands"
+                         (function :tag "Command" :value self-insert-command))
+                 (const :tag "Any command" t))
   :version "30.1")
 
 (defcustom completion-preview-minimum-symbol-length 3
@@ -326,7 +338,8 @@ Completion Preview mode avoids updating the preview after these commands.")
 
 (defsubst completion-preview-require-certain-commands ()
   "Check if `this-command' is one of `completion-preview-commands'."
-  (memq this-command completion-preview-commands))
+  (or (eq completion-preview-commands t)
+      (memq this-command completion-preview-commands)))
 
 (defun completion-preview-require-minimum-symbol-length ()
   "Check if the length of symbol at point is at least above a certain threshold.
@@ -606,6 +619,13 @@ point, otherwise hide it."
                                  (selected-window) (current-buffer)))
     (completion-preview--try-update)))
 
+(defcustom completion-preview-inhibit-functions nil
+  "Abnormal hook for inhibiting Completion Preview mode operation.
+Completion Preview mode calls the functions on this hook without
+arguments during `post-command-hook'.  If any of these functions returns
+non-nil, it inhibits the preview display."
+  :type 'hook)
+
 (defun completion-preview--post-command ()
   "Create, update or delete completion preview post last command."
   (let ((internal-p (or completion-preview--inhibit-update-p
@@ -623,7 +643,8 @@ point, otherwise hide it."
       )
      ((and (completion-preview-require-certain-commands)
            (completion-preview-require-minimum-symbol-length)
-           (not buffer-read-only))
+           (not buffer-read-only)
+           (not (run-hook-with-args-until-success 'completion-preview-inhibit-functions)))
       ;; All conditions met.  Show or update the preview.
       (completion-preview--show))
      (completion-preview-active-mode
