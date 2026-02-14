@@ -1327,7 +1327,7 @@ Because fetching many log entries can be slow, the
 default.  The variable @code{vc-log-show-limit} specifies this limit;
 if you set the value to zero, that removes the limit.  You can also
 increase the number of revisions shown in an existing
-@file{*vc-change-log*} buffer by clicking on the @samp{Show 2X
+@file{*vc-change-log*} buffer by clicking on the @samp{Show 4X
 entries} or @samp{Show unlimited entries} buttons at the end of the
 buffer.  However, RCS, SCCS, CVS, and SRC do not support this feature.
 
