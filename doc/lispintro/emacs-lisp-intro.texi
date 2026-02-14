@@ -3524,7 +3524,10 @@ study, modify, and redistribute the code and which protects you from
 having your work taken from you.)  If you send a copy of your code to
 the Free Software Foundation, and properly protect yourself and
 others, it may be included in the next release of Emacs.  In large
-part, this is how Emacs has grown over the past years, by donations.
+part, this is how Emacs has grown over the past years, by contributions.
+
+@xref{Contributing, Contributing to Emacs Development,, emacs, The GNU
+Emacs Manual}, for how to contribute your code for inclusion in Emacs.
 
 @node let
 @section @code{let}
