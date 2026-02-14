@@ -1625,6 +1625,7 @@ current buffer.
 
 @cindex empty overlay
 @cindex overlay, empty
+@anchor{empty overlays}
 An overlay whose @var{start} and @var{end} specify the same buffer
 position is known as @dfn{empty}.  A non-empty overlay can become
 empty if the text between its @var{start} and @var{end} is deleted.
@@ -2056,12 +2057,11 @@ line at display-time.  @xref{Truncation}.
 @kindex evaporate @r{(overlay property)}
 @item evaporate
 If this property is non-@code{nil}, the overlay is deleted automatically
-if it becomes empty (i.e., if its length becomes zero).  If you give
-an empty overlay (@pxref{Managing Overlays, empty overlay}) a
-non-@code{nil} @code{evaporate} property, that deletes it immediately.
-Note that, unless an overlay has this property, it will not be deleted
-when the text between its starting and ending positions is deleted
-from the buffer.
+if it becomes empty (i.e., if its length becomes zero).  If you give an
+empty overlay (@pxref{empty overlays}) a non-@code{nil} @code{evaporate}
+property, that deletes it immediately.  Note that, unless an overlay has
+this property, it will not be deleted when the text between its starting
+and ending positions is deleted from the buffer.
 
 @kindex display-line-numbers-disable @r{(overlay property)}
 @item display-line-numbers-disable
@@ -2103,11 +2103,11 @@ Properties}.
 @cindex overlays, searching for
 
 @defun overlays-at pos &optional sorted
-This function returns a list of all the overlays that cover the character at
+This function returns a list of all the overlays that contain the character at
 position @var{pos} in the current buffer.  If @var{sorted} is non-@code{nil},
-the list is in decreasing order of priority, otherwise it is in no particular
-order.  An overlay contains position @var{pos} if it begins at or before
-@var{pos}, and ends after @var{pos}.
+the returned list is in decreasing order of priority, otherwise it is in no
+particular order.  An overlay contains the character at @var{pos} if it begins
+at or before @var{pos}, and ends after @var{pos}.
 
 To illustrate usage, here is a Lisp function that returns a list of the
 overlays that specify property @var{prop} for the character at point:
@@ -2123,16 +2123,36 @@ overlays that specify property @var{prop} for the character at point:
       (setq overlays (cdr overlays)))
     found))
 @end smallexample
+
+Empty overlays (@pxref{empty overlays}) do not contain any characters,
+so this function does not return them.  Use @code{overlays-in},
+described below, instead if empty overlays are of interest.
+
+Note that this function can return overlays outside of the current
+narrowing of the buffer (@pxref{Narrowing}) if @var{pos} is outside of
+the narrowing.
 @end defun
 
 @defun overlays-in beg end
-This function returns a list of the overlays that overlap the region
+This function returns a list of the overlays that overlap with the region
 @var{beg} through @var{end}.  An overlay overlaps with a region if it
-contains one or more characters in the region; empty overlays
-(@pxref{Managing Overlays, empty overlay}) overlap if they are at
-@var{beg}, strictly between @var{beg} and @var{end}, or at @var{end}
-when @var{end} denotes the position at the end of the accessible part
-of the buffer.
+contains one or more characters between @var{beg} and @var{end}; this
+excludes the characters at (i.e.@: after) @var{end}.
+
+Empty overlays do not contain any characters, so the rule for including
+them is different: they are said to overlap if they are at @var{beg},
+strictly between @var{beg} and @var{end} excluding @var{end}, or at
+@var{end} when @var{end} denotes the position at the end of the buffer.
+(The special handling of empty overlays at end of buffer is to allow
+such overlays to be found and processed.  For any other value of
+@var{end} you could increment the @var{end} position instead.)
+
+The order in which the overlays appear in the returned list is
+unpredictable.
+
+Note that this function can return overlays outside of the current
+narrowing of the buffer if @var{beg} and/or @var{end} are outside of
+the narrowing.
 @end defun
 
 @defun next-overlay-change pos

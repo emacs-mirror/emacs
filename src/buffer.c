@@ -3052,18 +3052,20 @@ the normal hook `change-major-mode-hook'.  */)
 /* Find all the overlays in the current buffer that overlap the range
    [BEG, END).
 
-   If EMPTY is true, include empty overlays in that range and also at
-   END, provided END denotes the position at the end of the accessible
-   part of the buffer.
-
-   If TRAILING is true, include overlays that begin at END, provided
-   END denotes the position at the end of the accessible part of the
+   If EMPTY is true, include empty overlays in that range and also
+   those at END, provided END denotes the position at the end of the
    buffer.
+
+   If TRAILING is true, include overlays that begin at ZV.
+   (FIXME: This argument is nowadays effectively ignored, since the code
+   no longer pays any attention to ZV.  We basically rely on the caller
+   to ensure that TRAILING is only true when END > ZV.  This happens, e.g.,
+   when we are called from overlays_at with BEG = ZV and END = ZV + 1.)
 
    Return the number found, and store them in a vector in *VEC_PTR.
    Store in *LEN_PTR the size allocated for the vector.
    Store in *NEXT_PTR the next position after POS where an overlay starts,
-     or ZV if there are no more overlays.
+     or Z if there are no more overlays after POS.
    NEXT_PTR may be 0, meaning don't store that info.
 
    *VEC_PTR and *LEN_PTR should contain a valid vector and size
@@ -3875,9 +3877,12 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 2, 0,
        doc: /* Return a list of the overlays that contain the character at POS.
 If SORTED is non-nil, then sort them by decreasing priority.
 
-Zero-length overlays that start and stop at POS are not included in
-the return value.  Instead use `overlays-in' if those overlays are of
-interest.  */)
+Zero-length (a.k.a. "empty") overlays that start and stop at POS are not
+included in the return value.  Use `overlays-in' if empty overlays are of
+interest.
+
+This function can return overlays outside of the current narrowing of
+the buffer if POS is outside of the narrowing.  */)
   (Lisp_Object pos, Lisp_Object sorted)
 {
   ptrdiff_t len, noverlays;
@@ -3916,14 +3921,18 @@ interest.  */)
 
 DEFUN ("overlays-in", Foverlays_in, Soverlays_in, 2, 2, 0,
        doc: /* Return a list of the overlays that overlap the region BEG ... END.
-Overlap means that at least one character is contained within the overlay
-and also contained within the specified region.
+Overlap means that at least one character between BEG and END is contained
+within the overlay.  Note that this excludes the character at (i.e., after)
+END.
 
-Empty overlays are included in the result if they are located at BEG,
-between BEG and END, or at END provided END denotes the position at the
-end of the accessible part of the buffer.
+Empty overlays do not contain any characters, so they are included in the
+result if they are located at BEG, between BEG and END, or at END provided
+END denotes the position at the end of the buffer.
 
-The resulting list of overlays is in an arbitrary unpredictable order.  */)
+The resulting list of overlays is in an arbitrary unpredictable order.
+
+This function can return overlays outside of the current narrowing of
+the buffer if BEG and/or END are outside of the narrowing.  */)
   (Lisp_Object beg, Lisp_Object end)
 {
   ptrdiff_t len, noverlays;

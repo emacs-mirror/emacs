@@ -905,6 +905,7 @@ should evaporate overlays in both."
       (should-length 1 (overlays-at 10))
       (should-length 1 (overlays-at 20))
       (should-length 0 (overlays-at (point-max)))
+      (should-length 1 (overlays-at (1- (point-max))))
       (narrow-to-region 10 20)
       (should-length 1 (overlays-at (point-min)))
       (should-length 1 (overlays-at 15))

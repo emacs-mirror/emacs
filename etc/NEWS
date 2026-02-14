@@ -3814,6 +3814,13 @@ display time or even cause Emacs to hang trying to display such a face.
 Affected APIs include 'defface', 'set-face-attribute', their callers,
 and other similar functions.
 
++++
+Original behavior of 'overlays-in' and 'overlays-at' has been restored.
+Before Emacs 29.1, the list of overlays returned by these two functions
+included overlays outside of the current narrowing of the buffer.  This
+behavior has been restored.  As result, 'remove-overlays' can now again
+remove overlays outside of the narrowing, as it did before Emacs 29.1.
+
 ---
 ** 'help-setup-xref' now re-enables the major mode of the Help buffer.
 As a result, in many cases the buffer will be read-only afterwards.
