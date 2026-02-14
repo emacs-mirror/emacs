@@ -1,5 +1,5 @@
 # selinux-selinux-h.m4
-# serial 10   -*- Autoconf -*-
+# serial 12   -*- Autoconf -*-
 dnl Copyright (C) 2006-2007, 2009-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -49,7 +49,7 @@ AC_DEFUN([gl_CHECK_HEADER_SELINUX_SELINUX_H],
       USE_SELINUX_SELINUX_H=0
     fi
 
-    case "$ac_cv_search_setfilecon:$ac_cv_header_selinux_selinux_h" in
+    case "$ac_cv_search_getfilecon_raw:$ac_cv_header_selinux_selinux_h" in
       no:*) # already warned
         ;;
       *:no)
@@ -79,15 +79,17 @@ AC_DEFUN([gl_LIBSELINUX],
   LIB_SELINUX=
   if test "$with_selinux" != no; then
     gl_saved_LIBS=$LIBS
-    AC_SEARCH_LIBS([setfilecon], [selinux],
-                   [test "$ac_cv_search_setfilecon" = "none required" ||
-                    LIB_SELINUX=$ac_cv_search_setfilecon])
+    dnl On Android, in Termux, prefer libandroid-selinux.so, because it
+    dnl defines many more API functions than /system/lib/libselinux.so.
+    AC_SEARCH_LIBS([getfilecon_raw], [android-selinux selinux],
+                   [test "$ac_cv_search_getfilecon_raw" = "none required" ||
+                    LIB_SELINUX=$ac_cv_search_getfilecon_raw])
     LIBS=$gl_saved_LIBS
   fi
   AC_SUBST([LIB_SELINUX])
 
   # Warn if SELinux is found but libselinux is absent;
-  if test "$ac_cv_search_setfilecon" = no; then
+  if test "$ac_cv_search_getfilecon_raw" = no; then
     if test "$host" = "$build" \
        && { test -d /sys/fs/selinux || test -d /selinux; }; then
       AC_MSG_WARN([This system supports SELinux but libselinux is missing.])

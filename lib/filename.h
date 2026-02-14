@@ -49,7 +49,10 @@ extern "C" {
                                any notion of "current directory".
    IS_RELATIVE_FILE_NAME(Filename)
                                tests whether Filename may be concatenated
-                               to a directory filename.
+                               to a directory filename to yield the name
+                               of a file relative to that directory.
+                               Watch out: IS_RELATIVE_FILE_NAME ("") is 1
+                               even though "" is not a relative file name.
    Note: On native Windows, OS/2, DOS, "c:" is neither an absolute nor a
    relative file name!
    IS_FILE_NAME_WITH_DIR(Filename)  tests whether Filename contains a device
