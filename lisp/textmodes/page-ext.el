@@ -465,10 +465,10 @@ contain matches to the regexp.)")
   "The buffer for which the pages-directory function creates the directory.")
 
 (defvar-local pages-directory-list-all-headers-p nil
-  "Value of argument list-all-headers-p in last call of `pages-directory'.")
+  "Value of argument LIST-ALL-HEADERS-P in last call of `pages-directory'.")
 
 (defvar-local pages-directory-count-lines-p nil
-  "Value of argument count-lines-p in last call of `pages-directory'.")
+  "Value of argument COUNT-LINES-P in last call of `pages-directory'.")
 
 (defvar-local pages-directory-regexp nil
     "Value of argument regexp in last call of `pages-directory'.")
