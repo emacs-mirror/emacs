@@ -654,7 +654,7 @@ This function is intended for addition to `after-change-major-mode-hook'."
                  "[Upgrade?]"
                  face mode-line-emphasis
                  mouse-face mode-line-highlight
-                 help-echo "Click to see suggested packages for this file."
+                 help-echo "Click to see packages we suggest to improve editing in this buffer."
                  keymap ,(let ((map (make-sparse-keymap)))
                            (define-key map
                                        [mode-line down-mouse-1]
