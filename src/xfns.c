@@ -1146,7 +1146,24 @@ xg_set_icon (struct frame *f, Lisp_Object file)
 bool
 xg_set_icon_from_xpm_data (struct frame *f, const char **data)
 {
+  /* gdk-pixbuf 2.44 deprecated gdk_pixbuf_new_from_xpm_data.
+     Emacs should convert assets to PNG and use gdk_pixbuf_new_from_stream
+     with a GMemoryInputStream, or transition to PNG via GResource.
+     Pacify GCC for now.  */
+#if (defined GDK_PIXBUF_VERSION_2_44 \
+     && GDK_PIXBUF_VERSION_2_44 <= GDK_PIXBUF_VERSION_MIN_REQUIRED \
+     && GNUC_PREREQ (4, 6, 0))
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
   GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
+
+#if (defined GDK_PIXBUF_VERSION_2_44 \
+     && GDK_PIXBUF_VERSION_2_44 <= GDK_PIXBUF_VERSION_MIN_REQUIRED \
+     && GNUC_PREREQ (4, 6, 0))
+# pragma GCC diagnostic pop
+#endif
 
   if (!pixbuf)
     return false;
