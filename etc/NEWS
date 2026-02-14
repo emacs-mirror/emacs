@@ -995,6 +995,11 @@ of the modified region.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Delete-selection mode
+*** New face 'delete-selection-replacement' for the replacement text
+This comes with a change to how we track what is considered "the
+replacement text", which should be more robust now, and is made
+more clear by the highlighting.
 ** Editorconfig
 
 ---
