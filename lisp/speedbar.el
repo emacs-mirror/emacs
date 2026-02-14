@@ -1042,7 +1042,7 @@ be displayed.  Currently, only one speedbar is supported at a time.
     (- (nth 2 edges) (nth 0 edges))))
 
 (defun speedbar-frame-or-window ()
-  "Return `frame' or `window' if one of each are open.
+  "Return `frame' or `window' depending on what exists and is alive.
 Return nil if both are closed."
   (cond
    ((speedbar-window--live-p)
@@ -1050,6 +1050,7 @@ Return nil if both are closed."
    ((and (frame-live-p (speedbar-current-frame))
          speedbar-buffer
 	 (buffer-live-p speedbar-buffer)
+         (buffer-local-value dframe-controlled speedbar-buffer)
 	 (not (speedbar-window--live-p)))
     'frame)
    (t nil)))
@@ -1156,12 +1157,20 @@ we need to delete speedbar also."
 
 ;;;###autoload
 (defun speedbar-get-focus ()
-  "Change frame focus to or from the speedbar frame.
-If the selected frame is not speedbar, then speedbar frame is
-selected.  If the speedbar frame is active, then select the attached frame."
+  "Select speedbar window.
+
+When `speedbar-prefer-window' is nil, the speedbar frame is selected; If
+no such frame exists one is created.  When `speedbar-prefer-window' is
+true, the speedbar window is selected; If no such window exists, one is
+created."
   (interactive)
   (speedbar-reset-scanners)
-  (dframe-get-focus 'speedbar-frame 'speedbar-frame-mode)
+  (if speedbar-prefer-window
+      (progn
+        (when (not (speedbar-window--live-p))
+          (speedbar-window-mode 1))
+        (select-window speedbar--window))
+    (dframe-get-focus 'speedbar-frame 'speedbar-frame-mode))
   (let ((speedbar-update-flag t))
     (speedbar-timer-fn)))
 
