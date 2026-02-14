@@ -4726,9 +4726,8 @@ VCS command to run.
 On a non-distributed version control system, this signals an error.
 It also signals an error in a Bazaar bound branch."
   (interactive "P")
-  (let* ((vc-fileset (vc-deduce-fileset t))
-	 (backend (car vc-fileset)))
-;;;	 (files (cadr vc-fileset)))
+  (let* ((fileset (vc-deduce-fileset t t))
+	 (backend (car fileset)))
     (if (vc-find-backend-function backend 'push)
         (progn (vc-call-backend backend 'push arg)
                ;; FIXME: Ideally we would only clear out the
