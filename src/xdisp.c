@@ -4497,6 +4497,7 @@ compute_display_string_pos (struct text_pos *position,
     (charpos < eob - MAX_DISP_SCAN) ? charpos + MAX_DISP_SCAN : eob;
   struct text_pos tpos;
   int rv = 0;
+  Lisp_Object overlay = Qnil, ov1 = Qnil;
 
   if (string && STRINGP (string->lstring))
     object1 = object = string->lstring;
@@ -4529,13 +4530,15 @@ compute_display_string_pos (struct text_pos *position,
   else
     bufpos = charpos;
   tpos = *position;
-  if (!NILP (spec = Fget_char_property (pos, Qdisplay, object))
+  if (!NILP (spec = get_char_property_and_overlay (pos, Qdisplay, object,
+						   &overlay))
       && (charpos <= begb
-	  || !EQ (Fget_char_property (make_fixnum (charpos - 1), Qdisplay,
-				      object),
-		  spec))
-      && (rv = handle_display_spec (NULL, spec, object1, Qnil, &tpos, bufpos,
-				    frame_window_p)))
+	  || !EQ (get_char_property_and_overlay (make_fixnum (charpos - 1),
+						 Qdisplay, object, &ov1),
+		  spec)
+	  || !BASE_EQ (overlay, ov1))
+      && (rv = handle_display_spec (NULL, spec, object1, overlay, &tpos,
+				    bufpos, frame_window_p)))
     {
       if (rv == 2)
 	*disp_prop = 2;
@@ -4557,11 +4560,11 @@ compute_display_string_pos (struct text_pos *position,
       BYTEPOS (tpos) = string_char_to_byte (object, CHARPOS (tpos));
     else
       BYTEPOS (tpos) = CHAR_TO_BYTE (CHARPOS (tpos));
-    spec = Fget_char_property (pos, Qdisplay, object);
+    spec = get_char_property_and_overlay (pos, Qdisplay, object, &overlay);
     if (!STRINGP (object))
       bufpos = CHARPOS (tpos);
   } while (NILP (spec)
-	   || !(rv = handle_display_spec (NULL, spec, object1, Qnil, &tpos,
+	   || !(rv = handle_display_spec (NULL, spec, object1, overlay, &tpos,
 					  bufpos, frame_window_p)));
   if (rv == 2)
     *disp_prop = 2;
@@ -4575,11 +4578,19 @@ compute_display_string_pos (struct text_pos *position,
    property whose value is a string or a `display' text property whose
    value is a string.  */
 ptrdiff_t
-compute_display_string_end (ptrdiff_t charpos, struct bidi_string_data *string)
+compute_display_string_end (ptrdiff_t charpos, struct bidi_string_data *string,
+			    struct window *w)
 {
+  Lisp_Object window = Qnil;
+  if (w)
+    XSETWINDOW (window, w);
+
   /* OBJECT = nil means current buffer.  */
-  Lisp_Object object =
-    (string && STRINGP (string->lstring)) ? string->lstring : Qnil;
+  Lisp_Object object = (string && STRINGP (string->lstring))
+		       ? string->lstring
+		       : WINDOWP (window)
+			 ? window
+			 : Qnil;
   Lisp_Object pos = make_fixnum (charpos);
   ptrdiff_t eob =
     (STRINGP (object) || (string && string->s)) ? string->schars : ZV;
@@ -4601,11 +4612,18 @@ compute_display_string_end (ptrdiff_t charpos, struct bidi_string_data *string)
      it->stop_charpos.  But neither compute_display_string_pos nor
      bidi_fetch_char that calls it know or care where the next
      stop_charpos is.  */
-  if (NILP (Fget_char_property (pos, Qdisplay, object)))
+  Lisp_Object overlay = Qnil;
+  if (NILP (get_char_property_and_overlay (pos, Qdisplay, object, &overlay)))
     return -1;
 
   /* Look forward for the first character where the `display' property
      changes.  */
+  if (OVERLAYP (overlay))
+    return OVERLAY_END (overlay);
+
+  /* next-char-property-change doesn't support window OBJECTs.  */
+  if (WINDOWP (object))
+    object = w->contents;
   pos = Fnext_single_char_property_change (pos, Qdisplay, object, Qnil);
 
   return XFIXNAT (pos);
@@ -6286,14 +6304,14 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
   if (it)
     {
       start_pos = *position;
-      *position = display_prop_end (it, object, start_pos);
-      /* If the display property comes from an overlay, don't consider
-	 any potential stop_charpos values before the end of that
-	 overlay.  Since display_prop_end will happily find another
-	 'display' property coming from some other overlay or text
-	 property on buffer positions before this overlay's end, we
-	 need to ignore them, or else we risk displaying this
-	 overlay's display string/image twice.  */
+      /* If the display property comes from an overlay, always use the
+	 end of that overlay as the end of the property.  Since
+	 display_prop_end will happily find another 'display' property
+	 coming from some other overlay or text property on buffer
+	 positions before this overlay's end, or overlays not specific
+	 to this window, we need to ignore them, or else we risk
+	 displaying this overlay's display string/image twice, or fail
+	 to display text that should be.  */
       if (!NILP (overlay))
 	{
 	  ptrdiff_t ovendpos = OVERLAY_END (overlay);
@@ -6306,9 +6324,10 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	     set below.  Prevent that.  */
 	  ovendpos = clip_to_bounds (BEGV, ovendpos, ZV);
 
-	  if (ovendpos > CHARPOS (*position))
-	    SET_TEXT_POS (*position, ovendpos, CHAR_TO_BYTE (ovendpos));
+	  SET_TEXT_POS (*position, ovendpos, CHAR_TO_BYTE (ovendpos));
 	}
+      else
+	*position = display_prop_end (it, object, start_pos);
     }
   value = Qnil;
 
