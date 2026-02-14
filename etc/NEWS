@@ -787,6 +787,14 @@ docstring for the new option.
 ** Emacs now comes with Org v9.8.
 See the file "etc/ORG-NEWS" for user-visible changes in Org.
 
++++
+** New user option 'compilation-search-extra-path'
+compile.el will now use paths specified in both
+'compilation-search-extra-path' and 'compilation-search-path', when
+doing search.  'compilation-search-extra-path' is consulted first.
+One possible use case of this option is to customize add new search
+paths on a per-project basis with directory-local customization.
+
 
 * Editing Changes in Emacs 31.1
 

@@ -188,6 +188,21 @@ appears in the @file{*compilation*} buffer.  (This variable can also
 have the values @code{if-location-known} and @code{first-known}, which
 modify the conditions for automatically visiting the error locus.)
 
+@vindex compilation-search-path
+@vindex compilation-search-extra-path
+  The actual locus of an error message is determined by
+@code{compilation-search-path}, a list of directory names.  By default,
+Emacs visits the file indicated in the error message under the directory
+where the compilation happens, which is the special directory name
+@code{nil} in the default value for @code{compilation-search-path}
+(i.e. @code{(nil)}).  If you would like Emacs to try to find the file
+under a different directory (e.g. when you compile a nested project),
+customize @code{compilation-search-path} to include that directory.  For
+directory-local customization (@pxref{Directory Variables}), prefer
+using @code{compilation-search-extra-path} instead, which will be
+considered in addition to @code{compilation-search-path}, and takes
+precedence over it.
+
   Compilation mode provides the following additional commands.  These
 commands can also be used in @file{*grep*} buffers, where the
 hyperlinks are search matches rather than error messages (@pxref{Grep
