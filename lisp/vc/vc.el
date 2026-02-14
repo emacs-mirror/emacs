@@ -4741,8 +4741,6 @@ It also signals an error in a Bazaar bound branch."
   "First pull, and then push the current branch.
 The push will only be performed if the pull operation was successful.
 
-You must be visiting a version controlled file, or in a `vc-dir' buffer.
-
 On a distributed version control system, this runs a \"pull\"
 operation on the current branch, prompting for the precise
 command if required.  Optional prefix ARG non-nil forces a prompt
@@ -4753,8 +4751,8 @@ where the pull operation returns a process.
 On a non-distributed version control system, this signals an error.
 It also signals an error in a Bazaar bound branch."
   (interactive "P")
-  (let* ((vc-fileset (vc-deduce-fileset t))
-	 (backend (car vc-fileset)))
+  (let* ((fileset (vc-deduce-fileset t t))
+	 (backend (car fileset)))
     (if (vc-find-backend-function backend 'pull)
         (when-let* ((proc (vc-call-backend backend 'pull arg))
                     (buf (and (processp proc) (process-buffer proc))))
