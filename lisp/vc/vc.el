@@ -4668,13 +4668,25 @@ file, this simply replaces the work file with the latest revision
 on its branch.  If the file contains changes, any changes in the
 tip revision are merged into the working file."
   (interactive "P")
-  (let* ((vc-fileset (vc-deduce-fileset t))
-	 (backend (car vc-fileset))
-	 (files (cadr vc-fileset)))
+  (let (backend files fn)
+    (condition-case ret (vc-deduce-fileset 'not-state-changing)
+      (error
+       ;; If `vc-deduce-fileset' failed then try again with
+       ;; ALLOW-UNREGISTERED non-nil, but in this case we require a
+       ;; `pull' function because that doesn't need a list of files.
+       (unless
+           (setq fn
+                 (and-let* ((fileset (vc-deduce-fileset 'not-state-changing
+                                                        'allow-unregistered)))
+                   (vc-find-backend-function (car fileset) 'pull)))
+         (signal (car ret) (cdr ret))))
+      (:success
+       (setq backend (car ret) files (cadr ret)
+             fn (vc-find-backend-function backend 'pull))))
     (cond
      ;; If a pull operation is defined, use it.
-     ((vc-find-backend-function backend 'pull)
-      (vc-call-backend backend 'pull arg)
+     (fn
+      (funcall fn arg)
       ;; FIXME: Ideally we would only clear out the stored value for the
       ;; REMOTE-LOCATION from which we are pulling.
       (vc-run-delayed
@@ -4687,14 +4699,14 @@ tip revision are merged into the working file."
 		  (let ((file (buffer-file-name)))
 		    (and file (member file files))))))
       (dolist (file files)
-	(if (vc-up-to-date-p file)
+        (if (vc-up-to-date-p file)
 	    (vc-checkout file t)
 	  (vc-maybe-resolve-conflicts
 	   file (vc-call-backend backend 'merge-news file)))))
      ;; For a locking VCS, check out each file.
      ((eq (vc-checkout-model backend files) 'locking)
       (dolist (file files)
-	(if (vc-up-to-date-p file)
+        (if (vc-up-to-date-p file)
 	    (vc-checkout file t))))
      (t
       (error "VC update is unsupported for `%s'" backend)))))
