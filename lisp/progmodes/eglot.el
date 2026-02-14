@@ -4208,7 +4208,7 @@ for which LSP on-type-formatting should be requested."
          (let ((elems
                 (eglot--collecting-ranged
                     (s reg objs (lambda (o)
-                                  (plist-get :range (plist-get o :location))))
+                                  (plist-get (plist-get o :location) :range)))
                   (eglot--dbind ((SymbolInformation) kind name) s
                     (let ((kind (alist-get kind eglot--symbol-kind-names)))
                       (cons (propertize name
