@@ -1159,10 +1159,10 @@ we need to delete speedbar also."
 (defun speedbar-get-focus ()
   "Select speedbar window.
 
-When `speedbar-prefer-window' is nil, the speedbar frame is selected; If
-no such frame exists one is created.  When `speedbar-prefer-window' is
-true, the speedbar window is selected; If no such window exists, one is
-created."
+If `speedbar-prefer-window' is nil, select the speedbar frame; if
+no such frame exists, create it.  If `speedbar-prefer-window' is
+non-nil, select the speedbar window; if no such window exists,
+create it."
   (interactive)
   (speedbar-reset-scanners)
   (if speedbar-prefer-window
