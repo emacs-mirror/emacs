@@ -159,8 +159,12 @@ first candidate, and you can cycle between the candidates with
                                          completion-preview-complete
                                          completion-preview-insert-word
                                          completion-preview-insert-sexp)
-  "List of commands that should trigger completion preview."
-  :type '(repeat (function :tag "Command" :value self-insert-command))
+  "List of commands that should trigger completion preview.
+This can also be t instead of a list of commands, which says that any
+command can trigger completion preview."
+  :type '(choice (repeat :tag "Specific commands"
+                         (function :tag "Command" :value self-insert-command))
+                 (const :tag "Any command" t))
   :version "30.1")
 
 (defcustom completion-preview-minimum-symbol-length 3
@@ -334,7 +338,8 @@ Completion Preview mode avoids updating the preview after these commands.")
 
 (defsubst completion-preview-require-certain-commands ()
   "Check if `this-command' is one of `completion-preview-commands'."
-  (memq this-command completion-preview-commands))
+  (or (eq completion-preview-commands t)
+      (memq this-command completion-preview-commands)))
 
 (defun completion-preview-require-minimum-symbol-length ()
   "Check if the length of symbol at point is at least above a certain threshold.
