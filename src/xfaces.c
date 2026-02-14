@@ -6928,6 +6928,10 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
   {
     ptrdiff_t next_overlay;
     GET_OVERLAYS_AT (pos, overlay_vec, noverlays, &next_overlay);
+    /* overlays_at can return next_overlay beyond the end of the current
+       narrowing.  We don't want that to leak into the display code.  */
+    if (next_overlay > ZV)
+      next_overlay = ZV;
     if (next_overlay < endpos)
       endpos = next_overlay;
   }
