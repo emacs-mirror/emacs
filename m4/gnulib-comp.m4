@@ -225,7 +225,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module utimensat:
   # Code from module vararrays:
   # Code from module verify:
-  # Code from module vla:
   # Code from module warnings:
   # Code from module year2038:
   AC_REQUIRE([AC_SYS_YEAR2038])
@@ -1507,7 +1506,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/utimens.h
   lib/utimensat.c
   lib/verify.h
-  lib/vla.h
   lib/warn-on-use.h
   m4/00gnulib.m4
   m4/__inline.m4

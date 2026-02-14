@@ -52,7 +52,7 @@ GNULIB_MODULES='
   stpcpy stringeq strnlen strtoimax symlink sys_stat-h sys_time-h
   tempname time-h time_r time_rz timegm timer-time timespec-add timespec-sub
   unlocked-io update-copyright utimensat
-  vla warnings year2038
+  warnings year2038
 '
 
 AVOIDED_MODULES='

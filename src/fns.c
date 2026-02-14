@@ -24,7 +24,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <filevercmp.h>
 #include <intprops.h>
-#include <vla.h>
 #include <errno.h>
 #include <math.h>
 

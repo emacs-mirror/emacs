@@ -45,7 +45,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "pdumper.h"
 #include <c-ctype.h>
-#include <vla.h>
 
 #ifdef MSDOS
 #include "msdos.h"

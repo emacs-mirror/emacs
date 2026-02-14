@@ -187,7 +187,6 @@
 #  unlocked-io \
 #  update-copyright \
 #  utimensat \
-#  vla \
 #  warnings \
 #  year2038
 
@@ -4532,15 +4531,6 @@ EXTRA_DIST += verify.h
 
 endif
 ## end   gnulib module verify
-
-## begin gnulib module vla
-ifeq (,$(OMIT_GNULIB_MODULE_vla))
-
-
-EXTRA_DIST += vla.h
-
-endif
-## end   gnulib module vla
 
 
 mostlyclean-local: mostlyclean-generic
