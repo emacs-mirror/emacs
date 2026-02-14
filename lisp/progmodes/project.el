@@ -906,7 +906,7 @@ in the `project-current' call, the timeout is determined by
                        (project--value-in-dir 'project-vc-ignores dir)))
 
 (defun project--vc-ignores (dir backend extra-ignores)
-  (require 'vc)
+  (require 'vc)             ; Can be removed when we require Emacs 31.1.
   (append
    (when backend
      (delq

@@ -290,16 +290,18 @@ if that doesn't exist either, return nil."
       (require (intern (concat "vc-" (downcase (symbol-name backend)))))
       (if (fboundp f) f
 	(let ((def (vc-make-backend-sym 'default fun)))
+          ;; Load vc.el, for default implementations, if needed.
+	  (require 'vc)
 	  (if (fboundp def) (cons def backend) nil))))))
 
 (defun vc-call-backend (backend function-name &rest args)
-  "Call for BACKEND the implementation of FUNCTION-NAME with the given ARGS.
-Calls
+  "Call BACKEND's implementation of FUNCTION-NAME with arguments ARGS.
+Does
 
     (apply #\\='vc-BACKEND-FUN ARGS)
 
 if vc-BACKEND-FUN exists (after trying to find it in vc-BACKEND.el)
-and else calls
+and otherwise does
 
     (apply #\\='vc-default-FUN BACKEND ARGS)
 
