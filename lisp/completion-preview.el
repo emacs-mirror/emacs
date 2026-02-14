@@ -176,6 +176,14 @@ after non-symbol characters, such as punctuation or whitespace."
                  (const :tag "Disable minimum symbol length requirement" nil))
   :version "30.1")
 
+(defcustom completion-preview-inhibit-functions nil
+  "Abnormal hook for inhibiting Completion Preview mode operation.
+Completion Preview mode calls the functions on this hook without
+arguments during `post-command-hook'.  If any of these functions returns
+non-nil, it inhibits the preview display."
+  :type 'hook
+  :version "31.1")
+
 (defcustom completion-preview-message-format
   "Completion suggestion %i out of %n"
   "Message to show after cycling the completion preview suggestion.
@@ -618,13 +626,6 @@ point, otherwise hide it."
                                  nil #'completion-preview--update-from-timer
                                  (selected-window) (current-buffer)))
     (completion-preview--try-update)))
-
-(defcustom completion-preview-inhibit-functions nil
-  "Abnormal hook for inhibiting Completion Preview mode operation.
-Completion Preview mode calls the functions on this hook without
-arguments during `post-command-hook'.  If any of these functions returns
-non-nil, it inhibits the preview display."
-  :type 'hook)
 
 (defun completion-preview--post-command ()
   "Create, update or delete completion preview post last command."
