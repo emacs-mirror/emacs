@@ -772,8 +772,9 @@ or an empty string if none."
   (vc-git--out-match '("symbolic-ref" "HEAD")
                      "^\\(refs/heads/\\)?\\(.+\\)$" 2))
 
-(defun vc-git--branch-remotes ()
-  "Return alist of configured remote branches for current branch.
+(defun vc-git--branch-remotes (&optional branch)
+  "Return alist of configured remote branches for BRANCH.
+BRANCH defaults to the current branch.
 If there is a configured upstream, return the remote-tracking branch
 with key `upstream'.  If there is a distinct configured push remote,
 return the remote-tracking branch there with key `push'.
@@ -783,7 +784,7 @@ ignored because that means we're not actually in a triangular workflow."
   ;; an unwanted dependency on the setting of push.default.
   (cl-flet ((get (key)
               (string-trim-right (vc-git--out-str "config" key))))
-    (let* ((branch (vc-git-working-branch))
+    (let* ((branch (or branch (vc-git-working-branch)))
            (pull (get (format "branch.%s.remote" branch)))
            (merge (string-remove-prefix "refs/heads/"
                                         (get (format "branch.%s.merge"
@@ -799,11 +800,13 @@ ignored because that means we're not actually in a triangular workflow."
           alist
         (cl-acons 'push (format "%s/%s" push branch) alist)))))
 
-(defun vc-git-trunk-or-topic-p ()
+(defun vc-git-trunk-or-topic-p (&optional branch)
   "Return `topic' if branch has distinct pull and push remotes, else nil.
 This is able to identify topic branches for certain forge workflows."
-  (let ((remotes (vc-git--branch-remotes)))
+  (let ((remotes (vc-git--branch-remotes branch)))
     (and (assq 'upstream remotes) (assq 'push remotes) 'topic)))
+
+(declare-function vc-trunk-or-topic-p "vc")
 
 (defun vc-git-topic-outgoing-base ()
   "Return the outgoing base for the current branch as a string.
@@ -815,9 +818,10 @@ for outstanding changes is the tracking branch, and return that.
 
 Otherwise, fall back to the following algorithm, which requires that the
 corresponding trunk exists as a local branch.  Find all merge bases
-between the current branch and other local branches.  Each of these is a
-commit on the current branch.  Use `git merge-base --independent' on
-them all to find the topologically most recent.  Take the branch for
+between the current branch and either all local trunks, if there are any
+positively identified trunks, or just all local branches.  Each of these
+is a commit on the current branch.  Use `git merge-base --independent'
+on them all to find the topologically most recent.  Take the branch for
 which that commit is a merge base with the current branch to be the
 branch into which the current branch will eventually be merged.  Find
 its upstream.  (If there is more than one branch whose merge base with
@@ -832,6 +836,13 @@ them one-by-one, accepting the first that has an upstream.)"
    ;; Fallback algorithm.
    ((bind* (branches (vc-git-branches))
            (current (car branches))
+           ;; If there are any branches we can positively identify as
+           ;; trunks, consider only those.
+           (trunks (cl-remove-if-not (lambda (b)
+                                       (eq (vc-trunk-or-topic-p b 'Git)
+                                           'trunk))
+                                     branches))
+           (branches (or trunks branches))
            raw-merge-bases)
     (with-temp-buffer
       (cl-labels
@@ -839,7 +850,9 @@ them one-by-one, accepting the first that has an upstream.)"
              (buffer-substring (point) (pos-eol)))
            (git-merge-base (commit1 commit2)
              ;; Return all merge bases between COMMIT1 and COMMIT2.
-             ;; Memoized to reduce shelling out to Git.
+             ;; Memoized to reduce shelling out to Git
+             ;; (that doesn't actually help at present, but may be
+             ;; useful in the future).
              (let* ((sorted (sort (list commit1 commit2)))
                     ;; Git branch names may not contain "..".
                     (key (string-join sorted ".."))

@@ -1962,9 +1962,23 @@ The return value is always a string."
   (let ((alist (vc-hg--working-branch)))
     (cdr (or (assq 'bookmark alist) (assq 'branch alist)))))
 
-(defun vc-hg-trunk-or-topic-p ()
-  "Return `topic' if there is a currently active bookmark, else nil."
-  (and (assq 'bookmark (vc-hg--working-branch)) 'topic))
+(defun vc-hg--bookmarks ()
+  "Return list of strings naming all bookmarks."
+  (let (res)
+    (with-temp-buffer
+      (vc-hg-command t nil nil "bookmark" "--list")
+      (goto-char (point-min))
+      (while (re-search-forward "^ [ *] \\(\\S-+\\)" nil t)
+        (push (match-string 1) res)))
+    res))
+
+(defun vc-hg-trunk-or-topic-p (&optional branch)
+  "Return `topic' or nil for BRANCH or the currently active bookmark.
+If BRANCH names a bookmark, or BRANCH is nil but there is a currently
+active bookmark, return `topic'.  Otherwise return nil."
+  (if branch
+      (member branch (vc-hg--bookmarks))
+    (and (assq 'bookmark (vc-hg--working-branch)) 'topic)))
 
 (defun vc-hg-topic-outgoing-base ()
   "Return outgoing base for current commit considered as a topic branch.
