@@ -2158,6 +2158,38 @@ a face or button specification."
    :face 'variable-pitch "To quit a partially entered command, type "
    :face 'default "Control-g"
    :face 'variable-pitch ".\n")
+
+  (fancy-splash-insert
+   :face '(variable-pitch (:height 0.8))
+   "Enable "
+   :link `("newcomer-friendly"
+	   ,(lambda (_button) (info "(emacs) Newcomers Theme")))
+   " options:  ")
+
+  (let ((checked (create-image "checked.xpm"
+			       nil nil :ascent 'center))
+	(unchecked (create-image "unchecked.xpm"
+				 nil nil :ascent 'center))
+        (enabled (custom-theme-enabled-p 'newcomers-presets)))
+    (insert-button
+     " "
+     :on-glyph checked
+     :off-glyph unchecked
+     'checked enabled
+     'display (if enabled checked unchecked)
+     'follow-link t
+     'action (lambda (button)
+	       (if (overlay-get button 'checked)
+		   (progn (overlay-put button 'checked nil)
+			  (overlay-put button 'display
+				       (overlay-get button :off-glyph))
+			  (disable-theme 'newcomers-presets))
+		 (overlay-put button 'checked t)
+		 (overlay-put button 'display
+			      (overlay-get button :on-glyph))
+		 (load-theme 'newcomers-presets)))))
+  (fancy-splash-insert :face 'variable-pitch "\n")
+
   (save-restriction
     (narrow-to-region (point) (point))
     (fancy-splash-insert :face '(variable-pitch font-lock-builtin-face)

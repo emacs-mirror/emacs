@@ -32,6 +32,7 @@ Reference Manual}.
 * Init File::           How to write common customizations in the
                           initialization file.
 * Authentication::      Keeping persistent authentication information.
+* Newcomers Theme::     A theme that enables options for newcomers.
 
 @end menu
 
@@ -3230,3 +3231,22 @@ auth, Emacs auth-source}.
 configured backend, some of the backends offer to save it
 persistently.  This can be changed by customizing the user option
 @code{auth-source-save-behavior}.
+
+@node Newcomers Theme
+@section Newcomers Theme
+
+  The default appearance and behaviour of Emacs is traditionally
+conservative, not changing much between releases.  While each release
+brings more features, these are not enabled out of the box to not
+disrupt existing workflows.
+
+  As a remedy for new users who would like to enable a larger set of
+features in one fell swoop, the @code{newcomers-presets} theme
+(@pxref{Custom Themes}) sets a collection of users options considered to
+be too invasive by default, but useful for users acquainted with
+conventions from other programs trying to learn Emacs.
+
+  Keep in mind that the functionality enabled by this theme may change
+between releases, including adding new functionality that is expected to
+be of value for new users or removing old functionality that is regarded
+to be confusing or superseded.
