@@ -1648,6 +1648,12 @@ to visit URLs by typing just 'RET' instead of 'C-c RET' in read-only buffers.
 Conkeror (obsolete since Emacs 28.1), gnome-moz-remote (obsolete since
 Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).
 
+*** 'browse-url-firefox-program' now supports LibreWolf and Zen Browser.
+Occasionally, Emacs would not recognize LibreWolf as the system's
+default browser.  This happens in solving this by adding LibreWolf and
+additionally Floorp and  Zen Browser, two popular Firefox forks, to
+'browse-url-firefox-program'.
+
 ** CL-Lib
 
 +++
