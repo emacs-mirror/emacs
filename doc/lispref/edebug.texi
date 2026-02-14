@@ -12,7 +12,7 @@
 
 @node Edebug
 @section Edebug
-@cindex Edebug debugging facility
+@cindex edebug
 
   Edebug is a source-level debugger for Emacs Lisp programs, with which
 you can:
@@ -82,6 +82,7 @@ start using it.
 @node Using Edebug
 @subsection Using Edebug
 
+@cindex Edebug, how to start debugging
   To debug a Lisp program with Edebug, you must first @dfn{instrument}
 the Lisp code that you want to debug.  A simple way to do this is to
 first move point into the definition of a function or macro and then do
@@ -94,6 +95,10 @@ activating Edebug may stop execution and let you step through the
 function, or it may update the display and continue execution while
 checking for debugging commands.  The default execution mode is step,
 which stops execution.  @xref{Edebug Execution Modes}.
+
+  When you are done debugging and what to run the function without
+instrumentation, you can remove the instrumentation using one of the
+methods described in @ref{Instrumenting}.
 
   Within Edebug, you normally view an Emacs buffer showing the source of
 the Lisp code you are debugging.  This is referred to as the @dfn{source
@@ -222,12 +227,16 @@ Example:
 macro definitions are not yet known to Emacs.  To work around this,
 load the file which defines the function you are about to instrument.
 
+@cindex remove Edebug instrumentation
+@cindex Edebug, finish debugging
 @findex eval-expression @r{(Edebug)}
   To remove instrumentation from a definition, simply re-evaluate its
 definition in a way that does not instrument.  There are two ways of
 evaluating forms that never instrument them: from a file with
 @code{load}, and from the minibuffer with @code{eval-expression}
-(@kbd{M-:}).
+(@kbd{M-:}).  In addition, @kbd{C-M-x} without prefix argument and with
+@code{edebug-all-defs} set to @code{nil} also evaluates the function's
+definition without instrumenting it.
 
 @findex edebug-remove-instrumentation
   A different way to remove the instrumentation from a definition is
@@ -618,7 +627,7 @@ should reset the condition to @code{nil} when not using it.
 @node Source Breakpoints
 @subsubsection Source Breakpoints
 
-@findex edebug
+@findex edebug@r{ function}
 @cindex source breakpoints
   All breakpoints in a definition are forgotten each time you
 reinstrument it.  If you wish to make a breakpoint that won't be
@@ -1530,7 +1539,7 @@ specification fails and the argument is not instrumented.
 Some suitable predicates include @code{symbolp}, @code{integerp},
 @code{stringp}, @code{vectorp}, and @code{atom}.
 
-@cindex [@dots{}] (Edebug)
+@cindex [@dots{}] (Edebug specification)
 @item [@var{elements}@dots{}]
 A vector of elements groups the elements into a single @dfn{group
 specification}.  Its meaning has nothing to do with vectors.
