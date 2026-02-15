@@ -583,7 +583,13 @@ else
 with_gconf=no
 fi])
 OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
-OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
+dnl Override the AC_ARG_WITH in gl_LIBSELINUX, defaulting to "yes"
+dnl if --with-all and to "maybe" otherwise.
+AC_ARG_WITH([selinux],
+  [AS_HELP_STRING([--without-selinux],
+     [do not use SELinux, even on systems with SELinux])],
+  [],
+  [with_selinux=${with_all-maybe}])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
@@ -4008,30 +4014,6 @@ if test "${HAVE_GTK}" = "yes"; then
 fi
 AC_SUBST([USE_STARTUP_NOTIFICATION])
 
-dnl SELinux is available for Linux kernel based systems only.
-dnl These include GNU/Linux and Android.
-HAVE_LIBSELINUX=no
-LIBSELINUX_LIBS=
-LIBSELINUX_CFLAGS=
-if test "${with_selinux}" = "yes"; then
-   if test "$REALLY_ANDROID" = "yes"; then
-     ndk_SEARCH_MODULE([libselinux], [LIBSELINUX],
-       [HAVE_LIBSELINUX=yes])
-   else
-     AC_CHECK_LIB([selinux], [lgetfilecon],
-       [HAVE_LIBSELINUX=yes],
-       [HAVE_LIBSELINUX=no])
-   fi
-   if test "$HAVE_LIBSELINUX" = yes; then
-      AC_DEFINE([HAVE_LIBSELINUX], [1], [Define to 1 if using SELinux.])
-      if test "$REALLY_ANDROID" != "yes"; then
-        LIBSELINUX_LIBS=-lselinux
-      fi
-   fi
-fi
-AC_SUBST([LIBSELINUX_LIBS])
-AC_SUBST([LIBSELINUX_CFLAGS])
-
 HAVE_GNUTLS=no
 if test "${with_gnutls}" != "no" ; then
   EMACS_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.12.2],
@@ -7413,6 +7395,31 @@ if test "$REALLY_ANDROID" = "yes" && test "$with_libgmp" != "no"; then
   fi
 fi
 AC_SUBST([LIBGMP_CFLAGS])
+
+dnl SELinux is available for Linux kernel based systems only.
+dnl These include GNU/Linux and Android.
+dnl Configure SELinux after configuring Gnulib, which adjusts with_selinux.
+HAVE_LIBSELINUX=no
+LIBSELINUX_LIBS=
+LIBSELINUX_CFLAGS=
+if test "${with_selinux}" = "yes"; then
+   if test "$REALLY_ANDROID" = "yes"; then
+     ndk_SEARCH_MODULE([libselinux], [LIBSELINUX],
+       [HAVE_LIBSELINUX=yes])
+   else
+     AC_CHECK_LIB([selinux], [lgetfilecon],
+       [HAVE_LIBSELINUX=yes],
+       [HAVE_LIBSELINUX=no])
+   fi
+   if test "$HAVE_LIBSELINUX" = yes; then
+      AC_DEFINE([HAVE_LIBSELINUX], [1], [Define to 1 if using SELinux.])
+      if test "$REALLY_ANDROID" != "yes"; then
+        LIBSELINUX_LIBS=-lselinux
+      fi
+   fi
+fi
+AC_SUBST([LIBSELINUX_LIBS])
+AC_SUBST([LIBSELINUX_CFLAGS])
 
 # timer_getoverrun needs the same library as timer_settime
 OLD_LIBS=$LIBS
