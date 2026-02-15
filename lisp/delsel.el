@@ -60,6 +60,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (defcustom delete-selection-save-to-register nil
   "If non-nil, deleted region text is stored in this register.
 Value must be the register (key) to use."
