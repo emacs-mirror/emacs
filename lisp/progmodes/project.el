@@ -698,6 +698,7 @@ in the `project-current' call, the timeout is determined by
            vc-handled-backends))
          project)
     (while (and
+            root
             (eq backend 'Git)
             (project--vc-merge-submodules-p root)
             (project--submodule-p root))
