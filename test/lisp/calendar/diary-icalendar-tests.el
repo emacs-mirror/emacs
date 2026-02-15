@@ -792,7 +792,8 @@ SOURCE, if given, should be a symbol; it is used to name the test."
   "Call `di:parse-entry' on the full test buffer"
   (let ((tz
          (cond
-          ((eq 'local di:time-zone-export-strategy)
+          ((and (eq 'local di:time-zone-export-strategy)
+                (not (di:-tz-is-utc-p)))
            (di:current-tz-to-vtimezone))
           ((listp di:time-zone-export-strategy)
            (di:current-tz-to-vtimezone di:time-zone-export-strategy)))))

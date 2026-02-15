@@ -2468,6 +2468,10 @@ specification.  END may be nil if no end time was specified."
         ;; Return the times:
         (list start end)))))
 
+(defun di:-tz-is-utc-p ()
+  "Return non-nil if the current time zone is UTC."
+  (equal (current-time-zone) '(0 "UTC")))
+
 (defun di:convert-time-via-strategy (dt &optional vtimezone)
   "Reinterpret the local time DT per the time zone export strategy.
 
@@ -2484,7 +2488,8 @@ zone export strategy requires it."
     (ical:date dt)
     (ical:date-time
      (cond
-       ((or (eq 'local di:time-zone-export-strategy)
+       ((or (and (eq 'local di:time-zone-export-strategy)
+                 (not (di:-tz-is-utc-p)))
             (listp di:time-zone-export-strategy))
         (unless (ical:vtimezone-component-p vtimezone)
           (di:signal-export-error
@@ -2497,7 +2502,8 @@ zone export strategy requires it."
         (if (decoded-time-zone dt)
             (icr:tz-decode-time (encode-time dt) vtimezone)
           (icr:tz-set-zone dt vtimezone :error)))
-       ((eq 'to-utc di:time-zone-export-strategy)
+       ((or (eq 'to-utc di:time-zone-export-strategy)
+            (di:-tz-is-utc-p)) ; we're already in UTC, so mark dt as such
         (decode-time (encode-time dt) t))
        ((eq 'floating di:time-zone-export-strategy)
         (setf (decoded-time-zone dt) nil)
@@ -3408,11 +3414,12 @@ as well as variables in the customization group `diary-icalendar-export'."
         (save-restriction
           (narrow-to-region begin end)
           (goto-char (point-min))
-          (cond ((eq 'local di:time-zone-export-strategy)
-                 (setq local-tz (di:current-tz-to-vtimezone)))
-                ((listp di:time-zone-export-strategy)
+          (cond ((listp di:time-zone-export-strategy)
                  (setq local-tz (di:current-tz-to-vtimezone
-                                 di:time-zone-export-strategy))))
+                                 di:time-zone-export-strategy)))
+                ((and (eq 'local di:time-zone-export-strategy)
+                      (not (di:-tz-is-utc-p))) ; don't generate a VTIMEZONE in UTC
+                 (setq local-tz (di:current-tz-to-vtimezone))))
           (while (re-search-forward di:entry-regexp nil t)
             (let ((entry-start (match-beginning 0))
                   (entry-end (match-end 0))
@@ -3431,7 +3438,8 @@ as well as variables in the customization group `diary-icalendar-export'."
                   :buffer (current-buffer))))
               (goto-char (1+ entry-end))))
           (setq components (nreverse components))
-          (when local-tz (push local-tz components))
+          (when (ical:vtimezone-component-p local-tz)
+            (push local-tz components))
           (ical:condition-case err-data
              (setq vcalendar (ical:make-vcalendar (@ components))))
 
