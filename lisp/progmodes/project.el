@@ -785,18 +785,20 @@ in the `project-current' call, the timeout is determined by
       ;; Need newer Git to use negative pathspec like we do".
       (vc-default-project-list-files 'Git dir extra-ignores)
     (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
-           (args '("-z" "-c" "--exclude-standard"))
            (vc-git-use-literal-pathspecs nil)
            (include-untracked (project--value-in-dir
                                'project-vc-include-untracked
                                dir))
            (submodules (project--git-submodules))
-           files)
-      (setq args (append args
+           (gitver (vc-git--program-version))
+           (dedup (and (version<= "2.31" gitver) '("--deduplicate")))
+           (args (append '("-z" "-c" "--exclude-standard")
                          (and (<= 31 emacs-major-version)
-                              (version<= "2.35" (vc-git--program-version))
+                              (version<= "2.35" gitver)
                               '("--sparse"))
-                         (and include-untracked '("-o"))))
+                         (and include-untracked '("-o"))
+                         dedup))
+           files)
       (when extra-ignores
         (setq args (append args
                            (cons "--"
@@ -804,13 +806,13 @@ in the `project-current' call, the timeout is determined by
                                   (lambda (i)
                                     (format
                                      ":(exclude,glob,top)%s"
-                                     (if (string-match "\\*\\*" i)
+                                     (if (string-match-p "\\*\\*" i)
                                          ;; Looks like pathspec glob
                                          ;; format already.
                                          i
-                                       (if (string-match "\\./" i)
+                                       (if (string-prefix-p "./" i)
                                            ;; ./abc -> abc
-                                           (setq i (substring i 2))
+                                           (substring i 2)
                                          ;; abc -> **/abc
                                          (setq i (concat "**/" i))
                                          ;; FIXME: '**/abc' should also
@@ -818,10 +820,10 @@ in the `project-current' call, the timeout is determined by
                                          ;; name, but doesn't (git 2.25.1).
                                          ;; Maybe we should replace
                                          ;; such entries with two.
-                                         (if (string-match "/\\'" i)
+                                         (if (string-suffix-p "/" i)
                                              ;; abc/ -> abc/**
-                                             (setq i (concat i "**"))))
-                                       i)))
+                                             (concat i "**")
+                                           i)))))
                                   extra-ignores)))))
       (setq files
             (delq nil
@@ -857,8 +859,7 @@ in the `project-current' call, the timeout is determined by
           (setq files
                 (apply #'nconc files sub-files))))
       ;; 'git ls-files' returns duplicate entries for merge conflicts.
-      ;; XXX: Better solutions welcome, but this seems cheap enough.
-      (delete-consecutive-dups files))))
+      (if dedup files (delete-consecutive-dups files)))))
 
 (defun vc-hg-project-list-files (dir extra-ignores)
   (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
