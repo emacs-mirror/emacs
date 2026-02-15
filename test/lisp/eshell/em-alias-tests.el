@@ -93,4 +93,13 @@
    (eshell-insert-command "alias add-funny-pair '+ $*[0][: 0] $*[1][: 1]'")
    (eshell-match-command-output "add-funny-pair 1:2 3:4" "5\n")))
 
+(ert-deftest em-alias-test/alias-list-is-sorted ()
+  "Test that the alias list is sorted on insert"
+  (with-temp-eshell
+   (eshell-insert-command "alias aaa 'aaa'")
+   (eshell-insert-command "alias ccc 'ccc'")
+   (eshell-insert-command "alias bbb 'bbb'")
+   (eshell-match-command-output
+    "alias" "alias aaa aaa\nalias bbb bbb\nalias ccc ccc\n")))
+
 ;; em-alias-tests.el ends here

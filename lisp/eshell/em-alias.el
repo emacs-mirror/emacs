@@ -173,7 +173,9 @@ file named by `eshell-aliases-file'.")
 	    (setq eshell-command-aliases-list
 		  (delq def eshell-command-aliases-list)))
 	(setq eshell-command-aliases-list
-	      (cons alias-def eshell-command-aliases-list))))
+	      (sort (cons alias-def eshell-command-aliases-list)
+                    (lambda (a b)
+                    (string< (car a) (car b)))))))
     (eshell-write-aliases-list))
   nil)
 
