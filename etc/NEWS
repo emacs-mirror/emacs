@@ -443,6 +443,10 @@ vertically first, so to get previous behavior, you can customize this
 option to 'vertical'.  The value 'horizontal' always prefers the
 horizontal split.
 
+---
+The default value of 'split-width-threshold' is changed from 160 to 150.
+After splitting it's still comfortable to read text filled to 75 columns.
+
 +++
 *** New argument INDIRECT for 'get-buffer-window-list'.
 With this argument non-nil, 'get-buffer-window-list' will include in the

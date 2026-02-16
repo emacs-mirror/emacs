@@ -7448,9 +7448,10 @@ supposed to split that window and return the new window.  If the
 window can (or shall) not be split, it is supposed to return nil.
 The default is to call the function `split-window-sensibly' which
 tries to split the window in a way which seems most suitable.
-You can customize the options `split-height-threshold' and/or
-`split-width-threshold' in order to have `split-window-sensibly'
-prefer either vertical or horizontal splitting.
+You can customize the options `split-window-preferred-direction',
+`split-height-threshold' and/or `split-width-threshold' in order
+to have `split-window-sensibly' prefer either vertical or
+horizontal splitting.
 
 If you set this to any other function, bear in mind that the
 `display-buffer' routines may call this function two times.  The
@@ -7482,14 +7483,14 @@ value of this variable."
   :version "23.1"
   :group 'windows)
 
-(defcustom split-width-threshold 160
+(defcustom split-width-threshold 150
   "Minimum width for splitting windows sensibly.
 If this is an integer, `split-window-sensibly' may split a window
 horizontally only if it has at least this many columns.  If this
 is nil, `split-window-sensibly' is not allowed to split a window
 horizontally."
   :type '(choice (const nil) (integer :tag "columns"))
-  :version "23.1"
+  :version "31.1"
   :group 'windows)
 
 (defun window-splittable-p (window &optional horizontal)
