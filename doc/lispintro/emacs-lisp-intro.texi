@@ -3785,15 +3785,21 @@ elisp, The Emacs Lisp Reference Manual}.
 
 @cindex Lexical binding
 @cindex Binding, lexical
-As we discussed before (@pxref{Prevent confusion}), when you create
-local variables with @code{let} under lexical binding, those variables
-are valid only within the body of the @code{let} expression.  In other
-parts of your code, they have other meanings, so if you call a
-function defined elsewhere within the @code{let} body, that function
-would be unable to ``see'' the local variables you've created.  (On
-the other hand, if you call a function that was defined within a
-@code{let} body, that function @emph{would} be able to see---and
-modify---the local variables from that @code{let} expression.)
+As we discussed before
+@iftex
+(@pxref{Permanent Installation}),
+@end iftex
+@ifnottex
+(@pxref{Prevent confusion}),
+@end ifnottex
+when you create local variables with @code{let} under lexical binding,
+those variables are valid only within the body of the @code{let}
+expression.  In other parts of your code, they have other meanings, so
+if you call a function defined elsewhere within the @code{let} body,
+that function would be unable to ``see'' the local variables you've
+created.  (On the other hand, if you call a function that was defined
+within a @code{let} body, that function @emph{would} be able to
+see---and modify---the local variables from that @code{let} expression.)
 
 @cindex Dynamic binding
 @cindex Binding, dynamic
