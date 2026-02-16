@@ -161,6 +161,26 @@ Used in `smerge-diff-base-upper' and related functions."
         ">" (cons "base-lower" #'smerge-diff-base-lower)
         "=" (cons "upper-lower" #'smerge-diff-upper-lower)))
 
+(defvar-keymap smerge-repeat-map
+  :doc "Keymap to repeat SMerge commands.
+Used in `repeat-mode'."
+  :repeat t
+  "n" #'smerge-next
+  "p" #'smerge-prev
+  "r" #'smerge-resolve
+  "a" #'smerge-keep-all
+  "b" #'smerge-keep-base
+  "o" #'smerge-keep-lower
+  "l" #'smerge-keep-lower
+  "m" #'smerge-keep-upper
+  "u" #'smerge-keep-upper
+  "C" #'smerge-combine-with-next
+  "R" #'smerge-refine
+  "C-m" #'smerge-keep-current
+  "<" #'smerge-diff-base-upper
+  ">" #'smerge-diff-base-lower
+  "=" #'smerge-diff-upper-lower)
+
 (defcustom smerge-command-prefix "\C-c^"
   "Prefix for `smerge-mode' commands."
   :type '(choice (const :tag "ESC"   "\e")

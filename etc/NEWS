@@ -1553,6 +1553,11 @@ correctly regardless of margin position.
 ---
 ** SMerge
 
+*** New 'repeat-map' for SMerge conflict resolution commands.
+With 'repeat-mode' enabled, after invoking an SMerge command (for
+example, 'C-c ^ n'), you can repeat further SMerge commands by typing
+just the final key (for example, n, p, u, l).
+
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
 
 *** New command 'smerge-refine-exchange-point' to jump to the other side.
