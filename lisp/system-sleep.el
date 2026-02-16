@@ -114,6 +114,8 @@ If non-nil, idle sleep is inhibited by `system-sleep'.")
                  (:constructor make-sleep-event (state)))
   state)
 
+;;;###autoload (autoload 'sleep-event-state "system-sleep.el")
+
 ;;;###autoload
 (defcustom system-sleep-event-functions nil
   "Abnormal hook invoked on system sleep events.
