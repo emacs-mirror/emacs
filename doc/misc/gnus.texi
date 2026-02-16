@@ -1888,7 +1888,7 @@ asterisk at the beginning of the line?).
 You can change that format to whatever you want by fiddling with the
 @code{gnus-group-line-format} variable.  This variable works along the
 lines of a @code{format} specification, which is pretty much the same as
-a @code{printf} specifications, for those of you who use (feh!) C@.
+a @code{printf} specification, for those of you who use (feh!)@: C@.
 @xref{Formatting Variables}.
 
 @samp{%M%S%5y:%B%(%g%)\n} is the value that produced those lines above.
@@ -1949,7 +1949,7 @@ renumber all articles from 1, removing all gaps between numbers, hence
 getting a correct total count.  Other backends may support this in the
 future.  In order to keep your total article count relatively up to
 date, you might want to compact your groups (or even directly your
-server) from time to time. @xref{Misc Group Stuff}, @xref{Server Commands}.
+server) from time to time.  @xref{Misc Group Stuff}, @xref{Server Commands}.
 
 @item y
 Number of unread, unticked, non-dormant articles.
@@ -3860,7 +3860,7 @@ exiting Gnus.
 
 If you read lots and lots of groups, it might be convenient to group
 them hierarchically according to topics.  You put your Emacs groups over
-here, your sex groups over there, and the rest (what, two groups or so?)
+here, your sex groups over there, and the rest (what, two groups or so?)@:
 you put in some misc section that you never bother with anyway.  You can
 even group the Emacs sex groups as a sub-topic to either the Emacs
 groups or the sex groups---or both!  Go wild!
@@ -3890,7 +3890,7 @@ Gnus
 
 @findex gnus-topic-mode
 @kindex t @r{(Group)}
-To get this @emph{fab} functionality you simply turn on (ooh!) the
+To get this @emph{fab} functionality you simply turn on (ooh!)@: the
 @code{gnus-topic} minor mode---type @kbd{t} in the group buffer.  (This
 is a toggling command.)
 
@@ -6254,7 +6254,7 @@ Just don't forget to set that up :-)
 There are several marks you can set on an article.
 
 You have marks that decide the @dfn{readedness} (whoo, neato-keano
-neologism ohoy!) of the article.  Alphabetic marks generally mean
+neologism ohoy!)@: of the article.  Alphabetic marks generally mean
 @dfn{read}, while non-alphabetic characters generally mean @dfn{unread}.
 
 In addition, you also have marks that do not affect readedness.
@@ -9749,14 +9749,14 @@ when the article was sent.
 @item W T u
 @kindex W T u @r{(Summary)}
 @findex gnus-article-date-ut
-Display the date in UT (aka. GMT, aka ZULU)
+Display the date in UT (aka.@: GMT, aka ZULU)
 (@code{gnus-article-date-ut}).
 
 @item W T i
 @kindex W T i @r{(Summary)}
 @findex gnus-article-date-iso8601
 @cindex ISO 8601
-Display the date in international format, aka. ISO 8601
+Display the date in international format, aka.@: ISO 8601
 (@code{gnus-article-date-iso8601}).
 
 @item W T l
@@ -15596,7 +15596,7 @@ These are two useful hooks executed when treating new incoming
 mail---@code{nnmail-pre-get-new-mail-hook} (is called just before
 starting to handle the new mail) and
 @code{nnmail-post-get-new-mail-hook} (is called when the mail handling
-is done).  Here's and example of using these two hooks to change the
+is done).  Here's an example of using these two hooks to change the
 default file modes the new mail files get:
 
 @lisp
@@ -17110,7 +17110,7 @@ what's where.
 @item nnbabyl
 
 Once upon a time, there was the DEC-10 and DEC-20, running operating
-systems called TOPS and related things, and the usual (only?) mail
+systems called TOPS and related things, and the usual (only?)@: mail
 reading environment was a thing called Babyl.  I don't know what format
 was used for mail landing on the system, but Babyl had its own internal
 format to which mail was converted, primarily involving creating a
@@ -17192,7 +17192,7 @@ mail back ends.
 
 @code{nnmaildir} is largely similar to @code{nnml}, with some notable
 differences.  Each message is stored in a separate file, but the
-filename is unrelated to the article number in Gnus. @code{nnmaildir}
+filename is unrelated to the article number in Gnus.  @code{nnmaildir}
 also stores the equivalent of @code{nnml}'s overview files in one file
 per article, so it uses about twice as many inodes as @code{nnml}.
 (Use @code{df -i} to see how plentiful your inode supply is.)  If this
@@ -18392,7 +18392,7 @@ line in your @file{~/.gnus.el} file:
 @item
 You must arrange for diary messages (those containing @code{X-Diary-*}
 headers) to be split in a private folder @emph{before} Gnus treat them.
-Again, this is needed because Gnus cannot (yet ?) properly handle
+Again, this is needed because Gnus cannot (yet ?)@: properly handle
 multiple primary mail back ends.  Getting those messages from a separate
 source will compensate this misfeature to some extent.
 
@@ -19701,7 +19701,7 @@ over and over again.
 @item gnus-agent-max-fetch-size
 @vindex gnus-agent-max-fetch-size
 The agent fetches articles into a temporary buffer prior to parsing
-them into individual files.  To avoid exceeding the max. buffer size,
+them into individual files.  To avoid exceeding the max.@: buffer size,
 the agent alternates between fetching and parsing until all articles
 have been fetched.  @code{gnus-agent-max-fetch-size} provides a size
 limit to control how often the cycling occurs.  A large value improves
@@ -22121,7 +22121,7 @@ mbox = ... your mbox files which should be indexed ...
 @end example
 
 This specifies all your mail folders and mbox files (relative to the
-base directory!) you want to index with mairix.  Note that the
+base directory!)@: you want to index with mairix.  Note that the
 @code{nnml} back end saves mails in MH format, so you have to put those
 directories in the @code{mh} line.  See the example at the end of this
 section and mairixrc's man-page for further details.
@@ -24654,7 +24654,7 @@ Groups}.
 @cindex spam back ends
 In either case, you have to tell the Spam package what method to use
 to detect spam messages.  There are several methods, or @dfn{spam back
-ends} (not to be confused with Gnus back ends!) to choose from: spam
+ends} (not to be confused with Gnus back ends!)@: to choose from: spam
 ``blacklists'' and ``whitelists'', dictionary-based filters, and so
 forth.  @xref{Spam Back Ends}.
 
@@ -26619,7 +26619,7 @@ Setting up the Gnus Cloud takes less than a minute.  From the Group
 buffer:
 
 Press @kbd{^} to go to the Server buffer.  Here you'll see all the
-servers that Gnus knows. @xref{Server Buffer}.
+servers that Gnus knows.  @xref{Server Buffer}.
 
 Then press @kbd{i} to mark any servers as cloud-synchronized (their marks are synchronized).
 
@@ -26915,7 +26915,7 @@ but at the common table.@*
 '94, Lars Magne Ingebrigtsen grew bored and decided to rewrite Gnus.
 
 If you want to investigate the person responsible for this outrage,
-you can point your (feh!) web browser to
+you can point your (feh!)@: web browser to
 @uref{https://quimby.gnus.org/}.  This used to be the primary
 distribution point for the new and spiffy versions of Gnus, and was
 known as The Site That Destroys Newsrcs And Drives People Mad, but
@@ -26958,7 +26958,7 @@ The first ``proper'' release of Gnus 5 was done in November 1995 when it
 was included in the Emacs 19.30 distribution (132 (ding) Gnus releases
 plus 15 Gnus 5.0 releases).
 
-In May 1996 the next Gnus generation (aka. ``September Gnus'' (after 99
+In May 1996 the next Gnus generation (aka.@: ``September Gnus'' (after 99
 releases)) was released under the name ``Gnus 5.2'' (40 releases).
 
 On July 28th 1996 work on Red Gnus was begun, and it was released on
@@ -27119,7 +27119,7 @@ type>, yup, I'll release it right away <ship off> no wait, that doesn't
 work at all <type type>, yup, I'll ship that one off right away <ship
 off> no, wait, that absolutely does not work'' policy for releases.
 Micro$oft---bah.  Amateurs.  I'm @emph{much} worse.  (Or is that
-``worser''? ``much worser''?  ``worsest''?)
+``worser''?  ``much worser''?  ``worsest''?)
 
 I would like to take this opportunity to thank the Academy for@dots{}  oops,
 wrong show.
