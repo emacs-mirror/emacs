@@ -6684,7 +6684,8 @@ line).
 @strong{Note} that @value{tramp} raises a @code{remote-file-error}
 error for any connection-related problem.  You can protect against all
 such problems with the code snippet above (or with a
-@code{condition-case} form with a @code{remote-file-error} handler).
+@code{condition-case} / @code{handler-bind} form with a
+@code{remote-file-error} handler).
 
 
 @node Extension packages
@@ -6976,6 +6977,13 @@ the following settings are required:
       debug-on-signal t)
 @end group
 @end lisp
+
+@vindex tramp-error-show-message-timeout
+Sometimes, @value{tramp} shows the connection buffer for more
+information when an error has appeared.  The buffer is shown for
+@code{tramp-error-show-message-timeout} seconds, or until an input
+event arrives.  You can change this variable to another value.  If it
+isn't a natural number (for example, @code{nil}), the buffer isn't shown.
 
 @vindex warning-suppress-types
 @value{tramp} warnings are displayed in the @file{*Warnings*} buffer,
