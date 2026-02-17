@@ -29,7 +29,8 @@ export LC_ALL=C
 GNULIB_URL=https://git.savannah.gnu.org/git/gnulib.git
 
 GNULIB_MODULES='
-  alignasof alloca-opt binary-io bool boot-time builtin-expect byteswap
+  alignasof alloca-opt attribute
+  binary-io bool boot-time builtin-expect byteswap
   c-ctype c-strcase canonicalize-lgpl
   careadlinkat close-stream copy-file-range
   crypto/md5 crypto/md5-buffer
