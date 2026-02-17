@@ -36836,7 +36836,7 @@ to.  When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like `vc-root-diff-outgoing-base' except that it does
+This command is like `vc-root-diff-outstanding' except that it does
 not include uncommitted changes.
 
 See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
@@ -36852,7 +36852,7 @@ can be a remote branch name.
 When called from Lisp optional argument FILESET overrides the VC
 fileset.
 
-This command is like `vc-diff-outgoing-base' except that it does not
+This command is like `vc-diff-outstanding' except that it does not
 include uncommitted changes.
 
 See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
@@ -36863,7 +36863,7 @@ global binding.
      #'vc--safe-branch-regexps-p)
  (put 'vc-topic-branch-regexps 'safe-local-variable
      #'vc--safe-branch-regexps-p)
-(autoload 'vc-root-diff-outgoing-base "vc"
+(autoload 'vc-root-diff-outstanding "vc"
 "Report diff of all changes since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
@@ -36888,7 +36888,7 @@ topic branch.  (With a double prefix argument, this command is like
 `vc-diff-outgoing' except that it includes uncommitted changes.)
 
 (fn &optional UPSTREAM-LOCATION)" t)
-(autoload 'vc-diff-outgoing-base "vc"
+(autoload 'vc-diff-outstanding "vc"
 "Report changes to VC fileset since the merge base with UPSTREAM-LOCATION.
 
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
@@ -36916,7 +36916,7 @@ topic branch.  (With a double prefix argument, this command is like
 When called from Lisp, optional argument FILESET overrides the fileset.
 
 (fn &optional UPSTREAM-LOCATION FILESET)" t)
-(autoload 'vc-log-outgoing-base "vc"
+(autoload 'vc-log-outstanding "vc"
 "Show log for the VC fileset since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
@@ -36941,7 +36941,7 @@ topic branch.
 When called from Lisp, optional argument FILESET overrides the fileset.
 
 (fn &optional UPSTREAM-LOCATION FILESET)" t)
-(autoload 'vc-root-log-outgoing-base "vc"
+(autoload 'vc-root-log-outstanding "vc"
 "Show log of revisions since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.

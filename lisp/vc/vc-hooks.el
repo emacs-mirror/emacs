@@ -1020,10 +1020,10 @@ In the latter case, VC mode is deactivated for this buffer."
   "O"   #'vc-root-log-outgoing
   "M L" #'vc-log-mergebase
   "M D" #'vc-diff-mergebase
-  "T l" #'vc-log-outgoing-base
-  "T L" #'vc-root-log-outgoing-base
-  "T =" #'vc-diff-outgoing-base
-  "T D" #'vc-root-diff-outgoing-base
+  "T l" #'vc-log-outstanding
+  "T L" #'vc-root-log-outstanding
+  "T =" #'vc-diff-outstanding
+  "T D" #'vc-root-diff-outstanding
   "m"   #'vc-merge
   "r"   #'vc-retrieve-tag
   "s"   #'vc-create-tag

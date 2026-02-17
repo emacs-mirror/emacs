@@ -2815,11 +2815,11 @@ current VC fileset.
 
 +++
 *** New commands to report information about outstanding changes.
-'C-x v T =' ('vc-diff-outgoing-base') and 'C-x v T D'
-('vc-root-diff-outgoing-base') report diffs of changes since the merge
+'C-x v T =' ('vc-diff-outstanding') and 'C-x v T D'
+('vc-root-diff-outstanding') report diffs of changes since the merge
 base with the remote branch, including uncommitted changes.
-'C-x v T l' ('vc-log-outgoing-base') and 'C-x v T L'
-('vc-root-log-outgoing-base') show the corresponding revision logs.
+'C-x v T l' ('vc-log-outstanding') and 'C-x v T L'
+('vc-root-log-outstanding') show the corresponding revision logs.
 These are useful to view all outstanding (unmerged, unpushed) changes on
 the current branch.  They are also available as 'T =', 'T D', 'T l' and
 'T L' in VC Directory buffers.
