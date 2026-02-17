@@ -3361,11 +3361,9 @@ Uncommitted changes are included in the diff.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, see whether the branch matches one of
-`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
-the backend for an appropriate outgoing base.
+For a topic branch, query the backend for an appropriate outgoing base.
 See `vc-trunk-or-topic-p' regarding the difference between trunk and
-topic branches.
+topic branches and how Emacs classifies the current branch.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
@@ -3391,11 +3389,9 @@ Uncommitted changes are included in the diff.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, see whether the branch matches one of
-`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
-the backend for an appropriate outgoing base.
+For a topic branch, query the backend for an appropriate outgoing base.
 See `vc-trunk-or-topic-p' regarding the difference between trunk and
-topic branches.
+topic branches and how Emacs classifies the current branch.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
@@ -3427,11 +3423,9 @@ working revision and UPSTREAM-LOCATION.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, see whether the branch matches one of
-`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
-the backend for an appropriate outgoing base.
+For a topic branch, query the backend for an appropriate outgoing base.
 See `vc-trunk-or-topic-p' regarding the difference between trunk and
-topic branches.
+topic branches and how Emacs classifies the current branch.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
@@ -3461,11 +3455,9 @@ working revision and UPSTREAM-LOCATION.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, see whether the branch matches one of
-`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
-the backend for an appropriate outgoing base.
+For a topic branch, query the backend for an appropriate outgoing base.
 See `vc-trunk-or-topic-p' regarding the difference between trunk and
-topic branches.
+topic branches and how Emacs classifies the current branch.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
