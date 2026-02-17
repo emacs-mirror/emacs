@@ -182,3 +182,8 @@
 ;;                      ^ elisp-face
              (t '(:inherit error))))
 ;;                         ^ elisp-face
+
+;; From desktop.el:
+(let ((coding-system-for-write 'utf-8-emacs))
+;;                              ^ elisp-coding
+  (write-region (point-min) (point-max) (desktop-full-file-name) nil 'nomessage))
