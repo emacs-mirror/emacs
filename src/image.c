@@ -10679,7 +10679,7 @@ webp_load (struct frame *f, struct image *img)
 	      image_error (NILP (specified_data)
 			   ? "Error decoding frame #%d from WebP file: `%s'"
 			   : "Error decoding frame #%d from WebP image data",
-			   cache->index + 1, specified_file);
+			   make_int (cache->index + 1), specified_file);
 	      goto cleanup;
 	    }
 	  eassert (anim_handle->timestamp >= 0);
