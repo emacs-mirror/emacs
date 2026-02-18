@@ -2715,15 +2715,18 @@ non-nil."
   :version "22.1")
 
 (defface mode-line
-  '((((class color grayscale) (min-colors 88))
+  '((((class color grayscale) (min-colors 88) (background light))
      :box (:line-width -1 :style released-button)
      :background "grey75" :foreground "black")
+    (((class color grayscale) (min-colors 88) (background dark))
+     :box (:line-width -1 :style released-button)
+     :background "grey20" :foreground "white")
     (t
      :inverse-video t))
   "Face for the mode lines as well as header lines.
 See `mode-line-active' and `mode-line-inactive' for the faces
 used on mode lines."
-  :version "21.1"
+  :version "31.1"
   :group 'mode-line-faces
   :group 'basic-faces)
 
@@ -2752,12 +2755,16 @@ This inherits from the `mode-line' face."
   :group 'basic-faces)
 
 (defface mode-line-highlight
-  '((((supports :box t) (class color grayscale) (min-colors 88))
+  '((((supports :box t) (class color grayscale) (min-colors 88)
+      (background light))
      :box (:line-width 2 :color "grey40" :style released-button))
+    (((supports :box t) (class color grayscale) (min-colors 88)
+      (background dark))
+     :box (:line-width 2 :color "grey60" :style released-button))
     (t
      :inherit highlight))
   "Basic mode line face for highlighting."
-  :version "22.1"
+  :version "31.1"
   :group 'mode-line-faces
   :group 'basic-faces)
 
