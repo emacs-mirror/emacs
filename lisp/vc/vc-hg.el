@@ -1167,13 +1167,14 @@ hg binary."
     (when (<= newrev tip-revision)
       (number-to-string newrev))))
 
-;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-delete-file (file)
-  "Delete FILE and delete it in the hg repository."
-  (condition-case ()
-      (delete-file file)
-    (file-error nil))
-  (vc-hg-command nil 0 file "remove" "--after" "--force"))
+  "Delete FILE and delete it in the Mercurial repository."
+  (let* ((root (vc-hg-root file))
+         (file (file-relative-name file root))
+         (default-directory root))
+    (condition-case _ (delete-file file)
+      (file-error nil))
+    (vc-hg-command nil 0 file "remove" "--after" "--force")))
 
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-rename-file (old new)
