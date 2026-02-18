@@ -1169,12 +1169,22 @@ hg binary."
 
 (defun vc-hg-delete-file (file)
   "Delete FILE and delete it in the Mercurial repository."
+  ;; Ensure we invoke hg in the repository root because the
+  ;; subdirectories containing each of FILES may no longer exist.
   (let* ((root (vc-hg-root file))
          (file (file-relative-name file root))
          (default-directory root))
     (condition-case _ (delete-file file)
       (file-error nil))
     (vc-hg-command nil 0 file "remove" "--after" "--force")))
+
+(defun vc-hg-delete-files (files)
+  "Delete each of FILES and delete them in the Mercurial repository.
+Should be called with DEFAULT-DIRECTORY equal to the repository root."
+  (dolist (file files)
+    (condition-case _ (delete-file file)
+      (file-error nil)))
+  (vc-hg-command nil 0 files "remove" "--after" "--force"))
 
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-rename-file (old new)

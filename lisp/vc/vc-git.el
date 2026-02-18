@@ -2349,6 +2349,9 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (defun vc-git-delete-file (file)
   (vc-git-command nil 0 file "rm" "-f" "--"))
 
+(defun vc-git-delete-files (files)
+  (vc-git-command nil 0 files "rm" "-f" "--"))
+
 (defun vc-git-rename-file (old new)
   (vc-git-command nil 0 (list old new) "mv" "-f" "--"))
 
