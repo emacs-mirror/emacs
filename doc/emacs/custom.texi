@@ -656,12 +656,17 @@ theme, its @samp{State} display shows @samp{THEMED} instead of
 @findex load-theme
 @findex enable-theme
 @findex disable-theme
+@findex copy-theme-options
   You can enable a specific Custom theme in the current Emacs session
 by typing @kbd{M-x load-theme}.  This prompts for a theme name, loads
 the theme from the theme file, and enables it.  If a theme file
 has been loaded before, you can enable the theme without loading its
 file by typing @kbd{M-x enable-theme}.  To disable a Custom theme,
-type @kbd{M-x disable-theme}.
+type @kbd{M-x disable-theme}.  Some themes provide a set of user options
+(@pxref{Newcomers Theme}), that might vary over time.  If you want to
+persist the current set of options, you can copy the user option of a
+theme into your own configuration, you can use the
+@code{copy-theme-options} command.
 
 @findex describe-theme
   To see a description of a Custom theme, type @kbd{?} on its line in
@@ -3249,4 +3254,6 @@ conventions from other programs trying to learn Emacs.
   Keep in mind that the functionality enabled by this theme may change
 between releases, including adding new functionality that is expected to
 be of value for new users or removing old functionality that is regarded
-to be confusing or superseded.
+to be confusing or superseded.  You can use a command like
+@code{copy-theme-options} to copy the options from
+@code{newcomers-presets} directly into your own configuration.

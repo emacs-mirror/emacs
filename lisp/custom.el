@@ -1821,6 +1821,33 @@ If a choice with the same tag already exists, no action is taken."
       (push load loads)))
   (put symbol 'custom-loads loads))
 
+;;;###autoload
+(defun copy-theme-options (theme)
+  "Copy settings from THEME into the user theme."
+  (interactive (list (intern (completing-read "Copy from theme: "
+                                              (custom-available-themes)
+                                              nil t))))
+  (load-theme theme nil t)
+  (when (null (get theme 'theme-settings))
+    (message "Theme `%s' has no user options" theme))
+  (pcase-dolist (`(theme-value ,var ,(pred (eq theme _)) ,val)
+                 (get theme 'theme-settings))
+    ;; If the proposed value is already the current value, then we
+    ;; ignore the value from the theme and don't overwrite any comments.
+    ;; Otherwise we check if the current value is the default value, and
+    ;; if not we prompt the user if they are OK with overwriting their
+    ;; previous configuration.
+    (when (let ((val* (funcall (or (get var 'custom-get) #'default-value) var))
+                (val (eval (with-demoted-errors "%S" val) t)))
+            (and (not (equal val val*))
+                 (or (custom--standard-value-p var val*)
+                     (yes-or-no-p (format "You have customized `%s' to %S, \
+overwrite with %S?"
+                                          var (symbol-value var) val)))))
+      (customize-save-variable
+       var val
+       (format "Copied from %s by `copy-theme-options'" theme)))))
+
 (provide 'custom)
 
 ;;; custom.el ends here

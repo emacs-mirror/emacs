@@ -865,6 +865,11 @@ on graphical displays then when this option is enabled Emacs will use a
 purple bar cursor on compatible terminals as well.  See the Info node
 "(emacs) Cursor Display" for more information.
 
+---
+** New command 'copy-theme-options'
+You can use this command to copy options from a theme into your user
+configuration.
+
 
 * Editing Changes in Emacs 31.1
 
