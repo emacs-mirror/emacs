@@ -3008,6 +3008,12 @@ These are useful to view all outstanding (unmerged, unpushed) changes on
 the current branch.  They are also available as 'T =', 'T D', 'T l' and
 'T L' in VC Directory buffers.
 
+'C-x v T R =' ('vc-diff-remote-unintegrated'), 'C-x v T R D'
+('vc-root-diff-remote-unintegrated'), 'C-x v T R l'
+('vc-log-remote-unintegrated') and 'C-x v T R L'
+('vc-root-log-remote-unintegrated') are corresponding commands which
+report information about the remote versions of a topic branch.
+
 +++
 *** New commands to report combined diffs of all local changes.
 'C-x v E =' ('vc-diff-outgoing-and-edited') and 'C-x v E D'

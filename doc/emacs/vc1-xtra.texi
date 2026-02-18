@@ -296,6 +296,7 @@ yet merged into the target branch.
 @node Unintegrated Changes
 @subsubsection Commands to see all unintegrated changes
 @cindex unintegrated changes
+@cindex remote unintegrated changes
 
 @table @kbd
 @item C-x v T =
@@ -314,6 +315,26 @@ of this branch and its upstream counterpart
 @item C-x v T L
 Display log messages for all changes since the merge base of this branch
 and its upstream counterpart (@code{vc-root-log-unintegrated}).
+
+@item C-x v T R =
+Display diffs of remote changes to the VC fileset since the merge base
+of this topic branch and its upstream counterpart
+(@code{vc-diff-remote-unintegrated}).
+
+@item C-x v T R D
+Display a diff of all remote changes since the merge base of this topic
+branch and its upstream counterpart
+(@code{vc-root-diff-remote-unintegrated}).
+
+@item C-x v T R l
+Display log messages for remote changes to the VC fileset since the
+merge base of this topic branch and its upstream counterpart
+(@code{vc-log-remote-unintegrated}).
+
+@item C-x v T R L
+Display log messages for all remote changes since the merge base of this
+topic branch and its upstream counterpart
+(@code{vc-root-log-remote-unintegrated}).
 @end table
 
 For decentralized version control systems (@pxref{VCS Repositories}),
@@ -388,7 +409,24 @@ changes to the current VC fileset.  @kbd{C-x v T L} and @kbd{C-x v T l}
 show the corresponding revision logs, excluding uncommitted changes as
 above.
 
-This functionality relies on Emacs correctly detecting whether the
+@findex vc-diff-remote-unintegrated
+@findex vc-root-diff-remote-unintegrated
+@findex vc-log-remote-unintegrated
+@findex vc-root-log-remote-unintegrated
+On topic branches, it is sometimes also useful to see the same
+information but for the remote repository's version of the topic branch.
+This is the outstanding work on the topic branch that has been pushed,
+but not yet merged.  It is visible to your collaborators but is
+otherwise still unintegrated.  We call such work @dfn{remote
+unintegrated changes}.  There is a command corresponding to each of the
+four commands discussed so far but which operates on the remote
+repository's version of the current topic branch: @w{@kbd{C-x v R T =}}
+(@code{vc-diff-remote-unintegrated}), @w{@kbd{C-x v R T D}}
+(@code{vc-root-diff-remote-unintegrated}), @w{@kbd{C-x v R T l}}
+(@code{vc-log-remote-unintegrated}), and @w{@kbd{C-x v R T L}}
+(@code{vc-root-log-remote-unintegrated}).
+
+All this functionality relies on Emacs correctly detecting whether the
 current branch is a trunk or a topic branch, and in the latter case,
 correctly determining the branch to which the topic branch will
 eventually be merged.  If the autodetection doesn't produce the right

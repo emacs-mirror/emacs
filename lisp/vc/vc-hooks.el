@@ -1040,6 +1040,10 @@ In the latter case, VC mode is deactivated for this buffer."
   "T L" #'vc-root-log-unintegrated
   "T =" #'vc-diff-unintegrated
   "T D" #'vc-root-diff-unintegrated
+  "T R l" #'vc-log-remote-unintegrated
+  "T R L" #'vc-root-log-remote-unintegrated
+  "T R =" #'vc-diff-remote-unintegrated
+  "T R D" #'vc-root-diff-remote-unintegrated
   ;; There are no -log-outgoing-and-edited commands because by
   ;; definition these are the same as -log-outgoing.
   ;; Additionally bind the -log-outgoing commands under C-x v E l/L as

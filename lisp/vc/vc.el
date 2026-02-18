@@ -3357,27 +3357,30 @@ BACKEND is the VC backend."
         ;; branch has no name.
         (vc-call-backend backend 'trunk-or-topic-p branch))))
 
-(defun vc--outgoing-base (backend)
+(defun vc--outgoing-base (backend force-topic)
   "Return an outgoing base for the current branch under VC backend BACKEND.
 The outgoing base is the upstream location for which unintegrated
 changes on this branch are destined once they are integrated.
 
 There are two stages to determining the outgoing base.
 First we decide whether we think this is a shorter-lived or a
-longer-lived (\"trunk\") branch by calling `vc-trunk-or-topic-p'.
-If that function returns nil, assume this is a shorter-lived branch.
-This is based on how it's commands primarily intended for working with
-shorter-lived branches that call this function.
+longer-lived (\"trunk\") branch.  If FORCE-TOPIC is non-nil, assume this
+is a shorter-lived branch.  Otherwise call `vc-trunk-or-topic-p'.
+If that function returns nil, also assume this is a shorter-lived
+branch.  This is based on how it's commands primarily intended for
+working with shorter-lived branches that call this function.
 Second, if we have determined that this is a trunk, return nil, meaning
 that the outgoing base is the place to which `vc-push' would push.
 Otherwise, we have determined that this is a shorter-lived branch, and
 we return the value of calling BACKEND's `topic-outgoing-base' VC API
 function."
   ;; For further discussion see bug#80006.
-  (and (memq (vc-trunk-or-topic-p nil backend) '(topic nil))
+  (and (or force-topic
+           (memq (vc-trunk-or-topic-p nil backend) '(topic nil)))
        (vc-call-backend backend 'topic-outgoing-base)))
 
-(defun vc--outgoing-base-mergebase (backend &optional upstream-location refresh)
+(defun vc--outgoing-base-mergebase
+    (backend &optional upstream-location refresh force-topic)
   "Return, under VC backend BACKEND, the merge base with UPSTREAM-LOCATION.
 Normally UPSTREAM-LOCATION, if non-nil, is a string.
 If UPSTREAM-LOCATION is nil, it means to call `vc--outgoing-base' and
@@ -3387,12 +3390,15 @@ If UPSTREAM-LOCATION is the special value t, it means to use the place
 to which `vc-push' would push as UPSTREAM-LOCATION, unconditionally.
 (This is passed when the user invokes an outgoing base command with a
  \\`C-u C-u' prefix argument; see `vc--maybe-read-outgoing-base'.)
-REFRESH is passed on to `vc--incoming-revision'."
+REFRESH is passed on to `vc--incoming-revision'.
+FORCE-TOPIC is passed on to `vc--outgoing-base'."
   (vc-call-backend backend 'mergebase
                    (vc--incoming-revision backend
                                           (pcase upstream-location
                                             ('t nil)
-                                            ('nil (vc--outgoing-base backend))
+                                            ('nil
+                                             (vc--outgoing-base backend
+                                                                force-topic))
                                             (_ upstream-location))
                                           refresh)))
 
@@ -3551,6 +3557,115 @@ topic branch."
   (interactive (list (vc--maybe-read-outgoing-base)))
   (vc--with-backend-in-rootdir "VC revision log"
     (vc-log-unintegrated upstream-location `(,backend (,rootdir)))))
+
+;;;###autoload
+(defun vc-root-diff-remote-unintegrated (&optional upstream-location)
+  "Report diff of remote changes since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and upstream
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name."
+  (interactive (list (vc--maybe-read-outgoing-base nil 'no-double)))
+  (vc--with-backend-in-rootdir "VC root-diff"
+    (vc-diff-remote-unintegrated upstream-location
+                                 `(,backend (,rootdir)))))
+
+;;;###autoload
+(defun vc-diff-remote-unintegrated (&optional upstream-location fileset)
+  "Show remote fileset changes since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and remote
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name.
+
+When called from Lisp, optional argument FILESET overrides the fileset."
+  (interactive (let ((fileset (vc-deduce-fileset t)))
+                 (list (vc--maybe-read-outgoing-base (car fileset)
+                                                     'no-double)
+                       fileset)))
+  (let* ((fileset (or fileset (vc-deduce-fileset t)))
+         (backend (car fileset)))
+    (vc-diff-internal vc-allow-async-diff fileset
+                      (vc--outgoing-base-mergebase backend
+                                                   upstream-location
+                                                   'refresh 'force-topic)
+                      ;; REFRESH nil here because we just refreshed.
+                      (vc--incoming-revision backend)
+                      (called-interactively-p 'interactive))))
+
+;;;###autoload
+(defun vc-log-remote-unintegrated (&optional upstream-location fileset)
+  "Show remote log for VC fileset since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and remote
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name.
+
+When called from Lisp, optional argument FILESET overrides the fileset."
+  (interactive (let ((fileset (vc-deduce-fileset t)))
+                 (list (vc--maybe-read-outgoing-base (car fileset))
+                       fileset)))
+  (let* ((fileset (or fileset (vc-deduce-fileset t)))
+         (backend (car fileset)))
+    (vc-print-log-internal backend (cadr fileset)
+                           (vc--incoming-revision backend nil 'refresh)
+                           'is-start-revision
+                           ;; REFRESH nil here because we just refreshed.
+                           (vc--outgoing-base-mergebase backend
+                                                        upstream-location
+                                                        nil 'force-topic))))
+
+;;;###autoload
+(defun vc-root-log-remote-unintegrated (&optional upstream-location)
+  "Show log of remote revisions since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and remote
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name."
+  (interactive (list (vc--maybe-read-outgoing-base nil 'no-double)))
+  (vc--with-backend-in-rootdir "VC revision log"
+    (vc-log-remote-unintegrated upstream-location
+                                `(,backend (,rootdir)))))
 
 (declare-function ediff-load-version-control "ediff" (&optional silent))
 (declare-function ediff-vc-internal "ediff-vers"
@@ -4481,14 +4596,15 @@ starting at that revision.  Tags and remote references also work."
                                nil 'vc-remote-location-history)))
          (and (not (string-empty-p res)) res))))
 
-(defun vc--maybe-read-outgoing-base (&optional backend)
+(defun vc--maybe-read-outgoing-base (&optional backend no-double)
   "Return upstream location for interactive uses of outgoing base commands.
 If there is no prefix argument, return nil.
-If the current prefix argument is \\`C-u C-u', return t.
+If the current prefix argument is \\`C-u C-u' and NO-DOUBLE is nil,
+return t.
 Otherwise prompt for an upstream location.
 BACKEND is the VC backend."
   (cond
-   ((equal current-prefix-arg '(16)) t)
+   ((and (not no-double) (equal current-prefix-arg '(16))) t)
    (current-prefix-arg
     (let* ((outgoing-base (vc-call-backend (or backend
                                                (vc-deduce-backend))
