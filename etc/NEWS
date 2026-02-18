@@ -2940,6 +2940,12 @@ To enable it again, use 'M-x enable-command'.
 *** 'C-x v !' has its own input history.
 
 ---
+*** 'C-x v +' for Git pulls from a configured push remote.
+If the current branch has a configured push remote, the default
+arguments to 'git pull' will cause a pull from the push remote.
+You can use 'C-u C-x v +' to preview or change the arguments.
+
+---
 *** 'C-u C-x v +' and 'C-u C-x v P' for Git have an input history.
 This was already in place for Mercurial.
 

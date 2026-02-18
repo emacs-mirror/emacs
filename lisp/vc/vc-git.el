@@ -1704,9 +1704,20 @@ If PROMPT is non-nil, prompt for the Git command to run."
 
 (defun vc-git-pull (prompt)
   "Pull changes into the current Git branch.
-Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
-for the Git command to run."
-  (vc-git--pushpull "pull" prompt '("--stat")))
+Normally, this runs \"git pull\", unless there is a configured push
+remote, in which case pull from that.
+If PROMPT is non-nil, prompt for the Git command to run."
+  (let ((remotes (vc-git--branch-remotes)))
+    (vc-git--pushpull "pull" prompt
+                      (if-let* ((remote (cdr (assq 'push remotes)))
+                                (slash-pos (string-search "/" remote)))
+                          (list "--stat"
+                                (substring remote 0 slash-pos)
+                                (substring remote (1+ slash-pos)))
+                        ;; When (cdr (assq 'upstream remotes)) is of the
+                        ;; form "REMOTE/BRANCH", 'git pull' is equivalent
+                        ;; to 'git pull REMOTE BRANCH' per git-pull(1).
+                        '("--stat")))))
 
 (defun vc-git-push (prompt)
   "Push changes from the current Git branch.
@@ -1894,7 +1905,10 @@ If LIMIT is a non-empty string, use it as a base revision."
 		'("--")))))))
 
 (defun vc-git-incoming-revision (&optional upstream-location refresh)
-  (let ((rev (or upstream-location "@{upstream}")))
+  (let* ((remotes (and (not upstream-location) (vc-git--branch-remotes)))
+         (rev (or upstream-location
+                  (cdr (assq 'push remotes))
+                  (cdr (assq 'upstream remotes)))))
     (when (and (or refresh (null (vc-git--rev-parse rev)))
                ;; If the branch has no upstream, and we weren't supplied
                ;; with one, then fetching is always useless (bug#79952).
