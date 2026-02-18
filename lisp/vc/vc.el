@@ -1248,12 +1248,14 @@ Not supported by all backends."
 If any of FILES is actually a directory, then do the same for all
 buffers for files in that directory.
 SETTINGS is an association list of property/value pairs.  After
-executing FORM, set those properties from SETTINGS that have not yet
-been updated to their corresponding values.
+executing FORM, set those properties from SETTINGS for which FORM did
+not call `vc-file-setprop' for that property (on any file).  SETTINGS is
+evaluated once per file whose properties are to be updated, with the
+symbol `file' bound to the file name of each such file.
 Return the result of evaluating FORM."
-  (declare (debug t))
-  (cl-with-gensyms (vc-touched-properties flist)
-    `(let ((,vc-touched-properties (list t))
+  (declare (debug t) (indent 0))
+  (cl-with-gensyms (flist)
+    `(let ((vc-touched-properties (list t))
 	   (,flist nil))
        (prog2 (dolist (file ,files)
                 (if (file-directory-p file)
