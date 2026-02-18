@@ -87,6 +87,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef ts_tree_cursor_goto_first_child_for_byte
 #ifdef HAVE_TS_TREE_CURSOR_GOTO_PREVIOUS_SIBLING
 #undef ts_tree_cursor_goto_previous_sibling
+#else
+#undef ts_tree_cursor_copy
 #endif
 #undef ts_tree_cursor_goto_next_sibling
 #undef ts_tree_cursor_goto_parent
@@ -162,6 +164,8 @@ DEF_DLL_FN (int64_t, ts_tree_cursor_goto_first_child_for_byte, (TSTreeCursor *, 
 DEF_DLL_FN (bool, ts_tree_cursor_goto_next_sibling, (TSTreeCursor *));
 #ifdef HAVE_TS_TREE_CURSOR_GOTO_PREVIOUS_SIBLING
 DEF_DLL_FN (bool, ts_tree_cursor_goto_previous_sibling, (TSTreeCursor *));
+#else
+DEF_DLL_FN (TSTreeCursor, ts_tree_cursor_copy, (const TSTreeCursor *));
 #endif
 DEF_DLL_FN (bool, ts_tree_cursor_goto_parent, (TSTreeCursor *));
 DEF_DLL_FN (TSTreeCursor, ts_tree_cursor_new, (TSNode));
@@ -232,6 +236,8 @@ init_treesit_functions (void)
   LOAD_DLL_FN (library, ts_tree_cursor_goto_next_sibling);
 #ifdef HAVE_TS_TREE_CURSOR_GOTO_PREVIOUS_SIBLING
   LOAD_DLL_FN (library, ts_tree_cursor_goto_previous_sibling);
+#else
+  LOAD_DLL_FN (library, ts_tree_cursor_copy);
 #endif
   LOAD_DLL_FN (library, ts_tree_cursor_goto_parent);
   LOAD_DLL_FN (library, ts_tree_cursor_new);
@@ -294,7 +300,11 @@ init_treesit_functions (void)
 #define ts_tree_cursor_goto_first_child fn_ts_tree_cursor_goto_first_child
 #define ts_tree_cursor_goto_first_child_for_byte fn_ts_tree_cursor_goto_first_child_for_byte
 #define ts_tree_cursor_goto_next_sibling fn_ts_tree_cursor_goto_next_sibling
+#ifdef HAVE_TS_TREE_CURSOR_GOTO_PREVIOUS_SIBLING
 #define ts_tree_cursor_goto_previous_sibling fn_ts_tree_cursor_goto_previous_sibling
+#else
+#define ts_tree_cursor_copy fn_ts_tree_cursor_copy
+#endif
 #define ts_tree_cursor_goto_parent fn_ts_tree_cursor_goto_parent
 #define ts_tree_cursor_new fn_ts_tree_cursor_new
 #define ts_tree_delete fn_ts_tree_delete
