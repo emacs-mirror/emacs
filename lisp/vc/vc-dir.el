@@ -1350,6 +1350,7 @@ from the remote, and your connection to the remote is slow.  Customize
 this variable to nil to disable calculating the outgoing count and
 therefore also disable the fetching."
   :type 'boolean
+  :safe #'booleanp
   :group 'vc
   :version "31.1")
 
