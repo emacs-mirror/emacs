@@ -143,6 +143,12 @@ instead of its now-obsolete variable.
 
 ** Network Security Manager (NSM) is now more strict.
 
+---
+** Add the 'special-mirror-table' char-table.
+This char-table is used to mirror special characters (truncation and
+continuation) when the user has defined an alternative representation
+for those characters via display table.
+
 *** NSM warns about TLS 1.1 by default.
 It has been deprecated by RFC 8996, published in 2021.
 

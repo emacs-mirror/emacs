@@ -1229,7 +1229,8 @@ static void get_cursor_offset_for_mouse_face (struct window *w,
 					      int *offset);
 #endif /* HAVE_WINDOW_SYSTEM */
 
-static void produce_special_glyphs (struct it *, enum display_element_type);
+static void produce_special_glyphs (struct it *, enum display_element_type,
+				    bidi_dir_t direction, bool left_edge_p);
 static void pad_mode_line (struct it *, bool);
 static void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face, bool);
 static bool coords_in_mouse_face_p (struct window *, int, int);
@@ -3423,19 +3424,29 @@ init_iterator (struct it *it, struct window *w,
      frame parameter.  */
   if (!it->f->no_special_glyphs)
     {
+      int width;
+
+      /* For each special glyph, we get the dimensions in the L2R and in
+	 the R2L case and use the maximum produced width.  This is
+	 because the glyph can come from a different font in each
+	 case.  */
       if (it->line_wrap == TRUNCATE)
 	{
 	  /* We will need the truncation glyph.  */
 	  eassert (it->glyph_row == NULL);
-	  produce_special_glyphs (it, IT_TRUNCATION);
-	  it->truncation_pixel_width = it->pixel_width;
+	  produce_special_glyphs (it, IT_TRUNCATION, L2R, false);
+	  width = it->pixel_width;
+	  produce_special_glyphs (it, IT_TRUNCATION, R2L, false);
+	  it->truncation_pixel_width = max (width, it->pixel_width);
 	}
       else
 	{
 	  /* We will need the continuation glyph.  */
 	  eassert (it->glyph_row == NULL);
-	  produce_special_glyphs (it, IT_CONTINUATION);
-	  it->continuation_pixel_width = it->pixel_width;
+	  produce_special_glyphs (it, IT_CONTINUATION, L2R, false);
+	  width = it->pixel_width;
+	  produce_special_glyphs (it, IT_CONTINUATION, R2L, false);
+	  it->continuation_pixel_width = max (width, it->pixel_width);
 	}
     }
 
@@ -23815,7 +23826,8 @@ insert_left_trunc_glyphs (struct it *it)
   truncate_it.glyph_row->used[TEXT_AREA] = 0;
   CHARPOS (truncate_it.position) = BYTEPOS (truncate_it.position) = -1;
   truncate_it.object = Qnil;
-  produce_special_glyphs (&truncate_it, IT_TRUNCATION);
+  produce_special_glyphs (&truncate_it, IT_TRUNCATION,
+			  it->bidi_it.paragraph_dir, true);
 
   /* Overwrite glyphs from IT with truncation glyphs.  */
   if (!it->glyph_row->reversed_p)
@@ -26191,7 +26203,8 @@ display_line (struct it *it, int cursor_vpos)
 			 glyphs like in 20.x.  */
 		      while (row->glyphs[TEXT_AREA] + row->used[TEXT_AREA]
 			     < row->glyphs[1 + TEXT_AREA])
-			produce_special_glyphs (it, IT_CONTINUATION);
+			produce_special_glyphs (it, IT_CONTINUATION,
+						it->bidi_it.paragraph_dir, false);
 
 		      row->continued_p = true;
 		      it->current_x = x_before;
@@ -26246,7 +26259,8 @@ display_line (struct it *it, int cursor_vpos)
 		      if ((row->reversed_p
 			   ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
 			   : WINDOW_RIGHT_FRINGE_WIDTH (it->w)) == 0)
-			produce_special_glyphs (it, IT_CONTINUATION);
+			produce_special_glyphs (it, IT_CONTINUATION,
+						it->bidi_it.paragraph_dir, false);
 		      it->continuation_lines_width += it->last_visible_x;
 		      row->ends_in_middle_of_char_p = true;
 		      row->continued_p = true;
@@ -26273,7 +26287,8 @@ display_line (struct it *it, int cursor_vpos)
 			  || (row->reversed_p
 			      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
 			      : WINDOW_RIGHT_FRINGE_WIDTH (it->w)) == 0)
-			produce_special_glyphs (it, IT_CONTINUATION);
+			produce_special_glyphs (it, IT_CONTINUATION,
+						it->bidi_it.paragraph_dir, false);
 		      row->continued_p = true;
 
 		      extend_face_to_end_of_line (it);
@@ -26463,13 +26478,15 @@ display_line (struct it *it, int cursor_vpos)
 		      for (n = row->used[TEXT_AREA]; i < n; ++i)
 			{
 			  row->used[TEXT_AREA] = i;
-			  produce_special_glyphs (it, IT_TRUNCATION);
+			  produce_special_glyphs (it, IT_TRUNCATION,
+						  it->bidi_it.paragraph_dir, false);
 			}
 		    }
 		  else
 		    {
 		      row->used[TEXT_AREA] = i;
-		      produce_special_glyphs (it, IT_TRUNCATION);
+		      produce_special_glyphs (it, IT_TRUNCATION,
+					      it->bidi_it.paragraph_dir, false);
 		    }
 		  it->hpos = hpos_before;
 		}
@@ -29988,10 +30005,13 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 			  if (row->mode_line_p)
 			    pad_mode_line (it, mode_line_p);
 			  else
-			    produce_special_glyphs (it, IT_TRUNCATION);
+			    produce_special_glyphs (it, IT_TRUNCATION,
+						    it->bidi_it.paragraph_dir,
+						    false);
 			}
 		    }
-		  produce_special_glyphs (it, IT_TRUNCATION);
+		  produce_special_glyphs (it, IT_TRUNCATION,
+					  it->bidi_it.paragraph_dir, false);
 		}
 	      row->truncated_on_right_p = true;
 	    }
@@ -32785,17 +32805,20 @@ produce_stretch_glyph (struct it *it)
     it->nglyphs = width;
 }
 
-/* Get information about special display element WHAT in an
-   environment described by IT.  WHAT is one of IT_TRUNCATION or
-   IT_CONTINUATION.  Maybe produce glyphs for WHAT if IT has a
-   non-null glyph_row member.  This function ensures that fields like
-   face_id, c, len of IT are left untouched.  */
+/* Get information about special display element WHAT in an environment
+   described by IT.  WHAT is one of IT_TRUNCATION or IT_CONTINUATION.
+   Maybe produce glyphs for WHAT if IT has a non-null glyph_row member.
+   DIRECTION is the paragraph direction.  LEFT_EDGE_P tells whether the
+   glyph is to be produced on the left side of the window.  This
+   function ensures that fields like face_id, c, len of IT are left
+   untouched.  */
 
 static void
-produce_special_glyphs (struct it *it, enum display_element_type what)
+produce_special_glyphs (struct it *it, enum display_element_type what,
+			bidi_dir_t direction, bool left_edge_p)
 {
   struct it temp_it;
-  Lisp_Object gc;
+  Lisp_Object gc, val;
   GLYPH glyph;
   /* Take face-remapping into consideration.  */
   int face_id = lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID);
@@ -32807,28 +32830,129 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
   if (what == IT_CONTINUATION)
     {
       /* Continuation glyph.  For R2L lines, we mirror it by hand.  */
-      if (it->bidi_it.paragraph_dir == R2L)
+      if (direction == R2L)
 	SET_GLYPH (glyph, '/', face_id);
       else
 	SET_GLYPH (glyph, '\\', face_id);
+
+      /* Is there a display table entry for the continuation glyph?  */
       if (it->dp
 	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
-	  /* FIXME: Should we mirror GC for R2L lines?  */
-	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+	  /* Mirror for R2L.  */
+	  if (direction == R2L)
+	    {
+	      /* Try bidi mirroring first.  */
+	      int c = bidi_mirror_char (GLYPH_CODE_CHAR (gc));
+
+	      /* If there was no bidi mirroring, try
+		 special_mirror_table.  */
+	      if (c == GLYPH_CODE_CHAR (gc))
+		{
+		  val = CHAR_TABLE_REF (Vspecial_mirror_table,
+					GLYPH_CODE_CHAR (gc));
+		  if (FIXNUMP (val))
+		    {
+		      c = XFIXNUM (val);
+
+		      /* If something goes wrong defaults to '/'.  */
+		      if (CHAR_VALID_P (c))
+			SET_GLYPH (glyph, c, face_id);
+		      else
+			SET_GLYPH (glyph, '/', face_id);
+		    }
+		}
+	      else
+		  /* Bidi mirroring.  */
+		  SET_GLYPH (glyph, c, face_id);
+	    }
+	  else
+	    /* No mirroring.  */
+	    SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+
+	  /* Make sure the glyph face is realized.  */
 	  spec_glyph_lookup_face (it->w, &glyph);
+
+#ifdef HAVE_WINDOW_SYSTEM
+	  /* Adjust face ID for a non-ASCII character.  */
+	  if (FRAME_WINDOW_P (it->f))
+	    {
+	      int c = GLYPH_CHAR (glyph);
+	      face_id = GLYPH_FACE (glyph);
+	      /* Find or create the face ID for displaying the
+		 character.  */
+	      int new_id = FACE_FOR_CHAR (it->f, FACE_FROM_ID (it->f, face_id),
+					  c, -1, Qnil);
+	      /* Update the face in the glyph.  */
+	      SET_GLYPH_FACE (glyph, new_id);
+	    }
+#endif
 	}
     }
   else if (what == IT_TRUNCATION)
     {
       /* Truncation glyph.  */
       SET_GLYPH (glyph, '$', face_id);
+
+      /* Is there a display table entry for the truncation glyph?  */
       if (it->dp
 	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
-	  /* FIXME: Should we mirror GC for R2L lines?  */
-	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+	  /* Mirror for R2L on the right hand side of the window and for
+	     L2R on the left hand side.  */
+	  if (((it->bidi_it.paragraph_dir == R2L) && !left_edge_p) ||
+	      ((it->bidi_it.paragraph_dir == L2R) && left_edge_p))
+	    {
+	      /* Try bidi mirroring first.  */
+	      int c = bidi_mirror_char (GLYPH_CODE_CHAR (gc));
+
+	      /* If there was no bidi mirroring, try
+		 special_mirror_table.  */
+	      if (c == GLYPH_CODE_CHAR (gc))
+		{
+		  val = CHAR_TABLE_REF (Vspecial_mirror_table,
+					GLYPH_CODE_CHAR (gc));
+		  if (FIXNUMP (val))
+		    {
+		      c = XFIXNUM (val);
+
+		      /* If something goes wrong defaults to '$'.  */
+		      if (CHAR_VALID_P (c))
+			  SET_GLYPH (glyph, c, face_id);
+		      else
+			SET_GLYPH (glyph, '$', face_id);
+		    }
+		}
+	      else
+		{
+		  struct face *face = FACE_FROM_ID (it->f, face_id);
+		  int id = FACE_FOR_CHAR (it->f, face, c, -1, Qnil);
+
+		  /* Bidi mirroring.  */
+		  SET_GLYPH (glyph, c, id);
+		}
+	    }
+	  else
+	    /* No mirroring.  */
+	    SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+
+	  /* Make sure the glyph face is realized.  */
 	  spec_glyph_lookup_face (it->w, &glyph);
+
+#ifdef HAVE_WINDOW_SYSTEM
+	  /* Adjust face ID for a non-ASCII character.  */
+	  if (FRAME_WINDOW_P (it->f))
+	    {
+	      int c = GLYPH_CHAR (glyph);
+	      face_id = GLYPH_FACE (glyph);
+	      /* Find or create the face ID for displaying the
+		 character.  */
+	      int new_id = FACE_FOR_CHAR (it->f, FACE_FROM_ID (it->f, face_id),
+					  c, -1, Qnil);
+	      /* Update the face in the glyph.  */
+	      SET_GLYPH_FACE (glyph, new_id);
+	    }
+#endif
 	}
     }
   else
@@ -38863,6 +38987,28 @@ display table takes effect; in this case, Emacs does not consult
   Vglyphless_char_display = Fmake_char_table (Qglyphless_char_display, Qnil);
   Fset_char_table_extra_slot (Vglyphless_char_display, make_fixnum (0),
 			      Qempty_box);
+
+  DEFVAR_LISP ("special-mirror-table", Vspecial_mirror_table,
+		 doc: /* Char-table used to mirror special characters.
+
+This table is used to mirror special characters (truncation and
+continuation) under certain conditions.  For example, if a user modifies
+the display table to use a different continuation character like this:
+
+(set-display-table-slot standard-display-table 'wrap #x21A9)
+
+then, using this table, this character is mirrored accordingly when
+displaying R2L text.  The same applies to the truncation character which
+is mirrored depending if it appears on the right or on the left hand
+side of a window.
+
+This table comes pre-populated with some Unicode arrow chars but you can
+customize it by adding a character and its mirror both way like in the
+following example with the Pilcrow sign:
+
+(aset special-mirror-table #xB6 #x204B)
+(aset special-mirror-table #x204B #xB6)  */);
+  Vspecial_mirror_table = Fmake_char_table (Qnil, Qnil);
 
   DEFVAR_LISP ("debug-on-message", Vdebug_on_message,
 	       doc: /* If non-nil, debug if a message matching this regexp is displayed.  */);
