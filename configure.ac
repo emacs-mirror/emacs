@@ -5092,7 +5092,7 @@ AC_SUBST([HAVE_MODULES])
 AC_SUBST([MODULES_SUFFIX])
 AC_SUBST([MODULES_SECONDARY_SUFFIX])
 
-ARCH_INDEPENDENT_CONFIG_FILES([src/emacs-module.h])
+ARCH_INDEPENDENT_CONFIG_FILES([src/emacs-module.h:src/emacs-module.in.h])
 AC_SUBST_FILE([module_env_snippet_25])
 AC_SUBST_FILE([module_env_snippet_26])
 AC_SUBST_FILE([module_env_snippet_27])
