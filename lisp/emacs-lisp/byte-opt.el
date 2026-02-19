@@ -444,6 +444,9 @@ There can be multiple entries for the same NAME if it has several aliases.")
        `(,fn ,(byte-optimize-form tag nil)
           . ,(byte-optimize-body exps for-effect)))
 
+      (`(internal-get-closed-var . ,_)
+       (and (not for-effect) form))
+
       ;; Needed as long as we run byte-optimize-form after cconv.
       (`(internal-make-closure ,vars ,env . ,rest)
        (if for-effect
