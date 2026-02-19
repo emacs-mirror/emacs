@@ -4663,7 +4663,7 @@ ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    hash_hash_t);
 void hash_remove_from_table (struct Lisp_Hash_Table *, Lisp_Object);
 
-#ifdef HAVE_MPS
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
 Lisp_Object strong_copy_hash_table (Lisp_Object);
 void strengthen_hash_table_for_dump (struct Lisp_Weak_Hash_Table *);
 ptrdiff_t weak_hash_lookup (struct Lisp_Weak_Hash_Table *, Lisp_Object);
