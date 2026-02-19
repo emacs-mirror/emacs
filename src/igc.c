@@ -715,6 +715,41 @@ struct igc_fwd
 
 static_assert (sizeof (struct igc_header) == 8);
 
+static void
+check_header_bit (union gc_header h1, size_t i, size_t shift)
+{
+  union gc_header h2 = { .v = ((uint64_t) 1 << i) << shift };
+  eassert (h1.v == h2.v);
+}
+
+/* Check that the ABI for bitfields matches our expectations (in
+   particular on big-endian machines).  */
+static bool
+check_header_abi (void)
+{
+  for (size_t i = 0; i < IGC_HEADER_TAG_BITS; i++)
+    {
+      union gc_header h = { .s = { .tag = 1 << i } };
+      check_header_bit (h, i, IGC_HEADER_TAG_SHIFT);
+    }
+  for (size_t i = 0; i < IGC_HEADER_TYPE_BITS; i++)
+    {
+      union gc_header h = { .s = { .obj_type = 1 << i } };
+      check_header_bit (h, i, IGC_HEADER_TYPE_SHIFT);
+    }
+  for (size_t i = 0; i < IGC_HEADER_HASH_BITS; i++)
+    {
+      union gc_header h = { .s = { .hash = (size_t) 1 << i } };
+      check_header_bit (h, i, IGC_HEADER_HASH_SHIFT);
+    }
+  for (size_t i = 0; i < IGC_HEADER_NWORDS_BITS; i++)
+    {
+      union gc_header h = { .s = { .nwords = (size_t) 1 << i } };
+      check_header_bit (h, i, IGC_HEADER_NWORDS_SHIFT);
+    }
+  return true;
+}
+
 static mps_word_t
 to_words (mps_word_t nbytes)
 {
@@ -6328,6 +6363,7 @@ Only useful for low-level debugging. */)
 void
 init_igc (void)
 {
+  eassert (check_header_abi ());
   /* Returns previous handler.  */
   (void) mps_lib_assert_fail_install (igc_assert_fail);
   global_igc = make_igc ();
