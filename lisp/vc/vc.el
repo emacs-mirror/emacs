@@ -4780,19 +4780,21 @@ its name; otherwise return nil."
   "Revert FILE back to the repository working revision it was based on.
 If FILE is a directory, revert all files inside that directory."
   (with-vc-properties
-   (list file)
-   (let* ((dir (file-directory-p file))
-          (backup-file (and (not dir) (vc-version-backup-file file))))
-     (when backup-file
-       (copy-file backup-file file 'ok-if-already-exists)
-       (vc-delete-automatic-version-backups file))
-     (vc-call-backend (if dir
-                          (vc-responsible-backend file)
-                        (vc-backend file))
-                      'revert file backup-file))
-   `((vc-state . up-to-date)
-     (vc-checkout-time . ,(file-attribute-modification-time
-			   (file-attributes file)))))
+    (list file)
+    (let* ((dir (file-directory-p file))
+           (backup-file (and (not dir) (vc-version-backup-file file))))
+      (when backup-file
+        (copy-file backup-file file 'ok-if-already-exists)
+        (vc-delete-automatic-version-backups file))
+      (vc-call-backend (if dir
+                           (vc-responsible-backend file)
+                         (vc-backend file))
+                       'revert file backup-file))
+    `((vc-state . ,(if (eq (vc-state file) 'added)
+                       'unregistered
+                     'up-to-date))
+      (vc-checkout-time
+       . ,(file-attribute-modification-time (file-attributes file)))))
   (vc-resynch-buffer file t t))
 
 (defun vc-revert-files (backend files)
@@ -4802,13 +4804,22 @@ For entries in FILES that are directories, revert all files inside them."
     (message "Reverting %s..." (vc-delistify files))
     (if (not (vc-find-backend-function backend 'revert-files))
         (mapc #'vc-revert-file files)
-      (with-vc-properties files
-                          (vc-call-backend backend 'revert-files files)
-                          '((vc-state . up-to-date)))
+      (with-vc-properties
+        files
+        (vc-call-backend backend 'revert-files files)
+        ;; Use `vc-file-getprop' directly here because we may be
+        ;; handling very many files and do not want to hit the disk.
+        `(,@(pcase (vc-file-getprop file 'vc-state)
+              ('added '((vc-state . unregistered)))
+              ;; If we have no known state for the file somehow, leave
+              ;; it that way.
+              ('nil nil)
+              ;; If we do have a known state other than `added', then
+              ;; after this operation the file will be `up-to-date'.
+              (_ '((vc-state . up-to-date))))
+          (vc-checkout-time
+           . ,(file-attribute-modification-time (file-attributes file)))))
       (dolist (file files)
-        (vc-file-setprop file 'vc-checkout-time
-                         (file-attribute-modification-time
-                          (file-attributes file)))
         (vc-resynch-buffer file t t)))
     (message "Reverting %s...done" (vc-delistify files))))
 
