@@ -432,6 +432,7 @@
   "DEL"     #'scroll-down-command
   "C-c C-c" #'Custom-set
   "C-x C-s" #'Custom-save
+  "C-c C-k" #'Custom-reset-standard
   "q"       #'Custom-buffer-done
   "u"       #'Custom-goto-parent
   "n"       #'widget-forward
