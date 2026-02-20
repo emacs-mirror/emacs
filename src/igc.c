@@ -594,85 +594,37 @@ struct igc_exthdr
   Lisp_Object extra_dependency;
 };
 
-#ifdef IN_MY_FORK
-
-/* After Pip Cet's header changes, Lisp objects include a gc_header
-   union, which has an uint64_t member 'v'.  struct igc_header then
-   contained the same 'v', and not bitfields anymore.  This makes things
-   inconvenient in LLDB.  */
-
-struct igc_header
-{
-  enum igc_tag tag : IGC_HEADER_TAG_BITS;
-  enum igc_obj_type obj_type : IGC_HEADER_TYPE_BITS;
-  mps_word_t hash : IGC_HEADER_HASH_BITS;
-  mps_word_t nwords : IGC_HEADER_NWORDS_BITS;
-};
-
-static unsigned
-header_nwords (const struct igc_header *h)
-{
-  return h->nwords;
-}
-
-static unsigned
-header_hash (const struct igc_header *h)
-{
-  return h->hash;
-}
-
-static enum igc_obj_type
-header_type (const struct igc_header *h)
-{
-  return h->obj_type;
-}
-
-static uint64_t
-header_tag (const struct igc_header *h)
-{
-  return h->tag;
-}
-
-static struct igc_exthdr *
-header_exthdr (const struct igc_header *h)
-{
-  uint64_t v = *(uint64_t *) h;
-  return ((struct igc_exthdr *) (intptr_t) (v & ~IGC_HEADER_TAG_MASK));
-}
-
-#else
 
 static unsigned
 header_nwords (const union igc_header *h)
 {
-  return h->v >> IGC_HEADER_NWORDS_SHIFT;
+  return h->s.nwords;
 }
 
 static unsigned
 header_hash (const union igc_header *h)
 {
-  return (h->v >> IGC_HEADER_HASH_SHIFT) & IGC_HEADER_HASH_MASK;
+  return h->s.hash;
 }
 
 static enum igc_obj_type
 header_type (const union igc_header *h)
 {
-  return (h->v >> IGC_HEADER_TYPE_SHIFT) & IGC_HEADER_TYPE_MASK;
+  return h->s.obj_type;
 }
 
 static uint64_t
 header_tag (const union igc_header *h)
 {
-  return h->v & IGC_HEADER_TAG_MASK;
+  return h->s.tag;
 }
 
 static struct igc_exthdr *
 header_exthdr (const union igc_header *h)
 {
-  return ((struct igc_exthdr *) (intptr_t) (h->v & ~IGC_HEADER_TAG_MASK));
+  uint64_t v = h->v;
+  return ((struct igc_exthdr *) (intptr_t) (v & ~IGC_HEADER_TAG_MASK));
 }
-
-#endif /* not IN_MY_FORK */
 
 unsigned igc_header_hash (union igc_header *h);
 size_t igc_header_nwords (const union igc_header *h);
