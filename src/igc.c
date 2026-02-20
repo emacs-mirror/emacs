@@ -733,15 +733,16 @@ set_header (union igc_header *h, enum igc_obj_type type,
      causes compiler warnings.  */
   igc_assert (nbytes < ((size_t) 1 << IGC_HEADER_NWORDS_BITS));
 #endif
-  igc_assert (type == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
-  uint64_t tag = IGC_TAG_OBJ;
-  /* Make sure upper 32-bit word is unaligned on IA-32.  */
-  if (INTPTR_MAX <= INT_MAX)
-    tag += (1LL << 32);
-  uint64_t v = (((uint64_t) to_words (nbytes) << IGC_HEADER_NWORDS_SHIFT)
-		+ ((hash & IGC_HEADER_HASH_MASK) << (IGC_HEADER_HASH_SHIFT))
-		+ (type << IGC_HEADER_TYPE_SHIFT) + tag);
-  *(uint64_t *) h = v;
+  igc_assert (type == IGC_OBJ_PAD
+	      || nbytes >= sizeof (struct igc_fwd));
+  union igc_header val = { .s = { .tag = IGC_TAG_OBJ,
+				  .obj_type = type,
+				  .hash = hash,
+#if INTPTR_MAX <= INT_MAX
+				  .tag2 = 1,
+#endif
+				  .nwords = to_words (nbytes) } };
+  *h = val;
 }
 
 static unsigned alloc_hash (void);
