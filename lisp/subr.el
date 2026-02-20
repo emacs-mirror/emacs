@@ -2874,11 +2874,11 @@ for forms evaluated for side-effect with returned values ignored."
   ;;   both `when-let*' and `and-let*' (in addition to the additional
   ;;   feature of `and-let*' when BODY is empty).
   (declare (indent 1) (debug if-let*))
-  (let (res)
+  (let (res (body* (macroexp-progn body)))
     (if varlist
         `(let* ,(setq varlist (internal--build-bindings varlist))
-           (when ,(setq res (caar (last varlist)))
-             ,@(or body `(,res))))
+           ,(progn (setq res (caar (last varlist)))
+                   (if body* `(and ,res ,body*) res)))
       `(let* () ,@(or body '(t))))))
 
 (defmacro if-let (spec then &rest else)
