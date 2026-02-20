@@ -635,6 +635,7 @@ igc_header_type (union igc_header *h)
 {
   if (header_tag (h) == IGC_TAG_EXTHDR)
     return header_exthdr (h)->obj_type;
+  igc_assert (header_tag (h) == IGC_TAG_OBJ);
   return header_type (h);
 }
 
@@ -643,6 +644,7 @@ igc_header_hash (union igc_header *h)
 {
   if (header_tag (h) == IGC_TAG_EXTHDR)
     return header_exthdr (h)->hash;
+  igc_assert (header_tag (h) == IGC_TAG_OBJ);
   return header_hash (h);
 }
 
@@ -651,6 +653,7 @@ igc_header_nwords (const union igc_header *h)
 {
   if (header_tag (h) == IGC_TAG_EXTHDR)
     return header_exthdr (h)->nwords;
+  igc_assert (header_tag (h) == IGC_TAG_OBJ);
   return header_nwords (h);
 }
 
