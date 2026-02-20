@@ -1298,8 +1298,8 @@ init_threads (void)
   init_bc_thread (main_thread.s.bc);
 #ifdef HAVE_MPS
   igc_on_alloc_main_thread_bc ();
+  igc_init_header (&main_thread.s.header.gc_header, IGC_OBJ_VECTOR);
 #endif
-  gc_init_header (&main_thread.s.header.gc_header, IGC_OBJ_VECTOR);
 }
 
 void

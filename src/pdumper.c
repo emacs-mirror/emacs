@@ -38,7 +38,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "intervals.h"
 #include "lisp.h"
-#include "igc.h"
 #include "pdumper.h"
 #include "window.h"
 #include "sysstdio.h"
@@ -46,6 +45,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "thread.h"
 #include "bignum.h"
 #include "treesit.h"
+
+/* FIXME/igc: include igc-types.h only if HAVE_MPS  */
+#include "igc-types.h"
+#ifdef HAVE_MPS
+# include "igc.h"
+#endif
 
 #ifdef CHECK_STRUCTS
 # include "dmpstruct.h"
@@ -4652,7 +4657,7 @@ types.  */)
 # ifdef HAVE_MPS
   dump_align_output (ctx, DUMP_ALIGNMENT);
   ctx->header.cold_user_data_start = ctx->offset;
-  union gc_header header = { 0 };
+  union igc_header header = { 0 };
   dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, &header);
 # endif
 

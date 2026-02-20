@@ -5180,7 +5180,9 @@ init_obarray_once (void)
 
   for (int i = 0; i < ARRAYELTS (lispsym); i++)
     {
-      gc_init_header (&lispsym[i].gc_header, IGC_OBJ_SYMBOL);
+#ifdef HAVE_MPS
+      igc_init_header (&lispsym[i].gc_header, IGC_OBJ_SYMBOL);
+#endif
       define_symbol (builtin_lisp_symbol (i), defsym_name[i]);
     }
 
@@ -5207,7 +5209,9 @@ void
 defsubr (union Aligned_Lisp_Subr *aname)
 {
   struct Lisp_Subr *sname = &aname->s;
-  gc_init_header (&sname->header.gc_header, IGC_OBJ_VECTOR);
+#ifdef HAVE_MPS
+  igc_init_header (&sname->header.gc_header, IGC_OBJ_VECTOR);
+#endif
   Lisp_Object sym, tem;
   sym = intern_c_string (sname->symbol_name);
   XSETPVECTYPE (sname, PVEC_SUBR);

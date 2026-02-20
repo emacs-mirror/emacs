@@ -93,7 +93,7 @@ enum igc_tag
   IGC_TAG_EXTHDR = 2, /* pointer to aligned external header */
 };
 
-union gc_header
+union igc_header
 {
 #ifndef WORDS_BIGENDIAN
   struct
