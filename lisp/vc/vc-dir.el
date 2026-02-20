@@ -115,13 +115,15 @@ See `run-hooks'."
             (:conc-name vc-dir-fileinfo->))
   name                                  ;Keep it as first, for `member'.
   state
-  ;; For storing backend specific information.
+  ;; For storing backend-specific information.
   extra
   marked
   ;; To keep track of not updated files during a global refresh
   needs-update
   ;; To distinguish files and directories.
-  directory)
+  directory
+  ;; Pseudo-states for display only.
+  display-state)
 
 (defvar vc-ewoc nil)
 
@@ -553,6 +555,8 @@ Also update some VC file properties from ENTRIES."
 		(if (nth 1 entry)
 		    (progn
 		      (setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
+		      (setf (vc-dir-fileinfo->display-state (ewoc-data node))
+			    (vc--file-getinheprop nodefile 'display-state))
 		      (setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
 		      (setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
 		      (ewoc-invalidate vc-ewoc node))
@@ -1665,21 +1669,25 @@ These are the commands available for use in the file status buffer:
   ;; function.  Changes here might need to be reflected in the
   ;; vc-BACKEND-dir-printer functions.
   (let* ((isdir (vc-dir-fileinfo->directory fileentry))
-	(state (if isdir "" (vc-dir-fileinfo->state fileentry)))
-	(filename (vc-dir-fileinfo->name fileentry)))
+	 (display-state (cond (isdir "")
+			      ((vc-dir-fileinfo->display-state fileentry))
+			      ((vc-dir-fileinfo->state fileentry))))
+	 (filename (vc-dir-fileinfo->name fileentry)))
     (insert
      (propertize
       (format "%c" (if (vc-dir-fileinfo->marked fileentry) ?* ? ))
       'face 'vc-dir-mark-indicator)
      "   "
      (propertize
-      (format "%-20s" state)
+      (format "%-20s" display-state)
       'face (cond
-             ((eq state 'up-to-date) 'vc-dir-status-up-to-date)
-             ((memq state '(missing conflict needs-update unlocked-changes))
-              'vc-dir-status-warning)
-             ((eq state 'ignored) 'vc-dir-status-ignored)
-             (t 'vc-dir-status-edited))
+	     ((eq display-state 'up-to-date) 'vc-dir-status-up-to-date)
+	     ((member display-state
+		      '(missing conflict needs-update unlocked-changes
+				"committing"))
+	      'vc-dir-status-warning)
+	     ((eq display-state 'ignored) 'vc-dir-status-ignored)
+	     (t 'vc-dir-status-edited))
       'mouse-face 'highlight
       'keymap vc-dir-status-mouse-map)
      " "

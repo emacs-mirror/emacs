@@ -544,7 +544,10 @@ or an empty string if none."
 (defun vc-git-dir-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."
   (let* ((isdir (vc-dir-fileinfo->directory info))
-	 (state (if isdir "" (vc-dir-fileinfo->state info)))
+         (state (if isdir "" (vc-dir-fileinfo->state info)))
+         (display-state (cond (isdir "")
+                              ((vc-dir-fileinfo->display-state info))
+                              ((vc-dir-fileinfo->state info))))
          (extra (vc-dir-fileinfo->extra info))
          (old-perm (when extra (vc-git-extra-fileinfo->old-perm extra)))
          (new-perm (when extra (vc-git-extra-fileinfo->new-perm extra))))
@@ -554,10 +557,13 @@ or an empty string if none."
                  'face 'vc-dir-mark-indicator)
      "  "
      (propertize
-      (format "%-12s" state)
-      'face (cond ((eq state 'up-to-date) 'vc-dir-status-up-to-date)
-                  ((memq state '(missing conflict)) 'vc-dir-status-warning)
-                  ((eq state 'ignored) 'vc-dir-status-ignored)
+      (format "%-12s" display-state)
+      'face (cond ((eq display-state 'up-to-date)
+                   'vc-dir-status-up-to-date)
+                  ((member display-state '(missing conflict "committing"))
+                   'vc-dir-status-warning)
+                  ((eq display-state 'ignored)
+                   'vc-dir-status-ignored)
                   (t 'vc-dir-status-edited))
       'mouse-face 'highlight
       'keymap vc-dir-status-mouse-map)

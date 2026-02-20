@@ -253,6 +253,21 @@ VC commands are globally reachable under the prefix \\[vc-prefix-map]:
   "Get per-file VC PROPERTY for FILE."
   (get (intern (expand-file-name file) vc-file-prop-obarray) property))
 
+(defun vc--file-getinheprop (file property)
+  "Get VC PROPERTY for FILE, including inherited properties.
+An inherited property is a property of a directory containing FILE.
+(The property must have been set on the file name of the directory
+interpreted as a directory, i.e., passing the result of calling
+`file-name-as-directory' on the file name to `vc-file-setprop'.)
+Properties of FILE itself override any inherited properties, and
+properties further down the directory hierarchy override ones higher up."
+  (or (vc-file-getprop file property)
+      (catch 'done
+        (locate-dominating-file file
+                                (lambda (f)
+                                  (and-let* ((v (vc-file-getprop f property)))
+                                    (throw 'done v)))))))
+
 (defun vc-file-clearprops (file)
   "Clear all VC properties of FILE."
   (if (boundp 'vc-parent-buffer)

@@ -2192,32 +2192,41 @@ have changed; continue with old fileset?" (current-buffer))))
         ;; NOQUERY parameter non-nil.
         (vc-buffer-sync-fileset (list backend files)))
       (when register (vc-register (list backend register)))
-      (cl-flet ((do-it ()
-                  ;; We used to change buffers to get local value of
-                  ;; `vc-checkin-switches', but the (singular) local
-                  ;; buffer is not well defined for filesets.
-                  (prog1 (if patch-string
-                             (vc-call-backend backend 'checkin-patch
-                                              patch-string comment)
-                           (vc-call-backend backend 'checkin
-                                            files comment rev))
-                    (mapc #'vc-delete-automatic-version-backups files)))
-                (done-msg ()
-                  (message "Checking in %s...done" (vc-delistify files))))
-        (if do-async
-            ;; Rely on `vc-set-async-update' to update properties.
-            (let ((ret (do-it)))
-              (when (eq (car-safe ret) 'async)
-                (vc-exec-after #'done-msg nil (cadr ret)))
-              ret)
-          (prog2 (message "Checking in %s..." (vc-delistify files))
-              (with-vc-properties files (do-it)
-                                  `((vc-state . up-to-date)
-                                    (vc-checkout-time
-                                     . ,(file-attribute-modification-time
-			                 (file-attributes file)))
-                                    (vc-working-revision . nil)))
-            (done-msg)))))
+      (let (to-remove-props)
+        (cl-flet ((do-it ()
+                    ;; We used to change buffers to get local value of
+                    ;; `vc-checkin-switches', but the (singular) local
+                    ;; buffer is not well defined for filesets.
+                    (prog1 (if patch-string
+                               (vc-call-backend backend 'checkin-patch
+                                                patch-string comment)
+                             (vc-call-backend backend 'checkin
+                                              files comment rev))
+                      (mapc #'vc-delete-automatic-version-backups files)))
+                  (remove-props-done-msg ()
+                    (dolist (file to-remove-props)
+                      (vc-file-setprop file 'display-state nil))
+                    (message "Checking in %s...done" (vc-delistify files))))
+          (if do-async
+              ;; Rely on `vc-set-async-update' to update properties
+              ;; other than the display-only `display-state' property.
+              (let ((ret (do-it)))
+                (when (eq (car-safe ret) 'async)
+                  (dolist (file files)
+                    (let ((file (expand-file-name file)))
+                      (vc-file-setprop file 'display-state "committing")
+                      (vc-dir-resynch-file file)
+                      (push file to-remove-props)))
+                  (vc-exec-after #'remove-props-done-msg nil (cadr ret)))
+                ret)
+            (prog2 (message "Checking in %s..." (vc-delistify files))
+                (with-vc-properties files (do-it)
+                                    `((vc-state . up-to-date)
+                                      (vc-checkout-time
+                                       . ,(file-attribute-modification-time
+			                   (file-attributes file)))
+                                      (vc-working-revision . nil)))
+              (remove-props-done-msg))))))
     'vc-checkin-hook
     backend
     patch-string)))
