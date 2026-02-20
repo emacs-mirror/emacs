@@ -433,6 +433,7 @@
   "C-c C-c" #'Custom-set
   "C-x C-s" #'Custom-save
   "C-c C-k" #'Custom-reset-standard
+  "C-c C-i" #'Custom-goto-first-choice
   "q"       #'Custom-buffer-done
   "u"       #'Custom-goto-parent
   "n"       #'widget-forward
@@ -860,6 +861,21 @@ setting was merely edited before, this sets it then saves it."
       ;; Redraw and recalculate the state when necessary.
       (dolist (widget edited-widgets)
         (widget-apply widget :custom-state-set-and-redraw)))))
+
+(defun Custom-goto-first-choice ()
+  "Move point to the first choice button in a menu.
+If no such button can be found, move to the first menu item."
+  (interactive)
+  (catch 'done
+    (dolist (ov (sort (overlays-in (point-min) (point-max))
+		      :key #'overlay-start))
+      (let ((button (overlay-get ov 'button)))
+        (when (eq (plist-get (cdr button) :action)
+		  'custom-toggle-hide-variable)
+	  (goto-char (overlay-start ov))
+          (when (plist-get (cdr button) :value)
+            (widget-forward 1))
+	  (throw 'done t))))))
 
 (defun custom-reset (_widget &optional event)
   "Select item from reset menu."
