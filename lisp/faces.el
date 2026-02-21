@@ -2760,7 +2760,7 @@ This inherits from the `mode-line' face."
      :box (:line-width 2 :color "grey40" :style released-button))
     (((supports :box t) (class color grayscale) (min-colors 88)
       (background dark))
-     :box (:line-width 2 :color "grey60" :style released-button))
+     :box (:line-width 2 :color "grey80" :style released-button))
     (t
      :inherit highlight))
   "Basic mode line face for highlighting."
