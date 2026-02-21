@@ -2794,6 +2794,12 @@ To restore the old, more limited behavior for VC Directory, you can do
 These correspond to the existing 'z p' to pop a stash and 'P' to pop the
 stash at point (deleting the stash at point is also bound to 'C-k').
 
++++
+*** New VC Directory command 'V' ('vc-dir-root-next-action').
+This is like 'v' ('vc-next-action') but applies to the whole VC-Dir
+buffer, ignoring the position of point and any marks.  This is useful to
+check in all local changes at once.
+
 ---
 *** VC Directory can now register files when checking in mixed filesets.
 Previously, if some files to be checked in were unregistered but others

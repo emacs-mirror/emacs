@@ -1582,8 +1582,8 @@ basis using directory local variables (@pxref{Directory Variables}).
 @subsubsection VC Directory Commands
 
   Emacs provides several commands for navigating the VC Directory
-buffer, and for marking files as belonging to the current VC
-fileset.
+buffer, for marking files as belonging to the current VC fileset, and
+for operating on the VC fileset.
 
 @table @kbd
 @item n
@@ -1646,6 +1646,12 @@ prefix, do this with all the marked files.
 @item @@
 Discard all the changes you have made to the current fileset
 (@code{vc-revert}).
+
+@item V
+Take the next logical version control operation on all files shown in
+the VC Directory buffer (@code{vc-dir-root-next-action}).  This is like
+@w{@kbd{C-x v v}} (@pxref{Basic VC Editing}) except that it ignores any
+marks and the position of point.
 
 @item q
 Quit the VC Directory buffer, and bury it (@code{quit-window}).

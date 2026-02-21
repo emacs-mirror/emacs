@@ -359,7 +359,6 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     (define-key map "I" #'vc-root-log-incoming)   ;; C-x v I
     (define-key map "O" #'vc-root-log-outgoing)   ;; C-x v O
     ;; More confusing than helpful, probably
-    ;;(define-key map "R" #'vc-revert) ;; u is taken by vc-dir-unmark.
     ;;(define-key map "A" #'vc-annotate) ;; g is taken by revert-buffer
     ;;                                     bound by `special-mode'.
     ;; Marking.
@@ -403,6 +402,7 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     (define-key map "TL" #'vc-root-log-outstanding)
     (define-key map "T=" #'vc-diff-outstanding)
     (define-key map "TD" #'vc-root-diff-outstanding)
+    (define-key map "V" #'vc-dir-root-next-action)
 
     (let ((branch-map (make-sparse-keymap)))
       (define-key map "b" branch-map)
@@ -1010,6 +1010,27 @@ that share the same state."
 (defun vc-dir-toggle-mark (e)
   (interactive "e")
   (vc-dir-at-event e (vc-dir-mark-unmark 'vc-dir-toggle-mark-file)))
+
+(defun vc-dir-root-next-action ()
+  "Like `vc-next-action' but for all files shown in the VC-Dir buffer.
+This command ignores VC-Dir marks and the position of point.
+When the VC-Dir's root directory is the repository root (as it usually
+is), this command is useful to check in all local changes at once."
+  (interactive)
+  (let* ((only-files-list
+          (cl-loop for crt = (ewoc-nth vc-ewoc 0)
+                   then (ewoc-next vc-ewoc crt)
+                   while crt
+                   for data = (ewoc-data crt)
+                   unless (vc-dir-fileinfo->directory data) collect
+                   (cons (expand-file-name (vc-dir-fileinfo->name data))
+                         (vc-dir-fileinfo->state data))))
+         (vc-buffer-overriding-fileset
+          `(,vc-dir-backend
+            (,default-directory)
+            . ,(vc-only-files-state-and-model only-files-list
+                                              vc-dir-backend))))
+    (vc-next-action nil)))
 
 (defun vc-dir-clean-files ()
   "Delete marked files from repository, or the current file if no marks.
