@@ -2157,7 +2157,7 @@ a face or button specification."
   (fancy-splash-insert
    :face 'variable-pitch "To quit a partially entered command, type "
    :face 'default "Control-g"
-   :face 'variable-pitch ".\n\n")
+   :face 'variable-pitch ".\n")
 
   (fancy-splash-insert
    :face 'variable-pitch
