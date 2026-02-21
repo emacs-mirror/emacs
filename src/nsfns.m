@@ -2005,7 +2005,7 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 
 
   px_to_mm = size_mm.height / bounds.size.height;
 #else
-  dpi = 25.4 / dpyinfo->resx;
+  px_to_mm = 25.4 / dpyinfo->resx;
 #endif
 
   return make_fixnum (ns_display_pixel_height (dpyinfo) * px_to_mm);
