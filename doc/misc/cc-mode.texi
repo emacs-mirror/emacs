@@ -83,6 +83,7 @@ the second with them pointing to the XEmacs manuals.
 
 @setfilename  ../../info/ccmode.info
 @settitle     CC Mode Manual
+@documentlanguage en
 @include docstyle.texi
 @footnotestyle end
 

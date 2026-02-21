@@ -2,6 +2,7 @@
 
 @setfilename ../../info/emacs.info
 @settitle GNU Emacs Manual
+@documentlanguage en
 @include docstyle.texi
 @include emacsver.texi
 

@@ -2,6 +2,7 @@
 
 @setfilename ../../info/emacs-mime.info
 @settitle Emacs MIME Manual
+@documentlanguage en
 @include docstyle.texi
 @synindex fn cp
 @synindex vr cp

@@ -2,6 +2,7 @@
 @setfilename ../../info/dbus.info
 @c %**start of header
 @settitle Using of D-Bus
+@documentlanguage en
 @include docstyle.texi
 @c @setchapternewpage odd
 @c %**end of header

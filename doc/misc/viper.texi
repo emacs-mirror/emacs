@@ -5,6 +5,7 @@
 @comment @setfilename viper
 @comment @setfilename viper.info
 @setfilename ../../info/viper.info
+@documentlanguage en
 @include docstyle.texi
 
 @copying

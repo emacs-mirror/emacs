@@ -2,6 +2,7 @@
 
 @setfilename ../../info/gnus.info
 @settitle Gnus Manual
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp

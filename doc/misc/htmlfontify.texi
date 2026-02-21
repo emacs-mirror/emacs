@@ -2,6 +2,7 @@
 @comment %**start of header
 @setfilename ../../info/htmlfontify.info
 @settitle Htmlfontify User Manual
+@documentlanguage en
 @include docstyle.texi
 @exampleindent 2
 @comment %**end of header

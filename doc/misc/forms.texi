@@ -5,6 +5,7 @@
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename ../../info/forms.info
 @settitle Forms Mode User's Manual
+@documentlanguage en
 @include docstyle.texi
 @include emacsver.texi
 @syncodeindex vr cp

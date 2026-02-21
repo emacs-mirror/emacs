@@ -2,6 +2,7 @@
 
 @setfilename ../../info/mairix-el.info
 @settitle Emacs Interface for Mairix
+@documentlanguage en
 @include docstyle.texi
 
 @copying

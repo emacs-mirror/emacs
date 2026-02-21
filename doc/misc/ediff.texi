@@ -10,6 +10,7 @@
 @setfilename ../../info/ediff.info
 
 @settitle Ediff User's Manual
+@documentlanguage en
 @include docstyle.texi
 @synindex vr cp
 @synindex fn cp

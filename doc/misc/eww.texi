@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/eww.info
 @settitle Emacs Web Wowser
+@documentlanguage en
 @include docstyle.texi
 @c %**end of header
 

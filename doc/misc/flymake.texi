@@ -4,6 +4,7 @@
 @set VERSION 1.3.4
 @set UPDATED April 2023
 @settitle GNU Flymake @value{VERSION}
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex pg cp
 @syncodeindex vr cp

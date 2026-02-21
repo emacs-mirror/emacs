@@ -1,6 +1,7 @@
 \input texinfo
 @setfilename ../../info/url.info
 @settitle URL Programmer's Manual
+@documentlanguage en
 @include docstyle.texi
 
 @iftex

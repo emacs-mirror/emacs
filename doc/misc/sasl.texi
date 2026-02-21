@@ -4,6 +4,7 @@
 
 @set VERSION 0.2
 @settitle Emacs SASL Library @value{VERSION}
+@documentlanguage en
 @include docstyle.texi
 
 @copying

@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../eglot.info
 @settitle Eglot: The Emacs Client for the Language Server Protocol
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex vr cp
 @syncodeindex fn cp

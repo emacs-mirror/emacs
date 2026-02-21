@@ -18,6 +18,7 @@
 @ifclear volflag
 @settitle GNU Emacs Lisp Reference Manual
 @end ifclear
+@documentlanguage en
 @include docstyle.texi
 
 @c %**end of header

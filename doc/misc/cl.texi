@@ -1,6 +1,7 @@
 \input texinfo    @c -*-texinfo-*-
 @setfilename ../../info/cl.info
 @settitle Common Lisp Extensions
+@documentlanguage en
 @include docstyle.texi
 @include emacsver.texi
 

@@ -6,6 +6,7 @@
 @c are auto-frobbed from configure.ac.
 @include trampver.texi
 @settitle @value{tramp} @value{trampver} User Manual
+@documentlanguage en
 @c %**end of header
 
 @c This is *so* much nicer :)
