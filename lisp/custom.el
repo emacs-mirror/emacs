@@ -1846,7 +1846,9 @@ overwrite with %S?"
                                           var (symbol-value var) val)))))
       (customize-save-variable
        var val
-       (format "Copied from %s by `copy-theme-options'" theme)))))
+       (format "Copied from %s by `copy-theme-options'" theme))))
+  ;; FIXME: Now offer to disable THEME.
+  )
 
 (provide 'custom)
 
