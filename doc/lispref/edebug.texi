@@ -96,7 +96,7 @@ function, or it may update the display and continue execution while
 checking for debugging commands.  The default execution mode is step,
 which stops execution.  @xref{Edebug Execution Modes}.
 
-  When you are done debugging and what to run the function without
+  When you are done debugging and want to run the function without
 instrumentation, you can remove the instrumentation using one of the
 methods described in @ref{Instrumenting}.
 
