@@ -33,6 +33,7 @@
 ;; For rmail-select-summary.
 (require 'rmail)
 (require 'rfc2047)
+(require 'mail-parse)
 
 (defcustom rmail-summary-scroll-between-messages t
   "Non-nil means Rmail summary scroll commands move between messages.
