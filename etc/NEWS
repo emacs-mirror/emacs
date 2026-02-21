@@ -2008,6 +2008,12 @@ to 'imap-open' for 'imap-authenticate' to use, or remove 'plain' from
 already set.
 
 +++
+*** New user options for formatting Rmail summary lines.
+'rmail-summary-sender-function' and 'rmail-summary-recipient-function'
+control how the sender/recipient fields are displayed in the summary.
+'rmail-summary-address-width' controls the width of that field.
+
++++
 *** New user option 'rmail-mime-save-action'.
 This option specifies an action to take after saving a MIME attachment.
 Predefined values include visiting the file in Emacs, jumping to the

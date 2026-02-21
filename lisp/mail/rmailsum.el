@@ -50,6 +50,89 @@ Setting this option to nil might speed up the generation of summaries."
   :type 'boolean
   :group 'rmail-summary)
 
+(defcustom rmail-summary-address-width 25
+  "Width of the sender/recipient field in Rmail summary lines."
+  :type 'natnum
+  :version "31.1"
+  :group 'rmail-summary)
+
+(defun rmail-summary--address-display (part)
+  "Return display text for parsed address PART, or nil.
+Prefer a non-empty real name, falling back to a non-empty email address."
+  (let ((name (and (consp part) (cdr part)))
+        (addr (cond ((consp part) (car part))
+                    ((stringp part) part))))
+    (setq name (and (stringp name) (string-trim name)))
+    (setq addr (and (stringp addr) (string-trim addr)))
+    (cond ((and name (> (length name) 0)) name)
+          ((and addr (> (length addr) 0)) addr))))
+
+(defun rmail-summary-name-or-address (address)
+  "Return the first parsed address in ADDRESS as a display string.
+Return the first address's real name when it is non-empty; otherwise
+return its email address when that is non-empty.  If no address yields
+either, return unfolded ADDRESS trimmed of surrounding whitespace."
+  (require 'mail-parse)
+  (let* ((unfolded (replace-regexp-in-string "[\r\n]+[ \t]*" " " address))
+         (first (car (mail-header-parse-addresses unfolded))))
+    (or (rmail-summary--address-display first)
+        (string-trim unfolded))))
+
+(defun rmail-summary-recipient-strip-quoted-names (recipient)
+  "Strip quoted names from the first line of RECIPIENT field.
+Applies `mail-strip-quoted-names' to the first physical line of the
+header field value."
+  (when (string-match "\n" recipient)
+    (setq recipient (substring recipient 0 (match-beginning 0))))
+  (setq recipient (string-trim-right recipient "[ \t]+"))
+  (mail-strip-quoted-names recipient))
+
+(defun rmail-summary-recipient-names (recipient)
+  "Return all parsed addresses in RECIPIENT as display strings.
+For each parsed address, use its non-empty real name, falling back to
+its non-empty email address.  Skip parsed items with neither, and
+return the selected values joined by \", \"."
+  (if (and (stringp recipient) (> (length recipient) 0))
+      (progn
+        (require 'mail-parse)
+        (let* ((unfolded (replace-regexp-in-string "[\r\n]+[ \t]*" " "
+                                                   recipient))
+               (parts (mail-header-parse-addresses unfolded))
+               (results nil))
+          (dolist (part parts)
+            (let ((display (rmail-summary--address-display part)))
+              (when display
+                (push display results))))
+          (mapconcat #'identity (nreverse results) ", ")))
+    ""))
+
+(defcustom rmail-summary-sender-function #'mail-strip-quoted-names
+  "Function used to format the sender field in Rmail summary lines.
+The function is called with the raw contents of the From: field as a
+string, and should return a string."
+  :type '(choice (function-item :tag "Address"
+				mail-strip-quoted-names)
+		 (function-item :tag "Name (fallback to address)"
+				rmail-summary-name-or-address)
+		 function)
+  :version "31.1"
+  :group 'rmail-summary)
+
+(defcustom rmail-summary-recipient-function #'rmail-summary-recipient-strip-quoted-names
+  "Function used to format the recipient field in Rmail summary lines.
+The function is called with the raw contents of the To: field as a
+string, and should return a string.  When extracting names, fall back to
+email addresses if no name can be extracted."
+  :type '(choice (function-item :tag "Addresses (first line)"
+				rmail-summary-recipient-strip-quoted-names)
+		 (function-item :tag "First recipient name (fallback to address)"
+				rmail-summary-name-or-address)
+		 (function-item :tag "All recipient names (fallback to addresses)"
+				rmail-summary-recipient-names)
+		 function)
+  :version "31.1"
+  :group 'rmail-summary)
+
 (defcustom rmail-summary-progressively-narrow nil
   "Non-nil means progressively narrow the set of messages produced by summary.
 This enables you to apply the summary criteria on top one another,
@@ -970,26 +1053,39 @@ the message being processed."
 		     (t "??????"))))
 	   "  "
 	   (save-excursion
-	     (let* ((from (and (re-search-forward "^From:[ \t]*" nil t)
-			       (mail-strip-quoted-names
-				(buffer-substring
-				 (1- (point))
-				 ;; Get all the lines of the From field
-				 ;; so that we get a whole comment if there is one,
-				 ;; so that mail-strip-quoted-names can discard it.
-				 (progn
-				   (while (progn (forward-line 1)
-						 (looking-at "[ \t]")))
-				   ;; Back up over newline, then trailing spaces or tabs
-				   (forward-char -1)
-				   (skip-chars-backward " \t")
-				   (point))))))
+	     (let* ((from-raw (and (re-search-forward "^From:[ \t]*" nil t)
+				   (buffer-substring
+				    (1- (point))
+				    ;; Get all the lines of the From field
+				    ;; so that we get a whole comment if there is one,
+				    ;; so that mail-strip-quoted-names can discard it.
+				    (progn
+				      (while (progn (forward-line 1)
+						    (looking-at "[ \t]")))
+				      ;; Back up over newline, then trailing spaces or tabs
+				      (forward-char -1)
+				      (skip-chars-backward " \t")
+				      (point)))))
+		    ;; FROM is used for self-detection and should be
+		    ;; independent of display customization via
+		    ;; `rmail-summary-sender-function'.
+		    (from (and from-raw
+			       (mail-strip-quoted-names from-raw)))
+		    (from-display (and from-raw
+				       (funcall rmail-summary-sender-function
+						from-raw)))
+		    (width rmail-summary-address-width)
+		    (after (min 11 width))
+		    (before (- width after))
 		    len mch lo newline)
-               ;; If there are multiple lines in FROM,
-               ;; discard up to the last newline in it.
+               ;; If there are multiple lines in FROM or FROM-DISPLAY,
+               ;; discard up to the last newline in them.
                (while (and (stringp from)
                            (setq newline (string-search "\n" from)))
                  (setq from (substring from (1+ newline))))
+	       (while (and (stringp from-display)
+			   (setq newline (string-search "\n" from-display)))
+		 (setq from-display (substring from-display (1+ newline))))
 	       (if (or (null from)
 		       (string-match
 			(or rmail-user-mail-address-regexp
@@ -1004,38 +1100,34 @@ the message being processed."
 		     (goto-char (point-min))
 		     (if (not (re-search-forward "^To:[ \t]*" nil t))
 			 nil
-		       (setq from
+		       (setq from-display
 			     (concat "to: "
-				     (mail-strip-quoted-names
-				      (buffer-substring
-				       (point)
-				       (progn (end-of-line)
-					      (skip-chars-backward " \t")
-					      (point)))))))))
-	       (if (null from)
-		   "                         "
-		 ;; We are going to return only 25 characters of the
+				     (funcall rmail-summary-recipient-function
+					      (mail-fetch-field "To")))))))
+	       (if (null from-display)
+		   (make-string width ?\s)
+		 ;; We are going to return only `rmail-summary-address-width' characters of the
 		 ;; address, so make sure it is RFC2047 decoded before
 		 ;; taking its substring.  This is important when the address is not on the same line as the name, e.g.:
 		 ;; To: =?UTF-8?Q?=C5=A0t=C4=9Bp=C3=A1n_?= =?UTF-8?Q?N=C4=9Bmec?=
 		 ;; <stepnem@gmail.com>
-		 (setq from (rfc2047-decode-string from))
+		 (setq from-display (rfc2047-decode-string from-display))
                  ;; We cannot tolerate any leftover newlines in From,
                  ;; as that disrupts the rmail-summary display.
                  ;; Newlines can be left in From if it was malformed,
                  ;; e.g. had unbalanced quotes.
-                 (setq from (replace-regexp-in-string "\n+" " " from))
-		 (setq len (length from))
-		 (setq mch (string-match "[@%]" from))
-		 (format "%25s"
-			 (if (or (not mch) (<= len 25))
-			     (substring from (max 0 (- len 25)))
-			   (substring from
-				      (setq lo (cond ((< (- mch 14) 0) 0)
-						     ((< len (+ mch 11))
-						      (- len 25))
-						     (t (- mch 14))))
-				      (min len (+ lo 25)))))))))
+                 (setq from-display (replace-regexp-in-string "\n+" " " from-display))
+		 (setq len (length from-display))
+		 (setq mch (string-match "[@%]" from-display))
+		 (format (format "%%%ds" width)
+			 (if (or (not mch) (<= len width))
+			     (substring from-display (max 0 (- len width)))
+			   (substring from-display
+				      (setq lo (cond ((< (- mch before) 0) 0)
+						     ((< len (+ mch after))
+						      (- len width))
+						     (t (- mch before))))
+				      (min len (+ lo width)))))))))
    (concat (if (re-search-forward "^Subject:" nil t)
 	       (let (pos str)
 		 (skip-chars-forward " \t")
