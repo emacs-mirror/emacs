@@ -32,7 +32,7 @@ Reference Manual}.
 * Init File::           How to write common customizations in the
                           initialization file.
 * Authentication::      Keeping persistent authentication information.
-* Newcomers Theme::     A theme that enables options for newcomers.
+* Newcomers Theme::     A theme that enables presets for newcomers.
 
 @end menu
 
@@ -3240,20 +3240,19 @@ persistently.  This can be changed by customizing the user option
 @node Newcomers Theme
 @section Newcomers Theme
 
-  The default appearance and behaviour of Emacs is traditionally
-conservative, not changing much between releases.  While each release
-brings more features, these are not enabled out of the box to not
-disrupt existing workflows.
+  Each release of Emacs brings new features, but they are not enabled by
+default to avoid disrupting users' existing workflows.  Many of these
+features, however, are intended to make Emacs more approachable to new
+users.  Furthermore, newcomers don't yet have any existing workflows
+that could be disrupted!  Therefore, if you are new to Emacs, you can
+enable the @code{newcomers-presets} theme (@pxref{Custom Themes}) to set
+a collection of user options that we think will be useful for new users
+acquainted with conventions from other programs.
 
-  As a remedy for new users who would like to enable a larger set of
-features in one fell swoop, the @code{newcomers-presets} theme
-(@pxref{Custom Themes}) sets a collection of users options considered to
-be too invasive by default, but useful for users acquainted with
-conventions from other programs trying to learn Emacs.
-
-  Keep in mind that the functionality enabled by this theme may change
-between releases, including adding new functionality that is expected to
-be of value for new users or removing old functionality that is regarded
-to be confusing or superseded.  You can use a command like
-@code{copy-theme-options} to copy the options from
-@code{newcomers-presets} directly into your own configuration.
+  The functionality enabled by the @code{newcomers-presets} theme will
+change between releases of Emacs.  We may add new functionality, and
+also remove old functionality that we think has been superseded.
+Therefore, if you get used to the newcomers' presets, consider copying
+them into your own configuration and then disabling the theme again.
+You can use the command @code{copy-theme-options} (@pxref{Custom
+Themes}) to do this.
