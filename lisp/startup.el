@@ -2157,14 +2157,14 @@ a face or button specification."
   (fancy-splash-insert
    :face 'variable-pitch "To quit a partially entered command, type "
    :face 'default "Control-g"
-   :face 'variable-pitch ".\n")
+   :face 'variable-pitch ".\n\n")
 
   (fancy-splash-insert
-   :face '(variable-pitch (:height 0.8))
-   "Enable "
-   :link `("newcomer-friendly"
+   :face 'variable-pitch
+   "New to Emacs?  Consider enabling "
+   :link `("newcomer presets"
 	   ,(lambda (_button) (info "(emacs) Newcomers Theme")))
-   " options:  ")
+   ": ")
 
   (let ((checked (create-image "checked.xpm"
 			       nil nil :ascent 'center))
