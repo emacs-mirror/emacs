@@ -2141,7 +2141,7 @@ a face or button specification."
      :link `("Open a File"
 	     ,(lambda (_button) (call-interactively 'find-file))
 	     "Specify a new file's name, to edit the file")
-     "\t\t"
+     "\t"
      :link `("Open Home Directory"
 	     ,(lambda (_button) (dired "~"))
 	     "Open your home directory, to operate on its files")
