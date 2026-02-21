@@ -599,7 +599,8 @@ Display the buffer in some window, but don't select it."
     (if (get-buffer-process buffer)
 	(error "Another VC action on %s is running" root))
     (with-current-buffer buffer
-      (special-mode)            ; So that e.g. \\`q' works consistently.
+      (when (eq major-mode 'fundamental-mode)
+        (special-mode))         ; So that e.g. \\`q' works consistently.
       (setq default-directory root)
       (let* (;; Run in the original working directory.
              (default-directory dir)
