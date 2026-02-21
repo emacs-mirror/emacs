@@ -3193,7 +3193,7 @@ function, @code{multiply-by-seven}.  When you do this, a
 
 @smallexample
 @group
-multiply-by-seven is a Lisp function.
+multiply-by-seven is an interpreted-function.
 
 (multiply-by-seven NUMBER)
 
@@ -4559,8 +4559,10 @@ An empty string, @samp{""}, a string with no characters in it, is
 smaller than any string of characters.
 
 @code{string-equal} provides the corresponding test for equality.  Its
-shorter, alternative name is @code{string=}.  There are no string test
-functions that correspond to @var{>}, @code{>=}, or @code{<=}.
+shorter, alternative name is @code{string=}.  Recent versions of Emacs
+added @code{string-greaterp} with @code{string>} as its shorter
+alternative.  There are no string test functions that correspond to
+@code{>=} or @code{<=}.
 
 @item message
 Print a message in the echo area.  The first argument is a string that
