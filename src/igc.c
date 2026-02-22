@@ -741,9 +741,6 @@ set_header (union igc_header *h, enum igc_obj_type type,
   union igc_header val = { .s = { .tag = IGC_TAG_OBJ,
 				  .obj_type = type,
 				  .hash = hash,
-#if INTPTR_MAX <= INT_MAX
-				  .tag2 = 1,
-#endif
 				  .nwords = to_words (nbytes) } };
   *h = val;
 }

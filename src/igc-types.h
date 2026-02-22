@@ -68,11 +68,7 @@ enum
   IGC_HEADER_TAG_BITS = 2,
   IGC_HEADER_TYPE_BITS = 6,
   IGC_HEADER_HASH_BITS = 24,
-#if INTPTR_MAX <= INT_MAX
-  IGC_HEADER_NWORDS_BITS = 31,
-#else
   IGC_HEADER_NWORDS_BITS = 32,
-#endif
   IGC_HEADER_TAG_MASK = (1 << IGC_HEADER_TAG_BITS) - 1,
   IGC_HEADER_TYPE_MASK = (1 << IGC_HEADER_TYPE_BITS) - 1,
   IGC_HEADER_HASH_MASK = (1 << IGC_HEADER_HASH_BITS) - 1,
@@ -101,9 +97,6 @@ union igc_header
     enum igc_tag tag : IGC_HEADER_TAG_BITS;
     enum igc_obj_type obj_type : IGC_HEADER_TYPE_BITS;
     size_t hash : IGC_HEADER_HASH_BITS;
-# if INTPTR_MAX <= INT_MAX
-    size_t tag2 : 1;
-# endif
     size_t nwords : IGC_HEADER_NWORDS_BITS;
   } s;
 #endif
@@ -111,9 +104,6 @@ union igc_header
   struct
   {
     size_t nwords : IGC_HEADER_NWORDS_BITS;
-# if INTPTR_MAX <= INT_MAX
-    size_t tag2 : 1;
-# endif
     size_t hash : IGC_HEADER_HASH_BITS;
     enum igc_obj_type obj_type : IGC_HEADER_TYPE_BITS;
     enum igc_tag tag : IGC_HEADER_TAG_BITS;
