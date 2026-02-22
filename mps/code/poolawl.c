@@ -1822,12 +1822,14 @@ static Res aephFixKey(mps_ss_t mps_ss,
   mps_res_t res = MPS_RES_OK;
   MPS_SCAN_BEGIN(mps_ss)
   {
-    mps_addr_t key = *keyIO;
+    const mps_addr_t key = *keyIO;
     ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
     Seg seg = aephSegOfAddr(ss->arena, base);
     if (MPS_FIX1(mps_ss, key)) {
+      mps_addr_t key2 = key;
       SegSetSummary(seg, RefSetAdd(ss->arena, SegSummary(seg), key));
-      MPS_FIX_CALL(mps_ss, res = aephIsWhite(mps_ss, &key, isKeyWhite));
+      MPS_FIX_CALL(mps_ss,
+                   res = aephIsWhite(mps_ss, &key2, isKeyWhite));
       if (res != MPS_RES_OK)
         return res;
       if (*isKeyWhite) {
@@ -1835,8 +1837,10 @@ static Res aephFixKey(mps_ss_t mps_ss,
           *keyIO = NULL;
         else
           aephDeferSeg(mps_ss, base, FALSE);
-      } else
-        *keyIO = key;
+      } else {
+        SegSetSummary(seg, RefSetAdd(ss->arena, SegSummary(seg), key2));
+        *keyIO = key2;
+      }
     } else
       *isKeyWhite = FALSE;
   }
