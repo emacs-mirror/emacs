@@ -276,6 +276,8 @@ static void traceBandRetreat(Trace trace)
   trace->firstStretch = TRUE;
 }
 
+static ZoneSet traceSetWhiteUnion(TraceSet ts, Arena arena);
+
 static void tracePropagateToLowerRanks (Trace trace, Arena arena)
 {
   Bool marksChanged = FALSE;
@@ -294,6 +296,16 @@ static void tracePropagateToLowerRanks (Trace trace, Arena arena)
     seg->propagationNeeded =
       TraceSetDel(seg->propagationNeeded, trace);
     seg->marksChanged = TraceSetDel(seg->marksChanged, trace);
+    AVER(!TraceSetIsMember(seg->propagationNeeded, trace));
+    {
+      /* HACK: traceScanSegRes skips segments whose summary doesn't
+         intersect with the white set.  Setting the summary to the
+         universal set forces a rescan of the segment. */
+      TraceSet ts = arena->flippedTraces;
+      ZoneSet white = traceSetWhiteUnion(ts, arena);
+      SegSetSummary(seg, RefSetUNIV);
+      AVER(ZoneSetInter(white, SegSummary(seg)) != ZoneSetEMPTY);
+    }
   }
 
   if (marksChanged) {
@@ -1147,17 +1159,6 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
 
           if (TraceSetIsMember(seg->propagationNeeded, trace)) {
             tracePropagateToLowerRanks(trace, arena);
-            AVER(!TraceSetIsMember(seg->propagationNeeded, trace));
-	    /* HACK: traceScanSegRes skips segments for which the
-	       summary doesn't intersect with the white set.  Including
-	       the white set in the summary here, forces as rescan of
-	       the segment. */
-            if (ZoneSetInter(trace->white, SegSummary(seg)) ==
-                ZoneSetEMPTY)
-              SegSetSummary(seg,
-                            RefSetUnion(SegSummary(seg), trace->white));
-            AVER(ZoneSetInter(trace->white, SegSummary(seg)) !=
-                 ZoneSetEMPTY);
             band = trace->band;
             goto bandstart;
           }
@@ -1269,7 +1270,6 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
   /* Only scan a segment if it refers to the white set. */
   if(ZoneSetInter(white, SegSummary(seg)) == ZoneSetEMPTY) {
-    AVER(seg->propagationNeeded == TraceSetEMPTY);
     SegBlacken(seg, ts);
     /* Setup result code to return later. */
     res = ResOK;
