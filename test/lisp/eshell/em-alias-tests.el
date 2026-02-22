@@ -28,7 +28,6 @@
 (require 'esh-mode)
 (require 'eshell)
 (require 'em-alias)
-(require 'ert-x)
 
 (require 'eshell-tests-helpers
          (ert-resource-file "eshell-tests-helpers"))
@@ -101,5 +100,32 @@
    (eshell-insert-command "alias bbb 'bbb'")
    (eshell-match-command-output
     "alias" "alias aaa aaa\nalias bbb bbb\nalias ccc ccc\n")))
+
+(ert-deftest em-alias-test/alias-load-preserves-order ()
+  "Test that loading the alias list from disk preserves the ordering"
+  (let ((aliases (concat "alias aaa echo aaa\n"
+                         "alias ccc echo ccc\n"
+                         "alias bbb echo bbb\n")))
+    (ert-with-temp-file aliasfile
+      (with-temp-buffer
+        (insert aliases)
+        (write-file aliasfile))
+      (with-temp-eshell
+        (setq eshell-aliases-file aliasfile)
+        (eshell-read-aliases-list)
+        (eshell-match-command-output "alias" (regexp-quote aliases))))))
+
+(ert-deftest em-alias-test/alias-save-sorted ()
+  "Test that saving the alias file to disk saves in sorted order"
+  (ert-with-temp-file aliasfile
+    (with-temp-eshell
+      (setq eshell-aliases-file aliasfile)
+      (eshell-insert-command "alias aaa 'aaa'")
+      (eshell-insert-command "alias ccc 'ccc'")
+      (eshell-insert-command "alias bbb 'bbb'")
+      (should (equal (with-temp-buffer
+                       (insert-file-contents aliasfile)
+                       (buffer-string))
+                     "alias aaa aaa\nalias bbb bbb\nalias ccc ccc\n")))))
 
 ;; em-alias-tests.el ends here

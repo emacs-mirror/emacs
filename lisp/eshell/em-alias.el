@@ -204,7 +204,7 @@ This is useful after manually editing the contents of the file."
                                       (match-string 2))
                                 eshell-command-aliases-list)))
                 (forward-line 1))
-              eshell-command-aliases-list)))))
+              (nreverse eshell-command-aliases-list))))))
 
 (defun eshell-write-aliases-list ()
   "Write out the current aliases into `eshell-aliases-file'."
