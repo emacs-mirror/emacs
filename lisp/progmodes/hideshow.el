@@ -63,6 +63,8 @@
 ;; hideshow minor mode by typing `M-x hs-minor-mode'.  After hideshow is
 ;; activated or deactivated, `hs-minor-mode-hook' is run with `run-hooks'.
 ;;
+;; To enable indentation-based hiding/showing turn on `hs-indentation-mode'.
+;;
 ;; Additionally, Joseph Eydelnant writes:
 ;;   I enjoy your package hideshow.el Version 5.24 2001/02/13
 ;;   a lot and I've been looking for the following functionality:
@@ -83,28 +85,16 @@
 ;; Hideshow provides the following user options:
 ;;
 ;; - `hs-hide-comments-when-hiding-all'
-;;   If non-nil, `hs-hide-all', `hs-cycle' and `hs-hide-level' will hide
-;;   comments too.
 ;; - `hs-hide-all-non-comment-function'
-;;   If non-nil, after calling `hs-hide-all', this function is called
-;;   with no arguments.
 ;; - `hs-isearch-open'
-;;   What kind of hidden blocks to open when doing isearch.
 ;; - `hs-set-up-overlay'
-;;   Function called with one arg (an overlay), intended to customize
-;;   the block hiding appearance.
 ;; - `hs-display-lines-hidden'
-;;   Displays the number of hidden lines next to the ellipsis.
 ;; - `hs-show-indicators'
-;;   Display indicators to show and toggle the block hiding.
 ;; - `hs-indicator-type'
-;;   Which indicator type should be used for the block indicators.
 ;; - `hs-indicator-maximum-buffer-size'
-;;   Max buffer size in bytes where the indicators should be enabled.
 ;; - `hs-allow-nesting'
-;;   If non-nil, hiding remembers internal blocks.
 ;; - `hs-cycle-filter'
-;;   Control where typing a `TAB' cycles the visibility.
+;; - `hs-indentation-respect-end-block'
 ;;
 ;; The variable `hs-hide-all-non-comment-function' may be useful if you
 ;; only want to hide some N levels blocks for some languages/files or
@@ -458,15 +448,24 @@ Currently it affects only the command `hs-toggle-hiding' by default,
 but it can be easily replaced with the command `hs-cycle'."
   :type `(choice (const :tag "Nowhere" nil)
                  (const :tag "Everywhere on the headline" t)
-                 (const :tag "At block beginning"
-                        ,(lambda ()
-                           (pcase-let ((`(,beg ,end) (hs-block-positions)))
-                             (and beg (hs-hideable-region-p beg end)))))
+                 (const :tag "At block beginning" hs-hideable-block-p)
                  (const :tag "At line beginning" bolp)
                  (const :tag "Not at line beginning"
                         ,(lambda () (not (bolp))))
                  (const :tag "At line end" eolp)
                  (function :tag "Custom filter function"))
+  :version "31.1")
+
+;; Used in `hs-indentation-mode'
+(defcustom hs-indentation-respect-end-block nil
+  "If non-nil, the end of the block will not be hidden.
+This only has effect if `hs-indentation-mode' is enabled.
+
+NOTE: For some modes, enabling this may result in hiding wrong parts of
+the buffer.  If this happens, enable this only for some modes (usually
+using `add-hook')."
+  :type 'boolean
+  :local t
   :version "31.1")
 
 ;;;; Icons
@@ -615,6 +614,9 @@ Note that `mode-line-format' is buffer-local.")
 
 ;; Used in `hs-toggle-all'
 (defvar-local hs--toggle-all-state)
+
+;; Used in `hs-indentation-mode'
+(defvar-local hs-indentation--store-vars nil)
 
 
 ;;;; API variables
@@ -788,6 +790,17 @@ Skip \"internal\" overlays if `hs-allow-nesting' is non-nil."
   (and beg end
        (< beg (save-excursion (goto-char end) (pos-bol)))))
 
+(defun hs-hideable-block-p (&optional include-comment)
+  "Return t if block at point is hideable.
+If INCLUDE-COMMENT is non-nil, include comments first.
+
+If there is no block at point, return nil."
+  (pcase-let ((`(,beg ,end)
+               (or (and include-comment
+                        (funcall hs-inside-comment-predicate))
+                   (hs-block-positions))))
+    (hs-hideable-region-p beg end)))
+
 (defun hs-already-hidden-p ()
   "Return non-nil if point is in an already-hidden block, otherwise nil."
   (save-excursion
@@ -820,14 +833,13 @@ This is for code block positions only, for comments use
     (save-match-data
       (save-excursion
         (when (funcall hs-looking-at-block-start-predicate)
-          (let* ((beg (match-end 0)) end)
+          (let ((beg (match-end 0)) end)
             ;; `beg' is the point at the block beginning, which may need
             ;; to be adjusted
             (when adjust-beg
-              (setq beg (pos-eol))
-              (save-excursion
-                (when hs-adjust-block-beginning-function
-                  (goto-char (funcall hs-adjust-block-beginning-function beg)))))
+              (setq beg (if hs-adjust-block-beginning-function
+                            (funcall hs-adjust-block-beginning-function beg)
+                          (pos-eol))))
 
             (goto-char (match-beginning hs-block-start-mdata-select))
             (condition-case _
@@ -897,13 +909,9 @@ If INCLUDE-COMMENTS is non-nil, also search for a comment block."
                 (funcall hs-find-next-block-function regexp (pos-eol) include-comments)
                 (save-excursion
                   (goto-char (match-beginning 0))
-                  (pcase-let ((`(,beg ,end)
-                               (or (and include-comments
-                                        (funcall hs-inside-comment-predicate))
-                                   (hs-block-positions))))
-                    (if (and beg (hs-hideable-region-p beg end))
-                        (setq exit (point))
-                      t)))))
+                  (if (hs-hideable-block-p include-comments)
+                      (setq exit (point))
+                    t))))
     (unless exit (goto-char bk-point))
     exit))
 
@@ -930,10 +938,10 @@ Intended to be used in commands."
       (goto-char pos)
       t)
 
-     ((and (or (funcall hs-looking-at-block-start-predicate)
+     ((and (or (hs-hideable-block-p)
                (and (forward-line 0)
-                    (funcall hs-find-block-beginning-function)))
-           (apply #'hs-hideable-region-p (hs-block-positions)))
+                    (funcall hs-find-block-beginning-function)
+                    (hs-hideable-block-p))))
       t))))
 
 (defun hs-hide-level-recursive (arg beg end &optional include-comments func progress)
@@ -1268,7 +1276,7 @@ region (point BOUND)."
 Return point, or nil if original point was not in a block."
   (let ((here (point)) done)
     ;; look if current line is block start
-    (if (funcall hs-looking-at-block-start-predicate)
+    (if (hs-hideable-block-p)
         here
       ;; look backward for the start of a block that contains the cursor
       (save-excursion
@@ -1276,8 +1284,8 @@ Return point, or nil if original point was not in a block."
                     (goto-char (match-beginning 0))
 		    ;; go again if in a comment or a string
 		    (or (save-match-data (nth 8 (syntax-ppss)))
-		        (not (setq done (and (<= here (cadr (hs-block-positions)))
-                                             (point))))))))
+		        (not (setq done (pcase-let ((`(_ ,end) (hs-block-positions)))
+                                          (and end (<= here end) (point)))))))))
       (when done (goto-char done)))))
 
 ;; This function is not used anymore (Bug#700).
@@ -1477,6 +1485,61 @@ only blocks which are that many levels below the level of point."
         (hs-discard-overlays (point-min) (point-max)))
     (hs-hide-all))
   (setq-local hs--toggle-all-state (not hs--toggle-all-state)))
+
+;;;###autoload
+(define-minor-mode hs-indentation-mode
+  "Toggle indentation-based hiding/showing."
+  :group 'hideshow
+  (if hs-indentation-mode
+      (progn
+        (setq hs-indentation--store-vars
+              (buffer-local-set-state
+               hs-forward-sexp-function
+               (lambda (_)
+                 (let ((size (current-indentation)) end)
+                   (save-match-data
+                     (save-excursion
+                       (forward-line 1) ; Start from next line
+                       (while (and (not (eobp))
+                                   (re-search-forward hs-block-start-regexp nil t)
+                                   (> (current-indentation) size))
+                         (setq end (point))
+                         (forward-line 1))))
+                   (when end (goto-char end) (end-of-line))))
+               hs-block-start-regexp (rx (0+ blank) (1+ nonl))
+               hs-block-end-regexp nil
+               hs-adjust-block-end-function
+               ;; Adjust line to the "end of the block" (Usually this is
+               ;; the next line after the position by
+               ;; `hs-forward-sexp-function' with the same indentation
+               ;; level as the block start)
+               (if hs-indentation-respect-end-block
+                   (lambda (beg)
+                     (save-excursion
+                       (when (and (not (eobp))
+                                  (forward-line 1)
+                                  (not (looking-at-p (rx (0+ blank) eol)))
+                                  (= (current-indentation)
+                                     (save-excursion
+                                       (goto-char beg)
+                                       (current-indentation)))
+                                  (progn (back-to-indentation)
+                                         (not (hs-hideable-block-p))))
+                         (point))))
+                 hs-adjust-block-end-function)
+               ;; Set the other variables to their default values
+               hs-looking-at-block-start-predicate #'hs-looking-at-block-start-p--default
+               hs-find-next-block-function #'hs-find-next-block-fn--default
+               hs-find-block-beginning-function #'hs-find-block-beg-fn--default
+               hs-c-start-regexp (string-trim-right (regexp-quote comment-start))))
+        ;; Refresh indicators (if needed)
+        (when (and hs-show-indicators hs-minor-mode)
+          (hs-minor-mode -1)
+          (hs-minor-mode +1)))
+    (buffer-local-restore-state hs-indentation--store-vars)
+    (when (and hs-show-indicators hs-minor-mode)
+      (hs-minor-mode -1)
+      (hs-minor-mode +1))))
 
 ;;;###autoload
 (define-minor-mode hs-minor-mode

@@ -26,6 +26,7 @@
 
 ;; Dependencies for testing:
 (require 'cc-mode)
+(require 'sh-script)
 
 
 (defmacro hideshow-tests-with-temp-buffer (mode contents &rest body)
@@ -474,6 +475,35 @@ def test1 ():
      (hideshow-tests-look-at "test2")
      (beginning-of-line)
      (should-not (hs-block-positions)))))
+
+(ert-deftest hideshow-check-indentation-folding ()
+  "Check indentation-based folding with and without end of the block respected."
+  (let ((contents "
+if [1]
+  then 2
+fi"))
+    (hideshow-tests-with-temp-buffer
+     sh-mode
+     contents
+     (hs-indentation-mode t)
+     (hideshow-tests-look-at "if")
+     (beginning-of-line)
+     (hs-hide-block)
+     (should (string=
+              (hideshow-tests-visible-string)
+              "
+if [1]
+fi"))
+     (hs-show-all)
+     ;; End of the block respected
+     (hs-indentation-mode nil) ; Reset variables
+     (setq-local hs-indentation-respect-end-block t)
+     (hs-indentation-mode t)
+     (hs-hide-block)
+     (should (string=
+              (hideshow-tests-visible-string)
+              "
+if [1]fi")))))
 
 (provide 'hideshow-tests)
 

@@ -1374,6 +1374,14 @@ buffer-local variables 'hs-block-start-regexp', 'hs-c-start-regexp',
 *** 'hs-hide-level' can now hide comments too.
 This is controlled by 'hs-hide-comments-when-hiding-all'.
 
++++
+*** New minor mode 'hs-indentation-mode'.
+This buffer-local minor mode configures 'hs-indentation-mode' to detect
+blocks based on indentation.
+
+The new user option 'hs-indentation-respect-end-block' can be used to
+adjust the hiding range for this minor mode.
+
 ** C-ts mode
 
 +++
