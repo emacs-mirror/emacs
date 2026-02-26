@@ -1150,6 +1150,7 @@ extern const char *ns_get_pending_menu_title (void);
 #endif
 
 /* Implemented in nsfns.m, published in nsterm.m.  */
+extern void ns_init_colors (void);
 #ifdef __OBJC__
 extern void ns_move_tooltip_to_mouse_location (NSPoint);
 #endif
@@ -1161,7 +1162,6 @@ extern void ns_change_tab_bar_height (struct frame *f, int height);
 extern const char *ns_get_string_resource (void *_rdb,
                                            const char *name,
                                            const char *class);
-
 /* C access to ObjC functionality.  */
 extern void  ns_release_object (void *obj);
 extern void  ns_retain_object (void *obj);

@@ -2231,7 +2231,9 @@ font descriptor.  If string contains `fontset' and not
   return build_string (ns_xlfd_to_fontname (SSDATA (name)));
 }
 
-static void
+/* Called in emacs.c to support early calls to ns_lisp_to_color or
+   Fns_list_colors.  */
+void
 ns_init_colors (void)
 {
   NSTRACE ("ns_init_colors");
@@ -2286,8 +2288,6 @@ ns_init_colors (void)
     }
 }
 
-static BOOL ns_init_colors_done = NO;
-
 DEFUN ("ns-list-colors", Fns_list_colors, Sns_list_colors, 0, 1, 0,
        doc: /* Return a list of all available colors.
 The optional argument FRAME is currently ignored.  */)
@@ -2297,12 +2297,6 @@ The optional argument FRAME is currently ignored.  */)
   NSEnumerator *colorlists;
   NSColorList *clist;
   NSAutoreleasePool *pool;
-
-  if (ns_init_colors_done == NO)
-    {
-      ns_init_colors ();
-      ns_init_colors_done = YES;
-    }
 
   if (!NILP (frame))
     {

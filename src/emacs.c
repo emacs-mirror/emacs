@@ -2050,6 +2050,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 
 #ifdef HAVE_NS
+  /* For early calls to ns_lisp_to_color or Fns_list_colors.  */
+  if (!dump_mode)
+    ns_init_colors ();
+
   if (!noninteractive)
     {
 #ifdef NS_IMPL_COCOA
