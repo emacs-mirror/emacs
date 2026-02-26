@@ -1105,6 +1105,9 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   AVER(seg->white == segHi->white);
   AVER(seg->nailed == segHi->nailed);
   AVER(seg->grey == segHi->grey);
+  AVER(seg->propagationNeeded == segHi->propagationNeeded);
+  AVER(seg->marksChanged == segHi->marksChanged);
+  AVER(seg->propagationFinished == segHi->propagationFinished);
   AVER(seg->pm == segHi->pm);
   AVER(seg->sm == segHi->sm);
   AVER(seg->depth == segHi->depth);
@@ -1186,6 +1189,9 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   segHi->white = seg->white;
   segHi->nailed = seg->nailed;
   segHi->grey = seg->grey;
+  segHi->propagationNeeded = seg->propagationNeeded;
+  segHi->marksChanged = seg->marksChanged;
+  segHi->propagationFinished = seg->propagationFinished;
   segHi->pm = seg->pm;
   segHi->sm = seg->sm;
   segHi->depth = seg->depth;
