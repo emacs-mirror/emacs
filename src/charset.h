@@ -291,7 +291,9 @@ INLINE Lisp_Object
 charset_attributes_getter (struct charset *charset)
 {
   eassert (ASIZE (charset_attributes_table) == charset_table_size);
-  return AREF (charset_attributes_table, charset->id);
+  Lisp_Object attrs =  AREF (charset_attributes_table, charset->id);
+  eassert (XFIXNUM (CHARSET_ATTR_ID (attrs)) == charset->id);
+  return attrs;
 }
 
 /* Return the attribute vector of CHARSET.  */
