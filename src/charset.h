@@ -243,14 +243,28 @@ struct charset
    vectors.  */
 extern Lisp_Object Vcharset_hash_table;
 
-/* Table of struct charset.  */
-extern struct charset *charset_table;
-extern int charset_table_size;
-extern int charset_table_used;
+/* A charset_table is an array of struct charset along with a
+   Lisp_Vector of charset attributes.
 
-extern Lisp_Object charset_attributes_table;
+   The charset_table.start field either points to xmalloced memory or to
+   the dump (i.e. pdumper_object_p (charset_table.start) can be true).
 
-#define CHARSET_FROM_ID(id) (charset_table + (id))
+   charset_table.attributes_table[id] contains the attribute vector for
+   the charset at charset_table.start[id].
+
+   We keep the attributes in a separate vector because that is
+   convenient for the GC.  (We probably need to revise this decision, if
+   we ever expose struct charset as a Lisp level type.)  */
+struct charset_table
+{
+  struct charset *start;
+  unsigned size, used;
+  Lisp_Object attributes_table;
+};
+
+extern struct charset_table charset_table;
+
+#define CHARSET_FROM_ID(id) (charset_table.start + (id))
 
 extern Lisp_Object Vcharset_ordered_list;
 extern Lisp_Object Vcharset_non_preferred_head;
@@ -290,8 +304,8 @@ extern int emacs_mule_charset[256];
 INLINE Lisp_Object
 charset_attributes_getter (struct charset *charset)
 {
-  eassert (ASIZE (charset_attributes_table) == charset_table_size);
-  Lisp_Object attrs =  AREF (charset_attributes_table, charset->id);
+  eassert (ASIZE (charset_table.attributes_table) == charset_table.size);
+  Lisp_Object attrs =  AREF (charset_table.attributes_table, charset->id);
   eassert (XFIXNUM (CHARSET_ATTR_ID (attrs)) == charset->id);
   return attrs;
 }
