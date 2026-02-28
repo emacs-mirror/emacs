@@ -1135,6 +1135,7 @@ usage: (define-charset-internal ...)  */)
 		       sizeof *charset_table.start);
 	  memcpy (new_table, charset_table.start,
 		  old_size * sizeof *new_table);
+	  xfree (charset_table.start);
 	  charset_table.start = new_table;
 	  charset_table.size = new_size;
 	  Lisp_Object new_attr_table = make_vector (new_size, Qnil);
@@ -1142,13 +1143,6 @@ usage: (define-charset-internal ...)  */)
 	    ASET (new_attr_table, i,
 		  AREF (charset_table.attributes_table, i));
 	  charset_table.attributes_table = new_attr_table;
-	  /* FIXME: This leaks memory, as the old charset_table becomes
-	     unreachable.  If the old charset table is charset_table_init
-	     then this leak is intentional; otherwise, it's unclear.
-	     If the latter memory leak is intentional, a
-	     comment should be added to explain this.  If not, the old
-	     charset_table should be freed, by passing it as the 1st argument
-	     to xpalloc and removing the memcpy.  */
 	}
       id = charset_table.used++;
       new_definition_p = 1;
