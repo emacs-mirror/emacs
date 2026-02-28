@@ -2117,21 +2117,22 @@ shrink_charset_table (void)
   eassert (ASIZE (charset_table.attributes_table)
 	   == charset_table.size);
 
-  struct charset *old = charset_table.start;
-  size_t nbytes = charset_table.used * sizeof *old;
-  struct charset *new = xmalloc (nbytes);
-  memcpy (new, old, nbytes);
-  charset_table.start = new;
-  xfree (old);
+  if (charset_table.size > charset_table.used)
+    {
+      eassert (!pdumper_object_p (charset_table.start));
+      charset_table.start
+	= xnrealloc (charset_table.start, charset_table.used,
+		     sizeof *charset_table.start);
 
-  Lisp_Object new_attr_table = make_vector (charset_table.used, Qnil);
-  for (size_t i = 0; i < charset_table.used; i++)
-    ASET (new_attr_table, i,
-	  AREF (charset_table.attributes_table, i));
-  charset_table.attributes_table = new_attr_table;
+      charset_table.attributes_table
+	= Fvector (charset_table.used,
+		   xvector_contents (charset_table.attributes_table));
 
-  charset_table.size = charset_table.used;
-  eassert (ASIZE (charset_table.attributes_table) == charset_table.size);
+      charset_table.size = charset_table.used;
+    }
+  eassert (charset_table.size == charset_table.used);
+  eassert (ASIZE (charset_table.attributes_table)
+	   == charset_table.size);
 }
 
 DEFUN ("clear-charset-maps", Fclear_charset_maps, Sclear_charset_maps,
