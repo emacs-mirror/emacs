@@ -3303,6 +3303,16 @@ functions defined later than the variable, as is common for minor modes.
 This is intended for customizing directory-local variables in the
 current directory's ".dir-locals.el" file.
 
++++
+*** New keybinding 'C-c C-k' for 'Custom-reset-standard'
+
++++
+*** New command 'Custom-goto-first-choice' (bound to 'C-c C-i')
+When first opening the customization interface for a user option, you
+can use this command as a shortcut to jump to the first actionable
+button or field (for instance an on/off button for boolean options, or a
+text field for other values).
+
 ** Pulse
 
 --
