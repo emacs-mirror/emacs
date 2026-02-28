@@ -5912,7 +5912,7 @@ and corresponding effects."
                    (car form) type parenthesis)
    form (list 'suspicious (car form)) t))
 
-(defun bytecomp--check-eq-args (form &optional a b &rest _ignore)
+(defun bytecomp--check-eq-args (form a b)
   (let* ((number-ok (eq (car form) 'eql))
          (bad-arg (cond ((bytecomp--dodgy-eq-arg-p a number-ok) 1)
                         ((bytecomp--dodgy-eq-arg-p b number-ok) 2))))
@@ -5926,7 +5926,7 @@ and corresponding effects."
 (put 'eq  'compiler-macro #'bytecomp--check-eq-args)
 (put 'eql 'compiler-macro #'bytecomp--check-eq-args)
 
-(defun bytecomp--check-memq-args (form &optional elem list &rest _ignore)
+(defun bytecomp--check-memq-args (form elem list)
   (let* ((fn (car form))
          (number-ok (eq fn 'memql)))
     (cond
@@ -5964,22 +5964,16 @@ and corresponding effects."
 ;; their own byte-ops.
 
 (put 'char-before 'compiler-macro #'bytecomp--char-before)
-(defun bytecomp--char-before (form &optional arg &rest junk-args)
-  (if junk-args
-      form    ; arity error
-    `(char-after (1- (or ,arg (point))))))
+(defun bytecomp--char-before (_form &optional arg)
+  `(char-after (1- (or ,arg (point)))))
 
 (put 'backward-char 'compiler-macro #'bytecomp--backward-char)
-(defun bytecomp--backward-char (form &optional arg &rest junk-args)
-  (if junk-args
-      form    ; arity error
-    `(forward-char (- (or ,arg 1)))))
+(defun bytecomp--backward-char (_form &optional arg)
+  `(forward-char (- (or ,arg 1))))
 
 (put 'backward-word 'compiler-macro #'bytecomp--backward-word)
-(defun bytecomp--backward-word (form &optional arg &rest junk-args)
-  (if junk-args
-      form    ; arity error
-    `(forward-word (- (or ,arg 1)))))
+(defun bytecomp--backward-word (_form &optional arg)
+  `(forward-word (- (or ,arg 1))))
 
 (defun bytecomp--check-keyword-args (form arglist allowed-keys required-keys)
   (let ((fun (car form)))
