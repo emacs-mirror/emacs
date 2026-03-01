@@ -1937,6 +1937,14 @@ four_corners_best (Emacs_Pix_Context pimg, int *corners,
   RGB_PIXEL_COLOR best UNINIT;
   int i, best_count;
 
+#ifdef USE_CAIRO
+  /* Sometimes the Cairo codepath calls this function *after* the image
+     sizes have been modified by native-transforms, so the pimg
+     dimensions don't match WIDTH and HEIGHT.  */
+  width = pimg->width;
+  height = pimg->height;
+#endif
+
   if (corners && corners[BOT_CORNER] >= 0)
     {
       /* Get the colors at the corner_pixels of pimg.  */
@@ -12848,7 +12856,7 @@ The list of capabilities can include one or more of the following:
     {
 #ifdef HAVE_NATIVE_TRANSFORMS
 # if defined HAVE_IMAGEMAGICK || defined (USE_CAIRO) || defined (HAVE_NS) \
-  || defined (HAVE_HAIKU) | defined HAVE_ANDROID
+  || defined (HAVE_HAIKU) || defined HAVE_ANDROID
       return list2 (Qscale, Qrotate90);
 # elif defined (HAVE_X_WINDOWS) && defined (HAVE_XRENDER)
       if (FRAME_DISPLAY_INFO (f)->xrender_supported_p)
