@@ -1797,6 +1797,13 @@ messages.  To suppress these messages, customize the user option
 'recentf-suppress-open-file-help' to non-nil.  The default value of this
 option is nil.
 
+---
+*** New user option and function 'recentf-exclude-ignored-extensions'.
+Add the new function 'recentf-exclude-ignored-extensions' to the list
+'recentf-exclude' to ignore files whose extensions are listed in the
+user option of the same name 'recentf-exclude-ignored-extensions'.  If
+that option is nil, 'completion-ignored-extensions' is used.
+
 ** Saveplace
 
 ---

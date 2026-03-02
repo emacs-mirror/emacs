@@ -115,6 +115,27 @@ must return non-nil to exclude it."
   :group 'recentf
   :type '(repeat (choice regexp function)))
 
+(defcustom recentf-exclude-ignored-extensions nil
+  "Optionally ignore file names ending in any string in this list.
+To use this, add the function `recentf-exclude-ignored-extensions' to
+the list `recentf-exclude'.
+If this option is nil, use the values from the variable
+`completion-ignored-extensions', which see."
+  :group 'recentf
+  :version "31.1"
+  :type '(repeat string))
+
+(defun recentf-exclude-ignored-extensions (file-name)
+  "Return non-nil if FILE-NAME has an ignored extension.
+The user option `completion-ignored-extensions' determines whether or
+not a file extension counts as ignored.  You can add this function to
+`recentf-exclude'."
+  (and-let* ((extension (file-name-extension file-name)))
+    (string-match-p
+     (regexp-opt (or recentf-exclude-ignored-extensions
+                     completion-ignored-extensions))
+     (concat "\\." (regexp-quote extension) "\\'"))))
+
 (defun recentf-access-file (filename)
   "Check whether FILENAME is accessible."
   (ignore-errors (not (access-file filename "Checking recentf file"))))
