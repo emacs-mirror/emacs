@@ -617,10 +617,7 @@ interval does not exist; in this case nil is returned."
 YEARDAYS should be a list of values from a recurrence rule's
 BYYEARDAY=... clause; see `icalendar-recur' for the possible values."
   (let* ((sorted-ydays (sort yeardays
-                             :lessp (lambda (a b)
-                                      (let ((pos-a (if (< 0 a) a (+ 366 a)))
-                                            (pos-b (if (< 0 b) b (+ 366 b))))
-                                        (< pos-a pos-b)))))
+                             :key (lambda (a) (if (< 0 a) a (+ 366 a)))))
          (interval-start (car interval))
          (start-year (decoded-time-year interval-start))
          (interval-end (cadr interval))
@@ -660,10 +657,7 @@ WEEKNOS should be a list of values from a recurrence rule's
 BYWEEKNO=... clause, and WEEKSTART should be the value of its
 WKST=... clause (if any).  See `icalendar-recur' for the possible values."
   (let* ((sorted-weeknos (sort weeknos
-                               :lessp (lambda (a b)
-                                        (let ((pos-a (if (< 0 a) a (+ 53 a)))
-                                              (pos-b (if (< 0 b) b (+ 53 b))))
-                                          (< pos-a pos-b)))))
+                               :key (lambda (a) (if (< 0 a) a (+ 53 a)))))
          (interval-start (car interval))
          (start-year (decoded-time-year interval-start))
          (interval-end (cadr interval))
@@ -734,10 +728,7 @@ BYMONTH=... clause; see `icalendar-recur' for the possible values."
 MONTHDAYS should be a list of values from a recurrence rule's
 BYMONTHDAY=... clause; see `icalendar-recur' for the possible values."
   (let* ((sorted-mdays (sort monthdays
-                             :lessp (lambda (a b)
-                                      (let ((pos-a (if (< 0 a) a (+ 31 a)))
-                                            (pos-b (if (< 0 b) b (+ 31 b))))
-                                        (< pos-a pos-b)))))
+                             :key (lambda (a) (if (< 0 a) a (+ 31 a)))))
          (interval-start (car interval))
          (interval-end (cadr interval))
          (subintervals nil))
@@ -779,7 +770,7 @@ whether OFFSET is relative to the month of the start of the interval.  If
 it is nil, OFFSET will be relative to the year, rather than the month."
   (let* ((sorted-weekdays (sort (seq-filter #'natnump weekdays)))
          (with-offsets (sort (seq-filter #'consp weekdays)
-                             :lessp (lambda (w1 w2) (and (< (car w1) (car w2))))))
+                             :key #'car))
          (interval-start (car interval))
          (start-abs (calendar-absolute-from-gregorian
                      (ical:date-time-to-date interval-start)))
@@ -834,10 +825,7 @@ it is nil, OFFSET will be relative to the year, rather than the month."
       (setq start-abs (1+ start-abs)))
 
     ;; Finally, sort and return all subintervals:
-    (sort subintervals
-          :lessp (lambda (int1 int2)
-                   (ical:date-time< (car int1) (car int2)))
-          :in-place t)))
+    (sort subintervals :key #'car :lessp #'ical:date-time< :in-place t)))
 
 (defun icr:refine-byhour (interval hours &optional vtimezone)
   "Resolve INTERVAL into a list of subintervals matching HOURS.
