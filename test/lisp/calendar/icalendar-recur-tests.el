@@ -1467,20 +1467,15 @@ END:VTIMEZONE
 
 
 ;; Tests for recurrence rule interpretation:
-(cl-defmacro ict:rrule-test (recur-string doc
-                             &key dtstart
-                             (low dtstart)
-                             high
-                             tz
-                             rdates
-                             exdates
-                             members
-                             nonmembers
-                             size
-                             (tags nil)
-                             source)
-
-  "Create a test which parses RECUR-STRING to an `icalendar-recur',
+(cl-defun ict:rrule-test ( recur-string
+                           &key dtstart
+                           (low dtstart) high
+                           tz
+                           rdates
+                           exdates
+                           members nonmembers
+                           size)
+  "Run a test which parses RECUR-STRING to an `icalendar-recur',
 creates an event with a recurrence set from this value, and checks
 various properties of the recurrence set.
 
@@ -1507,1372 +1502,1425 @@ NONMEMBERS, if present, should be a list of values that are expected
   to be excluded from the recurrence set.
 SIZE, if present, should be a positive integer representing the
   expected size of the recurrence set.  Defaults to the value of the
-  COUNT clause in the recurrence rule, if any.
-TAGS is passed on to `ert-deftest'.
-SOURCE should be a symbol; it is used to name the test."
-  `(ert-deftest ,(intern (concat "ict:rrule-test-" (symbol-name source))) ()
-     ,(format "Parse and evaluate recur-value example from `%s':\n%s"
-              source doc)
-     :tags ,tags
-     (let* ((parsed (ical:parse-from-string 'ical:recur ,recur-string))
-            (recvalue (ical:ast-node-value parsed))
-            (until (ical:recur-until recvalue))
-            (count (ical:recur-count recvalue))
-            (dtstart ,dtstart)
-            (tzid
-             (when (cl-typep dtstart 'ical:date-time)
-               "America/New_York"))
-            (recset-size (or ,size count))
-            (vevent
-             (ical:make-vevent
-              (ical:uid (concat "uid-test-" ,(symbol-name source)))
-              (ical:dtstart dtstart (ical:tzidparam tzid))
-              (ical:rrule parsed)
-              (ical:rdate ,rdates)
-              (ical:exdate ,exdates)))
-            ;; default for HIGH: UNTIL or DTSTART+3*INTERVAL
-            (win-high
-             (or ,high
-                 until
-                 (cadr
-                  (icr:nth-interval 2 ,dtstart recvalue))))
-            (recs
-             (if count
-                 (icr:recurrences-to-count vevent ,tz)
-               (icr:recurrences-in-window ,low win-high vevent ,tz))))
-       (should (ical:ast-node-valid-p parsed))
-       (when ,members
-         (dolist (dt ,members)
-           (should (member dt recs))))
-       (when ,nonmembers
-         (dolist (dt ,nonmembers)
-           (should-not (member dt recs))))
-       (when recset-size
-         (should (length= recs recset-size))))))
+  COUNT clause in the recurrence rule, if any."
+  (let* ((parsed (ical:parse-from-string 'ical:recur recur-string))
+         (recvalue (ical:ast-node-value parsed))
+         (until (ical:recur-until recvalue))
+         (count (ical:recur-count recvalue))
+         (tzid
+          (when (cl-typep dtstart 'ical:date-time)
+            "America/New_York"))
+         (recset-size (or size count))
+         (vevent
+          (ical:make-vevent
+           (ical:uid "uid-test")  ; FIXME: need to be unique across tests?
+           (ical:dtstart dtstart (ical:tzidparam tzid))
+           (ical:rrule parsed)
+           (ical:rdate rdates)
+           (ical:exdate exdates)))
+         ;; default for HIGH: UNTIL or DTSTART+3*INTERVAL
+         (win-high
+          (or high
+              until
+              (cadr
+               (icr:nth-interval 2 dtstart recvalue))))
+         (recs
+          (if count
+              (icr:recurrences-to-count vevent tz)
+            (icr:recurrences-in-window low win-high vevent tz))))
+    (should (ical:ast-node-valid-p parsed))
+    (when members
+      (dolist (dt members)
+        (should (member dt recs))))
+    (when nonmembers
+      (dolist (dt nonmembers)
+        (should-not (member dt recs))))
+    (when recset-size
+      (should (length= recs recset-size)))))
 
-(ict:rrule-test
- "FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1"
- "Last non-weekend day of the month"
- :dtstart '(3 31 2025)
- :high '(6 1 2025)
- :members '((3 31 2025) (4 30 2025) (5 30 2025))
- :nonmembers '((5 31 2025)) ;; 5/31/2025 is a Saturday
- :source rfc5545-sec3.3.10/1)
+(ert-deftest ict:rrule-test-rfc5545-sec3.3.10/1 ()
+  "Last non-weekend day of the month"
+  (ict:rrule-test
+   "FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1"
+   :dtstart '(3 31 2025)
+   :high '(6 1 2025)
+   :members '((3 31 2025) (4 30 2025) (5 30 2025))
+   :nonmembers '((5 31 2025)) ;; 5/31/2025 is a Saturday
+   ))
 
-(ict:rrule-test
- "FREQ=YEARLY;INTERVAL=2;BYMONTH=1;BYDAY=SU;BYHOUR=8,9;BYMINUTE=30"
- "Every Sunday in January at 8:30AM and 9:30AM, every other year"
- :dtstart (ical:read-date-time "20250105T083000")
- :high (ical:read-date-time "20271231T000000")
- :members
- (let ((jan3-27 (ical:make-date-time :year 2027 :month 1 :day 3
-                                     :hour 8 :minute 30 :second 0)))
-   (list dtstart
-         ;; 2025: Jan 5, 12, 19, 26
-         (ical:date-time-variant dtstart :hour 9)
-         (ical:date-time-variant dtstart :day 12)
-         (ical:date-time-variant dtstart :day 12 :hour 9)
-         (ical:date-time-variant dtstart :day 19)
-         (ical:date-time-variant dtstart :day 19 :hour 9)
-         (ical:date-time-variant dtstart :day 19)
-         (ical:date-time-variant dtstart :day 19 :hour 9)
-         (ical:date-time-variant dtstart :day 26)
-         (ical:date-time-variant dtstart :day 26 :hour 9)
-         ;; 2027: Jan 3, 10, 17, 24, 31
-         (ical:date-time-variant jan3-27 :hour 9)
-         (ical:date-time-variant jan3-27 :day 10)
-         (ical:date-time-variant jan3-27 :day 10 :hour 9)
-         (ical:date-time-variant jan3-27 :day 17)
-         (ical:date-time-variant jan3-27 :day 17 :hour 9)
-         (ical:date-time-variant jan3-27 :day 24)
-         (ical:date-time-variant jan3-27 :day 24 :hour 9)
-         (ical:date-time-variant jan3-27 :day 31)
-         (ical:date-time-variant jan3-27 :day 31 :hour 9)))
- :nonmembers
- (list
-  (ical:make-date-time :year 2026 :month 1 :day 4
-                       :hour 8 :minute 30 :second 0)
-  (ical:make-date-time :year 2026 :month 1 :day 4
-                       :hour 9 :minute 30 :second 0))
- :source rfc5545-sec3.3.10/2)
+(ert-deftest ict:rrule-test-rfc5545-sec3.3.10/2 ()
+  "Every Sunday in January at 8:30AM and 9:30AM, every other year"
+  (let ((dtstart (ical:read-date-time "20250105T083000")))
+    (ict:rrule-test
+     "FREQ=YEARLY;INTERVAL=2;BYMONTH=1;BYDAY=SU;BYHOUR=8,9;BYMINUTE=30"
+     :dtstart dtstart
+     :high (ical:read-date-time "20271231T000000")
+     :members
+     (let ((jan3-27 (ical:make-date-time :year 2027 :month 1 :day 3
+                                         :hour 8 :minute 30 :second 0)))
+       (list dtstart
+             ;; 2025: Jan 5, 12, 19, 26
+             (ical:date-time-variant dtstart :hour 9)
+             (ical:date-time-variant dtstart :day 12)
+             (ical:date-time-variant dtstart :day 12 :hour 9)
+             (ical:date-time-variant dtstart :day 19)
+             (ical:date-time-variant dtstart :day 19 :hour 9)
+             (ical:date-time-variant dtstart :day 19)
+             (ical:date-time-variant dtstart :day 19 :hour 9)
+             (ical:date-time-variant dtstart :day 26)
+             (ical:date-time-variant dtstart :day 26 :hour 9)
+             ;; 2027: Jan 3, 10, 17, 24, 31
+             (ical:date-time-variant jan3-27 :hour 9)
+             (ical:date-time-variant jan3-27 :day 10)
+             (ical:date-time-variant jan3-27 :day 10 :hour 9)
+             (ical:date-time-variant jan3-27 :day 17)
+             (ical:date-time-variant jan3-27 :day 17 :hour 9)
+             (ical:date-time-variant jan3-27 :day 24)
+             (ical:date-time-variant jan3-27 :day 24 :hour 9)
+             (ical:date-time-variant jan3-27 :day 31)
+             (ical:date-time-variant jan3-27 :day 31 :hour 9)))
+     :nonmembers
+     (list
+      (ical:make-date-time :year 2026 :month 1 :day 4
+                           :hour 8 :minute 30 :second 0)
+      (ical:make-date-time :year 2026 :month 1 :day 4
+                           :hour 9 :minute 30 :second 0)))))
 
-(ict:rrule-test
- "FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1"
- "Every year on the last day in February"
- :dtstart '(2 29 2024)
- :high '(3 1 2028)
- :members '((2 28 2025) (2 28 2026) (2 28 2027) (2 29 2028))
- :nonmembers '((2 28 2028))
- :source leap-day/1)
 
-(ict:rrule-test
- "FREQ=YEARLY;INTERVAL=4;BYMONTH=2;BYMONTHDAY=29"
- "Every four years on February 29"
- :dtstart '(2 29 2024)
- :high '(3 1 2028)
- :members '((2 29 2028))
- :nonmembers '((2 28 2028))
- :source leap-day/2)
+(ert-deftest ict:rrule-test-leap-day/1 ()
+  "Every year on the last day in February"
+  (ict:rrule-test
+   "FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1"
+   :dtstart '(2 29 2024)
+   :high '(3 1 2028)
+   :members '((2 28 2025) (2 28 2026) (2 28 2027) (2 29 2028))
+   :nonmembers '((2 28 2028))))
 
-(ict:rrule-test
-"FREQ=DAILY;COUNT=10"
-"Daily for 10 occurrences"
-:dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                              :hour 9 :minute 0 :second 0)
-:members
-;; (1997 9:00 AM EDT) September 2-11
-(mapcar
- (lambda (day) (ical:date-time-variant dtstart :day day))
- (number-sequence 2 11))
-:source rfc5545-sec3.3.10/3)
+(ert-deftest ict:rrule-test-leap-day/2 ()
+  "Every four years on February 29"
+  (ict:rrule-test
+   "FREQ=YEARLY;INTERVAL=4;BYMONTH=2;BYMONTHDAY=29"
+   :dtstart '(2 29 2024)
+   :high '(3 1 2028)
+   :members '((2 29 2028))
+   :nonmembers '((2 28 2028))))
 
-(ict:rrule-test
- "RRULE:FREQ=YEARLY"
- "Every year on a specific date, e.g. an anniversary"
- :dtstart '(11 11 2024)
- :high '(10 1 2030)
- :members '((11 11 2024)
-            (11 11 2025)
-            (11 11 2026)
-            (11 11 2027)
-            (11 11 2028)
-            (11 11 2029))
- :nonmembers '((11 11 2030))
- :source rfc5545-sec3.6.1/3)
+(ert-deftest ict:rrule-test-rfc5545-sec3.3.10/3 ()
+  "Daily for 10 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0)))
+    (ict:rrule-test
+     "FREQ=DAILY;COUNT=10"
+     :dtstart dtstart
+     :members
+     ;; (1997 9:00 AM EDT) September 2-11
+     (mapcar
+      (lambda (day) (ical:date-time-variant dtstart :day day))
+      (number-sequence 2 11)))))
 
-;; Time zone tests
+(ert-deftest ict:rrule-test-rfc5545-sec3.6.1/3 ()
+  "Every year on a specific date, e.g. an anniversary"
+  (ict:rrule-test
+   "RRULE:FREQ=YEARLY"
+   :dtstart '(11 11 2024)
+   :high '(10 1 2030)
+   :members '((11 11 2024)
+              (11 11 2025)
+              (11 11 2026)
+              (11 11 2027)
+              (11 11 2028)
+              (11 11 2029))
+   :nonmembers '((11 11 2030))))
 
-(ict:rrule-test
- "RRULE:FREQ=YEARLY;BYMONTH=4;BYDAY=-1SU;UNTIL=19730429T070000Z"
- "Every year on the last Sunday of April (through 1973-04-29) at 2AM.
+;; ;; Time zone tests
+
+(ert-deftest ict:rrule-test-rfc5545-sec3.6.5/1 ()
+  "Every year on the last Sunday of April (through 1973-04-29) at 2AM.
 (Onset of US Eastern Daylight Time.)"
- :tz ict:tz-eastern
- ;; DTSTART and all the times below are at *3*AM EDT, because 2AM EST
- ;; (the onset of the observance) does not exist as a local time:
- :dtstart (ical:make-date-time :year 1967 :month 4 :day 30
-                               :hour 3 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:date-time-variant dtstart :year 1973 :month 4 :day 30
-                               :zone ict:edt :dst t)
- :members
- (list
-  (ical:date-time-variant dtstart :year 1968 :day 28 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 1969 :day 27 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 1970 :day 26 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 1971 :day 25 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 1972 :day 30 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 1973 :day 29 :tz 'preserve))
- :source rfc5545-sec3.6.5/1)
+  (let ((dtstart (ical:make-date-time :year 1967 :month 4 :day 30
+                                      :hour 3 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=YEARLY;BYMONTH=4;BYDAY=-1SU;UNTIL=19730429T070000Z"
 
-(ict:rrule-test
- "RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU"
- "Every year on the first Sunday of November at 2AM.
+     :tz ict:tz-eastern
+     ;; DTSTART and all the times below are at *3*AM EDT, because 2AM EST
+     ;; (the onset of the observance) does not exist as a local time:
+     :dtstart dtstart
+     :high (ical:date-time-variant dtstart :year 1973 :month 4 :day 30
+                                   :zone ict:edt :dst t)
+     :members
+     (list
+      (ical:date-time-variant dtstart :year 1968 :day 28 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 1969 :day 27 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 1970 :day 26 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 1971 :day 25 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 1972 :day 30 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 1973 :day 29 :tz 'preserve)))))
+
+(ert-deftest ict:rrule-test-rfc5545-sec3.6.5/3.1 ()
+  "Every year on the first Sunday of November at 2AM.
 (Onset of Eastern Standard Time)."
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 2007 :month 11 :day 4
-                               :hour 2 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:date-time-variant dtstart :year 2010 :month 11 :day 8
-                               :zone ict:est :dst nil)
- :members
- ;; all the times below are at *1*AM EST, because 2AM EDT (the onset of
- ;; the observance) is when clocks get set back:
- (list (ical:date-time-variant dtstart
-                               :year 2008 :month 11 :day 2
-                               :zone ict:est :dst nil)
-       (ical:date-time-variant dtstart
-                               :year 2009 :month 11 :day 1
-                               :zone ict:est :dst nil)
-       (ical:date-time-variant dtstart
-                               :year 2010 :month 11 :day 7
-                               :zone ict:est :dst nil))
- :source rfc5545-sec3.6.5/3.1)
+  (let ((dtstart (ical:make-date-time :year 2007 :month 11 :day 4
+                                      :hour 2 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU"
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;INTERVAL=3;BYDAY=1SU"
- "Every three months on the first Sunday of the month."
- :dtstart '(1 5 2025)
- :high '(1 1 2026)
- :members (list '(4 6 2025)
-                '(7 6 2025)
-                '(10 5 2025))
- :nonmembers (list '(1 12 2025) ;; second Sun.
-                   '(2 2 2025) ;; first Sun. in Feb.
-                   '(4 5 2025)) ;; Sat.
- :source monthly/interval)
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:date-time-variant dtstart :year 2010 :month 11 :day 8
+                                   :zone ict:est :dst nil)
+     :members
+     ;; all the times below are at *1*AM EST, because 2AM EDT (the onset of
+     ;; the observance) is when clocks get set back:
+     (list (ical:date-time-variant dtstart
+                                   :year 2008 :month 11 :day 2
+                                   :zone ict:est :dst nil)
+           (ical:date-time-variant dtstart
+                                   :year 2009 :month 11 :day 1
+                                   :zone ict:est :dst nil)
+           (ical:date-time-variant dtstart
+                                   :year 2010 :month 11 :day 7
+                                   :zone ict:est :dst nil)))))
 
-(ict:rrule-test
- "RRULE:FREQ=DAILY;COUNT=10\n"
- "Daily for 10 occurrences"
- :dtstart (ical:read-date-time "19970902T090000")
- :members
- (mapcar
-  (lambda (day) (ical:date-time-variant dtstart :day day))
-  (number-sequence 2 11))
- :nonmembers (list (ical:date-time-variant dtstart :day 12))
- :high (ical:read-date-time "19970912T090000")
- :source rfc5545-sec3.8.5.3/1)
+(ert-deftest ict:rrule-test-monthly/interval ()
+  "Every three months on the first Sunday of the month."
 
-(ict:rrule-test
- "RRULE:FREQ=DAILY;UNTIL=19971224T000000Z\n"
- "Daily at 9AM until December 24, 1997"
- :tags '(:expensive-test)
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (append
-   ;; EDT:
-  (mapcar
-   (lambda (day) (ical:date-time-variant dtstart :day day :tz 'preserve))
-   (number-sequence 2 30)) ;; Sept. 2--30
-  (mapcar
-   (lambda (day) (ical:date-time-variant dtstart :month 10 :day day
-                                         :tz 'preserve))
-   (number-sequence 1 25)) ;; Oct. 1--25
-  ;; EST:
-  (mapcar
-   (lambda (day)
-     (ical:date-time-variant dtstart :month 10 :day day :zone ict:est :dst nil))
-   (number-sequence 26 31))) ;; Oct. 26--31
- :source rfc5545-sec3.8.5.3/2)
+  (ict:rrule-test
+   "RRULE:FREQ=MONTHLY;INTERVAL=3;BYDAY=1SU"
+   :dtstart '(1 5 2025)
+   :high '(1 1 2026)
+   :members (list '(4 6 2025)
+                  '(7 6 2025)
+                  '(10 5 2025))
+   :nonmembers (list '(1 12 2025) ;; second Sun.
+                     '(2 2 2025) ;; first Sun. in Feb.
+                     '(4 5 2025)) ;; Sat.
+   ))
 
-(ict:rrule-test
- "RRULE:FREQ=DAILY;INTERVAL=2\n"
- "Every other day - forever"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:make-date-time :year 1997 :month 12 :day 4
-                            :hour 0 :minute 0 :second 0
-                            :zone ict:est :dst nil)
- :members
- (append
-  ;; (1997 9:00 AM EDT) September 2,4,6,8...24,26,28,30;
-  ;;                    October 2,4,6...20,22,24
-  (mapcar
-   (lambda (n)
-     (ical:date-time-variant dtstart :day (* 2 n) :tz 'preserve))
-   (number-sequence 1 15))
-  (mapcar
-   (lambda (n)
-     (ical:date-time-variant dtstart :month 10 :day (* 2 n) :tz 'preserve))
-   (number-sequence 1 12))
-  ;; (1997 9:00 AM EST) October 26,28,30;
-  ;;                    November 1,3,5,7...25,27,29;
-  ;;                    December 1,3,...
-  (mapcar
-   (lambda (n)
-     (ical:date-time-variant dtstart :month 10 :day (* 2 n)
-                             :zone ict:est :dst nil))
-   (number-sequence 13 15))
-  (mapcar
-   (lambda (n)
-     (ical:date-time-variant dtstart :month 11 :day (1- (* 2 n))
-                             :zone ict:est :dst nil))
-   (number-sequence 1 15))
-  (mapcar
-   (lambda (n)
-     (ical:date-time-variant dtstart :month 12 :day (1- (* 2 n))
-                             :zone ict:est :dst nil))
-   (number-sequence 1 2)))
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/1 ()
+  "Daily for 10 occurrences"
+  (let ((dtstart (ical:read-date-time "19970902T090000")))
+    (ict:rrule-test
+     "RRULE:FREQ=DAILY;COUNT=10\n"
+     :dtstart dtstart
+     :members
+     (mapcar
+      (lambda (day) (ical:date-time-variant dtstart :day day))
+      (number-sequence 2 11))
+     :nonmembers (list (ical:date-time-variant dtstart :day 12))
+     :high (ical:read-date-time "19970912T090000"))))
 
- :nonmembers
- (list
-  ;; e.g.
-  (ical:make-date-time :year 1997 :month 10 :day 27
-                       :hour 9 :minute 0 :second 0
-                       :zone ict:est :dst nil))
- :source rfc5545-sec3.8.5.3/3)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/2 ()
+  "Daily at 9AM until December 24, 1997"
+  :tags '(:expensive-test)
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=DAILY;UNTIL=19971224T000000Z\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (append
+      ;; EDT:
+      (mapcar
+       (lambda (day) (ical:date-time-variant dtstart :day day :tz 'preserve))
+       (number-sequence 2 30)) ;; Sept. 2--30
+      (mapcar
+       (lambda (day) (ical:date-time-variant dtstart :month 10 :day day
+                                             :tz 'preserve))
+       (number-sequence 1 25)) ;; Oct. 1--25
+      ;; EST:
+      (mapcar
+       (lambda (day)
+         (ical:date-time-variant dtstart
+                                 :month 10 :day day :zone ict:est :dst nil))
+       (number-sequence 26 31))) ;; Oct. 26--31
+     )))
 
-(ict:rrule-test
- "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5\n"
- "Every ten days for five recurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/3 ()
+  "Every other day - forever"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=DAILY;INTERVAL=2\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 1997 :month 12 :day 4
+                                :hour 0 :minute 0 :second 0
+                                :zone ict:est :dst nil)
+     :members
+     (append
+      ;; (1997 9:00 AM EDT) September 2,4,6,8...24,26,28,30;
+      ;;                    October 2,4,6...20,22,24
+      (mapcar
+       (lambda (n)
+         (ical:date-time-variant dtstart :day (* 2 n) :tz 'preserve))
+       (number-sequence 1 15))
+      (mapcar
+       (lambda (n)
+         (ical:date-time-variant dtstart :month 10 :day (* 2 n) :tz 'preserve))
+       (number-sequence 1 12))
+      ;; (1997 9:00 AM EST) October 26,28,30;
+      ;;                    November 1,3,5,7...25,27,29;
+      ;;                    December 1,3,...
+      (mapcar
+       (lambda (n)
+         (ical:date-time-variant dtstart :month 10 :day (* 2 n)
+                                 :zone ict:est :dst nil))
+       (number-sequence 13 15))
+      (mapcar
+       (lambda (n)
+         (ical:date-time-variant dtstart :month 11 :day (1- (* 2 n))
+                                 :zone ict:est :dst nil))
+       (number-sequence 1 15))
+      (mapcar
+       (lambda (n)
+         (ical:date-time-variant dtstart :month 12 :day (1- (* 2 n))
+                                 :zone ict:est :dst nil))
+       (number-sequence 1 2)))
 
- :members ;; (1997 9:00 AM EDT) September 2,12,22; October 2,12
- (list
-  dtstart
-  (ical:make-date-time :year 1997 :month 9 :day 12
-                       :hour 9 :minute 0 :second 0
-                       :zone ict:edt :dst t)
-  (ical:make-date-time :year 1997 :month 9 :day 22
-                       :hour 9 :minute 0 :second 0
-                       :zone ict:edt :dst t)
-  (ical:make-date-time :year 1997 :month 10 :day 2
-                       :hour 9 :minute 0 :second 0
-                       :zone ict:edt :dst t)
-  (ical:make-date-time :year 1997 :month 10 :day 12
-                       :hour 9 :minute 0 :second 0
-                       :zone ict:edt :dst t))
- :source rfc5545-sec3.8.5.3/4)
+     :nonmembers
+     (list
+      ;; e.g.
+      (ical:make-date-time :year 1997 :month 10 :day 27
+                           :hour 9 :minute 0 :second 0
+                           :zone ict:est :dst nil)))))
 
-(ict:rrule-test
- "RRULE:FREQ=YEARLY;UNTIL=20000131T140000Z;BYMONTH=1;BYDAY=SU,MO,TU,WE,TH,FR,SA\n"
- "Every day in January, for three years (weekdays explicit)"
- :tags '(:expensive-test)
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1998 :month 1 :day 1
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:est :dst nil)
- :high (ical:make-date-time :year 2000 :month 2 :day 1
-                            :hour 9 :minute 0 :second 0
-                            :zone ict:est :dst nil)
- :members
- ;; (1998 9:00 AM EST)January 1-31
- ;; (1999 9:00 AM EST)January 1-31
- ;; (2000 9:00 AM EST)January 1-31
- (append
-  (mapcar
-   (lambda (day) (ical:date-time-variant dtstart :day day :tz 'preserve))
-   (number-sequence 1 31))
-  (mapcar
-   (lambda (day)
-     (ical:date-time-variant dtstart :year 1999 :day day :tz 'preserve))
-   (number-sequence 1 31))
-  (mapcar
-   (lambda (day)
-     (ical:date-time-variant dtstart :year 2000 :day day :tz 'preserve))
-   (number-sequence 1 31)))
- :source rfc5545-sec3.8.5.3/5)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/4 ()
+  "Every ten days for five recurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members ;; (1997 9:00 AM EDT) September 2,12,22; October 2,12
+     (list
+      dtstart
+      (ical:make-date-time :year 1997 :month 9 :day 12
+                           :hour 9 :minute 0 :second 0
+                           :zone ict:edt :dst t)
+      (ical:make-date-time :year 1997 :month 9 :day 22
+                           :hour 9 :minute 0 :second 0
+                           :zone ict:edt :dst t)
+      (ical:make-date-time :year 1997 :month 10 :day 2
+                           :hour 9 :minute 0 :second 0
+                           :zone ict:edt :dst t)
+      (ical:make-date-time :year 1997 :month 10 :day 12
+                           :hour 9 :minute 0 :second 0
+                           :zone ict:edt :dst t)))))
 
-(ict:rrule-test
- "RRULE:FREQ=DAILY;UNTIL=20000131T140000Z;BYMONTH=1\n"
- "Every day in January, for three years (weekdays implicit)"
- :tags '(:expensive-test)
- ;; TODO: as things are currently implemented, this way of expressing
- ;; the rule is quite expensive, since we end up computing intervals and
- ;; recurrences for every day of the year, even though the only relevant
- ;; days are in January and there are no recurrences on the other days.
- ;; We could try to optimize e.g. icr:refine-from-clauses to deal with such
- ;; cases.
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1998 :month 1 :day 1
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:est :dst nil)
- :high (ical:make-date-time :year 2000 :month 2 :day 1
-                            :hour 9 :minute 0 :second 0
-                            :zone ict:est :dst nil)
- :members
- ;; (1998 9:00 AM EST)January 1-31
- ;; (1999 9:00 AM EST)January 1-31
- ;; (2000 9:00 AM EST)January 1-31
- (append
-  (mapcar
-   (lambda (day) (ical:date-time-variant dtstart :day day :tz 'preserve))
-   (number-sequence 1 31))
-  (mapcar
-   (lambda (day)
-     (ical:date-time-variant dtstart :year 1999 :day day :tz 'preserve))
-   (number-sequence 1 31))
-  (mapcar
-   (lambda (day)
-     (ical:date-time-variant dtstart :year 2000 :day day :tz 'preserve))
-   (number-sequence 1 31)))
- :source rfc5545-sec3.8.5.3/6)
-
-(ict:rrule-test
- "RRULE:FREQ=WEEKLY;COUNT=10\n"
- "Weekly for ten occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (append
-  ;; (1997 9:00 AM EDT) September 2,9,16,23,30;October 7,14,21
-  (mapcar
-   (lambda (day)
-     (ical:date-time-variant dtstart :day day :tz 'preserve))
-   (list 2 9 16 23 30))
-  (mapcar
-   (lambda (day)
-     (ical:date-time-variant dtstart :month 10 :day day :tz 'preserve))
-   (list 7 14 21))
-  ;; (1997 9:00 AM EST) October 28;November 4
-  (list
-   (ical:make-date-time :year 1997 :month 10 :day 28
-                        :hour 9 :minute 0 :second 0
-                        :zone ict:est :dst nil)
-   (ical:make-date-time :year 1997 :month 11 :day 4
-                        :hour 9 :minute 0 :second 0
-                        :zone ict:est :dst nil)))
- :source rfc5545-sec3.8.5.3/7)
-
-(ict:rrule-test
- "RRULE:FREQ=WEEKLY;UNTIL=19971224T000000Z\n"
- "Every week until December 24, 1997"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (let ((oct97 (ical:date-time-variant dtstart :month 10
-                                      :zone ict:edt :dst t))
-       (nov97 (ical:date-time-variant dtstart :month 11
-                                      :zone ict:est :dst nil))
-       (dec97 (ical:date-time-variant dtstart :month 12
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/5 ()
+  "Every day in January, for three years (weekdays explicit)"
+  :tags '(:expensive-test)
+  (let ((dtstart (ical:make-date-time :year 1998 :month 1 :day 1
+                                      :hour 9 :minute 0 :second 0
                                       :zone ict:est :dst nil)))
-   (append
-    ;; (1997 9:00 AM EDT) September 2,9,16,23,30;
-    ;;                    October 7,14,21
-    (mapcar
-     (lambda (day)
-       (ical:date-time-variant dtstart :day day :tz 'preserve))
-     (list 2 9 16 23 30))
-    (mapcar
-     (lambda (day)
-       (ical:date-time-variant oct97 :day day :tz 'preserve))
-     (list 7 14 21))
-    ;; (1997 9:00 AM EST) October 28;
-    ;;                    November 4,11,18,25;
-    ;;                    December 2,9,16,23
-    (list (ical:date-time-variant oct97 :day 28 :zone ict:est :dst nil))
-    (mapcar
-     (lambda (day)
-       (ical:date-time-variant nov97 :day day :tz 'preserve))
-     (list 4 11 18 25))
-    (mapcar
-     (lambda (day)
-       (ical:date-time-variant dec97 :day day :tz 'preserve))
-     (list 2 9 16 23))))
- :source rfc5545-sec3.8.5.3/8)
+    (ict:rrule-test
+     "RRULE:FREQ=YEARLY;UNTIL=20000131T140000Z;BYMONTH=1;BYDAY=SU,MO,TU,WE,TH,FR,SA\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 2000 :month 2 :day 1
+                                :hour 9 :minute 0 :second 0
+                                :zone ict:est :dst nil)
+     :members
+     ;; (1998 9:00 AM EST)January 1-31
+     ;; (1999 9:00 AM EST)January 1-31
+     ;; (2000 9:00 AM EST)January 1-31
+     (append
+      (mapcar
+       (lambda (day) (ical:date-time-variant dtstart :day day :tz 'preserve))
+       (number-sequence 1 31))
+      (mapcar
+       (lambda (day)
+         (ical:date-time-variant dtstart :year 1999 :day day :tz 'preserve))
+       (number-sequence 1 31))
+      (mapcar
+       (lambda (day)
+         (ical:date-time-variant dtstart :year 2000 :day day :tz 'preserve))
+       (number-sequence 1 31))))))
 
-(ict:rrule-test
- "RRULE:FREQ=WEEKLY;INTERVAL=2;WKST=SU\n"
- "Every other week - forever; Weekstart on Sunday"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:make-date-time :year 1998 :month 3 :day 1
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/6 ()
+  "Every day in January, for three years (weekdays implicit)"
+  :tags '(:expensive-test)
+  (let ((dtstart (ical:make-date-time :year 1998 :month 1 :day 1
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:est :dst nil)))
+    (ict:rrule-test
+     "RRULE:FREQ=DAILY;UNTIL=20000131T140000Z;BYMONTH=1\n"
+     ;; TODO: as things are currently implemented, this way of expressing
+     ;; the rule is quite expensive, since we end up computing intervals and
+     ;; recurrences for every day of the year, even though the only relevant
+     ;; days are in January and there are no recurrences on the other days.
+     ;; We could try to optimize e.g. icr:refine-from-clauses to deal with such
+     ;; cases.
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 2000 :month 2 :day 1
+                                :hour 9 :minute 0 :second 0
+                                :zone ict:est :dst nil)
+     :members
+     ;; (1998 9:00 AM EST)January 1-31
+     ;; (1999 9:00 AM EST)January 1-31
+     ;; (2000 9:00 AM EST)January 1-31
+     (append
+      (mapcar
+       (lambda (day) (ical:date-time-variant dtstart :day day :tz 'preserve))
+       (number-sequence 1 31))
+      (mapcar
+       (lambda (day)
+         (ical:date-time-variant dtstart :year 1999 :day day :tz 'preserve))
+       (number-sequence 1 31))
+      (mapcar
+       (lambda (day)
+         (ical:date-time-variant dtstart :year 2000 :day day :tz 'preserve))
+       (number-sequence 1 31))))))
+
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/7 ()
+  "Weekly for ten occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=WEEKLY;COUNT=10\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (append
+      ;; (1997 9:00 AM EDT) September 2,9,16,23,30;October 7,14,21
+      (mapcar
+       (lambda (day)
+         (ical:date-time-variant dtstart :day day :tz 'preserve))
+       (list 2 9 16 23 30))
+      (mapcar
+       (lambda (day)
+         (ical:date-time-variant dtstart :month 10 :day day :tz 'preserve))
+       (list 7 14 21))
+      ;; (1997 9:00 AM EST) October 28;November 4
+      (list
+       (ical:make-date-time :year 1997 :month 10 :day 28
                             :hour 9 :minute 0 :second 0
                             :zone ict:est :dst nil)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 2,16,30;
-  ;;                        October 14
-  dtstart
-  (ical:date-time-variant dtstart :day 16 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 30 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 10 :day 14 :tz 'preserve)
-  ;;    (1997 9:00 AM EST) October 28;
-  ;;                       November 11,25;
-  ;;                       December 9,23
-  (ical:date-time-variant dtstart :month 10 :day 28 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 11 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 25 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 23 :zone ict:est :dst nil)
-  ;;    (1998 9:00 AM EST) January 6,20;
-  ;;                       February 3, 17
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 6
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 20
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 2 :day 3
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 2 :day 17
-                          :zone ict:est :dst nil))
- :source rfc5545-sec3.8.5.3/9)
+       (ical:make-date-time :year 1997 :month 11 :day 4
+                            :hour 9 :minute 0 :second 0
+                            :zone ict:est :dst nil))))))
 
-(ict:rrule-test
-"RRULE:FREQ=WEEKLY;UNTIL=19971007T000000Z;WKST=SU;BYDAY=TU,TH\n"
-"Weekly on Tuesday and Thursday for five weeks, using UNTIL"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:make-date-time :year 1997 :month 10 :day 8
-                            :hour 0 :minute 0 :second 0 :zone 0)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 2,4,9,11,16,18,23,25,30;
-  ;;                        October 2
-  dtstart
-  (ical:date-time-variant dtstart :day 4 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 9 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 11 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 16 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 18 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 23 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 25 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 30 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 10 :day 2 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/10)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/8 ()
+  "Every week until December 24, 1997"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=WEEKLY;UNTIL=19971224T000000Z\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (let ((oct97 (ical:date-time-variant dtstart :month 10
+                                          :zone ict:edt :dst t))
+           (nov97 (ical:date-time-variant dtstart :month 11
+                                          :zone ict:est :dst nil))
+           (dec97 (ical:date-time-variant dtstart :month 12
+                                          :zone ict:est :dst nil)))
+       (append
+        ;; (1997 9:00 AM EDT) September 2,9,16,23,30;
+        ;;                    October 7,14,21
+        (mapcar
+         (lambda (day)
+           (ical:date-time-variant dtstart :day day :tz 'preserve))
+         (list 2 9 16 23 30))
+        (mapcar
+         (lambda (day)
+           (ical:date-time-variant oct97 :day day :tz 'preserve))
+         (list 7 14 21))
+        ;; (1997 9:00 AM EST) October 28;
+        ;;                    November 4,11,18,25;
+        ;;                    December 2,9,16,23
+        (list (ical:date-time-variant oct97 :day 28 :zone ict:est :dst nil))
+        (mapcar
+         (lambda (day)
+           (ical:date-time-variant nov97 :day day :tz 'preserve))
+         (list 4 11 18 25))
+        (mapcar
+         (lambda (day)
+           (ical:date-time-variant dec97 :day day :tz 'preserve))
+         (list 2 9 16 23)))))))
 
-(ict:rrule-test
-"RRULE:FREQ=WEEKLY;COUNT=10;WKST=SU;BYDAY=TU,TH\n"
-"Weekly on Tuesday and Thursday for five weeks, using COUNT"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:make-date-time :year 1997 :month 10 :day 8
-                            :hour 0 :minute 0 :second 0 :zone 0)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 2,4,9,11,16,18,23,25,30;
-  ;;                        October 2
-  dtstart
-  (ical:date-time-variant dtstart :day 4 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 9 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 11 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 16 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 18 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 23 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 25 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 30 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 10 :day 2 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/11)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/9 ()
+  "Every other week - forever; Weekstart on Sunday"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=WEEKLY;INTERVAL=2;WKST=SU\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 1998 :month 3 :day 1
+                                :hour 9 :minute 0 :second 0
+                                :zone ict:est :dst nil)
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 2,16,30;
+      ;;                        October 14
+      dtstart
+      (ical:date-time-variant dtstart :day 16 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 30 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 14 :tz 'preserve)
+      ;;    (1997 9:00 AM EST) October 28;
+      ;;                       November 11,25;
+      ;;                       December 9,23
+      (ical:date-time-variant dtstart :month 10 :day 28 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 11 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 25 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 23 :zone ict:est :dst nil)
+      ;;    (1998 9:00 AM EST) January 6,20;
+      ;;                       February 3, 17
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 6
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 20
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 2 :day 3
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 2 :day 17
+                              :zone ict:est :dst nil)))))
 
-(ict:rrule-test
- "RRULE:FREQ=WEEKLY;INTERVAL=2;UNTIL=19971224T000000Z;WKST=SU;BYDAY=MO,WE,FR\n"
- "Every other week on Monday, Wednesday, and Friday until December 24,
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/10 ()
+  "Weekly on Tuesday and Thursday for five weeks, using UNTIL"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=WEEKLY;UNTIL=19971007T000000Z;WKST=SU;BYDAY=TU,TH\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 1997 :month 10 :day 8
+                                :hour 0 :minute 0 :second 0 :zone 0)
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 2,4,9,11,16,18,23,25,30;
+      ;;                        October 2
+      dtstart
+      (ical:date-time-variant dtstart :day 4 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 9 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 11 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 16 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 18 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 23 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 25 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 30 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 2 :tz 'preserve)))))
+
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/11 ()
+  "Weekly on Tuesday and Thursday for five weeks, using COUNT"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=WEEKLY;COUNT=10;WKST=SU;BYDAY=TU,TH\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 1997 :month 10 :day 8
+                                :hour 0 :minute 0 :second 0 :zone 0)
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 2,4,9,11,16,18,23,25,30;
+      ;;                        October 2
+      dtstart
+      (ical:date-time-variant dtstart :day 4 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 9 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 11 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 16 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 18 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 23 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 25 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 30 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 2 :tz 'preserve)))))
+
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/12 ()
+  "Every other week on Monday, Wednesday, and Friday until December 24,
 1997, starting on Monday, September 1, 1997"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 1
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  dtstart
-  ;; ==> (1997 9:00 AM EDT) September 1,3,5,15,17,19,29;
-  ;;                        October 1,3,13,15,17
-  (ical:date-time-variant dtstart :day 3 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 5 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 15 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 17 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 19 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 29 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 10 :day 1 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 10 :day 3 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 10 :day 13 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 10 :day 15 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 10 :day 17 :tz 'preserve)
-  ;;     (1997 9:00 AM EST) October 27,29,31;
-  ;;                        November 10,12,14,24,26,28;
-  ;;                        December 8,10,12,22
-  (ical:date-time-variant dtstart :month 10 :day 27 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 10 :day 29 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 10 :day 31 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 10 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 12 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 14 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 24 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 26 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 28 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 8  :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 10 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 12 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 22 :zone ict:est :dst nil))
- :nonmembers
- (list
-  ;; These match the rule, but are just past the UNTIL date:
-  (ical:date-time-variant dtstart :month 12 :day 24 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 26 :zone ict:est :dst nil))
- :source rfc5545-sec3.8.5.3/12)
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 1
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=WEEKLY;INTERVAL=2;UNTIL=19971224T000000Z;WKST=SU;BYDAY=MO,WE,FR\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      dtstart
+      ;; ==> (1997 9:00 AM EDT) September 1,3,5,15,17,19,29;
+      ;;                        October 1,3,13,15,17
+      (ical:date-time-variant dtstart :day 3 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 5 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 15 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 17 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 19 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 29 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 1 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 3 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 13 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 15 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 17 :tz 'preserve)
+      ;;     (1997 9:00 AM EST) October 27,29,31;
+      ;;                        November 10,12,14,24,26,28;
+      ;;                        December 8,10,12,22
+      (ical:date-time-variant dtstart :month 10 :day 27 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 10 :day 29 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 10 :day 31 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 10 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 12 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 14 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 24 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 26 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 28 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 8  :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 10 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 12 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 22 :zone ict:est :dst nil))
+     :nonmembers
+     (list
+      ;; These match the rule, but are just past the UNTIL date:
+      (ical:date-time-variant dtstart :month 12 :day 24 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 26 :zone ict:est :dst nil))
+     )))
 
-(ict:rrule-test
- "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=8;WKST=SU;BYDAY=TU,TH\n"
- "Every other week on Tuesday and Thursday, for 8 occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- ;; ==> (1997 9:00 AM EDT) September 2,4,16,18,30;
- ;;                        October 2,14,16
- (list
-   dtstart
-   (ical:date-time-variant dtstart :day 4 :tz 'preserve)
-   (ical:date-time-variant dtstart :day 16 :tz 'preserve)
-   (ical:date-time-variant dtstart :day 18 :tz 'preserve)
-   (ical:date-time-variant dtstart :day 30 :tz 'preserve)
-   (ical:date-time-variant dtstart :month 10 :day 2 :tz 'preserve)
-   (ical:date-time-variant dtstart :month 10 :day 14 :tz 'preserve)
-   (ical:date-time-variant dtstart :month 10 :day 16 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/13)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/13 ()
+  "Every other week on Tuesday and Thursday, for 8 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=8;WKST=SU;BYDAY=TU,TH\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     ;; ==> (1997 9:00 AM EDT) September 2,4,16,18,30;
+     ;;                        October 2,14,16
+     (list
+      dtstart
+      (ical:date-time-variant dtstart :day 4 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 16 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 18 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 30 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 2 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 14 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 16 :tz 'preserve)))))
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;COUNT=10;BYDAY=1FR\n"
- "Monthly on the first Friday for 10 occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 5
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 5;October 3
-  dtstart
-  (ical:date-time-variant dtstart :month 10 :day 3 :tz 'preserve)
-  ;;     (1997 9:00 AM EST) November 7;December 5
-  (ical:date-time-variant dtstart :month 11 :day 7 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 5 :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EST) January 2;February 6;March 6;April 3
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 2
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 2 :day 6
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 3 :day 6
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 4 :day 3
-                          :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EDT) May 1;June 5
-  (ical:date-time-variant dtstart :year 1998 :month 5 :day 1 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 1998 :month 6 :day 5 :tz 'preserve))
-  :source rfc5545-sec3.8.5.3/14)
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;UNTIL=19971224T000000Z;BYDAY=1FR\n"
- "Monthly on the first Friday until December 24, 1997"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 5
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 5; October 3
-  dtstart
-  (ical:date-time-variant dtstart :month 10 :day 3 :tz 'preserve)
-  ;;     (1997 9:00 AM EST) November 7;December 5
-  (ical:date-time-variant dtstart :month 11 :day 7 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 5 :zone ict:est :dst nil))
- :source rfc5545-sec3.8.5.3/15)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/14 ()
+  "Monthly on the first Friday for 10 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 5
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;COUNT=10;BYDAY=1FR\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 5;October 3
+      dtstart
+      (ical:date-time-variant dtstart :month 10 :day 3 :tz 'preserve)
+      ;;     (1997 9:00 AM EST) November 7;December 5
+      (ical:date-time-variant dtstart :month 11 :day 7 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 5 :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EST) January 2;February 6;March 6;April 3
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 2
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 2 :day 6
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 3 :day 6
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 4 :day 3
+                              :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EDT) May 1;June 5
+      (ical:date-time-variant dtstart :year 1998 :month 5 :day 1 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 1998 :month 6 :day 5 :tz 'preserve)))))
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;INTERVAL=2;COUNT=10;BYDAY=1SU,-1SU\n"
- "Every other month on the first and last Sunday of the month for 10 occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 7
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 7,28
-  dtstart
-  (ical:date-time-variant dtstart :day 28 :tz 'preserve)
-  ;;     (1997 9:00 AM EST) November 2,30
-  (ical:date-time-variant dtstart :month 11 :day 2 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 30 :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EST) January 4,25;March 1,29
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 4
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 25
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 3 :day 1
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 3 :day 29
-                          :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EDT) May 3,31
-  (ical:date-time-variant dtstart :year 1998 :month 5 :day 3 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 1998 :month 5 :day 31 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/16)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/15 ()
+  "Monthly on the first Friday until December 24, 1997"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 5
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;UNTIL=19971224T000000Z;BYDAY=1FR\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 5; October 3
+      dtstart
+      (ical:date-time-variant dtstart :month 10 :day 3 :tz 'preserve)
+      ;;     (1997 9:00 AM EST) November 7;December 5
+      (ical:date-time-variant dtstart :month 11 :day 7 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 5 :zone ict:est :dst nil)))
+    ))
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;COUNT=6;BYDAY=-2MO\n"
- "Monthly on the second-to-last Monday of the month for 6 months"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 22
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 22;October 20
-  dtstart
-  (ical:date-time-variant dtstart :month 10 :day 20 :tz 'preserve)
-  ;;     (1997 9:00 AM EST) November 17;December 22
-  (ical:date-time-variant dtstart :month 11 :day 17
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 22
-                          :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EST) January 19;February 16
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 19
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 2 :day 16
-                          :zone ict:est :dst nil))
- :source rfc5545-sec3.8.5.3/17)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/16 ()
+  "Every other month on the first and last Sunday of the month for 10 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 7
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;INTERVAL=2;COUNT=10;BYDAY=1SU,-1SU\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 7,28
+      dtstart
+      (ical:date-time-variant dtstart :day 28 :tz 'preserve)
+      ;;     (1997 9:00 AM EST) November 2,30
+      (ical:date-time-variant dtstart :month 11 :day 2 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 30 :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EST) January 4,25;March 1,29
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 4
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 25
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 3 :day 1
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 3 :day 29
+                              :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EDT) May 3,31
+      (ical:date-time-variant dtstart :year 1998 :month 5 :day 3 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 1998 :month 5 :day 31 :tz 'preserve))
+     )))
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;BYMONTHDAY=-3\n"
- "Monthly on the third-to-the-last day of the month, forever"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 28
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:make-date-time :year 1998 :month 3 :day 1
-                            :hour 0 :minute 0 :second 0
-                            :zone ict:est :dst nil)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 28
-  dtstart
-  ;;     (1997 9:00 AM EST) October 29;November 28;December 29
-  (ical:date-time-variant dtstart :month 10 :day 29
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 28
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 29
-                          :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EST) January 29;February 26
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 29
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 2 :day 26
-                          :zone ict:est :dst nil))
- :source rfc5545-sec3.8.5.3/18)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/17 ()
+  "Monthly on the second-to-last Monday of the month for 6 months"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 22
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;COUNT=6;BYDAY=-2MO\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 22;October 20
+      dtstart
+      (ical:date-time-variant dtstart :month 10 :day 20 :tz 'preserve)
+      ;;     (1997 9:00 AM EST) November 17;December 22
+      (ical:date-time-variant dtstart :month 11 :day 17
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 22
+                              :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EST) January 19;February 16
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 19
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 2 :day 16
+                              :zone ict:est :dst nil)))))
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;COUNT=10;BYMONTHDAY=2,15\n"
- "Monthly on the 2nd and 15th of the month for 10 occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 2,15;October 2,15
-  dtstart
-  (ical:date-time-variant dtstart :day 15 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 10 :day 2 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 10 :day 15 :tz 'preserve)
-  ;;     (1997 9:00 AM EST) November 2,15;December 2,15
-  (ical:date-time-variant dtstart :month 11 :day 2
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 15
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 2
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 15
-                          :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EST) January 2,15
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 2
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 15
-                          :zone ict:est :dst nil))
- :source rfc5545-sec3.8.5.3/19)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/18 ()
+  "Monthly on the third-to-the-last day of the month, forever"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 28
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;BYMONTHDAY=-3\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 1998 :month 3 :day 1
+                                :hour 0 :minute 0 :second 0
+                                :zone ict:est :dst nil)
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 28
+      dtstart
+      ;;     (1997 9:00 AM EST) October 29;November 28;December 29
+      (ical:date-time-variant dtstart :month 10 :day 29
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 28
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 29
+                              :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EST) January 29;February 26
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 29
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 2 :day 26
+                              :zone ict:est :dst nil)))))
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;COUNT=10;BYMONTHDAY=1,-1\n"
- "Monthly on the first and last day of the month for 10 occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 30
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 30;October 1
-  dtstart
-  (ical:date-time-variant dtstart :month 10 :day 1 :tz 'preserve)
-  ;;     (1997 9:00 AM EST) October 31;November 1,30;December 1,31
-  (ical:date-time-variant dtstart :month 10 :day 31
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 1
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 30
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 1
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 31
-                          :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EST) January 1,31;February 1
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 1
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 31
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 2 :day 1
-                          :zone ict:est :dst nil))
- :source rfc5545-sec3.8.5.3/20)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/19 ()
+  "Monthly on the 2nd and 15th of the month for 10 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;COUNT=10;BYMONTHDAY=2,15\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 2,15;October 2,15
+      dtstart
+      (ical:date-time-variant dtstart :day 15 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 2 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 10 :day 15 :tz 'preserve)
+      ;;     (1997 9:00 AM EST) November 2,15;December 2,15
+      (ical:date-time-variant dtstart :month 11 :day 2
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 15
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 2
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 15
+                              :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EST) January 2,15
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 2
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 15
+                              :zone ict:est :dst nil)))))
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;INTERVAL=18;COUNT=10;BYMONTHDAY=10,11,12,13,14,15\n"
- "Every 18 months on the 10th thru 15th of the month for 10 occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 10
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (append
-  (list
-   ;; ==> (1997 9:00 AM EDT) September 10,11,12,13,14,15
-   dtstart
-   (ical:date-time-variant dtstart :day 11 :tz 'preserve)
-   (ical:date-time-variant dtstart :day 12 :tz 'preserve)
-   (ical:date-time-variant dtstart :day 13 :tz 'preserve)
-   (ical:date-time-variant dtstart :day 14 :tz 'preserve)
-   (ical:date-time-variant dtstart :day 15 :tz 'preserve))
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/20 ()
+  "Monthly on the first and last day of the month for 10 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 30
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;COUNT=10;BYMONTHDAY=1,-1\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 30;October 1
+      dtstart
+      (ical:date-time-variant dtstart :month 10 :day 1 :tz 'preserve)
+      ;;     (1997 9:00 AM EST) October 31;November 1,30;December 1,31
+      (ical:date-time-variant dtstart :month 10 :day 31
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 1
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 30
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 1
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 31
+                              :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EST) January 1,31;February 1
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 1
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 31
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 2 :day 1
+                              :zone ict:est :dst nil)))))
 
-  ;;     (1999 9:00 AM EST) March 10,11,12,13
-  (let ((mar99 (ical:make-date-time :year 1999 :month 3 :day 10
-                                    :hour 9 :minute 0 :second 0
-                                    :zone ict:est :dst nil)))
-    (list
-     mar99
-     (ical:date-time-variant mar99 :day 11 :tz 'preserve)
-     (ical:date-time-variant mar99 :day 12 :tz 'preserve)
-     (ical:date-time-variant mar99 :day 13 :tz 'preserve))))
- :nonmembers
- (list
-  ;; These match the rule but are excluded by the COUNT clause:
-  (ical:make-date-time :year 1999 :month 3 :day 14
-                       :hour 9 :minute 0 :second 0
-                       :zone ict:est :dst nil)
-  (ical:make-date-time :year 1999 :month 3 :day 15
-                       :hour 9 :minute 0 :second 0
-                       :zone ict:est :dst nil))
- :source rfc5545-sec3.8.5.3/21)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/21 ()
+  "Every 18 months on the 10th thru 15th of the month for 10 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 10
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;INTERVAL=18;COUNT=10;BYMONTHDAY=10,11,12,13,14,15\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (append
+      (list
+       ;; ==> (1997 9:00 AM EDT) September 10,11,12,13,14,15
+       dtstart
+       (ical:date-time-variant dtstart :day 11 :tz 'preserve)
+       (ical:date-time-variant dtstart :day 12 :tz 'preserve)
+       (ical:date-time-variant dtstart :day 13 :tz 'preserve)
+       (ical:date-time-variant dtstart :day 14 :tz 'preserve)
+       (ical:date-time-variant dtstart :day 15 :tz 'preserve))
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;INTERVAL=2;BYDAY=TU\n"
- "Every Tuesday, every other month"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:make-date-time :year 1998 :month 4 :day 1
-                            :hour 0 :minute 0 :second 0
-                            :zone ict:est :dst nil)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 2,9,16,23,30
-  dtstart
-  (ical:date-time-variant dtstart :day 9 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 16 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 23 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 30 :tz 'preserve)
-  ;;     (1997 9:00 AM EST) November 4,11,18,25
-  (ical:date-time-variant dtstart :month 11 :day 4
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 11
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 11
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 25
-                          :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EST) January 6,13,20,27;March 3,10,17,24,31
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 6
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 13
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 20
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 27
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 3 :day 3
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 3 :day 10
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 3 :day 17
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 3 :day 24
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 3 :day 31
-                          :zone ict:est :dst nil))
- :nonmembers
- ;; e.g. Tuesdays in December 1997:
- (list
-  (ical:date-time-variant dtstart :month 12 :day 2 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 9 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 16 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 23 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 30 :zone ict:est :dst nil))
- :source rfc5545-sec3.8.5.3/22)
+      ;;     (1999 9:00 AM EST) March 10,11,12,13
+      (let ((mar99 (ical:make-date-time :year 1999 :month 3 :day 10
+                                        :hour 9 :minute 0 :second 0
+                                        :zone ict:est :dst nil)))
+        (list
+         mar99
+         (ical:date-time-variant mar99 :day 11 :tz 'preserve)
+         (ical:date-time-variant mar99 :day 12 :tz 'preserve)
+         (ical:date-time-variant mar99 :day 13 :tz 'preserve))))
+     :nonmembers
+     (list
+      ;; These match the rule but are excluded by the COUNT clause:
+      (ical:make-date-time :year 1999 :month 3 :day 14
+                           :hour 9 :minute 0 :second 0
+                           :zone ict:est :dst nil)
+      (ical:make-date-time :year 1999 :month 3 :day 15
+                           :hour 9 :minute 0 :second 0
+                           :zone ict:est :dst nil)))))
 
-(ict:rrule-test
- "RRULE:FREQ=YEARLY;COUNT=10;BYMONTH=6,7\n"
- "Yearly in June and July for 10 occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 6 :day 10
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- ;; Note: Since none of the BYDAY, BYMONTHDAY, or BYYEARDAY
- ;; clauses are specified, the month day is gotten from "DTSTART"
- :members
- ;; ==> (1997 9:00 AM EDT) June 10;July 10
- ;;     (1998 9:00 AM EDT) June 10;July 10
- ;;     (1999 9:00 AM EDT) June 10;July 10
- ;;     (2000 9:00 AM EDT) June 10;July 10
- ;;     (2001 9:00 AM EDT) June 10;July 10
- (mapcan
-  (lambda (y)
-    (list
-     (ical:date-time-variant dtstart :year y :month 6 :tz 'preserve)
-     (ical:date-time-variant dtstart :year y :month 7 :tz 'preserve)))
-  (number-sequence 1997 2001))
- :source rfc5545-sec3.8.5.3/23)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/22 ()
+  "Every Tuesday, every other month"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;INTERVAL=2;BYDAY=TU\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 1998 :month 4 :day 1
+                                :hour 0 :minute 0 :second 0
+                                :zone ict:est :dst nil)
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 2,9,16,23,30
+      dtstart
+      (ical:date-time-variant dtstart :day 9 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 16 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 23 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 30 :tz 'preserve)
+      ;;     (1997 9:00 AM EST) November 4,11,18,25
+      (ical:date-time-variant dtstart :month 11 :day 4
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 11
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 11
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 25
+                              :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EST) January 6,13,20,27;March 3,10,17,24,31
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 6
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 13
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 20
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 27
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 3 :day 3
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 3 :day 10
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 3 :day 17
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 3 :day 24
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 3 :day 31
+                              :zone ict:est :dst nil))
+     :nonmembers
+     ;; e.g. Tuesdays in December 1997:
+     (list
+      (ical:date-time-variant dtstart :month 12 :day 2 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 9 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 16 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 23 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 30 :zone ict:est :dst nil)))))
 
-(ict:rrule-test
- "RRULE:FREQ=YEARLY;INTERVAL=2;COUNT=10;BYMONTH=1,2,3\n"
- "Every other year on January, February, and March for 10 occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 3 :day 10
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:est :dst nil)
- :members
- ;; ==> (1997 9:00 AM EST) March 10
- ;;     (1999 9:00 AM EST) January 10;February 10;March 10
- ;;     (2001 9:00 AM EST) January 10;February 10;March 10
- ;;     (2003 9:00 AM EST) January 10;February 10;March 10
- (cons
-  dtstart
-  ;; FIXME: this mapcan appears to produce a spurious warning:
-  (with-suppressed-warnings ((ignored-return-value mapcan))
-    (mapcan
-     (lambda (y)
-       (list
-        (ical:date-time-variant dtstart :year y :month 1 :tz 'preserve)
-        (ical:date-time-variant dtstart :year y :month 2 :tz 'preserve)
-        (ical:date-time-variant dtstart :year y :month 3 :tz 'preserve)))
-   (list 1999 2001 2003))))
- :source rfc5545-sec3.8.5.3/24)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/23 ()
+  "Yearly in June and July for 10 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 6 :day 10
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=YEARLY;COUNT=10;BYMONTH=6,7\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     ;; Note: Since none of the BYDAY, BYMONTHDAY, or BYYEARDAY
+     ;; clauses are specified, the month day is gotten from "DTSTART"
+     :members
+     ;; ==> (1997 9:00 AM EDT) June 10;July 10
+     ;;     (1998 9:00 AM EDT) June 10;July 10
+     ;;     (1999 9:00 AM EDT) June 10;July 10
+     ;;     (2000 9:00 AM EDT) June 10;July 10
+     ;;     (2001 9:00 AM EDT) June 10;July 10
+     (mapcan
+      (lambda (y)
+        (list
+         (ical:date-time-variant dtstart :year y :month 6 :tz 'preserve)
+         (ical:date-time-variant dtstart :year y :month 7 :tz 'preserve)))
+      (number-sequence 1997 2001)))))
 
-(ict:rrule-test
-"RRULE:FREQ=YEARLY;INTERVAL=3;COUNT=10;BYYEARDAY=1,100,200\n"
-"Every third year on the 1st, 100th, and 200th day for 10 occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 1 :day 1
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:est :dst nil)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/24 ()
+  "Every other year on January, February, and March for 10 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 3 :day 10
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:est :dst nil)))
+    (ict:rrule-test
+     "RRULE:FREQ=YEARLY;INTERVAL=2;COUNT=10;BYMONTH=1,2,3\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     ;; ==> (1997 9:00 AM EST) March 10
+     ;;     (1999 9:00 AM EST) January 10;February 10;March 10
+     ;;     (2001 9:00 AM EST) January 10;February 10;March 10
+     ;;     (2003 9:00 AM EST) January 10;February 10;March 10
+     (cons
+      dtstart
+      ;; FIXME: this mapcan appears to produce a spurious warning:
+      (with-suppressed-warnings ((ignored-return-value mapcan))
+        (mapcan
+         (lambda (y)
+           (list
+            (ical:date-time-variant dtstart :year y :month 1 :tz 'preserve)
+            (ical:date-time-variant dtstart :year y :month 2 :tz 'preserve)
+            (ical:date-time-variant dtstart :year y :month 3 :tz 'preserve)))
+         (list 1999 2001 2003)))))))
 
- :members
- (list
-  ;; ==> (1997 9:00 AM EST) January 1
-  dtstart
-  ;;     (1997 9:00 AM EDT) April 10;July 19
-  (ical:date-time-variant dtstart :month 4 :day 10 :zone ict:edt :dst t)
-  (ical:date-time-variant dtstart :month 7 :day 19 :zone ict:edt :dst t)
-  ;;     (2000 9:00 AM EST) January 1
-  (ical:date-time-variant dtstart :year 2000 :tz 'preserve)
-  ;;     (2000 9:00 AM EDT) April 9;July 18
-  (ical:date-time-variant dtstart :year 2000 :month 4 :day 9 :zone ict:edt :dst t)
-  (ical:date-time-variant dtstart :year 2000 :month 7 :day 18 :zone ict:edt :dst t)
-  ;;     (2003 9:00 AM EST) January 1
-  (ical:date-time-variant dtstart :year 2003 :tz 'preserve)
-  ;;     (2003 9:00 AM EDT) April 10;July 19
-  (ical:date-time-variant dtstart :year 2003 :month 4 :day 10 :zone ict:edt :dst t)
-  (ical:date-time-variant dtstart :year 2003 :month 7 :day 19 :zone ict:edt :dst t)
-  ;;     (2006 9:00 AM EST) January 1
-  (ical:date-time-variant dtstart :year 2006 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/25)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/25 ()
+  "Every third year on the 1st, 100th, and 200th day for 10 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 1 :day 1
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:est :dst nil)))
+    (ict:rrule-test
+     "RRULE:FREQ=YEARLY;INTERVAL=3;COUNT=10;BYYEARDAY=1,100,200\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EST) January 1
+      dtstart
+      ;;     (1997 9:00 AM EDT) April 10;July 19
+      (ical:date-time-variant dtstart :month 4 :day 10 :zone ict:edt :dst t)
+      (ical:date-time-variant dtstart :month 7 :day 19 :zone ict:edt :dst t)
+      ;;     (2000 9:00 AM EST) January 1
+      (ical:date-time-variant dtstart :year 2000 :tz 'preserve)
+      ;;     (2000 9:00 AM EDT) April 9;July 18
+      (ical:date-time-variant dtstart :year 2000 :month 4 :day 9 :zone ict:edt :dst t)
+      (ical:date-time-variant dtstart :year 2000 :month 7 :day 18 :zone ict:edt :dst t)
+      ;;     (2003 9:00 AM EST) January 1
+      (ical:date-time-variant dtstart :year 2003 :tz 'preserve)
+      ;;     (2003 9:00 AM EDT) April 10;July 19
+      (ical:date-time-variant dtstart :year 2003 :month 4 :day 10 :zone ict:edt :dst t)
+      (ical:date-time-variant dtstart :year 2003 :month 7 :day 19 :zone ict:edt :dst t)
+      ;;     (2006 9:00 AM EST) January 1
+      (ical:date-time-variant dtstart :year 2006 :tz 'preserve)))))
 
-(ict:rrule-test
- "RRULE:FREQ=YEARLY;BYDAY=20MO\n"
- "Every 20th Monday of the year, forever"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 5 :day 19
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) May 19
-  ;;     (1998 9:00 AM EDT) May 18
-  ;;     (1999 9:00 AM EDT) May 17
-  ;;     ...
-  dtstart
-  (ical:date-time-variant dtstart :year 1998 :day 18 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 1999 :day 17 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/26)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/26 ()
+  "Every 20th Monday of the year, forever"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 5 :day 19
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=YEARLY;BYDAY=20MO\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) May 19
+      ;;     (1998 9:00 AM EDT) May 18
+      ;;     (1999 9:00 AM EDT) May 17
+      ;;     ...
+      dtstart
+      (ical:date-time-variant dtstart :year 1998 :day 18 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 1999 :day 17 :tz 'preserve)))))
 
-(ict:rrule-test
- "RRULE:FREQ=YEARLY;BYWEEKNO=20;BYDAY=MO\n"
- "Every year on Monday in Week 20 (where the week starts Monday), forever"
- :tz ict:tz-eastern
- :dtstart
- (ical:make-date-time :year 1997 :month 5 :day 12
-                      :hour 9 :minute 0 :second 0
-                      :zone ict:edt :dst t)
- :members
- (list
-  (ical:date-time-variant dtstart :year 1998 :day 11 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 1999 :day 17 :tz 'preserve))
- :nonmembers
- (list
-  (ical:date-time-variant dtstart :year 1998 :day 12 :tz 'preserve) ; a Tuesday
-  (ical:date-time-variant dtstart :year 1998 :day 18 :tz 'preserve)) ; wrong weekno
- :source rfc5545-sec3.8.5.3/27)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/27 ()
+  "Every year on Monday in Week 20 (where the week starts Monday), forever"
+  (let ((dtstart  (ical:make-date-time :year 1997 :month 5 :day 12
+                                       :hour 9 :minute 0 :second 0
+                                       :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=YEARLY;BYWEEKNO=20;BYDAY=MO\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      (ical:date-time-variant dtstart :year 1998 :day 11 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 1999 :day 17 :tz 'preserve))
+     :nonmembers
+     (list
+      (ical:date-time-variant dtstart :year 1998 :day 12 :tz 'preserve) ; a Tuesday
+      (ical:date-time-variant dtstart :year 1998 :day 18 :tz 'preserve)) ; wrong weekno
+     )))
 
-(ict:rrule-test
- "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=TH\n"
- "Every Thursday in March, forever"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 3 :day 13
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:est :dst nil)
- :members
- (append
-  ;; ==> (1997 9:00 AM EST) March 13,20,27
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :day d :tz 'preserve))
-   (list 13 20 27))
-  ;;     (1998 9:00 AM EST) March 5,12,19,26
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :year 1998 :day d :tz 'preserve))
-   (list 5 12 19 26))
-  ;;     (1999 9:00 AM EST) March 4,11,18,25
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :year 1999 :day d :tz 'preserve))
-   (list 4 11 18 25)))
- :source rfc5545-sec3.8.5.3/28)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/28 ()
+  "Every Thursday in March, forever"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 3 :day 13
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:est :dst nil)))
+    (ict:rrule-test
+     "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=TH\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (append
+      ;; ==> (1997 9:00 AM EST) March 13,20,27
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :day d :tz 'preserve))
+       (list 13 20 27))
+      ;;     (1998 9:00 AM EST) March 5,12,19,26
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :year 1998 :day d :tz 'preserve))
+       (list 5 12 19 26))
+      ;;     (1999 9:00 AM EST) March 4,11,18,25
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :year 1999 :day d :tz 'preserve))
+       (list 4 11 18 25))))))
 
-(ict:rrule-test
-"RRULE:FREQ=YEARLY;BYDAY=TH;BYMONTH=6,7,8\n"
-"Every Thursday, but only during June, July, and August, forever"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 6 :day 5
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (append
-  ;; ==> (1997 9:00 AM EDT) June 5,12,19,26;July 3,10,17,24,31;
-  ;;                        August 7,14,21,28
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :day d :tz 'preserve))
-   (list 5 12 19 26))
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :month 7 :day d :tz 'preserve))
-   (list 3 10 17 24 31))
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :month 8 :day d :tz 'preserve))
-   (list 7 14 21 28))
-  ;;     (1998 9:00 AM EDT) June 4,11,18,25;July 2,9,16,23,30;
-  ;;                        August 6,13,20,27
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :year 1998 :day d :tz 'preserve))
-   (list 4 11 18 25))
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :year 1998 :month 7 :day d :tz 'preserve))
-   (list 2 9 16 23 30))
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :year 1998 :month 8 :day d :tz 'preserve))
-   (list 6 13 20 27))
-  ;;     (1999 9:00 AM EDT) June 3,10,17,24;July 1,8,15,22,29;
-  ;;                        August 5,12,19,26
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :year 1999 :day d :tz 'preserve))
-   (list 3 10 17 24))
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :year 1999 :month 7 :day d :tz 'preserve))
-   (list 1 8 15 22 29))
-  (mapcar
-   (lambda (d)
-     (ical:date-time-variant dtstart :year 1999 :month 8 :day d :tz 'preserve))
-   (list 5 12 19 26)))
- :source rfc5545-sec3.8.5.3/29)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/29 ()
+  "Every Thursday, but only during June, July, and August, forever"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 6 :day 5
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=YEARLY;BYDAY=TH;BYMONTH=6,7,8\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (append
+      ;; ==> (1997 9:00 AM EDT) June 5,12,19,26;July 3,10,17,24,31;
+      ;;                        August 7,14,21,28
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :day d :tz 'preserve))
+       (list 5 12 19 26))
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :month 7 :day d :tz 'preserve))
+       (list 3 10 17 24 31))
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :month 8 :day d :tz 'preserve))
+       (list 7 14 21 28))
+      ;;     (1998 9:00 AM EDT) June 4,11,18,25;July 2,9,16,23,30;
+      ;;                        August 6,13,20,27
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :year 1998 :day d :tz 'preserve))
+       (list 4 11 18 25))
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :year 1998 :month 7 :day d :tz 'preserve))
+       (list 2 9 16 23 30))
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :year 1998 :month 8 :day d :tz 'preserve))
+       (list 6 13 20 27))
+      ;;     (1999 9:00 AM EDT) June 3,10,17,24;July 1,8,15,22,29;
+      ;;                        August 5,12,19,26
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :year 1999 :day d :tz 'preserve))
+       (list 3 10 17 24))
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :year 1999 :month 7 :day d :tz 'preserve))
+       (list 1 8 15 22 29))
+      (mapcar
+       (lambda (d)
+         (ical:date-time-variant dtstart :year 1999 :month 8 :day d :tz 'preserve))
+       (list 5 12 19 26))))))
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;BYDAY=FR;BYMONTHDAY=13\n"
- "Every Friday the 13th, forever, *excluding* DTSTART "
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:make-date-time :year 2000 :month 10 :day 14
-                            :hour 0 :minute 0 :second 0
-                            :zone ict:edt :dst t)
- :exdates (list dtstart)
- :members
- (list
-  ;; ==> (1998 9:00 AM EST) February 13;March 13;November 13
-  ;;     (1999 9:00 AM EDT) August 13
-  ;;     (2000 9:00 AM EDT) October 13
-  ;;     ...
-  (ical:date-time-variant dtstart :year 1998 :month 2 :day 13
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 3 :day 13
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 11 :day 13
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1999 :month 8 :day 13 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 2000 :month 10 :day 13 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/30)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/30 ()
+  "Every Friday the 13th, forever, *excluding* DTSTART "
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;BYDAY=FR;BYMONTHDAY=13\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 2000 :month 10 :day 14
+                                :hour 0 :minute 0 :second 0
+                                :zone ict:edt :dst t)
+     :exdates (list dtstart)
+     :members
+     (list
+      ;; ==> (1998 9:00 AM EST) February 13;March 13;November 13
+      ;;     (1999 9:00 AM EDT) August 13
+      ;;     (2000 9:00 AM EDT) October 13
+      ;;     ...
+      (ical:date-time-variant dtstart :year 1998 :month 2 :day 13
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 3 :day 13
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 11 :day 13
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1999 :month 8 :day 13 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 2000 :month 10 :day 13 :tz 'preserve)))))
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;BYDAY=SA;BYMONTHDAY=7,8,9,10,11,12,13\n"
- "The first Saturday that follows the first Sunday of the month, forever"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 13
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:make-date-time :year 1998 :month 6 :day 14
-                            :hour 0 :minute 0 :second 0
-                            :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 13;October 11
-  dtstart
-  (ical:date-time-variant dtstart :month 10 :day 11 :tz 'preserve)
-  ;;     (1997 9:00 AM EST) November 8;December 13
-  (ical:date-time-variant dtstart :month 11 :day 8 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 13 :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EST) January 10;February 7;March 7
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 10
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 2 :day 7
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 3 :day 7
-                          :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EDT) April 11;May 9;June 13...
-  (ical:date-time-variant dtstart :year 1998 :month 4 :day 11 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 1998 :month 5 :day 9 :tz 'preserve)
-  (ical:date-time-variant dtstart :year 1998 :month 6 :day 13 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/31)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/31 ()
+  "The first Saturday that follows the first Sunday of the month, forever"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 13
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;BYDAY=SA;BYMONTHDAY=7,8,9,10,11,12,13\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 1998 :month 6 :day 14
+                                :hour 0 :minute 0 :second 0
+                                :zone ict:edt :dst t)
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 13;October 11
+      dtstart
+      (ical:date-time-variant dtstart :month 10 :day 11 :tz 'preserve)
+      ;;     (1997 9:00 AM EST) November 8;December 13
+      (ical:date-time-variant dtstart :month 11 :day 8 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 13 :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EST) January 10;February 7;March 7
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 10
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 2 :day 7
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 3 :day 7
+                              :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EDT) April 11;May 9;June 13...
+      (ical:date-time-variant dtstart :year 1998 :month 4 :day 11 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 1998 :month 5 :day 9 :tz 'preserve)
+      (ical:date-time-variant dtstart :year 1998 :month 6 :day 13 :tz 'preserve)))))
 
-(ict:rrule-test
- "RRULE:FREQ=YEARLY;INTERVAL=4;BYMONTH=11;BYDAY=TU;BYMONTHDAY=2,3,4,5,6,7,8\n"
- "Every 4 years, the first Tuesday after a Monday in November, forever
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/32 ()
+  "Every 4 years, the first Tuesday after a Monday in November, forever
 (U.S. Presidential Election day)"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1996 :month 11 :day 5
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:est :dst nil)
+  (let ((dtstart (ical:make-date-time :year 1996 :month 11 :day 5
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:est :dst nil)))
+    (ict:rrule-test
+     "RRULE:FREQ=YEARLY;INTERVAL=4;BYMONTH=11;BYDAY=TU;BYMONTHDAY=2,3,4,5,6,7,8\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (1996 9:00 AM EST) November 5
+      dtstart
+      ;;     (2000 9:00 AM EST) November 7
+      (ical:date-time-variant dtstart :year 2000 :day 7 :tz 'preserve)
+      ;;     (2004 9:00 AM EST) November 2
+      (ical:date-time-variant dtstart :year 2004 :day 2 :tz 'preserve)))))
 
- :members
- (list
-  ;; ==> (1996 9:00 AM EST) November 5
-  dtstart
-  ;;     (2000 9:00 AM EST) November 7
-  (ical:date-time-variant dtstart :year 2000 :day 7 :tz 'preserve)
-  ;;     (2004 9:00 AM EST) November 2
-  (ical:date-time-variant dtstart :year 2004 :day 2 :tz 'preserve))
-  :source rfc5545-sec3.8.5.3/32)
-
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;COUNT=3;BYDAY=TU,WE,TH;BYSETPOS=3\n"
- "The third instance into the month of one of Tuesday, Wednesday, or
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/33 ()
+  "The third instance into the month of one of Tuesday, Wednesday, or
 Thursday, for the next 3 months"
- ;; TODO: Yikes, why is this so slow??
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 4
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 4
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;COUNT=3;BYDAY=TU,WE,TH;BYSETPOS=3\n"
 
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 4;October 7
-  ;;     (1997 9:00 AM EST) November 6
-  dtstart
-  (ical:date-time-variant dtstart :month 10 :day 7 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 11 :day 6 :zone ict:est :dst nil))
-:source rfc5545-sec3.8.5.3/33)
+     ;; TODO: Yikes, why is this so slow??
+     :tz ict:tz-eastern
+     :dtstart dtstart
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-2\n"
- "The second-to-last weekday of the month"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 29
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:make-date-time :year 1998 :month 4 :day 1
-                            :hour 0 :minute 0 :second 0
-                            :zone ict:est :dst nil)
- :members
- (list
-  ;; ==> (1997 9:00 AM EDT) September 29
-  dtstart
-  ;;     (1997 9:00 AM EST) October 30;November 27;December 30
-  (ical:date-time-variant dtstart :month 10 :day 30 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 11 :day 27 :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :month 12 :day 30 :zone ict:est :dst nil)
-  ;;     (1998 9:00 AM EST) January 29;February 26;March 30
-  (ical:date-time-variant dtstart :year 1998 :month 1 :day 29
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 2 :day 26
-                          :zone ict:est :dst nil)
-  (ical:date-time-variant dtstart :year 1998 :month 3 :day 30
-                          :zone ict:est :dst nil))
- :source rfc5545-sec3.8.5.3/34)
-
-(ict:rrule-test
- ;; corrected, see Errata ID 3883: https://www.rfc-editor.org/errata/eid3883
- "RRULE:FREQ=HOURLY;INTERVAL=3;UNTIL=19970902T210000Z\n"
- "Every 3 hours from 9:00 AM to 5:00 PM on a specific day"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
-
- :members
- (list
-  ;; ==> (September 2, 1997 EDT) 09:00,12:00,15:00
-  dtstart
-  (ical:date-time-variant dtstart :hour 12 :tz 'preserve)
-  (ical:date-time-variant dtstart :hour 15 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/35)
-
-(ict:rrule-test
- "RRULE:FREQ=MINUTELY;INTERVAL=15;COUNT=6\n"
- "Every 15 minutes for 6 occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
-
- :members
- (list
-  ;; ==> (September 2, 1997 EDT) 09:00,09:15,09:30,09:45,10:00,10:15
-  dtstart
-  (ical:date-time-variant dtstart :minute 15 :tz 'preserve)
-  (ical:date-time-variant dtstart :minute 30 :tz 'preserve)
-  (ical:date-time-variant dtstart :minute 45 :tz 'preserve)
-  (ical:date-time-variant dtstart :hour 10 :minute 0 :tz 'preserve)
-  (ical:date-time-variant dtstart :hour 10 :minute 15 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/36)
-
-(ict:rrule-test
- "RRULE:FREQ=MINUTELY;INTERVAL=90;COUNT=4\n"
- "Every hour and a half for 4 occurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (September 2, 1997 EDT) 09:00,10:30;12:00;13:30
-  dtstart
-  (ical:date-time-variant dtstart :hour 10 :minute 30 :tz 'preserve)
-  (ical:date-time-variant dtstart :hour 12 :minute 0 :tz 'preserve)
-  (ical:date-time-variant dtstart :hour 13 :minute 30 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/37)
-
-(ict:rrule-test
- "RRULE:FREQ=DAILY;BYHOUR=9,10,11,12,13,14,15,16;BYMINUTE=0,20,40\n"
- "Every 20 minutes from 9:00 AM to 4:40 PM every day"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:make-date-time :year 1997 :month 9 :day 4
-                            :hour 0 :minute 0 :second 0
-                            :zone ict:edt :dst t)
- :members
- (append
-  ;; ==> (September 2, 1997 EDT) 9:00,9:20,9:40,10:00,10:20,
-  ;;                             ... 16:00,16:20,16:40
-  (mapcan
-   (lambda (h)
+     :members
      (list
-      (ical:date-time-variant dtstart :hour h :minute 0 :tz 'preserve)
-      (ical:date-time-variant dtstart :hour h :minute 20 :tz 'preserve)
-      (ical:date-time-variant dtstart :hour h :minute 40 :tz 'preserve)))
-   (number-sequence 9 16))
-  ;;     (September 3, 1997 EDT) 9:00,9:20,9:40,10:00,10:20,
-  ;;                             ...16:00,16:20,16:40
-  (mapcan
-   (lambda (h)
-     (list
-      (ical:date-time-variant dtstart :hour h :day 3 :minute 0 :tz 'preserve)
-      (ical:date-time-variant dtstart :hour h :day 3 :minute 20 :tz 'preserve)
-      (ical:date-time-variant dtstart :hour h :day 3 :minute 40 :tz 'preserve)))
-   (number-sequence 9 16)))
- :source rfc5545-sec3.8.5.3/38)
+      ;; ==> (1997 9:00 AM EDT) September 4;October 7
+      ;;     (1997 9:00 AM EST) November 6
+      dtstart
+      (ical:date-time-variant dtstart :month 10 :day 7 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 11 :day 6 :zone ict:est :dst nil)))))
 
-(ict:rrule-test
- "RRULE:FREQ=MINUTELY;INTERVAL=20;BYHOUR=9,10,11,12,13,14,15,16\n"
- "Every 20 minutes from 9:00 AM to 4:40 PM every day
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/34 ()
+  "The second-to-last weekday of the month"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 29
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-2\n"
+
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 1998 :month 4 :day 1
+                                :hour 0 :minute 0 :second 0
+                                :zone ict:est :dst nil)
+     :members
+     (list
+      ;; ==> (1997 9:00 AM EDT) September 29
+      dtstart
+      ;;     (1997 9:00 AM EST) October 30;November 27;December 30
+      (ical:date-time-variant dtstart :month 10 :day 30 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 11 :day 27 :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :month 12 :day 30 :zone ict:est :dst nil)
+      ;;     (1998 9:00 AM EST) January 29;February 26;March 30
+      (ical:date-time-variant dtstart :year 1998 :month 1 :day 29
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 2 :day 26
+                              :zone ict:est :dst nil)
+      (ical:date-time-variant dtstart :year 1998 :month 3 :day 30
+                              :zone ict:est :dst nil)))))
+
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/35 ()
+  "Every 3 hours from 9:00 AM to 5:00 PM on a specific day"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     ;; corrected, see Errata ID 3883: https://www.rfc-editor.org/errata/eid3883
+     "RRULE:FREQ=HOURLY;INTERVAL=3;UNTIL=19970902T210000Z\n"
+
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (September 2, 1997 EDT) 09:00,12:00,15:00
+      dtstart
+      (ical:date-time-variant dtstart :hour 12 :tz 'preserve)
+      (ical:date-time-variant dtstart :hour 15 :tz 'preserve)))))
+
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/36 ()
+  "Every 15 minutes for 6 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MINUTELY;INTERVAL=15;COUNT=6\n"
+
+     :tz ict:tz-eastern
+     :dtstart dtstart
+
+     :members
+     (list
+      ;; ==> (September 2, 1997 EDT) 09:00,09:15,09:30,09:45,10:00,10:15
+      dtstart
+      (ical:date-time-variant dtstart :minute 15 :tz 'preserve)
+      (ical:date-time-variant dtstart :minute 30 :tz 'preserve)
+      (ical:date-time-variant dtstart :minute 45 :tz 'preserve)
+      (ical:date-time-variant dtstart :hour 10 :minute 0 :tz 'preserve)
+      (ical:date-time-variant dtstart :hour 10 :minute 15 :tz 'preserve)))))
+
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/37 ()
+  "Every hour and a half for 4 occurrences"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MINUTELY;INTERVAL=90;COUNT=4\n"
+
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (September 2, 1997 EDT) 09:00,10:30;12:00;13:30
+      dtstart
+      (ical:date-time-variant dtstart :hour 10 :minute 30 :tz 'preserve)
+      (ical:date-time-variant dtstart :hour 12 :minute 0 :tz 'preserve)
+      (ical:date-time-variant dtstart :hour 13 :minute 30 :tz 'preserve)))))
+
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/38 ()
+  "Every 20 minutes from 9:00 AM to 4:40 PM every day"
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=DAILY;BYHOUR=9,10,11,12,13,14,15,16;BYMINUTE=0,20,40\n"
+
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 1997 :month 9 :day 4
+                                :hour 0 :minute 0 :second 0
+                                :zone ict:edt :dst t)
+     :members
+     (append
+      ;; ==> (September 2, 1997 EDT) 9:00,9:20,9:40,10:00,10:20,
+      ;;                             ... 16:00,16:20,16:40
+      (mapcan
+       (lambda (h)
+         (list
+          (ical:date-time-variant dtstart :hour h :minute 0 :tz 'preserve)
+          (ical:date-time-variant dtstart :hour h :minute 20 :tz 'preserve)
+          (ical:date-time-variant dtstart :hour h :minute 40 :tz 'preserve)))
+       (number-sequence 9 16))
+      ;;     (September 3, 1997 EDT) 9:00,9:20,9:40,10:00,10:20,
+      ;;                             ...16:00,16:20,16:40
+      (mapcan
+       (lambda (h)
+         (list
+          (ical:date-time-variant dtstart :hour h :day 3 :minute 0 :tz 'preserve)
+          (ical:date-time-variant dtstart :hour h :day 3 :minute 20 :tz 'preserve)
+          (ical:date-time-variant dtstart :hour h :day 3 :minute 40 :tz 'preserve)))
+       (number-sequence 9 16))))))
+
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/39 ()
+  "Every 20 minutes from 9:00 AM to 4:40 PM every day
 (Alternative rule for the previous example)"
- :tags '(:expensive-test)
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :high (ical:make-date-time :year 1997 :month 9 :day 4
-                            :hour 0 :minute 0 :second 0
-                            :zone ict:edt :dst t)
- :members
- (append
-  ;; ==> (September 2, 1997 EDT) 9:00,9:20,9:40,10:00,10:20,
-  ;;                             ... 16:00,16:20,16:40
-  (mapcan
-   (lambda (h)
-     (list
-      (ical:date-time-variant dtstart :hour h :minute 0 :tz 'preserve)
-      (ical:date-time-variant dtstart :hour h :minute 20 :tz 'preserve)
-      (ical:date-time-variant dtstart :hour h :minute 40 :tz 'preserve)))
-   (number-sequence 9 16))
-  ;;     (September 3, 1997 EDT) 9:00,9:20,9:40,10:00,10:20,
-  ;;                             ...16:00,16:20,16:40
-  (mapcan
-   (lambda (h)
-     (list
-      (ical:date-time-variant dtstart :hour h :day 3 :minute 0 :tz 'preserve)
-      (ical:date-time-variant dtstart :hour h :day 3 :minute 20 :tz 'preserve)
-      (ical:date-time-variant dtstart :hour h :day 3 :minute 40 :tz 'preserve)))
-   (number-sequence 9 16)))
-:source rfc5545-sec3.8.5.3/39)
+  :tags '(:expensive-test)
+  (let ((dtstart (ical:make-date-time :year 1997 :month 9 :day 2
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=MINUTELY;INTERVAL=20;BYHOUR=9,10,11,12,13,14,15,16\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 1997 :month 9 :day 4
+                                :hour 0 :minute 0 :second 0
+                                :zone ict:edt :dst t)
+     :members
+     (append
+      ;; ==> (September 2, 1997 EDT) 9:00,9:20,9:40,10:00,10:20,
+      ;;                             ... 16:00,16:20,16:40
+      (mapcan
+       (lambda (h)
+         (list
+          (ical:date-time-variant dtstart :hour h :minute 0 :tz 'preserve)
+          (ical:date-time-variant dtstart :hour h :minute 20 :tz 'preserve)
+          (ical:date-time-variant dtstart :hour h :minute 40 :tz 'preserve)))
+       (number-sequence 9 16))
+      ;;     (September 3, 1997 EDT) 9:00,9:20,9:40,10:00,10:20,
+      ;;                             ...16:00,16:20,16:40
+      (mapcan
+       (lambda (h)
+         (list
+          (ical:date-time-variant dtstart :hour h :day 3 :minute 0 :tz 'preserve)
+          (ical:date-time-variant dtstart :hour h :day 3 :minute 20 :tz 'preserve)
+          (ical:date-time-variant dtstart :hour h :day 3 :minute 40 :tz 'preserve)))
+       (number-sequence 9 16))))))
 
-(ict:rrule-test
- "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=4;BYDAY=TU,SU;WKST=MO\n"
- "An example where the days generated makes a difference because of WKST:
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/40 ()
+  "An example where the days generated makes a difference because of WKST:
 every other week on Tuesday and Sunday, week start Monday, for four recurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 8 :day 5
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (1997 EDT) August 5,10,19,24
-  dtstart
-  (ical:date-time-variant dtstart :day 10 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 19 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 24 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/40)
+  (let ((dtstart (ical:make-date-time :year 1997 :month 8 :day 5
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=4;BYDAY=TU,SU;WKST=MO\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (1997 EDT) August 5,10,19,24
+      dtstart
+      (ical:date-time-variant dtstart :day 10 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 19 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 24 :tz 'preserve)))))
 
-(ict:rrule-test
- "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=4;BYDAY=TU,SU;WKST=SU\n"
- "An example where the days generated makes a difference because of WKST:
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/41 ()
+  "An example where the days generated makes a difference because of WKST:
 every other week on Tuesday and Sunday, week start Sunday, for four recurrences"
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 1997 :month 8 :day 5
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (1997 EDT) August 5,17,19,31
-  dtstart
-  (ical:date-time-variant dtstart :day 17 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 19 :tz 'preserve)
-  (ical:date-time-variant dtstart :day 31 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/41)
+  (let ((dtstart (ical:make-date-time :year 1997 :month 8 :day 5
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:edt :dst t)))
+    (ict:rrule-test
+     "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=4;BYDAY=TU,SU;WKST=SU\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :members
+     (list
+      ;; ==> (1997 EDT) August 5,17,19,31
+      dtstart
+      (ical:date-time-variant dtstart :day 17 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 19 :tz 'preserve)
+      (ical:date-time-variant dtstart :day 31 :tz 'preserve)))))
 
-(ict:rrule-test
- "RRULE:FREQ=MONTHLY;BYMONTHDAY=15,30;COUNT=5\n"
- "An example where an invalid date (i.e., February 30) is ignored."
- :tz ict:tz-eastern
- :dtstart (ical:make-date-time :year 2007 :month 1 :day 15
-                               :hour 9 :minute 0 :second 0
-                               :zone ict:est :dst nil)
- :high (ical:make-date-time :year 2007 :month 4 :day 1
-                               :hour 0 :minute 0 :second 0
-                               :zone ict:edt :dst t)
- :members
- (list
-  ;; ==> (2007 EST) January 15,30
-  ;;     (2007 EST) February 15
-  ;;     (2007 EDT) March 15,30
-  dtstart
-  (ical:date-time-variant dtstart :day 30 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 2 :day 15 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 3 :day 15 :zone ict:edt :dst t)
-  (ical:date-time-variant dtstart :month 3 :day 30 :zone ict:edt :dst t))
- :nonmembers
- (list
-  (ical:date-time-variant dtstart :month 2 :day 28 :tz 'preserve)
-  (ical:date-time-variant dtstart :month 2 :day 30 :tz 'preserve))
- :source rfc5545-sec3.8.5.3/42)
+(ert-deftest ict:rrule-test-rfc5545-sec3.8.5.3/42 ()
+  "An example where an invalid date (i.e., February 30) is ignored."
+  (let ((dtstart (ical:make-date-time :year 2007 :month 1 :day 15
+                                      :hour 9 :minute 0 :second 0
+                                      :zone ict:est :dst nil)))
+    (ict:rrule-test
+     "RRULE:FREQ=MONTHLY;BYMONTHDAY=15,30;COUNT=5\n"
+     :tz ict:tz-eastern
+     :dtstart dtstart
+     :high (ical:make-date-time :year 2007 :month 4 :day 1
+                                :hour 0 :minute 0 :second 0
+                                :zone ict:edt :dst t)
+     :members
+     (list
+      ;; ==> (2007 EST) January 15,30
+      ;;     (2007 EST) February 15
+      ;;     (2007 EDT) March 15,30
+      dtstart
+      (ical:date-time-variant dtstart :day 30 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 2 :day 15 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 3 :day 15 :zone ict:edt :dst t)
+      (ical:date-time-variant dtstart :month 3 :day 30 :zone ict:edt :dst t))
+     :nonmembers
+     (list
+      (ical:date-time-variant dtstart :month 2 :day 28 :tz 'preserve)
+      (ical:date-time-variant dtstart :month 2 :day 30 :tz 'preserve)))))
 
 ;; Local Variables:
 ;; read-symbol-shorthands: (("ict:" . "icalendar-test-") ("icr:" . "icalendar-recur-") ("ical:" . "icalendar-"))
