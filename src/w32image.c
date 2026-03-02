@@ -580,9 +580,13 @@ w32_gdip_export_frame (HWND hwnd, Lisp_Object file, CLSID *clsid)
      made visible, in which case users might want them in the image.
      The downside is that the image has some of the desktop around the
      frame included in it.  So what?  */
-  GetWindowRect (hwnd, &frame_rect);
+  if (!GetWindowRect (hwnd, &frame_rect))
+    return -1;
   frame_width = frame_rect.right - frame_rect.left;
   frame_height = frame_rect.bottom - frame_rect.top;
+  if (!(frame_width > 0 && frame_height > 0))
+    return -1;
+
   hdc = GetWindowDC (hwnd);
   bits_per_pixel = GetDeviceCaps (hdc, BITSPIXEL);
   capture_hdc = CreateCompatibleDC (hdc);
