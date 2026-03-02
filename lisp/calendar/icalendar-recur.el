@@ -1209,11 +1209,7 @@ retrieved on subsequent calls with the same arguments."
                                       :zone offset-from
                                       :dst (not (ical:daylight-component-p
                                                  component)))))
-      (cl-labels ((get-interval
-                    (apply-partially #'icr:-set-get-interval component))
-                  (put-interval
-                    (apply-partially #'icr:-set-put-interval component)))
-        (let ((cached (get-interval interval)))
+        (let ((cached (icr:-set-get-interval component interval)))
           (cond ((eq cached :none) nil)
                 (cached cached)
                 (t
@@ -1279,8 +1275,9 @@ retrieved on subsequent calls with the same arguments."
                          (if nmax (seq-take all-recs nmax)
                            all-recs)))
                    ;; Store and return the computed recurrences:
-                   (put-interval interval (or nmax-recs :none))
-                   nmax-recs))))))))
+                   (icr:-set-put-interval component interval
+                                          (or nmax-recs :none))
+                   nmax-recs)))))))
 
 (defun icr:recurrences-in-window (lower upper component &optional vtimezone)
   "Return the recurrences of COMPONENT in the window between LOWER and UPPER.
@@ -1974,8 +1971,8 @@ called recursively on NODE's children."
                         :duration (ical:period-dur-value value)))))
           (ical:ast-node-set-value value-node updated)))))
    ((ical:component-node-p node) ; includes VCALENDAR nodes
-    (mapc (apply-partially #'icr:tz-set-zones-in vtimezones)
-          (ical:ast-node-children node)))
+    (dolist (nd (ical:ast-node-children node))
+      (icr:tz-set-zones-in vtimezones nd)))
    (t nil)))
 
 (defun icr:tzname-on (dt vtimezone)
