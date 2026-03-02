@@ -117,13 +117,12 @@ END:VTIMEZONE
 ;; Tests for basic functions:
 
 (ert-deftest ict:recur-bysetpos-filter ()
-  "Test that `icr:make-bysetpos-filter' filters correctly by position"
+  "Test that `icr:bysetpos-filter' filters correctly by position"
   (let* ((t1 (list 1 1 2024))
          (t2 (list 2 1 2024))
          (t3 (list 12 30 2024))
          (dts (list t1 t2 t3))
-         (filter (icr:make-bysetpos-filter (list 1 -1)))
-         (filtered (funcall filter dts)))
+         (filtered (icr:bysetpos-filter (list 1 -1) dts)))
     (should (member t1 filtered))
     (should (member t3 filtered))
     (should-not (member t2 filtered))))

@@ -953,8 +953,8 @@ BYSECOND=... clause; see `icalendar-recur' for the possible values."
     (BYMINUTE (icr:refine-byminute interval values vtimezone))
     (BYSECOND (icr:refine-bysecond interval values vtimezone))))
 
-(defun icr:make-bysetpos-filter (setpos)
-  "Return a filter on values for the indices in SETPOS.
+(defun icr:bysetpos-filter (setpos recurrences)
+  "Filter RECURRENCES on values for the indices in SETPOS.
 
 SETPOS should be a list of positive or negative integers between -366
 and 366, indicating a fixed index in a set of recurrences for *one
@@ -963,25 +963,24 @@ an `icalendar-recur'.  For example, in a YEARLY recurrence rule with an
 INTERVAL of 1, the SETPOS represent indices in the recurrence instances
 generated for a single year.
 
-The returned value is a closure which can be called on the list of
-recurrences for one interval to filter it by index."
-  (lambda (dts)
-    (let* ((len (length dts))
-           (keep-indices (mapcar
-                          (lambda (pos)
-                            ;; sequence indices are 0-based, POS's are 1-based:
-                            (if (< pos 0)
-                                (+ pos len)
-                              (1- pos)))
-                          setpos))
-           (r nil)
-           (i 0))
-      (while dts
-        (when (memq i keep-indices)
-          (push (car dts) r))
-        (incf i)
-        (pop dts))
-      (nreverse r))))
+The returned value is RECURRENCES filtered by index."
+  (let* ((len (length recurrences))
+         (keep-indices (mapcar
+                        (lambda (pos)
+                          ;; sequence indices are 0-based, POS's are 1-based:
+                          (if (< pos 0)
+                              (+ pos len)
+                            (1- pos)))
+                        setpos))
+         (r nil)
+         (i 0)
+         (dts recurrences))
+    (while dts
+      (when (memq i keep-indices)
+        (push (car dts) r))
+      (incf i)
+      (pop dts))
+    (nreverse r)))
 
 (defun icr:refine-from-clauses (interval recur-value dtstart
                                 &optional vtimezone)
@@ -1225,8 +1224,7 @@ retrieved on subsequent calls with the same arguments."
                         (keep-indices (ical:recur-by* 'BYSETPOS recur-value))
                         (pos-recs
                          (if keep-indices
-                             (funcall (icr:make-bysetpos-filter keep-indices)
-                                      sub-recs)
+                             (icr:bysetpos-filter keep-indices sub-recs)
                            sub-recs))
                         ;; Remove any recurrences before DTSTART or after UNTIL
                         ;; (both of which are inclusive bounds):
