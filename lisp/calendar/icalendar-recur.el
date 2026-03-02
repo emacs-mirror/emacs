@@ -999,9 +999,8 @@ recurrences will be local to that time zone."
         (weekstart (ical:recur-weekstart recur-value))
         (subintervals (list interval)))
 
-    (dolist (byunit (list 'BYMONTH 'BYWEEKNO
-                          'BYYEARDAY 'BYMONTHDAY 'BYDAY
-                          'BYHOUR 'BYMINUTE 'BYSECOND))
+    (dolist (byunit '( BYMONTH BYWEEKNO BYYEARDAY BYMONTHDAY BYDAY
+                       BYHOUR BYMINUTE BYSECOND))
       (let ((values (ical:recur-by* byunit recur-value))
             (in-month nil))
         ;; When there is no explicit BY* clause, use the value implicit
