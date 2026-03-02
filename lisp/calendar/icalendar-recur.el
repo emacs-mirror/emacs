@@ -81,6 +81,19 @@
 (require 'seq)
 (eval-when-compile (require 'icalendar-macs))
 
+;; FIXME: Turn this into a proper function and move to subr.el.
+(defmacro icr:filter (pred list)
+  "Elements of LIST satisfying PRED, in their original order."
+  (let ((r (make-symbol "r"))
+        (ls (make-symbol "ls")))
+    `(let ((,r nil)
+           (,ls ,list))
+       (while ,ls
+         (when (funcall ,pred (car ,ls))
+           (push (car ,ls) ,r))
+         (setq ,ls (cdr ,ls)))
+       (nreverse ,r))))
+
 
 ;; Recurrence Intervals
 ;;
@@ -768,8 +781,8 @@ BYDAY=... clause; see `icalendar-recur' for the possible values.
 If WEEKDAYS contains pairs (DOW . OFFSET), then IN-MONTH indicates
 whether OFFSET is relative to the month of the start of the interval.  If
 it is nil, OFFSET will be relative to the year, rather than the month."
-  (let* ((sorted-weekdays (sort (seq-filter #'natnump weekdays)))
-         (with-offsets (sort (seq-filter #'consp weekdays)
+  (let* ((sorted-weekdays (sort (icr:filter #'natnump weekdays)))
+         (with-offsets (sort (icr:filter #'consp weekdays)
                              :key #'car))
          (interval-start (car interval))
          (start-abs (calendar-absolute-from-gregorian
@@ -960,13 +973,15 @@ recurrences for one interval to filter it by index."
                             (if (< pos 0)
                                 (+ pos len)
                               (1- pos)))
-                          setpos)))
-      (delq nil
-        (seq-map-indexed
-         (lambda (dt index)
-           (when (memq index keep-indices)
-                 dt))
-         dts)))))
+                          setpos))
+           (r nil)
+           (i 0))
+      (while dts
+        (when (memq i keep-indices)
+          (push (car dts) r))
+        (incf i)
+        (pop dts))
+      (nreverse r))))
 
 (defun icr:refine-from-clauses (interval recur-value dtstart
                                 &optional vtimezone)
@@ -1217,7 +1232,7 @@ retrieved on subsequent calls with the same arguments."
                         ;; (both of which are inclusive bounds):
                         (until (ical:recur-until recur-value))
                         (until-recs
-                         (seq-filter
+                         (icr:filter
                           (lambda (rec) (and (ical:date/time<= dtstart rec)
                                              (or (not until)
                                                  (ical:date/time<= rec until))))
@@ -1231,7 +1246,7 @@ retrieved on subsequent calls with the same arguments."
                                  (apply #'append
                                   (mapcar #'ical:ast-node-value rdate-nodes))))
                         (interval-rdates
-                         (seq-filter
+                         (icr:filter
                           (lambda (rec)
                             ;; only include ical:date and ical:date-time
                             ;; values from RDATE; callee is responsible
@@ -1250,7 +1265,7 @@ retrieved on subsequent calls with the same arguments."
                                   (mapcar #'ical:ast-node-value exdate-nodes))))
                         (all-recs
                          (if exdates
-                             (seq-filter
+                             (icr:filter
                               (lambda (rec) (not (member rec exdates)))
                               included-recs)
                            included-recs))
@@ -1259,7 +1274,7 @@ retrieved on subsequent calls with the same arguments."
                         ;; store more recurrences in the final interval than the
                         ;; COUNT clause allows:
                         (nmax-recs
-                         (if nmax (seq-take all-recs nmax)
+                         (if nmax (take nmax all-recs)
                            all-recs)))
                    ;; Store and return the computed recurrences:
                    (icr:-set-put-interval component interval
@@ -1317,7 +1332,7 @@ UTC offsets local to that time zone."
 
         ;; exclude any recurrences inside the first and last intervals but
         ;; outside the window before returning:
-        (seq-filter
+        (icr:filter
          (lambda (dt)
            (and (ical:date/time<= lower dt)
                 (ical:date/time< dt upper)))
@@ -1346,7 +1361,7 @@ the period."
     ;; but end inside it.  This would mean we can't simply use
     ;; `recurrences-in-window' like this.
     (let ((starts (icr:recurrences-in-window lower upper component vtimezone))
-          (periods (seq-filter
+          (periods (icr:filter
                     (lambda (vnode)
                       (when (eq 'ical:period (ical:ast-node-type vnode))
                         (ical:ast-node-value vnode)))
@@ -1784,7 +1799,7 @@ ignored."
                               (ical:date-time-locally<= rec given-clock-time))
                           (lambda (rec)
                             (ical:time<= (encode-time rec) given-abs-time))))
-                       (srecs (sort (seq-filter ; (1)
+                       (srecs (sort (icr:filter ; (1)
                                      keep-recs<=given
                                      recs)
                                     :lessp #'ical:date-time<
