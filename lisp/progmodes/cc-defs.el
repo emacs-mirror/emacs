@@ -2152,13 +2152,18 @@ resulting regexp may contain zero or more submatch expressions.
 In the typical case when all members of LIST are valid symbols, the
 resulting regexp is bracketed in \\_<\\( .... \\)\\_>.
 
+When LIST is a mixture of symbols and non-symbols, the symbol part of
+the resulting regexp is bracketed in \\_< .... \\_> and the first
+submatch of the regexp surrounds the entire matched string.
+
 Otherwise, if ADORN is t there will be at least one submatch and the
 first surrounds the matched alternative, and the regexp will also not
-match a prefix of any identifier.  Adorned regexps can now (2025-06) be
-appended to.  In versions prior to 2025-06, there was also the value
-`appendable' for ADORN.  Since normal adorned regexps can now be
-appended to anyway, this is no longer needed, but older code using it
-will still work.
+match a prefix of any identifier.
+
+Adorned regexps can now (2025-06) be appended to.  In versions prior to
+2025-06, there was also the value `appendable' for ADORN.  Since normal
+adorned regexps can now be appended to anyway, this is no longer needed,
+but older code using it will still work.
 
 The optional MODE specifies the language whose syntax table will be used
 to characterize the input strings.  The default is the current language
@@ -2173,21 +2178,25 @@ taken from `c-buffer-is-cc-mode'."
 		 (syntax-table-p (symbol-value cur-syn-tab-sym)))
 	    (symbol-value cur-syn-tab-sym)
 	  (funcall (c-get-lang-constant 'c-make-mode-syntax-table nil mode))))
-    (let ((liszt (remq nil list)))
+    (let ((liszt (remq nil list))
+	  symbols non-symbols)
+      (dolist (elt liszt)
+	(if (string-match "\\`\\(\\sw\\|\\s_\\)*\\'" elt)
+	    (push elt symbols)
+	  (push elt non-symbols)))
       (cond
        ((null liszt)
 	(if adorn
 	    "\\(\\`a\\`\\)"
 	  "\\`a\\`"))
-       ((catch 'symbols
-	  (dolist (elt liszt)
-	    (unless (string-match "\\`\\(\\sw\\|\\s_\\)*\\'" elt)
-	      (throw 'symbols nil)))
-	  t)
-	(regexp-opt liszt 'symbols))
-       (adorn (regexp-opt liszt t))
-       (t (regexp-opt liszt))))))
-
+       ((and symbols non-symbols)
+	(let ((symbol-re (regexp-opt symbols 'symbols))
+	      (non-symbol-re (regexp-opt non-symbols t)))
+	  (concat "\\(" symbol-re "\\|" non-symbol-re "\\)")))
+       (symbols
+	(regexp-opt symbols 'symbols))
+       (adorn (regexp-opt non-symbols t))
+       (t (regexp-opt non-symbols))))))
 (put 'c-make-keywords-re 'lisp-indent-function 1)
 
 (defun c-make-bare-char-alt (chars &optional inverted)
