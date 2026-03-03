@@ -3258,4 +3258,4 @@ You can use the command @code{copy-theme-options} (@pxref{Custom
 Themes}) to do this.
 
   (If you got here by clicking a link on the startup screen, type
-@kbd{q} to go back).
+@kbd{q} to go back.)

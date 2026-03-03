@@ -2164,9 +2164,10 @@ a face or button specification."
    :face 'default "Control-g"
    :face 'variable-pitch ".\n")
 
+  (fancy-splash-insert :face '(variable-pitch bold) "New to Emacs?")
   (fancy-splash-insert
    :face 'variable-pitch
-   "New to Emacs?  Consider enabling "
+   "  Consider enabling "
    :link `("newcomer presets"
 	   ,(lambda (_button) (info "(emacs) Newcomers Theme")))
    " by clicking this checkbox:  ")
