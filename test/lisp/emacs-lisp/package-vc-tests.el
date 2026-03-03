@@ -1107,7 +1107,7 @@ contains key `:tags' use its value as tests tags."
                           '(package-vc-tests-install-from-elpa
                             package-vc-tests-install-from-spec))))
   (should-not (package-vc-tests-log-buffer-exists 'doc pkg))
-  (should (cl-member-if
+  (should (member-if
            (lambda (dir)
              (and (stringp dir)
                   (string-prefix-p package-vc-tests-dir dir)))

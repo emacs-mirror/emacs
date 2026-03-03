@@ -3825,10 +3825,11 @@ comparisons; it is equivalent to @code{(cl-member @var{item} @var{list}
 :test 'equal)}.
 @end defun
 
-@findex cl-member-if
 @findex cl-member-if-not
-The @code{cl-member-if} and @code{cl-member-if-not} functions
-analogously search for elements that satisfy a given predicate.
+The @code{cl-member-if-not} function analogously searches for elements
+that don't satisfy a given predicate.  This is deprecated in the Common
+Lisp standard; prefer the core function @code{member-if} with a negated
+predicate function.
 
 @defun cl-tailp sublist list
 This function returns @code{t} if @var{sublist} is a sublist of

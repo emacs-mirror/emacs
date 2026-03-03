@@ -1182,14 +1182,40 @@ side-effects, and the argument LIST is not modified."
   (declare (compiler-macro (lambda (_) `(not (drop-while ,pred ,list)))))
   (not (drop-while pred list)))
 
-(defun any (pred list)
+(defun member-if (pred list &rest cl-args)
   "Non-nil if PRED is true for at least one element in LIST.
-Returns the LIST suffix starting at the first element that satisfies PRED,
-or nil if none does."
-  (declare (compiler-macro
-            (lambda (_)
-              `(drop-while (lambda (x) (not (funcall ,pred x))) ,list))))
-  (drop-while (lambda (x) (not (funcall pred x))) list))
+Returns the suffix of LIST starting with the first element that
+satisfies PRED, or nil if none do.
+
+Optional keyword argument `:key KEY-FN' is for backwards compatibility.
+If present, call KEY-FN on elements of LIST before passing them to PRED.
+In new code, prefer combining PRED and KEY.  You can use something like
+
+    (member-if (lambda (x) (foo (bar x))) items)
+
+instead of
+
+    (member-if #\\='foo items :key #\\='bar)
+
+\(fn PRED LIST &key KEY)"
+  (declare
+   (compiler-macro
+    (lambda (_)
+      (pcase cl-args
+        ('nil `(drop-while (lambda (x) (not (funcall ,pred x))) ,list))
+        (`(:key ,key-fn)
+         `(drop-while (lambda (x) (not (funcall ,pred (funcall ,key-fn x))))
+                      ,list))
+        (_ (error "Invalid arguments to member-if: %s" cl-args))))))
+  (pcase cl-args
+    ('nil (drop-while (lambda (x) (not (funcall pred x))) list))
+    (`(:key ,key-fn)
+     (drop-while (lambda (x) (not (funcall pred (funcall key-fn x)))) list))
+    (_ (error "Invalid arguments to member-if: %s" cl-args))))
+
+;; This is good to have for improved readability in certain uses, but
+;; use the traditional Lisp name for the underlying function.  --spwhitton
+(defalias 'any #'member-if)
 
 ;;;; Keymap support.
 
