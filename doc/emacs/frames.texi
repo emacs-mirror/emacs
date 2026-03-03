@@ -1014,6 +1014,37 @@ Create a new frame on monitor @var{monitor} whose screen area is
 a part of the current display.
 @end table
 
+@subsection Single-keyboard mode
+@cindex single-keyboard mode
+
+  Each display has an associated keyboard.  Normally, Emacs assumes that
+these keyboards are physically distinct, so that someone could be typing
+on one keyboard and someone else typing on another, into different
+frames on different terminals.  In certain situations, however, Emacs
+enters @dfn{single-keyboard mode}, in which input from all but one keyboard is
+blocked.  This prevents keys typed on one keyboard from interfering with
+an operation started on another keyboard.  The main operation to which
+this applies is entering a recursive edit (@pxref{Recursive Edit}),
+which includes all minibuffer prompting (@pxref{Basic Minibuffer}).
+
+  Single-keyboard mode can be inconvenient when there are distinct
+displays and so distinct keyboards, but only one user and one physical
+keyboard in control of Emacs.  This can happen with X forwarding: with a
+remote Emacs daemon and multiple frames created with a command like
+@w{@code{ssh -X daemon-host emacsclient -c}}, then from the remote Emacs
+daemon's point of view there is one terminal and one keyboard per
+@w{@code{ssh -X daemon-host}} command invoked, but in fact a single
+local X server displays all frames, and there is just one physical
+keyboard.
+
+@vindex multiple-terminals-merge-keyboards
+  In this situation, you may prefer to have the different frames behave
+as though they had been created with @kbd{C-x 5 2} (@pxref{Creating
+Frames}).  In that case, starting a recursive edit in one frame does not
+mean that keyboard input into other frames is blocked.  Customize the
+variable @code{multiple-terminals-merge-keyboards} to a non-@code{nil}
+value to achieve this.
+
 @node Frame Parameters
 @section Frame Parameters
 @vindex default-frame-alist

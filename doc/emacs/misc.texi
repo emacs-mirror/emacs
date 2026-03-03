@@ -2044,7 +2044,9 @@ called @command{emacsclient}.
 
   You can also force @command{emacsclient} to open a new frame on a
 graphical display using the @samp{-c} option, or on a text terminal
-using the @samp{-t} option.  @xref{emacsclient Options}.
+using the @samp{-t} option.  @xref{emacsclient Options}.  If you use
+@samp{-c} to open multiple frames using X forwarding you may wish to
+disable single-keyboard mode.  @xref{Multiple Displays}.
 
   If you are running on a single text terminal, you can switch between
 @command{emacsclient}'s shell and the Emacs server using one of two
@@ -3053,6 +3055,9 @@ probably do all the rest of your editing inside the recursive edit,
 visiting files and all.  But this could have surprising effects (such as
 stack overflow) from time to time.  So remember to exit or abort the
 recursive edit when you no longer need it.
+
+  Recursive edits normally enable single-keyboard mode.  @xref{Multiple
+Displays}.
 
   In general, we try to minimize the use of recursive editing levels in
 GNU Emacs.  This is because they constrain you to go back in a

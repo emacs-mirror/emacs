@@ -848,18 +848,19 @@ compile time if an undeclared LSP interface is used."))
     (when-let* ((missing (and enforce-required
                               (cl-set-difference required-keys
                                                  (eglot--plist-keys object)))))
-      (eglot--error "A `%s' must have %s" interface-name missing))
+      (eglot--error "A `%s' must have %S" interface-name missing))
     (when-let* ((excess (and disallow-non-standard
                              (cl-set-difference
                               (eglot--plist-keys object)
                               (append required-keys optional-keys)))))
-      (eglot--error "A `%s' mustn't have %s" interface-name excess))
+      (eglot--error "A `%s' mustn't have %S" interface-name excess))
     (when check-types
       (cl-loop
        for (k v) on object by #'cddr
        for type = (or (cdr (assoc k types)) t) ;; FIXME: enforce nil type?
        unless (cl-typep v type)
        do (eglot--error "A `%s' must have a %s as %s, but has %s"
+                        ;; FIXME: Arguments missing?
                         interface-name)))
     t))
 
@@ -899,13 +900,13 @@ compile time if an undeclared LSP interface is used."))
                      (cl-set-difference
                       optional-keys (eglot--keywordize-vars dspec)))))
                (when too-many (byte-compile-warn
-                               "Destructuring for %s has extraneous %s"
+                               "Destructuring for %s has extraneous %S"
                                interface-name too-many))
                (when ignored-required (byte-compile-warn
-                                       "Destructuring for %s ignores required %s"
+                                       "Destructuring for %s ignores required %S"
                                        interface-name ignored-required))
                (when missing-out (byte-compile-warn
-                                  "Destructuring for %s is missing out on %s"
+                                  "Destructuring for %s is missing out on %S"
                                   interface-name missing-out))))
             ((memq 'no-unknown-interfaces eglot-strict-mode)
              (byte-compile-warn "Unknown LSP interface %s" interface-name))))))
@@ -1415,7 +1416,7 @@ SERVER."
 PRESERVE-BUFFERS as in `eglot-shutdown', which see."
   (interactive (list current-prefix-arg))
   (cl-loop for ss being the hash-values of eglot--servers-by-project
-           do (with-demoted-errors "[eglot] shutdown all: %s"
+           do (with-demoted-errors "[eglot] shutdown all: %S"
                 (cl-loop for s in ss do (eglot-shutdown s nil nil preserve-buffers)))))
 
 (defvar eglot--servers-by-xrefed-file (make-hash-table :test 'equal))
@@ -1519,7 +1520,8 @@ be guessed."
               (mapcar #'symbol-name (eglot--all-major-modes)) nil t
               guessed-mode-name nil guessed-mode-name nil)))
            ((not guessed-mode)
-            (eglot--error "Can't guess mode to manage for `%s'" (current-buffer)))
+            (eglot--error "Can't guess mode to manage for `%s'"
+                          (current-buffer)))
            (t guessed-mode)))
          (languages-and-contact (eglot--lookup-mode main-mode))
          (managed-modes (mapcar #'car (car languages-and-contact)))
@@ -1763,7 +1765,7 @@ This docstring appeases checkdoc, that's all."
             (unless (file-exists-p default-directory)
               ;; could happen because of bug#70724 or just because
               (eglot--error "Project '%s' is gone!" nickname))
-            (format "EGLOT (%s/%s)" nickname managed-modes)))
+            (format "EGLOT (%s/%S)" nickname managed-modes)))
          server-info
          (contact (if (functionp contact) (funcall contact) contact))
          (initargs
@@ -1854,7 +1856,7 @@ This docstring appeases checkdoc, that's all."
                             :clientInfo
                             (append
                              '(:name "Eglot")
-                             (let ((v (and (functionp 'package-get-version)
+                             (let ((v (and (fboundp 'package-get-version)
                                            (package-get-version))))
                                (and v (list :version v))))
                             ;; Maybe turn trampy `/ssh:foo@bar:/path/to/baz.py'
@@ -1894,7 +1896,7 @@ This docstring appeases checkdoc, that's all."
                                            (null eglot-autoreconnect)))))))
                           (run-hook-with-args 'eglot-connect-hook server)
                           (eglot--message
-                           "Connected! Server `%s' now managing `%s' buffers \
+                           "Connected! Server `%s' now managing `%S' buffers \
 in project `%s'."
                            (or (plist-get serverInfo :name)
                                (jsonrpc-name server))
@@ -1934,7 +1936,7 @@ in project `%s'."
 ;;;
 (defun eglot--format (format &rest args)
   "Like `format`, but substitutes quotes."
-  (apply #'format (if (functionp 'substitute-quotes)
+  (apply #'format (if (fboundp 'substitute-quotes)
                       (substitute-quotes format)
                     format)
          args))
@@ -2171,7 +2173,7 @@ If optional MARKER, return a marker instead"
      (let ((col (plist-get pos-plist :character)))
        (unless (wholenump col)
          (eglot--warn
-          "Caution: LSP server sent invalid character position %s. Using 0 instead."
+          "Caution: LSP server sent invalid character position %S. Using 0 instead."
           col)
          (setq col 0))
        (funcall eglot-move-to-linepos-function col)))
@@ -2239,7 +2241,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
                           being hash-values of eglot--servers-by-project
                           append servers))
         (name (lambda (srv)
-                (format "%s %s" (eglot-project-nickname srv)
+                (format "%s %S" (eglot-project-nickname srv)
                         (eglot--major-modes srv)))))
     (cond ((null servers)
            (eglot--error "No servers!"))
@@ -2759,15 +2761,15 @@ still unanswered LSP requests to the server\n"))))
 (cl-defmethod eglot-handle-notification
   (_server method &key &allow-other-keys)
   "Handle unknown notification."
-  (unless (or (string-prefix-p "$" (format "%s" method))
+  (unless (or (string-prefix-p "$" (format "%S" method))
               (not (memq 'disallow-unknown-methods eglot-strict-mode)))
-    (eglot--warn "Server sent unknown notification method `%s'" method)))
+    (eglot--warn "Server sent unknown notification method `%S'" method)))
 
 (cl-defmethod eglot-handle-request
   (_server method &key &allow-other-keys)
   "Handle unknown request."
   (when (memq 'disallow-unknown-methods eglot-strict-mode)
-    (jsonrpc-error "Unknown request method `%s'" method)))
+    (jsonrpc-error "Unknown request method `%S'" method)))
 
 (cl-defmethod eglot-handle-notification
   (server (_method (eql window/showMessage)) &key type message)
@@ -4090,7 +4092,7 @@ for which LSP on-type-formatting should be requested."
            parameter
          ;; ...perhaps highlight it in the formals list
          (when (eq i active-param)
-           (save-excursion
+           (save-excursion ;; FIXME: Sink into the `if' or hoist out of loop?
              (goto-char (point-min))
              (pcase-let
                  ((`(,beg ,end)
@@ -4098,7 +4100,8 @@ for which LSP on-type-formatting should be requested."
                        (let ((case-fold-search nil))
                          (and (search-forward parlabel (line-end-position) t)
                               (list (match-beginning 0) (match-end 0))))
-                     (list (1+ (aref parlabel 0)) (1+ (aref parlabel 1))))))
+                     (list (+ (point-min) (aref parlabel 0))
+                           (+ (point-min) (aref parlabel 1))))))
                (if (and beg end)
                    (add-face-text-property
                     beg end

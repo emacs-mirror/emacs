@@ -1806,12 +1806,12 @@ returns a node that encloses @var{position}.
 
 Again, @var{thing} can be either a symbol or a predicate.
 
-If @var{parser} is non-nil, only use that parser's parse tree.
-Otherwise each parser covering point is tried from most specific
-(deepest embedded) to least specific.  If there are multiple parsers with
-the same embed level at @var{pos}, which parser is tried first is
-undefined.  If PARSER is a language symbol, the parsers tried are
-limited to ones for that language.
+If @var{parser} is non-@code{nil}, only use that parser's parse tree.
+Otherwise try each parser covering point, from the most specific
+(deepest-embedded) to the least specific.  If there are multiple parsers with
+the same embed level at @var{position}, which parser is tried first is
+undefined.  If @var{parser} is a language symbol, the function limits
+the parsers it tries to the ones for that language.
 @end defun
 
 @defun treesit-thing-next position thing &optional parser
@@ -1819,7 +1819,7 @@ This function is similar to @code{treesit-thing-prev}, only it returns
 the first node @emph{after} @var{position} that's the @var{thing}.  It
 also guarantees that if a node is returned, the node's start position is
 greater or equal to @var{position}.  The @var{parser} parameter is the
-same as in @code{treesit-thing-prev} as well.
+same as in @code{treesit-thing-prev}.
 @end defun
 
 @defun treesit-navigate-thing position arg side thing &optional tactic
@@ -1873,10 +1873,10 @@ position must be strictly greater than @var{position}.
 @code{treesit-thing-settings}, or a predicate.
 
 If @var{parser} is non-nil, only use that parser's parse tree.
-Otherwise each parser covering point is tried from most specific (deepest
-embedded) to least specific.  If there are multiple parsers with the same
-embed level at @var{pos}, which parser is tried first is undefined.
-@var{parser} can also be a language symbol.
+Otherwise try each parser covering point, from the most specific
+(deepest-embedded) to the least specific.  If there are multiple parsers
+with the same embed level at @var{position}, which parser is tried first is
+undefined.  @var{parser} can also be a language symbol.
 @end defun
 
 @findex treesit-beginning-of-thing

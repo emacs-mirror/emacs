@@ -3644,7 +3644,7 @@ This assumes the function has the `important-return-value' property."
               cl-search
               ))
   (put f 'funarg-positions '(:test :test-not :key)))
-(dolist (f '( cl-find-if cl-find-if-not cl-member-if cl-member-if-not
+(dolist (f '( cl-find-if cl-find-if-not member-if cl-member-if-not
               cl-assoc-if cl-assoc-if-not cl-rassoc-if cl-rassoc-if-not
               cl-position-if cl-position-if-not cl-count-if cl-count-if-not
               cl-remove-if cl-remove-if-not cl-delete-if cl-delete-if-not

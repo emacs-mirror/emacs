@@ -113,8 +113,8 @@ The return value is the incremented value of PLACE.
 If X is specified, it should be an expression that should
 evaluate to a number.
 
-This macro is considered deprecated in favor of the built-in macro
-`incf' that was added in Emacs 31.1.")
+This macro is deprecated in favor of the built-in macro `incf' that was
+added in Emacs 31.1.")
 
 (defalias 'cl-decf #'decf
   "Decrement PLACE by X (1 by default).
@@ -124,8 +124,8 @@ The return value is the decremented value of PLACE.
 If X is specified, it should be an expression that should
 evaluate to a number.
 
-This macro is considered deprecated in favor of the built-in macro
-`decf' that was added in Emacs 31.1.")
+This macro is deprecated in favor of the built-in macro `decf' that was
+added in Emacs 31.1.")
 
 (defmacro cl-pushnew (x place &rest keys)
   "Add X to the list stored in PLACE unless X is already in the list.
@@ -269,26 +269,26 @@ so that they are registered at compile-time as well as run-time."
 (defalias 'cl-plusp #'plusp
   "Return t if NUMBER is positive.
 
-This function is considered deprecated in favor of the built-in function
-`plusp' that was added in Emacs 31.1.")
+This function is deprecated in favor of the built-in function `plusp'
+that was added in Emacs 31.1.")
 
 (defalias 'cl-minusp #'minusp
   "Return t if NUMBER is negative.
 
-This function is considered deprecated in favor of the built-in function
-`minusp' that was added in Emacs 31.1.")
+This function is deprecated in favor of the built-in function `minusp'
+that was added in Emacs 31.1.")
 
 (defalias 'cl-oddp #'oddp
   "Return t if INTEGER is odd.
 
-This function is considered deprecated in favor of the built-in function
-`oddp' that was added in Emacs 31.1.")
+This function is deprecated in favor of the built-in function `oddp'
+that was added in Emacs 31.1.")
 
 (defalias 'cl-evenp #'evenp
   "Return t if INTEGER is even.
 
-This function is considered deprecated in favor of the built-in function
-`evenp' that was added in Emacs 31.1.")
+This function is deprecated in favor of the built-in function `evenp'
+that was added in Emacs 31.1.")
 
 (defconst cl-digit-char-table
   (let* ((digits (make-vector 256 nil))

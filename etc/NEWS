@@ -143,6 +143,12 @@ instead of its now-obsolete variable.
 
 ** Network Security Manager (NSM) is now more strict.
 
+---
+** New char-table 'special-mirror-table' for mirroring special glyphs.
+This char-table is used to mirror special glyphs (truncation and
+continuation) when the user has defined an alternative representation
+for those characters via display tables.
+
 *** NSM warns about TLS 1.1 by default.
 It has been deprecated by RFC 8996, published in 2021.
 
@@ -1250,16 +1256,16 @@ Multi-language major modes can rely on the default return value from
 'treesit-language-at' that uses the new function 'treesit-parsers-at'.
 
 +++
-*** Tree-sitter thing functions now work better with multiple parsers
-These functions now have better handling when there are multiple
-parsers at point: 'treesit-thing-prev', 'treesit-thing-next',
+*** Tree-sitter thing functions now work better with multiple parsers.
+The following functions now handle better the case when there are
+multiple parsers at point: 'treesit-thing-prev', 'treesit-thing-next',
 'treesit-navigate-thing', 'treesit-thing-at'.  When there are multiple
 parsers at point, instead of using whatever 'treesit-node-at' returns at
-point, these functions now try every relevant parser in descending
-order of relevance.  (Deeper embedded parser has higher relevance.)
-These functions now also take an additional optional argument, PARSER,
-that allows caller to specify a parser or language to use.  That also
-means 'treesit-beginning/end-of-defun' now can move across parsers.
+point, these functions now try every relevant parser in descending order
+of relevance.  (Deeper-embedded parsers have higher relevance.)  These
+functions now also take an additional optional argument, PARSER, that
+allows caller to specify a parser or language to use.  That also means
+'treesit-beginning/end-of-defun' now can move across parsers.
 
 
 +++
@@ -1686,15 +1692,16 @@ the list of types to which a value belongs.
 These functions or macros have been added to Emacs Lisp, and the old
 names are now aliases for the built-in equivalents:
 
-- 'cl-incf'   renamed to 'incf'
-- 'cl-decf'   renamed to 'decf'
-- 'cl-oddp'   renamed to 'oddp'
-- 'cl-evenp'  renamed to 'evenp'
-- 'cl-plusp'  renamed to 'plusp'
-- 'cl-minusp' renamed to 'minusp'
+- 'cl-incf'      renamed to 'incf'
+- 'cl-decf'      renamed to 'decf'
+- 'cl-oddp'      renamed to 'oddp'
+- 'cl-evenp'     renamed to 'evenp'
+- 'cl-plusp'     renamed to 'plusp'
+- 'cl-minusp'    renamed to 'minusp'
+- 'cl-member-if' renamed to 'member-if'
 
-The old names are considered deprecated, and will be marked as obsolete
-in some future release.
+The old names are deprecated, and will be marked as obsolete in some
+future release.
 
 +++
 *** 'cl-labels' now also accepts '(FUNC EXP)' bindings, like 'cl-flet'.
@@ -4060,8 +4067,8 @@ signal an error if they are given a non-integer.
 These work like 'drop' and 'take' but use a predicate instead of counting.
 
 +++
-** New functions 'any' and 'all'.
-These return non-nil for lists where any and all elements, respectively,
+** New function 'all' and function alias 'any'.
+These return non-nil for lists where all and any elements, respectively,
 satisfy a given predicate.
 
 +++

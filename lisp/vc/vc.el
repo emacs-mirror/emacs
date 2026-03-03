@@ -4303,7 +4303,7 @@ some users might prefer for interactive usage."
                  (vc--read-limit)
                (prefix-numeric-value current-prefix-arg))))
         (vc-print-fileset-branch-log branch))
-    (vc-print-log)))
+    (vc-print-log (and (plusp vc-log-show-limit) vc-log-show-limit))))
 
 ;;;###autoload
 (defun vc-print-root-log (&optional limit revision)
@@ -4347,7 +4347,7 @@ instead of the working revision, and a number specifying the maximum
 number of revisions to show; the default is `vc-log-show-limit'.
 You can also use a numeric prefix argument to specify this.
 
-This is like `vc-root-print-log' but with an alternative prefix argument
+This is like `vc-print-root-log' but with an alternative prefix argument
 that some users might prefer for interactive usage."
   (declare (interactive-only vc-print-root-log))
   (interactive)
@@ -4359,7 +4359,7 @@ that some users might prefer for interactive usage."
                  (vc--read-limit)
                (prefix-numeric-value current-prefix-arg))))
         (vc-print-root-branch-log branch))
-    (vc-print-root-log)))
+    (vc-print-root-log (and (plusp vc-log-show-limit) vc-log-show-limit))))
 
 (defun vc--read-branch-to-log (&optional fileset)
   "Read the name of a branch to log.

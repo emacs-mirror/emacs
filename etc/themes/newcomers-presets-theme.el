@@ -92,6 +92,7 @@ This minor mode will enable and disable the theme on startup."
  '(font-use-system-font t)
  '(frame-resize-pixelwise t)
  '(window-resize-pixelwise t)
+ '(mode-line-compact 'long)
 
 ;;;; Mouse-related options
  '(context-menu-mode t)
@@ -113,13 +114,24 @@ This minor mode will enable and disable the theme on startup."
  '(repeat-mode t)
  '(delete-selection-mode t)
  '(editorconfig-mode t)
+ '(indent-tabs-mode nil)
+ '(imenu-auto-rescan t)
+ '(view-read-only t)
 
 ;;;; Directory managment-related options
  '(dired-auto-revert-buffer t)
  '(dired-mouse-drag-files t)
+ '(shell-command-prompt-show-cwd t)
 
 ;;;; File-related options
+ '(after-save-hook '(executable-make-buffer-file-executable-if-script-p))
+ '(etags-regen-mode t)
  '(vc-auto-revert-mode t)
+ '(vc-deduce-backend-nonvc-modes t)
+ '(vc-dir-save-some-buffers-on-revert t)
+ '(vc-find-revision-no-save t)
+ '(vc-follow-symlinks t)
+ '(vc-use-incoming-outgoing-prefixes t)
 
 ;;;; Completion-related options
  '(minibuffer-visible-completions t)
@@ -135,6 +147,9 @@ This minor mode will enable and disable the theme on startup."
 ;;;; Package-related options
  '(package-autosuggest-mode t)
  '(package-menu-use-current-if-no-marks nil)
+
+;;;; Frame and window-related options
+ '(tab-bar-history-mode t)
 
  )
 

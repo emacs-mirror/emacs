@@ -79,6 +79,10 @@ and @kbd{C-M-l}.  If you have this problem, you can either customize
 your window manager to not block those keys, or rebind the
 affected Emacs commands (@pxref{Customization}).
 
+  If one Emacs frame is doing minibuffer prompting and other Emacs
+frames appear to ignore input, you may wish to disable single-keyboard
+mode.  @xref{Multiple Displays}.
+
 @cindex input event
   Simple characters and control characters, as well as certain
 non-keyboard inputs such as mouse clicks, are collectively referred to
