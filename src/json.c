@@ -332,13 +332,17 @@ json_out_string (json_out_t *jo, Lisp_Object str, int skip)
   p += skip;
   while (p < end)
     {
-      unsigned char c = *p;
-      if (json_plain_char[c])
+      unsigned char *run = p;
+      while (p < end && json_plain_char[*p])
+	p++;
+      if (p > run)
 	{
-	  json_out_byte (jo, c);
-	  p++;
+	  json_out_str (jo, (const char *)run, p - run);
+	  continue;
 	}
-      else if (c > 0x7f)
+
+      unsigned char c = *p;
+      if (c > 0x7f)
 	{
 	  if (STRING_MULTIBYTE (str))
 	    {
